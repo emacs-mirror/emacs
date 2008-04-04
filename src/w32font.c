@@ -378,8 +378,8 @@ w32font_text_extents (font, code, nglyphs, metrics)
       transform.eM11.value = 1;
       transform.eM22.value = 1;
       metrics->width = 0;
-      metrics->ascent = 0;
-      metrics->descent = 0;
+      metrics->ascent = font->ascent;
+      metrics->descent = font->descent;
       metrics->lbearing = 0;
 
       for (i = 0; i < nglyphs; i++)
@@ -399,8 +399,6 @@ w32font_text_extents (font, code, nglyphs, metrics)
               metrics->rbearing = max (metrics->rbearing,
                                        metrics->width + char_metric->rbearing);
               metrics->width += char_metric->width;
-              metrics->ascent = max (metrics->ascent, char_metric->ascent);
-              metrics->descent = max (metrics->descent, char_metric->descent);
             }
           else
             {
@@ -422,11 +420,6 @@ w32font_text_extents (font, code, nglyphs, metrics)
                   new_val = metrics->width + gm.gmptGlyphOrigin.x;
                   metrics->lbearing = min (metrics->lbearing, new_val);
                   metrics->width += gm.gmCellIncX;
-                  new_val = gm.gmBlackBoxY;
-                  metrics->ascent = max (metrics->ascent, new_val);
-                  new_val = (gm.gmCellIncY - gm.gmptGlyphOrigin.y
-			     - gm.gmBlackBoxY);
-                  metrics->descent = max (metrics->descent, new_val);
                 }
               else
                 {
@@ -505,8 +498,6 @@ w32font_text_extents (font, code, nglyphs, metrics)
   if (metrics)
     {
       metrics->width = total_width;
-      metrics->ascent = font->ascent;
-      metrics->descent = font->descent;
       metrics->lbearing = 0;
       metrics->rbearing = total_width
         + ((struct w32font_info *) font)->metrics.tmOverhang;
@@ -1842,9 +1833,6 @@ recompute_cached_metrics (dc, w32_font)
           char_metric->lbearing = gm.gmptGlyphOrigin.x;
           char_metric->rbearing = gm.gmBlackBoxX + gm.gmptGlyphOrigin.x;
           char_metric->width = gm.gmCellIncX;
-          char_metric->ascent = gm.gmBlackBoxY;
-          char_metric->descent = (gm.gmCellIncY - gm.gmptGlyphOrigin.y
-				  - gm.gmBlackBoxY);
         }
       else
         char_metric->width = 0;
