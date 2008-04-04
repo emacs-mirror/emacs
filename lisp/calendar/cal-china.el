@@ -51,7 +51,7 @@
 (require 'lunar)                        ; lunar-new-moon-on-or-after
 ;; solar-date-next-longitude brought in by lunar.
 ;;;(require 'solar)
-;; calendar-absolute-from-astro and v versa are cal-autoloads.
+;; calendar-astro-to-absolute and from-absolute are cal-autoloads.
 ;;;(require 'cal-julian)
 
 
@@ -195,7 +195,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
          (calendar-daylight-savings-ends-time
           chinese-calendar-daylight-savings-ends-time))
    (floor
-    (calendar-absolute-from-astro
+    (calendar-astro-to-absolute
      (solar-date-next-longitude (calendar-astro-from-absolute d) 30)))))
 
 (defun chinese-new-moon-on-or-after (d)
@@ -217,7 +217,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
          (calendar-daylight-savings-ends-time
           chinese-calendar-daylight-savings-ends-time))
     (floor
-     (calendar-absolute-from-astro
+     (calendar-astro-to-absolute
       (lunar-new-moon-on-or-after (calendar-astro-from-absolute d))))))
 
 (defun chinese-month-list (start end)
