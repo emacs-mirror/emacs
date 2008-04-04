@@ -33,19 +33,19 @@
 
 (require 'calendar)
 
-(defconst persian-calendar-month-name-array
+(defconst calendar-persian-month-name-array
   ["Farvardin" "Ordibehest" "Xordad" "Tir" "Mordad" "Sahrivar" "Mehr" "Aban"
    "Azar" "Dey" "Bahman" "Esfand"]
   "Names of the months in the Persian calendar.")
 
 (eval-and-compile
-  (autoload 'calendar-absolute-from-julian "cal-julian"))
+  (autoload 'calendar-julian-to-absolute "cal-julian"))
 
-(defconst persian-calendar-epoch
-  (eval-when-compile (calendar-absolute-from-julian '(3 19 622)))
+(defconst calendar-persian-epoch
+  (eval-when-compile (calendar-julian-to-absolute '(3 19 622)))
   "Absolute date of start of Persian calendar = March 19, 622 AD (Julian).")
 
-(defun persian-calendar-leap-year-p (year)
+(defun calendar-persian-leap-year-p (year)
   "True if YEAR is a leap year on the Persian calendar."
   (< (mod (* (mod (mod (if (<= 0 year)
                            (+ year 2346) ; no year zero
@@ -56,14 +56,14 @@
           2820)
      683))
 
-(defun persian-calendar-last-day-of-month (month year)
+(defun calendar-persian-last-day-of-month (month year)
   "Return last day of MONTH, YEAR on the Persian calendar."
   (cond
    ((< month 7) 31)
-   ((or (< month 12) (persian-calendar-leap-year-p year)) 30)
+   ((or (< month 12) (calendar-persian-leap-year-p year)) 30)
    (t 29)))
 
-(defun calendar-absolute-from-persian (date)
+(defun calendar-persian-to-absolute (date)
   "Compute absolute date from Persian date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
@@ -71,10 +71,10 @@ Gregorian date Sunday, December 31, 1 BC."
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (if (< year 0)
-        (+ (calendar-absolute-from-persian
+        (+ (calendar-persian-to-absolute
             (list month day (1+ (mod year 2820))))
            (* 1029983 (floor year 2820)))
-      (+ (1- persian-calendar-epoch)    ; days before epoch
+      (+ (1- calendar-persian-epoch)    ; days before epoch
          (* 365 (1- year))              ; days in prior years
          (* 683                  ; leap days in prior 2820-year cycles
             (floor (+ year 2345) 2820))
@@ -86,13 +86,16 @@ Gregorian date Sunday, December 31, 1 BC."
          -568                 ; leap years in Persian years -2345...-1
          (calendar-sum        ; days in prior months this year
           m 1 (< m month)
-          (persian-calendar-last-day-of-month m year))
+          (calendar-persian-last-day-of-month m year))
          day))))                        ; days so far this month
+
+(define-obsolete-function-alias 'calendar-absolute-from-persian
+  'calendar-persian-to-absolute "23.1")
 
 (defun calendar-persian-year-from-absolute (date)
   "Persian year corresponding to the absolute DATE."
   (let* ((d0                   ; prior days since start of 2820 cycles
-          (- date (calendar-absolute-from-persian (list 1 1 -2345))))
+          (- date (calendar-persian-to-absolute (list 1 1 -2345))))
          (n2820                         ; completed 2820-year cycles
           (floor d0 1029983))
          (d1                            ; prior days not in n2820
@@ -129,14 +132,14 @@ Gregorian date Sunday, December 31, 1 BC."
          (month                        ; search forward from Farvardin
           (1+ (calendar-sum m 1
                             (> date
-                               (calendar-absolute-from-persian
+                               (calendar-persian-to-absolute
                                 (list
                                  m
-                                 (persian-calendar-last-day-of-month m year)
+                                 (calendar-persian-last-day-of-month m year)
                                  year)))
                             1)))
          (day                       ; calculate the day by subtraction
-          (- date (1- (calendar-absolute-from-persian
+          (- date (1- (calendar-persian-to-absolute
                        (list month 1 year))))))
     (list month day year)))
 
@@ -148,7 +151,7 @@ Gregorian date Sunday, December 31, 1 BC."
                          (or date (calendar-current-date)))))
          (y (extract-calendar-year persian-date))
          (m (extract-calendar-month persian-date))
-         (monthname (aref persian-calendar-month-name-array (1- m)))
+         (monthname (aref calendar-persian-month-name-array (1- m)))
          (day (int-to-string (extract-calendar-day persian-date)))
          (year (int-to-string y))
          (month (int-to-string m))
@@ -156,11 +159,14 @@ Gregorian date Sunday, December 31, 1 BC."
     (mapconcat 'eval calendar-date-display-form "")))
 
 ;;;###cal-autoload
-(defun calendar-print-persian-date ()
+(defun calendar-persian-print-date ()
   "Show the Persian calendar equivalent of the selected date."
   (interactive)
   (message "Persian date: %s"
            (calendar-persian-date-string (calendar-cursor-to-date t))))
+
+(define-obsolete-function-alias 'calendar-print-persian-date
+  'calendar-persian-print-date "23.1")
 
 (defun calendar-persian-read-date ()
   "Interactively read the arguments for a Persian date command.
@@ -178,27 +184,30 @@ Reads a year, month, and day."
                       (completing-read
                        "Persian calendar month name: "
                        (mapcar 'list
-                               (append persian-calendar-month-name-array nil))
+                               (append calendar-persian-month-name-array nil))
                        nil t)
-                      (calendar-make-alist persian-calendar-month-name-array
+                      (calendar-make-alist calendar-persian-month-name-array
                                            1))))
-         (last (persian-calendar-last-day-of-month month year))
+         (last (calendar-persian-last-day-of-month month year))
          (day (calendar-read
                (format "Persian calendar day (1-%d): " last)
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
-(define-obsolete-function-alias
-  'persian-prompt-for-date 'calendar-persian-read-date "23.1")
+(define-obsolete-function-alias 'persian-prompt-for-date
+  'calendar-persian-read-date "23.1")
 
 ;;;###cal-autoload
-(defun calendar-goto-persian-date (date &optional noecho)
+(defun calendar-persian-goto-date (date &optional noecho)
   "Move cursor to Persian date DATE.
 Echo Persian date unless NOECHO is non-nil."
   (interactive (calendar-persian-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-persian date)))
-  (or noecho (calendar-print-persian-date)))
+                       (calendar-persian-to-absolute date)))
+  (or noecho (calendar-persian-print-date)))
+
+(define-obsolete-function-alias 'calendar-goto-persian-date
+  'calendar-persian-goto-date "23.1")
 
 (defvar date)
 
