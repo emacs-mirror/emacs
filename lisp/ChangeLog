@@ -1,3 +1,19 @@
+2008-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-hebrew-all-holidays-flag):
+	Rename all-hebrew-calendar-holidays.  Update callers, keep old name
+	as alias.
+	(calendar-christian-all-holidays-flag): Rename
+	all-christian-calendar-holidays.  Update callers, keep old name as
+	alias.
+	(calendar-islamic-all-holidays-flag): Rename
+	all-islamic-calendar-holidays.   Update callers, keep old name as
+	alias.
+	(calendar-bahai-all-holidays-flag): Rename all-bahai-calendar-holidays.
+	Update callers, keep old name as alias.
+	* calendar/cal-bahai.el, calendar/cal-hebrew.el, calendar/holidays.el:
+	Update for the above name changes.
+
 2008-04-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (global-highlight-changes-mode)
