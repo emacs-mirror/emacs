@@ -556,7 +556,8 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
-(defconst diff-file-junk-re "diff \\|index ") ; "index " is output by git-diff.
+;; "index " and "new file mode" are output by git-diff.
+(defconst diff-file-junk-re "diff \\|index \\|new file mode")
 
 (defun diff-beginning-of-file-and-junk ()
   "Go to the beginning of file-related diff-info.
@@ -1236,6 +1237,11 @@ a diff with \\[diff-reverse-direction].
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
   (set (make-local-variable 'next-error-function) 'diff-next-error)
+
+  (set (make-local-variable 'beginning-of-defun-function)
+       'diff-beginning-of-file-and-junk)
+  (set (make-local-variable 'end-of-defun-function)
+       'diff-end-of-file)
 
   (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks

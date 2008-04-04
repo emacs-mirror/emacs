@@ -1,5 +1,10 @@
 2008-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* diff-mode.el (diff-file-junk-re): Recognize the git format for
+	new files.
+	(diff-mode): Set beginning-of-defun-function and
+	end-of-defun-function.
+
 	* vc-bzr.el (vc-bzr-state): Use when instead of if.
 
 	* vc.el (vc-default-status-fileinfo-extra): New function.
