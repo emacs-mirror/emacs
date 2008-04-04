@@ -147,11 +147,11 @@ and its window are permanently attached.
 @vindex resize-mini-windows
   The minibuffer window expands vertically as necessary to hold the
 text that you put in the minibuffer.  If @code{resize-mini-windows} is
-@code{t} (the default), the window always resizes as needed by its
-contents.  If its value is the symbol @code{grow-only}, the window
-grows automatically as needed, but shrinks (back to the normal size)
-only when the minibuffer becomes inactive.  If its value is
-@code{nil}, you have to adjust the height yourself.
+@code{t}, the window always resizes as needed by its contents.  If its
+value is the symbol @code{grow-only} (the default), the window grows
+automatically as needed, but shrinks (back to the normal size) only
+when the minibuffer becomes inactive.  If its value is @code{nil}, you
+have to adjust the height yourself.
 
 @vindex max-mini-window-height
   The variable @code{max-mini-window-height} controls the maximum
