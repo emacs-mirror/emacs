@@ -43,7 +43,7 @@
 (require 'calendar)
 (require 'solar)
 (require 'cal-dst)
-;; calendar-absolute-from-astro and v versa are cal-autoloads.
+;; calendar-astro-to-absolute and v versa are cal-autoloads.
 ;;;(require 'cal-julian)
 
 (defun lunar-phase (index)
@@ -354,7 +354,7 @@ use when highlighting the day in the calendar."
        (- (solar-ephemeris-correction
            (extract-calendar-year
             (calendar-gregorian-from-absolute
-             (floor (calendar-absolute-from-astro newJDE))))))
+             (floor (calendar-astro-to-absolute newJDE))))))
        (/ calendar-time-zone 60.0 24.0))))
 
 (defun lunar-new-moon-on-or-after (d)
@@ -367,7 +367,7 @@ as governed by the values of `calendar-daylight-savings-starts',
 `calendar-daylight-savings-ends-time', `calendar-daylight-time-offset', and
 `calendar-time-zone'."
   (let* ((date (calendar-gregorian-from-absolute
-                (floor (calendar-absolute-from-astro d))))
+                (floor (calendar-astro-to-absolute d))))
          (year (+ (extract-calendar-year date)
                   (/ (calendar-day-number date) 365.25)))
          (k (floor (* (- year 2000.0) 12.3685)))
@@ -376,7 +376,7 @@ as governed by the values of `calendar-daylight-savings-starts',
                    (while (< date d)
                      (setq k (1+ k)
                            date (lunar-new-moon-time k)))
-                   (calendar-absolute-from-astro date)))
+                   (calendar-astro-to-absolute date)))
          (time (* 24 (- a-date (truncate a-date))))
          (date (calendar-gregorian-from-absolute (truncate a-date)))
          (adj (dst-adjust-time date time)))
