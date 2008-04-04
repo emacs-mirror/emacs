@@ -97,47 +97,86 @@ in the file it applies to."
 
     (define-key map [hide] (cons "Hide" (make-sparse-keymap "Hide")))
 
-    (define-key map [hide hide-other] '("Hide Other" . hide-other))
-    (define-key map [hide hide-sublevels] '("Hide Sublevels" . hide-sublevels))
-    (define-key map [hide hide-subtree] '("Hide Subtree" . hide-subtree))
-    (define-key map [hide hide-entry] '("Hide Entry" . hide-entry))
-    (define-key map [hide hide-body] '("Hide Body" . hide-body))
-    (define-key map [hide hide-leaves] '("Hide Leaves" . hide-leaves))
+    (define-key map [hide hide-other]
+      '(menu-item "Hide Other" hide-other
+		  :help "Hide everything except current body and parent and top-level headings"))
+    (define-key map [hide hide-sublevels]
+      '(menu-item "Hide Sublevels" hide-sublevels
+		  :help "Hide everything but the top LEVELS levels of headers, in whole buffer"))
+    (define-key map [hide hide-subtree]
+      '(menu-item "Hide Subtree" hide-subtree
+		  :help ""))
+    (define-key map [hide hide-entry]
+      '(menu-item "Hide Entry" hide-entry
+		  :help ""))
+    (define-key map [hide hide-body]
+      '(menu-item "Hide Body" hide-body
+		  :help ""))
+    (define-key map [hide hide-leaves]
+      '(menu-item "Hide Leaves" hide-leaves
+		  :help ""))
 
     (define-key map [show] (cons "Show" (make-sparse-keymap "Show")))
 
-    (define-key map [show show-subtree] '("Show Subtree" . show-subtree))
-    (define-key map [show show-children] '("Show Children" . show-children))
-    (define-key map [show show-branches] '("Show Branches" . show-branches))
-    (define-key map [show show-entry] '("Show Entry" . show-entry))
-    (define-key map [show show-all] '("Show All" . show-all))
+    (define-key map [show show-subtree]
+      '(menu-item "Show Subtree" show-subtree
+		  :help ""))
+    (define-key map [show show-children]
+      '(menu-item "Show Children" show-children
+		  :help ""))
+    (define-key map [show show-branches]
+      '(menu-item "Show Branches" show-branches
+		  :help ""))
+    (define-key map [show show-entry]
+      '(menu-item "Show Entry" show-entry
+		  :help ""))
+    (define-key map [show show-all]
+      '(menu-item "Show All" show-all
+		  :help ""))
 
     (define-key map [headings]
       (cons "Headings" (make-sparse-keymap "Headings")))
 
     (define-key map [headings demote-subtree]
-      '(menu-item "Demote subtree" outline-demote))
+      '(menu-item "Demote subtree" outline-demote
+		  :help ""))
     (define-key map [headings promote-subtree]
-      '(menu-item "Promote subtree" outline-promote))
+      '(menu-item "Promote subtree" outline-promote
+		  :help ""))
     (define-key map [headings move-subtree-down]
-      '(menu-item "Move subtree down" outline-move-subtree-down))
+      '(menu-item "Move subtree down" outline-move-subtree-down
+		  :help ""))
     (define-key map [headings move-subtree-up]
-      '(menu-item "Move subtree up" outline-move-subtree-up))
+      '(menu-item "Move subtree up" outline-move-subtree-up
+		  :help ""))
     (define-key map [headings copy]
       '(menu-item "Copy to kill ring" outline-headers-as-kill
-	:enable mark-active))
+		  :enable mark-active
+		  :help ""))
     (define-key map [headings outline-insert-heading]
-      '("New heading" . outline-insert-heading))
+
+      '(menu-item "New heading" outline-insert-heading
+		  :help ""))
     (define-key map [headings outline-backward-same-level]
-      '("Previous Same Level" . outline-backward-same-level))
+
+      '(menu-item "Previous Same Level" outline-backward-same-level
+		  :help ""))
     (define-key map [headings outline-forward-same-level]
-      '("Next Same Level" . outline-forward-same-level))
+
+      '(menu-item "Next Same Level" outline-forward-same-level
+		  :help ""))
     (define-key map [headings outline-previous-visible-heading]
-      '("Previous" . outline-previous-visible-heading))
+
+      '(menu-item "Previous" outline-previous-visible-heading
+		  :help ""))
     (define-key map [headings outline-next-visible-heading]
-      '("Next" . outline-next-visible-heading))
+
+      '(menu-item "Next" outline-next-visible-heading
+		  :help ""))
     (define-key map [headings outline-up-heading]
-      '("Up" . outline-up-heading))
+
+      '(menu-item "Up" outline-up-heading
+		  :help ""))
     map))
 
 (defvar outline-minor-mode-menu-bar-map

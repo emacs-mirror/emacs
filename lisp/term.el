@@ -777,13 +777,17 @@ is buffer-local.")
   (let (newmap)
     (setq newmap (make-sparse-keymap "Terminal"))
     (define-key newmap [terminal-pager-enable]
-      '("Enable paging" . term-fake-pager-enable))
+      '(menu-item "Enable paging" term-fake-pager-enable
+		  :help "Enable paging feature"))
     (define-key newmap [terminal-pager-disable]
-      '("Disable paging" . term-fake-pager-disable))
+      '(menu-item "Disable paging" term-fake-pager-disable
+		  :help "Disable paging feature"))
     (define-key newmap [terminal-char-mode]
-      '("Character mode" . term-char-mode))
+      '(menu-item "Character mode" term-char-mode
+		  :help "Switch to char (raw) sub-mode of term mode"))
     (define-key newmap [terminal-line-mode]
-      '("Line mode" . term-line-mode))
+      '(menu-item "Line mode" term-line-mode
+		  :help "Switch to char (raw) sub-mode of term mode."))
     (setq term-terminal-menu (cons "Terminal" newmap))
 
     ;; completion:  (line mode only)
@@ -841,14 +845,26 @@ is buffer-local.")
 
     ;; Signals
     (setq newmap (make-sparse-keymap "Signals"))
-    (define-key newmap [eof] '("EOF" . term-send-eof))
-    (define-key newmap [kill] '("KILL" . term-kill-subjob))
-    (define-key newmap [quit] '("QUIT" . term-quit-subjob))
-    (define-key newmap [cont] '("CONT" . term-continue-subjob))
-    (define-key newmap [stop] '("STOP" . term-stop-subjob))
-    (define-key newmap [] '("BREAK" . term-interrupt-subjob))
     (define-key term-mode-map [menu-bar signals]
       (setq term-signals-menu (cons "Signals" newmap)))
+    (define-key newmap [eof]
+      '(menu-item "EOF" term-send-eof
+		  :help "Send an EOF to the current buffer's process"))
+    (define-key newmap [kill]
+      '(menu-item "KILL" term-kill-subjob
+		  :help "Send kill signal to the current subjob"))
+    (define-key newmap [quit]
+      '(menu-item "QUIT" term-quit-subjob
+		  :help "Send quit signal to the current subjob."))
+    (define-key newmap [cont]
+      '(menu-item "CONT" term-continue-subjob
+		  :help "Send CONT signal to process buffer's process group"))
+    (define-key newmap [stop]
+      '(menu-item "STOP" term-stop-subjob
+		  :help "Stop the current subjob"))
+    (define-key newmap [brk]
+      '(menu-item "BREAK" term-interrupt-subjob
+		  :help "Interrupt the current subjob"))
     ))
 
 ;; Set up term-raw-map, etc.

@@ -1,5 +1,14 @@
 2008-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* outline.el (outline-mode-menu-bar-map):
+	* term.el (terminal-signal-menu): Add :help.
+
+	* net/eudc.el (eudc-mode-map): Declare and define in one step.
+	(eudc-tail-menu, eudc-server-menu, eudc-tools-menu): Add :help.
+
+	* emacs-lisp/re-builder.el (reb-mode-map):
+	* textmodes/nroff-mode.el (nroff-mode-map): Add menus.
+
 	* diff-mode.el (diff-file-junk-re): Recognize the git format for
 	new files.
 	(diff-mode): Set beginning-of-defun-function and

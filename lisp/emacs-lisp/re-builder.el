@@ -232,7 +232,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 ;; Define the local "\C-c" keymap
 (defvar reb-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'reb-toggle-case)
     (define-key map "\C-c\C-q" 'reb-quit)
     (define-key map "\C-c\C-w" 'reb-copy)
@@ -242,6 +243,35 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (define-key map "\C-c\C-e" 'reb-enter-subexp-mode)
     (define-key map "\C-c\C-b" 'reb-change-target-buffer)
     (define-key map "\C-c\C-u" 'reb-force-update)
+    (define-key map [menu-bar reb-mode] (cons "Re-Builder" menu-map))
+    (define-key menu-map [rq]
+      '(menu-item "Quit" reb-quit
+		  :help "Quit the RE Builder mode"))
+    (define-key menu-map [rt]
+      '(menu-item "Case sensitive" reb-toggle-case
+		  :button (:toggle . case-fold-search)
+		  :help "Toggle case sensitivity of searches for RE Builder target buffer."))
+    (define-key menu-map [rb]
+      '(menu-item "Change target buffer..." reb-change-target-buffer
+		  :help "Change the target buffer and display it in the target window"))
+    (define-key menu-map [rs]
+      '(menu-item "Change syntax..." reb-change-syntax
+		  :help "Change the syntax used by the RE Builder"))
+    (define-key menu-map [re]
+      '(menu-item "Enter subexpression mode" reb-enter-subexp-mode
+		  :help "Enter the subexpression mode in the RE Builder"))
+    (define-key menu-map [ru]
+      '(menu-item "Force update" reb-force-update
+		  :help "Force an update in the RE Builder target window without a match limit"))
+    (define-key menu-map [rn]
+      '(menu-item "Go to next match" reb-next-match
+		  :help "Go to next match in the RE Builder target window"))
+    (define-key menu-map [rp]
+      '(menu-item "Go to previous match" reb-prev-match
+		  :help "Go to previous match in the RE Builder target window"))
+    (define-key menu-map [rc]
+      '(menu-item "Copy current RE" reb-copy
+		  :help "Copy current RE into the kill ring for later insertion"))
     map)
   "Keymap used by the RE Builder.")
 

@@ -67,7 +67,17 @@
 ;;{{{      Internal variables and compatibility tricks
 
 (defvar eudc-form-widget-list nil)
-(defvar eudc-mode-map nil)
+
+(defvar eudc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'kill-this-buffer)
+    (define-key map "x" 'kill-this-buffer)
+    (define-key map "f" 'eudc-query-form)
+    (define-key map "b" 'eudc-try-bbdb-insert)
+    (define-key map "n" 'eudc-move-to-next-record)
+    (define-key map "p" 'eudc-move-to-previous-record)
+    map))
+(set-keymap-parent eudc-mode-map widget-keymap)
 
 (defvar mode-popup-menu)
 
@@ -1105,45 +1115,44 @@ queries the server for the existing fields and displays a corresponding form."
 
 (require 'easymenu)
 
-(setq eudc-mode-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map "q" 'kill-this-buffer)
-	(define-key map "x" 'kill-this-buffer)
-	(define-key map "f" 'eudc-query-form)
-	(define-key map "b" 'eudc-try-bbdb-insert)
-	(define-key map "n" 'eudc-move-to-next-record)
-	(define-key map "p" 'eudc-move-to-previous-record)
-	map))
-(set-keymap-parent eudc-mode-map widget-keymap)
-
 (defconst eudc-custom-generated-menu (cdr (custom-menu-create 'eudc)))
 
 (defconst eudc-tail-menu
   `(["---" nil nil]
-    ["Query with Form" eudc-query-form t]
-    ["Expand Inline Query" eudc-expand-inline t]
+    ["Query with Form" eudc-query-form
+     :help "Display a form to query the directory server"]
+    ["Expand Inline Query" eudc-expand-inline
+     :help "Query the directory server, and expand the query string before point"]
     ["Insert Record into BBDB" eudc-insert-record-at-point-into-bbdb
      (and (or (featurep 'bbdb)
 	      (prog1 (locate-library "bbdb") (message "")))
 	  (overlays-at (point))
-	  (overlay-get (car (overlays-at (point))) 'eudc-record))]
+	  (overlay-get (car (overlays-at (point))) 'eudc-record))
+     :help "Insert record at point into the BBDB database"]
     ["Insert All Records into BBDB" eudc-batch-export-records-to-bbdb
      (and (eq major-mode 'eudc-mode)
 	  (or (featurep 'bbdb)
-	      (prog1 (locate-library "bbdb") (message ""))))]
+	      (prog1 (locate-library "bbdb") (message ""))))
+     :help "Insert all the records returned by a directory query into BBDB"]
     ["---" nil nil]
-    ["Get Email" eudc-get-email t]
-    ["Get Phone" eudc-get-phone t]
-    ["List Valid Attribute Names" eudc-get-attribute-list t]
+    ["Get Email" eudc-get-email
+     :help "Get the email field of NAME from the directory server"]
+    ["Get Phone" eudc-get-phone
+     :help "Get the phone field of name from the directory server"]
+    ["List Valid Attribute Names" eudc-get-attribute-list
+     :help "Return a list of valid attributes for the current server"]
     ["---" nil nil]
     ,(cons "Customize" eudc-custom-generated-menu)))
 
 
 (defconst eudc-server-menu
   '(["---" nil nil]
-    ["Bookmark Current Server" eudc-bookmark-current-server t]
-    ["Edit Server List" eudc-edit-hotlist t]
-    ["New Server" eudc-set-server t]))
+    ["Bookmark Current Server" eudc-bookmark-current-server
+     :help "Add current server to the EUDC `servers' hotlist"]
+    ["Edit Server List" eudc-edit-hotlist
+     :help "Edit the hotlist of directory servers in a specialized buffer"]
+    ["New Server" eudc-set-server
+     :help "Set the directory server to SERVER using PROTOCOL"]))
 
 (defun eudc-menu ()
   (let (command)
@@ -1229,54 +1238,60 @@ This does nothing except loading eudc by autoload side-effect."
   nil)
 
 ;;;###autoload
-(cond ((not (featurep 'xemacs))
-       (defvar eudc-tools-menu (make-sparse-keymap "Directory Search"))
-       (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu))
-       (define-key eudc-tools-menu [phone]
-	 '("Get Phone" . eudc-get-phone))
-       (define-key eudc-tools-menu [email]
-	 '("Get Email" . eudc-get-email))
-       (define-key eudc-tools-menu [separator-eudc-email]
-	 '("--"))
-       (define-key eudc-tools-menu [expand-inline]
-	 '("Expand Inline Query" . eudc-expand-inline))
-       (define-key eudc-tools-menu [query]
-	 '("Query with Form" . eudc-query-form))
-       (define-key eudc-tools-menu [separator-eudc-query]
-	 '("--"))
-       (define-key eudc-tools-menu [new]
-	 '("New Server" . eudc-set-server))
-       (define-key eudc-tools-menu [load]
-	 '("Load Hotlist of Servers" . eudc-load-eudc)))
-
-      (t
-       (let ((menu  '("Directory Search"
-		      ["Load Hotlist of Servers" eudc-load-eudc t]
-		      ["New Server" eudc-set-server t]
-		      ["---" nil nil]
-		      ["Query with Form" eudc-query-form t]
-		      ["Expand Inline Query" eudc-expand-inline t]
-		      ["---" nil nil]
-		      ["Get Email" eudc-get-email t]
-		      ["Get Phone" eudc-get-phone t])))
-	 (if (not (featurep 'eudc-autoloads))
-	     (if (featurep 'xemacs)
-		 (if (and (featurep 'menubar)
-			  (not (featurep 'infodock)))
-		     (add-submenu '("Tools") menu))
-	       (require 'easymenu)
-	       (cond
-		((fboundp 'easy-menu-add-item)
-		 (easy-menu-add-item nil '("tools")
-				     (easy-menu-create-menu (car menu)
-							    (cdr menu))))
-		((fboundp 'easy-menu-create-keymaps)
-		 (define-key
-		   global-map
-		   [menu-bar tools eudc]
-		   (cons "Directory Search"
-			 (easy-menu-create-keymaps "Directory Search"
-						   (cdr menu)))))))))))
+(cond
+ ((not (featurep 'xemacs))
+  (defvar eudc-tools-menu
+    (let ((map (make-sparse-keymap "Directory Search")))
+      (define-key map [phone]
+	'(menu-item "Get Phone" eudc-get-phone
+		    :help "Get the phone field of name from the directory server"))
+      (define-key map [email]
+	'(menu-item "Get Email" eudc-get-email
+		    :help "Get the email field of NAME from the directory server"))
+      (define-key map [separator-eudc-email] '("--"))
+      (define-key map [expand-inline]
+	'(menu-item "Expand Inline Query" eudc-expand-inline
+		    :help "Query the directory server, and expand the query string before point"))
+      (define-key map [query]
+	'(menu-item "Query with Form" eudc-query-form
+		    :help "Display a form to query the directory server"))
+      (define-key map [separator-eudc-query] '("--"))
+      (define-key map [new]
+	'(menu-item "New Server" eudc-set-server
+		    :help "Set the directory server to SERVER using PROTOCOL"))
+      (define-key map [load]
+	'(menu-item "Load Hotlist of Servers" eudc-load-eudc
+		    :help "Load the Emacs Unified Directory Client"))
+      map))
+  (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu)))
+ (t
+  (let ((menu  '("Directory Search"
+		 ["Load Hotlist of Servers" eudc-load-eudc t]
+		 ["New Server" eudc-set-server t]
+		 ["---" nil nil]
+		 ["Query with Form" eudc-query-form t]
+		 ["Expand Inline Query" eudc-expand-inline t]
+		 ["---" nil nil]
+		 ["Get Email" eudc-get-email t]
+		 ["Get Phone" eudc-get-phone t])))
+    (if (not (featurep 'eudc-autoloads))
+	(if (featurep 'xemacs)
+	    (if (and (featurep 'menubar)
+		     (not (featurep 'infodock)))
+		(add-submenu '("Tools") menu))
+	  (require 'easymenu)
+	  (cond
+	   ((fboundp 'easy-menu-add-item)
+	    (easy-menu-add-item nil '("tools")
+				(easy-menu-create-menu (car menu)
+						       (cdr menu))))
+	   ((fboundp 'easy-menu-create-keymaps)
+	    (define-key
+	      global-map
+	      [menu-bar tools eudc]
+	      (cons "Directory Search"
+		    (easy-menu-create-keymaps "Directory Search"
+					      (cdr menu)))))))))))
 
 ;;}}}
 

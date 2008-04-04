@@ -49,13 +49,32 @@
   :type 'boolean)
 
 (defvar nroff-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key map "\t"  'tab-to-tab-stop)
     (define-key map "\es" 'center-line)
     (define-key map "\e?" 'nroff-count-text-lines)
     (define-key map "\n"  'nroff-electric-newline)
     (define-key map "\en" 'nroff-forward-text-line)
     (define-key map "\ep" 'nroff-backward-text-line)
+    (define-key map [menu-bar nroff-mode] (cons "Nroff" menu-map))
+    (define-key menu-map [nn]
+      '(menu-item "Newline" nroff-electric-newline
+		  :help "Insert newline for nroff mode; special if nroff-electric mode"))
+    (define-key menu-map [nc]
+      '(menu-item "Count text lines" nroff-count-text-lines
+		  :help "Count lines in region, except for nroff request lines."))
+    (define-key menu-map [nf]
+      '(menu-item "Forward text line" nroff-forward-text-line
+		  :help "Go forward one nroff text line, skipping lines of nroff requests"))
+    (define-key menu-map [nb]
+      '(menu-item "Backward text line" nroff-backward-text-line
+		  :help "Go backward one nroff text line, skipping lines of nroff requests"))
+    (define-key menu-map [ne]
+      '(menu-item "Electric newline mode"
+		  nroff-electric-mode
+		  :help "Auto insert closing requests if necessary"
+		  :button (:toggle . nroff-electric-mode)))
     map)
   "Major mode keymap for `nroff-mode'.")
 
@@ -247,8 +266,8 @@ An argument is a repeat count; negative means move forward."
     (".de" . "..")))
 
 (defun nroff-electric-newline (arg)
-  "Insert newline for nroff mode; special if electric-nroff mode.
-In `electric-nroff-mode', if ending a line containing an nroff opening request,
+  "Insert newline for nroff mode; special if nroff-electric mode.
+In `nroff-electric-mode', if ending a line containing an nroff opening request,
 automatically inserts the matching closing request after point."
   (interactive "P")
   (let ((completion (save-excursion
