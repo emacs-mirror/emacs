@@ -1,5 +1,7 @@
 2008-04-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* inc/sys/stat.h: New file.
+
 	* configure.bat: Add check for usp10.h.
 
 2008-04-04  Jason Rumney  <jasonr@gnu.org>
