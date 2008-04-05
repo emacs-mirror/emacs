@@ -1,5 +1,8 @@
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-util.el (mm-with-unibyte-buffer, mm-with-multibyte-buffer):
+	Prefer mm-(en|dis)able-multibyte to default-enable-multibyte-characters.
+
 	* nnheader.el (nnheader-init-server-buffer): Change buffer's multibyteness
 	after rather than before erasing it.
 

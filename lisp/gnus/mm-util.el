@@ -1053,16 +1053,18 @@ charset, and a longer list means no appropriate charset."
 (defmacro mm-with-unibyte-buffer (&rest forms)
   "Create a temporary buffer, and evaluate FORMS there like `progn'.
 Use unibyte mode for this."
-  `(let (default-enable-multibyte-characters)
-     (with-temp-buffer ,@forms)))
+  `(with-temp-buffer
+     (mm-disable-multibyte)
+     ,@forms))
 (put 'mm-with-unibyte-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-buffer 'edebug-form-spec '(body))
 
 (defmacro mm-with-multibyte-buffer (&rest forms)
   "Create a temporary buffer, and evaluate FORMS there like `progn'.
 Use multibyte mode for this."
-  `(let ((default-enable-multibyte-characters t))
-     (with-temp-buffer ,@forms)))
+  `(with-temp-buffer
+     (mm-enable-multibyte)
+     ,@forms))
 (put 'mm-with-multibyte-buffer 'lisp-indent-function 0)
 (put 'mm-with-multibyte-buffer 'edebug-form-spec '(body))
 
