@@ -1087,6 +1087,8 @@ modifiers.
 @node Text Props and Strings
 @subsubsection Text Properties in Strings
 
+@cindex @samp{#(} read syntax
+@cindex text properties, read syntax
   A string can hold properties for the characters it contains, in
 addition to the characters themselves.  This enables programs that copy
 text between strings and buffers to copy the text's properties with no
