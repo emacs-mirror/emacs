@@ -3116,11 +3116,6 @@ echo creating src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
-  if test -f ${srcdir}/admin/unidata/UnicodeData.txt; then
-    echo creating ${srcdir}/admin/unidata/Makefile
-    cp ${srcdir}/admin/unidata/Makefile.in ${srcdir}/admin/unidata/Makefile
-    CPPFLAGS="$CPPFLAGS -DHAVE_UNIDATA"
-  fi
   $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new

@@ -1,3 +1,7 @@
+2008-04-05  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: No longer create admin/unidata/Makefile.
+
 2008-03-28  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (SUBDIR_MAKEFILES): Add lisp/Makefile.
