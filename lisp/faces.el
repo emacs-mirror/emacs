@@ -2190,7 +2190,8 @@ terminal type to a different value."
   "The standard faces of Emacs."
   :group 'faces)
 
-(defface default nil
+(defface default
+  '((t nil)) ; If this were nil, face-defface-spec would not be set.
   "Basic default face."
   :group 'basic-faces)
 
