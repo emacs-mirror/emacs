@@ -120,7 +120,8 @@
 	     :value normal		; default
 	     (const :tag "italic" italic)
 	     (const :tag "oblique" oblique)
-	     (const :tag "normal" normal)))
+	     (const :tag "normal" normal)
+	     (const :tag "roman" roman)))
 
     (:underline
      (choice :tag "Underline"
