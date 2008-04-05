@@ -2094,17 +2094,17 @@ and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                                list-hebrew-diary-entries
                                cal-hebrew
                                calendar-hebrew-month-name-array-leap-year
-                               hebrew-diary-entry-symbol)
+                               diary-hebrew-entry-symbol)
    (diary-font-lock-keywords-1 diary-islamic-mark-entries
                                diary-islamic-list-entries
                                cal-islam
                                calendar-islamic-month-name-array
-                               islamic-diary-entry-symbol)
+                               diary-islamic-entry-symbol)
    (diary-font-lock-keywords-1 diary-bahai-mark-entries
                                diary-bahai-list-entries
                                cal-bahai
                                calendar-bahai-month-name-array
-                               bahai-diary-entry-symbol)
+                               diary-bahai-entry-symbol)
    (list
     (cons
      (format "^%s.*$" (regexp-quote diary-include-string))
@@ -2119,9 +2119,9 @@ and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
     (cons
      (format "^%s?%s" (regexp-quote diary-nonmarking-symbol)
              (regexp-opt (mapcar 'regexp-quote
-                                 (list hebrew-diary-entry-symbol
-                                       islamic-diary-entry-symbol
-                                       bahai-diary-entry-symbol))
+                                 (list diary-hebrew-entry-symbol
+                                       diary-islamic-entry-symbol
+                                       diary-bahai-entry-symbol))
                          t))
      '(1 font-lock-reference-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)
