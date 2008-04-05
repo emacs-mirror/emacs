@@ -1,3 +1,7 @@
+2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (functionp): Return nil for special forms.
+
 2008-04-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (autoload-ensure-default-file):

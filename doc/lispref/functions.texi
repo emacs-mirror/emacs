@@ -116,9 +116,7 @@ byte compiler.  @xref{Byte-Code Type}.
 
 @defun functionp object
 This function returns @code{t} if @var{object} is any kind of
-function, or a special form, or, recursively, a symbol whose function
-definition is a function or special form.  (This does not include
-macros.)
+function, i.e. can be passed to @code{funcall}.
 @end defun
 
 Unlike @code{functionp}, the next three functions do @emph{not}

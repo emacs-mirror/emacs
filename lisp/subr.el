@@ -231,17 +231,17 @@ configuration."
        (eq (car object) 'frame-configuration)))
 
 (defun functionp (object)
-  "Non-nil if OBJECT is any kind of function or a special form.
-Also non-nil if OBJECT is a symbol and its function definition is
-\(recursively) a function or special form.  This does not include
-macros."
+  "Non-nil if OBJECT is a function."
   (or (and (symbolp object) (fboundp object)
 	   (condition-case nil
 	       (setq object (indirect-function object))
 	     (error nil))
 	   (eq (car-safe object) 'autoload)
 	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (subrp object) (byte-code-function-p object)
+      (and (subrp object)
+           ;; Filter out special forms.
+           (not (eq 'unevalled (cdr (subr-arity object)))))
+      (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
 
 ;;;; List functions.
