@@ -282,9 +282,11 @@ rem   are like this), or have a typo in the definition of
 rem   IMAGE_FIRST_SECTION (the headers with gcc/mingw32 2.95 have this
 rem   problem).  The gcc/mingw32 2.95.2 headers are okay, as are distros
 rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
+rem   Beginning with Emacs 23, we need usp10.h.
 rem
 echo Checking whether W32 API headers are too old...
 echo #include "windows.h" >junk.c
+echo #include "usp10.h" >>junk.c
 echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
