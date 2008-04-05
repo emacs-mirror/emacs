@@ -1,3 +1,7 @@
+2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fassoc_string): Tweak docstring.
+
 2008-04-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Support inode numbers wider than 32
