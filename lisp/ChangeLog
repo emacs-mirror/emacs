@@ -40,6 +40,16 @@
 	to diary-islamic-entry-symbol.
 	* calendar/diary-lib.el: Update for diary-entry-symbol renames.
 
+	* calendar/solar.el (diary-sabbath-candles-minutes)
+	(diary-sabbath-candles): Move to cal-hebrew.
+	* calendar/cal-hebrew.el (diary-hebrew-sabbath-candles-minutes)
+	(diary-hebrew-sabbath-candles): Move here from solar.el and rename.
+	Doc fix.  Keep old name as alias.
+	(solar-setup, solar-sunrise-sunset, calendar-latitude)
+	(calendar-longitude, calendar-time-zone): Declare for compiler.
+	* calendar/diary-lib.el (list-sexp-diary-entries): Update doc for
+	rename.
+
 	* calendar/cal-coptic.el (calendar-coptic-month-name-array):
 	Rename coptic-calendar-month-name-array.  Update callers.
 	(calendar-coptic-epoch): Rename coptic-calendar-epoch.  Update callers.
