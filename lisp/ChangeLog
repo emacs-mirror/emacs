@@ -1,3 +1,7 @@
+2008-04-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (abort-if-file-too-large): Fix typo in docstring.
+
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (functionp): Return nil for special forms.
@@ -22,8 +26,8 @@
 	* calendar/calendar.el (hebrew-holidays-1, hebrew-holidays-2)
 	(hebrew-holidays-3, hebrew-holidays-4): Don't autoload obsolescence.
 
-	* calendar/calendar.el (diary-hebrew-entry-symbol): Rename
-	hebrew-diary-entry-symbol.  Keep old name as alias.
+	* calendar/calendar.el (diary-hebrew-entry-symbol):
+	Rename hebrew-diary-entry-symbol.  Keep old name as alias.
 	(diary-islamic-entry-symbol): Rename islamic-diary-entry-symbol.
 	Keep old name as alias.
 	(diary-bahai-entry-symbol): Rename bahai-diary-entry-symbol.
@@ -459,7 +463,7 @@
 	Rename all-christian-calendar-holidays.  Update callers, keep old
 	name as alias.
 	(calendar-islamic-all-holidays-flag):
-	Rename all-islamic-calendar-holidays.   Update callers, keep old
+	Rename all-islamic-calendar-holidays.  Update callers, keep old
 	name as alias.
 	(calendar-bahai-all-holidays-flag): Rename all-bahai-calendar-holidays.
 	Update callers, keep old name as alias.
