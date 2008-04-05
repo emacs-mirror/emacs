@@ -1,3 +1,8 @@
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-format): Support inodes that are 2- or
+	3-member cons cells.
+
 2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-face.el (custom-face-attributes): Handle roman slant.
