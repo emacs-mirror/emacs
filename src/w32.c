@@ -637,8 +637,6 @@ init_user_info ()
 	      the_passwd.pw_uid =
 		*get_sid_sub_authority (user_token.User.Sid,
 					n_subauthorities - 1);
-	      /* Restrict to conventional uid range for normal users.  */
-	      the_passwd.pw_uid %= 60001;
 	    }
 
 	  /* Get group id */
@@ -656,8 +654,6 @@ init_user_info ()
 		  the_passwd.pw_gid =
 		    *get_sid_sub_authority (group_token.PrimaryGroup,
 					    n_subauthorities - 1);
-		  /* I don't know if this is necessary, but for safety...  */
-		  the_passwd.pw_gid %= 60001;
 		}
 	    }
 	  else
