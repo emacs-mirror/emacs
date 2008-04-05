@@ -2102,11 +2102,15 @@ do_completion ()
 
 DEFUN ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
        doc: /* Like `assoc' but specifically for strings (and symbols).
-Symbols are converted to strings, and unibyte strings are converted to
-multibyte for comparison.
-Case is ignored if optional arg CASE-FOLD is non-nil.
-As opposed to `assoc', it will also match an entry consisting of a single
-string rather than a cons cell whose car is a string.  */)
+
+This returns the first element of LIST whose car matches the string or
+symbol KEY, or nil if no match exists.  When performing the
+comparison, symbols are first converted to strings, and unibyte
+strings to multibyte.  If the optional arg CASE-FOLD is non-nil, case
+is ignored.
+
+Unlike `assoc', KEY can also match an entry in LIST consisting of a
+single string, rather than a cons cell whose car is a string.  */)
        (key, list, case_fold)
      register Lisp_Object key;
      Lisp_Object list, case_fold;
