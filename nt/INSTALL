@@ -368,7 +368,7 @@
   definitions from winnt.h that are used by addsection.c.
   Older versions of the W32 API headers that come with Cygwin and MinGW
   may be missing some definitions required by Emacs, or broken in other
-  ways. In particular, uniscribe APIs were added to mingw cvs on
+  ways.  In particular, uniscribe APIs were added to MinGW CVS only on
   2006-03-26, so releases from before then cannot be used.
 
   When in doubt about correctness of what configure did, look at the file
