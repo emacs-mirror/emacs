@@ -1507,6 +1507,17 @@ When nil, never request confirmation."
   :version "22.1"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
+(defun abort-if-file-too-large (size op-type)
+  "If file SIZE larger than LARGE-FILE-WARNING-THRESHOLD, allow user to abort.
+OP-TYPE specifies the file operation being performed (for message to user)."
+  (when (and large-file-warning-threshold size
+	   (> size large-file-warning-threshold)
+	   (not (y-or-n-p
+		 (format "File %s is large (%dMB), really %s? "
+			 (file-name-nondirectory filename)
+			 (/ size 1048576) op-type))))
+	  (error "Aborted")))
+
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -1558,16 +1569,8 @@ the various files."
 	      (if (or find-file-existing-other-name find-file-visit-truename)
 		  (setq buf other))))
 	;; Check to see if the file looks uncommonly large.
-	(when (and large-file-warning-threshold (nth 7 attributes)
-		   ;; Don't ask again if we already have the file or
-		   ;; if we're asked to be quiet.
-		   (not (or buf nowarn))
-		   (> (nth 7 attributes) large-file-warning-threshold)
-		   (not (y-or-n-p
-			 (format "File %s is large (%dMB), really open? "
-				 (file-name-nondirectory filename)
-				   (/ (nth 7 attributes) 1048576)))))
-	  (error "Aborted"))
+	(when (not (or buf nowarn))
+	  (abort-if-file-too-large (nth 7 attributes) "open"))
 	(if buf
 	    ;; We are using an existing buffer.
 	    (let (nonexistent)
@@ -1796,6 +1799,8 @@ This function ensures that none of these modifications will take place."
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
                                 filename)))
+  ;; Check whether the file is uncommonly large
+  (abort-if-file-too-large (nth 7 (file-attributes filename)) "insert")
   (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
                                        #'buffer-modified-p))
          (tem (funcall insert-func filename)))

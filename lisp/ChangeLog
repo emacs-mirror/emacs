@@ -1,3 +1,8 @@
+2008-04-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* files.el (abort-if-file-too-large): New function.
+	(find-file-noselect, insert-file-1): Use it.
+
 2008-04-05  Reto Zimmermann  <reto@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-mode-map-init):
