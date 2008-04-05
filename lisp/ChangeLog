@@ -90,6 +90,145 @@
 	* calendar/cal-menu.el, calendar/calendar.el:
 	Update for Coptic and French name changes.
 
+	* calendar/cal-china.el (calendar-chinese): Rename custom group
+	from chinese-calendar.  Update users.
+	(calendar-chinese-time-zone): Rename chinese-calendar-time-zone.
+	Keep old name as alias, update users.
+	(calendar-chinese-location-name): Rename chinese-calendar-location-name.
+	Keep old name as alias.
+	(calendar-chinese-daylight-time-offset):
+	Rename chinese-calendar-daylight-time-offset.  Keep old name as alias,
+	update users.
+	(calendar-chinese-standard-time-zone-name):
+	Rename chinese-calendar-standard-time-zone-name.
+	Keep old name as alias, update users.
+	(calendar-chinese-daylight-saving-start):
+	Rename chinese-calendar-daylight-savings-starts.
+	Keep old name as alias, update users.
+	(calendar-chinese-daylight-saving-end):
+	Rename chinese-calendar-daylight-savings-ends.  Keep old name as alias,
+	update users.
+	(calendar-chinese-daylight-saving-start-time):
+	Rename chinese-calendar-daylight-savings-starts-time.
+	Keep old name as alias, update users.
+	(calendar-chinese-daylight-saving-end-time):
+	Rename chinese-calendar-daylight-savings-ends-time.
+	Keep old name as alias, update users.
+	(calendar-chinese-celestial-stem): Rename
+	calendar-chinese-celestial-stem.  Keep old name as alias, update users.
+	(calendar-chinese-terrestrial-branch):
+	Rename calendar-chinese-terrestrial-branch.  Keep old name as alias,
+	update users.
+	(calendar-chinese-zodiac-sign-on-or-after):
+	Rename chinese-zodiac-sign-on-or-after.  Update callers.
+	(calendar-chinese-new-moon-on-or-after):
+	Rename chinese-new-moon-on-or-after.  Update callers.
+	(calendar-chinese-month-list): Rename chinese-month-list.
+	Update callers.
+	(calendar-chinese-number-months): Rename number-chinese-months.
+	Update callers.
+	(calendar-chinese-compute-year): Rename compute-chinese-year.
+	Update callers.
+	(calendar-chinese-year-cache): Rename chinese-year-cache.  Update users.
+	(calendar-chinese-year): Rename chinese-year.  Update callers.
+	(calendar-chinese-year-cache-init): Rename chinese-year-cache-init.
+	(calendar-chinese-to-absolute): Rename calendar-absolute-from-chinese.
+	Keep old name as alias, update callers.
+	(calendar-chinese-print-date): Rename calendar-print-chinese-date.
+	Keep old name as alias, update callers.
+	(calendar-chinese-months-to-alist):
+	Rename make-chinese-month-assoc-list.  Update callers.
+	(calendar-chinese-months): Rename chinese-months.  Update callers.
+	(calendar-chinese-goto-date): Rename calendar-goto-chinese-date.
+	Keep old name as alias, update callers.
+
+	* cal-hebrew.el (calendar-hebrew-leap-year-p):
+	Rename hebrew-calendar-leap-year-p.  Update callers.
+	(calendar-hebrew-last-month-of-year):
+	Rename hebrew-calendar-last-month-of-year.  Update callers.
+	(calendar-hebrew-elapsed-days): Rename hebrew-calendar-elapsed-days.
+	Update callers.
+	(calendar-hebrew-days-in-year): Rename hebrew-calendar-days-in-year.
+	Update callers.
+	(calendar-hebrew-long-heshvan-p): Rename hebrew-calendar-long-heshvan-p.
+	Update callers.
+	(calendar-hebrew-short-kislev-p): Rename hebrew-calendar-short-kislev-p.
+	Update callers.
+	(calendar-hebrew-last-day-of-month):
+	Rename hebrew-calendar-last-day-of-month.  Update callers.
+	(calendar-hebrew-to-absolute): Rename calendar-absolute-from-hebrew.
+	Keep old name as alias, update callers.
+	(calendar-hebrew-print-date): Rename calendar-print-hebrew-date.
+	Keep old name as alias, update callers.
+	(calendar-hebrew-yahrzeit): Rename hebrew-calendar-yahrzeit.
+	Keep old name as alias, update callers.
+	(calendar-hebrew-goto-date): Rename calendar-goto-hebrew-date.
+	Keep old name as alias.
+	(holiday-hebrew-rosh-hashanah): Rename holiday-rosh-hashanah-etc.
+	Keep old name as alias.
+	(holiday-hebrew-hanukkah): Rename holiday-hanukkah.
+	Keep old name as alias.
+	(holiday-hebrew-passover): Rename holiday-passover-etc.
+	Keep old name as alias.
+	(holiday-hebrew-tisha-b-av): Rename holiday-tisha-b-av-etc.
+	Keep old name as alias, update callers.
+	(diary-hebrew-list-entries): Rename list-hebrew-diary-entries.
+	Keep old name as alias.
+	(calendar-hebrew-mark-date-pattern):
+	Rename mark-hebrew-calendar-date-pattern.  Keep old name as alias,
+	update callers.
+	(diary-hebrew-mark-entries): Rename mark-hebrew-diary-entries.
+	Keep old name as alias.
+	(diary-hebrew-insert-entry): Rename insert-hebrew-diary-entry.
+	Keep old name as alias.
+	(diary-hebrew-insert-monthly-entry):
+	Rename insert-monthly-hebrew-diary-entry.  Keep old name as alias.
+	(diary-hebrew-insert-yearly-entry):
+	Rename insert-yearly-hebrew-diary-entry.  Keep old name as alias.
+	(calender-hebrew-list-yahrzeits): Rename list-yahrzeit-dates.
+	Keep old name as alias.
+	(diary-hebrew-omer): Rename diary-omer.  Keep old name as alias.
+	(diary-hebrew-yahrzeit): Rename diary-yahrzeit.  Keep old name as alias.
+	(diary-hebrew-rosh-hodesh): Rename diary-rosh-hodesh.
+	Keep old name as alias.
+	(calendar-hebrew-parashiot-names):
+	Rename hebrew-calendar-parashiot-names.  Update callers.
+	(calendar-hebrew-parasha-name): Rename hebrew-calendar-parasha-name.
+	(calendar-hebrew-year-Saturday-incomplete-Sunday):
+	Rename hebrew-calendar-year-Saturday-incomplete-Sunday.
+	(calendar-hebrew-year-Saturday-complete-Tuesday):
+	Rename hebrew-calendar-year-Saturday-complete-Tuesday.
+	(calendar-hebrew-year-Monday-incomplete-Tuesday):
+	Rename hebrew-calendar-year-Monday-incomplete-Tuesday.
+	(calendar-hebrew-year-Monday-complete-Thursday):
+	Rename hebrew-calendar-year-Monday-complete-Thursday.
+	(calendar-hebrew-year-Tuesday-regular-Thursday):
+	Rename hebrew-calendar-year-Tuesday-regular-Thursday.
+	(calendar-hebrew-year-Thursday-regular-Saturday):
+	Rename hebrew-calendar-year-Thursday-regular-Saturday.
+	(calendar-hebrew-year-Thursday-complete-Sunday):
+	Rename hebrew-calendar-year-Thursday-complete-Sunday.
+	(calendar-hebrew-year-Saturday-incomplete-Tuesday):
+	Rename hebrew-calendar-year-Saturday-incomplete-Tuesday.
+	(calendar-hebrew-year-Saturday-complete-Thursday):
+	Rename hebrew-calendar-year-Saturday-complete-Thursday.
+	(calendar-hebrew-year-Monday-incomplete-Thursday):
+	Rename hebrew-calendar-year-Monday-incomplete-Thursday.
+	(calendar-hebrew-year-Monday-complete-Saturday):
+	Rename hebrew-calendar-year-Monday-complete-Saturday.
+	(calendar-hebrew-year-Tuesday-regular-Saturday):
+	Rename hebrew-calendar-year-Tuesday-regular-Saturday.
+	(calendar-hebrew-year-Thursday-incomplete-Sunday):
+	Rename hebrew-calendar-year-Thursday-incomplete-Sunday.
+	(calendar-hebrew-year-Thursday-complete-Tuesday):
+	Rename hebrew-calendar-year-Thursday-complete-Tuesday.
+	(diary-hebrew-parasha): Rename diary-parasha.  Keep old name as alias.
+	Update for above name changes of constants.
+
+	* calendar/cal-menu.el, calendar/calendar.el:
+	Update for chinese and hebrew name changes.
+	* diary-lib.el: Update for hebrew name changes.
+
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (keymap-canonicalize): Correct thinko.
