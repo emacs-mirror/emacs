@@ -171,7 +171,11 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
-  cp->whitespace_regexp = Vsearch_spaces_regexp;
+  if (STRINGP (Vsearch_spaces_regexp))
+    cp->whitespace_regexp = Vsearch_spaces_regexp;
+  else
+    cp->whitespace_regexp = Qnil;
+
   /* rms: I think BLOCK_INPUT is not needed here any more,
      because regex.c defines malloc to call xmalloc.
      Using BLOCK_INPUT here means the debugger won't run if an error occurs.
@@ -180,8 +184,10 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
-  re_set_whitespace_regexp (NILP (Vsearch_spaces_regexp) ? NULL
-			    : SDATA (Vsearch_spaces_regexp));
+  if (STRINGP (Vsearch_spaces_regexp))
+    re_set_whitespace_regexp (SDATA (Vsearch_spaces_regexp));
+  else
+    re_set_whitespace_regexp (NULL);
 
   val = (char *) re_compile_pattern ((char *)raw_pattern,
 				     raw_pattern_size, &cp->buf);
