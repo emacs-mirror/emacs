@@ -1,5 +1,8 @@
 2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* search.c (compile_pattern_1): Treat non-nil and non-string of
+	search-spaces-regexp as nil.
+
 	* minibuf.c (Fassoc_string): Tweak docstring.
 
 2008-04-05  Eli Zaretskii  <eliz@gnu.org>
