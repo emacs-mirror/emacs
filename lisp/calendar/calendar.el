@@ -823,7 +823,7 @@ calendar."
 
 ;;;###autoload
 (defvar hebrew-holidays-1
-  '((holiday-rosh-hashanah-etc)
+  '((holiday-hebrew-rosh-hashanah)
     (if calendar-hebrew-all-holidays-flag
         (holiday-julian
          11
@@ -844,7 +844,7 @@ calendar."
 
 ;;;###autoload
 (defvar hebrew-holidays-2
-  '((holiday-hanukkah)         ; respects calendar-hebrew-all-holidays-flag
+  '((holiday-hebrew-hanukkah) ; respects calendar-hebrew-all-holidays-flag
     (if calendar-hebrew-all-holidays-flag
       (holiday-hebrew
        10
@@ -852,7 +852,7 @@ calendar."
                       (calendar-hebrew-from-absolute
                        (calendar-absolute-from-gregorian
                         (list displayed-month 28 displayed-year))))))
-         (if (= 6 (% (calendar-absolute-from-hebrew (list 10 10 h-year))
+         (if (= 6 (% (calendar-hebrew-to-absolute (list 10 10 h-year))
                      7))
              11 10))
        "Tzom Teveth"))
@@ -879,14 +879,14 @@ calendar."
                 (s-s
                  (calendar-hebrew-from-absolute
                   (if (= 6
-                         (% (calendar-absolute-from-hebrew
+                         (% (calendar-hebrew-to-absolute
                              (list 7 1 h-year))
                             7))
                       (calendar-dayname-on-or-before
-                       6 (calendar-absolute-from-hebrew
+                       6 (calendar-hebrew-to-absolute
                           (list 11 17 h-year)))
                     (calendar-dayname-on-or-before
-                     6 (calendar-absolute-from-hebrew
+                     6 (calendar-hebrew-to-absolute
                         (list 11 16 h-year))))))
                 (day (extract-calendar-day s-s)))
            day)
@@ -898,7 +898,7 @@ calendar."
 
 ;;;###autoload
 (defvar hebrew-holidays-4
-  '((holiday-passover-etc)
+  '((holiday-hebrew-passover)
     (and calendar-hebrew-all-holidays-flag
          (let* ((m displayed-month)
                 (y displayed-year)
@@ -910,7 +910,7 @@ calendar."
            (= 21 (% year 28)))
          (holiday-julian 3 26 "Kiddush HaHamah"))
     (if calendar-hebrew-all-holidays-flag
-        (holiday-tisha-b-av-etc)))
+        (holiday-hebrew-tisha-b-av)))
     "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-4 'risky-local-variable t)
@@ -918,12 +918,12 @@ calendar."
 
 ;;;###autoload
 (defcustom hebrew-holidays
-  '((holiday-passover-etc)
-    (holiday-rosh-hashanah-etc)
-    (holiday-hanukkah)
+  '((holiday-hebrew-passover)
+    (holiday-hebrew-rosh-hashanah)
+    (holiday-hebrew-hanukkah)
     (if calendar-hebrew-all-holidays-flag
         (append
-         (holiday-tisha-b-av-etc)
+         (holiday-hebrew-tisha-b-av)
          (holiday-hebrew-misc))))
   "Jewish holidays.
 See the documentation for `calendar-holidays' for details."
@@ -1262,14 +1262,14 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
 ;;   837   calendar-day-number
 ;;   775   calendar-absolute-from-gregorian
 ;;   346   calendar-last-day-of-month
-;;   286   hebrew-calendar-last-day-of-month
-;;   188   hebrew-calendar-leap-year-p
-;;   180   hebrew-calendar-elapsed-days
-;;   163   hebrew-calendar-last-month-of-year
+;;   286   calendar-hebrew-last-day-of-month
+;;   188   calendar-hebrew-leap-year-p
+;;   180   calendar-hebrew-elapsed-days
+;;   163   calendar-hebrew-last-month-of-year
 ;;    66   calendar-date-compare
-;;    65   hebrew-calendar-days-in-year
+;;    65   calendar-hebrew-days-in-year
 ;;    60   calendar-julian-to-absolute
-;;    50   calendar-absolute-from-hebrew
+;;    50   calendar-hebrew-to-absolute
 ;;    43   calendar-date-equal
 ;;    38   calendar-gregorian-from-absolute
 ;;     .
@@ -1603,10 +1603,10 @@ after the inserted text.  Returns t."
     (define-key map "gD"  'calendar-goto-day-of-year)
     (define-key map "gj"  'calendar-julian-goto-date)
     (define-key map "ga"  'calendar-astro-goto-day-number)
-    (define-key map "gh"  'calendar-goto-hebrew-date)
+    (define-key map "gh"  'calendar-hebrew-goto-date)
     (define-key map "gi"  'calendar-islamic-goto-date)
     (define-key map "gb"  'calendar-bahai-goto-date)
-    (define-key map "gC"  'calendar-goto-chinese-date)
+    (define-key map "gC"  'calendar-chinese-goto-date)
     (define-key map "gk"  'calendar-coptic-goto-date)
     (define-key map "ge"  'calendar-ethiopic-goto-date)
     (define-key map "gp"  'calendar-persian-goto-date)
@@ -1625,7 +1625,7 @@ after the inserted text.  Returns t."
     (define-key map "S"   'calendar-sunrise-sunset)
     (define-key map "M"   'calendar-phases-of-moon)
     (define-key map " "   'scroll-other-window)
-    (define-key map (kbd "DEL") 'scroll-other-window-down)
+    (define-key map (kbd "DEL") 'scroll-other-window-down) ; FIXME
     (define-key map "\C-c\C-l" 'redraw-calendar)
     (define-key map "."   'calendar-goto-today)
     (define-key map "o"   'calendar-other-month)
@@ -1639,14 +1639,14 @@ after the inserted text.  Returns t."
     (define-key map "D"   'view-other-diary-entries)
     (define-key map "s"   'diary-show-all-entries)
     (define-key map "pd"  'calendar-print-day-of-year)
-    (define-key map "pC"  'calendar-print-chinese-date)
+    (define-key map "pC"  'calendar-chinese-print-date)
     (define-key map "pk"  'calendar-coptic-print-date)
     (define-key map "pe"  'calendar-ethiopic-print-date)
     (define-key map "pp"  'calendar-persian-print-date)
     (define-key map "pc"  'calendar-iso-print-date)
     (define-key map "pj"  'calendar-julian-print-date)
     (define-key map "pa"  'calendar-astro-print-day-number)
-    (define-key map "ph"  'calendar-print-hebrew-date)
+    (define-key map "ph"  'calendar-hebrew-print-date)
     (define-key map "pi"  'calendar-islamic-print-date)
     (define-key map "pb"  'calendar-bahai-print-date)
     (define-key map "pf"  'calendar-french-print-date)
@@ -1659,9 +1659,9 @@ after the inserted text.  Returns t."
     (define-key map "ia"  'insert-anniversary-diary-entry)
     (define-key map "ib"  'insert-block-diary-entry)
     (define-key map "ic"  'insert-cyclic-diary-entry)
-    (define-key map "ihd" 'insert-hebrew-diary-entry)
-    (define-key map "ihm" 'insert-monthly-hebrew-diary-entry)
-    (define-key map "ihy" 'insert-yearly-hebrew-diary-entry)
+    (define-key map "ihd" 'diary-hebrew-insert-entry)
+    (define-key map "ihm" 'diary-hebrew-insert-monthly-entry)
+    (define-key map "ihy" 'diary-hebrew-insert-yeary-entry)
     (define-key map "iid" 'diary-islamic-insert-entry)
     (define-key map "iim" 'diary-islamic-insert-monthly-entry)
     (define-key map "iiy" 'diary-islamic-insert-yearly-entry)
