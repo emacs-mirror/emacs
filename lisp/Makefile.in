@@ -48,7 +48,9 @@ ETAGS = ../lib-src/etags
 
 # Automatically generated autoload files, apart from lisp/loaddefs.el.
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
-	$(lisp)/calendar/diary-loaddefs.el $(lisp)/calendar/hol-loaddefs.el
+	$(lisp)/calendar/diary-loaddefs.el \
+	$(lisp)/calendar/hol-loaddefs.el \
+	$(lisp)/mh-e/mh-loaddefs.el
 
 # Elisp files auto-generated.
 AUTOGENEL = loaddefs.el \
@@ -57,7 +59,6 @@ AUTOGENEL = loaddefs.el \
 	finder-inf.el \
 	subdirs.el \
 	eshell/esh-groups.el \
-	mh-e/mh-loaddefs.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -162,7 +163,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 # `|| true' below prevents old Bash versions from getting confused
 # by an error.
-compile: $(lisp)/subdirs.el mh-autoloads cal-autoloads doit
+compile: $(lisp)/subdirs.el $(LOADDEFS) doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	els=`echo $$wins | tr ' \011' '\012\012' | \
@@ -179,7 +180,7 @@ compile: $(lisp)/subdirs.el mh-autoloads cal-autoloads doit
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el mh-autoloads cal-autoloads doit
+compile-always: $(lisp)/subdirs.el $(LOADDEFS) doit
 	# `|| true' prevents old Bash versions from getting confused
 	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
@@ -214,7 +215,7 @@ compile-after-backup: backup-compiled-files compile-always
 # Recompile all Lisp files which are newer than their .elc files and compile
 # new ones.
 
-recompile: doit mh-autoloads cal-autoloads $(lisp)/progmodes/cc-mode.elc
+recompile: doit $(LOADDEFS) $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # CC Mode uses a compile time macro system which causes a compile time
@@ -230,29 +231,11 @@ $(lisp)/progmodes/cc-mode.elc: \
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el
-## The only non-standard part of this is the provide.
-## All these echos can be removed if mh-e.el changes to use
-## (load "mh-loaddefs" nil 'quiet).
-	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
-	echo ";;" >> $@
-	echo ";;; Code:" >> $@
-	echo "" >> $@
-	echo "(provide 'mh-loaddefs)" >> $@
-	echo ";; Local Variables:" >> $@
-	echo ";; version-control: never" >> $@
-	echo ";; no-byte-compile: t" >> $@
-	echo ";; no-update-autoloads: t" >> $@
-	echo ";; End:" >> $@
-	echo ";;; mh-loaddefs.el ends here" >> $@
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(lisp)/mh-e
-
-cal-autoloads: $(lisp)/calendar/cal-loaddefs.el \
-	       $(lisp)/calendar/diary-loaddefs.el \
-	       $(lisp)/calendar/hol-loaddefs.el
 
 $(lisp)/calendar/cal-loaddefs.el: $(lisp)/calendar/*.el
 	$(emacs) -l autoload \
