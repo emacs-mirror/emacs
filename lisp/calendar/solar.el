@@ -149,13 +149,6 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
   :type 'number
   :group 'calendar)
 
-(defcustom diary-sabbath-candles-minutes 18
-  "Number of minutes before sunset for sabbath candle lighting."
-  :group 'diary
-  :type 'integer
-  :version "21.1")
-
-
 ;;; End of user options.
 
 
@@ -882,27 +875,6 @@ Accurate to a few seconds."
   (or (and calendar-latitude calendar-longitude calendar-time-zone)
       (solar-setup))
   (solar-sunrise-sunset-string date))
-
-;; To be called from list-sexp-diary-entries, where DATE is bound.
-;;;###diary-autoload
-(defun diary-sabbath-candles (&optional mark)
-  "Local time of candle lighting diary entry--applies if date is a Friday.
-No diary entry if there is no sunset on that date.
-
-An optional parameter MARK specifies a face or single-character string to
-use when highlighting the day in the calendar."
-  (or (and calendar-latitude calendar-longitude calendar-time-zone)
-      (solar-setup))
-  (if (= (% (calendar-absolute-from-gregorian date) 7) 5) ; Friday
-      (let* ((sunset (cadr (solar-sunrise-sunset date)))
-             (light (if sunset
-                        (cons (- (car sunset)
-                                 (/ diary-sabbath-candles-minutes 60.0))
-                              (cdr sunset)))))
-        (if sunset
-            (cons mark
-                  (format "%s Sabbath candle lighting"
-                          (apply 'solar-time-string light)))))))
 
 ;; From Meeus, 1991, page 167.
 (defconst solar-seasons-data
