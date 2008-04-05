@@ -60,9 +60,9 @@
      ["Monthly" diary-islamic-insert-monthly-entry]
      ["Yearly" diary-islamic-insert-yearly-entry])
     ("Insert Hebrew"
-     ["One time" insert-hebrew-diary-entry]
-     ["Monthly" insert-monthly-hebrew-diary-entry]
-     ["Yearly" insert-yearly-hebrew-diary-entry])))
+     ["One time" diary-hebrew-insert-entry]
+     ["Monthly" diary-hebrew--insert-monthly-entry]
+     ["Yearly" diary-hebrew-insert-yearly-entry])))
 
 (defun cal-menu-holiday-window-suffix ()
   "Return a string suffix for the \"Window\" entry in `cal-menu-holidays-menu'."
@@ -124,12 +124,12 @@
     ["ISO Week" calendar-iso-goto-week]
     ["ISO Date" calendar-iso-goto-date]
     ["Astronomical Date" calendar-astro-goto-day-number]
-    ["Hebrew Date" calendar-goto-hebrew-date]
+    ["Hebrew Date" calendar-hebrew-goto-date]
     ["Persian Date" calendar-persian-goto-date]
     ["Baha'i Date" calendar-bahai-goto-date]
     ["Islamic Date" calendar-islamic-goto-date]
     ["Julian Date" calendar-julian-goto-date]
-    ["Chinese Date" calendar-goto-chinese-date]
+    ["Chinese Date" calendar-chinese-goto-date]
     ["Coptic Date" calendar-coptic-goto-date]
     ["Ethiopic Date" calendar-ethiopic-goto-date]
     ("Mayan Date"
