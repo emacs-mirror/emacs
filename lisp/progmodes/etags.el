@@ -780,17 +780,15 @@ tags table and its (recursively) included tags tables."
 	(quit (message "Tags completion table construction aborted.")
 	      (setq tags-completion-table nil)))))
 
-(defun tags-complete-tag (string predicate what)
-  "Completion function for tags.
-Does normal `try-completion', but builds `tags-completion-table' on
-demand."
-  (save-excursion
-    ;; If we need to ask for the tag table, allow that.
-    (let ((enable-recursive-minibuffers t))
-      (visit-tags-table-buffer))
-    (if (eq what t)
-	(all-completions string (tags-completion-table) predicate)
-      (try-completion string (tags-completion-table) predicate))))
+(defun tags-lazy-completion-table ()
+  (lexical-let ((buf (current-buffer)))
+    (lambda (string pred action)
+      (with-current-buffer buf
+        (save-excursion
+          ;; If we need to ask for the tag table, allow that.
+          (let ((enable-recursive-minibuffers t))
+            (visit-tags-table-buffer))
+          (complete-with-action action (tags-completion-table) string pred))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
@@ -805,7 +803,7 @@ demand."
 					    (substring string 0 (string-match "[ :]+\\'" string))
 					    default)
 				  string)
-				'tags-complete-tag
+				(tags-lazy-completion-table)
 				nil nil nil nil default)))
     (if (equal spec "")
 	(or default (error "There is no default tag"))
@@ -2053,6 +2051,7 @@ for \\[find-tag] (which see)."
 	(pattern (funcall (or find-tag-default-function
 			      (get major-mode 'find-tag-default-function)
 			      'find-tag-default)))
+        (comp-table (tags-lazy-completion-table))
 	beg
 	completion)
     (or pattern
@@ -2060,7 +2059,7 @@ for \\[find-tag] (which see)."
     (search-backward pattern)
     (setq beg (point))
     (forward-char (length pattern))
-    (setq completion (tags-complete-tag pattern nil nil))
+    (setq completion (try-completion pattern comp-table))
     (cond ((eq completion t))
 	  ((null completion)
 	   (message "Can't find completion for \"%s\"" pattern)
@@ -2072,7 +2071,7 @@ for \\[find-tag] (which see)."
 	   (message "Making completion list...")
 	   (with-output-to-temp-buffer "*Completions*"
 	     (display-completion-list
-	      (all-completions pattern 'tags-complete-tag nil)
+	      (all-completions pattern comp-table nil)
 	      pattern))
 	   (message "Making completion list...%s" "done")))))
 
