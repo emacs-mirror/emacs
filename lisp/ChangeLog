@@ -1,3 +1,8 @@
+2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (default): Ensure the face-defface-spec property is
+	set.
+
 2008-04-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* files.el (abort-if-file-too-large): New function.
