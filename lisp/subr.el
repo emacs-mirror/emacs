@@ -566,7 +566,7 @@ Don't call this function; it is for internal use only."
                        (keymap-prompt map)))
     (dolist (binding ranges)
       ;; Treat char-ranges specially.
-      (define-key map (car binding) (cdr binding)))
+      (define-key map (vector (car binding)) (cdr binding)))
     (dolist (binding (prog1 bindings (setq bindings ())))
       (let* ((key (car binding))
              (item (cdr binding))

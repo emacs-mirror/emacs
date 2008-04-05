@@ -21,16 +21,16 @@
 	(calendar-coptic-name): Rename coptic-name.  Update callers.
 	(calendar-coptic-leap-year-p): Rename coptic-calendar-leap-year-p.
 	Update callers.
-	(calendar-coptic-last-day-of-month): Rename
-	coptic-calendar-last-day-of-month.  Update callers.
+	(calendar-coptic-last-day-of-month):
+	Rename coptic-calendar-last-day-of-month.  Update callers.
 	(calendar-coptic-to-absolute): Rename calendar-absolute-from-coptic.
 	Keep old name as alias, update callers.
 	(calendar-coptic-print-date): Rename calendar-print-coptic-date.
 	Keep old name as alias, update callers.
 	(calendar-coptic-goto-date): Rename calendar-goto-coptic-date.
 	Keep old name as alias.
-	(calendar-ethiopic-month-name-array): Rename
-	ethiopic-calendar-month-name-array.  Update callers.
+	(calendar-ethiopic-month-name-array):
+	Rename ethiopic-calendar-month-name-array.  Update callers.
 	(calendar-ethiopic-epoch): Rename ethiopic-calendar-epoch.
 	Update callers.
 	(calendar-ethiopic-name): Rename ethiopic-name.  Update callers.
@@ -41,24 +41,24 @@
 	(calendar-ethiopic-goto-date): Rename calendar-goto-ethiopic-date.
 	Keep old name as alias.
 
-	* calendar/cal-french.el (calendar-french-epoch): Rename
-	french-calendar-epoch.  Update callers.
+	* calendar/cal-french.el (calendar-french-epoch):
+	Rename french-calendar-epoch.  Update callers.
 	(calendar-french-month-name-array): Rename variable and function
 	french-calendar-month-name-array.  Update callers.
-	(calendar-french-multibyte-month-name-array): Rename
-	french-calendar-multibyte-month-name-array.  Update callers.
+	(calendar-french-multibyte-month-name-array):
+	Rename french-calendar-multibyte-month-name-array.  Update callers.
 	(calendar-french-day-name-array): Rename variable and function
 	french-calendar-day-name-array.  Update callers.
 	(calendar-french-special-days-array): Rename variable and function
 	french-calendar-special-days-array.  Update callers.
-	(calendar-french-multibyte-special-days-array): Rename
-	french-calendar-multibyte-special-days-array.  Update callers.
+	(calendar-french-multibyte-special-days-array):
+	Rename french-calendar-multibyte-special-days-array.  Update callers.
 	(calendar-french-accents-p): Rename french-calendar-accents.
 	Update callers.
 	(calendar-french-leap-year-p): Rename french-calendar-leap-year-p.
 	Update callers.
-	(calendar-french-last-day-of-month): Rename
-	french-calendar-last-day-of-month.  Update callers.
+	(calendar-french-last-day-of-month):
+	Rename french-calendar-last-day-of-month.  Update callers.
 	(calendar-french-to-absolute): Rename calendar-absolute-from-french.
 	Keep old name as alias, update callers.
 	(calendar-french-print-date): Rename calendar-print-french-date.
@@ -67,9 +67,11 @@
 	Keep old name as alias.
 
 	* calendar/cal-menu.el, calendar/calendar.el:
-	Update for coptic and french name changes.
+	Update for Coptic and French name changes.
 
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (keymap-canonicalize): Correct thinko.
 
 	* server.el: Undo part of the multi-tty change, which is only
 	needed if server.el is preloaded, and broke server-running-p.
