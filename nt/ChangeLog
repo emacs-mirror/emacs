@@ -1,3 +1,7 @@
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Add check for usp10.h.
+
 2008-04-04  Jason Rumney  <jasonr@gnu.org>
 
 	* INSTALL: Update W32 API requirements.
