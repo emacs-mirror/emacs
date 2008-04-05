@@ -263,11 +263,11 @@ The format of the alist is
 where each BOOKMARK is typically of the form
 
 \(NAME
- (\(filename . FILE\)
-  \(front-context-string . FRONT-STR\)
-  \(rear-context-string  . REAR-STR\)
-  \(position . POS\)
-  \(annotation . ANNOTATION\)\))
+ (filename . FILE)
+ (front-context-string . FRONT-STR)
+ (rear-context-string  . REAR-STR)
+ (position . POS)
+ (annotation . ANNOTATION))
 
 So the cdr of each bookmark is an alist too.")
 
@@ -531,22 +531,22 @@ being set (this might change someday)."
 
 ;; The OLD format of the bookmark-alist was:
 ;;
-;;       ((bookmark-name (filename
-;;                        string-in-front
-;;                        string-behind
-;;                        point))
+;;       ((BOOKMARK-NAME . (FILENAME
+;;                          STRING-IN-FRONT
+;;                          STRING-BEHIND
+;;                          POINT))
 ;;        ...)
 ;;
 ;; The NEW format of the bookmark-alist is:
 ;;
-;;       ((bookmark-name ((filename . FILENAME)
-;;                        (front-context-string . string-in-front)
-;;                        (rear-context-string  . string-behind)
-;;                        (position . POINT)
-;;                        (annotation . annotation)
-;;                        (whatever   . VALUE)
-;;                        ...
-;;                        ))
+;;       ((BOOKMARK-NAME (filename   . FILENAME)
+;;                       (front-context-string . STRING-IN-FRONT)
+;;                       (rear-context-string  . STRING-BEHIND)
+;;                       (position   . POINT)
+;;                       (annotation . ANNOTATION)
+;;                       (whatever   . VALUE)
+;;                       ...
+;;                       ))
 ;;        ...)
 ;;
 ;;
