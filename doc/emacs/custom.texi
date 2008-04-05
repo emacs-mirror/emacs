@@ -2085,10 +2085,14 @@ Many sites put these files in the @file{site-lisp} subdirectory of the
 Emacs installation directory, typically
 @file{/usr/local/share/emacs/site-lisp}.
 
-  If you have a large amount of code in your @file{.emacs} file, you
-should rename it to @file{~/.emacs.el}, and byte-compile it.  @xref{Byte
-Compilation,, Byte Compilation, elisp, the Emacs Lisp Reference Manual},
-for more information about compiling Emacs Lisp programs.
+  Byte-compiling your @file{.emacs} is not recommended (@pxref{Byte
+Compilation,, Byte Compilation, elisp, the Emacs Lisp Reference
+Manual}).  It generally does not speed up startup very much, and often
+leads to problems when you forget to recompile the file.  A better
+solution is to use the Emacs server to reduce the number of times you
+have to start Emacs (@pxref{Emacs Server}).  If your @file{.emacs}
+defines many functions, consider moving them to a separate
+(byte-compiled) file which you load in your @file{.emacs}.
 
   If you are going to write actual Emacs Lisp programs that go beyond
 minor customization, you should read the @cite{Emacs Lisp Reference Manual}.
