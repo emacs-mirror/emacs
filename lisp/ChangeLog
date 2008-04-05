@@ -1,3 +1,20 @@
+2008-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-ensure-default-file):
+	Provide a feature.
+	* calendar/calendar.el, calendar/diary-lib.el, calendar/holidays.el:
+	Require loaddef file rather than loading it.
+	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Simplify rule now that
+	autoload-ensure-default-file provides a feature.
+
+	* Makefile.in (LOADDEFS): Add mh-loaddefs.el.
+	(AUTOGENEL): mh-loaddefs is in $LOADDEFS now.
+	(compile, compile-always, recompile): Use $LOADDEFS.
+	(cal-autoloads): Remove.
+
+	* calendar/cal-x.el (calendar-dedicate-diary): Use get-buffer rather
+	than buffer-live-p.  Reported by David Koppelman <koppel@ece.lsu.edu>.
+
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el: Undo part of the multi-tty change, which is only
@@ -91,9 +108,9 @@
 
 2008-04-04  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff*el: replaced load with require in eval-when-compile.
+	* ediff*.el: Replace load with require in eval-when-compile.
 
-	* ediff-hook: deleted all invocations of (autoload ...).
+	* ediff-hook: Delete all invocations of (autoload ...).
 
 	* ediff-util.el (ediff-setup): Make window-min-height a local variable
 	in ediff control window, and set its min height to 2.
