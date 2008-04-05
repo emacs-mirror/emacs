@@ -814,7 +814,7 @@
 
 2008-02-24  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.c: (x_draw_glyph_string_background): Clear the background
+	* w32term.c (x_draw_glyph_string_background): Clear the background
 	manually when cleartype is in use.
 	(x_draw_glyph_string_foreground): Draw text transparently when
 	cleartype is in use.
@@ -2038,7 +2038,7 @@
 
 	* chartab.c (map_sub_char_table): Make it work for the top-level
 	char-table.  Fix handling of parent char-table.
-	(map_char_table):  Adjust for the above change.
+	(map_char_table): Adjust for the above change.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -4391,7 +4391,7 @@
 	<wordbound, notwordbound, wordbeg, wordend, syntaxspec,
 	notsyntaxspec, categoryspec, notcategoryspec> Fetch a character
 	by GET_CHAR_AFTER.
-	(bcmp_translate):  Likewise.
+	(bcmp_translate): Likewise.
 
 	* search.c (compile_pattern): Check the member target_multibyte,
 	not the member multibyte of buf.
@@ -5000,7 +5000,7 @@
 	(regex_compile): Setup the compiled pattern for multibyte chars
 	even if the given regex string is unibyte.  Use PATFETCH_RAW
 	instead of PATFETCH in many places.  To handle `charset'
-	specification of unibyte, call HANDLE_UNIBYTE_RANGE.   Use bitmap
+	specification of unibyte, call HANDLE_UNIBYTE_RANGE.  Use bitmap
 	only for ASCII chars.
 	(analyse_first) <exactn>: Simplify because the compiled pattern
 	is multibyte.
@@ -5020,7 +5020,7 @@
 	it to decide the multibyteness of STR1 and STR2.  Use
 	TARGET_CHAR_AND_LENGTH to fetch a character from D.
 	<charset, charset_not>: If multibyte is nonzero, check fastmap
-	only for ASCII chars.   Call bcmp_translate with
+	only for ASCII chars.  Call bcmp_translate with
 	target_multibyte, not with multibyte.
 	<begline>: Declare the local variable C as `unsigned'.
 	(bcmp_translate): Change the last arg name to target_multibyte.
