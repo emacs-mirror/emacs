@@ -429,20 +429,29 @@ details, see the documentation for the variable `list-diary-entries-hook'."
   :type 'string
   :group 'diary)
 
-(defcustom hebrew-diary-entry-symbol "H"
+(defcustom diary-hebrew-entry-symbol "H"
   "Symbol indicating a diary entry according to the Hebrew calendar."
   :type 'string
   :group 'diary)
 
-(defcustom islamic-diary-entry-symbol "I"
+(define-obsolete-variable-alias 'hebrew-diary-entry-symbol
+  'diary-hebrew-entry-symbol "23.1")
+
+(defcustom diary-islamic-entry-symbol "I"
   "Symbol indicating a diary entry according to the Islamic calendar."
   :type 'string
   :group 'diary)
 
-(defcustom bahai-diary-entry-symbol "B"
+(define-obsolete-variable-alias 'islamic-diary-entry-symbol
+  'diary-islamic-entry-symbol "23.1")
+
+(defcustom diary-bahai-entry-symbol "B"
   "Symbol indicating a diary entry according to the Baha'i calendar."
   :type 'string
   :group 'diary)
+
+(define-obsolete-variable-alias 'bahai-diary-entry-symbol
+  'diary-bahai-entry-symbol "23.1")
 
 ;;;###autoload
 (defcustom european-calendar-style nil
@@ -831,7 +840,6 @@ calendar."
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-1 'risky-local-variable t)
-;;;###autoload
 (make-obsolete-variable 'hebrew-holidays-1 'hebrew-holidays "23.1")
 
 ;;;###autoload
@@ -853,7 +861,6 @@ calendar."
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-2 'risky-local-variable t)
-;;;###autoload
 (make-obsolete-variable 'hebrew-holidays-2 'hebrew-holidays "23.1")
 
 ;;;###autoload
@@ -887,7 +894,6 @@ calendar."
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-3 'risky-local-variable t)
-;;;###autoload
 (make-obsolete-variable 'hebrew-holidays-3 'hebrew-holidays "23.1")
 
 ;;;###autoload
@@ -908,7 +914,6 @@ calendar."
     "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-4 'risky-local-variable t)
-;;;###autoload
 (make-obsolete-variable 'hebrew-holidays-4 'hebrew-holidays "23.1")
 
 ;;;###autoload
