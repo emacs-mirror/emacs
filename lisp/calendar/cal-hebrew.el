@@ -1145,15 +1145,15 @@ use when highlighting the day in the calendar."
   (or (and calendar-latitude calendar-longitude calendar-time-zone)
       (solar-setup))
   (if (= (% (calendar-absolute-from-gregorian date) 7) 5) ; Friday
-      (let* ((sunset (cadr (solar-sunrise-sunset date)))
-             (light (if sunset
-                        (cons (- (car sunset)
-                                 (/ diary-hebrew-sabbath-candles-minutes 60.0))
-                              (cdr sunset)))))
+      (let ((sunset (cadr (solar-sunrise-sunset date))))
         (if sunset
-            (cons mark
-                  (format "%s Sabbath candle lighting"
-                          (apply 'solar-time-string light)))))))
+            (cons mark (format
+                        "%s Sabbath candle lighting"
+                        (apply 'solar-time-string
+                               (cons (- (car sunset)
+                                        (/ diary-hebrew-sabbath-candles-minutes
+                                           60.0))
+                                     (cdr sunset)))))))))
 
 ;;;###diary-autoload
 (define-obsolete-function-alias 'diary-sabbath-candles
