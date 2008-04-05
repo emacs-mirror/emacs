@@ -31,9 +31,7 @@
 ;;; Code:
 
 (require 'calendar)
-
-(eval-and-compile
-  (load "diary-loaddefs" nil 'quiet))
+(require 'diary-loaddefs)
 
 (defcustom diary-include-string "#include"
   "The string indicating inclusion of another file of diary entries.
