@@ -34,6 +34,18 @@
 
 (require 'calendar)
 
+(defcustom diary-hebrew-sabbath-candles-minutes 18
+  "Number of minutes before sunset for sabbath candle lighting.
+Used by `diary-hebrew-sabbath-candles'."
+  :group 'diary
+  :type 'integer
+  :version "21.1")
+
+(define-obsolete-variable-alias 'diary-sabbath-candles-minutes
+  'diary-hebrew-sabbath-candles-minutes "23.1")
+
+;; End of user options.
+
 (defun calendar-hebrew-leap-year-p (year)
   "Non-nil if YEAR is a Hebrew calendar leap year."
   (< (% (1+ (* 7 year)) 19) 7))
@@ -1111,6 +1123,42 @@ use when highlighting the day in the calendar."
                        (calendar-hebrew-parasha-name parasha)))))))))
 
 (define-obsolete-function-alias 'diary-parasha 'diary-hebrew-parasha "23.1")
+
+
+(declare-function solar-setup "solar" ())
+(declare-function solar-sunrise-sunset "solar" (date))
+(defvar calendar-latitude)
+(defvar calendar-longitude)
+(defvar calendar-time-zone)
+
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
+(defun diary-hebrew-sabbath-candles (&optional mark)
+  "Local time of candle lighting diary entry--applies if date is a Friday.
+No diary entry if there is no sunset on that date.  Uses
+`diary-hebrew-sabbath-candles-minutes'.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
+  (require 'solar)
+  (or (and calendar-latitude calendar-longitude calendar-time-zone)
+      (solar-setup))
+  (if (= (% (calendar-absolute-from-gregorian date) 7) 5) ; Friday
+      (let* ((sunset (cadr (solar-sunrise-sunset date)))
+             (light (if sunset
+                        (cons (- (car sunset)
+                                 (/ diary-hebrew-sabbath-candles-minutes 60.0))
+                              (cdr sunset)))))
+        (if sunset
+            (cons mark
+                  (format "%s Sabbath candle lighting"
+                          (apply 'solar-time-string light)))))))
+
+;;;###diary-autoload
+(define-obsolete-function-alias 'diary-sabbath-candles
+  'diary-hebrew-sabbath-candles "23.1")
+
 
 (provide 'cal-hebrew)
 
