@@ -1563,11 +1563,11 @@ These functions give the date in alternative calendrical systems:
 
 Theses functions only produce output on certain dates:
 
-`diary-phases-of-moon'     - phases of moon (on the appropriate days)
-`diary-hebrew-omer'        - Omer count, within 50 days after Passover
-`diary-hebrew-parasha'     - weekly parasha, every Saturday
-`diary-hebrew-rosh-hodesh' - Rosh Hodesh, or the day or Saturday before
-`diary-sabbath-candles'    - local time of candle lighting, on Fridays
+`diary-phases-of-moon'         - phases of moon (on the appropriate days)
+`diary-hebrew-omer'            - Omer count, within 50 days after Passover
+`diary-hebrew-parasha'         - weekly parasha, every Saturday
+`diary-hebrew-rosh-hodesh'     - Rosh Hodesh, or the day or Saturday before
+`diary-hebrew-sabbath-candles' - local time of candle lighting, on Fridays
 
 
 Marking these entries is *extremely* time consuming, so it is
