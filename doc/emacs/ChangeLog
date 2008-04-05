@@ -1,3 +1,7 @@
+2008-04-05  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Init File): Byte-compiling .emacs is bad.
+
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mini.texi (Minibuffer Edit) <resize-mini-windows>: Adjust default.
