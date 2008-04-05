@@ -31,9 +31,7 @@
 ;;; Code:
 
 (require 'calendar)
-
-(eval-and-compile
-  (load "hol-loaddefs" nil 'quiet))
+(require 'hol-loaddefs)
 
 ;;;###diary-autoload
 (defun calendar-holiday-list ()
