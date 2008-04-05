@@ -575,8 +575,8 @@ the line could be found."
   (unless (gnus-buffer-live-p nntp-server-buffer)
     (setq nntp-server-buffer (get-buffer-create " *nntpd*")))
   (with-current-buffer nntp-server-buffer
-    (mm-enable-multibyte)
     (erase-buffer)
+    (mm-enable-multibyte)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
     (set (make-local-variable 'nntp-process-response) nil)

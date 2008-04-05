@@ -1,5 +1,8 @@
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nnheader.el (nnheader-init-server-buffer): Change buffer's multibyteness
+	after rather than before erasing it.
+
 	* gnus-art.el (gnus-mime-replace-part): Remove unnecessary use of
 	mm-with-multibyte.
 	(gnus-request-article-this-buffer): Make sure the proper decoding is used
