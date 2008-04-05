@@ -1,5 +1,8 @@
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-fun.el (gnus-display-x-face-in-from): Remove unnecessary use of
+	default-enable-multibyte-characters.
+
 	* mm-decode.el (mm-inline-media-tests): Add entry for x-diff.
 
 	* nnweb.el (nnweb-init): Avoid nn-with-unibyte.
