@@ -1,5 +1,10 @@
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-art.el (gnus-mime-replace-part): Remove unnecessary use of
+	mm-with-multibyte.
+	(gnus-request-article-this-buffer): Make sure the proper decoding is used
+	if gnus-original-article-buffer happens to be unibyte.
+
 	* gnus-ems.el (gnus-x-splash): Prefer mm-disable-multibyte to
 	default-enable-multibyte-characters.
 
