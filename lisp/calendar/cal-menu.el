@@ -130,8 +130,8 @@
     ["Islamic Date" calendar-islamic-goto-date]
     ["Julian Date" calendar-julian-goto-date]
     ["Chinese Date" calendar-goto-chinese-date]
-    ["Coptic Date" calendar-goto-coptic-date]
-    ["Ethiopic Date" calendar-goto-ethiopic-date]
+    ["Coptic Date" calendar-coptic-goto-date]
+    ["Ethiopic Date" calendar-ethiopic-goto-date]
     ("Mayan Date"
      ["Next Tzolkin" calendar-mayan-next-tzolkin-date]
      ["Previous Tzolkin" calendar-mayan-previous-tzolkin-date]
@@ -139,7 +139,7 @@
      ["Previous Haab" calendar-mayan-previous-haab-date]
      ["Next Round" calendar-mayan-next-round-date]
      ["Previous Round" calendar-mayan-previous-round-date])
-    ["French Date" calendar-goto-french-date]))
+    ["French Date" calendar-french-goto-date]))
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
