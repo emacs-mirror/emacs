@@ -33,35 +33,35 @@
 
 (require 'calendar)
 
-(defconst french-calendar-epoch (calendar-absolute-from-gregorian '(9 22 1792))
+(defconst calendar-french-epoch (calendar-absolute-from-gregorian '(9 22 1792))
   "Absolute date of start of French Revolutionary calendar = Sept 22, 1792.")
 
-(defconst french-calendar-month-name-array
+(defconst calendar-french-month-name-array
   ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
    "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"]
   "Array of month names in the French calendar.")
 
-(defconst french-calendar-multibyte-month-name-array
+(defconst calendar-french-multibyte-month-name-array
   ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
    "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"]
   "Array of multibyte month names in the French calendar.")
 
-(defconst french-calendar-day-name-array
+(defconst calendar-french-day-name-array
   ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
    "Octidi" "Nonidi" "Decadi"]
   "Array of day names in the French calendar.")
 
-(defconst french-calendar-special-days-array
+(defconst calendar-french-special-days-array
   ["de la Vertu" "du Ge'nie" "du Travail" "de la Raison" "des Re'compenses"
    "de la Re'volution"]
   "Array of special day names in the French calendar.")
 
-(defconst french-calendar-multibyte-special-days-array
+(defconst calendar-french-multibyte-special-days-array
   ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
    "de la Révolution"]
   "Array of multibyte special day names in the French calendar.")
 
-(defun french-calendar-accents ()
+(defun calendar-french-accents-p ()
   "Return non-nil if diacritical marks are available."
   (and (or window-system
            (terminal-coding-system))
@@ -69,23 +69,23 @@
            (and (char-table-p standard-display-table)
                 (equal (aref standard-display-table 161) [161])))))
 
-(defun french-calendar-month-name-array ()
+(defun calendar-french-month-name-array ()
   "Return the array of month names, depending on whether accents are available."
-  (if (french-calendar-accents)
-      french-calendar-multibyte-month-name-array
-    french-calendar-month-name-array))
+  (if (calendar-french-accents-p)
+      calendar-french-multibyte-month-name-array
+    calendar-french-month-name-array))
 
-(defun french-calendar-day-name-array ()
+(defun calendar-french-day-name-array ()
   "Return the array of day names."
-  french-calendar-day-name-array)
+  calendar-french-day-name-array)
 
-(defun french-calendar-special-days-array ()
+(defun calendar-french-special-days-array ()
   "Return the special day names, depending on whether accents are available."
-  (if (french-calendar-accents)
-      french-calendar-multibyte-special-days-array
-    french-calendar-special-days-array))
+  (if (calendar-french-accents-p)
+      calendar-french-multibyte-special-days-array
+    calendar-french-special-days-array))
 
-(defun french-calendar-leap-year-p (year)
+(defun calendar-french-leap-year-p (year)
   "True if YEAR is a leap year on the French Revolutionary calendar.
 For Gregorian years 1793 to 1805, the years of actual operation of the
 calendar, follows historical practice based on equinoxes (years 3, 7,
@@ -100,17 +100,17 @@ multiples of 4000."
            (not (memq (% year 400) '(100 200 300)))
            (not (zerop (% year 4000))))))
 
-(defun french-calendar-last-day-of-month (month year)
+(defun calendar-french-last-day-of-month (month year)
   "Return last day of MONTH, YEAR on the French Revolutionary calendar.
 The 13th month is not really a month, but the 5 (6 in leap years) day period of
 `sansculottides' at the end of the year."
   (if (< month 13)
       30
-    (if (french-calendar-leap-year-p year)
+    (if (calendar-french-leap-year-p year)
         6
       5)))
 
-(defun calendar-absolute-from-french (date)
+(defun calendar-french-to-absolute (date)
   "Compute absolute date from French Revolutionary date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
@@ -128,35 +128,38 @@ Gregorian date Sunday, December 31, 1 BC."
             (- (/ (1- year) 4000))))
        (* 30 (1- month))              ; days in prior months this year
        day                            ; days so far this month
-       (1- french-calendar-epoch))))  ; days before start of calendar
+       (1- calendar-french-epoch))))  ; days before start of calendar
+
+(define-obsolete-function-alias 'calendar-absolute-from-french
+  'calendar-french-to-absolute "23.1")
 
 (defun calendar-french-from-absolute (date)
   "Compute the French Revolutionary equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the
 \(imaginary) Gregorian date Sunday, December 31, 1 BC."
-  (if (< date french-calendar-epoch)
+  (if (< date calendar-french-epoch)
       (list 0 0 0)                     ; pre-French Revolutionary date
     (let* ((approx                     ; approximation from below
-            (/ (- date french-calendar-epoch) 366))
+            (/ (- date calendar-french-epoch) 366))
            (year               ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
-                             (>= date (calendar-absolute-from-french
+                             (>= date (calendar-french-to-absolute
                                        (list 1 1 (1+ y))))
                              1)))
            (month                    ; search forward from Vendemiaire
             (1+ (calendar-sum m 1
                               (> date
-                                 (calendar-absolute-from-french
+                                 (calendar-french-to-absolute
                                   (list m
-                                        (french-calendar-last-day-of-month
+                                        (calendar-french-last-day-of-month
                                          m year)
                                         year)))
                               1)))
            (day                     ; calculate the day by subtraction
             (- date
-               (1- (calendar-absolute-from-french (list month 1 year))))))
+               (1- (calendar-french-to-absolute (list month 1 year))))))
       (list month day year))))
 
 ;;;###cal-autoload
@@ -172,21 +175,21 @@ Defaults to today's date if DATE is not given."
          (d (extract-calendar-day french-date)))
     (cond
      ((< y 1) "")
-     ((= m 13) (format (if (french-calendar-accents)
+     ((= m 13) (format (if (calendar-french-accents-p)
                            "Jour %s de l'Année %d de la Révolution"
                          "Jour %s de l'Anne'e %d de la Re'volution")
-                       (aref (french-calendar-special-days-array) (1- d))
+                       (aref (calendar-french-special-days-array) (1- d))
                        y))
      (t (format
-         (if (french-calendar-accents)
+         (if (calendar-french-accents-p)
              "%d %s an %d de la Révolution"
            "%d %s an %d de la Re'volution")
          d
-         (aref (french-calendar-month-name-array) (1- m))
+         (aref (calendar-french-month-name-array) (1- m))
          y)))))
 
 ;;;###cal-autoload
-(defun calendar-print-french-date ()
+(defun calendar-french-print-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
   (let ((f (calendar-french-date-string (calendar-cursor-to-date t))))
@@ -194,16 +197,19 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
 
+(define-obsolete-function-alias 'calendar-print-french-date
+  'calendar-french-print-date "23.1")
+
 ;;;###cal-autoload
-(defun calendar-goto-french-date (date &optional noecho)
+(defun calendar-french-goto-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is non-nil."
   (interactive
-   (let* ((months (french-calendar-month-name-array))
-          (special-days (french-calendar-special-days-array))
+   (let* ((months (calendar-french-month-name-array))
+          (special-days (calendar-french-special-days-array))
           (year (progn
                   (calendar-read
-                   (if (french-calendar-accents)
+                   (if (calendar-french-accents-p)
                        "Année de la Révolution (>0): "
                      "Anne'e de la Re'volution (>0): ")
                    (lambda (x) (> x 0))
@@ -215,10 +221,10 @@ Echo French Revolutionary date unless NOECHO is non-nil."
           (month-list
            (mapcar 'list
                    (append months
-                           (if (french-calendar-leap-year-p year)
+                           (if (calendar-french-leap-year-p year)
                                (mapcar
                                 (lambda (x) (concat "Jour " x))
-                                french-calendar-special-days-array)
+                                calendar-french-special-days-array)
                              (reverse
                               (cdr ; we don't want rev. day in a non-leap yr
                                (reverse
@@ -241,8 +247,11 @@ Echo French Revolutionary date unless NOECHO is non-nil."
           (month (if (> month 12) 13 month)))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-french date)))
-  (or noecho (calendar-print-french-date)))
+                       (calendar-french-to-absolute date)))
+  (or noecho (calendar-french-print-date)))
+
+(define-obsolete-function-alias 'calendar-goto-french-date
+  'calendar-french-goto-date "23.1")
 
 (defvar date)
 
