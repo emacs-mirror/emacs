@@ -1,5 +1,7 @@
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-decode.el (mm-inline-media-tests): Add entry for x-diff.
+
 	* nnweb.el (nnweb-init): Avoid nn-with-unibyte.
 
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>

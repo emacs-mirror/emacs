@@ -235,6 +235,9 @@ before the external MIME handler is invoked."
        ;; makes it possible to install another package which provides an
        ;; alternative implementation of diff-mode.  --Stef
        (fboundp 'diff-mode)))
+    ;; In case mime.types uses x-diff (as does Debian's mime-support-3.40).
+    ("text/x-diff" mm-display-patch-inline
+     (lambda (handle) (fboundp 'diff-mode)))
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
     ("text/dns" mm-display-dns-inline identity)
@@ -1233,10 +1236,9 @@ PROMPT overrides the default one used to ask user for a file name."
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
     (setq file
-	  (mm-with-multibyte
-	   (read-file-name (or prompt "Save MIME part to: ")
-			   (or mm-default-directory default-directory)
-			   nil nil (or filename ""))))
+          (read-file-name (or prompt "Save MIME part to: ")
+                          (or mm-default-directory default-directory)
+                          nil nil (or filename "")))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
 	     (yes-or-no-p (format "File %s already exists; overwrite? "
