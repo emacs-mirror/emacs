@@ -582,7 +582,7 @@ Kiddush HaHamah."
 ;;;###diary-autoload
 (defun list-hebrew-diary-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
-Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
+Hebrew date diary entries must be prefaced by `diary-hebrew-entry-symbol'
 \(normally an `H').  The same diary date forms govern the style
 of the Hebrew calendar entries, except that the Hebrew month
 names cannot be abbreviated.  The Hebrew months are numbered
@@ -593,7 +593,7 @@ Hebrew year.  If a Hebrew date diary entry begins with
 listing, but will not be marked in the calendar.  This function
 is provided for use with `nongregorian-diary-listing-hook'."
   (diary-list-entries-1 calendar-hebrew-month-name-array-leap-year
-                        hebrew-diary-entry-symbol
+                        diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
 (autoload 'calendar-mark-complex "diary-lib")
@@ -630,7 +630,7 @@ Marks each entry in `diary-file' (or included files) visible in the calendar
 window.  See `list-hebrew-diary-entries' for more information."
   (diary-mark-entries-1 'mark-hebrew-calendar-date-pattern
                         calendar-hebrew-month-name-array-leap-year
-                        hebrew-diary-entry-symbol
+                        diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
 
@@ -643,7 +643,7 @@ For the Hebrew date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 nil arg calendar-hebrew-month-name-array-leap-year
-                        hebrew-diary-entry-symbol
+                        diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
 ;;;###cal-autoload
@@ -653,7 +653,7 @@ For the day of the Hebrew month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'monthly arg calendar-hebrew-month-name-array-leap-year
-                        hebrew-diary-entry-symbol
+                        diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
 ;;;###cal-autoload
@@ -663,7 +663,7 @@ For the day of the Hebrew year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'yearly arg calendar-hebrew-month-name-array-leap-year
-                        hebrew-diary-entry-symbol
+                        diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
 
 ;;;###autoload
