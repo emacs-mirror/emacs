@@ -240,19 +240,22 @@ put the output in."
 (defun autoload-ensure-default-file (file)
   "Make sure that the autoload file FILE exists and if not create it."
   (unless (file-exists-p file)
-    (write-region
-     (concat ";;; " (file-name-nondirectory file)
-	     " --- automatically extracted autoloads\n"
-	     ";;\n"
-	     ";;; Code:\n\n"
-	     "\n;; Local Variables:\n"
-	     ";; version-control: never\n"
-	     ";; no-byte-compile: t\n"
-	     ";; no-update-autoloads: t\n"
-	     ";; End:\n"
-	     ";;; " (file-name-nondirectory file)
-	     " ends here\n")
-     nil file))
+    (let ((basename (file-name-nondirectory file)))
+      (write-region
+       (concat ";;; " basename
+	       " --- automatically extracted autoloads\n"
+	       ";;\n"
+	       ";;; Code:\n\n"
+	       "\n"
+	       "(provide '" (file-name-sans-extension basename) ")\n"
+	       ";; Local Variables:\n"
+	       ";; version-control: never\n"
+	       ";; no-byte-compile: t\n"
+	       ";; no-update-autoloads: t\n"
+	       ";; End:\n"
+	       ";;; " basename
+	       " ends here\n")
+       nil file)))
   file)
 
 (defun autoload-insert-section-header (outbuf autoloads load-name file time)
