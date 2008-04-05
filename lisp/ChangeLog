@@ -1,3 +1,10 @@
+2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el: Undo part of the multi-tty change, which is only
+	needed if server.el is preloaded, and broke server-running-p.
+	(server-socket-dir): Initialize in the defvar, as before.
+	(server-start): Remove initialization of server-socket-dir.
+
 2008-04-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-format): Support inodes that are 2- or
@@ -7,8 +14,7 @@
 
 	* cus-face.el (custom-face-attributes): Handle roman slant.
 
-	* faces.el (default): Ensure the face-defface-spec property is
-	set.
+	* faces.el (default): Ensure the face-defface-spec property is set.
 
 2008-04-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
