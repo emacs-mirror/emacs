@@ -57,3 +57,6 @@ _CRTIMP int __cdecl __MINGW_NOTHROW	chmod (const char*, int);
 _CRTIMP int __cdecl __MINGW_NOTHROW	stat (const char*, struct stat*);
 
 #endif	/* INC_SYS_STAT_H_ */
+
+/* arch-tag: 17d8fc06-f2e5-4d10-a01e-af819918fe42
+   (do not change this comment) */

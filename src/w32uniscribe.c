@@ -874,3 +874,6 @@ syms_of_w32uniscribe ()
 }
 
 #endif /* USE_FONT_BACKEND  */
+
+/* arch-tag: 9530f0e1-7471-47dd-a780-94330af87ea0
+   (do not change this comment) */
