@@ -39,7 +39,7 @@ Boston, MA 02110-1301, USA.  */
 #if !TARGET_API_MAC_CARBON
 #include <MacTypes.h>
 #include <Menus.h>
-#include <QuickDraw.h>
+#include <Quickdraw.h>
 #include <ToolUtils.h>
 #include <Fonts.h>
 #include <Controls.h>
@@ -2752,7 +2752,7 @@ create_and_show_dialog (f, first_wv)
 	      SendEventToEventTarget (event, toolbox_dispatcher);
 	      ReleaseEvent (event);
 	    }
-#ifdef MAC_OSX
+#if 0 /* defined (MAC_OSX) */
 	  else if (err != eventLoopTimedOutErr)
 	    {
 	      if (err == eventLoopQuitErr)
@@ -3194,7 +3194,11 @@ fill_menu (menu, wv, kind, submenu_id)
 	  MenuRef submenu = NewMenu (submenu_id, "\pX");
 
 	  InsertMenu (submenu, -1);
+#if TARGET_API_MAC_CARBON
+	  SetMenuItemHierarchicalMenu (menu, pos, submenu);
+#else
 	  SetMenuItemHierarchicalID (menu, pos, submenu_id);
+#endif
 	  submenu_id = fill_menu (submenu, wv->contents, kind, submenu_id + 1);
 	}
     }
@@ -3256,7 +3260,23 @@ fill_menubar (wv, deep_p)
 	  if (err == noErr)
 	    {
 	      if (CFStringCompare (title, old_title, 0) != kCFCompareEqualTo)
-		err = SetMenuTitleWithCFString (menu, title);
+		{
+#ifdef MAC_OSX
+		  if (id + 1 == min_menu_id[MAC_MENU_MENU_BAR + 1]
+		      || GetMenuRef (id + 1) == NULL)
+		    {
+		      /* This is a workaround for Mac OS X 10.5 where
+			 just calling SetMenuTitleWithCFString fails
+			 to change the title of the last (Help) menu
+			 in the menu bar.  */
+		      DeleteMenu (id);
+		      DisposeMenu (menu);
+		      menu = NULL;
+		    }
+		  else
+#endif	/* MAC_OSX */
+		    err = SetMenuTitleWithCFString (menu, title);
+		}
 	      CFRelease (old_title);
 	    }
 	  else

@@ -1,3 +1,31 @@
+2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-log-view-mode, vc-bzr-annotate-command)
+	(vc-bzr-annotate-time, vc-bzr-annotate-extract-revision-at-line):
+	Revision numbers can include ".".
+
+	* diff-mode.el (diff-end-of-hunk): Be careful not to overlook trailing
+	"+" lines not accounted for by counting "-" and context lines.
+
+2008-04-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-service-open-file): Use file URL instead of
+	file name string.
+
+2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-command): Preserve line alignment.
+	(vc-bzr-annotate-time): Accept space used to preserve alignment.
+
+2008-04-05  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (defadvice): Add usage pattern.
+
+2008-04-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Add advice about using Cygwin GDB (from a
+	thread in [h-e-w]).
+
 2008-04-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (abort-if-file-too-large): Fix typo in docstring.

@@ -390,9 +390,9 @@ Allgemein gesprochen löscht <Delete> das Zeichen unmittelbar vor der
 aktuellen Cursorposition.
 
 [Beachten Sie, daß <Delete> ein logischer Befehlsname ist, der auf die
-jeweilige Tastatur abgebildet wird.  Lesen Sie im Abschnitt `Rebinding
-Keys in Your Init File' des Emacs-Handbuches nach, wie Sie
-gegebenenfalls die Tastaturbelegung verändern können.]
+jeweilige Tastatur abgebildet wird.  Lesen Sie im Abschnitt `Init
+Rebinding' des Emacs-Handbuches nach, wie Sie gegebenenfalls die
+Tastaturbelegung verändern können.]
 
 >> Probieren Sie das jetzt aus: Geben Sie ein paar Zeichen ein und
    löschen Sie sie wieder mit <Delete>.  Sie brauchen sich keine
@@ -1036,16 +1036,6 @@ Position zu suchen, wo `Cursor' steht, genügt es, noch einmal C-s zu
 betätigen.  Wenn es keine nächste Position gibt, dann ertönt ein
 kurzer Ton, und Emacs sagt Ihnen, daß die Suche im Augenblick
 fehlschlägt (`failing').  C-g beendet ebenfalls einen Suchvorgang.
-
-Anmerkung: Wie weiter oben schon einmal erwähnt, scheint es bei
-einigen Systemen, als ob das Ausführen von C-s Emacs abstürzen läßt
-(Emacs reagiert mit keinen Meldungen mehr; der Bildschirm wirkt
-eingefroren).  Dieser Effekt tritt auf, wenn das Betriebssystem das
-Zeichen C-s abfängt (es wird für `flow control' verwendet) und nicht
-an Emacs weiterreicht.  Um den Bildschirm wieder zum Leben zu
-erwecken, geben Sie C-q ein, und lesen Sie dann den Abschnitt
-`Spontaneous Entry to Incremental Search' im Emacs-Handbuch, was man
-am besten tun kann.
 
 Wenn Sie sich mitten in einer inkrementellen Suche befinden und
 <Delete> drücken, wird das letzte Zeichen im Suchstring gelöscht, und

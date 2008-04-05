@@ -1935,6 +1935,21 @@ readdir (DIR *dirp)
   dir_static.d_namlen = strlen (dir_static.d_name);
   dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
+
+  /* If the file name in cFileName[] includes `?' characters, it means
+     the original file name used characters that cannot be represented
+     by the current ANSI codepage.  To avoid total lossage, retrieve
+     the short 8+3 alias of the long file name.  */
+  if (_mbspbrk (dir_find_data.cFileName, "?"))
+    {
+      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
+      /* 8+3 aliases are returned in all caps, which could break
+	 various alists that look at filenames' extensions.  */
+      downcase = 1;
+    }
+  else
+    strcpy (dir_static.d_name, dir_find_data.cFileName);
+  dir_static.d_namlen = strlen (dir_static.d_name);
   if (dir_is_fat)
     _strlwr (dir_static.d_name);
   else if (downcase)

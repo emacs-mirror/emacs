@@ -1,14 +1,26 @@
+2008-03-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS (incoming mail files): Add version.
+
+2008-03-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* tutorials/TUTORIAL.de: Remove even more discussion of flow
+	control.  Refer to node name `Init Rebinding' instead of title.
+
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* refcards/orgcard.tex: Minor fixes.
 
 2008-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* TUTORIAL, TUTORIAL.fr, TUTORIAL.ro, TUTORIAL.bg, TUTORIAL.it:
-	* TUTORIAL.ru, TUTORIAL.cn, TUTORIAL.ja, TUTORIAL.sk:
-	* TUTORIAL.cs, TUTORIAL.ko, TUTORIAL.sl, TUTORIAL.de:
-	* TUTORIAL.nl, TUTORIAL.sv, TUTORIAL.eo, TUTORIAL.pl, TUTORIAL.th:
-	* TUTORIAL.es, TUTORIAL.pt_BR: Remove discussion of flow control.
+	* tutorials/TUTORIAL, tutorials/TUTORIAL.fr, tutorials/TUTORIAL.ro:
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.it, tutorials/TUTORIAL.ru:
+	* tutorials/TUTORIAL.cn, tutorials/TUTORIAL.ja, tutorials/TUTORIAL.sk:
+	* tutorials/TUTORIAL.cs, tutorials/TUTORIAL.ko, tutorials/TUTORIAL.sl:
+	* tutorials/TUTORIAL.de, tutorials/TUTORIAL.nl, tutorials/TUTORIAL.sv:
+	* tutorials/TUTORIAL.eo, tutorials/TUTORIAL.pl, tutorials/TUTORIAL.th:
+	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.pt_BR:
+	Remove discussion of flow control.
 
 2008-03-12  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -438,12 +438,23 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
       (setq style (diff-hunk-style style))
       (goto-char (match-end 0))
       (when (and (not donttrustheader) (match-end 2))
+        (let* ((nold (string-to-number (match-string 2)))
+               (nnew (string-to-number (match-string 4)))
+               (endold
         (save-excursion
           (re-search-forward (if diff-valid-unified-empty-line
                                  "^[- \n]" "^[- ]")
-                             nil t
-                             (string-to-number (match-string 2)))
-          (setq end (line-beginning-position 2)))))
+                                     nil t nold)
+                  (line-beginning-position 2)))
+               (endnew
+                ;; The hunk may end with a bunch of "+" lines, so the `end' is
+                ;; then further than computed above.
+                (save-excursion
+                  (re-search-forward (if diff-valid-unified-empty-line
+                                         "^[+ \n]" "^[+ ]")
+                                     nil t nnew)
+                  (line-beginning-position 2))))
+          (setq end (max endold endnew)))))
     ;; We may have a first evaluation of `end' thanks to the hunk header.
     (unless end
       (setq end (and (re-search-forward

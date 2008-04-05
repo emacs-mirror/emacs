@@ -79,7 +79,7 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
-#ifndef MAC_OS_X
+#ifndef MAC_OSX
 #if TARGET_API_MAC_CARBON
 static int wakeup_from_rne_enabled_p = 0;
 #define ENABLE_WAKEUP_FROM_RNE (wakeup_from_rne_enabled_p = 1)

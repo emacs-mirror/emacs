@@ -631,6 +631,7 @@ extern void x_free_frame_resources P_ ((struct frame *));
 extern void x_destroy_window P_ ((struct frame *));
 extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_delete_display P_ ((struct x_display_info *));
+extern void mac_initialize P_ ((void));
 extern Pixmap XCreatePixmap P_ ((Display *, WindowRef, unsigned int,
 				 unsigned int, unsigned int));
 extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowRef, char *,

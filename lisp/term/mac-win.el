@@ -2197,7 +2197,9 @@ either in the current buffer or in the echo area."
 (defun mac-service-open-file ()
   "Open the file specified by the selection value for Services."
   (interactive)
-  (find-file-existing (x-selection-value mac-service-selection)))
+  ;; The selection seems not to contain the file name as
+  ;; public.utf16-plain-text data on Mac OS X 10.4.
+  (dnd-open-file (x-get-selection mac-service-selection 'public.file-url) nil))
 
 (defun mac-service-open-selection ()
   "Create a new buffer containing the selection value for Services."

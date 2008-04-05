@@ -519,7 +519,7 @@ property containing author and date information."
     ;; to allow saving space by sharing the text properties.
     (setq vc-bzr-annotation-table (make-hash-table :test 'equal))
     (goto-char (point-min))
-    (while (re-search-forward "^\\( *[0-9]+\\) +\\(.+\\) +\\([0-9]\\{8\\}\\) |"
+    (while (re-search-forward "^\\( *[0-9.]+ *\\) \\([^\n ]+\\) +\\([0-9]\\{8\\}\\) |"
                               nil t)
       (let* ((rev (match-string 1))
              (author (match-string 2))
@@ -535,7 +535,7 @@ property containing author and date information."
         (insert tag " |")))))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9]+ |" nil t)
+  (when (re-search-forward "^ *[0-9.]+ +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
       (vc-annotate-convert-time
@@ -550,7 +550,7 @@ property containing author and date information."
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at " *\\([0-9]+\\) | ")
+    (if (looking-at " *\\([0-9.]+\\) | ")
         (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)

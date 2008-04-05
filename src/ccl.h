@@ -77,6 +77,9 @@ struct ccl_program {
 				   CCL_WRITE_CHAR.  After execution,
 				   if no such byte is written, set
 				   this value to zero.  */
+  int quit_silently;		/* If nonzero, don't append "CCL:
+				   Quitted" to the generated text when
+				   CCL program is quitted. */
 };
 
 /* This data type is used for the spec field of the structure

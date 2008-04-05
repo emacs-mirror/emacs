@@ -2310,7 +2310,7 @@ identifying string followed by a colon.  There can be no space after
 the colon.  The following list shows examples for each link type.
 
 @example
-http://www.astro.uva.nl/~dominik          @r{on the web}
+http://orgmode.org/                       @r{on the web}
 file:/home/dominik/images/jupiter.jpg     @r{file, absolute path}
 file:papers/last.pdf                      @r{file, relative path}
 news:comp.emacs                           @r{Usenet link}

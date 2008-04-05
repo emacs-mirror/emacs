@@ -11,6 +11,15 @@
 	* calendar.texi: Update for `calendar-date-style' replacing
 	`european-calendar'.
 
+2008-03-28  Jason Rumney  <jasonr@gnu.org>
+
+	* display.texi (Display Custom): Mention overlay-margin in text.
+
+2008-03-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* custom.texi, dired.texi, mini.texi, mule.texi: Add `referenced in the
+	tutorial' comments.
+
 2008-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mark.texi (Mark): Rearrange nodes.

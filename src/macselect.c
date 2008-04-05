@@ -468,7 +468,11 @@ x_own_selection (selection_name, selection_value)
 
     selection_time = long_to_cons (last_event_timestamp);
     if (sel)
-      ownership_info = mac_get_selection_ownership_info (sel);
+      {
+	BLOCK_INPUT;
+	ownership_info = mac_get_selection_ownership_info (sel);
+	UNBLOCK_INPUT;
+      }
     else
       ownership_info = Qnil; 	/* dummy value for local-only selection */
     selection_data = Fcons (selection_name,

@@ -62,6 +62,7 @@ querying the user about whether to do so.
 
 ** Old intermediate incoming mail files (`Incoming*') are deleted after a
 couple of days, not immediately.  *Note Mail Source Customization::.
+(New in Gnus 5.10.10 / Emacs 22.2)
 
 
 * Changes in summary and article mode

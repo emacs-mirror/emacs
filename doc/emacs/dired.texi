@@ -4,6 +4,8 @@
 @c See file emacs.texi for copying conditions.
 @node Dired, Calendar/Diary, Rmail, Top
 @chapter Dired, the Directory Editor
+@c This node is referenced in the tutorial.  When renaming or deleting
+@c it, the tutorial needs to be adjusted.
 @cindex Dired
 @cindex file management
 

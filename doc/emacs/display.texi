@@ -1217,7 +1217,7 @@ amount of time Emacs must remain busy before the busy indicator is
 displayed, by setting the variable @code{hourglass-delay}.
 
 @vindex overline-margin
-  On graphical display, this variables specifies the vertical position
+  On graphical display, the variable @code{overline-margin} specifies the vertical position
 of an overline above the text, including the height of the overline
 itself (1 pixel).  The default value is 2 pixels.
 

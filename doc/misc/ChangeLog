@@ -27,6 +27,14 @@
 
 	* trampver.texi: Update release number.
 
+2008-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* org.texi: Update to new org-mode website.
+
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cl.texi (For Clauses): Fix loop over key-seq to match code.
+
 2008-03-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Foreign Groups): Add gnus-read-ephemeral-gmane-group,

@@ -1745,7 +1745,8 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 	  break;
 
 	case CCL_STAT_QUIT:
-	  sprintf(msg, "\nCCL: Quited.");
+	  if (! ccl->quit_silently)
+	    sprintf(msg, "\nCCL: Quited.");
 	  break;
 
 	default:
@@ -1948,6 +1949,7 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->stack_idx = 0;
   ccl->suppress_error = 0;
   ccl->eight_bit_control = 0;
+  ccl->quit_silently = 0;
   return 0;
 }
 

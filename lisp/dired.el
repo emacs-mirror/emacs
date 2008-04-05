@@ -346,6 +346,8 @@ Subexpression 2 must end right before the \\n or \\r.")
 
 (defface dired-perm-write
   '((((type w32 pc)) :inherit default)  ;; These default to rw-rw-rw.
+    ;; Inherit from font-lock-comment-delimiter-face since with min-colors 8
+    ;; font-lock-comment-face is not colored any more.
     (t (:inherit font-lock-comment-delimiter-face)))
   "Face used to highlight permissions of group- and world-writable files."
   :group 'dired-faces

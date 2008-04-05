@@ -1592,6 +1592,8 @@ command is less work to invoke when you really want to.
 
 @node Init Rebinding
 @subsection Rebinding Keys in Your Init File
+@c This node is referenced in the tutorial.  When renaming or deleting
+@c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
 
   If you have a set of key bindings that you like to use all the time,
 you can specify them in your @file{.emacs} file by using their Lisp
