@@ -1,3 +1,13 @@
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Support inode numbers wider than 32
+	bits.  Remove ugly WINDOWSNT-specific kludge introduced on
+	2008-03-14 to force inode be positive.
+
+	* w32.c (sys_chown, stat, fstat): Use S_* constants instead of
+	_S_* ones, since we now use our own sys/stat.h.
+	(stat, fstat): Don't mangle the inode number.
+
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.h (struct frame): Give one more bit to `visible' since we use
