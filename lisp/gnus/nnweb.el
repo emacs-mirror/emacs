@@ -294,12 +294,12 @@ Valid types include `google', `dejanews', and `gmane'.")
   "Initialize buffers and such."
   (unless (gnus-buffer-live-p nnweb-buffer)
     (setq nnweb-buffer
-	  (save-excursion
-	    (mm-with-unibyte
-	      (nnheader-set-temp-buffer
-	       (format " *nnweb %s %s %s*"
-		       nnweb-type nnweb-search server))
-	      (current-buffer))))))
+	  (save-current-buffer
+            (nnheader-set-temp-buffer
+             (format " *nnweb %s %s %s*"
+                     nnweb-type nnweb-search server))
+            (mm-disable-multibyte)
+            (current-buffer)))))
 
 ;;;
 ;;; groups.google.com

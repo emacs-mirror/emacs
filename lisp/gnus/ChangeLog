@@ -1,3 +1,7 @@
+2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnweb.el (nnweb-init): Avoid nn-with-unibyte.
+
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
