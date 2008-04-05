@@ -166,26 +166,26 @@ you will probably also want to add `include-other-diary-files' to
   "List of functions called for listing diary file and included files.
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use any or all of
-`list-hebrew-diary-entries', `diary-islamic-list-entries' and
-`diary-bahai-list-entries'.  The documentation for these functions
+`diary-bahai-list-entries', `diary-hebrew-list-entries', and
+`diary-islamic-list-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
-  :options '(list-hebrew-diary-entries
-             diary-islamic-list-entries
-             diary-bahai-list-entries)
+  :options '(diary-bahai-list-entries
+             diary-hebrew-list-entries
+             diary-islamic-list-entries)
   :group 'diary)
 
 (defcustom nongregorian-diary-marking-hook nil
   "List of functions called for marking diary file and included files.
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use any or all of
-`mark-hebrew-diary-entries', `diary-islamic-mark-entries' and
-`bahai-mark-diary-entries'.  The documentation for these functions
+`diary-bahai-mark-entries', `diary-hebrew-mark-entries' and
+`diary-islamic-mark-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
-  :options '(mark-hebrew-diary-entries
-             diary-islamic-mark-entries
-             diary-bahai-mark-entries)
+  :options '(diary-bahai-mark-entries
+             diary-hebrew-mark-entries
+             diary-islamic-mark-entries)
   :group 'diary)
 
 (defcustom print-diary-entries-hook 'lpr-buffer
@@ -1540,7 +1540,7 @@ DAY MONTH YEAR in the European style).
     is independent of whether the entry *itself* is a marking or
     non-marking one.
 
-  %%(diary-yahrzeit MONTH DAY YEAR) text
+  %%(diary-hebrew-yahrzeit MONTH DAY YEAR) text
     Text is assumed to be the name of the person; the date is the
     date of death on the *civil* calendar.  The diary entry will
     appear on the proper Hebrew-date anniversary and on the day
@@ -1563,11 +1563,11 @@ These functions give the date in alternative calendrical systems:
 
 Theses functions only produce output on certain dates:
 
-`diary-phases-of-moon'  - phases of moon (on the appropriate days)
-`diary-omer'            - Omer count, within 50 days after Passover
-`diary-parasha'         - weekly parasha, every Saturday
-`diary-rosh-hodesh'     - Rosh Hodesh, or the day or Saturday before
-`diary-sabbath-candles' - local time of candle lighting, on Fridays
+`diary-phases-of-moon'     - phases of moon (on the appropriate days)
+`diary-hebrew-omer'        - Omer count, within 50 days after Passover
+`diary-hebrew-parasha'     - weekly parasha, every Saturday
+`diary-hebrew-rosh-hodesh' - Rosh Hodesh, or the day or Saturday before
+`diary-sabbath-candles'    - local time of candle lighting, on Fridays
 
 
 Marking these entries is *extremely* time consuming, so it is
@@ -2090,8 +2090,8 @@ and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
   (append
    (diary-font-lock-date-forms calendar-month-name-array
                                nil calendar-month-abbrev-array)
-   (diary-font-lock-keywords-1 mark-hebrew-diary-entries
-                               list-hebrew-diary-entries
+   (diary-font-lock-keywords-1 diary-hebrew-mark-entries
+                               diary-hebrew-list-entries
                                cal-hebrew
                                calendar-hebrew-month-name-array-leap-year
                                diary-hebrew-entry-symbol)
