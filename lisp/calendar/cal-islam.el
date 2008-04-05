@@ -249,7 +249,7 @@ nil if it is not visible in the current calendar window."
 ;;;###diary-autoload
 (defun diary-islamic-list-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
-Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
+Islamic date diary entries must be prefaced by `diary-islamic-entry-symbol'
 \(normally an `I').  The same `diary-date-forms' govern the style
 of the Islamic calendar entries, except that the Islamic month
 names cannot be abbreviated.  The Islamic months are numbered
@@ -259,7 +259,7 @@ the entry will appear in the diary listing, but will not be
 marked in the calendar.  This function is provided for use with
 `nongregorian-diary-listing-hook'."
   (diary-list-entries-1 calendar-islamic-month-name-array
-                        islamic-diary-entry-symbol
+                        diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
 (define-obsolete-function-alias 'list-islamic-diary-entries
@@ -287,7 +287,7 @@ Marks each entry in `diary-file' (or included files) visible in the calendar
 window.  See `diary-islamic-list-entries' for more information."
   (diary-mark-entries-1 'calendar-islamic-mark-date-pattern
                         calendar-islamic-month-name-array
-                        islamic-diary-entry-symbol
+                        diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
 (define-obsolete-function-alias
@@ -302,7 +302,7 @@ For the Islamic date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 nil arg calendar-islamic-month-name-array
-                        islamic-diary-entry-symbol
+                        diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
 (define-obsolete-function-alias 'insert-islamic-diary-entry
@@ -315,7 +315,7 @@ For the day of the Islamic month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'monthly arg calendar-islamic-month-name-array
-                        islamic-diary-entry-symbol
+                        diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
 (define-obsolete-function-alias 'insert-monthly-islamic-diary-entry
@@ -328,7 +328,7 @@ For the day of the Islamic year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'yearly arg calendar-islamic-month-name-array
-                        islamic-diary-entry-symbol
+                        diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 (define-obsolete-function-alias
   'insert-yearly-islamic-diary-entry 'diary-islamic-insert-yearly-entry "23.1")
