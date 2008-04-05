@@ -179,9 +179,9 @@
     (sit-for 0) ;; Necessary for measuring the window size correctly.
     (when (and file
 	       (ignore-errors
-		(let ((coding-system-for-read 'raw-text)
-		      default-enable-multibyte-characters)
+		(let ((coding-system-for-read 'raw-text))
 		  (with-temp-buffer
+                    (mm-disable-multibyte)
 		    (insert-file-contents file)
 		    (goto-char (point-min))
 		    (setq pixmap (read (current-buffer)))))))

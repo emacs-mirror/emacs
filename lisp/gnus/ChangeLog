@@ -1,5 +1,8 @@
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-ems.el (gnus-x-splash): Prefer mm-disable-multibyte to
+	default-enable-multibyte-characters.
+
 	* gnus-fun.el (gnus-display-x-face-in-from): Remove unnecessary use of
 	default-enable-multibyte-characters.
 
