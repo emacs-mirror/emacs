@@ -261,7 +261,7 @@ Only considers the first, ninth, and twelfth days, unless ALL or
 ;;;###diary-autoload
 (defun diary-bahai-list-entries ()
   "Add any Bahá'í date entries from the diary file to `diary-entries-list'.
-Bahá'í date diary entries must be prefaced by `bahai-diary-entry-symbol'
+Bahá'í date diary entries must be prefaced by `diary-bahai-entry-symbol'
 \(normally a `B').  The same diary date forms govern the style of the
 Bahá'í calendar entries, except that the Bahá'í month names cannot be
 abbreviated.  The Bahá'í months are numbered from 1 to 19 with Bahá being
@@ -270,7 +270,7 @@ abbreviated.  The Bahá'í months are numbered from 1 to 19 with Bahá being
 will not be marked in the calendar.  This function is provided for use with
 `nongregorian-diary-listing-hook'."
   (diary-list-entries-1 calendar-bahai-month-name-array
-                        bahai-diary-entry-symbol
+                        diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 (define-obsolete-function-alias
   'list-bahai-diary-entries 'diary-bahai-list-entries "23.1")
@@ -299,7 +299,7 @@ Marks each entry in `diary-file' (or included files) visible in the calendar
 window.  See `diary-bahai-list-entries' for more information."
   (diary-mark-entries-1 'calendar-bahai-mark-date-pattern
                         calendar-bahai-month-name-array
-                        bahai-diary-entry-symbol
+                        diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
 (define-obsolete-function-alias
@@ -315,7 +315,7 @@ For the Bahá'í date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 nil arg calendar-bahai-month-name-array
-                        bahai-diary-entry-symbol
+                        diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
 (define-obsolete-function-alias
@@ -328,7 +328,7 @@ For the day of the Bahá'í month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'monthly arg calendar-bahai-month-name-array
-                        bahai-diary-entry-symbol
+                        diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
 (define-obsolete-function-alias
@@ -341,7 +341,7 @@ For the day of the Bahá'í year corresponding to the date indicated by point.
 Prefix argument ARG will make the entry nonmarking."
   (interactive "P")
   (diary-insert-entry-1 'yearly arg calendar-bahai-month-name-array
-                        bahai-diary-entry-symbol
+                        diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
 
 (define-obsolete-function-alias
