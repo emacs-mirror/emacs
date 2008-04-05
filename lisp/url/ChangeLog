@@ -1,3 +1,8 @@
+2008-04-04  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-chunked-encoding-after-change-function):
+	Remove superfluous CRLF at end of file.  (bug #42)
+
 2008-03-31  John Wiegley  <johnw@newartisans.com>
 
 	* url-auth.el (url-digest-auth): Changed an if so that the
