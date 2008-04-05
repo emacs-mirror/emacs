@@ -13,7 +13,7 @@
 	* textmodes/nroff-mode.el (nroff-mode-map): Add menus.
 
 	* diff-mode.el (diff-file-junk-re): Recognize the git format for
-	new files.
+	new files and for changing permissions.
 	(diff-mode): Set beginning-of-defun-function and
 	end-of-defun-function.
 

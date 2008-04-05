@@ -556,8 +556,9 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
-;; "index " and "new file mode" are output by git-diff.
-(defconst diff-file-junk-re "diff \\|index \\|new file mode")
+;; "index ", "old mode", "new mode" and "new file mode" are output by git-diff.
+(defconst diff-file-junk-re 
+  "diff \\|index \\|\\(?:new\\(?: file\\)?\\|old\\) mode ")
 
 (defun diff-beginning-of-file-and-junk ()
   "Go to the beginning of file-related diff-info.
