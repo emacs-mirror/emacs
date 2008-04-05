@@ -529,7 +529,17 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	;; for symbolic link, or nil.
 	(drwxrwxrwx (nth 8 file-attr)))	; attribute string ("drwxrwxrwx")
     (concat (if (memq ?i switches)	; inode number
-		(format " %6d" (nth 10 file-attr)))
+		(let ((inode (nth 10 file-attr)))
+		  (if (consp inode)
+		      (if (consp (cdr inode))
+			  (format " %17.0f "
+				  (+ (* (car inode) 1099511627776.0)
+				     (* (cadr inode) 65536.0)
+				     (cddr inode)))
+			(format " %17.0f "
+				(+ (* (car inode) 65536.0)
+				   (cdr inode))))
+		    (format " %17d " inode))))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
 		(format " %4.0f" (fceiling (/ file-size 1024.0))))
