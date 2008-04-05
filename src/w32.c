@@ -2119,7 +2119,7 @@ sys_chmod (const char * path, int mode)
 int
 sys_chown (const char *path, uid_t owner, gid_t group)
 {
-  if (sys_chmod (path, _S_IREAD) == -1) /* check if file exists */
+  if (sys_chmod (path, S_IREAD) == -1) /* check if file exists */
     return -1;
   return 0;
 }
@@ -2526,7 +2526,7 @@ stat (const char * path, struct stat * buf)
   char *name, *r;
   WIN32_FIND_DATA wfd;
   HANDLE fh;
-  DWORD fake_inode;
+  unsigned __int64 fake_inode;
   int permission;
   int len;
   int rootdir = FALSE;
@@ -2646,7 +2646,9 @@ stat (const char * path, struct stat * buf)
 	     all the time (even then there are situations where it is
 	     not unique).  Reputedly, there are at most 48 bits of info
 	     (on NTFS, presumably less on FAT). */
-	  fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
+	  fake_inode = info.nFileIndexHigh;
+	  fake_inode <<= 32;
+	  fake_inode += info.nFileIndexLow;
 	}
       else
 	{
@@ -2656,22 +2658,22 @@ stat (const char * path, struct stat * buf)
 
       if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 	{
-	  buf->st_mode = _S_IFDIR;
+	  buf->st_mode = S_IFDIR;
 	}
       else
 	{
 	  switch (GetFileType (fh))
 	    {
 	    case FILE_TYPE_DISK:
-	      buf->st_mode = _S_IFREG;
+	      buf->st_mode = S_IFREG;
 	      break;
 	    case FILE_TYPE_PIPE:
-	      buf->st_mode = _S_IFIFO;
+	      buf->st_mode = S_IFIFO;
 	      break;
 	    case FILE_TYPE_CHAR:
 	    case FILE_TYPE_UNKNOWN:
 	    default:
-	      buf->st_mode = _S_IFCHR;
+	      buf->st_mode = S_IFCHR;
 	    }
 	}
       CloseHandle (fh);
@@ -2680,7 +2682,7 @@ stat (const char * path, struct stat * buf)
     {
       /* Don't bother to make this information more accurate.  */
       buf->st_mode = (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ?
-	_S_IFDIR : _S_IFREG;
+	S_IFDIR : S_IFREG;
       buf->st_nlink = 1;
       fake_inode = 0;
     }
@@ -2723,14 +2725,14 @@ stat (const char * path, struct stat * buf)
 
   /* determine rwx permissions */
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-    permission = _S_IREAD;
+    permission = S_IREAD;
   else
-    permission = _S_IREAD | _S_IWRITE;
+    permission = S_IREAD | S_IWRITE;
 
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    permission |= _S_IEXEC;
+    permission |= S_IEXEC;
   else if (is_exec (name))
-    permission |= _S_IEXEC;
+    permission |= S_IEXEC;
 
   buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
 
@@ -2744,13 +2746,13 @@ fstat (int desc, struct stat * buf)
 {
   HANDLE fh = (HANDLE) _get_osfhandle (desc);
   BY_HANDLE_FILE_INFORMATION info;
-  DWORD fake_inode;
+  unsigned __int64 fake_inode;
   int permission;
 
   switch (GetFileType (fh) & ~FILE_TYPE_REMOTE)
     {
     case FILE_TYPE_DISK:
-      buf->st_mode = _S_IFREG;
+      buf->st_mode = S_IFREG;
       if (!GetFileInformationByHandle (fh, &info))
 	{
 	  errno = EACCES;
@@ -2758,12 +2760,12 @@ fstat (int desc, struct stat * buf)
 	}
       break;
     case FILE_TYPE_PIPE:
-      buf->st_mode = _S_IFIFO;
+      buf->st_mode = S_IFIFO;
       goto non_disk;
     case FILE_TYPE_CHAR:
     case FILE_TYPE_UNKNOWN:
     default:
-      buf->st_mode = _S_IFCHR;
+      buf->st_mode = S_IFCHR;
     non_disk:
       memset (&info, 0, sizeof (info));
       info.dwFileAttributes = 0;
@@ -2773,7 +2775,7 @@ fstat (int desc, struct stat * buf)
     }
 
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      buf->st_mode = _S_IFDIR;
+      buf->st_mode = S_IFDIR;
 
   buf->st_nlink = info.nNumberOfLinks;
   /* Might as well use file index to fake inode values, but this
@@ -2781,7 +2783,9 @@ fstat (int desc, struct stat * buf)
      all the time (even then there are situations where it is
      not unique).  Reputedly, there are at most 48 bits of info
      (on NTFS, presumably less on FAT). */
-  fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
+  fake_inode = info.nFileIndexHigh;
+  fake_inode <<= 32;
+  fake_inode += info.nFileIndexLow;
 
   /* MSVC defines _ino_t to be short; other libc's might not.  */
   if (sizeof (buf->st_ino) == 2)
@@ -2807,12 +2811,12 @@ fstat (int desc, struct stat * buf)
 
   /* determine rwx permissions */
   if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-    permission = _S_IREAD;
+    permission = S_IREAD;
   else
-    permission = _S_IREAD | _S_IWRITE;
+    permission = S_IREAD | S_IWRITE;
 
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    permission |= _S_IEXEC;
+    permission |= S_IEXEC;
   else
     {
 #if 0 /* no way of knowing the filename */
@@ -2822,7 +2826,7 @@ fstat (int desc, struct stat * buf)
 	   stricmp (p, ".com") == 0 ||
 	   stricmp (p, ".bat") == 0 ||
 	   stricmp (p, ".cmd") == 0))
-	permission |= _S_IEXEC;
+	permission |= S_IEXEC;
 #endif
     }
 
