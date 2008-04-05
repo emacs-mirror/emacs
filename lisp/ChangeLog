@@ -45,6 +45,7 @@
 	* calendar/cal-hebrew.el (diary-hebrew-sabbath-candles-minutes)
 	(diary-hebrew-sabbath-candles): Move here from solar.el and rename.
 	Doc fix.  Keep old name as alias.
+	(diary-hebrew-sabbath-candles): Simplify.
 	(solar-setup, solar-sunrise-sunset, calendar-latitude)
 	(calendar-longitude, calendar-time-zone): Declare for compiler.
 	* calendar/diary-lib.el (list-sexp-diary-entries): Update doc for
