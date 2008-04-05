@@ -7,6 +7,7 @@
 	* w32.c (sys_chown, stat, fstat): Use S_* constants instead of
 	_S_* ones, since we now use our own sys/stat.h.
 	(stat, fstat): Don't mangle the inode number.
+	(init_user_info): Don't restrict UID and GID to 0-60000 range.
 
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
