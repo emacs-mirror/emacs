@@ -99,7 +99,7 @@ Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
         (get-file-buffer diary-file)
       ;; If there are no diary entries, there won't be a fancy-diary
       ;; to dedicate, so make a basic one.
-      (or (buffer-live-p fancy-diary-buffer)
+      (or (get-buffer fancy-diary-buffer)
           (calendar-in-read-only-buffer fancy-diary-buffer
             (calendar-set-mode-line "Diary Entries")))
       fancy-diary-buffer))
