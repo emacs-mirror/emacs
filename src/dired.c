@@ -1028,7 +1028,17 @@ Elements of the attribute list are:
   values[9] = (gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
   /* Shut up GCC warnings in FIXNUM_OVERFLOW_P below.  */
+#ifdef WINDOWSNT
+  {
+    /* The bit-shuffling we do in w32.c:stat can turn on the MSB, which
+       will produce negative inode numbers.  People don't like that, so
+       force a positive inode instead.  */
+    unsigned short tem = s.st_ino;
+    ino = tem;
+  }
+#else
   ino = s.st_ino;
+#endif
   if (FIXNUM_OVERFLOW_P (ino))
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
