@@ -19,6 +19,23 @@
 	* calendar/cal-x.el (calendar-dedicate-diary): Use get-buffer rather
 	than buffer-live-p.  Reported by David Koppelman <koppel@ece.lsu.edu>.
 
+	* calendar/calendar.el (hebrew-holidays-1, hebrew-holidays-2)
+	(hebrew-holidays-3, hebrew-holidays-4): Don't autoload obsolescence.
+
+	* calendar/calendar.el (diary-hebrew-entry-symbol): Rename
+	hebrew-diary-entry-symbol.  Keep old name as alias.
+	(diary-islamic-entry-symbol): Rename islamic-diary-entry-symbol.
+	Keep old name as alias.
+	(diary-bahai-entry-symbol): Rename bahai-diary-entry-symbol.
+	Keep old name as alias.
+	* calendar/cal-bahai.el: Update for rename bahai-diary-entry-symbol
+	to diary-bahai-entry-symbol.
+	* calendar/cal-hebrew.el: Update for rename hebrew-diary-entry-symbol
+	to diary-hebrew-entry-symbol.
+	* calendar/cal-islam.el: Update for rename islamic-diary-entry-symbol
+	to diary-islamic-entry-symbol.
+	* calendar/diary-lib.el: Update for diary-entry-symbol renames.
+
 	* calendar/cal-coptic.el (calendar-coptic-month-name-array):
 	Rename coptic-calendar-month-name-array.  Update callers.
 	(calendar-coptic-epoch): Rename coptic-calendar-epoch.  Update callers.
