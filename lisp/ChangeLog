@@ -1,3 +1,19 @@
+2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/hideif.el (hif-token-alist): New var.
+	(hif-token-regexp, hif-tokenize): Use it.
+	(hif-mathify-binop): New macro.
+	(hif-plus, hif-minus, hif-notequal, hif-greater, hif-less)
+	(hif-greater-equal, hif-less-equal): Use it.
+	(hif-logior, hif-logand): New functions.
+	(hif-math): Accept | and & as well.
+
+	* progmodes/etags.el: Fix problem with completion for buffer-local
+	tables.  Reported by Radey Shouman <shouman@comcast.net>.
+	(tags-complete-tag): Remove.
+	(tags-lazy-completion-table): New function to replace it.
+	(find-tag-tag, complete-tag): Update users.
+
 2008-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-rcs.el (vc-rcs-dir-status):

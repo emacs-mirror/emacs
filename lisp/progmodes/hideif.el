@@ -348,10 +348,27 @@ that form should be displayed.")
 (defvar hif-token)
 (defvar hif-token-list)
 
-;; pattern to match initial identifier, !, &&, ||, (, or ).
-;; Added ==, + and -: garyo@avs.com 8/9/94
+(defconst hif-token-alist
+  '(("||" . or)
+    ("&&" . and)
+    ("|"  . hif-logior)
+    ("&"  . hif-logand)
+    ("==" . equal)
+    ("!=" . hif-notequal)
+    ("!"  . not)
+    ("("  . lparen)
+    (")"  . rparen)
+    (">"  . hif-greater)
+    ("<"  . hif-less)
+    (">=" . hif-greater-equal)
+    ("<=" . hif-less-equal)
+    ("+"  . hif-plus)
+    ("-"  . hif-minus)
+    ("?"  . hif-conditional)
+    (":"  . hif-colon)))
+
 (defconst hif-token-regexp
-  "\\(&&\\|||\\|[!=]=\\|!\\|[()+?:-]\\|[<>]=?\\|\\w+\\)")
+  (concat (regexp-opt (mapcar 'car hif-token-alist)) "\\|\\w+"))
 
 (defun hif-tokenize (start end)
   "Separate string between START and END into a list of tokens."
@@ -369,26 +386,11 @@ that form should be displayed.")
 	    (let ((token (buffer-substring (point) (match-end 0))))
 	      (goto-char (match-end 0))
 	      ;; (message "token: %s" token) (sit-for 1)
-	      (push (cond
-		     ((string-equal token "||") 'or)
-		     ((string-equal token "&&") 'and)
-		     ((string-equal token "==") 'equal)
-		     ((string-equal token "!=") 'hif-notequal)
-		     ((string-equal token "!")  'not)
-		     ((string-equal token "defined") 'hif-defined)
-		     ((string-equal token "(") 'lparen)
-		     ((string-equal token ")") 'rparen)
-		     ((string-equal token ">") 'hif-greater)
-		     ((string-equal token "<") 'hif-less)
-		     ((string-equal token ">=") 'hif-greater-equal)
-		     ((string-equal token "<=") 'hif-less-equal)
-		     ((string-equal token "+") 'hif-plus)
-		     ((string-equal token "-") 'hif-minus)
-		     ((string-equal token "?") 'hif-conditional)
-		     ((string-equal token ":") 'hif-colon)
-		     ((string-match "\\`[0-9]*\\'" token)
-		      (string-to-number token))
-		     (t (intern token)))
+	      (push (or (cdr (assoc token hif-token-alist))
+                        (if (string-equal token "defined") 'hif-defined)
+                        (if (string-match "\\`[0-9]*\\'" token)
+                            (string-to-number token))
+                        (intern token))
 		    token-list)))
 	   (t (error "Bad #if expression: %s" (buffer-string)))))))
     (nreverse token-list)))
@@ -457,7 +459,7 @@ that form should be displayed.")
        math : factor | math '+|-' factor."
   (let ((result (hif-factor))
 	(math-op nil))
-    (while (memq hif-token '(hif-plus hif-minus))
+    (while (memq hif-token '(hif-plus hif-minus hif-logior hif-logand))
       (setq math-op hif-token)
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
@@ -515,27 +517,22 @@ that form should be displayed.")
   (or (not (zerop (hif-mathify a))) (not (zerop (hif-mathify b)))))
 (defun hif-not (a)
   (zerop (hif-mathify a)))
-(defun hif-plus (a b)
-  "Like ordinary plus but treat t and nil as 1 and 0."
-  (+ (hif-mathify a) (hif-mathify b)))
-(defun hif-minus (a b)
-  "Like ordinary minus but treat t and nil as 1 and 0."
-  (- (hif-mathify a) (hif-mathify b)))
-(defun hif-notequal (a b)
-  "Like (not (equal A B)) but as one symbol."
-  (not (equal a b)))
-(defun hif-greater (a b)
-  "Simple comparison."
-  (> (hif-mathify a) (hif-mathify b)))
-(defun hif-less (a b)
-  "Simple comparison."
-  (< (hif-mathify a) (hif-mathify b)))
-(defun hif-greater-equal (a b)
-  "Simple comparison."
-  (>= (hif-mathify a) (hif-mathify b)))
-(defun hif-less-equal (a b)
-  "Simple comparison."
-  (<= (hif-mathify a) (hif-mathify b)))
+
+(defmacro hif-mathify-binop (fun)
+  `(lambda (a b)
+     ,(format "Like `%s' but treat t and nil as 1 and 0." fun)
+     (,fun (hif-mathify a) (hif-mathify b))))
+
+(defalias 'hif-plus          (hif-mathify-binop +))
+(defalias 'hif-minus         (hif-mathify-binop -))
+(defalias 'hif-notequal      (hif-mathify-binop /=))
+(defalias 'hif-greater       (hif-mathify-binop >))
+(defalias 'hif-less          (hif-mathify-binop <))
+(defalias 'hif-greater-equal (hif-mathify-binop >=))
+(defalias 'hif-less-equal    (hif-mathify-binop <=))
+(defalias 'hif-logior        (hif-mathify-binop logior))
+(defalias 'hif-logand        (hif-mathify-binop logand))
+
 ;;;----------- end of parser -----------------------
 
 
