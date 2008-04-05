@@ -1,5 +1,7 @@
 2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-face.el (custom-face-attributes): Handle roman slant.
+
 	* faces.el (default): Ensure the face-defface-spec property is
 	set.
 
