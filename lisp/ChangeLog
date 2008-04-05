@@ -1,5 +1,8 @@
 2008-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-rcs.el (vc-rcs-dir-status):
+	* vc-sccs.el (vc-sccs-dir-status): New function.
+
 	* outline.el (outline-mode-menu-bar-map):
 	* term.el (terminal-signal-menu): Add :help.
 
