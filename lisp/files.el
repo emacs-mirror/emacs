@@ -1508,7 +1508,7 @@ When nil, never request confirmation."
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
 (defun abort-if-file-too-large (size op-type)
-  "If file SIZE larger than LARGE-FILE-WARNING-THRESHOLD, allow user to abort.
+  "If file SIZE larger than `large-file-warning-threshold', allow user to abort.
 OP-TYPE specifies the file operation being performed (for message to user)."
   (when (and large-file-warning-threshold size
 	   (> size large-file-warning-threshold)
