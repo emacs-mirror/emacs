@@ -307,12 +307,10 @@ uniscribe_shape (lgstring)
 				advances, offsets, &overall_metrics);
 	  if (result == 0) /* Success.  */
 	    {
-	      int j, nclusters, from = 0, to = 0;
-	      /* For tracking our mapping of characters to glyphs.
-	         Special value -1 means not yet initialized, -2 means
-	         we've run off the end.  Anything else is an index
-	         into the chars and clusters arrays.  */
-	      int my_char = -1;
+	      int j, nclusters, from, to;
+
+	      from = rtl > 0 ? 0 : nchars_in_run - 1;
+	      to = from;
 
 	      for (j = 0; j < nglyphs; j++)
 		{
@@ -330,62 +328,33 @@ uniscribe_shape (lgstring)
 		  /* Detect clusters, for linking codes back to characters.  */
 		  if (attributes[j].fClusterStart)
 		    {
-		      /* First time, set to appropriate end of run.  */
-		      if (my_char == -1)
-			my_char = rtl > 0 ? 0 : nchars_in_run - 1;
-		      else if (my_char >= 0)
-			my_char += rtl;
-		      while (my_char >= 0 && my_char < nchars_in_run
-			     && clusters[my_char] < j)
-			my_char += rtl;
-
-		      if (my_char < 0 || my_char >= nchars_in_run)
-			my_char = -2;
-
-		      /* FROM and TO as char indices.  This produces
-		         much better results at small font sizes than
-		         earlier attempts at using glyph indices for
-		         FROM and TO, but the output still isn't quite
-		         right.  For example, on the first South Asia
-		         line of etc/HELLO, the third example
-		         (Kannada) is missing the last glyph.  This
-		         seems to be caused by the fact that more
-		         glyphs are produced than there are characters
-		         in the output (other scripts on that line
-		         result in the same or fewer glyphs). */
-		      if (my_char < 0)
-			from = to = rtl > 0 ? nchars_in_run - 1: 0;
+		      while (from >= 0 && from < nchars_in_run
+			     && clusters[from] < j)
+			from += rtl;
+		      if (from < 0)
+			from = to = 0;
+		      else if (from >= nchars_in_run)
+			from = to = nchars_in_run - 1;
 		      else
 			{
 			  int k;
-			  from = my_char;
-			  to = rtl > 0 ? nchars_in_run : 0;
-			  for (k = my_char + rtl; k >= 0 && k < nchars_in_run;
+			  to = rtl > 0 ? nchars_in_run - 1 : 0;
+			  for (k = from + rtl; k >= 0 && k < nchars_in_run;
 			       k += rtl)
 			    {
 			      if (clusters[k] > j)
 				{
-				  to = k;
+				  to = k - 1;
 				  break;
 				}
 			    }
 			}
 		    }
 
-		  if (my_char < 0 || clusters[my_char] > j)
-		    {
-		      /* No mapping.  */
-		      LGLYPH_SET_CHAR (lglyph, 0);
-		      LGLYPH_SET_FROM (lglyph, items[i].iCharPos + from);
-		      LGLYPH_SET_TO (lglyph, items[i].iCharPos + to);
-		    }
-		  else
-		    {
-		      LGLYPH_SET_CHAR (lglyph, chars[items[i].iCharPos
-						     + my_char]);
-		      LGLYPH_SET_FROM (lglyph, items[i].iCharPos + from);
-		      LGLYPH_SET_TO (lglyph, items[i].iCharPos + to);
-		    }
+		  LGLYPH_SET_CHAR (lglyph, chars[items[i].iCharPos
+						 + from]);
+		  LGLYPH_SET_FROM (lglyph, items[i].iCharPos + from);
+		  LGLYPH_SET_TO (lglyph, items[i].iCharPos + to);
 
 		  /* Metrics.  */
 		  LGLYPH_SET_WIDTH (lglyph, advances[j]);
