@@ -147,7 +147,7 @@ Interactively, goes to the first day of the specified week."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-iso-date ()
   "ISO calendar equivalent of date diary entry."
