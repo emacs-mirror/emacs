@@ -1179,7 +1179,10 @@ Special value `always' suppresses confirmation."
 		 (other :tag "ask" t))
   :group 'dired)
 
-(defvar dired-overwrite-confirmed nil)
+;; This is a fluid var used in dired-handle-overwrite.  It should be
+;; let-bound whenever dired-copy-file etc are called.  See
+;; dired-create-files for an example.
+(defvar dired-overwrite-confirmed)
 
 (defun dired-handle-overwrite (to)
   ;; Save old version of file TO that is to be overwritten.
