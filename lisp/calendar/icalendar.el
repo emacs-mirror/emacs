@@ -2126,8 +2126,11 @@ the entry."
       (unless diary-file
         (setq diary-file
               (read-file-name "Add appointment to this diary file: ")))
-      ;; Note: make-diary-entry will add a trailing blank char.... :(
-      (make-diary-entry string non-marking diary-file)))
+      ;; Note: diary-make-entry will add a trailing blank char.... :(
+      (funcall (if (fboundp 'diary-make-entry)
+                   'diary-make-entry
+                 'make-diary-entry)
+               string non-marking diary-file)))
   ;; return diary-file in case it has been changed interactively
   diary-file)
 
