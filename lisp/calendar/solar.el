@@ -781,6 +781,7 @@ and `calendar-time-zone' are used to interpret local time."
               end-long long)))
     (/ (+ start end) 2.0)))
 
+;; FIXME but there already is solar-sunrise-sunset.
 ;;;###autoload
 (defun sunrise-sunset (&optional arg)
   "Local time of sunrise and sunset for today.  Accurate to a few seconds.
@@ -867,7 +868,7 @@ Accurate to a few seconds."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-sunrise-sunset ()
   "Local time of sunrise and sunset as a diary entry.
