@@ -1,3 +1,7 @@
+2008-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-overwrite-confirmed): Supply initial value.
+
 2008-04-04  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* newcomment.el (comment-enter-backward): Be careful to restore
