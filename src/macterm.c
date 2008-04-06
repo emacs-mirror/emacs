@@ -91,15 +91,6 @@ Lisp_Object Vx_toolkit_scroll_bars;
    rendering which may anti-alias the text.  */
 int mac_use_core_graphics;
 
-
-/* Non-zero means that a HELP_EVENT has been generated since Emacs
-   start.  */
-
-static int any_help_event_p;
-
-/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
-static Lisp_Object last_window;
-
 /* Non-zero means make use of UNDERLINE_POSITION font properties.
    (Not yet supported.)  */
 int x_use_underline_position_properties;
@@ -159,8 +150,8 @@ struct frame *pending_autoraise_frame;
 
 /* Where the mouse was last time we reported a mouse event.  */
 
-static Rect last_mouse_glyph;
-static FRAME_PTR last_mouse_glyph_frame;
+Rect last_mouse_glyph;
+FRAME_PTR last_mouse_glyph_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -172,7 +163,7 @@ static FRAME_PTR last_mouse_glyph_frame;
    this to Qnil, to tell XTmouse_position to return an ordinary motion
    event.  */
 
-static Lisp_Object last_mouse_scroll_bar;
+Lisp_Object last_mouse_scroll_bar;
 
 /* This is a hack.  We would really prefer that XTmouse_position would
    return the time associated with the position it returns, but there
@@ -181,7 +172,7 @@ static Lisp_Object last_mouse_scroll_bar;
    of the last movement we received, and return that in hopes that
    it's somewhat accurate.  */
 
-static Time last_mouse_movement_time;
+Time last_mouse_movement_time;
 
 struct scroll_bar *tracked_scroll_bar = NULL;
 
@@ -189,9 +180,9 @@ struct scroll_bar *tracked_scroll_bar = NULL;
    events.  */
 
 #ifdef __STDC__
-static int volatile input_signal_count;
+int volatile input_signal_count;
 #else
-static int input_signal_count;
+int input_signal_count;
 #endif
 
 extern Lisp_Object Vsystem_name;
@@ -211,8 +202,6 @@ extern int inhibit_window_system;
 #if __MRC__ && !TARGET_API_MAC_CARBON
 QDGlobals qd;  /* QuickDraw global information structure.  */
 #endif
-
-#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
 struct mac_display_info *mac_display_info_for_display (Display *);
 static void x_update_window_end P_ ((struct window *, int, int));
@@ -237,11 +226,6 @@ static void x_clear_frame P_ ((void));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
-static void mac_focus_changed P_ ((int, struct mac_display_info *,
-				   struct frame *, struct input_event *));
-static void x_detect_focus_change P_ ((struct mac_display_info *,
-				       const EventRecord *,
-				       struct input_event *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
@@ -249,18 +233,21 @@ static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
 				   enum text_cursor_kinds));
 
 static void x_clip_to_row P_ ((struct window *, struct glyph_row *, int, GC));
-static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
-static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
+
+static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
+static void XSetFont P_ ((Display *, GC, XFontStruct *));
+
+extern void mac_toolbox_initialize P_ ((void));
+extern void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    enum scroll_bar_part *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
-
-static int is_emacs_window P_ ((WindowRef));
-static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
-static void XSetFont P_ ((Display *, GC, XFontStruct *));
+#if USE_CG_DRAWING
+extern void mac_flush_display_optional P_ ((struct frame *));
+#endif
 
 #define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
@@ -324,8 +311,6 @@ static void XSetFont P_ ((Display *, GC, XFontStruct *));
 					  (gc)->cg_fore_color)
 
 #if USE_CG_DRAWING
-#define FRAME_CG_CONTEXT(f)	((f)->output_data.mac->cg_context)
-
 /* Fringe bitmaps.  */
 
 static int max_fringe_bmp = 0;
@@ -353,96 +338,7 @@ init_cg_color ()
     }
 #endif
 }
-
-static CGContextRef
-mac_begin_cg_clip (f, gc)
-     struct frame *f;
-     GC gc;
-{
-  CGContextRef context = FRAME_CG_CONTEXT (f);
-
-  if (!context)
-    {
-      QDBeginCGContext (GetWindowPort (FRAME_MAC_WINDOW (f)), &context);
-      FRAME_CG_CONTEXT (f) = context;
-    }
-
-  CGContextSaveGState (context);
-  CGContextTranslateCTM (context, 0, FRAME_PIXEL_HEIGHT (f));
-  CGContextScaleCTM (context, 1, -1);
-  if (gc && gc->n_clip_rects)
-    CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
-
-  return context;
-}
-
-static void
-mac_end_cg_clip (f)
-     struct frame *f;
-{
-  CGContextRestoreGState (FRAME_CG_CONTEXT (f));
-}
-
-void
-mac_prepare_for_quickdraw (f)
-     struct frame *f;
-{
-  if (f == NULL)
-    {
-      Lisp_Object rest, frame;
-      FOR_EACH_FRAME (rest, frame)
-	if (FRAME_MAC_P (XFRAME (frame)))
-	  mac_prepare_for_quickdraw (XFRAME (frame));
-    }
-  else
-    {
-      CGContextRef context = FRAME_CG_CONTEXT (f);
-
-      if (context)
-	{
-	  CGContextSynchronize (context);
-	  QDEndCGContext (GetWindowPort (FRAME_MAC_WINDOW (f)),
-			  &FRAME_CG_CONTEXT (f));
-	}
-    }
-}
-#endif
-
-static RgnHandle saved_port_clip_region = NULL;
-
-static void
-mac_begin_clip (f, gc)
-     struct frame *f;
-     GC gc;
-{
-  static RgnHandle new_region = NULL;
-
-  if (saved_port_clip_region == NULL)
-    saved_port_clip_region = NewRgn ();
-  if (new_region == NULL)
-    new_region = NewRgn ();
-
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
-  if (gc->n_clip_rects)
-    {
-      GetClip (saved_port_clip_region);
-      SectRgn (saved_port_clip_region, gc->clip_region, new_region);
-      SetClip (new_region);
-    }
-}
-
-static void
-mac_end_clip (gc)
-     GC gc;
-{
-  if (gc->n_clip_rects)
-    SetClip (saved_port_clip_region);
-}
-
+#endif	/* USE_CG_DRAWING */
 
 /* X display function emulation */
 
@@ -491,7 +387,7 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
   RGBForeColor (GC_FORE_COLOR (gc));
   MoveTo (x1, y1);
   LineTo (x2, y2);
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 #endif
 }
 
@@ -561,7 +457,7 @@ mac_erase_rectangle (f, gc, x, y, width, height)
       SetRect (&r, x, y, x + width, y + height);
       EraseRect (&r);
       RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
-      mac_end_clip (gc);
+      mac_end_clip (f, gc);
     }
 #endif
 }
@@ -596,10 +492,8 @@ mac_clear_window (f)
     mac_end_cg_clip (f);
   }
 #else  /* !USE_CG_DRAWING */
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
+  mac_begin_clip (f, NULL);
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
-
 #if TARGET_API_MAC_CARBON
   {
     Rect r;
@@ -610,6 +504,7 @@ mac_clear_window (f)
 #else /* not TARGET_API_MAC_CARBON */
   EraseRect (&(FRAME_MAC_WINDOW (f)->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
+  mac_end_clip (f, NULL);
 #endif
 }
 
@@ -688,7 +583,7 @@ mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 }
 #endif	/* !USE_CG_DRAWING */
 
@@ -843,7 +738,7 @@ mac_fill_rectangle (f, gc, x, y, width, height)
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
   PaintRect (&r); /* using foreground color of gc */
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 #endif
 }
 
@@ -872,7 +767,7 @@ mac_draw_rectangle (f, gc, x, y, width, height)
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
   FrameRect (&r); /* using foreground color of gc */
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 #endif
 }
 
@@ -885,14 +780,10 @@ mac_invert_rectangle (f, x, y, width, height)
 {
   Rect r;
 
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
+  mac_begin_clip (f, NULL);
   SetRect (&r, x, y, x + width, y + height);
-
   InvertRect (&r);
+  mac_end_clip (f, NULL);
 }
 
 
@@ -1008,7 +899,7 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
 			kATSUFromTextBeginning, kATSUToTextEnd,
 			kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
 	}
-      mac_end_clip (gc);
+      mac_end_clip (f, gc);
 #ifdef MAC_OSX
     }
   else
@@ -1142,7 +1033,7 @@ mac_draw_image_string_qd (f, gc, x, y, buf, nchars, bg_width,
     }
   if (bg_width)
     RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (mac_use_core_graphics)
@@ -1437,6 +1328,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
   CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextSetFont (context, GC_FONT (gc)->cg_font);
   CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
+  CGContextSetTextMatrix (context, CGAffineTransformIdentity);
   if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
     CGContextSetShouldAntialias (context, false);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
@@ -1521,7 +1413,7 @@ mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 }
 
 
@@ -1567,13 +1459,18 @@ mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 
-  mac_end_clip (gc);
+  mac_end_clip (f, gc);
 }
 #endif	/* !USE_CG_DRAWING */
 
 
 /* Mac replacement for XCopyArea: used only for scrolling.  */
 
+#if TARGET_API_MAC_CARBON
+/* Defined in mactoolbox.c.  */
+extern void mac_scroll_area P_ ((struct frame *, GC, int, int,
+				 unsigned int, unsigned int, int, int));
+#else  /* not TARGET_API_MAC_CARBON */
 static void
 mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
      struct frame *f;
@@ -1582,19 +1479,6 @@ mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
      unsigned int width, height;
      int dest_x, dest_y;
 {
-#if TARGET_API_MAC_CARBON
-  Rect src_r;
-  RgnHandle dummy = NewRgn ();	/* For avoiding update events.  */
-
-  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
-  ScrollWindowRect (FRAME_MAC_WINDOW (f),
-		    &src_r, dest_x - src_x, dest_y - src_y,
-		    kScrollWindowNoOptions, dummy);
-  DisposeRgn (dummy);
-#else /* not TARGET_API_MAC_CARBON */
   Rect src_r, dest_r;
   WindowRef w = FRAME_MAC_WINDOW (f);
 
@@ -1611,9 +1495,9 @@ mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 
-  mac_end_clip (gc);
-#endif /* not TARGET_API_MAC_CARBON */
+  mac_end_clip (f, gc);
 }
+#endif	/* not TARGET_API_MAC_CARBON */
 
 
 /* Mac replacement for XChangeGC.  */
@@ -1850,70 +1734,6 @@ mac_reset_clip_rectangles (display, gc)
   gc->n_clip_rects = 0;
 }
 
-
-/* Mac replacement for XSetWindowBackground.  */
-
-void
-XSetWindowBackground (display, w, color)
-     Display *display;
-     WindowRef w;
-     unsigned long color;
-{
-#if !TARGET_API_MAC_CARBON
-  AuxWinHandle aw_handle;
-  CTabHandle ctab_handle;
-  ColorSpecPtr ct_table;
-  short ct_size;
-#endif
-  RGBColor bg_color;
-
-  bg_color.red = RED16_FROM_ULONG (color);
-  bg_color.green = GREEN16_FROM_ULONG (color);
-  bg_color.blue = BLUE16_FROM_ULONG (color);
-
-#if TARGET_API_MAC_CARBON
-  SetWindowContentColor (w, &bg_color);
-#else
-  if (GetAuxWin (w, &aw_handle))
-    {
-      ctab_handle = (*aw_handle)->awCTable;
-      HandToHand ((Handle *) &ctab_handle);
-      ct_table = (*ctab_handle)->ctTable;
-      ct_size = (*ctab_handle)->ctSize;
-      while (ct_size > -1)
-	{
-	  if (ct_table->value == 0)
-	    {
-	      ct_table->rgb = bg_color;
-	      CTabChanged (ctab_handle);
-	      SetWinColor (w, (WCTabHandle) ctab_handle);
-	    }
-	  ct_size--;
-	}
-    }
-#endif
-}
-
-/* Flush display of frame F, or of all frames if F is null.  */
-
-static void
-x_flush (f)
-     struct frame *f;
-{
-#if TARGET_API_MAC_CARBON
-  BLOCK_INPUT;
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
-  if (f)
-    QDFlushPortBuffer (GetWindowPort (FRAME_MAC_WINDOW (f)), NULL);
-  else
-    QDFlushPortBuffer (GetQDGlobalsThePort (), NULL);
-  UNBLOCK_INPUT;
-#endif
-}
-
-
 /* Remove calls to XFlush by defining XFlush to an empty replacement.
    Calls to XFlush should be unnecessary because the X output buffer
    is flushed automatically as needed by calls to XPending,
@@ -1923,16 +1743,6 @@ x_flush (f)
 
 #define XFlush(DISPLAY)	(void) 0
 
-#if USE_CG_DRAWING
-static void
-mac_flush_display_optional (f)
-     struct frame *f;
-{
-  BLOCK_INPUT;
-  mac_prepare_for_quickdraw (f);
-  UNBLOCK_INPUT;
-}
-#endif
 
 /***********************************************************************
 		    Starting and ending an update
@@ -1947,17 +1757,9 @@ static void
 x_update_begin (f)
      struct frame *f;
 {
-#if TARGET_API_MAC_CARBON
-  /* During update of a frame, availability of input events is
-     periodically checked with ReceiveNextEvent if
-     redisplay-dont-pause is nil.  That normally flushes window buffer
-     changes for every check, and thus screen update looks waving even
-     if no input is available.  So we disable screen updates during
-     update of a frame.  */
   BLOCK_INPUT;
-  DisableScreenUpdates ();
+  mac_update_begin (f);
   UNBLOCK_INPUT;
-#endif
 }
 
 
@@ -2095,9 +1897,7 @@ x_update_end (f)
   FRAME_MAC_DISPLAY_INFO (f)->mouse_face_defer = 0;
 
   BLOCK_INPUT;
-#if TARGET_API_MAC_CARBON
-  EnableScreenUpdates ();
-#endif
+  mac_update_end (f);
   XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
 }
@@ -2126,6 +1926,8 @@ XTframe_up_to_date (f)
 	  dpyinfo->mouse_face_deferred_gc = 0;
 	  UNBLOCK_INPUT;
 	}
+
+      mac_frame_up_to_date (f);
     }
 }
 
@@ -2881,16 +2683,15 @@ mac_compute_glyph_string_overhangs (s)
       Rect r;
       MacFontStruct *font = s->font;
 
-#if USE_CG_DRAWING
-      mac_prepare_for_quickdraw (s->f);
-#endif
-      SetPortWindowPort (FRAME_MAC_WINDOW (s->f));
+      mac_begin_clip (s->f, NULL);
 
       TextFont (font->mac_fontnum);
       TextSize (font->mac_fontsize);
       TextFace (font->mac_fontface);
 
       QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
+
+      mac_end_clip (s->f, NULL);
 
       s->right_overhang = r.right > s->width ? r.right - s->width : 0;
       s->left_overhang = r.left < 0 ? -r.left : 0;
@@ -4250,7 +4051,7 @@ XTring_bell ()
 #endif
     {
       BLOCK_INPUT;
-      SysBeep (1);
+      mac_alert_sound_play ();
       XFlush (FRAME_MAC_DISPLAY (f));
       UNBLOCK_INPUT;
     }
@@ -4407,7 +4208,7 @@ x_new_focus_frame (dpyinfo, frame)
    If FRAME has focus and there exists more than one frame, puts
    a FOCUS_IN_EVENT into *BUFP.  */
 
-static void
+void
 mac_focus_changed (type, dpyinfo, frame, bufp)
      int type;
      struct mac_display_info *dpyinfo;
@@ -4441,29 +4242,6 @@ mac_focus_changed (type, dpyinfo, frame, bufp)
         }
     }
 }
-
-/* The focus may have changed.  Figure out if it is a real focus change,
-   by checking both FocusIn/Out and Enter/LeaveNotify events.
-
-   Returns FOCUS_IN_EVENT event in *BUFP. */
-
-static void
-x_detect_focus_change (dpyinfo, event, bufp)
-     struct mac_display_info *dpyinfo;
-     const EventRecord *event;
-     struct input_event *bufp;
-{
-  struct frame *frame;
-
-  frame = mac_window_to_frame ((WindowRef) event->message);
-  if (! frame)
-    return;
-
-  /* On Mac, this is only called from focus events, so no switch needed.  */
-  mac_focus_changed ((event->modifiers & activeFlag),
-		     dpyinfo, frame, bufp);
-}
-
 
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
@@ -4553,27 +4331,20 @@ x_get_keysym_name (keysym)
 static Point last_mouse_motion_position;
 static Lisp_Object last_mouse_motion_frame;
 
-static int
+int
 note_mouse_movement (frame, pos)
      FRAME_PTR frame;
      Point *pos;
 {
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (frame);
-#if TARGET_API_MAC_CARBON
   Rect r;
-#endif
 
   last_mouse_movement_time = TickCount () * (1000 / 60);  /* to milliseconds */
   last_mouse_motion_position = *pos;
   XSETFRAME (last_mouse_motion_frame, frame);
 
   if (frame == dpyinfo->mouse_face_mouse_frame
-#if TARGET_API_MAC_CARBON
-      && !PtInRect (*pos, GetWindowPortBounds (FRAME_MAC_WINDOW (frame), &r))
-#else
-      && !PtInRect (*pos, &FRAME_MAC_WINDOW (frame)->portRect)
-#endif
-      )
+      && !PtInRect (*pos, mac_get_frame_bounds (frame, &r)))
     {
       /* This case corresponds to LeaveNotify in X11.  If we move
 	 outside the frame, then we're certainly no longer on any text
@@ -4619,7 +4390,7 @@ redo_mouse_highlight ()
 }
 
 
-static struct frame *
+struct frame *
 mac_focus_frame (dpyinfo)
      struct mac_display_info *dpyinfo;
 {
@@ -4695,14 +4466,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	     the frame are divided into.  */
 	  Point mouse_pos;
 
-#if TARGET_API_MAC_CARBON
-	  GetGlobalMouse (&mouse_pos);
-	  mouse_pos.h -= f1->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f1);
-	  mouse_pos.v -= f1->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f1);
-#else
-	  SetPortWindowPort (FRAME_MAC_WINDOW (f1));
-	  GetMouse (&mouse_pos);
-#endif
+	  mac_get_frame_mouse (f1, &mouse_pos);
 	  remember_mouse_glyph (f1, mouse_pos.h, mouse_pos.v,
 				&last_mouse_glyph);
 	  last_mouse_glyph_frame = f1;
@@ -4718,305 +4482,6 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
   UNBLOCK_INPUT;
 }
-
-
-/************************************************************************
-			 Toolkit scroll bars
- ************************************************************************/
-
-#ifdef USE_TOOLKIT_SCROLL_BARS
-
-static pascal void scroll_bar_timer_callback P_ ((EventLoopTimerRef, void *));
-static OSStatus install_scroll_bar_timer P_ ((void));
-static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
-static int control_part_code_to_scroll_bar_part P_ ((ControlPartCode));
-static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
-					    struct input_event *));
-static OSStatus get_control_part_bounds P_ ((ControlRef, ControlPartCode,
-					     Rect *));
-static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
-					   ControlPartCode, Point,
-					   struct input_event *));
-static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
-					     struct input_event *));
-static void x_scroll_bar_handle_drag P_ ((WindowRef, struct scroll_bar *,
-					  Point, struct input_event *));
-static void x_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *,
-						int, int, int));
-
-/* Last scroll bar part sent in x_scroll_bar_handle_*.  */
-
-static int last_scroll_bar_part;
-
-static EventLoopTimerRef scroll_bar_timer;
-
-static int scroll_bar_timer_event_posted_p;
-
-#define SCROLL_BAR_FIRST_DELAY 0.5
-#define SCROLL_BAR_CONTINUOUS_DELAY (1.0 / 15)
-
-static pascal void
-scroll_bar_timer_callback (timer, data)
-     EventLoopTimerRef timer;
-     void *data;
-{
-  OSStatus err;
-
-  err = mac_post_mouse_moved_event ();
-  if (err == noErr)
-    scroll_bar_timer_event_posted_p = 1;
-}
-
-static OSStatus
-install_scroll_bar_timer ()
-{
-  static EventLoopTimerUPP scroll_bar_timer_callbackUPP = NULL;
-
-  if (scroll_bar_timer_callbackUPP == NULL)
-    scroll_bar_timer_callbackUPP =
-      NewEventLoopTimerUPP (scroll_bar_timer_callback);
-
-  if (scroll_bar_timer == NULL)
-    /* Mac OS X and CarbonLib 1.5 and later allow us to specify
-       kEventDurationForever as delays.  */
-    return
-      InstallEventLoopTimer (GetCurrentEventLoop (),
-			     kEventDurationForever, kEventDurationForever,
-			     scroll_bar_timer_callbackUPP, NULL,
-			     &scroll_bar_timer);
-}
-
-static OSStatus
-set_scroll_bar_timer (delay)
-     EventTimerInterval delay;
-{
-  if (scroll_bar_timer == NULL)
-    install_scroll_bar_timer ();
-
-  scroll_bar_timer_event_posted_p = 0;
-
-  return SetEventLoopTimerNextFireTime (scroll_bar_timer, delay);
-}
-
-static int
-control_part_code_to_scroll_bar_part (part_code)
-     ControlPartCode part_code;
-{
-  switch (part_code)
-    {
-    case kControlUpButtonPart:		return scroll_bar_up_arrow;
-    case kControlDownButtonPart:	return scroll_bar_down_arrow;
-    case kControlPageUpPart:		return scroll_bar_above_handle;
-    case kControlPageDownPart:		return scroll_bar_below_handle;
-    case kControlIndicatorPart:		return scroll_bar_handle;
-    }
-
-  return -1;
-}
-
-static void
-construct_scroll_bar_click (bar, part, bufp)
-     struct scroll_bar *bar;
-     int part;
-     struct input_event *bufp;
-{
-  bufp->kind = SCROLL_BAR_CLICK_EVENT;
-  bufp->frame_or_window = bar->window;
-  bufp->arg = Qnil;
-  bufp->part = part;
-  bufp->code = 0;
-  XSETINT (bufp->x, 0);
-  XSETINT (bufp->y, 0);
-  bufp->modifiers = 0;
-}
-
-static OSStatus
-get_control_part_bounds (ch, part_code, rect)
-     ControlRef ch;
-     ControlPartCode part_code;
-     Rect *rect;
-{
-  RgnHandle region = NewRgn ();
-  OSStatus err;
-
-  err = GetControlRegion (ch, part_code, region);
-  if (err == noErr)
-    GetRegionBounds (region, rect);
-  DisposeRgn (region);
-
-  return err;
-}
-
-static void
-x_scroll_bar_handle_press (bar, part_code, mouse_pos, bufp)
-     struct scroll_bar *bar;
-     ControlPartCode part_code;
-     Point mouse_pos;
-     struct input_event *bufp;
-{
-  int part = control_part_code_to_scroll_bar_part (part_code);
-
-  if (part < 0)
-    return;
-
-  if (part != scroll_bar_handle)
-    {
-      construct_scroll_bar_click (bar, part, bufp);
-      HiliteControl (SCROLL_BAR_CONTROL_REF (bar), part_code);
-      set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
-      bar->dragging = Qnil;
-    }
-  else
-    {
-      Rect r;
-
-      get_control_part_bounds (SCROLL_BAR_CONTROL_REF (bar),
-			       kControlIndicatorPart, &r);
-      XSETINT (bar->dragging, - (mouse_pos.v - r.top) - 1);
-    }
-
-  last_scroll_bar_part = part;
-  tracked_scroll_bar = bar;
-}
-
-static void
-x_scroll_bar_handle_release (bar, bufp)
-     struct scroll_bar *bar;
-     struct input_event *bufp;
-{
-  if (last_scroll_bar_part != scroll_bar_handle
-      || (INTEGERP (bar->dragging) && XINT (bar->dragging) >= 0))
-    construct_scroll_bar_click (bar, scroll_bar_end_scroll, bufp);
-
-  HiliteControl (SCROLL_BAR_CONTROL_REF (bar), 0);
-  set_scroll_bar_timer (kEventDurationForever);
-
-  last_scroll_bar_part = -1;
-  bar->dragging = Qnil;
-  tracked_scroll_bar = NULL;
-}
-
-static void
-x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
-     WindowRef win;
-     struct scroll_bar *bar;
-     Point mouse_pos;
-     struct input_event *bufp;
-{
-  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
-
-  if (last_scroll_bar_part == scroll_bar_handle)
-    {
-      int top, top_range;
-      Rect r;
-
-      get_control_part_bounds (SCROLL_BAR_CONTROL_REF (bar),
-			       kControlIndicatorPart, &r);
-
-      if (INTEGERP (bar->dragging) && XINT (bar->dragging) < 0)
-	XSETINT (bar->dragging, - (XINT (bar->dragging) + 1));
-
-      top = mouse_pos.v - XINT (bar->dragging) - XINT (bar->track_top);
-      top_range = XINT (bar->track_height) - XINT (bar->min_handle);
-
-      if (top < 0)
-	top = 0;
-      if (top > top_range)
-	top = top_range;
-
-      construct_scroll_bar_click (bar, scroll_bar_handle, bufp);
-      XSETINT (bufp->x, top);
-      XSETINT (bufp->y, top_range);
-    }
-  else
-    {
-      ControlPartCode part_code;
-      int unhilite_p = 0, part;
-
-      if (ch != FindControlUnderMouse (mouse_pos, win, &part_code))
-	unhilite_p = 1;
-      else
-	{
-	  part = control_part_code_to_scroll_bar_part (part_code);
-
-	  switch (last_scroll_bar_part)
-	    {
-	    case scroll_bar_above_handle:
-	    case scroll_bar_below_handle:
-	      if (part != scroll_bar_above_handle
-		  && part != scroll_bar_below_handle)
-		unhilite_p = 1;
-	      break;
-
-	    case scroll_bar_up_arrow:
-	    case scroll_bar_down_arrow:
-	      if (part != scroll_bar_up_arrow
-		  && part != scroll_bar_down_arrow)
-		unhilite_p = 1;
-	      break;
-	    }
-	}
-
-      if (unhilite_p)
-	HiliteControl (SCROLL_BAR_CONTROL_REF (bar), 0);
-      else if (part != last_scroll_bar_part
-	       || scroll_bar_timer_event_posted_p)
-	{
-	  construct_scroll_bar_click (bar, part, bufp);
-	  last_scroll_bar_part = part;
-	  HiliteControl (SCROLL_BAR_CONTROL_REF (bar), part_code);
-	  set_scroll_bar_timer (SCROLL_BAR_CONTINUOUS_DELAY);
-	}
-    }
-}
-
-/* Set the thumb size and position of scroll bar BAR.  We are currently
-   displaying PORTION out of a whole WHOLE, and our position POSITION.  */
-
-static void
-x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
-     struct scroll_bar *bar;
-     int portion, position, whole;
-{
-  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
-  int value, viewsize, maximum;
-
-  if (XINT (bar->track_height) == 0)
-    return;
-
-  if (whole <= portion)
-    value = 0, viewsize = 1, maximum = 0;
-  else
-    {
-      float scale;
-
-      maximum = XINT (bar->track_height) - XINT (bar->min_handle);
-      scale = (float) maximum / (whole - portion);
-      value = position * scale + 0.5f;
-      viewsize = (int) (portion * scale + 0.5f) + XINT (bar->min_handle);
-    }
-
-  BLOCK_INPUT;
-
-  if (GetControlViewSize (ch) != viewsize
-      || GetControl32BitValue (ch) != value
-      || GetControl32BitMaximum (ch) != maximum)
-    {
-      /* Temporarily hide the scroll bar to avoid multiple redraws.  */
-      SetControlVisibility (ch, false, false);
-
-      SetControl32BitMaximum (ch, maximum);
-      SetControl32BitValue (ch, value);
-      SetControlViewSize (ch, viewsize);
-
-      SetControlVisibility (ch, true, true);
-    }
-
-  UNBLOCK_INPUT;
-}
-
-#endif /* USE_TOOLKIT_SCROLL_BARS */
-
 
 
 /************************************************************************
@@ -5037,49 +4502,27 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   struct scroll_bar *bar
     = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
   Rect r;
-  ControlRef ch;
 
   BLOCK_INPUT;
-
-  r.left = left;
-  r.top = disp_top;
-  r.right = left + width;
-  r.bottom = disp_top + disp_height;
-
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
-#if TARGET_API_MAC_CARBON
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p",
-#ifdef USE_TOOLKIT_SCROLL_BARS
-		   false,
-#else
-		   width < disp_height,
-#endif
-		   0, 0, 0, kControlScrollBarProc, (long) bar);
-#else
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
-		   0, 0, 0, scrollBarProc, (long) bar);
-#endif
-  SET_SCROLL_BAR_CONTROL_REF (bar, ch);
 
   XSETWINDOW (bar->window, w);
   XSETINT (bar->top, top);
   XSETINT (bar->left, left);
   XSETINT (bar->width, width);
   XSETINT (bar->height, height);
-  XSETINT (bar->start, 0);
-  XSETINT (bar->end, 0);
-  bar->dragging = Qnil;
 #ifdef MAC_OSX
   bar->fringe_extended_p = Qnil;
 #endif
   bar->redraw_needed_p = Qnil;
+
+  SetRect (&r, left, disp_top, left + width, disp_top + disp_height);
+  mac_create_scroll_bar (bar, &r,
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  bar->track_top = Qnil;
-  bar->track_height = Qnil;
-  bar->min_handle = Qnil;
+			 false
+#else
+			 width < disp_height
 #endif
+			 );
 
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
@@ -5093,82 +4536,6 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 }
 
 
-/* Draw BAR's handle in the proper position.
-
-   If the handle is already drawn from START to END, don't bother
-   redrawing it, unless REBUILD is non-zero; in that case, always
-   redraw it.  (REBUILD is handy for drawing the handle after expose
-   events.)
-
-   Normally, we want to constrain the start and end of the handle to
-   fit inside its rectangle, but if the user is dragging the scroll
-   bar handle, we want to let them drag it down all the way, so that
-   the bar's top is as far down as it goes; otherwise, there's no way
-   to move to the very end of the buffer.  */
-
-#ifndef USE_TOOLKIT_SCROLL_BARS
-
-static void
-x_scroll_bar_set_handle (bar, start, end, rebuild)
-     struct scroll_bar *bar;
-     int start, end;
-     int rebuild;
-{
-  int dragging = ! NILP (bar->dragging);
-  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-  int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
-  int length = end - start;
-
-  /* If the display is already accurate, do nothing.  */
-  if (! rebuild
-      && start == XINT (bar->start)
-      && end == XINT (bar->end))
-    return;
-
-  BLOCK_INPUT;
-
-  /* Make sure the values are reasonable, and try to preserve the
-     distance between start and end.  */
-  if (start < 0)
-    start = 0;
-  else if (start > top_range)
-    start = top_range;
-  end = start + length;
-
-  if (end < start)
-    end = start;
-  else if (end > top_range && ! dragging)
-    end = top_range;
-
-  /* Store the adjusted setting in the scroll bar.  */
-  XSETINT (bar->start, start);
-  XSETINT (bar->end, end);
-
-  /* Clip the end position, just for display.  */
-  if (end > top_range)
-    end = top_range;
-
-  /* Draw bottom positions VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
-     top positions, to make sure the handle is always at least that
-     many pixels tall.  */
-  end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
-
-  SetControlMinimum (ch, 0);
-  /* Don't inadvertently activate deactivated scroll bars */
-  if (GetControlMaximum (ch) != -1)
-    SetControlMaximum (ch, top_range + VERTICAL_SCROLL_BAR_MIN_HANDLE
-		       - (end - start));
-  SetControlValue (ch, start);
-#if TARGET_API_MAC_CARBON
-  SetControlViewSize (ch, end - start);
-#endif
-
-  UNBLOCK_INPUT;
-}
-
-#endif /* !USE_TOOLKIT_SCROLL_BARS */
-
 /* Destroy scroll bar BAR, and set its Emacs window's scroll bar to
    nil.  */
 
@@ -5176,15 +4543,10 @@ static void
 x_scroll_bar_remove (bar)
      struct scroll_bar *bar;
 {
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-
   BLOCK_INPUT;
 
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
   /* Destroy the Mac scroll bar control  */
-  DisposeControl (SCROLL_BAR_CONTROL_REF (bar));
+  mac_dispose_scroll_bar (bar);
 
   /* Disassociate this scroll bar from its window.  */
   XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
@@ -5283,10 +4645,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   else
     {
       /* It may just need to be moved and resized.  */
-      ControlRef ch;
-
       bar = XSCROLL_BAR (w->vertical_scroll_bar);
-      ch = SCROLL_BAR_CONTROL_REF (bar);
 
       BLOCK_INPUT;
 
@@ -5301,15 +4660,12 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  )
 	{
 	  if (!NILP (bar->redraw_needed_p))
-	    {
-#if USE_CG_DRAWING
-	      mac_prepare_for_quickdraw (f);
-#endif
-	      Draw1Control (SCROLL_BAR_CONTROL_REF (bar));
-	    }
+	    mac_redraw_scroll_bar (bar);
 	}
       else
 	{
+	  Rect r;
+
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
 #ifdef MAC_OSX
@@ -5319,28 +4675,16 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #endif
 	    mac_clear_area (f, left, top, width, height);
 
-#if USE_CG_DRAWING
-	  mac_prepare_for_quickdraw (f);
-#endif
-          HideControl (ch);
-          MoveControl (ch, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top);
-          SizeControl (ch, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-		       disp_height);
-#ifndef USE_TOOLKIT_SCROLL_BARS
-	  if (sb_width < disp_height)
-	    ShowControl (ch);
-#endif
+	  SetRect (&r, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top,
+		   sb_left + sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		   disp_top + disp_height);
+	  mac_set_scroll_bar_bounds (bar, &r);
 
           /* Remember new settings.  */
           XSETINT (bar->left, sb_left);
           XSETINT (bar->top, top);
           XSETINT (bar->width, sb_width);
           XSETINT (bar->height, height);
-#ifdef USE_TOOLKIT_SCROLL_BARS
-	  bar->track_top = Qnil;
-	  bar->track_height = Qnil;
-	  bar->min_handle = Qnil;
-#endif
         }
 
       UNBLOCK_INPUT;
@@ -5352,51 +4696,6 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   bar->redraw_needed_p = Qnil;
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  if (NILP (bar->track_top))
-    {
-      if (sb_width >= disp_height
-#ifdef MAC_OSX
-	  || sb_width < MAC_AQUA_SMALL_VERTICAL_SCROLL_BAR_WIDTH
-#endif
-	  )
-	{
-	  XSETINT (bar->track_top, 0);
-	  XSETINT (bar->track_height, 0);
-	  XSETINT (bar->min_handle, 0);
-	}
-      else
-	{
-	  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
-	  Rect r0, r1;
-
-	  BLOCK_INPUT;
-
-	  SetControl32BitMinimum (ch, 0);
-	  SetControl32BitMaximum (ch, 1 << 30);
-	  SetControlViewSize (ch, 1);
-
-	  /* Move the scroll bar thumb to the top.  */
-	  SetControl32BitValue (ch, 0);
-	  get_control_part_bounds (ch, kControlIndicatorPart, &r0);
-
-	  /* Move the scroll bar thumb to the bottom.  */
-	  SetControl32BitValue (ch, 1 << 30);
-	  get_control_part_bounds (ch, kControlIndicatorPart, &r1);
-
-	  UnionRect (&r0, &r1, &r0);
-	  XSETINT (bar->track_top, r0.top);
-	  XSETINT (bar->track_height, r0.bottom - r0.top);
-	  XSETINT (bar->min_handle, r1.bottom - r1.top);
-
-	  /* Don't show the scroll bar if its height is not enough to
-	     display the scroll bar thumb.  */
-	  if (r0.bottom - r0.top > 0)
-	    ShowControl (ch);
-
-	  UNBLOCK_INPUT;
-	}
-    }
-
   x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   /* Set the scroll bar's current state, unless we're currently being
@@ -5524,181 +4823,6 @@ XTjudge_scroll_bars (f)
      and they should get garbage-collected.  */
 }
 
-
-/* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
-   is set to something other than NO_EVENT, it is enqueued.
-
-   This may be called from a signal handler, so we have to ignore GC
-   mark bits.  */
-
-static void
-x_scroll_bar_handle_click (bar, part_code, er, bufp)
-     struct scroll_bar *bar;
-     ControlPartCode part_code;
-     const EventRecord *er;
-     struct input_event *bufp;
-{
-  int win_y, top_range;
-
-  if (! GC_WINDOWP (bar->window))
-    abort ();
-
-  bufp->kind = SCROLL_BAR_CLICK_EVENT;
-  bufp->frame_or_window = bar->window;
-  bufp->arg = Qnil;
-
-  bar->dragging = Qnil;
-
-  switch (part_code)
-    {
-    case kControlUpButtonPart:
-      bufp->part = scroll_bar_up_arrow;
-      break;
-    case kControlDownButtonPart:
-      bufp->part = scroll_bar_down_arrow;
-      break;
-    case kControlPageUpPart:
-      bufp->part = scroll_bar_above_handle;
-      break;
-    case kControlPageDownPart:
-      bufp->part = scroll_bar_below_handle;
-      break;
-#if TARGET_API_MAC_CARBON
-    default:
-#else
-    case kControlIndicatorPart:
-#endif
-      if (er->what == mouseDown)
-        bar->dragging = make_number (0);
-      XSETVECTOR (last_mouse_scroll_bar, bar);
-      bufp->part = scroll_bar_handle;
-      break;
-    }
-
-  win_y = XINT (bufp->y) - XINT (bar->top);
-  top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (0/*dummy*/, XINT (bar->height));
-
-  win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
-
-  win_y -= 24;
-
-  if (! NILP (bar->dragging))
-    win_y -= XINT (bar->dragging);
-
-  if (win_y < 0)
-    win_y = 0;
-  if (win_y > top_range)
-    win_y = top_range;
-
-  XSETINT (bufp->x, win_y);
-  XSETINT (bufp->y, top_range);
-}
-
-#ifndef USE_TOOLKIT_SCROLL_BARS
-
-/* Handle some mouse motion while someone is dragging the scroll bar.
-
-   This may be called from a signal handler, so we have to ignore GC
-   mark bits.  */
-
-static void
-x_scroll_bar_note_movement (bar, y_pos, t)
-     struct scroll_bar *bar;
-     int y_pos;
-     Time t;
-{
-  FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
-
-  last_mouse_movement_time = t;
-
-  f->mouse_moved = 1;
-  XSETVECTOR (last_mouse_scroll_bar, bar);
-
-  /* If we're dragging the bar, display it.  */
-  if (! GC_NILP (bar->dragging))
-    {
-      /* Where should the handle be now?  */
-      int new_start = y_pos - 24;
-
-      if (new_start != XINT (bar->start))
-	{
-	  int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
-
-	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
-	}
-    }
-}
-
-#endif /* !USE_TOOLKIT_SCROLL_BARS */
-
-/* Return information to the user about the current position of the mouse
-   on the scroll bar.  */
-
-static void
-x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
-     FRAME_PTR *fp;
-     Lisp_Object *bar_window;
-     enum scroll_bar_part *part;
-     Lisp_Object *x, *y;
-     unsigned long *time;
-{
-  struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
-  ControlRef ch = SCROLL_BAR_CONTROL_REF (bar);
-#if TARGET_API_MAC_CARBON
-  WindowRef wp = GetControlOwner (ch);
-#else
-  WindowRef wp = (*ch)->contrlOwner;
-#endif
-  Point mouse_pos;
-  struct frame *f = mac_window_to_frame (wp);
-  int win_y, top_range;
-
-#if TARGET_API_MAC_CARBON
-  GetGlobalMouse (&mouse_pos);
-  mouse_pos.h -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  mouse_pos.v -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
-#else
-  SetPortWindowPort (wp);
-  GetMouse (&mouse_pos);
-#endif
-
-  win_y = mouse_pos.v - XINT (bar->top);
-  top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
-
-  win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
-
-  win_y -= 24;
-
-  if (! NILP (bar->dragging))
-    win_y -= XINT (bar->dragging);
-
-  if (win_y < 0)
-    win_y = 0;
-  if (win_y > top_range)
-    win_y = top_range;
-
-  *fp = f;
-  *bar_window = bar->window;
-
-  if (! NILP (bar->dragging))
-    *part = scroll_bar_handle;
-  else if (win_y < XINT (bar->start))
-    *part = scroll_bar_above_handle;
-  else if (win_y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
-    *part = scroll_bar_handle;
-  else
-    *part = scroll_bar_below_handle;
-
-  XSETINT (*x, win_y);
-  XSETINT (*y, top_range);
-
-  f->mouse_moved = 0;
-  last_mouse_scroll_bar = Qnil;
-
-  *time = last_mouse_movement_time;
-}
-
-
 /* The screen has been cleared so we may have changed foreground or
    background colors, and the scroll bars may need to be redrawn.
    Clear out the scroll bars, and ask for expose events, so we can
@@ -5724,27 +4848,7 @@ x_scroll_bar_clear (f)
 			       Tool-bars
  ***********************************************************************/
 #if USE_MAC_TOOLBAR
-
-/* In identifiers such as function/variable names, Emacs tool bar is
-   referred to as `tool_bar', and Carbon HIToolbar as `toolbar'.  */
-
-#define TOOLBAR_IDENTIFIER (CFSTR ("org.gnu.Emacs.toolbar"))
-#define TOOLBAR_ICON_ITEM_IDENTIFIER (CFSTR ("org.gnu.Emacs.toolbar.icon"))
-
-#define TOOLBAR_ITEM_COMMAND_ID_OFFSET 'Tb\0\0'
-#define TOOLBAR_ITEM_COMMAND_ID_P(id)			\
-  (((id) & ~0xffff) == TOOLBAR_ITEM_COMMAND_ID_OFFSET)
-#define TOOLBAR_ITEM_COMMAND_ID_VALUE(id)	\
-  ((id) - TOOLBAR_ITEM_COMMAND_ID_OFFSET)
-#define TOOLBAR_ITEM_MAKE_COMMAND_ID(value)	\
-  ((value) + TOOLBAR_ITEM_COMMAND_ID_OFFSET)
-
-static int mac_event_to_emacs_modifiers P_ ((EventRef));
-static void mac_handle_origin_change P_ ((struct frame *));
-static OSStatus mac_handle_toolbar_command_event P_ ((EventHandlerCallRef,
-						      EventRef, void *));
-
-static void
+void
 mac_move_window_with_gravity (f, win_gravity, left, top)
      struct frame *f;
      int win_gravity;
@@ -5796,10 +4900,10 @@ mac_move_window_with_gravity (f, win_gravity, left, top)
       break;
     }
 
-  MoveWindow (FRAME_MAC_WINDOW (f), left, top, false);
+  mac_move_window (FRAME_MAC_WINDOW (f), left, top, false);
 }
 
-static void
+void
 mac_get_window_origin_with_gravity (f, win_gravity, left, top)
      struct frame *f;
      int win_gravity;
@@ -5854,65 +4958,7 @@ mac_get_window_origin_with_gravity (f, win_gravity, left, top)
     }
 }
 
-static OSStatus
-mac_handle_toolbar_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result = eventNotHandledErr;
-
-  switch (GetEventKind (event))
-    {
-    case kEventToolbarGetDefaultIdentifiers:
-      result = noErr;
-      break;
-
-    case kEventToolbarGetAllowedIdentifiers:
-      {
-	CFMutableArrayRef array;
-
-	GetEventParameter (event, kEventParamMutableArray,
-			   typeCFMutableArrayRef, NULL,
-			   sizeof (CFMutableArrayRef), NULL, &array);
-	CFArrayAppendValue (array, TOOLBAR_ICON_ITEM_IDENTIFIER);
-	result = noErr;
-      }
-      break;
-
-    case kEventToolbarCreateItemWithIdentifier:
-      {
-	CFStringRef identifier;
-	HIToolbarItemRef item = NULL;
-
-	GetEventParameter (event, kEventParamToolbarItemIdentifier,
-			   typeCFStringRef, NULL,
-			   sizeof (CFStringRef), NULL, &identifier);
-
-	if (CFStringCompare (identifier, TOOLBAR_ICON_ITEM_IDENTIFIER, 0)
-	    == kCFCompareEqualTo)
-	  HIToolbarItemCreate (identifier,
-			       kHIToolbarItemAllowDuplicates
-			       | kHIToolbarItemCantBeRemoved, &item);
-
-	if (item)
-	  {
-	    SetEventParameter (event, kEventParamToolbarItem,
-			       typeHIToolbarItemRef,
-			       sizeof (HIToolbarItemRef), &item);
-	    result = noErr;
-	  }
-      }
-      break;
-
-    default:
-      abort ();
-    }
-
-  return result;
-}
-
-static CGImageRef
+CGImageRef
 mac_image_spec_to_cg_image (f, image)
      struct frame *f;
      Lisp_Object image;
@@ -5928,341 +4974,6 @@ mac_image_spec_to_cg_image (f, image)
 
       return img->data.ptr_val;
     }
-}
-
-/* Create a tool bar for frame F.  */
-
-static OSStatus
-mac_create_frame_tool_bar (f)
-     FRAME_PTR f;
-{
-  OSStatus err;
-  HIToolbarRef toolbar;
-
-  err = HIToolbarCreate (TOOLBAR_IDENTIFIER, kHIToolbarNoAttributes,
-			 &toolbar);
-  if (err == noErr)
-    {
-      static const EventTypeSpec specs[] =
-	{{kEventClassToolbar, kEventToolbarGetDefaultIdentifiers},
-	 {kEventClassToolbar, kEventToolbarGetAllowedIdentifiers},
-	 {kEventClassToolbar, kEventToolbarCreateItemWithIdentifier}};
-
-      err = InstallEventHandler (HIObjectGetEventTarget (toolbar),
-				 mac_handle_toolbar_event,
-				 GetEventTypeCount (specs), specs,
-				 f, NULL);
-    }
-
-  if (err == noErr)
-    err = HIToolbarSetDisplayMode (toolbar, kHIToolbarDisplayModeIconOnly);
-  if (err == noErr)
-    {
-      static const EventTypeSpec specs[] =
-	{{kEventClassCommand, kEventCommandProcess}};
-
-      err = InstallWindowEventHandler (FRAME_MAC_WINDOW (f),
-				       mac_handle_toolbar_command_event,
-				       GetEventTypeCount (specs),
-				       specs, f, NULL);
-    }
-  if (err == noErr)
-    err = SetWindowToolbar (FRAME_MAC_WINDOW (f), toolbar);
-
-  if (toolbar)
-    CFRelease (toolbar);
-
-  return err;
-}
-
-/* Update the tool bar for frame F.  Add new buttons and remove old.  */
-
-void
-update_frame_tool_bar (f)
-     FRAME_PTR f;
-{
-  HIToolbarRef toolbar = NULL;
-  short left, top;
-  CFArrayRef old_items = NULL;
-  CFIndex old_count;
-  int i, pos, win_gravity = f->output_data.mac->toolbar_win_gravity;
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-
-  BLOCK_INPUT;
-
-  GetWindowToolbar (FRAME_MAC_WINDOW (f), &toolbar);
-  if (toolbar == NULL)
-    {
-      mac_create_frame_tool_bar (f);
-      GetWindowToolbar (FRAME_MAC_WINDOW (f), &toolbar);
-      if (toolbar == NULL)
-	goto out;
-      if (win_gravity >= NorthWestGravity && win_gravity <= SouthEastGravity)
-	mac_get_window_origin_with_gravity (f, win_gravity, &left, &top);
-    }
-
-  HIToolbarCopyItems (toolbar, &old_items);
-  if (old_items == NULL)
-    goto out;
-
-  old_count = CFArrayGetCount (old_items);
-  pos = 0;
-  for (i = 0; i < f->n_tool_bar_items; ++i)
-    {
-#define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
-
-      int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
-      int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
-      int idx;
-      Lisp_Object image;
-      CGImageRef cg_image;
-      CFStringRef label;
-      HIToolbarItemRef item;
-
-      /* If image is a vector, choose the image according to the
-	 button state.  */
-      image = PROP (TOOL_BAR_ITEM_IMAGES);
-      if (VECTORP (image))
-	{
-	  if (enabled_p)
-	    idx = (selected_p
-		   ? TOOL_BAR_IMAGE_ENABLED_SELECTED
-		   : TOOL_BAR_IMAGE_ENABLED_DESELECTED);
-	  else
-	    idx = (selected_p
-		   ? TOOL_BAR_IMAGE_DISABLED_SELECTED
-		   : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
-
-	  xassert (ASIZE (image) >= idx);
-	  image = AREF (image, idx);
-	}
-      else
-	idx = -1;
-
-      cg_image = mac_image_spec_to_cg_image (f, image);
-      /* Ignore invalid image specifications.  */
-      if (cg_image == NULL)
-	continue;
-
-      label = cfstring_create_with_string (PROP (TOOL_BAR_ITEM_CAPTION));
-      if (label == NULL)
-	label = CFSTR ("");
-
-      if (pos < old_count)
-	{
-	  CGImageRef old_cg_image = NULL;
-	  CFStringRef old_label = NULL;
-	  Boolean old_enabled_p;
-
-	  item = (HIToolbarItemRef) CFArrayGetValueAtIndex (old_items, pos);
-
-	  HIToolbarItemCopyImage (item, &old_cg_image);
-	  if (cg_image != old_cg_image)
-	    HIToolbarItemSetImage (item, cg_image);
-	  CGImageRelease (old_cg_image);
-
-	  HIToolbarItemCopyLabel (item, &old_label);
-	  if (CFStringCompare (label, old_label, 0) != kCFCompareEqualTo)
-	    HIToolbarItemSetLabel (item, label);
-	  CFRelease (old_label);
-
-	  old_enabled_p = HIToolbarItemIsEnabled (item);
-	  if ((enabled_p || idx >= 0) != old_enabled_p)
-	    HIToolbarItemSetEnabled (item, (enabled_p || idx >= 0));
-	}
-      else
-	{
-	  item = NULL;
-	  HIToolbarCreateItemWithIdentifier (toolbar,
-					     TOOLBAR_ICON_ITEM_IDENTIFIER,
-					     NULL, &item);
-	  if (item)
-	    {
-	      HIToolbarItemSetImage (item, cg_image);
-	      HIToolbarItemSetLabel (item, label);
-	      HIToolbarItemSetEnabled (item, (enabled_p || idx >= 0));
-	      HIToolbarAppendItem (toolbar, item);
-	      CFRelease (item);
-	    }
-	}
-
-      CFRelease (label);
-      if (item)
-	{
-	  HIToolbarItemSetCommandID (item, TOOLBAR_ITEM_MAKE_COMMAND_ID (i));
-	  pos++;
-	}
-    }
-
-  CFRelease (old_items);
-
-  while (pos < old_count)
-    HIToolbarRemoveItemAtIndex (toolbar, --old_count);
-
-  ShowHideWindowToolbar (FRAME_MAC_WINDOW (f), true,
-			 !win_gravity && f == mac_focus_frame (dpyinfo));
-  /* Mac OS X 10.3 does not issue kEventWindowBoundsChanged events on
-     toolbar visibility change.  */
-  mac_handle_origin_change (f);
-  if (win_gravity >= NorthWestGravity && win_gravity <= SouthEastGravity)
-    {
-      mac_move_window_with_gravity (f, win_gravity, left, top);
-      /* If the title bar is completely outside the screen, adjust the
-	 position. */
-      ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
-			       kWindowConstrainMoveRegardlessOfFit
-			       | kWindowConstrainAllowPartial, NULL, NULL);
-      f->output_data.mac->toolbar_win_gravity = 0;
-    }
-
- out:
-  UNBLOCK_INPUT;
-}
-
-/* Hide the tool bar on frame F.  Unlike the counterpart on GTK+, it
-   doesn't deallocate the resources.  */
-
-void
-free_frame_tool_bar (f)
-     FRAME_PTR f;
-{
-  if (IsWindowToolbarVisible (FRAME_MAC_WINDOW (f)))
-    {
-      struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-
-      BLOCK_INPUT;
-      ShowHideWindowToolbar (FRAME_MAC_WINDOW (f), false,
-			     (NILP (find_symbol_value
-				    (intern ("frame-notice-user-settings")))
-			      && f == mac_focus_frame (dpyinfo)));
-      /* Mac OS X 10.3 does not issue kEventWindowBoundsChanged events
-	 on toolbar visibility change.  */
-      mac_handle_origin_change (f);
-      UNBLOCK_INPUT;
-    }
-}
-
-static void
-mac_tool_bar_note_mouse_movement (f, event)
-     struct frame *f;
-     EventRef event;
-{
-  OSStatus err;
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  int mouse_down_p;
-  WindowRef window;
-  WindowPartCode part_code;
-  HIViewRef item_view;
-  UInt32 command_id;
-
-  mouse_down_p = (dpyinfo->grabbed
-		  && f == last_mouse_frame
-		  && FRAME_LIVE_P (f));
-  if (mouse_down_p)
-    return;
-
-  err = GetEventParameter (event, kEventParamWindowRef, typeWindowRef, NULL,
-			   sizeof (WindowRef), NULL, &window);
-  if (err != noErr || window != FRAME_MAC_WINDOW (f))
-    return;
-
-  err = GetEventParameter (event, kEventParamWindowPartCode,
-			   typeWindowPartCode, NULL,
-			   sizeof (WindowPartCode), NULL, &part_code);
-  if (err != noErr || part_code != inStructure)
-    return;
-
-  err = HIViewGetViewForMouseEvent (HIViewGetRoot (window), event, &item_view);
-  /* This doesn't work on Mac OS X 10.2.  On Mac OS X 10.3 and 10.4, a
-     toolbar item view seems to have the same command ID with that of
-     the toolbar item.  */
-  if (err == noErr)
-    err = GetControlCommandID (item_view, &command_id);
-  if (err == noErr && TOOLBAR_ITEM_COMMAND_ID_P (command_id))
-    {
-      int i = TOOLBAR_ITEM_COMMAND_ID_VALUE (command_id);
-
-      if (i < f->n_tool_bar_items)
-	{
-	  HIRect bounds;
-	  HIViewRef content_view;
-
-	  err = HIViewGetBounds (item_view, &bounds);
-	  if (err == noErr)
-	    err = HIViewFindByID (HIViewGetRoot (window),
-				  kHIViewWindowContentID, &content_view);
-	  if (err == noErr)
-	    err = HIViewConvertRect (&bounds, item_view, content_view);
-	  if (err == noErr)
-	    SetRect (&last_mouse_glyph,
-		     CGRectGetMinX (bounds), CGRectGetMinY (bounds),
-		     CGRectGetMaxX (bounds), CGRectGetMaxY (bounds));
-
-	  help_echo_object = help_echo_window = Qnil;
-	  help_echo_pos = -1;
-	  help_echo_string = PROP (TOOL_BAR_ITEM_HELP);
-	  if (NILP (help_echo_string))
-	    help_echo_string = PROP (TOOL_BAR_ITEM_CAPTION);
-	}
-    }
-}
-
-static OSStatus
-mac_handle_toolbar_command_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result = eventNotHandledErr;
-  struct frame *f = (struct frame *) data;
-  HICommand command;
-
-  err = GetEventParameter (event, kEventParamDirectObject,
-			   typeHICommand, NULL,
-			   sizeof (HICommand), NULL, &command);
-  if (err != noErr)
-    return result;
-
-  switch (GetEventKind (event))
-    {
-    case kEventCommandProcess:
-      if (!TOOLBAR_ITEM_COMMAND_ID_P (command.commandID))
-	result = CallNextEventHandler (next_handler, event);
-      else
-	{
-	  int i = TOOLBAR_ITEM_COMMAND_ID_VALUE (command.commandID);
-
-	  if (i < f->n_tool_bar_items
-	      && !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P)))
-	    {
-	      Lisp_Object frame;
-	      struct input_event buf;
-
-	      EVENT_INIT (buf);
-
-	      XSETFRAME (frame, f);
-	      buf.kind = TOOL_BAR_EVENT;
-	      buf.frame_or_window = frame;
-	      buf.arg = frame;
-	      kbd_buffer_store_event (&buf);
-
-	      buf.kind = TOOL_BAR_EVENT;
-	      buf.frame_or_window = frame;
-	      buf.arg = PROP (TOOL_BAR_ITEM_KEY);
-	      buf.modifiers = mac_event_to_emacs_modifiers (event);
-	      kbd_buffer_store_event (&buf);
-
-	      result = noErr;
-	    }
-	}
-      break;
-
-    default:
-      abort ();
-    }
-#undef PROP
-
-  return result;
 }
 #endif	/* USE_MAC_TOOLBAR */
 
@@ -6691,32 +5402,13 @@ xim_close_dpy (dpyinfo)
 
 
 void
-mac_get_window_bounds (f, inner, outer)
-     struct frame *f;
-     Rect *inner, *outer;
-{
-#if TARGET_API_MAC_CARBON
-  GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowContentRgn, inner);
-  GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowStructureRgn, outer);
-#else /* not TARGET_API_MAC_CARBON */
-  RgnHandle region = NewRgn ();
-
-  GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowContentRgn, region);
-  *inner = (*region)->rgnBBox;
-  GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowStructureRgn, region);
-  *outer = (*region)->rgnBBox;
-  DisposeRgn (region);
-#endif /* not TARGET_API_MAC_CARBON */
-}
-
-static void
 mac_handle_origin_change (f)
      struct frame *f;
 {
   x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-static void
+void
 mac_handle_size_change (f, pixelwidth, pixelheight)
      struct frame *f;
      int pixelwidth, pixelheight;
@@ -6749,14 +5441,7 @@ mac_handle_size_change (f, pixelwidth, pixelheight)
       cancel_mouse_face (f);
 
 #if TARGET_API_MAC_CARBON
-      if (f->output_data.mac->hourglass_control)
-	{
-#if USE_CG_DRAWING
-	  mac_prepare_for_quickdraw (f);
-#endif
-	  MoveControl (f->output_data.mac->hourglass_control,
-		       pixelwidth - HOURGLASS_WIDTH, 0);
-	}
+      mac_reposition_hourglass (f);
 #endif
     }
 }
@@ -6836,7 +5521,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   x_wm_set_size_hint (f, (long) 0, 0);
 
 #if TARGET_API_MAC_CARBON
-  MoveWindowStructure (FRAME_MAC_WINDOW (f), f->left_pos, f->top_pos);
+  mac_move_window_structure (FRAME_MAC_WINDOW (f), f->left_pos, f->top_pos);
   /* If the title bar is completely outside the screen, adjust the
      position. */
   ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
@@ -6916,7 +5601,7 @@ x_set_window_size (f, change_gravity, cols, rows)
   f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
+  mac_size_window (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
 
 #if TARGET_API_MAC_CARBON
   if (!NILP (tip_frame) && f == XFRAME (tip_frame))
@@ -6965,10 +5650,8 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
      int pix_x, pix_y;
 {
 #ifdef MAC_OSX
-  pix_x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  pix_y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
-
   BLOCK_INPUT;
+  mac_convert_frame_point_to_global (f, &pix_x, &pix_y);
   CGWarpMouseCursorPosition (CGPointMake (pix_x, pix_y));
   UNBLOCK_INPUT;
 #else
@@ -7015,7 +5698,7 @@ x_raise_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-      BringToFront (FRAME_MAC_WINDOW (f));
+      mac_bring_window_to_front (FRAME_MAC_WINDOW (f));
       UNBLOCK_INPUT;
     }
 }
@@ -7029,7 +5712,7 @@ x_lower_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-      SendBehind (FRAME_MAC_WINDOW (f), NULL);
+      mac_send_window_behind (FRAME_MAC_WINDOW (f), NULL);
       UNBLOCK_INPUT;
     }
 }
@@ -7047,17 +5730,17 @@ XTframe_raise_lower (f, raise_flag)
 
 /* Change of visibility.  */
 
-static void
+void
 mac_handle_visibility_change (f)
      struct frame *f;
 {
-  WindowRef wp = FRAME_MAC_WINDOW (f);
+  Window wp = FRAME_MAC_WINDOW (f);
   int visible = 0, iconified = 0;
   struct input_event buf;
 
-  if (IsWindowVisible (wp))
+  if (mac_is_window_visible (wp))
     {
-      if (IsWindowCollapsed (wp))
+      if (mac_is_window_collapsed (wp))
 	iconified = 1;
       else
 	visible = 1;
@@ -7123,8 +5806,8 @@ x_make_frame_visible (f)
 
       f->output_data.mac->asked_for_visible = 1;
 
-      CollapseWindow (FRAME_MAC_WINDOW (f), false);
-      ShowWindow (FRAME_MAC_WINDOW (f));
+      mac_collapse_window (FRAME_MAC_WINDOW (f), false);
+      mac_show_window (FRAME_MAC_WINDOW (f));
     }
 
   XFlush (FRAME_MAC_DISPLAY (f));
@@ -7202,7 +5885,7 @@ x_make_frame_invisible (f)
   x_wm_set_size_hint (f, (long) 0, 1);
 #endif
 
-  HideWindow (FRAME_MAC_WINDOW (f));
+  mac_hide_window (FRAME_MAC_WINDOW (f));
 
   UNBLOCK_INPUT;
 
@@ -7236,9 +5919,9 @@ x_iconify_frame (f)
   FRAME_SAMPLE_VISIBILITY (f);
 
   if (! FRAME_VISIBLE_P (f))
-    ShowWindow (FRAME_MAC_WINDOW (f));
+    mac_show_window (FRAME_MAC_WINDOW (f));
 
-  err = CollapseWindow (FRAME_MAC_WINDOW (f), true);
+  err = mac_collapse_window (FRAME_MAC_WINDOW (f), true);
 
   UNBLOCK_INPUT;
 
@@ -7258,35 +5941,14 @@ x_free_frame_resources (f)
      struct frame *f;
 {
   struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  WindowRef wp = FRAME_MAC_WINDOW (f);
+  Window wp = FRAME_MAC_WINDOW (f);
 
   BLOCK_INPUT;
 
-  if (wp != tip_window)
-    remove_window_handler (wp);
-
-#if USE_CG_DRAWING
-  mac_prepare_for_quickdraw (f);
-#endif
-  DisposeWindow (wp);
-  if (wp == tip_window)
-    /* Neither WaitNextEvent nor ReceiveNextEvent receives `window
-       closed' event.  So we reset tip_window here.  */
-    tip_window = NULL;
-
-  free_frame_menubar (f);
-
-  if (FRAME_FACE_CACHE (f))
-    free_frame_faces (f);
-
-  x_free_gcs (f);
-
-  if (FRAME_SIZE_HINTS (f))
-    xfree (FRAME_SIZE_HINTS (f));
-
-  xfree (f->output_data.mac);
-  f->output_data.mac = NULL;
-
+  /* AppKit version of mac_dispose_frame_window, which is implemented
+     as -[NSWindow close], will change the focus to the next window
+     during its call.  So, unlike other platforms, we clean up the
+     focus-related variables before calling mac_dispose_frame_window.  */
   if (f == dpyinfo->x_focus_frame)
     {
       dpyinfo->x_focus_frame = 0;
@@ -7309,6 +5971,25 @@ x_free_frame_resources (f)
       dpyinfo->mouse_face_deferred_gc = 0;
       dpyinfo->mouse_face_mouse_frame = 0;
     }
+
+  mac_dispose_frame_window (f);
+  if (wp == tip_window)
+    /* Neither WaitNextEvent nor ReceiveNextEvent receives `window
+       closed' event.  So we reset tip_window here.  */
+    tip_window = NULL;
+
+  free_frame_menubar (f);
+
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
+
+  x_free_gcs (f);
+
+  if (FRAME_SIZE_HINTS (f))
+    xfree (FRAME_SIZE_HINTS (f));
+
+  xfree (f->output_data.mac);
+  f->output_data.mac = NULL;
 
   UNBLOCK_INPUT;
 }
@@ -7822,6 +6503,9 @@ static Lisp_Object atsu_font_id_hash;
 /* Alist linking Font Manager style to face attributes.  */
 static Lisp_Object fm_style_face_attributes_alist;
 extern Lisp_Object QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic;
+#endif
+#if USE_MAC_FONT_PANEL
+Lisp_Object Qpanel_closed, Qselection;
 #endif
 
 /* Alist linking character set strings to Mac text encoding and Emacs
@@ -8968,10 +7652,7 @@ mac_load_query_font (f, fontname)
       FontInfo the_fontinfo;
       int is_two_byte_font;
 
-#if USE_CG_DRAWING
-      mac_prepare_for_quickdraw (f);
-#endif
-      SetPortWindowPort (FRAME_MAC_WINDOW (f));
+      mac_begin_clip (f, NULL);
 
       TextFont (fontnum);
       TextSize (size);
@@ -9058,6 +7739,8 @@ mac_load_query_font (f, fontname)
 	  for (c = 0x21, pcm = space_bounds + 1; c <= 0xff; c++, pcm++)
 	    mac_query_char_extents (NULL, c, NULL, NULL, pcm, NULL);
 	}
+
+      mac_end_clip (f, NULL);
     }
 
   if (space_bounds)
@@ -9386,158 +8069,6 @@ x_find_ccl_program (fontp)
     }
 }
 
-#if USE_MAC_FONT_PANEL
-/* Whether Font Panel has been shown before.  The first call to font
-   panel functions (FPIsFontPanelVisible, SetFontInfoForSelection) is
-   slow.  This variable is used for deferring such a call as much as
-   possible.  */
-static int font_panel_shown_p = 0;
-
-extern Lisp_Object Qfont;
-static Lisp_Object Qpanel_closed, Qselection;
-
-static OSStatus mac_store_event_ref_as_apple_event P_ ((AEEventClass, AEEventID,
-							Lisp_Object,
-							Lisp_Object,
-							EventRef, UInt32,
-							const EventParamName *,
-							const EventParamType *));
-
-int
-mac_font_panel_visible_p ()
-{
-  return font_panel_shown_p && FPIsFontPanelVisible ();
-}
-
-static pascal OSStatus
-mac_handle_font_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus result, err;
-  Lisp_Object id_key;
-  int num_params;
-  const EventParamName *names;
-  const EventParamType *types;
-  static const EventParamName names_sel[] = {kEventParamATSUFontID,
-					     kEventParamATSUFontSize,
-					     kEventParamFMFontFamily,
-					     kEventParamFMFontStyle,
-					     kEventParamFMFontSize,
-					     kEventParamFontColor};
-  static const EventParamType types_sel[] = {typeATSUFontID,
-					     typeATSUSize,
-					     typeFMFontFamily,
-					     typeFMFontStyle,
-					     typeFMFontSize,
-					     typeFontColor};
-
-  result = CallNextEventHandler (next_handler, event);
-  if (result != eventNotHandledErr)
-    return result;
-
-  switch (GetEventKind (event))
-    {
-    case kEventFontPanelClosed:
-      id_key = Qpanel_closed;
-      num_params = 0;
-      names = NULL;
-      types = NULL;
-      break;
-
-    case kEventFontSelection:
-      id_key = Qselection;
-      num_params = sizeof (names_sel) / sizeof (names_sel[0]);
-      names = names_sel;
-      types = types_sel;
-      break;
-    }
-
-  err = mac_store_event_ref_as_apple_event (0, 0, Qfont, id_key,
-					    event, num_params,
-					    names, types);
-  if (err == noErr)
-    result = noErr;
-
-  return result;
-}
-
-OSStatus
-mac_show_hide_font_panel ()
-{
-  if (!font_panel_shown_p)
-    {
-      OSStatus err;
-
-      static const EventTypeSpec specs[] =
-	{{kEventClassFont, kEventFontPanelClosed},
-	 {kEventClassFont, kEventFontSelection}};
-
-      err = InstallApplicationEventHandler (mac_handle_font_event,
-					    GetEventTypeCount (specs),
-					    specs, NULL, NULL);
-      if (err != noErr)
-	return err;
-
-      font_panel_shown_p = 1;
-    }
-
-  return FPShowHideFontPanel ();
-}
-
-OSStatus
-mac_set_font_info_for_selection (f, face_id, c)
-     struct frame *f;
-     int face_id, c;
-{
-  OSStatus err;
-  EventTargetRef target = NULL;
-  XFontStruct *font = NULL;
-
-  if (!mac_font_panel_visible_p ())
-    return noErr;
-
-  if (f)
-    {
-      target = GetWindowEventTarget (FRAME_MAC_WINDOW (f));
-
-      if (FRAME_FACE_CACHE (f) && CHAR_VALID_P (c, 0))
-	{
-	  struct face *face;
-
-	  face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c);
-	  face = FACE_FROM_ID (f, face_id);
-	  font = face->font;
-	}
-    }
-
-  if (font == NULL)
-    err = SetFontInfoForSelection (kFontSelectionATSUIType, 0, NULL, target);
-  else
-    {
-      if (font->mac_fontnum != -1)
-	{
-	  FontSelectionQDStyle qd_style;
-
-	  qd_style.version = kFontSelectionQDStyleVersionZero;
-	  qd_style.instance.fontFamily = font->mac_fontnum;
-	  qd_style.instance.fontStyle = font->mac_fontface;
-	  qd_style.size = font->mac_fontsize;
-	  qd_style.hasColor = false;
-
-	  err = SetFontInfoForSelection (kFontSelectionQDType,
-					 1, &qd_style, target);
-	}
-      else
-	err = SetFontInfoForSelection (kFontSelectionATSUIType,
-				       1, &font->mac_style, target);
-    }
-
-  return err;
-}
-#endif
-
 
 /* The Mac Event loop code */
 
@@ -9562,20 +8093,6 @@ mac_set_font_info_for_selection (f, face_id, c)
 #include <unix.h>
 #endif
 #endif /* ! TARGET_API_MAC_CARBON */
-
-#define M_APPLE 234
-#define I_ABOUT 1
-
-#define DEFAULT_NUM_COLS 80
-
-#define MIN_DOC_SIZE 64
-#define MAX_DOC_SIZE 32767
-
-#define EXTRA_STACK_ALLOC (256 * 1024)
-
-#define ARGV_STRING_LIST_ID 129
-#define ABOUT_ALERT_ID	128
-#define RAM_TOO_LARGE_ALERT_ID 129
 
 /* Contains the string "reverse", which is a constant for mouse button emu.*/
 Lisp_Object Qreverse;
@@ -9611,62 +8128,35 @@ int mac_pass_command_to_system;
 int mac_pass_control_to_system;
 #endif
 
-/* Points to the variable `inev' in the function XTread_socket.  It is
-   used for passing an input event to the function back from
-   Carbon/Apple event handlers.  */
-static struct input_event *read_socket_inev = NULL;
-
 /* Whether or not the screen configuration has changed.  */
-static int mac_screen_config_changed = 0;
-
-Point saved_menu_event_location;
+int mac_screen_config_changed = 0;
 
 /* Apple Events */
 #if TARGET_API_MAC_CARBON
-static Lisp_Object Qhi_command;
+Lisp_Object Qhi_command;
 #ifdef MAC_OSX
-extern Lisp_Object Qwindow;
-static Lisp_Object Qtoolbar_switch_mode;
+Lisp_Object Qtoolbar_switch_mode;
 #endif
 #if USE_MAC_TSM
-static TSMDocumentID tsm_document_id;
-static Lisp_Object Qtext_input;
-static Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
-static Lisp_Object Vmac_ts_active_input_overlay;
-extern Lisp_Object Qbefore_string;
-static Lisp_Object Vmac_ts_script_language_on_focus;
-static Lisp_Object saved_ts_script_language_on_focus;
+Lisp_Object Qtext_input;
+Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
+Lisp_Object Vmac_ts_active_input_overlay;
+Lisp_Object Vmac_ts_script_language_on_focus;
+Lisp_Object saved_ts_script_language_on_focus;
 static ScriptLanguageRecord saved_ts_language;
 static Component saved_ts_component;
 #endif
+#ifdef MAC_OSX
+Lisp_Object Qservice, Qpaste, Qperform;
+#endif
 #endif	/* TARGET_API_MAC_CARBON */
-extern int mac_ready_for_apple_events;
 extern Lisp_Object Qundefined;
+extern int XTread_socket P_ ((int, int, struct input_event *));
 extern void init_apple_event_handler P_ ((void));
 extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 					   Lisp_Object *, Lisp_Object *,
 					   Lisp_Object *));
 extern OSErr init_coercion_handler P_ ((void));
-
-/* Drag and Drop */
-extern OSErr install_drag_handler P_ ((WindowRef));
-extern void remove_drag_handler P_ ((WindowRef));
-
-#if TARGET_API_MAC_CARBON
-/* Showing help echo string during menu tracking  */
-extern OSStatus install_menu_target_item_handler P_ ((void));
-
-#ifdef MAC_OSX
-extern OSStatus install_service_handler ();
-static Lisp_Object Qservice, Qpaste, Qperform;
-#endif
-#endif
-
-extern void init_emacs_passwd_dir ();
-extern int emacs_main (int, char **, char **);
-
-extern void initialize_applescript();
-extern void terminate_applescript();
 
 /* Table for translating Mac keycode to X keysym values.  Contributed
    by Sudhir Shenoy.
@@ -9674,7 +8164,7 @@ extern void terminate_applescript();
    except `clear' (-> <clear>) on the KeyPad, `enter' (-> <kp-enter>)
    on the right of the Cmd key on laptops, and fn + `enter' (->
    <linefeed>). */
-static const unsigned char keycode_to_xkeysym_table[] = {
+const unsigned char keycode_to_xkeysym_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -9743,7 +8233,7 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
 };
 #endif	/* MAC_OSX */
 
-static int
+int
 #if TARGET_API_MAC_CARBON
 mac_to_emacs_modifiers (UInt32 mods, UInt32 unmapped_mods)
 #else
@@ -9790,7 +8280,7 @@ mac_to_emacs_modifiers (EventModifiers mods, EventModifiers unmapped_mods)
   return result;
 }
 
-static UInt32
+UInt32
 mac_mapped_modifiers (modifiers, key_code)
      UInt32 modifiers, key_code;
 {
@@ -9818,7 +8308,7 @@ mac_mapped_modifiers (modifiers, key_code)
   return mapped_modifiers_all & modifiers;
 }
 
-static int
+int
 mac_get_emulated_btn ( UInt32 modifiers )
 {
   int result = 0;
@@ -9831,6 +8321,84 @@ mac_get_emulated_btn ( UInt32 modifiers )
   }
   return result;
 }
+
+#if USE_MAC_TSM
+OSStatus
+mac_restore_keyboard_input_source ()
+{
+  OSStatus err = noErr;
+  ScriptLanguageRecord slrec, *slptr = NULL;
+
+  if (EQ (Vmac_ts_script_language_on_focus, Qt)
+      && EQ (saved_ts_script_language_on_focus, Qt))
+    slptr = &saved_ts_language;
+  else if (CONSP (Vmac_ts_script_language_on_focus)
+	   && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
+	   && INTEGERP (XCDR (Vmac_ts_script_language_on_focus))
+	   && CONSP (saved_ts_script_language_on_focus)
+	   && EQ (XCAR (saved_ts_script_language_on_focus),
+		  XCAR (Vmac_ts_script_language_on_focus))
+	   && EQ (XCDR (saved_ts_script_language_on_focus),
+		  XCDR (Vmac_ts_script_language_on_focus)))
+    {
+      slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
+      slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
+      slptr = &slrec;
+    }
+
+  if (slptr)
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      err = SetDefaultInputMethodOfClass (saved_ts_component, slptr,
+					  kKeyboardInputMethodClass);
+#else
+      err = SetDefaultInputMethod (saved_ts_component, slptr);
+#endif
+      if (err == noErr)
+	err = SetTextServiceLanguage (slptr);
+
+      /* Seems to be needed on Mac OS X 10.2.  */
+      if (err == noErr)
+	KeyScript (slptr->fScript | smKeyForceKeyScriptMask);
+    }
+
+  return err;
+}
+
+void
+mac_save_keyboard_input_source ()
+{
+  OSStatus err;
+  ScriptLanguageRecord slrec, *slptr = NULL;
+
+  saved_ts_script_language_on_focus = Vmac_ts_script_language_on_focus;
+
+  if (EQ (Vmac_ts_script_language_on_focus, Qt))
+    {
+      err = GetTextServiceLanguage (&saved_ts_language);
+      if (err == noErr)
+	slptr = &saved_ts_language;
+    }
+  else if (CONSP (Vmac_ts_script_language_on_focus)
+	   && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
+	   && INTEGERP (XCDR (Vmac_ts_script_language_on_focus)))
+    {
+      slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
+      slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
+      slptr = &slrec;
+    }
+
+  if (slptr)
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      GetDefaultInputMethodOfClass (&saved_ts_component, slptr,
+				    kKeyboardInputMethodClass);
+#else
+      GetDefaultInputMethod (&saved_ts_component, slptr);
+#endif
+    }
+}
+#endif
 
 #if TARGET_API_MAC_CARBON
 /***** Code to handle C-g testing  *****/
@@ -9864,538 +8432,6 @@ mac_quit_char_key_p (modifiers, key_code)
   return c == quit_char;
 }
 #endif
-
-#if TARGET_API_MAC_CARBON
-/* Obtains the event modifiers from the event ref and then calls
-   mac_to_emacs_modifiers.  */
-static int
-mac_event_to_emacs_modifiers (EventRef eventRef)
-{
-  UInt32 mods = 0, class;
-
-  GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
-		    sizeof (UInt32), NULL, &mods);
-  class = GetEventClass (eventRef);
-  if (!NILP (Vmac_emulate_three_button_mouse) &&
-      (class == kEventClassMouse || class == kEventClassCommand))
-    {
-      mods &= ~(optionKey | cmdKey);
-    }
-  return mac_to_emacs_modifiers (mods, 0);
-}
-
-/* Given an event ref, return the code to use for the mouse button
-   code in the emacs input_event.  */
-static int
-mac_get_mouse_btn (EventRef ref)
-{
-  EventMouseButton result = kEventMouseButtonPrimary;
-  GetEventParameter (ref, kEventParamMouseButton, typeMouseButton, NULL,
-		    sizeof (EventMouseButton), NULL, &result);
-  switch (result)
-    {
-    case kEventMouseButtonPrimary:
-      if (NILP (Vmac_emulate_three_button_mouse))
-	return 0;
-      else {
-	UInt32 mods = 0;
-	GetEventParameter (ref, kEventParamKeyModifiers, typeUInt32, NULL,
-			   sizeof (UInt32), NULL, &mods);
-	return mac_get_emulated_btn(mods);
-      }
-    case kEventMouseButtonSecondary:
-      return mac_wheel_button_is_mouse_2 ? 2 : 1;
-    case kEventMouseButtonTertiary:
-    case 4:  /* 4 is the number for the mouse wheel button */
-      return mac_wheel_button_is_mouse_2 ? 1 : 2;
-    default:
-      return 0;
-    }
-}
-
-/* Normally, ConvertEventRefToEventRecord will correctly handle all
-   events.  However the click of the mouse wheel is not converted to a
-   mouseDown or mouseUp event.  Likewise for dead key events.  This
-   calls ConvertEventRefToEventRecord, but then checks to see if it is
-   a mouse up/down, or a dead key Carbon event that has not been
-   converted, and if so, converts it by hand (to be picked up in the
-   XTread_socket loop).  */
-static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
-{
-  OSStatus err;
-  Boolean result = ConvertEventRefToEventRecord (eventRef, eventRec);
-  EventKind action;
-
-  if (result)
-    return result;
-
-  switch (GetEventClass (eventRef))
-    {
-    case kEventClassMouse:
-      switch (GetEventKind (eventRef))
-	{
-	case kEventMouseDown:
-	  eventRec->what = mouseDown;
-	  result = 1;
-	  break;
-
-	case kEventMouseUp:
-	  eventRec->what = mouseUp;
-	  result = 1;
-	  break;
-
-	default:
-	  break;
-	}
-      break;
-
-    case kEventClassKeyboard:
-      switch (GetEventKind (eventRef))
-	{
-	case kEventRawKeyDown:
-	  action = keyDown;
-	  goto keystroke_common;
-	case kEventRawKeyRepeat:
-	  action = autoKey;
-	  goto keystroke_common;
-	case kEventRawKeyUp:
-	  action = keyUp;
-	keystroke_common:
-	  {
-	    unsigned char char_codes;
-	    UInt32 key_code;
-
-	    err = GetEventParameter (eventRef, kEventParamKeyMacCharCodes,
-				     typeChar, NULL, sizeof (char),
-				     NULL, &char_codes);
-	    if (err == noErr)
-	      err = GetEventParameter (eventRef, kEventParamKeyCode,
-				       typeUInt32, NULL, sizeof (UInt32),
-				       NULL, &key_code);
-	    if (err == noErr)
-	      {
-		eventRec->what = action;
-		eventRec->message = char_codes | ((key_code & 0xff) << 8);
-		result = 1;
-	      }
-	  }
-	  break;
-
-	default:
-	  break;
-	}
-      break;
-
-    default:
-      break;
-    }
-
-  if (result)
-    {
-      /* Need where and when.  */
-      UInt32 mods = 0;
-
-      GetEventParameter (eventRef, kEventParamMouseLocation, typeQDPoint,
-			 NULL, sizeof (Point), NULL, &eventRec->where);
-      /* Use two step process because new event modifiers are 32-bit
-	 and old are 16-bit.  Currently, only loss is NumLock & Fn. */
-      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
-			 NULL, sizeof (UInt32), NULL, &mods);
-      eventRec->modifiers = mods;
-
-      eventRec->when = EventTimeToTicks (GetEventTime (eventRef));
-    }
-
-  return result;
-}
-
-#endif
-
-#ifdef MAC_OS8
-static void
-do_get_menus (void)
-{
-  Handle menubar_handle;
-  MenuRef menu;
-
-  menubar_handle = GetNewMBar (128);
-  if(menubar_handle == NULL)
-    abort ();
-  SetMenuBar (menubar_handle);
-  DrawMenuBar ();
-
-#if !TARGET_API_MAC_CARBON
-  menu = GetMenuRef (M_APPLE);
-  if (menu != NULL)
-    AppendResMenu (menu, 'DRVR');
-  else
-    abort ();
-#endif
-}
-
-
-static void
-do_init_managers (void)
-{
-#if !TARGET_API_MAC_CARBON
-  InitGraf (&qd.thePort);
-  InitFonts ();
-  FlushEvents (everyEvent, 0);
-  InitWindows ();
-  InitMenus ();
-  TEInit ();
-  InitDialogs (NULL);
-#endif /* !TARGET_API_MAC_CARBON */
-  InitCursor ();
-
-#if !TARGET_API_MAC_CARBON
-  /* set up some extra stack space for use by emacs */
-  SetApplLimit ((Ptr) ((long) GetApplLimit () - EXTRA_STACK_ALLOC));
-
-  /* MaxApplZone must be called for AppleScript to execute more
-     complicated scripts */
-  MaxApplZone ();
-  MoreMasters ();
-#endif /* !TARGET_API_MAC_CARBON */
-}
-
-static void
-do_check_ram_size (void)
-{
-  SInt32 physical_ram_size, logical_ram_size;
-
-  if (Gestalt (gestaltPhysicalRAMSize, &physical_ram_size) != noErr
-      || Gestalt (gestaltLogicalRAMSize, &logical_ram_size) != noErr
-      || physical_ram_size > (1 << VALBITS)
-      || logical_ram_size > (1 << VALBITS))
-    {
-      StopAlert (RAM_TOO_LARGE_ALERT_ID, NULL);
-      exit (1);
-    }
-}
-#endif /* MAC_OS8 */
-
-static void
-do_window_update (WindowRef win)
-{
-  struct frame *f = mac_window_to_frame (win);
-
-  BeginUpdate (win);
-
-  /* The tooltip has been drawn already.  Avoid the SET_FRAME_GARBAGED
-     below.  */
-  if (win != tip_window)
-    {
-      if (f->async_visible == 0)
-        {
-	  /* Update events may occur when a frame gets iconified.  */
-#if 0
-          f->async_visible = 1;
-          f->async_iconified = 0;
-          SET_FRAME_GARBAGED (f);
-#endif
-        }
-      else
-	{
-	  Rect r;
-#if TARGET_API_MAC_CARBON
-	  RgnHandle region = NewRgn ();
-
-	  GetPortVisibleRegion (GetWindowPort (win), region);
-	  GetRegionBounds (region, &r);
-	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
-#if USE_CG_DRAWING
-	  mac_prepare_for_quickdraw (f);
-#endif
-	  UpdateControls (win, region);
-	  DisposeRgn (region);
-#else
-	  r = (*win->visRgn)->rgnBBox;
-	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
-	  UpdateControls (win, win->visRgn);
-#endif
-	}
-    }
-
-  EndUpdate (win);
-}
-
-static int
-is_emacs_window (WindowRef win)
-{
-  Lisp_Object tail, frame;
-
-  if (!win)
-    return 0;
-
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_MAC_P (XFRAME (frame)))
-      if (FRAME_MAC_WINDOW (XFRAME (frame)) == win)
-	return 1;
-
-  return 0;
-}
-
-#if USE_MAC_TSM
-static OSStatus
-mac_tsm_resume ()
-{
-  OSStatus err;
-  ScriptLanguageRecord slrec, *slptr = NULL;
-
-  err = ActivateTSMDocument (tsm_document_id);
-
-  if (err == noErr)
-    {
-      if (EQ (Vmac_ts_script_language_on_focus, Qt)
-	  && EQ (saved_ts_script_language_on_focus, Qt))
-	slptr = &saved_ts_language;
-      else if (CONSP (Vmac_ts_script_language_on_focus)
-	       && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
-	       && INTEGERP (XCDR (Vmac_ts_script_language_on_focus))
-	       && CONSP (saved_ts_script_language_on_focus)
-	       && EQ (XCAR (saved_ts_script_language_on_focus),
-		      XCAR (Vmac_ts_script_language_on_focus))
-	       && EQ (XCDR (saved_ts_script_language_on_focus),
-		      XCDR (Vmac_ts_script_language_on_focus)))
-	{
-	  slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
-	  slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
-	  slptr = &slrec;
-	}
-    }
-
-  if (slptr)
-    {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-      err = SetDefaultInputMethodOfClass (saved_ts_component, slptr,
-					  kKeyboardInputMethodClass);
-#else
-      err = SetDefaultInputMethod (saved_ts_component, slptr);
-#endif
-      if (err == noErr)
-	err = SetTextServiceLanguage (slptr);
-
-      /* Seems to be needed on Mac OS X 10.2.  */
-      if (err == noErr)
-	KeyScript (slptr->fScript | smKeyForceKeyScriptMask);
-    }
-
-  return err;
-}
-
-static OSStatus
-mac_tsm_suspend ()
-{
-  OSStatus err;
-  ScriptLanguageRecord slrec, *slptr = NULL;
-
-  saved_ts_script_language_on_focus = Vmac_ts_script_language_on_focus;
-
-  if (EQ (Vmac_ts_script_language_on_focus, Qt))
-    {
-      err = GetTextServiceLanguage (&saved_ts_language);
-      if (err == noErr)
-	slptr = &saved_ts_language;
-    }
-  else if (CONSP (Vmac_ts_script_language_on_focus)
-	   && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
-	   && INTEGERP (XCDR (Vmac_ts_script_language_on_focus)))
-    {
-      slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
-      slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
-      slptr = &slrec;
-    }
-
-  if (slptr)
-    {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-      GetDefaultInputMethodOfClass (&saved_ts_component, slptr,
-				    kKeyboardInputMethodClass);
-#else
-      GetDefaultInputMethod (&saved_ts_component, slptr);
-#endif
-    }
-
-  err = DeactivateTSMDocument (tsm_document_id);
-
-  return err;
-}
-#endif
-
-#if !TARGET_API_MAC_CARBON
-void
-do_apple_menu (SInt16 menu_item)
-{
-  Str255 item_name;
-  SInt16 da_driver_refnum;
-
-  if (menu_item == I_ABOUT)
-    NoteAlert (ABOUT_ALERT_ID, NULL);
-  else
-    {
-      GetMenuItemText (GetMenuRef (M_APPLE), menu_item, item_name);
-      da_driver_refnum = OpenDeskAcc (item_name);
-    }
-}
-#endif /* !TARGET_API_MAC_CARBON */
-
-/* Handle drags in size box.  Based on code contributed by Ben
-   Mesander and IM - Window Manager A.  */
-
-static void
-do_grow_window (w, e)
-     WindowRef w;
-     const EventRecord *e;
-{
-  Rect limit_rect;
-  int rows, columns, width, height;
-  struct frame *f = mac_window_to_frame (w);
-  XSizeHints *size_hints = FRAME_SIZE_HINTS (f);
-  int min_width = MIN_DOC_SIZE, min_height = MIN_DOC_SIZE;
-#if TARGET_API_MAC_CARBON
-  Rect new_rect;
-#else
-  long grow_size;
-#endif
-
-  if (size_hints->flags & PMinSize)
-    {
-      min_width  = size_hints->min_width;
-      min_height = size_hints->min_height;
-    }
-  SetRect (&limit_rect, min_width, min_height, MAX_DOC_SIZE, MAX_DOC_SIZE);
-
-#if TARGET_API_MAC_CARBON
-  if (!ResizeWindow (w, e->where, &limit_rect, &new_rect))
-    return;
-  height = new_rect.bottom - new_rect.top;
-  width = new_rect.right - new_rect.left;
-#else
-  grow_size = GrowWindow (w, e->where, &limit_rect);
-  /* see if it really changed size */
-  if (grow_size == 0)
-    return;
-  height = HiWord (grow_size);
-  width = LoWord (grow_size);
-#endif
-
-  if (width != FRAME_PIXEL_WIDTH (f)
-      || height != FRAME_PIXEL_HEIGHT (f))
-    {
-      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
-      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
-
-      x_set_window_size (f, 0, columns, rows);
-    }
-}
-
-
-#if TARGET_API_MAC_CARBON
-static Point
-mac_get_ideal_size (f)
-     struct frame *f;
-{
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  WindowRef w = FRAME_MAC_WINDOW (f);
-  Point ideal_size;
-  Rect standard_rect;
-  int height, width, columns, rows;
-
-  ideal_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-  ideal_size.v = dpyinfo->height;
-  IsWindowInStandardState (w, &ideal_size, &standard_rect);
-  /* Adjust the standard size according to character boundaries.  */
-  width = standard_rect.right - standard_rect.left;
-  height = standard_rect.bottom - standard_rect.top;
-  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
-  ideal_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
-  ideal_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
-
-  return ideal_size;
-}
-#endif
-
-/* Handle clicks in zoom box.  Calculation of "standard state" based
-   on code in IM - Window Manager A and code contributed by Ben
-   Mesander.  The standard state of an Emacs window is 80-characters
-   wide (DEFAULT_NUM_COLS) and as tall as will fit on the screen.  */
-
-static void
-do_zoom_window (WindowRef w, int zoom_in_or_out)
-{
-  Rect zoom_rect, port_rect;
-  int width, height;
-  struct frame *f = mac_window_to_frame (w);
-#if TARGET_API_MAC_CARBON
-  Point ideal_size = mac_get_ideal_size (f);
-
-  GetWindowBounds (w, kWindowContentRgn, &port_rect);
-  if (IsWindowInStandardState (w, &ideal_size, &zoom_rect)
-      && port_rect.left == zoom_rect.left
-      && port_rect.top == zoom_rect.top)
-    zoom_in_or_out = inZoomIn;
-  else
-    zoom_in_or_out = inZoomOut;
-
-#ifdef MAC_OS8
-  mac_clear_window (f);
-#endif
-  ZoomWindowIdeal (w, zoom_in_or_out, &ideal_size);
-#else /* not TARGET_API_MAC_CARBON */
-  GrafPtr save_port;
-  Point top_left;
-  int w_title_height, rows;
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-
-  GetPort (&save_port);
-
-  SetPortWindowPort (w);
-
-  /* Clear window to avoid flicker.  */
-  EraseRect (&(w->portRect));
-  if (zoom_in_or_out == inZoomOut)
-    {
-      SetPt (&top_left, w->portRect.left, w->portRect.top);
-      LocalToGlobal (&top_left);
-
-      /* calculate height of window's title bar */
-      w_title_height = top_left.v - 1
-	- (**((WindowPeek) w)->strucRgn).rgnBBox.top + GetMBarHeight ();
-
-      /* get maximum height of window into zoom_rect.bottom - zoom_rect.top */
-      zoom_rect = qd.screenBits.bounds;
-      zoom_rect.top += w_title_height;
-      InsetRect (&zoom_rect, 8, 4);  /* not too tight */
-
-      zoom_rect.right = zoom_rect.left
-	+ FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-
-      /* Adjust the standard size according to character boundaries.  */
-      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
-      zoom_rect.bottom =
-	zoom_rect.top + FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
-
-      (**((WStateDataHandle) ((WindowPeek) w)->dataHandle)).stdState
-	= zoom_rect;
-    }
-
-  ZoomWindow (w, zoom_in_or_out, f == mac_focus_frame (dpyinfo));
-
-  SetPort (save_port);
-#endif /* not TARGET_API_MAC_CARBON */
-
-#if !TARGET_API_MAC_CARBON
-  /* retrieve window size and update application values */
-  port_rect = w->portRect;
-  height = port_rect.bottom - port_rect.top;
-  width = port_rect.right - port_rect.left;
-
-  mac_handle_size_change (f, width, height);
-  mac_handle_origin_change (f);
-#endif
-}
 
 static void
 mac_set_unicode_keystroke_event (code, buf)
@@ -10435,7 +8471,7 @@ mac_set_unicode_keystroke_event (code, buf)
     }
 }
 
-static void
+void
 do_keystroke (action, char_code, key_code, modifiers, timestamp, buf)
      EventKind action;
      unsigned char char_code;
@@ -10616,7 +8652,7 @@ mac_store_apple_event (class, id, desc)
 }
 
 #if TARGET_API_MAC_CARBON
-static OSStatus
+OSStatus
 mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
 				    event, num_params, names, types)
      AEEventClass class;
@@ -10652,829 +8688,7 @@ mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
 
   return err;
 }
-
-void
-mac_store_drag_event (window, mouse_pos, modifiers, desc)
-     WindowRef window;
-     Point mouse_pos;
-     SInt16 modifiers;
-     const AEDesc *desc;
-{
-  struct input_event buf;
-
-  EVENT_INIT (buf);
-
-  buf.kind = DRAG_N_DROP_EVENT;
-  buf.modifiers = mac_to_emacs_modifiers (modifiers, 0);
-  buf.timestamp = TickCount () * (1000 / 60);
-  XSETINT (buf.x, mouse_pos.h);
-  XSETINT (buf.y, mouse_pos.v);
-  XSETFRAME (buf.frame_or_window, mac_window_to_frame (window));
-  buf.arg = mac_aedesc_to_lisp (desc);
-  kbd_buffer_store_event (&buf);
-}
-
-#ifdef MAC_OSX
-OSStatus
-mac_store_service_event (event)
-     EventRef event;
-{
-  OSStatus err;
-  Lisp_Object id_key;
-  int num_params;
-  const EventParamName *names;
-  const EventParamType *types;
-  static const EventParamName names_pfm[] =
-    {kEventParamServiceMessageName, kEventParamServiceUserData};
-  static const EventParamType types_pfm[] =
-    {typeCFStringRef, typeCFStringRef};
-
-  switch (GetEventKind (event))
-    {
-    case kEventServicePaste:
-      id_key = Qpaste;
-      num_params = 0;
-      names = NULL;
-      types = NULL;
-      break;
-
-    case kEventServicePerform:
-      id_key = Qperform;
-      num_params = sizeof (names_pfm) / sizeof (names_pfm[0]);
-      names = names_pfm;
-      types = types_pfm;
-      break;
-
-    default:
-      abort ();
-    }
-
-  err = mac_store_event_ref_as_apple_event (0, 0, Qservice, id_key,
-					    event, num_params,
-					    names, types);
-
-  return err;
-}
-#endif	/* MAC_OSX */
-
-static pascal OSStatus
-mac_handle_window_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  WindowRef wp;
-  OSStatus err, result = eventNotHandledErr;
-  struct frame *f;
-  UInt32 attributes;
-  XSizeHints *size_hints;
-
-  err = GetEventParameter (event, kEventParamDirectObject, typeWindowRef,
-			   NULL, sizeof (WindowRef), NULL, &wp);
-  if (err != noErr)
-    return eventNotHandledErr;
-
-  f = mac_window_to_frame (wp);
-  switch (GetEventKind (event))
-    {
-      /* -- window refresh events -- */
-
-    case kEventWindowUpdate:
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	break;
-
-      do_window_update (wp);
-      result = noErr;
-      break;
-
-      /* -- window state change events -- */
-
-    case kEventWindowShowing:
-      size_hints = FRAME_SIZE_HINTS (f);
-      if (!(size_hints->flags & (USPosition | PPosition)))
-	{
-	  struct frame *sf = SELECTED_FRAME ();
-
-	  if (!(FRAME_MAC_P (sf) && sf->async_visible))
-	    RepositionWindow (wp, NULL, kWindowCenterOnMainScreen);
-	  else
-	    {
-	      RepositionWindow (wp, FRAME_MAC_WINDOW (sf),
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-				kWindowCascadeStartAtParentWindowScreen
-#else
-				kWindowCascadeOnParentWindowScreen
-#endif
-				);
-#if USE_MAC_TOOLBAR
-	      /* This is a workaround.  RepositionWindow fails to put
-		 a window at the cascading position when its parent
-		 window has a Carbon HIToolbar.  */
-	      if ((f->left_pos == sf->left_pos
-		   && f->top_pos == sf->top_pos)
-		  || (f->left_pos == sf->left_pos + 10 * 2
-		      && f->top_pos == sf->top_pos + 32 * 2))
-		MoveWindowStructure (wp, sf->left_pos + 10, sf->top_pos + 32);
-#endif
-	    }
-	  result = noErr;
-	}
-      break;
-
-    case kEventWindowHiding:
-      /* Before unmapping the window, update the WM_SIZE_HINTS
-	 property to claim that the current position of the window is
-	 user-specified, rather than program-specified, so that when
-	 the window is mapped again, it will be placed at the same
-	 location, without forcing the user to position it by hand
-	 again (they have already done that once for this window.)  */
-      x_wm_set_size_hint (f, (long) 0, 1);
-      result = noErr;
-      break;
-
-    case kEventWindowShown:
-    case kEventWindowHidden:
-    case kEventWindowCollapsed:
-    case kEventWindowExpanded:
-      mac_handle_visibility_change (f);
-      result = noErr;
-      break;
-
-    case kEventWindowBoundsChanging:
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	break;
-
-      err = GetEventParameter (event, kEventParamAttributes, typeUInt32,
-			       NULL, sizeof (UInt32), NULL, &attributes);
-      if (err != noErr)
-	break;
-
-      size_hints = FRAME_SIZE_HINTS (f);
-      if ((attributes & kWindowBoundsChangeUserResize)
-	  && ((size_hints->flags & (PResizeInc | PBaseSize | PMinSize))
-	      == (PResizeInc | PBaseSize | PMinSize)))
-	{
-	  Rect bounds;
-	  int width, height;
-
-	  err = GetEventParameter (event, kEventParamCurrentBounds,
-				   typeQDRectangle, NULL, sizeof (Rect),
-				   NULL, &bounds);
-	  if (err != noErr)
-	    break;
-
-	  width = bounds.right - bounds.left;
-	  height = bounds.bottom - bounds.top;
-
-	  if (width < size_hints->min_width)
-	    width = size_hints->min_width;
-	  else
-	    width = size_hints->base_width
-	      + (int) ((width - size_hints->base_width)
-		       / (float) size_hints->width_inc + .5)
-	      * size_hints->width_inc;
-
-	  if (height < size_hints->min_height)
-	    height = size_hints->min_height;
-	  else
-	    height = size_hints->base_height
-	      + (int) ((height - size_hints->base_height)
-		       / (float) size_hints->height_inc + .5)
-	      * size_hints->height_inc;
-
-	  bounds.right = bounds.left + width;
-	  bounds.bottom = bounds.top + height;
-	  SetEventParameter (event, kEventParamCurrentBounds,
-			     typeQDRectangle, sizeof (Rect), &bounds);
-	  result = noErr;
-	}
-      break;
-
-    case kEventWindowBoundsChanged:
-      err = GetEventParameter (event, kEventParamAttributes, typeUInt32,
-			       NULL, sizeof (UInt32), NULL, &attributes);
-      if (err != noErr)
-	break;
-
-      if (attributes & kWindowBoundsChangeSizeChanged)
-	{
-	  Rect bounds;
-
-	  err = GetEventParameter (event, kEventParamCurrentBounds,
-				   typeQDRectangle, NULL, sizeof (Rect),
-				   NULL, &bounds);
-	  if (err == noErr)
-	    {
-	      int width, height;
-
-	      width = bounds.right - bounds.left;
-	      height = bounds.bottom - bounds.top;
-	      mac_handle_size_change (f, width, height);
-	      mac_wakeup_from_rne ();
-	    }
-	}
-
-      if (attributes & kWindowBoundsChangeOriginChanged)
-	mac_handle_origin_change (f);
-
-      result = noErr;
-      break;
-
-      /* -- window action events -- */
-
-    case kEventWindowClose:
-      {
-	struct input_event buf;
-
-	EVENT_INIT (buf);
-	buf.kind = DELETE_WINDOW_EVENT;
-	XSETFRAME (buf.frame_or_window, f);
-	buf.arg = Qnil;
-	kbd_buffer_store_event (&buf);
-      }
-      result = noErr;
-      break;
-
-    case kEventWindowGetIdealSize:
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	break;
-
-      {
-	Point ideal_size = mac_get_ideal_size (f);
-
-	err = SetEventParameter (event, kEventParamDimensions,
-				 typeQDPoint, sizeof (Point), &ideal_size);
-	if (err == noErr)
-	  result = noErr;
-      }
-      break;
-
-#ifdef MAC_OSX
-    case kEventWindowToolbarSwitchMode:
-      {
-	static const EventParamName names[] = {kEventParamDirectObject,
-					       kEventParamWindowMouseLocation,
-					       kEventParamKeyModifiers,
-					       kEventParamMouseButton,
-					       kEventParamClickCount,
-					       kEventParamMouseChord};
-	static const EventParamType types[] = {typeWindowRef,
-					       typeQDPoint,
-					       typeUInt32,
-					       typeMouseButton,
-					       typeUInt32,
-					       typeUInt32};
-	int num_params = sizeof (names) / sizeof (names[0]);
-
-	err = mac_store_event_ref_as_apple_event (0, 0,
-						  Qwindow,
-						  Qtoolbar_switch_mode,
-						  event, num_params,
-						  names, types);
-      }
-      if (err == noErr)
-	result = noErr;
-      break;
-#endif
-
-#if USE_MAC_TSM
-      /* -- window focus events -- */
-
-    case kEventWindowFocusAcquired:
-      err = mac_tsm_resume ();
-      if (err == noErr)
-	result = noErr;
-      break;
-
-    case kEventWindowFocusRelinquish:
-      err = mac_tsm_suspend ();
-      if (err == noErr)
-	result = noErr;
-      break;
-#endif
-
-    default:
-      abort ();
-    }
-
-  return result;
-}
-
-static pascal OSStatus
-mac_handle_keyboard_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result = eventNotHandledErr;
-  UInt32 event_kind, key_code, modifiers;
-  unsigned char char_code;
-
-  event_kind = GetEventKind (event);
-  switch (event_kind)
-    {
-    case kEventRawKeyDown:
-    case kEventRawKeyRepeat:
-    case kEventRawKeyUp:
-      /* When using Carbon Events, we need to pass raw keyboard events
-	 to the TSM ourselves.  If TSM handles it, it will pass back
-	 noErr, otherwise it will pass back "eventNotHandledErr" and
-	 we can process it normally.  */
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	break;
-
-      if (read_socket_inev == NULL)
-	break;
-
-#if USE_MAC_TSM
-      if (read_socket_inev->kind != NO_EVENT)
-	{
-	  result = noErr;
-	  break;
-	}
-#endif
-
-      if (event_kind == kEventRawKeyUp)
-	break;
-
-      err = GetEventParameter (event, kEventParamKeyMacCharCodes,
-			       typeChar, NULL,
-			       sizeof (char), NULL, &char_code);
-      if (err != noErr)
-	break;
-
-      err = GetEventParameter (event, kEventParamKeyCode,
-			       typeUInt32, NULL,
-			       sizeof (UInt32), NULL, &key_code);
-      if (err != noErr)
-	break;
-
-      err = GetEventParameter (event, kEventParamKeyModifiers,
-			       typeUInt32, NULL,
-			       sizeof (UInt32), NULL, &modifiers);
-      if (err != noErr)
-	break;
-
-      do_keystroke ((event_kind == kEventRawKeyDown ? keyDown : autoKey),
-		    char_code, key_code, modifiers,
-		    ((unsigned long)
-		     (GetEventTime (event) / kEventDurationMillisecond)),
-		    read_socket_inev);
-      result = noErr;
-      break;
-
-    default:
-      abort ();
-    }
-
-  return result;
-}
-
-static pascal OSStatus
-mac_handle_command_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result = eventNotHandledErr;
-  HICommand command;
-  static const EventParamName names[] =
-    {kEventParamDirectObject, kEventParamKeyModifiers};
-  static const EventParamType types[] =
-    {typeHICommand, typeUInt32};
-  int num_params = sizeof (names) / sizeof (names[0]);
-
-  err = GetEventParameter (event, kEventParamDirectObject, typeHICommand,
-			   NULL, sizeof (HICommand), NULL, &command);
-  if (err != noErr)
-    return eventNotHandledErr;
-
-  switch (GetEventKind (event))
-    {
-    case kEventCommandProcess:
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	break;
-
-      err = GetEventParameter (event, kEventParamDirectObject,
-			       typeHICommand, NULL,
-			       sizeof (HICommand), NULL, &command);
-
-      if (err != noErr || command.commandID == 0)
-	break;
-
-      /* A HI command event is mapped to an Apple event whose event
-	 class symbol is `hi-command' and event ID is its command
-	 ID.  */
-      err = mac_store_event_ref_as_apple_event (0, command.commandID,
-						Qhi_command, Qnil,
-						event, num_params,
-						names, types);
-      if (err == noErr)
-	result = noErr;
-      break;
-
-    default:
-      abort ();
-    }
-
-  return result;
-}
-
-static pascal OSStatus
-mac_handle_mouse_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result = eventNotHandledErr;
-
-  switch (GetEventKind (event))
-    {
-    case kEventMouseWheelMoved:
-      {
-	WindowRef wp;
-	struct frame *f;
-	EventMouseWheelAxis axis;
-	SInt32 delta;
-	Point point;
-
-	result = CallNextEventHandler (next_handler, event);
-	if (result != eventNotHandledErr || read_socket_inev == NULL)
-	  break;
-
-	f = mac_focus_frame (&one_mac_display_info);
-
-	err = GetEventParameter (event, kEventParamWindowRef, typeWindowRef,
-				 NULL, sizeof (WindowRef), NULL, &wp);
-	if (err != noErr
-	    || wp != FRAME_MAC_WINDOW (f))
-	  break;
-
-	err = GetEventParameter (event, kEventParamMouseWheelAxis,
-				 typeMouseWheelAxis, NULL,
-				 sizeof (EventMouseWheelAxis), NULL, &axis);
-	if (err != noErr || axis != kEventMouseWheelAxisY)
-	  break;
-
-	err = GetEventParameter (event, kEventParamMouseLocation,
-				 typeQDPoint, NULL, sizeof (Point),
-				 NULL, &point);
-	if (err != noErr)
-	  break;
-
-	point.h -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-	point.v -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
-	if (point.h < 0 || point.v < 0
-	    || EQ (window_from_coordinates (f, point.h, point.v, 0, 0, 0, 1),
-		   f->tool_bar_window))
-	  break;
-
-	err = GetEventParameter (event, kEventParamMouseWheelDelta,
-				 typeSInt32, NULL, sizeof (SInt32),
-				 NULL, &delta);
-	if (err != noErr)
-	  break;
-
-	read_socket_inev->kind = WHEEL_EVENT;
-	read_socket_inev->code = 0;
-	read_socket_inev->modifiers =
-	  (mac_event_to_emacs_modifiers (event)
-	   | ((delta < 0) ? down_modifier : up_modifier));
-	XSETINT (read_socket_inev->x, point.h);
-	XSETINT (read_socket_inev->y, point.v);
-	XSETFRAME (read_socket_inev->frame_or_window, f);
-
-	result = noErr;
-      }
-      break;
-
-    default:
-      abort ();
-    }
-
-  return result;
-}
-
-#if USE_MAC_TSM
-static pascal OSStatus
-mac_handle_text_input_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result;
-  Lisp_Object id_key = Qnil;
-  int num_params;
-  const EventParamName *names;
-  const EventParamType *types;
-  static UInt32 seqno_uaia = 0;
-  static const EventParamName names_uaia[] =
-    {kEventParamTextInputSendComponentInstance,
-     kEventParamTextInputSendRefCon,
-     kEventParamTextInputSendSLRec,
-     kEventParamTextInputSendFixLen,
-     kEventParamTextInputSendText,
-     kEventParamTextInputSendUpdateRng,
-     kEventParamTextInputSendHiliteRng,
-     kEventParamTextInputSendClauseRng,
-     kEventParamTextInputSendPinRng,
-     kEventParamTextInputSendTextServiceEncoding,
-     kEventParamTextInputSendTextServiceMacEncoding,
-     EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER};
-  static const EventParamType types_uaia[] =
-    {typeComponentInstance,
-     typeLongInteger,
-     typeIntlWritingCode,
-     typeLongInteger,
-#ifdef MAC_OSX
-     typeUnicodeText,
-#else
-     typeChar,
-#endif
-     typeTextRangeArray,
-     typeTextRangeArray,
-     typeOffsetArray,
-     typeTextRange,
-     typeUInt32,
-     typeUInt32,
-     typeUInt32};
-  static const EventParamName names_ufke[] =
-    {kEventParamTextInputSendComponentInstance,
-     kEventParamTextInputSendRefCon,
-     kEventParamTextInputSendSLRec,
-     kEventParamTextInputSendText};
-  static const EventParamType types_ufke[] =
-    {typeComponentInstance,
-     typeLongInteger,
-     typeIntlWritingCode,
-     typeUnicodeText};
-
-  result = CallNextEventHandler (next_handler, event);
-  if (result != eventNotHandledErr)
-    return result;
-
-  switch (GetEventKind (event))
-    {
-    case kEventTextInputUpdateActiveInputArea:
-      id_key = Qupdate_active_input_area;
-      num_params = sizeof (names_uaia) / sizeof (names_uaia[0]);
-      names = names_uaia;
-      types = types_uaia;
-      SetEventParameter (event, EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER,
-			 typeUInt32, sizeof (UInt32), &seqno_uaia);
-      seqno_uaia++;
-      result = noErr;
-      break;
-
-    case kEventTextInputUnicodeForKeyEvent:
-      {
-	EventRef kbd_event;
-	UInt32 actual_size, modifiers, key_code;
-
-	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
-				 typeEventRef, NULL, sizeof (EventRef), NULL,
-				 &kbd_event);
-	if (err == noErr)
-	  err = GetEventParameter (kbd_event, kEventParamKeyModifiers,
-				   typeUInt32, NULL,
-				   sizeof (UInt32), NULL, &modifiers);
-	if (err == noErr)
-	  err = GetEventParameter (kbd_event, kEventParamKeyCode,
-				   typeUInt32, NULL, sizeof (UInt32),
-				   NULL, &key_code);
-	if (err == noErr && mac_mapped_modifiers (modifiers, key_code))
-	  /* There're mapped modifier keys.  Process it in
-	     do_keystroke.  */
-	  break;
-	if (err == noErr)
-	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
-				   typeUnicodeText, NULL, 0, &actual_size,
-				   NULL);
-	if (err == noErr && actual_size == sizeof (UniChar))
-	  {
-	    UniChar code;
-
-	    err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
-				     typeUnicodeText, NULL,
-				     sizeof (UniChar), NULL, &code);
-	    if (err == noErr && code < 0x80)
-	      {
-		/* ASCII character.  Process it in do_keystroke.  */
-		if (read_socket_inev && code >= 0x20 && code <= 0x7e
-		    && !(key_code <= 0x7f
-			 && keycode_to_xkeysym_table [key_code]))
-		  {
-		    struct frame *f = mac_focus_frame (&one_mac_display_info);
-
-		    read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
-		    read_socket_inev->code = code;
-		    read_socket_inev->modifiers =
-		      mac_to_emacs_modifiers (modifiers, 0);
-		    read_socket_inev->modifiers |=
-		      (extra_keyboard_modifiers
-		       & (meta_modifier | alt_modifier
-			  | hyper_modifier | super_modifier));
-		    XSETFRAME (read_socket_inev->frame_or_window, f);
-		  }
-		break;
-	      }
-	  }
-	if (err == noErr)
-	  {
-	    /* Non-ASCII keystrokes without mapped modifiers are
-	       processed at the Lisp level.  */
-	    id_key = Qunicode_for_key_event;
-	    num_params = sizeof (names_ufke) / sizeof (names_ufke[0]);
-	    names = names_ufke;
-	    types = types_ufke;
-	    result = noErr;
-	  }
-      }
-      break;
-
-    case kEventTextInputOffsetToPos:
-      {
-	struct frame *f;
-	struct window *w;
-	Point p;
-
-	if (!OVERLAYP (Vmac_ts_active_input_overlay))
-	  break;
-
-	/* Strictly speaking, this is not always correct because
-	   previous events may change some states about display.  */
-	if (!NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
-	  {
-	    /* Active input area is displayed around the current point.  */
-	    f = SELECTED_FRAME ();
-	    w = XWINDOW (f->selected_window);
-	  }
-	else if (WINDOWP (echo_area_window))
-	  {
-	    /* Active input area is displayed in the echo area.  */
-	    w = XWINDOW (echo_area_window);
-	    f = WINDOW_XFRAME (w);
-	  }
-	else
-	  break;
-
-	p.h = (WINDOW_TO_FRAME_PIXEL_X (w, w->cursor.x)
-	       + WINDOW_LEFT_FRINGE_WIDTH (w)
-	       + f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f));
-	p.v = (WINDOW_TO_FRAME_PIXEL_Y (w, w->cursor.y)
-	       + FONT_BASE (FRAME_FONT (f))
-	       + f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
-	err = SetEventParameter (event, kEventParamTextInputReplyPoint,
-				 typeQDPoint, sizeof (typeQDPoint), &p);
-	if (err == noErr)
-	  result = noErr;
-      }
-      break;
-
-    default:
-      abort ();
-    }
-
-  if (!NILP (id_key))
-    err = mac_store_event_ref_as_apple_event (0, 0, Qtext_input, id_key,
-					      event, num_params,
-					      names, types);
-  return result;
-}
-#endif
 #endif	/* TARGET_API_MAC_CARBON */
-
-
-OSStatus
-install_window_handler (window)
-     WindowRef window;
-{
-  OSStatus err = noErr;
-
-#if TARGET_API_MAC_CARBON
-  if (err == noErr)
-    {
-      static const EventTypeSpec specs[] =
-	{
-	  /* -- window refresh events -- */
-	  {kEventClassWindow, kEventWindowUpdate},
-	  /* -- window state change events -- */
-	  {kEventClassWindow, kEventWindowShowing},
-	  {kEventClassWindow, kEventWindowHiding},
-	  {kEventClassWindow, kEventWindowShown},
-	  {kEventClassWindow, kEventWindowHidden},
-	  {kEventClassWindow, kEventWindowCollapsed},
-	  {kEventClassWindow, kEventWindowExpanded},
-	  {kEventClassWindow, kEventWindowBoundsChanging},
-	  {kEventClassWindow, kEventWindowBoundsChanged},
-	  /* -- window action events -- */
-	  {kEventClassWindow, kEventWindowClose},
-	  {kEventClassWindow, kEventWindowGetIdealSize},
-#ifdef MAC_OSX
-	  {kEventClassWindow, kEventWindowToolbarSwitchMode},
-#endif
-#if USE_MAC_TSM
-	  /* -- window focus events -- */
-	  {kEventClassWindow, kEventWindowFocusAcquired},
-	  {kEventClassWindow, kEventWindowFocusRelinquish},
-#endif
-	};
-      static EventHandlerUPP handle_window_eventUPP = NULL;
-
-      if (handle_window_eventUPP == NULL)
-	handle_window_eventUPP = NewEventHandlerUPP (mac_handle_window_event);
-
-      err = InstallWindowEventHandler (window, handle_window_eventUPP,
-				       GetEventTypeCount (specs),
-				       specs, NULL, NULL);
-    }
-#endif
-
-  if (err == noErr)
-    err = install_drag_handler (window);
-
-  return err;
-}
-
-void
-remove_window_handler (window)
-     WindowRef window;
-{
-  remove_drag_handler (window);
-}
-
-#if TARGET_API_MAC_CARBON
-static OSStatus
-install_application_handler ()
-{
-  OSStatus err = noErr;
-
-  if (err == noErr)
-    {
-      static const EventTypeSpec specs[] =
-	{{kEventClassKeyboard, kEventRawKeyDown},
-	 {kEventClassKeyboard, kEventRawKeyRepeat},
-	 {kEventClassKeyboard, kEventRawKeyUp}};
-
-      err = InstallApplicationEventHandler (NewEventHandlerUPP
-					    (mac_handle_keyboard_event),
-					    GetEventTypeCount (specs),
-					    specs, NULL, NULL);
-    }
-
-  if (err == noErr)
-    {
-      static const EventTypeSpec specs[] =
-	{{kEventClassCommand, kEventCommandProcess}};
-
-      err = InstallApplicationEventHandler (NewEventHandlerUPP
-					    (mac_handle_command_event),
-					    GetEventTypeCount (specs),
-					    specs, NULL, NULL);
-    }
-
-  if (err == noErr)
-    {
-      static const EventTypeSpec specs[] =
-	{{kEventClassMouse, kEventMouseWheelMoved}};
-
-      err = InstallApplicationEventHandler (NewEventHandlerUPP
-					    (mac_handle_mouse_event),
-					    GetEventTypeCount (specs),
-					    specs, NULL, NULL);
-    }
-
-#if USE_MAC_TSM
-  if (err == noErr)
-    {
-      static const EventTypeSpec spec[] =
-	{{kEventClassTextInput, kEventTextInputUpdateActiveInputArea},
-	 {kEventClassTextInput, kEventTextInputUnicodeForKeyEvent},
-	 {kEventClassTextInput, kEventTextInputOffsetToPos}};
-
-      err = InstallApplicationEventHandler (NewEventHandlerUPP
-					    (mac_handle_text_input_event),
-					    GetEventTypeCount (spec),
-					    spec, NULL, NULL);
-    }
-#endif
-
-  if (err == noErr)
-    err = install_menu_target_item_handler ();
-
-#ifdef MAC_OSX
-  if (err == noErr)
-    err = install_service_handler ();
-#endif
-
-  return err;
-}
-#endif
 
 static pascal void
 mac_handle_dm_notification (event)
@@ -11529,7 +8743,7 @@ init_dm_notification_handler ()
   return err;
 }
 
-static void
+void
 mac_get_screen_info (dpyinfo)
      struct mac_display_info *dpyinfo;
 {
@@ -11584,6 +8798,78 @@ mac_get_screen_info (dpyinfo)
 #endif  /* !MAC_OSX */
 }
 
+
+/***********************************************************************
+		   Initialization (Mac OS Classic)
+ ***********************************************************************/
+
+#ifdef MAC_OS8
+extern void init_emacs_passwd_dir ();
+extern int emacs_main (int, char **, char **);
+
+extern void initialize_applescript();
+extern void terminate_applescript();
+
+static void
+do_get_menus (void)
+{
+  Handle menubar_handle;
+  MenuRef menu;
+
+  menubar_handle = GetNewMBar (128);
+  if(menubar_handle == NULL)
+    abort ();
+  SetMenuBar (menubar_handle);
+  DrawMenuBar ();
+
+#if !TARGET_API_MAC_CARBON
+  menu = GetMenuRef (M_APPLE);
+  if (menu != NULL)
+    AppendResMenu (menu, 'DRVR');
+  else
+    abort ();
+#endif
+}
+
+static void
+do_init_managers (void)
+{
+#if !TARGET_API_MAC_CARBON
+  InitGraf (&qd.thePort);
+  InitFonts ();
+  FlushEvents (everyEvent, 0);
+  InitWindows ();
+  InitMenus ();
+  TEInit ();
+  InitDialogs (NULL);
+#endif /* !TARGET_API_MAC_CARBON */
+  InitCursor ();
+
+#if !TARGET_API_MAC_CARBON
+  /* set up some extra stack space for use by emacs */
+  SetApplLimit ((Ptr) ((long) GetApplLimit () - EXTRA_STACK_ALLOC));
+
+  /* MaxApplZone must be called for AppleScript to execute more
+     complicated scripts */
+  MaxApplZone ();
+  MoreMasters ();
+#endif /* !TARGET_API_MAC_CARBON */
+}
+
+static void
+do_check_ram_size (void)
+{
+  SInt32 physical_ram_size, logical_ram_size;
+
+  if (Gestalt (gestaltPhysicalRAMSize, &physical_ram_size) != noErr
+      || Gestalt (gestaltLogicalRAMSize, &logical_ram_size) != noErr
+      || physical_ram_size > (1 << VALBITS)
+      || logical_ram_size > (1 << VALBITS))
+    {
+      StopAlert (RAM_TOO_LARGE_ALERT_ID, NULL);
+      exit (1);
+    }
+}
 
 #if __profile__
 void
@@ -11608,7 +8894,6 @@ profiler_exit_proc ()
    (defined further below) to read input.  This is where
    WaitNextEvent/ReceiveNextEvent is called to process Mac events.  */
 
-#ifdef MAC_OS8
 #undef main
 int
 main (void)
@@ -11667,755 +8952,6 @@ main (void)
   /* Never reached - real exit in Fkill_emacs */
   return 0;
 }
-#endif
-
-#if !TARGET_API_MAC_CARBON
-static RgnHandle mouse_region = NULL;
-
-Boolean
-mac_wait_next_event (er, sleep_time, dequeue)
-     EventRecord *er;
-     UInt32 sleep_time;
-     Boolean dequeue;
-{
-  static EventRecord er_buf = {nullEvent};
-  UInt32 target_tick, current_tick;
-  EventMask event_mask;
-
-  if (mouse_region == NULL)
-    mouse_region = NewRgn ();
-
-  event_mask = everyEvent;
-  if (!mac_ready_for_apple_events)
-    event_mask -= highLevelEventMask;
-
-  current_tick = TickCount ();
-  target_tick = current_tick + sleep_time;
-
-  if (er_buf.what == nullEvent)
-    while (!WaitNextEvent (event_mask, &er_buf,
-			   target_tick - current_tick, mouse_region))
-      {
-	current_tick = TickCount ();
-	if (target_tick <= current_tick)
-	  return false;
-      }
-
-  *er = er_buf;
-  if (dequeue)
-    er_buf.what = nullEvent;
-  return true;
-}
-#endif /* not TARGET_API_MAC_CARBON */
-
-#if TARGET_API_MAC_CARBON
-OSStatus
-mac_post_mouse_moved_event ()
-{
-  EventRef event = NULL;
-  OSStatus err;
-
-  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
-		     kEventAttributeNone, &event);
-  if (err == noErr)
-    {
-      Point mouse_pos;
-
-      GetGlobalMouse (&mouse_pos);
-      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
-			       sizeof (Point), &mouse_pos);
-    }
-  if (err == noErr)
-    {
-      UInt32 modifiers = GetCurrentKeyModifiers ();
-
-      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
-			       sizeof (UInt32), &modifiers);
-    }
-  if (err == noErr)
-    err = PostEventToQueue (GetCurrentEventQueue (), event,
-			    kEventPriorityStandard);
-  if (event)
-    ReleaseEvent (event);
-
-  return err;
-}
-#endif
-
-/* Emacs calls this whenever it wants to read an input event from the
-   user. */
-int
-XTread_socket (sd, expected, hold_quit)
-     int sd, expected;
-     struct input_event *hold_quit;
-{
-  struct input_event inev;
-  int count = 0;
-#if TARGET_API_MAC_CARBON
-  EventRef eventRef;
-  EventTargetRef toolbox_dispatcher;
-#endif
-  EventRecord er;
-  struct mac_display_info *dpyinfo = &one_mac_display_info;
-
-  if (interrupt_input_blocked)
-    {
-      interrupt_input_pending = 1;
-      return -1;
-    }
-
-  interrupt_input_pending = 0;
-  BLOCK_INPUT;
-
-  /* So people can tell when we have read the available input.  */
-  input_signal_count++;
-
-  ++handling_signal;
-
-#if TARGET_API_MAC_CARBON
-  toolbox_dispatcher = GetEventDispatcherTarget ();
-
-  while (
-#if USE_CG_DRAWING
-	 mac_prepare_for_quickdraw (NULL),
-#endif
-	 !ReceiveNextEvent (0, NULL, kEventDurationNoWait,
-			    kEventRemoveFromQueue, &eventRef))
-#else /* !TARGET_API_MAC_CARBON */
-  while (mac_wait_next_event (&er, 0, true))
-#endif /* !TARGET_API_MAC_CARBON */
-    {
-      int do_help = 0;
-      struct frame *f;
-      unsigned long timestamp;
-
-      EVENT_INIT (inev);
-      inev.kind = NO_EVENT;
-      inev.arg = Qnil;
-
-#if TARGET_API_MAC_CARBON
-      timestamp = GetEventTime (eventRef) / kEventDurationMillisecond;
-
-      if (!mac_convert_event_ref (eventRef, &er))
-	goto OTHER;
-#else  /* !TARGET_API_MAC_CARBON */
-      timestamp = er.when * (1000 / 60); /* ticks to milliseconds */
-#endif  /* !TARGET_API_MAC_CARBON */
-
-      switch (er.what)
-	{
-	case mouseDown:
-	case mouseUp:
-	  {
-	    WindowRef window_ptr;
-	    ControlPartCode part_code;
-	    int tool_bar_p = 0;
-
-#if TARGET_API_MAC_CARBON
-	    OSStatus err;
-
-	    /* This is needed to send mouse events like aqua window
-	       buttons to the correct handler.  */
-	    read_socket_inev = &inev;
-	    err = SendEventToEventTarget (eventRef, toolbox_dispatcher);
-	    read_socket_inev = NULL;
-	    if (err != eventNotHandledErr)
-	      break;
-#endif
-	    last_mouse_glyph_frame = 0;
-
-	    if (dpyinfo->grabbed && last_mouse_frame
-		&& FRAME_LIVE_P (last_mouse_frame))
-	      {
-		window_ptr = FRAME_MAC_WINDOW (last_mouse_frame);
-		part_code = inContent;
-	      }
-	    else
-	      {
-		part_code = FindWindow (er.where, &window_ptr);
-		if (tip_window && window_ptr == tip_window)
-		  {
-		    HideWindow (tip_window);
-		    part_code = FindWindow (er.where, &window_ptr);
-		  }
-	      }
-
-	    if (er.what != mouseDown &&
-		(part_code != inContent	|| dpyinfo->grabbed == 0))
-	      break;
-
-	    switch (part_code)
-	      {
-	      case inMenuBar:
-		f = mac_focus_frame (dpyinfo);
-		saved_menu_event_location = er.where;
-		inev.kind = MENU_BAR_ACTIVATE_EVENT;
-		XSETFRAME (inev.frame_or_window, f);
-		break;
-
-	      case inContent:
-		if (
-#if TARGET_API_MAC_CARBON
-		    FrontNonFloatingWindow ()
-#else
-		    FrontWindow ()
-#endif
-		    != window_ptr
-		    || (mac_window_to_frame (window_ptr)
-			!= dpyinfo->x_focus_frame))
-		  SelectWindow (window_ptr);
-		else
-		  {
-		    ControlPartCode control_part_code;
-		    ControlRef ch;
-		    Point mouse_loc;
-#ifdef MAC_OSX
-		    ControlKind control_kind;
-#endif
-
-		    f = mac_window_to_frame (window_ptr);
-		    /* convert to local coordinates of new window */
-		    mouse_loc.h = (er.where.h
-				   - (f->left_pos
-				      + FRAME_OUTER_TO_INNER_DIFF_X (f)));
-		    mouse_loc.v = (er.where.v
-				   - (f->top_pos
-				      + FRAME_OUTER_TO_INNER_DIFF_Y (f)));
-#if TARGET_API_MAC_CARBON
-		    ch = FindControlUnderMouse (mouse_loc, window_ptr,
-						&control_part_code);
-#ifdef MAC_OSX
-		    if (ch)
-		      GetControlKind (ch, &control_kind);
-#endif
-#else
-		    control_part_code = FindControl (mouse_loc, window_ptr,
-						     &ch);
-#endif
-
-#if TARGET_API_MAC_CARBON
-		    inev.code = mac_get_mouse_btn (eventRef);
-		    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-		    inev.code = mac_get_emulated_btn (er.modifiers);
-		    inev.modifiers = mac_to_emacs_modifiers (er.modifiers, 0);
-#endif
-		    XSETINT (inev.x, mouse_loc.h);
-		    XSETINT (inev.y, mouse_loc.v);
-
-		    if ((dpyinfo->grabbed && tracked_scroll_bar)
-			|| (ch != 0
-#ifndef USE_TOOLKIT_SCROLL_BARS
-			    /* control_part_code becomes kControlNoPart if
-			       a progress indicator is clicked.  */
-			    && control_part_code != kControlNoPart
-#else  /* USE_TOOLKIT_SCROLL_BARS */
-#ifdef MAC_OSX
-			    && control_kind.kind == kControlKindScrollBar
-#endif	/* MAC_OSX */
-#endif	/* USE_TOOLKIT_SCROLL_BARS */
-			    ))
-		      {
-			struct scroll_bar *bar;
-
-			if (dpyinfo->grabbed && tracked_scroll_bar)
-			  {
-			    bar = tracked_scroll_bar;
-#ifndef USE_TOOLKIT_SCROLL_BARS
-			    control_part_code = kControlIndicatorPart;
-#endif
-			  }
-			else
-			  bar = (struct scroll_bar *) GetControlReference (ch);
-#ifdef USE_TOOLKIT_SCROLL_BARS
-			/* Make the "Ctrl-Mouse-2 splits window" work
-			   for toolkit scroll bars.  */
-			if (inev.modifiers & ctrl_modifier)
-			  x_scroll_bar_handle_click (bar, control_part_code,
-						     &er, &inev);
-			else if (er.what == mouseDown)
-			  x_scroll_bar_handle_press (bar, control_part_code,
-						     mouse_loc, &inev);
-			else
-			  x_scroll_bar_handle_release (bar, &inev);
-#else  /* not USE_TOOLKIT_SCROLL_BARS */
-			x_scroll_bar_handle_click (bar, control_part_code,
-						   &er, &inev);
-			if (er.what == mouseDown
-			    && control_part_code == kControlIndicatorPart)
-			  tracked_scroll_bar = bar;
-			else
-			  tracked_scroll_bar = NULL;
-#endif  /* not USE_TOOLKIT_SCROLL_BARS */
-		      }
-		    else
-		      {
-			Lisp_Object window;
-			int x = mouse_loc.h;
-			int y = mouse_loc.v;
-
-			window = window_from_coordinates (f, x, y, 0, 0, 0, 1);
-			if (EQ (window, f->tool_bar_window))
-			  {
-			    if (er.what == mouseDown)
-			      handle_tool_bar_click (f, x, y, 1, 0);
-			    else
-			      handle_tool_bar_click (f, x, y, 0,
-						     inev.modifiers);
-			    tool_bar_p = 1;
-			  }
-			else
-			  {
-			    XSETFRAME (inev.frame_or_window, f);
-			    inev.kind = MOUSE_CLICK_EVENT;
-			  }
-		      }
-
-		    if (er.what == mouseDown)
-		      {
-			dpyinfo->grabbed |= (1 << inev.code);
-			last_mouse_frame = f;
-
-			if (!tool_bar_p)
-			  last_tool_bar_item = -1;
-		      }
-		    else
-		      {
-			if ((dpyinfo->grabbed & (1 << inev.code)) == 0)
-			  /* If a button is released though it was not
-			     previously pressed, that would be because
-			     of multi-button emulation.  */
-			  dpyinfo->grabbed = 0;
-			else
-			  dpyinfo->grabbed &= ~(1 << inev.code);
-		      }
-
-		    /* Ignore any mouse motion that happened before
-		       this event; any subsequent mouse-movement Emacs
-		       events should reflect only motion after the
-		       ButtonPress.  */
-		    if (f != 0)
-		      f->mouse_moved = 0;
-
-#ifdef USE_TOOLKIT_SCROLL_BARS
-		    if (inev.kind == MOUSE_CLICK_EVENT
-			|| (inev.kind == SCROLL_BAR_CLICK_EVENT
-			    && (inev.modifiers & ctrl_modifier)))
-#endif
-		      switch (er.what)
-			{
-			case mouseDown:
-			  inev.modifiers |= down_modifier;
-			  break;
-			case mouseUp:
-			  inev.modifiers |= up_modifier;
-			  break;
-			}
-		  }
-		break;
-
-	      case inDrag:
-#if TARGET_API_MAC_CARBON
-	      case inProxyIcon:
-		if (IsWindowPathSelectClick (window_ptr, &er))
-		  {
-		    WindowPathSelect (window_ptr, NULL, NULL);
-		    break;
-		  }
-		if (part_code == inProxyIcon
-		    && (TrackWindowProxyDrag (window_ptr, er.where)
-			!= errUserWantsToDragWindow))
-		  break;
-		DragWindow (window_ptr, er.where, NULL);
-#else /* not TARGET_API_MAC_CARBON */
-		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
-		/* Update the frame parameters.  */
-		{
-		  struct frame *f = mac_window_to_frame (window_ptr);
-
-		  if (f && !f->async_iconified)
-		    mac_handle_origin_change (f);
-		}
-#endif /* not TARGET_API_MAC_CARBON */
-		break;
-
-	      case inGoAway:
-		if (TrackGoAway (window_ptr, er.where))
-		  {
-		    inev.kind = DELETE_WINDOW_EVENT;
-		    XSETFRAME (inev.frame_or_window,
-			       mac_window_to_frame (window_ptr));
-		  }
-		break;
-
-		/* window resize handling added --ben */
-	      case inGrow:
-		do_grow_window (window_ptr, &er);
-		break;
-
-		/* window zoom handling added --ben */
-	      case inZoomIn:
-	      case inZoomOut:
-		if (TrackBox (window_ptr, er.where, part_code))
-		  do_zoom_window (window_ptr, part_code);
-		break;
-
-#if USE_MAC_TOOLBAR
-	      case inStructure:
-		{
-		  OSStatus err;
-		  HIViewRef ch;
-
-		  err = HIViewGetViewForMouseEvent (HIViewGetRoot (window_ptr),
-						    eventRef, &ch);
-		  /* This doesn't work on Mac OS X 10.2.  */
-		  if (err == noErr)
-		    HIViewClick (ch, eventRef);
-		}
-		break;
-#endif	/* USE_MAC_TOOLBAR */
-
-	      default:
-		break;
-	      }
-	  }
-	  break;
-
-#if !TARGET_API_MAC_CARBON
-	case updateEvt:
-	  do_window_update ((WindowRef) er.message);
-	  break;
-#endif
-
-	case osEvt:
-#if TARGET_API_MAC_CARBON
-	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
-	      != eventNotHandledErr)
-	    break;
-#endif
-	  switch ((er.message >> 24) & 0x000000FF)
-	    {
-#if USE_MAC_TSM
-	    case suspendResumeMessage:
-	      if (er.message & resumeFlag)
-		mac_tsm_resume ();
-	      else
-		mac_tsm_suspend ();
-	      break;
-#endif
-
-	    case mouseMovedMessage:
-#if !TARGET_API_MAC_CARBON
-	      SetRectRgn (mouse_region, er.where.h, er.where.v,
-			  er.where.h + 1, er.where.v + 1);
-#endif
-	      previous_help_echo_string = help_echo_string;
-	      help_echo_string = Qnil;
-
-	      if (dpyinfo->grabbed && last_mouse_frame
-		  && FRAME_LIVE_P (last_mouse_frame))
-		f = last_mouse_frame;
-	      else
-		f = dpyinfo->x_focus_frame;
-
-	      if (dpyinfo->mouse_face_hidden)
-		{
-		  dpyinfo->mouse_face_hidden = 0;
-		  clear_mouse_face (dpyinfo);
-		}
-
-	      if (f)
-		{
-		  WindowRef wp = FRAME_MAC_WINDOW (f);
-		  Point mouse_pos;
-
-		  mouse_pos.h = (er.where.h
-				 - (f->left_pos
-				    + FRAME_OUTER_TO_INNER_DIFF_X (f)));
-		  mouse_pos.v = (er.where.v
-				 - (f->top_pos
-				    + FRAME_OUTER_TO_INNER_DIFF_Y (f)));
-		  if (dpyinfo->grabbed && tracked_scroll_bar)
-#ifdef USE_TOOLKIT_SCROLL_BARS
-		    x_scroll_bar_handle_drag (wp, tracked_scroll_bar,
-					      mouse_pos, &inev);
-#else /* not USE_TOOLKIT_SCROLL_BARS */
-		    x_scroll_bar_note_movement (tracked_scroll_bar,
-						mouse_pos.v
-						- XINT (tracked_scroll_bar->top),
-						er.when * (1000 / 60));
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
-		  else
-		    {
-		      /* Generate SELECT_WINDOW_EVENTs when needed.  */
-		      if (!NILP (Vmouse_autoselect_window))
-			{
-			  Lisp_Object window;
-
-			  window = window_from_coordinates (f,
-							    mouse_pos.h,
-							    mouse_pos.v,
-							    0, 0, 0, 0);
-
-			  /* Window will be selected only when it is
-			     not selected now and last mouse movement
-			     event was not in it.  Minibuffer window
-			     will be selected only when it is active.  */
-			  if (WINDOWP (window)
-			      && !EQ (window, last_window)
-			      && !EQ (window, selected_window)
-			      /* For click-to-focus window managers
-			         create event iff we don't leave the
-			         selected frame.  */
-			      && (focus_follows_mouse
-				  || (EQ (XWINDOW (window)->frame,
-					  XWINDOW (selected_window)->frame))))
-			    {
-			      inev.kind = SELECT_WINDOW_EVENT;
-			      inev.frame_or_window = window;
-			    }
-
-			  last_window=window;
-			}
-		      if (!note_mouse_movement (f, &mouse_pos))
-			help_echo_string = previous_help_echo_string;
-#if USE_MAC_TOOLBAR
-		      else
-			mac_tool_bar_note_mouse_movement (f, eventRef);
-#endif
-		    }
-		}
-
-	      /* If the contents of the global variable
-		 help_echo_string has changed, generate a
-		 HELP_EVENT.  */
-	      if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
-		do_help = 1;
-	      break;
-	    }
-	  break;
-
-	case activateEvt:
-	  {
-	    WindowRef window_ptr = (WindowRef) er.message;
-	    OSErr err;
-	    ControlRef root_control;
-
-	    if (window_ptr == tip_window)
-	      {
-		HideWindow (tip_window);
-		break;
-	      }
-
-	    if (!is_emacs_window (window_ptr))
-	      goto OTHER;
-
-	    f = mac_window_to_frame (window_ptr);
-
-	    if ((er.modifiers & activeFlag) != 0)
-	      {
-		/* A window has been activated */
-		Point mouse_loc;
-
-		err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
-		if (err == noErr)
-		  ActivateControl (root_control);
-
-		x_detect_focus_change (dpyinfo, &er, &inev);
-
-		mouse_loc.h = (er.where.h
-			       - (f->left_pos
-				  + FRAME_OUTER_TO_INNER_DIFF_X (f)));
-		mouse_loc.v = (er.where.v
-			       - (f->top_pos
-				  + FRAME_OUTER_TO_INNER_DIFF_Y (f)));
-		/* Window-activated event counts as mouse movement,
-		   so update things that depend on mouse position.  */
-		note_mouse_movement (f, &mouse_loc);
-	      }
-	    else
-	      {
-		/* A window has been deactivated */
-		err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
-		if (err == noErr)
-		  DeactivateControl (root_control);
-
-#ifdef USE_TOOLKIT_SCROLL_BARS
-		if (dpyinfo->grabbed && tracked_scroll_bar)
-		  {
-		    struct input_event event;
-
-		    EVENT_INIT (event);
-		    event.kind = NO_EVENT;
-		    x_scroll_bar_handle_release (tracked_scroll_bar, &event);
-		    if (event.kind != NO_EVENT)
-		      {
-			event.timestamp = timestamp;
-			kbd_buffer_store_event_hold (&event, hold_quit);
-			count++;
-		      }
-		  }
-#endif
-		dpyinfo->grabbed = 0;
-
-		x_detect_focus_change (dpyinfo, &er, &inev);
-
-		if (f == dpyinfo->mouse_face_mouse_frame)
-		  {
-		    /* If we move outside the frame, then we're
-		       certainly no longer on any text in the
-		       frame.  */
-		    clear_mouse_face (dpyinfo);
-		    dpyinfo->mouse_face_mouse_frame = 0;
-		  }
-
-		/* Generate a nil HELP_EVENT to cancel a help-echo.
-		   Do it only if there's something to cancel.
-		   Otherwise, the startup message is cleared when the
-		   mouse leaves the frame.  */
-		if (any_help_event_p)
-		  do_help = -1;
-	      }
-	  }
-	  break;
-
-	case keyDown:
-	case keyUp:
-	case autoKey:
-	  ObscureCursor ();
-
-	  f = mac_focus_frame (dpyinfo);
-	  XSETFRAME (inev.frame_or_window, f);
-
-	  /* If mouse-highlight is an integer, input clears out mouse
-	     highlighting.  */
-	  if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-	      && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
-	    {
-	      clear_mouse_face (dpyinfo);
-	      dpyinfo->mouse_face_hidden = 1;
-	    }
-
-	  {
-	    UInt32 modifiers = er.modifiers, mapped_modifiers;
-	    UInt32 key_code = (er.message & keyCodeMask) >> 8;
-
-#ifdef MAC_OSX
-	    GetEventParameter (eventRef, kEventParamKeyModifiers,
-			       typeUInt32, NULL,
-			       sizeof (UInt32), NULL, &modifiers);
-#endif
-	    mapped_modifiers = mac_mapped_modifiers (modifiers, key_code);
-
-#if TARGET_API_MAC_CARBON
-	    if (!(mapped_modifiers
-		  & ~(mac_pass_command_to_system ? cmdKey : 0)
-		  & ~(mac_pass_control_to_system ? controlKey : 0)))
-	      goto OTHER;
-	    else
-#endif
-	      if (er.what != keyUp)
-		do_keystroke (er.what, er.message & charCodeMask,
-			      key_code, modifiers, timestamp, &inev);
-	  }
-	  break;
-
-	case kHighLevelEvent:
-	  AEProcessAppleEvent (&er);
-	  break;
-
-	default:
-	OTHER:
-#if TARGET_API_MAC_CARBON
-	  {
-	    OSStatus err;
-
-	    read_socket_inev = &inev;
-	    err = SendEventToEventTarget (eventRef, toolbox_dispatcher);
-	    read_socket_inev = NULL;
-	  }
-#endif
-	  break;
-	}
-#if TARGET_API_MAC_CARBON
-      ReleaseEvent (eventRef);
-#endif
-
-      if (inev.kind != NO_EVENT)
-	{
-	  inev.timestamp = timestamp;
-	  kbd_buffer_store_event_hold (&inev, hold_quit);
-	  count++;
-	}
-
-      if (do_help
-	  && !(hold_quit && hold_quit->kind != NO_EVENT))
-	{
-	  Lisp_Object frame;
-
-	  if (f)
-	    XSETFRAME (frame, f);
-	  else
-	    frame = Qnil;
-
-	  if (do_help > 0)
-	    {
-	      any_help_event_p = 1;
-	      gen_help_event (help_echo_string, frame, help_echo_window,
-			      help_echo_object, help_echo_pos);
-	    }
-	  else
-	    {
-	      help_echo_string = Qnil;
-	      gen_help_event (Qnil, frame, Qnil, Qnil, 0);
-	    }
-	  count++;
-	}
-    }
-
-  /* If the focus was just given to an autoraising frame,
-     raise it now.  */
-  /* ??? This ought to be able to handle more than one such frame.  */
-  if (pending_autoraise_frame)
-    {
-      x_raise_frame (pending_autoraise_frame);
-      pending_autoraise_frame = 0;
-    }
-
-  if (mac_screen_config_changed)
-    {
-      mac_get_screen_info (dpyinfo);
-      mac_screen_config_changed = 0;
-    }
-
-#if !TARGET_API_MAC_CARBON
-  /* Check which frames are still visible.  We do this here because
-     there doesn't seem to be any direct notification from the Window
-     Manager that the visibility of a window has changed (at least,
-     not in all cases).  */
-  {
-    Lisp_Object tail, frame;
-
-    FOR_EACH_FRAME (tail, frame)
-      {
-	struct frame *f = XFRAME (frame);
-
-	/* The tooltip has been drawn already.  Avoid the
-	   SET_FRAME_GARBAGED in mac_handle_visibility_change.  */
-	if (EQ (frame, tip_frame))
-	  continue;
-
-	if (FRAME_MAC_P (f))
-	  mac_handle_visibility_change (f);
-      }
-  }
-#endif
-
-  --handling_signal;
-  UNBLOCK_INPUT;
-  return count;
-}
-
 
 /* Need to override CodeWarrior's input function so no conversion is
    done on newlines Otherwise compiled functions in .elc files will be
@@ -12435,7 +8971,6 @@ __convert_from_newlines (unsigned char * p, size_t * n)
 }
 #endif
 
-#ifdef MAC_OS8
 void
 make_mac_terminal_frame (struct frame *f)
 {
@@ -12515,7 +9050,7 @@ make_mac_terminal_frame (struct frame *f)
                             Fcons (Fcons (Qbackground_color,
                                           build_string ("white")), Qnil));
 }
-#endif
+#endif	/* MAC_OS8 */
 
 
 /***********************************************************************
@@ -12671,51 +9206,6 @@ x_delete_display (dpyinfo)
 }
 
 
-static void
-init_menu_bar ()
-{
-#ifdef MAC_OSX
-  OSStatus err;
-  MenuRef menu;
-  MenuItemIndex menu_index;
-
-  err = GetIndMenuItemWithCommandID (NULL, kHICommandQuit, 1,
-				     &menu, &menu_index);
-  if (err == noErr)
-    SetMenuItemCommandKey (menu, menu_index, false, 0);
-  EnableMenuCommand (NULL, kHICommandPreferences);
-  err = GetIndMenuItemWithCommandID (NULL, kHICommandPreferences, 1,
-				     &menu, &menu_index);
-  if (err == noErr)
-    {
-      SetMenuItemCommandKey (menu, menu_index, false, 0);
-      InsertMenuItemTextWithCFString (menu, NULL,
-				      0, kMenuItemAttrSeparator, 0);
-      InsertMenuItemTextWithCFString (menu, CFSTR ("About Emacs"),
-				      0, 0, kHICommandAbout);
-    }
-#else	/* !MAC_OSX */
-#if TARGET_API_MAC_CARBON
-  SetMenuItemCommandID (GetMenuRef (M_APPLE), I_ABOUT, kHICommandAbout);
-#endif
-#endif
-}
-
-#if USE_MAC_TSM
-static void
-init_tsm ()
-{
-#ifdef MAC_OSX
-  static InterfaceTypeList types = {kUnicodeDocument};
-#else
-  static InterfaceTypeList types = {kTextService};
-#endif
-
-  NewTSMDocument (sizeof (types) / sizeof (types[0]), types,
-		  &tsm_document_id, 0);
-}
-#endif
-
 /* Set up use of X before we make the first connection.  */
 
 extern frame_parm_handler mac_frame_parm_handlers[];
@@ -12794,7 +9284,6 @@ mac_initialize ()
   baud_rate = 19200;
 
   last_tool_bar_item = -1;
-  any_help_event_p = 0;
 
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
@@ -12802,22 +9291,17 @@ mac_initialize ()
   BLOCK_INPUT;
 
 #if TARGET_API_MAC_CARBON
-
-  install_application_handler ();
-
-  init_menu_bar ();
-
-#if USE_MAC_TSM
-  init_tsm ();
-#endif
-
 #ifdef MAC_OSX
   init_coercion_handler ();
 
-  init_apple_event_handler ();
-
   init_dm_notification_handler ();
+#endif
 
+  install_application_handler ();
+
+  mac_toolbox_initialize ();
+
+#ifdef MAC_OSX
   if (!inhibit_window_system)
     {
       static const ProcessSerialNumber psn = {0, kCurrentProcess};
