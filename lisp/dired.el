@@ -3311,7 +3311,9 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 			(rename-file to backup-file 0)
 			(dired-relist-entry backup-file))
 		      (dired-copy-file from to overwrite)))
-		   (t (dired-copy-file from to nil)))
+		   (t 
+		    (let (dired-overwrite-confirmed)
+		      (dired-copy-file from to nil))))
 	     (dired-relist-entry to)
 	     action)
 	    ((eq action 'move)
