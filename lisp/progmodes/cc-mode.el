@@ -600,7 +600,9 @@ that requires a literal mode spec at compile time."
   (make-local-hook 'before-change-functions)
   (add-hook 'before-change-functions 'c-before-change nil t)
   (make-local-hook 'after-change-functions)
-  (add-hook 'after-change-functions 'c-after-change nil t))
+  (add-hook 'after-change-functions 'c-after-change nil t)
+  (setq font-lock-extend-after-change-region-function
+ 	'c-extend-after-change-region))	; Currently (2008-04), only used by AWK.
 
 (defun c-setup-doc-comment-style ()
   "Initialize the variables that depend on the value of `c-doc-comment-style'."
@@ -1006,19 +1008,17 @@ This does not load the font-lock package.  Use after
   (make-local-hook 'font-lock-mode-hook)
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
-(defmacro c-advise-fl-for-region (function)
-  `(defadvice ,function (before get-awk-region activate)
-;; When font-locking an AWK Mode buffer, make sure that any string/regexp is
-;; completely font-locked.
-  (when (eq major-mode 'awk-mode)
-    (save-excursion
-      (ad-set-arg 1 c-new-END)   ; end
-      (ad-set-arg 0 c-new-BEG)))))	; beg
-
-(c-advise-fl-for-region font-lock-after-change-function)
-(c-advise-fl-for-region jit-lock-after-change)
-(c-advise-fl-for-region lazy-lock-defer-rest-after-change)
-(c-advise-fl-for-region lazy-lock-defer-line-after-change)
+(defun c-extend-after-change-region (beg end old-len)
+  "Extend the region to be fontified, if necessary."
+  ;; Note: the parameters are ignored here.  This somewhat indirect
+  ;; implementation exists because it is minimally different from the
+  ;; stand-alone CC Mode which, lacking
+  ;; font-lock-extend-after-change-region-function, is forced to use advice
+  ;; instead.
+  ;;
+  ;; Of the seven CC Mode languages, currently (2008-04) only AWK Mode makes
+  ;; non-null use of this function.
+  (cons c-new-BEG c-new-END))
 
 
 ;; Support for C
