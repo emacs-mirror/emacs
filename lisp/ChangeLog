@@ -1,3 +1,17 @@
+2008-04-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb): New group.
+	(gdb-debug-log-max, gdb-enable-debug)
+	(gdb-cpp-define-alist-program, gdb-cpp-define-alist-flags)
+	(gdb-show-main, gdb-many-windows, gdb-use-separate-io-buffer)
+	(gdb-speedbar-auto-raise, gdb-use-colon-colon-notation)
+	(gdb-show-changed-values, gdb-max-children)
+	(gdb-delete-out-of-scope, gdb-same-frame, gdb-find-source-frame)
+	(breakpoint-enabled, breakpoint-disabled, gdb-max-frames)
+	(gdb-all-registers, gdb-memory-repeat-count, gdb-memory-format)
+	(gdb-memory-unit): Move to new group from GUD group.
+	(menu): Allow customization from GDB-UI menu-item.
+
 2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-aux.el (dired-overwrite-confirmed): Supply initial value.
