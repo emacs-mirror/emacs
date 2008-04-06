@@ -255,7 +255,7 @@ Echo French Revolutionary date unless NOECHO is non-nil."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-french-date ()
   "French calendar equivalent of date diary entry."
