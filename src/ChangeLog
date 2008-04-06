@@ -1,3 +1,11 @@
+2008-04-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Increase items buffer size.
+	Give up if glyph indices not supported.  Use uniscribe obtained
+	ABC widths for individual metrics.  Map glyph clusters back to
+	characters using fClusterStart flag.  Return number of glyphs
+	produced, not chars processed.
+
 2008-04-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (fill_menu) [TARGET_API_MAC_CARBON]: Use
@@ -58,6 +66,9 @@
 	(last_undo_buffer): Change type.
 
 2008-04-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Use font's ascent and descent.
+	(recompute_cached_metrics): Don't set ascent and descent per char.
 
 	* w32uniscribe.c (uniscribe_check_otf): Fix last change.
 	(uniscribe_check_otf): Add GC protection before consing.
