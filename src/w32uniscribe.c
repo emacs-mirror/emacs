@@ -202,7 +202,7 @@ uniscribe_shape (lgstring)
   struct font * font;
   struct uniscribe_font_info * uniscribe_font;
   EMACS_UINT nchars;
-  int nitems, max_items, i, max_glyphs, done_glyphs, done_chars;
+  int nitems, max_items, i, max_glyphs, done_glyphs;
   wchar_t *chars;
   WORD *glyphs, *clusters;
   SCRIPT_ITEM *items;
@@ -222,7 +222,7 @@ uniscribe_shape (lgstring)
 
   /* Get the chars from lgstring in a form we can use with uniscribe.  */
   max_glyphs = nchars = LGSTRING_LENGTH (lgstring);
-  done_glyphs = done_chars = 0;
+  done_glyphs = 0;
   chars = (wchar_t *) alloca (nchars * sizeof (wchar_t));
   for (i = 0; i < nchars; i++)
     {
@@ -238,7 +238,7 @@ uniscribe_shape (lgstring)
   /* First we need to break up the glyph string into runs of glyphs that
      can be treated together.  First try a single run.  */
   max_items = 2;
-  items = (SCRIPT_ITEM *) xmalloc (sizeof (SCRIPT_ITEM) * max_items);
+  items = (SCRIPT_ITEM *) xmalloc (sizeof (SCRIPT_ITEM) * max_items + 1);
   bzero (&control, sizeof (control));
 
   while ((result = ScriptItemize (chars, nchars, max_items, &control, NULL,
@@ -247,7 +247,7 @@ uniscribe_shape (lgstring)
       /* If that wasn't enough, keep trying with one more run.  */
       max_items++;
       items = (SCRIPT_ITEM *) xrealloc (items,
-					sizeof (SCRIPT_ITEM) * max_items);
+					sizeof (SCRIPT_ITEM) * max_items + 1);
     }
 
   /* 0 = success in Microsoft's backwards world.  */
@@ -256,6 +256,9 @@ uniscribe_shape (lgstring)
       xfree (items);
       return Qnil;
     }
+
+  /* TODO: When we get BIDI support, we need to call ScriptLayout here.
+     Requires that we know the surrounding context.  */
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
@@ -273,7 +276,7 @@ uniscribe_shape (lgstring)
 
   for (i = 0; i < nitems; i++)
     {
-      int nglyphs, nchars_in_run;
+      int nglyphs, nchars_in_run, rtl = items[i].a.fRTL ? -1 : 1;
       nchars_in_run = items[i+1].iCharPos - items[i].iCharPos;
 
       result = ScriptShape (context, &(uniscribe_font->cache),
@@ -286,9 +289,15 @@ uniscribe_shape (lgstring)
 	  lgstring = Qnil;
 	  break;
 	}
-      else if (result)
+      else if (result) /* Failure.  */
 	{
 	  /* Can't shape this run - return results so far if any.  */
+	  break;
+	}
+      else if (items[i].a.fNoGlyphIndex)
+	{
+	  /* Glyph indices not supported by this font (or OS), means we
+	     can't really do any meaningful shaping.  */
 	  break;
 	}
       else
@@ -296,15 +305,20 @@ uniscribe_shape (lgstring)
 	  result = ScriptPlace (context, &(uniscribe_font->cache),
 				glyphs, nglyphs, attributes, &(items[i].a),
 				advances, offsets, &overall_metrics);
-	  if (!result)
+	  if (result == 0) /* Success.  */
 	    {
-	      int j, nclusters;
+	      int j, nclusters, from = 0, to = 0;
+	      /* For tracking our mapping of characters to glyphs.
+	         Special value -1 means not yet initialized, -2 means
+	         we've run off the end.  Anything else is an index
+	         into the chars and clusters arrays.  */
+	      int my_char = -1;
 
 	      for (j = 0; j < nglyphs; j++)
 		{
 		  int lglyph_index = j + done_glyphs;
 		  Lisp_Object lglyph = LGSTRING_GLYPH (lgstring, lglyph_index);
-		  GLYPHMETRICS metrics;
+		  ABC char_metric;
 
 		  if (NILP (lglyph))
 		    {
@@ -312,93 +326,103 @@ uniscribe_shape (lgstring)
 		      LGSTRING_SET_GLYPH (lgstring, lglyph_index, lglyph);
 		    }
 		  LGLYPH_SET_CODE (lglyph, glyphs[j]);
+
+		  /* Detect clusters, for linking codes back to characters.  */
+		  if (attributes[j].fClusterStart)
+		    {
+		      /* First time, set to appropriate end of run.  */
+		      if (my_char == -1)
+			my_char = rtl > 0 ? 0 : nchars_in_run - 1;
+		      else if (my_char >= 0)
+			my_char += rtl;
+		      while (my_char >= 0 && my_char < nchars_in_run
+			     && clusters[my_char] < j)
+			my_char += rtl;
+
+		      if (my_char < 0 || my_char >= nchars_in_run)
+			my_char = -2;
+
+		      /* FROM and TO as char indices.  This produces
+		         much better results at small font sizes than
+		         earlier attempts at using glyph indices for
+		         FROM and TO, but the output still isn't quite
+		         right.  For example, on the first South Asia
+		         line of etc/HELLO, the third example
+		         (Kannada) is missing the last glyph.  This
+		         seems to be caused by the fact that more
+		         glyphs are produced than there are characters
+		         in the output (other scripts on that line
+		         result in the same or fewer glyphs). */
+		      if (my_char < 0)
+			from = to = rtl > 0 ? nchars_in_run - 1: 0;
+		      else
+			{
+			  int k;
+			  from = my_char;
+			  to = rtl > 0 ? nchars_in_run : 0;
+			  for (k = my_char + rtl; k >= 0 && k < nchars_in_run;
+			       k += rtl)
+			    {
+			      if (clusters[k] > j)
+				{
+				  to = k;
+				  break;
+				}
+			    }
+			}
+		    }
+
+		  if (my_char < 0 || clusters[my_char] > j)
+		    {
+		      /* No mapping.  */
+		      LGLYPH_SET_CHAR (lglyph, 0);
+		      LGLYPH_SET_FROM (lglyph, items[i].iCharPos + from);
+		      LGLYPH_SET_TO (lglyph, items[i].iCharPos + to);
+		    }
+		  else
+		    {
+		      LGLYPH_SET_CHAR (lglyph, chars[items[i].iCharPos
+						     + my_char]);
+		      LGLYPH_SET_FROM (lglyph, items[i].iCharPos + from);
+		      LGLYPH_SET_TO (lglyph, items[i].iCharPos + to);
+		    }
+
+		  /* Metrics.  */
 		  LGLYPH_SET_WIDTH (lglyph, advances[j]);
+		  LGLYPH_SET_ASCENT (lglyph, font->ascent);
+		  LGLYPH_SET_DESCENT (lglyph, font->descent);
+
+		  result = ScriptGetGlyphABCWidth (context,
+						   &(uniscribe_font->cache),
+						   glyphs[j], &char_metric);
+
+		  if (result == 0) /* Success.  */
+		    {
+		      LGLYPH_SET_LBEARING (lglyph, char_metric.abcA);
+		      LGLYPH_SET_RBEARING (lglyph, (char_metric.abcA
+						    + char_metric.abcB));
+		    }
+		  else
+		    {
+		      LGLYPH_SET_LBEARING (lglyph, 0);
+		      LGLYPH_SET_RBEARING (lglyph, advances[j]);
+		    }
+
 		  if (offsets[j].du || offsets[j].dv)
 		    {
 		      Lisp_Object vec;
-		      /* Convert from logical inches.  */
-		      int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
-		      int dx = (int)(offsets[j].du * dpi / 72.27 + 0.5);
-		      int dy = (int)(offsets[j].dv * dpi / 72.27 + 0.5);
 		      vec = Fmake_vector (make_number (3), Qnil);
-		      ASET (vec, 0, make_number (dx));
-		      ASET (vec, 1, make_number (dy));
+		      ASET (vec, 0, make_number (offsets[j].du));
+		      ASET (vec, 1, make_number (offsets[j].dv));
 		      /* Based on what ftfont.c does... */
 		      ASET (vec, 2, make_number (advances[j]));
 		      LGLYPH_SET_ADJUSTMENT (lglyph, vec);
 		    }
 		  else
 		    LGLYPH_SET_ADJUSTMENT (lglyph, Qnil);
-
-		  if (GetGlyphOutlineW (context, glyphs[j],
-					GGO_METRICS | GGO_GLYPH_INDEX,
-					&metrics, 0, NULL, &transform)
-		      != GDI_ERROR)
-		    {
-		      LGLYPH_SET_LBEARING (lglyph, metrics.gmptGlyphOrigin.x);
-		      LGLYPH_SET_RBEARING (lglyph,
-					   metrics.gmBlackBoxX
-					   + metrics.gmptGlyphOrigin.x);
-		      LGLYPH_SET_ASCENT (lglyph, metrics.gmBlackBoxY);
-		      LGLYPH_SET_DESCENT (lglyph,
-					  (metrics.gmCellIncY
-					   - metrics.gmptGlyphOrigin.y
-					   - metrics.gmBlackBoxY));
-		    }
-		  else
-		    {
-		      /* Defaults based on what we know from elsewhere.  */
-		      LGLYPH_SET_LBEARING (lglyph, 0);
-		      LGLYPH_SET_RBEARING (lglyph, advances[j]);
-		      LGLYPH_SET_ASCENT (lglyph, font->ascent);
-		      LGLYPH_SET_DESCENT (lglyph, font->descent);
-		    }
-		}
-
-	      /* Set character codes as indicated in clusters.  */
-	      for (j = 0; j < nchars_in_run - 1; j++)
-		{
-		  int k, start, end;
-		  wchar_t this_char = *(chars + items[i].iCharPos + j);
-
-		  start = clusters[i];
-		  end = clusters[i+1];
-		  if (start > end)
-		    {
-		      int temp = start;
-		      start = end;
-		      end = temp;
-		    }
-		  for (k = start; k < end; k++)
-		    {
-		      Lisp_Object lglyph = LGSTRING_GLYPH (lgstring,
-							   done_glyphs + k);
-		      LGLYPH_SET_CHAR (lglyph, this_char);
-		    }
-		}
-	      /* Last one until end (or beginning) of string.  */
-	      {
-		int k, start, end;
-		wchar_t last_char = *(chars + items[i].iCharPos
-				      + nchars_in_run - 1);
-		start = clusters[nchars_in_run - 1];
-		end = nglyphs;
-		if (start < clusters[nchars_in_run - 2])
-		  {
-		    end = start + 1;
-		    start = 0;
-		  }
-		for (k = start; k < end; k++)
-		  {
-		    Lisp_Object lglyph = LGSTRING_GLYPH (lgstring,
-							 done_glyphs + k);
-		    LGLYPH_SET_CHAR (lglyph, last_char);
-		  }
-	      }
-	    }
+		}	    }
 	}
       done_glyphs += nglyphs;
-      done_chars += nchars_in_run;
     }
 
   xfree (items);
@@ -408,7 +432,7 @@ uniscribe_shape (lgstring)
   if (NILP (lgstring))
     return Qnil;
   else
-    return make_number (done_chars);
+    return make_number (done_glyphs);
 }
 
 /* Uniscribe implementation of encode_char for font backend.
