@@ -3281,55 +3281,46 @@ URI is the file to handle, ACTION is one of copy, move, link or ask.
 Ask means pop up a menu for the user to select one of copy, move or link."
   (require 'dired-aux)
   (let* ((from (dnd-get-local-file-name uri t))
-	 (to (if from (concat (dired-current-directory)
-			   (file-name-nondirectory from))
-	       nil)))
+	 (to (when from
+	       (concat (dired-current-directory)
+		       (file-name-nondirectory from)))))
     (when from
-      (cond ((or (eq action 'copy)
-		 (eq action 'private))	; Treat private as copy.
-	     ;; If copying a directory and dired-recursive-copies is nil,
-	     ;; dired-copy-file silently fails.  Pop up a notice.
-	     (cond ((and (file-directory-p from)
-			 (not dired-recursive-copies))
-		    (dired-dnd-popup-notice))
-		   ((file-exists-p to)
-		    (let ((overwrite
-			   (y-or-n-p (format "Overwrite existing file `%s'? " to)))
-			  ;; We avoid dired-handle-overwrite and use
-			  ;;  y-or-n-p, which pops a graphical menu.
-			  dired-overwrite-confirmed backup-file)
-		      (when (and overwrite
-				 ;; silence compiler
-				 (boundp 'dired-backup-overwrite)
-				 dired-backup-overwrite
-				 (setq backup-file
-				       (car (find-backup-file-name to)))
-				 (or (eq dired-backup-overwrite 'always)
-				     (y-or-n-p
-				      (format
-				       "Make backup for existing file `%s'? " to))))
-			(rename-file to backup-file 0)
-			(dired-relist-entry backup-file))
-		      (dired-copy-file from to overwrite)))
-		   (t 
-		    (let (dired-overwrite-confirmed)
-		      (dired-copy-file from to nil))))
-	     (dired-relist-entry to)
-	     action)
-	    ((eq action 'move)
-	     (dired-rename-file from to 1)
-	     (dired-relist-entry to)
-	     action)
-
-	    ((eq action 'link)
-	     (make-symbolic-link from to 1)
-	     (dired-relist-entry to)
-	     action)
-
-	    ((eq action 'ask)
+      (cond ((eq action 'ask)
 	     (dired-dnd-do-ask-action uri))
-
-	    (t nil)))))
+	    ;; If copying a directory and dired-recursive-copies is
+	    ;; nil, dired-copy-file fails.  Pop up a notice.
+	    ((and (memq action '(copy private))
+		  (file-directory-p from)
+		  (not dired-recursive-copies))
+	     (dired-dnd-popup-notice))
+	    ((memq action '(copy private move link))
+	     (let ((overwrite (and (file-exists-p to)
+				   (y-or-n-p
+				    (format "Overwrite existing file `%s'? " to))))
+		   ;; Binding dired-overwrite-confirmed to nil makes
+		   ;; dired-handle-overwrite a no-op.  We instead use
+		   ;; y-or-n-p, which pops a graphical menu.
+		   dired-overwrite-confirmed backup-file)
+	       (when (and overwrite
+			  ;; d-b-o is defined in dired-aux.
+			  (boundp 'dired-backup-overwrite)
+			  dired-backup-overwrite
+			  (setq backup-file
+				(car (find-backup-file-name to)))
+			  (or (eq dired-backup-overwrite 'always)
+			      (y-or-n-p
+			       (format
+				"Make backup for existing file `%s'? " to))))
+		 (rename-file to backup-file 0)
+		 (dired-relist-entry backup-file))
+	       (cond ((memq action '(copy private))
+		      (dired-copy-file from to overwrite))
+		     ((eq action 'move)
+		      (dired-rename-file from to overwrite))
+		     ((eq action 'link)
+		      (make-symbolic-link from to overwrite)))
+	       (dired-relist-entry to)
+	       action))))))
 
 (defun dired-dnd-handle-file (uri action)
   "Copy, move or link a file to the dired directory if it is a local file.
