@@ -105,10 +105,10 @@
 ;;   central month of the 3 month calendar window
 ;; original-date, number: bound in diary-list-entries, the arguments
 ;;   with which that function was called.
-;; date, entry: bound in list-sexp-diary-entries (qv)
+;; date, entry: bound in diary-list-sexp-entries (qv)
 
 ;; Bound in diary-list-entries:
-;; diary-entries-list: use in d-l, appt.el, and by add-to-diary-list
+;; diary-entries-list: use in d-l, appt.el, and by diary-add-to-list
 ;; diary-saved-point: only used in diary-lib.el, passed to the display func
 ;; date-string: only used in diary-lib.el
 ;; list-only: don't modify the diary-buffer, just return a list of entries
@@ -193,7 +193,7 @@ movement commands will not work correctly."
   "Non-nil means display current date's diary entries on entry to calendar.
 The diary is displayed in another window when the calendar is first displayed,
 if the current date is visible.  The number of days of diary entries displayed
-is governed by the variable `number-of-diary-entries'.  This variable can
+is governed by the variable `diary-number-of-entries'.  This variable can
 be overridden by the value of `calendar-setup'."
   :type 'boolean
   :group 'diary)
@@ -349,7 +349,7 @@ uses the forms of `american-date-diary-pattern':
 with the remainder of the line being the diary entry string for
 that date.  MONTH and DAY are one or two digit numbers, YEAR is a
 number and may be written in full or abbreviated to the final two
-digits (if `abbreviated-calendar-year' is non-nil).  MONTHNAME
+digits (if `diary-abbreviated-year-flag' is non-nil).  MONTHNAME
 and DAYNAME can be spelled in full (as specified by the variables
 `calendar-month-name-array' and `calendar-day-name-array'), or
 abbreviated (as specified by `calendar-month-abbrev-array' and
@@ -410,16 +410,16 @@ Diary entries can be based on Lisp sexps.  For example, the diary entry
 
 causes the diary entry \"Vacation\" to appear from November 1 through
 November 10, 1990.  See the documentation for the function
-`list-sexp-diary-entries' for more details.
+`diary-list-sexp-entries' for more details.
 
 Diary entries based on the Hebrew, the Islamic and/or the Baha'i
 calendar are also possible, but because these are somewhat slow, they
-are ignored unless you set the `nongregorian-diary-listing-hook' and
-the `nongregorian-diary-marking-hook' appropriately.  See the
+are ignored unless you set the `diary-nongregorian-listing-hook' and
+the `diary-nongregorian-marking-hook' appropriately.  See the
 documentation of these hooks for details.
 
 Diary files can contain directives to include the contents of other files; for
-details, see the documentation for the variable `list-diary-entries-hook'."
+details, see the documentation for the variable `diary-list-entries-hook'."
   :type 'file
   :group 'diary)
 
@@ -712,7 +712,7 @@ Can be used for appointment notification."
 
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
-If nil (the default), `simple-diary-display' is used.  Use
+If nil (the default), `diary-simple-display' is used.  Use
 `ignore' for no diary display.
 
 Ordinarily, this just displays the diary buffer (with holidays
@@ -724,7 +724,7 @@ string is the diary entry for the given date.  This can be used,
 for example, a different buffer for display (perhaps combined
 with holidays), or produce hard copy output.
 
-A function `fancy-diary-display' is provided for use with this
+A function `diary-fancy-display' is provided for use with this
 hook; this function prepares a special noneditable diary buffer
 with the relevant diary entries that has neat day-by-day
 arrangement with headings.  The fancy diary buffer will show the
@@ -734,7 +734,7 @@ which there are no diary entries, even if that day is a holiday;
 if you want such days to be shown in the fancy diary buffer, set
 the variable `diary-list-include-blanks' non-nil."
   :type 'hook
-  :options '(fancy-diary-display)
+  :options '(diary-fancy-display)
   :initialize 'custom-initialize-default
   :set 'diary-set-maybe-redraw
   :group 'diary)
@@ -1382,7 +1382,7 @@ separate frame, depending on the value of `calendar-setup'.
 
 If `view-diary-entries-initially' is non-nil, also displays the
 diary entries for the current date (or however many days
-`number-of-diary-entries' specifies).  This variable can be
+`diary-number-of-entries' specifies).  This variable can be
 overridden by `calendar-setup'.  As well as being displayed,
 diary entries can also be marked on the calendar (see
 `mark-diary-entries-in-calendar').
@@ -1466,7 +1466,7 @@ Optional integers MON and YR are used instead of today's date."
          (calendar-mark-holidays)
          (and in-calendar-window (sit-for 0)))
     (unwind-protect
-        (if mark-diary-entries-in-calendar (mark-diary-entries))
+        (if mark-diary-entries-in-calendar (diary-mark-entries))
       (if today-visible
           (run-hooks 'today-visible-calendar-hook)
         (run-hooks 'today-invisible-calendar-hook)))))
@@ -1634,9 +1634,9 @@ after the inserted text.  Returns t."
     (define-key map "h"   'calendar-cursor-holidays)
     (define-key map "x"   'calendar-mark-holidays)
     (define-key map "u"   'calendar-unmark)
-    (define-key map "m"   'mark-diary-entries)
+    (define-key map "m"   'diary-mark-entries)
     (define-key map "d"   'diary-view-entries)
-    (define-key map "D"   'view-other-diary-entries)
+    (define-key map "D"   'diary-view-other-diary-entries)
     (define-key map "s"   'diary-show-all-entries)
     (define-key map "pd"  'calendar-print-day-of-year)
     (define-key map "pC"  'calendar-chinese-print-date)
@@ -1652,13 +1652,13 @@ after the inserted text.  Returns t."
     (define-key map "pf"  'calendar-french-print-date)
     (define-key map "pm"  'calendar-mayan-print-date)
     (define-key map "po"  'calendar-print-other-dates)
-    (define-key map "id"  'insert-diary-entry)
-    (define-key map "iw"  'insert-weekly-diary-entry)
-    (define-key map "im"  'insert-monthly-diary-entry)
-    (define-key map "iy"  'insert-yearly-diary-entry)
-    (define-key map "ia"  'insert-anniversary-diary-entry)
-    (define-key map "ib"  'insert-block-diary-entry)
-    (define-key map "ic"  'insert-cyclic-diary-entry)
+    (define-key map "id"  'diary-insert-entry)
+    (define-key map "iw"  'diary-insert-weekly-entry)
+    (define-key map "im"  'diary-insert-monthly-entry)
+    (define-key map "iy"  'diary-insert-yearly-entry)
+    (define-key map "ia"  'diary-insert-anniversary-entry)
+    (define-key map "ib"  'diary-insert-block-entry)
+    (define-key map "ic"  'diary-insert-cyclic-entry)
     (define-key map "ihd" 'diary-hebrew-insert-entry)
     (define-key map "ihm" 'diary-hebrew-insert-monthly-entry)
     (define-key map "ihy" 'diary-hebrew-insert-yeary-entry)
