@@ -5,6 +5,7 @@
 	ABC widths for individual metrics.  Map glyph clusters back to
 	characters using fClusterStart flag.  Return number of glyphs
 	produced, not chars processed.
+	(uniscribe_shape): Map char at FROM to current glyph.
 
 2008-04-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
