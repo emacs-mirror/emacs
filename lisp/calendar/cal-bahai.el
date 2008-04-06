@@ -268,7 +268,7 @@ abbreviated.  The Bahá'í months are numbered from 1 to 19 with Bahá being
 1 and 19 being `Alá.  If a Bahá'í date diary entry begins with
 `diary-nonmarking-symbol', the entry will appear in the diary listing, but
 will not be marked in the calendar.  This function is provided for use with
-`nongregorian-diary-listing-hook'."
+`diary-nongregorian-listing-hook'."
   (diary-list-entries-1 calendar-bahai-month-name-array
                         diary-bahai-entry-symbol
                         'calendar-bahai-from-absolute))
@@ -349,7 +349,7 @@ Prefix argument ARG will make the entry nonmarking."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-bahai-date ()
   "Bahá'í calendar equivalent of date diary entry."
