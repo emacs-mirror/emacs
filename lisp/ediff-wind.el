@@ -49,7 +49,8 @@
   (require 'ediff-init)
   (require 'ediff-util)
   (require 'ediff-help)
-  (require 'ediff-tbar nil 'noerror)
+  (if (featurep 'xemacs)
+      (require 'ediff-tbar))
   )
 ;; end pacifier
 
@@ -57,10 +58,7 @@
 
 ;; be careful with ediff-tbar
 (if (featurep 'xemacs)
-    (condition-case nil
-	(require 'ediff-tbar)
-      (error
-       (defun ediff-compute-toolbar-width () 0)))
+    (require 'ediff-tbar)
   (defun ediff-compute-toolbar-width () 0))
 
 (defgroup ediff-window nil

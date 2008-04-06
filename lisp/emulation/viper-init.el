@@ -765,7 +765,7 @@ If nil, the cursor will move backwards without deleting anything."
   :type '(choice (const nil) character)
   :group 'viper-search)
 
-(defcustom viper-search-wrap-around-t t
+(defcustom viper-search-wrap-around t
   "*If t, search wraps around."
   :type 'boolean
   :tag "Search Wraps Around"

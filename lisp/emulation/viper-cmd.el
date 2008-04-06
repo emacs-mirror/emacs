@@ -3898,7 +3898,7 @@ Null string will repeat previous search."
 		(if (not (equal start-point (point)))
 		    (push-mark start-point t)))
 	    (search-failed
-	     (if (and (not fail-if-not-found) viper-search-wrap-around-t)
+	     (if (and (not fail-if-not-found) viper-search-wrap-around)
 	         (progn
 		   (message "Search wrapped around BOTTOM of buffer")
 		   (goto-char (point-min))
@@ -3927,7 +3927,7 @@ Null string will repeat previous search."
 	      (if (not (equal start-point (point)))
 		  (push-mark start-point t)))
 	  (search-failed
-	   (if (and (not fail-if-not-found) viper-search-wrap-around-t)
+	   (if (and (not fail-if-not-found) viper-search-wrap-around)
 	       (progn
 		 (message "Search wrapped around TOP of buffer")
 	         (goto-char (point-max))
@@ -4775,7 +4775,7 @@ sensitive for VI-style look-and-feel."
 	 (setq viper-no-multiple-ESC	       t
 	       viper-re-search	    	       t
 	       viper-vi-style-in-minibuffer    t
-	       viper-search-wrap-around-t      t
+	       viper-search-wrap-around        t
 	       viper-electric-mode	       nil
 	       viper-want-emacs-keys-in-vi     nil
 	       viper-want-emacs-keys-in-insert nil))

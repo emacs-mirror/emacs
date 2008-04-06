@@ -8,7 +8,7 @@
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.81.2" "The current version of Ediff")
-(defconst ediff-date "January 09, 2008" "Date of last update")
+(defconst ediff-date "April 06, 2008" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.

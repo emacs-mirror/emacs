@@ -57,7 +57,9 @@
       (require 'ediff-diff))
   (require 'ediff-merg)
   (require 'ediff)
-  (require 'ediff-tbar nil 'noerror)
+  ;; for compatibility with current stable version of xemacs
+  (if (featurep 'xemacs)
+      (require 'ediff-tbar))
   )
 ;; end pacifier
 
@@ -69,6 +71,7 @@
 (require 'ediff-diff)
 (require 'ediff-merg)
 
+;; for compatibility with current stable version of xemacs
 (if (featurep 'xemacs)
     (require 'ediff-tbar))
 

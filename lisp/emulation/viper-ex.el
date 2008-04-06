@@ -1742,10 +1742,10 @@ reversed."
 	   (setq var "blink-matching-paren"
 		 val "nil"))
 	  ((member var '("ws" "wrapscan"))
-	   (setq var "viper-search-wrap-around-t"
+	   (setq var "viper-search-wrap-around"
 		 val "t"))
 	  ((member var '("nows" "nowrapscan"))
-	   (setq var "viper-search-wrap-around-t"
+	   (setq var "viper-search-wrap-around"
 		 val "nil")))
     (if (and set-cmd (eq val 0)) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
@@ -2268,7 +2268,7 @@ Type 'mak ' (including the space) to run make with no args."
     (princ (if viper-re-search "magic\n" "nomagic\n"))
     (princ (if buffer-read-only "readonly\n" "noreadonly\n"))
     (princ (if blink-matching-paren "showmatch\n" "noshowmatch\n"))
-    (princ (if viper-search-wrap-around-t "wrapscan\n" "nowrapscan\n"))
+    (princ (if viper-search-wrap-around "wrapscan\n" "nowrapscan\n"))
     (princ (format "shiftwidth \t\t= %S\n" viper-shift-width))
     (princ (format "tabstop (local) \t= %S\n" tab-width))
     (princ (format "tabstop (global) \t= %S\n" (default-value 'tab-width)))

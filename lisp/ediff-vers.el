@@ -36,8 +36,14 @@
 
 (and noninteractive
      (eval-when-compile
-       (require 'pcvs nil 'noerror)
-       (require 'rcs nil 'noerror)
+       (condition-case nil
+	   ;; for compatibility with current stable version of xemacs
+	   (progn
+	     ;;(require 'pcvs nil 'noerror)
+	     ;;(require 'rcs nil 'noerror)
+	     (require 'pcvs)
+	     (require 'rcs))
+	 (error nil))
        (require 'vc)
        (require 'ediff-init)
        ))
