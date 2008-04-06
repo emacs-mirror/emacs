@@ -204,13 +204,13 @@ Echo astronomical (Julian) day number unless NOECHO is non-nil."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-julian-date ()
   "Julian calendar equivalent of date diary entry."
   (format "Julian date: %s" (calendar-julian-date-string date)))
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-astro-day-number ()
   "Astronomical (Julian) day number diary entry."
