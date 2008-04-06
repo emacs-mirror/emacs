@@ -1,3 +1,8 @@
+2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (MacObjects): Add mactoolbox.c.x.
+	(mactoolbox.c.x): New target.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
