@@ -183,7 +183,7 @@ Echo Coptic date unless NOECHO is t."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-coptic-date ()
   "Coptic calendar equivalent of date diary entry."
@@ -259,7 +259,7 @@ Echo Ethiopic date unless NOECHO is t."
 (define-obsolete-function-alias 'calendar-goto-ethiopic-date
   'calendar-ethiopic-goto-date "23.1")
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-ethiopic-date ()
   "Ethiopic calendar equivalent of date diary entry."
