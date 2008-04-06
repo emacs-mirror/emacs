@@ -1179,23 +1179,22 @@ Special value `always' suppresses confirmation."
 		 (other :tag "ask" t))
   :group 'dired)
 
-(defvar dired-overwrite-confirmed)
+(defvar dired-overwrite-confirmed nil)
 
 (defun dired-handle-overwrite (to)
   ;; Save old version of file TO that is to be overwritten.
   ;; `dired-overwrite-confirmed' and `overwrite-backup-query' are fluid vars
   ;; from dired-create-files.
   (let (backup)
-    (if (and dired-backup-overwrite
-	     dired-overwrite-confirmed
-	     (setq backup (car (find-backup-file-name to)))
-	     (or (eq 'always dired-backup-overwrite)
-		 (dired-query 'overwrite-backup-query
-			      "Make backup for existing file `%s'? "
-			      to)))
-	(progn
-	  (rename-file to backup 0)	; confirm overwrite of old backup
-	  (dired-relist-entry backup)))))
+    (when (and dired-backup-overwrite
+	       dired-overwrite-confirmed
+	       (setq backup (car (find-backup-file-name to)))
+	       (or (eq 'always dired-backup-overwrite)
+		   (dired-query 'overwrite-backup-query
+				"Make backup for existing file `%s'? "
+				to)))
+      (rename-file to backup 0)	; confirm overwrite of old backup
+      (dired-relist-entry backup))))
 
 ;;;###autoload
 (defun dired-copy-file (from to ok-flag)
