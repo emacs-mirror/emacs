@@ -71,7 +71,7 @@ typedef unsigned long Time;
 #undef Z
 #define Z (current_buffer->text->z)
 #else /* not HAVE_CARBON */
-#include <QuickDraw.h>		/* for WindowRef */
+#include <Quickdraw.h>		/* for WindowRef */
 #include <QDOffscreen.h>	/* for GWorldPtr */
 #include <Appearance.h>		/* for ThemeCursor */
 #include <Windows.h>
@@ -125,6 +125,28 @@ typedef unsigned long Time;
 #endif
 
 typedef WindowRef Window;
+#if TARGET_API_MAC_CARBON
+typedef ScrapRef Selection;
+#else
+typedef int Selection;
+#endif
+#define mac_set_window_title	SetWindowTitleWithCFString
+#define mac_set_window_modified	SetWindowModified
+#define mac_is_window_visible	IsWindowVisible
+#define mac_is_window_collapsed	IsWindowCollapsed
+#define mac_bring_window_to_front	BringToFront
+#define mac_send_window_behind	SendBehind
+#define mac_hide_window		HideWindow
+#define mac_show_window		ShowWindow
+#define mac_collapse_window	CollapseWindow
+#define mac_front_non_floating_window	FrontNonFloatingWindow
+#define mac_active_non_floating_window	ActiveNonFloatingWindow
+#define mac_activate_window	ActivateWindow
+#define mac_move_window_structure	MoveWindowStructure
+#define mac_move_window		MoveWindow
+#define mac_size_window		SizeWindow
+#define mac_get_global_mouse	GetGlobalMouse
+#define mac_is_window_toolbar_visible	IsWindowToolbarVisible
 typedef GWorldPtr Pixmap;
 
 #define Cursor ThemeCursor
@@ -360,6 +382,97 @@ typedef struct {
    (nr).top = (y),				\
    (nr).right = ((nr).left + (width)),		\
    (nr).bottom = ((nr).top + (height)))
+
+/* Definitions copied from lwlib.h */
+
+typedef void * XtPointer;
+
+enum button_type
+{
+  BUTTON_TYPE_NONE,
+  BUTTON_TYPE_TOGGLE,
+  BUTTON_TYPE_RADIO
+};
+
+/* This structure is based on the one in ../lwlib/lwlib.h, modified
+   for Mac OS.  */
+typedef struct _widget_value
+{
+  /* name of widget */
+  Lisp_Object   lname;
+  char*		name;
+  /* value (meaning depend on widget type) */
+  char*		value;
+  /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
+  char*		key;
+  /* Help string or nil if none.
+     GC finds this string through the frame's menu_bar_vector
+     or through menu_items.  */
+  Lisp_Object	help;
+  /* true if enabled */
+  Boolean	enabled;
+  /* true if selected */
+  Boolean	selected;
+  /* The type of a button.  */
+  enum button_type button_type;
+  /* true if menu title */
+  Boolean       title;
+#if 0
+  /* true if was edited (maintained by get_value) */
+  Boolean	edited;
+  /* true if has changed (maintained by lw library) */
+  change_type	change;
+  /* true if this widget itself has changed,
+     but not counting the other widgets found in the `next' field.  */
+  change_type   this_one_change;
+#endif
+  /* Contents of the sub-widgets, also selected slot for checkbox */
+  struct _widget_value*	contents;
+  /* data passed to callback */
+  XtPointer	call_data;
+  /* next one in the list */
+  struct _widget_value*	next;
+#if 0
+  /* slot for the toolkit dependent part.  Always initialize to NULL. */
+  void* toolkit_data;
+  /* tell us if we should free the toolkit data slot when freeing the
+     widget_value itself. */
+  Boolean free_toolkit_data;
+
+  /* we resource the widget_value structures; this points to the next
+     one on the free list if this one has been deallocated.
+   */
+  struct _widget_value *free_list;
+#endif
+} widget_value;
+
+#if MAC_OS8
+#define M_APPLE 234
+#define I_ABOUT 1
+
+#define EXTRA_STACK_ALLOC (256 * 1024)
+
+#define ARGV_STRING_LIST_ID 129
+#define RAM_TOO_LARGE_ALERT_ID 129
+#define ABOUT_ALERT_ID	128
+#endif
+
+#define DIALOG_LEFT_MARGIN (112)
+#define DIALOG_TOP_MARGIN (24)
+#define DIALOG_RIGHT_MARGIN (24)
+#define DIALOG_BOTTOM_MARGIN (20)
+#define DIALOG_MIN_INNER_WIDTH (338)
+#define DIALOG_MAX_INNER_WIDTH (564)
+#define DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE (12)
+#define DIALOG_BUTTON_BUTTON_VERTICAL_SPACE (12)
+#define DIALOG_BUTTON_MIN_WIDTH (68)
+#define DIALOG_TEXT_MIN_HEIGHT (50)
+#define DIALOG_TEXT_BUTTONS_VERTICAL_SPACE (10)
+#define DIALOG_ICON_WIDTH (64)
+#define DIALOG_ICON_HEIGHT (64)
+#define DIALOG_ICON_LEFT_MARGIN (24)
+#define DIALOG_ICON_TOP_MARGIN (15)
 
 #endif /* EMACS_MACGUI_H */
 
