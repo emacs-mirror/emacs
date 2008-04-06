@@ -1,3 +1,15 @@
+2008-04-06  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-before-font-lock-function): Correct a
+	typo in the doc string.
+
+	* progmodes/cc-mode.el (c-basic-common-init): Set
+	font-lock-extend-after-change-region-function.
+	(c-extend-after-change-region): New function, used in
+	font-lock-extend-after-change-region-function, thus superseding
+	advice on the Font Lock after change functions.
+	(c-advise-fl-for-region): Remove this macro.
+	
 2008-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/flyspell.el (flyspell-duplicate-distance): Improve
