@@ -631,7 +631,7 @@ Adar II; you must use `Adar I' if you want Adar of a common
 Hebrew year.  If a Hebrew date diary entry begins with
 `diary-nonmarking-symbol', the entry will appear in the diary
 listing, but will not be marked in the calendar.  This function
-is provided for use with `nongregorian-diary-listing-hook'."
+is provided for use with `diary-nongregorian-listing-hook'."
   (diary-list-entries-1 calendar-hebrew-month-name-array-leap-year
                         diary-hebrew-entry-symbol
                         'calendar-hebrew-from-absolute))
@@ -796,7 +796,7 @@ from the cursor position."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
@@ -1132,7 +1132,7 @@ use when highlighting the day in the calendar."
 (defvar calendar-time-zone)
 
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-hebrew-sabbath-candles (&optional mark)
   "Local time of candle lighting diary entry--applies if date is a Friday.
