@@ -1,3 +1,78 @@
+2008-04-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-sexp-entry-symbol):
+	Rename sexp-diary-entry-symbol.  Keep old name as alias, update users.
+	(diary-list-entries-hook): Rename list-diary-entries-hook.
+	Keep old name as alias, update users.
+	(diary-mark-entries-hook): Rename mark-diary-entries-hook.
+	Keep old name as alias, update users.
+	(diary-nongregorian-listing-hook): Rename
+	nongregorian-diary-listing-hook.  Keep old name as alias, update users.
+	(diary-nongregorian-marking-hook): Rename
+	nongregorian-diary-marking-hook.  Keep old name as alias, update users.
+	(diary-print-entries-hook): Rename print-diary-entries-hook.
+	Keep old name as alias, update users.
+	(diary-abbreviated-year-flag): Rename abbreviated-calendar-year.
+	Keep old name as alias, update users.
+	(diary-number-of-entries): Rename number-of-diary-entries.
+	Keep old name as alias, update users.
+	(view-diary-entries, list-diary-entries, show-all-diary-entries):
+	Give version of obsolescence.
+	(diary-view-other-diary-entries): Rename view-other-diary-entries.
+	Keep old name as alias, update callers.
+	(diary-add-to-list): Rename add-to-diary-list.  Keep old name as alias,
+	update callers.
+	(diary-include-other-diary-files): Rename include-other-diary-files.
+	Keep old name as alias, update callers.
+	(diary-simple-display): Rename simple-diary-display.
+	Keep old name as alias, update callers.
+	(diary-fancy-display): Rename fancy-diary-display.
+	Keep old name as alias, update callers.
+	(diary-print-entries): Rename print-diary-entries.
+	Keep old name as alias, update callers.
+	(diary-marking-entries-flag): Rename marking-diary-entries.
+	Update users.
+	(diary-marking-entry-flag): Rename marking-diary-entry.  Update users.
+	(diary-mark-entries): Rename mark-diary-entries.
+	Keep old name as alias, update callers.
+	(diary-mark-sexp-entries): Rename mark-sexp-diary-entries.
+	Keep old name as alias, update callers.
+	(diary-mark-included-diary-files): Rename mark-included-diary-files.
+	Keep old name as alias, update callers.
+	(calendar-mark-days-named): Rename mark-calendar-days-named.
+	Keep old name as alias, update callers.
+	(calendar-mark-month): Rename mark-calendar-month.
+	Keep old name as alias, update callers.
+	(calendar-mark-date-pattern): Rename mark-calendar-date-pattern.
+	Keep old name as alias, update callers.
+	(diary-sort-entries): Rename sort-diary-entries.
+	Keep old name as alias, update callers.
+	(diary-list-sexp-entries): Rename list-sexp-diary-entries.
+	Keep old name as alias, update callers.
+	(diary-make-entry): Rename make-diary-entry.  Keep old name as alias,
+	update callers.
+	(diary-insert-entry): Rename insert-diary-entry.
+	Keep old name as alias.
+	(diary-insert-weekly-entry): Rename insert-weekly-diary-entry.
+	Keep old name as alias.
+	(diary-insert-monthly-entry): Rename insert-monthly-diary-entry.
+	Keep old name as alias.
+	(diary-insert-yearly-entry): Rename insert-yearly-diary-entry.
+	Keep old name as alias.
+	(diary-insert-anniversary-entry): Rename insert-anniversary-diary-entry.
+	Keep old name as alias.
+	(diary-insert-block-entry): Rename insert-block-diary-entry.
+	Keep old name as alias.
+	(diary-insert-cyclic-entry): Rename insert-cyclic-diary-entry.
+	Keep old name as alias.
+	(diary-fancy-font-lock-keywords): Rename fancy-diary-font-lock-keywords.
+	Keep old name as alias, update users.
+	(diary-fancy-display-mode): Rename fancy-diary-display-mode.
+	Keep old name as alias, update callers.
+	* calendar/cal-bahai.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
+	* calendar/cal-menu.el, calendar/cal-x.el, calendar/calendar.el
+	* calendar/icalendar.el: Update for diary-lib name changes.
+
 2008-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-aux.el (dired-overwrite-confirmed): Revert last change.
