@@ -2,22 +2,20 @@
 
 	* dired-aux.el (dired-overwrite-confirmed): Revert last change.
 
-	* dired.el (dired-dnd-handle-local-file): Obey
-	dired-backup-overwrite.
+	* dired.el (dired-dnd-handle-local-file): Obey dired-backup-overwrite.
 
 2008-04-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper*.el (viper-search-wrap-around-t): replace with
+	* viper*.el (viper-search-wrap-around-t): Replace with
 	viper-search-wrap-around.
 
-	* ediff*.el: replace 3-argument 'require' statements with 1-argument
-	ones (wrapped in if's). For compatibility with the current stable
+	* ediff*.el: Replace 3-argument 'require' statements with 1-argument
+	ones (wrapped in if's).  For compatibility with the current stable
 	version of XEmacs.
 
 2008-04-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc.el (vc-status-prepare-status-buffer):
-	Reset vc-parent-buffer-name.
+	* vc.el (vc-status-prepare-status-buffer): Reset vc-parent-buffer-name.
 
 2008-04-06  Jason Rumney  <jasonr@gnu.org>
 
@@ -229,7 +227,7 @@
 	(calendar-chinese-goto-date): Rename calendar-goto-chinese-date.
 	Keep old name as alias, update callers.
 
-	* cal-hebrew.el (calendar-hebrew-leap-year-p):
+	* calendar/cal-hebrew.el (calendar-hebrew-leap-year-p):
 	Rename hebrew-calendar-leap-year-p.  Update callers.
 	(calendar-hebrew-last-month-of-year):
 	Rename hebrew-calendar-last-month-of-year.  Update callers.
@@ -314,7 +312,7 @@
 
 	* calendar/cal-menu.el, calendar/calendar.el:
 	Update for chinese and hebrew name changes.
-	* diary-lib.el: Update for hebrew name changes.
+	* calendar/diary-lib.el: Update for hebrew name changes.
 
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
