@@ -3299,6 +3299,8 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 			  ;;  y-or-n-p, which pops a graphical menu.
 			  dired-overwrite-confirmed backup-file)
 		      (when (and overwrite
+				 ;; silence compiler
+				 (boundp 'dired-backup-overwrite)
 				 dired-backup-overwrite
 				 (setq backup-file
 				       (car (find-backup-file-name to)))
