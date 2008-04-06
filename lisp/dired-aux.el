@@ -1129,7 +1129,7 @@ Special value `always' suppresses confirmation."
 		 (other :tag "ask" t))
   :group 'dired)
 
-(defvar dired-overwrite-confirmed)
+(defvar dired-overwrite-confirmed nil)
 
 (defun dired-handle-overwrite (to)
   ;; Save old version of file TO that is to be overwritten.
