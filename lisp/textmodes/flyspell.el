@@ -98,7 +98,8 @@ This variable specifies how far to search to find such a duplicate.
 0 means do not search for duplicate unrecognized spellings."
   :group 'flyspell
   :version "21.1"
-  :type 'number)
+  :type '(choice (const :tag "no limit" -1)
+		 number))
 
 (defcustom flyspell-delay 3
   "The number of seconds to wait before checking, after a \"delayed\" command."

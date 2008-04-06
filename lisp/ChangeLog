@@ -1,3 +1,8 @@
+2008-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/flyspell.el (flyspell-duplicate-distance): Improve
+	custom type.
+
 2008-04-06  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-sexp-entry-symbol):
