@@ -1,3 +1,7 @@
+2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-overwrite-confirmed): Supply initial value.
+
 2008-04-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-log-view-mode, vc-bzr-annotate-command)
