@@ -40,17 +40,17 @@
 
 (defconst cal-menu-diary-menu
   '("Diary"
-    ["Other File" view-other-diary-entries]
+    ["Other File" diary-view-other-diary-entries]
     ["Cursor Date" diary-view-entries]
-    ["Mark All" mark-diary-entries]
+    ["Mark All" diary-mark-entries]
     ["Show All" diary-show-all-entries]
-    ["Insert Diary Entry" insert-diary-entry]
-    ["Insert Weekly" insert-weekly-diary-entry]
-    ["Insert Monthly" insert-monthly-diary-entry]
-    ["Insert Yearly" insert-yearly-diary-entry]
-    ["Insert Anniversary" insert-anniversary-diary-entry]
-    ["Insert Block" insert-block-diary-entry]
-    ["Insert Cyclic" insert-cyclic-diary-entry]
+    ["Insert Diary Entry" diary-insert-entry]
+    ["Insert Weekly" diary-insert-weekly-entry]
+    ["Insert Monthly" diary-insert-monthly-entry]
+    ["Insert Yearly" diary-insert-yearly-entry]
+    ["Insert Anniversary" diary-insert-anniversary-entry]
+    ["Insert Block" diary-insert-block-entry]
+    ["Insert Cyclic" diary-insert-cyclic-entry]
     ("Insert Baha'i"
      ["One time" diary-bahai-insert-entry]
      ["Monthly" diary-bahai-insert-monthly-entry]
@@ -265,7 +265,7 @@ is non-nil."
   (interactive)
   (save-excursion
     (calendar-mouse-goto-date (calendar-event-to-date))
-    (insert-diary-entry nil)))
+    (diary-insert-entry nil)))
 
 (defun calendar-mouse-set-mark ()
   "Mark the date under the cursor."
@@ -421,7 +421,7 @@ EVENT is the event that invoked this command."
   '("Calendar"
     ["Scroll forward" calendar-scroll-left-three-months]
     ["Scroll backward" calendar-scroll-right-three-months]
-    ["Mark diary entries" mark-diary-entries]
+    ["Mark diary entries" diary-mark-entries]
     ["List holidays" calendar-list-holidays]
     ["Mark holidays" calendar-mark-holidays]
     ["Unmark" calendar-unmark]
