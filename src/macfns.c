@@ -1347,7 +1347,7 @@ x_set_background_color (f, arg, oldval)
       BLOCK_INPUT;
       XSetBackground (dpy, mac->normal_gc, bg);
       XSetForeground (dpy, mac->reverse_gc, bg);
-      XSetWindowBackground (dpy, FRAME_MAC_WINDOW (f), bg);
+      mac_set_frame_window_background (f, bg);
       XSetForeground (dpy, mac->cursor_gc, bg);
 
       UNBLOCK_INPUT;
@@ -1687,7 +1687,8 @@ x_set_tool_bar_lines (f, value, oldval)
   if (nlines)
     {
       FRAME_EXTERNAL_TOOL_BAR (f) = 1;
-      if (FRAME_MAC_P (f) && !IsWindowToolbarVisible (FRAME_MAC_WINDOW (f)))
+      if (FRAME_MAC_P (f)
+	  && !mac_is_window_toolbar_visible (FRAME_MAC_WINDOW (f)))
 	/* Make sure next redisplay shows the tool bar.  */
 	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
     }
@@ -1773,7 +1774,7 @@ x_set_name_internal (f, name)
 	CFStringRef windowTitle =
 	  cfstring_create_with_utf8_cstring (SDATA (name));
 
-	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
+	mac_set_window_title (FRAME_MAC_WINDOW (f), windowTitle);
 	CFRelease (windowTitle);
 #else
 	Str255 windowTitle;
@@ -1938,98 +1939,6 @@ mac_set_font (f, arg, oldval)
 #endif
 }
 
-#if TARGET_API_MAC_CARBON
-static void
-mac_update_proxy_icon (f)
-     struct frame *f;
-{
-  OSStatus err;
-  Lisp_Object file_name =
-    XBUFFER (XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer)->filename;
-  Window w = FRAME_MAC_WINDOW (f);
-  AliasHandle alias = NULL;
-
-  BLOCK_INPUT;
-
-  err = GetWindowProxyAlias (w, &alias);
-  if (err == errWindowDoesNotHaveProxy && !STRINGP (file_name))
-    goto out;
-
-  if (STRINGP (file_name))
-    {
-      AEDesc desc;
-#ifdef MAC_OSX
-      FSRef fref, fref_proxy;
-#else
-      FSSpec fss, fss_proxy;
-#endif
-      Boolean changed;
-      Lisp_Object encoded_file_name = ENCODE_FILE (file_name);
-
-#ifdef MAC_OSX
-      err = AECoercePtr (TYPE_FILE_NAME, SDATA (encoded_file_name),
-			 SBYTES (encoded_file_name), typeFSRef, &desc);
-#else
-      SetPortWindowPort (w);
-      err = AECoercePtr (TYPE_FILE_NAME, SDATA (encoded_file_name),
-			 SBYTES (encoded_file_name), typeFSS, &desc);
-#endif
-      if (err == noErr)
-	{
-#ifdef MAC_OSX
-	  err = AEGetDescData (&desc, &fref, sizeof (FSRef));
-#else
-	  err = AEGetDescData (&desc, &fss, sizeof (FSSpec));
-#endif
-	  AEDisposeDesc (&desc);
-	}
-      if (err == noErr)
-	{
-	  if (alias)
-	    {
-	      /* (FS)ResolveAlias never sets `changed' to true if
-		 `alias' is minimal.  */
-#ifdef MAC_OSX
-	      err = FSResolveAlias (NULL, alias, &fref_proxy, &changed);
-	      if (err == noErr)
-		err = FSCompareFSRefs (&fref, &fref_proxy);
-#else
-	      err = ResolveAlias (NULL, alias, &fss_proxy, &changed);
-	      if (err == noErr)
-		err = !(fss.vRefNum == fss_proxy.vRefNum
-			&& fss.parID == fss_proxy.parID
-			&& EqualString (fss.name, fss_proxy.name,
-					false, true));
-#endif
-	    }
-	  if (err != noErr || alias == NULL)
-	    {
-	      if (alias)
-		DisposeHandle ((Handle) alias);
-#ifdef MAC_OSX
-	      err = FSNewAliasMinimal (&fref, &alias);
-#else
-	      err = NewAliasMinimal (&fss, &alias);
-#endif
-	      changed = true;
-	    }
-	}
-      if (err == noErr)
-	if (changed)
-	  err = SetWindowProxyAlias (w, alias);
-    }
-
-  if (alias)
-    DisposeHandle ((Handle) alias);
-
-  if (err != noErr || !STRINGP (file_name))
-    RemoveWindowProxy (w);
-
- out:
-  UNBLOCK_INPUT;
-}
-#endif
-
 void
 mac_update_title_bar (f, save_match_data)
      struct frame *f;
@@ -2051,9 +1960,11 @@ mac_update_title_bar (f, save_match_data)
       || (!MINI_WINDOW_P (w)
 	  && (modified_p != !NILP (w->last_had_star))))
     {
-      SetWindowModified (FRAME_MAC_WINDOW (f),
-			 !MINI_WINDOW_P (w) && modified_p);
+      BLOCK_INPUT;
+      mac_set_window_modified (FRAME_MAC_WINDOW (f),
+			       !MINI_WINDOW_P (w) && modified_p);
       mac_update_proxy_icon (f);
+      UNBLOCK_INPUT;
     }
 #endif
 }
@@ -2248,52 +2159,12 @@ static void
 mac_window (f)
      struct frame *f;
 {
-  Rect r;
-
   BLOCK_INPUT;
 
-  SetRect (&r, f->left_pos, f->top_pos,
-           f->left_pos + FRAME_PIXEL_WIDTH (f),
-           f->top_pos + FRAME_PIXEL_HEIGHT (f));
-#if TARGET_API_MAC_CARBON
-  CreateNewWindow (kDocumentWindowClass,
-		   kWindowStandardDocumentAttributes
-#ifdef MAC_OSX
-		   | kWindowToolbarButtonAttribute
-#endif
-		   , &r, &FRAME_MAC_WINDOW (f));
-  if (FRAME_MAC_WINDOW (f))
-    {
-      SetWRefCon (FRAME_MAC_WINDOW (f), (long) f->output_data.mac);
-      if (install_window_handler (FRAME_MAC_WINDOW (f)) != noErr)
-	{
-	  DisposeWindow (FRAME_MAC_WINDOW (f));
-	  FRAME_MAC_WINDOW (f) = NULL;
-	}
-    }
-#else  /* !TARGET_API_MAC_CARBON */
-  FRAME_MAC_WINDOW (f)
-    = NewCWindow (NULL, &r, "\p", false, zoomDocProc,
-		  (WindowRef) -1, 1, (long) f->output_data.mac);
-#endif  /* !TARGET_API_MAC_CARBON */
-  /* so that update events can find this mac_output struct */
-  f->output_data.mac->mFP = f;  /* point back to emacs frame */
+  mac_create_frame_window (f, 0);
 
-#ifndef MAC_OSX
   if (FRAME_MAC_WINDOW (f))
-    {
-      ControlRef root_control;
-
-      if (CreateRootControl (FRAME_MAC_WINDOW (f), &root_control) != noErr)
-	{
-	  DisposeWindow (FRAME_MAC_WINDOW (f));
-	  FRAME_MAC_WINDOW (f) = NULL;
-	}
-    }
-#endif
-  if (FRAME_MAC_WINDOW (f))
-    XSetWindowBackground (FRAME_MAC_DISPLAY(f), FRAME_MAC_WINDOW (f),
-			  FRAME_BACKGROUND_PIXEL (f));
+    mac_set_frame_window_background (f, FRAME_BACKGROUND_PIXEL (f));
 
 #if USE_MAC_TOOLBAR
   /* At the moment, the size of the tool bar is not yet known.  We
@@ -2880,7 +2751,7 @@ FRAME nil means use the selected frame.  */)
     if (!front_p)
       {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-	if (FrontNonFloatingWindow () == FRAME_MAC_WINDOW (f))
+	if (mac_front_non_floating_window () == FRAME_MAC_WINDOW (f))
 	  SetFrontProcessWithOptions (&current_psn,
 				      kSetFrontProcessFrontWindowOnly);
 	else
@@ -2889,8 +2760,8 @@ FRAME nil means use the selected frame.  */)
       }
 
 #ifdef MAC_OSX
-  ActivateWindow (ActiveNonFloatingWindow (), false);
-  ActivateWindow (FRAME_MAC_WINDOW (f), true);
+  mac_activate_window (mac_active_non_floating_window (), false);
+  mac_activate_window (FRAME_MAC_WINDOW (f), true);
 #else
 #if !TARGET_API_MAC_CARBON
   /* SelectWindow (Non-Carbon) does not issue deactivate events if the
@@ -3678,26 +3549,7 @@ show_hourglass (timer)
 
 	  if (FRAME_LIVE_P (f) && FRAME_MAC_P (f)
 	      && FRAME_MAC_WINDOW (f) != tip_window)
-	    {
-#if USE_CG_DRAWING
-	      mac_prepare_for_quickdraw (f);
-#endif
-	      if (!f->output_data.mac->hourglass_control)
-		{
-		  Window w = FRAME_MAC_WINDOW (f);
-		  Rect r;
-		  ControlRef c;
-
-		  GetWindowPortBounds (w, &r);
-		  r.left = r.right - HOURGLASS_WIDTH;
-		  r.bottom = r.top + HOURGLASS_HEIGHT;
-		  if (CreateChasingArrowsControl (w, &r, &c) == noErr)
-		    f->output_data.mac->hourglass_control = c;
-		}
-
-	      if (f->output_data.mac->hourglass_control)
-		ShowControl (f->output_data.mac->hourglass_control);
-	    }
+	    mac_show_hourglass (f);
 	}
 
       hourglass_shown_p = 1;
@@ -3723,15 +3575,8 @@ hide_hourglass ()
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_MAC_P (f)
-	      /* Watch out for newly created frames.  */
-	      && f->output_data.mac->hourglass_control)
-	    {
-#if USE_CG_DRAWING
-	      mac_prepare_for_quickdraw (f);
-#endif
-	      HideControl (f->output_data.mac->hourglass_control);
-	    }
+	  if (FRAME_MAC_P (f))
+	    mac_hide_hourglass (f);
 	}
 
       hourglass_shown_p = 0;
@@ -3972,33 +3817,17 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   window_prompting = x_figure_window_size (f, parms, 0);
 
-  {
-    Rect r;
+  BLOCK_INPUT;
 
-    BLOCK_INPUT;
-    SetRect (&r, 0, 0, 1, 1);
-#if TARGET_API_MAC_CARBON
-    if (CreateNewWindow (kHelpWindowClass,
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-			 kWindowIgnoreClicksAttribute |
-#endif
-			 kWindowNoUpdatesAttribute |
-			 kWindowNoActivatesAttribute,
-			 &r, &tip_window) == noErr)
-#else
-    if (tip_window = NewCWindow (NULL, &r, "\p", false, plainDBox,
-				 NULL, false, 0L))
-#endif
-      {
-	FRAME_MAC_WINDOW (f) = tip_window;
-	XSetWindowBackground (FRAME_MAC_DISPLAY(f), tip_window,
-			      FRAME_BACKGROUND_PIXEL (f));
-	SetWRefCon (tip_window, (long) f->output_data.mac);
-	/* so that update events can find this mac_output struct */
-	f->output_data.mac->mFP = f;
-      }
-    UNBLOCK_INPUT;
-  }
+  mac_create_frame_window (f, 1);
+
+  if (FRAME_MAC_WINDOW (f))
+    {
+      mac_set_frame_window_background (f, FRAME_BACKGROUND_PIXEL (f));
+      tip_window = FRAME_MAC_WINDOW (f);
+    }
+
+  UNBLOCK_INPUT;
 
   x_make_gc (f);
 
@@ -4095,7 +3924,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
       BLOCK_INPUT;
 #if TARGET_API_MAC_CARBON
-      GetGlobalMouse (&mouse_pos);
+      mac_get_global_mouse (&mouse_pos);
 #else
       GetMouse (&mouse_pos);
       LocalToGlobal (&mouse_pos);
@@ -4219,7 +4048,7 @@ Text larger than the specified size is clipped.  */)
 	  BLOCK_INPUT;
 	  compute_tip_xy (f, parms, dx, dy, FRAME_PIXEL_WIDTH (f),
 			  FRAME_PIXEL_HEIGHT (f), &root_x, &root_y);
-	  MoveWindow (FRAME_MAC_WINDOW (f), root_x, root_y, false);
+	  mac_move_window (FRAME_MAC_WINDOW (f), root_x, root_y, false);
 	  UNBLOCK_INPUT;
 	  goto start_timer;
 	}
@@ -4321,10 +4150,10 @@ Text larger than the specified size is clipped.  */)
   compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
   BLOCK_INPUT;
-  MoveWindow (FRAME_MAC_WINDOW (f), root_x, root_y, false);
-  SizeWindow (FRAME_MAC_WINDOW (f), width, height, true);
-  ShowWindow (FRAME_MAC_WINDOW (f));
-  BringToFront (FRAME_MAC_WINDOW (f));
+  mac_move_window (FRAME_MAC_WINDOW (f), root_x, root_y, false);
+  mac_size_window (FRAME_MAC_WINDOW (f), width, height, true);
+  mac_show_window (FRAME_MAC_WINDOW (f));
+  mac_bring_window_to_front (FRAME_MAC_WINDOW (f));
   UNBLOCK_INPUT;
 
   FRAME_PIXEL_WIDTH (f) = width;
@@ -4385,25 +4214,11 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 
 
-#if TARGET_API_MAC_CARBON
 /***********************************************************************
 			File selection dialog
  ***********************************************************************/
 
-static pascal void mac_nav_event_callback P_ ((NavEventCallbackMessage,
-					       NavCBRecPtr, void *));
-
-/**
-   There is a relatively standard way to do this using applescript to run
-   a (choose file) method.  However, this doesn't do "the right thing"
-   by working only if the find-file occurred during a menu or toolbar
-   click.  So we must do the file dialog by hand, using the navigation
-   manager.  This also has more flexibility in determining the default
-   directory and whether or not we are going to choose a file.
- **/
-
-extern Lisp_Object Qfile_name_history;
-
+#if TARGET_API_MAC_CARBON
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.
@@ -4413,182 +4228,10 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
      (prompt, dir, default_filename, mustmatch, only_dir_p)
      Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
-  Lisp_Object file = Qnil;
-  int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
-  char filename[MAXPATHLEN];
-  static NavEventUPP mac_nav_event_callbackUPP = NULL;
-
-  check_mac ();
-
-  GCPRO6 (prompt, dir, default_filename, mustmatch, file, only_dir_p);
-  CHECK_STRING (prompt);
-  CHECK_STRING (dir);
-
-  /* Create the dialog with PROMPT as title, using DIR as initial
-     directory and using "*" as pattern.  */
-  dir = Fexpand_file_name (dir, Qnil);
-
-  {
-    OSStatus status;
-    NavDialogCreationOptions options;
-    NavDialogRef dialogRef;
-    NavTypeListHandle fileTypes = NULL;
-    NavUserAction userAction;
-    CFStringRef message=NULL, saveName = NULL;
-
-    BLOCK_INPUT;
-    /* No need for a callback function because we are modal */
-    NavGetDefaultDialogCreationOptions(&options);
-    options.modality = kWindowModalityAppModal;
-    options.location.h = options.location.v = -1;
-    options.optionFlags = kNavDefaultNavDlogOptions;
-    options.optionFlags |= kNavAllFilesInPopup;  /* All files allowed */
-    options.optionFlags |= kNavSelectAllReadableItem;
-    options.optionFlags &= ~kNavAllowMultipleFiles;
-    if (!NILP(prompt))
-      {
-	message = cfstring_create_with_string (prompt);
-	options.message = message;
-      }
-    /* Don't set the application, let it use default.
-    options.clientName = CFSTR ("Emacs");
-    */
-
-    if (mac_nav_event_callbackUPP == NULL)
-      mac_nav_event_callbackUPP = NewNavEventUPP (mac_nav_event_callback);
-
-    if (!NILP (only_dir_p))
-      status = NavCreateChooseFolderDialog(&options, mac_nav_event_callbackUPP,
-					   NULL, NULL, &dialogRef);
-    else if (NILP (mustmatch))
-      {
-	/* This is a save dialog */
-	options.optionFlags |= kNavDontConfirmReplacement;
-	options.actionButtonLabel = CFSTR ("Ok");
-	options.windowTitle = CFSTR ("Enter name");
-
-	if (STRINGP (default_filename))
-	  {
-	    Lisp_Object utf8 = ENCODE_UTF_8 (default_filename);
-	    char *begPtr = SDATA(utf8);
-	    char *filePtr = begPtr + SBYTES(utf8);
-	    while (filePtr != begPtr && !IS_DIRECTORY_SEP(filePtr[-1]))
-	      filePtr--;
-	    saveName = cfstring_create_with_utf8_cstring (filePtr);
-	    options.saveFileName = saveName;
-	    options.optionFlags |= kNavSelectDefaultLocation;
-	  }
-	  status = NavCreatePutFileDialog(&options,
-					  'TEXT', kNavGenericSignature,
-					  mac_nav_event_callbackUPP, NULL,
-					  &dialogRef);
-	}
-    else
-      {
-	/* This is an open dialog*/
-	status = NavCreateChooseFileDialog(&options, fileTypes,
-					   mac_nav_event_callbackUPP, NULL,
-					   NULL, NULL, &dialogRef);
-      }
-
-    /* Set the default location and continue*/
-    if (status == noErr)
-      {
-	Lisp_Object encoded_dir = ENCODE_FILE (dir);
-	AEDesc defLocAed;
-
-	status = AECreateDesc (TYPE_FILE_NAME, SDATA (encoded_dir),
-			       SBYTES (encoded_dir), &defLocAed);
-	if (status == noErr)
-	  {
-	    NavCustomControl(dialogRef, kNavCtlSetLocation, (void*) &defLocAed);
-	    AEDisposeDesc(&defLocAed);
-	  }
-	status = NavDialogRun(dialogRef);
-      }
-
-    if (saveName) CFRelease(saveName);
-    if (message) CFRelease(message);
-
-    if (status == noErr) {
-      userAction = NavDialogGetUserAction(dialogRef);
-      switch (userAction)
-	{
-	case kNavUserActionNone:
-	case kNavUserActionCancel:
-	  break;		/* Treat cancel like C-g */
-	case kNavUserActionOpen:
-	case kNavUserActionChoose:
-	case kNavUserActionSaveAs:
-	  {
-	    NavReplyRecord reply;
-	    Size len;
-
-	    status = NavDialogGetReply(dialogRef, &reply);
-	    if (status != noErr)
-	      break;
-	    status = AEGetNthPtr (&reply.selection, 1, TYPE_FILE_NAME,
-				  NULL, NULL, filename,
-				  sizeof (filename) - 1, &len);
-	    if (status == noErr)
-	      {
-		len = min (len, sizeof (filename) - 1);
-		filename[len] = '\0';
-		if (reply.saveFileName)
-		  {
-		    /* If it was a saved file, we need to add the file name */
-		    if (len && len < sizeof (filename) - 1
-			&& filename[len-1] != '/')
-		      filename[len++] = '/';
-		    CFStringGetCString(reply.saveFileName, filename+len,
-				       sizeof (filename) - len,
-#ifdef MAC_OSX
-				       kCFStringEncodingUTF8
-#else
-				       CFStringGetSystemEncoding ()
-#endif
-				       );
-		  }
-		file = DECODE_FILE (make_unibyte_string (filename,
-							 strlen (filename)));
-	      }
-	    NavDisposeReply(&reply);
-	  }
-	  break;
-	}
-      NavDialogDispose(dialogRef);
-      UNBLOCK_INPUT;
-    }
-    else {
-      UNBLOCK_INPUT;
-      /* Fall back on minibuffer if there was a problem */
-      file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			       dir, mustmatch, dir, Qfile_name_history,
-			       default_filename, Qnil);
-    }
-  }
-
-  UNGCPRO;
-
-  /* Make "Cancel" equivalent to C-g.  */
-  if (NILP (file))
-    Fsignal (Qquit, Qnil);
-
-  return unbind_to (count, file);
-}
-
-
-/* Need to register some event callback function for enabling drag and
-   drop in Navigation Service dialogs.  */
-static pascal void
-mac_nav_event_callback (selector, parms, data)
-     NavEventCallbackMessage selector;
-     NavCBRecPtr parms;
-     void *data ;
-{
+  return mac_file_dialog (prompt, dir, default_filename, mustmatch, only_dir_p);
 }
 #endif
+
 
 /***********************************************************************
 				Fonts
