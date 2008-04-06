@@ -133,7 +133,8 @@ MacObjects = ¶
 	"{Src}macfns.c.x" ¶
 	"{Src}macmenu.c.x" ¶
 	"{Src}macselect.c.x" ¶
-	"{Src}macterm.c.x"
+	"{Src}macterm.c.x" ¶
+	"{Src}mactoolbox.c.x"
 
 StdLibraries = ¶
 	"{SharedLibraries}CarbonLib" ¶
@@ -980,6 +981,23 @@ buildobj.lst Ä
 	"{Src}termhooks.h" ¶
 	"{Src}coding.h" ¶
 		"{Src}ccl.h"
+
+{Src}mactoolbox.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	"{Src}charset.h" ¶
+	"{Src}coding.h" ¶
+		"{Src}ccl.h" ¶
+	{DISPEXTERN_H_GROUP} ¶
+	"{Src}fontset.h" ¶
+	"{Src}termhooks.h" ¶
+	"{Src}buffer.h" ¶
+	"{Src}window.h" ¶
+	"{Src}keyboard.h" ¶
+	{BLOCKINPUT_H_GROUP}
 
 
 #----------------------------------------#
