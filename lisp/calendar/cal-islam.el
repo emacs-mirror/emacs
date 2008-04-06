@@ -257,7 +257,7 @@ from 1 to 12 with Muharram being 1 and 12 being Dhu al-Hijjah.
 If an Islamic date diary entry begins with `diary-nonmarking-symbol',
 the entry will appear in the diary listing, but will not be
 marked in the calendar.  This function is provided for use with
-`nongregorian-diary-listing-hook'."
+`diary-nongregorian-listing-hook'."
   (diary-list-entries-1 calendar-islamic-month-name-array
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
