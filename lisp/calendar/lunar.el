@@ -211,6 +211,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
         (lunar-phase-list m1 y1) "\n")))
     (message "Computing phases of the moon...done")))
 
+;; FIXME ?
 ;;;###autoload
 (defun phases-of-moon (&optional arg)
   "Display the quarters of the moon for last month, this month, and next month.
@@ -226,7 +227,7 @@ This function is suitable for execution in a .emacs file."
 
 (defvar date)
 
-;; To be called from list-sexp-diary-entries, where DATE is bound.
+;; To be called from diary-list-sexp-entries, where DATE is bound.
 
 ;;;###diary-autoload
 (defun diary-phases-of-moon (&optional mark)
