@@ -3284,34 +3284,48 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 	 (to (if from (concat (dired-current-directory)
 			   (file-name-nondirectory from))
 	       nil)))
-    (if from
-	(cond ((or (eq action 'copy)
-		   (eq action 'private))	; Treat private as copy.
+    (when from
+      (cond ((or (eq action 'copy)
+		 (eq action 'private))	; Treat private as copy.
+	     ;; If copying a directory and dired-recursive-copies is nil,
+	     ;; dired-copy-file silently fails.  Pop up a notice.
+	     (cond ((and (file-directory-p from)
+			 (not dired-recursive-copies))
+		    (dired-dnd-popup-notice))
+		   ((file-exists-p to)
+		    (let ((overwrite
+			   (y-or-n-p (format "Overwrite existing file `%s'? " to)))
+			  ;; We avoid dired-handle-overwrite and use
+			  ;;  y-or-n-p, which pops a graphical menu.
+			  dired-overwrite-confirmed backup-file)
+		      (when (and overwrite
+				 dired-backup-overwrite
+				 (setq backup-file
+				       (car (find-backup-file-name to)))
+				 (or (eq dired-backup-overwrite 'always)
+				     (y-or-n-p
+				      (format
+				       "Make backup for existing file `%s'? " to))))
+			(rename-file to backup-file 0)
+			(dired-relist-entry backup-file))
+		      (dired-copy-file from to overwrite)))
+		   (t (dired-copy-file from to nil)))
+	     (dired-relist-entry to)
+	     action)
+	    ((eq action 'move)
+	     (dired-rename-file from to 1)
+	     (dired-relist-entry to)
+	     action)
 
-	       ;; If copying a directory and dired-recursive-copies is nil,
-	       ;; dired-copy-file silently fails.  Pop up a notice.
-	       (if (and (file-directory-p from)
-			(not dired-recursive-copies))
-		   (dired-dnd-popup-notice)
-		 (progn
-		   (dired-copy-file from to 1)
-		   (dired-relist-entry to)
-		   action)))
+	    ((eq action 'link)
+	     (make-symbolic-link from to 1)
+	     (dired-relist-entry to)
+	     action)
 
-	       ((eq action 'move)
-		(dired-rename-file from to 1)
-		(dired-relist-entry to)
-		action)
+	    ((eq action 'ask)
+	     (dired-dnd-do-ask-action uri))
 
-	       ((eq action 'link)
-		(make-symbolic-link from to 1)
-		(dired-relist-entry to)
-		action)
-
-	       ((eq action 'ask)
-		(dired-dnd-do-ask-action uri))
-
-	       (t nil)))))
+	    (t nil)))))
 
 (defun dired-dnd-handle-file (uri action)
   "Copy, move or link a file to the dired directory if it is a local file.
