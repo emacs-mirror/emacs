@@ -445,7 +445,7 @@ exit; on entry, the buffer will have been widened and match-data
 will have been saved; the return value is ignored.
 
 The function may extend the region to be fontified by setting the
-buffer local variables c-old-BEG and c-old-END.
+buffer local variables c-new-BEG and c-new-END.
 
 The function is called even when font locking is disabled.
 
