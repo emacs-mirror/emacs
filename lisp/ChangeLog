@@ -1,3 +1,10 @@
+2008-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-dnd-handle-local-file): Obey
+	dired-backup-overwrite for copy, move, and link operations.
+
+	* dired-aux.el (dired-overwrite-confirmed): Undo last change.
+
 2008-04-06  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-before-font-lock-function): Correct a
