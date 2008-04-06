@@ -337,9 +337,14 @@ session."
 ;;;###autoload
 (defalias 'gdba 'gdb)
 
+(defgroup gdb nil
+  "Gdb Graphical Mode options specifically for running Gdb in Emacs."
+  :group 'processes
+  :group 'tools)
+
 (defcustom gdb-debug-log-max 128
   "Maximum size of `gdb-debug-log'.  If nil, size is unlimited."
-  :group 'gud
+  :group 'gdb
   :type '(choice (integer :tag "Number of elements")
 		 (const   :tag "Unlimited" nil))
   :version "22.1")
@@ -353,7 +358,7 @@ Most recent commands are listed first.  This list stores only the last
 (defcustom gdb-enable-debug nil
   "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-cpp-define-alist-program "gcc -E -dM -"
@@ -365,20 +370,20 @@ GDB, when `gud-tooltip-mode' is t.
 Set `gdb-cpp-define-alist-flags' for any include paths or
 predefined macros."
   :type 'string
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-cpp-define-alist-flags ""
   "Preprocessor flags for `gdb-cpp-define-alist-program'."
   :type 'string
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-show-main nil
   "Non-nil means display source file containing the main routine at startup.
 Also display the main routine in the disassembly buffer if present."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-many-windows nil
@@ -388,13 +393,13 @@ buffer and the other with the source file with the main routine
 of the debugged program.  Non-nil means display the layout shown
 for `gdba'."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-use-separate-io-buffer nil
   "Non-nil means display output from the debugged program in a separate buffer."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defun gdb-force-mode-line-update (status)
@@ -717,7 +722,7 @@ line, and no execution takes place."
   "If non-nil raise speedbar every time display of watch expressions is\
  updated."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defun gdb-speedbar-auto-raise (arg)
@@ -735,7 +740,7 @@ positive, otherwise don't automatically raise it."
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
@@ -970,19 +975,19 @@ type_changed=\".*?\".*?}")
 Out of scope variables are suppressed with `shadow' face.
 Changed values are highlighted with the face `font-lock-warning-face'."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-max-children 40
   "Maximum number of children before expansion requires confirmation."
   :type 'integer
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-delete-out-of-scope t
   "If non-nil delete watch expressions automatically when they go out of scope."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.2")
 
 (defun gdb-speedbar-expand-node (text token indent)
@@ -1467,13 +1472,13 @@ directives."
 
 (defcustom gdb-same-frame focus-follows-mouse
   "Non-nil means pop up GUD buffer in same frame."
-  :group 'gud
+  :group 'gdb
   :type 'boolean
   :version "22.1")
 
 (defcustom gdb-find-source-frame nil
   "Non-nil means try to find a source frame further up stack e.g after signal."
-  :group 'gud
+  :group 'gdb
   :type 'boolean
   :version "22.1")
 
@@ -1887,7 +1892,7 @@ static char *magick[] = {
      :foreground "red1"
      :weight bold))
   "Face for enabled breakpoint icon in fringe."
-  :group 'gud)
+  :group 'gdb)
 
 (defface breakpoint-disabled
   '((((class color) (min-colors 88)) :foreground "grey70")
@@ -1900,7 +1905,7 @@ static char *magick[] = {
      :inverse-video t)
     (t :background "gray"))
   "Face for disabled breakpoint icon in fringe."
-  :group 'gud)
+  :group 'gdb)
 
 (defconst gdb-breakpoint-regexp
   "\\(?:\\([0-9]+\\).*?\\(?:point\\|catch\\s-+\\S-+\\)\\s-+\\S-+\\|\\([0-9]+\\.[0-9]+\\)\\)\\s-+\\(.\\)\\s-+")
@@ -2169,7 +2174,7 @@ If not in a source or disassembly buffer just set point."
 (defcustom gdb-max-frames 40
   "Maximum number of frames displayed in call stack."
   :type 'integer
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (gdb-set-buffer-rules 'gdb-stack-buffer
@@ -2412,7 +2417,7 @@ another GDB command e.g pwd, to see new frames")
 (defcustom gdb-all-registers nil
   "Non-nil means include floating-point registers."
   :type 'boolean
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (gdb-set-buffer-rules 'gdb-registers-buffer
@@ -2519,7 +2524,7 @@ another GDB command e.g pwd, to see new frames")
 (defcustom gdb-memory-repeat-count 32
   "Number of data items in memory window."
   :type 'integer
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-memory-format "x"
@@ -2529,7 +2534,7 @@ another GDB command e.g pwd, to see new frames")
 	 	 (const :tag "Unsigned decimal" "u")
 		 (const :tag "Octal" "o")
 		 (const :tag "Binary" "t"))
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (defcustom gdb-memory-unit "w"
@@ -2538,7 +2543,7 @@ another GDB command e.g pwd, to see new frames")
 		 (const :tag "Halfword" "h")
 		 (const :tag "Word" "w")
 		 (const :tag "Giant word" "g"))
-  :group 'gud
+  :group 'gdb
   :version "22.1")
 
 (gdb-set-buffer-rules 'gdb-memory-buffer
@@ -3000,6 +3005,9 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item (if (eq gud-minor-mode 'gdba) "GDB-UI" "GDB-MI")
 		,menu :visible (memq gud-minor-mode '(gdbmi gdba))))
+  (define-key menu [gdb-customize]
+  '(menu-item "Customize" (lambda () (interactive) (customize-group 'gdb))
+	      :help "Customize Gdb Graphical Mode options."))
   (define-key menu [gdb-find-source-frame]
   '(menu-item "Look For Source Frame" gdb-find-source-frame
 	      :visible (eq gud-minor-mode 'gdba)
