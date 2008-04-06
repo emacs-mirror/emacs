@@ -2759,6 +2759,9 @@ specific headers."
       (with-current-buffer (create-file-buffer bname)
 	(cd dir)
 	(vc-setup-buffer (current-buffer))
+	;; Reset the vc-parent-buffer-name so that it does not appear
+	;; in the mode-line.
+	(setq vc-parent-buffer-name nil)
 	(current-buffer)))))
 
 ;;;###autoload

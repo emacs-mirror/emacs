@@ -1,3 +1,8 @@
+2008-04-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-prepare-status-buffer):
+	Reset vc-parent-buffer-name.
+
 2008-04-06  Jason Rumney  <jasonr@gnu.org>
 
 	* language/burmese.el ("Burmese"): Make sample text consistent with
