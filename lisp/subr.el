@@ -2987,10 +2987,11 @@ Modifies the match data; use `save-match-data' if necessary."
 This tries to quote the strings to avoid ambiguity such that
   (split-string-and-unquote (combine-and-quote-strings strs)) == strs
 Only some SEPARATORs will work properly."
-  (let ((sep (or separator " ")))
+  (let* ((sep (or separator " "))
+         (re (concat "[\\\"]" "\\|" (regexp-quote sep))))
     (mapconcat
      (lambda (str)
-       (if (string-match "[\\\"]" str)
+       (if (string-match re str)
 	   (concat "\"" (replace-regexp-in-string "[\\\"]" "\\\\\\&" str) "\"")
 	 str))
      strings sep)))

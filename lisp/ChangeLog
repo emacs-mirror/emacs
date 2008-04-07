@@ -10,6 +10,9 @@
 
 2008-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (combine-and-quote-strings): Also quote strings that contain
+	the separator.
+
 	* pcvs-util.el (cvs-map): Avoid recursion :-(
 
 2008-04-07  Glenn Morris  <rgm@gnu.org>
