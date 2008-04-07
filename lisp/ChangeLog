@@ -1,5 +1,7 @@
 2008-04-07  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (calendar-mode-map): Replace use of kbd.
+
 	* calendar.el (diary-view-entries-initially-flag): Rename
 	view-diary-entries-initially.  Keep old name as alias, update users.
 	(calendar-mark-diary-entries-flag): Rename
