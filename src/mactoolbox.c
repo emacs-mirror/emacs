@@ -6206,3 +6206,6 @@ mac_toolbox_initialize ()
   init_tsm ();
 #endif
 }
+
+/* arch-tag: 71a597a8-6e9f-47b0-8b89-5a5ae3e16516
+   (do not change this comment) */
