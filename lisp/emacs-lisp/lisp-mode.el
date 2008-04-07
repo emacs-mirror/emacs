@@ -299,7 +299,7 @@
 		  :help "Untraces FUNCTION and possibly activates all remaining advice"))
     (define-key tracing-map [tr-sep] '("--"))
     (define-key tracing-map [tr-q]
-      '(menu-item "Trace function quietly..." trace-function
+      '(menu-item "Trace function quietly..." trace-function-background
 		  :help "Trace the function with trace output going quietly to a buffer"))
     (define-key tracing-map [tr-f]
       '(menu-item "Trace function..." trace-function
