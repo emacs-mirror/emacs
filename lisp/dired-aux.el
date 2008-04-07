@@ -514,16 +514,16 @@ with a prefix argument."
 			    common-mime-info))))
     commands))
 
+;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-;;  "Read a dired shell command prompting with PROMPT (using read-string).
-;;ARG is the prefix arg and may be used to indicate in the prompt which
-;;  files are affected.
-;;This is an extra function so that you can redefine it, e.g., to use gmhist."
+  "Read a dired shell command prompting with PROMPT (using read-string).
+ARG is the prefix arg and may be used to indicate in the prompt which
+FILES are affected."
   (dired-mark-pop-up
    nil 'shell files
-   (function read-string)
+   #'read-shell-command
    (format prompt (dired-mark-prompt arg files))
-   nil 'shell-command-history
+   nil nil
    (dired-read-shell-command-default files)))
 
 ;; The in-background argument is only needed in Emacs 18 where

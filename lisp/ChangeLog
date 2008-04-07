@@ -1,8 +1,12 @@
+2008-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired-aux.el (dired-read-shell-command): Use read-shell-command.
+
 2008-04-07  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/inf-lisp.el (lisp-compile-string, lisp-eval-string):
 	Add helper functions.
-	(lisp-do-defun): Extracted the common part of lisp-eval-defun and
+	(lisp-do-defun): Extract the common part of lisp-eval-defun and
 	lisp-compile-defun; DEFVAR forms reset the variables to the init
 	values, just like in emacs-lisp mode eval-defun.
 	(lisp-eval-defun, lisp-compile-defun): Use lisp-do-defun.
