@@ -99,8 +99,8 @@
 	* progmodes/cc-langs.el (c-before-font-lock-function): Correct a
 	typo in the doc string.
 
-	* progmodes/cc-mode.el (c-basic-common-init): Set
-	font-lock-extend-after-change-region-function.
+	* progmodes/cc-mode.el (c-basic-common-init):
+	Set font-lock-extend-after-change-region-function.
 	(c-extend-after-change-region): New function, used in
 	font-lock-extend-after-change-region-function, thus superseding
 	advice on the Font Lock after change functions.
@@ -108,8 +108,8 @@
 
 2008-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* textmodes/flyspell.el (flyspell-duplicate-distance): Improve
-	custom type.
+	* textmodes/flyspell.el (flyspell-duplicate-distance):
+	Improve custom type.
 
 2008-04-06  Glenn Morris  <rgm@gnu.org>
 
@@ -190,17 +190,17 @@
 
 	* dired-aux.el (dired-overwrite-confirmed): Revert last change.
 
-	* dired.el (dired-dnd-handle-local-file): Obey
-	dired-backup-overwrite for copy, move, and link operations.
+	* dired.el (dired-dnd-handle-local-file): Obey dired-backup-overwrite
+	for copy, move, and link operations.
 
 2008-04-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper*.el (viper-search-wrap-around-t): Replace with
-	viper-search-wrap-around.
+	* emulation/viper-init.el, emulation/viper-ex.el, emulation/viper-cmd.el
+	(viper-search-wrap-around-t): Replace with viper-search-wrap-around.
 
-	* ediff*.el: Replace 3-argument 'require' statements with 1-argument
-	ones (wrapped in if's).  For compatibility with the current stable
-	version of XEmacs.
+	* ediff-util.el, ediff-vers.el, ediff-wind.el: Replace 3-argument
+	'require' statements with 1-argument ones (wrapped in if's).
+	For compatibility with the current stable version of XEmacs.
 
 2008-04-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -956,7 +956,7 @@
 
 2008-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/sh-script.el (sh-mode-map): Rename the menu. Add :help.
+	* progmodes/sh-script.el (sh-mode-map): Rename the menu.  Add :help.
 	Add menu entries corresponding to all the key bindings.
 
 	* emacs-lisp/debug.el (debugger-mode-map):
