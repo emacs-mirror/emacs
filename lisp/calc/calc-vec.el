@@ -479,6 +479,11 @@
   (calc-wrapper
    (calc-binary-op "cros" 'calcFunc-cross arg)))
 
+(defun calc-kron (arg)
+  (interactive "P")
+  (calc-wrapper
+   (calc-binary-op "kron" 'calcFunc-kron arg)))
+
 (defun calc-remove-duplicates (arg)
   (interactive "P")
   (calc-wrapper
@@ -1465,6 +1470,41 @@
 	(math-reject-arg b "*Three-vector expected"))
     (math-reject-arg a "*Three-vector expected")))
 
+
+;;; Compute a Kronecker product
+(defun calcFunc-kron (x y &optional nocheck)
+  "The Kronecker product of objects X and Y.
+The objects X and Y may be scalars, vectors or matrices.
+The type of the result depends on the types of the operands;
+the product of two scalars is a scalar,
+of one scalar and a vector is a vector,
+of two vectors is a vector.
+of one vector and a matrix is a matrix,
+of two matrices is a matrix."
+  (unless nocheck
+    (cond ((or (math-matrixp x)
+               (math-matrixp y))
+           (unless (math-matrixp x)
+             (setq x (if (math-vectorp x)
+                         (list 'vec x)
+                       (list 'vec (list 'vec x)))))
+           (unless (math-matrixp y)
+             (setq y (if (math-vectorp y)
+                         (list 'vec y)
+                       (list 'vec (list 'vec y))))))
+          ((or (math-vectorp x)
+               (math-vectorp y))
+           (unless (math-vectorp x)
+             (setq x (list 'vec x)))
+           (unless (math-vectorp y)
+             (setq y (list 'vec y))))))
+  (if (math-vectorp x)
+      (let (ret)
+        (dolist (v (cdr x))
+          (dolist (w (cdr y))
+            (setq ret (cons (calcFunc-kron v w t) ret))))
+        (cons 'vec (nreverse ret)))
+    (math-mul x y)))
 
 
 ;; The variable math-rb-close is local to math-read-brackets, but
