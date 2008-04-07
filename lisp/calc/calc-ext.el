@@ -589,6 +589,7 @@
   (define-key calc-mode-map "vx" 'calc-index)
   (define-key calc-mode-map "vA" 'calc-apply)
   (define-key calc-mode-map "vC" 'calc-cross)
+  (define-key calc-mode-map "vK" 'calc-kron)
   (define-key calc-mode-map "vD" 'calc-mdet)
   (define-key calc-mode-map "vE" 'calc-set-enumerate)
   (define-key calc-mode-map "vF" 'calc-set-floor)
@@ -938,7 +939,7 @@ math-units-in-expr-p)
 
  ("calc-vec" calcFunc-append calcFunc-appendrev
 calcFunc-arrange calcFunc-cnorm calcFunc-cons calcFunc-cross
-calcFunc-ctrn calcFunc-cvec calcFunc-diag calcFunc-find
+calcFunc-kron calcFunc-ctrn calcFunc-cvec calcFunc-diag calcFunc-find
 calcFunc-getdiag calcFunc-grade calcFunc-head calcFunc-histogram
 calcFunc-idn calcFunc-index calcFunc-mcol calcFunc-mdims
 calcFunc-mrcol calcFunc-mrow calcFunc-mrrow calcFunc-pack
@@ -1161,7 +1162,7 @@ calc-remove-units calc-simplify-units calc-undefine-unit
 calc-view-units-table)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
-calc-conj-transpose calc-cons calc-cross calc-diag
+calc-conj-transpose calc-cons calc-cross calc-kron calc-diag
 calc-display-strings calc-expand-vector calc-grade calc-head
 calc-histogram calc-ident calc-index calc-mask-vector calc-mcol
 calc-mrow calc-pack calc-pack-bits calc-remove-duplicates
