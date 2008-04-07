@@ -323,16 +323,40 @@ Prefix argument means switch to the Lisp buffer afterwards."
   (comint-send-string (inferior-lisp-proc) "\n")
   (if and-go (switch-to-lisp t)))
 
-(defun lisp-eval-defun (&optional and-go)
+(defun lisp-compile-string (string)
+  "Send the string to the inferior Lisp process to be compiled and executed."
+  (comint-send-string
+   (inferior-lisp-proc)
+   (format "(funcall (compile nil (lambda () %s)))\n" string)))
+
+(defun lisp-eval-string (string)
+  "Send the string to the inferior Lisp process to be executed."
+  (comint-send-string (inferior-lisp-proc) (concat string "\n")))
+
+(defun lisp-do-defun (do-string do-region)
   "Send the current defun to the inferior Lisp process.
-Prefix argument means switch to the Lisp buffer afterwards."
-  (interactive "P")
+The actually processing is done by `do-string' and `do-region'
+ which determine whether the code is compiled before evaluation.
+DEFVAR forms reset the variables to the init values."
   (save-excursion
     (end-of-defun)
     (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
-    (let ((end (point)))
+    (let ((end (point)) (case-fold-search t))
       (beginning-of-defun)
-      (lisp-eval-region (point) end)))
+      (if (looking-at "(defvar")
+          (funcall do-string
+                   ;; replace `defvar' with `defparameter'
+                   (concat "(defparameter "
+                           (buffer-substring-no-properties (+ (point) 7) end)
+                           "\n"))
+        (funcall do-region (point) end)))))
+
+(defun lisp-eval-defun (&optional and-go)
+  "Send the current defun to the inferior Lisp process.
+DEFVAR forms reset the variables to the init values.
+Prefix argument means switch to the Lisp buffer afterwards."
+  (interactive "P")
+  (lisp-do-defun 'lisp-eval-string 'lisp-eval-region)
   (if and-go (switch-to-lisp t)))
 
 (defun lisp-eval-last-sexp (&optional and-go)
@@ -341,27 +365,19 @@ Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
   (lisp-eval-region (save-excursion (backward-sexp) (point)) (point) and-go))
 
-;;; Common Lisp COMPILE sux.
 (defun lisp-compile-region (start end &optional and-go)
   "Compile the current region in the inferior Lisp process.
 Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "r\nP")
-  (comint-send-string
-   (inferior-lisp-proc)
-   (format "(funcall (compile nil `(lambda () (progn 'compile %s))))\n"
-	   (buffer-substring start end)))
+  (lisp-compile-string (buffer-substring-no-properties start end))
   (if and-go (switch-to-lisp t)))
 
 (defun lisp-compile-defun (&optional and-go)
   "Compile the current defun in the inferior Lisp process.
+DEFVAR forms reset the variables to the init values.
 Prefix argument means switch to the Lisp buffer afterwards."
   (interactive "P")
-  (save-excursion
-    (end-of-defun)
-    (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
-    (let ((e (point)))
-      (beginning-of-defun)
-      (lisp-compile-region (point) e)))
+  (lisp-do-defun 'lisp-compile-string 'lisp-compile-region)
   (if and-go (switch-to-lisp t)))
 
 (defun switch-to-lisp (eob-p)
