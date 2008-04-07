@@ -51,9 +51,11 @@
       (unless (member x ys) (push x zs)))))
 
 (defun cvs-map (-cvs-map-f &rest -cvs-map-ls)
-  (unless (cvs-every 'null -cvs-map-ls)
-    (cons (apply -cvs-map-f (mapcar 'car -cvs-map-ls))
-	  (apply 'cvs-map -cvs-map-f (mapcar 'cdr -cvs-map-ls)))))
+  (let ((accum ()))
+    (while (not (cvs-every 'null -cvs-map-ls))
+      (push (apply -cvs-map-f (mapcar 'car -cvs-map-ls)) accum)
+      (setq -cvs-map-ls (mapcar 'cdr -cvs-map-ls)))
+    (nreverse accum)))
 
 (defun cvs-first (l &optional n)
   (if (null n) (car l)

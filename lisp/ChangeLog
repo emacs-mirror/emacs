@@ -1,3 +1,7 @@
+2008-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-map): Avoid recursion :-(
+
 2008-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-mode-map): Replace use of kbd.
