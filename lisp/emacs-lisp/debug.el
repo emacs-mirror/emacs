@@ -607,7 +607,7 @@ Applies to the frame whose line point is on in the backtrace."
     (define-key map [menu-bar debugger] (cons "Debugger" menu-map))
     (define-key menu-map [deb-top]
       '(menu-item "Quit" top-level
-		  :help "Quit debugging and return to top leve"))
+		  :help "Quit debugging and return to top level"))
     (define-key menu-map [deb-s0] '("--"))
     (define-key menu-map [deb-descr]
       '(menu-item "Describe Debugger Mode" describe-mode
