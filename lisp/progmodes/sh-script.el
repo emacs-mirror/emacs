@@ -492,7 +492,7 @@ This is buffer-local in every such buffer.")
 		  :help "Learn how to indent a line as it currently is indented"))
     (define-key menu-map [sh-show-indent]
       '(menu-item "Show indentation" sh-show-indent
-		  :help "Set the indentation for the current line"))
+		  :help "Show the how the currently line would be indented"))
     (define-key menu-map [sh-set-indent]
       '(menu-item "Set indentation" sh-set-indent
 		  :help "Set the indentation for the current line"))
