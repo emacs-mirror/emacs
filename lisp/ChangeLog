@@ -1,3 +1,97 @@
+2008-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.el (diary-view-entries-initially-flag): Rename
+	view-diary-entries-initially.  Keep old name as alias, update users.
+	(calendar-mark-diary-entries-flag): Rename
+	mark-diary-entries-in-calendar.  Keep old name as alias, update users.
+	(calendar-view-holidays-initially-flag): Rename
+	view-calendar-holidays-initially.  Keep old name as alias, update users.
+	(calendar-mark-holidays-flag): Rename mark-holidays-in-calendar.
+	Keep old name as alias, update users.
+	(calendar-initial-window-hook): Rename initial-calendar-window-hook.
+	Keep old name as alias, update users.
+	(calendar-today-visible-hook): Rename today-visible-calendar-hook.
+	Keep old name as alias, update users.
+	(calendar-today-invisible-hook): Rename today-invisible-calendar-hook.
+	Keep old name as alias, update users.
+	(diary-iso-date-forms): Rename iso-date-diary-pattern.  Update users.
+	(diary-american-date-forms): Rename american-date-diary-pattern.
+	Keep old name as alias, update users.
+	(diary-european-date-forms): Rename european-date-diary-pattern.
+	Keep old name as alias, update users.
+	(calendar-iso-date-display-form): Rename iso-calendar-display-form.
+	Keep old name as alias, update users.
+	(calendar-european-date-display-form): Rename
+	european-calendar-display-form.  Keep old name as alias, update users.
+	(calendar-american-date-display-form): Rename
+	european-calendar-display-form.  Keep old name as alias, update users.
+	(diary-show-holidays-flag): Rename holidays-in-diary-buffer.
+	Keep old name as alias, update users.
+	(holiday-general-holidays): Rename general-holidays.
+	Keep old name as alias, update users.
+	(holiday-oriental-holidays): Rename oriental-holidays.
+	Keep old name as alias, update users.
+	(holiday-local-holidays): Rename local-holidays.
+	Keep old name as alias, update users.
+	(holiday-other-holidays): Rename other-holidays.
+	Keep old name as alias, update users.
+	(holiday-hebrew-holidays): Rename hebrew-holidays.
+	Keep old name as alias, update users.
+	(holiday-christian-holidays): Rename christian-holidays.
+	Keep old name as alias, update users.
+	(holiday-islamic-holidays): Rename islamic-holidays.
+	Keep old name as alias, update users.
+	(holiday-bahai-holidays): Rename bahai-holidays.
+	Keep old name as alias, update users.
+	(holiday-solar-holidays): Rename solar-holidays.
+	Keep old name as alias, update users.
+	(diary-fancy-buffer): Rename fancy-diary-buffer.
+	Keep old name as alias, update users.
+	(calendar-other-calendars-buffer): Rename other-calendars-buffer.
+	Update users.
+	(calendar-hebrew-yahrzeit-buffer): Rename cal-hebrew-yahrzeit-buffer.
+	Update users.
+	(calendar-increment-month): Rename increment-calendar-month.
+	Keep old name as alias, update callers.
+	(calendar-increment-month-cons): Rename old calendar-increment-month.
+	Update callers.
+	(calendar-extract-month): Rename extract-calendar-month.
+	Keep old name as alias, update callers
+	(calendar-extract-day): Rename extract-calendar-day.
+	Keep old name as alias, update callers.
+	(calendar-extract-year): Rename extract-calendar-year.
+	Keep old name as alias, update callers.
+	(calendar-generate-window): Rename generate-calendar-window.
+	Update callers.
+	(calendar-generate): Rename generate-calendar.  Update callers.
+	(calendar-generate-month): Rename generate-calendar-month.
+	Update callers.
+	(calendar-redraw): Rename redraw-calendar.  Update callers.
+	(calendar-describe-mode): Rename describe-calendar-mode.  Update uses.
+	(calendar-mouse-other-month): Rename mouse-calendar-other-month.
+	Update callers.
+	(calendar-update-mode-line): Rename update-calendar-mode-line.
+	Update callers.
+	(calendar-exit): Rename exit-calendar.  Keep old name as alias,
+	update callers.
+	(calendar-mark-visible-date): Rename mark-visible-calendar-date.
+	Keep old name as alias, update callers.
+	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
+	* calendar/cal-dst.el, calendar/cal-french.el, calendar/cal-hebrew.el:
+	* calendar/cal-html.el, calendar/cal-islam.el, calendar/cal-iso.el:
+	* calendar/cal-julian.el, calendar/cal-menu.el, calendar/cal-move.el:
+	* calendar/cal-persia.el, calendar/cal-tex.el, calendar/cal-x.el:
+	* calendar/diary-lib.el, calendar/holidays.el, calendar/lunar.el:
+	* calendar/solar.el: Update for calendar.el name changes.
+	* org/org.el (org-agenda-format-date-aligned)
+	(org-agenda-execute-calendar-command): Access date elements directly
+	rather than using calendar functions.
+	(org-read-date, org-goto-calendar, org-agenda-goto-calendar):
+	Also set calendar-view-diary-initially-flag,
+	calendar-view-holidays-initially-flag
+	(org-get-entries-from-diary): Also set diary-fancy-buffer.
+	(org-agenda-execute-calendar-command): No need to set displayed-day.
+
 2008-04-06  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-before-font-lock-function): Correct a
@@ -9,7 +103,7 @@
 	font-lock-extend-after-change-region-function, thus superseding
 	advice on the Font Lock after change functions.
 	(c-advise-fl-for-region): Remove this macro.
-	
+
 2008-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/flyspell.el (flyspell-duplicate-distance): Improve
