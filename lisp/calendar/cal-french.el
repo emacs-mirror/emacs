@@ -114,9 +114,9 @@ The 13th month is not really a month, but the 5 (6 in leap years) day period of
   "Compute absolute date from French Revolutionary date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (day (calendar-extract-day date))
+        (year (calendar-extract-year date)))
     (+ (* 365 (1- year))                ; days in prior years
        ;; Leap days in prior years.
        (if (< year 20)
@@ -170,9 +170,9 @@ Defaults to today's date if DATE is not given."
   (let* ((french-date (calendar-french-from-absolute
                        (calendar-absolute-from-gregorian
                         (or date (calendar-current-date)))))
-         (y (extract-calendar-year french-date))
-         (m (extract-calendar-month french-date))
-         (d (extract-calendar-day french-date)))
+         (y (calendar-extract-year french-date))
+         (m (calendar-extract-month french-date))
+         (d (calendar-extract-day french-date)))
     (cond
      ((< y 1) "")
      ((= m 13) (format (if (calendar-french-accents-p)
@@ -214,7 +214,7 @@ Echo French Revolutionary date unless NOECHO is non-nil."
                      "Anne'e de la Re'volution (>0): ")
                    (lambda (x) (> x 0))
                    (int-to-string
-                    (extract-calendar-year
+                    (calendar-extract-year
                      (calendar-french-from-absolute
                       (calendar-absolute-from-gregorian
                        (calendar-current-date))))))))

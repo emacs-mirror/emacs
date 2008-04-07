@@ -56,15 +56,15 @@ Returns the list (month day year) giving the cursor position."
               (re-search-backward "[0-9]" nil t)))
         (calendar-cursor-to-date))))
 
-(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
 
 ;;;###cal-autoload
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (day (calendar-extract-day date))
+        (year (calendar-extract-year date)))
     (goto-line (+ 3
                   (/ (+ day  -1
                         (mod
@@ -87,8 +87,8 @@ Returns the list (month day year) giving the cursor position."
   (interactive)
   (let ((today (calendar-current-date))) ; the date might have changed
     (if (not (calendar-date-is-visible-p today))
-        (generate-calendar-window)
-      (update-calendar-mode-line)
+        (calendar-generate-window)
+      (calendar-update-mode-line)
       (calendar-cursor-to-visible-date today)))
   (run-hooks 'calendar-move-hook))
 
@@ -99,11 +99,11 @@ Movement is backward if ARG is negative."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let* ((cursor-date (calendar-cursor-to-date t))
-         (month (extract-calendar-month cursor-date))
-         (day (extract-calendar-day cursor-date))
-         (year (extract-calendar-year cursor-date))
+         (month (calendar-extract-month cursor-date))
+         (day (calendar-extract-day cursor-date))
+         (year (calendar-extract-year cursor-date))
          (last (progn
-                 (increment-calendar-month month year arg)
+                 (calendar-increment-month month year arg)
                  (calendar-last-day-of-month month year)))
          (day (min last day))
          ;; Put the new month on the screen, if needed, and go to the new date.
@@ -151,8 +151,8 @@ EVENT is an event like `last-nonmenu-event'."
             (today (calendar-current-date))
             (month displayed-month)
             (year displayed-year))
-        (increment-calendar-month month year arg)
-        (generate-calendar-window month year)
+        (calendar-increment-month month year arg)
+        (calendar-generate-window month year)
         (calendar-cursor-to-visible-date
          (cond
           ((calendar-date-is-visible-p old-date) old-date)
@@ -211,8 +211,8 @@ Moves backward if ARG is negative."
            (new-cursor-date
             (calendar-gregorian-from-absolute
              (+ (calendar-absolute-from-gregorian cursor-date) arg)))
-           (new-display-month (extract-calendar-month new-cursor-date))
-           (new-display-year (extract-calendar-year new-cursor-date)))
+           (new-display-month (calendar-extract-month new-cursor-date))
+           (new-display-year (calendar-extract-year new-cursor-date)))
       ;; Put the new month on the screen, if needed, and go to the new date.
       (if (not (calendar-date-is-visible-p new-cursor-date))
           (calendar-other-month new-display-month new-display-year))
@@ -270,9 +270,9 @@ Moves forward if ARG is negative."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date)))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date)))
     (if (= day 1)
         (calendar-backward-month arg)
       (calendar-cursor-to-visible-date (list month 1 year))
@@ -284,16 +284,16 @@ Moves forward if ARG is negative."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (last-day (calendar-last-day-of-month month year))
          (last-day (progn
                      (unless (= day last-day)
                        (calendar-cursor-to-visible-date
                         (list month last-day year))
                        (setq arg (1- arg)))
-                     (increment-calendar-month month year arg)
+                     (calendar-increment-month month year arg)
                      (list month
                            (calendar-last-day-of-month month year)
                            year))))
@@ -308,9 +308,9 @@ Moves forward if ARG is negative."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (jan-first (list 1 1 year))
          (calendar-move-hook nil))
     (if (and (= day 1) (= 1 month))
@@ -328,9 +328,9 @@ Moves forward if ARG is negative."
   (interactive "p")
   (calendar-cursor-to-nearest-date)
   (let* ((date (calendar-cursor-to-date))
-         (month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (dec-31 (list 12 31 year))
          (calendar-move-hook nil))
     (if (and (= day 31) (= 12 month))
@@ -346,8 +346,8 @@ Moves forward if ARG is negative."
 (defun calendar-goto-date (date)
   "Move cursor to DATE."
   (interactive (list (calendar-read-date)))
-  (let ((month (extract-calendar-month date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (year (calendar-extract-year date)))
     (if (not (calendar-date-is-visible-p date))
         (calendar-other-month
          (if (and (= month 1) (= year 1))
@@ -365,7 +365,7 @@ Negative DAY counts backward from end of year."
    (let* ((year (calendar-read
                  "Year (>0): "
                  (lambda (x) (> x 0))
-                 (int-to-string (extract-calendar-year
+                 (int-to-string (calendar-extract-year
                                  (calendar-current-date)))))
           (last (if (calendar-leap-year-p year) 366 365))
           (day (calendar-read

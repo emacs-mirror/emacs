@@ -79,9 +79,9 @@ Used by `calendar-bahai-to-absolute'.")
   "Compute absolute date from Bahá'í date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+  (let* ((month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (prior-years (+ (1- year) 1844))
          (leap-days (- (+ (/ prior-years 4) ; leap days in prior years
                           (- (/ prior-years 100))
@@ -104,11 +104,11 @@ Gregorian date Sunday, December 31, 1 BC."
   (if (< date calendar-bahai-epoch)
       (list 0 0 0)                      ; pre-Bahá'í date
     (let* ((greg (calendar-gregorian-from-absolute date))
-           (gmonth (extract-calendar-month greg))
-           (year (+ (- (extract-calendar-year greg) 1844)
+           (gmonth (calendar-extract-month greg))
+           (year (+ (- (calendar-extract-year greg) 1844)
                     (if (or (> gmonth 3)
                             (and (= gmonth 3)
-                                 (>= (extract-calendar-day greg) 21)))
+                                 (>= (calendar-extract-day greg) 21)))
                         1 0)))
            (month                       ; search forward from Baha
             (1+ (calendar-sum m 1
@@ -126,11 +126,11 @@ Defaults to today's date if DATE is not given."
   (let* ((bahai-date (calendar-bahai-from-absolute
                       (calendar-absolute-from-gregorian
                        (or date (calendar-current-date)))))
-         (y (extract-calendar-year bahai-date)))
+         (y (calendar-extract-year bahai-date)))
     (if (< y 1)
         ""                              ; pre-Bahai
-      (let* ((m (extract-calendar-month bahai-date))
-             (d (extract-calendar-day bahai-date))
+      (let* ((m (calendar-extract-month bahai-date))
+             (d (calendar-extract-day bahai-date))
              (monthname (if (and (= m 19)
                                  (<= d 0))
                             "Ayyám-i-Há"
@@ -165,7 +165,7 @@ Reads a year, month and day."
                 "Bahá'í calendar year (not 0): "
                 (lambda (x) (not (zerop x)))
                 (int-to-string
-                 (extract-calendar-year
+                 (calendar-extract-year
                   (calendar-bahai-from-absolute
                    (calendar-absolute-from-gregorian today))))))
          (completion-ignore-case t)
@@ -210,8 +210,8 @@ nil if it is not visible in the current calendar window."
   (let* ((bahai-date (calendar-bahai-from-absolute
                       (calendar-absolute-from-gregorian
                        (list displayed-month 15 displayed-year))))
-         (m (extract-calendar-month bahai-date))
-         (y (extract-calendar-year bahai-date))
+         (m (calendar-extract-month bahai-date))
+         (y (calendar-extract-year bahai-date))
          date)
     (unless (< m 1)                    ; Bahá'í calendar doesn't apply
       ;; Cf holiday-fixed, holiday-islamic.
@@ -222,7 +222,7 @@ nil if it is not visible in the current calendar window."
       ;; m16 is visible.  m16 is visible when the central month >= 13.
       ;; To see if other months are visible we can shift the range
       ;; accordingly.
-      (increment-calendar-month m y (- 16 month) 19)
+      (calendar-increment-month m y (- 16 month) 19)
       (and (> m 12)                     ; Bahá'í date might be visible
            (calendar-date-is-visible-p
             (setq date (calendar-gregorian-from-absolute
@@ -282,7 +282,7 @@ will not be marked in the calendar.  This function is provided for use with
 (defun calendar-bahai-mark-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Bahá'í date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
-passed to `mark-visible-calendar-date' as MARK."
+passed to `calendar-mark-visible-date' as MARK."
   (calendar-mark-1 month day year 'calendar-bahai-from-absolute
                    'calendar-bahai-to-absolute color))
 

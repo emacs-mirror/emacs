@@ -66,8 +66,8 @@
 
 (defun cal-menu-holiday-window-suffix ()
   "Return a string suffix for the \"Window\" entry in `cal-menu-holidays-menu'."
-  (let ((my1 (calendar-increment-month -1))
-        (my2 (calendar-increment-month 1)))
+  (let ((my1 (calendar-increment-month-cons -1))
+        (my2 (calendar-increment-month-cons 1)))
     (if (= (cdr my1) (cdr my2))
         (format "%s-%s, %d"
                 (calendar-month-name (car my1) 'abbrev)
@@ -79,7 +79,7 @@
               (calendar-month-name (car my2) 'abbrev)
               (cdr my2)))))
 
-(defvar displayed-year)                 ; from generate-calendar
+(defvar displayed-year)                 ; from calendar-generate
 
 (defconst cal-menu-holidays-menu
   `("Holidays"
@@ -160,17 +160,17 @@ POSITION and MENU are passed to `x-popup-menu'."
 (defun cal-menu-list-holidays-year ()
   "Display a list of the holidays of the selected date's year."
   (interactive)
-  (holiday-list (extract-calendar-year (calendar-cursor-to-date))))
+  (holiday-list (calendar-extract-year (calendar-cursor-to-date))))
 
 (defun cal-menu-list-holidays-following-year ()
   "Display a list of the holidays of the following year."
   (interactive)
-  (holiday-list (1+ (extract-calendar-year (calendar-cursor-to-date)))))
+  (holiday-list (1+ (calendar-extract-year (calendar-cursor-to-date)))))
 
 (defun cal-menu-list-holidays-previous-year ()
   "Display a list of the holidays of the previous year."
   (interactive)
-  (holiday-list (1- (extract-calendar-year (calendar-cursor-to-date)))))
+  (holiday-list (1- (calendar-extract-year (calendar-cursor-to-date)))))
 
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
@@ -218,12 +218,12 @@ EVENT is the event that invoked this command."
     (and selection (call-interactively selection))))
 
 (autoload 'diary-list-entries "diary-lib")
-(defvar holidays-in-diary-buffer)       ; only called from calendar.el
+(defvar diary-show-holidays-flag)       ; only called from calendar.el
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.
 Use optional DATE and alternative file DIARY.  EVENT is the event
-that invoked this command.  Shows holidays if `holidays-in-diary-buffer'
+that invoked this command.  Shows holidays if `diary-show-holidays-flag'
 is non-nil."
   (interactive "i\ni\ne")
   (let* ((date (or date (calendar-event-to-date)))
@@ -233,7 +233,7 @@ is non-nil."
          (diary-entries
           (mapcar (lambda (x) (split-string (cadr x) "\n"))
                   (diary-list-entries date 1 'list-only)))
-         (holidays (if holidays-in-diary-buffer
+         (holidays (if diary-show-holidays-flag
                        (calendar-check-holidays date)))
          (title (concat "Diary entries "
                         (if diary (format "from %s " diary) "")

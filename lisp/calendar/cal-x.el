@@ -100,10 +100,10 @@ Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
         (get-file-buffer diary-file)
       ;; If there are no diary entries, there won't be a fancy-diary
       ;; to dedicate, so make a basic one.
-      (or (get-buffer fancy-diary-buffer)
-          (calendar-in-read-only-buffer fancy-diary-buffer
+      (or (get-buffer diary-fancy-buffer)
+          (calendar-in-read-only-buffer diary-fancy-buffer
             (calendar-set-mode-line "Diary Entries")))
-      fancy-diary-buffer))
+      diary-fancy-buffer))
    t))
 
 ;;;###cal-autoload
@@ -124,7 +124,7 @@ If PROMPT is non-nil, prompt for the month and year to use."
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
     (unless (eq config 'calendar-only)
       (if (frame-live-p diary-frame) (delete-frame diary-frame)))
-    (let ((view-diary-entries-initially (eq config 'one-frame))
+    (let ((calendar-view-diary-initially-flag (eq config 'one-frame))
           ;; For calendar-dedicate-diary in two-frames case.
           (pop-up-windows nil))
       (save-window-excursion

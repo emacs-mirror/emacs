@@ -68,9 +68,9 @@ Nisi (Kebus) at the end of the year."
   "Compute absolute date from Coptic date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (day (calendar-extract-day date))
+        (year (calendar-extract-year date)))
     (+ (1- calendar-coptic-epoch)     ; days before start of calendar
        (* 365 (1- year))              ; days in prior years
        (/ year 4)                     ; leap days in prior years
@@ -117,12 +117,12 @@ Defaults to today's date if DATE is not given."
   (let* ((coptic-date (calendar-coptic-from-absolute
                        (calendar-absolute-from-gregorian
                         (or date (calendar-current-date)))))
-         (y (extract-calendar-year coptic-date))
-         (m (extract-calendar-month coptic-date)))
+         (y (calendar-extract-year coptic-date))
+         (m (calendar-extract-month coptic-date)))
     (if (< y 1)
         ""
       (let ((monthname (aref calendar-coptic-month-name-array (1- m)))
-            (day (int-to-string (extract-calendar-day coptic-date)))
+            (day (int-to-string (calendar-extract-day coptic-date)))
             (dayname nil)
             (month (int-to-string m))
             (year (int-to-string y)))
@@ -148,7 +148,7 @@ Reads a year, month, and day."
                 (format "%s calendar year (>0): " calendar-coptic-name)
                 (lambda (x) (> x 0))
                 (int-to-string
-                 (extract-calendar-year
+                 (calendar-extract-year
                   (calendar-coptic-from-absolute
                    (calendar-absolute-from-gregorian today))))))
          (completion-ignore-case t)

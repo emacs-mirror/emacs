@@ -59,18 +59,18 @@
 
 (defun calendar-islamic-day-number (date)
   "Return the day number within the year of the Islamic date DATE."
-  (let ((month (extract-calendar-month date)))
+  (let ((month (calendar-extract-month date)))
     (+ (* 30 (/ month 2))
        (* 29 (/ (1- month) 2))
-       (extract-calendar-day date))))
+       (calendar-extract-day date))))
 
 (defun calendar-islamic-to-absolute (date)
   "Absolute date of Islamic DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+  (let* ((month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (y (% year 30))
          (leap-years-in-cycle (cond ((< y 3) 0)
                                     ((< y 6) 1)
@@ -130,7 +130,7 @@ Driven by the variable `calendar-date-display-form'."
         (islamic-date (calendar-islamic-from-absolute
                        (calendar-absolute-from-gregorian
                         (or date (calendar-current-date))))))
-    (if (< (extract-calendar-year islamic-date) 1)
+    (if (< (calendar-extract-year islamic-date) 1)
         ""
       (calendar-date-string islamic-date nil t))))
 
@@ -154,7 +154,7 @@ Reads a year, month, and day."
                 "Islamic calendar year (>0): "
                 (lambda (x) (> x 0))
                 (int-to-string
-                 (extract-calendar-year
+                 (calendar-extract-year
                   (calendar-islamic-from-absolute
                    (calendar-absolute-from-gregorian today))))))
          (month-array calendar-islamic-month-name-array)
@@ -182,7 +182,7 @@ Reads a year, month, and day."
 (define-obsolete-function-alias 'calendar-goto-islamic-date
   'calendar-islamic-goto-date "23.1")
 
-(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
 
 ;;;###holiday-autoload
@@ -199,8 +199,8 @@ nil if it is not visible in the current calendar window."
   (let* ((islamic-date (calendar-islamic-from-absolute
                         (calendar-absolute-from-gregorian
                          (list displayed-month 15 displayed-year))))
-         (m (extract-calendar-month islamic-date))
-         (y (extract-calendar-year islamic-date))
+         (m (calendar-extract-month islamic-date))
+         (y (calendar-extract-year islamic-date))
          date)
     (unless (< m 1)                   ; Islamic calendar doesn't apply
       ;; Since converting to absolute dates can be a complex
@@ -220,7 +220,7 @@ nil if it is not visible in the current calendar window."
       ;; Hence to test if any given month might be visible, we can
       ;; shift things and ask about October.
       ;; At the same time, we work out the appropriate year y to use.
-      (increment-calendar-month m y (- 10 month))
+      (calendar-increment-month m y (- 10 month))
       (and (> m 7)                      ; Islamic date might be visible
            (calendar-date-is-visible-p
             (setq date (calendar-gregorian-from-absolute
@@ -237,8 +237,8 @@ nil if it is not visible in the current calendar window."
          (list (list date
                      (format "Islamic New Year %d"
                              (progn
-                               (increment-calendar-month m y 1)
-                               (extract-calendar-year
+                               (calendar-increment-month m y 1)
+                               (calendar-extract-year
                                 (calendar-islamic-from-absolute
                                  (calendar-absolute-from-gregorian
                                   (list m (calendar-last-day-of-month m y) y)
@@ -271,7 +271,7 @@ marked in the calendar.  This function is provided for use with
 (defun calendar-islamic-mark-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
-passed to `mark-visible-calendar-date' as MARK."
+passed to `calendar-mark-visible-date' as MARK."
   (calendar-mark-1 month day year 'calendar-islamic-from-absolute
                    'calendar-islamic-to-absolute color))
 

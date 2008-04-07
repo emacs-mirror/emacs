@@ -67,9 +67,9 @@
   "Compute absolute date from Persian date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (day (calendar-extract-day date))
+        (year (calendar-extract-year date)))
     (if (< year 0)
         (+ (calendar-persian-to-absolute
             (list month day (1+ (mod year 2820))))
@@ -149,10 +149,10 @@ Gregorian date Sunday, December 31, 1 BC."
   (let* ((persian-date (calendar-persian-from-absolute
                         (calendar-absolute-from-gregorian
                          (or date (calendar-current-date)))))
-         (y (extract-calendar-year persian-date))
-         (m (extract-calendar-month persian-date))
+         (y (calendar-extract-year persian-date))
+         (m (calendar-extract-month persian-date))
          (monthname (aref calendar-persian-month-name-array (1- m)))
-         (day (int-to-string (extract-calendar-day persian-date)))
+         (day (int-to-string (calendar-extract-day persian-date)))
          (year (int-to-string y))
          (month (int-to-string m))
          dayname)
@@ -175,7 +175,7 @@ Reads a year, month, and day."
                 "Persian calendar year (not 0): "
                 (lambda (x) (not (zerop x)))
                 (int-to-string
-                 (extract-calendar-year
+                 (calendar-extract-year
                   (calendar-persian-from-absolute
                    (calendar-absolute-from-gregorian
                     (calendar-current-date)))))))

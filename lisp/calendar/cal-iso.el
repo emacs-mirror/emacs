@@ -41,12 +41,12 @@ the first such week in which at least 4 days are in a year.  The ISO
 commercial DATE has the form (week day year) in which week is in the range
 1..52 and day is in the range 0..6 (1 = Monday, 2 = Tuesday, ..., 0 =
 Sunday).  The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((day (extract-calendar-day date)))
+  (let ((day (calendar-extract-day date)))
     (+ (calendar-dayname-on-or-before
         1 (+ 3 (calendar-absolute-from-gregorian
-                (list 1 1 (extract-calendar-year date)))))
+                (list 1 1 (calendar-extract-year date)))))
        ;; ISO date is (week day year); normally (month day year).
-       (* 7 (1- (extract-calendar-month date)))
+       (* 7 (1- (calendar-extract-month date)))
        (if (zerop day) 6 (1- day)))))
 
 (define-obsolete-function-alias 'calendar-absolute-from-iso
@@ -61,7 +61,7 @@ date has the form (week day year) in which week is in the range 1..52 and
 day is in the range 0..6 (1 = Monday, 2 = Tuesday, ..., 0 = Sunday).  The
 absolute date is the number of days elapsed since the (imaginary) Gregorian
 date Sunday, December 31, 1 BC."
-  (let* ((approx (extract-calendar-year
+  (let* ((approx (calendar-extract-year
                   (calendar-gregorian-from-absolute (- date 3))))
          (year (+ approx
                   (calendar-sum y approx
@@ -82,8 +82,8 @@ date Sunday, December 31, 1 BC."
          (iso-date (calendar-iso-from-absolute d)))
     (format "Day %s of week %d of %d"
             (if (zerop day) 7 day)
-            (extract-calendar-month iso-date)
-            (extract-calendar-year iso-date))))
+            (calendar-extract-month iso-date)
+            (calendar-extract-year iso-date))))
 
 ;;;###cal-autoload
 (defun calendar-iso-print-date ()
@@ -102,9 +102,9 @@ taken to be 1)."
   (let* ((year (calendar-read
                 "ISO calendar year (>0): "
                 (lambda (x) (> x 0))
-                (int-to-string (extract-calendar-year
+                (int-to-string (calendar-extract-year
                                 (calendar-current-date)))))
-         (no-weeks (extract-calendar-month
+         (no-weeks (calendar-extract-month
                     (calendar-iso-from-absolute
                      (1-
                       (calendar-dayname-on-or-before

@@ -213,7 +213,7 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
 (defun calendar-chinese-zodiac-sign-on-or-after (d)
   "Absolute date of first new Zodiac sign on or after absolute date D.
 The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
- (let* ((year (extract-calendar-year (calendar-gregorian-from-absolute d)))
+ (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
          (calendar-time-zone (eval calendar-chinese-time-zone)) ; uses year
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
@@ -235,7 +235,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
 
 (defun calendar-chinese-new-moon-on-or-after (d)
   "Absolute date of first new moon on or after absolute date D."
-  (let* ((year (extract-calendar-year (calendar-gregorian-from-absolute d)))
+  (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
          (calendar-time-zone (eval calendar-chinese-time-zone))
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
@@ -434,7 +434,7 @@ Sunday, December 31, 1 BC is imaginary."
   "Compute Chinese date (cycle year month day) corresponding to absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((g-year (extract-calendar-year
+  (let* ((g-year (calendar-extract-year
                   (calendar-gregorian-from-absolute date)))
          (c-year (+ g-year 2695))
          (list (append (calendar-chinese-year (1- g-year))
@@ -454,7 +454,7 @@ Gregorian date Sunday, December 31, 1 BC."
           (caar list)
           (1+ (- date (cadr (car list)))))))
 
-;; Bound in generate-calendar.
+;; Bound in calendar-generate.
 (defvar displayed-month)
 (defvar displayed-year)
 
@@ -469,7 +469,7 @@ Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
     ;; Jan is visible if displayed-month = 12, 1, 2; Feb if d-m = 1, 2, 3.
     ;; If we shift the calendar forward one month, we can do a
     ;; one-sided test, namely: d-m <= 4 means CNY might be visible.
-    (increment-calendar-month m y 1)    ; shift forward a month
+    (calendar-increment-month m y 1)    ; shift forward a month
     (and (< m 5)
          (calendar-date-is-visible-p
           (setq chinese-new-year
@@ -546,13 +546,13 @@ Defaults to today's date if DATE is not given."
   (memq 1 (append
            (mapcar (lambda (x)
                      (car x))
-                   (calendar-chinese-year (extract-calendar-year
+                   (calendar-chinese-year (calendar-extract-year
                                            (calendar-gregorian-from-absolute
                                             (calendar-chinese-to-absolute
                                              (list c y 1 1))))))
            (mapcar (lambda (x)
                      (if (> (car x) 11) (car x)))
-                   (calendar-chinese-year (extract-calendar-year
+                   (calendar-chinese-year (calendar-extract-year
                                            (calendar-gregorian-from-absolute
                                             (calendar-chinese-to-absolute
                                              (list (if (= y 60) (1+ c) c)

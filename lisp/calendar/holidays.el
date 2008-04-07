@@ -51,7 +51,7 @@ The holidays are those in the list `calendar-holidays'."
            (setq res (append h res))))
      'calendar-date-compare)))
 
-(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
 
 ;;;###cal-autoload
@@ -69,8 +69,8 @@ Returns non-nil if any holidays are found."
     (if (not holiday-list)
         (message "Looking up holidays...none found")
       (calendar-in-read-only-buffer holiday-buffer
-        (increment-calendar-month m1 y1 -1)
-        (increment-calendar-month m2 y2 1)
+        (calendar-increment-month m1 y1 -1)
+        (calendar-increment-month m2 y2 1)
         (calendar-set-mode-line
          (if (= y1 y2)
              (format "Notable Dates from %s to %s, %d%%-"
@@ -98,8 +98,8 @@ This function is suitable for execution in a .emacs file."
     (let* ((completion-ignore-case t)
            (date (if arg (calendar-read-date t)
                    (calendar-current-date)))
-           (displayed-month (extract-calendar-month date))
-           (displayed-year (extract-calendar-year date)))
+           (displayed-month (calendar-extract-month date))
+           (displayed-year (calendar-extract-year date)))
       (calendar-list-holidays))))
 
 ;; rms: "Emacs commands to display a list of something generally start
@@ -112,13 +112,13 @@ Y2 defaults to Y1.  The optional list of holidays L defaults to
 displayed, use a different list.  For example,
 
   (list-holidays 2006 2006
-    (append general-holidays local-holidays other-holidays))
+    (append holiday-general-holidays holiday-local-holidays))
 
-will display holidays for the year 2006 defined in the 3
+will display holidays for the year 2006 defined in the two
 mentioned lists, and nothing else.
 
 When called interactively, this command offers a choice of
-holidays, based on the variables `solar-holidays' etc.  See the
+holidays, based on the variables `holiday-solar-holidays' etc.  See the
 documentation of `calendar-holidays' for a list of the variables
 that control the choices, as well as a description of the format
 of a holiday list.
@@ -128,7 +128,7 @@ The optional LABEL is used to label the buffer created."
    (let* ((start-year (calendar-read
                        "Starting year of holidays (>0): "
                        (lambda (x) (> x 0))
-                       (int-to-string (extract-calendar-year
+                       (int-to-string (calendar-extract-year
                                        (calendar-current-date)))))
           (end-year (calendar-read
                      (format "Ending year (inclusive) of holidays (>=%s): "
@@ -141,15 +141,24 @@ The optional LABEL is used to label the buffer created."
             (cons "All" calendar-holidays)
             (cons "Equinoxes/Solstices"
                   (list (list 'solar-equinoxes-solstices)))
-            (if general-holidays (cons "General" general-holidays))
-            (if local-holidays (cons "Local" local-holidays))
-            (if other-holidays (cons "Other" other-holidays))
-            (if christian-holidays (cons "Christian" christian-holidays))
-            (if hebrew-holidays (cons "Hebrew" hebrew-holidays))
-            (if islamic-holidays (cons "Islamic" islamic-holidays))
-            (if bahai-holidays (cons "Baha'i" bahai-holidays))
-            (if oriental-holidays (cons "Oriental" oriental-holidays))
-            (if solar-holidays (cons "Solar" solar-holidays))
+            (if holiday-general-holidays
+                (cons "General" holiday-general-holidays))
+            (if holiday-local-holidays
+                (cons "Local" holiday-local-holidays))
+            (if holiday-other-holidays
+                (cons "Other" holiday-other-holidays))
+            (if holiday-christian-holidays
+                (cons "Christian" holiday-christian-holidays))
+            (if holiday-hebrew-holidays
+                (cons "Hebrew" holiday-hebrew-holidays))
+            (if holiday-islamic-holidays
+                (cons "Islamic" holiday-islamic-holidays))
+            (if holiday-bahai-holidays
+                (cons "Baha'i" holiday-bahai-holidays))
+            (if holiday-oriental-holidays
+                (cons "Oriental" holiday-oriental-holidays))
+            (if holiday-solar-holidays
+                (cons "Solar" holiday-solar-holidays))
             (cons "Ask" nil)))
           (choice (capitalize
                    (completing-read "List (TAB for choices): " lists nil t)))
@@ -173,7 +182,7 @@ The optional LABEL is used to label the buffer created."
         holiday-list)
     (while (<= s e)
       (setq holiday-list (append holiday-list (calendar-holiday-list)))
-      (increment-calendar-month displayed-month displayed-year 3)
+      (calendar-increment-month displayed-month displayed-year 3)
       (setq s (calendar-absolute-from-gregorian
                (list displayed-month 1 displayed-year))))
     (save-excursion
@@ -197,8 +206,8 @@ The optional LABEL is used to label the buffer created."
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
 The holidays are those in the list `calendar-holidays'."
-  (let ((displayed-month (extract-calendar-month date))
-        (displayed-year (extract-calendar-year date))
+  (let ((displayed-month (calendar-extract-month date))
+        (displayed-year (calendar-extract-year date))
         holiday-list)
     (dolist (h (calendar-holiday-list) holiday-list)
       (if (calendar-date-equal date (car h))
@@ -230,10 +239,10 @@ The holidays are those in the list `calendar-holidays'."
 (defun calendar-mark-holidays ()
   "Mark notable days in the calendar window."
   (interactive)
-  (setq mark-holidays-in-calendar t)
+  (setq calendar-mark-holidays-flag t)
   (message "Marking holidays...")
   (dolist (holiday (calendar-holiday-list))
-    (mark-visible-calendar-date (car holiday) calendar-holiday-marker))
+    (calendar-mark-visible-date (car holiday) calendar-holiday-marker))
   (message "Marking holidays...done"))
 
 (define-obsolete-function-alias
@@ -264,7 +273,7 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
   ;; November is visible; etc.
   (let ((m displayed-month)
         (y displayed-year))
-    (increment-calendar-month m y (- 11 month))
+    (calendar-increment-month m y (- 11 month))
     (if (> m 9)                         ; is november visible?
         (list (list (list month day y) string)))))
 
@@ -286,7 +295,7 @@ Returns nil if it is not visible in the current calendar window."
   ;; function:
   ;;  (let ((m displayed-month)
   ;;        (y displayed-year))
-  ;;    (increment-calendar-month m y (- 11 month))
+  ;;    (calendar-increment-month m y (- 11 month))
   ;;    (if (> m 9); month in year y is visible
   ;;      (list (list (calendar-nth-named-day n dayname month y day) string)))))
   (let* ((m1 displayed-month)
@@ -294,18 +303,18 @@ Returns nil if it is not visible in the current calendar window."
          (m2 displayed-month)
          (y2 displayed-year)
          (d1 (progn             ; first possible base date for holiday
-               (increment-calendar-month m1 y1 -1)
+               (calendar-increment-month m1 y1 -1)
                (+ (calendar-nth-named-absday 1 dayname m1 y1)
                   (* -7 n)
                   (if (> n 0) 1 -7))))
          (d2                     ; last possible base date for holiday
           (progn
-            (increment-calendar-month m2 y2 1)
+            (calendar-increment-month m2 y2 1)
             (+ (calendar-nth-named-absday -1 dayname m2 y2)
                (* -7 n)
                (if (> n 0) 7 -1))))
-         (y1 (extract-calendar-year (calendar-gregorian-from-absolute d1)))
-         (y2 (extract-calendar-year (calendar-gregorian-from-absolute d2)))
+         (y1 (calendar-extract-year (calendar-gregorian-from-absolute d1)))
+         (y2 (calendar-extract-year (calendar-gregorian-from-absolute d2)))
          (y                             ; year of base date
           (if (or (= y1 y2) (> month 9))
               y1
@@ -340,7 +349,7 @@ nil, or if the date is not visible, there is no holiday."
   (let ((m displayed-month)
         (y displayed-year)
         year date)
-    (increment-calendar-month m y -1)
+    (calendar-increment-month m y -1)
     (holiday-filter-visible-calendar
      (list
       (progn
@@ -368,7 +377,7 @@ arguments, then it returns the value appropriate for advent itself."
     (let* ((year displayed-year)
            (month displayed-month)
            (advent (progn
-                     (increment-calendar-month month year -1)
+                     (calendar-increment-month month year -1)
                      (calendar-gregorian-from-absolute
                       (+ n
                          (calendar-dayname-on-or-before
@@ -444,8 +453,8 @@ is non-nil)."
   (let* ((m displayed-month)
          (y displayed-year)
          (julian-year (progn
-                        (increment-calendar-month m y 1)
-                        (extract-calendar-year
+                        (calendar-increment-month m y 1)
+                        (calendar-extract-year
                          (calendar-julian-from-absolute
                           (calendar-absolute-from-gregorian
                            (list m (calendar-last-day-of-month m y) y))))))

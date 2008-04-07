@@ -725,7 +725,7 @@ The values of `calendar-daylight-savings-starts',
                    (/ calendar-time-zone 60.0 24.0))))
          ;; Get Ephemeris Time.
          (date (+ date (solar-ephemeris-correction
-                        (extract-calendar-year
+                        (calendar-extract-year
                          (calendar-gregorian-from-absolute
                           (floor
                            (calendar-astro-to-absolute
@@ -979,7 +979,7 @@ solstice.  These formulae are only to be used between 1000 BC and 3000 AD."
                         (* -0.00823 z z z)
                         (* 0.00032 z z z z)))))))
 
-(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
 
 ;;;###holiday-autoload
@@ -996,7 +996,7 @@ Requires floating point."
           (if calendar-time-zone calendar-daylight-savings-ends))
          (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
          (k (progn
-              (increment-calendar-month m y (cond ((= 1 (% m 3)) -1)
+              (calendar-increment-month m y (cond ((= 1 (% m 3)) -1)
                                                   ((= 2 (% m 3))  1)
                                                   (t              0)))
               (1- (/ m 3))))

@@ -129,7 +129,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (date (+ date adjustment))
          (date (+ date (/ (- calendar-time-zone
                              (solar-ephemeris-correction
-                              (extract-calendar-year
+                              (calendar-extract-year
                                (calendar-gregorian-from-absolute
                                 (truncate date)))))
                           60.0 24.0)))
@@ -145,10 +145,10 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (start-month month)
          (start-year year)
          (end-date (progn
-                     (increment-calendar-month end-month end-year 3)
+                     (calendar-increment-month end-month end-year 3)
                      (list (list end-month 1 end-year))))
          (start-date (progn
-                       (increment-calendar-month start-month start-year -1)
+                       (calendar-increment-month start-month start-year -1)
                        (list (list start-month
                                    (calendar-last-day-of-month
                                     start-month start-year)
@@ -176,7 +176,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
         ((= 2 phase) "Full Moon")
         ((= 3 phase) "Last Quarter Moon")))
 
-(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
 
 ;;;###cal-autoload
@@ -188,8 +188,8 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
         (y1 displayed-year)
         (m2 displayed-month)
         (y2 displayed-year))
-    (increment-calendar-month m1 y1 -1)
-    (increment-calendar-month m2 y2 1)
+    (calendar-increment-month m1 y1 -1)
+    (calendar-increment-month m2 y2 1)
     (calendar-in-read-only-buffer lunar-phases-buffer
       (calendar-set-mode-line
        (if (= y1 y2)
@@ -221,8 +221,8 @@ This function is suitable for execution in a .emacs file."
   (save-excursion
     (let* ((date (if arg (calendar-read-date t)
                    (calendar-current-date)))
-           (displayed-month (extract-calendar-month date))
-           (displayed-year (extract-calendar-year date)))
+           (displayed-month (calendar-extract-month date))
+           (displayed-year (calendar-extract-year date)))
       (calendar-phases-of-moon))))
 
 (defvar date)
@@ -237,7 +237,7 @@ use when highlighting the day in the calendar."
   (let* ((index (* 4
                    (truncate
                     (* 12.3685
-                       (+ (extract-calendar-year date)
+                       (+ (calendar-extract-year date)
                           ( / (calendar-day-number date)
                               366.0)
                           -1900)))))
@@ -353,7 +353,7 @@ use when highlighting the day in the calendar."
          (newJDE (+ JDE correction additional)))
     (+ newJDE
        (- (solar-ephemeris-correction
-           (extract-calendar-year
+           (calendar-extract-year
             (calendar-gregorian-from-absolute
              (floor (calendar-astro-to-absolute newJDE))))))
        (/ calendar-time-zone 60.0 24.0))))
@@ -369,7 +369,7 @@ as governed by the values of `calendar-daylight-savings-starts',
 `calendar-time-zone'."
   (let* ((date (calendar-gregorian-from-absolute
                 (floor (calendar-astro-to-absolute d))))
-         (year (+ (extract-calendar-year date)
+         (year (+ (calendar-extract-year date)
                   (/ (calendar-day-number date) 365.25)))
          (k (floor (* (- year 2000.0) 12.3685)))
          (date (lunar-new-moon-time k))

@@ -207,15 +207,15 @@ Contains links to previous and next month and year, and current minical."
   (insert (cal-html-b-table "class=header"))
   (insert cal-html-b-tablerow-string)
   (insert cal-html-b-tabledata-string)          ; month links
-  (increment-calendar-month month year -1)      ; previous month
+  (calendar-increment-month month year -1)      ; previous month
   (cal-html-insert-link-monthpage month year t) ; t --> change-dir
-  (increment-calendar-month month year 1)       ; current month
+  (calendar-increment-month month year 1)       ; current month
   (cal-html-insert-link-yearpage month year)
-  (increment-calendar-month month year 1)       ; next month
+  (calendar-increment-month month year 1)       ; next month
   (cal-html-insert-link-monthpage month year t) ; t --> change-dir
   (insert cal-html-e-tabledata-string)
   (insert cal-html-b-tabledata-string)  ; minical
-  (increment-calendar-month month year -1)
+  (calendar-increment-month month year -1)
   (cal-html-insert-minical month year)
   (insert cal-html-e-tabledata-string)
   (insert cal-html-e-tablerow-string)   ; end
@@ -418,8 +418,8 @@ The output directory DIR is created if necessary.  Interactively,
 MONTH and YEAR are taken from the calendar cursor position.  Note
 that any existing output files are overwritten."
   (interactive (let* ((date (calendar-cursor-to-date t))
-                      (month (extract-calendar-month date))
-                      (year (extract-calendar-year date)))
+                      (month (calendar-extract-month date))
+                      (year (calendar-extract-year date)))
                  (list month year (cal-html-year-dir-ask-user year))))
   (make-directory dir t)
   (cal-html-one-month month year dir))
@@ -430,7 +430,7 @@ that any existing output files are overwritten."
 The output directory DIR is created if necessary.  Interactively,
 YEAR is taken from the calendar cursor position.  Note that any
 existing output files are overwritten."
-  (interactive (let ((year (extract-calendar-year
+  (interactive (let ((year (calendar-extract-year
                             (calendar-cursor-to-date t))))
                  (list year (cal-html-year-dir-ask-user year))))
   (make-directory dir t)

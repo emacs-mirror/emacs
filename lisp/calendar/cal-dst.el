@@ -189,9 +189,9 @@ ABS-DATE must specify a day that contains a daylight saving transition.
 The result has the proper form for `calendar-daylight-savings-starts'."
   (let* ((date (calendar-gregorian-from-absolute abs-date))
          (weekday (% abs-date 7))
-         (m (extract-calendar-month date))
-         (d (extract-calendar-day date))
-         (y (extract-calendar-year date))
+         (m (calendar-extract-month date))
+         (d (calendar-extract-day date))
+         (y (calendar-extract-year date))
          (last (calendar-last-day-of-month m y))
          j rlist
          (candidate-rules               ; these return Gregorian dates
@@ -423,7 +423,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
 (defun dst-in-effect (date)
   "True if on absolute DATE daylight saving time is in effect.
 Fractional part of DATE is local standard time of day."
-  (let* ((year (extract-calendar-year
+  (let* ((year (calendar-extract-year
                 (calendar-gregorian-from-absolute (floor date))))
          (dst-starts-gregorian (eval calendar-daylight-savings-starts))
          (dst-ends-gregorian (eval calendar-daylight-savings-ends))

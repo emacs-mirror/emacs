@@ -36,8 +36,8 @@
 (defun calendar-julian-to-absolute (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
 The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((month (extract-calendar-month date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (year (calendar-extract-year date)))
     (+ (calendar-day-number date)
        (if (and (zerop (% year 100))
                 (not (zerop (% year 400)))
@@ -107,7 +107,7 @@ Driven by the variable `calendar-date-display-form'."
                  "Julian calendar year (>0): "
                  (lambda (x) (> x 0))
                  (int-to-string
-                  (extract-calendar-year
+                  (calendar-extract-year
                    (calendar-julian-from-absolute
                     (calendar-absolute-from-gregorian
                      today))))))

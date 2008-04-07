@@ -371,7 +371,7 @@ Only used if `diary-header-line-flag' is non-nil."
 ;;;###cal-autoload
 (defun diary-live-p ()
   "Return non-nil if the diary is being displayed."
-  (or (get-buffer fancy-diary-buffer)
+  (or (get-buffer diary-fancy-buffer)
       (and diary-file
            (find-buffer-visiting (substitute-in-file-name diary-file)))))
 
@@ -390,7 +390,7 @@ just visiting the `diary-file'), and SYMBOL's value is to be changed."
 (defcustom diary-number-of-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
 This variable affects the diary display when the command \\[diary] is used,
-or if the value of the variable `view-diary-entries-initially' is non-nil.
+or if the value of the variable `calendar-view-diary-initially-flag' is non-nil.
 For example, if the default value 1 is used, then only the current day's diary
 entries will be displayed.  If the value 2 is used, then both the current
 day's and the next day's entries will be displayed.
@@ -587,9 +587,9 @@ non-nil, don't change the buffer, only return a list of entries.
 Optional array MONTHS replaces `calendar-month-name-array', and
 means months cannot be abbreviated.  Optional string SYMBOL marks diary
 entries of the desired type.  Returns non-nil if any entries were found."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+  (let* ((month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (dayname (format "%s\\|%s\\.?" (calendar-day-name date)
                           (calendar-day-name date 'abbrev)))
          (calendar-month-name-array (or months calendar-month-name-array))
@@ -818,7 +818,7 @@ changing the variable `diary-include-string'."
   "Common subroutine of `diary-simple-display' and `diary-fancy-display'.
 Handles the case where there are no diary entries.
 Returns a cons (NOENTRIES . HOLIDAY-STRING)."
-    (let* ((holiday-list (if holidays-in-diary-buffer
+    (let* ((holiday-list (if diary-show-holidays-flag
                              (calendar-check-holidays original-date)))
            (hol-string (format "%s%s%s"
                                date-string
@@ -857,7 +857,7 @@ Returns a cons (NOENTRIES . HOLIDAY-STRING)."
          (empty (diary-display-no-entries)))
     ;; This may be too wide, but when simple diary is used there is
     ;; nowhere else for the holidays to go.  Also, it is documented in
-    ;; holidays-in-diary-buffer that the holidays go in the mode-line.
+    ;; diary-show-holidays-flag that the holidays go in the mode-line.
     ;; FIXME however if there are no diary entries a separate buffer
     ;; is displayed - this is inconsistent.
     (with-current-buffer dbuff
@@ -910,7 +910,7 @@ To use this function, add it to `diary-display-hook'."
     (diary-unhide-everything))
   (unless (car (diary-display-no-entries)) ; no entries
     ;; Prepare the fancy diary buffer.
-    (calendar-in-read-only-buffer fancy-diary-buffer
+    (calendar-in-read-only-buffer diary-fancy-buffer
       (calendar-set-mode-line "Diary Entries")
       (let ((holiday-list-last-month 1)
             (holiday-list-last-year 1)
@@ -919,7 +919,7 @@ To use this function, add it to `diary-display-hook'."
         (dolist (entry diary-entries-list)
           (unless (calendar-date-equal date (car entry))
             (setq date (car entry))
-            (and holidays-in-diary-buffer
+            (and diary-show-holidays-flag
                  (calendar-date-compare
                   (list (list holiday-list-last-month
                               (calendar-last-day-of-month
@@ -929,18 +929,18 @@ To use this function, add it to `diary-display-hook'."
                   (list date))
                  ;; We need to get the holidays for the next 3 months.
                  (setq holiday-list-last-month
-                       (extract-calendar-month date)
+                       (calendar-extract-month date)
                        holiday-list-last-year
-                       (extract-calendar-year date))
+                       (calendar-extract-year date))
                  (progn
-                   (increment-calendar-month
+                   (calendar-increment-month
                     holiday-list-last-month holiday-list-last-year 1)
                    t)
                  (setq holiday-list
                        (let ((displayed-month holiday-list-last-month)
                              (displayed-year holiday-list-last-year))
                          (calendar-holiday-list)))
-                 (increment-calendar-month
+                 (calendar-increment-month
                   holiday-list-last-month holiday-list-last-year 1))
             (let ((longest 0)
                   date-holiday-list cc)
@@ -999,7 +999,7 @@ If the fancy diary display is being used, just print the buffer.
 The hooks given by the variable `diary-print-entries-hook' are called to do
 the actual printing."
   (interactive)
-  (let ((diary-buffer (get-buffer fancy-diary-buffer))
+  (let ((diary-buffer (get-buffer diary-fancy-buffer))
         temp-buffer heading start end)
     (if diary-buffer
         (with-current-buffer diary-buffer
@@ -1085,8 +1085,8 @@ should ensure that all relevant variables are set.
                   (concat "Diary entries generated "
                           (calendar-date-string (calendar-current-date))))
     (insert
-     (if (get-buffer fancy-diary-buffer)
-         (with-current-buffer fancy-diary-buffer (buffer-string))
+     (if (get-buffer diary-fancy-buffer)
+         (with-current-buffer diary-fancy-buffer (buffer-string))
        "No entries found"))
     (call-interactively (get mail-user-agent 'sendfunc))))
 
@@ -1173,7 +1173,7 @@ function that converts absolute dates to dates of the appropriate type.  "
                        (if (and (= (length y-str) 2)
                                 diary-abbreviated-year-flag)
                            (let* ((current-y
-                                   (extract-calendar-year
+                                   (calendar-extract-year
                                     (if absfunc
                                         (funcall
                                          absfunc
@@ -1232,15 +1232,15 @@ diary entries."
   ;; ii) called via calendar-redraw (since calendar has already been
   ;; erased).
   ;; Use of REDRAW handles both of these cases.
-  (when (and redraw mark-diary-entries-in-calendar)
-    (setq mark-diary-entries-in-calendar nil)
-    (redraw-calendar))
+  (when (and redraw calendar-mark-diary-entries-flag)
+    (setq calendar-mark-diary-entries-flag nil)
+    (calendar-redraw))
   (let ((diary-marking-entries-flag t)
         file-glob-attrs)
     (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
       (save-excursion
         (when (eq major-mode default-major-mode) (diary-mode))
-        (setq mark-diary-entries-in-calendar t)
+        (setq calendar-mark-diary-entries-flag t)
         (message "Marking diary entries...")
         (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
         (with-syntax-table diary-syntax-table
@@ -1272,7 +1272,7 @@ diary entries."
           (result entry)
           (t nil))))
 
-(defvar displayed-year)                 ; bound in generate-calendar
+(defvar displayed-year)                 ; bound in calendar-generate
 (defvar displayed-month)
 
 (defun diary-mark-sexp-entries ()
@@ -1289,10 +1289,10 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
     (with-current-buffer calendar-buffer
       (setq m displayed-month
             y displayed-year))
-    (increment-calendar-month m y -1)
+    (calendar-increment-month m y -1)
     (setq first-date (calendar-absolute-from-gregorian (list m 1 y))
           date (1- first-date))
-    (increment-calendar-month m y 2)
+    (calendar-increment-month m y 2)
     (setq last-date
           (calendar-absolute-from-gregorian
            (list m (calendar-last-day-of-month m y) y)))
@@ -1320,7 +1320,7 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
         (when (setq mark (diary-sexp-entry
                           sexp entry
                           (calendar-gregorian-from-absolute date)))
-          (mark-visible-calendar-date
+          (calendar-mark-visible-date
            (calendar-gregorian-from-absolute date)
            (or (cadr (diary-pull-attrs entry file-glob-attrs))
                (if (consp mark) (car mark)))))))))
@@ -1365,7 +1365,7 @@ changing the variable `diary-include-string'."
 (defun calendar-mark-days-named (dayname &optional color)
   "Mark all dates in the calendar window that are day DAYNAME of the week.
 0 means all Sundays, 1 means all Mondays, and so on.
-Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
+Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
   (with-current-buffer calendar-buffer
     (let ((prev-month displayed-month)
           (prev-year displayed-year)
@@ -1373,14 +1373,14 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
           (succ-year displayed-year)
           (last-day)
           (day))
-      (increment-calendar-month succ-month succ-year 1)
-      (increment-calendar-month prev-month prev-year -1)
+      (calendar-increment-month succ-month succ-year 1)
+      (calendar-increment-month prev-month prev-year -1)
       (setq day (calendar-absolute-from-gregorian
                  (calendar-nth-named-day 1 dayname prev-month prev-year))
             last-day (calendar-absolute-from-gregorian
                       (calendar-nth-named-day -1 dayname succ-month succ-year)))
       (while (<= day last-day)
-        (mark-visible-calendar-date (calendar-gregorian-from-absolute day)
+        (calendar-mark-visible-date (calendar-gregorian-from-absolute day)
                                     color)
         (setq day (+ day 7))))))
 
@@ -1390,15 +1390,15 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
 (defun calendar-mark-month (month year p-month p-day p-year &optional color)
   "Mark dates in the MONTH/YEAR that conform to pattern P-MONTH/P-DAY/P-YEAR.
 A value of 0 in any position of the pattern is a wildcard.
-Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
+Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
   (if (or (and (= month p-month)
                (or (zerop p-year) (= year p-year)))
           (and (zerop p-month)
                (or (zerop p-year) (= year p-year))))
       (if (zerop p-day)
           (dotimes (i (calendar-last-day-of-month month year))
-            (mark-visible-calendar-date (list month (1+ i) year) color))
-        (mark-visible-calendar-date (list month p-day year) color))))
+            (calendar-mark-visible-date (list month (1+ i) year) color))
+        (calendar-mark-visible-date (list month p-day year) color))))
 
 (define-obsolete-function-alias 'mark-calendar-month
   'calendar-mark-month "23.1")
@@ -1406,14 +1406,14 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
 (defun calendar-mark-date-pattern (month day year &optional color)
   "Mark all dates in the calendar window that conform to MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
-passed to `mark-visible-calendar-date' as MARK."
+passed to `calendar-mark-visible-date' as MARK."
   (with-current-buffer calendar-buffer
     (let ((m displayed-month)
           (y displayed-year))
-      (increment-calendar-month m y -1)
+      (calendar-increment-month m y -1)
       (dotimes (idummy 3)
         (calendar-mark-month m y month day year color)
-        (increment-calendar-month m y 1)))))
+        (calendar-increment-month m y 1)))))
 
 (define-obsolete-function-alias 'mark-calendar-date-pattern
   'calendar-mark-date-pattern "23.1")
@@ -1422,17 +1422,17 @@ passed to `mark-visible-calendar-date' as MARK."
 (defun calendar-mark-complex (month day year fromabs &optional color)
   "Mark dates in the calendar conforming to MONTH DAY YEAR of some system.
 The function FROMABS converts absolute dates to the appropriate date system.
-Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
+Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
   ;; Not one of the simple cases--check all visible dates for match.
   ;; Actually, the following code takes care of ALL of the cases, but
   ;; it's much too slow to be used for the simple (common) cases.
   (let* ((m displayed-month)
          (y displayed-year)
          (first-date (progn
-                       (increment-calendar-month m y -1)
+                       (calendar-increment-month m y -1)
                        (calendar-absolute-from-gregorian (list m 1 y))))
          (last-date (progn
-                      (increment-calendar-month m y 2)
+                      (calendar-increment-month m y 2)
                       (calendar-absolute-from-gregorian
                        (list m (calendar-last-day-of-month m y) y))))
          (date (1- first-date))
@@ -1440,12 +1440,12 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
     (while (<= (setq date (1+ date)) last-date)
       (setq local-date (funcall fromabs date))
       (and (or (zerop month)
-               (= month (extract-calendar-month local-date)))
+               (= month (calendar-extract-month local-date)))
            (or (zerop day)
-               (= day (extract-calendar-day local-date)))
+               (= day (calendar-extract-day local-date)))
            (or (zerop year)
-               (= year (extract-calendar-year local-date)))
-           (mark-visible-calendar-date
+               (= year (calendar-extract-year local-date)))
+           (calendar-mark-visible-date
             (calendar-gregorian-from-absolute date) color)))))
 
 ;; Bahai, Islamic.
@@ -1453,7 +1453,7 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
   "Mark dates in the calendar conforming to MONTH DAY YEAR of some system.
 The function FROMABS converts absolute dates to the appropriate date system.
 The function TOABDS carries out the inverse operation.  Optional argument
-COLOR is passed to `mark-visible-calendar-date' as MARK."
+COLOR is passed to `calendar-mark-visible-date' as MARK."
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (not (zerop month)) (not (zerop day)))
@@ -1462,21 +1462,21 @@ COLOR is passed to `mark-visible-calendar-date' as MARK."
             (let ((date (calendar-gregorian-from-absolute
                          (funcall toabs (list month day year)))))
               (if (calendar-date-is-visible-p date)
-                  (mark-visible-calendar-date date color)))
+                  (calendar-mark-visible-date date color)))
           ;; Month and day in any year--this taken from the holiday stuff.
           (let* ((i-date (funcall fromabs
                                   (calendar-absolute-from-gregorian
                                    (list displayed-month 15 displayed-year))))
-                 (m (extract-calendar-month i-date))
-                 (y (extract-calendar-year i-date))
+                 (m (calendar-extract-month i-date))
+                 (y (calendar-extract-year i-date))
                  date)
             (unless (< m 1)             ; calendar doesn't apply
-              (increment-calendar-month m y (- 10 month))
+              (calendar-increment-month m y (- 10 month))
               (and (> m 7)              ; date might be visible
                    (calendar-date-is-visible-p
                     (setq date (calendar-gregorian-from-absolute
                                 (funcall toabs (list month day y)))))
-                   (mark-visible-calendar-date date color)))))
+                   (calendar-mark-visible-date date color)))))
       (calendar-mark-complex month day year
                              'calendar-bahai-from-absolute color))))
 
@@ -1545,7 +1545,7 @@ the month if it is a weekday and the Friday before if the 21st is
 on a weekend:
 
       &%%(let ((dayname (calendar-day-of-week date))
-               (day (extract-calendar-day date)))
+               (day (calendar-extract-day date)))
            (or
              (and (= day 21) (memq dayname '(1 2 3 4 5)))
              (and (memq day '(19 20)) (= dayname 5)))
@@ -1713,12 +1713,12 @@ order of the input parameters changes according to `calendar-date-style'
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((ddate (diary-make-date month day year))
-         (dd (extract-calendar-day ddate))
-         (mm (extract-calendar-month ddate))
-         (yy (extract-calendar-year ddate))
-         (m (extract-calendar-month date))
-         (y (extract-calendar-year date))
-         (d (extract-calendar-day date)))
+         (dd (calendar-extract-day ddate))
+         (mm (calendar-extract-month ddate))
+         (yy (calendar-extract-year ddate))
+         (m (calendar-extract-month date))
+         (y (calendar-extract-year date))
+         (d (calendar-extract-day date)))
     (and
      (or (and (listp dd) (memq d dd))
          (equal d dd)
@@ -1763,9 +1763,9 @@ highlighting the day in the calendar."
   ;; first Monday after December 30.  For large values of |n| the problem is
   ;; more grotesque.
   (and (= dayname (calendar-day-of-week date))
-       (let* ((m (extract-calendar-month date))
-              (d (extract-calendar-day date))
-              (y (extract-calendar-year date))
+       (let* ((m (calendar-extract-month date))
+              (d (calendar-extract-day date))
+              (y (calendar-extract-year date))
               ;; Last (n>0) or first (n<0) possible base date for entry.
               (limit
                (calendar-nth-named-absday (- n) dayname m y d))
@@ -1774,13 +1774,13 @@ highlighting the day in the calendar."
               (last (calendar-gregorian-from-absolute last-abs))
               (first (calendar-gregorian-from-absolute first-abs))
               ;; m1, d1 is first possible base date.
-              (m1 (extract-calendar-month first))
-              (d1 (extract-calendar-day first))
-              (y1 (extract-calendar-year first))
+              (m1 (calendar-extract-month first))
+              (d1 (calendar-extract-day first))
+              (y1 (calendar-extract-year first))
               ;; m2, d2 is last possible base date.
-              (m2 (extract-calendar-month last))
-              (d2 (extract-calendar-day last))
-              (y2 (extract-calendar-year last)))
+              (m2 (calendar-extract-month last))
+              (d2 (calendar-extract-day last))
+              (y2 (calendar-extract-year last)))
          (if (or (and (= m1 m2) ; only possible base dates in one month
                       (or (eq month t)
                           (if (listp month)
@@ -1837,10 +1837,10 @@ February 29 is considered to be March 1 in non-leap years.
 An optional parameter MARK specifies a face or single-character
 string to use when highlighting the day in the calendar."
   (let* ((ddate (diary-make-date month day year))
-         (dd (extract-calendar-day ddate))
-         (mm (extract-calendar-month ddate))
-         (yy (extract-calendar-year ddate))
-         (y (extract-calendar-year date))
+         (dd (calendar-extract-day ddate))
+         (mm (calendar-extract-month ddate))
+         (yy (calendar-extract-year ddate))
+         (y (calendar-extract-year date))
          (diff (if yy (- y yy) 100)))
     (and (= mm 2) (= dd 29) (not (calendar-leap-year-p y))
          (setq mm 3
@@ -2096,9 +2096,9 @@ Prefix argument ARG makes the entry nonmarking."
 
 (defun diary-redraw-calendar ()
   "If `calendar-buffer' is live and diary entries are marked, redraw it."
-  (and mark-diary-entries-in-calendar
+  (and calendar-mark-diary-entries-flag
        (save-excursion
-         (redraw-calendar)))
+         (calendar-redraw)))
   ;; Return value suitable for `write-contents-functions'.
   nil)
 
