@@ -913,7 +913,16 @@
 
 	* simple.el (beginning-of-buffer, end-of-buffer, goto-line, undo)
 	(copy-region-as-kill, kill-ring-save, use-region-p, mark-word)
-	(keyboard-escape-quit): Check region-active-p i.s.o transient-mark-mode.
+	(keyboard-escape-quit): Check region-active-p i.s.o
+	transient-mark-mode.
+
+2008-04-02  Simon Josefsson  <simon@josefsson.org>
+
+	* net/imap.el (imap-enable-exchange-bug-workaround): New variable.
+	(imap-message-copyuid-1): Use it.
+	(imap-message-appenduid-1): Likewise.  Based on patch by Nathan
+	J. Williams in
+	<http://permalink.gmane.org/gmane.emacs.gnus.general/65855>.
 
 2008-04-02  Alan Mackenzie  <acm@muc.de>
 

@@ -30,6 +30,20 @@
 	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
 	Fix last change in case the element is not even a symbol.
 
+2008-04-02  Simon Josefsson  <simon@josefsson.org>
+
+	* nnimap.el (nnimap-enable-minmax-bug-workaround): Remove, replaced by
+	imap-enable-exchange-bug-workaround.
+	(nnimap-find-minmax-uid): Use imap-enable-exchange-bug-workaround.
+
+2008-04-01  Simon Josefsson  <simon@josefsson.org>
+
+	* nnimap.el (nnimap-find-minmax-uid): Revert last fix, the "fix" turns
+	a 100 byte status-checks into a 2-3MB transfer for each group.
+	(nnimap-enable-minmax-bug-workaround): New variable to toggle whether
+	to enable bug workaround or not.
+	(nnimap-find-minmax-uid): Only enable workaround conditionally.
+
 2008-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (mml2015-use): Declare for compiler.
@@ -45,6 +59,10 @@
 	(nntp-open-telnet-stream, nntp-open-via-rlogin-and-telnet): Use it.
 	(nntp-open-netcat-stream): New function.
 	(nntp-open-via-rlogin-and-netcat): Don't use a pty.
+
+2008-03-29  Sven Joachim  <svenjoac@gmx.de>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add missing dots.
 
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -440,6 +440,12 @@ The actual value is really the text on the continuation line.")
 The function should take two arguments, the first the IMAP tag and the
 second the status (OK, NO, BAD etc) of the command.")
 
+(defvar imap-enable-exchange-bug-workaround nil
+  "Send FETCH UID commands as *:* instead of *.
+Enabling this appears to be required for some servers (e.g.,
+Microsoft Exchange) which otherwise would trigger a response 'BAD
+The specified message set is invalid.'.")
+
 
 ;; Utility functions:
 
@@ -1774,7 +1780,8 @@ is non-nil return these properties."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch "*" "UID")
+	    (and (imap-fetch
+		  (if imap-enable-exchange-bug-workaround "*:*" "*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -1818,7 +1825,8 @@ first element, rest of list contain the saved articles' UIDs."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch "*" "UID")
+	    (and (imap-fetch
+		  (if imap-enable-exchange-bug-workaround "*:*" "*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))

@@ -2262,7 +2262,7 @@ increase the score of each group you read."
 	  ["Set mark below..." gnus-score-set-mark-below t]
 	  ["Set expunge below..." gnus-score-set-expunge-below t]
 	  ["Edit current score file" gnus-score-edit-current-scores t]
-	  ["Edit score file" gnus-score-edit-file t]
+	  ["Edit score file..." gnus-score-edit-file t]
 	  ["Trace score" gnus-score-find-trace t]
 	  ["Find words" gnus-score-find-favourite-words t]
 	  ["Rescore buffer" gnus-summary-rescore t]
