@@ -101,7 +101,7 @@
 ;; unfortunately have rather common names.  They are meant to be
 ;; available for external functions, so the names can't be changed.
 
-;; displayed-month, displayed-year: bound in generate-calendar, the
+;; displayed-month, displayed-year: bound in calendar-generate, the
 ;;   central month of the 3 month calendar window
 ;; original-date, number: bound in diary-list-entries, the arguments
 ;;   with which that function was called.
@@ -157,7 +157,7 @@ The choices are: `one-frame' (calendar and diary together in one separate,
 dedicated frame); `two-frames' (calendar and diary in separate, dedicated
 frames); `calendar-only' (calendar in a separate, dedicated frame); with
 any other value the current frame is used.  Using any of the first
-three options overrides the value of `view-diary-entries-initially'."
+three options overrides the value of `calendar-view-diary-initially-flag'."
   :type '(choice
           (const :tag "calendar and diary in separate frame" one-frame)
           (const :tag "calendar and diary each in own frame" two-frames)
@@ -166,7 +166,7 @@ three options overrides the value of `view-diary-entries-initially'."
   :group 'calendar)
 
 (defcustom calendar-minimum-window-height 8
-  "Minimum height `generate-calendar-window' should use for calendar window."
+  "Minimum height `calendar-generate-window' should use for calendar window."
   :type 'integer
   :version "22.1"
   :group 'calendar)
@@ -176,7 +176,7 @@ three options overrides the value of `view-diary-entries-initially'."
 0 means Sunday (default), 1 means Monday, and so on.
 
 If you change this variable directly (without using customize)
-after starting `calendar', you should call `redraw-calendar' to
+after starting `calendar', you should call `calendar-redraw' to
 update the calendar display to reflect the change, otherwise
 movement commands will not work correctly."
   :type 'integer
@@ -186,10 +186,10 @@ movement commands will not work correctly."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set sym val)
-         (redraw-calendar))
+         (calendar-redraw))
   :group 'calendar)
 
-(defcustom view-diary-entries-initially nil
+(defcustom calendar-view-diary-initially-flag nil
   "Non-nil means display current date's diary entries on entry to calendar.
 The diary is displayed in another window when the calendar is first displayed,
 if the current date is visible.  The number of days of diary entries displayed
@@ -198,11 +198,17 @@ be overridden by the value of `calendar-setup'."
   :type 'boolean
   :group 'diary)
 
-(defcustom mark-diary-entries-in-calendar nil
+(define-obsolete-variable-alias 'view-diary-entries-initially
+  'calendar-view-diary-initially-flag "23.1")
+
+(defcustom calendar-mark-diary-entries-flag nil
   "Non-nil means mark dates with diary entries, in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'."
   :type 'boolean
   :group 'diary)
+
+(define-obsolete-variable-alias 'mark-diary-entries-in-calendar
+  'calendar-mark-diary-entries-flag "23.1")
 
 (defcustom calendar-remove-frame-by-deleting t
   "Determine how the calendar mode removes a frame no longer needed.
@@ -273,18 +279,24 @@ The value can be either a single-character string or a face."
   :type '(choice string face)
   :group 'calendar)
 
-(defcustom view-calendar-holidays-initially nil
+(defcustom calendar-view-holidays-initially-flag nil
   "Non-nil means display holidays for current three month period on entry.
 The holidays are displayed in another window when the calendar is first
 displayed."
   :type 'boolean
   :group 'holidays)
 
-(defcustom mark-holidays-in-calendar nil
+(define-obsolete-variable-alias 'view-calendar-holidays-initially
+  'calendar-view-holidays-initially-flag "23.1")
+
+(defcustom calendar-mark-holidays-flag nil
   "Non-nil means mark dates of holidays in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'."
   :type 'boolean
   :group 'holidays)
+
+(define-obsolete-variable-alias 'mark-holidays-in-calendar
+  'calendar-mark-holidays-flag "23.1")
 
 (defcustom calendar-mode-hook nil
   "Hook run when entering `calendar-mode'."
@@ -297,18 +309,21 @@ This is the place to add key bindings to `calendar-mode-map'."
   :type 'hook
   :group 'calendar-hooks)
 
-(defcustom initial-calendar-window-hook nil
+(defcustom calendar-initial-window-hook nil
   "List of functions to be called when the calendar window is created.
 Quitting the calendar and re-entering it will cause these functions
 to be called again."
   :type 'hook
   :group 'calendar-hooks)
 
-(defcustom today-visible-calendar-hook nil
+(define-obsolete-variable-alias 'initial-calendar-window-hook
+  'calendar-initial-window-hook "23.1")
+
+(defcustom calendar-today-visible-hook nil
   "List of functions called whenever the current date is visible.
 To mark today's date, add the function `calendar-mark-today'.
 To replace the date with asterisks, add the function `calendar-star-date'.
-See also `today-invisible-calendar-hook'.
+See also `calendar-today-invisible-hook'.
 
 In general, be careful about changing characters in the calendar buffer,
 since it may cause the movement commands to fail."
@@ -316,11 +331,17 @@ since it may cause the movement commands to fail."
   :options '(calendar-mark-today calendar-star-date)
   :group 'calendar-hooks)
 
-(defcustom today-invisible-calendar-hook nil
+(define-obsolete-variable-alias 'today-visible-calendar-hook
+  'calendar-today-visible-hook "23.1")
+
+(defcustom calendar-today-invisible-hook nil
   "List of functions called whenever the current date is not visible.
-See also `today-visible-calendar-hook'."
+See also `calendar-today-visible-hook'."
   :type 'hook
   :group 'calendar-hooks)
+
+(define-obsolete-variable-alias 'today-invisible-calendar-hook
+  'calendar-today-invisible-hook "23.1")
 
 (defcustom calendar-move-hook nil
   "List of functions called whenever the cursor moves in the calendar.
@@ -338,7 +359,7 @@ redisplays the diary for whatever date the cursor is moved to."
 
 The file's entries are lines beginning with any of the forms
 specified by the variable `diary-date-forms', which by default
-uses the forms of `american-date-diary-pattern':
+uses the forms of `diary-american-date-forms':
 
             MONTH/DAY
             MONTH/DAY/YEAR
@@ -360,8 +381,8 @@ not contain a year, it is generic and applies to any year.  A
 DAYNAME entry applies to the appropriate day of the week in every week.
 
 You can customize `diary-date-forms' to your preferred format.
-Three default styles are provided: `american-date-diary-pattern',
-`european-date-diary-pattern', and `iso-date-diary-pattern'.
+Three default styles are provided: `diary-american-date-forms',
+`diary-european-date-forms', and `diary-iso-date-forms'.
 You can choose between these by setting `calendar-date-style' in your
 .emacs file, or by using `calendar-set-date-style' when in the calendar.
 
@@ -457,7 +478,7 @@ details, see the documentation for the variable `diary-list-entries-hook'."
 (defcustom european-calendar-style nil
   "Non-nil means use the European style of dates in the diary and display.
 In this case, a date like 1/2/1990 would be interpreted as
-February 1, 1990.  See `european-date-diary-pattern' for the
+February 1, 1990.  See `diary-european-date-forms' for the
 default European diary date styles.
 
 Setting this variable directly does not take effect (if the
@@ -503,7 +524,7 @@ calendar package is already loaded).  Rather, use either
   :group 'calendar)
 
 ;; Next three are provided to aid in setting diary-date-forms.
-(defcustom iso-date-diary-pattern
+(defcustom diary-iso-date-forms
   '((month "[-/]" day "[^-/0-9]")
     (year "[-/]" month "[-/]" day "[^0-9]")
     (monthname "-" day "[^-0-9]")
@@ -525,7 +546,7 @@ but `diary-date-forms' (which see)."
                                        (choice symbol regexp)))))
     :group 'diary)
 
-(defcustom american-date-diary-pattern
+(defcustom diary-american-date-forms
   '((month "/" day "[^/0-9]")
     (month "/" day "/" year "[^0-9]")
     (monthname " *" day "[^,0-9]")
@@ -546,7 +567,10 @@ but `diary-date-forms' (which see)."
                                        (choice symbol regexp)))))
   :group 'diary)
 
-(defcustom european-date-diary-pattern
+(define-obsolete-variable-alias 'american-date-diary-pattern
+  'diary-american-date-forms "23.1")
+
+(defcustom diary-european-date-forms
   '((day "/" month "[^/0-9]")
     (day "/" month "/" year "[^0-9]")
     (backup day " *" monthname "\\W+\\<\\([^*0-9]\\|\\([0-9]+[:aApP]\\)\\)")
@@ -567,13 +591,16 @@ DAY MONTHNAME YEAR; DAYNAME.  Normally you should not customize this, but
                                        (choice symbol regexp)))))
   :group 'diary)
 
+(define-obsolete-variable-alias 'european-date-diary-pattern
+  'diary-european-date-forms "23.1")
+
 (defvar diary-font-lock-keywords)
 
 (defcustom diary-date-forms (cond ((eq calendar-date-style 'iso)
-                                   iso-date-diary-pattern)
+                                   diary-iso-date-forms)
                                   ((eq calendar-date-style 'european)
-                                   european-date-diary-pattern)
-                                  (t american-date-diary-pattern))
+                                   diary-european-date-forms)
+                                  (t diary-american-date-forms))
   "List of pseudo-patterns describing the forms of date used in the diary.
 The patterns on the list must be MUTUALLY EXCLUSIVE and should not match
 any portion of the diary entry itself, just the date component.
@@ -599,8 +626,8 @@ directive causes the date recognizer to back up to the beginning of the
 current word of the diary entry, so in no case can the pattern match more than
 a portion of the first word of the diary entry.
 
-For examples of three common styles, see `american-date-diary-pattern',
-`european-date-diary-pattern', and `iso-date-diary-pattern'."
+For examples of three common styles, see `diary-american-date-forms',
+`diary-european-date-forms', and `diary-iso-date-forms'."
   :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -622,7 +649,7 @@ For examples of three common styles, see `american-date-diary-pattern',
   :group 'diary)
 
 ;; Next three are provided to aid in setting calendar-date-display-form.
-(defcustom iso-calendar-display-form '((format "%s-%.2d-%.2d" year
+(defcustom calendar-iso-date-display-form '((format "%s-%.2d-%.2d" year
                                                (string-to-number month)
                                                (string-to-number day)))
   "Pseudo-pattern governing the way a date appears in the ISO style.
@@ -632,7 +659,7 @@ Normally you should not customize this, but `calendar-date-display-form'
   :version "23.1"
   :group 'calendar)
 
-(defcustom european-calendar-display-form
+(defcustom calendar-european-date-display-form
   '((if dayname (concat dayname ", ")) day " " monthname " " year)
   "Pseudo-pattern governing the way a date appears in the European style.
 Normally you should not customize this, but `calendar-date-display-form'
@@ -640,7 +667,10 @@ Normally you should not customize this, but `calendar-date-display-form'
   :type 'sexp
   :group 'calendar)
 
-(defcustom american-calendar-display-form
+(define-obsolete-variable-alias 'european-calendar-display-form
+  'calendar-european-date-display-form "23.1")
+
+(defcustom calendar-american-date-display-form
   '((if dayname (concat dayname ", ")) monthname " " day ", " year)
   "Pseudo-pattern governing the way a date appears in the American style.
 Normally you should not customize this, but `calendar-date-display-form'
@@ -648,11 +678,15 @@ Normally you should not customize this, but `calendar-date-display-form'
   :type 'sexp
   :group 'calendar)
 
-(defcustom calendar-date-display-form (cond ((eq calendar-date-style 'iso)
-                                             iso-calendar-display-form)
-                                            ((eq calendar-date-style 'european)
-                                             european-calendar-display-form)
-                                            (t american-calendar-display-form))
+(define-obsolete-variable-alias 'american-calendar-display-form
+  'calendar-american-date-display-form "23.1")
+
+(defcustom calendar-date-display-form
+  (cond ((eq calendar-date-style 'iso)
+         calendar-iso-date-display-form)
+        ((eq calendar-date-style 'european)
+         calendar-european-date-display-form)
+        (t calendar-american-date-display-form))
   "Pseudo-pattern governing the way a calendar date appears.
 Used by the function `calendar-date-string' (which see), a pseudo-pattern
 is a list of expressions that can involve the keywords `month', `day',
@@ -666,8 +700,8 @@ whereas
        '((format \"%9s, %9s %2s, %4s\" dayname monthname day year))
 
 would give the usual American style in fixed-length fields.  The variables
-`iso-calendar-display-form', `european-calendar-display-form', and
-`american-calendar-display-form' provide some defaults for three common
+`calendar-iso-date-display-form', `calendar-european-date-display-form', and
+`calendar-american-date-display-form' provide some defaults for three common
 styles."
   :type 'sexp
   :group 'calendar)
@@ -683,10 +717,11 @@ The valid styles are described in the documentation of `calendar-date-style'."
       (setq style 'american))
   (setq calendar-date-style style
         calendar-date-display-form
-        (symbol-value (intern-soft (format "%s-calendar-display-form" style)))
+        (symbol-value (intern-soft
+                       (format "calendar-%s-date-display-form" style)))
         diary-date-forms
-        (symbol-value (intern-soft (format "%s-date-diary-pattern" style))))
-  (update-calendar-mode-line))
+        (symbol-value (intern-soft (format "diary-%s-date-forms" style))))
+  (calendar-update-mode-line))
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
@@ -728,7 +763,7 @@ A function `diary-fancy-display' is provided for use with this
 hook; this function prepares a special noneditable diary buffer
 with the relevant diary entries that has neat day-by-day
 arrangement with headings.  The fancy diary buffer will show the
-holidays unless the variable `holidays-in-diary-buffer' is set to
+holidays unless the variable `diary-show-holidays-flag' is set to
 nil.  Ordinarily, the fancy diary buffer will not show days for
 which there are no diary entries, even if that day is a holiday;
 if you want such days to be shown in the fancy diary buffer, set
@@ -739,13 +774,16 @@ the variable `diary-list-include-blanks' non-nil."
   :set 'diary-set-maybe-redraw
   :group 'diary)
 
-(defcustom holidays-in-diary-buffer t
+(defcustom diary-show-holidays-flag t
   "Non-nil means include holidays in the diary display.
 The holidays appear in the mode line of the diary buffer, or in the
 fancy diary buffer next to the date.  This slows down the diary functions
 somewhat; setting it to nil makes the diary display faster."
   :type 'boolean
   :group 'holidays)
+
+(define-obsolete-variable-alias 'holidays-in-diary-buffer
+  'diary-show-holidays-flag "23.1")
 
 (defcustom calendar-debug-sexp nil
   "Turn debugging on when evaluating a sexp in the diary or holiday list."
@@ -757,7 +795,7 @@ somewhat; setting it to nil makes the diary display faster."
 ;; explicitly load this file.
 
 ;;;###autoload
-(defcustom general-holidays
+(defcustom holiday-general-holidays
   '((holiday-fixed 1 1 "New Year's Day")
     (holiday-float 1 1 3 "Martin Luther King Day")
     (holiday-fixed 2 2 "Groundhog Day")
@@ -780,35 +818,45 @@ See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'general-holidays 'risky-local-variable t)
+(put 'holiday-general-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'general-holidays
+  'holiday-general-holidays "23.1")
 
 ;;;###autoload
-(defcustom oriental-holidays
+(defcustom holiday-oriental-holidays
   '((holiday-chinese-new-year))
   "Oriental holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'oriental-holidays 'risky-local-variable t)
+(put 'holiday-oriental-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'oriental-holidays
+  'holiday-oriental-holidays "23.1")
 
 ;;;###autoload
-(defcustom local-holidays nil
+(defcustom holiday-local-holidays nil
   "Local holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'local-holidays 'risky-local-variable t)
+(put 'holiday-local-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'local-holidays 'holiday-local-holidays "23.1")
 
 ;;;###autoload
-(defcustom other-holidays nil
+(defcustom holiday-other-holidays nil
   "User defined holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'other-holidays 'risky-local-variable t)
+(put 'holiday-other-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'other-holidays 'holiday-other-holidays "23.1")
 
 (defcustom calendar-hebrew-all-holidays-flag nil
   "If nil, show only major holidays from the Hebrew calendar.
@@ -830,14 +878,14 @@ calendar."
          (let ((m displayed-month)
                (y displayed-year)
                year)
-           (increment-calendar-month m y -1)
-           (setq year (extract-calendar-year
+           (calendar-increment-month m y -1)
+           (setq year (calendar-extract-year
                        (calendar-julian-from-absolute
                         (calendar-absolute-from-gregorian (list m 1 y)))))
            (if (zerop (% (1+ year) 4))
                22
              21)) "\"Tal Umatar\" (evening)")))
-  "Component of the default value of `hebrew-holidays'.")
+  "Component of the old default value of `holiday-hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-1 'risky-local-variable t)
 (make-obsolete-variable 'hebrew-holidays-1 'hebrew-holidays "23.1")
@@ -848,7 +896,7 @@ calendar."
     (if calendar-hebrew-all-holidays-flag
       (holiday-hebrew
        10
-       (let ((h-year (extract-calendar-year
+       (let ((h-year (calendar-extract-year
                       (calendar-hebrew-from-absolute
                        (calendar-absolute-from-gregorian
                         (list displayed-month 28 displayed-year))))))
@@ -858,7 +906,7 @@ calendar."
        "Tzom Teveth"))
     (if calendar-hebrew-all-holidays-flag
         (holiday-hebrew 11 15 "Tu B'Shevat")))
-  "Component of the default value of `hebrew-holidays'.")
+  "Component of the old default value of `holiday-hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-2 'risky-local-variable t)
 (make-obsolete-variable 'hebrew-holidays-2 'hebrew-holidays "23.1")
@@ -871,8 +919,8 @@ calendar."
          (let* ((m displayed-month)
                 (y displayed-year)
                 (h-year (progn
-                          (increment-calendar-month m y 1)
-                          (extract-calendar-year
+                          (calendar-increment-month m y 1)
+                          (calendar-extract-year
                            (calendar-hebrew-from-absolute
                             (calendar-absolute-from-gregorian
                              (list m (calendar-last-day-of-month m y) y))))))
@@ -888,10 +936,10 @@ calendar."
                     (calendar-dayname-on-or-before
                      6 (calendar-hebrew-to-absolute
                         (list 11 16 h-year))))))
-                (day (extract-calendar-day s-s)))
+                (day (calendar-extract-day s-s)))
            day)
          "Shabbat Shirah")))
-  "Component of the default value of `hebrew-holidays'.")
+  "Component of the old default value of `holiday-hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-3 'risky-local-variable t)
 (make-obsolete-variable 'hebrew-holidays-3 'hebrew-holidays "23.1")
@@ -903,21 +951,21 @@ calendar."
          (let* ((m displayed-month)
                 (y displayed-year)
                 (year (progn
-                        (increment-calendar-month m y -1)
-                        (extract-calendar-year
+                        (calendar-increment-month m y -1)
+                        (calendar-extract-year
                          (calendar-julian-from-absolute
                           (calendar-absolute-from-gregorian (list m 1 y)))))))
            (= 21 (% year 28)))
          (holiday-julian 3 26 "Kiddush HaHamah"))
     (if calendar-hebrew-all-holidays-flag
         (holiday-hebrew-tisha-b-av)))
-    "Component of the default value of `hebrew-holidays'.")
+    "Component of the old default value of `holiday-hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-4 'risky-local-variable t)
 (make-obsolete-variable 'hebrew-holidays-4 'hebrew-holidays "23.1")
 
 ;;;###autoload
-(defcustom hebrew-holidays
+(defcustom holiday-hebrew-holidays
   '((holiday-hebrew-passover)
     (holiday-hebrew-rosh-hashanah)
     (holiday-hebrew-hanukkah)
@@ -931,7 +979,10 @@ See the documentation for `calendar-holidays' for details."
   :version "23.1"            ; removed dependency on hebrew-holidays-N
   :group 'holidays)
 ;;;###autoload
-(put 'hebrew-holidays 'risky-local-variable t)
+(put 'holiday-hebrew-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'hebrew-holidays
+  'holiday-hebrew-holidays "23.1")
 
 (defcustom calendar-christian-all-holidays-flag nil
   "If nil, show only major holidays from the Christian calendar.
@@ -945,7 +996,7 @@ calendar."
   'calendar-christian-all-holidays-flag "23.1")
 
 ;;;###autoload
-(defcustom christian-holidays
+(defcustom holiday-christian-holidays
   '((holiday-easter-etc)    ; respects calendar-christian-all-holidays-flag
     (holiday-fixed 12 25 "Christmas")
     (if calendar-christian-all-holidays-flag
@@ -960,7 +1011,10 @@ See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'christian-holidays 'risky-local-variable t)
+(put 'holiday-christian-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'christian-holidays
+  'holiday-christian-holidays "23.1")
 
 (defcustom calendar-islamic-all-holidays-flag nil
   "If nil, show only major holidays from the Islamic calendar.
@@ -974,7 +1028,7 @@ calendar."
   'calendar-islamic-all-holidays-flag "23.1")
 
 ;;;###autoload
-(defcustom islamic-holidays
+(defcustom holiday-islamic-holidays
   '((holiday-islamic-new-year)
     (holiday-islamic 9 1 "Ramadan Begins")
     (if calendar-islamic-all-holidays-flag
@@ -991,7 +1045,10 @@ See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'islamic-holidays 'risky-local-variable t)
+(put 'holiday-islamic-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'islamic-holidays
+  'holiday-islamic-holidays "23.1")
 
 (defcustom calendar-bahai-all-holidays-flag nil
   "If nil, show only major holidays from the Baha'i calendar.
@@ -1005,7 +1062,7 @@ calendar."
   'calendar-bahai-all-holidays-flag "23.1")
 
 ;;;###autoload
-(defcustom bahai-holidays
+(defcustom holiday-bahai-holidays
   '((holiday-bahai-new-year)
     (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
     (holiday-fixed  5 23 "Declaration of the Bab")
@@ -1022,10 +1079,12 @@ See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'bahai-holidays 'risky-local-variable t)
+(put 'holiday-bahai-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'bahai-holidays 'holiday-bahai-holidays "23.1")
 
 ;;;###autoload
-(defcustom solar-holidays
+(defcustom holiday-solar-holidays
   '((solar-equinoxes-solstices)
     (holiday-sexp calendar-daylight-savings-starts
                   (format "Daylight Saving Time Begins %s"
@@ -1042,21 +1101,26 @@ See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
-(put 'solar-holidays 'risky-local-variable t)
+(put 'holiday-solar-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'solar-holidays 'holiday-solar-holidays "23.1")
 
 ;;;###autoload
 (defcustom calendar-holidays
-  (append general-holidays local-holidays other-holidays
-          christian-holidays hebrew-holidays islamic-holidays
-          bahai-holidays oriental-holidays solar-holidays)
+  (append holiday-general-holidays holiday-local-holidays
+          holiday-other-holidays holiday-christian-holidays
+          holiday-hebrew-holidays holiday-islamic-holidays
+          holiday-bahai-holidays holiday-oriental-holidays
+          holiday-solar-holidays)
   "List of notable days for the command \\[holidays].
 
 Additional holidays are easy to add to the list, just put them in the
-list `other-holidays' in your .emacs file.  Similarly, by setting any
-of `general-holidays', `local-holidays' `christian-holidays',
-`hebrew-holidays', `islamic-holidays', `bahai-holidays',
-`oriental-holidays', or `solar-holidays' to nil in your .emacs file,
-you can eliminate unwanted categories of holidays.
+list `holiday-other-holidays' in your .emacs file.  Similarly, by setting
+any of `holiday-general-holidays', `holiday-local-holidays',
+`holiday-christian-holidays', `holiday-hebrew-holidays',
+`holiday-islamic-holidays', `holiday-bahai-holidays',
+`holiday-oriental-holidays', or `holiday-solar-holidays' to nil in your
+.emacs file, you can eliminate unwanted categories of holidays.
 
 The aforementioned variables control the holiday choices offered
 by the function `holiday-list' when it is called interactively.
@@ -1068,8 +1132,8 @@ variables have no effect on `calendar-holidays' after it has been
 set (e.g. after the calendar is loaded).  In that case, customize
 `calendar-holidays' directly.
 
-The intention is that (in the US) `local-holidays' be set in
-site-init.el and `other-holidays' be set by the user.
+The intention is that (in the US) `holiday-local-holidays' be set in
+site-init.el and `holiday-other-holidays' be set by the user.
 
 Entries on the list are expressions that return (possibly empty) lists of
 items of the form ((month day year) string) of a holiday in the
@@ -1137,7 +1201,7 @@ or
 
      (if (zerop (% displayed-year 4))
          (holiday-fixed 11
-                (extract-calendar-day
+                (calendar-extract-day
                  (calendar-gregorian-from-absolute
                   (1+ (calendar-dayname-on-or-before
                        1 (+ 6 (calendar-absolute-from-gregorian
@@ -1166,19 +1230,21 @@ with descriptive strings such as
 (defconst holiday-buffer "*Holidays*"
   "Name of the buffer used for the displaying the holidays.")
 
-(defconst fancy-diary-buffer "*Fancy Diary Entries*"
+(defconst diary-fancy-buffer "*Fancy Diary Entries*"
   "Name of the buffer used for the optional fancy display of the diary.")
 
-(defconst other-calendars-buffer "*Other Calendars*"
+(define-obsolete-variable-alias 'fancy-diary-buffer 'diary-fancy-buffer "23.1")
+
+(defconst calendar-other-calendars-buffer "*Other Calendars*"
   "Name of the buffer used for the display of date on other calendars.")
 
 (defconst lunar-phases-buffer "*Phases of Moon*"
   "Name of the buffer used for the lunar phases.")
 
-(defconst cal-hebrew-yahrzeit-buffer "*Yahrzeits*"
+(defconst calendar-hebrew-yahrzeit-buffer "*Yahrzeits*"
   "Name of the buffer used by `list-yahrzeit-dates'.")
 
-(defmacro increment-calendar-month (mon yr n &optional nmonths)
+(defmacro calendar-increment-month (mon yr n &optional nmonths)
   "Increment the variables MON and YR by N months.
 Forward if N is positive or backward if N is negative.
 A negative YR is interpreted as BC; -1 being 1 BC, and so on.
@@ -1198,16 +1264,19 @@ Optional NMONTHS is the number of months per year (default 12)."
      (and (< macro-y 0) (> ,mon 1) (setq ,yr (1- ,yr)))
      (if (< ,yr 1) (setq ,yr (1- ,yr))))) ; 0 AD -> -1 BC, etc
 
+(define-obsolete-function-alias 'increment-calendar-month
+  'calendar-increment-month "23.1")
+
 (defvar displayed-month)
 (defvar displayed-year)
 
-(defun calendar-increment-month (n &optional mon yr)
+(defun calendar-increment-month-cons (n &optional mon yr)
   "Return the Nth month after MON/YR.
 The return value is a pair (MONTH . YEAR).
 MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   (unless mon (setq mon displayed-month))
   (unless yr (setq yr displayed-year))
-  (increment-calendar-month mon yr n)
+  (calendar-increment-month mon yr n)
   (cons mon yr))
 
 (defmacro calendar-for-loop (var from init to final do &rest body)
@@ -1255,9 +1324,9 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
 ;; fancy diary display, for a moderately complex diary file, with functions
 ;; used instead of macros.  There were a total of 10000 such calls:
 ;;
-;;  1934   extract-calendar-month
-;;  1852   extract-calendar-year
-;;  1819   extract-calendar-day
+;;  1934   calendar-extract-month
+;;  1852   calendar-extract-year
+;;  1819   calendar-extract-day
 ;;   845   calendar-leap-year-p
 ;;   837   calendar-day-number
 ;;   775   calendar-absolute-from-gregorian
@@ -1277,19 +1346,28 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
 ;; The use of these seven macros eliminates the overhead of 92% of the function
 ;; calls; it's faster this way.
 
-(defsubst extract-calendar-month (date)
+(defsubst calendar-extract-month (date)
   "Extract the month part of DATE which has the form (month day year)."
   (car date))
 
+(define-obsolete-function-alias 'extract-calendar-month
+  'calendar-extract-month "23.1")
+
 ;; Note gives wrong answer for result of (calendar-read-date 'noday),
 ;; but that is only used by `calendar-other-month'.
-(defsubst extract-calendar-day (date)
+(defsubst calendar-extract-day (date)
   "Extract the day part of DATE which has the form (month day year)."
   (cadr date))
 
-(defsubst extract-calendar-year (date)
+(define-obsolete-function-alias 'extract-calendar-day
+  'calendar-extract-day "23.1")
+
+(defsubst calendar-extract-year (date)
   "Extract the year part of DATE which has the form (month day year)."
   (nth 2 date))
+
+(define-obsolete-function-alias 'extract-calendar-year
+  'calendar-extract-year "23.1")
 
 (defsubst calendar-leap-year-p (year)
   "Return t if YEAR is a Gregorian leap year.
@@ -1322,9 +1400,9 @@ A negative year is interpreted as BC; -1 being 1 BC, and so on."
   "Return the day number within the year of the date DATE.
 For example, (calendar-day-number '(1 1 1987)) returns the value 1,
 while (calendar-day-number '(12 31 1980)) returns 366."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
+  (let* ((month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         (year (calendar-extract-year date))
          (day-of-year (+ day (* 31 (1- month)))))
     (when (> month 2)
       (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
@@ -1338,7 +1416,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary.
 DATE is a list of the form (month day year).  A negative year is
 interpreted as BC; -1 being 1 BC, and so on.  Dates before 12/31/1 BC
 return negative results."
-  (let ((year (extract-calendar-year date))
+  (let ((year (calendar-extract-year date))
         offset-years)
     (cond ((zerop year)
            (error "There was no year zero"))
@@ -1380,19 +1458,19 @@ window.
 Displays the calendar in a separate window, or optionally in a
 separate frame, depending on the value of `calendar-setup'.
 
-If `view-diary-entries-initially' is non-nil, also displays the
+If `calendar-view-diary-initially-flag' is non-nil, also displays the
 diary entries for the current date (or however many days
 `diary-number-of-entries' specifies).  This variable can be
 overridden by `calendar-setup'.  As well as being displayed,
 diary entries can also be marked on the calendar (see
-`mark-diary-entries-in-calendar').
+`calendar-mark-diary-entries-flag').
 
 Runs the following hooks:
 
 `calendar-load-hook' - after loading calendar.el
-`today-visible-calendar-hook', `today-invisible-calendar-hook' - after
+`calendar-today-visible-hook', `calendar-today-invisible-hook' - after
    generating a calendar, if today's date is visible or not, respectively
-`initial-calendar-window-hook' - after first creating a calendar
+`calendar-initial-window-hook' - after first creating a calendar
 
 This function is suitable for execution in a .emacs file."
   (interactive "P")
@@ -1414,38 +1492,39 @@ display the generated calendar."
          (split-height-threshold 1000)
          (date (if arg (calendar-read-date t)
                  (calendar-current-date)))
-         (month (extract-calendar-month date))
-         (year (extract-calendar-year date)))
-    (increment-calendar-month month year (- calendar-offset))
-    ;; Display the buffer before calling generate-calendar-window so that it
+         (month (calendar-extract-month date))
+         (year (calendar-extract-year date)))
+    (calendar-increment-month month year (- calendar-offset))
+    ;; Display the buffer before calling calendar-generate-window so that it
     ;; can get a chance to adjust the window sizes to the frame size.
     (or nodisplay (pop-to-buffer calendar-buffer))
-    (generate-calendar-window month year)
-    (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
+    (calendar-generate-window month year)
+    (if (and calendar-view-diary-initially-flag
+             (calendar-date-is-visible-p date))
         (diary-view-entries)))
-  (if view-calendar-holidays-initially
+  (if calendar-view-holidays-initially-flag
       (let* ((diary-buffer (get-file-buffer diary-file))
              (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
              (split-height-threshold (if diary-window 2 1000)))
         ;; FIXME display buffer?
         (calendar-list-holidays)))
-  (run-hooks 'initial-calendar-window-hook))
+  (run-hooks 'calendar-initial-window-hook))
 
-(defun generate-calendar-window (&optional mon yr)
+(defun calendar-generate-window (&optional mon yr)
   "Generate the calendar window for the current date.
 Optional integers MON and YR are used instead of today's date."
   (let* ((inhibit-read-only t)
          (today (calendar-current-date))
-         (month (extract-calendar-month today))
-         (day (extract-calendar-day today))
-         (year (extract-calendar-year today))
+         (month (calendar-extract-month today))
+         (day (calendar-extract-day today))
+         (year (calendar-extract-year today))
          (today-visible (or (not mon)
                             (<= (abs (calendar-interval mon yr month year)) 1)))
          (day-in-week (calendar-day-of-week today))
          (in-calendar-window (eq (window-buffer (selected-window))
                                  (get-buffer calendar-buffer))))
-    (generate-calendar (or mon month) (or yr year))
-    (update-calendar-mode-line)
+    (calendar-generate (or mon month) (or yr year))
+    (calendar-update-mode-line)
     (calendar-cursor-to-visible-date
      (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
@@ -1461,17 +1540,17 @@ Optional integers MON and YR are used instead of today's date."
       (sit-for 0))
     (and (bound-and-true-p font-lock-mode)
          (font-lock-fontify-buffer))
-    (and mark-holidays-in-calendar
+    (and calendar-mark-holidays-flag
 ;;;         (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays)
          (and in-calendar-window (sit-for 0)))
     (unwind-protect
-        (if mark-diary-entries-in-calendar (diary-mark-entries))
+        (if calendar-mark-diary-entries-flag (diary-mark-entries))
       (if today-visible
-          (run-hooks 'today-visible-calendar-hook)
-        (run-hooks 'today-invisible-calendar-hook)))))
+          (run-hooks 'calendar-today-visible-hook)
+        (run-hooks 'calendar-today-invisible-hook)))))
 
-(defun generate-calendar (month year)
+(defun calendar-generate (month year)
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
   ;; A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
   ;; Note that while calendars for years BC could be displayed as it
@@ -1482,12 +1561,12 @@ Optional integers MON and YR are used instead of today's date."
   (setq displayed-month month
         displayed-year year)
   (erase-buffer)
-  (increment-calendar-month month year -1)
+  (calendar-increment-month month year -1)
   (dotimes (i 3)
-    (generate-calendar-month month year (+ 5 (* 25 i)))
-    (increment-calendar-month month year 1)))
+    (calendar-generate-month month year (+ 5 (* 25 i)))
+    (calendar-increment-month month year 1)))
 
-(defun generate-calendar-month (month year indent)
+(defun calendar-generate-month (month year indent)
   "Produce a calendar for MONTH, YEAR on the Gregorian calendar.
 The calendar is inserted at the top of the buffer in which point is currently
 located, but indented INDENT spaces.  The indentation is done from the first
@@ -1551,13 +1630,13 @@ after the inserted text.  Returns t."
       (forward-line 1)))
   t)
 
-(defun redraw-calendar ()
+(defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
   (if (get-buffer calendar-buffer)
       (with-current-buffer calendar-buffer
         (let ((cursor-date (calendar-cursor-to-nearest-date)))
-          (generate-calendar-window displayed-month displayed-year)
+          (calendar-generate-window displayed-month displayed-year)
           (calendar-cursor-to-visible-date cursor-date)))))
 
 (defvar calendar-mode-map
@@ -1626,10 +1705,10 @@ after the inserted text.  Returns t."
     (define-key map "M"   'calendar-phases-of-moon)
     (define-key map " "   'scroll-other-window)
     (define-key map (kbd "DEL") 'scroll-other-window-down) ; FIXME
-    (define-key map "\C-c\C-l" 'redraw-calendar)
+    (define-key map "\C-c\C-l" 'calendar-redraw)
     (define-key map "."   'calendar-goto-today)
     (define-key map "o"   'calendar-other-month)
-    (define-key map "q"   'exit-calendar)
+    (define-key map "q"   'calendar-exit)
     (define-key map "a"   'calendar-list-holidays)
     (define-key map "h"   'calendar-cursor-holidays)
     (define-key map "x"   'calendar-mark-holidays)
@@ -1706,10 +1785,11 @@ after the inserted text.  Returns t."
     map)
   "Keymap for `calendar-mode'.")
 
-(defun describe-calendar-mode ()
+;; FIXME unused?
+(defun calendar-describe-mode ()
   "Create a help buffer with a brief description of the `calendar-mode'."
   (interactive)
-  (help-setup-xref (list #'describe-calendar-mode) (interactive-p))
+  (help-setup-xref (list #'calendar-describe-mode) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
     (princ
      (format
@@ -1745,7 +1825,7 @@ after the inserted text.  Returns t."
      'help-echo "mouse-1: choose another month"
      'mouse-face 'mode-line-highlight
      'keymap (make-mode-line-mouse-map
-              'mouse-1 'mouse-calendar-other-month))
+              'mouse-1 'calendar-mouse-other-month))
     " / "
     (propertize
      (substitute-command-keys
@@ -1767,13 +1847,13 @@ evaluated and concatenated together, evenly separated by blanks.  The variable
 defaults to the current date if it is otherwise undefined.  Here is an example
 value that has the Hebrew date, the day number/days remaining in the year,
 and the ISO week/year numbers in the mode.  When `calendar-move-hook' is set
-to `update-calendar-mode-line', the mode line shows these values for the date
+to `calendar-update-mode-line', the mode line shows these values for the date
 under the cursor:
 
       (list
        \"\"
        '(calendar-hebrew-date-string date)
-       '(let* ((year (extract-calendar-year date))
+       '(let* ((year (calendar-extract-year date))
                (d (calendar-day-number date))
                (days-remaining
                 (- (calendar-day-number (list 12 31 year)) d)))
@@ -1781,13 +1861,13 @@ under the cursor:
        '(let* ((d (calendar-absolute-from-gregorian date))
                (iso-date (calendar-iso-from-absolute d)))
           (format \"ISO week %d of %d\"
-            (extract-calendar-month iso-date)
-            (extract-calendar-year iso-date)))
+            (calendar-extract-month iso-date)
+            (calendar-extract-year iso-date)))
        \"\"))"
   :type 'sexp
   :group 'calendar)
 
-(defun mouse-calendar-other-month (event)
+(defun calendar-mouse-other-month (event)
   "Display a three-month calendar centered around a specified month and year.
 EVENT is the last mouse event."
   (interactive "e")
@@ -1817,13 +1897,13 @@ For a complete description, type \
         buffer-undo-list t
         indent-tabs-mode nil)
   (use-local-map calendar-mode-map)
-  (update-calendar-mode-line)
+  (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
   (make-local-variable 'displayed-year)  ; year in middle of window
   ;; Most functions only work if displayed-month and displayed-year are set,
   ;; so let's make sure they're always set.  Most likely, this will be reset
-  ;; soon in generate-calendar, but better safe than sorry.
+  ;; soon in calendar-generate, but better safe than sorry.
   (unless (boundp 'displayed-month) (setq displayed-month 1))
   (unless (boundp 'displayed-year)  (setq displayed-year  2001))
   (set (make-local-variable 'font-lock-defaults)
@@ -1855,7 +1935,7 @@ the STRINGS are just concatenated and the result truncated."
             i (1+ i)))
     (substring s 0 length)))
 
-(defun update-calendar-mode-line ()
+(defun calendar-update-mode-line ()
   "Update the calendar mode line with the current date and date style."
   (if (bufferp (get-buffer calendar-buffer))
       (with-current-buffer calendar-buffer
@@ -1881,15 +1961,15 @@ the STRINGS are just concatenated and the result truncated."
 (defun calendar-buffer-list ()
   "List of all calendar-related buffers (as buffers, not strings)."
   (let (buffs)
-    (dolist (b (list cal-hebrew-yahrzeit-buffer lunar-phases-buffer
-                     holiday-buffer fancy-diary-buffer
+    (dolist (b (list calendar-hebrew-yahrzeit-buffer lunar-phases-buffer
+                     holiday-buffer diary-fancy-buffer
                      (get-file-buffer diary-file)
-                     calendar-buffer other-calendars-buffer))
+                     calendar-buffer calendar-other-calendars-buffer))
       (and b (setq b (get-buffer b))
            (push b buffs)))
     buffs))
 
-(defun exit-calendar ()
+(defun calendar-exit ()
   "Get out of the calendar window and hide it and related buffers."
   (interactive)
   (let ((diary-buffer (get-file-buffer diary-file)))
@@ -1902,6 +1982,8 @@ the STRINGS are just concatenated and the result truncated."
         (mapc (lambda (x)
                 (mapc 'calendar-hide-window (calendar-window-list)))
               (calendar-window-list)))))
+
+(define-obsolete-function-alias 'exit-calendar 'calendar-exit "23.1")
 
 (defun calendar-hide-window (window)
   "Hide WINDOW if it is calendar-related."
@@ -2011,7 +2093,7 @@ handle dates in years BC."
                (= year displayed-year))
     (let ((old-date (calendar-cursor-to-date))
           (today (calendar-current-date)))
-      (generate-calendar-window month year)
+      (calendar-generate-window month year)
       (calendar-cursor-to-visible-date
        (cond
         ((calendar-date-is-visible-p old-date) old-date)
@@ -2176,7 +2258,7 @@ If optional NODAY is t, does not ask for day, but just returns
   (let* ((year (calendar-read
                 "Year (>0): "
                 (lambda (x) (> x 0))
-                (int-to-string (extract-calendar-year
+                (int-to-string (calendar-extract-year
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
          (completion-ignore-case t)
@@ -2272,8 +2354,8 @@ interpreted as BC; -1 being 1 BC, and so on."
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
   (interactive)
-  (setq mark-holidays-in-calendar nil
-        mark-diary-entries-in-calendar nil)
+  (setq calendar-mark-holidays-flag nil
+        calendar-mark-diary-entries-flag nil)
   (with-current-buffer calendar-buffer
     (mapc 'delete-overlay (overlays-in (point-min) (point-max)))))
 
@@ -2282,7 +2364,7 @@ interpreted as BC; -1 being 1 BC, and so on."
   (and (calendar-date-is-valid-p date)
        (< (abs (calendar-interval
                 displayed-month displayed-year
-                (extract-calendar-month date) (extract-calendar-year date)))
+                (calendar-extract-month date) (calendar-extract-year date)))
           2)))
 
 (defun calendar-nongregorian-visible-p (month day toabs fromabs switch)
@@ -2302,10 +2384,10 @@ Returns the corresponding Gregorian date."
          (y2 displayed-year)
          ;; Absolute date of first/last dates in calendar window.
          (start-date (progn
-                       (increment-calendar-month m1 y1 -1)
+                       (calendar-increment-month m1 y1 -1)
                        (calendar-absolute-from-gregorian (list m1 1 y1))))
          (end-date (progn
-                     (increment-calendar-month m2 y2 1)
+                     (calendar-increment-month m2 y2 1)
                      (calendar-absolute-from-gregorian
                       (list m2 (calendar-last-day-of-month m2 y2) y2))))
          ;; Local date of first/last date in calendar window.
@@ -2313,8 +2395,8 @@ Returns the corresponding Gregorian date."
          (local-end (funcall fromabs end-date))
          ;; Local year of first/last dates.
          ;; Can only differ if displayed-month = 12, 1, 2.
-         (local-y1 (extract-calendar-year local-start))
-         (local-y2 (extract-calendar-year local-end))
+         (local-y1 (calendar-extract-year local-start))
+         (local-y2 (calendar-extract-year local-end))
          ;; Choose which year might be visible in the window.
          ;; Obviously it only matters when y1 and y2 differ, ie
          ;; when the _local_ new year is visible.
@@ -2326,14 +2408,14 @@ Returns the corresponding Gregorian date."
 
 (defun calendar-date-is-valid-p (date)
   "Return t if DATE is a valid date."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
+  (let ((month (calendar-extract-month date))
+        (day (calendar-extract-day date))
+        (year (calendar-extract-year date)))
     (and (<= 1 month) (<= month 12)
          ;; (calendar-read-date t) used to return a date with day = nil.
          ;; Should not be valid (?), since many funcs prob assume integer.
          ;; (calendar-read-date 'noday) returns (month year), which
-         ;; currently results in extract-calendar-year returning nil.
+         ;; currently results in calendar-extract-year returning nil.
          day year (<= 1 day) (<= day (calendar-last-day-of-month month year))
          ;; BC dates left as non-valid, to suppress errors from
          ;; complex holiday algorithms not suitable for years BC.
@@ -2346,9 +2428,9 @@ Returns the corresponding Gregorian date."
 (defun calendar-date-equal (date1 date2)
   "Return t if the DATE1 and DATE2 are the same."
   (and
-   (= (extract-calendar-month date1) (extract-calendar-month date2))
-   (= (extract-calendar-day date1) (extract-calendar-day date2))
-   (= (extract-calendar-year date1) (extract-calendar-year date2))))
+   (= (calendar-extract-month date1) (calendar-extract-month date2))
+   (= (calendar-extract-day date1) (calendar-extract-day date2))
+   (= (calendar-extract-year date1) (calendar-extract-year date2))))
 
 (defun calendar-make-temp-face (attrlist)
   "Return a temporary face based on the attributes in ATTRLIST.
@@ -2383,7 +2465,7 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
       (apply 'set-face-attribute temp-face nil (nreverse faceinfo))
       temp-face)))
 
-(defun mark-visible-calendar-date (date &optional mark)
+(defun calendar-mark-visible-date (date &optional mark)
   "Mark DATE in the calendar window with MARK.
 MARK is a single-character string, a list of face attributes/values, or a face.
 MARK defaults to `diary-entry-marker'."
@@ -2412,9 +2494,12 @@ MARK defaults to `diary-entry-marker'."
              (make-overlay (1- (point)) (1+ (point))) 'face
              (calendar-make-temp-face mark))))))))
 
+(define-obsolete-function-alias 'mark-visible-calendar-date
+  'calendar-mark-visible-date "23.1")
+
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
-You might want to add this function to `today-visible-calendar-hook'."
+You might want to add this function to `calendar-today-visible-hook'."
   (unless (catch 'found
             (dolist (ol (overlays-at (point)))
               (and (overlay-get ol 'calendar-star)
@@ -2432,8 +2517,8 @@ You might want to add this function to `today-visible-calendar-hook'."
 (defun calendar-mark-today ()
   "Mark the date under the cursor in the calendar window.
 The date is marked with `calendar-today-marker'.  You might want to add
-this function to `today-visible-calendar-hook'."
-  (mark-visible-calendar-date (calendar-cursor-to-date) calendar-today-marker))
+this function to `calendar-today-visible-hook'."
+  (calendar-mark-visible-date (calendar-cursor-to-date) calendar-today-marker))
 
 (defun calendar-date-compare (date1 date2)
   "Return t if DATE1 is before DATE2, nil otherwise.
@@ -2449,11 +2534,11 @@ and day names to be abbreviated as specified by
 respectively.  An optional parameter NODAYNAME, when t, omits the
 name of the day of the week."
   (let* ((dayname (unless nodayname (calendar-day-name date abbreviate)))
-         (month (extract-calendar-month date))
+         (month (calendar-extract-month date))
          (monthname (calendar-month-name month abbreviate))
-         (day (int-to-string (extract-calendar-day date)))
+         (day (int-to-string (calendar-extract-day date)))
          (month (int-to-string month))
-         (year (int-to-string (extract-calendar-year date))))
+         (year (int-to-string (calendar-extract-year date))))
     (mapconcat 'eval calendar-date-display-form "")))
 
 (defun calendar-dayname-on-or-before (dayname date)
@@ -2497,7 +2582,7 @@ Like `calendar-nth-named-absday', but returns a Gregorian date."
   "String of day number of year of Gregorian DATE.
 Defaults to today's date if DATE is not given."
   (let* ((d (or date (calendar-current-date)))
-         (year (extract-calendar-year d))
+         (year (calendar-extract-year d))
          (day (calendar-day-number d))
          (days-remaining (- (calendar-day-number (list 12 31 year)) day)))
     (format "Day %d of %d; %d day%s remaining in the year"
@@ -2550,7 +2635,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
   "Show dates on other calendars for date under the cursor."
   (interactive)
   (let ((date (calendar-cursor-to-date t)))
-    (calendar-in-read-only-buffer other-calendars-buffer
+    (calendar-in-read-only-buffer calendar-other-calendars-buffer
       (calendar-set-mode-line (format "%s (Gregorian)"
                                       (calendar-date-string date)))
       (insert (mapconcat 'identity (calendar-other-dates date) "\n")))))
