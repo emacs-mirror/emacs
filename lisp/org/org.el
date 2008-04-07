@@ -2851,9 +2851,9 @@ a calendar-style date list like (month day year)."
 This function makes sure that dates are aligned for easy reading."
   (format "%-9s %2d %s %4d"
 	  (calendar-day-name date)
-	  (extract-calendar-day date)
-	  (calendar-month-name (extract-calendar-month date))
-	  (extract-calendar-year date)))
+	  (cadr date)			   ; day
+	  (calendar-month-name (car date)) ; month
+	  (nth 2 date)))		   ; year
 
 (defcustom org-agenda-include-diary nil
   "If non-nil, include in the agenda entries from the Emacs Calendar's diary."
@@ -17912,7 +17912,9 @@ user."
 		    (setq def (apply 'encode-time defdecode)
 			  defdecode (decode-time def)))))
 	 (calendar-move-hook nil)
+	 (calendar-view-diary-initially-flag nil)
 	 (view-diary-entries-initially nil)
+	 (calendar-view-holidays-initially-flag nil)
 	 (view-calendar-holidays-initially nil)
 	 (timestr (format-time-string
 		   (if with-time "%Y-%m-%d %H:%M" "%Y-%m-%d") def))
@@ -18831,7 +18833,9 @@ A prefix ARG can be used to force the current date."
   (interactive "P")
   (let ((tsr org-ts-regexp) diff
 	(calendar-move-hook nil)
+	(calendar-view-holidays-initially-flag nil)
 	(view-calendar-holidays-initially nil)
+	(calendar-view-diary-initially-flag nil)
 	(view-diary-entries-initially nil))
     (if (or (org-at-timestamp-p)
 	    (save-excursion
@@ -21593,7 +21597,8 @@ MATCH is being ignored."
 (defun org-get-entries-from-diary (date)
   "Get the (Emacs Calendar) diary entries for DATE."
   (require 'diary-lib)
-  (let* ((fancy-diary-buffer "*temporary-fancy-diary-buffer*")
+  (let* ((diary-fancy-buffer "*temporary-fancy-diary-buffer*")
+         (fancy-diary-buffer diary-fancy-buffer)
 	 (diary-display-hook '(fancy-diary-display))
 	 (pop-up-frames nil)
 	 (list-diary-entries-hook
@@ -21607,9 +21612,9 @@ MATCH is being ignored."
 	(funcall (if (fboundp 'diary-list-entries)
 		     'diary-list-entries 'list-diary-entries)
 		 date 1)))
-    (if (not (get-buffer fancy-diary-buffer))
+    (if (not (get-buffer diary-fancy-buffer))
 	(setq entries nil)
-      (with-current-buffer fancy-diary-buffer
+      (with-current-buffer diary-fancy-buffer
 	(setq buffer-read-only nil)
 	(if (zerop (buffer-size))
 	    ;; No entries
@@ -21621,7 +21626,7 @@ MATCH is being ignored."
 	      (setq entries nil)
 	    (setq entries (buffer-substring (point-min) (- (point-max) 1)))))
 	(set-buffer-modified-p nil)
-	(kill-buffer fancy-diary-buffer)))
+	(kill-buffer diary-fancy-buffer)))
     (when entries
       (setq entries (org-split-string entries "\n"))
       (setq entries
@@ -23684,10 +23689,9 @@ the cursor position."
 	 (point (point))
 	 (date (calendar-gregorian-from-absolute
 		(get-text-property point 'day)))
-         ;; the following 3 vars are needed in the calendar
-	 (displayed-day (extract-calendar-day date))
-	 (displayed-month (extract-calendar-month date))
-	 (displayed-year (extract-calendar-year date)))
+         ;; the following 2 vars are needed in the calendar
+	 (displayed-month (car date))
+	 (displayed-year (nth 2 date)))
       (unwind-protect
 	  (progn
 	    (fset 'calendar-cursor-to-date
@@ -23732,7 +23736,9 @@ argument, latitude and longitude will be prompted for."
 		  (error "Don't know which date to open in calendar")))
 	 (date (calendar-gregorian-from-absolute day))
 	 (calendar-move-hook nil)
+	 (calendar-view-holidays-initially-flag nil)
 	 (view-calendar-holidays-initially nil)
+	 (calendar-view-diary-initially-flag nil)
 	 (view-diary-entries-initially nil))
     (calendar)
     (calendar-goto-date date)))
