@@ -1,3 +1,12 @@
+2008-04-07  Vincent Belaïche <vincent.b.1@hotmail.fr>
+
+	* calc/calc-vec.el(calcFunc-kron, calc-kron): New functions.
+
+2008-04-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (calc-init-extensions): Add `calc-kron' and
+	`calcFunc-kron' to autoloads.  Add keybinding for `calc-kron'.
+
 2008-04-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Fix again tramp-copy-args of
