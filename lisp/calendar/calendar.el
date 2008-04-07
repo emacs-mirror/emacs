@@ -1704,7 +1704,7 @@ after the inserted text.  Returns t."
     (define-key map "S"   'calendar-sunrise-sunset)
     (define-key map "M"   'calendar-phases-of-moon)
     (define-key map " "   'scroll-other-window)
-    (define-key map (kbd "DEL") 'scroll-other-window-down) ; FIXME
+    (define-key map "\d"  'scroll-other-window-down)
     (define-key map "\C-c\C-l" 'calendar-redraw)
     (define-key map "."   'calendar-goto-today)
     (define-key map "o"   'calendar-other-month)
