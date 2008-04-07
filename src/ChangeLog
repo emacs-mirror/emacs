@@ -9,8 +9,8 @@
 
 2008-04-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macmenu.c (fill_menu) [TARGET_API_MAC_CARBON]: Use
-	SetMenuItemHierarchicalMenu.
+	* macmenu.c (fill_menu) [TARGET_API_MAC_CARBON]:
+	Use SetMenuItemHierarchicalMenu.
 
 2008-04-05  Jason Rumney  <jasonr@gnu.org>
 
@@ -128,7 +128,7 @@
 	font backend.
 	(globals_of_w32fns): Initialize uniscribe font backend.
 
-	* makefile.w32-in (CONFIG_H): New variable. Use it to clean up
+	* makefile.w32-in (CONFIG_H): New variable.  Use it to clean up
 	dependencies.
 	(w32uniscribe.$(O)): New file to build.
 	(FONT_OBJ): Include w32uniscribe.$(O).
