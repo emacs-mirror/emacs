@@ -500,8 +500,7 @@ See `mail-source-bind'."
    ((stringp value)
     value)
    ;; Function
-   ((and (listp value)
-	 (functionp (car value)))
+   ((and (listp value) (symbolp (car value)) (fboundp (car value)))
     (eval value))
    ;; Just return the value.
    (t
