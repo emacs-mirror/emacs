@@ -535,7 +535,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-ssh")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
-	     (tramp-copy-args            (("-P") ("%p") ("-scp") ("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")))
 	     (tramp-copy-keep-date       t)
 	     (tramp-password-end-of-line "xy") ;see docstring for "xy"
 	     (tramp-default-port         22))
@@ -544,7 +544,7 @@ files conditionalize this setup based on the TERM environment variable."
 					  ("-ssh")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
-	     (tramp-copy-args            (("-P") ("%p") ("-sftp") ("-p" "%k")))
+	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")))
 	     (tramp-copy-keep-date       t)
 	     (tramp-password-end-of-line "xy")) ;see docstring for "xy"
     ("fcp"   (tramp-login-program        "fsh")
