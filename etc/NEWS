@@ -570,6 +570,13 @@ The variable `european-calendar-style' is obsolete - use `calendar-date-style'.
 Similarly, the commands `american-calendar' and `european-calendar'
 should be replaced by `calendar-set-date-style'.
 
+*** The calendar namespace has been rationalized.
+All functions and variables now begin with a `calendar-', `diary-', or
+`holiday-' prefix.  The various calendar systems have secondary
+prefixes, eg `calendar-french-'.  The old names you are likely to use
+directly still exist, for the time being, as aliases, but please start
+using the new names.
+
 ** Miscellaneous programming mode changes
 
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
