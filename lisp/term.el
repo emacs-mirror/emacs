@@ -787,7 +787,7 @@ is buffer-local.")
 		  :help "Switch to char (raw) sub-mode of term mode"))
     (define-key newmap [terminal-line-mode]
       '(menu-item "Line mode" term-line-mode
-		  :help "Switch to char (raw) sub-mode of term mode."))
+		  :help "Switch to line (cooked) sub-mode of term mode"))
     (setq term-terminal-menu (cons "Terminal" newmap))
 
     ;; completion:  (line mode only)
