@@ -1,3 +1,8 @@
+2008-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* intro.texi (Some Terms): Change "fonts in this manual" index
+	entry to "typographic conventions".
+
 2008-04-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* objects.texi (Text Props and Strings): Add indexing for read
