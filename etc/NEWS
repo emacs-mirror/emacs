@@ -662,7 +662,7 @@ for the list of extra keys that are available.
 * Incompatible Lisp Changes in Emacs 23.1
 
 ** `functionp' returns nil for special forms.
-I.e. it only returns t for objects that can be passed `funcall'.
+I.e., it only returns t for objects that can be passed `funcall'.
 
 +++
 ** The multibyteness of process filters is determined by the coding-system
