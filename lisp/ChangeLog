@@ -1,3 +1,8 @@
+2008-04-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Fix again tramp-copy-args of
+	"pscp" and "psftp".  Reported by Gilles Pion <gpion@lfdj.com>.
+
 2008-04-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired-aux.el (dired-read-shell-command): Use read-shell-command.
