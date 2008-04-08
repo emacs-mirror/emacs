@@ -1,3 +1,18 @@
+2008-04-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (Qja, Qko, Qzh): New symbols.
+	(syms_of_w32font): Initialise them.
+	(font_matches_spec): Use them to filter by language.
+	(recompute_cached_metrics): Remove function.
+	(compute_metrics, clear_cached_metrics): New functions.
+	(w32font_encode_char): Use them to manage metric cache.
+	(w32font_text_extents): Cache metrics for all glyphs on demand.
+	Delay converting glyph indices to WORD until needed.
+	(w32font_open_internal): Initialize metric cache to empty.
+	(registry_to_w32_charset): Charset should always be a symbol.
+	(fill_in_logfont, list_all_matching_fonts): Family should
+	always be a symbol.
+	
 2008-04-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_shape): Increase items buffer size.
