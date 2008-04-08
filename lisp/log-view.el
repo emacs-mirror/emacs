@@ -156,6 +156,9 @@
     ["Diff Revisions"  log-view-diff]
     ["Visit Version"  log-view-find-revision]
     ["Annotate Version"  log-view-annotate-version]
+    ["Modify Log Comment" log-view-modify-change-comment
+     :help "Edit the change comment displayed at point"]
+    "-----"
     ["Next Log Entry"  log-view-msg-next]
     ["Previous Log Entry"  log-view-msg-prev]
     ["Next File"  log-view-file-next]

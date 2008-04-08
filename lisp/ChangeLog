@@ -1,3 +1,10 @@
+2008-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-rcs.el (vc-rcs-modify-change-comment):
+	* vc-cvs.el (vc-cvs-modify-change-comment): Fix argument order.
+
+	* log-view.el (log-view-mode-menu): Bind log-view-modify-change-comment.
+
 2008-04-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (set-locale-environment): Don't warn if
