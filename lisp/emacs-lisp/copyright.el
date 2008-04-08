@@ -113,9 +113,9 @@ When this is `function', only ask when called non-interactively."
 		  (progn (forward-char 1) t)
 		  (progn (skip-chars-forward " \t") (eolp))
 		  comment-start-skip
-		  (progn
+		  (save-match-data
 		    (forward-line 1)
-		    (and (looking-at-p comment-start-skip)
+		    (and (looking-at comment-start-skip)
 			 (goto-char (match-end 0))))
 		  (looking-at-p copyright-years-regexp)))
       (forward-line 1)
