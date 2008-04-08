@@ -1,3 +1,8 @@
+2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (access_keymap): Remove the value 2 for t_ok which was used
+	for generic chars, which do not exist any more in emacs-unicode.
+
 2008-04-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* coding.c (detect_coding_emacs_mule)

@@ -563,9 +563,6 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
     GCPRO4 (map, tail, idx, t_binding);
 
-    /* If `t_ok' is 2, both `t' is accepted.  */
-    t_ok = t_ok ? 2 : 0;
-
     for (tail = XCDR (map);
 	 (CONSP (tail)
 	  || (tail = get_keymap (tail, 0, autoload), CONSP (tail)));
@@ -587,10 +584,10 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
 	    if (EQ (key, idx))
 	      val = XCDR (binding);
-	    else if (t_ok > 1 && EQ (key, Qt))
+	    else if (t_ok && EQ (key, Qt))
 	      {
 		t_binding = XCDR (binding);
-		t_ok = 1;
+		t_ok = 0;
 	      }
 	  }
 	else if (VECTORP (binding))
