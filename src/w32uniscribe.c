@@ -538,7 +538,7 @@ add_opentype_font_name_to_list (logical_font, physical_font, font_type,
 
 static char* NOTHING = "    ";
 
-#define SNAME(VAL) SDATA (STRINGP (VAL) ? VAL : SYMBOL_NAME (VAL))
+#define SNAME(VAL) SDATA (SYMBOL_NAME (VAL))
 
 /* Check if font supports the otf script/language/features specified.
    OTF_SPEC is in the format
