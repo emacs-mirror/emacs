@@ -230,7 +230,7 @@ $(lisp)/progmodes/cc-mode.elc: \
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el
+$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/mh-e/*.el
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
