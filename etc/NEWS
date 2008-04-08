@@ -511,6 +511,11 @@ the current line.
 of the corresponding buffer as long as the asynchronous process is
 active.
 
+*** The new backend function `modify-change-comment' can be used to
+modify the change log.  For now only CVS, RCS, SCCS and SVN support
+this functionality.
+This is bound to the key "e" in log-view.
+
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
 
