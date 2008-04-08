@@ -1,5 +1,9 @@
 2008-04-08  Juanma Barranquero  <lekktu@gmail.com>
 
+	* international/mule-cmds.el (set-locale-environment): Don't warn if
+	coding system doesn't agree with system locale (this reverts changes
+	by Dave Love, dated 2002-10-27 and 2002-10-09).
+
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	* emacs-lisp/cl-macs.el (get-setf-method): Use `string-match-p'.
 
