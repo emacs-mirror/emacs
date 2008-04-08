@@ -497,8 +497,7 @@ calendar package is already loaded).  Rather, use either
 ;;;###autoload
 (make-obsolete-variable 'european-calendar-style 'calendar-date-style "23.1")
 
-;; Used by various other packages.
-;;;###autoload
+;; If this is autoloaded, c-d-s gets set before any customization of e-c-s.
 (defcustom calendar-date-style (if european-calendar-style 'european
                                  'american)
   "Your preferred style for writing dates.
