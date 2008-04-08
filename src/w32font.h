@@ -36,6 +36,16 @@ Boston, MA 02110-1301, USA.  */
 
 #define NTMFLAGS_OPENTYPE (NTM_PS_OPENTYPE | NTM_TT_OPENTYPE)
 
+struct w32_metric_cache
+{
+  short lbearing, rbearing, width;
+  unsigned char status;
+};
+
+#define W32METRIC_NO_ATTEMPT 0
+#define W32METRIC_SUCCESS 1
+#define W32METRIC_FAIL 2
+
 /* The actual structure for a w32 font, that can be cast to struct font.
    The Uniscribe backend extends this.  */
 struct w32font_info
@@ -43,8 +53,11 @@ struct w32font_info
   struct font font;
   TEXTMETRIC metrics;
   unsigned int glyph_idx;
-  struct font_metrics ascii_metrics[128];
+  struct w32_metric_cache **cached_metrics;
+  int n_cache_blocks;
 };
+
+#define CACHE_BLOCKSIZE 128
 
 Lisp_Object w32font_get_cache P_ ((FRAME_PTR fe));
 Lisp_Object w32font_list_internal P_ ((Lisp_Object frame,
