@@ -570,6 +570,7 @@ The variable `european-calendar-style' is obsolete - use `calendar-date-style'.
 Similarly, the commands `american-calendar' and `european-calendar'
 should be replaced by `calendar-set-date-style'.
 
++++
 *** The calendar namespace has been rationalized.
 All functions and variables now begin with a `calendar-', `diary-', or
 `holiday-' prefix.  The various calendar systems have secondary
