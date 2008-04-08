@@ -113,12 +113,11 @@ When this is `function', only ask when called non-interactively."
 		  (progn (forward-char 1) t)
 		  (progn (skip-chars-forward " \t") (eolp))
 		  comment-start-skip
-		  (save-match-data
+		  (progn
 		    (forward-line 1)
-		    (and (looking-at comment-start-skip)
+		    (and (looking-at-p comment-start-skip)
 			 (goto-char (match-end 0))))
-		  (save-match-data
-		    (looking-at copyright-years-regexp))))
+		  (looking-at-p copyright-years-regexp)))
       (forward-line 1)
       (re-search-forward comment-start-skip)
       ;; (2) Need the extra \\( \\) so that the years are subexp 3, as
