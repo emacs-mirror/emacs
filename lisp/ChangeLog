@@ -1,3 +1,10 @@
+2008-04-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ps-samp.el (ps-add-printer, ps-remove-printer)
+	(ps-make-dynamic-printer-menu): New functions.
+
+	* net/zeroconf.el: New file.
+
 2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/cal-hebrew.el (calendar-hebrew-list-yahrzeits): Typo.
