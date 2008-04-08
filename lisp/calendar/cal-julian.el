@@ -106,7 +106,7 @@ Driven by the variable `calendar-date-display-form'."
           (year (calendar-read
                  "Julian calendar year (>0): "
                  (lambda (x) (> x 0))
-                 (int-to-string
+                 (number-to-string
                   (calendar-extract-year
                    (calendar-julian-from-absolute
                     (calendar-absolute-from-gregorian
@@ -170,7 +170,7 @@ nil if it is not visible in the current calendar window."
 (defun calendar-astro-date-string (&optional date)
   "String of astronomical (Julian) day number after noon UTC of Gregorian DATE.
 Defaults to today's date if DATE is not given."
-  (int-to-string
+  (number-to-string
    (ceiling
     (calendar-astro-from-absolute
      (calendar-absolute-from-gregorian (or date (calendar-current-date)))))))

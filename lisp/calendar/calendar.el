@@ -2258,7 +2258,7 @@ If optional NODAY is t, does not ask for day, but just returns
   (let* ((year (calendar-read
                 "Year (>0): "
                 (lambda (x) (> x 0))
-                (int-to-string (calendar-extract-year
+                (number-to-string (calendar-extract-year
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
          (completion-ignore-case t)
@@ -2536,9 +2536,9 @@ name of the day of the week."
   (let* ((dayname (unless nodayname (calendar-day-name date abbreviate)))
          (month (calendar-extract-month date))
          (monthname (calendar-month-name month abbreviate))
-         (day (int-to-string (calendar-extract-day date)))
-         (month (int-to-string month))
-         (year (int-to-string (calendar-extract-year date))))
+         (day (number-to-string (calendar-extract-day date)))
+         (month (number-to-string month))
+         (year (number-to-string (calendar-extract-year date))))
     (mapconcat 'eval calendar-date-display-form "")))
 
 (defun calendar-dayname-on-or-before (dayname date)

@@ -33,6 +33,7 @@
 (require 'calendar)
 (require 'hol-loaddefs)
 
+;; FIXME name that makes sense
 ;;;###diary-autoload
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
@@ -54,6 +55,7 @@ The holidays are those in the list `calendar-holidays'."
 (defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
 
+;; FIXME name that makes sense
 ;;;###cal-autoload
 (defun calendar-list-holidays ()
   "Create a buffer containing the holidays for the current calendar window.
@@ -128,13 +130,13 @@ The optional LABEL is used to label the buffer created."
    (let* ((start-year (calendar-read
                        "Starting year of holidays (>0): "
                        (lambda (x) (> x 0))
-                       (int-to-string (calendar-extract-year
+                       (number-to-string (calendar-extract-year
                                        (calendar-current-date)))))
           (end-year (calendar-read
                      (format "Ending year (inclusive) of holidays (>=%s): "
                              start-year)
                      (lambda (x) (>= x start-year))
-                     (int-to-string start-year)))
+                     (number-to-string start-year)))
           (completion-ignore-case t)
           (lists
            (list
@@ -235,6 +237,7 @@ The holidays are those in the list `calendar-holidays'."
           (insert (mapconcat 'identity holiday-list "\n")))
         (message "Checking holidays...done")))))
 
+;; FIXME move to calendar?
 ;;;###cal-autoload
 (defun calendar-mark-holidays ()
   "Mark notable days in the calendar window."

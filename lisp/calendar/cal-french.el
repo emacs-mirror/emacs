@@ -213,7 +213,7 @@ Echo French Revolutionary date unless NOECHO is non-nil."
                        "Année de la Révolution (>0): "
                      "Anne'e de la Re'volution (>0): ")
                    (lambda (x) (> x 0))
-                   (int-to-string
+                   (number-to-string
                     (calendar-extract-year
                      (calendar-french-from-absolute
                       (calendar-absolute-from-gregorian

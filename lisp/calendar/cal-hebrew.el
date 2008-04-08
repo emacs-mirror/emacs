@@ -242,7 +242,7 @@ Reads a year, month, and day."
          (year (calendar-read
                 "Hebrew calendar year (>3760): "
                 (lambda (x) (> x 3760))
-                (int-to-string
+                (number-to-string
                  (calendar-extract-year
                   (calendar-hebrew-from-absolute
                    (calendar-absolute-from-gregorian today))))))
@@ -738,7 +738,7 @@ from the cursor position."
                     (year (calendar-read
                            "Year of death (>0): "
                            (lambda (x) (> x 0))
-                           (int-to-string (calendar-extract-year today))))
+                           (number-to-string (calendar-extract-year today))))
                     (month-array calendar-month-name-array)
                     (completion-ignore-case t)
                     (month (cdr (assoc-string
@@ -757,7 +757,7 @@ from the cursor position."
                        (format "Starting year of Yahrzeit table (>%d): "
                                death-year)
                        (lambda (x) (> x death-year))
-                       (int-to-string (1+ death-year))))
+                       (number-to-string (1+ death-year))))
           (end-year (calendar-read
                      (format "Ending year of Yahrzeit table (>=%d): "
                              start-year)

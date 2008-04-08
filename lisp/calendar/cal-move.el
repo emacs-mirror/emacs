@@ -365,7 +365,7 @@ Negative DAY counts backward from end of year."
    (let* ((year (calendar-read
                  "Year (>0): "
                  (lambda (x) (> x 0))
-                 (int-to-string (calendar-extract-year
+                 (number-to-string (calendar-extract-year
                                  (calendar-current-date)))))
           (last (if (calendar-leap-year-p year) 366 365))
           (day (calendar-read

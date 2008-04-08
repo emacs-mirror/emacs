@@ -1102,7 +1102,7 @@ The calendar shows holiday and diary entries if
             (insert "\\rightday")
           (insert "\\leftday"))
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (int-to-string (calendar-extract-day date)))
+        (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
         (cal-tex-arg (eval cal-tex-daily-string))
@@ -1202,7 +1202,7 @@ if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
       (dotimes (jdummy 3)
         (insert "\\leftday")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (int-to-string (calendar-extract-day date)))
+        (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
         (cal-tex-arg (eval cal-tex-daily-string))
@@ -1233,7 +1233,7 @@ if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
       (dotimes (jdummy 2)
         (insert "\\rightday")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (int-to-string (calendar-extract-day date)))
+        (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
         (cal-tex-arg (eval cal-tex-daily-string))
@@ -1242,7 +1242,7 @@ if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
       (dotimes (jdummy 2)
         (insert "\\weekend")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (int-to-string (calendar-extract-day date)))
+        (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
         (cal-tex-arg (eval cal-tex-daily-string))
@@ -1488,7 +1488,7 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
                      "\\multicolumn{7}{c}{"
                      (cal-tex-month-name month)
                      " "
-                     (int-to-string year)
+                     (number-to-string year)
                      "}\\\\[1mm]\n")))
     (dotimes (i 7)
       (setq str
@@ -1504,7 +1504,7 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
     (dotimes (idummy blank-days)
       (setq str (concat str " & ")))
     (dotimes (i last)
-      (setq str (concat str (int-to-string (1+ i)))
+      (setq str (concat str (number-to-string (1+ i)))
             str (concat str (if (zerop (mod (+ i 1 blank-days) 7))
                                 (if (= i (1- last))
                                     ""

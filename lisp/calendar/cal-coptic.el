@@ -122,10 +122,10 @@ Defaults to today's date if DATE is not given."
     (if (< y 1)
         ""
       (let ((monthname (aref calendar-coptic-month-name-array (1- m)))
-            (day (int-to-string (calendar-extract-day coptic-date)))
+            (day (number-to-string (calendar-extract-day coptic-date)))
             (dayname nil)
-            (month (int-to-string m))
-            (year (int-to-string y)))
+            (month (number-to-string m))
+            (year (number-to-string y)))
         (mapconcat 'eval calendar-date-display-form "")))))
 
 ;;;###cal-autoload
@@ -147,7 +147,7 @@ Reads a year, month, and day."
          (year (calendar-read
                 (format "%s calendar year (>0): " calendar-coptic-name)
                 (lambda (x) (> x 0))
-                (int-to-string
+                (number-to-string
                  (calendar-extract-year
                   (calendar-coptic-from-absolute
                    (calendar-absolute-from-gregorian today))))))

@@ -537,9 +537,9 @@ Defaults to today's date if DATE is not given."
                       (cons (format "%s (second)" (car l)) (cadr l)))
                 (calendar-chinese-months-to-alist (cddr l)))
              (append
-              (list (cons (int-to-string (car l)) (car l)))
+              (list (cons (number-to-string (car l)) (car l)))
               (calendar-chinese-months-to-alist (cdr l))))
-         (list (cons (int-to-string (car l)) (car l))))))
+         (list (cons (number-to-string (car l)) (car l))))))
 
 (defun calendar-chinese-months (c y)
   "A list of the months in cycle C, year Y of the Chinese calendar."
@@ -569,11 +569,11 @@ Echo Chinese date unless NOECHO is non-nil."
           (cycle (calendar-read
                   "Chinese calendar cycle number (>44): "
                   (lambda (x) (> x 44))
-                  (int-to-string (car c))))
+                  (number-to-string (car c))))
           (year (calendar-read
                  "Year in Chinese cycle (1..60): "
                  (lambda (x) (and (<= 1 x) (<= x 60)))
-                 (int-to-string (cadr c))))
+                 (number-to-string (cadr c))))
           (month-list (calendar-chinese-months-to-alist
                        (calendar-chinese-months cycle year)))
           (month (cdr (assoc

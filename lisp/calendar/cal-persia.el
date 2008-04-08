@@ -152,9 +152,9 @@ Gregorian date Sunday, December 31, 1 BC."
          (y (calendar-extract-year persian-date))
          (m (calendar-extract-month persian-date))
          (monthname (aref calendar-persian-month-name-array (1- m)))
-         (day (int-to-string (calendar-extract-day persian-date)))
-         (year (int-to-string y))
-         (month (int-to-string m))
+         (day (number-to-string (calendar-extract-day persian-date)))
+         (year (number-to-string y))
+         (month (number-to-string m))
          dayname)
     (mapconcat 'eval calendar-date-display-form "")))
 
@@ -174,7 +174,7 @@ Reads a year, month, and day."
   (let* ((year (calendar-read
                 "Persian calendar year (not 0): "
                 (lambda (x) (not (zerop x)))
-                (int-to-string
+                (number-to-string
                  (calendar-extract-year
                   (calendar-persian-from-absolute
                    (calendar-absolute-from-gregorian

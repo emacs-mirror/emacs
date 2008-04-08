@@ -153,7 +153,7 @@ Reads a year, month, and day."
          (year (calendar-read
                 "Islamic calendar year (>0): "
                 (lambda (x) (> x 0))
-                (int-to-string
+                (number-to-string
                  (calendar-extract-year
                   (calendar-islamic-from-absolute
                    (calendar-absolute-from-gregorian today))))))

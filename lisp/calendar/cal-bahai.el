@@ -135,12 +135,12 @@ Defaults to today's date if DATE is not given."
                                  (<= d 0))
                             "Ayyám-i-Há"
                           (aref calendar-bahai-month-name-array (1- m))))
-             (day (int-to-string
+             (day (number-to-string
                    (if (<= d 0)
                        (+ d (if (calendar-bahai-leap-year-p y) 5 4))
                      d)))
-             (year (int-to-string y))
-             (month (int-to-string m))
+             (year (number-to-string y))
+             (month (number-to-string m))
              dayname)
         ;; Can't call calendar-date-string because of monthname oddity.
         (mapconcat 'eval calendar-date-display-form "")))))
@@ -164,7 +164,7 @@ Reads a year, month and day."
          (year (calendar-read
                 "Bahá'í calendar year (not 0): "
                 (lambda (x) (not (zerop x)))
-                (int-to-string
+                (number-to-string
                  (calendar-extract-year
                   (calendar-bahai-from-absolute
                    (calendar-absolute-from-gregorian today))))))

@@ -102,7 +102,7 @@ taken to be 1)."
   (let* ((year (calendar-read
                 "ISO calendar year (>0): "
                 (lambda (x) (> x 0))
-                (int-to-string (calendar-extract-year
+                (number-to-string (calendar-extract-year
                                 (calendar-current-date)))))
          (no-weeks (calendar-extract-month
                     (calendar-iso-from-absolute
