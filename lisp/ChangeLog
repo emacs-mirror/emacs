@@ -1,5 +1,9 @@
 2008-04-08  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (calendar-date-style): Remove autoload cookie.
+	* textmodes/remember.el (remember-diary-convert-entry):
+	Require calendar.
+
 	* calendar/cal-menu.el (cal-menu-event-to-date):
 	Rename calendar-event-to-date.  Update callers.
 	(calendar-mouse-tex-day): Rename cal-tex-mouse-day.
