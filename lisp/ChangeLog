@@ -4,6 +4,9 @@
 	* textmodes/remember.el (remember-diary-convert-entry):
 	Require calendar.
 
+	* textmodes/remember.el (remember-diary-extract-entries): Don't pass
+	diary-file, since it is the default for make-diary-entry anyway.
+
 	* calendar/cal-menu.el (cal-menu-event-to-date):
 	Rename calendar-event-to-date.  Update callers.
 	(calendar-mouse-tex-day): Rename cal-tex-mouse-day.
