@@ -1,3 +1,4 @@
+
 2008-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-dnd-handle-local-file): Obey
