@@ -1,3 +1,10 @@
+2008-04-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	* emacs-lisp/cl-macs.el (get-setf-method): Use `string-match-p'.
+
+	* emacs-lisp/copyright.el (copyright-update-year): Use `looking-at-p'.
+
 2008-04-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-date-style): Remove autoload cookie.
@@ -42,9 +49,9 @@
 	* faces.el (font-slant-table): Change numeric values for `r',
 	`roman', and `normal'.
 
-2008-04-07  Vincent Belaïche <vincent.b.1@hotmail.fr>
+2008-04-07  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
-	* calc/calc-vec.el(calcFunc-kron, calc-kron): New functions.
+	* calc/calc-vec.el (calcFunc-kron, calc-kron): New functions.
 
 2008-04-07  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -6985,7 +6992,6 @@
 
 	* international/fontset.el (setup-default-fontset): Specify fonts
 	for `symbol' script.
-
 	* international/characters.el (script-list): Include `currency'
 	in `symbol'.
 
@@ -8934,7 +8940,7 @@
 	1.101 situated the original body of the error handling code as
 	bogus condition-case handlers.  I've returned to just about the
 	working code that was originally there, removing an unnecessary -
-	but benign - enclosing 'progn'.  \(Automated or cursory code fixes
+	but benign - enclosing 'progn'.  (Automated or cursory code fixes
 	often aren't.)
 
 	(allout-region-active-p): Fallback to value of mark-active if
