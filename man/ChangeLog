@@ -1,3 +1,8 @@
+2008-04-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Large scale rewrite and changes, moving from version 4.67
+	to version 5.23.
+
 2008-03-28  Jason Rumney  <jasonr@gnu.org>
 
 	* display.texi (Display Custom): Mention overlay-margin in text.
