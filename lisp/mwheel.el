@@ -190,6 +190,10 @@ This should only be bound to mouse buttons 4 and 5."
                      (prog1
                          (selected-window)
                        (select-window (mwheel-event-window event)))))
+	 (buffer (window-buffer curwin))
+	 (opoint (with-current-buffer buffer
+		   (when (eq (car-safe transient-mark-mode) 'only)
+		     (point))))
          (mods
 	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
          (amt (assoc mods mouse-wheel-scroll-amount)))
@@ -224,7 +228,13 @@ This should only be bound to mouse buttons 4 and 5."
                    ;; Make sure we do indeed scroll to the end of the buffer.
                    (end-of-buffer (while t (scroll-up)))))
 		(t (error "Bad binding in mwheel-scroll"))))
-      (if curwin (select-window curwin))))
+      (if curwin (select-window curwin)))
+    ;; If there is a temporarily active region, deactivate it iff
+    ;; scrolling moves point.
+    (when opoint
+      (with-current-buffer buffer
+	(when (/= opoint (point))
+	  (deactivate-mark)))))
   (when (and mouse-wheel-click-event mouse-wheel-inhibit-click-time)
     (if mwheel-inhibit-click-event-timer
 	(cancel-timer mwheel-inhibit-click-event-timer)
