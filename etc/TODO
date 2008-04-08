@@ -140,6 +140,9 @@ Change them to use report-emacs-bug.
 
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 
+** Add a defcustom that supplies a function to name numeric backup files,
+like make-backup-file-name-function for non-numeric backup files.
+
 * Important features:
 
 ** Having tabs above a window to switch buffers in it.
