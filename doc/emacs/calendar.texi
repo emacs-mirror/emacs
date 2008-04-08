@@ -241,23 +241,23 @@ horizontally, so that new months become visible in the window.
 
 @table @kbd
 @item >
-Scroll calendar one month forward (@code{scroll-calendar-left}).
+Scroll calendar one month forward (@code{calendar-scroll-left}).
 @item <
-Scroll calendar one month backward (@code{scroll-calendar-right}).
+Scroll calendar one month backward (@code{calendar-scroll-right}).
 @item C-v
 @itemx @key{NEXT}
 Scroll calendar three months forward
-(@code{scroll-calendar-left-three-months}).
+(@code{calendar-scroll-left-three-months}).
 @item M-v
 @itemx @key{PRIOR}
 Scroll calendar three months backward
-(@code{scroll-calendar-right-three-months}).
+(@code{calendar-scroll-right-three-months}).
 @end table
 
 @kindex > @r{(Calendar mode)}
-@findex scroll-calendar-left
+@findex calendar-scroll-left
 @kindex < @r{(Calendar mode)}
-@findex scroll-calendar-right
+@findex calendar-scroll-right
   The most basic calendar scroll commands scroll by one month at a
 time.  This means that there are two months of overlap between the
 display before the command and the display after.  @kbd{>} scrolls the
@@ -265,9 +265,9 @@ calendar contents one month forward in time.  @kbd{<} scrolls the
 contents one month backwards in time.
 
 @kindex C-v @r{(Calendar mode)}
-@findex scroll-calendar-left-three-months
+@findex calendar-scroll-left-three-months
 @kindex M-v @r{(Calendar mode)}
-@findex scroll-calendar-right-three-months
+@findex calendar-scroll-right-three-months
   The commands @kbd{C-v} and @kbd{M-v} scroll the calendar by an entire
 ``screenful''---three months---in analogy with the usual meaning of
 these commands.  @kbd{C-v} makes later dates visible and @kbd{M-v} makes
@@ -302,13 +302,13 @@ point.
 @item p d
 Display day-in-year (@code{calendar-print-day-of-year}).
 @item C-c C-l
-Regenerate the calendar window (@code{redraw-calendar}).
+Regenerate the calendar window (@code{calendar-redraw}).
 @item SPC
 Scroll the next window up (@code{scroll-other-window}).
 @item DEL
 Scroll the next window down (@code{scroll-other-window-down}).
 @item q
-Exit from calendar (@code{exit-calendar}).
+Exit from calendar (@code{calendar-exit}).
 @end table
 
 @kindex p d @r{(Calendar mode)}
@@ -322,9 +322,9 @@ selected date.  The count of days remaining does not include that
 date.
 
 @kindex C-c C-l @r{(Calendar mode)}
-@findex redraw-calendar
+@findex calendar-redraw
   If the calendar window text gets corrupted, type @kbd{C-c C-l}
-(@code{redraw-calendar}) to redraw it.  (This can only happen if you use
+(@code{calendar-redraw}) to redraw it.  (This can only happen if you use
 non-Calendar-mode editing commands.)
 
 @kindex SPC @r{(Calendar mode)}
@@ -335,10 +335,12 @@ of holidays or diary entries in another window.
 
 @kindex q @r{(Calendar mode)}
 @findex exit-calendar
-  To exit from the calendar, type @kbd{q} (@code{exit-calendar}).  This
+@vindex calendar-remove-frame-by-deleting
+  To exit from the calendar, type @kbd{q} (@code{calendar-exit}).  This
 buries all buffers related to the calendar, selecting other buffers.
 (If a frame contains a dedicated calendar window, exiting from the
-calendar iconifies that frame.)
+calendar deletes or iconifies that frame depending on the value of
+@code{calendar-remove-frame-by-deleting}.)
 
 @node Writing Calendar Files
 @section Writing Calendar Files
@@ -472,7 +474,7 @@ List holidays in another window for a specified range of years.
 
 @kindex h @r{(Calendar mode)}
 @findex calendar-cursor-holidays
-@vindex view-calendar-holidays-initially
+@vindex calendar-view-holidays-initially-flag
   To see if any holidays fall on a given date, position point on that
 date in the calendar window and use the @kbd{h} command.  Alternatively,
 click on that date with @kbd{Mouse-2} and then choose @kbd{Holidays}
@@ -484,11 +486,11 @@ window.
 @findex calendar-mark-holidays
 @kindex u @r{(Calendar mode)}
 @findex calendar-unmark
-@vindex mark-holidays-in-calendar
+@vindex calendar-mark-holidays-flag
   To view the distribution of holidays for all the dates shown in the
 calendar, use the @kbd{x} command.  This displays the dates that are
 holidays in a different face (or places a @samp{*} after these dates, if
-display with multiple faces is not available).
+a color display is not available, or if @code{font-lock-mode} is off).
 @iftex
 @inforef{Calendar Customizing, calendar-holiday-marker, emacs-xtra}.
 @end iftex
@@ -499,7 +501,7 @@ display with multiple faces is not available).
 other months that subsequently become visible by scrolling.  To turn
 marking off and erase the current marks, type @kbd{u}, which also
 erases any diary marks (@pxref{Diary}).  If the variable
-@code{mark-holidays-in-calendar} is non-@code{nil}, creating or
+@code{calendar-mark-holidays-flag} is non-@code{nil}, creating or
 updating the calendar marks holidays automatically.
 
 @kindex a @r{(Calendar mode)}
@@ -513,7 +515,7 @@ calendar window to scroll that list up and down, respectively.
   The command @kbd{M-x holidays} displays the list of holidays for the
 current month and the preceding and succeeding months; this works even
 if you don't have a calendar window.  If the variable
-@code{view-calendar-holidays-initially} is non-@code{nil}, creating
+@code{calendar-view-holidays-initially-flag} is non-@code{nil}, creating
 the calendar displays holidays in this way.  If you want the list of
 holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
@@ -523,7 +525,7 @@ major Christian, Jewish, and Islamic holidays; also the solstices and
 equinoxes.
 
 @findex list-holidays
-   The command @kbd{M-x list-holidays} displays the list of holidays for
+   The command @kbd{M-x holiday-list} displays the list of holidays for
 a range of years.  This function asks you for the starting and stopping
 years, and allows you to choose all the holidays or one of several
 categories of holidays.  You can use this command even if you don't have
@@ -755,6 +757,11 @@ days are named by combining one of ten ``celestial stems'' with one of
 twelve ``terrestrial branches'' for a total of sixty names that are
 repeated in a cycle of sixty.
 
+@cindex Baha'i calendar
+  The Baha'i calendar system is based on a solar cycle of 19 months with
+19 days each.  The four remaining ``intercalary'' days are placed
+between the 18th and 19th months.
+
 @node To Other Calendar
 @subsection Converting To Other Calendars
 
@@ -765,46 +772,50 @@ in various other calendar systems:
 @item Mouse-2  Other calendars
 Display the date that you click on, expressed in various other calendars.
 @kindex p @r{(Calendar mode)}
-@findex calendar-print-iso-date
+@findex calendar-iso-print-date
 @item p c
 Display ISO commercial calendar equivalent for selected day
-(@code{calendar-print-iso-date}).
-@findex calendar-print-julian-date
+(@code{calendar-iso-print-date}).
+@findex calendar-julian-print-date
 @item p j
-Display Julian date for selected day (@code{calendar-print-julian-date}).
-@findex calendar-print-astro-day-number
+Display Julian date for selected day (@code{calendar-julian-print-date}).
+@findex calendar-astro-print-day-number
 @item p a
 Display astronomical (Julian) day number for selected day
-(@code{calendar-print-astro-day-number}).
-@findex calendar-print-hebrew-date
+(@code{calendar-astro-print-day-number}).
+@findex calendar-hebrew-print-date
 @item p h
-Display Hebrew date for selected day (@code{calendar-print-hebrew-date}).
-@findex calendar-print-islamic-date
+Display Hebrew date for selected day (@code{calendar-hebrew-print-date}).
+@findex calendar-islamic-print-date
 @item p i
-Display Islamic date for selected day (@code{calendar-print-islamic-date}).
-@findex calendar-print-french-date
+Display Islamic date for selected day (@code{calendar-islamic-print-date}).
+@findex calendar-french-print-date
 @item p f
 Display French Revolutionary date for selected day
-(@code{calendar-print-french-date}).
-@findex calendar-print-chinese-date
+(@code{calendar-french-print-date}).
+@findex calendar-bahai-print-date
+@item p b
+Display Baha'i date for selected day
+(@code{calendar-bahai-print-date}).
+@findex calendar-chinese-print-date
 @item p C
 Display Chinese date for selected day
-(@code{calendar-print-chinese-date}).
-@findex calendar-print-coptic-date
+(@code{calendar-chinese-print-date}).
+@findex calendar-coptic-print-date
 @item p k
 Display Coptic date for selected day
-(@code{calendar-print-coptic-date}).
-@findex calendar-print-ethiopic-date
+(@code{calendar-coptic-print-date}).
+@findex calendar-ethiopic-print-date
 @item p e
 Display Ethiopic date for selected day
-(@code{calendar-print-ethiopic-date}).
-@findex calendar-print-persian-date
+(@code{calendar-ethiopic-print-date}).
+@findex calendar-persian-print-date
 @item p p
 Display Persian date for selected day
-(@code{calendar-print-persian-date}).
-@findex calendar-print-mayan-date
+(@code{calendar-persian-print-date}).
+@findex calendar-mayan-print-date
 @item p m
-Display Mayan date for selected day (@code{calendar-print-mayan-date}).
+Display Mayan date for selected day (@code{calendar-mayan-print-date}).
 @end table
 
   If you are using X, the easiest way to translate a date into other
@@ -827,51 +838,51 @@ to.  This section describes the commands for doing this using calendars
 other than Mayan; for the Mayan calendar, see the following section.
 
 @kindex g @var{char} @r{(Calendar mode)}
-@findex calendar-goto-iso-date
-@findex calendar-goto-iso-week
-@findex calendar-goto-julian-date
-@findex calendar-goto-astro-day-number
-@findex calendar-goto-hebrew-date
-@findex calendar-goto-islamic-date
-@findex calendar-goto-french-date
-@findex calendar-goto-chinese-date
-@findex calendar-goto-persian-date
-@findex calendar-goto-coptic-date
-@findex calendar-goto-ethiopic-date
+@findex calendar-iso-goto-date
+@findex calendar-iso-goto-week
+@findex calendar-julian-goto-date
+@findex calendar-astro-goto-day-number
+@findex calendar-hebrew-goto-date
+@findex calendar-islamic-goto-date
+@findex calendar-french-goto-date
+@findex calendar-chinese-goto-date
+@findex calendar-persian-goto-date
+@findex calendar-coptic-goto-date
+@findex calendar-ethiopic-goto-date
 @table @kbd
 @item g c
 Move to a date specified in the ISO commercial calendar
-(@code{calendar-goto-iso-date}).
+(@code{calendar-iso-goto-date}).
 @item g w
 Move to a week specified in the ISO commercial calendar
-(@code{calendar-goto-iso-week}).
+(@code{calendar-iso-goto-week}).
 @item g j
 Move to a date specified in the Julian calendar
-(@code{calendar-goto-julian-date}).
+(@code{calendar-julian-goto-date}).
 @item g a
 Move to a date specified with an astronomical (Julian) day number
-(@code{calendar-goto-astro-day-number}).
+(@code{calendar-astro-goto-day-number}).
 @item g h
 Move to a date specified in the Hebrew calendar
-(@code{calendar-goto-hebrew-date}).
+(@code{calendar-hebrew-goto-date}).
 @item g i
 Move to a date specified in the Islamic calendar
-(@code{calendar-goto-islamic-date}).
+(@code{calendar-islamic-goto-date}).
 @item g f
 Move to a date specified in the French Revolutionary calendar
-(@code{calendar-goto-french-date}).
+(@code{calendar-french-goto-date}).
 @item g C
 Move to a date specified in the Chinese calendar
-(@code{calendar-goto-chinese-date}).
+(@code{calendar-chinese-goto-date}).
 @item g p
 Move to a date specified in the Persian calendar
-(@code{calendar-goto-persian-date}).
+(@code{calendar-persian-goto-date}).
 @item g k
 Move to a date specified in the Coptic calendar
-(@code{calendar-goto-coptic-date}).
+(@code{calendar-coptic-goto-date}).
 @item g e
 Move to a date specified in the Ethiopic calendar
-(@code{calendar-goto-ethiopic-date}).
+(@code{calendar-ethiopic-goto-date}).
 @end table
 
   These commands ask you for a date on the other calendar, move point to
@@ -880,13 +891,13 @@ other calendar's date in the echo area.  Emacs uses strict completion
 (@pxref{Completion}) whenever it asks you to type a month name, so you
 don't have to worry about the spelling of Hebrew, Islamic, or French names.
 
-@findex list-yahrzeit-dates
+@findex calendar-hebrew-list-yahrzeits
 @cindex yahrzeits
   One common question concerning the Hebrew calendar is the computation
 of the anniversary of a date of death, called a ``yahrzeit.''  The Emacs
 calendar includes a facility for such calculations.  If you are in the
-calendar, the command @kbd{M-x list-yahrzeit-dates} asks you for a
-range of years and then displays a list of the yahrzeit dates for those
+calendar, the command @kbd{M-x calendar-hebrew-list-yahrzeits} asks you for
+a range of years and then displays a list of the yahrzeit dates for those
 years for the date given by point.  If you are not in the calendar,
 this command first asks you for the date of death and the range of
 years, and then displays the list of yahrzeit dates.
@@ -899,25 +910,25 @@ years, and then displays the list of yahrzeit dates.
 @table @kbd
 @item g m l
 Move to a date specified by the long count calendar
-(@code{calendar-goto-mayan-long-count-date}).
+(@code{calendar-mayan-goto-long-count-date}).
 @item g m n t
 Move to the next occurrence of a place in the
-tzolkin calendar (@code{calendar-next-tzolkin-date}).
+tzolkin calendar (@code{calendar-mayan-next-tzolkin-date}).
 @item g m p t
 Move to the previous occurrence of a place in the
-tzolkin calendar (@code{calendar-previous-tzolkin-date}).
+tzolkin calendar (@code{calendar-mayan-previous-tzolkin-date}).
 @item g m n h
 Move to the next occurrence of a place in the
-haab calendar (@code{calendar-next-haab-date}).
+haab calendar (@code{calendar-mayan-next-haab-date}).
 @item g m p h
 Move to the previous occurrence of a place in the
-haab calendar (@code{calendar-previous-haab-date}).
+haab calendar (@code{calendar-mayan-previous-haab-date}).
 @item g m n c
 Move to the next occurrence of a place in the
-calendar round (@code{calendar-next-calendar-round-date}).
+calendar round (@code{calendar-mayan-next-calendar-round-date}).
 @item g m p c
 Move to the previous occurrence of a place in the
-calendar round (@code{calendar-previous-calendar-round-date}).
+calendar round (@code{calendar-mayan-previous-calendar-round-date}).
 @end table
 
 @cindex Mayan long count
@@ -930,7 +941,7 @@ The @dfn{long count} is a counting of days with these units:
 @end display
 
 @kindex g m @r{(Calendar mode)}
-@findex calendar-goto-mayan-long-count-date
+@findex calendar-mayan-goto-long-count-date
 @noindent
 Thus, the long count date 12.16.11.16.6 means 12 baktun, 16 katun, 11
 tun, 16 uinal, and 6 kin.  The Emacs calendar can handle Mayan long
@@ -938,8 +949,8 @@ count dates as early as 7.17.18.13.3, but no earlier.  When you use the
 @kbd{g m l} command, type the Mayan long count date with the baktun,
 katun, tun, uinal, and kin separated by periods.
 
-@findex calendar-previous-tzolkin-date
-@findex calendar-next-tzolkin-date
+@findex calendar-mayan-previous-tzolkin-date
+@findex calendar-mayan-next-tzolkin-date
 @cindex Mayan tzolkin calendar
   The Mayan tzolkin calendar is a cycle of 260 days formed by a pair of
 independent cycles of 13 and 20 days.  Since this cycle repeats
@@ -949,8 +960,8 @@ previous tzolkin date; Emacs asks you for a tzolkin date and moves point
 to the previous occurrence of that date.  Similarly, type @kbd{g m n t}
 to go to the next occurrence of a tzolkin date.
 
-@findex calendar-previous-haab-date
-@findex calendar-next-haab-date
+@findex calendar-mayan-previous-haab-date
+@findex calendar-mayan-next-haab-date
 @cindex Mayan haab calendar
   The Mayan haab calendar is a cycle of 365 days arranged as 18 months
 of 20 days each, followed a 5-day monthless period.  Like the tzolkin
@@ -962,8 +973,8 @@ Similarly, type @kbd{g m n h} to go to the next occurrence of a haab
 date.
 
 @c This is omitted because it is too long for smallbook format.
-@c @findex calendar-previous-calendar-round-date
-@findex calendar-next-calendar-round-date
+@c @findex calendar-mayan-previous-calendar-round-date
+@findex calendar-mayan-next-calendar-round-date
 @cindex Mayan calendar round
   The Maya also used the combination of the tzolkin date and the haab
 date.  This combination is a cycle of about 52 years called a
@@ -1040,10 +1051,10 @@ Display all diary entries for the date you click on.
 Display the entire diary file (@code{diary-show-all-entries}).
 @item m
 Mark all visible dates that have diary entries
-(@code{mark-diary-entries}).
+(@code{diary-mark-entries}).
 @item u
 Unmark the calendar window (@code{calendar-unmark}).
-@item M-x print-diary-entries
+@item M-x diary-print-entries
 Print hard copy of the diary display as it appears.
 @item M-x diary
 Display all diary entries for today's date.
@@ -1053,7 +1064,7 @@ Mail yourself email reminders about upcoming diary entries.
 
 @kindex d @r{(Calendar mode)}
 @findex diary-view-entries
-@vindex view-diary-entries-initially
+@vindex calendar-view-diary-initially-flag
   Displaying the diary entries with @kbd{d} shows in a separate window
 the diary entries for the selected date in the calendar.  The mode line
 of the new window shows the date of the diary entries and any holidays
@@ -1065,13 +1076,13 @@ following day.
   Another way to display the diary entries for a date is to click
 @kbd{Mouse-2} on the date, and then choose @kbd{Diary entries} from
 the menu that appears.  If the variable
-@code{view-diary-entries-initially} is non-@code{nil}, creating the
+@code{calendar-view-diary-initially-flag} is non-@code{nil}, creating the
 calendar lists the diary entries for the current date (provided the
 current date is visible).
 
 @kindex m @r{(Calendar mode)}
-@findex mark-diary-entries
-@vindex mark-diary-entries-in-calendar
+@findex diary-mark-entries
+@vindex calendar-mark-diary-entries-flag
   To get a broader view of which days are mentioned in the diary, use
 the @kbd{m} command.  This displays the dates that have diary entries in
 a different face (or places a @samp{+} after these dates, if display
@@ -1086,7 +1097,7 @@ with multiple faces is not available).
 other months that subsequently become visible by scrolling.  To turn
 marking off and erase the current marks, type @kbd{u}, which also
 turns off holiday marks (@pxref{Holidays}).  If the variable
-@code{mark-diary-entries-in-calendar} is non-@code{nil}, creating or
+@code{calendar-mark-diary-entries-flag} is non-@code{nil}, creating or
 updating the calendar marks diary dates automatically.
 
 @kindex s @r{(Calendar mode)}
@@ -1094,18 +1105,18 @@ updating the calendar marks diary dates automatically.
   To see the full diary file, rather than just some of the entries, use
 the @kbd{s} command.
 
-  Display of selected diary entries uses the selective display feature
-to hide entries that don't apply.  The diary buffer as you see it is
-an illusion, so simply printing the buffer does not print what you see
-on your screen.  There is a special command to print hard copy of the
-diary buffer @emph{as it appears}; this command is @kbd{M-x
-print-diary-entries}.  It sends the data directly to the printer.  You
-can customize it like @code{lpr-region} (@pxref{Printing}).
+  Display of selected diary entries uses invisible text to hide entries
+that don't apply.  The diary buffer as you see it is an illusion, so
+simply printing the buffer does not print what you see on your screen.
+There is a special command to print hard copy of the diary buffer
+@emph{as it appears}; this command is @kbd{M-x diary-print-entries}.
+It sends the data directly to the printer.  You can customize it
+like @code{lpr-region} (@pxref{Printing}).
 
 @findex diary
   The command @kbd{M-x diary} displays the diary entries for the current
 date, independently of the calendar display, and optionally for the next
-few days as well; the variable @code{number-of-diary-entries} specifies
+few days as well; the variable @code{diary-number-of-entries} specifies
 how many days to include.
 @iftex
 @inforef{Diary Customizing,, emacs-xtra}.
@@ -1256,28 +1267,28 @@ entries:
 
 @table @kbd
 @item i d
-Add a diary entry for the selected date (@code{insert-diary-entry}).
+Add a diary entry for the selected date (@code{diary-insert-entry}).
 @item i w
-Add a diary entry for the selected day of the week (@code{insert-weekly-diary-entry}).
+Add a diary entry for the selected day of the week (@code{diary-insert-weekly-entry}).
 @item i m
-Add a diary entry for the selected day of the month (@code{insert-monthly-diary-entry}).
+Add a diary entry for the selected day of the month (@code{diary-insert-monthly-entry}).
 @item i y
-Add a diary entry for the selected day of the year (@code{insert-yearly-diary-entry}).
+Add a diary entry for the selected day of the year (@code{diary-insert-yearly-entry}).
 @end table
 
 @kindex i d @r{(Calendar mode)}
-@findex insert-diary-entry
+@findex diary-insert-entry
   You can make a diary entry for a specific date by selecting that date
 in the calendar window and typing the @kbd{i d} command.  This command
 displays the end of your diary file in another window and inserts the
 date; you can then type the rest of the diary entry.
 
 @kindex i w @r{(Calendar mode)}
-@findex insert-weekly-diary-entry
+@findex diary-insert-weekly-entry
 @kindex i m @r{(Calendar mode)}
-@findex insert-monthly-diary-entry
+@findex diary-insert-monthly-entry
 @kindex i y @r{(Calendar mode)}
-@findex insert-yearly-diary-entry
+@findex diary-insert-yearly-entry
   If you want to make a diary entry that applies to a specific day of
 the week, select that day of the week (any occurrence will do) and type
 @kbd{i w}.  This inserts the day-of-week as a generic date; you can then
@@ -1294,7 +1305,7 @@ For example, @kbd{C-u i w} makes a nonmarking weekly diary entry.
 exiting Emacs.  Saving the diary file after using any of the above
 insertion commands will automatically update the diary marks in the
 calendar window, if appropriate.  You can use the command
-@code{redraw-calendar} to force an update at any time.
+@code{calendar-redraw} to force an update at any time.
 
 @node Special Diary Entries
 @subsection Special Diary Entries
@@ -1313,17 +1324,17 @@ sexp entries:
 @table @kbd
 @item i a
 Add an anniversary diary entry for the selected date
-(@code{insert-anniversary-diary-entry}).
+(@code{diary-insert-anniversary-entry}).
 @item i b
 Add a block diary entry for the current region
-(@code{insert-block-diary-entry}).
+(@code{diary-insert-block-entry}).
 @item i c
 Add a cyclic diary entry starting at the date
-(@code{insert-cyclic-diary-entry}).
+(@code{diary-insert-cyclic-entry}).
 @end table
 
 @kindex i a @r{(Calendar mode)}
-@findex insert-anniversary-diary-entry
+@findex diary-insert-anniversary-entry
   If you want to make a diary entry that applies to the anniversary of a
 specific date, move point to that date and use the @kbd{i a} command.
 This displays the end of your diary file in another window and inserts
@@ -1357,14 +1368,14 @@ indicates the stopping date.  (Again, if you are using the European or ISO
 calendar style, the input order of month, day and year is different.)
 
 @kindex i b @r{(Calendar mode)}
-@findex insert-block-diary-entry
+@findex diary-insert-block-entry
   To insert a block entry, place point and the mark on the two
 dates that begin and end the range, and type @kbd{i b}.  This command
 displays the end of your diary file in another window and inserts the
 block description; you can then type the diary entry.
 
 @kindex i c @r{(Calendar mode)}
-@findex insert-cyclic-diary-entry
+@findex diary-insert-cyclic-entry
    @dfn{Cyclic} diary entries repeat after a fixed interval of days.  To
 create one, select the starting date and use the @kbd{i c} command.  The
 command prompts for the length of interval, then inserts the entry,
