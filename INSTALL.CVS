@@ -31,19 +31,27 @@ once:
 (If you want to install the Emacs binary, type "make install" instead
 of "make" in the last command.)
 
-Occasionally the file "lisp/loaddefs.el" will need be updated to
+Occasionally the file "lisp/loaddefs.el" will need to be updated to
 reflect new autoloaded functions.  If you see errors about undefined
 lisp functions during compilation, that may be the reason.  Another
 symptom may be an error saying that "loaddefs.el" could not be found;
 this is due to a change in the way loaddefs.el was handled in CVS, and
 should only happen once, for users that are updating old CVS trees.
 
-To update loaddefs.el, do:
+To update loaddefs.el (and similar files in some subdirectories, eg
+mh-e and calendar), do:
 
   $ cd lisp
   $ make autoloads EMACS=../src/emacs
 
+(If a build fails with complaints related to a *loaddef.el file, try
+deleting any existing *loaddef.el files and running the above command.)
+
 If either of the above partial procedures fails, try "make bootstrap".
+
+Very occasionally changes in the source can introduce
+incompatibilities with previous builds.  If a bootstrap fails, as a
+last resort try "make maintainer-clean" before bootstrapping again.
 
 Users of non-Posix systems (MS-Windows etc.) should run the
 platform-specific configuration scripts (nt/configure.bat, config.bat,
