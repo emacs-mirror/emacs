@@ -1,5 +1,7 @@
 2008-04-08  Jason Rumney  <jasonr@gnu.org>
 
+	* w32uniscribe.c (SNAME): Extract only symbol name.
+
 	* w32font.h (struct w32_metric_cache): New struct.
 	(w32font_info): Use it.
 	(W32METRIC_NO_ATTEMPT, W32METRIC_SUCCESS, W32METRIC_FAIL)
