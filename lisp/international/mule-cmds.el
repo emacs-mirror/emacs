@@ -2605,21 +2605,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; Fixme: perhaps prefer-coding-system should set this too.
 	  ;; But it's not the time to do such a fundamental change.
 	  (setq default-sendmail-coding-system coding-system)
-	  (setq locale-coding-system coding-system))
-
-	(when (get-language-info current-language-environment 'coding-priority)
-	  (let ((codeset (locale-info 'codeset))
-		(coding-system (car (coding-system-priority-list))))
-	    (when codeset
-	      (let ((cs (coding-system-aliases coding-system))
-		    result)
-		(while (and cs (not result))
-		  (setq result
-			(locale-charset-match-p (symbol-name (pop cs))
-						(locale-info 'codeset))))
-		(unless result
-		  (message "Warning: Default coding system `%s' disagrees with
-system codeset `%s' for this locale." coding-system codeset))))))))
+	  (setq locale-coding-system coding-system))))
 
     ;; On Windows, override locale-coding-system,
     ;; default-file-name-coding-system, keyboard-coding-system,
