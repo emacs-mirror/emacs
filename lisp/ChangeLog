@@ -1,3 +1,30 @@
+2008-04-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-event-to-date):
+	Rename calendar-event-to-date.  Update callers.
+	(calendar-mouse-tex-day): Rename cal-tex-mouse-day.
+	(calendar-mouse-tex-week): Rename cal-tex-mouse-week.
+	(calendar-mouse-tex-week2): Rename cal-tex-mouse-week2.
+	(calendar-mouse-tex-week-iso): Rename cal-tex-mouse-week-iso.
+	(calendar-mouse-tex-week-monday): Rename cal-tex-mouse-week-monday.
+	(calendar-mouse-tex-filofax-daily): Rename cal-tex-mouse-filofax-daily.
+	(calendar-mouse-tex-filofax-2week): Rename cal-tex-mouse-filofax-2week.
+	(calendar-mouse-tex-filofax-week): Rename cal-tex-mouse-filofax-week.
+	(calendar-mouse-tex-month): Rename cal-tex-mouse-month.
+	(calendar-mouse-tex-month-landscape):
+	Rename cal-tex-mouse-month-landscape.
+	(calendar-mouse-tex-year): Rename cal-tex-mouse-year.
+	(calendar-mouse-tex-filofax-year): Rename cal-tex-mouse-filofax-year.
+	(calendar-mouse-tex-year-landscape):
+	Rename cal-tex-mouse-year-landscape.
+	(cal-menu-context-mouse-menu): Update for above name changes.
+
+	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
+	* calendar/cal-french.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
+	* calendar/cal-iso.el, calendar/cal-julian.el, calendar/cal-move.el:
+	* calendar/cal-persia.el, calendar/cal-tex.el, calendar/calendar.el:
+	* calendar/holidays.el: Replace int-to-string with number-to-string.
+
 2008-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mwheel.el (mwheel-scroll): Deactivate any temporarily active
