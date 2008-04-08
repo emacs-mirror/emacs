@@ -1,3 +1,8 @@
+2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Font Lock): Prefer add-hook to using a non-nil `mode' arg
+	in `font-lock-add-keywords'.
+
 2008-04-08  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi, calendar.texi: Update for calendar name changes.

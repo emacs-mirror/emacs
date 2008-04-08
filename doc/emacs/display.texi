@@ -605,9 +605,10 @@ a particular mode.  For example, to highlight @samp{FIXME:} words in C
 comments, use this:
 
 @example
-(font-lock-add-keywords
- 'c-mode
- '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+(add-hook 'c-mode-hook
+          (lambda ()
+           (font-lock-add-keywords nil
+            '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))))
 @end example
 
 @findex font-lock-remove-keywords
