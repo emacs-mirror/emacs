@@ -1,3 +1,8 @@
+2008-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mwheel.el (mwheel-scroll): Deactivate any temporarily active
+	region if point moves.
+
 2008-04-08  Kenichi Handa  <handa@m17n.org>
 
 	* faces.el (font-slant-table): Change numeric values for `r',
