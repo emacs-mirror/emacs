@@ -6992,6 +6992,7 @@
 
 	* international/fontset.el (setup-default-fontset): Specify fonts
 	for `symbol' script.
+
 	* international/characters.el (script-list): Include `currency'
 	in `symbol'.
 
