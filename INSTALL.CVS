@@ -44,8 +44,8 @@ mh-e and calendar), do:
   $ cd lisp
   $ make autoloads EMACS=../src/emacs
 
-(If a build fails with complaints related to a *loaddef.el file, try
-deleting any existing *loaddef.el files and running the above command.)
+(If a build fails with complaints related to a *loaddefs.el file, try
+deleting any existing *loaddefs.el files and running the above command.)
 
 If either of the above partial procedures fails, try "make bootstrap".
 
