@@ -1,3 +1,8 @@
+2008-04-08  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi, calendar.texi: Update for calendar name changes.
+	Also add Baha'i calendar references where appropriate.
+
 2008-04-05  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Init File): Byte-compiling .emacs is bad.
