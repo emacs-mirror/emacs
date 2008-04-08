@@ -598,7 +598,7 @@ that requires a literal mode spec at compile time."
   (add-hook 'before-change-functions 'c-before-change nil t)
   (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t)
-  (setq font-lock-extend-after-change-region-function
+  (set (make-local-variable 'font-lock-extend-after-change-region-function)
  	'c-extend-after-change-region))	; Currently (2008-04), only used by AWK.
 
 (defun c-setup-doc-comment-style ()
