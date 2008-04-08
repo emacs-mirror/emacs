@@ -172,7 +172,7 @@ POSITION and MENU are passed to `x-popup-menu'."
   (interactive)
   (holiday-list (1- (calendar-extract-year (calendar-cursor-to-date)))))
 
-(defun calendar-event-to-date (&optional error)
+(defun cal-menu-event-to-date (&optional error)
   "Date of last event.
 If event is not on a specific date, signals an error if optional parameter
 ERROR is non-nil, otherwise just returns nil."
@@ -190,7 +190,7 @@ ERROR is non-nil, otherwise just returns nil."
   "Show sunrise/sunset times for mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (calendar-sunrise-sunset)))
 
 (defun cal-menu-today-holidays ()
@@ -206,7 +206,7 @@ ERROR is non-nil, otherwise just returns nil."
   "Pop up menu of holidays for mouse selected date.
 EVENT is the event that invoked this command."
   (interactive "e")
-  (let* ((date (calendar-event-to-date))
+  (let* ((date (cal-menu-event-to-date))
          (title (format "Holidays for %s" (calendar-date-string date)))
          (selection
           (cal-menu-x-popup-menu
@@ -226,7 +226,7 @@ Use optional DATE and alternative file DIARY.  EVENT is the event
 that invoked this command.  Shows holidays if `diary-show-holidays-flag'
 is non-nil."
   (interactive "i\ni\ne")
-  (let* ((date (or date (calendar-event-to-date)))
+  (let* ((date (or date (cal-menu-event-to-date)))
          (diary-file (or diary diary-file))
          (diary-list-include-blanks nil)
          (diary-display-hook 'ignore)
@@ -257,124 +257,124 @@ is non-nil."
   "Pop up menu of diary entries from alternative file on mouse-selected date."
   (interactive)
   (calendar-mouse-view-diary-entries
-   (calendar-event-to-date)
+   (cal-menu-event-to-date)
    (read-file-name "Enter diary file name: " default-directory nil t)))
 
 (defun calendar-mouse-insert-diary-entry ()
   "Insert diary entry for mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (diary-insert-entry nil)))
 
 (defun calendar-mouse-set-mark ()
   "Mark the date under the cursor."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (calendar-set-mark nil)))
 
-(defun cal-tex-mouse-day ()
+(defun calendar-mouse-tex-day ()
   "Make a buffer with LaTeX commands for the day mouse is on."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-day nil)))
 
-(defun cal-tex-mouse-week ()
+(defun calendar-mouse-tex-week ()
   "One page calendar for week indicated by cursor.
 Holidays are included if `cal-tex-holidays' is non-nil."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-week nil)))
 
-(defun cal-tex-mouse-week2 ()
+(defun calendar-mouse-tex-week2 ()
   "Make a buffer with LaTeX commands for the week cursor is on.
 The printed output will be on two pages."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-week2 nil)))
 
-(defun cal-tex-mouse-week-iso ()
+(defun calendar-mouse-tex-week-iso ()
   "One page calendar for week indicated by cursor.
 Holidays are included if `cal-tex-holidays' is non-nil."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-week-iso nil)))
 
-(defun cal-tex-mouse-week-monday ()
+(defun calendar-mouse-tex-week-monday ()
   "One page calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-week-monday nil)))
 
-(defun cal-tex-mouse-filofax-daily ()
+(defun calendar-mouse-tex-filofax-daily ()
   "Day-per-page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-filofax-daily nil)))
 
-(defun cal-tex-mouse-filofax-2week ()
+(defun calendar-mouse-tex-filofax-2week ()
   "One page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-filofax-2week nil)))
 
-(defun cal-tex-mouse-filofax-week ()
+(defun calendar-mouse-tex-filofax-week ()
   "Two page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-filofax-week nil)))
 
-(defun cal-tex-mouse-month ()
+(defun calendar-mouse-tex-month ()
   "Make a buffer with LaTeX commands for the month cursor is on.
 Calendar is condensed onto one page."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-month nil)))
 
-(defun cal-tex-mouse-month-landscape ()
+(defun calendar-mouse-tex-month-landscape ()
   "Make a buffer with LaTeX commands for the month cursor is on.
 The output is in landscape format, one month to a page."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-month-landscape nil)))
 
-(defun cal-tex-mouse-year ()
+(defun calendar-mouse-tex-year ()
   "Make a buffer with LaTeX commands for the year cursor is on."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-year nil)))
 
-(defun cal-tex-mouse-filofax-year ()
+(defun calendar-mouse-tex-filofax-year ()
   "Make a buffer with LaTeX commands for Filofax calendar of year cursor is on."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-filofax-year nil)))
 
-(defun cal-tex-mouse-year-landscape ()
+(defun calendar-mouse-tex-year-landscape ()
   "Make a buffer with LaTeX commands for the year cursor is on."
   (interactive)
   (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (cal-menu-event-to-date))
     (cal-tex-cursor-year-landscape nil)))
 
 (defun calendar-mouse-print-dates (&optional event)
   "Pop up menu of equivalent dates to mouse selected date.
 EVENT is the event that invoked this command."
   (interactive "e")
-  (let* ((date (calendar-event-to-date))
+  (let* ((date (cal-menu-event-to-date))
          (title (format "%s (Gregorian)" (calendar-date-string date)))
          (selection
           (cal-menu-x-popup-menu
@@ -387,31 +387,31 @@ EVENT is the event that invoked this command."
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
   (easy-menu-filter-return
-   menu (calendar-date-string (calendar-event-to-date t) t nil)))
+   menu (calendar-date-string (cal-menu-event-to-date t) t nil)))
 
 (easy-menu-define cal-menu-context-mouse-menu nil
   "Pop up menu for Mouse-2 for selected date in the calendar window."
-  '("foo" :filter cal-menu-set-date-title
+  '("cal-menu-mouse2" :filter cal-menu-set-date-title
     "--"
     ["Holidays" calendar-mouse-holidays]
     ["Mark date" calendar-mouse-set-mark]
     ["Sunrise/sunset" calendar-mouse-sunrise/sunset]
     ["Other calendars" calendar-mouse-print-dates]
     ("Prepare LaTeX buffer"
-     ["Daily (1 page)" cal-tex-mouse-day]
-     ["Weekly (1 page)" cal-tex-mouse-week]
-     ["Weekly (2 pages)" cal-tex-mouse-week2]
-     ["Weekly (other style; 1 page)" cal-tex-mouse-week-iso]
-     ["Weekly (yet another style; 1 page)" cal-tex-mouse-week-monday]
-     ["Monthly" cal-tex-mouse-month]
-     ["Monthly (landscape)" cal-tex-mouse-month-landscape]
-     ["Yearly" cal-tex-mouse-year]
-     ["Yearly (landscape)" cal-tex-mouse-year-landscape]
+     ["Daily (1 page)" calendar-mouse-tex-day]
+     ["Weekly (1 page)" calendar-mouse-tex-week]
+     ["Weekly (2 pages)" calendar-mouse-tex-week2]
+     ["Weekly (other style; 1 page)" calendar-mouse-tex-week-iso]
+     ["Weekly (yet another style; 1 page)" calendar-mouse-tex-week-monday]
+     ["Monthly" calendar-mouse-tex-month]
+     ["Monthly (landscape)" calendar-mouse-tex-month-landscape]
+     ["Yearly" calendar-mouse-tex-year]
+     ["Yearly (landscape)" calendar-mouse-tex-year-landscape]
      ("Filofax styles"
-      ["Filofax Daily (one-day-per-page)" cal-tex-mouse-filofax-daily]
-      ["Filofax Weekly (2-weeks-at-a-glance)" cal-tex-mouse-filofax-2week]
-      ["Filofax Weekly (week-at-a-glance)" cal-tex-mouse-filofax-week]
-      ["Filofax Yearly" cal-tex-mouse-filofax-year]))
+      ["Filofax Daily (one-day-per-page)" calendar-mouse-tex-filofax-daily]
+      ["Filofax Weekly (2-weeks-at-a-glance)" calendar-mouse-tex-filofax-2week]
+      ["Filofax Weekly (week-at-a-glance)" calendar-mouse-tex-filofax-week]
+      ["Filofax Yearly" calendar-mouse-tex-filofax-year]))
     ["Diary entries" calendar-mouse-view-diary-entries]
     ["Insert diary entry" calendar-mouse-insert-diary-entry]
     ["Other diary file entries" calendar-mouse-view-other-diary-entries]))
@@ -427,7 +427,7 @@ EVENT is the event that invoked this command."
     ["Unmark" calendar-unmark]
     ["Lunar phases" calendar-phases-of-moon]
     ["Show diary" diary-show-all-entries]
-    ["Exit calendar" exit-calendar]))
+    ["Exit calendar" calendar-exit]))
 
 ;; Undocumented and probably useless.
 (defvar cal-menu-load-hook nil
