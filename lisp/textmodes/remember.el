@@ -516,7 +516,7 @@ If this is nil, then `diary-file' will be used instead."
         (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
       (when list
         (make-diary-entry (mapconcat 'identity list "\n")
-                          nil (or remember-diary-file diary-file)))
+                          nil remember-diary-file))
       nil))) ;; Continue processing
 
 ;;; Internal Functions:
