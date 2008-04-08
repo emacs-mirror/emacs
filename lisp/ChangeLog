@@ -1,3 +1,8 @@
+2008-04-08  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (font-slant-table): Change numeric values for `r',
+	`roman', and `normal'.
+
 2008-04-07  Vincent Belaïche <vincent.b.1@hotmail.fr>
 
 	* calc/calc-vec.el(calcFunc-kron, calc-kron): New functions.
