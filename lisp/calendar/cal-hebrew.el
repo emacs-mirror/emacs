@@ -726,7 +726,7 @@ Prefix argument ARG makes the entry nonmarking."
   'diary-hebrew-insert-yearly-entry "23.1")
 
 ;;;###autoload
-(defun calender-hebrew-list-yahrzeits (death-date start-year end-year)
+(defun calendar-hebrew-list-yahrzeits (death-date start-year end-year)
   "List Yahrzeit dates for *Gregorian* DEATH-DATE from START-YEAR to END-YEAR.
 When called interactively from the calendar window, the date of death is taken
 from the cursor position."
@@ -792,7 +792,7 @@ from the cursor position."
 
 ;;;###autoload
 (define-obsolete-function-alias 'list-yahrzeit-dates
-  'calender-hebrew-list-yahrzeits "23.1")
+  'calendar-hebrew-list-yahrzeits "23.1")
 
 (defvar date)
 
