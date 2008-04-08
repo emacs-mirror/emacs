@@ -900,7 +900,7 @@ static INLINE void produce_charset P_ ((struct coding_system *, int *,
 static void produce_annotation P_ ((struct coding_system *, EMACS_INT));
 static int decode_coding P_ ((struct coding_system *));
 static INLINE int *handle_composition_annotation P_ ((EMACS_INT, EMACS_INT,
-						      struct coding_system *, 
+						      struct coding_system *,
 						      int *, EMACS_INT *));
 static INLINE int *handle_charset_annotation P_ ((EMACS_INT, EMACS_INT,
 						  struct coding_system *,
@@ -1961,7 +1961,7 @@ detect_coding_emacs_mule (coding, detect_info)
 	  /* Perhaps the start of composite character.  We simple skip
 	     it because analyzing it is too heavy for detecting.  But,
 	     at least, we check that the composite character
-	     constitues of more than 4 bytes.  */
+	     constitutes of more than 4 bytes.  */
 	  const unsigned char *src_base;
 
 	repeat:
@@ -4752,7 +4752,7 @@ encode_coding_ccl (coding)
       else
 	{
 	  ASSURE_DESTINATION (ccl.produced);
-	  for (i = 0; i < ccl.produced; i++)	
+	  for (i = 0; i < ccl.produced; i++)
 	    *dst++ = destination_charbuf[i] & 0xFF;
 	  produced_chars += ccl.produced;
 	}
@@ -4941,7 +4941,7 @@ detect_coding_charset (coding, detect_info)
 	      if (src == src_end)
 		goto too_short;
 	      ONE_MORE_BYTE (c);
-	      if (c < charset->code_space[(dim - 1 - idx) * 2] 
+	      if (c < charset->code_space[(dim - 1 - idx) * 2]
 		  || c > charset->code_space[(dim - 1 - idx) * 2 + 1])
 		break;
 	    }
@@ -5809,7 +5809,7 @@ detect_coding (coding)
 		      break;
 		    }
 		}
-	  
+
 	      if (i < coding_category_raw_text)
 		setup_coding_system (CODING_ID_NAME (this->id), coding);
 	      else if (null_byte_found)
@@ -5855,7 +5855,7 @@ decode_eol (coding)
 {
   Lisp_Object eol_type;
   unsigned char *p, *pbeg, *pend;
-  
+
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (EQ (eol_type, Qunix))
     return;
@@ -6878,7 +6878,7 @@ make_conversion_work_buffer (multibyte)
     }
   current = current_buffer;
   set_buffer_internal (XBUFFER (workbuf));
-  Ferase_buffer ();      
+  Ferase_buffer ();
   current_buffer->undo_list = Qt;
   current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
   set_buffer_internal (current);
@@ -8723,7 +8723,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
   operation = args[0];
   if (!SYMBOLP (operation)
       || !INTEGERP (target_idx = Fget (operation, Qtarget_idx)))
-    error ("Invalid first arguement");
+    error ("Invalid first argument");
   if (nargs < 1 + XINT (target_idx))
     error ("Too few arguments for operation: %s",
 	   SDATA (SYMBOL_NAME (operation)));
@@ -9342,7 +9342,7 @@ usage: (define-coding-system-internal ...)  */)
     = Fcons (QCcategory, Fcons (AREF (Vcoding_category_table, category),
 				CODING_ATTR_PLIST (attrs)));
   CODING_ATTR_PLIST (attrs)
-    = Fcons (QCascii_compatible_p, 
+    = Fcons (QCascii_compatible_p,
 	     Fcons (CODING_ATTR_ASCII_COMPAT (attrs),
 		    CODING_ATTR_PLIST (attrs)));
 
