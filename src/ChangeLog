@@ -12,7 +12,7 @@
 	(registry_to_w32_charset): Charset should always be a symbol.
 	(fill_in_logfont, list_all_matching_fonts): Family should
 	always be a symbol.
-	
+
 2008-04-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_shape): Increase items buffer size.
