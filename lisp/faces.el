@@ -141,7 +141,7 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 (defcustom font-slant-table
   '((ro . 0)
     (ri . 10)
-    (r . 99) (roman . 100) (normal . 101)
+    (r . 98) (roman . 99) (normal . 100)
     (i . 199) (italic . 200) (ot . 201)
     (o . 210) (oblique . 211))
   "*Alist of font slant symbols vs the corresponding numeric values."
