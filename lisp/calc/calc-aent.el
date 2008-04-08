@@ -54,6 +54,7 @@
 (defvar calc-quick-calc-history nil
   "The history list for quick-calc.")
 
+;;;###autoload
 (defun calc-do-quick-calc ()
   (require 'calc-ext)
   (calc-check-defines)
@@ -114,6 +115,7 @@
 	  (insert shortbuf)
         (kill-new shortbuf)))))
 
+;;;###autoload
 (defun calc-do-calc-eval (str separator args)
   (calc-check-defines)
   (catch 'calc-error
@@ -268,10 +270,12 @@ The value t means abort and give an error message.")
 
 ;;;; Reading an expression in algebraic form.
 
+;;;###autoload
 (defun calc-auto-algebraic-entry (&optional prefix)
   (interactive "P")
   (calc-algebraic-entry prefix t))
 
+;;;###autoload
 (defun calc-algebraic-entry (&optional prefix auto)
   (interactive "P")
   (calc-wrapper
@@ -282,6 +286,7 @@ The value t means abort and give an error message.")
 (defvar calc-alg-entry-history nil
   "History for algebraic entry.")
 
+;;;###autoload
 (defun calc-alg-entry (&optional initial prompt)
   (let* ((sel-mode nil)
 	 (calc-dollar-values (mapcar 'calc-get-stack-element
@@ -319,6 +324,7 @@ The value t means abort and give an error message.")
 
 (defvar calc-alg-exp)
 
+;;;###autoload
 (defun calc-do-alg-entry (&optional initial prompt no-normalize history)
   (let* ((calc-buffer (current-buffer))
 	 (blink-paren-function 'calcAlg-blink-matching-open)
@@ -461,6 +467,7 @@ The value t means abort and give an error message.")
             (aset (syntax-table) rightchar rightsaved)))
       (blink-matching-open))))
 
+;;;###autoload
 (defun calc-alg-digit-entry ()
   (calc-alg-entry
    (cond ((eq last-command-char ?e)
@@ -474,6 +481,7 @@ The value t means abort and give an error message.")
 ;; but can be set by calcDigit-algebraic and calcDigit-edit.
 (defvar calc-digit-value)
 
+;;;###autoload
 (defun calcDigit-algebraic ()
   (interactive)
   (if (calc-minibuffer-contains ".*[@oh] *[^'m ]+[^'m]*\\'")
@@ -481,6 +489,7 @@ The value t means abort and give an error message.")
     (setq calc-digit-value (minibuffer-contents))
     (exit-minibuffer)))
 
+;;;###autoload
 (defun calcDigit-edit ()
   (interactive)
   (calc-unread-command)
@@ -563,6 +572,7 @@ in Calc algebraic input.")
   "₀₁₂₃₄₅₆₇₈₉₊₋₍₎" ; 0123456789+-()
   "A string consisting of the subscripts allowed by Calc.")
 
+;;;###autoload
 (defun math-read-preprocess-string (str)
   "Replace some substrings of STR by Calc equivalents."
   (setq str
@@ -589,6 +599,7 @@ in Calc algebraic input.")
 (defvar math-exp-keep-spaces)
 (defvar math-expr-data)
 
+;;;###autoload
 (defun math-read-exprs (math-exp-str)
   (let ((math-exp-pos 0)
 	(math-exp-old-pos 0)
@@ -613,6 +624,7 @@ in Calc algebraic input.")
 	    val
 	  (list 'error math-exp-old-pos "Syntax error"))))))
 
+;;;###autoload
 (defun math-read-expr-list ()
   (let* ((math-exp-keep-spaces nil)
 	 (val (list (math-read-expr-level 0)))
@@ -634,6 +646,7 @@ in Calc algebraic input.")
 (defvar math-toks nil
   "Tokens to pass between math-build-parse-table and math-find-user-tokens.")
 
+;;;###autoload
 (defun math-build-parse-table ()
   (let ((mtab (cdr (assq nil calc-user-parse-tables)))
 	(ltab (cdr (assq calc-language calc-user-parse-tables)))
@@ -658,6 +671,7 @@ in Calc algebraic input.")
 		calc-last-user-lang-parse-table ltab
                 calc-last-lang-parse-table lltab)))))
 
+;;;###autoload
 (defun math-find-user-tokens (p)
   (while p
     (cond ((and (stringp (car p))
@@ -682,6 +696,7 @@ in Calc algebraic input.")
 	       (math-find-user-tokens (nth 2 (car p))))))
     (setq p (cdr p))))
 
+;;;###autoload
 (defun math-read-token ()
   (if (>= math-exp-pos (length math-exp-str))
       (setq math-exp-old-pos math-exp-pos
@@ -867,6 +882,7 @@ in Calc algebraic input.")
 ;; calc-arg-values is defined in calc-ext.el, but is used here.
 (defvar calc-arg-values)
 
+;;;###autoload
 (defun calc-check-user-syntax (&optional x prec)
   (let ((p calc-user-parse-table)
 	(matches nil)
@@ -953,6 +969,7 @@ in Calc algebraic input.")
       (setq p (cdr p)))
     (and p match)))
 
+;;;###autoload
 (defun calc-match-user-syntax (p &optional term)
   (let ((matches nil)
 	(save-exp-pos math-exp-pos)
@@ -1013,6 +1030,7 @@ in Calc algebraic input.")
 	      matches "Failed"))
     matches))
 
+;;;###autoload
 (defun math-remove-dashes (x)
   (if (string-match "\\`\\(.*\\)-\\(.*\\)\\'" x)
       (math-remove-dashes
@@ -1052,6 +1070,7 @@ If the current Calc language does not use placeholders, return nil."
        (concat (math-match-substring x 1) "_" (math-match-substring x 2)))
     x))
 
+;;;###autoload
 (defun math-read-if (cond op)
   (let ((then (math-read-expr-level 0)))
     (or (equal math-expr-data ":")
@@ -1263,5 +1282,9 @@ If the current Calc language does not use placeholders, return nil."
 
 (provide 'calc-aent)
 
-;;; arch-tag: 5599e45d-e51e-44bb-9a20-9f4ed8c96c32
+;; Local variables:
+;; generated-autoload-file: "calc-loaddefs.el"
+;; End:
+
+;; arch-tag: 5599e45d-e51e-44bb-9a20-9f4ed8c96c32
 ;;; calc-aent.el ends here

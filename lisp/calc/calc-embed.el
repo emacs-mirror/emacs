@@ -96,29 +96,29 @@
 ))
 
 
-;;; Format of calc-embedded-info vector:
-;;;    0   Editing buffer.
-;;;    1   Calculator buffer.
-;;;    2   Top of current formula (marker).
-;;;    3   Bottom of current formula (marker).
-;;;    4   Top of current formula's delimiters (marker).
-;;;    5   Bottom of current formula's delimiters (marker).
-;;;    6   String representation of current formula.
-;;;    7   Non-nil if formula is embedded within a single line.
-;;;    8   Internal representation of current formula.
-;;;    9   Variable assigned by this formula, or nil.
-;;;   10   List of variables upon which this formula depends.
-;;;   11   Evaluated value of the formula, or nil.
-;;;   12   Mode settings for current formula.
-;;;   13   Local mode settings for current formula.
-;;;   14   Permanent mode settings for current formula.
-;;;   15   Global mode settings for editing buffer.
+;; Format of calc-embedded-info vector:
+;;    0   Editing buffer.
+;;    1   Calculator buffer.
+;;    2   Top of current formula (marker).
+;;    3   Bottom of current formula (marker).
+;;    4   Top of current formula's delimiters (marker).
+;;    5   Bottom of current formula's delimiters (marker).
+;;    6   String representation of current formula.
+;;    7   Non-nil if formula is embedded within a single line.
+;;    8   Internal representation of current formula.
+;;    9   Variable assigned by this formula, or nil.
+;;   10   List of variables upon which this formula depends.
+;;   11   Evaluated value of the formula, or nil.
+;;   12   Mode settings for current formula.
+;;   13   Local mode settings for current formula.
+;;   14   Permanent mode settings for current formula.
+;;   15   Global mode settings for editing buffer.
 
 
-;;; calc-embedded-active is an a-list keyed on buffers; each cdr is a
-;;; sorted list of calc-embedded-infos in that buffer.  We do this
-;;; rather than using buffer-local variables because the latter are
-;;; thrown away when a buffer changes major modes.
+;; calc-embedded-active is an a-list keyed on buffers; each cdr is a
+;; sorted list of calc-embedded-infos in that buffer.  We do this
+;; rather than using buffer-local variables because the latter are
+;; thrown away when a buffer changes major modes.
 
 (defvar calc-embedded-original-modes nil
   "The mode settings for Calc buffer when put in embedded mode.")
@@ -414,6 +414,7 @@
       (aset info 8 val)
       (calc-embedded-update info 14 t t))))
 
+;;;###autoload
 (defun calc-do-embedded-activate (calc-embed-arg cbuf)
   (calc-plain-buffer-only)
   (if calc-embed-arg
@@ -1373,6 +1374,10 @@ The command \\[yank] can retrieve it from there."
       (or first calc-embedded-quiet (message "")))))
 
 (provide 'calc-embed)
+
+;; Local variables:
+;; generated-autoload-file: "calc-loaddefs.el"
+;; End:
 
 ;; arch-tag: 1b8f311e-fba1-40d3-b8c3-1d6f68fd26fc
 ;;; calc-embed.el ends here

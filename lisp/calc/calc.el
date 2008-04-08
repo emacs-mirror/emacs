@@ -862,32 +862,32 @@ Used by `calc-user-invocation'.")
 
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
-		   (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
-		   (nth 1 (symbol-function 'calc-dispatch))))
-	(p load-path))
+                 (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
+                 (nth 1 (symbol-function 'calc-dispatch))))
+      (p load-path))
 
-    ;; If Calc files exist on the load-path, we're all set.
-    (while (and p (not (file-exists-p
-			(expand-file-name "calc-misc.elc" (car p)))))
-      (setq p (cdr p)))
-    (or p
+  ;; If Calc files exist on the load-path, we're all set.
+  (while (and p (not (file-exists-p
+                      (expand-file-name "calc-misc.elc" (car p)))))
+    (setq p (cdr p)))
+  (or p
 
-	;; If Calc is autoloaded using a path name, look there for Calc files.
-	;; This works for both relative ("calc/calc.elc") and absolute paths.
-	(and name (file-name-directory name)
-	     (let ((p2 load-path)
-		   (name2 (concat (file-name-directory name)
-				  "calc-misc.elc")))
-	       (while (and p2 (not (file-exists-p
-				    (expand-file-name name2 (car p2)))))
-		 (setq p2 (cdr p2)))
-	       (when p2
-		 (setq load-path (nconc load-path
-					(list
-					 (directory-file-name
-					  (file-name-directory
-					   (expand-file-name
-					    name (car p2))))))))))))
+      ;; If Calc is autoloaded using a path name, look there for Calc files.
+      ;; This works for both relative ("calc/calc.elc") and absolute paths.
+      (and name (file-name-directory name)
+           (let ((p2 load-path)
+                 (name2 (concat (file-name-directory name)
+                                "calc-misc.elc")))
+             (while (and p2 (not (file-exists-p
+                                  (expand-file-name name2 (car p2)))))
+               (setq p2 (cdr p2)))
+             (when p2
+               (setq load-path (nconc load-path
+                                      (list
+                                       (directory-file-name
+                                        (file-name-directory
+                                         (expand-file-name
+                                          name (car p2))))))))))))
 
 ;; The following modes use specially-formatted data.
 (put 'calc-mode 'mode-class 'special)
@@ -1001,76 +1001,74 @@ Used by `calc-user-invocation'.")
 (mapc (lambda (v) (or (boundp v) (set v nil)))
       calc-local-var-list)
 
-(defvar calc-mode-map nil
+(defvar calc-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+    (define-key map "+" 'calc-plus)
+    (define-key map "-" 'calc-minus)
+    (define-key map "*" 'calc-times)
+    (define-key map "/" 'calc-divide)
+    (define-key map "%" 'calc-mod)
+    (define-key map "&" 'calc-inv)
+    (define-key map "^" 'calc-power)
+    (define-key map "\M-%" 'calc-percent)
+    (define-key map "e" 'calcDigit-start)
+    (define-key map "i" 'calc-info)
+    (define-key map "n" 'calc-change-sign)
+    (define-key map "q" 'calc-quit)
+    (define-key map "Y" 'nil)
+    (define-key map "Y?" 'calc-shift-Y-prefix-help)
+    (define-key map "?" 'calc-help)
+    (define-key map " " 'calc-enter)
+    (define-key map "'" 'calc-algebraic-entry)
+    (define-key map "$" 'calc-auto-algebraic-entry)
+    (define-key map "\"" 'calc-auto-algebraic-entry)
+    (define-key map "\t" 'calc-roll-down)
+    (define-key map "\M-\t" 'calc-roll-up)
+    (define-key map "\C-m" 'calc-enter)
+    (define-key map "\M-\C-m" 'calc-last-args-stub)
+    (define-key map "\C-j" 'calc-over)
+    (define-key map "\C-y" 'calc-yank)
+    (define-key map [mouse-2] 'calc-yank)
+      
+    (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
+          "lOW")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
+          (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
+                  ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
+          "_0123456789.#@")
+    map)
   "The key map for Calc.")
 
-(or calc-mode-map
-    (let ((map (make-keymap)))
-      (suppress-keymap map t)
-      (define-key map "+" 'calc-plus)
-      (define-key map "-" 'calc-minus)
-      (define-key map "*" 'calc-times)
-      (define-key map "/" 'calc-divide)
-      (define-key map "%" 'calc-mod)
-      (define-key map "&" 'calc-inv)
-      (define-key map "^" 'calc-power)
-      (define-key map "\M-%" 'calc-percent)
-      (define-key map "e" 'calcDigit-start)
-      (define-key map "i" 'calc-info)
-      (define-key map "n" 'calc-change-sign)
-      (define-key map "q" 'calc-quit)
-      (define-key map "Y" 'nil)
-      (define-key map "Y?" 'calc-shift-Y-prefix-help)
-      (define-key map "?" 'calc-help)
-      (define-key map " " 'calc-enter)
-      (define-key map "'" 'calc-algebraic-entry)
-      (define-key map "$" 'calc-auto-algebraic-entry)
-      (define-key map "\"" 'calc-auto-algebraic-entry)
-      (define-key map "\t" 'calc-roll-down)
-      (define-key map "\M-\t" 'calc-roll-up)
-      (define-key map "\C-m" 'calc-enter)
-      (define-key map "\M-\C-m" 'calc-last-args-stub)
-      (define-key map "\C-j" 'calc-over)
-      (define-key map "\C-y" 'calc-yank)
-      (define-key map [mouse-2] 'calc-yank)
-      
-      (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
-            "lOW")
-      (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
-            (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
-                    ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
-      (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
-            "_0123456789.#@")
-      (setq calc-mode-map map)))
 
-(defvar calc-digit-map nil
+
+(defvar calc-digit-map
+  (let ((map (make-keymap)))
+    (if (featurep 'xemacs)
+        (map-keymap (function
+                     (lambda (keys bind)
+                       (define-key map keys
+                         (if (eq bind 'undefined)
+                             'undefined 'calcDigit-nondigit))))
+                    calc-mode-map)
+      (let ((cmap (nth 1 calc-mode-map))
+            (dmap (nth 1 map))
+            (i 0))
+        (while (< i 128)
+          (aset dmap i
+                (if (eq (aref cmap i) 'undefined)
+                    'undefined 'calcDigit-nondigit))
+          (setq i (1+ i)))))
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-key))
+          "_0123456789.e+-:n#@oh'\"mspM")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-letter))
+          "abcdfgijklqrtuvwxyzABCDEFGHIJKLNOPQRSTUVWXYZ")
+    (define-key map "'" 'calcDigit-algebraic)
+    (define-key map "`" 'calcDigit-edit)
+    (define-key map "\C-g" 'abort-recursive-edit)
+    map)
   "The key map for entering Calc digits.")
-
-(or calc-digit-map
-    (let ((map (make-keymap)))
-      (if (featurep 'xemacs)
-          (map-keymap (function
-                       (lambda (keys bind)
-                         (define-key map keys
-                           (if (eq bind 'undefined)
-                               'undefined 'calcDigit-nondigit))))
-                      calc-mode-map)
-        (let ((cmap (nth 1 calc-mode-map))
-              (dmap (nth 1 map))
-              (i 0))
-          (while (< i 128)
-            (aset dmap i
-                  (if (eq (aref cmap i) 'undefined)
-                      'undefined 'calcDigit-nondigit))
-            (setq i (1+ i)))))
-      (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-key))
-            "_0123456789.e+-:n#@oh'\"mspM")
-      (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-letter))
-	    "abcdfgijklqrtuvwxyzABCDEFGHIJKLNOPQRSTUVWXYZ")
-      (define-key map "'" 'calcDigit-algebraic)
-      (define-key map "`" 'calcDigit-edit)
-      (define-key map "\C-g" 'abort-recursive-edit)
-      (setq calc-digit-map map)))
 
 (mapc (lambda (x)
 	(condition-case err
@@ -1096,98 +1094,59 @@ Used by `calc-user-invocation'.")
 		  '("\C-d"))
 	'("\177" "\C-d")))
 
-(defvar calc-dispatch-map nil
+(defvar calc-dispatch-map
+  (let ((map (make-keymap)))
+    (mapc (lambda (x)
+            (define-key map (char-to-string (car x)) (cdr x))
+            (when (string-match "abcdefhijklnopqrstuwxyz"
+                                (char-to-string (car x)))
+              (define-key map (char-to-string (- (car x) ?a -1)) (cdr x)))
+            (define-key map (format "\e%c" (car x)) (cdr x)))
+          '( ( ?a . calc-embedded-activate )
+             ( ?b . calc-big-or-small )
+             ( ?c . calc )
+             ( ?d . calc-embedded-duplicate )
+             ( ?e . calc-embedded )
+             ( ?f . calc-embedded-new-formula )
+             ( ?g . calc-grab-region )
+             ( ?h . calc-dispatch-help )
+             ( ?i . calc-info )
+             ( ?j . calc-embedded-select )
+             ( ?k . calc-keypad )
+             ( ?l . calc-load-everything )
+             ( ?m . read-kbd-macro )
+             ( ?n . calc-embedded-next )
+             ( ?o . calc-other-window )
+             ( ?p . calc-embedded-previous )
+             ( ?q . quick-calc )
+             ( ?r . calc-grab-rectangle )
+             ( ?s . calc-info-summary )
+             ( ?t . calc-tutorial )
+             ( ?u . calc-embedded-update-formula )
+             ( ?w . calc-embedded-word )
+             ( ?x . calc-quit )
+             ( ?y . calc-copy-to-buffer )
+             ( ?z . calc-user-invocation )
+             ( ?\' . calc-embedded-new-formula )
+             ( ?\` . calc-embedded-edit )
+             ( ?: . calc-grab-sum-down )
+             ( ?_ . calc-grab-sum-across )
+             ( ?0 . calc-reset )
+             ( ?? . calc-dispatch-help )
+             ( ?# . calc-same-interface )
+             ( ?& . calc-same-interface )
+             ( ?\\ . calc-same-interface )
+             ( ?= . calc-same-interface )
+             ( ?* . calc-same-interface )
+             ( ?/ . calc-same-interface )
+             ( ?+ . calc-same-interface )
+             ( ?- . calc-same-interface ) ))
+    map)
   "The key map for starting Calc.")
 
-(or calc-dispatch-map
-    (let ((map (make-keymap)))
-      (mapc (lambda (x)
-              (define-key map (char-to-string (car x)) (cdr x))
-              (when (string-match "abcdefhijklnopqrstuwxyz"
-                                  (char-to-string (car x)))
-                (define-key map (char-to-string (- (car x) ?a -1)) (cdr x)))
-              (define-key map (format "\e%c" (car x)) (cdr x)))
-            '( ( ?a . calc-embedded-activate )
-               ( ?b . calc-big-or-small )
-               ( ?c . calc )
-               ( ?d . calc-embedded-duplicate )
-               ( ?e . calc-embedded )
-               ( ?f . calc-embedded-new-formula )
-               ( ?g . calc-grab-region )
-               ( ?h . calc-dispatch-help )
-               ( ?i . calc-info )
-               ( ?j . calc-embedded-select )
-               ( ?k . calc-keypad )
-               ( ?l . calc-load-everything )
-               ( ?m . read-kbd-macro )
-               ( ?n . calc-embedded-next )
-               ( ?o . calc-other-window )
-               ( ?p . calc-embedded-previous )
-               ( ?q . quick-calc )
-               ( ?r . calc-grab-rectangle )
-               ( ?s . calc-info-summary )
-               ( ?t . calc-tutorial )
-               ( ?u . calc-embedded-update-formula )
-               ( ?w . calc-embedded-word )
-               ( ?x . calc-quit )
-               ( ?y . calc-copy-to-buffer )
-               ( ?z . calc-user-invocation )
-               ( ?\' . calc-embedded-new-formula )
-               ( ?\` . calc-embedded-edit )
-               ( ?: . calc-grab-sum-down )
-               ( ?_ . calc-grab-sum-across )
-               ( ?0 . calc-reset )
-               ( ?? . calc-dispatch-help )
-               ( ?# . calc-same-interface )
-               ( ?& . calc-same-interface )
-               ( ?\\ . calc-same-interface )
-               ( ?= . calc-same-interface )
-               ( ?* . calc-same-interface )
-               ( ?/ . calc-same-interface )
-               ( ?+ . calc-same-interface )
-               ( ?- . calc-same-interface ) ))
-      (setq calc-dispatch-map map)))
 
 ;;;; (Autoloads here)
-(mapc
- (lambda (x) (dolist (func (cdr x)) (autoload func (car x))))
-    '(
-
- ("calc-aent" calc-alg-digit-entry calc-alg-entry
-    calc-check-user-syntax calc-do-alg-entry calc-do-calc-eval
-    calc-do-quick-calc calc-match-user-syntax math-build-parse-table
-    math-find-user-tokens math-read-expr-list math-read-exprs math-read-if
-    math-read-token math-remove-dashes math-read-preprocess-string)
-
- ("calc-embed" calc-do-embedded-activate)
-
- ("calc-misc"
-    calc-do-handle-whys calc-do-refresh calc-num-prefix-name
-    calc-record-list calc-record-why calc-report-bug calc-roll-down-stack
-    calc-roll-up-stack calc-temp-minibuffer-message calcFunc-floor
-    calcFunc-inv calcFunc-trunc math-concat math-constp math-div2
-    math-div2-bignum math-do-working math-evenp math-fixnatnump
-    math-fixnump math-floor math-imod math-ipow math-looks-negp math-mod
-    math-negp math-posp math-pow math-read-radix-digit math-reject-arg
-    math-trunc math-zerop)))
-
-(mapc
- (lambda (x) (dolist (cmd (cdr x)) (autoload cmd (car x) nil t)))
-    '(
-
- ("calc-aent" calc-algebraic-entry calc-auto-algebraic-entry
-    calcDigit-algebraic calcDigit-edit)
-
- ("calc-misc" another-calc calc-big-or-small calc-dispatch-help
-    calc-help calc-info calc-info-goto-node calc-info-summary calc-inv
-    calc-last-args-stub
-    calc-missing-key calc-mod calc-other-window calc-over calc-percent
-    calc-pop-above calc-power calc-roll-down calc-roll-up
-    calc-shift-Y-prefix-help calc-tutorial calcDigit-letter
-    report-calc-bug)
-
- ("calc-yank" calc-yank)))
-
+(load "calc-loaddefs.el" nil t)
 
 ;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
 

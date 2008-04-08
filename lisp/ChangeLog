@@ -1,3 +1,13 @@
+2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calc/calc.el: Load "cal-loaddefs" rather than set up autoloads manually.
+	(calc-mode-map, calc-digit-map, calc-dispatch-map):
+	Move initialization into declaration.
+	* calc/calc-yank.el:
+	* calc/calc-misc.el:
+	* calc/calc-embed.el:
+	* calc/calc-aent.el: Add autoload cookies and set generated-autoload-file.
+
 2008-04-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ps-samp.el (ps-add-printer, ps-remove-printer)
