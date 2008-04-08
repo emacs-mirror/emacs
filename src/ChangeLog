@@ -1,5 +1,10 @@
 2008-04-08  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.h (struct w32_metric_cache): New struct.
+	(w32font_info): Use it.
+	(W32METRIC_NO_ATTEMPT, W32METRIC_SUCCESS, W32METRIC_FAIL)
+	(CACHE_BLOCKSIZE): New constants.
+	
 	* w32font.c (Qja, Qko, Qzh): New symbols.
 	(syms_of_w32font): Initialise them.
 	(font_matches_spec): Use them to filter by language.
