@@ -1,3 +1,662 @@
+2008-04-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org-export-latex.el: New file.
+
+	* textmodes/org-irc.el: New file.
+
+	* textmodes/org-mac-message.el: New file.
+
+	* textmodes/org-publish.el: New file.
+
+	* textmodes/org.el (org-agenda-collect-markers)
+	(org-create-marker-find-array)
+	(org-check-agenda-marker-table, org-extract-log-state-settings)
+	(org-nofm-to-completion, org-refile-goto-last-stored)
+	(org-export-html-convert-special-strings, org-first-list-item-p)
+	(org-imenu-new-marker, org-imenu-get-tree)
+	(org-speedbar-set-agenda-restriction)
+	(org-agenda-set-restriction-lock)
+	(org-agenda-remove-restriction-lock)
+	(org-agenda-maybe-redo, org-compute-latex-and-specials-regexp)
+	(org-do-latex-and-special-faces, org-read-date-display)
+	(org-select-remember-template, org-agenda-copy-local-variable)
+	(org-read-date-get-relative, org-columns-cleanup-item)
+	(org-find-entry-with-id)
+	(org-insert-columns-dblock, org-listtable-to-string)
+	(org-dblock-write:columnview, org-columns-capture-view)
+	(org-edit-headline, org-parse-local-options)
+	(org-in-clocktable-p, org-property-or-variable-value)
+	(org-get-tags-string, org-up-heading-safe)
+	(org-fast-todo-selection, org-get-wdays)
+	(org-switch-to-buffer-other-window, org-agenda-deadline-face)
+	(org-add-link-type, org-columns-content, org-columns-widen)
+	(org-columns-next-allowed-value, org-columns-edit-allowed)
+	(org-columns-store-format)
+	(org-columns-uncompile-format, org-columns-redo)
+	(org-columns-edit-attributes, org-delete-property)
+	(org-set-property, org-columns-update, org-columns-compute)
+	(org-columns-eval)
+	(org-columns-not-in-agenda, org-columns-compute-all)
+	(org-property-next-allowed-value)
+	(org-columns-compile-format, org-fill-paragraph-experimental)
+	(org-string-to-number, org-property-action, org-columns-move-left)
+	(org-columns-new)
+	(org-column-number-to-string, org-property-previous-allowed-value)
+	(org-at-property-p, org-columns-delete)
+	(org-columns-previous-allowed-value)
+	(org-columns-move-right, org-columns-narrow)
+	(org-property-get-allowed-values)
+	(org-verify-version, org-column-string-to-number)
+	(org-delete-property-globally)
+	(org-get-property-block, org-entry-properties, org-entry-get)
+	(org-entry-delete, org-entry-get-with-inheritance)
+	(org-entry-put, org-buffer-property-keys, org-new-column-overlay)
+	(org-overlay-columns)
+	(org-overlay-columns-title, org-remove-column-overlays)
+	(org-column-show-value, org-column-quit, org-column-edit)
+	(org-cached-entry-get, org-table-put-field-property)
+	(org-get-columns-autowidth-alist, turn-on-orgstruct)
+	(orgstruct-error, orgstruct-setup)
+	(orgstruct-make-binding, org-context-p, org-get-local-variables)
+	(org-run-like-in-org-mode)
+	(org-make-link-regexps, org-remove-keyword-keys)
+	(org-get-todo-face, org-export-get-title-from-subtree)
+	(org-assign-fast-keys, org-get-min-level)
+	(org-get-wdays, org-clock-find-position)
+	(org-clock-goto, org-fontify-priorities)
+	(org-get-date-from-calendar)
+	(org-entry-add-to-multivalued-property)
+	(org-entry-remove-from-multivalued-property)
+	(org-entry-member-in-multivalued-property)
+	(org-entry-is-todo-p, org-entry-is-done-p, org-get-todo-state)
+	(org-agenda-get-restriction-and-command)
+	(org-open-link-from-string, org-columns-open-link)
+	(org-go-to-remember-target, org-remember-insinuate)
+	(org-icalendar-cleanup-string, org-first-sibling-p)
+	(org-back-over-empty-lines, org-skip-whitespace)
+	(org-goto-local-auto-isearch)
+	(org-clocktable-steps, org-refile-get-location)
+	(org-kill-line, org-remove-timestamp-with-keyword)
+	(org-local-logging): New functions.
+	(org-agenda-marker-table, org-log-note-how)
+	(org-goto-local-auto-isearch-map)
+	(org-last-remember-storage-locations)
+	(org-imenu-markers, org-agenda-restriction-lock-overlay)
+	(org-speedbar-restriction-lock-overlay)
+	(org-massive-special-regexp)
+	(org-verbatim-re, org-read-date-display-live)
+	(org-agenda-file-regexp, org-complex-heading-regexp)
+	(org-completion-fallback-command, org-todo-log-states)
+	(org-goto-exit-command, org-goto-selected-point)
+	(org-todo-key-alist, org-todo-key-trigger, org-agenda-remove-date)
+	(org-agenda-after-show-hook, org-agenda-skip-unavailable-files)
+	(org-fast-tag-selection-can-set-todo-state, org-local-properties)
+	(org-store-link-functions, org-columns-top-level-marker)
+	(orgstruct-mode-map, org-entry-property-inherited-from)
+	(org-column-overlays, org-current-columns-fmt)
+	(org-current-columns-maxwidths, org-column-map)
+	(org-cached-props): New variables.
+	(org-special-ctrl-k, org-goto-auto-isearch)
+	(org-agenda-todo-keyword-format)
+	(org-remember-use-refile-when-interactive)
+	(org-imenu-depth, org-highlight-latex-fragments-and-specials)
+	(org-agenda-skip-scheduled-if-done, org-extend-today-until)
+	(org-agenda-window-frame-fractions, org-fontify-priorities)
+	(org-agenda-deadline-leaders, org-use-property-inheritance)
+	(org-clock-into-drawer, org-agenda-compact-blocks)
+	(org-use-fast-todo-selection, org-fast-tag-selection-include-todo)
+	(org-edit-timestamp-down-means-later, org-todo-keyword-faces)
+	(org-agenda-deadline-faces, org-remember-store-without-prompt)
+	(org-default-columns-format)
+	(org-agenda-default-appointment-duration)
+	(org-export-with-footnotes, org-clock-out-when-done)
+	(org-global-properties, org-todo-keyword-faces)
+	(org-archive-save-context-info)
+	(org-edit-timestamp-down-means-later)
+	(org-scheduled-past-days, org-export-with-drawers)
+	(org-read-date-prefer-future, org-hide-emphasis-markers)
+	(org-clock-heading-function, org-clock-in-switch-to-state)
+	(org-export-with-special-strings): New options.
+	(org-link-store, org-link-follow, org-latex)
+	(org-remember-templates, org-time-stamp-rounding-minutes)
+	(org-back-over-empty-lines, org-find-base-buffer-visiting)
+	(org-columns-new): Fix typos in docstrings.
+	(org-ctrl-c-star): Implement a missing branch in the decision
+	tree.
+	(org-select-remember-template): Clean the code.
+	(org-prepare-dblock): Add the extra :content parameter.
+	(org-write-agenda): New output type ".ics" files.
+	(org-write-agenda): Call `org-icalendar-verify-function', both for
+	time stamps and for TODO entries.
+	(org-export-as-html): Revert the change that killed the html
+	buffer.  Side effects first need to be studied carefully.
+	(org-get-tags-at): Fix the structure of the condition-case
+	statement.
+	(org-ts-regexp0, org-repeat-re, org-display-custom-time)
+	(org-timestamp-change): Fix regulear expressions to swallow the
+	extra character for repeat-shift control.
+	(org-auto-repeat-maybe): Implement the new repeater mechanisms.
+	(org-get-legal-level): Alias to `org-get-valid-level'.
+	(org-dblock-write:clocktable): Add a :link parameter, linking
+	headlines to their location in the Org agenda files.
+	(org-get-tags-at): Bugfix: prevent `org-back-to-heading' from
+	throwing an error when getting tags before headlines.
+	(org-timestamp-change, org-modify-ts-extra)
+	(org-ts-regexp1): Fix timestamp editing.
+	(org-agenda-custom-commands-local-options): New constant.
+	(org-agenda-custom-commands): Use
+	`org-agenda-custom-commands-local-options' to improve customize
+	type.  "htmlize": Removed hack to fix face problem with htmlize,
+	it no longer seem necessary.
+	(org-follow-link-hook): New hook.
+	(org-agenda-custom-commands): Add "Component" as a tag for each
+	item in a command serie.
+	(org-open-at-point): Run `org-follow-link-hook'.
+	(org-agenda-schedule): Bugfix: don't display marker type when it
+	is nil.
+	(org-store-link): org-irc required.
+	(org-set-regexps-and-options): Parse the new logging options.
+	(org-todo): Handle the new ways of recording state change stuff.
+	(org-columns-open-link): Fix bug with opening link in column view.
+	(org-todo): Make sure that LOGGING properties are honoured.
+	(org-todo-keywords): Improve docstring.
+	(org-startup-options): Cleanup startup options.
+	(org-set-regexps-and-options): Process the "!" markers.
+	(org-todo): Respect the new logging stuff.
+	(org-add-log-maybe): New parameter HOW that defines how logging
+	should be done and also overrides PURPOSE.  Add a docstring.
+	(org-add-log-note): Check if we really need to ask for a note.
+	(org-get-current-options): Digest the new keyword.
+	(org-agenda-reset-markers): Rename from
+	`org-agenda-maybe-reset-markers'.  Remove FORCE argument.
+	(org-diary, org-agenda-quit, org-prepare-agenda): Call the renamed
+	function, without force argument.
+	(org-buffer-property-keys): Bind local variables s and p.
+	(org-make-tags-matcher): Allow "" to match an empty or
+	non-existent property value.
+	(org-export-as-html): Join unsorted lists when they directly
+	follow each other.  Such lists may be created by headlines that
+	are converted to lists.
+	(org-export-as-html): Use :html-extension instead of
+	org-export-html-extension.
+	(org-store-link): Support for links from `rmail-summary-mode'.
+	(org-columns-new, org-complete, org-set-property): Set the
+	`include-columns' argument in the call to
+	`org-buffer-property-keys'.
+	(org-buffer-property-keys): New argument `include-columns', to
+	include properties expected by any of the COLUMS formats in the
+	current buffer.
+	(org-cleaned-string-for-export): Get rid of drawers first, so that
+	they will be removed also in the text before the first headline.
+	(org-clock-report): Show the clocktable when found.
+	(org-refile): Fix positioning bug when `org-reverse-note-order' is
+	nil.
+	(org-version): With prefix argument, insert `org-version' at
+	point.
+	(org-agenda-goto): Recenter the window after finding the target
+	location, to make sure the correct position will be displayed.
+	(org-agenda-get-deadlines): Don't scale priority with the warning
+	period.
+	(org-insert-heading): Don't break line in the middle of the line.
+	(org-agenda-get-deadlines): Allow `org-deadline-warning-days' to
+	be 0.
+	(org-update-checkbox-count): Revamp to deal with hierarchical
+	beckboxes.  This was a patch from Miguel A. Figueroa-Villanueva.
+	(org-schedule, org-deadline): Use
+	`org-remove-timestamp-with-keyword' to make sure all such time
+	stamps are removed.
+	(org-mode): Support for `align'.
+	(org-agenda-get-deadlines): Make sure priorities increase as the
+	due date approaches and is passed.
+	(org-remember-apply-template): Fix problem with tags that contain
+	"_" or "@".
+	(org-make-link-regexps): Improve the regular expression for plain
+	links.
+	(org-agenda-get-closed): List each clocking entry.
+	(org-set-tags): Only tabify before tags if indent-tabs-mode is t.
+	(org-archive-all-done): Fix incorrect number of stars in regexp.
+	(org-global-tags-completion-table): Add the value of org-tag-alist
+	in each buffer, to make sure that also unused tags will be
+	available for completion.
+	(org-columns-edit-value)
+	(org-columns-next-allowed-value): Only update if not in agenda.
+	(org-dblock-write:clocktable): Call `org-clocktable-steps'.
+	(org-archive-subtree): Add the outline tree context as a property.
+	(org-closest-date): New optional argument `prefer'.
+	(org-goto-map, org-get-location): Implement auto-isearch.
+	(org-goto-local-search-forward-headings)
+	(org-get-entries-from-diary): Require diary-lib.
+	(org-agenda-sunrise-sunset): Require solar.
+	(org-export-html-style): Doc fix.
+	(org-get-legal-level): New obsolete alias.
+	(org-get-valid-level): Rename from `org-get-legal-level'.
+	(org-promote, org-demote, org-archive-subtree)
+	(org-remember-handler, org-refile, org-put-clock-overlay): Use it.
+	(org-info): Use info rather than Info-goto-node.
+	(org-entry-properties): Let-bind `clocksum'.
+	(org-unmodified, org-cycle-emulate-tab)
+	(org-descriptive-links, org-link-file-path-type)
+	(org-remember-use-refile-when-interactive)
+	(org-agenda-skip-timestamp-if-done, org-agenda-scheduled-leaders)
+	(org-export-ascii-bullets, org-agenda-deadline-faces)
+	(turn-on-orgstruct++, orgtbl-to-texinfo, org-mhe-get-header)
+	(org-batch-agenda, org-batch-agenda-csv, org-fix-agenda-info)
+	(org-kill-note-or-show-branches): Fix typos in docstrings.
+	(org-html-do-expand): `org-export-html-convert-special-strings'
+	added to the list of conversion.
+	(org-infile-export-plist, org-get-current-options): Add support
+	for "-" in the #+OPTION line to let user switch on/off special
+	strings conversion.
+	(org-export-plist-vars): New :html-table-tag property.
+	(org-export-as-html, org-format-org-table-html)
+	(org-format-table-table-html) Use the :html-table-tag property
+	instead of the `org-export-html-table-tag' global value.
+	(org-additional-option-like-keywords): Add "TBLFM".
+	(org-entry-properties): Include the CLOCKSUM special property.
+	(org-columns-edit-value): Do not allow to edit the special
+	CLOCKSUM property.
+	(org-flag-drawer): Use the original value of `outline-regexp'.
+	(org-remember-handler): Add invisible-ok flag to call to
+	`org-end-of-subtree'.
+	(org-agenda-highlight-todo): Respect
+	`org-agenda-todo-keyword-format'.
+	(org-infile-export-plist): No restriction while searching for
+	options.
+	(org-remember-handler): Remove comments at the end of the buffer.
+	(org-table-sort-lines): Make sure sorting works on link
+	descritions only, and ignores the link.
+	(org-sort-entries-or-items): Make sure the end of the subtree is
+	included.
+	(org-refile-use-outline-path): New allowed values `file' and
+	`full-file-path'.
+	(org-get-refile-targets): Respect new values for
+	`org-refile-use-outline-path'.
+	(org-agenda-get-restriction-and-command): DEL goes back to initial
+	list.
+	(org-export-as-xoxo): Restore point when done.
+	(org-open-file): Allow multiple %s in command.
+	(org-get-refile-targets): Interpret the new maxlevel setting.
+	(org-refile-targets): New option `:maxlevel'.
+	(org-copy-subtree): Include empty lines before but not after
+	subtree.
+	(org-move-item-down, org-move-item-up): Include empty lines before
+	but not after item.
+	(org-remember-apply-template): Defaults, completions and history
+	for template prompts.  Also, interpret new `%!' escape.
+	(org-context-choices): New constant.
+	(org-bound-and-true-p): New macro.
+	(org-agenda-restriction-lock): New face.
+	(org-open-at-point): Remove obsolete way to do redirection in
+	shell links.
+	(org-imenu-and-speedbar): New customization group.
+	(org-entry-properties): Return keyword-less time strings.
+	(org-clock-in): Use `org-clock-heading-function'.
+	(org-calendar-holiday): Try to use `calendar-check-holidays'
+	instead of the obsolete `check-calendar-holidays'.
+	(org-export-html-special-string-regexps): New constant.
+	(org-latex-and-export-specials): New face.
+	(org-link-escape-chars): Use characters instead of strings.
+	(org-link-escape-chars-browser, org-link-escape)
+	(org-link-unescape): Use characters instead of strings.
+	(org-export-html-convert-sub-super, org-html-do-expand): Check for
+	protected text.
+	(org-emphasis-alist): Additional `verbatim' flag.
+	(org-set-emph-re): Handle the verbatim flag and compute
+	`org-verbatim-re'.
+	(org-cleaned-string-for-export): Protect verbatim elements.
+	(org-additional-option-like-keywords): Add new keywords.
+	(org-get-entry): Rename from `org-get-cleaned-entry'.
+	(org-agenda-get-scheduled, org-agenda-get-blocks): Use
+	`org-agenda-skip-scheduled-if-done'.
+	(org-prepare-agenda-buffers): Allow buffers as arguments.
+	(org-entry-properties): Add CATEGORY as a special property.
+	(org-use-property-inheritance): Allow a list of properties as a
+	value.
+	(org-eval-in-calendar): No longer update the prompt.
+	(org-read-date-popup-calendar): Rename from
+	`org-popup-calendar-for-date-prompt'.
+	(org-remember-apply-template): Define `remember-finalize' if it is
+	not yet defined.
+	(org-read-date): Respect the setting of
+	`org-read-date-prefer-future'.  Use `org-read-date-analyze'.
+	(org-set-font-lock-defaults): Use `org-archive-tag' instead of a
+	hardcoded string.
+	(org-remember-apply-template): Use `remember-finalize' instead of
+	`remember-buffer'.
+	(org-columns-compute, org-column-number-to-string)
+	(org-columns-uncompile-format, org-columns-compile-format)
+	(org-columns-compile-format): Handle printf format specifier.
+	(org-columns-new, org-column-number-to-string)
+	(org-columns-uncompile-format, org-columns-compile-format):
+	Support for new currency summary type.
+	(org-tree-to-indirect-buffer): Do not kill old buffer when
+	`org-indirect-buffer-display' is `new-frame'.
+	(org-indirect-buffer-display): Document that `new-frame' leads to
+	indiret buffer proliferation.
+	(org-agenda-list): Use `org-extend-today-until'.
+	(org-format-org-table-html): Use lower-case for <col> tag.
+	(org-agenda-execute): New command.
+	(org-agenda-mode-map): Keybindings of "g" "G", "e" modified.
+	(org-remember-apply-template): Use `org-select-remember-template'.
+	(org-region-active-p): Use `use-region-p'.
+	(org-cycle-hide-archived-subtrees)
+	(org-table-rotate-recalc-marks, org-mark-ring-push)
+	(org-follow-info-link, org-mhe-get-message-folder-from-index)
+	(org-auto-repeat-maybe, org-store-log-note, org-delete-property)
+	(org-evaluate-time-range, org-edit-agenda-file-list):
+	(org-paste-subtree):
+	(org-calendar-holiday): Use calendar-check-holidays instead of the
+	obsolete check-calendar-holidays.
+	(org-table-formula-substitute-names): Remove forgotten temporary
+	debugging code.
+	(org-agenda-get-restriction-and-command): Use `mapc' instead of
+	`mapcar'.
+	(org-agenda-list): Numeric prefix argument can specify the number
+	of days.
+	(remember-register, remember-buffer): Prevent byte compiler from
+	complaining.
+	(org-todo): Save and restore match data.
+	(org-no-warnings): New macro.
+	(org-columns-eval): Use `org-no-warnings'.
+	(org-version): Change to 5.13e.
+	(org-agenda-file-regexp): Fix typo in docstring.
+	(org-add-planning-info): Fix bug in parenthesis settings.
+	(org-scan-tags): Catch the case of indirect buffers with no
+	filename.
+	(org-fast-tag-selection, org-export-as-ascii, org-export-as-html):
+	Re-install switch to mapc, had been removed by accident.
+	(org-columns-map): New binding `C-c C-o'.
+	(org-columns-menu): Change menu text and added new entry.
+	(org-columns-eval): Document the use of `next-line'.
+	(org-columns-follow-link): Remove function.
+	(org-read-date-get-relative): Fix typo in docstring.
+	(org-read-date-get-relative): Leading +/- is not optional.
+	(org-agenda-get-restriction-and-command): Always resize window on
+	first loop cycle.
+	(org-agenda-open-link): Make sure the link abbreviations are
+	present in the agenda buffer.
+	(org-agenda-files): Allow directories in the variable.
+	(org-agenda): Use `org-agenda-get-restriction-and-command'.
+	(org-todo-blocker-hook, org-todo-trigger-hook): New hooks.
+	(org-remember-apply-template): Catch C-g and make sure window
+	configuration is restored.
+	(org-agenda-open-link): Make it work with several links in the
+	line.
+	(org-drawers, org-set-regexps-and-options)
+	(org-get-current-options): Add support for a DRAWERS in-buffer
+	option.
+	(org-fit-agenda-window): Use `org-agenda-window-frame-fractions'.
+	(org-agenda-to-appt): Require calendar.
+	(org-entry-get-with-inheritance): Widen for search.
+	(org-columns-display-here): Don't mark buffer as modified when
+	adding space characters to accomodate column overlays.
+	(org-export-as-html): Better formatting of tags in the toc.
+	(org-columns-display-here): Make the ITEM column as compact as
+	possible.
+	(org-remember-templates): Customization interface improved.
+	(org-export-with-property-drawer): Variable removed.
+	(org-sort-entries): Rewrite using `sort-subr'.
+	(org-set-property): More appropriate completion during interactive
+	use.
+	(org-sort-entries): Allow sorting by property.
+	(org-additional-option-like-keywords): Add more values.
+	(org-sort-entries-or-items): Rename from `org-sort-entries'.
+	(org-at-timestamp-p, org-timestamp-change)
+	(org-remember-templates): First element of each entry is now a
+	name for the template.
+	(org-store-log-note): Check for `org-note-abort'.
+	(org-kill-note-or-show-branches): New command.
+	(org-cut-subtree, org-copy-subtree): New argument N to act on N
+	sequential subtrees.
+	(org-paste-subtree): Fix the level at which a tree is pasted.
+	(org-fit-agenda-window): Limitations on window size removed.
+	(org-agenda-find-same-or-today-or-agenda): Rename from
+	`org-agenda-find-today-or-agenda'.
+	(org-agenda-scheduled-leaders)
+	(org-agenda-get-deadlines): Use `org-agenda-deadline-leaders'.
+	(org-agenda-get-scheduled): Use `org-agenda-scheduled-leaders'.
+	(org-export-with-tags, org-export-plist-vars)
+	(org-infile-export-plist): New "tags" option.
+	(org-cached-entry-get): Use `org-use-property-inheritance'.
+	(org-remember-apply-template): Fix typo.
+	(org-additional-option-like-keywords): New constant.
+	(org-complete): Use `org-additional-option-like-keywords'.
+	(org-clock-report): Only update the table at point, or insert a
+	new one.
+	(org-open-file): Use `start-process-shell-command' instead of
+	`shell-command' with an ampersand.
+	(org-deadline, org-schedule): New argument REMOVE to remove the
+	date from the entry.
+	(org-agenda-schedule, org-agenda-deadline): Pass the prefix
+	argument to `org-schedule' and `org-deadline'.
+	(org-trim): Use the correct expressions for beginning and end of
+	the string.
+	(org-get-cleaned-entry): Trim the string before returning it.
+	(org-agenda-tags-column): Rename from
+	`org-agenda-align-tags-to-column'.
+	(org-agenda-align-tags): Allow negative values for
+	`org-agenda-tags-column'.
+	(org-insert-labeled-timestamps-before-properties-drawer): Remove
+	var.
+	(org-agenda-to-appt): New optional argument FILTER.
+	(org-complete): Use `org-completion-fallback-command'.
+	(org-find-base-buffer-visiting): Catch the case that there is no
+	buffer visiting the file.
+	(org-todo): Use `org-property-or-variable-value'
+	(org-prepare-agenda, org-agenda-list): Use
+	`org-agenda-compact-blocks'.
+	(org-agenda-schedule, org-agenda-deadline): Call
+	`org-agenda-show-new-time'.
+	(org-agenda-show-new-time): New argument PREFIX.
+	(org-colgroup-info-to-vline-list): Fix but that cause a shift in
+	the vertical lines.
+	(org-buffer-property-keys): New argument INCLUDE-DEFAULTS.
+	(org-maybe-renumber-ordered-list, org-cycle-list-bullet)
+	(org-indent-item): No arg in call to `org-fix-bullet-type'.
+	(org-fix-bullet-type): Remove argument.
+	(org-read-date): Check for am/pm twice, to catch the end time.
+	(org-goto-map): Use `suppress-keymap'.
+	(org-remember-apply-template): Respect the dynamically scoped
+	selection character.
+	(org-kill-is-subtree-p): Use `org-outline-regexp'.
+	(org-outline-regexp): New constant.
+	(org-remember-handler): Throw error when the target file is not in
+	org-mode.
+	(org-cleaned-string-for-export): No longer call
+	`org-export-latex-cleaned-string' with an argument.
+	(org-get-tags): Returns now a list, not a string.
+	(org-archive-subtree): No need to split return of `org-get-tags'.
+	(org-set-tags, org-entry-properties): Call `org-get-tags-string'
+	instead of `org-get-tags'.
+	(org-agenda-format-date): Rename from `org-agenda-date-format'.
+	(org-time-from-absolute, org-agenda-format-date-aligned): New
+	funs.
+	(org-compatible-face): New argument INHERITS.  Inherit from this
+	face if possible.
+	(org-level-1, org-level-2, org-level-3, org-level-4)
+	(org-level-5, org-level-6, org-level-7, org-level-8)
+	(org-special-keyword, org-drawer, org-column, org-warning)
+	(org-archived, org-todo, org-done, org-headline-done, org-table)
+	(org-formula, org-code, org-agenda-structure)
+	(org-scheduled-today, org-scheduled-previously)
+	(org-upcoming-deadline, org-time-grid): Call `org-compatible-face'
+	in the new way.
+	(org-get-heading): New argument NO-TAGS.
+	(org-fast-tag-selection-include-todo): Made defvar instead of
+	defcustom, feature is not deprecated.
+	(org-remember-store-without-prompt): New default value t.
+	(org-set-regexps-and-options): #+TODO is an alias for SEQ_TODO.
+	Compute the log states.
+	(org-goto-map): More commands copied from global map.  Also bind
+	`org-occur'.
+	(org-goto): Made into a general lookup command.
+	(org-get-location): Complete rewrite.
+	(org-goto-ret, org-goto-left, org-goto-right, org-goto-quit): Set
+	the new variables.
+	(org-paste-subtree): Whitespace insertion strategy revised.
+	(org-remember-apply-template): Protect v-A from the possibility
+	that v-a might be nil.
+	(org-remember-handler): Insertion rules revised.
+	(org-todo): Respect org-todo-log-states.
+	(org-entry-get-with-inheritance): Use `org-up-heading-safe'.
+	(org-confirm-shell-link-function)
+	(org-confirm-elisp-link-function): Doc fixes.
+	(org-re): Also replace the :alpha: class.
+	(org-todo-tag-alist): Variable removed.
+	(org-log-done): Docstring fixed.
+	(org-deadline-warning-days): New default value 14.
+	(org-tag-alist): Docstring fixed.
+	(org-export-language-setup): New languages added.
+	(org-set-regexps-and-options): Compute the new variables.
+	(org-paste-subtree): Cleaning up.
+	(org-remember-apply-template): New escape %A.
+	(org-todo): Call fast TODO selection.
+	(org-add-log-note): Allow prefix for abort exit.
+	(org-at-property-p, org-entry-properties)
+	(org-columns-get-autowidth-alist): Use :alpha: class.
+	(org-agenda-get-deadlines): Use `org-get-wdays'.
+	(org-agenda-get-deadlines): Reverse ee before returning.
+	(org-format-agenda-item): New argument REMOVE-RE.
+	(org-agenda-convert-date): Baha'i calendar added.
+	(org-infile-export-plist): Also find DATE line.
+	(org-export-as-html, org-export-as-ascii): Use the date format.
+	(org-shiftup, org-shiftdown): Use.
+	`org-edit-timestamp-down-means-later'.
+	(org-columns-compile-format)
+	(org-columns-get-autowidth-alist, org-buffer-property-keys)
+	(org-entry-properties, org-at-property-p): Allow [:alnum:] in
+	property names.
+	(org-export-visible): Fix drawers before export.
+	(org-do-sort): Allow sorting by priority.
+	(org-agenda-files): Ignore non-existing files.
+	(org-ellipsis): All a face as value.
+	(org-mode): Interprete the face value of `org-ellipsis'.
+	(org-archive-subtree): Store context info in archived entry.
+	(org-fast-tag-selection): Allow setting TODO states through this
+	interface.
+	(org-cycle): Docstring updated.
+	(org-set-font-lock-defaults, org-agenda-highlight-todo): Use
+	`org-get-todo-face'.
+	(org-table-edit-field, org-table-show-reference)
+	(org-table-edit-formulas, org-add-log-note)
+	(org-fast-tag-selection, org-agenda, org-prepare-agenda)
+	(org-timeline): Use `org-switch-to-buffer-other-window' instead of
+	`switch-to-buffer-other-window' to make sure that the temporary
+	windows show up on the current frame.
+	(org-mhe-get-message-real-folder, org-batch-store-agenda-views)
+	(org-get-entries-from-diary, org-replace-region-by-html): Don't
+	allow pop-up frames.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): Fix problems
+	with time-of-day.
+	(org-agenda-get-scheduled, org-agenda-get-deadlines): Fix problems
+	with listing items that are DONE.
+	(org-change-tag-in-region): New command.
+	(org-agenda-skip-scheduled-if-done)
+	(org-agenda-skip-deadline-if-done): Docstring clarified.
+	(org-mode): Hide drawers on startup.
+	(org-set-regexps-and-options): Use `org-remove-keyword-keys'.
+	(org-agenda-skip): Allow a form for `org-agenda-skip-function'.
+	(org-agenda-redo): Re-use local settings.
+	(org-agenda): Store local settings.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): Also handle
+	entries on their due date.
+	(org-agenda-get-timestamps): No longer handle the due dates of
+	schedules and deadline items.
+	(org-insert-link-global, org-open-at-point-global): New commands.
+	(org-export-as-ascii): Call `org-cleaned-string-for-export' with a
+	:for-ascii parameter.
+	(org-skip-comments): Function removed.
+	(org-cleaned-string-for-export): Handle special table lines.
+	(org-entry-get-with-inheritance): Check global properties.
+	(org-set-regexps-and-options): Find the #+PROPERTY line.
+	(org-link-types): Change type into variable (was constant).
+	(org-link-re-with-space, org-link-re-with-space2)
+	(org-angle-link-re, org-plain-link-re, org-bracket-link-regexp)
+	(org-bracket-link-analytic-regexp, org-any-link-re): Creation of
+	these regular expressions happens now in the function
+	`org-make-link-regexps'.
+	(org-store-link): Call the functions in
+	`org-store-link-functions'.
+	(org-activate-tags): Force matches to be in headlines.
+	(org-batch-store-agenda-views): Fix bug with killing agenda
+	buffer.
+	(org-columns-display-here): Make sure this works in a narrowed
+	buffer by checking for point-min.
+	(org-columns-display-here): Make the rest of the line intangible,
+	so that point never can be there.
+	(org-cleaned-string-for-export): Use `with-current-buffer'.
+	(org-replace-region-by-html): Use `with-current-buffer'.
+	(org-unfontify-region, org-do-occur, org-columns-display-here)
+	(org-columns-remove-overlays, org-columns-quit)
+	(org-columns-edit-value, org-columns-next-allowed-value)
+	(org-eval-in-calendar, org-agenda-undo, org-no-read-only)
+	(org-finalize-agenda, org-remove-subtree-entries-from-agenda)
+	(org-agenda-todo, org-agenda-change-all-lines)
+	(org-agenda-align-tags, org-agenda-priority)
+	(org-agenda-set-tags, org-agenda-toggle-archive-tag)
+	(org-agenda-show-new-time, org-cleaned-string-for-export)
+	(org-export-grab-title-from-buffer)
+	(org-export-as-ascii, org-export-as-html): Use `inhibit-read-only'
+	instead of `buffer-read-only'.
+	(org-export-as-html): Set `coding-system-for-write'.
+	(org-archive-subtree): Fixed bug with modifying TODO keyword.
+	(org-beginning-of-line): Also treat C-a special in items.
+	(org-table-convert-refs-to-rc): Fixed problem with column
+	reference after "..".
+	(org-columns-compute): Don't mark buffer modified because of text
+	properties.
+	(org-batch-store-agenda-views): Use the variable
+	`default-directory', not the function.
+	(org-clock-out-if-current): Respect `org-clock-out-when-done'.
+	(org-html-entities): Added HTML entities for smileys.
+	(org-end-of-line): Move to end of line if in headline without
+	tags.
+	(org-agenda-day-view, org-agenda-week-view): Remember span as
+	default.
+	(org-columns-edit-value): Rename from `org-column-edit'.
+	(org-columns-display-here-title): Rename from
+	`org-overlay-columns-title'.
+	(org-columns-remove-overlays): Rename from
+	org-remove-column-overlays.
+	(org-columns-get-autowidth-alist): Rename from
+	`org-get-columns-autowidth-alist'.
+	(org-columns-display-here): Rename from `org-overlay-columns'.
+	(org-columns-new-overlay): Rename from `org-new-column-overlay'.
+	(org-columns-quit): Rename from `org-column-quit'.
+	(org-columns-show-value): Rename from `org-column-show-value'.
+	(org-columns-current-fmt): Rename from `org-current-columns-fmt'.
+	(org-columns-overlays): Rename from `org-column-overlays'.
+	(org-columns-map): Rename from `org-column-map'.
+	(org-columns-current-maxwidths): Rename from
+	`org-current-columns-maxwidths'.
+	(org-columns-begin-marker, org-columns-current-fmt-compiled)
+	(org-previous-header-line-format)
+	(org-columns-inhibit-recalculation)
+	(org-columns-default-format): Rename from
+	`org-default-columns-format'.
+	(org-property-re): New constant.
+	(orgstruct-mode): New minor mode.
+	(org-cycle-list-bullet): New command.
+	(org-special-properties, org-property-start-re)
+	(org-property-end-re): New constants.
+	(org-with-point-at): New macro.
+	(org-insert-property-drawer): New command.
+	(org-column): New face.
+	(org-column-menu): New menu.
+	(org-columns, org-agenda-columns): New commands.
+	(org-properties): New customize group.
+	(org-priority): Realign tags after changing priority.
+	(org-preserve-lc): New macro.
+	(org-update-checkbox-count): Catch case when there is no headline.
+	(org-agenda-quit): Remove any column overlays.
+	(org-beginning-of-item-list): Fixed bug when non-item line is
+	indented too deep.
+	(org-make-tags-matcher): Handle property matches.
+	(org-table-recalculate): Swap evaluation order: Field formula
+	first, then column formulas, but don't allow them to overwrite the
+	field formulas.
+	(org-table-eval-formula): New argument untouchable.
+	(org-export-as-html): Fix replacement bug for XEmacs.
 
 2008-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
