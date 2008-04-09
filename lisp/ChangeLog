@@ -1,3 +1,8 @@
+2008-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group): Use
+	substring-no-properties for correct handling of unibyte strings.
+
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (change-log-next-buffer): Handle the case where version<
@@ -10,6 +15,7 @@
 	(mouse-popup-menubar-stuff): Use them.
 	(C-down-mouse-3): Bind to a dynamic map rather than to
 	mouse-popup-menubar-stuff.
+
 	* bindings.el (mode-line-major-mode-keymap): Bind down-mouse-1
 	to mouse-menu-major-mode-map rather than to mouse-major-mode-menu.
 
