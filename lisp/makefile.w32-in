@@ -58,7 +58,11 @@ ETAGS = "../lib-src/$(BLD)/etags"
 
 # Automatically generated autoload files, apart from lisp/loaddefs.el.
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
-	$(lisp)/calendar/diary-loaddefs.el $(lisp)/calendar/hol-loaddefs.el
+	$(lisp)/calendar/diary-loaddefs.el $(lisp)/calendar/hol-loaddefs.el \
+	$(lisp)/mh-e/mh-loaddefs.el
+
+AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
+	$(lisp)/finder-inf.el $(lisp)/subdirs.el $(lisp)/eshell/esh-groups.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -360,52 +364,13 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 # instead of $(lisp)/mh-e.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
-	$(MAKE) $(MFLAGS) pre-mh-loaddefs.el-$(SHELLTYPE)
-	cp pre-mh-loaddefs.el-$(SHELLTYPE) $@
-	rm pre-mh-loaddefs.el-$(SHELLTYPE)
 	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq find-file-suppress-same-file-warnings t)" \
-	   --eval "(setq make-backup-files nil)" \
+	   --eval $(ARGQUOTE)(setq generate-autoload-cookie $(DQUOTE);;;###mh-autoload$(DQUOTE))$(ARGQUOTE) \
+	   --eval $(ARGQUOTE)(setq find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
+	   --eval $(ARGQUOTE)(setq make-backup-files nil)$(ARGQUOTE) \
 	   -f w32-batch-update-autoloads \
-	   "$(lisp)/mh-e/mh-loaddefs.el" ./mh-e
-
-pre-mh-loaddefs.el-SH:
-	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
-	echo ";;" >> $@
-	echo ";; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc." >> $@
-	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
-	echo ";; Keywords: mail" >> $@
-	echo ";;; Commentary:" >> $@
-	echo ";;; Change Log:" >> $@
-	echo ";;; Code:" >> $@
-	echo "" >> $@
-	echo "(provide 'mh-loaddefs)" >> $@
-	echo ";; Local Variables:" >> $@
-	echo ";; version-control: never" >> $@
-	echo ";; no-byte-compile: t" >> $@
-	echo ";; no-update-autoloads: t" >> $@
-	echo ";; End:" >> $@
-	echo ";;; mh-loaddefs.el ends here" >> $@
-
-pre-mh-loaddefs.el-CMD:
-	echo ;;; mh-loaddefs.el --- automatically extracted autoloads> $@
-	echo ;;>> $@
-	echo ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.>> $@
-	echo ;; Author: Bill Wohler (wohler@newt.com)>> $@
-	echo ;; Keywords: mail>> $@
-	echo ;;; Commentary:>> $@
-	echo ;;; Change Log:>> $@
-	echo ;;; Code:>> $@
-	echo.>> $@
-	echo (provide 'mh-loaddefs)>> $@
-	echo ;; Local Variables:>> $@
-	echo ;; version-control: never>> $@
-	echo ;; no-byte-compile: t>> $@
-	echo ;; no-update-autoloads: t>> $@
-	echo ;; End:>> $@
-	echo ;;; mh-loaddefs.el ends here>> $@
+	   $(ARGQUOTE)$(lisp)/mh-e/mh-loaddefs.el$(ARGQUOTE) ./mh-e
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
@@ -498,4 +463,10 @@ check-declare:
 # We used to delete *~ here, but that might inadvertently remove
 # precious files if it happens to match their short 8+3 aliases.
 clean:
-		- $(DEL) *.el~
+	- $(DEL) *.el~
+
+distclean:
+	- $(DEL) $(lisp)/Makefile
+
+maintainer-clean: bootstrap-clean distclean
+	- $(DEL) $(AUTOGENEL)
