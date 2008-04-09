@@ -105,78 +105,78 @@ in the file it applies to."
 		  :help "Hide everything but the top LEVELS levels of headers, in whole buffer"))
     (define-key map [hide hide-subtree]
       '(menu-item "Hide Subtree" hide-subtree
-		  :help ""))
+		  :help "Hide everything after this heading at deeper levels"))
     (define-key map [hide hide-entry]
       '(menu-item "Hide Entry" hide-entry
-		  :help ""))
+		  :help "Hide the body directly following this heading"))
     (define-key map [hide hide-body]
       '(menu-item "Hide Body" hide-body
-		  :help ""))
+		  :help "Hide all body lines in buffer, leaving all headings visible"))
     (define-key map [hide hide-leaves]
       '(menu-item "Hide Leaves" hide-leaves
-		  :help ""))
+		  :help "Hide the body after this heading and at deeper levels"))
 
     (define-key map [show] (cons "Show" (make-sparse-keymap "Show")))
 
     (define-key map [show show-subtree]
       '(menu-item "Show Subtree" show-subtree
-		  :help ""))
+		  :help "Show everything after this heading at deeper levels"))
     (define-key map [show show-children]
       '(menu-item "Show Children" show-children
-		  :help ""))
+		  :help "Show all direct subheadings of this heading"))
     (define-key map [show show-branches]
       '(menu-item "Show Branches" show-branches
-		  :help ""))
+		  :help "Show all subheadings of this heading, but not their bodies"))
     (define-key map [show show-entry]
       '(menu-item "Show Entry" show-entry
-		  :help ""))
+		  :help "Show the body directly following this heading"))
     (define-key map [show show-all]
       '(menu-item "Show All" show-all
-		  :help ""))
+		  :help "Show all of the text in the buffer"))
 
     (define-key map [headings]
       (cons "Headings" (make-sparse-keymap "Headings")))
 
     (define-key map [headings demote-subtree]
       '(menu-item "Demote subtree" outline-demote
-		  :help ""))
+		  :help "Demote headings lower down the tree"))
     (define-key map [headings promote-subtree]
       '(menu-item "Promote subtree" outline-promote
-		  :help ""))
+		  :help "Promote headings higher up the tree"))
     (define-key map [headings move-subtree-down]
       '(menu-item "Move subtree down" outline-move-subtree-down
-		  :help ""))
+		  :help "Move the currrent subtree down past arg headlines of the same level"))
     (define-key map [headings move-subtree-up]
       '(menu-item "Move subtree up" outline-move-subtree-up
-		  :help ""))
+		  :help "Move the currrent subtree up past arg headlines of the same level"))
     (define-key map [headings copy]
       '(menu-item "Copy to kill ring" outline-headers-as-kill
 		  :enable mark-active
-		  :help ""))
+		  :help "Save the visible outline headers in region at the start of the kill ring"))
     (define-key map [headings outline-insert-heading]
 
       '(menu-item "New heading" outline-insert-heading
-		  :help ""))
+		  :help "Insert a new heading at same depth at point"))
     (define-key map [headings outline-backward-same-level]
 
       '(menu-item "Previous Same Level" outline-backward-same-level
-		  :help ""))
+		  :help "Move backward to the arg'th subheading at same level as this one."))
     (define-key map [headings outline-forward-same-level]
 
       '(menu-item "Next Same Level" outline-forward-same-level
-		  :help ""))
+		  :help "Move forward to the arg'th subheading at same level as this one"))
     (define-key map [headings outline-previous-visible-heading]
 
       '(menu-item "Previous" outline-previous-visible-heading
-		  :help ""))
+		  :help "Move to the previous heading line"))
     (define-key map [headings outline-next-visible-heading]
 
       '(menu-item "Next" outline-next-visible-heading
-		  :help ""))
+		  :help "Move to the next visible heading line"))
     (define-key map [headings outline-up-heading]
 
       '(menu-item "Up" outline-up-heading
-		  :help ""))
+		  :help "Move to the visible heading line of which the present line is a subheading"))
     map))
 
 (defvar outline-minor-mode-menu-bar-map

@@ -77,18 +77,24 @@
     ["Done" log-edit-done
      :help "Exit log-edit and proceed with the actual action."]
     "--"
-    ["Insert ChangeLog" log-edit-insert-changelog]
-    ["Add to ChangeLog" log-edit-add-to-changelog]
+    ["Insert ChangeLog" log-edit-insert-changelog
+     :help "Insert a log message by looking at the ChangeLog"]
+    ["Add to ChangeLog" log-edit-add-to-changelog
+     :help "Insert this log message into the appropriate ChangeLog file"]
     "--"
     ["Show diff" log-edit-show-diff
      :help "Show the diff for the files to be committed."]
     ["List files" log-edit-show-files
      :help "Show the list of relevant files."]
     "--"
-    ["Previous comment"		log-edit-previous-comment]
-    ["Next comment"		log-edit-next-comment]
-    ["Search comment forward"	log-edit-comment-search-forward]
-    ["Search comment backward"	log-edit-comment-search-backward]))
+    ["Previous comment"		log-edit-previous-comment
+     :help "Cycle backwards through comment history"]
+    ["Next comment"		log-edit-next-comment
+     :help "Cycle forwards through comment history."]
+    ["Search comment forward"	log-edit-comment-search-forward
+     :help "Search forwards through comment history for a substring match of str"]
+    ["Search comment backward"	log-edit-comment-search-backward
+     :help "Search backwards through comment history for substring match of str"]))
 
 (defcustom log-edit-confirm 'changed
   "*If non-nil, `log-edit-done' will request confirmation.

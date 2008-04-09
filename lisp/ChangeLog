@@ -1,3 +1,9 @@
+2008-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* outline.el (outline-mode-menu-bar-map):
+	* log-view.el (log-view-mode-menu):
+	* log-edit.el (log-edit-menu): Add :help.
+
 2008-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-group): Use

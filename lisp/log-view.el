@@ -152,17 +152,25 @@
     ;; XXX Do we need menu entries for these?
     ;; ["Quit"  quit-window]
     ;; ["Kill This Buffer"  kill-this-buffer]
-    ["Mark Log Entry for Diff"  set-mark-command]
-    ["Diff Revisions"  log-view-diff]
-    ["Visit Version"  log-view-find-revision]
-    ["Annotate Version"  log-view-annotate-version]
+    ["Mark Log Entry for Diff"  set-mark-command
+     :help ""]
+    ["Diff Revisions"  log-view-diff
+     :help "Get the diff between two revisions"]
+    ["Visit Version"  log-view-find-revision
+     :help "Visit the version at point"]
+    ["Annotate Version"  log-view-annotate-version
+     :help "Annotate the version at point"]
     ["Modify Log Comment" log-view-modify-change-comment
      :help "Edit the change comment displayed at point"]
     "-----"
-    ["Next Log Entry"  log-view-msg-next]
-    ["Previous Log Entry"  log-view-msg-prev]
-    ["Next File"  log-view-file-next]
-    ["Previous File"  log-view-file-prev]))
+    ["Next Log Entry"  log-view-msg-next
+     :help "Go to the next count'th log message"]
+    ["Previous Log Entry"  log-view-msg-prev
+     :help "Go to the previous count'th log message"]
+    ["Next File"  log-view-file-next
+     :help "Go to the next count'th file"]
+    ["Previous File"  log-view-file-prev
+     :help "Go to the previous count'th file"]))
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
