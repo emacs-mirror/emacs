@@ -1,3 +1,7 @@
+2008-04-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-auto-help): Fix typo.
+
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-cvs.el (vc-cvs-diff-tree): Remove unused function.
