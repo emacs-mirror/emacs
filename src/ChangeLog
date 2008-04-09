@@ -1,5 +1,7 @@
 2008-04-09  Jason Rumney  <jasonr@gnu.org>
 
+	* xdisp.c (redisplay_internal) [!WINDOWSNT]: Conditionalize last change.
+
 	* w32term.c (w32_compute_glyph_string_overhangs): Compute overhangs
 	for new font backend and composite cases.
 
@@ -23,7 +25,8 @@
 	(Fminibuffer_complete_and_exit, Fminibuffer_complete_word)
 	(Fdisplay_completion_list, display_completion_list_1)
 	(Fminibuffer_completion_help, Fself_insert_and_exit)
-	(Fexit_minibuffer, Fminibuffer_message): Move functions to minibuffer.el.
+	(Fexit_minibuffer, Fminibuffer_message): Move functions to
+	minibuffer.el.
 	(syms_of_minibuf): Remove corresponding initializations.
 
 	* keyboard.c (Qdeactivate_mark): New var.
