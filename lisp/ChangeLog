@@ -1,3 +1,8 @@
+2008-04-09  Alan Mackenzie  <acm@muc.de>
+
+	* font-lock.el (font-lock-extend-after-change-region-function):
+	Make it buffer local.
+
 2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-mode.el (c-basic-common-init): Don't set
