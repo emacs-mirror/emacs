@@ -2024,48 +2024,6 @@ If no minibuffer is active, return nil.  */)
 }
 
 
-/* Temporarily display STRING at the end of the current
-   minibuffer contents.  This is used to display things like
-   "[No Match]" when the user requests a completion for a prefix
-   that has no possible completions, and other quick, unobtrusive
-   messages.  */
-
-extern Lisp_Object Vminibuffer_message_timeout;
-
-void
-temp_echo_area_glyphs (string)
-     Lisp_Object string;
-{
-  int osize = ZV;
-  int osize_byte = ZV_BYTE;
-  int opoint = PT;
-  int opoint_byte = PT_BYTE;
-  Lisp_Object oinhibit;
-  oinhibit = Vinhibit_quit;
-
-  /* Clear out any old echo-area message to make way for our new thing.  */
-  message (0);
-
-  SET_PT_BOTH (osize, osize_byte);
-  insert_from_string (string, 0, 0, SCHARS (string), SBYTES (string), 0);
-  SET_PT_BOTH (opoint, opoint_byte);
-  Vinhibit_quit = Qt;
-
-  if (NUMBERP (Vminibuffer_message_timeout))
-    sit_for (Vminibuffer_message_timeout, 0, 2);
-  else
-    sit_for (Qt, 0, 2);
-
-  del_range_both (osize, osize_byte, ZV, ZV_BYTE, 1);
-  SET_PT_BOTH (opoint, opoint_byte);
-  if (!NILP (Vquit_flag))
-    {
-      Vquit_flag = Qnil;
-      Vunread_command_events = Fcons (make_number (quit_char), Qnil);
-    }
-  Vinhibit_quit = oinhibit;
-}
-
 void
 init_minibuf_once ()
 {
