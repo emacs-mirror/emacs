@@ -1,3 +1,13 @@
+2008-04-09  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc.el (vc-status-add-entries): New function.
+	(vc-status-add-entry): Removed.
+	(vc-update-vc-status-buffer, vc-status-mark-buffer-changed): Use
+	vc-status-add-entries.
+
+	* emacs-lisp/ewoc.el (ewoc-collect): Return results in the correct
+	order.
+
 2008-04-09  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (LOADDEFS): Add mh-loaddefs.el.
