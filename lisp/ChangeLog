@@ -1,3 +1,15 @@
+2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-menu-major-mode-map): New fun extracted from
+	mouse-major-mode-menu.
+	(mouse-menu-bar-map): New fun extracted from mouse-popup-menubar.
+	(mouse-major-mode-menu, mouse-popup-menubar)
+	(mouse-popup-menubar-stuff): Use them.
+	(C-down-mouse-3): Bind to a dynamic map rather than to
+	mouse-popup-menubar-stuff.
+	* bindings.el (mode-line-major-mode-keymap): Bind down-mouse-1
+	to mouse-menu-major-mode-map rather than to mouse-major-mode-menu.
+
 2008-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-svn.el (vc-svn-modify-change-comment): Add support for the

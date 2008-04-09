@@ -181,14 +181,7 @@ items `Turn Off' and `Help'."
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (minor-mode-menu-from-indicator indicator)))
 
-(defun mouse-major-mode-menu (event &optional prefix)
-  "Pop up a mode-specific menu of mouse commands.
-Default to the Edit menu if the major mode doesn't define a menu."
-  ;; Switch to the window clicked on, because otherwise
-  ;; the mode's commands may not make sense.
-  (interactive "@e\nP")
-  ;; Let the mode update its menus first.
-  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+(defun mouse-menu-major-mode-map ()
   (let* (;; Keymap from which to inherit; may be null.
 	 (ancestor (mouse-menu-non-singleton
 		    (and (current-local-map)
@@ -202,8 +195,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	 uniq)
     (if ancestor
 	(set-keymap-parent newmap ancestor))
-    (popup-menu newmap event prefix)))
-
+    newmap))
 
 (defun mouse-menu-non-singleton (menubar)
   "Given menu keymap,
@@ -218,12 +210,10 @@ Otherwise return the whole menu."
             menubar
           (lookup-key menubar (vector (car submap)))))))
 
-(defun mouse-popup-menubar (event prefix)
-  "Pop up a menu equivalent to the menu bar for keyboard EVENT with PREFIX.
+(defun mouse-menu-bar-map ()
+  "Return a keymap equivalent to the menu bar.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
-  (interactive "@e \nP")
-  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* ((local-menu (and (current-local-map)
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
@@ -262,19 +252,42 @@ not it is actually displayed."
 			        (cons "Global Menu"
 				      (cdr global-menu)))))
     ;; Supplying the list is faster than making a new map.
-    (popup-menu (append (list global-menu)
-			(if local-menu
-			    (list local-menu))
-			minor-mode-menus)
-		event prefix)))
+    ;; FIXME: We have a problem here: we have to use the global/local/minor
+    ;; so they're displayed in the expected order, but later on in the command
+    ;; loop, they're actually looked up in the opposite order.
+    (apply 'append
+           global-menu
+           local-menu
+           minor-mode-menus)))
+
+(defun mouse-major-mode-menu (event &optional prefix)
+  "Pop up a mode-specific menu of mouse commands.
+Default to the Edit menu if the major mode doesn't define a menu."
+  (interactive "@e\nP")
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (popup-menu (mouse-menu-major-mode-map) event prefix))
+(make-obsolete 'mouse-major-mode-menu 'mouse-menu-major-mode-map)
+
+(defun mouse-popup-menubar (event prefix)
+  "Pop up a menu equivalent to the menu bar for keyboard EVENT with PREFIX.
+The contents are the items that would be in the menu bar whether or
+not it is actually displayed."
+  (interactive "@e \nP")
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (popup-menu (mouse-menu-bar-map) event prefix))
+(make-obsolete 'mouse-popup-menubar 'mouse-menu-bar-map)
 
 (defun mouse-popup-menubar-stuff (event prefix)
   "Popup a menu like either `mouse-major-mode-menu' or `mouse-popup-menubar'.
 Use the former if the menu bar is showing, otherwise the latter."
-  (interactive "@e \nP")
-  (if (zerop (assoc-default 'menu-bar-lines (frame-parameters) 'eq 0))
-      (mouse-popup-menubar event prefix)
-    (mouse-major-mode-menu event prefix)))
+  (interactive "@e\nP")
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+  (popup-menu
+   (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+       (mouse-menu-bar-map)
+     (mouse-menu-major-mode-map))
+   event prefix))
+(make-obsolete 'mouse-popup-menubar-stuff nil)
 
 ;; Commands that operate on windows.
 
@@ -2466,7 +2479,12 @@ and selects that window."
 (if (not (eq system-type 'ms-dos))
     (global-set-key [S-down-mouse-1] 'mouse-set-font))
 ;; C-down-mouse-2 is bound in facemenu.el.
-(global-set-key [C-down-mouse-3] 'mouse-popup-menubar-stuff)
+(global-set-key [C-down-mouse-3]
+  '(menu-item "Menu Bar" ignore
+    :filter (lambda (_)
+              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+                  (mouse-menu-bar-map)
+                (mouse-menu-major-mode-map)))))
 
 
 ;; Replaced with dragging mouse-1

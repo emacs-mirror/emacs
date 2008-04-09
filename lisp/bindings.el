@@ -287,7 +287,9 @@ Menu of mode operations in the mode line.")
 
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1] 'mouse-major-mode-menu)
+    (define-key map [mode-line down-mouse-1]
+      '(menu-item "Menu Bar" ignore
+        :filter (lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
     map) "\
@@ -565,12 +567,11 @@ Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")
 ;; Don't use purecopy here--some people want to change these strings.
 (setq minor-mode-alist
-      (list
-       (list 'abbrev-mode " Abbrev")
-       '(overwrite-mode overwrite-mode)
-       (list 'auto-fill-function " Fill")
-       ;; not really a minor mode...
-       '(defining-kbd-macro " Def")))
+      '((abbrev-mode " Abbrev")
+        (overwrite-mode overwrite-mode)
+        (auto-fill-function " Fill")
+        ;; not really a minor mode...
+        (defining-kbd-macro " Def")))
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
