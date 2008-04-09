@@ -2935,6 +2935,8 @@ specific headers."
     (tool-bar-local-item-from-menu 'vc-status-next-line "right-arrow"
 				   map vc-status-mode-map
 				   :rtl "left-arrow")
+    (tool-bar-local-item-from-menu 'vc-print-log "info"
+				   map vc-status-mode-map)
     (tool-bar-local-item-from-menu 'vc-status-refresh "refresh"
 				   map vc-status-mode-map)
     (tool-bar-local-item-from-menu 'nonincremental-search-forward
