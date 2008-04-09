@@ -353,7 +353,6 @@ redisplays the diary for whatever date the cursor is moved to."
   :type 'hook
   :group 'calendar-hooks)
 
-;;;###autoload
 (defcustom diary-file "~/diary"
   "Name of the file in which one's personal diary of dates is kept.
 
@@ -474,7 +473,6 @@ details, see the documentation for the variable `diary-list-entries-hook'."
 (define-obsolete-variable-alias 'bahai-diary-entry-symbol
   'diary-bahai-entry-symbol "23.1")
 
-;;;###autoload
 (defcustom european-calendar-style nil
   "Non-nil means use the European style of dates in the diary and display.
 In this case, a date like 1/2/1990 would be interpreted as
@@ -494,7 +492,6 @@ calendar package is already loaded).  Rather, use either
            (calendar-set-date-style 'american)))
   :group 'diary)
 
-;;;###autoload
 (make-obsolete-variable 'european-calendar-style 'calendar-date-style "23.1")
 
 ;; If this is autoloaded, c-d-s gets set before any customization of e-c-s.
