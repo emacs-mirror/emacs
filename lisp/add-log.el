@@ -820,8 +820,11 @@ file were isearch was started."
 	 (files (cons name (sort (file-expand-wildcards
 				  (concat name "[-.][0-9]*"))
 				 (lambda (a b)
-				   (version< (substring b (length name))
-					     (substring a (length name)))))))
+                                   ;; The file's extension may not have a valid
+                                   ;; version form (e.g. VC backup revisions).
+                                   (ignore-errors
+                                     (version< (substring b (length name))
+                                               (substring a (length name))))))))
 	 (files (if isearch-forward files (reverse files))))
     (find-file-noselect
      (if wrap

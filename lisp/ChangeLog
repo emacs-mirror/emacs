@@ -1,5 +1,8 @@
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* add-log.el (change-log-next-buffer): Handle the case where version<
+	signals an error.
+
 	* mouse.el (mouse-menu-major-mode-map): New fun extracted from
 	mouse-major-mode-menu.
 	(mouse-menu-bar-map): New fun extracted from mouse-popup-menubar.
