@@ -1,3 +1,11 @@
+2008-04-09  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (clean-other-dirs-nmake): Don't clean lisp dir.
+	(clean-other-dirs-gmake): Likewise. Clean doc dirs.
+	(top-distclean, distclean, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake, maintainer-clean): New targets.
+
 2008-04-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h: New file.
