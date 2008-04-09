@@ -347,6 +347,12 @@ clean:
 		- $(DEL_TREE) $(OBJDIR)
 		- $(DEL) stamp_BLD
 
+distclean: cleanall
+	- $(DEL) TAGS
+	- $(DEL) Makefile
+
+maintainer-clean: distclean
+
 cleanall:	clean
 		- $(DEL_TREE) obj
 		- $(DEL_TREE) obj-spd
