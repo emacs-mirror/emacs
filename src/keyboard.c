@@ -397,6 +397,7 @@ Lisp_Object Vinput_method_previous_message;
 
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
+Lisp_Object Qdeactivate_mark;
 
 /* Menu bar specified in Lucid Emacs fashion.  */
 
@@ -1977,17 +1978,8 @@ command_loop_1 ()
 	  else if (EQ (Vtransient_mark_mode, Qonly))
 	    Vtransient_mark_mode = Qidentity;
 
-	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
-	    {
-	      /* We could also call `deactivate'mark'.  */
-	      if (EQ (Vtransient_mark_mode, Qlambda))
-		Vtransient_mark_mode = Qnil;
-	      else
-		{
-		  current_buffer->mark_active = Qnil;
-		  call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
-		}
-	    }
+	  if (!NILP (Vdeactivate_mark))
+	    call0 (Qdeactivate_mark);
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
 	}
@@ -2039,6 +2031,7 @@ adjust_point_for_property (last_pt, modified)
      can't be usefully combined anyway.  */
   while (check_composition || check_display || check_invisible)
     {
+      /* FIXME: check `intangible'.  */
       if (check_composition
 	  && PT > BEGV && PT < ZV
 	  && get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
@@ -12283,6 +12276,8 @@ The command loop sets this to nil before each command,
 and tests the value when the command returns.
 Buffer modification stores t in this variable.  */);
   Vdeactivate_mark = Qnil;
+  Qdeactivate_mark = intern ("deactivate-mark");
+  staticpro (&Qdeactivate_mark);
 
   DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
 	       doc: /* Temporary storage of pre-command-hook or post-command-hook.  */);

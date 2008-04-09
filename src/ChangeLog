@@ -1,5 +1,9 @@
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (Qdeactivate_mark): New var.
+	(command_loop_1): Use it to call `deactivate-mark'.
+	(syms_of_keyboard): Initialize it.
+
 	* xdisp.c (redisplay_internal): Reset tty's color_mode when switching
 	to another frame.
 	* frame.c (do_switch_frame): Refine the top_frame/async_visible code.
