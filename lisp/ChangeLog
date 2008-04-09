@@ -1,3 +1,8 @@
+2008-04-09  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* nxml/nxml-mode.el (nxml-cleanup): New function.
+	(nxml-mode): Add it to change-major-mode-hook.
+
 2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Map info to gtk-info.
