@@ -549,31 +549,6 @@ Will fail unless you have administrative privileges on the repo."
 			  (vc-switches 'CVS 'diff))))
     (if async 1 status))) ; async diff, pessimistic assumption
 
-
-(defun vc-cvs-diff-tree (dir &optional rev1 rev2)
-  "Diff all files at and below DIR."
-  (with-current-buffer "*vc-diff*"
-    (setq default-directory dir)
-    (if (vc-stay-local-p dir)
-        ;; local diff: do it filewise, and only for files that are modified
-        (vc-file-tree-walk
-         dir
-         (lambda (f)
-           (vc-exec-after
-            `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
-               ;; possible optimization: fetch the state of all files
-               ;; in the tree via vc-cvs-dir-state-heuristic
-               (unless (vc-up-to-date-p ',f)
-                 (message "Looking at %s" ',f)
-                 (vc-diff-internal ',f ',rev1 ',rev2))))))
-      ;; cvs diff: use a single call for the entire tree
-      (let ((coding-system-for-read
-             (or coding-system-for-read 'undecided)))
-        (apply 'vc-cvs-command "*vc-diff*" 1 nil "diff"
-               (and rev1 (concat "-r" rev1))
-               (and rev2 (concat "-r" rev2))
-               (vc-switches 'CVS 'diff))))))
-
 (defconst vc-cvs-annotate-first-line-re "^[0-9]")
 
 (defun vc-cvs-annotate-process-filter (process string)
