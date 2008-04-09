@@ -4309,8 +4309,13 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       if (read_kbd >= 0)
 	QUIT;
 #ifdef SYNC_INPUT
-      else if (interrupt_input_pending)
-	handle_async_input ();
+      else
+        {
+          if (interrupt_input_pending)
+            handle_async_input ();
+          if (pending_atimers)
+            do_pending_atimers ();
+        }
 #endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
