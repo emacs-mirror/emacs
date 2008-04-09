@@ -1,3 +1,10 @@
+2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tooltip.el (tooltip-mode): Set tooltip-show-help-non-mode as
+	show-help-function when turning tooltip off.
+	(tooltip-show): Call tooltip-show-help-non-mode if use-echo-area.
+	(tooltip-trunc-str, tooltip-show-help-non-mode): New.
+
 2008-04-09  Alan Mackenzie  <acm@muc.de>
 
 	* font-lock.el (font-lock-extend-after-change-region-function):
