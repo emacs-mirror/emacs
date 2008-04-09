@@ -6,6 +6,7 @@
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el: New file.
+	* loadup.el: Load it.
 
 2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

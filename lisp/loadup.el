@@ -67,6 +67,7 @@
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
 (load "env")
 (load "format")
+(load "minibuffer")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
@@ -378,10 +379,10 @@
 (eval top-level)
 
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; no-update-autoloads: t
-;;; End:
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:
 
-;;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
+;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here
