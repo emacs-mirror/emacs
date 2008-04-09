@@ -355,20 +355,12 @@ schedule_atimer (t)
   t->next = a;
 }
 
-
-/* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
-   SIGALRM.  */
-
-SIGTYPE
-alarm_signal_handler (signo)
-     int signo;
+static void
+run_timers ()
 {
   EMACS_TIME now;
 
-  SIGNAL_THREAD_CHECK (signo);
-
   EMACS_GET_TIME (now);
-  pending_atimers = 0;
 
   while (atimers
 	 && (pending_atimers = interrupt_input_blocked) == 0
@@ -405,6 +397,20 @@ alarm_signal_handler (signo)
 }
 
 
+/* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
+   SIGALRM.  */
+
+SIGTYPE
+alarm_signal_handler (signo)
+     int signo;
+{
+  pending_atimers = 1;
+#ifndef SYNC_INPUT
+  run_timers ();
+#endif
+}
+
+
 /* Call alarm_signal_handler for pending timers.  */
 
 void
@@ -413,7 +419,7 @@ do_pending_atimers ()
   if (pending_atimers)
     {
       BLOCK_ATIMERS;
-      alarm_signal_handler (SIGALRM);
+      run_timers ();
       UNBLOCK_ATIMERS;
     }
 }
