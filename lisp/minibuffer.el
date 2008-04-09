@@ -71,7 +71,7 @@ If the value is t the *Completion* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete."
-  :type (choice (const nil) (const t) (const lazy))
+  :type '(choice (const nil) (const t) (const lazy))
   :group 'minibuffer)
 
 (defun minibuffer--bitset (modified completions exact)
@@ -248,7 +248,7 @@ a repetition of this command will exit."
       ;; which makes it trivial to find the position, but with fancier
       ;; completion (plus env-var expansion, ...) `completion' might not
       ;; look anything like `string' at all.
-      
+
       (when minibuffer-completing-file-name
 	;; In order to minimize the problem mentioned above, let's try to
 	;; reduce the different between `string' and `completion' by
@@ -394,7 +394,7 @@ during running `completion-setup-hook'."
       (goto-char (point-max))
       (if (null completions)
 	  (insert "There are no possible completions of what you have typed.")
-	
+
 	(insert "Possible completions are:\n")
 	(minibuffer--insert-strings completions))))
   (let ((completion-common-substring common-substring))
