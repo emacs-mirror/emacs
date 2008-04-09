@@ -40,7 +40,7 @@
 	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Make it depend on mh-e/*.el
 	rather than subdirs.el.  It introduces an ugly circular dependency, tho.
 
-	* calc/calc.el: Load "cal-loaddefs" rather than set up manual autoloads.
+	* calc/calc.el: Load "calc-loaddefs" rather than set up manual autoloads.
 	(calc-mode-map, calc-digit-map, calc-dispatch-map):
 	Move initialization into declaration.
 	* calc/calc-yank.el:
