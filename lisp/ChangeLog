@@ -1,3 +1,8 @@
+2008-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-file, european-calendar-style):
+	Remove autoload cookies.
+
 2008-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* outline.el (outline-mode-menu-bar-map):
