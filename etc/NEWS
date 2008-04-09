@@ -501,9 +501,9 @@ struct members in C, members variables in C++ and variables in PHP.
 *** VC now supports applying VC operations to a set of files at a time.
 
 This enables VC to work much more effectively with changeset-oriented
-version-control systems such as Subversion, GNU Arch, Mercurial, and
-Bzr.  VC will now pass a multiple-file commit to these systems
-as a single changeset.
+version-control systems such as Subversion, GNU Arch, Mercurial, Git
+and Bzr.  VC will now pass a multiple-file commit to these systems as
+a single changeset.
 
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
 
@@ -516,10 +516,9 @@ the current line.
 of the corresponding buffer as long as the asynchronous process is
 active.
 
-*** The new backend function `modify-change-comment' can be used to
-modify the change log.  For now only CVS, RCS, SCCS and SVN support
-this functionality.
-This is bound to the key "e" in log-view.
+*** Log entries can be modified using the key "e" in log-view.
+For now only CVS, RCS, SCCS and SVN support this functionality.
+This is done by the `modify-change-comment' backend function.
 
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
