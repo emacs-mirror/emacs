@@ -101,8 +101,8 @@ If PAREN is `words', then the resulting regexp is additionally surrounded
 by \\=\\< and \\>."
   (save-match-data
     ;; Recurse on the sorted list.
-    (let* ((max-lisp-eval-depth (* 1024 1024))
-	   (max-specpdl-size (* 1024 1024))
+    (let* ((max-lisp-eval-depth 10000)
+	   (max-specpdl-size 10000)
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
 	   (words (eq paren 'words))
