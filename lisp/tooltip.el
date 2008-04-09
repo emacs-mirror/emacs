@@ -67,7 +67,7 @@ the help text in the echo area, and does not make a pop-up window."
       (remove-hook 'pre-command-hook 'tooltip-hide))
     (remove-hook 'tooltip-hook 'tooltip-help-tips))
   (setq show-help-function
-	(if tooltip-mode 'tooltip-show-help nil)))
+	(if tooltip-mode 'tooltip-show-help 'tooltip-show-help-non-mode)))
 
 
 ;;; Customizable settings
@@ -228,7 +228,7 @@ position.
 Optional second arg USE-ECHO-AREA non-nil means to show tooltip
 in echo area."
   (if use-echo-area
-      (message "%s" text)
+      (tooltip-show-help-non-mode text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
 	      (fg (face-attribute 'tooltip :foreground))
@@ -315,6 +315,22 @@ the buffer of PROCESS."
 
 (defvar tooltip-help-message nil
   "The last help message received via `tooltip-show-help'.")
+
+(defun tooltip-trunc-str (str maxlen pieces)
+  (let ((s (car pieces)))
+    (if (and pieces (< (+ (length str) (length s) 2) maxlen))
+      (tooltip-trunc-str (concat str 
+				 (if (> (length str) 0) ", "  "") 
+				 s)
+			 maxlen (cdr pieces))
+      (if (> (length str) 0) str s))))
+
+(defun tooltip-show-help-non-mode (msg)
+  "Function installed as `show-help-function' when tooltip is off."
+  (message "%s" (if msg
+		    (tooltip-trunc-str "" (frame-parameter nil 'width)
+				       (split-string msg "\n" t))
+		  "")))
 
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
