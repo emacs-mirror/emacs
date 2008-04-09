@@ -998,6 +998,7 @@ and end buffer positions \(in that order) of the region to refontify, or nil
 \(which directs the caller to fontify a default region).
 This function should preserve the match-data.
 The region it returns may start or end in the middle of a line.")
+(make-variable-buffer-local 'font-lock-extend-after-change-region-function)
 
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
