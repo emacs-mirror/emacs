@@ -1,11 +1,11 @@
 2008-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-find-file-name-coding-system-alist): New
-	defun.
-	(tramp-handle-insert-file-contents, tramp-handle-write-region):
-	Use it.
+	* net/tramp.el (tramp-find-file-name-coding-system-alist): New defun.
+	(tramp-handle-insert-file-contents, tramp-handle-write-region): Use it.
 
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-default-mode-line-string): Use ? for missing.
 
 	* minibuffer.el (minibuffer): Move group from cus-edit.el.
 	(completion-auto-help): Move from C code.

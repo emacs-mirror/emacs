@@ -866,7 +866,7 @@ This function assumes that the file is registered."
             (concat backend "!" rev))
            ((eq state 'missing)
             (setq state-echo "File tracked by the VC system, but missing from the file system")
-            (concat backend "^" rev))
+            (concat backend "?" rev))
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
