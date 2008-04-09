@@ -264,8 +264,11 @@ clean:
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) stamp_BLD
 
-distclean:	clean
-	- $(DEL) config.h epaths.h
+distclean:	cleanall
+	- $(DEL) config.h epaths.h Makefile
+
+maintainer-clean: distclean
+	- $(DEL) TAGS
 
 cleanall:	clean
 	- $(DEL_TREE) obj
