@@ -2975,6 +2975,43 @@ specific headers."
 
 (put 'vc-status-mode 'mode-class 'special)
 
+(defun vc-status-add-entries (entries buffer)
+  ;; Add ENTRIES to the vc-status buffer BUFFER.
+  (with-current-buffer buffer
+    (when entries
+      ;; Insert the entries sorted by name into the ewoc.
+      ;; We assume the ewoc is sorted too, which should be the
+      ;; case if we always add entries with vc-status-add-entries.
+      (setq entries (sort (copy-sequence entries)
+                          (lambda (entry1 entry2)
+                            (string-lessp (car entry1) (car entry2)))))
+      (let ((entry (pop entries))
+            (node (ewoc-nth vc-status 0)))
+        (while entry
+          (while (and vc-status-crt-marked
+                      (string-lessp (car vc-status-crt-marked) (car entry)))
+            (setq vc-status-crt-marked (cdr vc-status-crt-marked)))
+          (let* ((file (car entry))
+                 (state (nth 1 entry))
+                 (extra (nth 2 entry))
+                 (marked (and vc-status-crt-marked
+                              (string-equal (car vc-status-crt-marked) file))))
+            (cond ((not node)
+                   (setq node (ewoc-enter-last vc-status
+                                               (vc-status-create-fileinfo file state extra marked)))
+                   (setq entry (pop entries)))
+                  ((string-lessp (vc-status-fileinfo->name (ewoc-data node)) file)
+                   (setq node (ewoc-next vc-status node)))
+                  ((string-equal (vc-status-fileinfo->name (ewoc-data node)) file)
+                   (setf (vc-status-fileinfo->state (ewoc-data node)) state)
+                   (setf (vc-status-fileinfo->extra (ewoc-data node)) extra)
+                   (ewoc-invalidate vc-status node)
+                   (setq entry (pop entries)))
+                  (t
+                   (setq node (ewoc-enter-before vc-status node
+                                                 (vc-status-create-fileinfo file state extra marked)))
+                   (setq entry (pop entries))))))))))
+
 (defun vc-update-vc-status-buffer (entries buffer &optional more-to-come)
   ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
   ;; BUFFER is the *vc-status* buffer to be updated with ENTRIES
@@ -2982,52 +3019,13 @@ specific headers."
   ;; asynchronous process.
   (with-current-buffer buffer
     (when entries
-      ;; Insert the entries we got into the ewoc.
-      (dolist (entry entries)
-	(let* ((file (car entry))
-	       (state (nth 1 entry))
-	       (extra (nth 2 entry)))
-	  (ewoc-enter-last vc-status
-			   (vc-status-create-fileinfo file state extra))))
-      ;; If we had marked items before the refresh, try mark them here.
-      ;; XXX: there should be a better way to do this...
-      (when vc-status-crt-marked
-	(ewoc-map
-	 (lambda (arg)
-	   (when (member (vc-status-fileinfo->name arg) vc-status-crt-marked)
-	     (setf (vc-status-fileinfo->marked arg) t)))
-	 vc-status))
+      (vc-status-add-entries entries buffer)
       (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
     ;; No more updates are expected from the asynchronous process.
     (unless more-to-come
       (setq vc-status-process-buffer nil)
       ;; We are done, turn off the mode-line "in progress" message.
       (setq mode-line-process nil))))
-
-(defun vc-status-add-entry (entry buffer)
-  ;; Add one ENTRY to the vc-status buffer BUFFER.
-  ;; This will be used to automatically add files with the "modified"
-  ;; state when saving them.
-
-  ;; ENTRY has the form (FILENAME STATE EXTRA)
-  (with-current-buffer buffer
-    (let ((crt (ewoc-nth vc-status 0))
-	  (fname (car entry)))
-      ;; First try to see if there's already an entry with that name
-      ;; in the ewoc.
-      (while (and crt (not (string= (vc-status-fileinfo->name
-				     (ewoc-data crt)) fname)))
-	(setq crt (ewoc-next vc-status crt)))
-      (if crt
-	  (progn
-	    ;; Found the file, just update the status.
-	    (setf (vc-status-fileinfo->state (ewoc-data crt)) (nth 1 entry))
-	    (setf (vc-status-fileinfo->extra (ewoc-data crt)) (nth 2 entry))
-	    (ewoc-invalidate vc-status crt))
-	;; Could not find the file, insert a new entry.
-	(ewoc-enter-last
-	 vc-status
-	 (vc-status-create-fileinfo fname (nth 1 entry) (nth 2 entry)))))))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer.
@@ -3275,7 +3273,7 @@ that share the same state."
 			 (vc-call-backend backend 'status-fileinfo-extra file)))
 		   (entry
 		    (list file-short (if state state 'unregistered) extra)))
-		(vc-status-add-entry entry status-buf))))))
+		(vc-status-add-entries (list entry) status-buf))))))
       ;; We didn't find any vc-status buffers, remove the hook, it is
       ;; not needed.
       (unless found-vc-status-buf (remove-hook 'after-save-hook 'vc-status-mark-buffer-changed)))))
