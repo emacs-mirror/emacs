@@ -482,7 +482,7 @@ get_pos_property (position, prop, object)
 	    }
 	}
 
-      { /* Now check the text-properties.  */
+      { /* Now check the text properties.  */
 	int stickiness = text_property_stickiness (prop, position, object);
 	if (stickiness > 0)
 	  return Fget_text_property (position, prop, object);
@@ -658,7 +658,7 @@ If POS is nil, the value of point is used for POS.  */)
 }
 
 DEFUN ("field-string-no-properties", Ffield_string_no_properties, Sfield_string_no_properties, 0, 1, 0,
-       doc: /* Return the contents of the field around POS, without text-properties.
+       doc: /* Return the contents of the field around POS, without text properties.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.  */)
      (pos)
@@ -3050,7 +3050,7 @@ It returns the number of characters changed.  */)
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH, 
+		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH,
 					       str_len);
 		}
 	      else
