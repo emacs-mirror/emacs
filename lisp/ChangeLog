@@ -1,3 +1,11 @@
+2008-04-09  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (LOADDEFS): Add mh-loaddefs.el.
+	($(lisp)/mh-e/mh-loaddefs.el): Simplify rule.
+	(pre-mh-loaddefs.el-CMD, pre-mh-loaddefs.el-SH): Remove.
+	(AUTOGENEL): New variable.
+	(distclean, maintainer-clean): New targets.
+
 2008-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt): Reduce
