@@ -1,3 +1,8 @@
+2008-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt): Reduce
+	max-lisp-eval-depth and max-specpdl-size to 10000.
+
 2008-04-09  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* nxml/nxml-mode.el (nxml-cleanup): New function.
