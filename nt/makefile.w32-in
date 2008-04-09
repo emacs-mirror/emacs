@@ -269,8 +269,6 @@ clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) clean
 	cd ..\src
 	$(MAKE) $(MFLAGS) clean
-	cd ..\lisp
-	$(MAKE) $(MFLAGS) clean
 	cd ..\doc\lispintro
 	$(MAKE) $(MFLAGS) clean
 	cd ..\doc\lispref
@@ -286,8 +284,11 @@ clean-other-dirs-nmake:
 clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/misc clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispintro clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref clean
 
 cleanall-other-dirs-nmake:
 	cd ..\lib-src
@@ -307,6 +308,78 @@ cleanall: clean cleanall-other-dirs-$(MAKETYPE)
 	 - $(DEL_TREE) obj-spd
 	 - $(DEL_TREE) oo
 	 - $(DEL_TREE) oo-spd
+
+top-distclean:
+	- $(DEL) $(COMPILER_TEMP_FILES)
+	- $(DEL_TREE) obj
+	- $(DEL_TREE) obj-spd
+	- $(DEL_TREE) oo
+	- $(DEL_TREE) oo-spd
+	- $(DEL) stamp_BLD
+	- $(DEL) ../etc/DOC ../etc/DOC-X
+	- $(DEL) config.log Makefile
+
+distclean: distclean-other-dirs-$(MAKETYPE) top-distclean
+
+distclean-other-dirs-nmake:
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\src
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\leim
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\doc\emacs
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\doc\misc
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\doc\lispintro
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\doc\lispref
+	$(MAKE) $(MFLAGS) distclean
+	cd ..\nt
+
+distclean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/misc distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispintro distclean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref distclean
+
+maintainer-clean: maintainer-clean-other-dirs-$(MAKETYPE) top-distclean
+
+maintainer-clean-other-dirs-nmake:
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\src
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\leim
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\doc\emacs
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\doc\misc
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\doc\lispintro
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\doc\lispref
+	$(MAKE) $(MFLAGS) maintainer-clean
+	cd ..\nt
+
+maintainer-clean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/misc maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispintro maintainer-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref maintainer-clean
 
 realclean: cleanall
 	- $(DEL_TREE) ../bin
