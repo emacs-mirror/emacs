@@ -70,6 +70,7 @@ struct tty_display_info
   
   /* The previous frame we displayed on this tty.  */
   struct frame *previous_frame;
+  int previous_color_mode;
 
   /* Strings, numbers and flags taken from the termcap entry.  */
 

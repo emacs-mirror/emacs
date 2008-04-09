@@ -1,3 +1,15 @@
+2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (redisplay_internal): Reset tty's color_mode when switching
+	to another frame.
+	* frame.c (do_switch_frame): Refine the top_frame/async_visible code.
+	Don't call set_tty_color_mode.
+	(store_frame_param): Reset previous_frame rather than call
+	set_tty_color_mode.
+	* term.c (set_tty_color_mode): Rewrite.
+	* dispextern.h (set_tty_color_mode): New type.
+	* termchar.h (struct tty_display_info): Add `previous_color_mode'.
+
 2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (access_keymap): Remove the value 2 for t_ok which was used

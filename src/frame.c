@@ -869,11 +869,11 @@ do_switch_frame (frame, track, for_deletion)
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
-      && FRAME_TERMCAP_P (XFRAME (frame))
-      && FRAME_TTY (XFRAME (selected_frame)) == FRAME_TTY (XFRAME (frame)))
+  if (FRAME_TERMCAP_P (XFRAME (frame)))
     {
-      XFRAME (selected_frame)->async_visible = 2; /* obscured */
+      if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
+	/* Mark previously displayed frame as now obscured.  */
+	XFRAME (FRAME_TTY (XFRAME (frame))->top_frame)->async_visible = 2;
       XFRAME (frame)->async_visible = 1;
       FRAME_TTY (XFRAME (frame))->top_frame = frame;
     }
@@ -883,23 +883,6 @@ do_switch_frame (frame, track, for_deletion)
     last_nonminibuf_frame = XFRAME (selected_frame);
 
   Fselect_window (XFRAME (frame)->selected_window, Qnil);
-
-#ifndef WINDOWSNT
-  /* Make sure to switch the tty color mode to that of the newly
-     selected frame.  */
-  sf = SELECTED_FRAME ();
-  if (FRAME_TERMCAP_P (sf))
-    {
-      Lisp_Object color_mode_spec, color_mode;
-
-      color_mode_spec = assq_no_quit (Qtty_color_mode, sf->param_alist);
-      if (CONSP (color_mode_spec))
-	color_mode = XCDR (color_mode_spec);
-      else
-	color_mode = make_number (0);
-      set_tty_color_mode (sf, color_mode);
-    }
-#endif /* !WINDOWSNT */
 
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
@@ -2302,11 +2285,13 @@ store_frame_param (f, prop, val)
     }
 
 #ifndef WINDOWSNT
-  /* The tty color mode needs to be set before the frame's parameter
-     alist is updated with the new value, because set_tty_color_mode
-     wants to look at the old mode.  */
-  if (FRAME_TERMCAP_P (f) && EQ (prop, Qtty_color_mode))
-    set_tty_color_mode (f, val);
+  /* The tty color needed to be set before the frame's parameter
+     alist was updated with the new value.  This is not true any more,
+     but we still do this test early on.  */
+  if (FRAME_TERMCAP_P (f) && EQ (prop, Qtty_color_mode)
+      && f == FRAME_TTY (f)->previous_frame)
+    /* Force redisplay of this tty.  */
+    FRAME_TTY (f)->previous_frame = NULL;
 #endif
 
   /* Update the frame parameter alist.  */

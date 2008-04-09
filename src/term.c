@@ -2161,56 +2161,38 @@ tty_setup_colors (struct tty_display_info *tty, int mode)
 }
 
 void
-set_tty_color_mode (f, val)
+set_tty_color_mode (tty, f)
+     struct tty_display_info *tty;
      struct frame *f;
-     Lisp_Object val;
 {
-  Lisp_Object color_mode_spec, current_mode_spec;
-  Lisp_Object color_mode, current_mode;
-  int mode, old_mode;
+  Lisp_Object tem, val, color_mode_spec;
+  Lisp_Object color_mode;
+  int mode;
   extern Lisp_Object Qtty_color_mode;
-  Lisp_Object tty_color_mode_alist;
+  Lisp_Object tty_color_mode_alist
+    = Fintern_soft (build_string ("tty-color-mode-alist"), Qnil);
 
-  tty_color_mode_alist = Fintern_soft (build_string ("tty-color-mode-alist"),
-				       Qnil);
+  tem = assq_no_quit (Qtty_color_mode, XFRAME (val)->param_alist);
+  val = CONSP (tem) ? XCDR (tem) : Qnil;
 
   if (INTEGERP (val))
     color_mode = val;
   else
     {
-      if (NILP (tty_color_mode_alist))
-	color_mode_spec = Qnil;
-      else
-	color_mode_spec = Fassq (val, XSYMBOL (tty_color_mode_alist)->value);
-
-      if (CONSP (color_mode_spec))
-	color_mode = XCDR (color_mode_spec);
-      else
-	color_mode = Qnil;
+      tem = (NILP (tty_color_mode_alist) ? Qnil
+	     : Fassq (val, XSYMBOL (tty_color_mode_alist)->value));
+      color_mode = CONSP (tem) ? XCDR (tem) : Qnil;
     }
 
-  current_mode_spec = assq_no_quit (Qtty_color_mode, f->param_alist);
+  mode = INTEGERP (color_mode) ? XINT (color_mode) : 0;
 
-  if (CONSP (current_mode_spec))
-    current_mode = XCDR (current_mode_spec);
-  else
-    current_mode = Qnil;
-  if (INTEGERP (color_mode))
-    mode = XINT (color_mode);
-  else
-    mode = 0;	/* meaning default */
-  if (INTEGERP (current_mode))
-    old_mode = XINT (current_mode);
-  else
-    old_mode = 0;
-
-  if (mode != old_mode)
+  if (mode != tty->previous_color_mode)
     {
-      tty_setup_colors (FRAME_TTY (f), mode);
-      /*  This recomputes all the faces given the new color
-	  definitions.  */
-      call0 (intern ("tty-set-up-initial-frame-faces"));
-      redraw_frame (f);
+      Lisp_Object funsym = intern ("tty-set-up-initial-frame-faces");
+      tty->previous_color_mode = mode;
+      tty_setup_colors (tty , mode);
+      /*  This recomputes all the faces given the new color definitions.  */
+      safe_call (1, &funsym);
     }
 }
 
