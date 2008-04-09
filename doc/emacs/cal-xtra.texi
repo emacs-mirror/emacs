@@ -536,7 +536,7 @@ then displays the buffer.  However, if you specify the hook as follows,
 @cindex diary buffer
 @findex diary-fancy-display
 @example
-(add-hook 'diary-display-hook diary-'fancy-display)
+(add-hook 'diary-display-hook 'diary-fancy-display)
 @end example
 
 @noindent
