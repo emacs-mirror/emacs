@@ -31,7 +31,7 @@
 ;; are auto-frobbed from configure.ac, so you should edit that file and run
 ;; "autoconf && ./configure" to change them.
 
-(defconst tramp-version "2.0.57"
+(defconst tramp-version "2.0.58-pre"
   "This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
