@@ -4,6 +4,8 @@
 
 2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* vc.el (vc-status-tool-bar-map): Add vc-print-log to tool bar.
+
 	* tooltip.el (tooltip-mode): Set tooltip-show-help-non-mode as
 	show-help-function when turning tooltip off.
 	(tooltip-show): Call tooltip-show-help-non-mode if use-echo-area.
