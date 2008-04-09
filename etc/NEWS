@@ -371,9 +371,9 @@ inter-process communication mechanism for applications residing on the
 same host, based on messages.  See the manual for further details.
 
 ** zeroconf.el offers service discovery and service publishing
-interfaces according the Zeroconf specification.  It communicates with
-Avahi, a zeroconf implementation, via D-Bus messages on systems which
-have installed this software.
+interfaces according to the zeroconf specification.  It communicates
+with Avahi, a zeroconf implementation, via D-Bus messages on systems
+which have installed this software.
 
 ** EasyPG is now part of the Emacs distribution.  It is an all-in-one
 GnuPG interface which includes GnuPG keyring browser, cryptographic
