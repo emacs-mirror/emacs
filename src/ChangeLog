@@ -1,5 +1,8 @@
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuf.c (Vcompletion_auto_help): Move to minibuffer.el.
+	(syms_of_minibuf): Remove its initialization.
+
 	* minibuf.c (temp_echo_area_glyphs): Remove unused function.
 
 2008-04-09  Juanma Barranquero  <lekktu@gmail.com>

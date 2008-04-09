@@ -55,10 +55,6 @@ Lisp_Object minibuf_save_list;
 
 int minibuf_level;
 
-/* Nonzero means display completion help for invalid input.  */
-
-Lisp_Object Vcompletion_auto_help;
-
 /* The maximum length of a minibuffer history.  */
 
 Lisp_Object Qhistory_length, Vhistory_length;
@@ -2125,12 +2121,6 @@ If set to nil, minibuffer reading functions don't add new elements to the
 history list, so it is possible to do this afterwards by calling
 `add-to-history' explicitly.  */);
   Vhistory_add_new_input = Qt;
-
-  DEFVAR_LISP ("completion-auto-help", &Vcompletion_auto_help,
-	       doc: /* *Non-nil means automatically provide help for invalid completion input.
-Under Partial Completion mode, a non-nil, non-t value has a special meaning;
-see the doc string of `partial-completion-mode' for more details.  */);
-  Vcompletion_auto_help = Qt;
 
   DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
 	       doc: /* Non-nil means don't consider case significant in completion.

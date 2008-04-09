@@ -248,7 +248,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 ;;; 					(const :tag " current dir" nil)
 ;;;					(directory :format "%v"))))
 	     ;; minibuf.c
-	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
 			     (choice (const :tag "Infinite" t) integer)

@@ -21,6 +21,9 @@
 
 ;;; Commentary:
 
+;; Names starting with "minibuffer--" are for functions and variables that
+;; are meant to be for internal use only.
+
 ;; TODO:
 ;; - merge do-completion and complete-word
 ;; - move all I/O out of do-completion
@@ -28,6 +31,11 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(defgroup minibuffer nil
+  "Controlling the behavior of the minibuffer."
+  :link '(custom-manual "(emacs)Minibuffer")
+  :group 'environment)
 
 (defun minibuffer-message (message &rest args)
   "Temporarily display MESSAGE at the end of the minibuffer.
@@ -37,7 +45,7 @@ Enclose MESSAGE in [...] if this is not yet the case.
 If ARGS are provided, then pass MESSAGE through `format'."
   ;; Clear out any old echo-area message to make way for our new thing.
   (message nil)
-  (unless (string-match "\\[.+\\]" message)
+  (unless (and (null args) (string-match "\\[.+\\]" message))
     (setq message (concat " [" message "]")))
   (when args (setq message (apply 'format message args)))
   (let ((ol (make-overlay (point-max) (point-max) nil t t)))
@@ -57,33 +65,45 @@ That is what completion commands operate on."
 If the current buffer is not a minibuffer, erase its entire contents."
   (delete-field))
 
-(defun minibuffer--maybe-completion-help ()
-  (if completion-auto-help
-      (minibuffer-completion-help)
-    (minibuffer-message "Next char not unique")))
+(defcustom completion-auto-help t
+  "Non-nil means automatically provide help for invalid completion input.
+If the value is t the *Completion* buffer is displayed whenever completion
+is requested but cannot be done.
+If the value is `lazy', the *Completions* buffer is only displayed after
+the second failed attempt to complete."
+  :type (choice (const nil) (const t) (const lazy))
+  :group 'minibuffer)
 
-(defun minibuffer-do-completion ()
+(defun minibuffer--bitset (modified completions exact)
+  (logior (if modified    4 0)
+          (if completions 2 0)
+          (if exact       1 0)))
+
+(defun minibuffer--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
-C = There were available completions.
-E = After completion we now have an exact match.
-M = Completion was performed, the text was Modified.
+M = completion was performed, the text was Modified.
+C = there were available Completions.
+E = after completion we now have an Exact match.
 
- CEM
- 000 0 no possible completion
- 010 1 was already an exact and unique completion
- 110 3 was already an exact completion
- 111 4 completed to an exact completion
- 101 5 some completion happened
- 100 6 no completion happened"
-  (let* ((string (minibuffer-completion-contents))
-         (completion (try-completion (field-string)
-                                    minibuffer-completion-table
-                                    minibuffer-completion-predicate)))
-    (setq last-exact-completion nil)
+ MCE
+ 000  0 no possible completion
+ 001  1 was already an exact and unique completion
+ 010  2 no completion happened
+ 011  3 was already an exact completion
+ 100  4 ??? impossible
+ 101  5 ??? impossible
+ 110  6 some completion happened
+ 111  7 completed to an exact completion"
+  (let* ((beg (field-beginning))
+         (string (buffer-substring beg (point)))
+         (completion (funcall (or try-completion-function 'try-completion)
+                              string
+                              minibuffer-completion-table
+                              minibuffer-completion-predicate)))
     (cond
      ((null completion)
-      (ding) (minibuffer-message "No match") 0)
-     ((eq t completion) 1)              ;Exact and unique match.
+      (ding) (minibuffer-message "No match") (minibuffer--bitset nil nil nil))
+     ((eq t completion) (minibuffer--bitset nil nil t)) ;Exact and unique match.
      (t
       ;; `completed' should be t if some completion was done, which doesn't
       ;; include simply changing the case of the entered string.  However,
@@ -93,34 +113,46 @@ M = Completion was performed, the text was Modified.
             (unchanged (eq t (compare-strings completion nil nil
                                               string nil nil nil))))
         (unless unchanged
-          (let ((beg (field-beginning))
-                (end (point)))
+          ;; Merge a trailing / in completion with a / after point.
+          ;; We used to only do it for word completion, but it seems to make
+          ;; sense for all completions.
+          (if (and (eq ?/ (aref completion (1- (length completion))))
+                   (< (point) (field-end))
+                   (eq ?/ (char-after)))
+              (setq completion (substring completion 0 -1)))
+
+          ;; Insert in minibuffer the chars we got.
+          (let ((end (point)))
             (insert completion)
             (delete-region beg end)))
+
         (if (not (or unchanged completed))
 	   ;; The case of the string changed, but that's all.  We're not sure
 	   ;; whether this is a unique completion or not, so try again using
 	   ;; the real case (this shouldn't recurse again, because the next
 	   ;; time try-completion will return either t or the exact string).
-           (minibuffer-do-completion)
+           (minibuffer--do-completion)
 
           ;; It did find a match.  Do we match some possibility exactly now?
           (let ((exact (test-completion (field-string)
 					minibuffer-completion-table
 					minibuffer-completion-predicate)))
-            (cond
-             ((not exact)
-              (if completed 5
-                (minibuffer--maybe-completion-help)
-                6))
-             (completed 4)
-             (t
-              ;; If the last exact completion and this one were the same,
-              ;; it means we've already given a "Complete but not unique"
-              ;; message and the user's hit TAB again, so now we give him help.
-              (if (eq this-command last-command)
-                  (minibuffer-completion-help))
-              3)))))))))
+            (unless completed
+              ;; Show the completion table, if requested.
+              (cond
+               ((not exact)
+                (if (case completion-auto-help
+                      (lazy (eq this-command last-command))
+                      (t completion-auto-help))
+                    (minibuffer-completion-help)
+                  (minibuffer-message "Next char not unique")))
+               ;; If the last exact completion and this one were the same,
+               ;; it means we've already given a "Complete but not unique"
+               ;; message and the user's hit TAB again, so now we give him help.
+               ((eq this-command last-command)
+                (if completion-auto-help (minibuffer-completion-help)))))
+
+            (minibuffer--bitset completed t exact))))))))
 
 (defun minibuffer-complete ()
   "Complete the minibuffer contents as far as possible.
@@ -146,16 +178,15 @@ scroll the window of possible completions."
 	    (scroll-other-window))
 	  nil)
 
-      (let ((i (minibuffer-do-completion)))
-        (case i
-          (0 nil)
-          (1 (goto-char (field-end))
-             (minibuffer-message "Sole completion")
-             t)
-          (3 (goto-char (field-end))
-             (minibuffer-message "Complete, but not unique")
-             t)
-          (t t))))))
+      (case (minibuffer--do-completion)
+        (0 nil)
+        (1 (goto-char (field-end))
+           (minibuffer-message "Sole completion")
+           t)
+        (3 (goto-char (field-end))
+           (minibuffer-message "Complete, but not unique")
+           t)
+        (t t)))))
 
 (defun minibuffer-complete-and-exit ()
   "If the minibuffer contents is a valid completion then exit.
@@ -195,33 +226,21 @@ a repetition of this command will exit."
 
    (t
     ;; Call do-completion, but ignore errors.
-    (let ((i (condition-case nil
-                 (minibuffer-do-completion)
-               (error 1))))
-      (case i
-        ((1 3) (exit-minibuffer))
-        (4 (if (not minibuffer-completion-confirm)
-               (exit-minibuffer)
-             (minibuffer-message "Confirm")
-             nil))
-        (t nil))))))
+    (case (condition-case nil
+              (minibuffer--do-completion)
+            (error 1))
+      ((1 3) (exit-minibuffer))
+      (7 (if (not minibuffer-completion-confirm)
+             (exit-minibuffer)
+           (minibuffer-message "Confirm")
+           nil))
+      (t nil)))))
 
-(defun minibuffer-complete-word ()
-  "Complete the minibuffer contents at most a single word.
-After one word is completed as much as possible, a space or hyphen
-is added, provided that matches some possible completion.
-Return nil if there is no valid completion, else t."
-  (interactive)
-  (let* ((beg (field-beginning))
-         (string (buffer-substring beg (point)))
-         (completion (try-completion string
-                                     minibuffer-completion-table
-                                     minibuffer-completion-predicate)))
-    (cond
-     ((null completion)
-      (ding) (minibuffer-message "No match") nil)
-     ((eq t completion) nil)              ;Exact and unique match.
-     (t
+(defun minibuffer-try-word-completion (string table predicate)
+  (let ((completion (try-completion string table predicate)))
+    (if (not (stringp completion))
+        completion
+
       ;; Completing a single word is actually more difficult than completing
       ;; as much as possible, because we first have to find the "current
       ;; position" in `completion' in order to find the end of the word
@@ -239,10 +258,7 @@ Return nil if there is no valid completion, else t."
 			       (substitute-in-file-name string)
 			     (error string))))
 	  (unless (eq string substituted)
-	    (setq string substituted)
-	    (let ((end (point)))
-              (insert substituted)
-              (delete-region beg end)))))
+	    (setq string substituted))))
 
       ;; Make buffer (before point) contain the longest match
       ;; of `string's tail and `completion's head.
@@ -255,8 +271,7 @@ Return nil if there is no valid completion, else t."
           (setq startpos (1+ startpos))
           (setq length (1- length)))
 
-        (setq string (substring string startpos))
-        (delete-region beg (+ beg startpos)))
+        (setq string (substring string startpos)))
 
       ;; Now `string' is a prefix of `completion'.
 
@@ -267,31 +282,34 @@ Return nil if there is no valid completion, else t."
               tem)
           (while (and exts (not (stringp tem)))
             (setq tem (try-completion (concat string (pop exts))
-                                      minibuffer-completion-table
-                                      minibuffer-completion-predicate)))
+                                      table predicate)))
           (if (stringp tem) (setq completion tem))))
 
-      (if (= (length string) (length completion))
-          ;; If got no characters, print help for user.
-          (progn
-            (if completion-auto-help (minibuffer-completion-help))
-            nil)
-        ;; Otherwise insert in minibuffer the chars we got.
-        (if (string-match "\\W" completion (length string))
-            ;; First find first word-break in the stuff found by completion.
-            ;; i gets index in string of where to stop completing.
-            (setq completion (substring completion 0 (match-end 0))))
+      ;; Otherwise cut after the first word.
+      (if (string-match "\\W" completion (length string))
+          ;; First find first word-break in the stuff found by completion.
+          ;; i gets index in string of where to stop completing.
+          (substring completion 0 (match-end 0))
+        completion))))
 
-        (if (and (eq ?/ (aref completion (1- (length completion))))
-                 (eq ?/ (char-after)))
-            (setq completion (substring completion 0 (1- (length completion)))))
 
-        (let ((pos (point)))
-          (insert completion)
-          (delete-region beg pos)
-          t))))))
+(defun minibuffer-complete-word ()
+  "Complete the minibuffer contents at most a single word.
+After one word is completed as much as possible, a space or hyphen
+is added, provided that matches some possible completion.
+Return nil if there is no valid completion, else t."
+  (interactive)
+  (case (minibuffer--do-completion 'minibuffer-try-word-completion)
+    (0 nil)
+    (1 (goto-char (field-end))
+       (minibuffer-message "Sole completion")
+       t)
+    (3 (goto-char (field-end))
+       (minibuffer-message "Complete, but not unique")
+       t)
+    (t t)))
 
-(defun minibuffer-complete-insert-strings (strings)
+(defun minibuffer--insert-strings (strings)
   "Insert a list of STRINGS into the current buffer.
 Uses columns to keep the listing readable but compact.
 It also eliminates runs of equal strings."
@@ -378,7 +396,7 @@ during running `completion-setup-hook'."
 	  (insert "There are no possible completions of what you have typed.")
 	
 	(insert "Possible completions are:\n")
-	(minibuffer-complete-insert-strings completions))))
+	(minibuffer--insert-strings completions))))
   (let ((completion-common-substring common-substring))
     (run-hooks 'completion-setup-hook))
   nil)
@@ -421,7 +439,7 @@ during running `completion-setup-hook'."
   ;; A better solution would be to make deactivate-mark buffer-local
   ;; (or to turn it into a list of buffers, ...), but in the mean time,
   ;; this should do the trick in most cases.
-  (setq deactivate_mark nil)
+  (setq deactivate-mark nil)
   (throw 'exit nil))
 
 (defun self-insert-and-exit ()

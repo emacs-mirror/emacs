@@ -1,9 +1,30 @@
+2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer): Move group from cus-edit.el.
+	(completion-auto-help): Move from C code.
+	(minibuffer--maybe-completion-help): Remove.
+	(minibuffer--bitset): New function.
+	(minibuffer--do-completion): Rename from minibuffer-do-completion.
+	Renumber a bit.  Really complete on string *before* point.
+	Add argument used for word-completion.
+	Join trailing / in completion with following text, as done in
+	minibuffer-complete-word.
+	Handle new value `lazy' for completion-auto-help.
+	(minibuffer-try-word-completion): New function extracted from
+	minibuffer-complete-word.
+	(minibuffer-complete-word): Use minibuffer--do-completion.
+	(minibuffer--insert-strings): Rename from
+	minibuffer-complete-insert-strings.
+	(exit-minibuffer): Fix typo.
+	* cus-edit.el (minibuffer): Move group to minibuffer.el.
+	* cus-start.el: Remove completion-auto-help.
+
 2008-04-09  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc.el (vc-status-add-entries): New function.
-	(vc-status-add-entry): Removed.
-	(vc-update-vc-status-buffer, vc-status-mark-buffer-changed): Use
-	vc-status-add-entries.
+	(vc-status-add-entry): Remove.
+	(vc-update-vc-status-buffer, vc-status-mark-buffer-changed):
+	Use vc-status-add-entries.
 
 	* emacs-lisp/ewoc.el (ewoc-collect): Return results in the correct
 	order.
@@ -18,8 +39,8 @@
 
 2008-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/regexp-opt.el (regexp-opt): Reduce
-	max-lisp-eval-depth and max-specpdl-size to 10000.
+	* emacs-lisp/regexp-opt.el (regexp-opt):
+	Reduce max-lisp-eval-depth and max-specpdl-size to 10000.
 
 2008-04-09  Lennart Borgman  <lennart.borgman@gmail.com>
 

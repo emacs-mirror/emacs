@@ -65,6 +65,10 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
+** `completion-auto-help' can be set to `lazy' to list the completions only
+if you repeat the completion.  This was already supported in
+`partial-completion-mode'.
+
 ** Emacs now supports using both X displays and ttys in one session.
 Start the server (M-x server-start).  Then `emacsclient -t' creates a
 tty frame connected to the running emacs server.  You can also use any
