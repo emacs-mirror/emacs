@@ -1,3 +1,8 @@
+2008-04-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_compute_glyph_string_overhangs): Compute overhangs
+	for new font backend and composite cases.
+
 2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* atimer.c (alarm_signal_handler): Call run_timers if not SYNC_INPUT.
@@ -5,7 +10,8 @@
 	(do_pending_atimers): Call run_timers.
 	(run_timers): New function.
 
-	* sysdep.c (emacs_write): If SYNC_INPUT and pending_atimers, run atimers.
+	* sysdep.c (emacs_write): If SYNC_INPUT and pending_atimers,
+	run atimers.
 
 	* process.c (wait_reading_process_output): The same as above.
 
