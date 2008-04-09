@@ -4,6 +4,9 @@
 
 2008-04-09  Jason Rumney  <jasonr@gnu.org>
 
+	* makefile.w32-in (distclean): Delete makefile too.
+	(maintainer-clean): New target.
+
 	* xdisp.c (redisplay_internal) [!WINDOWSNT]: Conditionalize last change.
 
 	* w32term.c (w32_compute_glyph_string_overhangs): Compute overhangs
