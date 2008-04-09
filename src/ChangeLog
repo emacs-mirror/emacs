@@ -1,5 +1,14 @@
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuf.c (last_exact_completion): Remove variable.
+	(Fdelete_minibuffer_contents, do_completion, Fminibuffer_complete)
+	(complete_and_exit_1, complete_and_exit_2)
+	(Fminibuffer_complete_and_exit, Fminibuffer_complete_word)
+	(Fdisplay_completion_list, display_completion_list_1)
+	(Fminibuffer_completion_help, Fself_insert_and_exit)
+	(Fexit_minibuffer, Fminibuffer_message): Move functions to minibuffer.el.
+	(syms_of_minibuf): Remove corresponding initializations.
+
 	* keyboard.c (Qdeactivate_mark): New var.
 	(command_loop_1): Use it to call `deactivate-mark'.
 	(syms_of_keyboard): Initialize it.

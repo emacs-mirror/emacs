@@ -783,6 +783,7 @@ lisp= \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
 	${lispsource}simple.elc \
+	${lispsource}minibuffer.elc \
 	${lispsource}startup.elc \
 	${lispsource}subr.elc \
 	${lispsource}term/tty-colors.elc \
@@ -873,6 +874,7 @@ shortlisp= \
 	../lisp/register.elc \
 	../lisp/replace.elc \
 	../lisp/simple.elc \
+	../lisp/minibuffer.elc \
 	../lisp/startup.elc \
 	../lisp/subr.elc \
 	../lisp/term/tty-colors.elc \
