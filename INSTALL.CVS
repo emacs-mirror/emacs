@@ -31,27 +31,30 @@ once:
 (If you want to install the Emacs binary, type "make install" instead
 of "make" in the last command.)
 
-Occasionally the file "lisp/loaddefs.el" will need to be updated to
-reflect new autoloaded functions.  If you see errors about undefined
-lisp functions during compilation, that may be the reason.  Another
-symptom may be an error saying that "loaddefs.el" could not be found;
-this is due to a change in the way loaddefs.el was handled in CVS, and
-should only happen once, for users that are updating old CVS trees.
+Occasionally the file "lisp/loaddefs.el" (and similar *-loaddefs.el
+files in some subdirectories of lisp/, e.g. mh-e/ and calendar/) will
+need to be updated to reflect new autoloaded functions.  If you see
+errors (rather than warnings) about undefined lisp functions during
+compilation, that may be the reason.  Another symptom may be an error
+saying that "loaddefs.el" could not be found; this is due to a change
+in the way loaddefs.el was handled in CVS, and should only happen
+once, for users that are updating old CVS trees.  Finally, sometimes
+there can be build failures related to *loaddefs.el.  In that case,
+delete them before following the instructions below to update them.
 
-To update loaddefs.el (and similar files in some subdirectories, eg
-mh-e and calendar), do:
+To update loaddefs.el (and similar files), do:
 
   $ cd lisp
   $ make autoloads EMACS=../src/emacs
-
-(If a build fails with complaints related to a *loaddefs.el file, try
-deleting any existing *loaddefs.el files and running the above command.)
 
 If either of the above partial procedures fails, try "make bootstrap".
 
 Very occasionally changes in the source can introduce
 incompatibilities with previous builds.  If a bootstrap fails, as a
 last resort try "make maintainer-clean" before bootstrapping again.
+If CPU time is not an issue, the most thorough way to rebuild, and
+avoid any spurious problems, is always to use "make maintainer-clean;
+make bootstrap".
 
 Users of non-Posix systems (MS-Windows etc.) should run the
 platform-specific configuration scripts (nt/configure.bat, config.bat,
