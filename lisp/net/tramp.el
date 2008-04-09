@@ -3921,6 +3921,21 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	    ((eq identification 'localname) localname)
 	    (t (tramp-make-tramp-file-name method user host "")))))))
 
+(defun tramp-find-file-name-coding-system-alist (filename tmpname)
+  "Like `find-operation-coding-system' for Tramp filenames.
+Tramp's `insert-file-contents' and `write-region' work over
+temporary file names.  If `file-coding-system-alist' contains an
+expression, which matches more than the file name suffix, the
+coding system might not be determined.  This function repairs it."
+  (let (result)
+    (dolist (elt file-coding-system-alist result)
+      (when (and (consp elt) (string-match (car elt) filename))
+	;; We found a matching entry in `file-coding-system-alist'.
+	;; So we add a similar entry, but with the temporary file name
+	;; as regexp.
+	(add-to-list
+	 'result (cons (regexp-quote tmpname) (cdr elt)) 'append)))))
+
 (defun tramp-handle-insert-file-contents
   (filename &optional visit beg end replace)
   "Like `insert-file-contents' for Tramp files."
@@ -3955,11 +3970,19 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 			  'file-local-copy)))
 		   (file-local-copy filename))))
 	    (tramp-message v 4 "Inserting local temp file `%s'..." local-copy)
-	    (setq result (insert-file-contents local-copy nil beg end replace))
-	    ;; Now `last-coding-system-used' has right value.  Remember it.
-	    (when (boundp 'last-coding-system-used)
-	      (setq coding-system-used (symbol-value 'last-coding-system-used)))
-	    (tramp-message v 4 "Inserting local temp file `%s'...done" local-copy)
+	    ;; We must ensure that `file-coding-system-alist' matches
+	    ;; `local-copy'.
+	    (let ((file-coding-system-alist
+		   (tramp-find-file-name-coding-system-alist
+		    filename local-copy)))
+	      (setq result
+		    (insert-file-contents local-copy nil beg end replace))
+	      ;; Now `last-coding-system-used' has right value.  Remember it.
+	      (when (boundp 'last-coding-system-used)
+		(setq coding-system-used
+		      (symbol-value 'last-coding-system-used))))
+	    (tramp-message
+	     v 4 "Inserting local temp file `%s'...done" local-copy)
 	    (delete-file local-copy)
 	    (when (boundp 'last-coding-system-used)
 	      (set 'last-coding-system-used coding-system-used))))
@@ -4138,13 +4161,18 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  ;; We say `no-message' here because we don't want the
 	  ;; visited file modtime data to be clobbered from the temp
 	  ;; file.  We call `set-visited-file-modtime' ourselves later
-	  ;; on.
-	  (tramp-run-real-handler
-	   'write-region
-	   (list start end tmpfile append 'no-message lockname confirm))
-	  ;; Now, `last-coding-system-used' has the right value.  Remember it.
-	  (when (boundp 'last-coding-system-used)
-	    (setq coding-system-used (symbol-value 'last-coding-system-used)))
+	  ;; on.  We must ensure that `file-coding-system-alist'
+	  ;; matches `tmpfile'.
+	  (let ((file-coding-system-alist
+		 (tramp-find-file-name-coding-system-alist filename tmpfile)))
+	    (tramp-run-real-handler
+	     'write-region
+	     (list start end tmpfile append 'no-message lockname confirm))
+	    ;; Now, `last-coding-system-used' has the right value.  Remember it.
+	    (when (boundp 'last-coding-system-used)
+	      (setq coding-system-used
+		    (symbol-value 'last-coding-system-used))))
+
 	  ;; The permissions of the temporary file should be set.  If
 	  ;; filename does not exist (eq modes nil) it has been
 	  ;; renamed to the backup file.  This case `save-buffer'
