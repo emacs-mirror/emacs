@@ -226,7 +226,7 @@ This means the number of non-shy regexp grouping constructs
 
 	      ;; Otherwise, divide the list into those that start with a
 	      ;; particular letter and those that do not, and recurse on them.
-	      (let* ((char (char-to-string (string-to-char (car strings))))
+	      (let* ((char (substring-no-properties (car strings) 0 1))
 		     (half1 (all-completions char strings))
 		     (half2 (nthcdr (length half1) strings)))
 		(concat open-group
