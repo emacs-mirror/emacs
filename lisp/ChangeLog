@@ -1,3 +1,28 @@
+2008-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MH_E_DIR): New variable.
+	(MH_E_SRC): Restore variable removed 2008-03-13.
+	(mh-loaddefs.el): Depend on $MH_E_SRC.
+	(CAL_DIR, CAL_SRC): New variables.
+	(cal-loaddefs.el, diary-loaddefs.el, hol-loaddefs.el):
+	Depend on CAL_SRC.
+
+	* calendar/calendar.el (calendar, diary): Add :prefix.
+	(holidays): Change :prefix.
+	(calendar-today, holiday, calendar-holiday-marker)
+	(european-calendar-style): Change custom groups.
+
+	* calendar/calendar.el (diary-hook, diary-display-hook):
+	Move to diary-lib.el.
+	* calendar/diary-lib.el (diary-hook, diary-display-hook):
+	Move here from calendar.el.
+	* calendar/appt.el: Require diary-lib rather than calendar.
+	* calendar/cal-x.el (diary-display-hook): Declare for compiler.
+
+	* calendar/appt.el (appt): Add :prefix.
+
+	* calendar/diary-lib.el (diary-hook): Doc fix.
+
 2008-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer--double-dollars, read-file-name-internal):
