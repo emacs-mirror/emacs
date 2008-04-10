@@ -109,6 +109,9 @@ void globals_of_w32 ();
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
+/* Defined in process.c for its own purpose.  */
+extern Lisp_Object Qlocal;
+
 extern int w32_num_mouse_buttons;
 
 
@@ -2489,6 +2492,8 @@ stat (const char * path, struct stat * buf)
     }
 
   if (!NILP (Vw32_get_true_file_attributes)
+      && !(EQ (vw32_get_true_file_attributes, Qlocal) && 
+	   GetDriveType (name) == DRIVE_FIXED)
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
