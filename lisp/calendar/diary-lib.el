@@ -1325,8 +1325,7 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
       (setq m displayed-month
             y displayed-year))
     (calendar-increment-month m y -1)
-    (setq first-date (calendar-absolute-from-gregorian (list m 1 y))
-          date (1- first-date))
+    (setq first-date (calendar-absolute-from-gregorian (list m 1 y)))
     (calendar-increment-month m y 2)
     (setq last-date
           (calendar-absolute-from-gregorian
@@ -1351,6 +1350,7 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
           (forward-line 1))
         (if (bolp) (backward-char 1))
         (setq entry (buffer-substring-no-properties entry-start (point))))
+      (setq date (1- first-date))
       (while (<= (setq date (1+ date)) last-date)
         (when (setq mark (diary-sexp-entry
                           sexp entry
