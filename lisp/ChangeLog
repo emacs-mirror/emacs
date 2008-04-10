@@ -1,3 +1,7 @@
+2008-04-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (AUTOGENEL): Add calc-loaddefs.el.
+
 2008-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-state): Add new state `conflict'.
