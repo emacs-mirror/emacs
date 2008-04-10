@@ -47,6 +47,9 @@ lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
 # Automatically generated autoload files, apart from lisp/loaddefs.el.
+# Note this includes only those files that need special rules to
+# build; ie it does not need to include things created via
+# generated-autoload-file (eg calc/calc-loaddefs.el).
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 	$(lisp)/calendar/diary-loaddefs.el \
 	$(lisp)/calendar/hol-loaddefs.el \
@@ -58,7 +61,7 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
-	eshell/esh-groups.el \
+	eshell/esh-groups.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -229,34 +232,65 @@ $(lisp)/progmodes/cc-mode.elc: \
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.
-mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/mh-e/*.el
+MH_E_DIR = $(lisp)/mh-e
+## MH_E_SRC avoids a circular dependency warning for mh-loaddefs.el.
+MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
+	$(MH_E_DIR)/mh-buffers.el  $(MH_E_DIR)/mh-compat.el   \
+	$(MH_E_DIR)/mh-comp.el     $(MH_E_DIR)/mh-e.el        \
+	$(MH_E_DIR)/mh-folder.el   $(MH_E_DIR)/mh-funcs.el    \
+	$(MH_E_DIR)/mh-gnus.el     $(MH_E_DIR)/mh-identity.el \
+	$(MH_E_DIR)/mh-inc.el      $(MH_E_DIR)/mh-junk.el     \
+	$(MH_E_DIR)/mh-letter.el   $(MH_E_DIR)/mh-limit.el    \
+	$(MH_E_DIR)/mh-mime.el     $(MH_E_DIR)/mh-print.el    \
+	$(MH_E_DIR)/mh-scan.el     $(MH_E_DIR)/mh-search.el   \
+	$(MH_E_DIR)/mh-seq.el      $(MH_E_DIR)/mh-show.el     \
+	$(MH_E_DIR)/mh-speed.el    $(MH_E_DIR)/mh-thread.el   \
+	$(MH_E_DIR)/mh-tool-bar.el $(MH_E_DIR)/mh-utils.el    \
+	$(MH_E_DIR)/mh-xface.el
+
+mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
+$(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
+	   -f batch-update-autoloads $(MH_E_DIR)
 
-$(lisp)/calendar/cal-loaddefs.el: $(lisp)/calendar/*.el
+CAL_DIR = $(lisp)/calendar
+## Those files that may contain internal calendar autoload cookies.
+## Avoids circular dependency warning for *-loaddefs.el.
+CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
+	$(CAL_DIR)/cal-coptic.el  $(CAL_DIR)/cal-dst.el    \
+	$(CAL_DIR)/cal-french.el  $(CAL_DIR)/cal-hebrew.el \
+	$(CAL_DIR)/cal-html.el    $(CAL_DIR)/cal-islam.el  \
+	$(CAL_DIR)/cal-iso.el     $(CAL_DIR)/cal-julian.el \
+	$(CAL_DIR)/cal-mayan.el   $(CAL_DIR)/cal-menu.el   \
+	$(CAL_DIR)/cal-move.el    $(CAL_DIR)/cal-persia.el \
+	$(CAL_DIR)/cal-tex.el     $(CAL_DIR)/cal-x.el      \
+	$(CAL_DIR)/calendar.el    $(CAL_DIR)/diary-lib.el  \
+	$(CAL_DIR)/holidays.el    $(CAL_DIR)/lunar.el      \
+	$(CAL_DIR)/solar.el
+
+$(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/calendar
+	   -f batch-update-autoloads $(CAL_DIR)
 
-$(lisp)/calendar/diary-loaddefs.el: $(lisp)/calendar/*.el
+$(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/calendar
+	   -f batch-update-autoloads $(CAL_DIR)
 
-$(lisp)/calendar/hol-loaddefs.el: $(lisp)/calendar/*.el
+$(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/calendar
+	   -f batch-update-autoloads $(CAL_DIR)
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
