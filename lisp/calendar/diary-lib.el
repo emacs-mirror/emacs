@@ -139,6 +139,41 @@ See the documentation for the function `diary-list-sexp-entries'."
 (define-obsolete-variable-alias 'sexp-diary-entry-symbol
   'diary-sexp-entry-symbol "23.1")
 
+(defcustom diary-hook nil
+  "List of functions called after the display of the diary.
+Used for example by the appointment package - see `appt-activate'."
+  :type 'hook
+  :group 'diary)
+
+(defcustom diary-display-hook nil
+  "List of functions that handle the display of the diary.
+If nil (the default), `diary-simple-display' is used.  Use
+`ignore' for no diary display.
+
+Ordinarily, this just displays the diary buffer (with holidays
+indicated in the mode line), if there are any relevant entries.
+At the time these functions are called, the variable
+`diary-entries-list' is a list, in order by date, of all relevant
+diary entries in the form of ((MONTH DAY YEAR) STRING), where
+string is the diary entry for the given date.  This can be used,
+for example, a different buffer for display (perhaps combined
+with holidays), or produce hard copy output.
+
+A function `diary-fancy-display' is provided for use with this
+hook; this function prepares a special noneditable diary buffer
+with the relevant diary entries that has neat day-by-day
+arrangement with headings.  The fancy diary buffer will show the
+holidays unless the variable `diary-show-holidays-flag' is set to
+nil.  Ordinarily, the fancy diary buffer will not show days for
+which there are no diary entries, even if that day is a holiday;
+if you want such days to be shown in the fancy diary buffer, set
+the variable `diary-list-include-blanks' non-nil."
+  :type 'hook
+  :options '(diary-fancy-display)
+  :initialize 'custom-initialize-default
+  :set 'diary-set-maybe-redraw
+  :group 'diary)
+
 (defcustom diary-list-entries-hook nil
   "List of functions called after diary file is culled for relevant entries.
 You might wish to add `diary-include-other-diary-files', in which case
