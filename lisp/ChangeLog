@@ -24,6 +24,8 @@
 
 2008-04-10  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (toggle-truncate-lines): Doc fix.
+
 	* Makefile.in (MH_E_DIR): New variable.
 	(MH_E_SRC): Restore variable removed 2008-03-13.
 	(mh-loaddefs.el): Depend on $MH_E_SRC.
