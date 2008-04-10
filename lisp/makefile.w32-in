@@ -62,7 +62,8 @@ LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 	$(lisp)/mh-e/mh-loaddefs.el
 
 AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
-	$(lisp)/finder-inf.el $(lisp)/subdirs.el $(lisp)/eshell/esh-groups.el
+	$(lisp)/finder-inf.el $(lisp)/subdirs.el $(lisp)/eshell/esh-groups.el \
+	$(lisp)/calc/calc-loaddefs.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
