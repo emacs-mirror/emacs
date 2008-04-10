@@ -1,5 +1,8 @@
 2008-04-10  Jason Rumney  <jasonr@gnu.org>
 
+	* w32menu.c (is_simple_dialog, simple_dialog_show): New functions.
+	(Fx_popup_dialog): Handle simple yes/no questions as dialogs.
+
 	* w32.c (logon_network_drive): Also logon to remote drives that
 	are mapped to drive letters.
 
