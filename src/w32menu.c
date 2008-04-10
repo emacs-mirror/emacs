@@ -168,22 +168,28 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
 
-void set_frame_menubar ();
+void set_frame_menubar P_ ((FRAME_PTR, int, int));
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object));
 #ifdef HAVE_DIALOGS
-static Lisp_Object w32_dialog_show ();
+static Lisp_Object w32_dialog_show P_ ((FRAME_PTR, int, Lisp_Object, char**));
+#else
+static int is_simple_dialog P_ ((Lisp_Object));
+static Lisp_Object simple_dialog_show P_ ((FRAME_PTR, Lisp_Object, Lisp_Object));
 #endif
-static Lisp_Object w32_menu_show ();
+static Lisp_Object w32_menu_show P_ ((FRAME_PTR, int, int, int, int,
+				      Lisp_Object, char **));
 
-static void keymap_panes ();
-static void single_keymap_panes ();
-static void single_menu_item ();
-static void list_of_panes ();
-static void list_of_items ();
-void w32_free_menu_strings (HWND);
+static void keymap_panes P_ ((Lisp_Object *, int, int));
+static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				     int, int));
+static void single_menu_item P_ ((Lisp_Object, Lisp_Object,
+				  Lisp_Object *, int, int));
+static void list_of_panes P_ ((Lisp_Object));
+static void list_of_items P_ ((Lisp_Object));
+void w32_free_menu_strings P_((HWND));
 
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
@@ -928,17 +934,23 @@ otherwise it is "Question". */)
     CHECK_WINDOW (window);
 
 #ifndef HAVE_DIALOGS
-  /* Display a menu with these alternatives
-     in the middle of frame F.  */
-  {
-    Lisp_Object x, y, frame, newpos;
-    XSETFRAME (frame, f);
-    XSETINT (x, x_pixel_width (f) / 2);
-    XSETINT (y, x_pixel_height (f) / 2);
-    newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
 
-    return Fx_popup_menu (newpos,
-			  Fcons (Fcar (contents), Fcons (contents, Qnil)));
+  {
+    /* Handle simple Yes/No choices as MessageBox popups.  */
+    if (is_simple_dialog (contents))
+      return simple_dialog_show (f, contents, header);
+    else
+      {
+	/* Display a menu with these alternatives
+	   in the middle of frame F.  */
+	Lisp_Object x, y, frame, newpos;
+	XSETFRAME (frame, f);
+	XSETINT (x, x_pixel_width (f) / 2);
+	XSETINT (y, x_pixel_height (f) / 2);
+	newpos = Fcons (Fcons (x, Fcons (y, Qnil)), Fcons (frame, Qnil));
+	return Fx_popup_menu (newpos,
+			      Fcons (Fcar (contents), Fcons (contents, Qnil)));
+      }
   }
 #else /* HAVE_DIALOGS */
   {
@@ -2001,6 +2013,29 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 
 
 #ifdef HAVE_DIALOGS
+/* TODO: On Windows, there are two ways of defining a dialog.
+
+   1. Create a predefined dialog resource and include it in nt/emacs.rc.
+      Using this method, we could then set the titles and make unneeded
+      buttons invisible before displaying the dialog.  Everything would
+      be a fixed size though, so there is a risk that text does not
+      fit on a button.
+   2. Create the dialog template in memory on the fly.  This allows us
+      to size the dialog and buttons dynamically, probably giving more
+      natural looking results for dialogs with few buttons, and eliminating
+      the problem of text overflowing the buttons.  But the API for this is
+      quite complex - structures have to be allocated in particular ways,
+      text content is tacked onto the end of structures in variable length
+      arrays with further structures tacked on after these, there are
+      certain alignment requirements for all this, and we have to
+      measure all the text and convert to "dialog coordinates" to figure
+      out how big to make everything.
+
+      For now, we'll just stick with menus for dialogs that are more
+      complicated than simple yes/no type questions for which we can use
+      the MessageBox function.
+*/
+      
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
   "button6", "button7", "button8", "button9", "button10" };
@@ -2192,7 +2227,111 @@ w32_dialog_show (f, keymaps, title, header, error)
 
   return Qnil;
 }
-#endif  /* HAVE_DIALOGS  */
+#else /* !HAVE_DIALOGS  */
+
+/* Currently we only handle Yes No dialogs (y-or-n-p and yes-or-no-p) as
+   simple dialogs.  We could handle a few more, but I'm not aware of
+   anywhere in Emacs that uses the other specific dialog choices that
+   MessageBox provides.  */
+
+static int is_simple_dialog (contents)
+  Lisp_Object contents;
+{
+  Lisp_Object options = XCDR (contents);
+  Lisp_Object name, yes, no, other;
+
+  yes = build_string ("Yes");
+  no = build_string ("No");
+
+  if (!CONSP (options))
+    return 0;
+
+  name = XCAR (XCAR (options));
+  if (!CONSP (options))
+    return 0;
+
+  if (!NILP (Fstring_equal (name, yes)))
+    other = no;
+  else if (!NILP (Fstring_equal (name, no)))
+    other = yes;
+  else
+    return 0;
+
+  options = XCDR (options);
+  if (!CONSP (options))
+    return 0;
+
+  name = XCAR (XCAR (options));
+  if (NILP (Fstring_equal (name, other)))
+    return 0;
+
+  /* Check there are no more options.  */
+  options = XCDR (options);
+  return !(CONSP (options));
+}
+
+static Lisp_Object simple_dialog_show (f, contents, header)
+     FRAME_PTR f;
+     Lisp_Object contents, header;
+{
+  int answer;
+  UINT type;
+  char *text, *title;
+  Lisp_Object lispy_answer = Qnil, temp = XCAR (contents);
+
+  if (STRINGP (temp))
+    text = SDATA (temp);
+  else
+    text = "";
+
+  if (NILP (header))
+    {
+      title = "Question";
+      type = MB_ICONQUESTION;
+    }
+  else
+    {
+      title = "Information";
+      type = MB_ICONINFORMATION;
+    }
+  type |= MB_YESNO;
+
+  /* Since we only handle Yes/No dialogs, and we already checked
+     is_simple_dialog, we don't need to worry about checking contents
+     to see what type of dialog to use.  */
+  answer = MessageBox (FRAME_W32_WINDOW (f), text, title, type);
+
+  if (answer == IDYES)
+    lispy_answer = build_string ("Yes");
+  else if (answer == IDNO)
+    lispy_answer = build_string ("No");
+  else
+    Fsignal (Qquit, Qnil);
+
+  for (temp = XCDR (contents); CONSP (temp); temp = XCDR (temp))
+    {
+      Lisp_Object item, name, value;
+      item = XCAR (temp);
+      if (CONSP (item))
+	{
+	  name = XCAR (item);
+	  value = XCDR (item);
+	}
+      else
+	{
+	  name = item;
+	  value = Qnil;
+	}
+
+      if (!NILP (Fstring_equal (name, lispy_answer)))
+	{
+	  return value;
+	}
+    }
+  Fsignal (Qquit, Qnil);
+  return Qnil;
+}
+#endif  /* !HAVE_DIALOGS  */
 
 
 /* Is this item a separator? */
