@@ -1,3 +1,10 @@
+2008-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fmake_symbolic_link): Surround code by #ifdef S_IFLNK
+	only after check for file name handler functions. Signal, when
+	native functionality is not supported.
+	(syms_of_fileio): Declare it unconditionally.
+
 2008-04-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (is_simple_dialog, simple_dialog_show): New functions.
