@@ -1,3 +1,7 @@
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.rc: New file.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
