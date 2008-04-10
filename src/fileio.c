@@ -2878,7 +2878,6 @@ This is what happens in interactive use with M-x.  */)
   return Qnil;
 }
 
-#ifdef S_IFLNK
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
        doc: /* Make a symbolic link to FILENAME, named LINKNAME.
@@ -2923,6 +2922,7 @@ This happens for interactive use with M-x.  */)
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
 
+#ifdef S_IFLNK
   encoded_filename = ENCODE_FILE (filename);
   encoded_linkname = ENCODE_FILE (linkname);
 
@@ -2949,8 +2949,13 @@ This happens for interactive use with M-x.  */)
     }
   UNGCPRO;
   return Qnil;
-}
+
+#else
+  UNGCPRO;
+  xsignal1 (Qfile_error, build_string ("Symbolic links are not supported"));
+
 #endif /* S_IFLNK */
+}
 
 #ifdef VMS
 
@@ -6637,9 +6642,7 @@ A non-nil value may result in data loss!  */);
   defsubr (&Sdelete_file);
   defsubr (&Srename_file);
   defsubr (&Sadd_name_to_file);
-#ifdef S_IFLNK
   defsubr (&Smake_symbolic_link);
-#endif /* S_IFLNK */
 #ifdef VMS
   defsubr (&Sdefine_logical_name);
 #endif /* VMS */
