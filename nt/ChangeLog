@@ -1,5 +1,7 @@
 2008-04-10  Jason Rumney  <jasonr@gnu.org>
 
+	* emacsclient.rc: New file.
+
 	* INSTALL: Document make targets.
 
 2008-04-09  Jason Rumney  <jasonr@gnu.org>
