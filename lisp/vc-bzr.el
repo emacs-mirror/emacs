@@ -657,7 +657,6 @@ Optional argument LOCALP is always ignored."
     ;; else fall back to default vc.el representation
     (vc-default-dired-state-info 'Bzr file)))
 
-;; XXX Experimental function for the vc-dired replacement.
 ;; XXX: this needs testing, it's probably incomplete. 
 (defun vc-bzr-after-dir-status (update-function status-buffer)
   (let ((status-str nil)
@@ -667,6 +666,7 @@ Optional argument LOCALP is always ignored."
 		       (" M" . edited)
 		       ;; XXX: what about ignored files?
 		       (" D" . missing)
+		       ("C " . conflict)
 		       ("? " . unregistered)))
 	(translated nil)
 	(result nil))
@@ -674,11 +674,24 @@ Optional argument LOCALP is always ignored."
       (while (not (eobp))
 	(setq status-str
 	      (buffer-substring-no-properties (point) (+ (point) 2)))
-	(setq file
-	      (buffer-substring-no-properties (+ (point) 4)
-					      (line-end-position)))
-	(setq translated (assoc status-str translation))
-	(push (list file (cdr translated)) result)
+	(setq translated (cdr (assoc status-str translation)))
+	;; For conflicts the file appears twice in the listing: once
+	;; with the M flag and once with the C flag, so take care not
+	;; to add it twice to `result'.  Ugly.
+	(if (eq translated 'conflict)
+	    (let* ((file
+		    (buffer-substring-no-properties
+		     ;;For files with conflicts the format is:
+		     ;;C   Text conflict in FILENAME
+		     ;; Bah.
+		     (+ (point) 21) (line-end-position)))
+		   (entry (assoc file result)))
+	      (when entry
+		(setf (nth 1 entry) 'conflict)))
+	  (push (list (buffer-substring-no-properties
+		       (+ (point) 4)
+		       (line-end-position)) 
+		      translated) result))
 	(forward-line))
       (funcall update-function result status-buffer)))
 
