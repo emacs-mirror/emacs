@@ -1,5 +1,8 @@
 2008-04-10  Juanma Barranquero  <lekktu@gmail.com>
 
+	* subr.el (assoc-ignore-case, assoc-ignore-representation):
+	Add WHEN to obsolescence declaration.
+
 	* makefile.w32-in (AUTOGENEL): Add calc-loaddefs.el.
 
 2008-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
