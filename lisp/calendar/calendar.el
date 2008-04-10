@@ -125,6 +125,7 @@
 
 (defgroup calendar nil
   "Calendar and time management support."
+  :prefix "calendar-"
   :group 'applications)
 
 (defgroup calendar-hooks nil
@@ -134,12 +135,13 @@
 
 (defgroup diary nil
   "Emacs diary."
+  :prefix "diary-"
   :group 'calendar)
 
 (defgroup holidays nil
   "Holidays support in calendar."
   :group 'calendar
-  :prefix "calendar-"
+  :prefix "holidays-"
   :group 'local)
 
 
@@ -221,7 +223,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 (defface calendar-today
   '((t (:underline t)))
   "Face for indicating today's date."
-  :group 'diary)
+  :group 'calendar)
 ;; Backward-compatibility alias.  FIXME make obsolete.
 (put 'calendar-today-face 'face-alias 'calendar-today)
 
@@ -249,7 +251,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
     (t
      :inverse-video t))
   "Face for indicating dates that have holidays."
-  :group 'diary)
+  :group 'holidays)
 ;; Backward-compatibility alias.  FIXME make obsolete.
 (put 'holiday-face 'face-alias 'holiday)
 
@@ -277,7 +279,7 @@ Used by `calendar-mark-today'."
   "How to mark notable dates in the calendar.
 The value can be either a single-character string or a face."
   :type '(choice string face)
-  :group 'calendar)
+  :group 'holidays)
 
 (defcustom calendar-view-holidays-initially-flag nil
   "Non-nil means display holidays for current three month period on entry.
@@ -490,7 +492,7 @@ calendar package is already loaded).  Rather, use either
          (if value
              (calendar-set-date-style 'european)
            (calendar-set-date-style 'american)))
-  :group 'diary)
+  :group 'calendar)
 
 (make-obsolete-variable 'european-calendar-style 'calendar-date-style "23.1")
 
@@ -733,43 +735,6 @@ The valid styles are described in the documentation of `calendar-date-style'."
 
 (make-obsolete 'american-calendar 'calendar-set-date-style "23.1")
 
-;; FIXME move to diary-lib and adjust appt.
-;; Add appt-make-list as an option?
-(defcustom diary-hook nil
-  "List of functions called after the display of the diary.
-Can be used for appointment notification."
-  :type 'hook
-  :group 'diary)
-
-(defcustom diary-display-hook nil
-  "List of functions that handle the display of the diary.
-If nil (the default), `diary-simple-display' is used.  Use
-`ignore' for no diary display.
-
-Ordinarily, this just displays the diary buffer (with holidays
-indicated in the mode line), if there are any relevant entries.
-At the time these functions are called, the variable
-`diary-entries-list' is a list, in order by date, of all relevant
-diary entries in the form of ((MONTH DAY YEAR) STRING), where
-string is the diary entry for the given date.  This can be used,
-for example, a different buffer for display (perhaps combined
-with holidays), or produce hard copy output.
-
-A function `diary-fancy-display' is provided for use with this
-hook; this function prepares a special noneditable diary buffer
-with the relevant diary entries that has neat day-by-day
-arrangement with headings.  The fancy diary buffer will show the
-holidays unless the variable `diary-show-holidays-flag' is set to
-nil.  Ordinarily, the fancy diary buffer will not show days for
-which there are no diary entries, even if that day is a holiday;
-if you want such days to be shown in the fancy diary buffer, set
-the variable `diary-list-include-blanks' non-nil."
-  :type 'hook
-  :options '(diary-fancy-display)
-  :initialize 'custom-initialize-default
-  :set 'diary-set-maybe-redraw
-  :group 'diary)
-
 (defcustom diary-show-holidays-flag t
   "Non-nil means include holidays in the diary display.
 The holidays appear in the mode line of the diary buffer, or in the
@@ -789,6 +754,8 @@ somewhat; setting it to nil makes the diary display faster."
 ;; The various holiday variables are autoloaded because people
 ;; are used to using them to set calendar-holidays without having to
 ;; explicitly load this file.
+
+;; FIXME move to holidays.el?
 
 ;;;###autoload
 (defcustom holiday-general-holidays
