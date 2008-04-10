@@ -2046,10 +2046,15 @@ logon_network_drive (const char *path)
   NETRESOURCE resource;
   char share[MAX_PATH];
   int i, n_slashes;
+  char drive[4];
+
+  sprintf (drive, "%c:\\", path[0]);
 
   /* Only logon to networked drives.  */
-  if (!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
+  if ((!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
+      && GetDriveType (drive) != DRIVE_REMOTE)
     return;
+
   n_slashes = 2;
   strncpy (share, path, MAX_PATH);
   /* Truncate to just server and share name.  */
