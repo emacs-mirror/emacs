@@ -1,0 +1,40 @@
+Emacs ICON   icons\emacs.ico
+
+#ifndef VS_VERSION_INFO
+#define VS_VERSION_INFO 1
+#endif
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 22,2,50,0
+ PRODUCTVERSION 22,2,50,0
+ FILEFLAGSMASK 0x3FL
+#ifdef EMACSDEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+	BLOCK "040904B0"
+	BEGIN
+	    VALUE "CompanyName", "Free Software Foundation\0"
+	    VALUE "FileDescription", "GNU EmacsClient for Windows NT/95/98/2000/ME/XP\0"
+	    VALUE "FileVersion", "22, 2, 50, 0\0"
+	    VALUE "InternalName", "EmacsClient\0"
+	    VALUE "LegalCopyright", "Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008\0"
+	    VALUE "OriginalFilename", "emacsclientw.exe"
+	    VALUE "ProductName", "EmacsClient: Client for the extensible self-documenting text editor\0"
+	    VALUE "ProductVersion", "22, 2, 50, 0\0"
+	    VALUE "OLESelfRegister", "\0"
+	 END
+     END
+     BLOCK "VarFileInfo"
+     BEGIN
+         VALUE "Translation", 0x409, 1200
+     END
+END
+
