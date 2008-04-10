@@ -382,14 +382,14 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
-(make-obsolete 'assoc-ignore-case 'assoc-string)
+(make-obsolete 'assoc-ignore-case 'assoc-string "22.1")
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
   (assoc-string key alist t))
 
-(make-obsolete 'assoc-ignore-representation 'assoc-string)
+(make-obsolete 'assoc-ignore-representation 'assoc-string "22.1")
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
