@@ -2,6 +2,10 @@
 
 	* emacsclient.rc: New file.
 
+	* makefile.w32-in (CLIENTRES): New variable and build target.
+	(all): Depend on it.
+	($(TRES)): Use $(TRES) in rule.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
