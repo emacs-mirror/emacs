@@ -1050,8 +1050,13 @@ mail status in mode line"))
   '(menu-item "Truncate Long Lines in this Buffer"
 	      toggle-truncate-lines
 	      :help "Truncate long lines on the screen"
-	      :button (:toggle . truncate-lines)
-	      :enable (menu-bar-menu-frame-live-and-visible-p)))
+	      :button (:toggle . (if (or (window-full-width-p)
+					 (not truncate-partial-width-windows))
+				     truncate-lines
+				   truncate-partial-width-windows))
+	      :enable (and (menu-bar-menu-frame-live-and-visible-p)
+			   (or (window-full-width-p)
+			       (not truncate-partial-width-windows)))))
 
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
