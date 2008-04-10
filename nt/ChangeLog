@@ -1,3 +1,7 @@
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Document make targets.
+
 2008-04-09  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (clean-other-dirs-nmake): Don't clean lisp dir.
