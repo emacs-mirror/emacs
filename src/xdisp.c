@@ -12539,7 +12539,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	    {
 	      double float_amount = XFLOATINT (aggressive) * height;
 	      amount_to_scroll = float_amount;
-	      if (amount_to_scroll == 0 && float_amount > 0)
+	      if (amount_to_scroll == 0 && float_amount >= 0)
 		amount_to_scroll = 1;
 	    }
 	}
@@ -12602,7 +12602,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 		{
 		  double float_amount = XFLOATINT (aggressive) * height;
 		  amount_to_scroll = float_amount;
-		  if (amount_to_scroll == 0 && float_amount > 0)
+		  if (amount_to_scroll == 0 && float_amount >= 0)
 		    amount_to_scroll = 1;
 		}
 	    }
@@ -24587,7 +24587,8 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
 
   DEFVAR_BOOL ("truncate-partial-width-windows",
 	       &truncate_partial_width_windows,
-    doc: /* *Non-nil means truncate lines in all windows less than full frame wide.  */);
+    doc: /* *Non-nil means truncate lines in all windows less than full frame wide.
+Nil means to respect the value of `truncate-lines'.  */);
   truncate_partial_width_windows = 1;
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
