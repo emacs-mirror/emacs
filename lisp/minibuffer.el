@@ -131,7 +131,7 @@ E = after completion we now have an Exact match.
 	   ;; whether this is a unique completion or not, so try again using
 	   ;; the real case (this shouldn't recurse again, because the next
 	   ;; time try-completion will return either t or the exact string).
-           (minibuffer--do-completion)
+           (minibuffer--do-completion try-completion-function)
 
           ;; It did find a match.  Do we match some possibility exactly now?
           (let ((exact (test-completion (field-string)

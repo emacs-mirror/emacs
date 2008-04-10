@@ -1,3 +1,8 @@
+2008-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer--do-completion): Don't forget to propagate
+	the arg to recursive calls.
+
 2008-04-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (completion-auto-help): Fix typo.
