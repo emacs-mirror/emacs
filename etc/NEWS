@@ -498,16 +498,19 @@ struct members in C, members variables in C++ and variables in PHP.
 
 ** VC
 
-*** Clicking on the VC mode-line entry now pops the VC menu.
-
-*** The VC mode-line entry now has a tooltip that explains the VC file status.
-
 *** VC now supports applying VC operations to a set of files at a time.
-
 This enables VC to work much more effectively with changeset-oriented
 version-control systems such as Subversion, GNU Arch, Mercurial, Git
 and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
+
+*** vc-status is a new command that displays file names and their VC
+status.  It allows to apply various VC operations to apply a file or a
+set of files.
+
+*** Clicking on the VC mode-line entry now pops the VC menu.
+
+*** The VC mode-line entry now has a tooltip that explains the VC file status.
 
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
 
