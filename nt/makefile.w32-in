@@ -24,13 +24,15 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
-ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
+TRES		= $(BLD)/emacs.res
+CLIENTRES	= $(BLD)/emacsclient.res
+
+XMFLAGS		=
+
+ALL		= addpm ddeclient runemacs cmdproxy addsection preprep $(CLIENTRES)
 
 .PHONY: $(ALL)
 
-TRES		= $(BLD)/emacs.res
-
-XMFLAGS		=
 
 addpm:		  stamp_BLD $(BLD)/addpm.exe
 $(BLD)/addpm.exe: $(BLD)/addpm.$(O)
@@ -62,7 +64,10 @@ $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 # it is not necessary on later versions, it is still ok to use it.
 #
 $(TRES):	emacs.rc stamp_BLD
-		$(RC) $(RC_OUT)$(BLD)/emacs.res emacs.rc
+		$(RC) $(RC_OUT)$(TRES) emacs.rc
+
+$(CLIENTRES):	emacsclient.rc stamp_BLD
+		$(RC) $(RC_OUT)$(CLIENTRES) emacsclient.rc
 
 runemacs:	  stamp_BLD $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
