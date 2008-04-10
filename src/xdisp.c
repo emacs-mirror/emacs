@@ -12539,7 +12539,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	    {
 	      double float_amount = XFLOATINT (aggressive) * height;
 	      amount_to_scroll = float_amount;
-	      if (amount_to_scroll == 0 && float_amount >= 0)
+	      if (amount_to_scroll == 0 && float_amount > 0)
 		amount_to_scroll = 1;
 	    }
 	}
@@ -12602,7 +12602,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 		{
 		  double float_amount = XFLOATINT (aggressive) * height;
 		  amount_to_scroll = float_amount;
-		  if (amount_to_scroll == 0 && float_amount >= 0)
+		  if (amount_to_scroll == 0 && float_amount > 0)
 		    amount_to_scroll = 1;
 		}
 	    }
