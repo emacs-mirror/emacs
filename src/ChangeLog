@@ -1,3 +1,11 @@
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (stat): When Vw32_get_true_file_attributes is Qlocal, get
+	attributes only for local files.
+
+	* w32proc.c (syms_of_ntproc): Change Vw32_get_true_file attributes
+	default	to Qlocal.
+
 2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (MAC_OBJ): Add mactoolbox.o.
