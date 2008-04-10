@@ -487,7 +487,7 @@ REV is the revision to check out into WORKFILE."
 		       (?! . missing)
 		       (?? . unregistered)))
 	(translated nil)
-	  (result nil))
+	(result nil))
       (goto-char (point-min))
       (while (not (eobp))
 	(setq status-char (char-after))
@@ -502,8 +502,6 @@ REV is the revision to check out into WORKFILE."
 
 ;; XXX Experimental function for the vc-dired replacement.
 (defun vc-hg-dir-status (dir update-function status-buffer)
-  "Return a list of conses (file . state) for DIR."
-  (erase-buffer)
   (vc-hg-command (current-buffer) 'async dir "status")
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer)))

@@ -20,6 +20,8 @@
 	* vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):
 	Detect the conflict state.
 
+	* vc-hg.el (vc-hg-dir-status): Remove unneeded call.
+
 2008-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MH_E_DIR): New variable.
