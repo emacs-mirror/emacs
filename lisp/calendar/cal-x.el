@@ -91,6 +91,9 @@ Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
   (if (eq 'icon (cdr (assoc 'visibility (frame-parameters frame))))
       (iconify-or-deiconify-frame)))
 
+;; c-d-d is only called after (diary) has been run.
+(defvar diary-display-hook)
+
 (defun calendar-dedicate-diary ()
   "Display and dedicate the window associated with the diary buffer."
   (set-window-dedicated-p
