@@ -4738,7 +4738,8 @@ The variable `selective-display' has a separate value for each buffer."
   "Toggle whether to fold or truncate long lines for the current buffer.
 With prefix argument ARG, truncate long lines if ARG is positive,
 otherwise don't truncate them.  Note that in side-by-side
-windows, truncation is always enabled."
+windows, this command has no effect if `truncate-partial-width-windows'
+is non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
