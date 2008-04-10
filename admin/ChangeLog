@@ -211,7 +211,7 @@
 
 2007-08-10  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* FOR-RELEASE (http): Add Gtk+ tool bar and GUD focus problem.
+	* FOR-RELEASE: Add Gtk+ tool bar and GUD focus problem.
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
