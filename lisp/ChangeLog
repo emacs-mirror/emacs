@@ -24,6 +24,10 @@
 
 2008-04-10  Glenn Morris  <rgm@gnu.org>
 
+	* menu-bar.el (menu-bar-options-menu) <truncate-lines>:
+	Respect truncate-partial-width-windows in non-full windows,
+	with regards to :toggle and :enable state.
+
 	* simple.el (toggle-truncate-lines): Doc fix.
 
 	* Makefile.in (MH_E_DIR): New variable.
