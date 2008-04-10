@@ -1,3 +1,9 @@
+2008-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (read_file_name_cleanup, Fread_file_name_internal):
+	Move functions to minibuffer.el.
+	(syms_of_fileio): Don't declare them.
+
 2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Vcompletion_auto_help): Move to minibuffer.el.

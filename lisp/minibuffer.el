@@ -450,5 +450,59 @@ during running `completion-setup-hook'."
     (ding))
   (exit-minibuffer))
 
+(defun minibuffer--double-dollars (str)
+  (replace-regexp-in-string "\\$" "$$" str))
+
+(defun read-file-name-internal (string dir action)
+  "Internal subroutine for read-file-name.  Do not call this."
+  (setq dir (expand-file-name dir))
+  (if (and (zerop (length string)) (eq 'lambda action))
+      nil                               ; FIXME: why?
+    (let* ((str (substitute-in-file-name string))
+           (name (file-name-nondirectory str))
+           (specdir (file-name-directory str))
+           (realdir (if specdir (expand-file-name specdir dir)
+                      (file-name-as-directory dir))))
+      
+      (cond
+       ((null action)
+        (let ((comp (file-name-completion name realdir
+                                          read-file-name-predicate)))
+          (if (stringp comp)
+              ;; Requote the $s before returning the completion.
+              (minibuffer--double-dollars (concat specdir comp))
+            ;; Requote the $s before checking for changes.
+            (setq str (minibuffer--double-dollars str))
+            (if (string-equal string str)
+                comp
+              ;; If there's no real completion, but substitute-in-file-name
+              ;; changed the string, then return the new string.
+              str))))
+       
+       ((eq action t)
+        (let ((all (file-name-all-completions name realdir)))
+          (if (memq read-file-name-predicate '(nil file-exists-p))
+              all
+            (let ((comp ())
+                  (pred
+                   (if (eq read-file-name-predicate 'file-directory-p)
+                       ;; Brute-force speed up for directory checking:
+                       ;; Discard strings which don't end in a slash.
+                       (lambda (s)
+                         (let ((len (length s)))
+                           (and (> len 0) (eq (aref s (1- len)) ?/))))
+                     ;; Must do it the hard (and slow) way.
+                     read-file-name-predicate)))
+              (let ((default-directory realdir))
+                (dolist (tem all)
+                  (if (funcall pred tem) (push tem comp))))
+              (nreverse comp)))))
+
+       (t
+        ;; Only other case actually used is ACTION = lambda.
+        (let ((default-directory dir))
+          (funcall (or read-file-name-predicate 'file-exists-p) str)))))))
+
+
 (provide 'minibuffer)
 ;;; minibuffer.el ends here

@@ -1,5 +1,8 @@
 2008-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer--double-dollars, read-file-name-internal):
+	New functions.
+
 	* minibuffer.el (minibuffer--do-completion): Don't forget to propagate
 	the arg to recursive calls.
 
