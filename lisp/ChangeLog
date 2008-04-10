@@ -22,6 +22,7 @@
 	* calendar/appt.el (appt): Add :prefix.
 
 	* calendar/diary-lib.el (diary-hook): Doc fix.
+	(diary-mark-sexp-entries): Fix replacement of calendar-for-loop.
 
 2008-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
