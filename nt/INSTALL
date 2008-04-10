@@ -192,7 +192,7 @@
 
   Other compilers may work, but specific reports from people that have
   tried suggest that the Intel C compiler (for example) may produce an
-  Emacs executable with strange filename completion behaviour.  Unless
+  Emacs executable with strange filename completion behavior.  Unless
   you would like to assist by finding and fixing the cause of any bugs
   like this, we recommend the use of the supported compilers mentioned
   in the previous paragraph.
@@ -245,7 +245,7 @@
 
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
-  surpressed because of limitations in the Windows 9x command.com shell.
+  suppressed because of limitations in the Windows 9x command.com shell.
 
   You are encouraged to look at the file config.log which shows details
   for failed tests, after configure.bat finishes.  Any unexplained failure
@@ -280,7 +280,7 @@
   Some image libraries have dependencies on one another, or on zlib.
   For example, tiff support depends on the jpeg library.  If you did not
   compile the libraries yourself, you must make sure that any dependency
-  is in the PATH or otherwise accesible and that the binaries are
+  is in the PATH or otherwise accessible and that the binaries are
   compatible (for example, that they were built with the same compiler).
 
   Binaries for the image libraries (among many others) can be found at
@@ -350,6 +350,66 @@
 
   The install process will run addpm to setup the registry entries, and
   to create a Start menu icon for Emacs.
+
+* Make targets
+
+  The following make targets may be used by users building the source
+  distribution, or users who have checked out of CVS after
+  an initial bootstrapping.
+
+  make
+  Builds Emacs from the available sources and pre-compiled lisp files.
+
+  make install
+  Installs programs to the bin directory, and runs addpm to create
+  Start Menu icons.
+
+  make clean
+  Removes object and executable files produced by the build process in
+  the current configuration.  After make clean, you can rebuild with
+  the same configuration using make.
+
+  make distclean
+  In addition to the files removed by make clean, this also removes
+  Makefiles and other generated files to get back to the state of a
+  freshly unpacked source distribution. Note that this will not remove
+  installed files, or the results of builds performed with different
+  compiler or optimization options than the current configuration.
+  After make distclean, it is necessary to run configure.bat followed
+  by make to rebuild.
+
+  make cleanall
+  Removes object and executable files that may have been created by
+  previous builds with different configure options, in addition to
+  the files produced by the current configuration.
+
+  make realclean
+  Removes the installed files in the bin subdirectory in addition to
+  the files removed by make cleanall.
+
+
+  The following targets are intended only for users who have checked out
+  of CVS.
+
+  make bootstrap
+  Creates a temporary emacs binary with lisp source files and
+  uses it to compile the lisp files.  Once the lisp files are built,
+  emacs is redumped with the compiled lisp.
+
+  make recompile
+  Recompiles any changed lisp files after a cvs update.  This saves
+  doing a full bootstrap after every update.  If this or a subsequent
+  make fail, you probably need to perform a full bootstrap, though
+  running this target multiple times may eventually sort out the
+  interdependencies.
+
+  make maintainer-clean
+  Removes everything that can be recreated, including compiled lisp
+  files, to get back to the state of a fresh CVS checkout.  After make
+  maintainer-clean, it is necessary to run configure.bat and make
+  bootstrap to rebuild.  Occasionally it may be necessary to run this
+  target after a cvs update.
+
 
 * Trouble-shooting
 
@@ -436,7 +496,7 @@
   should be displayed in its "Debug" output window.
 
   When you are in the process of debugging Emacs and you would like to
-  examine the contents of a Lisp_Object variable, popup the QuickWatch
+  examine the contents of a Lisp_Object variable, pop up the QuickWatch
   window (QuickWatch has an eyeglass symbol on its button in the
   toolbar).  In the text field at the top of the window, enter
   debug_print(<variable>) and hit return.  For example, start and run
