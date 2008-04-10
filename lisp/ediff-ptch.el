@@ -852,5 +852,5 @@ you can still examine the changes via M-x ediff-files"
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: 2fe2161e-e116-469b-90fa-5cbb44c1bd1b
+;; arch-tag: 2fe2161e-e116-469b-90fa-5cbb44c1bd1b
 ;;; ediff-ptch.el ends here

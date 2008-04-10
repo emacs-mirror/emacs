@@ -1100,5 +1100,5 @@ always show the current section in connection with the option
    ["Help" reftex-toc-show-help t]))
 
 
-;;; arch-tag: 92400ce2-0b86-4c89-a606-4ed71acea17e
+;; arch-tag: 92400ce2-0b86-4c89-a606-4ed71acea17e
 ;;; reftex-toc.el ends here

@@ -4282,5 +4282,5 @@ the process.  Any more args are arguments to PROGRAM."
 
 (provide 'term)
 
-;;; arch-tag: eee16bc8-2cd7-4147-9534-a5694752f716
+;; arch-tag: eee16bc8-2cd7-4147-9534-a5694752f716
 ;;; term.el ends here

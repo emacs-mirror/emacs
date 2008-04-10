@@ -1022,5 +1022,5 @@ If non-nil TEXT is a string that will be printed as a heading."
 
 (provide 'apropos)
 
-;;; arch-tag: d56fa2ac-e56b-4ce3-84ff-852f9c0dc66e
+;; arch-tag: d56fa2ac-e56b-4ce3-84ff-852f9c0dc66e
 ;;; apropos.el ends here

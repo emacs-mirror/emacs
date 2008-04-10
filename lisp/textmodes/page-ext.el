@@ -804,5 +804,5 @@ to the same line in the pages buffer."
 
 (provide 'page-ext)
 
-;;; arch-tag: 2f311550-c6e0-4458-9c12-7f039c058bdb
+;; arch-tag: 2f311550-c6e0-4458-9c12-7f039c058bdb
 ;;; page-ext.el ends here

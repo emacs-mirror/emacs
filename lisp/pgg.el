@@ -599,5 +599,5 @@ within the region."
 
 (provide 'pgg)
 
-;;; arch-tag: 9cc705dd-1e6a-4c90-8dce-c3561f9a2cf4
+;; arch-tag: 9cc705dd-1e6a-4c90-8dce-c3561f9a2cf4
 ;;; pgg.el ends here

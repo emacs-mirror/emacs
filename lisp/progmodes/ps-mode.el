@@ -1197,5 +1197,5 @@ Use line numbers if `ps-run-error-line-numbers' is not nil"
 
 (provide 'ps-mode)
 
-;;; arch-tag: dce13d2d-69fb-4ec4-9d5d-6dd29c3f0e6e
+;; arch-tag: dce13d2d-69fb-4ec4-9d5d-6dd29c3f0e6e
 ;;; ps-mode.el ends here

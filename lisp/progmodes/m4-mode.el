@@ -178,5 +178,5 @@
 ;;;		  "m4_syscmd" "m4_sysval" "m4_traceoff" "m4_traceon" "m4_translit"
 ;;;		  "m4_m4_undefine" "m4_undivert"))
 
-;;; arch-tag: 87811d86-94c1-474b-9666-587f6da74af1
+;; arch-tag: 87811d86-94c1-474b-9666-587f6da74af1
 ;;; m4-mode.el ends here

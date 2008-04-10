@@ -585,5 +585,5 @@
 
 (provide 'calc-stat)
 
-;;; arch-tag: 423858e9-8513-489c-9f35-710cd9d9c307
+;; arch-tag: 423858e9-8513-489c-9f35-710cd9d9c307
 ;;; calc-stat.el ends here

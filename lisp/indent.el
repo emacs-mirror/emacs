@@ -577,5 +577,5 @@ Use \\[edit-tab-stops] to edit them interactively."
 (define-key ctl-x-map "\t" 'indent-rigidly)
 (define-key esc-map "i" 'tab-to-tab-stop)
 
-;;; arch-tag: f402b2a7-e44f-492f-b5b8-38996020b7c3
+;; arch-tag: f402b2a7-e44f-492f-b5b8-38996020b7c3
 ;;; indent.el ends here

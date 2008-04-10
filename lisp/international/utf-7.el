@@ -126,5 +126,5 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 
 (provide 'utf-7)
 
-;;; arch-tag: 975ee403-90a4-4286-97d2-4ed1323f4ef9
+;; arch-tag: 975ee403-90a4-4286-97d2-4ed1323f4ef9
 ;;; utf-7.el ends here

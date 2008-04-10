@@ -1543,5 +1543,5 @@ affects only files whose names match the expression."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: a86d448e-58d7-4572-a1d9-fdedfa22f648
+;; arch-tag: a86d448e-58d7-4572-a1d9-fdedfa22f648
 ;;; ediff-diff.el ends here

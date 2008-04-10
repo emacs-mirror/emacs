@@ -118,5 +118,5 @@ apply to all visible windows in the same frame."
 
 (provide 'scroll-all)
 
-;;; arch-tag: db20089a-b157-45df-b5d4-2430e60acdd8
+;; arch-tag: db20089a-b157-45df-b5d4-2430e60acdd8
 ;;; scroll-all.el ends here

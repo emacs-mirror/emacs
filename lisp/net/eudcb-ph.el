@@ -245,5 +245,5 @@ depending on RETURN-RESPONSE."
 
 (provide 'eudcb-ph)
 
-;;; arch-tag: 4365bbf5-af20-453e-b5b6-2e7118ebfcdb
+;; arch-tag: 4365bbf5-af20-453e-b5b6-2e7118ebfcdb
 ;;; eudcb-ph.el ends here

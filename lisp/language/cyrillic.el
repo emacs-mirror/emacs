@@ -281,5 +281,5 @@ Support for Russian using koi8-r and the russian-computer input method.")
 
 (provide 'cyrillic)
 
-;;; arch-tag: bda71ae0-ba41-4cb6-a6e0-1dff542313d3
+;; arch-tag: bda71ae0-ba41-4cb6-a6e0-1dff542313d3
 ;;; cyrillic.el ends here

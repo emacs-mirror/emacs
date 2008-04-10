@@ -1346,5 +1346,5 @@ in the directory specified by `te-terminfo-directory'."
 
 (provide 'terminal)
 
-;;; arch-tag: 0ae1d7d7-90ef-4566-a531-6e7ff8c79b2f
+;; arch-tag: 0ae1d7d7-90ef-4566-a531-6e7ff8c79b2f
 ;;; terminal.el ends here

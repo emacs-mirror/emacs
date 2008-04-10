@@ -1082,5 +1082,5 @@ This function could be in the list `eshell-output-filter-functions'."
 
 ;;; Code:
 
-;;; arch-tag: ec65bc2b-da14-4547-81d3-a32af3a4dc57
+;; arch-tag: ec65bc2b-da14-4547-81d3-a32af3a4dc57
 ;;; esh-mode.el ends here

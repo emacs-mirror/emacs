@@ -143,5 +143,5 @@
 	  (isearch-update)))
     (isearch-process-search-char last-char)))
 
-;;; arch-tag: 1a90a6cf-2cb2-477a-814a-9ff895852822
+;; arch-tag: 1a90a6cf-2cb2-477a-814a-9ff895852822
 ;;; isearch-x.el ends here

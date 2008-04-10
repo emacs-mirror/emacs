@@ -3441,5 +3441,5 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 
 (provide 'calc-ext)
 
-;;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
+;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here

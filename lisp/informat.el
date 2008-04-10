@@ -506,5 +506,5 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
 
 (provide 'informat)
 
-;;; arch-tag: 581c440e-5be1-4f31-b005-2d5824bbf569
+;; arch-tag: 581c440e-5be1-4f31-b005-2d5824bbf569
 ;;; informat.el ends here

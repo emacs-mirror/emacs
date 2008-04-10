@@ -456,5 +456,5 @@ are recognized."
 
 (provide 'float)
 
-;;; arch-tag: cc0c89c6-5718-49af-978e-585f6b14e347
+;; arch-tag: cc0c89c6-5718-49af-978e-585f6b14e347
 ;;; float.el ends here

@@ -137,5 +137,5 @@
 
 (provide 'yenc)
 
-;;; arch-tag: 74df17e8-6fa8-4071-9f7d-54d548d79d9a
+;; arch-tag: 74df17e8-6fa8-4071-9f7d-54d548d79d9a
 ;;; yenc.el ends here

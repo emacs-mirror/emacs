@@ -371,5 +371,5 @@ If 4th arg LIST is non-nil, return a list of all such fields."
 
 (provide 'mail-utils)
 
-;;; arch-tag: b24aec2f-fd65-4ceb-9e39-3cc2827036fd
+;; arch-tag: b24aec2f-fd65-4ceb-9e39-3cc2827036fd
 ;;; mail-utils.el ends here

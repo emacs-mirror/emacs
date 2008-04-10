@@ -426,5 +426,5 @@ will select it.)"
 
 (provide 'ehelp)
 
-;;; arch-tag: e0e3037f-42c0-433e-ba18-322c5d951f46
+;; arch-tag: e0e3037f-42c0-433e-ba18-322c5d951f46
 ;;; ehelp.el ends here

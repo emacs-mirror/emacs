@@ -245,5 +245,5 @@ comparison or merge operations are being performed."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
+;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
 ;;; ediff-vers.el ends here

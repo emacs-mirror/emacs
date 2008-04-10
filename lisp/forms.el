@@ -2055,5 +2055,5 @@ Usage: (setq forms-number-of-fields
 	  (goto-char (point-max))
 	  (insert ret)))))
 
-;;; arch-tag: 4a6695c7-d47a-4a21-809b-5cec7f8ec7a1
+;; arch-tag: 4a6695c7-d47a-4a21-809b-5cec7f8ec7a1
 ;;; forms.el ends here

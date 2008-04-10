@@ -5546,5 +5546,5 @@ The event, EV, is the mouse event."
 ;; Don't hesitate to ask me any questions.
 
 
-;;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
+;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
 ;;; artist.el ends here

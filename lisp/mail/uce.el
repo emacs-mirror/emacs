@@ -401,5 +401,5 @@ address, and postmaster of the mail relay used."
 
 (provide 'uce)
 
-;;; arch-tag: 44b68c87-9b29-47bd-822c-3feee3883221
+;; arch-tag: 44b68c87-9b29-47bd-822c-3feee3883221
 ;;; uce.el ends here

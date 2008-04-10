@@ -1049,5 +1049,5 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (provide 'em-unix)
 
-;;; arch-tag: 2462edd2-a76a-4cf2-897d-92e9a82ac1c9
+;; arch-tag: 2462edd2-a76a-4cf2-897d-92e9a82ac1c9
 ;;; em-unix.el ends here

@@ -706,5 +706,5 @@ password is remembered in the buffer."
 
 (provide 'sieve-manage)
 
-;;; arch-tag: 321c4640-1371-4495-9baf-8ccb71dd5bd1
+;; arch-tag: 321c4640-1371-4495-9baf-8ccb71dd5bd1
 ;; sieve-manage.el ends here

@@ -2318,5 +2318,5 @@ Type 'mak ' (including the space) to run make with no args."
 
 
 
-;;; arch-tag: 56b80d36-f880-4d10-bd66-85ad91a295db
+;; arch-tag: 56b80d36-f880-4d10-bd66-85ad91a295db
 ;;; viper-ex.el ends here

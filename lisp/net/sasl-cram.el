@@ -48,5 +48,5 @@
 
 (provide 'sasl-cram)
 
-;;; arch-tag: 46cb281b-975a-4fe0-a39f-3018691b1b05
+;; arch-tag: 46cb281b-975a-4fe0-a39f-3018691b1b05
 ;;; sasl-cram.el ends here

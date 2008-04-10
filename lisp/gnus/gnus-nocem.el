@@ -396,5 +396,5 @@ valid issuer, which is much faster if you are selective about the issuers."
 
 (provide 'gnus-nocem)
 
-;;; arch-tag: 0e0c74ea-2f8e-4f3e-8fff-09f767c1adef
+;; arch-tag: 0e0c74ea-2f8e-4f3e-8fff-09f767c1adef
 ;;; gnus-nocem.el ends here

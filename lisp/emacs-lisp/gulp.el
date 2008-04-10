@@ -177,5 +177,5 @@ That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
 
 (provide 'gulp)
 
-;;; arch-tag: 42750a11-460a-4efc-829f-342d075530e5
+;; arch-tag: 42750a11-460a-4efc-829f-342d075530e5
 ;;; gulp.el ends here

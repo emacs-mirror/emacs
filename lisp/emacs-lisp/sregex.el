@@ -606,5 +606,5 @@ has one of the following forms:
 
 (provide 'sregex)
 
-;;; arch-tag: 460c1f5a-eb6e-42ec-a451-ffac78bdf492
+;; arch-tag: 460c1f5a-eb6e-42ec-a451-ffac78bdf492
 ;;; sregex.el ends here

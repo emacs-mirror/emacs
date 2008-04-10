@@ -810,5 +810,5 @@ backend for the messages.")
 
 (provide 'nnsoup)
 
-;;; arch-tag: b0451389-5703-4450-9425-f66f6b38c828
+;; arch-tag: b0451389-5703-4450-9425-f66f6b38c828
 ;;; nnsoup.el ends here

@@ -583,5 +583,5 @@ Stop at the first and last subheadings of a superior heading."
 
 (provide 'outline)
 
-;;; arch-tag: 14ed00e1-bd40-4db8-86e5-3b82ce326e45
+;; arch-tag: 14ed00e1-bd40-4db8-86e5-3b82ce326e45
 ;;; ooutline.el ends here

@@ -470,5 +470,5 @@
 (def-edebug-spec loop-d-type-spec
   (&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
 
-;;; arch-tag: b29aa3c2-cf67-4af8-9ee1-318fea61b478
+;; arch-tag: b29aa3c2-cf67-4af8-9ee1-318fea61b478
 ;;; cl-specs.el ends here

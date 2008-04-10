@@ -3075,5 +3075,5 @@ vip-s-string"
 
 (provide 'vip)
 
-;;; arch-tag: bff623ef-48f7-41d4-9aa3-2e840c9ab415
+;; arch-tag: bff623ef-48f7-41d4-9aa3-2e840c9ab415
 ;;; vip.el ends here

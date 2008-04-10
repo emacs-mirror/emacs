@@ -288,5 +288,5 @@ With prefix argument N moves forward N messages with these labels."
 			      (- (buffer-size) omax)))))
     keyword))
 
-;;; arch-tag: b26b3392-99ca-4e1d-933a-dab59b04e9a8
+;; arch-tag: b26b3392-99ca-4e1d-933a-dab59b04e9a8
 ;;; rmailkwd.el ends here

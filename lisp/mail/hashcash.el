@@ -377,4 +377,4 @@ Prefix arg sets default accept amount temporarily."
 
 (provide 'hashcash)
 
-;;; arch-tag: 0e7fe983-a124-4392-9788-0dbcbd2c4d62
+;; arch-tag: 0e7fe983-a124-4392-9788-0dbcbd2c4d62

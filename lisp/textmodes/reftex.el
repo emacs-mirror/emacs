@@ -2597,5 +2597,5 @@ With optional NODE, go directly to that node."
 
 ;;;============================================================================
 
-;;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
+;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
 ;;; reftex.el ends here

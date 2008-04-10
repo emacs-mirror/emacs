@@ -1520,5 +1520,5 @@ With optional NODE, goes to that node."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
+;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

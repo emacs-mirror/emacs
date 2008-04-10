@@ -324,5 +324,5 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading."
 ;;
 (provide 'japan-util)
 
-;;; arch-tag: b579595c-c9ad-4b57-9314-98cd8b214f89
+;; arch-tag: b579595c-c9ad-4b57-9314-98cd8b214f89
 ;;; japan-util.el ends here

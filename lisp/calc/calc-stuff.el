@@ -302,5 +302,5 @@ With a prefix, push that prefix as a number onto the stack."
 
 (provide 'calc-stuff)
 
-;;; arch-tag: 789332ef-a178-49d3-8fb7-5d7ed7e21f56
+;; arch-tag: 789332ef-a178-49d3-8fb7-5d7ed7e21f56
 ;;; calc-stuff.el ends here

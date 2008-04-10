@@ -3058,5 +3058,5 @@ evaluated and should not be quoted."
 
 (cc-provide 'cc-langs)
 
-;;; arch-tag: 1ab57482-cfc2-4c5b-b628-3539c3098822
+;; arch-tag: 1ab57482-cfc2-4c5b-b628-3539c3098822
 ;;; cc-langs.el ends here

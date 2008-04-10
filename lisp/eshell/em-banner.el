@@ -93,5 +93,5 @@ This can be any sexp, and should end with at least two newlines."
 
 (provide 'em-banner)
 
-;;; arch-tag: e738b4ef-8671-42ae-a757-291779b92491
+;; arch-tag: e738b4ef-8671-42ae-a757-291779b92491
 ;;; em-banner.el ends here

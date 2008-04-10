@@ -195,5 +195,5 @@ first comment line visible (if point is in a comment)."
 
 (provide 'reposition)
 
-;;; arch-tag: 79487039-3bd7-4ab5-a3e8-ecf3b4919010
+;; arch-tag: 79487039-3bd7-4ab5-a3e8-ecf3b4919010
 ;;; reposition.el ends here

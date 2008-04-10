@@ -263,5 +263,5 @@
 
 (provide 'nnagent)
 
-;;; arch-tag: af710b77-f816-4969-af31-6fd94fb42245
+;; arch-tag: af710b77-f816-4969-af31-6fd94fb42245
 ;;; nnagent.el ends here

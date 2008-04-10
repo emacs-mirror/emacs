@@ -1030,5 +1030,5 @@ Returns nil if an error message has appeared."
 ;;   regular again.
 ;; * Make it multi-hop capable.
 
-;;; arch-tag: fcc9dbec-7503-4d73-b638-3c8aa59575f5
+;; arch-tag: fcc9dbec-7503-4d73-b638-3c8aa59575f5
 ;;; tramp-smb.el ends here

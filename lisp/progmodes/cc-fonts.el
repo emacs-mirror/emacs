@@ -2311,5 +2311,5 @@ need for `pike-font-lock-extra-types'.")
 ;; 2006-07-10:  awk-font-lock-keywords has been moved back to cc-awk.el.
 (cc-provide 'cc-fonts)
 
-;;; arch-tag: 2f65f405-735f-4da5-8d4b-b957844c5203
+;; arch-tag: 2f65f405-735f-4da5-8d4b-b957844c5203
 ;;; cc-fonts.el ends here

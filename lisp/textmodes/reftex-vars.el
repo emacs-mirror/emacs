@@ -1909,5 +1909,5 @@ construct:  \\bbb [xxx] {aaa}."
 
 (provide 'reftex-vars)
 
-;;; arch-tag: 9591ea34-ef39-4431-90b7-c115eaf5e16f
+;; arch-tag: 9591ea34-ef39-4431-90b7-c115eaf5e16f
 ;;; reftex-vars.el ends here

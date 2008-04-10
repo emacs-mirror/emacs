@@ -197,5 +197,5 @@ X and Y are 0-based character positions on the frame."
   (get-window-with-predicate (lambda (w)
 			       (coordinates-in-window-p (cons x y) w))))
 
-;;; arch-tag: ec644ed4-cac4-43b8-b3db-cfe83e9098d7
+;; arch-tag: ec644ed4-cac4-43b8-b3db-cfe83e9098d7
 ;;; sup-mouse.el ends here

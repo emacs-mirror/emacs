@@ -582,5 +582,5 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
 
 (provide 'ielm)
 
-;;; arch-tag: ef60e4c0-9c4f-4bdb-8402-271313329790
+;; arch-tag: ef60e4c0-9c4f-4bdb-8402-271313329790
 ;;; ielm.el ends here

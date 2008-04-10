@@ -115,5 +115,5 @@ non-interactive use see also `benchmark-run' and
 
 (provide 'benchmark)
 
-;;; arch-tag: be570e24-4b51-4784-adf3-fa2b56c31946
+;; arch-tag: be570e24-4b51-4784-adf3-fa2b56c31946
 ;;; benchmark.el ends here

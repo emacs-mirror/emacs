@@ -571,5 +571,5 @@ To get complete usage, invoke:
 ;; coding: iso-2022-7bit
 ;; End:
 
-;;; arch-tag: dec06fb0-8118-45b1-80d7-dc360b6fd3b2
+;; arch-tag: dec06fb0-8118-45b1-80d7-dc360b6fd3b2
 ;;; ja-dic-cnv.el ends here

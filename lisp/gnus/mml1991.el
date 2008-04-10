@@ -520,5 +520,5 @@ If no one is selected, default secret key is used.  "
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: e542be18-ab28-4393-9b33-97fe9cf30706
+;; arch-tag: e542be18-ab28-4393-9b33-97fe9cf30706
 ;;; mml1991.el ends here

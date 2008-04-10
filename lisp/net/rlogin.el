@@ -320,5 +320,5 @@ Delete ARG characters forward, or send a C-d to process if at end of buffer."
 
 (provide 'rlogin)
 
-;;; arch-tag: 6e20eabf-feda-40fa-ab40-0d156db447e4
+;; arch-tag: 6e20eabf-feda-40fa-ab40-0d156db447e4
 ;;; rlogin.el ends here

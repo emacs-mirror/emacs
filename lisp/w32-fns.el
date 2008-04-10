@@ -489,5 +489,5 @@ to include Sed, which is used by leim/Makefile.in to do the job."
   (delete-matching-lines "^$\\|^;")
   (save-buffers-kill-emacs t))
 
-;;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
+;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

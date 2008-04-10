@@ -812,5 +812,5 @@ based on the marks on the component groups."
 
 (provide 'nnvirtual)
 
-;;; arch-tag: ca8c8ad9-1bd8-4b0f-9722-90dc645a45f5
+;; arch-tag: ca8c8ad9-1bd8-4b0f-9722-90dc645a45f5
 ;;; nnvirtual.el ends here

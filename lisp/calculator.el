@@ -1836,5 +1836,5 @@ To use this, apply a binary operator (evaluate it), then call this."
 
 (provide 'calculator)
 
-;;; arch-tag: a1b9766c-af8a-4a74-b466-65ad8eeb0c73
+;; arch-tag: a1b9766c-af8a-4a74-b466-65ad8eeb0c73
 ;;; calculator.el ends here

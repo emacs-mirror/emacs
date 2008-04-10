@@ -78,5 +78,5 @@ starting with a character."
 
 (provide 'format-spec)
 
-;;; arch-tag: c22d49cf-d167-445d-b7f1-2504d4173f53
+;; arch-tag: c22d49cf-d167-445d-b7f1-2504d4173f53
 ;;; format-spec.el ends here

@@ -986,5 +986,5 @@ If N is negative, search backwards for the -Nth previous match."
 
 (provide 'em-hist)
 
-;;; arch-tag: 1a847333-f864-4b96-9acd-b549d620b6c6
+;; arch-tag: 1a847333-f864-4b96-9acd-b549d620b6c6
 ;;; em-hist.el ends here

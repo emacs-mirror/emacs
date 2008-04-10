@@ -81,5 +81,5 @@
 
 (provide 'rsz-mini)
 
-;;; arch-tag: 3cb85d51-ab33-4e46-8362-dd87a5d06c99
+;; arch-tag: 3cb85d51-ab33-4e46-8362-dd87a5d06c99
 ;;; rsz-mini.el ends here

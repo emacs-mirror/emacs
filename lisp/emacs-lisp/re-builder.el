@@ -733,5 +733,5 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (provide 're-builder)
 
-;;; arch-tag: 5c5515ac-4085-4524-a421-033f44f032e7
+;; arch-tag: 5c5515ac-4085-4524-a421-033f44f032e7
 ;;; re-builder.el ends here

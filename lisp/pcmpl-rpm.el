@@ -327,5 +327,5 @@ You can use \\[eshell-report-bug] to do so."
        (t
 	(error "You must select a mode: -q, -i, -U, --verify, etc"))))))
 
-;;; arch-tag: 4e64b490-fecf-430e-b2b9-70a8ad64b8c1
+;; arch-tag: 4e64b490-fecf-430e-b2b9-70a8ad64b8c1
 ;;; pcmpl-rpm.el ends here

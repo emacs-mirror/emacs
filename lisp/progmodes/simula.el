@@ -1658,5 +1658,5 @@ If not nil and not t, move to limit of search and return nil."
 
 (provide 'simula)
 
-;;; arch-tag: 488c1bb0-eebf-4f06-93df-1df603f06255
+;; arch-tag: 488c1bb0-eebf-4f06-93df-1df603f06255
 ;;; simula.el ends here

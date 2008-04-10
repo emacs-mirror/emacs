@@ -290,5 +290,5 @@ Return to Electric Buffer Menu when done."
 
 (provide 'ebuff-menu)
 
-;;; arch-tag: 1d4509b3-eece-4d4f-95ea-77c83eaf0275
+;; arch-tag: 1d4509b3-eece-4d4f-95ea-77c83eaf0275
 ;;; ebuff-menu.el ends here

@@ -699,5 +699,5 @@ the database on the command line."
 
 (provide 'locate)
 
-;;; arch-tag: 60c4d098-b5d5-4b3c-a3e0-51a2e9f43898
+;; arch-tag: 60c4d098-b5d5-4b3c-a3e0-51a2e9f43898
 ;;; locate.el ends here

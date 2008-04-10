@@ -398,5 +398,5 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 
 (provide 'timezone)
 
-;;; arch-tag: e23d5bc6-f32d-48ba-8996-323e9d654b3f
+;; arch-tag: e23d5bc6-f32d-48ba-8996-323e9d654b3f
 ;;; timezone.el ends here

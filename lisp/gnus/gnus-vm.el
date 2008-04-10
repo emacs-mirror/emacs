@@ -105,5 +105,5 @@ save those articles instead."
 
 (provide 'gnus-vm)
 
-;;; arch-tag: 42ca7f88-a12f-461d-be3e-cac7efb44866
+;; arch-tag: 42ca7f88-a12f-461d-be3e-cac7efb44866
 ;;; gnus-vm.el ends here

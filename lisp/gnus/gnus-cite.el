@@ -1238,5 +1238,5 @@ is turned on."
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: 1997b044-6067-471e-8c8f-dc903093098a
+;; arch-tag: 1997b044-6067-471e-8c8f-dc903093098a
 ;;; gnus-cite.el ends here

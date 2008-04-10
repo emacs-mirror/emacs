@@ -458,5 +458,5 @@ there.")
 
 (provide 'nnspool)
 
-;;; arch-tag: bdac8d27-2934-4eee-bad0-49e6b90c0d05
+;; arch-tag: bdac8d27-2934-4eee-bad0-49e6b90c0d05
 ;;; nnspool.el ends here

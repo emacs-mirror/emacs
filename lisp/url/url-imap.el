@@ -79,5 +79,5 @@
 	     )))
     (current-buffer)))
 
-;;; arch-tag: 034991ff-5425-48ea-b911-c96c90e6f47d
+;; arch-tag: 034991ff-5425-48ea-b911-c96c90e6f47d
 ;;; url-imap.el ends here

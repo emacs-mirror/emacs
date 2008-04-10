@@ -321,5 +321,5 @@ minutes, the connection is closed."
 
 (provide 'gnus-demon)
 
-;;; arch-tag: 8dd5cd3d-6ae4-46b4-9b15-f5fca09fd392
+;; arch-tag: 8dd5cd3d-6ae4-46b4-9b15-f5fca09fd392
 ;;; gnus-demon.el ends here

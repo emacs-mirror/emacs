@@ -150,5 +150,5 @@
 
 (provide 'nnlistserv)
 
-;;; arch-tag: 7705176f-d332-4a5e-a520-d0d319445617
+;; arch-tag: 7705176f-d332-4a5e-a520-d0d319445617
 ;;; nnlistserv.el ends here

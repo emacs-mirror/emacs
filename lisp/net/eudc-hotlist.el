@@ -196,5 +196,5 @@ These are the special commands of this mode:
     ""
     eudc-hotlist-menu))
 
-;;; arch-tag: 9b633ab3-6a6e-4b46-b12e-d96739a7e0e8
+;; arch-tag: 9b633ab3-6a6e-4b46-b12e-d96739a7e0e8
 ;;; eudc-hotlist.el ends here

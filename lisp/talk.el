@@ -129,5 +129,5 @@ Select the first of these windows, displaying the first of the buffers."
 
 (provide 'talk)
 
-;;; arch-tag: 7ab0ad88-1788-4886-a44c-ae685e6f8a1a
+;; arch-tag: 7ab0ad88-1788-4886-a44c-ae685e6f8a1a
 ;;; talk.el ends here

@@ -457,5 +457,5 @@ Seen in info on text lines."
 
 (provide 'solitaire)
 
-;;; arch-tag: 1b18ee1c-1e79-4a5b-8658-9560b82e63dd
+;; arch-tag: 1b18ee1c-1e79-4a5b-8658-9560b82e63dd
 ;;; solitaire.el ends here

@@ -680,5 +680,5 @@
 
 (provide 'calc-store)
 
-;;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
+;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
 ;;; calc-store.el ends here

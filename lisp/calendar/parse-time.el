@@ -219,5 +219,5 @@ unknown are returned as nil."
 
 (provide 'parse-time)
 
-;;; arch-tag: 07066094-45a8-4c68-b307-86195e2c1103
+;; arch-tag: 07066094-45a8-4c68-b307-86195e2c1103
 ;;; parse-time.el ends here

@@ -729,5 +729,5 @@ list.  You can (and should) also run it whenever the value of
 ;; characters to arrive at our display code verbatim.
 (standard-display-8bit 127 255)
 
-;;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
+;; arch-tag: eea04c06-7311-4b5a-b531-3c1be1b070af
 ;;; internal.el ends here

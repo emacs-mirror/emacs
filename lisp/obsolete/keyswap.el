@@ -39,5 +39,5 @@
   (aset the-table ?\^h ?\177)
   (setq keyboard-translate-table the-table))
 
-;;; arch-tag: 67cf7009-e23e-421c-9648-078e7277297c
+;; arch-tag: 67cf7009-e23e-421c-9648-078e7277297c
 ;;; keyswap.el ends here

@@ -48,5 +48,5 @@ and selects the Slovak tutorial."))
 
 (provide 'slovak)
 
-;;; arch-tag: 1bae098a-33b2-4426-8c29-59e44fe05484
+;; arch-tag: 1bae098a-33b2-4426-8c29-59e44fe05484
 ;;; slovak.el ends here

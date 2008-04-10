@@ -443,5 +443,5 @@ original message into it."
 
 (provide 'rnewspost)
 
-;;; arch-tag: 18f7b2af-cf9a-49e4-878b-71eb49913e00
+;; arch-tag: 18f7b2af-cf9a-49e4-878b-71eb49913e00
 ;;; rnewspost.el ends here

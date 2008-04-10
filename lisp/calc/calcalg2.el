@@ -3670,5 +3670,5 @@
 
 (provide 'calcalg2)
 
-;;; arch-tag: f2932ec8-dd63-418b-a542-11a644b9d4c4
+;; arch-tag: f2932ec8-dd63-418b-a542-11a644b9d4c4
 ;;; calcalg2.el ends here

@@ -185,5 +185,5 @@ the context of text formatting."
 	      (aref (char-category-set (preceding-char)) ?<))
 	  (kinsoku-shorter linebeg))))
 
-;;; arch-tag: e6b036bc-9e5b-4e9f-a22c-4ed04e37777e
+;; arch-tag: e6b036bc-9e5b-4e9f-a22c-4ed04e37777e
 ;;; kinsoku.el ends here

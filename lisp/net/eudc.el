@@ -1297,5 +1297,5 @@ This does nothing except loading eudc by autoload side-effect."
 
 (provide 'eudc)
 
-;;; arch-tag: e18872b6-db83-400b-869d-be54e9a4160c
+;; arch-tag: e18872b6-db83-400b-869d-be54e9a4160c
 ;;; eudc.el ends here

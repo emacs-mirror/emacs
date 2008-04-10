@@ -764,5 +764,5 @@ Returns the non-nil value it found, or nil if all were nil."
 
 (provide 'facemenu)
 
-;;; arch-tag: 85f6d02b-9085-420e-b651-0678f0e9c7eb
+;; arch-tag: 85f6d02b-9085-420e-b651-0678f0e9c7eb
 ;;; facemenu.el ends here

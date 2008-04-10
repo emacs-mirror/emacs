@@ -1623,5 +1623,5 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 
 (provide 'cua-base)
 
-;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
+;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here

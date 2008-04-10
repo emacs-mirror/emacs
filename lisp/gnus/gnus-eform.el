@@ -132,5 +132,5 @@ The optional LAYOUT overrides the `edit-form' window layout."
 
 (provide 'gnus-eform)
 
-;;; arch-tag: ef50678c-2c28-49ef-affc-e53b3b2c0bf6
+;; arch-tag: ef50678c-2c28-49ef-affc-e53b3b2c0bf6
 ;;; gnus-eform.el ends here

@@ -352,5 +352,5 @@ different regions.  With numeric argument ARG, behaves like
 
 (provide 'help-at-pt)
 
-;;; arch-tag: d0b8b86d-d23f-45d0-a82d-208d6205a583
+;; arch-tag: d0b8b86d-d23f-45d0-a82d-208d6205a583
 ;;; help-at-pt.el ends here

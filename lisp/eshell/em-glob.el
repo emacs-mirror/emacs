@@ -356,5 +356,5 @@ the form:
 
 (provide 'em-glob)
 
-;;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
+;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
 ;;; em-glob.el ends here

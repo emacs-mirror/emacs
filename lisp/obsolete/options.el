@@ -147,5 +147,5 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
 
 (provide 'options)
 
-;;; arch-tag: d18211a1-f3fb-48c9-a449-d5acde406a3c
+;; arch-tag: d18211a1-f3fb-48c9-a449-d5acde406a3c
 ;;; options.el ends here

@@ -479,5 +479,5 @@ START and END delimits the corners of text rectangle."
 (provide 'delim-col)
 
 
-;;; arch-tag: 1cc0c5c5-1b2a-43e4-9ba5-bf9441cfd1a9
+;; arch-tag: 1cc0c5c5-1b2a-43e4-9ba5-bf9441cfd1a9
 ;;; delim-col.el ends here

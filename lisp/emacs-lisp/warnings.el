@@ -325,5 +325,5 @@ this is equivalent to `display-warning', using
 
 (provide 'warnings)
 
-;;; arch-tag: faaad1c8-7b2a-4161-af38-5ab4afde0496
+;; arch-tag: faaad1c8-7b2a-4161-af38-5ab4afde0496
 ;;; warnings.el ends here

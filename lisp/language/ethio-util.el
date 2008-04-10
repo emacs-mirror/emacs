@@ -2078,5 +2078,5 @@ mark."
 
 ;;; ethio-util.el ends here
 
-;;; arch-tag: c8feb3d6-39bf-4b0a-b6ef-26f03fbc8140
+;; arch-tag: c8feb3d6-39bf-4b0a-b6ef-26f03fbc8140
 ;;; ethio-util.el ends here

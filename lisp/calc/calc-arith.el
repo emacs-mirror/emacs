@@ -3069,5 +3069,5 @@
 
 (provide 'calc-arith)
 
-;;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
+;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
 ;;; calc-arith.el ends here

@@ -291,5 +291,5 @@ GNU Emacs 19 does not currently generate process-output events."
 
 (provide 'levents)
 
-;;; arch-tag: a80c21da-69d7-46de-9cdb-5f68577b5525
+;; arch-tag: a80c21da-69d7-46de-9cdb-5f68577b5525
 ;;; levents.el ends here

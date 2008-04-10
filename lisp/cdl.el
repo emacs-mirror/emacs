@@ -47,5 +47,5 @@
 
 (provide 'cdl)
 
-;;; arch-tag: b8e95a6e-2387-4077-ad9a-af54b09b8615
+;; arch-tag: b8e95a6e-2387-4077-ad9a-af54b09b8615
 ;;; cdl.el ends here

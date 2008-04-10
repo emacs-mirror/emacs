@@ -1306,5 +1306,5 @@ It assumes that it is called from within the control buffer."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: 73d9a5d7-eed7-4d9c-8b4b-21d5d78eb597
+;; arch-tag: 73d9a5d7-eed7-4d9c-8b4b-21d5d78eb597
 ;;; ediff-wind.el ends here

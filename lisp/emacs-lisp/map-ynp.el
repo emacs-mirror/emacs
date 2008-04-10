@@ -266,5 +266,5 @@ the current %s and exit."
     ;; Return the number of actions that were taken.
     actions))
 
-;;; arch-tag: 1d0a3201-a151-4c10-b231-4da47c9e6dc3
+;; arch-tag: 1d0a3201-a151-4c10-b231-4da47c9e6dc3
 ;;; map-ynp.el ends here

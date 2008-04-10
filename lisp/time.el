@@ -576,5 +576,5 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
 
 (provide 'time)
 
-;;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
+;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
 ;;; time.el ends here

@@ -69,5 +69,5 @@ Nothing special is needed to handle English.")
 (set-language-info-alist
  "ASCII" (cdr (assoc "English" language-info-alist)))
 
-;;; arch-tag: e440bdb0-91b0-4fb4-ae38-425780f8f745
+;; arch-tag: e440bdb0-91b0-4fb4-ae38-425780f8f745
 ;;; english.el ends here

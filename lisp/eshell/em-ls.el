@@ -923,5 +923,5 @@ to use, and each member of which is the width of that column
 
 (provide 'em-ls)
 
-;;; arch-tag: 9295181c-0cb2-499c-999b-89f5359842cb
+;; arch-tag: 9295181c-0cb2-499c-999b-89f5359842cb
 ;;; em-ls.el ends here

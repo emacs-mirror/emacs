@@ -54,5 +54,5 @@
 
 (provide 'abbrevlist)
 
-;;; arch-tag: 178f0638-6597-4c16-bcee-576c3d8e9217
+;; arch-tag: 178f0638-6597-4c16-bcee-576c3d8e9217
 ;;; abbrevlist.el ends here

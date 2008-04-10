@@ -408,5 +408,5 @@ It includes all faces in list FACES."
       (unless (looking-at "\n")
 	(princ "\n")))))
 
-;;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
+;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
 ;;; cus-theme.el ends here

@@ -1598,5 +1598,5 @@ aligner would have dealt with are."
 
 (run-hooks 'align-load-hook)
 
-;;; arch-tag: ef79cccf-1db8-4888-a8a1-d7ce2d1532f7
+;; arch-tag: ef79cccf-1db8-4888-a8a1-d7ce2d1532f7
 ;;; align.el ends here

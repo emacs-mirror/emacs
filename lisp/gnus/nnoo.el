@@ -324,5 +324,5 @@ All functions will return nil and report an error."
 
 (provide 'nnoo)
 
-;;; arch-tag: 0196b5ed-6f34-4778-a455-73a971f837e7
+;; arch-tag: 0196b5ed-6f34-4778-a455-73a971f837e7
 ;;; nnoo.el ends here

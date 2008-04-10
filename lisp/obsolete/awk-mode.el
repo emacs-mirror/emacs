@@ -122,5 +122,5 @@ Turning on AWK mode runs `awk-mode-hook'."
 
 (provide 'awk-mode)
 
-;;; arch-tag: 14ebc02a-b3c5-4e76-8034-6ca9ac0af0e6
+;; arch-tag: 14ebc02a-b3c5-4e76-8034-6ca9ac0af0e6
 ;;; awk-mode.el ends here

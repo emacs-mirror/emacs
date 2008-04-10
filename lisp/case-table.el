@@ -170,5 +170,5 @@ SYNTAX should be \" \", \"w\", \".\" or \"_\"."
 
 (provide 'case-table)
 
-;;; arch-tag: 3c2cf885-2c9a-449a-9972-2e269191896d
+;; arch-tag: 3c2cf885-2c9a-449a-9972-2e269191896d
 ;;; case-table.el ends here

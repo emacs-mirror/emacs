@@ -952,5 +952,5 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;
 (provide 'fontset)
 
-;;; arch-tag: bb53e629-0234-403c-950e-551e61554849
+;; arch-tag: bb53e629-0234-403c-950e-551e61554849
 ;;; fontset.el ends here

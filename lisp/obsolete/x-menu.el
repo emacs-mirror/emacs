@@ -149,5 +149,5 @@ available to the user.  This also creates the menu itself."
 
 (provide 'x-menu)
 
-;;; arch-tag: 889f6d49-c01b-49e7-aaef-b0c6966c2961
+;; arch-tag: 889f6d49-c01b-49e7-aaef-b0c6966c2961
 ;;; x-menu.el ends here

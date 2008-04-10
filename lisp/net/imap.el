@@ -3005,5 +3005,5 @@ Return nil if no complete line has arrived."
 
 (provide 'imap)
 
-;;; arch-tag: 27369ed6-33e4-482f-96f1-8bb906ba70f7
+;; arch-tag: 27369ed6-33e4-482f-96f1-8bb906ba70f7
 ;;; imap.el ends here

@@ -2099,5 +2099,5 @@ quoted."
 
 (cc-provide 'cc-defs)
 
-;;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
+;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
 ;;; cc-defs.el ends here

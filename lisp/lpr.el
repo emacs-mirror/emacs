@@ -328,5 +328,5 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 
 (provide 'lpr)
 
-;;; arch-tag: 21c3f821-ebec-4ca9-ac67-a81e4b75c62a
+;; arch-tag: 21c3f821-ebec-4ca9-ac67-a81e4b75c62a
 ;;; lpr.el ends here

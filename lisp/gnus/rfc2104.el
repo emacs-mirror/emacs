@@ -120,5 +120,5 @@
 
 (provide 'rfc2104)
 
-;;; arch-tag: cf671d5c-a45f-4a09-815e-704e59e43950
+;; arch-tag: cf671d5c-a45f-4a09-815e-704e59e43950
 ;;; rfc2104.el ends here

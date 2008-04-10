@@ -1564,5 +1564,5 @@ This option is appropriate if you like Emacs-style words."
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
-;;; arch-tag: 7f023fd5-dd9e-4378-a397-9c179553b0e3
+;; arch-tag: 7f023fd5-dd9e-4378-a397-9c179553b0e3
 ;;; viper-util.el ends here

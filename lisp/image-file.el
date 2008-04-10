@@ -204,5 +204,5 @@ Image files are those whose name has an extension in
 
 (provide 'image-file)
 
-;;; arch-tag: 04cafe36-f7ba-4c80-9f47-4cb656520ce1
+;; arch-tag: 04cafe36-f7ba-4c80-9f47-4cb656520ce1
 ;;; image-file.el ends here

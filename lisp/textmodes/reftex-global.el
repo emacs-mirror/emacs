@@ -467,5 +467,5 @@ With no argument, this command toggles
 (add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil 
 		'reftex-isearch-minor-mode)
 
-;;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
+;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
 ;;; reftex-global.el ends here

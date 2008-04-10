@@ -329,5 +329,5 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 
 (provide 'binhex)
 
-;;; arch-tag: 8476badd-1e76-4f1d-a640-f9a38c72eed8
+;; arch-tag: 8476badd-1e76-4f1d-a640-f9a38c72eed8
 ;;; binhex.el ends here

@@ -159,5 +159,5 @@ Leaves point just after the word that looks Swedish."
 
 (provide 'swedish)
 
-;;; arch-tag: a117019d-acac-4ac4-8eac-0dbd49a41d32
+;; arch-tag: a117019d-acac-4ac4-8eac-0dbd49a41d32
 ;;; swedish.el ends here

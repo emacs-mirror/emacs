@@ -253,5 +253,5 @@ repeatedly until you are satisfied with the kind of comment."
 
 (provide 'asm-mode)
 
-;;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
+;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
 ;;; asm-mode.el ends here

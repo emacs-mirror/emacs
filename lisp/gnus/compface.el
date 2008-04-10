@@ -60,5 +60,5 @@ or `faces-xface' and `netpbm' or `libgr-progs', for instance."
 
 (provide 'compface)
 
-;;; arch-tag: f9c78e84-98c0-4142-9682-8ba4cf4c3441
+;; arch-tag: f9c78e84-98c0-4142-9682-8ba4cf4c3441
 ;;; compface.el ends here

@@ -267,5 +267,5 @@ Normally input is edited in Emacs and sent a line at a time."
 
 (provide 'telnet)
 
-;;; arch-tag: 98218821-d04a-48b6-9058-57d0d4677a56
+;; arch-tag: 98218821-d04a-48b6-9058-57d0d4677a56
 ;;; telnet.el ends here

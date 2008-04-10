@@ -2160,5 +2160,5 @@ If this can't be done, return NIL."
 
 (provide 'calc-math)
 
-;;; arch-tag: c7367e8e-d0b8-4f70-8577-2fb3f31dbb4c
+;; arch-tag: c7367e8e-d0b8-4f70-8577-2fb3f31dbb4c
 ;;; calc-math.el ends here

@@ -314,5 +314,5 @@ Thus ARG can also contain additional grep options."
 
 (provide 'find-dired)
 
-;;; arch-tag: 8edece95-af00-4221-bc74-a4bd2f75f9b0
+;; arch-tag: 8edece95-af00-4221-bc74-a4bd2f75f9b0
 ;;; find-dired.el ends here

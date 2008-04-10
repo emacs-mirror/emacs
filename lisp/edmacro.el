@@ -778,5 +778,5 @@ This function assumes that the events can be stored in a string."
 
 (provide 'edmacro)
 
-;;; arch-tag: 726807b4-3ae6-49de-b0ae-b9590973e0d7
+;; arch-tag: 726807b4-3ae6-49de-b0ae-b9590973e0d7
 ;;; edmacro.el ends here

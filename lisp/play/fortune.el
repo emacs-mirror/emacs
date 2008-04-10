@@ -328,5 +328,5 @@ and choose the directory as the fortune-file."
 ;;; Provide ourselves.
 (provide 'fortune)
 
-;;; arch-tag: a1e4cb8a-3792-40e7-86a7-fc75ce094bcc
+;; arch-tag: a1e4cb8a-3792-40e7-86a7-fc75ce094bcc
 ;;; fortune.el ends here

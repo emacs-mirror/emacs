@@ -482,5 +482,5 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 (provide 'webjump)
 
-;;; arch-tag: f1d20156-0a6f-488b-bd91-f69ee8b6d5cc
+;; arch-tag: f1d20156-0a6f-488b-bd91-f69ee8b6d5cc
 ;;; webjump.el ends here

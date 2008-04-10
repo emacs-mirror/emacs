@@ -689,5 +689,5 @@ Returns nil if line starts inside a string, t if in a comment."
 
 (provide 'icon)
 
-;;; arch-tag: 8abf8c99-e7df-44af-a58f-ef5ed2ee52cb
+;; arch-tag: 8abf8c99-e7df-44af-a58f-ef5ed2ee52cb
 ;;; icon.el ends here

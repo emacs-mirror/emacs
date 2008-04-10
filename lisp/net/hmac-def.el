@@ -82,5 +82,5 @@ If BIT is non-nil, truncate output to specified bits."
 
 (provide 'hmac-def)
 
-;;; arch-tag: 645adcef-b835-4900-a10a-11f636c982b9
+;; arch-tag: 645adcef-b835-4900-a10a-11f636c982b9
 ;;; hmac-def.el ends here

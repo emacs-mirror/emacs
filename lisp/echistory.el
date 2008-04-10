@@ -153,5 +153,5 @@ The Command History listing is recomputed each time this mode is invoked."
 
 (provide 'echistory)
 
-;;; arch-tag: 1e5018fe-190f-44a7-9109-a895dcac4c50
+;; arch-tag: 1e5018fe-190f-44a7-9109-a895dcac4c50
 ;;; echistory.el ends here

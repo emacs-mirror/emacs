@@ -49,5 +49,5 @@
   "Set terminal width to 132 columns."
   (vt100-wide-mode 1))
 
-;;; arch-tag: c9f10c95-915f-44b5-93ff-4654abca4dd4
+;; arch-tag: c9f10c95-915f-44b5-93ff-4654abca4dd4
 ;;; edt-vt100.el ends here

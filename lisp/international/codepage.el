@@ -147,5 +147,5 @@
 
 (provide 'codepage)
 
-;;; arch-tag: 80328de8-b94e-4386-be26-5876105731f0
+;; arch-tag: 80328de8-b94e-4386-be26-5876105731f0
 ;;; codepage.el ends here

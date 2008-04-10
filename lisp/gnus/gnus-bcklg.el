@@ -161,5 +161,5 @@
 
 (provide 'gnus-bcklg)
 
-;;; arch-tag: 66259e56-505a-4bba-8a0d-3552c5b94e39
+;; arch-tag: 66259e56-505a-4bba-8a0d-3552c5b94e39
 ;;; gnus-bcklg.el ends here

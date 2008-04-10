@@ -48,5 +48,5 @@ to auto-show from your init file and code."
 
 (provide 'auto-show)
 
-;;; arch-tag: 49587cbf-95cc-4061-b564-274aaec37469
+;; arch-tag: 49587cbf-95cc-4061-b564-274aaec37469
 ;;; auto-show.el ends here

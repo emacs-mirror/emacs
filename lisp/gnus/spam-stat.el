@@ -673,5 +673,5 @@ COUNT defaults to 5"
 
 (provide 'spam-stat)
 
-;;; arch-tag: ff1d2200-8ddb-42fb-bb7b-1b5e20448554
+;; arch-tag: ff1d2200-8ddb-42fb-bb7b-1b5e20448554
 ;;; spam-stat.el ends here

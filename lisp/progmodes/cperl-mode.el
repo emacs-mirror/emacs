@@ -8894,5 +8894,5 @@ do extra unwind via `cperl-unwind-to-safe'."
 
 (provide 'cperl-mode)
 
-;;; arch-tag: 42e5b19b-e187-4537-929f-1a7408980ce6
+;; arch-tag: 42e5b19b-e187-4537-929f-1a7408980ce6
 ;;; cperl-mode.el ends here

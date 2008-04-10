@@ -1070,5 +1070,5 @@ of master file."
               nrest (- nrest i))))
     string))
 
-;;; arch-tag: 6a8168f7-abb9-4576-99dc-fcbc7ba901a3
+;; arch-tag: 6a8168f7-abb9-4576-99dc-fcbc7ba901a3
 ;;; reftex-parse.el ends here

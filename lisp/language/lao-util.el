@@ -520,5 +520,5 @@ syllable.  In that case, FROM and TO are indexes to STR."
 ;;
 (provide 'lao-util)
 
-;;; arch-tag: 1f828781-3cb8-4695-88af-8f33222338ce
+;; arch-tag: 1f828781-3cb8-4695-88af-8f33222338ce
 ;;; lao-util.el ends here

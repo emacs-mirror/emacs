@@ -310,5 +310,5 @@ may have changed\) back to `save-place-alist'."
 
 (provide 'saveplace) ; why not...
 
-;;; arch-tag: 3c2ef47b-0a22-4558-b116-118c9ef454a0
+;; arch-tag: 3c2ef47b-0a22-4558-b116-118c9ef454a0
 ;;; saveplace.el ends here

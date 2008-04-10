@@ -102,5 +102,5 @@ Also see `automatic-hscrolling'."
 
 (provide 'hscroll)
 
-;;; arch-tag: 48377520-e5ca-401d-b360-3881b2d5a05a
+;; arch-tag: 48377520-e5ca-401d-b360-3881b2d5a05a
 ;;; hscroll.el ends here

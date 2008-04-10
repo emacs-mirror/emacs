@@ -355,5 +355,5 @@ further questions)."
 ;; coding: iso-latin-2
 ;; End:
 
-;;; arch-tag: fc9b05a6-7355-4639-8170-dcf57853ba22
+;; arch-tag: fc9b05a6-7355-4639-8170-dcf57853ba22
 ;;; tildify.el ends here

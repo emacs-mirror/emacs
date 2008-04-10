@@ -561,5 +561,5 @@ From a program takes two point or marker arguments, BEG and END."
 
 (provide 'sort)
 
-;;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
+;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
 ;;; sort.el ends here

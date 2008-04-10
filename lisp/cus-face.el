@@ -381,5 +381,5 @@ This means reset FACE to its value in FROM-THEME."
 
 (provide 'cus-face)
 
-;;; arch-tag: 9a5c4b63-0d27-4c92-a5af-f2c7ed764c2b
+;; arch-tag: 9a5c4b63-0d27-4c92-a5af-f2c7ed764c2b
 ;;; cus-face.el ends here

@@ -381,5 +381,5 @@ The mode is turned if some feature is enabled for the current
 
 ;;}}}
 
-;;; arch-tag: 225fb5e2-0838-4eb1-88ce-3811c5e4d738
+;; arch-tag: 225fb5e2-0838-4eb1-88ce-3811c5e4d738
 ;;; cwarn.el ends here

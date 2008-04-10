@@ -138,5 +138,5 @@ extra values are ignored.  Returns the created alist."
 
 (provide 'assoc)
 
-;;; arch-tag: 3e58bd89-d912-4b74-a0dc-6ed9735922bc
+;; arch-tag: 3e58bd89-d912-4b74-a0dc-6ed9735922bc
 ;;; assoc.el ends here

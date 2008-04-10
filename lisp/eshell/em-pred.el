@@ -602,5 +602,5 @@ that 'ls -l' will show in the first column of its display. "
 
 (provide 'em-pred)
 
-;;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
+;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
 ;;; em-pred.el ends here

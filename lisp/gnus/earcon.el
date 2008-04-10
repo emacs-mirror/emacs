@@ -231,5 +231,5 @@ If N is negative, move backward instead."
 
 (run-hooks 'earcon-load-hook)
 
-;;; arch-tag: 844dfeea-980c-4ed0-907f-a30bf139691c
+;; arch-tag: 844dfeea-980c-4ed0-907f-a30bf139691c
 ;;; earcon.el ends here

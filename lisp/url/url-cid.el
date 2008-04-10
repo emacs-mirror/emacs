@@ -62,5 +62,5 @@
    (t
     (message "Unable to handle CID URL: %s" url))))
 
-;;; arch-tag: 23d9ab74-fad4-4dba-b1e7-292871e8bda5
+;; arch-tag: 23d9ab74-fad4-4dba-b1e7-292871e8bda5
 ;;; url-cid.el ends here

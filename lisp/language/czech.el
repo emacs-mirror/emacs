@@ -47,5 +47,5 @@ and selects the Czech tutorial."))
 
 (provide 'czech)
 
-;;; arch-tag: 45ac0d83-ca13-4b5e-9e82-821e44080c24
+;; arch-tag: 45ac0d83-ca13-4b5e-9e82-821e44080c24
 ;;; czech.el ends here

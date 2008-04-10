@@ -224,5 +224,5 @@ integer is represented as a pair of two 16 bits integers (cons high low)."
 
 (provide 'md4)
 
-;;; arch-tag: 99d706fe-089b-42ea-9507-67ae41091e6e
+;; arch-tag: 99d706fe-089b-42ea-9507-67ae41091e6e
 ;;; md4.el ends here

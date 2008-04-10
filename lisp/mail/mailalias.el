@@ -553,5 +553,5 @@ See `mail-directory-stream'."
 
 (provide 'mailalias)
 
-;;; arch-tag: 1d6a0f87-eb34-4d45-8816-60c1b952cf46
+;; arch-tag: 1d6a0f87-eb34-4d45-8816-60c1b952cf46
 ;;; mailalias.el ends here

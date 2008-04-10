@@ -849,5 +849,5 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 
 (provide 'net-utils)
 
-;;; arch-tag: 97119e91-9edb-4376-838b-bf7058fa1314
+;; arch-tag: 97119e91-9edb-4376-838b-bf7058fa1314
 ;;; net-utils.el ends here

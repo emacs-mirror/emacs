@@ -304,5 +304,5 @@ X and Y are 0-based character positions on the screen."
 
 (provide 'bg-mouse)
 
-;;; arch-tag: b3d06605-2971-44b1-be2c-e49c24e1a8d3
+;; arch-tag: b3d06605-2971-44b1-be2c-e49c24e1a8d3
 ;;; bg-mouse.el ends here

@@ -342,5 +342,5 @@ To test this function, evaluate:
 
 (provide 'mouse-drag)
 
-;;; arch-tag: e47354ff-82f5-42c4-b3dc-88dd9c04b770
+;; arch-tag: e47354ff-82f5-42c4-b3dc-88dd9c04b770
 ;;; mouse-drag.el ends here

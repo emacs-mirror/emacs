@@ -1025,5 +1025,5 @@ many continuation lines."
 
 (provide 'smtpmail)
 
-;;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
+;; arch-tag: a76992df-6d71-43b7-9e72-4bacc6c05466
 ;;; smtpmail.el ends here

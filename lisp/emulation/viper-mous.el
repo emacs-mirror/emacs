@@ -664,5 +664,5 @@ This buffer may be different from the one where the click occurred."
 ;;; End:
 
 
-;;; arch-tag: e56b2390-06c4-4dd1-96f5-c7876e2d8c2f
+;; arch-tag: e56b2390-06c4-4dd1-96f5-c7876e2d8c2f
 ;;; viper-mous.el ends here

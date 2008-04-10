@@ -195,5 +195,5 @@ the terminal-initialization file to be loaded.")
     (convert-standard-filename "~/.abbrev_defs"))
   "*Default name of file to read abbrevs from.")
 
-;;; arch-tag: bae27ffb-9944-4c87-b569-30d4635a99e1
+;; arch-tag: bae27ffb-9944-4c87-b569-30d4635a99e1
 ;;; paths.el ends here

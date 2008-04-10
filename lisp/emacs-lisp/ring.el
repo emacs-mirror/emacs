@@ -238,5 +238,5 @@ If SEQ is already a ring, return it."
 
 (provide 'ring)
 
-;;; arch-tag: e707682b-ed69-47c9-b20f-cf2c68cc92d2
+;; arch-tag: e707682b-ed69-47c9-b20f-cf2c68cc92d2
 ;;; ring.el ends here

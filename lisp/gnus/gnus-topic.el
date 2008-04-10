@@ -1780,5 +1780,5 @@ If REVERSE, reverse the sorting order."
 
 (provide 'gnus-topic)
 
-;;; arch-tag: bf176856-f30c-40f0-ae77-e41529a1134c
+;; arch-tag: bf176856-f30c-40f0-ae77-e41529a1134c
 ;;; gnus-topic.el ends here

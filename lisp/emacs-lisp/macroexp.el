@@ -195,5 +195,5 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 
 (provide 'macroexp)
 
-;;; arch-tag: af9b8c24-c196-43bc-91e1-a3570790fa5a
+;; arch-tag: af9b8c24-c196-43bc-91e1-a3570790fa5a
 ;;; macroexp.el ends here

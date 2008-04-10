@@ -68,5 +68,5 @@
 
 (provide 'studly)
 
-;;; arch-tag: 0dbf5a60-d2e6-48c2-86ae-77fc8575ac67
+;; arch-tag: 0dbf5a60-d2e6-48c2-86ae-77fc8575ac67
 ;;; studly.el ends here

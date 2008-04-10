@@ -329,5 +329,5 @@ Obeys the standard process/prefix convention."
 
 (provide 'gnus-draft)
 
-;;; arch-tag: 3d92af58-8c97-4a5c-9db4-a98e85198022
+;; arch-tag: 3d92af58-8c97-4a5c-9db4-a98e85198022
 ;;; gnus-draft.el ends here

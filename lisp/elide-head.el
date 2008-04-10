@@ -120,5 +120,5 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
 
 (provide 'elide-head)
 
-;;; arch-tag: a00e6b5b-6aeb-45b1-b734-63e23df80928
+;; arch-tag: a00e6b5b-6aeb-45b1-b734-63e23df80928
 ;;; elide-head.el ends here

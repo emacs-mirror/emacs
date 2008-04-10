@@ -628,5 +628,5 @@ All ls time options, namely c, t and u, are handled."
 
 (provide 'ls-lisp)
 
-;;; arch-tag: e55f399b-05ec-425c-a6d5-f5e349c35ab4
+;; arch-tag: e55f399b-05ec-425c-a6d5-f5e349c35ab4
 ;;; ls-lisp.el ends here

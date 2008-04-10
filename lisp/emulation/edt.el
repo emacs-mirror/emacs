@@ -2704,5 +2704,5 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
 
 (provide 'edt)
 
-;;; arch-tag: 18d1c54f-6900-4078-8bbc-7c2292f48941
+;; arch-tag: 18d1c54f-6900-4078-8bbc-7c2292f48941
 ;;; edt.el ends here

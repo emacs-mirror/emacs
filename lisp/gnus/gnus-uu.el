@@ -2172,5 +2172,5 @@ If no file has been included, the user will be asked for a file."
 
 (provide 'gnus-uu)
 
-;;; arch-tag: 05312384-0a83-4720-9a58-b3160b888853
+;; arch-tag: 05312384-0a83-4720-9a58-b3160b888853
 ;;; gnus-uu.el ends here

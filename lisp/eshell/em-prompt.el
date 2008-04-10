@@ -175,5 +175,5 @@ If this takes us past the end of the current line, don't skip at all."
 
 (provide 'em-prompt)
 
-;;; arch-tag: 01c1574b-ce70-4e89-bc38-e6619f61e208
+;; arch-tag: 01c1574b-ce70-4e89-bc38-e6619f61e208
 ;;; em-prompt.el ends here

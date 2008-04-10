@@ -298,5 +298,5 @@ positions (integers or markers) specifying the stretch of the region."
 ;;;
 (provide 'viet-util)
 
-;;; arch-tag: 082a4d3b-168f-45b4-b3e1-82bfa1b5a194
+;; arch-tag: 082a4d3b-168f-45b4-b3e1-82bfa1b5a194
 ;;; viet-util.el ends here

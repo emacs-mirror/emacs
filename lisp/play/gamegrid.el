@@ -596,5 +596,5 @@ FILE is created there."
 
 (provide 'gamegrid)
 
-;;; arch-tag: a96c2ff4-1c12-427e-bd3d-faeaf174cd46
+;; arch-tag: a96c2ff4-1c12-427e-bd3d-faeaf174cd46
 ;;; gamegrid.el ends here

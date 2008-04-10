@@ -3457,5 +3457,5 @@ so they have been disabled."))
 
 (provide 'gud)
 
-;;; arch-tag: 6d990948-df65-461a-be39-1c7fb83ac4c4
+;; arch-tag: 6d990948-df65-461a-be39-1c7fb83ac4c4
 ;;; gud.el ends here

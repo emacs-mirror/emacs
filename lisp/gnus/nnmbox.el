@@ -715,5 +715,5 @@
 
 (provide 'nnmbox)
 
-;;; arch-tag: 611dd95f-be37-413a-b3ae-8b059ba93659
+;; arch-tag: 611dd95f-be37-413a-b3ae-8b059ba93659
 ;;; nnmbox.el ends here

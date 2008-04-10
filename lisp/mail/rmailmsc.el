@@ -65,5 +65,5 @@ If FILE-NAME is empty, remove any existing inbox list."
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
   (rmail-show-message rmail-current-message))
 
-;;; arch-tag: 74ed1d50-2c25-4cbd-b5ae-d29ed8aba6e4
+;; arch-tag: 74ed1d50-2c25-4cbd-b5ae-d29ed8aba6e4
 ;;; rmailmsc.el ends here

@@ -193,5 +193,5 @@ You can specify the one's name by NAME; the default value is \"Sarah\"."
 
 (provide 'animate)
 
-;;; arch-tag: 275289a3-6ac4-41da-b527-a1147045392f
+;; arch-tag: 275289a3-6ac4-41da-b527-a1147045392f
 ;;; animate.el ends here

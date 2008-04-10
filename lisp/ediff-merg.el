@@ -395,5 +395,5 @@ Combining is done according to the specifications in variable
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: 9b798cf9-02ba-487f-a62e-b63aa823dbfb
+;; arch-tag: 9b798cf9-02ba-487f-a62e-b63aa823dbfb
 ;;; ediff-merg.el ends here

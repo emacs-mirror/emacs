@@ -192,5 +192,5 @@ and runs the normal hook `command-history-hook'."
 
 (provide 'chistory)
 
-;;; arch-tag: c201a0cd-89f2-4d39-a532-4cb309391dbd
+;; arch-tag: c201a0cd-89f2-4d39-a532-4cb309391dbd
 ;;; chistory.el ends here

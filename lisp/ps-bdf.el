@@ -446,5 +446,5 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
 
 (provide 'ps-bdf)
 
-;;; arch-tag: 9b875ba8-565a-4ecf-acaa-30cee732c898
+;; arch-tag: 9b875ba8-565a-4ecf-acaa-30cee732c898
 ;;; ps-bdf.el ends here

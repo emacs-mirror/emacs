@@ -570,5 +570,5 @@ Default MODIFIER is 'shift."
 
 (provide 'windmove)
 
-;;; arch-tag: 56267432-bf1a-4296-a9a0-85c6bd9f2375
+;; arch-tag: 56267432-bf1a-4296-a9a0-85c6bd9f2375
 ;;; windmove.el ends here

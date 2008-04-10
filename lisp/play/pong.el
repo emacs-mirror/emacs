@@ -460,5 +460,5 @@ pong-mode keybindings:\\<pong-mode-map>
 
 (provide 'pong)
 
-;;; arch-tag: 1fdf0fc5-13e2-4de4-aae4-09bdd5af99f3
+;; arch-tag: 1fdf0fc5-13e2-4de4-aae4-09bdd5af99f3
 ;;; pong.el ends here

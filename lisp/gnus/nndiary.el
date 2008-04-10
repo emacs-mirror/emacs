@@ -1587,5 +1587,5 @@ all.  This may very well take some time.")
 (provide 'nndiary)
 
 
-;;; arch-tag: 9c542b95-92e7-4ace-a038-330ab296e203
+;; arch-tag: 9c542b95-92e7-4ace-a038-330ab296e203
 ;;; nndiary.el ends here

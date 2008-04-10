@@ -848,5 +848,5 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
 
 
 
-;;; arch-tag: 52f14032-fb76-4d31-954f-750c72415675
+;; arch-tag: 52f14032-fb76-4d31-954f-750c72415675
 ;;; reftex-ref.el ends here

@@ -165,5 +165,5 @@ This is in addition to c-continued-statement-offset.")
 
 (cc-provide 'cc-compat)
 
-;;; arch-tag: 564dab2f-e6ad-499c-a4a3-fedec3ecc192
+;; arch-tag: 564dab2f-e6ad-499c-a4a3-fedec3ecc192
 ;;; cc-compat.el ends here

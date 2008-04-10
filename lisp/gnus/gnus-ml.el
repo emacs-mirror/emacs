@@ -180,5 +180,5 @@ ADDRESS is specified by a \"mailto:\" URL."
 
 (provide 'gnus-ml)
 
-;;; arch-tag: 936c0fe6-acce-4c16-87d0-eded88078896
+;; arch-tag: 936c0fe6-acce-4c16-87d0-eded88078896
 ;;; gnus-ml.el ends here

@@ -393,5 +393,5 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)
 
-;;; arch-tag: e5369375-fafb-4240-b7ae-4cb460ef05ee
+;; arch-tag: e5369375-fafb-4240-b7ae-4cb460ef05ee
 ;;; crisp.el ends here

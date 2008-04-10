@@ -1667,5 +1667,5 @@ It treats escaped EOLs as whitespace.")
 
 (cc-provide 'cc-vars)
 
-;;; arch-tag: d62e9a55-c9fe-409b-b5b6-050b6aa202c9
+;; arch-tag: d62e9a55-c9fe-409b-b5b6-050b6aa202c9
 ;;; cc-vars.el ends here

@@ -19,5 +19,5 @@
   ;; The arg only matters in that it is not t or nil.
   (set-input-meta-mode 'iso-latin-1))
 
-;;; arch-tag: 5d0c4f63-739b-4862-abf3-041fe42adb8f
+;; arch-tag: 5d0c4f63-739b-4862-abf3-041fe42adb8f
 ;;; linux.el ends here

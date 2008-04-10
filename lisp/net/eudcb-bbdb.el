@@ -244,5 +244,5 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
 (provide 'eudcb-bbdb)
 
-;;; arch-tag: 38276208-75de-4dbc-ba6f-8db684c32e0a
+;; arch-tag: 38276208-75de-4dbc-ba6f-8db684c32e0a
 ;;; eudcb-bbdb.el ends here

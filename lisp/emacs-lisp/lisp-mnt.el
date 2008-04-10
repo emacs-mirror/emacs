@@ -615,5 +615,5 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 
 (provide 'lisp-mnt)
 
-;;; arch-tag: fa3c5ab4-a37b-4e46-b7cf-b6d78b90e69e
+;; arch-tag: fa3c5ab4-a37b-4e46-b7cf-b6d78b90e69e
 ;;; lisp-mnt.el ends here

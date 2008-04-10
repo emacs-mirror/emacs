@@ -45,5 +45,5 @@ in `standard-display-table' as appropriate for your codepage, if
   :type '(hook)
   :version "20.3.3")
 
-;;; arch-tag: dce8a0d9-ab29-413f-84ed-8b89d6190546
+;; arch-tag: dce8a0d9-ab29-413f-84ed-8b89d6190546
 ;;; dos-vars.el ends here

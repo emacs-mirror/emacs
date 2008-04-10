@@ -763,5 +763,5 @@ Optional argument PROPS specifies other text properties to apply."
 ;; coding: iso-latin-1
 ;; End:
 
-;;; arch-tag: b2f24546-5605-44c4-b67b-c9a4eeba3ee8
+;; arch-tag: b2f24546-5605-44c4-b67b-c9a4eeba3ee8
 ;;; ruler-mode.el ends here

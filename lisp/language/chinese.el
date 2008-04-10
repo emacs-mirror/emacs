@@ -268,5 +268,5 @@ converted to CNS)."))
 
 (provide 'chinese)
 
-;;; arch-tag: b82fcf7a-84f6-4e0b-b38c-1742dac0e09f
+;; arch-tag: b82fcf7a-84f6-4e0b-b38c-1742dac0e09f
 ;;; chinese.el ends here

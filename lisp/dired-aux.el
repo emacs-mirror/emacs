@@ -2357,5 +2357,5 @@ true then the type of the file linked to by FILE is printed instead."
 
 (provide 'dired-aux)
 
-;;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
+;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
 ;;; dired-aux.el ends here

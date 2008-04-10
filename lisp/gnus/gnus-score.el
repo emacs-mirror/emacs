@@ -3114,5 +3114,5 @@ See Info node `(gnus)Scoring Tips' for examples of good regular expressions."
 
 (provide 'gnus-score)
 
-;;; arch-tag: d3922589-764d-46ae-9954-9330fd192634
+;; arch-tag: d3922589-764d-46ae-9954-9330fd192634
 ;;; gnus-score.el ends here

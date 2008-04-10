@@ -265,5 +265,5 @@ allowed."
 
 (provide 'em-term)
 
-;;; arch-tag: ab7c8fe4-3101-4257-925b-1354c6b2fe9d
+;; arch-tag: ab7c8fe4-3101-4257-925b-1354c6b2fe9d
 ;;; em-term.el ends here
