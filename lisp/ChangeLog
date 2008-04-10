@@ -1,3 +1,25 @@
+2008-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-state): Add new state `conflict'.
+	(vc-after-save): Use when not if.
+	(vc-default-mode-line-string): Deal with the conflict state.
+	(vc-prefix-map):
+	(vc-menu-map): Bind vc-status instead of vc-directory.
+
+	* vc.el (vc-editable-p):
+	(vc-default-status-printer):
+	(vc-next-action): Deal with the conflict state.
+	(vc-mark-resolved): New function.
+	(vc-status-mode): Fix mode name.
+	(vc-default-comment-history): Use when not if.
+	(Todo): Add new entries, remove old ones.
+
+	* vc-cvs.el (vc-cvs-merge, vc-cvs-merge-news): Set conflict state.
+	(vc-cvs-parse-status):
+	(vc-cvs-after-dir-status):
+	* vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):
+	Detect the conflict state.
+
 2008-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MH_E_DIR): New variable.

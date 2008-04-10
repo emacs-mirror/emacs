@@ -37,10 +37,11 @@
 ;;   Martin Lorentzson <martinl@gnu.org>
 ;;   Dave Love <fx@gnu.org>
 ;;   Stefan Monnier <monnier@cs.yale.edu>
+;;   Thien-Thi Nguyen <ttn@gnu.org>
+;;   Dan Nicolaescu <dann@ics.uci.edu>
 ;;   J.D. Smith <jdsmith@alum.mit.edu>
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
-;;   Thien-Thi Nguyen <ttn@gnu.org>
 ;;
 ;; In July 2007 ESR returned and redesigned the mode to cope better
 ;; with modern version-control systems that do commits by fileset
@@ -199,7 +200,7 @@
 ;;   If a backend needs to show more information than the default FILE
 ;;   and STATE in the vc-status listing, it can store that extra
 ;;   information in `vc-status-fileinfo->extra'.  This function can be
-;;   used to display that extra information in the vc-status buffer.
+;;   used to display that extra information in the *vc-status* buffer.
 ;;
 ;; - status-fileinfo-extra (file)
 ;;
@@ -361,6 +362,11 @@
 ;;
 ;;   Modify the change comments associated with the files at the
 ;;   given revision.  This is optional, many backends do not support it.
+;;
+;; - mark-resolved (files)
+;;
+;;   Mark conflicts as resolved.  Some VC systems need to run a
+;;   command to mark conflicts as resolved.
 ;;
 ;; HISTORY FUNCTIONS
 ;;
@@ -583,20 +589,21 @@
 ;;
 ;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
 ;;
-;; - the backend sometimes knows when a file it opens has been marked
-;;   by the VCS as having a "conflict". Find a way to pass this info -
-;;   to VC so that it can turn on smerge-mode when opening such a
-;;   file.
+;; - when a file is in `conflict' state, turn on smerge-mode.
+;;
+;; - figure out what to do with conflicts that are not caused by the
+;;   file contents, but by metadata or other causes.
 ;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
 ;;
 ;; - vc-diff should be able to show the diff for all files in a
-;;   changeset, especially for VC systems that have per repository version numbers.
-;;   log-view should take advantage of this.
+;;   changeset, especially for VC systems that have per repository
+;;   version numbers.  log-view should take advantage of this.
 ;;
-;; - a way to do repository wide log (instead of just per file/fileset) is needed.
+;; - a way to do repository wide log (instead of just per
+;;   file/fileset) is needed.
 ;;
 ;; - the *VC-log* buffer needs font-locking.
 ;;
@@ -615,7 +622,14 @@
 ;; - vc-next-action should do something about 'missing files. Maybe
 ;;   just warn, or offer to checkout.
 ;;
-;; - decide if vc-status should replace vc-dired.
+;; - display the directory names in vc-status, similar to what PCL-CVS
+;;   does.
+;;
+;; - most vc-status backends need more work.  They might need to
+;;   provide custom headers, use the `extra' field and deal with all
+;;   possible VC states.
+;;
+;; - add function that calls vc-status to `find-directory-functions'.
 ;;
 ;; - vc-status needs mouse bindings.
 ;;
@@ -623,12 +637,13 @@
 ;;
 ;; - vc-status toolbar needs more icons.
 ;;
-;; - the dir-status backend function should take as an argument an
-;;   optional fileset.  and return the results just for that fileset.
-;;   This can be used to speed up status buffer updates after VC
-;;   operations.
+;; - vc-status needs a command to insert a file entry in the status
+;;   display, similar to `cvs-mode-insert'.
 ;;
-;; - keep the *vc-status* buffer sorted by file name.
+;; - the dir-status backend function should take as an argument an
+;;   optional fileset, and should return the results just for that
+;;   fileset.  This can be used to speed up status buffer updates
+;;   after VC operations.
 ;;
 ;; - vc-status: refresh should not completely wipe out the current
 ;;   contents of the vc-status buffer.
@@ -646,6 +661,7 @@
 
 (require 'vc-hooks)
 (require 'tool-bar)
+(require 'ewoc)
 
 (eval-when-compile
   (require 'cl)
@@ -1478,7 +1494,7 @@ Otherwise, throw an error."
 (defsubst vc-editable-p (file)
   "Return non-nil if FILE can be edited."
   (or (eq (vc-checkout-model file) 'implicit)
-      (memq (vc-state file) '(edited needs-merge))))
+      (memq (vc-state file) '(edited needs-merge conflict))))
 
 (defun vc-revert-buffer-internal (&optional arg no-confirm)
   "Revert buffer, keeping point and mark where user expects them.
@@ -1667,6 +1683,9 @@ merge in the changes into your working copy."
                   (read-string (format "%s revision to steal: " file))
                 (vc-working-revision file))
          state)))
+     ;; conflict
+     ((eq state 'conflict)
+      (vc-mark-resolved files))
      ;; needs-patch
      ((eq state 'needs-patch)
       (dolist (file files)
@@ -1900,6 +1919,13 @@ After check-out, runs the normal hook `vc-checkout-hook'."
      (vc-checkout-time . ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t)
   (run-hooks 'vc-checkout-hook))
+
+(defun vc-mark-resolved (files)
+  (with-vc-properties
+   files
+   (vc-call mark-resolved files)
+   ;; XXX: Is this TRTD?  Might not be.
+   `((vc-state . edited))))
 
 (defun vc-steal-lock (file rev owner)
   "Steal the lock on FILE."
@@ -2673,9 +2699,7 @@ With prefix arg READ-SWITCHES, specify a value to override
                               vc-dired-switches
                               'vc-dired-mode))))
 
-;;; Experimental code for the vc-dired replacement
-(require 'ewoc)
-
+;; VC status implementation
 
 ;; Used to store information for the files displayed in the *VC status* buffer.
 ;; Each item displayed corresponds to one of these defstructs.
@@ -2722,7 +2746,7 @@ specific headers."
      (propertize
       (format "%-20s" state)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
-		  ((eq state 'missing) 'font-lock-warning-face)
+		  ((memq state '(missing conflict)) 'font-lock-warning-face)
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      " "
@@ -2956,7 +2980,7 @@ specific headers."
 (defun vc-status-mode ()
   "Major mode for VC status.
 \\{vc-status-mode-map}"
-  (setq mode-name "*VC Status*")
+  (setq mode-name "VC Status")
   (setq major-mode 'vc-status-mode)
   (setq buffer-read-only t)
   (set (make-local-variable 'vc-status-crt-marked) nil)
@@ -3277,8 +3301,6 @@ that share the same state."
       ;; We didn't find any vc-status buffers, remove the hook, it is
       ;; not needed.
       (unless found-vc-status-buf (remove-hook 'after-save-hook 'vc-status-mark-buffer-changed)))))
-
-;;; End experimental code.
 
 ;; Named-configuration entry points
 
@@ -3909,11 +3931,11 @@ to provide the `find-revision' operation instead."
 
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries stored in BACKEND for FILE."
-  (if (vc-find-backend-function backend 'print-log)
-      (with-current-buffer "*vc*"
-	(vc-call print-log (list file))
-	(vc-call-backend backend 'wash-log)
-	(buffer-string))))
+  (when (vc-find-backend-function backend 'print-log)
+    (with-current-buffer "*vc*"
+      (vc-call print-log (list file))
+      (vc-call-backend backend 'wash-log)
+      (buffer-string))))
 
 (defun vc-default-receive-file (backend file rev)
   "Let BACKEND receive FILE from another version control system."

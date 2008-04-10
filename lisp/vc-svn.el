@@ -160,7 +160,7 @@ If you want to force an empty list of arguments, use t."
 
 (defun vc-svn-after-dir-status (callback buffer)
   (let ((state-map '((?A . added)
-                    (?C . edited)
+                    (?C . conflict)
                     (?D . removed)
                     (?I . ignored)
                     (?M . edited)
@@ -636,7 +636,9 @@ information about FILENAME and return its status."
 	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'added)
-	  ((memq status '(?M ?C))
+	  ((eq status ?C)
+	   (vc-file-setprop file 'vc-state 'conflict))
+	  ((eq status '?M)
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))

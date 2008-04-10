@@ -436,8 +436,13 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
     (if (re-search-forward "conflicts during merge" nil t)
-        1				; signal error
-      0)))				; signal success
+	(progn 
+	  (vc-file-setprop file 'vc-state 'conflict)
+	  ;; signal error
+	  1)
+      (vc-file-setprop file 'vc-state 'edited)
+      ;; signal success
+      0)))
 
 (defun vc-cvs-merge-news (file)
   "Merge in any new changes made to FILE."
@@ -478,7 +483,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
                 0);; indicate success to the caller
                ;; Conflicts detected!
                (t
-                (vc-file-setprop file 'vc-state 'edited)
+                (vc-file-setprop file 'vc-state 'conflict)
                 1);; signal the error to the caller
                )
             (pop-to-buffer "*vc*")
@@ -814,11 +819,11 @@ state."
 	(if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
 	    (setq status "Unknown")
 	  (setq status (match-string 1)))
-	(if (and full
-		 (re-search-forward
-		  "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
+	(when (and full
+		   (re-search-forward
+		    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
 \[\t ]+\\([0-9.]+\\)"
-		  nil t))
+		    nil t))
 	    (vc-file-setprop file 'vc-latest-revision (match-string 2)))
 	(vc-file-setprop
 	 file 'vc-state
@@ -833,6 +838,7 @@ state."
 	   (if missing 'missing 'needs-patch))
 	  ((string-match "Locally Added" status)                'added)
 	  ((string-match "Locally Removed" status)              'removed)
+	  ((string-match "File had conflicts " status)          'conflict)
 	  (t 'edited))))))))
 
 (defun vc-cvs-dir-state-heuristic (dir)
@@ -897,6 +903,7 @@ state."
 		    (if missing 'missing 'needs-patch))
 		   ((string-match "Locally Added" status-str) 'added)
 		   ((string-match "Locally Removed" status-str) 'removed)
+		   ((string-match "File had conflicts " status-str) 'conflict)
 		   (t 'edited)))
 	    (unless (eq status 'up-to-date)
 	      (push (list file status) result))))))

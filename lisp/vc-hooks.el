@@ -517,6 +517,11 @@ For registered files, the value returned is one of:
 
   'removed           Scheduled to be deleted from the repository on next commit.
 
+  'conflict          The file contains conflicts as the result of a merge.
+                     For now the conflicts are text conflicts.  In the 
+                     futures this might be extended to deal with metadata
+                     conflicts too.
+
   'missing           The file is not present in the file system, but the VC 
                      system still tracks it.
 
@@ -775,10 +780,10 @@ Before doing that, check if there are any old backups and get rid of them."
          (eq (vc-checkout-model file) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
-	 (if (featurep 'vc)
-	     ;; If VC is not loaded, then there can't be
-	     ;; any VC Dired buffer to synchronize.
-	     (vc-dired-resynch-file file)))))
+	 (when (featurep 'vc)
+	   ;; If VC is not loaded, then there can't be
+	   ;; any VC Dired buffer to synchronize.
+	   (vc-dired-resynch-file file)))))
 
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map
@@ -861,6 +866,9 @@ This function assumes that the file is registered."
            ((eq state 'added)
             (setq state-echo "Locally added file")
             (concat backend "@" rev))
+           ((eq state 'conflict)
+            (setq state-echo "File contains conflicts after the last merge")
+            (concat backend "!" rev))
            ((eq state 'removed)
             (setq state-echo "File removed from the VC system")
             (concat backend "!" rev))
@@ -981,7 +989,7 @@ Used in `find-file-not-found-functions'."
     (define-key map "a" 'vc-update-change-log)
     (define-key map "b" 'vc-switch-backend)
     (define-key map "c" 'vc-rollback)
-    (define-key map "d" 'vc-directory)
+    (define-key map "d" 'vc-status)
     (define-key map "g" 'vc-annotate)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
@@ -1010,11 +1018,6 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-create-snapshot]
       '(menu-item "Create Snapshot" vc-create-snapshot
 		  :help "Create Snapshot"))
-    (define-key map [vc-directory]
-      '(menu-item "VC Directory Listing"  vc-directory
-		  :help "Show the VC status of files in a directory"))
-    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
-    ;; (define-key map [vc-status] '("VC Status" . vc-status))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate
@@ -1054,6 +1057,9 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
+    (define-key map [vc-status]
+      '(menu-item "VC Status"  vc-status
+		  :help "Show the VC status of files in a directory"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)
