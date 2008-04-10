@@ -75,12 +75,12 @@
 
 ;;; Code:
 
-;; Make sure calendar is loaded when we compile this.
-(require 'calendar)
+(require 'diary-lib)
 
 
 (defgroup appt nil
   "Appointment notification."
+  :prefix "appt-"
   :group 'calendar)
 
 (defcustom appt-issue-message t
@@ -504,6 +504,7 @@ The time should be in either 24 hour format or am/pm format."
 (defvar number)
 (defvar original-date)
 (defvar diary-entries-list)
+;; Autoload for the old way of using this package.  Can be removed sometime.
 ;;;###autoload
 (defun appt-make-list ()
   "Update the appointments list from today's diary buffer.
