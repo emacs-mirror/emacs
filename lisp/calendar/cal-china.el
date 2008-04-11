@@ -70,6 +70,10 @@ Default is for Beijing.  This is an expression in `year' since it changed at
   :type 'sexp
   :group 'calendar-chinese)
 
+;; It gets eval'd.
+;;;###autoload
+(put 'calendar-chinese-time-zone 'risky-local-variable t)
+
 (define-obsolete-variable-alias 'chinese-calendar-time-zone
   'calendar-chinese-time-zone "23.1")
 
