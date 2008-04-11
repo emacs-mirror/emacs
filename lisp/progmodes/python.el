@@ -2291,9 +2291,11 @@ with skeleton expansions for compound statement templates.
 						 (current-column))))
 	 (^ '(- (1+ (current-indentation))))))
   (add-hook 'pre-abbrev-expand-hook 'python-pea-hook nil t)
-  (if (featurep 'hippie-exp)
-      (set (make-local-variable 'hippie-expand-try-functions-list)
-	   (cons 'python-try-complete hippie-expand-try-functions-list)))
+  ;; Let's not mess with hippie-expand.  Symbol-completion should rather be
+  ;; bound to another key, since it has different performance requirements.
+  ;; (if (featurep 'hippie-exp)
+  ;;     (set (make-local-variable 'hippie-expand-try-functions-list)
+  ;;          (cons 'python-try-complete hippie-expand-try-functions-list)))
   ;; Python defines TABs as being 8-char wide.
   (set (make-local-variable 'tab-width) 8)
   (when python-guess-indent (python-guess-indent))
