@@ -35811,6 +35811,7 @@ keystrokes are not listed in this summary.
 @r{    v w@:    H V H   @:n            @:    31  @:histogram@:(v,w,n)}
 @r{  v1 v2@:      V I   @:mop aop      @:    22  @:inner@:(mop,aop,v1,v2)}
 @r{      m@:      V J   @:             @:     1  @:ctrn@:(m)}
+@r{  m1 m2@:      V K   @:             @:        @:kron(m1,m2)}
 @r{      m@:      V L   @:             @:     1  @:lud@:(m)}
 @r{      v@:      V M   @:op           @: 22,23  @:map@:(op,v)}
 @r{      v@:      V N   @:             @:     1  @:cnorm@:(v)}
