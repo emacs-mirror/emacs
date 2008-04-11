@@ -81,7 +81,13 @@
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
 (message "%s" (garbage-collect))
-(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
+
+(condition-case nil
+    ;; Don't get confused if someone compiled this by mistake.
+    (load "loaddefs.el")
+  ;; In case loaddefs hasn't been generated yet.
+  (file-error (load "ldefs-boot.el")))
+
 (message "%s" (garbage-collect))
 (load "simple")
 

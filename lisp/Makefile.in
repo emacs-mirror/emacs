@@ -311,11 +311,8 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
-	else							\
-	  cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;		\
 	fi
-	chmod +w $(lisp)/loaddefs.el		\
-	  $(lisp)/ps-print.el			\
+	chmod +w $(lisp)/ps-print.el			\
 	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
 maintainer-clean: distclean bootstrap-clean

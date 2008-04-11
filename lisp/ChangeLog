@@ -1,3 +1,8 @@
+2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (bootstrap-prepare): Don't copy ldefs-boot over loaddefs.
+	* loadup.el: Load ldefs-boot.el if loaddefs.el doesn't exist.
+
 2008-04-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* tooltip.el (tooltip-show-help-non-mode): Set message-truncate-lines
