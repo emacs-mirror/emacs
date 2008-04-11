@@ -301,6 +301,7 @@ Return non-nil in the case where no autoloads were added at point."
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(print-length nil)
+	(print-level nil)
 	(print-readably t)		; This does something in Lucid Emacs.
 	(float-output-format nil)
 	(done-any nil)

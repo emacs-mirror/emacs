@@ -1,7 +1,14 @@
+2008-04-11  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	Bind print-level to ensure output forms aren't truncated if
+	print-level is set to eval-expression-print-level when going via
+	eval-defun and friends, or has been otherwise fiddled with.
+
 2008-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-find-file-name-coding-system-alist): New
-	defun.
+	* net/tramp.el (tramp-find-file-name-coding-system-alist):
+	New defun.
 	(tramp-handle-insert-file-contents, tramp-handle-write-region):
 	Use it.
 
