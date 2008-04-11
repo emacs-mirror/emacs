@@ -29,7 +29,7 @@ CLIENTRES	= $(BLD)/emacsclient.res
 
 XMFLAGS		=
 
-ALL		= addpm ddeclient runemacs cmdproxy addsection preprep $(CLIENTRES)
+ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
 
 .PHONY: $(ALL)
 
@@ -86,7 +86,7 @@ $(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O
 #
 # Build emacs
 #
-all:	which-sh stamp_BLD $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
+all:	which-sh stamp_BLD $(ALL) $(CLIENTRES) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake: addsection
 	cd ..\lib-src
