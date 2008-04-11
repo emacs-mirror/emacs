@@ -1,3 +1,8 @@
+2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.h (map_keymap_canonical): Declare.
+	* xmenu.c (single_keymap_panes): Use it.
+
 2008-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* eval.c (Fdefvaralias): If the alias is bound and the target is not,
