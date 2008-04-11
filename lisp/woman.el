@@ -3846,7 +3846,7 @@ v alters page foot left; m alters page head center.
       (insert " -- ")
       (woman-forward-arg 'unquote 'concat)
       ;; Delete repeated arguments:
-      (if (string-match (regexp-quote (buffer-substring here (point)))
+      (if (string-equal (buffer-substring here (point))
 			(buffer-substring start here))
 	  (delete-region here (point)))))
   ;; Embolden heading (point is at end of heading):
