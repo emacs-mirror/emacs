@@ -312,7 +312,7 @@ bootstrap-prepare:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	fi
-	chmod +w $(lisp)/ps-print.el			\
+	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
 maintainer-clean: distclean bootstrap-clean
