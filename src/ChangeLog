@@ -1,3 +1,8 @@
+2008-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fdefvaralias): If the alias is bound and the target is not,
+	set the target's value to that of the alias.
+
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (set_tty_color_mode): Left over typo.
