@@ -9,6 +9,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; This file contains dummy variables and functions only because Emacs
 ;; does hscrolling automatically, now.
 

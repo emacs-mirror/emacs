@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Function `iso-accents-mode' activates a minor mode in which
 ;; typewriter "dead keys" are emulated.  The purpose of this emulation
 ;; is to provide a simple means for inserting accented characters

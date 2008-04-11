@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; Hilit19.el is a customizable highlighting package for Emacs 19.  It supports
 ;; not only source code highlighting, but also Info, RMAIL, VM, gnus...
 ;; Hilit19 knows (or thinks it knows) how to highlight emacs buffers in

@@ -28,6 +28,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; DESCRIPTION:
 ;; ------------
 ;;   This program can be used to monitor running time performance of Emacs Lisp

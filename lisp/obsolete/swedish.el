@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Fixme: Is this actually used?  if so, it should be in language,
 ;; possibly as a feature property of Swedish, probably defining a
 ;; `swascii' coding system.

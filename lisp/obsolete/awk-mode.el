@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Sets up C-mode with support for awk-style #-comments and a lightly
 ;; hacked syntax table.
 

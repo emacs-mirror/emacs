@@ -27,8 +27,9 @@
 
 ;;; Commentary:
 
-;; This package is obsolete.  Emacs now resizes mini-windows
-;; automatically.
+;; This file has been obsolete since Emacs 21.1.
+
+;; This package is obsolete.  Emacs now resizes mini-windows automatically.
 
 ;;; Code:
 

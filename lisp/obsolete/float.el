@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Floating point numbers are represented by dot-pairs (mant . exp)
 ;; where mant is the 24-bit signed integral mantissa and exp is the
 ;; base 2 exponent.

@@ -28,6 +28,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 23.1.
+
 ;;; Code:
 
 ;; The selection code requires us to use certain symbols whose names are

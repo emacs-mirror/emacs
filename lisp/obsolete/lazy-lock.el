@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Purpose:
 ;;
 ;; Lazy Lock mode is a Font Lock support mode.

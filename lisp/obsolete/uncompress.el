@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; This package can be used to arrange for automatic uncompress of
 ;; compressed files when they are visited.
 ;; All that's necessary is to load it.  This can conveniently be done from

@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; This package is meant to be called by other terminal packages.
 
 ;;; Code:

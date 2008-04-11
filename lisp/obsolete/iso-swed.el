@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Written by Howard Gayle.  See case-table.el for details.
 
 ;;; Code:

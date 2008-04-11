@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; This package provides equivalents of certain primitives from Gosling
 ;; Emacs (including the commercial UniPress versions).  These have an
 ;; ml- prefix to distinguish them from native GNU Emacs functions with

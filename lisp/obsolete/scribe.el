@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; A major mode for editing source in written for the Scribe text formatter.
 ;; Knows about Scribe syntax and standard layout rules.  The command to
 ;; run Scribe on a buffer is bogus; someone interested should fix it.

@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; This package is a major mode for editing outline-format documents.
 ;; An outline can be `abstracted' to show headers at any given level,
 ;; with all stuff below hidden.  See the Emacs manual for details.

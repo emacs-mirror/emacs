@@ -23,6 +23,10 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
+;; This file has been obsolete since Emacs 21.1.
+
 ;;; Change Log:
 
 ;; Created Sun Mar 10,1985 at 21:35:01 ads and sundar@hernes.ai.mit.edu
@@ -51,8 +55,6 @@
 ;; added caesar-region, rename news-caesar-buffer-body, hacked accordingly
 ;;	tower@gnu.org Nov 21 1986
 ;; added tower@gnu.org 22 Apr 87
-
-;;; Commentary:
 
 ;;; Code:
 

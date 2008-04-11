@@ -6,6 +6,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;;; Code:
 
 (require 'supercite)

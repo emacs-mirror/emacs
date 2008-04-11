@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;;; Code:
 
 ;;;  Original version by John Robinson (jr@bbn-unix.arpa, bbncca!jr), Oct 1985
