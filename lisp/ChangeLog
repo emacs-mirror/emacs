@@ -1,3 +1,25 @@
+2008-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary, holidays):
+	Move custom groups to other files.
+	(holiday-general-holidays, holiday-oriental-holidays)
+	(holiday-local-holidays, holiday-other-holidays, hebrew-holidays-1)
+	(hebrew-holidays-2, hebrew-holidays-3, hebrew-holidays-4)
+	(holiday-hebrew-holidays, holiday-christian-holidays)
+	(holiday-islamic-holidays, holiday-bahai-holidays)
+	(holiday-solar-holidays, calendar-holidays): Move to holidays.el.
+	* calendar/diary-lib.el: Move custom group here from calendar.el.
+	* calendar/holidays-lib.el: Move custom group and variables here
+	from calendar.el.
+
+	* calendar/cal-china.el (calendar-chinese-time-zone): Mark as risky.
+
+	* calendar/cal-dst.el (calendar-dst-check-each-year-flag):
+	Fix custom group.
+	(calendar-current-time-zone-cache): Autoload riskiness.
+
+	* calendar/cal-tex.el (cal-tex-preamble-extra): Fix custom type.
+
 2008-04-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* woman.el (woman2-TH): Use string-equal instead of string-match.
