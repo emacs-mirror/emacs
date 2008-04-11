@@ -160,14 +160,14 @@ If you want to force an empty list of arguments, use t."
 
 (defun vc-svn-after-dir-status (callback)
   (let ((state-map '((?A . added)
-                    (?C . conflict)
-                    (?D . removed)
-                    (?I . ignored)
-                    (?M . edited)
-                    (?R . removed)
-                    (?? . unregistered)
-                    ;; This is what vc-svn-parse-status does.
-                    (?~ . edited)))
+                     (?C . conflict)
+                     (?D . removed)
+                     (?I . ignored)
+                     (?M . edited)
+                     (?R . removed)
+                     (?? . unregistered)
+                     ;; This is what vc-svn-parse-status does.
+                     (?~ . edited)))
        result)
     (goto-char (point-min))
     (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
@@ -175,7 +175,7 @@ If you want to force an empty list of arguments, use t."
            (filename (match-string 2)))
        (when state
          (setq result (cons (list filename state) result)))))
-    (funcall callback result buffer)))
+    (funcall callback result)))
 
 (defun vc-svn-dir-status (dir callback)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
