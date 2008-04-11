@@ -1,7 +1,6 @@
 2008-04-11  Chong Yidong  <cyd@stupidchicken.com>
 
-	* woman.el (woman2-TH): Quote search string argument to
-	string-match.
+	* woman.el (woman2-TH): Use string-equal instead of string-match.
 
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
