@@ -1,3 +1,8 @@
+2008-04-11  Mirko Vukovic  <mirko.vukovic@gmail.com>  (tiny change)
+
+	* maintaining.texi (Maintaining):
+	* emacs.texi (Top): Typo.
+
 2008-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
