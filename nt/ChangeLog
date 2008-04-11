@@ -1,3 +1,9 @@
+2008-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ALL): Move $(CLIENTRES) from here...
+	(all): ...to here.  $(ALL) is a prerequisite of .PHONY, so having
+	a real file there is not a good idea.
+
 2008-04-10  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.rc: New file.
