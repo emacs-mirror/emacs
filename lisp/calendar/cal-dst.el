@@ -49,7 +49,7 @@ correct, since the dates of daylight saving transitions sometimes
 change."
   :type 'boolean
   :version "22.1"
-  :group 'calendar)
+  :group 'calendar-dst)
 
 ;;;###autoload
 (put 'calendar-daylight-savings-starts 'risky-local-variable t)
@@ -95,7 +95,9 @@ If the locale never uses daylight saving time, set this to nil."
 
 (defvar calendar-current-time-zone-cache nil
   "Cache for result of `calendar-current-time-zone'.")
-(put 'calendar-current-time-zone-cache 'risky-local-variable t) ; why?
+;; It gets eval'd, eg by calendar-dst-starts.
+;;;###autoload
+(put 'calendar-current-time-zone-cache 'risky-local-variable t)
 
 (defvar calendar-system-time-basis
   (calendar-absolute-from-gregorian '(1 1 1970))
@@ -420,6 +422,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 1 0 11 year))))
 
+;; used by calc, solar.
 (defun dst-in-effect (date)
   "True if on absolute DATE daylight saving time is in effect.
 Fractional part of DATE is local standard time of day."
@@ -443,6 +446,7 @@ Fractional part of DATE is local standard time of day."
              (and (<= dst-starts date) (< date dst-ends))
            (or (<= dst-starts date) (< date dst-ends))))))
 
+;; used by calc, lunar, solar.
 (defun dst-adjust-time (date time &optional style)
   "Adjust, to account for dst on DATE, decimal fraction standard TIME.
 Returns a list (date adj-time zone) where `date' and `adj-time' are the values
@@ -457,7 +461,6 @@ Conversion to daylight saving time is done according to
 `calendar-daylight-savings-starts', `calendar-daylight-savings-ends',
 `calendar-daylight-savings-starts-time',
 `calendar-daylight-savings-ends-time', and `calendar-daylight-time-offset'."
-
   (let* ((rounded-abs-date (+ (calendar-absolute-from-gregorian date)
                               (/ (round (* 60 time)) 60.0 24.0)))
          (dst (dst-in-effect rounded-abs-date))
