@@ -144,7 +144,7 @@ At present, this only affects `cal-tex-cursor-day'"
   "A string giving extra LaTeX commands to insert in the calendar preamble.
 For example, to include extra packages:
 \"\\\\usepackage{foo}\\n\\\\usepackage{bar}\\n\"."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'calendar-tex
   :version "22.1")
 
