@@ -1,3 +1,8 @@
+2008-04-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tooltip.el (tooltip-show-help-non-mode): Set message-truncate-lines
+	to t and don't truncate msg.
+
 2008-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary, holidays):
