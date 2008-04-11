@@ -594,15 +594,12 @@ Don't use that together with FILTER."
 	    ;; If a dialog is about to be used, call read-directory-name so
 	    ;; the dialog code knows we want directories.  Some dialogs can
 	    ;; only select directories or files when popped up, not both.
-	    (if (next-read-file-uses-dialog-p)
+	    (let ((default (and buffer-file-name
+				(abbreviate-file-name buffer-file-name))))
+	      (minibuffer-with-setup-hook
+		  (lambda () (setq minibuffer-default default))
 		(read-directory-name (format "Dired %s(directory): " str)
-				     nil default-directory nil)
-	      (let ((default (and buffer-file-name
-				  (abbreviate-file-name buffer-file-name))))
-		(minibuffer-with-setup-hook
-		    (lambda () (setq minibuffer-default default))
-		  (read-file-name (format "Dired %s(directory): " str)
-				  nil default-directory nil)))))))
+				     nil default-directory nil))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload

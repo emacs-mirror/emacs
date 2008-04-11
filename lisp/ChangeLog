@@ -1,5 +1,8 @@
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.el (dired-read-dir-and-switches): Use read-directory-name even
+	for non-dialogs.
+
 	* Makefile.in (bootstrap-prepare): Don't copy ldefs-boot over loaddefs.
 	* loadup.el: Load ldefs-boot.el if loaddefs.el doesn't exist.
 
