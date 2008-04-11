@@ -1,3 +1,8 @@
+2008-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (__MINGW_NOTHROW): If not defined, define to nothing.
+	Add copyright notice.
+
 2008-04-10  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.rc: New file.
