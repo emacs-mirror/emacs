@@ -1,3 +1,9 @@
+2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-apply-resolution-patch): Fix typo.
+	(smerge-resolve): Merge the "2-way refinement" case with one half of
+	the "mere whitespace" resolution.
+
 2008-04-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-after-dir-status): Detect the conflict state.

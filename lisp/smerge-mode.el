@@ -457,7 +457,7 @@ BUF contains a plain diff between match-1 and match-3."
             (with-current-buffer textbuf
               (forward-line (- startline line))
               (insert "<<<<<<< " name1 "\n" othertext
-                      (if name2 (concat "||||||| " name2))
+                      (if name2 (concat "||||||| " name2 "\n"))
                       "=======\n")
               (forward-line lines)
               (insert ">>>>>>> " name3 "\n")
@@ -498,42 +498,48 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
               (error nil))
             ;; Nothing to do: the resolution function has done it already.
             nil)
-	   ;; "Mere whitespace" conflicts.
-	   ((or (and (eq m1e m3e) (eq m1b m3b)) ;Non-conflict.
-		(progn
-		  (setq m (make-temp-file "smm"))
-		  (write-region m1b m1e m nil 'silent)
-		  (setq o (make-temp-file "smo"))
-		  (write-region m3b m3e o nil 'silent)
-                  ;; Same patch applied on both sides, with whitespace changes.
-		  (zerop (call-process diff-command nil nil nil "-b" m o)))
-		(when m2e
-		  (setq b (make-temp-file "smb"))
-		  (write-region m2b m2e b nil 'silent)
-                  ;; Only minor whitespace changes made locally.
-		  (zerop (call-process diff-command nil buf nil "-bc" b m))))
-	    (set-match-data md)
-	    (smerge-keep-n 3))
+           ;; Non-conflict.
+	   ((and (eq m1e m3e) (eq m1b m3b))
+	    (set-match-data md) (smerge-keep-n 3))
            ;; Refine a 2-way conflict using "diff -b".
            ;; In case of a 3-way conflict with an empty base
            ;; (i.e. 2 conflicting additions), we do the same, presuming
            ;; that the 2 additions should be somehow merged rather
            ;; than concatenated.
-	   ((not (or (and m2b (not (eq m2b m2e)))
-                     (eq m1b m1e) (eq m3b m3e)
-                     (let ((lines (count-lines m3b m3e)))
-                       (call-process diff-command nil buf nil "-b" o m)
+	   ((let ((lines (count-lines m3b m3e)))
+              (setq m (make-temp-file "smm"))
+              (write-region m1b m1e m nil 'silent)
+              (setq o (make-temp-file "smo"))
+              (write-region m3b m3e o nil 'silent)
+              (not (or (eq m1b m1e) (eq m3b m3e)
+                       (and (not (zerop (call-process diff-command
+                                                      nil buf nil "-b" o m)))
+                            ;; TODO: We don't know how to do the refinement
+                            ;; if there's a non-empty ancestor and m1 and m3
+                            ;; aren't just plain equal.
+                            m2b (not (eq m2b m2e)))
                        (with-current-buffer buf
                          (goto-char (point-min))
                          ;; Make sure there's some refinement.
                          (looking-at
                           (concat "1," (number-to-string lines) "c"))))))
             (smerge-apply-resolution-patch buf m0b m0e m3b m3e m2b))
+	   ;; "Mere whitespace changes" conflicts.
+           ((when m2e
+              (setq b (make-temp-file "smb"))
+              (write-region m2b m2e b nil 'silent)
+              (with-current-buffer buf (erase-buffer))
+              ;; Only minor whitespace changes made locally.
+              ;; BEWARE: pass "-c" 'cause the output is reused in the next test.
+              (zerop (call-process diff-command nil buf nil "-bc" b m)))
+            (set-match-data md)
+	    (smerge-keep-n 3))
 	   ;; Try "diff -b BASE MINE | patch OTHER".
 	   ((when (and (not safe) m2e b
                        ;; If the BASE is empty, this would just concatenate
                        ;; the two, which is rarely right.
                        (not (eq m2b m2e)))
+              ;; BEWARE: we're using here the patch of the previous test.
 	      (with-current-buffer buf
 		(zerop (call-process-region
 			(point-min) (point-max) "patch" t nil nil
