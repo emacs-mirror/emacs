@@ -33,6 +33,403 @@
 (require 'calendar)
 (require 'hol-loaddefs)
 
+(defgroup holidays nil
+  "Holidays support in calendar."
+  :group 'calendar
+  :prefix "holidays-"
+  :group 'local)
+
+;; The various holiday variables are autoloaded because people
+;; are used to using them to set calendar-holidays without having to
+;; explicitly load this file.
+
+;;;###autoload
+(defcustom holiday-general-holidays
+  '((holiday-fixed 1 1 "New Year's Day")
+    (holiday-float 1 1 3 "Martin Luther King Day")
+    (holiday-fixed 2 2 "Groundhog Day")
+    (holiday-fixed 2 14 "Valentine's Day")
+    (holiday-float 2 1 3 "President's Day")
+    (holiday-fixed 3 17 "St. Patrick's Day")
+    (holiday-fixed 4 1 "April Fools' Day")
+    (holiday-float 5 0 2 "Mother's Day")
+    (holiday-float 5 1 -1 "Memorial Day")
+    (holiday-fixed 6 14 "Flag Day")
+    (holiday-float 6 0 3 "Father's Day")
+    (holiday-fixed 7 4 "Independence Day")
+    (holiday-float 9 1 1 "Labor Day")
+    (holiday-float 10 1 2 "Columbus Day")
+    (holiday-fixed 10 31 "Halloween")
+    (holiday-fixed 11 11 "Veteran's Day")
+    (holiday-float 11 4 4 "Thanksgiving"))
+  "General holidays.  Default value is for the United States.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-general-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'general-holidays
+  'holiday-general-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-oriental-holidays
+  '((holiday-chinese-new-year))
+  "Oriental holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-oriental-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'oriental-holidays
+  'holiday-oriental-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-local-holidays nil
+  "Local holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-local-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'local-holidays 'holiday-local-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-other-holidays nil
+  "User defined holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-other-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'other-holidays 'holiday-other-holidays "23.1")
+
+;;;###autoload
+(defvar hebrew-holidays-1
+  '((holiday-hebrew-rosh-hashanah)
+    (if calendar-hebrew-all-holidays-flag
+        (holiday-julian
+         11
+         (let ((m displayed-month)
+               (y displayed-year)
+               year)
+           (calendar-increment-month m y -1)
+           (setq year (calendar-extract-year
+                       (calendar-julian-from-absolute
+                        (calendar-absolute-from-gregorian (list m 1 y)))))
+           (if (zerop (% (1+ year) 4))
+               22
+             21)) "\"Tal Umatar\" (evening)")))
+  "Component of the old default value of `holiday-hebrew-holidays'.")
+;;;###autoload
+(put 'hebrew-holidays-1 'risky-local-variable t)
+(make-obsolete-variable 'hebrew-holidays-1 'hebrew-holidays "23.1")
+
+;;;###autoload
+(defvar hebrew-holidays-2
+  '((holiday-hebrew-hanukkah) ; respects calendar-hebrew-all-holidays-flag
+    (if calendar-hebrew-all-holidays-flag
+      (holiday-hebrew
+       10
+       (let ((h-year (calendar-extract-year
+                      (calendar-hebrew-from-absolute
+                       (calendar-absolute-from-gregorian
+                        (list displayed-month 28 displayed-year))))))
+         (if (= 6 (% (calendar-hebrew-to-absolute (list 10 10 h-year))
+                     7))
+             11 10))
+       "Tzom Teveth"))
+    (if calendar-hebrew-all-holidays-flag
+        (holiday-hebrew 11 15 "Tu B'Shevat")))
+  "Component of the old default value of `holiday-hebrew-holidays'.")
+;;;###autoload
+(put 'hebrew-holidays-2 'risky-local-variable t)
+(make-obsolete-variable 'hebrew-holidays-2 'hebrew-holidays "23.1")
+
+;;;###autoload
+(defvar hebrew-holidays-3
+  '((if calendar-hebrew-all-holidays-flag
+        (holiday-hebrew
+         11
+         (let* ((m displayed-month)
+                (y displayed-year)
+                (h-year (progn
+                          (calendar-increment-month m y 1)
+                          (calendar-extract-year
+                           (calendar-hebrew-from-absolute
+                            (calendar-absolute-from-gregorian
+                             (list m (calendar-last-day-of-month m y) y))))))
+                (s-s
+                 (calendar-hebrew-from-absolute
+                  (if (= 6
+                         (% (calendar-hebrew-to-absolute
+                             (list 7 1 h-year))
+                            7))
+                      (calendar-dayname-on-or-before
+                       6 (calendar-hebrew-to-absolute
+                          (list 11 17 h-year)))
+                    (calendar-dayname-on-or-before
+                     6 (calendar-hebrew-to-absolute
+                        (list 11 16 h-year))))))
+                (day (calendar-extract-day s-s)))
+           day)
+         "Shabbat Shirah")))
+  "Component of the old default value of `holiday-hebrew-holidays'.")
+;;;###autoload
+(put 'hebrew-holidays-3 'risky-local-variable t)
+(make-obsolete-variable 'hebrew-holidays-3 'hebrew-holidays "23.1")
+
+;;;###autoload
+(defvar hebrew-holidays-4
+  '((holiday-hebrew-passover)
+    (and calendar-hebrew-all-holidays-flag
+         (let* ((m displayed-month)
+                (y displayed-year)
+                (year (progn
+                        (calendar-increment-month m y -1)
+                        (calendar-extract-year
+                         (calendar-julian-from-absolute
+                          (calendar-absolute-from-gregorian (list m 1 y)))))))
+           (= 21 (% year 28)))
+         (holiday-julian 3 26 "Kiddush HaHamah"))
+    (if calendar-hebrew-all-holidays-flag
+        (holiday-hebrew-tisha-b-av)))
+    "Component of the old default value of `holiday-hebrew-holidays'.")
+;;;###autoload
+(put 'hebrew-holidays-4 'risky-local-variable t)
+(make-obsolete-variable 'hebrew-holidays-4 'hebrew-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-hebrew-holidays
+  '((holiday-hebrew-passover)
+    (holiday-hebrew-rosh-hashanah)
+    (holiday-hebrew-hanukkah)
+    (if calendar-hebrew-all-holidays-flag
+        (append
+         (holiday-hebrew-tisha-b-av)
+         (holiday-hebrew-misc))))
+  "Jewish holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :version "23.1"            ; removed dependency on hebrew-holidays-N
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-hebrew-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'hebrew-holidays
+  'holiday-hebrew-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-christian-holidays
+  '((holiday-easter-etc)    ; respects calendar-christian-all-holidays-flag
+    (holiday-fixed 12 25 "Christmas")
+    (if calendar-christian-all-holidays-flag
+        (append
+         (holiday-fixed 1 6 "Epiphany")
+         (holiday-julian 12 25 "Eastern Orthodox Christmas")
+         (holiday-greek-orthodox-easter)
+         (holiday-fixed 8 15 "Assumption")
+         (holiday-advent 0 "Advent"))))
+  "Christian holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-christian-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'christian-holidays
+  'holiday-christian-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-islamic-holidays
+  '((holiday-islamic-new-year)
+    (holiday-islamic 9 1 "Ramadan Begins")
+    (if calendar-islamic-all-holidays-flag
+        (append
+         (holiday-islamic 1 10 "Ashura")
+         (holiday-islamic 3 12 "Mulad-al-Nabi")
+         (holiday-islamic 7 26 "Shab-e-Mi'raj")
+         (holiday-islamic 8 15 "Shab-e-Bara't")
+         (holiday-islamic 9 27 "Shab-e Qadr")
+         (holiday-islamic 10 1 "Id-al-Fitr")
+         (holiday-islamic 12 10 "Id-al-Adha"))))
+  "Islamic holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-islamic-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'islamic-holidays
+  'holiday-islamic-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-bahai-holidays
+  '((holiday-bahai-new-year)
+    (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
+    (holiday-fixed  5 23 "Declaration of the Bab")
+    (holiday-fixed  5 29 "Ascension of Baha'u'llah")
+    (holiday-fixed  7  9 "Martyrdom of the Bab")
+    (holiday-fixed 10 20 "Birth of the Bab")
+    (holiday-fixed 11 12 "Birth of Baha'u'llah")
+    (if calendar-bahai-all-holidays-flag
+        (append
+         (holiday-fixed 11 26 "Day of the Covenant")
+         (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha"))))
+  "Baha'i holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-bahai-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'bahai-holidays 'holiday-bahai-holidays "23.1")
+
+;;;###autoload
+(defcustom holiday-solar-holidays
+  '((solar-equinoxes-solstices)
+    (holiday-sexp calendar-daylight-savings-starts
+                  (format "Daylight Saving Time Begins %s"
+                          (solar-time-string
+                           (/ calendar-daylight-savings-starts-time (float 60))
+                           calendar-standard-time-zone-name)))
+    (holiday-sexp calendar-daylight-savings-ends
+                  (format "Daylight Saving Time Ends %s"
+                          (solar-time-string
+                           (/ calendar-daylight-savings-ends-time (float 60))
+                           calendar-daylight-time-zone-name))))
+  "Sun-related holidays.
+See the documentation for `calendar-holidays' for details."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'holiday-solar-holidays 'risky-local-variable t)
+;;;###autoload
+(define-obsolete-variable-alias 'solar-holidays 'holiday-solar-holidays "23.1")
+
+;;;###autoload
+(defcustom calendar-holidays
+  (append holiday-general-holidays holiday-local-holidays
+          holiday-other-holidays holiday-christian-holidays
+          holiday-hebrew-holidays holiday-islamic-holidays
+          holiday-bahai-holidays holiday-oriental-holidays
+          holiday-solar-holidays)
+  "List of notable days for the command \\[holidays].
+
+Additional holidays are easy to add to the list, just put them in the
+list `holiday-other-holidays' in your .emacs file.  Similarly, by setting
+any of `holiday-general-holidays', `holiday-local-holidays',
+`holiday-christian-holidays', `holiday-hebrew-holidays',
+`holiday-islamic-holidays', `holiday-bahai-holidays',
+`holiday-oriental-holidays', or `holiday-solar-holidays' to nil in your
+.emacs file, you can eliminate unwanted categories of holidays.
+
+The aforementioned variables control the holiday choices offered
+by the function `holiday-list' when it is called interactively.
+
+They also initialize the default value of `calendar-holidays',
+which is the default list of holidays used by the function
+`holiday-list' in the non-interactive case.  Note that these
+variables have no effect on `calendar-holidays' after it has been
+set (e.g. after the calendar is loaded).  In that case, customize
+`calendar-holidays' directly.
+
+The intention is that (in the US) `holiday-local-holidays' be set in
+site-init.el and `holiday-other-holidays' be set by the user.
+
+Entries on the list are expressions that return (possibly empty) lists of
+items of the form ((month day year) string) of a holiday in the
+three-month period centered around `displayed-month' of `displayed-year'.
+Several basic functions are provided for this purpose:
+
+    (holiday-fixed MONTH DAY STRING) is a fixed date on the Gregorian calendar
+    (holiday-float MONTH DAYNAME K STRING &optional day) is the Kth DAYNAME in
+                               MONTH on the Gregorian calendar (0 for Sunday,
+                               etc.); K<0 means count back from the end of the
+                               month.  An optional parameter DAY means the Kth
+                               DAYNAME after/before MONTH DAY.
+    (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
+    (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
+    (holiday-bahai MONTH DAY STRING)   a fixed date on the Baha'i calendar
+    (holiday-julian MONTH DAY STRING)  a fixed date on the Julian calendar
+    (holiday-sexp SEXP STRING) SEXP is a Gregorian-date-valued expression
+                               in the variable `year'; if it evaluates to
+                               a visible date, that's the holiday; if it
+                               evaluates to nil, there's no holiday.  STRING
+                               is an expression in the variable `date'.
+
+For example, to add Bastille Day, celebrated in France on July 14, add
+
+     (holiday-fixed 7 14 \"Bastille Day\")
+
+to the list.  To add Hurricane Supplication Day, celebrated in the Virgin
+Islands on the fourth Monday in August, add
+
+     (holiday-float 8 1 4 \"Hurricane Supplication Day\")
+
+to the list (the last Monday would be specified with `-1' instead of `4').
+To add the last day of Hanukkah to the list, use
+
+     (holiday-hebrew 10 2 \"Last day of Hanukkah\")
+
+since the Hebrew months are numbered with 1 starting from Nisan.
+To add the Islamic feast celebrating Mohammed's birthday, use
+
+     (holiday-islamic 3 12 \"Mohammed's Birthday\")
+
+since the Islamic months are numbered from 1 starting with Muharram.
+To add an entry for the Baha'i festival of Ridvan, use
+
+     (holiday-bahai 2 13 \"Festival of Ridvan\")
+
+since the Baha'i months are numbered from 1 starting with Baha.
+To add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
+
+     (holiday-julian 4 2 \"Jefferson's Birthday\")
+
+To include a holiday conditionally, use the sexp form or a conditional.  For
+example, to include American presidential elections, which occur on the first
+Tuesday after the first Monday in November of years divisible by 4, add
+
+     (holiday-sexp
+       '(if (zerop (% year 4))
+           (calendar-gregorian-from-absolute
+             (1+ (calendar-dayname-on-or-before
+                   1 (+ 6 (calendar-absolute-from-gregorian
+                            (list 11 1 year)))))))
+       \"US Presidential Election\")
+
+or
+
+     (if (zerop (% displayed-year 4))
+         (holiday-fixed 11
+                (calendar-extract-day
+                 (calendar-gregorian-from-absolute
+                  (1+ (calendar-dayname-on-or-before
+                       1 (+ 6 (calendar-absolute-from-gregorian
+                               (list 11 1 displayed-year)))))))
+                \"US Presidential Election\"))
+
+to the list.  To include the phases of the moon, add
+
+     (lunar-phases)
+
+to the holiday list, where `lunar-phases' is an Emacs-Lisp function that
+you've written to return a (possibly empty) list of the relevant VISIBLE dates
+with descriptive strings such as
+
+     (((2 6 1989) \"New Moon\") ((2 12 1989) \"First Quarter Moon\") ... )."
+  :type 'sexp
+  :group 'holidays)
+;;;###autoload
+(put 'calendar-holidays 'risky-local-variable t)
+
+;;; End of user options.
+
+
 ;; FIXME name that makes sense
 ;;;###diary-autoload
 (defun calendar-holiday-list ()
