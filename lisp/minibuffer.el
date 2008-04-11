@@ -80,7 +80,7 @@ from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR.
 
 You should give VAR a non-nil `risky-local-variable' property."
-  (declare (debug (symbol lambda-expr)))
+  (declare (debug (symbolp lambda-expr)))
   (let ((str (make-symbol "string")))
     `(completion-table-dynamic
       (lambda (,str)

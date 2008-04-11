@@ -1,3 +1,7 @@
+2008-04-11  Johan Bockgård  <bojohan@gnu.org>
+
+	* minibuffer.el (lazy-completion-table): Fix debug spec.
+
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (complete-with-action, lazy-completion-table):
