@@ -1,6 +1,6 @@
 2008-04-11  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (Vector and Matrix Arithmetic):
+	* calc.texi (Vector and Matrix Arithmetic, Calc Summary):
 	Add mention of `kron'.
 
 2008-04-01  Daiki Ueno  <ueno@unixuser.org>
