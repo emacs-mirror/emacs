@@ -1,5 +1,9 @@
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (fill-forward-paragraph-function): New var.
+	(fill-forward-paragraph): New fun.
+	(fill-paragraph, fill-region): Use it.
+
 	* vc.el: Change `dir-status' to not take (and pass) status-buffer.
 	(vc-status-create-fileinfo): Make `extra' optional.
 	(vc-status-busy): New fun.

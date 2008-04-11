@@ -53,7 +53,10 @@ A value of nil means that any change in indentation starts a new paragraph."
 (defvar fill-paragraph-function nil
   "Mode-specific function to fill a paragraph, or nil if there is none.
 If the function returns nil, then `fill-paragraph' does its normal work.
-A value of t means explicitly \"do nothing special\".")
+A value of t means explicitly \"do nothing special\".
+Note: This only affects `fill-paragraph' and not `fill-region'
+nor `auto-fill-mode', so it is often better to use some other hook,
+such as `fill-forward-paragraph-function'.")
 
 (defvar fill-paragraph-handle-comment t
   "Non-nil means paragraph filling will try to pay attention to comments.")
@@ -757,6 +760,15 @@ space does not end a sentence, so don't break a line there."
     (narrow-to-region (minibuffer-prompt-end) (point-max))
     (fill-paragraph arg)))
 
+(defvar fill-forward-paragraph-function 'forward-paragraph
+  "Function to move over paragraphs used by the filling code.
+It is called with a single argument specifying the number of paragraphs to move.
+Just like `forward-paragraph', it should return the number of paragraphs
+left to move.")
+
+(defun fill-forward-paragraph (arg)
+  (funcall fill-forward-paragraph-function arg))
+
 (defun fill-paragraph (&optional justify region)
   "Fill paragraph at or after point.
 
@@ -783,37 +795,37 @@ in the active region."
 	(or (fill-region (region-beginning) (region-end) justify) t))
    ;; 2. Try fill-paragraph-function.
    (and (not (eq fill-paragraph-function t))
-	(or fill-paragraph-function
-	    (and (minibufferp (current-buffer))
-		 (= 1 (point-min))))
-	(let ((function (or fill-paragraph-function
-			    ;; In the minibuffer, don't count the width
-			    ;; of the prompt.
-			    'fill-minibuffer-function))
-	      ;; If fill-paragraph-function is set, it probably takes care
-	      ;; of comments and stuff.  If not, it will have to set
-	      ;; fill-paragraph-handle-comment back to t explicitly or
-	      ;; return nil.
-	      (fill-paragraph-handle-comment nil)
-	      (fill-paragraph-function t))
-	  (funcall function justify)))
+        (or fill-paragraph-function
+            (and (minibufferp (current-buffer))
+                 (= 1 (point-min))))
+        (let ((function (or fill-paragraph-function
+                            ;; In the minibuffer, don't count the width
+                            ;; of the prompt.
+                            'fill-minibuffer-function))
+              ;; If fill-paragraph-function is set, it probably takes care
+              ;; of comments and stuff.  If not, it will have to set
+              ;; fill-paragraph-handle-comment back to t explicitly or
+              ;; return nil.
+              (fill-paragraph-handle-comment nil)
+              (fill-paragraph-function t))
+          (funcall function justify)))
    ;; 3. Try our syntax-aware filling code.
    (and fill-paragraph-handle-comment
-	;; Our code only handles \n-terminated comments right now.
-	comment-start (equal comment-end "")
-	(let ((fill-paragraph-handle-comment nil))
-	  (fill-comment-paragraph justify)))
+        ;; Our code only handles \n-terminated comments right now.
+        comment-start (equal comment-end "")
+        (let ((fill-paragraph-handle-comment nil))
+          (fill-comment-paragraph justify)))
    ;; 4. If it all fails, default to the good ol' text paragraph filling.
    (let ((before (point))
-	 (paragraph-start paragraph-start)
-	 ;; Fill prefix used for filling the paragraph.
-	 fill-pfx)
+         (paragraph-start paragraph-start)
+         ;; Fill prefix used for filling the paragraph.
+         fill-pfx)
      ;; Try to prevent code sections and comment sections from being
      ;; filled together.
      (when (and fill-paragraph-handle-comment comment-start-skip)
        (setq paragraph-start
-	     (concat paragraph-start "\\|[ \t]*\\(?:"
-		     comment-start-skip "\\)")))
+             (concat paragraph-start "\\|[ \t]*\\(?:"
+                     comment-start-skip "\\)")))
      (save-excursion
        ;; To make sure the return value of forward-paragraph is meaningful,
        ;; we have to start from the beginning of line, otherwise skipping
@@ -821,19 +833,19 @@ in the active region."
        ;; a paragraph (and not skipping any chars at EOB would not count
        ;; as a paragraph even if it is).
        (move-to-left-margin)
-       (if (not (zerop (forward-paragraph)))
-	   ;; There's no paragraph at or after point: give up.
-	   (setq fill-pfx "")
-	 (let ((end (point))
-	       (beg (progn (backward-paragraph) (point))))
-	   (goto-char before)
-	   (setq fill-pfx
-		 (if use-hard-newlines
-		     ;; Can't use fill-region-as-paragraph, since this
-		     ;; paragraph may still contain hard newlines.  See
-		     ;; fill-region.
-		     (fill-region beg end justify)
-		   (fill-region-as-paragraph beg end justify))))))
+       (if (not (zerop (fill-forward-paragraph 1)))
+           ;; There's no paragraph at or after point: give up.
+           (setq fill-pfx "")
+         (let ((end (point))
+               (beg (progn (fill-forward-paragraph -1) (point))))
+           (goto-char before)
+           (setq fill-pfx
+                 (if use-hard-newlines
+                     ;; Can't use fill-region-as-paragraph, since this
+                     ;; paragraph may still contain hard newlines.  See
+                     ;; fill-region.
+                     (fill-region beg end justify)
+                   (fill-region-as-paragraph beg end justify))))))
      fill-pfx)))
 
 (declare-function comment-search-forward "newcomment" (limit &optional noerror))
@@ -1002,7 +1014,7 @@ space does not end a sentence, so don't break a line there."
     (goto-char (max from to))
     (when to-eop
       (skip-chars-backward "\n")
-      (forward-paragraph))
+      (fill-forward-paragraph 1))
     (setq max (copy-marker (point) t))
     (goto-char (setq beg (min from to)))
     (beginning-of-line)
@@ -1020,9 +1032,9 @@ space does not end a sentence, so don't break a line there."
 		(goto-char (1+ end)))
 	      (setq end (if end (min max (1+ end)) max))
 	      (goto-char initial))
-	  (forward-paragraph 1)
+	  (fill-forward-paragraph 1)
 	  (setq end (min max (point)))
-	  (forward-paragraph -1))
+	  (fill-forward-paragraph -1))
 	(if (< (point) beg)
 	    (goto-char beg))
 	(if (>= (point) initial)

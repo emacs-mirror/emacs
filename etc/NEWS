@@ -732,6 +732,9 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** `fill-forward-paragraph-function' specifies which function the filling
+code should use to find paragraph boundaries.
+
 ** The variable `this-command-keys-shift-translated' is non-nil if the
 key sequence invoking the current command was found by
 shift-translation.
