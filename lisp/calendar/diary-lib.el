@@ -33,6 +33,11 @@
 (require 'calendar)
 (require 'diary-loaddefs)
 
+(defgroup diary nil
+  "Emacs diary."
+  :prefix "diary-"
+  :group 'calendar)
+
 (defcustom diary-include-string "#include"
   "The string indicating inclusion of another file of diary entries.
 See the documentation for the function `diary-include-other-diary-files'."
@@ -1351,6 +1356,8 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
         (if (bolp) (backward-char 1))
         (setq entry (buffer-substring-no-properties entry-start (point))))
       (setq date (1- first-date))
+      ;; FIXME this loops over all visible dates.
+      ;; Could be optimized in many cases. Depends on whether t or * present.
       (while (<= (setq date (1+ date)) last-date)
         (when (setq mark (diary-sexp-entry
                           sexp entry
