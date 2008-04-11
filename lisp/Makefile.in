@@ -61,6 +61,7 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
+	calc/calc-loaddefs.el \
 	eshell/esh-groups.el
 
 # Files to compile before others during a bootstrap.  This is done to
