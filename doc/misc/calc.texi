@@ -20108,6 +20108,12 @@ The @kbd{V T} (@code{calc-mtrace}) [@code{tr}] command computes the
 trace of a square matrix.  This is defined as the sum of the diagonal
 elements of the matrix.
 
+@kindex V K
+@pindex calc-kron
+@tindex kron
+The @kbd{V K} (@code{calc-kron}) [@code{kron}] command computes
+the Kronecker product of two matrices.
+
 @node Set Operations, Statistical Operations, Vector and Matrix Arithmetic, Matrix Functions
 @section Set Operations using Vectors
 
