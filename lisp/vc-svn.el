@@ -158,7 +158,7 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
-(defun vc-svn-after-dir-status (callback buffer)
+(defun vc-svn-after-dir-status (callback)
   (let ((state-map '((?A . added)
                     (?C . conflict)
                     (?D . removed)
@@ -177,13 +177,13 @@ If you want to force an empty list of arguments, use t."
          (setq result (cons (list filename state) result)))))
     (funcall callback result buffer)))
 
-(defun vc-svn-dir-status (dir callback buffer)
+(defun vc-svn-dir-status (dir callback)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-svn-command (current-buffer) 'async nil "status")
   (vc-exec-after
-   `(vc-svn-after-dir-status (quote ,callback) ,buffer)))
+   `(vc-svn-after-dir-status (quote ,callback))))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."

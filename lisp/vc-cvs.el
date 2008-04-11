@@ -855,7 +855,7 @@ state."
       (forward-line 1))))
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-cvs-after-dir-status (update-function status-buffer)
+(defun vc-cvs-after-dir-status (update-function)
   ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
   ;; It needs a lot of testing.
   (let ((status nil)
@@ -909,14 +909,14 @@ state."
 	      (push (list file status) result))))))
       (goto-char (point-max))
       (widen))
-      (funcall update-function result status-buffer)))
+      (funcall update-function result)))
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-cvs-dir-status (dir update-function status-buffer)
+(defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
   (vc-cvs-command (current-buffer) 'async dir "status")
   (vc-exec-after
-   `(vc-cvs-after-dir-status (quote ,update-function) ,status-buffer)))
+   `(vc-cvs-after-dir-status (quote ,update-function))))
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.

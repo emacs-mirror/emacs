@@ -658,7 +658,7 @@ Optional argument LOCALP is always ignored."
     (vc-default-dired-state-info 'Bzr file)))
 
 ;; XXX: this needs testing, it's probably incomplete. 
-(defun vc-bzr-after-dir-status (update-function status-buffer)
+(defun vc-bzr-after-dir-status (update-function)
   (let ((status-str nil)
 	(file nil)
 	(translation '(("+N" . added)
@@ -693,16 +693,16 @@ Optional argument LOCALP is always ignored."
 		       (line-end-position)) 
 		      translated) result))
 	(forward-line))
-      (funcall update-function result status-buffer)))
+      (funcall update-function result)))
 
 ;; XXX Experimental function for the vc-dired replacement.
 ;; XXX This probably needs some further refinement and testing.
-(defun vc-bzr-dir-status (dir update-function status-buffer)
+(defun vc-bzr-dir-status (dir update-function)
   "Return a list of conses (file . state) for DIR."
   ;; XXX: Is this the right command to use?
   (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
   (vc-exec-after
-   `(vc-bzr-after-dir-status (quote ,update-function) ,status-buffer)))
+   `(vc-bzr-after-dir-status (quote ,update-function))))
 
 ;;; Revision completion
 

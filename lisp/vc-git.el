@@ -313,13 +313,13 @@
 ;; Variable used to keep the intermediate results for vc-git-status.
 (defvar vc-git-status-result nil)
 
-(defun vc-git-after-dir-status-stage2 (update-function status-buffer)
+(defun vc-git-after-dir-status-stage2 (update-function)
   (goto-char (point-min))
   (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
     (push (list (match-string 1) 'unregistered (vc-git-create-extra-fileinfo 0 0)) vc-git-status-result))
-  (funcall update-function (nreverse vc-git-status-result) status-buffer))
+  (funcall update-function (nreverse vc-git-status-result)))
 
-(defun vc-git-after-dir-status-stage1 (update-function status-buffer)
+(defun vc-git-after-dir-status-stage1 (update-function)
   (goto-char (point-min))
   (while (re-search-forward
           ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
@@ -339,9 +339,9 @@
   (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
 		  "--directory" "--no-empty-directory" "--exclude-standard")
   (vc-exec-after
-   `(vc-git-after-dir-status-stage2 (quote ,update-function) ,status-buffer)))
+   `(vc-git-after-dir-status-stage2 (quote ,update-function))))
 
-(defun vc-git-after-dir-status-stage1-empty-db (update-function status-buffer)
+(defun vc-git-after-dir-status-stage1-empty-db (update-function)
   (goto-char (point-min))
   (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
     (let ((new-perm (string-to-number (match-string 1) 8))
@@ -351,9 +351,9 @@
   (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
 		  "--directory" "--no-empty-directory" "--exclude-standard")
   (vc-exec-after
-   `(vc-git-after-dir-status-stage2 (quote ,update-function) ,status-buffer)))
+   `(vc-git-after-dir-status-stage2 (quote ,update-function))))
 
-(defun vc-git-dir-status (dir update-function status-buffer)
+(defun vc-git-dir-status (dir update-function)
   "Return a list of conses (file . state) for DIR."
   ;; Further things that would have to be fixed later:
   ;; - how to handle unregistered directories
@@ -364,10 +364,10 @@
 	(vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-c" "-s")
 	(vc-exec-after
 	 `(vc-git-after-dir-status-stage1-empty-db 
-	   (quote ,update-function) ,status-buffer)))
+	   (quote ,update-function))))
     (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "-M" "HEAD")
     (vc-exec-after
-     `(vc-git-after-dir-status-stage1 (quote ,update-function) ,status-buffer))))
+     `(vc-git-after-dir-status-stage1 (quote ,update-function)))))
 
 (defun vc-git-status-extra-headers (dir)
   (let ((str (with-output-to-string

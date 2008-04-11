@@ -145,7 +145,7 @@ For a description of possible values, see `vc-check-master-templates'."
     (vc-sccs-state file)))
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-sccs-dir-status (dir update-function status-buffer)
+(defun vc-sccs-dir-status (dir update-function)
   ;; XXX: quick hack, there should be a better way to do this,
   ;; but it's not worse than vc-dired :-).
   (let ((flist (vc-expand-dirs (list dir)))
@@ -154,7 +154,7 @@ For a description of possible values, see `vc-check-master-templates'."
       (let ((state (vc-state file))
 	    (frel (file-relative-name file)))
 	(push (list frel state) result)))
-    (funcall update-function result status-buffer)))
+    (funcall update-function result)))
 
 (defun vc-sccs-working-revision (file)
   "SCCS-specific version of `vc-working-revision'."

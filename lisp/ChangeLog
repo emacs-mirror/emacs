@@ -1,5 +1,17 @@
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el: Change `dir-status' to not take (and pass) status-buffer.
+	(vc-status-create-fileinfo): Make `extra' optional.
+	(vc-status-busy): New fun.
+	(vc-status-menu-map): Use it.
+	(vc-status-crt-marked): Remove.
+	(vc-status-update): Rename from vc-status-add-entries.
+	Add argument so as to prevent addition of entries.  Rewrite.
+	(vc-update-vc-status-buffer): Remove.
+	(vc-status-refresh): Don't remove old entries, set them to
+	up-to-date instead.  Also do it after the update is complete.
+	(vc-status-marked-files): η-reduce.
+
 	* dired.el (dired-read-dir-and-switches): Use read-directory-name even
 	for non-dialogs.
 

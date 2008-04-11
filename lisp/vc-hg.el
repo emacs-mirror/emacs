@@ -475,7 +475,7 @@ REV is the revision to check out into WORKFILE."
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-hg-after-dir-status (update-function status-buffer)
+(defun vc-hg-after-dir-status (update-function)
   (let ((status-char nil)
 	(file nil)
 	(translation '((?= . up-to-date)
@@ -498,13 +498,13 @@ REV is the revision to check out into WORKFILE."
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
 	  (push (list file (cdr translated)) result))
 	(forward-line))
-      (funcall update-function result status-buffer)))
+      (funcall update-function result)))
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-hg-dir-status (dir update-function status-buffer)
+(defun vc-hg-dir-status (dir update-function)
   (vc-hg-command (current-buffer) 'async dir "status")
   (vc-exec-after
-   `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer)))
+   `(vc-hg-after-dir-status (quote ,update-function))))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

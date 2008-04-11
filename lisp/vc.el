@@ -168,7 +168,7 @@
 ;;   in older versions this method was not required to recurse into
 ;;   subdirectories.)
 ;;
-;; - dir-status (dir update-function status-buffer)
+;; - dir-status (dir update-function)
 ;;
 ;;   Produce RESULT: a list of lists of the form (FILE VC-STATE EXTRA)
 ;;   for the files in DIR.
@@ -176,11 +176,11 @@
 ;;   If a command needs to be run to compute this list, it should be
 ;;   run asynchronously using (current-buffer) as the buffer for the
 ;;   command.  When RESULT is computed, it should be passed back by
-;;   doing: (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER nil).
+;;   doing: (funcall UPDATE-FUNCTION RESULT nil).
 ;;   If the backend uses a process filter, hence it produces partial results, 
 ;;   they can be passed back by doing:
-;;      (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER t)
-;;   and then do a (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER nil)
+;;      (funcall UPDATE-FUNCTION RESULT t)
+;;   and then do a (funcall UPDATE-FUNCTION RESULT nil)
 ;;   when all the results have been computed.
 ;;   To provide more backend specific functionality for `vc-status'
 ;;   the following functions might be needed: `status-extra-headers',
@@ -582,6 +582,9 @@
 
 ;;; Todo:
 
+;; - vc-status-kill-dir-status-process should not be specific to dir-status,
+;;   it should work for other async commands as well (pull/push/...).
+;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -1438,10 +1441,8 @@ Otherwise, throw an error."
                  (error "All members of a fileset must be under the same version-control system."))))
 	   marked))
         ((eq major-mode 'vc-status-mode)
-         (let ((marked (vc-status-marked-files)))
-           (if marked
-               marked
-             (list (vc-status-current-file)))))
+         (or (vc-status-marked-files)
+             (list (vc-status-current-file))))
  	((vc-backend buffer-file-name)
 	 (list buffer-file-name))
 	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
@@ -2705,14 +2706,16 @@ With prefix arg READ-SWITCHES, specify a value to override
 ;; Each item displayed corresponds to one of these defstructs.
 (defstruct (vc-status-fileinfo
             (:copier nil)
+            (:type list)            ;So we can use `member' on lists of FIs.
             (:constructor
-	     vc-status-create-fileinfo (name state extra &optional marked))
+             ;; We could define it as an alias for `list'.
+	     vc-status-create-fileinfo (name state &optional extra marked))
             (:conc-name vc-status-fileinfo->))
-  marked
+  name                                  ;Keep it as first, for `member'.
   state
-  name
   ;; For storing backend specific information.
-  extra)
+  extra
+  marked)
 
 (defvar vc-status nil)
 
@@ -2804,11 +2807,11 @@ specific headers."
 		  :help "Quit"))
     (define-key map [kill]
       '(menu-item "Kill Update Command" vc-status-kill-dir-status-process
-		  :enable vc-status-process-buffer
+		  :enable (vc-status-busy)
 		  :help "Kill the command that updates VC status buffer"))
     (define-key map [refresh]
       '(menu-item "Refresh" vc-status-refresh
-		  :enable (not vc-status-process-buffer)
+		  :enable (not (vc-status-busy))
 		  :help "Refresh the contents of the VC status buffer"))
     (define-key map [remup]
       '(menu-item "Hide up-to-date" vc-status-hide-up-to-date
@@ -2974,16 +2977,12 @@ specific headers."
 (defvar vc-status-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")
 
-(defvar vc-status-crt-marked nil
-  "The list of marked files before `vc-status-refresh'.")
-
 (defun vc-status-mode ()
   "Major mode for VC status.
 \\{vc-status-mode-map}"
   (setq mode-name "VC Status")
   (setq major-mode 'vc-status-mode)
   (setq buffer-read-only t)
-  (set (make-local-variable 'vc-status-crt-marked) nil)
   (use-local-map vc-status-mode-map)
   (set (make-local-variable 'tool-bar-map) vc-status-tool-bar-map)
   (let ((buffer-read-only nil)
@@ -2999,76 +2998,52 @@ specific headers."
 
 (put 'vc-status-mode 'mode-class 'special)
 
-(defun vc-status-add-entries (entries buffer)
+(defun vc-status-update (entries buffer &optional noinsert)
+  "Update BUFFER's ewoc from the list of ENTRIES.
+If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
   ;; Add ENTRIES to the vc-status buffer BUFFER.
   (with-current-buffer buffer
-    (when entries
-      ;; Insert the entries sorted by name into the ewoc.
-      ;; We assume the ewoc is sorted too, which should be the
-      ;; case if we always add entries with vc-status-add-entries.
-      (setq entries (sort (copy-sequence entries)
-                          (lambda (entry1 entry2)
-                            (string-lessp (car entry1) (car entry2)))))
-      (let ((entry (pop entries))
-            (node (ewoc-nth vc-status 0)))
-        (while entry
-          (while (and vc-status-crt-marked
-                      (string-lessp (car vc-status-crt-marked) (car entry)))
-            (setq vc-status-crt-marked (cdr vc-status-crt-marked)))
-          (let* ((file (car entry))
-                 (state (nth 1 entry))
-                 (extra (nth 2 entry))
-                 (marked (and vc-status-crt-marked
-                              (string-equal (car vc-status-crt-marked) file))))
-            (cond ((not node)
-                   (setq node (ewoc-enter-last vc-status
-                                               (vc-status-create-fileinfo file state extra marked)))
-                   (setq entry (pop entries)))
-                  ((string-lessp (vc-status-fileinfo->name (ewoc-data node)) file)
-                   (setq node (ewoc-next vc-status node)))
-                  ((string-equal (vc-status-fileinfo->name (ewoc-data node)) file)
-                   (setf (vc-status-fileinfo->state (ewoc-data node)) state)
-                   (setf (vc-status-fileinfo->extra (ewoc-data node)) extra)
-                   (ewoc-invalidate vc-status node)
-                   (setq entry (pop entries)))
-                  (t
-                   (setq node (ewoc-enter-before vc-status node
-                                                 (vc-status-create-fileinfo file state extra marked)))
-                   (setq entry (pop entries))))))))))
+    ;; Insert the entries sorted by name into the ewoc.
+    ;; We assume the ewoc is sorted too, which should be the
+    ;; case if we always add entries with vc-status-update.
+    (setq entries (sort entries
+                        (lambda (entry1 entry2)
+                          (string-lessp (car entry1) (car entry2)))))
+    (let ((entry (car entries))
+           (node (ewoc-nth vc-status 0)))
+      (while (and entry node)
+        (let ((entryfile (car entry))
+              (nodefile (vc-status-fileinfo->name (ewoc-data node))))
+          (cond
+           ((string-lessp nodefile entryfile)
+            (setq node (ewoc-next vc-status node)))
+           ((string-lessp nodefile entryfile)
+            (unless noinsert
+              (ewoc-enter-before vc-status node
+                                 (apply 'vc-status-create-fileinfo entry)))
+            (setq entries (cdr entries) entry (car entries)))
+           (t
+            (setf (vc-status-fileinfo->state (ewoc-data node)) (nth 1 entry))
+            (setf (vc-status-fileinfo->extra (ewoc-data node)) (nth 2 entry))
+            (ewoc-invalidate vc-status node)
+            (setq entries (cdr entries) entry (car entries))
+            (setq node (ewoc-next vc-status node))))))
+      (unless (or node noinsert)
+        ;; We're past the last node, all remaining entries go to the end.
+        (while entries
+          (ewoc-enter-last vc-status
+                           (apply 'vc-status-create-fileinfo (pop entries))))))))
 
-(defun vc-update-vc-status-buffer (entries buffer &optional more-to-come)
-  ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
-  ;; BUFFER is the *vc-status* buffer to be updated with ENTRIES
-  ;; If MORE-TO-COME is true, then more updates will come from the
-  ;; asynchronous process.
-  (with-current-buffer buffer
-    (when entries
-      (vc-status-add-entries entries buffer)
-      (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
-    ;; No more updates are expected from the asynchronous process.
-    (unless more-to-come
-      (setq vc-status-process-buffer nil)
-      ;; We are done, turn off the mode-line "in progress" message.
-      (setq mode-line-process nil))))
+(defun vc-status-busy ()
+  (and (buffer-live-p vc-status-process-buffer)
+       (get-buffer-process vc-status-process-buffer)))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer.
 Throw an error if another update process is in progress."
   (interactive)
-  (if vc-status-process-buffer
+  (if (vc-status-busy)
       (error "Another update process is in progress, cannot run two at a time")
-    ;; We clear the ewoc, but remember the marked files so that we can
-    ;; mark them again after the refresh is done.
-    ;; This is not very efficient; ewoc could use a new function here.
-    (setq vc-status-crt-marked
-	  (mapcar
-	   (lambda (elem)
-	     (vc-status-fileinfo->name elem))
-	   (ewoc-collect
-	    vc-status
-	    (lambda (crt) (vc-status-fileinfo->marked crt)))))
-    (ewoc-filter vc-status (lambda (node) nil))
-
     (let ((backend (vc-responsible-backend default-directory))
 	  (status-buffer (current-buffer))
 	  (def-dir default-directory))
@@ -3084,14 +3059,35 @@ Throw an error if another update process is in progress."
       ;; `vc-status-process-buffer' to remember this buffer, so that
       ;; it can be used later to kill the update process in case it
       ;; takes too long.
-      (setq vc-status-process-buffer
-	    (get-buffer-create
-	     (generate-new-buffer-name (format " *VC-%s* tmp status" backend))))
-      (with-current-buffer vc-status-process-buffer
-	(cd def-dir)
-	(erase-buffer)
-	(vc-call-backend backend 'dir-status def-dir
-			 #'vc-update-vc-status-buffer status-buffer)))))
+      (unless (buffer-live-p vc-status-process-buffer)
+        (setq vc-status-process-buffer
+              (generate-new-buffer (format " *VC-%s* tmp status" backend))))
+      (lexical-let ((oldentries (ewoc-collect vc-status (lambda (_) t)))
+                    (buffer (current-buffer)))
+        (with-current-buffer vc-status-process-buffer
+          (cd def-dir)
+          (erase-buffer)
+          (vc-call-backend
+           backend 'dir-status def-dir
+           (lambda (entries &optional more-to-come)
+             ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
+             ;; If MORE-TO-COME is true, then more updates will come from
+             ;; the asynchronous process.
+             (with-current-buffer buffer
+               (dolist (entry entries)
+                 (setq oldentries
+                       (delq (member (car entry) oldentries) oldentries)))
+               (vc-status-update entries buffer)
+               (ewoc-goto-node vc-status (ewoc-nth vc-status 0))
+               ;; No more updates are expected from the asynchronous process.
+               (unless more-to-come
+                 ;; We are done, turn off the mode-line "in progress" message.
+                 (setq mode-line-process nil)
+                 ;; Update old entries that were not mentioned, and were
+                 ;; hence implicitly given as uptodate.
+                 (dolist (entry oldentries)
+                   (setf (vc-status-fileinfo->state entry) 'up-to-date))
+                 (vc-status-update oldentries buffer 'noinsert))))))))))
 
 (defun vc-status-kill-dir-status-process ()
   "Kill the temporary buffer and associated process."
@@ -3236,10 +3232,9 @@ that share the same state."
 (defun vc-status-register ()
   "Register the marked files, or the current file if no marks."
   (interactive)
-  (let ((files (or (vc-status-marked-files)
-		   (list (vc-status-current-file)))))
-    (dolist (file files)
-      (vc-register file))))
+  ;; FIXME: Just pass the fileset to vc-register.
+  (mapc 'vc-register (or (vc-status-marked-files)
+                         (list (vc-status-current-file)))))
 
 (defun vc-status-find-file ()
   "Find the file on the current line."
@@ -3260,11 +3255,8 @@ that share the same state."
 (defun vc-status-marked-files ()
   "Return the list of marked files"
   (mapcar
-   (lambda (elem)
-     (expand-file-name (vc-status-fileinfo->name elem)))
-   (ewoc-collect
-    vc-status
-    (lambda (crt) (vc-status-fileinfo->marked crt)))))
+   (lambda (elem) (expand-file-name (vc-status-fileinfo->name elem)))
+   (ewoc-collect vc-status 'vc-status-fileinfo->marked)))
 
 (defun vc-status-hide-up-to-date ()
   "Hide up-to-date items from display."
@@ -3297,7 +3289,7 @@ that share the same state."
 			 (vc-call-backend backend 'status-fileinfo-extra file)))
 		   (entry
 		    (list file-short (if state state 'unregistered) extra)))
-		(vc-status-add-entries (list entry) status-buf))))))
+		(vc-status-update (list entry) status-buf))))))
       ;; We didn't find any vc-status buffers, remove the hook, it is
       ;; not needed.
       (unless found-vc-status-buf (remove-hook 'after-save-hook 'vc-status-mark-buffer-changed)))))
