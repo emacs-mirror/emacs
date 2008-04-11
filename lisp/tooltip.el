@@ -316,21 +316,12 @@ the buffer of PROCESS."
 (defvar tooltip-help-message nil
   "The last help message received via `tooltip-show-help'.")
 
-(defun tooltip-trunc-str (str maxlen pieces)
-  (let ((s (car pieces)))
-    (if (and pieces (< (+ (length str) (length s) 2) maxlen))
-      (tooltip-trunc-str (concat str 
-				 (if (> (length str) 0) ", "  "") 
-				 s)
-			 maxlen (cdr pieces))
-      (if (> (length str) 0) str s))))
-
 (defun tooltip-show-help-non-mode (msg)
   "Function installed as `show-help-function' when tooltip is off."
-  (message "%s" (if msg
-		    (tooltip-trunc-str "" (frame-parameter nil 'width)
-				       (split-string msg "\n" t))
-		  "")))
+  (let ((message-truncate-lines t))
+    (message "%s" (if msg
+		      (replace-regexp-in-string "\n" ", " msg)
+		    ""))))
 
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
