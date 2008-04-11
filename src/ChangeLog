@@ -1,3 +1,7 @@
+2008-04-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1140000.
+
 2008-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* fileio.c (Fmake_symbolic_link): Surround code by #ifdef S_IFLNK
