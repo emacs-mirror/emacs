@@ -1,3 +1,7 @@
+2008-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove hpux10.20 from the desupported list.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
