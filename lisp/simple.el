@@ -5451,14 +5451,6 @@ Called from `temp-buffer-show-hook'."
 
 (add-hook 'temp-buffer-show-hook 'completion-list-mode-finish)
 
-(defvar completion-setup-hook nil
-  "Normal hook run at the end of setting up a completion list buffer.
-When this hook is run, the current buffer is the one in which the
-command to display the completion list buffer was run.
-The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the
-value of `completion-common-substring'. See also `display-completion-list'.")
-
 
 ;; Variables and faces used in `completion-setup-function'.
 

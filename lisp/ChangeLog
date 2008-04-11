@@ -1,3 +1,17 @@
+2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (complete-with-action, lazy-completion-table):
+	Move from subr.el.
+	(apply-partially, completion-table-dynamic)
+	(completion-table-with-context, completion-table-with-terminator)
+	(completion-table-in-turn): New funs.
+	(completion--make-envvar-table, completion--embedded-envvar-table):
+	New funs.
+	(read-file-name-internal): Use them.
+	(completion-setup-hook): Move from simple.el.
+	* subr.el (complete-with-action, lazy-completion-table):
+	* simple.el (completion-setup-hook): Move to minibuffer.el.
+
 2008-04-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (AUTOGENEL): Add calc/calc-loaddefs.el.

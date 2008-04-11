@@ -24,13 +24,101 @@
 ;; Names starting with "minibuffer--" are for functions and variables that
 ;; are meant to be for internal use only.
 
-;; TODO:
-;; - merge do-completion and complete-word
-;; - move all I/O out of do-completion
+;; BUGS:
+;; - envvar completion for file names breaks completion-base-size.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+;;; Completion table manipulation
+
+(defun apply-partially (fun &rest args)
+  (lexical-let ((fun fun) (args1 args))
+    (lambda (&rest args2) (apply fun (append args1 args2)))))
+
+(defun complete-with-action (action table string pred)
+  "Perform completion ACTION.
+STRING is the string to complete.
+TABLE is the completion table, which should not be a function.
+PRED is a completion predicate.
+ACTION can be one of nil, t or `lambda'."
+  ;; (assert (not (functionp table)))
+  (funcall
+   (cond
+    ((null action) 'try-completion)
+    ((eq action t) 'all-completions)
+    (t 'test-completion))
+   string table pred))
+
+(defun completion-table-dynamic (fun)
+  "Use function FUN as a dynamic completion table.
+FUN is called with one argument, the string for which completion is required,
+and it should return an alist containing all the intended possible
+completions.  This alist may be a full list of possible completions so that FUN
+can ignore the value of its argument.  If completion is performed in the
+minibuffer, FUN will be called in the buffer from which the minibuffer was
+entered.
+
+The result of the `dynamic-completion-table' form is a function
+that can be used as the ALIST argument to `try-completion' and
+`all-completion'.  See Info node `(elisp)Programmed Completion'."
+  (lexical-let ((fun fun))
+    (lambda (string pred action)
+      (with-current-buffer (let ((win (minibuffer-selected-window)))
+                             (if (window-live-p win) (window-buffer win)
+                               (current-buffer)))
+        (complete-with-action action (funcall fun string) string pred)))))
+
+(defmacro lazy-completion-table (var fun)
+  "Initialize variable VAR as a lazy completion table.
+If the completion table VAR is used for the first time (e.g., by passing VAR
+as an argument to `try-completion'), the function FUN is called with no
+arguments.  FUN must return the completion table that will be stored in VAR.
+If completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered.  The return value of
+`lazy-completion-table' must be used to initialize the value of VAR.
+
+You should give VAR a non-nil `risky-local-variable' property."
+  (declare (debug (symbol lambda-expr)))
+  (let ((str (make-symbol "string")))
+    `(completion-table-dynamic
+      (lambda (,str)
+        (when (functionp ,var)
+          (setq ,var (,fun)))
+        ,var))))
+
+(defun completion-table-with-context (prefix table string pred action)
+  ;; TODO: add `suffix', and think about how we should support `pred'.
+  ;; Notice that `pred' is not a predicate when called from read-file-name.
+  ;; (if pred (setq pred (lexical-let ((pred pred))
+  ;;                       ;; FIXME: this doesn't work if `table' is an obarray.
+  ;;                       (lambda (s) (funcall pred (concat prefix s))))))
+  (let ((comp (complete-with-action action table string nil))) ;; pred
+    (if (stringp comp)
+        (concat prefix comp)
+      comp)))
+
+(defun completion-table-with-terminator (terminator table string pred action)
+  (let ((comp (complete-with-action action table string pred)))
+    (if (eq action nil)
+        (if (eq comp t)
+            (concat string terminator)
+          (if (and (stringp comp)
+                   (eq (complete-with-action action table comp pred) t))
+              (concat comp terminator)
+            comp))
+      comp)))
+
+(defun completion-table-in-turn (a b)
+  "Create a completion table that first tries completion in A and then in B.
+A and B should not be costly (or side-effecting) expressions."
+  (lexical-let ((a a) (b b))
+    (lambda (string pred action)
+      (or (complete-with-action action a string pred)
+          (complete-with-action action b string pred)))))
+
+;;; Minibuffer completion
 
 (defgroup minibuffer nil
   "Controlling the behavior of the minibuffer."
@@ -363,6 +451,14 @@ It also eliminates runs of equal strings."
 
 (defvar completion-common-substring)
 
+(defvar completion-setup-hook nil
+  "Normal hook run at the end of setting up a completion list buffer.
+When this hook is run, the current buffer is the one in which the
+command to display the completion list buffer was run.
+The completion list buffer is available as the value of `standard-output'.
+The common prefix substring for completion may be available as the
+value of `completion-common-substring'. See also `display-completion-list'.")
+
 (defun display-completion-list (completions &optional common-substring)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
@@ -453,12 +549,33 @@ during running `completion-setup-hook'."
 (defun minibuffer--double-dollars (str)
   (replace-regexp-in-string "\\$" "$$" str))
 
-(defun read-file-name-internal (string dir action)
+(defun completion--make-envvar-table ()
+  (mapcar (lambda (enventry)
+            (substring enventry 0 (string-match "=" enventry)))
+          process-environment))
+
+(defun completion--embedded-envvar-table (string pred action)
+  (when (string-match (concat "\\(?:^\\|[^$]\\(?:\\$\\$\\)*\\)"
+                              "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'")
+                      string)
+    (let* ((beg (or (match-beginning 2) (match-beginning 1)))
+           (table (completion-make-envvar-table))
+           (prefix (substring string 0 beg)))
+      (if (eq (aref string (1- beg)) ?{)
+          (setq table (apply-partially 'completion-table-with-terminator
+                                       "}" table)))
+      (completion-table-with-context prefix table
+                                     (substring string beg)
+                                     pred action))))
+          
+(defun completion--file-name-table (string dir action)
   "Internal subroutine for read-file-name.  Do not call this."
   (setq dir (expand-file-name dir))
   (if (and (zerop (length string)) (eq 'lambda action))
       nil                               ; FIXME: why?
-    (let* ((str (substitute-in-file-name string))
+    (let* ((str (condition-case nil
+                    (substitute-in-file-name string)
+                  (error string)))
            (name (file-name-nondirectory str))
            (specdir (file-name-directory str))
            (realdir (if specdir (expand-file-name specdir dir)
@@ -503,6 +620,10 @@ during running `completion-setup-hook'."
         (let ((default-directory dir))
           (funcall (or read-file-name-predicate 'file-exists-p) str)))))))
 
+(defalias 'read-file-name-internal
+  (completion-table-in-turn 'completion-embedded-envvar-table
+                      'completion-file-name-table)
+  "Internal subroutine for `read-file-name'.  Do not call this.")
 
 (provide 'minibuffer)
 ;;; minibuffer.el ends here
