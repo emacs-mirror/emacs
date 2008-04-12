@@ -161,6 +161,15 @@ is equivalent to the following two lines of code:
 \(defvaralias 'old-var 'new-var \"old-var's doc.\")
 \(make-obsolete-variable 'old-var 'new-var \"22.1\")
 
+If CURRENT-NAME is a defcustom (more generally, any variable
+where OBSOLETE-NAME may be set, e.g. in a .emacs file, before the
+alias is defined), then the define-obsolete-variable-alias
+statement should be placed before the defcustom.  This is so that
+any user customizations are applied before the defcustom tries to
+initialize the variable (this is due to the way `defvaralias' works).
+Exceptions to this rule occur for define-obsolete-variable-alias
+statements that are autoloaded, or in files dumped with Emacs.
+
 See the docstrings of `defvaralias' and `make-obsolete-variable' or
 Info node `(elisp)Variable Aliases' for more details."
   (declare (doc-string 4))
