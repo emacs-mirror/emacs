@@ -1,7 +1,8 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -41,13 +42,14 @@
 ;;;; config variables
 ;;;;
 
+(define-obsolete-variable-alias 'cvs-display-full-path 'cvs-display-full-name)
+
 (defcustom cvs-display-full-name t
   "*Specifies how the filenames should be displayed in the listing.
 If non-nil, their full filename name will be displayed, else only the
 non-directory part."
   :group 'pcl-cvs
   :type '(boolean))
-(define-obsolete-variable-alias 'cvs-display-full-path 'cvs-display-full-name)
 
 (defcustom cvs-allow-dir-commit nil
   "*Allow `cvs-mode-commit' on directories.
