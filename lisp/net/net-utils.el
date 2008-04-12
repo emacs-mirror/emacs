@@ -91,6 +91,8 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
+(define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
+
 (defcustom ifconfig-program
   (if (eq system-type 'windows-nt)
       "ipconfig"
@@ -98,8 +100,6 @@ These options can be used to limit how many ICMP packets are emitted."
   "Program to print network configuration information."
   :group 'net-utils
   :type  'string)
-
-(define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
 
 (defcustom ifconfig-program-options
   (list
@@ -115,14 +115,14 @@ These options can be used to limit how many ICMP packets are emitted."
   :type 'string
   :version "23.1")
 
+(define-obsolete-variable-alias 'ipconfig-program-options
+  'ifconfig-program-options "22.2")
+
 (defcustom iwconfig-program-options nil
  "Options for the iwconfig program."
  :group 'net-utils
  :type '(repeat string)
  :version "23.1")
-
-(define-obsolete-variable-alias 'ipconfig-program-options
-  'ifconfig-program-options "22.2")
 
 (defcustom netstat-program "netstat"
   "Program to print network statistics."
