@@ -60,6 +60,9 @@
   :prefix "calendar-chinese-"
   :group 'calendar)
 
+(define-obsolete-variable-alias 'chinese-calendar-time-zone
+  'calendar-chinese-time-zone "23.1")
+
 (defcustom calendar-chinese-time-zone
   '(if (< year 1928)
        (+ 465 (/ 40.0 60.0))
@@ -73,9 +76,12 @@ Default is for Beijing.  This is an expression in `year' since it changed at
 ;; It gets eval'd.
 ;;;###autoload
 (put 'calendar-chinese-time-zone 'risky-local-variable t)
+;;;###autoload
+(put 'chinese-calendar-time-zone 'risky-local-variable t)
 
-(define-obsolete-variable-alias 'chinese-calendar-time-zone
-  'calendar-chinese-time-zone "23.1")
+
+(define-obsolete-variable-alias 'chinese-calendar-location-name
+  'calendar-chinese-location-name "23.1")
 
 ;; FIXME unused.
 (defcustom calendar-chinese-location-name "Beijing"
@@ -83,8 +89,8 @@ Default is for Beijing.  This is an expression in `year' since it changed at
   :type 'string
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-location-name
-  'calendar-chinese-location-name "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-daylight-time-offset
+  'calendar-chinese-daylight-time-offset "23.1")
 
 (defcustom calendar-chinese-daylight-time-offset 0
 ;; The correct value is as follows, but the Chinese calendrical
@@ -95,8 +101,8 @@ Default is for no daylight saving time."
   :type 'integer
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-daylight-time-offset
-  'calendar-chinese-daylight-time-offset "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-standard-time-zone-name
+  'calendar-chinese-standard-time-zone-name "23.1")
 
 (defcustom calendar-chinese-standard-time-zone-name
   '(if (< year 1928)
@@ -108,16 +114,16 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
   :type 'sexp
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-standard-time-zone-name
-  'calendar-chinese-standard-time-zone-name "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-daylight-time-zone-name
+  'calendar-chinese-daylight-time-zone-name "23.1")
 
 (defcustom calendar-chinese-daylight-time-zone-name "CDT"
   "Abbreviated name of daylight saving time zone used for Chinese calendar."
   :type 'string
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-daylight-time-zone-name
-  'calendar-chinese-daylight-time-zone-name "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-starts
+  'calendar-chinese-daylight-saving-start "23.1")
 
 (defcustom calendar-chinese-daylight-saving-start nil
 ;; The correct value is as follows, but the Chinese calendrical
@@ -131,8 +137,8 @@ Default is for no daylight saving time.  See documentation of
   :type 'sexp
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-starts
-  'calendar-chinese-daylight-saving-start "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-ends
+  'calendar-chinese-daylight-saving-end "23.1")
 
 (defcustom calendar-chinese-daylight-saving-end nil
 ;; The correct value is as follows, but the Chinese calendrical
@@ -144,8 +150,8 @@ Default is for no daylight saving time.  See documentation of
   :type 'sexp
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-ends
-  'calendar-chinese-daylight-saving-end "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-starts-time
+  'calendar-chinese-daylight-saving-start-time "23.1")
 
 (defcustom calendar-chinese-daylight-saving-start-time 0
   "Number of minutes after midnight that daylight saving time starts.
@@ -153,8 +159,8 @@ Default is for no daylight saving time."
   :type 'integer
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-starts-time
-  'calendar-chinese-daylight-saving-start-time "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-ends-time
+  'calendar-chinese-daylight-saving-end-time "23.1")
 
 (defcustom calendar-chinese-daylight-saving-end-time 0
   "Number of minutes after midnight that daylight saving time ends.
@@ -162,8 +168,8 @@ Default is for no daylight saving time."
   :type 'integer
   :group 'calendar-chinese)
 
-(define-obsolete-variable-alias 'chinese-calendar-daylight-savings-ends-time
-  'calendar-chinese-daylight-saving-end-time "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-celestial-stem
+  'calendar-chinese-celestial-stem "23.1")
 
 (defcustom calendar-chinese-celestial-stem
   ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
@@ -180,8 +186,8 @@ Default is for no daylight saving time."
                  (string :tag "Ren")
                  (string :tag "Gui")))
 
-(define-obsolete-variable-alias 'chinese-calendar-celestial-stem
-  'calendar-chinese-celestial-stem "23.1")
+(define-obsolete-variable-alias 'chinese-calendar-terrestrial-branch
+  'calendar-chinese-terrestrial-branch "23.1")
 
 (defcustom calendar-chinese-terrestrial-branch
   ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
@@ -199,9 +205,6 @@ Default is for no daylight saving time."
                  (string :tag "You")
                  (string :tag "Xu")
                  (string :tag "Hai")))
-
-(define-obsolete-variable-alias 'chinese-calendar-terrestrial-branch
-  'calendar-chinese-terrestrial-branch "23.1")
 
 ;;; End of user options.
 
