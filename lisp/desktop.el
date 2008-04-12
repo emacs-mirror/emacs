@@ -206,13 +206,14 @@ the normal hook `desktop-not-loaded-hook' is run."
   :group 'desktop
   :version "22.2")
 
+(define-obsolete-variable-alias 'desktop-basefilename
+                                'desktop-base-file-name "22.1")
+
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
   "Name of file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop)
-(define-obsolete-variable-alias 'desktop-basefilename
-                                'desktop-base-file-name "22.1")
 
 (defcustom desktop-base-lock-name
   (convert-standard-filename ".emacs.desktop.lock")
