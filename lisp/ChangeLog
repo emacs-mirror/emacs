@@ -1,3 +1,8 @@
+2008-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* ediff-wind.el (ediff-split-window-function)
+	(ediff-merge-split-window-function): Improve custom type.
+
 2008-04-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* loadup.el ("minibuffer"): Move after "faces".

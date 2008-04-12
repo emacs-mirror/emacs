@@ -137,7 +137,10 @@ by setting this variable to `split-window-horizontally'.
 You can also have your own function to do fancy splits.
 This variable has no effect when buffer-A/B are shown in different frames.
 In this case, Ediff will use those frames to display these buffers."
-  :type 'function
+  :type '(choice
+	  (const :tag "Split vertically" split-window-vertically)
+	  (const :tag "Split horizontally" split-window-horizontally)
+	  function)
   :group 'ediff-window)
 
 (defcustom ediff-merge-split-window-function 'split-window-horizontally
@@ -147,7 +150,10 @@ by setting this variable to `split-window-vertically'.
 You can also have your own function to do fancy splits.
 This variable has no effect when buffer-A/B/C are shown in different frames.
 In this case, Ediff will use those frames to display these buffers."
-  :type 'function
+  :type '(choice
+	  (const :tag "Split vertically" split-window-vertically)
+	  (const :tag "Split horizontally" split-window-horizontally)
+	  function)
   :group 'ediff-window)
 
 ;; Definitions hidden from the compiler by compat wrappers.
