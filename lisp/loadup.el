@@ -67,13 +67,13 @@
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
 (load "env")
 (load "format")
-(load "minibuffer")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
+(load "minibuffer")
 
 (load "button")
 (load "startup")
