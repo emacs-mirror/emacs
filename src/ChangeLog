@@ -1,3 +1,8 @@
+2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT] (uninterrupt_malloc)
+	[HAVE_GTK_AND_PTHREAD && !DOUG_LEA_MALLOC]: Don't use recursive mutex.
+
 2008-04-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1140000.
