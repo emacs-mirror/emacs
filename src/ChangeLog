@@ -1,3 +1,8 @@
+2008-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Tighten the scope of `p' and `o' vars.
+	Relocate `nm' after calling DECODE_FILE, in case the GC was run.
+
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.h (map_keymap_canonical): Declare.

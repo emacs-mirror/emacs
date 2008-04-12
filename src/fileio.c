@@ -1042,11 +1042,13 @@ See also the function `substitute-in-file-name'.  */)
      (name, default_directory)
      Lisp_Object name, default_directory;
 {
-  unsigned char *nm;
-
-  register unsigned char *newdir, *p, *o;
-  int tlen;
+  /* These point to SDATA and need to be careful with string-relocation
+     during GC (via DECODE_FILE).  */
+  unsigned char *nm, *newdir;
+  /* This should only point to alloca'd data.  */
   unsigned char *target;
+
+  int tlen;
   struct passwd *pw;
 #ifdef VMS
   unsigned char * colon = 0;
@@ -1103,43 +1105,45 @@ See also the function `substitute-in-file-name'.  */)
 	return call3 (handler, Qexpand_file_name, name, default_directory);
     }
 
-  o = SDATA (default_directory);
+  {
+    unsigned char *o = SDATA (default_directory);
 
-  /* Make sure DEFAULT_DIRECTORY is properly expanded.
-     It would be better to do this down below where we actually use
-     default_directory.  Unfortunately, calling Fexpand_file_name recursively
-     could invoke GC, and the strings might be relocated.  This would
-     be annoying because we have pointers into strings lying around
-     that would need adjusting, and people would add new pointers to
-     the code and forget to adjust them, resulting in intermittent bugs.
-     Putting this call here avoids all that crud.
+    /* Make sure DEFAULT_DIRECTORY is properly expanded.
+       It would be better to do this down below where we actually use
+       default_directory.  Unfortunately, calling Fexpand_file_name recursively
+       could invoke GC, and the strings might be relocated.  This would
+       be annoying because we have pointers into strings lying around
+       that would need adjusting, and people would add new pointers to
+       the code and forget to adjust them, resulting in intermittent bugs.
+       Putting this call here avoids all that crud.
 
-     The EQ test avoids infinite recursion.  */
-  if (! NILP (default_directory) && !EQ (default_directory, name)
-      /* Save time in some common cases - as long as default_directory
-	 is not relative, it can be canonicalized with name below (if it
-	 is needed at all) without requiring it to be expanded now.  */
+       The EQ test avoids infinite recursion.  */
+    if (! NILP (default_directory) && !EQ (default_directory, name)
+	/* Save time in some common cases - as long as default_directory
+	   is not relative, it can be canonicalized with name below (if it
+	   is needed at all) without requiring it to be expanded now.  */
 #ifdef DOS_NT
-      /* Detect MSDOS file names with drive specifiers.  */
-      && ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1]) && IS_DIRECTORY_SEP (o[2]))
+	/* Detect MSDOS file names with drive specifiers.  */
+	&& ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1])
+	      && IS_DIRECTORY_SEP (o[2]))
 #ifdef WINDOWSNT
-      /* Detect Windows file names in UNC format.  */
-      && ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
+	/* Detect Windows file names in UNC format.  */
+	&& ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
 #endif
 #else /* not DOS_NT */
       /* Detect Unix absolute file names (/... alone is not absolute on
 	 DOS or Windows).  */
-      && ! (IS_DIRECTORY_SEP (o[0]))
+	&& ! (IS_DIRECTORY_SEP (o[0]))
 #endif /* not DOS_NT */
-      )
-    {
-      struct gcpro gcpro1;
+	)
+      {
+	struct gcpro gcpro1;
 
-      GCPRO1 (name);
-      default_directory = Fexpand_file_name (default_directory, Qnil);
-      UNGCPRO;
-    }
-
+	GCPRO1 (name);
+	default_directory = Fexpand_file_name (default_directory, Qnil);
+	UNGCPRO;
+      }
+  }
   name = FILE_SYSTEM_CASE (name);
   multibyte = STRING_MULTIBYTE (name);
   if (multibyte != STRING_MULTIBYTE (default_directory))
@@ -1182,16 +1186,14 @@ See also the function `substitute-in-file-name'.  */)
      "//somedir".  */
   if (drive && IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
     nm++;
-#endif /* WINDOWSNT */
-#endif /* DOS_NT */
 
-#ifdef WINDOWSNT
   /* Discard any previous drive specifier if nm is now in UNC format. */
   if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
     {
       drive = 0;
     }
-#endif
+#endif /* WINDOWSNT */
+#endif /* DOS_NT */
 
   /* If nm is absolute, look for `/./' or `/../' or `//''sequences; if
      none are found, we can probably return right away.  We will avoid
@@ -1216,8 +1218,8 @@ See also the function `substitute-in-file-name'.  */)
 	 non-zero value, that means we've discovered that we can't do
 	 that cool trick.  */
       int lose = 0;
+      unsigned char *p = nm;
 
-      p = nm;
       while (*p)
 	{
 	  /* Since we know the name is absolute, we can assume that each
@@ -1389,8 +1391,12 @@ See also the function `substitute-in-file-name'.  */)
 	  tem = build_string (newdir);
 	  if (!STRING_MULTIBYTE (tem))
 	    {
+	      /* FIXME: DECODE_FILE may GC, which may move SDATA(name),
+		 after which `nm' won't point to the right place any more.  */
+	      int offset = nm - SDATA (name);
 	      hdir = DECODE_FILE (tem);
 	      newdir = SDATA (hdir);
+	      nm = SDATA (name) + offset;
 	    }
 #ifdef DOS_NT
 	  collapse_newdir = 0;
@@ -1401,12 +1407,13 @@ See also the function `substitute-in-file-name'.  */)
 	}
       else			/* ~user/filename */
 	{
+	  unsigned char *o, *p;
 	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)
 #ifdef VMS
 			      && *p != ':'
 #endif /* VMS */
 			      ); p++);
-	  o = (unsigned char *) alloca (p - nm + 1);
+	  o = alloca (p - nm + 1);
 	  bcopy ((char *) nm, o, p - nm);
 	  o [p - nm] = 0;
 
@@ -1618,120 +1625,122 @@ See also the function `substitute-in-file-name'.  */)
   /* Now canonicalize by removing `//', `/.' and `/foo/..' if they
      appear.  */
 
-  p = target;
-  o = target;
+  {
+    unsigned char *p = target;
+    unsigned char *o = target;
 
-  while (*p)
-    {
+    while (*p)
+      {
 #ifdef VMS
-      if (*p != ']' && *p != '>' && *p != '-')
-	{
-	  if (*p == '\\')
-	    p++;
-	  *o++ = *p++;
-	}
-      else if ((p[0] == ']' || p[0] == '>') && p[0] == p[1] + 2)
-	/* brackets are offset from each other by 2 */
-	{
-	  p += 2;
-	  if (*p != '.' && *p != '-' && o[-1] != '.')
-	    /* convert [foo][bar] to [bar] */
-	    while (o[-1] != '[' && o[-1] != '<')
-	      o--;
-	  else if (*p == '-' && *o != '.')
-	    *--p = '.';
-	}
-      else if (p[0] == '-' && o[-1] == '.'
-	       && (p[1] == '.' || p[1] == ']' || p[1] == '>'))
-	/* flush .foo.- ; leave - if stopped by '[' or '<' */
-	{
-	  do
-	    o--;
-	  while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
-	  if (p[1] == '.')      /* foo.-.bar ==> bar.  */
+	if (*p != ']' && *p != '>' && *p != '-')
+	  {
+	    if (*p == '\\')
+	      p++;
+	    *o++ = *p++;
+	  }
+	else if ((p[0] == ']' || p[0] == '>') && p[0] == p[1] + 2)
+	  /* brackets are offset from each other by 2 */
+	  {
 	    p += 2;
-	  else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
-	    p++, o--;
-	  /* else [foo.-] ==> [-] */
-	}
-      else
-	{
+	    if (*p != '.' && *p != '-' && o[-1] != '.')
+	      /* convert [foo][bar] to [bar] */
+	      while (o[-1] != '[' && o[-1] != '<')
+		o--;
+	    else if (*p == '-' && *o != '.')
+	      *--p = '.';
+	  }
+	else if (p[0] == '-' && o[-1] == '.'
+		 && (p[1] == '.' || p[1] == ']' || p[1] == '>'))
+	  /* flush .foo.- ; leave - if stopped by '[' or '<' */
+	  {
+	    do
+	      o--;
+	    while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
+	    if (p[1] == '.')      /* foo.-.bar ==> bar.  */
+	      p += 2;
+	    else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
+	      p++, o--;
+	    /* else [foo.-] ==> [-] */
+	  }
+	else
+	  {
 #ifdef NO_HYPHENS_IN_FILENAMES
-	  if (*p == '-'
-	      && o[-1] != '[' && o[-1] != '<' && o[-1] != '.'
-	      && p[1] != ']' && p[1] != '>' && p[1] != '.')
-	    *p = '_';
+	    if (*p == '-'
+		&& o[-1] != '[' && o[-1] != '<' && o[-1] != '.'
+		&& p[1] != ']' && p[1] != '>' && p[1] != '.')
+	      *p = '_';
 #endif /* NO_HYPHENS_IN_FILENAMES */
-	  *o++ = *p++;
-	}
+	    *o++ = *p++;
+	  }
 #else /* not VMS */
-      if (!IS_DIRECTORY_SEP (*p))
-	{
-	  *o++ = *p++;
-	}
-      else if (p[1] == '.'
-	       && (IS_DIRECTORY_SEP (p[2])
-		   || p[2] == 0))
-	{
-	  /* If "/." is the entire filename, keep the "/".  Otherwise,
-	     just delete the whole "/.".  */
-	  if (o == target && p[2] == '\0')
-	    *o++ = *p;
-	  p += 2;
-	}
-      else if (p[1] == '.' && p[2] == '.'
-	       /* `/../' is the "superroot" on certain file systems.
-		  Turned off on DOS_NT systems because they have no
-		  "superroot" and because this causes us to produce
-		  file names like "d:/../foo" which fail file-related
-		  functions of the underlying OS.  (To reproduce, try a
-		  long series of "../../" in default_directory, longer
-		  than the number of levels from the root.)  */
+	if (!IS_DIRECTORY_SEP (*p))
+	  {
+	    *o++ = *p++;
+	  }
+	else if (p[1] == '.'
+		 && (IS_DIRECTORY_SEP (p[2])
+		     || p[2] == 0))
+	  {
+	    /* If "/." is the entire filename, keep the "/".  Otherwise,
+	       just delete the whole "/.".  */
+	    if (o == target && p[2] == '\0')
+	      *o++ = *p;
+	    p += 2;
+	  }
+	else if (p[1] == '.' && p[2] == '.'
+		 /* `/../' is the "superroot" on certain file systems.
+		    Turned off on DOS_NT systems because they have no
+		    "superroot" and because this causes us to produce
+		    file names like "d:/../foo" which fail file-related
+		    functions of the underlying OS.  (To reproduce, try a
+		    long series of "../../" in default_directory, longer
+		    than the number of levels from the root.)  */
 #ifndef DOS_NT
-	       && o != target
+		 && o != target
 #endif
-	       && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
-	{
-	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
-	    ;
-	  /* Keep initial / only if this is the whole name.  */
-	  if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
-	    ++o;
-	  p += 3;
-	}
-      else if (p > target && IS_DIRECTORY_SEP (p[1]))
-	/* Collapse multiple `/' in a row.  */
-	p++;
-      else
-	{
-	  *o++ = *p++;
-	}
+		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
+	  {
+	    while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
+	      ;
+	    /* Keep initial / only if this is the whole name.  */
+	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
+	      ++o;
+	    p += 3;
+	  }
+	else if (p > target && IS_DIRECTORY_SEP (p[1]))
+	  /* Collapse multiple `/' in a row.  */
+	  p++;
+	else
+	  {
+	    *o++ = *p++;
+	  }
 #endif /* not VMS */
-    }
+      }
 
 #ifdef DOS_NT
-  /* At last, set drive name. */
+    /* At last, set drive name. */
 #ifdef WINDOWSNT
-  /* Except for network file name.  */
-  if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
+    /* Except for network file name.  */
+    if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
 #endif /* WINDOWSNT */
-    {
-      if (!drive) abort ();
-      target -= 2;
-      target[0] = DRIVE_LETTER (drive);
-      target[1] = ':';
-    }
-  /* Reinsert the escape prefix if required.  */
-  if (is_escaped)
-    {
-      target -= 2;
-      target[0] = '/';
-      target[1] = ':';
-    }
-  CORRECT_DIR_SEPS (target);
+      {
+	if (!drive) abort ();
+	target -= 2;
+	target[0] = DRIVE_LETTER (drive);
+	target[1] = ':';
+      }
+    /* Reinsert the escape prefix if required.  */
+    if (is_escaped)
+      {
+	target -= 2;
+	target[0] = '/';
+	target[1] = ':';
+      }
+    CORRECT_DIR_SEPS (target);
 #endif /* DOS_NT */
 
-  result = make_specified_string (target, -1, o - target, multibyte);
+    result = make_specified_string (target, -1, o - target, multibyte);
+  }
 
   /* Again look to see if the file name has special constructs in it
      and perhaps call the corresponding file handler.  This is needed
