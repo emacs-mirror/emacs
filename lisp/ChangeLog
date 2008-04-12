@@ -5228,13 +5228,11 @@
 	(python-which-shell, python-which-args, python-which-bufname):
 	New buffer local variables.
 	(python-file-queue, python-pdbtrack-is-tracking-p): New variables.
-
-	* progmodes/python.el (python-pdbtrack-stack-entry-regexp)
+	(python-pdbtrack-stack-entry-regexp)
 	(python-pdbtrack-input-prompt, python-pdbtrack-track-range):
 	New constants.
 
 	Pdbtrack features:
-
 	(python-point, python-end-of-def-or-class)
 	(python-beginning-of-def-or-class, python-goto-initial-line)
 	(python-comint-output-filter-function)
