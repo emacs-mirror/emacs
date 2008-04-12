@@ -1,3 +1,7 @@
+2008-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* loadup.el ("minibuffer"): Move after "faces".
+
 2008-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/hideif.el (hif-factor): Handle unary minus.
