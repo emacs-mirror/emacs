@@ -1,5 +1,7 @@
 2008-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gud.el (gud-menu-map): Expand tooltip.
+
 	* progmodes/gdb-ui.el (gdb-find-source-frame): Improve doc string.
 	(menu): Add/expand menu tooltips.
 
