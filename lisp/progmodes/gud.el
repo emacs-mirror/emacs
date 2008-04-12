@@ -144,7 +144,7 @@ Used to grey out relevant toolbar icons.")
       (comint-interrupt-subjob))))
 
 (easy-mmode-defmap gud-menu-map
-  '(([help]     "Info" . gud-goto-info)
+  '(([help]     "Info (debugger)" . gud-goto-info)
     ([tooltips] menu-item "Show GUD tooltips" gud-tooltip-mode
                   :enable (and (not emacs-basic-display)
 			       (display-graphic-p)
