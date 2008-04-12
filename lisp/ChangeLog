@@ -1,5 +1,8 @@
 2008-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/sh-script.el (sh-show-indent): Fix typo.
+	(sh-mode-map): Add a toggle for inserting braces and quotes in pairs.
+
 	* vc-cvs.el (vc-cvs-registered): Allow removed files to be
 	considered registered.
 

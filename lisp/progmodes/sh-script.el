@@ -492,10 +492,15 @@ This is buffer-local in every such buffer.")
 		  :help "Learn how to indent a line as it currently is indented"))
     (define-key menu-map [sh-show-indent]
       '(menu-item "Show indentation" sh-show-indent
-		  :help "Show the how the currently line would be indented"))
+		  :help "Show the how the current line would be indented"))
     (define-key menu-map [sh-set-indent]
       '(menu-item "Set indentation" sh-set-indent
 		  :help "Set the indentation for the current line"))
+
+    (define-key menu-map [sh-pair]
+      '(menu-item "Insert braces and quotes in pairs" (lambda () (interactive) (setq skeleton-pair (not skeleton-pair)))
+		  :button (:toggle . skeleton-pair)
+		  :help "Inserting a brace or quote automatically inserts the matching pair"))
 
     (define-key menu-map [sh-s0] '("--"))
     ;; Insert
@@ -2776,7 +2781,7 @@ If INFO is supplied it is used, else it is calculated from current line."
     (if msg (message "%s" msg) (message nil))))
 
 (defun sh-show-indent (arg)
-  "Show the how the currently line would be indented.
+  "Show the how the current line would be indented.
 This tells you which variable, if any, controls the indentation of
 this line.
 If optional arg ARG is non-null (called interactively with a prefix),
