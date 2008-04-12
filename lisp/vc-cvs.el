@@ -179,8 +179,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
           (goto-char (point-min))
 	  (cond
 	   ((re-search-forward
-	     ;; CVS-removed files are not taken under VC control.
-	     (concat "^/" (regexp-quote basename) "/[^/-]") nil t)
+	     (concat "^/" (regexp-quote basename) "/[^/]") nil t)
 	    (beginning-of-line)
 	    (vc-cvs-parse-entry file)
 	    t)
