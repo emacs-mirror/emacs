@@ -255,6 +255,16 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end \n)
 
+(defun copyright-update-directory (directory match)
+  "Update copyright notice for all files in DIRECTORY matching MATCH."
+  (interactive "DDirectory: \nMFilenames matching: ")
+  (dolist (file (directory-files directory t match nil))
+    (find-file file)
+    (let ((copyright-query nil))
+      (copyright-update))
+    (save-buffer)
+    (kill-buffer (current-buffer))))
+
 (provide 'copyright)
 
 ;; For the copyright sign:

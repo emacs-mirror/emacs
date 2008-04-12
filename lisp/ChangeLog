@@ -1,5 +1,8 @@
 2008-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* emacs-lisp/copyright.el (copyright-update-directory): New
+	command.
+
 	* ediff-wind.el (ediff-split-window-function)
 	(ediff-merge-split-window-function): Improve custom type.
 
