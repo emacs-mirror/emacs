@@ -496,6 +496,10 @@ that form should be displayed.")
    ((numberp hif-token)
     (prog1 hif-token (hif-nexttoken)))
 
+   ;; Unary plus/minus.
+   ((memq hif-token '(hif-minus hif-plus))
+    (list (prog1 hif-token (hif-nexttoken)) 0 (hif-factor)))
+ 
    (t					; identifier
     (let ((ident hif-token))
       (if (memq ident '(or and))

@@ -1,3 +1,7 @@
+2008-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/hideif.el (hif-factor): Handle unary minus.
+
 2008-04-12  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-china.el (chinese-calendar-time-zone):
@@ -40,6 +44,8 @@
 	* Makefile.in (AUTOGENEL): Add calc/calc-loaddefs.el.
 
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode): Don't mess with hippie-expand.
 
 	* Makefile.in (bootstrap-prepare): Make tpu-edt.el writable as well.
 
