@@ -54,25 +54,25 @@ are holidays."
 (defcustom diary-face 'diary
   "Face name to use for diary entries."
   :type 'face
-  :group 'diary)
+  :group 'calendar-faces)
 (make-obsolete-variable 'diary-face "customize the face `diary' instead."
                         "23.1")
 
 (defface diary-anniversary '((t :inherit font-lock-keyword-face))
   "Face used for anniversaries in the fancy diary display."
   :version "22.1"
-  :group 'diary)
+  :group 'calendar-faces)
 
 (defface diary-time '((t :inherit font-lock-variable-name-face))
-  "Face used for times of day in the diary."
+  "Face used for times of day in the fancy diary display."
   :version "22.1"
-  :group 'diary)
+  :group 'calendar-faces)
 
 (defface diary-button '((((type pc) (class color))
                          (:foreground "lightblue")))
-  "Default face used for buttons."
+  "Face used for buttons in the fancy diary display."
   :version "22.1"
-  :group 'diary)
+  :group 'calendar-faces)
 ;; Backward-compatibility alias. FIXME make obsolete.
 (put 'diary-button-face 'face-alias 'diary-button)
 
@@ -135,14 +135,14 @@ are: `string', `symbol', `int', `tnil',`stringtnil.'"
   :type 'function
   :group 'diary)
 
+(define-obsolete-variable-alias 'sexp-diary-entry-symbol
+  'diary-sexp-entry-symbol "23.1")
+
 (defcustom diary-sexp-entry-symbol "%%"
   "The string used to indicate a sexp diary entry in `diary-file'.
 See the documentation for the function `diary-list-sexp-entries'."
   :type 'string
   :group 'diary)
-
-(define-obsolete-variable-alias 'sexp-diary-entry-symbol
-  'diary-sexp-entry-symbol "23.1")
 
 (defcustom diary-hook nil
   "List of functions called after the display of the diary.
@@ -179,6 +179,9 @@ the variable `diary-list-include-blanks' non-nil."
   :set 'diary-set-maybe-redraw
   :group 'diary)
 
+(define-obsolete-variable-alias 'list-diary-entries-hook
+  'diary-list-entries-hook "23.1")
+
 (defcustom diary-list-entries-hook nil
   "List of functions called after diary file is culled for relevant entries.
 You might wish to add `diary-include-other-diary-files', in which case
@@ -196,8 +199,8 @@ lexicographic order."
   :options '(diary-include-other-diary-files diary-sort-entries)
   :group 'diary)
 
-(define-obsolete-variable-alias 'list-diary-entries-hook
-  'diary-list-entries-hook "23.1")
+(define-obsolete-variable-alias 'mark-diary-entries-hook
+  'diary-mark-entries-hook "23.1")
 
 (defcustom diary-mark-entries-hook nil
   "List of functions called after marking diary entries in the calendar.
@@ -208,8 +211,8 @@ you will probably also want to add `diary-include-other-diary-files' to
   :options '(diary-mark-included-diary-files)
   :group 'diary)
 
-(define-obsolete-variable-alias 'mark-diary-entries-hook
-  'diary-mark-entries-hook "23.1")
+(define-obsolete-variable-alias 'nongregorian-diary-listing-hook
+  'diary-nongregorian-listing-hook "23.1")
 
 (defcustom diary-nongregorian-listing-hook nil
   "List of functions called for listing diary file and included files.
@@ -224,8 +227,8 @@ describes the style of such diary entries."
              diary-islamic-list-entries)
   :group 'diary)
 
-(define-obsolete-variable-alias 'nongregorian-diary-listing-hook
-  'diary-nongregorian-listing-hook "23.1")
+(define-obsolete-variable-alias 'nongregorian-diary-marking-hook
+  'diary-nongregorian-marking-hook "23.1")
 
 (defcustom diary-nongregorian-marking-hook nil
   "List of functions called for marking diary file and included files.
@@ -240,8 +243,8 @@ describes the style of such diary entries."
              diary-islamic-mark-entries)
   :group 'diary)
 
-(define-obsolete-variable-alias 'nongregorian-diary-marking-hook
-  'diary-nongregorian-marking-hook "23.1")
+(define-obsolete-variable-alias 'print-diary-entries-hook
+  'diary-print-entries-hook "23.1")
 
 (defcustom diary-print-entries-hook 'lpr-buffer
   "Run by `diary-print-entries' after preparing a temporary diary buffer.
@@ -252,9 +255,6 @@ day and time, saving the buffer instead of deleting it, or
 changing the function used to do the printing."
   :type 'hook
   :group 'diary)
-
-(define-obsolete-variable-alias 'print-diary-entries-hook
-  'diary-print-entries-hook "23.1")
 
 (defcustom diary-unknown-time -9999
   "Value returned by `diary-entry-time' when no time is found.
@@ -293,6 +293,9 @@ month, day, year), and `diary-entry' (a string)."
   :type 'sexp
   :group 'diary)
 
+(define-obsolete-variable-alias 'abbreviated-calendar-year
+  'diary-abbreviated-year-flag "23.1")
+
 (defcustom diary-abbreviated-year-flag t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
 This applies to the Gregorian, Hebrew, Islamic, and Baha'i calendars.
@@ -302,9 +305,6 @@ If the result is more than 50 years in the past, the next century is assumed.
 If this variable is nil, years must be written in full."
   :type 'boolean
   :group 'diary)
-
-(define-obsolete-variable-alias 'abbreviated-calendar-year
-  'diary-abbreviated-year-flag "23.1")
 
 (defcustom diary-outlook-formats
   '(
@@ -427,6 +427,9 @@ just visiting the `diary-file'), and SYMBOL's value is to be changed."
          ;; Note this assumes diary was called without prefix arg.
          (diary))))
 
+(define-obsolete-variable-alias 'number-of-diary-entries
+  'diary-number-of-entries "23.1")
+
 (defcustom diary-number-of-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
 This variable affects the diary display when the command \\[diary] is used,
@@ -457,10 +460,7 @@ number of days of diary entries displayed."
   :set 'diary-set-maybe-redraw
   :group 'diary)
 
-(define-obsolete-variable-alias 'number-of-diary-entries
-  'diary-number-of-entries "23.1")
-
-;;; More user options in calendar.el.
+;;; More user options in calendar.el, holidays.el.
 
 
 (defun diary-check-diary-file ()
@@ -2294,6 +2294,9 @@ and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
    "\\(: .*\\)?")
   "Regular expression matching a date header in Fancy Diary.")
 
+(define-obsolete-variable-alias 'fancy-diary-font-lock-keywords
+  'diary-fancy-font-lock-keywords "23.1")
+
 (defvar diary-fancy-font-lock-keywords
   (list
    (list
@@ -2310,9 +2313,6 @@ and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
    `(,(format "\\(^\\|\\s-\\)%s\\(-%s\\)?" diary-time-regexp
               diary-time-regexp) . 'diary-time))
   "Keywords to highlight in fancy diary display.")
-
-(define-obsolete-variable-alias 'fancy-diary-font-lock-keywords
-  'diary-fancy-font-lock-keywords "23.1")
 
 ;; If region looks like it might start or end in the middle of a
 ;; multiline pattern, extend the region to encompass the whole pattern.
