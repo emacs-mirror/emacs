@@ -1545,6 +1545,7 @@ See also the function `substitute-in-file-name'.  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
 	    {
+	      unsigned char *p;
 	      newdir = strcpy (alloca (strlen (newdir) + 1), newdir);
 	      p = newdir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
