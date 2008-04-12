@@ -67,13 +67,13 @@ Relevant if `calendar-setup' has the value `one-frame'."
              (vertical-scroll-bars boolean))
   :group 'calendar)
 
+(define-obsolete-variable-alias 'calendar-after-frame-setup-hooks
+  'calendar-after-frame-setup-hook "23.1")
+
 (defcustom calendar-after-frame-setup-hook nil
   "List of functions to be run after creating a calendar and/or diary frame."
   :type 'hook
   :group 'calendar-hooks)
-
-(define-obsolete-variable-alias 'calendar-after-frame-setup-hooks
-  'calendar-after-frame-setup-hook "23.1")
 
 ;;; End of user options.
 
