@@ -1,3 +1,8 @@
+2008-04-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fileio.c (Fexpand_file_name): Add declaration for `p' missing in
+	previous change.
+
 2008-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fexpand_file_name): Tighten the scope of `p' and `o' vars.
@@ -20,7 +25,7 @@
 2008-04-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* fileio.c (Fmake_symbolic_link): Surround code by #ifdef S_IFLNK
-	only after check for file name handler functions. Signal, when
+	only after check for file name handler functions.  Signal, when
 	native functionality is not supported.
 	(syms_of_fileio): Declare it unconditionally.
 
