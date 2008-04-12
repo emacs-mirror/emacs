@@ -1483,9 +1483,12 @@ directives."
   :version "22.1")
 
 (defun gdb-find-source-frame (arg)
-  "Toggle trying to find a source frame further up stack.
+  "Toggle looking for a source frame further up call stack.
+The code associated with current (innermost) frame may not have
+been compiled with debug information, e.g., C library routine.
 With prefix argument ARG, look for a source frame further up
-stack if ARG is positive, otherwise don't look further up."
+stack to display in the source buffer if ARG is positive,
+otherwise don't look further up."
   (interactive "P")
   (setq gdb-find-source-frame
 	(if (null arg)
@@ -2969,6 +2972,7 @@ corresponding to the mode line clicked."
 (let ((menu (make-sparse-keymap "GDB-Windows")))
   (define-key gud-menu-map [displays]
     `(menu-item "GDB-Windows" ,menu
+		:help "Open a GDB-UI buffer in a new window."
 		:visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
@@ -2987,6 +2991,7 @@ corresponding to the mode line clicked."
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
     `(menu-item "GDB-Frames" ,menu
+		:help "Open a GDB-UI buffer in a new frame."
 		:visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
@@ -3011,7 +3016,7 @@ corresponding to the mode line clicked."
   (define-key menu [gdb-find-source-frame]
   '(menu-item "Look For Source Frame" gdb-find-source-frame
 	      :visible (eq gud-minor-mode 'gdba)
-	      :help "Toggle look for source frame."
+	      :help "Toggle looking for source frame further up call stack."
 	      :button (:toggle . gdb-find-source-frame)))
   (define-key menu [gdb-use-separate-io]
   '(menu-item "Separate IO" gdb-use-separate-io-buffer
