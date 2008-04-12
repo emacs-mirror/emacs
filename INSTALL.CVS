@@ -51,10 +51,10 @@ If either of the above partial procedures fails, try "make bootstrap".
 
 Very occasionally changes in the source can introduce
 incompatibilities with previous builds.  If a bootstrap fails, as a
-last resort try "make maintainer-clean" before bootstrapping again.
-If CPU time is not an issue, the most thorough way to rebuild, and
-avoid any spurious problems, is always to use "make maintainer-clean;
-make bootstrap".
+last resort try "make maintainer-clean" before configuring and
+bootstrapping again.  If CPU time is not an issue, the most thorough
+way to rebuild, and avoid any spurious problems, is always to use this
+method.
 
 Users of non-Posix systems (MS-Windows etc.) should run the
 platform-specific configuration scripts (nt/configure.bat, config.bat,
