@@ -1,3 +1,8 @@
+2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-open-documents): Adjust selection range
+	parameter origins.
+
 2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-mode): Don't mess with hippie-expand.
