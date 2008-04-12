@@ -34,15 +34,15 @@
 
 (require 'calendar)
 
+(define-obsolete-variable-alias 'diary-sabbath-candles-minutes
+  'diary-hebrew-sabbath-candles-minutes "23.1")
+
 (defcustom diary-hebrew-sabbath-candles-minutes 18
   "Number of minutes before sunset for sabbath candle lighting.
 Used by `diary-hebrew-sabbath-candles'."
   :group 'diary
   :type 'integer
   :version "21.1")
-
-(define-obsolete-variable-alias 'diary-sabbath-candles-minutes
-  'diary-hebrew-sabbath-candles-minutes "23.1")
 
 ;; End of user options.
 
