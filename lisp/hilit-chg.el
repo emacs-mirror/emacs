@@ -219,6 +219,9 @@
 
 ;; A (not very good) default list of colors to rotate through.
 ;;
+(define-obsolete-variable-alias 'highlight-changes-colours
+                                'highlight-changes-colors "22.1")
+
 (defcustom highlight-changes-colors
   (if (eq (frame-parameter nil 'background-mode) 'light)
       ;; defaults for light background:
@@ -235,10 +238,6 @@ colors then use this, if you want fancier faces then set
 `highlight-changes-face-list'."
   :type '(repeat color)
   :group 'highlight-changes)
-
-(define-obsolete-variable-alias 'highlight-changes-colours
-                                'highlight-changes-colors "22.1")
-
 
 ;; When you invoke highlight-changes-mode, should highlight-changes-visible-mode
 ;; be on or off?
@@ -260,6 +259,8 @@ When a buffer is in Highlight Changes mode the function
 
 
 ;; These are the strings displayed in the mode-line for the minor mode:
+(define-obsolete-variable-alias 'highlight-changes-active-string
+  'highlight-changes-visible-string "23.1")
 
 (defcustom highlight-changes-visible-string " +Chg"
   "The string used when in Highlight Changes mode and changes are visible.
@@ -269,8 +270,8 @@ a string with a leading space."
 		 (const :tag "None"  nil))
   :group 'highlight-changes)
 
-(define-obsolete-variable-alias 'highlight-changes-active-string
-  'highlight-changes-visible-string "23.1")
+(define-obsolete-variable-alias 'highlight-changes-passive-string
+  'highlight-changes-invisible-string "23.1")
 
 (defcustom highlight-changes-invisible-string " -Chg"
   "The string used when in Highlight Changes mode and changes are hidden.
@@ -279,11 +280,6 @@ a string with a leading space."
   :type '(choice string
 		 (const :tag "None"  nil))
   :group 'highlight-changes)
-
-(define-obsolete-variable-alias 'highlight-changes-passive-string
-  'highlight-changes-invisible-string "23.1")
-
-
 
 (defcustom highlight-changes-global-modes t
   "Determine whether a buffer is suitable for global Highlight Changes mode.
