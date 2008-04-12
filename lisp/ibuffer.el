@@ -339,19 +339,19 @@ directory, like `default-directory'."
   :type 'regexp
   :group 'ibuffer)
 
+(define-obsolete-variable-alias 'ibuffer-hooks 'ibuffer-hook "22.1")
+
 (defcustom ibuffer-hook nil
   "Hook run when `ibuffer' is called."
   :type 'hook
   :group 'ibuffer)
-(define-obsolete-variable-alias 'ibuffer-hooks
-                                'ibuffer-hook "22.1")
+
+(define-obsolete-variable-alias 'ibuffer-mode-hooks 'ibuffer-mode-hook "22.1")
 
 (defcustom ibuffer-mode-hook nil
   "Hook run upon entry into `ibuffer-mode'."
   :type 'hook
   :group 'ibuffer)
-(define-obsolete-variable-alias 'ibuffer-mode-hooks
-                                'ibuffer-mode-hook "22.1")
 
 (defcustom ibuffer-load-hook nil
   "Hook run when Ibuffer is loaded."
