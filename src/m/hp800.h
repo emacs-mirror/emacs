@@ -60,14 +60,6 @@ Boston, MA 02110-1301, USA.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
-/* The standard definitions of these macros would work ok,
-   but these are faster because the constants are short. */
-
-
-#define XUINT(a) (((unsigned)(a) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS)
-
-#define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
 
 /* Common definitions for HPUX and GNU/Linux.  */
 

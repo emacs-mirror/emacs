@@ -1,3 +1,7 @@
+2008-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/hp800.h (XUINT, XSET): Remove.
+
 2008-04-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fileio.c (Fexpand_file_name): Add declaration for `p' missing in
