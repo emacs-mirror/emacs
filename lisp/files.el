@@ -404,6 +404,7 @@ The functions are called in the order given until one of them returns non-nil.")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
+(define-obsolete-variable-alias 'find-file-hooks 'find-file-hook "22.1")
 (defcustom find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
@@ -412,7 +413,6 @@ functions are called."
   :type 'hook
   :options '(auto-insert)
   :version "22.1")
-(define-obsolete-variable-alias 'find-file-hooks 'find-file-hook "22.1")
 
 (defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
