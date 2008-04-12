@@ -1,3 +1,22 @@
+2008-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-china.el (chinese-calendar-time-zone):
+	Mark obsolete name as risky too.
+
+	* calendar/calendar.el (calendar-faces): New custom group.
+	(calendar-today, diary, holiday): Doc fix.  Move to calendar-faces
+	group.
+	* calendar/diary-lib.el (diary-face, diary-anniversary, diary-time)
+	(diary-button): Doc fix.  Move to calendar-faces group.
+
+	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Doc fix.
+	* desktop.el, files.el, hilit-chg.el, ibuffer.el, iswitchb.el:
+	* pcvs-info.el, recentf.el, speedbar.el, calendar/cal-china.el:
+	* calendar/cal-hebrew.el, calendar/cal-x.el, calendar/calendar.el
+	* calendar/diary-lib.el, net/net-utils.el, progmodes/gud.el:
+	Move non-autoloaded define-obsolete-variable-alias calls for defcustoms
+	not in dumped files before the associated defcustom.
+
 2008-04-11  Johan Bockgård  <bojohan@gnu.org>
 
 	* minibuffer.el (lazy-completion-table): Fix debug spec.
