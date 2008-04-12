@@ -1304,7 +1304,7 @@ definition and conveniently use this command."
   (save-excursion
     (beginning-of-line)
     (cond
-     ((looking-at "^#+\\s-*")
+     ((looking-at "^[ \t]*#+\\s-*")
       ;; Found a comment.  Return nil to let normal filling take place.
       nil)
 

@@ -1,3 +1,8 @@
+2008-04-12  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Treat indented
+	comments like unindented ones.
+
 2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ae-open-documents): Adjust selection range
