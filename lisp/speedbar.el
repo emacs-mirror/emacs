@@ -642,6 +642,9 @@ Created from `speedbar-ignored-directory-expressions' with the function
 Use the function `speedbar-add-ignored-directory-regexp', or customize the
 variable `speedbar-ignored-directory-expressions' to modify this variable.")
 
+(define-obsolete-variable-alias 'speedbar-ignored-path-expressions
+  'speedbar-ignored-directory-expressions)
+
 (defcustom speedbar-ignored-directory-expressions
   '("[/\\]logs?[/\\]\\'")
   "*List of regular expressions matching directories speedbar will ignore.
@@ -4132,9 +4135,6 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 
 (define-obsolete-variable-alias
   'speedbar-ignored-path-regexp 'speedbar-ignored-directory-regexp)
-
-(define-obsolete-variable-alias 'speedbar-ignored-path-expressions
-  'speedbar-ignored-directory-expressions)
 
 (define-obsolete-function-alias 'speedbar-add-ignored-path-regexp
   'speedbar-add-ignored-directory-regexp)
