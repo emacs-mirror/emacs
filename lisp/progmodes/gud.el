@@ -3273,12 +3273,18 @@ Treats actions as defuns."
 	(kill-local-variable 'gdb-define-alist)
 	(remove-hook 'after-save-hook 'gdb-create-define-alist t))))
 
+(define-obsolete-variable-alias 'tooltip-gud-modes
+                                'gud-tooltip-modes "22.1")
+
 (defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode
 					python-mode)
   "List of modes for which to enable GUD tooltips."
   :type 'sexp
   :group 'gud
   :group 'tooltip)
+
+(define-obsolete-variable-alias 'tooltip-gud-display
+                                'gud-tooltip-display "22.1")
 
 (defcustom gud-tooltip-display
   '((eq (tooltip-event-buffer gud-tooltip-event)
@@ -3296,11 +3302,6 @@ only tooltips in the buffer containing the overlay arrow."
   :type 'boolean
   :group 'gud
   :group 'tooltip)
-
-(define-obsolete-variable-alias 'tooltip-gud-modes
-                                'gud-tooltip-modes "22.1")
-(define-obsolete-variable-alias 'tooltip-gud-display
-                                'gud-tooltip-display "22.1")
 
 ;;; Reacting on mouse movements
 
