@@ -1,3 +1,14 @@
+2008-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-init-buffer): New function.
+	(gdb-set-gud-minor-mode-existing-buffers)
+	(gdb-info-breakpoints-custom, gdb-get-location)
+	(gdb-set-gud-minor-mode-existing-buffers-1): Use it.
+	Previously gdb-create-define-alist wasn't always run and added to
+	after-save-hook.
+
+	* progmodes/gud.el (gud-tooltip-tips): Use tooltip-event-buffer
+
 2008-04-12  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/make-mode.el (makefile-fill-paragraph): Treat indented
