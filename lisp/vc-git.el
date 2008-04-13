@@ -310,64 +310,89 @@
      (vc-git-file-type-as-string old-perm new-perm)
      (vc-git-rename-as-string state extra))))
 
-;; Variable used to keep the intermediate results for vc-git-status.
-(defvar vc-git-status-result nil)
+(defun vc-git-after-dir-status-stage (stage files update-function)
+  "Process sentinel for the various dir-status stages."
+  (let (remaining next-stage result)
+    (goto-char (point-min))
+    (case stage
+      ('update-index
+       (setq next-stage (if (vc-git--empty-db-p) 'ls-files-added
+                          (if files 'ls-files-up-to-date 'diff-index))))
+      ('ls-files-added
+       (setq next-stage 'ls-files-unknown)
+       (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
+         (let ((new-perm (string-to-number (match-string 1) 8))
+               (name (match-string 2)))
+           (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm)) result))))
+      ('ls-files-up-to-date
+       (setq next-stage 'diff-index)
+       (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
+         (let ((perm (string-to-number (match-string 1) 8))
+               (name (match-string 2)))
+           (push (list name 'up-to-date (vc-git-create-extra-fileinfo perm perm)) result))))
+      ('ls-files-unknown
+       (when files (setq next-stage 'ls-files-ignored))
+       (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
+         (push (list (match-string 1) 'unregistered (vc-git-create-extra-fileinfo 0 0)) result)))
+      ('ls-files-ignored
+       (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
+         (push (list (match-string 1) 'ignored (vc-git-create-extra-fileinfo 0 0)) result)))
+      ('diff-index
+       (setq next-stage 'ls-files-unknown)
+       (while (re-search-forward
+               ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
+               nil t 1)
+         (let ((old-perm (string-to-number (match-string 1) 8))
+               (new-perm (string-to-number (match-string 2) 8))
+               (state (or (match-string 4) (match-string 6)))
+               (name (or (match-string 5) (match-string 7)))
+               (new-name (match-string 8)))
+           (if new-name  ; copy or rename
+               (if (eq ?C (string-to-char state))
+                   (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'copy name)) result)
+                 (push (list name 'removed (vc-git-create-extra-fileinfo 0 0 'rename new-name)) result)
+                 (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'rename name)) result))
+             (push (list name (vc-git--state-code state) (vc-git-create-extra-fileinfo old-perm new-perm)) result))))))
+    (when result
+      (setq result (nreverse result))
+      (when files
+        (dolist (entry result) (setq files (delete (car entry) files)))
+        (unless files (setq next-stage nil))))
+    (when (or result (not next-stage)) (funcall update-function result next-stage))
+    (when next-stage (vc-git-dir-status-goto-stage next-stage files update-function))))
 
-(defun vc-git-after-dir-status-stage2 (update-function)
-  (goto-char (point-min))
-  (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-    (push (list (match-string 1) 'unregistered (vc-git-create-extra-fileinfo 0 0)) vc-git-status-result))
-  (funcall update-function (nreverse vc-git-status-result)))
-
-(defun vc-git-after-dir-status-stage1 (update-function)
-  (goto-char (point-min))
-  (while (re-search-forward
-          ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
-	  nil t 1)
-    (let ((old-perm (string-to-number (match-string 1) 8))
-          (new-perm (string-to-number (match-string 2) 8))
-          (state (or (match-string 4) (match-string 6)))
-          (name (or (match-string 5) (match-string 7)))
-          (new-name (match-string 8)))
-      (if new-name  ; copy or rename
-          (if (eq ?C (string-to-char state))
-              (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'copy name)) vc-git-status-result)
-            (push (list name 'removed (vc-git-create-extra-fileinfo 0 0 'rename new-name)) vc-git-status-result)
-            (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'rename name)) vc-git-status-result))
-        (push (list name (vc-git--state-code state) (vc-git-create-extra-fileinfo old-perm new-perm)) vc-git-status-result))))
+(defun vc-git-dir-status-goto-stage (stage files update-function)
   (erase-buffer)
-  (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
-		  "--directory" "--no-empty-directory" "--exclude-standard")
+  (case stage
+    ('update-index
+     (if files
+         (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
+       (vc-git-command (current-buffer) 'async nil "update-index" "--refresh")))
+    ('ls-files-added
+     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-c" "-s" "--"))
+    ('ls-files-up-to-date
+     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-c" "-s" "--"))
+    ('ls-files-unknown
+     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-o"
+                     "--directory" "--no-empty-directory" "--exclude-standard" "--"))
+    ('ls-files-ignored
+     (vc-git-command (current-buffer) 'async files "ls-files" "-z" "-o" "-i"
+                     "--directory" "--no-empty-directory" "--exclude-standard" "--"))
+    ('diff-index
+     (vc-git-command (current-buffer) 'async files "diff-index" "-z" "-M" "HEAD" "--")))
   (vc-exec-after
-   `(vc-git-after-dir-status-stage2 (quote ,update-function))))
-
-(defun vc-git-after-dir-status-stage1-empty-db (update-function)
-  (goto-char (point-min))
-  (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
-    (let ((new-perm (string-to-number (match-string 1) 8))
-          (name (match-string 2)))
-      (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm)) vc-git-status-result)))
-  (erase-buffer)
-  (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
-		  "--directory" "--no-empty-directory" "--exclude-standard")
-  (vc-exec-after
-   `(vc-git-after-dir-status-stage2 (quote ,update-function))))
+   `(vc-git-after-dir-status-stage (quote ,stage) (quote ,files) (quote ,update-function))))
 
 (defun vc-git-dir-status (dir update-function)
-  "Return a list of conses (file . state) for DIR."
+  "Return a list of (FILE STATE EXTRA) entries for DIR."
   ;; Further things that would have to be fixed later:
   ;; - how to handle unregistered directories
   ;; - how to support vc-status on a subdir of the project tree
-  (set (make-local-variable 'vc-git-status-result) nil)
-  (if (vc-git--empty-db-p)
-      (progn
-	(vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-c" "-s")
-	(vc-exec-after
-	 `(vc-git-after-dir-status-stage1-empty-db 
-	   (quote ,update-function))))
-    (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "-M" "HEAD")
-    (vc-exec-after
-     `(vc-git-after-dir-status-stage1 (quote ,update-function)))))
+  (vc-git-dir-status-goto-stage 'update-index nil update-function))
+
+(defun vc-git-dir-status-files (dir files default-state update-function)
+  "Return a list of (FILE STATE EXTRA) entries for FILES in DIR."
+  (vc-git-dir-status-goto-stage 'update-index files update-function))
 
 (defun vc-git-status-extra-headers (dir)
   (let ((str (with-output-to-string
