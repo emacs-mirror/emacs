@@ -701,7 +701,7 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
      Lisp_Object bus;
 {
   DBusConnection *connection;
-  char name[DBUS_MAXIMUM_NAME_LENGTH];
+  const char *name;
 
   /* Check parameters.  */
   CHECK_SYMBOL (bus);
@@ -710,7 +710,7 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
   connection = xd_initialize (bus);
 
   /* Request the name.  */
-  strcpy (name, dbus_bus_get_unique_name (connection));
+  name = dbus_bus_get_unique_name (connection);
   if (name == NULL)
     xsignal1 (Qdbus_error, build_string ("No unique name available"));
 
@@ -729,8 +729,8 @@ offered by SERVICE.  It must provide METHOD.
 
 If the parameter `:timeout' is given, the following integer TIMEOUT
 specifies the maximun number of milliseconds the method call must
-return. The default value is 25.000. If the method call doesn't return
-in time, a D-Bus error is raised.
+return.  The default value is 25.000.  If the method call doesn't
+return in time, a D-Bus error is raised.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
