@@ -732,6 +732,13 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** `all-completions' may now return the base size in the last cdr.
+Since this means the returned list is not properly nil-terminated, this
+is an incompatible change and is thus enabled by the new variable
+completion-all-completions-with-base-size.
+
+** New function `apply-partially' for curried application.
+
 ** `fill-forward-paragraph-function' specifies which function the filling
 code should use to find paragraph boundaries.
 

@@ -1,10 +1,35 @@
+2008-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-all-completion-with-base-size): New var.
+	(completion--some): New function.
+	(completion-table-with-context, completion--file-name-table):
+	Return the base-size if requested.
+	(completion-table-in-turn): Generalize to multiple arguments.
+	(complete-in-turn): Compatibility alias.
+	(completion-styles-alist): New var.
+	(completion-styles): New customization.
+	(minibuffer-try-completion, minibuffer-all-completions):
+	New functions.
+	(minibuffer--do-completion, minibuffer-complete-and-exit)
+	(minibuffer-try-word-completion): Use them.
+	(display-completion-list, minibuffer-completion-help): Use them.
+	Handle all-completions's new base-size info to set completion-base-size.
+	* info.el (Info-read-node-name-1): Use completion-table-with-context,
+	completion-table-with-terminator and complete-with-action.
+	Remove the now obsolete completion-base-size-function property.
+	* simple.el (completion-list-mode-map): Move init into declaration.
+	(completion-list-mode): Use define-derived-mode.
+	(completion-setup-function): Use any completion-base-size that may
+	have been set before.  Remove handling of completion-base-size-function.
+	* loadup.el: Move abbrev.el up earlier.
+
 2008-04-13  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-after-dir-status-stage)
 	(vc-git-dir-status-goto-stage): New functions.
 	(vc-git-after-dir-status-stage1)
 	(vc-git-after-dir-status-stage1-empty-db)
-	(vc-git-after-dir-status-stage2): Removed, functionality moved
+	(vc-git-after-dir-status-stage2): Remove, functionality moved
 	into the new generic stage functions.
 	(vc-git-dir-status-files): New function.
 

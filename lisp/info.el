@@ -1513,20 +1513,15 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
   (cond
    ;; First complete embedded file names.
    ((string-match "\\`([^)]*\\'" string)
-    (let ((file (substring string 1)))
-      (cond
-       ((eq code nil)
-	(let ((comp (try-completion file 'Info-read-node-name-2
-				    (cons Info-directory-list
-					  (mapcar 'car Info-suffix-list)))))
-	  (cond
-	   ((eq comp t) (concat string ")"))
-	   (comp (concat "(" comp)))))
-       ((eq code t)
-	(all-completions file 'Info-read-node-name-2
-			 (cons Info-directory-list
-			       (mapcar 'car Info-suffix-list))))
-       (t nil))))
+    (completion-table-with-context
+     "("
+     (apply-partially 'completion-table-with-terminator
+                      ")" 'Info-read-node-name-2)
+     (substring string 1)
+     (cons Info-directory-list
+           (mapcar 'car Info-suffix-list))
+     code))
+
    ;; If a file name was given, then any node is fair game.
    ((string-match "\\`(" string)
     (cond
@@ -1534,21 +1529,11 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
      ((eq code t) nil)
      (t t)))
    ;; Otherwise use Info-read-node-completion-table.
-   ((eq code nil)
-    (try-completion string Info-read-node-completion-table predicate))
-   ((eq code t)
-    (all-completions string Info-read-node-completion-table predicate))
-   (t
-    (test-completion string Info-read-node-completion-table predicate))))
+   (t (complete-with-action
+       code Info-read-node-completion-table string predicate))))
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
-(put 'Info-read-node-name-1 'completion-base-size-function
-     (lambda ()
-       (if (string-match "\\`([^)]*\\'"
-			 (or completion-common-substring
-			     (minibuffer-completion-contents)))
-	   1
-	 0)))
+
 
 (defun Info-read-node-name (prompt)
   (let* ((completion-ignore-case t)

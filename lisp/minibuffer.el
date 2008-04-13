@@ -24,6 +24,9 @@
 ;; Names starting with "minibuffer--" are for functions and variables that
 ;; are meant to be for internal use only.
 
+;; TODO:
+;; - make the `hide-spaces' arg of all-completions obsolete.
+
 ;; BUGS:
 ;; - envvar completion for file names breaks completion-base-size.
 
@@ -31,9 +34,27 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar completion-all-completions-with-base-size nil
+  "If non-nil, `all-completions' may return the base-size in the last cdr.
+The base-size is the length of the prefix that is elided from each
+element in the returned list of completions.  See `completion-base-size'.")
+
 ;;; Completion table manipulation
 
+(defun completion--some (fun xs)
+  "Apply FUN to each element of XS in turn.
+Return the first non-nil returned value.
+Like CL's `some'."
+  (let (res)
+    (while (and (not res) xs)
+      (setq res (funcall fun (pop xs))))
+    res))
+
 (defun apply-partially (fun &rest args)
+  "Do a \"curried\" partial application of FUN to ARGS.
+ARGS is a list of the first N arguments to pass to FUN.
+The result is a new function that takes the remaining arguments,
+and calls FUN."
   (lexical-let ((fun fun) (args1 args))
     (lambda (&rest args2) (apply fun (append args1 args2)))))
 
@@ -90,14 +111,23 @@ You should give VAR a non-nil `risky-local-variable' property."
 
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix', and think about how we should support `pred'.
-  ;; Notice that `pred' is not a predicate when called from read-file-name.
+  ;; Notice that `pred' is not a predicate when called from read-file-name
+  ;; or Info-read-node-name-2.
   ;; (if pred (setq pred (lexical-let ((pred pred))
   ;;                       ;; FIXME: this doesn't work if `table' is an obarray.
   ;;                       (lambda (s) (funcall pred (concat prefix s))))))
-  (let ((comp (complete-with-action action table string nil))) ;; pred
-    (if (stringp comp)
-        (concat prefix comp)
-      comp)))
+  (let ((comp (complete-with-action action table string pred)))
+    (cond
+     ;; In case of try-completion, add the prefix.
+     ((stringp comp) (concat prefix comp))
+     ;; In case of non-empty all-completions,
+     ;; add the prefix size to the base-size.
+     ((consp comp)
+      (let ((last (last comp)))
+        (when completion-all-completions-with-base-size
+          (setcdr last (+ (or (cdr last) 0) (length prefix))))
+        comp))
+     (t comp))))
 
 (defun completion-table-with-terminator (terminator table string pred action)
   (let ((comp (complete-with-action action table string pred)))
@@ -110,13 +140,17 @@ You should give VAR a non-nil `risky-local-variable' property."
             comp))
       comp)))
 
-(defun completion-table-in-turn (a b)
-  "Create a completion table that first tries completion in A and then in B.
-A and B should not be costly (or side-effecting) expressions."
-  (lexical-let ((a a) (b b))
+(defun completion-table-in-turn (&rest tables)
+  "Create a completion table that tries each table in TABLES in turn."
+  (lexical-let ((tables tables))
     (lambda (string pred action)
-      (or (complete-with-action action a string pred)
-          (complete-with-action action b string pred)))))
+      (completion--some (lambda (table)
+                          (complete-with-action action table string pred))
+                        tables))))
+
+(defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
+(define-obsolete-function-alias
+  'complete-in-turn 'completion-table-in-turn "23.1")
 
 ;;; Minibuffer completion
 
@@ -162,6 +196,41 @@ the second failed attempt to complete."
   :type '(choice (const nil) (const t) (const lazy))
   :group 'minibuffer)
 
+(defvar completion-styles-alist
+  '((basic try-completion all-completions)
+    ;; (partial-completion
+    ;;  completion-pcm--try-completion completion-pcm--all-completions)
+    )
+  "List of available completion styles.
+Each element has the form (NAME TRY-COMPLETION ALL-COMPLETIONS)
+where NAME is the name that should be used in `completion-styles'
+TRY-COMPLETION is the function that does the completion, and
+ALL-COMPLETIONS is the function that lists the completions.")
+
+(defcustom completion-styles '(basic)
+  "List of completion styles to use."
+  :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
+                                   completion-styles-alist)))
+  :group 'minibuffer
+  :version "23.1")
+
+(defun minibuffer-try-completion (string table pred)
+  (if (and (symbolp table) (get table 'no-completion-styles))
+      (try-completion string table pred)
+    (completion--some (lambda (style)
+                        (funcall (intern (concat style "try-completion"))
+                                 string table pred))
+                      completion-styles)))
+
+(defun minibuffer-all-completions (string table pred &optional hide-spaces)
+  (let ((completion-all-completions-with-base-size t))
+    (if (and (symbolp table) (get table 'no-completion-styles))
+        (all-completions string table pred hide-spaces)
+      (completion--some (lambda (style)
+                          (funcall (intern (concat style "all-completions"))
+                                   string table pred hide-spaces))
+                        completion-styles))))
+
 (defun minibuffer--bitset (modified completions exact)
   (logior (if modified    4 0)
           (if completions 2 0)
@@ -184,7 +253,8 @@ E = after completion we now have an Exact match.
  111  7 completed to an exact completion"
   (let* ((beg (field-beginning))
          (string (buffer-substring beg (point)))
-         (completion (funcall (or try-completion-function 'try-completion)
+         (completion (funcall (or try-completion-function
+                                  'minibuffer-try-completion)
                               string
                               minibuffer-completion-table
                               minibuffer-completion-predicate)))
@@ -290,9 +360,10 @@ a repetition of this command will exit."
     (when completion-ignore-case
       ;; Fixup case of the field, if necessary.
       (let* ((string (field-string))
-	     (compl (try-completion string
-				    minibuffer-completion-table
-				    minibuffer-completion-predicate)))
+	     (compl (minibuffer-try-completion
+                     string
+                     minibuffer-completion-table
+                     minibuffer-completion-predicate)))
 	(when (and (stringp compl)
                    ;; If it weren't for this piece of paranoia, I'd replace
                    ;; the whole thing with a call to complete-do-completion.
@@ -325,7 +396,7 @@ a repetition of this command will exit."
       (t nil)))))
 
 (defun minibuffer-try-word-completion (string table predicate)
-  (let ((completion (try-completion string table predicate)))
+  (let ((completion (minibuffer-try-completion string table predicate)))
     (if (not (stringp completion))
         completion
 
@@ -369,8 +440,8 @@ a repetition of this command will exit."
         (let ((exts '(" " "-"))
               tem)
           (while (and exts (not (stringp tem)))
-            (setq tem (try-completion (concat string (pop exts))
-                                      table predicate)))
+            (setq tem (minibuffer-try-completion (concat string (pop exts))
+                                                 table predicate)))
           (if (stringp tem) (setq completion tem))))
 
       ;; Otherwise cut after the first word.
@@ -492,7 +563,12 @@ during running `completion-setup-hook'."
 	  (insert "There are no possible completions of what you have typed.")
 
 	(insert "Possible completions are:\n")
+        (let ((last (last completions)))
+          ;; Get the base-size from the tail of the list.
+          (set (make-local-variable 'completion-base-size) (or (cdr last) 0))
+          (setcdr last nil)) ;Make completions a properly nil-terminated list.
 	(minibuffer--insert-strings completions))))
+
   (let ((completion-common-substring common-substring))
     (run-hooks 'completion-setup-hook))
   nil)
@@ -502,16 +578,23 @@ during running `completion-setup-hook'."
   (interactive)
   (message "Making completion list...")
   (let* ((string (field-string))
-         (completions (all-completions
+         (completions (minibuffer-all-completions
                        string
                        minibuffer-completion-table
                        minibuffer-completion-predicate
                        t)))
     (message nil)
     (if (and completions
-             (or (cdr completions) (not (equal (car completions) string))))
+             (or (consp (cdr completions))
+                 (not (equal (car completions) string))))
         (with-output-to-temp-buffer "*Completions*"
-          (display-completion-list (sort completions 'string-lessp)))
+          (let* ((last (last completions))
+                 (base-size (cdr last)))
+            ;; Remove the base-size tail because `sort' requires a properly
+            ;; nil-terminated list.
+            (when last (setcdr last nil))
+            (display-completion-list (nconc (sort completions 'string-lessp)
+                                            base-size))))
 
       ;; If there are no completions, or if the current input is already the
       ;; only possible completion, then hide (previous&stale) completions.
@@ -597,9 +680,13 @@ during running `completion-setup-hook'."
               str))))
 
        ((eq action t)
-        (let ((all (file-name-all-completions name realdir)))
-          (if (memq read-file-name-predicate '(nil file-exists-p))
-              all
+        (let ((all (file-name-all-completions name realdir))
+              ;; Actually, this is not always right in the presence of
+              ;; envvars, but there's not much we can do, I think.
+              (base-size (length (file-name-directory string))))
+
+          ;; Check the predicate, if necessary.
+          (unless (memq read-file-name-predicate '(nil file-exists-p))
             (let ((comp ())
                   (pred
                    (if (eq read-file-name-predicate 'file-directory-p)
@@ -613,7 +700,10 @@ during running `completion-setup-hook'."
               (let ((default-directory realdir))
                 (dolist (tem all)
                   (if (funcall pred tem) (push tem comp))))
-              (nreverse comp)))))
+              (setq all (nreverse comp))))
+
+          ;; Add base-size, but only if the list is non-empty.
+          (if (consp all) (nconc all base-size))))
 
        (t
         ;; Only other case actually used is ACTION = lambda.

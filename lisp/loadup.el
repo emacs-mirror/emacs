@@ -89,6 +89,7 @@
   (file-error (load "ldefs-boot.el")))
 
 (message "%s" (garbage-collect))
+(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
 
 (load "help")
@@ -160,7 +161,6 @@
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
-(load "abbrev")                      ;lisp-mode.el uses define-abbrev-table.
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")

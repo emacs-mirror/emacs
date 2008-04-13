@@ -5234,18 +5234,17 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 
 ;; Define the major mode for lists of completions.
 
-(defvar completion-list-mode-map nil
+(defvar completion-list-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'mouse-choose-completion)
+    (define-key map [follow-link] 'mouse-face)
+    (define-key map [down-mouse-2] nil)
+    (define-key map "\C-m" 'choose-completion)
+    (define-key map "\e\e\e" 'delete-completion-window)
+    (define-key map [left] 'previous-completion)
+    (define-key map [right] 'next-completion)
+    map)
   "Local map for completion list buffers.")
-(or completion-list-mode-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map [mouse-2] 'mouse-choose-completion)
-      (define-key map [follow-link] 'mouse-face)
-      (define-key map [down-mouse-2] nil)
-      (define-key map "\C-m" 'choose-completion)
-      (define-key map "\e\e\e" 'delete-completion-window)
-      (define-key map [left] 'previous-completion)
-      (define-key map [right] 'next-completion)
-      (setq completion-list-mode-map map)))
 
 ;; Completion mode is suitable only for specially formatted data.
 (put 'completion-list-mode 'mode-class 'special)
@@ -5425,7 +5424,7 @@ to decide what to delete."
 		     (raise-frame (window-frame mini))))
 	       (exit-minibuffer)))))))
 
-(defun completion-list-mode ()
+(define-derived-mode completion-list-mode nil "Completion List"
   "Major mode for buffers showing lists of possible completions.
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
@@ -5433,15 +5432,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
  with the mouse.
 
 \\{completion-list-mode-map}"
-
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map completion-list-mode-map)
-  (setq mode-name "Completion List")
-  (setq major-mode 'completion-list-mode)
-  (make-local-variable 'completion-base-size)
-  (setq completion-base-size nil)
-  (run-mode-hooks 'completion-list-mode-hook))
+  (set (make-local-variable 'completion-base-size) nil))
 
 (defun completion-list-mode-finish ()
   "Finish setup of the completions buffer.
@@ -5502,27 +5493,25 @@ of the minibuffer before point is always the common substring.)")
 	  (setq default-directory
                 (file-name-directory (expand-file-name mbuf-contents)))))
     (with-current-buffer standard-output
-      (completion-list-mode)
+      (let ((base-size completion-base-size)) ;Read before killing localvars.
+        (completion-list-mode)
+        (set (make-local-variable 'completion-base-size) base-size))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
-      (setq completion-base-size
-	    (cond
-	     ((and (symbolp minibuffer-completion-table)
-		   (get minibuffer-completion-table 'completion-base-size-function))
-	      ;; To compute base size, a function can use the global value of
-	      ;; completion-common-substring or minibuffer-completion-contents.
-	      (with-current-buffer mainbuf
-		(funcall (get minibuffer-completion-table
-			      'completion-base-size-function))))
-	     (minibuffer-completing-file-name
-	      ;; For file name completion, use the number of chars before
-	      ;; the start of the file name component at point.
-	      (with-current-buffer mainbuf
-		(save-excursion
-		  (skip-chars-backward completion-root-regexp)
-		  (- (point) (minibuffer-prompt-end)))))
-	     (minibuffer-completing-symbol nil)
-	     ;; Otherwise, in minibuffer, the base size is 0.
-	     ((minibufferp mainbuf) 0)))
+      (unless completion-base-size
+        ;; This may be needed for old completion packages which don't use
+        ;; completion-all-completions-with-base-size yet.
+        (setq completion-base-size
+              (cond
+               (minibuffer-completing-file-name
+                ;; For file name completion, use the number of chars before
+                ;; the start of the file name component at point.
+                (with-current-buffer mainbuf
+                  (save-excursion
+                    (skip-chars-backward completion-root-regexp)
+                    (- (point) (minibuffer-prompt-end)))))
+               (minibuffer-completing-symbol nil)
+               ;; Otherwise, in minibuffer, the base size is 0.
+               ((minibufferp mainbuf) 0))))
       (setq common-string-length
 	    (cond
 	     (completion-common-substring
