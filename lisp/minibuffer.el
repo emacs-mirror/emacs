@@ -559,7 +559,7 @@ during running `completion-setup-hook'."
                               "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'")
                       string)
     (let* ((beg (or (match-beginning 2) (match-beginning 1)))
-           (table (completion-make-envvar-table))
+           (table (completion--make-envvar-table))
            (prefix (substring string 0 beg)))
       (if (eq (aref string (1- beg)) ?{)
           (setq table (apply-partially 'completion-table-with-terminator
@@ -567,7 +567,7 @@ during running `completion-setup-hook'."
       (completion-table-with-context prefix table
                                      (substring string beg)
                                      pred action))))
-          
+
 (defun completion--file-name-table (string dir action)
   "Internal subroutine for read-file-name.  Do not call this."
   (setq dir (expand-file-name dir))
@@ -580,7 +580,7 @@ during running `completion-setup-hook'."
            (specdir (file-name-directory str))
            (realdir (if specdir (expand-file-name specdir dir)
                       (file-name-as-directory dir))))
-      
+
       (cond
        ((null action)
         (let ((comp (file-name-completion name realdir
@@ -595,7 +595,7 @@ during running `completion-setup-hook'."
               ;; If there's no real completion, but substitute-in-file-name
               ;; changed the string, then return the new string.
               str))))
-       
+
        ((eq action t)
         (let ((all (file-name-all-completions name realdir)))
           (if (memq read-file-name-predicate '(nil file-exists-p))
@@ -621,8 +621,8 @@ during running `completion-setup-hook'."
           (funcall (or read-file-name-predicate 'file-exists-p) str)))))))
 
 (defalias 'read-file-name-internal
-  (completion-table-in-turn 'completion-embedded-envvar-table
-                      'completion-file-name-table)
+  (completion-table-in-turn 'completion--embedded-envvar-table
+                      'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
 (provide 'minibuffer)
