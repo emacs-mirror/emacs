@@ -1,3 +1,20 @@
+2008-04-13  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-after-dir-status-stage)
+	(vc-git-dir-status-goto-stage): New functions.
+	(vc-git-after-dir-status-stage1)
+	(vc-git-after-dir-status-stage1-empty-db)
+	(vc-git-after-dir-status-stage2): Removed, functionality moved
+	into the new generic stage functions.
+	(vc-git-dir-status-files): New function.
+
+	* vc.el (vc-status-update): Revert an incorrect rewrite. Add some
+	comments.
+	(vc-status-refresh-files): New function.
+	(vc-status-refresh): Use `vc-status-refresh-files' to refresh the
+	state of up-to-date files.
+	(vc-default-dir-status-files): New function.
+
 2008-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (completion--embedded-envvar-table)
