@@ -1,3 +1,11 @@
+2008-04-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion--embedded-envvar-table)
+	(read-file-name-internal): Fix typos in 2008-04-11 change.
+
+	* faces.el (read-face-name): Use `completion-table-in-turn',
+	not `complete-in-turn'.
+
 2008-04-13  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/etags.el: Require 'cl when compiling.
@@ -19,8 +27,7 @@
 
 2008-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* emacs-lisp/copyright.el (copyright-update-directory): New
-	command.
+	* emacs-lisp/copyright.el (copyright-update-directory): New command.
 
 	* ediff-wind.el (ediff-split-window-function)
 	(ediff-merge-split-window-function): Improve custom type.
@@ -39,8 +46,8 @@
 	Mark obsolete name as risky too.
 
 	* calendar/calendar.el (calendar-faces): New custom group.
-	(calendar-today, diary, holiday): Doc fix.  Move to calendar-faces
-	group.
+	(calendar-today, diary, holiday): Doc fix.
+	Move to calendar-faces group.
 	* calendar/diary-lib.el (diary-face, diary-anniversary, diary-time)
 	(diary-button): Doc fix.  Move to calendar-faces group.
 
