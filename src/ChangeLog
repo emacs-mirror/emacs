@@ -1,3 +1,8 @@
+2008-04-13  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* dbusbind.c (dbus-get-unique-name): Remove extra copying of name
+	string.
+
 2008-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/hp800.h (XUINT, XSET): Remove.
