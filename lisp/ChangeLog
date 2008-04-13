@@ -1,3 +1,7 @@
+2008-04-13  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/etags.el: Require 'cl when compiling.
+
 2008-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Expand tooltip.

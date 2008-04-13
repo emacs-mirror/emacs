@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
 (require 'ring)
 (require 'button)
 
@@ -775,7 +777,7 @@ tags table and its (recursively) included tags tables."
 		  (setq combined-table current-table))))
 	    (message "Making tags completion table for %s...done"
 		     buffer-file-name)
-	    ;; Cache the result a buffer-local variable.
+	    ;; Cache the result in a buffer-local variable.
 	    (setq tags-completion-table combined-table))
 	(quit (message "Tags completion table construction aborted.")
 	      (setq tags-completion-table nil)))))
