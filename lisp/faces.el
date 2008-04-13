@@ -986,7 +986,7 @@ Otherwise, return a single face."
 			 (if faces (mapconcat 'symbol-name faces ",")
 			   string-describing-default))
 	       (format "%s: " prompt))
-	     (complete-in-turn nonaliasfaces aliasfaces)
+	     (completion-table-in-turn nonaliasfaces aliasfaces)
 	     nil t nil nil
 	     (if faces (mapconcat 'symbol-name faces ","))))
 	   ;; Canonicalize the output.
