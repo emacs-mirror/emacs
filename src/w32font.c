@@ -877,6 +877,11 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   font->descent = w32_font->metrics.tmDescent;
   font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
 
+  /* max_descent is used for underlining in w32term.c.  Hopefully this
+     is temporary, as we'll want to get rid of the old compatibility
+     stuff later.  */
+  compat_w32_font->max_bounds.descent = font->descent;
+
   /* Set global flag fonts_changed_p to non-zero if the font loaded
      has a character with a smaller width than any other character
      before, or if the font loaded has a smaller height than any other
