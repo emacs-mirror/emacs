@@ -516,8 +516,8 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                   (if (zerop (funcall
                               proced-signal-function
                               (string-to-number (car process)) signal))
-                      (push (cdr process) err-list)
-                    (setq count (1+ count)))))
+                      (setq count (1+ count))
+                    (push (cdr process) err-list))))
             ;; use external system call
             (let ((signal (concat "-" (if (numberp signal)
                                           (number-to-string signal) signal))))
@@ -525,8 +525,8 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                 (if (zerop (call-process
                             proced-signal-function nil 0 nil
                             signal (car process)))
-                    (push (cdr process) err-list)
-                  (setq count (1+ count))))))
+                    (setq count (1+ count))
+                  (push (cdr process) err-list)))))
           (if err-list
               ;; FIXME: that's not enough to display the errors.
               (message "%s: %s" signal err-list)
