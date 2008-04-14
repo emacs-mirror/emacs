@@ -1,3 +1,8 @@
+2008-04-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Set max_bounds.descent in
+	compatibility struct, for better underline positioning.
+
 2008-04-13  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
 	* dbusbind.c (dbus-get-unique-name): Remove extra copying of name
