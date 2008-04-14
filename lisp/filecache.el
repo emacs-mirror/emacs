@@ -259,7 +259,12 @@ Defaults to nil on DOS and Windows, and t on other systems."
 (defvar file-cache-alist nil
   "Internal data structure to hold cache of file names.")
 
-(defvar file-cache-completions-keymap nil
+(defvar file-cache-completions-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map completion-list-mode-map)
+    (define-key map [mouse-2] 'file-cache-mouse-choose-completion)
+    (define-key map "\C-m" 'file-cache-choose-completion)
+    map)
   "Keymap for file cache completions buffer.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -609,14 +614,10 @@ the name is considered already unique; only the second substitution
 	       (substring completion-string (length string)))
 	      ;; Add our own setup function to the Completions Buffer
 	      (let ((completion-setup-hook
-		   (reverse
-		    (append (list 'file-cache-completion-setup-function)
-			    completion-setup-hook)))
-		    )
+                     (append completion-setup-hook
+                             (list 'file-cache-completion-setup-function))))
 		(with-output-to-temp-buffer file-cache-completions-buffer
-		  (display-completion-list completion-list string))
-		)
-	      )
+		  (display-completion-list completion-list string))))
 	  (setq file-cache-string (file-cache-file-name completion-string))
 	  (if (string= file-cache-string (minibuffer-contents))
 	      (file-cache-temp-minibuffer-message
@@ -653,19 +654,8 @@ the name is considered already unique; only the second substitution
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun file-cache-completion-setup-function  ()
-  (set-buffer file-cache-completions-buffer)
-
-  (if file-cache-completions-keymap
-      nil
-    (setq file-cache-completions-keymap
-	  (copy-keymap completion-list-mode-map))
-    (define-key file-cache-completions-keymap [mouse-2]
-      'file-cache-mouse-choose-completion)
-    (define-key file-cache-completions-keymap "\C-m"
-      'file-cache-choose-completion))
-
-    (use-local-map file-cache-completions-keymap)
-    )
+  (with-current-buffer standard-output ;; i.e. file-cache-completions-buffer
+    (use-local-map file-cache-completions-keymap)))
 
 (defun file-cache-choose-completion  ()
   "Choose a completion in the `*Completions*' buffer."

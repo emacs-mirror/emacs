@@ -1,5 +1,11 @@
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* filecache.el (file-cache-completions-keymap): Move init from
+	file-cache-completion-setup-function into declaration.
+	(file-cache-minibuffer-complete): Simplify.
+	(file-cache-completion-setup-function): Use standard-output,
+	preserve current-buffer.
+
 	* vc.el (vc-status-update): Fix typo.
 	(vc-status-update): Set needs-update.
 	(vc-status-refresh): η-reduce.
