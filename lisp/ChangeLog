@@ -1,3 +1,7 @@
+2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-status-update): Fix typo.
+
 2008-04-14  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode-map): Bind C-a to image-bol and C-e

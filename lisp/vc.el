@@ -3030,7 +3030,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
           (cond
            ((string-lessp nodefile entryfile)
             (setq node (ewoc-next vc-status node)))
-           ((string-lessp nodefile entryfile)
+           ((string-lessp entryfile nodefile)
             (unless noinsert
               (ewoc-enter-before vc-status node
                                  (apply 'vc-status-create-fileinfo entry)))
