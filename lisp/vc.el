@@ -3038,6 +3038,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
            (t
             (setf (vc-status-fileinfo->state (ewoc-data node)) (nth 1 entry))
             (setf (vc-status-fileinfo->extra (ewoc-data node)) (nth 2 entry))
+            (setf (vc-status-fileinfo->needs-update (ewoc-data node)) nil)
             (ewoc-invalidate vc-status node)
             (setq entries (cdr entries) entry (car entries))
             (setq node (ewoc-next vc-status node))))))
@@ -3107,7 +3108,8 @@ Throw an error if another update process is in progress."
         (setq vc-status-process-buffer
               (generate-new-buffer (format " *VC-%s* tmp status" backend))))
       ;; set the needs-update flag on all entries
-      (ewoc-map (lambda (info) (setf (vc-status-fileinfo->needs-update info) t) nil) vc-status)
+      (ewoc-map (lambda (info) (setf (vc-status-fileinfo->needs-update info) t) nil)
+                vc-status)
       (lexical-let ((buffer (current-buffer)))
         (with-current-buffer vc-status-process-buffer
           (cd def-dir)
@@ -3122,11 +3124,11 @@ Throw an error if another update process is in progress."
                (vc-status-update entries buffer)
                (unless more-to-come
                  (let ((remaining
-                        (ewoc-collect vc-status
-                                      (lambda (info) (vc-status-fileinfo->needs-update info)))))
+                        (ewoc-collect
+                         vc-status 'vc-status-fileinfo->needs-update)))
                    (if remaining
                        (vc-status-refresh-files
-                        (mapcar (lambda (info) (vc-status-fileinfo->name info)) remaining)
+                        (mapcar 'vc-status-fileinfo->name remaining)
                         'up-to-date)
                      (setq mode-line-process nil))))))))))))
 

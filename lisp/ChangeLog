@@ -1,6 +1,8 @@
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-status-update): Fix typo.
+	(vc-status-update): Set needs-update.
+	(vc-status-refresh): η-reduce.
 
 2008-04-14  Tassilo Horn  <tassilo@member.fsf.org>
 
