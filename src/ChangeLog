@@ -3,7 +3,7 @@
 	* w32font.c (w32font_open_internal): Set max_bounds.descent in
 	compatibility struct, for better underline positioning.
 
-2008-04-13  David Hansen  <david.hansen@gmx.net>  (tiny change)
+2008-04-13  David Hansen  <david.hansen@gmx.net>
 
 	* dbusbind.c (dbus-get-unique-name): Remove extra copying of name
 	string.
@@ -460,7 +460,7 @@
 	(Fupcase_word, Fdowncase_word, Fcapitalize_word, operate_on_word):
 	Fix int -> EMACS_INT.
 
-2008-03-23  David Hansen  <david.hansen@gmx.net>  (tiny change)
+2008-03-23  David Hansen  <david.hansen@gmx.net>
 
 	* dbusbind.c (xd_read_message): Remove extra copying of message
 	strings.  Check for NULL `interface' or `member'.
