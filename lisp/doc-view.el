@@ -310,6 +310,8 @@ Can be `dvi', `pdf', or `ps'.")
     ;; Scrolling
     (define-key map [remap forward-char]  'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
+    (define-key map [remap move-end-of-line]       'image-eol)
+    (define-key map [remap move-beginning-of-line] 'image-bol)
     (define-key map [remap next-line]     'image-next-line)
     (define-key map [remap previous-line] 'image-previous-line)
     ;; Show the tooltip
