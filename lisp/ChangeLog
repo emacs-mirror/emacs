@@ -1,3 +1,7 @@
+2008-04-14  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc.el (vc-status-update): Undo the previous revert.
+
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-table-with-terminator): Those completions
