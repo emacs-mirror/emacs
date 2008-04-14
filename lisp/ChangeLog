@@ -1,5 +1,7 @@
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/crm.el: Complete rewrite.
+
 	* tmm.el (tmm-completion-delete-prompt): Don't hardcode point-min==1.
 	(tmm-add-prompt): Make sure completion-setup-hook is preserved even in
 	case of an error in display-completion-list.
