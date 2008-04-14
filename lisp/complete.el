@@ -1107,11 +1107,11 @@ This is only used by "
                         (format (if (string-match "/\\'" x) "<%s" "<%s>") x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
-              (cond
-               ((not completion-table) nil)
-               ((eq action 'lambda) (test-completion str2 completion-table nil))
-               ((eq action nil) (PC-try-completion str2 completion-table nil))
-          ((eq action t) (all-completions str2 completion-table nil))))
+        (cond
+         ((not completion-table) nil)
+         ((eq action 'lambda) (test-completion str2 completion-table nil))
+         ((eq action nil) (PC-try-completion str2 completion-table nil))
+         ((eq action t) (all-completions str2 completion-table nil))))
     (read-file-name-internal string dir action)))
 
 
