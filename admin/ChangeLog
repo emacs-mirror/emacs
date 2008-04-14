@@ -1,3 +1,9 @@
+2008-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/unidata-gen.el (unidata-prop-alist):
+	Fix typo in description of `numeric-value'.
+	(unidata-put-character): Fix typo in error message.
+
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* notes/unicode, notes/font-backend: New files, split off from
