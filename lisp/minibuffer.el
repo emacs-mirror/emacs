@@ -173,6 +173,11 @@ If ARGS are provided, then pass MESSAGE through `format'."
   (let ((ol (make-overlay (point-max) (point-max) nil t t)))
     (unwind-protect
         (progn
+          (unless (zerop (length message))
+            ;; The current C cursor code doesn't know to use the overlay's
+            ;; marker's stickiness to figure out whether to place the cursor
+            ;; before or after the string, so let's spoon-feed it the pos.
+            (put-text-property 0 1 'cursor t message))
           (overlay-put ol 'after-string message)
           (sit-for (or minibuffer-message-timeout 1000000)))
       (delete-overlay ol))))

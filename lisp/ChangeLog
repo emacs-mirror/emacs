@@ -1,3 +1,7 @@
+2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-message): Put cursor at the right place.
+
 2008-04-13  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-send-signal): Fix error recognition.
@@ -5,21 +9,20 @@
 2008-04-13  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-command-alist): Remove sort column.
-	(proced-command, proced-procname-column): Use
-	make-variable-buffer-local.
-	(proced-signal-function): Renamed from proced-kill-program.  Allow
-	for elisp symbols and string values representing system calls.
+	(proced-command, proced-procname-column):
+	Use make-variable-buffer-local.
+	(proced-signal-function): Rename from proced-kill-program.
+	Allow for elisp symbols and string values representing system calls.
 	(proced-marker-regexp, proced-success-message): New functions.
 	(proced): Use defalias.  Add autoload cookie.
 	(proced-unmark-backward, proced-toggle-marks)
 	(proced-hide-processes): New commands.
 	(proced-do-mark): Simplify code.
-	(proced-insert-mark): Use optional arg BACKWARD instead of line
-	number.
+	(proced-insert-mark): Use optional arg BACKWARD instead of line number.
 	(proced-update): Remove sorting.
 	(proced-send-signal): Display number of processes to operate on.
-	Allow for system calls or elisp functions to send signals.  Check
-	if signal was send successfully.
+	Allow for system calls or elisp functions to send signals.
+	Check if signal was sent successfully.
 
 2008-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
