@@ -559,9 +559,11 @@ Should be invoked when the cached images aren't up-to-date."
         (funcall (process-get proc 'callback))))))
 
 (defun doc-view-start-process (name program args callback)
-  ;; Make sure the process is started in an existing directory,
-  ;; (rather than some file-name-handler-managed dir, for example).
-  (let* ((default-directory (expand-file-name "~/"))
+  ;; Make sure the process is started in an existing directory, (rather than
+  ;; some file-name-handler-managed dir, for example).
+  (let* ((default-directory (if (file-readable-p default-directory)
+				default-directory
+			      (expand-file-name "~/")))
          (proc (apply 'start-process name doc-view-conversion-buffer
                       program args)))
     (push proc doc-view-current-converter-processes)
@@ -585,7 +587,7 @@ Should be invoked when the cached images aren't up-to-date."
            (list (format "-r%d" (round doc-view-resolution))
                  (concat "-sOutputFile=" png)
                  pdf-ps))
-   (lambda () 
+   (lambda ()
      (when doc-view-current-timer
        (cancel-timer doc-view-current-timer)
        (setq doc-view-current-timer nil))
