@@ -1,5 +1,11 @@
 2008-04-14  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* doc-view.el (doc-view-dvipdf-program): New variable.
+	(doc-view-dvipdfm-program): Mention doc-view-dvipdf-program.
+	(doc-view-mode-p): Check for doc-view-dvipdf-program as
+	alternative for doc-view-dvipdfm-program.
+	(doc-view-dvi->pdf): Prefer dvipdf over dvipdfm.
+
 	* doc-view.el (doc-view-start-process): Don't set
 	default-directory to "~/" if the current value is valid.  This
 	broke PS files that run other files in the same directory.
