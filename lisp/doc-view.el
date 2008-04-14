@@ -172,7 +172,21 @@ Higher values result in larger images."
   "Program to convert DVI files to PDF.
 
 DVI file will be converted to PDF before the resulting PDF is
-converted to PNG."
+converted to PNG.
+
+If this and `doc-view-dvipdf-program' are set,
+`doc-view-dvipdf-program' will be preferred."
+  :type 'file
+  :group 'doc-view)
+
+(defcustom doc-view-dvipdf-program (executable-find "dvipdf")
+  "Program to convert DVI files to PDF.
+
+DVI file will be converted to PDF before the resulting PDF is
+converted to PNG.
+
+If this and `doc-view-dvipdfm-program' are set,
+`doc-view-dvipdf-program' will be preferred."
   :type 'file
   :group 'doc-view)
 
@@ -509,8 +523,10 @@ Image types are symbols like `dvi', `postscript' or `pdf'."
        (cond
 	((eq type 'dvi)
 	 (and (doc-view-mode-p 'pdf)
-	      doc-view-dvipdfm-program
-	      (executable-find doc-view-dvipdfm-program)))
+	      (or (and doc-view-dvipdf-program
+		       (executable-find doc-view-dvipdf-program))
+		  (and doc-view-dvipdfm-program
+		       (executable-find doc-view-dvipdfm-program)))))
 	((or (eq type 'postscript) (eq type 'ps) (eq type 'eps)
 	     (eq type 'pdf))
 	 (and doc-view-ghostscript-program
@@ -574,9 +590,16 @@ Should be invoked when the cached images aren't up-to-date."
 
 (defun doc-view-dvi->pdf (dvi pdf callback)
   "Convert DVI to PDF asynchronously and call CALLBACK when finished."
-  (doc-view-start-process "dvi->pdf" doc-view-dvipdfm-program
-                          (list "-o" pdf dvi)
-                          callback))
+  ;; Prefer dvipdf over dvipdfm, because the latter has problems if the DVI
+  ;; references and includes other PS files.
+  (if (and doc-view-dvipdf-program
+	   (executable-find doc-view-dvipdf-program))
+      (doc-view-start-process "dvi->pdf" doc-view-dvipdf-program
+			    (list dvi pdf)
+			    callback)
+    (doc-view-start-process "dvi->pdf" doc-view-dvipdfm-program
+			    (list "-o" pdf dvi)
+			    callback)))
 
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
