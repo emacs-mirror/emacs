@@ -172,8 +172,10 @@ Enclose MESSAGE in [...] if this is not yet the case.
 If ARGS are provided, then pass MESSAGE through `format'."
   ;; Clear out any old echo-area message to make way for our new thing.
   (message nil)
-  (unless (and (null args) (string-match "\\[.+\\]" message))
-    (setq message (concat " [" message "]")))
+  (setq message (if (and (null args) (string-match "\\[.+\\]" message))
+                    ;; Make sure we can put-text-property.
+                    (copy-sequence message)
+                  (concat " [" message "]")))
   (when args (setq message (apply 'format message args)))
   (let ((ol (make-overlay (point-max) (point-max) nil t t)))
     (unwind-protect

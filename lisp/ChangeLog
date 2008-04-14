@@ -1,5 +1,7 @@
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-message): Make sure we can put-text-property.
+
 	* emacs-lisp/crm.el: Complete rewrite.
 
 	* tmm.el (tmm-completion-delete-prompt): Don't hardcode point-min==1.
