@@ -1,3 +1,22 @@
+2008-04-13  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-command-alist): Remove sort column.
+	(proced-command, proced-procname-column): Use
+	make-variable-buffer-local.
+	(proced-signal-function): Renamed from proced-kill-program.  Allow
+	for elisp symbols and string values representing system calls.
+	(proced-marker-regexp, proced-success-message): New functions.
+	(proced): Use defalias.  Add autoload cookie.
+	(proced-unmark-backward, proced-toggle-marks)
+	(proced-hide-processes): New commands.
+	(proced-do-mark): Simplify code.
+	(proced-insert-mark): Use optional arg BACKWARD instead of line
+	number.
+	(proced-update): Remove sorting.
+	(proced-send-signal): Display number of processes to operate on.
+	Allow for system calls or elisp functions to send signals.  Check
+	if signal was send successfully.
+
 2008-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-all-completion-with-base-size): New var.
@@ -101,7 +120,7 @@
 	Move non-autoloaded define-obsolete-variable-alias calls for defcustoms
 	not in dumped files before the associated defcustom.
 
-2008-04-11  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-04-11  Johan Bockgård  <bojohan@gnu.org>
 
 	* minibuffer.el (lazy-completion-table): Fix debug spec.
 
@@ -152,7 +171,7 @@
 
 	* loadup.el: Load ldefs-boot.el if loaddefs.el doesn't exist.
 
-2008-04-11  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-04-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* tooltip.el (tooltip-show-help-non-mode): Set message-truncate-lines
 	to t and don't truncate msg.
@@ -328,7 +347,7 @@
 	* nxml/nxml-mode.el (nxml-cleanup): New function.
 	(nxml-mode): Add it to change-major-mode-hook.
 
-2008-04-09  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Map info to gtk-info.
 
@@ -336,7 +355,7 @@
 
 	* calc/.cvsignore: New file.
 
-2008-04-09  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* vc.el (vc-status-tool-bar-map): Add vc-print-log to tool bar.
 
@@ -478,7 +497,7 @@
 	* faces.el (font-slant-table): Change numeric values for `r',
 	`roman', and `normal'.
 
-2008-04-07  Vincent BelaÃ¯che  <vincent.b.1@hotmail.fr>
+2008-04-07  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
 	* calc/calc-vec.el (calcFunc-kron, calc-kron): New functions.
 
@@ -1548,7 +1567,7 @@
 	Likewise for braille and mathematical.
 	Use unicode scripts that cover the phonetic script for IPA.
 
-2008-04-01  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-04-01  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/cl-macs.el (frame-parameter) <defsetf>: Make it
 	return the assigned value.
@@ -1920,7 +1939,7 @@
 	(verilog-auto-unused, verilog-auto): Update documentation to use
 	more obvious instance module names versus cell names.
 
-2008-03-28  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-03-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/compile.el (compilation-mode-tool-bar-map): Only enable
 	kill if a process is running.
@@ -2019,7 +2038,7 @@
 	* image-mode.el (image-mode-reapply-winprops): Simplify now that
 	window-configuration-change-hook works buffer-locally.
 
-2008-03-26  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-03-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el (lm-with-file): Use mode and syntax table
 	for Emacs Lisp, not Lisp.
@@ -2032,7 +2051,7 @@
 	* emacs-lisp/bytecomp.el (byte-compile-obsolete): If no
 	replacement is provided, don't print "use nil instead".
 
-2008-03-26  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-03-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* complete.el (PC-do-completion): Use regexp-quote.
 
@@ -2173,7 +2192,7 @@
 	(verilog-signals-matching-regexp): New internal function for
 	signal matching.
 
-2008-03-25  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-03-25  Johan Bockgård  <bojohan@gnu.org>
 
 	* info.el (Info-isearch-search): Always return point.
 
@@ -2610,7 +2629,7 @@
 	* international/mule.el (load-with-code-conversion): Avoid setting
 	default-enable-multibyte-characters.
 
-2008-03-19  Gustav HÃ¥llberg  <gustav@virtutech.com>  (tiny change)
+2008-03-19  Gustav Hållberg  <gustav@virtutech.com>  (tiny change)
 
 	* vc.el (vc-annotate-background): Fix custom type.
 
@@ -3173,7 +3192,7 @@
 	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Fix handling
 	of \ and '.
 
-2008-03-13  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-03-13  Johan Bockgård  <bojohan@gnu.org>
 
 	* net/browse-url.el (browse-url-text-xterm):
 	Unquote browse-url-text-browser.
@@ -3661,7 +3680,7 @@
 	(bookmark-insert-buffer-name): Remove.
 	(bookmark-buffer-file-name): Signal an error rather than returning nil.
 
-2008-03-09  Thomas HÃ¼hn  <xf27@arcor.de>  (tiny change)
+2008-03-09  Thomas Hühn  <xf27@arcor.de>  (tiny change)
 
 	* tutorial.el (tutorial--default-keys): Update `C-l' binding.
 
@@ -3726,7 +3745,7 @@
 	(bookmark-prop-get): Declare.
 	(Info-bookmark-jump): Use it.
 
-2008-03-08  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2008-03-08  Johan Bockgård  <bojohan@gnu.org>
 
 	* subr.el (while-no-input): Don't splice BODY directly into the
 	`or' form.
@@ -3930,7 +3949,7 @@
 	* image-mode.el (image-bookmark-make-record):
 	* info.el (Info-bookmark-make-record): Delete obsolete second arg.
 
-2008-03-07  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-03-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* vc.el (vc-status-menu-map-filter): Return orig-binding if
 	boundp 'vc-ignore-menu-filter.
@@ -4080,7 +4099,7 @@
 	(org-promote, org-demote, org-archive-subtree)
 	(org-remember-handler, org-refile, org-put-clock-overlay): Use it.
 
-2008-03-06  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Add bookmark_add.
 
@@ -4577,7 +4596,7 @@
 	when using transient-mark-mode.
 	(default-indicate-unused-lines): Remove unused var.
 
-2008-02-26  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-02-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/grep.el (grep-mode-tool-bar-map): Change place on next
 	and previous.
@@ -4647,7 +4666,7 @@
 	* help-mode.el (help-info-variable):
 	New button able to read Info files for help-fns.el.
 
-2008-02-25  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/grep.el (grep-mode-tool-bar-map): New variable.
 	(grep-mode): Use grep-mode-tool-bar-map.
@@ -4884,7 +4903,7 @@
 	* font-lock.el (font-lock-set-defaults): Unset previously set variables
 	when needed.
 
-2008-02-24  Ã†var ArnfjÃ¶rÃ° Bjarmason  <avar@cpan.org>  (tiny change)
+2008-02-24  Ævar Arnfjörð Bjarmason  <avar@cpan.org>  (tiny change)
 
 	* net/rcirc.el (rcirc-url-regexp): Replace definition by copying
 	from gnus-button-url-regexp.
@@ -5460,7 +5479,7 @@
 	* startup.el (command-line): Use custom-reevaluate-setting for
 	transient-mark-mode.
 
-2008-02-17  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2008-02-17  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* wdired.el (wdired-allow-to-change-permissions): Fix typo.
 
@@ -7610,7 +7629,7 @@
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* international/mule-diag.el (describe-character-set):
-	Fix printing dimensions.  Use `Ã—', not `x'.
+	Fix printing dimensions.  Use `×', not `x'.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -8057,7 +8076,7 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make Å¸ and Ã¿ a case pair.
+	* international/characters.el: Make Å¸ and ÿ a case pair.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -11994,7 +12013,7 @@
 
 	* progmodes/python.el (top-level): Don't require cl when compiling.
 
-2007-12-02  AgustÃ­n MartÃ­n  <agustin.martin@hispalinux.es>
+2007-12-02  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
 	encoding for aspell process and for communication with it.
@@ -12738,7 +12757,7 @@
 	(x-send-client-message):
 	* emulation/cua-base.el (x-clipboard-yank): Declare as functions.
 
-2007-11-22  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-11-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-map-stock): Check if FILE is a string.
 
@@ -13651,7 +13670,7 @@
 
 	* emulation/tpu-mapper.el (tpu-map-key): Remove un-needed cond branch.
 
-2007-11-07  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2007-11-07  Johan Bockgård  <bojohan@gnu.org>
 
 	* eshell/esh-mode.el (eshell-output-filter):
 	* eshell/esh-proc.el (eshell-insertion-filter, eshell-sentinel):
@@ -15318,7 +15337,7 @@
 	* help-fns.el (describe-function-1): Don't use the advice origname
 	if it has no function definition.
 
-2007-10-18  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2007-10-18  Johan Bockgård  <bojohan@gnu.org>
 
 	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Save excursion.
 	Use `save-restriction' rather than `widen'.
@@ -16021,7 +16040,7 @@
 	(bs--get-mode-name, bs-mode): Fix typos in docstrings.
 	(bs--format-aux): Doc fix.
 
-2007-10-08  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-10-08  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/gud.el (gud-gud-gdb-command-name): Fix typo in docstring.
 
@@ -16067,11 +16086,11 @@
 	* progmodes/gud.el (gud-display-line): Find source buffer even when
 	GUD buffer has its own frame.
 
-2007-10-08  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-10-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (icon-map-list): Set to nil for 22.1 compatibility.
 
-2007-10-08  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-10-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
 
@@ -16449,7 +16468,7 @@
 	* emacs-lisp/copyright.el (copyright-update): Don't update if the file
 	already uses a more recent copyright version than the "current" one.
 
-2007-10-03  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-10-03  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-reset-slice)
 	(doc-view-insert-image): Minor aesthetical docstring changes.
@@ -16820,7 +16839,7 @@
 	* indent.el (indent-for-tab-command): First check if the region is
 	active.
 
-2007-09-24  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-24  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* whitespace.el (whitespace-tickle-timer): Don't install the timer if
 	whitespace-rescan-timer-time is 0.
@@ -16940,7 +16959,7 @@
 	* indent.el (indent-for-tab-command): Indent the region if
 	transient-mark-mode and the region is active.
 
-2007-09-21  Francesco PotortÃ¬  <pot@gnu.org>
+2007-09-21  Francesco Potortì  <pot@gnu.org>
 
 	* progmodes/octave-inf.el (inferior-octave-mode): Use add-hook to
 	add inferior-octave-directory-tracker to the buffer-local value
@@ -17104,7 +17123,7 @@
 	(browse-url-elinks-sentinel): Use browse-url-elinks-new-window.
 	Improve error message.
 
-2007-09-19  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-19  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-url-encode-chars): Use the right
 	parameter name in the function body.
@@ -17140,7 +17159,7 @@
 	* newcomment.el (comment-add): New arg EXTRA.
 	(comment-region-default): Pass EXTRA if not indenting lines.
 
-2007-09-17  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-17  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-url-encode-chars): New function.
 	URL-encode some chars in a string.
@@ -17189,7 +17208,7 @@
 	(move-beginning-of-line): Remove unused var `start'.
 	(blink-matching-open): Restructure in a more functional style.
 
-2007-09-16  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-16  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* calendar/holidays.el (list-holidays): Remove the cyclic alias.
 
@@ -17347,7 +17366,7 @@
 
 	* term/rxvt.el (rxvt-function-map): Initialize in the declaration.
 
-2007-09-12  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-12  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-encode-url): Fix an infinite loop.
 	New argument `filename-p' to use one set of confusing chars or another.
@@ -17390,7 +17409,7 @@
 2007-09-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* net/browse-url.el (browse-url-encode-url): Use copy-sequence.
-	Reported by Jan DjÃ¤rv <jan.h.d@swipnet.se>.
+	Reported by Jan Djärv <jan.h.d@swipnet.se>.
 
 2007-09-10  Dave Love  <fx@gnu.org>
 
@@ -17398,7 +17417,7 @@
 	Move font-lock-builtin-face down from 4 to 7 to better keep the
 	progression of color brightness, and to better match Org-mode's faces.
 
-2007-09-10  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-10  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-font-lock-keywords)
 	(font-lock-match-meta-declaration-item-and-skip-to-next)
@@ -17566,7 +17585,7 @@
 
 	* vc-arch.el (vc-arch-checkin): Fix typo.
 
-2007-09-07  Johan BockgÃ¥rd  <bojohan@gnu.org>
+2007-09-07  Johan Bockgård  <bojohan@gnu.org>
 
 	* cus-face.el (custom-theme-set-faces): Set face attributes
 	locally for each frame.
@@ -17635,7 +17654,7 @@
 	* complete.el (PC-do-completion): Don't try to treat
 	empty string as an abbreviation.
 
-2007-09-06  Johan BockgÃ¥rd  <bojohan@dd.chalmers.se>
+2007-09-06  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* help-fns.el (describe-variable): Keep doc's text properties.
 
@@ -17662,7 +17681,7 @@
 	(normal-no-mouse-startup-screen): New fn, broken out.
 	(normal-about-screen): New function, contents all new.
 
-2007-09-05  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-09-05  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* emacs-lisp/rx.el (rx): Fix typo in docstring.
 
@@ -17671,7 +17690,7 @@
 	* cus-edit.el (custom-buffer-create-internal): Check tool-bar-mode
 	is bound.
 
-2007-09-05  Johan BockgÃ¥rd  <bojohan@dd.chalmers.se>
+2007-09-05  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Highlight note
 	in doc string.
@@ -17743,7 +17762,7 @@
 	(terminal-init-xterm): Use it.  Deal with delete-frame hook.
 	Add the selected frame to xterm-modify-other-keys-terminal-list.
 
-2007-09-02  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Map diropen to system-file-manager.
 	(icon-map-list): New variable.
@@ -17789,7 +17808,7 @@
 
 	* vc-svn.el (vc-svn-diff-tree): Pass a list to vc-svn-diff.
 
-2007-08-31  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-08-31  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* textmodes/flyspell.el (flyspell-mark-duplications-exceptions):
 	New variable.  List of exceptions for the duplicated word rule.
@@ -17799,7 +17818,7 @@
 	* files.el (create-file-buffer): If the filename sans directory starts
 	with spaces, remove them.
 
-2007-08-31  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-08-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Add etc/images to keys.
 	(x-gtk-map-stock): Use two directory elements when matching
@@ -17906,7 +17925,7 @@
 
 	* version.el (emacs-version): Increase to 23.0.50.
 
-2007-08-29  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-08-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): :version changed to 23.1.
 
@@ -17962,7 +17981,7 @@
 
 	* env.el (getenv): Pass frame to getenv-internal.
 
-2007-08-29  KÃ¡roly LÅ‘rentey  <lorentey@elte.hu>
+2007-08-29  Károly LÅÂ‘rentey  <lorentey@elte.hu>
 
 	* version.el (emacs-version): Show if multi-tty is present.
 
@@ -18263,7 +18282,7 @@
 	(display-time-world-timer-second, display-time-world-mode-map):
 	New variables.
 
-2007-08-28  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): New variable.
 	(x-gtk-map-stock): New function.
@@ -18271,7 +18290,7 @@
 	* info.el (info-tool-bar-map): Add :rtl keyword to right/left-arrow and
 	prev/next-node.
 
-2007-08-28  Johan BockgÃ¥rd  <bojohan@dd.chalmers.se>  (tiny change)
+2007-08-28  Johan Bockgård  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* play/gamegrid.el (gamegrid-init): Set line-spacing to 0.
 
@@ -18371,7 +18390,7 @@
 
 	* vc.el (vc-annotate-warp-version): Don't use previous-line.
 
-2007-08-27  Johan BockgÃ¥rd  <bojohan@dd.chalmers.se>
+2007-08-27  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* net/browse-url.el (browse-url-emacs): New function.
 
@@ -18379,7 +18398,7 @@
 
 	* emacs-lisp/avl-tree.el: New file.
 
-2007-08-26  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-08-26  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* hi-lock.el (hi-lock-unface-buffer): Show a x-menu only if the mouse
 	was used.
@@ -18827,7 +18846,7 @@
 	undo-list when setting syntax-table properties.
 	(ada-after-change-function): Use ada-set-syntax-table-properties.
 
-2007-08-18  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-08-18  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
 	(meta-indent-current-nesting): Use a computation of the nesting
@@ -18880,7 +18899,7 @@
 	(cperl-find-pods-heres): Fix an error when typing expressions like
 	`s{a}{b}'.
 
-2007-08-17  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-08-17  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Remove the last number of
 	`emacs-version', use the topic prefix ``version; ''.  Make MS-DOS
@@ -18971,7 +18990,7 @@
 	sloppier, for the sake of GNU Mailman.
 	(rmail-digest-rfc1153): Initialize `result' correctly.
 
-2007-08-15  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-08-15  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Put `Bug: emacs-version; '
 	in the mail title.  Suggested by Reiner Steib.
@@ -20070,7 +20089,7 @@
 
 	* net/trampver.el: Update release number.
 
-2007-07-22  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-07-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-x-option-alist): Use x-handle-no-bitmap-icon.
 
@@ -20715,7 +20734,7 @@
 	* isearch.el (isearch-edit-string): Call to isearch-push-state
 	after the search.
 
-2007-07-09  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-07-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.el (fit-window-to-buffer): Remove setting of window-min-height
 	to 1 as enlarge-window uses the value to resize/shrink windows other
@@ -21094,7 +21113,7 @@
 	* font-lock.el (lisp-font-lock-keywords-2): Recognize the new \(?1:..\)
 	syntax as well.  Reported by Juri Linkov <juri@jurta.org>.
 
-2007-06-28  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
 	replace-regexp-in-string.
@@ -21707,7 +21726,7 @@
 
 	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change.
 
-2007-06-13  Johan BockgÃ¥rd  <bojohan@dd.chalmers.se>  (tiny change)
+2007-06-13  Johan Bockgård  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* term/xterm.el (terminal-init-xterm): Escape parens in character
 	constants.
@@ -21886,7 +21905,7 @@
 	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
 	Match against file-name-nondirectory.
 	Fix text on user customization variables.
-	Reported by Johan BockgÃ¥rd <bojohan@dd.chalmers.se>.
+	Reported by Johan Bockgård <bojohan@dd.chalmers.se>.
 
 2007-06-09  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
@@ -22284,7 +22303,7 @@
 
 	* files.el (set-auto-mode): Doc fix.
 
-2007-05-22  Jan DjÃ¤rv  <jan.h.d@swipnet.se>
+2007-05-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* help-fns.el (find-source-lisp-file): New function.
 	(describe-function-1): Use find-source-lisp-file to find source
@@ -22492,7 +22511,7 @@
 	* dabbrev.el (dabbrev-eliminate-newlines):
 	Renamed from dabbrev--eliminate-newlines.  All uses changed.
 
-2007-05-10  MichaÃ«l Cadilhac  <michael@cadilhac.name>
+2007-05-10  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* man.el (Man-next-section): Don't consider the last line of the page
 	as being part of any section.
@@ -22675,7 +22694,7 @@
 	* image-dired.el (image-dired-display-image): Derive image-type from
 	filename rather than assuming jpeg, in case no resizing was needed.
 
-2007-04-25  Johan BockgÃ¥rd  <bojohan@dd.chalmers.se>
+2007-04-25  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* custom.el (defface): Doc fix.
 
