@@ -131,14 +131,19 @@ You should give VAR a non-nil `risky-local-variable' property."
 
 (defun completion-table-with-terminator (terminator table string pred action)
   (let ((comp (complete-with-action action table string pred)))
-    (if (eq action nil)
-        (if (eq comp t)
-            (concat string terminator)
-          (if (and (stringp comp)
-                   (eq (complete-with-action action table comp pred) t))
-              (concat comp terminator)
-            comp))
-      comp)))
+    (cond
+     ((eq action nil)
+      (if (eq comp t)
+          (concat string terminator)
+        (if (and (stringp comp)
+                 (eq (complete-with-action action table comp pred) t))
+            (concat comp terminator)
+          comp))
+      comp)
+     ;; completion-table-with-terminator is always used for
+     ;; "sub-completions" so it's only called if the terminator is missing,
+     ;; in which case `test-completion' should return nil.
+     ((eq action 'lambda) nil))))
 
 (defun completion-table-in-turn (&rest tables)
   "Create a completion table that tries each table in TABLES in turn."
@@ -707,8 +712,11 @@ during running `completion-setup-hook'."
                   (if (funcall pred tem) (push tem comp))))
               (setq all (nreverse comp))))
 
-          ;; Add base-size, but only if the list is non-empty.
-          (if (consp all) (nconc all base-size))))
+          (if (and completion-all-completions-with-base-size (consp all))
+              ;; Add base-size, but only if the list is non-empty.
+              (nconc all base-size))
+
+          all))
 
        (t
         ;; Only other case actually used is ACTION = lambda.
@@ -717,7 +725,7 @@ during running `completion-setup-hook'."
 
 (defalias 'read-file-name-internal
   (completion-table-in-turn 'completion--embedded-envvar-table
-                      'completion--file-name-table)
+                            'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
 (provide 'minibuffer)

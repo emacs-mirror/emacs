@@ -1,3 +1,10 @@
+2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-terminator): Those completions
+	are never valid w.r.t test-completion.
+	(completion--file-name-table):
+	Check completion-all-completions-with-base-size.
+
 2008-04-14  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-dvipdf-program): New variable.
@@ -7,8 +14,8 @@
 	(doc-view-dvi->pdf): Prefer dvipdf over dvipdfm.
 
 	* doc-view.el (doc-view-start-process): Don't set
-	default-directory to "~/" if the current value is valid.  This
-	broke PS files that run other files in the same directory.
+	default-directory to "~/" if the current value is valid.
+	This broke PS files that run other files in the same directory.
 
 2008-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
