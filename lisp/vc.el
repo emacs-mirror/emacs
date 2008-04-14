@@ -625,7 +625,7 @@
 ;;   nil for unregistered files, then update vc-next-action.
 ;;
 ;; - vc-register should register a fileset at a time. The backends
-;;   already support this, only the front-end needs to be change to
+;;   already support this, only the front-end needs to be changed to
 ;;   handle multiple files at a time.
 ;;
 ;; - add a mechanism for ignoring files.
@@ -647,12 +647,6 @@
 ;; - vc-status needs more key bindings for VC actions.
 ;;
 ;; - vc-status toolbar needs more icons.
-;;
-;; - vc-status needs a command to insert a file entry in the status
-;;   display, similar to `cvs-mode-insert'.
-;;
-;; - vc-status: refresh should not completely wipe out the current
-;;   contents of the vc-status buffer.
 ;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
@@ -1574,7 +1568,7 @@ merge in the changes into your working copy."
 	 (state (vc-state (car files)))
 	 (model (vc-checkout-model (car files)))
 	 revision)
-    ;; Verify that the fileset is homogenous
+    ;; Verify that the fileset is homogeneous
     (dolist (file (cdr files))
       (unless (vc-compatible-state (vc-state file) state)
 	(error "Fileset is in a mixed-up state"))
@@ -2821,27 +2815,6 @@ specific headers."
     (define-key map [remup]
       '(menu-item "Hide up-to-date" vc-status-hide-up-to-date
 		  :help "Hide up-to-date items from display"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [register]
-      '(menu-item "Register" vc-status-register
-		  :help "Register file set into the version control system"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-
     ;; Movement.
     (define-key map [sepmv] '("--"))
     (define-key map [next-line]
@@ -2879,6 +2852,38 @@ specific headers."
     (define-key map [open]
       '(menu-item "Open file" vc-status-find-file
 		  :help "Find the file on the current line"))
+    ;; VC info details
+    (define-key map [sepvcdet] '("--"))
+    ;; FIXME: This needs a key binding.  And maybe a better name
+    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
+    (define-key map [ins]
+      '(menu-item "Show File" vc-status-show-fileentry
+		  :help "Show a file in the VC status listing even though it might be up to date"))
+    (define-key map [annotate]
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (define-key map [diff]
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (define-key map [log]
+     '(menu-item "Show history" vc-print-log
+     :help "List the change log of the current file set in a window"))
+    ;; VC commands.
+    (define-key map [sepvccmd] '("--"))
+    (define-key map [update]
+      '(menu-item "Update to latest version" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
+    (define-key map [revert]
+      '(menu-item "Revert to base version" vc-revert
+		  :help "Revert working copies of the selected fileset to their repository contents."))
+    (define-key map [next-action]
+      ;; FIXME: This really really really needs a better name!
+      ;; And a key binding too.
+      '(menu-item "Check In/Out" vc-next-action
+		  :help "Do the next logical version control operation on the current fileset"))
+    (define-key map [register]
+      '(menu-item "Register" vc-status-register
+		  :help "Register file set into the version control system"))
     map)
   "Menu for VC status")
 
@@ -2999,6 +3004,9 @@ specific headers."
 	 (ewoc-create #'vc-status-printer
 		      (vc-status-headers backend default-directory)))
     (add-hook 'after-save-hook 'vc-status-mark-buffer-changed)
+    ;; Make sure that if the VC status buffer is killed, the update
+    ;; process running in the background is also killed.
+    (add-hook 'kill-buffer-query-functions 'vc-status-kill-query nil t)
     (vc-status-refresh)))
 
 (put 'vc-status-mode 'mode-class 'special)
@@ -3127,6 +3135,14 @@ Throw an error if another update process is in progress."
       (when proc (delete-process proc))
       (setq vc-status-process-buffer nil)
       (setq mode-line-process nil))))
+
+(defun vc-status-kill-query ()
+  ;; Make sure that when the VC status buffer is killed the update
+  ;; process running in background is also killed.
+  (when (vc-status-busy)
+    (when (y-or-n-p "Status update process running, really kill status buffer?")
+      (vc-status-kill-dir-status-process)
+      t)))
 
 (defun vc-status-next-line (arg)
   "Go to the next line.
@@ -3265,6 +3281,13 @@ that share the same state."
   ;; FIXME: Just pass the fileset to vc-register.
   (mapc 'vc-register (or (vc-status-marked-files)
                          (list (vc-status-current-file)))))
+
+(defun vc-status-show-fileentry (file)
+  "Insert an entry for a specific file into the current VC status listing.
+This is typically used if the file is up-to-date (or has been added
+outside of VC) and one wants to do some operation on it."
+  (interactive "fShow file: ")
+  (vc-status-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
 (defun vc-status-find-file ()
   "Find the file on the current line."

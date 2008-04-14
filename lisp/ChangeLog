@@ -1,3 +1,10 @@
+2008-04-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-kill-query): New function.
+	(vc-status-mode): Add it to kill-buffer-query-functions.
+	(vc-status-show-fileentry): New function.
+	(vc-status-menu-map): Bind it.  Bind vc-next-action.
+
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (minibuffer-message): Put cursor at the right place.
