@@ -3011,8 +3011,9 @@ specific headers."
 
 (put 'vc-status-mode 'mode-class 'special)
 
-(defun vc-status-update (entries buffer)
-  "Update BUFFER's ewoc from the list of ENTRIES."
+(defun vc-status-update (entries buffer &optional noinsert)
+  "Update BUFFER's ewoc from the list of ENTRIES.
+If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
   ;; Add ENTRIES to the vc-status buffer BUFFER.
   (with-current-buffer buffer
     ;; Insert the entries sorted by name into the ewoc.
@@ -3021,28 +3022,30 @@ specific headers."
     (setq entries (sort entries
                         (lambda (entry1 entry2)
                           (string-lessp (car entry1) (car entry2)))))
-    (let ((entry (pop entries))
-          (node (ewoc-nth vc-status 0)))
-      (while entry
-        (let ((file (car entry)))
-          ;; Note: we always keep node pointing to the last inserted entry
-          ;; in order to catch duplicates in the entries list
-          (cond ((not node)
-                 (setq node (ewoc-enter-last vc-status
-                                             (apply 'vc-status-create-fileinfo entry)))
-                 (setq entry (pop entries)))
-                ((string-lessp (vc-status-fileinfo->name (ewoc-data node)) file)
-                 (setq node (ewoc-next vc-status node)))
-                ((string-equal (vc-status-fileinfo->name (ewoc-data node)) file)
-                 (setf (vc-status-fileinfo->state (ewoc-data node)) (nth 1 entry))
-                 (setf (vc-status-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-                 (setf (vc-status-fileinfo->needs-update (ewoc-data node)) nil)
-                 (ewoc-invalidate vc-status node)
-                 (setq entry (pop entries)))
-                (t
-                 (setq node (ewoc-enter-before vc-status node
-                                               (apply 'vc-status-create-fileinfo entry)))
-                 (setq entry (pop entries)))))))))
+    (let ((entry (car entries))
+           (node (ewoc-nth vc-status 0)))
+      (while (and entry node)
+        (let ((entryfile (car entry))
+              (nodefile (vc-status-fileinfo->name (ewoc-data node))))
+          (cond
+           ((string-lessp nodefile entryfile)
+            (setq node (ewoc-next vc-status node)))
+           ((string-lessp nodefile entryfile)
+            (unless noinsert
+              (ewoc-enter-before vc-status node
+                                 (apply 'vc-status-create-fileinfo entry)))
+            (setq entries (cdr entries) entry (car entries)))
+           (t
+            (setf (vc-status-fileinfo->state (ewoc-data node)) (nth 1 entry))
+            (setf (vc-status-fileinfo->extra (ewoc-data node)) (nth 2 entry))
+            (ewoc-invalidate vc-status node)
+            (setq entries (cdr entries) entry (car entries))
+            (setq node (ewoc-next vc-status node))))))
+      (unless (or node noinsert)
+        ;; We're past the last node, all remaining entries go to the end.
+        (while entries
+          (ewoc-enter-last vc-status
+                           (apply 'vc-status-create-fileinfo (pop entries))))))))
 
 (defun vc-status-busy ()
   (and (buffer-live-p vc-status-process-buffer)
