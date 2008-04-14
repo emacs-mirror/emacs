@@ -1,5 +1,9 @@
 2008-04-13  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
+	* proced.el (proced-send-signal): Fix error recognition.
+
+2008-04-13  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
 	* proced.el (proced-command-alist): Remove sort column.
 	(proced-command, proced-procname-column): Use
 	make-variable-buffer-local.
