@@ -81,7 +81,6 @@
 ;; As of 11 July 96 the scrolling functions were split out
 ;; in preparation for incorporation into (the future) emacs-19.32.
 ;;
-http://lists.gnu.org/archive/html/emacs-devel/2008-04/;;
 ;; Thanks:
 ;;
 ;; Thanks to Kai Grossjohann
