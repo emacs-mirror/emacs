@@ -2714,7 +2714,9 @@ With prefix arg READ-SWITCHES, specify a value to override
   extra
   marked
   ;; To keep track of not updated files during a global refresh
-  needs-update)
+  needs-update
+  ;; To distinguish files and directories.
+  directoryp)
 
 (defvar vc-status nil)
 
@@ -2738,24 +2740,26 @@ specific headers."
 
 (defun vc-default-status-printer (backend fileentry)
   "Pretty print FILEENTRY."
-  ;; If you change the layout here, change vc-status-move-to-goal-column.
-  (let ((state (vc-status-fileinfo->state fileentry)))
-    (insert
-     (propertize
-      (format "%c" (if (vc-status-fileinfo->marked fileentry) ?* ? ))
-      'face 'font-lock-type-face)
-     "   "
-     (propertize
-      (format "%-20s" state)
-      'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
-		  ((memq state '(missing conflict)) 'font-lock-warning-face)
-		  (t 'font-lock-variable-name-face))
-      'mouse-face 'highlight)
-     " "
-     (propertize
-      (format "%s" (vc-status-fileinfo->name fileentry))
-      'face 'font-lock-function-name-face
-      'mouse-face 'highlight))))
+  (if (vc-status-fileinfo->directoryp fileentry)
+      (insert "   Directory: %s" (vc-status-fileinfo->name fileentry))
+    ;; If you change the layout here, change vc-status-move-to-goal-column.
+    (let ((state (vc-status-fileinfo->state fileentry)))
+      (insert
+       (propertize
+	(format "%c" (if (vc-status-fileinfo->marked fileentry) ?* ? ))
+	'face 'font-lock-type-face)
+       "   "
+       (propertize
+	(format "%-20s" state)
+	'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
+		    ((memq state '(missing conflict)) 'font-lock-warning-face)
+		    (t 'font-lock-variable-name-face))
+	'mouse-face 'highlight)
+       " "
+       (propertize
+	(format "%s" (vc-status-fileinfo->name fileentry))
+	'face 'font-lock-function-name-face
+	'mouse-face 'highlight)))))
 
 (defun vc-status-printer (fileentry)
   (let ((backend (vc-responsible-backend default-directory)))
@@ -3019,9 +3023,18 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
     ;; Insert the entries sorted by name into the ewoc.
     ;; We assume the ewoc is sorted too, which should be the
     ;; case if we always add entries with vc-status-update.
-    (setq entries (sort entries
-                        (lambda (entry1 entry2)
-                          (string-lessp (car entry1) (car entry2)))))
+    (setq entries
+	  ;; Sort: first files and then subdirectories.
+	  ;; XXX: this is VERY inefficient, it computes the directory
+	  ;; names too many times
+	  (sort entries
+		(lambda (entry1 entry2)
+		  (let ((dir1 (file-name-directory (expand-file-name (car entry1))))
+			(dir2 (file-name-directory (expand-file-name (car entry2)))))
+		    (cond
+		     ((string< dir1 dir2) t)
+		     ((not (string= dir1 dir2)) nil)
+		     ((string< (car entry1) (car entry2))))))))
     (let ((entry (car entries))
            (node (ewoc-nth vc-status 0)))
       (while (and entry node)

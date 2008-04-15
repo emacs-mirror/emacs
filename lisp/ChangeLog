@@ -1,5 +1,9 @@
 2008-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-status-fileinfo): Add new member directoryp.
+	(vc-default-status-printer): Print directories.
+	(vc-status-update): Sort files before subdirectories.
+
 	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-dir-status): Add
 	alternative implementation based on "cvs update".
 
