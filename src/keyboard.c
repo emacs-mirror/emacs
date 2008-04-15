@@ -9323,8 +9323,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
 	  nmaps_allocated = 2;
 	}
-      if (!NILP (current_kboard->Voverriding_terminal_local_map))
-	submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+      submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
     }
   else if (!NILP (Voverriding_local_map))
     {
@@ -9334,8 +9333,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
 	  nmaps_allocated = 2;
 	}
-      if (!NILP (Voverriding_local_map))
-	submaps[nmaps++] = Voverriding_local_map;
+      submaps[nmaps++] = Voverriding_local_map;
     }
   else
     {
