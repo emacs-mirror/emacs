@@ -1,3 +1,11 @@
+2008-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse-drag.el (mouse-throw-magnifier-with-scroll-bar)
+	(mouse-throw-magnifier-with-mouse-movement): Remove.
+	(mouse-throw-magnifier-base): New const.
+	(mouse-drag-scroll-delta): New fun.
+	(mouse-drag-throw): Use it.
+
 2008-04-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/uni-bidi.el, international/uni-category.el:

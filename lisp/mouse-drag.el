@@ -25,81 +25,85 @@
 
 ;;; Commentary:
 
-;;; What is ``mouse-drag.el''?
-;;;
-;;; Doesn't that scroll bar seem far away when you want to scroll?
-;;; This module overloads mouse-2 to do ``throw'' scrolling.  You
-;;; click and drag.  The distance you move from your original click
-;;; turns into a scroll amount.  The scroll amount is scaled
-;;; exponentially to make both large moves and short adjustments easy.
-;;; What this boils down to is that you can easily scroll around the
-;;; buffer without much mouse movement.  Finally, clicks which aren't
-;;; drags are passed off to the old mouse-2 binding, so old mouse-2
-;;; operations (find-file in dired-mode, yanking in most other modes)
-;;; still work.
-;;;
-;;; There is an alternative way to scroll, ``drag'' scrolling.  You
-;;; can click on a character and then drag it around, scrolling the
-;;; buffer with you.  The character always stays under the mouse.
-;;; Compared to throw-scrolling, this approach provides direct
-;;; manipulation (nice) but requires more mouse movement
-;;; (unfortunate).  It is offered as an alternative for those who
-;;; prefer it.
-;;;
-;;; If you like mouse-drag, you should also check out mouse-copy
-;;; for ``one-click text copy and move''.
-;;;
-;;; To use mouse-drag, place the following in your .emacs file:
-;;;	(require 'mouse-drag)
-;;; -and either-
-;;;     (global-set-key [down-mouse-2] 'mouse-drag-throw)
-;;; -or-
-;;;     (global-set-key [down-mouse-2] 'mouse-drag-drag)
-;;;
-;;;
-;;;
-;;; Options:
-;;;
-;;; - reverse the throw-scroll direction with \\[mouse-throw-with-scroll-bar]
-;;; - work around a bug with \\[mouse-extras-work-around-drag-bug]
-;;; - auto-enable horizontal scrolling with
-;;;   \\[mouse-drag-electric-col-scrolling]
-;;;
-;;;
-;;; History and related work:
-;;;
-;;; One-click copying and moving was inspired by lemacs-19.8.
-;;; Throw-scrolling was inspired by MacPaint's ``hand'' and by Tk's
-;;; mouse-2 scrolling.  The package mouse-scroll.el by Tom Wurgler
-;;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
-;;; doesn't pass clicks through.
-;;;
-;;; These functions have been tested in emacs version 19.30,
-;;; and this package has run in the past on 19.25-19.29.
-;;;
-;;; Originally mouse-drag was part of a larger package.
-;;; As of 11 July 96 the scrolling functions were split out
-;;; in preparation for incorporation into (the future) emacs-19.32.
-;;;
-;;;
-;;; Thanks:
-;;;
-;;; Thanks to Kai Grossjohann
-;;; <grossjoh@dusty.informatik.uni-dortmund.de> for reporting bugs, to
-;;; Tom Wurgler <twurgler@goodyear.com> for reporting bugs and
-;;; suggesting fixes, and to Joel Graber <jgraber@ti.com> for
-;;; prompting me to do drag-scrolling and for an initial
-;;; implementation of horizontal drag-scrolling.
-;;;
-;;;    -johnh@isi.edu, 11-Jul-96
-;;;
-;;;
-;;; What's new with mouse-drag 2.24?
-;;;
-;;; - mouse-drag-electric-col-scrolling (default: on)
-;;;   auto-enables horizontal scrolling when clicks on wrapped
-;;;   lines occur
-
+;; What is ``mouse-drag.el''?
+;;
+;; Doesn't that scroll bar seem far away when you want to scroll?
+;; This module overloads mouse-2 to do ``throw'' scrolling.  You
+;; click and drag.  The distance you move from your original click
+;; turns into a scroll amount.  The scroll amount is scaled
+;; exponentially to make both large moves and short adjustments easy.
+;; What this boils down to is that you can easily scroll around the
+;; buffer without much mouse movement.  Finally, clicks which aren't
+;; drags are passed off to the old mouse-2 binding, so old mouse-2
+;; operations (find-file in dired-mode, yanking in most other modes)
+;; still work.
+;;
+;; There is an alternative way to scroll, ``drag'' scrolling.  You
+;; can click on a character and then drag it around, scrolling the
+;; buffer with you.  The character always stays under the mouse.
+;; Compared to throw-scrolling, this approach provides direct
+;; manipulation (nice) but requires more mouse movement
+;; (unfortunate).  It is offered as an alternative for those who
+;; prefer it.
+;;
+;; If you like mouse-drag, you should also check out mouse-copy
+;; for ``one-click text copy and move''.
+;;
+;; To use mouse-drag, place the following in your .emacs file:
+;;	(require 'mouse-drag)
+;; -and either-
+;;     (global-set-key [down-mouse-2] 'mouse-drag-throw)
+;; -or-
+;;     (global-set-key [down-mouse-2] 'mouse-drag-drag)
+;;
+;;
+;;
+;; Options:
+;;
+;; - reverse the throw-scroll direction with \\[mouse-throw-with-scroll-bar]
+;; - work around a bug with \\[mouse-extras-work-around-drag-bug]
+;; - auto-enable horizontal scrolling with
+;;   \\[mouse-drag-electric-col-scrolling]
+;;
+;;
+;; History and related work:
+;;
+;; One-click copying and moving was inspired by lemacs-19.8.
+;; Throw-scrolling was inspired by MacPaint's ``hand'' and by Tk's
+;; mouse-2 scrolling.  The package mouse-scroll.el by Tom Wurgler
+;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
+;; doesn't pass clicks through.
+;;
+;; These functions have been tested in emacs version 19.30,
+;; and this package has run in the past on 19.25-19.29.
+;;
+;; Originally mouse-drag was part of a larger package.
+;; As of 11 July 96 the scrolling functions were split out
+;; in preparation for incorporation into (the future) emacs-19.32.
+;;
+http://lists.gnu.org/archive/html/emacs-devel/2008-04/;;
+;; Thanks:
+;;
+;; Thanks to Kai Grossjohann
+;; <grossjoh@dusty.informatik.uni-dortmund.de> for reporting bugs, to
+;; Tom Wurgler <twurgler@goodyear.com> for reporting bugs and
+;; suggesting fixes, and to Joel Graber <jgraber@ti.com> for
+;; prompting me to do drag-scrolling and for an initial
+;; implementation of horizontal drag-scrolling.
+;;
+;;    -johnh@isi.edu, 11-Jul-96
+;;
+;;
+;; What's new with mouse-drag 2.24?
+;;
+;; - mouse-drag-electric-col-scrolling (default: on)
+;;   auto-enables horizontal scrolling when clicks on wrapped
+;;   lines occur
+
+;; TODO:
+;; - For mouse-drag-throw, we should try and place some visual indicator
+;;   of the original mouse position (like Firefox does).
+
 ;;; Code:
 
 ;;
@@ -142,11 +146,11 @@ Keep the cursor on the screen as needed."
       ((start-col-row (posn-col-row start-posn))
        (end-col-row (posn-col-row end-posn)))
     (and
-;; We no longer exclude things by time.
-;;     (< (- (posn-timestamp end-posn) (posn-timestamp start-posn))
-;;	(if (numberp double-click-time)
-;;	    (* 2 double-click-time)   ;; stretch it a little
-;;	  999999)) ;; non-numeric => check by position alone
+     ;; ;; We no longer exclude things by time.
+     ;; (< (- (posn-timestamp end-posn) (posn-timestamp start-posn))
+     ;;    (if (numberp double-click-time)
+     ;;        (* 2 double-click-time) ;; stretch it a little
+     ;;      999999)) ;; non-numeric => check by position alone
      (= (car start-col-row) (car end-col-row))
      (= (cdr start-col-row) (cdr end-col-row)))))
 
@@ -173,12 +177,19 @@ Basically, we check for existing horizontal scrolling."
   "*Set direction of mouse-throwing.
 If nil, the text moves in the direction the mouse moves.
 If t, the scroll bar moves in the direction the mouse moves.")
-(defconst mouse-throw-magnifier-with-scroll-bar
-      [-16 -8 -4 -2 -1 0 0 0  1  2  4  8  16])
-(defconst mouse-throw-magnifier-with-mouse-movement
-      [ 16  8  4  2  1 0 0 0 -1 -2 -4 -8 -16])
 (defconst mouse-throw-magnifier-min -6)
 (defconst mouse-throw-magnifier-max 6)
+(defconst mouse-throw-magnifier-base 1.5)
+
+(defun mouse-drag-scroll-delta (mouse-delta)
+  ;; Limit the exponential explosion.
+  (setq mouse-delta
+        (max mouse-throw-magnifier-min
+             (min mouse-throw-magnifier-max mouse-delta)))
+  (* (round (exp (* (log mouse-throw-magnifier-base) (abs mouse-delta))))
+     (if (< mouse-delta 0) -1 1)
+     (if mouse-throw-with-scroll-bar 1 -1)))
+
 
 (defun mouse-drag-throw (start-event)
   "\"Throw\" the page according to a mouse drag.
@@ -226,35 +237,11 @@ To test this function, evaluate:
 		     col (car (posn-col-row end)))
 	       (or (mouse-movement-p event)
 		   (eq (car-safe event) 'switch-frame)))
-	(if (eq start-window (posn-window end))
-	    (progn
-	      (setq mouse-delta (- start-row row)
-		    adjusted-mouse-delta
-		    (- (cond
-			((<= mouse-delta mouse-throw-magnifier-min)
-			 mouse-throw-magnifier-min)
-			((>= mouse-delta mouse-throw-magnifier-max)
-			 mouse-throw-magnifier-max)
-			(t mouse-delta))
-		       mouse-throw-magnifier-min)
-		    scroll-delta (aref (if mouse-throw-with-scroll-bar
-					   mouse-throw-magnifier-with-scroll-bar
-					 mouse-throw-magnifier-with-mouse-movement)
-				       adjusted-mouse-delta))
-	      (if col-scrolling-p
-		  (setq mouse-col-delta (- start-col col)
-			adjusted-mouse-col-delta
-			(- (cond
-			    ((<= mouse-col-delta mouse-throw-magnifier-min)
-			     mouse-throw-magnifier-min)
-			    ((>= mouse-col-delta mouse-throw-magnifier-max)
-			     mouse-throw-magnifier-max)
-			    (t mouse-col-delta))
-			   mouse-throw-magnifier-min)
-			scroll-col-delta (aref (if mouse-throw-with-scroll-bar
-						   mouse-throw-magnifier-with-scroll-bar
-						 mouse-throw-magnifier-with-mouse-movement)
-					       adjusted-mouse-col-delta)))))
+	(when (eq start-window (posn-window end))
+          (when col-scrolling-p
+            (setq scroll-col-delta (mouse-drag-scroll-delta (- start-col col))))
+          (setq scroll-delta (mouse-drag-scroll-delta (- start-row row))))
+
 	(if (or (/= 0 scroll-delta)
 		(/= 0 scroll-col-delta))
 	    (progn
