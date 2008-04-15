@@ -25,75 +25,75 @@
 
 ;;; Commentary:
 
-;;; What is ``mouse-copy.el''?
-;;;
-;;; It provides one-click text copy and move.  Rather than the
-;;; standard stroke-out-a-region (down-mouse-1, up-mouse-1) followed
-;;; by a yank (down-mouse-2, up-mouse-2 or C-y), you can now stroke
-;;; out a region and have it automatically pasted at the current
-;;; point.  You can also move text just as easily.  Although the
-;;; difference may not sound like much, it does make mousing text
-;;; around a lot easier, IMHO.
-;;;
-;;; If you like mouse-copy, you should also check out mouse-drag
-;;; for ``one-click scrolling''.
-;;;
-;;; To use mouse-copy, place the following in your .emacs file:
-;;;	(require 'mouse-copy)
-;;;     (global-set-key [M-down-mouse-1] 'mouse-drag-secondary-pasting)
-;;;     (global-set-key [M-S-down-mouse-1] 'mouse-drag-secondary-moving)
-;;;
-;;; (These definitions override the old binding of M-mouse-1 to
-;;; mouse-drag-secondary.  I find I don't use that command much so its
-;;; loss is not important, and it can be made up with a M-mouse-1
-;;; followed by a M-mouse-3.  I personally reserve M-mouse bindings
-;;; for my window manager and bind everything to C-mouse.)
-;;;
-;;;
-;;; History and related work:
-;;;
-;;; One-click copying and moving was inspired by lemacs-19.8.
-;;; Throw-scrolling was inspired by MacPaint's ``hand'' and by Tk's
-;;; mouse-2 scrolling.  The package mouse-scroll.el by Tom Wurgler
-;;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
-;;; doesn't pass clicks through.
-;;;
-;;; These functions have been tested in emacs version 19.30,
-;;; and this package has run in the past on 19.25-19.29.
-;;;
-;;; Originally mouse-copy was part of a larger package.
-;;; As of 11 July 96 the scrolling functions were split out
-;;; in preparation for incorporation into (the future) emacs-19.32.
-;;;
-;;;
-;;; Known Bugs:
-;;;
-;;; - Highlighting is sub-optimal under 19.29 and XFree86-3.1.1
-;;;   (see \\[mouse-copy-work-around-drag-bug] for details).
-;;; - mouse-drag-secondary-pasting and mouse-drag-secondary-moving
-;;;   require X11R5 (or better) and so fail under older versions
-;;;   of Open Windows (like that present in Solaris/x86 2.1).
-;;;
-;;;
-;;; Future plans:
-;;;
-;;; I read about the chording features of Plan-9's Acme environment at
-;;; <http://www.zip.com.au/~cs/app/wily/auug.html>.  I'd like
-;;; to incorporate some of these ideas into mouse-copy.  The only
-;;; lose is that this is not the current Emacs Way Of Doing Things, so
-;;; there would be a learning curve for existing emacs users.
-;;;
-;;;
-;;; Thanks:
-;;;
-;;; Thanks to Kai Grossjohann
-;;; <grossjoh@dusty.informatik.uni-dortmund.de> for reporting bugs, to
-;;; Tom Wurgler <twurgler@goodyear.com> for reporting bugs and
-;;; suggesting fixes, and to Joel Graber <jgraber@ti.com> for
-;;; prompting me to do drag-scrolling and for an initial
-;;; implementation of horizontal drag-scrolling.
-;;;
-;;;    -johnh, 11-Jul-96
+;; What is ``mouse-copy.el''?
+;;
+;; It provides one-click text copy and move.  Rather than the
+;; standard stroke-out-a-region (down-mouse-1, up-mouse-1) followed
+;; by a yank (down-mouse-2, up-mouse-2 or C-y), you can now stroke
+;; out a region and have it automatically pasted at the current
+;; point.  You can also move text just as easily.  Although the
+;; difference may not sound like much, it does make mousing text
+;; around a lot easier, IMHO.
+;;
+;; If you like mouse-copy, you should also check out mouse-drag
+;; for ``one-click scrolling''.
+;;
+;; To use mouse-copy, place the following in your .emacs file:
+;;	(require 'mouse-copy)
+;;     (global-set-key [M-down-mouse-1] 'mouse-drag-secondary-pasting)
+;;     (global-set-key [M-S-down-mouse-1] 'mouse-drag-secondary-moving)
+;;
+;; (These definitions override the old binding of M-mouse-1 to
+;; mouse-drag-secondary.  I find I don't use that command much so its
+;; loss is not important, and it can be made up with a M-mouse-1
+;; followed by a M-mouse-3.  I personally reserve M-mouse bindings
+;; for my window manager and bind everything to C-mouse.)
+;;
+;;
+;; History and related work:
+;;
+;; One-click copying and moving was inspired by lemacs-19.8.
+;; Throw-scrolling was inspired by MacPaint's ``hand'' and by Tk's
+;; mouse-2 scrolling.  The package mouse-scroll.el by Tom Wurgler
+;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
+;; doesn't pass clicks through.
+;;
+;; These functions have been tested in emacs version 19.30,
+;; and this package has run in the past on 19.25-19.29.
+;;
+;; Originally mouse-copy was part of a larger package.
+;; As of 11 July 96 the scrolling functions were split out
+;; in preparation for incorporation into (the future) emacs-19.32.
+;;
+;;
+;; Known Bugs:
+;;
+;; - Highlighting is sub-optimal under 19.29 and XFree86-3.1.1
+;;   (see \\[mouse-copy-work-around-drag-bug] for details).
+;; - mouse-drag-secondary-pasting and mouse-drag-secondary-moving
+;;   require X11R5 (or better) and so fail under older versions
+;;   of Open Windows (like that present in Solaris/x86 2.1).
+;;
+;;
+;; Future plans:
+;;
+;; I read about the chording features of Plan-9's Acme environment at
+;; <http://www.zip.com.au/~cs/app/wily/auug.html>.  I'd like
+;; to incorporate some of these ideas into mouse-copy.  The only
+;; lose is that this is not the current Emacs Way Of Doing Things, so
+;; there would be a learning curve for existing emacs users.
+;;
+;;
+;; Thanks:
+;;
+;; Thanks to Kai Grossjohann
+;; <grossjoh@dusty.informatik.uni-dortmund.de> for reporting bugs, to
+;; Tom Wurgler <twurgler@goodyear.com> for reporting bugs and
+;; suggesting fixes, and to Joel Graber <jgraber@ti.com> for
+;; prompting me to do drag-scrolling and for an initial
+;; implementation of horizontal drag-scrolling.
+;;
+;;    -johnh, 11-Jul-96
 
 ;;; Code:
 
