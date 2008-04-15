@@ -26,8 +26,9 @@
 ;;; Requirements:
 
 ;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
-;; `dvipdfm' which comes with teTeX and `pdftotext', which comes with xpdf
-;; (http://www.foolabs.com/xpdf/) or poppler (http://poppler.freedesktop.org/).
+;; `dvipdf' (comes with Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive)
+;; and `pdftotext', which comes with xpdf (http://www.foolabs.com/xpdf/) or
+;; poppler (http://poppler.freedesktop.org/).
 
 ;;; Commentary:
 
@@ -1026,7 +1027,7 @@ If BACKWARD is non-nil, jump to the previous match."
 (defun doc-view-already-converted-p ()
   "Return non-nil if the current doc was already converted."
   (and (file-exists-p (doc-view-current-cache-dir))
-       (> 0 (length (directory-files (doc-view-current-cache-dir) nil "\\.png$")))))
+       (> (length (directory-files (doc-view-current-cache-dir) nil "\\.png$")) 0)))
 
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
