@@ -38,7 +38,7 @@ Property value is an integer.")
 ;; FILE: uni-numeric.el
 (define-char-code-property 'numeric-value "uni-numeric.el"
   "Unicode numeric value (numeric).
-Property value is an symbol.")
+Property value is a symbol.")
 ;; FILE: uni-mirrored.el
 (define-char-code-property 'mirrored "uni-mirrored.el"
   "Unicode bidi mirrored flag.
