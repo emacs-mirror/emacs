@@ -1,11 +1,22 @@
+2008-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/uni-bidi.el, international/uni-category.el:
+	* international/uni-combining.el, international/uni-comment.el:
+	* international/uni-decimal.el, international/uni-decomposition.el:
+	* international/uni-digit.el, international/uni-lowercase.el:
+	* international/uni-mirrored.el, international/uni-name.el:
+	* international/uni-numeric.el, international/uni-old-name.el:
+	* international/uni-titlecase.el, international/uni-uppercase.el:
+	* international/charprop.el: Regenerate.
+
 2008-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-fileinfo): Add new member directoryp.
 	(vc-default-status-printer): Print directories.
 	(vc-status-update): Sort files before subdirectories.
 
-	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-dir-status): Add
-	alternative implementation based on "cvs update".
+	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-dir-status):
+	Add alternative implementation based on "cvs update".
 
 2008-04-15  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -16,7 +27,8 @@
 
 2008-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* minibuffer.el (minibuffer-message): Make sure we can put-text-property.
+	* minibuffer.el (minibuffer-message):
+	Make sure we can put-text-property.
 
 	* emacs-lisp/crm.el: Complete rewrite.
 
@@ -795,7 +807,7 @@
 	(diary-fancy-display-mode): Rename fancy-diary-display-mode.
 	Keep old name as alias, update callers.
 	* calendar/cal-bahai.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
-	* calendar/cal-menu.el, calendar/cal-x.el, calendar/calendar.el
+	* calendar/cal-menu.el, calendar/cal-x.el, calendar/calendar.el:
 	* calendar/icalendar.el: Update for diary-lib name changes.
 
 2008-04-06  Chong Yidong  <cyd@stupidchicken.com>
