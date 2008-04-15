@@ -1,3 +1,7 @@
+2008-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/UnicodeData.txt: Update to Unicode 5.1.
+
 2008-04-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/unidata-gen.el (unidata-prop-alist):
