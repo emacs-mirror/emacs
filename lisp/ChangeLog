@@ -1,3 +1,8 @@
+2008-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-dir-status): Add
+	alternative implementation based on "cvs update".
+
 2008-04-15  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el: Changed requirements section to tell that only one

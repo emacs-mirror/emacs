@@ -908,14 +908,87 @@ state."
 	      (push (list file status) result))))))
       (goto-char (point-max))
       (widen))
-      (funcall update-function result)))
+      (funcall update-function result))
+  ;; Alternative implementation: use the "update" command instead of
+  ;; the "status" command.
+  ;; (let ((result nil)
+  ;; 	(translation '((?? . unregistered)
+  ;; 		       (?A . added)
+  ;; 		       (?C . conflict)
+  ;; 		       (?M . edited)
+  ;; 		       (?P . needs-merge)
+  ;; 		       (?R . removed)
+  ;; 		       (?U . needs-patch))))
+  ;;   (goto-char (point-min))
+  ;;   (while (not (eobp))
+  ;;     (if (looking-at "^[ACMPRU?] \\(.*\\)$")
+  ;; 	  (push (list (match-string 1) 
+  ;; 		      (cdr (assoc (char-after) translation))) 
+  ;; 		result)
+  ;; 	(cond
+  ;; 	 ((looking-at "cvs update: warning: \\(.*\\) was lost")
+  ;; 	  ;; Format is:
+  ;; 	  ;; cvs update: warning: FILENAME was lost
+  ;; 	  ;; U FILENAME
+  ;; 	  (push (list (match-string 1) 'missing) result)
+  ;; 	  ;; Skip the "U" line
+  ;; 	  (forward-line 1))
+  ;; 	 ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
+  ;; 	  (push (list (match-string 1) 'unregistered) result))))
+  ;;     (forward-line 1))
+  ;;   (funcall update-function result)))
+  )
 
 ;; XXX Experimental function for the vc-dired replacement.
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
   (vc-cvs-command (current-buffer) 'async dir "status")
+  ;; Alternative implementation: use the "update" command instead of
+  ;; the "status" command.
+  ;; (vc-cvs-command (current-buffer) 'async
+  ;; 		  (file-relative-name dir)
+  ;; 		  "-f" "-n" "update" "-d" "-P")
   (vc-exec-after
    `(vc-cvs-after-dir-status (quote ,update-function))))
+
+(defun vc-cvs-after-dir-status (update-function)
+  ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
+  ;; It needs a lot of testing.
+  (let ((result nil)
+	(translation '((?? . unregistered)
+		       (?A . added)
+		       (?C . conflict)
+		       (?M . edited)
+		       (?P . needs-merge)
+		       (?R . removed)
+		       (?U . needs-patch))))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (if (looking-at "^[ACMPRU?] \\(.*\\)$")
+	  (push (list (match-string 1) 
+		      (cdr (assoc (char-after) translation))) 
+		result)
+	(cond
+	 ((looking-at "cvs update: warning: \\(.*\\) was lost")
+	  ;; Format is:
+	  ;; cvs update: warning: FILENAME was lost
+	  ;; U FILENAME
+	  (push (list (match-string 1) 'missing) result)
+	  ;; Skip the "U" line
+	  (forward-line 1))
+	 ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
+	  (push (list (match-string 1) 'unregistered) result))))
+      (forward-line 1))
+    (funcall update-function result)))
+
+(defun vc-cvs-dir-status (dir update-function)
+  "Create a list of conses (file . state) for DIR."
+  (vc-cvs-command (current-buffer) 'async
+		  (file-relative-name dir)
+		  "-f" "-n" "update" "-d" "-P")
+  (vc-exec-after
+   `(vc-cvs-after-dir-status (quote ,update-function))))
+
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.
