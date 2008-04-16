@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
-;; Author:   Jonathan Stigelman <stig@hackvan.com>
+;; Author:   Jonathan Stigelman <stig@hackvan.com> (broken email address. checked April 2008)
 ;; Maintainer: FSF
 ;;	(actually no longer maintained)
 ;; Keywords: faces
@@ -411,7 +411,7 @@ your init file.")
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on hilit19? ")
        (reporter-submit-bug-report
-	"Jonathan Stigelman <hilit@hackvan.com>"
+	"bug-gnu-emacs@gnu.org"
 	"hilit19.el (Release 2.19)"
 	(and (y-or-n-p "Do you need to include a dump hilit variables? ")
 	     (append

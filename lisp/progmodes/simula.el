@@ -3,8 +3,8 @@
 ;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;; Free Software Foundation, Inc.
 
-;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
-;; Maintainer: simula-mode@ifi.uio.no
+;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no> (invalid email address, checked April 2008)
+;; Maintainer: simula-mode@ifi.uio.no (invalid email address, checked April 2008)
 ;; Adapted-By: ESR
 ;; Keywords: languages
 
@@ -1630,7 +1630,7 @@ If not nil and not t, move to limit of search and return nil."
 
 ;; defuns for submitting bug reports
 
-(defconst simula-mode-help-address "simula-mode@ifi.uio.no"
+(defconst simula-mode-help-address "bug-gnu-emacs@gnu.org"
   "Address accepting submission of `simula-mode' bug reports.")
 
 (defun simula-submit-bug-report ()

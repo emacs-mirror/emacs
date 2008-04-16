@@ -9,6 +9,13 @@
 ;; Version:    1.1h, 16 Jun 2005
 ;; Keywords:   PostScript, languages
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 18/3/2008, and the maintainer agreed that when a bug is
+;; filed in the Emacs bug reporting system against this file, a copy
+;; of the bug report be sent to the maintainer's email address, but
+;; only if: "... those e-mails have a link to the bug report system,
+;; where I can cancel these e-mails if I want to.".
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

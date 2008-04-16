@@ -7,6 +7,11 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 20/3/2008, and the maintainer agreed that when a bug is
+;; filed in the Emacs bug reporting system against this file, a copy
+;; of the bug report be sent to the maintainer's email address.
+
 (defconst ediff-version "2.81.2" "The current version of Ediff")
 (defconst ediff-date "April 06, 2008" "Date of last update")
 

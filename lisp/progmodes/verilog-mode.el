@@ -11,6 +11,11 @@
 ;;	http://www.veripool.com
 ;; Keywords: languages
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 19/3/2008, and the maintainer agreed that when a bug is
+;; filed in the Emacs bug reporting system against this file, a copy
+;; of the bug report be sent to the maintainer's email address.
+
 ;;    This code supports Emacs 21.1 and later
 ;;    And XEmacs 21.1 and later
 ;;    Please do not make changes that break Emacs 21.  Thanks!

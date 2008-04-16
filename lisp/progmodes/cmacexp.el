@@ -7,6 +7,13 @@
 ;; Adapted-By: ESR
 ;; Keywords: c
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file, and the maintainer agreed that when a bug is filed in the
+;; Emacs bug reporting system against this file, a copy of the bug
+;; report be sent to the maintainer's email address. However, the
+;; maintainer prefers not to be the only person maintaining this file
+;; in future.
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

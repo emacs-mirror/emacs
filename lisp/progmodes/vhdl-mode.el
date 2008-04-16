@@ -9,6 +9,11 @@
 ;; Keywords:    languages vhdl
 ;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 18/3/2008, and the maintainer agreed that when a bug is
+;; filed in the Emacs bug reporting system against this file, a copy
+;; of the bug report be sent to the maintainer's email address.
+
 (defconst vhdl-version "3.33.6"
   "VHDL Mode version number.")
 

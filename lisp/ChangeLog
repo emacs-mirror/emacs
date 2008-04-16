@@ -1,3 +1,17 @@
+2008-04-16  Yoni Rabkin  <yoni@rabkins.net>  (tiny change)
+
+	* textmodes/artist.el:
+	* progmodes/vhdl-mode.el:
+	* progmodes/verilog-mode.el:
+	* progmodes/vera-mode.el:
+	* progmodes/simula.el:
+	* progmodes/ps-mode.el:
+	* progmodes/cmacexp.el:
+	* obsolete/hilit19.el:
+	* emulation/viper.el:
+	* ediff.el: Cleanup the bug-report email addresses and make sure the
+	maintainer is still willing to handle bug reports.
+
 2008-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-dir-kill-query): Fix thinko.
