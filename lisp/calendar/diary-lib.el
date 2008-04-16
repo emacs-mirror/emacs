@@ -1929,8 +1929,8 @@ entry specifies that the diary entry (not the reminder) is non-marking.
 Marking of reminders is independent of whether the entry itself is a marking
 or nonmarking; if optional parameter MARKING is non-nil then the reminders are
 marked on the calendar."
-  (let ((diary-entry (eval sexp))
-        date)
+  ;; `date' has a value at this point, from diary-sexp-entry.
+  (let ((diary-entry (eval sexp)))
     (cond
      ;; Diary entry applies on date.
      ((and diary-entry
@@ -1940,12 +1940,13 @@ marked on the calendar."
      ((and (integerp days)
            (not diary-entry)      ; diary entry does not apply to date
            (or (not diary-marking-entries-flag) marking))
-      (setq date (calendar-gregorian-from-absolute
-                  (+ (calendar-absolute-from-gregorian date) days)))
-      (when (setq diary-entry (eval sexp)) ; re-evaluate with adjusted date
-        ;; Discard any mark portion from diary-anniversary, etc.
-        (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
-        (mapconcat 'eval diary-remind-message "")))
+      ;; Adjust date, and re-evaluate.
+      (let ((date (calendar-gregorian-from-absolute
+                   (+ (calendar-absolute-from-gregorian date) days))))
+        (when (setq diary-entry (eval sexp))
+          ;; Discard any mark portion from diary-anniversary, etc.
+          (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
+          (mapconcat 'eval diary-remind-message ""))))
      ;; Diary entry may apply to one of a list of days before date.
      ((and (listp days) days)
       (or (diary-remind sexp (car days) marking)
