@@ -1,3 +1,8 @@
+2008-04-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* character.c (Fchar_bytes, Fchar_width, Fstring_width)
+	(Fchar_direction): Add usage in the docstring.
+
 2008-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_key_sequence): Remove always-true checks.
