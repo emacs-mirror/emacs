@@ -1,3 +1,7 @@
+2008-04-16  Markus Triska  <markus.triska@gmx.at>
+
+	* proced.el (proced-command-alist): Add support for darwin.
+
 2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* proced.el (proced-mode): Redefine as just the major-mode.

@@ -62,6 +62,9 @@
            ("emacs" ("ps" "--pid" ,(number-to-string (emacs-pid))
                      "--ppid" ,(number-to-string (emacs-pid))
                       "uwww") 2)))
+        ((memq system-type '(darwin))
+         `(("user" ("ps" "-u" ,(number-to-string (user-uid))) 2)
+           ("all" ("ps" "-Au") 2)))
         (t ; standard syntax doesn't allow us to list running processes only
          `(("user" ("ps" "-fu" ,(number-to-string (user-uid))) 2)
            ("all" ("ps" "-ef") 2))))
