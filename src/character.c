@@ -364,7 +364,8 @@ the current primary charset (value of `charset-primary').  */)
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
        doc: /* Return 1 regardless of the argument CHAR.
-This is now an obsolete function.  We keep it just for backward compatibility.	 */)
+This is now an obsolete function.  We keep it just for backward compatibility.
+usage: (char-bytes CHAR)  */)
      (ch)
      Lisp_Object ch;
 {
@@ -375,7 +376,8 @@ This is now an obsolete function.  We keep it just for backward compatibility.	 
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
-Tab is taken to occupy `tab-width' columns.  */)
+Tab is taken to occupy `tab-width' columns.
+usage: (char-width CHAR)  */)
      (ch)
        Lisp_Object ch;
 {
@@ -552,7 +554,8 @@ Width is measured by how many columns it occupies on the screen.
 When calculating width of a multibyte character in STRING,
 only the base leading-code is considered; the validity of
 the following bytes is not checked.  Tabs in STRING are always
-taken to occupy `tab-width' columns.  */)
+taken to occupy `tab-width' columns.
+usage: (string-width STRING)  */)
      (str)
      Lisp_Object str;
 {
@@ -565,7 +568,8 @@ taken to occupy `tab-width' columns.  */)
 
 DEFUN ("char-direction", Fchar_direction, Schar_direction, 1, 1, 0,
        doc: /* Return the direction of CHAR.
-The returned value is 0 for left-to-right and 1 for right-to-left.  */)
+The returned value is 0 for left-to-right and 1 for right-to-left.
+usage: (char-direction CHAR)  */)
      (ch)
      Lisp_Object ch;
 {
