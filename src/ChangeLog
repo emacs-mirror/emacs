@@ -1,3 +1,8 @@
+2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in: Don't use HAVE_GTK and don't -DUSE_GTK since it's now
+	done in config.h.
+
 2008-04-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* character.c (Fchar_bytes, Fchar_width, Fstring_width)

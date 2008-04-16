@@ -244,9 +244,6 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
-/* Define to 1 if using GTK. */
-#undef HAVE_GTK
-
 /* Define to 1 if you have GTK and pthread (-lpthread). */
 #undef HAVE_GTK_AND_PTHREAD
 
@@ -837,6 +834,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 on System V Release 4. */
 #undef SVR4
 
+/* Process async input synchronously. */
+#undef SYNC_INPUT
+
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
@@ -855,6 +855,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if we should use font-backend. */
 #undef USE_FONT_BACKEND
+
+/* Define to 1 if using GTK. */
+#undef USE_GTK
 
 /* Define to 1 if we should use toolkit scroll bars. */
 #undef USE_TOOLKIT_SCROLL_BARS
@@ -889,6 +892,27 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
+
+/* Define to 1 if on MINIX. */
+#undef _MINIX
+
+/* Define to 2 if the system does not provide POSIX.1 features except with
+   this defined. */
+#undef _POSIX_1_SOURCE
+
+/* Define to 1 if you need to in order for `stat' and other things to work. */
+#undef _POSIX_SOURCE
+
+/* Enable extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
 
 /* Define to rpl_ if the getopt replacement functions and variables should be
    used. */

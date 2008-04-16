@@ -99,6 +99,11 @@ fi
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
+OPTION_DEFAULT_ON([sync-input],[Process async input synchronously])
+if test "$with_sync_input" = yes; then
+   AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
+fi
+
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
@@ -172,12 +177,6 @@ AC_ARG_ENABLE(font-backend,
 [AS_HELP_STRING([--disable-font-backend],[don't compile font-backend support])],
       USE_FONT_BACKEND=$enableval,
       USE_FONT_BACKEND=yes)
-
-## Enabled by default.
-AC_ARG_ENABLE(sync-input,
-[AS_HELP_STRING([--disable-sync-input], [don't compile code with sync-input])],
-      USE_SYNC_INPUT=$enableval,
-      USE_SYNC_INPUT=yes)
 
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
@@ -1670,7 +1669,7 @@ if test x"$pkg_check_gtk" = xyes; then
     fi
   else
     HAVE_GTK=yes
-    AC_DEFINE(HAVE_GTK, 1, [Define to 1 if using GTK.])
+    AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     USE_X_TOOLKIT=none
     if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
       :
@@ -3006,11 +3005,6 @@ echo
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
-fi
-
-if test $USE_SYNC_INPUT = yes; then
-   echo "  Compiling with sync input."
-   CPPFLAGS="$CPPFLAGS -DSYNC_INPUT=1"
 fi
 
 echo

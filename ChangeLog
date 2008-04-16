@@ -1,3 +1,9 @@
+2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in (SYNC_INPUT): Use OPTION_DEFAULT_ON and AC_DEFINE
+	rather than change CPPFLAGS.
+	(HAVE_GTK): Rename to USE_GTK.
+
 2008-04-16  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
 	* configure.in: Replace the obsolete macros AC_AIX and

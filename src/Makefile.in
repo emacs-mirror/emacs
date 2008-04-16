@@ -240,11 +240,6 @@ STARTFILES = START_FILES
 #endif /* not ORDINARY_LINK */
 
 
-#if HAVE_GTK
-#define USE_GTK
-TOOLKIT_DEFINES = -DUSE_GTK
-#endif
-
 #ifdef USE_X_TOOLKIT
 #define USE_@X_TOOLKIT_TYPE@
 TOOLKIT_DEFINES = -DUSE_@X_TOOLKIT_TYPE@
@@ -980,7 +975,7 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJ
 prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
-#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (HAVE_GTK)
+#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (USE_GTK)
 
 /* We use stamp-xmenu with these two deps
    to both ensure that lwlib gets remade based on its dependencies
@@ -1029,12 +1024,12 @@ really-oldXMenu:
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */
-#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
+#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
 
 /* We don''t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu
-#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
+#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."
