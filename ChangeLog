@@ -1,3 +1,8 @@
+2008-04-16  Yavor Doganov  <yavor@gnu.org>  (tiny change)
+
+	* configure.in: Replace the obsolete macros AC_AIX and
+	AC_GNU_SOURCE with AC_USE_SYSTEM_EXTENSIONS.
+
 2008-04-05  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: No longer create admin/unidata/Makefile.
