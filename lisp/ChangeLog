@@ -1,3 +1,8 @@
+2008-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-remind): Don't clobber `date' passed
+	by diary-sexp-entry.
+
 2008-04-16  Markus Triska  <markus.triska@gmx.at>
 
 	* proced.el (proced-command-alist): Add support for darwin.
