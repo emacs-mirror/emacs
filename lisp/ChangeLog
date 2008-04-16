@@ -1,3 +1,7 @@
+2008-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-dir-kill-query): Fix thinko.
+
 2008-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-remind): Don't clobber `date' passed

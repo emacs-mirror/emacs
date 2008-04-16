@@ -3160,10 +3160,11 @@ Throw an error if another update process is in progress."
 (defun vc-dir-kill-query ()
   ;; Make sure that when the VC status buffer is killed the update
   ;; process running in background is also killed.
-  (when (vc-dir-busy)
+  (if (vc-dir-busy)
     (when (y-or-n-p "Status update process running, really kill status buffer?")
       (vc-dir-kill-dir-status-process)
-      t)))
+      t)
+    t))
 
 (defun vc-dir-next-line (arg)
   "Go to the next line.
