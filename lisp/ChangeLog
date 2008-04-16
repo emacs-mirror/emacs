@@ -1,3 +1,7 @@
+2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Rename vc-status to vc-dir and the vc-status var to vc-ewoc.
+
 2008-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse-drag.el (mouse-throw-magnifier-with-scroll-bar)

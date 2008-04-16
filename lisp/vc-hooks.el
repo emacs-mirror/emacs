@@ -989,7 +989,7 @@ Used in `find-file-not-found-functions'."
     (define-key map "a" 'vc-update-change-log)
     (define-key map "b" 'vc-switch-backend)
     (define-key map "c" 'vc-rollback)
-    (define-key map "d" 'vc-status)
+    (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
@@ -1002,8 +1002,8 @@ Used in `find-file-not-found-functions'."
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
-    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
-    ;; (define-key map "?" 'vc-status)
+    ;; `vc-dir' is a not-quite-ready replacement for `vc-directory'
+    ;; (define-key map "?" 'vc-dir)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
@@ -1057,8 +1057,8 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
-    (define-key map [vc-status]
-      '(menu-item "VC Status"  vc-status
+    (define-key map [vc-dir]
+      '(menu-item "VC Dir"  vc-dir
 		  :help "Show the VC status of files in a directory"))
     map))
 

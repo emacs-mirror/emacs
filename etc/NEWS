@@ -504,7 +504,7 @@ version-control systems such as Subversion, GNU Arch, Mercurial, Git
 and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
 
-*** vc-status is a new command that displays file names and their VC
+*** vc-dir is a new command that displays file names and their VC
 status.  It allows to apply various VC operations to apply a file or a
 set of files.
 
