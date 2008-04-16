@@ -227,7 +227,25 @@ Return the position of the beginning of the process name, or nil if none found."
                                               proced-command-alist)))
                             "\\s-+\\S-+")))
 
-(defun proced-mode (&optional arg)
+(define-derived-mode proced-mode nil "Proced"
+  "Mode for displaying UNIX system processes and sending signals to them.
+Type \\[proced-mark-process] to mark a process for later commands.
+Type \\[proced-send-signal] to send signals to marked processes.
+
+\\{proced-mode-map}"
+  (abbrev-mode 0)
+  (auto-fill-mode 0)
+  (setq buffer-read-only t
+        truncate-lines t)
+  (set (make-local-variable 'revert-buffer-function) 'proced-revert)
+  (set (make-local-variable 'font-lock-defaults)
+       '(proced-font-lock-keywords t nil nil beginning-of-line)))
+
+;; Proced mode is suitable only for specially formatted data.
+(put 'proced-mode 'mode-class 'special)
+
+;;;###autoload
+(defun proced (&optional arg)
   "Mode for displaying UNIX system processes and sending signals to them.
 Type \\[proced-mark-process] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
@@ -240,18 +258,7 @@ information will be displayed but not selected.
   (let ((proced-buffer (get-buffer-create "*Process Info*")) new)
     (set-buffer proced-buffer)
     (setq new (zerop (buffer-size)))
-    (when new
-      (kill-all-local-variables)
-      (use-local-map proced-mode-map)
-      (abbrev-mode 0)
-      (auto-fill-mode 0)
-      (setq buffer-read-only t
-            truncate-lines t
-            major-mode 'proced-mode
-            mode-name "Proced")
-      (set (make-local-variable 'revert-buffer-function) 'proced-revert)
-      (set (make-local-variable 'font-lock-defaults)
-           '(proced-font-lock-keywords t nil nil beginning-of-line)))
+    (when new (proced-mode))
 
     (if (or new arg)
         (proced-update))
@@ -260,14 +267,8 @@ information will be displayed but not selected.
 	(display-buffer proced-buffer)
       (pop-to-buffer proced-buffer)
       (message (substitute-command-keys
-                "type \\[quit-window] to quit, \\[proced-help] for help")))
-    (if new (run-mode-hooks 'proced-mode-hook))))
+                "type \\[quit-window] to quit, \\[proced-help] for help")))))
 
-;; Proced mode is suitable only for specially formatted data.
-(put 'proced-mode 'mode-class 'special)
-
-;;;###autoload
-(defalias 'proced 'proced-mode)
 
 (defun proced-mark (&optional count)
   "Mark the current (or next COUNT) processes."

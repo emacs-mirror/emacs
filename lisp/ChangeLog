@@ -1,5 +1,8 @@
 2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* proced.el (proced-mode): Redefine as just the major-mode.
+	(proced): Separate it from proced-mode.
+
 	* vc.el: Rename vc-status to vc-dir and the vc-status var to vc-ewoc.
 
 2008-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
