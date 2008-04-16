@@ -14,6 +14,62 @@
 
 	* vc.el: Rename vc-status to vc-dir and the vc-status var to vc-ewoc.
 
+2008-04-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Honor the `indent-tabs-mode' setting from user.
+	Suggested by Stephen Deasey <sdeasey@gmail.com>.  Honor also the
+	`tab-width' setting from user.  New version 10.0.  Doc and docstring
+	fix.
+	(whitespace-style, whitespace-chars): Remove options.
+	(whitespace-style-mark): New option, replace whitespace-style deleted
+	option.  Fix docstring.
+	(whitespace-style-color): New option, replace whitespace-chars deleted
+	option.  Fix docstring.
+	(whitespace-space, whitespace-hspace, whitespace-tab)
+	(whitespace-newline, whitespace-trailing, whitespace-line)
+	(whitespace-space-before-tab, whitespace-indentation, whitespace-empty)
+	(whitespace-space-after-tab, whitespace-hspace-regexp)
+	(whitespace-space-regexp, whitespace-tab-regexp)
+	(whitespace-trailing-regexp, whitespace-empty-at-bob-regexp)
+	(whitespace-empty-at-eob-regexp, whitespace-line-column)
+	(whitespace-toggle-option-alist): Fix docstring.
+	(whitespace-space-before-tab-regexp, whitespace-indentation-regexp)
+	(whitespace-space-after-tab-regexp, whitespace-display-mappings): Fix
+	docstring and initialization.
+	(global-whitespace-mode): Autoloaded global minor mode.
+	(whitespace-chars-value-list, whitespace-style-value-list)
+	(whitespace-active-chars, whitespace-active-style)
+	(whitespace-toggle-chars, whitespace-toggle-style): Remove vars.
+	(whitespace-color-value-list): New var, replace
+	whitespace-chars-value-list removed var.
+	(whitespace-mark-value-list): New var, replace
+	whitespace-style-value-list removed var.
+	(whitespace-active-color): New var, replace whitespace-active-chars
+	removed var.
+	(whitespace-active-mark): New var, replace whitespace-active-style
+	removed var.
+	(whitespace-toggle-color): New var, replace whitespace-toggle-chars
+	removed var.
+	(whitespace-toggle-mark): New var, replace whitespace-toggle-style
+	removed var.
+	(whitespace-toggle-option-alist, whitespace-report-list)
+	(whitespace-report-text, whitespace-help-text): Fix initialization.
+	(whitespace-indent-tabs-mode, whitespace-tab-width): New vars.
+	(whitespace-toggle-options, global-whitespace-toggle-options)
+	(whitespace-cleanup-region, whitespace-report-region)
+	(whitespace-interactive-char): Fix docstring and code.
+	(whitespace-cleanup, whitespace-report): Fix docstring.
+	(whitespace-replace-spaces-by-tabs): Remove fun.
+	(whitespace-replace-action): New fun, replace
+	whitespace-replace-spaces-by-tabs removed fun.
+	(whitespace-regexp, whitespace-indentation-regexp)
+	(whitespace-space-after-tab-regexp, whitespace-insert-value)
+	(whitespace-kill-buffer): New funs.
+	(whitespace-insert-option-mark, whitespace-help-on)
+	(whitespace-help-off, whitespace-turn-on, whitespace-turn-off)
+	(whitespace-color-on, whitespace-color-off)
+	(whitespace-display-char-on): Fix code.
+
 2008-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse-drag.el (mouse-throw-magnifier-with-scroll-bar)
