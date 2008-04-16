@@ -286,14 +286,14 @@
   'face 'font-lock-type-face))
 
 (defun vc-git-status-printer (info)
-  "Pretty-printer for the vc-status-fileinfo structure."
-  (let* ((state (vc-status-fileinfo->state info))
-         (extra (vc-status-fileinfo->extra info))
+  "Pretty-printer for the vc-dir-fileinfo structure."
+  (let* ((state (vc-dir-fileinfo->state info))
+         (extra (vc-dir-fileinfo->extra info))
          (old-perm (when extra (vc-git-extra-fileinfo->old-perm extra)))
          (new-perm (when extra (vc-git-extra-fileinfo->new-perm extra))))
     (insert
      "  "
-     (propertize (format "%c" (if (vc-status-fileinfo->marked info) ?* ? ))
+     (propertize (format "%c" (if (vc-dir-fileinfo->marked info) ?* ? ))
                  'face 'font-lock-type-face)
      "  "
      (propertize
@@ -304,7 +304,7 @@
       'mouse-face 'highlight)
      "  " (vc-git-permissions-as-string old-perm new-perm)
      "     "
-     (propertize (vc-git-escape-file-name (vc-status-fileinfo->name info))
+     (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))
                  'face 'font-lock-function-name-face
                  'mouse-face 'highlight)
      (vc-git-file-type-as-string old-perm new-perm)
@@ -387,7 +387,7 @@
   "Return a list of (FILE STATE EXTRA) entries for DIR."
   ;; Further things that would have to be fixed later:
   ;; - how to handle unregistered directories
-  ;; - how to support vc-status on a subdir of the project tree
+  ;; - how to support vc-dir on a subdir of the project tree
   (vc-git-dir-status-goto-stage 'update-index nil update-function))
 
 (defun vc-git-dir-status-files (dir files default-state update-function)
