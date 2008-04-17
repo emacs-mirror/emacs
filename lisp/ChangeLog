@@ -1,3 +1,8 @@
+2008-04-17  Sam Steingold  <sds@gnu.org>
+
+	* pcvs-util.el (cvs-bury-buffer): Use quit-window instead of the
+	idiosyncratic bury-buffer/delete-window logic.
+
 2008-04-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/crm.el (crm-completion-help, crm-complete)
