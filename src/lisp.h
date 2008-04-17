@@ -725,6 +725,13 @@ extern int string_bytes P_ ((struct Lisp_String *));
       (STR) = empty_unibyte_string;  \
     else XSTRING (STR)->size_byte = -1; } while (0)
 
+/* Mark STR as a multibyte string.  Assure that STR contains only
+   ASCII characters in advance.  */
+#define STRING_SET_MULTIBYTE(STR)  \
+  do { if (EQ (STR, empty_unibyte_string))  \
+      (STR) = empty_multibyte_string;  \
+    else XSTRING (STR)->size_byte = XSTRING (STR)->size; } while (0)
+
 /* Get text properties.  */
 #define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals + 0)
 
