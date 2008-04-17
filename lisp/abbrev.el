@@ -875,6 +875,7 @@ Abbrevs marked as \"system abbrevs\" are omitted."
 	(insert "    ))\n\n"))
       nil)))
 
+(put 'define-abbrev-table 'doc-string-elt 3)
 (defun define-abbrev-table (tablename definitions
                                       &optional docstring &rest props)
   "Define TABLENAME (a symbol) as an abbrev table name.

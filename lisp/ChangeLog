@@ -1,5 +1,7 @@
 2008-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* abbrev.el (define-abbrev-table): Fontify dosctrings as such.
+
 	* minibuffer.el (completion-table-with-terminator): Fix paren typo.
 
 2008-04-17  Sam Steingold  <sds@gnu.org>
