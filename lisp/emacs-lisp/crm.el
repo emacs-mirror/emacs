@@ -179,7 +179,7 @@ Place an overlay on the element, with a `field' property, and return it."
 (defun crm-completion-help ()
   "Display a list of possible completions of the current minibuffer element."
   (interactive)
-  (let ((ol (crm-select-current-element)))
+  (let ((ol (crm--select-current-element)))
     (unwind-protect
         (minibuffer-completion-help)
       (delete-overlay ol)))
@@ -191,7 +191,7 @@ If no characters can be completed, display a list of possible completions.
 
 Return t if the current element is now a valid match; otherwise return nil."
   (interactive)
-  (let ((ol (crm-select-current-element)))
+  (let ((ol (crm--select-current-element)))
     (unwind-protect
         (minibuffer-complete)
       (delete-overlay ol))))
@@ -200,7 +200,7 @@ Return t if the current element is now a valid match; otherwise return nil."
   "Complete the current element at most a single word.
 Like `minibuffer-complete-word' but for `completing-read-multiple'."
   (interactive)
-  (let ((ol (crm-select-current-element)))
+  (let ((ol (crm--select-current-element)))
     (unwind-protect
         (minibuffer-complete-word)
       (delete-overlay ol))))
@@ -216,7 +216,7 @@ This function is modeled after `minibuffer-complete-and-exit'."
     (goto-char (minibuffer-prompt-end))
     (while
         (and doexit
-             (let ((ol (crm-select-current-element)))
+             (let ((ol (crm--select-current-element)))
                (goto-char (overlay-end ol))
                (unwind-protect
                    (catch 'exit
