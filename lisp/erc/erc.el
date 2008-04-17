@@ -5477,6 +5477,7 @@ If CHANNEL is non-nil, toggle MODE for that channel, otherwise use
   (save-excursion
     (let ((inhibit-read-only t))
       (set-text-properties start end nil object))))
+(put 'erc-remove-text-properties-region 'disabled t)
 
 ;; script execution and startup
 
