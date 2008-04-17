@@ -5,7 +5,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 29 Mar 1999
-;; Version: 1.9
+;; Version: 2.0
 ;; Keywords: data memory todo pim
 ;; URL: http://gna.org/projects/remember-el/
 
@@ -183,7 +183,7 @@
 
 (provide 'remember)
 
-(defconst remember-version "1.9"
+(defconst remember-version "2.0"
   "This version of remember.")
 
 (defgroup remember nil
