@@ -146,6 +146,7 @@ Emacs can't find.")
 (defvar gdb-printing t)
 (defvar gdb-parent-bptno-enabled nil)
 (defvar gdb-ready nil)
+(defvar gdb-stack-update nil)
 (defvar gdb-early-user-input nil)
 
 (defvar gdb-buffer-type nil
@@ -328,6 +329,7 @@ session."
   (setq gdb-first-prompt t)
   (setq gud-running nil)
   (setq gdb-ready nil)
+  (setq gdb-stack-update nil)
   (setq gdb-flush-pending-output nil)
   (setq gdb-early-user-input nil)
   (setq gud-filter-pending-text nil)
@@ -1404,6 +1406,10 @@ not GDB."
      ((eq sink 'user)
       (progn
 	(setq gud-running t)
+	(setq gdb-stack-update t)
+	;; Temporarily set gud-running to nil to force "info stack" onto queue.
+	(let ((gud-running nil))
+	  (gdb-invalidate-frames))
 	(setq gdb-inferior-status "running")
 	(setq gdb-signalled nil)
 	(gdb-force-mode-line-update
@@ -1989,7 +1995,13 @@ static char *magick[] = {
 		       (match-beginning 1) (match-end 1)
 		       '(face font-lock-variable-name-face)))))))
 	  (end-of-line))))))
-  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
+  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom))
+
+  ;; Breakpoints buffer is always present.  Hack to just update
+  ;; current frame if there's been no execution.
+  (if gdb-stack-update
+      (setq gdb-stack-update nil)
+    (if (gdb-get-buffer 'gdb-stack-buffer) (gdb-info-stack-custom))))
 
 (declare-function gud-remove "gdb-ui" t t) ; gud-def
 (declare-function gud-break  "gdb-ui" t t) ; gud-def
@@ -2190,6 +2202,13 @@ If not in a source or disassembly buffer just set point."
   gdb-info-stack-handler
   gdb-info-stack-custom)
 
+;; This may be more important for embedded targets where unwinding the
+;; stack may take a long time.
+(defadvice gdb-invalidate-frames (around gdb-invalidate-frames-advice
+					 (&optional ignored) activate compile)
+  "Only queue \"info stack\" if execution has occurred."
+  (if gdb-stack-update ad-do-it))
+
 (defun gdb-info-stack-custom ()
   (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
     (let (move-to)
@@ -2287,9 +2306,21 @@ If not in a source or disassembly buffer just set point."
     (suppress-keymap map)
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-frames-select)
+    (define-key map "F" 'gdb-frames-force-update)
     (define-key map [mouse-2] 'gdb-frames-select)
     (define-key map [follow-link] 'mouse-face)
     map))
+
+(defun gdb-frames-force-update ()
+  "Force update of call stack.
+Use when the displayed call stack gets out of sync with the
+actual one, e.g after using the Gdb command \"return\" or setting
+$pc directly from the GUD buffer.  This command isn't normally needed."
+  (interactive)
+  (setq gdb-stack-update t)
+  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
+      (gdb-invalidate-frames)
+    (gdbmi-invalidate-frames)))
 
 (defun gdb-frames-mode ()
   "Major mode for gdb call stack.
@@ -2304,6 +2335,7 @@ If not in a source or disassembly buffer just set point."
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (run-mode-hooks 'gdb-frames-mode-hook)
+  (setq gdb-stack-update t)
   (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-frames
     'gdbmi-invalidate-frames))
