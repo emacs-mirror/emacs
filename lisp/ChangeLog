@@ -1,3 +1,7 @@
+2008-04-17  Michael Olson  <mwolson@gnu.org>
+
+	* textmodes/remember.el (remember-version): Release Remember 2.0.
+
 2008-04-16  Yoni Rabkin  <yoni@rabkins.net>
 
 	* textmodes/artist.el:
