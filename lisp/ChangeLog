@@ -1,5 +1,7 @@
 2008-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* skeleton.el: Set coding-tag.
+
 	* abbrev.el (abbrev-insert): New function extracted from expand-abbrev.
 	(expand-abbrev): Use it.
 	(abbrev-table-menu): New function.

@@ -1,4 +1,4 @@
-;;; skeleton.el --- Lisp language extension for writing statement skeletons
+;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 2001, 2002, 2003,
 ;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
@@ -482,7 +482,7 @@ Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).
 				      (?[ _ ?]) (?\])
 				      (?{ _ ?}) (?\})
 				      (?< _ ?>) (?\>)
-				      (?« _ ?») (?\»)
+				      (?Â« _ ?Â») (?\Â»)
 				      (?` _ ?')))
 
 ;;;###autoload
@@ -520,7 +520,7 @@ symmetrical ones, and the same character twice for the others."
 
 
 ;; A more serious example can be found in sh-script.el
-;;; (defun mirror-mode ()
+;; (defun mirror-mode ()
 ;;  "This major mode is an amusing little example of paired insertion.
 ;;All printable characters do a paired self insert, while the other commands
 ;;work normally."
