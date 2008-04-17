@@ -434,7 +434,7 @@ This is similar to an `around' advice."
 
 (defun make-abbrev-table (&optional props)
   "Create a new, empty abbrev table object.
-PROPS is a "
+PROPS is a list of properties."
   ;; The value 59 is an arbitrary prime number.
   (let ((table (make-vector 59 0)))
     ;; Each abbrev-table has a `modiff' counter which can be used to detect
@@ -536,8 +536,8 @@ If EXPANSION is not a string, the abbrev is a special one,
  which does not expand in the usual way but only runs HOOK.
 
 PROPS is a property list.  The following properties are special:
-- `:count': the value for the abbrev's usage-count, which is incremented each time
-  the abbrev is used (the default is zero).
+- `:count': the value for the abbrev's usage-count, which is incremented each
+  time the abbrev is used (the default is zero).
 - `:system': if non-nil, says that this is a \"system\" abbreviation
   which should not be saved in the user's abbreviation file.
   Unless `:system' is `force', a system abbreviation will not
@@ -880,8 +880,7 @@ Abbrevs marked as \"system abbrevs\" are omitted."
                                       &optional docstring &rest props)
   "Define TABLENAME (a symbol) as an abbrev table name.
 Define abbrevs in it according to DEFINITIONS, which is a list of elements
-of the form (ABBREVNAME EXPANSION HOOK USECOUNT SYSTEMFLAG).
-\(If the list is shorter than that, omitted elements default to nil).
+of the form (ABBREVNAME EXPANSION ...) that are passed to `define-abbrev'.
 PROPS is a property list to apply to the table.
 Properties with special meaning:
 - `:parents' contains a list of abbrev tables from which this table inherits
