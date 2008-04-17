@@ -848,8 +848,7 @@
 
 ;; 0: non-spacing, enclosing combining, formatting, Hangul Jamo medial
 ;;    and final characters.
-(let ((l '((#x00AD . #x00AD)
-	   (#x0300 . #x036F)
+(let ((l '((#x0300 . #x036F)
 	   (#x0483 . #x0489)
 	   (#x0591 . #x05BD)
 	   (#x05BF . #x05BF)
