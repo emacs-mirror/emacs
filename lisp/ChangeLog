@@ -1,5 +1,9 @@
 2008-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* abbrev.el (abbrev-insert): New function extracted from expand-abbrev.
+	(expand-abbrev): Use it.
+	(abbrev-table-menu): New function.
+
 	* abbrev.el (define-abbrev-table): Fontify dosctrings as such.
 
 	* minibuffer.el (completion-table-with-terminator): Fix paren typo.

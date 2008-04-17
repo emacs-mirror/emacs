@@ -412,7 +412,7 @@ C-c C-f, finds the file associated with the current log entry.
 
 ** abbrev was rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
-    abbrev-table-p.
+    abbrev-table-p, abbrev-insert, abbrev-table-menu.
 *** Special hook `abbrev-expand-functions' obsoletes `pre-abbrev-expand-hook'.
 *** `make-abbrev-table', `define-abbrev', `define-abbrev-table' all take
     extra arguments for arbitrary properties.
