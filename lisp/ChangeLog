@@ -1,5 +1,15 @@
 2008-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-mode-map): Use abbrev-table-menu.
+	(python-use-skeletons): Remove, unused.
+	(python-skeletons): Remove.  Use the abbrev table instead.
+	(python-mode-abbrev-table): Fix regexp; add enable-function and case-fixed.
+	(def-python-skeleton): Simplify.
+	(python-expand-template): Use the abbrev-table and abbrev-insert.
+	(python-abbrev-pc-hook, python-abbrev-syntax-table, python-pea-hook):
+	Remove.
+	(python-mode): Don't set pre-abbrev-expand-hook.
+
 	* skeleton.el: Set coding-tag.
 
 	* abbrev.el (abbrev-insert): New function extracted from expand-abbrev.

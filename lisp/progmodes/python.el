@@ -296,9 +296,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 	("Templates..."
 	 :help "Expand templates for compound statements"
 	 :filter (lambda (&rest junk)
-		   (mapcar (lambda (elt)
-			     (vector (car elt) (cdr elt) t))
-			   python-skeletons))) ; defined later
+                   (abbrev-table-menu python-mode-abbrev-table)))
 	"-"
 	["Start interpreter" python-shell
 	 :help "Run `inferior' Python in separate buffer"]
@@ -2202,39 +2200,24 @@ Interactively, prompt for name."
 
 ;;;; Skeletons
 
-(defcustom python-use-skeletons nil
-  "Non-nil means template skeletons will be automagically inserted.
-This happens when pressing \"if<SPACE>\", for example, to prompt for
-the if condition."
-  :type 'boolean
-  :group 'python)
-
-(defvar python-skeletons nil
-  "Alist of named skeletons for Python mode.
-Elements are of the form (NAME . EXPANDER-FUNCTION).")
-
 (define-abbrev-table 'python-mode-abbrev-table ()
-  "Abbrev table for Python mode.
-The default contents correspond to the elements of `python-skeletons'."
-  ;; Allow / in abbrevs.
-  :regexp "\\<\\([[:word:]/]+\\)\\W*")
+  "Abbrev table for Python mode."
+  :case-fixed t
+  ;; Allow / inside abbrevs.
+  :regexp "\\(?:^\\|[^/]\\)\\<\\([[:word:]/]+\\)\\W*"
+  ;; Only expand in code.
+  :enable-function (lambda () (not (python-in-string/comment))))
 
 (eval-when-compile
-  ;; Define a user-level skeleton and add it to `python-skeletons' and
-  ;; the abbrev table.
+  ;; Define a user-level skeleton and add it to the abbrev table.
 (defmacro def-python-skeleton (name &rest elements)
   (let* ((name (symbol-name name))
 	 (function (intern (concat "python-insert-" name))))
     `(progn
-       (add-to-list 'python-skeletons ',(cons name function))
        ;; Usual technique for inserting a skeleton, but expand
        ;; to the original abbrev instead if in a comment or string.
        (define-abbrev python-mode-abbrev-table ,name ""
-	 ;; Quote this to give a readable abbrev table.
-	 '(lambda ()
-	    (if (python-in-string/comment)
-		(insert ,name)
-	      (,function)))
+	 ',function
 	 nil t)				; system abbrev
        (define-skeleton ,function
 	 ,(format "Insert Python \"%s\" template." name)
@@ -2327,13 +2310,14 @@ Interactively, prompt for the name with completion."
   (interactive
    (list (completing-read (format "Template to expand (default %s): "
 				  python-default-template)
-			  python-skeletons nil t)))
+			  python-mode-abbrev-table nil t nil nil
+                          python-default-template)))
   (if (equal "" name)
       (setq name python-default-template)
     (setq python-default-template name))
-  (let ((func (cdr (assoc name python-skeletons))))
-    (if func
-	(funcall func)
+  (let ((sym (abbrev-symbol name python-mode-abbrev-table)))
+    (if sym
+        (abbrev-insert sym)
       (error "Undefined template: %s" name))))
 
 ;;;; Bicycle Repair Man support
@@ -2396,22 +2380,6 @@ without confirmation."
 (defvar outline-heading-end-regexp)
 (defvar eldoc-documentation-function)
 (defvar python-mode-running)            ;Dynamically scoped var.
-
-;; Stuff to allow expanding abbrevs with non-word constituents.
-(defun python-abbrev-pc-hook ()
-  "Reset the syntax table after possibly expanding abbrevs."
-  (remove-hook 'post-command-hook 'python-abbrev-pc-hook t)
-  (set-syntax-table python-mode-syntax-table))
-
-(defvar python-abbrev-syntax-table
-  (copy-syntax-table python-mode-syntax-table)
-  "Syntax table used when expanding abbrevs.")
-
-(defun python-pea-hook ()
-  "Set the syntax table before possibly expanding abbrevs."
-  (set-syntax-table python-abbrev-syntax-table)
-  (add-hook 'post-command-hook 'python-abbrev-pc-hook nil t))
-(modify-syntax-entry ?/ "w" python-abbrev-syntax-table)
 
 ;;;###autoload
 (define-derived-mode python-mode fundamental-mode "Python"
@@ -2503,7 +2471,6 @@ with skeleton expansions for compound statement templates.
        '((< '(backward-delete-char-untabify (min python-indent
 						 (current-column))))
 	 (^ '(- (1+ (current-indentation))))))
-  (add-hook 'pre-abbrev-expand-hook 'python-pea-hook nil t)
   (if (featurep 'hippie-exp)
       (set (make-local-variable 'hippie-expand-try-functions-list)
 	   (cons 'symbol-completion-try-complete
