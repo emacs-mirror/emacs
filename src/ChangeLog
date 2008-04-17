@@ -1,3 +1,10 @@
+2008-04-17  Kenichi Handa  <handa@m17n.org>
+
+	* data.c (Faset): Allow setting a multibyte character in an
+	ASCII-only unibyte string.
+
+	* lisp.h (STRING_SET_MULTIBYTE): New macro.
+
 2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in: Don't use HAVE_GTK and don't -DUSE_GTK since it's now
