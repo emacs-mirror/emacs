@@ -1,3 +1,7 @@
+2008-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-terminator): Fix paren typo.
+
 2008-04-17  Sam Steingold  <sds@gnu.org>
 
 	* pcvs-util.el (cvs-bury-buffer): Use quit-window instead of the

@@ -138,8 +138,8 @@ You should give VAR a non-nil `risky-local-variable' property."
         (if (and (stringp comp)
                  (eq (complete-with-action action table comp pred) t))
             (concat comp terminator)
-          comp))
-      comp)
+          comp)
+        comp))
      ;; completion-table-with-terminator is always used for
      ;; "sub-completions" so it's only called if the terminator is missing,
      ;; in which case `test-completion' should return nil.
