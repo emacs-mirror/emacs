@@ -270,7 +270,7 @@
     map)
   "Keymap for commands shared by all sorts of Lisp modes.")
 
-(defvar emacs-lisp-mode-map 
+(defvar emacs-lisp-mode-map
   (let ((map (make-sparse-keymap "Emacs-Lisp"))
 	(menu-map (make-sparse-keymap "Emacs-Lisp"))
 	(prof-map (make-sparse-keymap))
@@ -356,7 +356,7 @@
       '(menu-item "Evaluate Region" eval-region
 		  :help "Execute the region as Lisp code"
 		  :enable mark-active))
-    (define-key menu-map [eval-sexp] 
+    (define-key menu-map [eval-sexp]
       '(menu-item "Evaluate Last S-expression" eval-last-sexp
 		  :help "Evaluate sexp before point; print value in minibuffer"))
     (define-key menu-map [separator-format] '("--"))
@@ -493,7 +493,7 @@ if that value is non-nil."
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\n" 'eval-print-last-sexp)
     (define-key map [menu-bar lisp-interaction] (cons "Lisp-Interaction" menu-map))
-    (define-key menu-map [eval-defun] 
+    (define-key menu-map [eval-defun]
       '(menu-item "Evaluate Defun" eval-defun
 		  :help "Evaluate the top-level form containing point, or after point"))
     (define-key menu-map [eval-print-last-sexp]
@@ -853,7 +853,8 @@ which see."
 	     value)))))
 
 ;; May still be used by some external Lisp-mode variant.
-(define-obsolete-function-alias 'lisp-comment-indent 'comment-indent-default)
+(define-obsolete-function-alias 'lisp-comment-indent
+    'comment-indent-default "22.1")
 
 ;; This function just forces a more costly detection of comments (using
 ;; parse-partial-sexp from beginning-of-defun).  I.e. It avoids the problem of
