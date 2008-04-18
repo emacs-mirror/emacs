@@ -220,13 +220,6 @@ At the time of writing it is at the URL
   :type '(choice (const :tag "None" nil)
 		 file))
 
-;; We could convert the unidata file into a Lispy form once-for-all
-;; and distribute it for loading on demand.  It might be made more
-;; space-efficient by splitting strings word-wise and replacing them
-;; with lists of symbols interned in a private obarray, e.g.
-;; "LATIN SMALL LETTER A" => '(LATIN SMALL LETTER A).
-
-;; Fixme: Check whether this needs updating for Unicode 4.
 (defun describe-char-unicode-data (char)
   "Return a list of Unicode data for unicode CHAR.
 Each element is a list of a property description and the property value.
@@ -653,8 +646,7 @@ as well as widgets, buttons, overlays, and text properties."
 	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
 	(toggle-read-only 1)))))
 
-(defalias 'describe-char-after 'describe-char)
-(make-obsolete 'describe-char-after 'describe-char "22.1")
+(define-obsolete-function-alias 'describe-char-after 'describe-char "22.1")
 
 (provide 'descr-text)
 
