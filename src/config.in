@@ -859,6 +859,12 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
+/* Define to 1 if using the Lucid X toolkit. */
+#undef USE_LUCID
+
+/* Define to 1 if using the Motif X toolkit. */
+#undef USE_MOTIF
+
 /* Define to 1 if we should use toolkit scroll bars. */
 #undef USE_TOOLKIT_SCROLL_BARS
 
