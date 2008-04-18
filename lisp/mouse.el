@@ -157,7 +157,7 @@ Interactively, INDICATOR is read using completion.
 If there is no menu defined for the minor mode, then create one with
 items `Turn Off' and `Help'."
   (interactive
-   (list (completing-read 
+   (list (completing-read
 	  "Minor mode indicator: "
 	  (describe-minor-mode-completion-table-for-indicator))))
   (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
@@ -171,7 +171,7 @@ items `Turn Off' and `Help'."
                 ,indicator
                 (turn-off menu-item "Turn Off minor mode" ,minor-mode)
                 (help menu-item "Help for minor mode"
-                      (lambda () (interactive) 
+                      (lambda () (interactive)
                         (describe-function ',minor-mode))))))
       (popup-menu menu))))
 
@@ -266,7 +266,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
   (interactive "@e\nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (popup-menu (mouse-menu-major-mode-map) event prefix))
-(make-obsolete 'mouse-major-mode-menu 'mouse-menu-major-mode-map)
+(make-obsolete 'mouse-major-mode-menu 'mouse-menu-major-mode-map "23.1")
 
 (defun mouse-popup-menubar (event prefix)
   "Pop up a menu equivalent to the menu bar for keyboard EVENT with PREFIX.
@@ -275,7 +275,7 @@ not it is actually displayed."
   (interactive "@e \nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (popup-menu (mouse-menu-bar-map) event prefix))
-(make-obsolete 'mouse-popup-menubar 'mouse-menu-bar-map)
+(make-obsolete 'mouse-popup-menubar 'mouse-menu-bar-map "23.1")
 
 (defun mouse-popup-menubar-stuff (event prefix)
   "Popup a menu like either `mouse-major-mode-menu' or `mouse-popup-menubar'.
@@ -287,7 +287,7 @@ Use the former if the menu bar is showing, otherwise the latter."
        (mouse-menu-bar-map)
      (mouse-menu-major-mode-map))
    event prefix))
-(make-obsolete 'mouse-popup-menubar-stuff nil)
+(make-obsolete 'mouse-popup-menubar-stuff nil "23.1")
 
 ;; Commands that operate on windows.
 
