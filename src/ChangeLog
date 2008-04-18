@@ -1,3 +1,8 @@
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (TOOLKIT_DEFINES): Remove.
+	(LIBW): Use a bit less #if, remove left over OPEN_LOOK stuff.
+
 2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (MAC_OBJ): Add mactoolbox.o.
@@ -159,7 +164,8 @@
 
 2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* character.c (Fmultibyte_char_to_unibyte): Return latin1 chars unchanged.
+	* character.c (Fmultibyte_char_to_unibyte):
+	Return latin1 chars unchanged.
 
 	* fileio.c (Fexpand_file_name): Refine last fix so `nm' is only
 	relocated if it points to `name'.

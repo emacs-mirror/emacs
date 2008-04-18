@@ -1,3 +1,7 @@
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in: Define USE_LUCID/USE_MOTIF in config.h.
+
 2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in (SYNC_INPUT): Use OPTION_DEFAULT_ON and AC_DEFINE

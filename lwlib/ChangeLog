@@ -1,3 +1,7 @@
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (TOOLKIT_DEFINES): Remove.
+
 2007-08-29  Károly Lőrentey  <lorentey@elte.hu>
 
 	* xlwmenu.c (XlwMenuRealize): Ignore X errors while setting up

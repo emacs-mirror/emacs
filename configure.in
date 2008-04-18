@@ -2641,6 +2641,11 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
 fi
 if test "${USE_X_TOOLKIT}" != "none" ; then
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
+  if test "${USE_X_TOOLKIT}" == "LUCID"; then
+    AC_DEFINE(USE_LUCID, 1, [Define to 1 if using the Lucid X toolkit.])
+  elif test "${USE_X_TOOLKIT}" == "MOTIF"; then
+    AC_DEFINE(USE_MOTIF, 1, [Define to 1 if using the Motif X toolkit.])
+  fi
 fi
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
