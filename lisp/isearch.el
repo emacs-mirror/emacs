@@ -1841,7 +1841,7 @@ Isearch mode."
   "Convert return into newline for incremental search."
   (interactive)
   (isearch-process-search-char ?\n))
-(make-obsolete 'isearch-return-char 'isearch-printing-char)
+(make-obsolete 'isearch-return-char 'isearch-printing-char "19.7")
 
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
