@@ -3250,7 +3250,7 @@ Anything else means ask for each directory."
 
 (defun dired-dnd-popup-notice ()
   (message-box
-   "Recursive copies not enabled.\nSee variable dired-recursive-copies."))
+   "Dired recursive copies are currently disabled.\nSee the variable `dired-recursive-copies'."))
 
 
 (defun dired-dnd-do-ask-action (uri)

@@ -1,3 +1,162 @@
+2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (MAC_OBJ): Add mactoolbox.o.
+	(mactoolbox.o): New target.
+
+	* mac.c [MAC_OSX] (select_and_poll_event, sys_select):
+	Use mac_run_loop_run_once instead of CFRunLoopRunInMode.
+
+	* macfns.c (x_set_background_color, mac_window, x_create_tip_frame):
+	Use mac_set_frame_window_background instead of XSetWindowBackground.
+	(x_set_tool_bar_lines) [USE_MAC_TOOLBAR]:
+	Use mac_is_window_toolbar_visible instead of IsWindowToolbarVisible.
+	(x_set_name_internal) [TARGET_API_MAC_CARBON]: Use mac_set_window_title
+	instead of SetWindowTitleWithCFString.
+	(mac_update_proxy_icon) [TARGET_API_MAC_CARBON]: Remove BLOCK_INPUT.
+	Move function to mactoolbox.c.
+	(mac_update_title_bar) [TARGET_API_MAC_CARBON]:
+	Use mac_set_window_modified instead of SetWindowModified.
+	Add BLOCK_INPUT around mac_set_window_modified/mac_update_proxy_icon.
+	(mac_window, x_create_tip_frame): Use mac_create_frame_window.
+	(Fx_focus_frame): Use mac_front_non_floating_window instead of
+	FrontNonFloatingWindow.  Use mac_activate_window instead of
+	ActivateWindow.  Use mac_active_non_floating_window instead of
+	ActiveNonFloatingWindow.
+	(show_hourglass, hide_hourglass) [TARGET_API_MAC_CARBON]:
+	Use mac_show_hourglass and mac_hide_hourglass.
+	(compute_tip_xy) [TARGET_API_MAC_CARBON]: Use mac_get_global_mouse
+	instead of GetGlobalMouse.
+	(Fx_show_tip): Use mac_move_window/mac_size_window/mac_show_window
+	instead of MoveWindow/SizeWindow/ShowWindow, respectively.
+	Use mac_bring_window_to_front instead of BringToFront.
+	(Qfile_name_history) [TARGET_API_MAC_CARBON]: Move extern to
+	mactoolbox.c.
+	(Fx_file_dialog) [TARGET_API_MAC_CARBON]: Move function body to
+	mac_file_dialog in mactoolbox.c.  Use mac_file_dialog.
+	(mac_nav_event_callback) [TARGET_API_MAC_CARBON]: Move function to
+	mactoolbox.c.
+
+	* macgui.h [!HAVE_CARBON]: Include Quickdraw.h instead of QuickDraw.h.
+	(XtPointer): Move typedef from macmenu.c.
+	(enum button_type): Move enum from macmenu.c.
+	(widget_value): Move typedef from macmenu.c.
+	(M_APPLE, I_ABOUT, EXTRA_STACK_ALLOC, ARGV_STRING_LIST_ID)
+	(DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN, DIALOG_RIGHT_MARGIN)
+	(DIALOG_BOTTOM_MARGIN, DIALOG_MIN_INNER_WIDTH, DIALOG_MAX_INNER_WIDTH)
+	(DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE)
+	(DIALOG_BUTTON_BUTTON_VERTICAL_SPACE, DIALOG_BUTTON_MIN_WIDTH)
+	(DIALOG_TEXT_MIN_HEIGHT, DIALOG_TEXT_BUTTONS_VERTICAL_SPACE)
+	(DIALOG_ICON_WIDTH, DIALOG_ICON_HEIGHT, DIALOG_ICON_LEFT_MARGIN)
+	(DIALOG_ICON_TOP_MARGIN): Move defines from macmenu.c.
+	(Selection): Move typedef from macselect.c.
+	(RAM_TOO_LARGE_ALERT_ID, ABOUT_ALERT_ID) [MAC_OS8]: Move defines from
+	macterm.c.
+	(mac_set_window_title, mac_set_window_modified, mac_is_window_visible)
+	(mac_is_window_collapsed, mac_bring_window_to_front)
+	(mac_send_window_behind, mac_hide_window, mac_show_window)
+	(mac_collapse_window, mac_front_non_floating_window)
+	(mac_active_non_floating_window, mac_activate_window)
+	(mac_move_window_structure, mac_move_window, mac_size_window)
+	(mac_get_global_mouse, mac_is_window_toolbar_visible): New defines.
+
+	* macmenu.c [!TARGET_API_MAC_CARBON]: Move includes to mactoolbox.c.
+	(enum mac_menu_kind): Move enum to mactoolbox.c.
+	(min_menu_id): Move variable to mactoolbox.c.
+	(quit_dialog_event_loop) [TARGET_API_MAC_CARBON]: Likewise.
+	(DIALOG_WINDOW_RESOURCE): Move define to mactoolbox.c.
+	(DIALOG_BUTTON_COMMAND_ID_OFFSET, DIALOG_BUTTON_COMMAND_ID_P)
+	(DIALOG_BUTTON_COMMAND_ID_VALUE, DIALOG_BUTTON_MAKE_COMMAND_ID)
+	[TARGET_API_MAC_CARBON]: Likewise.
+	(XtPointer): Move typedef to macgui.h.
+	(enum button_type): Move enum to macgui.h.
+	(widget_value): Move typedef to macgui.h.
+	(DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN, DIALOG_RIGHT_MARGIN)
+	(DIALOG_BOTTOM_MARGIN, DIALOG_MIN_INNER_WIDTH, DIALOG_MAX_INNER_WIDTH)
+	(DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE)
+	(DIALOG_BUTTON_BUTTON_VERTICAL_SPACE, DIALOG_BUTTON_MIN_WIDTH)
+	(DIALOG_TEXT_MIN_HEIGHT, DIALOG_TEXT_BUTTONS_VERTICAL_SPACE)
+	(DIALOG_ICON_WIDTH, DIALOG_ICON_HEIGHT, DIALOG_ICON_LEFT_MARGIN)
+	(DIALOG_ICON_TOP_MARGIN): Move defines to macgui.h.
+	(popup_activated_flag): Make variable non-static.
+	(x_activate_menubar, install_menu_quit_handler, pop_down_menu)
+	(add_menu_item, fill_menu, dispose_menus):
+	Move functions to mactoolbox.c.
+	(restore_show_help_function, menu_target_item_handler)
+	(install_menu_target_item_handler, mac_handle_dialog_event)
+	(install_dialog_event_handler, pop_down_dialog, create_and_show_dialog)
+	[TARGET_API_MAC_CARBON]: Likewise.
+	(menu_quit_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Likewise.
+	(mac_dialog) [!TARGET_API_MAC_CARBON]: Likewise.
+	(find_and_call_menu_selection, name_is_separator): Make function
+	non-static.
+	(Vshow_help_function, timer_check) [TARGET_API_MAC_CARBON]: Move extern
+	to mactoolbox.c.
+	(set_frame_menubar): Don't call install_menu_quit_handler.
+	(menu_item_selection): New variable.
+	(mac_menu_show): Use create_and_show_popup_menu.
+	(create_and_show_dialog) [TARGET_API_MAC_CARBON]: Don't return
+	selection but set variable menu_item_selection.  All uses changed.
+	(mac_fill_menubar): Rename from fill_menubar.  All uses changed.
+	Call install_menu_quit_handler.  Move to mactoolbox.c.
+
+	* macselect.c [!TARGET_API_MAC_CARBON]: Don't include Scrap.h.
+	(Selection): Move typedef to macgui.h.
+	(Vselection_converter_alist, Qmac_scrap_name, Qmac_ostype)
+	(Vmac_apple_event_map, Qmac_apple_event_class, Qmac_apple_event_id):
+	Make variables non-static.
+	(Vmac_dnd_known_types) [TARGET_API_MAC_CARBON]: Likewise.
+	(mac_handle_apple_event, cleanup_all_suspended_apple_events):
+	Make functions non-static.
+	(Vmac_service_selection) [MAC_OSX]: Likewise.
+	(mac_get_selection_from_symbol, get_flavor_type_from_symbol)
+	(mac_valid_selection_target_p, mac_clear_selection)
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_put_selection_value, mac_selection_has_target_p)
+	(mac_get_selection_value, mac_get_selection_target_list)
+	(init_apple_event_handler, install_drag_handler, remove_drag_handler):
+	Move functions to mactoolbox.c.
+	(mac_do_track_drag, mac_do_receive_drag) [TARGET_API_MAC_CARBON]:
+	Likewise.
+	(copy_scrap_flavor_data, mac_handle_service_event)
+	(install_service_handler) [MAC_OSX]: Likewise.
+	(syms_of_macselect) <Vmac_dnd_known_types>:
+	Use mac_dnd_default_known_types.
+
+	* macterm.h (FRAME_OUTER_TO_INNER_DIFF_X, FRAME_OUTER_TO_INNER_DIFF_Y):
+	Move to mactoolbox.c.
+	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): Change to 15.
+	(Fx_selection_owner_p): Add EXFUN.
+	(install_window_handler, remove_window_handler, XSetWindowBackground):
+	Remove externs.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Likewise.
+	(mac_prepare_for_quickdraw) [USE_CG_DRAWING]: Likewise.
+	(x_raise_frame, x_lower_frame, mac_alert_sound_play)
+	(install_application_handler, mac_get_frame_bounds, mac_get_frame_mouse)
+	(mac_convert_frame_point_to_global, mac_set_frame_window_background)
+	(mac_update_begin mac_update_end, mac_frame_up_to_date, x_flush)
+	(mac_create_frame_window, mac_dispose_frame_window, mac_begin_clip)
+	(mac_end_clip, mac_create_scroll_bar, mac_dispose_scroll_bar)
+	(mac_set_scroll_bar_bounds, mac_redraw_scroll_bar, mac_fill_menubar)
+	(create_and_show_popup_menu, mac_get_selection_from_symbol)
+	(mac_valid_selection_target_p, mac_clear_selection)
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_put_selection_value, mac_selection_has_target_p)
+	(mac_get_selection_value, mac_get_selection_target_list): Add externs.
+	(mac_update_proxy_icon, mac_show_hourglass, mac_hide_hourglass)
+	(mac_reposition_hourglass, mac_file_dialog, create_and_show_dialog)
+	(mac_dnd_default_known_types) [TARGET_API_MAC_CARBON]: Likewise.
+	(mac_run_loop_run_once) [MAC_OSX]: Likewise.
+	(mac_dialog) [!TARGET_API_MAC_CARBON]: Likewise.
+	(mac_begin_cg_clip, mac_end_cg_clip) [USE_CG_DRAWING]: Likewise.
+	(x_set_toolkit_scroll_bar_thumb) [!USE_TOOLKIT_SCROLL_BARS]: Likewise.
+	(x_scroll_bar_set_handle) [!USE_TOOLKIT_SCROLL_BARS]: Likewise.
+
+	* mactoolbox.c: New file.
+
+2008-03-31  Jason Rumney  <jasonr@gnu.org>
+
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Cast uid and gid to unsigned.
+
 2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fexpand_file_name): Refine last fix so `nm' is only

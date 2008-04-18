@@ -36,20 +36,6 @@ Boston, MA 02110-1301, USA.  */
 #include "charset.h"
 #include "coding.h"
 
-#if !TARGET_API_MAC_CARBON
-#include <MacTypes.h>
-#include <Menus.h>
-#include <Quickdraw.h>
-#include <ToolUtils.h>
-#include <Fonts.h>
-#include <Controls.h>
-#include <Windows.h>
-#include <Events.h>
-#if defined (__MRC__) || (__MSL__ >= 0x6000)
-#include <ControlDefinitions.h>
-#endif
-#endif /* not TARGET_API_MAC_CARBON */
-
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
 #include "macterm.h"
@@ -62,21 +48,6 @@ Boston, MA 02110-1301, USA.  */
 
 #include "dispextern.h"
 
-enum mac_menu_kind {		/* Menu ID range  */
-  MAC_MENU_APPLE,		/* 0 (Reserved by Apple) */
-  MAC_MENU_MENU_BAR,		/* 1 .. 233       */
-  MAC_MENU_M_APPLE,		/* 234      (== M_APPLE) */
-  MAC_MENU_POPUP,		/* 235            */
-  MAC_MENU_DRIVER,		/* 236 .. 255 (Reserved) */
-  MAC_MENU_MENU_BAR_SUB,	/* 256 .. 16383   */
-  MAC_MENU_POPUP_SUB,		/* 16384 .. 32767 */
-  MAC_MENU_END			/* 32768          */
-};
-
-static const int min_menu_id[] = {0, 1, 234, 235, 236, 256, 16384, 32768};
-
-#define DIALOG_WINDOW_RESOURCE 130
-
 #if TARGET_API_MAC_CARBON
 #define HAVE_DIALOGS 1
 #endif
@@ -84,69 +55,6 @@ static const int min_menu_id[] = {0, 1, 234, 235, 236, 256, 16384, 32768};
 #undef HAVE_MULTILINGUAL_MENU
 
 /******************************************************************/
-/* Definitions copied from lwlib.h */
-
-typedef void * XtPointer;
-
-enum button_type
-{
-  BUTTON_TYPE_NONE,
-  BUTTON_TYPE_TOGGLE,
-  BUTTON_TYPE_RADIO
-};
-
-/* This structure is based on the one in ../lwlib/lwlib.h, modified
-   for Mac OS.  */
-typedef struct _widget_value
-{
-  /* name of widget */
-  Lisp_Object   lname;
-  char*		name;
-  /* value (meaning depend on widget type) */
-  char*		value;
-  /* keyboard equivalent. no implications for XtTranslations */
-  Lisp_Object   lkey;
-  char*		key;
-  /* Help string or nil if none.
-     GC finds this string through the frame's menu_bar_vector
-     or through menu_items.  */
-  Lisp_Object	help;
-  /* true if enabled */
-  Boolean	enabled;
-  /* true if selected */
-  Boolean	selected;
-  /* The type of a button.  */
-  enum button_type button_type;
-  /* true if menu title */
-  Boolean       title;
-#if 0
-  /* true if was edited (maintained by get_value) */
-  Boolean	edited;
-  /* true if has changed (maintained by lw library) */
-  change_type	change;
-  /* true if this widget itself has changed,
-     but not counting the other widgets found in the `next' field.  */
-  change_type   this_one_change;
-#endif
-  /* Contents of the sub-widgets, also selected slot for checkbox */
-  struct _widget_value*	contents;
-  /* data passed to callback */
-  XtPointer	call_data;
-  /* next one in the list */
-  struct _widget_value*	next;
-#if 0
-  /* slot for the toolkit dependent part.  Always initialize to NULL. */
-  void* toolkit_data;
-  /* tell us if we should free the toolkit data slot when freeing the
-     widget_value itself. */
-  Boolean free_toolkit_data;
-
-  /* we resource the widget_value structures; this points to the next
-     one on the free list if this one has been deallocated.
-   */
-  struct _widget_value *free_list;
-#endif
-} widget_value;
 
 /* Assumed by other routines to zero area returned.  */
 #define malloc_widget_value() (void *)memset (xmalloc (sizeof (widget_value)),\
@@ -197,12 +105,6 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				     int, int));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
-
-static void find_and_call_menu_selection P_ ((FRAME_PTR, int, Lisp_Object,
-					      void *));
-static int fill_menu P_ ((MenuRef, widget_value *, enum mac_menu_kind, int));
-static void fill_menubar P_ ((widget_value *, int));
-static void dispose_menus P_ ((enum mac_menu_kind, int));
 
 
 /* This holds a Lisp vector that holds the results of decoding
@@ -260,7 +162,7 @@ static int menu_items_n_panes;
 static int menu_items_submenu_depth;
 
 /* Nonzero means a menu is currently active.  */
-static int popup_activated_flag;
+int popup_activated_flag;
 
 /* This is set nonzero after the user activates the menu bar, and set
    to zero again after the menu bars are redisplayed by prepare_menu_bar.
@@ -873,32 +775,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
 #ifdef HAVE_MENUS
 
-/* Regard ESC and C-g as Cancel even without the Cancel button.  */
-
-#if 0 /* defined (MAC_OSX) */
-static Boolean
-mac_dialog_modal_filter (dialog, event, item_hit)
-     DialogRef dialog;
-     EventRecord *event;
-     DialogItemIndex *item_hit;
-{
-  Boolean result;
-
-  result = StdFilterProc (dialog, event, item_hit);
-  if (result == false
-      && (event->what == keyDown || event->what == autoKey)
-      && ((event->message & charCodeMask) == kEscapeCharCode
-	  || mac_quit_char_key_p (event->modifiers,
-				  (event->message & keyCodeMask) >> 8)))
-    {
-      *item_hit = kStdCancelItemIndex;
-      return true;
-    }
-
-  return result;
-}
-#endif
-
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
        doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
@@ -984,101 +860,6 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-#if 0 /* defined (MAC_OSX) */
-  /* Special treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p.  */
-  if (EQ (position, Qt)
-      && STRINGP (Fcar (contents))
-      && ((!NILP (Fequal (XCDR (contents),
-			  Fcons (Fcons (build_string ("OK"), Qt), Qnil)))
-	   && EQ (header, Qt))
-	  || (!NILP (Fequal (XCDR (contents),
-			     Fcons (Fcons (build_string ("Yes"), Qt),
-				    Fcons (Fcons (build_string ("No"), Qnil),
-					   Qnil))))
-	      && NILP (header))))
-    {
-      OSStatus err = noErr;
-      AlertStdCFStringAlertParamRec param;
-      CFStringRef error_string, explanation_string;
-      DialogRef alert;
-      DialogItemIndex item_hit;
-      Lisp_Object tem;
-
-      /* Force a redisplay before showing the dialog.  If a frame is
-	 created just before showing the dialog, its contents may not
-	 have been fully drawn.  */
-      Fredisplay (Qt);
-
-      tem = Fstring_match (concat3 (build_string ("\\("),
-				    call0 (intern ("sentence-end")),
-				    build_string ("\\)\n")),
-			   XCAR (contents), Qnil);
-      BLOCK_INPUT;
-      if (NILP (tem))
-	{
-	  error_string = cfstring_create_with_string (XCAR (contents));
-	  if (error_string == NULL)
-	    err = memFullErr;
-	  explanation_string = NULL;
-	}
-      else
-	{
-	  tem = Fmatch_end (make_number (1));
-	  error_string =
-	    cfstring_create_with_string (Fsubstring (XCAR (contents),
-						     make_number (0), tem));
-	  if (error_string == NULL)
-	    err = memFullErr;
-	  else
-	    {
-	      XSETINT (tem, XINT (tem) + 1);
-	      explanation_string =
-		cfstring_create_with_string (Fsubstring (XCAR (contents),
-							 tem, Qnil));
-	      if (explanation_string == NULL)
-		{
-		  CFRelease (error_string);
-		  err = memFullErr;
-		}
-	    }
-	}
-      if (err == noErr)
-	err = GetStandardAlertDefaultParams (&param,
-					     kStdCFStringAlertVersionOne);
-      if (err == noErr)
-	{
-	  param.movable = true;
-	  param.position = kWindowAlertPositionParentWindow;
-	  if (NILP (header))
-	    {
-	      param.defaultText = CFSTR ("Yes");
-	      param.otherText = CFSTR ("No");
-#if 0
-	      param.cancelText = CFSTR ("Cancel");
-	      param.cancelButton = kAlertStdAlertCancelButton;
-#endif
-	    }
-	  err = CreateStandardAlert (kAlertNoteAlert, error_string,
-				     explanation_string, &param, &alert);
-	  CFRelease (error_string);
-	  if (explanation_string)
-	    CFRelease (explanation_string);
-	}
-      if (err == noErr)
-	err = RunStandardAlert (alert, mac_dialog_modal_filter, &item_hit);
-      UNBLOCK_INPUT;
-
-      if (err == noErr)
-	{
-	  if (item_hit == kStdCancelItemIndex)
-	    Fsignal (Qquit, Qnil);
-	  else if (item_hit == kStdOkItemIndex)
-	    return Qt;
-	  else
-	    return Qnil;
-	}
-    }
-#endif
 #ifndef HAVE_DIALOGS
   /* Display a menu with these alternatives
      in the middle of frame F.  */
@@ -1118,66 +899,12 @@ for instance using the window manager, then this produces a quit and
 #endif /* HAVE_DIALOGS */
 }
 
-/* Activate the menu bar of frame F.
-   This is called from keyboard.c when it gets the
-   MENU_BAR_ACTIVATE_EVENT out of the Emacs event queue.
-
-   To activate the menu bar, we use the button-press event location
-   that was saved in saved_menu_event_location.
-
-   But first we recompute the menu bar contents (the whole tree).
-
-   The reason for saving the button event until here, instead of
-   passing it to the toolkit right away, is that we can safely
-   execute Lisp code.  */
-
-void
-x_activate_menubar (f)
-     FRAME_PTR f;
-{
-  SInt32 menu_choice;
-  SInt16 menu_id, menu_item;
-  extern Point saved_menu_event_location;
-
-  set_frame_menubar (f, 0, 1);
-  BLOCK_INPUT;
-
-  popup_activated_flag = 1;
-  menu_choice = MenuSelect (saved_menu_event_location);
-  popup_activated_flag = 0;
-  menu_id = HiWord (menu_choice);
-  menu_item = LoWord (menu_choice);
-
-#if !TARGET_API_MAC_CARBON
-  if (menu_id == min_menu_id[MAC_MENU_M_APPLE])
-    do_apple_menu (menu_item);
-  else
-#endif
-    if (menu_id)
-      {
-        MenuRef menu = GetMenuRef (menu_id);
-
-        if (menu)
-          {
-            UInt32 refcon;
-
-            GetMenuItemRefCon (menu, menu_item, &refcon);
-            find_and_call_menu_selection (f, f->menu_bar_items_used,
-					  f->menu_bar_vector, (void *) refcon);
-          }
-      }
-
-  HiliteMenu (0);
-
-  UNBLOCK_INPUT;
-}
-
 /* Find the menu selection and store it in the keyboard buffer.
    F is the frame the menu is on.
    MENU_BAR_ITEMS_USED is the length of VECTOR.
    VECTOR is an array of menu events for the whole menu.  */
 
-static void
+void
 find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
      FRAME_PTR f;
      int menu_bar_items_used;
@@ -1570,141 +1297,6 @@ update_submenu_strings (first_wv)
 }
 
 
-#if TARGET_API_MAC_CARBON
-extern Lisp_Object Vshow_help_function;
-
-static Lisp_Object
-restore_show_help_function (old_show_help_function)
-     Lisp_Object old_show_help_function;
-{
-  Vshow_help_function = old_show_help_function;
-
-  return Qnil;
-}
-
-static pascal OSStatus
-menu_target_item_handler (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err;
-  MenuRef menu;
-  MenuItemIndex menu_item;
-  Lisp_Object help;
-  GrafPtr port;
-  int specpdl_count = SPECPDL_INDEX ();
-
-  /* Don't be bothered with the overflowed toolbar items menu.  */
-  if (!popup_activated ())
-    return eventNotHandledErr;
-
-  err = GetEventParameter (event, kEventParamDirectObject, typeMenuRef,
-			   NULL, sizeof (MenuRef), NULL, &menu);
-  if (err == noErr)
-    err = GetEventParameter (event, kEventParamMenuItemIndex,
-			     typeMenuItemIndex, NULL,
-			     sizeof (MenuItemIndex), NULL, &menu_item);
-  if (err == noErr)
-    err = GetMenuItemProperty (menu, menu_item,
-			       MAC_EMACS_CREATOR_CODE, 'help',
-			       sizeof (Lisp_Object), NULL, &help);
-  if (err != noErr)
-    help = Qnil;
-
-  /* Temporarily bind Vshow_help_function to Qnil because we don't
-     want tooltips during menu tracking.  */
-  record_unwind_protect (restore_show_help_function, Vshow_help_function);
-  Vshow_help_function = Qnil;
-  GetPort (&port);
-  show_help_echo (help, Qnil, Qnil, Qnil, 1);
-  SetPort (port);
-  unbind_to (specpdl_count, Qnil);
-
-  return err == noErr ? noErr : eventNotHandledErr;
-}
-
-OSStatus
-install_menu_target_item_handler ()
-{
-  static const EventTypeSpec specs[] =
-    {{kEventClassMenu, kEventMenuTargetItem}};
-
-  return InstallApplicationEventHandler (NewEventHandlerUPP
-					 (menu_target_item_handler),
-					 GetEventTypeCount (specs),
-					 specs, NULL, NULL);
-}
-#endif  /* TARGET_API_MAC_CARBON */
-
-/* Event handler function that pops down a menu on C-g.  We can only pop
-   down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-static pascal OSStatus
-menu_quit_handler (nextHandler, theEvent, userData)
-     EventHandlerCallRef nextHandler;
-     EventRef theEvent;
-     void* userData;
-{
-  OSStatus err;
-  UInt32 keyCode;
-  UInt32 keyModifiers;
-
-  err = GetEventParameter (theEvent, kEventParamKeyCode,
-			   typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
-
-  if (err == noErr)
-    err = GetEventParameter (theEvent, kEventParamKeyModifiers,
-			     typeUInt32, NULL, sizeof(UInt32),
-			     NULL, &keyModifiers);
-
-  if (err == noErr && mac_quit_char_key_p (keyModifiers, keyCode))
-    {
-      MenuRef menu = userData != 0
-        ? (MenuRef)userData : AcquireRootMenu ();
-
-      CancelMenuTracking (menu, true, 0);
-      if (!userData) ReleaseMenu (menu);
-      return noErr;
-    }
-
-  return CallNextEventHandler (nextHandler, theEvent);
-}
-#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
-
-/* Add event handler to all menus that belong to KIND so we can detect
-   C-g.  ROOT_MENU is the root menu of the tracking session to dismiss
-   when C-g is detected.  NULL means the menu bar.  If
-   CancelMenuTracking isn't available, do nothing.  */
-
-static void
-install_menu_quit_handler (kind, root_menu)
-     enum mac_menu_kind kind;
-     MenuRef root_menu;
-{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-  static const EventTypeSpec typesList[] =
-    {{kEventClassKeyboard, kEventRawKeyDown}};
-  int id;
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
-  if (CancelMenuTracking == NULL)
-    return;
-#endif
-  for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
-    {
-      MenuRef menu = GetMenuRef (id);
-
-      if (menu == NULL)
-	break;
-      InstallMenuEventHandler (menu, menu_quit_handler,
-			       GetEventTypeCount (typesList),
-			       typesList, root_menu, NULL);
-    }
-#endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
-}
-
 /* Set the contents of the menubar widgets of frame F.
    The argument FIRST_TIME is currently ignored;
    it is set the first time this is called, from initialize_frame_menubar.  */
@@ -1940,11 +1532,8 @@ set_frame_menubar (f, first_time, deep_p)
   /* Non-null value to indicate menubar has already been "created".  */
   f->output_data.mac->menubar_widget = 1;
 
-  fill_menubar (first_wv->contents, deep_p);
+  mac_fill_menubar (first_wv->contents, deep_p);
 
-  /* Add event handler so we can detect C-g. */
-  install_menu_quit_handler (MAC_MENU_MENU_BAR, NULL);
-  install_menu_quit_handler (MAC_MENU_MENU_BAR_SUB, NULL);
   free_menubar_widget_value_tree (first_wv);
 
   UNBLOCK_INPUT;
@@ -1961,29 +1550,8 @@ free_frame_menubar (f)
 }
 
 
-static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
-{
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  FRAME_PTR f = p->pointer;
-  MenuRef menu = GetMenuRef (min_menu_id[MAC_MENU_POPUP]);
-
-  BLOCK_INPUT;
-
-  /* Must reset this manually because the button release event is not
-     passed to Emacs event loop. */
-  FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
-
-  /* delete all menus */
-  dispose_menus (MAC_MENU_POPUP_SUB, 0);
-  DeleteMenu (min_menu_id[MAC_MENU_POPUP]);
-  DisposeMenu (menu);
-
-  UNBLOCK_INPUT;
-
-  return Qnil;
-}
+/* The item selected in the popup menu.  */
+int menu_item_selection;
 
 /* Mac_menu_show actually displays a menu using the panes and items in
    menu_items and returns the value selected from it; we assume input
@@ -2011,9 +1579,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      char **error;
 {
   int i;
-  int menu_item_choice;
-  UInt32 menu_item_selection;
-  MenuRef menu;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -2022,7 +1587,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   int submenu_depth = 0;
 
   int first_pane;
-  int specpdl_count = SPECPDL_INDEX ();
 
   *error = NULL;
 
@@ -2208,45 +1772,14 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
       first_wv->contents = wv_title;
     }
 
-  /* Actually create the menu.  */
-  menu = NewMenu (min_menu_id[MAC_MENU_POPUP], "\p");
-  InsertMenu (menu, -1);
-  fill_menu (menu, first_wv->contents, MAC_MENU_POPUP_SUB,
-	     min_menu_id[MAC_MENU_POPUP_SUB]);
-
-  /* Free the widget_value objects we used to specify the
-     contents.  */
-  free_menubar_widget_value_tree (first_wv);
-
-  /* Adjust coordinates to be root-window-relative.  */
-  x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
-
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
-  record_unwind_protect (pop_down_menu, make_save_value (f, 0));
+  /* Actually create and show the menu until popped down.  */
+  create_and_show_popup_menu (f, first_wv, x, y, for_click);
 
-  /* Add event handler so we can detect C-g. */
-  install_menu_quit_handler (MAC_MENU_POPUP, menu);
-  install_menu_quit_handler (MAC_MENU_POPUP_SUB, menu);
-
-  /* Display the menu.  */
-  popup_activated_flag = 1;
-  menu_item_choice = PopUpMenuSelect (menu, y, x, 0);
-  popup_activated_flag = 0;
-
-  /* Get the refcon to find the correct item */
-  if (menu_item_choice)
-    {
-      MenuRef sel_menu = GetMenuRef (HiWord (menu_item_choice));
-
-      if (sel_menu)
-	GetMenuItemRefCon (sel_menu, LoWord (menu_item_choice),
-			   &menu_item_selection);
-    }
-
-  unbind_to (specpdl_count, Qnil);
+  /* Free the widget_value objects we used to specify the contents.  */
+  free_menubar_widget_value_tree (first_wv);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2313,582 +1846,6 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 #ifdef HAVE_DIALOGS
 /* Construct native Mac OS dialog based on widget_value tree.  */
 
-#if TARGET_API_MAC_CARBON
-
-#define DIALOG_BUTTON_COMMAND_ID_OFFSET 'Bt\0\0'
-#define DIALOG_BUTTON_COMMAND_ID_P(id)			\
-  (((id) & ~0xffff) == DIALOG_BUTTON_COMMAND_ID_OFFSET)
-#define DIALOG_BUTTON_COMMAND_ID_VALUE(id)	\
-  ((id) - DIALOG_BUTTON_COMMAND_ID_OFFSET)
-#define DIALOG_BUTTON_MAKE_COMMAND_ID(value)	\
-  ((value) + DIALOG_BUTTON_COMMAND_ID_OFFSET)
-
-extern EMACS_TIME timer_check P_ ((int));
-static int quit_dialog_event_loop;
-
-static pascal OSStatus
-mac_handle_dialog_event (next_handler, event, data)
-     EventHandlerCallRef next_handler;
-     EventRef event;
-     void *data;
-{
-  OSStatus err, result = eventNotHandledErr;
-  WindowRef window = (WindowRef) data;
-
-  switch (GetEventClass (event))
-    {
-    case kEventClassCommand:
-      {
-	HICommand command;
-
-	err = GetEventParameter (event, kEventParamDirectObject,
-				 typeHICommand, NULL, sizeof (HICommand),
-				 NULL, &command);
-	if (err == noErr)
-	  if (DIALOG_BUTTON_COMMAND_ID_P (command.commandID))
-	    {
-	      SetWRefCon (window, command.commandID);
-	      quit_dialog_event_loop = 1;
-	      break;
-	    }
-
-	result = CallNextEventHandler (next_handler, event);
-      }
-      break;
-
-    case kEventClassKeyboard:
-      {
-	OSStatus result;
-	char char_code;
-
-	result = CallNextEventHandler (next_handler, event);
-	if (result != eventNotHandledErr)
-	  break;
-
-	err = GetEventParameter (event, kEventParamKeyMacCharCodes,
-				 typeChar, NULL, sizeof (char),
-				 NULL, &char_code);
-	if (err == noErr)
-	  switch (char_code)
-	    {
-	    case kEscapeCharCode:
-	      quit_dialog_event_loop = 1;
-	      break;
-
-	    default:
-	      {
-		UInt32 modifiers, key_code;
-
-		err = GetEventParameter (event, kEventParamKeyModifiers,
-					 typeUInt32, NULL, sizeof (UInt32),
-					 NULL, &modifiers);
-		if (err == noErr)
-		  err = GetEventParameter (event, kEventParamKeyCode,
-					   typeUInt32, NULL, sizeof (UInt32),
-					   NULL, &key_code);
-		if (err == noErr)
-		  if (mac_quit_char_key_p (modifiers, key_code))
-		    quit_dialog_event_loop = 1;
-	      }
-	      break;
-	    }
-      }
-      break;
-
-    default:
-      abort ();
-    }
-
-  if (quit_dialog_event_loop)
-    {
-      err = QuitEventLoop (GetCurrentEventLoop ());
-      if (err == noErr)
-	result = noErr;
-    }
-
-  return result;
-}
-
-static OSStatus
-install_dialog_event_handler (window)
-     WindowRef window;
-{
-  static const EventTypeSpec specs[] =
-    {{kEventClassCommand, kEventCommandProcess},
-     {kEventClassKeyboard, kEventRawKeyDown}};
-  static EventHandlerUPP handle_dialog_eventUPP = NULL;
-
-  if (handle_dialog_eventUPP == NULL)
-    handle_dialog_eventUPP = NewEventHandlerUPP (mac_handle_dialog_event);
-  return InstallWindowEventHandler (window, handle_dialog_eventUPP,
-				    GetEventTypeCount (specs), specs,
-				    window, NULL);
-}
-
-#define DIALOG_LEFT_MARGIN (112)
-#define DIALOG_TOP_MARGIN (24)
-#define DIALOG_RIGHT_MARGIN (24)
-#define DIALOG_BOTTOM_MARGIN (20)
-#define DIALOG_MIN_INNER_WIDTH (338)
-#define DIALOG_MAX_INNER_WIDTH (564)
-#define DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE (12)
-#define DIALOG_BUTTON_BUTTON_VERTICAL_SPACE (12)
-#define DIALOG_BUTTON_MIN_WIDTH (68)
-#define DIALOG_TEXT_MIN_HEIGHT (50)
-#define DIALOG_TEXT_BUTTONS_VERTICAL_SPACE (10)
-#define DIALOG_ICON_WIDTH (64)
-#define DIALOG_ICON_HEIGHT (64)
-#define DIALOG_ICON_LEFT_MARGIN (24)
-#define DIALOG_ICON_TOP_MARGIN (15)
-
-static Lisp_Object
-pop_down_dialog (arg)
-     Lisp_Object arg;
-{
-  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  WindowRef window = p->pointer;
-
-  BLOCK_INPUT;
-
-  if (popup_activated_flag)
-    EndAppModalStateForWindow (window);
-  DisposeWindow (window);
-  popup_activated_flag = 0;
-
-  UNBLOCK_INPUT;
-
-  return Qnil;
-}
-
-static int
-create_and_show_dialog (f, first_wv)
-     FRAME_PTR f;
-     widget_value *first_wv;
-{
-  OSStatus err;
-  char *dialog_name, *message;
-  int nb_buttons, first_group_count, i, result = 0;
-  widget_value *wv;
-  short buttons_height, text_height, inner_width, inner_height;
-  Rect empty_rect, *rects;
-  WindowRef window = NULL;
-  ControlRef *buttons, default_button = NULL, text;
-  int specpdl_count = SPECPDL_INDEX ();
-
-  dialog_name = first_wv->name;
-  nb_buttons = dialog_name[1] - '0';
-  first_group_count = nb_buttons - (dialog_name[4] - '0');
-
-  wv = first_wv->contents;
-  message = wv->value;
-
-  wv = wv->next;
-  SetRect (&empty_rect, 0, 0, 0, 0);
-
-  /* Create dialog window.  */
-  err = CreateNewWindow (kMovableModalWindowClass,
-			 kWindowStandardHandlerAttribute,
-			 &empty_rect, &window);
-  if (err == noErr)
-    {
-      record_unwind_protect (pop_down_dialog, make_save_value (window, 0));
-      err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
-				      true);
-    }
-  if (err == noErr)
-    err = SetWindowTitleWithCFString (window, (dialog_name[0] == 'Q'
-					       ? CFSTR ("Question")
-					       : CFSTR ("Information")));
-
-  /* Create button controls and measure their optimal bounds.  */
-  if (err == noErr)
-    {
-      buttons = alloca (sizeof (ControlRef) * nb_buttons);
-      rects = alloca (sizeof (Rect) * nb_buttons);
-      for (i = 0; i < nb_buttons; i++)
-	{
-	  CFStringRef label = cfstring_create_with_utf8_cstring (wv->value);
-
-	  if (label == NULL)
-	    err = memFullErr;
-	  else
-	    {
-	      err = CreatePushButtonControl (window, &empty_rect,
-					     label, &buttons[i]);
-	      CFRelease (label);
-	    }
-	  if (err == noErr)
-	    {
-	      if (!wv->enabled)
-		{
-#ifdef MAC_OSX
-		  err = DisableControl (buttons[i]);
-#else
-		  err = DeactivateControl (buttons[i]);
-#endif
-		}
-	      else if (default_button == NULL)
-		default_button = buttons[i];
-	    }
-	  if (err == noErr)
-	    {
-	      SInt16 unused;
-
-	      rects[i] = empty_rect;
-	      err = GetBestControlRect (buttons[i], &rects[i], &unused);
-	    }
-	  if (err == noErr)
-	    {
-	      UInt32 command_id;
-
-	      OffsetRect (&rects[i], -rects[i].left, -rects[i].top);
-	      if (rects[i].right < DIALOG_BUTTON_MIN_WIDTH)
-		rects[i].right = DIALOG_BUTTON_MIN_WIDTH;
-	      else if (rects[i].right > DIALOG_MAX_INNER_WIDTH)
-		rects[i].right = DIALOG_MAX_INNER_WIDTH;
-
-	      command_id = DIALOG_BUTTON_MAKE_COMMAND_ID ((int) wv->call_data);
-	      err = SetControlCommandID (buttons[i], command_id);
-	    }
-	  if (err != noErr)
-	    break;
-	  wv = wv->next;
-	}
-    }
-
-  /* Layout buttons.  rects[i] is set relative to the bottom-right
-     corner of the inner box.  */
-  if (err == noErr)
-    {
-      short bottom, right, max_height, left_align_shift;
-
-      inner_width = DIALOG_MIN_INNER_WIDTH;
-      bottom = right = max_height = 0;
-      for (i = 0; i < nb_buttons; i++)
-	{
-	  if (right - rects[i].right < - inner_width)
-	    {
-	      if (i != first_group_count
-		  && right - rects[i].right >= - DIALOG_MAX_INNER_WIDTH)
-		inner_width = - (right - rects[i].right);
-	      else
-		{
-		  bottom -= max_height + DIALOG_BUTTON_BUTTON_VERTICAL_SPACE;
-		  right = max_height = 0;
-		}
-	    }
-	  if (max_height < rects[i].bottom)
-	    max_height = rects[i].bottom;
-	  OffsetRect (&rects[i], right - rects[i].right,
-		      bottom - rects[i].bottom);
-	  right = rects[i].left - DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE;
-	  if (i == first_group_count - 1)
-	    right -= DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE;
-	}
-      buttons_height = - (bottom - max_height);
-
-      left_align_shift = - (inner_width + rects[nb_buttons - 1].left);
-      for (i = nb_buttons - 1; i >= first_group_count; i--)
-	{
-	  if (bottom != rects[i].bottom)
-	    {
-	      left_align_shift = - (inner_width + rects[i].left);
-	      bottom = rects[i].bottom;
-	    }
-	  OffsetRect (&rects[i], left_align_shift, 0);
-	}
-    }
-
-  /* Create a static text control and measure its bounds.  */
-  if (err == noErr)
-    {
-      CFStringRef message_string;
-      Rect bounds;
-
-      message_string = cfstring_create_with_utf8_cstring (message);
-      if (message_string == NULL)
-	err = memFullErr;
-      else
-	{
-	  ControlFontStyleRec text_style;
-
-	  text_style.flags = 0;
-	  SetRect (&bounds, 0, 0, inner_width, 0);
-	  err = CreateStaticTextControl (window, &bounds, message_string,
-					 &text_style, &text);
-	  CFRelease (message_string);
-	}
-      if (err == noErr)
-	{
-	  SInt16 unused;
-
-	  bounds = empty_rect;
-	  err = GetBestControlRect (text, &bounds, &unused);
-	}
-      if (err == noErr)
-	{
-	  text_height = bounds.bottom - bounds.top;
-	  if (text_height < DIALOG_TEXT_MIN_HEIGHT)
-	    text_height = DIALOG_TEXT_MIN_HEIGHT;
-	}
-    }
-
-  /* Place buttons. */
-  if (err == noErr)
-    {
-      inner_height = (text_height + DIALOG_TEXT_BUTTONS_VERTICAL_SPACE
-		      + buttons_height);
-
-      for (i = 0; i < nb_buttons; i++)
-	{
-	  OffsetRect (&rects[i], DIALOG_LEFT_MARGIN + inner_width,
-		      DIALOG_TOP_MARGIN + inner_height);
-	  SetControlBounds (buttons[i], &rects[i]);
-	}
-    }
-
-  /* Place text.  */
-  if (err == noErr)
-    {
-      Rect bounds;
-
-      SetRect (&bounds, DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN,
-	       DIALOG_LEFT_MARGIN + inner_width,
-	       DIALOG_TOP_MARGIN + text_height);
-      SetControlBounds (text, &bounds);
-    }
-
-  /* Create the application icon at the upper-left corner.  */
-  if (err == noErr)
-    {
-      ControlButtonContentInfo content;
-      ControlRef icon;
-      static const ProcessSerialNumber psn = {0, kCurrentProcess};
-#ifdef MAC_OSX
-      FSRef app_location;
-#else
-      ProcessInfoRec pinfo;
-      FSSpec app_spec;
-#endif
-      SInt16 unused;
-
-      content.contentType = kControlContentIconRef;
-#ifdef MAC_OSX
-      err = GetProcessBundleLocation (&psn, &app_location);
-      if (err == noErr)
-	err = GetIconRefFromFileInfo (&app_location, 0, NULL, 0, NULL,
-				      kIconServicesNormalUsageFlag,
-				      &content.u.iconRef, &unused);
-#else
-      bzero (&pinfo, sizeof (ProcessInfoRec));
-      pinfo.processInfoLength = sizeof (ProcessInfoRec);
-      pinfo.processAppSpec = &app_spec;
-      err = GetProcessInformation (&psn, &pinfo);
-      if (err == noErr)
-	err = GetIconRefFromFile (&app_spec, &content.u.iconRef, &unused);
-#endif
-      if (err == noErr)
-	{
-	  Rect bounds;
-
-	  SetRect (&bounds, DIALOG_ICON_LEFT_MARGIN, DIALOG_ICON_TOP_MARGIN,
-		   DIALOG_ICON_LEFT_MARGIN + DIALOG_ICON_WIDTH,
-		   DIALOG_ICON_TOP_MARGIN + DIALOG_ICON_HEIGHT);
-	  err = CreateIconControl (window, &bounds, &content, true, &icon);
-	  ReleaseIconRef (content.u.iconRef);
-	}
-    }
-
-  /* Show the dialog window and run event loop.  */
-  if (err == noErr)
-    if (default_button)
-      err = SetWindowDefaultButton (window, default_button);
-  if (err == noErr)
-    err = install_dialog_event_handler (window);
-  if (err == noErr)
-    {
-      SizeWindow (window,
-		  DIALOG_LEFT_MARGIN + inner_width + DIALOG_RIGHT_MARGIN,
-		  DIALOG_TOP_MARGIN + inner_height + DIALOG_BOTTOM_MARGIN,
-		  true);
-      err = RepositionWindow (window, FRAME_MAC_WINDOW (f),
-			      kWindowAlertPositionOnParentWindow);
-    }
-  if (err == noErr)
-    {
-      SetWRefCon (window, 0);
-      ShowWindow (window);
-      BringToFront (window);
-      popup_activated_flag = 1;
-      err = BeginAppModalStateForWindow (window);
-    }
-  if (err == noErr)
-    {
-      EventTargetRef toolbox_dispatcher = GetEventDispatcherTarget ();
-
-      quit_dialog_event_loop = 0;
-      while (1)
-	{
-	  EMACS_TIME next_time = timer_check (1);
-	  long secs = EMACS_SECS (next_time);
-	  long usecs = EMACS_USECS (next_time);
-	  EventTimeout timeout;
-	  EventRef event;
-
-	  if (secs < 0 || (secs == 0 && usecs == 0))
-	    {
-	      /* Sometimes timer_check returns -1 (no timers) even if
-		 there are timers.  So do a timeout anyway.  */
-	      secs = 1;
-	      usecs = 0;
-	    }
-
-	  timeout = (secs * kEventDurationSecond
-		     + usecs * kEventDurationMicrosecond);
-	  err = ReceiveNextEvent (0, NULL, timeout, kEventRemoveFromQueue,
-				  &event);
-	  if (err == noErr)
-	    {
-	      SendEventToEventTarget (event, toolbox_dispatcher);
-	      ReleaseEvent (event);
-	    }
-#if 0 /* defined (MAC_OSX) */
-	  else if (err != eventLoopTimedOutErr)
-	    {
-	      if (err == eventLoopQuitErr)
-		err = noErr;
-	      break;
-	    }
-#else
-	  /* The return value of ReceiveNextEvent seems to be
-	     unreliable.  Use our own global variable instead.  */
-	  if (quit_dialog_event_loop)
-	    {
-	      err = noErr;
-	      break;
-	    }
-#endif
-	}
-    }
-  if (err == noErr)
-    {
-      UInt32 command_id = GetWRefCon (window);
-
-      if (DIALOG_BUTTON_COMMAND_ID_P (command_id))
-	result = DIALOG_BUTTON_COMMAND_ID_VALUE (command_id);
-    }
-
-  unbind_to (specpdl_count, Qnil);
-
-  return result;
-}
-#else  /* not TARGET_API_MAC_CARBON */
-static int
-mac_dialog (widget_value *wv)
-{
-  char *dialog_name;
-  char *prompt;
-  char **button_labels;
-  UInt32 *ref_cons;
-  int nb_buttons;
-  int left_count;
-  int i;
-  int dialog_width;
-  Rect rect;
-  WindowRef window_ptr;
-  ControlRef ch;
-  int left;
-  EventRecord event_record;
-  SInt16 part_code;
-  int control_part_code;
-  Point mouse;
-
-  dialog_name = wv->name;
-  nb_buttons = dialog_name[1] - '0';
-  left_count = nb_buttons - (dialog_name[4] - '0');
-  button_labels = (char **) alloca (sizeof (char *) * nb_buttons);
-  ref_cons = (UInt32 *) alloca (sizeof (UInt32) * nb_buttons);
-
-  wv = wv->contents;
-  prompt = (char *) alloca (strlen (wv->value) + 1);
-  strcpy (prompt, wv->value);
-  c2pstr (prompt);
-
-  wv = wv->next;
-  for (i = 0; i < nb_buttons; i++)
-    {
-      button_labels[i] = wv->value;
-      button_labels[i] = (char *) alloca (strlen (wv->value) + 1);
-      strcpy (button_labels[i], wv->value);
-      c2pstr (button_labels[i]);
-      ref_cons[i] = (UInt32) wv->call_data;
-      wv = wv->next;
-    }
-
-  window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowRef) -1);
-
-  SetPortWindowPort (window_ptr);
-
-  TextFont (0);
-  /* Left and right margins in the dialog are 13 pixels each.*/
-  dialog_width = 14;
-  /* Calculate width of dialog box: 8 pixels on each side of the text
-     label in each button, 12 pixels between buttons.  */
-  for (i = 0; i < nb_buttons; i++)
-    dialog_width +=  StringWidth (button_labels[i]) + 16 + 12;
-
-  if (left_count != 0 && nb_buttons - left_count != 0)
-    dialog_width += 12;
-
-  dialog_width = max (dialog_width, StringWidth (prompt) + 26);
-
-  SizeWindow (window_ptr, dialog_width, 78, 0);
-  ShowWindow (window_ptr);
-
-  SetPortWindowPort (window_ptr);
-
-  TextFont (0);
-
-  MoveTo (13, 29);
-  DrawString (prompt);
-
-  left = 13;
-  for (i = 0; i < nb_buttons; i++)
-    {
-      int button_width = StringWidth (button_labels[i]) + 16;
-      SetRect (&rect, left, 45, left + button_width, 65);
-      ch = NewControl (window_ptr, &rect, button_labels[i], 1, 0, 0, 0,
-                       kControlPushButtonProc, ref_cons[i]);
-      left += button_width + 12;
-      if (i == left_count - 1)
-        left += 12;
-    }
-
-  i = 0;
-  while (!i)
-    {
-      if (WaitNextEvent (mDownMask, &event_record, 10, NULL))
-        if (event_record.what == mouseDown)
-          {
-            part_code = FindWindow (event_record.where, &window_ptr);
-            if (part_code == inContent)
-              {
-                mouse = event_record.where;
-                GlobalToLocal (&mouse);
-                control_part_code = FindControl (mouse, window_ptr, &ch);
-                if (control_part_code == kControlButtonPart)
-                  if (TrackControl (ch, mouse, NULL))
-                    i = GetControlReference (ch);
-              }
-          }
-    }
-
-  DisposeWindow (window_ptr);
-
-  return i;
-}
-#endif  /* not TARGET_API_MAC_CARBON */
-
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
   "button6", "button7", "button8", "button9", "button10" };
@@ -2902,7 +1859,6 @@ mac_dialog_show (f, keymaps, title, header, error_name)
 {
   int i, nb_buttons=0;
   char dialog_name[6];
-  int menu_item_selection;
 
   widget_value *wv, *first_wv = 0, *prev_wv = 0;
 
@@ -3019,6 +1975,9 @@ mac_dialog_show (f, keymaps, title, header, error_name)
     first_wv = wv;
   }
 
+  /* No selection has been chosen yet.  */
+  menu_item_selection = 0;
+
   /* Force a redisplay before showing the dialog.  If a frame is created
      just before showing the dialog, its contents may not have been fully
      drawn.  */
@@ -3026,7 +1985,7 @@ mac_dialog_show (f, keymaps, title, header, error_name)
 
   /* Actually create the dialog.  */
 #if TARGET_API_MAC_CARBON
-  menu_item_selection = create_and_show_dialog (f, first_wv);
+  create_and_show_dialog (f, first_wv);
 #else
   menu_item_selection = mac_dialog (first_wv);
 #endif
@@ -3086,7 +2045,7 @@ mac_dialog_show (f, keymaps, title, header, error_name)
 
 
 /* Is this item a separator? */
-static int
+int
 name_is_separator (name)
      const char *name;
 {
@@ -3099,260 +2058,6 @@ name_is_separator (name)
      them like normal separators.  */
   return (*name == '\0' || start + 2 == name);
 }
-
-static void
-add_menu_item (menu, pos, wv)
-     MenuRef menu;
-     int pos;
-     widget_value *wv;
-{
-#if TARGET_API_MAC_CARBON
-  CFStringRef item_name;
-#else
-  Str255 item_name;
-#endif
-
-  if (name_is_separator (wv->name))
-    AppendMenu (menu, "\p-");
-  else
-    {
-      AppendMenu (menu, "\pX");
-
-#if TARGET_API_MAC_CARBON
-      item_name = cfstring_create_with_utf8_cstring (wv->name);
-
-      if (wv->key != NULL)
-	{
-	  CFStringRef name, key;
-
-	  name = item_name;
-	  key = cfstring_create_with_utf8_cstring (wv->key);
-	  item_name = CFStringCreateWithFormat (NULL, NULL, CFSTR ("%@ %@"),
-						name, key);
-	  CFRelease (name);
-	  CFRelease (key);
-	}
-
-      SetMenuItemTextWithCFString (menu, pos, item_name);
-      CFRelease (item_name);
-
-      if (wv->enabled)
-        EnableMenuItem (menu, pos);
-      else
-        DisableMenuItem (menu, pos);
-
-      if (STRINGP (wv->help))
-	SetMenuItemProperty (menu, pos, MAC_EMACS_CREATOR_CODE, 'help',
-			     sizeof (Lisp_Object), &wv->help);
-#else  /* ! TARGET_API_MAC_CARBON */
-      item_name[sizeof (item_name) - 1] = '\0';
-      strncpy (item_name, wv->name, sizeof (item_name) - 1);
-      if (wv->key != NULL)
-	{
-	  int len = strlen (item_name);
-
-	  strncpy (item_name + len, " ", sizeof (item_name) - 1 - len);
-	  len = strlen (item_name);
-	  strncpy (item_name + len, wv->key, sizeof (item_name) - 1 - len);
-	}
-      c2pstr (item_name);
-      SetMenuItemText (menu, pos, item_name);
-
-      if (wv->enabled)
-        EnableItem (menu, pos);
-      else
-        DisableItem (menu, pos);
-#endif  /* ! TARGET_API_MAC_CARBON */
-
-      /* Draw radio buttons and tickboxes. */
-      if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
-                           wv->button_type == BUTTON_TYPE_RADIO))
-	SetItemMark (menu, pos, checkMark);
-      else
-	SetItemMark (menu, pos, noMark);
-
-      SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
-    }
-}
-
-/* Construct native Mac OS menu based on widget_value tree.  */
-
-static int
-fill_menu (menu, wv, kind, submenu_id)
-     MenuRef menu;
-     widget_value *wv;
-     enum mac_menu_kind kind;
-     int submenu_id;
-{
-  int pos;
-
-  for (pos = 1; wv != NULL; wv = wv->next, pos++)
-    {
-      add_menu_item (menu, pos, wv);
-      if (wv->contents && submenu_id < min_menu_id[kind + 1])
-	{
-	  MenuRef submenu = NewMenu (submenu_id, "\pX");
-
-	  InsertMenu (submenu, -1);
-#if TARGET_API_MAC_CARBON
-	  SetMenuItemHierarchicalMenu (menu, pos, submenu);
-#else
-	  SetMenuItemHierarchicalID (menu, pos, submenu_id);
-#endif
-	  submenu_id = fill_menu (submenu, wv->contents, kind, submenu_id + 1);
-	}
-    }
-
-  return submenu_id;
-}
-
-/* Construct native Mac OS menubar based on widget_value tree.  */
-
-static void
-fill_menubar (wv, deep_p)
-     widget_value *wv;
-     int deep_p;
-{
-  int id, submenu_id;
-#if !TARGET_API_MAC_CARBON
-  int title_changed_p = 0;
-#endif
-
-  /* Clean up the menu bar when filled by the entire menu trees.  */
-  if (deep_p)
-    {
-      dispose_menus (MAC_MENU_MENU_BAR, 0);
-      dispose_menus (MAC_MENU_MENU_BAR_SUB, 0);
-#if !TARGET_API_MAC_CARBON
-      title_changed_p = 1;
-#endif
-    }
-
-  /* Fill menu bar titles and submenus.  Reuse the existing menu bar
-     titles as much as possible to minimize redraw (if !deep_p).  */
-  submenu_id = min_menu_id[MAC_MENU_MENU_BAR_SUB];
-  for (id = min_menu_id[MAC_MENU_MENU_BAR];
-       wv != NULL && id < min_menu_id[MAC_MENU_MENU_BAR + 1];
-       wv = wv->next, id++)
-    {
-      OSStatus err = noErr;
-      MenuRef menu;
-#if TARGET_API_MAC_CARBON
-      CFStringRef title;
-
-      title = CFStringCreateWithCString (NULL, wv->name,
-					 kCFStringEncodingMacRoman);
-#else
-      Str255 title;
-
-      strncpy (title, wv->name, 255);
-      title[255] = '\0';
-      c2pstr (title);
-#endif
-
-      menu = GetMenuRef (id);
-      if (menu)
-	{
-#if TARGET_API_MAC_CARBON
-	  CFStringRef old_title;
-
-	  err = CopyMenuTitleAsCFString (menu, &old_title);
-	  if (err == noErr)
-	    {
-	      if (CFStringCompare (title, old_title, 0) != kCFCompareEqualTo)
-		{
-#ifdef MAC_OSX
-		  if (id + 1 == min_menu_id[MAC_MENU_MENU_BAR + 1]
-		      || GetMenuRef (id + 1) == NULL)
-		    {
-		      /* This is a workaround for Mac OS X 10.5 where
-			 just calling SetMenuTitleWithCFString fails
-			 to change the title of the last (Help) menu
-			 in the menu bar.  */
-		      DeleteMenu (id);
-		      DisposeMenu (menu);
-		      menu = NULL;
-		    }
-		  else
-#endif	/* MAC_OSX */
-		    err = SetMenuTitleWithCFString (menu, title);
-		}
-	      CFRelease (old_title);
-	    }
-	  else
-	    err = SetMenuTitleWithCFString (menu, title);
-#else  /* !TARGET_API_MAC_CARBON */
-	  if (!EqualString (title, (*menu)->menuData, false, false))
-	    {
-	      DeleteMenu (id);
-	      DisposeMenu (menu);
-	      menu = NewMenu (id, title);
-	      InsertMenu (menu, GetMenuRef (id + 1) ? id + 1 : 0);
-	      title_changed_p = 1;
-	    }
-#endif  /* !TARGET_API_MAC_CARBON */
-	}
-
-      if (!menu)
-	{
-#if TARGET_API_MAC_CARBON
-	  err = CreateNewMenu (id, 0, &menu);
-	  if (err == noErr)
-	    err = SetMenuTitleWithCFString (menu, title);
-#else
-	  menu = NewMenu (id, title);
-#endif
-	  if (err == noErr)
-	    {
-	      InsertMenu (menu, 0);
-#if !TARGET_API_MAC_CARBON
-	      title_changed_p = 1;
-#endif
-	    }
-	}
-#if TARGET_API_MAC_CARBON
-      CFRelease (title);
-#endif
-
-      if (err == noErr)
-	if (wv->contents)
-	  submenu_id = fill_menu (menu, wv->contents, MAC_MENU_MENU_BAR_SUB,
-				  submenu_id);
-    }
-
-  if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuRef (id))
-    {
-      dispose_menus (MAC_MENU_MENU_BAR, id);
-#if !TARGET_API_MAC_CARBON
-      title_changed_p = 1;
-#endif
-    }
-
-#if !TARGET_API_MAC_CARBON
-  if (title_changed_p)
-    InvalMenuBar ();
-#endif
-}
-
-/* Dispose of menus that belong to KIND, and remove them from the menu
-   list.  ID is the lower bound of menu IDs that will be processed.  */
-
-static void
-dispose_menus (kind, id)
-     enum mac_menu_kind kind;
-     int id;
-{
-  for (id = max (id, min_menu_id[kind]); id < min_menu_id[kind + 1]; id++)
-    {
-      MenuRef menu = GetMenuRef (id);
-
-      if (menu == NULL)
-	break;
-      DeleteMenu (id);
-      DisposeMenu (menu);
-    }
-}
-
 #endif /* HAVE_MENUS */
 
 /* Detect if a menu is currently active.  */

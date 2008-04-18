@@ -728,13 +728,14 @@ definition, or nil if the language doesn't have any."
 	"define"))
 
 (c-lang-defconst c-opt-cpp-macro-define-start
-  ;; Regexp matching everything up to the macro body of a cpp define,
-  ;; or the end of the logical line if there is none.  Set if
-  ;; c-opt-cpp-macro-define is.
+  ;; Regexp matching everything up to the macro body of a cpp define, or the
+  ;; end of the logical line if there is none.  Submatch 1 is the name of the
+  ;; macro.  Set if c-opt-cpp-macro-define is.
   t (if (c-lang-const c-opt-cpp-macro-define)
 	(concat (c-lang-const c-opt-cpp-prefix)
 		(c-lang-const c-opt-cpp-macro-define)
-		"[ \t]+\\(\\sw\\|_\\)+\\(\([^\)]*\)\\)?"
+		"[ \t]+\\(\\(\\sw\\|_\\)+\\)\\(\([^\)]*\)\\)?"
+		;;       ^                 ^ #defined name
 		"\\([ \t]\\|\\\\\n\\)*")))
 (c-lang-defvar c-opt-cpp-macro-define-start
   (c-lang-const c-opt-cpp-macro-define-start))

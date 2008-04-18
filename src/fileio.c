@@ -6055,8 +6055,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  restore_message ();
 	}
       else if (!auto_save_error_occurred)
-	/* Don't overwrite the error message if an error occurred.  */
-	/* If we displayed a message and then restored a state
+	/* Don't overwrite the error message if an error occurred.
+	   If we displayed a message and then restored a state
 	   with no message, leave a "done" message on the screen.  */
 	message1 ("Auto-saving...done");
     }
