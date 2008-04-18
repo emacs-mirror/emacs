@@ -159,6 +159,8 @@
 
 2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* character.c (Fmultibyte_char_to_unibyte): Return latin1 chars unchanged.
+
 	* fileio.c (Fexpand_file_name): Refine last fix so `nm' is only
 	relocated if it points to `name'.
 

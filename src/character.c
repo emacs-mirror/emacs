@@ -326,9 +326,7 @@ DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
 
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
-       doc: /* Convert the unibyte character CH to multibyte character.
-The multibyte character is a result of decoding CH by
-the current unibyte charset (see `unibyte-charset').  */)
+       doc: /* Convert the byte CH to multibyte character.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -348,18 +346,24 @@ the current unibyte charset (see `unibyte-charset').  */)
 
 DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
        Smultibyte_char_to_unibyte, 1, 1, 0,
-       doc: /* Convert the multibyte character CH to unibyte character.\n\
-The unibyte character is a result of encoding CH by
-the current primary charset (value of `charset-primary').  */)
+       doc: /* Convert the multibyte character CH to a byte.
+If the multibyte character does not represent a byte, return -1.  */)
      (ch)
      Lisp_Object ch;
 {
-  int c;
+  int cm;
 
   CHECK_CHARACTER (ch);
-  c = XFASTINT (ch);
-  c = CHAR_TO_BYTE8 (c);
-  return make_number (c);
+  cm = XFASTINT (ch);
+  if (cm < 256)
+    /* Can't distinguish a byte read from a unibyte buffer from
+       a latin1 char, so let's let it slide.  */
+    return ch;
+  else
+    {
+      int cu = CHAR_TO_BYTE8 (cm);
+      return make_number (cu);
+    }
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
