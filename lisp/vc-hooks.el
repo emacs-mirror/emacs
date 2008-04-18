@@ -39,16 +39,18 @@
 
 (defvar vc-ignore-vc-files nil)
 (make-obsolete-variable 'vc-ignore-vc-files
-                        "set `vc-handled-backends' to nil to disable VC.")
+                        "set `vc-handled-backends' to nil to disable VC."
+			"21.1")
 
 (defvar vc-master-templates ())
 (make-obsolete-variable 'vc-master-templates
  "to define master templates for a given BACKEND, use
 vc-BACKEND-master-templates.  To enable or disable VC for a given
-BACKEND, use `vc-handled-backends'.")
+BACKEND, use `vc-handled-backends'."
+ "21.1")
 
 (defvar vc-header-alist ())
-(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
+(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header "21.1")
 
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
@@ -518,11 +520,11 @@ For registered files, the value returned is one of:
   'removed           Scheduled to be deleted from the repository on next commit.
 
   'conflict          The file contains conflicts as the result of a merge.
-                     For now the conflicts are text conflicts.  In the 
-                     futures this might be extended to deal with metadata
+                     For now the conflicts are text conflicts.  In the
+                     future this might be extended to deal with metadata
                      conflicts too.
 
-  'missing           The file is not present in the file system, but the VC 
+  'missing           The file is not present in the file system, but the VC
                      system still tracks it.
 
   'ignored           The file showed up in a dir-state listing with a flag
