@@ -84,14 +84,14 @@ do
 	case $f in
 	s.* | */s.*)
 		if
-			rev1=/tmp/geta$$
+			rev1=`mktemp /tmp/geta.XXXXXXXX`
 			get -s -p -k $sid1 "$f" > $rev1 &&
 			case $sid2 in
 			'')
 				workfile=`expr " /$f" : '.*/s.\(.*\)'`
 				;;
 			*)
-				rev2=/tmp/getb$$
+				rev2=`mktemp /tmp/getb.XXXXXXXX`
 				get -s -p -k $sid2 "$f" > $rev2
 				workfile=$rev2
 			esac
