@@ -228,13 +228,10 @@ which is probably undesirable."
 (add-minor-mode 'savehist-mode "")
 
 (defun savehist-load ()
-  "Obsolete function provided for transition from old versions of savehist.
-Don't call this from new code, use (savehist-mode 1) instead.
-
-This function loads the variables stored in `savehist-file' and turns on
-`savehist-mode'.  If `savehist-file' is in the old format that doesn't
-record the value of `savehist-minibuffer-history-variables', that value
-is deducted from the contents of the file."
+  "Load the variables stored in `savehist-file' and turn on `savehist-mode'.
+If `savehist-file' is in the old format that doesn't record
+the value of `savehist-minibuffer-history-variables', that
+value is deducted from the contents of the file."
   (savehist-mode 1)
   ;; Old versions of savehist distributed with XEmacs didn't save
   ;; savehist-minibuffer-history-variables.  If that variable is nil
@@ -251,7 +248,7 @@ is deducted from the contents of the file."
 		;; Collect VAR, i.e. (nth form 1).
                 (push (nth 1 form) vars))
               vars)))))
-(make-obsolete 'savehist-load 'savehist-mode)
+(make-obsolete 'savehist-load 'savehist-mode "22.1")
 
 (defun savehist-install ()
   "Hook savehist into Emacs.
