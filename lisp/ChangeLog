@@ -1,3 +1,8 @@
+2008-04-18  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-dir-menu-map, vc-dir-mode-map, vc-dir-tool-bar-map):
+	Use quit-window instead of bury-buffer.
+
 2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-table-with-terminator): Fix last fix.

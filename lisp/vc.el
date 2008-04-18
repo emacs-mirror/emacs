@@ -177,7 +177,7 @@
 ;;   run asynchronously using (current-buffer) as the buffer for the
 ;;   command.  When RESULT is computed, it should be passed back by
 ;;   doing: (funcall UPDATE-FUNCTION RESULT nil).
-;;   If the backend uses a process filter, hence it produces partial results, 
+;;   If the backend uses a process filter, hence it produces partial results,
 ;;   they can be passed back by doing:
 ;;      (funcall UPDATE-FUNCTION RESULT t)
 ;;   and then do a (funcall UPDATE-FUNCTION RESULT nil)
@@ -2021,6 +2021,7 @@ the buffer contents as a comment."
 	       log-entry))
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the *VC-log* buffer and the typing therein).
+    ;; -- IMO this should be replaced with quit-window
     (let ((logbuf (get-buffer "*VC-log*")))
       (cond ((and logbuf vc-delete-logbuf-window)
 	     (delete-windows-on logbuf (selected-frame))
@@ -2805,7 +2806,7 @@ specific headers."
 (defvar vc-dir-menu-map
   (let ((map (make-sparse-keymap "VC-dir")))
     (define-key map [quit]
-      '(menu-item "Quit" bury-buffer
+      '(menu-item "Quit" quit-window
 		  :help "Quit"))
     (define-key map [kill]
       '(menu-item "Kill Update Command" vc-dir-kill-dir-status-process
@@ -2924,12 +2925,13 @@ specific headers."
     (define-key map "\C-m" 'vc-dir-find-file)
     (define-key map "o" 'vc-dir-find-file-other-window)
     (define-key map "x" 'vc-dir-hide-up-to-date)
-    (define-key map "q" 'bury-buffer)
+    (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    ;; Not working yet.  Functions like vc-dir-find-file need to
-    ;; find the file from the mouse position, not `point'.
+    ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
+    ;; need to find the file from the mouse position, not `point'.
     ;; (define-key map [(down-mouse-3)] 'vc-dir-menu)
+    ;; (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -2983,7 +2985,7 @@ specific headers."
 				   "search" map)
     (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
 				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'bury-buffer "exit"
+    (tool-bar-local-item-from-menu 'quit-window "exit"
 				   map vc-dir-mode-map)
     map))
 
