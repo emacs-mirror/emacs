@@ -474,7 +474,7 @@ Return -1 if charset isn't an ISO 2022 one."
 This function is provided for backward compatibility.
 Now we have the variable `charset-list'."
   charset-list)
-(make-obsolete 'charset-list "Use variable `charset-list'" "23.1")
+(make-obsolete 'charset-list "use variable `charset-list'." "23.1")
 
 
 ;;; CHARACTER
@@ -484,7 +484,7 @@ Now we have the variable `charset-list'."
 (defun generic-char-p (char)
   "Always return nil.  This is provided for backward compatibility."
   nil)
-(make-obsolete 'generic-char-p "Generic characters no longer exist" "23.1")
+(make-obsolete 'generic-char-p "generic characters no longer exist." "23.1")
 
 (defun make-char-internal (charset-id &optional code1 code2)
   (let ((charset (aref emacs-mule-charset-table charset-id)))
@@ -826,7 +826,7 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 	  (cons :name (cons name (cons :docstring (cons (purecopy docstring)
 							props)))))
     (setcdr (assq :plist common-attrs) props)
-    (apply 'define-coding-system-internal 
+    (apply 'define-coding-system-internal
 	   name (mapcar 'cdr (append common-attrs spec-attrs)))))
 
 (defun coding-system-doc-string (coding-system)
@@ -935,8 +935,8 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
     codings))
 
 (defconst char-coding-system-table nil
-  "This is an obsolete variable.
-It exists just for backward compatibility, and the value is always nil.")
+  "It exists just for backward compatibility, and the value is always nil.")
+(make-obsolete-variable 'char-coding-system-table nil "23.1")
 
 (defun transform-make-coding-system-args (name type &optional doc-string props)
   "For internal use only.
@@ -2270,7 +2270,7 @@ Analogous to `define-translation-table', but updates
       (make-char-table 'ignore-relative-composition))
 
 (make-obsolete 'set-char-table-default
-	       "Generic characters no longer exist" "23.1")
+	       "generic characters no longer exist." "23.1")
 
 ;;; Built-in auto-coding-functions:
 
