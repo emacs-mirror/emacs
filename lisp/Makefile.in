@@ -122,6 +122,8 @@ autoloads: $(lisp)/subdirs.el $(LOADDEFS) doit
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
+# Note: every rule that runs $(emacs) and is called during bootstrap must
+# depend on this.
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
