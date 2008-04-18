@@ -135,7 +135,7 @@ just before \"Other\" at the end."
     ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
   "*List of faces that are of no interest to the user.")
 (make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces
-			"since 22.1,\nand has no effect on the Face menu")
+			"22.1,\n  and has no effect on the Face menu")
 
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
