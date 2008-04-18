@@ -1,3 +1,7 @@
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-terminator): Fix last fix.
+
 2008-04-18  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el): Depend on

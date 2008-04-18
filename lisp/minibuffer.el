@@ -25,10 +25,8 @@
 ;; are meant to be for internal use only.
 
 ;; TODO:
-;; - make the `hide-spaces' arg of all-completions obsolete.
-
-;; BUGS:
-;; - envvar completion for file names breaks completion-base-size.
+;; - New command minibuffer-force-complete that chooses one of all-completions.
+;; - make the `hide-spaces' arg of all-completions obsolete?
 
 ;;; Code:
 
@@ -138,8 +136,7 @@ You should give VAR a non-nil `risky-local-variable' property."
         (if (and (stringp comp)
                  (eq (complete-with-action action table comp pred) t))
             (concat comp terminator)
-          comp)
-        comp))
+          comp)))
      ;; completion-table-with-terminator is always used for
      ;; "sub-completions" so it's only called if the terminator is missing,
      ;; in which case `test-completion' should return nil.
