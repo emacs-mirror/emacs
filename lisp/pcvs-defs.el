@@ -142,7 +142,8 @@ current line.  See also `cvs-invert-ignore-marks'"
 
 (defvar cvs-diff-ignore-marks t)
 (make-obsolete-variable 'cvs-diff-ignore-marks
-                        'cvs-invert-ignore-marks)
+                        'cvs-invert-ignore-marks
+			"21.1")
 
 (defcustom cvs-invert-ignore-marks
   (let ((l ()))
@@ -179,7 +180,8 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
 
 (defvar cvs-diff-buffer-name "*cvs-diff*")
 (make-obsolete-variable 'cvs-diff-buffer-name
-                        'cvs-buffer-name-alist)
+                        'cvs-buffer-name-alist
+			"21.1")
 
 (defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
