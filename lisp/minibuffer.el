@@ -731,4 +731,6 @@ during running `completion-setup-hook'."
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
 (provide 'minibuffer)
+
+;; arch-tag: ef8a0a15-1080-4790-a754-04017c02f08f
 ;;; minibuffer.el ends here

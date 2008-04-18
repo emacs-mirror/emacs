@@ -672,4 +672,6 @@ For the description of arguments, see `zeroconf-resolved-services-hash'."
      zeroconf-interface-avahi-entry-group "Commit")))
 
 (provide 'zeroconf)
+
+;; arch-tag: ea578165-7fa8-44f4-90f0-de3940aec69f
 ;;; zeroconf.el ends here
