@@ -1103,7 +1103,7 @@ Otherwise, construct a buffer name from MODE-NAME."
 	(compilation-error (replace-regexp-in-string "^No more \\(.+\\)s\\.?"
 						     "\\1" error-message)))
     (compilation-start command nil name-function highlight-regexp)))
-(make-obsolete 'compile-internal 'compilation-start)
+(make-obsolete 'compile-internal 'compilation-start "22.1")
 
 ;;;###autoload
 (defun compilation-start (command &optional mode name-function highlight-regexp)
@@ -1248,7 +1248,7 @@ Returns the compilation buffer created."
 		 (start-file-process-shell-command (downcase mode-name)
 						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
-	  (setq mode-line-process 
+	  (setq mode-line-process
 		(list (propertize ":%s" 'face 'compilation-warning)))
 	  (set-process-sentinel proc 'compilation-sentinel)
 	  (set-process-filter proc 'compilation-filter)
@@ -1419,7 +1419,7 @@ Returns the compilation buffer created."
   (if (display-graphic-p)
       (let ((map (butlast (copy-keymap tool-bar-map)))
 	    (help (last tool-bar-map))) ;; Keep Help last in tool bar
-	(tool-bar-local-item 
+	(tool-bar-local-item
 	 "left-arrow" 'previous-error-no-select 'previous-error-no-select map
 	 :rtl "right-arrow"
 	 :help "Goto previous error")
@@ -1427,12 +1427,12 @@ Returns the compilation buffer created."
 	 "right-arrow" 'next-error-no-select 'next-error-no-select map
 	 :rtl "left-arrow"
 	 :help "Goto next error")
-	(tool-bar-local-item 
+	(tool-bar-local-item
 	 "cancel" 'kill-compilation 'kill-compilation map
 	 :enable '(let ((buffer (compilation-find-buffer)))
 		    (get-buffer-process buffer))
 	 :help "Stop compilation")
-	(tool-bar-local-item 
+	(tool-bar-local-item
 	 "refresh" 'recompile 'recompile map
 	 :help "Restart compilation")
 	(append map help))))
