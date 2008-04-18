@@ -1,3 +1,54 @@
+2008-04-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-after):
+	Use `define-obsolete-function-alias'.
+
+	* dired-x.el (dired-omit-files-p): Use `define-obsolete-variable-alias'.
+
+	* facemenu.el (facemenu-unlisted-faces): Fix obsolescence description.
+
+	* savehist.el (savehist-load): Add WHEN to obsolescence declaration.
+	Remove redundant obsolescence info in docstring.
+
+	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates)
+	(vc-header-alist): Add WHEN to obsolescence declaration.
+	(vc-state): Fix typo in docstring.
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-keymap):
+	Use `define-obsolete-variable-alias'.
+
+	* emulation/tpu-edt.el (tpu-have-ispell):
+	* international/codepage.el (codepage-setup):
+	Fix typo in obsolescence declaration.
+
+	* international/mule.el (char-coding-system-table):
+	Remove redundant obsolescence info in docstring.
+	(charset-list, generic-char-p, set-char-table-default):
+	Fix typos in obsolescence decarations.
+
+	* international/mule-diag.el (non-iso-charset-alist):
+	Fix typo in obsolescence declaration.
+	(decode-codepage-char): Remove redundant obsolescence info in docstring.
+
+	* font-core.el (font-lock-defaults-alist):
+	* font-lock.el (font-lock-reference-face):
+	* frame.el (screen-height, screen-width, set-screen-width)
+	(set-screen-height):
+	* hilit-chg.el (highlight-changes-initial-state):
+	* isearch.el (isearch-return-char):
+	* log-edit.el (cvs-commit-buffer-require-final-newline)
+	(cvs-changelog-full-paragraphs):
+	* mouse.el (mouse-major-mode-menu, mouse-popup-menubar)
+	(mouse-popup-menubar-stuff):
+	* mwheel.el (mouse-wheel-down-button, mouse-wheel-up-button)
+	(mouse-wheel-click-button):
+	* outline.el (outline-visible):
+	* pcvs-defs.el (cvs-diff-ignore-marks, cvs-diff-buffer-name):
+	* pcvs-info.el (cvs-display-full-path, cvs-fileinfo->full-path):
+	* emacs-lisp/lisp-mode.el (lisp-comment-indent):
+	* progmodes/compile.el (compile-internal):
+	Add WHEN to obsolescence declarations.
+
 2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug): Revert to bury-buffer since quit-window
@@ -13,7 +64,8 @@
 	* progmodes/python.el (python-mode-map): Use abbrev-table-menu.
 	(python-use-skeletons): Remove, unused.
 	(python-skeletons): Remove.  Use the abbrev table instead.
-	(python-mode-abbrev-table): Fix regexp; add enable-function and case-fixed.
+	(python-mode-abbrev-table): Fix regexp;
+	add enable-function and case-fixed.
 	(def-python-skeleton): Simplify.
 	(python-expand-template): Use the abbrev-table and abbrev-insert.
 	(python-abbrev-pc-hook, python-abbrev-syntax-table, python-pea-hook):
