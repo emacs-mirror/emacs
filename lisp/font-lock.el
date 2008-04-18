@@ -331,7 +331,7 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
   "Face name to use for preprocessor directives.")
 
 (defvar font-lock-reference-face	'font-lock-constant-face)
-(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face)
+(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face "20.3")
 
 ;; Fontification variables:
 
@@ -2206,7 +2206,7 @@ Used in `cpp-font-lock-keywords'.")
       (list (+ 2 directives-depth)
 	    'font-lock-variable-name-face nil t))))
     "Font lock keyords for C preprocessor directives.
-`c-mode', `c++-mode' and `objc-mode' have their own 
+`c-mode', `c++-mode' and `objc-mode' have their own
 font lock keyords for C preprocessor directives. This definition is for the
 other modes in which C preprocessor directives are used. e.g. `asm-mode' and
 `ld-script-mode'.")
