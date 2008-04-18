@@ -232,9 +232,10 @@ first will be printed into the backtrace buffer."
                     ;; would need to be de-iconified anyway immediately
                     ;; after when we re-enter the debugger, so iconifying it
                     ;; here would cause flashing.
-                    ;; Use quit-window rather than bury-buffer to quieten
-                    ;; Drew Adams.  --Stef
-                    (quit-window))))
+                    ;; Drew Adams is not happy with this: he wants to frame
+                    ;; to be left at the top-level, still working on how
+                    ;; best to do that.
+                    (bury-buffer))))
 	    (kill-buffer debugger-buffer))
 	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
