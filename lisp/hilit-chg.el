@@ -243,7 +243,7 @@ colors then use this, if you want fancier faces then set
 ;; be on or off?
 
 (define-obsolete-variable-alias 'highlight-changes-initial-state
-  'highlight-changes-visibility-initial-state)
+  'highlight-changes-visibility-initial-state "23.1")
 
 (defcustom highlight-changes-visibility-initial-state t
   "Controls whether changes are initially visible in Highlight Changes mode.
