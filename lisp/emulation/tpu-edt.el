@@ -295,7 +295,7 @@
 Otherwise, use `spell-region'."
   :type 'boolean
   :group 'tpu)
-(make-obsolete-variable 'tpu-have-ispell "The `spell' package is obsolete."
+(make-obsolete-variable 'tpu-have-ispell "the `spell' package is obsolete."
                         "23.1")
 
 (defcustom tpu-kill-buffers-silently nil
