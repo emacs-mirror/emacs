@@ -1193,9 +1193,8 @@ generating a buffered list of errors."
     map)
   "Keymap used to override evaluation key-bindings for documentation checking.")
 
-(defvaralias 'checkdoc-minor-keymap 'checkdoc-minor-mode-map)
-(make-obsolete-variable 'checkdoc-minor-keymap
-                        'checkdoc-minor-mode-map)
+(define-obsolete-variable-alias 'checkdoc-minor-keymap
+    'checkdoc-minor-mode-map "21.1")
 
 ;; Add in a menubar with easy-menu
 
