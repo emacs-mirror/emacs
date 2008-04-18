@@ -170,8 +170,7 @@ plus those ending with extensions in `dired-omit-extensions'."
     (revert-buffer)))
 
 ;; For backward compatibility
-(defvaralias 'dired-omit-files-p 'dired-omit-mode)
-(make-obsolete-variable 'dired-omit-files-p 'dired-omit-mode)
+(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "*Filenames matching this regexp will not be displayed.
