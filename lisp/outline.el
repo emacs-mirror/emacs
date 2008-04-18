@@ -448,7 +448,7 @@ at the end of the buffer."
 
 (defun outline-visible ()
   (not (outline-invisible-p)))
-(make-obsolete 'outline-visible 'outline-invisible-p)
+(make-obsolete 'outline-visible 'outline-invisible-p "21.1")
 
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
