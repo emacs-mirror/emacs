@@ -1,3 +1,8 @@
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Refine last fix so `nm' is only
+	relocated if it points to `name'.
+
 2008-04-17  Kenichi Handa  <handa@m17n.org>
 
 	* data.c (Faset): Allow setting a multibyte character in an

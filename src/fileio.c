@@ -1045,6 +1045,7 @@ See also the function `substitute-in-file-name'.  */)
   /* These point to SDATA and need to be careful with string-relocation
      during GC (via DECODE_FILE).  */
   unsigned char *nm, *newdir;
+  int nm_in_name;
   /* This should only point to alloca'd data.  */
   unsigned char *target;
 
@@ -1158,11 +1159,13 @@ See also the function `substitute-in-file-name'.  */)
     }
 
   nm = SDATA (name);
+  nm_in_name = 1;
 
 #ifdef DOS_NT
   /* We will force directory separators to be either all \ or /, so make
      a local copy to modify, even if there ends up being no change. */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm_in_name = 0;
 
   /* Note if special escape prefix is present, but remove for now.  */
   if (nm[0] == '/' && nm[1] == ':')
@@ -1321,6 +1324,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (index (nm, '/'))
 	    {
 	      nm = sys_translate_unix (nm);
+	      nm_in_name = 0;
 	      return make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 #endif /* VMS */
@@ -1396,6 +1400,7 @@ See also the function `substitute-in-file-name'.  */)
 	      int offset = nm - SDATA (name);
 	      hdir = DECODE_FILE (tem);
 	      newdir = SDATA (hdir);
+	      if (nm_in_name)
 	      nm = SDATA (name) + offset;
 	    }
 #ifdef DOS_NT
