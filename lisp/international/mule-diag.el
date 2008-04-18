@@ -204,12 +204,12 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 
 (defvar non-iso-charset-alist nil
   "Obsolete.")
-(make-obsolete-variable 'non-iso-charset-alist "no longer relevant" "23.1")
+(make-obsolete-variable 'non-iso-charset-alist "no longer relevant." "23.1")
 
 (defun decode-codepage-char (codepage code)
   "Decode a character that has code CODE in CODEPAGE.
 Return a decoded character string.  Each CODEPAGE corresponds to a
-coding system cpCODEPAGE.  This function is obsolete."
+coding system cpCODEPAGE."
   (decode-char (intern (format "cp%d" codepage)) code))
 (make-obsolete 'decode-codepage-char 'decode-char "23.1")
 
@@ -343,7 +343,7 @@ detailed meanings of these arguments."
 	      (push c aliases)))
 	(if aliases
 	    (insert "Aliases: " (mapconcat #'symbol-name aliases ", ") ?\n)))
-      
+
       (dolist (elt `((:ascii-compatible-p "ASCII compatible." nil)
 		     (:map "Map file: " identity)
 		     (:unify-map "Unification map file: " identity)
@@ -1213,7 +1213,7 @@ The list is null if CHAR isn't found in `unicodedata-file'."
 			   (string-to-number (nth 2 fields))
 			   '((0 . "Spacing")
 			     (1 . "Overlays and interior")
-			     (7 . "Nuktas") 
+			     (7 . "Nuktas")
 			     (8 . "Hiragana/Katakana voicing marks")
 			     (9 . "Viramas")
 			     (10 . "Start of fixed position classes")
