@@ -3,6 +3,11 @@
 	* emacs-lisp/debug.el (debug): Revert to bury-buffer since quit-window
 	is not better anyway.
 
+2008-04-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-report-region): Handle whitespace-tab-width
+	properly.
+
 2008-04-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-mode-map): Use abbrev-table-menu.

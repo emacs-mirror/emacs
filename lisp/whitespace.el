@@ -1801,7 +1801,9 @@ cleaning up these problems."
 	(when (if report-if-bogus has-bogus t)
 	  (whitespace-kill-buffer whitespace-report-buffer-name)
 	  ;; `whitespace-indent-tabs-mode' is local to current buffer
-	  (let ((ws-indent-tabs-mode whitespace-indent-tabs-mode))
+	  ;; `whitespace-tab-width' is local to current buffer
+	  (let ((ws-indent-tabs-mode whitespace-indent-tabs-mode)
+		(ws-tab-width whitespace-tab-width))
 	    (with-current-buffer (get-buffer-create
 				  whitespace-report-buffer-name)
 	      (erase-buffer)
@@ -1818,7 +1820,7 @@ cleaning up these problems."
 		(setq bogus-list (cdr bogus-list)))
 	      (forward-line 1)
 	      (whitespace-insert-value ws-indent-tabs-mode)
-	      (whitespace-insert-value whitespace-tab-width)
+	      (whitespace-insert-value ws-tab-width)
 	      (when has-bogus
 		(goto-char (point-max))
 		(insert " Type `M-x whitespace-cleanup'"
