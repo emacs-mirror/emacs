@@ -143,7 +143,7 @@
 (defun codepage-setup (&optional codepage)
   "Obsolete.  All coding systems are set up initially."
   (interactive))
-(make-obsolete 'codepage-setup "no longer relevant" "23.1")
+(make-obsolete 'codepage-setup "no longer relevant." "23.1")
 
 (provide 'codepage)
 
