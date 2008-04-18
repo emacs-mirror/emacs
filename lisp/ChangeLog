@@ -1,3 +1,11 @@
+2008-04-18  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el): Depend on
+	$(lisp)/subdirs.el.
+	($(CAL_DIR)/cal-loaddefs.el): Likewise.
+	($(CAL_DIR)/diary-loaddefs.el): Likewise.
+	($(CAL_DIR)/hol-loaddefs.el): Likewise.
+
 2008-04-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* descr-text.el (describe-char-after):
