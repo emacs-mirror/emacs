@@ -287,9 +287,9 @@ FILE should be in a form suitable for passing to `locate-library'."
   (interactive
    (list
     (completing-read "Library name: "
-		     'locate-file-completion
-		     (cons (or find-function-source-path load-path)
-			   (find-library-suffixes)))))
+		     (apply-partially 'locate-file-completion-table
+                                      (or find-function-source-path load-path)
+                                      (find-library-suffixes)))))
   (let* ((str (lm-commentary (find-library-name file))))
     (if (null str)
 	(error "Can't find any Commentary section"))

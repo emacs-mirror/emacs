@@ -1487,8 +1487,9 @@ When called from a program, the file name is normaly returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
   (interactive (list (completing-read "Locate library: "
-				      'locate-file-completion
-				      (cons load-path (get-load-suffixes)))
+				      (apply-partially
+                                       'locate-file-completion-table
+                                       load-path (get-load-suffixes)))
 		     nil nil
 		     t))
   (let ((file (locate-file library
