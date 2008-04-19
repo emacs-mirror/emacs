@@ -156,7 +156,7 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
   (cond
    ((and (not strict) (eq action 'lambda))
     ;; Ignore pred1 since it doesn't really have to apply anyway.
-    (test-completion string tabel pred2))
+    (test-completion string table pred2))
    (t
     (or (complete-with-action action table string
                               (if (null pred2) pred1
