@@ -636,9 +636,9 @@ extern void x_destroy_window P_ ((struct frame *));
 extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void mac_initialize P_ ((void));
-extern Pixmap XCreatePixmap P_ ((Display *, WindowRef, unsigned int,
+extern Pixmap XCreatePixmap P_ ((Display *, Window, unsigned int,
 				 unsigned int, unsigned int));
-extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowRef, char *,
+extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, Window, char *,
 					       unsigned int, unsigned int,
 					       unsigned long, unsigned long,
 					       unsigned int));
@@ -683,13 +683,10 @@ extern void mac_clear_font_name_table P_ ((void));
 extern Lisp_Object mac_aedesc_to_lisp P_ ((const AEDesc *));
 extern OSErr mac_ae_put_lisp P_ ((AEDescList *, UInt32, Lisp_Object));
 #if TARGET_API_MAC_CARBON
-extern OSStatus create_apple_event_from_event_ref P_ ((EventRef, UInt32,
-						       const EventParamName *,
-						       const EventParamType *,
-						       AppleEvent *));
-extern OSErr create_apple_event_from_drag_ref P_ ((DragRef, UInt32,
-						   const FlavorType *,
-						   AppleEvent *));
+extern OSErr create_apple_event P_ ((AEEventClass, AEEventID, AppleEvent *));
+extern Lisp_Object mac_event_parameters_to_lisp P_ ((EventRef, UInt32,
+						     const EventParamName *,
+						     const EventParamType *));
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
 extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));
