@@ -108,12 +108,13 @@ You should give VAR a non-nil `risky-local-variable' property."
         ,var))))
 
 (defun completion-table-with-context (prefix table string pred action)
-  ;; TODO: add `suffix', and think about how we should support `pred'.
+  ;; TODO: add `suffix' maybe?
   ;; Notice that `pred' is not a predicate when called from read-file-name
   ;; or Info-read-node-name-2.
-  ;; (if pred (setq pred (lexical-let ((pred pred))
-  ;;                       ;; FIXME: this doesn't work if `table' is an obarray.
-  ;;                       (lambda (s) (funcall pred (concat prefix s))))))
+  (if (functionp pred)
+      (setq pred (lexical-let ((pred pred))
+                   ;; FIXME: this doesn't work if `table' is an obarray.
+                   (lambda (s) (funcall pred (concat prefix s))))))
   (let ((comp (complete-with-action action table string pred)))
     (cond
      ;; In case of try-completion, add the prefix.
@@ -128,19 +129,46 @@ You should give VAR a non-nil `risky-local-variable' property."
      (t comp))))
 
 (defun completion-table-with-terminator (terminator table string pred action)
-  (let ((comp (complete-with-action action table string pred)))
-    (cond
-     ((eq action nil)
+  (cond
+   ((eq action nil)
+    (let ((comp (try-completion string table pred)))
       (if (eq comp t)
           (concat string terminator)
         (if (and (stringp comp)
-                 (eq (complete-with-action action table comp pred) t))
+                 (eq (try-completion comp table pred) t))
             (concat comp terminator)
-          comp)))
-     ;; completion-table-with-terminator is always used for
-     ;; "sub-completions" so it's only called if the terminator is missing,
-     ;; in which case `test-completion' should return nil.
-     ((eq action 'lambda) nil))))
+          comp))))
+   ((eq action t) (all-completions string table pred))
+   ;; completion-table-with-terminator is always used for
+   ;; "sub-completions" so it's only called if the terminator is missing,
+   ;; in which case `test-completion' should return nil.
+   ((eq action 'lambda) nil)))
+
+(defun completion-table-with-predicate (table pred1 strict string pred2 action)
+  "Make a completion table equivalent to TABLE but filtered through PRED1.
+PRED1 is a function of one argument which returns non-nil iff the
+argument is an element of TABLE which should be considered for completion.
+STRING, PRED2, and ACTION are the usual arguments to completion tables,
+as described in `try-completion', `all-completions', and `test-completion'.
+If STRICT is t, the predicate always applies, if nil it only applies if
+it doesn't reduce the set of possible completions to nothing.
+Note: TABLE needs to be a proper completion table which obeys predicates."
+  (cond
+   ((and (not strict) (eq action 'lambda))
+    ;; Ignore pred1 since it doesn't really have to apply anyway.
+    (test-completion string tabel pred2))
+   (t
+    (or (complete-with-action action table string
+                              (if (null pred2) pred1
+                                (lexical-let ((pred1 pred2) (pred2 pred2))
+                                  (lambda (x)
+                                    ;; Call `pred1' first, so that `pred2'
+                                    ;; really can't tell that `x' is in table.
+                                    (if (funcall pred1 x) (funcall pred2 x))))))
+        ;; If completion failed and we're not applying pred1 strictly, try
+        ;; again without pred1.
+        (and (not strict)
+             (complete-with-action action table string pred2))))))
 
 (defun completion-table-in-turn (&rest tables)
   "Create a completion table that tries each table in TABLES in turn."
@@ -150,9 +178,12 @@ You should give VAR a non-nil `risky-local-variable' property."
                           (complete-with-action action table string pred))
                         tables))))
 
-(defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
+;; (defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
+;; (defmacro dynamic-completion-table (fun) `(completion-table-dynamic ,fun))
 (define-obsolete-function-alias
   'complete-in-turn 'completion-table-in-turn "23.1")
+(define-obsolete-function-alias
+  'dynamic-completion-table 'completion-table-dynamic "23.1")
 
 ;;; Minibuffer completion
 

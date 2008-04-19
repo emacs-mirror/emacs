@@ -1,3 +1,8 @@
+2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Programmed Completion):
+	Replace dynamic-completion-table with the new completion-table-dynamic.
+
 2008-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* intro.texi (Some Terms): Change "fonts in this manual" index

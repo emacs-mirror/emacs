@@ -1488,14 +1488,14 @@ completion to be encapsulated in a symbol.
   Emacs uses programmed completion when completing file names.
 @xref{File Name Completion}.
 
-@defmac dynamic-completion-table function
-This macro is a convenient way to write a function that can act as
+@defun completion-table-dynamic function
+This function is a convenient way to write a function that can act as
 programmed completion function.  The argument @var{function} should be
 a function that takes one argument, a string, and returns an alist of
 possible completions of it.  You can think of
-@code{dynamic-completion-table} as a transducer between that interface
+@code{completion-table-dynamic} as a transducer between that interface
 and the interface for programmed completion functions.
-@end defmac
+@end defun
 
 @node Yes-or-No Queries
 @section Yes-or-No Queries
