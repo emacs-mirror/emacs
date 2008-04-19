@@ -1,3 +1,7 @@
+2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/trace.el (trace-make-advice): Don't change selected-window.
+
 2008-04-18  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-dir-menu-map, vc-dir-mode-map, vc-dir-tool-bar-map):
