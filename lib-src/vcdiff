@@ -27,7 +27,8 @@
 DIFF="diff"
 usage="$0: Usage: vcdiff [--brief] [-q] [-r<sid1>] [-r<sid2>] [diffopts] sccsfile..."
 
-PATH=$PATH:/usr/ccs/bin:/usr/sccs:/usr/xpg4/bin # common SCCS hangouts
+# Now that we use `sccs get' rather than just `get', we don't need this.
+# PATH=$PATH:/usr/ccs/bin:/usr/sccs:/usr/xpg4/bin # common SCCS hangouts
 
 echo="echo"
 sid1= sid2=
@@ -85,14 +86,14 @@ do
 	s.* | */s.*)
 		if
 			rev1=`mktemp /tmp/geta.XXXXXXXX`
-			get -s -p -k $sid1 "$f" > $rev1 &&
+			sccs get -s -p -k $sid1 "$f" > $rev1 &&
 			case $sid2 in
 			'')
 				workfile=`expr " /$f" : '.*/s.\(.*\)'`
 				;;
 			*)
 				rev2=`mktemp /tmp/getb.XXXXXXXX`
-				get -s -p -k $sid2 "$f" > $rev2
+				sccs get -s -p -k $sid2 "$f" > $rev2
 				workfile=$rev2
 			esac
 		then

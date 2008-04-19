@@ -1,5 +1,13 @@
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-sccs.el (vc-sccs-do-command): New fun.  Use the "sccs" command.
+	(vc-sccs-register, vc-sccs-checkin, vc-sccs-find-revision)
+	(vc-sccs-checkout, vc-sccs-rollback, vc-sccs-revert)
+	(vc-sccs-steal-lock, vc-sccs-modify-change-comment)
+	(vc-sccs-print-log): Use it.
+
+	* vc-hooks.el (vc-path): Remove SCCS-specific hack.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-auto-fill): Make it an alias.
 	* progmodes/scheme.el (scheme-mode-variables): Don't use it.
 

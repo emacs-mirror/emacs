@@ -39,6 +39,17 @@
 ;;; Customization options
 ;;;
 
+;; ;; Maybe a better solution is to not use "get" but "sccs get".
+;; (defcustom vc-sccs-path
+;;   (let ((path ()))
+;;     (dolist (dir '("/usr/sccs" "/usr/lib/sccs" "/usr/libexec/sccs"))
+;;       (if (file-directory-p dir)
+;;           (push dir path)))
+;;     path)
+;;   "List of extra directories to search for SCCS commands."
+;;   :type '(repeat directory)
+;;   :group 'vc)
+
 (defcustom vc-sccs-register-switches nil
   "*Extra switches for registering a file in SCCS.
 A string or list of strings passed to the checkin program by
@@ -90,17 +101,16 @@ For a description of possible values, see `vc-check-master-templates'."
 
 ;;; Properties of the backend
 
-(defun vc-sccs-revision-granularity ()
-     'file)
+(defun vc-sccs-revision-granularity () 'file)
 
 ;;;
 ;;; State-querying functions
 ;;;
 
-;;; The autoload cookie below places vc-sccs-registered directly into
-;;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
-;;; every file that is visited.  The definition is repeated below
-;;; so that Help and etags can find it.
+;; The autoload cookie below places vc-sccs-registered directly into
+;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
+;; every file that is visited.  The definition is repeated below
+;; so that Help and etags can find it.
 
 ;;;###autoload (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
 (defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
@@ -181,6 +191,11 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-changing functions
 ;;;
 
+(defun vc-sccs-do-command (buffer okstatus command file-or-list &rest flags)
+  ;; (let ((load-path (append vc-sccs-path load-path)))
+  ;;   (apply 'vc-do-command buffer okstatus command file-or-list flags))
+  (apply 'vc-do-command buffer okstatus "sccs" file-or-list command flags))
+
 (defun vc-sccs-create-repo ()
   "Create a new SCCS repository."
   ;; SCCS is totally file-oriented, so all we have to do is make the directory
@@ -203,7 +218,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
       (let ((vc-name
 	     (or project-file
 		 (format (car vc-sccs-master-templates) dirname basename))))
-	(apply 'vc-do-command nil 0 "admin" vc-name
+	(apply 'vc-sccs-do-command nil 0 "admin" vc-name
 	       (and rev (not (string= rev "")) (concat "-r" rev))
 	       "-fb"
 	       (concat "-i" (file-relative-name file))
@@ -211,7 +226,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	       (vc-switches 'SCCS 'register)))
       (delete-file file)
       (if vc-keep-workfiles
-	  (vc-do-command nil 0 "get" (vc-name file))))))
+	  (vc-sccs-do-command nil 0 "get" (vc-name file))))))
 
 (defun vc-sccs-responsible-p (file)
   "Return non-nil if SCCS thinks it would be responsible for registering FILE."
@@ -223,15 +238,15 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 (defun vc-sccs-checkin (files rev comment)
   "SCCS-specific version of `vc-backend-checkin'."
   (dolist (file files)
-    (apply 'vc-do-command nil 0 "delta" (vc-name file)
+    (apply 'vc-sccs-do-command nil 0 "delta" (vc-name file)
 	   (if rev (concat "-r" rev))
 	   (concat "-y" comment)
 	   (vc-switches 'SCCS 'checkin))
     (if vc-keep-workfiles
-	(vc-do-command nil 0 "get" (vc-name file)))))
+	(vc-sccs-do-command nil 0 "get" (vc-name file)))))
 
 (defun vc-sccs-find-revision (file rev buffer)
-  (apply 'vc-do-command
+  (apply 'vc-sccs-do-command
 	 buffer 0 "get" (vc-name file)
 	 "-s" ;; suppress diagnostic output
 	 "-p"
@@ -263,7 +278,7 @@ locked.  REV is the revision to check out."
 	  (and rev (or (string= rev "")
                        (not (stringp rev)))
                (setq rev nil))
-	  (apply 'vc-do-command nil 0 "get" (vc-name file)
+	  (apply 'vc-sccs-do-command nil 0 "get" (vc-name file)
 		 (if editable "-e")
 		 (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
 		 switches))))
@@ -279,13 +294,14 @@ locked.  REV is the revision to check out."
 					   discard file)))
 		(error "Aborted"))
 	    (message "Removing revision %s from %s..." discard file)
-	    (vc-do-command nil 0 "rmdel" (vc-name file) (concat "-r" discard))
-	    (vc-do-command nil 0 "get" (vc-name file) nil))))
+	    (vc-sccs-do-command nil 0 "rmdel"
+                                (vc-name file) (concat "-r" discard))
+	    (vc-sccs-do-command nil 0 "get" (vc-name file) nil))))
 
 (defun vc-sccs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
-  (vc-do-command nil 0 "unget" (vc-name file))
-  (vc-do-command nil 0 "get" (vc-name file))
+  (vc-sccs-do-command nil 0 "unget" (vc-name file))
+  (vc-sccs-do-command nil 0 "get" (vc-name file))
   ;; Checking out explicit revisions is not supported under SCCS, yet.
   ;; We always "revert" to the latest revision; therefore
   ;; vc-working-revision is cleared here so that it gets recomputed.
@@ -293,14 +309,16 @@ locked.  REV is the revision to check out."
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
-  (vc-do-command nil 0 "unget" (vc-name file) "-n" (if rev (concat "-r" rev)))
-  (vc-do-command nil 0 "get" (vc-name file) "-g" (if rev (concat "-r" rev))))
+  (vc-sccs-do-command nil 0 "unget"
+                      (vc-name file) "-n" (if rev (concat "-r" rev)))
+  (vc-sccs-do-command nil 0 "get"
+                      (vc-name file) "-g" (if rev (concat "-r" rev))))
 
 (defun vc-sccs-modify-change-comment (files rev comment)
   "Modify (actually, append to) the change comments for FILES on a specified REV."
   (dolist (file files)
-    (vc-do-command nil 0 "cdc" (vc-name file) 
-		   (concat "-y" comment) (concat "-r" rev))))
+    (vc-sccs-do-command nil 0 "cdc" (vc-name file) 
+                        (concat "-y" comment) (concat "-r" rev))))
 
 
 ;;;
@@ -309,7 +327,7 @@ locked.  REV is the revision to check out."
 
 (defun vc-sccs-print-log (files &optional buffer)
   "Get change log associated with FILES."
-  (vc-do-command buffer 0 "prs" (mapcar 'vc-name files)))
+  (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files)))
 
 (defun vc-sccs-wash-log ()
   "Remove all non-comment information from log output."

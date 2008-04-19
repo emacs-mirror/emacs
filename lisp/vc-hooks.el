@@ -84,10 +84,7 @@ An empty list disables VC altogether."
   :type '(repeat string)
   :group 'vc)
 
-(defcustom vc-path
-  (if (file-directory-p "/usr/sccs")
-      '("/usr/sccs")
-    nil)
+(defcustom vc-path nil
   "List of extra directories to search for version control commands."
   :type '(repeat directory)
   :group 'vc)

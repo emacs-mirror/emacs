@@ -1,3 +1,7 @@
+2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vcdiff: Use "sccs get" rather than "get"; leave PATH alone.
+
 2008-04-18  Steve Grubb  <sgrubb@redhat.com>  (tiny change)
 
 	* vcdiff: Use mktemp (CVE-2008-1694).
