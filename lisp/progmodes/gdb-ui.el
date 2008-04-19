@@ -123,6 +123,7 @@ where STATUS is nil (`unchanged'), `changed' or `out-of-scope', FP the frame
 address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gud-old-arrow nil)
+(defvar gdb-thread-indicator nil)
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-stack-position nil)
 (defvar gdb-server-prefix nil)
@@ -627,7 +628,8 @@ otherwise do not."
 	gdb-look-up-stack nil
         gdb-frame-begin nil
 	gdb-printing t
-	gud-old-arrow nil)
+	gud-old-arrow nil
+	gdb-thread-indicator nil)
 
   (setq gdb-buffer-type 'gdba)
 
@@ -1318,13 +1320,14 @@ want the GDB Graphical Interface."
     ("stopped" gdb-stopped)
     ("error-begin" gdb-error)
     ("error" gdb-error)
-    ) "An assoc mapping annotation tags to functions which process them.")
+    ("new-thread" (lambda (ignored) (gdb-get-buffer-create 'gdb-threads-buffer))))
+  "An assoc mapping annotation tags to functions which process them.")
 
 (defun gdb-resync()
   (setq gdb-flush-pending-output t)
   (setq gud-running nil)
   (gdb-force-mode-line-update
-   (propertize "stopped"'face font-lock-warning-face))
+   (propertize "stopped" 'face font-lock-warning-face))
   (setq gdb-output-sink 'user)
   (setq gdb-input-queue nil)
   (setq gdb-pending-triggers nil)
@@ -2333,6 +2336,7 @@ $pc directly from the GUD buffer.  This command isn't normally needed."
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
   (setq buffer-read-only t)
+  (gdb-thread-identification)
   (use-local-map gdb-frames-mode-map)
   (run-mode-hooks 'gdb-frames-mode-hook)
   (setq gdb-stack-update t)
@@ -2378,6 +2382,12 @@ another GDB command e.g pwd, to see new frames")
   (with-current-buffer (gdb-get-buffer 'gdb-threads-buffer)
     (let ((buffer-read-only nil))
       (save-excursion
+	(goto-char (point-min))
+	(if (re-search-forward "\\* \\([0-9]+\\)" nil t)
+	    (setq gdb-thread-indicator
+		  (propertize (concat " [" (match-string 1) "]")
+			      ; FIXME: this help-echo doesn't work
+			      'help-echo "thread id")))
 	(goto-char (point-min))
 	(while (< (point) (point-max))
 	  (unless (looking-at "No ")
@@ -2430,7 +2440,8 @@ another GDB command e.g pwd, to see new frames")
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-threads-font-lock-keywords))
   (run-mode-hooks 'gdb-threads-mode-hook)
-  'gdb-invalidate-threads)
+  ;; Force "info threads" onto queue.
+  (lambda () (let ((gud-running nil)) (gdb-invalidate-threads))))
 
 (defun gdb-get-thread-number ()
   (save-excursion
@@ -2445,8 +2456,12 @@ another GDB command e.g pwd, to see new frames")
    (list (concat gdb-server-prefix "thread "
 		 (gdb-get-thread-number) "\n") 'ignore))
   (gud-display-frame))
-
 
+(defun gdb-thread-identification ()
+  (setq mode-line-buffer-identification
+	(list (car mode-line-buffer-identification)
+	      '(gdb-thread-indicator gdb-thread-indicator))))
+
 ;; Registers buffer.
 ;;
 (defcustom gdb-all-registers nil
@@ -2512,6 +2527,7 @@ another GDB command e.g pwd, to see new frames")
   (setq major-mode 'gdb-registers-mode)
   (setq mode-name "Registers")
   (setq buffer-read-only t)
+  (gdb-thread-identification)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
   (if (string-equal gdb-version "pre-6.4")
@@ -2946,6 +2962,7 @@ corresponding to the mode line clicked."
   (setq major-mode 'gdb-locals-mode)
   (setq mode-name (concat "Locals:" gdb-selected-frame))
   (setq buffer-read-only t)
+  (gdb-thread-identification)
   (use-local-map gdb-locals-mode-map)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-locals-font-lock-keywords))
@@ -3173,7 +3190,7 @@ buffers."
   (goto-char (point-min))
   (if (search-forward "Includes preprocessor macro info." nil t)
       (setq gdb-macro-info t))
- (if gdb-many-windows
+  (if gdb-many-windows
       (gdb-setup-windows)
    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
    (if gdb-show-main
@@ -3434,6 +3451,7 @@ BUFFER nil or omitted means use the current buffer."
   (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
+  (gdb-thread-identification)
   (use-local-map gdb-assembler-mode-map)
   (gdb-invalidate-assembler)
   (set (make-local-variable 'font-lock-defaults)
