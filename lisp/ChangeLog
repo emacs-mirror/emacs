@@ -1,5 +1,15 @@
-2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gdb-ui.el (gdb-thread-indicator): New variable.
+	(gdb-init-1): Initialise it.
+	(gdb-annotation-rules): New entry for "new-thread".
+	(gdb-thread-identification): New function to customize
+	mode-line-buffer-identification.
+	(gdb-frames-mode, gdb-registers-mode, gdb-locals-mode)
+	(gdb-assembler-mode): Use it.
+	(gdb-threads-mode): Force "info threads" onto queue.
+
+2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (locate-file-completion-table): Rename from
 	locate-file-completion and make it use `pred' in the normal way.
