@@ -1,5 +1,8 @@
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el (lisp-mode-auto-fill): Make it an alias.
+	* progmodes/scheme.el (scheme-mode-variables): Don't use it.
+
 	* tooltip.el (tooltip-previous-message): New var.
 	(tooltip-show-help-non-mode): Rewrite to better follow the behavior of
 	the C code (avoid overwriting a minibuffer, restore previous echo

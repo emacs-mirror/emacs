@@ -216,8 +216,6 @@
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'indent-region-function)
-  (setq indent-region-function 'lisp-indent-region)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
@@ -783,6 +781,8 @@ if it already has a value.\)
 With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
   (interactive "P")
+  ;; FIXME: the print-length/level bindings should only be applied while
+  ;; printing, not while evaluating.
   (let ((debug-on-error eval-expression-debug-on-error)
 	(print-length eval-expression-print-length)
 	(print-level eval-expression-print-level))
@@ -855,21 +855,7 @@ which see."
 ;; May still be used by some external Lisp-mode variant.
 (define-obsolete-function-alias 'lisp-comment-indent
     'comment-indent-default "22.1")
-
-;; This function just forces a more costly detection of comments (using
-;; parse-partial-sexp from beginning-of-defun).  I.e. It avoids the problem of
-;; taking a `;' inside a string started on another line for a comment starter.
-;; Note: `newcomment' gets it right now since we set comment-use-global-state
-;; so we could get rid of it.   -stef
-(defun lisp-mode-auto-fill ()
-  (if (> (current-column) (current-fill-column))
-      (if (save-excursion
-	    (nth 4 (syntax-ppss (point))))
-	  (do-auto-fill)
-	(unless (and (boundp 'comment-auto-fill-only-comments)
-		     comment-auto-fill-only-comments)
-	  (let ((comment-start nil) (comment-start-skip nil))
-	    (do-auto-fill))))))
+(define-obsolete-function-alias 'lisp-mode-auto-fill 'do-auto-fill "23.1")
 
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."
