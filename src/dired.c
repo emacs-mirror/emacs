@@ -193,8 +193,10 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run
      run_pre_post_conversion_on_str which calls Lisp directly and
      indirectly.  */
-  dirfilename = ENCODE_FILE (dirfilename);
-  encoded_directory = ENCODE_FILE (directory);
+  if (STRING_MULTIBYTE (dirfilename))
+    dirfilename = ENCODE_FILE (dirfilename);
+  encoded_directory = (STRING_MULTIBYTE (directory)
+		       ? ENCODE_FILE (directory) : directory);
 
   /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
@@ -251,7 +253,7 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 	  name = finalname = make_unibyte_string (dp->d_name, len);
 	  GCPRO2 (finalname, name);
 
-	  /* Note: ENCODE_FILE can GC; it should protect its argument,
+	  /* Note: DECODE_FILE can GC; it should protect its argument,
 	     though.  */
 	  name = DECODE_FILE (name);
 	  len = SBYTES (name);
@@ -506,7 +508,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   /* Do completion on the encoded file name
      because the other names in the directory are (we presume)
      encoded likewise.  We decode the completed string at the end.  */
-  encoded_file = ENCODE_FILE (file);
+  encoded_file = STRING_MULTIBYTE (file) ? ENCODE_FILE (file) : file;
 
   encoded_dir = ENCODE_FILE (dirname);
 
