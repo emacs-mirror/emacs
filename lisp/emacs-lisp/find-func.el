@@ -197,8 +197,8 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 (defun find-library (library)
   "Find the elisp source of LIBRARY."
   (interactive
-   (let* ((path (cons (or find-function-source-path load-path)
-		      (find-library-suffixes)))
+   (let* ((dirs (or find-function-source-path load-path))
+          (suffixes (find-library-suffixes))
 	  (def (if (eq (function-called-at-point) 'require)
 		   ;; `function-called-at-point' may return 'require
 		   ;; with `point' anywhere on this line.  So wrap the
@@ -213,11 +213,15 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 		     (error nil))
 		 (thing-at-point 'symbol))))
      (when def
-       (setq def (and (locate-file-completion def path 'test) def)))
+       (setq def (and (locate-file-completion-table
+                       dirs suffixes def nil 'lambda)
+                      def)))
      (list
       (completing-read (if def (format "Library name (default %s): " def)
 			 "Library name: ")
-		       'locate-file-completion path nil nil nil def))))
+		       (apply-partially 'locate-file-completion-table
+                                        dirs suffixes)
+                       nil nil nil nil def))))
   (let ((buf (find-file-noselect (find-library-name library))))
     (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
 

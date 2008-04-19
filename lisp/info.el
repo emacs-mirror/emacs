@@ -449,7 +449,7 @@ Do the right thing if the file has been compressed or zipped."
     (if decoder
 	(progn
 	  (insert-file-contents-literally fullname visit)
-	  (let ((buffer-read-only nil)
+	  (let ((inhibit-read-only t)
 		(coding-system-for-write 'no-conversion)
 		(default-directory (or (file-name-directory fullname)
 				       default-directory)))
@@ -756,8 +756,7 @@ FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
 where the match was found, and MODE is `major-mode' of the buffer in
 which the match was found."
   (let ((case-fold-search case-fold))
-    (save-excursion
-      (set-buffer (marker-buffer marker))
+    (with-current-buffer (marker-buffer marker)
       (goto-char marker)
 
       ;; Search tag table
@@ -826,7 +825,7 @@ a case-insensitive match is tried."
         ;; Switch files if necessary
         (or (null filename)
             (equal Info-current-file filename)
-            (let ((buffer-read-only nil))
+            (let ((inhibit-read-only t))
               (setq Info-current-file nil
                     Info-current-subfile nil
                     Info-current-file-completions nil
@@ -880,8 +879,7 @@ a case-insensitive match is tried."
                                (or Info-tag-table-buffer
                                    (generate-new-buffer " *info tag table*"))))
                           (setq Info-tag-table-buffer tagbuf)
-                          (save-excursion
-                            (set-buffer tagbuf)
+                          (with-current-buffer tagbuf
                             (buffer-disable-undo (current-buffer))
                             (setq case-fold-search t)
                             (erase-buffer)
@@ -1059,10 +1057,9 @@ a case-insensitive match is tried."
 			    (cons (directory-file-name truename)
 				  dirs-done)))
 		(if attrs
-		    (save-excursion
+		    (with-current-buffer (generate-new-buffer " info dir")
 		      (or buffers
 			  (message "Composing main Info directory..."))
-		      (set-buffer (generate-new-buffer " info dir"))
 		      (condition-case nil
 			  (progn
 			    (insert-file-contents file)
@@ -1237,8 +1234,7 @@ a case-insensitive match is tried."
   (let (lastfilepos
 	lastfilename)
     (if (numberp nodepos)
-	(save-excursion
-	  (set-buffer (marker-buffer Info-tag-table-marker))
+	(with-current-buffer (marker-buffer Info-tag-table-marker)
 	  (goto-char (point-min))
 	  (or (looking-at "\^_")
 	      (search-forward "\n\^_"))
@@ -1264,7 +1260,7 @@ a case-insensitive match is tried."
     ;; Assume previous buffer is in Info-mode.
     ;; (set-buffer (get-buffer "*info*"))
     (or (equal Info-current-subfile lastfilename)
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  (setq buffer-file-name nil)
 	  (widen)
 	  (erase-buffer)
@@ -1469,17 +1465,15 @@ If FORK is a string, it is the name to use for the new buffer."
 
 (defvar Info-read-node-completion-table)
 
-(defun Info-read-node-name-2 (string path-and-suffixes action)
+(defun Info-read-node-name-2 (dirs suffixes string pred action)
   "Virtual completion table for file names input in Info node names.
 PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
-  (let* ((names nil)
-	 (suffixes (remove "" (cdr path-and-suffixes)))
-	 (suffix (concat (regexp-opt suffixes t) "\\'"))
-	 (string-dir (file-name-directory string))
-	 (dirs
-	  (if (file-name-absolute-p string)
-	      (list (file-name-directory string))
-	    (car path-and-suffixes))))
+  (setq suffixes (remove "" suffixes))
+  (when (file-name-absolute-p string)
+    (setq dirs (list (file-name-directory string))))
+  (let ((names nil)
+        (suffix (concat (regexp-opt suffixes t) "\\'"))
+        (string-dir (file-name-directory string)))
     (dolist (dir dirs)
       (unless dir
 	(setq dir default-directory))
@@ -1501,10 +1495,7 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	  (when (string-match suffix file)
 	    (setq file (substring file 0 (match-beginning 0)))
 	    (push (if string-dir (concat string-dir file) file) names)))))
-    (cond
-     ((eq action t) (all-completions string names))
-     ((null action) (try-completion string names))
-     (t (test-completion string names)))))
+    (complete-with-action action names string pred)))
 
 ;; This function is used as the "completion table" while reading a node name.
 ;; It does completion using the alist in Info-read-node-completion-table
@@ -1515,11 +1506,12 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
    ((string-match "\\`([^)]*\\'" string)
     (completion-table-with-context
      "("
-     (apply-partially 'completion-table-with-terminator
-                      ")" 'Info-read-node-name-2)
+     (apply-partially 'completion-table-with-terminator ")"
+                      (apply-partially 'Info-read-node-name-2
+                                       Info-directory-list
+                                       (mapcar 'car Info-suffix-list)))
      (substring string 1)
-     (cons Info-directory-list
-           (mapcar 'car Info-suffix-list))
+     predicate
      code))
 
    ;; If a file name was given, then any node is fair game.
@@ -1682,8 +1674,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	(unwind-protect
 	    ;; Try other subfiles.
 	    (let ((list ()))
-	      (save-excursion
-		(set-buffer (marker-buffer Info-tag-table-marker))
+	      (with-current-buffer (marker-buffer Info-tag-table-marker)
 		(goto-char (point-min))
 		(search-forward "\n\^_\nIndirect:")
 		(save-restriction
@@ -2271,8 +2262,7 @@ Because of ambiguities, this should be concatenated with something like
 
   ;; Note that `Info-complete-menu-buffer' could be current already,
   ;; so we want to save point.
-  (save-excursion
-    (set-buffer Info-complete-menu-buffer)
+  (with-current-buffer Info-complete-menu-buffer
     (let ((completion-ignore-case t)
 	  (case-fold-search t)
 	  (orignode Info-current-node)
@@ -4219,9 +4209,8 @@ INDENT is the current indentation depth."
 (defun Info-speedbar-fetch-file-nodes (nodespec)
   "Fetch the subnodes from the info NODESPEC.
 NODESPEC is a string of the form: (file)node."
-  (save-excursion
-    ;; Set up a buffer we can use to fake-out Info.
-    (set-buffer (get-buffer-create " *info-browse-tmp*"))
+  ;; Set up a buffer we can use to fake-out Info.
+  (with-current-buffer (get-buffer-create " *info-browse-tmp*")
     (if (not (equal major-mode 'Info-mode))
 	(Info-mode))
     ;; Get the node into this buffer

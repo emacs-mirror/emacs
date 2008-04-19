@@ -701,15 +701,15 @@ one or more of those symbols."
 		  (if (memq 'readable predicate) 4 0))))
   (locate-file-internal filename path suffixes predicate))
 
-(defun locate-file-completion (string path-and-suffixes action)
-  "Do completion for file names passed to `locate-file'.
-PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
+(defun locate-file-completion-table (dirs suffixes string pred action)
+  "Do completion for file names passed to `locate-file'."
   (if (file-name-absolute-p string)
-      (read-file-name-internal string nil action)
+      (let ((read-file-name-predicate pred))
+        (read-file-name-internal string nil action))
     (let ((names nil)
-	  (suffix (concat (regexp-opt (cdr path-and-suffixes) t) "\\'"))
+	  (suffix (concat (regexp-opt suffixes t) "\\'"))
 	  (string-dir (file-name-directory string)))
-      (dolist (dir (car path-and-suffixes))
+      (dolist (dir dirs)
 	(unless dir
 	  (setq dir default-directory))
 	(if string-dir (setq dir (expand-file-name string-dir dir)))
@@ -720,10 +720,15 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	    (when (string-match suffix file)
 	      (setq file (substring file 0 (match-beginning 0)))
 	      (push (if string-dir (concat string-dir file) file) names)))))
-      (cond
-       ((eq action t) (all-completions string names))
-       ((null action) (try-completion string names))
-       (t (test-completion string names))))))
+      (complete-with-action action names string pred))))
+
+(defun locate-file-completion (string path-and-suffixes action)
+  "Do completion for file names passed to `locate-file'.
+PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
+  (locate-file-completion-table (car path-and-suffixes)
+                                (cdr path-and-suffixes)
+                                string nil action))
+(make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
 (defun locate-dominating-file (file regexp)
   "Look up the directory hierarchy from FILE for a file matching REGEXP."
@@ -763,8 +768,9 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
 This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
-			  'locate-file-completion
-			  (cons load-path (get-load-suffixes)))))
+			  (apply-partially 'locate-file-completion-table
+                                           load-path
+                                           (get-load-suffixes)))))
   (load library))
 
 (defun file-remote-p (file &optional identification connected)

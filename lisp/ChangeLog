@@ -1,5 +1,14 @@
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (locate-file-completion-table): Rename from
+	locate-file-completion and make it use `pred' in the normal way.
+	(locate-file-completion): New compatibility wrapper.
+	(load-library): Use locate-file-completion-table.
+	* emacs-lisp/find-func.el (find-library): Likewise.
+	* info.el: Use with-current-buffer and inhibit-read-only.
+	(Info-read-node-name-2): Change to use `predicate' in the normal way.
+	(Info-read-node-name-1): Adjust uses accordingly.
+
 	* minibuffer.el (completion-table-with-context): Add support for `pred'.
 	(completion-table-with-terminator): Don't use complete-with-action
 	since we have to distinguish all three cases anyway.
