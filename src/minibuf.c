@@ -2159,7 +2159,7 @@ CODE can be nil, t or `lambda':
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
 	       &Vminibuffer_completing_file_name,
-	       doc: /* Non-nil and non-`lambda' means completing file names.  */);
+	       doc: /* Non-nil means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
   DEFVAR_LISP ("minibuffer-help-form", &Vminibuffer_help_form,
