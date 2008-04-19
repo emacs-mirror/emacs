@@ -178,12 +178,10 @@ This might return nil if the event did not occur over a buffer."
 
 (defun tooltip-delay ()
   "Return the delay in seconds for the next tooltip."
-  (let ((delay tooltip-delay)
-	(now (float-time)))
-    (when (and tooltip-hide-time
-	       (< (- now tooltip-hide-time) tooltip-recent-seconds))
-      (setq delay tooltip-short-delay))
-    delay))
+  (if (and tooltip-hide-time
+           (< (- (float-time) tooltip-hide-time) tooltip-recent-seconds))
+      tooltip-short-delay
+    tooltip-delay))
 
 (defun tooltip-cancel-delayed-tip ()
   "Disable the tooltip timeout."
@@ -280,8 +278,7 @@ is based on the current syntax table."
 If a region is active and the mouse is inside the region, print
 the region.  Otherwise, figure out the identifier around the point
 where the mouse is."
-  (save-excursion
-    (set-buffer (tooltip-event-buffer event))
+  (with-current-buffer (tooltip-event-buffer event)
     (let ((point (posn-point (event-end event))))
       (if (tooltip-region-active-p)
 	  (when (and (<= (region-beginning) point) (<= point (region-end)))
@@ -292,23 +289,22 @@ where the mouse is."
   "Return regexp matching the prompt of PROCESS at the end of a string.
 The prompt is taken from the value of `comint-prompt-regexp' in
 the buffer of PROCESS."
-  (let ((prompt-regexp (save-excursion
-			 (set-buffer (process-buffer process))
+  (let ((prompt-regexp (with-current-buffer (process-buffer process)
 			 comint-prompt-regexp)))
-    ;; Most start with `^' but the one for `sdb' cannot be easily
-    ;; stripped.  Code the prompt for `sdb' fixed here.
-    (if (= (aref prompt-regexp 0) ?^)
-	(setq prompt-regexp (substring prompt-regexp 1))
-      (setq prompt-regexp "\\*"))
-    (concat "\n*" prompt-regexp "$")))
+    (concat "\n*"
+            ;; Most start with `^' but the one for `sdb' cannot be easily
+            ;; stripped.  Code the prompt for `sdb' fixed here.
+            (if (= (aref prompt-regexp 0) ?^)
+                (substring prompt-regexp 1)
+              "\\*")
+            "$")))
 
 (defun tooltip-strip-prompt (process output)
   "Return OUTPUT with any prompt of PROCESS stripped from its end."
-  (let ((prompt-regexp (tooltip-process-prompt-regexp process)))
-    (save-match-data
-      (when (string-match prompt-regexp output)
-	(setq output (substring output 0 (match-beginning 0)))))
-    output))
+  (save-match-data
+    (if (string-match (tooltip-process-prompt-regexp process) output)
+        (substring output 0 (match-beginning 0))
+      output)))
 
 
 ;;; Tooltip help.
@@ -316,12 +312,30 @@ the buffer of PROCESS."
 (defvar tooltip-help-message nil
   "The last help message received via `tooltip-show-help'.")
 
-(defun tooltip-show-help-non-mode (msg)
+(defvar tooltip-previous-message nil
+  "The previous content of the echo area.")
+
+(defun tooltip-show-help-non-mode (help)
   "Function installed as `show-help-function' when tooltip is off."
-  (let ((message-truncate-lines t))
-    (message "%s" (if msg
-		      (replace-regexp-in-string "\n" ", " msg)
-		    ""))))
+  (when (and (not (window-minibuffer-p)) ;Don't overwrite minibuffer contents.
+             ;; Don't know how to reproduce it in Elisp:
+             ;; Don't overwrite a keystroke echo.
+             ;; (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
+             (not cursor-in-echo-area)) ;Don't overwrite a prompt.
+    (cond
+     ((stringp help)
+      (unless tooltip-previous-message
+        (setq tooltip-previous-message (current-message)))
+      (let ((message-truncate-lines t)
+            (message-log-max nil))
+        (message "%s" (replace-regexp-in-string "\n" ", " help))))
+     ((stringp tooltip-previous-message)
+      (let ((message-log-max nil))
+        (message "%s" tooltip-previous-message)
+        (setq tooltip-previous-message nil)))
+     (t
+      (message nil)))))
+      
 
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.

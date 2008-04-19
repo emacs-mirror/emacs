@@ -1,3 +1,12 @@
+2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tooltip.el (tooltip-previous-message): New var.
+	(tooltip-show-help-non-mode): Rewrite to better follow the behavior of
+	the C code (avoid overwriting a minibuffer, restore previous echo
+	message, ...).
+	(tooltip-delay, tooltip-process-prompt-regexp, tooltip-strip-prompt):
+	Simplify.
+
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-thread-indicator): New variable.

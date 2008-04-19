@@ -157,11 +157,6 @@ extern int message_enable_multibyte;
 
 Lisp_Object Vshow_help_function;
 
-/* If a string, the message displayed before displaying a help-echo
-   in the echo area.  */
-
-Lisp_Object Vpre_help_message;
-
 /* Nonzero means do menu prompting.  */
 
 static int menu_prompting;
@@ -2458,37 +2453,6 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
     {
       if (!NILP (Vshow_help_function))
 	call1 (Vshow_help_function, help);
-      else if (/* Don't overwrite minibuffer contents.  */
-	       !MINI_WINDOW_P (XWINDOW (selected_window))
-	       /* Don't overwrite a keystroke echo.  */
-	       && (NILP (echo_message_buffer)
-		   || ok_to_overwrite_keystroke_echo)
-	       /* Don't overwrite a prompt.  */
-	       && !cursor_in_echo_area)
-	{
-	  if (STRINGP (help))
-	    {
-	      int count = SPECPDL_INDEX ();
-
-	      if (!help_echo_showing_p)
-		Vpre_help_message = current_message ();
-
-	      specbind (Qmessage_truncate_lines, Qt);
-	      message3_nolog (help, SBYTES (help),
-			      STRING_MULTIBYTE (help));
-	      unbind_to (count, Qnil);
-	    }
-	  else if (STRINGP (Vpre_help_message))
-	    {
-	      message3_nolog (Vpre_help_message,
-			      SBYTES (Vpre_help_message),
-			      STRING_MULTIBYTE (Vpre_help_message));
-	      Vpre_help_message = Qnil;
-	    }
-	  else
-	    message (0);
-	}
-
       help_echo_showing_p = STRINGP (help);
     }
 }
@@ -11752,9 +11716,6 @@ void
 syms_of_keyboard ()
 {
   pending_funcalls = Qnil;
-
-  Vpre_help_message = Qnil;
-  staticpro (&Vpre_help_message);
 
   Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);

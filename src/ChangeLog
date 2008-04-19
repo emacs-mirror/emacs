@@ -1,5 +1,8 @@
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (Vpre_help_message): Remove.
+	(show_help_echo): Remove default C code.
+
 	* dired.c (directory_files_internal, file_name_completion):
 	Only call ENCODE_FILE if the string is indeed decoded.
 
