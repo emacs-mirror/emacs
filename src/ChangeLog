@@ -1,3 +1,56 @@
+2008-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (create_apple_event) [TARGET_API_MAC_CARBON]:
+	Make function non-static.
+	(create_apple_event_from_event_ref) [TARGET_API_MAC_CARBON]:
+	Remove function.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]:
+	Move to mactoolbox.c.
+	(mac_event_parameters_to_lisp) [TARGET_API_MAC_CARBON]: New function.
+
+	* macgui.h (CGFloat) [!CGFLOAT_DEFINED]: New typedef.
+	(mac_rect_make): New macro.
+
+	* macterm.c (mac_draw_image_string_atsui) [MAC_OSX]: Use CGFloat
+	instead of float.
+	(mac_draw_image_string_cg) [USE_CG_TEXT_DRAWING]: Likewise.
+	(init_cg_color, mac_draw_line, mac_draw_cg_image, XSetForeground)
+	(XSetBackground) [USE_CG_DRAWING]: Likewise.
+	(mac_draw_image_string_atsui) [MAC_OSX]: Use mac_rect_make instead of
+	CGRectMake.
+	(mac_draw_image_string_cg) [USE_CG_TEXT_DRAWING]: Likewise.
+	(mac_erase_rectangle, mac_draw_cg_image, mac_fill_rectangle)
+	(mac_set_clip_rectangles) [USE_CG_DRAWING]: Likewise.
+	(XCreatePixmap, XCreatePixmapFromBitmapData): Use Window
+	instead of WindowRef in argument type.
+	(XCreatePixmap) [!MAC_OS8]: Don't call SetPortWindowPort.
+	(mac_invert_rectangle): Use CGContextSetBlendMode if available.
+	(mac_set_clip_rectangles, mac_reset_clip_rectangles): Take argument F
+	instead of DISPLAY.  All uses changed.
+	(mac_handle_size_change): Don't call SET_FRAME_GARBAGED.
+	(x_calc_absolute_position): Simplify so as not to use
+	FRAME_PIXEL_WIDTH/FRAME_PIXEL_HEIGHT.
+	(Vmac_ts_script_language_on_focus, saved_ts_script_language_on_focus)
+	[USE_MAC_TSM]: Make variables static.
+	(mac_store_event_ref_as_apple_event) [TARGET_API_MAC_CARBON]:
+	Don't use create_apple_event_from_event_ref.
+	Use mac_event_parameters_to_lisp.
+
+	* macterm.h (XCreatePixmap, XCreatePixmapFromBitmapData): Use Window
+	instead of WindowRef in argument type.
+	(create_apple_event_from_event_ref, create_apple_event_from_drag_ref)
+	[TARGET_API_MAC_CARBON]: Remove externs.
+	(create_apple_event, mac_event_parameters_to_lisp)
+	[TARGET_API_MAC_CARBON]: Add externs.
+
+	* mactoolbox.c: (Vmac_ts_script_language_on_focus)
+	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: Remove externs.
+	(XTread_socket) [USE_MAC_TOOLBAR]: Select window if its structure part
+	is clicked.
+	(x_activate_menubar): Remove extern for saved_menu_event_location.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]:
+	Move from mac.c.
+
 2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT] (uninterrupt_malloc)
