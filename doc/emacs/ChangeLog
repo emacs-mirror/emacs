@@ -1,7 +1,12 @@
+2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB-UI Layout, Breakpoints Buffer)
+	(Other GDB-UI Buffers): Update for recent thread related changes.
+
 2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* display.texi (Font Lock): Prefer add-hook to using a non-nil `mode' arg
-	in `font-lock-add-keywords'.
+	* display.texi (Font Lock): Prefer add-hook to using a non-nil `mode'
+	arg in `font-lock-add-keywords'.
 
 2008-04-08  Glenn Morris  <rgm@gnu.org>
 
