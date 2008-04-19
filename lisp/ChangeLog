@@ -1,3 +1,12 @@
+2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Select
+	window clicked on first (regression in 22.2).
+	(gdb): Display thread number in mode-line.
+	(gdb-make-header-line-mouse-map): Move to avoid byte compiler warnings.
+	(gdb-breakpoints-header): New variable.
+	(gdb-breakpoints-mode, gdb-threads-mode): Use it for header line.
+
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-sccs.el (vc-sccs-do-command): New fun.  Use the "sccs" command.
