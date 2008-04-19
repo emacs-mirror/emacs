@@ -253,28 +253,16 @@ The following commands help control operation :
 See Info node `(emacs)GDB Graphical Interface' for a more
 detailed description of this mode.
 
-
 +----------------------------------------------------------------------+
 |                               GDB Toolbar                            |
 +-----------------------------------+----------------------------------+
-| GUD buffer (I/O of GDB)           | Locals buffer                    |
+|  GUD buffer (I/O of GDB)          |  Locals buffer                   |
+|-----------------------------------+----------------------------------+
 |                                   |                                  |
+|  Source buffer                    |  I/O buffer for debugged program |
 |                                   |                                  |
-|                                   |                                  |
-+-----------------------------------+----------------------------------+
-| Source buffer                     | I/O buffer (of debugged program) |
-|                                   | (comint-mode)                    |
-|                                   |                                  |
-|                                   |                                  |
-|                                   |                                  |
-|                                   |                                  |
-|                                   |                                  |
-|                                   |                                  |
-+-----------------------------------+----------------------------------+
-| Stack buffer                      | Breakpoints buffer               |
-| RET      gdb-frames-select        | SPC    gdb-toggle-breakpoint     |
-|                                   | RET    gdb-goto-breakpoint       |
-|                                   | D      gdb-delete-breakpoint     |
+|-----------------------------------+----------------------------------+
+|  Stack buffer                     |  Breakpoints/threads buffer      |
 +-----------------------------------+----------------------------------+
 
 To run GDB in text command mode, replace the GDB \"--annotate=3\"
@@ -334,6 +322,7 @@ session."
   (setq gdb-flush-pending-output nil)
   (setq gdb-early-user-input nil)
   (setq gud-filter-pending-text nil)
+  (gdb-thread-identification)
   (run-hooks 'gdb-mode-hook))
 
 ;; Keep as an alias for compatibility with Emacs 22.1.
@@ -2015,9 +2004,9 @@ If not in a source or disassembly buffer just set point."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
-    (if (or (buffer-file-name) (eq major-mode 'gdb-assembler-mode))
-	(if (numberp (posn-point posn))
-	    (with-selected-window (posn-window posn)
+    (with-selected-window (posn-window posn)
+      (if (or (buffer-file-name) (eq major-mode 'gdb-assembler-mode))
+	  (if (numberp (posn-point posn))
 	      (save-excursion
 		(goto-char (posn-point posn))
 		(if (or (posn-object posn)
@@ -2118,6 +2107,47 @@ If not in a source or disassembly buffer just set point."
   (if (one-window-p) (delete-frame)
     (delete-window)))
 
+;;from make-mode-line-mouse-map
+(defun gdb-make-header-line-mouse-map (mouse function) "\
+Return a keymap with single entry for mouse key MOUSE on the header line.
+MOUSE is defined to run function FUNCTION with no args in the buffer
+corresponding to the mode line clicked."
+  (let ((map (make-sparse-keymap)))
+    (define-key map (vector 'header-line mouse) function)
+    (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
+    map))
+
+(defvar gdb-breakpoints-header
+ `(,(propertize "Breakpoints"
+		'help-echo "mouse-1: select"
+		'mouse-face 'mode-line-highlight
+		'face 'mode-line
+		'local-map
+		(gdb-make-header-line-mouse-map
+		 'mouse-1
+		 (lambda (event) (interactive "e")
+		   (save-selected-window
+		     (select-window (posn-window (event-start event)))
+		     (set-window-dedicated-p (selected-window) nil)
+		     (switch-to-buffer
+		      (gdb-get-buffer-create 'gdb-breakpoints-buffer))
+		     (set-window-dedicated-p (selected-window) t)))))
+   " "
+   ,(propertize "Threads"
+		'help-echo "mouse-1: select"
+		'mouse-face 'mode-line-highlight
+		'face 'mode-line
+		'local-map
+		(gdb-make-header-line-mouse-map
+		 'mouse-1
+		 (lambda (event) (interactive "e")
+		   (save-selected-window
+		     (select-window (posn-window (event-start event)))
+		     (set-window-dedicated-p (selected-window) nil)
+		     (switch-to-buffer
+		      (gdb-get-buffer-create 'gdb-threads-buffer))
+		     (set-window-dedicated-p (selected-window) t)))))))
+
 (defun gdb-breakpoints-mode ()
   "Major mode for gdb breakpoints.
 
@@ -2127,6 +2157,7 @@ If not in a source or disassembly buffer just set point."
   (setq mode-name "Breakpoints")
   (use-local-map gdb-breakpoints-mode-map)
   (setq buffer-read-only t)
+  (setq header-line-format gdb-breakpoints-header)
   (run-mode-hooks 'gdb-breakpoints-mode-hook)
   (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-breakpoints
@@ -2436,6 +2467,7 @@ another GDB command e.g pwd, to see new frames")
   (setq major-mode 'gdb-threads-mode)
   (setq mode-name "Threads")
   (setq buffer-read-only t)
+  (setq header-line-format gdb-breakpoints-header)
   (use-local-map gdb-threads-mode-map)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-threads-font-lock-keywords))
@@ -2767,16 +2799,6 @@ another GDB command e.g pwd, to see new frames")
 	   (binding (and selection (lookup-key gdb-memory-unit-menu
 					       (vector (car selection))))))
       (if binding (call-interactively binding)))))
-
-;;from make-mode-line-mouse-map
-(defun gdb-make-header-line-mouse-map (mouse function) "\
-Return a keymap with single entry for mouse key MOUSE on the header line.
-MOUSE is defined to run function FUNCTION with no args in the buffer
-corresponding to the mode line clicked."
-  (let ((map (make-sparse-keymap)))
-    (define-key map (vector 'header-line mouse) function)
-    (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
-    map))
 
 (defvar gdb-memory-font-lock-keywords
   '(;; <__function.name+n>
