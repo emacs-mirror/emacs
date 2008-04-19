@@ -120,8 +120,6 @@ extern Lisp_Object Qtext_input;
 extern Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
 extern Lisp_Object Vmac_ts_active_input_overlay;
 extern Lisp_Object Qbefore_string;
-extern Lisp_Object Vmac_ts_script_language_on_focus;
-extern Lisp_Object saved_ts_script_language_on_focus;
 #endif
 
 static int mac_event_to_emacs_modifiers P_ ((EventRef));
@@ -606,15 +604,15 @@ install_application_handler ()
 #if USE_MAC_TSM
   if (err == noErr)
     {
-      static const EventTypeSpec spec[] =
+      static const EventTypeSpec specs[] =
 	{{kEventClassTextInput, kEventTextInputUpdateActiveInputArea},
 	 {kEventClassTextInput, kEventTextInputUnicodeForKeyEvent},
 	 {kEventClassTextInput, kEventTextInputOffsetToPos}};
 
       err = InstallApplicationEventHandler (NewEventHandlerUPP
 					    (mac_handle_text_input_event),
-					    GetEventTypeCount (spec),
-					    spec, NULL, NULL);
+					    GetEventTypeCount (specs),
+					    specs, NULL, NULL);
     }
 #endif
 
@@ -3009,8 +3007,8 @@ mac_event_to_emacs_modifiers (EventRef eventRef)
   GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
 		    sizeof (UInt32), NULL, &mods);
   class = GetEventClass (eventRef);
-  if (!NILP (Vmac_emulate_three_button_mouse) &&
-      (class == kEventClassMouse || class == kEventClassCommand))
+  if (!NILP (Vmac_emulate_three_button_mouse)
+      && (class == kEventClassMouse || class == kEventClassCommand))
     {
       mods &= ~(optionKey | cmdKey);
     }
@@ -3559,6 +3557,9 @@ XTread_socket (sd, expected, hold_quit)
 		{
 		  OSStatus err;
 		  HIViewRef ch;
+
+		  if (FrontNonFloatingWindow () != window_ptr)
+		    SelectWindow (window_ptr);
 
 		  err = HIViewGetViewForMouseEvent (HIViewGetRoot (window_ptr),
 						    eventRef, &ch);
@@ -4248,7 +4249,6 @@ x_activate_menubar (f)
 {
   SInt32 menu_choice;
   SInt16 menu_id, menu_item;
-  extern Point saved_menu_event_location;
 
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
@@ -5703,6 +5703,75 @@ static pascal OSErr mac_do_track_drag P_ ((DragTrackingMessage, WindowRef,
 static pascal OSErr mac_do_receive_drag P_ ((WindowRef, void *, DragRef));
 static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
 static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
+
+static OSErr
+create_apple_event_from_drag_ref (drag, num_types, types, result)
+     DragRef drag;
+     UInt32 num_types;
+     const FlavorType *types;
+     AppleEvent *result;
+{
+  OSErr err;
+  UInt16 num_items;
+  AppleEvent items;
+  long index;
+  char *buf = NULL;
+
+  err = CountDragItems (drag, &num_items);
+  if (err != noErr)
+    return err;
+  err = AECreateList (NULL, 0, false, &items);
+  if (err != noErr)
+    return err;
+
+  for (index = 1; index <= num_items; index++)
+    {
+      ItemReference item;
+      DescType desc_type = typeNull;
+      Size size;
+
+      err = GetDragItemReferenceNumber (drag, index, &item);
+      if (err == noErr)
+	{
+	  int i;
+
+	  for (i = 0; i < num_types; i++)
+	    {
+	      err = GetFlavorDataSize (drag, item, types[i], &size);
+	      if (err == noErr)
+		{
+		  buf = xrealloc (buf, size);
+		  err = GetFlavorData (drag, item, types[i], buf, &size, 0);
+		}
+	      if (err == noErr)
+		{
+		  desc_type = types[i];
+		  break;
+		}
+	    }
+	}
+      err = AEPutPtr (&items, index, desc_type,
+		      desc_type != typeNull ? buf : NULL,
+		      desc_type != typeNull ? size : 0);
+      if (err != noErr)
+	break;
+    }
+  if (buf)
+    xfree (buf);
+
+  if (err == noErr)
+    {
+      err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
+      if (err == noErr)
+	err = AEPutParamDesc (result, keyDirectObject, &items);
+      if (err != noErr)
+	AEDisposeDesc (result);
+    }
+
+  AEDisposeDesc (&items);
+
+  return err;
+}
 
 static void
 mac_store_drag_event (window, mouse_pos, modifiers, desc)
