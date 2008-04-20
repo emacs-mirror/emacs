@@ -1,3 +1,8 @@
+2008-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Check if iterator stops on a display
+	string.
+
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Vpre_help_message): Remove.
