@@ -1512,6 +1512,14 @@ buffer's local map (and the map specified by the @code{local-map}
 property) rather than replacing it.
 @end table
 
+The @code{local-map} and @code{keymap} properties do not affect a
+string displayed by the @code{before-string}, @code{after-string}, or
+@code{display} properties.  This is only relevant for mouse clicks and
+other mouse events that fall on the string, since point is never on
+the string.  To bind special mouse events for the string, assign it a
+@code{local-map} or @code{keymap} text property.  @xref{Special
+Properties}.
+
 @node Finding Overlays
 @subsection Searching for Overlays
 
