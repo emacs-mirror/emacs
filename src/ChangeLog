@@ -1,7 +1,6 @@
 2008-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (pos_visible_p): Check if iterator stops on a display
-	string.
+	* xdisp.c (pos_visible_p): Check if iterator stops on a display string.
 
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1194,7 +1193,7 @@
 	* s/irix6-0.h:
 	* s/riscos5.h:
 	* s/mach-bsd4-3.h:
-	* m/mips4.h: Remove files for obsolete systems
+	* m/mips4.h: Remove files for obsolete systems.
 
 	* Makefile.in:
 	* filelock.c:
@@ -3950,7 +3949,7 @@
 
 	* macterm.c (mac_encode_char): Add charset argument and update
 	to use encoding_type.
-	(x_new_font,x_new_fontset): Merge in changes from xterm.c;
+	(x_new_font, x_new_fontset): Merge in changes from xterm.c;
 	switch to pure fontset.
 	(decode_mac_font_name): Temporarily remove decoding.
 	(x_font_name_to_mac_font_name): Temporarily remove encoding.
@@ -4069,7 +4068,7 @@
 
 	* coding.c: Add many prototypes for static functions.
 	(get_translation_table): Allow max_lookup to be NULL.
-	(decode_coding,Ffind_coding_systems_region_internal)
+	(decode_coding, Ffind_coding_systems_region_internal)
 	(Funencodable_char_position, Fcheck_coding_systems_region): Call
 	get_translation_table with max_lookup NULL.
 
@@ -4342,7 +4341,7 @@
 	(emacs_mule_char): Change the second arg to `const'.
 	(decode_coding): Fix of flushing out unprocessed data.
 	(make_conversion_work_buffer): Fix making of a work buffer.
-	(decode_coding_object): Return coding->dst_object;
+	(decode_coding_object): Return coding->dst_object.
 
 	* fontset.c (set_fontset_font): Fix args.
 
@@ -4515,8 +4514,8 @@
 	(x_get_font_repertory): New function.  Warning: stub only!
 	(x_new_font): Return quickly if font already set.
 	(x_new_fontset): fontsetname parameter is Lisp_Object.
-	Use new fs_query_fontset.  Try new_fontset_from_font_name.  Use
-	fontset_name for return value.
+	Use new fs_query_fontset.  Try new_fontset_from_font_name.
+	Use fontset_name for return value.
 
 	* w32term.h: Declare x_get_font_repertory.
 
@@ -5126,7 +5125,7 @@
 	The following changes are to make character composition happen
 	automatically on displaying.
 
-	* Makefile.in (lisp, shortlisp): Add composite.elc
+	* Makefile.in (lisp, shortlisp): Add composite.elc.
 
 	* composite.h (Qauto_composed, Vauto_composition_function)
 	(Qauto_composition_function): Extern them.
@@ -6115,7 +6114,7 @@
 
 	* category.c (Fmodify_category_entry): Doc fix.  Remove unused vars.
 
-2008-02-01  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* charset.c (Fdefine_charset_internal): Fix argument to bzero.
 
@@ -6242,7 +6241,7 @@
 	* fontset.c (free_realized_fontsets): Call Fclear_face_cache instead
 	of calling free_realized_face.
 
-2008-02-01  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* charset.c (read_hex): Don't treat SPC as a comment starter.
 	(decode_char): If CODE_POINT_TO_INDEX retruns -1, always return -1.
@@ -7370,7 +7369,7 @@
 2007-11-23  Markus Triska  <markus.triska@gmx.at>
 
 	* emacs.c (main): Call init_editfns before init_process, since
-	init_process sets Vprocess_connection_type depending on OS release
+	init_process sets Vprocess_connection_type depending on OS release.
 
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -7674,7 +7673,7 @@
 
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* sunfns.c: Remove file
+	* sunfns.c: Remove file.
 
 	* m/sun386.h:
 	* m/sun2.h:
@@ -7694,7 +7693,7 @@
 	* s/ptx.h:
 	* m/is386.h:
 	* m/ibmps2-aix.h:
-	* Makefile.in: Remove all mentions of X10
+	* Makefile.in: Remove all mentions of X10.
 
 	* dispnew.c (syms_of_display): Don't mention version 10.
 
