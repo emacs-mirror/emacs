@@ -1330,26 +1330,29 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	  visible_p = 1;
       if (visible_p)
 	{
-	  Lisp_Object window, prop;
-
-	  XSETWINDOW (window, w);
-	  prop = Fget_char_property (make_number (it.position.charpos),
-				     Qinvisible, window);
-
-	  /* If charpos coincides with invisible text covered with an
-	     ellipsis, use the first glyph of the ellipsis to compute
-	     the pixel positions.  */
-	  if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
+	  if (it.method == GET_FROM_BUFFER)
 	    {
-	      struct glyph_row *row = it.glyph_row;
-	      struct glyph *glyph = row->glyphs[TEXT_AREA];
-	      struct glyph *end = glyph + row->used[TEXT_AREA];
-	      int x = row->x;
+	      Lisp_Object window, prop;
 
-	      for (; glyph < end && glyph->charpos < charpos; glyph++)
-		x += glyph->pixel_width;
+	      XSETWINDOW (window, w);
+	      prop = Fget_char_property (make_number (it.position.charpos),
+					 Qinvisible, window);
 
-	      top_x = x;
+	      /* If charpos coincides with invisible text covered with an
+		 ellipsis, use the first glyph of the ellipsis to compute
+		 the pixel positions.  */
+	      if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
+		{
+		  struct glyph_row *row = it.glyph_row;
+		  struct glyph *glyph = row->glyphs[TEXT_AREA];
+		  struct glyph *end = glyph + row->used[TEXT_AREA];
+		  int x = row->x;
+
+		  for (; glyph < end && glyph->charpos < charpos; glyph++)
+		    x += glyph->pixel_width;
+
+		  top_x = x;
+		}
 	    }
 
 	  *x = top_x;
