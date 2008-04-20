@@ -1220,8 +1220,10 @@ done that."
 	(let ((rest server-clients))
 	  (while (and rest (not next-buffer))
 	    (let ((proc (car rest)))
-	      ;; Only look at frameless clients.
-	      (when (not (process-get proc 'frame))
+	      ;; Only look at frameless clients, or those in the selected
+	      ;; frame.
+	      (when (or (not (process-get proc 'frame))
+			(eq (process-get proc 'frame) (selected-frame)))
 		(setq next-buffer (car (process-get proc 'buffers))))
 	      (setq rest (cdr rest)))))
 	(and next-buffer (server-switch-buffer next-buffer killed-one))

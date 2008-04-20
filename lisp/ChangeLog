@@ -1,3 +1,8 @@
+2008-04-20  Andreas Schwab  <schwab@suse.de>
+
+	* server.el (server-switch-buffer): Also consider clients in the
+	selected frame.
+
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Select
