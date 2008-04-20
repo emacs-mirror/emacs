@@ -1,3 +1,10 @@
+2008-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Overlay Properties): Clarify role of underlying
+	textprop and overlay keymaps for display strings.
+
+	* keymaps.texi (Active Keymaps): Ditto.
+
 2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.texi (Programmed Completion):
