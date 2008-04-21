@@ -2799,7 +2799,7 @@ specific headers."
 (defun vc-dir (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
-  (switch-to-buffer (vc-dir-prepare-status-buffer dir))
+  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
   (if (eq major-mode 'vc-dir-mode)
       (vc-dir-refresh)
     (vc-dir-mode)))

@@ -5,6 +5,8 @@
 
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-dir): Use pop-to-buffer, so it can be customized.
+
 	* minibuffer.el (completion-try-completion): Change magic symbol
 	property name.  Rename from minibuffer-try-completion.
 	(completion-all-completions): Rename from minibuffer-all-completions.
