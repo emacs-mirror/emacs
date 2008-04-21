@@ -1115,7 +1115,8 @@ Returns the first place where the trail finds a group name."
 ;;; we could call it here: (customize-variable 'gnus-registry-install)
   gnus-registry-install)
 
-(when (gnus-registry-install-p)
+(when (or (eq gnus-registry-install t)
+	  (gnus-registry-install-p))
   (gnus-registry-initialize))
 
 ;; TODO: a few things

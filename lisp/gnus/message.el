@@ -425,7 +425,7 @@ whitespace)."
   :type '(choice (const :tag "strict" "^-- $")
 		 (const :tag "loose" "^-- *$")
 		 regexp)
-  :version "23.1" ;; No Gnus (changed default)
+  :version "22.3" ;; Gnus 5.10.12 (changed default)
   :link '(custom-manual "(message)Various Message Variables")
   :group 'message-various)
 
@@ -1018,6 +1018,7 @@ Used by `message-yank-original' via `message-yank-cite'."
   :link '(custom-manual "(message)Insertion Variables")
   :type 'integer)
 
+;;;###autoload
 (defcustom message-cite-function 'message-cite-original-without-signature
   "*Function for citing an original message.
 Predefined functions include `message-cite-original' and
@@ -1028,7 +1029,7 @@ Note that these functions use `mail-citation-hook' if that is non-nil."
 		(function-item sc-cite-original)
 		(function :tag "Other"))
   :link '(custom-manual "(message)Insertion Variables")
-  :version "23.1" ;; No Gnus (changed default)
+  :version "22.3" ;; Gnus 5.10.12 (changed default)
   :group 'message-insertion)
 
 (defcustom message-indent-citation-function 'message-indent-citation

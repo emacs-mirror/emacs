@@ -7445,7 +7445,7 @@ If optional argument UNREAD is non-nil, only unread article is selected."
   (gnus-summary-position-point))
 
 (defun gnus-summary-goto-subject (article &optional force silent)
-  "Go the subject line of ARTICLE.
+  "Go to the subject line of ARTICLE.
 If FORCE, also allow jumping to articles not currently shown."
   (interactive "nArticle number: ")
   (unless (numberp article)

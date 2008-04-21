@@ -14576,7 +14576,7 @@ corresponding keywords.
 
 @item :mailbox
 The name of the mailbox to get mail from.  The default is @samp{INBOX}
-which normally is the mailbox which receive incoming mail.
+which normally is the mailbox which receives incoming mail.
 
 @item :predicate
 The predicate used to find articles to fetch.  The default, @samp{UNSEEN
@@ -18971,9 +18971,9 @@ needed.
 
   This function is hooked into the @code{nndiary} back end, so that
 moving or copying an article to a diary group will trigger it
-automatically.  It is also bound to @kbd{C-c D c} in @code{message-mode}
-and @code{article-edit-mode} in order to ease the process of converting
-a usual mail to a diary one.
+automatically.  It is also bound to @kbd{C-c C-f d} in
+@code{message-mode} and @code{article-edit-mode} in order to ease the
+process of converting a usual mail to a diary one.
 
   This function takes a prefix argument which will force prompting of
 all diary headers, regardless of their presence or validity.  That way,
@@ -26261,7 +26261,7 @@ know.
 @cindex Mule
 @cindex Emacs
 
-Gnus should work on:
+This version of Gnus should work on:
 
 @itemize @bullet
 
@@ -26278,6 +26278,8 @@ that.  Not reliably, at least.  Older versions of Gnus may work on older
 Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
 20.7 and XEmacs 21.1.
 
+@c No-merge comment: The paragraph added in v5-10 here must not be
+@c synced here!
 
 @node Gnus Development
 @subsection Gnus Development
@@ -27939,7 +27941,12 @@ controls this.
 @item You can now drag and drop attachments to the Message buffer.
 See @code{mml-dnd-protocol-alist} and @code{mml-dnd-attach-options}.
 @xref{MIME, ,MIME, message, Message Manual}.
-@c New in 5.10.9 / 5.11
+@c New in 5.10.9 / 5.11 (Emacs 21.1)
+
+@item @code{auto-fill-mode} is enabled by default in Message mode.
+See @code{message-fill-column}.  @xref{Various Message Variables, ,
+Message Headers, message, Message Manual}.
+@c New in Gnus 5.10.12 / 5.11 (Emacs 22.3)
 
 @end itemize
 
@@ -27992,8 +27999,9 @@ message, Message Manual}).
 
 @item
 The tool bars have been updated to use GNOME icons in Group, Summary and
-Message mode.  You can also customize the tool bars.  This is a new
-feature in Gnus 5.10.9.  (Only for Emacs, not in XEmacs.)
+Message mode.  You can also customize the tool bars: @kbd{M-x
+customize-apropos RET -tool-bar$} should get you started.  This is a new
+feature in Gnus 5.10.10.  (Only for Emacs, not in XEmacs.)
 
 @item The tool bar icons are now (de)activated correctly
 in the group buffer, see the variable @code{gnus-group-update-tool-bar}.

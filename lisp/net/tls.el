@@ -80,7 +80,7 @@ and `gnutls-cli' (version 2.0.1) output."
 
 (defcustom tls-program '("gnutls-cli -p %p %h"
 			 "gnutls-cli -p %p %h --protocols ssl3"
-			 "openssl s_client -connect %h:%p -no_ssl2")
+			 "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with server hostname, %p with port to connect to.
@@ -97,23 +97,23 @@ successful negotiation."
 	  :value
 	  ("gnutls-cli -p %p %h"
 	   "gnutls-cli -p %p %h --protocols ssl3"
-	   "openssl s_client -connect %h:%p -no_ssl2")
+	   "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
 	  (set :inline t
 	       ;; FIXME: add brief `:tag "..."' descriptions.
 	       ;; (repeat :inline t :tag "Other" (string))
 	       ;; See `tls-checktrust':
 	       (const "gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h")
 	       (const "gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3")
-	       (const "openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2")
+	       (const "openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2 -ign_eof")
 	       ;; No trust check:
 	       (const "gnutls-cli -p %p %h")
 	       (const "gnutls-cli -p %p %h --protocols ssl3")
-	       (const "openssl s_client -connect %h:%p -no_ssl2"))
+	       (const "openssl s_client -connect %h:%p -no_ssl2 -ign_eof"))
 	  (repeat :inline t :tag "Other" (string)))
     (const :tag "Default list of commands"
 	   ("gnutls-cli -p %p %h"
 	    "gnutls-cli -p %p %h --protocols ssl3"
-	    "openssl s_client -connect %h:%p -no_ssl2"))
+	    "openssl s_client -connect %h:%p -no_ssl2 -ign_eof"))
     (list :tag "List of commands"
 	  (repeat :tag "Command" (string))))
   :version "22.1"
@@ -144,7 +144,7 @@ consider trustworthy, e.g.:
 \(setq tls-program
       '(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
 	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"
-	\"openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2\"))"
+	\"openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2 -ign_eof\"))"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))

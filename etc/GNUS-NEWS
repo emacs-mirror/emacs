@@ -21,11 +21,12 @@ this release will store flags for nntp.  See a later entry for more
 information about nntp marks.  Note that downgrading isn't safe in
 general.
 
-** Incompatibity when switching from Emacs 23 to Emacs 22 In Emacs 23, Gnus
-uses Emacs' new internal coding system `utf-8-emacs' for saving articles
-drafts and `~/.newsrc.eld'.  These file may not be read correctly in
-Emacs 22 and below.  If you want to Gnus across different Emacs
-versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
+** Incompatibility when switching from Emacs 23 to Emacs 22 In Emacs 23,
+Gnus uses Emacs' new internal coding system `utf-8-emacs' for saving
+articles drafts and `~/.newsrc.eld'.  These files may not be read
+correctly in Emacs 22 and below.  If you want to use Gnus across
+different Emacs versions, you may set `mm-auto-save-coding-system' to
+`emacs-mule'.
 
 ** Lisp files are now installed in `.../site-lisp/gnus/' by default.  It
 defaulted to `.../site-lisp/' formerly.  In addition to this, the new
@@ -57,6 +58,11 @@ back end, the PGP passphrase is managed by this mechanism.  Passwords
 for ManageSieve connections are managed by this mechanism, after
 querying the user about whether to do so.
 
+** Using EasyPG with Gnus When EasyPG, is available, Gnus will use it
+instead of PGG.  EasyPG is an Emacs user interface to GNU Privacy Guard.
+ *Note EasyPG Assistant user's manual: (epa)Top.  EasyPG is included in
+Emacs 23 and available separately as well.
+
 
 * Changes in group mode
 
@@ -64,12 +70,16 @@ querying the user about whether to do so.
 couple of days, not immediately.  *Note Mail Source Customization::.
 (New in Gnus 5.10.10 / Emacs 22.2)
 
+
 
 * Changes in summary and article mode
 
 ** Gnus now supports sticky article buffers.  Those are article buffers
 that are not reused when you select another article.  *Note Sticky
 Articles::.
+
+** Gnus can selectively display `text/html' articles with a WWW browser
+with `K H'.  *Note MIME Commands::.
 
 ** International host names (IDNA) can now be decoded inside article bodies
 using `W i' (`gnus-summary-idna-message').  This requires that GNU Libidn
@@ -211,13 +221,13 @@ server buffer) renumbers all articles in a group, starting from 1 and
 removing gaps.  As a consequence, you get a correct total article count
 (until messages are deleted again).
 
+
 
 * Appearance
 
 ** The tool bar has been updated to use GNOME icons.  You can also
-customize the tool bar.  There's no documentation in the manual yet, but
-`M-x customize-apropos RET -tool-bar$' should get you started.  (Only
-for Emacs, not in XEmacs.)
+customize the tool bars: `M-x customize-apropos RET -tool-bar$' should
+get you started.  (Only for Emacs, not in XEmacs.)
 
 ** The tool bar icons are now (de)activated correctly in the group buffer,
 see the variable `gnus-group-update-tool-bar'.  Its default value

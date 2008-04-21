@@ -1,3 +1,37 @@
+2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-signature-separator, message-cite-function):
+	Change custom version.
+
+2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-decode.el (mm-display-external): Make temp file read-only.
+
+2008-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-diary.el (gnus-article-edit-mode-map, message-mode-map): Remove
+	binding for `gnus-diary-version'.  Bind `gnus-diary-check-message' to
+	`C-c C-f d'.
+
+2008-04-12  Adrian Aichner  <adrian@xemacs.org>
+
+	* gnus-sum.el (gnus-summary-goto-subject): Typo fix.
+
+2008-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Added docs.
+	(auth-sources): Modified format to support server.
+	(auth-source-pick, auth-source-user-or-password)
+	(auth-source-user-or-password-imap)
+	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
+	(auth-source-user-or-password-sftp)
+	(auth-source-user-or-password-smtp): Add server parameter.
+
+2008-04-08  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Initialize the registry when gnus-registry-install
+	is t.
+
 2008-04-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* compface.el (uncompface): Make buffer unibyte.
@@ -1393,8 +1427,11 @@
 	(message-fix-before-sending): Add `bogus-recipient'.
 
 	* gnus-art.el (gnus-button-mid-or-mail-heuristic-alist): Add "alpine".
-	(gnus-treat-emphasize, gnus-treat-body-boundary): Don't test
-	window-system.
+	(gnus-treat-body-boundary): Don't test window-system.
+
+2007-10-28  Leo <sdl.web@gmail.com>  (tiny change)
+
+	* gnus-art.el (gnus-treat-emphasize): Don't test window-system.
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 

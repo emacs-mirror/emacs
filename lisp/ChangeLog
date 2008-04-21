@@ -1,3 +1,9 @@
+2008-04-22  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
+
+	* net/tls.el (tls-program): Add -ign_eof argument to call the
+	openssl commands.
+	(tls-checktrust): Ditto.
+
 2008-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-insert-file, vc-state, vc-working-revision)

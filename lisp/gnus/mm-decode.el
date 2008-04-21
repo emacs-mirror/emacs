@@ -799,7 +799,7 @@ external if displayed external."
 	       (copiousoutput (assoc "copiousoutput" mime-info))
 	       file buffer)
 	  ;; We create a private sub-directory where we store our files.
-	  (set-file-modes dir 448)
+	  (set-file-modes dir #o700)
 	  (if filename
 	      (setq file (expand-file-name
 			  (gnus-map-function mm-file-name-rewrite-functions
@@ -819,6 +819,10 @@ external if displayed external."
 					    nil suffix))))
 	  (let ((coding-system-for-write mm-binary-coding-system))
 	    (write-region (point-min) (point-max) file nil 'nomesg))
+	  ;; The file is deleted after the viewer exists.  If the users edits
+	  ;; the file, changes will be lost.  Set file to read-only to make it
+	  ;; clear.
+	  (set-file-modes file #o400)
 	  (message "Viewing with %s" method)
 	  (cond
 	   (needsterm
