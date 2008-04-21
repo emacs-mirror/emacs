@@ -3049,7 +3049,11 @@ See `term-prompt-regexp'."
 	    (forward-line (- term-buffer-maximum-size))
 	    (beginning-of-line)
 	    (delete-region (point-min) (point))))
-	(set-marker save-marker nil)))))
+	(set-marker save-marker nil)))
+    ;; This might be expensive, but we need it to handle something
+    ;; like `sleep 5 | less -c' in more-or-less real time.
+    (when (get-buffer-window (current-buffer))
+      (redisplay))))
 
 (defun term-handle-deferred-scroll ()
   (let ((count (- (term-current-row) term-height)))
