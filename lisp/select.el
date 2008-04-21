@@ -241,13 +241,12 @@ Cut buffers are considered obsolete; you should use selections instead."
 	(let ((inhibit-read-only t))
 	  ;; Suppress producing escape sequences for compositions.
 	  (remove-text-properties 0 (length str) '(composition nil) str)
-	  (if (not (multibyte-string-p str))
-	      ;; Don't have to encode unibyte string.
-	      (setq type 'C_STRING)
-	    (if (eq type 'TEXT)
-		;; TEXT is a polimorphic target.  We must select the
-		;; actual type from `UTF8_STRING', `COMPOUND_TEXT',
-		;; `STRING', and `C_STRING'.
+	  (if (eq type 'TEXT)
+	      ;; TEXT is a polymorphic target.  We must select the
+	      ;; actual type from `UTF8_STRING', `COMPOUND_TEXT',
+	      ;; `STRING', and `C_STRING'.
+	      (if (not (multibyte-string-p str))
+		  (setq type 'C_STRING)
 		(let (non-latin-1 non-unicode eight-bit)
 		  (mapc #'(lambda (x)
 			    (if (>= x #x100)
@@ -259,32 +258,32 @@ Cut buffers are considered obsolete; you should use selections instead."
 			str)
 		  (setq type (if non-unicode 'COMPOUND_TEXT
 			       (if non-latin-1 'UTF8_STRING
-				 (if eight-bit 'C_STRING 'STRING))))))
-	    (cond
-	     ((eq type 'UTF8_STRING)
-	      (if (or (not coding)
-		      (not (eq (coding-system-type coding) 'utf-8)))
-		  (setq coding 'utf-8))
-	      (setq str (encode-coding-string str coding)))
+				 (if eight-bit 'C_STRING 'STRING)))))))
+	  (cond
+	   ((eq type 'UTF8_STRING)
+	    (if (or (not coding)
+		    (not (eq (coding-system-type coding) 'utf-8)))
+		(setq coding 'utf-8))
+	    (setq str (encode-coding-string str coding)))
 
-	     ((eq type 'STRING)
-	      (if (or (not coding)
-		      (not (eq (coding-system-type coding) 'charset)))
-		  (setq coding 'iso-8859-1))
-	      (setq str (encode-coding-string str coding)))
+	   ((eq type 'STRING)
+	    (if (or (not coding)
+		    (not (eq (coding-system-type coding) 'charset)))
+		(setq coding 'iso-8859-1))
+	    (setq str (encode-coding-string str coding)))
 
-	     ((eq type 'COMPOUND_TEXT)
-	      (if (or (not coding)
-		      (not (eq (coding-system-type coding) 'iso-2022)))
-		  (setq coding 'compound-text-with-extensions))
-	      (setq str (encode-coding-string str coding)))
+	   ((eq type 'COMPOUND_TEXT)
+	    (if (or (not coding)
+		    (not (eq (coding-system-type coding) 'iso-2022)))
+		(setq coding 'compound-text-with-extensions))
+	    (setq str (encode-coding-string str coding)))
 
-	     ((eq type 'C_STRING)
-	      (setq str (string-make-unibyte str)))
+	   ((eq type 'C_STRING)
+	    (setq str (string-make-unibyte str)))
 
-	     (t
-	      (error "Unknow selection type: %S" type))
-	     ))))
+	   (t
+	    (error "Unknow selection type: %S" type))
+	   )))
 
       (setq next-selection-coding-system nil)
       (cons type str))))
