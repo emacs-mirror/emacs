@@ -1,3 +1,16 @@
+2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-try-completion): Change magic symbol
+	property name.  Rename from minibuffer-try-completion.
+	(completion-all-completions): Rename from minibuffer-all-completions.
+	Remove hide-spaces argument.
+	(completion--do-completion): Rename from minibuffer--do-completion.
+	(minibuffer-complete-and-exit): Call just try-completion rather than
+	completion-try-completion to fix up the case.
+	(completion--try-word-completion): Try to add space or hyphen before
+	making `string' a prefix of `completion'.
+	(completion--insert-strings): Rename from minibuffer--insert-strings.
+
 2008-04-22  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
 
 	* net/tls.el (tls-program): Add -ign_eof argument to call the

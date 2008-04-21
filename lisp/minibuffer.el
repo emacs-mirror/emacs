@@ -24,9 +24,12 @@
 ;; Names starting with "minibuffer--" are for functions and variables that
 ;; are meant to be for internal use only.
 
-;; TODO:
+;;; Todo:
+
 ;; - New command minibuffer-force-complete that chooses one of all-completions.
-;; - make the `hide-spaces' arg of all-completions obsolete?
+;; - Add vc-file-name-completion-table to read-file-name-internal.
+;; - A feature like completing-help.el.
+;; - Make the `hide-spaces' arg of all-completions obsolete?
 
 ;;; Code:
 
@@ -149,8 +152,8 @@ PRED1 is a function of one argument which returns non-nil iff the
 argument is an element of TABLE which should be considered for completion.
 STRING, PRED2, and ACTION are the usual arguments to completion tables,
 as described in `try-completion', `all-completions', and `test-completion'.
-If STRICT is t, the predicate always applies, if nil it only applies if
-it doesn't reduce the set of possible completions to nothing.
+If STRICT is t, the predicate always applies; if nil it only applies if
+it does not reduce the set of possible completions to nothing.
 Note: TABLE needs to be a proper completion table which obeys predicates."
   (cond
    ((and (not strict) (eq action 'lambda))
@@ -253,21 +256,27 @@ ALL-COMPLETIONS is the function that lists the completions.")
   :group 'minibuffer
   :version "23.1")
 
-(defun minibuffer-try-completion (string table pred)
-  (if (and (symbolp table) (get table 'no-completion-styles))
-      (try-completion string table pred)
+(defun completion-try-completion (string table pred)
+  ;; The property `completion-styles' indicates that this functional
+  ;; completion-table claims to take care of completion styles itself.
+  ;; [I.e. It will most likely call us back at some point. ]
+  (if (and (symbolp table) (get table 'completion-styles))
+      (funcall table string pred nil)
     (completion--some (lambda (style)
                         (funcall (nth 1 (assq style completion-styles-alist))
                                  string table pred))
                       completion-styles)))
 
-(defun minibuffer-all-completions (string table pred &optional hide-spaces)
+(defun completion-all-completions (string table pred)
+  ;; The property `completion-styles' indicates that this functional
+  ;; completion-table claims to take care of completion styles itself.
+  ;; [I.e. It will most likely call us back at some point. ]
   (let ((completion-all-completions-with-base-size t))
     (if (and (symbolp table) (get table 'no-completion-styles))
-        (all-completions string table pred hide-spaces)
+        (funcall table string pred t)
       (completion--some (lambda (style)
                           (funcall (nth 2 (assq style completion-styles-alist))
-                                   string table pred hide-spaces))
+                                   string table pred))
                         completion-styles))))
 
 (defun minibuffer--bitset (modified completions exact)
@@ -275,7 +284,7 @@ ALL-COMPLETIONS is the function that lists the completions.")
           (if completions 2 0)
           (if exact       1 0)))
 
-(defun minibuffer--do-completion (&optional try-completion-function)
+(defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
 M = completion was performed, the text was Modified.
 C = there were available Completions.
@@ -291,9 +300,10 @@ E = after completion we now have an Exact match.
  110  6 some completion happened
  111  7 completed to an exact completion"
   (let* ((beg (field-beginning))
-         (string (buffer-substring beg (point)))
+         (end (point))
+         (string (buffer-substring beg end))
          (completion (funcall (or try-completion-function
-                                  'minibuffer-try-completion)
+                                  'completion-try-completion)
                               string
                               minibuffer-completion-table
                               minibuffer-completion-predicate)))
@@ -307,28 +317,21 @@ E = after completion we now have an Exact match.
       ;; for appearance, the string is rewritten if the case changes.
       (let ((completed (not (eq t (compare-strings completion nil nil
                                                    string nil nil t))))
-            (unchanged (eq t (compare-strings completion nil nil
-                                              string nil nil nil))))
+	     (unchanged (eq t (compare-strings completion nil nil
+					       string nil nil nil))))
         (unless unchanged
-          ;; Merge a trailing / in completion with a / after point.
-          ;; We used to only do it for word completion, but it seems to make
-          ;; sense for all completions.
-          (if (and (eq ?/ (aref completion (1- (length completion))))
-                   (< (point) (field-end))
-                   (eq ?/ (char-after)))
-              (setq completion (substring completion 0 -1)))
 
           ;; Insert in minibuffer the chars we got.
-          (let ((end (point)))
-            (insert completion)
-            (delete-region beg end)))
+          (goto-char end)
+          (insert completion)
+          (delete-region beg end))
 
         (if (not (or unchanged completed))
 	   ;; The case of the string changed, but that's all.  We're not sure
 	   ;; whether this is a unique completion or not, so try again using
 	   ;; the real case (this shouldn't recurse again, because the next
 	   ;; time try-completion will return either t or the exact string).
-           (minibuffer--do-completion try-completion-function)
+           (completion--do-completion try-completion-function)
 
           ;; It did find a match.  Do we match some possibility exactly now?
           (let ((exact (test-completion (field-string)
@@ -375,7 +378,7 @@ scroll the window of possible completions."
 	    (scroll-other-window))
 	  nil)
 
-      (case (minibuffer--do-completion)
+      (case (completion--do-completion)
         (0 nil)
         (1 (goto-char (field-end))
            (minibuffer-message "Sole completion")
@@ -390,54 +393,65 @@ scroll the window of possible completions."
 Otherwise try to complete it.  If completion leads to a valid completion,
 a repetition of this command will exit."
   (interactive)
-  (cond
-   ;; Allow user to specify null string
-   ((= (field-beginning) (field-end)) (exit-minibuffer))
-   ((test-completion (field-string)
-                     minibuffer-completion-table
-                     minibuffer-completion-predicate)
-    (when completion-ignore-case
-      ;; Fixup case of the field, if necessary.
-      (let* ((string (field-string))
-	     (compl (minibuffer-try-completion
-                     string
-                     minibuffer-completion-table
-                     minibuffer-completion-predicate)))
-	(when (and (stringp compl)
-                   ;; If it weren't for this piece of paranoia, I'd replace
-                   ;; the whole thing with a call to complete-do-completion.
-                   (= (length string) (length compl)))
-          (let ((beg (field-beginning))
-                (end (field-end)))
+  (let ((beg (field-beginning))
+        (end (field-end)))
+    (cond
+     ;; Allow user to specify null string
+     ((= beg end) (exit-minibuffer))
+     ((test-completion (buffer-substring beg end)
+                       minibuffer-completion-table
+                       minibuffer-completion-predicate)
+      (when completion-ignore-case
+        ;; Fixup case of the field, if necessary.
+        (let* ((string (substring beg end))
+               (compl (try-completion
+                       string
+                       minibuffer-completion-table
+                       minibuffer-completion-predicate)))
+          (when (and (stringp compl)
+                     ;; If it weren't for this piece of paranoia, I'd replace
+                     ;; the whole thing with a call to do-completion.
+                     (= (length string) (length compl)))
             (goto-char end)
             (insert compl)
-            (delete-region beg end)))))
-    (exit-minibuffer))
+            (delete-region beg end))))
+      (exit-minibuffer))
 
-   ((eq minibuffer-completion-confirm 'confirm-only)
-    ;; The user is permitted to exit with an input that's rejected
-    ;; by test-completion, but at the condition to confirm her choice.
-    (if (eq last-command this-command)
-	(exit-minibuffer)
-      (minibuffer-message "Confirm")
-      nil))
+     ((eq minibuffer-completion-confirm 'confirm-only)
+      ;; The user is permitted to exit with an input that's rejected
+      ;; by test-completion, but at the condition to confirm her choice.
+      (if (eq last-command this-command)
+          (exit-minibuffer)
+        (minibuffer-message "Confirm")
+        nil))
 
-   (t
-    ;; Call do-completion, but ignore errors.
-    (case (condition-case nil
-              (minibuffer--do-completion)
-            (error 1))
-      ((1 3) (exit-minibuffer))
-      (7 (if (not minibuffer-completion-confirm)
-             (exit-minibuffer)
-           (minibuffer-message "Confirm")
-           nil))
-      (t nil)))))
+     (t
+      ;; Call do-completion, but ignore errors.
+      (case (condition-case nil
+                (completion--do-completion)
+              (error 1))
+        ((1 3) (exit-minibuffer))
+        (7 (if (not minibuffer-completion-confirm)
+               (exit-minibuffer)
+             (minibuffer-message "Confirm")
+             nil))
+        (t nil))))))
 
-(defun minibuffer-try-word-completion (string table predicate)
-  (let ((completion (minibuffer-try-completion string table predicate)))
+(defun completion--try-word-completion (string table predicate)
+  (let ((completion (completion-try-completion string table predicate)))
     (if (not (stringp completion))
         completion
+
+      ;; If completion finds next char not unique,
+      ;; consider adding a space or a hyphen.
+      (when (= (length string) (length completion))
+        (let ((exts '(" " "-"))
+              tem)
+          (while (and exts (not (stringp tem)))
+            (setq tem (completion-try-completion
+                       (concat string (pop exts))
+                       table predicate)))
+          (if (stringp tem) (setq completion tem))))
 
       ;; Completing a single word is actually more difficult than completing
       ;; as much as possible, because we first have to find the "current
@@ -473,16 +487,6 @@ a repetition of this command will exit."
 
       ;; Now `string' is a prefix of `completion'.
 
-      ;; If completion finds next char not unique,
-      ;; consider adding a space or a hyphen.
-      (when (= (length string) (length completion))
-        (let ((exts '(" " "-"))
-              tem)
-          (while (and exts (not (stringp tem)))
-            (setq tem (minibuffer-try-completion (concat string (pop exts))
-                                                 table predicate)))
-          (if (stringp tem) (setq completion tem))))
-
       ;; Otherwise cut after the first word.
       (if (string-match "\\W" completion (length string))
           ;; First find first word-break in the stuff found by completion.
@@ -497,7 +501,7 @@ After one word is completed as much as possible, a space or hyphen
 is added, provided that matches some possible completion.
 Return nil if there is no valid completion, else t."
   (interactive)
-  (case (minibuffer--do-completion 'minibuffer-try-word-completion)
+  (case (completion--do-completion 'completion--try-word-completion)
     (0 nil)
     (1 (goto-char (field-end))
        (minibuffer-message "Sole completion")
@@ -507,7 +511,7 @@ Return nil if there is no valid completion, else t."
        t)
     (t t)))
 
-(defun minibuffer--insert-strings (strings)
+(defun completion--insert-strings (strings)
   "Insert a list of STRINGS into the current buffer.
 Uses columns to keep the listing readable but compact.
 It also eliminates runs of equal strings."
@@ -606,7 +610,7 @@ during running `completion-setup-hook'."
           ;; Get the base-size from the tail of the list.
           (set (make-local-variable 'completion-base-size) (or (cdr last) 0))
           (setcdr last nil)) ;Make completions a properly nil-terminated list.
-	(minibuffer--insert-strings completions))))
+	(completion--insert-strings completions))))
 
   (let ((completion-common-substring common-substring))
     (run-hooks 'completion-setup-hook))
@@ -617,11 +621,10 @@ during running `completion-setup-hook'."
   (interactive)
   (message "Making completion list...")
   (let* ((string (field-string))
-         (completions (minibuffer-all-completions
+         (completions (completion-all-completions
                        string
                        minibuffer-completion-table
-                       minibuffer-completion-predicate
-                       t)))
+                       minibuffer-completion-predicate)))
     (message nil)
     (if (and completions
              (or (consp (cdr completions))
