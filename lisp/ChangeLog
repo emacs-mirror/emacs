@@ -1,3 +1,8 @@
+2008-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* select.el (xselect-convert-to-string): Send a C_STRING only if
+	the polymorphic target TEXT is requested.
+
 2008-04-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (completion-setup-hook, display-completion-list)
