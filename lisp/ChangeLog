@@ -1,3 +1,9 @@
+2008-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-setup-hook, display-completion-list)
+	(completion--file-name-table): Fix typos in docstrings.
+	(completion-table-dynamic): Fix typo, and reflow docstring.
+
 2008-04-20  Andreas Schwab  <schwab@suse.de>
 
 	* server.el (server-switch-buffer): Also consider clients in the
@@ -5,8 +11,8 @@
 
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Select
-	window clicked on first (regression in 22.2).
+	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint):
+	Select window clicked on first (regression in 22.2).
 	(gdb): Display thread number in mode-line.
 	(gdb-make-header-line-mouse-map): Move to avoid byte compiler warnings.
 	(gdb-breakpoints-header): New variable.
@@ -3409,7 +3415,7 @@
 	(solar-get-number): Move definition before use.  Use unless.
 	(solar-equatorial-coordinates): Simplify.
 	(solar-sunrise-and-sunset): Use let rather than let*.
-	(solar-longitude, solar-equinoxes-solstices): Use cadr, nth
+	(solar-longitude, solar-equinoxes-solstices): Use cadr, nth.
 
 	* startup.el (command-line-1): Rename -internal-script back to
 	-scriptload (reverts previous change).
@@ -3723,7 +3729,7 @@
 	(org-goto-map, org-get-location): Implement auto-isearch.
 	(org-goto-local-auto-isearch-map): New variable.
 	(org-goto-local-search-forward-headings)
-	(org-goto-local-auto-isearch): New functions
+	(org-goto-local-auto-isearch): New functions.
 
 2008-03-13  Philip Jackson  <emacs@shellarchive.co.uk>
 
