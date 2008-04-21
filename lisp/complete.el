@@ -966,7 +966,7 @@ or properties are considered."
                    (+ (point) 2)
                    (point-min)))
           (minibuffer-completion-table 'PC-read-file-name-internal)
-          (minibuffer-completion-predicate "")
+          (minibuffer-completion-predicate nil)
           (PC-not-minibuffer t))
      (goto-char end)
      (PC-do-completion nil beg end)))
@@ -1096,7 +1096,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (setq sorted (cdr sorted)))
 	compressed))))
 
-(defun PC-read-file-name-internal (string dir action)
+(defun PC-read-file-name-internal (string pred action)
   "Extend `read-file-name-internal' to handle include files.
 This is only used by "
   (if (string-match "<\\([^\"<>]*\\)>?\\'" string)
@@ -1112,7 +1112,7 @@ This is only used by "
          ((eq action 'lambda) (test-completion str2 completion-table nil))
          ((eq action nil) (PC-try-completion str2 completion-table nil))
          ((eq action t) (all-completions str2 completion-table nil))))
-    (read-file-name-internal string dir action)))
+    (read-file-name-internal string pred action)))
 
 
 (provide 'complete)

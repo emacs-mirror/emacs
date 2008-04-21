@@ -1,5 +1,8 @@
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* complete.el (PC-complete-as-file-name, PC-read-file-name-internal):
+	Treat minibuffer-completion-predicate as a predicate.
+
 	* minibuffer.el (completion--file-name-table): Accept both the old
 	`dir' arg or the new `pred' arg.
 
