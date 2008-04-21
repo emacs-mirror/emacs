@@ -1,3 +1,7 @@
+2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (choose-completion-string): Use minibuffer-completion-table.
+
 2008-04-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term.el (term-emulate-terminal): Perform redisplay after the

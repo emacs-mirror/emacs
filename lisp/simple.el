@@ -5416,7 +5416,7 @@ to decide what to delete."
 	     minibuffer-completion-table
 	     ;; If this is reading a file name, and the file name chosen
 	     ;; is a directory, don't exit the minibuffer.
-	     (if (and (eq minibuffer-completion-table 'read-file-name-internal)
+	     (if (and minibuffer-completing-file-name
 		      (file-directory-p (field-string (point-max))))
 		 (let ((mini (active-minibuffer-window)))
 		   (select-window mini)
