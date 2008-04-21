@@ -1,5 +1,26 @@
 2008-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hooks.el (vc-insert-file, vc-state, vc-working-revision)
+	(vc-check-master-templates, vc-file-not-found-hook)
+	(vc-kill-buffer-hook):
+	* vc.el (vc-process-sentinel, vc-exec-after, vc-do-command)
+	(vc-find-position-by-context, vc-buffer-context)
+	(vc-restore-buffer-context, vc-responsible-backend)
+	(vc-expand-dirs, vc-ensure-vc-buffer, vc-buffer-sync)
+	(vc-next-action, vc-register, vc-register-with, vc-steal-lock)
+	(vc-finish-logentry, vc-coding-system-for-diff, vc-switches)
+	(vc-version-diff, vc-diff, vc-insert-headers)
+	(vc-dired-buffers-for-dir, vc-dired-resynch-file)
+	(vc-snapshot-precondition, vc-create-snapshot, vc-print-log)
+	(vc-revert, vc-rollback, vc-version-backup-file)
+	(vc-rename-master, vc-delete-file, vc-rename-file)
+	(vc-branch-part, vc-default-retrieve-snapshot)
+	(vc-annotate-display-autoscale, vc-annotate-display-select)
+	(vc-annotate, vc-annotate-warp-revision, vc-annotate-difference)
+	(vc-annotate-lines, vc-file-tree-walk-internal): Use when instead of if.
+	(vc-dir-update): Handle directories.
+	(vc-default-status-printer): Simplify.
+
 	* progmodes/asm-mode.el (asm-mode-map):
 	* progmodes/hideif.el (hide-ifdef-mode-menu): Add :help.
 

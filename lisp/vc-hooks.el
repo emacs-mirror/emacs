@@ -309,15 +309,15 @@ non-nil if FILE exists and its contents were successfully inserted."
   (when (file-exists-p file)
     (if (not limit)
         (insert-file-contents file)
-      (if (not blocksize) (setq blocksize 8192))
+      (unless blocksize (setq blocksize 8192))
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
 			     file nil filepos (incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
-                          (if pos (delete-region (match-beginning 0)
-                                                 (point-max)))
+                          (when pos (delete-region (match-beginning 0)
+						   (point-max)))
                           (not pos)))))))
     (set-buffer-modified-p nil)
     t))
@@ -549,9 +549,9 @@ status of this file.
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (if (and (> (length file) 0) (vc-backend file))
-          (vc-file-setprop file 'vc-state
-                           (vc-call state-heuristic file)))))
+      (when (and (> (length file) 0) (vc-backend file))
+	(vc-file-setprop file 'vc-state
+			 (vc-call state-heuristic file)))))
 
 (defun vc-recompute-state (file)
   "Recompute the version control state of FILE, and return it.
@@ -604,9 +604,10 @@ Return non-nil if FILE is unchanged."
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (if (vc-backend file)
-          (vc-file-setprop file 'vc-working-revision
-                           (vc-call working-revision file)))))
+      (when (vc-backend file)
+	(vc-file-setprop file 'vc-working-revision
+			 (vc-call working-revision file)))))
+
 ;; Backward compatibility.
 (define-obsolete-function-alias
   'vc-workfile-version 'vc-working-revision "23.1")
@@ -668,17 +669,17 @@ this function."
       (mapcar
        (lambda (s)
 	 (let ((trial (vc-possible-master s dirname basename)))
-	   (if (and trial (file-exists-p trial)
-		    ;; Make sure the file we found with name
-		    ;; TRIAL is not the source file itself.
-		    ;; That can happen with RCS-style names if
-		    ;; the file name is truncated (e.g. to 14
-		    ;; chars).  See if either directory or
-		    ;; attributes differ.
-		    (or (not (string= dirname
-				      (file-name-directory trial)))
-			(not (equal (file-attributes file)
-				    (file-attributes trial)))))
+	   (when (and trial (file-exists-p trial)
+		      ;; Make sure the file we found with name
+		      ;; TRIAL is not the source file itself.
+		      ;; That can happen with RCS-style names if
+		      ;; the file name is truncated (e.g. to 14
+		      ;; chars).  See if either directory or
+		      ;; attributes differ.
+		      (or (not (string= dirname
+					(file-name-directory trial)))
+			  (not (equal (file-attributes file)
+				      (file-attributes trial)))))
 	       (throw 'found trial))))
        templates))))
 
@@ -960,7 +961,7 @@ Used in `find-file-not-found-functions'."
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
   (let ((backend (vc-backend buffer-file-name)))
-    (if backend (vc-call-backend backend 'find-file-not-found-hook))))
+    (when backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
   ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
@@ -971,8 +972,7 @@ Used in `find-file-not-found-functions'."
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
-  (if buffer-file-name
-      (vc-file-clearprops buffer-file-name)))
+  (when buffer-file-name (vc-file-clearprops buffer-file-name)))
 
 (add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
