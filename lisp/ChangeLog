@@ -6,6 +6,8 @@
 
 2008-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-cvs.el (vc-cvs-status-extra-headers): New function.
+
 	* vc-hooks.el (vc-insert-file, vc-state, vc-working-revision)
 	(vc-check-master-templates, vc-file-not-found-hook)
 	(vc-kill-buffer-hook):

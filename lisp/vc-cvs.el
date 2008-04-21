@@ -939,7 +939,6 @@ state."
   ;;   (funcall update-function result)))
   )
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
   (vc-cvs-command (current-buffer) 'async dir "status")
@@ -950,6 +949,19 @@ state."
   ;; 		  "-f" "-n" "update" "-d" "-P")
   (vc-exec-after
    `(vc-cvs-after-dir-status (quote ,update-function))))
+
+(defun vc-cvs-status-extra-headers (dir)
+  (concat
+   ;; FIXME: see how PCL-CVS gets the data to print all these
+   (propertize "Module     : " 'face 'font-lock-type-face)
+   (propertize "ADD CODE TO PRINT THE MODULE\n"
+	       'face 'font-lock-warning-face)
+   (propertize "Repository : " 'face 'font-lock-type-face)
+   (propertize "ADD CODE TO PRINT THE REPOSITORY\n"
+	       'face 'font-lock-warning-face)
+   (propertize "Branch     : " 'face 'font-lock-type-face)
+   (propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
+	       'face 'font-lock-warning-face)))
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.
