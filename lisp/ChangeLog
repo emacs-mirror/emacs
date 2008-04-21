@@ -1,5 +1,8 @@
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--file-name-table): Accept both the old
+	`dir' arg or the new `pred' arg.
+
 	* ffap.el (ffap-read-file-or-url): Do not abuse completing-read's
 	`predicate' argument to pass non-predicate data.
 	(ffap-read-url-internal, ffap-read-file-or-url-internal):

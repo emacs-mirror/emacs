@@ -693,12 +693,16 @@ during running `completion-setup-hook'."
                                      (substring string beg)
                                      pred action))))
 
-(defun completion--file-name-table (string dir action)
+(defun completion--file-name-table (string pred action)
   "Internal subroutine for `read-file-name'.  Do not call this."
-  (setq dir (expand-file-name dir))
   (if (and (zerop (length string)) (eq 'lambda action))
       nil                               ; FIXME: why?
-    (let* ((str (condition-case nil
+    (let* ((dir (if (stringp pred)
+                    ;; It used to be that `pred' was abused to pass `dir'
+                    ;; as an argument.
+                    (prog1 (expand-file-name pred) (setq pred nil))
+                  default-directory))
+           (str (condition-case nil
                     (substitute-in-file-name string)
                   (error string)))
            (name (file-name-nondirectory str))
