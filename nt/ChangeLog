@@ -1,3 +1,8 @@
+2008-04-21  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat (success): Print "make" rather than "gmake", as that
+	is what MingW uses.
+
 2008-04-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (__MINGW_NOTHROW): If not defined, define to nothing.
