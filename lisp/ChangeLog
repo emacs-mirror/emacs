@@ -1,3 +1,8 @@
+2008-04-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-emulate-terminal): Perform redisplay after the
+	process filter has finished running.
+
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-try-completion): Change magic symbol
