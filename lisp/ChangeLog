@@ -1,5 +1,10 @@
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ffap.el (ffap-read-file-or-url): Do not abuse completing-read's
+	`predicate' argument to pass non-predicate data.
+	(ffap-read-url-internal, ffap-read-file-or-url-internal):
+	Use second arg as proper predicate.
+
 	* vc-bzr.el (vc-bzr-complete-with-prefix): Remove.
 	(vc-bzr-revision-completion-table): Use completion-table-with-context
 	instead.

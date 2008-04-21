@@ -922,7 +922,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
   (ffap-locate-file name t ffap-bib-path))
 
 (defun ffap-dired (name)
-  (let ((pt (point)) dir try)
+  (let ((pt (point)) try)
     (save-excursion
       (and (progn
 	     (beginning-of-line)
@@ -1279,15 +1279,17 @@ which may actually result in an url rather than a filename."
       (push fnh-elem file-name-handler-alist)
       (unwind-protect
           (setq guess
-                (completing-read
-                 prompt
-                 'ffap-read-file-or-url-internal
-                 dir
-                 nil
-                 (if dir (cons guess (length dir)) guess)
-                 (list 'file-name-history)
-                 (and buffer-file-name
-                      (abbreviate-file-name buffer-file-name))))
+                (let ((default-directory (if dir (expand-file-name dir)
+                                           default-directory)))
+                  (completing-read
+                   prompt
+                   'ffap-read-file-or-url-internal
+                   nil
+                   nil
+                   (if dir (cons guess (length dir)) guess)
+                   (list 'file-name-history)
+                   (and buffer-file-name
+                        (abbreviate-file-name buffer-file-name)))))
         ;; Remove the special handler manually.  We used to just let-bind
         ;; file-name-handler-alist to preserve its value, but that caused
         ;; other modifications to be lost (e.g. when Tramp gets loaded
@@ -1299,26 +1301,24 @@ which may actually result in an url rather than a filename."
     ;; Note: upcoming url.el package ought to handle this automatically.
     guess))
 
-(defun ffap-read-url-internal (string dir action)
+(defun ffap-read-url-internal (string pred action)
   "Complete url's from history, treating given string as valid."
   (let ((hist (ffap-soft-value "url-global-history-hash-table")))
     (cond
      ((not action)
-      (or (try-completion string hist) string))
+      (or (try-completion string hist pred) string))
      ((eq action t)
-      (or (all-completions string hist) (list string)))
+      (or (all-completions string hist pred) (list string)))
      ;; action == lambda, documented where?  Tests whether string is a
      ;; valid "match".  Let us always say yes.
      (t t))))
 
-(defun ffap-read-file-or-url-internal (string dir action)
-  (unless dir
-    (setq dir default-directory))
-  (unless string
+(defun ffap-read-file-or-url-internal (string pred action)
+  (unless string                        ;Why would this ever happen?
     (setq string default-directory))
   (if (ffap-url-p string)
-      (ffap-read-url-internal string dir action)
-    (read-file-name-internal string dir action)))
+      (ffap-read-url-internal string pred action)
+    (read-file-name-internal string pred action)))
 
 ;; The rest of this page is just to work with package complete.el.
 ;; This code assumes that you load ffap.el after complete.el.
@@ -1523,7 +1523,7 @@ Function CONT is applied to the entry chosen by the user."
 	    (x-popup-menu
 	     t
 	     (list "" (cons title
-			    (mapcar (function (lambda (i) (cons (car i) i)))
+			    (mapcar (lambda (i) (cons (car i) i))
 				    alist))))))
      ;; minibuffer with completion buffer:
      (t
@@ -1537,8 +1537,7 @@ Function CONT is applied to the entry chosen by the user."
 	       nil)))
       (sit-for 0)			; redraw original screen
       ;; Convert string to its entry, or else the default:
-      (setq choice (or (assoc choice alist) (car alist))))
-     )
+      (setq choice (or (assoc choice alist) (car alist)))))
     (if choice
 	(funcall cont choice)
       (message "No choice made!")	; possible with menus
@@ -1569,7 +1568,7 @@ Applies `ffap-menu-text-plist' text properties at all matches."
 				 ffap-menu-text-plist)
 	    (message "Scanning...%2d%% <%s>"
 		     (/ (* 100 (- (point) (point-min))) range) item)))
-      (or mod (set-buffer-modified-p nil))))
+      (or mod (restore-buffer-modified-p nil))))
   (message "Scanning...done")
   ;; Remove duplicates.
   (setq ffap-menu-alist			; sort by item
