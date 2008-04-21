@@ -1,3 +1,8 @@
+2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Qdefault_directory): New variable.
+	(Fread_file_name): Use it to pass `dir' to the completion functions.
+
 2008-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pos_visible_p): Check if iterator stops on a display string.

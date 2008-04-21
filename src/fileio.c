@@ -6156,6 +6156,8 @@ before any other event (mouse or keypress) is handeled.  */)
   return Qnil;
 }
 
+Lisp_Object Qdefault_directory;
+
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
@@ -6279,6 +6281,8 @@ and `read-file-name-function'.  */)
     }
 
   count = SPECPDL_INDEX ();
+  specbind (Qdefault_directory,
+	    Ffile_name_as_directory (Fexpand_file_name (dir, Qnil)));
   specbind (Qcompletion_ignore_case,
 	    read_file_name_completion_ignore_case ? Qt : Qnil);
   specbind (intern ("minibuffer-completing-file-name"), Qt);
@@ -6307,7 +6311,7 @@ and `read-file-name-function'.  */)
   else
 #endif
     val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			    dir, mustmatch, insdef,
+			    Qnil, mustmatch, insdef,
 			    Qfile_name_history, default_filename, Qnil);
 
   tem = Fsymbol_value (Qfile_name_history);
@@ -6484,6 +6488,8 @@ of file names regardless of the current language environment.  */);
 
   Qformat_decode = intern ("format-decode");
   staticpro (&Qformat_decode);
+  Qdefault_directory = intern ("default-directory");
+  staticpro (&Qdefault_directory);
   Qformat_annotate_function = intern ("format-annotate-function");
   staticpro (&Qformat_annotate_function);
   Qafter_insert_file_set_coding = intern ("after-insert-file-set-coding");
