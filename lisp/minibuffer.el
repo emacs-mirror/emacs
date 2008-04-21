@@ -73,15 +73,14 @@ ACTION can be one of nil, t or `lambda'."
 (defun completion-table-dynamic (fun)
   "Use function FUN as a dynamic completion table.
 FUN is called with one argument, the string for which completion is required,
-and it should return an alist containing all the intended possible
-completions.  This alist may be a full list of possible completions so that FUN
-can ignore the value of its argument.  If completion is performed in the
-minibuffer, FUN will be called in the buffer from which the minibuffer was
-entered.
+and it should return an alist containing all the intended possible completions.
+This alist may be a full list of possible completions so that FUN can ignore
+the value of its argument.  If completion is performed in the minibuffer,
+FUN will be called in the buffer from which the minibuffer was entered.
 
 The result of the `dynamic-completion-table' form is a function
 that can be used as the ALIST argument to `try-completion' and
-`all-completion'.  See Info node `(elisp)Programmed Completion'."
+`all-completions'.  See Info node `(elisp)Programmed Completion'."
   (lexical-let ((fun fun))
     (lambda (string pred action)
       (with-current-buffer (let ((win (minibuffer-selected-window)))
@@ -567,8 +566,8 @@ It also eliminates runs of equal strings."
 When this hook is run, the current buffer is the one in which the
 command to display the completion list buffer was run.
 The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the
-value of `completion-common-substring'. See also `display-completion-list'.")
+The common prefix substring for completion may be available as the value
+of `completion-common-substring'.  See also `display-completion-list'.")
 
 (defun display-completion-list (completions &optional common-substring)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
@@ -583,7 +582,7 @@ At the end, this runs the normal hook `completion-setup-hook'.
 It can find the completion buffer in `standard-output'.
 The optional second arg COMMON-SUBSTRING is a string.
 It is used to put faces, `completions-first-difference' and
-`completions-common-part' on the completion buffer. The
+`completions-common-part' on the completion buffer.  The
 `completions-common-part' face is put on the common substring
 specified by COMMON-SUBSTRING.  If COMMON-SUBSTRING is nil
 and the current buffer is not the minibuffer, the faces are not put.
@@ -692,7 +691,7 @@ during running `completion-setup-hook'."
                                      pred action))))
 
 (defun completion--file-name-table (string dir action)
-  "Internal subroutine for read-file-name.  Do not call this."
+  "Internal subroutine for `read-file-name'.  Do not call this."
   (setq dir (expand-file-name dir))
   (if (and (zerop (length string)) (eq 'lambda action))
       nil                               ; FIXME: why?
