@@ -3021,7 +3021,7 @@ specific headers."
 ;; WORK IN PROGRESS!  DO NOT SET this! ONLY set it if you want to help
 ;; write code for this feature.  This variable will likely disappear
 ;; when the work is done.
-(defvar vc-dir-insert-directories t)
+(defvar vc-dir-insert-directories nil)
 
 (defun vc-dir-update (entries buffer &optional noinsert)
   "Update BUFFER's ewoc from the list of ENTRIES.
