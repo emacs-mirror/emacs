@@ -168,18 +168,28 @@
 (easy-menu-define hide-ifdef-mode-menu hide-ifdef-mode-map
   "Menu for `hide-ifdef-mode'."
   '("Hide-Ifdef"
-    ["Hide some ifdefs" hide-ifdefs t]
-    ["Show all ifdefs" show-ifdefs t]
-    ["Hide ifdef block" hide-ifdef-block t]
-    ["Show ifdef block" show-ifdef-block t]
-    ["Define a variable" hide-ifdef-define t]
-    ["Define an alist" hide-ifdef-set-define-alist t]
-    ["Use an alist" hide-ifdef-use-define-alist t]
-    ["Undefine a variable" hide-ifdef-undef t]
+    ["Hide some ifdefs" hide-ifdefs
+     :help "Hide the contents of some #ifdefs"]
+    ["Show all ifdefs" show-ifdefs
+     :help "Cancel the effects of `hide-ifdef': show the contents of all #ifdefs"]
+    ["Hide ifdef block" hide-ifdef-block
+     :help "Hide the ifdef block (true or false part) enclosing or before the cursor"]
+    ["Show ifdef block" show-ifdef-block
+     :help "Show the ifdef block (true or false part) enclosing or before the cursor"]
+    ["Define a variable..." hide-ifdef-define
+     :help "Define a VAR so that #ifdef VAR would be included"]
+    ["Undefine a variable..." hide-ifdef-undef
+     :help "Undefine a VAR so that #ifdef VAR would not be included"]
+    ["Define an alist..." hide-ifdef-set-define-alist
+     :help "Set the association for NAME to `hide-ifdef-env'"]
+    ["Use an alist..." hide-ifdef-use-define-alist
+     :help "Set `hide-ifdef-env' to the define list specified by NAME"]
     ["Toggle read only" hide-ifdef-toggle-read-only
-     :style toggle :selected hide-ifdef-read-only]
+     :style toggle :selected hide-ifdef-read-only
+     :help "Buffer should be read-only while hiding text"]
     ["Toggle shadowing" hide-ifdef-toggle-shadowing
-     :style toggle :selected hide-ifdef-shadow]))
+     :style toggle :selected hide-ifdef-shadow
+     :help "Text should be shadowed instead of hidden"]))
 
 (defvar hide-ifdef-hiding nil
   "Non-nil when text may be hidden.")
@@ -257,8 +267,8 @@ how the hiding is done:
     ;; else end hide-ifdef-mode
     (kill-local-variable 'line-move-ignore-invisible)
     (remove-from-invisibility-spec '(hide-ifdef . t))
-    (if hide-ifdef-hiding
-	(show-ifdefs))))
+    (when hide-ifdef-hiding
+      (show-ifdefs))))
 
 
 (defun hif-show-all ()

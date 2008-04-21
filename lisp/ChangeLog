@@ -1,3 +1,10 @@
+2008-04-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/asm-mode.el (asm-mode-map):
+	* progmodes/hideif.el (hide-ifdef-mode-menu): Add :help.
+
+	* progmodes/m4-mode.el (m4-mode-map): Add menu.
+
 2008-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* select.el (xselect-convert-to-string): Send a C_STRING only if

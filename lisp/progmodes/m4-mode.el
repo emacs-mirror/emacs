@@ -103,10 +103,21 @@
 (modify-syntax-entry ?\"  "w" m4-mode-syntax-table)
 
 (defvar m4-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key map "\C-c\C-b" 'm4-m4-buffer)
     (define-key map "\C-c\C-r" 'm4-m4-region)
     (define-key map "\C-c\C-c" 'comment-region)
+    (define-key map [menu-bar m4-mode] (cons "M4" menu-map))
+    (define-key menu-map [m4c]
+      '(menu-item "Comment Region" comment-region
+		  :help "Comment Region"))
+    (define-key menu-map [m4b]
+      '(menu-item "M4 Buffer" m4-m4-buffer
+		  :help "Send contents of the current buffer to m4"))
+    (define-key menu-map [m4r]
+      '(menu-item "M4 Region" m4-m4-region
+		  :help "Send contents of the current region to m4"))
     map))
 
 (defvar m4-mode-abbrev-table nil
