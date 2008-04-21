@@ -1,5 +1,9 @@
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-bzr.el (vc-bzr-complete-with-prefix): Remove.
+	(vc-bzr-revision-completion-table): Use completion-table-with-context
+	instead.
+
 	* simple.el (choose-completion-string): Use minibuffer-completion-table.
 
 2008-04-21  Chong Yidong  <cyd@stupidchicken.com>

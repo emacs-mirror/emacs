@@ -706,12 +706,6 @@ Optional argument LOCALP is always ignored."
 
 ;;; Revision completion
 
-(defun vc-bzr-complete-with-prefix (prefix action table string pred)
-  (let ((comp (complete-with-action action table string pred)))
-    (if (stringp comp)
-        (concat prefix comp)
-      comp)))
-
 (defun vc-bzr-revision-completion-table (files)
   (lexical-let ((files files))
     ;; What about using `files'?!?  --Stef
@@ -719,19 +713,20 @@ Optional argument LOCALP is always ignored."
       (cond
        ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
                       string)
-        (vc-bzr-complete-with-prefix (substring string 0 (match-end 0))
-                                     action
-                                     'read-file-name-internal
-                                     (substring string (match-end 0))
-                                     ;; Dropping `pred'.   Maybe we should just
-                                     ;; stash it in `read-file-name-predicate'?
-                                     nil))
+        (completion-table-with-context (substring string 0 (match-end 0))
+                                       'read-file-name-internal
+                                       (substring string (match-end 0))
+                                       ;; Dropping `pred'.   Maybe we should
+                                       ;; just stash it in
+                                       ;; `read-file-name-predicate'?
+                                       nil
+                                       action))
        ((string-match "\\`\\(before\\):" string)
-        (vc-bzr-complete-with-prefix (substring string 0 (match-end 0))
-                                     action
-                                     (vc-bzr-revision-completion-table files)
-                                     (substring string (match-end 0))
-                                     pred))
+        (completion-table-with-context (substring string 0 (match-end 0))
+                                       (vc-bzr-revision-completion-table files)
+                                       (substring string (match-end 0))
+                                       pred
+                                       action))
        ((string-match "\\`\\(tag\\):" string)
         (let ((prefix (substring string 0 (match-end 0)))
               (tag (substring string (match-end 0)))
@@ -744,7 +739,7 @@ Optional argument LOCALP is always ignored."
             (goto-char (point-min))
             (while (re-search-forward "^\\(.*[^ \n]\\) +[^ \n]*$" nil t)
               (push (match-string-no-properties 1) table)))
-          (vc-bzr-complete-with-prefix prefix action table tag pred)))
+          (completion-table-with-context prefix table tag pred action)))
 
        ((string-match "\\`\\(revid\\):" string)
         ;; FIXME: How can I get a list of revision ids?
