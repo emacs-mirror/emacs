@@ -917,7 +917,8 @@ If the subdirectory's contents are already present in the buffer, the
 
 In either case, @kbd{i} sets the Emacs mark before moving, so @kbd{C-u
 C-@key{SPC}} takes you back to the old position in the buffer (the line
-describing that subdirectory).
+describing that subdirectory).  You can also use @samp{^} to return
+to the parent directory in the same Dired buffer.
 
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
