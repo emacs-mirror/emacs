@@ -1,3 +1,8 @@
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Fswitch_to_buffer): Change interactive spec to call
+	read-buffer-to-switch instead of using the letter "B".
+
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Qdefault_directory): New variable.
