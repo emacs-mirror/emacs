@@ -1,3 +1,8 @@
+2008-04-22  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (emacs-deps): Define.  Use it instead of
+	$(lisp)/subdirs.el.
+
 2008-04-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-next-action): Do not consider directories when

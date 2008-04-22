@@ -80,6 +80,8 @@ COMPILE_FIRST = \
 # The actual Emacs command run in the targets below.
 
 emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
+# Prerequisites for running $(emacs)
+emacs-deps = $(lisp)/subdirs.el
 
 # Common command to find subdirectories
 
@@ -107,17 +109,17 @@ $(lisp)/cus-load.el:
 # than on loaddefs.el, so that autoloads does not run in parallel with
 # them under "make -j", because that could delete loaddefs.el from
 # under their feet.
-custom-deps: $(lisp)/subdirs.el autoloads $(lisp)/cus-load.el doit
+custom-deps: $(emacs-deps) autoloads $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
-finder-data: $(lisp)/subdirs.el autoloads doit
+finder-data: $(emacs-deps) autoloads doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
-autoloads: $(lisp)/subdirs.el $(LOADDEFS) doit
+autoloads: $(emacs-deps) $(LOADDEFS) doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
@@ -152,7 +154,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 .SUFFIXES: .elc .el
 
-.el.elc: $(lisp)/subdirs.el
+.el.elc: $(emacs-deps)
 	-$(emacs)  $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 # Compile all Lisp files, but don't recompile those that are up to
@@ -169,7 +171,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 # `|| true' below prevents old Bash versions from getting confused
 # by an error.
-compile: $(lisp)/subdirs.el $(LOADDEFS) doit
+compile: $(emacs-deps) $(LOADDEFS) doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	els=`echo $$wins | tr ' \011' '\012\012' | \
@@ -186,7 +188,7 @@ compile: $(lisp)/subdirs.el $(LOADDEFS) doit
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el $(LOADDEFS) doit
+compile-always: $(emacs-deps) $(LOADDEFS) doit
 	# `|| true' prevents old Bash versions from getting confused
 	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
@@ -252,7 +254,7 @@ MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
 	$(MH_E_DIR)/mh-xface.el
 
 mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
-$(MH_E_DIR)/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
+$(MH_E_DIR)/mh-loaddefs.el: $(emacs-deps) $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
@@ -274,21 +276,21 @@ CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
 	$(CAL_DIR)/holidays.el    $(CAL_DIR)/lunar.el      \
 	$(CAL_DIR)/solar.el
 
-$(CAL_DIR)/cal-loaddefs.el: $(lisp)/subdirs.el $(CAL_SRC)
+$(CAL_DIR)/cal-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-$(CAL_DIR)/diary-loaddefs.el: $(lisp)/subdirs.el $(CAL_SRC)
+$(CAL_DIR)/diary-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-$(CAL_DIR)/hol-loaddefs.el: $(lisp)/subdirs.el $(CAL_SRC)
+$(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
