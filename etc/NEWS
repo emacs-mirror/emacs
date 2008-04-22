@@ -480,6 +480,9 @@ the first error encountered during compilations.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
+** The `copyright' package looks for copyright at the end of the buffer
+if `copyright-at-end-flag' is non-nil (change-log-mode sets this).
+
 ** eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
 
