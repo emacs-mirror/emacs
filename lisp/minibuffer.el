@@ -764,6 +764,16 @@ during running `completion-setup-hook'."
                             'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
+(defun internal-complete-buffer-except (&optional buffer)
+  "Perform completion on all buffers excluding BUFFER.
+Like `internal-complete-buffer', but removes BUFFER from the completion list."
+  (lexical-let ((except (if (stringp buffer) buffer (buffer-name buffer))))
+    (apply-partially 'completion-table-with-predicate
+		     'internal-complete-buffer
+		     (lambda (name)
+		       (not (equal (if (consp name) (car name) name) except)))
+		     nil)))
+
 (provide 'minibuffer)
 
 ;; arch-tag: ef8a0a15-1080-4790-a754-04017c02f08f
