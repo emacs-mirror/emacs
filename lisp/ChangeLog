@@ -1,3 +1,7 @@
+2008-04-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.el (Info-complete-menu-item): Add missing parenthesis.
+
 2008-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* info.el (Info-complete-menu-item): Save point.
