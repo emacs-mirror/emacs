@@ -2307,12 +2307,12 @@ Because of ambiguities, this should be concatenated with something like
                 (Info-goto-node orignode))
               ;; Update the cache.
               (set (make-local-variable 'Info-complete-cache)
-		 (list Info-current-file Info-current-node
-		       Info-complete-next-re string completions
-		       Info-complete-nodes)))
-	  (if action
-	      (all-completions string completions predicate)
-	    (try-completion string completions predicate)))))))
+		   (list Info-current-file Info-current-node
+			 Info-complete-next-re string completions
+			 Info-complete-nodes)))
+	    (if action
+		(all-completions string completions predicate)
+	      (try-completion string completions predicate))))))))
 
 
 (defun Info-menu (menu-item &optional fork)
