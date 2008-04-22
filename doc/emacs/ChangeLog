@@ -1,3 +1,8 @@
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
+	* dired.texi (Subdirectories in Dired): Describe using `^'
+	to return to the parent directory.
+
 2008-04-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB-UI Layout, Other GDB-UI Buffers): Update for
