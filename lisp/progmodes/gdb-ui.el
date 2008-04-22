@@ -751,7 +751,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 					'gud-gdb-complete-command)
 		     (if (and transient-mark-mode mark-active)
 			 (buffer-substring (region-beginning) (region-end))
-		       (tooltip-identifier-from-point (point))))))
+		       (concat (if (eq major-mode 'gdb-registers-mode) "$")
+			       (tooltip-identifier-from-point (point)))))))
 	      (speedbar 1)
 		(set-text-properties 0 (length expr) nil expr)
 		(gdb-enqueue-input
