@@ -1,3 +1,8 @@
+2008-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-locals-header): New variable.
+	(gdb-locals-mode, gdb-registers-mode): Use it for header line.
+
 2008-04-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/gdb-ui.el (gdbmi-invalidate-frames): Declare as function.
