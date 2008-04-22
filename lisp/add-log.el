@@ -39,6 +39,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl)				; ignore-errors
   (require 'timezone))
 
 (defgroup change-log nil
@@ -764,6 +765,7 @@ the change log file in another window."
 
 
 (defvar smerge-resolve-function)
+(defvar copyright-at-end-flag)
 
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
@@ -783,10 +785,11 @@ Runs `change-log-mode-hook'.
   ;; Avoid that filling leaves behind a single "*" on a line.
   (add-hook 'fill-nobreak-predicate
 	    '(lambda ()
-	       (looking-back "^\\s *\\*\\s *" (line-beginning-position))) 
+	       (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
 	    nil t)
   (set (make-local-variable 'indent-line-function) 'change-log-indent)
   (set (make-local-variable 'tab-always-indent) nil)
+  (set (make-local-variable 'copyright-at-end-flag) t)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
