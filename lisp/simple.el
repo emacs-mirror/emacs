@@ -1957,6 +1957,25 @@ This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
+(declare-function mailcap-file-default-commands "mailcap" (files))
+
+(defun minibuffer-default-add-shell-commands ()
+  "Return a list of all commands associted with the current file.
+This function is used to add all related commands retieved by `mailcap'
+to the end of the list of defaults just after the default value."
+  (interactive)
+  (let* ((filename (if (listp minibuffer-default)
+		       (car minibuffer-default)
+		     minibuffer-default))
+	 (commands (and filename (require 'mailcap nil t)
+			(mailcap-file-default-commands (list filename)))))
+    (setq commands (mapcar (lambda (command)
+			     (concat command " " filename))
+			   commands))
+    (if (listp minibuffer-default)
+	(append minibuffer-default commands)
+      (cons minibuffer-default commands))))
+
 (defun minibuffer-complete-shell-command ()
   "Dynamically complete shell command at point."
   (interactive)
@@ -2031,9 +2050,17 @@ If it is nil, error output is mingled with regular output.
 In an interactive call, the variable `shell-command-default-error-buffer'
 specifies the value of ERROR-BUFFER."
 
-  (interactive (list (read-shell-command "Shell command: ")
-		     current-prefix-arg
-		     shell-command-default-error-buffer))
+  (interactive
+   (list
+    (minibuffer-with-setup-hook
+	(lambda ()
+	  (set (make-local-variable 'minibuffer-default-add-function)
+	       'minibuffer-default-add-shell-commands))
+      (read-shell-command "Shell command: " nil nil
+			  (and buffer-file-name
+			       (file-relative-name buffer-file-name))))
+    current-prefix-arg
+    shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
   (let ((handler
 	 (find-file-name-handler (directory-file-name default-directory)
