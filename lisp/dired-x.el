@@ -838,13 +838,22 @@ Knows about the special cases in variable `default-directory-alist'."
   (or (eval (cdr (assq major-mode default-directory-alist)))
       default-directory))
 
-(defun dired-smart-shell-command (cmd &optional insert)
+(defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
-  (interactive (list (read-from-minibuffer "Shell command: "
-					   nil nil nil 'shell-command-history)
-		     current-prefix-arg))
+  (interactive
+   (list
+    (minibuffer-with-setup-hook
+	(lambda ()
+	  (set (make-local-variable 'minibuffer-default-add-function)
+	       'minibuffer-default-add-shell-commands))
+      (read-shell-command "Shell command: " nil nil
+			  (cond
+			   (buffer-file-name (file-relative-name buffer-file-name))
+			   ((eq major-mode 'dired-mode) (dired-get-filename t t)))))
+    current-prefix-arg
+    shell-command-default-error-buffer))
   (let ((default-directory (dired-default-directory)))
-    (shell-command cmd insert)))
+    (shell-command command output-buffer error-buffer)))
 
 
 ;;; LOCAL VARIABLES FOR DIRED BUFFERS.
