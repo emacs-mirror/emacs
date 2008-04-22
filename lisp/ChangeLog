@@ -1,3 +1,9 @@
+2008-04-22  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-scroll-up-or-next-page): Don't use
+	set-window-vscroll but image-scroll-down.  Fixes a bug where a
+	command following SPC scrolled up again.
+
 2008-04-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-locals-header): New variable.
