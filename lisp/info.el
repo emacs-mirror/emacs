@@ -2263,49 +2263,50 @@ Because of ambiguities, this should be concatenated with something like
   ;; Note that `Info-complete-menu-buffer' could be current already,
   ;; so we want to save point.
   (with-current-buffer Info-complete-menu-buffer
-    (let ((completion-ignore-case t)
-	  (case-fold-search t)
-	  (orignode Info-current-node)
-	  nextnode)
-      (goto-char (point-min))
-      (search-forward "\n* Menu:")
-      (if (not (memq action '(nil t)))
-	  (re-search-forward
-	   (concat "\n\\* +" (regexp-quote string) ":") nil t)
-	(let ((pattern (concat "\n\\* +\\("
-			       (regexp-quote string)
-			       Info-menu-entry-name-re "\\):" Info-node-spec-re))
-	      completions
-	      (complete-nodes Info-complete-nodes))
-	  ;; Check the cache.
-	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
-		   (equal (nth 1 Info-complete-cache) Info-current-node)
-		   (equal (nth 2 Info-complete-cache) Info-complete-next-re)
-		   (equal (nth 5 Info-complete-cache) Info-complete-nodes)
-		   (let ((prev (nth 3 Info-complete-cache)))
-		     (eq t (compare-strings string 0 (length prev)
-					    prev 0 nil t))))
-	      ;; We can reuse the previous list.
-	      (setq completions (nth 4 Info-complete-cache))
-	    ;; The cache can't be used.
-	    (while
-		(progn
-		  (while (re-search-forward pattern nil t)
-		    (push (match-string-no-properties 1)
-			  completions))
-		  ;; Check subsequent nodes if applicable.
-		  (or (and Info-complete-next-re
-		           (setq nextnode (Info-extract-pointer "next" t))
-		           (string-match Info-complete-next-re nextnode))
-		      (and complete-nodes
-		           (setq complete-nodes (cdr complete-nodes)
-		                 nextnode (car complete-nodes)))))
-	      (Info-goto-node nextnode))
-	    ;; Go back to the start node (for the next completion).
-	    (unless (equal Info-current-node orignode)
-	      (Info-goto-node orignode))
-	    ;; Update the cache.
-	    (set (make-local-variable 'Info-complete-cache)
+    (save-excursion
+      (let ((completion-ignore-case t)
+            (case-fold-search t)
+            (orignode Info-current-node)
+            nextnode)
+        (goto-char (point-min))
+        (search-forward "\n* Menu:")
+        (if (not (memq action '(nil t)))
+            (re-search-forward
+             (concat "\n\\* +" (regexp-quote string) ":") nil t)
+          (let ((pattern (concat "\n\\* +\\("
+                                 (regexp-quote string)
+                                 Info-menu-entry-name-re "\\):" Info-node-spec-re))
+                completions
+                (complete-nodes Info-complete-nodes))
+            ;; Check the cache.
+            (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
+                     (equal (nth 1 Info-complete-cache) Info-current-node)
+                     (equal (nth 2 Info-complete-cache) Info-complete-next-re)
+                     (equal (nth 5 Info-complete-cache) Info-complete-nodes)
+                     (let ((prev (nth 3 Info-complete-cache)))
+                       (eq t (compare-strings string 0 (length prev)
+                                              prev 0 nil t))))
+                ;; We can reuse the previous list.
+                (setq completions (nth 4 Info-complete-cache))
+              ;; The cache can't be used.
+              (while
+                  (progn
+                    (while (re-search-forward pattern nil t)
+                      (push (match-string-no-properties 1)
+                            completions))
+                    ;; Check subsequent nodes if applicable.
+                    (or (and Info-complete-next-re
+                             (setq nextnode (Info-extract-pointer "next" t))
+                             (string-match Info-complete-next-re nextnode))
+                        (and complete-nodes
+                             (setq complete-nodes (cdr complete-nodes)
+                                   nextnode (car complete-nodes)))))
+                (Info-goto-node nextnode))
+              ;; Go back to the start node (for the next completion).
+              (unless (equal Info-current-node orignode)
+                (Info-goto-node orignode))
+              ;; Update the cache.
+              (set (make-local-variable 'Info-complete-cache)
 		 (list Info-current-file Info-current-node
 		       Info-complete-next-re string completions
 		       Info-complete-nodes)))
