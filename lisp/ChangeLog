@@ -1,5 +1,25 @@
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-success-function): New variable with default
+	to `isearch-success-function-default'.
+	(isearch-search): Call a function from `isearch-success-function'
+	instead of calling the hard-coded `isearch-range-invisible'.
+	(isearch-success-function-default): New function that calls
+	`isearch-range-invisible' and inverts its return value.
+
+	* info.el (Info-search): In two similar places that skip
+	undesired search matches move code to Info-search-success-function,
+	and call `isearch-success-function' instead.
+	(Info-search-success-function): New function copied from code
+	in Info-search.  Replace isearch-range-invisible with
+	text-property-not-all that checks for 'invisible and 'display
+	properties to skip partially invisible matches (whose display
+	properties were set by Info-fontify-node).
+	(Info-mode): Set buffer-local isearch-success-function
+	to Info-search-success-function.
+
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
 	* minibuffer.el (internal-complete-buffer-except): New function.
 
 	* files.el (read-buffer-to-switch): New function.
