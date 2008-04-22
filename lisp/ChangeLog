@@ -2,6 +2,7 @@
 
 	* progmodes/gdb-ui.el (gdb-locals-header): New variable.
 	(gdb-locals-mode, gdb-registers-mode): Use it for header line.
+	(gud-watch): Add "$" prefix when in registers buffer.
 
 2008-04-22  Glenn Morris  <rgm@gnu.org>
 
