@@ -29,12 +29,6 @@
 
 	* add-log.el (top-level): Require 'cl when compiling.
 
-2008-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el, $(CAL_DIR)/cal-loaddefs.el)
-	($(CAL_DIR)/diary-loaddefs.el, $(CAL_DIR)/hol-loaddefs.el):
-	Undo last change.
-
 2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* complete.el (PC-complete-as-file-name, PC-read-file-name-internal):
