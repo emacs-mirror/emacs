@@ -1,3 +1,17 @@
+2008-04-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-next-action): Do not consider directories when
+	checking for state compatibility.
+	(vc-transfer-file): Use when not if.
+	(vc-dir-parent-marked-p, vc-dir-children-marked-p): New functions.
+	(vc-dir-mark-file): Use them.
+	(vc-deduce-fileset): Also return the backend.
+	(vc-diff-internal): Take as argument the value returned by
+	vc-deduce-fileset instead of just the fileset.
+	(vc-next-action, vc-finish-logentry, vc-version-diff, vc-diff)
+	(vc-dir-mark-file, vc-print-log, vc-revert, vc-rollback)
+	(vc-update): Update the vc-deduce-fileset and vc-diff-internal calls.
+
 2008-04-22  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-scroll-up-or-next-page): Don't use

@@ -648,6 +648,10 @@
 ;;
 ;; - vc-dir toolbar needs more icons.
 ;;
+;; - implement `vc-dir-parent-marked-p' and `vc-dir-children-marked-p'.
+;;
+;; - test operations on directories in vc-dir.
+;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
 ;;   vc-dired/vc-dir, it is possible that these commands are called
@@ -1419,6 +1423,7 @@ Only files already under version control are noticed."
 (defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered)
   "Deduce a set of files and a backend to which to apply an operation.
 
+Return (BACKEND . FILESET).
 If we're in VC-dired mode, the fileset is the list of marked files.
 Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
@@ -1427,45 +1432,54 @@ and we're in a dired buffer, select the current directory.
 If none of these conditions is met, but ALLOW_UNREGISTERED is in and the
 visited file is not registered, return a singletin fileset containing it.
 Otherwise, throw an error."
-  (cond (vc-dired-mode
-	 (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
-	   (unless marked
-	     (error "No files have been selected."))
-	   ;; All members of the fileset must have the same backend
-	   (let ((firstbackend (vc-backend (car marked))))
-             (dolist (f (cdr marked))
-               (unless (eq (vc-backend f) firstbackend)
-                 (error "All members of a fileset must be under the same version-control system."))))
-	   marked))
-        ((eq major-mode 'vc-dir-mode)
-         (or (vc-dir-marked-files)
-             (list (vc-dir-current-file))))
- 	((vc-backend buffer-file-name)
-	 (list buffer-file-name))
-	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
-				   (with-current-buffer vc-parent-buffer
-				     (or vc-dired-mode (eq major-mode 'vc-dir-mode)))))
-	 (progn
-	   (set-buffer vc-parent-buffer)
-	   (vc-deduce-fileset)))
-	;; This is guarded by an enabling arg so users won't potentially
-	;; shoot themselves in the foot by modifying a fileset they can't
-	;; verify by eyeball.  Allow it for nondestructive commands like
-	;; making diffs, or possibly for destructive ones that have
-	;; confirmation prompts.
-	((and allow-directory-wildcard
-              ;; I think this is a misfeature.  For now, I'll leave it in, but
-              ;; I'll disable it anywhere else than in dired buffers.  --Stef
-              (and (derived-mode-p 'dired-mode)
-                   (equal buffer-file-name nil)
-                   (equal list-buffers-directory default-directory)))
-	 (progn
-	   (message "All version-controlled files below %s selected."
-		    default-directory)
-	   (list default-directory)))
-	((and allow-unregistered (not (vc-registered buffer-file-name)))
-	 (list buffer-file-name))
-	(t (error "No fileset is available here."))))
+  (let (backend)
+    (cond
+     (vc-dired-mode
+      (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
+	(unless marked
+	  (error "No files have been selected."))
+	;; All members of the fileset must have the same backend
+	(setq backend (vc-backend (car marked)))
+	(dolist (f (cdr marked))
+	  (unless (eq (vc-backend f) backend)
+	    (error "All members of a fileset must be under the same version-control system.")))
+	(cons backend marked)))
+     ((eq major-mode 'vc-dir-mode)
+      ;; FIXME: Maybe the backend should be stored in a buffer-local
+      ;; variable?
+      (cons (vc-responsible-backend default-directory)
+	    (or (vc-dir-marked-files)
+		(list (vc-dir-current-file)))))
+     ((setq backend (vc-backend buffer-file-name))
+      (cons backend (list buffer-file-name)))
+     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+				(with-current-buffer vc-parent-buffer
+				  (or vc-dired-mode (eq major-mode 'vc-dir-mode)))))
+      (progn
+	(set-buffer vc-parent-buffer)
+	(vc-deduce-fileset)))
+     ;; This is guarded by an enabling arg so users won't potentially
+     ;; shoot themselves in the foot by modifying a fileset they can't
+     ;; verify by eyeball.  Allow it for nondestructive commands like
+     ;; making diffs, or possibly for destructive ones that have
+     ;; confirmation prompts.
+     ((and allow-directory-wildcard
+	   ;; I think this is a misfeature.  For now, I'll leave it in, but
+	   ;; I'll disable it anywhere else than in dired buffers.  --Stef
+	   (and (derived-mode-p 'dired-mode)
+		(equal buffer-file-name nil)
+		(equal list-buffers-directory default-directory)))
+      (progn
+	(message "All version-controlled files below %s selected."
+		 default-directory)
+	(cons
+	 (vc-responsible-backend default-directory)
+	 (list default-directory))))
+     ((and allow-unregistered (not (vc-registered buffer-file-name)))
+      (cons (vc-responsible-backend
+	     (file-name-directory (buffer-file-name)))
+	    (list buffer-file-name)))
+     (t (error "No fileset is available here.")))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1564,16 +1578,19 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((files (vc-deduce-fileset nil t))
+  (let* ((vc-fileset (vc-deduce-fileset nil t))
+	 (files (cdr vc-fileset))
 	 (state (vc-state (car files)))
 	 (model (vc-checkout-model (car files)))
 	 revision)
     ;; Verify that the fileset is homogeneous
     (dolist (file (cdr files))
-      (unless (vc-compatible-state (vc-state file) state)
-	(error "Fileset is in a mixed-up state"))
-      (unless (eq (vc-checkout-model file) model)
-	  (error "Fileset has mixed checkout models")))
+      ;; Ignore directories, they are compatible with anything.
+      (unless (file-directory-p file)
+	(unless (vc-compatible-state (vc-state file) state)
+	  (error "Fileset is in a mixed-up state"))
+	(unless (eq (vc-checkout-model file) model)
+	  (error "Fileset has mixed checkout models"))))
     ;; Check for buffers in the fileset not matching the on-disk contents.
     (dolist (file files)
       (let ((visited (get-file-buffer file)))
@@ -1708,7 +1725,8 @@ merge in the changes into your working copy."
 	(when (not (equal buffer-file-name file))
 	  (find-file-other-window file))
 	(if (save-window-excursion
-	      (vc-diff-internal nil (list file) (vc-working-revision file) nil)
+	      (vc-diff-internal nil (cons (car vc-fileset) (list file))
+				(vc-working-revision file) nil)
 	      (goto-char (point-min))
 	      (let ((inhibit-read-only t))
 		(insert
@@ -2035,8 +2053,10 @@ the buffer contents as a comment."
       (mapc
        (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
        log-fileset))
-    (when (or vc-dired-mode (eq major-mode 'vc-dir-mode))
+    (when vc-dired-mode
       (dired-move-to-filename))
+    (when (eq major-mode 'vc-dir-mode)
+      (vc-dir-move-to-goal-column))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 ;;; Additional entry points for examining version histories
@@ -2114,11 +2134,12 @@ the buffer contents as a comment."
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
 
-(defun vc-diff-internal (async files rev1 rev2 &optional verbose)
+(defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose)
   "Report diffs between two revisions of a fileset.
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
-  (let* ((messages (cons (format "Finding changes in %s..."
+  (let* ((files (cdr vc-fileset))
+	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
                          (format "No changes between %s and %s"
                                  (or rev1 "working revision")
@@ -2157,7 +2178,7 @@ returns t if the buffer had changes, nil otherwise."
                      (append (vc-switches nil 'diff) '("/dev/null"))))))
         (setq files (nreverse filtered))))
     (let ((vc-disable-async-diff (not async)))
-      (vc-call diff files rev1 rev2 "*vc-diff*"))
+      (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 "*vc-diff*"))
     (set-buffer "*vc-diff*")
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
@@ -2182,7 +2203,8 @@ returns t if the buffer had changes, nil otherwise."
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
-   (let* ((files (vc-deduce-fileset t))
+   (let* ((vc-fileset (vc-deduce-fileset t))
+	  (files (cdr vc-fileset))
 	  (first (car files))
 	  (completion-table
 	   (vc-call revision-completion-table files))
@@ -2223,9 +2245,10 @@ returns t if the buffer had changes, nil otherwise."
        (when (string= rev1 "") (setq rev1 nil))
        (when (string= rev2 "") (setq rev2 nil))
        (list files rev1 rev2))))
-  (if (and (not rev1) rev2)
-      (error "Not a valid revision range."))
-  (vc-diff-internal t files rev1 rev2 (interactive-p)))
+  (when (and (not rev1) rev2)
+    (error "Not a valid revision range."))
+  (vc-diff-internal
+   t (cons (car (vc-deduce-fileset t)) files) rev1 rev2 (interactive-p)))
 
 ;; (defun vc-contains-version-controlled-file (dir)
 ;;   "Return t if DIR contains a version-controlled file, nil otherwise."
@@ -2249,9 +2272,8 @@ saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
-    (let* ((files (vc-deduce-fileset t)))
-      (when buffer-file-name (vc-buffer-sync not-urgent))
-      (vc-diff-internal t files nil nil (interactive-p)))))
+    (when buffer-file-name (vc-buffer-sync not-urgent))
+    (vc-diff-internal t (vc-deduce-fileset t) nil nil (interactive-p))))
 
 
 ;;;###autoload
@@ -3268,13 +3290,24 @@ If a prefix argument is given, move by that many lines."
 	    (funcall mark-unmark-function))))
     (funcall mark-unmark-function)))
 
+(defun vc-dir-parent-marked-p (arg)
+  ;; Return t if any of the children of arg is marked.
+  nil)
+
+(defun vc-dir-children-marked-p (arg)
+  ;; Return t if any of the children of arg is marked.
+  nil)
+
 (defun vc-dir-mark-file ()
   ;; Mark the current file and move to the next line.
   (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (setf (vc-dir-fileinfo->marked file) t)
-    (ewoc-invalidate vc-ewoc crt)
-    (vc-dir-next-line 1)))
+         (file (ewoc-data crt))
+	 (isdir (vc-dir-fileinfo->directory file)))
+    (when (or (and isdir (not (vc-dir-children-marked-p crt)))
+	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
+      (setf (vc-dir-fileinfo->marked file) t)
+      (ewoc-invalidate vc-ewoc crt)
+      (vc-dir-next-line 1))))
 
 (defun vc-dir-mark ()
   "Mark the current file or all files in the region.
@@ -3508,8 +3541,9 @@ allowed and simply skipped)."
   "List the change log of the current fileset in a window.
 If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
-  (let* ((files (vc-deduce-fileset))
-	 (backend (vc-backend files))
+  (let* ((vc-fileset (vc-deduce-fileset))
+	 (files (cdr vc-fileset))
+	 (backend (car vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
@@ -3538,7 +3572,8 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
 This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
-  (let* ((files (vc-deduce-fileset)))
+  (let* ((vc-fileset (vc-deduce-fileset))
+	 (files (cdr vc-fileset)))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
     ;; we cannot show the changes and ask for confirmation to
@@ -3552,7 +3587,7 @@ to the working revision (except for keyword expansion)."
       (when (vc-up-to-date-p file)
 	(unless (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
 	  (error "Revert canceled"))))
-    (when (vc-diff-internal vc-allow-async-revert files nil nil)
+    (when (vc-diff-internal vc-allow-async-revert vc-fileset nil nil)
       (unless (yes-or-no-p (format "Discard changes in %s? " (vc-delistify files)))
 	(error "Revert canceled"))
       (delete-windows-on "*vc-diff*")
@@ -3568,8 +3603,9 @@ to the working revision (except for keyword expansion)."
 This may be either a file-level or a repository-level operation,
 depending on the underlying version-control system."
   (interactive)
-  (let* ((files (vc-deduce-fileset))
-	 (backend (vc-backend files))
+  (let* ((vc-fileset (vc-deduce-fileset))
+	 (files (cdr vc-fileset))
+	 (backend (car vc-fileset))
 	 (granularity (vc-call-backend backend 'revision-granularity)))
     (unless (vc-find-backend-function backend 'rollback)
       (error "Rollback is not supported in %s" backend))
@@ -3594,7 +3630,7 @@ depending on the underlying version-control system."
     (message "Finding changes...")
     (let* ((tip (vc-working-revision (car files)))
 	   (previous (vc-call previous-revision (car files) tip)))
-      (vc-diff-internal nil files previous tip))
+      (vc-diff-internal nil vc-fileset previous tip))
     ;; Display changes
     (unless (yes-or-no-p "Discard these revisions? ")
       (error "Rollback canceled"))
@@ -3622,25 +3658,28 @@ replaces the work file with the latest revision on its branch.  If the file
 contains changes, and the backend supports merging news, then any recent
 changes from the current branch are merged into the working file."
   (interactive)
-  (dolist (file (vc-deduce-fileset))
-    (when (let ((buf (get-file-buffer file)))
-	    (and buf (buffer-modified-p buf)))
-      (error "Please kill or save all modified buffers before updating."))
-    (if (vc-up-to-date-p file)
-	(vc-checkout file nil t)
-      (if (eq (vc-checkout-model file) 'locking)
-	  (if (eq (vc-state file) 'edited)
-	      (error "%s"
+  (let* ((vc-fileset (vc-deduce-fileset))
+	 (files (cdr vc-fileset))
+	 (backend (car vc-fileset)))
+    (dolist (file files)
+      (when (let ((buf (get-file-buffer file)))
+	      (and buf (buffer-modified-p buf)))
+	(error "Please kill or save all modified buffers before updating."))
+      (if (vc-up-to-date-p file)
+	  (vc-checkout file nil t)
+	(if (eq (vc-checkout-model file) 'locking)
+	    (if (eq (vc-state file) 'edited)
+		(error "%s"
+		       (substitute-command-keys
+			"File is locked--type \\[vc-revert] to discard changes"))
+	      (error "Unexpected file state (%s) -- type %s"
+		     (vc-state file)
 		     (substitute-command-keys
-		      "File is locked--type \\[vc-revert] to discard changes"))
-	    (error "Unexpected file state (%s) -- type %s"
-		   (vc-state file)
-		   (substitute-command-keys
-		    "\\[vc-next-action] to correct")))
-	(if (not (vc-find-backend-function (vc-backend file) 'merge-news))
-	    (error "Sorry, merging news is not implemented for %s"
-		   (vc-backend file))
-	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))))
+		      "\\[vc-next-action] to correct")))
+	  (if (not (vc-find-backend-function backend 'merge-news))
+	      (error "Sorry, merging news is not implemented for %s"
+		     backend)
+	    (vc-maybe-resolve-conflicts file (vc-call merge-news file))))))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -3730,8 +3769,8 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	       (or (memq new-backend (memq old-backend vc-handled-backends))
 		   (y-or-n-p "Final transfer? "))))
 	 (comment nil))
-    (if (eq old-backend new-backend)
-	(error "%s is the current backend of %s" new-backend file))
+    (when (eq old-backend new-backend)
+      (error "%s is the current backend of %s" new-backend file))
     (if registered
 	(set-file-modes file (logior (file-modes file) 128))
       ;; `registered' might have switched under us.
@@ -3750,8 +3789,8 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 		(if unmodified-file
 		    (copy-file unmodified-file file
 			       'ok-if-already-exists 'keep-date)
-		  (if (y-or-n-p "Get base revision from master? ")
-		      (vc-revert-file file))))
+		  (when (y-or-n-p "Get base revision from master? ")
+		    (vc-revert-file file))))
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
 	    (vc-switch-backend file new-backend)
@@ -3787,8 +3826,8 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
      (catch 'found
        ;; If possible, keep the master file in the same directory.
        (dolist (f masters)
-	 (if (and f (string= (file-name-directory (expand-file-name f)) dir))
-	     (throw 'found f)))
+	 (when (and f (string= (file-name-directory (expand-file-name f)) dir))
+	   (throw 'found f)))
        ;; If not, just use the first possible place.
        (dolist (f masters)
 	 (and f (or (not (setq dir (file-name-directory f)))
@@ -4505,8 +4544,11 @@ revisions after."
 	(if (not prev-rev)
 	    (message "Cannot diff from any revision prior to %s" rev-at-line)
 	  (save-window-excursion
-	    (vc-diff-internal nil (list vc-annotate-parent-file)
-                              prev-rev rev-at-line))
+	    (vc-diff-internal
+	     nil
+	     (cons (vc-backend vc-annotate-parent-file)
+		   (list vc-annotate-parent-file))
+	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
 (defun vc-annotate-warp-revision (revspec)
