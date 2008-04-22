@@ -196,8 +196,7 @@ gdba (gdb-ui.el) uses all five values, gdbmi (gdb-mi.el) only two
 (defconst gdb-error-regexp "\\^error,msg=\"\\(.+\\)\"")
 
 (defvar gdb-locals-font-lock-keywords-1
-  '(
-    ;; var = (struct struct_tag) value
+  '(;; var = (struct struct_tag) value
     ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(struct\\) \\(\\(\\sw\\|[_.]\\)+\\)"
       (1 font-lock-variable-name-face)
       (3 font-lock-keyword-face)
@@ -208,17 +207,14 @@ gdba (gdb-ui.el) uses all five values, gdbmi (gdb-mi.el) only two
       (3 font-lock-type-face))
     ;; var = val
     ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +[^(]"
-      (1 font-lock-variable-name-face))
-    )
+      (1 font-lock-variable-name-face)))
   "Font lock keywords used in `gdb-local-mode'.")
 
 (defvar gdb-locals-font-lock-keywords-2
-  '(
-    ;; var = type value
+  '(;; var = type value
     ( "\\(^\\(\\sw\\|[_.]\\)+\\)\t+\\(\\(\\sw\\|[_.]\\)+\\)"
       (1 font-lock-variable-name-face)
-      (3 font-lock-type-face))
-    )
+      (3 font-lock-type-face)))
   "Font lock keywords used in `gdb-local-mode'.")
 
 ;; Variables for GDB 6.4+
@@ -2553,6 +2549,37 @@ another GDB command e.g pwd, to see new frames")
     (define-key map "q" 'kill-this-buffer)
      map))
 
+(defvar gdb-locals-header
+ `(,(propertize "Locals"
+		'help-echo "mouse-1: select"
+		'mouse-face 'mode-line-highlight
+		'face 'mode-line
+		'local-map
+		(gdb-make-header-line-mouse-map
+		 'mouse-1
+		 (lambda (event) (interactive "e")
+		   (save-selected-window
+		     (select-window (posn-window (event-start event)))
+		     (set-window-dedicated-p (selected-window) nil)
+		     (switch-to-buffer
+		      (gdb-get-buffer-create 'gdb-locals-buffer))
+		     (set-window-dedicated-p (selected-window) t)))))
+   " "
+   ,(propertize "Registers"
+		'help-echo "mouse-1: select"
+		'mouse-face 'mode-line-highlight
+		'face 'mode-line
+		'local-map
+		(gdb-make-header-line-mouse-map
+		 'mouse-1
+		 (lambda (event) (interactive "e")
+		   (save-selected-window
+		     (select-window (posn-window (event-start event)))
+		     (set-window-dedicated-p (selected-window) nil)
+		     (switch-to-buffer
+		      (gdb-get-buffer-create 'gdb-registers-buffer))
+		     (set-window-dedicated-p (selected-window) t)))))))
+
 (defun gdb-registers-mode ()
   "Major mode for gdb registers.
 
@@ -2560,6 +2587,7 @@ another GDB command e.g pwd, to see new frames")
   (kill-all-local-variables)
   (setq major-mode 'gdb-registers-mode)
   (setq mode-name "Registers")
+  (setq header-line-format gdb-locals-header)
   (setq buffer-read-only t)
   (gdb-thread-identification)
   (use-local-map gdb-registers-mode-map)
@@ -2985,9 +3013,10 @@ another GDB command e.g pwd, to see new frames")
   (kill-all-local-variables)
   (setq major-mode 'gdb-locals-mode)
   (setq mode-name (concat "Locals:" gdb-selected-frame))
-  (setq buffer-read-only t)
-  (gdb-thread-identification)
   (use-local-map gdb-locals-mode-map)
+  (setq buffer-read-only t)
+  (setq header-line-format gdb-locals-header)
+  (gdb-thread-identification)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-locals-font-lock-keywords))
   (run-mode-hooks 'gdb-locals-mode-hook)
