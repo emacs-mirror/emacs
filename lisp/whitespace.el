@@ -2059,6 +2059,11 @@ options are valid."
 		       (cons sym the-list))))))
   the-list)
 
+(defvar whitespace-display-table nil
+  "Used to save a local display table.")
+
+(defvar whitespace-display-table-was-local nil
+  "Used to remember whether a buffer initially had a local display table.")
 
 (defun whitespace-turn-on ()
   "Turn on whitespace visualization."
@@ -2262,13 +2267,6 @@ options are valid."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Hacked from visws.el (Miles Bader <miles@gnu.org>)
-
-
-(defvar whitespace-display-table nil
-  "Used to save a local display table.")
-
-(defvar whitespace-display-table-was-local nil
-  "Used to remember whether a buffer initially had a local display table.")
 
 
 (defsubst whitespace-char-valid-p (char)
