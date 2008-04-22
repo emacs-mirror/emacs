@@ -252,7 +252,7 @@ MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
 	$(MH_E_DIR)/mh-xface.el
 
 mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
-$(MH_E_DIR)/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
+$(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
@@ -274,21 +274,21 @@ CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
 	$(CAL_DIR)/holidays.el    $(CAL_DIR)/lunar.el      \
 	$(CAL_DIR)/solar.el
 
-$(CAL_DIR)/cal-loaddefs.el: $(lisp)/subdirs.el $(CAL_SRC)
+$(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-$(CAL_DIR)/diary-loaddefs.el: $(lisp)/subdirs.el $(CAL_SRC)
+$(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-$(CAL_DIR)/hol-loaddefs.el: $(lisp)/subdirs.el $(CAL_SRC)
+$(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
