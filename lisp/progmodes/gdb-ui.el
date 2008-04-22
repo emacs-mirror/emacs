@@ -2345,6 +2345,8 @@ corresponding to the mode line clicked."
     (define-key map [follow-link] 'mouse-face)
     map))
 
+(declare-function gdbmi-invalidate-frames "ext:gdb-mi" nil t)
+
 (defun gdb-frames-force-update ()
   "Force update of call stack.
 Use when the displayed call stack gets out of sync with the
