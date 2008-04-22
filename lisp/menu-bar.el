@@ -30,17 +30,6 @@
 
 ;;; Code:
 
-;;; User options:
-
-(defcustom buffers-menu-max-size 10
-  "*Maximum number of entries which may appear on the Buffers menu.
-If this is 10, then only the ten most-recently-selected buffers are shown.
-If this is nil, then all buffers are shown.
-A large number or nil slows down menu responsiveness."
-  :type '(choice integer
-		 (const :tag "All" nil))
-  :group 'mouse)
-
 ;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
 ;; definitions made in loaddefs.el.
 (or (lookup-key global-map [menu-bar])
@@ -1482,7 +1471,7 @@ using `abort-recursive-edit'."
 (defcustom yank-menu-length 20
   "*Maximum length to display in the yank-menu."
   :type 'integer
-  :group 'mouse)
+  :group 'menu)
 
 (defun menu-bar-update-yank-menu (string old)
   (let ((front (car (cdr yank-menu)))
@@ -1519,6 +1508,26 @@ The menu shows all the killed text sequences stored in `kill-ring'."
   (insert last-command-event))
 
 
+;;; Buffers Menu
+
+(defcustom buffers-menu-max-size 10
+  "*Maximum number of entries which may appear on the Buffers menu.
+If this is 10, then only the ten most-recently-selected buffers are shown.
+If this is nil, then all buffers are shown.
+A large number or nil slows down menu responsiveness."
+  :type '(choice integer
+		 (const :tag "All" nil))
+  :group 'menu)
+
+(defcustom buffers-menu-buffer-name-length 30
+  "*Maximum length of the buffer name on the Buffers menu.
+If this is a number, then buffer names are truncated to this length.
+If this is nil, then buffer names are shown in full.
+A large number or nil makes the menu too wide."
+  :type '(choice integer
+		 (const :tag "Full length" nil))
+  :group 'menu)
+
 (defcustom buffers-menu-show-directories 'unless-uniquify
   "If non-nil, show directories in the Buffers menu for buffers that have them.
 The special value `unless-uniquify' means that directories will be shown
@@ -1606,11 +1615,16 @@ Buffers menu is regenerated."
                      (unless (eq ?\s (aref name 0))
                        (push (menu-bar-update-buffers-1
                               (cons buf
-                                    (if (> (length name) 27)
-                                        (concat (substring name 0 12)
-                                                "..."
-                                                (substring name -12))
-                                      name)))
+				    (if (and (integerp buffers-menu-buffer-name-length)
+					     (> (length name) buffers-menu-buffer-name-length))
+					(concat
+					 (substring
+					  name 0 (/ buffers-menu-buffer-name-length 2))
+					 "..."
+					 (substring
+					  name (- (/ buffers-menu-buffer-name-length 2))))
+				      name)
+                                    ))
                              alist))))
 		 ;; Now make the actual list of items.
                  (let ((buffers-vec (make-vector (length alist) nil))
