@@ -1039,6 +1039,17 @@ use with M-x."
     (rename-file encoded new-encoded ok-if-already-exists)
     newname))
 
+(defun read-buffer-to-switch (prompt)
+  "Read the name of a buffer to switch to and return as a string.
+It is intended for `switch-to-buffer' family of commands since they
+need to omit the name of current buffer from the list of complations
+and default values."
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-completion-table)
+	     (internal-complete-buffer-except (other-buffer (current-buffer) t))))
+    (read-buffer prompt (other-buffer (current-buffer)))))
+
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
 If BUFFER does not identify an existing buffer, then this function
@@ -1053,7 +1064,8 @@ This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
-  (interactive "BSwitch to buffer in other window: ")
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((pop-up-windows t)
 	;; Don't let these interfere.
 	same-window-buffer-names same-window-regexps)
@@ -1067,7 +1079,8 @@ This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
-  (interactive "BSwitch to buffer in other frame: ")
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
     (prog1
