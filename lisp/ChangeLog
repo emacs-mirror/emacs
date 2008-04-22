@@ -1,3 +1,9 @@
+2008-04-22  David Glasser  <glasser@davidglasser.net>  (tiny change)
+
+	* tar-mode.el (tar-prefix-offset): New constant.
+	(tar-header-block-tokenize): Support paths with long names
+	which use the "ustar" standard.
+
 2008-04-22  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* image-dired.el (image-dired-track-original-file)
