@@ -1,3 +1,8 @@
+2008-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB-UI Layout, Other GDB-UI Buffers): Update for
+	recent changes.
+
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB-UI Layout, Breakpoints Buffer)
