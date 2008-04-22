@@ -1767,7 +1767,8 @@ switch_to_buffer_1 (buffer, norecord)
   return buf;
 }
 
-DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2, "BSwitch to buffer: ",
+DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2,
+       "(list (read-buffer-to-switch \"Switch to buffer: \"))",
        doc: /* Select buffer BUFFER in the current window.
 If BUFFER does not identify an existing buffer,
 then this function creates a buffer with that name.
