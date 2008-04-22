@@ -1,3 +1,11 @@
+2008-04-22  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* image-dired.el (image-dired-track-original-file)
+	(image-dired-modify-mark-on-thumb-original-file):
+	Use `dired-goto-file' instead of `search-forward'.  This solves
+	a bug with finding files where the file name is a subset of other
+	file names.  Doc fix.
+
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
 	* menu-bar.el (buffers-menu-max-size): Move its definition down to
