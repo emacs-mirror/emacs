@@ -1,5 +1,14 @@
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
+	* menu-bar.el (buffers-menu-max-size): Move its definition down to
+	the "Buffers Menu" section.  Change group name `mouse' to `menu'.
+	(yank-menu-length): Change group name `mouse' to `menu'.
+	(buffers-menu-buffer-name-length): New user option.
+	(menu-bar-update-buffers): Use buffers-menu-buffer-name-length
+	instead of the hard-coded number 27.
+
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (eval-when-compile): Require `help-macro'.
 	(isearch-help-for-help-internal): Isearch specific Help screen
 	created by `make-help-screen'.
