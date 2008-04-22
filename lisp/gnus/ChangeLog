@@ -1,3 +1,7 @@
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
+	* mailcap.el (mailcap-file-default-commands): New function.
+
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-signature-separator, message-cite-function):
