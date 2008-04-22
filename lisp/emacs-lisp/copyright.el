@@ -43,6 +43,13 @@ A value of nil means to search whole buffer."
   :type '(choice (integer :tag "Limit")
 		 (const :tag "No limit")))
 
+(defcustom copyright-at-end-flag nil
+  "Non-nil means to search backwards from the end of the buffer for copyright.
+This is useful for ChangeLogs."
+  :group 'copyright
+  :type 'boolean
+  :version "23.1")
+
 (defcustom copyright-regexp
  "\\(©\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *©\\)\
@@ -89,18 +96,40 @@ When this is `function', only ask when called non-interactively."
   "String representing the current year.")
 
 (defsubst copyright-limit ()            ; re-search-forward BOUND
-  (and copyright-limit (+ (point) copyright-limit)))
+  (and copyright-limit
+       (if copyright-at-end-flag
+	   (- (point) copyright-limit)
+	 (+ (point) copyright-limit))))
+
+(defun copyright-re-search (regexp &optional bound noerror count)
+  "Re-search forward or backward depending on `copyright-at-end-flag'."
+  (if copyright-at-end-flag
+      (re-search-backward regexp bound noerror count)
+    (re-search-forward regexp bound noerror count)))
+
+(defun copyright-start-point ()
+  "Return point-min or point-max, depending on `copyright-at-end-flag'."
+  (if copyright-at-end-flag
+      (point-max)
+    (point-min)))
+
+(defun copyright-offset-too-large-p ()
+  "Return non-nil if point is too far from the edge of the buffer."
+  (when copyright-limit
+    (if copyright-at-end-flag
+	(< (point) (- (point-max) copyright-limit))
+      (> (point) (+ (point-min) copyright-limit)))))
 
 (defun copyright-update-year (replace noquery)
   (when
       (condition-case err
 	  ;; (1) Need the extra \\( \\) around copyright-regexp because we
 	  ;; goto (match-end 1) below. See note (2) below.
-	  (re-search-forward (concat "\\(" copyright-regexp
-				     "\\)\\([ \t]*\n\\)?.*\\(?:"
-				     copyright-names-regexp "\\)")
-			     (copyright-limit)
-			     t)
+	  (copyright-re-search (concat "\\(" copyright-regexp
+				       "\\)\\([ \t]*\n\\)?.*\\(?:"
+				       copyright-names-regexp "\\)")
+			       (copyright-limit)
+			       t)
 	;; In case the regexp is rejected.  This is useful because
 	;; copyright-update is typically called from before-save-hook where
 	;; such an error is very inconvenient for the user.
@@ -176,13 +205,13 @@ interactively."
       (save-excursion
 	(save-restriction
 	  (widen)
-	  (goto-char (point-min))
+	  (goto-char (copyright-start-point))
 	  (copyright-update-year arg noquery)
-	  (goto-char (point-min))
+	  (goto-char (copyright-start-point))
 	  (and copyright-current-gpl-version
 	       ;; match the GPL version comment in .el files, including the
 	       ;; bilingual Esperanto one in two-column, and in texinfo.tex
-	       (re-search-forward
+	       (copyright-re-search
                 "\\(the Free Software Foundation;\
  either \\|; a\\^u eldono \\([0-9]+\\)a, ? a\\^u (la\\^u via	 \\)\
 version \\([0-9]+\\), or (at"
@@ -210,8 +239,8 @@ version \\([0-9]+\\), or (at"
 Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   (interactive)
   (widen)
-  (goto-char (point-min))
-  (if (re-search-forward copyright-regexp (copyright-limit) t)
+  (goto-char (copyright-start-point))
+  (if (copyright-re-search copyright-regexp (copyright-limit) t)
       (let ((s (match-beginning 2))
 	    (e (copy-marker (1+ (match-end 2))))
 	    (p (make-marker))
@@ -235,7 +264,7 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
 	  ;; Don't mess up whitespace after the years.
 	  (skip-chars-backward " \t")
 	  (save-restriction
-	    (narrow-to-region (point-min) (point))
+	    (narrow-to-region (copyright-start-point) (point))
 	    (let ((fill-prefix "     "))
 	      (fill-region s last))))
 	(set-marker e nil)
@@ -251,7 +280,7 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   "Copyright (C) " `(substring (current-time-string) -4) " by "
   (or (getenv "ORGANIZATION")
       str)
-  '(if (and copyright-limit (> (point) (+ (point-min) copyright-limit)))
+  '(if (copyright-offset-too-large-p)
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end \n)
 
