@@ -403,7 +403,7 @@ a repetition of this command will exit."
                        minibuffer-completion-predicate)
       (when completion-ignore-case
         ;; Fixup case of the field, if necessary.
-        (let* ((string (substring beg end))
+        (let* ((string (buffer-substring beg end))
                (compl (try-completion
                        string
                        minibuffer-completion-table
