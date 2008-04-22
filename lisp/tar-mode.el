@@ -198,7 +198,8 @@ This information is useful, but it takes screen space away from file names."
 (defconst tar-gname-offset (+ tar-uname-offset 32))
 (defconst tar-dmaj-offset (+ tar-gname-offset 32))
 (defconst tar-dmin-offset (+ tar-dmaj-offset 8))
-(defconst tar-end-offset (+ tar-dmin-offset 8))
+(defconst tar-prefix-offset (+ tar-dmin-offset 8))
+(defconst tar-end-offset (+ tar-prefix-offset 155))
 
 (defun tar-header-block-tokenize (string)
   "Return a `tar-header' structure.
@@ -209,13 +210,14 @@ write-date, checksum, link-type, and link-name."
 	(;(some 'plusp string)		 ; <-- oops, massive cycle hog!
 	 (or (not (= 0 (aref string 0))) ; This will do.
 	     (not (= 0 (aref string 101))))
-	 (let* ((name-end (1- tar-mode-offset))
+	 (let* ((name-end tar-mode-offset)
 		(link-end (1- tar-magic-offset))
 		(uname-end (1- tar-gname-offset))
 		(gname-end (1- tar-dmaj-offset))
 		(link-p (aref string tar-linkp-offset))
 		(magic-str (substring string tar-magic-offset (1- tar-uname-offset)))
-		(uname-valid-p (or (string= "ustar  " magic-str) (string= "GNUtar " magic-str)))
+		(uname-valid-p (or (string= "ustar  " magic-str) (string= "GNUtar " magic-str)
+                                   (string= "ustar\0000" magic-str)))
 		name linkname
 		(nulsexp   "[^\000]*\000"))
 	   (when (string-match nulsexp string tar-name-offset)
@@ -231,6 +233,12 @@ write-date, checksum, link-type, and link-name."
 			    nil
 			  (- link-p ?0)))
 	   (setq linkname (substring string tar-link-offset link-end))
+           (when (and uname-valid-p
+                      (string-match nulsexp string tar-prefix-offset)
+                      (> (match-end 0) (1+ tar-prefix-offset)))
+             (setq name (concat (substring string tar-prefix-offset
+                                           (1- (match-end 0)))
+                                "/" name)))
 	   (if default-enable-multibyte-characters
 	       (setq name
 		     (decode-coding-string name tar-file-name-coding-system)
@@ -252,7 +260,7 @@ write-date, checksum, link-type, and link-name."
 	     (and uname-valid-p (substring string tar-uname-offset uname-end))
 	     (and uname-valid-p (substring string tar-gname-offset gname-end))
 	     (tar-parse-octal-integer string tar-dmaj-offset tar-dmin-offset)
-	     (tar-parse-octal-integer string tar-dmin-offset tar-end-offset)
+	     (tar-parse-octal-integer string tar-dmin-offset tar-prefix-offset)
 	     )))
 	(t 'empty-tar-block)))
 
