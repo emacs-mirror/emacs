@@ -464,67 +464,33 @@ with a prefix argument."
 
 ;;; Shell commands
 
-(declare-function mailcap-parse-mailcaps "mailcap" (&optional path force))
-(declare-function mailcap-parse-mimetypes "mailcap" (&optional path force))
-(declare-function mailcap-extension-to-mime "mailcap" (extn))
-(declare-function mailcap-mime-info "mailcap"
-                  (string &optional request no-decode))
+(declare-function mailcap-file-default-commands "mailcap" (files))
 
-(defun dired-read-shell-command-default (files)
-  "Return a list of default commands for `dired-read-shell-command'."
-  (require 'mailcap)
-  (mailcap-parse-mailcaps)
-  (mailcap-parse-mimetypes)
-  (let* ((all-mime-type
-	  ;; All unique MIME types from file extensions
-	  (delete-dups (mapcar (lambda (file)
-				 (mailcap-extension-to-mime
-				  (file-name-extension file t)))
-			       files)))
-	 (all-mime-info
-	  ;; All MIME info lists
-	  (delete-dups (mapcar (lambda (mime-type)
-				 (mailcap-mime-info mime-type 'all))
-			       all-mime-type)))
-	 (common-mime-info
-	  ;; Intersection of mime-infos from different mime-types;
-	  ;; or just the first MIME info for a single MIME type
-	  (if (cdr all-mime-info)
-	      (delq nil (mapcar (lambda (mi1)
-				  (unless (memq nil (mapcar
-						     (lambda (mi2)
-						       (member mi1 mi2))
-						     (cdr all-mime-info)))
-				    mi1))
-				(car all-mime-info)))
-	    (car all-mime-info)))
-	 (commands
-	  ;; Command strings from `viewer' field of the MIME info
-	  (delq nil (mapcar (lambda (mime-info)
-			      (let ((command (cdr (assoc 'viewer mime-info))))
-				(if (stringp command)
-				    (replace-regexp-in-string
-				     ;; Replace mailcap's `%s' placeholder
-				     ;; with dired's `?' placeholder
-				     "%s" "?"
-				     (replace-regexp-in-string
-				      ;; Remove the final filename placeholder
-				      "\s*\\('\\)?%s\\1?\s*\\'" "" command nil t)
-				     nil t))))
-			    common-mime-info))))
-    commands))
+(defun minibuffer-default-add-dired-shell-commands ()
+  "Return a list of all commands associted with current dired files.
+This function is used to add all related commands retieved by `mailcap'
+to the end of the list of defaults just after the default value."
+  (interactive)
+  (let ((commands (and (boundp 'files) (require 'mailcap nil t)
+		       (mailcap-file-default-commands files))))
+    (if (listp minibuffer-default)
+	(append minibuffer-default commands)
+      (cons minibuffer-default commands))))
 
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using read-string).
+  "Read a dired shell command prompting with PROMPT (using read-shell-command).
 ARG is the prefix arg and may be used to indicate in the prompt which
 FILES are affected."
-  (dired-mark-pop-up
-   nil 'shell files
-   #'read-shell-command
-   (format prompt (dired-mark-prompt arg files))
-   nil nil
-   (dired-read-shell-command-default files)))
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-default-add-function)
+	     'minibuffer-default-add-dired-shell-commands))
+    (dired-mark-pop-up
+     nil 'shell files
+     #'read-shell-command
+     (format prompt (dired-mark-prompt arg files))
+     nil nil)))
 
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
