@@ -1,5 +1,26 @@
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (eval-when-compile): Require `help-macro'.
+	(isearch-help-for-help-internal): Isearch specific Help screen
+	created by `make-help-screen'.
+	(isearch-help-map): New variable that binds "b", "k", "m" to
+	isearch-specific commands, and binds other keys to
+	isearch-other-control-char, thus allowing other Help keys to
+	exit isearch mode and execute their global definitions.
+	(isearch-help-for-help, isearch-describe-bindings)
+	(isearch-describe-key, isearch-describe-mode): New commands.
+	(isearch-mode-help): Define alias to isearch-describe-mode
+	and remove its old function definition.
+	(isearch-mode-map): Bind "\C-h" to isearch-help-map.
+	Remove old comments because this issue is settled now.
+	(isearch-forward): Describe three new Help commands in the docstring.
+	(isearch-mode): Remove \\{isearch-mode-map} from the docstring,
+	leave the single sentence at the first line of the docstring,
+	and prepend the word "function" before `isearch-forward'
+	to make the Help link to the function instead of variable.
+
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-success-function): New variable with default
 	to `isearch-success-function-default'.
 	(isearch-search): Call a function from `isearch-success-function'
