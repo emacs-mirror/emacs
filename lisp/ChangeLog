@@ -1,3 +1,35 @@
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
+	* minibuffer.el (internal-complete-buffer-except): New function.
+
+	* files.el (read-buffer-to-switch): New function.
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame):
+	Change interactive spec to call read-buffer-to-switch instead of
+	using the letter "B".
+
+	* simple.el (minibuffer-default-add-shell-commands): New function.
+	Use declare-function for mailcap-file-default-commands from "mailcap".
+	(shell-command): Set local minibuffer-default-add-function to
+	minibuffer-default-add-shell-commands in minibuffer-with-setup-hook
+	before calling read-shell-command.  Set 4th arg default-value of
+	read-shell-command to relative buffer-file-name in file buffers.
+
+	* dired-aux.el (dired-read-shell-command-default): Move it to
+	gnus/mailcap.el and change its name to more general name
+	mailcap-file-default-commands.
+	(minibuffer-default-add-dired-shell-commands): New function.
+	Use declare-function for mailcap-file-default-commands from "mailcap".
+	(dired-read-shell-command): Set local minibuffer-default-add-function
+	to minibuffer-default-add-dired-shell-commands in minibuffer-with-setup-hook
+	before calling read-shell-command.  Remove dired-read-shell-command-default
+	from the default value arg because default values are not set in
+	minibuffer-default-add-dired-shell-commands.  Doc fix.
+
+	* dired-x.el (dired-smart-shell-command): Sync arguments and
+	interactive spec with changes in `shell-command'.
+	Use dired-get-filename to get the dired file name at point
+	as the default value in dired mode.
+
 2008-04-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* info.el (Info-complete-menu-item): Add missing parenthesis.
