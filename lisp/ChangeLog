@@ -1,3 +1,22 @@
+2008-04-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gdb-ui.el (gdbmi-invalidate-frames): Declare as function.
+
+	* whitespace.el (whitespace-display-table)
+	(whitespace-display-table-was-local): Move definitions before use.
+
+	* emacs-lisp/copyright.el (copyright-at-end-flag): New option.
+	(copyright-limit): Respect copyright-at-end-flag.
+	(copyright-re-search, copyright-start-point)
+	(copyright-offset-too-large-p): New functions.
+	(copyright-update-year): Use copyright-re-search.
+	(copyright-update, copyright-fix-years): Use copyright-start-point,
+	and copyright-re-search.
+	(copyright): Use copyright-offset-too-large-p.
+	* add-log.el (change-log-mode): Set copyright-at-end-flag.
+
+	* add-log.el (top-level): Require 'cl when compiling.
+
 2008-04-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in ($(MH_E_DIR)/mh-loaddefs.el, $(CAL_DIR)/cal-loaddefs.el)
