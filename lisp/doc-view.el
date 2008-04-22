@@ -434,7 +434,7 @@ Can be `dvi', `pdf', or `ps'.")
     (let ((cur-page (doc-view-current-page)))
       (doc-view-next-page)
       (when (/= cur-page (doc-view-current-page))
-	(set-window-vscroll nil 0)))))
+	(image-scroll-down nil)))))
 
 (defun doc-view-scroll-down-or-previous-page ()
   "Scroll page down if possible, else goto previous page."
