@@ -1,7 +1,11 @@
+2008-04-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (minibuffer-complete-and-exit): Fix last change.
+
 2008-04-22  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (emacs-deps): Define.  Use it instead of
-	$(lisp)/subdirs.el.
+	* Makefile.in (emacs-deps): Define.
+	Use it instead of $(lisp)/subdirs.el.
 
 2008-04-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
