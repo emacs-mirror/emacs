@@ -454,6 +454,12 @@ This is enabled if isearch-buffers-multi is non-nil.
 *** The part of an isearch that failed to match is highlighted in `isearch-fail'
 face.
 
+*** `C-h C-h' in isearch mode displays isearch-specific Help screen,
+`C-h b' displays all isearch key bindings, `C-h k' displays the full
+documentation of the given isearch key sequence, `C-h m' displays
+documentation of isearch mode.  All the rest Help commands exit isearch mode
+and execute their global definitions.
+
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
 
