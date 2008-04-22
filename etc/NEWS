@@ -309,8 +309,12 @@ searching minibuffer completion items.
 *** In C-x d, if you type M-n you get the visited file name of the
 current buffer.
 
-*** In Dired, a list of commands for ! extracted from mailcap according to
-file extensions are added to the default list accessible by M-n.
+*** A list of default commands extracted from mailcap according to
+file extensions are available in the list of default values
+accessible by M-n in the minibuffer that reads a shell command
+for M-!  (shell-command) and fills a list of commands for the current
+file, and in Dired for ! (dired-do-shell-command) that fills a list of
+commands for the intersection of file types of marked Dired files.
 
 *** A list of regexp default values is available via M-n for `occur',
 `keep-lines', `flush-lines' and `how-many'.  This list includes the active
