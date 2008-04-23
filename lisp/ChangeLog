@@ -1,3 +1,26 @@
+2008-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* speedbar.el (speedbar-use-tool-tips-flag)
+	(speedbar-ignored-directory-regexp, speedbar-file-unshown-regexp)
+	(speedbar-file-regexp, speedbar-message, speedbar-item-info)
+	(speedbar-files-item-info, speedbar-maybe-add-localized-support)
+	(speedbar-insert-files-at-point, speedbar-dynamic-tags-function-list)
+	(speedbar-generic-list-positioned-group-p, speedbar-insert-generic-list)
+	(speedbar-fetch-replacement-function, speedbar-extract-one-symbol)
+	(speedbar-separator-face): Fix typos in docstrings.
+	(speedbar-stealthy-function-list, speedbar-verbosity-level)
+	(speedbar-supported-extension-expressions, speedbar-update-current-file)
+	(speedbar-add-indicator, speedbar-tag-expand): Reflow docstring.
+	(speedbar-use-imenu-flag, speedbar-ignored-directory-expressions)
+	(speedbar-directory-unshown-regexp, speedbar-handle-delete-frame)
+	(speedbar-show-info-under-mouse, speedbar-directory-buttons)
+	(speedbar-check-vc-this-line, speedbar-files-line-directory)
+	(speedbar-buffer-buttons, speedbar-buffer-buttons-temp)
+	(speedbar-buffers-line-directory, speedbar-recenter-to-top)
+	(speedbar-recenter): Doc fixes.
+	(speedbar-update-speed, speedbar-navigating-speed): Add obsolescence
+	declaration and remove redundant info in docstring.
+
 2008-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-status-printer): Deal with directories.
