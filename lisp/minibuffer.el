@@ -764,6 +764,151 @@ during running `completion-setup-hook'."
                             'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
+(defvar read-file-name-function nil
+  "If this is non-nil, `read-file-name' does its work by calling this function.")
+
+(defvar read-file-name-predicate nil
+  "Current predicate used by `read-file-name-internal'.")
+
+(defcustom read-file-name-completion-ignore-case
+  (if (memq system-type '(ms-dos windows-nt darwin macos vax-vms axp-vms))
+      t nil)
+  "Non-nil means when reading a file name completion ignores case."
+  :group 'minibuffer
+  :type 'boolean
+  :version "22.1")
+
+(defcustom insert-default-directory t
+  "Non-nil means when reading a filename start with default dir in minibuffer.
+
+When the initial minibuffer contents show a name of a file or a directory,
+typing RETURN without editing the initial contents is equivalent to typing
+the default file name.
+
+If this variable is non-nil, the minibuffer contents are always
+initially non-empty, and typing RETURN without editing will fetch the
+default name, if one is provided.  Note however that this default name
+is not necessarily the same as initial contents inserted in the minibuffer,
+if the initial contents is just the default directory.
+
+If this variable is nil, the minibuffer often starts out empty.  In
+that case you may have to explicitly fetch the next history element to
+request the default name; typing RETURN without editing will leave
+the minibuffer empty.
+
+For some commands, exiting with an empty minibuffer has a special meaning,
+such as making the current buffer visit no file in the case of
+`set-visited-file-name'."
+  :group 'minibuffer
+  :type 'boolean)
+
+(defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
+  "Read file name, prompting with PROMPT and completing in directory DIR.
+Value is not expanded---you must call `expand-file-name' yourself.
+Default name to DEFAULT-FILENAME if user exits the minibuffer with
+the same non-empty string that was inserted by this function.
+ (If DEFAULT-FILENAME is omitted, the visited file name is used,
+  except that if INITIAL is specified, that combined with DIR is used.)
+If the user exits with an empty minibuffer, this function returns
+an empty string.  (This can only happen if the user erased the
+pre-inserted contents or if `insert-default-directory' is nil.)
+Fourth arg MUSTMATCH non-nil means require existing file's name.
+ Non-nil and non-t means also require confirmation after completion.
+Fifth arg INITIAL specifies text to start with.
+If optional sixth arg PREDICATE is non-nil, possible completions and
+the resulting file name must satisfy (funcall PREDICATE NAME).
+DIR should be an absolute directory name.  It defaults to the value of
+`default-directory'.
+
+If this command was invoked with the mouse, use a file dialog box if
+`use-dialog-box' is non-nil, and the window system or X toolkit in use
+provides a file dialog box.
+
+See also `read-file-name-completion-ignore-case'
+and `read-file-name-function'."
+  (unless dir (setq dir default-directory))
+  (unless (file-name-absolute-p dir) (setq dir (expand-file-name dir)))
+  (unless default-filename
+    (setq default-filename (if initial (expand-file-name initial dir)
+                             buffer-file-name)))
+  ;; If dir starts with user's homedir, change that to ~.
+  (setq dir (abbreviate-file-name dir))
+  ;; Likewise for default-filename.
+  (setq default-filename (abbreviate-file-name default-filename))
+  (let ((insdef (cond
+                 ((and insert-default-directory (stringp dir))
+                  (if initial
+                      (cons (minibuffer--double-dollars (concat dir initial))
+                            (length (minibuffer--double-dollars dir)))
+                    (minibuffer--double-dollars dir)))
+                 (initial (cons (minibuffer--double-dollars initial) 0)))))
+
+    (if read-file-name-function
+        (funcall read-file-name-function
+                 prompt dir default-filename mustmatch initial predicate)
+      (let ((default-directory (file-name-as-directory (expand-file-name dir)))
+            (completion-ignore-case read-file-name-completion-ignore-case)
+            (minibuffer-completing-file-name t)
+            (read-file-name-predicate (or predicate 'file-exists-p))
+            (add-to-history nil))
+
+        (let* ((val
+                (if (not (next-read-file-uses-dialog-p))
+                    (completing-read prompt 'read-file-name-internal
+                                     nil mustmatch insdef 'file-name-history
+                                     default-filename)
+                  ;; If DIR contains a file name, split it.
+                  (let ((file (file-name-nondirectory dir)))
+                    (when (and default-filename (not (zerop (length file))))
+                      (setq default-filename file)
+                      (setq dir (file-name-directory dir)))
+                    (if default-filename
+                        (setq default-filename
+                              (expand-file-name default-filename dir)))
+                    (setq add-to-history t)
+                    (x-file-dialog prompt dir default-filename mustmatch
+                                   (eq predicate 'file-directory-p)))))
+
+               (replace-in-history (eq (car-safe file-name-history) val)))
+          ;; If completing-read returned the inserted default string itself
+          ;; (rather than a new string with the same contents),
+          ;; it has to mean that the user typed RET with the minibuffer empty.
+          ;; In that case, we really want to return ""
+          ;; so that commands such as set-visited-file-name can distinguish.
+          (when (eq val default-filename)
+            ;; In this case, completing-read has not added an element
+            ;; to the history.  Maybe we should.
+            (if (not replace-in-history)
+                (setq add-to-history t))
+            (setq val ""))
+          (unless val (error "No file name specified"))
+
+          (if (and default-filename
+                   (string-equal val (if (consp insdef) (car insdef) insdef)))
+              (setq val default-filename))
+          (setq val (substitute-in-file-name val))
+
+          (if replace-in-history
+              ;; Replace what Fcompleting_read added to the history
+              ;; with what we will actually return.
+              (let ((val1 (minibuffer--double-dollars val)))
+                (if history-delete-duplicates
+                    (setcdr file-name-history
+                            (delete val1 (cdr file-name-history))))
+                (setcar file-name-history val1))
+            (if add-to-history
+                ;; Add the value to the history--but not if it matches
+                ;; the last value already there.
+                (let ((val1 (minibuffer--double-dollars val)))
+                  (unless (and (consp file-name-history)
+                               (equal (car file-name-history) val1))
+                    (setq file-name-history
+                          (cons val1
+                                (if history-delete-duplicates
+                                    (delete val1 file-name-history)
+                                  file-name-history)))))))
+          val)))))
+
 (defun internal-complete-buffer-except (&optional buffer)
   "Perform completion on all buffers excluding BUFFER.
 Like `internal-complete-buffer', but removes BUFFER from the completion list."

@@ -1,3 +1,10 @@
+2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Vread_file_name_function, Vread_file_name_predicate)
+	(read_file_name_completion_ignore_case, insert_default_directory)
+	(Qdefault_directory): Move to minibuffer.el.
+	(Fread_file_name): Call the new `read-file-name' instead.
+
 2008-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (create_apple_event) [TARGET_API_MAC_CARBON]:

@@ -1,5 +1,12 @@
 2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (read-file-name-function, read-file-name-predicate)
+	(read-file-name-completion-ignore-case, insert-default-directory):
+	New vars, moved from fileio.c.
+	(read-file-name): New fun, moved from fileio.c.
+	* cus-start.el: Remove insert-default-directory and
+	read-file-name-completion-ignore-case.
+
 	* Makefile.in (emacs-deps): Leave it empty.
 
 2008-04-23  Magnus Henoch  <mange@freemail.hu>
