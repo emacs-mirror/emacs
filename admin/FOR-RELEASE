@@ -53,12 +53,6 @@ from 2007-08-27.  Impossible to procede without more input from OP (as
 of 20070912, emails are bouncing) or someone else who can reproduce this.
 http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
 
-** emacs-22.1 with GTK problems (with patches)
-Only outstanding issue seems to be whether Solaris 2.6 GTK can be
-supported in the absence of recursive mutexes, via a change to
-alloc.c, or whether configure should abort.
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
-
 * BUGS
 
 ** Does deleting frames run Lisp code?  If so, can we get rid of that?

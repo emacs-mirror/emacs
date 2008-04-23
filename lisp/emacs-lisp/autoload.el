@@ -335,6 +335,7 @@ Return non-nil iff FILE adds no autoloads to OUTFILE
     (let ((autoloads-done '())
           (load-name (autoload-file-load-name file))
           (print-length nil)
+	  (print-level nil)
           (print-readably t)           ; This does something in Lucid Emacs.
           (float-output-format nil)
           (visited (get-file-buffer file))

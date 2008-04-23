@@ -1,3 +1,15 @@
+2008-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ALL): Move $(CLIENTRES) from here...
+	(all): ...to here.  $(ALL) is a prerequisite of .PHONY, so having
+	a real file there is not a good idea.
+
+2008-04-23  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (CLIENTRES): New variable and build target.
+	(all): Depend on it.
+	($(TRES)): Use $(TRES) in rule.
+
 2008-04-21  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat (success): Print "make" rather than "gmake", as that

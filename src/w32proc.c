@@ -110,6 +110,7 @@ Lisp_Object Vw32_generate_fake_inodes;
    exactly, at the expense of slower operation.  Since true hard links
    are supported on NTFS volumes, this is only relevant on NT.  */
 Lisp_Object Vw32_get_true_file_attributes;
+extern Lisp_Object Qlocal;
 
 Lisp_Object Qhigh, Qlow;
 
@@ -2353,9 +2354,12 @@ the truename of a file can be slow.  */);
 
   DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
 	       doc: /* Non-nil means determine accurate link count in `file-attributes'.
-Note that this option is only useful for files on NTFS volumes, where hard links
-are supported.  Moreover, it slows down `file-attributes' noticeably.  */);
-  Vw32_get_true_file_attributes = Qt;
+This option is only useful for files on NTFS volumes, where
+hard links are supported.  The default value `local' means only do
+this for files on local harddrives.  Any other non-nil value means do
+this even on remote and removable drives where the performance impact
+may be noticeable even on modern hardware.  */);
+  Vw32_get_true_file_attributes = Qlocal;
 
   staticpro (&Vw32_valid_locale_ids);
   staticpro (&Vw32_valid_codepages);

@@ -75,18 +75,19 @@ ECLIENTOBJS =	$(BLD)/emacsclient.$(O) \
 		$(BLD)/getopt.$(O) \
 		$(BLD)/getopt1.$(O) \
 		$(BLD)/ntlib.$(O)
-TRES =		../nt/$(BLD)/emacs.res
+CLIENTRES =	../nt/$(BLD)/emacsclient.res
 
-$(TRES):	../nt/emacs.rc
-		$(RC) $(RC_OUT)../nt/$(BLD)/emacs.res $(ALL_DEPS)
+$(CLIENTRES):	../nt/emacsclient.rc
+	@echo Emacsclient resource file must be built from nt directory
+	@exit -1
 
 $(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(COMCTL32) $(LIBS)
 
-$(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(TRES)
+$(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(CLIENTRES)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
-		$(LINK) $(LINK_OUT)$@ $(TRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(COMCTL32) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(CLIENTRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(COMCTL32) $(LIBS)
 
 # emacsclient.$(O) depends on makefile.w32-in because makefile.w32-in
 # can be edited to define VERSION string, which is part of ECLIENT_CFLAGS.

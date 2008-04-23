@@ -126,6 +126,10 @@ typedef unsigned long Time;
 #endif
 #endif
 
+#ifndef CGFLOAT_DEFINED
+typedef float CGFloat;
+#endif
+
 typedef WindowRef Window;
 #if TARGET_API_MAC_CARBON
 typedef ScrapRef Selection;
@@ -149,6 +153,7 @@ typedef int Selection;
 #define mac_size_window		SizeWindow
 #define mac_get_global_mouse	GetGlobalMouse
 #define mac_is_window_toolbar_visible	IsWindowToolbarVisible
+#define mac_rect_make(f, x, y, w, h)	CGRectMake (x, y, w, h)
 typedef GWorldPtr Pixmap;
 
 #define Cursor ThemeCursor

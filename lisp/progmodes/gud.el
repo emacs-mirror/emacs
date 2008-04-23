@@ -3424,10 +3424,7 @@ This function must return nil if it doesn't handle EVENT."
 	  (if (and (eq gud-minor-mode 'gdba)
 		   (not gdb-active-process))
 	      (progn
-		(with-current-buffer
-		    (window-buffer (let ((mouse (mouse-position)))
-				     (window-at (cadr mouse)
-						(cddr mouse))))
+		(with-current-buffer (tooltip-event-buffer event)
 		  (let ((define-elt (assoc expr gdb-define-alist)))
 		    (unless (null define-elt)
 		      (tooltip-show

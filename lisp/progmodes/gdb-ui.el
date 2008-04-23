@@ -481,6 +481,15 @@ otherwise do not."
 
 (defconst gdb-source-file-regexp "\\(.+?\\), \\|\\([^, \n].*$\\)")
 
+(defun gdb-init-buffer ()
+  (set (make-local-variable 'gud-minor-mode)
+       (buffer-local-value 'gud-minor-mode gud-comint-buffer))
+  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+  (when gud-tooltip-mode
+    (make-local-variable 'gdb-define-alist)
+    (gdb-create-define-alist)
+    (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))
+
 (defun gdb-set-gud-minor-mode-existing-buffers ()
   "Create list of source files for current GDB session."
   (goto-char (point-min))
@@ -493,12 +502,7 @@ otherwise do not."
 	(when (and buffer-file-name
 		   (member (file-name-nondirectory buffer-file-name)
 			   gdb-source-file-list))
-	  (set (make-local-variable 'gud-minor-mode) 'gdba)
-	  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-	  (when gud-tooltip-mode
-	    (make-local-variable 'gdb-define-alist)
-	    (gdb-create-define-alist)
-	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
+	  (gdb-init-buffer)))))
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
 
@@ -1953,10 +1957,7 @@ static char *magick[] = {
 				   (not (string-equal file "File not found")))
 			      (with-current-buffer
 				  (find-file-noselect file 'nowarn)
-				(set (make-local-variable 'gud-minor-mode)
-				     'gdba)
-				(set (make-local-variable 'tool-bar-map)
-				     gud-tool-bar-map)
+				(gdb-init-buffer)
 				;; Only want one breakpoint icon at each
 				;; location.
 				(save-excursion
@@ -3269,9 +3270,7 @@ Add directory to search path for source files using the GDB command, dir."))
       (throw 'file-not-found nil))
     (with-current-buffer
 	(find-file-noselect (match-string 0))
-      (save-current-buffer
-	(set (make-local-variable 'gud-minor-mode) 'gdba)
-	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
+      (gdb-init-buffer)
       ;; only want one breakpoint icon at each location
       (save-excursion
 	(goto-line (string-to-number line))
@@ -3293,9 +3292,7 @@ of the current session."
 		    buffer-file-name)
 		  gdb-source-file-list)
 	  (with-current-buffer (find-buffer-visiting buffer-file-name)
-	    (set (make-local-variable 'gud-minor-mode)
-		 (buffer-local-value 'gud-minor-mode gud-comint-buffer))
-	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)))))
+	    (gdb-init-buffer)))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop &rest sprops)
@@ -3625,13 +3622,7 @@ is set in them."
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (member buffer-file-name gdb-source-file-list)
-	(set (make-local-variable 'gud-minor-mode)
-	     (buffer-local-value 'gud-minor-mode gud-comint-buffer))
-	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-	(when gud-tooltip-mode
-	  (make-local-variable 'gdb-define-alist)
-	  (gdb-create-define-alist)
-	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
+	(gdb-init-buffer))))
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
 

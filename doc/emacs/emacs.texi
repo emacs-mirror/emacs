@@ -713,7 +713,7 @@ Maintaining Large Programs
 
 * Change Log::	        Maintaining a change history for your program.
 * Format of ChangeLog:: What the change log file looks like.
-* Tags::	        Go direct to any function in your program in one
+* Tags::	        Go directly to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::              A convenient way of merging two versions of a program.
 

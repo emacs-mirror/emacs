@@ -24,13 +24,15 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
+TRES		= $(BLD)/emacs.res
+CLIENTRES	= $(BLD)/emacsclient.res
+
+XMFLAGS		=
+
 ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
 
 .PHONY: $(ALL)
 
-TRES		= $(BLD)/emacs.res
-
-XMFLAGS		=
 
 addpm:		  stamp_BLD $(BLD)/addpm.exe
 $(BLD)/addpm.exe: $(BLD)/addpm.$(O)
@@ -62,7 +64,10 @@ $(BLD)/preprep.exe: $(BLD)/preprep.$(O)
 # it is not necessary on later versions, it is still ok to use it.
 #
 $(TRES):	emacs.rc icons/emacs.ico emacs.manifest stamp_BLD
-		$(RC) $(RC_OUT)$(BLD)/emacs.res emacs.rc
+		$(RC) $(RC_OUT)$(TRES) emacs.rc
+
+$(CLIENTRES):	emacsclient.rc stamp_BLD
+		$(RC) $(RC_OUT)$(CLIENTRES) emacsclient.rc
 
 runemacs:	  stamp_BLD $(BLD)/runemacs.exe
 $(BLD)/runemacs.exe: $(BLD)/runemacs.$(O) $(TRES)
@@ -81,7 +86,7 @@ $(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O
 #
 # Build emacs
 #
-all:	which-sh stamp_BLD $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
+all:	which-sh stamp_BLD $(ALL) $(CLIENTRES) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake: addsection
 	cd ..\lib-src

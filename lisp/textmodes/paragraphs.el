@@ -355,8 +355,8 @@ With argument ARG, do it ARG times;
 a negative argument ARG = -N means move forward N paragraphs.
 
 A paragraph start is the beginning of a line which is a
-`first-line-of-paragraph' or which is ordinary text and follows a
-paragraph-separating line; except: if the first real line of a
+`paragraph-start' or which is ordinary text and follows a
+`paragraph-separate'ing line; except: if the first real line of a
 paragraph is preceded by a blank line, the paragraph starts at that
 blank line.
 

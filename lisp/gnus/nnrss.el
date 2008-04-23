@@ -1131,7 +1131,5 @@ prefix), return the prefix."
 
 (provide 'nnrss)
 
-
-;;; nnrss.el ends here
-
 ;; arch-tag: 12910c07-0cdf-44fb-8d2c-416ded64c267
+;;; nnrss.el ends here

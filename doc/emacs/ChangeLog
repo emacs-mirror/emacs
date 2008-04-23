@@ -13,6 +13,11 @@
 	* building.texi (GDB-UI Layout, Breakpoints Buffer)
 	(Other GDB-UI Buffers): Update for recent thread related changes.
 
+2008-04-11  Mirko Vukovic  <mirko.vukovic@gmail.com>  (tiny change)
+
+	* maintaining.texi (Maintaining):
+	* emacs.texi (Top): Typo.
+
 2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* display.texi (Font Lock): Prefer add-hook to using a non-nil `mode'
