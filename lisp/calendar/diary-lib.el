@@ -1635,8 +1635,9 @@ DAY MONTH YEAR in the European style).
   %%(diary-remind SEXP DAYS &optional MARKING) text
     Entry is a reminder for diary sexp SEXP.  DAYS is either a
     single number or a list of numbers indicating the number(s)
-    of days before the event that the warning(s) should occur.  If
-    the current date is (one of) DAYS before the event indicated
+    of days before the event that the warning(s) should occur.
+    A negative number -DAYS has the same meaning as a list (1 2 ... DAYS).
+    If the current date is (one of) DAYS before the event indicated
     by EXPR, then a suitable message (as specified by
     `diary-remind-message') appears.  In addition to the
     reminders beforehand, the diary entry also appears on the
@@ -1915,21 +1916,27 @@ string to use when highlighting the day in the calendar."
 
 (defun diary-remind (sexp days &optional marking)
   "Provide a reminder of a diary entry.
-SEXP is a diary-sexp.  DAYS is either a single number or a list of numbers
-indicating the number(s) of days before the event that the warning(s) should
-occur on.  If the current date is (one of) DAYS before the event indicated by
-SEXP, then a suitable message (as specified by `diary-remind-message' is
-returned.
+SEXP is a diary-sexp.  DAYS is either a single number or a list
+of numbers indicating the number(s) of days before the event that
+the warning(s) should occur on.  A negative number -DAYS has the
+same meaning as a list (1 2 ... DAYS).  If the current date
+is (one of) DAYS before the event indicated by SEXP, then this function
+returns a suitable message (as specified by `diary-remind-message').
 
-In addition to the reminders beforehand, the diary entry also appears on the
-date itself.
+In addition to the reminders beforehand, the diary entry also
+appears on the date itself.
 
-A `diary-nonmarking-symbol' at the beginning of the line of the `diary-remind'
-entry specifies that the diary entry (not the reminder) is non-marking.
-Marking of reminders is independent of whether the entry itself is a marking
-or nonmarking; if optional parameter MARKING is non-nil then the reminders are
-marked on the calendar."
+A `diary-nonmarking-symbol' at the beginning of the line of the
+`diary-remind' entry specifies that the diary entry (not the
+reminder) is non-marking.  Marking of reminders is independent of
+whether the entry itself is a marking or nonmarking; if optional
+parameter MARKING is non-nil then the reminders are marked on the
+calendar."
   ;; `date' has a value at this point, from diary-sexp-entry.
+  ;; Convert a negative number to a list of days.
+  (and (integerp days)
+       (< days 0)
+       (setq days (number-sequence 1 (- days))))
   (let ((diary-entry (eval sexp)))
     (cond
      ;; Diary entry applies on date.
