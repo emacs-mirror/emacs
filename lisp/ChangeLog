@@ -25,8 +25,6 @@
 
 	* calendar/cal-islam.el (holiday-islamic): Doc fix.
 
-	* calendar/calendar.el (calendar-other-dates): Add absolute date.
-
 	* calendar/diary-lib.el (diary-list-sexp-entries): Doc fix.
 	(diary-remind): Allow negative DAYS to represent a range 1:DAYS.
 	Suggested by Roland Winkler <Roland.Winkler@physik.uni-erlangen.de>.
