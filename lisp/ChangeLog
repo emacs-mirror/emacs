@@ -1,3 +1,12 @@
+2008-04-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-previous-frame-address): Rename...
+	(gdb-previous-frame-pc-address): ...to this.
+	(gdb-get-selected-frame): Use MI command -stack-info-frame instead
+	of "info frame" with Gdb 6.4+.
+	(gdb-stack-list-frames-regexp): New regexp.
+	(gdb-frame-handler-1): Parse output of -stack-info-frame
+
 2008-04-22  David Glasser  <glasser@davidglasser.net>  (tiny change)
 
 	* tar-mode.el (tar-prefix-offset): New constant.
