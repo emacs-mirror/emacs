@@ -487,6 +487,72 @@ Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
                 (format "Chinese New Year (%s)"
                         (calendar-chinese-sexagesimal-name (+ y 57))))))))
 
+;;;###holiday-autoload
+(defun holiday-chinese-qingming ()
+  "Date of Chinese Qingming Festival, if visible in calendar.
+Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
+  (when (memq displayed-month '(3 4 5)) ; is April visible?
+    (list (list (calendar-gregorian-from-absolute
+                 ;; 15 days after Vernal Equinox.
+                 (+ 15
+                    (calendar-chinese-zodiac-sign-on-or-after
+                     (calendar-absolute-from-gregorian
+                      (list 3 15 displayed-year)))))
+                "Qingming Festival"))))
+
+;;;###holiday-autoload
+(defun holiday-chinese-winter-solstice ()
+  "Date of Chinese winter solstice, if visible in calendar.
+Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
+  (when (memq displayed-month '(11 12 1)) ; is December visible?
+    (list (list (calendar-gregorian-from-absolute
+                 (calendar-chinese-zodiac-sign-on-or-after
+                  (calendar-absolute-from-gregorian
+                   (list 12 15 (if (eq displayed-month 1)
+                                   (1- displayed-year)
+                                 displayed-year)))))
+                "Winter Solstice Festival"))))
+
+;;;###holiday-autoload
+(defun holiday-chinese (month day string)
+  "Holiday on Chinese MONTH, DAY called STRING.
+If MONTH, DAY (Chinese) is visible, returns the corresponding
+Gregorian date as the list (((month day year) STRING)).
+Returns nil if it is not visible in the current calendar window."
+  ;; This is calendar-nongregorian-visible-p adapted for the form of
+  ;; chinese dates: (cycle year month day) as opposed to (month day year).
+  (let* ((m1 displayed-month)
+         (y1 displayed-year)
+         (m2 displayed-month)
+         (y2 displayed-year)
+         ;; Absolute date of first/last dates in calendar window.
+         (start-date (progn
+                       (calendar-increment-month m1 y1 -1)
+                       (calendar-absolute-from-gregorian (list m1 1 y1))))
+         (end-date (progn
+                     (calendar-increment-month m2 y2 1)
+                     (calendar-absolute-from-gregorian
+                      (list m2 (calendar-last-day-of-month m2 y2) y2))))
+         ;; Local date of first/last date in calendar window.
+         (local-start (calendar-chinese-from-absolute start-date))
+         ;; A basic optimization.  We only care about the year part,
+         ;; and the Chinese year can only change if Jan or Feb are
+         ;; visible.  FIXME can we do more?
+         (local-end (if (memq displayed-month '(12 1 2 3))
+                        (calendar-chinese-from-absolute end-date)
+                      local-start))
+         ;; When Chinese New Year is visible on the far right of the
+         ;; calendar, what is the earliest Chinese month in the
+         ;; previous year that might still visible?  This test doesn't
+         ;; have to be precise.
+         (local (if (< month 10) local-end local-start))
+         (cycle (car local))
+         (year (cadr local))
+         (date (calendar-gregorian-from-absolute
+                (calendar-chinese-to-absolute (list cycle year month day)))))
+    (if (calendar-date-is-visible-p date)
+        (list (list date string)))))
+
 ;;;###cal-autoload
 (defun calendar-chinese-date-string (&optional date)
   "String of Chinese date of Gregorian DATE.
