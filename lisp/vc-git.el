@@ -87,7 +87,7 @@
 ;; - comment-history (file)			   ??
 ;; - update-changelog (files)			   COULD BE SUPPORTED
 ;; * diff (file &optional rev1 rev2 buffer)	   OK
-;; - revision-completion-table (files)		   NEEDED?
+;; - revision-completion-table (files)		   OK
 ;; - annotate-command (file buf &optional rev)	   OK
 ;; - annotate-time ()				   OK
 ;; - annotate-current-time ()			   NOT NEEDED
@@ -108,7 +108,10 @@
 ;; - find-file-hook ()				   NOT NEEDED
 ;; - find-file-not-found-hook ()                   NOT NEEDED
 
-(eval-when-compile (require 'cl) (require 'vc) (require 'grep))
+(eval-when-compile
+  (require 'cl)
+  (require 'vc)
+  (require 'grep))
 
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
@@ -287,7 +290,9 @@
 
 (defun vc-git-status-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
-  (let* ((state (vc-dir-fileinfo->state info))
+  (let* ((state (if (vc-dir-fileinfo->directory info)
+		    'DIRECTORY
+		  (vc-dir-fileinfo->state info)))
          (extra (vc-dir-fileinfo->extra info))
          (old-perm (when extra (vc-git-extra-fileinfo->old-perm extra)))
          (new-perm (when extra (vc-git-extra-fileinfo->new-perm extra))))

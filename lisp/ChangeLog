@@ -1,5 +1,7 @@
 2008-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-git.el (vc-git-status-printer): Deal with directories.
+
 	* vc.el (vc-next-action): Look at more than the first file to
 	determine the state.
 
