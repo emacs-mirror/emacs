@@ -1,3 +1,9 @@
+2008-04-23  Magnus Henoch  <mange@freemail.hu>
+
+	* tar-mode.el (tar-untar-buffer): If the entry has directory
+	link type, extract it as a directory even if its file name doesn't
+	end with a slash.  Fixes extraction of NetBSD tar archives.
+
 2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-start): Also don't get confused by CRs since we
