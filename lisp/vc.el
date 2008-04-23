@@ -1580,9 +1580,19 @@ merge in the changes into your working copy."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t))
 	 (files (cdr vc-fileset))
-	 (state (vc-state (car files)))
-	 (model (vc-checkout-model (car files)))
+	 state
+	 model
 	 revision)
+    ;; Check if there's at least one file present, and get `state' and
+    ;; `model' from it.
+    ;;FIXME: do something about the case when only directories are
+    ;; present, or `files' is nil.
+    (dolist (file files)
+      (unless (file-directory-p file)
+	(setq model (vc-checkout-model (car files)))
+	(setq state (vc-state file))
+	(return)))
+    
     ;; Verify that the fileset is homogeneous
     (dolist (file (cdr files))
       ;; Ignore directories, they are compatible with anything.
