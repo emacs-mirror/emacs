@@ -118,7 +118,7 @@ extern Lisp_Object Qhi_command;
 static TSMDocumentID tsm_document_id;
 extern Lisp_Object Qtext_input;
 extern Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
-extern Lisp_Object Vmac_ts_active_input_overlay;
+extern Lisp_Object Vmac_ts_active_input_overlay, Vmac_ts_active_input_buf;
 extern Lisp_Object Qbefore_string;
 #endif
 
@@ -134,6 +134,14 @@ extern OSStatus mac_store_event_ref_as_apple_event P_ ((AEEventClass, AEEventID,
 							EventRef, UInt32,
 							const EventParamName *,
 							const EventParamType *));
+extern int fast_find_position P_ ((struct window *, int, int *, int *,
+				   int *, int *, Lisp_Object));
+extern struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
+					   int *, int *, int *, int *, int *));
+extern void mac_ax_selected_text_range P_ ((struct frame *, CFRange *));
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+extern unsigned int mac_ax_number_of_characters P_ ((struct frame *));
+#endif
 
 #if USE_MAC_TSM
 extern OSStatus mac_restore_keyboard_input_source P_ ((void));
@@ -374,6 +382,10 @@ mac_handle_mouse_event (next_handler, event, data)
 }
 
 #if USE_MAC_TSM
+extern void mac_get_selected_range P_ ((struct window *, CFRange *));
+extern int mac_store_buffer_text_to_unicode_chars P_ ((struct buffer *,
+						       int, int, UniChar *));
+
 static pascal OSStatus
 mac_handle_text_input_event (next_handler, event, data)
      EventHandlerCallRef next_handler;
@@ -512,42 +524,268 @@ mac_handle_text_input_event (next_handler, event, data)
 
     case kEventTextInputOffsetToPos:
       {
+	long byte_offset;
 	struct frame *f;
 	struct window *w;
 	Point p;
 
-	if (!OVERLAYP (Vmac_ts_active_input_overlay))
+	err = GetEventParameter (event, kEventParamTextInputSendTextOffset,
+				 typeLongInteger, NULL, sizeof (long), NULL,
+				 &byte_offset);
+	if (err != noErr)
 	  break;
 
-	/* Strictly speaking, this is not always correct because
-	   previous events may change some states about display.  */
-	if (!NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
+	if (STRINGP (Vmac_ts_active_input_buf)
+	    && SBYTES (Vmac_ts_active_input_buf) != 0)
 	  {
-	    /* Active input area is displayed around the current point.  */
-	    f = SELECTED_FRAME ();
-	    w = XWINDOW (f->selected_window);
-	  }
-	else if (WINDOWP (echo_area_window))
-	  {
-	    /* Active input area is displayed in the echo area.  */
-	    w = XWINDOW (echo_area_window);
-	    f = WINDOW_XFRAME (w);
+	    if (!OVERLAYP (Vmac_ts_active_input_overlay))
+	      break;
+
+	    /* Strictly speaking, this is not always correct because
+	       previous events may change some states about display.  */
+	    if (!NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
+	      {
+		/* Active input area is displayed around the current point.  */
+		f = SELECTED_FRAME ();
+		w = XWINDOW (f->selected_window);
+	      }
+	    else if (WINDOWP (echo_area_window))
+	      {
+		/* Active input area is displayed in the echo area.  */
+		w = XWINDOW (echo_area_window);
+		f = WINDOW_XFRAME (w);
+	      }
+	    else
+	      break;
+
+	    p.h = (WINDOW_TO_FRAME_PIXEL_X (w, w->cursor.x)
+		   + WINDOW_LEFT_FRINGE_WIDTH (w)
+		   + f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f));
+	    p.v = (WINDOW_TO_FRAME_PIXEL_Y (w, w->cursor.y)
+		   + FONT_BASE (FRAME_FONT (f))
+		   + f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
 	  }
 	else
-	  break;
+	  {
+#ifndef MAC_OSX
+	    break;
+#else  /* MAC_OSX */
+	    CFRange sel_range;
+	    int charpos;
+	    int hpos, vpos, x, y;
+	    struct glyph_row *row;
+	    struct glyph *glyph;
+	    XFontStruct *font;
 
-	p.h = (WINDOW_TO_FRAME_PIXEL_X (w, w->cursor.x)
-	       + WINDOW_LEFT_FRINGE_WIDTH (w)
-	       + f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f));
-	p.v = (WINDOW_TO_FRAME_PIXEL_Y (w, w->cursor.y)
-	       + FONT_BASE (FRAME_FONT (f))
-	       + f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
+	    f = mac_focus_frame (&one_mac_display_info);
+	    w = XWINDOW (f->selected_window);
+	    mac_get_selected_range (w, &sel_range);
+	    charpos = (BUF_BEGV (XBUFFER (w->buffer)) + sel_range.location
+		       + byte_offset / (long) sizeof (UniChar));
+
+	    if (!fast_find_position (w, charpos, &hpos, &vpos, &x, &y, Qnil))
+	      {
+		result = errOffsetInvalid;
+		break;
+	      }
+
+	    row = MATRIX_ROW (w->current_matrix, vpos);
+	    glyph = row->glyphs[TEXT_AREA] + hpos;
+	    if (glyph->type != CHAR_GLYPH || glyph->glyph_not_available_p)
+	      break;
+
+	    p.h = (WINDOW_TEXT_TO_FRAME_PIXEL_X (w, x)
+		   + f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f));
+	    p.v = (WINDOW_TO_FRAME_PIXEL_Y (w, y)
+		   + row->visible_height
+		   + f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
+
+	    font = FACE_FROM_ID (f, glyph->face_id)->font;
+	    if (font)
+	      {
+		Fixed point_size = Long2Fix (font->mac_fontsize);
+		short height = row->visible_height;
+		short ascent = row->ascent;
+
+		SetEventParameter (event,
+				   kEventParamTextInputReplyPointSize,
+				   typeFixed, sizeof (Fixed), &point_size);
+		SetEventParameter (event,
+				   kEventParamTextInputReplyLineHeight,
+				   typeShortInteger, sizeof (short), &height);
+		SetEventParameter (event,
+				   kEventParamTextInputReplyLineAscent,
+				   typeShortInteger, sizeof (short), &ascent);
+		if (font->mac_fontnum != -1)
+		  {
+		    OSStatus err1;
+		    FMFont fm_font;
+		    FMFontStyle style;
+
+		    err1 = FMGetFontFromFontFamilyInstance (font->mac_fontnum,
+							    font->mac_fontface,
+							    &fm_font, &style);
+		    if (err1 == noErr)
+		      SetEventParameter (event, kEventParamTextInputReplyFMFont,
+					 typeUInt32, sizeof (UInt32), &fm_font);
+		    else
+		      {
+			long qd_font = font->mac_fontnum;
+
+			SetEventParameter (event, kEventParamTextInputReplyFont,
+					   typeLongInteger, sizeof (long),
+					   &qd_font);
+		      }
+		  }
+		else if (font->mac_style)
+		  {
+		    OSStatus err1;
+		    ATSUFontID font_id;
+
+		    err1 = ATSUGetAttribute (font->mac_style, kATSUFontTag,
+					     sizeof (ATSUFontID), &font_id,
+					     NULL);
+		    if (err1 == noErr)
+		      SetEventParameter (event, kEventParamTextInputReplyFMFont,
+					 typeUInt32, sizeof (UInt32), &font_id);
+		  }
+		else
+		  abort ();
+	      }
+#endif	/* MAC_OSX */
+	  }
+
 	err = SetEventParameter (event, kEventParamTextInputReplyPoint,
-				 typeQDPoint, sizeof (typeQDPoint), &p);
+				 typeQDPoint, sizeof (Point), &p);
 	if (err == noErr)
 	  result = noErr;
       }
       break;
+
+#ifdef MAC_OSX
+    case kEventTextInputPosToOffset:
+      {
+	Point point;
+	Boolean leading_edge_p = true;
+	struct frame *f;
+	int x, y;
+	Lisp_Object window;
+	enum window_part part;
+	long region_class = kTSMOutsideOfBody, byte_offset = 0;
+
+	err = GetEventParameter (event, kEventParamTextInputSendCurrentPoint,
+				 typeQDPoint, NULL, sizeof (Point), NULL,
+				 &point);
+	if (err != noErr)
+	  break;
+
+	GetEventParameter (event, kEventParamTextInputReplyLeadingEdge,
+			   typeBoolean, NULL, sizeof (Boolean), NULL,
+			   &leading_edge_p);
+
+	f = mac_focus_frame (&one_mac_display_info);
+	x = point.h - (f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f));
+	y = point.v - (f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
+	window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
+	if (WINDOWP (window) && EQ (window, f->selected_window))
+	  {
+	    struct window *w;
+	    struct buffer *b;
+
+	    /* Convert to window-relative pixel coordinates.  */
+	    w = XWINDOW (window);
+	    frame_to_window_pixel_xy (w, &x, &y);
+
+	    /* Are we in a window whose display is up to date?
+	       And verify the buffer's text has not changed.  */
+	    b = XBUFFER (w->buffer);
+	    if (part == ON_TEXT
+		&& EQ (w->window_end_valid, w->buffer)
+		&& XINT (w->last_modified) == BUF_MODIFF (b)
+		&& XINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
+	      {
+		int hpos, vpos, area;
+		struct glyph *glyph;
+
+		/* Find the glyph under X/Y.  */
+		glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area);
+
+		if (glyph != NULL && area == TEXT_AREA)
+		  {
+		    byte_offset = ((glyph->charpos - BUF_BEGV (b))
+				   * sizeof (UniChar));
+		    region_class = kTSMInsideOfBody;
+		  }
+	      }
+	  }
+
+	err = SetEventParameter (event, kEventParamTextInputReplyRegionClass,
+				 typeLongInteger, sizeof (long),
+				 &region_class);
+	if (err == noErr)
+	  err = SetEventParameter (event, kEventParamTextInputReplyTextOffset,
+				   typeLongInteger, sizeof (long),
+				   &byte_offset);
+	if (err == noErr)
+	  result = noErr;
+      }
+      break;
+
+    case kEventTextInputGetSelectedText:
+      {
+	struct frame *f = mac_focus_frame (&one_mac_display_info);
+	struct window *w = XWINDOW (f->selected_window);
+	struct buffer *b = XBUFFER (w->buffer);
+	CFRange sel_range;
+	int start, end;
+	UniChar *characters, c;
+
+	if (poll_suppress_count == 0 && !NILP (Vinhibit_quit))
+	  /* Don't try to get buffer contents as the gap might be
+	     being altered. */
+	  break;
+
+	mac_get_selected_range (w, &sel_range);
+	if (sel_range.length == 0)
+	  {
+	    Boolean leading_edge_p;
+
+	    err = GetEventParameter (event,
+				     kEventParamTextInputReplyLeadingEdge,
+				     typeBoolean, NULL, sizeof (Boolean), NULL,
+				     &leading_edge_p);
+	    if (err != noErr)
+	      break;
+
+	    start = BUF_BEGV (b) + sel_range.location;
+	    if (!leading_edge_p)
+	      start--;
+	    end = start + 1;
+	    characters = &c;
+
+	    if (start < BUF_BEGV (b) || end > BUF_ZV (b))
+	      break;
+	  }
+	else
+	  {
+	    start = BUF_BEGV (b) + sel_range.location;
+	    end = start + sel_range.length;
+	    characters = xmalloc (sel_range.length * sizeof (UniChar));
+	  }
+
+	if (mac_store_buffer_text_to_unicode_chars (b, start, end, characters))
+	  err = SetEventParameter (event, kEventParamTextInputReplyText,
+				   typeUnicodeText,
+				   sel_range.length * sizeof (UniChar),
+				   characters);
+	if (characters != &c)
+	  xfree (characters);
+
+	if (err == noErr)
+	  result = noErr;
+      }
+      break;
+#endif	/* MAC_OSX */
 
     default:
       abort ();
@@ -559,6 +797,86 @@ mac_handle_text_input_event (next_handler, event, data)
 					      names, types);
   return result;
 }
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+static pascal OSStatus
+mac_handle_document_access_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus err, result;
+  struct frame *f = mac_focus_frame (&one_mac_display_info);
+
+  result = CallNextEventHandler (next_handler, event);
+  if (result != eventNotHandledErr)
+    return result;
+
+  switch (GetEventKind (event))
+    {
+    case kEventTSMDocumentAccessGetLength:
+      {
+	CFIndex count = mac_ax_number_of_characters (f);
+
+	err = SetEventParameter (event, kEventParamTSMDocAccessCharacterCount,
+				 typeCFIndex, sizeof (CFIndex), &count);
+	if (err == noErr)
+	  result = noErr;
+      }
+      break;
+
+    case kEventTSMDocumentAccessGetSelectedRange:
+      {
+	CFRange sel_range;
+
+	mac_ax_selected_text_range (f, &sel_range);
+	err = SetEventParameter (event,
+				 kEventParamTSMDocAccessReplyCharacterRange,
+				 typeCFRange, sizeof (CFRange), &sel_range);
+	if (err == noErr)
+	  result = noErr;
+      }
+      break;
+
+    case kEventTSMDocumentAccessGetCharacters:
+      {
+	struct buffer *b = XBUFFER (XWINDOW (f->selected_window)->buffer);
+	CFRange range;
+	Ptr characters;
+	int start, end;
+
+	if (poll_suppress_count == 0 && !NILP (Vinhibit_quit))
+	  /* Don't try to get buffer contents as the gap might be
+	     being altered. */
+	  break;
+
+	err = GetEventParameter (event,
+				 kEventParamTSMDocAccessSendCharacterRange,
+				 typeCFRange, NULL, sizeof (CFRange), NULL,
+				 &range);
+	if (err == noErr)
+	  err = GetEventParameter (event,
+				   kEventParamTSMDocAccessSendCharactersPtr,
+				   typePtr, NULL, sizeof (Ptr), NULL,
+				   &characters);
+	if (err != noErr)
+	  break;
+
+	start = BUF_BEGV (b) + range.location;
+	end = start + range.length;
+	if (mac_store_buffer_text_to_unicode_chars (b, start, end,
+						    (UniChar *) characters))
+	  result = noErr;
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  return result;
+}
+#endif
 #endif
 
 OSStatus
@@ -607,13 +925,32 @@ install_application_handler ()
       static const EventTypeSpec specs[] =
 	{{kEventClassTextInput, kEventTextInputUpdateActiveInputArea},
 	 {kEventClassTextInput, kEventTextInputUnicodeForKeyEvent},
-	 {kEventClassTextInput, kEventTextInputOffsetToPos}};
+	 {kEventClassTextInput, kEventTextInputOffsetToPos},
+#ifdef MAC_OSX
+	 {kEventClassTextInput, kEventTextInputPosToOffset},
+	 {kEventClassTextInput, kEventTextInputGetSelectedText}
+#endif
+	};
 
       err = InstallApplicationEventHandler (NewEventHandlerUPP
 					    (mac_handle_text_input_event),
 					    GetEventTypeCount (specs),
 					    specs, NULL, NULL);
     }
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  if (err == noErr)
+    {
+      static const EventTypeSpec specs[] =
+	{{kEventClassTSMDocumentAccess, kEventTSMDocumentAccessGetLength},
+	 {kEventClassTSMDocumentAccess, kEventTSMDocumentAccessGetSelectedRange},
+	 {kEventClassTSMDocumentAccess, kEventTSMDocumentAccessGetCharacters}};
+
+      err = InstallApplicationEventHandler (mac_handle_document_access_event,
+					    GetEventTypeCount (specs),
+					    specs, NULL, NULL);
+    }
+#endif
 #endif
 
   if (err == noErr)
