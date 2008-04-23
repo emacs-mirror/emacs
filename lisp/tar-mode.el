@@ -395,7 +395,9 @@ MODE should be an integer which is a file mode value."
 	  (dolist (descriptor tar-parse-info)
 	    (let* ((tokens (tar-desc-tokens descriptor))
 		   (name (tar-header-name tokens))
-		   (dir (file-name-directory name))
+		   (dir (if (eq (tar-header-link-type tokens) 5)
+			    name
+			  (file-name-directory name)))
 		   (start (+ (tar-desc-data-start descriptor)
 			     (- tar-header-offset (point-min))))
 		   (end (+ start (tar-header-size tokens))))
