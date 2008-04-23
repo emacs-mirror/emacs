@@ -2172,7 +2172,6 @@ DATE is (month day year).  Calendars that do not apply are omitted."
     (delq nil
           (list
            (calendar-day-of-year-string date)
-           (format "Absolute date: %s" (calendar-absolute-from-gregorian date))
            (format "ISO date: %s" (calendar-iso-date-string date))
            (format "Julian date: %s"
                    (calendar-julian-date-string date))
