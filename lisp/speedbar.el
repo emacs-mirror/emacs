@@ -386,9 +386,8 @@ error occurred, and the next fetch routine is tried.
 INSERT is a function which takes an INDENTation level, and a LIST of
 tags to insert.  It will then create the speedbar buttons.")
 
-(defcustom speedbar-use-tool-tips-flag (and (not (featurep 'xemacs))
-				       (>= emacs-major-version 21))
-  "*Non-nil means to use tool tips if they are avaialble.
+(defcustom speedbar-use-tool-tips-flag (fboundp 'tooltip-mode)
+  "Non-nil means to use tool tips if they are avaialble.
 When tooltips are not available, mouse-tracking and minibuffer
 display is used instead."
   :group 'speedbar
