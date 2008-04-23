@@ -881,18 +881,9 @@ and added as a submenu of the \"Edit\" menu.")
 
 ;; Make ispell.el work better with aspell.
 
-(defvar ispell-have-aspell-dictionaries nil
-  "Non-nil if we have queried Aspell for dictionaries at least once.")
-
-(defun ispell-maybe-find-aspell-dictionaries ()
-  "Find Aspell's dictionaries, unless already done."
-  (when (and (not ispell-have-aspell-dictionaries)
-	     (condition-case ()
-		 (progn (ispell-check-version) t)
-	       (error nil))
-	     ispell-really-aspell
-	     ispell-aspell-supports-utf8)
-    (ispell-find-aspell-dictionaries)))
+(defvar ispell-aspell-dictionary-alist nil
+  "An alist of parsed aspell dicts and associated parameters.
+Internal use.")
 
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
@@ -915,14 +906,13 @@ and added as a submenu of the \"Edit\" menu.")
     (dolist (dict ispell-dictionary-alist)
       (unless (assoc (car dict) found)
 	(setq found (nconc found (list dict)))))
-    (setq ispell-dictionary-alist found)
+    (setq ispell-aspell-dictionary-alist found)
     ;; Add a default entry
     (let* ((english-dict (assoc "en" ispell-dictionary-alist))
 	   (default-dict
 	     (cons nil (or (cdr english-dict)
 			   (cdr (car ispell-dictionary-alist-1))))))
-      (push default-dict ispell-dictionary-alist))
-    (setq ispell-have-aspell-dictionaries t)))
+      (push default-dict ispell-aspell-dictionary-alist))))
 
 (defvar ispell-aspell-data-dir nil
   "Data directory of Aspell.")
@@ -1004,11 +994,74 @@ Return the new dictionary alist."
 	      (push (cons aliasname (cdr realdict)) alist))))))
     alist))
 
+;; Set params according to the selected spellchecker
+
+(defvar ispell-last-program-name nil
+  "Last value of ispell-program name. Internal use.")
+
+(defvar ispell-initialize-spellchecker-hook nil
+  "Actions to be taken on spellchecker initialization.
+This hook is run when an spellchecker is used for the first
+time, before ``ispell-dictionary-alist'' is set. Is intended for
+sysadmins to override entries in the ispell.el base dictionary-alist
+by putting those overrides in a ``ispell-base-dicts-override-alist''
+alist with same format as ``ispell-dictionary-alist''. This alist
+will not override the auto-detected values if a recent aspell is
+used along with emacs.")
+
+(defun ispell-set-spellchecker-params ()
+  "Initialize some spellchecker parameters when changed or first used."
+  (unless (eq ispell-last-program-name ispell-program-name)
+    (setq ispell-last-program-name ispell-program-name)
+    (ispell-kill-ispell t)
+    (if (and (condition-case ()
+		 (progn
+		   (setq ispell-library-directory (ispell-check-version))
+		   t)
+	       (error nil))
+	     ispell-really-aspell
+	     ispell-aspell-supports-utf8
+	     ;; xemacs does not like [:alpha:] regexps
+	     (string-match "^[[:alpha:]]+$" "abcde"))
+	(unless ispell-aspell-dictionary-alist
+	  (ispell-find-aspell-dictionaries)))
+
+    ;; Substitute ispell-dictionary-alist with the list of dictionaries
+    ;; corresponding to the given spellchecker. If a recent aspell, use
+    ;; the list of really installed dictionaries and add to it elements
+    ;; of the original list that are not present there. Allow distro info.
+    (let ((base-dicts-alist
+	   (append ispell-dictionary-alist-1 ispell-dictionary-alist-2
+		   ispell-dictionary-alist-3 ispell-dictionary-alist-4
+		   ispell-dictionary-alist-5 ispell-dictionary-alist-6))
+	  (found-dicts-alist
+	   (if (and ispell-really-aspell
+		    ispell-aspell-supports-utf8)
+	       ispell-aspell-dictionary-alist
+	     nil))
+	  ispell-base-dicts-override-alist ; Override only base-dicts-alist
+	  all-dicts-alist)
+
+      (run-hooks 'ispell-initialize-spellchecker-hook)
+
+      ;; Add dicts to ``ispell-dictionary-alist'' unless already present.
+      (dolist (dict (append found-dicts-alist
+			    ispell-base-dicts-override-alist
+			    base-dicts-alist))
+	(unless (assoc (car dict) all-dicts-alist)
+	  (add-to-list 'all-dicts-alist dict)))
+      (setq ispell-dictionary-alist all-dicts-alist))))
+
+
 (defun ispell-valid-dictionary-list ()
   "Returns a list of valid dictionaries.
 The variable `ispell-library-directory' defines the library location."
-  ;; If Ispell is really Aspell, query it for the dictionary list.
-  (ispell-maybe-find-aspell-dictionaries)
+  ;; Initialize variables and dictionaries alists for desired spellchecker.
+  ;; Make sure ispell.el is loaded to avoid some autoload loops in xemacs
+  ;; (and may be others)
+  (if (featurep 'ispell)
+      (ispell-set-spellchecker-params))
+
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
 	name load-dict)
@@ -1566,7 +1619,7 @@ quit          spell session exited."
     (ispell-region (region-beginning) (region-end)))
    (continue (ispell-continue))
    (t
-    (ispell-maybe-find-aspell-dictionaries)
+    (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
     (ispell-accept-buffer-local-defs)	; use the correct dictionary
     (let ((cursor-location (point))	; retain cursor location
 	  (word (ispell-get-word following))
@@ -2602,7 +2655,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (mapcar 'list (ispell-valid-dictionary-list)))
 	  nil t)
 	 current-prefix-arg))
-  (ispell-maybe-find-aspell-dictionaries)
+  (ispell-set-spellchecker-params) ; Initilize variables and dicts alists
   (unless arg (ispell-buffer-local-dict 'no-reload))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match
@@ -2653,7 +2706,7 @@ a new one will be started when needed."
 Return nil if spell session is quit,
  otherwise returns shift offset amount for last line processed."
   (interactive "r")			; Don't flag errors on read-only bufs.
-  (ispell-maybe-find-aspell-dictionaries)
+  (ispell-set-spellchecker-params)      ; Initialize variables and dicts alists
   (if (not recheckp)
       (ispell-accept-buffer-local-defs)) ; set up dictionary, local words, etc.
   (let ((skip-region-start (make-marker))

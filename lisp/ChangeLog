@@ -1,3 +1,16 @@
+2008-04-23  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-set-spellchecker-params): New function to make sure
+	right params and dictionary alists are used after spellchecker changes.
+	(ispell-aspell-dictionary-alist, ispell-last-program-name)
+	(ispell-initialize-spellchecker-hook): New variables and hook.
+	(ispell-find-aspell-dictionaries): Use ispell-aspell-dictionary-alist.
+	(ispell-maybe-find-aspell-dictionaries): Remove.
+	Calls replaced by (ispell-set-spellchecker-params) calls.
+	(ispell-have-aspell-dictionaries): Remove.
+	* flyspell.el: Replace ispell-maybe-find-aspell-dictionaries by
+	ispell-set-spellchecker-params.
+
 2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* complete.el (PC-do-completion): Be more robust in the presence of
