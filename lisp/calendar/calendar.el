@@ -792,6 +792,12 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(defcustom calendar-chinese-all-holidays-flag nil
+  "If nil, show only the major holidays from the Chinese calendar."
+  :version "23.1"
+  :type 'boolean
+  :group 'holidays)
+
 ;;; End of user options.
 
 (defconst calendar-buffer "*Calendar*"
@@ -1937,6 +1943,7 @@ interpreted as BC; -1 being 1 BC, and so on."
                 (calendar-extract-month date) (calendar-extract-year date)))
           2)))
 
+;; FIXME can this be generalized for holiday-chinese?
 (defun calendar-nongregorian-visible-p (month day toabs fromabs switch)
   "Return non-nil if MONTH, DAY is visible in the calendar window.
 MONTH and DAY are in some non-Gregorian calendar system.  The
@@ -2165,6 +2172,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
     (delq nil
           (list
            (calendar-day-of-year-string date)
+           (format "Absolute date: %s" (calendar-absolute-from-gregorian date))
            (format "ISO date: %s" (calendar-iso-date-string date))
            (format "Julian date: %s"
                    (calendar-julian-date-string date))
