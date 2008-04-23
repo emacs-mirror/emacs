@@ -74,9 +74,20 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (defcustom holiday-oriental-holidays
-  '((holiday-chinese-new-year))
+  '((holiday-chinese-new-year)
+    (if calendar-chinese-all-holidays-flag
+        (append
+         (holiday-chinese 1 15 "Lantern Festival")
+         (holiday-chinese-qingming)
+         (holiday-chinese 5  5 "Dragon Boat Festival")
+         (holiday-chinese 7  7 "Double Seventh Festival")
+         (holiday-chinese 8 15 "Mid-Autumn Festival")
+         (holiday-chinese 9  9 "Double Ninth Festival")
+         (holiday-chinese-winter-solstice)
+         )))
   "Oriental holidays.
 See the documentation for `calendar-holidays' for details."
+  :version "23.1"                       ; added more holidays
   :type 'sexp
   :group 'holidays)
 ;;;###autoload
