@@ -1,3 +1,17 @@
+2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-try-completion): Add `point' argument.
+	Change return value.
+	(completion-all-completions): Add `point' argument.
+	(minibuffer-completion-help): Pass the new `point' argument.
+	(completion--do-completion): Pass the whole field to try-completion.
+	(completion--try-word-completion): Rewrite, making fewer assumptions.
+	(completion-emacs21-try-completion, completion-emacs21-all-completions)
+	(completion-emacs22-try-completion, completion-emacs22-all-completions)
+	(completion-basic-try-completion, completion-basic-all-completions):
+	New functions.
+	(completion-styles-alist): Use them.
+
 2008-04-23  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-set-spellchecker-params): New function to make sure
