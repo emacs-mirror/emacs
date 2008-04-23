@@ -43,7 +43,7 @@
 ;; * Frame/buffer killing hooks
 ;; * Mouse-3 position relative menu
 ;; * Mouse motion, help-echo hacks
-;; * Mouse clicking, double clicking, & Xemacs image clicking hack
+;; * Mouse clicking, double clicking, & XEmacs image clicking hack
 ;; * Mode line hacking
 ;; * Utilities for use in a program covering:
 ;;    o keymap massage for some actions
@@ -108,7 +108,7 @@
 ;;; Bugs
 ;;
 ;;  * The timer managers doesn't handle multiple different timeouts.
-;;  * You can't specify continuous timouts (as opposed to just lidle timers.)
+;;  * You can't specify continuous timeouts (as opposed to just idle timers.)
 
 (defvar x-pointer-hand2)
 (defvar x-pointer-top-left-arrow)
@@ -131,20 +131,15 @@
   :prefix "dframe-"
   :group 'dframe)
 
-(defvar dframe-have-timer-flag
-  (and (or (fboundp 'run-with-idle-timer)
-	   (fboundp 'start-itimer)
-	   (boundp 'post-command-idle-hook))
-       (if (fboundp 'display-graphic-p)
-	   (display-graphic-p)
-	 window-system))
-  "Non-nil means that timers are available for this Emacs.")
+(defvar dframe-have-timer-flag (if (fboundp 'display-graphic-p)
+				   (display-graphic-p)
+				 window-system)
+  "Non-nil means that timers are available for this Emacs.
+This is nil for terminals, since updating a frame in a terminal
+is not useful to the user.")
 
 (defcustom dframe-update-speed
-  (if (featurep 'xemacs)
-      (if (>= emacs-major-version 20)
-	  2				; 1 is too obrusive in XEmacs
-	5)				; when no idleness, need long delay
+  (if (featurep 'xemacs) 2		; 1 is too obrusive in XEmacs
     1)
   "Idle time in seconds needed before dframe will update itself.
 Updates occur to allow dframe to display directory information
@@ -391,8 +386,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 			   paramsa
 			   (list (cons 'width (frame-width))))))
 		       (frame
-			(if (or (< emacs-major-version 20)
-				(not (eq window-system 'x)))
+			(if (not (eq window-system 'x))
 			    (make-frame params)
 			  (let ((x-pointer-shape x-pointer-top-left-arrow)
 				(x-sensitive-text-pointer-shape
@@ -744,47 +738,18 @@ If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
       (dframe-set-timer-internal timeout null-on-error)))
 
 (defun dframe-set-timer-internal (timeout &optional null-on-error)
-  "Apply a timer with TIMEOUT to call the dframe timer manager.
-If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
-  (cond
-   ;; XEmacs
-   ((featurep 'xemacs)
-    (if dframe-timer
-	(progn (delete-itimer dframe-timer)
-	       (setq dframe-timer nil)))
-    (if timeout
-	(if (or (>= emacs-major-version 21)
-                (and (= emacs-major-version 20)
-                     (> emacs-minor-version 0))
-                (and (= emacs-major-version 19)
-                     (>= emacs-minor-version 15)))
-	    (setq dframe-timer (start-itimer "dframe"
-					     'dframe-timer-fn
-					     timeout
-					     timeout
-					     t))
-	  (setq dframe-timer (start-itimer "dframe"
-					   'dframe-timer-fn
-					   timeout
-					   nil)))))
-   ;; Post 19.31 Emacs
-   ((fboundp 'run-with-idle-timer)
-    (if dframe-timer
-	(progn (cancel-timer dframe-timer)
-	       (setq dframe-timer nil)))
-    (if timeout
-	(setq dframe-timer
-	      (run-with-idle-timer timeout t 'dframe-timer-fn))))
-   ;; Emacs 19.30 (Thanks twice: ptype@dra.hmg.gb)
-   ((boundp 'post-command-idle-hook)
-    (if timeout
-	(add-hook 'post-command-idle-hook 'dframe-timer-fn)
-      (remove-hook 'post-command-idle-hook 'dframe-timer-fn)))
-   ;; Older or other Emacsen with no timers.  Set up so that its
-   ;; obvious this emacs can't handle the updates
-   ((symbolp null-on-error)
-    (set null-on-error nil)))
-  )
+  "Apply a timer with TIMEOUT to call the dframe timer manager."
+  (when dframe-timer
+    (if (featurep 'xemacs)
+	(delete-itimer dframe-timer)
+      (cancel-timer dframe-timer))
+    (setq dframe-timer nil))
+  (when timeout
+    (setq dframe-timer
+	  (if (featurep 'xemacs)
+	      (start-itimer "dframe" 'dframe-timer-fn
+			    timeout timeout t)
+	    (run-with-idle-timer timeout t 'dframe-timer-fn)))))
 
 (defun dframe-timer-fn ()
   "Called due to the dframe timer.
@@ -840,9 +805,10 @@ Must be bound to event E."
         ;; This gets the cursor where the user can see it.
         (if (not (bolp)) (forward-char -1))
         (sit-for 0)
-        (if (< emacs-major-version 20)
-            (mouse-major-mode-menu e)
-          (mouse-major-mode-menu e nil))))))
+	(if (fboundp 'mouse-menu-major-mode-map)
+	    (popup-menu (mouse-menu-major-mode-map) e)
+	  (with-no-warnings	  ; don't warn about obsolete fallback
+	    (mouse-major-mode-menu e nil)))))))
 
 ;;; Interactive user functions for the mouse
 ;;
