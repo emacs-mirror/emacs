@@ -83,6 +83,7 @@
 (defvar mac-apple-event-map)
 (defvar mac-font-panel-mode)
 (defvar mac-ts-active-input-overlay)
+(defvar mac-ts-active-input-buf)
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -1859,8 +1860,6 @@ With numeric ARG, display the font panel if and only if ARG is positive."
 ) ;; (fboundp 'mac-set-font-panel-visible-p)
 
 ;;; Text Services
-(defvar mac-ts-active-input-buf ""
-  "Byte sequence of the current Mac TSM active input area.")
 (defvar mac-ts-update-active-input-area-seqno 0
   "Number of processed update-active-input-area events.")
 (setq mac-ts-active-input-overlay (make-overlay 0 0))
