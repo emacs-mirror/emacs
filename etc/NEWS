@@ -607,6 +607,12 @@ prefixes, eg `calendar-french-'.  The old names you are likely to use
 directly still exist, for the time being, as aliases, but please start
 using the new names.
 
+*** The function `holiday-chinese' computes holidays on the Chinese calendar.
+It has been used to add items to the list `holiday-oriental-holidays'.
+
+*** `diary-remind' accepts a negative number -DAYS as a shorthand for
+the list (1 2 ... DAYS).
+
 ** Miscellaneous programming mode changes
 
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
