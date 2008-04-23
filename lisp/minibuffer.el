@@ -834,7 +834,8 @@ and `read-file-name-function'."
   ;; If dir starts with user's homedir, change that to ~.
   (setq dir (abbreviate-file-name dir))
   ;; Likewise for default-filename.
-  (setq default-filename (abbreviate-file-name default-filename))
+  (if default-filename
+      (setq default-filename (abbreviate-file-name default-filename)))
   (let ((insdef (cond
                  ((and insert-default-directory (stringp dir))
                   (if initial
@@ -846,17 +847,25 @@ and `read-file-name-function'."
     (if read-file-name-function
         (funcall read-file-name-function
                  prompt dir default-filename mustmatch initial predicate)
-      (let ((default-directory (file-name-as-directory (expand-file-name dir)))
-            (completion-ignore-case read-file-name-completion-ignore-case)
+      (let ((completion-ignore-case read-file-name-completion-ignore-case)
             (minibuffer-completing-file-name t)
             (read-file-name-predicate (or predicate 'file-exists-p))
             (add-to-history nil))
 
         (let* ((val
                 (if (not (next-read-file-uses-dialog-p))
-                    (completing-read prompt 'read-file-name-internal
-                                     nil mustmatch insdef 'file-name-history
-                                     default-filename)
+                    ;; We used to pass `dir' to `read-file-name-internal' by
+                    ;; abusing the `predicate' argument.  It's better to
+                    ;; just use `default-directory', but in order to avoid
+                    ;; changing `default-directory' in the current buffer,
+                    ;; we don't let-bind it.
+                    (lexical-let ((dir (file-name-as-directory
+                                        (expand-file-name dir))))
+                      (minibuffer-with-setup-hook
+                          (lambda () (setq default-directory dir))
+                        (completing-read prompt 'read-file-name-internal
+                                         nil mustmatch insdef 'file-name-history
+                                         default-filename)))
                   ;; If DIR contains a file name, split it.
                   (let ((file (file-name-nondirectory dir)))
                     (when (and default-filename (not (zerop (length file))))
