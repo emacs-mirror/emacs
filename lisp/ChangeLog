@@ -1,3 +1,36 @@
+2008-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* dframe.el (dframe-have-timer-flag): Drop support for Emacs without
+	timers.  Doc fix.
+	(dframe-update-speed): Drop support for XEmacs < 20.
+	(dframe-frame-mode): Drop support for Emacs < 20.
+	(dframe-set-timer-internal): Drop support for Emacs without timers.
+	(dframe-popup-kludge): Use mouse-menu-major-mode-map if defined.
+
+	* ediff-init.el (ediff-check-version): Drop support for very old Emacs
+	versions.  Add doc-string.  Mark as obsolete.
+
+	* ps-def.el (ps-color-device): Drop support for XEmacs < 19.12.
+
+	* speedbar.el (speedbar-use-tool-tips-flag): Check for tooltip-mode,
+	rather than using an Emacs version test.
+
+	* tree-widget.el (tree-widget-image-enable): Use display-images-p
+	rather than an Emacs version test.
+
+	* calendar/cal-china.el (holiday-chinese-qingming)
+	(holiday-chinese-winter-solstice, holiday-chinese): New functions.
+	* calendar/calendar.el (calendar-chinese-all-holidays-flag): New.
+	* calendar/holidays.el (holiday-oriental-holidays): Add more holidays.
+
+	* calendar/cal-islam.el (holiday-islamic): Doc fix.
+
+	* calendar/calendar.el (calendar-other-dates): Add absolute date.
+
+	* calendar/diary-lib.el (diary-list-sexp-entries): Doc fix.
+	(diary-remind): Allow negative DAYS to represent a range 1:DAYS.
+	Suggested by Roland Winkler <Roland.Winkler@physik.uni-erlangen.de>.
+
 2008-04-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-previous-frame-address): Rename...
