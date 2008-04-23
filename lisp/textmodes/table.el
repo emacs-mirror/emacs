@@ -395,7 +395,8 @@
 ;; lines.  A valid character of a cell's vertical border is either
 ;; table-cell-vertical-char `|' or table-cell-intersection-char `+'.
 ;; A valid character of a cell's horizontal border is either
-;; table-cell-horizontal-char `-' or table-cell-intersection-char `+'.
+;; one of table-cell-horizontal-chars (`-' or `=')
+;; or table-cell-intersection-char `+'.
 ;; A valid character of the four corners of a cell must be
 ;; table-cell-intersection-char `+'.  A cell must contain at least one
 ;; character space inside.  There is no restriction about the contents
