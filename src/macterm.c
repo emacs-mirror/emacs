@@ -8154,7 +8154,7 @@ Lisp_Object Qtoolbar_switch_mode;
 #if USE_MAC_TSM
 Lisp_Object Qtext_input;
 Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
-Lisp_Object Vmac_ts_active_input_overlay;
+Lisp_Object Vmac_ts_active_input_overlay, Vmac_ts_active_input_buf;
 static Lisp_Object Vmac_ts_script_language_on_focus;
 static Lisp_Object saved_ts_script_language_on_focus;
 static ScriptLanguageRecord saved_ts_language;
@@ -8162,6 +8162,7 @@ static Component saved_ts_component;
 #endif
 #ifdef MAC_OSX
 Lisp_Object Qservice, Qpaste, Qperform;
+Lisp_Object Qmouse_drag_overlay;
 #endif
 #endif	/* TARGET_API_MAC_CARBON */
 extern Lisp_Object Qundefined;
@@ -8335,6 +8336,138 @@ mac_get_emulated_btn ( UInt32 modifiers )
   }
   return result;
 }
+
+#ifdef MAC_OSX
+void
+mac_get_selected_range (w, range)
+     struct window *w;
+     CFRange *range;
+{
+  Lisp_Object overlay = find_symbol_value (Qmouse_drag_overlay);
+  struct buffer *b = XBUFFER (w->buffer);
+  int begv = BUF_BEGV (b), zv = BUF_ZV (b);
+  int start, end;
+
+  if (OVERLAYP (overlay)
+      && EQ (Foverlay_buffer (overlay), w->buffer)
+      && (start = XINT (Foverlay_start (overlay)),
+	  end = XINT (Foverlay_end (overlay)),
+	  start != end))
+    ;
+  else
+    {
+      if (w == XWINDOW (selected_window) && b == current_buffer)
+	start = PT;
+      else
+	start = marker_position (w->pointm);
+
+      if (NILP (Vtransient_mark_mode) || NILP (b->mark_active))
+	end = start;
+      else
+	{
+	  int mark_pos = marker_position (b->mark);
+
+	  if (start <= mark_pos)
+	    end = mark_pos;
+	  else
+	    {
+	      end = start;
+	      start = mark_pos;
+	    }
+	}
+    }
+
+  if (start != end)
+    {
+      if (start < begv)
+	start = begv;
+      else if (start > zv)
+	start = zv;
+
+      if (end < begv)
+	end = begv;
+      else if (end > zv)
+	end = zv;
+    }
+
+  range->location = start - begv;
+  range->length = end - start;
+}
+
+/* Store the text of the buffer BUF from START to END as Unicode
+   characters in CHARACTERS.  Return non-zero if successful.  */
+
+int
+mac_store_buffer_text_to_unicode_chars (buf, start, end, characters)
+     struct buffer *buf;
+     int start, end;
+     UniChar *characters;
+{
+  int start_byte, end_byte, char_count, byte_count;
+  struct coding_system coding;
+  unsigned char *dst = (unsigned char *) characters;
+
+  start_byte = buf_charpos_to_bytepos (buf, start);
+  end_byte = buf_charpos_to_bytepos (buf, end);
+  char_count = end - start;
+  byte_count = end_byte - start_byte;
+
+  if (setup_coding_system (
+#ifdef WORDS_BIG_ENDIAN
+			   intern ("utf-16be")
+#else
+			   intern ("utf-16le")
+#endif
+			   , &coding) < 0)
+    return 0;
+
+  coding.src_multibyte = !NILP (buf->enable_multibyte_characters);
+  coding.dst_multibyte = 0;
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.composing = COMPOSITION_DISABLED;
+
+  if (BUF_GPT_BYTE (buf) <= start_byte || end_byte <= BUF_GPT_BYTE (buf))
+    encode_coding (&coding, BUF_BYTE_ADDRESS (buf, start_byte), dst,
+		   byte_count, char_count * sizeof (UniChar));
+  else
+    {
+      int first_byte_count = BUF_GPT_BYTE (buf) - start_byte;
+
+      encode_coding (&coding, BUF_BYTE_ADDRESS (buf, start_byte), dst,
+		     first_byte_count, char_count * sizeof (UniChar));
+      if (coding.result == CODING_FINISH_NORMAL)
+	encode_coding (&coding,
+		       BUF_BYTE_ADDRESS (buf, start_byte + first_byte_count),
+		       dst + coding.produced,
+		       byte_count - first_byte_count,
+		       char_count * sizeof (UniChar) - coding.produced);
+    }
+
+  if (coding.result != CODING_FINISH_NORMAL)
+    return 0;
+
+  return 1;
+}
+
+void
+mac_ax_selected_text_range (f, range)
+     struct frame *f;
+     CFRange *range;
+{
+  mac_get_selected_range (XWINDOW (f->selected_window), range);
+}
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+unsigned int
+mac_ax_number_of_characters (f)
+     struct frame *f;
+{
+  struct buffer *b = XBUFFER (XWINDOW (f->selected_window)->buffer);
+
+  return BUF_ZV (b) - BUF_BEGV (b);
+}
+#endif
+#endif
 
 #if USE_MAC_TSM
 OSStatus
@@ -9377,6 +9510,9 @@ syms_of_macterm ()
   Qservice     = intern ("service");	  staticpro (&Qservice);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
+
+  Qmouse_drag_overlay = intern ("mouse-drag-overlay");
+  staticpro (&Qmouse_drag_overlay);
 #endif
 #if USE_MAC_TSM
   Qtext_input = intern ("text-input");	staticpro (&Qtext_input);
@@ -9536,6 +9672,11 @@ CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
   DEFVAR_LISP ("mac-ts-active-input-overlay", &Vmac_ts_active_input_overlay,
     doc: /* Overlay used to display Mac TSM active input area.  */);
   Vmac_ts_active_input_overlay = Qnil;
+
+  DEFVAR_LISP ("mac-ts-active-input-buf", &Vmac_ts_active_input_buf,
+    doc: /* Byte sequence of the current Mac TSM active input area.  */);
+  /* `empty_string' is not ready yet on Mac OS Classic.  */
+  Vmac_ts_active_input_buf = build_string ("");
 
   DEFVAR_LISP ("mac-ts-script-language-on-focus", &Vmac_ts_script_language_on_focus,
     doc: /* *How to change Mac TSM script/language when a frame gets focus.
