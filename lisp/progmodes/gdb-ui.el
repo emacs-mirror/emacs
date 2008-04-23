@@ -110,7 +110,7 @@
 (defvar gdb-pc-address nil "Initialization for Assembler buffer.
 Set to \"main\" at start if `gdb-show-main' is t.")
 (defvar gdb-frame-address nil "Identity of frame for watch expression.")
-(defvar gdb-previous-frame-address nil)
+(defvar gdb-previous-frame-pc-address nil)
 (defvar gdb-memory-address "main")
 (defvar gdb-previous-frame nil)
 (defvar gdb-selected-frame nil)
@@ -585,7 +585,7 @@ otherwise do not."
 
   ;; (re-)initialize
   (setq gdb-pc-address (if gdb-show-main "main" nil))
-  (setq gdb-previous-frame-address nil
+  (setq gdb-previous-frame-pc-address nil
 	gdb-memory-address "main"
 	gdb-previous-frame nil
 	gdb-selected-frame nil
@@ -3542,7 +3542,7 @@ BUFFER nil or omitted means use the current buffer."
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       gdb-pending-triggers))
 		  (not (string-equal gdb-pc-address
-				     gdb-previous-frame-address)))
+				     gdb-previous-frame-pc-address)))
 	  (progn
 	    ;; take previous disassemble command, if any, off the queue
 	    (with-current-buffer gud-comint-buffer
@@ -3558,16 +3558,20 @@ BUFFER nil or omitted means use the current buffer."
 			   gdb-pc-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
-	    (setq gdb-previous-frame-address gdb-pc-address)
+	    (setq gdb-previous-frame-pc-address gdb-pc-address)
 	    (setq gdb-previous-frame gdb-selected-frame)))))))
 
 (defun gdb-get-selected-frame ()
   (if (not (member 'gdb-get-selected-frame gdb-pending-triggers))
       (progn
-	(gdb-enqueue-input
-	 (list (concat gdb-server-prefix "info frame\n") 'gdb-frame-handler))
-	(push 'gdb-get-selected-frame
-	       gdb-pending-triggers))))
+	(if (string-equal gdb-version "pre-6.4")
+	    (gdb-enqueue-input
+	     (list (concat gdb-server-prefix "info frame\n")
+		   'gdb-frame-handler))
+	  (gdb-enqueue-input
+	    (list "server interpreter mi -stack-info-frame\n"
+		  'gdb-frame-handler-1)))
+	(push 'gdb-get-selected-frame gdb-pending-triggers))))
 
 (defun gdb-frame-handler ()
   (setq gdb-pending-triggers
@@ -3630,6 +3634,28 @@ is set in them."
 	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
+
+;; Used for -stack-info-frame but could be used for -stack-list-frames too.
+(defconst gdb-stack-list-frames-regexp
+".*?level=\"\\(.*?\\)\",.*?addr=\"\\(.*?\\)\",.*?func=\"\\(.*?\\)\",\
+\\(?:.*?file=\".*?\",.*?fullname=\"\\(.*?\\)\",.*?line=\"\\(.*?\\)\".*?}\\|\
+from=\"\\(.*?\\)\"\\)")
+
+(defun gdb-frame-handler-1 ()
+  (setq gdb-pending-triggers
+	(delq 'gdb-get-selected-frame gdb-pending-triggers))
+  (goto-char (point-min))
+    (when (re-search-forward gdb-stack-list-frames-regexp nil t)
+      (setq gdb-frame-number (match-string 1))
+      (setq gdb-pc-address (match-string 2))
+      (setq gdb-selected-frame (match-string 3))
+      (if (gdb-get-buffer 'gdb-locals-buffer)
+	  (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+	    (setq mode-name (concat "Locals:" gdb-selected-frame))))
+      (if (gdb-get-buffer 'gdb-assembler-buffer)
+	  (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
+	    (setq mode-name (concat "Machine:" gdb-selected-frame)))))
+  (gdb-invalidate-assembler))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.4 onwards.
 (defun gdb-var-list-children-1 (varnum)
