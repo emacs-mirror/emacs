@@ -1,3 +1,7 @@
+2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (emacs-deps): Leave it empty.
+
 2008-04-23  Magnus Henoch  <mange@freemail.hu>
 
 	* tar-mode.el (tar-untar-buffer): If the entry has directory
