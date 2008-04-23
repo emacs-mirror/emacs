@@ -1,3 +1,8 @@
+2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-start): Also don't get confused by CRs since we
+	don't quote them.
+
 2008-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-init-buffer): New function.

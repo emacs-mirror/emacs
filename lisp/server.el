@@ -500,8 +500,9 @@ kill any existing server communications subprocess."
 		       :filter 'server-process-filter
 		       ;; We must receive file names without being decoded.
 		       ;; Those are decoded by server-process-filter according
-		       ;; to file-name-coding-system.
-		       :coding 'raw-text
+		       ;; to file-name-coding-system.  Also don't get
+		       ;; confused by CRs since we don't quote them.
+		       :coding 'raw-text-unix
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family nil
