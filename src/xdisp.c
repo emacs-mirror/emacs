@@ -1700,7 +1700,10 @@ glyph_to_pixel_coords (w, hpos, vpos, frame_x, frame_y)
    text, or we can't tell because W's current matrix is not up to
    date.  */
 
-static struct glyph *
+#ifndef HAVE_CARBON
+static
+#endif
+struct glyph *
 x_y_to_hpos_vpos (w, x, y, hpos, vpos, dx, dy, area)
      struct window *w;
      int x, y;
@@ -22079,7 +22082,10 @@ cursor_in_mouse_face_p (w)
 	 in 20.x as well, and I think it's too risky to install
 	 so near the release of 21.1.  2001-09-25 gerd.  */
 
-static int
+#ifndef HAVE_CARBON
+static
+#endif
+int
 fast_find_position (w, charpos, hpos, vpos, x, y, stop)
      struct window *w;
      int charpos;
