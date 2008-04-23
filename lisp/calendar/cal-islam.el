@@ -188,9 +188,9 @@ Reads a year, month, and day."
 ;;;###holiday-autoload
 (defun holiday-islamic (month day string)
   "Holiday on MONTH, DAY (Islamic) called STRING.
-If MONTH, DAY (Islamic) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
+If MONTH, DAY (Islamic) is visible, returns the corresponding
+Gregorian date as the list (((month day year) STRING)).
+Returns nil if it is not visible in the current calendar window."
   ;; Islamic date corresponding to the center of the calendar window.
   ;; Since the calendar displays 3 months at a time, there are approx
   ;; 45 visible days either side of this date.  Given the length of
