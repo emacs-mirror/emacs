@@ -491,8 +491,9 @@ GOTO-END is non-nil, however, it instead replaces up to END."
       (and filename
            (let ((dir (file-name-directory str))
                  (file (file-name-nondirectory str))
-		 ;; The base dir for file-completion is passed in `predicate'.
-		 (default-directory (expand-file-name pred)))
+		 ;; The base dir for file-completion was passed in `predicate'.
+		 (default-directory (if (stringp pred) (expand-file-name pred)
+                                      default-directory)))
              (while (and (stringp dir) (not (file-directory-p dir)))
                (setq dir (directory-file-name dir))
                (setq file (concat (replace-regexp-in-string
@@ -506,8 +507,9 @@ GOTO-END is non-nil, however, it instead replaces up to END."
       (and filename
 	   (string-match "\\*.*/" str)
 	   (let ((pat str)
-		 ;; The base dir for file-completion is passed in `predicate'.
-		 (default-directory (expand-file-name pred))
+		 ;; The base dir for file-completion was passed in `predicate'.
+		 (default-directory (if (stringp pred) (expand-file-name pred)
+                                      default-directory))
 		 files)
 	     (setq p (1+ (string-match "/[^/]*\\'" pat)))
 	     (while (setq p (string-match PC-delim-regex pat p))
@@ -522,7 +524,8 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 		   (while (and (setq p (cdr p))
 			       (equal dir (file-name-directory (car p)))))
 		   (if p
-		       (setq filename nil table nil pred nil
+		       (setq filename nil table nil
+                             pred (if (stringp pred) nil pred)
 			     ambig t)
 		     (delete-region beg end)
 		     (setq str (concat dir (file-name-nondirectory str)))
@@ -535,7 +538,8 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                        ;; even if we couldn't, so remove the added
                        ;; wildcards.
                    (setq str origstr)
-		 (setq filename nil table nil pred nil)))))
+		 (setq filename nil table nil
+                       pred (if (stringp pred) nil pred))))))
 
       ;; Strip directory name if appropriate
       (if filename
