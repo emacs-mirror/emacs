@@ -147,7 +147,7 @@ save."
 
 ;; This should be capable of representing characters used by Emacs.
 ;; We prefer UTF-8 over ISO 2022 because it is well-known outside
-;; Mule.  XEmacs prir to 21.5 had UTF-8 provided by an external
+;; Mule.  XEmacs prior to 21.5 had UTF-8 provided by an external
 ;; package which may not be loaded, which is why we check for version.
 (defvar savehist-coding-system (if (and (featurep 'xemacs)
 					(<= emacs-major-version 21)
