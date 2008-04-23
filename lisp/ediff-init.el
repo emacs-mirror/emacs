@@ -749,33 +749,27 @@ to temp files when Ediff needs to find fine differences."
 (defalias 'ediff-delete-overlay
   (if (featurep 'xemacs) 'delete-extent 'delete-overlay))
 
-;; Check the current version against the major and minor version numbers
-;; using op: cur-vers op major.minor If emacs-major-version or
-;; emacs-minor-version are not defined, we assume that the current version
-;; is hopelessly outdated.  We assume that emacs-major-version and
-;; emacs-minor-version are defined.  Otherwise, for Emacs/XEmacs 19, if the
-;; current minor version is < 10 (xemacs) or < 23 (emacs) the return value
-;; will be nil (when op is =, >, or >=) and t (when op is <, <=), which may be
-;; incorrect.  However, this gives correct result in our cases, since we are
-;; testing for sufficiently high Emacs versions.
+;; Assumes that emacs-major-version and emacs-minor-version are defined.
 (defun ediff-check-version (op major minor &optional type-of-emacs)
-  (if (and (boundp 'emacs-major-version) (boundp 'emacs-minor-version))
-      (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
-		 ((eq type-of-emacs 'emacs) (featurep 'emacs))
-		 (t t))
-	   (cond ((eq op '=) (and (= emacs-minor-version minor)
-				  (= emacs-major-version major)))
-		 ((memq op '(> >= < <=))
-		  (and (or (funcall op emacs-major-version major)
-			   (= emacs-major-version major))
-		       (if (= emacs-major-version major)
-			   (funcall op emacs-minor-version minor)
-			 t)))
-		 (t
-		  (error "%S: Invalid op in ediff-check-version" op))))
-    (cond ((memq op '(= > >=)) nil)
-	  ((memq op '(< <=)) t))))
+  "Check the current version against MAJOR and MINOR version numbers.
+The comparison uses operator OP, which may be any of: =, >, >=, <, <=.
+TYPE-OF-EMACS is either 'xemacs or 'emacs."
+  (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
+	     ((eq type-of-emacs 'emacs) (featurep 'emacs))
+	     (t))
+       (cond ((eq op '=) (and (= emacs-minor-version minor)
+			      (= emacs-major-version major)))
+	     ((memq op '(> >= < <=))
+	      (and (or (funcall op emacs-major-version major)
+		       (= emacs-major-version major))
+		   (if (= emacs-major-version major)
+		       (funcall op emacs-minor-version minor)
+		     t)))
+	     (t
+	      (error "%S: Invalid op in ediff-check-version" op)))))
 
+;; ediff-check-version seems to be totally unused anyway.
+(make-obsolete 'ediff-check-version 'version< "23.1")
 
 (defun ediff-color-display-p ()
   (condition-case nil
