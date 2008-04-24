@@ -61,7 +61,7 @@
      ["Yearly" diary-islamic-insert-yearly-entry])
     ("Insert Hebrew"
      ["One time" diary-hebrew-insert-entry]
-     ["Monthly" diary-hebrew--insert-monthly-entry]
+     ["Monthly" diary-hebrew-insert-monthly-entry]
      ["Yearly" diary-hebrew-insert-yearly-entry])))
 
 (defun cal-menu-holiday-window-suffix ()
@@ -145,10 +145,10 @@
   '("Scroll"
     ["Forward 1 Month" calendar-scroll-left]
     ["Forward 3 Months" calendar-scroll-left-three-months]
-    ["Forward 1 Year" "4\C-v"]
+    ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
-    ["Backward 1 Year" "4\ev"]))
+    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"]))
 
 (defun cal-menu-x-popup-menu (position menu)
   "Like `x-popup-menu', but print an error message if popups are unavailable.
