@@ -1,3 +1,8 @@
+2008-04-24  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/remember.el (remember-diary-extract-entries): Use
+	diary-make-entry instead of the obsolete make-diary-entry.
+
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (translation-table-for-input): Mark as obsolete.

@@ -515,7 +515,7 @@ If this is nil, then `diary-file' will be used instead."
       (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
         (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
       (when list
-        (make-diary-entry (mapconcat 'identity list "\n")
+        (diary-make-entry (mapconcat 'identity list "\n")
                           nil remember-diary-file))
       nil))) ;; Continue processing
 
