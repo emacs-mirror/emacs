@@ -144,7 +144,8 @@ EVENT is an event like `last-nonmenu-event'."
                      last-nonmenu-event))
   (unless arg (setq arg 1))
   (save-selected-window
-    (select-window (posn-window (event-start event)))
+    ;; Nil if called from menu-bar.
+    (if (setq event (event-start event)) (select-window (posn-window event)))
     (calendar-cursor-to-nearest-date)
     (unless (zerop arg)
       (let ((old-date (calendar-cursor-to-date))
