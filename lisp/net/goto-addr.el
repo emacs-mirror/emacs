@@ -157,6 +157,8 @@ A value of t means there is no limit--fontify regardless of the size."
     (if (overlay-get overlay 'goto-address)
 	(delete-overlay overlay))))
 
+(defvar goto-address-prog-mode)
+
 (defun goto-address-fontify ()
   "Fontify the URLs and e-mail addresses in the current buffer.
 This function implements `goto-address-highlight-p'
