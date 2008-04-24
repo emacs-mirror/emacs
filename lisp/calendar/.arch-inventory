@@ -1,0 +1,4 @@
+# Auto-generated lisp files, which ignore
+precious ^(.*-loaddefs)\.el$
+
+# arch-tag: 6246cac0-cd69-4d59-8677-c1451a4d5831
