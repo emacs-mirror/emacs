@@ -582,12 +582,6 @@ This is the default translation table for encoding, for
 coding systems that don't specify any other translation table.
 @end defvar
 
-@code{set-buffer-file-coding-system} sets this variable so that your
-keyboard input gets translated into the character sets that the buffer
-is likely to contain.  This variable automatically becomes
-buffer-local when set.
-@end defvar
-
 @node Coding Systems
 @section Coding Systems
 
