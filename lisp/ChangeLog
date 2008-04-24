@@ -1,3 +1,13 @@
+2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/f90.el (f90-mode-syntax-table): Don't set ` as word syntax.
+	(f90-mode-abbrev-table): Use the new :regexp feature.
+	Merge defvar and mapc into define-abbrev-table.
+	(f90-imenu-type-matcher): Remove unused `l'.
+	(f90-imenu-generic-expression): Remove unused `not-ib'.
+	(f90-prepare-abbrev-list-buffer): Use with-current-buffer.
+	(f90-change-keywords): Use restore-buffer-modified-p.
+
 2008-04-24  Glenn Morris  <rgm@gnu.org>
 
 	* net/goto-addr.el (goto-address-prog-mode):
@@ -20,8 +30,8 @@
 
 2008-04-24  Tom Tromey  <tromey@redhat.com>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Document
-	keywords.  Add :suppress.
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap):
+	Document keywords.  Add :suppress.
 	* pcvs-defs.el (cvs-mode-map): Use :suppress.
 
 	* net/goto-addr.el (goto-address-unfontify): New function.

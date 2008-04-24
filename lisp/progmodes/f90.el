@@ -623,10 +623,13 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\! "<"  table) ; begin comment
     (modify-syntax-entry ?\n ">"  table) ; end comment
+    ;; FIXME: This goes against the convention: it should be "_".
     (modify-syntax-entry ?_  "w"  table) ; underscore in names
     (modify-syntax-entry ?\' "\"" table) ; string quote
     (modify-syntax-entry ?\" "\"" table) ; string quote
-    (modify-syntax-entry ?\` "w"  table) ; for abbrevs
+    ;; FIXME: We used to set ` to word syntax for the benefit of abbrevs, but
+    ;; we do not need it any more.  Not sure if it should be "_" or "." now.
+    (modify-syntax-entry ?\` "_"  table)
     (modify-syntax-entry ?\r " "  table) ; return is whitespace
     (modify-syntax-entry ?+  "."  table) ; punctuation
     (modify-syntax-entry ?-  "."  table)
@@ -866,7 +869,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
 (defun f90-imenu-type-matcher ()
   "Search backward for the start of a derived type.
 Set subexpression 1 in the match-data to the name of the type."
-  (let (found l)
+  (let (found)
     (while (and (re-search-backward "^[ \t0-9]*type[ \t]*" nil t)
                 (not (setq found
                            (save-excursion
@@ -881,7 +884,8 @@ Set subexpression 1 in the match-data to the name of the type."
 (defvar f90-imenu-generic-expression
   (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
         (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]")
-        (not-ib "[^i(!\n\"\& \t]") (not-s "[^s!\n\"\& \t]"))
+        ;; (not-ib "[^i(!\n\"\& \t]") (not-s "[^s!\n\"\& \t]")
+        )
     (list
      '(nil "^[ \t0-9]*program[ \t]+\\(\\sw+\\)" 1)
      '("Modules" "^[ \t0-9]*module[ \t]+\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
@@ -922,81 +926,71 @@ Set subexpression 1 in the match-data to the name of the type."
 
 
 ;; Abbrevs have generally two letters, except standard types `c, `i, `r, `t.
-(defvar f90-mode-abbrev-table
-  (progn
-    (define-abbrev-table 'f90-mode-abbrev-table nil)
-    f90-mode-abbrev-table)
-  "Abbrev table for F90 mode.")
-
-;; Not in defvar because user abbrevs may be restored before this file loads.
-(mapc
- (lambda (e)
-   (condition-case nil
-       (define-abbrev f90-mode-abbrev-table (car e) (cdr e) nil :count 0
-         :system t)
-     (wrong-number-of-arguments         ; Emacs 22
-      (define-abbrev f90-mode-abbrev-table (car e) (cdr e) nil 0 t))))
- '(("`al"  . "allocate"     )
-   ("`ab"  . "allocatable"  )
-   ("`ai"  . "abstract interface")
-   ("`as"  . "assignment"   )
-   ("`asy" . "asynchronous" )
-   ("`ba"  . "backspace"    )
-   ("`bd"  . "block data"   )
-   ("`c"   . "character"    )
-   ("`cl"  . "close"        )
-   ("`cm"  . "common"       )
-   ("`cx"  . "complex"      )
-   ("`cn"  . "contains"     )
-   ("`cy"  . "cycle"        )
-   ("`de"  . "deallocate"   )
-   ("`df"  . "define"       )
-   ("`di"  . "dimension"    )
-   ("`dp"  . "double precision")
-   ("`dw"  . "do while"     )
-   ("`el"  . "else"         )
-   ("`eli" . "else if"      )
-   ("`elw" . "elsewhere"    )
-   ("`em"  . "elemental"    )
-   ("`e"   . "enumerator"   )
-   ("`eq"  . "equivalence"  )
-   ("`ex"  . "external"     )
-   ("`ey"  . "entry"        )
-   ("`fl"  . "forall"       )
-   ("`fo"  . "format"       )
-   ("`fu"  . "function"     )
-   ("`fa"  . ".false."      )
-   ("`im"  . "implicit none")
-   ("`in"  . "include"      )
-   ("`i"   . "integer"      )
-   ("`it"  . "intent"       )
-   ("`if"  . "interface"    )
-   ("`lo"  . "logical"      )
-   ("`mo"  . "module"       )
-   ("`na"  . "namelist"     )
-   ("`nu"  . "nullify"      )
-   ("`op"  . "optional"     )
-   ("`pa"  . "parameter"    )
-   ("`po"  . "pointer"      )
-   ("`pr"  . "print"        )
-   ("`pi"  . "private"      )
-   ("`pm"  . "program"      )
-   ("`pr"  . "protected"    )
-   ("`pu"  . "public"       )
-   ("`r"   . "real"         )
-   ("`rc"  . "recursive"    )
-   ("`rt"  . "return"       )
-   ("`rw"  . "rewind"       )
-   ("`se"  . "select"       )
-   ("`sq"  . "sequence"     )
-   ("`su"  . "subroutine"   )
-   ("`ta"  . "target"       )
-   ("`tr"  . ".true."       )
-   ("`t"   . "type"         )
-   ("`vo"  . "volatile"     )
-   ("`wh"  . "where"        )
-   ("`wr"  . "write"        )))
-
+(define-abbrev-table 'f90-mode-abbrev-table
+  (mapcar (lambda (e) (list (car e) (cdr e) nil :system t))
+          '(("`al"  . "allocate"     )
+            ("`ab"  . "allocatable"  )
+            ("`ai"  . "abstract interface")
+            ("`as"  . "assignment"   )
+            ("`asy" . "asynchronous" )
+            ("`ba"  . "backspace"    )
+            ("`bd"  . "block data"   )
+            ("`c"   . "character"    )
+            ("`cl"  . "close"        )
+            ("`cm"  . "common"       )
+            ("`cx"  . "complex"      )
+            ("`cn"  . "contains"     )
+            ("`cy"  . "cycle"        )
+            ("`de"  . "deallocate"   )
+            ("`df"  . "define"       )
+            ("`di"  . "dimension"    )
+            ("`dp"  . "double precision")
+            ("`dw"  . "do while"     )
+            ("`el"  . "else"         )
+            ("`eli" . "else if"      )
+            ("`elw" . "elsewhere"    )
+            ("`em"  . "elemental"    )
+            ("`e"   . "enumerator"   )
+            ("`eq"  . "equivalence"  )
+            ("`ex"  . "external"     )
+            ("`ey"  . "entry"        )
+            ("`fl"  . "forall"       )
+            ("`fo"  . "format"       )
+            ("`fu"  . "function"     )
+            ("`fa"  . ".false."      )
+            ("`im"  . "implicit none")
+            ("`in"  . "include"      )
+            ("`i"   . "integer"      )
+            ("`it"  . "intent"       )
+            ("`if"  . "interface"    )
+            ("`lo"  . "logical"      )
+            ("`mo"  . "module"       )
+            ("`na"  . "namelist"     )
+            ("`nu"  . "nullify"      )
+            ("`op"  . "optional"     )
+            ("`pa"  . "parameter"    )
+            ("`po"  . "pointer"      )
+            ("`pr"  . "print"        )
+            ("`pi"  . "private"      )
+            ("`pm"  . "program"      )
+            ("`pr"  . "protected"    )
+            ("`pu"  . "public"       )
+            ("`r"   . "real"         )
+            ("`rc"  . "recursive"    )
+            ("`rt"  . "return"       )
+            ("`rw"  . "rewind"       )
+            ("`se"  . "select"       )
+            ("`sq"  . "sequence"     )
+            ("`su"  . "subroutine"   )
+            ("`ta"  . "target"       )
+            ("`tr"  . ".true."       )
+            ("`t"   . "type"         )
+            ("`vo"  . "volatile"     )
+            ("`wh"  . "where"        )
+            ("`wr"  . "write"        )))
+  "Abbrev table for F90 mode."
+  ;; Accept ` as the first char of an abbrev.  Also allow _ in abbrevs.
+  :regexp "\\(?:[^[:word:]_`]\\|^\\)\\(`?[[:word:]_]+\\)[^[:word:]_]*")
 
 ;;;###autoload
 (defun f90-mode ()
@@ -2102,8 +2096,7 @@ Any other key combination is executed normally."
 
 (defun f90-prepare-abbrev-list-buffer ()
   "Create a buffer listing the F90 mode abbreviations."
-  (save-excursion
-    (set-buffer (get-buffer-create "*Abbrevs*"))
+  (with-current-buffer (get-buffer-create "*Abbrevs*")
     (erase-buffer)
     (insert-abbrev-table-description 'f90-mode-abbrev-table t)
     (goto-char (point-min))
@@ -2172,7 +2165,7 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
               (funcall change-word -1)
               (or (string= saveword (buffer-substring back-point ref-point))
                   (setq modified t))))
-        (or modified (set-buffer-modified-p nil))))))
+        (or modified (restore-buffer-modified-p nil))))))
 
 
 (defun f90-current-defun ()
