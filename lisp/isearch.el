@@ -2137,13 +2137,15 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	pos1 pos2)
     (setq pos1 (save-excursion (funcall func string bound noerror)))
     (if (and (char-table-p translation-table-for-input)
-	     (> (string-bytes string) len))
-	(let (translated match-data)
-	  (dotimes (i len)
-	    (let ((x (aref translation-table-for-input (aref string i))))
-	      (when x
-		(or translated (setq translated (copy-sequence string)))
-		(aset translated i x))))
+             (multibyte-string-p string)
+             ;; Minor optimization.
+             (string-match-p "[^[:ascii:]]" string))
+	(let ((translated
+               (apply 'string
+                      (mapcar (lambda (c)
+                                (or (aref translation-table-for-input c) c))
+                              string)))
+              match-data)
 	  (when translated
 	    (save-match-data
 	      (save-excursion

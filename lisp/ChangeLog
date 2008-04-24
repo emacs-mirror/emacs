@@ -1,5 +1,7 @@
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* isearch.el (isearch-search-string): Avoid string-bytes and aset.
+
 	* international/quail.el (quail-build-decode-map): Avoid string-bytes.
 
 	* textmodes/ispell.el (ispell-dictionary-alist-1)
