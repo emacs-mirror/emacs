@@ -1,3 +1,9 @@
+2008-04-23  Miles Bader  <miles@gnu.org>
+
+	* eval.c (Ffunctionp): Return nil for special forms.
+	(Qunevalled): New variable.
+	(syms_of_eval): Initialize it.
+
 2007-10-18  Miles Bader  <miles@gnu.org>
 
 	* eval.c (FletX): Test the type of VARLIST rather than just !NILP.

@@ -98,7 +98,7 @@ Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
-Lisp_Object Qcurry;
+Lisp_Object Qcurry, Qunevalled;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
 Lisp_Object Qdebug;
@@ -3067,7 +3067,9 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 	}
     }
 
-  if (SUBRP (object) || FUNVECP (object))
+  if (SUBRP (object))
+    return (XSUBR (object)->max_args != Qunevalled) ? Qt : Qnil;
+  else if (FUNVECP (object))
     return Qt;
   else if (CONSP (object))
     {
@@ -3921,6 +3923,9 @@ before making `inhibit-quit' nil.  */);
 
   Qcurry = intern ("curry");
   staticpro (&Qcurry);
+
+  Qunevalled = intern ("unevalled");
+  staticpro (&Qunevalled);
 
   Qdebug = intern ("debug");
   staticpro (&Qdebug);
