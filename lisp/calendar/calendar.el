@@ -1316,7 +1316,7 @@ after the inserted text.  Returns t."
     (define-key map "ic"  'diary-insert-cyclic-entry)
     (define-key map "ihd" 'diary-hebrew-insert-entry)
     (define-key map "ihm" 'diary-hebrew-insert-monthly-entry)
-    (define-key map "ihy" 'diary-hebrew-insert-yeary-entry)
+    (define-key map "ihy" 'diary-hebrew-insert-yearly-entry)
     (define-key map "iid" 'diary-islamic-insert-entry)
     (define-key map "iim" 'diary-islamic-insert-monthly-entry)
     (define-key map "iiy" 'diary-islamic-insert-yearly-entry)
