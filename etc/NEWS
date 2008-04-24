@@ -404,6 +404,8 @@ Proced makes an Emacs buffer containing a listing of the current processes
 (using ps(1)).  You can use the normal Emacs commands to move around in
 this buffer, and special Proced commands to operate on the processes listed.
 
+** bug-reference.el provides clickable links to bug reports.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
@@ -645,6 +647,9 @@ versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
 See the file GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
 
 ** Miscellaneous
+
+*** goto-address.el provides two new minor modes, goto-address-mode and
+goto-address-prog-mode, which buttonize URLS and email addresses.
 
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
