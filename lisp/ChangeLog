@@ -3,6 +3,9 @@
 	* progmodes/gdb-ui.el (gdb-invalidate-assembler): Compare numeric
 	value of addresses rather than (partial) string value.
 	(gdb-frame-handler): Change regexp according to above change.
+	(gdb-breakpoints-mode, gdb-frames-mode, gdb-threads-mode)
+	(gdb-registers-mode, gdb-memory-mode, gdb-locals-mode)
+	(gdb-assembler-mode): Disable undo in these buffers.
 
 2008-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
