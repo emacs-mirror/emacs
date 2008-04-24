@@ -1,7 +1,8 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -322,11 +323,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
 (easy-mmode-defmap cvs-mode-map
   ;;(define-prefix-command 'cvs-mode-map-diff-prefix)
   ;;(define-prefix-command 'cvs-mode-map-control-c-prefix)
-  '(;; simulate `suppress-keymap'
-    (self-insert-command . undefined)
-    (("0" "1" "2" "3" "4" "5" "6" "7" "8" "9") . digit-argument)
-    ("-" .	negative-argument)
-    ;; various
+  '(;; various
     ;; (undo .	cvs-mode-undo)
     ("?" .	cvs-help)
     ("h" .	cvs-help)
@@ -400,7 +397,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ;;([tool-bar item2] . (menu-item "Update" cvs-update :image (image :file "/usr/share/icons/mail1.xpm" :type xpm)))
     )
   "Keymap for `cvs-mode'."
-  :dense t)
+  :dense t
+  :suppress t)
 
 (fset 'cvs-mode-map cvs-mode-map)
 
