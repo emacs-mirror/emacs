@@ -1,3 +1,7 @@
+2008-04-24  Adam Gołębiowski  <adamg@pld-linux.org>  (tiny change)
+
+	* Makefile.in (etags${EXEEXT}, ctags${EXEEXT}): Fix quote typo.
+
 2008-04-10  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (CLIENTRES): New variable and target.
