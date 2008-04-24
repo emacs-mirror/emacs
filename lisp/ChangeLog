@@ -1,3 +1,7 @@
+2008-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ts-active-input-buf): Move defvar to macterm.c.
+
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-make-symbol): Don't wrap keyboard

@@ -1,3 +1,32 @@
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: New variable.
+	(syms_of_macterm) [USE_MAC_TSM]: Defvar it.
+	(Qmouse_drag_overlay) [MAC_OSX]: New variable.
+	(syms_of_macterm) [MAC_OSX]: Intern and staticpro it.
+	(mac_get_selected_range, mac_store_buffer_text_to_unicode_chars)
+	(mac_ax_selected_text_range) [MAC_OSX]: New functions.
+	(mac_ax_number_of_characters) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Likewise.
+
+	* mactoolbox.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: Add extern.
+	(fast_find_position, x_y_to_hpos_vpos, mac_ax_selected_text_range):
+	(mac_ax_number_of_characters): Add externs.
+	(mac_get_selected_range, mac_store_buffer_text_to_unicode_chars)
+	[USE_MAC_TSM]: Likewise.
+	(mac_handle_text_input_event) [MAC_OSX]:
+	Handle kEventTextInputOffsetToPos for no active input area case.
+	Handle kEventTextInputPosToOffset and kEventTextInputGetSelectedText.
+	(mac_handle_document_access_event)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: New function.
+	(install_application_handler) [MAC_OSX]: Register handlers for
+	kEventTextInputPosToOffset and kEventTextInputGetSelectedText.
+	(install_application_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Register mac_handle_document_access_event.
+
+	* xdisp.c (x_y_to_hpos_vpos, fast_find_position) [HAVE_CARBON]:
+	Make functions non-static.
+
 2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Vread_file_name_function, Vread_file_name_predicate)
