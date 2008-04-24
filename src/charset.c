@@ -1058,8 +1058,29 @@ usage: (define-charset-internal ...)  */)
 	Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
 					Fcons (make_number (id), Qnil));
       else
-	Vcharset_ordered_list = Fcons (make_number (id),
-				       Vcharset_ordered_list);
+	{
+	  Lisp_Object tail;
+
+	  for (tail = Vcharset_ordered_list; CONSP (tail); tail = XCDR (tail))
+	    {
+	      struct charset *cs = CHARSET_FROM_ID (XINT (XCAR (tail)));
+
+	      if (cs->supplementary_p)
+		break;
+	    }
+	  if (EQ (tail, Vcharset_ordered_list))
+	    Vcharset_ordered_list = Fcons (make_number (id),
+					   Vcharset_ordered_list);
+	  else if (NILP (tail))
+	    Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
+					    Fcons (make_number (id), Qnil));
+	  else
+	    {
+	      val = Fcons (XCAR (tail), XCDR (tail));
+	      XSETCDR (tail, val);
+	      XSETCAR (tail, make_number (id));
+	    }
+	}
       charset_ordered_list_tick++;
     }
 
@@ -1145,42 +1166,6 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
   CHECK_CHARSET_GET_ATTR (charset, attr);
   Fputhash (alias, attr, Vcharset_hash_table);
   Vcharset_list = Fcons (alias, Vcharset_list);
-  return Qnil;
-}
-
-
-DEFUN ("unibyte-charset", Funibyte_charset, Sunibyte_charset, 0, 0, 0,
-       doc: /* Return the unibyte charset (set by `set-unibyte-charset').  */)
-     ()
-{
-  return CHARSET_NAME (CHARSET_FROM_ID (charset_unibyte));
-}
-
-
-DEFUN ("set-unibyte-charset", Fset_unibyte_charset, Sset_unibyte_charset,
-       1, 1, 0,
-       doc: /* Set the unibyte charset to CHARSET.
-This determines how unibyte/multibyte conversion is done.  See also
-function `unibyte-charset'.  */)
-     (charset)
-     Lisp_Object charset;
-{
-  struct charset *cs;
-  int i, c;
-
-  CHECK_CHARSET_GET_CHARSET (charset, cs);
-  if (! cs->ascii_compatible_p
-      || cs->dimension != 1)
-    error ("Inappropriate unibyte charset: %s", SDATA (SYMBOL_NAME (charset)));
-  charset_unibyte = cs->id;
-  memset (unibyte_has_multibyte_table, 1, 128);
-  for (i = 128; i < 256; i++)
-    {
-      c = DECODE_CHAR (cs, i);
-      unibyte_to_multibyte_table[i] = (c < 0 ? BYTE8_TO_CHAR (i) : c);
-      unibyte_has_multibyte_table[i] = c >= 0;
-    }
-
   return Qnil;
 }
 
@@ -2121,8 +2106,6 @@ syms_of_charset ()
   defsubr (&Smap_charset_chars);
   defsubr (&Sdefine_charset_internal);
   defsubr (&Sdefine_charset_alias);
-  defsubr (&Sunibyte_charset);
-  defsubr (&Sset_unibyte_charset);
   defsubr (&Scharset_plist);
   defsubr (&Sset_charset_plist);
   defsubr (&Sunify_charset);
@@ -2161,7 +2144,7 @@ syms_of_charset ()
 			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
   charset_eight_bit
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
-			       128, 255, -1, 0, -1, 0, 0,
+			       128, 255, -1, 0, -1, 0, 1,
 			       MAX_5_BYTE_CHAR + 1);
 }
 

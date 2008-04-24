@@ -310,8 +310,8 @@ called interactively, are:
   be read the next time file is loaded or when the \\[hi-lock-find-patterns] command
   is issued.  The inserted regexps are in the form of font lock keywords.
   (See `font-lock-keywords'.)  They may be edited and re-loaded with \\[hi-lock-find-patterns],
-  any valid `font-lock-keywords' form is acceptable. When a file is
-  loaded the patterns are read if `hi-lock-file-patterns-policy is
+  any valid `font-lock-keywords' form is acceptable.  When a file is
+  loaded the patterns are read if `hi-lock-file-patterns-policy' is
   'ask and the user responds y to the prompt, or if
   `hi-lock-file-patterns-policy' is bound to a function and that
   function returns t.
@@ -658,6 +658,12 @@ A string is considered new if it had not previously been used in a call to
                      (1+ hi-lock-string-serialize-serial))
                hi-lock-string-serialize-hash)
       hi-lock-string-serialize-serial)))
+
+(defun hi-lock-unload-function ()
+  "Unload the Hi-Lock library."
+  (global-hi-lock-mode -1)
+  ;; continue standard unloading
+  nil)
 
 (provide 'hi-lock)
 

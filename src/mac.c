@@ -79,7 +79,7 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
-#ifndef MAC_OS_X
+#ifndef MAC_OSX
 #if TARGET_API_MAC_CARBON
 static int wakeup_from_rne_enabled_p = 0;
 #define ENABLE_WAKEUP_FROM_RNE (wakeup_from_rne_enabled_p = 1)
@@ -817,7 +817,7 @@ init_coercion_handler ()
 }
 
 #if TARGET_API_MAC_CARBON
-static OSErr
+OSErr
 create_apple_event (class, id, result)
      AEEventClass class;
      AEEventID id;
@@ -842,129 +842,76 @@ create_apple_event (class, id, result)
   return err;
 }
 
-OSStatus
-create_apple_event_from_event_ref (event, num_params, names, types, result)
+Lisp_Object
+mac_event_parameters_to_lisp (event, num_params, names, types)
      EventRef event;
      UInt32 num_params;
      const EventParamName *names;
      const EventParamType *types;
-     AppleEvent *result;
 {
   OSStatus err;
-  UInt32 i, size;
+  Lisp_Object result = Qnil;
+  UInt32 i;
+  ByteCount size;
+#ifdef MAC_OSX
   CFStringRef string;
   CFDataRef data;
+#endif
   char *buf = NULL;
-
-  err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
-  if (err != noErr)
-    return err;
 
   for (i = 0; i < num_params; i++)
-    switch (types[i])
-      {
+    {
+      EventParamName name = names[i];
+      EventParamType type = types[i];
+
+      switch (type)
+	{
 #ifdef MAC_OSX
-      case typeCFStringRef:
-	err = GetEventParameter (event, names[i], typeCFStringRef, NULL,
-				 sizeof (CFStringRef), NULL, &string);
-	if (err != noErr)
+	case typeCFStringRef:
+	  err = GetEventParameter (event, name, typeCFStringRef, NULL,
+				   sizeof (CFStringRef), NULL, &string);
+	  if (err != noErr)
+	    break;
+	  data = CFStringCreateExternalRepresentation (NULL, string,
+						       kCFStringEncodingUTF8,
+						       '?');
+	  if (data == NULL)
+	    break;
+	  name = EndianU32_NtoB (name);
+	  type = EndianU32_NtoB (typeUTF8Text);
+	  result =
+	    Fcons (Fcons (make_unibyte_string ((char *) &name, 4),
+			  Fcons (make_unibyte_string ((char *) &type, 4),
+				 make_unibyte_string (CFDataGetBytePtr (data),
+						      CFDataGetLength (data)))),
+		   result);
+	  CFRelease (data);
 	  break;
-	data = CFStringCreateExternalRepresentation (NULL, string,
-						     kCFStringEncodingUTF8,
-						     '?');
-	if (data == NULL)
-	  break;
-	AEPutParamPtr (result, names[i], typeUTF8Text,
-		       CFDataGetBytePtr (data), CFDataGetLength (data));
-	CFRelease (data);
-	break;
 #endif
 
-      default:
-	err = GetEventParameter (event, names[i], types[i], NULL,
-				 0, &size, NULL);
-	if (err != noErr)
-	  break;
-	buf = xrealloc (buf, size);
-	err = GetEventParameter (event, names[i], types[i], NULL,
-				 size, NULL, buf);
-	if (err == noErr)
-	  AEPutParamPtr (result, names[i], types[i], buf, size);
-	break;
-      }
-  if (buf)
-    xfree (buf);
-
-  return noErr;
-}
-
-OSErr
-create_apple_event_from_drag_ref (drag, num_types, types, result)
-     DragRef drag;
-     UInt32 num_types;
-     const FlavorType *types;
-     AppleEvent *result;
-{
-  OSErr err;
-  UInt16 num_items;
-  AppleEvent items;
-  long index;
-  char *buf = NULL;
-
-  err = CountDragItems (drag, &num_items);
-  if (err != noErr)
-    return err;
-  err = AECreateList (NULL, 0, false, &items);
-  if (err != noErr)
-    return err;
-
-  for (index = 1; index <= num_items; index++)
-    {
-      ItemReference item;
-      DescType desc_type = typeNull;
-      Size size;
-
-      err = GetDragItemReferenceNumber (drag, index, &item);
-      if (err == noErr)
-	{
-	  int i;
-
-	  for (i = 0; i < num_types; i++)
+	default:
+	  err = GetEventParameter (event, name, type, NULL, 0, &size, NULL);
+	  if (err != noErr)
+	    break;
+	  buf = xrealloc (buf, size);
+	  err = GetEventParameter (event, name, type, NULL, size, NULL, buf);
+	  if (err == noErr)
 	    {
-	      err = GetFlavorDataSize (drag, item, types[i], &size);
-	      if (err == noErr)
-		{
-		  buf = xrealloc (buf, size);
-		  err = GetFlavorData (drag, item, types[i], buf, &size, 0);
-		}
-	      if (err == noErr)
-		{
-		  desc_type = types[i];
-		  break;
-		}
+	      name = EndianU32_NtoB (name);
+	      type = EndianU32_NtoB (type);
+	      result =
+		Fcons (Fcons (make_unibyte_string ((char *) &name, 4),
+			      Fcons (make_unibyte_string ((char *) &type, 4),
+				     make_unibyte_string (buf, size))),
+		       result);
 	    }
+	  break;
 	}
-      err = AEPutPtr (&items, index, desc_type,
-		      desc_type != typeNull ? buf : NULL,
-		      desc_type != typeNull ? size : 0);
-      if (err != noErr)
-	break;
     }
   if (buf)
     xfree (buf);
 
-  if (err == noErr)
-    {
-      err = create_apple_event (0, 0, result); /* Dummy class and ID.  */
-      if (err == noErr)
-	err = AEPutParamDesc (result, keyDirectObject, &items);
-      if (err != noErr)
-	AEDisposeDesc (result);
-    }
-
-  AEDisposeDesc (&items);
-
-  return err;
+  return result;
 }
 #endif	/* TARGET_API_MAC_CARBON */
 
@@ -4989,8 +4936,8 @@ extern int noninteractive;
       SELECT_TIMEOUT_THRESHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
          event RunLoop so that the current event loop gets quit when
-         the socket becomes ready.  Then CFRunLoopRunInMode can wait
-         for both kinds of inputs.
+         the socket becomes ready.  Then mac_run_loop_run_once can
+         wait for both kinds of inputs.
    4. Otherwise.
       -> Periodically poll the window input channel while repeatedly
          executing `select' with a short timeout
@@ -5045,7 +4992,7 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
       if (efds) oefds = *efds;
     }
 
-  /* Try detect_input_pending before CFRunLoopRunInMode in the same
+  /* Try detect_input_pending before mac_run_loop_run_once in the same
      BLOCK_INPUT block, in case that some input has already been read
      asynchronously.  */
   BLOCK_INPUT;
@@ -5062,15 +5009,7 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
       if (timeoutval == 0.0)
 	timedout_p = 1;
       else
-	{
-#if USE_CG_DRAWING
-	  mac_prepare_for_quickdraw (NULL);
-#endif
-	  if (CFRunLoopRunInMode (kCFRunLoopDefaultMode,
-				  timeoutval >= 0 ? timeoutval : 100000, true)
-	      == kCFRunLoopRunTimedOut)
-	    timedout_p = 1;
-	}
+	timedout_p = mac_run_loop_run_once (timeoutval);
 
       if (timeout == NULL && timedout_p)
 	{
@@ -5193,7 +5132,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
       if (timeoutval > 0 && timeoutval <= SELECT_TIMEOUT_THRESHOLD_RUNLOOP)
 	goto poll_periodically;
 
-      /* Try detect_input_pending before CFRunLoopRunInMode in the
+      /* Try detect_input_pending before mac_run_loop_run_once in the
 	 same BLOCK_INPUT block, in case that some input has already
 	 been read asynchronously.  */
       BLOCK_INPUT;
@@ -5246,13 +5185,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 		CFRunLoopAddSource (runloop, source, kCFRunLoopDefaultMode);
 	      }
 
-#if USE_CG_DRAWING
-	  mac_prepare_for_quickdraw (NULL);
-#endif
-	  if (CFRunLoopRunInMode (kCFRunLoopDefaultMode,
-				  timeoutval >= 0 ? timeoutval : 100000, true)
-	      == kCFRunLoopRunTimedOut)
-	    timedout_p = 1;
+	  timedout_p = mac_run_loop_run_once (timeoutval);
 
 	  for (fd = minfd; fd < nfds; fd++)
 	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))

@@ -1297,29 +1297,16 @@ possible, specify a coding system that determines both the character
 code conversion and the end of line conversion---that is, one like
 @code{latin-1-unix}, rather than @code{undecided} or @code{latin-1}.
 
+@c Let's keep the index entries that were there for
+@c set-process-filter-multibyte and process-filter-multibyte-p,
 @cindex filter multibyte flag, of process
 @cindex process filter multibyte flag
   When Emacs calls a process filter function, it provides the process
 output as a multibyte string or as a unibyte string according to the
-process's filter multibyte flag.  If the flag is non-@code{nil}, Emacs
-decodes the output according to the process output coding system to
-produce a multibyte string, and passes that to the process.  If the
-flag is @code{nil}, Emacs puts the output into a unibyte string, with
-no decoding, and passes that.
-
-  When you create a process, the filter multibyte flag takes its
-initial value from @code{default-enable-multibyte-characters}.  If you
-want to change the flag later on, use
-@code{set-process-filter-multibyte}.
-
-@defun set-process-filter-multibyte process multibyte
-This function sets the filter multibyte flag of @var{process}
-to @var{multibyte}.
-@end defun
-
-@defun process-filter-multibyte-p process
-This function returns the filter multibyte flag of @var{process}.
-@end defun
+process's filter coding system.  Emacs
+decodes the output according to the process output coding system,
+which usually produces a multibyte string, except for coding systems
+such as @code{binary} and @code{raw-text}
 
 @node Accepting Output
 @subsection Accepting Output from Processes

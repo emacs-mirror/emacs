@@ -449,7 +449,7 @@ Do the right thing if the file has been compressed or zipped."
     (if decoder
 	(progn
 	  (insert-file-contents-literally fullname visit)
-	  (let ((buffer-read-only nil)
+	  (let ((inhibit-read-only t)
 		(coding-system-for-write 'no-conversion)
 		(default-directory (or (file-name-directory fullname)
 				       default-directory)))
@@ -756,8 +756,7 @@ FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
 where the match was found, and MODE is `major-mode' of the buffer in
 which the match was found."
   (let ((case-fold-search case-fold))
-    (save-excursion
-      (set-buffer (marker-buffer marker))
+    (with-current-buffer (marker-buffer marker)
       (goto-char marker)
 
       ;; Search tag table
@@ -826,7 +825,7 @@ a case-insensitive match is tried."
         ;; Switch files if necessary
         (or (null filename)
             (equal Info-current-file filename)
-            (let ((buffer-read-only nil))
+            (let ((inhibit-read-only t))
               (setq Info-current-file nil
                     Info-current-subfile nil
                     Info-current-file-completions nil
@@ -880,8 +879,7 @@ a case-insensitive match is tried."
                                (or Info-tag-table-buffer
                                    (generate-new-buffer " *info tag table*"))))
                           (setq Info-tag-table-buffer tagbuf)
-                          (save-excursion
-                            (set-buffer tagbuf)
+                          (with-current-buffer tagbuf
                             (buffer-disable-undo (current-buffer))
                             (setq case-fold-search t)
                             (erase-buffer)
@@ -1059,10 +1057,9 @@ a case-insensitive match is tried."
 			    (cons (directory-file-name truename)
 				  dirs-done)))
 		(if attrs
-		    (save-excursion
+		    (with-current-buffer (generate-new-buffer " info dir")
 		      (or buffers
 			  (message "Composing main Info directory..."))
-		      (set-buffer (generate-new-buffer " info dir"))
 		      (condition-case nil
 			  (progn
 			    (insert-file-contents file)
@@ -1237,8 +1234,7 @@ a case-insensitive match is tried."
   (let (lastfilepos
 	lastfilename)
     (if (numberp nodepos)
-	(save-excursion
-	  (set-buffer (marker-buffer Info-tag-table-marker))
+	(with-current-buffer (marker-buffer Info-tag-table-marker)
 	  (goto-char (point-min))
 	  (or (looking-at "\^_")
 	      (search-forward "\n\^_"))
@@ -1264,7 +1260,7 @@ a case-insensitive match is tried."
     ;; Assume previous buffer is in Info-mode.
     ;; (set-buffer (get-buffer "*info*"))
     (or (equal Info-current-subfile lastfilename)
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  (setq buffer-file-name nil)
 	  (widen)
 	  (erase-buffer)
@@ -1469,17 +1465,15 @@ If FORK is a string, it is the name to use for the new buffer."
 
 (defvar Info-read-node-completion-table)
 
-(defun Info-read-node-name-2 (string path-and-suffixes action)
+(defun Info-read-node-name-2 (dirs suffixes string pred action)
   "Virtual completion table for file names input in Info node names.
 PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
-  (let* ((names nil)
-	 (suffixes (remove "" (cdr path-and-suffixes)))
-	 (suffix (concat (regexp-opt suffixes t) "\\'"))
-	 (string-dir (file-name-directory string))
-	 (dirs
-	  (if (file-name-absolute-p string)
-	      (list (file-name-directory string))
-	    (car path-and-suffixes))))
+  (setq suffixes (remove "" suffixes))
+  (when (file-name-absolute-p string)
+    (setq dirs (list (file-name-directory string))))
+  (let ((names nil)
+        (suffix (concat (regexp-opt suffixes t) "\\'"))
+        (string-dir (file-name-directory string)))
     (dolist (dir dirs)
       (unless dir
 	(setq dir default-directory))
@@ -1501,10 +1495,7 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	  (when (string-match suffix file)
 	    (setq file (substring file 0 (match-beginning 0)))
 	    (push (if string-dir (concat string-dir file) file) names)))))
-    (cond
-     ((eq action t) (all-completions string names))
-     ((null action) (try-completion string names))
-     (t (test-completion string names)))))
+    (complete-with-action action names string pred)))
 
 ;; This function is used as the "completion table" while reading a node name.
 ;; It does completion using the alist in Info-read-node-completion-table
@@ -1513,20 +1504,16 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
   (cond
    ;; First complete embedded file names.
    ((string-match "\\`([^)]*\\'" string)
-    (let ((file (substring string 1)))
-      (cond
-       ((eq code nil)
-	(let ((comp (try-completion file 'Info-read-node-name-2
-				    (cons Info-directory-list
-					  (mapcar 'car Info-suffix-list)))))
-	  (cond
-	   ((eq comp t) (concat string ")"))
-	   (comp (concat "(" comp)))))
-       ((eq code t)
-	(all-completions file 'Info-read-node-name-2
-			 (cons Info-directory-list
-			       (mapcar 'car Info-suffix-list))))
-       (t nil))))
+    (completion-table-with-context
+     "("
+     (apply-partially 'completion-table-with-terminator ")"
+                      (apply-partially 'Info-read-node-name-2
+                                       Info-directory-list
+                                       (mapcar 'car Info-suffix-list)))
+     (substring string 1)
+     predicate
+     code))
+
    ;; If a file name was given, then any node is fair game.
    ((string-match "\\`(" string)
     (cond
@@ -1534,21 +1521,11 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
      ((eq code t) nil)
      (t t)))
    ;; Otherwise use Info-read-node-completion-table.
-   ((eq code nil)
-    (try-completion string Info-read-node-completion-table predicate))
-   ((eq code t)
-    (all-completions string Info-read-node-completion-table predicate))
-   (t
-    (test-completion string Info-read-node-completion-table predicate))))
+   (t (complete-with-action
+       code Info-read-node-completion-table string predicate))))
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
-(put 'Info-read-node-name-1 'completion-base-size-function
-     (lambda ()
-       (if (string-match "\\`([^)]*\\'"
-			 (or completion-common-substring
-			     (minibuffer-completion-contents)))
-	   1
-	 0)))
+
 
 (defun Info-read-node-name (prompt)
   (let* ((completion-ignore-case t)
@@ -1648,20 +1625,8 @@ If DIRECTION is `backward', search in the reverse direction."
 				(1- (point)))
 			      (point-max)))
 	  (while (and (not give-up)
-		      (save-match-data
-			(or (null found)
-			    (if backward
-				(isearch-range-invisible found beg-found)
-			      (isearch-range-invisible beg-found found))
-			    ;; Skip node header line
-			    (and (save-excursion (forward-line -1)
-						 (looking-at "\^_"))
-				 (forward-line (if backward -1 1)))
-			    ;; Skip Tag Table node
-			    (save-excursion
-			      (and (search-backward "\^_" nil t)
-				   (looking-at
-				    "\^_\n\\(Tag Table\\|Local Variables\\)"))))))
+		      (or (null found)
+			  (not (funcall isearch-success-function beg-found found))))
 	    (let ((search-spaces-regexp
 		   (if (or (not isearch-mode) isearch-regexp)
 		       Info-search-whitespace-regexp)))
@@ -1697,8 +1662,7 @@ If DIRECTION is `backward', search in the reverse direction."
 	(unwind-protect
 	    ;; Try other subfiles.
 	    (let ((list ()))
-	      (save-excursion
-		(set-buffer (marker-buffer Info-tag-table-marker))
+	      (with-current-buffer (marker-buffer Info-tag-table-marker)
 		(goto-char (point-min))
 		(search-forward "\n\^_\nIndirect:")
 		(save-restriction
@@ -1741,20 +1705,8 @@ If DIRECTION is `backward', search in the reverse direction."
 		(setq list (cdr list))
 		(setq give-up nil found nil)
 		(while (and (not give-up)
-			    (save-match-data
-			      (or (null found)
-				  (if backward
-				      (isearch-range-invisible found beg-found)
-				    (isearch-range-invisible beg-found found))
-				  ;; Skip node header line
-				  (and (save-excursion (forward-line -1)
-						       (looking-at "\^_"))
-				       (forward-line (if backward -1 1)))
-				  ;; Skip Tag Table node
-				  (save-excursion
-				    (and (search-backward "\^_" nil t)
-					 (looking-at
-					  "\^_\n\\(Tag Table\\|Local Variables\\)"))))))
+			    (or (null found)
+				(not (funcall isearch-success-function beg-found found))))
 		  (let ((search-spaces-regexp
 			 (if (or (not isearch-mode) isearch-regexp)
 			     Info-search-whitespace-regexp)))
@@ -1834,8 +1786,8 @@ If DIRECTION is `backward', search in the reverse direction."
 			 (unless isearch-forward 'backward))
 	  (Info-search (if isearch-regexp string (regexp-quote string))
 		       bound noerror count
-		       (unless isearch-forward 'backward))
-	  (point)))
+		       (unless isearch-forward 'backward)))
+	(point))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
 
@@ -1860,6 +1812,28 @@ If DIRECTION is `backward', search in the reverse direction."
 
 (defun Info-isearch-start ()
   (setq Info-isearch-initial-node nil))
+
+(defun Info-search-success-function (beg-found found)
+  "Skip invisible text, node header line and Tag Table node."
+  (save-match-data
+    (let ((backward (< found beg-found)))
+      (not
+       (or
+	(if backward
+	    (or (text-property-not-all found beg-found 'invisible nil)
+		(text-property-not-all found beg-found 'display nil))
+	  (or (text-property-not-all beg-found found 'invisible nil)
+	      (text-property-not-all beg-found found 'display nil)))
+	;; Skip node header line
+	(and (save-excursion (forward-line -1)
+			     (looking-at "\^_"))
+	     (forward-line (if backward -1 1)))
+	;; Skip Tag Table node
+	(save-excursion
+	  (and (search-backward "\^_" nil t)
+	       (looking-at
+		"\^_\n\\(Tag Table\\|Local Variables\\)"))))))))
+
 
 (defun Info-extract-pointer (name &optional errorname)
   "Extract the value of the node-pointer named NAME.
@@ -2286,57 +2260,57 @@ Because of ambiguities, this should be concatenated with something like
 
   ;; Note that `Info-complete-menu-buffer' could be current already,
   ;; so we want to save point.
-  (save-excursion
-    (set-buffer Info-complete-menu-buffer)
-    (let ((completion-ignore-case t)
-	  (case-fold-search t)
-	  (orignode Info-current-node)
-	  nextnode)
-      (goto-char (point-min))
-      (search-forward "\n* Menu:")
-      (if (not (memq action '(nil t)))
-	  (re-search-forward
-	   (concat "\n\\* +" (regexp-quote string) ":") nil t)
-	(let ((pattern (concat "\n\\* +\\("
-			       (regexp-quote string)
-			       Info-menu-entry-name-re "\\):" Info-node-spec-re))
-	      completions
-	      (complete-nodes Info-complete-nodes))
-	  ;; Check the cache.
-	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
-		   (equal (nth 1 Info-complete-cache) Info-current-node)
-		   (equal (nth 2 Info-complete-cache) Info-complete-next-re)
-		   (equal (nth 5 Info-complete-cache) Info-complete-nodes)
-		   (let ((prev (nth 3 Info-complete-cache)))
-		     (eq t (compare-strings string 0 (length prev)
-					    prev 0 nil t))))
-	      ;; We can reuse the previous list.
-	      (setq completions (nth 4 Info-complete-cache))
-	    ;; The cache can't be used.
-	    (while
-		(progn
-		  (while (re-search-forward pattern nil t)
-		    (push (match-string-no-properties 1)
-			  completions))
-		  ;; Check subsequent nodes if applicable.
-		  (or (and Info-complete-next-re
-		           (setq nextnode (Info-extract-pointer "next" t))
-		           (string-match Info-complete-next-re nextnode))
-		      (and complete-nodes
-		           (setq complete-nodes (cdr complete-nodes)
-		                 nextnode (car complete-nodes)))))
-	      (Info-goto-node nextnode))
-	    ;; Go back to the start node (for the next completion).
-	    (unless (equal Info-current-node orignode)
-	      (Info-goto-node orignode))
-	    ;; Update the cache.
-	    (set (make-local-variable 'Info-complete-cache)
-		 (list Info-current-file Info-current-node
-		       Info-complete-next-re string completions
-		       Info-complete-nodes)))
-	  (if action
-	      (all-completions string completions predicate)
-	    (try-completion string completions predicate)))))))
+  (with-current-buffer Info-complete-menu-buffer
+    (save-excursion
+      (let ((completion-ignore-case t)
+            (case-fold-search t)
+            (orignode Info-current-node)
+            nextnode)
+        (goto-char (point-min))
+        (search-forward "\n* Menu:")
+        (if (not (memq action '(nil t)))
+            (re-search-forward
+             (concat "\n\\* +" (regexp-quote string) ":") nil t)
+          (let ((pattern (concat "\n\\* +\\("
+                                 (regexp-quote string)
+                                 Info-menu-entry-name-re "\\):" Info-node-spec-re))
+                completions
+                (complete-nodes Info-complete-nodes))
+            ;; Check the cache.
+            (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
+                     (equal (nth 1 Info-complete-cache) Info-current-node)
+                     (equal (nth 2 Info-complete-cache) Info-complete-next-re)
+                     (equal (nth 5 Info-complete-cache) Info-complete-nodes)
+                     (let ((prev (nth 3 Info-complete-cache)))
+                       (eq t (compare-strings string 0 (length prev)
+                                              prev 0 nil t))))
+                ;; We can reuse the previous list.
+                (setq completions (nth 4 Info-complete-cache))
+              ;; The cache can't be used.
+              (while
+                  (progn
+                    (while (re-search-forward pattern nil t)
+                      (push (match-string-no-properties 1)
+                            completions))
+                    ;; Check subsequent nodes if applicable.
+                    (or (and Info-complete-next-re
+                             (setq nextnode (Info-extract-pointer "next" t))
+                             (string-match Info-complete-next-re nextnode))
+                        (and complete-nodes
+                             (setq complete-nodes (cdr complete-nodes)
+                                   nextnode (car complete-nodes)))))
+                (Info-goto-node nextnode))
+              ;; Go back to the start node (for the next completion).
+              (unless (equal Info-current-node orignode)
+                (Info-goto-node orignode))
+              ;; Update the cache.
+              (set (make-local-variable 'Info-complete-cache)
+		   (list Info-current-file Info-current-node
+			 Info-complete-next-re string completions
+			 Info-complete-nodes)))
+	    (if action
+		(all-completions string completions predicate)
+	      (try-completion string completions predicate))))))))
 
 
 (defun Info-menu (menu-item &optional fork)
@@ -3482,6 +3456,8 @@ Advanced commands:
        'Info-isearch-wrap)
   (set (make-local-variable 'isearch-push-state-function)
        'Info-isearch-push-state)
+  (set (make-local-variable 'isearch-success-function)
+       'Info-search-success-function)
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
   (set (make-local-variable 'revert-buffer-function)
@@ -4234,9 +4210,8 @@ INDENT is the current indentation depth."
 (defun Info-speedbar-fetch-file-nodes (nodespec)
   "Fetch the subnodes from the info NODESPEC.
 NODESPEC is a string of the form: (file)node."
-  (save-excursion
-    ;; Set up a buffer we can use to fake-out Info.
-    (set-buffer (get-buffer-create " *info-browse-tmp*"))
+  ;; Set up a buffer we can use to fake-out Info.
+  (with-current-buffer (get-buffer-create " *info-browse-tmp*")
     (if (not (equal major-mode 'Info-mode))
 	(Info-mode))
     ;; Get the node into this buffer

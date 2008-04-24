@@ -132,5 +132,5 @@ The password is removed by a timer after `password-cache-expiry' seconds."
 
 (provide 'password-cache)
 
-;;; arch-tag: ab160494-16c8-4c68-a4a1-73eebf6686e5
+;; arch-tag: ab160494-16c8-4c68-a4a1-73eebf6686e5
 ;;; password-cache.el ends here

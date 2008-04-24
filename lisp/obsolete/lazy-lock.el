@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Purpose:
 ;;
 ;; Lazy Lock mode is a Font Lock support mode.
@@ -1053,6 +1055,10 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 ;; Provide ourselves:
 
 (provide 'lazy-lock)
+
+;; Local Variables:
+;; byte-compile-warnings: (not obsolete)
+;; End:
 
 ;; arch-tag: c1776846-f046-4a45-9684-54b951b12fc9
 ;;; lazy-lock.el ends here

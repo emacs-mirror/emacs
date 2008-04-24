@@ -308,5 +308,5 @@
 ;;;###autoload
 (defalias 'pcomplete/gdb 'pcomplete/xargs)
 
-;;; arch-tag: 06d2b429-dcb1-4a57-84e1-f70d87781183
+;; arch-tag: 06d2b429-dcb1-4a57-84e1-f70d87781183
 ;;; pcmpl-gnu.el ends here

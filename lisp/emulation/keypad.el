@@ -272,5 +272,5 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
 
       (setq i (1+ i)))))
 
-;;; arch-tag: 0899d2bd-9e12-4b4e-9aef-d0014d3b6414
+;; arch-tag: 0899d2bd-9e12-4b4e-9aef-d0014d3b6414
 ;;; keypad.el ends here

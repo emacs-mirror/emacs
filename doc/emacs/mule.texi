@@ -4,6 +4,8 @@
 @c See file emacs.texi for copying conditions.
 @node International, Major Modes, Frames, Top
 @chapter International Character Set Support
+@c This node is referenced in the tutorial.  When renaming or deleting
+@c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
 @cindex MULE
 @cindex international scripts
 @cindex multibyte characters

@@ -315,5 +315,5 @@ are generated if and only if they are also in `message-draft-headers'.")
 
 (provide 'nndraft)
 
-;;; arch-tag: 3ce26ca0-41cb-48b1-8703-4dad35e188aa
+;; arch-tag: 3ce26ca0-41cb-48b1-8703-4dad35e188aa
 ;;; nndraft.el ends here

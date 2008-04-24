@@ -1094,17 +1094,17 @@ strings are stripped."
   "Decode MIME-encoded STRING and return the result.
 If ADDRESS-MIME is non-nil, strip backslashes which precede characters
 other than `\"' and `\\' in quoted strings."
-  (let ((m (mm-multibyte-p)))
+  ;; (let ((m (mm-multibyte-p)))
     (if (string-match "=\\?" string)
 	(with-temp-buffer
-	  ;; Fixme: This logic is wrong, but seems to be required by
-	  ;; Gnus summary buffer generation.  The value of `m' depends
-	  ;; on the current buffer, not global multibyteness or that
-	  ;; of the string.  Also the string returned should always be
-	  ;; multibyte in a multibyte session, i.e. the buffer should
-	  ;; be multibyte before `buffer-string' is called.
-	  (when m
-	    (mm-enable-multibyte))
+          ;; We used to only call mm-enable-multibyte if `m' is non-nil,
+          ;; but this can't be the right criterion.  Don't just revert this
+          ;; change if it encounters a bug.  Please help me fix it
+          ;; right instead.  --Stef
+          ;; The string returned should always be multibyte in a multibyte
+	  ;; session, i.e. the buffer should be multibyte before
+	  ;; `buffer-string' is called.
+          (mm-enable-multibyte)
 	  (insert string)
 	  (inline
 	    (rfc2047-decode-region (point-min) (point-max) address-mime))
@@ -1118,7 +1118,7 @@ other than `\"' and `\\' in quoted strings."
 		(rfc2047-strip-backslashes-in-quoted-strings)
 		(buffer-string))))
       ;; Fixme: As above, `m' here is inappropriate.
-      (if (and m
+      (if (and ;; m
 	       mail-parse-charset
 	       (not (eq mail-parse-charset 'us-ascii))
 	       (not (eq mail-parse-charset 'gnus-decoded)))
@@ -1134,9 +1134,9 @@ other than `\"' and `\\' in quoted strings."
 	  (if (and (fboundp 'detect-coding-string)
 		   ;; string is purely ASCII
 		   (eq (detect-coding-string string t) 'undecided))
-	      string
-	    (mm-decode-coding-string string mail-parse-charset))
-	(mm-string-as-multibyte string)))))
+              string
+            (mm-decode-coding-string string mail-parse-charset))
+        (mm-string-to-multibyte string)))) ;; )
 
 (defun rfc2047-decode-address-string (string)
   "Decode MIME-encoded STRING and return the result.
@@ -1161,5 +1161,5 @@ strings are stripped."
 
 (provide 'rfc2047)
 
-;;; arch-tag: a07fe3d4-22b5-4c4a-bd89-b1f82d5d36f6
+;; arch-tag: a07fe3d4-22b5-4c4a-bd89-b1f82d5d36f6
 ;;; rfc2047.el ends here

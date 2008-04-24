@@ -227,5 +227,5 @@ This assumes that symbols have been intern'd by `eshell-with-options'."
 
 ;;; Code:
 
-;;; arch-tag: 45c6c2d0-8091-46a1-a205-2f4bafd8230c
+;; arch-tag: 45c6c2d0-8091-46a1-a205-2f4bafd8230c
 ;;; esh-opt.el ends here

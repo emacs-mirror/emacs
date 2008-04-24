@@ -73,6 +73,7 @@
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
+(load "minibuffer")
 
 (load "button")
 (load "startup")
@@ -80,8 +81,15 @@
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
 (message "%s" (garbage-collect))
-(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
+
+(condition-case nil
+    ;; Don't get confused if someone compiled this by mistake.
+    (load "loaddefs.el")
+  ;; In case loaddefs hasn't been generated yet.
+  (file-error (load "ldefs-boot.el")))
+
 (message "%s" (garbage-collect))
+(load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
 
 (load "help")
@@ -153,7 +161,6 @@
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
-(load "abbrev")                      ;lisp-mode.el uses define-abbrev-table.
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
@@ -378,10 +385,10 @@
 (eval top-level)
 
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; no-update-autoloads: t
-;;; End:
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:
 
-;;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
+;; arch-tag: 121e1dd4-36e1-45ac-860e-239f577a6335
 ;;; loadup.el ends here

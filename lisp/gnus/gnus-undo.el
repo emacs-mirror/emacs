@@ -190,5 +190,5 @@ A numeric argument serves as a repeat count."
 
 (provide 'gnus-undo)
 
-;;; arch-tag: 0d787bc7-787d-499a-837f-211d2cb07f2e
+;; arch-tag: 0d787bc7-787d-499a-837f-211d2cb07f2e
 ;;; gnus-undo.el ends here

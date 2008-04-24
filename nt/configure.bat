@@ -24,11 +24,11 @@ rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + MS Windows 95/98/Me or NT/2000/XP
-rem   + either MSVC 2.x or later, or gcc-2.95 or later (with gmake 3.75
+rem   + either MSVC 2.x or later, or gcc-2.95 or later (with GNU make 3.75
 rem     or later) and the Mingw32 and W32 API headers and libraries.
 rem   + Visual Studio 2005 is not supported at this time.
 rem
-rem For reference, here is a list of which builds of gmake are known to
+rem For reference, here is a list of which builds of GNU make are known to
 rem work or not, and whether they work in the presence and/or absence of
 rem sh.exe.
 rem
@@ -282,9 +282,11 @@ rem   are like this), or have a typo in the definition of
 rem   IMAGE_FIRST_SECTION (the headers with gcc/mingw32 2.95 have this
 rem   problem).  The gcc/mingw32 2.95.2 headers are okay, as are distros
 rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
+rem   Beginning with Emacs 23, we need usp10.h.
 rem
 echo Checking whether W32 API headers are too old...
 echo #include "windows.h" >junk.c
+echo #include "usp10.h" >>junk.c
 echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
 echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
@@ -599,6 +601,7 @@ goto end
 :success
 echo Emacs successfully configured.
 echo Emacs successfully configured. >>config.log
+if (%MAKECMD%) == (gmake) set MAKECMD=make
 echo Run `%MAKECMD%' to build, then run `%MAKECMD% install' to install.
 goto end
 

@@ -191,5 +191,5 @@ score the alt hierarchy, you'd say \"!alt.all\"." t nil))
 
 (run-hooks 'gnus-setup-load-hook)
 
-;;; arch-tag: 08e4af93-8565-46bf-905c-36229400609d
+;; arch-tag: 08e4af93-8565-46bf-905c-36229400609d
 ;;; gnus-setup.el ends here

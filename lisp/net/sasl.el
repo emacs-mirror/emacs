@@ -269,5 +269,5 @@ It contain at least 64 bits of entropy."
 
 (provide 'sasl)
 
-;;; arch-tag: 8b3326fa-4978-4fda-93e2-cb2c6255f887
+;; arch-tag: 8b3326fa-4978-4fda-93e2-cb2c6255f887
 ;;; sasl.el ends here

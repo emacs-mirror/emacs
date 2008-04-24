@@ -178,6 +178,12 @@ or to the end of the buffer for a backward search.")
   "Function to save a function restoring the mode-specific isearch state
 to the search status stack.")
 
+(defvar isearch-success-function 'isearch-success-function-default
+  "Function to report whether the new search match is considered successful.
+The function has two arguments: the positions of start and end of text
+matched by the search.  If this function returns nil, continue
+searching without stopping at this match.")
+
 ;; Search ring.
 
 (defvar search-ring nil
@@ -322,6 +328,73 @@ A value of nil means highlight all matches."
                                 'lazy-highlight-face
                                 "22.1")
 
+;; Define isearch help map.
+
+(defvar isearch-help-map
+  (let ((i 0)
+	(map (make-sparse-keymap)))
+    (define-key map [t] 'isearch-other-control-char)
+    (define-key map (char-to-string help-char) 'isearch-help-for-help)
+    (define-key map [help] 'isearch-help-for-help)
+    (define-key map [f1] 'isearch-help-for-help)
+    (define-key map "?" 'isearch-help-for-help)
+    (define-key map "b" 'isearch-describe-bindings)
+    (define-key map "k" 'isearch-describe-key)
+    (define-key map "m" 'isearch-describe-mode)
+    (define-key map "q" 'help-quit)
+    map)
+  "Keymap for characters following the Help key for isearch mode.")
+
+(eval-when-compile (require 'help-macro))
+
+(make-help-screen isearch-help-for-help-internal
+  "Type a help option: [bkm] or ?"
+  "You have typed %THIS-KEY%, the help character.  Type a Help option:
+\(Type \\<help-map>\\[help-quit] to exit the Help command.)
+
+b           Display all isearch key bindings.
+k KEYS      Display full documentation of isearch key sequence.
+m           Display documentation of isearch mode.
+
+You can't type here other help keys available in the global help map,
+but outise of this help window when you type them in isearch mode,
+they exit isearch mode before displaying global help."
+  isearch-help-map)
+
+(defun isearch-help-for-help ()
+  "Display isearch help menu."
+  (interactive)
+  (let (same-window-buffer-names same-window-regexps)
+    (isearch-help-for-help-internal))
+  (isearch-update))
+
+(defun isearch-describe-bindings ()
+  "Show a list of all keys defined in isearch mode, and their definitions.
+This is like `describe-bindings', but displays only isearch keys."
+  (interactive)
+  (let (same-window-buffer-names same-window-regexps)
+    (with-help-window "*Help*"
+      (with-current-buffer standard-output
+	(princ "Isearch Mode Bindings:\n")
+	(princ (substitute-command-keys "\\{isearch-mode-map}"))))))
+
+(defun isearch-describe-key ()
+  "Display documentation of the function invoked by isearch key."
+  (interactive)
+  (let (same-window-buffer-names same-window-regexps)
+    (call-interactively 'describe-key))
+  (isearch-update))
+
+(defun isearch-describe-mode ()
+  "Display documentation of isearch mode."
+  (interactive)
+  (let (same-window-buffer-names same-window-regexps)
+    (describe-function 'isearch-forward))
+  (isearch-update))
+
+(defalias 'isearch-mode-help 'isearch-describe-mode)
+
+
 ;; Define isearch-mode keymap.
 
 (defvar isearch-mode-map
@@ -388,9 +461,7 @@ A value of nil means highlight all matches."
     (define-key map "\M-\C-y" 'isearch-yank-char)
     (define-key map    "\C-y" 'isearch-yank-line)
 
-    ;; Turned off because I find I expect to get the global definition--rms.
-    ;; ;; Instead bind C-h to special help command for isearch-mode.
-    ;; (define-key map "\C-h" 'isearch-mode-help)
+    (define-key map "\C-h" isearch-help-map)
 
     (define-key map "\M-n" 'isearch-ring-advance)
     (define-key map "\M-p" 'isearch-ring-retreat)
@@ -575,6 +646,10 @@ Type \\[isearch-ring-retreat] to search for the previous item in the search\
  ring.
 Type \\[isearch-complete] to complete the search string using the search ring.
 
+Type \\[isearch-describe-bindings] to display all isearch key bindings.
+Type \\[isearch-describe-key] to display documentation of isearch key.
+Type \\[isearch-describe-mode] to display documentation of isearch mode.
+
 If an input method is turned on in the current buffer, that input
 method is also active while you are typing characters to search.  To
 toggle the input method, type \\[isearch-toggle-input-method].  It
@@ -627,12 +702,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (interactive "P\np")
   (isearch-mode nil (null not-regexp) nil (not no-recursive-edit)))
 
-
-(defun isearch-mode-help ()
-  (interactive)
-  (describe-function 'isearch-forward)
-  (isearch-update))
-
 
 ;; isearch-mode only sets up incremental search for the minor mode.
 ;; All the work is done by the isearch-mode commands.
@@ -644,9 +713,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
 
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit word-p)
-  "Start isearch minor mode.  Called by `isearch-forward', etc.
-
-\\{isearch-mode-map}"
+  "Start isearch minor mode.
+It is called by the function `isearch-forward' and other related functions."
 
   ;; Initialize global vars.
   (setq isearch-forward forward
@@ -1055,7 +1123,11 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
                        (isearch-message-prefix nil nil isearch-nonincremental)
                        isearch-string
                        minibuffer-local-isearch-map nil
-                       (if isearch-regexp 'regexp-search-ring 'search-ring)
+                       (if isearch-regexp
+			   (cons 'regexp-search-ring
+				 (1+ (or regexp-search-ring-yank-pointer -1)))
+			 (cons 'search-ring
+			       (1+ (or search-ring-yank-pointer -1))))
                        nil t)
 		      isearch-new-message
 		      (mapconcat 'isearch-text-char-description
@@ -1096,12 +1168,15 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	    ;; Only the string actually used should be saved.
 	    ))
 
-	;; Push the state as of before this C-s.
-	(isearch-push-state)
+	;; This used to push the state as of before this C-s, but it adds
+	;; an inconsistent state where part of variables are from the
+	;; previous search (e.g. `isearch-success'), and part of variables
+	;; are just entered from the minibuffer (e.g. `isearch-string').
+	;; (isearch-push-state)
 
 	;; Reinvoke the pending search.
 	(isearch-search)
-	(isearch-push-state)
+	(isearch-push-state)		; this pushes the correct state
 	(isearch-update)
 	(if isearch-nonincremental
 	    (progn
@@ -1834,7 +1909,7 @@ Isearch mode."
   "Convert return into newline for incremental search."
   (interactive)
   (isearch-process-search-char ?\n))
-(make-obsolete 'isearch-return-char 'isearch-printing-char)
+(make-obsolete 'isearch-return-char 'isearch-printing-char "19.7")
 
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
@@ -1895,10 +1970,12 @@ Isearch mode."
   (if search-ring-update
       (progn
 	(isearch-search)
+	(isearch-push-state)
 	(isearch-update))
-    (isearch-edit-string)
-    )
-  (isearch-push-state))
+    ;; Otherwise, edit the search string instead.  Note that there is
+    ;; no need to push the search state after isearch-edit-string here
+    ;; since isearch-edit-string already pushes its state
+    (isearch-edit-string)))
 
 (defun isearch-ring-advance ()
   "Advance to the next search string in the ring."
@@ -1975,9 +2052,13 @@ If there is no completion possible, say so and continue searching."
 	(pop cmds))
       (setq succ-msg (and cmds (isearch-message-state (car cmds)))
 	    m (copy-sequence m))
-      (when (and (stringp succ-msg) (< (length succ-msg) (length m)))
-	(add-text-properties (length succ-msg) (length m)
-			     '(face isearch-fail) m))
+      (add-text-properties
+       (if (and (stringp succ-msg)
+		(< (length succ-msg) (length m))
+		(equal succ-msg (substring m 0 (length succ-msg))))
+	   (length succ-msg)
+	 0)
+       (length m) '(face isearch-fail) m)
       ;; Highlight failed trailing whitespace
       (when (string-match " +$" m)
 	(add-text-properties (match-beginning 0) (match-end 0)
@@ -2091,7 +2172,9 @@ Can be changed via `isearch-search-fun-function' for special needs."
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
-      (let ((inhibit-point-motion-hooks search-invisible)
+      (let ((inhibit-point-motion-hooks
+	     (and (eq isearch-success-function 'isearch-success-function-default)
+		  search-invisible))
 	    (inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search)
 	    (search-spaces-regexp search-whitespace-regexp)
@@ -2102,12 +2185,11 @@ Can be changed via `isearch-search-fun-function' for special needs."
 		(isearch-search-string isearch-string nil t))
 	  ;; Clear RETRY unless we matched some invisible text
 	  ;; and we aren't supposed to do that.
-	  (if (or (eq search-invisible t)
-		  (not isearch-success)
+	  (if (or (not isearch-success)
 		  (bobp) (eobp)
 		  (= (match-beginning 0) (match-end 0))
-		  (not (isearch-range-invisible
-			(match-beginning 0) (match-end 0))))
+		  (funcall isearch-success-function
+			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))
 	(setq isearch-just-started nil)
 	(if isearch-success
@@ -2284,6 +2366,13 @@ Can be changed via `isearch-search-fun-function' for special needs."
 		  (mapc 'isearch-open-overlay-temporary crt-overlays)
 		  nil)
 	      (setq isearch-hidden t)))))))
+
+(defun isearch-success-function-default (beg end)
+  "Default function to report if the new search match is successful.
+Returns t if search can match hidden text, or otherwise checks if some
+text from BEG to END is visible."
+  (or (eq search-invisible t)
+      (not (isearch-range-invisible beg end))))
 
 
 ;; General utilities

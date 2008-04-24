@@ -52,17 +52,17 @@ Undo one entry in the current buffer's undo records (@code{undo}).
 @kindex C-_
 @kindex C-/
 @findex undo
-  To begin to undo, type the command @kbd{C-x u} (or its aliases,
-@kbd{C-_} or @kbd{C-/}).  This undoes the most recent change in the
+  To begin to undo, type the command @kbd{C-/} (or its aliases,
+@kbd{C-_} or @kbd{C-x u}).  This undoes the most recent change in the
 buffer, and moves point back to where it was before that change.
 
-  Consecutive repetitions of @kbd{C-x u} (or its aliases) undo earlier
+  Consecutive repetitions of @kbd{C-/} (or its aliases) undo earlier
 and earlier changes in the current buffer, back to the limit of the
 current buffer's undo records.  If all the recorded changes have
 already been undone, the undo command just signals an error.
 
   If you notice that a buffer has been modified accidentally, the
-easiest way to recover is to type @kbd{C-_} repeatedly until the stars
+easiest way to recover is to type @kbd{C-/} repeatedly until the stars
 disappear from the front of the mode line.  At this time, all the
 modifications you made have been canceled.  Whenever an undo command
 makes the stars disappear from the mode line, it means that the buffer
@@ -70,7 +70,7 @@ contents are the same as they were when the file was last read in or
 saved.
 
   If you do not remember whether you changed the buffer deliberately,
-type @kbd{C-_} once.  When you see the last change you made undone, you
+type @kbd{C-/} once.  When you see the last change you made undone, you
 will see whether it was an intentional change.  If it was an accident,
 leave it undone.  If it was deliberate, redo the change as described
 below.
@@ -86,18 +86,16 @@ undo commands, use @kbd{M-x undo-only}.  This is like @code{undo}, but
 will not redo changes you have just undone.
 
 @cindex selective undo
-@kindex C-u C-x u
-  Ordinary undo applies to all changes made in the current buffer.  You
-can also perform @dfn{selective undo}, limited to the region.
-
-  To do this, specify the region you want, then run the @code{undo}
-command with a prefix argument (the value does not matter): @kbd{C-u
-C-x u} or @kbd{C-u C-_}.  This undoes the most recent change in the
-region.  To undo further changes in the same region, repeat the
-@code{undo} command (no prefix argument is needed).  In Transient Mark
-mode (@pxref{Transient Mark}), any use of @code{undo} when there is an
-active region performs selective undo; you do not need a prefix
-argument.
+@kindex C-u C-/
+  When there is an active region, any use of @code{undo} performs
+@dfn{selective undo}, undoing the most recent change within the
+region, instead of the entire buffer.  However, when Transient Mark
+mode is off (@pxref{Persistent Mark}), @kbd{C-/} always operates on
+the entire buffer, ignoring the region.  In this case, you can perform
+selective undo by supplying a prefix argument to the @code{undo}
+command: @kbd{C-u C-/} or @kbd{C-u C-x u}.  To undo further changes in
+the same region, repeat the @code{undo} command (no prefix argument is
+needed).
 
   Some specialized buffers do not make undo records.  Buffers
 whose names start with spaces never do; these buffers are used
@@ -324,24 +322,29 @@ you give an explicit command to do so.
 @findex ispell-word
   To check the spelling of the word around or before point, and
 optionally correct it as well, use the command @kbd{M-$}
-(@code{ispell-word}).  If the word is not correct, the command offers
-you various alternatives for what to do about it.  When the mark is
-active in Transient Mark mode, this command operates on the active
-region like @code{ispell-region}.
-
-@findex ispell-buffer
-@findex ispell-region
-  To check the entire current buffer, use @kbd{M-x ispell-buffer}.  Use
-@kbd{M-x ispell-region} to check just the current region.  To check
-spelling in an email message you are writing, use @kbd{M-x
-ispell-message}; that command checks the whole buffer, except for
-material that is indented or appears to be cited from other messages.
+(@code{ispell-word}).  If the word is not correct, Emacs offers you
+various alternatives for what to do about it.  If a region is active,
+@kbd{M-$} checks the spelling of all words within the region
+(@pxref{Mark}).  (However, when Transient Mark mode is off, @kbd{M-$}
+always acts on the word around or before point, ignoring the region.
+@xref{Persistent Mark}.)
 
 @findex ispell
 @cindex spell-checking the active region
-  The @kbd{M-x ispell} command spell-checks the active region if the
-Transient Mark mode is on (@pxref{Transient Mark}), otherwise it
-spell-checks the current buffer.
+  The @kbd{M-x ispell} command performs spell-checking on the entire
+buffer if no region is active, or on region if one is active.  (When
+Transient Mark mode is off, it always acts on the entire buffer,
+ignoring the region.)
+
+@findex ispell-buffer
+@findex ispell-region
+  The commands @kbd{M-x ispell-buffer} and @kbd{M-x ispell-region}
+explicitly perform spell-checking on the entire buffer or the region
+respectively.
+
+  To check spelling in an email message you are writing, use @kbd{M-x
+ispell-message}; that command checks the whole buffer, except for
+material that is indented or appears to be cited from other messages.
 
   Each time these commands encounter an incorrect word, they ask you
 what to do.  They display a list of alternatives, usually including

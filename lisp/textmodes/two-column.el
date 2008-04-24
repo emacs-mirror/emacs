@@ -642,5 +642,5 @@ on, this also realigns the two buffers."
 
 (provide 'two-column)
 
-;;; arch-tag: 2021b5ab-d3a4-4a8c-a21c-1936b0f9e6b1
+;; arch-tag: 2021b5ab-d3a4-4a8c-a21c-1936b0f9e6b1
 ;;; two-column.el ends here

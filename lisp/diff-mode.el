@@ -229,7 +229,7 @@ when editing big diffs)."
 
 (defface diff-header
   '((((class color) (min-colors 88) (background light))
-     :background "grey85")
+     :background "grey80")
     (((class color) (min-colors 88) (background dark))
      :background "grey45")
     (((class color) (background light))
@@ -438,12 +438,23 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
       (setq style (diff-hunk-style style))
       (goto-char (match-end 0))
       (when (and (not donttrustheader) (match-end 2))
+        (let* ((nold (string-to-number (match-string 2)))
+               (nnew (string-to-number (match-string 4)))
+               (endold
         (save-excursion
           (re-search-forward (if diff-valid-unified-empty-line
                                  "^[- \n]" "^[- ]")
-                             nil t
-                             (string-to-number (match-string 2)))
-          (setq end (line-beginning-position 2)))))
+                                     nil t nold)
+                  (line-beginning-position 2)))
+               (endnew
+                ;; The hunk may end with a bunch of "+" lines, so the `end' is
+                ;; then further than computed above.
+                (save-excursion
+                  (re-search-forward (if diff-valid-unified-empty-line
+                                         "^[+ \n]" "^[+ ]")
+                                     nil t nnew)
+                  (line-beginning-position 2))))
+          (setq end (max endold endnew)))))
     ;; We may have a first evaluation of `end' thanks to the hunk header.
     (unless end
       (setq end (and (re-search-forward
@@ -556,7 +567,10 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
-(defconst diff-file-junk-re "diff \\|index ") ; "index " is output by git-diff.
+;; "index ", "old mode", "new mode", "new file mode" and
+;; "deleted file mode" are output by git-diff.
+(defconst diff-file-junk-re 
+  "diff \\|index \\|\\(?:deleted file\\|new\\(?: file\\)?\\|old\\) mode")
 
 (defun diff-beginning-of-file-and-junk ()
   "Go to the beginning of file-related diff-info.
@@ -672,6 +686,7 @@ data such as \"Index: ...\" and such."
 ;;;;
 
 (defvar diff-remembered-files-alist nil)
+(defvar diff-remembered-defdir nil)
 
 (defun diff-filename-drop-dir (file)
   (when (string-match "/" file) (substring file (match-end 0))))
@@ -745,6 +760,10 @@ Non-nil OLD means that we want the old file.
 Non-nil BATCH means to prefer returning an incorrect answer than to prompt
 the user.
 PREFIX is only used internally: don't use it."
+  (unless (equal diff-remembered-defdir default-directory)
+    ;; Flush diff-remembered-files-alist if the default-directory is changed.
+    (set (make-local-variable 'diff-remembered-defdir) default-directory)
+    (set (make-local-variable 'diff-remembered-files-alist) nil))
   (save-excursion
     (unless (looking-at diff-file-header-re)
       (or (ignore-errors (diff-beginning-of-file))
@@ -1231,6 +1250,11 @@ a diff with \\[diff-reverse-direction].
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
   (set (make-local-variable 'next-error-function) 'diff-next-error)
+
+  (set (make-local-variable 'beginning-of-defun-function)
+       'diff-beginning-of-file-and-junk)
+  (set (make-local-variable 'end-of-defun-function)
+       'diff-end-of-file)
 
   (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
@@ -1752,9 +1776,9 @@ For use in `add-log-current-defun-function'."
 
 (defface diff-refine-change
   '((((class color) (min-colors 88) (background light))
-     :background "grey90")
+     :background "grey85")
     (((class color) (min-colors 88) (background dark))
-     :background "grey40")
+     :background "grey60")
     (((class color) (background light))
      :background "yellow")
     (((class color) (background dark))

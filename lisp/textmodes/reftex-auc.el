@@ -225,5 +225,5 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
 (defun reftex-notice-new-section ()
   (reftex-notice-new 1 'force))
 
-;;; arch-tag: 4a798e68-3405-421c-a09b-0269aac64ab4
+;; arch-tag: 4a798e68-3405-421c-a09b-0269aac64ab4
 ;;; reftex-auc.el ends here

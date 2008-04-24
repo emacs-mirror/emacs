@@ -1,10 +1,9 @@
 ;;; tramp-uu.el --- uuencode in Lisp
-;;; -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008 Free Software Foundation, Inc.
 
-;; Author: Kai Groﬂjohann <kai.grossjohann@gmx.net>
+;; Author: Kai Gro√üjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -88,5 +87,10 @@
 
 (provide 'tramp-uu)
 
-;;; arch-tag: 7153f2c6-8be5-4cd2-8c06-0fbcf5190ef6
+;; arch-tag: 7153f2c6-8be5-4cd2-8c06-0fbcf5190ef6
 ;;; tramp-uu.el ends here
+
+;; Local Variables:
+;; mode: Emacs-Lisp
+;; coding: utf-8
+;; End:

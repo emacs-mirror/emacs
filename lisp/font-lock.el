@@ -1,7 +1,8 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -330,7 +331,7 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
   "Face name to use for preprocessor directives.")
 
 (defvar font-lock-reference-face	'font-lock-constant-face)
-(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face)
+(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face "20.3")
 
 ;; Fontification variables:
 
@@ -1006,6 +1007,7 @@ and end buffer positions \(in that order) of the region to refontify, or nil
 \(which directs the caller to fontify a default region).
 This function should preserve the match-data.
 The region it returns may start or end in the middle of a line.")
+(make-variable-buffer-local 'font-lock-extend-after-change-region-function)
 
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
@@ -1279,10 +1281,6 @@ delimit the region to fontify."
 	      (funcall font-lock-mark-block-function)
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
-
-(unless (featurep 'facemenu)
-  (error "facemenu must be loaded before font-lock"))
-(define-key facemenu-keymap "\M-o" 'font-lock-fontify-block)
 
 ;;; End of Fontification functions.
 
@@ -1846,7 +1844,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 16) (background dark))
      (:foreground "red1"))
     (((class color) (min-colors 8) (background light))
-     )
+     (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
      )
     (t (:weight bold :slant italic)))
@@ -2147,7 +2145,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;; `cpp-font-lock-keywords' is handy for modes for the files.
 ;;
 ;; Here we cannot use `regexp-opt' because because regex-opt is not preloaded
-;; while font-lock.el is preloaded to emacs. So values pre-calculated with 
+;; while font-lock.el is preloaded to emacs. So values pre-calculated with
 ;; regexp-opt are used here.
 
 ;; `cpp-font-lock-keywords-source-directives' is calculated from:
@@ -2183,16 +2181,16 @@ Used in `cpp-font-lock-keywords'.")
        1 font-lock-string-face prepend)
      ;;
      ;; Fontify function macro names.
-     '("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)(" 
+     '("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)("
        (1 font-lock-function-name-face prepend)
        ;;
        ;; Macro arguments.
        ((lambda (limit)
 	  (re-search-forward
-	   "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)" 
-	   (or (save-excursion (re-search-forward ")" limit t)) 
+	   "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)"
+	   (or (save-excursion (re-search-forward ")" limit t))
 	       limit)
-	   t)) 
+	   t))
 	nil nil (1 font-lock-variable-name-face prepend)))
      ;;
      ;; Fontify symbol names in #elif or #if ... defined preprocessor directives.
@@ -2208,7 +2206,7 @@ Used in `cpp-font-lock-keywords'.")
       (list (+ 2 directives-depth)
 	    'font-lock-variable-name-face nil t))))
     "Font lock keyords for C preprocessor directives.
-`c-mode', `c++-mode' and `objc-mode' have their own 
+`c-mode', `c++-mode' and `objc-mode' have their own
 font lock keyords for C preprocessor directives. This definition is for the
 other modes in which C preprocessor directives are used. e.g. `asm-mode' and
 `ld-script-mode'.")
@@ -2240,8 +2238,9 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
 		((match-beginning 6) font-lock-variable-name-face)
 		(t font-lock-type-face))
 	  nil t))
-      ;; Emacs Lisp autoload cookies.
-      ("^;;;###\\(autoload\\)" 1 font-lock-warning-face prepend)
+      ;; Emacs Lisp autoload cookies.  Supports the slightly different
+      ;; forms used by mh-e, calendar, etc.
+      ("^;;;###\\([-a-z]*autoload\\)" 1 font-lock-warning-face prepend)
       ;; Regexp negated char group.
       ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))
   "Subdued level highlighting for Lisp modes.")

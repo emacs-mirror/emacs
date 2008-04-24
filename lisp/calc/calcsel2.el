@@ -302,5 +302,5 @@
 
 (provide 'calcsel2)
 
-;;; arch-tag: 7c5b8d65-b8f0-45d9-820d-9930f8ee114b
+;; arch-tag: 7c5b8d65-b8f0-45d9-820d-9930f8ee114b
 ;;; calcsel2.el ends here

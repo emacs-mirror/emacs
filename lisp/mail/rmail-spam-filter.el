@@ -644,5 +644,5 @@ automatically, no user input is required."
 
 (provide 'rmail-spam-filter)
 
-;;; arch-tag: 03e1d45d-b72f-4dd7-8f04-e7fd78249746
+;; arch-tag: 03e1d45d-b72f-4dd7-8f04-e7fd78249746
 ;;; rmail-spam-fitler ends here

@@ -105,7 +105,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.17"
+(defconst icalendar-version "0.18"
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -193,6 +193,24 @@ the status."
 This applies only if the class is not empty! `%s' is replaced by
 the class."
   :type 'string
+  :group 'icalendar)
+
+(defcustom icalendar-recurring-start-year
+  2005
+  "Start year for recurring events.
+Some calendar browsers only propagate recurring events for
+several years beyond the start time.  Set this string to a year
+just before the start of your personal calendar."
+  :type 'integer
+  :group 'icalendar)
+
+
+(defcustom icalendar-export-hidden-diary-entries
+  t
+  "Determines whether hidden diary entries are exported.
+If non-nil hidden diary entries (starting with `&') get exported,
+if nil they are ignored."
+  :type 'boolean
   :group 'icalendar)
 
 (defvar icalendar-debug nil
@@ -606,11 +624,11 @@ valid (year > 1900 or something)."
                 ;;(or (nth 6 time1) (nth 6 time2)) ;; FIXME?
                 )))
 
-(defun icalendar--datetime-to-noneuropean-date (datetime &optional separator)
-  "Convert the decoded DATETIME to non-european-style format.
+(defun icalendar--datetime-to-american-date (datetime &optional separator)
+  "Convert the decoded DATETIME to American-style format.
 Optional argument SEPARATOR gives the separator between month,
 day, and year.  If nil a blank character is used as separator.
-Non-European format: \"month day year\"."
+American format: \"month day year\"."
   (if datetime
       (format "%d%s%d%s%d" (nth 4 datetime) ;month
               (or separator " ")
@@ -619,6 +637,9 @@ Non-European format: \"month day year\"."
               (nth 5 datetime))         ;year
     ;; datetime == nil
     nil))
+
+(define-obsolete-function-alias 'icalendar--datetime-to-noneuropean-date
+  'icalendar--datetime-to-american-date "icalendar 0.19")
 
 (defun icalendar--datetime-to-european-date (datetime &optional separator)
   "Convert the decoded DATETIME to European format.
@@ -635,15 +656,33 @@ FIXME"
     ;; datetime == nil
     nil))
 
+(defun icalendar--datetime-to-iso-date (datetime &optional separator)
+  "Convert the decoded DATETIME to ISO format.
+Optional argument SEPARATOR gives the separator between month,
+day, and year.  If nil a blank character is used as separator.
+ISO format: (year month day)."
+  (if datetime
+      (format "%d%s%d%s%d" (nth 5 datetime) ;year
+              (or separator " ")
+              (nth 4 datetime)            ;month
+              (or separator " ")
+              (nth 3 datetime))           ;day
+    ;; datetime == nil
+    nil))
+
 (defun icalendar--datetime-to-diary-date (datetime &optional separator)
   "Convert the decoded DATETIME to diary format.
 Optional argument SEPARATOR gives the separator between month,
 day, and year.  If nil a blank character is used as separator.
-Call icalendar--datetime-to-(non)-european-date according to
-value of `european-calendar-style'."
-  (if european-calendar-style
-      (icalendar--datetime-to-european-date datetime separator)
-    (icalendar--datetime-to-noneuropean-date datetime separator)))
+Call icalendar--datetime-to-*-date according to the
+value of `calendar-date-style' (or the older `european-calendar-style')."
+  (funcall (intern-soft (format "icalendar--datetime-to-%s-date"
+                                (if (boundp 'calendar-date-style)
+                                    calendar-date-style
+                                  (if (with-no-warnings european-calendar-style)
+                                      'european
+                                    'american))))
+           datetime separator))
 
 (defun icalendar--datetime-to-colontime (datetime)
   "Extract the time part of a decoded DATETIME into 24-hour format.
@@ -771,7 +810,8 @@ would be \"pm\"."
   (if timestring
       (let ((starttimenum (read (icalendar--rris ":" "" timestring))))
         ;; take care of am/pm style
-        (if (and ampmstring (string= "pm" ampmstring))
+        ;; Be sure *not* to convert 12:00pm - 12:59pm to 2400-2459
+        (if (and ampmstring (string= "pm" ampmstring) (< starttimenum 1200))
             (setq starttimenum (+ starttimenum 1200)))
         (format "T%04d00" starttimenum))
     nil))
@@ -837,7 +877,10 @@ FExport diary data into iCalendar file: ")
     (save-excursion
       (goto-char min)
       (while (re-search-forward
-              "^\\([^ \t\n].+\\)\\(\\(\n[ \t].*\\)*\\)" max t)
+              ;; possibly ignore hidden entries beginning with "&"
+              (if icalendar-export-hidden-diary-entries
+                  "^\\([^ \t\n#].+\\)\\(\\(\n[ \t].*\\)*\\)"
+                "^\\([^ \t\n&#].+\\)\\(\\(\n[ \t].*\\)*\\)") max t)
         (setq entry-main (match-string 1))
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
@@ -883,7 +926,7 @@ FExport diary data into iCalendar file: ")
              (set-buffer (get-buffer-create "*icalendar-errors*"))
              (insert (format "Error in line %d -- %s: `%s'\n"
                              (count-lines (point-min) (point))
-                             (cadr error-val)
+                             error-val
                              entry-main))))))
 
       ;; we're done, insert everything into the file
@@ -1040,6 +1083,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                               datetime))
              (endisostring (icalendar--datestring-to-isodate
                             datetime 1))
+             (endisostring1)
              (starttimestring (icalendar--diarytime-to-isotime
                                (if (match-beginning 3)
                                    (substring entry-main
@@ -1069,13 +1113,27 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 
         (unless startisostring
           (error "Could not parse date"))
+
+        ;; If only start-date is specified, then end-date is next day,
+        ;; otherwise it is same day.
+        (setq endisostring1 (if starttimestring
+                                startisostring
+                              endisostring))
+
         (when starttimestring
           (unless endtimestring
             (let ((time
                    (read (icalendar--rris "^T0?" ""
                                           starttimestring))))
+              (if (< time 230000)
+                  ;; Case: ends on same day
               (setq endtimestring (format "T%06d"
-                                          (+ 10000 time))))))
+                                              (+ 10000 time)))
+                ;; Case: ends on next day
+                (setq endtimestring (format "T%06d"
+                                              (- time 230000)))
+                (setq endisostring1 endisostring)) )))
+
         (list (concat "\nDTSTART;"
                       (if starttimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
@@ -1084,13 +1142,24 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                       "\nDTEND;"
                       (if endtimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      (if starttimestring
-                          startisostring
-                        endisostring)
+                      endisostring1
                       (or endtimestring ""))
               summary))
     ;; no match
     nil))
+
+(defun icalendar-first-weekday-of-year (abbrevweekday year)
+  "Find the first ABBREVWEEKDAY in a given YEAR.
+Returns day number."
+  (let* ((day-of-week-jan01 (calendar-day-of-week (list 1 1 year)))
+         (result (+ 1
+                    (- (icalendar--get-weekday-number abbrevweekday)
+                       day-of-week-jan01))))
+    (cond ((<= result 0)
+           (setq result (+ result 7)))
+          ((> result 7)
+           (setq result (- result 7))))
+    result))
 
 (defun icalendar--convert-weekly-to-ical (nonmarker entry-main)
   "Convert weekly diary entry to icalendar format.
@@ -1150,21 +1219,23 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                       (if starttimestring
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      ;; find the correct week day,
-                      ;; 1st january 2000 was a saturday
-                      (format
-                       "200001%02d"
-                       (+ (icalendar--get-weekday-number day) 2))
+                      ;; Find the first requested weekday of the
+                      ;; start year
+                      (funcall 'format "%04d%02d%02d"
+                               icalendar-recurring-start-year 1
+                               (icalendar-first-weekday-of-year
+                                day icalendar-recurring-start-year))
                       (or starttimestring "")
                       "\nDTEND;"
                       (if endtimestring
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      (format
-                       "200001%02d"
+                      (funcall 'format "%04d%02d%02d"
                        ;; end is non-inclusive!
-                       (+ (icalendar--get-weekday-number day)
-                          (if endtimestring 2 3)))
+                               icalendar-recurring-start-year 1
+                               (+ (icalendar-first-weekday-of-year
+                                   day icalendar-recurring-start-year)
+                          (if endtimestring 0 1)))
                       (or endtimestring "")
                       "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY="
                       day)
@@ -1245,9 +1316,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                        (if endtimestring 0 1))
                       (or endtimestring "")
                       "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH="
-                      (format "%2d" month)
+                      (format "%d" month)
                       ";BYMONTHDAY="
-                      (format "%2d" day))
+                      (format "%d" day))
               summary))
     ;; no match
     nil))
@@ -2055,8 +2126,11 @@ the entry."
       (unless diary-file
         (setq diary-file
               (read-file-name "Add appointment to this diary file: ")))
-      ;; Note: make-diary-entry will add a trailing blank char.... :(
-      (make-diary-entry string non-marking diary-file)))
+      ;; Note: diary-make-entry will add a trailing blank char.... :(
+      (funcall (if (fboundp 'diary-make-entry)
+                   'diary-make-entry
+                 'make-diary-entry)
+               string non-marking diary-file)))
   ;; return diary-file in case it has been changed interactively
   diary-file)
 

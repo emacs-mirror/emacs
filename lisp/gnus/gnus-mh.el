@@ -111,5 +111,5 @@ Otherwise, it is like +news/group."
 
 (provide 'gnus-mh)
 
-;;; arch-tag: 2d5696d3-b363-48e5-8749-c256be56acca
+;; arch-tag: 2d5696d3-b363-48e5-8749-c256be56acca
 ;;; gnus-mh.el ends here

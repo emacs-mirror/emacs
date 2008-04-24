@@ -725,5 +725,5 @@
 
 (provide 'nnwarchive)
 
-;;; arch-tag: 1ab7a15c-777a-40e0-95c0-0c41b3963578
+;; arch-tag: 1ab7a15c-777a-40e0-95c0-0c41b3963578
 ;;; nnwarchive.el ends here

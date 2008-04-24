@@ -510,7 +510,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
 #endif
 
   GCPRO1 (skp.pending_maps);
-  map_keymap (keymap, single_menu_item, Qnil, &skp, 1);
+  map_keymap_canonical (keymap, single_menu_item, Qnil, &skp);
   UNGCPRO;
 
   /* Process now any submenus which want to be panes at this level.  */

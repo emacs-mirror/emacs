@@ -1070,5 +1070,5 @@ if it can't, it signals an error."
 ;;;          (delete-backward-char 1)
 ;;;          (insert ")\n"))))))
 
-;;; arch-tag: 8f094d88-ffe1-4f99-afe3-a5e81dd939d9
+;; arch-tag: 8f094d88-ffe1-4f99-afe3-a5e81dd939d9
 ;;; decipher.el ends here

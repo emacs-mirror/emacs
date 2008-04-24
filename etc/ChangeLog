@@ -1,10 +1,51 @@
-2008-03-06  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-04-06  Jason Rumney  <jasonr@gnu.org>
+
+	* HELLO (Burmese): Rename from Myanmar.
+
+2008-03-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS (incoming mail files): Add version.
+
+2008-03-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* tutorials/TUTORIAL.de: Remove even more discussion of flow
+	control.  Refer to node name `Init Rebinding' instead of title.
+
+2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* refcards/orgcard.tex: Minor fixes.
+
+2008-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorials/TUTORIAL, tutorials/TUTORIAL.fr, tutorials/TUTORIAL.ro:
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.it, tutorials/TUTORIAL.ru:
+	* tutorials/TUTORIAL.cn, tutorials/TUTORIAL.ja, tutorials/TUTORIAL.sk:
+	* tutorials/TUTORIAL.cs, tutorials/TUTORIAL.ko, tutorials/TUTORIAL.sl:
+	* tutorials/TUTORIAL.de, tutorials/TUTORIAL.nl, tutorials/TUTORIAL.sv:
+	* tutorials/TUTORIAL.eo, tutorials/TUTORIAL.pl, tutorials/TUTORIAL.th:
+	* tutorials/TUTORIAL.es, tutorials/TUTORIAL.pt_BR:
+	Remove discussion of flow control.
+
+2008-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Describe linum.el.
+
+2008-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* images/icons/hicolor/128x128/apps/emacs.png:
+	* images/icons/hicolor/16x16/apps/emacs.png:
+	* images/icons/hicolor/24x24/apps/emacs.png:
+	* images/icons/hicolor/32x32/apps/emacs.png:
+	* images/icons/hicolor/48x48/apps/emacs.png:
+	* images/icons/hicolor/scalable/apps/emacs.svg:
+	* images/icons/hicolor/scalable/mimetypes/emacs-document.svg:
+	Remove `creator' metadata.
+
+2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* images/README: Update with bookmark_add.
 
-	* images/bookmark_add.pbm: New file
-
-	* images/bookmark_add.xpm: New file
+	* images/bookmark_add.pbm, images/bookmark_add.xpm: New files.
 
 2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
@@ -44,7 +85,7 @@
 	* NEWS (Gnus): Mention problem with coding system `utf-8-emacs'
 	when using different Emacs versions.
 
-2008-02-25  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS.22: Mention stock icons for Gtk+.
 
@@ -86,7 +127,7 @@
 	* tutorials/TUTORIAL.ru: Remove redundant empty lines, insert a
 	magic line instead.
 
-2008-02-08  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-02-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention XEmbed and --parent-id.
 
@@ -96,8 +137,8 @@
 
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* tutorials/TUTORIAL.ru: Restore copyright years.  Update
-	tutorial.  Fix wording.
+	* tutorials/TUTORIAL.ru: Restore copyright years.  Update tutorial.
+	Fix wording.
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -255,7 +296,7 @@
 
 	* schema: Initial merge of nxml.
 
-2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+2007-11-22  Francesco Potortì  <pot@gnu.org>
 
 	* NEWS: etags: the --members option is now the default.
 
@@ -283,7 +324,7 @@
 	* refcards/gnus-refcard.tex: Restore Feb 2007 copyright
 	clarifications lost in update to Gnus trunk.
 
-2007-10-28  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>
+2007-10-28  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* images/smilies/grayscale/*.xpm: New larger grayscale smileys.
 
@@ -343,7 +384,7 @@
 
 	* Makefile (SOURCES, unlock, relock): Delete.
 
-2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-10  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* NEWS: Document the interactive specification for C functions.
 	Say that `set-file-modes' is now interactive.
@@ -371,7 +412,7 @@
 
 	* NEWS.22 (Note): Lower-case for orgtbl-mode.
 
-2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Say that Gtk+ build uses stock icons.
 
@@ -385,7 +426,7 @@
 	* PROBLEMS (Mac OS X): Add alternative workaround for QuickTime
 	updater breakage.
 
-2007-08-26  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-26  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* NEWS: Say that PDF files are now the default for refcards.
 
@@ -508,7 +549,7 @@
 	* NEWS: Revert 2007-07-13T23:20:21Z!kfogel@red-bean.com, which
 	documented bookmark keybinding changes that were later reverted.
 
-2007-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-07-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Mention gtk-engines-qt problem.
 
@@ -607,7 +648,7 @@
 
 	* PROBLEMS (Dumping): Mention OpenBSD macppc problem.
 
-2007-05-15  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-05-15  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* fr-refcard.tex: Rewrite using German layout.
 
@@ -617,7 +658,7 @@
 
 	* refcard.tex (section{Incremental Search}): Minor corrections.
 
-2007-05-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-05-12  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* Makefile (viperCard.ps, calccard.ps refcard.ps)
 	(sk-dired-ref.ps sk-refcard.ps sk-survival.ps)
@@ -773,7 +814,7 @@
 	* cs-dired-ref.tex: Increase in 2 column case to make room
 	for copyright notice.
 	(nopagenumbers): Call to turn off numbers in 1 page document.
-	(N,Aa(Bpov,Al(Bda, Modifikace Dired bufferu): Swap sections to
+	(Nápovìda, Modifikace Dired bufferu): Swap sections to
 	balance column length in presence of copyright notice.
 	(copyrightnotice): Uncomment so that notice is displayed.
 
@@ -798,7 +839,7 @@
 	* sk-dired-ref.tex (vsize): Increase in 2 column case to make room
 	for copyright notice.
 	(nopagenumbers): Call to turn off numbers in 1 page document.
-	(N,Aa(Bpoveda, Modifik,Aa(Bcia Dired bufferu): Swap sections to
+	(Nápoveda, Modifikácia Dired bufferu): Swap sections to
 	balance column length in presence of copyright notice.
 	(copyrightnotice): Uncomment so that notice is displayed.
 
@@ -815,7 +856,7 @@
 	(section{Exporting and Publishing}): Export options no longer in
 	reference card.
 
-2007-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-02-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Gtk+ and cygwin doesn't work.
 
@@ -823,7 +864,7 @@
 
 	* MORE.STUFF: Add a pointer to Phil Sung's Emacs slides on MIT.
 
-2007-02-22  Per Starb,Ad(Bck  <starback@stp.lingfil.uu.se>  (tiny change)
+2007-02-22  Per Starbäck  <starback@stp.lingfil.uu.se>  (tiny change)
 
 	* NEWS: Grammar and capitalization fixes.
 
@@ -912,7 +953,7 @@
 
 	* DEVEL.HUMOR: New entry.
 
-2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+2007-02-05  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: Now --members is the default for etags, not for ctags yet.
 	* NEWS (etags): Document it.
@@ -983,7 +1024,7 @@
 	GNU/Linux.
 	* PROBLEMS: As above.
 
-2007-01-02  Francesco Potort,Al(B  <pot@gnu.org>
+2007-01-02  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: Undocument the --no-warn option.
 
@@ -999,7 +1040,7 @@
 
 	* ERC-NEWS: Note that the list module has been removed.
 
-2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-05  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* NEWS (Changes to cmuscheme): Mention the alternative for
 	`~/.emacs_SCHEMEPROG' which is `~/.emacs.d/init_SCHEMEPROG.scm'.
@@ -1086,7 +1127,7 @@
 
 	* refcard.ps: Regenerate.
 
-2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Rename x-use-old-gtk-file-dialog to x-gtk-use-old-file-dialog.
 
@@ -1112,7 +1153,7 @@
 	to "t".
 	* PROBLEMS: Adjust tcsh advice for this.
 
-2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a
 	display (x-close-connection).
@@ -1213,7 +1254,7 @@
 
 	* PROBLEMS: Emacs now requires ws2_32.dll on Windows.
 
-2006-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2006-07-14  Károly Lőrentey  <lorentey@elte.hu>
 
 	* HELLO: Update Hungarian sample.
 
@@ -1250,7 +1291,7 @@
 	* orgcard.tex (section{Agenda Views}): Document `s' key to save
 	all org-mode buffers.
 
-2006-06-30  Francesco Potort,Al(B  <pot@gnu.org>
+2006-06-30  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: -m and -M options do not exist.
 
@@ -1303,11 +1344,11 @@
 
 	* yow.lines: Delete existing data; add a new entry.
 
-2006-06-09  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
+2006-06-09  Włodek Bzyl  <matwb@univ.gda.pl>
 
 	* pl-refcard.ps: Regenerate.
 
-2006-06-08  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
+2006-06-08  Włodek Bzyl  <matwb@univ.gda.pl>
 
 	* pl-refcard.tex: Update for Emacs 22.
 
@@ -1315,7 +1356,7 @@
 
 	* fr-refcard.tex: Fix errors in previous commit.
 
-2006-06-08  ,AI(Bric Jacoboni  <jaco@jacoboni.fr>
+2006-06-08  Éric Jacoboni  <jaco@jacoboni.fr>
 
 	* fr-refcard.tex: Update for Emacs 22.
 
@@ -1368,7 +1409,7 @@
 	* tree-widget/folder/open.png, tree-widget/folder/open.xpm:
 	Reduce the size of images.
 
-2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention F10 for Gtk+/Lesstif/Lucid menus.
 
@@ -1587,7 +1628,7 @@
 
 2006-03-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* TUTORIAL.de: Replace "Schreiben" by "Dr,A|(Bcken" where appropriate.
+	* TUTORIAL.de: Replace "Schreiben" by "Drücken" where appropriate.
 
 2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -1626,7 +1667,7 @@
 
 	* NEWS: Changes in handling of file local variables.
 
-2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Gtk+ 2.4 is required.
 
@@ -1694,11 +1735,11 @@
 	* e/eterm-color.ti: Temporarily disable the ri entry.
 	* e/eterm-color: Regenerate.
 
-2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-21  Lőrentey Károly  <lorentey@elte.hu>
 
 	* TODO: Add note on the multi-tty branch.
 
-2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-16  Lőrentey Károly  <lorentey@elte.hu>
 
 	* NEWS: Change `prev-buffer' to `previous-buffer'; add note on
 	them using the frame-local buffer list.
@@ -1741,13 +1782,13 @@
 
 	* images/gud/pp.xpm, images/gud/pp.pbm: New icons.
 
-2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* images/copy.xpm, images/copy.pbm, images/low-color/copy.xpm
 	* images/save.xpm, images/save.pbm, images/low-color/save.xpm:
 	Adjust baseline.
 
-2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
 	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
@@ -1758,7 +1799,7 @@
 
 	* DEBUG: Describe how to provide preprocessor macro information.
 
-2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-11-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
 	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
@@ -1906,7 +1947,7 @@
 
 	* NEWS, MH-E-NEWS: Updated for release 7.85.
 
-2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: -nb => -nbi
 
@@ -1914,7 +1955,7 @@
 
 	* orgcard.tex: Version 3.17, no changes except version number.
 
-2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: -nb, --no-bitmap-icon
 
@@ -2027,7 +2068,7 @@
 
 	* grep.txt: New file.
 
-2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-07-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping):
 	-R comes after i386 in setarch command.
@@ -2068,7 +2109,7 @@
 	* pl-refcard.tex, refcard.tex, ru-refcard.tex, sk-dired-ref.tex:
 	* sk-refcard.tex, vipcard.tex, viperCard.tex: Update FSF's address.
 
-2005-07-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-07-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping):
 	Add it again.
@@ -2166,11 +2207,11 @@
 
 	* TUTORIAL.ru: Update.
 
-2005-04-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2005-04-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated header.
 
-2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention cursorBlink resource.
 
@@ -2178,7 +2219,7 @@
 
 	* NEWS: Mention dynamic change of keyboard-coding-system on Mac.
 
-2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention fontSet for Lucid menus.
 
@@ -2192,7 +2233,7 @@
 	* TUTORIAL.ja: Updated header, contents synchronized with
 	TUTORIAL at 2005-04-01T00:31:25Z!rms@gnu.org.
 
-2005-04-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2005-04-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs: Updated header.
 
@@ -2341,15 +2382,15 @@
 
 	* fr-refcard.tex: Fix typos.
 
-2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Update information about klipper on KDE.
 
-2004-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Rename use-old-gtk-file-dialog to x-use-old-gtk-file-dialog.
 
-2004-10-08  Fr,Ai(Bd,Ai(Bric Bothamy  <frederic.bothamy@free.fr>  (tiny change)
+2004-10-08  Frédéric Bothamy  <frederic.bothamy@free.fr>  (tiny change)
 
 	* TUTORIAL.fr: Minor wording fix.
 
@@ -2373,7 +2414,7 @@
 	Reformat.
 	* e/eterm: Regenerate.
 
-2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Updated exec-shield description.
 
@@ -2543,7 +2584,7 @@
 	(HeaderClip, FooterClip): New PostScript funs.
 	(HeaderText, FooterText): Adjust PostScript code.
 
-2004-03-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-03-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* TODO: Removed drag-and-drop entry (DONE).
 
@@ -2596,7 +2637,7 @@
 	* HELLO: Fix cases of language names.  Make German lines one.
 	Delete FORTRAN, add Mathematics.
 
-2003-10-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-10-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS: Characters are displayed as empty boxes or
 	with wrong font under X.
@@ -2669,11 +2710,11 @@
 
 	* HELLO: Fix Hindi and add Tamil.
 
-2003-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+2003-02-05  Francesco Potortì  <pot@gnu.org>
 
 	* TUTORIAL.it: Italian tutorial.
 	From Alfredo Finelli <alfredofnl@tiscali.it> (original translator).
-	Revised by Francesco Potort,Al(B <pot@gnu.org>.
+	Revised by Francesco Potortì <pot@gnu.org>.
 
 2003-02-03  Bill Wohler  <wohler@newt.com>
 
@@ -2683,7 +2724,7 @@
 
 	* MACHINES: Added Cygwin.
 
-2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* DEBUG: Added note about xmon.
 
@@ -2691,12 +2732,12 @@
 
 	* TUTORIAL.pl: Updated.
 
-2003-01-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2003-01-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated to reflect changes in English version.
-	From Miroslav Va$,1!!(Bko <zemiak@zoznam.sk>.
+	From Miroslav Vaško <zemiak@zoznam.sk>.
 
-2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-09  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: Added reference to the new `etags --help --lang=LANG'
 	option.
@@ -2717,7 +2758,7 @@
 
 	* MH-E-NEWS: Upgraded to MH-E version 7.0.
 
-2002-11-22  Rafael Sep,Az(Blveda  <drs@gnulinux.org.mx>
+2002-11-22  Rafael Sepúlveda  <drs@gnulinux.org.mx>
 
 	* TUTORIAL.es: Extensively changed and updated.
 
@@ -2753,7 +2794,7 @@
 
 2002-06-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* TUTORIAL.fr: New version from ,AI(Bric Jacoboni <jaco@teaser.fr>.
+	* TUTORIAL.fr: New version from Éric Jacoboni <jaco@teaser.fr>.
 
 2002-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -2763,7 +2804,7 @@
 
 	* termcap.src: New version from ftp://invisible-island.net.
 
-2002-03-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-24  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.translators: New file, list of tutorial translators.
 
@@ -2771,15 +2812,15 @@
 
 	* gnus.xpm: Remove garbages.
 
-2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* letter.xpm: New file, XPM variant of letter.xbm.
 
-2001-12-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Move back.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -2797,11 +2838,11 @@
 
 2001-11-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* fr-survival.tex: New file, from ,AI(Bric Jacoboni <jaco@teaser.fr>.
+	* fr-survival.tex: New file, from Éric Jacoboni <jaco@teaser.fr>.
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* TUTORIAL.fr: New version from ,AI(Bric Jacoboni <jaco@teaser.fr>.
+	* TUTORIAL.fr: New version from Éric Jacoboni <jaco@teaser.fr>.
 
 2001-11-17  Colin Walters  <walters@debian.org>
 
@@ -2809,7 +2850,7 @@
 
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* TUTORIAL.fr: New file.  From ,AI(Bric Jacoboni <jaco@teaser.fr>.
+	* TUTORIAL.fr: New file.  From Éric Jacoboni <jaco@teaser.fr>.
 
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -2834,7 +2875,7 @@
 	* HELLO: Fix the Italian and Maltese entries.  From Trevor Spiteri
 	<tbspit@eng.um.edu.mt>.
 
-2001-08-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* HELLO: Slovak language name added to be compatible with other
 	languages.
@@ -2842,7 +2883,7 @@
 2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.pl: Updated in accordance with the English version.
-	From Beata Wierzcho$,1 b(Bowska <beataw@orient.uw.edu.pl> and
+	From Beata Wierzchołowska <beataw@orient.uw.edu.pl> and
 	Janusz S. Bien <jsbien@mail.uw.edu.pl>.
 
 2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -2851,26 +2892,26 @@
 	per config.sub and config.guess.  Reported by Ryo Furue
 	<furufuru@ccsr.u-tokyo.ac.jp>.
 
-2001-08-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-10  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated in accordance with the English version.
-	From Miroslav Va$,1!!(Bko <vasko@debian.cz>.
+	From Miroslav Vaško <vasko@debian.cz>.
 
 2001-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.ko: Updated in accordance with the English version.
 	From Koaunghi Un <koaunghi@world.kaist.ac.kr>.
 
-2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs: Update from Milan Zamazal.
 
-2001-08-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: E-mail
 	address of Milan Zamazal changed.
 
-2001-08-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-04  Pavel Janík  <Pavel@Janik.cz>
 
 	* TUTORIAL, TUTORIAL.cs: Be consistent when naming CONTROL and
 	META keys.
@@ -2902,7 +2943,7 @@
 	* sk-dired-ref.tex: New files.
 
 	* cs-survival.tex, cs-dired-ref.ps, cs-dired-ref.tex: New files.
-	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
+	From Pavel@Janik.cz (Pavel Janík).
 
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
@@ -4176,7 +4217,7 @@
 	* loadst.c (main) [XENIX]: Use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 

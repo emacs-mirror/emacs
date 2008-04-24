@@ -983,5 +983,5 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (provide 'info-look)
 
-;;; arch-tag: 0f1e3ea3-32a2-4461-bbab-3cff93539a74
+;; arch-tag: 0f1e3ea3-32a2-4461-bbab-3cff93539a74
 ;;; info-look.el ends here

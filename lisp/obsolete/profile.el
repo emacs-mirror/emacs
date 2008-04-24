@@ -28,6 +28,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; DESCRIPTION:
 ;; ------------
 ;;   This program can be used to monitor running time performance of Emacs Lisp
@@ -290,5 +292,5 @@ DEF is (symbol-function FUN)."
 
 (provide 'profile)
 
-;;; arch-tag: 816f97e8-efff-4da2-9a95-7bc392f58b19
+;; arch-tag: 816f97e8-efff-4da2-9a95-7bc392f58b19
 ;;; profile.el ends here

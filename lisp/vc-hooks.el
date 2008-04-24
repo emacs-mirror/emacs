@@ -6,8 +6,6 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -41,16 +39,18 @@
 
 (defvar vc-ignore-vc-files nil)
 (make-obsolete-variable 'vc-ignore-vc-files
-                        "set `vc-handled-backends' to nil to disable VC.")
+                        "set `vc-handled-backends' to nil to disable VC."
+			"21.1")
 
 (defvar vc-master-templates ())
 (make-obsolete-variable 'vc-master-templates
  "to define master templates for a given BACKEND, use
 vc-BACKEND-master-templates.  To enable or disable VC for a given
-BACKEND, use `vc-handled-backends'.")
+BACKEND, use `vc-handled-backends'."
+ "21.1")
 
 (defvar vc-header-alist ())
-(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
+(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header "21.1")
 
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
@@ -84,10 +84,7 @@ An empty list disables VC altogether."
   :type '(repeat string)
   :group 'vc)
 
-(defcustom vc-path
-  (if (file-directory-p "/usr/sccs")
-      '("/usr/sccs")
-    nil)
+(defcustom vc-path nil
   "List of extra directories to search for version control commands."
   :type '(repeat directory)
   :group 'vc)
@@ -312,15 +309,15 @@ non-nil if FILE exists and its contents were successfully inserted."
   (when (file-exists-p file)
     (if (not limit)
         (insert-file-contents file)
-      (if (not blocksize) (setq blocksize 8192))
+      (unless blocksize (setq blocksize 8192))
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
 			     file nil filepos (incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
-                          (if pos (delete-region (match-beginning 0)
-                                                 (point-max)))
+                          (when pos (delete-region (match-beginning 0)
+						   (point-max)))
                           (not pos)))))))
     (set-buffer-modified-p nil)
     t))
@@ -519,6 +516,14 @@ For registered files, the value returned is one of:
 
   'removed           Scheduled to be deleted from the repository on next commit.
 
+  'conflict          The file contains conflicts as the result of a merge.
+                     For now the conflicts are text conflicts.  In the
+                     future this might be extended to deal with metadata
+                     conflicts too.
+
+  'missing           The file is not present in the file system, but the VC
+                     system still tracks it.
+
   'ignored           The file showed up in a dir-state listing with a flag
                      indicating the version-control system is ignoring it,
                      Note: This property is not set reliably (some VCSes
@@ -544,9 +549,9 @@ status of this file.
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (if (and (> (length file) 0) (vc-backend file))
-          (vc-file-setprop file 'vc-state
-                           (vc-call state-heuristic file)))))
+      (when (and (> (length file) 0) (vc-backend file))
+	(vc-file-setprop file 'vc-state
+			 (vc-call state-heuristic file)))))
 
 (defun vc-recompute-state (file)
   "Recompute the version control state of FILE, and return it.
@@ -599,9 +604,10 @@ Return non-nil if FILE is unchanged."
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (if (vc-backend file)
-          (vc-file-setprop file 'vc-working-revision
-                           (vc-call working-revision file)))))
+      (when (vc-backend file)
+	(vc-file-setprop file 'vc-working-revision
+			 (vc-call working-revision file)))))
+
 ;; Backward compatibility.
 (define-obsolete-function-alias
   'vc-workfile-version 'vc-working-revision "23.1")
@@ -663,17 +669,17 @@ this function."
       (mapcar
        (lambda (s)
 	 (let ((trial (vc-possible-master s dirname basename)))
-	   (if (and trial (file-exists-p trial)
-		    ;; Make sure the file we found with name
-		    ;; TRIAL is not the source file itself.
-		    ;; That can happen with RCS-style names if
-		    ;; the file name is truncated (e.g. to 14
-		    ;; chars).  See if either directory or
-		    ;; attributes differ.
-		    (or (not (string= dirname
-				      (file-name-directory trial)))
-			(not (equal (file-attributes file)
-				    (file-attributes trial)))))
+	   (when (and trial (file-exists-p trial)
+		      ;; Make sure the file we found with name
+		      ;; TRIAL is not the source file itself.
+		      ;; That can happen with RCS-style names if
+		      ;; the file name is truncated (e.g. to 14
+		      ;; chars).  See if either directory or
+		      ;; attributes differ.
+		      (or (not (string= dirname
+					(file-name-directory trial)))
+			  (not (equal (file-attributes file)
+				      (file-attributes trial)))))
 	       (throw 'found trial))))
        templates))))
 
@@ -747,11 +753,12 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; and version backups should be made, copy the file to
   ;; another name.  This enables local diffs and local reverting.
   (let ((file buffer-file-name))
-    (and (vc-backend file)
-	 (vc-up-to-date-p file)
-	 (eq (vc-checkout-model file) 'implicit)
-	 (vc-call make-version-backups-p file)
-         (vc-make-version-backup file))))
+    (ignore-errors               ;Be careful not to prevent saving the file.
+      (and (vc-backend file)
+           (vc-up-to-date-p file)
+           (eq (vc-checkout-model file) 'implicit)
+           (vc-call make-version-backups-p file)
+           (vc-make-version-backup file)))))
 
 (declare-function vc-dired-resynch-file "vc" (file))
 
@@ -773,10 +780,10 @@ Before doing that, check if there are any old backups and get rid of them."
          (eq (vc-checkout-model file) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
-	 (if (featurep 'vc)
-	     ;; If VC is not loaded, then there can't be
-	     ;; any VC Dired buffer to synchronize.
-	     (vc-dired-resynch-file file)))))
+	 (when (featurep 'vc)
+	   ;; If VC is not loaded, then there can't be
+	   ;; any VC Dired buffer to synchronize.
+	   (vc-dired-resynch-file file)))))
 
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map
@@ -856,6 +863,18 @@ This function assumes that the file is registered."
 	   ((stringp state)
 	    (setq state-echo (concat "File locked by" state))
 	    (concat backend ":" state ":" rev))
+           ((eq state 'added)
+            (setq state-echo "Locally added file")
+            (concat backend "@" rev))
+           ((eq state 'conflict)
+            (setq state-echo "File contains conflicts after the last merge")
+            (concat backend "!" rev))
+           ((eq state 'removed)
+            (setq state-echo "File removed from the VC system")
+            (concat backend "!" rev))
+           ((eq state 'missing)
+            (setq state-echo "File tracked by the VC system, but missing from the file system")
+            (concat backend "?" rev))
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
@@ -942,7 +961,7 @@ Used in `find-file-not-found-functions'."
   ;; from a previous visit.
   (vc-file-clearprops buffer-file-name)
   (let ((backend (vc-backend buffer-file-name)))
-    (if backend (vc-call-backend backend 'find-file-not-found-hook))))
+    (when backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
   ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
@@ -953,8 +972,7 @@ Used in `find-file-not-found-functions'."
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
-  (if buffer-file-name
-      (vc-file-clearprops buffer-file-name)))
+  (when buffer-file-name (vc-file-clearprops buffer-file-name)))
 
 (add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
@@ -970,7 +988,7 @@ Used in `find-file-not-found-functions'."
     (define-key map "a" 'vc-update-change-log)
     (define-key map "b" 'vc-switch-backend)
     (define-key map "c" 'vc-rollback)
-    (define-key map "d" 'vc-directory)
+    (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
@@ -983,8 +1001,8 @@ Used in `find-file-not-found-functions'."
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
-    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
-    ;; (define-key map "?" 'vc-status)
+    ;; `vc-dir' is a not-quite-ready replacement for `vc-directory'
+    ;; (define-key map "?" 'vc-dir)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
@@ -999,11 +1017,6 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-create-snapshot]
       '(menu-item "Create Snapshot" vc-create-snapshot
 		  :help "Create Snapshot"))
-    (define-key map [vc-directory]
-      '(menu-item "VC Directory Listing"  vc-directory
-		  :help "Show the VC status of files in a directory"))
-    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
-    ;; (define-key map [vc-status] '("VC Status" . vc-status))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate
@@ -1043,16 +1056,25 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
+    (define-key map [vc-dir]
+      '(menu-item "VC Dir"  vc-dir
+		  :help "Show the VC status of files in a directory"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)
+
+(declare-function vc-responsible-backend "vc" (file &optional register))
 
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))
       (setq orig-binding (indirect-function orig-binding)))
   (let ((ext-binding
-         (if vc-mode (vc-call-backend (vc-backend buffer-file-name)
-                                      'extra-menu))))
+         (when vc-mode
+	   (vc-call-backend
+	    (if buffer-file-name
+		(vc-backend buffer-file-name)
+	      (vc-responsible-backend default-directory))
+	    'extra-menu))))
     ;; Give the VC backend a chance to add menu entries
     ;; specific for that backend.
     (if (null ext-binding)

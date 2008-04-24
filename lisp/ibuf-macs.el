@@ -299,5 +299,5 @@ bound to the current value of the filter.
 
 (provide 'ibuf-macs)
 
-;;; arch-tag: 2748edce-82c9-4cd9-9d9d-bd73e43c20c5
+;; arch-tag: 2748edce-82c9-4cd9-9d9d-bd73e43c20c5
 ;;; ibuf-macs.el ends here

@@ -1302,5 +1302,5 @@ This command does not work if you use short group names."
 
 (provide 'nnfolder)
 
-;;; arch-tag: a040d0f4-4f4e-445f-8972-839575c5f7e6
+;; arch-tag: a040d0f4-4f4e-445f-8972-839575c5f7e6
 ;;; nnfolder.el ends here

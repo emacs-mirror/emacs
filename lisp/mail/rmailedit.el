@@ -161,5 +161,5 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 
 (provide 'rmailedit)
 
-;;; arch-tag: 93c22709-a14a-46c1-ab91-52c3f5a0ec12
+;; arch-tag: 93c22709-a14a-46c1-ab91-52c3f5a0ec12
 ;;; rmailedit.el ends here

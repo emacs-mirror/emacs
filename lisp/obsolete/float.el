@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Floating point numbers are represented by dot-pairs (mant . exp)
 ;; where mant is the 24-bit signed integral mantissa and exp is the
 ;; base 2 exponent.
@@ -456,5 +458,5 @@ are recognized."
 
 (provide 'float)
 
-;;; arch-tag: cc0c89c6-5718-49af-978e-585f6b14e347
+;; arch-tag: cc0c89c6-5718-49af-978e-585f6b14e347
 ;;; float.el ends here

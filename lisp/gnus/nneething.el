@@ -428,5 +428,5 @@ included.")
 
 (provide 'nneething)
 
-;;; arch-tag: 1277f386-88f2-4459-bb24-f3f45962a6c5
+;; arch-tag: 1277f386-88f2-4459-bb24-f3f45962a6c5
 ;;; nneething.el ends here

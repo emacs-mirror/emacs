@@ -68,5 +68,5 @@ Element 0 is not used.")
 
 (provide 'vt100-led)
 
-;;; arch-tag: 346e6480-5e31-4234-aafe-257cea4a36d1
+;; arch-tag: 346e6480-5e31-4234-aafe-257cea4a36d1
 ;;; vt100-led.el ends here

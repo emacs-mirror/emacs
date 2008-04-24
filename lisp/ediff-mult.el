@@ -105,6 +105,8 @@
 ;;; Code:
 
 
+(provide 'ediff-mult)
+
 (defgroup ediff-mult nil
   "Multi-file and multi-buffer processing in Ediff."
   :prefix "ediff-"
@@ -113,12 +115,13 @@
 
 ;; compiler pacifier
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-util)
-	(load "ediff-util.el" nil t 'nosuffix))
-    ))
+  (require 'ediff-init)
+  (if (not (featurep 'ediff-util))
+      (require 'ediff-util))
+  (if (not (featurep 'ediff-ptch))
+      (require 'ediff-ptch))
+  (require 'ediff)
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -2237,7 +2240,7 @@ If this is a session registry buffer then just bury it."
 	      overl (car overl-list)))
       overl)))
 
-(defsubst ediff-get-session-number-at-pos (point &optional meta-buffer)
+(defun ediff-get-session-number-at-pos (point &optional meta-buffer)
   (setq meta-buffer (if (ediff-buffer-live-p meta-buffer)
 			meta-buffer
 		      (current-buffer)))
@@ -2399,8 +2402,6 @@ for operation, or simply indicate which are equal files.  If it is nil, then
     ))
 
 
-(provide 'ediff-mult)
-
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
@@ -2408,5 +2409,5 @@ for operation, or simply indicate which are equal files.  If it is nil, then
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: c8a76898-f96f-4d9c-be9d-129134017188
+;; arch-tag: c8a76898-f96f-4d9c-be9d-129134017188
 ;;; ediff-mult.el ends here

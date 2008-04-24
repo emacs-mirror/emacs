@@ -613,16 +613,15 @@ on the menu bar.
 ;;; =========================================================================
 ;;;
 ;;; Silence warnings about variables in other packages.
-(eval-when-compile
-  (defvar TeX-master)
-  (defvar LaTeX-section-hook)
-  (defvar LaTeX-label-function)
-  (defvar tex-main-file)
-  (defvar outline-minor-mode)
-  (defvar font-lock-mode)
-  (defvar font-lock-keywords)
-  (defvar font-lock-fontify-region-function)
-  (defvar font-lock-syntactic-keywords))
+(defvar TeX-master)
+(defvar LaTeX-section-hook)
+(defvar LaTeX-label-function)
+(defvar tex-main-file)
+(defvar outline-minor-mode)
+(defvar font-lock-mode)
+(defvar font-lock-keywords)
+(defvar font-lock-fontify-region-function)
+(defvar font-lock-syntactic-keywords)
 
 ;;; =========================================================================
 ;;;
@@ -2598,5 +2597,5 @@ With optional NODE, go directly to that node."
 
 ;;;============================================================================
 
-;;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
+;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
 ;;; reftex.el ends here

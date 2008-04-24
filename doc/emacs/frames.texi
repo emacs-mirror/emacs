@@ -184,13 +184,12 @@ variable also affects yanking the secondary selection.
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
-  Many graphical applications follow the convention that insertion while text
-is selected deletes the selected text.  You can make Emacs behave this
-way by enabling Delete Selection mode---with @kbd{M-x
+  Many graphical applications follow the convention that insertion
+while text is selected deletes the selected text.  You can make Emacs
+behave this way by enabling Delete Selection mode---with @kbd{M-x
 delete-selection-mode} or using Custom.  Another effect of this mode
-is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
-exists, will kill the whole selection.  It also enables Transient Mark
-mode (@pxref{Transient Mark}).
+is that some keys, such as @key{DEL} and @kbd{C-d}, kill the region if
+one exists.
 
 @node Cut/Paste Other App
 @subsection Cut and Paste with Other Window Applications

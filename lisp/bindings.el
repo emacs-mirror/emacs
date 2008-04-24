@@ -138,8 +138,7 @@ corresponding to the mode line clicked."
 (defun mode-line-change-eol (event)
   "Cycle through the various possible kinds of end-of-line styles."
   (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
+  (with-selected-window (posn-window (event-start event))
     (let ((eol (coding-system-eol-type buffer-file-coding-system)))
       (set-buffer-file-coding-system
        (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix))))))
@@ -283,11 +282,16 @@ buffer size, the line number and the column number.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
+(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
+Menu of mode operations in the mode line.")
+
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1] 'mouse-major-mode-menu)
+    (define-key map [mode-line down-mouse-1]
+      '(menu-item "Menu Bar" ignore
+        :filter (lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
-    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
     map) "\
 Keymap to display on major mode.")
 
@@ -295,8 +299,8 @@ Keymap to display on major mode.")
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line down-mouse-1] 'mouse-minor-mode-menu)
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
-    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-    (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
+    (define-key map [header-line down-mouse-3] mode-line-mode-menu)
     map) "\
 Keymap to display on minor modes.")
 
@@ -324,6 +328,7 @@ Keymap to display on column and line numbers.")
 	"mouse-1: Select (drag to resize)\n\
 mouse-2: Make current window occupy the whole frame\n\
 mouse-3: Remove current window from display")
+       (recursive-edit-help-echo "Recursive edit, type C-M-c to get out")
        (dashes (propertize "--" 'help-echo help-echo))
        (standard-mode-line-format
 	(list
@@ -345,7 +350,8 @@ mouse-3: Remove current window from display")
 	 (propertize "-%-" 'help-echo help-echo)))
        (standard-mode-line-modes
 	(list
-	 (propertize "%[(" 'help-echo help-echo)
+	 (propertize "%[" 'help-echo recursive-edit-help-echo)
+	 (propertize "(" 'help-echo help-echo)
 	 `(:propertize ("" mode-name)
 		       help-echo "Major mode\n\
 mouse-1: Display major mode menu\n\
@@ -365,7 +371,9 @@ mouse-3: Toggle minor modes"
 		     'mouse-face 'mode-line-highlight
 		     'local-map (make-mode-line-mouse-map
 				 'mouse-2 #'mode-line-widen))
-	 (propertize ")%]--" 'help-echo help-echo)))
+	 (propertize ")" 'help-echo help-echo)
+	 (propertize "%]" 'help-echo recursive-edit-help-echo)
+	 (propertize "--" 'help-echo help-echo)))
 
        (standard-mode-line-position
 	`((-3 ,(propertize
@@ -491,19 +499,6 @@ Switch to the most recently selected buffer other than the current one."
     (select-window (posn-window (event-start event)))
     (previous-buffer)))
 
-(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
-Menu of mode operations in the mode line.")
-
-(defun mode-line-mode-menu-1 (event)
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (let* ((selection (mode-line-mode-menu event))
-	   (binding (and selection (lookup-key mode-line-mode-menu
-					       (vector (car selection))))))
-      (if binding
-	  (call-interactively binding)))))
-
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
@@ -557,10 +552,6 @@ Menu of mode operations in the mode line.")
 	      :help "Automatically expand abbreviations"
 	      :button (:toggle . abbrev-mode)))
 
-(defun mode-line-mode-menu (event)
-  (interactive "@e")
-  (x-popup-menu event mode-line-mode-menu))
-
 (defun mode-line-minor-mode-help (event)
   "Describe minor mode for EVENT on minor modes area of the mode line."
   (interactive "@e")
@@ -576,12 +567,11 @@ Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")
 ;; Don't use purecopy here--some people want to change these strings.
 (setq minor-mode-alist
-      (list
-       (list 'abbrev-mode " Abbrev")
-       '(overwrite-mode overwrite-mode)
-       (list 'auto-fill-function " Fill")
-       ;; not really a minor mode...
-       '(defining-kbd-macro " Def")))
+      '((abbrev-mode " Abbrev")
+        (overwrite-mode overwrite-mode)
+        (auto-fill-function " Fill")
+        ;; not really a minor mode...
+        (defining-kbd-macro " Def")))
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
@@ -647,7 +637,7 @@ is okay.  See `mode-line-format'.")
 	"^No later matching history item$"
 	"^No earlier matching history item$"
 	"^End of history; no default available$"
-	"^End of history; no next item$"
+	"^End of defaults; no next item$"
 	"^Beginning of history; no preceding item$"
 	"^No recursive edit is in progress$"
 	"^Changes to be undone are outside visible portion of buffer$"
@@ -773,7 +763,7 @@ language you are using."
   ;; indent-for-tab-command).  The alignment that indent-relative tries to
   ;; do doesn't make much sense here since the prompt messes it up.
   (define-key map "\t"    'self-insert-command)
-  (define-key minibuffer-local-map [C-tab] 'file-cache-minibuffer-complete))
+  (define-key map [C-tab] 'file-cache-minibuffer-complete))
 
 (define-key global-map "\C-u" 'universal-argument)
 (let ((i ?0))

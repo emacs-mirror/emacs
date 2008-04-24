@@ -49,16 +49,11 @@ define global abbrevs instead."
   :group 'abbrev-mode
   :group 'convenience)
 
-(defun abbrev-mode (&optional arg)
+(define-minor-mode abbrev-mode
   "Toggle Abbrev mode in the current buffer.
 With optional argument ARG, turn abbrev mode on if ARG is
 positive, otherwise turn it off.  In Abbrev mode, inserting an
-abbreviation causes it to expand and be replaced by its expansion."
-  (interactive "P")
-  (setq abbrev-mode
-	(if (null arg) (not abbrev-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+abbreviation causes it to expand and be replaced by its expansion.")
 
 (defcustom abbrev-mode nil
   "Enable or disable Abbrev mode.
@@ -70,7 +65,7 @@ Interactively, use the command `abbrev-mode'
 to enable or disable Abbrev mode in the current buffer."
   :type 'boolean
   :group 'abbrev-mode)
-;;;###autoload(put 'abbrev-mode 'safe-local-variable 'booleanp)
+(put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
 (defvar edit-abbrevs-map
@@ -439,7 +434,7 @@ This is similar to an `around' advice."
 
 (defun make-abbrev-table (&optional props)
   "Create a new, empty abbrev table object.
-PROPS is a "
+PROPS is a list of properties."
   ;; The value 59 is an arbitrary prime number.
   (let ((table (make-vector 59 0)))
     ;; Each abbrev-table has a `modiff' counter which can be used to detect
@@ -541,8 +536,8 @@ If EXPANSION is not a string, the abbrev is a special one,
  which does not expand in the usual way but only runs HOOK.
 
 PROPS is a property list.  The following properties are special:
-- `:count': the value for the abbrev's usage-count, which is incremented each time
-  the abbrev is used (the default is zero).
+- `:count': the value for the abbrev's usage-count, which is incremented each
+  time the abbrev is used (the default is zero).
 - `:system': if non-nil, says that this is a \"system\" abbreviation
   which should not be saved in the user's abbreviation file.
   Unless `:system' is `force', a system abbreviation will not
@@ -724,6 +719,68 @@ then ABBREV is looked up in that table only."
           (goto-char pos)))
       res)))
 
+(defun abbrev-insert (abbrev &optional name wordstart wordend)
+  "Insert abbrev ABBREV at point.
+If non-nil, NAME is the name by which this abbrev was found.
+If non-nil, WORDSTART is the place where to insert the abbrev.
+If non-nil, WORDEND the abbrev replaces the previous text between
+WORDSTART and WORDEND.
+Return ABBREV if the expansion should be considered as having taken place."
+  (unless name (setq name (symbol-name abbrev)))
+  (unless wordstart (setq wordstart (point)))
+  (unless wordend (setq wordend wordstart))
+  ;; Increment use count.
+  (abbrev-put abbrev :count (1+ (abbrev-get abbrev :count)))
+  (let ((value abbrev))
+    ;; If this abbrev has an expansion, delete the abbrev
+    ;; and insert the expansion.
+    (when (stringp (symbol-value abbrev))
+      (goto-char wordstart)
+      ;; Insert at beginning so that markers at the end (e.g. point)
+      ;; are preserved.
+      (insert (symbol-value abbrev))
+      (delete-char (- wordend wordstart))
+      (let ((case-fold-search nil))
+        ;; If the abbrev's name is different from the buffer text (the
+        ;; only difference should be capitalization), then we may want
+        ;; to adjust the capitalization of the expansion.
+        (when (and (not (equal name (symbol-name abbrev)))
+                   (string-match "[[:upper:]]" name))
+          (if (not (string-match "[[:lower:]]" name))
+              ;; Abbrev was all caps.  If expansion is multiple words,
+              ;; normally capitalize each word.
+              (if (and (not abbrev-all-caps)
+                       (save-excursion
+                         (> (progn (backward-word 1) (point))
+                            (progn (goto-char wordstart)
+                                   (forward-word 1) (point)))))
+                  (upcase-initials-region wordstart (point))
+                (upcase-region wordstart (point)))
+            ;; Abbrev included some caps.  Cap first initial of expansion.
+            (let ((end (point)))
+              ;; Find the initial.
+              (goto-char wordstart)
+              (skip-syntax-forward "^w" (1- end))
+              ;; Change just that.
+              (upcase-initials-region (point) (1+ (point)))
+              (goto-char end))))))
+    ;; Now point is at the end of the expansion and the beginning is
+    ;; in last-abbrev-location.
+    (when (symbol-function abbrev)
+      (let* ((hook (symbol-function abbrev))
+             (expanded
+              ;; If the abbrev has a hook function, run it.
+              (funcall hook)))
+        ;; In addition, if the hook function is a symbol with
+        ;; a non-nil `no-self-insert' property, let the value it
+        ;; returned specify whether we consider that an expansion took
+        ;; place.  If it returns nil, no expansion has been done.
+        (if (and (symbolp hook)
+                 (null expanded)
+                 (get hook 'no-self-insert))
+            (setq value nil))))
+    value))
+
 (defvar abbrev-expand-functions nil
   "Wrapper hook around `expand-abbrev'.
 The functions on this special hook are called with one argument:
@@ -751,56 +808,9 @@ Returns the abbrev symbol, if expansion took place."
           (setq last-abbrev-text name)
           (setq last-abbrev sym)
           (setq last-abbrev-location wordstart)
-          ;; Increment use count.
-          (abbrev-put sym :count (1+ (abbrev-get sym :count)))
           ;; If this abbrev has an expansion, delete the abbrev
           ;; and insert the expansion.
-          (when (stringp (symbol-value sym))
-            (goto-char wordstart)
-            ;; Insert at beginning so that markers at the end (e.g. point)
-            ;; are preserved.
-            (insert (symbol-value sym))
-            (delete-char (- wordend wordstart))
-            (let ((case-fold-search nil))
-              ;; If the abbrev's name is different from the buffer text (the
-              ;; only difference should be capitalization), then we may want
-              ;; to adjust the capitalization of the expansion.
-              (when (and (not (equal name (symbol-name sym)))
-                         (string-match "[[:upper:]]" name))
-                (if (not (string-match "[[:lower:]]" name))
-                    ;; Abbrev was all caps.  If expansion is multiple words,
-                    ;; normally capitalize each word.
-                    (if (and (not abbrev-all-caps)
-                             (save-excursion
-                               (> (progn (backward-word 1) (point))
-                                  (progn (goto-char wordstart)
-                                         (forward-word 1) (point)))))
-                        (upcase-initials-region wordstart (point))
-                      (upcase-region wordstart (point)))
-                  ;; Abbrev included some caps.  Cap first initial of expansion.
-                  (let ((end (point)))
-                    ;; Find the initial.
-                    (goto-char wordstart)
-                    (skip-syntax-forward "^w" (1- end))
-                    ;; Change just that.
-                    (upcase-initials-region (point) (1+ (point)))
-                    (goto-char end))))))
-          ;; Now point is at the end of the expansion and the beginning is
-          ;; in last-abbrev-location.
-          (when (symbol-function sym)
-            (let* ((hook (symbol-function sym))
-                   (expanded
-                    ;; If the abbrev has a hook function, run it.
-                    (funcall hook)))
-              ;; In addition, if the hook function is a symbol with
-              ;; a non-nil `no-self-insert' property, let the value it
-              ;; returned specify whether we consider that an expansion took
-              ;; place.  If it returns nil, no expansion has been done.
-              (if (and (symbolp hook)
-                       (null expanded)
-                       (get hook 'no-self-insert))
-                  (setq value nil))))
-          value)))))
+          (abbrev-insert sym name wordstart wordend))))))
 
 (defun unexpand-abbrev ()
   "Undo the expansion of the last abbrev that expanded.
@@ -880,12 +890,12 @@ Abbrevs marked as \"system abbrevs\" are omitted."
 	(insert "    ))\n\n"))
       nil)))
 
+(put 'define-abbrev-table 'doc-string-elt 3)
 (defun define-abbrev-table (tablename definitions
                                       &optional docstring &rest props)
   "Define TABLENAME (a symbol) as an abbrev table name.
 Define abbrevs in it according to DEFINITIONS, which is a list of elements
-of the form (ABBREVNAME EXPANSION HOOK USECOUNT SYSTEMFLAG).
-\(If the list is shorter than that, omitted elements default to nil).
+of the form (ABBREVNAME EXPANSION ...) that are passed to `define-abbrev'.
 PROPS is a property list to apply to the table.
 Properties with special meaning:
 - `:parents' contains a list of abbrev tables from which this table inherits
@@ -909,6 +919,25 @@ Properties with special meaning:
       (push tablename abbrev-table-name-list))
     (dolist (elt definitions)
       (apply 'define-abbrev table elt))))
+
+(defun abbrev-table-menu (table &optional prompt sortfun)
+  "Return a menu that shows all abbrevs in TABLE.
+Selecting an entry runs `abbrev-insert'.
+PROMPT is the prompt to use for the keymap.
+SORTFUN is passed to `sort' to change the default ordering."
+  (unless sortfun (setq sortfun 'string-lessp))
+  (let ((entries ()))
+    (mapatoms (lambda (abbrev)
+                (when (symbol-value abbrev)
+                  (let ((name (symbol-name abbrev)))
+                    (push `(,(intern name) menu-item ,name
+                            (lambda () (interactive)
+                              (abbrev-insert ',abbrev)))
+                          entries))))
+              table)
+    (nconc (make-sparse-keymap prompt)
+           (sort entries (lambda (x y)
+                (funcall sortfun (nth 2 x) (nth 2 y)))))))
 
 (provide 'abbrev)
 

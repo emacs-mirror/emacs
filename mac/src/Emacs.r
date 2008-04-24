@@ -221,10 +221,10 @@ resource 'vers' (1) {
 	0x23,		/* Major revision in BCD */
 	0x0,		/* Minor revision in BCD */
 	development,	/* development, alpha, beta, or final (release) */
-	50,		/* Non-final release # */
+	60,		/* Non-final release # */
 	0,		/* Region code */
-	"23.0.50",	/* Short version number */
-	"23.0.50, Copyright \0xa9 2008 "
+	"23.0.60",	/* Short version number */
+	"23.0.60, Copyright \0xa9 2008 "
 	"Free Software Foundation, Inc." /* Long version number */
 };
 

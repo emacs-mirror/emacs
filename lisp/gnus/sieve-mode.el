@@ -214,5 +214,5 @@ Turning on Sieve mode runs `sieve-mode-hook'."
 
 (provide 'sieve-mode)
 
-;;; arch-tag: 3b8ab76d-065d-4c52-b1e8-ab2ec21f2ace
+;; arch-tag: 3b8ab76d-065d-4c52-b1e8-ab2ec21f2ace
 ;; sieve-mode.el ends here

@@ -103,9 +103,10 @@
   (interactive "r")
   (calc-kill-region top bot t))
 
-;;; This function uses calc-last-kill if possible to get an exact result,
-;;; otherwise it just parses the yanked string.
-;;; Modified to use Emacs 19 extended concept of kill-ring. -- daveg 12/15/96
+;; This function uses calc-last-kill if possible to get an exact result,
+;; otherwise it just parses the yanked string.
+;; Modified to use Emacs 19 extended concept of kill-ring. -- daveg 12/15/96
+;;;###autoload
 (defun calc-yank ()
   (interactive)
   (calc-wrapper
@@ -373,8 +374,8 @@
 	  (self-insert-command 1))
 	(setq i (1+ i))))))
 
-;;; First, require that buffer is visible and does not begin with "*"
-;;; Second, require only that it not begin with "*Calc"
+;; First, require that buffer is visible and does not begin with "*"
+;; Second, require only that it not begin with "*Calc"
 (defun calc-find-writable-buffer (buf mode)
   (and buf
        (if (or (string-match "\\`\\( .*\\|\\*Calc.*\\)"
@@ -417,13 +418,13 @@
   (backward-char 1)
   (calc-set-command-flag 'do-edit))
 
-(defvar calc-edit-mode-map nil "Keymap for use by the calc-edit command.")
-(if calc-edit-mode-map
-    ()
-  (setq calc-edit-mode-map (make-sparse-keymap))
-  (define-key calc-edit-mode-map "\n" 'calc-edit-finish)
-  (define-key calc-edit-mode-map "\r" 'calc-edit-return)
-  (define-key calc-edit-mode-map "\C-c\C-c" 'calc-edit-finish))
+(defvar calc-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\n" 'calc-edit-finish)
+    (define-key map "\r" 'calc-edit-return)
+    (define-key map "\C-c\C-c" 'calc-edit-finish)
+    map)
+  "Keymap for use by the calc-edit command.")
 
 (defvar calc-original-buffer)
 (defvar calc-return-buffer)
@@ -583,5 +584,9 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 
 (provide 'calc-yank)
 
-;;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
+;; Local variables:
+;; generated-autoload-file: "calc-loaddefs.el"
+;; End:
+
+;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
 ;;; calc-yank.el ends here

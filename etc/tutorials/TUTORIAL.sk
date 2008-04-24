@@ -531,13 +531,6 @@ v prípade pádu systému.
 >> Stlaète C-x C-s pre ulo¾enie Va¹ej kópie tútorialu.
    Malo by to zobrazi» "Wrote ...TUTORIAL.sk" v spodnom riadku obrazovky.
 
-POZNÁMKA: Na niektorých systémoch spôsobí stlaèenie C-x C-s zatuhnutie
-obrazovky a nevidíte ¾iadny ïal¹í výstup z Emacsu.  To znamená, ¾e
-"vlastnos»" operaèného systému nazvaná "flow control" zachytáva C-s a
-nepustí ho k Emacsu.  Pre odtuhnutie obrazovky stlaète C-q.  Potom
-v sekcii "Spontaneous Entry to Incremental Search" v manuále Emacsu
-vyhµadajte radu, ako sa vysporiada» s touto "vlastnos»ou".
-
 Existujúci súbor mô¾ete vyhµada», aby ste ho mohli prehliada» alebo
 editova».  Mô¾ete tie¾ vyhµada» súbor, ktorý e¹te neexistuje.  To je
 spôsob, akým sa dá vytvori» súbor v Emacse: vyhµadajte súbor, ktorý

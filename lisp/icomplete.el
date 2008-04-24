@@ -71,33 +71,33 @@
 
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-length 80
-  "*Length of string displaying the prospects."
+  "Length of string displaying the prospects."
   :type 'integer
   :group 'icomplete)
 
 (defcustom icomplete-compute-delay .3
-  "*Completions-computation stall, used only with large-number
-completions - see `icomplete-delay-completions-threshold'."
+  "Completions-computation stall, used only with large-number completions.
+See `icomplete-delay-completions-threshold'."
   :type 'number
   :group 'icomplete)
 
 (defcustom icomplete-delay-completions-threshold 400
-  "*Pending-completions number over which to apply icomplete-compute-delay."
+  "Pending-completions number over which to apply `icomplete-compute-delay'."
   :type 'integer
   :group 'icomplete)
 
 (defcustom icomplete-max-delay-chars 3
-  "*Maximum number of initial chars to apply icomplete compute delay."
+  "Maximum number of initial chars to apply icomplete compute delay."
   :type 'integer
   :group 'icomplete)
 
 (defcustom icomplete-show-key-bindings t
-  "*If non-nil, show key bindings as well as completion for sole matches."
+  "If non-nil, show key bindings as well as completion for sole matches."
   :type 'boolean
   :group 'icomplete)
 
 (defcustom icomplete-minibuffer-setup-hook nil
-  "*Icomplete-specific customization of minibuffer setup.
+  "Icomplete-specific customization of minibuffer setup.
 
 This hook is run during minibuffer setup if icomplete is active.
 It is intended for use in customizing icomplete for interoperation
@@ -282,11 +282,6 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  ;; 'all-completions' doesn't like empty
-  ;; minibuffer-completion-table's (ie: (nil))
-  (if (and (listp candidates) (null (car candidates)))
-      (setq candidates nil))
-
   (let ((comps (all-completions name candidates predicate))
                                         ; "-determined" - only one candidate
         (open-bracket-determined (if require-match "(" "["))
@@ -304,17 +299,19 @@ are exhibited within the square braces.)"
 				  (substring most (length name))
 				  close-bracket-determined)))
 	     ;;"-prospects" - more than one candidate
-	     (prospects-len 0)
-	     prospects most-is-exact comp)
+	     (prospects-len (+ (length determ) 6)) ;; take {,...} into account
+	     prospects most-is-exact comp limit)
 	(if (eq most-try t)
 	    (setq prospects nil)
-	  (while (and comps (< prospects-len icomplete-prospects-length))
+	  (while (and comps (not limit))
 	    (setq comp (substring (car comps) most-len)
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))
-		  (t (setq prospects (cons comp prospects)
-			   prospects-len (+ (length comp) 1 prospects-len))))))
+		  (t (setq prospects-len (+ (length comp) 1 prospects-len))
+		     (if (< prospects-len icomplete-prospects-length)
+			 (setq prospects (cons comp prospects))
+		       (setq limit t))))))
 	(if prospects
 	    (concat determ
 		    "{"

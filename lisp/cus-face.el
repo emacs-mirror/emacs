@@ -33,7 +33,6 @@
 
 ;;; Declaring a face.
 
-;;;###autoload
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but FACE is evaluated as a normal argument."
   (unless (get face 'face-defface-spec)
@@ -63,7 +62,6 @@
 
 ;;; Face attributes.
 
-;;;###autoload
 (defconst custom-face-attributes
   '((:family
      (string :tag "Font Family"
@@ -122,7 +120,8 @@
 	     :value normal		; default
 	     (const :tag "italic" italic)
 	     (const :tag "oblique" oblique)
-	     (const :tag "normal" normal)))
+	     (const :tag "normal" normal)
+	     (const :tag "roman" roman)))
 
     (:underline
      (choice :tag "Underline"
@@ -269,7 +268,6 @@ If FRAME is nil, use the global defaults for FACE."
 
 ;;; Initializing.
 
-;;;###autoload
 (defun custom-set-faces (&rest args)
   "Initialize faces according to user preferences.
 This associates the settings with the `user' theme.
@@ -357,7 +355,6 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 ;; XEmacs compability function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply
 ;; the next theme.
-;;;###autoload
 (defun custom-theme-reset-faces (theme &rest args)
   "Reset the specs in THEME of some faces to their specs in other themes.
 Each of the arguments ARGS has this form:
@@ -369,7 +366,6 @@ This means reset FACE.  The argument IGNORED is ignored."
   (dolist (arg args)
     (custom-push-theme 'theme-face (car arg) theme 'reset)))
 
-;;;###autoload
 (defun custom-reset-faces (&rest args)
   "Reset the specs of some faces to their specs in specified themes.
 This creates settings in the `user' theme.
@@ -385,5 +381,5 @@ This means reset FACE to its value in FROM-THEME."
 
 (provide 'cus-face)
 
-;;; arch-tag: 9a5c4b63-0d27-4c92-a5af-f2c7ed764c2b
+;; arch-tag: 9a5c4b63-0d27-4c92-a5af-f2c7ed764c2b
 ;;; cus-face.el ends here

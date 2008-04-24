@@ -430,5 +430,5 @@
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: d813966a-4211-4557-ad11-d1ac2bc86536
+;; arch-tag: d813966a-4211-4557-ad11-d1ac2bc86536
 ;;; nnwfm.el ends here

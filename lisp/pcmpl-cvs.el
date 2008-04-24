@@ -186,5 +186,5 @@ operation character applies, as displayed by 'cvs -n update'."
     (setq pcomplete-stub nondir)
     (pcomplete-uniqify-list entries)))
 
-;;; arch-tag: d2aeac43-4bf5-4509-a496-74b863c6642b
+;; arch-tag: d2aeac43-4bf5-4509-a496-74b863c6642b
 ;;; pcmpl-cvs.el ends here

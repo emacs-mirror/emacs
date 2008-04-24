@@ -33,6 +33,7 @@ Requires the external programs `uncompface', and `icontopbm'.  On a
 GNU/Linux system these might be in packages with names like `compface'
 or `faces-xface' and `netpbm' or `libgr-progs', for instance."
   (with-temp-buffer
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (insert face)
     (let ((coding-system-for-read 'raw-text)
 	  ;; At least "icontopbm" doesn't work with Windows because
@@ -59,5 +60,5 @@ or `faces-xface' and `netpbm' or `libgr-progs', for instance."
 
 (provide 'compface)
 
-;;; arch-tag: f9c78e84-98c0-4142-9682-8ba4cf4c3441
+;; arch-tag: f9c78e84-98c0-4142-9682-8ba4cf4c3441
 ;;; compface.el ends here

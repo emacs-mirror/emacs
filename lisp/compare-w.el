@@ -391,5 +391,5 @@ on third call it again advances points to the next difference and so on."
 
 (provide 'compare-w)
 
-;;; arch-tag: 4177aab1-48e6-4a98-b7a1-000ee285de46
+;; arch-tag: 4177aab1-48e6-4a98-b7a1-000ee285de46
 ;;; compare-w.el ends here

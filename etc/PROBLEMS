@@ -2139,6 +2139,10 @@ problem.
 
 ** Known problems with the MS-Windows port of Emacs 22.1
 
+M-x term does not work on MS-Windows.  TTY emulation on Windows is
+undocumented, and programs such as stty which are used on posix platforms
+to control tty emulation do not exist for native windows terminals.
+
 Using create-fontset-from-ascii-font or the --font startup parameter
 with a Chinese, Japanese or Korean font leads to display problems.
 Use a Latin-only font as your default font. If you want control over

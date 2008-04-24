@@ -164,5 +164,5 @@ thus showing a page other than the one point was originally in."
 ;;; Place `provide' at end of file.
 (provide 'page)
 
-;;; arch-tag: e8d7a0bd-8655-4b6e-b852-f2ee25316a1d
+;; arch-tag: e8d7a0bd-8655-4b6e-b852-f2ee25316a1d
 ;;; page.el ends here

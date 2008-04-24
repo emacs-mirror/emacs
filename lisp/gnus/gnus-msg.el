@@ -552,8 +552,7 @@ Gcc: header for archiving purposes."
 		       (t nil))))
     (message-add-action
      `(when (gnus-buffer-exists-p ,buffer)
-	(save-excursion
-	  (set-buffer ,buffer)
+	(with-current-buffer ,buffer
 	  ,(when to-be-marked
 	     (if (eq config 'forward)
 		 `(gnus-summary-mark-article-as-forwarded ',to-be-marked)
@@ -588,8 +587,7 @@ If ARG is 1, prompt for a group name to find the posting style."
 		  ""))
 	  ;; #### see comment in gnus-setup-message -- drv
 	  (gnus-setup-message 'message (message-mail)))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(setq gnus-newsgroup-name group)))))
 
 (defun gnus-group-news (&optional arg)
@@ -620,8 +618,7 @@ network.  The corresponding back end must have a 'request-post method."
 	  ;; #### see comment in gnus-setup-message -- drv
 	  (gnus-setup-message 'message
 	    (message-news (gnus-group-real-name gnus-newsgroup-name))))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(setq gnus-newsgroup-name group)))))
 
 (defun gnus-group-post-news (&optional arg)
@@ -667,8 +664,7 @@ posting style."
 		  gnus-newsgroup-name))
 	  ;; #### see comment in gnus-setup-message -- drv
 	  (gnus-setup-message 'message (message-mail)))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(setq gnus-newsgroup-name group)))))
 
 (defun gnus-summary-news-other-window (&optional arg)
@@ -704,8 +700,7 @@ network.  The corresponding back end must have a 'request-post method."
 		   (remove
 		    (car (gnus-find-method-for-group gnus-newsgroup-name))
 		    gnus-discouraged-post-methods)))))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(setq gnus-newsgroup-name group)))))
 
 (defun gnus-summary-post-news (&optional arg)
@@ -828,8 +823,7 @@ header line with the old Message-ID."
       (push
        `((lambda ()
 	   (when (gnus-buffer-exists-p ,gnus-summary-buffer)
-	     (save-excursion
-	       (set-buffer ,gnus-summary-buffer)
+	     (with-current-buffer ,gnus-summary-buffer
 	       (gnus-cache-possibly-remove-article ,article nil nil nil t)
 	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
        message-send-actions)
@@ -845,16 +839,14 @@ header line with the old Message-ID."
   ;; if ARTICLE-BUFFER is nil, gnus-article-buffer is used
   ;; this buffer should be passed to all mail/news reply/post routines.
   (setq gnus-article-copy (gnus-get-buffer-create " *gnus article copy*"))
-  (save-excursion
-    (set-buffer gnus-article-copy)
+  (with-current-buffer gnus-article-copy
     (mm-enable-multibyte))
   (let ((article-buffer (or article-buffer gnus-article-buffer))
 	end beg)
     (if (not (and (get-buffer article-buffer)
 		  (gnus-buffer-exists-p article-buffer)))
 	(error "Can't find any article buffer")
-      (save-excursion
-	(set-buffer article-buffer)
+      (with-current-buffer article-buffer
 	(let ((gnus-newsgroup-charset (or gnus-article-charset
 					  gnus-newsgroup-charset))
 	      (gnus-newsgroup-ignored-charsets
@@ -1120,8 +1112,7 @@ If VERY-WIDE, make a very wide reply."
 	    (gnus-summary-select-article)
 	  (dolist (article very-wide)
 	    (gnus-summary-select-article nil nil nil article)
-	    (save-excursion
-	      (set-buffer (gnus-copy-article-buffer))
+	    (with-current-buffer (gnus-copy-article-buffer)
 	      (gnus-msg-treat-broken-reply-to)
 	      (save-restriction
 		(message-narrow-to-head)
@@ -1144,8 +1135,7 @@ If VERY-WIDE, make a very wide reply."
   "Check the various replysign variables and take action accordingly."
   (when (or gnus-message-replysign gnus-message-replyencrypt)
     (let (signed encrypted)
-      (save-excursion
-	(set-buffer gnus-article-buffer)
+      (with-current-buffer gnus-article-buffer
 	(setq signed (memq 'signed gnus-article-wash-types))
 	(setq encrypted (memq 'encrypted gnus-article-wash-types)))
       (cond ((and gnus-message-replyencrypt encrypted)
@@ -1276,8 +1266,7 @@ For the `inline' alternatives, also see the variable
 	 current-prefix-arg))
   (dolist (article (gnus-summary-work-articles n))
     (gnus-summary-select-article nil nil nil article)
-    (save-excursion
-      (set-buffer gnus-original-article-buffer)
+    (with-current-buffer gnus-original-article-buffer
       (message-resend address))
     (gnus-summary-mark-article-as-forwarded article)))
 
@@ -1484,8 +1473,7 @@ If YANK is non-nil, include the original article."
       (insert nntp-server-type))
     (insert "\n\n\n\n\n")
     (let (text)
-      (save-excursion
-	(set-buffer (gnus-get-buffer-create " *gnus environment info*"))
+      (with-current-buffer (gnus-get-buffer-create " *gnus environment info*")
 	(erase-buffer)
 	(gnus-debug)
 	(setq text (buffer-string)))
@@ -1506,8 +1494,7 @@ If YANK is non-nil, include the original article."
   (gnus-summary-iterate n
     (let ((gnus-inhibit-treatment t))
       (gnus-summary-select-article))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (message-yank-buffer gnus-article-buffer))))
 
 (defun gnus-debug ()
@@ -1520,8 +1507,7 @@ The source file has to be in the Emacs load path."
     (gnus-message 4 "Please wait while we snoop your variables...")
     (sit-for 0)
     ;; Go through all the files looking for non-default values for variables.
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create " *gnus bug info*"))
+    (with-current-buffer (gnus-get-buffer-create " *gnus bug info*")
       (while files
 	(erase-buffer)
 	(when (and (setq file (locate-library (pop files)))

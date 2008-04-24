@@ -613,5 +613,5 @@ See documentation for variable `ebnf-iso-lex'."
 (provide 'ebnf-iso)
 
 
-;;; arch-tag: 03315eef-8f64-404a-bf9d-256d42442ee3
+;; arch-tag: 03315eef-8f64-404a-bf9d-256d42442ee3
 ;;; ebnf-iso.el ends here

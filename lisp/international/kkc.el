@@ -660,5 +660,5 @@ and change the current conversion to the last one in the group."
 ;;
 (provide 'kkc)
 
-;;; arch-tag: 3cbfd56e-74e6-4f60-bb46-ba7c2d366fbf
+;; arch-tag: 3cbfd56e-74e6-4f60-bb46-ba7c2d366fbf
 ;;; kkc.el ends here

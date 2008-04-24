@@ -536,5 +536,5 @@ coverage tests.  This function creates many overlays."
   (goto-char (next-overlay-change (point)))
   (end-of-line))
 
-;;; arch-tag: 72324a4a-4a2e-4142-9249-cc56d6757588
+;; arch-tag: 72324a4a-4a2e-4142-9249-cc56d6757588
 ;; testcover.el ends here.

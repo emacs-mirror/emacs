@@ -192,5 +192,5 @@ A key of nil has as its value a list of defaulted headers to ignore."
 
 (provide 'mailheader)
 
-;;; arch-tag: 6e7aa221-80b5-4b3d-b46f-fd66ab567be0
+;; arch-tag: 6e7aa221-80b5-4b3d-b46f-fd66ab567be0
 ;;; mailheader.el ends here

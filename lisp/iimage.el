@@ -144,5 +144,5 @@ With numeric ARG, display the images if and only if ARG is positive."
 
 (provide 'iimage)
 
-;;; arch-tag: f6f8e29a-08f6-4a12-9496-51e67441ce65
+;; arch-tag: f6f8e29a-08f6-4a12-9496-51e67441ce65
 ;;; iimage.el ends here

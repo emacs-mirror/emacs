@@ -50,6 +50,9 @@ extern void keys_of_keymap P_ ((void));
 typedef void (*map_keymap_function_t)
      P_ ((Lisp_Object key, Lisp_Object val, Lisp_Object args, void* data));
 extern void map_keymap P_ ((Lisp_Object map, map_keymap_function_t fun, Lisp_Object largs, void* cargs, int autoload));
+extern void map_keymap_canonical (Lisp_Object map,
+				  map_keymap_function_t fun,
+				  Lisp_Object args, void *data);
 
 #endif
 

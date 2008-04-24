@@ -2597,8 +2597,8 @@ manually editing patches, and only works with the unified diff format.
 @item C-c C-u
 Convert the entire buffer to unified format
 (@code{diff-context->unified}).  With a prefix argument, convert
-unified format to context format.  In Transient Mark mode, when the
-mark is active, this command operates only on the region.
+unified format to context format.  When the mark is active, convert
+only the text within the region.
 
 @item C-c C-w
 Refine the current hunk so that it disregards changes in whitespace
@@ -2638,7 +2638,9 @@ in Emacs.  @xref{Misc Buffer}.
 @findex insert-file
   @kbd{M-x insert-file} (also @kbd{C-x i}) inserts a copy of the
 contents of the specified file into the current buffer at point,
-leaving point unchanged before the contents and the mark after them.
+leaving point unchanged before the contents.  The position after the
+inserted contents is added to the mark ring, without activating the
+mark (@pxref{Mark Ring}).
 
 @findex insert-file-literally
   @kbd{M-x insert-file-literally} is like @kbd{M-x insert-file},

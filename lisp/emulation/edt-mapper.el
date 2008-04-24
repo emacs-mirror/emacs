@@ -521,5 +521,5 @@
 (sit-for 600)
 (kill-emacs t)
 
-;;; arch-tag: 9eea59c8-b8b7-4d66-b858-c8920624c518
+;; arch-tag: 9eea59c8-b8b7-4d66-b858-c8920624c518
 ;;; edt-mapper.el ends here

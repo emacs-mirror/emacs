@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; A major mode for editing source in written for the Scribe text formatter.
 ;; Knows about Scribe syntax and standard layout rules.  The command to
 ;; run Scribe on a buffer is bogus; someone interested should fix it.
@@ -324,5 +326,5 @@ preceding text is of the form @Command."
 
 (provide 'scribe)
 
-;;; arch-tag: 64f454c4-7544-4ea2-9d14-f0b668f2cdc6
+;; arch-tag: 64f454c4-7544-4ea2-9d14-f0b668f2cdc6
 ;;; scribe.el ends here

@@ -360,5 +360,5 @@ EVENT should be a scroll bar click."
 
 (provide 'scroll-bar)
 
-;;; arch-tag: 6f1d01d0-0b1e-4bf8-86db-d491e0f399f3
+;; arch-tag: 6f1d01d0-0b1e-4bf8-86db-d491e0f399f3
 ;;; scroll-bar.el ends here

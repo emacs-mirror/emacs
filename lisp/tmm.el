@@ -345,8 +345,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 
 (defun tmm-completion-delete-prompt ()
   (set-buffer standard-output)
-  (goto-char 1)
-  (delete-region 1 (search-forward "Possible completions are:\n")))
+  (goto-char (point-min))
+  (delete-region (point) (search-forward "Possible completions are:\n")))
 
 (defun tmm-remove-inactive-mouse-face ()
   "Remove the mouse-face property from inactive menu items."
@@ -378,9 +378,10 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
         (or tmm-completion-prompt
             (add-hook 'completion-setup-hook
                       'tmm-completion-delete-prompt 'append))
-	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list completions))
-        (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt))
+        (unwind-protect
+            (with-output-to-temp-buffer "*Completions*"
+              (display-completion-list completions))
+          (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt)))
       (set-buffer "*Completions*")
       (tmm-remove-inactive-mouse-face)
       (when tmm-completion-prompt

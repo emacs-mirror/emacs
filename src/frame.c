@@ -129,7 +129,7 @@ Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
-Lisp_Object Vdelete_frame_functions;
+static Lisp_Object Vdelete_frame_functions, Qdelete_frame_functions;
 
 int focus_follows_mouse;
 
@@ -869,11 +869,11 @@ do_switch_frame (frame, track, for_deletion)
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
-      && FRAME_TERMCAP_P (XFRAME (frame))
-      && FRAME_TTY (XFRAME (selected_frame)) == FRAME_TTY (XFRAME (frame)))
+  if (FRAME_TERMCAP_P (XFRAME (frame)))
     {
-      XFRAME (selected_frame)->async_visible = 2; /* obscured */
+      if (FRAMEP (FRAME_TTY (XFRAME (frame))->top_frame))
+	/* Mark previously displayed frame as now obscured.  */
+	XFRAME (FRAME_TTY (XFRAME (frame))->top_frame)->async_visible = 2;
       XFRAME (frame)->async_visible = 1;
       FRAME_TTY (XFRAME (frame))->top_frame = frame;
     }
@@ -883,23 +883,6 @@ do_switch_frame (frame, track, for_deletion)
     last_nonminibuf_frame = XFRAME (selected_frame);
 
   Fselect_window (XFRAME (frame)->selected_window, Qnil);
-
-#ifndef WINDOWSNT
-  /* Make sure to switch the tty color mode to that of the newly
-     selected frame.  */
-  sf = SELECTED_FRAME ();
-  if (FRAME_TERMCAP_P (sf))
-    {
-      Lisp_Object color_mode_spec, color_mode;
-
-      color_mode_spec = assq_no_quit (Qtty_color_mode, sf->param_alist);
-      if (CONSP (color_mode_spec))
-	color_mode = XCDR (color_mode_spec);
-      else
-	color_mode = make_number (0);
-      set_tty_color_mode (sf, color_mode);
-    }
-#endif /* !WINDOWSNT */
 
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
@@ -1334,6 +1317,8 @@ delete_frame_handler (Lisp_Object arg)
   return Qnil;
 }
 
+extern Lisp_Object Qrun_hook_with_args;
+
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
        doc: /* Delete FRAME, permanently eliminating it from use.
 If omitted, FRAME defaults to the selected frame.
@@ -1410,21 +1395,14 @@ But FORCE inhibits this too.  */)
      unless FORCE is `noelisp' or frame is a tooltip.
      FORCE is set to `noelisp' when handling a disconnect from the terminal,
      so we don't dare call Lisp code.  */
-  if (!NILP (Vrun_hooks) && !EQ (force, Qnoelisp)
-      && NILP (Fframe_parameter (frame, intern ("tooltip"))))
-    {
-      Lisp_Object args[2];
-      struct gcpro gcpro1, gcpro2;
-
-      /* Don't let a rogue function in `delete-frame-functions'
-	 prevent the frame deletion. */
-      GCPRO2 (args[0], args[1]);
-      args[0] = intern ("delete-frame-functions");
-      args[1] = frame;
-      internal_condition_case_2 (Frun_hook_with_args, 2, args,
-				 Qt, delete_frame_handler);
-      UNGCPRO;
-    }
+  if (NILP (Vrun_hooks) || !NILP (Fframe_parameter (frame, intern ("tooltip"))))
+    ;
+  if (EQ (force, Qnoelisp))
+    pending_funcalls
+      = Fcons (list3 (Qrun_hook_with_args, Qdelete_frame_functions, frame),
+	       pending_funcalls);
+  else
+    safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
 
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
   if (! FRAME_LIVE_P (f))
@@ -2307,11 +2285,13 @@ store_frame_param (f, prop, val)
     }
 
 #ifndef WINDOWSNT
-  /* The tty color mode needs to be set before the frame's parameter
-     alist is updated with the new value, because set_tty_color_mode
-     wants to look at the old mode.  */
-  if (FRAME_TERMCAP_P (f) && EQ (prop, Qtty_color_mode))
-    set_tty_color_mode (f, val);
+  /* The tty color needed to be set before the frame's parameter
+     alist was updated with the new value.  This is not true any more,
+     but we still do this test early on.  */
+  if (FRAME_TERMCAP_P (f) && EQ (prop, Qtty_color_mode)
+      && f == FRAME_TTY (f)->previous_frame)
+    /* Force redisplay of this tty.  */
+    FRAME_TTY (f)->previous_frame = NULL;
 #endif
 
   /* Update the frame parameter alist.  */
@@ -2573,11 +2553,11 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
       /* Extract parm names and values into those vectors.  */
 
       i = 0;
-      for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+      for (tail = alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object elt;
 
-	  elt = Fcar (tail);
+	  elt = XCAR (tail);
 	  parms[i] = Fcar (elt);
 	  values[i] = Fcdr (elt);
 	  i++;
@@ -2956,11 +2936,11 @@ x_set_frame_parameters (f, alist)
   /* Extract parm names and values into those vectors.  */
 
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt;
 
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       parms[i] = Fcar (elt);
       values[i] = Fcdr (elt);
       i++;
@@ -4526,13 +4506,13 @@ when the mouse is over clickable text.  */);
 The functions are run with one arg, the frame to be deleted.
 See `delete-frame'.
 
-Note that functions in this list may be called twice on the same
-frame.  In the second invocation, the frame is already deleted, and
-the function should do nothing.  (You can use `frame-live-p' to check
-for this.)  This wrinkle happens when an earlier function in
-`delete-frame-functions' (indirectly) calls `delete-frame'
-recursively.  */);
+Note that functions in this list may be called just before the frame is
+actually deleted, or some time later (or even both when an earlier function
+in `delete-frame-functions' (indirectly) calls `delete-frame'
+recursively).  */);
   Vdelete_frame_functions = Qnil;
+  Qdelete_frame_functions = intern ("delete-frame-functions");
+  staticpro (&Qdelete_frame_functions);
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.

@@ -157,8 +157,10 @@ it defaults to `<', otherwise it defaults to `string<'."
   (let ((last (point-min))
 	(min (point-min)) (max (point-max))
 	(old-buffer (current-buffer))
+        (mb enable-multibyte-characters)
 	temp-buffer)
     (with-temp-buffer
+      (set-buffer-multibyte mb)
       ;; Record the temporary buffer.
       (setq temp-buffer (current-buffer))
 
@@ -559,5 +561,5 @@ From a program takes two point or marker arguments, BEG and END."
 
 (provide 'sort)
 
-;;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
+;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
 ;;; sort.el ends here

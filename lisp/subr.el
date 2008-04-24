@@ -231,17 +231,17 @@ configuration."
        (eq (car object) 'frame-configuration)))
 
 (defun functionp (object)
-  "Non-nil if OBJECT is any kind of function or a special form.
-Also non-nil if OBJECT is a symbol and its function definition is
-\(recursively) a function or special form.  This does not include
-macros."
+  "Non-nil if OBJECT is a function."
   (or (and (symbolp object) (fboundp object)
 	   (condition-case nil
 	       (setq object (indirect-function object))
 	     (error nil))
 	   (eq (car-safe object) 'autoload)
 	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (subrp object) (byte-code-function-p object)
+      (and (subrp object)
+           ;; Filter out special forms.
+           (not (eq 'unevalled (cdr (subr-arity object)))))
+      (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
 
 ;;;; List functions.
@@ -382,14 +382,14 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
-(make-obsolete 'assoc-ignore-case 'assoc-string)
+(make-obsolete 'assoc-ignore-case 'assoc-string "22.1")
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but ignores differences in case and text representation.
 KEY must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
   (assoc-string key alist t))
 
-(make-obsolete 'assoc-ignore-representation 'assoc-string)
+(make-obsolete 'assoc-ignore-representation 'assoc-string "22.1")
 (defun assoc-ignore-representation (key alist)
   "Like `assoc', but ignores differences in text representation.
 KEY must be a string.
@@ -538,25 +538,50 @@ The order of bindings in a keymap matters when it is used as a menu."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
-(defun map-keymap-internal (function keymap &optional sort-first)
+(defun map-keymap-sorted (function keymap)
   "Implement `map-keymap' with sorting.
 Don't call this function; it is for internal use only."
-  (if sort-first
-      (let (list)
-	(map-keymap (lambda (a b) (push (cons a b) list))
-		    keymap)
-	(setq list (sort list
-			 (lambda (a b)
-			   (setq a (car a) b (car b))
-			   (if (integerp a)
-			       (if (integerp b) (< a b)
-				 t)
-			     (if (integerp b) t
-                               ;; string< also accepts symbols.
-			       (string< a b))))))
-	(dolist (p list)
-	  (funcall function (car p) (cdr p))))
-    (map-keymap function keymap)))
+  (let (list)
+    (map-keymap (lambda (a b) (push (cons a b) list))
+                keymap)
+    (setq list (sort list
+                     (lambda (a b)
+                       (setq a (car a) b (car b))
+                       (if (integerp a)
+                           (if (integerp b) (< a b)
+                             t)
+                         (if (integerp b) t
+                           ;; string< also accepts symbols.
+                           (string< a b))))))
+    (dolist (p list)
+      (funcall function (car p) (cdr p)))))
+
+(defun keymap-canonicalize (map)
+  "Return an equivalent keymap, without inheritance."
+  (let ((bindings ())
+        (ranges ()))
+    (while (keymapp map)
+      (setq map (map-keymap-internal
+                 (lambda (key item)
+                   (if (consp key)
+                       ;; Treat char-ranges specially.
+                       (push (cons key item) ranges)
+                     (push (cons key item) bindings)))
+                 map)))
+    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap)
+                       (keymap-prompt map)))
+    (dolist (binding ranges)
+      ;; Treat char-ranges specially.
+      (define-key map (vector (car binding)) (cdr binding)))
+    (dolist (binding (prog1 bindings (setq bindings ())))
+      (let* ((key (car binding))
+             (item (cdr binding))
+             (oldbind (assq key bindings)))
+        ;; Newer bindings override older.
+        (if oldbind (setq bindings (delq oldbind bindings)))
+        (when item                      ;nil bindings just hide older ones.
+          (push binding bindings))))
+    (nconc map bindings)))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 
@@ -993,6 +1018,13 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'make-variable-frame-local "use a frame-parameter instead." "22.2")
 
 ;;;; Obsolescence declarations for variables, and aliases.
+
+(make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
+(make-obsolete 'window-redisplay-end-trigger nil "23.1")
+(make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
+
+(make-obsolete 'process-filter-multibyte-p nil "23.1")
+(make-obsolete 'set-process-filter-multibyte nil "23.1")
 
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
 (make-obsolete-variable
@@ -1447,7 +1479,6 @@ definition only or variable definition only.
 	(setq files (cdr files)))
       file)))
 
-;;;###autoload
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `\\[load-library]'
@@ -1462,8 +1493,9 @@ When called from a program, the file name is normaly returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
   (interactive (list (completing-read "Locate library: "
-				      'locate-file-completion
-				      (cons load-path (get-load-suffixes)))
+				      (apply-partially
+                                       'locate-file-completion-table
+                                       load-path (get-load-suffixes)))
 		     nil nil
 		     t))
   (let ((file (locate-file library
@@ -2559,11 +2591,12 @@ See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-buffer (generate-new-buffer " *temp*")))
-       (unwind-protect
-	   (with-current-buffer ,temp-buffer
-	     ,@body)
-	 (and (buffer-name ,temp-buffer)
-	      (kill-buffer ,temp-buffer))))))
+       ;; FIXME: kill-buffer can change current-buffer in some odd cases.
+       (with-current-buffer ,temp-buffer
+         (unwind-protect
+	     (progn ,@body)
+           (and (buffer-name ,temp-buffer)
+                (kill-buffer ,temp-buffer)))))))
 
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
@@ -2661,92 +2694,6 @@ The value returned is the value of the last form in BODY."
 		  ,@body)
 	 (with-current-buffer ,old-buffer
 	   (set-case-table ,old-case-table))))))
-
-;;;; Constructing completion tables.
-
-(defun complete-with-action (action table string pred)
-  "Perform completion ACTION.
-STRING is the string to complete.
-TABLE is the completion table, which should not be a function.
-PRED is a completion predicate.
-ACTION can be one of nil, t or `lambda'."
-  ;; (assert (not (functionp table)))
-  (funcall
-   (cond
-    ((null action) 'try-completion)
-    ((eq action t) 'all-completions)
-    (t 'test-completion))
-   string table pred))
-
-(defmacro dynamic-completion-table (fun)
-  "Use function FUN as a dynamic completion table.
-FUN is called with one argument, the string for which completion is required,
-and it should return an alist containing all the intended possible
-completions.  This alist may be a full list of possible completions so that FUN
-can ignore the value of its argument.  If completion is performed in the
-minibuffer, FUN will be called in the buffer from which the minibuffer was
-entered.
-
-The result of the `dynamic-completion-table' form is a function
-that can be used as the ALIST argument to `try-completion' and
-`all-completion'.  See Info node `(elisp)Programmed Completion'."
-  (declare (debug (lambda-expr)))
-  (let ((win (make-symbol "window"))
-        (string (make-symbol "string"))
-        (predicate (make-symbol "predicate"))
-        (mode (make-symbol "mode")))
-    `(lambda (,string ,predicate ,mode)
-       (with-current-buffer (let ((,win (minibuffer-selected-window)))
-                              (if (window-live-p ,win) (window-buffer ,win)
-                                (current-buffer)))
-         (complete-with-action ,mode (,fun ,string) ,string ,predicate)))))
-
-(defmacro lazy-completion-table (var fun)
-  ;; We used to have `&rest args' where `args' were evaluated late (at the
-  ;; time of the call to `fun'), which was counter intuitive.  But to get
-  ;; them to be evaluated early, we have to either use lexical-let (which is
-  ;; not available in subr.el) or use `(lambda (,str) ...) which prevents the use
-  ;; of lexical-let in the callers.
-  ;; So we just removed the argument.  Callers can then simply use either of:
-  ;;   (lazy-completion-table var (lambda () (fun x y)))
-  ;; or
-  ;;   (lazy-completion-table var `(lambda () (fun ',x ',y)))
-  ;; or
-  ;;   (lexical-let ((x x)) ((y y))
-  ;;     (lazy-completion-table var (lambda () (fun x y))))
-  ;; depending on the behavior they want.
-  "Initialize variable VAR as a lazy completion table.
-If the completion table VAR is used for the first time (e.g., by passing VAR
-as an argument to `try-completion'), the function FUN is called with no
-arguments.  FUN must return the completion table that will be stored in VAR.
-If completion is requested in the minibuffer, FUN will be called in the buffer
-from which the minibuffer was entered.  The return value of
-`lazy-completion-table' must be used to initialize the value of VAR.
-
-You should give VAR a non-nil `risky-local-variable' property."
-  (declare (debug (symbol lambda-expr)))
-  (let ((str (make-symbol "string")))
-    `(dynamic-completion-table
-      (lambda (,str)
-        (when (functionp ,var)
-          (setq ,var (,fun)))
-        ,var))))
-
-(defmacro complete-in-turn (a b)
-  "Create a completion table that first tries completion in A and then in B.
-A and B should not be costly (or side-effecting) expressions."
-  (declare (debug (def-form def-form)))
-  `(lambda (string predicate mode)
-     (cond
-      ((eq mode t)
-       (or (all-completions string ,a predicate)
-	   (all-completions string ,b predicate)))
-      ((eq mode nil)
-       (or (try-completion string ,a predicate)
-	   (try-completion string ,b predicate)))
-      (t
-       (or (test-completion string ,a predicate)
-	   (test-completion string ,b predicate))))))
 
 ;;; Matching and match data.
 
@@ -2961,10 +2908,11 @@ Modifies the match data; use `save-match-data' if necessary."
 This tries to quote the strings to avoid ambiguity such that
   (split-string-and-unquote (combine-and-quote-strings strs)) == strs
 Only some SEPARATORs will work properly."
-  (let ((sep (or separator " ")))
+  (let* ((sep (or separator " "))
+         (re (concat "[\\\"]" "\\|" (regexp-quote sep))))
     (mapconcat
      (lambda (str)
-       (if (string-match "[\\\"]" str)
+       (if (string-match re str)
 	   (concat "\"" (replace-regexp-in-string "[\\\"]" "\\\\\\&" str) "\"")
 	 str))
      strings sep)))

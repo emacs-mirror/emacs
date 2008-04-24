@@ -323,5 +323,5 @@ START and END are buffer positions giving two corners of rectangle."
 		  (extract-rectangle start end))))
 
 (provide 'register)
-;;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
+;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

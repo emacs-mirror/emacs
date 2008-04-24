@@ -407,5 +407,5 @@ Otherwise records must match queries exactly."
 
 (provide 'eudc-vars)
 
-;;; arch-tag: 80050575-b838-4246-8ebc-b2d7c5a2e482
+;; arch-tag: 80050575-b838-4246-8ebc-b2d7c5a2e482
 ;;; eudc-vars.el ends here

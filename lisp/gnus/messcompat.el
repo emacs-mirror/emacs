@@ -91,5 +91,5 @@ variable `mail-header-separator'.")
 
 (provide 'messcompat)
 
-;;; arch-tag: a76673be-905e-4bbd-8966-615370494a7b
+;; arch-tag: a76673be-905e-4bbd-8966-615370494a7b
 ;;; messcompat.el ends here

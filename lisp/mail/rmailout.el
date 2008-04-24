@@ -418,5 +418,5 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
   (if rmail-delete-after-output
       (rmail-delete-forward)))
 
-;;; arch-tag: 447117c6-1a9a-4b88-aa43-3101b043e3a4
+;; arch-tag: 447117c6-1a9a-4b88-aa43-3101b043e3a4
 ;;; rmailout.el ends here

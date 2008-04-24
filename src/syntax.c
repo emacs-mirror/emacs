@@ -1324,7 +1324,7 @@ scan_words (from, count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "p",
+DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "^p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there

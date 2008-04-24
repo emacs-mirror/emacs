@@ -298,5 +298,5 @@ the result of this function."
 
 (provide 'rfc2231)
 
-;;; arch-tag: c3ab751d-d108-406a-b301-68882ad8cd63
+;; arch-tag: c3ab751d-d108-406a-b301-68882ad8cd63
 ;;; rfc2231.el ends here

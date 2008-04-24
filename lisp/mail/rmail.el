@@ -4284,5 +4284,5 @@ encoded string (and the same mask) will decode the string."
 
 (provide 'rmail)
 
-;;; arch-tag: cff0a950-57fe-4f73-a86e-91ff75afd06c
+;; arch-tag: cff0a950-57fe-4f73-a86e-91ff75afd06c
 ;;; rmail.el ends here

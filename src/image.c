@@ -5801,13 +5801,18 @@ pbm_load (f, img)
   if (type != PBM_MONO)
     {
       max_color_idx = pbm_scan_number (&p, end);
-      if (raw_p && max_color_idx > 255)
-	max_color_idx = 255;
+      if (max_color_idx > 65535 || max_color_idx < 0)
+	{
+	  image_error ("Unsupported maximum PBM color value", Qnil, Qnil);
+	  goto error;
+	}
     }
 
-  if (!check_image_size (f, width, height)
-      || (type != PBM_MONO && max_color_idx < 0))
-    goto error;
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      goto error;
+    }
 
   if (!x_create_x_image_and_pixmap (f, width, height, 0,
 				    &ximg, &img->pixmap))
@@ -5867,10 +5872,13 @@ pbm_load (f, img)
     }
   else
     {
-      if (raw_p
-	  && ((type == PBM_GRAY)
-	      ? (p + height * width > end)
-	      : (p + 3 * height * width > end)))
+      int expected_size = height * width;
+      if (max_color_idx > 255)
+	expected_size *= 2;
+      if (type == PBM_COLOR)
+	expected_size *= 3;
+
+      if (raw_p && p + expected_size > end)
 	{
 	  x_destroy_x_image (ximg);
 	  x_clear_image (f, img);
@@ -5884,13 +5892,25 @@ pbm_load (f, img)
 	  {
 	    int r, g, b;
 
-	    if (type == PBM_GRAY)
-	      r = g = b = raw_p ? *p++ : pbm_scan_number (&p, end);
+	    if (type == PBM_GRAY && raw_p)
+	      {
+		r = g = b = *p++;
+		if (max_color_idx > 255)
+		  r = g = b = r * 256 + *p++;
+	      }
+	    else if (type == PBM_GRAY)
+	      r = g = b = pbm_scan_number (&p, end);
 	    else if (raw_p)
 	      {
 		r = *p++;
+		if (max_color_idx > 255)
+		  r = r * 256 + *p++;
 		g = *p++;
+		if (max_color_idx > 255)
+		  g = g * 256 + *p++;
 		b = *p++;
+		if (max_color_idx > 255)
+		  b = b * 256 + *p++;
 	      }
 	    else
 	      {

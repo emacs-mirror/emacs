@@ -2218,5 +2218,5 @@ otherwise return nil."
 
 (run-hooks 'dcl-mode-load-hook)		; for your customizations
 
-;;; arch-tag: e00d421b-f26c-483e-a8bd-af412ea7764a
+;; arch-tag: e00d421b-f26c-483e-a8bd-af412ea7764a
 ;;; dcl-mode.el ends here

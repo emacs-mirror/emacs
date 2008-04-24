@@ -35,7 +35,6 @@
 
 ;; START remove for XEmacs release
 (defvar mark-active)
-(defvar zmacs-regions)
 (defvar transient-mark-mode)
 (defvar TeX-master)
 ;; END remove for XEmacs release
@@ -2107,5 +2106,5 @@ Does not do a save-excursion."
    ["Save and Return" reftex-index-phrases-save-and-return t]))
 
 
-;;; arch-tag: 4b2362af-c156-42c1-8932-ea2823e205c1
+;; arch-tag: 4b2362af-c156-42c1-8932-ea2823e205c1
 ;;; reftex-index.el ends here

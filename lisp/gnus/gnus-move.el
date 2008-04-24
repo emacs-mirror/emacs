@@ -179,5 +179,5 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 
 (provide 'gnus-move)
 
-;;; arch-tag: 503742b8-7d66-4d79-bb31-4a698070707b
+;; arch-tag: 503742b8-7d66-4d79-bb31-4a698070707b
 ;;; gnus-move.el ends here

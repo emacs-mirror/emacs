@@ -141,5 +141,5 @@
 
 (provide 'morse)
 
-;;; arch-tag: 3331e6c1-9a9e-453f-abfd-163a9c3f93a6
+;; arch-tag: 3331e6c1-9a9e-453f-abfd-163a9c3f93a6
 ;;; morse.el ends here

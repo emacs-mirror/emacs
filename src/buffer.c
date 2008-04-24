@@ -1634,7 +1634,7 @@ record_buffer (buf)
   Vbuffer_alist = link;
 
   /* Effectively do a delq on buried_buffer_list.  */
-  
+
   prev = Qnil;
   for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
        link = XCDR (link))
@@ -1767,7 +1767,8 @@ switch_to_buffer_1 (buffer, norecord)
   return buf;
 }
 
-DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2, "BSwitch to buffer: ",
+DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2,
+       "(list (read-buffer-to-switch \"Switch to buffer: \"))",
        doc: /* Select buffer BUFFER in the current window.
 If BUFFER does not identify an existing buffer,
 then this function creates a buffer with that name.
@@ -1802,7 +1803,10 @@ the window-buffer correspondences.  */)
     }
 
   err = no_switch_window (selected_window);
-  if (err) error (err);
+  if (err)
+    /* If can't display in current window, let pop-to-buffer
+       try some other window. */
+    return call3 (intern ("pop-to-buffer"), buffer, Qnil, norecord);
 
   return switch_to_buffer_1 (buffer, norecord);
 }
@@ -2810,8 +2814,9 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
   return idx;
 }
 
-/* Find all the overlays in the current buffer that overlap the range BEG-END
-   or are empty at BEG.
+/* Find all the overlays in the current buffer that overlap the range
+   BEG-END, or are empty at BEG, or are empty at END provided END
+   denotes the position at the end of the current buffer.
 
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
@@ -2846,6 +2851,7 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
   int next = ZV;
   int prev = BEGV;
   int inhibit_storing = 0;
+  int end_is_Z = end == Z;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -2863,10 +2869,12 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	  break;
 	}
       startpos = OVERLAY_POSITION (ostart);
-      /* Count an interval if it either overlaps the range
-	 or is empty at the start of the range.  */
+      /* Count an interval if it overlaps the range, is empty at the
+	 start of the range, or is empty at END provided END denotes the
+	 end of the buffer.  */
       if ((beg < endpos && startpos < end)
-	  || (startpos == endpos && beg == endpos))
+	  || (startpos == endpos
+	      && (beg == endpos || (end_is_Z && endpos == end))))
 	{
 	  if (idx == len)
 	    {
@@ -2911,10 +2919,12 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	  break;
 	}
       endpos = OVERLAY_POSITION (oend);
-      /* Count an interval if it either overlaps the range
-	 or is empty at the start of the range.  */
+      /* Count an interval if it overlaps the range, is empty at the
+	 start of the range, or is empty at END provided END denotes the
+	 end of the buffer.  */
       if ((beg < endpos && startpos < end)
-	  || (startpos == endpos && beg == endpos))
+	  || (startpos == endpos
+	      && (beg == endpos || (end_is_Z && endpos == end))))
 	{
 	  if (idx == len)
 	    {
@@ -4110,8 +4120,9 @@ DEFUN ("overlays-in", Foverlays_in, Soverlays_in, 2, 2, 0,
        doc: /* Return a list of the overlays that overlap the region BEG ... END.
 Overlap means that at least one character is contained within the overlay
 and also contained within the specified region.
-Empty overlays are included in the result if they are located at BEG
-or between BEG and END.  */)
+Empty overlays are included in the result if they are located at BEG,
+between BEG and END, or at END provided END denotes the position at the
+end of the buffer.  */)
      (beg, end)
      Lisp_Object beg, end;
 {
@@ -5071,9 +5082,7 @@ alloc_buffer_text (b, nbytes)
    shrink it.  */
 
 void
-enlarge_buffer_text (b, delta)
-     struct buffer *b;
-     int delta;
+enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
 {
   POINTER_TYPE *p;
   size_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
@@ -6193,18 +6202,11 @@ to the value obtained by calling `current-time'.
 If the buffer has never been shown in a window, the value is nil.  */);
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
-	       doc: /* *Non-nil means deactivate the mark when the buffer contents change.
-Non-nil also enables highlighting of the region whenever the mark is active.
-The variable `highlight-nonselected-windows' controls whether to highlight
-all windows or just the selected window.
-
-If the value is `lambda', that enables Transient Mark mode temporarily
-until the next buffer modification.  If a command sets the value to `only',
-that enables Transient Mark mode for the following command only.
-During that following command, the value of `transient-mark-mode'
-is `identity'.  If it is still `identity' at the end of that command,
-it changes to nil.  */);
+	       doc: /* */);
   Vtransient_mark_mode = Qnil;
+  /* The docstring is in simple.el.  If we put it here, it would be
+     overwritten when transient-mark-mode is defined using
+     define-minor-mode.  */
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
 	       doc: /* *Non-nil means disregard read-only status of buffers or characters.

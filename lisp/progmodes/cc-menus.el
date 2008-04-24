@@ -424,5 +424,5 @@ Example:
 
 (cc-provide 'cc-menus)
 
-;;; arch-tag: f6b60933-91f0-4145-ab44-70ca6d1b919b
+;; arch-tag: f6b60933-91f0-4145-ab44-70ca6d1b919b
 ;;; cc-menus.el ends here

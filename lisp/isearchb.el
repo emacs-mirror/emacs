@@ -224,5 +224,5 @@ accessed via isearchb."
 
 (provide 'isearchb)
 
-;;; arch-tag: 9277523f-a624-4aa0-ba10-b89eeb7b6e99
+;; arch-tag: 9277523f-a624-4aa0-ba10-b89eeb7b6e99
 ;;; isearchb.el ends here

@@ -3792,7 +3792,10 @@ the advised function.  `freeze' implies `activate' and `preactivate'.  The
 documentation of the advised function can be dumped onto the `DOC' file
 during preloading.
 
-See Info node `(elisp)Advising Functions' for comprehensive documentation."
+See Info node `(elisp)Advising Functions' for comprehensive documentation.
+usage: (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
+          [DOCSTRING] [INTERACTIVE-FORM]
+          BODY...)"
   (declare (doc-string 3))
   (if (not (ad-name-p function))
       (error "defadvice: Invalid function name: %s" function))

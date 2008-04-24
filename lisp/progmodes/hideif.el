@@ -168,18 +168,28 @@
 (easy-menu-define hide-ifdef-mode-menu hide-ifdef-mode-map
   "Menu for `hide-ifdef-mode'."
   '("Hide-Ifdef"
-    ["Hide some ifdefs" hide-ifdefs t]
-    ["Show all ifdefs" show-ifdefs t]
-    ["Hide ifdef block" hide-ifdef-block t]
-    ["Show ifdef block" show-ifdef-block t]
-    ["Define a variable" hide-ifdef-define t]
-    ["Define an alist" hide-ifdef-set-define-alist t]
-    ["Use an alist" hide-ifdef-use-define-alist t]
-    ["Undefine a variable" hide-ifdef-undef t]
+    ["Hide some ifdefs" hide-ifdefs
+     :help "Hide the contents of some #ifdefs"]
+    ["Show all ifdefs" show-ifdefs
+     :help "Cancel the effects of `hide-ifdef': show the contents of all #ifdefs"]
+    ["Hide ifdef block" hide-ifdef-block
+     :help "Hide the ifdef block (true or false part) enclosing or before the cursor"]
+    ["Show ifdef block" show-ifdef-block
+     :help "Show the ifdef block (true or false part) enclosing or before the cursor"]
+    ["Define a variable..." hide-ifdef-define
+     :help "Define a VAR so that #ifdef VAR would be included"]
+    ["Undefine a variable..." hide-ifdef-undef
+     :help "Undefine a VAR so that #ifdef VAR would not be included"]
+    ["Define an alist..." hide-ifdef-set-define-alist
+     :help "Set the association for NAME to `hide-ifdef-env'"]
+    ["Use an alist..." hide-ifdef-use-define-alist
+     :help "Set `hide-ifdef-env' to the define list specified by NAME"]
     ["Toggle read only" hide-ifdef-toggle-read-only
-     :style toggle :selected hide-ifdef-read-only]
+     :style toggle :selected hide-ifdef-read-only
+     :help "Buffer should be read-only while hiding text"]
     ["Toggle shadowing" hide-ifdef-toggle-shadowing
-     :style toggle :selected hide-ifdef-shadow]))
+     :style toggle :selected hide-ifdef-shadow
+     :help "Text should be shadowed instead of hidden"]))
 
 (defvar hide-ifdef-hiding nil
   "Non-nil when text may be hidden.")
@@ -257,8 +267,8 @@ how the hiding is done:
     ;; else end hide-ifdef-mode
     (kill-local-variable 'line-move-ignore-invisible)
     (remove-from-invisibility-spec '(hide-ifdef . t))
-    (if hide-ifdef-hiding
-	(show-ifdefs))))
+    (when hide-ifdef-hiding
+      (show-ifdefs))))
 
 
 (defun hif-show-all ()
@@ -348,10 +358,27 @@ that form should be displayed.")
 (defvar hif-token)
 (defvar hif-token-list)
 
-;; pattern to match initial identifier, !, &&, ||, (, or ).
-;; Added ==, + and -: garyo@avs.com 8/9/94
+(defconst hif-token-alist
+  '(("||" . or)
+    ("&&" . and)
+    ("|"  . hif-logior)
+    ("&"  . hif-logand)
+    ("==" . equal)
+    ("!=" . hif-notequal)
+    ("!"  . not)
+    ("("  . lparen)
+    (")"  . rparen)
+    (">"  . hif-greater)
+    ("<"  . hif-less)
+    (">=" . hif-greater-equal)
+    ("<=" . hif-less-equal)
+    ("+"  . hif-plus)
+    ("-"  . hif-minus)
+    ("?"  . hif-conditional)
+    (":"  . hif-colon)))
+
 (defconst hif-token-regexp
-  "\\(&&\\|||\\|[!=]=\\|!\\|[()+?:-]\\|[<>]=?\\|\\w+\\)")
+  (concat (regexp-opt (mapcar 'car hif-token-alist)) "\\|\\w+"))
 
 (defun hif-tokenize (start end)
   "Separate string between START and END into a list of tokens."
@@ -369,26 +396,11 @@ that form should be displayed.")
 	    (let ((token (buffer-substring (point) (match-end 0))))
 	      (goto-char (match-end 0))
 	      ;; (message "token: %s" token) (sit-for 1)
-	      (push (cond
-		     ((string-equal token "||") 'or)
-		     ((string-equal token "&&") 'and)
-		     ((string-equal token "==") 'equal)
-		     ((string-equal token "!=") 'hif-notequal)
-		     ((string-equal token "!")  'not)
-		     ((string-equal token "defined") 'hif-defined)
-		     ((string-equal token "(") 'lparen)
-		     ((string-equal token ")") 'rparen)
-		     ((string-equal token ">") 'hif-greater)
-		     ((string-equal token "<") 'hif-less)
-		     ((string-equal token ">=") 'hif-greater-equal)
-		     ((string-equal token "<=") 'hif-less-equal)
-		     ((string-equal token "+") 'hif-plus)
-		     ((string-equal token "-") 'hif-minus)
-		     ((string-equal token "?") 'hif-conditional)
-		     ((string-equal token ":") 'hif-colon)
-		     ((string-match "\\`[0-9]*\\'" token)
-		      (string-to-number token))
-		     (t (intern token)))
+	      (push (or (cdr (assoc token hif-token-alist))
+                        (if (string-equal token "defined") 'hif-defined)
+                        (if (string-match "\\`[0-9]*\\'" token)
+                            (string-to-number token))
+                        (intern token))
 		    token-list)))
 	   (t (error "Bad #if expression: %s" (buffer-string)))))))
     (nreverse token-list)))
@@ -457,7 +469,7 @@ that form should be displayed.")
        math : factor | math '+|-' factor."
   (let ((result (hif-factor))
 	(math-op nil))
-    (while (memq hif-token '(hif-plus hif-minus))
+    (while (memq hif-token '(hif-plus hif-minus hif-logior hif-logand))
       (setq math-op hif-token)
       (hif-nexttoken)
       (setq result (list math-op result (hif-factor))))
@@ -494,6 +506,10 @@ that form should be displayed.")
    ((numberp hif-token)
     (prog1 hif-token (hif-nexttoken)))
 
+   ;; Unary plus/minus.
+   ((memq hif-token '(hif-minus hif-plus))
+    (list (prog1 hif-token (hif-nexttoken)) 0 (hif-factor)))
+ 
    (t					; identifier
     (let ((ident hif-token))
       (if (memq ident '(or and))
@@ -515,27 +531,22 @@ that form should be displayed.")
   (or (not (zerop (hif-mathify a))) (not (zerop (hif-mathify b)))))
 (defun hif-not (a)
   (zerop (hif-mathify a)))
-(defun hif-plus (a b)
-  "Like ordinary plus but treat t and nil as 1 and 0."
-  (+ (hif-mathify a) (hif-mathify b)))
-(defun hif-minus (a b)
-  "Like ordinary minus but treat t and nil as 1 and 0."
-  (- (hif-mathify a) (hif-mathify b)))
-(defun hif-notequal (a b)
-  "Like (not (equal A B)) but as one symbol."
-  (not (equal a b)))
-(defun hif-greater (a b)
-  "Simple comparison."
-  (> (hif-mathify a) (hif-mathify b)))
-(defun hif-less (a b)
-  "Simple comparison."
-  (< (hif-mathify a) (hif-mathify b)))
-(defun hif-greater-equal (a b)
-  "Simple comparison."
-  (>= (hif-mathify a) (hif-mathify b)))
-(defun hif-less-equal (a b)
-  "Simple comparison."
-  (<= (hif-mathify a) (hif-mathify b)))
+
+(defmacro hif-mathify-binop (fun)
+  `(lambda (a b)
+     ,(format "Like `%s' but treat t and nil as 1 and 0." fun)
+     (,fun (hif-mathify a) (hif-mathify b))))
+
+(defalias 'hif-plus          (hif-mathify-binop +))
+(defalias 'hif-minus         (hif-mathify-binop -))
+(defalias 'hif-notequal      (hif-mathify-binop /=))
+(defalias 'hif-greater       (hif-mathify-binop >))
+(defalias 'hif-less          (hif-mathify-binop <))
+(defalias 'hif-greater-equal (hif-mathify-binop >=))
+(defalias 'hif-less-equal    (hif-mathify-binop <=))
+(defalias 'hif-logior        (hif-mathify-binop logior))
+(defalias 'hif-logand        (hif-mathify-binop logand))
+
 ;;;----------- end of parser -----------------------
 
 

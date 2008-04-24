@@ -61,7 +61,6 @@
   "Default face used for buttons."
   :group 'basic-faces)
 
-;;;###autoload
 (defvar button-map
   (let ((map (make-sparse-keymap)))
     ;; The following definition needs to avoid using escape sequences that
@@ -71,7 +70,6 @@
     map)
   "Keymap used by buttons.")
 
-;;;###autoload
 (defvar button-buffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\t] 'forward-button)
@@ -116,7 +114,6 @@ Buttons inherit them by setting their `category' property to that symbol."
   (or (get type 'button-category-symbol)
       (error "Unknown button type `%s'" type)))
 
-;;;###autoload
 (defun define-button-type (name &rest properties)
   "Define a `button type' called NAME (a symbol).
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
@@ -247,7 +244,6 @@ the normal action is used instead."
 
 ;; Creating overlay buttons
 
-;;;###autoload
 (defun make-button (beg end &rest properties)
   "Make a button from BEG to END in the current buffer.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
@@ -269,7 +265,6 @@ Also see `make-text-button', `insert-button'."
     ;; OVERLAY is the button, so return it
     overlay))
 
-;;;###autoload
 (defun insert-button (label &rest properties)
   "Insert a button with the label LABEL.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
@@ -287,7 +282,6 @@ Also see `insert-text-button', `make-button'."
 
 ;; Creating text-property buttons
 
-;;;###autoload
 (defun make-text-button (beg end &rest properties)
   "Make a button from BEG to END in the current buffer.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
@@ -326,7 +320,6 @@ Also see `insert-text-button'."
   ;; Return something that can be used to get at the button.
   beg)
 
-;;;###autoload
 (defun insert-text-button (label &rest properties)
   "Insert a button with the label LABEL.
 The remaining arguments form a sequence of PROPERTY VALUE pairs,

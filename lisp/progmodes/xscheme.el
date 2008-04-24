@@ -1235,5 +1235,5 @@ the remaining input.")
 
 (provide 'xscheme)
 
-;;; arch-tag: cfc14adc-2917-409e-ad16-432e8d0017de
+;; arch-tag: cfc14adc-2917-409e-ad16-432e8d0017de
 ;;; xscheme.el ends here

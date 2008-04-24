@@ -1120,5 +1120,5 @@ articles in the thread.
 
 (provide 'gnus-cus)
 
-;;; arch-tag: a37c285a-49bc-4235-8244-804536effeaf
+;; arch-tag: a37c285a-49bc-4235-8244-804536effeaf
 ;;; gnus-cus.el ends here

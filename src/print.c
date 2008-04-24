@@ -2404,8 +2404,7 @@ This affects only `prin1'.  */);
 
   DEFVAR_BOOL ("print-quoted", &print_quoted,
 	       doc: /* Non-nil means print quoted forms with reader syntax.
-I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and backquoted
-forms print as in the new syntax.  */);
+I.e., (quote foo) prints as 'foo, (function foo) as #'foo.  */);
   print_quoted = 0;
 
   DEFVAR_LISP ("print-gensym", &Vprint_gensym,

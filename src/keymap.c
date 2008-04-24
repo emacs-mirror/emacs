@@ -563,9 +563,6 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
     GCPRO4 (map, tail, idx, t_binding);
 
-    /* If `t_ok' is 2, both `t' is accepted.  */
-    t_ok = t_ok ? 2 : 0;
-
     for (tail = XCDR (map);
 	 (CONSP (tail)
 	  || (tail = get_keymap (tail, 0, autoload), CONSP (tail)));
@@ -587,10 +584,10 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
 	    if (EQ (key, idx))
 	      val = XCDR (binding);
-	    else if (t_ok > 1 && EQ (key, Qt))
+	    else if (t_ok && EQ (key, Qt))
 	      {
 		t_binding = XCDR (binding);
-		t_ok = 1;
+		t_ok = 0;
 	      }
 	  }
 	else if (VECTORP (binding))
@@ -660,25 +657,20 @@ map_keymap_char_table_item (args, key, val)
     }
 }
 
-/* Call FUN for every binding in MAP.
-   FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).
-   AUTOLOAD if non-zero means that we can autoload keymaps if necessary.  */
-void
-map_keymap (map, fun, args, data, autoload)
-     map_keymap_function_t fun;
-     Lisp_Object map, args;
-     void *data;
-     int autoload;
+/* Call FUN for every binding in MAP and stop at (and return) the parent.
+   FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).  */
+Lisp_Object
+map_keymap_internal (Lisp_Object map,
+		     map_keymap_function_t fun,
+		     Lisp_Object args,
+		     void *data)
 {
   struct gcpro gcpro1, gcpro2, gcpro3;
-  Lisp_Object tail;
+  Lisp_Object tail
+    = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
 
-  tail = Qnil;
   GCPRO3 (map, args, tail);
-  map = get_keymap (map, 1, autoload);
-  for (tail = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
-       CONSP (tail) || (tail = get_keymap (tail, 0, autoload), CONSP (tail));
-       tail = XCDR (tail))
+  for (; CONSP (tail) && !EQ (Qkeymap, XCAR (tail)); tail = XCDR (tail))
     {
       Lisp_Object binding = XCAR (tail);
 
@@ -705,6 +697,7 @@ map_keymap (map, fun, args, data, autoload)
 	}
     }
   UNGCPRO;
+  return tail;
 }
 
 static void
@@ -715,13 +708,66 @@ map_keymap_call (key, val, fun, dummy)
   call2 (fun, key, val);
 }
 
+/* Same as map_keymap_internal, but doesn't traverses parent keymaps as well.
+   A non-zero AUTOLOAD indicates that autoloaded keymaps should be loaded.  */
+void
+map_keymap (map, fun, args, data, autoload)
+     map_keymap_function_t fun;
+     Lisp_Object map, args;
+     void *data;
+     int autoload;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (args);
+  map = get_keymap (map, 1, autoload);
+  while (CONSP (map))
+    {
+      map = map_keymap_internal (map, fun, args, data);
+      map = get_keymap (map, 0, autoload);
+    }
+  UNGCPRO;
+}
+
+Lisp_Object Qkeymap_canonicalize;
+
+/* Same as map_keymap, but does it right, properly eliminating duplicate
+   bindings due to inheritance.   */
+void
+map_keymap_canonical (map, fun, args, data)
+     map_keymap_function_t fun;
+     Lisp_Object map, args;
+     void *data;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (args);
+  /* map_keymap_canonical may be used from redisplay (e.g. when building menus)
+     so be careful to ignore errors and to inhibit redisplay.  */
+  map = safe_call1 (Qkeymap_canonicalize, map);
+  /* No need to use `map_keymap' here because canonical map has no parent.  */
+  map_keymap_internal (map, fun, args, data);
+  UNGCPRO;
+}
+
+DEFUN ("map-keymap-internal", Fmap_keymap_internal, Smap_keymap_internal, 2, 2, 0,
+       doc: /* Call FUNCTION once for each event binding in KEYMAP.
+FUNCTION is called with two arguments: the event that is bound, and
+the definition it is bound to.  The event may be a character range.
+If KEYMAP has a parent, this function returns it without processing it.  */)
+     (function, keymap)
+     Lisp_Object function, keymap;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (function);
+  keymap = get_keymap (keymap, 1, 1);
+  keymap = map_keymap_internal (keymap, map_keymap_call, function, NULL);
+  UNGCPRO;
+  return keymap;
+}
+
 DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 3, 0,
        doc: /* Call FUNCTION once for each event binding in KEYMAP.
 FUNCTION is called with two arguments: the event that is bound, and
-the definition it is bound to.  If the event is an integer, it may be
-a generic character (see Info node `(elisp)Splitting Characters'), and
-that means that all actual character events belonging to that generic
-character are bound to the definition.
+the definition it is bound to.  The event may be a character range.
 
 If KEYMAP has a parent, the parent's bindings are included as well.
 This works recursively: if the parent has itself a parent, then the
@@ -730,12 +776,8 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
      (function, keymap, sort_first)
      Lisp_Object function, keymap, sort_first;
 {
-  if (INTEGERP (function))
-    /* We have to stop integers early since map_keymap gives them special
-       significance.  */
-    xsignal1 (Qinvalid_function, function);
   if (! NILP (sort_first))
-    return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
+    return call2 (intern ("map-keymap-sorted"), function, keymap);
 
   map_keymap (keymap, map_keymap_call, function, NULL, 1);
   return Qnil;
@@ -3382,13 +3424,15 @@ describe_map (map, prefix, elt_describer, partial, shadow,
   kludge = Fmake_vector (make_number (1), Qnil);
   definition = Qnil;
 
+  GCPRO3 (prefix, definition, kludge);
+
+  map = call1 (Qkeymap_canonicalize, map);
+
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     length_needed++;
 
   vect = ((struct describe_map_elt *)
 	  alloca (sizeof (struct describe_map_elt) * length_needed));
-
-  GCPRO3 (prefix, definition, kludge);
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
@@ -3825,6 +3869,9 @@ syms_of_keymap ()
   apropos_predicate = Qnil;
   apropos_accumulate = Qnil;
 
+  Qkeymap_canonicalize = intern ("keymap-canonicalize");
+  staticpro (&Qkeymap_canonicalize);
+
   /* Now we are ready to set up this property, so we can
      create char tables.  */
   Fput (Qkeymap, Qchar_table_extra_slots, make_number (0));
@@ -3967,6 +4014,7 @@ the same way.  The "active" keymaps in each alist are used before
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
+  defsubr (&Smap_keymap_internal);
   defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);
   defsubr (&Scommand_remapping);

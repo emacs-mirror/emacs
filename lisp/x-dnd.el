@@ -756,5 +756,5 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 (provide 'x-dnd)
 
-;;; arch-tag: b621fb7e-50da-4323-850b-5fc71ae64621
+;; arch-tag: b621fb7e-50da-4323-850b-5fc71ae64621
 ;;; x-dnd.el ends here

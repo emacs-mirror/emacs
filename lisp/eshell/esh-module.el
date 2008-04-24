@@ -158,5 +158,5 @@ customization group.  Example: `eshell-cmpl' for that module."
 	  (unload-feature module)
 	  (message "Unloading %s...done" (symbol-name module))))))
 
-;;; arch-tag: 97a3fa16-9d08-40e6-bc2c-36bd70986507
+;; arch-tag: 97a3fa16-9d08-40e6-bc2c-36bd70986507
 ;;; esh-module.el ends here

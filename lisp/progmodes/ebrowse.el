@@ -4498,5 +4498,5 @@ EVENT is the mouse event."
 ;;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
 ;;; End:
 
-;;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
+;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
 ;;; ebrowse.el ends here

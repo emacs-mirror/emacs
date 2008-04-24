@@ -158,36 +158,32 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
-(defun vc-svn-after-dir-status (callback buffer)
+(defun vc-svn-after-dir-status (callback)
   (let ((state-map '((?A . added)
-                    (?C . edited)
-                    (?D . removed)
-                    (?I . ignored)
-                    (?M . edited)
-                    (?R . removed)
-                    (?? . unregistered)
-                    ;; This is what vc-svn-parse-status does.
-                    (?~ . edited)))
+                     (?C . conflict)
+                     (?D . removed)
+                     (?I . ignored)
+                     (?M . edited)
+                     (?R . removed)
+                     (?? . unregistered)
+                     ;; This is what vc-svn-parse-status does.
+                     (?~ . edited)))
        result)
     (goto-char (point-min))
     (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
            (filename (match-string 2)))
        (when state
-         (setq result (cons (cons filename state) result)))))
-    (kill-buffer (current-buffer))
-    (funcall callback result buffer)))
+         (setq result (cons (list filename state) result)))))
+    (funcall callback result)))
 
-(defun vc-svn-dir-status (dir callback buffer)
+(defun vc-svn-dir-status (dir callback)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
-  (with-current-buffer (get-buffer-create
-                       (generate-new-buffer-name " *vc svn status*"))
-    (vc-svn-command (current-buffer) 'async nil "status")
-    (vc-exec-after
-     `(vc-svn-after-dir-status (quote ,callback) ,buffer))
-    (current-buffer)))
+  (vc-svn-command (current-buffer) 'async nil "status")
+  (vc-exec-after
+   `(vc-svn-after-dir-status (quote ,callback))))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."
@@ -204,17 +200,6 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 
 ;; vc-svn-mode-line-string doesn't exist because the default implementation
 ;; works just fine.
-
-(defun vc-svn-dired-state-info (file)
-  "SVN-specific version of `vc-dired-state-info'."
-  (let ((svn-state (vc-state file)))
-    (cond ((eq svn-state 'edited)
-	   (if (equal (vc-working-revision file) "0")
-	       "(added)" "(modified)"))
-	  (t
-	   ;; fall back to the default VC representation
-	   (vc-default-dired-state-info 'SVN file)))))
-
 
 (defun vc-svn-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
@@ -401,27 +386,42 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-modify-change-comment (files rev comment)
   "Modify the change comments for a specified REV.
 You must have ssh access to the repository host, and the directory Emacs
-uses locally for temp files must also be writeable by you on that host."
-  (vc-do-command nil 0 "svn" nil "info")
-  (set-buffer "*vc*")
-  (goto-char (point-min))
-  (unless (re-search-forward "Repository Root: svn\\+ssh://\\([^/]+\\)\\(/.*\\)" nil t)
-    (error "Repository information is unavailable."))
-  (let* ((tempfile (make-temp-file user-mail-address))
-	(host (match-string 1))
-	(directory (match-string 2))
-	(remotefile (concat host ":" tempfile)))
+uses locally for temp files must also be writeable by you on that host.
+This is only supported if the repository access method is either file://
+or svn+ssh://."
+  (let (tempfile host remotefile directory fileurl-p)
     (with-temp-buffer
-      (insert comment)
-      (write-region (point-min) (point-max) tempfile))
-    (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
-      (error "Copy of comment to %s failed" remotefile))
-    (unless (vc-do-command nil 0 "ssh" nil
-			   "-q" host
-			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s"
-				   directory rev tempfile tempfile))
-      (error "Log edit failed"))
-  ))
+      (vc-do-command (current-buffer) 0 "svn" nil "info")
+      (goto-char (point-min))
+      (unless (re-search-forward "Repository Root: \\(file://\\(/.*\\)\\)\\|\\(svn\\+ssh://\\([^/]+\\)\\(/.*\\)\\)" nil t)
+	(error "Repository information is unavailable"))
+      (if (match-string 1)
+	  (progn
+	    (setq fileurl-p t)
+	    (setq directory (match-string 2)))
+	(setq host (match-string 4))
+	(setq directory (match-string 5))
+	(setq remotefile (concat host ":" tempfile))))
+    (with-temp-file (setq tempfile (make-temp-file user-mail-address))
+      (insert comment))
+    (if fileurl-p
+	;; Repository Root is a local file.
+	(progn
+	  (unless (vc-do-command
+		   nil 0 "svnadmin" nil
+		   "setlog" "--bypass-hooks" directory 
+		   "-r" rev (format "%s" tempfile))
+	    (error "Log edit failed"))
+	  (delete-file tempfile))
+
+      ;; Remote repository, using svn+ssh.
+      (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
+	(error "Copy of comment to %s failed" remotefile))
+      (unless (vc-do-command
+	       nil 0 "ssh" nil "-q" host
+	       (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s"
+		       directory rev tempfile tempfile))
+	(error "Log edit failed")))))
 
 ;;;
 ;;; History functions
@@ -636,7 +636,9 @@ information about FILENAME and return its status."
 	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'added)
-	  ((memq status '(?M ?C))
+	  ((eq status ?C)
+	   (vc-file-setprop file 'vc-state 'conflict))
+	  ((eq status '?M)
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))

@@ -436,5 +436,5 @@ exclude any functions that have been bound during compilation with
 
 (provide 'cc-bytecomp)
 
-;;; arch-tag: 2d71b3ad-57b0-4b13-abd3-ab836e08f975
+;; arch-tag: 2d71b3ad-57b0-4b13-abd3-ab836e08f975
 ;;; cc-bytecomp.el ends here

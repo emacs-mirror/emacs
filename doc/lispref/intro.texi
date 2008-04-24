@@ -163,7 +163,7 @@ person reading this manual, are thought of as ``the programmer'' and are
 addressed as ``you.''  ``The user'' is the person who uses Lisp
 programs, including those you write.
 
-@cindex fonts in this manual
+@cindex typographic conventions
   Examples of Lisp code are formatted like this: @code{(list 1 2 3)}.
 Names that represent metasyntactic variables, or arguments to a function
 being described, are formatted like this: @var{first-number}.

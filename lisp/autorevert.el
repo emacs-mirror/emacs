@@ -530,7 +530,7 @@ the timer when no buffers need to be checked."
 		  (not (and auto-revert-stop-on-user-input
 			    (input-pending-p))))
 	(let ((buf (car bufs)))
-	  (if (buffer-name buf)		; Buffer still alive?
+          (if (buffer-live-p buf)
 	      (with-current-buffer buf
 		;; Test if someone has turned off Auto-Revert Mode in a
 		;; non-standard way, for example by changing major mode.

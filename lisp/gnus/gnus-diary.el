@@ -390,8 +390,8 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 (add-hook 'nndiary-request-accept-article-hooks
 	  (lambda () (gnus-diary-check-message nil)))
 
-(define-key message-mode-map "\C-cDc" 'gnus-diary-check-message)
-(define-key gnus-article-edit-mode-map "\C-cDc" 'gnus-diary-check-message)
+(define-key message-mode-map "\C-c\C-fd" 'gnus-diary-check-message)
+(define-key gnus-article-edit-mode-map "\C-c\C-fd" 'gnus-diary-check-message)
 
 
 ;; The end ==================================================================
@@ -401,11 +401,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
   (interactive)
   (message "NNDiary version %s" nndiary-version))
 
-(define-key message-mode-map "\C-cDv" 'gnus-diary-version)
-(define-key gnus-article-edit-mode-map "\C-cDv" 'gnus-diary-version)
-
-
 (provide 'gnus-diary)
 
-;;; arch-tag: 98467e70-337e-4ddc-b92d-45d403ff1b4b
+;; arch-tag: 98467e70-337e-4ddc-b92d-45d403ff1b4b
 ;;; gnus-diary.el ends here

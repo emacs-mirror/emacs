@@ -1,6 +1,6 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+#   2008  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -46,13 +46,23 @@ lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
 lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
+# Automatically generated autoload files, apart from lisp/loaddefs.el.
+# Note this includes only those files that need special rules to
+# build; ie it does not need to include things created via
+# generated-autoload-file (eg calc/calc-loaddefs.el).
+LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
+	$(lisp)/calendar/diary-loaddefs.el \
+	$(lisp)/calendar/hol-loaddefs.el \
+	$(lisp)/mh-e/mh-loaddefs.el
+
 # Elisp files auto-generated.
 AUTOGENEL = loaddefs.el \
+	$(LOADDEFS) \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
-	eshell/esh-groups.el \
-	mh-e/mh-loaddefs.el
+	calc/calc-loaddefs.el \
+	eshell/esh-groups.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -76,6 +86,8 @@ COMPILE_FIRST_STACK_DEPTH = 1000
 # The actual Emacs command run in the targets below.
 
 emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
+# Prerequisites for running $(emacs)
+emacs-deps = $(lisp)/subdirs.el
 
 # Common command to find subdirectories
 
@@ -103,31 +115,23 @@ $(lisp)/cus-load.el:
 # than on loaddefs.el, so that autoloads does not run in parallel with
 # them under "make -j", because that could delete loaddefs.el from
 # under their feet.
-custom-deps: $(lisp)/subdirs.el autoloads $(lisp)/cus-load.el doit
+custom-deps: $(emacs-deps) autoloads $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
-finder-data: $(lisp)/subdirs.el autoloads doit
+finder-data: $(emacs-deps) autoloads doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
-$(lisp)/loaddefs.el:
-	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
-	echo ";;" >> $@; echo ";;; Code:" >> $@
-	echo "" >> $@
-	echo ";; Local Variables:" >> $@
-	echo ";; version-control: never" >> $@
-	echo ";; no-byte-compile: t" >> $@
-	echo ";; no-update-autoloads: t" >> $@
-	echo ";; End:" >> $@
-	echo ";;; loaddefs.el ends here" >> $@
-autoloads: $(lisp)/subdirs.el $(lisp)/loaddefs.el doit
+autoloads: $(emacs-deps) $(LOADDEFS) doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
+# Note: every rule that runs $(emacs) and is called during bootstrap must
+# depend on this.
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
@@ -156,7 +160,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 .SUFFIXES: .elc .el
 
-.el.elc: $(lisp)/subdirs.el
+.el.elc: $(emacs-deps)
 	-$(emacs)  $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 # Compile all Lisp files, but don't recompile those that are up to
@@ -173,7 +177,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 # `|| true' below prevents old Bash versions from getting confused
 # by an error.
-compile: $(lisp)/subdirs.el mh-autoloads doit
+compile: $(emacs-deps) $(LOADDEFS) doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	els=`echo $$wins | tr ' \011' '\012\012' | \
@@ -192,7 +196,7 @@ compile: $(lisp)/subdirs.el mh-autoloads doit
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el mh-autoloads doit
+compile-always: $(emacs-deps) $(LOADDEFS) doit
 	# `|| true' prevents old Bash versions from getting confused
 	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
@@ -229,7 +233,7 @@ compile-after-backup: backup-compiled-files compile-always
 # Recompile all Lisp files which are newer than their .elc files and compile
 # new ones.
 
-recompile: doit mh-autoloads $(lisp)/progmodes/cc-mode.elc
+recompile: doit $(LOADDEFS) $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # CC Mode uses a compile time macro system which causes a compile time
@@ -242,46 +246,66 @@ $(lisp)/progmodes/cc-mode.elc: \
 	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
 # Update MH-E internal autoloads. These are not to be confused with
-# the autoloads for the MH-E entry points, which are already in
-# loaddefs.el.
-MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
-	$(lisp)/mh-e/mh-buffers.el $(lisp)/mh-e/mh-compat.el	\
-	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-e.el		\
-	$(lisp)/mh-e/mh-folder.el $(lisp)/mh-e/mh-funcs.el	\
-	$(lisp)/mh-e/mh-gnus.el $(lisp)/mh-e/mh-identity.el	\
-	$(lisp)/mh-e/mh-inc.el $(lisp)/mh-e/mh-junk.el		\
-	$(lisp)/mh-e/mh-letter.el $(lisp)/mh-e/mh-limit.el	\
-	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-print.el	\
-	$(lisp)/mh-e/mh-scan.el $(lisp)/mh-e/mh-search.el	\
-	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-show.el		\
-	$(lisp)/mh-e/mh-speed.el $(lisp)/mh-e/mh-thread.el	\
-	$(lisp)/mh-e/mh-tool-bar.el $(lisp)/mh-e/mh-utils.el	\
-	$(lisp)/mh-e/mh-xface.el
+# the autoloads for the MH-E entry points, which are already in loaddefs.el.
+MH_E_DIR = $(lisp)/mh-e
+## MH_E_SRC avoids a circular dependency warning for mh-loaddefs.el.
+MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
+	$(MH_E_DIR)/mh-buffers.el  $(MH_E_DIR)/mh-compat.el   \
+	$(MH_E_DIR)/mh-comp.el     $(MH_E_DIR)/mh-e.el        \
+	$(MH_E_DIR)/mh-folder.el   $(MH_E_DIR)/mh-funcs.el    \
+	$(MH_E_DIR)/mh-gnus.el     $(MH_E_DIR)/mh-identity.el \
+	$(MH_E_DIR)/mh-inc.el      $(MH_E_DIR)/mh-junk.el     \
+	$(MH_E_DIR)/mh-letter.el   $(MH_E_DIR)/mh-limit.el    \
+	$(MH_E_DIR)/mh-mime.el     $(MH_E_DIR)/mh-print.el    \
+	$(MH_E_DIR)/mh-scan.el     $(MH_E_DIR)/mh-search.el   \
+	$(MH_E_DIR)/mh-seq.el      $(MH_E_DIR)/mh-show.el     \
+	$(MH_E_DIR)/mh-speed.el    $(MH_E_DIR)/mh-thread.el   \
+	$(MH_E_DIR)/mh-tool-bar.el $(MH_E_DIR)/mh-utils.el    \
+	$(MH_E_DIR)/mh-xface.el
 
-mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
-	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
-	echo "" >> $@
-	echo ";; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc." >> $@
-	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
-	echo ";; Keywords: mail" >> $@
-	echo ";;; Commentary:" >> $@
-	echo ";;; Change Log:" >> $@
-	echo ";;; Code:" >> $@
-	echo "" >> $@
-	echo "(provide 'mh-loaddefs)" >> $@
-	echo ";; Local Variables:" >> $@
-	echo ";; version-control: never" >> $@
-	echo ";; no-byte-compile: t" >> $@
-	echo ";; no-update-autoloads: t" >> $@
-	echo ";; End:" >> $@
-	echo ";;; mh-loaddefs.el ends here" >> $@
-	$(emacs) \
-	   -l autoload \
+mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
+$(MH_E_DIR)/mh-loaddefs.el: $(emacs-deps) $(MH_E_SRC)
+	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
+	   -f batch-update-autoloads $(MH_E_DIR)
+
+CAL_DIR = $(lisp)/calendar
+## Those files that may contain internal calendar autoload cookies.
+## Avoids circular dependency warning for *-loaddefs.el.
+CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
+	$(CAL_DIR)/cal-coptic.el  $(CAL_DIR)/cal-dst.el    \
+	$(CAL_DIR)/cal-french.el  $(CAL_DIR)/cal-hebrew.el \
+	$(CAL_DIR)/cal-html.el    $(CAL_DIR)/cal-islam.el  \
+	$(CAL_DIR)/cal-iso.el     $(CAL_DIR)/cal-julian.el \
+	$(CAL_DIR)/cal-mayan.el   $(CAL_DIR)/cal-menu.el   \
+	$(CAL_DIR)/cal-move.el    $(CAL_DIR)/cal-persia.el \
+	$(CAL_DIR)/cal-tex.el     $(CAL_DIR)/cal-x.el      \
+	$(CAL_DIR)/calendar.el    $(CAL_DIR)/diary-lib.el  \
+	$(CAL_DIR)/holidays.el    $(CAL_DIR)/lunar.el      \
+	$(CAL_DIR)/solar.el
+
+$(CAL_DIR)/cal-loaddefs.el: $(emacs-deps) $(CAL_SRC)
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(CAL_DIR)
+
+$(CAL_DIR)/diary-loaddefs.el: $(emacs-deps) $(CAL_SRC)
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(CAL_DIR)
+
+$(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(CAL_DIR)
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
@@ -302,11 +326,8 @@ $(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
-	else							\
-	  cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;		\
 	fi
-	chmod +w $(lisp)/loaddefs.el		\
-	  $(lisp)/ps-print.el			\
+	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
 maintainer-clean: distclean bootstrap-clean

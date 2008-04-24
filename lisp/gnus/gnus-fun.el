@@ -217,8 +217,7 @@ colors of the displayed X-Faces."
 (defun gnus-display-x-face-in-from (data)
   "Display the X-Face DATA in the From header."
   (require 'gnus-art)
-  (let ((default-enable-multibyte-characters nil)
-	pbm)
+  (let (pbm)
     (when (or (gnus-image-type-available-p 'xface)
 	      (and (gnus-image-type-available-p 'pbm)
 		   (setq pbm (uncompface data))))
@@ -293,5 +292,5 @@ colors of the displayed X-Faces."
 
 (provide 'gnus-fun)
 
-;;; arch-tag: 9d000a69-15cc-4491-9dc0-4627484f50c1
+;; arch-tag: 9d000a69-15cc-4491-9dc0-4627484f50c1
 ;;; gnus-fun.el ends here

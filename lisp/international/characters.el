@@ -848,8 +848,7 @@
 
 ;; 0: non-spacing, enclosing combining, formatting, Hangul Jamo medial
 ;;    and final characters.
-(let ((l '((#x00AD . #x00AD)
-	   (#x0300 . #x036F)
+(let ((l '((#x0300 . #x036F)
 	   (#x0483 . #x0489)
 	   (#x0591 . #x05BD)
 	   (#x05BF . #x05BF)
@@ -1040,7 +1039,9 @@ Setup char-width-table appropriate for non-CJK language environment."
   (dolist
       (elt
        '((#x0000 #x007F latin)
-	 (#x00A0 #x036F latin)
+	 (#x00A0 #x024F latin)
+	 (#x0250 #x02AF phonetic)
+	 (#x02B0 #x036F latin)
 	 (#x0370 #x03E1 greek)
 	 (#x03E2 #x03EF coptic)
 	 (#x03F0 #x03F3 greek)
@@ -1074,6 +1075,7 @@ Setup char-width-table appropriate for non-CJK language environment."
 	 (#x16A0 #x16FF runic)
 	 (#x1780 #x17FF khmer)
 	 (#x1800 #x18AF mongolian)
+	 (#x1D00 #x1DFF phonetic)
 	 (#x1E00 #x1EFF latin)
 	 (#x1F00 #x1FFF greek)
 	 (#x2000 #x27FF symbol)

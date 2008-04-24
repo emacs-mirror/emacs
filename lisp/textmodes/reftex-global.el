@@ -102,9 +102,8 @@ No active TAGS table is required."
     (tags-query-replace from to (or delimited current-prefix-arg)
                         (list 'reftex-all-document-files))))
 
-(eval-when-compile
-  (defvar TeX-master)
-  (defvar isearch-next-buffer-function))
+(defvar TeX-master)
+(defvar isearch-next-buffer-function)
 
 (defun reftex-find-duplicate-labels ()
   "Produce a list of all duplicate labels in the document."
@@ -468,5 +467,5 @@ With no argument, this command toggles
 (add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil 
 		'reftex-isearch-minor-mode)
 
-;;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
+;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
 ;;; reftex-global.el ends here

@@ -190,6 +190,7 @@ WSOCK32		= -lwsock32
 WINMM		= -lwinmm
 WINSPOOL	= -lwinspool
 OLE32		= -lole32
+UNISCRIBE	= -lusp10
 
 ifdef USE_FONTBACKEND
 FONT_CFLAGS	= -DUSE_FONT_BACKEND=1

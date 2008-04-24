@@ -1,3 +1,8 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
+	* src/Emacs.r: Set version to 23.0.60.
+
 2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* Emacs.app/Contents/Resources/Emacs.icns:
@@ -5,31 +10,14 @@
 
 2008-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* README:
-	* INSTALL: Only mention MacOSX.
+	* INSTALL, README: Only mention MacOSX.
 
-        * cw6-mcp.xml:
-        * make-package:
-        * makefile.MPW:
-        * inc/alloca.h:
-        * inc/config.h:
-        * inc/defs-cw6.h:
-        * inc/dirent.h:
-        * inc/epaths.h:
-        * inc/grp.h:
-        * inc/m-mac.h:
-        * inc/pwd.h:
-        * inc/s-mac.h:
-        * inc/termio.h:
-        * inc/utime.h:
-        * inc/utsname.h:
-        * inc/sys/file.h:
-        * inc/sys/ioctl.h:
-        * inc/sys/param.h:
-        * inc/sys/stat.h:
-        * inc/sys/time.h:
-        * inc/sys/types.h:
-        * src/EmacsMPW.r: Remove files for no longer supported pre-MacOSX
+	* cw6-mcp.xml, make-package, makefile.MPW, inc/alloca.h:
+	* inc/config.h, inc/defs-cw6.h, inc/dirent.h, inc/epaths.h:
+	* inc/grp.h, inc/m-mac.h, inc/pwd.h, inc/s-mac.h, inc/termio.h:
+	* inc/utime.h, inc/utsname.h, inc/sys/file.h, inc/sys/ioctl.h:
+	* inc/sys/param.h, inc/sys/stat.h, inc/sys/time.h, inc/sys/types.h:
+	* src/EmacsMPW.r: Remove files for no longer supported pre-MacOSX
 	systems.
 	* inc: Remove directory.
 
@@ -42,7 +30,7 @@
 
 	* INSTALL: Also build and run on Mac OS X 10.5.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* inc/config.h: Remove HAVE_X11R5.
 
@@ -656,7 +644,7 @@
 	cursor row is invisible.  This can happen if cursor is on top line
 	of a window, and we switch to a buffer with a header line.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
 
@@ -665,7 +653,7 @@
 	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
 	frame parameter have a numeric value all the time.
 
-2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -683,7 +671,7 @@
 	* src/macterm.c: Merged changes from xterm.c.
 	* src/macfns.c: Merged changes from xfns.c.
 
-2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
 
@@ -787,7 +775,7 @@
 
 	* inc/macterm.h (x_display_list): Declare extern.
 
-2001-07-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* src/macterm.c (xim_open_dpy): Fix typo.
 
@@ -977,7 +965,7 @@
 	* src/macterm.c: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 

@@ -1276,5 +1276,5 @@
 
 (provide 'calc-map)
 
-;;; arch-tag: 980eac49-00e0-4870-b72a-e726b74c7990
+;; arch-tag: 980eac49-00e0-4870-b72a-e726b74c7990
 ;;; calc-map.el ends here

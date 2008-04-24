@@ -1223,5 +1223,5 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (provide 'hippie-exp)
 
-;;; arch-tag: 5e6e00bf-b061-4a7a-9b46-de0ae105ab99
+;; arch-tag: 5e6e00bf-b061-4a7a-9b46-de0ae105ab99
 ;;; hippie-exp.el ends here

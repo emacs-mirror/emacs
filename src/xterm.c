@@ -8124,6 +8124,14 @@ x_connection_closed (dpy, error_message)
 #endif
 
 #ifdef USE_GTK
+      /* Due to bugs in some Gtk+ versions, just exit here if this
+         is the last display/terminal. */
+      if (terminal_list->next_terminal == NULL)
+        {
+          fprintf (stderr, "%s\n", error_msg);
+          shut_down_emacs (0, 0, Qnil);
+          exit (70);
+        }
       xg_display_close (dpyinfo->display);
 #endif
 
@@ -8136,7 +8144,11 @@ x_connection_closed (dpy, error_message)
         /* We have just closed all frames on this display. */
         abort ();
 
-      x_delete_display (dpyinfo);
+      {
+	Lisp_Object tmp;
+	XSETTERMINAL (tmp, dpyinfo->terminal);
+	Fdelete_terminal (tmp, Qnoelisp);
+      }
     }
 
   x_uncatch_errors ();
@@ -8157,10 +8169,9 @@ x_connection_closed (dpy, error_message)
 
   unbind_to (index, Qnil);
   clear_waiting_for_input ();
-  /* FIXME: This is an asynchronous interrupt w.r.t elisp, so signalling an
-     error might not be the best thing to do.  I'd vote for creating an
-     elisp event and stuffing it in the queue so people can bind to it via
-     the global map.  --Stef  */
+  /* Here, we absolutely have to use a non-local exit (e.g. signal, throw,
+     longjmp), because returning from this function would get us back into
+     Xlib's code which will directly call `exit'.  */
   error ("%s", error_msg);
 }
 

@@ -94,19 +94,14 @@ A winprops object has the shape (WINDOW . ALIST)."
   (set-window-hscroll (selected-window) ncol))
 
 (defun image-mode-reapply-winprops ()
-  (walk-windows
-   (lambda (win)
-     (with-current-buffer (window-buffer win)
-       ;; When set-window-buffer, set hscroll and vscroll to what they were
-       ;; last time the image was displayed in this window.
-       (when (listp image-mode-winprops-alist)
-         (let* ((winprops (image-mode-winprops win))
-                (hscroll (image-mode-window-get 'hscroll winprops))
-                (vscroll (image-mode-window-get 'vscroll winprops)))
-           (if hscroll (set-window-hscroll win hscroll))
-           (if vscroll (set-window-vscroll win vscroll))))))
-   'nomini
-   (selected-frame)))
+  ;; When set-window-buffer, set hscroll and vscroll to what they were
+  ;; last time the image was displayed in this window.
+  (when (listp image-mode-winprops-alist)
+    (let* ((winprops (image-mode-winprops))
+           (hscroll (image-mode-window-get 'hscroll winprops))
+           (vscroll (image-mode-window-get 'vscroll winprops)))
+      (if hscroll (set-window-hscroll (selected-window) hscroll))
+      (if vscroll (set-window-vscroll (selected-window) vscroll)))))
 
 (defun image-mode-setup-winprops ()
   ;; Record current scroll settings.
@@ -248,6 +243,31 @@ stopping if the top or bottom edge of the image is reached."
 	 (img-height (ceiling (cdr (image-size image)))))
     (image-set-window-hscroll (max 0 (- img-width win-width)))
     (image-set-window-vscroll (max 0 (- img-height win-height)))))
+
+;; Adjust frame and image size.
+
+(defun image-mode-fit-frame ()
+  "Fit the frame to the current image.
+This function assumes the current frame has only one window."
+  ;; FIXME: This does not take into account decorations like mode-line,
+  ;; minibuffer, header-line, ...
+  (interactive)
+  (let* ((saved (frame-parameter nil 'image-mode-saved-size))
+         (display (image-get-display-property))
+         (size (image-size display)))
+    (if (and saved
+             (eq (caar saved) (frame-width))
+             (eq (cdar saved) (frame-height)))
+        (progn ;; Toggle back to previous non-fitted size.
+          (set-frame-parameter nil 'image-mode-saved-size nil)
+          (setq size (cdr saved)))
+      ;; Round up size, and save current size so we can toggle back to it.
+      (setcar size (ceiling (car size)))
+      (setcdr size (ceiling (cdr size)))
+      (set-frame-parameter nil 'image-mode-saved-size
+                           (cons size (cons (frame-width) (frame-height)))))
+    (set-frame-width  (selected-frame) (car size))
+    (set-frame-height (selected-frame) (cdr size))))
 
 ;;; Image Mode setup
 

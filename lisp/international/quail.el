@@ -1927,12 +1927,13 @@ Remaining args are for FUNC."
 (defun quail-setup-completion-buf ()
   "Setup Quail completion buffer."
   (unless (buffer-live-p quail-completion-buf)
-    (let ((default-enable-multibyte-characters enable-multibyte-characters))
-      (setq quail-completion-buf (get-buffer-create "*Quail Completions*")))
-    (with-current-buffer quail-completion-buf
-      (setq buffer-read-only t)
-      (setq quail-overlay (make-overlay 1 1))
-      (overlay-put quail-overlay 'face 'highlight))))
+    (let ((mb enable-multibyte-characters))
+      (setq quail-completion-buf (get-buffer-create "*Quail Completions*"))
+      (with-current-buffer quail-completion-buf
+        (set-buffer-multibyte mb)
+        (setq buffer-read-only t)
+        (setq quail-overlay (make-overlay (point-min) (point-min)))
+        (overlay-put quail-overlay 'face 'highlight)))))
 
 (defun quail-require-guidance-buf ()
   "Return t if the current Quail package requires showing guidance buffer."
@@ -1986,8 +1987,7 @@ minibuffer and the selected frame has no other windows)."
 	      (or (buffer-live-p quail-guidance-buf)
 		  (setq quail-guidance-buf
 			(get-buffer-create " *Quail-guidance*")))
-	      (save-excursion
-		(set-buffer quail-guidance-buf)
+	      (with-current-buffer quail-guidance-buf
 		(erase-buffer)
 		(setq cursor-type nil)
 		(insert guidance))
@@ -2448,7 +2448,7 @@ package to describe."
   (interactive)
   (quail-help-init)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
-	(default-enable-multibyte-characters enable-multibyte-characters)
+	(mb enable-multibyte-characters)
 	(package-def
 	 (if package
 	     (assoc package quail-package-alist)
@@ -2457,6 +2457,7 @@ package to describe."
     (let ((temp-buffer-show-hook nil))
       (with-output-to-temp-buffer (help-buffer)
 	(with-current-buffer standard-output
+          (set-buffer-multibyte mb)
 	  (setq quail-current-package package-def))))
     ;; Then, insert text in the help buffer while paying attention to
     ;; the width of the window in which the buffer displayed.
@@ -3042,5 +3043,5 @@ call it with one argument STRING."
 ;;
 (provide 'quail)
 
-;;; arch-tag: 46d7db54-5467-42c4-a2a9-53ca90a1e886
+;; arch-tag: 46d7db54-5467-42c4-a2a9-53ca90a1e886
 ;;; quail.el ends here

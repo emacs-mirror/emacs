@@ -7,8 +7,13 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 20/3/2008, and the maintainer agreed that when a bug is
+;; filed in the Emacs bug reporting system against this file, a copy
+;; of the bug report be sent to the maintainer's email address.
+
 (defconst ediff-version "2.81.2" "The current version of Ediff")
-(defconst ediff-date "January 09, 2008" "Date of last update")
+(defconst ediff-date "April 06, 2008" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -107,30 +112,30 @@
 
 ;;; Code:
 
+(provide 'ediff)
 
 ;; Compiler pacifier
 (defvar cvs-cookie-handle)
 (defvar ediff-last-dir-patch)
 (defvar ediff-patch-default-directory)
+(defvar ediff-control-window)
 
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 
 (eval-when-compile
-  (and noninteractive
-       (load "dired" nil t))
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (provide 'ediff) ; to break recursive load cycle
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil t 'nosuffix))
-    (or (featurep 'ediff-ptch)
-	(load "ediff-ptch.el" nil t 'nosuffix))
-    (or (featurep 'ediff-vers)
-	(load "ediff-vers.el" nil t 'nosuffix))
-    ))
+  (require 'dired)
+  (require 'ediff-init)
+  (if (not (featurep 'ediff-mult))
+      (require 'ediff-mult))
+  (if (not (featurep 'ediff-util))
+      (require 'ediff-util))
+  (require 'ediff-wind)
+  (if (not (featurep 'ediff-ptch))
+      (require 'ediff-ptch))
+  (require 'ediff-vers)
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -1513,8 +1518,6 @@ With optional NODE, goes to that node."
 
 (run-hooks 'ediff-load-hook)
 
-(provide 'ediff)
-
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
@@ -1522,5 +1525,5 @@ With optional NODE, goes to that node."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
+;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

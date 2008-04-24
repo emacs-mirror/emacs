@@ -38,7 +38,12 @@ Lisp_Object Vundo_outer_limit;
 Lisp_Object Vundo_outer_limit_function;
 
 /* Last buffer for which undo information was recorded.  */
-Lisp_Object last_undo_buffer;
+/* BEWARE: This is not traced by the GC, so never dereference it!  */
+struct buffer *last_undo_buffer;
+
+/* Position of point last time we inserted a boundary.  */
+struct buffer *last_boundary_buffer;
+EMACS_INT last_boundary_position;
 
 Lisp_Object Qinhibit_read_only;
 
@@ -68,11 +73,7 @@ record_point (pt)
 {
   int at_boundary;
 
-  /* Don't record position of pt when undo_inhibit_record_point holds.
-     Needed to avoid inserting a position record in buffer-undo-list
-     when last_point_position has not been set up correctly by
-     command_loop_1, for example, when running a repeat-repeat-char
-     event.  */
+  /* Don't record position of pt when undo_inhibit_record_point holds.  */
   if (undo_inhibit_record_point)
     return;
 
@@ -80,10 +81,9 @@ record_point (pt)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (!BUFFERP (last_undo_buffer)
-      || current_buffer != XBUFFER (last_undo_buffer))
+  if (current_buffer != last_undo_buffer)
     Fundo_boundary ();
-  XSETBUFFER (last_undo_buffer, current_buffer);
+  last_undo_buffer = current_buffer;
 
   if (CONSP (current_buffer->undo_list))
     {
@@ -113,19 +113,10 @@ record_point (pt)
   /* If we are just after an undo boundary, and
      point wasn't at start of deleted range, record where it was.  */
   if (at_boundary
-      && BUFFERP (last_point_position_buffer)
-      /* If we're called from batch mode, this could be nil.  */
-      && current_buffer == XBUFFER (last_point_position_buffer))
-    {
-      /* If we have switched windows, use the point value
-	 from the window we are in.  */
-      if (! EQ (last_point_position_window, selected_window))
-	last_point_position = marker_position (XWINDOW (selected_window)->pointm);
-
-      if (last_point_position != pt)
-	current_buffer->undo_list
-	  = Fcons (make_number (last_point_position), current_buffer->undo_list);
-    }
+      && current_buffer == last_boundary_buffer
+      && last_boundary_position != pt)
+    current_buffer->undo_list
+      = Fcons (make_number (last_boundary_position), current_buffer->undo_list);
 }
 
 /* Record an insertion that just happened or is about to happen,
@@ -211,10 +202,9 @@ record_marker_adjustment (marker, adjustment)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (!BUFFERP (last_undo_buffer)
-      || current_buffer != XBUFFER (last_undo_buffer))
+  if (current_buffer != last_undo_buffer)
     Fundo_boundary ();
-  XSETBUFFER (last_undo_buffer, current_buffer);
+  last_undo_buffer = current_buffer;
 
   current_buffer->undo_list
     = Fcons (Fcons (marker, make_number (adjustment)),
@@ -246,10 +236,9 @@ record_first_change ()
   if (EQ (current_buffer->undo_list, Qt))
     return;
 
-  if (!BUFFERP (last_undo_buffer)
-      || current_buffer != XBUFFER (last_undo_buffer))
+  if (current_buffer != last_undo_buffer)
     Fundo_boundary ();
-  XSETBUFFER (last_undo_buffer, current_buffer);
+  last_undo_buffer = current_buffer;
 
   if (base_buffer->base_buffer)
     base_buffer = base_buffer->base_buffer;
@@ -268,22 +257,22 @@ record_property_change (beg, length, prop, value, buffer)
      Lisp_Object prop, value, buffer;
 {
   Lisp_Object lbeg, lend, entry;
-  struct buffer *obuf = current_buffer;
+  struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
   int boundary = 0;
 
-  if (EQ (XBUFFER (buffer)->undo_list, Qt))
+  if (EQ (buf->undo_list, Qt))
     return;
 
   /* Allocate a cons cell to be the undo boundary after this command.  */
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (!EQ (buffer, last_undo_buffer))
+  if (buf != last_undo_buffer)
     boundary = 1;
-  last_undo_buffer = buffer;
+  last_undo_buffer = buf;
 
   /* Switch temporarily to the buffer that was changed.  */
-  current_buffer = XBUFFER (buffer);
+  current_buffer = buf;
 
   if (boundary)
     Fundo_boundary ();
@@ -323,6 +312,8 @@ but another undo command will undo to the previous boundary.  */)
       else
 	current_buffer->undo_list = Fcons (Qnil, current_buffer->undo_list);
     }
+  last_boundary_position = PT;
+  last_boundary_buffer = current_buffer;
   return Qnil;
 }
 
@@ -398,7 +389,8 @@ truncate_undo_list (b)
       && size_so_far > XINT (Vundo_outer_limit)
       && !NILP (Vundo_outer_limit_function))
     {
-      Lisp_Object temp = last_undo_buffer, tem;
+      Lisp_Object tem;
+      struct buffer *temp = last_undo_buffer;
 
       /* Normally the function this calls is undo-outer-limit-truncate.  */
       tem = call1 (Vundo_outer_limit_function, make_number (size_so_far));
@@ -678,6 +670,9 @@ syms_of_undo ()
 
   pending_boundary = Qnil;
   staticpro (&pending_boundary);
+
+  last_undo_buffer = NULL;
+  last_boundary_buffer = NULL;
 
   defsubr (&Sprimitive_undo);
   defsubr (&Sundo_boundary);

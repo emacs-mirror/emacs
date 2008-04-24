@@ -611,5 +611,5 @@ This also matches some punctuation characters which need conversion.")
 
 (provide 'tibetan)
 
-;;; arch-tag: 8d37c8d7-f95d-450f-9ec2-819e61fc79a7
+;; arch-tag: 8d37c8d7-f95d-450f-9ec2-819e61fc79a7
 ;;; tibetan.el ends here

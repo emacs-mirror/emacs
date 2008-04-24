@@ -176,5 +176,5 @@ for example, \"word\"."
 
 (provide 'spell)
 
-;;; arch-tag: 7eabb848-9c76-431a-bcdb-0e0592d2db04
+;; arch-tag: 7eabb848-9c76-431a-bcdb-0e0592d2db04
 ;;; spell.el ends here

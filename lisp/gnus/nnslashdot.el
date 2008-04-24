@@ -503,5 +503,5 @@
 
 (provide 'nnslashdot)
 
-;;; arch-tag: aa73df7a-f7e6-4eef-bdea-5ce2f8c691b3
+;; arch-tag: aa73df7a-f7e6-4eef-bdea-5ce2f8c691b3
 ;;; nnslashdot.el ends here

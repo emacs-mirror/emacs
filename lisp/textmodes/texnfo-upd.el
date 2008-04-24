@@ -2060,5 +2060,5 @@ chapter."
 ;; Place `provide' at end of file.
 (provide 'texnfo-upd)
 
-;;; arch-tag: d21613a5-c32f-43f4-8af4-bfb1e7455842
+;; arch-tag: d21613a5-c32f-43f4-8af4-bfb1e7455842
 ;;; texnfo-upd.el ends here

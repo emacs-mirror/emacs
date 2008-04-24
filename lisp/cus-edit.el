@@ -416,11 +416,6 @@
   "Debugging Emacs itself."
   :group 'development)
 
-(defgroup minibuffer nil
-  "Controlling the behavior of the minibuffer."
-  :link '(custom-manual "(emacs)Minibuffer")
-  :group 'environment)
-
 (defgroup keyboard nil
   "Input from the keyboard."
   :group 'environment)

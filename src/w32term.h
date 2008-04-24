@@ -361,12 +361,11 @@ struct w32_output
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
-  /* Window whose cursor is hourglass_cursor.  This window is
-     temporarily mapped to display an hourglass cursor.  */
-  Window hourglass_window;
-
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
+
+  /* Non-hourglass cursor that is currently active.  */
+  Cursor current_cursor;
 
   /* Flag to set when the window needs to be completely repainted.  */
   int needs_exposure;

@@ -1775,7 +1775,11 @@ The default status is as follows:
   ;; (set-terminal-coding-system-internal nil)
   ;; (set-keyboard-coding-system-internal nil)
 
-  (set-unibyte-charset 'iso-8859-1))
+  ;; Back in Emacs-20, it was necessary to provide some fallback implicit
+  ;; conversion, because almost no packages handled coding-system issues.
+  ;; Nowadays it'd just paper over bugs.
+  ;; (set-unibyte-charset 'iso-8859-1)
+  )
 
 (reset-language-environment)
 
@@ -1964,7 +1968,11 @@ Setting this variable directly does not take effect.  See
     (or (and (charsetp nonascii)
 	     (get-charset-property nonascii :ascii-compatible-p))
 	(setq nonascii 'iso-8859-1))
-    (set-unibyte-charset nonascii)))
+    ;; Back in Emacs-20, it was necessary to provide some fallback implicit
+    ;; conversion, because almost no packages handled coding-system issues.
+    ;; Nowadays it'd just paper over bugs.
+    ;; (set-unibyte-charset nonascii)
+    ))
 
 (defun set-language-environment-charset (language-name)
   "Do various charset setups for language environment LANGUAGE-NAME."
@@ -2597,21 +2605,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; Fixme: perhaps prefer-coding-system should set this too.
 	  ;; But it's not the time to do such a fundamental change.
 	  (setq default-sendmail-coding-system coding-system)
-	  (setq locale-coding-system coding-system))
-
-	(when (get-language-info current-language-environment 'coding-priority)
-	  (let ((codeset (locale-info 'codeset))
-		(coding-system (car (coding-system-priority-list))))
-	    (when codeset
-	      (let ((cs (coding-system-aliases coding-system))
-		    result)
-		(while (and cs (not result))
-		  (setq result
-			(locale-charset-match-p (symbol-name (pop cs))
-						(locale-info 'codeset))))
-		(unless result
-		  (message "Warning: Default coding system `%s' disagrees with
-system codeset `%s' for this locale." coding-system codeset))))))))
+	  (setq locale-coding-system coding-system))))
 
     ;; On Windows, override locale-coding-system,
     ;; default-file-name-coding-system, keyboard-coding-system,

@@ -292,7 +292,9 @@ Any terminating `>' or `/' is not matched.")
   ;; comments recognized when `sgml-specials' includes ?-.
   ;; FIXME: beware of <!--> blabla <!--> !!
   '(("\\(<\\)!--" (1 "< b"))
-    ("--[ \t\n]*\\(>\\)" (1 "> b")))
+    ("--[ \t\n]*\\(>\\)" (1 "> b"))
+    ;; Double quotes outside of tags should not introduce strings.
+    ("\\\"" (0 (if (zerop (car (syntax-ppss))) "."))))
   "Syntactic keywords for `sgml-mode'.")
 
 ;; internal

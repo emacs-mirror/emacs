@@ -304,5 +304,5 @@ generations (this defaults to 1)."
 
 (provide 'life)
 
-;;; arch-tag: e9373544-755e-42f5-a9a1-4d4c422bb97a
+;; arch-tag: e9373544-755e-42f5-a9a1-4d4c422bb97a
 ;;; life.el ends here

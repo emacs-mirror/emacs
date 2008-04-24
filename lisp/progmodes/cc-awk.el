@@ -1097,5 +1097,5 @@ comment at the start of cc-engine.el for more info."
 
 (cc-provide 'cc-awk)			; Changed from 'awk-mode, ACM 2002/5/21
 
-;;; arch-tag: c4836289-3aa4-4a59-9934-9ccc2bacccf3
+;; arch-tag: c4836289-3aa4-4a59-9934-9ccc2bacccf3
 ;;; awk-mode.el ends here

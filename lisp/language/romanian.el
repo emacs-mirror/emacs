@@ -54,5 +54,5 @@ An environment for generic Latin-10 encoding is also available."))
 
 (provide 'romanian)
 
-;;; arch-tag: a0bf93ee-2f02-4678-a477-c08acc35366b
+;; arch-tag: a0bf93ee-2f02-4678-a477-c08acc35366b
 ;;; romanian.el ends here

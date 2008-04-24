@@ -31,10 +31,8 @@
 (defvar ediff-multiframe)
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    ))
+  (require 'ediff-init)
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -325,5 +323,5 @@ the value of this variable and the variables `ediff-help-message-*' in
 (provide 'ediff-help)
 
 
-;;; arch-tag: 05659813-7fcf-4274-964f-d2f577431a9d
+;; arch-tag: 05659813-7fcf-4274-964f-d2f577431a9d
 ;;; ediff-help.el ends here

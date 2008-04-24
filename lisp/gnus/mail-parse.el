@@ -76,5 +76,5 @@
 
 (provide 'mail-parse)
 
-;;; arch-tag: 3e63d75c-c962-4784-ab01-7ba07ca9d2d4
+;; arch-tag: 3e63d75c-c962-4784-ab01-7ba07ca9d2d4
 ;;; mail-parse.el ends here

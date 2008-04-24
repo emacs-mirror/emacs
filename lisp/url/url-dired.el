@@ -92,5 +92,5 @@ Example:  (add-minor-mode 'view-minor-mode \" View\" view-mode-map)"
 
 (provide 'url-dired)
 
-;;; arch-tag: 2694f21a-43e1-4391-b3cb-cf6e5349f15f
+;; arch-tag: 2694f21a-43e1-4391-b3cb-cf6e5349f15f
 ;;; url-dired.el ends here

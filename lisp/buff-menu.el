@@ -809,14 +809,21 @@ For more information, see the function `buffer-menu'."
 		;; Put the buffer name into a text property
 		;; so we don't have to extract it from the text.
 		;; This way we avoid problems with unusual buffer names.
-		(Buffer-menu-buffer+size (nth 2 buffer)
-					 (int-to-string (nth 3 buffer))
-					 `(buffer-name ,(nth 2 buffer)
-					   buffer ,(car buffer)
-					   font-lock-face buffer-menu-buffer
-					   mouse-face highlight
-					   help-echo "mouse-2: select this buffer"))
-		"  "
+		(let ((name (nth 2 buffer))
+		      (size (int-to-string (nth 3 buffer))))
+		      (Buffer-menu-buffer+size name size
+		         `(buffer-name ,name
+				       buffer ,(car buffer)
+				       font-lock-face buffer-menu-buffer
+				       mouse-face highlight
+				       help-echo 
+				       ,(if (>= (length name)
+						(- Buffer-menu-buffer+size-width
+						   (max (length size) 3)
+						   2))
+					    name
+					  "mouse-2: select this buffer"))))
+		  "  "
 		(if (> (length (nth 4 buffer)) Buffer-menu-mode-width)
 		    (substring (nth 4 buffer) 0 Buffer-menu-mode-width)
 		  (nth 4 buffer)))

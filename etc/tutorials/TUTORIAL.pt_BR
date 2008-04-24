@@ -549,13 +549,6 @@ motivo.
 >> Digite C-x C-s, salvará a cópia do seu tutorial.
    Isso imprimirá "Wrote ...TUTORIAL.pt_BR" no fim da tela.
 
-NOTA: Em alguns sistemas, digitar C-x C-s travará a tela e você não
-verá saída do Emacs. Isso indica que um "recurso" do sistema operacional
-chamado "controle de fluxo" (flow control) esta interceptando o C-s e
-não deixando que passe pelo Emacs. Para destravar a tela, digite
-C-q. Então, leia na seção "Spontaneous Entry to Incremental Search" no
-manual do Emacs para uma dica de como lidar com esse "recurso".
-
 Você pode encontrar um arquivo já existente, para vê-lo ou editá-lo. Você
 também pode encontrar um arquivo que ainda não existe. Essa é a maneira
 de criar um arquivo com o Emacs: encontre o arquivo, que iniciará

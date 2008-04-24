@@ -27,8 +27,9 @@
 
 ;;; Commentary:
 
-;; This package is obsolete.  Emacs now resizes mini-windows
-;; automatically.
+;; This file has been obsolete since Emacs 21.1.
+
+;; This package is obsolete.  Emacs now resizes mini-windows automatically.
 
 ;;; Code:
 
@@ -81,5 +82,5 @@
 
 (provide 'rsz-mini)
 
-;;; arch-tag: 3cb85d51-ab33-4e46-8362-dd87a5d06c99
+;; arch-tag: 3cb85d51-ab33-4e46-8362-dd87a5d06c99
 ;;; rsz-mini.el ends here

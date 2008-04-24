@@ -85,5 +85,5 @@
 
 (provide 'greek)
 
-;;; arch-tag: 9ba48d79-84bc-45e1-9318-685dc3921410
+;; arch-tag: 9ba48d79-84bc-45e1-9318-685dc3921410
 ;;; greek.el ends here

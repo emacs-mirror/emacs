@@ -380,5 +380,5 @@ If called with a prefix argument, only encrypt (do NOT sign)."
 
 (provide 'mml-sec)
 
-;;; arch-tag: 111c56e7-df5e-4287-87d7-93ed2911ec6c
+;; arch-tag: 111c56e7-df5e-4287-87d7-93ed2911ec6c
 ;;; mml-sec.el ends here

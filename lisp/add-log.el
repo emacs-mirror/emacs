@@ -39,6 +39,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl)				; ignore-errors
   (require 'timezone))
 
 (defgroup change-log nil
@@ -764,6 +765,7 @@ the change log file in another window."
 
 
 (defvar smerge-resolve-function)
+(defvar copyright-at-end-flag)
 
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
@@ -783,10 +785,11 @@ Runs `change-log-mode-hook'.
   ;; Avoid that filling leaves behind a single "*" on a line.
   (add-hook 'fill-nobreak-predicate
 	    '(lambda ()
-	       (looking-back "^\\s *\\*\\s *" (line-beginning-position))) 
+	       (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
 	    nil t)
   (set (make-local-variable 'indent-line-function) 'change-log-indent)
   (set (make-local-variable 'tab-always-indent) nil)
+  (set (make-local-variable 'copyright-at-end-flag) t)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
@@ -820,8 +823,11 @@ file were isearch was started."
 	 (files (cons name (sort (file-expand-wildcards
 				  (concat name "[-.][0-9]*"))
 				 (lambda (a b)
-				   (version< (substring b (length name))
-					     (substring a (length name)))))))
+                                   ;; The file's extension may not have a valid
+                                   ;; version form (e.g. VC backup revisions).
+                                   (ignore-errors
+                                     (version< (substring b (length name))
+                                               (substring a (length name))))))))
 	 (files (if isearch-forward files (reverse files))))
     (find-file-noselect
      (if wrap
@@ -868,8 +874,8 @@ Prefix arg means justify as well."
   '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
   "*Modes that look like TeX to `add-log-current-defun'.")
 
-(declare-function c-beginning-of-defun "cc-cmds" (&optional arg))
-(declare-function c-end-of-defun "cc-cmds" (&optional arg))
+(declare-function c-cpp-define-name "cc-cmds" ())
+(declare-function c-defun-name      "cc-cmds" ())
 
 ;;;###autoload
 (defun add-log-current-defun ()
@@ -914,167 +920,10 @@ Has a preference of looking backwards."
 		   (buffer-substring-no-properties (point)
 						   (progn (forward-sexp 1)
 							  (point)))))
-		((and (apply 'derived-mode-p add-log-c-like-modes)
-		      (save-excursion
-			(beginning-of-line)
-			;; Use eq instead of = here to avoid
-			;; error when at bob and char-after
-			;; returns nil.
-			(while (eq (char-after (- (point) 2)) ?\\)
-			  (forward-line -1))
-			(looking-at "[ \t]*#[ \t]*define[ \t]")))
-		 ;; Handle a C macro definition.
-		 (beginning-of-line)
-		 (while (eq (char-after (- (point) 2)) ?\\) ;not =; note above
-		   (forward-line -1))
-		 (search-forward "define")
-		 (skip-chars-forward " \t")
-		 (buffer-substring-no-properties (point)
-						 (progn (forward-sexp 1)
-							(point))))
 		((apply 'derived-mode-p add-log-c-like-modes)
-		 ;; See whether the point is inside a defun.
-		 (let (having-previous-defun
-		       having-next-defun
-		       previous-defun-end
-		       next-defun-beginning)
-		     
-		   (save-excursion
-		     (setq having-previous-defun
-			   (c-beginning-of-defun))
-		     (c-end-of-defun)
-		     ;; `c-end-of-defun' moves point to the line after
-		     ;; the function close, but the position we prefer
-		     ;; here is the position after the final }.
-		     (backward-sexp 1)
-		     (forward-sexp 1)
-                     ;; Skip the semicolon ``;'' for
-		     ;; enum/union/struct/class definition.
-		     (if (= (char-after (point)) ?\;)
-			 (forward-char 1))
-		     (setq previous-defun-end (point)))
-
-		   (save-excursion
-		     (setq having-next-defun
-			   (c-end-of-defun))
-		     (c-beginning-of-defun)
-		     (setq next-defun-beginning (point)))
-
-		   (if (and having-next-defun
-			    (< location next-defun-beginning))
-		       (skip-syntax-forward " "))
-		   (if (and having-previous-defun
-			    (> location previous-defun-end))
-		       (skip-syntax-backward " "))
-		   (unless (or
-			    ;; When there is no previous defun, the
-			    ;; point is not in a defun if it is not at
-			    ;; the beginning of the next defun.
-			    (and (not having-previous-defun)
-				 (not (= (point)
-					 next-defun-beginning)))
-			    ;; When there is no next defun, the point
-			    ;; is not in a defun if it is not at the
-			    ;; end of the previous defun.
-			    (and (not having-next-defun)
-				 (not (= (point)
-					 previous-defun-end)))
-			    ;; If the point is between two defuns, it
-			    ;; is not in a defun.
-			    (and (> (point) previous-defun-end)
-				 (< (point) next-defun-beginning)))
-		     ;; If the point is already at the beginning of a
-		     ;; defun, there is no need to move point again.
-		     (if (not (= (point) next-defun-beginning))
-			 (c-beginning-of-defun))
-		     ;; Is this a DEFUN construct?  And is LOCATION in it?
-		     (if (and (looking-at "DEFUN\\b")
-			      (>= location (point)))
-                         ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
-                         ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
-			 (progn
-			   (down-list 1)
-			   (when (= (char-after (point)) ?\")
-                             (forward-sexp 1)
-                             (search-forward ","))
-                           (skip-syntax-forward " ")
-			   (buffer-substring-no-properties
-			    (point)
-			    (progn (search-forward ",")
-                                   (forward-char -1)
-                                   (skip-syntax-backward " ")
-				   (point))))
-		       (if (looking-at "^[+-]")
-			   ;; Objective-C
-			   (change-log-get-method-definition)
-			 ;; Ordinary C function syntax.
-			 (let ((beg (point)))
-			   (if (and
-				;; Protect against "Unbalanced parens" error.
-				(condition-case nil
-				    (progn
-				      (down-list 1) ; into arglist
-				      (backward-up-list 1)
-				      (skip-chars-backward " \t")
-				      t)
-				  (error nil))
-				;; Verify initial pos was after
-				;; real start of function.
-				(save-excursion
-				  (goto-char beg)
-				  ;; For this purpose, include the line
-				  ;; that has the decl keywords.  This
-				  ;; may also include some of the
-				  ;; comments before the function.
-				  (while (and (not (bobp))
-					      (save-excursion
-						(forward-line -1)
-						(looking-at "[^\n\f]")))
-				    (forward-line -1))
-				  (>= location (point)))
-				;; Consistency check: going down and up
-				;; shouldn't take us back before BEG.
-				(> (point) beg))
-			       (let (end middle)
-				 ;; Don't include any final whitespace
-				 ;; in the name we use.
-				 (skip-chars-backward " \t\n")
-				 (setq end (point))
-				 (backward-sexp 1)
-				 ;; Now find the right beginning of the name.
-				 ;; Include certain keywords if they
-				 ;; precede the name.
-				 (setq middle (point))
-				 ;; We tried calling `forward-sexp' in a loop
-				 ;; but it causes inconsistency for C names.
-				 (forward-sexp -1)
-				 ;; Is this C++ method?
-				 (when (and (< 2 middle)
-					    (string= (buffer-substring (- middle 2)
-								       middle)
-						     "::"))
-				   ;; Include "classname::".
-				   (setq middle (point)))
-				 ;; Ignore these subparts of a class decl
-				 ;; and move back to the class name itself.
-				 (while (looking-at "public \\|private ")
-				   (skip-chars-backward " \t:")
-				   (setq end (point))
-				   (backward-sexp 1)
-				   (setq middle (point))
-				   (forward-word -1))
-				 (and (bolp)
-				      (looking-at
-				       "enum \\|struct \\|union \\|class ")
-				      (setq middle (point)))
-				 (goto-char end)
-				 (when (eq (preceding-char) ?=)
-				   (forward-char -1)
-				   (skip-chars-backward " \t")
-				   (setq end (point)))
-				 (buffer-substring-no-properties
-				  middle end)))))))))
-		((apply 'derived-mode-p add-log-tex-like-modes)
+		 (or (c-cpp-define-name)
+		     (c-defun-name)))
+		((memq major-mode add-log-tex-like-modes)
 		 (if (re-search-backward
 		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
 		      nil t)

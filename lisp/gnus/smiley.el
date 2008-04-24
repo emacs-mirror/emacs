@@ -228,5 +228,5 @@ With arg, turn displaying on if and only if arg is positive."
 
 (provide 'smiley)
 
-;;; arch-tag: 5beb161b-4321-40af-8ac9-876afb8ee818
+;; arch-tag: 5beb161b-4321-40af-8ac9-876afb8ee818
 ;;; smiley.el ends here

@@ -162,6 +162,7 @@
   mark-active) ; aliased to region-exists-p in XEmacs.
 
 (autoload 'gnus-alive-p "gnus-util")
+(autoload 'mm-disable-multibyte "mm-util")
 
 (defun gnus-x-splash ()
   "Show a splash screen using a pixmap in the current buffer."
@@ -179,9 +180,9 @@
     (sit-for 0) ;; Necessary for measuring the window size correctly.
     (when (and file
 	       (ignore-errors
-		(let ((coding-system-for-read 'raw-text)
-		      default-enable-multibyte-characters)
+		(let ((coding-system-for-read 'raw-text))
 		  (with-temp-buffer
+                    (mm-disable-multibyte)
 		    (insert-file-contents file)
 		    (goto-char (point-min))
 		    (setq pixmap (read (current-buffer)))))))
@@ -307,5 +308,5 @@
 
 (provide 'gnus-ems)
 
-;;; arch-tag: e7360b45-14b5-4171-aa39-69a44aed3cdb
+;; arch-tag: e7360b45-14b5-4171-aa39-69a44aed3cdb
 ;;; gnus-ems.el ends here

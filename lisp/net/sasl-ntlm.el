@@ -64,5 +64,5 @@ challenge stored in the 2nd element of STEP.  Called from 'sasl-next-step."
 
 (provide 'sasl-ntlm)
 
-;;; arch-tag: 1d9164c1-1df0-418f-b7ab-360157fd05dc
+;; arch-tag: 1d9164c1-1df0-418f-b7ab-360157fd05dc
 ;;; sasl-ntlm.el ends here

@@ -550,6 +550,8 @@ Many aspects this mode can be customized using
   (when nxml-syntax-highlight-flag
     (add-hook 'fontification-functions 'nxml-fontify nil t))
   (add-hook 'after-change-functions 'nxml-after-change nil t)
+  (add-hook 'change-major-mode-hook 'nxml-cleanup nil t)
+
   ;; Emacs 23 handles the encoding attribute on the xml declaration
   ;; transparently to nxml-mode, so there is no longer a need for the below
   ;; hook. The hook also had the drawback of overriding explicit user
@@ -564,6 +566,21 @@ Many aspects this mode can be customized using
   (rng-nxml-mode-init)
   (nxml-enable-unicode-char-name-sets)
   (run-hooks 'nxml-mode-hook))
+
+(defun nxml-cleanup ()
+  "Clean up after nxml-mode."
+  ;; Disable associated minor modes.
+  (rng-validate-mode -1)
+  ;; Clean up fontification.
+  (save-excursion
+    (widen)
+    (let ((inhibit-read-only t)
+	  (buffer-undo-list t)
+	  (modified (buffer-modified-p)))
+      (nxml-with-invisible-motion
+       (remove-text-properties (point-min) (point-max) '(face)))
+      (set-buffer-modified-p modified)))
+  (remove-hook 'change-major-mode-hook 'nxml-cleanup t))
 
 (defun nxml-degrade (context err)
   (message "Internal nXML mode error in %s (%s), degrading"

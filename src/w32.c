@@ -110,6 +110,9 @@ void globals_of_w32 ();
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
+/* Defined in process.c for its own purpose.  */
+extern Lisp_Object Qlocal;
+
 extern int w32_num_mouse_buttons;
 
 
@@ -637,8 +640,6 @@ init_user_info ()
 	      the_passwd.pw_uid =
 		*get_sid_sub_authority (user_token.User.Sid,
 					n_subauthorities - 1);
-	      /* Restrict to conventional uid range for normal users.  */
-	      the_passwd.pw_uid %= 60001;
 	    }
 
 	  /* Get group id */
@@ -656,8 +657,6 @@ init_user_info ()
 		  the_passwd.pw_gid =
 		    *get_sid_sub_authority (group_token.PrimaryGroup,
 					    n_subauthorities - 1);
-		  /* I don't know if this is necessary, but for safety...  */
-		  the_passwd.pw_gid %= 60001;
 		}
 	    }
 	  else
@@ -1889,6 +1888,8 @@ closedir (DIR *dirp)
 struct direct *
 readdir (DIR *dirp)
 {
+  int downcase = !NILP (Vw32_downcase_file_names);
+
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
       if (!read_unc_volume (wnet_enum_handle,
@@ -1923,14 +1924,38 @@ readdir (DIR *dirp)
      value returned by stat().  */
   dir_static.d_ino = 1;
 
+  strcpy (dir_static.d_name, dir_find_data.cFileName);
+
+  /* If the file name in cFileName[] includes `?' characters, it means
+     the original file name used characters that cannot be represented
+     by the current ANSI codepage.  To avoid total lossage, retrieve
+     the short 8+3 alias of the long file name.  */
+  if (_mbspbrk (dir_static.d_name, "?"))
+    {
+      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
+      downcase = 1;	/* 8+3 aliases are returned in all caps */
+    }
+  dir_static.d_namlen = strlen (dir_static.d_name);
   dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
 
-  dir_static.d_namlen = strlen (dir_find_data.cFileName);
-  strcpy (dir_static.d_name, dir_find_data.cFileName);
+  /* If the file name in cFileName[] includes `?' characters, it means
+     the original file name used characters that cannot be represented
+     by the current ANSI codepage.  To avoid total lossage, retrieve
+     the short 8+3 alias of the long file name.  */
+  if (_mbspbrk (dir_find_data.cFileName, "?"))
+    {
+      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
+      /* 8+3 aliases are returned in all caps, which could break
+	 various alists that look at filenames' extensions.  */
+      downcase = 1;
+    }
+  else
+    strcpy (dir_static.d_name, dir_find_data.cFileName);
+  dir_static.d_namlen = strlen (dir_static.d_name);
   if (dir_is_fat)
     _strlwr (dir_static.d_name);
-  else if (!NILP (Vw32_downcase_file_names))
+  else if (downcase)
     {
       register char *p;
       for (p = dir_static.d_name; *p; p++)
@@ -2024,10 +2049,15 @@ logon_network_drive (const char *path)
   NETRESOURCE resource;
   char share[MAX_PATH];
   int i, n_slashes;
+  char drive[4];
+
+  sprintf (drive, "%c:\\", path[0]);
 
   /* Only logon to networked drives.  */
-  if (!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
+  if ((!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
+      && GetDriveType (drive) != DRIVE_REMOTE)
     return;
+
   n_slashes = 2;
   strncpy (share, path, MAX_PATH);
   /* Truncate to just server and share name.  */
@@ -2108,7 +2138,7 @@ sys_chmod (const char * path, int mode)
 int
 sys_chown (const char *path, uid_t owner, gid_t group)
 {
-  if (sys_chmod (path, _S_IREAD) == -1) /* check if file exists */
+  if (sys_chmod (path, S_IREAD) == -1) /* check if file exists */
     return -1;
   return 0;
 }
@@ -2515,7 +2545,7 @@ stat (const char * path, struct stat * buf)
   char *name, *r;
   WIN32_FIND_DATA wfd;
   HANDLE fh;
-  DWORD fake_inode;
+  unsigned __int64 fake_inode;
   int permission;
   int len;
   int rootdir = FALSE;
@@ -2617,6 +2647,8 @@ stat (const char * path, struct stat * buf)
     }
 
   if (!NILP (Vw32_get_true_file_attributes)
+      && !(EQ (Vw32_get_true_file_attributes, Qlocal) && 
+	   GetDriveType (name) == DRIVE_FIXED)
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
@@ -2635,7 +2667,9 @@ stat (const char * path, struct stat * buf)
 	     all the time (even then there are situations where it is
 	     not unique).  Reputedly, there are at most 48 bits of info
 	     (on NTFS, presumably less on FAT). */
-	  fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
+	  fake_inode = info.nFileIndexHigh;
+	  fake_inode <<= 32;
+	  fake_inode += info.nFileIndexLow;
 	}
       else
 	{
@@ -2645,22 +2679,22 @@ stat (const char * path, struct stat * buf)
 
       if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 	{
-	  buf->st_mode = _S_IFDIR;
+	  buf->st_mode = S_IFDIR;
 	}
       else
 	{
 	  switch (GetFileType (fh))
 	    {
 	    case FILE_TYPE_DISK:
-	      buf->st_mode = _S_IFREG;
+	      buf->st_mode = S_IFREG;
 	      break;
 	    case FILE_TYPE_PIPE:
-	      buf->st_mode = _S_IFIFO;
+	      buf->st_mode = S_IFIFO;
 	      break;
 	    case FILE_TYPE_CHAR:
 	    case FILE_TYPE_UNKNOWN:
 	    default:
-	      buf->st_mode = _S_IFCHR;
+	      buf->st_mode = S_IFCHR;
 	    }
 	}
       CloseHandle (fh);
@@ -2669,7 +2703,7 @@ stat (const char * path, struct stat * buf)
     {
       /* Don't bother to make this information more accurate.  */
       buf->st_mode = (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ?
-	_S_IFDIR : _S_IFREG;
+	S_IFDIR : S_IFREG;
       buf->st_nlink = 1;
       fake_inode = 0;
     }
@@ -2712,14 +2746,14 @@ stat (const char * path, struct stat * buf)
 
   /* determine rwx permissions */
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-    permission = _S_IREAD;
+    permission = S_IREAD;
   else
-    permission = _S_IREAD | _S_IWRITE;
+    permission = S_IREAD | S_IWRITE;
 
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    permission |= _S_IEXEC;
+    permission |= S_IEXEC;
   else if (is_exec (name))
-    permission |= _S_IEXEC;
+    permission |= S_IEXEC;
 
   buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
 
@@ -2733,13 +2767,13 @@ fstat (int desc, struct stat * buf)
 {
   HANDLE fh = (HANDLE) _get_osfhandle (desc);
   BY_HANDLE_FILE_INFORMATION info;
-  DWORD fake_inode;
+  unsigned __int64 fake_inode;
   int permission;
 
   switch (GetFileType (fh) & ~FILE_TYPE_REMOTE)
     {
     case FILE_TYPE_DISK:
-      buf->st_mode = _S_IFREG;
+      buf->st_mode = S_IFREG;
       if (!GetFileInformationByHandle (fh, &info))
 	{
 	  errno = EACCES;
@@ -2747,12 +2781,12 @@ fstat (int desc, struct stat * buf)
 	}
       break;
     case FILE_TYPE_PIPE:
-      buf->st_mode = _S_IFIFO;
+      buf->st_mode = S_IFIFO;
       goto non_disk;
     case FILE_TYPE_CHAR:
     case FILE_TYPE_UNKNOWN:
     default:
-      buf->st_mode = _S_IFCHR;
+      buf->st_mode = S_IFCHR;
     non_disk:
       memset (&info, 0, sizeof (info));
       info.dwFileAttributes = 0;
@@ -2762,7 +2796,7 @@ fstat (int desc, struct stat * buf)
     }
 
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      buf->st_mode = _S_IFDIR;
+      buf->st_mode = S_IFDIR;
 
   buf->st_nlink = info.nNumberOfLinks;
   /* Might as well use file index to fake inode values, but this
@@ -2770,7 +2804,9 @@ fstat (int desc, struct stat * buf)
      all the time (even then there are situations where it is
      not unique).  Reputedly, there are at most 48 bits of info
      (on NTFS, presumably less on FAT). */
-  fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
+  fake_inode = info.nFileIndexHigh;
+  fake_inode <<= 32;
+  fake_inode += info.nFileIndexLow;
 
   /* MSVC defines _ino_t to be short; other libc's might not.  */
   if (sizeof (buf->st_ino) == 2)
@@ -2796,12 +2832,12 @@ fstat (int desc, struct stat * buf)
 
   /* determine rwx permissions */
   if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-    permission = _S_IREAD;
+    permission = S_IREAD;
   else
-    permission = _S_IREAD | _S_IWRITE;
+    permission = S_IREAD | S_IWRITE;
 
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    permission |= _S_IEXEC;
+    permission |= S_IEXEC;
   else
     {
 #if 0 /* no way of knowing the filename */
@@ -2811,7 +2847,7 @@ fstat (int desc, struct stat * buf)
 	   stricmp (p, ".com") == 0 ||
 	   stricmp (p, ".bat") == 0 ||
 	   stricmp (p, ".cmd") == 0))
-	permission |= _S_IEXEC;
+	permission |= S_IEXEC;
 #endif
     }
 

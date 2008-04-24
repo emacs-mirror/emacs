@@ -1030,12 +1030,9 @@ use only useful if `image-dired-track-movement' is nil."
         (dired-buf (image-dired-associated-dired-buffer))
         (file-name (image-dired-original-file-name)))
     (when (and (buffer-live-p dired-buf) file-name)
-      (setq file-name (file-name-nondirectory file-name))
       (set-buffer dired-buf)
-      (goto-char (point-min))
-      (if (not (search-forward file-name nil t))
+      (if (not (dired-goto-file file-name))
           (message "Could not track file")
-        (dired-move-to-filename)
         (set-window-point
          (image-dired-get-buffer-window dired-buf) (point)))
       (set-buffer old-buf))))
@@ -1199,8 +1196,7 @@ comment."
 
 (defun image-dired-modify-mark-on-thumb-original-file (command)
   "Modify mark in dired buffer.
-This is quite ugly but I don't know how to implemented in a better
-way.  COMMAND is one of 'mark for marking file in dired, 'unmark for
+COMMAND is one of 'mark for marking file in dired, 'unmark for
 unmarking file in dired or 'flag for flagging file for delete in
 dired."
   (let ((file-name (image-dired-original-file-name))
@@ -1209,9 +1205,7 @@ dired."
         (message "No image, or image with correct properties, at point.")
     (with-current-buffer dired-buf
         (message "%s" file-name)
-        (setq file-name (file-name-nondirectory file-name))
-        (goto-char (point-min))
-        (if (search-forward file-name nil t)
+        (if (dired-goto-file file-name)
             (cond ((eq command 'mark) (dired-mark 1))
                   ((eq command 'unmark) (dired-unmark 1))
                   ((eq command 'toggle)

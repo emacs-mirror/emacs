@@ -566,11 +566,10 @@ Highlighting text means displaying it with a different foreground and/or
 background color to make it stand out from the rest of the text in the
 buffer.
 
-Emacs uses highlighting in several ways.  When you mark a region with
-the mouse, the region is always highlighted.  Optionally Emacs can
-also highlight the region whenever it is active (@pxref{Transient
-Mark}).  Incremental search also highlights matches (@pxref{Incremental
-Search}).  See also `font lock'.
+Emacs uses highlighting in several ways.  It highlights the region
+whenever it is active (@pxref{Mark}).  Incremental search also
+highlights matches (@pxref{Incremental Search}).  See also `font
+lock'.
 
 @item Hardcopy
 Hardcopy means printed output.  Emacs has commands for making printed

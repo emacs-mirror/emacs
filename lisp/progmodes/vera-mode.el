@@ -9,6 +9,11 @@
 ;; Keywords:    languages vera
 ;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 18/3/2008, and the maintainer agreed that when a bug is
+;; filed in the Emacs bug reporting system against this file, a copy
+;; of the bug report be sent to the maintainer's email address.
+
 (defconst vera-version "2.18"
   "Vera Mode version number.")
 

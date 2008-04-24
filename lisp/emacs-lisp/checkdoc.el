@@ -1193,9 +1193,8 @@ generating a buffered list of errors."
     map)
   "Keymap used to override evaluation key-bindings for documentation checking.")
 
-(defvaralias 'checkdoc-minor-keymap 'checkdoc-minor-mode-map)
-(make-obsolete-variable 'checkdoc-minor-keymap
-                        'checkdoc-minor-mode-map)
+(define-obsolete-variable-alias 'checkdoc-minor-keymap
+    'checkdoc-minor-mode-map "21.1")
 
 ;; Add in a menubar with easy-menu
 
@@ -1774,10 +1773,9 @@ function,command,variable,option or symbol." ms1))))))
 					checkdoc-common-verbs-wrong-voice))
 			(if (not rs) (error "Verb voice alist corrupted"))
 			(setq replace (let ((case-fold-search nil))
-					(save-match-data
-					  (if (string-match "^[A-Z]" original)
-					      (capitalize (cdr rs))
-					    (cdr rs)))))
+					(if (string-match-p "^[A-Z]" original)
+					    (capitalize (cdr rs))
+					  (cdr rs))))
 			(if (checkdoc-autofix-ask-replace
 			     (match-beginning 1) (match-end 1)
 			     (format "Use the imperative for \"%s\".  \
@@ -1805,11 +1803,10 @@ Replace with \"%s\"? " original replace)
 		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^]']"
 		      e t))
 	   (setq ms (match-string 1))
-	   (save-match-data
-	     ;; A . is a \s_ char, so we must remove periods from
-	     ;; sentences more carefully.
-	     (if (string-match "\\.$" ms)
-		 (setq ms (substring ms 0 (1- (length ms))))))
+	   ;; A . is a \s_ char, so we must remove periods from
+	   ;; sentences more carefully.
+	   (when (string-match-p "\\.$" ms)
+	     (setq ms (substring ms 0 (1- (length ms)))))
 	   (if (and (not (checkdoc-in-sample-code-p start e))
 		    (not (checkdoc-in-example-string-p start e))
 		    (not (member ms checkdoc-symbol-words))

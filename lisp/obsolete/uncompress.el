@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; This package can be used to arrange for automatic uncompress of
 ;; compressed files when they are visited.
 ;; All that's necessary is to load it.  This can conveniently be done from
@@ -111,5 +113,5 @@ It then selects a major mode from the uncompressed file name and contents."
 
 (provide 'uncompress)
 
-;;; arch-tag: 626658d4-fcce-499a-990d-d165f2ed7da3
+;; arch-tag: 626658d4-fcce-499a-990d-d165f2ed7da3
 ;;; uncompress.el ends here

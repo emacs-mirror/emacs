@@ -144,7 +144,7 @@ Used to grey out relevant toolbar icons.")
       (comint-interrupt-subjob))))
 
 (easy-mmode-defmap gud-menu-map
-  '(([help]     "Info" . gud-goto-info)
+  '(([help]     "Info (debugger)" . gud-goto-info)
     ([tooltips] menu-item "Show GUD tooltips" gud-tooltip-mode
                   :enable (and (not emacs-basic-display)
 			       (display-graphic-p)
@@ -3273,12 +3273,18 @@ Treats actions as defuns."
 	(kill-local-variable 'gdb-define-alist)
 	(remove-hook 'after-save-hook 'gdb-create-define-alist t))))
 
+(define-obsolete-variable-alias 'tooltip-gud-modes
+                                'gud-tooltip-modes "22.1")
+
 (defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode
 					python-mode)
   "List of modes for which to enable GUD tooltips."
   :type 'sexp
   :group 'gud
   :group 'tooltip)
+
+(define-obsolete-variable-alias 'tooltip-gud-display
+                                'gud-tooltip-display "22.1")
 
 (defcustom gud-tooltip-display
   '((eq (tooltip-event-buffer gud-tooltip-event)
@@ -3296,11 +3302,6 @@ only tooltips in the buffer containing the overlay arrow."
   :type 'boolean
   :group 'gud
   :group 'tooltip)
-
-(define-obsolete-variable-alias 'tooltip-gud-modes
-                                'gud-tooltip-modes "22.1")
-(define-obsolete-variable-alias 'tooltip-gud-display
-                                'gud-tooltip-display "22.1")
 
 ;;; Reacting on mouse movements
 
@@ -3423,10 +3424,7 @@ This function must return nil if it doesn't handle EVENT."
 	  (if (and (eq gud-minor-mode 'gdba)
 		   (not gdb-active-process))
 	      (progn
-		(with-current-buffer
-		    (window-buffer (let ((mouse (mouse-position)))
-				     (window-at (cadr mouse)
-						(cddr mouse))))
+		(with-current-buffer (tooltip-event-buffer event)
 		  (let ((define-elt (assoc expr gdb-define-alist)))
 		    (unless (null define-elt)
 		      (tooltip-show
@@ -3457,5 +3455,5 @@ so they have been disabled."))
 
 (provide 'gud)
 
-;;; arch-tag: 6d990948-df65-461a-be39-1c7fb83ac4c4
+;; arch-tag: 6d990948-df65-461a-be39-1c7fb83ac4c4
 ;;; gud.el ends here

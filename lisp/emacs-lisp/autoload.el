@@ -240,19 +240,22 @@ put the output in."
 (defun autoload-ensure-default-file (file)
   "Make sure that the autoload file FILE exists and if not create it."
   (unless (file-exists-p file)
-    (write-region
-     (concat ";;; " (file-name-nondirectory file)
-	     " --- automatically extracted autoloads\n"
-	     ";;\n"
-	     ";;; Code:\n\n"
-	     "\n;; Local Variables:\n"
-	     ";; version-control: never\n"
-	     ";; no-byte-compile: t\n"
-	     ";; no-update-autoloads: t\n"
-	     ";; End:\n"
-	     ";;; " (file-name-nondirectory file)
-	     " ends here\n")
-     nil file))
+    (let ((basename (file-name-nondirectory file)))
+      (write-region
+       (concat ";;; " basename
+	       " --- automatically extracted autoloads\n"
+	       ";;\n"
+	       ";;; Code:\n\n"
+	       "\n"
+	       "(provide '" (file-name-sans-extension basename) ")\n"
+	       ";; Local Variables:\n"
+	       ";; version-control: never\n"
+	       ";; no-byte-compile: t\n"
+	       ";; no-update-autoloads: t\n"
+	       ";; End:\n"
+	       ";;; " basename
+	       " ends here\n")
+       nil file)))
   file)
 
 (defun autoload-insert-section-header (outbuf autoloads load-name file time)
@@ -332,6 +335,7 @@ Return non-nil iff FILE adds no autoloads to OUTFILE
     (let ((autoloads-done '())
           (load-name (autoload-file-load-name file))
           (print-length nil)
+	  (print-level nil)
           (print-readably t)           ; This does something in Lucid Emacs.
           (float-output-format nil)
           (visited (get-file-buffer file))
@@ -484,14 +488,14 @@ removes any prior now out-of-date autoload entries."
            (existing-buffer (if buffer-file-name buf))
            (found nil))
       (with-current-buffer
-          ;; We must read/write the file without any code conversion,
-          ;; but still decode EOLs.
-          (let ((coding-system-for-read 'raw-text))
-            (find-file-noselect
-             (autoload-ensure-default-file (autoload-generated-file))))
+          ;; We used to use `raw-text' to read this file, but this causes
+          ;; problems when the file contains non-ASCII characters.
+          (find-file-noselect
+           (autoload-ensure-default-file (autoload-generated-file)))
         ;; This is to make generated-autoload-file have Unix EOLs, so
         ;; that it is portable to all platforms.
-        (setq buffer-file-coding-system 'raw-text-unix)
+        (unless (zerop (coding-system-eol-type buffer-file-coding-system))
+          (set-buffer-file-coding-system 'unix))
         (or (> (buffer-size) 0)
             (error "Autoloads file %s does not exist" buffer-file-name))
         (or (file-writable-p buffer-file-name)

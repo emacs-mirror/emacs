@@ -294,12 +294,12 @@ Valid types include `google', `dejanews', and `gmane'.")
   "Initialize buffers and such."
   (unless (gnus-buffer-live-p nnweb-buffer)
     (setq nnweb-buffer
-	  (save-excursion
-	    (mm-with-unibyte
-	      (nnheader-set-temp-buffer
-	       (format " *nnweb %s %s %s*"
-		       nnweb-type nnweb-search server))
-	      (current-buffer))))))
+	  (save-current-buffer
+            (nnheader-set-temp-buffer
+             (format " *nnweb %s %s %s*"
+                     nnweb-type nnweb-search server))
+            (mm-disable-multibyte)
+            (current-buffer)))))
 
 ;;;
 ;;; groups.google.com
@@ -544,7 +544,11 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defun nnweb-insert-html (parse)
   "Insert HTML based on a w3 parse tree."
   (if (stringp parse)
-      (insert (nnheader-string-as-multibyte parse))
+      ;; We used to call nnheader-string-as-multibyte here, but it cannot
+      ;; be right, so I removed it.  If a bug shows up because of this change,
+      ;; please do not blindly revert the change, but help me find the real
+      ;; cause of the bug instead.  --Stef
+      (insert parse)
     (insert "<" (symbol-name (car parse)) " ")
     (insert (mapconcat
 	     (lambda (param)
@@ -610,5 +614,5 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (provide 'nnweb)
 
-;;; arch-tag: f59307eb-c90f-479f-b7d2-dbd8bf51b697
+;; arch-tag: f59307eb-c90f-479f-b7d2-dbd8bf51b697
 ;;; nnweb.el ends here

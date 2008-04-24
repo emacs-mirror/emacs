@@ -237,6 +237,77 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; If zeroconf is enabled, all CUPS printers can be detected.  The
+;; "Postscript printer" menu will be modified dynamically, as printers
+;; are added or removed.
+
+;; Preconditions:
+;;
+;; * Emacs has D-Bus support enabled.  That is, D-Bus is installed on
+;;   the system, and Emacs has been configured and built with the
+;;   --with-dbus option.
+;;
+;; * The zeroconf daemon avahi-daemon is running.
+;;
+;; * CUPS has enabled the option "Share published printers connected
+;;   to this system" (see <http://localhost:631/admin>).
+
+(eval-when-compile
+  (require 'cl))
+
+(eval-and-compile
+  (require 'printing)
+  (require 'zeroconf))
+
+;; Add a Postscript printer to the "Postscript printer" menu.
+(defun ps-add-printer (service)
+  (let ((name (zeroconf-service-name service))
+	(text (zeroconf-service-txt service))
+	(addr (zeroconf-service-address service))
+	(port (zeroconf-service-port service))
+	is-ps cups-queue)
+    ;; `text' is an array of key=value strings like ("Duplex=T" "Copies=T").
+    (dolist (string text)
+      (let ((split (split-string string "=" t)))
+	;; If it is a Postscript printer, there must be a string like
+	;; "pdl=application/postscript,application/vnd.hp-PCL,...".
+	(when (and (string-equal "pdl" (car split))
+		   (string-match "application/postscript" (cadr split)))
+	  (setq is-ps t))
+	;; A CUPS printer queue is coded as "rp=printers/<name>".
+	(when (and (string-equal "rp" (car split))
+		   (string-match "printers/\\(.+\\)" (cadr split)))
+	  (setq cups-queue (match-string 1 (cadr split))))))
+    ;; Add the printer.
+    (when is-ps
+      (if cups-queue
+	  (add-to-list
+	   'pr-ps-printer-alist (list (intern name) "lpr" nil "-P" cups-queue))
+	;; No CUPS printer, but a network printer.
+	(add-to-list
+	 'pr-ps-printer-alist (list (intern name) "cupsdoprint"
+				    '("-P" "default")
+				    "-H" (format "%s:%s" addr port))))
+      (pr-update-menus t))))
+
+;; Remove a printer from the "Postscript printer" menu.
+(defun ps-remove-printer (service)
+  (setq pr-ps-printer-alist
+	(delete (assoc (intern (zeroconf-service-name service))
+		       pr-ps-printer-alist)
+		pr-ps-printer-alist))
+  (pr-update-menus t))
+
+;; Activate the functions in zeroconf.
+(defun ps-make-dynamic-printer-menu ()
+  (when (featurep 'dbusbind)
+    (zeroconf-init)
+    (zeroconf-service-add-hook "_ipp._tcp" :new 'ps-add-printer)
+    (zeroconf-service-add-hook "_ipp._tcp" :removed 'ps-remove-printer)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (provide 'ps-samp)
 
 ;; arch-tag: 99c415d3-be39-43c6-aa32-7ee33ba19600

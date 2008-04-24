@@ -181,6 +181,18 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
 
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-rcs-dir-status (dir update-function)
+  ;; XXX: quick hack, there should be a better way to do this,
+  ;; but it's not worse than vc-dired :-).
+  (let ((flist (vc-expand-dirs (list dir)))
+	(result nil))
+    (dolist (file flist)
+      (let ((state (vc-state file))
+	    (frel (file-relative-name file)))
+	(push (list frel state) result)))
+    (funcall update-function result)))
+
 (defun vc-rcs-working-revision (file)
   "RCS-specific version of `vc-working-revision'."
   (or (and vc-consult-headers
@@ -516,7 +528,7 @@ Needs RCS 5.6.2 or later for -M."
   "Modify the change comments change on FILES on a specified REV."
   (dolist (file files)
     (vc-do-command nil 0 "rcs" (vc-name file)
-		   (concat "-m" comment ":" rev))))
+		   (concat "-m" rev ":" comment))))
 
 
 ;;;

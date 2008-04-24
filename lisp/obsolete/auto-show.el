@@ -9,6 +9,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 21.1.
+
 ;; This file contains dummy variables and functions only because Emacs
 ;; does hscrolling automatically, now.
 
@@ -48,5 +50,5 @@ to auto-show from your init file and code."
 
 (provide 'auto-show)
 
-;;; arch-tag: 49587cbf-95cc-4061-b564-274aaec37469
+;; arch-tag: 49587cbf-95cc-4061-b564-274aaec37469
 ;;; auto-show.el ends here

@@ -146,5 +146,5 @@ which invoked this function, excluding the Autoarg keymap."
 
 (provide 'autoarg)
 
-;;; arch-tag: 2ba2ab4f-d60e-402a-ae4d-37e29af723c2
+;; arch-tag: 2ba2ab4f-d60e-402a-ae4d-37e29af723c2
 ;;; autoarg.el ends here

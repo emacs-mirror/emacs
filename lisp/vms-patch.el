@@ -266,5 +266,5 @@ the old one."
   (define-key m "/" 'vms-magic-right-square-brace)
   (define-key m ":" 'vms-magic-colon))
 
-;;; arch-tag: c178494e-2c37-4d02-99b7-e47e615656cf
+;; arch-tag: c178494e-2c37-4d02-99b7-e47e615656cf
 ;;; vms-patch.el ends here

@@ -656,5 +656,5 @@ tetris-mode keybindings:
 
 (provide 'tetris)
 
-;;; arch-tag: fb780d53-3ff0-49f0-8e19-f7f13cf2d49e
+;; arch-tag: fb780d53-3ff0-49f0-8e19-f7f13cf2d49e
 ;;; tetris.el ends here

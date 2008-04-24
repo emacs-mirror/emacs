@@ -418,5 +418,5 @@ nil."
 
 (provide 'mspools)
 
-;;; arch-tag: 8990b3ee-68c8-4892-98f1-51a735c8bac6
+;; arch-tag: 8990b3ee-68c8-4892-98f1-51a735c8bac6
 ;;; mspools.el ends here

@@ -503,5 +503,5 @@ the range of text to assign text property SYMBOL with value VALUE."
       (message "Warning: invalid <x-display> parameter %s" param))
     (list start end 'display prop)))
 
-;;; arch-tag: 05cae488-3fea-45cd-ac29-5b02cb64e42b
+;; arch-tag: 05cae488-3fea-45cd-ac29-5b02cb64e42b
 ;;; enriched.el ends here

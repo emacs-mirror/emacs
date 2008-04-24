@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  23.0.50
+@set EMACSVER  23.0.60
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
@@ -302,11 +302,9 @@ Help
 The Mark and the Region
 
 * Setting Mark::	Commands to set the mark.
-* Transient Mark::	How to make Emacs highlight the region--
-			  when there is one.
-* Momentary Mark::      Enabling Transient Mark mode momentarily.
-* Using Region::	Summary of ways to operate on contents of the region.
 * Marking Objects::	Commands to put region around textual units.
+* Using Region::	Summary of ways to operate on contents of the region.
+* Persistent Mark::	Keeping the mark active all the time.
 * Mark Ring::		Previous mark positions saved so you can go back there.
 * Global Mark Ring::	Previous mark positions in various buffers.
 
@@ -715,7 +713,7 @@ Maintaining Large Programs
 
 * Change Log::	        Maintaining a change history for your program.
 * Format of ChangeLog:: What the change log file looks like.
-* Tags::	        Go direct to any function in your program in one
+* Tags::	        Go directly to any function in your program in one
 			  command.  Tags remembers which file it is in.
 * Emerge::              A convenient way of merging two versions of a program.
 

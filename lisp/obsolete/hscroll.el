@@ -24,7 +24,9 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;;
+
+;; This file has been obsolete since Emacs 21.1.
+
 ;; This file contains dummy variables and functions only because Emacs
 ;; does hscrolling automatically, now.
 
@@ -102,5 +104,5 @@ Also see `automatic-hscrolling'."
 
 (provide 'hscroll)
 
-;;; arch-tag: 48377520-e5ca-401d-b360-3881b2d5a05a
+;; arch-tag: 48377520-e5ca-401d-b360-3881b2d5a05a
 ;;; hscroll.el ends here

@@ -614,6 +614,43 @@ The return value is the new, rightmost window."
 	 (setq size (+ (window-width) size)))
     (split-window-save-restore-data (split-window nil size t) old-w)))
 
+(defun split-window-preferred-horizontally (window)
+  "Split WINDOW horizontally or select an appropriate existing window.
+It is called by `display-buffer' to split windows horizontally
+when the option `split-window-preferred-function' is set to \"horizontally\".
+This function tries to match the implementation of vertical splitting
+in `display-buffer' as close as possible but with the logic of
+horizontal splitting.  It returns a new window or an appropriate
+existing window if splitting is not eligible."
+  (interactive)
+  ;; If the largest window is wide enough, eligible for splitting,
+  ;; and the only window, split it horizontally.
+  (if (and window
+           (not (frame-parameter (window-frame window) 'unsplittable))
+           (one-window-p (window-frame window))
+           (>= (window-width window) (* 2 window-min-width)))
+      (split-window window nil t)
+    ;; Otherwise, if the LRU window is wide enough, eligible for
+    ;; splitting and selected or the only window, split it horizontally.
+    (setq window (get-lru-window nil t))
+    (if (and window
+             (not (frame-parameter (window-frame window) 'unsplittable))
+             (or (eq window (selected-window))
+                 (one-window-p (window-frame window)))
+             (>= (window-width window) (* 2 window-min-width)))
+        (split-window window nil t)
+      ;; Otherwise, if get-lru-window returns nil, try other approaches.
+      (or
+       (get-lru-window nil nil)
+       ;; Try visible frames first.
+       (get-buffer-window (current-buffer) 'visible)
+       (get-largest-window 'visible)
+       ;; If that didn't work, try iconified frames.
+       (get-buffer-window (current-buffer) 0)
+       (get-largest-window 0)
+       ;; As a last resort, make a new frame.
+       (frame-selected-window (funcall pop-up-frame-function))))))
+
 
 (defun set-window-text-height (window height)
   "Sets the height in lines of the text display area of WINDOW to HEIGHT.

@@ -665,5 +665,5 @@
 
 (provide 'nnbabyl)
 
-;;; arch-tag: aa7ddedb-8c07-4c0e-beb0-58e795c2b81b
+;; arch-tag: aa7ddedb-8c07-4c0e-beb0-58e795c2b81b
 ;;; nnbabyl.el ends here

@@ -150,5 +150,5 @@ command `kermit | tr -d '\\015''."
 
 (provide 'kermit)
 
-;;; arch-tag: 6633215d-6c47-4e66-9f27-16fba02a8dce
+;; arch-tag: 6633215d-6c47-4e66-9f27-16fba02a8dce
 ;;; kermit.el ends here

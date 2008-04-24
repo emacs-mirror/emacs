@@ -58,5 +58,5 @@
     ("HELP" . [help]) ("DO" . [menu]) ("F17" . [f17]) ("F18" . [f18])
     ("F19" . [f19]) ("F20" . [f20])))
 
-;;; arch-tag: 36f498cf-c3f6-41b0-911b-83b1348855ec
+;; arch-tag: 36f498cf-c3f6-41b0-911b-83b1348855ec
 ;;; edt-lk201.el ends here

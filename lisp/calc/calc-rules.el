@@ -447,5 +447,5 @@ fitparam(n) = x  :=  x ]"))
 
 (provide 'calc-rules)
 
-;;; arch-tag: 0ed54a52-38f3-4ed7-9ca7-b8ecf8f2febe
+;; arch-tag: 0ed54a52-38f3-4ed7-9ca7-b8ecf8f2febe
 ;;; calc-rules.el ends here

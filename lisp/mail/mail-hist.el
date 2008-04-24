@@ -294,5 +294,5 @@ received mail."
 
 (provide 'mail-hist)
 
-;;; arch-tag: 9ff9a07c-9dca-482d-ba87-54f42778559d
+;; arch-tag: 9ff9a07c-9dca-482d-ba87-54f42778559d
 ;;; mail-hist.el ends here

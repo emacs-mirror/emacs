@@ -148,5 +148,5 @@
 
 (run-hooks 'gnus-audio-load-hook)
 
-;;; arch-tag: 6f129e78-3416-4fc9-973f-6cf5ac8d654b
+;; arch-tag: 6f129e78-3416-4fc9-973f-6cf5ac8d654b
 ;;; gnus-audio.el ends here

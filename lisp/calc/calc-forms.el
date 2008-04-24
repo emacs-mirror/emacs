@@ -1923,5 +1923,5 @@ and ends on the last Sunday of October at 2 a.m."
 
 (provide 'calc-forms)
 
-;;; arch-tag: a3d8f33b-9508-4043-8060-d02b8c9c750c
+;; arch-tag: a3d8f33b-9508-4043-8060-d02b8c9c750c
 ;;; calc-forms.el ends here

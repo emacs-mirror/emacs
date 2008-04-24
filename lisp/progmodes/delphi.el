@@ -1984,5 +1984,5 @@ no args, if that value is non-nil."
 
   (run-mode-hooks 'delphi-mode-hook))
 
-;;; arch-tag: 410e192d-e9b5-4397-ad62-12340fc3fa41
+;; arch-tag: 410e192d-e9b5-4397-ad62-12340fc3fa41
 ;;; delphi.el ends here

@@ -25,13 +25,6 @@
 
 ;;; Commentary:
 
-;; (August 12, 1993)
-;; Created.
-
-;; (November 21, 1994)
-;; [C-M-backspace] defined.
-;; mode-line-format defined to show buffer file type.
-;; audio bell initialized.
 
 ;;; Code:
 (require 'w32-vars)
@@ -59,6 +52,7 @@
     (define-key map [M-escape] [?\M-\e])
     (define-key map [iso-lefttab] [backtab])
     (define-key map [S-iso-lefttab] [backtab])
+    (define-key map [S-tab] [backtab])
     map)
   "Keymap of possible alternative meanings for some keys.")
 
@@ -495,5 +489,5 @@ to include Sed, which is used by leim/Makefile.in to do the job."
   (delete-matching-lines "^$\\|^;")
   (save-buffers-kill-emacs t))
 
-;;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
+;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

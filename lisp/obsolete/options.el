@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; This code provides functions to list and edit the values of all global
 ;; option variables known to loaded Emacs Lisp code.  There are two entry
 ;; points, `list-options' and `edit' options'.  The latter enters a major
@@ -147,5 +149,5 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
 
 (provide 'options)
 
-;;; arch-tag: d18211a1-f3fb-48c9-a449-d5acde406a3c
+;; arch-tag: d18211a1-f3fb-48c9-a449-d5acde406a3c
 ;;; options.el ends here

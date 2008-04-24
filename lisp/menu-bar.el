@@ -30,17 +30,6 @@
 
 ;;; Code:
 
-;;; User options:
-
-(defcustom buffers-menu-max-size 10
-  "*Maximum number of entries which may appear on the Buffers menu.
-If this is 10, then only the ten most-recently-selected buffers are shown.
-If this is nil, then all buffers are shown.
-A large number or nil slows down menu responsiveness."
-  :type '(choice integer
-		 (const :tag "All" nil))
-  :group 'mouse)
-
 ;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
 ;; definitions made in loaddefs.el.
 (or (lookup-key global-map [menu-bar])
@@ -748,7 +737,11 @@ mail status in mode line"))
   '(menu-item "Other (Customize)"
 	      menu-bar-showhide-fringe-ind-customize
 	      :help "Additional choices available through Custom buffer"
-	      :visible (display-graphic-p)))
+	      :visible (display-graphic-p)
+	      :button (:radio . (not (member indicate-buffer-boundaries
+					     '(nil left right
+					       ((top . left) (bottom . right))
+					       ((t . right) (top . left))))))))
 
 (defun menu-bar-showhide-fringe-ind-mixed ()
   "Display top and bottom indicators in opposite fringes, arrows in right."
@@ -761,8 +754,8 @@ mail status in mode line"))
 	      :help
 	      "Show top/bottom indicators in opposite fringes, arrows in right"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq indicate-buffer-boundaries
-				    '((t . right) (top . left))))))
+	      :button (:radio . (equal indicate-buffer-boundaries
+				       '((t . right) (top . left))))))
 
 (defun menu-bar-showhide-fringe-ind-box ()
   "Display top and bottom indicators in opposite fringes."
@@ -774,8 +767,8 @@ mail status in mode line"))
   '(menu-item "Opposite, No Arrows" menu-bar-showhide-fringe-ind-box
 	      :help "Show top/bottom indicators in opposite fringes, no arrows"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq indicate-buffer-boundaries
-				    '((top . left) (bottom . right))))))
+	      :button (:radio . (equal indicate-buffer-boundaries
+				       '((top . left) (bottom . right))))))
 
 (defun menu-bar-showhide-fringe-ind-right ()
   "Display buffer boundaries and arrows in the right fringe."
@@ -1046,8 +1039,13 @@ mail status in mode line"))
   '(menu-item "Truncate Long Lines in this Buffer"
 	      toggle-truncate-lines
 	      :help "Truncate long lines on the screen"
-	      :button (:toggle . truncate-lines)
-	      :enable (menu-bar-menu-frame-live-and-visible-p)))
+	      :button (:toggle . (if (or (window-full-width-p)
+					 (not truncate-partial-width-windows))
+				     truncate-lines
+				   truncate-partial-width-windows))
+	      :enable (and (menu-bar-menu-frame-live-and-visible-p)
+			   (or (window-full-width-p)
+			       (not truncate-partial-width-windows)))))
 
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
@@ -1439,9 +1437,13 @@ for the definition of the menu frame."
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
 (defun kill-this-buffer ()	; for the menu bar
-  "Kill the current buffer."
+  "Kill the current buffer.
+When called in the minibuffer, get out of the minibuffer
+using `abort-recursive-edit'."
   (interactive)
-  (kill-buffer (current-buffer)))
+  (if (menu-bar-non-minibuffer-window-p)
+      (kill-buffer (current-buffer))
+    (abort-recursive-edit)))
 
 (defun kill-this-buffer-enabled-p ()
   (let ((count 0)
@@ -1450,8 +1452,8 @@ for the definition of the menu frame."
       (or (string-match "^ " (buffer-name (car buffers)))
 	  (setq count (1+ count)))
       (setq buffers (cdr buffers)))
-    (and (menu-bar-non-minibuffer-window-p)
-	 (> count 1))))
+    (or (not (menu-bar-non-minibuffer-window-p))
+	(> count 1))))
 
 (put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
 
@@ -1469,7 +1471,7 @@ for the definition of the menu frame."
 (defcustom yank-menu-length 20
   "*Maximum length to display in the yank-menu."
   :type 'integer
-  :group 'mouse)
+  :group 'menu)
 
 (defun menu-bar-update-yank-menu (string old)
   (let ((front (car (cdr yank-menu)))
@@ -1506,6 +1508,26 @@ The menu shows all the killed text sequences stored in `kill-ring'."
   (insert last-command-event))
 
 
+;;; Buffers Menu
+
+(defcustom buffers-menu-max-size 10
+  "*Maximum number of entries which may appear on the Buffers menu.
+If this is 10, then only the ten most-recently-selected buffers are shown.
+If this is nil, then all buffers are shown.
+A large number or nil slows down menu responsiveness."
+  :type '(choice integer
+		 (const :tag "All" nil))
+  :group 'menu)
+
+(defcustom buffers-menu-buffer-name-length 30
+  "*Maximum length of the buffer name on the Buffers menu.
+If this is a number, then buffer names are truncated to this length.
+If this is nil, then buffer names are shown in full.
+A large number or nil makes the menu too wide."
+  :type '(choice integer
+		 (const :tag "Full length" nil))
+  :group 'menu)
+
 (defcustom buffers-menu-show-directories 'unless-uniquify
   "If non-nil, show directories in the Buffers menu for buffers that have them.
 The special value `unless-uniquify' means that directories will be shown
@@ -1537,23 +1559,10 @@ Buffers menu is regenerated."
 
 (defvar list-buffers-directory nil)
 
-(defvar menu-bar-update-buffers-maxbuf)
-
-(defun menu-bar-select-buffer ()
-  (interactive)
-  (switch-to-buffer last-command-event))
-
-(defun menu-bar-select-frame ()
-  (interactive)
-  (let (frame)
-    (dolist (f (frame-list))
-      (when (equal last-command-event (frame-parameter f 'name))
-	(setq frame f)))
-    ;; FRAME can be nil when user specifies the selected frame.
-    (setq frame (or frame (selected-frame)))
-    (make-frame-visible frame)
-    (raise-frame frame)
-    (select-frame frame)))
+(defun menu-bar-select-frame (frame)
+  (make-frame-visible frame)
+  (raise-frame frame)
+  (select-frame frame))
 
 (defun menu-bar-update-buffers-1 (elt)
   (let* ((buf (car elt))
@@ -1597,60 +1606,55 @@ Buffers menu is regenerated."
 
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
-	       (let* ((buffer-list
-		       (mapcar 'list buffers))
-		      (menu-bar-update-buffers-maxbuf 0)
-		      alist)
+	       (let (alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,
 		 ;; perhaps truncated in the middle.
-		 (dolist (buf buffer-list)
-		   (let ((name (buffer-name (car buf))))
-		     (setcdr buf
-			     (if (> (length name) 27)
-				 (concat (substring name 0 12)
+		 (dolist (buf buffers)
+		   (let ((name (buffer-name buf)))
+                     (unless (eq ?\s (aref name 0))
+                       (push (menu-bar-update-buffers-1
+                              (cons buf
+				    (if (and (integerp buffers-menu-buffer-name-length)
+					     (> (length name) buffers-menu-buffer-name-length))
+					(concat
+					 (substring
+					  name 0 (/ buffers-menu-buffer-name-length 2))
 					 "..."
-					 (substring name -12))
-			       name))))
-		 ;; Compute the maximum length of any name.
-		 (dolist (buf buffer-list)
-		   (unless (eq ?\s (aref (cdr buf) 0))
-		     (setq menu-bar-update-buffers-maxbuf
-			   (max menu-bar-update-buffers-maxbuf
-				(length (cdr buf))))))
-		 ;; Set ALIST to an alist of the form
-		 ;; ITEM-STRING . BUFFER
-		 (dolist (buf buffer-list)
-		   (unless (eq ?\s (aref (cdr buf) 0))
-		     (push (menu-bar-update-buffers-1 buf) alist)))
-		 ;; Now make the actual list of items, and add
-		 ;; some miscellaneous buffer commands to the end.
-		 (mapcar (lambda (pair)
-			   ;; This is somewhat risque, to use
-			   ;; the buffer name itself as the event
-			   ;; type to define, but it works.
-			   ;; It would not work to use the buffer
-			   ;; since a buffer as an event has its
-			   ;; own meaning.
-			   (nconc (list (buffer-name (cdr pair))
-					(car pair)
+					 (substring
+					  name (- (/ buffers-menu-buffer-name-length 2))))
+				      name)
+                                    ))
+                             alist))))
+		 ;; Now make the actual list of items.
+                 (let ((buffers-vec (make-vector (length alist) nil))
+                       (i (length alist)))
+                   (dolist (pair alist)
+                     (setq i (1- i))
+                     (aset buffers-vec i
+			   (nconc (list (car pair)
 					(cons nil nil))
-				  'menu-bar-select-buffer))
-			 (nreverse alist))))
+				  `(lambda ()
+                                     (interactive)
+                                     (switch-to-buffer ,(cdr pair))))))
+                   (list buffers-vec))))
 
 	 ;; Make a Frames menu if we have more than one frame.
 	 (when (cdr frames)
-	   (let ((frames-menu
-		  (cons 'keymap
-			(cons "Select Frame"
-			      (mapcar
-			       (lambda (frame)
-				 (nconc
-				  (list (frame-parameter frame 'name)
-					(frame-parameter frame 'name)
-					(cons nil nil))
-				  'menu-bar-select-frame))
-			       frames)))))
+	   (let* ((frames-vec (make-vector (length frames) nil))
+                  (frames-menu
+                   (cons 'keymap
+                         (list "Select Frame" frames-vec)))
+                  (i 0))
+             (dolist (frame frames)
+               (aset frames-vec i
+                     (nconc
+                      (list
+                       (frame-parameter frame 'name)
+                       (cons nil nil))
+                      `(lambda ()
+                         (interactive) (menu-bar-select-frame ,frame))))
+               (setq i (1+ i)))
 	     ;; Put it after the normal buffers
 	     (setq buffers-menu
 		   (nconc buffers-menu
@@ -1737,10 +1741,11 @@ Buffers menu is regenerated."
 
 (let ((map minibuffer-local-map))
   (define-key map [menu-bar minibuf quit]
-    (list 'menu-item "Quit" 'keyboard-escape-quit
+    (list 'menu-item "Quit" 'abort-recursive-edit
 	  :help "Abort input and exit minibuffer"))
   (define-key map [menu-bar minibuf return]
     (list 'menu-item "Enter" 'exit-minibuffer
+          :key-sequence "\r"
 	  :help "Terminate input and exit minibuffer"))
   (define-key map [menu-bar minibuf isearch-forward]
     (list 'menu-item "Isearch History Forward" 'isearch-forward
@@ -1764,7 +1769,6 @@ Buffers menu is regenerated."
 ;; that would overwrite disabling the tool bar from X resources.
 (put 'menu-bar-mode 'standard-value '(t))
 
-;;;###autoload
 (define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be

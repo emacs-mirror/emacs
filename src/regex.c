@@ -1854,8 +1854,10 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
    being larger than MAX_BUF_SIZE, then flag memory exhausted.  */
 #if __BOUNDED_POINTERS__
 # define SET_HIGH_BOUND(P) (__ptrhigh (P) = __ptrlow (P) + bufp->allocated)
-# define MOVE_BUFFER_POINTER(P) \
-  (__ptrlow (P) += incr, SET_HIGH_BOUND (P), __ptrvalue (P) += incr)
+# define MOVE_BUFFER_POINTER(P)					\
+  (__ptrlow (P) = new_buffer + (__ptrlow (P) - old_buffer),	\
+   SET_HIGH_BOUND (P),						\
+   __ptrvalue (P) = new_buffer + (__ptrvalue (P) - old_buffer))
 # define ELSE_EXTEND_BUFFER_HIGH_BOUND		\
   else						\
     {						\
@@ -1869,12 +1871,12 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 	SET_HIGH_BOUND (pending_exact);		\
     }
 #else
-# define MOVE_BUFFER_POINTER(P) (P) += incr
+# define MOVE_BUFFER_POINTER(P) ((P) = new_buffer + ((P) - old_buffer))
 # define ELSE_EXTEND_BUFFER_HIGH_BOUND
 #endif
 #define EXTEND_BUFFER()							\
   do {									\
-    re_char *old_buffer = bufp->buffer;					\
+    unsigned char *old_buffer = bufp->buffer;				\
     if (bufp->allocated == MAX_BUF_SIZE)				\
       return REG_ESIZE;							\
     bufp->allocated <<= 1;						\
@@ -1886,7 +1888,7 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
     /* If the buffer moved, move all the pointers into it.  */		\
     if (old_buffer != bufp->buffer)					\
       {									\
-	int incr = bufp->buffer - old_buffer;				\
+	unsigned char *new_buffer = bufp->buffer;			\
 	MOVE_BUFFER_POINTER (b);					\
 	MOVE_BUFFER_POINTER (begalt);					\
 	if (fixup_alt_jump)						\
@@ -5590,6 +5592,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		    if (buf_ch < 0)
 		      buf_ch = *d;
 		  }
+		else
+		  buf_ch = *d;
 		if (buf_ch != pat_ch)
 		  {
 		    d = dfail;
@@ -5646,6 +5650,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	       in the initial byte-length of the command.  */
 	    int count = 0;
 
+	    /* Whether matching against a unibyte character.  */
+	    boolean unibyte_char = false;
+
 	    DEBUG_PRINT2 ("EXECUTING charset%s.\n", not ? "_not" : "");
 
 	    range_table_exists = CHARSET_RANGE_TABLE_EXISTS_P (&p[-1]);
@@ -5665,7 +5672,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		c = TRANSLATE (c);
 		c1 = RE_CHAR_TO_UNIBYTE (c);
 		if (c1 >= 0)
-		  c = c1;
+		  {
+		    unibyte_char = true;
+		    c = c1;
+		  }
 	      }
 	    else
 	      {
@@ -5676,11 +5686,16 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		    c1 = TRANSLATE (c1);
 		    c1 = RE_CHAR_TO_UNIBYTE (c1);
 		    if (c1 >= 0)
-		      c = c1;
+		      {
+			unibyte_char = true;
+			c = c1;
+		      }
 		  }
+		else
+		  unibyte_char = true;
 	      }
 
-	    if (c < (1 << BYTEWIDTH))
+	    if (unibyte_char && c < (1 << BYTEWIDTH))
 	      {			/* Lookup bitmap.  */
 		/* Cast to `unsigned' instead of `unsigned char' in
 		   case the bit list is a full 32 bytes long.  */

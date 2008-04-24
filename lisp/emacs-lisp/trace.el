@@ -220,7 +220,7 @@
 	   (trace-buffer (get-buffer-create ,buffer)))
        (unless inhibit-trace
 	 (with-current-buffer trace-buffer
-	   ,(unless background '(pop-to-buffer trace-buffer))
+	   ,(unless background '(display-buffer trace-buffer))
 	   (goto-char (point-max))
 	   ;; Insert a separator from previous trace output:
 	   (if (= trace-level 1) (insert trace-separator))
@@ -230,7 +230,7 @@
        ad-do-it
        (unless inhibit-trace
 	 (with-current-buffer trace-buffer
-	   ,(unless background '(pop-to-buffer trace-buffer))
+	   ,(unless background '(display-buffer trace-buffer))
 	   (goto-char (point-max))
 	   (insert
 	    (trace-exit-message

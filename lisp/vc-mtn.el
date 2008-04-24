@@ -67,7 +67,10 @@
 
 (defun vc-mtn-command (buffer okstatus files &rest flags)
   "A wrapper around `vc-do-command' for use in vc-mtn.el."
-  (apply 'vc-do-command buffer okstatus vc-mtn-command files flags))
+  (let ((process-environment
+         ;; Avoid localization of messages so we can parse the output.
+         (cons "LC_MESSAGES=C" process-environment)))
+    (apply 'vc-do-command buffer okstatus vc-mtn-command files flags)))
 
 (defun vc-mtn-state (file)
   ;; If `mtn' fails or returns status>0, or if the search files, just
@@ -76,10 +79,11 @@
     (with-temp-buffer
       (vc-mtn-command t 0 file "status")
       (goto-char (point-min))
-      (re-search-forward "^  \\(?:patched \\(.*\\)\\|no changes$\\)")
-      (if (match-end 1)
-          'edited
-        'up-to-date))))
+      (re-search-forward
+       "^  \\(?:\\(patched\\)\\|\\(added\\) \\(?:.*\\)\\)\\|no changes$")
+      (cond  ((match-end 1) 'edited)
+	     ((match-end 2) 'added)
+	     (t 'up-to-date)))))
 
 (defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just

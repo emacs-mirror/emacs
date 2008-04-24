@@ -1763,9 +1763,35 @@ static void
 w32_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
+  if (s->cmp == NULL
+      && s->first_glyph->type == CHAR_GLYPH)
+    {
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	{
+	  unsigned *code = alloca (sizeof (unsigned) * s->nchars);
+	  struct font *font = (struct font *) s->font_info;
+	  struct font_metrics metrics;
+	  int i;
+
+	  for (i = 0; i < s->nchars; i++)
+	    code[i] = s->char2b[i];
+	  font->driver->text_extents (font, code, s->nchars, &metrics);
+	  s->right_overhang = (metrics.rbearing > metrics.width
+			       ? metrics.rbearing - metrics.width : 0);
+	  s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
+	}
+#else
   /* TODO: Windows does not appear to have a method for
      getting this info without getting the ABC widths for each
      individual character and working it out manually. */
+#endif
+    }
+  else if (s->cmp)
+    {
+      s->right_overhang = s->cmp->rbearing - s->cmp->pixel_width;
+      s->left_overhang = -s->cmp->lbearing;
+    }
 }
 
 
@@ -6892,7 +6918,7 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_destroy_fringe_bitmap,
   w32_per_char_metric,
   w32_encode_char,
-  NULL, /* w32_compute_glyph_string_overhangs */
+  w32_compute_glyph_string_overhangs,
   x_draw_glyph_string,
   w32_define_frame_cursor,
   w32_clear_frame_area,

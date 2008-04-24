@@ -113,12 +113,6 @@ struct Lisp_Process
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
     unsigned int inherit_coding_system_flag : 1;
-    /* Flag to decide the multibyteness of a string given to the
-       filter (if any).  It is initialized to the value of
-       `default-enable-multibyte-characters' when the process is
-       generated, and can be changed by the function
-       `set-process-filter-multibyte'. */
-    unsigned int filter_multibyte : 1;
     /* Record the process status in the raw form in which it comes from `wait'.
        This is to avoid consing in a signal handler.  The `raw_status_new'
        flag indicates that `raw_status' contains a new status that still

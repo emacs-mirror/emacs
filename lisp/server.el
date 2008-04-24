@@ -204,9 +204,8 @@ are done with it in the server.")
 
 (defvar server-name "server")
 
-(defvar server-socket-dir nil
-  "The directory in which to place the server socket.
-Initialized by `server-start'.")
+(defvar server-socket-dir (format "/tmp/emacs%d" (user-uid))
+  "The directory in which to place the server socket.")
 
 (defun server-clients-with (property value)
   "Return a list of clients with PROPERTY set to VALUE."
@@ -463,9 +462,6 @@ kill any existing server communications subprocess."
 	 (not server-clients)
 	 (yes-or-no-p
 	  "The current server still has clients; delete them? "))
-    ;; It is safe to get the user id now.
-    (setq server-socket-dir (or server-socket-dir
-				(format "/tmp/emacs%d" (user-uid))))
     (when server-process
       ;; kill it dead!
       (ignore-errors (delete-process server-process)))
@@ -1224,8 +1220,10 @@ done that."
 	(let ((rest server-clients))
 	  (while (and rest (not next-buffer))
 	    (let ((proc (car rest)))
-	      ;; Only look at frameless clients.
-	      (when (not (process-get proc 'frame))
+	      ;; Only look at frameless clients, or those in the selected
+	      ;; frame.
+	      (when (or (not (process-get proc 'frame))
+			(eq (process-get proc 'frame) (selected-frame)))
 		(setq next-buffer (car (process-get proc 'buffers))))
 	      (setq rest (cdr rest)))))
 	(and next-buffer (server-switch-buffer next-buffer killed-one))

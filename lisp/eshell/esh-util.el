@@ -781,5 +781,5 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 
 (provide 'esh-util)
 
-;;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
+;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
 ;;; esh-util.el ends here

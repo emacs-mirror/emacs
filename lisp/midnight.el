@@ -235,5 +235,5 @@ first argument to `run-at-time'."
 
 (provide 'midnight)
 
-;;; arch-tag: a5979be9-2890-46a3-ba84-791f0a4a6e80
+;; arch-tag: a5979be9-2890-46a3-ba84-791f0a4a6e80
 ;;; midnight.el ends here

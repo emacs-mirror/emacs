@@ -1274,5 +1274,5 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 (if type-break-mode
     (type-break-mode 1))
 
-;;; arch-tag: 943a2eb3-07e6-420b-993f-96e4796f5fd0
+;; arch-tag: 943a2eb3-07e6-420b-993f-96e4796f5fd0
 ;;; type-break.el ends here

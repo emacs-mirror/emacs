@@ -237,5 +237,5 @@ This is returned as a string."
 
 (provide 'gnus-sieve)
 
-;;; arch-tag: 3b906527-c7f3-4c86-9e82-62e2697998a3
+;; arch-tag: 3b906527-c7f3-4c86-9e82-62e2697998a3
 ;;; gnus-sieve.el ends here

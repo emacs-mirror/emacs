@@ -1043,5 +1043,5 @@ A color is considered gray if the 3 components of its RGB value are equal."
       (setq colors (cdr colors)))
     count))
 
-;;; arch-tag: 84d5c3ef-ae22-4754-99ac-e6350c0967ae
+;; arch-tag: 84d5c3ef-ae22-4754-99ac-e6350c0967ae
 ;;; tty-colors.el ends here

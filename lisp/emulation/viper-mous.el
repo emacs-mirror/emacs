@@ -41,10 +41,8 @@
 ;; in order to spare non-viperized emacs from being viperized
 (if noninteractive
     (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil t 'nosuffix))
-	)))
+      (require 'viper-cmd)
+      ))
 ;; end pacifier
 
 (require 'viper-util)
@@ -666,5 +664,5 @@ This buffer may be different from the one where the click occurred."
 ;;; End:
 
 
-;;; arch-tag: e56b2390-06c4-4dd1-96f5-c7876e2d8c2f
+;; arch-tag: e56b2390-06c4-4dd1-96f5-c7876e2d8c2f
 ;;; viper-mous.el ends here

@@ -155,5 +155,5 @@ charset algorithm cipher-opts auth-param)."
 
 (provide 'sasl-digest)
 
-;;; arch-tag: 786e02ed-1bc4-4b3c-bf34-96c27e31084d
+;; arch-tag: 786e02ed-1bc4-4b3c-bf34-96c27e31084d
 ;;; sasl-digest.el ends here

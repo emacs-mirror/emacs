@@ -81,12 +81,15 @@
     (define-key map "\C-m"	'newline-and-indent)
     (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [menu-bar asm-mode] (cons "Asm" map))
-    (define-key map [asm-colon]
-      '("Insert Colon" . asm-colon))
     (define-key map [comment-region]
-      '("Comment Region" . comment-region))
+      '(menu-item "Comment Region" comment-region
+		  :help "Comment or uncomment each line in the region"))
     (define-key map [newline-and-indent]
-      '("Insert Newline and Indent" . newline-and-indent))
+      '(menu-item "Insert Newline and Indent" newline-and-indent
+		  :help "Insert a newline, then indent according to major mode"))
+    (define-key map [asm-colon]
+      '(menu-item "Insert Colon" asm-colon
+		  :help "Insert a colon; if it follows a label, delete the label's indentation"))
     map)
   "Keymap for Asm mode.")
 
@@ -253,5 +256,5 @@ repeatedly until you are satisfied with the kind of comment."
 
 (provide 'asm-mode)
 
-;;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
+;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
 ;;; asm-mode.el ends here

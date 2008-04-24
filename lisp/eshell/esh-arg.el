@@ -388,5 +388,5 @@ special character that is not itself a backslash."
 		   (char-to-string (char-after)))))
 	 (goto-char end)))))))
 
-;;; arch-tag: 7f593a2b-8fc1-4def-8f84-8f51ed0198d6
+;; arch-tag: 7f593a2b-8fc1-4def-8f84-8f51ed0198d6
 ;;; esh-arg.el ends here

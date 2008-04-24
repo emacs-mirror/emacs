@@ -625,6 +625,7 @@ enum coding_category
    | CATEGORY_MASK_ISO_7_ELSE		\
    | CATEGORY_MASK_ISO_8_ELSE		\
    | CATEGORY_MASK_UTF_8		\
+   | CATEGORY_MASK_UTF_16_AUTO		\
    | CATEGORY_MASK_UTF_16_BE		\
    | CATEGORY_MASK_UTF_16_LE		\
    | CATEGORY_MASK_UTF_16_BE_NOSIG	\
@@ -657,7 +658,8 @@ enum coding_category
      | CATEGORY_MASK_ISO_ELSE)
 
 #define CATEGORY_MASK_UTF_16		\
-  (CATEGORY_MASK_UTF_16_BE		\
+  (CATEGORY_MASK_UTF_16_AUTO		\
+   | CATEGORY_MASK_UTF_16_BE		\
    | CATEGORY_MASK_UTF_16_LE		\
    | CATEGORY_MASK_UTF_16_BE_NOSIG	\
    | CATEGORY_MASK_UTF_16_LE_NOSIG)
@@ -898,7 +900,7 @@ static INLINE void produce_charset P_ ((struct coding_system *, int *,
 static void produce_annotation P_ ((struct coding_system *, EMACS_INT));
 static int decode_coding P_ ((struct coding_system *));
 static INLINE int *handle_composition_annotation P_ ((EMACS_INT, EMACS_INT,
-						      struct coding_system *, 
+						      struct coding_system *,
 						      int *, EMACS_INT *));
 static INLINE int *handle_charset_annotation P_ ((EMACS_INT, EMACS_INT,
 						  struct coding_system *,
@@ -972,6 +974,66 @@ record_conversion_result (struct coding_system *coding,
   } while (0)
 
 
+/* Store multibyte form of the character C in P, and advance P to the
+   end of the multibyte form.  This is like CHAR_STRING_ADVANCE but it
+   never calls MAYBE_UNIFY_CHAR.  */
+
+#define CHAR_STRING_ADVANCE_NO_UNIFY(c, p)	\
+  do {						\
+    if ((c) <= MAX_1_BYTE_CHAR)			\
+      *(p)++ = (c);				\
+    else if ((c) <= MAX_2_BYTE_CHAR)		\
+      *(p)++ = (0xC0 | ((c) >> 6)),		\
+	*(p)++ = (0x80 | ((c) & 0x3F));		\
+    else if ((c) <= MAX_3_BYTE_CHAR)		\
+      *(p)++ = (0xE0 | ((c) >> 12)),		\
+	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c) & 0x3F));		\
+    else if ((c) <= MAX_4_BYTE_CHAR)		\
+      *(p)++ = (0xF0 | (c >> 18)),		\
+	*(p)++ = (0x80 | ((c >> 12) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | (c & 0x3F));		\
+    else if ((c) <= MAX_5_BYTE_CHAR)		\
+      *(p)++ = 0xF8,				\
+	*(p)++ = (0x80 | ((c >> 18) & 0x0F)),	\
+	*(p)++ = (0x80 | ((c >> 12) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | (c & 0x3F));		\
+    else					\
+      (p) += BYTE8_STRING ((c) - 0x3FFF80, p);	\
+  } while (0)
+
+
+/* Return the character code of character whose multibyte form is at
+   P, and advance P to the end of the multibyte form.  This is like
+   STRING_CHAR_ADVANCE, but it never calls MAYBE_UNIFY_CHAR.  */
+
+#define STRING_CHAR_ADVANCE_NO_UNIFY(p)				\
+  (!((p)[0] & 0x80)						\
+   ? *(p)++							\
+   : ! ((p)[0] & 0x20)						\
+   ? ((p) += 2,							\
+      ((((p)[-2] & 0x1F) << 6)					\
+       | ((p)[-1] & 0x3F)					\
+       | ((unsigned char) ((p)[-2]) < 0xC2 ? 0x3FFF80 : 0)))	\
+   : ! ((p)[0] & 0x10)						\
+   ? ((p) += 3,							\
+      ((((p)[-3] & 0x0F) << 12)					\
+       | (((p)[-2] & 0x3F) << 6)				\
+       | ((p)[-1] & 0x3F)))					\
+   : ! ((p)[0] & 0x08)						\
+   ? ((p) += 4,							\
+      ((((p)[-4] & 0xF) << 18)					\
+       | (((p)[-3] & 0x3F) << 12)				\
+       | (((p)[-2] & 0x3F) << 6)				\
+       | ((p)[-1] & 0x3F)))					\
+   : ((p) += 5,							\
+      ((((p)[-4] & 0x3F) << 18)					\
+       | (((p)[-3] & 0x3F) << 12)				\
+       | (((p)[-2] & 0x3F) << 6)				\
+       | ((p)[-1] & 0x3F))))
+
 
 static void
 coding_set_source (coding)
@@ -1037,20 +1099,23 @@ coding_alloc_by_realloc (coding, bytes)
 }
 
 static void
-coding_alloc_by_making_gap (coding, offset, bytes)
+coding_alloc_by_making_gap (coding, gap_head_used, bytes)
      struct coding_system *coding;
-     EMACS_INT offset, bytes;
+     EMACS_INT gap_head_used, bytes;
 {
-  if (BUFFERP (coding->dst_object)
-      && EQ (coding->src_object, coding->dst_object))
+  if (EQ (coding->src_object, coding->dst_object))
     {
-      EMACS_INT add = offset + (coding->src_bytes - coding->consumed);
+      /* The gap may contain the produced data at the head and not-yet
+	 consumed data at the tail.  To preserve those data, we at
+	 first make the gap size to zero, then increase the gap
+	 size.  */
+      EMACS_INT add = GAP_SIZE;
 
-      GPT += offset, GPT_BYTE += offset;
-      GAP_SIZE -= add; ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
+      GPT += gap_head_used, GPT_BYTE += gap_head_used;
+      GAP_SIZE = 0; ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
       make_gap (bytes);
       GAP_SIZE += add; ZV -= add; Z -= add; ZV_BYTE -= add; Z_BYTE -= add;
-      GPT -= offset, GPT_BYTE -= offset;
+      GPT -= gap_head_used, GPT_BYTE -= gap_head_used;
     }
   else
     {
@@ -1073,7 +1138,11 @@ alloc_destination (coding, nbytes, dst)
   EMACS_INT offset = dst - coding->destination;
 
   if (BUFFERP (coding->dst_object))
-    coding_alloc_by_making_gap (coding, offset, nbytes);
+    {
+      struct buffer *buf = XBUFFER (coding->dst_object);
+
+      coding_alloc_by_making_gap (coding, dst - BUF_GPT_ADDR (buf), nbytes);
+    }
   else
     coding_alloc_by_realloc (coding, nbytes);
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
@@ -1365,7 +1434,7 @@ encode_coding_utf_8 (coding)
 	    }
 	  else
 	    {
-	      CHAR_STRING_ADVANCE (c, pend);
+	      CHAR_STRING_ADVANCE_NO_UNIFY (c, pend);
 	      for (p = str; p < pend; p++)
 		EMIT_ONE_BYTE (*p);
 	    }
@@ -1382,7 +1451,7 @@ encode_coding_utf_8 (coding)
 	  if (CHAR_BYTE8_P (c))
 	    *dst++ = CHAR_TO_BYTE8 (c);
 	  else
-	    dst += CHAR_STRING (c, dst);
+	    CHAR_STRING_ADVANCE_NO_UNIFY (c, dst);
 	  produced_chars++;
 	}
     }
@@ -1446,11 +1515,44 @@ detect_coding_utf_16 (coding, detect_info)
 				| CATEGORY_MASK_UTF_16_BE_NOSIG
 				| CATEGORY_MASK_UTF_16_LE_NOSIG);
     }
-  else if (c1 >= 0 && c2 >= 0)
+  else
     {
+      /* We check the dispersion of Eth and Oth bytes where E is even and
+	 O is odd.  If both are high, we assume binary data.*/
+      unsigned char e[256], o[256];
+      unsigned e_num = 1, o_num = 1;
+
+      memset (e, 0, 256);
+      memset (o, 0, 256);
+      e[c1] = 1;
+      o[c2] = 1;
+
       detect_info->rejected
 	|= (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_LE);
+
+      while (1)
+	{
+	  ONE_MORE_BYTE (c1);
+	  ONE_MORE_BYTE (c2);
+	  if (! e[c1])
+	    {
+	      e[c1] = 1;
+	      e_num++;
+	      if (e_num >= 128)
+		break;
+	    }
+	  if (! o[c2])
+	    {
+	      o[c1] = 1;
+	      o_num++;
+	      if (o_num >= 128)
+		break;
+	    }
+	}
+      detect_info->rejected |= CATEGORY_MASK_UTF_16;
+      return 0;
     }
+
  no_more_source:
   return 1;
 }
@@ -1859,7 +1961,7 @@ detect_coding_emacs_mule (coding, detect_info)
 	  /* Perhaps the start of composite character.  We simple skip
 	     it because analyzing it is too heavy for detecting.  But,
 	     at least, we check that the composite character
-	     constitues of more than 4 bytes.  */
+	     constitutes of more than 4 bytes.  */
 	  const unsigned char *src_base;
 
 	repeat:
@@ -4650,7 +4752,7 @@ encode_coding_ccl (coding)
       else
 	{
 	  ASSURE_DESTINATION (ccl.produced);
-	  for (i = 0; i < ccl.produced; i++)	
+	  for (i = 0; i < ccl.produced; i++)
 	    *dst++ = destination_charbuf[i] & 0xFF;
 	  produced_chars += ccl.produced;
 	}
@@ -4839,7 +4941,7 @@ detect_coding_charset (coding, detect_info)
 	      if (src == src_end)
 		goto too_short;
 	      ONE_MORE_BYTE (c);
-	      if (c < charset->code_space[(dim - 1 - idx) * 2] 
+	      if (c < charset->code_space[(dim - 1 - idx) * 2]
 		  || c > charset->code_space[(dim - 1 - idx) * 2 + 1])
 		break;
 	    }
@@ -5610,32 +5712,53 @@ detect_coding (coding)
     {
       int c, i;
       struct coding_detection_info detect_info;
+      int null_byte_found = 0, eight_bit_found = 0;
 
       detect_info.checked = detect_info.found = detect_info.rejected = 0;
-      for (i = 0, src = coding->source; src < src_end; i++, src++)
+      coding->head_ascii = -1;
+      for (src = coding->source; src < src_end; src++)
 	{
 	  c = *src;
 	  if (c & 0x80)
-	    break;
-	  if (c < 0x20
-	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
-	      && ! inhibit_iso_escape_detection
-	      && ! detect_info.checked)
 	    {
-	      coding->head_ascii = src - (coding->source + coding->consumed);
-	      if (detect_coding_iso_2022 (coding, &detect_info))
+	      eight_bit_found = 1;
+	      if (coding->head_ascii < 0)
+		coding->head_ascii = src - coding->source;
+	      if (null_byte_found)
+		break;
+	    }
+	  else if (c < 0x20)
+	    {
+	      if ((c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
+		  && ! inhibit_iso_escape_detection
+		  && ! detect_info.checked)
 		{
-		  /* We have scanned the whole data.  */
-		  if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
-		    /* We didn't find an 8-bit code.  */
-		    src = src_end;
-		  break;
+		  if (coding->head_ascii < 0)
+		    coding->head_ascii = src - coding->source;
+		  if (detect_coding_iso_2022 (coding, &detect_info))
+		    {
+		      /* We have scanned the whole data.  */
+		      if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
+			/* We didn't find an 8-bit code.  We may have
+			   found a null-byte, but it's very rare that
+			   a binary file confirm to ISO-2022.  */
+			src = src_end;
+		      break;
+		    }
+		}
+	      else if (! c)
+		{
+		  null_byte_found = 1;
+		  if (eight_bit_found)
+		    break;
 		}
 	    }
 	}
-      coding->head_ascii = src - (coding->source + coding->consumed);
+      if (coding->head_ascii < 0)
+	coding->head_ascii = src - coding->source;
 
-      if (coding->head_ascii < coding->src_bytes
+      if (null_byte_found || eight_bit_found
+	  || coding->head_ascii < coding->src_bytes
 	  || detect_info.found)
 	{
 	  enum coding_category category;
@@ -5651,48 +5774,58 @@ detect_coding (coding)
 		  break;
 	      }
 	  else
-	    for (i = 0; i < coding_category_raw_text; i++)
-	      {
-		category = coding_priorities[i];
-		this = coding_categories + category;
-		if (this->id < 0)
-		  {
-		    /* No coding system of this category is defined.  */
-		    detect_info.rejected |= (1 << category);
-		  }
-		else if (category >= coding_category_raw_text)
-		  continue;
-		else if (detect_info.checked & (1 << category))
-		  {
-		    if (detect_info.found & (1 << category))
-		      break;
-		  }
-		else if ((*(this->detector)) (coding, &detect_info)
-			 && detect_info.found & (1 << category))
-		  {
-		    if (category == coding_category_utf_16_auto)
-		      {
-			if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
-			  category = coding_category_utf_16_le;
-			else
-			  category = coding_category_utf_16_be;
-		      }
-		    break;
-		  }
-	      }
-	  
-	  if (i < coding_category_raw_text)
-	    setup_coding_system (CODING_ID_NAME (this->id), coding);
-	  else if (detect_info.rejected == CATEGORY_MASK_ANY)
-	    setup_coding_system (Qraw_text, coding);
-	  else if (detect_info.rejected)
-	    for (i = 0; i < coding_category_raw_text; i++)
-	      if (! (detect_info.rejected & (1 << coding_priorities[i])))
+	    {
+	      if (null_byte_found)
 		{
-		  this = coding_categories + coding_priorities[i];
-		  setup_coding_system (CODING_ID_NAME (this->id), coding);
-		  break;
+		  detect_info.checked |= ~CATEGORY_MASK_UTF_16;
+		  detect_info.rejected |= ~CATEGORY_MASK_UTF_16;
 		}
+	      for (i = 0; i < coding_category_raw_text; i++)
+		{
+		  category = coding_priorities[i];
+		  this = coding_categories + category;
+		  if (this->id < 0)
+		    {
+		      /* No coding system of this category is defined.  */
+		      detect_info.rejected |= (1 << category);
+		    }
+		  else if (category >= coding_category_raw_text)
+		    continue;
+		  else if (detect_info.checked & (1 << category))
+		    {
+		      if (detect_info.found & (1 << category))
+			break;
+		    }
+		  else if ((*(this->detector)) (coding, &detect_info)
+			   && detect_info.found & (1 << category))
+		    {
+		      if (category == coding_category_utf_16_auto)
+			{
+			  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+			    category = coding_category_utf_16_le;
+			  else
+			    category = coding_category_utf_16_be;
+			}
+		      break;
+		    }
+		}
+
+	      if (i < coding_category_raw_text)
+		setup_coding_system (CODING_ID_NAME (this->id), coding);
+	      else if (null_byte_found)
+		setup_coding_system (Qno_conversion, coding);
+	      else if ((detect_info.rejected & CATEGORY_MASK_ANY)
+		       == CATEGORY_MASK_ANY)
+		setup_coding_system (Qraw_text, coding);
+	      else if (detect_info.rejected)
+		for (i = 0; i < coding_category_raw_text; i++)
+		  if (! (detect_info.rejected & (1 << coding_priorities[i])))
+		    {
+		      this = coding_categories + coding_priorities[i];
+		      setup_coding_system (CODING_ID_NAME (this->id), coding);
+		      break;
+		    }
+	    }
 	}
     }
   else if (XINT (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
@@ -5722,7 +5855,7 @@ decode_eol (coding)
 {
   Lisp_Object eol_type;
   unsigned char *p, *pbeg, *pend;
-  
+
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (EQ (eol_type, Qunix))
     return;
@@ -5971,9 +6104,11 @@ produce_chars (coding, translation_table, last_block)
       int *buf = coding->charbuf;
       int *buf_end = buf + coding->charbuf_used;
 
-      if (BUFFERP (coding->src_object)
-	  && EQ (coding->src_object, coding->dst_object))
-	dst_end = ((unsigned char *) coding->source) + coding->consumed;
+      if (EQ (coding->src_object, coding->dst_object))
+	{
+	  coding_set_source (coding);
+	  dst_end = ((unsigned char *) coding->source) + coding->consumed;
+	}
 
       while (buf < buf_end)
 	{
@@ -6000,7 +6135,13 @@ produce_chars (coding, translation_table, last_block)
 					   buf_end - buf
 					   + MAX_MULTIBYTE_LENGTH * to_nchars,
 					   dst);
-		  dst_end = coding->destination + coding->dst_bytes;
+		  if (EQ (coding->src_object, coding->dst_object))
+		    {
+		      coding_set_source (coding);
+		      dst_end = ((unsigned char *) coding->source) + coding->consumed;
+		    }
+		  else
+		    dst_end = coding->destination + coding->dst_bytes;
 		}
 
 	      for (i = 0; i < to_nchars; i++)
@@ -6009,7 +6150,7 @@ produce_chars (coding, translation_table, last_block)
 		    c = XINT (AREF (trans, i));
 		  if (coding->dst_multibyte
 		      || ! CHAR_BYTE8_P (c))
-		    CHAR_STRING_ADVANCE (c, dst);
+		    CHAR_STRING_ADVANCE_NO_UNIFY (c, dst);
 		  else
 		    *dst++ = CHAR_TO_BYTE8 (c);
 		}
@@ -6030,6 +6171,8 @@ produce_chars (coding, translation_table, last_block)
       const unsigned char *src = coding->source;
       const unsigned char *src_end = src + coding->consumed;
 
+      if (EQ (coding->dst_object, coding->src_object))
+	dst_end = (unsigned char *) src;
       if (coding->src_multibyte != coding->dst_multibyte)
 	{
 	  if (coding->src_multibyte)
@@ -6057,6 +6200,8 @@ produce_chars (coding, translation_table, last_block)
 			  coding_set_source (coding);
 			  src = coding->source + offset;
 			  src_end = coding->source + coding->src_bytes;
+			  if (EQ (coding->src_object, coding->dst_object))
+			    dst_end = (unsigned char *) src;
 			}
 		    }
 		  *dst++ = c;
@@ -6078,13 +6223,19 @@ produce_chars (coding, translation_table, last_block)
 		    if (dst >= dst_end - 1)
 		      {
 			EMACS_INT offset = src - coding->source;
+			EMACS_INT more_bytes;
 
-			dst = alloc_destination (coding, src_end - src + 2,
-						 dst);
+			if (EQ (coding->src_object, coding->dst_object))
+			  more_bytes = ((src_end - src) / 2) + 2;
+			else
+			  more_bytes = src_end - src + 2;
+			dst = alloc_destination (coding, more_bytes, dst);
 			dst_end = coding->destination + coding->dst_bytes;
 			coding_set_source (coding);
 			src = coding->source + offset;
 			src_end = coding->source + coding->src_bytes;
+			if (EQ (coding->src_object, coding->dst_object))
+			  dst_end = (unsigned char *) src;
 		      }
 		  }
 		EMIT_ONE_BYTE (c);
@@ -6572,12 +6723,12 @@ consume_chars (coding, translation_table, max_lookup)
 	  if (coding->encoder == encode_coding_raw_text)
 	    c = *src++, pos++;
 	  else if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
-	    c = STRING_CHAR_ADVANCE (src), pos += bytes;
+	    c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos += bytes;
 	  else
 	    c = BYTE8_TO_CHAR (*src), src++, pos++;
 	}
       else
-	c = STRING_CHAR_ADVANCE (src), pos++;
+	c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos++;
       if ((c == '\r') && (coding->mode & CODING_MODE_SELECTIVE_DISPLAY))
 	c = '\n';
       if (! EQ (eol_type, Qunix))
@@ -6727,7 +6878,7 @@ make_conversion_work_buffer (multibyte)
     }
   current = current_buffer;
   set_buffer_internal (XBUFFER (workbuf));
-  Ferase_buffer ();      
+  Ferase_buffer ();
   current_buffer->undo_list = Qt;
   current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
   set_buffer_internal (current);
@@ -6945,10 +7096,10 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       || (! NILP (CODING_ATTR_POST_READ (attrs))
 	  && NILP (dst_object)))
     {
-      coding->dst_object = code_conversion_save (1, 1);
+      coding->dst_multibyte = !CODING_FOR_UNIBYTE (coding);
+      coding->dst_object = code_conversion_save (1, coding->dst_multibyte);
       coding->dst_pos = BEG;
       coding->dst_pos_byte = BEG_BYTE;
-      coding->dst_multibyte = 1;
     }
   else if (BUFFERP (dst_object))
     {
@@ -6963,6 +7114,9 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     {
       code_conversion_save (0, 0);
       coding->dst_object = Qnil;
+      /* Most callers presume this will return a multibyte result, and they
+	 won't use `binary' or `raw-text' anyway, so let's not worry about
+	 CODING_FOR_UNIBYTE.  */
       coding->dst_multibyte = 1;
     }
 
@@ -7384,6 +7538,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
   int id;
   struct coding_detection_info detect_info;
   enum coding_category base_category;
+  int null_byte_found = 0, eight_bit_found = 0;
 
   if (NILP (coding_system))
     coding_system = Qundecided;
@@ -7409,33 +7564,54 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
       struct coding_system *this;
       int c, i;
 
+      coding.head_ascii = -1;
       /* Skip all ASCII bytes except for a few ISO2022 controls.  */
-      for (i = 0; src < src_end; i++, src++)
+      for (; src < src_end; src++)
 	{
 	  c = *src;
 	  if (c & 0x80)
-	    break;
-	  if (c < 0x20
-	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
-	      && ! inhibit_iso_escape_detection)
 	    {
-	      coding.head_ascii = src - coding.source;
-	      if (detect_coding_iso_2022 (&coding, &detect_info))
+	      eight_bit_found = 1;
+	      if (coding.head_ascii < 0)
+		coding.head_ascii = src - coding.source;
+	      if (null_byte_found)
+		break;
+	    }
+	  if (c < 0x20)
+	    {
+	      if ((c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
+		  && ! inhibit_iso_escape_detection
+		  && ! detect_info.checked)
 		{
-		  /* We have scanned the whole data.  */
-		  if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
-		    /* We didn't find an 8-bit code.  */
-		    src = src_end;
-		  break;
+		  if (coding.head_ascii < 0)
+		    coding.head_ascii = src - coding.source;
+		  if (detect_coding_iso_2022 (&coding, &detect_info))
+		    {
+		      /* We have scanned the whole data.  */
+		      if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
+			/* We didn't find an 8-bit code.  We may have
+			   found a null-byte, but it's very rare that
+			   a binary file confirm to ISO-2022.  */
+			src = src_end;
+		      break;
+		    }
+		}
+	      else if (! c)
+		{
+		  null_byte_found = 1;
+		  if (eight_bit_found)
+		    break;
 		}
 	    }
 	}
-      coding.head_ascii = src - coding.source;
+      if (coding.head_ascii < 0)
+	coding.head_ascii = src - coding.source;
 
-      if (src < src_end
+      if (null_byte_found || eight_bit_found
+	  || coding.head_ascii < coding.src_bytes
 	  || detect_info.found)
 	{
-	  if (src == src_end)
+	  if (coding.head_ascii == coding.src_bytes)
 	    /* As all bytes are 7-bit, we can ignore non-ISO-2022 codings.  */
 	    for (i = 0; i < coding_category_raw_text; i++)
 	      {
@@ -7445,44 +7621,48 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		  break;
 	      }
 	  else
-	    for (i = 0; i < coding_category_raw_text; i++)
-	      {
-		category = coding_priorities[i];
-		this = coding_categories + category;
+	    {
+	      if (null_byte_found)
+		{
+		  detect_info.checked |= ~CATEGORY_MASK_UTF_16;
+		  detect_info.rejected |= ~CATEGORY_MASK_UTF_16;
+		}
+	      for (i = 0; i < coding_category_raw_text; i++)
+		{
+		  category = coding_priorities[i];
+		  this = coding_categories + category;
 
-		if (this->id < 0)
-		  {
-		    /* No coding system of this category is defined.  */
-		    detect_info.rejected |= (1 << category);
-		  }
-		else if (category >= coding_category_raw_text)
-		  continue;
-		else if (detect_info.checked & (1 << category))
-		  {
-		    if (highest
-			&& (detect_info.found & (1 << category)))
-		      break;
-		  }
-		else
-		  {
-		    if ((*(this->detector)) (&coding, &detect_info)
-			&& highest
-			&& (detect_info.found & (1 << category)))
-		      {
-			if (category == coding_category_utf_16_auto)
-			  {
-			    if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
-			      category = coding_category_utf_16_le;
-			    else
-			      category = coding_category_utf_16_be;
-			  }
+		  if (this->id < 0)
+		    {
+		      /* No coding system of this category is defined.  */
+		      detect_info.rejected |= (1 << category);
+		    }
+		  else if (category >= coding_category_raw_text)
+		    continue;
+		  else if (detect_info.checked & (1 << category))
+		    {
+		      if (highest
+			  && (detect_info.found & (1 << category)))
 			break;
-		      }
-		  }
-	      }
+		    }
+		  else if ((*(this->detector)) (&coding, &detect_info)
+			   && highest
+			   && (detect_info.found & (1 << category)))
+		    {
+		      if (category == coding_category_utf_16_auto)
+			{
+			  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+			    category = coding_category_utf_16_le;
+			  else
+			    category = coding_category_utf_16_be;
+			}
+		      break;
+		    }
+		}
+	    }
 	}
 
-      if (detect_info.rejected == CATEGORY_MASK_ANY)
+      if ((detect_info.rejected & CATEGORY_MASK_ANY) == CATEGORY_MASK_ANY)
 	{
 	  detect_info.found = CATEGORY_MASK_RAW_TEXT;
 	  id = coding_categories[coding_category_raw_text].id;
@@ -7571,8 +7751,13 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
     if (VECTORP (eol_type))
       {
 	if (detect_info.found & ~CATEGORY_MASK_UTF_16)
-	  normal_eol = detect_eol (coding.source, src_bytes,
-				   coding_category_raw_text);
+	  {
+	    if (null_byte_found)
+	      normal_eol = EOL_SEEN_LF;
+	    else
+	      normal_eol = detect_eol (coding.source, src_bytes,
+				       coding_category_raw_text);
+	  }
 	if (detect_info.found & (CATEGORY_MASK_UTF_16_BE
 				 | CATEGORY_MASK_UTF_16_BE_NOSIG))
 	  utf_16_be_eol = detect_eol (coding.source, src_bytes,
@@ -8538,7 +8723,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
   operation = args[0];
   if (!SYMBOLP (operation)
       || !INTEGERP (target_idx = Fget (operation, Qtarget_idx)))
-    error ("Invalid first arguement");
+    error ("Invalid first argument");
   if (nargs < 1 + XINT (target_idx))
     error ("Too few arguments for operation: %s",
 	   SDATA (SYMBOL_NAME (operation)));
@@ -9157,7 +9342,7 @@ usage: (define-coding-system-internal ...)  */)
     = Fcons (QCcategory, Fcons (AREF (Vcoding_category_table, category),
 				CODING_ATTR_PLIST (attrs)));
   CODING_ATTR_PLIST (attrs)
-    = Fcons (QCascii_compatible_p, 
+    = Fcons (QCascii_compatible_p,
 	     Fcons (CODING_ATTR_ASCII_COMPAT (attrs),
 		    CODING_ATTR_PLIST (attrs)));
 

@@ -23,6 +23,10 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
+;; This file has been obsolete since Emacs 22.1.
+
 ;;; Change Log:
 
 ;; moved posting and mail code from rnews.el
@@ -52,8 +56,6 @@
 ;;
 ;;; >> Nuked by Mly to autoload those functions again, as the duplication of
 ;;; >>  code was making maintenance too difficult.
-
-;;; Commentary:
 
 ;;; Code:
 
@@ -443,5 +445,5 @@ original message into it."
 
 (provide 'rnewspost)
 
-;;; arch-tag: 18f7b2af-cf9a-49e4-878b-71eb49913e00
+;; arch-tag: 18f7b2af-cf9a-49e4-878b-71eb49913e00
 ;;; rnewspost.el ends here

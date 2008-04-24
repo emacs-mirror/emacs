@@ -46,10 +46,9 @@
 ;; in order to spare non-viperized emacs from being viperized
 (if noninteractive
     (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil t 'nosuffix))
-	)))
+      (if (not (featurep 'viper-cmd))
+	  (require 'viper-cmd))
+      ))
 ;; end pacifier
 
 (require 'viper-util)
@@ -1743,10 +1742,10 @@ reversed."
 	   (setq var "blink-matching-paren"
 		 val "nil"))
 	  ((member var '("ws" "wrapscan"))
-	   (setq var "viper-search-wrap-around-t"
+	   (setq var "viper-search-wrap-around"
 		 val "t"))
 	  ((member var '("nows" "nowrapscan"))
-	   (setq var "viper-search-wrap-around-t"
+	   (setq var "viper-search-wrap-around"
 		 val "nil")))
     (if (and set-cmd (eq val 0)) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
@@ -2077,7 +2076,8 @@ Please contact your system administrator. "
 	      ;; create temp buffer for the region
 	      (setq temp-buf (get-buffer-create " *ex-write*"))
 	      (set-buffer temp-buf)
-	      (if (featurep 'xemacs) (set-visited-file-name ex-file)
+	      (if (featurep 'xemacs)
+		  (set-visited-file-name ex-file)
 		(set-visited-file-name ex-file 'noquery))
 	      (erase-buffer)
 	      (if (and file-exists ex-append)
@@ -2268,7 +2268,7 @@ Type 'mak ' (including the space) to run make with no args."
     (princ (if viper-re-search "magic\n" "nomagic\n"))
     (princ (if buffer-read-only "readonly\n" "noreadonly\n"))
     (princ (if blink-matching-paren "showmatch\n" "noshowmatch\n"))
-    (princ (if viper-search-wrap-around-t "wrapscan\n" "nowrapscan\n"))
+    (princ (if viper-search-wrap-around "wrapscan\n" "nowrapscan\n"))
     (princ (format "shiftwidth \t\t= %S\n" viper-shift-width))
     (princ (format "tabstop (local) \t= %S\n" tab-width))
     (princ (format "tabstop (global) \t= %S\n" (default-value 'tab-width)))
@@ -2318,5 +2318,5 @@ Type 'mak ' (including the space) to run make with no args."
 
 
 
-;;; arch-tag: 56b80d36-f880-4d10-bd66-85ad91a295db
+;; arch-tag: 56b80d36-f880-4d10-bd66-85ad91a295db
 ;;; viper-ex.el ends here

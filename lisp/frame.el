@@ -1395,8 +1395,8 @@ the opposite frame edge from the edge indicated in the input spec."
   (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
 
 ;;;; Aliases for backward compatibility with Emacs 18.
-(define-obsolete-function-alias 'screen-height 'frame-height) ;before 19.15
-(define-obsolete-function-alias 'screen-width 'frame-width) ;before 19.15
+(define-obsolete-function-alias 'screen-height 'frame-height "19.7")
+(define-obsolete-function-alias 'screen-width 'frame-width "19.7")
 
 (defun set-screen-width (cols &optional pretend)
   "Change the size of the screen to COLS columns.
@@ -1432,8 +1432,8 @@ left untouched.  FRAME nil or omitted means use the selected frame."
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
 
-(make-obsolete 'set-screen-width 'set-frame-width) ;before 19.15
-(make-obsolete 'set-screen-height 'set-frame-height) ;before 19.15
+(make-obsolete 'set-screen-width 'set-frame-width "19.7")
+(make-obsolete 'set-screen-height 'set-frame-height "19.7")
 
 ;; miscellaneous obsolescence declarations
 (define-obsolete-variable-alias 'delete-frame-hook

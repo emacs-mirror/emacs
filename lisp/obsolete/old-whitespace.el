@@ -24,7 +24,9 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;;
+
+;; This file has been obsolete since Emacs 23.1.
+
 ;; URL: http://www.dsmit.com/lisp/
 ;;
 ;; The whitespace library is intended to find and help fix five different types

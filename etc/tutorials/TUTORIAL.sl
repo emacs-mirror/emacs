@@ -553,14 +553,6 @@ izgubite veliko.
    uèbenika. Emacs bo v vrstici na dnu zaslona izpisal ,,Wrote
    ...TUTORIAL``.
 
-Opozorilo: na nekaterih sistemih bo ukaz C-x C-s zamrznil zaslon, in
-tako ne boste videli, da Emacs ¹e kaj izpi¹e. To je znak, da je
-operacijski sistem prestregel znak C-s in ga interpretiral kot znak za
-prekinitev toka podatkov, namesto da bi ga posredoval Emacsu. Zaslon
-,,odmrznete`` z ukazom C-q. Èe je va¹ sistem eden takih, si za nasvet,
-kako re¹iti to nev¹eènost, oglejte razdelek ,,Spontaneous Entry to
-Incremental Search`` v priroèniku za Emacs.
-
 Poi¹èete lahko lahko ¾e obstojeèo datoteko, da si jo ogledate ali
 popravite, ali pa tudi datoteko, ki ¹e ne obstaja. To je naèin, kako z
 Emacsom ustvarimo novo datoteko: poi¹èite datoteko z izbranim imenom,

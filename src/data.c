@@ -2104,7 +2104,17 @@ bool-vector.  IDX starts at 0.  */)
       CHECK_NUMBER (newelt);
 
       if (XINT (newelt) >= 0 && ! SINGLE_BYTE_CHAR_P (XINT (newelt)))
-	args_out_of_range (array, newelt);
+	{
+	  int i;
+
+	  for (i = SBYTES (array) - 1; i >= 0; i--)
+	    if (SREF (array, i) >= 0x80)
+	      args_out_of_range (array, newelt);
+	  /* ARRAY is an ASCII string.  Convert it to a multibyte
+	     string, and try `aset' again.  */
+	  STRING_SET_MULTIBYTE (array);
+	  return Faset (array, idx, newelt);
+	}
       SSET (array, idxval, XINT (newelt));
     }
 
@@ -3245,10 +3255,12 @@ syms_of_data ()
   DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
+  XSYMBOL (intern ("most-positive-fixnum"))->constant = 1;
 
   DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
+  XSYMBOL (intern ("most-negative-fixnum"))->constant = 1;
 }
 
 SIGTYPE

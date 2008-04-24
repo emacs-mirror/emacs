@@ -594,9 +594,8 @@ Return whether the unpacking was successful."
 			      (mail-fetch-field "to"))
 		(sit-for 1)
 		(let ((mail-header-separator ""))
-		  (mm-with-unibyte-current-buffer
-		    (funcall (or message-send-mail-real-function
-				 message-send-mail-function)))))
+                  (funcall (or message-send-mail-real-function
+                               message-send-mail-function))))
 	       (t
 		(error "Unknown reply kind")))
 	      (set-buffer msg-buf)
@@ -610,5 +609,5 @@ Return whether the unpacking was successful."
 
 (provide 'gnus-soup)
 
-;;; arch-tag: eddfa69d-13e8-4aea-84ef-62a526ef185c
+;; arch-tag: eddfa69d-13e8-4aea-84ef-62a526ef185c
 ;;; gnus-soup.el ends here

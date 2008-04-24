@@ -27,6 +27,8 @@
 ;;; Code:
 
 
+(provide 'ediff-ptch)
+
 (defgroup ediff-ptch nil
   "Ediff patch support."
   :tag "Patch"
@@ -41,14 +43,11 @@
 (defvar ediff-shell)
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil t 'nosuffix))
-    (or (featurep 'ediff)
-	(load "ediff.el" nil t 'nosuffix))
-    ))
+  (require 'ediff-init)
+  (if (not (featurep 'ediff-mult))
+      (require 'ediff-mult))
+  (require 'ediff)
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -846,8 +845,6 @@ you can still examine the changes via M-x ediff-files"
 
 
 
-(provide 'ediff-ptch)
-
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
@@ -855,5 +852,5 @@ you can still examine the changes via M-x ediff-files"
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: 2fe2161e-e116-469b-90fa-5cbb44c1bd1b
+;; arch-tag: 2fe2161e-e116-469b-90fa-5cbb44c1bd1b
 ;;; ediff-ptch.el ends here

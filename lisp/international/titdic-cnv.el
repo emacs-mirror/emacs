@@ -1207,5 +1207,5 @@ to store generated Quail packages."
 ;; coding: iso-2022-7bit
 ;; End:
 
-;;; arch-tag: 8ad478b2-a985-4da2-b47f-d8ee5d7c24a3
+;; arch-tag: 8ad478b2-a985-4da2-b47f-d8ee5d7c24a3
 ;;; titdic-cnv.el ends here

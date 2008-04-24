@@ -1204,5 +1204,5 @@ Returns the resultant list."
 ; (defalias 'pc-match-beginning 'pcomplete-match-beginning)
 ; (defalias 'pc-match-end 'pcomplete-match-end)
 
-;;; arch-tag: ae32ef2d-dbed-4244-8b0f-cf5a2a3b07a4
+;; arch-tag: ae32ef2d-dbed-4244-8b0f-cf5a2a3b07a4
 ;;; pcomplete.el ends here

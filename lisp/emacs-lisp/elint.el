@@ -806,5 +806,5 @@ If no documentation could be found args will be `unknown'."
 
 (provide 'elint)
 
-;;; arch-tag: b2f061e2-af84-4ddc-8e39-f5e969ac228f
+;; arch-tag: b2f061e2-af84-4ddc-8e39-f5e969ac228f
 ;;; elint.el ends here

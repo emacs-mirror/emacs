@@ -221,5 +221,5 @@ This function can only be called from a directory query result buffer."
        (overlay-get (car (overlays-at (point))) 'eudc-record)
        (eudc-insert-record-at-point-into-bbdb)))
 
-;;; arch-tag: 8cbda7dc-3163-47e6-921c-6ec5083df2d7
+;; arch-tag: 8cbda7dc-3163-47e6-921c-6ec5083df2d7
 ;;; eudc-export.el ends here

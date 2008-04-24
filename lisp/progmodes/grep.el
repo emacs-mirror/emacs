@@ -240,6 +240,8 @@ See `compilation-error-screen-columns'"
 	 :help "Goto next match")
 	(tool-bar-local-item 
 	 "cancel" 'kill-compilation 'kill-compilation map
+	 :enable '(let ((buffer (compilation-find-buffer)))
+		    (get-buffer-process buffer))
 	 :help "Stop grep")
 	(tool-bar-local-item 
 	 "refresh" 'recompile 'recompile map
@@ -250,14 +252,14 @@ See `compilation-error-screen-columns'"
 
 ;;;; TODO --- refine this!!
 
-;;; (defcustom grep-use-compilation-buffer t
-;;;   "When non-nil, grep specific commands update `compilation-last-buffer'.
-;;; This means that standard compile commands like \\[next-error] and \\[compile-goto-error]
-;;; can be used to navigate between grep matches (the default).
-;;; Otherwise, the grep specific commands like \\[grep-next-match] must
-;;; be used to navigate between grep matches."
-;;;   :type 'boolean
-;;;   :group 'grep)
+;; (defcustom grep-use-compilation-buffer t
+;;   "When non-nil, grep specific commands update `compilation-last-buffer'.
+;; This means that standard compile commands like \\[next-error] and \\[compile-goto-error]
+;; can be used to navigate between grep matches (the default).
+;; Otherwise, the grep specific commands like \\[grep-next-match] must
+;; be used to navigate between grep matches."
+;;   :type 'boolean
+;;   :group 'grep)
 
 ;; override compilation-last-buffer
 (defvar grep-last-buffer nil
@@ -644,11 +646,10 @@ list is empty)."
    (progn
      (grep-compute-defaults)
      (let ((default (grep-default-command)))
-       (list (read-from-minibuffer "Run grep (like this): "
-				   (if current-prefix-arg
-				       default grep-command)
-				   nil nil 'grep-history
-				   (if current-prefix-arg nil default))))))
+       (list (read-shell-command "Run grep (like this): "
+                                 (if current-prefix-arg default grep-command)
+                                 'grep-history
+                                 (if current-prefix-arg nil default))))))
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
@@ -671,9 +672,8 @@ easily repeat a find command."
    (progn
      (grep-compute-defaults)
      (if grep-find-command
-	 (list (read-from-minibuffer "Run find (like this): "
-				     grep-find-command nil nil
-                                     'grep-find-history))
+	 (list (read-shell-command "Run find (like this): "
+                                   grep-find-command 'grep-find-history))
        ;; No default was set
        (read-string
         "compile.el: No `grep-find-command' command available. Press RET.")

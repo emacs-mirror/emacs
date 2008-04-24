@@ -137,5 +137,5 @@ environment, binding ARGS to $1, $2, etc.")
 
 (provide 'em-script)
 
-;;; arch-tag: a346439d-5ba8-4faf-ac2b-3aacfeaa4647
+;; arch-tag: a346439d-5ba8-4faf-ac2b-3aacfeaa4647
 ;;; em-script.el ends here

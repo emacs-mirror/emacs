@@ -63,5 +63,5 @@ which specify the range to operate on."
 
 (provide 'underline)
 
-;;; arch-tag: e7b48582-c3ea-4386-987a-87415f3c372a
+;; arch-tag: e7b48582-c3ea-4386-987a-87415f3c372a
 ;;; underline.el ends here

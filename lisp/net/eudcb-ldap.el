@@ -209,5 +209,5 @@ attribute names are returned. Default to `person'"
 
 (provide 'eudcb-ldap)
 
-;;; arch-tag: 0f254dc0-7378-4fd4-ae26-18666184e96b
+;; arch-tag: 0f254dc0-7378-4fd4-ae26-18666184e96b
 ;;; eudcb-ldap.el ends here

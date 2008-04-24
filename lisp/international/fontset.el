@@ -369,7 +369,8 @@
 	   (nil . "JISX0213.2000-1")
 	   (nil . "JISX0213.2004-1"))
 
-     (bopomofo (nil . "sisheng_cwnn-0"))
+     (bopomofo ,(font-spec :registry "iso10646-1" :script 'bopomofo)
+	       (nil . "sisheng_cwnn-0"))
 
      (han ,(font-spec :registry "iso10646-1" :language 'ja)
 	  ,(font-spec :registry "iso10646-1" :language 'zh)
@@ -413,6 +414,10 @@
      (hangul ,(font-spec :registry "iso10646-1" :language 'ko)
 	     (nil . "KSC5601.1987-0"))
 
+     (braille ,(font-spec :registry "iso10646-1" :script 'braille))
+
+     (mathematical ,(font-spec :registry "iso10646-1" :script 'mathematical))
+
      ;; for each charset
      (ascii (nil . "ISO8859-1"))
      (arabic-digit ("*" . "MuleArabic-0"))
@@ -444,7 +449,8 @@
      (malayalam-akruti (nil . "Malayalam-Akruti"))
      ;;(devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
      ;;(malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
-     (ipa (nil . "MuleIPA-1")
+     (ipa ,(font-spec :registry "iso10646-1" :script 'phonetic)
+	  (nil . "MuleIPA-1")
 	  (nil . "iso10646-1"))
 
      ;; Fallback fonts
@@ -938,11 +944,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	fontset-spec)
     (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
 					      (format "Fontset-%d" idx)))
-      (create-fontset-from-fontset-spec fontset-spec t 'noerror)
+      (condition-case nil
+	  (create-fontset-from-fontset-spec fontset-spec t 'noerror)
+	(error (message "Fontset-%d: invalid specification in X resource" idx)))
       (setq idx (1+ idx)))))
 
 ;;
 (provide 'fontset)
 
-;;; arch-tag: bb53e629-0234-403c-950e-551e61554849
+;; arch-tag: bb53e629-0234-403c-950e-551e61554849
 ;;; fontset.el ends here

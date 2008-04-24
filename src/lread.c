@@ -1989,7 +1989,7 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   specbind (Qlexical_binding, Qnil);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
-  BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
+  BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   if (lisp_file_lexically_bound_p (buf))
     Fset (Qlexical_binding, Qt);
   readevalloop (buf, 0, filename, Feval,

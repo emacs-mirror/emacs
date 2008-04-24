@@ -570,14 +570,6 @@ possible de travail au cas où votre système se planterait.
 >> Faites C-x C-s pour sauvegarder votre copie du didacticiel.
    Cela devrait écrire "Wrote ...TUTORIAL.fr" en bas de l'écran.
 
-REMARQUE : Sur certains systèmes, C-x C-s gèlera l'écran et vous ne
-verrez plus rien se produire dans Emacs.  Cela indique qu'une
-« fonctionnalité » du système d'exploitation, appelée « contrôle de flux »,
-a intercepté le C-s et ne lui permet pas de parvenir à Emacs. Pour
-décoincer l'écran, faites C-q puis consultez la section « Spontaneous
-Entry to Incremental Search » dans le manuel d'Emacs pour avoir des
-avis sur la gestion de cette « fonctionnalité ».
-
 Vous pouvez trouver un fichier existant pour le visualiser ou
 l'éditer. Vous pouvez également trouver un fichier qui n'existe pas
 encore. C'est ainsi que l'on crée un fichier avec Emacs : on trouve le

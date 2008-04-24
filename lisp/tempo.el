@@ -765,5 +765,5 @@ space bar, and looks something like this:
 
 (provide 'tempo)
 
-;;; arch-tag: b3c0ee36-db3b-47bc-875f-091b4e27a063
+;; arch-tag: b3c0ee36-db3b-47bc-875f-091b4e27a063
 ;;; tempo.el ends here

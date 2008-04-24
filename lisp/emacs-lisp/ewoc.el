@@ -547,7 +547,7 @@ remaining arguments will be passed to PREDICATE."
       (if (apply predicate (ewoc--node-data node) args)
 	  (push (ewoc--node-data node) result))
       (setq node (ewoc--node-prev dll node)))
-    (nreverse result)))
+    result))
 
 (defun ewoc-buffer (ewoc)
   "Return the buffer that is associated with EWOC.

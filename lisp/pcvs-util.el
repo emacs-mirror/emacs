@@ -51,9 +51,11 @@
       (unless (member x ys) (push x zs)))))
 
 (defun cvs-map (-cvs-map-f &rest -cvs-map-ls)
-  (unless (cvs-every 'null -cvs-map-ls)
-    (cons (apply -cvs-map-f (mapcar 'car -cvs-map-ls))
-	  (apply 'cvs-map -cvs-map-f (mapcar 'cdr -cvs-map-ls)))))
+  (let ((accum ()))
+    (while (not (cvs-every 'null -cvs-map-ls))
+      (push (apply -cvs-map-f (mapcar 'car -cvs-map-ls)) accum)
+      (setq -cvs-map-ls (mapcar 'cdr -cvs-map-ls)))
+    (nreverse accum)))
 
 (defun cvs-first (l &optional n)
   (if (null n) (car l)
@@ -100,20 +102,7 @@ BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
     (let ((win (if (eq buf (window-buffer (selected-window))) (selected-window)
 		 (get-buffer-window buf t))))
       (when win
-	(if (window-dedicated-p win)
-	    (condition-case ()
-		(delete-window win)
-	      (error (iconify-frame (window-frame win))))
-;;; 	  (if (and mainbuf (get-buffer-window mainbuf))
-;;; 	      ;; FIXME: if the buffer popped into a pre-existing window,
-;;; 	      ;; we don't want to delete that window.
-;;; 	      t ;;(delete-window win)
-;;; 	      )
-	  )))
-    (with-current-buffer buf
-      (bury-buffer (unless (and (eq buf (window-buffer (selected-window)))
-				(not (window-dedicated-p (selected-window))))
-		     buf)))
+        (quit-window nil win)))
     (when mainbuf
       (let ((mainwin (or (get-buffer-window mainbuf)
 			 (get-buffer-window mainbuf 'visible))))

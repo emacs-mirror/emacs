@@ -2325,7 +2325,7 @@ Return the name of the group if selection was successful."
 	 (message "Quit reading the ephemeral group")
 	 nil)))))
 
-(defcustom gnus-group-gmane-group-download-format
+(defcustom gnus-gmane-group-download-format
   "http://download.gmane.org/%s/%s/%s"
   "URL for downloading mbox files.
 It must contain three \"%s\".  They correspond to the group, the
@@ -2338,11 +2338,11 @@ minimal and maximal article numbers, respectively."
 ;; FIXME:
 ;; - Add documentation, menu, key bindings, ...
 
-(defun gnus-group-read-ephemeral-gmane-group (group start &optional range)
+(defun gnus-read-ephemeral-gmane-group (group start &optional range)
   "Read articles from Gmane group GROUP as an ephemeral group.
 START is the first article.  RANGE specifies how many articles
 are fetched.  The articles are downloaded via HTTP using the URL
-specified by `gnus-group-gmane-group-download-format'."
+specified by `gnus-gmane-group-download-format'."
   ;; See <http://gmane.org/export.php> for more information.
   (interactive
    (list
@@ -2357,7 +2357,7 @@ specified by `gnus-group-gmane-group-download-format'."
 	(gnus-thread-sort-functions '(gnus-thread-sort-by-number)))
     (with-temp-file tmpfile
       (url-insert-file-contents
-       (format gnus-group-gmane-group-download-format
+       (format gnus-gmane-group-download-format
 	       group start (+ start range)))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
@@ -2366,7 +2366,7 @@ specified by `gnus-group-gmane-group-download-format'."
 	       (nndoc-article-type mbox))))
     (delete-file tmpfile)))
 
-(defun gnus-group-read-ephemeral-gmane-group-url (url)
+(defun gnus-read-ephemeral-gmane-group-url (url)
   "Create an ephemeral Gmane group from URL.
 
 Valid input formats include:
@@ -2378,7 +2378,7 @@ Valid input formats include:
   ;;   be customizable?
   ;; - The URLs should be added to `gnus-button-alist'.  Probably we should
   ;;   prompt the user to decide: "View via `browse-url' or in Gnus? "
-  ;;   (`gnus-group-read-ephemeral-gmane-group-url')
+  ;;   (`gnus-read-ephemeral-gmane-group-url')
   (interactive
    (list (gnus-group-completing-read "Gmane URL: ")))
   (let (group start range)
@@ -2411,7 +2411,54 @@ Valid input formats include:
 	    start (string-to-number (match-string 2 url))))
      (t
       (error "Can't parse URL %s" url)))
-    (gnus-group-read-ephemeral-gmane-group group start range)))
+    (gnus-read-ephemeral-gmane-group group start range)))
+
+(defcustom gnus-bug-group-download-format-alist
+  '((emacs ;; Only a test bed yet:
+     . "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?mbox=yes;bug=%s")
+    (debian
+     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes"))
+  "Alist of symbols for bug trackers and the corresponding URL format string.
+The URL format string must contain a single \"%s\", specifying
+the bug number, and browsing the URL must return mbox output."
+  :group 'gnus-group-foreign
+  :version "23.1" ;; No Gnus
+  :type '(repeat (cons (symbol) (string :tag "URL format string"))))
+
+(defun gnus-read-ephemeral-bug-group (number mbox-url)
+  "Browse bug NUMBER as ephemeral group."
+  (interactive (list (read-string "Enter bug number: "
+				  (thing-at-point 'word) nil)
+		     ;; FIXME: Add completing-read from
+		     ;; `gnus-emacs-bug-group-download-format' ...
+		     (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
+  (when (stringp number)
+    (setq number (string-to-number number)))
+  (let ((tmpfile (make-temp-file "gnus-temp-group-")))
+    (with-temp-file tmpfile
+      (url-insert-file-contents (format mbox-url number))
+      (write-region (point-min) (point-max) tmpfile)
+      (gnus-group-read-ephemeral-group
+       "gnus-read-ephemeral-bug"
+       `(nndoc ,tmpfile
+	       (nndoc-article-type mbox))))
+    (delete-file tmpfile)))
+
+(defun gnus-read-ephemeral-debian-bug-group (number)
+  "Browse Debian bug NUMBER as ephemeral group."
+  (interactive (list (read-string "Enter bug number: "
+				  (thing-at-point 'word) nil)))
+  (gnus-read-ephemeral-bug-group
+   number
+   (cdr (assoc 'debian gnus-bug-group-download-format-alist))))
+
+(defun gnus-read-ephemeral-emacs-bug-group (number)
+  "Browse Emacs bug NUMBER as ephemeral group."
+  (interactive (list (read-string "Enter bug number: "
+				  (thing-at-point 'word) nil)))
+  (gnus-read-ephemeral-bug-group
+   number
+   (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.

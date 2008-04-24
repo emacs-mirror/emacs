@@ -77,18 +77,24 @@
     ["Done" log-edit-done
      :help "Exit log-edit and proceed with the actual action."]
     "--"
-    ["Insert ChangeLog" log-edit-insert-changelog]
-    ["Add to ChangeLog" log-edit-add-to-changelog]
+    ["Insert ChangeLog" log-edit-insert-changelog
+     :help "Insert a log message by looking at the ChangeLog"]
+    ["Add to ChangeLog" log-edit-add-to-changelog
+     :help "Insert this log message into the appropriate ChangeLog file"]
     "--"
     ["Show diff" log-edit-show-diff
      :help "Show the diff for the files to be committed."]
     ["List files" log-edit-show-files
      :help "Show the list of relevant files."]
     "--"
-    ["Previous comment"		log-edit-previous-comment]
-    ["Next comment"		log-edit-next-comment]
-    ["Search comment forward"	log-edit-comment-search-forward]
-    ["Search comment backward"	log-edit-comment-search-backward]))
+    ["Previous comment"		log-edit-previous-comment
+     :help "Cycle backwards through comment history"]
+    ["Next comment"		log-edit-next-comment
+     :help "Cycle forwards through comment history."]
+    ["Search comment forward"	log-edit-comment-search-forward
+     :help "Search forwards through comment history for a substring match of str"]
+    ["Search comment backward"	log-edit-comment-search-backward
+     :help "Search backwards through comment history for substring match of str"]))
 
 (defcustom log-edit-confirm 'changed
   "*If non-nil, `log-edit-done' will request confirmation.
@@ -104,7 +110,8 @@ If 'changed, only request confirmation if the list of files has
 
 (defvar cvs-commit-buffer-require-final-newline t)
 (make-obsolete-variable 'cvs-commit-buffer-require-final-newline
-                        'log-edit-require-final-newline)
+                        'log-edit-require-final-newline
+			"21.1")
 
 (defcustom log-edit-require-final-newline
   cvs-commit-buffer-require-final-newline
@@ -145,7 +152,8 @@ can be obtained from `log-edit-files'."
 
 (defvar cvs-changelog-full-paragraphs t)
 (make-obsolete-variable 'cvs-changelog-full-paragraphs
-                        'log-edit-changelog-full-paragraphs)
+                        'log-edit-changelog-full-paragraphs
+			"21.1")
 
 (defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
   "*If non-nil, include full ChangeLog paragraphs in the log.

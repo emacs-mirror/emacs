@@ -31,9 +31,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (autoload 'widget-convert "wid-edit")
-  (autoload 'shell-mode "shell"))
+(declare-function widget-convert "wid-edit" (type &rest args))
+(declare-function shell-mode "shell" ())
 
 (defvar compilation-current-error)
 
@@ -687,19 +686,19 @@ useful for editing binary files."
 
 (defun forward-to-indentation (&optional arg)
   "Move forward ARG lines and position at first nonblank character."
-  (interactive "p")
+  (interactive "^p")
   (forward-line (or arg 1))
   (skip-chars-forward " \t"))
 
 (defun backward-to-indentation (&optional arg)
   "Move backward ARG lines and position at first nonblank character."
-  (interactive "p")
+  (interactive "^p")
   (forward-line (- (or arg 1)))
   (skip-chars-forward " \t"))
 
 (defun back-to-indentation ()
   "Move point to the first non-whitespace character on this line."
-  (interactive)
+  (interactive "^")
   (beginning-of-line 1)
   (skip-syntax-forward " " (line-end-position))
   ;; Move back over chars that have whitespace syntax but have the p flag.
@@ -758,9 +757,9 @@ of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
-  (interactive "P")
+  (interactive "^P")
   (or (consp arg)
-      (and transient-mark-mode mark-active)
+      (region-active-p)
       (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
@@ -783,10 +782,8 @@ of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
-  (interactive "P")
-  (or (consp arg)
-      (and transient-mark-mode mark-active)
-      (push-mark))
+  (interactive "^P")
+  (or (consp arg) (region-active-p) (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
 		   (- (point-max)
@@ -820,10 +817,11 @@ that uses or sets the mark."
 
 (defun goto-line (arg &optional buffer)
   "Goto line ARG, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer.
-With just \\[universal-argument] as argument, move point in the most recently
-displayed other buffer, and switch to it.  When called from Lisp code,
-the optional argument BUFFER specifies a buffer to switch to.
+Normally, move point in the current buffer, and leave mark at previous
+position.  With just \\[universal-argument] as argument, move point
+in the most recently displayed other buffer, and switch to it.
+When called from Lisp code, the optional argument BUFFER specifies
+a buffer to switch to.
 
 If there's a number in the buffer at point, it is the default for ARG."
   (interactive
@@ -860,6 +858,8 @@ If there's a number in the buffer at point, it is the default for ARG."
       (let ((window (get-buffer-window buffer)))
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
+  ;; Leave mark at previous position
+  (or (region-active-p) (push-mark))
   ;; Move to the specified line number in that buffer.
   (save-restriction
     (widen)
@@ -1301,10 +1301,49 @@ makes the search case-sensitive."
 
 (defvar minibuffer-temporary-goal-position nil)
 
+(defvar minibuffer-default-add-function 'minibuffer-default-add-completions
+  "Function run by `goto-history-element' before consuming `minibuffer-default'.
+This is useful to dynamically add more elements to the list `minibuffer-default'
+when `goto-history-element' reaches the end of this list.
+Before calling this function `goto-history-element' sets the variable
+`minibuffer-default-add-done' to t, so it will call this function only
+once.  In special cases, when this function needs to be called more
+than once, it can set `minibuffer-default-add-done' to nil explicitly,
+overriding the setting of this variable to t in `goto-history-element'.")
+
+(defvar minibuffer-default-add-done nil
+  "When nil, add more elements to the end of the list of default values.
+The value nil causes `goto-history-element' to add more elements to
+the list of defaults when it reaches the end of this list.  It does
+this by calling a function defined by `minibuffer-default-add-function'.")
+
+(make-variable-buffer-local 'minibuffer-default-add-done)
+
+(defun minibuffer-default-add-completions ()
+  "Return a list of all completions without the default value.
+This function is used to add all elements of the completion table to
+the end of the list of defaults just after the default value."
+  (interactive)
+  (let ((def minibuffer-default)
+	(all (all-completions ""
+			      minibuffer-completion-table
+			      minibuffer-completion-predicate
+			      t)))
+    (if (listp def)
+	(append def all)
+      (cons def (delete def all)))))
+
 (defun goto-history-element (nabs)
   "Puts element of the minibuffer history in the minibuffer.
 The argument NABS specifies the absolute history position."
   (interactive "p")
+  (when (and (not minibuffer-default-add-done)
+	     (functionp minibuffer-default-add-function)
+	     (< nabs (- (if (listp minibuffer-default)
+			    (length minibuffer-default)
+			  1))))
+    (setq minibuffer-default-add-done t
+	  minibuffer-default (funcall minibuffer-default-add-function)))
   (let ((minimum (if minibuffer-default
 		     (- (if (listp minibuffer-default)
 			    (length minibuffer-default)
@@ -1317,7 +1356,7 @@ The argument NABS specifies the absolute history position."
 	      (minibuffer-contents-no-properties)))
     (if (< nabs minimum)
 	(if minibuffer-default
-	    (error "End of history; no next item")
+	    (error "End of defaults; no next item")
 	  (error "End of history; no default available")))
     (if (> nabs (length (symbol-value minibuffer-history-variable)))
 	(error "Beginning of history; no preceding item"))
@@ -1577,7 +1616,7 @@ as an argument limits undo to changes within the current region."
 		       ;; it shows nothing else happened in between.
 		       (gethash list undo-equiv-table))))
       (setq undo-in-region
-	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
+	    (or (region-active-p) (and arg (not (numberp arg)))))
       (if undo-in-region
 	  (undo-start (region-beginning) (region-end))
 	(undo-start))
@@ -1599,7 +1638,7 @@ as an argument limits undo to changes within the current region."
 		 (if next (setq equiv next))))
 	(setq pending-undo-list equiv)))
     (undo-more
-     (if (or transient-mark-mode (numberp arg))
+     (if (numberp arg)
 	 (prefix-numeric-value arg)
        1))
     ;; Record the fact that the just-generated undo records come from an
@@ -1918,6 +1957,49 @@ This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
+(declare-function mailcap-file-default-commands "mailcap" (files))
+
+(defun minibuffer-default-add-shell-commands ()
+  "Return a list of all commands associted with the current file.
+This function is used to add all related commands retieved by `mailcap'
+to the end of the list of defaults just after the default value."
+  (interactive)
+  (let* ((filename (if (listp minibuffer-default)
+		       (car minibuffer-default)
+		     minibuffer-default))
+	 (commands (and filename (require 'mailcap nil t)
+			(mailcap-file-default-commands (list filename)))))
+    (setq commands (mapcar (lambda (command)
+			     (concat command " " filename))
+			   commands))
+    (if (listp minibuffer-default)
+	(append minibuffer-default commands)
+      (cons minibuffer-default commands))))
+
+(defun minibuffer-complete-shell-command ()
+  "Dynamically complete shell command at point."
+  (interactive)
+  (require 'shell)
+  (run-hook-with-args-until-success 'shell-dynamic-complete-functions))
+
+(defvar minibuffer-local-shell-command-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\t" 'minibuffer-complete-shell-command)
+    map)
+  "Keymap used for completiing shell commands in minibufffer.")
+
+(defun read-shell-command (prompt &optional initial-contents hist &rest args)
+  "Read a shell command from the minibuffer.
+The arguments are the same as the ones of `read-from-minibuffer',
+except READ and KEYMAP are missing and HIST defaults
+to `shell-command-history'."
+  (apply 'read-from-minibuffer prompt initial-contents
+         minibuffer-local-shell-command-map
+         nil
+         (or hist 'shell-command-history)
+         args))
+
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the COMMAND's output at point.
@@ -1968,10 +2050,17 @@ If it is nil, error output is mingled with regular output.
 In an interactive call, the variable `shell-command-default-error-buffer'
 specifies the value of ERROR-BUFFER."
 
-  (interactive (list (read-from-minibuffer "Shell command: "
-					   nil nil nil 'shell-command-history)
-		     current-prefix-arg
-		     shell-command-default-error-buffer))
+  (interactive
+   (list
+    (minibuffer-with-setup-hook
+	(lambda ()
+	  (set (make-local-variable 'minibuffer-default-add-function)
+	       'minibuffer-default-add-shell-commands))
+      (read-shell-command "Shell command: " nil nil
+			  (and buffer-file-name
+			       (file-relative-name buffer-file-name))))
+    current-prefix-arg
+    shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
   (let ((handler
 	 (find-file-name-handler (directory-file-name default-directory)
@@ -2187,9 +2276,7 @@ specifies the value of ERROR-BUFFER."
 		 ;; Do this before calling region-beginning
 		 ;; and region-end, in case subprocess output
 		 ;; relocates them while we are in the minibuffer.
-		 (setq string (read-from-minibuffer "Shell command on region: "
-						    nil nil nil
-						    'shell-command-history))
+		 (setq string (read-shell-command "Shell command on region: "))
 		 ;; call-interactively recognizes region-beginning and
 		 ;; region-end specially, leaving them in the history.
 		 (list (region-beginning) (region-end)
@@ -2794,8 +2881,7 @@ This command's old key binding has been given to `kill-ring-save'."
   (if (eq last-command 'kill-region)
       (kill-append (filter-buffer-substring beg end) (< end beg))
     (kill-new (filter-buffer-substring beg end)))
-  (if transient-mark-mode
-      (setq deactivate-mark t))
+  (setq deactivate-mark t)
   nil)
 
 (defun kill-ring-save (beg end)
@@ -2820,7 +2906,9 @@ visual feedback indicating the extent of the region being copied."
 	    ;; look like a C-g typed as a command.
 	    (inhibit-quit t))
 	(if (pos-visible-in-window-p other-end (selected-window))
-	    (unless (and transient-mark-mode
+            ;; Swap point-and-mark quickly so as to show the region that
+            ;; was selected.  Don't do it if the region is highlighted.
+	    (unless (and (region-active-p)
 			 (face-background 'region))
 	      ;; Swap point and mark.
 	      (set-marker (mark-marker) (point) (current-buffer))
@@ -3316,12 +3404,22 @@ a mistake; see the documentation of `set-mark'."
   "Deactivate the mark by setting `mark-active' to nil.
 \(That makes a difference only in Transient Mark mode.)
 Also runs the hook `deactivate-mark-hook'."
-  (cond
-   ((eq transient-mark-mode 'lambda)
-    (setq transient-mark-mode nil))
-   (transient-mark-mode
-    (setq mark-active nil)
-    (run-hooks 'deactivate-mark-hook))))
+  (when transient-mark-mode
+    (if (or (eq transient-mark-mode 'lambda)
+	    (and (eq (car-safe transient-mark-mode) 'only)
+		 (null (cdr transient-mark-mode))))
+	(setq transient-mark-mode nil)
+      (if (eq (car-safe transient-mark-mode) 'only)
+	  (setq transient-mark-mode (cdr transient-mark-mode)))
+      (setq mark-active nil)
+      (run-hooks 'deactivate-mark-hook))))
+
+(defun activate-mark ()
+  "Activate the mark."
+  (when (mark t)
+    (setq mark-active t)
+    (unless transient-mark-mode
+      (setq transient-mark-mode 'lambda))))
 
 (defcustom select-active-regions nil
   "If non-nil, an active region automatically becomes the window selection."
@@ -3380,7 +3478,7 @@ to the region instead.  Such commands should use this subroutine to
 test whether to do that.
 
 This function also obeys `use-empty-active-region'."
-  (and transient-mark-mode mark-active
+  (and (region-active-p)
        (or use-empty-active-region (> (region-end) (region-beginning)))))
 
 (defun region-active-p ()
@@ -3455,7 +3553,8 @@ With no prefix argument, set the mark at point, and push the
 old mark position on local mark ring.  Also push the old mark on
 global mark ring, if the previous mark was set in another buffer.
 
-Immediately repeating this command activates `transient-mark-mode' temporarily.
+When Transient Mark Mode is off, immediately repeating this
+command activates `transient-mark-mode' temporarily.
 
 With prefix argument \(e.g., \\[universal-argument] \\[set-mark-command]\), \
 jump to the mark, and set the mark from
@@ -3474,8 +3573,10 @@ argument, unconditionally set mark where point is, even if
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
-  (if (eq transient-mark-mode 'lambda)
-      (setq transient-mark-mode nil))
+  (cond ((eq transient-mark-mode 'lambda)
+	 (setq transient-mark-mode nil))
+	((eq (car-safe transient-mark-mode) 'only)
+	 (deactivate-mark)))
   (cond
    ((and (consp arg) (> (prefix-numeric-value arg) 4))
     (push-mark-command nil))
@@ -3495,13 +3596,13 @@ purposes.  See the documentation of `set-mark' for more information."
    (arg
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   ((and (eq last-command 'set-mark-command)
-	 mark-active (null transient-mark-mode))
-    (setq transient-mark-mode 'lambda)
-    (message "Transient-mark-mode temporarily enabled"))
-   ((and (eq last-command 'set-mark-command)
-         transient-mark-mode)
-    (deactivate-mark))
+   ((eq last-command 'set-mark-command)
+    (if (region-active-p)
+        (progn
+          (deactivate-mark)
+          (message "Mark deactivated"))
+      (activate-mark)
+      (message "Mark activated")))
    (t
     (push-mark-command nil))))
 
@@ -3553,20 +3654,52 @@ Does not set point.  Does nothing if mark ring is empty."
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
 and it reactivates the mark.
-With prefix arg, `transient-mark-mode' is enabled temporarily."
+
+If Transient Mark mode is on, a prefix arg deactivates the mark
+if it is active, and otherwise avoids reactivating it.  If
+Transient Mark mode is off, a prefix arg enables Transient Mark
+mode temporarily."
   (interactive "P")
-  (if arg
-      (if mark-active
-	  (if (null transient-mark-mode)
-	      (setq transient-mark-mode 'lambda))
-	(setq arg nil)))
-  (unless arg
-    (let ((omark (mark t)))
-      (if (null omark)
-	  (error "No mark set in this buffer"))
-      (set-mark (point))
-      (goto-char omark)
-      nil)))
+  (let ((omark (mark t))
+	(temp-highlight (eq (car-safe transient-mark-mode) 'only)))
+    (if (null omark)
+        (error "No mark set in this buffer"))
+    (deactivate-mark)
+    (set-mark (point))
+    (goto-char omark)
+    (cond (temp-highlight
+	   (setq transient-mark-mode (cons 'only transient-mark-mode)))
+	  ((or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
+	       (not (or arg (region-active-p))))
+	   (deactivate-mark))
+	  (t (activate-mark)))
+    nil))
+
+(defun handle-shift-selection (&optional deactivate)
+  "Check for shift translation, and operate on the mark accordingly.
+This is called whenever a command with a `^' character in its
+`interactive' spec is invoked while `shift-select-mode' is
+non-nil.
+
+If the command was invoked through shift-translation, set the
+mark and activate the region temporarily, unless it was already
+set in this way.  If the command was invoked without
+shift-translation and a region is temporarily active, deactivate
+the mark.
+
+With optional arg DEACTIVATE, only perform region deactivation."
+  (cond ((and this-command-keys-shift-translated
+	      (null deactivate))
+	 (unless (and mark-active
+		      (eq (car-safe transient-mark-mode) 'only))
+	   (setq transient-mark-mode
+		 (cons 'only
+		       (unless (eq transient-mark-mode 'lambda)
+			 transient-mark-mode)))
+	   (push-mark nil nil t)))
+	((eq (car-safe transient-mark-mode) 'only)
+	 (setq transient-mark-mode (cdr transient-mark-mode))
+	 (deactivate-mark))))
 
 (define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.
@@ -3590,8 +3723,29 @@ Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
   :global t
-;;;  :init-value (not noninteractive)
+  :init-value (not noninteractive)
   :group 'editing-basics)
+
+;; The variable transient-mark-mode is ugly: it can take on special
+;; values.  Document these here.
+(defvar transient-mark-mode t
+  "*Non-nil if Transient Mark mode is enabled.
+See the command `transient-mark-mode' for a description of this minor mode.
+
+Non-nil also enables highlighting of the region whenever the mark is active.
+The variable `highlight-nonselected-windows' controls whether to highlight
+all windows or just the selected window.
+
+If the value is `lambda', that enables Transient Mark mode
+temporarily.  After any subsequent action that would normally
+deactivate the mark (such as buffer modification), Transient Mark mode
+is turned off.
+
+If the value is (only . OLDVAL), that enables Transient Mark mode
+temporarily.  After any subsequent point motion command that is not
+shift-translated, or any other action that would normally deactivate
+the mark (such as buffer modification), the value of
+`transient-mark-mode' is set to OLDVAL.")
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -3650,7 +3804,7 @@ when there is no goal column.
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
-  (interactive "p\np")
+  (interactive "^p\np")
   (or arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
@@ -3683,7 +3837,7 @@ when there is no goal column.
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
-  (interactive "p\np")
+  (interactive "^p\np")
   (or arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
@@ -4041,7 +4195,7 @@ which are part of the text that the image rests on.)
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (let (done)
     (while (not done)
@@ -4076,7 +4230,7 @@ which are part of the text that the image rests on.)
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
 
   (let ((orig (point))
@@ -4306,7 +4460,7 @@ With argument 0, interchanges line point is in with line mark is in."
 (defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "^p")
   (forward-word (- (or arg 1))))
 
 (defun mark-word (&optional arg allow-extend)
@@ -4319,7 +4473,7 @@ it marks the next ARG words after the ones already marked."
   (interactive "P\np")
   (cond ((and allow-extend
 	      (or (and (eq last-command this-command) (mark t))
-		  (and transient-mark-mode mark-active)))
+		  (region-active-p)))
 	 (setq arg (if arg (prefix-numeric-value arg)
 		     (if (< (mark) (point)) -1 1)))
 	 (set-mark
@@ -4391,7 +4545,7 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 string)
   :group 'fill)
 (make-variable-buffer-local 'fill-prefix)
-;;;###autoload(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
+(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
 (defcustom auto-fill-inhibit-regexp nil
   "*Regexp to match lines which should not be auto-filled."
@@ -4570,7 +4724,12 @@ for `auto-fill-function' when turning Auto Fill mode on."
   "Set `fill-column' to specified argument.
 Use \\[universal-argument] followed by a number to specify a column.
 Just \\[universal-argument] as argument means to use the current column."
-  (interactive "P")
+  (interactive
+   (list (or current-prefix-arg
+             ;; We used to use current-column silently, but C-x f is too easily
+             ;; typed as a typo for C-x C-f, so we turned it into an error and
+             ;; now an interactive prompt.
+             (read-number "Set fill-column to: " (current-column)))))
   (if (consp arg)
       (setq arg (current-column)))
   (if (not (integerp arg))
@@ -4606,7 +4765,8 @@ The variable `selective-display' has a separate value for each buffer."
   "Toggle whether to fold or truncate long lines for the current buffer.
 With prefix argument ARG, truncate long lines if ARG is positive,
 otherwise don't truncate them.  Note that in side-by-side
-windows, truncation is always enabled."
+windows, this command has no effect if `truncate-partial-width-windows'
+is non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -4860,7 +5020,7 @@ or go back to just one window (by deleting all but the selected window)."
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((and transient-mark-mode mark-active)
+	((region-active-p)
 	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))
@@ -5101,18 +5261,17 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 
 ;; Define the major mode for lists of completions.
 
-(defvar completion-list-mode-map nil
+(defvar completion-list-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'mouse-choose-completion)
+    (define-key map [follow-link] 'mouse-face)
+    (define-key map [down-mouse-2] nil)
+    (define-key map "\C-m" 'choose-completion)
+    (define-key map "\e\e\e" 'delete-completion-window)
+    (define-key map [left] 'previous-completion)
+    (define-key map [right] 'next-completion)
+    map)
   "Local map for completion list buffers.")
-(or completion-list-mode-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map [mouse-2] 'mouse-choose-completion)
-      (define-key map [follow-link] 'mouse-face)
-      (define-key map [down-mouse-2] nil)
-      (define-key map "\C-m" 'choose-completion)
-      (define-key map "\e\e\e" 'delete-completion-window)
-      (define-key map [left] 'previous-completion)
-      (define-key map [right] 'next-completion)
-      (setq completion-list-mode-map map)))
 
 ;; Completion mode is suitable only for specially formatted data.
 (put 'completion-list-mode 'mode-class 'special)
@@ -5284,7 +5443,7 @@ to decide what to delete."
 	     minibuffer-completion-table
 	     ;; If this is reading a file name, and the file name chosen
 	     ;; is a directory, don't exit the minibuffer.
-	     (if (and (eq minibuffer-completion-table 'read-file-name-internal)
+	     (if (and minibuffer-completing-file-name
 		      (file-directory-p (field-string (point-max))))
 		 (let ((mini (active-minibuffer-window)))
 		   (select-window mini)
@@ -5292,7 +5451,7 @@ to decide what to delete."
 		     (raise-frame (window-frame mini))))
 	       (exit-minibuffer)))))))
 
-(defun completion-list-mode ()
+(define-derived-mode completion-list-mode nil "Completion List"
   "Major mode for buffers showing lists of possible completions.
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
@@ -5300,15 +5459,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
  with the mouse.
 
 \\{completion-list-mode-map}"
-
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map completion-list-mode-map)
-  (setq mode-name "Completion List")
-  (setq major-mode 'completion-list-mode)
-  (make-local-variable 'completion-base-size)
-  (setq completion-base-size nil)
-  (run-mode-hooks 'completion-list-mode-hook))
+  (set (make-local-variable 'completion-base-size) nil))
 
 (defun completion-list-mode-finish ()
   "Finish setup of the completions buffer.
@@ -5317,14 +5468,6 @@ Called from `temp-buffer-show-hook'."
     (toggle-read-only 1)))
 
 (add-hook 'temp-buffer-show-hook 'completion-list-mode-finish)
-
-(defvar completion-setup-hook nil
-  "Normal hook run at the end of setting up a completion list buffer.
-When this hook is run, the current buffer is the one in which the
-command to display the completion list buffer was run.
-The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the
-value of `completion-common-substring'. See also `display-completion-list'.")
 
 
 ;; Variables and faces used in `completion-setup-function'.
@@ -5377,27 +5520,25 @@ of the minibuffer before point is always the common substring.)")
 	  (setq default-directory
                 (file-name-directory (expand-file-name mbuf-contents)))))
     (with-current-buffer standard-output
-      (completion-list-mode)
+      (let ((base-size completion-base-size)) ;Read before killing localvars.
+        (completion-list-mode)
+        (set (make-local-variable 'completion-base-size) base-size))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
-      (setq completion-base-size
-	    (cond
-	     ((and (symbolp minibuffer-completion-table)
-		   (get minibuffer-completion-table 'completion-base-size-function))
-	      ;; To compute base size, a function can use the global value of
-	      ;; completion-common-substring or minibuffer-completion-contents.
-	      (with-current-buffer mainbuf
-		(funcall (get minibuffer-completion-table
-			      'completion-base-size-function))))
-	     (minibuffer-completing-file-name
-	      ;; For file name completion, use the number of chars before
-	      ;; the start of the file name component at point.
-	      (with-current-buffer mainbuf
-		(save-excursion
-		  (skip-chars-backward completion-root-regexp)
-		  (- (point) (minibuffer-prompt-end)))))
-	     (minibuffer-completing-symbol nil)
-	     ;; Otherwise, in minibuffer, the base size is 0.
-	     ((minibufferp mainbuf) 0)))
+      (unless completion-base-size
+        ;; This may be needed for old completion packages which don't use
+        ;; completion-all-completions-with-base-size yet.
+        (setq completion-base-size
+              (cond
+               (minibuffer-completing-file-name
+                ;; For file name completion, use the number of chars before
+                ;; the start of the file name component at point.
+                (with-current-buffer mainbuf
+                  (save-excursion
+                    (skip-chars-backward completion-root-regexp)
+                    (- (point) (minibuffer-prompt-end)))))
+               (minibuffer-completing-symbol nil)
+               ;; Otherwise, in minibuffer, the base size is 0.
+               ((minibufferp mainbuf) 0))))
       (setq common-string-length
 	    (cond
 	     (completion-common-substring

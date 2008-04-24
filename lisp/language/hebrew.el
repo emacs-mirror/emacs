@@ -89,5 +89,5 @@ Right-to-left writing is not yet supported.")))
 
 (provide 'hebrew)
 
-;;; arch-tag: 3ca04f32-3f1e-498e-af46-8267498ba5d9
+;; arch-tag: 3ca04f32-3f1e-498e-af46-8267498ba5d9
 ;;; hebrew.el ends here

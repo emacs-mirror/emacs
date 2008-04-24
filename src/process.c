@@ -145,7 +145,6 @@ Lisp_Object QCname, QCbuffer, QChost, QCservice, QCtype;
 Lisp_Object QClocal, QCremote, QCcoding;
 Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
 Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
-Lisp_Object QCfilter_multibyte;
 Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
@@ -670,10 +669,7 @@ setup_process_coding_systems (process)
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   coding_system = p->decode_coding_system;
   if (! NILP (p->filter))
-    {
-      if (!p->filter_multibyte)
-	coding_system = raw_text_coding_system (coding_system);
-    }
+    ;
   else if (BUFFERP (p->buffer))
     {
       if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
@@ -1628,8 +1624,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->buffer = buffer;
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
-  XPROCESS (proc)->filter_multibyte
-    = !NILP (buffer_defaults.enable_multibyte_characters);
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
 
 #ifdef ADAPTIVE_READ_BUFFERING
@@ -3407,10 +3401,6 @@ usage: (make-network-process &rest ARGS)  */)
   p->buffer = buffer;
   p->sentinel = sentinel;
   p->filter = filter;
-  p->filter_multibyte = !NILP (buffer_defaults.enable_multibyte_characters);
-  /* Override the above only if :filter-multibyte is specified.  */
-  if (! NILP (Fplist_member (contact, QCfilter_multibyte)))
-    p->filter_multibyte = !NILP (Fplist_get (contact, QCfilter_multibyte));
   p->log = Fplist_get (contact, QClog);
   if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
     p->kill_without_query = 1;
@@ -4065,7 +4055,7 @@ server_accept_connection (server, channel)
 #endif
     default:
       caller = Fnumber_to_string (make_number (connect_counter));
-      caller = concat3 (build_string (" <*"), caller, build_string ("*>"));
+      caller = concat3 (build_string (" <"), caller, build_string (">"));
       break;
     }
 
@@ -4319,8 +4309,13 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       if (read_kbd >= 0)
 	QUIT;
 #ifdef SYNC_INPUT
-      else if (interrupt_input_pending)
-	handle_async_input ();
+      else
+        {
+          if (interrupt_input_pending)
+            handle_async_input ();
+          if (pending_atimers)
+            do_pending_atimers ();
+        }
 #endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
@@ -5169,11 +5164,6 @@ read_process_output (proc, channel)
 		 coding->carryover_bytes);
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
-      /* Adjust the multibyteness of TEXT to that of the filter.  */
-      if (!p->filter_multibyte != !STRING_MULTIBYTE (text))
-	text = (STRING_MULTIBYTE (text)
-		? Fstring_as_unibyte (text)
-		: Fstring_to_multibyte (text));
       if (SBYTES (text) > 0)
 	internal_condition_case_1 (read_process_output_call,
 				   Fcons (outstream,
@@ -5724,7 +5714,7 @@ emacs_get_tty_pgrp (p)
       int fd;
       /* Some OS:es (Solaris 8/9) does not allow TIOCGPGRP from the
 	 master side.  Try the slave side.  */
-      fd = emacs_open (XSTRING (p->tty_name)->data, O_RDONLY, 0);
+      fd = emacs_open (SDATA (p->tty_name), O_RDONLY, 0);
 
       if (fd != -1)
 	{
@@ -5907,7 +5897,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	 you'd better be using one of the alternatives above!  */
 #endif /* ! defined (TCGETA) */
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-	/* In this case, the code above should alway returns.  */
+	/* In this case, the code above should alway return.  */
 	abort ();
 #endif /* ! defined HAVE_TERMIOS */
 
@@ -6834,7 +6824,8 @@ suppressed.  */)
 
   CHECK_PROCESS (process);
   p = XPROCESS (process);
-  p->filter_multibyte = !NILP (flag);
+  if (NILP (flag))
+    p->decode_coding_system = raw_text_coding_system (p->decode_coding_system);
   setup_process_coding_systems (process);
 
   return Qnil;
@@ -6847,11 +6838,12 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
      Lisp_Object process;
 {
   register struct Lisp_Process *p;
+  struct coding_system *coding;
 
   CHECK_PROCESS (process);
   p = XPROCESS (process);
-
-  return (p->filter_multibyte ? Qt : Qnil);
+  coding = proc_decode_coding_system[p->infd];
+  return (CODING_FOR_UNIBYTE (coding) ? Qnil : Qt);
 }
 
 
@@ -7109,8 +7101,6 @@ syms_of_process ()
   staticpro (&QCoptions);
   QCplist = intern (":plist");
   staticpro (&QCplist);
-  QCfilter_multibyte = intern (":filter-multibyte");
-  staticpro (&QCfilter_multibyte);
 
   Qlast_nonmenu_event = intern ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);

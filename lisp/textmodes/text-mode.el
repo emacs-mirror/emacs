@@ -180,5 +180,5 @@ The argument NLINES says how many lines to center."
 	   (setq nlines (1+ nlines))
 	   (forward-line -1)))))
 
-;;; arch-tag: a07ccaad-da13-4d7b-9c61-cd04f5926aab
+;; arch-tag: a07ccaad-da13-4d7b-9c61-cd04f5926aab
 ;;; text-mode.el ends here

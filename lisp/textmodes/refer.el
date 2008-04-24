@@ -398,5 +398,5 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
         (setq refer-bib-files files))
     files))
 
-;;; arch-tag: 151f641b-e79b-462b-9a29-a95c3793f300
+;; arch-tag: 151f641b-e79b-462b-9a29-a95c3793f300
 ;;; refer.el ends here

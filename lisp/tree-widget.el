@@ -127,9 +127,9 @@
   :version "22.1"
   :group 'widgets)
 
-(defcustom tree-widget-image-enable
-  (not (or (featurep 'xemacs) (< emacs-major-version 21)))
-  "*Non-nil means that tree-widget will try to use images."
+(defcustom tree-widget-image-enable (if (fboundp 'display-images-p)
+                                        (display-images-p))
+  "Non-nil means that tree-widget will try to use images."
   :type  'boolean
   :group 'tree-widget)
 

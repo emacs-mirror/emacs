@@ -688,5 +688,5 @@ AFTER-TEXT is inserted just after the widget."
 
 (provide 'ada-prj)
 
-;;; arch-tag: 65978c77-816e-49c6-896e-6905605d1b4c
+;; arch-tag: 65978c77-816e-49c6-896e-6905605d1b4c
 ;;; ada-prj.el ends here

@@ -165,8 +165,7 @@ between point and mark, you can either set the mark at point and then move
 over the words, or you can use the command @kbd{M-@@} (@code{mark-word})
 which does not move point, but sets the mark where @kbd{M-f} would move
 to.  @kbd{M-@@} accepts a numeric argument that says how many words to
-scan for the place to put the mark.  In Transient Mark mode, this command
-activates the mark.
+scan for the place to put the mark.
 
   The word commands' understanding of word boundaries is controlled
 by the syntax table.  Any character can, for example, be declared to
@@ -298,15 +297,17 @@ all lines which don't start with the fill prefix.  @xref{Filling}.
 
 @kindex M-h
 @findex mark-paragraph
-  When you wish to operate on a paragraph, you can use the command
-@kbd{M-h} (@code{mark-paragraph}) to set the region around it.  Thus,
-for example, @kbd{M-h C-w} kills the paragraph around or after point.
-The @kbd{M-h} command puts point at the beginning and mark at the end of
-the paragraph point was in.  In Transient Mark mode, it activates the
-mark.  If point is between paragraphs (in a run of blank lines, or at a
-boundary), the paragraph following point is surrounded by point and
-mark.  If there are blank lines preceding the first line of the
-paragraph, one of these blank lines is included in the region.
+  When you wish to operate on a paragraph, you can type @kbd{M-h}
+(@code{mark-paragraph}) to set the region around it.  Thus, for
+example, @kbd{M-h C-w} kills the paragraph around or after point.
+@kbd{M-h} puts point at the beginning and mark at the end of the
+paragraph point was in.  If point is between paragraphs (in a run of
+blank lines, or at a boundary), the paragraph following point is
+surrounded by point and mark.  If there are blank lines preceding the
+first line of the paragraph, one of these blank lines is included in
+the region.  If the region is already active, the command sets the
+mark without changing point; furthermore, each subsequent @kbd{M-h}
+further advances the mark by one paragraph.
 
 @vindex paragraph-start
 @vindex paragraph-separate
@@ -368,8 +369,7 @@ command moves forward past the next page delimiter.
   The @kbd{C-x C-p} command (@code{mark-page}) puts point at the
 beginning of the current page and the mark at the end.  The page
 delimiter at the end is included (the mark follows it).  The page
-delimiter at the front is excluded (point follows it).  In Transient
-Mark mode, this command activates the mark.
+delimiter at the front is excluded (point follows it).
 
   @kbd{C-x C-p C-w} is a handy way to kill a page to move it
 elsewhere.  If you move to another page delimiter with @kbd{C-x [} and
@@ -502,9 +502,9 @@ Center a line.
   To refill a paragraph, use the command @kbd{M-q}
 (@code{fill-paragraph}).  This operates on the paragraph that point is
 inside, or the one after point if point is between paragraphs.
-Refilling works by removing all the line-breaks, then inserting new ones
-where necessary.  When the mark is active in Transient Mark mode, this
-command operates on the active region like @code{fill-region}.
+Refilling works by removing all the line-breaks, then inserting new
+ones where necessary.  When there is an active region, this command
+operates on the text within the region like @code{fill-region}.
 
 @findex fill-region
   To refill many paragraphs, use @kbd{M-x fill-region}, which
@@ -1785,9 +1785,10 @@ then inserts both the opening tag and the closing tag, leaving point
 between them.
 
 With a prefix argument @var{n}, the command puts the tag around the
-@var{n} words already present in the buffer after point.  With
-@minus{}1 as argument, it puts the tag around the region.  (In
-Transient Mark mode, it does this whenever a region is active.)
+@var{n} words already present in the buffer after point.  Whenever a
+region is active, it puts the tag around the region (when Transient
+Mark mode is off, it does this when a numeric argument of @minus{}1 is
+supplied.)
 
 @item C-c C-a
 @kindex C-c C-a @r{(SGML mode)}
@@ -2177,15 +2178,17 @@ them.
 @subsection Colors in Formatted Text
 
   You can specify foreground and background colors for portions of the
-text.  Under Text Properties there is a submenu for specifying the
+text.  Under Text Properties, there is a submenu for specifying the
 foreground color, and a submenu for specifying the background color.
 Each one lists all the colors that you have used in Enriched mode in
 the current Emacs session.
 
-  If you specify a color with a prefix argument---or, in Transient
-Mark mode, if the region is not active---then it applies to any
-immediately following self-inserting input.  Otherwise, the command
-applies to the region.
+  If the region is active, the command applies to the text in the
+region; otherwise, it applies to any immediately following
+self-inserting input.  When Transient Mark mode is off
+(@pxref{Persistent Mark}), it always applies to the region unless a
+prefix argument is given, in which case it applies to the following
+input.
 
   Each of the two color submenus contains one additional item:
 @samp{Other}.  You can use this item to specify a color that is not

@@ -439,5 +439,5 @@ BEFORE, if provided, is the name of a menu before which this menu should
 
 (provide 'lmenu)
 
-;;; arch-tag: 7051c396-2837-435a-ae11-b2d2e2af8fc1
+;; arch-tag: 7051c396-2837-435a-ae11-b2d2e2af8fc1
 ;;; lmenu.el ends here

@@ -234,5 +234,5 @@ This is an XEmacs compatibility function."
 
 (provide 'lucid)
 
-;;; arch-tag: 80f9ab46-0b36-4151-86ed-3edb6d449c9e
+;; arch-tag: 80f9ab46-0b36-4151-86ed-3edb6d449c9e
 ;;; lucid.el ends here

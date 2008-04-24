@@ -833,5 +833,5 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 (provide 'cpp)
 
-;;; arch-tag: fb7d433d-745d-495a-96f0-86908ab63f74
+;; arch-tag: fb7d433d-745d-495a-96f0-86908ab63f74
 ;;; cpp.el ends here

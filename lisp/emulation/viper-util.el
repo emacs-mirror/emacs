@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(provide 'viper-util)
+
+
 ;; Compiler pacifier
 (defvar viper-overriding-map)
 (defvar pm-color-alist)
@@ -209,10 +212,9 @@ Otherwise return the normal value."
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-replace-mode)
-   (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
-     (or (and (eq viper-current-state 'emacs-mode)
-	      ecolor)
-	 (viper-frame-value viper-vi-state-cursor-color)))))
+   (or (and (eq viper-current-state 'emacs-mode)
+	    (viper-frame-value viper-emacs-state-cursor-color))
+       (viper-frame-value viper-vi-state-cursor-color))))
 
 (defsubst viper-get-saved-cursor-color-in-insert-mode ()
   (or
@@ -220,10 +222,9 @@ Otherwise return the normal value."
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-insert-mode)
-   (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
-     (or (and (eq viper-current-state 'emacs-mode)
-	      ecolor)
-	 (viper-frame-value viper-vi-state-cursor-color)))))
+   (or (and (eq viper-current-state 'emacs-mode)
+	    (viper-frame-value viper-emacs-state-cursor-color))
+       (viper-frame-value viper-vi-state-cursor-color))))
 
 (defsubst viper-get-saved-cursor-color-in-emacs-mode ()
   (or
@@ -700,11 +701,6 @@ Otherwise return the normal value."
     ))
 
 
-;; define remote file test
-(defun viper-file-remote-p (file-name)
-  (file-remote-p file-name))
-
-
 ;; This is a simple-minded check for whether a file is under version control.
 ;; If file,v exists but file doesn't, this file is considered to be not checked
 ;; in and not checked out for the purpose of patching (since patch won't be
@@ -1001,7 +997,7 @@ Otherwise return the normal value."
 ;; This function lets function-key-map convert key sequences into logical
 ;; keys.  This does a better job than viper-read-event when it comes to kbd
 ;; macros, since it enables certain macros to be shared between X and TTY modes
-;; by correctly mapping key sequences for Left/Right/... (one an ascii
+;; by correctly mapping key sequences for Left/Right/... (on an ascii
 ;; terminal) into logical keys left, right, etc.
 (defun viper-read-key ()
   (let ((overriding-local-map viper-overriding-map)
@@ -1211,9 +1207,9 @@ Otherwise return the normal value."
 
 (defun viper-key-press-events-to-chars (events)
   (mapconcat (if (featurep 'xemacs)
-	      (lambda (elt) (char-to-string (event-to-character elt))) ; xemacs
-	      'char-to-string ; emacs
-	      )
+		 (lambda (elt) (char-to-string (event-to-character elt))) ; xemacs
+	       'char-to-string ; emacs
+	       )
 	     events
 	     ""))
 
@@ -1564,12 +1560,9 @@ This option is appropriate if you like Emacs-style words."
 
 
 
-(provide 'viper-util)
-
-
 ;;; Local Variables:
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
-;;; arch-tag: 7f023fd5-dd9e-4378-a397-9c179553b0e3
+;; arch-tag: 7f023fd5-dd9e-4378-a397-9c179553b0e3
 ;;; viper-util.el ends here

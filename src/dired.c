@@ -193,8 +193,10 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run
      run_pre_post_conversion_on_str which calls Lisp directly and
      indirectly.  */
-  dirfilename = ENCODE_FILE (dirfilename);
-  encoded_directory = ENCODE_FILE (directory);
+  if (STRING_MULTIBYTE (dirfilename))
+    dirfilename = ENCODE_FILE (dirfilename);
+  encoded_directory = (STRING_MULTIBYTE (directory)
+		       ? ENCODE_FILE (directory) : directory);
 
   /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
@@ -251,7 +253,7 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 	  name = finalname = make_unibyte_string (dp->d_name, len);
 	  GCPRO2 (finalname, name);
 
-	  /* Note: ENCODE_FILE can GC; it should protect its argument,
+	  /* Note: DECODE_FILE can GC; it should protect its argument,
 	     though.  */
 	  name = DECODE_FILE (name);
 	  len = SBYTES (name);
@@ -506,7 +508,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   /* Do completion on the encoded file name
      because the other names in the directory are (we presume)
      encoded likewise.  We decode the completed string at the end.  */
-  encoded_file = ENCODE_FILE (file);
+  encoded_file = STRING_MULTIBYTE (file) ? ENCODE_FILE (file) : file;
 
   encoded_dir = ENCODE_FILE (dirname);
 
@@ -919,8 +921,10 @@ Elements of the attribute list are:
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. t if file's gid would change if file were deleted and recreated.
 10. inode number.  If inode number is larger than the Emacs integer,
-  this is a cons cell containing two integers: first the high part,
-  then the low 16 bits.
+  but still fits into a 32-bit number, this is a cons cell containing two
+  integers: first the high part, then the low 16 bits.  If the inode number
+  is wider than 32 bits, this is a cons cell containing three integers:
+  first the high 24 bits, then middle 24 bits, and finally the low 16 bits.
 11. Device number.  If it is larger than the Emacs integer, this is
   a cons cell, similar to the inode number.  */)
      (filename, id_format)
@@ -977,8 +981,16 @@ Elements of the attribute list are:
      shorter than an int (e.g., `short'), GCC whines about comparison
      being always false due to limited range of data type.  Fix by
      copying s.st_uid and s.st_gid into int variables.  */
+#ifdef WINDOWSNT
+  /* Windows uses signed short for the uid and gid in the stat structure,
+     but we use an int for getuid (limited to the range 0-60000).
+     So users with uid > 32767 need their uid patched back here.  */ 
+  uid = (unsigned short) s.st_uid;
+  gid = (unsigned short) s.st_gid;
+#else
   uid = s.st_uid;
   gid = s.st_gid;
+#endif
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
       values[2] = make_fixnum_or_float (uid);
@@ -1021,15 +1033,32 @@ Elements of the attribute list are:
   values[9] = (gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
   /* Shut up GCC warnings in FIXNUM_OVERFLOW_P below.  */
-  ino = s.st_ino;
-  if (FIXNUM_OVERFLOW_P (ino))
+  if (sizeof (s.st_ino) > sizeof (ino))
+    ino = (EMACS_INT)(s.st_ino & 0xffffffff);
+  else
+    ino = s.st_ino;
+  if (!FIXNUM_OVERFLOW_P (ino)
+      && (sizeof (s.st_ino) <= sizeof (ino) || (s.st_ino & ~INTMASK) == 0))
+    /* Keep the most common cases as integers.  */
+    values[10] = make_number (ino);
+  else if (sizeof (s.st_ino) <= sizeof (ino)
+	   || ((s.st_ino >> 16) & ~INTMASK) == 0)
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
-    values[10] = Fcons (make_number (ino >> 16),
-			make_number (ino & 0xffff));
+    values[10] = Fcons (make_number ((EMACS_INT)(s.st_ino >> 16)),
+			make_number ((EMACS_INT)(s.st_ino & 0xffff)));
   else
-    /* But keep the most common cases as integers.  */
-    values[10] = make_number (ino);
+    {
+      /* To allow inode numbers beyond 32 bits, separate into 2 24-bit
+	 high parts and a 16-bit bottom part.  */
+      EMACS_INT high_ino = s.st_ino >> 32;
+      EMACS_INT low_ino  = s.st_ino & 0xffffffff;
+
+      values[10] = Fcons (make_number (high_ino >> 8),
+			  Fcons (make_number (((high_ino & 0xff) << 16)
+					      + (low_ino >> 16)),
+				 make_number (low_ino & 0xffff)));
+    }
 
   /* Likewise for device.  */
   if (FIXNUM_OVERFLOW_P (s.st_dev))

@@ -276,5 +276,5 @@ These are all the command aliases which begin with NAME."
 
 (provide 'em-alias)
 
-;;; arch-tag: 8b018fc1-4e07-4ccc-aa73-c0a1ba361f82
+;; arch-tag: 8b018fc1-4e07-4ccc-aa73-c0a1ba361f82
 ;;; em-alias.el ends here

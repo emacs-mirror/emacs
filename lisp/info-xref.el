@@ -315,5 +315,5 @@ quite a while."
 
 (provide 'info-xref)
 
-;;; arch-tag: 69d4d528-69ed-4cc2-8eb4-c666a0c1d5ac
+;; arch-tag: 69d4d528-69ed-4cc2-8eb4-c666a0c1d5ac
 ;;; info-xref.el ends here

@@ -1011,12 +1011,12 @@ Leaves point at the location of the start of the expansion."
 		(cons found-string dabbrev--last-table))
 	  result)))))
 
-(dolist (mess '("^No dynamic expansion for .* found$"
+(dolist (mess '("^No dynamic expansion for .* found"
 		"^No further dynamic expansion for .* found$"
 		"^No possible abbreviation preceding point$"))
   (add-to-list 'debug-ignored-errors mess))
 
 (provide 'dabbrev)
 
-;;; arch-tag: 29e58596-f080-4306-a409-70296cf9d46f
+;; arch-tag: 29e58596-f080-4306-a409-70296cf9d46f
 ;;; dabbrev.el ends here

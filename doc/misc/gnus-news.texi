@@ -32,10 +32,10 @@ file, where this release will store flags for nntp.  See a later entry
 for more information about nntp marks.  Note that downgrading isn't
 safe in general.
 
-@item Incompatibity when switching from Emacs 23 to Emacs 22 
+@item Incompatibility when switching from Emacs 23 to Emacs 22 
 In Emacs 23, Gnus uses Emacs' new internal coding system @code{utf-8-emacs}
-for saving articles drafts and @file{~/.newsrc.eld}.  These file may not
-be read correctly in Emacs 22 and below.  If you want to Gnus across
+for saving articles drafts and @file{~/.newsrc.eld}.  These files may not
+be read correctly in Emacs 22 and below.  If you want to use Gnus across
 different Emacs versions, you may set @code{mm-auto-save-coding-system}
 to @code{emacs-mule}.
 @c FIXME: Untested.  (Or did anyone test it?)
@@ -75,6 +75,12 @@ timeout of 16 seconds (see @code{password-cache-expiry}).  If
 passphrase is managed by this mechanism.  Passwords for ManageSieve
 connections are managed by this mechanism, after querying the user
 about whether to do so.
+
+@item Using EasyPG with Gnus
+When EasyPG, is available, Gnus will use it instead of @acronym{PGG}.
+EasyPG is an Emacs user interface to GNU Privacy Guard.  @xref{Top,
+,EasyPG Assistant user's manual, epa, EasyPG Assistant user's manual}.
+EasyPG is included in Emacs 23 and available separately as well.
 @end itemize
 
 @item Changes in group mode
@@ -97,6 +103,15 @@ Customization}.
 @item Gnus now supports sticky article buffers.  Those are article buffers
 that are not reused when you select another article.  @xref{Sticky
 Articles}.
+
+@c @item Bookmarks
+@c FIXME: To be added
+
+@item Gnus can selectively display @samp{text/html} articles
+with a WWW browser with @kbd{K H}.  @xref{MIME Commands}.
+
+@c gnus-registry-marks
+@c FIXME: To be added
 
 @item International host names (@acronym{IDNA}) can now be decoded
 inside article bodies using @kbd{W i}
@@ -254,6 +269,13 @@ This feature, accessible via the functions
 renumbers all articles in a group, starting from 1 and removing gaps.
 As a consequence, you get a correct total article count (until
 messages are deleted again).
+
+@c @item nnmairix.el
+@c FIXME
+
+@c @item nnir.el
+@c FIXME
+
 @end itemize
 
 @item Appearance
@@ -262,9 +284,8 @@ messages are deleted again).
 @itemize @bullet
 
 @item The tool bar has been updated to use GNOME icons.
-You can also customize the tool bar.  There's no documentation in the
-manual yet, but @kbd{M-x customize-apropos RET -tool-bar$} should get
-you started.  (Only for Emacs, not in XEmacs.)
+You can also customize the tool bars: @kbd{M-x customize-apropos RET
+-tool-bar$} should get you started.  (Only for Emacs, not in XEmacs.)
 @c FIXME: Document this in the manual
 
 @item The tool bar icons are now (de)activated correctly

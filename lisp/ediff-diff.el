@@ -27,18 +27,18 @@
 ;;; Code:
 
 
+(provide 'ediff-diff)
+
 ;; compiler pacifier
 (defvar ediff-default-variant)
 (defvar null-device)
 (defvar longlines-mode)
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-util)
-	(load "ediff-util.el" nil t 'nosuffix))
-    ))
+  (require 'ediff-init)
+  (if (not (featurep 'ediff-util))
+      (require 'ediff-util))
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -1536,8 +1536,6 @@ affects only files whose names match the expression."
   )
 
 
-(provide 'ediff-diff)
-
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
@@ -1545,5 +1543,5 @@ affects only files whose names match the expression."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: a86d448e-58d7-4572-a1d9-fdedfa22f648
+;; arch-tag: a86d448e-58d7-4572-a1d9-fdedfa22f648
 ;;; ediff-diff.el ends here

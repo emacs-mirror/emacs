@@ -1560,5 +1560,5 @@ See the documentation of `define-ccl-program' for the detail of CCL program."
 
 (provide 'ccl)
 
-;;; arch-tag: 836bcd27-63a1-4a56-b232-1145ecf823fb
+;; arch-tag: 836bcd27-63a1-4a56-b232-1145ecf823fb
 ;;; ccl.el ends here

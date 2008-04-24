@@ -291,5 +291,5 @@ line LINE of the window, or centered if LINE is nil."
 ;;; Place `provide' at end of file.
 (provide 'makeinfo)
 
-;;; arch-tag: 5f810713-3de2-4e20-8030-4bc3dd0d9604
+;; arch-tag: 5f810713-3de2-4e20-8030-4bc3dd0d9604
 ;;; makeinfo.el ends here

@@ -358,6 +358,8 @@ Archive and member name will be added."
     (define-key map "M" 'archive-chmod-entry)
     (define-key map "G" 'archive-chgrp-entry)
     (define-key map "O" 'archive-chown-entry)
+    ;; Let mouse-1 follow the link.
+    (define-key map [follow-link] 'mouse-face)
 
     (if (fboundp 'command-remapping)
         (progn
@@ -892,6 +894,26 @@ using `make-temp-file', and the generated name is returned."
 ;; -------------------------------------------------------------------------
 ;;; Section: Member extraction
 
+(defun archive-try-jka-compr ()
+  (when (and auto-compression-mode
+             (jka-compr-get-compression-info buffer-file-name))
+    (let* ((basename (file-name-nondirectory buffer-file-name))
+           (tmpname (if (string-match ":\\([^:]+\\)\\'" basename)
+                        (match-string 1 basename) basename))
+           (tmpfile (make-temp-file (file-name-sans-extension tmpname)
+                                    nil
+                                    (file-name-extension tmpname 'period))))
+      (unwind-protect
+          (progn
+            (let ((coding-system-for-write 'no-conversion)
+                  ;; Don't re-compress this data just before decompressing it.
+                  (jka-compr-inhibit t))
+              (write-region (point-min) (point-max) tmpfile nil 'quiet))
+            (erase-buffer)
+            (let ((coding-system-for-read 'no-conversion))
+              (insert-file-contents tmpfile)))
+        (delete-file tmpfile)))))
+
 (defun archive-file-name-handler (op &rest args)
   (or (eq op 'file-exists-p)
       (let ((file-name-handler-alist nil))
@@ -921,13 +943,12 @@ using `make-temp-file', and the generated name is returned."
 		 (car (find-operation-coding-system
 		       'insert-file-contents
 		       (cons filename (current-buffer)) t))))))
-      (if (and (not coding-system-for-read)
-	       (not enable-multibyte-characters))
-	  (setq coding
-		(coding-system-change-text-conversion coding 'raw-text)))
-      (if (and coding
-	       (not (eq coding 'no-conversion)))
-	  (decode-coding-region (point-min) (point-max) coding)
+      (unless (or coding-system-for-read
+                  enable-multibyte-characters)
+        (setq coding
+              (coding-system-change-text-conversion coding 'raw-text)))
+      (unless (memq coding '(nil no-conversion))
+        (decode-coding-region (point-min) (point-max) coding)
 	(setq last-coding-system-used coding))
       (set-buffer-modified-p nil)
       (kill-local-variable 'buffer-file-coding-system)
@@ -999,6 +1020,7 @@ using `make-temp-file', and the generated name is returned."
 	      (progn
 		(set-buffer-modified-p nil)
 		(kill-buffer buffer))
+            (archive-try-jka-compr)     ;Pretty ugly hack :-(
 	    (archive-set-buffer-as-visiting-file ename)
 	    (goto-char (point-min))
 	    (rename-buffer bufname)
@@ -2088,7 +2110,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
           (with-current-buffer destbuf
             ;; Do it within the `widen'.
             (insert-buffer-substring archivebuf from (+ from size)))
-          (set-buffer-multibyte t)
+          (set-buffer-multibyte 'to)
           ;; Inform the caller that the call succeeded.
           t)))))
 

@@ -78,5 +78,5 @@
   
 (provide 'url-proxy)
 
-;;; arch-tag: 4ff8882e-e498-42b7-abc5-acb449cdbc62
+;; arch-tag: 4ff8882e-e498-42b7-abc5-acb449cdbc62
 ;;; url-proxy.el ends here

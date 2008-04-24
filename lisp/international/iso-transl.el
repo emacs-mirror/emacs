@@ -293,5 +293,5 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 
 (provide 'iso-transl)
 
-;;; arch-tag: 034cfedf-7ebd-461d-bcd0-5c79e6dc0b61
+;; arch-tag: 034cfedf-7ebd-461d-bcd0-5c79e6dc0b61
 ;;; iso-transl.el ends here

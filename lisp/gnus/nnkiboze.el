@@ -388,5 +388,5 @@ Finds out what articles are to be part of the nnkiboze groups."
 
 (provide 'nnkiboze)
 
-;;; arch-tag: 66068271-bdc9-4801-bcde-779702e73a05
+;; arch-tag: 66068271-bdc9-4801-bcde-779702e73a05
 ;;; nnkiboze.el ends here

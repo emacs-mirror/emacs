@@ -353,11 +353,12 @@ See also `iswitchb-newbuffer'."
   :type 'boolean
   :group 'iswitchb)
 
+(define-obsolete-variable-alias 'iswitchb-use-fonts 'iswitchb-use-faces "22.1")
+
 (defcustom iswitchb-use-faces t
   "*Non-nil means use font-lock faces for showing first match."
   :type 'boolean
   :group 'iswitchb)
-(define-obsolete-variable-alias 'iswitchb-use-fonts 'iswitchb-use-faces "22.1")
 
 (defcustom iswitchb-use-frame-buffer-list nil
   "*Non-nil means use the currently selected frame's buffer list."

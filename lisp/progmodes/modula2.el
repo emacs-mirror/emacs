@@ -564,5 +564,5 @@ FROM SysStreams IMPORT sysIn, sysOut, sysErr;
 
 (provide 'modula2)
 
-;;; arch-tag: a21df1cb-5ece-4709-9219-1e7cd2d85d90
+;; arch-tag: a21df1cb-5ece-4709-9219-1e7cd2d85d90
 ;;; modula2.el ends here

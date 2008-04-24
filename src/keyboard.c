@@ -132,6 +132,9 @@ int this_command_key_count_reset;
 Lisp_Object raw_keybuf;
 int raw_keybuf_count;
 
+/* Non-nil if the present key sequence was obtained by shift translation.  */
+Lisp_Object Vthis_command_keys_shift_translated;
+
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
    raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
@@ -153,11 +156,6 @@ extern int message_enable_multibyte;
    It's called with one argument, the help string to display.  */
 
 Lisp_Object Vshow_help_function;
-
-/* If a string, the message displayed before displaying a help-echo
-   in the echo area.  */
-
-Lisp_Object Vpre_help_message;
 
 /* Nonzero means do menu prompting.  */
 
@@ -394,6 +392,7 @@ Lisp_Object Vinput_method_previous_message;
 
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
+Lisp_Object Qdeactivate_mark;
 
 /* Menu bar specified in Lucid Emacs fashion.  */
 
@@ -935,7 +934,7 @@ recursive_edit_1 ()
       specbind (Qstandard_input, Qt);
     }
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* The command loop has started an hourglass timer, so we have to
      cancel it here, otherwise it will fire because the recursive edit
      can take some time.  Do not check for display_hourglass_p here,
@@ -1220,7 +1219,7 @@ cmd_error (data)
   Lisp_Object old_level, old_length;
   char macroerror[50];
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
@@ -1396,7 +1395,7 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
        doc: /* Exit all recursive editing levels.  */)
      ()
 {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
@@ -1519,7 +1518,7 @@ static void adjust_point_for_property P_ ((int, int));
 
 /* Cancel hourglass from protect_unwind.
    ARG is not used.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 static Lisp_Object
 cancel_hourglass_unwind (arg)
      Lisp_Object arg;
@@ -1648,6 +1647,7 @@ command_loop_1 ()
       Vthis_command = Qnil;
       real_this_command = Qnil;
       Vthis_original_command = Qnil;
+      Vthis_command_keys_shift_translated = Qnil;
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
@@ -1761,7 +1761,9 @@ command_loop_1 ()
 
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
-	      if (EQ (Vthis_command, Qforward_char) && PT < ZV)
+	      if (EQ (Vthis_command, Qforward_char) && PT < ZV
+		  && NILP (Vthis_command_keys_shift_translated)
+		  && !CONSP (Vtransient_mark_mode))
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1801,7 +1803,9 @@ command_loop_1 ()
 		    direct_output_forward_char (1);
 		  goto directly_done;
 		}
-	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV)
+	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV
+		       && NILP (Vthis_command_keys_shift_translated)
+		       && !CONSP (Vtransient_mark_mode))
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1891,7 +1895,7 @@ command_loop_1 ()
 	  /* Here for a command that isn't executed directly */
 
           {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
             int scount = SPECPDL_INDEX ();
 
             if (display_hourglass_p
@@ -1907,7 +1911,7 @@ command_loop_1 ()
               Fundo_boundary ();
             Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 	  /* Do not check display_hourglass_p here, because
 	     Fcommand_execute could change it, but we should cancel
 	     hourglass cursor anyway.
@@ -1961,25 +1965,16 @@ command_loop_1 ()
 
       if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
 	{
-	  /* Setting transient-mark-mode to `only' is a way of
-	     turning it on for just one command.  */
-
+	  /* In Emacs 22, setting transient-mark-mode to `only' was a
+	     way of turning it on for just one command.  This usage is
+	     obsolete, but support it anyway.  */
 	  if (EQ (Vtransient_mark_mode, Qidentity))
 	    Vtransient_mark_mode = Qnil;
-	  if (EQ (Vtransient_mark_mode, Qonly))
+	  else if (EQ (Vtransient_mark_mode, Qonly))
 	    Vtransient_mark_mode = Qidentity;
 
-	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
-	    {
-	      /* We could also call `deactivate'mark'.  */
-	      if (EQ (Vtransient_mark_mode, Qlambda))
-		Vtransient_mark_mode = Qnil;
-	      else
-		{
-		  current_buffer->mark_active = Qnil;
-		  call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
-		}
-	    }
+	  if (!NILP (Vdeactivate_mark))
+	    call0 (Qdeactivate_mark);
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
 	}
@@ -2031,6 +2026,7 @@ adjust_point_for_property (last_pt, modified)
      can't be usefully combined anyway.  */
   while (check_composition || check_display || check_invisible)
     {
+      /* FIXME: check `intangible'.  */
       if (check_composition
 	  && PT > BEGV && PT < ZV
 	  && get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
@@ -2457,37 +2453,6 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
     {
       if (!NILP (Vshow_help_function))
 	call1 (Vshow_help_function, help);
-      else if (/* Don't overwrite minibuffer contents.  */
-	       !MINI_WINDOW_P (XWINDOW (selected_window))
-	       /* Don't overwrite a keystroke echo.  */
-	       && (NILP (echo_message_buffer)
-		   || ok_to_overwrite_keystroke_echo)
-	       /* Don't overwrite a prompt.  */
-	       && !cursor_in_echo_area)
-	{
-	  if (STRINGP (help))
-	    {
-	      int count = SPECPDL_INDEX ();
-
-	      if (!help_echo_showing_p)
-		Vpre_help_message = current_message ();
-
-	      specbind (Qmessage_truncate_lines, Qt);
-	      message3_nolog (help, SBYTES (help),
-			      STRING_MULTIBYTE (help));
-	      unbind_to (count, Qnil);
-	    }
-	  else if (STRINGP (Vpre_help_message))
-	    {
-	      message3_nolog (Vpre_help_message,
-			      SBYTES (Vpre_help_message),
-			      STRING_MULTIBYTE (Vpre_help_message));
-	      Vpre_help_message = Qnil;
-	    }
-	  else
-	    message (0);
-	}
-
       help_echo_showing_p = STRINGP (help);
     }
 }
@@ -4505,6 +4470,13 @@ timer_resume_idle ()
 /* This is only for debugging.  */
 struct input_event last_timer_event;
 
+/* List of elisp functions to call, delayed because they were generated in
+   a context where Elisp could not be safely run (e.g. redisplay, signal,
+   ...).  Each lement has the form (FUN . ARGS).  */
+Lisp_Object pending_funcalls;
+
+extern Lisp_Object Qapply;
+
 /* Check whether a timer has fired.  To prevent larger problems we simply
    disregard elements that are not proper timers.  Do not make a circular
    timer list for the time being.
@@ -4540,6 +4512,14 @@ timer_check (do_it_now)
     idle_timers = Qnil;
   chosen_timer = Qnil;
   GCPRO3 (timers, idle_timers, chosen_timer);
+
+  /* First run the code that was delayed.  */
+  while (CONSP (pending_funcalls))
+    {
+      Lisp_Object funcall = XCAR (pending_funcalls);
+      pending_funcalls = XCDR (pending_funcalls);
+      safe_call2 (Qapply, XCAR (funcall), XCDR (funcall));
+    }
 
   if (CONSP (timers) || CONSP (idle_timers))
     {
@@ -9194,6 +9174,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Likewise, for key_translation_map and input-decode-map.  */
   volatile keyremap keytran, indec;
 
+  /* Non-zero if we are trying to map a key by changing an upper-case
+     letter to lower case, or a shifted function key to an unshifted
+     one. */
+  volatile int shift_translated = 0;
+
   /* If we receive a `switch-frame' or `select-window' event in the middle of
      a key sequence, we put it off for later.
      While we're reading, we keep the event here.  */
@@ -9302,8 +9287,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
 	  nmaps_allocated = 2;
 	}
-      if (!NILP (current_kboard->Voverriding_terminal_local_map))
-	submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+      submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
     }
   else if (!NILP (Voverriding_local_map))
     {
@@ -9313,8 +9297,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
 	  nmaps_allocated = 2;
 	}
-      if (!NILP (Voverriding_local_map))
-	submaps[nmaps++] = Voverriding_local_map;
+      submaps[nmaps++] = Voverriding_local_map;
     }
   else
     {
@@ -10105,13 +10088,14 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
 	    XSETINT (new_key, (DOWNCASE (XINT (key) & ~CHAR_MODIFIER_MASK)
-			       | (XINT (key) & ~CHAR_MODIFIER_MASK)));
+			       | (XINT (key) & CHAR_MODIFIER_MASK)));
 
 	  /* We have to do this unconditionally, regardless of whether
 	     the lower-case char is defined in the keymaps, because they
 	     might get translated through function-key-map.  */
 	  keybuf[t - 1] = new_key;
 	  mock_input = max (t, mock_input);
+	  shift_translated = 1;
 
 	  goto replay_sequence;
 	}
@@ -10153,6 +10137,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		 input-decode-map doesn't need to go through it again.  */
 	      fkey.start = fkey.end = 0;
 	      keytran.start = keytran.end = 0;
+	      shift_translated = 1;
 
 	      goto replay_sequence;
 	    }
@@ -10171,7 +10156,13 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   if ((dont_downcase_last || first_binding >= nmaps)
       && t > 0
       && t - 1 == original_uppercase_position)
-    keybuf[t - 1] = original_uppercase;
+    {
+      keybuf[t - 1] = original_uppercase;
+      shift_translated = 0;
+    }
+
+  if (shift_translated)
+    Vthis_command_keys_shift_translated = Qt;
 
   /* Occasionally we fabricate events, perhaps by expanding something
      according to function-key-map, or by adding a prefix symbol to a
@@ -10189,8 +10180,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
-
-
 
   UNGCPRO;
   return t;
@@ -10273,7 +10262,7 @@ will read just one key sequence.  */)
       this_single_command_key_start = 0;
     }
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
@@ -10285,7 +10274,7 @@ will read just one key sequence.  */)
 #if 0  /* The following is fine for code reading a key sequence and
 	  then proceeding with a lenghty computation, but it's not good
 	  for code reading keys in a loop, like an input method.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     start_hourglass ();
 #endif
@@ -10333,7 +10322,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
       this_single_command_key_start = 0;
     }
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
@@ -10342,7 +10331,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     start_hourglass ();
 #endif
@@ -10465,7 +10454,7 @@ give to the command you invoke, if it asks for an argument.  */)
   Lisp_Object saved_keys, saved_last_point_position_buffer;
   Lisp_Object bindings, value;
   struct gcpro gcpro1, gcpro2, gcpro3;
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* The call to Fcompleting_read wil start and cancel the hourglass,
      but if the hourglass was already scheduled, this means that no
      hourglass will be shown for the actual M-x command itself.
@@ -10505,7 +10494,7 @@ give to the command you invoke, if it asks for an argument.  */)
 			       Qt, Qnil, Qextended_command_history, Qnil,
 			       Qnil);
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (hstarted) start_hourglass ();
 #endif
 
@@ -11726,8 +11715,7 @@ struct event_head head_table[] = {
 void
 syms_of_keyboard ()
 {
-  Vpre_help_message = Qnil;
-  staticpro (&Vpre_help_message);
+  pending_funcalls = Qnil;
 
   Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
@@ -12083,6 +12071,14 @@ The command can set this variable; whatever is put here
 will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
 
+  DEFVAR_LISP ("this-command-keys-shift-translated",
+	       &Vthis_command_keys_shift_translated,
+	       doc: /* Non-nil if the key sequence activating this command was shift-translated.
+Shift-translation occurs when there is no binding for the key sequence
+as entered, but a binding was found by changing an upper-case letter
+to lower-case, or a shifted function key to an unshifted one.  */);
+  Vthis_command_keys_shift_translated = Qnil;
+
   DEFVAR_LISP ("this-original-command", &Vthis_original_command,
 	       doc: /* The command bound to the current key sequence before remapping.
 It equals `this-command' if the original command was not remapped through
@@ -12239,6 +12235,8 @@ The command loop sets this to nil before each command,
 and tests the value when the command returns.
 Buffer modification stores t in this variable.  */);
   Vdeactivate_mark = Qnil;
+  Qdeactivate_mark = intern ("deactivate-mark");
+  staticpro (&Qdeactivate_mark);
 
   DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
 	       doc: /* Temporary storage of pre-command-hook or post-command-hook.  */);

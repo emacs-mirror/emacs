@@ -612,5 +612,5 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 ;(put 'defclass 'common-lisp-indent-function '((&whole 2 &rest (&whole 2 &rest 1) &rest (&whole 2 &rest 1)))
 ;(put 'defgeneric 'common-lisp-indent-function 'defun)
 
-;;; arch-tag: 7914d50f-92ec-4476-93fc-0f043a380e03
+;; arch-tag: 7914d50f-92ec-4476-93fc-0f043a380e03
 ;;; cl-indent.el ends here

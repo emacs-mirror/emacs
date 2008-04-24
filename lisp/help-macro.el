@@ -198,5 +198,5 @@ and then returns."
 
 (provide 'help-macro)
 
-;;; arch-tag: 59fee949-1686-485a-8a05-83418073e257
+;; arch-tag: 59fee949-1686-485a-8a05-83418073e257
 ;;; help-macro.el ends here

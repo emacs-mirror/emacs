@@ -154,6 +154,11 @@ Lisp_Object Vx_no_window_manager;
 
 int display_hourglass_p;
 
+/* If non-zero, a w32 timer that, when it expires, displays an
+   hourglass cursor on all frames.  */
+static unsigned hourglass_timer = 0;
+static HWND hourglass_hwnd = NULL;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -261,16 +266,36 @@ static unsigned mouse_move_timer = 0;
 /* Window that is tracking the mouse.  */
 static HWND track_mouse_window;
 
+/* Multi-monitor API definitions that are not pulled from the headers
+   since we are compiling for NT 4.  */
+#ifndef MONITOR_DEFAULT_TO_NEAREST
+#define MONITOR_DEFAULT_TO_NEAREST 2
+#endif
+/* MinGW headers define MONITORINFO unconditionally, but MSVC ones don't.
+   To avoid a compile error on one or the other, redefine with a new name.  */
+struct MONITOR_INFO
+{
+    DWORD   cbSize;
+    RECT    rcMonitor;
+    RECT    rcWork;
+    DWORD   dwFlags;
+};
+
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 typedef LONG (WINAPI * ImmGetCompositionString_Proc)
   (IN HIMC context, IN DWORD index, OUT LPVOID buffer, IN DWORD bufLen);
 typedef HIMC (WINAPI * ImmGetContext_Proc) (IN HWND window);
+typedef HMONITOR (WINAPI * MonitorFromPoint_Proc) (IN POINT pt, IN DWORD flags);
+typedef BOOL (WINAPI * GetMonitorInfo_Proc)
+  (IN HMONITOR monitor, OUT struct MONITOR_INFO* info);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ClipboardSequence_Proc clipboard_sequence_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
+MonitorFromPoint_Proc monitor_from_point_fn = NULL;
+GetMonitorInfo_Proc get_monitor_info_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -284,6 +309,7 @@ unsigned int msh_mousewheel = 0;
 #define MOUSE_BUTTON_ID	1
 #define MOUSE_MOVE_ID	2
 #define MENU_FREE_ID 3
+#define HOURGLASS_ID 4
 /* The delay (milliseconds) before a menu is freed after WM_EXITMENULOOP
    is received.  */
 #define MENU_FREE_DELAY 1000
@@ -314,6 +340,17 @@ static HWND w32_visible_system_caret_hwnd;
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
+
+/* From w32uniscribe.c  */
+#ifdef USE_FONT_BACKEND
+extern void syms_of_w32uniscribe ();
+extern int uniscribe_available;
+#endif
+
+/* Function prototypes for hourglass support.  */
+static void show_hourglass P_ ((struct frame *));
+static void hide_hourglass P_ ((void));
+
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -403,8 +440,6 @@ x_window_to_frame (dpyinfo, wdesc)
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
-      if (f->output_data.w32->hourglass_window == wdesc)
-        return f;
 
       if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
@@ -3505,6 +3540,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
               menubar_in_use = 0;
 	    }
 	}
+      else if (wParam == hourglass_timer)
+	{
+	  KillTimer (hwnd, hourglass_timer);
+	  hourglass_timer = 0;
+	  show_hourglass (x_window_to_frame (dpyinfo, hwnd));
+	}
       return 0;
 
     case WM_NCACTIVATE:
@@ -3570,6 +3611,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       */
       if (f && menubar_in_use && current_popup_menu == NULL)
 	menu_free_timer = SetTimer (hwnd, MENU_FREE_ID, MENU_FREE_DELAY, NULL);
+
+      /* If hourglass cursor should be displayed, display it now.  */
+      if (f && f->output_data.w32->hourglass_p)
+	SetCursor (f->output_data.w32->hourglass_cursor);
+
       goto dflt;
 
     case WM_MENUSELECT:
@@ -3838,15 +3884,27 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_SETCURSOR:
       if (LOWORD (lParam) == HTCLIENT)
-	return 0;
-
+	{
+	  f = x_window_to_frame (dpyinfo, hwnd);
+	  if (f->output_data.w32->hourglass_p && !menubar_in_use
+	      && !current_popup_menu)
+	    SetCursor (f->output_data.w32->hourglass_cursor);
+	  else
+	    SetCursor (f->output_data.w32->current_cursor);
+	  return 0;
+	}
       goto dflt;
 
     case WM_EMACS_SETCURSOR:
       {
 	Cursor cursor = (Cursor) wParam;
-	if (cursor)
-	  SetCursor (cursor);
+	f = x_window_to_frame (dpyinfo, hwnd);
+	if (f && cursor)
+	  {
+	    f->output_data.w32->current_cursor = cursor;
+	    if (!f->output_data.w32->hourglass_p)
+	      SetCursor (cursor);
+	  }
 	return 0;
       }
 
@@ -4391,6 +4449,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       /* Perhaps, we must allow frame parameter, say `font-backend',
 	 to specify which font backends to use.  */
+      if (uniscribe_available)
+	register_font_driver (&uniscribe_font_driver, f);
       register_font_driver (&w32font_driver, f);
 
       x_default_parameter (f, parameters, Qfont_backend, Qnil,
@@ -4507,6 +4567,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32->hand_cursor = w32_load_cursor (IDC_HAND);
   f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
   f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
+
+  f->output_data.w32->current_cursor = f->output_data.w32->nontext_cursor;
 
   window_prompting = x_figure_window_size (f, parameters, 1);
 
@@ -4910,7 +4972,7 @@ w32_load_font (f, fontname, size)
       bdf_pair = Fassoc (XCAR (bdf_fonts), Vw32_bdf_filename_alist);
       bdf_file = SDATA (XCDR (bdf_pair));
 
-      // If the font is already loaded, do not load it again.
+      /* If the font is already loaded, do not load it again.  */
       for (i = 0; i < dpyinfo->n_fonts; i++)
 	{
 	  if ((dpyinfo->font_table[i].name
@@ -7196,11 +7258,6 @@ value.  */)
 				Busy cursor
  ***********************************************************************/
 
-/* If non-null, an asynchronous timer that, when it expires, displays
-   an hourglass cursor on all frames.  */
-
-static struct atimer *hourglass_atimer;
-
 /* Non-zero means an hourglass cursor is currently shown.  */
 
 static int hourglass_shown_p;
@@ -7214,20 +7271,26 @@ static Lisp_Object Vhourglass_delay;
 
 #define DEFAULT_HOURGLASS_DELAY 1
 
-/* Function prototypes.  */
+/* Return non-zero if houglass timer has been started or hourglass is shown.  */
 
-static void show_hourglass P_ ((struct atimer *));
-static void hide_hourglass P_ ((void));
-
+int
+hourglass_started ()
+{
+  return hourglass_shown_p || hourglass_timer;
+}
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 
 void
 start_hourglass ()
 {
-#if 0 /* TODO: cursor shape changes.  */
-  EMACS_TIME delay;
-  int secs, usecs = 0;
+  DWORD delay;
+  int secs, msecs = 0;
+  struct frame * f = SELECTED_FRAME ();
+
+  /* No cursors on non GUI frames.  */
+  if (!FRAME_W32_P (f))
+    return;
 
   cancel_hourglass ();
 
@@ -7240,15 +7303,14 @@ start_hourglass ()
       Lisp_Object tem;
       tem = Ftruncate (Vhourglass_delay, Qnil);
       secs = XFASTINT (tem);
-      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
+      msecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000;
     }
   else
     secs = DEFAULT_HOURGLASS_DELAY;
 
-  EMACS_SET_SECS_USECS (delay, secs, usecs);
-  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
-				   show_hourglass, NULL);
-#endif
+  delay = secs * 1000 + msecs;
+  hourglass_hwnd = FRAME_W32_WINDOW (f);
+  hourglass_timer = SetTimer (hourglass_hwnd, HOURGLASS_ID, delay, NULL);
 }
 
 
@@ -7258,10 +7320,10 @@ start_hourglass ()
 void
 cancel_hourglass ()
 {
-  if (hourglass_atimer)
+  if (hourglass_timer)
     {
-      cancel_atimer (hourglass_atimer);
-      hourglass_atimer = NULL;
+      KillTimer (hourglass_hwnd, hourglass_timer);
+      hourglass_timer = 0;
     }
 
   if (hourglass_shown_p)
@@ -7269,62 +7331,22 @@ cancel_hourglass ()
 }
 
 
-/* Timer function of hourglass_atimer.  TIMER is equal to
-   hourglass_atimer.
+/* Timer function of hourglass_timer.
 
-   Display an hourglass cursor on all frames by mapping the frames'
-   hourglass_window.  Set the hourglass_p flag in the frames'
-   output_data.x structure to indicate that an hourglass cursor is
-   shown on the frames.  */
+   Display an hourglass cursor.  Set the hourglass_p flag in display info
+   to indicate that an hourglass cursor is shown.  */
 
 static void
-show_hourglass (timer)
-     struct atimer *timer;
+show_hourglass (f)
+     struct frame *f;
 {
-#if 0  /* TODO: cursor shape changes.  */
-  /* The timer implementation will cancel this timer automatically
-     after this function has run.  Set hourglass_atimer to null
-     so that we know the timer doesn't have to be canceled.  */
-  hourglass_atimer = NULL;
-
   if (!hourglass_shown_p)
     {
-      Lisp_Object rest, frame;
-
-      BLOCK_INPUT;
-
-      FOR_EACH_FRAME (rest, frame)
-	if (FRAME_W32_P (XFRAME (frame)))
-	  {
-	    struct frame *f = XFRAME (frame);
-
-	    f->output_data.w32->hourglass_p = 1;
-
-	    if (!f->output_data.w32->hourglass_window)
-	      {
-		unsigned long mask = CWCursor;
-		XSetWindowAttributes attrs;
-
-		attrs.cursor = f->output_data.w32->hourglass_cursor;
-
-		f->output_data.w32->hourglass_window
-		  = XCreateWindow (FRAME_X_DISPLAY (f),
-				   FRAME_OUTER_WINDOW (f),
-				   0, 0, 32000, 32000, 0, 0,
-				   InputOnly,
-				   CopyFromParent,
-				   mask, &attrs);
-	      }
-
-	    XMapRaised (FRAME_X_DISPLAY (f),
-			f->output_data.w32->hourglass_window);
-	    XFlush (FRAME_X_DISPLAY (f));
-	  }
-
+      f->output_data.w32->hourglass_p = 1;
+      if (!menubar_in_use && !current_popup_menu)
+	SetCursor (f->output_data.w32->hourglass_cursor);
       hourglass_shown_p = 1;
-      UNBLOCK_INPUT;
     }
-#endif
 }
 
 
@@ -7333,33 +7355,15 @@ show_hourglass (timer)
 static void
 hide_hourglass ()
 {
-#if 0 /* TODO: cursor shape changes.  */
   if (hourglass_shown_p)
     {
-      Lisp_Object rest, frame;
+      struct frame *f = x_window_to_frame (&one_w32_display_info,
+					   hourglass_hwnd);
 
-      BLOCK_INPUT;
-      FOR_EACH_FRAME (rest, frame)
-	{
-	  struct frame *f = XFRAME (frame);
-
-	  if (FRAME_W32_P (f)
-	      /* Watch out for newly created frames.  */
-	      && f->output_data.x->hourglass_window)
-	    {
-	      XUnmapWindow (FRAME_X_DISPLAY (f),
-			    f->output_data.x->hourglass_window);
-	      /* Sync here because XTread_socket looks at the
-		 hourglass_p flag that is reset to zero below.  */
-	      XSync (FRAME_X_DISPLAY (f), False);
-	      f->output_data.x->hourglass_p = 0;
-	    }
-	}
-
+      f->output_data.w32->hourglass_p = 0;
+      SetCursor (f->output_data.w32->current_cursor);
       hourglass_shown_p = 0;
-      UNBLOCK_INPUT;
     }
-#endif
 }
 
 
@@ -7705,6 +7709,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
      int *root_x, *root_y;
 {
   Lisp_Object left, top;
+  int min_x, min_y, max_x, max_y;
 
   /* User-specified position?  */
   left = Fcdr (Fassq (Qleft, parms));
@@ -7716,40 +7721,68 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     {
       POINT pt;
 
+      /* Default min and max values.  */
+      min_x = 0;
+      min_y = 0;
+      max_x = FRAME_W32_DISPLAY_INFO (f)->width;
+      max_y = FRAME_W32_DISPLAY_INFO (f)->height;
+
       BLOCK_INPUT;
       GetCursorPos (&pt);
       *root_x = pt.x;
       *root_y = pt.y;
       UNBLOCK_INPUT;
+
+      /* If multiple monitor support is available, constrain the tip onto
+	 the current monitor. This improves the above by allowing negative
+	 co-ordinates if monitor positions are such that they are valid, and
+	 snaps a tooltip onto a single monitor if we are close to the edge
+	 where it would otherwise flow onto the other monitor (or into
+	 nothingness if there is a gap in the overlap).  */
+      if (monitor_from_point_fn && get_monitor_info_fn)
+	{
+	  struct MONITOR_INFO info;
+	  HMONITOR monitor
+	    = monitor_from_point_fn (pt, MONITOR_DEFAULT_TO_NEAREST);
+	  info.cbSize = sizeof (info);
+
+	  if (get_monitor_info_fn (monitor, &info))
+	    {
+	      min_x = info.rcWork.left;
+	      min_y = info.rcWork.top;
+	      max_x = info.rcWork.right;
+	      max_y = info.rcWork.bottom;
+	    }
+	}
     }
 
   if (INTEGERP (top))
     *root_y = XINT (top);
-  else if (*root_y + XINT (dy) <= 0)
-    *root_y = 0; /* Can happen for negative dy */
-  else if (*root_y + XINT (dy) + height <= FRAME_W32_DISPLAY_INFO (f)->height)
+  else if (*root_y + XINT (dy) <= min_y)
+    *root_y = min_y; /* Can happen for negative dy */
+  else if (*root_y + XINT (dy) + height <= max_y)
     /* It fits below the pointer */
       *root_y += XINT (dy);
-  else if (height + XINT (dy) <= *root_y)
+  else if (height + XINT (dy) + min_y <= *root_y)
     /* It fits above the pointer.  */
     *root_y -= height + XINT (dy);
   else
     /* Put it on the top.  */
-    *root_y = 0;
+    *root_y = min_y;
 
   if (INTEGERP (left))
     *root_x = XINT (left);
-  else if (*root_x + XINT (dx) <= 0)
+  else if (*root_x + XINT (dx) <= min_x)
     *root_x = 0; /* Can happen for negative dx */
-  else if (*root_x + XINT (dx) + width <= FRAME_W32_DISPLAY_INFO (f)->width)
+  else if (*root_x + XINT (dx) + width <= max_x)
     /* It fits to the right of the pointer.  */
     *root_x += XINT (dx);
-  else if (width + XINT (dx) <= *root_x)
+  else if (width + XINT (dx) + min_x <= *root_x)
     /* It fits to the left of the pointer.  */
     *root_x -= width + XINT (dx);
   else
     /* Put it left justified on the screen -- it ought to fit that way.  */
-    *root_x = 0;
+    *root_x = min_x;
 }
 
 
@@ -9274,7 +9307,8 @@ versions of Windows) characters.  */);
   check_window_system_func = check_w32;
 
 
-  hourglass_atimer = NULL;
+  hourglass_timer = 0;
+  hourglass_hwnd = NULL;
   hourglass_shown_p = 0;
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
@@ -9311,6 +9345,12 @@ globals_of_w32fns ()
   /* ditto for GetClipboardSequenceNumber.  */
   clipboard_sequence_fn = (ClipboardSequence_Proc)
     GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
+
+  monitor_from_point_fn = (MonitorFromPoint_Proc)
+    GetProcAddress (user32_lib, "MonitorFromPoint");
+  get_monitor_info_fn = (GetMonitorInfo_Proc)
+    GetProcAddress (user32_lib, "GetMonitorInfoA");
+
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
     get_composition_string_fn = (ImmGetCompositionString_Proc)
@@ -9325,6 +9365,10 @@ globals_of_w32fns ()
 
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();
+
+#ifdef USE_FONT_BACKEND
+  syms_of_w32uniscribe ();
+#endif
 }
 
 #undef abort

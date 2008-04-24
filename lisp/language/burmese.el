@@ -35,7 +35,7 @@
  "Burmese" '((charset unicode)
 	     (coding-system utf-8)
 	     (coding-priority utf-8)
-	     (sample-text . "Myanmar (မ္ရန္‌မာ)	မင္‍ဂလာပာ")
+	     (sample-text . "Burmese (မ္ရန္‌မာ)	မင္‍ဂလာပာ")
 	     (documentation . t)))
 
 (set-char-table-range composition-function-table '(#x1000 . #x107F)

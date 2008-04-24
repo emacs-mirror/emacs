@@ -133,5 +133,5 @@ Called through `file-coding-system-alist', before the file is visited for real."
 
 (provide 'po)
 
-;;; arch-tag: 56748a57-d64c-4200-8f6b-c3a70496eb8c
+;; arch-tag: 56748a57-d64c-4200-8f6b-c3a70496eb8c
 ;;; po.el ends here

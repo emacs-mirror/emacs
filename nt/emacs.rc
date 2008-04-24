@@ -7,8 +7,8 @@ Emacs ICON   icons\emacs.ico
 #endif
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 23,0,50,0
- PRODUCTVERSION 23,0,50,0
+ FILEVERSION 23,0,60,0
+ PRODUCTVERSION 23,0,60,0
  FILEFLAGSMASK 0x3FL
 #ifdef EMACSDEBUG
  FILEFLAGS 0x1L
@@ -25,12 +25,12 @@ BEGIN
 	BEGIN
 	    VALUE "CompanyName", "Free Software Foundation\0"
 	    VALUE "FileDescription", "GNU Emacs for Windows NT/95/98/2000/ME/XP\0"
-	    VALUE "FileVersion", "23, 0, 50, 0\0"
+	    VALUE "FileVersion", "23, 0, 60, 0\0"
 	    VALUE "InternalName", "Emacs\0"
 	    VALUE "LegalCopyright", "Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008\0"
 	    VALUE "OriginalFilename", "emacs.exe"
 	    VALUE "ProductName", "Emacs: The extensible self-documenting text editor\0"
-	    VALUE "ProductVersion", "23, 0, 50, 0\0"
+	    VALUE "ProductVersion", "23, 0, 60, 0\0"
 	    VALUE "OLESelfRegister", "\0"
 	 END
      END

@@ -723,5 +723,5 @@ spreadsheet files with invalid formatting."
   ;;Could do this here: (testcover-end "ses.el")
   (message "Done"))
 
-;;; arch-tag: 87052ba4-5cf8-46cf-9375-fe245f3360b8
+;; arch-tag: 87052ba4-5cf8-46cf-9375-fe245f3360b8
 ;; testcover-ses.el ends here.

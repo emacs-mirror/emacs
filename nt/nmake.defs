@@ -127,6 +127,7 @@ WSOCK32		= wsock32.lib
 WINMM		= winmm.lib
 WINSPOOL	= winspool.lib
 OLE32		= ole32.lib
+UNISCRIBE	= usp10.lib
 
 !ifdef USE_FONTBACKEND
 FONT_CFLAGS	= -DUSE_FONT_BACKEND=1

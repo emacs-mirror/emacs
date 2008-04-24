@@ -295,6 +295,10 @@ delete_terminal (struct terminal *terminal)
 #endif
 }
 
+Lisp_Object Qrun_hook_with_args;
+static Lisp_Object Qdelete_terminal_functions;
+static Lisp_Object Vdelete_terminal_functions;
+
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
 TERMINAL may be a terminal id, a frame, or nil (meaning the selected
@@ -319,6 +323,16 @@ but if the second argument FORCE is non-nil, you may do so. */)
       if (!p)
 	error ("Attempt to delete the sole active display terminal");
     }
+
+  if (NILP (Vrun_hooks))
+    ;
+  else if (EQ (force, Qnoelisp))
+    pending_funcalls
+      = Fcons (list3 (Qrun_hook_with_args,
+		      Qdelete_terminal_functions, terminal),
+	       pending_funcalls);
+  else
+    safe_call2 (Qrun_hook_with_args, Qdelete_terminal_functions, terminal);
 
   if (t->delete_terminal_hook)
     (*t->delete_terminal_hook) (t);
@@ -551,6 +565,17 @@ syms_of_terminal ()
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
+
+  DEFVAR_LISP ("delete-terminal-functions", &Vdelete_terminal_functions,
+    doc: /* Special hook run when a terminal is deleted.
+Each function is called with argument, the terminal.
+This may be called just before actually deleting the terminal,
+or some time later.  */);
+  Vdelete_terminal_functions = Qnil;
+  Qdelete_terminal_functions = intern ("delete-terminal-functions");
+  staticpro (&Qdelete_terminal_functions);
+  Qrun_hook_with_args = intern ("run-hook-with-args");
+  staticpro (&Qrun_hook_with_args);
 
   defsubr (&Sdelete_terminal);
   defsubr (&Sframe_terminal);

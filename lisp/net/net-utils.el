@@ -91,6 +91,8 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
+(define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
+
 (defcustom ifconfig-program
   (if (eq system-type 'windows-nt)
       "ipconfig"
@@ -98,8 +100,6 @@ These options can be used to limit how many ICMP packets are emitted."
   "Program to print network configuration information."
   :group 'net-utils
   :type  'string)
-
-(define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
 
 (defcustom ifconfig-program-options
   (list
@@ -115,14 +115,14 @@ These options can be used to limit how many ICMP packets are emitted."
   :type 'string
   :version "23.1")
 
+(define-obsolete-variable-alias 'ipconfig-program-options
+  'ifconfig-program-options "22.2")
+
 (defcustom iwconfig-program-options nil
- "Options for `iwconfig-program'."
+ "Options for the iwconfig program."
  :group 'net-utils
  :type '(repeat string)
  :version "23.1")
-
-(define-obsolete-variable-alias 'ipconfig-program-options
-  'ifconfig-program-options "22.2")
 
 (defcustom netstat-program "netstat"
   "Program to print network statistics."
@@ -312,17 +312,17 @@ This variable is only used if the variable
 	  (if moving (goto-char (process-mark process))))
       (set-buffer old-buffer))))
 
-(defmacro net-utils-run-program (name header program &rest args)
+(defun net-utils-run-program (name header program args)
   "Run a network information program."
-  ` (let ((buf (get-buffer-create (concat "*" ,name "*")))) 
-      (set-buffer buf)
-      (erase-buffer)
-      (insert ,header "\n")
-      (set-process-filter
-       (apply 'start-process ,name buf ,program ,@args)
-       'net-utils-remove-ctrl-m-filter)
-      (display-buffer buf)
-      buf))
+  (let ((buf (get-buffer-create (concat "*" name "*"))))
+    (set-buffer buf)
+    (erase-buffer)
+    (insert header "\n")
+    (set-process-filter
+     (apply 'start-process name buf program args)
+     'net-utils-remove-ctrl-m-filter)
+    (display-buffer buf)
+    buf))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wrappers for external network programs
@@ -616,27 +616,22 @@ If your system's ping continues until interrupted, you can try setting
   "Alist of services and associated TCP port numbers.
 This list is not complete.")
 
-;; Workhorse macro
-(defmacro run-network-program (process-name host port
-					    &optional initial-string)
-  `(let ((tcp-connection)
-	 (buf))
-    (setq buf (get-buffer-create (concat "*" ,process-name "*")))
+;; Workhorse routine
+(defun run-network-program (process-name host port &optional initial-string)
+  (let ((tcp-connection)
+	(buf))
+    (setq buf (get-buffer-create (concat "*" process-name "*")))
     (set-buffer buf)
     (or
      (setq tcp-connection
-	   (open-network-stream
-	    ,process-name
-	    buf
-	    ,host
-	    ,port))
-     (error "Could not open connection to %s" ,host))
+	   (open-network-stream process-name buf host port))
+     (error "Could not open connection to %s" host))
     (erase-buffer)
     (set-marker (process-mark tcp-connection) (point-min))
     (set-process-filter tcp-connection 'net-utils-remove-ctrl-m-filter)
-    (and ,initial-string
+    (and initial-string
 	 (process-send-string tcp-connection
-			      (concat ,initial-string "\r\n")))
+			      (concat initial-string "\r\n")))
     (display-buffer buf)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -854,5 +849,5 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 
 (provide 'net-utils)
 
-;;; arch-tag: 97119e91-9edb-4376-838b-bf7058fa1314
+;; arch-tag: 97119e91-9edb-4376-838b-bf7058fa1314
 ;;; net-utils.el ends here

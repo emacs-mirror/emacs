@@ -162,5 +162,5 @@ Also store it in `find-gc-unsafe'."
 
 (provide 'find-gc)
 
-;;; arch-tag: 4a26a538-a008-40d9-a1ef-23bb6dbecef4
+;; arch-tag: 4a26a538-a008-40d9-a1ef-23bb6dbecef4
 ;;; find-gc.el ends here

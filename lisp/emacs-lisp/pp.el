@@ -179,5 +179,5 @@ Ignores leading comment characters."
 
 (provide 'pp)				; so (require 'pp) works
 
-;;; arch-tag: b0f7c65b-02c7-42bb-9ee3-508a59b8fbb9
+;; arch-tag: b0f7c65b-02c7-42bb-9ee3-508a59b8fbb9
 ;;; pp.el ends here

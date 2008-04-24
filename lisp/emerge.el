@@ -3221,5 +3221,5 @@ More precisely, a [...] regexp to match any one such character."
 
 (provide 'emerge)
 
-;;; arch-tag: a575f092-6e44-400e-b8a2-4124e9377585
+;; arch-tag: a575f092-6e44-400e-b8a2-4124e9377585
 ;;; emerge.el ends here

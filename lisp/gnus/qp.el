@@ -164,5 +164,5 @@ encode lines starting with \"From\"."
 
 (provide 'qp)
 
-;;; arch-tag: db89e52a-e4a1-4b69-926f-f434f04216ba
+;; arch-tag: db89e52a-e4a1-4b69-926f-f434f04216ba
 ;;; qp.el ends here

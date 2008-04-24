@@ -135,5 +135,5 @@ The files specified by `octave-help-files' are searched."
 
 (provide 'octave-hlp)
 
-;;; arch-tag: df5ef8fa-76c9-44e5-9835-cb5a502c6282
+;; arch-tag: df5ef8fa-76c9-44e5-9835-cb5a502c6282
 ;;; octave-hlp.el ends here

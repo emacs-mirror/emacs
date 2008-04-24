@@ -1,3 +1,57 @@
+2008-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ALL): Move $(CLIENTRES) from here...
+	(all): ...to here.  $(ALL) is a prerequisite of .PHONY, so having
+	a real file there is not a good idea.
+
+2008-04-23  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (CLIENTRES): New variable and build target.
+	(all): Depend on it.
+	($(TRES)): Use $(TRES) in rule.
+
+2008-04-21  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat (success): Print "make" rather than "gmake", as that
+	is what MingW uses.
+
+2008-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (__MINGW_NOTHROW): If not defined, define to nothing.
+	Add copyright notice.
+
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.rc: New file.
+
+	* INSTALL: Document make targets.
+
+2008-04-09  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (clean-other-dirs-nmake): Don't clean lisp dir.
+	(clean-other-dirs-gmake): Likewise. Clean doc dirs.
+	(top-distclean, distclean, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake, maintainer-clean): New targets.
+
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h: New file.
+
+	* configure.bat: Add check for usp10.h.
+
+2008-04-04  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Update W32 API requirements.
+
+2008-04-03  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs, nmake.defs (UNISCRIBE): New variable.
+
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Set version to 23.0.60.
+
 2008-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs, nmake.defs (FONT_CFLAGS): New optional compiler flag.
@@ -100,7 +154,7 @@
 	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file
 	permissions to NTFS ACLs.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.nt: Remove HAVE_X11R5.
 
@@ -540,7 +594,7 @@
 
 	* multi-install-info.bat: New file.
 
-2003-06-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-06-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.nt (my_strftime): New define.
 
@@ -647,7 +701,7 @@
 	* makefile.w32-in (bootstrap): Build addsection program before
 	bootstrap (required for post-processing temacs.exe).
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -1554,7 +1608,7 @@
 	* _emacs: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 

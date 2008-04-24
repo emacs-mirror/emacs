@@ -24,7 +24,7 @@ dnl  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 dnl  Boston, MA 02110-1301, USA.
 
 AC_PREREQ(2.61)dnl
-AC_INIT(emacs, 23.0.50)
+AC_INIT(emacs, 23.0.60)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 
@@ -98,6 +98,11 @@ if test "$with_hesiod" = yes; then
 fi
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
+
+OPTION_DEFAULT_ON([sync-input],[Process async input synchronously])
+if test "$with_sync_input" = yes; then
+   AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
+fi
 
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
@@ -764,7 +769,7 @@ case "${machine}" in
 esac
 
 case "${opsys}" in
-     bsd386 | bsdos2-1 |  bsdos2 | bsdos3 | bsdos4 | bsd4-1 | bsd4-2 | bsd4-3 | usg5-0 | usg5-2-2 | usg5-2 | usg5-3 | ultrix4-3 | 386bsd | hpux | hpux8 | hpux9 | hpux9shr | hpux10 | hpux10-20 | aix3-1 | aix3-2-5 | aix3-2 | aix4-1 | nextstep | ux4800 | uxpds | uxpv )
+     bsd386 | bsdos2-1 |  bsdos2 | bsdos3 | bsdos4 | bsd4-1 | bsd4-2 | bsd4-3 | usg5-0 | usg5-2-2 | usg5-2 | usg5-3 | ultrix4-3 | 386bsd | hpux | hpux8 | hpux9 | hpux9shr | hpux10 | aix3-1 | aix3-2-5 | aix3-2 | aix4-1 | nextstep | ux4800 | uxpds | uxpv )
      	  echo "The system that you are configuring on: ${canonical} is considered to be obsolete"
 	  echo "and it is planned to be desupported in the next version of Emacs"
 	  echo "Please email emacs-devel@gnu.org as soon as possible if this system is still in use."
@@ -846,8 +851,7 @@ then
 fi
 
 dnl checks for Unix variants
-AC_AIX
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 ### Use -Wno-pointer-sign if the compiler supports it
 AC_MSG_CHECKING([whether gcc understands -Wno-pointer-sign])
@@ -1665,7 +1669,7 @@ if test x"$pkg_check_gtk" = xyes; then
     fi
   else
     HAVE_GTK=yes
-    AC_DEFINE(HAVE_GTK, 1, [Define to 1 if using GTK.])
+    AC_DEFINE(USE_GTK, 1, [Define to 1 if using GTK.])
     USE_X_TOOLKIT=none
     if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
       :
@@ -2637,6 +2641,11 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
 fi
 if test "${USE_X_TOOLKIT}" != "none" ; then
   AC_DEFINE(USE_X_TOOLKIT, 1, [Define to 1 if using an X toolkit.])
+  if test "${USE_X_TOOLKIT}" == "LUCID"; then
+    AC_DEFINE(USE_LUCID, 1, [Define to 1 if using the Lucid X toolkit.])
+  elif test "${USE_X_TOOLKIT}" == "MOTIF"; then
+    AC_DEFINE(USE_MOTIF, 1, [Define to 1 if using the Motif X toolkit.])
+  fi
 fi
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
@@ -3001,8 +3010,9 @@ echo
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
-   echo
 fi
+
+echo
 
 if test "$USE_X_TOOLKIT" = GTK; then
   case "$canonical" in
@@ -3104,11 +3114,6 @@ echo creating src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
-  if test -f ${srcdir}/admin/unidata/UnicodeData.txt; then
-    echo creating ${srcdir}/admin/unidata/Makefile
-    cp ${srcdir}/admin/unidata/Makefile.in ${srcdir}/admin/unidata/Makefile
-    CPPFLAGS="$CPPFLAGS -DHAVE_UNIDATA"
-  fi
   $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new

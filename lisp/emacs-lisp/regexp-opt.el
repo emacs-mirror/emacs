@@ -101,8 +101,8 @@ If PAREN is `words', then the resulting regexp is additionally surrounded
 by \\=\\< and \\>."
   (save-match-data
     ;; Recurse on the sorted list.
-    (let* ((max-lisp-eval-depth (* 1024 1024))
-	   (max-specpdl-size (* 1024 1024))
+    (let* ((max-lisp-eval-depth 10000)
+	   (max-specpdl-size 10000)
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
 	   (words (eq paren 'words))
@@ -226,7 +226,7 @@ This means the number of non-shy regexp grouping constructs
 
 	      ;; Otherwise, divide the list into those that start with a
 	      ;; particular letter and those that do not, and recurse on them.
-	      (let* ((char (char-to-string (string-to-char (car strings))))
+	      (let* ((char (substring-no-properties (car strings) 0 1))
 		     (half1 (all-completions char strings))
 		     (half2 (nthcdr (length half1) strings)))
 		(concat open-group

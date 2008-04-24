@@ -244,5 +244,5 @@ input."
 
 (provide 'em-rebind)
 
-;;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
+;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
 ;;; em-rebind.el ends here

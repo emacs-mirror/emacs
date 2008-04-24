@@ -1,7 +1,7 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
@@ -73,8 +73,8 @@
 ;;      the addition of two bindings to your to your global keymap.  I
 ;;      personally have the following in my initialisation file:
 ;;
-;;          (global-set-key "\C-ct" 'todo-show) ;; switch to TODO buffer
-;;	    (global-set-key "\C-ci" 'todo-insert-item) ;; insert new item
+;;          (global-set-key "\C-ct" 'todo-show)  ; switch to TODO buffer
+;;	    (global-set-key "\C-ci" 'todo-insert-item) ; insert new item
 ;;
 ;;      Note, however, that this recommendation has prompted some
 ;;      criticism, since the keys C-c LETTER are reserved for user
@@ -538,12 +538,12 @@ Use `todo-categories' instead.")
     (widen)
     (goto-char (point-min))
     (let ((posn (search-forward "-*- mode: todo; " 17 t)))
-      (if (not (null posn)) (goto-char posn))
-      (if (equal posn nil)
+      (if posn
           (progn
-            (insert "-*- mode: todo; \n")
-            (forward-char -1))
-        (kill-line)))
+            (goto-char posn)
+            (kill-line))
+        (insert "-*- mode: todo; \n")
+        (forward-char -1)))
     (insert (format "todo-categories: %S; -*-" todo-categories))
     (forward-char 1)
     (insert (format "%s%s%s\n%s\n%s %s\n"
@@ -577,7 +577,7 @@ Use `todo-categories' instead.")
 	      (setq bottom current)
 	    (setq top (1+ current)))))
       (setq top (/ (+ top bottom) 2))
-      ;; goto-line doesn't have the desired behavior in a narrowed buffer
+      ;; goto-line doesn't have the desired behavior in a narrowed buffer.
       (goto-char (point-min))
       (forward-line (1- top)))
     (insert new-item "\n")
@@ -625,14 +625,13 @@ category."
 
 (defun todo-more-important-p (line)
   "Ask whether entry is more important than the one at LINE."
-  (if (not (equal todo-previous-line line))
-      (progn
-        (setq todo-previous-line line)
-        (goto-char (point-min))
-        (forward-line (1- todo-previous-line))
-        (let ((item (todo-item-string-start)))
-          (setq todo-previous-answer
-                (y-or-n-p (concat "More important than '" item "'? "))))))
+  (unless (equal todo-previous-line line)
+    (setq todo-previous-line line)
+    (goto-char (point-min))
+    (forward-line (1- todo-previous-line))
+    (let ((item (todo-item-string-start)))
+      (setq todo-previous-answer
+            (y-or-n-p (concat "More important than '" item "'? ")))))
   todo-previous-answer)
 (defalias 'todo-ask-p 'todo-more-important-p)
 
@@ -643,10 +642,9 @@ category."
       (let* ((todo-entry (todo-item-string-start))
              (todo-answer (y-or-n-p (concat "Permanently remove '"
                                             todo-entry "'? "))))
-        (if todo-answer
-            (progn
-              (todo-remove-item)
-              (todo-backward-item)))
+        (when todo-answer
+          (todo-remove-item)
+          (todo-backward-item))
         (message ""))
     (error "No TODO list entry to delete")))
 (defalias 'todo-cmd-kill 'todo-delete-item)
@@ -684,15 +682,14 @@ category."
   (or (> (count-lines (point-min) (point-max)) 0)
       (error "No TODO list entry to file away"))
   (let ((time-stamp-format todo-time-string-format))
-    (if (and comment (> (length comment) 0))
-	(progn
-	  (goto-char (todo-item-end))
-	  (insert
-	   (if (save-excursion (beginning-of-line)
-			       (looking-at (regexp-quote todo-prefix)))
-	       " "
-	     "\n\t")
-	   "(" comment ")")))
+    (when (and comment (> (length comment) 0))
+      (goto-char (todo-item-end))
+      (insert
+       (if (save-excursion (beginning-of-line)
+                           (looking-at (regexp-quote todo-prefix)))
+           " "
+         "\n\t")
+       "(" comment ")"))
     (goto-char (todo-item-end))
     (insert " [" (nth todo-category-number todo-categories) "]")
     (goto-char (todo-item-start))
@@ -755,7 +752,7 @@ between each category."
           (replace-match todo-category-break)
           (narrow-to-region beg end)    ;In case we have too few entries.
           (goto-char (point-min))
-          (if (= 0 nof-priorities)      ;Traverse entries.
+          (if (zerop nof-priorities)      ;Traverse entries.
               (goto-char end)            ;All entries
             (todo-forward-item nof-priorities))
           (setq beg (point))

@@ -1330,26 +1330,29 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	  visible_p = 1;
       if (visible_p)
 	{
-	  Lisp_Object window, prop;
-
-	  XSETWINDOW (window, w);
-	  prop = Fget_char_property (make_number (it.position.charpos),
-				     Qinvisible, window);
-
-	  /* If charpos coincides with invisible text covered with an
-	     ellipsis, use the first glyph of the ellipsis to compute
-	     the pixel positions.  */
-	  if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
+	  if (it.method == GET_FROM_BUFFER)
 	    {
-	      struct glyph_row *row = it.glyph_row;
-	      struct glyph *glyph = row->glyphs[TEXT_AREA];
-	      struct glyph *end = glyph + row->used[TEXT_AREA];
-	      int x = row->x;
+	      Lisp_Object window, prop;
 
-	      for (; glyph < end && glyph->charpos < charpos; glyph++)
-		x += glyph->pixel_width;
+	      XSETWINDOW (window, w);
+	      prop = Fget_char_property (make_number (it.position.charpos),
+					 Qinvisible, window);
 
-	      top_x = x;
+	      /* If charpos coincides with invisible text covered with an
+		 ellipsis, use the first glyph of the ellipsis to compute
+		 the pixel positions.  */
+	      if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
+		{
+		  struct glyph_row *row = it.glyph_row;
+		  struct glyph *glyph = row->glyphs[TEXT_AREA];
+		  struct glyph *end = glyph + row->used[TEXT_AREA];
+		  int x = row->x;
+
+		  for (; glyph < end && glyph->charpos < charpos; glyph++)
+		    x += glyph->pixel_width;
+
+		  top_x = x;
+		}
 	    }
 
 	  *x = top_x;
@@ -2316,33 +2319,6 @@ safe_eval_handler (arg)
 /* Evaluate SEXPR and return the result, or nil if something went
    wrong.  Prevent redisplay during the evaluation.  */
 
-Lisp_Object
-safe_eval (sexpr)
-     Lisp_Object sexpr;
-{
-  Lisp_Object val;
-
-  if (inhibit_eval_during_redisplay)
-    val = Qnil;
-  else
-    {
-      int count = SPECPDL_INDEX ();
-      struct gcpro gcpro1;
-
-      GCPRO1 (sexpr);
-      specbind (Qinhibit_redisplay, Qt);
-      /* Use Qt to ensure debugger does not run,
-	 so there is no possibility of wanting to redisplay.  */
-      val = internal_condition_case_1 (Feval, sexpr, Qt,
-				       safe_eval_handler);
-      UNGCPRO;
-      val = unbind_to (count, val);
-    }
-
-  return val;
-}
-
-
 /* Call function ARGS[0] with arguments ARGS[1] to ARGS[NARGS - 1].
    Return the result, or nil if something went wrong.  Prevent
    redisplay during the evaluation.  */
@@ -2387,6 +2363,27 @@ safe_call1 (fn, arg)
   args[0] = fn;
   args[1] = arg;
   return safe_call (2, args);
+}
+
+static Lisp_Object Qeval;
+
+Lisp_Object
+safe_eval (Lisp_Object sexpr)
+{
+  return safe_call1 (Qeval, sexpr);
+}
+
+/* Call function FN with one argument ARG.
+   Return the result, or nil if something went wrong.  */
+
+Lisp_Object
+safe_call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
+{
+  Lisp_Object args[3];
+  args[0] = fn;
+  args[1] = arg1;
+  args[2] = arg2;
+  return safe_call (3, args);
 }
 
 
@@ -8634,7 +8631,7 @@ current_message ()
 {
   Lisp_Object msg;
 
-  if (NILP (echo_area_buffer[0]))
+  if (!BUFFERP (echo_area_buffer[0]))
     msg = Qnil;
   else
     {
@@ -9092,8 +9089,9 @@ static Lisp_Object mode_line_string_face_prop;
 static Lisp_Object Vmode_line_unwind_vector;
 
 static Lisp_Object
-format_mode_line_unwind_data (obuf, save_proptrans)
-     struct buffer *obuf;
+format_mode_line_unwind_data (struct buffer *obuf,
+			      Lisp_Object owin,
+			      int save_proptrans)
 {
   Lisp_Object vector, tmp;
 
@@ -9103,7 +9101,7 @@ format_mode_line_unwind_data (obuf, save_proptrans)
   Vmode_line_unwind_vector = Qnil;
 
   if (NILP (vector))
-    vector = Fmake_vector (make_number (7), Qnil);
+    vector = Fmake_vector (make_number (8), Qnil);
 
   ASET (vector, 0, make_number (mode_line_target));
   ASET (vector, 1, make_number (MODE_LINE_NOPROP_LEN (0)));
@@ -9117,6 +9115,7 @@ format_mode_line_unwind_data (obuf, save_proptrans)
   else
     tmp = Qnil;
   ASET (vector, 6, tmp);
+  ASET (vector, 7, owin);
 
   return vector;
 }
@@ -9132,6 +9131,10 @@ unwind_format_mode_line (vector)
     mode_line_proptrans_alist = AREF (vector, 3);
   mode_line_string_face = AREF (vector, 4);
   mode_line_string_face_prop = AREF (vector, 5);
+
+  if (!NILP (AREF (vector, 7)))
+    /* Select window before buffer, since it may change the buffer.  */
+    Fselect_window (AREF (vector, 7), Qt);
 
   if (!NILP (AREF (vector, 6)))
     {
@@ -9252,8 +9255,10 @@ x_consider_frame_title (frame)
 	 mode_line_target so that display_mode_element will output into
 	 mode_line_noprop_buf; then display the title.  */
       record_unwind_protect (unwind_format_mode_line,
-			     format_mode_line_unwind_data (current_buffer, 0));
+			     format_mode_line_unwind_data
+			        (current_buffer, selected_window, 0));
 
+      Fselect_window (f->selected_window, Qt);
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->buffer));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
 
@@ -11186,6 +11191,9 @@ redisplay_internal (preserve_echo_area)
 	 the whole thing.  */
       windows_or_buffers_changed++;
       SET_FRAME_GARBAGED (sf);
+#ifndef WINDOWSNT
+      set_tty_color_mode (FRAME_TTY (sf), sf);
+#endif
       FRAME_TTY (sf)->previous_frame = sf;
     }
 
@@ -11627,6 +11635,14 @@ redisplay_internal (preserve_echo_area)
 		}
 	    }
 	}
+
+      if (!EQ (old_frame, selected_frame)
+	  && FRAME_LIVE_P (XFRAME (old_frame)))
+	/* We played a bit fast-and-loose above and allowed selected_frame
+	   and selected_window to be temporarily out-of-sync but let's make
+	   sure this stays contained.  */
+	select_frame_for_redisplay (old_frame);
+      eassert (EQ (XFRAME (selected_frame)->selected_window, selected_window));
 
       if (!pause)
 	{
@@ -14999,7 +15015,8 @@ try_window_id (w)
     }
   else
     {
-      delta = dvpos = dy = run.current_y = run.desired_y = run.height = 0;
+      delta = delta_bytes = dvpos = dy
+	= run.current_y = run.desired_y = run.height = 0;
       first_unchanged_at_end_row = NULL;
     }
   IF_DEBUG (debug_dvpos = dvpos; debug_dy = dy);
@@ -16924,7 +16941,7 @@ display_mode_line (w, face_id, format)
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (NULL, 0));
+			 format_mode_line_unwind_data (NULL, Qnil, 0));
 
   mode_line_target = MODE_LINE_DISPLAY;
 
@@ -17626,9 +17643,11 @@ are the selected window and the window's buffer).  */)
   /* Save things including mode_line_proptrans_alist,
      and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (old_buffer, 1));
+			 format_mode_line_unwind_data
+			     (old_buffer, selected_window, 1));
   mode_line_proptrans_alist = Qnil;
 
+  Fselect_window (window, Qt);
   if (old_buffer)
     set_buffer_internal_1 (XBUFFER (buffer));
 
@@ -24341,6 +24360,9 @@ syms_of_xdisp ()
   staticpro (&Qinhibit_point_motion_hooks);
   Qinhibit_point_motion_hooks = intern ("inhibit-point-motion-hooks");
 
+  Qeval = intern ("eval");
+  staticpro (&Qeval);
+
   QCdata = intern (":data");
   staticpro (&QCdata);
   Qdisplay = intern ("display");
@@ -24568,7 +24590,8 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
 
   DEFVAR_BOOL ("truncate-partial-width-windows",
 	       &truncate_partial_width_windows,
-    doc: /* *Non-nil means truncate lines in all windows less than full frame wide.  */);
+    doc: /* *Non-nil means truncate lines in all windows less than full frame wide.
+Nil means to respect the value of `truncate-lines'.  */);
   truncate_partial_width_windows = 1;
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,

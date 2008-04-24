@@ -3306,25 +3306,62 @@ Fset_window_buffer_unwind (obuf)
 EXFUN (Fset_window_fringes, 4);
 EXFUN (Fset_window_scroll_bars, 4);
 
+static void
+run_funs (Lisp_Object funs)
+{
+  for (; CONSP (funs); funs = XCDR (funs))
+    if (!EQ (XCAR (funs), Qt))
+      call0 (XCAR (funs));
+}
+
+static Lisp_Object select_window_norecord (Lisp_Object window);
+
 void
 run_window_configuration_change_hook (struct frame *f)
 {
-  /* FIXME: buffer-local values of Vwindow_configuration_change_hook
-     aren't handled properly.  */
-  if (! NILP (Vwindow_configuration_change_hook)
-      && ! NILP (Vrun_hooks))
-    {
       int count = SPECPDL_INDEX ();
+  Lisp_Object frame, global_wcch
+    = Fdefault_value (Qwindow_configuration_change_hook);
+  XSETFRAME (frame, f);
+
+  if (NILP (Vrun_hooks))
+    return;
+
       if (SELECTED_FRAME () != f)
 	{
-	  Lisp_Object frame;
-	  XSETFRAME (frame, f);
 	  record_unwind_protect (Fselect_frame, Fselected_frame ());
 	  Fselect_frame (frame);
 	}
-      call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
+  /* Use the right buffer.  Matters when running the local hooks.  */
+  if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
+    {
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      Fset_buffer (Fwindow_buffer (Qnil));
+    }
+
+  /* Look for buffer-local values.  */
+  {
+    Lisp_Object windows = Fwindow_list (frame, Qlambda, Qnil);
+    for (; CONSP (windows); windows = XCDR (windows))
+      {
+	Lisp_Object window = XCAR (windows);
+	Lisp_Object buffer = Fwindow_buffer (window);
+	if (!NILP (Flocal_variable_p (Qwindow_configuration_change_hook,
+				      buffer)))
+	  {
+	    int count = SPECPDL_INDEX ();
+	    record_unwind_protect (select_window_norecord, Fselected_window ());
+	    select_window_norecord (window);
+	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
+					   buffer));
       unbind_to (count, Qnil);
     }
+      }
+  }
+  
+  run_funs (global_wcch);
+  unbind_to (count, Qnil);
 }
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
@@ -3811,16 +3848,23 @@ displayed.  */)
       else
 	window = Fget_largest_window (frames, Qt);
 
-      /* If the largest window is tall enough, full-width, and either eligible
-	 for splitting or the only window, split it.  */
-      if (!NILP (window)
-	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	  && WINDOW_FULL_WIDTH_P (XWINDOW (window))
-	       && (window_height (window) >= split_height_threshold
-		   || (NILP (XWINDOW (window)->parent)))
-	  && (window_height (window)
-	      >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	window = call1 (Vsplit_window_preferred_function, window);
+      tem = Qnil;
+      if (!NILP (Vsplit_window_preferred_function))
+	tem = call1 (Vsplit_window_preferred_function, window);
+
+      if (!NILP (tem))
+	window = tem;
+      else
+	/* If the largest window is tall enough, full-width, and either eligible
+	   for splitting or the only window, split it.  */
+	if (!NILP (window)
+	    && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
+	    && WINDOW_FULL_WIDTH_P (XWINDOW (window))
+	    && (window_height (window) >= split_height_threshold
+		|| (NILP (XWINDOW (window)->parent)))
+	    && (window_height (window)
+		>= (2 * window_min_size_2 (XWINDOW (window), 0))))
+	  window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
 	  Lisp_Object upper, other;
@@ -3830,12 +3874,12 @@ displayed.  */)
 	     splitting and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-		   && ((EQ (window, selected_window)
-			&& window_height (window) >= split_height_threshold)
-		       || (NILP (XWINDOW (window)->parent)))
-		   && (window_height (window)
-		       >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	    window = call1 (Vsplit_window_preferred_function, window);
+	      && ((EQ (window, selected_window)
+		   && window_height (window) >= split_height_threshold)
+		  || (NILP (XWINDOW (window)->parent)))
+	      && (window_height (window)
+		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
+	    window = Fsplit_window (window, Qnil, Qnil);
 	  else
 	    window = Fget_lru_window (frames, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
@@ -5553,7 +5597,7 @@ scroll_command (n, direction)
   unbind_to (count, Qnil);
 }
 
-DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
+DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "^P",
        doc: /* Scroll text of current window upward ARG lines.
 If ARG is omitted or nil, scroll upward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -5567,7 +5611,7 @@ When calling from a program, supply as argument a number, nil, or `-'.  */)
   return Qnil;
 }
 
-DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "P",
+DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "^P",
        doc: /* Scroll text of current window down ARG lines.
 If ARG is omitted or nil, scroll down by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -5673,7 +5717,7 @@ specifies the window to scroll.  This takes precedence over
   return Qnil;
 }
 
-DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "P\np",
+DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns left.
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
@@ -5703,7 +5747,7 @@ by this function.  This happens in an interactive call.  */)
   return result;
 }
 
-DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 2, "P\np",
+DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns right.
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
@@ -7559,9 +7603,12 @@ If there is only one window, it is split regardless of this value.  */);
 	       doc: /* Function to use to split a window.
 This is used by `display-buffer' to allow the user to choose whether
 to split windows horizontally or vertically or some mix of the two.
+When this variable is nil, `display-buffer' splits windows vertically.
+Otherwise, `display-buffer' calls this function to split a window.
 It is called with a window as single argument and should split it in two
-and return the new window.  */);
-  Vsplit_window_preferred_function = intern ("split-window");
+and return the new window, or return an appropriate existing window
+if splitting is not eligible.  */);
+  Vsplit_window_preferred_function = Qnil;
 
   DEFVAR_INT ("window-min-height", &window_min_height,
 	      doc: /* *Delete any window less than this tall (including its mode line).
@@ -7586,7 +7633,9 @@ Any other value means point always keeps its screen position.  */);
   DEFVAR_LISP ("window-configuration-change-hook",
 	       &Vwindow_configuration_change_hook,
 	       doc: /* Functions to call when window configuration changes.
-The selected frame is the one whose configuration has changed.  */);
+The buffer-local part is run once per window, with the relevant window
+selected; while the global part is run only once for the modified frame,
+with the relevant frame selected.  */);
   Vwindow_configuration_change_hook = Qnil;
 
   defsubr (&Sselected_window);

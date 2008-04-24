@@ -36,7 +36,6 @@
   "Keymap used for *toc* buffer.")
 
 (defvar reftex-toc-menu)
-(eval-when-compile (defvar zmacs-regions))
 (defvar reftex-last-window-height nil)
 (defvar reftex-last-window-width nil)
 (defvar reftex-toc-include-labels-indicator nil)
@@ -57,7 +56,8 @@ Here are all local bindings.
         mode-name "TOC")
   (use-local-map reftex-toc-map)
   (set (make-local-variable 'transient-mark-mode) t)
-  (set (make-local-variable 'zmacs-regions) t)
+  (when (featurep 'xemacs)
+    (set (make-local-variable 'zmacs-regions) t))
   (set (make-local-variable 'revert-buffer-function) 'reftex-toc-revert)
   (set (make-local-variable 'reftex-toc-include-labels-indicator) "")
   (set (make-local-variable 'reftex-toc-max-level-indicator)
@@ -1100,5 +1100,5 @@ always show the current section in connection with the option
    ["Help" reftex-toc-show-help t]))
 
 
-;;; arch-tag: 92400ce2-0b86-4c89-a606-4ed71acea17e
+;; arch-tag: 92400ce2-0b86-4c89-a606-4ed71acea17e
 ;;; reftex-toc.el ends here

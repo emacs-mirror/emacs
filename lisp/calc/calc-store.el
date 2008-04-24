@@ -185,6 +185,9 @@
 
 (defvar calc-store-opers)
 
+(defvar calc-read-var-name-history nil
+  "History for reading variable names.")
+
 (defun calc-read-var-name (prompt &optional calc-store-opers)
   (setq calc-given-value nil
 	calc-aborted-prefix nil)
@@ -196,7 +199,9 @@
                     (minibuffer-completion-predicate
                      (lambda (x) (boundp (intern (concat "var-" x)))))
                     (minibuffer-completion-confirm t))
-                (read-from-minibuffer prompt nil calc-var-name-map nil)))))
+                (read-from-minibuffer 
+                 prompt nil calc-var-name-map nil 
+                 'calc-read-var-name-history)))))
     (setq calc-aborted-prefix "")
     (and (not (equal var "var-"))
 	 (if (string-match "\\`\\([-a-zA-Z0-9]+\\) *:?=" var)
@@ -675,5 +680,5 @@
 
 (provide 'calc-store)
 
-;;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
+;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
 ;;; calc-store.el ends here

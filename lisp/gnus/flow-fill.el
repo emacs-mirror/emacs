@@ -223,5 +223,5 @@ RFC 2646 suggests 66 characters for readability."
 
 (provide 'flow-fill)
 
-;;; arch-tag: addc0040-bc53-4f17-b4bc-1eb44eed6f0b
+;; arch-tag: addc0040-bc53-4f17-b4bc-1eb44eed6f0b
 ;;; flow-fill.el ends here

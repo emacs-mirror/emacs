@@ -867,5 +867,5 @@
 
 (provide 'calc-sel)
 
-;;; arch-tag: e5169792-777d-428f-bff5-acca66813fa2
+;; arch-tag: e5169792-777d-428f-bff5-acca66813fa2
 ;;; calc-sel.el ends here

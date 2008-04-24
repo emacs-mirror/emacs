@@ -506,5 +506,5 @@ This is used only in conjunction with `expand-add-abbrevs'."
 ;; run load hooks
 (run-hooks 'expand-load-hook)
 
-;;; arch-tag: fee53e9e-30e3-4ef3-b191-9785e1f8e885
+;; arch-tag: fee53e9e-30e3-4ef3-b191-9785e1f8e885
 ;;; expand.el ends here

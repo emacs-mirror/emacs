@@ -138,5 +138,5 @@ calling this function."
 
 (provide 'rfc2368)
 
-;;; arch-tag: ea804934-ad96-4f69-957b-857a76e4fd95
+;; arch-tag: ea804934-ad96-4f69-957b-857a76e4fd95
 ;;; rfc2368.el ends here

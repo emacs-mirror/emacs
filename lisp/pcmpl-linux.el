@@ -106,5 +106,5 @@
        (pcomplete-uniqify-list points)
        (cons "swap" (pcmpl-linux-mounted-directories))))))
 
-;;; arch-tag: bb0961a6-a623-463d-92c6-497c317293b1
+;; arch-tag: bb0961a6-a623-463d-92c6-497c317293b1
 ;;; pcmpl-linux.el ends here

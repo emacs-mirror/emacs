@@ -257,14 +257,15 @@ the same as @kbd{C-M-a} with a positive argument.
 
 @kindex C-M-h @r{(C mode)}
 @findex c-mark-function
-  To operate on the current defun, use @kbd{C-M-h} (@code{mark-defun})
-which puts point at the beginning and mark at the end of the current
-defun.  This is the easiest way to get ready to kill the defun in
-order to move it to a different place in the file.  If you use the
-command while point is between defuns, it uses the following defun.
-Successive uses of @kbd{C-M-h}, or using it in Transient Mark mode
-when the mark is active, extends the end of the region to include one
-more defun each time.
+  To operate on the current defun, use @kbd{C-M-h}
+(@code{mark-defun}), which sets the mark at the end of the current
+defun and puts point at its beginning.  @xref{Marking Objects}.  This
+is the easiest way to get ready to kill the defun in order to move it
+to a different place in the file.  If you use the command while point
+is between defuns, it uses the following defun.  If you use the
+command while the mark is already active, it sets the mark but does
+not move point; furthermore, each successive use of @kbd{C-M-h}
+extends the end of the region to include one more defun.
 
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
@@ -739,13 +740,14 @@ after point and the mark.
 @kindex C-M-@key{SPC}
 @findex mark-sexp
   To set the region around the next balanced expression in the buffer,
-use @kbd{C-M-@@} (@code{mark-sexp}), which sets mark at the same place
-that @kbd{C-M-f} would move to.  @kbd{C-M-@@} takes arguments like
-@kbd{C-M-f}.  In particular, a negative argument is useful for putting
-the mark at the beginning of the previous balanced expression.  The
-alias @kbd{C-M-@key{SPC}} is equivalent to @kbd{C-M-@@}.  When you
-repeat this command, or use it in Transient Mark mode when the mark is
-active, it extends the end of the region by one sexp each time.
+use @kbd{C-M-@key{SPC}} (@code{mark-sexp}), which sets mark at the
+same place that @kbd{C-M-f} would move to.  @kbd{C-M-@key{SPC}} treats
+numeric arguments in the same way as @kbd{C-M-f}; in particular, a
+negative argument puts the mark at the beginning of the previous
+balanced expression.  The alias @kbd{C-M-@@} is equivalent to
+@kbd{C-M-@key{SPC}}.  While the mark is active, each successive use of
+@kbd{C-M-@key{SPC}} extends the region by shifting the mark by one
+sexp.
 
   In languages that use infix operators, such as C, it is not possible
 to recognize all balanced expressions as such because there can be
@@ -941,16 +943,14 @@ programmed so that when it receives a prefix argument it calls
 @code{comment-kill}.  However, @code{comment-kill} is a valid command
 in its own right, and you can bind it directly to a key if you wish.
 
-  @kbd{M-;} does two other jobs when used with an active region in
-Transient Mark mode (@pxref{Transient Mark}).  Then it either adds or
-removes comment delimiters on each line of the region.  (If every line
-is a comment, it removes comment delimiters from each; otherwise, it
-adds comment delimiters to each.)  If you are not using Transient Mark
-mode, then you should use the commands @code{comment-region} and
-@code{uncomment-region} to do these jobs (@pxref{Multi-Line Comments}),
-or else enable Transient Mark mode momentarily (@pxref{Momentary Mark}).
-A prefix argument used in these circumstances specifies how many
-comment delimiters to add or how many to delete.
+  When a region is active, @kbd{M-;} does either adds or removes
+comment delimiters on each line of the region.  @xref{Mark}.  If every
+line in the region is a comment, it removes comment delimiters from
+each; otherwise, it adds comment delimiters to each.  You can also use
+the commands @code{comment-region} and @code{uncomment-region} to do
+these jobs (@pxref{Multi-Line Comments}).  A prefix argument used in
+these circumstances specifies how many comment delimiters to add or
+how many to delete.
 
   Some major modes have special rules for aligning certain kinds of
 comments in certain contexts.  For example, in Lisp code, comments which

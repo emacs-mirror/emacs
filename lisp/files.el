@@ -404,6 +404,7 @@ The functions are called in the order given until one of them returns non-nil.")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
+(define-obsolete-variable-alias 'find-file-hooks 'find-file-hook "22.1")
 (defcustom find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
@@ -412,7 +413,6 @@ functions are called."
   :type 'hook
   :options '(auto-insert)
   :version "22.1")
-(define-obsolete-variable-alias 'find-file-hooks 'find-file-hook "22.1")
 
 (defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
@@ -701,15 +701,15 @@ one or more of those symbols."
 		  (if (memq 'readable predicate) 4 0))))
   (locate-file-internal filename path suffixes predicate))
 
-(defun locate-file-completion (string path-and-suffixes action)
-  "Do completion for file names passed to `locate-file'.
-PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
+(defun locate-file-completion-table (dirs suffixes string pred action)
+  "Do completion for file names passed to `locate-file'."
   (if (file-name-absolute-p string)
-      (read-file-name-internal string nil action)
+      (let ((read-file-name-predicate pred))
+        (read-file-name-internal string nil action))
     (let ((names nil)
-	  (suffix (concat (regexp-opt (cdr path-and-suffixes) t) "\\'"))
+	  (suffix (concat (regexp-opt suffixes t) "\\'"))
 	  (string-dir (file-name-directory string)))
-      (dolist (dir (car path-and-suffixes))
+      (dolist (dir dirs)
 	(unless dir
 	  (setq dir default-directory))
 	(if string-dir (setq dir (expand-file-name string-dir dir)))
@@ -720,10 +720,15 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	    (when (string-match suffix file)
 	      (setq file (substring file 0 (match-beginning 0)))
 	      (push (if string-dir (concat string-dir file) file) names)))))
-      (cond
-       ((eq action t) (all-completions string names))
-       ((null action) (try-completion string names))
-       (t (test-completion string names))))))
+      (complete-with-action action names string pred))))
+
+(defun locate-file-completion (string path-and-suffixes action)
+  "Do completion for file names passed to `locate-file'.
+PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
+  (locate-file-completion-table (car path-and-suffixes)
+                                (cdr path-and-suffixes)
+                                string nil action))
+(make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
 (defun locate-dominating-file (file regexp)
   "Look up the directory hierarchy from FILE for a file matching REGEXP."
@@ -763,8 +768,9 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
 This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
-			  'locate-file-completion
-			  (cons load-path (get-load-suffixes)))))
+			  (apply-partially 'locate-file-completion-table
+                                           load-path
+                                           (get-load-suffixes)))))
   (load library))
 
 (defun file-remote-p (file &optional identification connected)
@@ -1033,6 +1039,17 @@ use with M-x."
     (rename-file encoded new-encoded ok-if-already-exists)
     newname))
 
+(defun read-buffer-to-switch (prompt)
+  "Read the name of a buffer to switch to and return as a string.
+It is intended for `switch-to-buffer' family of commands since they
+need to omit the name of current buffer from the list of complations
+and default values."
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-completion-table)
+	     (internal-complete-buffer-except (other-buffer (current-buffer) t))))
+    (read-buffer prompt (other-buffer (current-buffer)))))
+
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
 If BUFFER does not identify an existing buffer, then this function
@@ -1047,7 +1064,8 @@ This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
-  (interactive "BSwitch to buffer in other window: ")
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in other window: ")))
   (let ((pop-up-windows t)
 	;; Don't let these interfere.
 	same-window-buffer-names same-window-regexps)
@@ -1061,7 +1079,8 @@ This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
-  (interactive "BSwitch to buffer in other frame: ")
+  (interactive
+   (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
     (prog1
@@ -1078,9 +1097,18 @@ documentation for additional customization information."
         (old-window (selected-window))
 	new-window)
     (setq new-window (display-buffer buffer t))
-    (lower-frame (window-frame new-window))
-    (make-frame-invisible (window-frame old-window))
-    (make-frame-visible (window-frame old-window))))
+    ;; This may have been here in order to prevent the new frame from hiding
+    ;; the old frame.  But it does more harm than good.
+    ;; Maybe we should call `raise-window' on the old-frame instead?  --Stef
+    ;;(lower-frame (window-frame new-window))
+
+    ;; This may have been here in order to make sure the old-frame gets the
+    ;; focus.  But not only can it cause an annoying flicker, with some
+    ;; window-managers it just makes the window invisible, with no easy
+    ;; way to recover it.  --Stef
+    ;;(make-frame-invisible (window-frame old-window))
+    ;;(make-frame-visible (window-frame old-window))
+    ))
 
 (defvar find-file-default nil
   "Used within `find-file-read-args'.")
@@ -1498,6 +1526,17 @@ When nil, never request confirmation."
   :version "22.1"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
+(defun abort-if-file-too-large (size op-type)
+  "If file SIZE larger than `large-file-warning-threshold', allow user to abort.
+OP-TYPE specifies the file operation being performed (for message to user)."
+  (when (and large-file-warning-threshold size
+	   (> size large-file-warning-threshold)
+	   (not (y-or-n-p
+		 (format "File %s is large (%dMB), really %s? "
+			 (file-name-nondirectory filename)
+			 (/ size 1048576) op-type))))
+	  (error "Aborted")))
+
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -1549,16 +1588,8 @@ the various files."
 	      (if (or find-file-existing-other-name find-file-visit-truename)
 		  (setq buf other))))
 	;; Check to see if the file looks uncommonly large.
-	(when (and large-file-warning-threshold (nth 7 attributes)
-		   ;; Don't ask again if we already have the file or
-		   ;; if we're asked to be quiet.
-		   (not (or buf nowarn))
-		   (> (nth 7 attributes) large-file-warning-threshold)
-		   (not (y-or-n-p
-			 (format "File %s is large (%dMB), really open? "
-				 (file-name-nondirectory filename)
-				   (/ (nth 7 attributes) 1048576)))))
-	  (error "Aborted"))
+	(when (not (or buf nowarn))
+	  (abort-if-file-too-large (nth 7 attributes) "open"))
 	(if buf
 	    ;; We are using an existing buffer.
 	    (let (nonexistent)
@@ -1787,6 +1818,8 @@ This function ensures that none of these modifications will take place."
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
                                 filename)))
+  ;; Check whether the file is uncommonly large
+  (abort-if-file-too-large (nth 7 (file-attributes filename)) "insert")
   (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
                                        #'buffer-modified-p))
          (tem (funcall insert-func filename)))
@@ -2051,6 +2084,7 @@ since only a single case-insensitive search through the alist is made."
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.\\(sx[dmicw]\\|odt\\)\\'" . archive-mode)	; OpenOffice.org
+     ("\\.\\(deb\\)\\'" . archive-mode)                 ; Debian packages.
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
@@ -4143,7 +4177,7 @@ or multiple mail buffers, etc."
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and any nonexistent parent dirs.
-If DIR already exists as a directory, do nothing.
+If DIR already exists as a directory, signal an error, unless PARENTS is set.
 
 Interactively, the default choice of directory to create
 is the current default directory for file names.

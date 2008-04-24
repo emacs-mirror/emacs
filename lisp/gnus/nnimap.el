@@ -555,7 +555,8 @@ If EXAMINE is non-nil the group is selected read-only."
 	      (imap-mailbox-select group examine))
       (let (minuid maxuid)
 	(when (> (imap-mailbox-get 'exists) 0)
-	  (imap-fetch "1,*" "UID" nil 'nouidfetch)
+	  (imap-fetch (if imap-enable-exchange-bug-workaround "1,*:*" "1,*")
+		      "UID" nil 'nouidfetch)
 	  (imap-message-map (lambda (uid Uid)
 			      (setq minuid (if minuid (min minuid uid) uid)
 				    maxuid (if maxuid (max maxuid uid) uid)))
@@ -616,7 +617,9 @@ If EXAMINE is non-nil the group is selected read-only."
 	      lines (imap-body-lines (imap-message-body imap-current-message))
 	      chars (imap-message-get imap-current-message 'RFC822.SIZE)))
       (nnheader-insert-nov
-       (with-temp-buffer
+       ;; At this stage, we only have bytes, so let's use unibyte buffers
+       ;; to make it more clear.
+       (mm-with-unibyte-buffer
 	 (buffer-disable-undo)
 	 (insert headers)
 	 (let ((head (nnheader-parse-naked-head uid)))
@@ -1552,8 +1555,7 @@ function is generally only called when Gnus is shutting down."
 	;; request the article only when the move is NOT internal
 	(and (or move-is-internal
 		 (nnimap-request-article article group server))
-	     (save-excursion
-	       (set-buffer buf)
+	     (with-current-buffer buf
 	       (buffer-disable-undo (current-buffer))
 	       (insert-buffer-substring nntp-server-buffer)
 	       (setq result (eval accept-form))

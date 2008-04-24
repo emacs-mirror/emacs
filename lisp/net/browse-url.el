@@ -1331,7 +1331,7 @@ with possible additional arguments `browse-url-xterm-args'."
   (interactive (browse-url-interactive-arg "Text browser URL: "))
   (apply #'start-process `(,(concat browse-url-text-browser url)
 			   nil ,browse-url-xterm-program
-			   ,@browse-url-xterm-args "-e" browse-url-text-browser
+			   ,@browse-url-xterm-args "-e" ,browse-url-text-browser
 			   ,url)))
 
 ;; --- Lynx in an Emacs "term" window ---

@@ -3809,5 +3809,5 @@ Both should not be used to define a buffer-local dictionary."
 ; LocalWords:  uuencoded unidiff sc nn VM SGML eval IspellPersDict unsplitable
 ; LocalWords:  lns XEmacs HTML casechars Multibyte
 
-;;; arch-tag: 4941b9f9-3b7c-4a76-a4ed-5fa8b6010ef5
+;; arch-tag: 4941b9f9-3b7c-4a76-a4ed-5fa8b6010ef5
 ;;; ispell.el ends here

@@ -55,9 +55,12 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object QCantialias; /* defined in font.c  */
+extern Lisp_Object QCantialias, QCotf, QClanguage; /* defined in font.c  */
 extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
+
+/* languages */
+static Lisp_Object Qja, Qko, Qzh;
 
 /* scripts */
 static Lisp_Object Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
@@ -70,22 +73,30 @@ static Lisp_Object Qkhmer, Qmongolian, Qsymbol, Qbraille, Qhan;
 static Lisp_Object Qideographic_description, Qcjk_misc, Qkana, Qbopomofo;
 static Lisp_Object Qkanbun, Qyi, Qbyzantine_musical_symbol;
 static Lisp_Object Qmusical_symbol, Qmathematical;
+/* Not defined in characters.el, but referenced in fontset.el.  */
+static Lisp_Object Qbalinese, Qbuginese, Qbuhid, Qcuneiform, Qcypriot;
+static Lisp_Object Qdeseret, Qglagolitic, Qgothic, Qhanunoo, Qkharoshthi;
+static Lisp_Object Qlimbu, Qlinear_b, Qold_italic, Qold_persian, Qosmanya;
+static Lisp_Object Qphags_pa, Qphoenician, Qshavian, Qsyloti_nagri;
+static Lisp_Object Qtagalog, Qtagbanwa, Qtai_le, Qtifinagh, Qugaritic;
+/* Only defined here, but useful for distinguishing IPA capable fonts.  */
+static Lisp_Object Qphonetic;
 
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
 
-static void fill_in_logfont P_ ((FRAME_PTR f, LOGFONT *logfont,
-                                 Lisp_Object font_spec));
+static void fill_in_logfont P_ ((FRAME_PTR, LOGFONT *, Lisp_Object));
 
-static BYTE w32_antialias_type P_ ((Lisp_Object type));
-static Lisp_Object lispy_antialias_type P_ ((BYTE type));
+static BYTE w32_antialias_type P_ ((Lisp_Object));
+static Lisp_Object lispy_antialias_type P_ ((BYTE));
 
-static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE * sig));
-static int w32font_full_name P_ ((LOGFONT * font, Lisp_Object font_obj,
-                                  int pixel_size, char *name, int nbytes));
-static void recompute_cached_metrics P_ ((HDC dc, struct w32font_info * font));
+static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE *));
+static int w32font_full_name P_ ((LOGFONT *, Lisp_Object, int, char *, int));
+static void compute_metrics P_ ((HDC, struct w32font_info *, unsigned int,
+				 struct w32_metric_cache *));
+static void clear_cached_metrics P_ ((struct w32font_info *));
 
-static Lisp_Object w32_registry P_ ((LONG w32_charset, DWORD font_type));
+static Lisp_Object w32_registry P_ ((LONG, DWORD));
 
 /* EnumFontFamiliesEx callbacks.  */
 static int CALLBACK add_font_entity_to_list P_ ((ENUMLOGFONTEX *,
@@ -118,10 +129,10 @@ struct font_callback_data
 
 /* Handles the problem that EnumFontFamiliesEx will not return all
    style variations if the font name is not specified.  */
-static void list_all_matching_fonts P_ ((struct font_callback_data *match));
+static void list_all_matching_fonts P_ ((struct font_callback_data *));
 
 /* From old font code in w32fns.c */
-char * w32_to_x_charset P_ ((int charset, char * matching));
+char * w32_to_x_charset P_ ((int, char *));
 
 
 static int
@@ -180,6 +191,7 @@ w32font_list_family (frame)
   FRAME_PTR f = XFRAME (frame);
 
   bzero (&font_match_pattern, sizeof (font_match_pattern));
+  font_match_pattern.lfCharSet = DEFAULT_CHARSET;
 
   dc = get_frame_dc (f);
 
@@ -327,7 +339,8 @@ w32font_encode_char (font, c)
       /* Mark this font as not supporting glyph indices. This can happen
          on Windows9x, and maybe with non-Truetype fonts on NT etc.  */
       w32_font->glyph_idx = 0;
-      recompute_cached_metrics (dc, w32_font);
+      /* Clear metrics cache.  */
+      clear_cached_metrics (w32_font);
 
       return c;
     }
@@ -350,96 +363,81 @@ w32font_text_extents (font, code, nglyphs, metrics)
   HDC dc = NULL;
   struct frame * f;
   int total_width = 0;
-  WORD *wcode = alloca(nglyphs * sizeof (WORD));
+  WORD *wcode = NULL;
   SIZE size;
-
-  /* TODO: Frames can come and go, and their fonts outlive them. So we
-     can't cache the frame in the font structure.  Use selected_frame
-     until the API is updated to pass in a frame.  */
-  f = XFRAME (selected_frame);
 
   if (metrics)
     {
-      GLYPHMETRICS gm;
-      MAT2 transform;
       struct w32font_info *w32_font = (struct w32font_info *) font;
 
-      /* Set transform to the identity matrix.  */
-      bzero (&transform, sizeof (transform));
-      transform.eM11.value = 1;
-      transform.eM22.value = 1;
       metrics->width = 0;
-      metrics->ascent = 0;
-      metrics->descent = 0;
+      metrics->ascent = font->ascent;
+      metrics->descent = font->descent;
       metrics->lbearing = 0;
 
       for (i = 0; i < nglyphs; i++)
         {
-          if (*(code + i) < 128)
-            {
-              /* Use cached metrics for ASCII.  */
-              struct font_metrics *char_metric
-                = &w32_font->ascii_metrics[*(code+i)];
+	  struct w32_metric_cache *char_metric;
+	  int block = *(code + i) / CACHE_BLOCKSIZE;
+	  int pos_in_block = *(code + i) % CACHE_BLOCKSIZE;
 
-              /* If we couldn't get metrics when caching, use fallback.  */
-              if (char_metric->width == 0)
-                break;
+	  if (block >= w32_font->n_cache_blocks)
+	    {
+	      if (!w32_font->cached_metrics)
+		w32_font->cached_metrics
+		  = xmalloc ((block + 1)
+			     * sizeof (struct w32_cached_metric *));
+	      else
+		w32_font->cached_metrics
+		  = xrealloc (w32_font->cached_metrics,
+			      (block + 1)
+			      * sizeof (struct w32_cached_metric *));
+	      bzero (w32_font->cached_metrics + w32_font->n_cache_blocks,
+		     ((block + 1 - w32_font->n_cache_blocks)
+		      * sizeof (struct w32_cached_metric *)));
+	      w32_font->n_cache_blocks = block + 1;
+	    }
 
-              metrics->lbearing = max (metrics->lbearing,
-                                       char_metric->lbearing - metrics->width);
-              metrics->rbearing = max (metrics->rbearing,
-                                       metrics->width + char_metric->rbearing);
-              metrics->width += char_metric->width;
-              metrics->ascent = max (metrics->ascent, char_metric->ascent);
-              metrics->descent = max (metrics->descent, char_metric->descent);
-            }
-          else
-            {
-              if (dc == NULL)
-                {
+	  if (!w32_font->cached_metrics[block])
+	    {
+	      w32_font->cached_metrics[block]
+		= xmalloc (CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+	      bzero (w32_font->cached_metrics[block],
+		     CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+	    }
+
+	  char_metric = w32_font->cached_metrics[block] + pos_in_block;
+
+	  if (char_metric->status == W32METRIC_NO_ATTEMPT)
+	    {
+	      if (dc == NULL)
+		{
+		  /* TODO: Frames can come and go, and their fonts
+		     outlive them. So we can't cache the frame in the
+		     font structure.  Use selected_frame until the API
+		     is updated to pass in a frame.  */
+		  f = XFRAME (selected_frame);
+  
                   dc = get_frame_dc (f);
                   old_font = SelectObject (dc, ((W32FontStruct *)
                                                 (font->font.font))->hfont);
-                }
-              if (GetGlyphOutlineW (dc, *(code + i),
-                                    GGO_METRICS
-                                      | w32_font->glyph_idx
-                                        ? GGO_GLYPH_INDEX : 0,
-                                    &gm, 0, NULL, &transform) != GDI_ERROR)
-                {
-                  int new_val = metrics->width + gm.gmBlackBoxX
-                    + gm.gmptGlyphOrigin.x;
-                  metrics->rbearing = max (metrics->rbearing, new_val);
-                  new_val = -gm.gmptGlyphOrigin.x - metrics->width;
-                  metrics->lbearing = max (metrics->lbearing, new_val);
-                  metrics->width += gm.gmCellIncX;
-                  new_val = -gm.gmptGlyphOrigin.y;
-                  metrics->ascent = max (metrics->ascent, new_val);
-                  new_val = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
-                  metrics->descent = max (metrics->descent, new_val);
-                }
-              else
-                {
-                  if (w32_font->glyph_idx)
-                    {
-                      /* Disable glyph indexing for this font, as we can't
-                         handle the metrics.  Abort this run, our recovery
-                         strategies rely on having unicode code points here.
-                         This will cause a glitch in display, but in practice,
-                         any problems should be caught when initialising the
-                         metrics cache.  */
-                      w32_font->glyph_idx = 0;
-                      recompute_cached_metrics (dc, w32_font);
-                      SelectObject (dc, old_font);
-                      release_frame_dc (f, dc);
-                      return 0;
-                    }
-                  /* Rely on an estimate based on the overall font metrics.  */
-                  break;
-                }
-            }
-        }
+		}
+	      compute_metrics (dc, w32_font, *(code + i), char_metric);
+	    }
 
+	  if (char_metric->status == W32METRIC_SUCCESS)
+	    {
+	      metrics->lbearing = min (metrics->lbearing,
+				       metrics->width + char_metric->lbearing);
+	      metrics->rbearing = max (metrics->rbearing,
+				       metrics->width + char_metric->rbearing);
+	      metrics->width += char_metric->width;
+	    }
+	  else
+	    /* If we couldn't get metrics for a char,
+	       use alternative method.  */
+	    break;
+	}
       /* If we got through everything, return.  */
       if (i == nglyphs)
         {
@@ -454,19 +452,30 @@ w32font_text_extents (font, code, nglyphs, metrics)
         }
     }
 
-  for (i = 0; i < nglyphs; i++)
-    {
-      if (code[i] < 0x10000)
-        wcode[i] = code[i];
-      else
-        {
-          /* TODO: Convert to surrogate, reallocating array if needed */
-          wcode[i] = 0xffff;
-        }
-    }
-
+  /* For non-truetype fonts, GetGlyphOutlineW is not supported, so
+     fallback on other methods that will at least give some of the metric
+     information.  */
+  if (!wcode) {
+    wcode = alloca (nglyphs * sizeof (WORD));
+    for (i = 0; i < nglyphs; i++)
+      {
+	if (code[i] < 0x10000)
+	  wcode[i] = code[i];
+	else
+	  {
+	    /* TODO: Convert to surrogate, reallocating array if needed */
+	    wcode[i] = 0xffff;
+	  }
+      }
+  }
   if (dc == NULL)
     {
+      /* TODO: Frames can come and go, and their fonts outlive
+	 them. So we can't cache the frame in the font structure.  Use
+	 selected_frame until the API is updated to pass in a
+	 frame.  */
+      f = XFRAME (selected_frame);
+
       dc = get_frame_dc (f);
       old_font = SelectObject (dc, ((W32FontStruct *)
                                     (font->font.font))->hfont);
@@ -477,6 +486,8 @@ w32font_text_extents (font, code, nglyphs, metrics)
       total_width = size.cx;
     }
 
+  /* On 95/98/ME, only some unicode functions are available, so fallback
+     on doing a dummy draw to find the total width.  */
   if (!total_width)
     {
       RECT rect;
@@ -486,11 +497,10 @@ w32font_text_extents (font, code, nglyphs, metrics)
       total_width = rect.right;
     }
 
+  /* Give our best estimate of the metrics, based on what we know.  */
   if (metrics)
     {
       metrics->width = total_width;
-      metrics->ascent = font->ascent;
-      metrics->descent = font->descent;
       metrics->lbearing = 0;
       metrics->rbearing = total_width
         + ((struct w32font_info *) font)->metrics.tmOverhang;
@@ -783,9 +793,10 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
 
   GetTextMetrics (dc, &w32_font->metrics);
 
-  /* Cache ASCII metrics.  */
   w32_font->glyph_idx = ETO_GLYPH_INDEX;
-  recompute_cached_metrics (dc, w32_font);
+
+  w32_font->cached_metrics = NULL;
+  w32_font->n_cache_blocks = 0;
 
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
@@ -866,6 +877,11 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   font->descent = w32_font->metrics.tmDescent;
   font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
 
+  /* max_descent is used for underlining in w32term.c.  Hopefully this
+     is temporary, as we'll want to get rid of the old compatibility
+     stuff later.  */
+  compat_w32_font->max_bounds.descent = font->descent;
+
   /* Set global flag fonts_changed_p to non-zero if the font loaded
      has a character with a smaller width than any other character
      before, or if the font loaded has a smaller height than any other
@@ -936,7 +952,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   Lisp_Object entity, tem;
   LOGFONT *lf = (LOGFONT*) logical_font;
   BYTE generic_type;
-  BYTE full_type = physical_font->ntmTm.ntmFlags;
+  DWORD full_type = physical_font->ntmTm.ntmFlags;
 
   entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
 
@@ -1012,12 +1028,14 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
      about opentype and type1 fonts, so need a fallback for detecting
      truetype so that this information is not any worse than we could
      have obtained later.  */
-  if (full_type & NTM_TT_OPENTYPE || font_type & TRUETYPE_FONTTYPE)
+  if (EQ (backend, Quniscribe) && (full_type & NTMFLAGS_OPENTYPE))
+    tem = intern ("opentype");
+  else if (font_type & TRUETYPE_FONTTYPE)
     tem = intern ("truetype");
-  else if (full_type & NTM_TYPE1)
-    tem = intern ("type1");
   else if (full_type & NTM_PS_OPENTYPE)
     tem = intern ("postscript");
+  else if (full_type & NTM_TYPE1)
+    tem = intern ("type1");
   else if (font_type & RASTER_FONTTYPE)
     tem = intern ("w32bitmap");
   else
@@ -1069,10 +1087,12 @@ logfonts_match (font, pattern)
 }
 
 static int
-font_matches_spec (type, font, spec)
+font_matches_spec (type, font, spec, backend, logfont)
      DWORD type;
      NEWTEXTMETRICEX *font;
      Lisp_Object spec;
+     Lisp_Object backend;
+     LOGFONT *logfont;
 {
   Lisp_Object extra, val;
 
@@ -1209,10 +1229,52 @@ font_matches_spec (type, font, spec)
                         return 0;
                     }
                   else
-                    /* Other scripts unlikely to be handled.  */
+                    /* Other scripts unlikely to be handled by non-truetype
+		       fonts.  */
                     return 0;
                 }
             }
+	  else if (EQ (key, QClanguage) && SYMBOLP (val))
+	    {
+	      /* Just handle the CJK languages here, as the language
+		 parameter is used to select a font with appropriate
+		 glyphs in the cjk unified ideographs block. Other fonts
+	         support for a language can be solely determined by
+	         its character coverage.  */
+	      if (EQ (val, Qja))
+		{
+		  if (font->ntmTm.tmCharSet != SHIFTJIS_CHARSET)
+		    return 0;
+		}
+	      else if (EQ (val, Qko))
+		{
+		  if (font->ntmTm.tmCharSet != HANGUL_CHARSET
+		      && font->ntmTm.tmCharSet != JOHAB_CHARSET)
+		    return 0;
+		}
+	      else if (EQ (val, Qzh))
+		{
+		  if (font->ntmTm.tmCharSet != GB2312_CHARSET
+		      && font->ntmTm.tmCharSet != CHINESEBIG5_CHARSET)
+		return 0;
+		}
+	      else
+		/* Any other language, we don't recognize it. Fontset
+		   spec should have a fallback, as some backends do
+		   not recognize language at all.  */
+		return 0;
+	    }
+          else if (EQ (key, QCotf) && CONSP (val))
+	    {
+	      /* OTF features only supported by the uniscribe backend.  */
+	      if (EQ (backend, Quniscribe))
+		{
+		  if (!uniscribe_check_otf (logfont, val))
+		    return 0;
+		}
+	      else
+		return 0;
+	    }
         }
     }
   return 1;
@@ -1259,12 +1321,15 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
 {
   struct font_callback_data *match_data
     = (struct font_callback_data *) lParam;
+  Lisp_Object backend = match_data->opentype_only ? Quniscribe : Qgdi;
 
   if ((!match_data->opentype_only
-       || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE))
+       || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
+       || (font_type & TRUETYPE_FONTTYPE))
       && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
-                            match_data->orig_font_spec)
+                            match_data->orig_font_spec, backend,
+			    &logical_font->elfLogFont)
       && w32font_coverage_ok (&physical_font->ntmFontSig,
                               match_data->pattern.lfCharSet)
       /* Avoid substitutions involving raster fonts (eg Helv -> MS Sans Serif)
@@ -1282,8 +1347,7 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
                                        physical_font, font_type,
                                        &match_data->pattern,
-                                       match_data->opentype_only
-                                         ? Quniscribe : Qgdi);
+                                       backend);
       if (!NILP (entity))
         match_data->list = Fcons (entity, match_data->list);
     }
@@ -1319,8 +1383,6 @@ registry_to_w32_charset (charset)
     return ANSI_CHARSET;
   else if (SYMBOLP (charset))
     return x_to_w32_charset (SDATA (SYMBOL_NAME (charset)));
-  else if (STRINGP (charset))
-    return x_to_w32_charset (SDATA (charset));
   else
     return DEFAULT_CHARSET;
 }
@@ -1400,6 +1462,8 @@ fill_in_logfont (f, logfont, font_spec)
   tmp = AREF (font_spec, FONT_REGISTRY_INDEX);
   if (! NILP (tmp))
     logfont->lfCharSet = registry_to_w32_charset (tmp);
+  else
+    logfont->lfCharSet = DEFAULT_CHARSET;
 
   /* Out Precision  */
 
@@ -1421,8 +1485,6 @@ fill_in_logfont (f, logfont, font_spec)
            user input.  */
       else if (SYMBOLP (tmp))
         strncpy (logfont->lfFaceName, SDATA (SYMBOL_NAME (tmp)), LF_FACESIZE);
-      else if (STRINGP (tmp))
-        strncpy (logfont->lfFaceName, SDATA (tmp), LF_FACESIZE);
     }
 
   tmp = AREF (font_spec, FONT_ADSTYLE_INDEX);
@@ -1522,10 +1584,10 @@ list_all_matching_fonts (match_data)
       families = CDR (families);
       if (NILP (family))
         continue;
-      else if (STRINGP (family))
-        name = SDATA (family);
-      else
+      else if (SYMBOLP (family))
         name = SDATA (SYMBOL_NAME (family)); 
+      else
+	continue;
 
       strncpy (match_data->pattern.lfFaceName, name, LF_FACESIZE);
       match_data->pattern.lfFaceName[LF_FACESIZE - 1] = '\0';
@@ -1601,8 +1663,12 @@ font_supported_scripts (FONTSIGNATURE * sig)
       || (subranges[2] & (mask2)) || (subranges[3] & (mask3))) \
     supported = Fcons ((sym), supported)
 
-  SUBRANGE (0, Qlatin); /* There are many others... */
-
+  SUBRANGE (0, Qlatin);
+  /* The following count as latin too, ASCII should be present in these fonts,
+     so don't need to mark them separately.  */
+  /* 1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B.  */
+  SUBRANGE (4, Qphonetic);
+  /* 5: Spacing and tone modifiers, 6: Combining Diacriticals.  */
   SUBRANGE (7, Qgreek);
   SUBRANGE (8, Qcoptic);
   SUBRANGE (9, Qcyrillic);
@@ -1622,15 +1688,28 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (24, Qthai);
   SUBRANGE (25, Qlao);
   SUBRANGE (26, Qgeorgian);
-
+  SUBRANGE (27, Qbalinese);
+  /* 28: Hangul Jamo.  */
+  /* 29: Latin Extended, 30: Greek Extended, 31: Punctuation.  */
+  /* 32-47: Symbols (defined below).  */
   SUBRANGE (48, Qcjk_misc);
+  /* Match either 49: katakana or 50: hiragana for kana.  */
+  MASK_ANY (0, 0x00060000, 0, 0, Qkana);
   SUBRANGE (51, Qbopomofo);
-  SUBRANGE (54, Qkanbun); /* Is this right?  */
+  /* 52: Compatibility Jamo */
+  SUBRANGE (53, Qphags_pa);
+  /* 54: Enclosed CJK letters and months, 55: CJK Compatibility.  */
   SUBRANGE (56, Qhangul);
-
+  /* 57: Surrogates.  */
+  SUBRANGE (58, Qphoenician);
   SUBRANGE (59, Qhan); /* There are others, but this is the main one.  */
-  SUBRANGE (59, Qideographic_description); /* Windows lumps this in  */
-
+  SUBRANGE (59, Qideographic_description); /* Windows lumps this in.  */
+  SUBRANGE (59, Qkanbun); /* And this.  */
+  /* 60: Private use, 61: CJK strokes and compatibility.  */
+  /* 62: Alphabetic Presentation, 63: Arabic Presentation A.  */
+  /* 64: Combining half marks, 65: Vertical and CJK compatibility.  */
+  /* 66: Small forms, 67: Arabic Presentation B, 68: Half and Full width.  */
+  /* 69: Specials.  */
   SUBRANGE (70, Qtibetan);
   SUBRANGE (71, Qsyriac);
   SUBRANGE (72, Qthaana);
@@ -1645,19 +1724,42 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (81, Qmongolian);
   SUBRANGE (82, Qbraille);
   SUBRANGE (83, Qyi);
-
+  SUBRANGE (84, Qbuhid);
+  SUBRANGE (84, Qhanunoo);
+  SUBRANGE (84, Qtagalog);
+  SUBRANGE (84, Qtagbanwa);
+  SUBRANGE (85, Qold_italic);
+  SUBRANGE (86, Qgothic);
+  SUBRANGE (87, Qdeseret);
   SUBRANGE (88, Qbyzantine_musical_symbol);
   SUBRANGE (88, Qmusical_symbol); /* Windows doesn't distinguish these.  */
-
   SUBRANGE (89, Qmathematical);
-
-  /* Match either katakana or hiragana for kana.  */
-  MASK_ANY (0, 0x00060000, 0, 0, Qkana);
+  /* 90: Private use, 91: Variation selectors, 92: Tags.  */
+  SUBRANGE (93, Qlimbu);
+  SUBRANGE (94, Qtai_le);
+  /* 95: New Tai Le */
+  SUBRANGE (90, Qbuginese);
+  SUBRANGE (97, Qglagolitic);
+  SUBRANGE (98, Qtifinagh);
+  /* 99: Yijing Hexagrams.  */
+  SUBRANGE (100, Qsyloti_nagri);
+  SUBRANGE (101, Qlinear_b);
+  /* 102: Ancient Greek Numbers.  */
+  SUBRANGE (103, Qugaritic);
+  SUBRANGE (104, Qold_persian);
+  SUBRANGE (105, Qshavian);
+  SUBRANGE (106, Qosmanya);
+  SUBRANGE (107, Qcypriot);
+  SUBRANGE (108, Qkharoshthi);
+  /* 109: Tai Xuan Jing.  */
+  SUBRANGE (110, Qcuneiform);
+  /* 111: Counting Rods.  */
 
   /* There isn't really a main symbol range, so include symbol if any
      relevant range is set.  */
   MASK_ANY (0x8000000, 0x0000FFFF, 0, 0, Qsymbol);
 
+  /* Missing: Tai Viet (U+AA80) and Cham (U+AA00) .  */
 #undef SUBRANGE
 #undef MASK_ANY
 
@@ -1717,8 +1819,9 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
       if (outline)
         {
           float pointsize = height * 72.0 / one_w32_display_info.resy;
-          /* Round to nearest half point.  */
-          pointsize = round (pointsize * 2) / 2;
+          /* Round to nearest half point.  floor is used, since round is not
+	     supported in MS library.  */
+          pointsize = floor (pointsize * 2 + 0.5) / 2;
           p += sprintf (p, "-%1.1f", pointsize);
         }
       else
@@ -1738,38 +1841,53 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
 }
 
 
-static void
-recompute_cached_metrics (dc, w32_font)
+static void compute_metrics (dc, w32_font, code, metrics)
      HDC dc;
      struct w32font_info *w32_font;
+     unsigned int code;
+     struct w32_metric_cache *metrics;
 {
   GLYPHMETRICS gm;
   MAT2 transform;
-  unsigned int i;
+  unsigned int options = GGO_METRICS;
+
+  if (w32_font->glyph_idx)
+    options |= GGO_GLYPH_INDEX;
 
   bzero (&transform, sizeof (transform));
   transform.eM11.value = 1;
   transform.eM22.value = 1;
-  
-  for (i = 0; i < 128; i++)
-    {
-      struct font_metrics* char_metric = &w32_font->ascii_metrics[i];
-      unsigned int options = GGO_METRICS;
-      if (w32_font->glyph_idx)
-        options |= GGO_GLYPH_INDEX;
 
-      if (GetGlyphOutlineW (dc, i, options, &gm, 0, NULL, &transform)
-          != GDI_ERROR)
-        {
-          char_metric->lbearing = -gm.gmptGlyphOrigin.x;
-          char_metric->rbearing = gm.gmBlackBoxX + gm.gmptGlyphOrigin.x;
-          char_metric->width = gm.gmCellIncX;
-          char_metric->ascent = -gm.gmptGlyphOrigin.y;
-          char_metric->descent = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
-        }
-      else
-        char_metric->width = 0;
+  if (GetGlyphOutlineW (dc, code, options, &gm, 0, NULL, &transform)
+      != GDI_ERROR)
+    {
+      metrics->lbearing = gm.gmptGlyphOrigin.x;
+      metrics->rbearing = gm.gmptGlyphOrigin.x + gm.gmBlackBoxX;
+      metrics->width = gm.gmCellIncX;
+      metrics->status = W32METRIC_SUCCESS;
     }
+  else
+    {
+      if (w32_font->glyph_idx)
+	{
+	  /* Can't use glyph indexes after all.
+	     Avoid it in future, and clear any metrics that were based on
+	     glyph indexes.  */
+	  w32_font->glyph_idx = 0;
+	  clear_cached_metrics (w32_font);
+	}
+      metrics->status = W32METRIC_FAIL;
+    }
+}
+
+static void
+clear_cached_metrics (w32_font)
+     struct w32font_info *w32_font;
+{
+  int i;
+  for (i = 0; i < w32_font->n_cache_blocks; i++)
+    bzero (w32_font->cached_metrics[i],
+	   CACHE_BLOCKSIZE * sizeof (struct font_metrics));
 }
 
 struct font_driver w32font_driver =
@@ -1831,6 +1949,11 @@ syms_of_w32font ()
   DEFSYM (Qsubpixel, "subpixel");
   DEFSYM (Qnatural, "natural");
 
+  /* Languages  */
+  DEFSYM (Qja, "ja");
+  DEFSYM (Qko, "ko");
+  DEFSYM (Qzh, "zh");
+
   /* Scripts  */
   DEFSYM (Qlatin, "latin");
   DEFSYM (Qgreek, "greek");
@@ -1877,6 +2000,31 @@ syms_of_w32font ()
   DEFSYM (Qbyzantine_musical_symbol, "byzantine-musical-symbol");
   DEFSYM (Qmusical_symbol, "musical-symbol");
   DEFSYM (Qmathematical, "mathematical");
+  DEFSYM (Qphonetic, "phonetic");
+  DEFSYM (Qbalinese, "balinese");
+  DEFSYM (Qbuginese, "buginese");
+  DEFSYM (Qbuhid, "buhid");
+  DEFSYM (Qcuneiform, "cuneiform");
+  DEFSYM (Qcypriot, "cypriot");
+  DEFSYM (Qdeseret, "deseret");
+  DEFSYM (Qglagolitic, "glagolitic");
+  DEFSYM (Qgothic, "gothic");
+  DEFSYM (Qhanunoo, "hanunoo");
+  DEFSYM (Qkharoshthi, "kharoshthi");
+  DEFSYM (Qlimbu, "limbu");
+  DEFSYM (Qlinear_b, "linear_b");
+  DEFSYM (Qold_italic, "old_italic");
+  DEFSYM (Qold_persian, "old_persian");
+  DEFSYM (Qosmanya, "osmanya");
+  DEFSYM (Qphags_pa, "phags-pa");
+  DEFSYM (Qphoenician, "phoenician");
+  DEFSYM (Qshavian, "shavian");
+  DEFSYM (Qsyloti_nagri, "syloti_nagri");
+  DEFSYM (Qtagalog, "tagalog");
+  DEFSYM (Qtagbanwa, "tagbanwa");
+  DEFSYM (Qtai_le, "tai_le");
+  DEFSYM (Qtifinagh, "tifinagh");
+  DEFSYM (Qugaritic, "ugaritic");
 
   w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);

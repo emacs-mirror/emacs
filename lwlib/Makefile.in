@@ -46,7 +46,7 @@ USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
      LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
      MOTIF_OBJS = lwlib-Xm.o
 
-TOOLKIT_DEFINES = -DUSE_$(USE_X_TOOLKIT)
+TOOLKIT_DEFINES = 
    TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
            OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o

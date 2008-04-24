@@ -1619,7 +1619,7 @@ Example:
   (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
-  (if (listp arg1)
+  (if (and (listp arg1) (consp args))
       (let* ((largs nil) (largsr nil)
 	     (temps nil) (tempsr nil)
 	     (restarg nil) (rest-temps nil)
@@ -1757,7 +1757,7 @@ Example:
 (defsetf frame-parameters modify-frame-parameters t)
 (defsetf frame-visible-p cl-set-frame-visible-p)
 (defsetf frame-width set-screen-width t)
-(defsetf frame-parameter set-frame-parameter)
+(defsetf frame-parameter set-frame-parameter t)
 (defsetf getenv setenv t)
 (defsetf get-register set-register)
 (defsetf global-key-binding global-set-key)
@@ -1894,8 +1894,7 @@ a macro like `setf' or `incf'."
 			    method
 			  (error "Setf-method for %s returns malformed method"
 				 func)))
-		   (and (save-match-data
-			  (string-match "\\`c[ad][ad][ad]?[ad]?r\\'" name))
+		   (and (string-match-p "\\`c[ad][ad][ad]?[ad]?r\\'" name)
 			(get-setf-method (compiler-macroexpand place)))
 		   (and (eq func 'edebug-after)
 			(get-setf-method (nth (1- (length place)) place)

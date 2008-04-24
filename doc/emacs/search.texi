@@ -105,11 +105,11 @@ special within searches (@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s},
 @kbd{C-y}, @kbd{M-y}, @kbd{M-r}, @kbd{M-c}, @kbd{M-e}, and some other
 meta-characters).
 
-  When you exit the incremental search, it sets the mark where point
-@emph{was} before the search.  That is convenient for moving back
-there.  In Transient Mark mode, incremental search sets the mark
-without activating it, and does so only if the mark is not already
-active.
+  When you exit the incremental search, it adds the original value of
+point to the mark ring, without activating the mark.  You can thus use
+@kbd{C-@key{SPC}} to return to where you were before beginning the
+search.  @xref{Mark Ring}.  It only does this if the mark was not
+already active.
 
 @node Repeat Isearch
 @subsection Repeating Incremental Search
@@ -961,12 +961,11 @@ there is @kbd{M-%} (@code{query-replace}), which presents each occurrence
 of the pattern and asks you whether to replace it.
 
   The replace commands normally operate on the text from point to the
-end of the buffer; however, in Transient Mark mode (@pxref{Transient
-Mark}), when the mark is active, they operate on the region.  The
-basic replace commands replace one string (or regexp) with one
-replacement string.  It is possible to perform several replacements in
-parallel using the command @code{expand-region-abbrevs}
-(@pxref{Expanding Abbrevs}).
+end of the buffer.  When the mark is active, they operate on the
+region instead (@pxref{Mark}).  The basic replace commands replace one
+string (or regexp) with one replacement string.  It is possible to
+perform several replacements in parallel using the command
+@code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
 @menu
 * Unconditional Replace::	Replacing all matches for a string.
@@ -991,13 +990,14 @@ point, so if you want to cover the whole buffer you must go to the
 beginning first.  All occurrences up to the end of the buffer are
 replaced; to limit replacement to part of the buffer, narrow to that
 part of the buffer before doing the replacement (@pxref{Narrowing}).
-In Transient Mark mode, when the region is active, replacement is
-limited to the region (@pxref{Transient Mark}).
+When the region is active, replacement is limited to the region
+(@pxref{Mark}).
 
   When @code{replace-string} exits, it leaves point at the last
-occurrence replaced.  It sets the mark to the prior position of point
-(where the @code{replace-string} command was issued); use @kbd{C-u
-C-@key{SPC}} to move back there.
+occurrence replaced.  It adds the prior position of point (where the
+@code{replace-string} command was issued) to the mark ring, without
+activating the mark; use @kbd{C-u C-@key{SPC}} to move back there.
+@xref{Mark Ring}.
 
   A numeric argument restricts replacement to matches that are surrounded
 by word boundaries.  The argument's value doesn't matter.
@@ -1281,8 +1281,7 @@ replacing regexp matches in file names.
 expression.  They all ignore case in matching, if the pattern contains
 no upper-case letters and @code{case-fold-search} is non-@code{nil}.
 Aside from @code{occur} and its variants, all operate on the text from
-point to the end of the buffer, or on the active region in Transient
-Mark mode.
+point to the end of the buffer, or on the region if it is active.
 
 @findex list-matching-lines
 @findex occur
@@ -1332,16 +1331,16 @@ buffer names instead.
 
 @item M-x how-many @key{RET} @var{regexp} @key{RET}
 Print the number of matches for @var{regexp} that exist in the buffer
-after point.  In Transient Mark mode, if the region is active, the
-command operates on the region instead.
+after point.  If the region is active, this operates on the region
+instead.
 
 @item M-x flush-lines @key{RET} @var{regexp} @key{RET}
 This command deletes each line that contains a match for @var{regexp},
-operating on the text after point; it deletes the current line
-if it contains a match starting after point.  In Transient Mark mode,
-if the region is active, the command operates on the region instead;
-it deletes a line partially contained in the region if it contains a
-match entirely contained in the region.
+operating on the text after point; it deletes the current line if it
+contains a match starting after point.  If the region is active, it
+operates on the region instead; if a line partially contained in the
+region contains a match entirely contained in the region, it is
+deleted.
 
 If a match is split across lines, @code{flush-lines} deletes all those
 lines.  It deletes the lines before starting to look for the next
@@ -1349,12 +1348,12 @@ match; hence, it ignores a match starting on the same line at which
 another match ended.
 
 @item M-x keep-lines @key{RET} @var{regexp} @key{RET}
-This command deletes each line that @emph{does not} contain a match for
-@var{regexp}, operating on the text after point; if point is not at the
-beginning of a line, it always keeps the current line.  In Transient
-Mark mode, if the region is active, the command operates on the region
-instead; it never deletes lines that are only partially contained in
-the region (a newline that ends a line counts as part of that line).
+This command deletes each line that @emph{does not} contain a match
+for @var{regexp}, operating on the text after point; if point is not
+at the beginning of a line, it always keeps the current line.  If the
+region is active, the command operates on the region instead; it never
+deletes lines that are only partially contained in the region (a
+newline that ends a line counts as part of that line).
 
 If a match is split across lines, this command keeps all those lines.
 @end table

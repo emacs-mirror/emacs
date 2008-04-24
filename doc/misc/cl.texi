@@ -2471,7 +2471,8 @@ hash table entry.
 
 @item for @var{var} being the key-codes of @var{keymap}
 This clause iterates over the entries in @var{keymap}.
-The iteration does not enter nested keymaps or inherited (parent) keymaps.
+The iteration does not enter nested keymaps but does enter inherited
+(parent) keymaps.
 You can use @samp{the key-bindings} to access the commands bound to
 the keys rather than the key codes, and you can add a @code{using}
 clause to access both the codes and the bindings together.

@@ -776,5 +776,5 @@ The first character of DD is space if the value is less than 10."
 
 (provide 'time-stamp)
 
-;;; arch-tag: 8a12c5c3-25d6-4a71-adc5-24b0e025a1e7
+;; arch-tag: 8a12c5c3-25d6-4a71-adc5-24b0e025a1e7
 ;;; time-stamp.el ends here

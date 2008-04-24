@@ -731,5 +731,5 @@ The following commands are available:
 
 (provide 'smime)
 
-;;; arch-tag: e3f9b938-5085-4510-8a11-6625269c9a9e
+;; arch-tag: e3f9b938-5085-4510-8a11-6625269c9a9e
 ;;; smime.el ends here

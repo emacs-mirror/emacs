@@ -173,10 +173,11 @@
 	  (let ((state (aref out 0)))
 	    (cond
 	     ((eq state ?=) 'up-to-date)
-	     ((eq state ?A) 'edited)
+	     ((eq state ?A) 'added)
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
-	     ((eq state ?R) 'unregistered)
+	     ((eq state ?R) 'removed)
+	     ((eq state ?!) 'missing)
 	     ((eq state ??) 'unregistered)
 	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
@@ -222,7 +223,8 @@
 	  (vc-file-setprop file 'vc-backend 'none)
 	  (vc-file-setprop file 'vc-state 'unregistered))
 	 ((eq status-char ?!)
-	  nil)
+	  (vc-file-setprop file 'vc-backend 'Hg)
+	  (vc-file-setprop file 'vc-state 'missing))
 	 (t	;; Presently C, might change to = in 0.9.6
 	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'up-to-date)))
@@ -449,15 +451,6 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-hg-state file)))
 
-(defun vc-hg-dired-state-info (file)
-  "Hg-specific version of `vc-dired-state-info'."
-  (let ((hg-state (vc-state file)))
-    (if (eq hg-state 'edited)
-	(if (equal (vc-working-revision file) "0")
-	    "(added)" "(modified)")
-      ;; fall back to the default VC representation
-      (vc-default-dired-state-info 'Hg file))))
-
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
@@ -465,8 +458,8 @@ REV is the revision to check out into WORKFILE."
 
 ;;; Hg specific functionality.
 
-;;; XXX This functionality is experimental/work in progress. It might
-;;; change without notice.
+;; XXX This functionality is experimental/work in progress. It might
+;; change without notice.
 (defvar vc-hg-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))
@@ -482,7 +475,7 @@ REV is the revision to check out into WORKFILE."
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-hg-after-dir-status (update-function status-buffer)
+(defun vc-hg-after-dir-status (update-function)
   (let ((status-char nil)
 	(file nil)
 	(translation '((?= . up-to-date)
@@ -491,10 +484,10 @@ REV is the revision to check out into WORKFILE."
 		       (?R . removed)
 		       (?M . edited)
 		       (?I . ignored)
-		       (?! . deleted)
+		       (?! . missing)
 		       (?? . unregistered)))
 	(translated nil)
-	  (result nil))
+	(result nil))
       (goto-char (point-min))
       (while (not (eobp))
 	(setq status-char (char-after))
@@ -503,23 +496,15 @@ REV is the revision to check out into WORKFILE."
 					      (line-end-position)))
 	(setq translated (assoc status-char translation))
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
-	  (push (cons file (cdr translated)) result))
+	  (push (list file (cdr translated)) result))
 	(forward-line))
-      ;; Remove the temporary buffer.
-      (kill-buffer (current-buffer))
-      (funcall update-function result status-buffer)))
+      (funcall update-function result)))
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-hg-dir-status (dir update-function status-buffer)
-  "Return a list of conses (file . state) for DIR."
-  (with-current-buffer
-      (get-buffer-create
-       (expand-file-name " *VC-hg* tmp status" dir))
-    (erase-buffer)
-    (vc-hg-command (current-buffer) 'async dir "status")
-    (vc-exec-after
-     `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))
-    (current-buffer)))
+(defun vc-hg-dir-status (dir update-function)
+  (vc-hg-command (current-buffer) 'async dir "status")
+  (vc-exec-after
+   `(vc-hg-after-dir-status (quote ,update-function))))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

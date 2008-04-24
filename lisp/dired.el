@@ -344,13 +344,15 @@ Subexpression 2 must end right before the \\n or \\r.")
 (defvar dired-warning-face 'dired-warning
   "Face name used for a part of a buffer that needs user attention.")
 
-(defface dired-warn-writable
+(defface dired-perm-write
   '((((type w32 pc)) :inherit default)  ;; These default to rw-rw-rw.
-    (t (:inherit font-lock-warning-face)))
+    ;; Inherit from font-lock-comment-delimiter-face since with min-colors 8
+    ;; font-lock-comment-face is not colored any more.
+    (t (:inherit font-lock-comment-delimiter-face)))
   "Face used to highlight permissions of group- and world-writable files."
   :group 'dired-faces
   :version "22.2")
-(defvar dired-warn-writable-face 'dired-warn-writable
+(defvar dired-perm-write-face 'dired-perm-write
   "Face name used for permissions of group- and world-writable files.")
 
 (defface dired-directory
@@ -414,10 +416,10 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; fields with keymaps to frob the permissions, somewhat a la XEmacs.
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d]....\\(w\\)....")	; group writable
-	 '(1 dired-warn-writable-face))
+	 '(1 dired-perm-write-face))
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d].......\\(w\\).")	; world writable
-	 '(1 dired-warn-writable-face))
+	 '(1 dired-perm-write-face))
    ;;
    ;; Subdirectories.
    (list dired-re-dir
@@ -592,15 +594,12 @@ Don't use that together with FILTER."
 	    ;; If a dialog is about to be used, call read-directory-name so
 	    ;; the dialog code knows we want directories.  Some dialogs can
 	    ;; only select directories or files when popped up, not both.
-	    (if (next-read-file-uses-dialog-p)
+	    (let ((default (and buffer-file-name
+				(abbreviate-file-name buffer-file-name))))
+	      (minibuffer-with-setup-hook
+		  (lambda () (setq minibuffer-default default))
 		(read-directory-name (format "Dired %s(directory): " str)
-				     nil default-directory nil)
-	      (let ((default (and buffer-file-name
-				  (abbreviate-file-name buffer-file-name))))
-		(minibuffer-with-setup-hook
-		    (lambda () (setq minibuffer-default default))
-		  (read-file-name (format "Dired %s(directory): " str)
-				  nil default-directory nil)))))))
+				     nil default-directory nil))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -3251,7 +3250,7 @@ Anything else means ask for each directory."
 
 (defun dired-dnd-popup-notice ()
   (message-box
-   "Recursive copies not enabled.\nSee variable dired-recursive-copies."))
+   "Dired recursive copies are currently disabled.\nSee the variable `dired-recursive-copies'."))
 
 
 (defun dired-dnd-do-ask-action (uri)
@@ -3279,37 +3278,46 @@ URI is the file to handle, ACTION is one of copy, move, link or ask.
 Ask means pop up a menu for the user to select one of copy, move or link."
   (require 'dired-aux)
   (let* ((from (dnd-get-local-file-name uri t))
-	 (to (if from (concat (dired-current-directory)
-			   (file-name-nondirectory from))
-	       nil)))
-    (if from
-	(cond ((or (eq action 'copy)
-		   (eq action 'private))	; Treat private as copy.
-
-	       ;; If copying a directory and dired-recursive-copies is nil,
-	       ;; dired-copy-file silently fails.  Pop up a notice.
-	       (if (and (file-directory-p from)
-			(not dired-recursive-copies))
-		   (dired-dnd-popup-notice)
-		 (progn
-		   (dired-copy-file from to 1)
-		   (dired-relist-entry to)
-		   action)))
-
-	       ((eq action 'move)
-		(dired-rename-file from to 1)
-		(dired-relist-entry to)
-		action)
-
-	       ((eq action 'link)
-		(make-symbolic-link from to 1)
-		(dired-relist-entry to)
-		action)
-
-	       ((eq action 'ask)
-		(dired-dnd-do-ask-action uri))
-
-	       (t nil)))))
+	 (to (when from
+	       (concat (dired-current-directory)
+		       (file-name-nondirectory from)))))
+    (when from
+      (cond ((eq action 'ask)
+	     (dired-dnd-do-ask-action uri))
+	    ;; If copying a directory and dired-recursive-copies is
+	    ;; nil, dired-copy-file fails.  Pop up a notice.
+	    ((and (memq action '(copy private))
+		  (file-directory-p from)
+		  (not dired-recursive-copies))
+	     (dired-dnd-popup-notice))
+	    ((memq action '(copy private move link))
+	     (let ((overwrite (and (file-exists-p to)
+				   (y-or-n-p
+				    (format "Overwrite existing file `%s'? " to))))
+		   ;; Binding dired-overwrite-confirmed to nil makes
+		   ;; dired-handle-overwrite a no-op.  We instead use
+		   ;; y-or-n-p, which pops a graphical menu.
+		   dired-overwrite-confirmed backup-file)
+	       (when (and overwrite
+			  ;; d-b-o is defined in dired-aux.
+			  (boundp 'dired-backup-overwrite)
+			  dired-backup-overwrite
+			  (setq backup-file
+				(car (find-backup-file-name to)))
+			  (or (eq dired-backup-overwrite 'always)
+			      (y-or-n-p
+			       (format
+				"Make backup for existing file `%s'? " to))))
+		 (rename-file to backup-file 0)
+		 (dired-relist-entry backup-file))
+	       (cond ((memq action '(copy private))
+		      (dired-copy-file from to overwrite))
+		     ((eq action 'move)
+		      (dired-rename-file from to overwrite))
+		     ((eq action 'link)
+		      (make-symbolic-link from to overwrite)))
+	       (dired-relist-entry to)
+	       action))))))
 
 (defun dired-dnd-handle-file (uri action)
   "Copy, move or link a file to the dired directory if it is a local file.

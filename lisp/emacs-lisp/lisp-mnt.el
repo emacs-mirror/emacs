@@ -37,7 +37,8 @@
 ;; Another entry point automatically addresses bug mail to a package's
 ;; maintainer or author.
 
-;; This file can be loaded by your lisp-mode-hook.  Have it (require 'lisp-mnt)
+;; This file can be loaded by your emacs-lisp-mode-hook.  Have it
+;; (require 'lisp-mnt)
 
 ;; This file is an example of the header conventions.  Note the following
 ;; features:
@@ -305,12 +306,12 @@ If FILE is nil, execute BODY in the current buffer."
        (if ,filesym
 	   (with-temp-buffer
 	     (insert-file-contents ,filesym)
-	     (lisp-mode)
+	     (emacs-lisp-mode)
 	     ,@body)
 	 (save-excursion
 	   ;; Switching major modes is too drastic, so just switch
-	   ;; temporarily to the Lisp mode syntax table.
-	   (with-syntax-table lisp-mode-syntax-table
+	   ;; temporarily to the Emacs Lisp mode syntax table.
+	   (with-syntax-table emacs-lisp-mode-syntax-table
 	     ,@body))))))
 
 (put 'lm-with-file 'lisp-indent-function 1)
@@ -614,5 +615,5 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 
 (provide 'lisp-mnt)
 
-;;; arch-tag: fa3c5ab4-a37b-4e46-b7cf-b6d78b90e69e
+;; arch-tag: fa3c5ab4-a37b-4e46-b7cf-b6d78b90e69e
 ;;; lisp-mnt.el ends here

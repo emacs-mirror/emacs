@@ -224,5 +224,5 @@ LEIM is available from the same ftp directory as Emacs."))
 ;; coding: iso-2022-7bit
 ;; End:
 
-;;; arch-tag: df2218fa-469c-40f6-bace-7f89a053f9c0
+;; arch-tag: df2218fa-469c-40f6-bace-7f89a053f9c0
 ;;; ja-dic-utl.el ends here

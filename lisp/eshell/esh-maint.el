@@ -140,5 +140,5 @@
 ;;   (delete-file "README.texi")
 ;;   (kill-buffer "README.texi"))
 
-;;; arch-tag: 662089b6-78ec-48c5-b94f-d212279e8902
+;; arch-tag: 662089b6-78ec-48c5-b94f-d212279e8902
 ;;; esh-maint.el ends here

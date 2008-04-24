@@ -161,5 +161,5 @@ seen in the same session."
 
 (provide 'gnus-dup)
 
-;;; arch-tag: 903e94db-7b00-4d19-83ee-cf34a81fa5fb
+;; arch-tag: 903e94db-7b00-4d19-83ee-cf34a81fa5fb
 ;;; gnus-dup.el ends here

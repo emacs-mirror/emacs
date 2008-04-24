@@ -752,26 +752,36 @@ a previously found match."
 			       "Display another occurrence when moving the cursor"))
     (define-key map [separator-1] '("--"))
     (define-key map [kill-this-buffer] 
-      '("Kill occur buffer" . kill-this-buffer))
+      '(menu-item "Kill occur buffer" kill-this-buffer
+		  :help "Kill the current *Occur* buffer"))
     (define-key map [quit-window] 
-      '("Quit occur window" . quit-window))
+      '(menu-item "Quit occur window" quit-window
+		  :help "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame"))
     (define-key map [revert-buffer] 
-      '("Revert occur buffer" . revert-buffer))
+      '(menu-item "Revert occur buffer" revert-buffer
+		  :help "Replace the text in the *Occur* buffer with the results of rerunning occur"))
     (define-key map [clone-buffer] 
-      '("Clone occur buffer" . clone-buffer))
+      '(menu-item "Clone occur buffer" clone-buffer
+		  :help "Create and return a twin copy of the current *Occur* buffer"))
     (define-key map [occur-rename-buffer] 
-      '("Rename occur buffer" . occur-rename-buffer))
+      '(menu-item "Rename occur buffer" occur-rename-buffer
+		  :help "Rename the current *Occur* buffer to *Occur: original-buffer-name*."))
     (define-key map [separator-2] '("--"))
     (define-key map [occur-mode-goto-occurrence-other-window]
-      '("Go To Occurrence Other Window" . occur-mode-goto-occurrence-other-window))
+      '(menu-item "Go To Occurrence Other Window" occur-mode-goto-occurrence-other-window
+		  :help "Go to the occurrence the current line describes, in another window"))
     (define-key map [occur-mode-goto-occurrence]
-      '("Go To Occurrence" . occur-mode-goto-occurrence))
+      '(menu-item "Go To Occurrence" occur-mode-goto-occurrence
+		  :help "Go to the occurrence the current line describes"))
     (define-key map [occur-mode-display-occurrence]
-      '("Display Occurrence" . occur-mode-display-occurrence))
+      '(menu-item "Display Occurrence" occur-mode-display-occurrence
+		  :help "Display in another window the occurrence the current line describes"))
     (define-key map [occur-next] 
-      '("Move to next match" . occur-next))
+      '(menu-item "Move to next match" occur-next
+		  :help "Move to the Nth (default 1) next match in an Occur mode buffer"))
     (define-key map [occur-prev] 
-      '("Move to previous match" . occur-prev))
+      '(menu-item "Move to previous match" occur-prev
+		  :help "Move to the Nth (default 1) previous match in an Occur mode buffer"))
     map)
   "Keymap for `occur-mode'.")
 

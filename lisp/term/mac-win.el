@@ -1802,11 +1802,11 @@ if possible.  If there's no such frame, a new frame is created."
 	     (let ((line (car selection-range))
 		   (start (cadr selection-range))
 		   (end (nth 2 selection-range)))
-	       (if (> line 0)
-		   (goto-line line)
-		 (if (and (> start 0) (> end 0))
-		     (progn (set-mark start)
-			    (goto-char end))))))
+	       (if (>= line 0)
+		   (goto-line (1+ line))
+		 (if (and (>= start 0) (>= end 0))
+		     (progn (set-mark (1+ start))
+			    (goto-char (1+ end)))))))
 	    ((stringp search-text)
 	     (re-search-forward
 	      (mapconcat 'regexp-quote (split-string search-text) "\\|")
@@ -2197,7 +2197,9 @@ either in the current buffer or in the echo area."
 (defun mac-service-open-file ()
   "Open the file specified by the selection value for Services."
   (interactive)
-  (find-file-existing (x-selection-value mac-service-selection)))
+  ;; The selection seems not to contain the file name as
+  ;; public.utf16-plain-text data on Mac OS X 10.4.
+  (dnd-open-file (x-get-selection mac-service-selection 'public.file-url) nil))
 
 (defun mac-service-open-selection ()
   "Create a new buffer containing the selection value for Services."

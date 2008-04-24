@@ -520,7 +520,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-sender
 		      (equal sender this-sender))
-	     (setq found (append (gnus-registry-fetch-groups key) found))
+	     (let ((groups (gnus-registry-fetch-groups key)))
+	       (dolist (group groups)
+		 (setq found (append (list group) (delete group found)))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra
@@ -542,7 +544,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-subject
 		      (equal subject this-subject))
-	     (setq found (append (gnus-registry-fetch-groups key) found))
+	     (let ((groups (gnus-registry-fetch-groups key)))
+	       (dolist (group groups)
+		 (setq found (append (list group) (delete group found)))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra
@@ -1111,12 +1115,13 @@ Returns the first place where the trail finds a group name."
 ;;; we could call it here: (customize-variable 'gnus-registry-install)
   gnus-registry-install)
 
-(when (gnus-registry-install-p)
+(when (or (eq gnus-registry-install t)
+	  (gnus-registry-install-p))
   (gnus-registry-initialize))
 
 ;; TODO: a few things
 
 (provide 'gnus-registry)
 
-;;; arch-tag: 5cba0a32-718a-4a97-8c91-0a15af21da94
+;; arch-tag: 5cba0a32-718a-4a97-8c91-0a15af21da94
 ;;; gnus-registry.el ends here

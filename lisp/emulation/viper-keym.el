@@ -703,5 +703,5 @@ form ((key . function) (key . function) ... )."
 ;;; End:
 
 
-;;; arch-tag: 43af4b2f-0bea-400b-889e-221ebc00acb1
+;; arch-tag: 43af4b2f-0bea-400b-889e-221ebc00acb1
 ;;; viper-keym.el ends here

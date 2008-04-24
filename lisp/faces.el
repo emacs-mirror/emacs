@@ -28,9 +28,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  ;; Warning suppression -- can't require x-win in batch:
-  (autoload 'xw-defined-colors "x-win"))
+  (require 'cl))
+
+(declare-function xw-defined-colors "term/x-win" (&optional frame))
 
 (defvar help-xref-stack-item)
 
@@ -141,7 +141,7 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 (defcustom font-slant-table
   '((ro . 0)
     (ri . 10)
-    (r . 99) (roman . 100) (normal . 101)
+    (r . 98) (roman . 99) (normal . 100)
     (i . 199) (italic . 200) (ot . 201)
     (o . 210) (oblique . 211))
   "*Alist of font slant symbols vs the corresponding numeric values."
@@ -986,7 +986,7 @@ Otherwise, return a single face."
 			 (if faces (mapconcat 'symbol-name faces ",")
 			   string-describing-default))
 	       (format "%s: " prompt))
-	     (complete-in-turn nonaliasfaces aliasfaces)
+	     (completion-table-in-turn nonaliasfaces aliasfaces)
 	     nil t nil nil
 	     (if faces (mapconcat 'symbol-name faces ","))))
 	   ;; Canonicalize the output.
@@ -2190,7 +2190,8 @@ terminal type to a different value."
   "The standard faces of Emacs."
   :group 'faces)
 
-(defface default nil
+(defface default
+  '((t nil)) ; If this were nil, face-defface-spec would not be set.
   "Basic default face."
   :group 'basic-faces)
 
@@ -2390,6 +2391,14 @@ terminal type to a different value."
      :inherit highlight))
   "Basic mode line face for highlighting."
   :version "22.1"
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
+(defface mode-line-emphasis
+  '((t (:weight bold)))
+  "Face used to emphasize certain mode line features.
+Use the face `mode-line-highlight' for features that can be selected."
+  :version "23.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 

@@ -605,7 +605,9 @@ by a symbolic prefix), the active keymaps are determined based on the
 position in that event.  If the event happened on a string embedded
 with a @code{display}, @code{before-string}, or @code{after-string}
 property (@pxref{Special Properties}), the non-@code{nil} map
-properties of the string override those of the buffer.
+properties of the string override those of the buffer (if the
+underlying buffer text contains map properties in its text properties
+or overlays, they are ignored).
 
   The @dfn{global keymap} holds the bindings of keys that are defined
 regardless of the current buffer, such as @kbd{C-f}.  The variable

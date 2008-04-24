@@ -294,7 +294,7 @@ call_debugger (arg)
   if (SPECPDL_INDEX () + 100 > max_specpdl_size)
     max_specpdl_size = SPECPDL_INDEX () + 100;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
@@ -808,9 +808,10 @@ DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make NEW-ALIAS a variable alias for symbol BASE-VARIABLE.
 Aliased variables always have the same value; setting one sets the other.
 Third arg DOCSTRING, if non-nil, is documentation for NEW-ALIAS.  If it is
- omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
- or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
- itself an alias.
+omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
+or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
+itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
+then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
 The return value is BASE-VARIABLE.  */)
      (new_alias, base_variable, docstring)
      Lisp_Object new_alias, base_variable, docstring;
@@ -824,6 +825,12 @@ The return value is BASE-VARIABLE.  */)
     error ("Cannot make a constant an alias");
 
   sym = XSYMBOL (new_alias);
+  /* http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg00834.html
+     If n_a is bound, but b_v is not, set the value of b_v to n_a.
+     This is for the sake of define-obsolete-variable-alias and user
+     customizations.  */
+  if (NILP (Fboundp (base_variable)) && !NILP (Fboundp (new_alias)))
+    XSYMBOL(base_variable)->value = sym->value;
   sym->indirect_variable = 1;
   sym->declared_special = 1;
   sym->value = base_variable;
@@ -1714,7 +1721,7 @@ See also the function `condition-case'.  */)
 
 #if 0 /* rms: I don't know why this was here,
 	 but it is surely wrong for an error that is handled.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif

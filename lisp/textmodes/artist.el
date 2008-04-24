@@ -10,6 +10,11 @@
 ;; Release-date: 6-Aug-2004
 ;; Location:     http://www.lysator.liu.se/~tab/artist/
 
+;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
+;; file on 19/3/2008, and the maintainer agreed that when a bug is filed in
+;; the Emacs bug reporting system against this file, a copy of the bug
+;; report be sent to the maintainer's email address.
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -104,7 +109,6 @@
 ;; See the short guide at the end of this file.
 ;; If you add a new drawing mode, send it to me, and I would gladly
 ;; include in the next release!
-
 
 ;;; Installation:
 
@@ -5546,5 +5550,5 @@ The event, EV, is the mouse event."
 ;; Don't hesitate to ask me any questions.
 
 
-;;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
+;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
 ;;; artist.el ends here

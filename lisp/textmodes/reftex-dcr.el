@@ -485,5 +485,5 @@ Calling this function several times find successive citation locations."
       (move-marker reftex-global-search-marker nil)
       (error "All files processed"))))
 
-;;; arch-tag: d2f52b56-744e-44ad-830d-1fc193b90eda
+;; arch-tag: d2f52b56-744e-44ad-830d-1fc193b90eda
 ;;; reftex-dcr.el ends here

@@ -78,5 +78,5 @@
 
 (provide 'spook)
 
-;;; arch-tag: c682b61f-92b6-4492-9c0d-2367e562449c
+;; arch-tag: c682b61f-92b6-4492-9c0d-2367e562449c
 ;;; spook.el ends here

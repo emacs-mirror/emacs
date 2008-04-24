@@ -179,8 +179,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
           (goto-char (point-min))
 	  (cond
 	   ((re-search-forward
-	     ;; CVS-removed files are not taken under VC control.
-	     (concat "^/" (regexp-quote basename) "/[^/-]") nil t)
+	     (concat "^/" (regexp-quote basename) "/[^/]") nil t)
 	    (beginning-of-line)
 	    (vc-cvs-parse-entry file)
 	    t)
@@ -207,9 +206,10 @@ See also variable `vc-cvs-sticky-date-format-string'."
   ;; Otherwise consider it `edited'.
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
         (lastmod (nth 5 (file-attributes file))))
-    (if (equal checkout-time lastmod)
-        'up-to-date
-      'edited)))
+    (cond
+     ((equal checkout-time lastmod) 'up-to-date)
+     ((string= (vc-working-revision file) "0") 'added)
+     (t 'edited))))
 
 (defun vc-cvs-dir-state (dir)
   "Find the CVS state of all files in DIR and subdirectories."
@@ -261,16 +261,11 @@ Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
   (let* ((sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
 	 help-echo
-	 (string 
-	  (if (string= (vc-working-revision file) "0")
-	      ;; A file that is added but not yet committed.
-	      (progn
-		(setq help-echo "Added file (needs commit) under CVS")
-		"CVS @@")
-	    (let ((def-ml (vc-default-mode-line-string 'CVS file)))
-	      (setq help-echo 
-		    (get-text-property 0 'help-echo def-ml))
-	      def-ml))))
+	 (string
+          (let ((def-ml (vc-default-mode-line-string 'CVS file)))
+            (setq help-echo 
+                  (get-text-property 0 'help-echo def-ml))
+            def-ml)))
     (propertize 
      (if (zerop (length sticky-tag))
 	 string
@@ -279,14 +274,6 @@ committed and support display of sticky tags."
        (concat string "[" sticky-tag "]"))
      'help-echo help-echo)))
 
-(defun vc-cvs-dired-state-info (file)
-  "CVS-specific version of `vc-dired-state-info'."
-  (let ((cvs-state (vc-state file)))
-    (cond ((eq cvs-state 'edited)
-	   (if (equal (vc-working-revision file) "0")
-	       "(added)" "(modified)"))
-	  (t
-	   (vc-default-dired-state-info 'CVS file)))))
 
 ;;;
 ;;; State-changing functions
@@ -448,8 +435,13 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
     (if (re-search-forward "conflicts during merge" nil t)
-        1				; signal error
-      0)))				; signal success
+	(progn 
+	  (vc-file-setprop file 'vc-state 'conflict)
+	  ;; signal error
+	  1)
+      (vc-file-setprop file 'vc-state 'edited)
+      ;; signal success
+      0)))
 
 (defun vc-cvs-merge-news (file)
   "Merge in any new changes made to FILE."
@@ -490,7 +482,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
                 0);; indicate success to the caller
                ;; Conflicts detected!
                (t
-                (vc-file-setprop file 'vc-state 'edited)
+                (vc-file-setprop file 'vc-state 'conflict)
                 1);; signal the error to the caller
                )
             (pop-to-buffer "*vc*")
@@ -500,7 +492,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
 (defun vc-cvs-modify-change-comment (files rev comment)
   "Modify the change comments for FILES on a specified REV. 
 Will fail unless you have administrative privileges on the repo."
-  (vc-cvs-command nil 0 files "rcs" (concat "-m" comment ":" rev)))
+  (vc-cvs-command nil 0 files "admin" (concat "-m" rev ":" comment)))
 
 ;;;
 ;;; History functions
@@ -560,31 +552,6 @@ Will fail unless you have administrative privileges on the repo."
 			  (and newvers (concat "-r" newvers))
 			  (vc-switches 'CVS 'diff))))
     (if async 1 status))) ; async diff, pessimistic assumption
-
-
-(defun vc-cvs-diff-tree (dir &optional rev1 rev2)
-  "Diff all files at and below DIR."
-  (with-current-buffer "*vc-diff*"
-    (setq default-directory dir)
-    (if (vc-stay-local-p dir)
-        ;; local diff: do it filewise, and only for files that are modified
-        (vc-file-tree-walk
-         dir
-         (lambda (f)
-           (vc-exec-after
-            `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
-               ;; possible optimization: fetch the state of all files
-               ;; in the tree via vc-cvs-dir-state-heuristic
-               (unless (vc-up-to-date-p ',f)
-                 (message "Looking at %s" ',f)
-                 (vc-diff-internal ',f ',rev1 ',rev2))))))
-      ;; cvs diff: use a single call for the entire tree
-      (let ((coding-system-for-read
-             (or coding-system-for-read 'undecided)))
-        (apply 'vc-cvs-command "*vc-diff*" 1 nil "diff"
-               (and rev1 (concat "-r" rev1))
-               (and rev2 (concat "-r" rev2))
-               (vc-switches 'CVS 'diff))))))
 
 (defconst vc-cvs-annotate-first-line-re "^[0-9]")
 
@@ -824,43 +791,54 @@ For an empty string, nil is returned (invalid CVS root)."
           ;; Normalize CVS root record
           (list method user host root)))))
 
+;; XXX: This does not work correctly for subdirectories.  "cvs status"
+;; information is context sensitive, it contains lines like:
+;; cvs status: Examining DIRNAME
+;; and the file entries after that don't show the full path.
+;; Because of this vc-dired only shows changed files at the top level
+;; for CVS.
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
 essential information. Note that this can never set the 'ignored
 state."
-  (let (file status)
+  (let (file status missing)
     (goto-char (point-min))
     (while (looking-at "? \\(.*\\)")
       (setq file (expand-file-name (match-string 1)))
       (vc-file-setprop file 'vc-state 'unregistered)
       (forward-line 1))
-    (if (re-search-forward "^File: " nil t)
-        (cond
-         ((looking-at "no file") nil)
-         ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
-	  (setq file (expand-file-name (match-string 1)))
-          (vc-file-setprop file 'vc-backend 'CVS)
-          (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-              (setq status "Unknown")
-            (setq status (match-string 1)))
-          (if (and full
-                   (re-search-forward
-                    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
+    (when (re-search-forward "^File: " nil t)
+      (when (setq missing (looking-at "no file "))
+	(goto-char (match-end 0)))
+      (cond
+       ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
+	(setq file (expand-file-name (match-string 1)))
+	(vc-file-setprop file 'vc-backend 'CVS)
+	(if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
+	    (setq status "Unknown")
+	  (setq status (match-string 1)))
+	(when (and full
+		   (re-search-forward
+		    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
 \[\t ]+\\([0-9.]+\\)"
-                    nil t))
-              (vc-file-setprop file 'vc-latest-revision (match-string 2)))
-          (vc-file-setprop
-           file 'vc-state
-           (cond
-            ((string-match "Up-to-date" status)
-             (vc-file-setprop file 'vc-checkout-time
-                              (nth 5 (file-attributes file)))
-             'up-to-date)
-            ((string-match "Locally Modified" status)             'edited)
-            ((string-match "Needs Merge" status)                  'needs-merge)
-            ((string-match "Needs \\(Checkout\\|Patch\\)" status) 'needs-patch)
-            (t 'edited))))))))
+		    nil t))
+	    (vc-file-setprop file 'vc-latest-revision (match-string 2)))
+	(vc-file-setprop
+	 file 'vc-state
+	 (cond
+	  ((string-match "Up-to-date" status)
+	   (vc-file-setprop file 'vc-checkout-time
+			    (nth 5 (file-attributes file)))
+	   'up-to-date)
+	  ((string-match "Locally Modified" status)             'edited)
+	  ((string-match "Needs Merge" status)                  'needs-merge)
+	  ((string-match "Needs \\(Checkout\\|Patch\\)" status)
+	   (if missing 'missing 'needs-patch))
+	  ((string-match "Locally Added" status)                'added)
+	  ((string-match "Locally Removed" status)              'removed)
+	  ((string-match "File had conflicts " status)          'conflict)
+	  (t 'edited))))))))
 
 (defun vc-cvs-dir-state-heuristic (dir)
   "Find the CVS state of all files in DIR, using only local information."
@@ -874,6 +852,116 @@ state."
 	  (unless (vc-file-getprop file 'vc-state)
 	    (vc-cvs-parse-entry file t))))
       (forward-line 1))))
+
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-cvs-after-dir-status (update-function)
+  ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
+  ;; It needs a lot of testing.
+  (let ((status nil)
+	(status-str nil)
+	(file nil)
+	(result nil)
+	(missing nil)
+	(subdir default-directory))
+    (goto-char (point-min))
+    (while
+	;; Look for either a file entry, an unregistered file, or a
+	;; directory change.
+	(re-search-forward
+	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: Examining .*\n\\)"
+	 nil t)
+      ;; XXX: get rid of narrowing here.
+      (narrow-to-region (match-beginning 0) (match-end 0))
+      (goto-char (point-min))
+      ;; The subdir
+      (when (looking-at "cvs status: Examining \\(.+\\)")
+	(setq subdir (expand-file-name (match-string 1))))
+      ;; Unregistered files
+      (while (looking-at "? \\(.*\\)")
+	(setq file (file-relative-name 
+		    (expand-file-name (match-string 1) subdir)))
+	(push (list file 'unregistered) result)
+	(forward-line 1))
+      ;; A file entry.
+      (when (re-search-forward "^File: " nil t)
+	(when (setq missing (looking-at "no file "))
+	  (goto-char (match-end 0)))
+	(cond
+	 ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
+	  (setq file (file-relative-name 
+		      (expand-file-name (match-string 1) subdir)))
+	  (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
+	      (push (list file 'unregistered) result)
+	    (setq status-str (match-string 1))
+	    (setq status
+		  (cond
+		   ((string-match "Up-to-date" status-str) 'up-to-date)
+		   ((string-match "Locally Modified" status-str) 'edited)
+		   ((string-match "Needs Merge" status-str) 'needs-merge)
+		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
+		    (if missing 'missing 'needs-patch))
+		   ((string-match "Locally Added" status-str) 'added)
+		   ((string-match "Locally Removed" status-str) 'removed)
+		   ((string-match "File had conflicts " status-str) 'conflict)
+		   (t 'edited)))
+	    (unless (eq status 'up-to-date)
+	      (push (list file status) result))))))
+      (goto-char (point-max))
+      (widen))
+      (funcall update-function result))
+  ;; Alternative implementation: use the "update" command instead of
+  ;; the "status" command.
+  ;; (let ((result nil)
+  ;; 	(translation '((?? . unregistered)
+  ;; 		       (?A . added)
+  ;; 		       (?C . conflict)
+  ;; 		       (?M . edited)
+  ;; 		       (?P . needs-merge)
+  ;; 		       (?R . removed)
+  ;; 		       (?U . needs-patch))))
+  ;;   (goto-char (point-min))
+  ;;   (while (not (eobp))
+  ;;     (if (looking-at "^[ACMPRU?] \\(.*\\)$")
+  ;; 	  (push (list (match-string 1) 
+  ;; 		      (cdr (assoc (char-after) translation))) 
+  ;; 		result)
+  ;; 	(cond
+  ;; 	 ((looking-at "cvs update: warning: \\(.*\\) was lost")
+  ;; 	  ;; Format is:
+  ;; 	  ;; cvs update: warning: FILENAME was lost
+  ;; 	  ;; U FILENAME
+  ;; 	  (push (list (match-string 1) 'missing) result)
+  ;; 	  ;; Skip the "U" line
+  ;; 	  (forward-line 1))
+  ;; 	 ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
+  ;; 	  (push (list (match-string 1) 'unregistered) result))))
+  ;;     (forward-line 1))
+  ;;   (funcall update-function result)))
+  )
+
+(defun vc-cvs-dir-status (dir update-function)
+  "Create a list of conses (file . state) for DIR."
+  (vc-cvs-command (current-buffer) 'async dir "status")
+  ;; Alternative implementation: use the "update" command instead of
+  ;; the "status" command.
+  ;; (vc-cvs-command (current-buffer) 'async
+  ;; 		  (file-relative-name dir)
+  ;; 		  "-f" "-n" "update" "-d" "-P")
+  (vc-exec-after
+   `(vc-cvs-after-dir-status (quote ,update-function))))
+
+(defun vc-cvs-status-extra-headers (dir)
+  (concat
+   ;; FIXME: see how PCL-CVS gets the data to print all these
+   (propertize "Module     : " 'face 'font-lock-type-face)
+   (propertize "ADD CODE TO PRINT THE MODULE\n"
+	       'face 'font-lock-warning-face)
+   (propertize "Repository : " 'face 'font-lock-type-face)
+   (propertize "ADD CODE TO PRINT THE REPOSITORY\n"
+	       'face 'font-lock-warning-face)
+   (propertize "Branch     : " 'face 'font-lock-type-face)
+   (propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
+	       'face 'font-lock-warning-face)))
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.
@@ -959,7 +1047,7 @@ is non-nil."
     (vc-file-setprop file 'vc-backend 'CVS)
     (vc-file-setprop file 'vc-checkout-time 0)
     (vc-file-setprop file 'vc-working-revision "0")
-    (if set-state (vc-file-setprop file 'vc-state 'edited)))
+    (if set-state (vc-file-setprop file 'vc-state 'added)))
    ;; normal entry
    ((looking-at
      (concat "/[^/]+"

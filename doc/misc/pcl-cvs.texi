@@ -218,7 +218,7 @@ arguments, updated the XEmacs support, updated the manual, and fixed
 numerous bugs.
 
 @item
-@email{monnier@@cs.yale.edu, Stefan Monnier} added a slew of other
+@email{monnier@@gnu.org, Stefan Monnier} added a slew of other
 features and introduced even more new bugs.  If there's any bug left,
 you can be sure it's his.
 

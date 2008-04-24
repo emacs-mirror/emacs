@@ -351,7 +351,7 @@ init_cg_color ()
   if (CGColorGetTypeID != NULL)
 #endif
     {
-      float rgba[] = {0.0f, 0.0f, 0.0f, 1.0f};
+      CGFloat rgba[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
       mac_cg_color_black = CGColorCreate (mac_cg_color_space_rgb, rgba);
     }
@@ -460,7 +460,7 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
 {
 #if USE_CG_DRAWING
   CGContextRef context;
-  float gx1 = x1, gy1 = y1, gx2 = x2, gy2 = y2;
+  CGFloat gx1 = x1, gy1 = y1, gx2 = x2, gy2 = y2;
 
   if (y1 != y2)
     gx1 += 0.5f, gx2 += 0.5f;
@@ -553,7 +553,7 @@ mac_erase_rectangle (f, gc, x, y, width, height)
 
       context = mac_begin_cg_clip (f, gc);
       CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
-      CGContextFillRect (context, CGRectMake (x, y, width, height));
+      CGContextFillRect (context, mac_rect_make (f, x, y, width, height));
       mac_end_cg_clip (f);
     }
 #else
@@ -632,8 +632,8 @@ mac_draw_cg_image (image, f, gc, src_x, src_y, width, height,
      int dest_x, dest_y, overlay_p;
 {
   CGContextRef context;
-  float port_height = FRAME_PIXEL_HEIGHT (f);
-  CGRect dest_rect = CGRectMake (dest_x, dest_y, width, height);
+  CGFloat port_height = FRAME_PIXEL_HEIGHT (f);
+  CGRect dest_rect = mac_rect_make (f, dest_x, dest_y, width, height);
 
   context = mac_begin_cg_clip (f, gc);
   if (!overlay_p)
@@ -647,11 +647,11 @@ mac_draw_cg_image (image, f, gc, src_x, src_y, width, height,
   if (CGImageIsMask (image))
     CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
   CGContextDrawImage (context,
-		      CGRectMake (dest_x - src_x,
-				  port_height - (dest_y - src_y
-						 + CGImageGetHeight (image)),
-				  CGImageGetWidth (image),
-				  CGImageGetHeight (image)),
+		      mac_rect_make (f, dest_x - src_x,
+				     port_height - (dest_y - src_y
+						    + CGImageGetHeight (image)),
+				     CGImageGetWidth (image),
+				     CGImageGetHeight (image)),
 		      image);
   mac_end_cg_clip (f);
 }
@@ -744,7 +744,7 @@ mac_free_bitmap (bitmap)
 Pixmap
 XCreatePixmap (display, w, width, height, depth)
      Display *display;
-     WindowRef w;
+     Window w;
      unsigned int width, height;
      unsigned int depth;
 {
@@ -752,8 +752,9 @@ XCreatePixmap (display, w, width, height, depth)
   Rect r;
   QDErr err;
 
+#ifdef MAC_OS8
   SetPortWindowPort (w);
-
+#endif
   SetRect (&r, 0, 0, width, height);
 #if !defined (WORDS_BIG_ENDIAN) && USE_CG_DRAWING
   if (depth == 1)
@@ -773,7 +774,7 @@ XCreatePixmap (display, w, width, height, depth)
 Pixmap
 XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
      Display *display;
-     WindowRef w;
+     Window w;
      char *data;
      unsigned int width, height;
      unsigned long fg, bg;
@@ -838,7 +839,7 @@ mac_fill_rectangle (f, gc, x, y, width, height)
 
   context = mac_begin_cg_clip (f, gc);
   CG_SET_FILL_COLOR_WITH_GC_FOREGROUND (context, gc);
-  CGContextFillRect (context, CGRectMake (x, y, width, height));
+  CGContextFillRect (context, mac_rect_make (f, x, y, width, height));
   mac_end_cg_clip (f);
 #else
   Rect r;
@@ -887,7 +888,26 @@ mac_invert_rectangle (f, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
-  Rect r;
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1040 && MAC_OS_X_VERSION_MIN_REQUIRED >= 1020
+  if (CGContextSetBlendMode != NULL)
+#endif
+    {
+      CGContextRef context;
+
+      context = mac_begin_cg_clip (f, NULL);
+      CGContextSetRGBFillColor (context, 1.0f, 1.0f, 1.0f, 1.0f);
+      CGContextSetBlendMode (context, kCGBlendModeDifference);
+      CGContextFillRect (context, mac_rect_make (f, x, y, width, height));
+      mac_end_cg_clip (f);
+    }
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1040 && MAC_OS_X_VERSION_MIN_REQUIRED >= 1020
+  else				/* CGContextSetBlendMode == NULL */
+#endif
+#endif	/* USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1040 */
+#if !USE_CG_DRAWING || MAC_OS_X_VERSION_MAX_ALLOWED < 1040 || (MAC_OS_X_VERSION_MIN_REQUIRED < 1040 && MAC_OS_X_VERSION_MIN_REQUIRED >= 1020)
+    {
+      Rect r;
 
 #if USE_CG_DRAWING
   mac_prepare_for_quickdraw (f);
@@ -1018,7 +1038,7 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
   else
     {
       static CGContextRef context;
-      float port_height = FRAME_PIXEL_HEIGHT (f);
+      CGFloat port_height = FRAME_PIXEL_HEIGHT (f);
       static const ATSUAttributeTag tags[] = {kATSUCGContextTag};
       static const ByteCount sizes[] = {sizeof (CGContextRef)};
       static const ATSUAttributeValuePtr values[] = {&context};
@@ -1042,9 +1062,10 @@ mac_draw_image_string_atsui (f, gc, x, y, buf, nchars, bg_width,
 	    {
 	      CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
 	      CGContextFillRect	(context,
-				 CGRectMake (x, y - FONT_BASE (GC_FONT (gc)),
-					     bg_width,
-					     FONT_HEIGHT (GC_FONT (gc))));
+				 mac_rect_make (f,
+						x, y - FONT_BASE (GC_FONT (gc)),
+						bg_width,
+						FONT_HEIGHT (GC_FONT (gc))));
 	    }
 	  CGContextScaleCTM (context, 1, -1);
 	  CGContextTranslateCTM (context, 0, -port_height);
@@ -1388,7 +1409,7 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
      XChar2b *buf;
      int nchars, bg_width, overstrike_p;
 {
-  float port_height, gx, gy;
+  CGFloat port_height, gx, gy;
   int i;
   CGContextRef context;
   CGGlyph *glyphs;
@@ -1430,8 +1451,8 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
 	  CG_SET_FILL_COLOR_WITH_GC_BACKGROUND (context, gc);
 	  CGContextFillRect
 	    (context,
-	     CGRectMake (gx, y - FONT_BASE (GC_FONT (gc)),
-			 bg_width, FONT_HEIGHT (GC_FONT (gc))));
+	     mac_rect_make (f, gx, y - FONT_BASE (GC_FONT (gc)),
+			    bg_width, FONT_HEIGHT (GC_FONT (gc))));
 	}
       CGContextScaleCTM (context, 1, -1);
       CGContextTranslateCTM (context, 0, -port_height);
@@ -1733,7 +1754,7 @@ XSetForeground (display, gc, color)
 	    }
 	  else
 	    {
-	      float rgba[4];
+	      CGFloat rgba[4];
 
 	      rgba[0] = gc->fore_color.red / 65535.0f;
 	      rgba[1] = gc->fore_color.green / 65535.0f;
@@ -1774,7 +1795,7 @@ XSetBackground (display, gc, color)
 	    }
 	  else
 	    {
-	      float rgba[4];
+	      CGFloat rgba[4];
 
 	      rgba[0] = gc->back_color.red / 65535.0f;
 	      rgba[1] = gc->back_color.green / 65535.0f;
@@ -1803,8 +1824,8 @@ XSetFont (display, gc, font)
 /* Mac replacement for XSetClipRectangles.  */
 
 static void
-mac_set_clip_rectangles (display, gc, rectangles, n)
-     Display *display;
+mac_set_clip_rectangles (f, gc, rectangles, n)
+     struct frame *f;
      GC gc;
      Rect *rectangles;
      int n;
@@ -1836,9 +1857,9 @@ mac_set_clip_rectangles (display, gc, rectangles, n)
     {
       Rect *rect = rectangles + i;
 
-      gc->clip_rects[i] = CGRectMake (rect->left, rect->top,
-				      rect->right - rect->left,
-				      rect->bottom - rect->top);
+      gc->clip_rects[i] = mac_rect_make (f, rect->left, rect->top,
+					 rect->right - rect->left,
+					 rect->bottom - rect->top);
     }
 #endif
 }
@@ -1847,8 +1868,8 @@ mac_set_clip_rectangles (display, gc, rectangles, n)
 /* Mac replacement for XSetClipMask.  */
 
 static INLINE void
-mac_reset_clip_rectangles (display, gc)
-     Display *display;
+mac_reset_clip_rectangles (f, gc)
+     struct frame *f;
      GC gc;
 {
   gc->n_clip_rects = 0;
@@ -2338,7 +2359,7 @@ x_draw_fringe_bitmap (w, row, p)
       XSetForeground (display, face->gc, gcv.foreground);
     }
 
-  mac_reset_clip_rectangles (display, face->gc);
+  mac_reset_clip_rectangles (f, face->gc);
 }
 
 #if USE_CG_DRAWING
@@ -2852,7 +2873,7 @@ x_set_glyph_string_clipping (s)
   int n;
 
   n = get_glyph_string_clip_rects (s, rects, MAX_CLIP_RECTS);
-  mac_set_clip_rectangles (s->display, s->gc, rects, n);
+  mac_set_clip_rectangles (s->f, s->gc, rects, n);
 }
 
 
@@ -3442,7 +3463,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     gc = f->output_data.mac->white_relief.gc;
   else
     gc = f->output_data.mac->black_relief.gc;
-  mac_set_clip_rectangles (dpy, gc, clip_rect, 1);
+  mac_set_clip_rectangles (f, gc, clip_rect, 1);
 
   /* Top.  */
   if (top_p)
@@ -3457,12 +3478,12 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
       mac_draw_line (f, gc,
 		     left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
 
-  mac_reset_clip_rectangles (dpy, gc);
+  mac_reset_clip_rectangles (f, gc);
   if (raised_p)
     gc = f->output_data.mac->black_relief.gc;
   else
     gc = f->output_data.mac->white_relief.gc;
-  mac_set_clip_rectangles (dpy, gc, clip_rect, 1);
+  mac_set_clip_rectangles (f, gc, clip_rect, 1);
 
   /* Bottom.  */
   if (bot_p)
@@ -3477,7 +3498,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
       mac_draw_line (f, gc,
 		     right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
 
-  mac_reset_clip_rectangles (dpy, gc);
+  mac_reset_clip_rectangles (f, gc);
 }
 
 
@@ -3499,7 +3520,7 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 
   XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
   XSetForeground (s->display, s->gc, s->face->box_color);
-  mac_set_clip_rectangles (s->display, s->gc, clip_rect, 1);
+  mac_set_clip_rectangles (s->f, s->gc, clip_rect, 1);
 
   /* Top.  */
   mac_fill_rectangle (s->f, s->gc, left_x, top_y,
@@ -3520,7 +3541,7 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 			top_y, width, bottom_y - top_y + 1);
 
   XSetForeground (s->display, s->gc, xgcv.foreground);
-  mac_reset_clip_rectangles (s->display, s->gc);
+  mac_reset_clip_rectangles (s->f, s->gc);
 }
 
 
@@ -3829,7 +3850,7 @@ x_draw_stretch_glyph_string (s)
 	    gc = s->face->gc;
 
 	  get_glyph_string_clip_rect (s, &r);
-	  mac_set_clip_rectangles (s->display, gc, &r, 1);
+	  mac_set_clip_rectangles (s->f, gc, &r, 1);
 
 #if 0 /* MAC_TODO: stipple */
 	  if (s->face->stipple)
@@ -4029,7 +4050,7 @@ x_draw_glyph_string (s)
     }
 
   /* Reset clipping.  */
-  mac_reset_clip_rectangles (s->display, s->gc);
+  mac_reset_clip_rectangles (s->f, s->gc);
 }
 
 /* Shift display to make room for inserted glyphs.   */
@@ -6409,7 +6430,7 @@ x_draw_bar_cursor (w, row, width, kind)
 			    cursor_glyph->pixel_width,
 			    width);
 
-      mac_reset_clip_rectangles (dpy, gc);
+      mac_reset_clip_rectangles (f, gc);
     }
 }
 
@@ -6739,7 +6760,6 @@ mac_handle_size_change (f, pixelwidth, pixelheight)
       change_frame_size (f, rows, cols, 0, 1, 0);
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
-      SET_FRAME_GARBAGED (f);
 
       /* If cursor was outside the new size, mark it as off.  */
       mark_window_cursors_off (XWINDOW (f->root_window));
@@ -6772,7 +6792,6 @@ void
 x_calc_absolute_position (f)
      struct frame *f;
 {
-  int width_diff = 0, height_diff = 0;
   int flags = f->size_hint_flags;
   Rect inner, outer;
 
@@ -6787,22 +6806,15 @@ x_calc_absolute_position (f)
   mac_get_window_bounds (f, &inner, &outer);
   UNBLOCK_INPUT;
 
-  width_diff = (outer.right - outer.left) - (inner.right - inner.left);
-  height_diff = (outer.bottom - outer.top) - (inner.bottom - inner.top);
-
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->left_pos = (FRAME_MAC_DISPLAY_INFO (f)->width
-                   - width_diff
-		   - FRAME_PIXEL_WIDTH (f)
-		   + f->left_pos);
+    f->left_pos += (FRAME_MAC_DISPLAY_INFO (f)->width
+		    - (outer.right - outer.left));
 
   if (flags & YNegative)
-    f->top_pos = (FRAME_MAC_DISPLAY_INFO (f)->height
-		  - height_diff
-		  - FRAME_PIXEL_HEIGHT (f)
-		  + f->top_pos);
+    f->top_pos += (FRAME_MAC_DISPLAY_INFO (f)->height
+		   - (outer.bottom - outer.top));
 
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,

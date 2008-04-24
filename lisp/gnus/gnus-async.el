@@ -374,5 +374,5 @@ It should return non-nil if the article is to be prefetched."
 
 (provide 'gnus-async)
 
-;;; arch-tag: fee61de5-3ea2-4de6-8578-2f90ce89391d
+;; arch-tag: fee61de5-3ea2-4de6-8578-2f90ce89391d
 ;;; gnus-async.el ends here

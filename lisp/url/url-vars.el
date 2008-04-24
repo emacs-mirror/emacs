@@ -400,5 +400,5 @@ This should be set, e.g. by mail user agents rendering HTML to avoid
 
 (provide 'url-vars)
 
-;;; arch-tag: 29205e5f-c5ce-433c-8d5d-38cbaed64b49
+;; arch-tag: 29205e5f-c5ce-433c-8d5d-38cbaed64b49
 ;;; url-vars.el ends here

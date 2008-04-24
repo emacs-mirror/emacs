@@ -56,7 +56,7 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
   return make_number (PT + XINT (n));
 }
 
-DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
+DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
        doc: /* Move point right N characters (left if N is negative).
 On reaching end of buffer, stop and signal error.  */)
      (n)
@@ -92,7 +92,7 @@ On reaching end of buffer, stop and signal error.  */)
   return Qnil;
 }
 
-DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "p",
+DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "^p",
        doc: /* Move point left N characters (right if N is negative).
 On attempt to pass beginning or end of buffer, stop and signal error.  */)
      (n)
@@ -107,7 +107,7 @@ On attempt to pass beginning or end of buffer, stop and signal error.  */)
   return Fforward_char (n);
 }
 
-DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "p",
+DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
        doc: /* Move N lines forward (backward if N is negative).
 Precisely, if point is on line I, move to the start of line I + N.
 If there isn't room, go as far as possible (no error).
@@ -153,7 +153,7 @@ With positive N, a non-empty line at the end counts as one line
   return make_number (count <= 0 ? - shortage : shortage);
 }
 
-DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "p",
+DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "^p",
        doc: /* Move point to beginning of current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
@@ -178,7 +178,7 @@ instead.  For instance, `(forward-line 0)' does the same thing as
   return Qnil;
 }
 
-DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "p",
+DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "^p",
        doc: /* Move point to end of current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.

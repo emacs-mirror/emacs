@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Sets up C-mode with support for awk-style #-comments and a lightly
 ;; hacked syntax table.
 
@@ -122,5 +124,5 @@ Turning on AWK mode runs `awk-mode-hook'."
 
 (provide 'awk-mode)
 
-;;; arch-tag: 14ebc02a-b3c5-4e76-8034-6ca9ac0af0e6
+;; arch-tag: 14ebc02a-b3c5-4e76-8034-6ca9ac0af0e6
 ;;; awk-mode.el ends here

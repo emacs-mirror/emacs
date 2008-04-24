@@ -389,17 +389,14 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
 
 ;;;###autoload
 (defun byte-compile-warnings-safe-p (x)
+  "Return non-nil if X is valid as a value of `byte-compile-warnings'."
   (or (booleanp x)
       (and (listp x)
            (if (eq (car x) 'not) (setq x (cdr x))
              t)
 	   (equal (mapcar
 		   (lambda (e)
-		     (when (memq e '(free-vars unresolved
-				     callargs redefine
-				     obsolete noruntime
-				     cl-functions interactive-only
-				     make-local mapcar))
+		     (when (memq e byte-compile-warning-types)
 		       e))
 		   x)
 		  x))))
@@ -1199,15 +1196,17 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
   (let* ((new (get (car form) 'byte-obsolete-info))
+	 (use (car new))
 	 (handler (nth 1 new))
 	 (when (nth 2 new)))
     (byte-compile-set-symbol-position (car form))
     (if (byte-compile-warning-enabled-p 'obsolete)
-	(byte-compile-warn "`%s' is an obsolete function%s; %s" (car form)
+	(byte-compile-warn "`%s' is an obsolete function%s%s" (car form)
 			   (if when (concat " (as of Emacs " when ")") "")
-			   (if (stringp (car new))
-			       (car new)
-			     (format "use `%s' instead." (car new)))))
+			   (cond ((stringp use)
+				  (concat "; " use))
+				 (use (format "; use `%s' instead." use))
+				 (t "."))))
     (funcall (or handler 'byte-compile-normal-call) form)))
 
 ;; Compiler options

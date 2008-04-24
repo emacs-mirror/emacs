@@ -262,8 +262,8 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # leim is not included because it needs special handling.
 SUBDIR = lib-src src
 
-# The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
+# The subdir makefiles created by config.status.
+SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -368,6 +368,9 @@ lwlib/Makefile: $(srcdir)/lwlib/Makefile.in config.status
 	./config.status
 
 leim/Makefile: $(srcdir)/leim/Makefile.in config.status
+	./config.status
+
+lisp/Makefile: $(srcdir)/lisp/Makefile.in config.status
 	./config.status
 
 # ==================== Installation ====================
@@ -578,8 +581,8 @@ install-arch-indep: mkdir info install-etc
 install-etc: mkdir
 	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
 	  $(DESTDIR)${desktopdir}/emacs.desktop
-	for icon in $(iconsrcdir)/*/*x*/apps/*.* \
-	  $(iconsrcdir)/*/scalable/apps/*.*; do \
+	for icon in $(iconsrcdir)/*/*/apps/*.* \
+	  $(iconsrcdir)/*/*/mimetypes/*.*; do \
 	  if [ -r $${icon} ]; then \
 	    iicon=`echo "$${icon}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},'` ; \
 	    ${INSTALL_DATA} $${icon} $${iicon} ; \
@@ -607,7 +610,7 @@ mkdir: FRC
 	  chmod a+r $(DESTDIR)${datadir};\
 	fi
 	icondirs= ; \
-	for dir in $(iconsrcdir)/*/*x*/apps $(iconsrcdir)/*/scalable/apps; do \
+	for dir in $(iconsrcdir)/*/*/apps $(iconsrcdir)/*/*/mimetypes; do \
 	  if [ -d $${dir} ]; then \
 	    icondirs="$${icondirs} $${dir}" ; \
 	  fi ; \

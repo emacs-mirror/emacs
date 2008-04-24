@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Fixme: Is this actually used?  if so, it should be in language,
 ;; possibly as a feature property of Swedish, probably defining a
 ;; `swascii' coding system.
@@ -159,5 +161,5 @@ Leaves point just after the word that looks Swedish."
 
 (provide 'swedish)
 
-;;; arch-tag: a117019d-acac-4ac4-8eac-0dbd49a41d32
+;; arch-tag: a117019d-acac-4ac4-8eac-0dbd49a41d32
 ;;; swedish.el ends here

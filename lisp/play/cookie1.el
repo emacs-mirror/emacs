@@ -169,5 +169,5 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 
 (provide 'cookie1)
 
-;;; arch-tag: 4a8a8712-df6a-4f34-b030-108a1b47f9f2
+;; arch-tag: 4a8a8712-df6a-4f34-b030-108a1b47f9f2
 ;;; cookie1.el ends here

@@ -143,9 +143,9 @@
 (defun codepage-setup (&optional codepage)
   "Obsolete.  All coding systems are set up initially."
   (interactive))
-(make-obsolete 'codepage-setup "no longer relevant" "23.1")
+(make-obsolete 'codepage-setup "no longer relevant." "23.1")
 
 (provide 'codepage)
 
-;;; arch-tag: 80328de8-b94e-4386-be26-5876105731f0
+;; arch-tag: 80328de8-b94e-4386-be26-5876105731f0
 ;;; codepage.el ends here

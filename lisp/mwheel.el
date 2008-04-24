@@ -56,7 +56,8 @@
 
 (defvar mouse-wheel-down-button 4)
 (make-obsolete-variable 'mouse-wheel-down-button
-                        'mouse-wheel-down-event)
+                        'mouse-wheel-down-event
+			"22.1")
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (if (memq window-system '(w32 mac))
@@ -70,7 +71,8 @@
 
 (defvar mouse-wheel-up-button 5)
 (make-obsolete-variable 'mouse-wheel-up-button
-                        'mouse-wheel-up-event)
+                        'mouse-wheel-up-event
+			"22.1")
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (if (memq window-system '(w32 mac))
@@ -84,7 +86,8 @@
 
 (defvar mouse-wheel-click-button 2)
 (make-obsolete-variable 'mouse-wheel-click-button
-                        'mouse-wheel-click-event)
+                        'mouse-wheel-click-event
+			"22.1")
 (defcustom mouse-wheel-click-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
   (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
@@ -190,6 +193,10 @@ This should only be bound to mouse buttons 4 and 5."
                      (prog1
                          (selected-window)
                        (select-window (mwheel-event-window event)))))
+	 (buffer (window-buffer curwin))
+	 (opoint (with-current-buffer buffer
+		   (when (eq (car-safe transient-mark-mode) 'only)
+		     (point))))
          (mods
 	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
          (amt (assoc mods mouse-wheel-scroll-amount)))
@@ -224,7 +231,13 @@ This should only be bound to mouse buttons 4 and 5."
                    ;; Make sure we do indeed scroll to the end of the buffer.
                    (end-of-buffer (while t (scroll-up)))))
 		(t (error "Bad binding in mwheel-scroll"))))
-      (if curwin (select-window curwin))))
+      (if curwin (select-window curwin)))
+    ;; If there is a temporarily active region, deactivate it iff
+    ;; scrolling moves point.
+    (when opoint
+      (with-current-buffer buffer
+	(when (/= opoint (point))
+	  (deactivate-mark)))))
   (when (and mouse-wheel-click-event mouse-wheel-inhibit-click-time)
     (if mwheel-inhibit-click-event-timer
 	(cancel-timer mwheel-inhibit-click-event-timer)

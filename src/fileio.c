@@ -1042,11 +1042,14 @@ See also the function `substitute-in-file-name'.  */)
      (name, default_directory)
      Lisp_Object name, default_directory;
 {
-  unsigned char *nm;
-
-  register unsigned char *newdir, *p, *o;
-  int tlen;
+  /* These point to SDATA and need to be careful with string-relocation
+     during GC (via DECODE_FILE).  */
+  unsigned char *nm, *newdir;
+  int nm_in_name;
+  /* This should only point to alloca'd data.  */
   unsigned char *target;
+
+  int tlen;
   struct passwd *pw;
 #ifdef VMS
   unsigned char * colon = 0;
@@ -1064,6 +1067,7 @@ See also the function `substitute-in-file-name'.  */)
   int length;
   Lisp_Object handler, result;
   int multibyte;
+  Lisp_Object hdir;
 
   CHECK_STRING (name);
 
@@ -1102,43 +1106,45 @@ See also the function `substitute-in-file-name'.  */)
 	return call3 (handler, Qexpand_file_name, name, default_directory);
     }
 
-  o = SDATA (default_directory);
+  {
+    unsigned char *o = SDATA (default_directory);
 
-  /* Make sure DEFAULT_DIRECTORY is properly expanded.
-     It would be better to do this down below where we actually use
-     default_directory.  Unfortunately, calling Fexpand_file_name recursively
-     could invoke GC, and the strings might be relocated.  This would
-     be annoying because we have pointers into strings lying around
-     that would need adjusting, and people would add new pointers to
-     the code and forget to adjust them, resulting in intermittent bugs.
-     Putting this call here avoids all that crud.
+    /* Make sure DEFAULT_DIRECTORY is properly expanded.
+       It would be better to do this down below where we actually use
+       default_directory.  Unfortunately, calling Fexpand_file_name recursively
+       could invoke GC, and the strings might be relocated.  This would
+       be annoying because we have pointers into strings lying around
+       that would need adjusting, and people would add new pointers to
+       the code and forget to adjust them, resulting in intermittent bugs.
+       Putting this call here avoids all that crud.
 
-     The EQ test avoids infinite recursion.  */
-  if (! NILP (default_directory) && !EQ (default_directory, name)
-      /* Save time in some common cases - as long as default_directory
-	 is not relative, it can be canonicalized with name below (if it
-	 is needed at all) without requiring it to be expanded now.  */
+       The EQ test avoids infinite recursion.  */
+    if (! NILP (default_directory) && !EQ (default_directory, name)
+	/* Save time in some common cases - as long as default_directory
+	   is not relative, it can be canonicalized with name below (if it
+	   is needed at all) without requiring it to be expanded now.  */
 #ifdef DOS_NT
-      /* Detect MSDOS file names with drive specifiers.  */
-      && ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1]) && IS_DIRECTORY_SEP (o[2]))
+	/* Detect MSDOS file names with drive specifiers.  */
+	&& ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1])
+	      && IS_DIRECTORY_SEP (o[2]))
 #ifdef WINDOWSNT
-      /* Detect Windows file names in UNC format.  */
-      && ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
+	/* Detect Windows file names in UNC format.  */
+	&& ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
 #endif
 #else /* not DOS_NT */
       /* Detect Unix absolute file names (/... alone is not absolute on
 	 DOS or Windows).  */
-      && ! (IS_DIRECTORY_SEP (o[0]))
+	&& ! (IS_DIRECTORY_SEP (o[0]))
 #endif /* not DOS_NT */
-      )
-    {
-      struct gcpro gcpro1;
+	)
+      {
+	struct gcpro gcpro1;
 
-      GCPRO1 (name);
-      default_directory = Fexpand_file_name (default_directory, Qnil);
-      UNGCPRO;
-    }
-
+	GCPRO1 (name);
+	default_directory = Fexpand_file_name (default_directory, Qnil);
+	UNGCPRO;
+      }
+  }
   name = FILE_SYSTEM_CASE (name);
   multibyte = STRING_MULTIBYTE (name);
   if (multibyte != STRING_MULTIBYTE (default_directory))
@@ -1153,11 +1159,13 @@ See also the function `substitute-in-file-name'.  */)
     }
 
   nm = SDATA (name);
+  nm_in_name = 1;
 
 #ifdef DOS_NT
   /* We will force directory separators to be either all \ or /, so make
      a local copy to modify, even if there ends up being no change. */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm_in_name = 0;
 
   /* Note if special escape prefix is present, but remove for now.  */
   if (nm[0] == '/' && nm[1] == ':')
@@ -1181,16 +1189,14 @@ See also the function `substitute-in-file-name'.  */)
      "//somedir".  */
   if (drive && IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
     nm++;
-#endif /* WINDOWSNT */
-#endif /* DOS_NT */
 
-#ifdef WINDOWSNT
   /* Discard any previous drive specifier if nm is now in UNC format. */
   if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
     {
       drive = 0;
     }
-#endif
+#endif /* WINDOWSNT */
+#endif /* DOS_NT */
 
   /* If nm is absolute, look for `/./' or `/../' or `//''sequences; if
      none are found, we can probably return right away.  We will avoid
@@ -1215,8 +1221,8 @@ See also the function `substitute-in-file-name'.  */)
 	 non-zero value, that means we've discovered that we can't do
 	 that cool trick.  */
       int lose = 0;
+      unsigned char *p = nm;
 
-      p = nm;
       while (*p)
 	{
 	  /* Since we know the name is absolute, we can assume that each
@@ -1318,6 +1324,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (index (nm, '/'))
 	    {
 	      nm = sys_translate_unix (nm);
+	      nm_in_name = 0;
 	      return make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 #endif /* VMS */
@@ -1378,9 +1385,24 @@ See also the function `substitute-in-file-name'.  */)
 #endif /* VMS */
 	  || nm[1] == 0)	/* ~ by itself */
 	{
+	  Lisp_Object tem;
+
 	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	    newdir = (unsigned char *) "";
 	  nm++;
+	  /* egetenv may return a unibyte string, which will bite us since
+	     we expect the directory to be multibyte.  */
+	  tem = build_string (newdir);
+	  if (!STRING_MULTIBYTE (tem))
+	    {
+	      /* FIXME: DECODE_FILE may GC, which may move SDATA(name),
+		 after which `nm' won't point to the right place any more.  */
+	      int offset = nm - SDATA (name);
+	      hdir = DECODE_FILE (tem);
+	      newdir = SDATA (hdir);
+	      if (nm_in_name)
+	      nm = SDATA (name) + offset;
+	    }
 #ifdef DOS_NT
 	  collapse_newdir = 0;
 #endif
@@ -1390,12 +1412,13 @@ See also the function `substitute-in-file-name'.  */)
 	}
       else			/* ~user/filename */
 	{
+	  unsigned char *o, *p;
 	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)
 #ifdef VMS
 			      && *p != ':'
 #endif /* VMS */
 			      ); p++);
-	  o = (unsigned char *) alloca (p - nm + 1);
+	  o = alloca (p - nm + 1);
 	  bcopy ((char *) nm, o, p - nm);
 	  o [p - nm] = 0;
 
@@ -1527,6 +1550,7 @@ See also the function `substitute-in-file-name'.  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
 	    {
+	      unsigned char *p;
 	      newdir = strcpy (alloca (strlen (newdir) + 1), newdir);
 	      p = newdir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
@@ -1607,120 +1631,122 @@ See also the function `substitute-in-file-name'.  */)
   /* Now canonicalize by removing `//', `/.' and `/foo/..' if they
      appear.  */
 
-  p = target;
-  o = target;
+  {
+    unsigned char *p = target;
+    unsigned char *o = target;
 
-  while (*p)
-    {
+    while (*p)
+      {
 #ifdef VMS
-      if (*p != ']' && *p != '>' && *p != '-')
-	{
-	  if (*p == '\\')
-	    p++;
-	  *o++ = *p++;
-	}
-      else if ((p[0] == ']' || p[0] == '>') && p[0] == p[1] + 2)
-	/* brackets are offset from each other by 2 */
-	{
-	  p += 2;
-	  if (*p != '.' && *p != '-' && o[-1] != '.')
-	    /* convert [foo][bar] to [bar] */
-	    while (o[-1] != '[' && o[-1] != '<')
-	      o--;
-	  else if (*p == '-' && *o != '.')
-	    *--p = '.';
-	}
-      else if (p[0] == '-' && o[-1] == '.'
-	       && (p[1] == '.' || p[1] == ']' || p[1] == '>'))
-	/* flush .foo.- ; leave - if stopped by '[' or '<' */
-	{
-	  do
-	    o--;
-	  while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
-	  if (p[1] == '.')      /* foo.-.bar ==> bar.  */
+	if (*p != ']' && *p != '>' && *p != '-')
+	  {
+	    if (*p == '\\')
+	      p++;
+	    *o++ = *p++;
+	  }
+	else if ((p[0] == ']' || p[0] == '>') && p[0] == p[1] + 2)
+	  /* brackets are offset from each other by 2 */
+	  {
 	    p += 2;
-	  else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
-	    p++, o--;
-	  /* else [foo.-] ==> [-] */
-	}
-      else
-	{
+	    if (*p != '.' && *p != '-' && o[-1] != '.')
+	      /* convert [foo][bar] to [bar] */
+	      while (o[-1] != '[' && o[-1] != '<')
+		o--;
+	    else if (*p == '-' && *o != '.')
+	      *--p = '.';
+	  }
+	else if (p[0] == '-' && o[-1] == '.'
+		 && (p[1] == '.' || p[1] == ']' || p[1] == '>'))
+	  /* flush .foo.- ; leave - if stopped by '[' or '<' */
+	  {
+	    do
+	      o--;
+	    while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
+	    if (p[1] == '.')      /* foo.-.bar ==> bar.  */
+	      p += 2;
+	    else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
+	      p++, o--;
+	    /* else [foo.-] ==> [-] */
+	  }
+	else
+	  {
 #ifdef NO_HYPHENS_IN_FILENAMES
-	  if (*p == '-'
-	      && o[-1] != '[' && o[-1] != '<' && o[-1] != '.'
-	      && p[1] != ']' && p[1] != '>' && p[1] != '.')
-	    *p = '_';
+	    if (*p == '-'
+		&& o[-1] != '[' && o[-1] != '<' && o[-1] != '.'
+		&& p[1] != ']' && p[1] != '>' && p[1] != '.')
+	      *p = '_';
 #endif /* NO_HYPHENS_IN_FILENAMES */
-	  *o++ = *p++;
-	}
+	    *o++ = *p++;
+	  }
 #else /* not VMS */
-      if (!IS_DIRECTORY_SEP (*p))
-	{
-	  *o++ = *p++;
-	}
-      else if (p[1] == '.'
-	       && (IS_DIRECTORY_SEP (p[2])
-		   || p[2] == 0))
-	{
-	  /* If "/." is the entire filename, keep the "/".  Otherwise,
-	     just delete the whole "/.".  */
-	  if (o == target && p[2] == '\0')
-	    *o++ = *p;
-	  p += 2;
-	}
-      else if (p[1] == '.' && p[2] == '.'
-	       /* `/../' is the "superroot" on certain file systems.
-		  Turned off on DOS_NT systems because they have no
-		  "superroot" and because this causes us to produce
-		  file names like "d:/../foo" which fail file-related
-		  functions of the underlying OS.  (To reproduce, try a
-		  long series of "../../" in default_directory, longer
-		  than the number of levels from the root.)  */
+	if (!IS_DIRECTORY_SEP (*p))
+	  {
+	    *o++ = *p++;
+	  }
+	else if (p[1] == '.'
+		 && (IS_DIRECTORY_SEP (p[2])
+		     || p[2] == 0))
+	  {
+	    /* If "/." is the entire filename, keep the "/".  Otherwise,
+	       just delete the whole "/.".  */
+	    if (o == target && p[2] == '\0')
+	      *o++ = *p;
+	    p += 2;
+	  }
+	else if (p[1] == '.' && p[2] == '.'
+		 /* `/../' is the "superroot" on certain file systems.
+		    Turned off on DOS_NT systems because they have no
+		    "superroot" and because this causes us to produce
+		    file names like "d:/../foo" which fail file-related
+		    functions of the underlying OS.  (To reproduce, try a
+		    long series of "../../" in default_directory, longer
+		    than the number of levels from the root.)  */
 #ifndef DOS_NT
-	       && o != target
+		 && o != target
 #endif
-	       && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
-	{
-	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
-	    ;
-	  /* Keep initial / only if this is the whole name.  */
-	  if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
-	    ++o;
-	  p += 3;
-	}
-      else if (p > target && IS_DIRECTORY_SEP (p[1]))
-	/* Collapse multiple `/' in a row.  */
-	p++;
-      else
-	{
-	  *o++ = *p++;
-	}
+		 && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
+	  {
+	    while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))
+	      ;
+	    /* Keep initial / only if this is the whole name.  */
+	    if (o == target && IS_ANY_SEP (*o) && p[3] == 0)
+	      ++o;
+	    p += 3;
+	  }
+	else if (p > target && IS_DIRECTORY_SEP (p[1]))
+	  /* Collapse multiple `/' in a row.  */
+	  p++;
+	else
+	  {
+	    *o++ = *p++;
+	  }
 #endif /* not VMS */
-    }
+      }
 
 #ifdef DOS_NT
-  /* At last, set drive name. */
+    /* At last, set drive name. */
 #ifdef WINDOWSNT
-  /* Except for network file name.  */
-  if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
+    /* Except for network file name.  */
+    if (!(IS_DIRECTORY_SEP (target[0]) && IS_DIRECTORY_SEP (target[1])))
 #endif /* WINDOWSNT */
-    {
-      if (!drive) abort ();
-      target -= 2;
-      target[0] = DRIVE_LETTER (drive);
-      target[1] = ':';
-    }
-  /* Reinsert the escape prefix if required.  */
-  if (is_escaped)
-    {
-      target -= 2;
-      target[0] = '/';
-      target[1] = ':';
-    }
-  CORRECT_DIR_SEPS (target);
+      {
+	if (!drive) abort ();
+	target -= 2;
+	target[0] = DRIVE_LETTER (drive);
+	target[1] = ':';
+      }
+    /* Reinsert the escape prefix if required.  */
+    if (is_escaped)
+      {
+	target -= 2;
+	target[0] = '/';
+	target[1] = ':';
+      }
+    CORRECT_DIR_SEPS (target);
 #endif /* DOS_NT */
 
-  result = make_specified_string (target, -1, o - target, multibyte);
+    result = make_specified_string (target, -1, o - target, multibyte);
+  }
 
   /* Again look to see if the file name has special constructs in it
      and perhaps call the corresponding file handler.  This is needed
@@ -2867,7 +2893,6 @@ This is what happens in interactive use with M-x.  */)
   return Qnil;
 }
 
-#ifdef S_IFLNK
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
        doc: /* Make a symbolic link to FILENAME, named LINKNAME.
@@ -2912,6 +2937,7 @@ This happens for interactive use with M-x.  */)
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
 
+#ifdef S_IFLNK
   encoded_filename = ENCODE_FILE (filename);
   encoded_linkname = ENCODE_FILE (linkname);
 
@@ -2938,8 +2964,13 @@ This happens for interactive use with M-x.  */)
     }
   UNGCPRO;
   return Qnil;
-}
+
+#else
+  UNGCPRO;
+  xsignal1 (Qfile_error, build_string ("Symbolic links are not supported"));
+
 #endif /* S_IFLNK */
+}
 
 #ifdef VMS
 
@@ -4237,8 +4268,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
 	  how_much += this;
 
-	  BUF_SET_PT (XBUFFER (conversion_buffer),
-		      BUF_Z (XBUFFER (conversion_buffer)));
+	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
+			   BUF_Z (XBUFFER (conversion_buffer)));
 	  decode_coding_c_string (&coding, read_buf, unprocessed + this,
 				  conversion_buffer);
 	  unprocessed = coding.carryover_bytes;
@@ -6024,8 +6055,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  restore_message ();
 	}
       else if (!auto_save_error_occurred)
-	/* Don't overwrite the error message if an error occurred.  */
-	/* If we displayed a message and then restored a state
+	/* Don't overwrite the error message if an error occurred.
+	   If we displayed a message and then restored a state
 	   with no message, leave a "done" message on the screen.  */
 	message1 ("Auto-saving...done");
     }
@@ -6108,135 +6139,6 @@ double_dollars (val)
   return val;
 }
 
-static Lisp_Object
-read_file_name_cleanup (arg)
-     Lisp_Object arg;
-{
-  return (current_buffer->directory = arg);
-}
-
-DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_internal,
-       3, 3, 0,
-       doc: /* Internal subroutine for read-file-name.  Do not call this.  */)
-     (string, dir, action)
-     Lisp_Object string, dir, action;
-  /* action is nil for complete, t for return list of completions,
-     lambda for verify final value */
-{
-  Lisp_Object name, specdir, realdir, val, orig_string;
-  int changed;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-
-  CHECK_STRING (string);
-
-  realdir = dir;
-  name = string;
-  orig_string = Qnil;
-  specdir = Qnil;
-  changed = 0;
-  /* No need to protect ACTION--we only compare it with t and nil.  */
-  GCPRO5 (string, realdir, name, specdir, orig_string);
-
-  if (SCHARS (string) == 0)
-    {
-      if (EQ (action, Qlambda))
-	{
-	  UNGCPRO;
-	  return Qnil;
-	}
-    }
-  else
-    {
-      orig_string = string;
-      string = Fsubstitute_in_file_name (string);
-      changed = NILP (Fstring_equal (string, orig_string));
-      name = Ffile_name_nondirectory (string);
-      val = Ffile_name_directory (string);
-      if (! NILP (val))
-	realdir = Fexpand_file_name (val, realdir);
-    }
-
-  if (NILP (action))
-    {
-      specdir = Ffile_name_directory (string);
-      val = Ffile_name_completion (name, realdir, Vread_file_name_predicate);
-      UNGCPRO;
-      if (!STRINGP (val))
-	{
-	  if (changed)
-	    return double_dollars (string);
-	  return val;
-	}
-
-      if (!NILP (specdir))
-	val = concat2 (specdir, val);
-#ifndef VMS
-      return double_dollars (val);
-#else /* not VMS */
-      return val;
-#endif /* not VMS */
-    }
-  UNGCPRO;
-
-  if (EQ (action, Qt))
-    {
-      Lisp_Object all = Ffile_name_all_completions (name, realdir);
-      Lisp_Object comp;
-      int count;
-
-      if (NILP (Vread_file_name_predicate)
-	  || EQ (Vread_file_name_predicate, Qfile_exists_p))
-	return all;
-
-#ifndef VMS
-      if (EQ (Vread_file_name_predicate, Qfile_directory_p))
-	{
-	  /* Brute-force speed up for directory checking:
-	     Discard strings which don't end in a slash.  */
-	  for (comp = Qnil; CONSP (all); all = XCDR (all))
-	    {
-	      Lisp_Object tem = XCAR (all);
-	      int len;
-	      if (STRINGP (tem) &&
-		  (len = SBYTES (tem), len > 0) &&
-		  IS_DIRECTORY_SEP (SREF (tem, len-1)))
-		comp = Fcons (tem, comp);
-	    }
-	}
-      else
-#endif
-	{
-	  /* Must do it the hard (and slow) way.  */
-	  Lisp_Object tem;
-	  GCPRO3 (all, comp, specdir);
-	  count = SPECPDL_INDEX ();
-	  record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
-	  current_buffer->directory = realdir;
-	  for (comp = Qnil; CONSP (all); all = XCDR (all))
-	    {
-	      tem = call1 (Vread_file_name_predicate, XCAR (all));
-	      if (!NILP (tem))
-		comp = Fcons (XCAR (all), comp);
-	    }
-	  unbind_to (count, Qnil);
-	  UNGCPRO;
-	}
-      return Fnreverse (comp);
-    }
-
-  /* Only other case actually used is ACTION = lambda */
-#ifdef VMS
-  /* Supposedly this helps commands such as `cd' that read directory names,
-     but can someone explain how it helps them? -- RMS */
-  if (SCHARS (name) == 0)
-    return Qt;
-#endif /* VMS */
-  string = Fexpand_file_name (string, dir);
-  if (!NILP (Vread_file_name_predicate))
-    return call1 (Vread_file_name_predicate, string);
-  return Ffile_exists_p (string);
-}
-
 DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
        Snext_read_file_uses_dialog_p, 0, 0, 0,
        doc: /* Return t if a call to `read-file-name' will use a dialog.
@@ -6253,6 +6155,8 @@ before any other event (mouse or keypress) is handeled.  */)
 #endif
   return Qnil;
 }
+
+Lisp_Object Qdefault_directory;
 
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
@@ -6377,6 +6281,8 @@ and `read-file-name-function'.  */)
     }
 
   count = SPECPDL_INDEX ();
+  specbind (Qdefault_directory,
+	    Ffile_name_as_directory (Fexpand_file_name (dir, Qnil)));
   specbind (Qcompletion_ignore_case,
 	    read_file_name_completion_ignore_case ? Qt : Qnil);
   specbind (intern ("minibuffer-completing-file-name"), Qt);
@@ -6405,7 +6311,7 @@ and `read-file-name-function'.  */)
   else
 #endif
     val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			    dir, mustmatch, insdef,
+			    Qnil, mustmatch, insdef,
 			    Qfile_name_history, default_filename, Qnil);
 
   tem = Fsymbol_value (Qfile_name_history);
@@ -6582,6 +6488,8 @@ of file names regardless of the current language environment.  */);
 
   Qformat_decode = intern ("format-decode");
   staticpro (&Qformat_decode);
+  Qdefault_directory = intern ("default-directory");
+  staticpro (&Qdefault_directory);
   Qformat_annotate_function = intern ("format-annotate-function");
   staticpro (&Qformat_annotate_function);
   Qafter_insert_file_set_coding = intern ("after-insert-file-set-coding");
@@ -6755,9 +6663,7 @@ A non-nil value may result in data loss!  */);
   defsubr (&Sdelete_file);
   defsubr (&Srename_file);
   defsubr (&Sadd_name_to_file);
-#ifdef S_IFLNK
   defsubr (&Smake_symbolic_link);
-#endif /* S_IFLNK */
 #ifdef VMS
   defsubr (&Sdefine_logical_name);
 #endif /* VMS */
@@ -6792,7 +6698,6 @@ A non-nil value may result in data loss!  */);
   defsubr (&Sclear_buffer_auto_save_failure);
   defsubr (&Srecent_auto_save_p);
 
-  defsubr (&Sread_file_name_internal);
   defsubr (&Sread_file_name);
   defsubr (&Snext_read_file_uses_dialog_p);
 

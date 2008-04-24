@@ -862,11 +862,11 @@ displays the following frame layout:
 @smallexample
 @group
 +--------------------------------+--------------------------------+
-|   GUD buffer (I/O of GDB)      |   Locals buffer                |
+|   GUD buffer (I/O of GDB)      |   Locals/Registers buffer      |
 |--------------------------------+--------------------------------+
 |   Primary Source buffer        |   I/O buffer for debugged pgm  |
 |--------------------------------+--------------------------------+
-|   Stack buffer                 |   Breakpoints buffer           |
+|   Stack buffer                 |   Breakpoints/thread buffer    |
 +--------------------------------+--------------------------------+
 @end group
 @end smallexample
@@ -994,6 +994,11 @@ Visit the source line for the current breakpoint
 Visit the source line for the breakpoint you click on.
 @end table
 
+When @code{gdb-many-windows} is non-@code{nil}, the breakpoints buffer
+shares its window with the threads buffer.  To switch from one to the
+other click with @kbd{mouse-1} on the relevant button in the header
+line.
+
 @node Stack Buffer
 @subsubsection Stack Buffer
 
@@ -1065,6 +1070,10 @@ Alternatively, click @kbd{Mouse-2} on a thread to select it.  If the
 locals buffer is visible, its contents update to display the variables
 that are local in the new thread.
 
+When there is more than one main thread and the threads buffer is
+present, Emacs displays the selected thread number in the mode line of
+many of the GDB-UI Buffers.
+
 @item Memory Buffer
 The memory buffer lets you examine sections of program memory
 (@pxref{Memory, Memory, Examining memory, gdb, The GNU debugger}).
@@ -1073,6 +1082,11 @@ change the starting address or number of data items that the buffer
 displays.  Click @kbd{Mouse-3} on the header line to select the
 display format or unit size for these data items.
 @end table
+
+When @code{gdb-many-windows} is non-@code{nil}, the threads buffer
+shares its window with the breakpoints buffer, and the locals buffer
+with the registers buffer.  To switch from one to the other click with
+@kbd{mouse-1} on the relevant button in the header line.
 
 @node Watch Expressions
 @subsubsection Watch Expressions

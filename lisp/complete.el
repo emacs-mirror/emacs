@@ -621,8 +621,10 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                                                    (match-string 2 str)
                                                    "[A-Za-z0-9]*[^A-Za-z0-9]"))
                           p (1+ (length (match-string 1 str))))))
-                (setq regex (concat "\\`" (mapconcat #'list str "[^-]*-"))
-                      p 1))))
+	      (setq regex (concat "\\`" (mapconcat (lambda (c)
+						     (regexp-quote (string c)))
+						   str "[^-]*-"))
+		    p 1))))
         (when p
 	;; Use all-completions to do an initial cull.  This is a big win,
 	;; since all-completions is written in C!
@@ -964,7 +966,7 @@ or properties are considered."
                    (+ (point) 2)
                    (point-min)))
           (minibuffer-completion-table 'PC-read-file-name-internal)
-          (minibuffer-completion-predicate "")
+          (minibuffer-completion-predicate nil)
           (PC-not-minibuffer t))
      (goto-char end)
      (PC-do-completion nil beg end)))
@@ -1094,7 +1096,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (setq sorted (cdr sorted)))
 	compressed))))
 
-(defun PC-read-file-name-internal (string dir action)
+(defun PC-read-file-name-internal (string pred action)
   "Extend `read-file-name-internal' to handle include files.
 This is only used by "
   (if (string-match "<\\([^\"<>]*\\)>?\\'" string)
@@ -1105,12 +1107,12 @@ This is only used by "
                         (format (if (string-match "/\\'" x) "<%s" "<%s>") x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
-              (cond
-               ((not completion-table) nil)
-               ((eq action 'lambda) (test-completion str2 completion-table nil))
-               ((eq action nil) (PC-try-completion str2 completion-table nil))
-          ((eq action t) (all-completions str2 completion-table nil))))
-    (read-file-name-internal string dir action)))
+        (cond
+         ((not completion-table) nil)
+         ((eq action 'lambda) (test-completion str2 completion-table nil))
+         ((eq action nil) (PC-try-completion str2 completion-table nil))
+         ((eq action t) (all-completions str2 completion-table nil))))
+    (read-file-name-internal string pred action)))
 
 
 (provide 'complete)

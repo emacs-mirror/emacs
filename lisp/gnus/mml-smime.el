@@ -552,5 +552,5 @@ Content-Disposition: attachment; filename=smime.p7m
 
 (provide 'mml-smime)
 
-;;; arch-tag: f1bf94d4-f2cd-4c6f-b059-ad69492817e2
+;; arch-tag: f1bf94d4-f2cd-4c6f-b059-ad69492817e2
 ;;; mml-smime.el ends here

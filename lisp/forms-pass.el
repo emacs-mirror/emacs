@@ -30,5 +30,5 @@
        "Shell: "	7
        "\n"))
 
-;;; arch-tag: 74801012-1a2d-4173-b9e4-fcfa241e2305
+;; arch-tag: 74801012-1a2d-4173-b9e4-fcfa241e2305
 ;;; forms-pass.el ends here

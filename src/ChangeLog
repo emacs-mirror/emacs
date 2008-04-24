@@ -1,3 +1,922 @@
+2008-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (create_apple_event) [TARGET_API_MAC_CARBON]:
+	Make function non-static.
+	(create_apple_event_from_event_ref) [TARGET_API_MAC_CARBON]:
+	Remove function.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]:
+	Move to mactoolbox.c.
+	(mac_event_parameters_to_lisp) [TARGET_API_MAC_CARBON]: New function.
+
+	* macgui.h (CGFloat) [!CGFLOAT_DEFINED]: New typedef.
+	(mac_rect_make): New macro.
+
+	* macterm.c (mac_draw_image_string_atsui) [MAC_OSX]: Use CGFloat
+	instead of float.
+	(mac_draw_image_string_cg) [USE_CG_TEXT_DRAWING]: Likewise.
+	(init_cg_color, mac_draw_line, mac_draw_cg_image, XSetForeground)
+	(XSetBackground) [USE_CG_DRAWING]: Likewise.
+	(mac_draw_image_string_atsui) [MAC_OSX]: Use mac_rect_make instead of
+	CGRectMake.
+	(mac_draw_image_string_cg) [USE_CG_TEXT_DRAWING]: Likewise.
+	(mac_erase_rectangle, mac_draw_cg_image, mac_fill_rectangle)
+	(mac_set_clip_rectangles) [USE_CG_DRAWING]: Likewise.
+	(XCreatePixmap, XCreatePixmapFromBitmapData): Use Window
+	instead of WindowRef in argument type.
+	(XCreatePixmap) [!MAC_OS8]: Don't call SetPortWindowPort.
+	(mac_invert_rectangle): Use CGContextSetBlendMode if available.
+	(mac_set_clip_rectangles, mac_reset_clip_rectangles): Take argument F
+	instead of DISPLAY.  All uses changed.
+	(mac_handle_size_change): Don't call SET_FRAME_GARBAGED.
+	(x_calc_absolute_position): Simplify so as not to use
+	FRAME_PIXEL_WIDTH/FRAME_PIXEL_HEIGHT.
+
+	* macterm.h (XCreatePixmap, XCreatePixmapFromBitmapData): Use Window
+	instead of WindowRef in argument type.
+	(create_apple_event_from_event_ref, create_apple_event_from_drag_ref)
+	[TARGET_API_MAC_CARBON]: Remove externs.
+	(create_apple_event, mac_event_parameters_to_lisp)
+	[TARGET_API_MAC_CARBON]: Add externs.
+
+	* mactoolbox.c: (Vmac_ts_script_language_on_focus)
+	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: Remove externs.
+	(XTread_socket) [USE_MAC_TOOLBAR]: Select window if its structure part
+	is clicked.
+	(x_activate_menubar): Remove extern for saved_menu_event_location.
+	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]:
+	Move from mac.c.
+
+2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT] (uninterrupt_malloc)
+	[HAVE_GTK_AND_PTHREAD && !DOUG_LEA_MALLOC]: Don't use recursive mutex.
+
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (stat): When Vw32_get_true_file_attributes is Qlocal, get
+	attributes only for local files.
+
+	* w32proc.c (syms_of_ntproc): Change Vw32_get_true_file attributes
+	default	to Qlocal.
+
+2008-04-22  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Fswitch_to_buffer): Change interactive spec to call
+	read-buffer-to-switch instead of using the letter "B".
+
+2008-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Qdefault_directory): New variable.
+	(Fread_file_name): Use it to pass `dir' to the completion functions.
+
+2008-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Check if iterator stops on a display string.
+
+2008-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Vpre_help_message): Remove.
+	(show_help_echo): Remove default C code.
+
+	* dired.c (directory_files_internal, file_name_completion):
+	Only call ENCODE_FILE if the string is indeed decoded.
+
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (TOOLKIT_DEFINES): Remove.
+	(LIBW): Use a bit less #if, remove left over OPEN_LOOK stuff.
+
+2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (MAC_OBJ): Add mactoolbox.o.
+	(mactoolbox.o): New target.
+
+	* mac.c [MAC_OSX] (select_and_poll_event, sys_select):
+	Use mac_run_loop_run_once instead of CFRunLoopRunInMode.
+
+	* macfns.c (x_set_background_color, mac_window, x_create_tip_frame):
+	Use mac_set_frame_window_background instead of XSetWindowBackground.
+	(x_set_tool_bar_lines) [USE_MAC_TOOLBAR]:
+	Use mac_is_window_toolbar_visible instead of IsWindowToolbarVisible.
+	(x_set_name_internal) [TARGET_API_MAC_CARBON]: Use mac_set_window_title
+	instead of SetWindowTitleWithCFString.
+	(mac_update_proxy_icon) [TARGET_API_MAC_CARBON]: Remove BLOCK_INPUT.
+	Move function to mactoolbox.c.
+	(mac_update_title_bar) [TARGET_API_MAC_CARBON]:
+	Use mac_set_window_modified instead of SetWindowModified.
+	Add BLOCK_INPUT around mac_set_window_modified/mac_update_proxy_icon.
+	(mac_window, x_create_tip_frame): Use mac_create_frame_window.
+	(Fx_focus_frame): Use mac_front_non_floating_window instead of
+	FrontNonFloatingWindow.  Use mac_activate_window instead of
+	ActivateWindow.  Use mac_active_non_floating_window instead of
+	ActiveNonFloatingWindow.
+	(show_hourglass, hide_hourglass) [TARGET_API_MAC_CARBON]:
+	Use mac_show_hourglass and mac_hide_hourglass.
+	(compute_tip_xy) [TARGET_API_MAC_CARBON]: Use mac_get_global_mouse
+	instead of GetGlobalMouse.
+	(Fx_show_tip): Use mac_move_window/mac_size_window/mac_show_window
+	instead of MoveWindow/SizeWindow/ShowWindow, respectively.
+	Use mac_bring_window_to_front instead of BringToFront.
+	(Qfile_name_history) [TARGET_API_MAC_CARBON]: Move extern to
+	mactoolbox.c.
+	(Fx_file_dialog) [TARGET_API_MAC_CARBON]: Move function body to
+	mac_file_dialog in mactoolbox.c.  Use mac_file_dialog.
+	(mac_nav_event_callback) [TARGET_API_MAC_CARBON]: Move function to
+	mactoolbox.c.
+
+	* macgui.h [!HAVE_CARBON]: Include Quickdraw.h instead of QuickDraw.h.
+	(XtPointer): Move typedef from macmenu.c.
+	(enum button_type): Move enum from macmenu.c.
+	(widget_value): Move typedef from macmenu.c.
+	(M_APPLE, I_ABOUT, EXTRA_STACK_ALLOC, ARGV_STRING_LIST_ID)
+	(DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN, DIALOG_RIGHT_MARGIN)
+	(DIALOG_BOTTOM_MARGIN, DIALOG_MIN_INNER_WIDTH, DIALOG_MAX_INNER_WIDTH)
+	(DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE)
+	(DIALOG_BUTTON_BUTTON_VERTICAL_SPACE, DIALOG_BUTTON_MIN_WIDTH)
+	(DIALOG_TEXT_MIN_HEIGHT, DIALOG_TEXT_BUTTONS_VERTICAL_SPACE)
+	(DIALOG_ICON_WIDTH, DIALOG_ICON_HEIGHT, DIALOG_ICON_LEFT_MARGIN)
+	(DIALOG_ICON_TOP_MARGIN): Move defines from macmenu.c.
+	(Selection): Move typedef from macselect.c.
+	(RAM_TOO_LARGE_ALERT_ID, ABOUT_ALERT_ID) [MAC_OS8]: Move defines from
+	macterm.c.
+	(mac_set_window_title, mac_set_window_modified, mac_is_window_visible)
+	(mac_is_window_collapsed, mac_bring_window_to_front)
+	(mac_send_window_behind, mac_hide_window, mac_show_window)
+	(mac_collapse_window, mac_front_non_floating_window)
+	(mac_active_non_floating_window, mac_activate_window)
+	(mac_move_window_structure, mac_move_window, mac_size_window)
+	(mac_get_global_mouse, mac_is_window_toolbar_visible): New defines.
+
+	* macmenu.c [!TARGET_API_MAC_CARBON]: Move includes to mactoolbox.c.
+	(enum mac_menu_kind): Move enum to mactoolbox.c.
+	(min_menu_id): Move variable to mactoolbox.c.
+	(quit_dialog_event_loop) [TARGET_API_MAC_CARBON]: Likewise.
+	(DIALOG_WINDOW_RESOURCE): Move define to mactoolbox.c.
+	(DIALOG_BUTTON_COMMAND_ID_OFFSET, DIALOG_BUTTON_COMMAND_ID_P)
+	(DIALOG_BUTTON_COMMAND_ID_VALUE, DIALOG_BUTTON_MAKE_COMMAND_ID)
+	[TARGET_API_MAC_CARBON]: Likewise.
+	(XtPointer): Move typedef to macgui.h.
+	(enum button_type): Move enum to macgui.h.
+	(widget_value): Move typedef to macgui.h.
+	(DIALOG_LEFT_MARGIN, DIALOG_TOP_MARGIN, DIALOG_RIGHT_MARGIN)
+	(DIALOG_BOTTOM_MARGIN, DIALOG_MIN_INNER_WIDTH, DIALOG_MAX_INNER_WIDTH)
+	(DIALOG_BUTTON_BUTTON_HORIZONTAL_SPACE)
+	(DIALOG_BUTTON_BUTTON_VERTICAL_SPACE, DIALOG_BUTTON_MIN_WIDTH)
+	(DIALOG_TEXT_MIN_HEIGHT, DIALOG_TEXT_BUTTONS_VERTICAL_SPACE)
+	(DIALOG_ICON_WIDTH, DIALOG_ICON_HEIGHT, DIALOG_ICON_LEFT_MARGIN)
+	(DIALOG_ICON_TOP_MARGIN): Move defines to macgui.h.
+	(popup_activated_flag): Make variable non-static.
+	(x_activate_menubar, install_menu_quit_handler, pop_down_menu)
+	(add_menu_item, fill_menu, dispose_menus):
+	Move functions to mactoolbox.c.
+	(restore_show_help_function, menu_target_item_handler)
+	(install_menu_target_item_handler, mac_handle_dialog_event)
+	(install_dialog_event_handler, pop_down_dialog, create_and_show_dialog)
+	[TARGET_API_MAC_CARBON]: Likewise.
+	(menu_quit_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Likewise.
+	(mac_dialog) [!TARGET_API_MAC_CARBON]: Likewise.
+	(find_and_call_menu_selection, name_is_separator): Make function
+	non-static.
+	(Vshow_help_function, timer_check) [TARGET_API_MAC_CARBON]: Move extern
+	to mactoolbox.c.
+	(set_frame_menubar): Don't call install_menu_quit_handler.
+	(menu_item_selection): New variable.
+	(mac_menu_show): Use create_and_show_popup_menu.
+	(create_and_show_dialog) [TARGET_API_MAC_CARBON]: Don't return
+	selection but set variable menu_item_selection.  All uses changed.
+	(mac_fill_menubar): Rename from fill_menubar.  All uses changed.
+	Call install_menu_quit_handler.  Move to mactoolbox.c.
+
+	* macselect.c [!TARGET_API_MAC_CARBON]: Don't include Scrap.h.
+	(Selection): Move typedef to macgui.h.
+	(Vselection_converter_alist, Qmac_scrap_name, Qmac_ostype)
+	(Vmac_apple_event_map, Qmac_apple_event_class, Qmac_apple_event_id):
+	Make variables non-static.
+	(Vmac_dnd_known_types) [TARGET_API_MAC_CARBON]: Likewise.
+	(mac_handle_apple_event, cleanup_all_suspended_apple_events):
+	Make functions non-static.
+	(Vmac_service_selection) [MAC_OSX]: Likewise.
+	(mac_get_selection_from_symbol, get_flavor_type_from_symbol)
+	(mac_valid_selection_target_p, mac_clear_selection)
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_put_selection_value, mac_selection_has_target_p)
+	(mac_get_selection_value, mac_get_selection_target_list)
+	(init_apple_event_handler, install_drag_handler, remove_drag_handler):
+	Move functions to mactoolbox.c.
+	(mac_do_track_drag, mac_do_receive_drag) [TARGET_API_MAC_CARBON]:
+	Likewise.
+	(copy_scrap_flavor_data, mac_handle_service_event)
+	(install_service_handler) [MAC_OSX]: Likewise.
+	(syms_of_macselect) <Vmac_dnd_known_types>:
+	Use mac_dnd_default_known_types.
+
+	* macterm.h (FRAME_OUTER_TO_INNER_DIFF_X, FRAME_OUTER_TO_INNER_DIFF_Y):
+	Move to mactoolbox.c.
+	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): Change to 15.
+	(Fx_selection_owner_p): Add EXFUN.
+	(install_window_handler, remove_window_handler, XSetWindowBackground):
+	Remove externs.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Likewise.
+	(mac_prepare_for_quickdraw) [USE_CG_DRAWING]: Likewise.
+	(x_raise_frame, x_lower_frame, mac_alert_sound_play)
+	(install_application_handler, mac_get_frame_bounds, mac_get_frame_mouse)
+	(mac_convert_frame_point_to_global, mac_set_frame_window_background)
+	(mac_update_begin mac_update_end, mac_frame_up_to_date, x_flush)
+	(mac_create_frame_window, mac_dispose_frame_window, mac_begin_clip)
+	(mac_end_clip, mac_create_scroll_bar, mac_dispose_scroll_bar)
+	(mac_set_scroll_bar_bounds, mac_redraw_scroll_bar, mac_fill_menubar)
+	(create_and_show_popup_menu, mac_get_selection_from_symbol)
+	(mac_valid_selection_target_p, mac_clear_selection)
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_put_selection_value, mac_selection_has_target_p)
+	(mac_get_selection_value, mac_get_selection_target_list): Add externs.
+	(mac_update_proxy_icon, mac_show_hourglass, mac_hide_hourglass)
+	(mac_reposition_hourglass, mac_file_dialog, create_and_show_dialog)
+	(mac_dnd_default_known_types) [TARGET_API_MAC_CARBON]: Likewise.
+	(mac_run_loop_run_once) [MAC_OSX]: Likewise.
+	(mac_dialog) [!TARGET_API_MAC_CARBON]: Likewise.
+	(mac_begin_cg_clip, mac_end_cg_clip) [USE_CG_DRAWING]: Likewise.
+	(x_set_toolkit_scroll_bar_thumb) [!USE_TOOLKIT_SCROLL_BARS]: Likewise.
+	(x_scroll_bar_set_handle) [!USE_TOOLKIT_SCROLL_BARS]: Likewise.
+
+	* mactoolbox.c: New file.
+
+2008-03-31  Jason Rumney  <jasonr@gnu.org>
+
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Cast uid and gid to unsigned.
+
+2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* character.c (Fmultibyte_char_to_unibyte):
+	Return latin1 chars unchanged.
+
+	* fileio.c (Fexpand_file_name): Refine last fix so `nm' is only
+	relocated if it points to `name'.
+
+2008-04-17  Kenichi Handa  <handa@m17n.org>
+
+	* data.c (Faset): Allow setting a multibyte character in an
+	ASCII-only unibyte string.
+
+	* lisp.h (STRING_SET_MULTIBYTE): New macro.
+
+2008-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in: Don't use HAVE_GTK and don't -DUSE_GTK since it's now
+	done in config.h.
+
+2008-04-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* character.c (Fchar_bytes, Fchar_width, Fstring_width)
+	(Fchar_direction): Add usage in the docstring.
+
+2008-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_key_sequence): Remove always-true checks.
+
+2008-04-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Set max_bounds.descent in
+	compatibility struct, for better underline positioning.
+
+2008-04-13  David Hansen  <david.hansen@gmx.net>
+
+	* dbusbind.c (dbus-get-unique-name): Remove extra copying of name
+	string.
+
+2008-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/hp800.h (XUINT, XSET): Remove.
+
+2008-04-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fileio.c (Fexpand_file_name): Add declaration for `p' missing in
+	previous change.
+
+2008-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Tighten the scope of `p' and `o' vars.
+	Relocate `nm' after calling DECODE_FILE, in case the GC was run.
+
+2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.h (map_keymap_canonical): Declare.
+	* xmenu.c (single_keymap_panes): Use it.
+
+2008-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* eval.c (Fdefvaralias): If the alias is bound and the target is not,
+	set the target's value to that of the alias.
+
+2008-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c (set_tty_color_mode): Left over typo.
+
+2008-04-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fmake_symbolic_link): Surround code by #ifdef S_IFLNK
+	only after check for file name handler functions.  Signal, when
+	native functionality is not supported.
+	(syms_of_fileio): Declare it unconditionally.
+
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (is_simple_dialog, simple_dialog_show): New functions.
+	(Fx_popup_dialog): Handle simple yes/no questions as dialogs.
+
+	* w32.c (logon_network_drive): Also logon to remote drives that
+	are mapped to drive letters.
+
+2008-04-10  Glenn Morris  <rgm@gnu.org>
+
+	* xdisp.c (truncate-partial-width-windows): Doc fix.
+
+2008-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (read_file_name_cleanup, Fread_file_name_internal):
+	Move functions to minibuffer.el.
+	(syms_of_fileio): Don't declare them.
+
+2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Vcompletion_auto_help): Move to minibuffer.el.
+	(syms_of_minibuf): Remove its initialization.
+
+	* minibuf.c (temp_echo_area_glyphs): Remove unused function.
+
+2008-04-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* editfns.c (Ffield_string_no_properties): Fix typo in docstring.
+
+2008-04-09  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (distclean): Delete makefile too.
+	(maintainer-clean): New target.
+
+	* xdisp.c (redisplay_internal) [!WINDOWSNT]: Conditionalize last change.
+
+	* w32term.c (w32_compute_glyph_string_overhangs): Compute overhangs
+	for new font backend and composite cases.
+
+2008-04-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* atimer.c (alarm_signal_handler): Call run_timers if not SYNC_INPUT.
+	Most of the code moved to run_timers.
+	(do_pending_atimers): Call run_timers.
+	(run_timers): New function.
+
+	* sysdep.c (emacs_write): If SYNC_INPUT and pending_atimers,
+	run atimers.
+
+	* process.c (wait_reading_process_output): The same as above.
+
+2008-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (last_exact_completion): Remove variable.
+	(Fdelete_minibuffer_contents, do_completion, Fminibuffer_complete)
+	(complete_and_exit_1, complete_and_exit_2)
+	(Fminibuffer_complete_and_exit, Fminibuffer_complete_word)
+	(Fdisplay_completion_list, display_completion_list_1)
+	(Fminibuffer_completion_help, Fself_insert_and_exit)
+	(Fexit_minibuffer, Fminibuffer_message): Move functions to
+	minibuffer.el.
+	(syms_of_minibuf): Remove corresponding initializations.
+
+	* keyboard.c (Qdeactivate_mark): New var.
+	(command_loop_1): Use it to call `deactivate-mark'.
+	(syms_of_keyboard): Initialize it.
+
+	* xdisp.c (redisplay_internal): Reset tty's color_mode when switching
+	to another frame.
+	* frame.c (do_switch_frame): Refine the top_frame/async_visible code.
+	Don't call set_tty_color_mode.
+	(store_frame_param): Reset previous_frame rather than call
+	set_tty_color_mode.
+	* term.c (set_tty_color_mode): Rewrite.
+	* dispextern.h (set_tty_color_mode): New type.
+	* termchar.h (struct tty_display_info): Add `previous_color_mode'.
+
+2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (access_keymap): Remove the value 2 for t_ok which was used
+	for generic chars, which do not exist any more in emacs-unicode.
+
+2008-04-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* coding.c (detect_coding_emacs_mule)
+	(Ffind_operation_coding_system): Fix typo.
+
+2008-04-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (SNAME): Extract only symbol name.
+
+	* w32font.h (struct w32_metric_cache): New struct.
+	(w32font_info): Use it.
+	(W32METRIC_NO_ATTEMPT, W32METRIC_SUCCESS, W32METRIC_FAIL)
+	(CACHE_BLOCKSIZE): New constants.
+
+	* w32font.c (Qja, Qko, Qzh): New symbols.
+	(syms_of_w32font): Initialise them.
+	(font_matches_spec): Use them to filter by language.
+	(recompute_cached_metrics): Remove function.
+	(compute_metrics, clear_cached_metrics): New functions.
+	(w32font_encode_char): Use them to manage metric cache.
+	(w32font_text_extents): Cache metrics for all glyphs on demand.
+	Delay converting glyph indices to WORD until needed.
+	(w32font_open_internal): Initialize metric cache to empty.
+	(registry_to_w32_charset): Charset should always be a symbol.
+	(fill_in_logfont, list_all_matching_fonts): Family should
+	always be a symbol.
+
+2008-04-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Increase items buffer size.
+	Give up if glyph indices not supported.  Use uniscribe obtained
+	ABC widths for individual metrics.  Map glyph clusters back to
+	characters using fClusterStart flag.  Return number of glyphs
+	produced, not chars processed.
+	(uniscribe_shape): Map char at FROM to current glyph.
+
+2008-04-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (fill_menu) [TARGET_API_MAC_CARBON]:
+	Use SetMenuItemHierarchicalMenu.
+
+2008-04-05  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (pbm_load): Allow color values up to 65535.
+	Throw an error if max_color_idx is outside the supported range.
+	Report an error when image size is invalid.
+	Read two bytes at a time when raw images have max_color_idx above 255.
+
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (readdir): If FindFirstFile/FindNextFile return in
+	cFileName a file name that includes `?' characters, use the 8+3
+	alias in cAlternateFileName instead.
+
+2008-04-05  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ccl.c (ccl_driver): If ccl->quit_silently is nonzero, don't
+	append "CCL: Quitted" when the CCL program is quitted.
+	(setup_ccl_program): Initialize ccl->quit_silently to zero.
+
+	* ccl.h (struct ccl_program): New member quit_silently.
+
+2008-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (compile_pattern_1): Treat non-nil and non-string of
+	search-spaces-regexp as nil.
+
+	* minibuf.c (Fassoc_string): Tweak docstring.
+
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Support inode numbers wider than 32
+	bits.  Remove ugly WINDOWSNT-specific kludge introduced on
+	2008-03-14 to force inode be positive.
+
+	* w32.c (sys_chown, stat, fstat): Use S_* constants instead of
+	_S_* ones, since we now use our own sys/stat.h.
+	(stat, fstat): Don't mangle the inode number.
+	(init_user_info): Don't restrict UID and GID to 0-60000 range.
+
+2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.h (struct frame): Give one more bit to `visible' since we use
+	values larger than 1 to indicate obscured frames on ttys.
+
+	* keymap.c (Qkeymap_canonicalize): New var.
+	(Fmap_keymap_internal): New fun.
+	(describe_map): Use keymap-canonicalize.
+
+	* undo.c (last_boundary_buffer, last_boundary_position): New vars.
+	(Fundo_boundary): Set them.
+	(syms_of_undo): Initialize them.
+	(record_point): Use them instead of last_point_position*.
+	(last_undo_buffer): Change type.
+
+2008-04-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Use font's ascent and descent.
+	(recompute_cached_metrics): Don't set ascent and descent per char.
+
+	* w32uniscribe.c (uniscribe_check_otf): Fix last change.
+	(uniscribe_check_otf): Add GC protection before consing.
+	Rearrange loop for counting features.
+
+2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (insert_from_buffer_1): Don't compare bytes in destination
+	buffer with byte-size of source buffer.
+
+2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Fcall_interactively): Handle temporary region even
+	when shift-select-mode is off.
+
+2008-04-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_check_otf): Sanity check otf_spec.
+
+2008-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (CATEGORY_MASK_ANY): Add CATEGORY_MASK_UTF_16_AUTO.
+	(CATEGORY_MASK_UTF_16): Likewise.
+	(detect_coding_utf_16): Add heuristics to reject utf-16 for a
+	binary file.
+	(detect_coding): Add null-byte detection for a binary file.
+	(detect_coding_system): Likewise.
+
+2008-04-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c: New file.
+
+	* font.h (uniscribe_font_driver) [WINDOWSNT]: Declare for w32fns.c.
+
+	* w32font.h (uniscribe_check_otf): Declare for w32font.c.
+
+	* w32font.c (Qbalinese, Qbuginese, Qbuhid, Qcuneiform, Qcypriot)
+	(Qdeseret, Qglagolitic, Qgothic, Qhanunoo, Qkharoshthi)
+	(Qlimbu, Qlinear_b, Qold_italic, Qold_persian, Qosmanya)
+	(Qphags_pa, Qphoenician, Qshavian, Qsyloti_nagri)
+	(Qtagalog, Qtagbanwa, Qtai_le, Qtifinagh, Qugaritic)
+	(Qphonetic): New symbols.
+	(syms_of_w32font): Initialize them.
+	(font_supported_scripts): Use them.
+	(w32font_list_family): List all charsets.
+	(w32font_text_extents, recompute_cached_metrics): Fix metric
+	calculations.
+	(w32_enumfont_pattern_entity): Make full_type a DWORD.
+	Give opentype fonts their own format.
+	(font_matches_spec): New arguments backend and logfont.
+	Handle :otf spec for uniscribe backend.
+	(add_font_entity_to_list): Match truetype fonts in uniscribe backend.
+	(fill_in_logfont): Use DEFAULT_CHARSET when charset not supplied.
+
+	* w32fns.c (Fx_create_frame): Conditionally register uniscribe
+	font backend.
+	(globals_of_w32fns): Initialize uniscribe font backend.
+
+	* makefile.w32-in (CONFIG_H): New variable.  Use it to clean up
+	dependencies.
+	(w32uniscribe.$(O)): New file to build.
+	(FONT_OBJ): Include w32uniscribe.$(O).
+	(LIBS): Add uniscribe libraries.
+
+	* ftfont.c (ftfont_get_open_type_spec): Check spec->script, not val.
+
+2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Vshift_select_mode): New var.
+	(Finteractive): Document new ^ spec.
+	(Fcall_interactively): Call handle-shift-selection if the ^ spec
+	is present.
+
+	* keyboard.c (Vthis_command_keys_shift_translated): New var.
+	(command_loop_1): Avoid running the direct display versions of
+	forward-char and backward-char if shift-selection may occur.
+	(read_key_sequence): Set Vthis_command_keys_shift_translated if
+	shift-translation takes place.
+
+	* buffer.c (Vtransient_mark_mode): Move docstring to simple.el to
+	avoid clobbering by define-minor-mode.
+
+	* cmds.c (Fforward_char, Fbackward_char, Fforward_line)
+	(Fbeginning_of_line, Fend_of_line): Add ^ interactive spec.
+
+	* syntax.c (Fforward_word): Add ^ interactive spec.
+
+	* window.c (Fscroll_up, Fscroll_down, Fscroll_left)
+	(Fscroll_right): Add ^ interactive spec.
+
+2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (try_window_id): Don't forget to reset delta_bytes.
+
+	* casefiddle.c (casify_object): Fix up int/EMACS_INT mixup.
+
+	* charset.c (Funibyte_charset, Fset_unibyte_charset): Remove.
+
+2008-03-31  Juri Linkov  <juri@jurta.org>
+
+	* window.c (Fdisplay_buffer): Reinitialize `tem' to nil.
+
+2008-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Fix indentation.
+	(xg_resize_outer_widget): Remove.
+	(x_wm_size_hint_off): Fix indentation.
+	(xg_frame_set_char_size): Call flush_and_sync after
+	gtk_window_resize.
+	(x_wm_set_size_hint): Pass NULL as geometry window to
+	gtk_window_set_geometry_hints due to Gtk+ bug nr 68668.
+	Add menu bar and tool bar height to base height.
+	(xg_update_frame_menubar, free_frame_menubar)
+	(xg_tool_bar_detach_callback, xg_tool_bar_attach_callback)
+	(update_frame_tool_bar, free_frame_tool_bar):
+	Change xg_resize_outer_widget to xg_frame_set_char_size.
+
+2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_timeout): New D-Bus internal symbol.
+	(Fdbus_call_method): New parameter TIMEOUT.
+	(dbus-send-signal): Optimize UNGCPRO call.
+
+2008-03-29  Juri Linkov  <juri@jurta.org>
+
+	* window.c (Fdisplay_buffer): Move call to
+	Vsplit_window_preferred_function out of conditions that check
+	if window is eligible for vertical splitting.
+	When Vsplit_window_preferred_function is non-nil, call it and use
+	its non-nil return value as window.  Otherwise, continue doing
+	vertical splitting using Fsplit_window with arg horflag=nil.
+	(syms_of_window) <Vsplit_window_preferred_function>: Change the
+	default value from `split-window' to nil.
+
+2008-03-29  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): Revert 2008-03-16 change
+	for interactive code letters 'b' and 'B'.
+
+2008-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Convert the value of $HOME to a
+	multibyte string.
+
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (pending_funcalls): New var.
+	(timer_check): Run it.
+	(syms_of_keyboard): Initialize it.
+	* terminal.c (Qrun_hook_with_args, Qdelete_terminal_functions)
+	(Vdelete_terminal_functions): New vars.
+	(syms_of_terminal): Initialize them.
+	(Fdelete_terminal): Run delete-terminal-functions.
+	* xdisp.c (safe_eval): Rewrite.
+	(safe_call2): New fun.
+	* frame.c (Qdelete_frame_functions): New var.
+	(syms_of_frame): Initialize it.
+	(Fdelete_frame): Use it and use safe_call2 and pending_funcalls.
+	* lisp.h (safe_call2, pending_funcalls): Declare.
+
+2008-03-28  Andreas Schwab  <schwab@suse.de>
+
+	* indent.c (Fmove_to_column): Move declaration before statements.
+
+2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.h (enum fullscreen_type): Give it a name.  Move it before use.
+	(struct frame): Use bit fields for boolean vars.
+
+	* process.c (server_accept_connection): Simplify naming.
+	(emacs_get_tty_pgrp): Use SDATA.
+
+	* coding.c (decode_coding_object): Fix last change.
+
+2008-03-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (start_hourglass): Suppress hourglass on tty frames.
+
+2008-03-27  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* charset.c (Fdefine_charset_internal): Change the way of
+	registering charsets in Vcharset_order_list.
+	(syms_of_charset): Make the charset `eight-bit' supplementary.
+
+2008-03-26  Alexandre Oliva  <aoliva@redhat.com>  (tiny change)
+
+	* regex.c (EXTEND_BUFFER): Change order of pointer addition
+	operations, to avoid having the difference between pointers
+	overflow.
+
+2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.c (check_display_width): New fun.
+	(scan_for_column): Use it.
+
+	* data.c (syms_of_data): Mark most-positive-fixnum and
+	most-negative-fixnum as constants.
+
+	* xdisp.c (redisplay_internal): Reset selected_frame earlier.
+
+	* indent.c (scan_for_column): Extract from current_column_1.
+	Merge with the same code from Fmove_to_column.
+	(current_column_1, Fmove_to_column): Use it.
+
+2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (map_keymap_internal): New fun.
+	(map_keymap): Use it.
+	(Fmap_keymap_internal): New fun.
+	(Fmap_keymap): Remove left-out test from before make_save_value.
+
+	* keymap.c (Fmap_keymap): Use `map-keymap-sorted.
+
+	* frame.c (Fmodify_frame_parameters, x_set_frame_parameters):
+	Use XCAR/XCDR.
+
+	* process.h (struct Lisp_Process): Remove filter_multibyte.
+	* process.c (QCfilter_multibyte): Remove.
+	(setup_process_coding_systems): Don't use filter_multibyte.
+	(Fstart_process, Fmake_network_process): Don't set filter_multibyte.
+	(read_process_output): Don't adjust multibyteness to filter_multibyte.
+	(Fset_process_filter_multibyte): Change the coding-system to
+	approximate the previous behavior.
+	(Fprocess_filter_multibyte_p): Get the multibyteness straight from the
+	coding-system.
+
+	* coding.c (decode_coding_object): When not decoding into a buffer,
+	obey the coding system's preference of (uni|multi)byte.
+
+2008-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* casefiddle.c (casify_object): Avoid pathological N^2 worst case if
+	every char is changed and has a different byte-length.
+	(Fupcase_word, Fdowncase_word, Fcapitalize_word, operate_on_word):
+	Fix int -> EMACS_INT.
+
+2008-03-23  David Hansen  <david.hansen@gmx.net>
+
+	* dbusbind.c (xd_read_message): Remove extra copying of message
+	strings.  Check for NULL `interface' or `member'.
+
+2008-03-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (readdir): If FindFirstFile/FindNextFile return in
+	cFileName a file name that includes `?' characters, use the 8+3
+	alias in cAlternateFileName instead.
+
+2008-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (enlarge_buffer_text): Fix int -> EMACS_INT.
+
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c (temp_set_point, temp_set_point_both): Use EMACS_INT.
+	(set_point, set_point_both): Use EMACS_INT.  Remove `buffer' arg,
+	work on current_buffer only instead (that was already the case
+	for some of the code anyway).
+	* buffer.h (set_point, set_point_both): Remove buffer arg, use long int.
+	(temp_set_point, temp_set_point_both): Use EMACS_INT.
+	(SET_PT, SET_PT_BOTH): Adjust.
+	* intervals.h (set_point, temp_set_point, set_point_both)
+	(temp_set_point_both): Remove redundant declarations.
+
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents):
+	* lread.c (Feval_buffer): Use BUF_TEMP_SET_PT.
+	* buffer.h (BUF_SET_PT): Remove.  set_point_both doesn't work right
+	when buffer != current_buffer anyway.
+
+2008-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* callint.c (Fcall_interactively) [case 'B']: Use other-buffer
+	as default.
+
+2008-03-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (hourglass_timer, hourglass_hwnd): New variables.
+	(syms_of_w32fns): Initialize them.
+	(HOURGLASS_ID): New constant.
+	(x_window_to_frame): Don't check hourglass_window.
+	(w32_wnd_proc) <WM_TIMER>: Handle hourglass_timer.
+	(w32_wnd_proc) <WM_EXITMENULOOP>: Set pending hourglass cursor.
+	(w32_wnd_proc) <WM_SETCURSOR>: Set the hourglass or current cursor.
+	(w32_wnd_proc) <WM_EMACS_SETCURSOR>: Set frame's current_cursor.
+	Only change the cursor if hourglass is not active.
+	(Fx_create_frame): Initialize frame's current_cursor.
+	(hourglass_atimer): Remove.
+	(hourglass_started): New function.
+	(start_hourglass, cancel_hourglass, hide_hourglass): Adapt to w32.
+	(show_hourglass): Adapt to w32, changing argument to frame.
+
+	* w32term.h (struct w32_output): Remove hourglass_window.
+	Add current_cursor.
+
+	* eval.c (call_debugger, Fsignal):
+	* keyboard.c (recursive_edit_1, cmd_error, Ftop_level)
+	(command_loop_1, Fread_key_sequence, Fread_key_sequence_vector)
+	(Fexecute_extended_command, cancel_hourglass_unwind):
+	* minibuf.c (read_minibuf):
+	* fns.c (Fy_or_n_p): Enable hourglass when HAVE_WINDOW_SYSTEM.
+
+2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (run_funs): New fun.
+	(run_window_configuration_change_hook): Use it to run the buffer-local
+	and the global part of the hook.
+
+	* xdisp.c (format_mode_line_unwind_data): Add window argument.
+	(unwind_format_mode_line): Restore selected window.
+	(x_consider_frame_title, Fformat_mode_line): Set selected window.
+
+2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fchar_equal): Check they are valid characters.
+
+	* buffer.h (Fbuffer_list): Declare (for use in callint.c).
+
+2008-03-17  Andreas Schwab  <schwab@suse.de>
+
+	* regex.c (re_match_2_internal): Properly match raw 8-bit bytes
+	against a charset.
+
+	* lisp.h (Fbuffer_list): Declare.
+
+2008-03-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (free_frame_tool_bar): Only call gtk_container_remove if
+	handlebox_widget is != 0.
+
+2008-03-16  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): For interactive code letters
+	'b' and 'B' put the buffer list into the list of default "future"
+	values of the minibuffer.
+
+2008-03-16  Andreas Schwab  <schwab@suse.de>
+
+	* keyboard.c (read_key_sequence): Fix downcasing of letters with
+	modifiers.
+
+	* regex.c (re_match_2_internal): Correct matching of a charset
+	against latin-1 characters.
+
+2008-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (CHAR_STRING_ADVANCE_NO_UNIFY)
+	(STRING_CHAR_ADVANCE_NO_UNIFY): New macros.
+	(coding_alloc_by_making_gap): Fix the way to preserve data in the gap.
+	(alloc_destination): Fix the 2nd arg to coding_alloc_by_making_gap.
+	(encode_coding_utf_8): Use CHAR_STRING_ADVANCE_NO_UNIFY instead of
+	CHAR_STRING_ADVANCE.
+	(produce_chars): Fix for the case that the source and the
+	destination are the same buffer.  Use CHAR_STRING_ADVANCE_NO_UNIFY
+	instead of CHAR_STRING_ADVANCE.
+	(consume_chars): Use STRING_CHAR_ADVANCE_NO_UNIFY instead of
+	STRING_CHAR_ADVANCE.
+
+2008-03-15  Andreas Schwab  <schwab@suse.de>
+
+	* regex.c (re_match_2_internal): Correct matching of eight bit
+	characters in unibyte strings.
+
+2008-03-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (overlays_in, Foverlays_in): Include empty overlays
+	at end of range when it coincides with the end of the buffer.
+
+2008-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Force inode be positive.
+
+	* w32fns.c (globals_of_w32fns, Fx_create_frame): Fix last change.
+
+2008-03-14  Jason Rumney  <jasonr@gnu.org>
+
+	* editfns.c (initial_tz): New variable.
+	(syms_of_editfns): Initialize it.
+	(Fset_time_zone_rule): Set it when first called.
+	Use it when TZSTRING is nil.
+
+	* w32fns.c (MONITOR_DEFAULT_TO_NEAREST, struct MONITOR_INFO)
+	(MonitorFromPoint_Proc, GetMonitorInfo_Proc): New definitions.
+	(monitor_from_point_fn, get_monitor_info_fn): New globals.
+	(globals_of_w32fns): Initialize them.
+	(compute_tip_xy): Use them to position tooltips.
+
+2008-03-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (main): Revert previous change.
+	(standard_args): Revert -internal-script back to -scriptload,
+	and remove the long-option form.
+
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (main, standard_args): Rename -scriptload to -internal-script.
+	Remove option -enable-font-backend.
+
+2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fswitch_to_buffer): Fall back on pop-to-buffer.
+
+2008-03-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_connection_closed): For GTK: If this is the last
+	terminal just exit without closing the display.
+
+2008-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_full_name): Use floor to round.
+
+2008-03-10  dhruva  <dhruvakm@gmail.com>  (tiny change)
+
+	* sound.c (alsa_configure): Declare vol at beginning of block.
+
+	* fontset.c (Ffontset_info): Remove extra semicolon.
+
 2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fsubstitute_in_file_name): Fix up computation of maximum
@@ -30,6 +949,17 @@
 	font_type is truetype.
 	(w32font_coverage_ok): New function.
 	(add_font_entity_to_list): Use it to filter unsuitable fonts.
+
+2008-03-05  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* lread.c (Fread_char): Resolve modifiers.
+	(Fread_char_exclusive): Likewise.
+
+	* character.c (char_resolve_modifier_mask): New function.
+	(char_string): Use char_resolve_modifier_mask.
+	(Fchar_resolve_modifiers): New function.
+	(syms_of_character): Declare Fchar_resolve_modifiers as Lisp
+	function.
 
 2008-03-04  Jason Rumney  <jasonr@gnu.org>
 
@@ -128,7 +1058,7 @@
 
 	* font.c (font_unparse_fcname): Increase len when style is a symbol.
 
-2008-03-01  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-03-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): For Gtk+ and ConfigureNotify, call
 	xg_frame_resized when the event is for the edit widget.
@@ -225,7 +1155,7 @@
 
 	* process.c (wait_reading_process_output): Check for window
 	changes caused by timers.
-	Suggested by Johan Bockg,Ae(Brd.
+	Suggested by Johan Bockgård.
 
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
@@ -334,7 +1264,7 @@
 	* s/irix6-0.h:
 	* s/riscos5.h:
 	* s/mach-bsd4-3.h:
-	* m/mips4.h: Remove files for obsolete systems
+	* m/mips4.h: Remove files for obsolete systems.
 
 	* Makefile.in:
 	* filelock.c:
@@ -355,7 +1285,7 @@
 
 2008-02-24  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.c: (x_draw_glyph_string_background): Clear the background
+	* w32term.c (x_draw_glyph_string_background): Clear the background
 	manually when cleartype is in use.
 	(x_draw_glyph_string_foreground): Draw text transparently when
 	cleartype is in use.
@@ -462,7 +1392,7 @@
 
 	* font.c (font_unparse_xlfd): Don't ignore integer pixel size specs.
 
-2008-02-18  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-02-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_show_tip): Set string to " " if empty.
 
@@ -728,7 +1658,7 @@
 	* emacs.c (USAGE3): Add --parent-id
 	(standard_args): Ditto.
 
-2008-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Use "do...while (0)".
 
@@ -1579,7 +2509,7 @@
 
 	* chartab.c (map_sub_char_table): Make it work for the top-level
 	char-table.  Fix handling of parent char-table.
-	(map_char_table):  Adjust for the above change.
+	(map_char_table): Adjust for the above change.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -2309,19 +3239,14 @@
 	* ftfont.c (ftfont_list): Fix typo.
 	(ftfont_build_basic_charsets): Don't include letters with diacritics.
 
-2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (realize_non_ascii_face): Set face->extra to NULL.
 
 	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if
 	xftface_info is non-NULL.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* ftfont.c (ftfont_list): Fix typo.
-	(ftfont_build_basic_charsets): Don't include letters with diactrics.
-
-2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* ftfont.c (ftfont_list): Move misplaced #endif.
 
@@ -2456,7 +3381,7 @@
 	* xftfont.c (xftfont_open): For generating a name, start from
 	96-byte buffer.
 
-2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (x_new_fontset2): Fix prototype.
 
@@ -3095,7 +4020,7 @@
 
 	* macterm.c (mac_encode_char): Add charset argument and update
 	to use encoding_type.
-	(x_new_font,x_new_fontset): Merge in changes from xterm.c;
+	(x_new_font, x_new_fontset): Merge in changes from xterm.c;
 	switch to pure fontset.
 	(decode_mac_font_name): Temporarily remove decoding.
 	(x_font_name_to_mac_font_name): Temporarily remove encoding.
@@ -3214,7 +4139,7 @@
 
 	* coding.c: Add many prototypes for static functions.
 	(get_translation_table): Allow max_lookup to be NULL.
-	(decode_coding,Ffind_coding_systems_region_internal)
+	(decode_coding, Ffind_coding_systems_region_internal)
 	(Funencodable_char_position, Fcheck_coding_systems_region): Call
 	get_translation_table with max_lookup NULL.
 
@@ -3487,7 +4412,7 @@
 	(emacs_mule_char): Change the second arg to `const'.
 	(decode_coding): Fix of flushing out unprocessed data.
 	(make_conversion_work_buffer): Fix making of a work buffer.
-	(decode_coding_object): Return coding->dst_object;
+	(decode_coding_object): Return coding->dst_object.
 
 	* fontset.c (set_fontset_font): Fix args.
 
@@ -3660,8 +4585,8 @@
 	(x_get_font_repertory): New function.  Warning: stub only!
 	(x_new_font): Return quickly if font already set.
 	(x_new_fontset): fontsetname parameter is Lisp_Object.
-	Use new fs_query_fontset.  Try new_fontset_from_font_name.  Use
-	fontset_name for return value.
+	Use new fs_query_fontset.  Try new_fontset_from_font_name.
+	Use fontset_name for return value.
 
 	* w32term.h: Declare x_get_font_repertory.
 
@@ -3937,7 +4862,7 @@
 	<wordbound, notwordbound, wordbeg, wordend, syntaxspec,
 	notsyntaxspec, categoryspec, notcategoryspec> Fetch a character
 	by GET_CHAR_AFTER.
-	(bcmp_translate):  Likewise.
+	(bcmp_translate): Likewise.
 
 	* search.c (compile_pattern): Check the member target_multibyte,
 	not the member multibyte of buf.
@@ -4271,7 +5196,7 @@
 	The following changes are to make character composition happen
 	automatically on displaying.
 
-	* Makefile.in (lisp, shortlisp): Add composite.elc
+	* Makefile.in (lisp, shortlisp): Add composite.elc.
 
 	* composite.h (Qauto_composed, Vauto_composition_function)
 	(Qauto_composition_function): Extern them.
@@ -4546,7 +5471,7 @@
 	(regex_compile): Setup the compiled pattern for multibyte chars
 	even if the given regex string is unibyte.  Use PATFETCH_RAW
 	instead of PATFETCH in many places.  To handle `charset'
-	specification of unibyte, call HANDLE_UNIBYTE_RANGE.   Use bitmap
+	specification of unibyte, call HANDLE_UNIBYTE_RANGE.  Use bitmap
 	only for ASCII chars.
 	(analyse_first) <exactn>: Simplify because the compiled pattern
 	is multibyte.
@@ -4566,7 +5491,7 @@
 	it to decide the multibyteness of STR1 and STR2.  Use
 	TARGET_CHAR_AND_LENGTH to fetch a character from D.
 	<charset, charset_not>: If multibyte is nonzero, check fastmap
-	only for ASCII chars.   Call bcmp_translate with
+	only for ASCII chars.  Call bcmp_translate with
 	target_multibyte, not with multibyte.
 	<begline>: Declare the local variable C as `unsigned'.
 	(bcmp_translate): Change the last arg name to target_multibyte.
@@ -5260,7 +6185,7 @@
 
 	* category.c (Fmodify_category_entry): Doc fix.  Remove unused vars.
 
-2008-02-01  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* charset.c (Fdefine_charset_internal): Fix argument to bzero.
 
@@ -5387,7 +6312,7 @@
 	* fontset.c (free_realized_fontsets): Call Fclear_face_cache instead
 	of calling free_realized_face.
 
-2008-02-01  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* charset.c (read_hex): Don't treat SPC as a comment starter.
 	(decode_char): If CODE_POINT_TO_INDEX retruns -1, always return -1.
@@ -6018,11 +6943,6 @@
 
 	* coding.c (detect_coding_mask): Fix previous change.
 
-2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
-
-	* process.c (wait_reading_process_output): Check for window
-	changes caused by timers.
-
 2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (detect_coding_iso2022): New arg
@@ -6430,7 +7350,7 @@
 	Rewrite in order to manage registered functions by hash table
 	Vdbus_registered_functions_table.
 
-2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-12-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c: Update URL to Window Manager Specification in comment.
 
@@ -6520,7 +7440,7 @@
 2007-11-23  Markus Triska  <markus.triska@gmx.at>
 
 	* emacs.c (main): Call init_editfns before init_process, since
-	init_process sets Vprocess_connection_type depending on OS release
+	init_process sets Vprocess_connection_type depending on OS release.
 
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6537,7 +7457,7 @@
 	* keymap.c (Fsingle_key_description): Likewise.
 	* print.c (print_object): Likewise.
 
-2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
 	file for image is nil.
@@ -6598,7 +7518,7 @@
 	* fns.c (Fmd5): Use find_symbol_value rather than SYMBOL_VALUE
 	Since we do not want to see internal Lisp_*fwd objects here.
 
-2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sysdep.c (init_system_name): Use getaddrinfo if available.
 
@@ -6802,12 +7722,12 @@
 
 	* s/windows95.h: Remove.
 
-2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
 	abort with a message on unhandled store_type values.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c, xfns.c, xselect.c, xterm.h, s/msdos.h, s/sco4.h, s/sco5.h:
 	Remove HAVE_X11R5 and HAVE_X11R4.
@@ -6816,7 +7736,7 @@
 
 	* Makefile.in: Remove references to sunfns.c and sunfns.o.
 
-2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+2007-11-01  Johan Bockgård  <bojohan@gnu.org>
 
 	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
 	Don't set s->stippled_p here, since it has already been set by
@@ -6824,7 +7744,7 @@
 
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* sunfns.c: Remove file
+	* sunfns.c: Remove file.
 
 	* m/sun386.h:
 	* m/sun2.h:
@@ -6844,7 +7764,7 @@
 	* s/ptx.h:
 	* m/is386.h:
 	* m/ibmps2-aix.h:
-	* Makefile.in: Remove all mentions of X10
+	* Makefile.in: Remove all mentions of X10.
 
 	* dispnew.c (syms_of_display): Don't mention version 10.
 
@@ -7368,7 +8288,7 @@
 
 	* lread.c (Fload): Fix typo in docstring.
 
-2007-10-01  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-10-01  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* floatfns.c (Fexpt): Manually check for overflows, so that a power
 	of a non-zero value can't yield zero.
@@ -7589,7 +8509,7 @@
 
 	* dispextern.h (w32_init_fringe, mac_init_fringe): Declare rif argument.
 
-2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-19  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* coding.c (detect_eol_type, detect_eol_type_in_2_octet_form):
 	Fix a C warning regarding variable constness.
@@ -7600,14 +8520,14 @@
 
 	* w32fns.c (Fx_focus_frame): Rename from Fw32_focus_frame.
 
-2007-09-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (gdpy_def): New variable.
 	(xg_initialize): Initialize gdpy_def.
 	(xg_display_close): If no other display exists, set gdpy_def to a
 	new connection.
 
-2007-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): Always create a GdkPixbuf
 	when we have no file name for the icon.
@@ -7646,7 +8566,7 @@
 
 	* s/hpux.h: No longer define `static' as nothing.
 
-2007-09-13  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+2007-09-13  Johan Bockgård  <bojohan@gnu.org>
 
 	* callint.c (Fcall_interactively): Remove unused var `fun'.
 
@@ -7693,7 +8613,7 @@
 
 	* xterm.c (x_term_init): Give error if can't open DISPLAY_NAME.
 
-2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-10  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* lisp.h (struct Lisp_Subr): Rename `prompt' field to `intspec'.
 	(DEFUN): Document `intspec', use it instead of `prompt'.
@@ -7813,12 +8733,12 @@
 	and resume-tty-function to resume-tty-hook.
 	(Fsuspend_tty, Fresume_tty): Use new names.
 
-2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Handle stock name as a named icon
 	if it starts with "n:".
 
-2007-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Initialize wbutton to NULL.
 
@@ -8005,7 +8925,7 @@
 
 	* term.c (tty_insert_glyphs): Add missing first parameter.
 
-2007-08-29  K,Aa(Broly L$,1 q(Brentey  <karoly@lorentey.hu>
+2007-08-29  Károly Lőrentey  <karoly@lorentey.hu>
 
 	* buffer.c (Fbuffer_list, Fbury_buffer):
 	Take frame->buried_buffer_list into account.
@@ -8323,22 +9243,21 @@
 	(x_term_init) [!HAVE_GTK_MULTIDISPLAY]: Refuse to create secondary
 	X connections.
 
-	* frame.c (Fframep): Deal with output_initial.
-	(Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list, Qtty)
-	(Qtty_type, Qwindow_system, Qenvironment)
-	(Qterm_environment_variable, Qdisplay_environment_variable): New vars.
+	* frame.c: Include termchar.h.
+	(Qterminal, Qterminal_live_p, Qburied_buffer_list, Qtty, Qtty_type)
+	(Qwindow_system, Qenvironment, Qterm_environment_variable)
+	(Qdisplay_environment_variable): New vars.
+	(Fframep): Deal with output_initial.
+	(Fframe-live-p): Doc fix.
+	(Fwindow-system): New function.
 	(x_set_screen_gamma, store_frame_param): Fix compilation errors.
 	(make_terminal_frame): Don't create frames on a terminal that is
-	being deleted.
-	(make_terminal_frame): Use FRAME_BACKGROUND_PIXEL and
-	FRAME_FOREGROUND_PIXEL.
+	being deleted.  Use FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
 	(store_frame_param): Check for found_for_frame before calling XFRAME.
 	(Fmake_terminal_frame): Handle NULL tty names correctly.
 	(syms_of_frame): Enhance doc string of `default-frame-alist'.
-	(Fdelete_frame): Remove unused variable `count'.
-	(Qenvironment): New variable.
-	(Fdelete_frame): Don't allow other frames to refer to a deleted
-	frame in their 'environment parameter.
+	(Fdelete_frame): Remove unused variable `count'.  Don't allow other
+	frames to refer to a deleted frame in their 'environment parameter.
 	(Fframe_with_environment): New function.
 	(syms_of_frame): Defsubr it.  Initialize and staticpro Qenvironment.
 	(get_future_frame_param): New function.
@@ -8455,7 +9374,7 @@
 	(tty_delete_glyphs, tty_ins_del_lines, turn_on_face): Update for
 	renames.
 
-2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Qrtl is new.
 	(parse_tool_bar_item): Handle :rtl keyword.
@@ -8579,7 +9498,7 @@
 
 	* alloc.c (pure): Round PURESIZE up.
 
-2007-08-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Remove check that mouse click is in
 	active frame.
@@ -8597,7 +9516,7 @@
 	* term.c (tty_default_color_capabilities): Declare static
 	variables in file scope, to avoid HPUX compiler problem.
 
-2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use -1 as index
 	to gtk_toolbar_insert.
@@ -8719,7 +9638,7 @@
 	(Fx_selection_owner_p): Don't use get_scrap_private_timestamp.
 	Detect ownership change with OWNERSHIP-INFO in Vselection_alist instead.
 
-2007-08-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_callback): Generate two TOOL_BAR_EVENT:s,
 	add comment explaining why.
@@ -8745,7 +9664,7 @@
 
 	* lread.c (readevalloop, read1): Treat NBSP as whitespace.
 
-2007-07-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gmalloc.c (__malloc_initialize): Remove pthread_once.  Not needed.
 
@@ -8830,9 +9749,9 @@
 
 	* coding.c (Ffind_operation_coding_system):
 	* eval.c (For, Fand): Doc fixes.
-	Reported by Johan Bockg,Ae(Brd.
+	Reported by Johan Bockgård.
 
-2007-07-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-07-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_focus_frame): Call x_ewmh_activate_frame.
 
@@ -9458,7 +10377,7 @@
 	* image.c (uncache_image): New function.
 	(Fimage_refresh): New function.
 
-2007-05-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-05-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in: Move GPM check outside HAVE_X_WINDOWS.
 
@@ -9594,7 +10513,7 @@
 
 	* lread.c (read_escape): In a string, \s is always space.
 
-2007-04-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-04-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (xdialog_show): Call Fredisplay before showing the dialog.
 
@@ -9604,7 +10523,7 @@
 See ChangeLog.10 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 

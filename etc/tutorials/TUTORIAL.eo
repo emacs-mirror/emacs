@@ -533,14 +533,6 @@ sistemo paneos.
    Emakso devas montri la mesaøon "Wrote ...TUTORIAL.eo" (Skribis
    ...TUTORIAL.eo) æe la fundo de la ekrano.
 
-NOTO: Sur iuj sistemoj, C-x C-s senmovigas la ekranon kaj vi vidos
-nenian pluan eligon de Emakso.  Tio indikas ke operaciuma "trajto"
-nomata "fluregulado" (angle "flow control") interkaptis la ordonon C-s
-kaj ne lasas øin trapasi al Emakso.  Por revivigi la ekranon, tajpu
-C-q.  Poste rigardu la sekcion nomatan "Spontaneous Entry to
-Incremental Search" en la Emaksa manlibro por konsilo kion fari pri æi
-tiu "trajto".
-
 Vi povas trovi ekzistantan dosieron, por vidigi aý redakti øin.  Vi
 ankaý povas trovi dosieron kiu ankoraý ne ekzistas.  Æi tio estas la
 maniero por krei dosieron per Emakso: trovu la dosieron, komence

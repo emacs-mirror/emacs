@@ -91,10 +91,6 @@
   (require 'help)
   (require 'button))
 
-;;; Provide some binding for startup:
-;;;###autoload (define-key global-map "\M-o" 'facemenu-keymap)
-;;;###autoload (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
-
 ;; Global bindings:
 (define-key global-map [C-down-mouse-2] 'facemenu-menu)
 (define-key global-map "\M-o" 'facemenu-keymap)
@@ -139,7 +135,7 @@ just before \"Other\" at the end."
     ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
   "*List of faces that are of no interest to the user.")
 (make-obsolete-variable 'facemenu-unlisted-faces 'facemenu-listed-faces
-			"since 22.1,\nand has no effect on the Face menu")
+			"22.1,\n  and has no effect on the Face menu")
 
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
@@ -167,33 +163,27 @@ it will remove any faces not explicitly in the list."
   :group 'facemenu
   :version "22.1")
 
-;;;###autoload
 (defvar facemenu-face-menu
   (let ((map (make-sparse-keymap "Face")))
     (define-key map "o" (cons "Other..." 'facemenu-set-face))
     map)
   "Menu keymap for faces.")
-;;;###autoload
 (defalias 'facemenu-face-menu facemenu-face-menu)
 (put 'facemenu-face-menu 'menu-enable '(facemenu-enable-faces-p))
 
-;;;###autoload
 (defvar facemenu-foreground-menu
   (let ((map (make-sparse-keymap "Foreground Color")))
     (define-key map "o" (cons "Other..." 'facemenu-set-foreground))
     map)
   "Menu keymap for foreground colors.")
-;;;###autoload
 (defalias 'facemenu-foreground-menu facemenu-foreground-menu)
 (put 'facemenu-foreground-menu 'menu-enable '(facemenu-enable-faces-p))
 
-;;;###autoload
 (defvar facemenu-background-menu
   (let ((map (make-sparse-keymap "Background Color")))
     (define-key map "o" (cons "Other..." 'facemenu-set-background))
     map)
   "Menu keymap for background colors.")
-;;;###autoload
 (defalias 'facemenu-background-menu facemenu-background-menu)
 (put 'facemenu-background-menu 'menu-enable '(facemenu-enable-faces-p))
 
@@ -201,7 +191,6 @@ it will remove any faces not explicitly in the list."
 (defun facemenu-enable-faces-p ()
   (not (and font-lock-mode font-lock-defaults)))
 
-;;;###autoload
 (defvar facemenu-special-menu
   (let ((map (make-sparse-keymap "Special")))
     (define-key map [?s] (cons (purecopy "Remove Special")
@@ -214,10 +203,8 @@ it will remove any faces not explicitly in the list."
 			       'facemenu-set-read-only))
     map)
   "Menu keymap for non-face text-properties.")
-;;;###autoload
 (defalias 'facemenu-special-menu facemenu-special-menu)
 
-;;;###autoload
 (defvar facemenu-justification-menu
   (let ((map (make-sparse-keymap "Justification")))
     (define-key map [?c] (cons (purecopy "Center") 'set-justification-center))
@@ -227,10 +214,8 @@ it will remove any faces not explicitly in the list."
     (define-key map [?u] (cons (purecopy "Unfilled") 'set-justification-none))
     map)
   "Submenu for text justification commands.")
-;;;###autoload
 (defalias 'facemenu-justification-menu facemenu-justification-menu)
 
-;;;###autoload
 (defvar facemenu-indentation-menu
   (let ((map (make-sparse-keymap "Indentation")))
     (define-key map [decrease-right-margin]
@@ -243,16 +228,12 @@ it will remove any faces not explicitly in the list."
       (cons (purecopy "Indent More") 'increase-left-margin))
     map)
   "Submenu for indentation commands.")
-;;;###autoload
 (defalias 'facemenu-indentation-menu facemenu-indentation-menu)
 
 ;; This is split up to avoid an overlong line in loaddefs.el.
-;;;###autoload
 (defvar facemenu-menu nil
   "Facemenu top-level menu keymap.")
-;;;###autoload
 (setq facemenu-menu (make-sparse-keymap "Text Properties"))
-;;;###autoload
 (let ((map facemenu-menu))
   (define-key map [dc] (cons (purecopy "Display Colors") 'list-colors-display))
   (define-key map [df] (cons (purecopy "Display Faces") 'list-faces-display))
@@ -263,7 +244,6 @@ it will remove any faces not explicitly in the list."
   (define-key map [rm] (cons (purecopy "Remove Face Properties")
 			     'facemenu-remove-face-props))
   (define-key map [s1] (list (purecopy "--"))))
-;;;###autoload
 (let ((map facemenu-menu))
   (define-key map [in] (cons (purecopy "Indentation")
 			     'facemenu-indentation-menu))
@@ -278,12 +258,12 @@ it will remove any faces not explicitly in the list."
 			     'facemenu-foreground-menu))
   (define-key map [fc] (cons (purecopy "Face")
 			     'facemenu-face-menu)))
-;;;###autoload
 (defalias 'facemenu-menu facemenu-menu)
 
 (defvar facemenu-keymap
   (let ((map (make-sparse-keymap "Set face")))
     (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
+    (define-key map "\M-o" 'font-lock-fontify-block)
     map)
   "Keymap for face-changing commands.
 `Facemenu-update' fills in the keymap according to the bindings
@@ -333,7 +313,6 @@ variables."
   (facemenu-iterate 'facemenu-add-new-face
 		    (facemenu-complete-face-list facemenu-keybindings)))
 
-;;;###autoload
 (defun facemenu-set-face (face &optional start end)
   "Apply FACE to the region or next character typed.
 
@@ -363,7 +342,6 @@ if `facemenu-listed-faces' says to do that."
   (facemenu-add-new-face face)
   (facemenu-add-face face start end))
 
-;;;###autoload
 (defun facemenu-set-foreground (color &optional start end)
   "Set the foreground COLOR of the region or next character typed.
 This command reads the color in the minibuffer.
@@ -386,7 +364,6 @@ typing a character to insert cancels the specification."
    (facemenu-add-new-color color 'facemenu-foreground-menu)
    start end))
 
-;;;###autoload
 (defun facemenu-set-background (color &optional start end)
   "Set the background COLOR of the region or next character typed.
 This command reads the color in the minibuffer.
@@ -409,7 +386,6 @@ typing a character to insert cancels the specification."
    (facemenu-add-new-color color 'facemenu-background-menu)
    start end))
 
-;;;###autoload
 (defun facemenu-set-face-from-menu (face start end)
   "Set the FACE of the region or next character typed.
 This function is designed to be called from a menu; FACE is determined
@@ -441,7 +417,6 @@ to insert cancels the specification."
        face))
    start end))
 
-;;;###autoload
 (defun facemenu-set-invisible (start end)
   "Make the region invisible.
 This sets the `invisible' text property; it can be undone with
@@ -449,7 +424,6 @@ This sets the `invisible' text property; it can be undone with
   (interactive "r")
   (add-text-properties start end '(invisible t)))
 
-;;;###autoload
 (defun facemenu-set-intangible (start end)
   "Make the region intangible: disallow moving into it.
 This sets the `intangible' text property; it can be undone with
@@ -457,7 +431,6 @@ This sets the `intangible' text property; it can be undone with
   (interactive "r")
   (add-text-properties start end '(intangible t)))
 
-;;;###autoload
 (defun facemenu-set-read-only (start end)
   "Make the region unmodifiable.
 This sets the `read-only' text property; it can be undone with
@@ -465,7 +438,6 @@ This sets the `read-only' text property; it can be undone with
   (interactive "r")
   (add-text-properties start end '(read-only t)))
 
-;;;###autoload
 (defun facemenu-remove-face-props (start end)
   "Remove `face' and `mouse-face' text properties."
   (interactive "*r") ; error if buffer is read-only despite the next line.
@@ -473,14 +445,12 @@ This sets the `read-only' text property; it can be undone with
     (remove-text-properties
      start end '(face nil mouse-face nil))))
 
-;;;###autoload
 (defun facemenu-remove-all (start end)
   "Remove all text properties from the region."
   (interactive "*r") ; error if buffer is read-only despite the next line.
   (let ((inhibit-read-only t))
     (set-text-properties start end nil)))
 
-;;;###autoload
 (defun facemenu-remove-special (start end)
   "Remove all the \"special\" text properties from the region.
 These special properties include `invisible', `intangible' and `read-only'."
@@ -489,7 +459,6 @@ These special properties include `invisible', `intangible' and `read-only'."
     (remove-text-properties
      start end '(invisible nil intangible nil read-only nil))))
 
-;;;###autoload
 (defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
   (let* ((completion-ignore-case t)
@@ -501,7 +470,6 @@ These special properties include `invisible', `intangible' and `read-only'."
 	nil
       col)))
 
-;;;###autoload
 (defun list-colors-display (&optional list buffer-name)
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
@@ -796,5 +764,5 @@ Returns the non-nil value it found, or nil if all were nil."
 
 (provide 'facemenu)
 
-;;; arch-tag: 85f6d02b-9085-420e-b651-0678f0e9c7eb
+;; arch-tag: 85f6d02b-9085-420e-b651-0678f0e9c7eb
 ;;; facemenu.el ends here

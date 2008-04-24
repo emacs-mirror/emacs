@@ -1773,7 +1773,7 @@ If END is omitted, it defaults to the length of LIST."
   "An embedded link."
   :button-prefix 'widget-link-prefix
   :button-suffix 'widget-link-suffix
-  :follow-link "\C-m"
+  :follow-link 'mouse-face
   :help-echo "Follow the link."
   :format "%[%t%]")
 
@@ -3799,5 +3799,5 @@ example:
 
 (provide 'wid-edit)
 
-;;; arch-tag: a076e75e-18a1-4b46-8be5-3f317bcbc707
+;; arch-tag: a076e75e-18a1-4b46-8be5-3f317bcbc707
 ;;; wid-edit.el ends here

@@ -12,8 +12,8 @@
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2007-09-25
-@set UPDATE-MONTH September, 2007
+@set UPDATED 2008-03-16
+@set UPDATE-MONTH March, 2008
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -218,7 +218,8 @@ The MH-E package is distributed with GNU Emacs@footnote{Version
 in GNU Emacs 21, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
-shouldn't have to do anything special to use it. This manual covers
+shouldn't have to do anything special to use it. Gnus is also
+required; version 5.10 or higher is recommended. This manual covers
 MH-E version @value{VERSION}. To help you decide which version you
 have, see @ref{Getting Started}.
 
@@ -2078,8 +2079,9 @@ would like to hide that aren't listed can be added to the option
 expressions are not allowed. Unique fields should have a @samp{:}
 suffix; otherwise, the element can be used to render invisible an
 entire class of fields that start with the same prefix. If you think a
-header field should be generally ignored, report a bug (@pxref{Bug
-Reports}).
+header field should be generally ignored, please update
+@uref{https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357,
+SF #1916032}.
 
 @cindex header field, @samp{Face:}
 @cindex header field, @samp{X-Face:}
@@ -4211,13 +4213,15 @@ hook @code{mh-forward-hook} is called on the draft.
 
 By default, the option @code{mh-compose-forward-as-mime-flag} is on
 which means that the forwarded messages are included as attachments.
-If you would prefer to forward your messages verbatim (as text,
-inline), then turn off this option. Forwarding messages verbatim works
-well for short, textual messages, but your recipient won't be able to
-view any non-textual attachments that were in the forwarded message.
-Be aware that if you have @samp{forw: -mime} in your MH profile, then
-forwarded messages will always be included as attachments regardless
-of the settings of @code{mh-compose-forward-as-mime-flag}.
+These are inline attachments so the forwarded message should appear in
+the body of your recipient's mail program. If you would prefer to
+forward your messages verbatim (as text, inline), then turn off this
+option. Forwarding messages verbatim works well for short, textual
+messages, but your recipient won't be able to view any non-textual
+attachments that were in the forwarded message. Be aware that if you
+have @samp{forw: -mime} in your MH profile, then forwarded messages
+will always be included as attachments regardless of the settings of
+@code{mh-compose-forward-as-mime-flag}.
 
 @vindex mh-forward-subject-format
 

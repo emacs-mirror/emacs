@@ -909,7 +909,7 @@ If global mark is active, copy from register or one character."
 	  (cua--insert-at-global-mark (filter-buffer-substring (point) (+ (point) count)))
 	  (forward-char count))))
      (buffer-read-only
-      (message "Cannot paste into a read-only buffer"))
+      (error "Cannot paste into a read-only buffer"))
      (t
       ;; Must save register here, since delete may override reg 0.
       (if mark-active
@@ -1579,12 +1579,14 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 	  (list
 	   transient-mark-mode
 	   (and (boundp 'delete-selection-mode) delete-selection-mode)
-	   (and (boundp 'pc-selection-mode) pc-selection-mode)))
+	   (and (boundp 'pc-selection-mode) pc-selection-mode)
+	   shift-select-mode))
     (if (and (boundp 'delete-selection-mode) delete-selection-mode)
 	(delete-selection-mode -1))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
 	(pc-selection-mode -1))
     (cua--deactivate)
+    (setq shift-select-mode nil)
     (setq transient-mark-mode (and cua-mode
 				   (if cua-highlight-region-shift-only
 				       (not cua--explicit-region-start)
@@ -1595,6 +1597,7 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 	(delete-selection-mode 1))
     (if (nth 2 cua--saved-state)
 	(pc-selection-mode 1))
+    (setq shift-select-mode (nth 3 cua--saved-state))
     (if (interactive-p)
 	(message "CUA mode disabled.%s%s%s%s"
 		 (if (nth 1 cua--saved-state) " Delete-Selection" "")
@@ -1620,5 +1623,5 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 
 (provide 'cua-base)
 
-;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
+;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here

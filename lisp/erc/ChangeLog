@@ -1,3 +1,8 @@
+2008-04-14  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-remove-text-properties-region): Disable this command
+	by default.  Thanks to e1f for the suggestion.
+
 2008-02-20  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-notice-face): Fix this face for Emacs 21 users.

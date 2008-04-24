@@ -546,5 +546,5 @@ TYPE dictates what will be inserted, options are:
 
 (provide 'quickurl)
 
-;;; arch-tag: a8183ea5-80c2-4082-a7d1-b0fdf2da467e
+;; arch-tag: a8183ea5-80c2-4082-a7d1-b0fdf2da467e
 ;;; quickurl.el ends here

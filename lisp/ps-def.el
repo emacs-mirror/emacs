@@ -178,17 +178,8 @@
 
   ;; Return t if the device (which can be changed during an emacs session)
   ;; can handle colors.
-  ;; XEmacs change: Need to check for emacs-major-version too.
-  (if (or (> emacs-major-version 19)
-	  (and (= emacs-major-version 19)
-	       (>= emacs-minor-version 12)))
-      ;; xemacs >= 19.12
-      (defun ps-color-device ()
-	(eq (device-class) 'color))
-    ;; xemacs < 19.12
-    (setq ps-print-color-p nil)
-    (defalias 'ps-color-device 'ignore))
-
+  (defun ps-color-device ()
+    (eq (device-class) 'color))
 
   (defun ps-mapper (extent list)
     (nconc list

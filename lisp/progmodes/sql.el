@@ -2991,5 +2991,5 @@ parameters and command options."
 
 (provide 'sql)
 
-;;; arch-tag: 7e1fa1c4-9ca2-402e-87d2-83a5eccb7ac3
+;; arch-tag: 7e1fa1c4-9ca2-402e-87d2-83a5eccb7ac3
 ;;; sql.el ends here

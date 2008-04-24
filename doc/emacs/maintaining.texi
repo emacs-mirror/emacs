@@ -12,7 +12,7 @@ also particularly useful for this purpose.
 @menu
 * Change Log::	        Maintaining a change history for your program.
 * Format of ChangeLog:: What the change log file looks like.
-* Tags::	        Go direct to any function in your program in one
+* Tags::	        Go directly to any function in your program in one
 			  command.  Tags remembers which file it is in.
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.

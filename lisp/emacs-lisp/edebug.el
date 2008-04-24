@@ -4478,5 +4478,5 @@ With prefix argument, make it a temporary breakpoint."
 
 (provide 'edebug)
 
-;;; arch-tag: 19c8d05c-4554-426e-ac72-e0fa1fcb0808
+;; arch-tag: 19c8d05c-4554-426e-ac72-e0fa1fcb0808
 ;;; edebug.el ends here

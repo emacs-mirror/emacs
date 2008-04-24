@@ -2501,6 +2501,7 @@ The value nil is the same as this list:
     ("etc/images/search" . "gtk-find")
     ("etc/images/exit" . "gtk-quit")
     ("etc/images/cancel" . "gtk-cancel")
+    ("etc/images/info" . "gtk-info")
     ("etc/images/bookmark_add" . "n:bookmark_add")
     ;; Used in Gnus and/or MH-E:
     ("etc/images/attach" . "gtk-attach")

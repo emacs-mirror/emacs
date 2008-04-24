@@ -619,5 +619,5 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 
 (provide 'gametree)
 
-;;; arch-tag: aaa30943-9ae4-4cc1-813d-a46f96b7e4f1
+;; arch-tag: aaa30943-9ae4-4cc1-813d-a46f96b7e4f1
 ;;; gametree.el ends here

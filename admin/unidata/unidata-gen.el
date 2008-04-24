@@ -40,8 +40,11 @@
 ;;	(name, generic-category, etc), and FILE is a name of one of
 ;;	the following files.
 ;;
-;;   uni-name.el, uni-cat.el, uni-comb.el, uni-bidi.el
-;;	It contains a single form of this format:
+;;   uni-name.el, uni-category.el, uni-combining.el, uni-bidi.el,
+;;   uni-decomposition.el, uni-decimal.el, uni-digit.el, uni-numeric.el,
+;;   uni-mirrored.el, uni-old-name.el, uni-comment.el, uni-uppercase.el,
+;;   uni-lowercase.el, uni-titlecase.el
+;;	They each contain a single form of this format:
 ;;	  (char-code-property-register PROP CHAR-TABLE)
 ;;	where PROP is the same as above, and CHAR-TABLE is a
 ;;	char-table containing property values in a compressed format.
@@ -180,7 +183,7 @@ Property value is an integer.")
     (numeric-value
      8 unidata-gen-table-symbol "uni-numeric.el"
      "Unicode numeric value (numeric).
-Property value is an symbol.")
+Property value is a symbol.")
     (mirrored
      9 unidata-gen-table-symbol "uni-mirrored.el"
      "Unicode bidi mirrored flag.
@@ -255,7 +258,7 @@ Property value is a character."
 (defun unidata-put-character (char val table)
   (or (characterp val)
       (not val)
-      (error "Not an character nor nil: %S" val))
+      (error "Not a character nor nil: %S" val))
   (let ((current-val (aref table char)))
     (unless (eq current-val val)
       (if (stringp current-val)
@@ -364,7 +367,7 @@ Property value is a character."
 	     this-val))
 	  ((> val 0)
 	   (aref val-table (1- val))))))
-	
+
 ;; Return a integer-type character property value of CHAR.  VAL is the
 ;; current value of (aref TABLE CHAR).
 
@@ -492,7 +495,7 @@ Property value is a character."
 	      (set-char-table-range table (cons start limit) str))))))
 
     (setq val-list (nreverse (cdr val-list)))
-    (set-char-table-extra-slot table 0 prop) 
+    (set-char-table-extra-slot table 0 prop)
     (set-char-table-extra-slot table 4 (vconcat (mapcar 'car val-list)))
     table))
 
@@ -556,7 +559,7 @@ Property value is a character."
       (while (and l1 (eq (car l1) (car l2)))
 	(setq beg (1+ beg)
 	      l1 (cdr l1) len1 (1- len1) l2 (cdr l2) len2 (1- len2)))
-      (while (and (< end len1) (< end len2) 
+      (while (and (< end len1) (< end len2)
 		  (eq (nth (- len1 end 1) l1) (nth (- len2 end 1) l2)))
 	(setq end (1+ end))))
     (if (= (+ beg end) 0)
@@ -628,7 +631,7 @@ Property value is a character."
 ;; CHAR).
 
 (defun unidata-get-name (char val table)
-  (cond 
+  (cond
    ((stringp val)
     (if (> (aref val 0) 0)
 	val
@@ -659,7 +662,7 @@ Property value is a character."
 			(setq word-list (nconc word-list (list (car l)))
 			      l (cdr l))))))
 	    (setq word-list
-		  (nconc word-list 
+		  (nconc word-list
 			 (list (symbol-name
 				(unidata-decode-word c word-table))))
 		  i (1+ i))))
@@ -698,7 +701,7 @@ Property value is a character."
 		     (V (/ (% char 588) 28))
 		     ;; TIndex = SIndex % TCount
 		     (T (% char 28)))
-		 (format "HANGUL SYLLABLE %s%s%s" 
+		 (format "HANGUL SYLLABLE %s%s%s"
 			 ;; U+110B is nil in this table.
 			 (or (aref (aref jamo-name-table 0) L) "")
 			 (aref (aref jamo-name-table 1) V)
@@ -754,7 +757,7 @@ Property value is a character."
 			(setq word-list (nconc word-list (list (car l)))
 			      l (cdr l))))))
 	    (setq word-list
-		  (nconc word-list 
+		  (nconc word-list
 			 (list (or (unidata-decode-word c word-table) c)))
 		  i (1+ i))))
 	(if (or word-list tail-list)
@@ -933,7 +936,7 @@ Property value is a character."
 	  (if (= c 32)
 	      (setq l (cons (intern (substring str idx i)) l)
 		    idx (1+ i))
-	    (if (and (= c ?-) (< idx i) 
+	    (if (and (= c ?-) (< idx i)
 		     (< (1+ i) len) (/= (aref str (1+ i)) 32))
 		(setq l (cons '- (cons (intern (substring str idx i)) l))
 		      idx (1+ i)))))
@@ -985,7 +988,7 @@ Property value is a character."
     (byte-compile 'unidata-put-decomposition)
     (set-char-table-extra-slot table 1
 			       (symbol-function 'unidata-get-decomposition))
-    (set-char-table-extra-slot table 2 
+    (set-char-table-extra-slot table 2
 			       (symbol-function 'unidata-put-decomposition))
     (set-char-table-extra-slot table 4 (car word-tables))
     table))
@@ -1088,7 +1091,7 @@ Property value is a character."
     (let* ((prop (car elt))
 	   (index (unidata-prop-index prop))
 	   (generator (unidata-prop-generator prop))
-	   (table (progn 
+	   (table (progn
 		    (message "Generating %S table..." prop)
 		    (funcall generator prop)))
 	   (decoder (char-table-extra-slot table 1))
@@ -1114,7 +1117,7 @@ Property value is a character."
 	      (message "%S %04X" prop check)
 	      (setq check (+ check #x400)))
 	    (or (equal val1 val2)
-		(insert (format "> %04X %S\n< %04X %S\n" 
+		(insert (format "> %04X %S\n< %04X %S\n"
 				char val1 char val2)))
 	    (sit-for 0)))))))
 

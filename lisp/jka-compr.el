@@ -382,137 +382,137 @@ There should be no more than seven characters after the final `/'."
   (let* ((filename (expand-file-name file))
 	 (info (jka-compr-get-compression-info filename)))
 
-    (if info
+    (if (not info)
 
-	(let ((uncompress-message (jka-compr-info-uncompress-message info))
-	      (uncompress-program (jka-compr-info-uncompress-program info))
-	      (uncompress-args (jka-compr-info-uncompress-args info))
-	      (base-name (file-name-nondirectory filename))
-	      (notfound nil)
-	      (local-copy
-	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
-	      local-file
-	      size start)
+	(jka-compr-run-real-handler 'insert-file-contents
+                                    (list file visit beg end replace))
 
-	  (setq local-file (or local-copy filename))
+      (let ((uncompress-message (jka-compr-info-uncompress-message info))
+            (uncompress-program (jka-compr-info-uncompress-program info))
+            (uncompress-args (jka-compr-info-uncompress-args info))
+            (base-name (file-name-nondirectory filename))
+            (notfound nil)
+            (local-copy
+             (jka-compr-run-real-handler 'file-local-copy (list filename)))
+            local-file
+            size start)
 
-	  (and
-	   visit
-	   (setq buffer-file-name filename))
+        (setq local-file (or local-copy filename))
 
-	  (unwind-protect		; to make sure local-copy gets deleted
+        (and
+         visit
+         (setq buffer-file-name filename))
 
-	      (progn
+        (unwind-protect               ; to make sure local-copy gets deleted
 
-		(and
-		 uncompress-message
-		 (message "%s %s..." uncompress-message base-name))
+            (progn
 
-		(condition-case error-code
+              (and
+               uncompress-message
+               (message "%s %s..." uncompress-message base-name))
 
-		    (let ((coding-system-for-read 'no-conversion))
-		      (if replace
-			  (goto-char (point-min)))
-		      (setq start (point))
-		      (if (or beg end)
-			  (jka-compr-partial-uncompress uncompress-program
-							(concat uncompress-message
-								" " base-name)
-							uncompress-args
-							local-file
-							(or beg 0)
-							(if (and beg end)
-							    (- end beg)
-							  end))
-			;; If visiting, bind off buffer-file-name so that
-			;; file-locking will not ask whether we should
-			;; really edit the buffer.
-			(let ((buffer-file-name
-			       (if visit nil buffer-file-name)))
-			  (jka-compr-call-process uncompress-program
-						  (concat uncompress-message
-							  " " base-name)
-						  local-file
-						  t
-						  nil
-						  uncompress-args)))
-		      (setq size (- (point) start))
-		      (if replace
-			  (delete-region (point) (point-max)))
-		      (goto-char start))
-		  (error
-		   ;; If the file we wanted to uncompress does not exist,
-		   ;; handle that according to VISIT as `insert-file-contents'
-		   ;; would, maybe signaling the same error it normally would.
-		   (if (and (eq (car error-code) 'file-error)
-			    (eq (nth 3 error-code) local-file))
-		       (if visit
-			   (setq notfound error-code)
-			 (signal 'file-error
-				 (cons "Opening input file"
-				       (nthcdr 2 error-code))))
-		     ;; If the uncompression program can't be found,
-		     ;; signal that as a non-file error
-		     ;; so that find-file-noselect-1 won't handle it.
-		     (if (and (eq (car error-code) 'file-error)
-			      (equal (cadr error-code) "Searching for program"))
-			 (error "Uncompression program `%s' not found"
-				(nth 3 error-code)))
-		     (signal (car error-code) (cdr error-code))))))
+              (condition-case error-code
 
-	    (and
-	     local-copy
-	     (file-exists-p local-copy)
-	     (delete-file local-copy)))
+                  (let ((coding-system-for-read 'no-conversion))
+                    (if replace
+                        (goto-char (point-min)))
+                    (setq start (point))
+                    (if (or beg end)
+                        (jka-compr-partial-uncompress uncompress-program
+                                                      (concat uncompress-message
+                                                              " " base-name)
+                                                      uncompress-args
+                                                      local-file
+                                                      (or beg 0)
+                                                      (if (and beg end)
+                                                          (- end beg)
+                                                        end))
+                      ;; If visiting, bind off buffer-file-name so that
+                      ;; file-locking will not ask whether we should
+                      ;; really edit the buffer.
+                      (let ((buffer-file-name
+                             (if visit nil buffer-file-name)))
+                        (jka-compr-call-process uncompress-program
+                                                (concat uncompress-message
+                                                        " " base-name)
+                                                local-file
+                                                t
+                                                nil
+                                                uncompress-args)))
+                    (setq size (- (point) start))
+                    (if replace
+                        (delete-region (point) (point-max)))
+                    (goto-char start))
+                (error
+                 ;; If the file we wanted to uncompress does not exist,
+                 ;; handle that according to VISIT as `insert-file-contents'
+                 ;; would, maybe signaling the same error it normally would.
+                 (if (and (eq (car error-code) 'file-error)
+                          (eq (nth 3 error-code) local-file))
+                     (if visit
+                         (setq notfound error-code)
+                       (signal 'file-error
+                               (cons "Opening input file"
+                                     (nthcdr 2 error-code))))
+                   ;; If the uncompression program can't be found,
+                   ;; signal that as a non-file error
+                   ;; so that find-file-noselect-1 won't handle it.
+                   (if (and (eq (car error-code) 'file-error)
+                            (equal (cadr error-code) "Searching for program"))
+                       (error "Uncompression program `%s' not found"
+                              (nth 3 error-code)))
+                   (signal (car error-code) (cdr error-code))))))
 
-	  (unless notfound
-	    (decode-coding-inserted-region
-	     (point) (+ (point) size)
-	     (jka-compr-byte-compiler-base-file-name file)
-	     visit beg end replace))
+          (and
+           local-copy
+           (file-exists-p local-copy)
+           (delete-file local-copy)))
 
-	  (and
-	   visit
-	   (progn
-	     (unlock-buffer)
-	     (setq buffer-file-name filename)
-	     (setq jka-compr-really-do-compress t)
-	     (set-visited-file-modtime)))
+        (unless notfound
+          (decode-coding-inserted-region
+           (point) (+ (point) size)
+           (jka-compr-byte-compiler-base-file-name file)
+           visit beg end replace))
 
-	  (and
-	   uncompress-message
-	   (message "%s %s...done" uncompress-message base-name))
+        (and
+         visit
+         (progn
+           (unlock-buffer)
+           (setq buffer-file-name filename)
+           (setq jka-compr-really-do-compress t)
+           (set-visited-file-modtime)))
 
-	  (and
-	   visit
-	   notfound
-	   (signal 'file-error
-		   (cons "Opening input file" (nth 2 notfound))))
+        (and
+         uncompress-message
+         (message "%s %s...done" uncompress-message base-name))
 
-	  ;; This is done in insert-file-contents after we return.
-	  ;; That is a little weird, but better to go along with it now
-	  ;; than to change it now.
+        (and
+         visit
+         notfound
+         (signal 'file-error
+                 (cons "Opening input file" (nth 2 notfound))))
 
-;;;	  ;; Run the functions that insert-file-contents would.
-;;; 	  (let ((p after-insert-file-functions)
-;;; 		(insval size))
-;;; 	    (while p
-;;; 	      (setq insval (funcall (car p) size))
-;;; 	      (if insval
-;;; 		  (progn
-;;; 		    (or (integerp insval)
-;;; 			(signal 'wrong-type-argument
-;;; 				(list 'integerp insval)))
-;;; 		    (setq size insval)))
-;;; 	      (setq p (cdr p))))
+        ;; This is done in insert-file-contents after we return.
+        ;; That is a little weird, but better to go along with it now
+        ;; than to change it now.
 
-          (or (jka-compr-info-compress-program info)
-              (message "You can't save this buffer because compression program is not defined"))
+        ;; ;; Run the functions that insert-file-contents would.
+        ;; (let ((p after-insert-file-functions)
+        ;;       (insval size))
+        ;;   (while p
+        ;;     (setq insval (funcall (car p) size))
+        ;;     (if insval
+        ;;         (progn
+        ;;           (or (integerp insval)
+        ;;       	(signal 'wrong-type-argument
+        ;;       		(list 'integerp insval)))
+        ;;           (setq size insval)))
+        ;;     (setq p (cdr p))))
 
-	  (list filename size))
+        (or (jka-compr-info-compress-program info)
+            (message "You can't save this buffer because compression program is not defined"))
 
-      (jka-compr-run-real-handler 'insert-file-contents
-				  (list file visit beg end replace)))))
+        (list filename size)))))
 
 
 (defun jka-compr-file-local-copy (file)

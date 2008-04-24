@@ -407,6 +407,62 @@ according to `smerge-match-conflict'.")
 	(smerge-remove-props (or beg (point-min)) (or end (point-max)))
 	(push event unread-command-events)))))
 
+(defun smerge-apply-resolution-patch (buf m0b m0e m3b m3e &optional m2b)
+  "Replace the conflict with a bunch of subconflicts.
+BUF contains a plain diff between match-1 and match-3."
+  (let ((line 1)
+        (textbuf (current-buffer))
+        (name1 (progn (goto-char m0b)
+                      (buffer-substring (+ (point) 8) (line-end-position))))
+        (name2 (when m2b (goto-char m2b) (forward-line -1)
+                     (buffer-substring (+ (point) 8) (line-end-position))))
+        (name3 (progn (goto-char m0e) (forward-line -1)
+                      (buffer-substring (+ (point) 8) (line-end-position)))))
+    (smerge-remove-props m0b m0e)
+    (delete-region m3e m0e)
+    (delete-region m0b m3b)
+    (setq m3b m0b)
+    (setq m3e (- m3e (- m3b m0b)))
+    (goto-char m3b)
+    (with-current-buffer buf
+      (goto-char (point-min))
+      (while (not (eobp))
+        (if (not (looking-at "\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?\\([acd]\\)\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?$"))
+            (error "Unexpected patch hunk header: %s"
+                   (buffer-substring (point) (line-end-position)))
+          (let* ((op (char-after (match-beginning 3)))
+                 (startline (+ (string-to-number (match-string 1))
+                               ;; No clue why this is the way it is, but line
+                               ;; numbers seem to be off-by-one for `a' ops.
+                               (if (eq op ?a) 1 0)))
+                 (endline (if (eq op ?a) startline
+                            (1+ (if (match-end 2)
+                                    (string-to-number (match-string 2))
+                                  startline))))
+                 (lines (- endline startline))
+                 (otherlines (cond
+                              ((eq op ?d) nil)
+                              ((null (match-end 5)) 1)
+                              (t (- (string-to-number (match-string 5))
+                                    (string-to-number (match-string 4)) -1))))
+                 othertext)
+            (forward-line 1)                             ;Skip header.
+            (forward-line lines)                         ;Skip deleted text.
+            (if (eq op ?c) (forward-line 1))             ;Skip separator.
+            (setq othertext
+                  (if (null otherlines) ""
+                    (let ((pos (point)))
+                      (dotimes (i otherlines) (delete-char 2) (forward-line 1))
+                      (buffer-substring pos (point)))))
+            (with-current-buffer textbuf
+              (forward-line (- startline line))
+              (insert "<<<<<<< " name1 "\n" othertext
+                      (if name2 (concat "||||||| " name2 "\n"))
+                      "=======\n")
+              (forward-line lines)
+              (insert ">>>>>>> " name3 "\n")
+              (setq line endline))))))))
+
 (defun smerge-resolve (&optional safe)
   "Resolve the conflict at point intelligently.
 This relies on mode-specific knowledge and thus only works in
@@ -414,33 +470,107 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   (smerge-remove-props (match-beginning 0) (match-end 0))
-  (cond
-   ;; Trivial diff3 -A non-conflicts.
-   ((and (eq (match-end 1) (match-end 3))
-	 (eq (match-beginning 1) (match-beginning 3)))
-    (smerge-keep-n 3))
-   ;; Mode-specific conflict resolution.
-   ((condition-case nil
-        (atomic-change-group
-          (if safe
-              (funcall smerge-resolve-function safe)
-            (funcall smerge-resolve-function))
-          t)
-      (error nil))
-    ;; Nothing to do: the resolution function has done it already.
-    nil)
-   ;; FIXME: Add "if [ diff -b MINE OTHER ]; then select OTHER; fi"
-   ((and (match-end 2)
-	 ;; FIXME: Add "diff -b BASE MINE | patch OTHER".
-	 ;; FIXME: Add "diff -b BASE OTHER | patch MINE".
-	 nil)
-    )
-   ((and (not (match-end 2))
-	 ;; FIXME: Add "diff -b"-based refinement.
-	 nil)
-    )
-   (t
-    (error "Don't know how to resolve")))
+  (let ((md (match-data))
+	(m0b (match-beginning 0))
+	(m1b (match-beginning 1))
+	(m2b (match-beginning 2))
+	(m3b (match-beginning 3))
+	(m0e (match-end 0))
+	(m1e (match-end 1))
+	(m2e (match-end 2))
+	(m3e (match-end 3))
+	(buf (generate-new-buffer " *smerge*"))
+        m b o)
+    (unwind-protect
+	(progn
+          (cond
+           ;; Trivial diff3 -A non-conflicts.
+           ((and (eq (match-end 1) (match-end 3))
+                 (eq (match-beginning 1) (match-beginning 3)))
+            (smerge-keep-n 3))
+           ;; Mode-specific conflict resolution.
+           ((condition-case nil
+                (atomic-change-group
+                  (if safe
+                      (funcall smerge-resolve-function safe)
+                    (funcall smerge-resolve-function))
+                  t)
+              (error nil))
+            ;; Nothing to do: the resolution function has done it already.
+            nil)
+           ;; Non-conflict.
+	   ((and (eq m1e m3e) (eq m1b m3b))
+	    (set-match-data md) (smerge-keep-n 3))
+           ;; Refine a 2-way conflict using "diff -b".
+           ;; In case of a 3-way conflict with an empty base
+           ;; (i.e. 2 conflicting additions), we do the same, presuming
+           ;; that the 2 additions should be somehow merged rather
+           ;; than concatenated.
+	   ((let ((lines (count-lines m3b m3e)))
+              (setq m (make-temp-file "smm"))
+              (write-region m1b m1e m nil 'silent)
+              (setq o (make-temp-file "smo"))
+              (write-region m3b m3e o nil 'silent)
+              (not (or (eq m1b m1e) (eq m3b m3e)
+                       (and (not (zerop (call-process diff-command
+                                                      nil buf nil "-b" o m)))
+                            ;; TODO: We don't know how to do the refinement
+                            ;; if there's a non-empty ancestor and m1 and m3
+                            ;; aren't just plain equal.
+                            m2b (not (eq m2b m2e)))
+                       (with-current-buffer buf
+                         (goto-char (point-min))
+                         ;; Make sure there's some refinement.
+                         (looking-at
+                          (concat "1," (number-to-string lines) "c"))))))
+            (smerge-apply-resolution-patch buf m0b m0e m3b m3e m2b))
+	   ;; "Mere whitespace changes" conflicts.
+           ((when m2e
+              (setq b (make-temp-file "smb"))
+              (write-region m2b m2e b nil 'silent)
+              (with-current-buffer buf (erase-buffer))
+              ;; Only minor whitespace changes made locally.
+              ;; BEWARE: pass "-c" 'cause the output is reused in the next test.
+              (zerop (call-process diff-command nil buf nil "-bc" b m)))
+            (set-match-data md)
+	    (smerge-keep-n 3))
+	   ;; Try "diff -b BASE MINE | patch OTHER".
+	   ((when (and (not safe) m2e b
+                       ;; If the BASE is empty, this would just concatenate
+                       ;; the two, which is rarely right.
+                       (not (eq m2b m2e)))
+              ;; BEWARE: we're using here the patch of the previous test.
+	      (with-current-buffer buf
+		(zerop (call-process-region
+			(point-min) (point-max) "patch" t nil nil
+			"-r" "/dev/null" "--no-backup-if-mismatch"
+			"-fl" o))))
+	    (save-restriction
+	      (narrow-to-region m0b m0e)
+              (smerge-remove-props m0b m0e)
+	      (insert-file-contents o nil nil nil t)))
+	   ;; Try "diff -b BASE OTHER | patch MINE".
+	   ((when (and (not safe) m2e b
+                       ;; If the BASE is empty, this would just concatenate
+                       ;; the two, which is rarely right.
+                       (not (eq m2b m2e)))
+	      (write-region m3b m3e o nil 'silent)
+	      (call-process diff-command nil buf nil "-bc" b o)
+	      (with-current-buffer buf
+		(zerop (call-process-region
+			(point-min) (point-max) "patch" t nil nil
+			"-r" "/dev/null" "--no-backup-if-mismatch"
+			"-fl" m))))
+	    (save-restriction
+	      (narrow-to-region m0b m0e)
+              (smerge-remove-props m0b m0e)
+	      (insert-file-contents m nil nil nil t)))
+           (t
+            (error "Don't know how to resolve"))))
+      (if (buffer-name buf) (kill-buffer buf))
+      (if m (delete-file m))
+      (if b (delete-file b))
+      (if o (delete-file o))))
   (smerge-auto-leave))
 
 (defun smerge-resolve-all ()
@@ -864,18 +994,39 @@ replace chars to try and eliminate some spurious differences."
       (delete-file file1)
       (delete-file file2))))
 
-(defun smerge-refine ()
-  "Highlight the parts of the conflict that are different."
-  (interactive)
-  ;; FIXME: make it work with 3-way conflicts.
+(defun smerge-refine (&optional part)
+  "Highlight the words of the conflict that are different.
+For 3-way conflicts, highlights only 2 of the 3 parts.
+A numeric argument PART can be used to specify which 2 parts;
+repeating the command will highlight other 2 parts."
+  (interactive
+   (if (integerp current-prefix-arg) (list current-prefix-arg)
+     (smerge-match-conflict)
+     (let* ((prop (get-text-property (match-beginning 0) 'smerge-refine-part))
+            (part (if (and (consp prop)
+                           (eq (buffer-chars-modified-tick) (car prop)))
+                      (cdr prop))))
+       ;; If already highlighted, cycle.
+       (list (if (integerp part) (1+ (mod part 3)))))))
+
+  (if (and (integerp part) (or (< part 1) (> part 3)))
+      (error "No conflict part nb %s" part))
   (smerge-match-conflict)
   (remove-overlays (match-beginning 0) (match-end 0) 'smerge 'refine)
-  (smerge-ensure-match 1)
-  (smerge-ensure-match 3)
-  ;; Match 1 and 3 may be one and the same in case of trivial diff3 -A conflict.
-  (let ((n1 (if (eq (match-end 1) (match-end 3)) 2 1)))
+  ;; Ignore `part' if not applicable, and default it if not provided.
+  (setq part (cond ((null (match-end 2)) 2)
+                   ((eq (match-end 1) (match-end 3)) 1)
+                   ((integerp part) part)
+                   (t 2)))
+  (let ((n1 (if (eq part 1) 2 1))
+        (n2 (if (eq part 3) 2 3)))
+    (smerge-ensure-match n1)
+    (smerge-ensure-match n2)
+    (put-text-property (match-beginning 0) (1+ (match-beginning 0))
+                       'smerge-refine-part
+                       (cons (buffer-chars-modified-tick) part))
     (smerge-refine-subst (match-beginning n1) (match-end n1)
-                         (match-beginning 3)  (match-end 3)
+                         (match-beginning n2)  (match-end n2)
                          '((smerge . refine)
                            (face . smerge-refined-change)))))
 

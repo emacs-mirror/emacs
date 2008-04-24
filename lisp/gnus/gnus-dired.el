@@ -258,5 +258,5 @@ file to save in."
 
 (provide 'gnus-dired)
 
-;;; arch-tag: 44737731-e445-4638-a31e-713c7590ec76
+;; arch-tag: 44737731-e445-4638-a31e-713c7590ec76
 ;;; gnus-dired.el ends here

@@ -358,5 +358,5 @@ It is a function which takes two arguments, the directory and its parent."
 
 (provide 'find-lisp)
 
-;;; arch-tag: a711374c-f12a-46f6-aa18-ba7d77b9602a
+;; arch-tag: a711374c-f12a-46f6-aa18-ba7d77b9602a
 ;;; find-lisp.el ends here

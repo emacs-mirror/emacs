@@ -148,5 +148,5 @@
 
 (provide 'bruce)
 
-;;; arch-tag: b83ded51-4ccb-41ef-8bd6-3b521e81dd9b
+;; arch-tag: b83ded51-4ccb-41ef-8bd6-3b521e81dd9b
 ;;; bruce.el ends here

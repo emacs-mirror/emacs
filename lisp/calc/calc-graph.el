@@ -1499,5 +1499,5 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 
 (provide 'calc-graph)
 
-;;; arch-tag: e4b06a52-c386-4d54-a2bb-7c0a0ef533c2
+;; arch-tag: e4b06a52-c386-4d54-a2bb-7c0a0ef533c2
 ;;; calc-graph.el ends here

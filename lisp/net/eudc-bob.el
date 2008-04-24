@@ -365,5 +365,5 @@ display a button."
   "Display a button for the JPEG DATA."
   (eudc-bob-display-jpeg data nil))
 
-;;; arch-tag: 8f1853df-c9b6-4c5a-bdb1-d94dbd651fb3
+;; arch-tag: 8f1853df-c9b6-4c5a-bdb1-d94dbd651fb3
 ;;; eudc-bob.el ends here

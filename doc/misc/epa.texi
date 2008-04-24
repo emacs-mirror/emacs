@@ -364,6 +364,13 @@ line on the first line of the text being encrypted.
 @end lisp
 @end cartouche
 
+The file name extension of encrypted files can be controlled by
+@var{epa-file-name-regexp}.
+
+@defvar epa-file-name-regexp
+Regexp which matches filenames treated as encrypted.
+@end defvar
+
 Other variables which control the automatic encryption/decryption
 behavior are below.
 

@@ -756,5 +756,5 @@ sWith: " )
 
 (provide 'ws-mode)
 
-;;; arch-tag: 6dd864bf-2ccb-4d59-af6e-492eba2890a3
+;; arch-tag: 6dd864bf-2ccb-4d59-af6e-492eba2890a3
 ;;; ws-mode.el ends here

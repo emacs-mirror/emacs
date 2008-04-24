@@ -36,13 +36,17 @@
 
 (and noninteractive
      (eval-when-compile
-       (let ((load-path (cons (expand-file-name ".") load-path)))
-	 (load "pcl-cvs" 'noerror)
-	 (load "rcs" 'noerror)
-	 ;; (load "vc" 'noerror) ; this sometimes causes compiler error
-	 (or (featurep 'ediff-init)
-	     (load "ediff-init.el" nil t 'nosuffix))
-	 )))
+       (condition-case nil
+	   ;; for compatibility with current stable version of xemacs
+	   (progn
+	     ;;(require 'pcvs nil 'noerror)
+	     ;;(require 'rcs nil 'noerror)
+	     (require 'pcvs)
+	     (require 'rcs))
+	 (error nil))
+       (require 'vc)
+       (require 'ediff-init)
+       ))
 ;; end pacifier
 
 (defcustom ediff-keep-tmp-versions nil
@@ -241,5 +245,5 @@ comparison or merge operations are being performed."
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
+;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
 ;;; ediff-vers.el ends here

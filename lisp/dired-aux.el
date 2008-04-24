@@ -464,67 +464,33 @@ with a prefix argument."
 
 ;;; Shell commands
 
-(declare-function mailcap-parse-mailcaps "mailcap" (&optional path force))
-(declare-function mailcap-parse-mimetypes "mailcap" (&optional path force))
-(declare-function mailcap-extension-to-mime "mailcap" (extn))
-(declare-function mailcap-mime-info "mailcap"
-                  (string &optional request no-decode))
+(declare-function mailcap-file-default-commands "mailcap" (files))
 
-(defun dired-read-shell-command-default (files)
-  "Return a list of default commands for `dired-read-shell-command'."
-  (require 'mailcap)
-  (mailcap-parse-mailcaps)
-  (mailcap-parse-mimetypes)
-  (let* ((all-mime-type
-	  ;; All unique MIME types from file extensions
-	  (delete-dups (mapcar (lambda (file)
-				 (mailcap-extension-to-mime
-				  (file-name-extension file t)))
-			       files)))
-	 (all-mime-info
-	  ;; All MIME info lists
-	  (delete-dups (mapcar (lambda (mime-type)
-				 (mailcap-mime-info mime-type 'all))
-			       all-mime-type)))
-	 (common-mime-info
-	  ;; Intersection of mime-infos from different mime-types;
-	  ;; or just the first MIME info for a single MIME type
-	  (if (cdr all-mime-info)
-	      (delq nil (mapcar (lambda (mi1)
-				  (unless (memq nil (mapcar
-						     (lambda (mi2)
-						       (member mi1 mi2))
-						     (cdr all-mime-info)))
-				    mi1))
-				(car all-mime-info)))
-	    (car all-mime-info)))
-	 (commands
-	  ;; Command strings from `viewer' field of the MIME info
-	  (delq nil (mapcar (lambda (mime-info)
-			      (let ((command (cdr (assoc 'viewer mime-info))))
-				(if (stringp command)
-				    (replace-regexp-in-string
-				     ;; Replace mailcap's `%s' placeholder
-				     ;; with dired's `?' placeholder
-				     "%s" "?"
-				     (replace-regexp-in-string
-				      ;; Remove the final filename placeholder
-				      "\s*\\('\\)?%s\\1?\s*\\'" "" command nil t)
-				     nil t))))
-			    common-mime-info))))
-    commands))
+(defun minibuffer-default-add-dired-shell-commands ()
+  "Return a list of all commands associted with current dired files.
+This function is used to add all related commands retieved by `mailcap'
+to the end of the list of defaults just after the default value."
+  (interactive)
+  (let ((commands (and (boundp 'files) (require 'mailcap nil t)
+		       (mailcap-file-default-commands files))))
+    (if (listp minibuffer-default)
+	(append minibuffer-default commands)
+      (cons minibuffer-default commands))))
 
+;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-;;  "Read a dired shell command prompting with PROMPT (using read-string).
-;;ARG is the prefix arg and may be used to indicate in the prompt which
-;;  files are affected.
-;;This is an extra function so that you can redefine it, e.g., to use gmhist."
-  (dired-mark-pop-up
-   nil 'shell files
-   (function read-string)
-   (format prompt (dired-mark-prompt arg files))
-   nil 'shell-command-history
-   (dired-read-shell-command-default files)))
+  "Read a dired shell command prompting with PROMPT (using read-shell-command).
+ARG is the prefix arg and may be used to indicate in the prompt which
+FILES are affected."
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-default-add-function)
+	     'minibuffer-default-add-dired-shell-commands))
+    (dired-mark-pop-up
+     nil 'shell files
+     #'read-shell-command
+     (format prompt (dired-mark-prompt arg files))
+     nil nil)))
 
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
@@ -1179,6 +1145,9 @@ Special value `always' suppresses confirmation."
 		 (other :tag "ask" t))
   :group 'dired)
 
+;; This is a fluid var used in dired-handle-overwrite.  It should be
+;; let-bound whenever dired-copy-file etc are called.  See
+;; dired-create-files for an example.
 (defvar dired-overwrite-confirmed)
 
 (defun dired-handle-overwrite (to)
@@ -1186,16 +1155,15 @@ Special value `always' suppresses confirmation."
   ;; `dired-overwrite-confirmed' and `overwrite-backup-query' are fluid vars
   ;; from dired-create-files.
   (let (backup)
-    (if (and dired-backup-overwrite
-	     dired-overwrite-confirmed
-	     (setq backup (car (find-backup-file-name to)))
-	     (or (eq 'always dired-backup-overwrite)
-		 (dired-query 'overwrite-backup-query
-			      "Make backup for existing file `%s'? "
-			      to)))
-	(progn
-	  (rename-file to backup 0)	; confirm overwrite of old backup
-	  (dired-relist-entry backup)))))
+    (when (and dired-backup-overwrite
+	       dired-overwrite-confirmed
+	       (setq backup (car (find-backup-file-name to)))
+	       (or (eq 'always dired-backup-overwrite)
+		   (dired-query 'overwrite-backup-query
+				"Make backup for existing file `%s'? "
+				to)))
+      (rename-file to backup 0)	; confirm overwrite of old backup
+      (dired-relist-entry backup))))
 
 ;;;###autoload
 (defun dired-copy-file (from to ok-flag)
@@ -1389,51 +1357,48 @@ Special value `always' suppresses confirmation."
 	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
 	     overwrite-backup-query)	; for dired-handle-overwrite
-      (mapc
-       (function
-	(lambda (from)
-	  (setq to (funcall name-constructor from))
-	  (if (equal to from)
-	      (progn
-		(setq to nil)
-		(dired-log "Cannot %s to same file: %s\n"
-			   (downcase operation) from)))
-	  (if (not to)
-	      (setq skipped (cons (dired-make-relative from) skipped))
-	    (let* ((overwrite (file-exists-p to))
-		   (dired-overwrite-confirmed	; for dired-handle-overwrite
-		    (and overwrite
-			 (let ((help-form '(format "\
+      (dolist (from fn-list)
+        (setq to (funcall name-constructor from))
+        (if (equal to from)
+            (progn
+              (setq to nil)
+              (dired-log "Cannot %s to same file: %s\n"
+                         (downcase operation) from)))
+        (if (not to)
+            (setq skipped (cons (dired-make-relative from) skipped))
+          (let* ((overwrite (file-exists-p to))
+                 (dired-overwrite-confirmed ; for dired-handle-overwrite
+                  (and overwrite
+                       (let ((help-form '(format "\
 Type SPC or `y' to overwrite file `%s',
 DEL or `n' to skip to next,
 ESC or `q' to not overwrite any of the remaining files,
 `!' to overwrite all remaining files with no more questions." to)))
-			   (dired-query 'overwrite-query
-					"Overwrite `%s'?" to))))
-		   ;; must determine if FROM is marked before file-creator
-		   ;; gets a chance to delete it (in case of a move).
-		   (actual-marker-char
-		    (cond  ((integerp marker-char) marker-char)
-			   (marker-char (dired-file-marker from)) ; slow
-			   (t nil))))
-	      (condition-case err
-		  (progn
-		    (funcall file-creator from to dired-overwrite-confirmed)
-		    (if overwrite
-			;; If we get here, file-creator hasn't been aborted
-			;; and the old entry (if any) has to be deleted
-			;; before adding the new entry.
-			(dired-remove-file to))
-		    (setq success-count (1+ success-count))
-		    (message "%s: %d of %d" operation success-count total)
-		    (dired-add-file to actual-marker-char))
-		(file-error		; FILE-CREATOR aborted
-		 (progn
-		   (push (dired-make-relative from)
-			 failures)
-		   (dired-log "%s `%s' to `%s' failed:\n%s\n"
-			      operation from to err))))))))
-       fn-list))
+                         (dired-query 'overwrite-query
+                                      "Overwrite `%s'?" to))))
+                 ;; must determine if FROM is marked before file-creator
+                 ;; gets a chance to delete it (in case of a move).
+                 (actual-marker-char
+                  (cond  ((integerp marker-char) marker-char)
+                         (marker-char (dired-file-marker from)) ; slow
+                         (t nil))))
+            (condition-case err
+                (progn
+                  (funcall file-creator from to dired-overwrite-confirmed)
+                  (if overwrite
+                      ;; If we get here, file-creator hasn't been aborted
+                      ;; and the old entry (if any) has to be deleted
+                      ;; before adding the new entry.
+                      (dired-remove-file to))
+                  (setq success-count (1+ success-count))
+                  (message "%s: %d of %d" operation success-count total)
+                  (dired-add-file to actual-marker-char))
+              (file-error		; FILE-CREATOR aborted
+               (progn
+                 (push (dired-make-relative from)
+                       failures)
+                 (dired-log "%s `%s' to `%s' failed:\n%s\n"
+                            operation from to err))))))))
     (cond
      (dired-create-files-failures
       (setq failures (nconc failures dired-create-files-failures))
@@ -2358,5 +2323,5 @@ true then the type of the file linked to by FILE is printed instead."
 
 (provide 'dired-aux)
 
-;;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
+;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
 ;;; dired-aux.el ends here

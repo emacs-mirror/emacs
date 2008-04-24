@@ -206,5 +206,5 @@ This is either `base64' or `quoted-printable'."
 
 (provide 'mm-encode)
 
-;;; arch-tag: 7d01bba4-d469-4851-952b-dc863f84ed66
+;; arch-tag: 7d01bba4-d469-4851-952b-dc863f84ed66
 ;;; mm-encode.el ends here

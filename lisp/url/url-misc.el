@@ -117,5 +117,5 @@
 
 (provide 'url-misc)
 
-;;; arch-tag: 8c544e1b-d8bc-40a6-b319-f1f37fef65a0
+;; arch-tag: 8c544e1b-d8bc-40a6-b319-f1f37fef65a0
 ;;; url-misc.el ends here

@@ -1200,5 +1200,5 @@ If no partial fraction representation can be found, return nil."
 
 (provide 'calc-poly)
 
-;;; arch-tag: d2566c51-2ccc-45f1-8c50-f3462c2953ff
+;; arch-tag: d2566c51-2ccc-45f1-8c50-f3462c2953ff
 ;;; calc-poly.el ends here

@@ -122,5 +122,5 @@ to global keymap."
 
 (provide 's-region)
 
-;;; arch-tag: a471e912-18d7-4247-a29b-2100bca180ff
+;; arch-tag: a471e912-18d7-4247-a29b-2100bca180ff
 ;;; s-region.el ends here

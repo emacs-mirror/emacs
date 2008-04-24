@@ -482,7 +482,7 @@ get_pos_property (position, prop, object)
 	    }
 	}
 
-      { /* Now check the text-properties.  */
+      { /* Now check the text properties.  */
 	int stickiness = text_property_stickiness (prop, position, object);
 	if (stickiness > 0)
 	  return Fget_text_property (position, prop, object);
@@ -658,7 +658,7 @@ If POS is nil, the value of point is used for POS.  */)
 }
 
 DEFUN ("field-string-no-properties", Ffield_string_no_properties, Sfield_string_no_properties, 0, 1, 0,
-       doc: /* Return the contents of the field around POS, without text-properties.
+       doc: /* Return the contents of the field around POS, without text properties.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.  */)
      (pos)
@@ -2011,6 +2011,11 @@ the data it can't find.  */)
    has never been called.  */
 static char **environbuf;
 
+/* This holds the startup value of the TZ environment variable so it
+   can be restored if the user calls set-time-zone-rule with a nil
+   argument.  */
+static char *initial_tz;
+
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
        doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
@@ -2020,8 +2025,12 @@ If TZ is t, use Universal Time.  */)
 {
   char *tzstring;
 
+  /* When called for the first time, save the original TZ.  */
+  if (!environbuf)
+    initial_tz = (char *) getenv ("TZ");
+
   if (NILP (tz))
-    tzstring = 0;
+    tzstring = initial_tz;
   else if (EQ (tz, Qt))
     tzstring = "UTC0";
   else
@@ -3041,7 +3050,7 @@ It returns the number of characters changed.  */)
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH, 
+		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH,
 					       str_len);
 		}
 	      else
@@ -4176,8 +4185,10 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
      register Lisp_Object c1, c2;
 {
   int i1, i2;
-  CHECK_NUMBER (c1);
-  CHECK_NUMBER (c2);
+  /* Check they're chars, not just integers, otherwise we could get array
+     bounds violations in DOWNCASE.  */
+  CHECK_CHARACTER (c1);
+  CHECK_CHARACTER (c2);
 
   if (XINT (c1) == XINT (c2))
     return Qt;
@@ -4588,6 +4599,7 @@ void
 syms_of_editfns ()
 {
   environbuf = 0;
+  initial_tz = 0;
 
   Qbuffer_access_fontify_functions
     = intern ("buffer-access-fontify-functions");

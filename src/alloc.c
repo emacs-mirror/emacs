@@ -1366,6 +1366,7 @@ void
 uninterrupt_malloc ()
 {
 #ifdef HAVE_GTK_AND_PTHREAD
+#ifdef DOUG_LEA_MALLOC
   pthread_mutexattr_t attr;
 
   /*  GLIBC has a faster way to do this, but lets keep it portable.
@@ -1373,6 +1374,11 @@ uninterrupt_malloc ()
   pthread_mutexattr_init (&attr);
   pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
   pthread_mutex_init (&alloc_mutex, &attr);
+#else  /* !DOUG_LEA_MALLOC */
+  /* Some systems such as Solaris 2.6 doesn't have a recursive mutex,
+     and the bundled gmalloc.c doesn't require it.  */
+  pthread_mutex_init (&alloc_mutex, NULL);
+#endif /* !DOUG_LEA_MALLOC */
 #endif /* HAVE_GTK_AND_PTHREAD */
 
   if (__free_hook != emacs_blocked_free)

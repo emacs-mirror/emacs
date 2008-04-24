@@ -26,6 +26,8 @@
 
 ;;; Commentary:
 
+;; This file has been obsolete since Emacs 22.1.
+
 ;; Written by Howard Gayle.  See case-table.el for details.
 
 ;;; Code:
@@ -149,5 +151,5 @@
 
 (provide 'iso-swed)
 
-;;; arch-tag: 6b3dc269-660c-44b6-a25f-680b921eaf2c
+;; arch-tag: 6b3dc269-660c-44b6-a25f-680b921eaf2c
 ;;; iso-swed.el ends here

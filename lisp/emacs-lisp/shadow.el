@@ -261,5 +261,5 @@ version unless you know what you are doing.\n")
 
 (provide 'shadow)
 
-;;; arch-tag: 0480e8a7-62ed-4a12-a9f6-f44ded9b0830
+;; arch-tag: 0480e8a7-62ed-4a12-a9f6-f44ded9b0830
 ;;; shadow.el ends here

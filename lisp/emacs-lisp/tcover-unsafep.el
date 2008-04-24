@@ -139,5 +139,5 @@
   (testcover-end "unsafep.el")
   (message "Done"))
 
-;;; arch-tag: a7616c27-1998-47ae-9304-76d1439dbf29
+;; arch-tag: a7616c27-1998-47ae-9304-76d1439dbf29
 ;; testcover-unsafep.el ends here.

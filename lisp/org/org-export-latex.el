@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 5.19
+;; Version: 5.23
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -42,7 +42,7 @@
 ;; M-x `org-export-as-latex-to-buffer'
 ;; M-x `org-export-region-as-latex'
 ;; M-x `org-replace-region-by-latex'
-;; 
+;;
 ;;; Code:
 
 (eval-when-compile
@@ -329,7 +329,7 @@ in a window.  A non-interactive call will only retunr the buffer."
 
 ;;;###autoload
 (defun org-export-as-latex (arg &optional hidden ext-plist
-				to-buffer body-only)
+				to-buffer body-only pub-dir)
   "Export current buffer to a LaTeX file.
 If there is an active region, export only the region.  The prefix
 ARG specifies how many levels of the outline should become
@@ -344,7 +344,8 @@ buffer.  If TO-BUFFER is the symbol `string', don't leave any
 buffer behind but just return the resulting LaTeX as a string.
 When BODY-ONLY is set, don't produce the file header and footer,
 simply return the content of \begin{document}...\end{document},
-without even the \begin{document} and \end{document} commands."
+without even the \begin{document} and \end{document} commands.
+when PUB-DIR is set, use this as the publishing directory."
   (interactive "P")
   ;; Make sure we have a file name when we need it.
   (when (and (not (or to-buffer body-only))
@@ -375,7 +376,8 @@ without even the \begin{document} and \end{document} commands."
 		    (file-name-sans-extension
 		     (file-name-nondirectory buffer-file-name))))
 	 (filename (concat (file-name-as-directory
-			    (org-export-directory :LaTeX ext-plist))
+			    (or pub-dir
+				(org-export-directory :LaTeX ext-plist)))
 			   (file-name-sans-extension
 			    (file-name-nondirectory ;sans-extension
 			     buffer-file-name)) ".tex"))
@@ -391,9 +393,10 @@ without even the \begin{document} and \end{document} commands."
 		   (find-file-noselect filename)))
 	 (odd org-odd-levels-only)
 	 (header (org-export-latex-make-header title opt-plist))
-	 (skip (if subtree-p nil
+	 (skip (cond (subtree-p nil)
+		     (region-p t)
 		 ;; never skip first lines when exporting a subtree
-		 (plist-get opt-plist :skip-before-1st-heading)))
+		     (t (plist-get opt-plist :skip-before-1st-heading))))
 	 (text (plist-get opt-plist :text))
 	 (first-lines (if skip "" (org-export-latex-first-lines)))
 	 (coding-system (and (boundp 'buffer-file-coding-system)
@@ -1117,8 +1120,8 @@ Regexps are those from `org-export-latex-special-string-regexps'."
 	      (if (match-string 2) "" (match-string 1)))) t t))
 
   ;; Delete @<...> constructs
-  (goto-char (point-min))
   ;; Thanks to Daniel Clemente for this regexp
+  (goto-char (point-min))
   (while (re-search-forward "@<\\(?:[^\"\n]\\|\".*\"\\)*?>" nil t)
     (replace-match ""))
 
@@ -1140,7 +1143,7 @@ Regexps are those from `org-export-latex-special-string-regexps'."
 	      (let ((end (save-excursion
 			   (if (re-search-forward "^$\\|^#.*$\\|\\[[0-9]+\\]" nil t)
 			       (match-beginning 0) (point-max)))))
-		(setq footnote (concat (org-trim (buffer-substring (point) end)) 
+		(setq footnote (concat (org-trim (buffer-substring (point) end))
 				       " ")) ; prevent last } being part of a link
 		(delete-region (point) end))
 	      (goto-char foot-beg)

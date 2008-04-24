@@ -728,6 +728,13 @@ extern int string_bytes P_ ((struct Lisp_String *));
       (STR) = empty_unibyte_string;  \
     else XSTRING (STR)->size_byte = -1; } while (0)
 
+/* Mark STR as a multibyte string.  Assure that STR contains only
+   ASCII characters in advance.  */
+#define STRING_SET_MULTIBYTE(STR)  \
+  do { if (EQ (STR, empty_unibyte_string))  \
+      (STR) = empty_multibyte_string;  \
+    else XSTRING (STR)->size_byte = XSTRING (STR)->size; } while (0)
+
 /* Get text properties.  */
 #define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals + 0)
 
@@ -2804,6 +2811,7 @@ EXFUN (Ffetch_bytecode, 1);
 extern void init_eval_once P_ ((void));
 extern Lisp_Object safe_call P_ ((int, Lisp_Object *));
 extern Lisp_Object safe_call1 P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval P_ ((void));
 extern void syms_of_eval P_ ((void));
 
@@ -2877,6 +2885,7 @@ extern void report_overlay_modification P_ ((Lisp_Object, Lisp_Object, int,
 					     Lisp_Object, Lisp_Object, Lisp_Object));
 extern int overlay_touches_p P_ ((int));
 extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
+EXFUN (Fbuffer_list, 1);
 EXFUN (Fget_buffer, 1);
 EXFUN (Fget_buffer_create, 1);
 EXFUN (Fgenerate_new_buffer_name, 2);
@@ -3052,6 +3061,7 @@ EXFUN (Fset_output_flow_control, 2);
 EXFUN (Fset_input_meta_mode, 2);
 EXFUN (Fset_quit_char, 1);
 EXFUN (Fset_input_mode, 4);
+extern Lisp_Object pending_funcalls;
 extern int detect_input_pending P_ ((void));
 extern int detect_input_pending_ignore_squeezables P_ ((void));
 extern int detect_input_pending_run_timers P_ ((int));

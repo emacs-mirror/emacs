@@ -74,5 +74,5 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
 
 (provide 'soundex)
 
-;;; arch-tag: b2615a98-feb7-430e-a717-171086738953
+;; arch-tag: b2615a98-feb7-430e-a717-171086738953
 ;;; soundex.el ends here

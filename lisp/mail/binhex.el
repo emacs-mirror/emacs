@@ -222,8 +222,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	(save-excursion
 	  (goto-char start)
 	  (when (re-search-forward binhex-begin-line end t)
-	    (let (default-enable-multibyte-characters)
-	      (setq work-buffer (generate-new-buffer " *binhex-work*")))
+            (setq work-buffer (generate-new-buffer " *binhex-work*"))
+            (with-current-buffer work-buffer (set-buffer-multibyte nil))
 	    (beginning-of-line)
 	    (setq bits 0 counter 0)
 	    (while tmp
@@ -329,5 +329,5 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 
 (provide 'binhex)
 
-;;; arch-tag: 8476badd-1e76-4f1d-a640-f9a38c72eed8
+;; arch-tag: 8476badd-1e76-4f1d-a640-f9a38c72eed8
 ;;; binhex.el ends here

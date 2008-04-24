@@ -60,7 +60,6 @@
     (funcall mh-show-xface-function)))
 
 ;; Shush compiler.
-(defvar default-enable-multibyte-characters) ; XEmacs
 
 (defun mh-face-display-function ()
   "Display a Face, X-Face, or X-Image-URL header field.
@@ -71,7 +70,6 @@ in this order is used."
     (re-search-forward "\n\n" (point-max) t)
     (narrow-to-region (point-min) (point))
     (let* ((case-fold-search t)
-           (default-enable-multibyte-characters nil)
            (face (message-fetch-field "face" t))
            (x-face (message-fetch-field "x-face" t))
            (url (message-fetch-field "x-image-url" t))
@@ -130,6 +128,7 @@ in this order is used."
 (defun mh-face-to-png (data)
   "Convert base64 encoded DATA to png image."
   (with-temp-buffer
+    (set-buffer-multibyte nil)
     (insert data)
     (ignore-errors (base64-decode-region (point-min) (point-max)))
     (buffer-string)))
@@ -137,6 +136,7 @@ in this order is used."
 (defun mh-uncompface (data)
   "Run DATA through `uncompface' to generate bitmap."
   (with-temp-buffer
+    (set-buffer-multibyte nil)
     (insert data)
     (when (and mh-uncompface-executable
                (equal (call-process-region (point-min) (point-max)
@@ -274,6 +274,7 @@ file contents as a string is returned. If FILE is nil, then both
 elements of the list are nil."
   (if (stringp file)
       (with-temp-buffer
+        (set-buffer-multibyte nil)
         (let ((type (and (string-match ".*\\.\\(...\\)$" file)
                          (intern (match-string 1 file)))))
           (insert-file-contents-literally file)
@@ -397,10 +398,8 @@ filenames.  In addition, replaces * with %2a. See URL
 
 (defun mh-x-image-display (image marker)
   "Display IMAGE at MARKER."
-  (save-excursion
-    (set-buffer (marker-buffer marker))
-    (let ((buffer-read-only nil)
-          (default-enable-multibyte-characters nil)
+  (with-current-buffer (marker-buffer marker)
+    (let ((inhibit-read-only t)
           (buffer-modified-flag (buffer-modified-p)))
       (unwind-protect
           (when (and (file-readable-p image) (not (file-symlink-p image))
@@ -428,8 +427,7 @@ actual display is carried out by the SENTINEL function."
                                         mh-temp-fetch-buffer)))
             (filename (or (mh-funcall-if-exists make-temp-file "mhe-fetch")
                           (expand-file-name (make-temp-name "~/mhe-fetch")))))
-        (save-excursion
-          (set-buffer buffer)
+        (with-current-buffer buffer
           (set (make-local-variable 'mh-x-image-url-cache-file) cache-file)
           (set (make-local-variable 'mh-x-image-marker) marker)
           (set (make-local-variable 'mh-x-image-temp-file) filename))
@@ -445,8 +443,7 @@ actual display is carried out by the SENTINEL function."
 The argument CHANGE is ignored."
   (when (eq (process-status process) 'exit)
     (let (marker temp-file cache-filename wget-buffer)
-      (save-excursion
-        (set-buffer (setq wget-buffer (process-buffer process)))
+      (with-current-buffer (setq wget-buffer (process-buffer process))
         (setq marker mh-x-image-marker
               cache-filename mh-x-image-url-cache-file
               temp-file mh-x-image-temp-file))

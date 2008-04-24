@@ -1224,5 +1224,5 @@ Returns new end position."
 
 (provide 'ind-util)
 
-;;; arch-tag: 59aacd71-46c2-4cb3-bb26-e12bbad55545
+;; arch-tag: 59aacd71-46c2-4cb3-bb26-e12bbad55545
 ;;; ind-util.el ends here

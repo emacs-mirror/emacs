@@ -44,6 +44,9 @@ Lisp_Object Qdbus_error;
 /* Lisp symbols of the system and session buses.  */
 Lisp_Object QCdbus_system_bus, QCdbus_session_bus;
 
+/* Lisp symbol for method call timeout.  */
+Lisp_Object QCdbus_timeout;
+
 /* Lisp symbols of D-Bus types.  */
 Lisp_Object QCdbus_type_byte, QCdbus_type_boolean;
 Lisp_Object QCdbus_type_int16, QCdbus_type_uint16;
@@ -165,7 +168,7 @@ Lisp_Object Vdbus_debug;
    : DBUS_TYPE_INVALID)
 
 /* Return a list pointer which does not have a Lisp symbol as car.  */
-#define XD_NEXT_VALUE(object)					\
+#define XD_NEXT_VALUE(object)						\
   ((XD_DBUS_TYPE_P (CAR_SAFE (object))) ? CDR_SAFE (object) : object)
 
 /* Compute SIGNATURE of OBJECT.  It must have a form that it can be
@@ -698,7 +701,7 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
      Lisp_Object bus;
 {
   DBusConnection *connection;
-  char name[DBUS_MAXIMUM_NAME_LENGTH];
+  const char *name;
 
   /* Check parameters.  */
   CHECK_SYMBOL (bus);
@@ -707,7 +710,7 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
   connection = xd_initialize (bus);
 
   /* Request the name.  */
-  strcpy (name, dbus_bus_get_unique_name (connection));
+  name = dbus_bus_get_unique_name (connection);
   if (name == NULL)
     xsignal1 (Qdbus_error, build_string ("No unique name available"));
 
@@ -723,6 +726,11 @@ BUS is either the symbol `:system' or the symbol `:session'.
 SERVICE is the D-Bus service name to be used.  PATH is the D-Bus
 object path SERVICE is registered at.  INTERFACE is an interface
 offered by SERVICE.  It must provide METHOD.
+
+If the parameter `:timeout' is given, the following integer TIMEOUT
+specifies the maximun number of milliseconds the method call must
+return.  The default value is 25.000.  If the method call doesn't
+return in time, a D-Bus error is raised.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
 converted into D-Bus types via the following rules:
@@ -777,7 +785,9 @@ object is returned instead of a list containing this single Lisp object.
 
   => "i686"
 
-usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
+usage: (dbus-call-method
+         BUS SERVICE PATH INTERFACE METHOD
+         &optional :timeout TIMEOUT &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -791,7 +801,8 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
   DBusMessageIter iter;
   DBusError derror;
   unsigned int dtype;
-  int i;
+  int timeout = -1;
+  int i = 5;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -822,19 +833,23 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
 					   SDATA (path),
 					   SDATA (interface),
 					   SDATA (method));
-  if (dmessage == NULL)
-    {
-      UNGCPRO;
-      xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
-    }
-
   UNGCPRO;
+  if (dmessage == NULL)
+    xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
+
+  /* Check for timeout parameter.  */
+  if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
+    {
+      CHECK_NATNUM (args[i+1]);
+      timeout = XUINT (args[i+1]);
+      i = i+2;
+    }
 
   /* Initialize parameter list of message.  */
   dbus_message_iter_init_append (dmessage, &iter);
 
   /* Append parameters to the message.  */
-  for (i = 5; i < nargs; ++i)
+  for (; i < nargs; ++i)
     {
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
       if (XD_DBUS_TYPE_P (args[i]))
@@ -864,7 +879,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
   dbus_error_init (&derror);
   reply = dbus_connection_send_with_reply_and_block (connection,
 						     dmessage,
-						     -1,
+						     timeout,
 						     &derror);
 
   if (dbus_error_is_set (&derror))
@@ -1071,13 +1086,9 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   dmessage = dbus_message_new_signal (SDATA (path),
 				      SDATA (interface),
 				      SDATA (signal));
-  if (dmessage == NULL)
-    {
-      UNGCPRO;
-      xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
-    }
-
   UNGCPRO;
+  if (dmessage == NULL)
+    xsignal1 (Qdbus_error, build_string ("Unable to create a new message"));
 
   /* Initialize parameter list of message.  */
   dbus_message_iter_init_append (dmessage, &iter);
@@ -1140,10 +1151,7 @@ xd_read_message (bus)
   DBusMessageIter iter;
   unsigned int dtype;
   int mtype;
-  char uname[DBUS_MAXIMUM_NAME_LENGTH];
-  char path[DBUS_MAXIMUM_MATCH_RULE_LENGTH]; /* Unlimited in D-Bus spec.  */
-  char interface[DBUS_MAXIMUM_NAME_LENGTH];
-  char member[DBUS_MAXIMUM_NAME_LENGTH];
+  const char *uname, *path, *interface, *member;
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
@@ -1175,11 +1183,15 @@ xd_read_message (bus)
 
   /* Read message type, unique name, object path, interface and member
      from the message.  */
-  mtype =            dbus_message_get_type (dmessage);
-  strcpy (uname,     dbus_message_get_sender (dmessage));
-  strcpy (path,      dbus_message_get_path (dmessage));
-  strcpy (interface, dbus_message_get_interface (dmessage));
-  strcpy (member,    dbus_message_get_member (dmessage));
+  mtype     = dbus_message_get_type (dmessage);
+  uname     = dbus_message_get_sender (dmessage);
+  path      = dbus_message_get_path (dmessage);
+  interface = dbus_message_get_interface (dmessage);
+  member    = dbus_message_get_member (dmessage);
+
+  /* Vdbus_registered_functions_table requires non-nil interface and member.  */
+  if ((NULL == interface) || (NULL == member))
+    goto cleanup;
 
   XD_DEBUG_MESSAGE ("Event received: %d %s %s %s %s %s",
 		    mtype, uname, path, interface, member,
@@ -1210,11 +1222,8 @@ xd_read_message (bus)
 			     args);
 
 	  /* Add uname, path, interface and member to the event.  */
-	  event.arg = Fcons ((member == NULL ? Qnil : build_string (member)),
-			     event.arg);
-	  event.arg = Fcons ((interface == NULL
-			      ? Qnil : build_string (interface)),
-			     event.arg);
+	  event.arg = Fcons (build_string (member), event.arg);
+	  event.arg = Fcons (build_string (interface), event.arg);
 	  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
 			     event.arg);
 	  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
@@ -1235,7 +1244,7 @@ xd_read_message (bus)
      value = CDR_SAFE (value);
     }
 
-  /* Cleanup.  */
+ cleanup:
   dbus_message_unref (dmessage);
   RETURN_UNGCPRO (Qnil);
 }
@@ -1463,6 +1472,9 @@ syms_of_dbusbind ()
 
   QCdbus_session_bus = intern (":session");
   staticpro (&QCdbus_session_bus);
+
+  QCdbus_timeout = intern (":timeout");
+  staticpro (&QCdbus_timeout);
 
   QCdbus_type_byte = intern (":byte");
   staticpro (&QCdbus_type_byte);

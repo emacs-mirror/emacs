@@ -263,11 +263,11 @@ The format of the alist is
 where each BOOKMARK is typically of the form
 
 \(NAME
- (\(filename . FILE\)
-  \(front-context-string . FRONT-STR\)
-  \(rear-context-string  . REAR-STR\)
-  \(position . POS\)
-  \(annotation . ANNOTATION\)\))
+ (filename . FILE)
+ (front-context-string . FRONT-STR)
+ (rear-context-string  . REAR-STR)
+ (position . POS)
+ (annotation . ANNOTATION))
 
 So the cdr of each bookmark is an alist too.")
 
@@ -297,7 +297,6 @@ through a file easier.")
 (defvar bookmark-yank-point 0)
 (defvar bookmark-current-buffer nil)
 
-(defvar Info-current-node)
 (defvar Info-suffix-list)
 
 ;; Helper functions.
@@ -532,22 +531,22 @@ being set (this might change someday)."
 
 ;; The OLD format of the bookmark-alist was:
 ;;
-;;       ((bookmark-name (filename
-;;                        string-in-front
-;;                        string-behind
-;;                        point))
+;;       ((BOOKMARK-NAME . (FILENAME
+;;                          STRING-IN-FRONT
+;;                          STRING-BEHIND
+;;                          POINT))
 ;;        ...)
 ;;
 ;; The NEW format of the bookmark-alist is:
 ;;
-;;       ((bookmark-name ((filename . FILENAME)
-;;                        (front-context-string . string-in-front)
-;;                        (rear-context-string  . string-behind)
-;;                        (position . POINT)
-;;                        (annotation . annotation)
-;;                        (whatever   . VALUE)
-;;                        ...
-;;                        ))
+;;       ((BOOKMARK-NAME (filename   . FILENAME)
+;;                       (front-context-string . STRING-IN-FRONT)
+;;                       (rear-context-string  . STRING-BEHIND)
+;;                       (position   . POINT)
+;;                       (annotation . ANNOTATION)
+;;                       (whatever   . VALUE)
+;;                       ...
+;;                       ))
 ;;        ...)
 ;;
 ;;
@@ -850,8 +849,7 @@ Default to file name if it's nil."
 
 
 (defun bookmark-buffer-name ()
-  "Return the name of the current buffer's file, non-directory.
-In Info, return the current node."
+  "Return the name of the current buffer's file, non-directory."
   (cond
    ;; Or are we a file?
    (buffer-file-name (file-name-nondirectory buffer-file-name))
@@ -885,12 +883,8 @@ In Info, return the current node."
                        (setq bookmark-yank-point (point)))))))
     (insert string)))
 
-
-(defvar Info-current-file)
-
 (defun bookmark-buffer-file-name ()
-  "Return the current buffer's file in a way useful for bookmarks.
-For example, if this is a Info buffer, return the Info file's name."
+  "Return the current buffer's file in a way useful for bookmarks."
   (cond
    (buffer-file-name
     ;; Abbreviate the path, both so it's shorter and so it's more

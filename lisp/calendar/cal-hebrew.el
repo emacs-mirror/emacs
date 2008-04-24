@@ -4,7 +4,7 @@
 ;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
-;;      Edward M. Reingold <reingold@cs.uiuc.edu>
+;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Hebrew calendar, calendar, diary
@@ -28,36 +28,37 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with the Hebrew calendar.
-
-;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001).
+;; See calendar.el.
 
 ;;; Code:
 
-(defvar date)
-(defvar displayed-month)
-(defvar displayed-year)
-(defvar entry)
-(defvar number)
-(defvar original-date)
-
 (require 'calendar)
 
-(defun hebrew-calendar-leap-year-p (year)
+(define-obsolete-variable-alias 'diary-sabbath-candles-minutes
+  'diary-hebrew-sabbath-candles-minutes "23.1")
+
+(defcustom diary-hebrew-sabbath-candles-minutes 18
+  "Number of minutes before sunset for sabbath candle lighting.
+Used by `diary-hebrew-sabbath-candles'."
+  :group 'diary
+  :type 'integer
+  :version "21.1")
+
+;; End of user options.
+
+(defun calendar-hebrew-leap-year-p (year)
   "Non-nil if YEAR is a Hebrew calendar leap year."
   (< (% (1+ (* 7 year)) 19) 7))
 
-(defun hebrew-calendar-last-month-of-year (year)
+(defun calendar-hebrew-last-month-of-year (year)
   "The last month of the Hebrew calendar YEAR."
-  (if (hebrew-calendar-leap-year-p year)
+  (if (calendar-hebrew-leap-year-p year)
       13
     12))
 
-(defun hebrew-calendar-elapsed-days (year)
-  "Days from Sunday before start of Hebrew calendar to mean conjunction of Tishri of Hebrew YEAR."
+(defun calendar-hebrew-elapsed-days (year)
+  "Days to mean conjunction of Tishri of Hebrew YEAR.
+Measured from Sunday before start of Hebrew calendar."
   (let* ((months-elapsed
           (+ (* 235 (/ (1- year) 19)) ; months in complete cycles so far
              (* 12 (% (1- year) 19))  ; regular months in this cycle
@@ -67,108 +68,114 @@
                            (* 12 months-elapsed)
                            (* 793 (/ months-elapsed 1080))
                            (/ parts-elapsed 1080)))
-         (parts				; conjunction parts
+         (parts                         ; conjunction parts
           (+ (* 1080 (% hours-elapsed 24)) (% parts-elapsed 1080)))
-         (day				; conjunction day
+         (day                           ; conjunction day
           (+ 1 (* 29 months-elapsed) (/ hours-elapsed 24)))
          (alternative-day
           (if (or (>= parts 19440) ; if the new moon is at or after midday
-                  (and (= (% day 7) 2)	; ...or is on a Tuesday...
+                  (and (= (% day 7) 2)  ; ...or is on a Tuesday...
                        (>= parts 9924) ; at 9 hours, 204 parts or later...
-		       ;; of a common year...
-                       (not (hebrew-calendar-leap-year-p year)))
-                  (and (= (% day 7) 1)	; ...or is on a Monday...
+                       ;; of a common year...
+                       (not (calendar-hebrew-leap-year-p year)))
+                  (and (= (% day 7) 1)  ; ...or is on a Monday...
                        (>= parts 16789) ; at 15 hours, 589 parts or later...
-		       ;; at the end of a leap year.
-                       (hebrew-calendar-leap-year-p (1- year))))
-	      ;; Then postpone Rosh HaShanah one day.
+                       ;; at the end of a leap year.
+                       (calendar-hebrew-leap-year-p (1- year))))
+              ;; Then postpone Rosh HaShanah one day.
               (1+ day)
-	    ;; Else:
+            ;; Else:
             day)))
     ;; If Rosh HaShanah would occur on Sunday, Wednesday, or Friday
     (if (memq (% alternative-day 7) (list 0 3 5))
-	;; Then postpone it one (more) day and return.
+        ;; Then postpone it one (more) day and return.
         (1+ alternative-day)
       ;; Else return.
       alternative-day)))
 
-(defun hebrew-calendar-days-in-year (year)
+(defun calendar-hebrew-days-in-year (year)
   "Number of days in Hebrew YEAR."
-  (- (hebrew-calendar-elapsed-days (1+ year))
-     (hebrew-calendar-elapsed-days year)))
+  (- (calendar-hebrew-elapsed-days (1+ year))
+     (calendar-hebrew-elapsed-days year)))
 
-(defun hebrew-calendar-long-heshvan-p (year)
+(defun calendar-hebrew-long-heshvan-p (year)
   "Non-nil if Heshvan is long in Hebrew YEAR."
-  (= (% (hebrew-calendar-days-in-year year) 10) 5))
+  (= (% (calendar-hebrew-days-in-year year) 10) 5))
 
-(defun hebrew-calendar-short-kislev-p (year)
+(defun calendar-hebrew-short-kislev-p (year)
   "Non-nil if Kislev is short in Hebrew YEAR."
-  (= (% (hebrew-calendar-days-in-year year) 10) 3))
+  (= (% (calendar-hebrew-days-in-year year) 10) 3))
 
-(defun hebrew-calendar-last-day-of-month (month year)
+(defun calendar-hebrew-last-day-of-month (month year)
   "The last day of MONTH in YEAR."
   (if (or (memq month (list 2 4 6 10 13))
-          (and (= month 12) (not (hebrew-calendar-leap-year-p year)))
-          (and (= month 8) (not (hebrew-calendar-long-heshvan-p year)))
-          (and (= month 9) (hebrew-calendar-short-kislev-p year)))
+          (and (= month 12) (not (calendar-hebrew-leap-year-p year)))
+          (and (= month 8) (not (calendar-hebrew-long-heshvan-p year)))
+          (and (= month 9) (calendar-hebrew-short-kislev-p year)))
       29
     30))
 
-(defun calendar-absolute-from-hebrew (date)
+(defun calendar-hebrew-to-absolute (date)
   "Absolute date of Hebrew DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date)))
-    (+ day				; days so far this month
-       (if (< month 7)			; before Tishri
-	   ;; Then add days in prior months this year before and after Nisan.
+  (let ((month (calendar-extract-month date))
+        (day (calendar-extract-day date))
+        (year (calendar-extract-year date)))
+    (+ day                              ; days so far this month
+       (if (< month 7)                  ; before Tishri
+           ;; Then add days in prior months this year before and after Nisan.
            (+ (calendar-sum
-               m 7 (<= m (hebrew-calendar-last-month-of-year year))
-               (hebrew-calendar-last-day-of-month m year))
+               m 7 (<= m (calendar-hebrew-last-month-of-year year))
+               (calendar-hebrew-last-day-of-month m year))
               (calendar-sum
                m 1 (< m month)
-               (hebrew-calendar-last-day-of-month m year)))
-	 ;; Else add days in prior months this year.
+               (calendar-hebrew-last-day-of-month m year)))
+         ;; Else add days in prior months this year.
          (calendar-sum
           m 7 (< m month)
-          (hebrew-calendar-last-day-of-month m year)))
-    (hebrew-calendar-elapsed-days year)	; days in prior years
-    -1373429)))			; days elapsed before absolute date 1
+          (calendar-hebrew-last-day-of-month m year)))
+       (calendar-hebrew-elapsed-days year) ; days in prior years
+       -1373429)))               ; days elapsed before absolute date 1
+
+(define-obsolete-function-alias 'calendar-absolute-from-hebrew
+  'calendar-hebrew-to-absolute "23.1")
 
 (defun calendar-hebrew-from-absolute (date)
   "Compute the Hebrew date (month day year) corresponding to absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (let* ((greg-date (calendar-gregorian-from-absolute date))
+         (year (+ 3760 (calendar-extract-year greg-date)))
          (month (aref [9 10 11 12 1 2 3 4 7 7 7 8]
-                 (1- (extract-calendar-month greg-date))))
-         (day)
-         (year (+ 3760 (extract-calendar-year greg-date))))
-    (while (>= date (calendar-absolute-from-hebrew (list 7 1 (1+ year))))
-        (setq year (1+ year)))
-    (let ((length (hebrew-calendar-last-month-of-year year)))
-      (while (> date
-                (calendar-absolute-from-hebrew
-                 (list month
-                       (hebrew-calendar-last-day-of-month month year)
-                       year)))
-        (setq month (1+ (% month length)))))
+                      (1- (calendar-extract-month greg-date))))
+         (length (progn
+                   (while (>= date (calendar-hebrew-to-absolute
+                                    (list 7 1 (1+ year))))
+                     (setq year (1+ year)))
+                   (calendar-hebrew-last-month-of-year year)))
+         day)
+    (while (> date
+              (calendar-hebrew-to-absolute
+               (list month
+                     (calendar-hebrew-last-day-of-month month year)
+                     year)))
+      (setq month (1+ (% month length))))
     (setq day (1+
-               (- date (calendar-absolute-from-hebrew (list month 1 year)))))
+               (- date (calendar-hebrew-to-absolute (list month 1 year)))))
     (list month day year)))
 
-(defvar calendar-hebrew-month-name-array-common-year
+(defconst calendar-hebrew-month-name-array-common-year
   ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
    "Heshvan" "Kislev" "Teveth" "Shevat" "Adar"]
-"Array of strings giving the names of the Hebrew months in a common year.")
+  "Array of strings giving the names of the Hebrew months in a common year.")
 
-(defvar calendar-hebrew-month-name-array-leap-year
+(defconst calendar-hebrew-month-name-array-leap-year
   ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
    "Heshvan" "Kislev" "Teveth" "Shevat" "Adar I" "Adar II"]
-"Array of strings giving the names of the Hebrew months in a leap year.")
+  "Array of strings giving the names of the Hebrew months in a leap year.")
 
+;;;###cal-autoload
 (defun calendar-hebrew-date-string (&optional date)
   "String of Hebrew date before sunset of Gregorian DATE.
 Defaults to today's date if DATE is not given.
@@ -177,319 +184,350 @@ Driven by the variable `calendar-date-display-form'."
                        (calendar-absolute-from-gregorian
                         (or date (calendar-current-date)))))
          (calendar-month-name-array
-          (if (hebrew-calendar-leap-year-p (extract-calendar-year hebrew-date))
+          (if (calendar-hebrew-leap-year-p (calendar-extract-year hebrew-date))
               calendar-hebrew-month-name-array-leap-year
             calendar-hebrew-month-name-array-common-year)))
     (calendar-date-string hebrew-date nil t)))
 
-(defun calendar-print-hebrew-date ()
+;;;###cal-autoload
+(defun calendar-hebrew-print-date ()
   "Show the Hebrew calendar equivalent of the date under the cursor."
   (interactive)
   (message "Hebrew date (until sunset): %s"
            (calendar-hebrew-date-string (calendar-cursor-to-date t))))
 
-(defun hebrew-calendar-yahrzeit (death-date year)
+(define-obsolete-function-alias 'calendar-print-hebrew-date
+  'calendar-hebrew-print-date "23.1")
+
+(defun calendar-hebrew-yahrzeit (death-date year)
   "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
-  (let* ((death-day (extract-calendar-day death-date))
-         (death-month (extract-calendar-month death-date))
-         (death-year (extract-calendar-year death-date)))
+  (let ((death-day (calendar-extract-day death-date))
+        (death-month (calendar-extract-month death-date))
+        (death-year (calendar-extract-year death-date)))
     (cond
      ;; If it's Heshvan 30 it depends on the first anniversary; if
      ;; that was not Heshvan 30, use the day before Kislev 1.
      ((and (= death-month 8)
            (= death-day 30)
-           (not (hebrew-calendar-long-heshvan-p (1+ death-year))))
-      (1- (calendar-absolute-from-hebrew (list 9 1 year))))
+           (not (calendar-hebrew-long-heshvan-p (1+ death-year))))
+      (1- (calendar-hebrew-to-absolute (list 9 1 year))))
      ;; If it's Kislev 30 it depends on the first anniversary; if that
      ;; was not Kislev 30, use the day before Teveth 1.
      ((and (= death-month 9)
            (= death-day 30)
-           (hebrew-calendar-short-kislev-p (1+ death-year)))
-      (1- (calendar-absolute-from-hebrew (list 10 1 year))))
+           (calendar-hebrew-short-kislev-p (1+ death-year)))
+      (1- (calendar-hebrew-to-absolute (list 10 1 year))))
      ;; If it's Adar II, use the same day in last month of year (Adar
      ;; or Adar II).
      ((= death-month 13)
-      (calendar-absolute-from-hebrew
-       (list (hebrew-calendar-last-month-of-year year) death-day year)))
+      (calendar-hebrew-to-absolute
+       (list (calendar-hebrew-last-month-of-year year) death-day year)))
      ;; If it's the 30th in Adar I and year is not a leap year (so
      ;; Adar has only 29 days), use the last day in Shevat.
      ((and (= death-day 30)
            (= death-month 12)
-           (not (hebrew-calendar-leap-year-p year)))
-      (calendar-absolute-from-hebrew (list 11 30 year)))
+           (not (calendar-hebrew-leap-year-p year)))
+      (calendar-hebrew-to-absolute (list 11 30 year)))
      ;; In all other cases, use the normal anniversary of the date of death.
-     (t (calendar-absolute-from-hebrew
+     (t (calendar-hebrew-to-absolute
          (list death-month death-day year))))))
 
-(defun calendar-goto-hebrew-date (date &optional noecho)
-  "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is t."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Hebrew calendar year (>3760): "
-                 (lambda (x) (> x 3760))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-hebrew-from-absolute
-                    (calendar-absolute-from-gregorian today))))))
-          (month-array (if (hebrew-calendar-leap-year-p year)
-                           calendar-hebrew-month-name-array-leap-year
-                         calendar-hebrew-month-name-array-common-year))
-          (completion-ignore-case t)
-          (month (cdr (assoc-string
-                       (completing-read
-                        "Hebrew calendar month name: "
-                        (mapcar 'list (append month-array nil))
-                        (if (= year 3761)
-                            (lambda (x)
-                               (let ((m (cdr
-                                         (assoc-string
-                                          (car x)
-                                          (calendar-make-alist month-array)
-                                          t))))
-                                 (< 0
-                                    (calendar-absolute-from-hebrew
-                                     (list m
-                                           (hebrew-calendar-last-day-of-month
-                                            m year)
-                                           year))))))
-                        t)
-                       (calendar-make-alist month-array 1) t)))
-          (last (hebrew-calendar-last-day-of-month month year))
-          (first (if (and (= year 3761) (= month 10))
-                     18 1))
-          (day (calendar-read
-                (format "Hebrew calendar day (%d-%d): "
-                        first last)
-                (lambda (x) (and (<= first x) (<= x last))))))
-     (list (list month day year))))
-  (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-hebrew date)))
-  (or noecho (calendar-print-hebrew-date)))
+(define-obsolete-function-alias 'hebrew-calendar-yahrzeit
+  'calendar-hebrew-yahrzeit "23.1")
 
-(defun holiday-hebrew (month day string)
-  "Holiday on MONTH, DAY (Hebrew) called STRING.
-If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
+(defun calendar-hebrew-read-date ()
+  "Interactively read the arguments for a Hebrew date command.
+Reads a year, month, and day."
+  (let* ((today (calendar-current-date))
+         (year (calendar-read
+                "Hebrew calendar year (>3760): "
+                (lambda (x) (> x 3760))
+                (number-to-string
+                 (calendar-extract-year
+                  (calendar-hebrew-from-absolute
+                   (calendar-absolute-from-gregorian today))))))
+         (month-array (if (calendar-hebrew-leap-year-p year)
+                          calendar-hebrew-month-name-array-leap-year
+                        calendar-hebrew-month-name-array-common-year))
+         (completion-ignore-case t)
+         (month (cdr (assoc-string
+                      (completing-read
+                       "Hebrew calendar month name: "
+                       (mapcar 'list (append month-array nil))
+                       (if (= year 3761)
+                           (lambda (x)
+                             (let ((m (cdr
+                                       (assoc-string
+                                        (car x)
+                                        (calendar-make-alist month-array)
+                                        t))))
+                               (< 0
+                                  (calendar-hebrew-to-absolute
+                                   (list m
+                                         (calendar-hebrew-last-day-of-month
+                                          m year)
+                                         year))))))
+                       t)
+                      (calendar-make-alist month-array 1) t)))
+         (last (calendar-hebrew-last-day-of-month month year))
+         (first (if (and (= year 3761) (= month 10))
+                    18 1))
+         (day (calendar-read
+               (format "Hebrew calendar day (%d-%d): "
+                       first last)
+               (lambda (x) (and (<= first x) (<= x last))))))
+    (list (list month day year))))
+
+;;;###cal-autoload
+(defun calendar-hebrew-goto-date (date &optional noecho)
+  "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is non-nil."
+  (interactive (calendar-hebrew-read-date))
+  (calendar-goto-date (calendar-gregorian-from-absolute
+                       (calendar-hebrew-to-absolute date)))
+  (or noecho (calendar-hebrew-print-date)))
+
+(define-obsolete-function-alias 'calendar-goto-hebrew-date
+  'calendar-hebrew-goto-date "23.1")
+
+(defvar displayed-month)                ; from calendar-generate
+
+(defun calendar-hebrew-date-is-visible-p (month day)
+  "Return non-nil if Hebrew MONTH DAY is visible in the calendar window.
+Returns the corresponding Gregorian date."
   ;; This test is only to speed things up a bit; it works fine without it.
   (if (memq displayed-month
+            ;; What this is doing is equivalent to +1,2,3,4,5 modulo 12, ie:
+            ;;  (mapcar (lambda (n) (let ((x (mod n 12)))
+            ;;                        (if (zerop x) 12
+            ;;                          x)))
+            ;;          (number-sequence (1+ month) (+ 5 month)))
+            ;; Ie it makes a list:
+            ;;  2  3  4  5  6 when month = 1
+            ;;  3  4  5  6  7 when month = 2
+            ;; ...
+            ;;  8  9 10 11 12 when month = 7
+            ;;  9 10 11 12  1 when month = 8
+            ;; ...
+            ;; 12  1  2  3  4 when month = 11
+            ;;  1  2  3  4  5 when month = 12
+            ;; This implies that hebrew month N cannot occur outside
+            ;; Gregorian months N:N+6 (the calendar shows
+            ;; displayed-month +/- 1 at any time).
+            ;; So to put it another way:
+            ;;  (calendar-interval month 1 displayed-month
+            ;;                    (if (> month displayed-month) 2 1))
+            ;; must be >= 1 and <= 5.  This could be expanded to:
+            ;;  (if (> month displayed-month) (+ 12 (- displayed-month month))
+            ;;    (- displayed-month month)
             (list
              (if (< 11 month) (- month 11) (+ month 1))
              (if (< 10 month) (- month 10) (+ month 2))
              (if (<  9 month) (- month  9) (+ month 3))
              (if (<  8 month) (- month  8) (+ month 4))
              (if (<  7 month) (- month  7) (+ month 5))))
-      (let ((m1 displayed-month)
-            (y1 displayed-year)
-            (m2 displayed-month)
-            (y2 displayed-year)
-            (year))
-        (increment-calendar-month m1 y1 -1)
-        (increment-calendar-month m2 y2 1)
-        (let* ((start-date (calendar-absolute-from-gregorian
-                            (list m1 1 y1)))
-               (end-date (calendar-absolute-from-gregorian
-                          (list m2 (calendar-last-day-of-month m2 y2) y2)))
-               (hebrew-start (calendar-hebrew-from-absolute start-date))
-               (hebrew-end (calendar-hebrew-from-absolute end-date))
-               (hebrew-y1 (extract-calendar-year hebrew-start))
-               (hebrew-y2 (extract-calendar-year hebrew-end)))
-          (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
-          (let ((date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-hebrew
-                        (list month day year)))))
-            (if (calendar-date-is-visible-p date)
-                (list (list date string))))))))
+      (calendar-nongregorian-visible-p
+       month day 'calendar-hebrew-to-absolute
+       'calendar-hebrew-from-absolute
+       ;; Hebrew new year is start of month 7.
+       ;; If hmonth >= 7, choose the higher year.
+       (lambda (m) (> m 6)))))
+
+;;;###holiday-autoload
+(defun holiday-hebrew (month day string)
+  "Holiday on MONTH, DAY (Hebrew) called STRING.
+If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
+Gregorian date in the form of the list (((month day year) STRING)).  Returns
+nil if it is not visible in the current calendar window."
+  (let ((gdate (calendar-hebrew-date-is-visible-p month day)))
+    (if gdate (list (list gdate string)))))
 
 ;; h-r-h-e should be called from holidays code.
 (declare-function holiday-filter-visible-calendar "holidays" (l))
 
-(defun holiday-rosh-hashanah-etc ()
-  "List of dates related to Rosh Hashanah, as visible in calendar window."
-  (if (or (< displayed-month 8)
-          (> displayed-month 11))
-      nil				; none of the dates is visible
-    (let* ((abs-r-h (calendar-absolute-from-hebrew
-                      (list 7 1 (+ displayed-year 3761))))
-            (mandatory
-             (list
-              (list (calendar-gregorian-from-absolute abs-r-h)
-                    (format "Rosh HaShanah %d" (+ 3761 displayed-year)))
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 9))
-                    "Yom Kippur")
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 14))
-                    "Sukkot")
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 21))
-                    "Shemini Atzeret")
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 22))
-                    "Simchat Torah")))
-           (optional
-            (list
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-r-h 4)))
-                   "Selichot (night)")
-             (list (calendar-gregorian-from-absolute (1- abs-r-h))
-                   "Erev Rosh HaShanah")
-             (list (calendar-gregorian-from-absolute (1+ abs-r-h))
-                   "Rosh HaShanah (second day)")
-             (list (calendar-gregorian-from-absolute
-                    (if (= (% abs-r-h 7) 4) (+ abs-r-h 3) (+ abs-r-h 2)))
-                   "Tzom Gedaliah")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (+ 7 abs-r-h)))
-                   "Shabbat Shuvah")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 8))
-                   "Erev Yom Kippur")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 13))
-                   "Erev Sukkot")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 15))
-                   "Sukkot (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 16))
-                   "Hol Hamoed Sukkot (first day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 17))
-                   "Hol Hamoed Sukkot (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 18))
-                   "Hol Hamoed Sukkot (third day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 19))
-                   "Hol Hamoed Sukkot (fourth day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 20))
-                   "Hoshanah Rabbah")))
-            (output-list
-             (holiday-filter-visible-calendar mandatory)))
-      (if all-hebrew-calendar-holidays
-          (setq output-list
-                (append
-                 (holiday-filter-visible-calendar optional)
-                 output-list)))
-      output-list)))
+(defvar displayed-year)
 
-(defun holiday-hanukkah ()
-  "List of dates related to Hanukkah, as visible in calendar window."
+;;;###holiday-autoload
+(defun holiday-hebrew-rosh-hashanah (&optional all)
+  "List of dates related to Rosh Hashanah, as visible in calendar window.
+Shows only the major holidays, unless `calendar-hebrew-all-holidays-flag'
+or ALL is non-nil."
+  (when (memq displayed-month '(8 9 10 11))
+    (let ((abs-r-h (calendar-hebrew-to-absolute
+                    (list 7 1 (+ displayed-year 3761)))))
+      (holiday-filter-visible-calendar
+       (append
+        (list
+         (list (calendar-gregorian-from-absolute abs-r-h)
+               (format "Rosh HaShanah %d" (+ 3761 displayed-year)))
+         (list (calendar-gregorian-from-absolute (+ abs-r-h 9))
+               "Yom Kippur")
+         (list (calendar-gregorian-from-absolute (+ abs-r-h 14))
+               "Sukkot")
+         (list (calendar-gregorian-from-absolute (+ abs-r-h 21))
+               "Shemini Atzeret")
+         (list (calendar-gregorian-from-absolute (+ abs-r-h 22))
+               "Simchat Torah"))
+        (when (or all calendar-hebrew-all-holidays-flag)
+          (list
+           (list (calendar-gregorian-from-absolute
+                  (calendar-dayname-on-or-before 6 (- abs-r-h 4)))
+                 "Selichot (night)")
+           (list (calendar-gregorian-from-absolute (1- abs-r-h))
+                 "Erev Rosh HaShanah")
+           (list (calendar-gregorian-from-absolute (1+ abs-r-h))
+                 "Rosh HaShanah (second day)")
+           (list (calendar-gregorian-from-absolute
+                  (if (= (% abs-r-h 7) 4) (+ abs-r-h 3) (+ abs-r-h 2)))
+                 "Tzom Gedaliah")
+           (list (calendar-gregorian-from-absolute
+                  (calendar-dayname-on-or-before 6 (+ 7 abs-r-h)))
+                 "Shabbat Shuvah")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 8))
+                 "Erev Yom Kippur")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 13))
+                 "Erev Sukkot")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 15))
+                 "Sukkot (second day)")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 16))
+                 "Hol Hamoed Sukkot (first day)")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 17))
+                 "Hol Hamoed Sukkot (second day)")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 18))
+                 "Hol Hamoed Sukkot (third day)")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 19))
+                 "Hol Hamoed Sukkot (fourth day)")
+           (list (calendar-gregorian-from-absolute (+ abs-r-h 20))
+                   "Hoshanah Rabbah"))))))))
+
+;;;###holiday-autoload
+(define-obsolete-function-alias 'holiday-rosh-hashanah-etc
+  'holiday-hebrew-rosh-hashanah "23.1")
+
+;;;###holiday-autoload
+(defun holiday-hebrew-hanukkah (&optional all)
+  "List of dates related to Hanukkah, as visible in calendar window.
+Shows only Hanukkah, unless `calendar-hebrew-all-holidays-flag' or ALL
+is non-nil."
   ;; This test is only to speed things up a bit, it works fine without it.
-  (if (memq displayed-month
-	    '(10 11 12 1 2))
-      (let ((m displayed-month)
-	    (y displayed-year))
-	(increment-calendar-month m y 1)
-	(let* ((h-y (extract-calendar-year
-		     (calendar-hebrew-from-absolute
-		      (calendar-absolute-from-gregorian
-		       (list m (calendar-last-day-of-month m y) y)))))
-	       (abs-h (calendar-absolute-from-hebrew (list 9 25 h-y))))
-	  (holiday-filter-visible-calendar
-	   (list
-	    (list (calendar-gregorian-from-absolute (1- abs-h))
-		  "Erev Hanukkah")
-	    (list (calendar-gregorian-from-absolute abs-h)
-		  "Hanukkah (first day)")
-	    (list (calendar-gregorian-from-absolute (1+ abs-h))
-		  "Hanukkah (second day)")
-	    (list (calendar-gregorian-from-absolute (+ abs-h 2))
-		  "Hanukkah (third day)")
-	    (list (calendar-gregorian-from-absolute (+ abs-h 3))
-		  "Hanukkah (fourth day)")
-	    (list (calendar-gregorian-from-absolute (+ abs-h 4))
-		  "Hanukkah (fifth day)")
-	    (list (calendar-gregorian-from-absolute (+ abs-h 5))
-		  "Hanukkah (sixth day)")
-	    (list (calendar-gregorian-from-absolute (+ abs-h 6))
-		  "Hanukkah (seventh day)")
-	    (list (calendar-gregorian-from-absolute (+ abs-h 7))
-		  "Hanukkah (eighth day)")))))))
-
-(defun holiday-passover-etc ()
-  "List of dates related to Passover, as visible in calendar window."
- (if (< 7 displayed-month)
-      nil				; none of the dates is visible
-    (let* ((abs-p (calendar-absolute-from-hebrew
-                      (list 1 15 (+ displayed-year 3760))))
-           (mandatory
+  (when (memq displayed-month '(10 11 12 1 2))
+    (let* ((m displayed-month)
+           (y displayed-year)
+           (h-y (progn
+                  (calendar-increment-month m y 1)
+                  (calendar-extract-year
+                   (calendar-hebrew-from-absolute
+                    (calendar-absolute-from-gregorian
+                     (list m (calendar-last-day-of-month m y) y))))))
+           (abs-h (calendar-hebrew-to-absolute (list 9 25 h-y)))
+           (ord ["first" "second" "third" "fourth" "fifth" "sixth"
+                 "seventh" "eighth"])
+           han)
+      (holiday-filter-visible-calendar
+       (if (or all calendar-hebrew-all-holidays-flag)
+           (append
             (list
-             (list (calendar-gregorian-from-absolute abs-p)
-                   "Passover")
-             (list (calendar-gregorian-from-absolute (+ abs-p 50))
-                   "Shavuot")))
-           (optional
-            (list
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-p 43)))
-                   "Shabbat Shekalim")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-p 30)))
-                   "Shabbat Zachor")
-             (list (calendar-gregorian-from-absolute
-                    (if (= (% abs-p 7) 2) (- abs-p 33) (- abs-p 31)))
-                   "Fast of Esther")
-             (list (calendar-gregorian-from-absolute (- abs-p 31))
-                   "Erev Purim")
-             (list (calendar-gregorian-from-absolute (- abs-p 30))
-                   "Purim")
-             (list (calendar-gregorian-from-absolute
-                    (if (zerop (% abs-p 7)) (- abs-p 28) (- abs-p 29)))
-                   "Shushan Purim")
-             (list (calendar-gregorian-from-absolute
-                    (- (calendar-dayname-on-or-before 6 (- abs-p 14)) 7))
-                   "Shabbat Parah")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-p 14)))
-                   "Shabbat HaHodesh")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (1- abs-p)))
-                   "Shabbat HaGadol")
-             (list (calendar-gregorian-from-absolute (1- abs-p))
-                   "Erev Passover")
-             (list (calendar-gregorian-from-absolute (1+ abs-p))
-                   "Passover (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 2))
-                   "Hol Hamoed Passover (first day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 3))
-                   "Hol Hamoed Passover (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 4))
-                   "Hol Hamoed Passover (third day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 5))
-                   "Hol Hamoed Passover (fourth day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 6))
-                   "Passover (seventh day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 7))
-                   "Passover (eighth day)")
-             (list (calendar-gregorian-from-absolute
-                    (if (zerop (% (+ abs-p 12) 7))
-                        (+ abs-p 13)
-                      (+ abs-p 12)))
-                   "Yom HaShoah")
-             (list (calendar-gregorian-from-absolute
-                    (if (zerop (% abs-p 7))
-                        (+ abs-p 18)
-                      (if (= (% abs-p 7) 6)
-                          (+ abs-p 19)
-                        (+ abs-p 20))))
-                   "Yom HaAtzma'ut")
-             (list (calendar-gregorian-from-absolute (+ abs-p 33))
-                   "Lag BaOmer")
-             (list (calendar-gregorian-from-absolute (+ abs-p 43))
-                   "Yom Yerushalaim")
-             (list (calendar-gregorian-from-absolute (+ abs-p 49))
-                   "Erev Shavuot")
-             (list (calendar-gregorian-from-absolute (+ abs-p 51))
-                   "Shavuot (second day)")))
-           (output-list
-             (holiday-filter-visible-calendar mandatory)))
-      (if all-hebrew-calendar-holidays
-          (setq output-list
-                (append
-                 (holiday-filter-visible-calendar optional)
-                 output-list)))
-      output-list)))
+             (list (calendar-gregorian-from-absolute (1- abs-h))
+                   "Erev Hanukkah"))
+            (dotimes (i 8 (nreverse han))
+              (push (list
+                     (calendar-gregorian-from-absolute (+ abs-h i))
+                     (format "Hanukkah (%s day)" (aref ord i)))
+                    han)))
+         (list (list (calendar-gregorian-from-absolute abs-h) "Hanukkah")))))))
 
-(defun holiday-tisha-b-av-etc ()
+;;;###holiday-autoload
+(define-obsolete-function-alias 'holiday-hanukkah
+  'holiday-hebrew-hanukkah "23.1")
+
+;;;###holiday-autoload
+(defun holiday-hebrew-passover (&optional all)
+  "List of dates related to Passover, as visible in calendar window.
+Shows only the major holidays, unless `calendar-hebrew-all-holidays-flag'
+or ALL is non-nil."
+  (when (< displayed-month 8)
+    (let ((abs-p (calendar-hebrew-to-absolute
+                  (list 1 15 (+ displayed-year 3760)))))
+      (holiday-filter-visible-calendar
+       ;; The first two are out of order when the others are added.
+       (append
+        (list
+         (list (calendar-gregorian-from-absolute abs-p) "Passover")
+         (list (calendar-gregorian-from-absolute (+ abs-p 50))
+                    "Shavuot"))
+        (when (or all calendar-hebrew-all-holidays-flag)
+          (list
+           (list (calendar-gregorian-from-absolute
+                  (calendar-dayname-on-or-before 6 (- abs-p 43)))
+                 "Shabbat Shekalim")
+           (list (calendar-gregorian-from-absolute
+                  (calendar-dayname-on-or-before 6 (- abs-p 30)))
+                 "Shabbat Zachor")
+           (list (calendar-gregorian-from-absolute
+                  (if (= (% abs-p 7) 2) (- abs-p 33) (- abs-p 31)))
+                 "Fast of Esther")
+           (list (calendar-gregorian-from-absolute (- abs-p 31))
+                 "Erev Purim")
+           (list (calendar-gregorian-from-absolute (- abs-p 30))
+                 "Purim")
+           (list (calendar-gregorian-from-absolute
+                  (if (zerop (% abs-p 7)) (- abs-p 28) (- abs-p 29)))
+                 "Shushan Purim")
+           (list (calendar-gregorian-from-absolute
+                  (- (calendar-dayname-on-or-before 6 (- abs-p 14)) 7))
+                 "Shabbat Parah")
+           (list (calendar-gregorian-from-absolute
+                  (calendar-dayname-on-or-before 6 (- abs-p 14)))
+                 "Shabbat HaHodesh")
+           (list (calendar-gregorian-from-absolute
+                  (calendar-dayname-on-or-before 6 (1- abs-p)))
+                 "Shabbat HaGadol")
+           (list (calendar-gregorian-from-absolute (1- abs-p))
+                 "Erev Passover")
+           (list (calendar-gregorian-from-absolute (1+ abs-p))
+                 "Passover (second day)")
+           (list (calendar-gregorian-from-absolute (+ abs-p 2))
+                 "Hol Hamoed Passover (first day)")
+           (list (calendar-gregorian-from-absolute (+ abs-p 3))
+                 "Hol Hamoed Passover (second day)")
+           (list (calendar-gregorian-from-absolute (+ abs-p 4))
+                 "Hol Hamoed Passover (third day)")
+           (list (calendar-gregorian-from-absolute (+ abs-p 5))
+                 "Hol Hamoed Passover (fourth day)")
+           (list (calendar-gregorian-from-absolute (+ abs-p 6))
+                 "Passover (seventh day)")
+           (list (calendar-gregorian-from-absolute (+ abs-p 7))
+                 "Passover (eighth day)")
+           (list (calendar-gregorian-from-absolute
+                  (if (zerop (% (+ abs-p 12) 7))
+                      (+ abs-p 13)
+                    (+ abs-p 12)))
+                 "Yom HaShoah")
+           (list (calendar-gregorian-from-absolute
+                  (if (zerop (% abs-p 7))
+                      (+ abs-p 18)
+                    (if (= (% abs-p 7) 6)
+                        (+ abs-p 19)
+                      (+ abs-p 20))))
+                 "Yom HaAtzma'ut")
+           (list (calendar-gregorian-from-absolute (+ abs-p 33))
+                 "Lag BaOmer")
+           (list (calendar-gregorian-from-absolute (+ abs-p 43))
+                 "Yom Yerushalaim")
+           (list (calendar-gregorian-from-absolute (+ abs-p 49))
+                 "Erev Shavuot")
+           (list (calendar-gregorian-from-absolute (+ abs-p 51))
+                 "Shavuot (second day)"))))))))
+
+;;;###holiday-autoload
+(define-obsolete-function-alias 'holiday-passover-etc
+  'holiday-hebrew-passover "23.1")
+
+;;;###holiday-autoload
+(defun holiday-hebrew-tisha-b-av ()
   "List of dates around Tisha B'Av, as visible in calendar window."
-  (if (or (< displayed-month 5)
-          (> displayed-month 9))
-      nil				; none of the dates is visible
-    (let* ((abs-t-a (calendar-absolute-from-hebrew
-                      (list 5 9 (+ displayed-year 3760)))))
-
+  (when (memq displayed-month '(5 6 7 8 9))
+    (let ((abs-t-a (calendar-hebrew-to-absolute
+                    (list 5 9 (+ displayed-year 3760)))))
       (holiday-filter-visible-calendar
        (list
         (list (calendar-gregorian-from-absolute
@@ -505,343 +543,190 @@ nil if it is not visible in the current calendar window."
                (calendar-dayname-on-or-before 6 (+ abs-t-a 7)))
               "Shabbat Nahamu"))))))
 
-;; l-h-d-e should be called from diary code.
-(declare-function add-to-diary-list "diary-lib"
-                  (date string specifier &optional marker globcolor literal))
+;;;###holiday-autoload
+(define-obsolete-function-alias 'holiday-tisha-b-av-etc
+  'holiday-hebrew-tisha-b-av "23.1")
 
-(defun list-hebrew-diary-entries ()
+(autoload 'holiday-julian "cal-julian")
+
+;;;###holiday-autoload
+(defun holiday-hebrew-misc ()
+  "Miscellaneous Hebrew holidays, if visible in calendar window.
+Includes: Tal Umatar, Tzom Teveth, Tu B'Shevat, Shabbat Shirah, and
+Kiddush HaHamah."
+  (let ((m displayed-month)
+        (y displayed-year)
+        year h-year s-s)
+    (append
+     (holiday-julian
+      11
+      (progn
+        (calendar-increment-month m y -1)
+        (setq year (calendar-extract-year
+                    (calendar-julian-from-absolute
+                     (calendar-absolute-from-gregorian (list m 1 y)))))
+        (if (zerop (% (1+ year) 4))
+            22
+          21)) "\"Tal Umatar\" (evening)")
+     (holiday-hebrew
+      10
+      (progn
+        (setq h-year (calendar-extract-year
+                      (calendar-hebrew-from-absolute
+                       (calendar-absolute-from-gregorian
+                        (list displayed-month 28 displayed-year)))))
+        (if (= 6 (% (calendar-hebrew-to-absolute (list 10 10 h-year))
+                    7))
+            11 10))
+      "Tzom Teveth")
+     (holiday-hebrew 11 15 "Tu B'Shevat")
+     (holiday-hebrew
+      11
+      (progn
+        (setq m displayed-month
+              y displayed-year
+              h-year (progn
+                       (calendar-increment-month m y 1)
+                       (calendar-extract-year
+                        (calendar-hebrew-from-absolute
+                         (calendar-absolute-from-gregorian
+                          (list m (calendar-last-day-of-month m y) y)))))
+              s-s
+              (calendar-hebrew-from-absolute
+               (if (= 6
+                      (% (calendar-hebrew-to-absolute
+                          (list 7 1 h-year))
+                         7))
+                   (calendar-dayname-on-or-before
+                    6 (calendar-hebrew-to-absolute
+                       (list 11 17 h-year)))
+                 (calendar-dayname-on-or-before
+                  6 (calendar-hebrew-to-absolute
+                     (list 11 16 h-year))))))
+        (calendar-extract-day s-s))
+      "Shabbat Shirah")
+     (and (progn
+            (setq m displayed-month
+                  y displayed-year
+                  year (progn
+                         (calendar-increment-month m y -1)
+                         (calendar-extract-year
+                          (calendar-julian-from-absolute
+                           (calendar-absolute-from-gregorian (list m 1 y))))))
+            (= 21 (% year 28)))
+          (holiday-julian 3 26 "Kiddush HaHamah")))))
+
+
+(autoload 'diary-list-entries-1 "diary-lib")
+
+;;;###diary-autoload
+(defun diary-hebrew-list-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
-Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
-\(normally an `H').  The same diary date forms govern the style of the Hebrew
-calendar entries, except that the Hebrew month names must be spelled in full.
-The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
-Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
-common Hebrew year.  If a Hebrew date diary entry begins with a
-`diary-nonmarking-symbol', the entry will appear in the diary listing, but will
-not be marked in the calendar.  This function is provided for use with the
-`nongregorian-diary-listing-hook'."
-  (if (< 0 number)
-      (let ((buffer-read-only nil)
-            (diary-modified (buffer-modified-p))
-            (gdate original-date)
-            (mark (regexp-quote diary-nonmarking-symbol)))
-        (dotimes (idummy number)
-          (let* ((d diary-date-forms)
-                 (hdate (calendar-hebrew-from-absolute
-                         (calendar-absolute-from-gregorian gdate)))
-                 (month (extract-calendar-month hdate))
-                 (day (extract-calendar-day hdate))
-                 (year (extract-calendar-year hdate)))
-            (while d
-              (let*
-                  ((date-form (if (equal (car (car d)) 'backup)
-                                  (cdr (car d))
-                                (car d)))
-                   (backup (equal (car (car d)) 'backup))
-                   (dayname
-                    (format "%s\\|%s\\.?"
-                            (calendar-day-name gdate)
-                            (calendar-day-name gdate 'abbrev)))
-                   (calendar-month-name-array
-                    calendar-hebrew-month-name-array-leap-year)
-                   (monthname
-                    (concat
-                     "\\*\\|"
-                     (calendar-month-name month)))
-                   (month (concat "\\*\\|0*" (int-to-string month)))
-                   (day (concat "\\*\\|0*" (int-to-string day)))
-                   (year
-                    (concat
-                     "\\*\\|0*" (int-to-string year)
-                     (if abbreviated-calendar-year
-                         (concat "\\|" (int-to-string (% year 100)))
-                       "")))
-                   (regexp
-                    (concat
-                     "\\(\\`\\|\^M\\|\n\\)" mark "?"
-                     (regexp-quote hebrew-diary-entry-symbol)
-                     "\\("
-                     (mapconcat 'eval date-form "\\)\\(")
-                     "\\)"))
-                   (case-fold-search t))
-                (goto-char (point-min))
-                (while (re-search-forward regexp nil t)
-                  (if backup (re-search-backward "\\<" nil t))
-                  (if (and (or (char-equal (preceding-char) ?\^M)
-                               (char-equal (preceding-char) ?\n))
-                           (not (looking-at " \\|\^I")))
-                      ;; Diary entry that consists only of date.
-                      (backward-char 1)
-                    ;; Found a nonempty diary entry--make it visible and
-                    ;; add it to the list.
-                    (let ((entry-start (point))
-                          (date-start))
-                      (re-search-backward "\^M\\|\n\\|\\`")
-                      (setq date-start (point))
-                      (re-search-forward "\^M\\|\n" nil t 2)
-                      (while (looking-at " \\|\^I")
-                        (re-search-forward "\^M\\|\n" nil t))
-                      (backward-char 1)
-                      (subst-char-in-region date-start (point) ?\^M ?\n t)
-                      (add-to-diary-list
-                       gdate
-                       (buffer-substring-no-properties entry-start (point))
-                       (buffer-substring-no-properties
-                        (1+ date-start) (1- entry-start))
-                       (copy-marker entry-start))))))
-              (setq d (cdr d))))
-          (setq gdate
-                (calendar-gregorian-from-absolute
-                 (1+ (calendar-absolute-from-gregorian gdate)))))
-        (set-buffer-modified-p diary-modified))
-    (goto-char (point-min))))
+Hebrew date diary entries must be prefaced by `diary-hebrew-entry-symbol'
+\(normally an `H').  The same diary date forms govern the style
+of the Hebrew calendar entries, except that the Hebrew month
+names cannot be abbreviated.  The Hebrew months are numbered
+from 1 to 13 with Nisan being 1, 12 being Adar I and 13 being
+Adar II; you must use `Adar I' if you want Adar of a common
+Hebrew year.  If a Hebrew date diary entry begins with
+`diary-nonmarking-symbol', the entry will appear in the diary
+listing, but will not be marked in the calendar.  This function
+is provided for use with `diary-nongregorian-listing-hook'."
+  (diary-list-entries-1 calendar-hebrew-month-name-array-leap-year
+                        diary-hebrew-entry-symbol
+                        'calendar-hebrew-from-absolute))
+;;;###diary-autoload
+(define-obsolete-function-alias 'list-hebrew-diary-entries
+  'diary-hebrew-list-entries "23.1")
 
-(defun mark-hebrew-calendar-date-pattern (month day year)
+(autoload 'calendar-mark-complex "diary-lib")
+
+;;;###diary-autoload
+(defun calendar-hebrew-mark-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.
-A value of 0 in any position is a wildcard."
+A value of 0 in any position is a wildcard.  Optional argument COLOR is
+passed to `calendar-mark-visible-date' as MARK."
+  ;; FIXME not the same as the Bahai and Islamic cases, so can't use
+  ;; calendar-mark-1.
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (not (zerop month)) (not (zerop day)))
         (if (not (zerop year))
             ;; Fully specified Hebrew date.
             (let ((date (calendar-gregorian-from-absolute
-                         (calendar-absolute-from-hebrew
+                         (calendar-hebrew-to-absolute
                           (list month day year)))))
               (if (calendar-date-is-visible-p date)
-                  (mark-visible-calendar-date date)))
-          ;; Month and day in any year--this taken from the holiday stuff.
-	  ;; This test is only to speed things up a bit, it works
-	  ;; fine without it.
-          (if (memq displayed-month
-                    (list
-                     (if (< 11 month) (- month 11) (+ month 1))
-                     (if (< 10 month) (- month 10) (+ month 2))
-                     (if (<  9 month) (- month  9) (+ month 3))
-                     (if (<  8 month) (- month  8) (+ month 4))
-                     (if (<  7 month) (- month  7) (+ month 5))))
-              (let ((m1 displayed-month)
-                    (y1 displayed-year)
-                    (m2 displayed-month)
-                    (y2 displayed-year)
-                    (year))
-                (increment-calendar-month m1 y1 -1)
-                (increment-calendar-month m2 y2 1)
-                (let* ((start-date (calendar-absolute-from-gregorian
-                                    (list m1 1 y1)))
-                       (end-date (calendar-absolute-from-gregorian
-                                  (list m2
-                                        (calendar-last-day-of-month m2 y2)
-                                        y2)))
-                       (hebrew-start
-                        (calendar-hebrew-from-absolute start-date))
-                       (hebrew-end (calendar-hebrew-from-absolute end-date))
-                       (hebrew-y1 (extract-calendar-year hebrew-start))
-                       (hebrew-y2 (extract-calendar-year hebrew-end)))
-                  (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
-                  (let ((date (calendar-gregorian-from-absolute
-                               (calendar-absolute-from-hebrew
-                                (list month day year)))))
-                    (if (calendar-date-is-visible-p date)
-                        (mark-visible-calendar-date date)))))))
-      ;; Not one of the simple cases--check all visible dates for match.
-      ;; Actually, the following code takes care of ALL of the cases, but
-      ;; it's much too slow to be used for the simple (common) cases.
-      (let ((m displayed-month)
-            (y displayed-year)
-            (first-date)
-            (last-date))
-        (increment-calendar-month m y -1)
-        (setq first-date
-              (calendar-absolute-from-gregorian
-               (list m 1 y)))
-        (increment-calendar-month m y 2)
-        (setq last-date
-              (calendar-absolute-from-gregorian
-               (list m (calendar-last-day-of-month m y) y)))
-        (calendar-for-loop date from first-date to last-date do
-          (let* ((h-date (calendar-hebrew-from-absolute date))
-                 (h-month (extract-calendar-month h-date))
-                 (h-day (extract-calendar-day h-date))
-                 (h-year (extract-calendar-year h-date)))
-            (and (or (zerop month)
-                     (= month h-month))
-                 (or (zerop day)
-                     (= day h-day))
-                 (or (zerop year)
-                     (= year h-year))
-                 (mark-visible-calendar-date
-                  (calendar-gregorian-from-absolute date)))))))))
+                  (calendar-mark-visible-date date color)))
+          ;; Month and day in any year.
+          (let ((gdate (calendar-hebrew-date-is-visible-p month day)))
+            (if gdate (calendar-mark-visible-date gdate color))))
+      (calendar-mark-complex month day year
+                             'calendar-hebrew-from-absolute color))))
 
-(declare-function diary-name-pattern "diary-lib"
-                  (string-array &optional abbrev-array paren))
+;;;###diary-autoload
+(define-obsolete-function-alias 'mark-hebrew-calendar-date-pattern
+  'calendar-hebrew-mark-date-pattern "23.1")
 
-(declare-function mark-calendar-days-named "diary-lib"
-                  (dayname &optional color))
+(autoload 'diary-mark-entries-1 "diary-lib")
 
-(defun mark-hebrew-diary-entries ()
+;;;###diary-autoload
+(defun diary-hebrew-mark-entries ()
   "Mark days in the calendar window that have Hebrew date diary entries.
-Each entry in `diary-file' (or included files) visible in the calendar window
-is marked.  Hebrew date entries are prefaced by `hebrew-diary-entry-symbol'
-\(normally an `H').  The same `diary-date-forms' govern the style of the Hebrew
-calendar entries, except that the Hebrew month names must be spelled in full.
-The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
-Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
-common Hebrew year.  Hebrew date diary entries that begin with
-`diary-nonmarking-symbol' will not be marked in the calendar.  This function
-is provided for use as part of `nongregorian-diary-marking-hook'."
-  (let ((d diary-date-forms))
-    (while d
-      (let*
-          ((date-form (if (equal (car (car d)) 'backup)
-                          (cdr (car d))
-                        (car d)))	; ignore 'backup directive
-           (dayname (diary-name-pattern calendar-day-name-array
-                                        calendar-day-abbrev-array))
-           (monthname
-            (format "%s\\|\\*"
-                    (diary-name-pattern
-                     calendar-hebrew-month-name-array-leap-year)))
-           (month "[0-9]+\\|\\*")
-           (day "[0-9]+\\|\\*")
-           (year "[0-9]+\\|\\*")
-           (l (length date-form))
-           (d-name-pos (- l (length (memq 'dayname date-form))))
-           (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
-           (m-name-pos (- l (length (memq 'monthname date-form))))
-           (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
-           (d-pos (- l (length (memq 'day date-form))))
-           (d-pos (if (/= l d-pos) (+ 2 d-pos)))
-           (m-pos (- l (length (memq 'month date-form))))
-           (m-pos (if (/= l m-pos) (+ 2 m-pos)))
-           (y-pos (- l (length (memq 'year date-form))))
-           (y-pos (if (/= l y-pos) (+ 2 y-pos)))
-           (regexp
-            (concat
-             "\\(\\`\\|\^M\\|\n\\)"
-             (regexp-quote hebrew-diary-entry-symbol)
-             "\\("
-             (mapconcat 'eval date-form "\\)\\(")
-             "\\)"))
-           (case-fold-search t))
-        (goto-char (point-min))
-        (while (re-search-forward regexp nil t)
-          (let* ((dd-name
-                  (if d-name-pos
-                      (buffer-substring
-                       (match-beginning d-name-pos)
-                       (match-end d-name-pos))))
-                 (mm-name
-                  (if m-name-pos
-                      (buffer-substring
-                       (match-beginning m-name-pos)
-                       (match-end m-name-pos))))
-                 (mm (string-to-number
-                      (if m-pos
-                          (buffer-substring
-                           (match-beginning m-pos)
-                           (match-end m-pos))
-                        "")))
-                 (dd (string-to-number
-                      (if d-pos
-                          (buffer-substring
-                           (match-beginning d-pos)
-                           (match-end d-pos))
-                        "")))
-                 (y-str (if y-pos
-                            (buffer-substring
-                             (match-beginning y-pos)
-                             (match-end y-pos))))
-                 (yy (if (not y-str)
-                         0
-                       (if (and (= (length y-str) 2)
-                                abbreviated-calendar-year)
-                           (let* ((current-y
-                                   (extract-calendar-year
-                                    (calendar-hebrew-from-absolute
-                                     (calendar-absolute-from-gregorian
-                                      (calendar-current-date)))))
-                                  (y (+ (string-to-number y-str)
-                                        (* 100 (/ current-y 100)))))
-                             (if (> (- y current-y) 50)
-                                 (- y 100)
-                               (if (> (- current-y y) 50)
-                                   (+ y 100)
-                                 y)))
-                         (string-to-number y-str)))))
-            (if dd-name
-                (mark-calendar-days-named
-                 (cdr (assoc-string dd-name
-                                         (calendar-make-alist
-                                          calendar-day-name-array
-                                          0 nil calendar-day-abbrev-array) t)))
-              (if mm-name
-                  (setq mm
-                        (if (string-equal mm-name "*") 0
-                          (cdr
-                           (assoc-string
-                            mm-name
-                            (calendar-make-alist
-                             calendar-hebrew-month-name-array-leap-year) t)))))
-              (mark-hebrew-calendar-date-pattern mm dd yy)))))
-      (setq d (cdr d)))))
+Marks each entry in `diary-file' (or included files) visible in the calendar
+window.  See `list-hebrew-diary-entries' for more information."
+  (diary-mark-entries-1 'calendar-hebrew-mark-date-pattern
+                        calendar-hebrew-month-name-array-leap-year
+                        diary-hebrew-entry-symbol
+                        'calendar-hebrew-from-absolute))
 
-(defun insert-hebrew-diary-entry (arg)
-  "Insert a diary entry.
-For the Hebrew date corresponding to the date indicated by point.
+;;;###diary-autoload
+(define-obsolete-function-alias 'mark-hebrew-diary-entries
+  'diary-hebrew-mark-entries "23.1")
+
+(autoload 'diary-insert-entry-1 "diary-lib")
+
+;;;###cal-autoload
+(defun diary-hebrew-insert-entry (arg)
+  "Insert a diary entry for the Hebrew date at point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-month-name-array
-          calendar-hebrew-month-name-array-leap-year))
-    (make-diary-entry
-     (concat
-      hebrew-diary-entry-symbol
-      (calendar-date-string
-       (calendar-hebrew-from-absolute
-        (calendar-absolute-from-gregorian
-         (calendar-cursor-to-date t)))
-       nil t))
-     arg)))
+  (diary-insert-entry-1 nil arg calendar-hebrew-month-name-array-leap-year
+                        diary-hebrew-entry-symbol
+                        'calendar-hebrew-from-absolute))
 
-(defun insert-monthly-hebrew-diary-entry (arg)
+;;;###diary-autoload
+(define-obsolete-function-alias 'insert-hebrew-diary-entry
+  'diary-hebrew-insert-entry "23.1")
+
+;;;###cal-autoload
+(defun diary-hebrew-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Hebrew month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-date-display-form
-          (if european-calendar-style '(day " * ") '("* " day )))
-         (calendar-month-name-array
-          calendar-hebrew-month-name-array-leap-year))
-    (make-diary-entry
-     (concat
-      hebrew-diary-entry-symbol
-      (calendar-date-string
-       (calendar-hebrew-from-absolute
-        (calendar-absolute-from-gregorian
-         (calendar-cursor-to-date t)))))
-     arg)))
+  (diary-insert-entry-1 'monthly arg calendar-hebrew-month-name-array-leap-year
+                        diary-hebrew-entry-symbol
+                        'calendar-hebrew-from-absolute))
+;;;###diary-autoload
+(define-obsolete-function-alias 'insert-monthly-hebrew-diary-entry
+  'diary-hebrew-insert-monthly-entry "23.1")
 
-(defun insert-yearly-hebrew-diary-entry (arg)
+;;;###cal-autoload
+(defun diary-hebrew-insert-yearly-entry (arg)
   "Insert an annual diary entry.
 For the day of the Hebrew year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-date-display-form
-          (if european-calendar-style
-              '(day " " monthname)
-            '(monthname " " day)))
-         (calendar-month-name-array
-          calendar-hebrew-month-name-array-leap-year))
-    (make-diary-entry
-     (concat
-      hebrew-diary-entry-symbol
-      (calendar-date-string
-       (calendar-hebrew-from-absolute
-        (calendar-absolute-from-gregorian
-         (calendar-cursor-to-date t)))))
-     arg)))
+  (diary-insert-entry-1 'yearly arg calendar-hebrew-month-name-array-leap-year
+                        diary-hebrew-entry-symbol
+                        'calendar-hebrew-from-absolute))
+;;;###diary-autoload
+(define-obsolete-function-alias 'insert-yearly-hebrew-diary-entry
+  'diary-hebrew-insert-yearly-entry "23.1")
 
 ;;;###autoload
-(defun list-yahrzeit-dates (death-date start-year end-year)
+(defun calendar-hebrew-list-yahrzeits (death-date start-year end-year)
   "List Yahrzeit dates for *Gregorian* DEATH-DATE from START-YEAR to END-YEAR.
 When called interactively from the calendar window, the date of death is taken
 from the cursor position."
@@ -853,7 +738,7 @@ from the cursor position."
                     (year (calendar-read
                            "Year of death (>0): "
                            (lambda (x) (> x 0))
-                           (int-to-string (extract-calendar-year today))))
+                           (number-to-string (calendar-extract-year today))))
                     (month-array calendar-month-name-array)
                     (completion-ignore-case t)
                     (month (cdr (assoc-string
@@ -867,115 +752,127 @@ from the cursor position."
                           (format "Day of death (1-%d): " last)
                           (lambda (x) (and (< 0 x) (<= x last))))))
                (list month day year))))
-          (death-year (extract-calendar-year death-date))
+          (death-year (calendar-extract-year death-date))
           (start-year (calendar-read
                        (format "Starting year of Yahrzeit table (>%d): "
                                death-year)
                        (lambda (x) (> x death-year))
-                       (int-to-string (1+ death-year))))
+                       (number-to-string (1+ death-year))))
           (end-year (calendar-read
                      (format "Ending year of Yahrzeit table (>=%d): "
                              start-year)
-                       (lambda (x) (>= x start-year)))))
-   (list death-date start-year end-year)))
+                     (lambda (x) (>= x start-year)))))
+     (list death-date start-year end-year)))
   (message "Computing Yahrzeits...")
-  (let* ((yahrzeit-buffer "*Yahrzeits*")
-         (h-date (calendar-hebrew-from-absolute
+  (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian death-date)))
-         (h-month (extract-calendar-month h-date))
-         (h-day (extract-calendar-day h-date))
-         (h-year (extract-calendar-year h-date)))
-    (set-buffer (get-buffer-create yahrzeit-buffer))
-    (setq buffer-read-only nil)
-    (calendar-set-mode-line
-     (format "Yahrzeit dates for %s = %s"
-             (calendar-date-string death-date)
-             (let ((calendar-month-name-array
-                    (if (hebrew-calendar-leap-year-p h-year)
-                        calendar-hebrew-month-name-array-leap-year
-                      calendar-hebrew-month-name-array-common-year)))
-               (calendar-date-string h-date nil t))))
-    (erase-buffer)
-    (goto-char (point-min))
-    (calendar-for-loop i from start-year to end-year do
+         (h-month (calendar-extract-month h-date))
+         (h-day (calendar-extract-day h-date))
+         (h-year (calendar-extract-year h-date))
+         (i (1- start-year)))
+    (calendar-in-read-only-buffer calendar-hebrew-yahrzeit-buffer
+      (calendar-set-mode-line
+       (format "Yahrzeit dates for %s = %s"
+               (calendar-date-string death-date)
+               (let ((calendar-month-name-array
+                      (if (calendar-hebrew-leap-year-p h-year)
+                          calendar-hebrew-month-name-array-leap-year
+                        calendar-hebrew-month-name-array-common-year)))
+                 (calendar-date-string h-date nil t))))
+      (while (<= (setq i (1+ i)) end-year)
         (insert
          (calendar-date-string
           (calendar-gregorian-from-absolute
-           (hebrew-calendar-yahrzeit
+           (calendar-hebrew-yahrzeit
             h-date
-            (extract-calendar-year
+            (calendar-extract-year
              (calendar-hebrew-from-absolute
-              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n"))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (display-buffer yahrzeit-buffer)
-    (message "Computing Yahrzeits...done")))
+              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n"))))
+  (message "Computing Yahrzeits...done"))
 
+;;;###autoload
+(define-obsolete-function-alias 'list-yahrzeit-dates
+  'calendar-hebrew-list-yahrzeits "23.1")
+
+(defvar date)
+
+;; To be called from diary-list-sexp-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
 
-(defun diary-omer (&optional mark)
+;;;###diary-autoload
+(defun diary-hebrew-omer (&optional mark)
   "Omer count diary entry.
 Entry applies if date is within 50 days after Passover.
 
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((passover
-          (calendar-absolute-from-hebrew
-           (list 1 15 (+ (extract-calendar-year date) 3760))))
+          (calendar-hebrew-to-absolute
+           (list 1 15 (+ (calendar-extract-year date) 3760))))
          (omer (- (calendar-absolute-from-gregorian date) passover))
          (week (/ omer 7))
          (day (% omer 7)))
     (if (and (> omer 0) (< omer 50))
         (cons mark
-	      (format "Day %d%s of the omer (until sunset)"
-		      omer
-		      (if (zerop week)
-			  ""
-			(format ", that is, %d week%s%s"
-				week
-				(if (= week 1) "" "s")
-				(if (zerop day)
-				    ""
-				  (format " and %d day%s"
-					  day (if (= day 1) "" "s"))))))))))
+              (format "Day %d%s of the omer (until sunset)"
+                      omer
+                      (if (zerop week)
+                          ""
+                        (format ", that is, %d week%s%s"
+                                week
+                                (if (= week 1) "" "s")
+                                (if (zerop day)
+                                    ""
+                                  (format " and %d day%s"
+                                          day (if (= day 1) "" "s"))))))))))
+;;;###diary-autoload
+(define-obsolete-function-alias 'diary-omer 'diary-hebrew-omer "23.1")
 
-(defun diary-yahrzeit (death-month death-day death-year &optional mark)
+(defvar entry)
+
+(autoload 'diary-make-date "diary-lib")
+
+;;;###diary-autoload
+(defun diary-hebrew-yahrzeit (death-month death-day death-year &optional mark)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
-Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
-to be the name of the person.  Date of death is on the *civil* calendar;
-although the date of death is specified by the civil calendar, the proper
-Hebrew calendar Yahrzeit is determined.  If `european-calendar-style' is t, the
-order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR.
+Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary
+entry is assumed to be the name of the person.  Although the date
+of death is specified by the civil calendar, the proper Hebrew
+calendar Yahrzeit is determined.
+
+The order of the input parameters changes according to `calendar-date-style'
+\(e.g. to DEATH-DAY, DEATH-MONTH, DEATH-YEAR in the European style).
 
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian
-                   (if european-calendar-style
-                       (list death-day death-month death-year)
-		     (list death-month death-day death-year)))))
-         (h-month (extract-calendar-month h-date))
-         (h-day (extract-calendar-day h-date))
-         (h-year (extract-calendar-year h-date))
+                   (diary-make-date death-month death-day death-year))))
+         (h-month (calendar-extract-month h-date))
+         (h-day (calendar-extract-day h-date))
+         (h-year (calendar-extract-year h-date))
          (d (calendar-absolute-from-gregorian date))
-         (yr (extract-calendar-year (calendar-hebrew-from-absolute d)))
+         (yr (calendar-extract-year (calendar-hebrew-from-absolute d)))
          (diff (- yr h-year))
-         (y (hebrew-calendar-yahrzeit h-date yr)))
+         (y (calendar-hebrew-yahrzeit h-date yr)))
     (if (and (> diff 0) (or (= y d) (= y (1+ d))))
         (cons mark
-	      (format "Yahrzeit of %s%s: %d%s anniversary"
-		      entry
-		      (if (= y d) "" " (evening)")
-		      diff
-		      (cond ((= (% diff 10) 1) "st")
-			    ((= (% diff 10) 2) "nd")
-			    ((= (% diff 10) 3) "rd")
-			    (t "th")))))))
+              (format "Yahrzeit of %s%s: %d%s anniversary"
+                      entry
+                      (if (= y d) "" " (evening)")
+                      diff
+                      (cond ((= (% diff 10) 1) "st")
+                            ((= (% diff 10) 2) "nd")
+                            ((= (% diff 10) 3) "rd")
+                            (t "th")))))))
+;;;###diary-autoload
+(define-obsolete-function-alias 'diary-yahrzeit 'diary-hebrew-yahrzeit "23.1")
 
-(defun diary-rosh-hodesh (&optional mark)
+;;;###diary-autoload
+(defun diary-hebrew-rosh-hodesh (&optional mark)
   "Rosh Hodesh diary entry.
 Entry applies if date is Rosh Hodesh, the day before, or the Saturday before.
 
@@ -983,242 +880,285 @@ An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((d (calendar-absolute-from-gregorian date))
          (h-date (calendar-hebrew-from-absolute d))
-         (h-month (extract-calendar-month h-date))
-         (h-day (extract-calendar-day h-date))
-         (h-year (extract-calendar-year h-date))
-         (leap-year (hebrew-calendar-leap-year-p h-year))
-         (last-day (hebrew-calendar-last-day-of-month h-month h-year))
+         (h-month (calendar-extract-month h-date))
+         (h-day (calendar-extract-day h-date))
+         (h-year (calendar-extract-year h-date))
+         (leap-year (calendar-hebrew-leap-year-p h-year))
+         (last-day (calendar-hebrew-last-day-of-month h-month h-year))
          (h-month-names
           (if leap-year
               calendar-hebrew-month-name-array-leap-year
             calendar-hebrew-month-name-array-common-year))
          (this-month (aref h-month-names (1- h-month)))
-         (h-yesterday (extract-calendar-day
+         (h-yesterday (calendar-extract-day
                        (calendar-hebrew-from-absolute (1- d)))))
     (if (or (= h-day 30) (and (= h-day 1) (/= h-month 7)))
         (cons mark
-	      (format
-	       "Rosh Hodesh %s"
-	       (if (= h-day 30)
-		   (format
-		    "%s (first day)"
-		    ;; Next month must be in the same year since this
-		    ;; month can't be the last month of the year since
-		    ;; it has 30 days
-		    (aref h-month-names h-month))
-		 (if (= h-yesterday 30)
-		     (format "%s (second day)" this-month)
-		   this-month))))
-      (if (= (% d 7) 6)	       ; Saturday--check for Shabbat Mevarchim
+              (format
+               "Rosh Hodesh %s"
+               (if (= h-day 30)
+                   (format
+                    "%s (first day)"
+                    ;; Next month must be in the same year since this
+                    ;; month can't be the last month of the year since
+                    ;; it has 30 days
+                    (aref h-month-names h-month))
+                 (if (= h-yesterday 30)
+                     (format "%s (second day)" this-month)
+                   this-month))))
+      (if (= (% d 7) 6)        ; Saturday--check for Shabbat Mevarchim
           (cons mark
-		(cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
-		       (format "Mevarchim Rosh Hodesh %s (%s)"
-			       (aref h-month-names
-				     (if (= h-month
-					    (hebrew-calendar-last-month-of-year
-					     h-year))
-					 0 h-month))
-			       (aref calendar-day-name-array (- 29 h-day))))
-		      ((and (< h-day 30) (> h-day 22) (= 30 last-day))
-		       (format "Mevarchim Rosh Hodesh %s (%s-%s)"
-			       (aref h-month-names h-month)
-			       (if (= h-day 29)
-				   "tomorrow"
-				 (aref calendar-day-name-array (- 29 h-day)))
-			       (aref calendar-day-name-array
-				     (% (- 30 h-day) 7))))))
+                (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
+                       (format "Mevarchim Rosh Hodesh %s (%s)"
+                               (aref h-month-names
+                                     (if (= h-month
+                                            (calendar-hebrew-last-month-of-year
+                                             h-year))
+                                         0 h-month))
+                               (aref calendar-day-name-array (- 29 h-day))))
+                      ((and (< h-day 30) (> h-day 22) (= 30 last-day))
+                       (format "Mevarchim Rosh Hodesh %s (%s-%s)"
+                               (aref h-month-names h-month)
+                               (if (= h-day 29)
+                                   "tomorrow"
+                                 (aref calendar-day-name-array (- 29 h-day)))
+                               (aref calendar-day-name-array
+                                     (% (- 30 h-day) 7))))))
         (if (and (= h-day 29) (/= h-month 6))
             (cons mark
-		  (format "Erev Rosh Hodesh %s"
-			  (aref h-month-names
-				(if (= h-month
-				       (hebrew-calendar-last-month-of-year
-					h-year))
-				    0 h-month)))))))))
+                  (format "Erev Rosh Hodesh %s"
+                          (aref h-month-names
+                                (if (= h-month
+                                       (calendar-hebrew-last-month-of-year
+                                        h-year))
+                                    0 h-month)))))))))
+;;;###diary-autoload
+(define-obsolete-function-alias 'diary-rosh-hodesh
+  'diary-hebrew-rosh-hodesh "23.1")
 
-(defvar hebrew-calendar-parashiot-names
-["Bereshith"   "Noah"      "Lech L'cha" "Vayera"    "Hayei Sarah" "Toledoth"
- "Vayetze"     "Vayishlah" "Vayeshev"   "Mikketz"   "Vayiggash"   "Vayhi"
- "Shemoth"     "Vaera"     "Bo"         "Beshallah" "Yithro"      "Mishpatim"
- "Terumah"     "Tetzavveh" "Ki Tissa"   "Vayakhel"  "Pekudei"     "Vayikra"
- "Tzav"        "Shemini"   "Tazria"     "Metzora"   "Aharei Moth" "Kedoshim"
- "Emor"        "Behar"     "Behukkotai" "Bemidbar"  "Naso"       "Behaalot'cha"
- "Shelah L'cha" "Korah"    "Hukkath"    "Balak"     "Pinhas"      "Mattoth"
- "Masei"       "Devarim"   "Vaethanan"  "Ekev"      "Reeh"        "Shofetim"
- "Ki Tetze"    "Ki Tavo"   "Nitzavim"   "Vayelech"  "Haazinu"]
+(defconst calendar-hebrew-parashiot-names
+  ["Bereshith"   "Noah"      "Lech L'cha" "Vayera"    "Hayei Sarah" "Toledoth"
+   "Vayetze"     "Vayishlah" "Vayeshev"   "Mikketz"   "Vayiggash"   "Vayhi"
+   "Shemoth"     "Vaera"     "Bo"         "Beshallah" "Yithro"      "Mishpatim"
+   "Terumah"     "Tetzavveh" "Ki Tissa"   "Vayakhel"  "Pekudei"     "Vayikra"
+   "Tzav"        "Shemini"   "Tazria"     "Metzora"   "Aharei Moth" "Kedoshim"
+   "Emor"        "Behar"     "Behukkotai" "Bemidbar"  "Naso"      "Behaalot'cha"
+   "Shelah L'cha" "Korah"    "Hukkath"    "Balak"     "Pinhas"      "Mattoth"
+   "Masei"       "Devarim"   "Vaethanan"  "Ekev"      "Reeh"        "Shofetim"
+   "Ki Tetze"    "Ki Tavo"   "Nitzavim"   "Vayelech"  "Haazinu"]
   "The names of the parashiot in the Torah.")
 
-(defun hebrew-calendar-parasha-name (p)
+(defun calendar-hebrew-parasha-name (p)
   "Name(s) corresponding to parasha P."
-  (if (arrayp p)			; combined parasha
+  (if (arrayp p)                        ; combined parasha
       (format "%s/%s"
-              (aref hebrew-calendar-parashiot-names (aref p 0))
-              (aref hebrew-calendar-parashiot-names (aref p 1)))
-    (aref hebrew-calendar-parashiot-names p)))
+              (aref calendar-hebrew-parashiot-names (aref p 0))
+              (aref calendar-hebrew-parashiot-names (aref p 1)))
+    (aref calendar-hebrew-parashiot-names p)))
 
-(defun diary-parasha (&optional mark)
-  "Parasha diary entry--entry applies if date is a Saturday.
-An optional parameter MARK specifies a face or single-character string to
-use when highlighting the day in the calendar."
-  (let ((d (calendar-absolute-from-gregorian date)))
-    (if (= (% d 7) 6)			;  Saturday
-        (let*
-            ((h-year (extract-calendar-year
-                      (calendar-hebrew-from-absolute d)))
-             (rosh-hashanah
-              (calendar-absolute-from-hebrew (list 7 1 h-year)))
-             (passover
-              (calendar-absolute-from-hebrew (list 1 15 h-year)))
-             (rosh-hashanah-day
-              (aref calendar-day-name-array (% rosh-hashanah 7)))
-             (passover-day
-              (aref calendar-day-name-array (% passover 7)))
-             (long-h (hebrew-calendar-long-heshvan-p h-year))
-             (short-k (hebrew-calendar-short-kislev-p h-year))
-             (type (cond ((and long-h (not short-k)) "complete")
-                         ((and (not long-h) short-k) "incomplete")
-                         (t "regular")))
-             (year-format
-              (symbol-value
-               (intern (format "hebrew-calendar-year-%s-%s-%s" ; keviah
-                               rosh-hashanah-day type passover-day))))
-             (first-saturday		; of Hebrew year
-              (calendar-dayname-on-or-before 6 (+ 6 rosh-hashanah)))
-             (saturday		   ; which Saturday of the Hebrew year
-              (/ (- d first-saturday) 7))
-             (parasha (aref year-format saturday)))
-          (if parasha
-              (cons mark
-		    (format
-		     "Parashat %s"
-		     (if (listp parasha) ; Israel differs from diaspora
-			 (if (car parasha)
-			     (format "%s (diaspora), %s (Israel)"
-				     (hebrew-calendar-parasha-name
-				      (car parasha))
-				     (hebrew-calendar-parasha-name
-				      (cdr parasha)))
-			   (format "%s (Israel)"
-				   (hebrew-calendar-parasha-name
-				    (cdr parasha))))
-		       (hebrew-calendar-parasha-name parasha)))))))))
+;; Following 14 constants are used in diary-parasha (intern).
 
 ;; The seven ordinary year types (keviot).
-(defconst hebrew-calendar-year-Saturday-incomplete-Sunday
+(defconst calendar-hebrew-year-Saturday-incomplete-Sunday
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
-    23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
-    43 44 45 46 47 48 49 50]
+       23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
+       43 44 45 46 47 48 49 50]
   "The structure of the parashiot.
 Hebrew year starts on Saturday, is `incomplete' (Heshvan and Kislev each have
 29 days), and has Passover start on Sunday.")
 
-(defconst hebrew-calendar-year-Saturday-complete-Tuesday
+(defconst calendar-hebrew-year-Saturday-complete-Tuesday
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
-    23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
-    43 44 45 46 47 48 49 [50 51]]
+       23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
+       43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Saturday, is `complete' (Heshvan and Kislev each
 have 30 days), and has Passover start on Tuesday.")
 
-(defconst hebrew-calendar-year-Monday-incomplete-Tuesday
+(defconst calendar-hebrew-year-Monday-incomplete-Tuesday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
-    23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
-    43 44 45 46 47 48 49 [50 51]]
+      23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
+      43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Monday, is `incomplete' (Heshvan and Kislev each
 have 29 days), and has Passover start on Tuesday.")
 
-(defconst hebrew-calendar-year-Monday-complete-Thursday
+(defconst calendar-hebrew-year-Monday-complete-Thursday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
-   23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 (nil . 34) (34 . 35) (35 . 36)
-   (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
+      23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 (nil . 34) (34 . 35) (35 . 36)
+      (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Monday, is `complete' (Heshvan and Kislev each have
 30 days), and has Passover start on Thursday.")
 
-(defconst hebrew-calendar-year-Tuesday-regular-Thursday
+(defconst calendar-hebrew-year-Tuesday-regular-Thursday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22]
-   23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 (nil . 34) (34 . 35) (35 . 36)
-   (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
+      23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 (nil . 34) (34 . 35) (35 . 36)
+      (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Tuesday, is `regular' (Heshvan has 29 days and
 Kislev has 30 days), and has Passover start on Thursday.")
 
-(defconst hebrew-calendar-year-Thursday-regular-Saturday
+(defconst calendar-hebrew-year-Thursday-regular-Saturday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21 22] 23
-   24 nil (nil . 25) (25 . [26 27]) ([26 27] . [28 29]) ([28 29] . 30)
-   (30 . 31) ([31 32] . 32) 33 34 35 36 37 38 39 40 [41 42] 43 44 45 46 47 48
-   49 50]
+      24 nil (nil . 25) (25 . [26 27]) ([26 27] . [28 29]) ([28 29] . 30)
+      (30 . 31) ([31 32] . 32) 33 34 35 36 37 38 39 40 [41 42] 43 44 45 46 47 48
+      49 50]
   "The structure of the parashiot.
 Hebrew year that starts on Thursday, is `regular' (Heshvan has 29 days and
 Kislev has 30 days), and has Passover start on Saturday.")
 
-(defconst hebrew-calendar-year-Thursday-complete-Sunday
+(defconst calendar-hebrew-year-Thursday-complete-Sunday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-    23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
-    43 44 45 46 47 48 49 50]
+      23 24 nil 25 [26 27] [28 29] 30 [31 32] 33 34 35 36 37 38 39 40 [41 42]
+      43 44 45 46 47 48 49 50]
   "The structure of the parashiot.
 Hebrew year that starts on Thursday, is `complete' (Heshvan and Kislev each
 have 30 days), and has Passover start on Sunday.")
 
 ;; The seven leap year types (keviot).
-(defconst hebrew-calendar-year-Saturday-incomplete-Tuesday
+(defconst calendar-hebrew-year-Saturday-incomplete-Tuesday
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-    23 24 25 26 27 nil 28 29 30 31 32 33 34 35 36 37 38 39 40 [41 42]
-    43 44 45 46 47 48 49 [50 51]]
+       23 24 25 26 27 nil 28 29 30 31 32 33 34 35 36 37 38 39 40 [41 42]
+       43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Saturday, is `incomplete' (Heshvan and Kislev each
 have 29 days), and has Passover start on Tuesday.")
 
-(defconst hebrew-calendar-year-Saturday-complete-Thursday
+(defconst calendar-hebrew-year-Saturday-complete-Thursday
   [nil 52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-   23 24 25 26 27 nil 28 29 30 31 32 33 (nil . 34) (34 . 35) (35 . 36)
-   (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
+       23 24 25 26 27 nil 28 29 30 31 32 33 (nil . 34) (34 . 35) (35 . 36)
+       (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Saturday, is `complete' (Heshvan and Kislev each
 have 30 days), and has Passover start on Thursday.")
 
-(defconst hebrew-calendar-year-Monday-incomplete-Thursday
+(defconst calendar-hebrew-year-Monday-incomplete-Thursday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-   23 24 25 26 27 nil 28 29 30 31 32 33 (nil . 34) (34 . 35) (35 . 36)
-   (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
+      23 24 25 26 27 nil 28 29 30 31 32 33 (nil . 34) (34 . 35) (35 . 36)
+      (36 . 37) (37 . 38) ([38 39] . 39) 40 [41 42] 43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Monday, is `incomplete' (Heshvan and Kislev each
 have 29 days), and has Passover start on Thursday.")
 
-(defconst hebrew-calendar-year-Monday-complete-Saturday
+(defconst calendar-hebrew-year-Monday-complete-Saturday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-   23 24 25 26 27 nil (nil . 28) (28 . 29) (29 . 30) (30 . 31) (31 . 32)
-   (32 . 33) (33 . 34) (34 . 35) (35 . 36) (36 . 37) (37 . 38) (38 . 39)
-   (39 . 40) (40 . 41) ([41 42] . 42) 43 44 45 46 47 48 49 50]
+      23 24 25 26 27 nil (nil . 28) (28 . 29) (29 . 30) (30 . 31) (31 . 32)
+      (32 . 33) (33 . 34) (34 . 35) (35 . 36) (36 . 37) (37 . 38) (38 . 39)
+      (39 . 40) (40 . 41) ([41 42] . 42) 43 44 45 46 47 48 49 50]
   "The structure of the parashiot.
 Hebrew year that starts on Monday, is `complete' (Heshvan and Kislev each have
 30 days), and has Passover start on Saturday.")
 
-(defconst hebrew-calendar-year-Tuesday-regular-Saturday
+(defconst calendar-hebrew-year-Tuesday-regular-Saturday
   [51 52 nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-   23 24 25 26 27 nil (nil . 28) (28 . 29) (29 . 30) (30 . 31) (31 . 32)
-   (32 . 33) (33 . 34) (34 . 35) (35 . 36) (36 . 37) (37 . 38) (38 . 39)
-   (39 . 40) (40 . 41) ([41 42] . 42) 43 44 45 46 47 48 49 50]
+      23 24 25 26 27 nil (nil . 28) (28 . 29) (29 . 30) (30 . 31) (31 . 32)
+      (32 . 33) (33 . 34) (34 . 35) (35 . 36) (36 . 37) (37 . 38) (38 . 39)
+      (39 . 40) (40 . 41) ([41 42] . 42) 43 44 45 46 47 48 49 50]
   "The structure of the parashiot.
 Hebrew year that starts on Tuesday, is `regular' (Heshvan has 29 days and
 Kislev has 30 days), and has Passover start on Saturday.")
 
-(defconst hebrew-calendar-year-Thursday-incomplete-Sunday
+(defconst calendar-hebrew-year-Thursday-incomplete-Sunday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-    23 24 25 26 27 28 nil 29 30 31 32 33 34 35 36 37 38 39 40 41 42
-    43 44 45 46 47 48 49 50]
+      23 24 25 26 27 28 nil 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+      43 44 45 46 47 48 49 50]
   "The structure of the parashiot.
 Hebrew year that starts on Thursday, is `incomplete' (Heshvan and Kislev both
 have 29 days), and has Passover start on Sunday.")
 
-(defconst hebrew-calendar-year-Thursday-complete-Tuesday
+(defconst calendar-hebrew-year-Thursday-complete-Tuesday
   [52 nil nil 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-    23 24 25 26 27 28 nil 29 30 31 32 33 34 35 36 37 38 39 40 41 42
-    43 44 45 46 47 48 49 [50 51]]
+      23 24 25 26 27 28 nil 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+      43 44 45 46 47 48 49 [50 51]]
   "The structure of the parashiot.
 Hebrew year that starts on Thursday, is `complete' (Heshvan and Kislev both
 have 30 days), and has Passover start on Tuesday.")
+
+;;;###diary-autoload
+(defun diary-hebrew-parasha (&optional mark)
+  "Parasha diary entry--entry applies if date is a Saturday.
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
+  (let ((d (calendar-absolute-from-gregorian date)))
+    (if (= (% d 7) 6)                   ; Saturday
+        (let* ((h-year (calendar-extract-year
+                        (calendar-hebrew-from-absolute d)))
+               (rosh-hashanah
+                (calendar-hebrew-to-absolute (list 7 1 h-year)))
+               (passover
+                (calendar-hebrew-to-absolute (list 1 15 h-year)))
+               (rosh-hashanah-day
+                (aref calendar-day-name-array (% rosh-hashanah 7)))
+               (passover-day
+                (aref calendar-day-name-array (% passover 7)))
+               (long-h (calendar-hebrew-long-heshvan-p h-year))
+               (short-k (calendar-hebrew-short-kislev-p h-year))
+               (type (cond ((and long-h (not short-k)) "complete")
+                           ((and (not long-h) short-k) "incomplete")
+                           (t "regular")))
+               (year-format
+                (symbol-value
+                 (intern (format "calendar-hebrew-year-%s-%s-%s" ; keviah
+                                 rosh-hashanah-day type passover-day))))
+               (first-saturday            ; of Hebrew year
+                (calendar-dayname-on-or-before 6 (+ 6 rosh-hashanah)))
+               (saturday             ; which Saturday of the Hebrew year
+                (/ (- d first-saturday) 7))
+               (parasha (aref year-format saturday)))
+          (if parasha
+              (cons mark
+                    (format
+                     "Parashat %s"
+                     (if (listp parasha) ; Israel differs from diaspora
+                         (if (car parasha)
+                             (format "%s (diaspora), %s (Israel)"
+                                     (calendar-hebrew-parasha-name
+                                      (car parasha))
+                                     (calendar-hebrew-parasha-name
+                                      (cdr parasha)))
+                           (format "%s (Israel)"
+                                   (calendar-hebrew-parasha-name
+                                    (cdr parasha))))
+                       (calendar-hebrew-parasha-name parasha)))))))))
+
+(define-obsolete-function-alias 'diary-parasha 'diary-hebrew-parasha "23.1")
+
+
+(declare-function solar-setup "solar" ())
+(declare-function solar-sunrise-sunset "solar" (date))
+(defvar calendar-latitude)
+(defvar calendar-longitude)
+(defvar calendar-time-zone)
+
+
+;; To be called from diary-list-sexp-entries, where DATE is bound.
+;;;###diary-autoload
+(defun diary-hebrew-sabbath-candles (&optional mark)
+  "Local time of candle lighting diary entry--applies if date is a Friday.
+No diary entry if there is no sunset on that date.  Uses
+`diary-hebrew-sabbath-candles-minutes'.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
+  (require 'solar)
+  (or (and calendar-latitude calendar-longitude calendar-time-zone)
+      (solar-setup))
+  (if (= (% (calendar-absolute-from-gregorian date) 7) 5) ; Friday
+      (let ((sunset (cadr (solar-sunrise-sunset date))))
+        (if sunset
+            (cons mark (format
+                        "%s Sabbath candle lighting"
+                        (apply 'solar-time-string
+                               (cons (- (car sunset)
+                                        (/ diary-hebrew-sabbath-candles-minutes
+                                           60.0))
+                                     (cdr sunset)))))))))
+
+;;;###diary-autoload
+(define-obsolete-function-alias 'diary-sabbath-candles
+  'diary-hebrew-sabbath-candles "23.1")
+
 
 (provide 'cal-hebrew)
 

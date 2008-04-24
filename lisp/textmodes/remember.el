@@ -5,7 +5,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 29 Mar 1999
-;; Version: 1.9
+;; Version: 2.0
 ;; Keywords: data memory todo pim
 ;; URL: http://gna.org/projects/remember-el/
 
@@ -183,7 +183,7 @@
 
 (provide 'remember)
 
-(defconst remember-version "1.9"
+(defconst remember-version "2.0"
   "This version of remember.")
 
 (defgroup remember nil
@@ -329,7 +329,7 @@ With a prefix or a visible region, use the region as INITIAL."
   "Return a simple date.  Nothing fancy."
   (if rfc822-p
       (format-time-string "%a, %e %b %Y %T %z" (current-time))
-    (format-time-string "%c" (current-time))))
+    (format-time-string "%a %b %e %T %Y" (current-time))))
 
 (defun remember-buffer-desc ()
   "Using the first line of the current buffer, create a short description."
@@ -364,8 +364,7 @@ field, for the purpose of appropriate splitting."
         (desc (remember-buffer-desc))
         (text (buffer-string)))
     (with-temp-buffer
-      (insert (format "
-From %s  %s
+      (insert (format "From %s  %s
 Date: %s
 From: %s
 Message-Id: <remember-%s@%s>
@@ -479,15 +478,30 @@ If this is nil, then `diary-file' will be used instead."
     (when remember-annotation
         (setq entry (concat entry " " remember-annotation)))
     (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" entry)
-        (replace-match
-         (if european-calendar-style
-             (concat (match-string 3 entry) "/"
-                     (match-string 2 entry) "/"
-                     (match-string 1 entry))
-           (concat (match-string 2 entry) "/"
-                   (match-string 3 entry) "/"
-                   (match-string 1 entry)))
-         t t entry)
+        (progn
+          ;; For calendar-date-style.  This costs us nothing because
+          ;; the call to make-diary-entry below loads diary-lib
+          ;; which requires calendar.
+          (require 'calendar)
+          (replace-match
+           (let ((style (if (boundp 'calendar-date-style)
+                            calendar-date-style
+                          ;; Don't complain about obsoleteness.
+                          (if (with-no-warnings european-calendar-style)
+                              'european
+                            'american))))
+             (cond ((eq style 'european)
+                    (concat (match-string 3 entry) "/"
+                            (match-string 2 entry) "/"
+                            (match-string 1 entry)))
+                   ((eq style 'iso)
+                    (concat (match-string 1 entry) "-"
+                            (match-string 2 entry) "-"
+                            (match-string 3 entry)))
+                   (t (concat (match-string 2 entry) "/"
+                              (match-string 3 entry) "/"
+                              (match-string 1 entry)))))
+           t t entry))
       entry)))
 
 (autoload 'make-diary-entry "diary-lib")
@@ -502,7 +516,7 @@ If this is nil, then `diary-file' will be used instead."
         (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
       (when list
         (make-diary-entry (mapconcat 'identity list "\n")
-                          nil (or remember-diary-file diary-file)))
+                          nil remember-diary-file))
       nil))) ;; Continue processing
 
 ;;; Internal Functions:

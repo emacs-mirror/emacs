@@ -739,5 +739,5 @@ Useful for large TOC's."
       do (define-key reftex-select-bib-map (car x) (cdr x)))
   
 
-;;; arch-tag: 842078ff-0586-4e0b-957e-536e08218464
+;; arch-tag: 842078ff-0586-4e0b-957e-536e08218464
 ;;; reftex-sel.el ends here

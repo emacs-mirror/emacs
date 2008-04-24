@@ -81,7 +81,7 @@ Each item should be a list of the form:
 
 where MAJOR-MODE is a symbol and FONT-LOCK-DEFAULTS is a list of default
 settings.  See the variable `font-lock-defaults', which takes precedence.")
-(make-obsolete-variable 'font-lock-defaults-alist 'font-lock-defaults)
+(make-obsolete-variable 'font-lock-defaults-alist 'font-lock-defaults "21.1")
 
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.

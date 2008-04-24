@@ -240,20 +240,6 @@ STARTFILES = START_FILES
 #endif /* not ORDINARY_LINK */
 
 
-#if HAVE_GTK
-#define USE_GTK
-TOOLKIT_DEFINES = -DUSE_GTK
-#endif
-
-#ifdef USE_X_TOOLKIT
-#define USE_@X_TOOLKIT_TYPE@
-TOOLKIT_DEFINES = -DUSE_@X_TOOLKIT_TYPE@
-#else
-#ifndef USE_GTK
-TOOLKIT_DEFINES =
-#endif
-#endif
-
 #ifdef HAVE_DBUS
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
@@ -273,7 +259,7 @@ DBUS_OBJ = dbusbind.o
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
@@ -322,29 +308,23 @@ LIBXMENU=
 #endif /* not HAVE_MENUS */
 
 #ifdef USE_X_TOOLKIT
-#define @X_TOOLKIT_TYPE@
-#if defined (LUCID) || defined (ATHENA)
-#if HAVE_XAW3D
-LIBW= -lXaw3d
-#else
-LIBW= -lXaw
-#endif
-#endif
-#ifdef MOTIF
-#if defined (HAVE_MOTIF_2_1) && defined (HAVE_LIBXP)
-#define LIB_MOTIF_EXTRA -lXp
-#else
-#define LIB_MOTIF_EXTRA
-#endif
-#ifdef LIB_MOTIF
-LIBW= LIB_MOTIF LIB_MOTIF_EXTRA
-#else
-LIBW= -lXm LIB_MOTIF_EXTRA
-#endif
-#endif
-#ifdef OPEN_LOOK
-LIBW= -lXol
-#endif
+# define @X_TOOLKIT_TYPE@
+# if HAVE_XAW3D
+LUCID_LIBW= -lXaw3d
+# else
+LUCID_LIBW= -lXaw
+# endif
+# if defined (HAVE_MOTIF_2_1) && defined (HAVE_LIBXP)
+#  define LIB_MOTIF_EXTRA -lXp
+# else
+#  define LIB_MOTIF_EXTRA
+# endif
+# ifdef LIB_MOTIF
+MOTIF_LIBW= LIB_MOTIF LIB_MOTIF_EXTRA
+# else
+MOTIF_LIBW= -lXm LIB_MOTIF_EXTRA
+# endif
+LIBW=$(@X_TOOLKIT_TYPE@_LIBW)
 
 #ifdef HAVE_X11XTR6
 #ifdef NEED_LIBW
@@ -554,7 +534,7 @@ CYGWIN_OBJ = sheap.o
 
 #ifdef HAVE_CARBON
 mac = $(dot)$(dot)/mac/
-MAC_OBJ = mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o fringe.o image.o
+MAC_OBJ = mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o fringe.o image.o mactoolbox.o
 emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
@@ -783,6 +763,7 @@ lisp= \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
 	${lispsource}simple.elc \
+	${lispsource}minibuffer.elc \
 	${lispsource}startup.elc \
 	${lispsource}subr.elc \
 	${lispsource}term/tty-colors.elc \
@@ -873,6 +854,7 @@ shortlisp= \
 	../lisp/register.elc \
 	../lisp/replace.elc \
 	../lisp/simple.elc \
+	../lisp/minibuffer.elc \
 	../lisp/startup.elc \
 	../lisp/subr.elc \
 	../lisp/term/tty-colors.elc \
@@ -978,7 +960,7 @@ temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJ
 prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
-#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (HAVE_GTK)
+#if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (USE_GTK)
 
 /* We use stamp-xmenu with these two deps
    to both ensure that lwlib gets remade based on its dependencies
@@ -1027,12 +1009,12 @@ really-oldXMenu:
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */
-#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
+#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
 
 /* We don''t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu
-#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
+#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! USE_GTK) */
 
 ../config.status:: epaths.in
 	@echo "The file epaths.h needs to be set up from epaths.in."
@@ -1271,6 +1253,9 @@ macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   process.h coding.h $(config_h)
 macselect.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
   keymap.h $(config_h)
+mactoolbox.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
+  charset.h coding.h ccl.h dispextern.h fontset.h termhooks.h buffer.h \
+  window.h keyboard.h $(config_h)
 
 ${emacsapp}Contents/Resources/English.lproj:
 	mkdir -p $@
