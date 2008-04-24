@@ -1,3 +1,8 @@
+2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-make-symbol): Don't wrap keyboard
+	macros within lambdas.
+
 2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-try-completion): Add `point' argument.

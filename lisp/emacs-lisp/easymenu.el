@@ -470,7 +470,10 @@ When non-nil, NOEXP indicates that CALLBACK cannot be an expression
 	 (make-symbol (format "menu-function-%d" easy-menu-item-count))))
     (setq easy-menu-item-count (1+ easy-menu-item-count))
     (fset command
-	  (if (or (keymapp callback) (functionp callback) noexp) callback
+	  (if (or (keymapp callback) (commandp callback)
+                  ;; `functionp' is probably not needed.
+                  (functionp callback) noexp)
+              callback
 	    `(lambda () (interactive) ,callback)))
     command))
 
