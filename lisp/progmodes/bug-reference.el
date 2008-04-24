@@ -66,6 +66,8 @@ There is no default setting for this, it must be set per file.")
     (when (eq (overlay-get o 'category) 'bug-reference)
       (delete-overlay o))))
 
+(defvar bug-reference-prog-mode)
+
 (defun bug-reference-fontify (start end)
   "Apply bug reference overlays to region."
   (save-excursion
