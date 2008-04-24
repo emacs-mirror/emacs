@@ -106,31 +106,33 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((locate-library "w3") 'w3)
-	((executable-find "w3m") (if (locate-library "w3m")
-				     'w3m
-				   'w3m-standalone))
+  (cond ((executable-find "w3m")
+	 (if (locate-library "w3m")
+	     'w3m
+	   'w3m-standalone))
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
-	(t 'html2text))
+	((locate-library "w3") 'w3)
+	((locate-library "html2text") 'html2text)
+	(t nil))
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
-`w3'   : use Emacs/W3;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
 `links': use links;
 `lynx' : use lynx;
+`w3'   : use Emacs/W3;
 `html2text' : use html2text;
-nil    : use external viewer."
-  :version "22.1"
+nil    : use external viewer (default web browser)."
+  :version "23.0" ;; No Gnus
   :type '(choice (const w3)
-		 (const w3m)
-		 (const w3m-standalone)
+		 (const w3m :tag "emacs-w3m")
+		 (const w3m-standalone :tag "standalone w3m" )
 		 (const links)
 		 (const lynx)
 		 (const html2text)
-		 (const nil)
+		 (const nil :tag "External viewer")
 		 (function))
   :group 'mime-display)
 

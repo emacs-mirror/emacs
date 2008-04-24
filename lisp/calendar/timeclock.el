@@ -1,7 +1,7 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -85,17 +85,17 @@
 ;;; User Variables:
 
 (defcustom timeclock-file (convert-standard-filename "~/.timelog")
-  "*The file used to store timeclock data in."
+  "The file used to store timeclock data in."
   :type 'file
   :group 'timeclock)
 
 (defcustom timeclock-workday (* 8 60 60)
-  "*The length of a work period."
+  "The length of a work period in seconds."
   :type 'integer
   :group 'timeclock)
 
 (defcustom timeclock-relative t
-  "*Whether to make reported time relative to `timeclock-workday'.
+  "Whether to make reported time relative to `timeclock-workday'.
 For example, if the length of a normal workday is eight hours, and you
 work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
@@ -106,7 +106,7 @@ previous days.  This only affects the timeclock modeline display."
   :group 'timeclock)
 
 (defcustom timeclock-get-project-function 'timeclock-ask-for-project
-  "*The function used to determine the name of the current project.
+  "The function used to determine the name of the current project.
 When clocking in, and no project is specified, this function will be
 called to determine what is the current project to be worked on.
 If this variable is nil, no questions will be asked."
@@ -114,7 +114,7 @@ If this variable is nil, no questions will be asked."
   :group 'timeclock)
 
 (defcustom timeclock-get-reason-function 'timeclock-ask-for-reason
-  "*A function used to determine the reason for clocking out.
+  "A function used to determine the reason for clocking out.
 When clocking out, and no reason is specified, this function will be
 called to determine what is the reason.
 If this variable is nil, no questions will be asked."
@@ -122,7 +122,7 @@ If this variable is nil, no questions will be asked."
   :group 'timeclock)
 
 (defcustom timeclock-get-workday-function nil
-  "*A function used to determine the length of today's workday.
+  "A function used to determine the length of today's workday.
 The first time that a user clocks in each day, this function will be
 called to determine what is the length of the current workday.  If
 the return value is nil, or equal to `timeclock-workday', nothing special
@@ -133,7 +133,7 @@ that day has a length that is different from the norm."
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
-  "*If non-nil, ask if the user wants to clock out before exiting Emacs.
+  "If non-nil, ask if the user wants to clock out before exiting Emacs.
 This variable only has effect if set with \\[customize]."
   :set (lambda (symbol value)
 	 (if value
@@ -151,7 +151,7 @@ This variable only has effect if set with \\[customize]."
 (defvar timeclock-modeline-display)
 
 (defcustom timeclock-use-display-time t
-  "*If non-nil, use `display-time-hook' for doing modeline updates.
+  "If non-nil, use `display-time-hook' for doing modeline updates.
 The advantage of this is that one less timer has to be set running
 amok in Emacs' process space.  The disadvantage is that it requires
 you to have `display-time' running.  If you don't want to use
@@ -187,7 +187,7 @@ a positive argument to force an update."
   :require 'time)
 
 (defcustom timeclock-first-in-hook nil
-  "*A hook run for the first \"in\" event each day.
+  "A hook run for the first \"in\" event each day.
 Note that this hook is run before recording any events.  Thus the
 value of `timeclock-hours-today', `timeclock-last-event' and the
 return value of function `timeclock-last-period' are relative previous
@@ -196,34 +196,34 @@ to today."
   :group 'timeclock)
 
 (defcustom timeclock-load-hook nil
-  "*Hook that gets run after timeclock has been loaded."
+  "Hook that gets run after timeclock has been loaded."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-in-hook nil
-  "*A hook run every time an \"in\" event is recorded."
+  "A hook run every time an \"in\" event is recorded."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-day-over-hook nil
-  "*A hook that is run when the workday has been completed.
+  "A hook that is run when the workday has been completed.
 This hook is only run if the current time remaining is being displayed
 in the modeline.  See the variable `timeclock-modeline-display'."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-out-hook nil
-  "*A hook run every time an \"out\" event is recorded."
+  "A hook run every time an \"out\" event is recorded."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-done-hook nil
-  "*A hook run every time a project is marked as completed."
+  "A hook run every time a project is marked as completed."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-event-hook nil
-  "*A hook run every time any event is recorded."
+  "A hook run every time any event is recorded."
   :type 'hook
   :group 'timeclock)
 
@@ -341,7 +341,7 @@ You must modify via \\[customize] for this variable to have an effect."
 (defun timeclock-in (&optional arg project find-project)
   "Clock in, recording the current time moment in the timelog.
 With a numeric prefix ARG, record the fact that today has only that
-many hours in it to be worked.  If arg is a non-numeric prefix arg
+many hours in it to be worked.  If ARG is a non-numeric prefix argument
 \(non-nil, but not a number), 0 is assumed (working on a holiday or
 weekend).  *If not called interactively, ARG should be the number of
 _seconds_ worked today*.  This feature only has effect the first time
@@ -594,7 +594,7 @@ relative only to the time worked today, and not to past time."
 OLD-DEFAULT hours are set for every day that has no number indicated."
   (interactive "P")
   (if old-default (setq old-default (prefix-numeric-value old-default))
-    (error "timelog-make-hours-explicit requires an explicit argument"))
+    (error "`timelog-make-hours-explicit' requires an explicit argument"))
   (let ((extant-timelog (find-buffer-visiting timeclock-file))
 	current-date)
     (with-current-buffer (find-file-noselect timeclock-file t)
@@ -627,7 +627,9 @@ OLD-DEFAULT hours are set for every day that has no number indicated."
 (defvar timeclock-last-project nil)
 
 (defun timeclock-completing-read (prompt alist &optional default)
-  "A version of `completing-read' that works on both Emacs and XEmacs."
+  "A version of `completing-read' that works on both Emacs and XEmacs.
+PROMPT, ALIST and DEFAULT are used for the PROMPT, COLLECTION and DEF
+arguments of `completing-read'."
   (if (featurep 'xemacs)
       (let ((str (completing-read prompt alist)))
 	(if (or (null str) (= (length str) 0))
@@ -745,80 +747,96 @@ This is only provided for coherency when used by
     timeclock-last-period))
 
 (defsubst timeclock-entry-length (entry)
+  "Return the length of ENTRY in seconds."
   (- (timeclock-time-to-seconds (cadr entry))
      (timeclock-time-to-seconds (car entry))))
 
 (defsubst timeclock-entry-begin (entry)
+  "Return the start time of ENTRY."
   (car entry))
 
 (defsubst timeclock-entry-end (entry)
+  "Return the end time of ENTRY."
   (cadr entry))
 
 (defsubst timeclock-entry-project (entry)
+  "Return the project of ENTRY."
   (nth 2 entry))
 
 (defsubst timeclock-entry-comment (entry)
+  "Return the comment of ENTRY."
   (nth 3 entry))
 
-
 (defsubst timeclock-entry-list-length (entry-list)
+  "Return the total length of ENTRY-LIST in seconds."
   (let ((length 0))
-    (while entry-list
-      (setq length (+ length (timeclock-entry-length (car entry-list))))
-      (setq entry-list (cdr entry-list)))
+    (dolist (entry entry-list)
+      (setq length (+ length (timeclock-entry-length entry))))
     length))
 
 (defsubst timeclock-entry-list-begin (entry-list)
+  "Return the start time of the first element of ENTRY-LIST."
   (timeclock-entry-begin (car entry-list)))
 
 (defsubst timeclock-entry-list-end (entry-list)
+  "Return the end time of the last element of ENTRY-LIST."
   (timeclock-entry-end (car (last entry-list))))
 
 (defsubst timeclock-entry-list-span (entry-list)
+  "Return the total time in seconds spanned by ENTRY-LIST."
   (- (timeclock-time-to-seconds (timeclock-entry-list-end entry-list))
      (timeclock-time-to-seconds (timeclock-entry-list-begin entry-list))))
 
 (defsubst timeclock-entry-list-break (entry-list)
+  "Return the total break time (span - length) in ENTRY-LIST."
   (- (timeclock-entry-list-span entry-list)
      (timeclock-entry-list-length entry-list)))
 
 (defsubst timeclock-entry-list-projects (entry-list)
-  (let (projects)
-    (while entry-list
-      (let ((project (timeclock-entry-project (car entry-list))))
-	(if projects
-	    (add-to-list 'projects project)
-	  (setq projects (list project))))
-      (setq entry-list (cdr entry-list)))
+  "Return a list of all the projects in ENTRY-LIST."
+  (let (projects proj)
+    (dolist (entry entry-list)
+      (setq proj (timeclock-entry-project entry))
+      (if projects
+	  (add-to-list 'projects proj)
+	(setq projects (list proj))))
     projects))
 
-
 (defsubst timeclock-day-required (day)
+  "Return the required length of DAY in seconds, default `timeclock-workday'."
   (or (car day) timeclock-workday))
 
 (defsubst timeclock-day-length (day)
+  "Return the actual length of DAY in seconds."
   (timeclock-entry-list-length (cdr day)))
 
 (defsubst timeclock-day-debt (day)
+  "Return the debt (required - actual) associated with DAY, in seconds."
   (- (timeclock-day-required day)
      (timeclock-day-length day)))
 
 (defsubst timeclock-day-begin (day)
+  "Return the start time of DAY."
   (timeclock-entry-list-begin (cdr day)))
 
 (defsubst timeclock-day-end (day)
+  "Return the end time of DAY."
   (timeclock-entry-list-end (cdr day)))
 
 (defsubst timeclock-day-span (day)
+  "Return the span of DAY."
   (timeclock-entry-list-span (cdr day)))
 
 (defsubst timeclock-day-break (day)
+  "Return the total break time of DAY."
   (timeclock-entry-list-break (cdr day)))
 
 (defsubst timeclock-day-projects (day)
+  "Return a list of all the projects in DAY."
   (timeclock-entry-list-projects (cdr day)))
 
 (defmacro timeclock-day-list-template (func)
+  "Template for summing the result of FUNC on each element of DAY-LIST."
   `(let ((length 0))
      (while day-list
        (setq length (+ length (,(eval func) (car day-list))))
@@ -826,56 +844,61 @@ This is only provided for coherency when used by
      length))
 
 (defun timeclock-day-list-required (day-list)
+  "Return total required length of DAY-LIST, in seconds."
   (timeclock-day-list-template 'timeclock-day-required))
 
 (defun timeclock-day-list-length (day-list)
+  "Return actual length of DAY-LIST, in seconds."
   (timeclock-day-list-template 'timeclock-day-length))
 
 (defun timeclock-day-list-debt (day-list)
+  "Return total debt (required - actual) of DAY-LIST."
   (timeclock-day-list-template 'timeclock-day-debt))
 
 (defsubst timeclock-day-list-begin (day-list)
+  "Return the start time of DAY-LIST."
   (timeclock-day-begin (car day-list)))
 
 (defsubst timeclock-day-list-end (day-list)
+  "Return the end time of DAY-LIST."
   (timeclock-day-end (car (last day-list))))
 
 (defun timeclock-day-list-span (day-list)
+  "Return the span of DAY-LIST."
   (timeclock-day-list-template 'timeclock-day-span))
 
 (defun timeclock-day-list-break (day-list)
+  "Return the total break of DAY-LIST."
   (timeclock-day-list-template 'timeclock-day-break))
 
 (defun timeclock-day-list-projects (day-list)
+  "Return a list of all the projects in DAY-LIST."
   (let (projects)
-    (while day-list
-      (let ((projs (timeclock-day-projects (car day-list))))
-	(while projs
-	  (if projects
-	      (add-to-list 'projects (car projs))
-	    (setq projects (list (car projs))))
-	  (setq projs (cdr projs))))
-      (setq day-list (cdr day-list)))
+    (dolist (day day-list)
+      (dolist (proj (timeclock-day-projects day))
+	(if projects
+	    (add-to-list 'projects proj)
+	  (setq projects (list proj)))))
     projects))
 
-
 (defsubst timeclock-current-debt (&optional log-data)
+  "Return the seconds debt from LOG-DATA, default `timeclock-log-data'."
   (nth 0 (or log-data (timeclock-log-data))))
 
 (defsubst timeclock-day-alist (&optional log-data)
+  "Return the date alist from LOG-DATA, default `timeclock-log-data'."
   (nth 1 (or log-data (timeclock-log-data))))
 
 (defun timeclock-day-list (&optional log-data)
-  (let ((alist (timeclock-day-alist log-data))
-	day-list)
-    (while alist
-      (setq day-list (cons (cdar alist) day-list)
-	    alist (cdr alist)))
+  "Return a list of the cdrs of the date alist from LOG-DATA."
+  (let (day-list)
+    (dolist (date-list (timeclock-day-alist log-data))
+      (setq day-list (cons (cdr date-list) day-list)))
     day-list))
 
 (defsubst timeclock-project-alist (&optional log-data)
+  "Return the project alist from LOG-DATA, default `timeclock-log-data'."
   (nth 2 (or log-data (timeclock-log-data))))
-
 
 (defun timeclock-log-data (&optional recent-only filename)
   "Return the contents of the timelog file, in a useful format.
@@ -1399,5 +1422,5 @@ HTML-P is non-nil, HTML markup is added."
 (if (file-readable-p timeclock-file)
     (timeclock-reread-log))
 
-;;; arch-tag: a0be3377-deb6-44ec-b9a2-a7be28436a40
+;; arch-tag: a0be3377-deb6-44ec-b9a2-a7be28436a40
 ;;; timeclock.el ends here

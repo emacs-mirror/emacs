@@ -306,10 +306,8 @@ to invocation.")
       (make-local-variable 'ediff-window-setup-function)
       (make-local-variable 'ediff-keep-variants)
 
-      (ediff-cond-compile-for-xemacs-or-emacs
-       (make-local-hook 'ediff-after-quit-hook-internal) ; xemacs form
-       nil ; emacs form
-       )
+      (if (featurep 'xemacs)
+	  (make-local-hook 'ediff-after-quit-hook-internal))
 
       ;; unwrap set up parameters passed as argument
       (while setup-parameters
@@ -332,10 +330,8 @@ to invocation.")
       (if (string-match "buffer" (symbol-name ediff-job-name))
 	  (setq ediff-keep-variants t))
 
-      (ediff-cond-compile-for-xemacs-or-emacs
-       (make-local-hook 'pre-command-hook) ; xemacs form
-       nil                                 ; emacs form
-       )
+      (if (featurep 'xemacs)
+	  (make-local-hook 'pre-command-hook))
 
       (if (ediff-window-display-p)
 	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse nil 'local))
@@ -1360,43 +1356,28 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
   ;; The problem with this is that any previous bottom-toolbar
   ;; will not re-appear after our cleanup here.  Is there a way
   ;; to do "push" and "pop" toolbars ?  --marcpa
-  (if (ediff-use-toolbar-p)
-      (ediff-cond-compile-for-xemacs-or-emacs
-       (progn ; xemacs
-	 (set-specifier bottom-toolbar (list (selected-frame) nil))
-	 (set-specifier bottom-toolbar-visible-p (list (selected-frame) nil)))
-       nil  ; emacs
-       )
-    ))
+  (if (featurep 'xemacs)
+      (when (ediff-use-toolbar-p)
+	(set-specifier bottom-toolbar (list (selected-frame) nil))
+	(set-specifier bottom-toolbar-visible-p (list (selected-frame) nil)))))
 
 ;; If wants to use toolbar, make it.
 ;; If not, zero the toolbar for XEmacs.
 ;; Do nothing for Emacs.
 (defun ediff-make-bottom-toolbar (&optional frame)
-  (if (ediff-window-display-p)
-      (progn
-	(setq frame (or frame (selected-frame)))
+  (when (ediff-window-display-p)
+    (setq frame (or frame (selected-frame)))
+    (if (featurep 'xemacs)
 	(cond ((ediff-use-toolbar-p) ; this checks for XEmacs
-	       (ediff-cond-compile-for-xemacs-or-emacs
-		(progn ; xemacs
-		  (set-specifier
-		   bottom-toolbar
-		   (list frame (if (ediff-3way-comparison-job)
-				   ediff-toolbar-3way ediff-toolbar)))
-		  (set-specifier bottom-toolbar-visible-p (list frame t))
-		  (set-specifier bottom-toolbar-height
-				 (list frame ediff-toolbar-height)))
-		nil ; emacs
-		)
-	       )
+	       (set-specifier
+		bottom-toolbar
+		(list frame (if (ediff-3way-comparison-job)
+				ediff-toolbar-3way ediff-toolbar)))
+	       (set-specifier bottom-toolbar-visible-p (list frame t))
+	       (set-specifier bottom-toolbar-height
+			      (list frame ediff-toolbar-height)))
 	      ((ediff-has-toolbar-support-p)
-	       (ediff-cond-compile-for-xemacs-or-emacs
-		(set-specifier bottom-toolbar-height (list frame 0)) ; xemacs
-		nil                                                  ; emacs
-		)
-	       )
-	      ))
-    ))
+	       (set-specifier bottom-toolbar-height (list frame 0)))))))
 
 ;; Merging
 
@@ -3408,15 +3389,13 @@ Without an argument, it saves customized diff argument, if available
 (defun ediff-make-cloned-buffer (buff region-name)
   (ediff-make-indirect-buffer
    buff (generate-new-buffer-name
-         (concat (if (stringp buff) buff (buffer-name buff)) region-name))
-   ))
+         (concat (if (stringp buff) buff (buffer-name buff)) region-name))))
 
 
 (defun ediff-make-indirect-buffer (base-buf indirect-buf-name)
-  (ediff-cond-compile-for-xemacs-or-emacs
-   (make-indirect-buffer base-buf indirect-buf-name) ; xemacs
-   (make-indirect-buffer base-buf indirect-buf-name 'clone) ; emacs
-   ))
+  (if (featurep 'xemacs)
+      (make-indirect-buffer base-buf indirect-buf-name)
+    (make-indirect-buffer base-buf indirect-buf-name 'clone)))
 
 
 ;; This function operates only from an ediff control buffer
@@ -3787,21 +3766,19 @@ Ediff Control Panel to restore highlighting."
 	  (or (number-or-marker-p end)
 	      (setq end (eval end)))
 	  (setq overl
-		(ediff-cond-compile-for-xemacs-or-emacs
-		 (make-extent beg end buff)                     ; xemacs
-		 ;; advance front and rear of the overlay
-		 (make-overlay beg end buff nil 'rear-advance)  ; emacs
-		 ))
+		(if (featurep 'xemacs)
+		    (make-extent beg end buff)
+		  ;; advance front and rear of the overlay
+		  (make-overlay beg end buff nil 'rear-advance)))
 
 	  ;; never detach
 	  (ediff-overlay-put
 	   overl (if (featurep 'emacs) 'evaporate 'detachable) nil)
 	  ;; make overlay open-ended
 	  ;; In emacs, it is made open ended at creation time
-	  (if (featurep 'xemacs)
-	      (progn
-		(ediff-overlay-put overl 'start-open nil)
-		(ediff-overlay-put overl 'end-open nil)))
+	  (when (featurep 'xemacs)
+	    (ediff-overlay-put overl 'start-open nil)
+	    (ediff-overlay-put overl 'end-open nil))
 	  (ediff-overlay-put overl 'ediff-diff-num 0)
 	  overl))))
 
@@ -4065,19 +4042,16 @@ Mail anyway? (y or n) ")
 
 
 (defun ediff-deactivate-mark ()
-  (ediff-cond-compile-for-xemacs-or-emacs
-   (zmacs-deactivate-region) ; xemacs
-   (deactivate-mark) ; emacs
-   ))
+  (if (featurep 'xemacs)
+      (zmacs-deactivate-region)
+    (deactivate-mark)))
 (defun ediff-activate-mark ()
-  (ediff-cond-compile-for-xemacs-or-emacs
-   (zmacs-activate-region) ; xemacs
-   (progn
-     (make-local-variable 'transient-mark-mode)
-     (setq mark-active t
-	   transient-mark-mode t) ; emacs
-     )
-   ))
+  (if (featurep 'xemacs)
+      (zmacs-activate-region)
+    (progn
+      (make-local-variable 'transient-mark-mode)
+      (setq mark-active t
+	    transient-mark-mode t))))
 
 (defun ediff-nuke-selective-display ()
   (if (featurep 'xemacs)
@@ -4187,10 +4161,8 @@ Mail anyway? (y or n) ")
   (interactive)
   (ediff-barf-if-not-control-buffer)
 
-  (ediff-cond-compile-for-xemacs-or-emacs
-   (make-local-hook 'post-command-hook) ; xemacs form
-   nil                                  ; emacs form
-   )
+  (if (featurep 'xemacs)
+      (make-local-hook 'post-command-hook))
 
   (let ((pre-hook 'pre-command-hook)
 	(post-hook 'post-command-hook))

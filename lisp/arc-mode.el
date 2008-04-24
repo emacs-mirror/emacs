@@ -728,6 +728,7 @@ archive.
           ;; Note this regexp is also in archive-exe-p.
           ((looking-at "MZ\\(.\\|\n\\)\\{34\\}LH[aA]'s SFX ") 'lzh-exe)
           ((looking-at "Rar!") 'rar)
+          ((looking-at "!<arch>\n") 'ar)
           ((and (looking-at "MZ")
                 (re-search-forward "Rar!" (+ (point) 100000) t))
            'rar-exe)
@@ -1971,10 +1972,129 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (delete-file tmpfile))))
 
 
+;;; Section `ar' archives.
+
+;; TODO: we currently only handle the basic format of ar archives,
+;; not the GNU nor the BSD extensions.  As it turns out, this is sufficient
+;; for .deb packages.
+
+(autoload 'tar-grind-file-mode "tar-mode")
+
+(defconst archive-ar-file-header-re
+  "\\(.\\{16\\}\\)\\([ 0-9]\\{12\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-7]\\{8\\}\\)\\([ 0-9]\\{10\\}\\)`\n")
+
+(defun archive-ar-summarize ()
+  ;; File is used internally for `archive-rar-exe-summarize'.
+  (let* ((maxname 10)
+         (maxtime 16)
+         (maxuser 5)
+         (maxgroup 5)
+         (maxmode 8)
+         (maxsize 5)
+         (files ()))
+    (goto-char (point-min))
+    (search-forward "!<arch>\n")
+    (while (looking-at archive-ar-file-header-re)
+      (let ((name (match-string 1))
+            ;; Emacs will automatically use float here because those
+            ;; timestamps don't fit in our ints.
+            (time (string-to-number (match-string 2)))
+            (user (match-string 3))
+            (group (match-string 4))
+            (mode (string-to-number (match-string 5) 8))
+            (size (string-to-number (match-string 6))))
+        ;; Move to the beginning of the data.
+        (goto-char (match-end 0))
+        (cond
+         ((equal name "//              ")
+          ;; FIXME: todo
+          nil)
+         ((equal name "/               ")
+          ;; FIXME: todo
+          nil)
+         (t
+          (setq time
+                (format-time-string
+                 "%Y-%m-%d %H:%M"
+                 (let ((high (truncate (/ time 65536))))
+                   (list high (truncate (- time (* 65536.0 high)))))))
+          (setq name (substring name 0 (string-match "/? *\\'" name)))
+          (setq user (substring user 0 (string-match " +\\'" user)))
+          (setq group (substring group 0 (string-match " +\\'" group)))
+          (setq mode (tar-grind-file-mode mode))
+          ;; Move to the end of the data.
+          (forward-char size) (if (eq ?\n (char-after)) (forward-char 1))
+          (setq size (number-to-string size))
+          (if (> (length name) maxname) (setq maxname (length name)))
+          (if (> (length time) maxtime) (setq maxtime (length time)))
+          (if (> (length user) maxuser) (setq maxuser (length user)))
+          (if (> (length group) maxgroup) (setq maxgroup (length group)))
+          (if (> (length mode) maxmode) (setq maxmode (length mode)))
+          (if (> (length size) maxsize) (setq maxsize (length size)))
+          (push (vector name name nil mode
+                        time user group size)
+                files)))))
+    (setq files (nreverse files))
+    (goto-char (point-min))
+    (let* ((format (format "%%%ds %%%ds/%%-%ds  %%%ds %%%ds %%s"
+                           maxmode maxuser maxgroup maxsize maxtime))
+           (sep (format format (make-string maxmode ?-)
+                         (make-string maxuser ?-)
+                          (make-string maxgroup ?-)
+                           (make-string maxsize ?-)
+                           (make-string maxtime ?-) ""))
+           (column (length sep)))
+      (insert (format format "  Mode  " "User" "Group" " Size "
+                      "      Date      " "Filename")
+              "\n")
+      (insert sep (make-string maxname ?-) "\n")
+      (archive-summarize-files (mapcar (lambda (desc)
+                                         (let ((text
+                                                (format format
+                                                         (aref desc 3)
+                                                         (aref desc 5)
+                                                         (aref desc 6)
+                                                         (aref desc 7)
+                                                         (aref desc 4)
+                                                         (aref desc 1))))
+                                           (vector text
+                                                   column
+                                                   (length text))))
+                                       files))
+      (insert sep (make-string maxname ?-) "\n")
+      (apply 'vector files))))
+
+(defun archive-ar-extract (archive name)
+  (let ((destbuf (current-buffer))
+        (archivebuf (find-file-noselect archive))
+        (from nil) size)
+    (with-current-buffer archivebuf
+      (save-restriction
+        ;; We may be in archive-mode or not, so either with or without
+        ;; narrowing and with or without a prepended summary.
+        (widen)
+        (search-forward "!<arch>\n")
+        (while (and (not from) (looking-at archive-ar-file-header-re))
+          (let ((this (match-string 1)))
+            (setq size (string-to-number (match-string 6)))
+            (goto-char (match-end 0))
+            (setq this (substring this 0 (string-match "/? *\\'" this)))
+            (if (equal name this)
+                (setq from (point))
+              ;; Move to the end of the data.
+              (forward-char size) (if (eq ?\n (char-after)) (forward-char 1)))))
+        (when from
+          (set-buffer-multibyte nil)
+          (with-current-buffer destbuf
+            ;; Do it within the `widen'.
+            (insert-buffer-substring archivebuf from (+ from size)))
+          (set-buffer-multibyte t)
+          ;; Inform the caller that the call succeeded.
+          t)))))
+
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.
 ;; rms  15 Oct 98
-
 (provide 'archive-mode)
 
 (provide 'arc-mode)

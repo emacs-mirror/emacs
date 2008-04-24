@@ -96,8 +96,7 @@ Requires floating point."
 ;;;###autoload
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
-If called with an optional prefix argument, prompts for month and year.
-
+If called with an optional prefix argument ARG, prompts for month and year.
 This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
@@ -135,13 +134,13 @@ The optional LABEL is used to label the buffer created."
   (interactive
    (let* ((start-year (calendar-read
                        "Starting year of holidays (>0): "
-                       '(lambda (x) (> x 0))
+                       (lambda (x) (> x 0))
                        (int-to-string (extract-calendar-year
                                        (calendar-current-date)))))
           (end-year (calendar-read
                        (format "Ending year (inclusive) of holidays (>=%s): "
                                start-year)
-                       '(lambda (x) (>= x start-year))
+                       (lambda (x) (>= x start-year))
                        (int-to-string start-year)))
           (completion-ignore-case t)
           (lists
@@ -199,7 +198,7 @@ The optional LABEL is used to label the buffer created."
       (goto-char (point-min))
       (insert
        (mapconcat
-        '(lambda (x) (concat (calendar-date-string (car x))
+        (lambda (x) (concat (calendar-date-string (car x))
                              ": " (car (cdr x))))
         holiday-list "\n"))
       (goto-char (point-min))
@@ -285,7 +284,7 @@ holidays are found, nil if not."
       (erase-buffer)
       (insert
        (mapconcat
-        '(lambda (x) (concat (calendar-date-string (car x))
+        (lambda (x) (concat (calendar-date-string (car x))
                              ": " (car (cdr x))))
         holiday-list "\n"))
       (goto-char (point-min))
@@ -358,25 +357,25 @@ Returns nil if it is not visible in the current calendar window."
          (y2 y1))
     (increment-calendar-month m1 y1 -1)
     (increment-calendar-month m2 y2 1)
-    (let* ((d1;  first possible base date for holiday
+    (let* ((d1                 ;  first possible base date for holiday
             (+ (calendar-nth-named-absday 1 dayname m1 y1)
                (* -7 n)
                (if (> n 0) 1 -7)))
-           (d2;  last possible base date for holiday
+           (d2                  ;  last possible base date for holiday
             (+ (calendar-nth-named-absday -1 dayname m2 y2)
                (* -7 n)
                (if (> n 0) 7 -1)))
            (y1 (extract-calendar-year (calendar-gregorian-from-absolute d1)))
            (y2 (extract-calendar-year (calendar-gregorian-from-absolute d2)))
-           (y; year of base date
+           (y                           ; year of base date
             (if (or (= y1 y2) (> month 9))
                   y1
                 y2))
-           (d; day of base date
+           (d                           ; day of base date
             (or day (if (> n 0)
                         1
                       (calendar-last-day-of-month month y))))
-           (date; base date for holiday
+           (date                        ; base date for holiday
             (calendar-absolute-from-gregorian (list month d y))))
       (if (and (<= d1 date) (<= date d2))
           (list (list (calendar-nth-named-day n dayname month y d)
@@ -467,20 +466,20 @@ is non-nil)."
           (if (setq res (holiday-easter-etc (car elem) (cdr elem)))
               (setq res-list (append res res-list)))))
     (let* ((century (1+ (/ displayed-year 100)))
-           (shifted-epact ;; Age of moon for April 5...
-            (% (+ 14 (* 11 (% displayed-year 19)) ;;     ...by Nicaean rule
-                  (- ;; ...corrected for the Gregorian century rule
+           (shifted-epact               ; age of moon for April 5...
+            (% (+ 14 (* 11 (% displayed-year 19)) ;     ...by Nicaean rule
+                  (-     ; ...corrected for the Gregorian century rule
                    (/ (* 3 century) 4))
-                  (/ ;; ...corrected for Metonic cycle inaccuracy.
+                  (/      ; ...corrected for Metonic cycle inaccuracy
                    (+ 5 (* 8 century)) 25)
-                  (* 30 century)) ;;              Keeps value positive.
+                  (* 30 century))  ;              keeps value positive
                30))
-           (adjusted-epact ;;  Adjust for 29.5 day month.
+           (adjusted-epact              ;  adjust for 29.5 day month
             (if (or (zerop shifted-epact)
                     (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
                 (1+ shifted-epact)
               shifted-epact))
-           (paschal-moon ;; Day after the full moon on or after March 21.
+           (paschal-moon ; day after the full moon on or after March 21
             (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
                adjusted-epact))
            (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
@@ -501,14 +500,14 @@ is non-nil)."
              (calendar-julian-from-absolute
               (calendar-absolute-from-gregorian
                (list m (calendar-last-day-of-month m y) y)))))
-           (shifted-epact ;; Age of moon for April 5.
+           (shifted-epact               ; age of moon for April 5
             (% (+ 14
                   (* 11 (% julian-year 19)))
                30))
-           (paschal-moon  ;; Day after full moon on or after March 21.
+           (paschal-moon    ; day after full moon on or after March 21
             (- (calendar-absolute-from-julian (list 4 19 julian-year))
                shifted-epact))
-           (nicaean-easter;; Sunday following the Paschal moon
+           (nicaean-easter         ; Sunday following the Paschal moon
             (calendar-gregorian-from-absolute
              (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))))
       (if (calendar-date-is-visible-p nicaean-easter)

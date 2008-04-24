@@ -677,7 +677,7 @@ With any other arg, set comment column to indentation of the previous comment
 
 ;;;###autoload
 (defun comment-kill (arg)
-  "Kill the comment on this line, if any.
+  "Kill the first comment on this line, if any.
 With prefix ARG, kill comments on that many lines starting with this one."
   (interactive "P")
   (comment-normalize-vars)

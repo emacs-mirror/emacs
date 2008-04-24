@@ -28,18 +28,21 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
-** The new configuration option "--enable-font-backend" enables new code
-for handling fonts by multiple backends (the old font handling codes
-still exist).  This requires the freetype and fontconfig libraries, and
-supports local fonts (fonts installed on the machine where Emacs is running).
-Additionally, the Xft library can be used for antialiasing support.
-Fontconfig-like font names (e.g. monospace-12) are also accepted.
+** Fonts are handled by new code capable of dealing with multiple font
+backends.  This requires the freetype and fontconfig libraries, and
+supports local fonts (fonts installed on the machine where Emacs is
+running).  Additionally, the Xft library can be used for antialiasing
+support, the otf library for complex text layout by OpenType fonts,
+and the m17n library for text shaping.  Fontconfig-like font names
+(e.g. monospace-12) are accepted.  The old font handling code can
+be used by passing the configure option `--disable-font-backend'
+(also available as a run-time option).
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
 
 ** The Mac Carbon port is no longer supported.
-Instead, use... [what?]
+Instead, use... [FIXME what?]
 
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
@@ -57,7 +60,7 @@ See the list at the end of etc/MACHINES for details.
 Configure will use gcc by default.  Set the CC environment variable if
 you need control over which C compiler is used.
 
-** The configure option `--with-gtk' has been removed. Gtk is now the
+** The configure option `--with-gtk' has been removed.  Gtk is now the
 default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
@@ -71,7 +74,7 @@ the current $DISPLAY or a tty frame if $DISPLAY is not set.
 You can test for the presence of this feature in your Lisp code by
 testing for the `multi-tty' feature.
 
-** The Emacs character set is now a superset of Unicode.  
+** The Emacs character set is now a superset of Unicode.
 (It has about four times the code space, which should be plenty).
 
 The internal encoding used for buffers and strings is now
@@ -111,11 +114,9 @@ You can embed Emacs in another application on X11.  The new command line option
 http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
 
-** Emacs comes with a new set of icons for Mac OS X.
-OS-X-style icons (an application icon and a relevant document icon)
-were contributed by Kentaro Ohkouchi.
-Source files for these icons can be found in Emacs.app/Contents/Resources.
-PNG versions are available as etc/images/icons/emacs*_mac.png.
+** Emacs comes with a new set of default icons.
+Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
+The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 ** Built-in functions (subr) can now have an interactive specification
 that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
@@ -137,8 +138,6 @@ the currently selected Emacs frame.
 ** Emacs now supports the SVG image format through librsvg2.
 
 ** C-SPC C-SPC in transient-mark-mode pushes a mark without activating it.
-
-** transient-mark-mode is now enabled by default.
 
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
@@ -204,8 +203,8 @@ inside of --eval command line arguments in order to access
 following arguments.
 
 ** The new command-line option `--disable-font-backend' disables the
-new font backend code at runtime.  This option is only available if
-Emacs was compiled with font-backend support.
+new font backend code at runtime.  This option is not available if
+Emacs was compiled without font-backend support.
 
 ** The abbrev file is no longer read at startup in batch mode.
 
@@ -429,7 +428,7 @@ struct members in C, members variables in C++ and variables in PHP.
 
 This enables VC to work much more effectively with changeset-oriented
 version-control systems such as Subversion, GNU Arch, Mercurial, and
-Bzr. VC will now pass a multiple-file commit to these systems
+Bzr.  VC will now pass a multiple-file commit to these systems
 as a single changeset.
 
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
@@ -449,7 +448,7 @@ tex-suscript-height-minimum.
 
 ** BibTeX mode:
 
-*** New command `bibtex-initialize' (re)initializes BibTeX buffers. 
+*** New command `bibtex-initialize' (re)initializes BibTeX buffers.
 
 *** New `bibtex-entry-format' options `whitespace', `braces', and
 `string', disabled by default.
@@ -548,7 +547,7 @@ It is used to configure wireless interfaces.
 ---
 ** IPv6 is supported on MS-Windows.
 Emacs now supports IPv6 on Windows XP and later, and earlier versions
-of Windows with third party IPv6 stacks installed. Previously IPv6 was
+of Windows with third party IPv6 stacks installed.  Previously IPv6 was
 supported on other platforms, but not on Windows due to using the winsock
 1.1 header file, even though Emacs was linking to the winsock 2 library.
 
@@ -562,7 +561,7 @@ Emacs can now bind functions to the extra buttons for media player and
 browser control present on some keyboards.  These buttons are disabled
 by default, since enabling them prevents their system-wide use when
 Emacs has focus.  To enable them, set the variable
-w32-pass-multimedia-buttons to nil. See the doc string of that variable
+w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
 
 * Incompatible Lisp Changes in Emacs 23.1
@@ -584,9 +583,9 @@ support for these coding systems, have been deleted.
 ** The function `dired-call-process' has been removed.
 
 ** The variable `byte-compile-warnings' can now be a list starting with `not',
-meaning to disable the specified warnings. The meaning of this list
+meaning to disable the specified warnings.  The meaning of this list
 may therefore be the reverse of what you expect (of course, this is
-only an issue if you make use of the new `not' syntax). Rather than
+only an issue if you make use of the new `not' syntax).  Rather than
 checking/manipulating elements directly, use the new functions
 `byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
 `byte-compile-enable-warning.'
@@ -677,11 +676,11 @@ strings on the kill ring.
 
 ** Character code, representation, and charset changes.
 
-The character code space is now 0x0..0x3FFFFF with no gap. 
+The character code space is now 0x0..0x3FFFFF with no gap.
 Characters of code 0x0..0x10FFFF are Unicode characters of the same code points.
 Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit bytes.
 
-Generic characters no longer exist.  
+Generic characters no longer exist.
 
 In buffer and string, characters are represented by UTF-8 byte
 sequence in a multibyte buffer/string.
@@ -783,7 +782,7 @@ coding systems.
 *** The functions `set-coding-priority' and `make-coding-system' are obsolete.
 
 ** There is a new input method, Robin, different from Quail.
-It has three functionalities: 
+It has three functionalities:
  i) a simple input method (converts an ASCII sequence into a string).
 ii) converts an existing buffer substring into another string
 iii) reverse conversion (each character produced by a
@@ -843,7 +842,7 @@ $TERM inherited by Emacs you will have to look inside initial-environment.
 
 *** $DISPLAY is now dynamically inherited from the frame's `display'.
 
-*** The `window-system' variable has been made frame-local. The new
+*** The `window-system' variable has been made frame-local.  The new
 `initial-window-system' variable contains the `window-system' value
 for the first frame.
 

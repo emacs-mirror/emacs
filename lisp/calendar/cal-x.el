@@ -1,7 +1,7 @@
 ;;; cal-x.el --- calendar windows in dedicated frames in X
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -35,42 +35,53 @@
 
 (require 'calendar)
 
-(defvar calendar-frame nil "Frame in which to display the calendar.")
-
-(defvar diary-frame nil "Frame in which to display the diary.")
-
-;; This should not specify the font.  That's up to the user.
-;; Certainly it should not specify auto-lower and auto-raise
-;; since most users won't like that.
-(defvar diary-frame-parameters
+(defcustom diary-frame-parameters
   '((name . "Diary") (title . "Diary") (height . 10) (width . 80)
     (unsplittable . t) (minibuffer . nil))
   "Parameters of the diary frame, if the diary is in its own frame.
-Location and color should be set in .Xdefaults.")
+Location and color should be set in .Xdefaults."
+  :type 'sexp
+  :group 'calendar)
 
-(defvar calendar-frame-parameters
+(defcustom calendar-frame-parameters
   '((name . "Calendar") (title . "Calendar") (minibuffer . nil)
     (height . 10) (width . 80) (unsplittable . t) (vertical-scroll-bars . nil))
   "Parameters of the calendar frame, if the calendar is in a separate frame.
-Location and color should be set in .Xdefaults.")
+Location and color should be set in .Xdefaults."
+  :type 'sexp
+  :group 'calendar)
 
-(defvar calendar-and-diary-frame-parameters
+(defcustom calendar-and-diary-frame-parameters
   '((name . "Calendar") (title . "Calendar") (height . 28) (width . 80)
     (minibuffer . nil))
   "Parameters of the frame that displays both the calendar and the diary.
-Location and color should be set in .Xdefaults.")
+Location and color should be set in .Xdefaults."
+  :type 'sexp
+  :group 'calendar)
 
-(defvar calendar-after-frame-setup-hooks nil
+(defcustom calendar-after-frame-setup-hooks nil
   "Hooks to be run just after setting up a calendar frame.
-Can be used to change frame parameters, such as font, color, location, etc.")
+Can be used to change frame parameters, such as font, color, location, etc."
+  :type 'hook
+  :group 'calendar-hooks)
+
+;;; End of user options.
+
+(defvar calendar-frame nil
+  "Frame in which to display the calendar.")
+
+(defvar diary-frame nil
+  "Frame in which to display the diary.")
 
 ;; calendar-basic-setup is called first, and will autoload diary-lib.
 (declare-function make-fancy-diary-buffer "diary-lib" nil)
 
+;;;###autoload
 (defun calendar-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame together with the diary.
 This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead."
+`calendar-basic-setup' is used instead.  The optional argument ARG is
+passed to `calendar-basic-setup'."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -97,10 +108,12 @@ This function requires a display capable of multiple frames, else
               fancy-diary-buffer))
            t))))))
 
+;;;###autoload
 (defun calendar-only-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame.
 This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead."
+`calendar-basic-setup' is used instead.  The optional argument
+ARG is passed to `calendar-basic-setup'"
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -118,10 +131,12 @@ This function requires a display capable of multiple frames, else
           (calendar-basic-setup arg)
           (set-window-dedicated-p (selected-window) t))))))
 
+;;;###autoload
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames.
 This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead."
+`calendar-basic-setup' is used instead.  The optional argument
+ARG is passed to `calendar-basic-setup'"
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -166,6 +181,10 @@ This function requires a display capable of multiple frames, else
 (run-hooks 'cal-x-load-hook)
 
 (provide 'cal-x)
+
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
 
 ;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here

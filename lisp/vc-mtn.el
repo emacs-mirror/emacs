@@ -110,6 +110,7 @@
   '(("\\`[^:/#]*[:/#]" . ""))           ;Drop the host part.
   "Rewrite rules to shorten Mtn's revision names on the mode-line."
   :type '(repeat (cons regexp string))
+  :version "22.2"
   :group 'vc)
 
 (defun vc-mtn-mode-line-string (file)

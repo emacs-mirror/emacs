@@ -652,7 +652,8 @@ Valid values include `message-send-mail-with-sendmail'
 `message-send-mail-with-mh', `message-send-mail-with-qmail',
 `message-smtpmail-send-it', `smtpmail-send-it',
 `feedmail-send-it' and `message-send-mail-with-mailclient'.  The
-default is system dependent.
+default is system dependent and determined by the function
+`message-send-mail-function'.
 
 See also `send-mail-function'."
   :type '(radio (function-item message-send-mail-with-sendmail)
@@ -661,7 +662,6 @@ See also `send-mail-function'."
 		(function-item message-smtpmail-send-it)
 		(function-item smtpmail-send-it)
 		(function-item feedmail-send-it)
-		(function :tag "Other")
 		(function-item message-send-mail-with-mailclient
 			       :tag "Use Mailclient package")
  		(function :tag "Other"))
@@ -7806,6 +7806,98 @@ From headers in the original article."
       (when (and choose match)
 	(delete-region start end)
 	(insert match)))))
+
+;; To send pre-formatted letters like the example below, you can use
+;; `message-send-form-letter':
+;; --8<---------------cut here---------------start------------->8---
+;; To: alice@invalid.invalid
+;; Subject: Verification of your contact information
+;; From: Contact verification <admin@foo.invalid>
+;; --text follows this line--
+;; Hi Alice,
+;; please verify that your contact information is still valid:
+;; Alice A, A avenue 11, 1111 A town, Austria
+;; ----------next form letter message follows this line----------
+;; To: bob@invalid.invalid
+;; Subject: Verification of your contact information
+;; From: Contact verification <admin@foo.invalid>
+;; --text follows this line--
+;; Hi Bob,
+;; please verify that your contact information is still valid:
+;; Bob, B street 22, 22222 Be town, Belgium
+;; ----------next form letter message follows this line----------
+;; To: charlie@invalid.invalid
+;; Subject: Verification of your contact information
+;; From: Contact verification <admin@foo.invalid>
+;; --text follows this line--
+;; Hi Charlie,
+;; please verify that your contact information is still valid:
+;; Charlie Chaplin, C plaza 33, 33333 C town, Chile
+;; --8<---------------cut here---------------end--------------->8---
+
+;; FIXME: What is the most common term (circular letter, form letter, serial
+;; letter, standard letter) for such kind of letter?  See also
+;; <http://en.wikipedia.org/wiki/Form_letter>
+
+;; FIXME: Maybe extent message-mode's font-lock support to recognize
+;; `message-form-letter-separator', i.e. highlight each message like a single
+;; message.
+
+(defcustom message-form-letter-separator
+  "\n----------next form letter message follows this line----------\n"
+  "Separator for `message-send-form-letter'."
+  ;; :group 'message-form-letter
+  :group 'message-various
+  :version "23.1" ;; No Gnus
+  :type 'string)
+
+(defcustom message-send-form-letter-delay 1
+  "Delay in seconds when sending a message with `message-send-form-letter'.
+Only used when `message-send-form-letter' is called with non-nil
+argument `force'."
+  ;; :group 'message-form-letter
+  :group 'message-various
+  :version "23.1" ;; No Gnus
+  :type 'integer)
+
+(defun message-send-form-letter (&optional force)
+  "Sent all form letter messages from current buffer.
+Unless FORCE, prompt before sending.
+
+The messages are separated by `message-form-letter-separator'.
+Header and body are separated by `mail-header-separator'."
+  (interactive "P")
+  (let ((sent 0) (skipped 0)
+	start end text
+	buff
+	to done)
+    (goto-char (point-min))
+    (while (not done)
+      (setq start (point)
+	    end (if (search-forward message-form-letter-separator nil t)
+		    (- (point) (length message-form-letter-separator) -1)
+		  (setq done t)
+		  (point-max)))
+      (setq text
+	    (buffer-substring-no-properties start end))
+      (setq buff (generate-new-buffer "*mail - form letter*"))
+      (with-current-buffer buff
+	(insert text)
+	(message-mode)
+	(setq to (message-fetch-field "To"))
+	(switch-to-buffer buff)
+	(when force
+	  (sit-for message-send-form-letter-delay))
+	(if (or force
+		  (y-or-n-p (format "Send message to `%s'? " to)))
+	    (progn
+	      (setq sent (1+ sent))
+	      (message-send-and-exit))
+	  (message (format "Message to `%s' skipped." to))
+	  (setq skipped (1+ skipped)))
+	(when (buffer-live-p buff)
+	  (kill-buffer buff))))
+    (message "%s message(s) sent, %s skipped." sent skipped)))
 
 (when (featurep 'xemacs)
   (require 'messagexmas)

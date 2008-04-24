@@ -41,7 +41,8 @@ See function `beginning-of-defun'."
 (make-variable-buffer-local 'defun-prompt-regexp)
 
 (defcustom parens-require-spaces t
-  "If non-nil, `insert-parentheses' inserts whitespace as needed."
+  "If non-nil, add whitespace as needed when inserting parentheses.
+This affects `insert-parentheses' and `insert-pair'."
   :type 'boolean
   :group 'lisp)
 

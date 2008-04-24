@@ -21,11 +21,14 @@ suitable for anyone from beginners to experts.
 
 ** Major modes should have a menu entry.  Examples of modes that do
 not have one at the moment and probably should: text-mode,
-change-log-mode, conf-*-mode.
+change-log-mode, conf-*-mode, debugger-mode.
 
 ** Change the text for the mode-line tooltips to not use things like C-x 0.
 In general make sure that tooltips have obvious meanings.  Check if
 all items on the mode-line have a suitable tooltip.
+
+** edebug and debugger-mode should have a toolbar.
+It can use the same icons as gud.
 
 ** Check what minor modes don't use define-minor-mode and convert them
 to use it.
@@ -344,6 +347,14 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01493.html
   Check the assignments file for other packages which might go in and
   have been missed.
+
+** Possibly install python-mode in place of python.el, or combine the two.
+Someone needs to do the work of figuring out who all the non-trivial
+python-mode.el contributors are and getting assignments.
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02156.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02201.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02489.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
 
 ** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?

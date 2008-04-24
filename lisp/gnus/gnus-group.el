@@ -1188,8 +1188,8 @@ The following commands are available:
       (goto-char (point-min))
       (setq gnus-group-mark-positions
 	    (list (cons 'process (and (search-forward
-				       (mm-string-as-multibyte "\200") nil t)
-				      (- (point) 2))))))))
+				       (mm-string-to-multibyte "\200") nil t)
+				      (- (point) (point-min) 1))))))))
 
 (defun gnus-mouse-pick-group (e)
   "Enter the group under the mouse pointer."
@@ -2363,7 +2363,7 @@ specified by `gnus-group-gmane-group-download-format'."
       (gnus-group-read-ephemeral-group
        (format "%s.start-%s.range-%s" group start range)
        `(nndoc ,tmpfile
-	       (nndoc-article-type guess))))
+	       (nndoc-article-type mbox))))
     (delete-file tmpfile)))
 
 (defun gnus-group-read-ephemeral-gmane-group-url (url)
@@ -2397,7 +2397,7 @@ Valid input formats include:
      ;; URLs providing `group' and `start':
      ((or (string-match
 	   ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584
-	   "^http://\\(?:thread\\|article\\)\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
+	   "^http://\\(?:thread\\|article\\|permalink\\)\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
 	   ;; Don't advertize these in the doc string yet:
@@ -4744,5 +4744,5 @@ Compacting group %s... (this may take a long time)"
 
 (provide 'gnus-group)
 
-;;; arch-tag: 2eb5440f-0bca-4091-814c-e37817536af6
+;; arch-tag: 2eb5440f-0bca-4091-814c-e37817536af6
 ;;; gnus-group.el ends here

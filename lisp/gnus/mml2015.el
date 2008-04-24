@@ -153,6 +153,17 @@ Whether the passphrase is cached at all is controlled by
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
 ;; (such as Mailcrypt, PGG, and gpg.el) discard the output from GnuPG.
 (defun mml2015-extract-cleartext-signature ()
+  ;; Daiki Ueno in
+  ;; <54a15d860801080142l70b95d7dkac4bf51a86196011@mail.gmail.com>: ``I still
+  ;; believe that the right way is to use the plaintext output from GnuPG as
+  ;; it is, and mml2015-extract-cleartext-signature is just a kludge for
+  ;; misdesigned libraries like PGG, which have no ability to do that.  So, I
+  ;; think it should not have descriptive documentation.''
+  ;;
+  ;; This function doesn't handle NotDashEscaped correctly.  EasyPG handles it
+  ;; correctly.
+  ;; http://thread.gmane.org/gmane.emacs.gnus.general/66062/focus=66082
+  ;; http://thread.gmane.org/gmane.emacs.gnus.general/65087/focus=65109
   (goto-char (point-min))
   (forward-line)
   ;; We need to be careful not to strip beyond the armor headers.

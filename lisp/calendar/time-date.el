@@ -97,7 +97,7 @@ and type 2 is the list (HIGH LOW MICRO)."
 
 ;;;###autoload
 (defun date-to-time (date)
-  "Parse a string that represents a date-time and return a time value."
+  "Parse a string DATE that represents a date-time and return a time value."
   (condition-case ()
       (apply 'encode-time
 	     (parse-time-string
@@ -160,7 +160,7 @@ TIME should be either a time value or a date-time string."
 
 ;;;###autoload
 (defun time-subtract (t1 t2)
-  "Subtract two time values.
+  "Subtract two time values, T1 minus T2.
 Return the difference in the format of a time value."
   (with-decoded-time-value ((high low micro type t1)
 			    (high2 low2 micro2 type2 t2))
@@ -178,7 +178,7 @@ Return the difference in the format of a time value."
 
 ;;;###autoload
 (defun time-add (t1 t2)
-  "Add two time values.  One should represent a time difference."
+  "Add two time values T1 and T2.  One should represent a time difference."
   (with-decoded-time-value ((high low micro type t1)
 			    (high2 low2 micro2 type2 t2))
     (setq high (+ high high2)
@@ -248,7 +248,7 @@ The number of days will be returned as a floating point number."
 
 ;;;###autoload
 (defun safe-date-to-time (date)
-  "Parse a string that represents a date-time and return a time value.
+  "Parse a string DATE that represents a date-time and return a time value.
 If DATE is malformed, return a time value of zeros."
   (condition-case ()
       (date-to-time date)

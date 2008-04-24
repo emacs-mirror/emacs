@@ -210,8 +210,8 @@ the evaluated constant value at compile time."
 
   (defun c-filter-ops (ops opgroup-filter op-filter &optional xlate)
     ;; Extract a subset of the operators in the list OPS in a DWIM:ey
-    ;; way.  The return value is a plain list of operators:  
-    ;; 
+    ;; way.  The return value is a plain list of operators:
+    ;;
     ;; OPS either has the structure of `c-operators', is a single
     ;; group in `c-operators', or is a plain list of operators.
     ;; 
@@ -445,7 +445,7 @@ exit; on entry, the buffer will have been widened and match-data
 will have been saved; the return value is ignored.
 
 The function may extend the region to be fontified by setting the
-buffer local variables c-old-BEG and c-old-LEN.
+buffer local variables c-old-BEG and c-old-END.
 
 The function is called even when font locking is disabled.
 

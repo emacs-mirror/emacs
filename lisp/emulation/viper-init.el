@@ -49,30 +49,16 @@
 
 ;; Tell whether we are running as a window application or on a TTY
 
-;; This is used to avoid compilation warnings. When emacs/xemacs forms can
-;; generate compile time warnings, we use this macro.
-;; In this case, the macro will expand into the form that is appropriate to the
-;; compiler at hand.
-;; Suggested by rms.
-(defmacro viper-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
-  (if (featurep 'xemacs)
-      xemacs-form emacs-form))
-
-
 (defsubst viper-device-type ()
-  (viper-cond-compile-for-xemacs-or-emacs
-   (device-type (selected-device))
-   window-system
-   ))
+  (if (featurep 'xemacs)
+      (device-type (selected-device))
+    window-system))
 
 (defun viper-color-display-p ()
   (condition-case nil
-      (viper-cond-compile-for-xemacs-or-emacs
-       (eq (device-class (selected-device)) 'color) ; xemacs form
-       (if (fboundp 'display-color-p) ; emacs form
-	   (display-color-p)
-	 (x-display-color-p))
-	)
+      (if (featurep 'xemacs)
+          (eq (device-class (selected-device)) 'color)
+        (display-color-p))
     (error nil)))
 
 ;; in XEmacs: device-type is tty on tty and stream in batch.
@@ -353,7 +339,7 @@ Use `M-x viper-set-expert-level' to change this.")
   (cond ((and (featurep 'emacs) (fboundp 'inactivate-input-method))
 	 (inactivate-input-method))
 	((and (featurep 'xemacs) (boundp 'current-input-method))
-	 ;; XEmacs had broken quil-mode for some time, so we are working around
+	 ;; XEmacs had broken quail-mode for some time, so we are working around
 	 ;; it here
 	 (setq quail-mode nil)
 	 (if (featurep 'quail)
@@ -444,11 +430,14 @@ delete the text being replaced, as in standard Vi."
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
 
-(if (fboundp 'make-variable-frame-local)
-    (dolist (v '(viper-replace-overlay-cursor-color
-                 viper-insert-state-cursor-color viper-emacs-state-cursor-color
-                 viper-vi-state-cursor-color))
-      (make-variable-frame-local v)))
+;; Frame-local variables are obsolete from Emacs 22.2 onwards, so we
+;; do it by hand with viper-frame-value (qv).
+(when (and (featurep 'xemacs)
+           (fboundp 'make-variable-frame-local))
+  (make-variable-frame-local 'viper-replace-overlay-cursor-color)
+  (make-variable-frame-local 'viper-insert-state-cursor-color)
+  (make-variable-frame-local 'viper-emacs-state-cursor-color)
+  (make-variable-frame-local 'viper-vi-state-cursor-color))
 
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
@@ -480,19 +469,13 @@ color displays.  By default, the delimiters are used only on TTYs."
   :group 'viper)
 
 ;; XEmacs requires glyphs
-(viper-cond-compile-for-xemacs-or-emacs
- (progn ; xemacs
-   (or (glyphp viper-replace-region-end-delimiter)
-       (setq viper-replace-region-end-delimiter
-	     (make-glyph viper-replace-region-end-delimiter)))
-   (or (glyphp viper-replace-region-start-delimiter)
-       (setq viper-replace-region-start-delimiter
-	     (make-glyph viper-replace-region-start-delimiter)))
-   )
-  nil ; emacs
- )
-
-
+(when (featurep 'xemacs)
+  (or (glyphp viper-replace-region-end-delimiter)
+      (setq viper-replace-region-end-delimiter
+            (make-glyph viper-replace-region-end-delimiter)))
+  (or (glyphp viper-replace-region-start-delimiter)
+      (setq viper-replace-region-start-delimiter
+            (make-glyph viper-replace-region-start-delimiter))))
 
 ;; These are local marker that must be initialized to nil and moved with
 ;; `viper-move-marker-locally'

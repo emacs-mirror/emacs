@@ -384,7 +384,9 @@
 		form))
 	  ((or (byte-code-function-p fn)
 	       (eq 'lambda (car-safe fn)))
-	   (byte-compile-unfold-lambda form))
+           (byte-optimize-form-code-walker
+            (byte-compile-unfold-lambda form)
+            for-effect))
 	  ((memq fn '(let let*))
 	   ;; recursively enter the optimizer for the bindings and body
 	   ;; of a let or let*.  This for depth-firstness: forms that
@@ -631,20 +633,28 @@
 
 (defsubst byte-compile-trueconstp (form)
   "Return non-nil if FORM always evaluates to a non-nil value."
+  (while (eq (car-safe form) 'progn)
+    (setq form (car (last (cdr form)))))
   (cond ((consp form)
          (case (car form)
            (quote (cadr form))
-           (progn (byte-compile-trueconstp (car (last (cdr form)))))))
+           ;; Can't use recursion in a defsubst.
+           ;; (progn (byte-compile-trueconstp (car (last (cdr form)))))
+           ))
         ((not (symbolp form)))
         ((eq form t))
         ((keywordp form))))
 
 (defsubst byte-compile-nilconstp (form)
   "Return non-nil if FORM always evaluates to a nil value."
+  (while (eq (car-safe form) 'progn)
+    (setq form (car (last (cdr form)))))
   (cond ((consp form)
          (case (car form)
            (quote (null (cadr form)))
-           (progn (byte-compile-nilconstp (car (last (cdr form)))))))
+           ;; Can't use recursion in a defsubst.
+           ;; (progn (byte-compile-nilconstp (car (last (cdr form)))))
+           ))
         ((not (symbolp form)) nil)
         ((null form))))
 

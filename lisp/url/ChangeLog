@@ -1,3 +1,12 @@
+2008-03-09  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-chunked-encoding-after-change-function):
+	Remove superfluous CRLF at end of file.  (bug #42)
+
+2008-03-02  Andreas Schwab  <schwab@suse.de>
+
+	* url-util.el: Require cl when compiling.
+
 2008-02-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-util.el (url-get-normalized-date): Simplify

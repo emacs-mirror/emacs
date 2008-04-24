@@ -1,3 +1,44 @@
+2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* images/README: Update with bookmark_add.
+
+	* images/bookmark_add.pbm: New file
+
+	* images/bookmark_add.xpm: New file
+
+2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* images/icons/hicolor/32x32/apps/emacs.png: Make transparency 8 bit.
+	* images/icons/hicolor/scalable/mimetypes/emacs-document.svg: New file.
+	* images/icons/hicolor/scalable/apps/emacs.svg: Fix format.
+
+2008-03-03  Andrew Zhilin  <andrew_zhilin@yahoo.com>
+
+	* images/icons/hicolor/16x16/apps/emacs22.png:
+	* images/icons/hicolor/24x24/apps/emacs22.png:
+	* images/icons/hicolor/32x32/apps/emacs22.png:
+	* images/icons/hicolor/48x48/apps/emacs22.png: New files.
+	These are the old versions of `emacs.png' under a new name.
+
+2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* images/icons/README: Update info for the icons.
+
+	* images/icons/emacs16_mac.png:
+	* images/icons/emacs24_mac.png:
+	* images/icons/emacs256_mac.png:
+	* images/icons/emacs32_mac.png:
+	* images/icons/emacs48_mac.png:
+	* images/icons/emacs512_mac.png: Remove.
+
+	* images/icons/hicolor/16x16/apps/emacs.png:
+	* images/icons/hicolor/24x24/apps/emacs.png:
+	* images/icons/hicolor/32x32/apps/emacs.png:
+	* images/icons/hicolor/48x48/apps/emacs.png: New icon.
+
+	* images/icons/hicolor/scalable/apps/emacs.svg:
+	* images/icons/hicolor/128x128/apps/emacs.png: New files.
+
 2008-02-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* NEWS (Gnus): Mention problem with coding system `utf-8-emacs'

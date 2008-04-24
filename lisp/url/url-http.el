@@ -948,7 +948,11 @@ the end of the document."
 		  (url-http-debug "Saw end of stream chunk!")
 		  (setq read-next-chunk nil)
 		  (url-display-percentage nil nil)
-		  (goto-char (match-end 1))
+		  ;; Every chunk, even the last 0-length one, is
+		  ;; terminated by CRLF.  Skip it.
+		  (when (looking-at "\r?\n")
+		    (url-http-debug "Removing terminator of last chunk")
+		    (delete-region (match-beginning 0) (match-end 0)))
 		  (if (re-search-forward "^\r*$" nil t)
 		      (url-http-debug "Saw end of trailers..."))
 		  (if (url-http-parse-headers)

@@ -1017,6 +1017,14 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     (define-key main "\C-c\C-m" map)
     main))
 
+;; (defun mml-toggle-gcc-externalize-attachments ()
+;;   (interactive)
+;;   (prog1
+;;       (setq gnus-gcc-externalize-attachments
+;; 	    (not gnus-gcc-externalize-attachments))
+;;     (message "gnus-gcc-externalize-attachments is `%s'."
+;; 	     gnus-gcc-externalize-attachments)))
+
 (easy-menu-define
   mml-menu mml-mode-map ""
   `("Attachments"
@@ -1025,10 +1033,18 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
 	 '(:help "Attach a file at point"))]
     ["Attach Buffer..." mml-attach-buffer
      ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Attach a buffer to the outgoing MIME message"))]
+	 '(:help "Attach a buffer to the outgoing message"))]
     ["Attach External..." mml-attach-external
      ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Attach reference to file"))]
+	 '(:help "Attach reference to an external file"))]
+    ;; ["Externalize Attachments"
+    ;;  (lambda () (interactive) (mml-toggle-gcc-externalize-attachments))
+    ;; ,@(if (featurep 'xemacs) nil
+    ;; 	'(:help "Save attachments as external parts in Gcc copies"))
+    ;; :visible (booleanp gnus-gcc-externalize-attachments)
+    ;; :style radio
+    ;; :selected (equal gnus-gcc-externalize-attachments t) ]
+    "----"
     ;;
     ("Change Security Method"
      ["PGP/MIME"
@@ -1056,6 +1072,10 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ["Encrypt/Sign off" mml-unsecure-message
      ,@(if (featurep 'xemacs) '(t)
 	 '(:help "Don't Encrypt/Sign Message"))]
+    ;; Do we have separate encrypt and encrypt/sign commands for parts?
+    ["Sign Part" mml-secure-sign t]
+    ["Encrypt Part" mml-secure-encrypt t]
+    "----"
     ;; Maybe we could remove these, because people who write MML most probably
     ;; don't use the menu:
     ["Insert Part..." mml-insert-part
@@ -1063,9 +1083,6 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ["Insert Multipart..." mml-insert-multipart
      :active (message-in-body-p)]
     ;;
-    ;; Do we have separate encrypt and encrypt/sign commands for parts?
-    ["Sign Part" mml-secure-sign t]
-    ["Encrypt Part" mml-secure-encrypt t]
     ;;["Narrow" mml-narrow-to-part t]
     ["Quote MML in region" mml-quote-region
      :active (message-mark-active-p)
@@ -1222,7 +1239,7 @@ If it is a list, valid members are `type', `description' and
 don't ask for options.  If it is t, ask the user whether or not
 to specify options."
   :type '(choice
-	  (const :tag "Non" nil)
+	  (const :tag "None" nil)
 	  (const :tag "Query" t)
 	  (list :value (type description disposition)
 	   (set :inline t

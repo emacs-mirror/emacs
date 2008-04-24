@@ -800,12 +800,6 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
     (let ((coding-systems (process-coding-system proc)))
       (setq decoding (car coding-systems)
 	    encoding (cdr coding-systems)))
-    ;; If start-file-process decided to use some coding system for decoding
-    ;; data sent from the process and the coding system doesn't
-    ;; specify EOL conversion, we had better convert CRLF to LF.
-    (if (vectorp (coding-system-eol-type decoding))
-	(setq decoding (coding-system-change-eol-conversion decoding 'dos)
-	      changed t))
     ;; Even if start-file-process left the coding system for encoding data
     ;; sent from the process undecided, we had better use the same one
     ;; as what we use for decoding.  But, we should suppress EOL
@@ -1674,33 +1668,56 @@ Translate carriage return/linefeed sequences to linefeeds.
 Make single carriage returns delete to the beginning of the line.
 Make backspaces delete the previous character."
   (save-excursion
-    ;; First do a quick check to see if there are any applicable
-    ;; characters, so we can avoid calling save-match-data and
-    ;; save-restriction if not.
+    ;; We used to check the existence of \b and \r at first to avoid
+    ;; calling save-match-data and save-restriction.  But, such a
+    ;; check is not necessary now because we don't use regexp search
+    ;; nor save-restriction.  Note that the buffer is already widen,
+    ;; and calling narrow-to-region and widen are not that heavy.
     (goto-char start)
-    (when (< (skip-chars-forward "^\b\r" end) (- end start))
-      (save-match-data
-	(save-restriction
-	  (widen)
-	  (let ((inhibit-field-text-motion t)
-		(inhibit-read-only t))
-	    ;; CR LF -> LF
-	    ;; Note that this won't work properly when the CR and LF
-	    ;; are in different output chunks, but this is probably an
-	    ;; exceedingly rare case (because they are generally
-	    ;; written as a unit), and to delay interpretation of a
-	    ;; trailing CR in a chunk would result in odd interactive
-	    ;; behavior (and this case is probably far more common).
-	    (while (re-search-forward "\r$" end t)
-	      (delete-char -1))
-	    ;; bare CR -> delete preceding line
-	    (goto-char start)
-	    (while (search-forward "\r" end t)
-	      (delete-region (point) (line-beginning-position)))
-	    ;; BS -> delete preceding character
-	    (goto-char start)
-	    (while (search-forward "\b" end t)
-	      (delete-char -2))))))))
+    (let* ((inhibit-field-text-motion t)
+	   (inhibit-read-only t)
+	   (lbeg (line-beginning-position))
+	   delete-end ch)
+      ;; If the preceding text is marked as "must-overwrite", record
+      ;; it in delete-end.
+      (when (and (> start (point-min))
+		 (get-text-property (1- start) 'comint-must-overwrite))
+	(setq delete-end (point-marker))
+	(remove-text-properties lbeg start '(comint-must-overwrite nil)))
+      (narrow-to-region lbeg end)
+      ;; Handle BS, LF, and CR specially.
+      (while (and (skip-chars-forward "^\b\n\r") (not (eobp)))
+	(setq ch (following-char))
+	(cond ((= ch ?\b)		; CH = BS
+	       (delete-char 1)
+	       (if (> (point) lbeg)
+		   (delete-char -1)))
+	      ((= ch ?\n)
+	       (when delete-end		; CH = LF
+		 (if (< delete-end (point))
+		     (delete-region lbeg delete-end))
+		 (set-marker delete-end nil)
+		 (setq delete-end nil))
+	       (forward-char 1)
+	       (setq lbeg (point)))
+	      (t			; CH = CR
+	       (delete-char 1)
+	       (if delete-end
+		   (when (< delete-end (point))
+		     (delete-region lbeg delete-end)
+		     (move-marker delete-end (point)))
+		 (setq delete-end (point-marker))))))
+      (when delete-end
+	(if (< delete-end (point))
+	    ;; As there's a text after the last CR, make the current
+	    ;; line contain only that text.
+	    (delete-region lbeg delete-end)
+	  ;; Remember that the process output ends by CR, and thus we
+	  ;; must overwrite the contents of the current line next
+	  ;; time.
+	  (put-text-property lbeg delete-end 'comint-must-overwrite t))
+	(set-marker delete-end nil))
+      (widen))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward

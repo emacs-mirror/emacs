@@ -969,7 +969,7 @@ If BACKWARD is non-nil, jump to the previous match."
 	      (file-name-extension doc-view-buffer-file-name)" files is missing.  "
 	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
-(defvar bookmark-make-cell-function)
+(defvar bookmark-make-record-function)
 
 (defun doc-view-clone-buffer-hook ()
   ;; FIXME: There are several potential problems linked with reconversion
@@ -1046,8 +1046,8 @@ toggle between displaying the document or editing it as text.
   (set (make-local-variable 'cursor-type) nil)
   (use-local-map doc-view-mode-map)
   (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
-  (set (make-local-variable 'bookmark-make-cell-function)
-       'doc-view-bookmark-make-cell)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'doc-view-bookmark-make-record)
   (setq mode-name "DocView"
 	buffer-read-only t
 	major-mode 'doc-view-mode)
@@ -1082,36 +1082,28 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Bookmark integration
 
-(defun doc-view-bookmark-make-cell (annotation &rest args)
-  (let ((the-record
-         `((filename . ,buffer-file-name)
-           (page     . ,(doc-view-current-page))
-           (handler  . doc-view-bookmark-jump))))
+(declare-function bookmark-buffer-file-name "bookmark" ())
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
 
-    ;; Take no chances with text properties
-    (set-text-properties 0 (length annotation) nil annotation)
+(defun doc-view-bookmark-make-record ()
+  `((filename . ,(bookmark-buffer-file-name))
+    (page     . ,(doc-view-current-page))
+    (handler  . doc-view-bookmark-jump)))
 
-    (when annotation
-      (nconc the-record (list (cons 'annotation annotation))))
-
-    ;; Finally, return the completed record.
-    the-record))
-
-
-(declare-function bookmark-get-filename        "bookmark" (bookmark))
-(declare-function bookmark-get-bookmark-record "bookmark" (bookmark))
 
 ;;;###autoload
 (defun doc-view-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
-  ;; returned by `bookmark-make-cell-function', which see.
-  (save-window-excursion
-    (let ((filename (bookmark-get-filename bmk))
-	  (page (cdr (assq 'page (bookmark-get-bookmark-record bmk)))))
-      (find-file filename)
+  ;; returned by `doc-view-bookmark-make-record', which see.
+  (let ((filename (bookmark-prop-get bmk 'filename))
+        (page (bookmark-prop-get bmk 'page)))
+    (with-current-buffer (find-file-noselect filename)
       (when (not (eq major-mode 'doc-view-mode))
 	(doc-view-toggle-display))
-      (doc-view-goto-page page)
+      (with-selected-window
+          (or (get-buffer-window (current-buffer) 0)
+              (selected-window))
+        (doc-view-goto-page page))
       `((buffer ,(current-buffer)) (position ,1)))))
 
 

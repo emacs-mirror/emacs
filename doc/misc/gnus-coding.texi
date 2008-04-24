@@ -256,7 +256,7 @@ changes.  Only after a new major release, e.g. 5.10.1, there's usually a
 feature period of several months.  After the release of Gnus 5.10.6 the
 development of new features started again on the trunk while the 5.10
 series is continued on the stable branch (v5-10) from which more stable
-releases will be done when needed (5.10.7, @dots{}).
+releases will be done when needed (5.10.8, @dots{}).
 @ref{Gnus Development, ,Gnus Development, gnus, The Gnus Newsreader}
 
 Stable releases of Gnus finally become part of Emacs.  E.g. Gnus 5.8
@@ -366,7 +366,7 @@ v5-10 branch) use @code{:version "22.1" ;; Oort Gnus} (including the
 comment) or e.g. @code{:version "22.2" ;; Gnus 5.10.10} if the feature
 was added for Emacs 22.2 and Gnus 5.10.10.
 @c
-If the variable is new in No Gnus use @code{:version "23.0" ;; No Gnus}.
+If the variable is new in No Gnus use @code{:version "23.1" ;; No Gnus}.
 
 The same applies for customizable variables when its default value was
 changed.

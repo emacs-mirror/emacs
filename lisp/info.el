@@ -3374,7 +3374,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (put 'Info-mode 'no-clone-indirect t)
 
 (defvar tool-bar-map)
-(defvar bookmark-make-cell-function)
+(defvar bookmark-make-record-function)
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
@@ -3487,8 +3487,8 @@ Advanced commands:
   (set (make-local-variable 'revert-buffer-function)
        'Info-revert-buffer-function)
   (Info-set-mode-line)
-  (set (make-local-variable 'bookmark-make-cell-function)
-       'Info-bookmark-make-cell)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'Info-bookmark-make-record)
   (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
@@ -3743,7 +3743,7 @@ the variable `Info-file-list-for-emacs'."
            (case-fold-search t)
            paragraph-markers
            (not-fontified-p ; the node hasn't already been fontified
-            (not (let ((where (next-single-property-change (point-min) 
+            (not (let ((where (next-single-property-change (point-min)
 							   'font-lock-face)))
                    (and where (not (= where (point-max)))))))
            (fontify-visited-p ; visited nodes need to be re-fontified
@@ -4326,55 +4326,39 @@ BUFFER is the buffer speedbar is requesting buttons for."
 ;; This is only called from bookmark.el.
 (declare-function bookmark-buffer-file-name "bookmark" ())
 
-(defun Info-bookmark-make-cell (annotation &optional info-node)
-  (let ((the-record
-         `((filename . ,(bookmark-buffer-file-name))
-           (front-context-string
-            . ,(if (>= (- (point-max) (point)) bookmark-search-size)
-                   (buffer-substring-no-properties
-                    (point)
-                    (+ (point) bookmark-search-size))
-		 nil))
-           (rear-context-string
-            . ,(if (>= (- (point) (point-min)) bookmark-search-size)
-                   (buffer-substring-no-properties
-                    (point)
-                    (- (point) bookmark-search-size))
-		 nil))
-           (position . ,(point))
-	   (info-node . ,info-node)
-	   (handler . Info-bookmark-jump))))
+(defun Info-bookmark-make-record ()
+  `(,Info-current-node
+    (filename . ,(bookmark-buffer-file-name))
+    (front-context-string
+     . ,(if (>= (- (point-max) (point)) bookmark-search-size)
+            (buffer-substring-no-properties
+             (point)
+             (+ (point) bookmark-search-size))
+          nil))
+    (rear-context-string
+     . ,(if (>= (- (point) (point-min)) bookmark-search-size)
+            (buffer-substring-no-properties
+             (point)
+             (- (point) bookmark-search-size))
+          nil))
+    (info-node . ,Info-current-node)
+    (handler . Info-bookmark-jump)))
 
-    ;; Now fill in the optional parts:
-
-    ;; Take no chances with text properties
-    (set-text-properties 0 (length annotation) nil annotation)
-
-    (if annotation
-        (nconc the-record (list (cons 'annotation annotation))))
-
-    ;; Finally, return the completed record.
-    the-record))
 
 (defvar bookmark-current-bookmark)
-(declare-function bookmark-get-filename              "bookmark" (bookmark))
-(declare-function bookmark-get-front-context-string  "bookmark" (bookmark))
-(declare-function bookmark-get-rear-context-string   "bookmark" (bookmark))
-(declare-function bookmark-get-position              "bookmark" (bookmark))
-(declare-function bookmark-get-info-node             "bookmark" (bookmark))
+(declare-function bookmark-prop-get                  "bookmark" (bookmark prop))
 (declare-function bookmark-file-or-variation-thereof "bookmark" (file))
 (declare-function bookmark-jump-noselect             "bookmark" (str))
+(declare-function bookmark-get-bookmark-record       "bookmark" (bookmark))
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type returned
-  ;; by `Info-make-cell-function', which see.
-  (let* ((file (expand-file-name (bookmark-get-filename bmk)))
-         (forward-str            (bookmark-get-front-context-string bmk))
-         (behind-str             (bookmark-get-rear-context-string bmk))
-         (place                  (bookmark-get-position bmk))
-	 (info-node              (bookmark-get-info-node bmk))
-	 (orig-file              file))
+  ;; by `Info-bookmark-make-record', which see.
+  (let* ((file (expand-file-name (bookmark-prop-get bmk 'filename)))
+         (forward-str            (bookmark-prop-get bmk 'front-context-string))
+         (behind-str             (bookmark-prop-get bmk 'rear-context-string))
+	 (info-node              (bookmark-prop-get bmk 'info-node)))
     (if (setq file (bookmark-file-or-variation-thereof file))
         (save-excursion
           (save-window-excursion
@@ -4391,24 +4375,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
             (if behind-str
                 (if (search-backward behind-str (point-min) t)
                     (goto-char (match-end 0))))
-            ;; added by db
-            (setq bookmark-current-bookmark bmk)
-	    `((buffer ,(current-buffer)) (position ,(point)))))
-
-      ;; Else unable to find the marked file, so ask if user wants to
-      ;; relocate the bookmark, else remind them to consider deletion.
-      (ding)
-      (if (y-or-n-p (concat (file-name-nondirectory orig-file)
-                            " nonexistent.  Relocate \""
-                            bmk
-                            "\"? "))
-          (progn
-            (bookmark-relocate bmk)
-            ;; gasp!  It's a recursive function call in Emacs Lisp!
-            (bookmark-jump-noselect bmk))
-        (message
-         "Bookmark not relocated; consider removing it \(%s\)." bmk)
-        nil))))
+	    `((buffer ,(current-buffer)) (position ,(point))))))))
 
 (provide 'info)
 

@@ -1,7 +1,7 @@
 ;;; cal-persia.el --- calendar functions for the Persian calendar
 
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -32,28 +32,25 @@
 
 ;;; Code:
 
-(defvar date)
-
 (require 'cal-julian)
 
-(defvar persian-calendar-month-name-array
+(defconst persian-calendar-month-name-array
   ["Farvardin" "Ordibehest" "Xordad" "Tir" "Mordad" "Sahrivar" "Mehr" "Aban"
    "Azar" "Dey" "Bahman" "Esfand"])
 
-(defvar persian-calendar-epoch (calendar-absolute-from-julian '(3 19 622))
+(defconst persian-calendar-epoch (calendar-absolute-from-julian '(3 19 622))
   "Absolute date of start of Persian calendar = March 19, 622 A.D. (Julian).")
 
 (defun persian-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the Persian calendar."
   (< (mod (* (mod (mod (if (<= 0 year)
-                           ; No year zero
-                           (+ year 2346)
+                           (+ year 2346) ; no year zero
                          (+ year 2347))
                        2820)
                   768)
-              683)
-           2820)
-      683))
+             683)
+          2820)
+     683))
 
 (defun persian-calendar-last-day-of-month (month year)
   "Return last day of MONTH, YEAR on the Persian calendar."
@@ -140,6 +137,7 @@ Gregorian date Sunday, December 31, 1 BC."
                        (list month 1 year))))))
     (list month day year)))
 
+;;;###autoload
 (defun calendar-persian-date-string (&optional date)
   "String of Persian date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -155,12 +153,14 @@ Defaults to today's date if DATE is not given."
           (year (int-to-string y)))
       (mapconcat 'eval calendar-date-display-form ""))))
 
+;;;###autoload
 (defun calendar-print-persian-date ()
   "Show the Persian calendar equivalent of the selected date."
   (interactive)
   (message "Persian date: %s"
            (calendar-persian-date-string (calendar-cursor-to-date t))))
 
+;;;###autoload
 (defun calendar-goto-persian-date (date &optional noecho)
   "Move cursor to Persian date DATE.
 Echo Persian date unless NOECHO is t."
@@ -174,7 +174,7 @@ Echo Persian date unless NOECHO is t."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "Persian calendar year (not 0): "
-                '(lambda (x) (/= x 0))
+                (lambda (x) (not (zerop x)))
                 (int-to-string
                  (extract-calendar-year
                   (calendar-persian-from-absolute
@@ -191,14 +191,21 @@ Echo Persian date unless NOECHO is t."
          (last (persian-calendar-last-day-of-month month year))
          (day (calendar-read
                (format "Persian calendar day (1-%d): " last)
-               '(lambda (x) (and (< 0 x) (<= x last))))))
+               (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-persian-date ()
   "Persian calendar equivalent of date diary entry."
   (format "Persian date: %s" (calendar-persian-date-string date)))
 
 (provide 'cal-persia)
 
-;;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
 ;;; cal-persia.el ends here

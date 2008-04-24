@@ -621,7 +621,53 @@ executed once when the buffer is created."
   :type 'hook
   :group 'term)
 
-(defvar term-mode-map nil)
+(defvar term-mode-map 
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\ep" 'term-previous-input)
+    (define-key map "\en" 'term-next-input)
+    (define-key map "\er" 'term-previous-matching-input)
+    (define-key map "\es" 'term-next-matching-input)
+    (unless (featurep 'xemacs)
+      (define-key map [?\A-\M-r]
+	'term-previous-matching-input-from-input)
+      (define-key map [?\A-\M-s] 'term-next-matching-input-from-input))
+    (define-key map "\e\C-l" 'term-show-output)
+    (define-key map "\C-m" 'term-send-input)
+    (define-key map "\C-d" 'term-delchar-or-maybe-eof)
+    (define-key map "\C-c\C-a" 'term-bol)
+    (define-key map "\C-c\C-u" 'term-kill-input)
+    (define-key map "\C-c\C-w" 'backward-kill-word)
+    (define-key map "\C-c\C-c" 'term-interrupt-subjob)
+    (define-key map "\C-c\C-z" 'term-stop-subjob)
+    (define-key map "\C-c\C-\\" 'term-quit-subjob)
+    (define-key map "\C-c\C-m" 'term-copy-old-input)
+    (define-key map "\C-c\C-o" 'term-kill-output)
+    (define-key map "\C-c\C-r" 'term-show-output)
+    (define-key map "\C-c\C-e" 'term-show-maximum-output)
+    (define-key map "\C-c\C-l" 'term-dynamic-list-input-ring)
+    (define-key map "\C-c\C-n" 'term-next-prompt)
+    (define-key map "\C-c\C-p" 'term-previous-prompt)
+    (define-key map "\C-c\C-d" 'term-send-eof)
+    (define-key map "\C-c\C-k" 'term-char-mode)
+    (define-key map "\C-c\C-j" 'term-line-mode)
+    (define-key map "\C-c\C-q" 'term-pager-toggle)
+
+    ;;  ;; completion:
+    ;;  (define-key map [menu-bar completion]
+    ;;    (cons "Complete" (make-sparse-keymap "Complete")))
+    ;;  (define-key map [menu-bar completion complete-expand]
+    ;;    '("Expand File Name" . term-replace-by-expanded-filename))
+    ;;  (define-key map [menu-bar completion complete-listing]
+    ;;    '("File Completion Listing" . term-dynamic-list-filename-completions))
+    ;;  (define-key map [menu-bar completion complete-file]
+    ;;    '("Complete File Name" . term-dynamic-complete-filename))
+    ;;  (define-key map [menu-bar completion complete]
+    ;;    '("Complete Before Point" . term-dynamic-complete))
+    ;;  ;; Put them in the menu bar:
+    ;;  (setq menu-bar-final-items (append '(terminal completion inout signals)
+    ;;				     menu-bar-final-items))
+    map))
+
 (defvar term-raw-map nil
   "Keyboard map for sending characters directly to the inferior process.")
 (defvar term-escape-char nil
@@ -724,53 +770,6 @@ is buffer-local.")
       [ "Line mode" term-line-mode (term-in-char-mode)]
       [ "Enable paging" term-pager-toggle (not term-pager-count)]
       [ "Disable paging" term-pager-toggle term-pager-count])))
-
-(unless term-mode-map
-  (setq term-mode-map (make-sparse-keymap))
-  (define-key term-mode-map "\ep" 'term-previous-input)
-  (define-key term-mode-map "\en" 'term-next-input)
-  (define-key term-mode-map "\er" 'term-previous-matching-input)
-  (define-key term-mode-map "\es" 'term-next-matching-input)
-  (unless (featurep 'xemacs)
-    (define-key term-mode-map [?\A-\M-r]
-      'term-previous-matching-input-from-input)
-    (define-key term-mode-map [?\A-\M-s] 'term-next-matching-input-from-input))
-  (define-key term-mode-map "\e\C-l" 'term-show-output)
-  (define-key term-mode-map "\C-m" 'term-send-input)
-  (define-key term-mode-map "\C-d" 'term-delchar-or-maybe-eof)
-  (define-key term-mode-map "\C-c\C-a" 'term-bol)
-  (define-key term-mode-map "\C-c\C-u" 'term-kill-input)
-  (define-key term-mode-map "\C-c\C-w" 'backward-kill-word)
-  (define-key term-mode-map "\C-c\C-c" 'term-interrupt-subjob)
-  (define-key term-mode-map "\C-c\C-z" 'term-stop-subjob)
-  (define-key term-mode-map "\C-c\C-\\" 'term-quit-subjob)
-  (define-key term-mode-map "\C-c\C-m" 'term-copy-old-input)
-  (define-key term-mode-map "\C-c\C-o" 'term-kill-output)
-  (define-key term-mode-map "\C-c\C-r" 'term-show-output)
-  (define-key term-mode-map "\C-c\C-e" 'term-show-maximum-output)
-  (define-key term-mode-map "\C-c\C-l" 'term-dynamic-list-input-ring)
-  (define-key term-mode-map "\C-c\C-n" 'term-next-prompt)
-  (define-key term-mode-map "\C-c\C-p" 'term-previous-prompt)
-  (define-key term-mode-map "\C-c\C-d" 'term-send-eof)
-  (define-key term-mode-map "\C-c\C-k" 'term-char-mode)
-  (define-key term-mode-map "\C-c\C-j" 'term-line-mode)
-  (define-key term-mode-map "\C-c\C-q" 'term-pager-toggle)
-
-;  ;; completion:
-;  (define-key term-mode-map [menu-bar completion]
-;    (cons "Complete" (make-sparse-keymap "Complete")))
-;  (define-key term-mode-map [menu-bar completion complete-expand]
-;    '("Expand File Name" . term-replace-by-expanded-filename))
-;  (define-key term-mode-map [menu-bar completion complete-listing]
-;    '("File Completion Listing" . term-dynamic-list-filename-completions))
-;  (define-key term-mode-map [menu-bar completion complete-file]
-;    '("Complete File Name" . term-dynamic-complete-filename))
-;  (define-key term-mode-map [menu-bar completion complete]
-;    '("Complete Before Point" . term-dynamic-complete))
-;  ;; Put them in the menu bar:
-;  (setq menu-bar-final-items (append '(terminal completion inout signals)
-;				     menu-bar-final-items))
-  )
 
 ;; Menu bars:
 (unless (featurep 'xemacs)

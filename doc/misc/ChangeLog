@@ -1,3 +1,20 @@
+2008-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Customization, Gnus Development, Oort Gnus):
+	Update for change of `mail-source-delete-incoming'.
+
+	* gnus-news.texi: Ditto.
+
+2008-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Update conventions for
+	custom versions.
+
+2008-03-07  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Limitations and Known Bugs): State that the number of
+	parens/brackets in a k&r region is limited.
+
 2008-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-news.texi: Mention problem with coding system `utf-8-emacs' when

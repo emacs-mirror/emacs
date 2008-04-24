@@ -102,28 +102,28 @@ struct Lisp_Process
     /* Should we delay reading output from this process.
        Initialized from `Vprocess_adaptive_read_buffering'.
        0 = nil, 1 = t, 2 = other.  */
-    int adaptive_read_buffering : 2;
+    unsigned int adaptive_read_buffering : 2;
     /* Skip reading this process on next read.  */
-    int read_output_skip : 1;
+    unsigned int read_output_skip : 1;
     /* Non-nil means kill silently if Emacs is exited.
        This is the inverse of the `query-on-exit' flag.  */
-    int kill_without_query : 1;
+    unsigned int kill_without_query : 1;
     /* Non-nil if communicating through a pty.  */
-    int pty_flag : 1;
+    unsigned int pty_flag : 1;
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
-    int inherit_coding_system_flag : 1;
+    unsigned int inherit_coding_system_flag : 1;
     /* Flag to decide the multibyteness of a string given to the
        filter (if any).  It is initialized to the value of
        `default-enable-multibyte-characters' when the process is
        generated, and can be changed by the function
        `set-process-filter-multibyte'. */
-    int filter_multibyte : 1;
+    unsigned int filter_multibyte : 1;
     /* Record the process status in the raw form in which it comes from `wait'.
        This is to avoid consing in a signal handler.  The `raw_status_new'
        flag indicates that `raw_status' contains a new status that still
        needs to be synced to `status'.  */
-    int raw_status_new : 1;
+    unsigned int raw_status_new : 1;
     int raw_status;
 };
 

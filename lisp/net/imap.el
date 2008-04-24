@@ -2923,6 +2923,7 @@ Return nil if no complete line has arrived."
 	  imap-open-1
 	  imap-open
 	  imap-opened
+	  imap-ping-server
 	  imap-authenticate
 	  imap-close
 	  imap-capability

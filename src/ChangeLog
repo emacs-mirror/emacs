@@ -1,3 +1,156 @@
+2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fsubstitute_in_file_name): Fix up computation of maximum
+	size of resulting string.
+
+2008-03-10  Jason Rumney  <jasonr@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Initialize window_height.
+
+2008-03-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (handle_single_display_spec): Undo 2007-10-16 changes.
+	Don't pretend as if characters with display property haven't been
+	consumed for string-replacing-string case.
+
+2008-03-08  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (GET_NEXT_DISPLAY_ELEMENT): New macro.
+	(get_next_display_element, next_element_from_string)
+	(next_element_from_ellipsis, next_element_from_buffer): Use it.
+
+2008-03-08  Andreas Schwab  <schwab@suse.de>
+
+	* process.h (struct Lisp_Process): Declare bit fields as unsigned.
+
+2008-03-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32_registry): Take font_type argument.  Use ANSI
+	when charset not specified.  Only translate ANSI to unicode when
+	font_type is truetype.
+	(w32font_coverage_ok): New function.
+	(add_font_entity_to_list): Use it to filter unsuitable fonts.
+
+2008-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Always include w32font.c in the build.
+	* w32font.c: Wrap in USE_FONT_BACKEND conditional.
+
+2008-03-04  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (clean): Remove emacs-*.*.* instead of emacs-*.
+	(versionclean): Likewise.
+
+2008-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add oo.
+
+2008-03-03  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (decode_coding_object): Inhibit gap shrinking while
+	decoding in place.
+
+2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* w32term.c: Remove unused include "gnu.h".
+	* makefile.w32-in (w32term.o): Don't depend on gnu.h.
+
+	* gnu.h: Rename to ...
+	* emacs-icon.h: ... this.
+	* xterm.c: Use emacs-icon.h instead of gnu.h.
+	* Makefile (xterm.o): Depend on emacs-icon.h, not gnu.h.
+
+2008-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c: Include math.h.
+
+2008-03-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (recompute_cached_metrics): Change font arg to w32font_info.
+	Compute options separately.
+	(w32font_open_internal): Set glyph_idx before caching metrics.
+
+	* w32font.h (NTM_PS_OPENTYPE, NTM_TT_OPENTYPE, NTM_TYPE1):
+	Define if system headers don't.
+	(struct w32font_info): Enlarge ascii_metrics.  Add glyph_idx.
+	(w32font_encode_char): Don't declare here.
+
+	* w32font.c (Quniscribe, QCformat): New symbols.
+	(syms_of_w32font): Define them.
+	(w32font_has_char): Indicate uncertainty.
+	(w32font_encode_char): Encode as glyph point.  Make static.
+	(recompute_cached_metrics): New function.
+	(w32font_open_internal): Use it.  Set font to use glyph points
+	initially.  Set format based on type of font.
+	(w32font_text_extents, w32font_draw): Optionally use glyph points.
+	(w32_enumfont_pattern_entity): Accept backend arg.  Set type based
+	on it.  Set format based on information available here.
+	(add_font_entity_to_list): Identify backend based on opentype_only.
+
+2008-03-02  Andreas Schwab  <schwab@suse.de>
+
+	* ftfont.c (ftfont_pattern_entity): Fix aliasing violations.
+
+	* coding.c (decode_coding_big5, produce_chars):
+	Fix typos in last change.
+
+2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* gnu.h: New icon.
+
+2008-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_utf_8): When eol-type of CODING is
+	`dos', don't decode '\r' if that is the last in the source.
+	(decode_coding_utf_16, decode_coding_emacs_mule)
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_raw_text, decode_coding_charset): Likewise.
+	(produce_chars): Don't decode EOL here.  Use EMACS_INT.
+
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_full_name): Report point size for scalable fonts.
+
+2008-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (CHAR_GLYPH_SPACE_P): Check for default face.
+
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_full_name): New function.
+	(w32font_open_internal): Use it.
+
+2008-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (line_draw_cost): Fix invalid glyph check.
+
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* font.c (font_unparse_fcname): Increase len when style is a symbol.
+
+2008-03-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): For Gtk+ and ConfigureNotify, call
+	xg_frame_resized when the event is for the edit widget.
+
+	* gtkutil.h (xg_frame_resized): Renamed from xg_resize_widgets.
+
+	* gtkutil.c (xg_resize_outer_widget): Only do one of set_geometry or
+	set_char_size.
+	(xg_frame_resized): Renamed from xg_resize_widgets.  Remove all
+	operations on widgets here.  Just set frame size if needed.
+	(flush_and_sync, x_wm_size_hint_off, xg_pack_tool_bar): New functions.
+	(xg_frame_set_char_size): Call x_wm_size_hint_off before resizing.
+	(x_wm_set_size_hint): Set size hints on the edit widget only, not
+	the whole frame.
+	(xg_create_tool_bar): Move attachement of the tool bar to
+	xg_pack_tool_bar.  Do not attach the tool bar if there are no items.
+	(free_frame_tool_bar): Remove call to SET_FRAME_GARBAGED.
+
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_msg_pump): Disable debug code.
+
 2008-03-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* m/intel386.h [MAC_OSX || DARWIN]: Define NO_ARG_ARRAY if _LP64.
@@ -487,22 +640,22 @@
 
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* src/Makefile.in:
-	* src/emacs.c:
-	* src/gmalloc.c:
-	* src/keyboard.c:
-	* src/lisp.h:
-	* src/m/ibm370aix.h:
-	* src/process.c:
-	* src/regex.c:
-	* src/s/hpux.h:
-	* src/sysdep.c:
-	* src/sysselect.h:
-	* src/systty.h:
-	* src/unexec.c:
-	* src/w32term.c:
-	* src/xsmfns.c:
-	* src/xterm.c: Remove code that deals with obsolete variables.
+	* Makefile.in:
+	* emacs.c:
+	* gmalloc.c:
+	* keyboard.c:
+	* lisp.h:
+	* m/ibm370aix.h:
+	* process.c:
+	* regex.c:
+	* s/hpux.h:
+	* sysdep.c:
+	* sysselect.h:
+	* systty.h:
+	* unexec.c:
+	* w32term.c:
+	* xsmfns.c:
+	* xterm.c: Remove code that deals with obsolete variables.
 
 	* s/msdos.h (DONT_NEED_ENVIRON): Don't define.
 
@@ -581,7 +734,7 @@
 
 2008-02-07  Jim Meyering  <meyering@redhat.com>
 
-	Use "do...while (0)", not "if (1)..else" in macro definitions.
+	Use "do...while (0)", not "if (1)...else" in macro definitions.
 	The latter provokes a warning from gcc about the empty else, when
 	followed by ";".  Also, without that trailing semicolon, it would
 	silently swallow up any following statement.
@@ -1153,7 +1306,7 @@
 2008-02-01  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
 	* frame.c (Fdelete_frame): Call font_update_drivers only when
-	USE_FONT_BACKEND is defined..
+	USE_FONT_BACKEND is defined.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -1253,7 +1406,7 @@
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
-	* src/dispextern.h (struct glyph_row): Only define "clip" field if
+	* dispextern.h (struct glyph_row): Only define "clip" field if
 	HAVE_WINDOW_SYSTEM is defined.
 
 2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -1403,24 +1556,24 @@
 	(GC_EQ): Remove since they've been identical to their non-GC_
 	alter-egos ever since the markbit was eradicated.
 
-	* src/alloc.c:
-	* src/buffer.c:
-	* src/buffer.h:
-	* src/data.c:
-	* src/fileio.c:
-	* src/filelock.c:
-	* src/fns.c:
-	* src/frame.h:
-	* src/lisp.h:
-	* src/macterm.c:
-	* src/print.c:
-	* src/process.c:
-	* src/w32fns.c:
-	* src/w32menu.c:
-	* src/w32term.c:
-	* src/xfns.c:
-	* src/xmenu.c:
-	* src/xterm.c: Replace uses of GC_* macros with the non-GC_ versions.
+	* alloc.c:
+	* buffer.c:
+	* buffer.h:
+	* data.c:
+	* fileio.c:
+	* filelock.c:
+	* fns.c:
+	* frame.h:
+	* lisp.h:
+	* macterm.c:
+	* print.c:
+	* process.c:
+	* w32fns.c:
+	* w32menu.c:
+	* w32term.c:
+	* xfns.c:
+	* xmenu.c:
+	* xterm.c: Replace uses of GC_* macros with the non-GC_ versions.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1461,13 +1614,13 @@
 
 	* w32font.c (w32font_close): Delete the GDI font object.
 
-	* w32menu.c: Include character.h
+	* w32menu.c: Include character.h.
 
 	* w32proc.c: Likewise.
 
 	* w32select.c: Likewise.
 
-	* makefile.w32-in (w32proc.o): Depend on character.h
+	* makefile.w32-in (w32proc.o): Depend on character.h.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -1593,7 +1746,7 @@
 	Remove redundant loop and allocation.
 
 	* makefile.w32-in (font.o, w32font.o): New objects.
-	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h
+	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h.
 	(FONTOBJ): New group of objects conditioned on USE_FONT_BACKEND.
 
 	* xdisp.c (fill_composite_glyph_string): Make the first arg to
@@ -1652,7 +1805,7 @@
 	(reorder_font_vector): Check contents of font_def.
 
 	* font.c (struct otf_list): Delete it.
-	(otf_list): Make it a lisp variable..
+	(otf_list): Make it a lisp variable.
 	(otf_open): Use lispy otf_list.
 	(generate_otf_features): Rename from parse_gsub_gpos_spec.
 	(check_otf_features): New function.
@@ -3175,7 +3328,7 @@
 	* fileio.c (Finsert_file_contents): Avoid detecting a code twice.
 
 	* coding.c (detect_coding_iso_2022): Fix handling of SS2 and SS3.
-	(detect_coding, detect_coding_system): Treat '\0' as normal ASCII byte..
+	(detect_coding, detect_coding_system): Treat '\0' as normal ASCII byte.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -5006,7 +5159,7 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* Makefile.in (chartab.o): Depend on charset.h
+	* Makefile.in (chartab.o): Depend on charset.h.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -5756,7 +5909,7 @@
 
 	* mac.c (mac_emacs_pid) [MAC_OSX]: New variable.
 	[MAC_OSX] (init_mac_osx_environment): Initialize it.
-	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]:	Return 0
+	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]: Return 0
 	when used on child processes.
 
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
@@ -5840,8 +5993,8 @@
 
 	* unexsunos4.c: Remove file, system not supported anymore.
 
-	* src/m/mips.h:
-	* src/m/intel386.h:
+	* m/mips.h:
+	* m/intel386.h:
 	* callproc.c:
 	* config.in:
 	* ecrt0.c:
@@ -6497,7 +6650,7 @@
 
 	* lisp.h (enum pvec_type): New tag PVEC_OTHER.
 	(allocate_pseudovector): Declare.
-	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c
+	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c.
 
 2007-11-15  Andreas Schwab  <schwab@suse.de>
 

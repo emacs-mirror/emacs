@@ -57,6 +57,7 @@ the gnome-icons-theme package for more information.
 Emacs images and their source in the GNOME icons stock/ directory:
 
   attach.xpm                document/stock_attach
+  bookmark_add.xpm          actions/bookmark_add
   cancel.xpm                slightly modified generic/stock_stop
   connect.xpm               net/stock_connect
   contact.xpm               net/stock_contact

@@ -120,10 +120,8 @@ considered related."
 
 ;; Returns window where click occurs
 (defun viper-mouse-click-window (click)
-  (let ((win (viper-cond-compile-for-xemacs-or-emacs
-	      (event-window click) ; xemacs
-	      (posn-window (event-start click)) ; emacs
-	      )))
+  (let ((win (if (featurep 'xemacs) (event-window click)
+	       (posn-window (event-start click)))))
     (if (window-live-p win)
 	win
       (error "Click was not over a live window"))))
@@ -142,10 +140,8 @@ considered related."
 
 ;; Returns position of a click
 (defsubst viper-mouse-click-posn (click)
-  (viper-cond-compile-for-xemacs-or-emacs
-   (event-point click) ; xemacs
-   (posn-point (event-start click)) ; emacs
-   ))
+  (if (featurep 'xemacs) (event-point click)
+    (posn-point (event-start click))))
 
 
 (defun viper-surrounding-word (count click-count)
@@ -318,33 +314,30 @@ See `viper-surrounding-word' for the definition of a word in this case."
 ;; XEmacs has no double-click events.  So, we must simulate.
 ;; So, we have to simulate event-click-count.
 (defun viper-event-click-count (click)
-  (viper-cond-compile-for-xemacs-or-emacs
-   (viper-event-click-count-xemacs click) ; xemacs
-   (event-click-count click) ; emacs
-   ))
+  (if (featurep 'xemacs) (viper-event-click-count-xemacs click)
+    (event-click-count click)))
 
-;; kind of semaphore for updating viper-current-click-count
-(defvar viper-counting-clicks-p nil)
-(viper-cond-compile-for-xemacs-or-emacs
- (defun viper-event-click-count-xemacs (click)
-   (let ((time-delta (- (event-timestamp click)
-			viper-last-click-event-timestamp))
-	 inhibit-quit)
-     (while viper-counting-clicks-p
-       (ignore))
-     (setq viper-counting-clicks-p t)
-     (if (> time-delta viper-multiclick-timeout)
-	 (setq viper-current-click-count 0))
-     (discard-input)
-     (setq viper-current-click-count (1+ viper-current-click-count)
-	   viper-last-click-event-timestamp (event-timestamp click))
-     (setq viper-counting-clicks-p nil)
-     (if (viper-sit-for-short viper-multiclick-timeout t)
-	 viper-current-click-count
-       0)
-     ))
-  nil ; emacs
- )
+(when (featurep 'xemacs)
+
+  ;; kind of semaphore for updating viper-current-click-count
+  (defvar viper-counting-clicks-p nil)
+
+  (defun viper-event-click-count-xemacs (click)
+    (let ((time-delta (- (event-timestamp click)
+			 viper-last-click-event-timestamp))
+	  inhibit-quit)
+      (while viper-counting-clicks-p
+	(ignore))
+      (setq viper-counting-clicks-p t)
+      (if (> time-delta viper-multiclick-timeout)
+	  (setq viper-current-click-count 0))
+      (discard-input)
+      (setq viper-current-click-count (1+ viper-current-click-count)
+	    viper-last-click-event-timestamp (event-timestamp click))
+      (setq viper-counting-clicks-p nil)
+      (if (viper-sit-for-short viper-multiclick-timeout t)
+	  viper-current-click-count
+	0))))
 
 
 (defun viper-mouse-click-search-word (click arg)

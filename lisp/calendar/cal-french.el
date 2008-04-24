@@ -39,8 +39,6 @@
 
 ;;; Code:
 
-(defvar date)
-
 (require 'calendar)
 
 (defun french-calendar-accents ()
@@ -75,14 +73,17 @@
    "de la Re'volution"])
 
 (defun french-calendar-month-name-array ()
+  "Return the array of month names, depending on whether accents are available."
   (if (french-calendar-accents)
       french-calendar-multibyte-month-name-array
     french-calendar-month-name-array))
 
 (defun french-calendar-day-name-array ()
+  "Return the array of day names."
   french-calendar-day-name-array)
 
 (defun french-calendar-special-days-array ()
+  "Return the special day names, depending on whether accents are available."
   (if (french-calendar-accents)
       french-calendar-multibyte-special-days-array
     french-calendar-special-days-array))
@@ -95,9 +96,9 @@ and 11 were leap years; 15 and 20 would have been leap years).  For later
 years uses the proposed rule of Romme (never adopted)--leap years fall every
 four years except century years not divisible 400 and century years that are
 multiples of 4000."
-  (or (memq year '(3 7 11));; Actual practice--based on equinoxes
-      (memq year '(15 20)) ;; Anticipated practice--based on equinoxes
-      (and (> year 20)     ;; Romme's proposal--never adopted
+  (or (memq year '(3 7 11)) ; actual practice--based on equinoxes
+      (memq year '(15 20))  ; anticipated practice--based on equinoxes
+      (and (> year 20)      ; Romme's proposal--never adopted
            (zerop (% year 4))
            (not (memq (% year 400) '(100 200 300)))
            (not (zerop (% year 4000))))))
@@ -119,18 +120,18 @@ Gregorian date Sunday, December 31, 1 BC."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
-    (+ (* 365 (1- year));; Days in prior years
-       ;; Leap days in prior years
+    (+ (* 365 (1- year))                ; days in prior years
+       ;; Leap days in prior years.
        (if (< year 20)
-           (/ year 4);; Actual and anticipated practice (years 3, 7, 11, 15)
-         ;; Romme's proposed rule (using the Principle of Inclusion/Exclusion)
-         (+ (/ (1- year) 4);; Luckily, there were 4 leap years before year 20
+           (/ year 4) ; actual and anticipated practice (years 3, 7, 11, 15)
+         ;; Romme's proposed rule (using the Principle of Inclusion/Exclusion).
+         (+ (/ (1- year) 4) ; luckily, there were 4 leap years before year 20
             (- (/ (1- year) 100))
             (/ (1- year) 400)
             (- (/ (1- year) 4000))))
-       (* 30 (1- month));; Days in prior months this year
-       day;; Days so far this month
-       (1- french-calendar-epoch))));; Days before start of calendar
+       (* 30 (1- month))              ; days in prior months this year
+       day                            ; days so far this month
+       (1- french-calendar-epoch))))  ; days before start of calendar
 
 (defun calendar-french-from-absolute (date)
   "Compute the French Revolutionary equivalent for absolute date DATE.
@@ -138,15 +139,15 @@ The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the
 \(imaginary) Gregorian date Sunday, December 31, 1 BC."
   (if (< date french-calendar-epoch)
-      (list 0 0 0);; pre-French Revolutionary date
-    (let* ((approx              ;; Approximation from below.
+      (list 0 0 0)                     ; pre-French Revolutionary date
+    (let* ((approx                     ; approximation from below
             (/ (- date french-calendar-epoch) 366))
-           (year                ;; Search forward from the approximation.
+           (year               ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
                  (>= date (calendar-absolute-from-french (list 1 1 (1+ y))))
                  1)))
-           (month               ;; Search forward from Vendemiaire.
+           (month                    ; search forward from Vendemiaire
             (1+ (calendar-sum m 1
                   (> date
                      (calendar-absolute-from-french
@@ -154,11 +155,12 @@ The absolute date is the number of days elapsed since the
                             (french-calendar-last-day-of-month m year)
                             year)))
                   1)))
-           (day                   ;; Calculate the day by subtraction.
+           (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-french (list month 1 year))))))
     (list month day year))))
 
+;;;###autoload
 (defun calendar-french-date-string (&optional date)
   "String of French Revolutionary date of Gregorian DATE.
 Returns the empty string if DATE is pre-French Revolutionary.
@@ -184,6 +186,7 @@ Defaults to today's date if DATE is not given."
          (aref (french-calendar-month-name-array) (1- m))
          y)))))
 
+;;;###autoload
 (defun calendar-print-french-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
@@ -192,6 +195,7 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
 
+;;;###autoload
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is t."
@@ -205,7 +209,7 @@ Echo French Revolutionary date unless NOECHO is t."
 		(if accents
 	            "Année de la Révolution (>0): "
 		   "Anne'e de la Re'volution (>0): ")
-		'(lambda (x) (> x 0))
+		(lambda (x) (> x 0))
 		(int-to-string
 		 (extract-calendar-year
 		  (calendar-french-from-absolute
@@ -216,13 +220,13 @@ Echo French Revolutionary date unless NOECHO is t."
 		     (append months
 			     (if (french-calendar-leap-year-p year)
 				 (mapcar
-				  '(lambda (x) (concat "Jour " x))
+				  (lambda (x) (concat "Jour " x))
 				  french-calendar-special-days-array)
 			       (reverse
-				(cdr;; we don't want rev. day in a non-leap yr.
+				(cdr ; we don't want rev. day in a non-leap yr
 				 (reverse
 				  (mapcar
-				   '(lambda (x)
+				   (lambda (x)
 				      (concat "Jour " x))
 				   special-days))))))))
 	    (completion-ignore-case t)
@@ -236,13 +240,16 @@ Echo French Revolutionary date unless NOECHO is t."
 		     (- month 12)
 		   (calendar-read
 		    "Jour (1-30): "
-		    '(lambda (x) (and (<= 1 x) (<= x 30))))))
+		    (lambda (x) (and (<= 1 x) (<= x 30))))))
 	    (month (if (> month 12) 13 month)))
        (list (list month day year)))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-french date)))
   (or noecho (calendar-print-french-date)))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-french-date ()
   "French calendar equivalent of date diary entry."
   (let ((f (calendar-french-date-string date)))
@@ -252,5 +259,9 @@ Echo French Revolutionary date unless NOECHO is t."
 
 (provide 'cal-french)
 
-;;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here

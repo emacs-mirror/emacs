@@ -1,6 +1,7 @@
 ;;; cal-html.el --- functions for printing HTML calendars
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Anna M. Bigatti <bigatti@dima.unige.it>
 ;; Keywords: calendar
@@ -410,6 +411,7 @@ four-digit YEAR.  Diary entries in DIARY-LIST are included."
 
 ;;; User commands.
 
+;;;###autoload
 (defun cal-html-cursor-month (month year dir)
   "Write an HTML calendar file for numeric MONTH of four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
@@ -422,6 +424,7 @@ that any existing output files are overwritten."
   (make-directory dir t)
   (cal-html-one-month month year dir))
 
+;;;###autoload
 (defun cal-html-cursor-year (year dir)
   "Write HTML calendar files (index and monthly pages) for four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
@@ -440,6 +443,9 @@ existing output files are overwritten."
 
 (provide 'cal-html)
 
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
 
 ;; arch-tag: 4e73377d-d2c1-46ea-a103-02c111da5f57
 ;;; cal-html.el ends here

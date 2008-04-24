@@ -1,7 +1,7 @@
 ;;; cal-islam.el --- calendar functions for the Islamic calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -36,10 +36,8 @@
 
 ;;; Code:
 
-(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
-(defvar number)
 (defvar original-date)
 
 (require 'cal-julian)
@@ -53,7 +51,7 @@
   "Absolute date of start of Islamic calendar = August 29, 284 A.D. (Julian).")
 
 (defun islamic-calendar-leap-year-p (year)
-  "Returns t if YEAR is a leap year on the Islamic calendar."
+  "Return t if YEAR is a leap year on the Islamic calendar."
   (memq (% year 30)
         (list 2 5 7 10 13 16 18 21 24 26 29)))
 
@@ -85,27 +83,27 @@ Gregorian date Sunday, December 31, 1 BC."
            ((< y 3) 0)  ((< y 6) 1)  ((< y 8) 2)  ((< y 11) 3) ((< y 14) 4)
            ((< y 17) 5) ((< y 19) 6) ((< y 22) 7) ((< y 25) 8) ((< y 27) 9)
            (t 10))))
-    (+ (islamic-calendar-day-number date);; days so far this year
-       (* (1- year) 354)                 ;; days in all non-leap years
-       (* 11 (/ year 30))                ;; leap days in complete cycles
-       leap-years-in-cycle               ;; leap days this cycle
-       (1- calendar-islamic-epoch))))    ;; days before start of calendar
+    (+ (islamic-calendar-day-number date) ; days so far this year
+       (* (1- year) 354)                  ; days in all non-leap years
+       (* 11 (/ year 30))             ; leap days in complete cycles
+       leap-years-in-cycle            ; leap days this cycle
+       (1- calendar-islamic-epoch)))) ; days before start of calendar
 
 (defun calendar-islamic-from-absolute (date)
   "Compute the Islamic date (month day year) corresponding to absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (if (< date calendar-islamic-epoch)
-      (list 0 0 0);; pre-Islamic date
+      (list 0 0 0)                      ; pre-Islamic date
     (let* ((approx (/ (- date calendar-islamic-epoch)
-                      355));; Approximation from below.
-           (year           ;; Search forward from the approximation.
+                      355))  ; approximation from below
+           (year             ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
                              (>= date (calendar-absolute-from-islamic
                                        (list 1 1 (1+ y))))
                              1)))
-           (month          ;; Search forward from Muharram.
+           (month                       ; search forward from Muharram
             (1+ (calendar-sum m 1
                               (> date
                                  (calendar-absolute-from-islamic
@@ -114,11 +112,12 @@ Gregorian date Sunday, December 31, 1 BC."
                                          m year)
                                         year)))
                               1)))
-           (day            ;; Calculate the day by subtraction.
+           (day                    ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-islamic (list month 1 year))))))
       (list month day year))))
 
+;;;###autoload
 (defun calendar-islamic-date-string (&optional date)
   "String of Islamic date before sunset of Gregorian DATE.
 Returns the empty string if DATE is pre-Islamic.
@@ -132,6 +131,7 @@ Driven by the variable `calendar-date-display-form'."
         ""
       (calendar-date-string islamic-date nil t))))
 
+;;;###autoload
 (defun calendar-print-islamic-date ()
   "Show the Islamic calendar equivalent of the date under the cursor."
   (interactive)
@@ -140,13 +140,14 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
+;;;###autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is t."
   (interactive
    (let* ((today (calendar-current-date))
           (year (calendar-read
                  "Islamic calendar year (>0): "
-                 '(lambda (x) (> x 0))
+                 (lambda (x) (> x 0))
                  (int-to-string
                   (extract-calendar-year
                    (calendar-islamic-from-absolute
@@ -162,18 +163,11 @@ Driven by the variable `calendar-date-display-form'."
           (last (islamic-calendar-last-day-of-month month year))
           (day (calendar-read
                 (format "Islamic calendar day (1-%d): " last)
-                '(lambda (x) (and (< 0 x) (<= x last))))))
+                (lambda (x) (and (< 0 x) (<= x last))))))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-islamic date)))
   (or noecho (calendar-print-islamic-date)))
-
-(defun diary-islamic-date ()
-  "Islamic calendar equivalent of date diary entry."
-  (let ((i (calendar-islamic-date-string date)))
-    (if (string-equal i "")
-        "Date is pre-Islamic"
-      (format "Islamic date (until sunset): %s" i))))
 
 (defun holiday-islamic (month day string)
   "Holiday on MONTH, DAY (Islamic) called STRING.
@@ -187,9 +181,9 @@ nil if it is not visible in the current calendar window."
          (y (extract-calendar-year islamic-date))
         (date))
     (if (< m 1)
-        nil;;   Islamic calendar doesn't apply.
+        nil                        ;   Islamic calendar doesn't apply
       (increment-calendar-month m y (- 10 month))
-      (if (> m 7);;  Islamic date might be visible
+      (if (> m 7)                     ;  Islamic date might be visible
           (let ((date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-islamic (list month day y)))))
             (if (calendar-date-is-visible-p date)
@@ -199,15 +193,18 @@ nil if it is not visible in the current calendar window."
 (declare-function add-to-diary-list "diary-lib"
                   (date string specifier &optional marker globcolor literal))
 
+(defvar number)                         ; from diary-list-entries
+
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
-Islamic date diary entries must be prefaced by an `islamic-diary-entry-symbol'
-\(normally an `I').  The same diary date forms govern the style of the Islamic
-calendar entries, except that the Islamic month names must be spelled in full.
-The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
-Dhu al-Hijjah.  If an Islamic date diary entry begins with a
-`diary-nonmarking-symbol', the entry will appear in the diary listing, but will
-not be marked in the calendar.  This function is provided for use with the
+Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
+\(normally an `I').  The same diary date forms govern the style
+of the Islamic calendar entries, except that the Islamic month
+names must be spelled in full.  The Islamic months are numbered
+from 1 to 12 with Muharram being 1 and 12 being Dhu al-Hijjah.
+If an Islamic date diary entry begins with `diary-nonmarking-symbol',
+the entry will appear in the diary listing, but will not be
+marked in the calendar.  This function is provided for use with
 `nongregorian-diary-listing-hook'."
   (if (< 0 number)
       (let ((buffer-read-only nil)
@@ -259,10 +256,10 @@ not be marked in the calendar.  This function is provided for use with the
                   (if (and (or (char-equal (preceding-char) ?\^M)
                                (char-equal (preceding-char) ?\n))
                            (not (looking-at " \\|\^I")))
-                      ;;  Diary entry that consists only of date.
+                      ;; Diary entry that consists only of date.
                       (backward-char 1)
-                    ;;  Found a nonempty diary entry--make it visible and
-                    ;;  add it to the list.
+                    ;; Found a nonempty diary entry--make it visible and
+                    ;; add it to the list.
                     (let ((entry-start (point))
                           (date-start))
                       (re-search-backward "\^M\\|\n\\|\\`")
@@ -293,20 +290,20 @@ not be marked in the calendar.  This function is provided for use with the
 
 (defun mark-islamic-diary-entries ()
   "Mark days in the calendar window that have Islamic date diary entries.
-Each entry in diary-file (or included files) visible in the calendar window
-is marked.  Islamic date entries are prefaced by a islamic-diary-entry-symbol
-\(normally an `I').  The same diary-date-forms govern the style of the Islamic
+Each entry in `diary-file' (or included files) visible in the calendar window
+is marked.  Islamic date entries are prefaced by `islamic-diary-entry-symbol'
+\(normally an `I').  The same `diary-date-forms' govern the style of the Islamic
 calendar entries, except that the Islamic month names must be spelled in full.
 The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
 Dhu al-Hijjah.  Islamic date diary entries that begin with a
-diary-nonmarking-symbol will not be marked in the calendar.  This function is
-provided for use as part of the nongregorian-diary-marking-hook."
+`diary-nonmarking-symbol' will not be marked in the calendar.  This function is
+provided for use as part of the `nongregorian-diary-marking-hook'."
   (let ((d diary-date-forms))
     (while d
       (let*
           ((date-form (if (equal (car (car d)) 'backup)
                           (cdr (car d))
-                        (car d)));; ignore 'backup directive
+                        (car d)))       ; ignore 'backup directive
            (dayname (diary-name-pattern calendar-day-name-array
                                         calendar-day-abbrev-array))
            (monthname
@@ -399,8 +396,8 @@ provided for use as part of the nongregorian-diary-marking-hook."
 A value of 0 in any position is a wildcard."
   (save-excursion
     (set-buffer calendar-buffer)
-    (if (and (/= 0 month) (/= 0 day))
-        (if (/= 0 year)
+    (if (and (not (zerop month)) (not (zerop day)))
+        (if (not (zerop year))
             ;; Fully specified Islamic date.
             (let ((date (calendar-gregorian-from-absolute
                          (calendar-absolute-from-islamic
@@ -415,9 +412,9 @@ A value of 0 in any position is a wildcard."
                  (y (extract-calendar-year islamic-date))
                  (date))
             (if (< m 1)
-                nil;;   Islamic calendar doesn't apply.
+                nil                ;   Islamic calendar doesn't apply
               (increment-calendar-month m y (- 10 month))
-              (if (> m 7);;  Islamic date might be visible
+              (if (> m 7)             ;  Islamic date might be visible
                   (let ((date (calendar-gregorian-from-absolute
                                (calendar-absolute-from-islamic
                                 (list month day y)))))
@@ -452,10 +449,11 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
+;;;###autoload
 (defun insert-islamic-diary-entry (arg)
   "Insert a diary entry.
 For the Islamic date corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-month-name-array calendar-islamic-month-name-array))
     (make-diary-entry
@@ -468,10 +466,11 @@ Prefix arg will make the entry nonmarking."
        nil t))
      arg)))
 
+;;;###autoload
 (defun insert-monthly-islamic-diary-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Islamic month corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
@@ -485,10 +484,11 @@ Prefix arg will make the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
+;;;###autoload
 (defun insert-yearly-islamic-diary-entry (arg)
   "Insert an annual diary entry.
 For the day of the Islamic year corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style
@@ -504,7 +504,21 @@ Prefix arg will make the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
+(defvar date)
+
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
+(defun diary-islamic-date ()
+  "Islamic calendar equivalent of date diary entry."
+  (let ((i (calendar-islamic-date-string date)))
+    (if (string-equal i "")
+        "Date is pre-Islamic"
+      (format "Islamic date (until sunset): %s" i))))
+
 (provide 'cal-islam)
 
-;;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
 ;;; cal-islam.el ends here

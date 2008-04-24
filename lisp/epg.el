@@ -198,7 +198,7 @@
   (aref (cdr context) 0))
 
 (defun epg-context-armor (context)
-  "Return t if the output shouled be ASCII armored in CONTEXT."
+  "Return t if the output should be ASCII armored in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aref (cdr context) 1))
@@ -210,8 +210,7 @@
   (aref (cdr context) 2))
 
 (defun epg-context-include-certs (context)
-  "Return how many certificates should be included in an S/MIME signed
-message."
+  "Return how many certificates should be included in an S/MIME signed message."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aref (cdr context) 3))
@@ -247,13 +246,13 @@ message."
   (aref (cdr context) 8))
 
 (defun epg-context-signers (context)
-  "Return the list of key-id for singning."
+  "Return the list of key-id for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aref (cdr context) 9))
 
 (defun epg-context-sig-notations (context)
-  "Return the list of notations for singning."
+  "Return the list of notations for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aref (cdr context) 10))
@@ -291,7 +290,7 @@ This function is for internal use only."
   (aset (cdr context) 0 protocol))
 
 (defun epg-context-set-armor (context armor)
-  "Specify if the output shouled be ASCII armored in CONTEXT."
+  "Specify if the output should be ASCII armored in CONTEXT."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 1 armor))
@@ -342,13 +341,13 @@ If optional argument HANDBACK is specified, it is passed to PROGRESS-CALLBACK."
   (aset (cdr context) 8 progress-callback))
 
 (defun epg-context-set-signers (context signers)
-  "Set the list of key-id for singning."
+  "Set the list of key-id for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 9 signers))
 
 (defun epg-context-set-sig-notations (context notations)
-  "Set the list of notations for singning."
+  "Set the list of notations for signing."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 10 notations))
@@ -786,7 +785,7 @@ This function is for internal use only."
 
 (defun epg-make-import-status (fingerprint &optional reason new user-id
 					   signature sub-key secret)
-  "Return a import status object."
+  "Return an import status object."
   (cons 'epg-import-status (vector fingerprint reason new user-id signature
 				   sub-key secret)))
 
@@ -838,7 +837,7 @@ This function is for internal use only."
 					  secret-read secret-imported
 					  secret-unchanged not-imported
 					  imports)
-  "Return a import result object."
+  "Return an import result object."
   (cons 'epg-import-result (vector considered no-user-id imported imported-rsa
 				   unchanged new-user-ids new-sub-keys
 				   new-signatures new-revocations secret-read
@@ -2435,7 +2434,7 @@ KEYS is a list of key IDs"
 
 ;;;###autoload
 (defun epg-start-delete-keys (context keys &optional allow-secret)
-  "Initiate an delete keys operation.
+  "Initiate a delete keys operation.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
@@ -2488,7 +2487,7 @@ If you are unsure, use synchronous version of this function
 			      (epg-sub-key-id
 			       (car (epg-key-sub-key-list key))))
 			    keys))))
-(make-obsolete 'epg-start-sign-keys "Do not use.")
+(make-obsolete 'epg-start-sign-keys "do not use.")
 
 ;;;###autoload
 (defun epg-sign-keys (context keys &optional local)
@@ -2501,7 +2500,7 @@ If you are unsure, use synchronous version of this function
 	    (error "Sign keys failed: %S"
 		   (epg-context-result-for context 'error))))
     (epg-reset context)))
-(make-obsolete 'epg-sign-keys "Do not use.")
+(make-obsolete 'epg-sign-keys "do not use.")
 
 ;;;###autoload
 (defun epg-start-generate-key (context parameters)

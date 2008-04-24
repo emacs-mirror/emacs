@@ -23,8 +23,18 @@ Boston, MA 02110-1301, USA.  */
 
 
 /* Bit 17 of ntmFlags in NEWTEXTMETRIC is set for Postscript OpenType fonts,
-   bit 18 for Truetype OpenType fonts.  */
-#define NTMFLAGS_OPENTYPE 0x60000
+   bit 18 for Truetype OpenType fonts, bit 20 for Type1 fonts.  */
+#ifndef NTM_PS_OPENTYPE
+#define NTM_PS_OPENTYPE 0x00020000
+#endif
+#ifndef NTM_TT_OPENTYPE
+#define NTM_TT_OPENTYPE 0x00040000
+#endif
+#ifndef NTM_TYPE1
+#define NTM_TYPE1 0x00100000
+#endif
+
+#define NTMFLAGS_OPENTYPE (NTM_PS_OPENTYPE | NTM_TT_OPENTYPE)
 
 /* The actual structure for a w32 font, that can be cast to struct font.
    The Uniscribe backend extends this.  */
@@ -32,7 +42,8 @@ struct w32font_info
 {
   struct font font;
   TEXTMETRIC metrics;
-  struct font_metrics ascii_metrics[96];
+  unsigned int glyph_idx;
+  struct font_metrics ascii_metrics[128];
 };
 
 Lisp_Object w32font_get_cache P_ ((FRAME_PTR fe));
@@ -46,7 +57,6 @@ int w32font_open_internal P_ ((FRAME_PTR f, Lisp_Object font_entity,
                                int pixel_size, struct w32font_info *w32_font));
 void w32font_close P_ ((FRAME_PTR f, struct font *font));
 int w32font_has_char P_ ((Lisp_Object entity, int c));
-unsigned w32font_encode_char P_ ((struct font *font, int c));
 int w32font_text_extents P_ ((struct font *font, unsigned *code, int nglyphs,
                               struct font_metrics *metrics));
 int w32font_draw P_ ((struct glyph_string *s, int from, int to,

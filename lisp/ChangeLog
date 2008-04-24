@@ -1,9 +1,762 @@
+2008-03-10  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (view-emacs-todo, describe-gnu-project): Define obsolete
+	function aliases for the old names.
+
+2008-03-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* iswitchb.el (iswitchb-use-faces): Doc fix.
+	(iswitchb-buffer-ignore, iswitchb-read-buffer): Fix typos in
+	docstrings.
+
+2008-03-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-highlight-grouping-keywords):
+	Fix typo.
+	(verilog-type-font-keywords): Reindent.
+
+2008-03-10  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-font-grouping-keywords): Fix bug in the
+	grouping-keyword regular expression.
+	(verilog-font-lock-keywords): Allow users to toggle special
+	highlight of grouping-keywords.
+	(verilog-highlight-grouping-keywords): The toggle for special
+	highlighting of grouping keywords.
+
+2008-03-10  Juri Linkov  <juri@jurta.org>
+
+	* startup.el: Revert 2008-02-28 change that adds initial message
+	to *scratch* buffer regardless of the value of
+	`inhibit-startup-screen'.
+
+2008-03-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/css-mode.el (css-indent-offset, css-electric-keys):
+	* textmodes/bibtex-style.el (bibtex-style-indent-basic):
+	* progmodes/verilog-mode.el (verilog-mode):
+	* net/socks.el (socks):
+	* vc-mtn.el (vc-mtn-mode-line-rewrite): Add :version.
+
+2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (bookmark-buffer-file-name, bookmark-prop-get): Declare.
+	(doc-view-bookmark-make-record): Use them.
+	(doc-view-bookmark-jump): Use them.  Fix find-file -> find-file-noselect.
+	(bookmark-get-filename, bookmark-get-bookmark-record): Remove.
+
+	* bookmark.el (bookmark-make-record-function): Change expected return value
+	to include a suggested bookmark name.
+	(bookmark-make): Split into bookmark-make-record and bookmark-store.
+	Fix reversed `overwrite' semantics.
+	(bookmark-set): Call bookmark-make-record before prompting the user.
+	Then pass the result to bookmark-store later on.
+	(bookmark-make-name-function): Remove.
+	(bookmark-buffer-file-name, bookmark-buffer-name): Don't use it.
+	* info.el (bookmark-make-name-function): Remove.
+	(Info-mode): Don't set it.
+	(Info-bookmark-make-name): Remove.
+	(Info-bookmark-make-record): Use Info-current-node as suggested default
+	bookmark name.
+
+	* bookmark.el (bookmark-set): Make the bookmark before reading annotations.
+	I.e. use bookmark-edit-annotation rather than bookmark-read-annotation.
+	(bookmark-read-annotation-mode-map, bookmark-annotation-paragraph)
+	(bookmark-annotation-buffer, bookmark-annotation-file)
+	(bookmark-annotation-point, bookmark-send-annotation)
+	(bookmark-read-annotation-mode, bookmark-read-annotation): Remove.
+	(bookmark-edit-annotation-text-func): Rename from
+	bookmark-read-annotation-text-func.  Keep old name as an obsolete alias.
+	(bookmark-edit-annotation-mode-map): Move initialization into declaration.
+
+	* bookmark.el: Add spurious * in docstrings.
+	(bookmark-minibuffer-read-name-map): New var.
+	(bookmark-set): Use it.  Also pass the default value as it should.
+	(bookmark-send-edited-annotation): Take no chances with text properties.
+	(bookmark-insert-current-bookmark): Inline bookmark-insert-buffer-name.
+	(bookmark-insert-buffer-name): Remove.
+	(bookmark-buffer-file-name): Signal an error rather than returning nil.
+
+2008-03-09  Thomas Hühn  <xf27@arcor.de>  (tiny change)
+
+	* tutorial.el (tutorial--default-keys): Update `C-l' binding.
+
+2008-03-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-mode-menu): Add :help.
+
+2008-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays-1, hebrew-holidays-2)
+	(hebrew-holidays-3, hebrew-holidays-4, hebrew-holidays)
+	(christian-holidays, islamic-holidays, bahai-holidays, solar-holidays)
+	(calendar-holidays): Restore autoload cookies, because people are
+	used to using these variables without loading calendar.el.
+
+	* calendar/cal-islam.el (diary-islamic-date): Move to end.
+	(date, number): Declare where needed.
+
+	* calendar/diary-lib.el (nongregorian-diary-marking-hook)
+	(list-sexp-diary-entries): Doc fixes.
+	(diary-list-entries): Doc fix.  Remove free variable `entry'.
+	(fancy-diary-display): Use dolist, bobp.  Remove free variable `entry'.
+	Simplify setting of `date-holiday-list'.
+	(mark-diary-entries): Remove free variable `entry'.
+	(diary-list-entries, include-other-diary-files, fancy-diary-display):
+	Use let where let* is not needed.
+
+2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-make): Don't pass the `annotation' to the
+	make-record function, instead paste it in afterwards.
+	(bookmark-make-record-for-text-file):
+	* doc-view.el (doc-view-bookmark-make-record):
+	* info.el (Info-bookmark-make-record): Don't mess with annotations.
+
+2008-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (entry): Declare for compiler part-way
+	through.
+
+2008-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/diary-lib.el (diary-list-entries)
+	(include-other-diary-files, mark-diary-entries)
+	(mark-sexp-diary-entries, mark-included-diary-files)
+	(diary-entry-time, list-sexp-diary-entries): Remove the special
+	handling of ^M that dates back to the use of selective-display.
+	(simple-diary-display): Obey setting of pop-up-frames.
+	(body, entry): Remove unnecessary declarations.
+
+	* bookmark.el (bookmark-prop-get, bookmark-prop-set): New funs.
+	(bookmark-get-annotation, bookmark-set-annotation)
+	(bookmark-get-filename, bookmark-set-filename, bookmark-get-position)
+	(bookmark-set-position, bookmark-get-front-context-string)
+	(bookmark-set-front-context-string, bookmark-get-rear-context-string)
+	(bookmark-set-rear-context-string, bookmark-get-handler): Use them.
+	* info.el (Info-bookmark-make-record): Don't bother recording point.
+	(bookmark-get-filename, bookmark-get-front-context-string)
+	(bookmark-get-rear-context-string, bookmark-get-position):
+	Don't declare any more.
+	(bookmark-get-info-node): Remove.
+	(bookmark-prop-get): Declare.
+	(Info-bookmark-jump): Use it.
+
+2008-03-08  Johan Bockgård  <bojohan@gnu.org>
+
+	* subr.el (while-no-input): Don't splice BODY directly into the
+	`or' form.
+
+2008-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-ignore-whitespace-hunk):
+	Bind inhibit-read-only before trying to change the buffer.
+
+2008-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt): Move custom group here from calendar.el.
+	(appt-disp-window, appt-convert-time): Doc fixes.
+
+	* calendar/cal-bahai.el (calendar-bahai-prompt-for-date)
+	(calendar-bahai-mark-date-pattern):
+	* calendar/cal-hebrew.el (mark-hebrew-calendar-date-pattern):
+	* calendar/cal-islam.el (mark-islamic-calendar-date-pattern):
+	* calendar/cal-julian.el (calendar-absolute-from-julian):
+	* calendar/cal-persia.el (persian-prompt-for-date): Use zerop.
+
+	* calendar/cal-china.el (chinese-calendar): Move custom group here from
+	calendar.el.
+	(chinese-calendar-celestial-stem, chinese-calendar-terrestrial-branch):
+	Make constants.
+	(chinese-calendar-time-zone, chinese-calendar-daylight-time-offset)
+	(chinese-calendar-daylight-savings-starts)
+	(chinese-calendar-daylight-savings-ends)
+	(chinese-calendar-daylight-savings-starts-time)
+	(chinese-calendar-daylight-savings-ends-time)
+	(chinese-zodiac-sign-on-or-after, chinese-new-moon-on-or-after):
+	Doc fixes.
+
+	* calendar/cal-coptic.el (coptic-name): Add doc string.
+
+	* calendar/cal-french.el (french-calendar-month-name-array)
+	(french-calendar-day-name-array, french-calendar-special-days-array):
+	Add doc strings.
+
+	* calendar/cal-bahai.el (diary-bahai-mark-entries)
+	(diary-bahai-insert-entry, diary-bahai-insert-monthly-entry)
+	(diary-bahai-insert-yearly-entry):
+	* calendar/cal-dst.el (calendar-next-time-zone-transition)
+	(calendar-time-zone):
+	* calendar/cal-hebrew.el (hebrew-calendar-leap-year-p)
+	(hebrew-calendar-elapsed-days, hebrew-calendar-long-heshvan-p)
+	(hebrew-calendar-short-kislev-p, mark-hebrew-diary-entries)
+	(insert-hebrew-diary-entry, insert-monthly-hebrew-diary-entry)
+	(insert-yearly-hebrew-diary-entry, diary-yahrzeit):
+	* calendar/cal-islam.el (islamic-calendar-leap-year-p)
+	(list-islamic-diary-entries, mark-islamic-diary-entries)
+	(insert-islamic-diary-entry, insert-monthly-islamic-diary-entry)
+	(insert-yearly-islamic-diary-entry):
+	* calendar/cal-iso.el (calendar-iso-read-args):
+	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count)
+	(calendar-mayan-haab-to-string, calendar-mayan-tzolkin-to-string)
+	(calendar-read-mayan-haab-date, calendar-read-mayan-tzolkin-date)
+	(calendar-next-calendar-round-date)
+	(calendar-mayan-long-count-common-era):
+	* calendar/cal-menu.el (cal-menu-holiday-window-suffix)
+	(cal-menu-x-popup-menu, calendar-mouse-holidays)
+	(calendar-mouse-view-diary-entries, calendar-mouse-print-dates)
+	(calendar-mouse-goto-date):
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
+	* calendar/holidays.el (holidays):
+	* calendar/lunar.el (phases-of-moon, lunar-new-moon-on-or-after):
+	* calendar/time-date.el (date-to-time, time-subtract, time-add)
+	(safe-date-to-time): Doc fixes.
+
+	* calendar/cal-persia.el (persian-calendar-month-name-array)
+	(persian-calendar-epoch): Make constants.
+
+	* calendar/cal-tex.el (calendar-tex): Move custom group here from
+	calendar.el.
+
+	* calendar/cal-x.el (diary-frame-parameters)
+	(calendar-frame-parameters, calendar-and-diary-frame-parameters)
+	(calendar-after-frame-setup-hooks): Make defcustoms.
+	(calendar-one-frame-setup, calendar-only-one-frame-setup)
+	(calendar-two-frame-setup): Doc fix.
+
+	* calendar/cal-loaddefs.el: New file.
+
+	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
+	* calendar/cal-french.el, calendar/cal-html.el:
+	* calendar/cal-islam.el, calendar/cal-iso.el, calendar/cal-julian.el:
+	* calendar/cal-mayan.el, calendar/cal-move.el, calendar/cal-persia.el:
+	* calendar/cal-tex.el, calendar/cal-x.el:
+	Unquote lambda functions.  Add autoload cookies to functions formerly
+	autoloaded in calendar.el.  Set `generated-autoload-file' to
+	"cal-loaddefs.el".
+
+	* calendar/calendar.el: Move many autoloads to separate file,
+	cal-loaddefs.el.  Move defcustoms to start and re-order.
+	(calendar-month-name-array, calendar-starred-day): No need to
+	declare for compiler.
+	(cal-loaddefs): Require it.
+	(appt, chinese-calendar, calendar-tex): Move custom groups to the
+	appropriate file.
+	(diary-entry-marker, calendar-today-marker, calendar-holiday-marker):
+	Reverse logic.
+	(diary-face, diary-file-name-prefix-function, diary-include-string)
+	(diary-glob-file-regexp-prefix, diary-face-attrs)
+	(diary-file-name-prefix, sexp-diary-entry-symbol)
+	(print-diary-entries-hook, list-diary-entries-hook)
+	(nongregorian-diary-listing-hook, mark-diary-entries-hook)
+	(nongregorian-diary-marking-hook, diary-list-include-blanks):
+	Move to diary-lib.
+	(all-christian-calendar-holidays, all-islamic-calendar-holidays)
+	(all-bahai-calendar-holidays): Doc fix.
+	(calendar-insert-indented): Doc fix.  Use when rather than if.
+	(exit-calendar): Use mapc rather than mapcar.
+	(calendar-cursor-to-date): Use zerop.
+	(calendar-mark-ring): Add doc-string.
+	(calendar-starred-day): Defvar it.
+	(calendar-mode): Make calendar-starred-day local.
+	(calendar-star-date): No need to make calendar-starred-day local.
+
+	* calendar/diary-lib.el: Move defcustoms to start.
+	(diary-include-string, diary-list-include-blanks)
+	(diary-glob-file-regexp-prefix, diary-face, diary-face-attrs)
+	(diary-file-name-prefix, diary-file-name-prefix-function)
+	(sexp-diary-entry-symbol, list-diary-entries-hook)
+	(mark-diary-entries-hook, nongregorian-diary-listing-hook)
+	(nongregorian-diary-marking-hook, print-diary-entries-hook):
+	Move here from calendar.el.
+	(diary-file-name-prefix-function): Use 'identity.
+	(diary-face): Make it a defcustom, and mark as obsolete.
+	(top-level): No need to require cal-hebrew, cal-islam when
+	compiling.
+	(calendar-hebrew-month-name-array-leap-year)
+	(calendar-islamic-month-name-array, calendar-bahai-month-name-array):
+	Define for compiler.
+	(diary-font-lock-keywords): Use format rather than concat. Add
+	bahai-diary-entry-symbol.
+
+	* calendar/cal-hebrew.el, calendar/holidays.el, calendar/lunar.el:
+	* calendar/solar.el: Unquote lambda functions.
+
+	* calendar/solar.el (calendar-location-name, calendar-latitude)
+	(calendar-longitude, solar-setup, solar-sin-degrees)
+	(solar-cosine-degrees, solar-tangent-degrees, solar-xy-to-quadrant)
+	(solar-degrees-to-quadrant, solar-atn2, solar-arccos)
+	(solar-sunrise-and-sunset, solar-moment, solar-daylight)
+	(solar-exact-local-noon, solar-julian-ut-centuries)
+	(solar-ephemeris-time, solar-date-next-longitude)
+	(solar-horizontal-coordinates, solar-equatorial-coordinates)
+	(solar-ecliptic-coordinates, solar-data-list, solar-longitude)
+	(solar-ephemeris-correction, solar-sidereal-time, solar-date-to-et)
+	(sunrise-sunset, solar-seasons-data, solar-equinoxes/solstices):
+	Doc fixes.
+	(solar-horizontal-coordinates, solar-equatorial-coordinates)
+	(solar-ecliptic-coordinates): Rename argument `for-sunrise-sunset'.
+	(solar-ecliptic-coordinates): Use unless.
+	(calendar-sunrise-sunset, diary-sunrise-sunset, diary-sabbath-candles):
+	Use or.
+
+	* calendar/timeclock.el: Add doc-strings to all functions.
+	(timeclock-workday, timeclock-in, timeclock-completing-read): Doc fixes.
+	(timeclock-entry-list-length, timeclock-entry-list-projects)
+	(timeclock-day-list-projects, timeclock-day-list): Use dolist.
+
+	* calendar/todo-mode.el: Remove un-needed eval-when-compile.
+
+	* textmodes/org.el (list-diary-entries-hook): Declare for compiler.
+	(org-get-entries-from-diary): Require diary-lib.
+
+2008-03-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.el (bookmark-make-name-function, bookmark-get-bookmark-record):
+	Pacify byte-compiler.
+
+2008-03-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Limit number of
+	paren/bracket pairs parsed, to solve performance problem.
+
+2008-03-07  Bastien Guerry  <bzg@altern.org>
+
+	* bookmark.el (bookmark-set): Don't check for
+	`bookmark-make-name-function' since `bookmark-buffer-file-name'
+	already takes care of this.
+	(bookmark-buffer-name, bookmark-buffer-file-name): Remove
+	Info-mode specific code.
+
+	* info.el (bookmark-get-info-node): Define this function in
+	info.el, not in bookmark.el.
+	(Info-mode): Set `bookmark-make-name-function' to
+	`Info-bookmark-make-name' locally.
+	(Info-bookmark-make-name): New function.
+
+	* bookmark.el (bookmark-make-name-function): New variable.
+
+2008-03-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-set): Make `bookmark-make-record-function'
+	buffer-local, not `bookmark-make-cell-function' (the old name).
+
+2008-03-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-bookmark-make-record):
+	* image-mode.el (image-bookmark-make-record):
+	* info.el (Info-bookmark-make-record): Delete obsolete second arg.
+
+2008-03-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vc.el (vc-status-menu-map-filter): Return orig-binding if
+	boundp 'vc-ignore-menu-filter.
+	(vc-status-tool-bar-map): Make it defvar.
+	(vc-status-mode): vc-status-tool-bar-map now variable.
+	(vc-status-toggle-mark): toggle-mark-file => vc-status-toggle-mark-file.
+
+2008-03-07  Karl Fogel  <kfogel@red-bean.com>
+
+	Give a better name to part of the bookmark interface.
+
+	This was originally a much larger change, but halfway through I
+	updated and discovered that Stefan Monnier had done the rest.
+	It looks like he anticipated the new name too, because he used
+	`the-record' instead of `the-cell' for some internal variable names.
+
+	* bookmark.el (bookmark-make-record-function): Was
+	`bookmark-make-cell-function'.
+	(bookmark-make, bookmark-send-annotation): Update for above.
+	(bookmark-make-record-for-text-file):
+	Was `bookmark-make-cell-for-text-file.  Fix doc string re 2008-03-07T05:00:18Z!monnier@iro.umontreal.ca.
+
+	* info.el: Adjust accordingly.
+	(Info-bookmark-make-record): Was `Info-bookmark-make-cell'.
+
+	* image-mode.el: Adjust accordingly.
+	(image-bookmark-make-record): Was `image-bookmark-make-cell'.
+
+	* doc-view.el: Adjust accordingly.
+	(doc-view-bookmark-make-record): Was `doc-view-bookmark-make-cell'.
+
+2008-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-map, bookmark-read-annotation-mode-map):
+	Move initialization into declaration.
+	(bookmark-get-info-node, bookmark-set-info-node): Remove.
+	(bookmark-make, bookmark-make-cell-for-text-file): Remove info-node arg.
+	(bookmark-info-current-node): Remove.
+	(bookmark-jump-noselect): Rename from bookmark-jump-internal.
+	Add relocation fallback.  Set bookmark-current-bookmark.
+	(bookmark-default-handler): Rename from bookmark-jump-noselect.
+	Remove relocation fallback.  Don't set bookmark-current-bookmark.
+	(bookmark-set): Let it be used even if there's no buffer-file-name
+	as long as there is a bookmark-make-cell-function.
+	* info.el (Info-bookmark-jump): Remove relocation fallback.
+	Don't set bookmark-current-bookmark.
+
+2008-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-issue-message)
+	(appt-message-warning-time, appt-audible, appt-visible)
+	(appt-msg-window, appt-display-mode-line, appt-display-duration)
+	(appt-display-diary): Remove autoload cookies.
+
+	* calendar/cal-china.el, calendar/timeclock.el, calendar/todo-mode.el:
+	Remove leading `*' from defcustom doc-strings.
+
+	* calendar/cal-dst.el (calendar-dst): New custom group.
+	(calendar-daylight-savings-starts, calendar-daylight-savings-ends)
+	(calendar-time-zone, calendar-daylight-time-offset)
+	(calendar-standard-time-zone-name, calendar-daylight-time-zone-name)
+	(calendar-daylight-savings-starts-time)
+	(calendar-daylight-savings-ends-time): Convert from defvar to defcustom.
+	(calendar-daylight-savings-starts, calendar-daylight-savings-ends):
+	Move to start.
+
+	* calendar/cal-menu.el (holidays-in-diary-buffer): Declare for compiler.
+
+	* calendar/calendar.el (calendar-version): Use emacs-version and
+	make it obsolete.  Move to end.
+	(calendar-offset, view-diary-entries-initially)
+	(mark-diary-entries-in-calendar, calendar-remove-frame-by-deleting)
+	(view-calendar-holidays-initially, all-hebrew-calendar-holidays)
+	(all-christian-calendar-holidays, all-islamic-calendar-holidays)
+	(all-bahai-calendar-holidays, calendar-load-hook)
+	(initial-calendar-window-hook, today-visible-calendar-hook)
+	(today-invisible-calendar-hook, calendar-move-hook)
+	(diary-nonmarking-symbol, hebrew-diary-entry-symbol)
+	(islamic-diary-entry-symbol, bahai-diary-entry-symbol)
+	(diary-include-string, sexp-diary-entry-symbol)
+	(abbreviated-calendar-year, american-date-diary-pattern)
+	(european-date-diary-pattern, european-calendar-display-form)
+	(american-calendar-display-form, print-diary-entries-hook)
+	(list-diary-entries-hook, diary-hook, diary-display-hook)
+	(nongregorian-diary-listing-hook, mark-diary-entries-hook)
+	(nongregorian-diary-marking-hook, diary-list-include-blanks)
+	(holidays-in-diary-buffer, general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays-1)
+	(hebrew-holidays-2, hebrew-holidays-3, hebrew-holidays-4)
+	(hebrew-holidays, christian-holidays, islamic-holidays)
+	(bahai-holidays, solar-holidays, calendar-setup)
+	(calendar-week-start-day): Remove autoload cookies.
+	(diary-glob-file-regexp-prefix): Doc fix.
+	(calendar-goto-info-node): Use `info' rather than `Info-find-node'.
+	(Info-find-emacs-command-nodes, Info-find-node): Remove declarations.
+	(calendar-week-start-day, calendar-debug-sexp): Move to start.
+
+	* calendar/solar.el: Remove leading `*' from defcustom doc-strings.
+	(calendar-time-display-form, calendar-latitude)
+	(calendar-longitude, solar-equinoxes-solstices): Remove autoload
+	cookies.
+	(calendar-latitude, calendar-longitude): Move functions after
+	variables.
+	(diary-sabbath-candles-minutes): Move to start.
+	(solar-setup): Use or rather than if.
+	(solar-sin-degrees, solar-cosine-degrees, solar-tangent-degrees):
+	Remove condition-case.
+	(solar-atn2): Use zerop.
+	(solar-equinoxes-solstices): Doc fix.
+
+	* mail/supercite.el: Remove leading `*' from defcustom doc-strings.
+	(sc-mode-map-prefix): Doc fix.  Make it a defcustom.
+
+	* textmodes/org.el (org-agenda-sunrise-sunset): Require solar.
+	(calendar-longitude, calendar-latitude, calendar-location-name):
+	Declare for compiler.
+
+2008-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-ar-file-header-re): New const.
+	(archive-ar-summarize, archive-ar-extract): New funs.
+	(archive-find-type): Recognize ar archives.
+
+	* vc-bzr.el (vc-bzr-resolve-when-done, vc-bzr-find-file-hook):
+	New functions.
+
+	* info.el (Info-bookmark-make-cell): Don't use the info-node argument.
+
+2008-03-06  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map):
+	Replace :enable (mark-active) with :enable mark-active.
+
+2008-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vms-patch.el (make-legal-file-name): New obsolete alias.
+	(make-valid-file-name): Rename from `make-legal-file-name'.
+	(make-auto-save-file-name): Use it.
+
+	* calendar/calendar.el (calendar-date-is-legal-p): New obsolete alias.
+	(calendar-date-is-valid-p): Rename from `calendar-date-is-legal-p'.
+	(calendar-date-is-visible-p, mark-visible-calendar-date): Use it.
+
+	* textmodes/org.el (org-export-html-style): Doc fix.
+	(org-get-legal-level): New obsolete alias.
+	(org-get-valid-level): Rename from `org-get-legal-level'.
+	(org-promote, org-demote, org-archive-subtree)
+	(org-remember-handler, org-refile, org-put-clock-overlay): Use it.
+
+2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Add bookmark_add.
+
+	* vc.el (vc-status-tool-bar-map, vc-status-toggle-mark-file)
+	(vc-status-toggle-mark): New functions.
+	(vc-status-mode): Set tool bar map.
+
+2008-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/lisp.el (parens-require-spaces): Doc fix.
+	Reported by Drew Adams <drew.adams@oracle.com>.
+
+2008-03-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* epg.el (epg-context-include-certs): Reflow docstring.
+	(epg-start-sign-keys, epg-sign-keys, epg-context-armor)
+	(epg-context-signers, epg-context-sig-notations, epg-context-set-armor)
+	(epg-context-set-signers, epg-context-set-sig-notations)
+	(epg-make-import-status, epg-make-import-result)
+	(epg-start-delete-keys): Fix typos in docstrings.
+	(epg-start-sign-keys, epg-sign-keys):
+	Fix typos in obsolescence declarations.
+
+	* iswitchb.el: Don't check for `cadr' and `last'.
+	(iswitchb-define-mode-map, iswitchb-default-keybindings):
+	Add obsolescence declaration and remove redundant info from docstring.
+	(iswitchb-set-common-completion, iswitchb-set-matches)
+	(iswitchb-get-matched-buffers, iswitchb-visit-buffer): Use `let'.
+	(recentf-list, most-len, most-is-exact):
+	Don't wrap defvars within `eval-when-compile'.
+
+2008-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* ediff-hook.el (ediff-cond-compile-for-xemacs-or-emacs): Remove.
+	* ediff-init.el (ediff-cond-compile-for-xemacs-or-emacs): Remove.
+	* ediff-diff.el, ediff-help.el, ediff-hook.el, ediff-init.el:
+	* ediff-mult.el, ediff-util.el, ediff-wind.el: Expand all
+	ediff-cond-compile-for-xemacs-or-emacs calls to a featurep test.
+
+	* ediff-hook.el (ediff-window-setup-function): Don't autoload
+	declaration for compiler.
+	(ediff-xemacs-init-menus): Use when rather than if.
+
+	* ediff-init.el (top-level, ediff-frame-iconified-p): Simplify
+	if+and to just and.
+	(ediff-read-event, ediff-overlayp, ediff-make-overlay)
+	(ediff-delete-overlay): Move the XEmacs test inside the definition.
+
+	* ediff-mult.el (ediff-get-meta-info): Use or and unless rather than if.
+
+	* ediff-util.el (ediff-kill-bottom-toolbar): Place (ediff-use-toolbar-p)
+	test inside XEmacs test.
+	(ediff-make-bottom-toolbar): Place whole cond inside XEmacs test,
+	since it was doing nothing on Emacs.
+	(ediff-make-bullet-proof-overlay): Use when rather than if.
+
+	* ediff-wind.el (ediff-select-lowest-window): Use when rather than if.
+	(ediff-setup-control-frame): Remove
+	ediff-cond-compile-for-xemacs-or-emacs, since it is already inside
+	a (featurep 'xemacs) test.
+
+2008-03-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (calc-extended-command-history): New variable.
+	(calc-exectute-extended-command): Use `calc-extended-command-history'.
+
+2008-03-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-remote): Add mouse-face.  Improve tooltip.
+	(standard-mode-line-position): Add mouse-face.
+
+	* progmodes/compile.el (compilation-menu-map):
+	(compilation-mode-map):
+	* progmodes/grep.el (grep-mode-map): Add :help.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Define and
+	initialize in one step.  Add :help.  Use :enable to activate menu
+	items. Show the key binding for edebug-defun.
+	(lisp-interaction-mode-map): Add a menu.
+
+	* term.el (term-mode-map): Define and initialize in one step.
+
+	* ediff-init.el (ediff-color-display-p): Simplify.
+	(Xor): Remove unused function.
+	(ediff-with-syntax-table): Simplify for Emacs.
+
+	* ediff-hook.el (menu-bar-ediff-menu): Don't depend on the
+	menu-bar being loaded, it always is.
+
+2008-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-mode): Suppress warning about
+	multiple definitions when compiling.
+
+2008-03-04  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-CPP): Fix coding bug.
+
+	* progmodes/cc-langs.el (c-before-font-lock-function): Fix bug in
+	doc-string, "c-old-LEN" -> "c-old-END".
+
+2008-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/rng-nxml.el (rng-preferred-prefix-alist): Add dublin core
+	namespaces.
+
+2008-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-cmd-bibtex-args): Add :version and :group.
+
+	* ediff-init.el (ediff-clear-fine-diff-vector): Use mapc rather
+	than mapcar.
+
+2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-compile-trueconstp)
+	(byte-compile-nilconstp): Can't use recursion in a defsubst.
+
+	* textmodes/tex-mode.el (latex-mode): Remove % from paragraph-separate
+	so that M-q can fill comments.
+	(tex-executable-exists-p, tex-compile): Extend with special syntax for
+	commands implemented in elisp.
+	(tex-compile-commands): Add an entry to use doc-view for pdf files.
+	(tex-format-cmd): New function.
+	(tex-compile): Use it to let the user specify default arguments.
+	(tex-cmd-bibtex-args): New var.
+	(tex-cmd-doc-view): New function.
+
+2008-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-spec-set): Fix typos in docstring.
+
+2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-column-line-number-mode-map): New variable.
+	(standard-mode-line-position): Use it to add a menu for toggling
+	column number and line number display.
+
+2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Remove optimization that was working around the form-code-walker bug.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Walk into the body of lambdas after byte-compile-unfold-lambda.
+
+2008-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/viper-util.el (viper-frame-value): Prefer buffer-local
+	value, if set, over frame value.
+
+	* simple.el (transient-mark-mode): Don't turn on by default.
+
+	* net/tls.el (open-tls-stream): Restore the 2007-11-04 change
+	accidentally removed by the 2007-12-05 merge from Gnus.
+
+2008-03-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-menu-map): Add menu entries
+	for useful options.
+
+2008-03-01  Dan Nicolaescu  <dann@ics.uci.edu>
+	    Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory)
+	(byte-compile-file, batch-byte-compile, batch-byte-compile-file):
+	Give a `bytecomp-' prefix to local variables with common names.
+
+2008-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Restore
+	code commented out 2007-11-10.
+
+	* emulation/edt.el (zmacs-region-stays): Define for compiler once only.
+
+	* emulation/viper-init.el (viper-cond-compile-for-xemacs-or-emacs):
+	Delete macro.
+	* emulation/viper-cmd.el, emulation/viper-ex.el:
+	* emulation/viper-init.el, emulation/viper-keym.el:
+	* emulation/viper-mous.el, emulation/viper-util.el:
+	* emulation/viper.el:
+	Expand all viper-cond-compile-for-xemacs-or-emacs calls to a
+	featurep test.
+
+	Replace obselete frame-local variables with frame-parameters.
+	* emulation/viper-init.el (viper-replace-overlay-cursor-color)
+	(viper-insert-state-cursor-color, viper-emacs-state-cursor-color)
+	(viper-vi-state-cursor-color): Only call make-variable-frame-local
+	on XEmacs.
+	* emulation/viper-util.el (viper-frame-value): New macro.
+	* emulation/viper-cmd.el (viper-insert-state-post-command-sentinel)
+	(viper-R-state-post-command-sentinel)
+	(viper-replace-state-post-command-sentinel)
+	(viper-change-state-to-insert, viper-change-state-to-emacs):
+	* emulation/viper-util.el (viper-set-cursor-color-according-to-state)
+	(viper-save-cursor-color, viper-get-saved-cursor-color-in-replace-mode)
+	(viper-get-saved-cursor-color-in-insert-mode)
+	(viper-get-saved-cursor-color-in-emacs-mode, viper-set-replace-overlay):
+	Use viper-frame-value for viper-replace-overlay-cursor-color,
+	viper-emacs-state-cursor-color, viper-insert-state-cursor-color, and
+	viper-vi-state-cursor-color values.
+
+	* emulation/viper-cmd.el (zmacs-region-stays):
+	* emulation/viper-util.el (zmacs-region-stays): No need to define
+	for compiler.
+
+	* emulation/viper-keym.el (viper-add-keymap): Use mapc rather than
+	mapcar on Emacs.
+
+	* emulation/viper-mous.el (viper-counting-clicks-p): Only define
+	on XEmacs.
+
+	* emulation/viper-util.el (viper-set-minibuffer-overlay): Use when
+	rather than if.
+
+2008-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 9.3.  As the glyph code generation was
+	fixed, it is possible now to use character code above ?\x1FFFF in the
+	display table.  Fix `whitespace-indentation-regexp' to not include an
+	extra ending character.  Reported by Michael Welsh Duggan
+	<mwd@cert.org>.  Added hook actions when buffer is written or killed as
+	the original whitespace package had.  Suggested by Eric Cooper
+	<ecc@cmu.edu>.  Doc fix.
+	(whitespace-action): New option.
+	(whitespace-display-mappings): Changed default newline visualization to
+	display downwards arrow, as the glyph code generation was fixed.
+	(whitespace-unload-function): Assure that all local whitespace mode is
+	turned off.
+	(whitespace-global-modes): Fix type customization.
+	(whitespace-mode, global-whitespace-mode, whitespace-cleanup-region)
+	(whitespace-insert-option-mark, whitespace-help-on, whitespace-turn-on)
+	(whitespace-turn-off, whitespace-color-on, whitespace-display-char-on):
+	Fix code.
+	(whitespace-buffer): Command removed.
+	(whitespace-trailing-regexp, whitespace-mark-x)
+	(whitespace-display-window, whitespace-action-when-on)
+	(whitespace-add-local-hook, whitespace-remove-local-hook)
+	(whitespace-write-file-hook, whitespace-kill-buffer-hook)
+	(whitespace-action): New funs.
+	(whitespace-report-list, whitespace-report-text)
+	(whitespace-report-buffer-name): New consts.
+	(whitespace-report, whitespace-report-region): New commands.
+
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* disp-table.el (make-glyph-code): Don't test the result of
+	`face-id', which already signals an error for invalid faces.
+	(glyph-face): Simplify.
+
+	* desktop.el (desktop-read): Set `desktop-dirname' to nil before
+	running `desktop-not-loaded-hook' to allow modifying it.
+	Don't show warning message if `desktop-dirname' was modified.
+
 2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
 	we still expect more lines.
-
-2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-comment-paragraph): Don't try to do
 	comment-paragraph filling if the commark doesn't match
@@ -936,7 +1689,7 @@
 	New options.
 	(python-which-shell, python-which-args, python-which-bufname):
 	New buffer local variables.
-	(python-file-queue, python-pdbtrack-is-tracking-p):
+	(python-file-queue, python-pdbtrack-is-tracking-p): New variables.
 
 	* progmodes/python.el (python-pdbtrack-stack-entry-regexp)
 	(python-pdbtrack-input-prompt, python-pdbtrack-track-range):
@@ -14038,15 +14791,13 @@
 	* vc-svn.el (vc-svn-diff): If the repository version of all the
 	files is the same as the specified OLDVERS, do a local diff.
 
-2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+2007-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names): Check liveness
 	of buffers in uniquify-managed.
 
 	* simple.el (invisible-p): Rename from text-invisible-p.
 	Update callers.
-
-2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (defcustom, x-color-defined-p, cperl-is-face)
 	(cperl-is-face, cperl-force-face, cperl-etags-snarf-tag, cperl-mode)
@@ -14090,6 +14841,33 @@
 	post-command-idle-hook.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Handle `sxemacs'.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Display a big fat
+	warning if the file uses old style backquotes.
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-file)
+	(byte-recompile-directory, byte-compile-file)
+	(byte-compile-from-buffer): Use with-current-buffer.
+
+	* simple.el (text-invisible-p): Rename from line-move-invisible-p.
+	(line-move-invisible-p): Keep as an obsolete alias, just to be safe.
+	(line-move-1, line-move-finish, line-move-to-column)
+	(move-end-of-line, move-beginning-of-line): Use new name.
+
+	* emacs-lisp/backquote.el (backquote-delay-process): Fix last change.
+
+	* progmodes/ada-mode.el: Fix up comment style in header.
+	(ada-check-emacs-version): Remove.
+	(ada-mode): Set parse-sexp-* even if they don't exist: can't hurt.
+	(ada-region-selected): Use (featurep 'xemacs) rather than contortions
+	to try and quieten the byte-compiler.
+	(ada-create-keymap): Use [(..)] keys, which work on both (X)Emacs.
+
+	* vc.el (vc-annotate-warp-version): Don't use previous-line.
+
+2007-08-27  Johan Bockg,Aerd  <bojohan@dd.chalmers.se>
+
+	* net/browse-url.el (browse-url-emacs): New function.
 
 2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
 

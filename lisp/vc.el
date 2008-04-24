@@ -616,6 +616,8 @@
 
 (require 'vc-hooks)
 (require 'ring)
+(require 'tool-bar)
+
 (eval-when-compile
   (require 'cl)
   (require 'compile)
@@ -2734,7 +2736,7 @@ With prefix arg READ-SWITCHES, specify a value to override
 		  :help "Move to the previous line and unmark the file"))
 
     (define-key map [mark-all] 
-      '(menu-item "Marl All" vc-status-mark-all-files
+      '(menu-item "Mark All" vc-status-mark-all-files
 		  :help "Mark all files that are in the same state as the current file\
 \nWith prefix argument mark all files"))
     (define-key map [unmark] 
@@ -2743,7 +2745,7 @@ With prefix arg READ-SWITCHES, specify a value to override
 
     (define-key map [mark] 
       '(menu-item "Mark" vc-status-mark
-		  :help "Mark the current file  or all files in the region"))
+		  :help "Mark the current file or all files in the region"))
 
     (define-key map [separator-open] '("--"))
     (define-key map [open-other] 
@@ -2799,22 +2801,48 @@ With prefix arg READ-SWITCHES, specify a value to override
   "Keymap for VC status")
 
 (defun vc-status-menu-map-filter (orig-binding)
-  (when (and (symbolp orig-binding) (fboundp orig-binding))
-    (setq orig-binding (indirect-function orig-binding)))
-  (let ((ext-binding
-	 (vc-call-backend (vc-responsible-backend default-directory)
-			  'extra-status-menu)))
-    (if (null ext-binding)
-        orig-binding
-      (append orig-binding
-	      '("----")
-              ext-binding))))
+  (if (boundp 'vc-ignore-menu-filter)
+      orig-binding
+    (when (and (symbolp orig-binding) (fboundp orig-binding))
+      (setq orig-binding (indirect-function orig-binding)))
+    (let ((ext-binding
+	   (vc-call-backend (vc-responsible-backend default-directory)
+			    'extra-status-menu)))
+      (if (null ext-binding)
+	  orig-binding
+	(append orig-binding
+		'("----")
+		ext-binding)))))
 
 (defun vc-status-menu (e)
   "Popup the VC status menu."
   (interactive "e")
   (popup-menu vc-status-menu-map e))
 
+(defvar vc-status-tool-bar-map
+  (if (display-graphic-p)
+      (let ((map (make-sparse-keymap))
+	    (vc-ignore-menu-filter t)) ;; Backend may not support vc-status
+	(tool-bar-local-item-from-menu 'vc-status-find-file "open" 
+				       map vc-status-mode-map)
+	(tool-bar-local-item "bookmark_add" 
+			     'vc-status-toggle-mark 'vc-status-toggle-mark map
+			     :help "Toggle mark on current item")
+	(tool-bar-local-item-from-menu 'vc-status-previous-line "left-arrow" 
+				       map vc-status-mode-map
+				       :rtl "right-arrow")
+	(tool-bar-local-item-from-menu 'vc-status-next-line "right-arrow" 
+				       map vc-status-mode-map
+				       :rtl "left-arrow")
+	(tool-bar-local-item-from-menu 'vc-status-refresh "refresh" 
+				       map vc-status-mode-map)
+	(tool-bar-local-item-from-menu 'nonincremental-search-forward
+				       "search" map)
+	(tool-bar-local-item-from-menu 'bury-buffer "exit" 
+				       map vc-status-mode-map)
+	map)))
+
+		
 (defvar vc-status-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")
 
@@ -2829,6 +2857,7 @@ With prefix arg READ-SWITCHES, specify a value to override
   (setq buffer-read-only t)
   (set (make-local-variable 'vc-status-crt-marked) nil)
   (use-local-map vc-status-mode-map)
+  (set (make-local-variable 'tool-bar-map) vc-status-tool-bar-map)
   (let ((buffer-read-only nil)
 	(backend (vc-responsible-backend default-directory))
 	entries)
@@ -3015,6 +3044,17 @@ that share the same state."
 	   (setf (vc-status-fileinfo->marked filearg) nil)
 	   t))
        vc-status))))
+
+(defun vc-status-toggle-mark-file ()
+  (let* ((crt (ewoc-locate vc-status))
+         (file (ewoc-data crt)))
+    (if (vc-status-fileinfo->marked file)
+	(vc-status-unmark-file)
+      (vc-status-mark-file))))
+
+(defun vc-status-toggle-mark ()
+  (interactive)
+  (vc-status-mark-unmark 'vc-status-toggle-mark-file))
 
 (defun vc-status-register ()
   "Register the marked files, or the current file if no marks."

@@ -96,6 +96,54 @@ char unibyte_has_multibyte_table[256];
 
 
 
+/* If character code C has modifier masks, reflect them to the
+   character code if possible.  Return the resulting code.  */
+
+int
+char_resolve_modifier_mask (c)
+     int c;
+{
+  /* A non-ASCII character can't reflect modifier bits to the code.  */
+  if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+    return c;
+
+  /* For Meta, Shift, and Control modifiers, we need special care.  */
+  if (c & CHAR_SHIFT)
+    {
+      /* Shift modifier is valid only with [A-Za-z].  */
+      if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
+	c &= ~CHAR_SHIFT;
+      else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
+	c = (c & ~CHAR_SHIFT) - ('a' - 'A');
+      /* Shift modifier for control characters and SPC is ignored.  */
+      else if ((c & ~CHAR_MODIFIER_MASK) <= 0x20)
+	c &= ~CHAR_SHIFT;
+    }
+  if (c & CHAR_CTL)
+    {
+      /* Simulate the code in lread.c.  */
+      /* Allow `\C- ' and `\C-?'.  */
+      if ((c & 0377) == ' ')
+	c &= ~0177 & ~ CHAR_CTL;
+      else if ((c & 0377) == '?')
+	c = 0177 | (c & ~0177 & ~CHAR_CTL);
+      /* ASCII control chars are made from letters (both cases),
+	 as well as the non-letters within 0100...0137.  */
+      else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
+	c &= (037 | (~0177 & ~CHAR_CTL));
+      else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
+	c &= (037 | (~0177 & ~CHAR_CTL));
+    }
+  if (c & CHAR_META)
+    {
+      /* Move the meta bit to the right place for a string.  */
+      c = (c & ~CHAR_META) | 0x80;
+    }
+
+  return c;
+}
+
+
 /* Store multibyte form of character C at P.  If C has modifier bits,
    handle them appropriately.  */
 
@@ -108,41 +156,7 @@ char_string (c, p)
 
   if (c & CHAR_MODIFIER_MASK)
     {
-      /* As an non-ASCII character can't have modifier bits, we just
-	 ignore the bits.  */
-      if (ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
-	{
-	  /* For Meta, Shift, and Control modifiers, we need special care.  */
-	  if (c & CHAR_META)
-	    {
-	      /* Move the meta bit to the right place for a string.  */
-	      c = (c & ~CHAR_META) | 0x80;
-	    }
-	  if (c & CHAR_SHIFT)
-	    {
-	      /* Shift modifier is valid only with [A-Za-z].  */
-	      if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
-		c &= ~CHAR_SHIFT;
-	      else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
-		c = (c & ~CHAR_SHIFT) - ('a' - 'A');
-	    }
-	  if (c & CHAR_CTL)
-	    {
-	      /* Simulate the code in lread.c.  */
-	      /* Allow `\C- ' and `\C-?'.  */
-	      if (c == (CHAR_CTL | ' '))
-		c = 0;
-	      else if (c == (CHAR_CTL | '?'))
-		c = 127;
-	      /* ASCII control chars are made from letters (both cases),
-		 as well as the non-letters within 0100...0137.  */
-	      else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
-		c &= (037 | (~0177 & ~CHAR_CTL));
-	      else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
-		c &= (037 | (~0177 & ~CHAR_CTL));
-	    }
-	}
-
+      c = (unsigned) char_resolve_modifier_mask ((int) c);
       /* If C still has any modifier bits, just ignore it.  */
       c &= ~CHAR_MODIFIER_MASK;
     }
@@ -956,6 +970,22 @@ usage: (unibyte-string &rest BYTES)  */)
   return make_string_from_bytes ((char *) buf, n, p - buf);
 }
 
+DEFUN ("char-resolve-modifers", Fchar_resolve_modifiers,
+       Schar_resolve_modifiers, 1, 1, 0,
+       doc: /* Resolve modifiers in the character CHAR.
+The value is a character with modifiers resolved into the character
+code.  Unresolved modifiers are kept in the value.
+usage: (char-resolve-modifers CHAR)  */)
+     (character)
+     Lisp_Object character;
+{
+  int c;
+
+  CHECK_NUMBER (character);
+  c = XINT (character);
+  return make_number (char_resolve_modifier_mask (c));
+}
+
 void
 init_character_once ()
 {
@@ -982,6 +1012,7 @@ syms_of_character ()
   defsubr (&Schar_direction);
   defsubr (&Sstring);
   defsubr (&Sunibyte_string);
+  defsubr (&Schar_resolve_modifiers);
 
   DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
 	       doc: /*

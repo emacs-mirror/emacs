@@ -100,6 +100,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defgroup socks nil
   "SOCKS Support"
+  :version "22.2"
   :prefix "socks-"
   :group 'processes)
 

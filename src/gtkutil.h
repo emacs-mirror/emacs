@@ -184,9 +184,9 @@ extern void xg_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *bar,
 extern void update_frame_tool_bar P_ ((FRAME_PTR f));
 extern void free_frame_tool_bar P_ ((FRAME_PTR f));
 
-extern void xg_resize_widgets P_ ((FRAME_PTR f,
-                                   int pixelwidth,
-                                   int pixelheight));
+extern void xg_frame_resized P_ ((FRAME_PTR f,
+                                  int pixelwidth,
+                                  int pixelheight));
 extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
 extern GtkWidget * xg_win_to_widget P_ ((Display *dpy, Window wdesc));
 

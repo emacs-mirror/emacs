@@ -191,15 +191,21 @@ WINMM		= -lwinmm
 WINSPOOL	= -lwinspool
 OLE32		= -lole32
 
+ifdef USE_FONTBACKEND
+FONT_CFLAGS	= -DUSE_FONT_BACKEND=1
+else
+FONT_CFLAGS	=
+endif
+
 ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
 else
 DEBUG_CFLAGS	=
 endif
-CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 $(ARCH_CFLAGS) -D$(ARCH) \
-		  -D_CRTAPI1=_cdecl \
+CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 \
+		  $(ARCH_CFLAGS) -D$(ARCH) -D_CRTAPI1=_cdecl \
 		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
-EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1
+EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1 $(FONT_CFLAGS)
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -image-base settings.
