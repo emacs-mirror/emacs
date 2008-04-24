@@ -1,3 +1,7 @@
+2008-04-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nonascii.texi (Translation of Characters): Fix previous change.
+
 2008-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Overlay Properties): Clarify role of underlying
@@ -36,8 +40,7 @@
 
 2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* strings.texi (Formatting Strings): Treat - and 0 as flag
-	characters.
+	* strings.texi (Formatting Strings): Treat - and 0 as flag characters.
 
 2008-02-22  Glenn Morris  <rgm@gnu.org>
 
@@ -51,7 +54,7 @@
 	* objects.texi (Equality Predicates): No longer talk about "two"
 	functions.
 
-2008-02-11  Lawrence Mitchell <wence@gmx.li>  (tiny change)
+2008-02-11  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* objects.texi (Equality Predicates): Add defun for
 	equal-including-properties.
