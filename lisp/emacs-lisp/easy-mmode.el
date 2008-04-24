@@ -409,8 +409,17 @@ BS must be a list of (KEY . BINDING) where
 KEY and BINDINGS are suitable for `define-key'.
 Optional NAME is passed to `make-sparse-keymap'.
 Optional map M can be used to modify an existing map.
-ARGS is a list of additional keyword arguments."
-  (let (inherit dense)
+ARGS is a list of additional keyword arguments.
+
+Valid keywords and arguments are:
+
+  :name      Name of the keymap; overrides NAME argument.
+  :dense     Non-nil for a dense keymap.
+  :inherit   Parent keymap.
+  :group     Ignored.
+  :suppress  Non-nil to call `suppress-keymap' on keymap,
+             'nodigits to suppress digits as prefix arguments."
+  (let (inherit dense suppress)
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
@@ -418,11 +427,14 @@ ARGS is a list of additional keyword arguments."
 	 (:name (setq name val))
 	 (:dense (setq dense val))
 	 (:inherit (setq inherit val))
+	 (:suppress (setq suppress val))
 	 (:group)
 	 (t (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
       (setq bs (append m bs))
       (setq m (if dense (make-keymap name) (make-sparse-keymap name))))
+    (when suppress
+      (suppress-keymap m (eq suppress 'nodigits)))
     (dolist (b bs)
       (let ((keys (car b))
 	    (binding (cdr b)))
