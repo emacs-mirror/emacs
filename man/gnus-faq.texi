@@ -129,7 +129,7 @@ What is the latest version of Gnus?
 Jingle please: Gnus 5.10 is released, get it while it's
 hot! As well as the step in version number is rather
 small, Gnus 5.10 has tons of new features which you
-shouldn't miss. The current release (5.10.9) should be at
+shouldn't miss. The current release (5.10.11) should be at
 least as stable as the latest release of the 5.8 series.
 
 @node [1.2]
@@ -1287,18 +1287,23 @@ How to enable automatic word-wrap when composing messages?
 
 @subsubheading Answer
 
-Say
+Starting from Gnus 5.10.12, automatic word-wrap is already enabled by
+default, see the variable message-fill-column.
+
+For other versions of Gnus, say
 
 @example
-(add-hook 'message-mode-hook
-	  (lambda ()
-	    (setq fill-column 72)
-	    (turn-on-auto-fill)))
+(unless (boundp 'message-fill-column)
+  (add-hook 'message-mode-hook
+            (lambda ()
+              (setq fill-column 72)
+              (turn-on-auto-fill))))
 @end example
 @noindent
 
-in ~/.gnus.el. You can reformat a paragraph by hitting
-@samp{M-q} (as usual)
+in ~/.gnus.el.
+
+You can reformat a paragraph by hitting @samp{M-q} (as usual).
 
 @node [5.3]
 @subsubheading Question 5.3

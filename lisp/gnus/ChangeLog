@@ -1,3 +1,38 @@
+2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	[Backport GNKSA related changes from the Gnus trunk.]
+
+	* message.el (message-fill-column): New variable.
+	(message-mode): Use it.
+
+	* message.el (message-signature-separator): Change default.  Improve
+	custom type.
+	(message-cite-function): Change default to
+	message-cite-original-without-signature.
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add message-cite-function
+	toggle.
+
+	* message.el (message-check-news-body-syntax): Fix signature check.
+	(message-setup-1): Mark buffer as unmodified _after_ running
+	message-setup-hook and handling message-alternative-emails.
+	(message-shorten-references): Be more strict when building list of
+	valid references to comply with GNKSA.
+
+2008-04-12  Adrian Aichner  <adrian@xemacs.org>
+
+	* gnus-sum.el (gnus-summary-goto-subject): Typo fix.
+
+2008-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-diary.el (gnus-article-edit-mode-map, message-mode-map): Remove
+	binding for `gnus-diary-version'.  Bind `gnus-diary-check-message' to
+	`C-c C-f d'.
+
+2008-03-29  Sven Joachim  <svenjoac@gmx.de>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add missing dots.
+
 2008-03-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-cite-original-without-signature): Mention

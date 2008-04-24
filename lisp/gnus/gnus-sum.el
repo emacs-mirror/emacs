@@ -2134,7 +2134,7 @@ increase the score of each group you read."
 	  ["Set mark below..." gnus-score-set-mark-below t]
 	  ["Set expunge below..." gnus-score-set-expunge-below t]
 	  ["Edit current score file" gnus-score-edit-current-scores t]
-	  ["Edit score file" gnus-score-edit-file t]
+	  ["Edit score file..." gnus-score-edit-file t]
 	  ["Trace score" gnus-score-find-trace t]
 	  ["Find words" gnus-score-find-favourite-words t]
 	  ["Rescore buffer" gnus-summary-rescore t]
@@ -2408,6 +2408,29 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	["Followup via news" gnus-summary-followup-to-mail t]
 	["Followup via news and yank"
 	 gnus-summary-followup-to-mail-with-original t]
+	["Strip signature on reply"
+	 (lambda ()
+	   (interactive)
+	   (if (not (memq message-cite-function
+			  '(message-cite-original-without-signature
+			    message-cite-original)))
+	       ;; Stupid workaround for XEmacs not honoring :visible.
+	       (message "Can't toggle this value of `message-cite-function'")
+	     (setq message-cite-function
+		   (if (eq message-cite-function
+			   'message-cite-original-without-signature)
+		       'message-cite-original
+		     'message-cite-original-without-signature))))
+	 ;; XEmacs barfs on :visible.
+	 ,@(if (featurep 'xemacs) nil
+	     '(:visible (memq message-cite-function
+			      '(message-cite-original-without-signature
+				message-cite-original))))
+	 :style toggle
+	 :selected (eq message-cite-function
+		       'message-cite-original-without-signature)
+	 ,@(if (featurep 'xemacs) nil
+	     '(:help "Strip signature from cited article when replying."))]
 	;;("Draft"
 	;;["Send" gnus-summary-send-draft t]
 	;;["Send bounced" gnus-resend-bounced-mail t])
@@ -7249,7 +7272,7 @@ If optional argument UNREAD is non-nil, only unread article is selected."
   (gnus-summary-position-point))
 
 (defun gnus-summary-goto-subject (article &optional force silent)
-  "Go the subject line of ARTICLE.
+  "Go to the subject line of ARTICLE.
 If FORCE, also allow jumping to articles not currently shown."
   (interactive "nArticle number: ")
   (unless (numberp article)

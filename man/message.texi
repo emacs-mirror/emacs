@@ -1968,6 +1968,13 @@ Emacsen.)  @xref{Charset Translation, , Charset Translation, emacs-mime,
 Emacs MIME Manual}, for details on the @sc{mule}-to-@acronym{MIME}
 translation process.
 
+@item message-fill-column
+@vindex message-fill-column
+@cindex auto-fill
+Local value for the column beyond which automatic line-wrapping should
+happen for message buffers.  If non-nil (the default), also turn on
+auto-fill in message buffers.
+
 @item message-signature-separator
 @vindex message-signature-separator
 Regexp matching the signature separator.  It is @samp{^-- *$} by

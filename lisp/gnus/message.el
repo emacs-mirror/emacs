@@ -411,10 +411,17 @@ for `message-cross-post-insert-note'."
 
 ;;; End of variables adopted from `message-utils.el'.
 
-;;;###autoload
-(defcustom message-signature-separator "^-- *$"
-  "Regexp matching the signature separator."
-  :type 'regexp
+(defcustom message-signature-separator "^-- $"
+  "Regexp matching the signature separator.
+This variable is used to strip off the signature from quoted text
+when `message-cite-function' is
+`message-cite-original-without-signature'.  Most useful values
+are \"^-- $\" (strict) and \"^-- *$\" (loose; allow missing
+whitespace)."
+  :type '(choice (const :tag "strict" "^-- $")
+		 (const :tag "loose" "^-- *$")
+		 regexp)
+  :version "22.3" ;; Gnus 5.10.12 (changed default)
   :link '(custom-manual "(message)Various Message Variables")
   :group 'message-various)
 
@@ -821,6 +828,15 @@ will not have a visible effect for those headers."
                  (const :tag "All" t)
                  (repeat (sexp :tag "Header"))))
 
+(defcustom message-fill-column 72
+  "Column beyond which automatic line-wrapping should happen.
+Local value for message buffers.  If non-nil, also turn on
+auto-fill in message buffers."
+  :group 'message-various
+  ;; :link '(custom-manual "(message)Message Headers")
+  :type '(choice (const :tag "Don't turn on auto fill" nil)
+                 (integer)))
+
 (defcustom message-setup-hook nil
   "Normal hook, run each time a new outgoing message is initialized.
 The function `message-setup' runs this hook."
@@ -904,7 +920,7 @@ Used by `message-yank-original' via `message-yank-cite'."
   :type 'integer)
 
 ;;;###autoload
-(defcustom message-cite-function 'message-cite-original
+(defcustom message-cite-function 'message-cite-original-without-signature
   "*Function for citing an original message.
 Predefined functions include `message-cite-original' and
 `message-cite-original-without-signature'.
@@ -914,6 +930,7 @@ Note that `message-cite-original' uses `mail-citation-hook' if that is non-nil."
 		(function-item sc-cite-original)
 		(function :tag "Other"))
   :link '(custom-manual "(message)Insertion Variables")
+  :version "22.3" ;; Gnus 5.10.12 (changed default)
   :group 'message-insertion)
 
 ;;;###autoload
@@ -2632,6 +2649,9 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (set (make-local-variable 'message-checksum) nil)
   (set (make-local-variable 'message-mime-part) 0)
   (message-setup-fill-variables)
+  (when message-fill-column
+    (setq fill-column message-fill-column)
+    (turn-on-auto-fill))
   ;; Allow using comment commands to add/remove quoting.
   ;; (set (make-local-variable 'comment-start) message-yank-prefix)
   (when message-yank-prefix
@@ -4625,12 +4645,16 @@ Otherwise, generate and save a value for `canlock-password' first."
    ;; Check the length of the signature.
    (message-check 'signature
      (goto-char (point-max))
-     (if (> (count-lines (point) (point-max)) 5)
-	 (y-or-n-p
-	  (format
-	   "Your .sig is %d lines; it should be max 4.  Really post? "
-	   (1- (count-lines (point) (point-max)))))
-       t))
+     (if (not (re-search-backward message-signature-separator nil t))
+	 t
+       (if (>= (count-lines (1+ (point-at-eol)) (point-max)) 5)
+	   (if (message-gnksa-enable-p 'signature)
+	       (y-or-n-p
+		(format "Signature is excessively long (%d lines).  Really post? "
+			(count-lines (1+ (point-at-eol)) (point-max))))
+	     (message "Denied posting -- Excessive signature.")
+	     nil)
+	 t)))
    ;; Ensure that text follows last quoted portion.
    (message-check 'quoting-style
      (goto-char (point-max))
@@ -5424,8 +5448,10 @@ than 988 characters long, and if they are not, trim them until they are."
     (with-temp-buffer
       (insert references)
       (goto-char (point-min))
-      ;; Cons a list of valid references.
-      (while (re-search-forward "<[^>]+>" nil t)
+      ;; Cons a list of valid references.  GNKSA says we must not include MIDs
+      ;; with whitespace or missing brackets (7.a "Does not propagate broken
+      ;; Message-IDs in original References").
+      (while (re-search-forward "<[^ <]+@[^ <]+>" nil t)
 	(push (match-string 0) refs))
       (setq refs (nreverse refs)
 	    count (length refs)))
@@ -5761,8 +5787,9 @@ are not included."
   (save-restriction
     (message-narrow-to-headers)
     (run-hooks 'message-header-setup-hook))
-  (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
+  ;; Gnus posting styles are applied via buffer-local `message-setup-hook'
+  ;; values.
   (run-hooks 'message-setup-hook)
   ;; Do this last to give it precedence over posting styles, etc.
   (when (message-mail-p)
@@ -5771,6 +5798,8 @@ are not included."
       (if message-alternative-emails
 	  (message-use-alternative-email-as-from))))
   (message-position-point)
+  ;; Allow correct handling of `message-checksum' in `message-yank-original':
+  (set-buffer-modified-p nil)
   (undo-boundary))
 
 (defun message-set-auto-save-file-name ()

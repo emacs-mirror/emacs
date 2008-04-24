@@ -26,6 +26,8 @@ installer issues a warning if other Gnus installations which will shadow
 the latest one are detected.  You can then remove those shadows manually
 or remove them using `make remove-installed-shadows'.
 
+** The installation directory name is allowed to have spaces and/or tabs.
+
 ** New `make.bat' for compiling and installing Gnus under MS Windows
 
 Use `make.bat' if you want to install Gnus under MS Windows, the first
@@ -436,6 +438,10 @@ The variable `gnus-use-idna' controls this.
 `mml-dnd-protocol-alist' and `mml-dnd-attach-options'.  *Note MIME:
 (message)MIME.
 
+** `auto-fill-mode' is enabled by default in Message mode.  See
+`message-fill-column'.  *Note Message Headers: (message)Various Message
+Variables.  (New in Gnus 5.10.12 / Emacs 22.3)
+
 
 
 * Changes in back ends
@@ -473,8 +479,8 @@ renamed to "Gnus".
 stuff, like signing and encryption (*note Security: (message)Security.).
 
 ** The tool bars have been updated to use GNOME icons in Group, Summary and
-Message mode.  You can also customize the tool bars.  This is a new
-feature in Gnus 5.10.9.  (Only for Emacs, not in XEmacs.)
+Message mode.  You can also customize the tool bars: `M-x customize-apropos
+RET -tool-bar$' should get you started.  (Only for Emacs, not in XEmacs.)
 
 ** The tool bar icons are now (de)activated correctly in the group buffer,
 see the variable `gnus-group-update-tool-bar'.  Its default value
