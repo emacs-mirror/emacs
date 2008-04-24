@@ -6965,17 +6965,19 @@ necessary only.  This function will be used in file name completion."
       (let ((result (tramp-find-executable
 		     vec "stat" (tramp-get-remote-path vec)))
 	    tmp)
-	;; Check whether stat(1) returns usable syntax.
+	;; Check whether stat(1) returns usable syntax.  %s does not
+	;; work on older AIX systems.
 	(when result
 	  (setq tmp
 		;; We don't want to display an error message.
 		(with-temp-message (or (current-message) "")
 		  (condition-case nil
 		      (tramp-send-command-and-read
-		       vec (format "%s -c '(\"%%N\")' /" result))
+		       vec (format "%s -c '(\"%%N\" %%s)' /" result))
 		    (error nil))))
 	  (unless (and (listp tmp) (stringp (car tmp))
-		       (string-match "^./.$" (car tmp)))
+		       (string-match "^./.$" (car tmp))
+		       (integerp (cadr tmp)))
 	    (setq result nil)))
 	result))))
 
