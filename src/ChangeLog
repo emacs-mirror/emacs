@@ -34,7 +34,7 @@
 	(Qdefault_directory): Move to minibuffer.el.
 	(Fread_file_name): Call the new `read-file-name' instead.
 
-2008-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (create_apple_event) [TARGET_API_MAC_CARBON]:
 	Make function non-static.
@@ -82,12 +82,12 @@
 	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]:
 	Move from mac.c.
 
-2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT] (uninterrupt_malloc)
 	[HAVE_GTK_AND_PTHREAD && !DOUG_LEA_MALLOC]: Don't use recursive mutex.
 
-2008-04-10  Jason Rumney  <jasonr@gnu.org>
+2008-04-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (stat): When Vw32_get_true_file_attributes is Qlocal, get
 	attributes only for local files.
