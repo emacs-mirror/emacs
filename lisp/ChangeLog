@@ -1,3 +1,32 @@
+2008-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (x-file-dialog): Declare as function.
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-find-file): Use
+	dframe-update-speed rather than obsolete alias speedbar-update-speed.
+
+	* calendar/cal-menu.el (cal-menu-diary-menu): Fix typo.
+	(cal-menu-scroll-menu): Use commands rather than key macros, which don't
+	work with easymenu.  Add :keys where needed.
+
+	* calendar/cal-move.el (calendar-scroll-left): Handle case when
+	event-start is nil.
+
+	* calendar/calendar.el (calendar-mode-map): Fix typo.
+
+2008-04-24  Tom Tromey  <tromey@redhat.com>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Document
+	keywords.  Add :suppress.
+	* pcvs-defs.el (cvs-mode-map): Use :suppress.
+
+	* net/goto-addr.el (goto-address-unfontify): New function.
+	(goto-address-fontify): Use it.	 Respect goto-address-prog-mode.
+	(goto-address-fontify-region, goto-address-mode)
+	(goto-address-prog-mode): New functions.
+
+	* progmodes/bug-reference.el: New file.
+
 2008-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ts-active-input-buf): Move defvar to macterm.c.
@@ -62,7 +91,7 @@
 	* server.el (server-start): Also don't get confused by CRs since we
 	don't quote them.
 
-2008-04-12  Nick Roberts  <nickrob@snap.net.nz>
+2008-04-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-init-buffer): New function.
 	(gdb-set-gud-minor-mode-existing-buffers)
@@ -73,24 +102,24 @@
 
 	* progmodes/gud.el (gud-tooltip-tips): Use tooltip-event-buffer
 
-2008-04-12  Kevin Ryde  <user42@zip.com.au>
+2008-04-23  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/make-mode.el (makefile-fill-paragraph): Treat indented
 	comments like unindented ones.
 
-2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ae-open-documents): Adjust selection range
 	parameter origins.
 
-2008-04-11  Kevin Ryde  <user42@zip.com.au>
+2008-04-23  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
 	Bind print-level to ensure output forms aren't truncated if
 	print-level is set to eval-expression-print-level when going via
 	eval-defun and friends, or has been otherwise fiddled with.
 
-2008-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-mode.el (c-basic-common-init): Don't set
 	font-lock-extend-after-change-region-function globally.
