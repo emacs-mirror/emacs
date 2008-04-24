@@ -1041,6 +1041,9 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
 (make-obsolete-variable 'x-sent-selection-hooks
 			'x-sent-selection-functions "22.1")
+;; This was introduced in 21.4 for pre-unicode unification and was rendered
+;; obsolete by the use of Unicode internally in 23.1.
+(make-obsolete-variable 'translation-table-for-input nil "23.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 

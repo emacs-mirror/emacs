@@ -740,10 +740,6 @@ The function finally found may be remapped
 (@pxref{Remapping Commands}).
 
 @item
-Characters that are bound to @code{self-insert-command} are translated
-according to @code{translation-table-for-input} before insertion.
-
-@item
 @code{current-active-maps} returns a list of the
 currently active keymaps at point.
 

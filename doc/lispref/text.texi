@@ -487,9 +487,6 @@ it except to install it on a keymap.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
-Self-insertion translates the input character through
-@code{translation-table-for-input}.  @xref{Translation of Characters}.
-
 This command calls @code{auto-fill-function} whenever that is
 non-@code{nil} and the character inserted is in the table
 @code{auto-fill-chars} (@pxref{Auto Filling}).

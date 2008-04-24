@@ -911,6 +911,8 @@ character is printable or not.
 *** The functions `modify-syntax-entry' and `modify-category-entry' now
 accepts a cons of characters as the first argument, and modify all
 entries in that range of characters.
++++
+*** `translation-table-for-input' is now obsolete.
 
 ** Code conversion changes
 
