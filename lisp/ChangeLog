@@ -1,5 +1,9 @@
 2008-04-24  Glenn Morris  <rgm@gnu.org>
 
+	* net/goto-addr.el (goto-address-prog-mode):
+	* progmodes/bug-reference.el (bug-reference-prog-mode):
+	Define for compiler.
+
 	* minibuffer.el (x-file-dialog): Declare as function.
 
 	* progmodes/vhdl-mode.el (vhdl-speedbar-find-file): Use
