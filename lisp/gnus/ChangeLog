@@ -1,3 +1,10 @@
+2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve-manage.el (sieve-string-bytes): Remove.
+	(sieve-manage-putscript): Use length instead: `string-bytes' gives the
+	correct byte-length only if the process's coding-system is the same as
+	the one used internally by Emacs to represent strings.
+
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
 	* mailcap.el (mailcap-file-default-commands): New function.
@@ -24,7 +31,7 @@
 2008-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Added docs.
-	(auth-sources): Modified format to support server.
+	(auth-sources): Modify format to support server.
 	(auth-source-pick, auth-source-user-or-password)
 	(auth-source-user-or-password-imap)
 	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)

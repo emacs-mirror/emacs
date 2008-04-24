@@ -570,15 +570,14 @@ password is remembered in the buffer."
     (sieve-manage-send (format "HAVESPACE \"%s\" %s" name size))
     (sieve-manage-parse-okno)))
 
-(eval-and-compile
-  (if (fboundp 'string-bytes)
-      (defalias 'sieve-string-bytes 'string-bytes)
-    (defalias 'sieve-string-bytes 'length)))
-
 (defun sieve-manage-putscript (name content &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (sieve-manage-send (format "PUTSCRIPT \"%s\" {%d+}%s%s" name
-			       (sieve-string-bytes content)
+                               ;; Here we assume that the coding-system will
+                               ;; replace each char with a single byte.
+                               ;; This is always the case if `content' is
+                               ;; a unibyte string.
+			       (length content)
 			       sieve-manage-client-eol content))
     (sieve-manage-parse-okno)))
 
