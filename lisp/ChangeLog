@@ -1,5 +1,15 @@
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/ispell.el (ispell-dictionary-alist-1)
+	(ispell-dictionary-alist-2, ispell-dictionary-alist-3):
+	(ispell-dictionary-alist-4, ispell-dictionary-alist-5):
+	(ispell-dictionary-alist-6): Remove.
+	(ispell-dictionary-base-alist): New var, merges the above.
+	(ispell-find-aspell-dictionaries, ispell-set-spellchecker-params):
+	Use it.
+	(ispell-dictionary-alist): Default to nil.  Remove autoload.
+	(ispell-local-dictionary-alist): Remove autoload.
+
 	* progmodes/f90.el (f90-mode-syntax-table): Don't set ` as word syntax.
 	(f90-mode-abbrev-table): Use the new :regexp feature.
 	Merge defvar and mapc into define-abbrev-table.

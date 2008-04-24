@@ -30,7 +30,7 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;; Note: version numbers and time stamp are not updated
-;;   when this file is edited for release with GNU emacs.
+;;   when this file is edited for release with GNU Emacs.
 
 ;;; Commentary:
 
@@ -92,7 +92,7 @@
 ;; `m': Place entered value in personal dictionary, then recheck current word.
 ;; `C-l': redraws screen
 ;; `C-r': recursive edit
-;; `C-z': suspend emacs or iconify frame
+;; `C-z': suspend Emacs or iconify frame
 
 ;; Buffer-Local features:
 ;; There are a number of buffer-local features that can be used to customize
@@ -120,8 +120,8 @@
 ;;  Need a way to select between different character mappings without separate
 ;;    dictionary entries.
 ;;  Multi-byte characters if not defined by current dictionary may result in the
-;;    evil "misalignment error" in some versions of MULE emacs.
-;;  On some versions of emacs, growing the minibuffer fails.
+;;    evil "misalignment error" in some versions of MULE Emacs.
+;;  On some versions of Emacs, growing the minibuffer fails.
 ;;    see `ispell-help-in-bufferp'.
 ;;  Recursive edits (?C-r or ?R) inside a keyboard text replacement check (?r)
 ;;    can cause misalignment errors.
@@ -156,7 +156,7 @@
 ;; Added dictionary definition for Italian (William Deakin)
 ;; HTML region skipping greatly improved. (Chuck D. Phillips)
 ;; improved menus.  Fixed regexp matching http/email addresses.
-;; one arg always for xemacs sleep-for (gunnar Evermann)
+;; one arg always for XEmacs sleep-for (gunnar Evermann)
 ;; support for synchronous processes (Eli Zaretskii)
 
 ;; Revision 3.3  1999/11/29 11:38:34     kss
@@ -238,7 +238,7 @@ error is highlighted lazily using isearch lazy highlighting (see
   :version "22.1")
 
 (defcustom ispell-highlight-face (if ispell-lazy-highlight 'isearch 'highlight)
-  "*The face used for Ispell highlighting.  For Emacses with overlays.
+  "*The face used for Ispell highlighting.  For Emacsen with overlays.
 Possible values are `highlight', `modeline', `secondary-selection',
 `region', and `underline'.
 This variable can be set by the user to whatever face they desire.
@@ -481,7 +481,6 @@ buffer's major mode."
 (make-variable-buffer-local 'ispell-skip-html)
 
 
-;;;###autoload
 (defcustom ispell-local-dictionary-alist nil
   "*List of local or customized dictionary definitions.
 These can override the values in `ispell-dictionary-alist'.
@@ -507,154 +506,113 @@ re-start Emacs."
   :group 'ispell)
 
 
-;;; split dictionary so line length is smaller in loaddefs.el
+(defvar ispell-dictionary-base-alist
+  '((nil                                ; default (English.aff)
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
+    ("american"				; Yankee English
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
+    ("brasileiro"			; Brazilian mode
+     "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
+     "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
+     "[']" nil nil nil iso-8859-1)
+    ("british"				; British version
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
+    ("castellano"			; Spanish mode
+     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
+     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
+     "[-]" nil ("-B") "~tex" iso-8859-1)
+    ("castellano8"			; 8 bit Spanish mode
+     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
+     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
+     "[-]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1)
+    ("czech"
+     "[A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
+     "[^A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
+     "" nil ("-B") nil iso-8859-2)
+    ("dansk"				; Dansk.aff
+     "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
+     "[']" nil ("-C") nil iso-8859-1)
+    ("deutsch"				; Deutsch.aff
+     "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1)
+    ("deutsch8"
+     "[a-zA-Z\304\326\334\344\366\337\374]"
+     "[^a-zA-Z\304\326\334\344\366\337\374]"
+     "[']" t ("-C" "-d" "deutsch") "~latin1" iso-8859-1)
+    ("english"				; make English explicitly selectable
+     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
+    ("esperanto"
+     "[A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
+     "[^A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
+     "[-']" t ("-C") "~latin3" iso-8859-3)
+    ("esperanto-tex"
+     "[A-Za-z^\\]" "[^A-Za-z^\\]"
+     "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3)
+    ("francais7"
+     "[A-Za-z]" "[^A-Za-z]" "[`'^-]" t nil nil iso-8859-1)
+    ("francais"				; Francais.aff
+     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
+     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
+     "[-'.@]" t nil "~list" iso-8859-1)
+    ("francais-tex"			; Francais.aff
+     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
+     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
+     "[-'^`\".@]" t nil "~tex" iso-8859-1)
+    ("german"				; german.aff
+     "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1)
+    ("german8"				; german.aff
+     "[a-zA-Z\304\326\334\344\366\337\374]"
+     "[^a-zA-Z\304\326\334\344\366\337\374]"
+     "[']" t ("-C" "-d" "german") "~latin1" iso-8859-1)
+    ("italiano"				; Italian.aff
+     "[A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
+     "[^A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
+     "[-.]" nil ("-B" "-d" "italian") "~tex" iso-8859-1)
+    ("nederlands"			; Nederlands.aff
+     "[A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
+     "[^A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
+     "[']" t ("-C") nil iso-8859-1)
+    ("nederlands8"			; Dutch8.aff
+     "[A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
+     "[^A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
+     "[']" t ("-C") nil iso-8859-1)
+    ("norsk"				; 8 bit Norwegian mode
+     "[A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
+     "[^A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
+     "[\"]" nil nil "~list" iso-8859-1)
+    ("norsk7-tex"			; 7 bit Norwegian TeX mode
+     "[A-Za-z{}\\'^`]" "[^A-Za-z{}\\'^`]"
+     "[\"]" nil ("-d" "norsk") "~plaintex" iso-8859-1)
+    ("polish"				; Polish mode
+     "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
+     "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
+     "[.]" nil nil nil iso-8859-2)
+    ("portugues"                        ; Portuguese mode
+     "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
+     "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
+     "[']" t ("-C") "~latin1" iso-8859-1)
+    ("russian"				; Russian.aff (KOI8-R charset)
+     "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
+     "[^\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
+     "" nil nil nil koi8-r)
+    ("russianw"				; russianw.aff (CP1251 charset)
+     "[\300\301\302\303\304\305\250\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\334\333\332\335\336\337\340\341\342\343\344\345\270\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\374\373\372\375\376\377]"
+     "[^\300\301\302\303\304\305\250\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\334\333\332\335\336\337\340\341\342\343\344\345\270\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\374\373\372\375\376\377]"
+     "" nil nil nil windows-1251)
+    ("slovak"				; Slovakian
+     "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
+     "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
+     "" nil ("-B") nil iso-8859-2)
+    ("slovenian"                        ; Slovenian
+     "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
+     "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
+     "" nil ("-B" "-d" "slovenian") nil iso-8859-2)
+    ("svenska"				; Swedish mode
+     "[A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
+     "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
+     "[']" nil ("-C") "~list" iso-8859-1))
+  "Base value for `ispell-dictionary-alist'.")
 
-;;; First part of dictionary, shortened for loaddefs.el
-;;;###autoload
-(setq
- ispell-dictionary-alist-1
- '((nil					; default (English.aff)
-    "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
-   ("american"				; Yankee English
-    "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
-   ("brasileiro"			; Brazilian mode
-    "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
-    "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
-    "[']" nil nil nil iso-8859-1)
-   ("british"				; British version
-    "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
-   ("castellano"			; Spanish mode
-    "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[-]" nil ("-B") "~tex" iso-8859-1)
-   ("castellano8"			; 8 bit Spanish mode
-    "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[-]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1)))
-
-
-;;; Second part of dictionary, shortened for loaddefs.el
-;;;###autoload
-(setq
- ispell-dictionary-alist-2
- '(("czech"
-    "[A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
-    "[^A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]"
-    "" nil ("-B") nil iso-8859-2)
-   ("dansk"				; Dansk.aff
-    "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
-    "[']" nil ("-C") nil iso-8859-1)
-   ("deutsch"				; Deutsch.aff
-    "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1)
-   ("deutsch8"
-    "[a-zA-Z\304\326\334\344\366\337\374]"
-    "[^a-zA-Z\304\326\334\344\366\337\374]"
-    "[']" t ("-C" "-d" "deutsch") "~latin1" iso-8859-1)
-   ("english"				; make English explicitly selectable
-    "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)))
-
-
-;;; Third part of dictionary, shortened for loaddefs.el
-;;;###autoload
-(setq
- ispell-dictionary-alist-3
- '(("esperanto"
-    "[A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
-    "[^A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
-    "[-']" t ("-C") "~latin3" iso-8859-3)
-   ("esperanto-tex"
-    "[A-Za-z^\\]" "[^A-Za-z^\\]"
-    "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3)
-   ("francais7"
-    "[A-Za-z]" "[^A-Za-z]" "[`'^-]" t nil nil iso-8859-1)
-   ("francais"				; Francais.aff
-    "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
-    "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
-    "[-'.@]" t nil "~list" iso-8859-1)
-   ("francais-tex"			; Francais.aff
-    "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
-    "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
-    "[-'^`\".@]" t nil "~tex" iso-8859-1)))
-
-
-;;; Fourth part of dictionary, shortened for loaddefs.el
-;;;###autoload
-(setq
- ispell-dictionary-alist-4
- '(("german"				; german.aff
-    "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1)
-   ("german8"				; german.aff
-    "[a-zA-Z\304\326\334\344\366\337\374]"
-    "[^a-zA-Z\304\326\334\344\366\337\374]"
-    "[']" t ("-C" "-d" "german") "~latin1" iso-8859-1)
-   ("italiano"				; Italian.aff
-    "[A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
-    "[^A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
-    "[-.]" nil ("-B" "-d" "italian") "~tex" iso-8859-1)
-   ("nederlands"			; Nederlands.aff
-    "[A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
-    "[^A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
-    "[']" t ("-C") nil iso-8859-1)
-   ("nederlands8"			; Dutch8.aff
-    "[A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
-    "[^A-Za-z\300\301\302\303\304\305\307\310\311\312\313\314\315\316\317\322\323\324\325\326\331\332\333\334\340\341\342\343\344\345\347\350\351\352\353\354\355\356\357\361\362\363\364\365\366\371\372\373\374]"
-    "[']" t ("-C") nil iso-8859-1)))
-
-
-;;; Fifth part of dictionary, shortened for loaddefs.el
-;;;###autoload
-(setq
- ispell-dictionary-alist-5
- '(("norsk"				; 8 bit Norwegian mode
-    "[A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
-    "[^A-Za-z\305\306\307\310\311\322\324\330\345\346\347\350\351\362\364\370]"
-    "[\"]" nil nil "~list" iso-8859-1)
-   ("norsk7-tex"			; 7 bit Norwegian TeX mode
-    "[A-Za-z{}\\'^`]" "[^A-Za-z{}\\'^`]"
-    "[\"]" nil ("-d" "norsk") "~plaintex" iso-8859-1)
-   ("polish"				; Polish mode
-    "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
-    "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
-    "[.]" nil nil nil iso-8859-2)
-   ("portugues"				; Portuguese mode
-    "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
-    "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
-    "[']" t ("-C") "~latin1" iso-8859-1)))
-
-
-;;; Sixth part of dictionary, shortened for loaddefs.el
-;;;###autoload
-(setq
- ispell-dictionary-alist-6
- ;; include Russian iso coding system too?
- ;;   "[']" t ("-d" "russian") "~latin1" iso-8859-1
- '(("russian"				; Russian.aff (KOI8-R charset)
-    "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
-    "[^\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
-    "" nil nil nil koi8-r)
-   ("russianw"				; russianw.aff (CP1251 charset)
-    "[\300\301\302\303\304\305\250\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\334\333\332\335\336\337\340\341\342\343\344\345\270\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\374\373\372\375\376\377]"
-    "[^\300\301\302\303\304\305\250\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\334\333\332\335\336\337\340\341\342\343\344\345\270\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\374\373\372\375\376\377]"
-    "" nil nil nil windows-1251)
-   ("slovak"				; Slovakian
-    "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
-    "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
-    "" nil ("-B") nil iso-8859-2)
-   ("slovenian"				; Slovenian
-    "[A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
-    "[^A-Za-z\301\304\311\315\323\332\324\300\305\245\335\256\251\310\317\253\322\341\344\351\355\363\372\364\340\345\265\375\276\271\350\357\273\362]"
-    "" nil ("-B" "-d" "slovenian") nil iso-8859-2)
-   ("svenska"				; Swedish mode
-    "[A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
-    "[^A-Za-z\345\344\366\351\340\374\350\346\370\347\305\304\326\311\300\334\310\306\330\307]"
-    "[']" nil ("-C") "~list" iso-8859-1)))
-
-
-;;;###autoload
-(defvar ispell-dictionary-alist
-  (append ispell-dictionary-alist-1 ispell-dictionary-alist-2
-	  ispell-dictionary-alist-3 ispell-dictionary-alist-4
-	  ispell-dictionary-alist-5 ispell-dictionary-alist-6)
+(defvar ispell-dictionary-alist nil
   "An alist of dictionaries and their associated parameters.
 
 Each element of this list is also a list:
@@ -851,8 +809,8 @@ Otherwise returns the library directory name, if that is defined."
 If nil when package is loaded, a standard menu will be set,
 and added as a submenu of the \"Edit\" menu.")
 
-;;; Break out XEmacs menu and split into several calls to avoid having
-;;; long lines in loaddefs.el.  Detect need off following constant.
+;; Break out XEmacs menu and split into several calls to avoid having
+;; long lines in loaddefs.el.  Detect need off following constant.
 
 ;;; Set up dictionary
 ;;;###autoload
@@ -911,7 +869,7 @@ Internal use.")
     (let* ((english-dict (assoc "en" ispell-dictionary-alist))
 	   (default-dict
 	     (cons nil (or (cdr english-dict)
-			   (cdr (car ispell-dictionary-alist-1))))))
+			   (cdr (car ispell-dictionary-base-alist))))))
       (push default-dict ispell-aspell-dictionary-alist))))
 
 (defvar ispell-aspell-data-dir nil
@@ -1000,14 +958,14 @@ Return the new dictionary alist."
   "Last value of ispell-program name. Internal use.")
 
 (defvar ispell-initialize-spellchecker-hook nil
-  "Actions to be taken on spellchecker initialization.
-This hook is run when an spellchecker is used for the first
-time, before ``ispell-dictionary-alist'' is set. Is intended for
-sysadmins to override entries in the ispell.el base dictionary-alist
-by putting those overrides in a ``ispell-base-dicts-override-alist''
-alist with same format as ``ispell-dictionary-alist''. This alist
-will not override the auto-detected values if a recent aspell is
-used along with emacs.")
+  "Normal hook run on spellchecker initialization.
+This hook is run when a spellchecker is used for the first
+time, before `ispell-dictionary-alist' is set.  It is intended for
+sysadmins to override entries in `ispell-dictionary-base-alist'
+by putting those overrides in `ispell-base-dicts-override-alist', which is
+a dynamically scoped var with same format as `ispell-dictionary-alist'.
+This alist will not override the auto-detected values (e.g. if a recent
+aspell is used along with Emacs).")
 
 (defun ispell-set-spellchecker-params ()
   "Initialize some spellchecker parameters when changed or first used."
@@ -1021,7 +979,7 @@ used along with emacs.")
 	       (error nil))
 	     ispell-really-aspell
 	     ispell-aspell-supports-utf8
-	     ;; xemacs does not like [:alpha:] regexps
+	     ;; XEmacs does not like [:alpha:] regexps.
 	     (string-match "^[[:alpha:]]+$" "abcde"))
 	(unless ispell-aspell-dictionary-alist
 	  (ispell-find-aspell-dictionaries)))
@@ -1030,11 +988,7 @@ used along with emacs.")
     ;; corresponding to the given spellchecker. If a recent aspell, use
     ;; the list of really installed dictionaries and add to it elements
     ;; of the original list that are not present there. Allow distro info.
-    (let ((base-dicts-alist
-	   (append ispell-dictionary-alist-1 ispell-dictionary-alist-2
-		   ispell-dictionary-alist-3 ispell-dictionary-alist-4
-		   ispell-dictionary-alist-5 ispell-dictionary-alist-6))
-	  (found-dicts-alist
+    (let ((found-dicts-alist
 	   (if (and ispell-really-aspell
 		    ispell-aspell-supports-utf8)
 	       ispell-aspell-dictionary-alist
@@ -1047,7 +1001,7 @@ used along with emacs.")
       ;; Add dicts to ``ispell-dictionary-alist'' unless already present.
       (dolist (dict (append found-dicts-alist
 			    ispell-base-dicts-override-alist
-			    base-dicts-alist))
+			    ispell-dictionary-base-alist))
 	(unless (assoc (car dict) all-dicts-alist)
 	  (add-to-list 'all-dicts-alist dict)))
       (setq ispell-dictionary-alist all-dicts-alist))))
@@ -1057,7 +1011,7 @@ used along with emacs.")
   "Returns a list of valid dictionaries.
 The variable `ispell-library-directory' defines the library location."
   ;; Initialize variables and dictionaries alists for desired spellchecker.
-  ;; Make sure ispell.el is loaded to avoid some autoload loops in xemacs
+  ;; Make sure ispell.el is loaded to avoid some autoload loops in XEmacs
   ;; (and may be others)
   (if (featurep 'ispell)
       (ispell-set-spellchecker-params))
@@ -1235,6 +1189,8 @@ This is passed to the ispell process using the `-p' switch.")
 (defun ispell-decode-string (str)
   "Decodes multibyte character strings.
 Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
+  ;; FIXME: enable-multibyte-characters is read-only, so bogus bindings are
+  ;; really nasty (they signal an error in Emacs): Who does that?  --Stef
   (if (and (or (featurep 'xemacs)
 	       (and (boundp 'enable-multibyte-characters)
 		    enable-multibyte-characters))
@@ -3532,7 +3488,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
     (goto-char (point-min))
     (let* (boundary mimep
 	   (ispell-skip-region-alist-save ispell-skip-region-alist)
-	   ;; Nil when message came from outside (eg calling emacs as editor)
+	   ;; Nil when message came from outside (eg calling Emacs as editor)
 	   ;; Non-nil marker of end of headers.
 	   (internal-messagep
 	    (re-search-forward
@@ -3784,7 +3740,7 @@ Both should not be used to define a buffer-local dictionary."
 	(while (re-search-forward " *\\([^ ]+\\)" end t)
 	  (setq string (match-string-no-properties 1))
 	  ;; This can fail when string contains a word with invalid chars.
-	  ;; Error handling needs to be added between ispell and emacs.
+	  ;; Error handling needs to be added between ispell and Emacs.
 	  (if (and (< 1 (length string))
 		   (equal 0 (string-match ispell-casechars string)))
 	      (ispell-send-string (concat "@" string "\n"))))))))
@@ -3830,29 +3786,29 @@ Both should not be used to define a buffer-local dictionary."
 
 ;;; LOCAL VARIABLES AND BUFFER-LOCAL VALUE EXAMPLES.
 
-;;; Local Variable options:
-;;; mode: name(-mode)
-;;; eval: expression
-;;; local-variable: value
+;; Local Variable options:
+;; mode: name(-mode)
+;; eval: expression
+;; local-variable: value
 
-;;; The following sets the buffer local dictionary to `american' English
-;;; and spell checks only comments.
+;; The following sets the buffer local dictionary to `american' English
+;; and spell checks only comments.
 
-;;; Local Variables:
-;;; mode: emacs-lisp
-;;; comment-column: 40
-;;; ispell-check-comments: exclusive
-;;; ispell-local-dictionary: "american"
-;;; End:
+;; Local Variables:
+;; mode: emacs-lisp
+;; comment-column: 40
+;; ispell-check-comments: exclusive
+;; ispell-local-dictionary: "american"
+;; End:
 
 
 ;;; MORE EXAMPLES OF ISPELL BUFFER-LOCAL VALUES
 
-;;; The following places this file in nroff parsing and extended char modes.
-;;; Local IspellParsing: nroff-mode ~nroff
-;;; Change IspellPersDict to IspellPersDict: to enable the following line.
-;;; Local IspellPersDict ~/.ispell_lisp
-;;; The following were automatically generated by ispell using the 'A' command:
+;; The following places this file in nroff parsing and extended char modes.
+;; Local IspellParsing: nroff-mode ~nroff
+;; Change IspellPersDict to IspellPersDict: to enable the following line.
+;; Local IspellPersDict ~/.ispell_lisp
+;; The following were automatically generated by ispell using the 'A' command:
 ; LocalWords:  settable alist inews mh frag pdict Wildcards iconify arg tex kss
 ; LocalWords:  alists minibuffer bufferp autoload loaddefs aff Dansk KOI SPC op
 ; LocalWords:  Francais Nederlands charset autoloaded popup nonmenu regexp num
