@@ -1,3 +1,8 @@
+2008-04-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-remote-stat): Test whether stat supports
+	%s.  Reported by Loris Bennett <loris.bennett@fu-berlin.de>.
+
 2008-04-24  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/remember.el (remember-diary-extract-entries): Use
