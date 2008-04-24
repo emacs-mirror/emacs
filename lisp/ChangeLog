@@ -1,5 +1,7 @@
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/quail.el (quail-build-decode-map): Avoid string-bytes.
+
 	* textmodes/ispell.el (ispell-dictionary-alist-1)
 	(ispell-dictionary-alist-2, ispell-dictionary-alist-3):
 	(ispell-dictionary-alist-4, ispell-dictionary-alist-5):

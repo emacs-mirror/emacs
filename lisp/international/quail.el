@@ -2309,7 +2309,7 @@ Optional 6th arg IGNORES is a list of translations to ignore."
 			       ;; Accept only non-ASCII chars not
 			       ;; listed in IGNORES.
 			       (if (and (if (integerp x) (> x 255)
-					  (> (string-bytes x) (length x)))
+                                          (string-match-p "[^[:ascii:]]" x))
 					(not (member x ignores)))
 				   (setq multibyte t))))
 		   translation)
