@@ -1,3 +1,9 @@
+2008-04-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-invalidate-assembler): Compare numeric
+	value of addresses rather than (partial) string value.
+	(gdb-frame-handler): Change regexp according to above change.
+
 2008-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-get-remote-stat): Test whether stat supports
@@ -486,7 +492,7 @@
 2008-04-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint):
-	Select window clicked on first (regression in 22.2).
+	Select window clicked on first.
 	(gdb): Display thread number in mode-line.
 	(gdb-make-header-line-mouse-map): Move to avoid byte compiler warnings.
 	(gdb-breakpoints-header): New variable.
