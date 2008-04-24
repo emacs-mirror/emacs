@@ -851,6 +851,10 @@ such as making the current buffer visit no file in the case of
   :group 'minibuffer
   :type 'boolean)
 
+;; Not always defined, but only called if next-read-file-uses-dialog-p says so.
+(declare-function x-file-dialog "xfns.c"
+                  (prompt dir &optional default-filename mustmatch only-dir-p))
+
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
