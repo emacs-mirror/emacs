@@ -322,8 +322,8 @@ A nil value means don't show the file in the list."
 
 ;;; EVENTUALLY REMOVE THESE
 
-;; When I moved to a repeating timer, I had the horrible missfortune
-;; of loosing the ability for adaptive speed choice.  This update
+;; When I moved to a repeating timer, I had the horrible misfortune
+;; of losing the ability for adaptive speed choice.  This update
 ;; speed currently causes long delays when it should have been turned off.
 (defvar speedbar-update-speed dframe-update-speed)
 (make-obsolete-variable 'speedbar-update-speed
