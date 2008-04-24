@@ -3538,8 +3538,9 @@ BUFFER nil or omitted means use the current buffer."
 		     (string-equal gdb-selected-frame gdb-previous-frame))
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       gdb-pending-triggers))
-		  (not (string-equal gdb-pc-address
-				     gdb-previous-frame-pc-address)))
+		  (not (equal (string-to-number gdb-pc-address)
+			      (string-to-number
+			       gdb-previous-frame-pc-address))))
 	  (progn
 	    ;; take previous disassemble command, if any, off the queue
 	    (with-current-buffer gud-comint-buffer
@@ -3550,9 +3551,7 @@ BUFFER nil or omitted means use the current buffer."
 			    (delete item gdb-input-queue))))))
 	    (gdb-enqueue-input
 	     (list
-	      (concat gdb-server-prefix "disassemble "
-		      (if (member gdb-pc-address '(nil "main")) nil "0x")
-			   gdb-pc-address "\n")
+	      (concat gdb-server-prefix "disassemble " gdb-pc-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
 	    (setq gdb-previous-frame-pc-address gdb-pc-address)
@@ -3579,7 +3578,7 @@ BUFFER nil or omitted means use the current buffer."
     (setq gdb-frame-number (match-string 1))
     (setq gdb-frame-address (match-string 2)))
   (goto-char (point-min))
-  (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(.*?\\)\
+  (when (re-search-forward ".*=\\s-+\\(\\S-*\\)\\s-+in\\s-+\\(.*?\\)\
 \\(?: (\\(\\S-+?\\):[0-9]+?)\\)*; "
      nil t)
     (setq gdb-selected-frame (match-string 2))
