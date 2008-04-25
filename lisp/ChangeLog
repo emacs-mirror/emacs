@@ -1,3 +1,9 @@
+2008-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-hunk-header-re-unified): Allow elided line counts.
+	(diff-end-of-hunk, diff-unified->context, diff-fixup-modifs)
+	(diff-sanity-check-hunk): Adjust code accordingly.
+
 2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ts-active-input-buf): Move defvar to macterm.c.
