@@ -81,6 +81,19 @@ NOTE-END  */
 
 #ifdef __arch64__		/* GCC, 64-bit ABI.  */
 #define BITS_PER_LONG 64
+#ifdef __linux__
+#undef START_FILES
+#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
+
+/* The duplicate -lgcc is intentional in the definition of LIB_STANDARD.
+   The reason is that some functions in libgcc.a call functions from libc.a,
+   and some libc.a functions need functions from libgcc.a.  Since most
+   versions of ld are one-pass linkers, we need to mention -lgcc twice,
+   or else we risk getting unresolved externals.  */
+#undef LIB_STANDARD
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
+#endif
+
 #ifndef _LP64
 #define _LP64			/* Done on Alpha -- not sure if it
 				   should be here.  -- fx */
