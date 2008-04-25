@@ -757,15 +757,14 @@ With arg, enter name of variable to be watched in the minibuffer."
 			 (buffer-substring (region-beginning) (region-end))
 		       (concat (if (eq major-mode 'gdb-registers-mode) "$")
 			       (tooltip-identifier-from-point (point)))))))
-	      (speedbar 1)
-		(set-text-properties 0 (length expr) nil expr)
-		(gdb-enqueue-input
-		 (list
-		  (if (eq minor-mode 'gdba)
-		      (concat
-		       "server interpreter mi \"-var-create - * "  expr "\"\n")
-		    (concat"-var-create - * "  expr "\n"))
-		  `(lambda () (gdb-var-create-handler ,expr)))))))
+	      (set-text-properties 0 (length expr) nil expr)
+	      (gdb-enqueue-input
+	       (list
+		(if (eq minor-mode 'gdba)
+		    (concat
+		     "server interpreter mi \"-var-create - * "  expr "\"\n")
+		  (concat"-var-create - * "  expr "\n"))
+		`(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
@@ -785,6 +784,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		  (if (match-string 3) (read (match-string 3)))
 		  nil gdb-frame-address)))
 	(push var gdb-var-list)
+	(speedbar 1)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
 	  (speedbar-change-initial-expansion-list "GUD"))
@@ -1563,7 +1563,8 @@ happens to be appropriate."
       (gdb-invalidate-locals-1))
 
     (gdb-invalidate-threads)
-    (unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
+    (unless (or (null gdb-var-list)
+	     (eq system-type 'darwin)) ;Breaks on Darwin's GDB-5.3.
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -2984,13 +2985,14 @@ another GDB command e.g pwd, to see new frames")
   (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
     (with-current-buffer buf
       (goto-char (point-min))
+      ;; Need this in case "set print pretty" is on.
       (while (re-search-forward "^[ }].*\n" nil t)
 	(replace-match "" nil nil))
       (goto-char (point-min))
       (while (re-search-forward "{\\(.*=.*\n\\|\n\\)" nil t)
 	(replace-match gdb-struct-string nil nil))
       (goto-char (point-min))
-      (while (re-search-forward "\\s-*{.*\n" nil t)
+      (while (re-search-forward "\\s-*{[^.].*\n" nil t)
 	(replace-match gdb-array-string nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
     (and buf
