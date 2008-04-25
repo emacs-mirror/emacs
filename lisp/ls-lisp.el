@@ -532,14 +532,27 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 		(let ((inode (nth 10 file-attr)))
 		  (if (consp inode)
 		      (if (consp (cdr inode))
-			  (format " %17.0f "
-				  (+ (* (car inode) 1099511627776.0)
-				     (* (cadr inode) 65536.0)
-				     (cddr inode)))
-			(format " %17.0f "
+			  ;; 2^(24+16) = 1099511627776.0, but
+			  ;; multiplying by it and then adding the
+			  ;; other members of the cons cell in one go
+			  ;; loses precision, since a double does not
+			  ;; have enough significant digits to hold a
+			  ;; full 64-bit value.  So below we split
+			  ;; 1099511627776 into high 13 and low 5
+			  ;; digits and compute in two parts.
+			  (let ((p1 (* (car inode) 10995116.0))
+				(p2 (+ (* (car inode) 27776.0)
+				       (* (cadr inode) 65536.0)
+				       (cddr inode))))
+			    (format " %13.0f%05.0f "
+				    ;; Use floor to emulate integer
+				    ;; division.
+				    (+ p1 (floor p2 100000.0))
+				    (mod p2 100000.0)))
+			(format " %18.0f "
 				(+ (* (car inode) 65536.0)
 				   (cdr inode))))
-		    (format " %17d " inode))))
+		    (format " %18d " inode))))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
 		(format " %4.0f" (fceiling (/ file-size 1024.0))))
