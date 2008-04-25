@@ -181,6 +181,19 @@ to fail to lign up, e.g. if month names are not all of the same length."
 (defvar original-insert-directory nil
   "This holds the original function definition of `insert-directory'.")
 
+(defvar ls-lisp-uid-d-fmt "-%d"
+  "Format to display integer UIDs.")
+(defvar ls-lisp-uid-s-fmt "-%s"
+  "Format to display user names.")
+(defvar ls-lisp-gid-d-fmt "-%d"
+  "Format to display integer GIDs.")
+(defvar ls-lisp-gid-s-fmt "-%s"
+  "Format to display user group names.")
+(defvar ls-lisp-filesize-d-fmt "%d"
+  "Format to display integer file sizes.")
+(defvar ls-lisp-filesize-f-fmt "%.0f"
+  "Format to display float file sizes.")
+
 ;; Remember the original insert-directory function
 (or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
     (setq original-insert-directory (symbol-function 'insert-directory)))
@@ -292,8 +305,12 @@ not contain `d', so that a full listing is expected."
 						'string)))
 	     (now (current-time))
 	     (sum 0)
+	     (max-uid-len 0)
+	     (max-gid-len 0)
+	     (max-file-size 0)
 	     ;; do all bindings here for speed
-	     total-line files elt short file-size fil attr)
+	     total-line files elt short file-size fil attr
+	     fuid fgid uid-len gid-len)
 	(cond ((memq ?A switches)
 	       (setq file-alist
 		     (ls-lisp-delete-matching "^\\.\\.?$" file-alist)))
@@ -306,6 +323,38 @@ not contain `d', so that a full listing is expected."
 	(if (memq ?C switches)		; column (-C) format
 	    (ls-lisp-column-format file-alist)
 	  (setq total-line (cons (point) (car-safe file-alist)))
+	  ;; Find the appropriate format for displaying uid, gid, and
+	  ;; file size, by finding the longest strings among all the
+	  ;; files we are about to display.
+	  (dolist (elt file-alist)
+	    (setq attr (cdr elt)
+		  fuid (nth 2 attr)
+		  uid-len (length (if (stringp fuid) fuid (format "%d" fuid)))
+		  fgid (nth 3 attr)
+		  gid-len (length (if (stringp fgid) fgid (format "%d" fgid)))
+		  file-size (nth 7 attr))
+	    (if (> uid-len max-uid-len)
+		(setq max-uid-len uid-len))
+	    (if (> gid-len max-gid-len)
+		(setq max-gid-len gid-len))
+	    (if (> file-size max-file-size)
+		(setq max-file-size file-size)))
+	  (setq ls-lisp-uid-d-fmt (format " %%-%dd" max-uid-len))
+	  (setq ls-lisp-uid-s-fmt (format " %%-%ds" max-uid-len))
+	  (setq ls-lisp-gid-d-fmt (format " %%-%dd" max-gid-len))
+	  (setq ls-lisp-gid-s-fmt (format " %%-%ds" max-gid-len))
+	  (setq ls-lisp-filesize-d-fmt
+		(format " %%%dd"
+			(if (memq ?s switches)
+			    (length (format "%.0f"
+					    (fceiling (/ max-file-size 1024.0))))
+			  (length (format "%.0f" max-file-size)))))
+	  (setq ls-lisp-filesize-f-fmt
+		(format " %%%d.0f"
+			(if (memq ?s switches)
+			    (length (format "%.0f"
+					    (fceiling (/ max-file-size 1024.0))))
+			  (length (format "%.0f" max-file-size)))))
 	  (setq files file-alist)
 	  (while files			; long (-l) format
 	    (setq elt (car files)
@@ -555,10 +604,11 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 		    (format " %18d " inode))))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
-		(format " %4.0f" (fceiling (/ file-size 1024.0))))
+		(format ls-lisp-filesize-f-fmt
+			(fceiling (/ file-size 1024.0))))
 	    drwxrwxrwx			; attribute string
 	    (if (memq 'links ls-lisp-verbosity)
-		(format " %3d" (nth 1 file-attr))) ; link count
+		(format "%3d" (nth 1 file-attr))) ; link count
 	    ;; Numeric uid/gid are more confusing than helpful;
 	    ;; Emacs should be able to make strings of them.
 	    ;; They tend to be bogus on non-UNIX platforms anyway so
@@ -566,12 +616,18 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	    (if (memq 'uid ls-lisp-verbosity)
 		;; uid can be a sting or an integer
 		(let ((uid (nth 2 file-attr)))
-                  (format (if (stringp uid) " %-8s" " %-8d") uid)))
+                  (format (if (stringp uid)
+			      ls-lisp-uid-s-fmt
+			    ls-lisp-uid-d-fmt)
+			  uid)))
 	    (if (not (memq ?G switches)) ; GNU ls -- shows group by default
 		(if (or (memq ?g switches) ; UNIX ls -- no group by default
 			(memq 'gid ls-lisp-verbosity))
                     (let ((gid (nth 3 file-attr)))
-                      (format (if (stringp gid) " %-8s" " %-8d") gid))))
+                      (format (if (stringp gid)
+				  ls-lisp-gid-s-fmt
+				ls-lisp-gid-d-fmt)
+			      gid))))
 	    (ls-lisp-format-file-size file-size (memq ?h switches))
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)
@@ -631,13 +687,18 @@ All ls time options, namely c, t and u, are handled."
       (error "Unk  0  0000"))))
 
 (defun ls-lisp-format-file-size (file-size human-readable)
-  (if (or (not human-readable)
-          (< file-size 1024))
-      (format (if (floatp file-size) " %9.0f" " %9d") file-size)
-    (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
-         ;; kilo, mega, giga, tera, peta, exa
-         (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
-        ((< file-size 1024) (format " %8.0f%s"  file-size (car post-fixes))))))
+  (if (not human-readable)
+      (format (if (floatp file-size)
+		  ls-lisp-filesize-f-fmt
+		ls-lisp-filesize-d-fmt)
+	      file-size)
+    (if (< file-size 1024)
+	(format " %4d" file-size)
+      (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
+	   ;; kilo, mega, giga, tera, peta, exa
+	   (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
+	  ((< file-size 1024)
+	   (format " %3.0f%s"  file-size (car post-fixes)))))))
 
 (provide 'ls-lisp)
 
