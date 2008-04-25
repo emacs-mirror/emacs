@@ -1,3 +1,10 @@
+2008-04-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Don't create speedbar...
+	(gdb-var-create-handler): ...until here when there are values.
+	(gdb-post-prompt): Don't do -var-update with no watch expressions.
+	(gdb-info-locals-handler): Don't match "struct {...}" as an array.
+
 2008-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-format): Fix last change.
