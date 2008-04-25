@@ -1,3 +1,7 @@
+2008-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-format): Fix last change.
+
 2008-04-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-invalidate-assembler): Compare numeric
