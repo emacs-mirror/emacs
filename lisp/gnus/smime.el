@@ -305,7 +305,7 @@ key and certificate itself."
   (smime-new-details-buffer)
   (let* ((certfiles (and (cdr-safe keyfile) (cadr keyfile)))
 	 (keyfile (or (car-safe keyfile) keyfile))
-	 (buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+	 (buffer (generate-new-buffer " *smime*"))
 	 (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
 	 (tmpfile (smime-make-temp-file "smime")))
     (if passphrase
@@ -340,7 +340,7 @@ If encryption fails, the buffer is not modified.  Region is assumed to
 have proper MIME tags.  CERTFILES is a list of filenames, each file
 is expected to contain of a PEM encoded certificate."
   (smime-new-details-buffer)
-  (let ((buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+  (let ((buffer (generate-new-buffer " *smime*"))
 	(tmpfile (smime-make-temp-file "smime")))
     (prog1
 	(when (prog1
@@ -439,7 +439,7 @@ On success, replaces region with decrypted data and return non-nil.
 Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
   (smime-new-details-buffer)
-  (let ((buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+  (let ((buffer (generate-new-buffer " *smime*"))
 	CAs (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
 	(tmpfile (smime-make-temp-file "smime")))
     (if passphrase
