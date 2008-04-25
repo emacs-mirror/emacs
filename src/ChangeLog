@@ -1,3 +1,7 @@
+2008-04-25  Chip Coldwell <coldwell@redhat.com>
+
+	* m/sparc.h: Additional redefinitions for GNU/Linux.
+
 2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: New variable.
