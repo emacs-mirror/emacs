@@ -1,6 +1,17 @@
 2008-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-format): Fix last change.
+	(ls-lisp-uid-d-fmt, ls-lisp-uid-s-fmt, ls-lisp-gid-d-fmt)
+	(ls-lisp-gid-s-fmt, ls-lisp-filesize-d-fmt)
+	(ls-lisp-filesize-f-fmt): New defvars.
+	(ls-lisp-insert-directory): Dynamically compute format specifiers
+	for displaying UID, GID, and file size, and store them in the
+	above variables.
+	(ls-lisp-format): Use ls-lisp-filesize-f-fmt, ls-lisp-uid-s-fmt,
+	ls-lisp-uid-d-fmt, ls-lisp-gid-s-fmt, and ls-lisp-gid-d-fmt
+	instead of constant format strings.
+	(ls-lisp-format-file-size): Use ls-lisp-filesize-f-fmt and
+	ls-lisp-filesize-d-fmt instead of constant format strings.
 
 2008-04-24  Nick Roberts  <nickrob@snap.net.nz>
 
