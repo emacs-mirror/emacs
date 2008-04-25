@@ -1,3 +1,9 @@
+2008-04-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* smime.el (smime-sign-region, smime-encrypt-region)
+	(smime-decrypt-region):
+	Remove redundant calls to `generate-new-buffer-name'.
+
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sieve-manage.el (sieve-string-bytes): Remove.
@@ -1440,7 +1446,7 @@
 	* gnus-art.el (gnus-button-mid-or-mail-heuristic-alist): Add "alpine".
 	(gnus-treat-body-boundary): Don't test window-system.
 
-2007-10-28  Leo <sdl.web@gmail.com>  (tiny change)
+2007-10-28  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* gnus-art.el (gnus-treat-emphasize): Don't test window-system.
 
@@ -11758,7 +11764,7 @@
 	(spam-stat-buffer-words-with-scores): Don't narrow and change
 	syntax table here.  Reported by Andrew Cohen <cohen@andy.bu.edu>.
 
-2004-01-20  Hubert Chan <hubert@uhoreg.ca>:
+2004-01-20  Hubert Chan  <hubert@uhoreg.ca>
 
 	* spam.el (spam-use-spamassassin, spam-use-spamassassin-headers)
 	(spam-install-hooks, spam-spamassassin, spam-spamassassin-path)
@@ -11890,8 +11896,7 @@
 
 2004-01-12  Kai Grossjohann  <kai.grossjohann@mci.com>
 
-	* message.el (message-expand-name): Use EUDC if the user uses
-	that.
+	* message.el (message-expand-name): Use EUDC if the user uses that.
 
 2004-01-12  Jesper Harder  <harder@ifa.au.dk>
 
