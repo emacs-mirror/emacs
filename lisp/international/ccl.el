@@ -186,9 +186,9 @@
 (defvar ccl-current-ic 0
   "The current index for `ccl-program-vector'.")
 
-;; Embed integer DATA in `ccl-program-vector' at `ccl-current-ic' and
-;; increment it.  If IC is specified, embed DATA at IC.
 (defun ccl-embed-data (data &optional ic)
+  "Embed integer DATA in `ccl-program-vector' at `ccl-current-ic' and
+increment it.  If IC is specified, embed DATA at IC."
   (if ic
       (aset ccl-program-vector ic data)
     (let ((len (length ccl-program-vector)))
@@ -201,16 +201,16 @@
     (aset ccl-program-vector ccl-current-ic data)
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
-;; Embed pair of SYMBOL and PROP where (get SYMBOL PROP) should give
-;; proper index number for SYMBOL.  PROP should be
-;; `translation-table-id', `translation-hash-table-id'
-;; `code-conversion-map-id', or `ccl-program-idx'.
 (defun ccl-embed-symbol (symbol prop)
+  "Embed pair of SYMBOL and PROP where (get SYMBOL PROP) should give
+proper index number for SYMBOL.  PROP should be
+`translation-table-id', `translation-hash-table-id'
+`code-conversion-map-id', or `ccl-program-idx'."
   (ccl-embed-data (cons symbol prop)))
 
-;; Embed string STR of length LEN in `ccl-program-vector' at
-;; `ccl-current-ic'.
 (defun ccl-embed-string (len str)
+  "Embed string STR of length LEN in `ccl-program-vector' at
+`ccl-current-ic'."
   (if (> len #xFFFFF)
       (error "CCL: String too long: %d" len))
   (if (> (string-bytes str) len)
@@ -227,27 +227,26 @@
 				  0)))
 	(setq i (+ i 3))))))
 
-;; Embed a relative jump address to `ccl-current-ic' in
-;; `ccl-program-vector' at IC without altering the other bit field.
 (defun ccl-embed-current-address (ic)
+  "Embed a relative jump address to `ccl-current-ic' in
+`ccl-program-vector' at IC without altering the other bit field."
   (let ((relative (- ccl-current-ic (1+ ic))))
     (aset ccl-program-vector ic
 	  (logior (aref ccl-program-vector ic) (ash relative 8)))))
 
-;; Embed CCL code for the operation OP and arguments REG and DATA in
-;; `ccl-program-vector' at `ccl-current-ic' in the following format.
-;;	|----------------- integer (28-bit) ------------------|
-;;	|------------ 20-bit ------------|- 3-bit --|- 5-bit -|
-;;	|------------- DATA -------------|-- REG ---|-- OP ---|
-;; If REG2 is specified, embed a code in the following format.
-;;	|------- 17-bit ------|- 3-bit --|- 3-bit --|- 5-bit -|
-;;	|-------- DATA -------|-- REG2 --|-- REG ---|-- OP ---|
-
-;; If REG is a CCL register symbol (e.g. r0, r1...), the register
-;; number is embedded.  If OP is one of unconditional jumps, DATA is
-;; changed to a relative jump address.
-
 (defun ccl-embed-code (op reg data &optional reg2)
+  "Embed CCL code for the operation OP and arguments REG and DATA in
+`ccl-program-vector' at `ccl-current-ic' in the following format.
+	|----------------- integer (28-bit) ------------------|
+	|------------ 20-bit ------------|- 3-bit --|- 5-bit -|
+	|------------- DATA -------------|-- REG ---|-- OP ---|
+If REG2 is specified, embed a code in the following format.
+	|------- 17-bit ------|- 3-bit --|- 3-bit --|- 5-bit -|
+	|-------- DATA -------|-- REG2 --|-- REG ---|-- OP ---|
+
+If REG is a CCL register symbol (e.g. r0, r1...), the register
+number is embedded.  If OP is one of unconditional jumps, DATA is
+changed to a relative jump address."
   (if (and (> data 0) (get op 'jump-flag))
       ;; DATA is an absolute jump address.  Make it relative to the
       ;; next of jump code.
@@ -261,25 +260,25 @@
 			(ash data 8)))))
     (ccl-embed-data code)))
 
-;; extended ccl command format
-;;	|- 14-bit -|- 3-bit --|- 3-bit --|- 3-bit --|- 5-bit -|
-;;	|- EX-OP --|-- REG3 --|-- REG2 --|-- REG ---|-- OP ---|
 (defun ccl-embed-extended-command (ex-op reg reg2 reg3)
+  "extended ccl command format
+	|- 14-bit -|- 3-bit --|- 3-bit --|- 3-bit --|- 5-bit -|
+	|- EX-OP --|-- REG3 --|-- REG2 --|-- REG ---|-- OP ---|"
   (let ((data (logior (ash (get ex-op 'ccl-ex-code) 3)
 		      (if (symbolp reg3)
 			  (get reg3 'ccl-register-number)
 			0))))
     (ccl-embed-code 'ex-cmd reg data reg2)))
 
-;; Just advance `ccl-current-ic' by INC.
 (defun ccl-increment-ic (inc)
+  "Just advance `ccl-current-ic' by INC."
   (setq ccl-current-ic (+ ccl-current-ic inc)))
 
-;; If non-nil, index of the start of the current loop.
-(defvar ccl-loop-head nil)
-;; If non-nil, list of absolute addresses of the breaking points of
-;; the current loop.
-(defvar ccl-breaks nil)
+(defvar ccl-loop-head nil
+  "If non-nil, index of the start of the current loop.")
+(defvar ccl-breaks nil
+  "If non-nil, list of absolute addresses of the breaking points of
+the current loop.")
 
 ;;;###autoload
 (defun ccl-compile (ccl-program)
@@ -321,26 +320,26 @@
       (setq i (1+ i)))
     vec))
 
-;; Signal syntax error.
 (defun ccl-syntax-error (cmd)
+  "Signal syntax error."
   (error "CCL: Syntax error: %s" cmd))
 
-;; Check if ARG is a valid CCL register.
 (defun ccl-check-register (arg cmd)
+  "Check if ARG is a valid CCL register."
   (if (get arg 'ccl-register-number)
       arg
     (error "CCL: Invalid register %s in %s" arg cmd)))
 
-;; Check if ARG is a valid CCL command.
 (defun ccl-check-compile-function (arg cmd)
+  "Check if ARG is a valid CCL command."
   (or (get arg 'ccl-compile-function)
       (error "CCL: Invalid command: %s" cmd)))
 
 ;; In the following code, most ccl-compile-XXXX functions return t if
 ;; they end with unconditional jump, else return nil.
 
-;; Compile CCL-BLOCK (see the syntax above).
 (defun ccl-compile-1 (ccl-block)
+  "Compile CCL-BLOCK (see the syntax above)."
   (let (unconditional-jump
 	cmd)
     (if (or (integerp ccl-block)
@@ -385,8 +384,8 @@
 (defconst ccl-max-short-const (ash 1 19))
 (defconst ccl-min-short-const (ash -1 19))
 
-;; Compile SET statement.
 (defun ccl-compile-set (cmd)
+  "Compile SET statement."
   (let ((rrr (ccl-check-register (car cmd) cmd))
 	(right (nth 2 cmd)))
     (cond ((listp right)
@@ -414,8 +413,8 @@
 	       (ccl-embed-code 'set-register rrr 0 right))))))
   nil)
 
-;; Compile SET statement with ASSIGNMENT_OPERATOR.
 (defun ccl-compile-self-set (cmd)
+  "Compile SET statement with ASSIGNMENT_OPERATOR."
   (let ((rrr (ccl-check-register (car cmd) cmd))
 	(right (nth 2 cmd)))
     (if (listp right)
@@ -432,8 +431,8 @@
      (list rrr (intern (substring (symbol-name (nth 1 cmd)) 0 -1)) right)))
   nil)
 
-;; Compile SET statement of the form `(RRR = EXPR)'.
 (defun ccl-compile-expression (rrr expr)
+  "Compile SET statement of the form `(RRR = EXPR)'."
   (let ((left (car expr))
 	(op (get (nth 1 expr) 'ccl-arith-code))
 	(right (nth 2 expr)))
@@ -466,17 +465,17 @@
 			(logior (ash op 3) (get right 'ccl-register-number))
 			left)))))
 
-;; Compile WRITE statement with string argument.
 (defun ccl-compile-write-string (str)
+  "Compile WRITE statement with string argument."
   (let ((len (length str)))
     (ccl-embed-code 'write-const-string 1 len)
     (ccl-embed-string len str))
   nil)
 
-;; Compile IF statement of the form `(if CONDITION TRUE-PART FALSE-PART)'.
-;; If READ-FLAG is non-nil, this statement has the form
-;; `(read-if (REG OPERATOR ARG) TRUE-PART FALSE-PART)'.
 (defun ccl-compile-if (cmd &optional read-flag)
+  "Compile IF statement of the form `(if CONDITION TRUE-PART FALSE-PART)'.
+If READ-FLAG is non-nil, this statement has the form
+`(read-if (REG OPERATOR ARG) TRUE-PART FALSE-PART)'."
   (if (and (/= (length cmd) 3) (/= (length cmd) 4))
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((condition (nth 1 cmd))
@@ -546,25 +545,25 @@
 	      (ccl-embed-current-address end-true-part-address))))
       unconditional-jump)))
 
-;; Compile BRANCH statement.
 (defun ccl-compile-branch (cmd)
+  "Compile BRANCH statement."
   (if (< (length cmd) 3)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (ccl-compile-branch-blocks 'branch
 			     (ccl-compile-branch-expression (nth 1 cmd) cmd)
 			     (cdr (cdr cmd))))
 
-;; Compile READ statement of the form `(read-branch EXPR BLOCK0 BLOCK1 ...)'.
 (defun ccl-compile-read-branch (cmd)
+  "Compile READ statement of the form `(read-branch EXPR BLOCK0 BLOCK1 ...)'."
   (if (< (length cmd) 3)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (ccl-compile-branch-blocks 'read-branch
 			     (ccl-compile-branch-expression (nth 1 cmd) cmd)
 			     (cdr (cdr cmd))))
 
-;; Compile EXPRESSION part of BRANCH statement and return register
-;; which holds a value of the expression.
 (defun ccl-compile-branch-expression (expr cmd)
+  "Compile EXPRESSION part of BRANCH statement and return register
+which holds a value of the expression."
   (if (listp expr)
       ;; EXPR has the form `(EXPR2 OP ARG)'.  Compile it as SET
       ;; statement of the form `(r7 = (EXPR2 OP ARG))'.
@@ -573,10 +572,10 @@
 	'r7)
     (ccl-check-register expr cmd)))
 
-;; Compile BLOCKs of BRANCH statement.  CODE is 'branch or 'read-branch.
-;; REG is a register which holds a value of EXPRESSION part.  BLOCKs
-;; is a list of CCL-BLOCKs.
 (defun ccl-compile-branch-blocks (code rrr blocks)
+  "Compile BLOCKs of BRANCH statement.  CODE is 'branch or 'read-branch.
+REG is a register which holds a value of EXPRESSION part.  BLOCKs
+is a list of CCL-BLOCKs."
   (let ((branches (length blocks))
 	branch-idx
 	jump-table-head-address
@@ -625,8 +624,8 @@
   ;; Branch command ends by unconditional jump if RRR is out of range.
   nil)
 
-;; Compile LOOP statement.
 (defun ccl-compile-loop (cmd)
+  "Compile LOOP statement."
   (if (< (length cmd) 2)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let* ((ccl-loop-head ccl-current-ic)
@@ -649,8 +648,8 @@
 	      (setq ccl-breaks (cdr ccl-breaks))))
 	  nil))))
 
-;; Compile BREAK statement.
 (defun ccl-compile-break (cmd)
+  "Compile BREAK statement."
   (if (/= (length cmd) 1)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (if (null ccl-loop-head)
@@ -659,8 +658,8 @@
   (ccl-embed-code 'jump 0 0)
   t)
 
-;; Compile REPEAT statement.
 (defun ccl-compile-repeat (cmd)
+  "Compile REPEAT statement."
   (if (/= (length cmd) 1)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (if (null ccl-loop-head)
@@ -668,8 +667,8 @@
   (ccl-embed-code 'jump 0 ccl-loop-head)
   t)
 
-;; Compile WRITE-REPEAT statement.
 (defun ccl-compile-write-repeat (cmd)
+  "Compile WRITE-REPEAT statement."
   (if (/= (length cmd) 2)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (if (null ccl-loop-head)
@@ -689,8 +688,8 @@
 	   (ccl-embed-code 'write-register-jump arg ccl-loop-head))))
   t)
 
-;; Compile WRITE-READ-REPEAT statement.
 (defun ccl-compile-write-read-repeat (cmd)
+  "Compile WRITE-READ-REPEAT statement."
   (if (or (< (length cmd) 2) (> (length cmd) 3))
       (error "CCL: Invalid number of arguments: %s" cmd))
   (if (null ccl-loop-head)
@@ -714,8 +713,8 @@
     (ccl-embed-code 'read-jump rrr ccl-loop-head))
   t)
 
-;; Compile READ statement.
 (defun ccl-compile-read (cmd)
+  "Compile READ statement."
   (if (< (length cmd) 2)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let* ((args (cdr cmd))
@@ -726,12 +725,12 @@
 	(setq args (cdr args) i (1- i)))))
   nil)
 
-;; Compile READ-IF statement.
 (defun ccl-compile-read-if (cmd)
+  "Compile READ-IF statement."
   (ccl-compile-if cmd 'read))
 
-;; Compile WRITE statement.
 (defun ccl-compile-write (cmd)
+  "Compile WRITE statement."
   (if (< (length cmd) 2)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((rrr (nth 1 cmd)))
@@ -789,8 +788,8 @@
 	   (error "CCL: Invalid argument: %s" cmd))))
   nil)
 
-;; Compile CALL statement.
 (defun ccl-compile-call (cmd)
+  "Compile CALL statement."
   (if (/= (length cmd) 2)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (if (not (symbolp (nth 1 cmd)))
@@ -799,15 +798,15 @@
   (ccl-embed-symbol (nth 1 cmd) 'ccl-program-idx)
   nil)
 
-;; Compile END statement.
 (defun ccl-compile-end (cmd)
+  "Compile END statement."
   (if (/= (length cmd) 1)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (ccl-embed-code 'end 0 0)
   t)
 
-;; Compile read-multibyte-character
 (defun ccl-compile-read-multibyte-character (cmd)
+  "Compile read-multibyte-character"
   (if (/= (length cmd) 3)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((RRR (nth 1 cmd))
@@ -817,8 +816,8 @@
     (ccl-embed-extended-command 'read-multibyte-character rrr RRR 0))
   nil)
 
-;; Compile write-multibyte-character
 (defun ccl-compile-write-multibyte-character (cmd)
+  "Compile write-multibyte-character"
   (if (/= (length cmd) 3)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((RRR (nth 1 cmd))
@@ -828,8 +827,8 @@
     (ccl-embed-extended-command 'write-multibyte-character rrr RRR 0))
   nil)
 
-;; Compile translate-character
 (defun ccl-compile-translate-character (cmd)
+  "Compile translate-character."
   (if (/= (length cmd) 4)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((Rrr (nth 1 cmd))
@@ -846,8 +845,8 @@
 	   (ccl-embed-extended-command 'translate-character rrr RRR Rrr))))
   nil)
 
-;; Compile lookup-integer
 (defun ccl-compile-lookup-integer (cmd)
+  "Compile lookup-integer."
   (if (/= (length cmd) 4)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((Rrr (nth 1 cmd))
@@ -866,8 +865,8 @@
 	   (ccl-embed-extended-command 'lookup-int rrr RRR 0))))
   nil)
 
-;; Compile lookup-character
 (defun ccl-compile-lookup-character (cmd)
+  "Compile lookup-character."
   (if (/= (length cmd) 4)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((Rrr (nth 1 cmd))
@@ -960,7 +959,6 @@
 
 ;;; CCL dump stuff
 
-;; To avoid byte-compiler warning.
 (defvar ccl-code)
 
 ;;;###autoload
@@ -987,8 +985,8 @@
       (ccl-dump-1))
     ))
 
-;; Return a CCL code in `ccl-code' at `ccl-current-ic'.
 (defun ccl-get-next-code ()
+  "Return a CCL code in `ccl-code' at `ccl-current-ic'."
   (prog1
       (aref ccl-code ccl-current-ic)
     (setq ccl-current-ic (1+ ccl-current-ic))))
