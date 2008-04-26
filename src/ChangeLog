@@ -1,3 +1,10 @@
+2008-04-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Undo change from
+	2008-03-31, it's not needed anymore with `struct stat' definition
+	on nt/inc/sys/stat.h.  Undo changes from 2007-01-12 and 2007-01-13
+	for the same reasons.
+
 2008-04-25  Chip Coldwell <coldwell@redhat.com>
 
 	* m/sparc.h: Additional redefinitions for GNU/Linux.
