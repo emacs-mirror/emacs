@@ -1528,16 +1528,6 @@ This allows it to improve the suggestion list based on actual mispellings."
 			      (delete-region start (point)))
 			  (setq more-lines (= 0 (forward-line))))))))))))))
 
-
-;; Insert WORD while translating Latin characters to the equivalent
-;; characters that is supported by buffer-file-coding-system.
-
-(defun ispell-insert-word (word)
-  (let ((pos (point)))
-    (insert word)
-    (if (char-table-p translation-table-for-input)
-	(translate-region pos (point) translation-table-for-input))))
-
 ;;;###autoload
 (defun ispell-word (&optional following quietly continue region)
   "Check spelling of word under or before the cursor.
@@ -1647,7 +1637,7 @@ quit          spell session exited."
 			  ;; Insert first and then delete,
 			  ;; to avoid collapsing markers before and after
 			  ;; into a single place.
-			  (ispell-insert-word new-word)
+			  (insert new-word)
 			  (delete-region (point) end)
 			  ;; It is meaningless to preserve the cursor position
 			  ;; inside a word that has changed.
@@ -3078,7 +3068,7 @@ Returns the sum SHIFT due to changes in word replacements."
 	      (delete-region (point) (+ word-len (point)))
 	      (if (not (listp replace))
 		  (progn
-		    (ispell-insert-word replace) ; insert dictionary word
+		    (insert replace) ; insert dictionary word
 		    (ispell-send-replacement (car poss) replace)
 		    (setq accept-list (cons replace accept-list)))
 		(let ((replace-word (car replace)))
@@ -3248,7 +3238,7 @@ Standard ispell choices are then available."
 	     (setq word (if (atom replacement) replacement (car replacement))
 		   cursor-location (+ (- (length word) (- end start))
 				      cursor-location))
-	     (ispell-insert-word word)
+	     (insert word)
 	     (if (not (atom replacement)) ; recheck spelling of replacement.
 		 (progn
 		   (goto-char cursor-location)
