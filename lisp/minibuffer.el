@@ -258,7 +258,7 @@ the second failed attempt to complete."
      completion-pcm-try-completion completion-pcm-all-completions))
   "List of available completion styles.
 Each element has the form (NAME TRY-COMPLETION ALL-COMPLETIONS)
-where NAME is the name that should be used in `completion-styles'
+where NAME is the name that should be used in `completion-styles',
 TRY-COMPLETION is the function that does the completion, and
 ALL-COMPLETIONS is the function that lists the completions.")
 
@@ -295,7 +295,7 @@ a new position for point."
   "List the possible completions of STRING in completion table TABLE.
 Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
-The return value is a list of completions and may contain the BASE-SIZE
+The return value is a list of completions and may contain the base-size
 in the last `cdr'."
   ;; The property `completion-styles' indicates that this functional
   ;; completion-table claims to take care of completion styles itself.
@@ -1072,6 +1072,7 @@ expression (not containing character ranges like `a-z')."
          ;; Refresh other vars.
          (completion-pcm--prepare-delim-re value))
   :initialize 'custom-initialize-reset
+  :group 'minibuffer
   :type 'string)
 
 (defun completion-pcm--pattern-trivial-p (pattern)
@@ -1090,7 +1091,7 @@ or a symbol chosen among `any', `star', `point'."
     (let ((pattern nil)
           (p 0)
           (p0 0))
-    
+
       (while (setq p (string-match completion-pcm--delim-wild-regex basestr p))
         (push (substring basestr p0 p) pattern)
         (if (eq (aref basestr p) ?*)
@@ -1117,13 +1118,13 @@ or a symbol chosen among `any', `star', `point'."
 
 (defun completion-pcm--all-completions (pattern table pred)
   "Find all completions for PATTERN in TABLE obeying PRED.
-PATTERN is as returned by `complete-string->pattern'."
+PATTERN is as returned by `completion-pcm--string->pattern'."
   ;; Find an initial list of possible completions.
   (if (completion-pcm--pattern-trivial-p pattern)
 
       ;; Minibuffer contains no delimiters -- simple case!
       (all-completions (car pattern) table pred)
-	
+
     ;; Use all-completions to do an initial cull.  This is a big win,
     ;; since all-completions is written in C!
     (let* (;; Convert search pattern to a standard regular expression.
@@ -1218,8 +1219,6 @@ PATTERN is as returned by `complete-string->pattern'."
              ;; Do it afterwards because it changes `pointpat' by sideeffect.
              (merged (completion-pcm--pattern->string (nreverse mergedpat))))
         (cons merged (- (length merged) newpos))))))
-              
-        
 
 
 (provide 'minibuffer)
