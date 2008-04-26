@@ -17158,6 +17158,7 @@
 	Recognize gcc's use of "note" for informational messages.
 
 2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* textmodes/css-mode.el (css-electric-keys): electrick->electric.
 	(css-mode): Update correspondingly.
 
