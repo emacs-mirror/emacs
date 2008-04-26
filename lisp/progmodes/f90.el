@@ -39,7 +39,6 @@
 
 ;; To facilitate typing, a fairly complete list of abbreviations is provided.
 ;; All abbreviations begin with the backquote character "`"
-;; (this requires modification of the syntax-table).
 ;; For example, `i expands to integer (if abbrev-mode is on).
 
 ;; There are two separate features for altering the appearance of code:
@@ -601,6 +600,8 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
           (list
            f90-keywords-level-3-re
            f90-operators-re
+           ;; FIXME why isn't this font-lock-builtin-face, which
+           ;; otherwise we hardly use, as in fortran.el?
            (list f90-procedures-re '(1 font-lock-keyword-face keep))
            "\\<real\\>"                 ; avoid overwriting real defs
            ;; As an attribute, but not as an optional argument.
