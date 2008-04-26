@@ -196,6 +196,9 @@ Emacs initialization.
 ** The minor modes unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 are obsolete.
 
+** The new commands `pp-macroexpand-expression' and `pp-macroexpand-last-sexp'
+pretty-print macro expansions.
+
 
 * Startup Changes in Emacs 23.1
 
