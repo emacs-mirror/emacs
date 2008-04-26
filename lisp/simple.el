@@ -665,10 +665,11 @@ In binary overwrite mode, this function does overwrite, and octal
 digits are interpreted as a character code.  This is intended to be
 useful for editing binary files."
   (interactive "*p")
-  (let* ((char (if (or (not overwrite-mode)
-                       (eq overwrite-mode 'overwrite-mode-binary))
-                   (read-quoted-char)
-                 (read-char))))
+  (let* ((char (let (translation-table-for-input input-method-function)
+		 (if (or (not overwrite-mode)
+			 (eq overwrite-mode 'overwrite-mode-binary))
+		     (read-quoted-char)
+		   (read-char)))))
     ;; Assume character codes 0240 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
@@ -3100,6 +3101,8 @@ and KILLP is t if a prefix arg was specified."
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
   (interactive "p\ncZap to char: ")
+  (if (char-table-p translation-table-for-input)
+      (setq char (or (aref translation-table-for-input char) char)))
   (kill-region (point) (progn
 			 (search-forward (char-to-string char) nil nil arg)
 ;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
