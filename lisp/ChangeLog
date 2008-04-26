@@ -1,3 +1,10 @@
+2008-04-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-pcm-word-delimiters): Add :group.
+	(completion-pcm--all-completions): Doc fix.
+	(completion-styles-alist, completion-all-completions):
+	Fix typos in docstrings.
+
 2008-04-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: There is now only one variable (whitespace-style) to
@@ -20,8 +27,8 @@
 	(whitespace-toggle-color, whitespace-toggle-mark): Vars removed.
 	(whitespace-style-value-list, whitespace-active-style)
 	(whitespace-toggle-style): New vars.
-	(whitespace-toggle-option-alist, whitespace-help-text): Var
-	initialization and docstring fix.
+	(whitespace-toggle-option-alist, whitespace-help-text):
+	Var initialization and docstring fix.
 	(whitespace-toggle-options, global-whitespace-toggle-options)
 	(whitespace-cleanup, whitespace-cleanup-region)
 	(whitespace-report-region, whitespace-interactive-char)
@@ -17151,7 +17158,6 @@
 	Recognize gcc's use of "note" for informational messages.
 
 2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
-
 	* textmodes/css-mode.el (css-electric-keys): electrick->electric.
 	(css-mode): Update correspondingly.
 
