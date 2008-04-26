@@ -96,15 +96,10 @@ can handle, whenever this is possible.
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
-;;;###autoload
-(defun pp-eval-expression (expression)
-  "Evaluate EXPRESSION and pretty-print its value.
-Also add the value to the front of the list in the variable `values'."
-  (interactive
-   (list (read-from-minibuffer "Eval: " nil read-expression-map t
-			       'read-expression-history)))
-  (message "Evaluating...")
-  (setq values (cons (eval expression) values))
+(defun pp-display-expression (expression out-buffer-name)
+  "Prettify and display EXPRESSION in an appropriate way, depending on length.
+If a temporary buffer is needed for representation, it will be named
+after OUT-BUFFER-NAME."
   (let* ((old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all
@@ -128,23 +123,37 @@ Also add the value to the front of the list in the variable `values'."
 			   (select-window window)
 			   (run-hooks 'temp-buffer-show-hook))
 		       (select-window old-selected)
-		       (message "Evaluating...done.  \
-See buffer *Pp Eval Output*.")))
+		       (message "See buffer %s." out-buffer-name)))
 		 (message "%s" (buffer-substring (point-min) (point)))
 		 ))))))
-    (with-output-to-temp-buffer "*Pp Eval Output*"
-      (pp (car values))
+    (with-output-to-temp-buffer out-buffer-name
+      (pp expression)
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
 	(setq buffer-read-only nil)
 	(set (make-local-variable 'font-lock-verbose) nil)))))
 
 ;;;###autoload
-(defun pp-eval-last-sexp (arg)
-  "Run `pp-eval-expression' on sexp before point (which see).
-With argument, pretty-print output into current buffer.
-Ignores leading comment characters."
-  (interactive "P")
+(defun pp-eval-expression (expression)
+  "Evaluate EXPRESSION and pretty-print its value.
+Also add the value to the front of the list in the variable `values'."
+  (interactive
+   (list (read-from-minibuffer "Eval: " nil read-expression-map t
+			       'read-expression-history)))
+  (message "Evaluating...")
+  (setq values (cons (eval expression) values))
+  (pp-display-expression (car values) "*Pp Eval Output*"))
+
+;;;###autoload
+(defun pp-macroexpand-expression (expression)
+  "Macroexpand EXPRESSION and pretty-print its value."
+  (interactive
+   (list (read-from-minibuffer "Macroexpand: " nil read-expression-map t
+			       'read-expression-history)))
+  (pp-display-expression (macroexpand expression) "*Pp Macroexpand Output*"))
+
+(defun pp-last-sexp ()
+  "Read sexp before point.  Ignores leading comment characters."
   (let ((stab (syntax-table)) (pt (point)) start exp)
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (save-excursion
@@ -160,9 +169,27 @@ Ignores leading comment characters."
 	    (setq exp (read exp)))
 	(setq exp (read (current-buffer)))))
     (set-syntax-table stab)
-    (if arg
-	(insert (pp-to-string (eval exp)))
-      (pp-eval-expression exp))))
+    exp))
+
+;;;###autoload
+(defun pp-eval-last-sexp (arg)
+  "Run `pp-eval-expression' on sexp before point.
+With argument, pretty-print output into current buffer.
+Ignores leading comment characters."
+  (interactive "P")
+  (if arg
+      (insert (pp-to-string (eval (pp-last-sexp))))
+    (pp-eval-expression (pp-last-sexp))))
+
+;;;###autoload
+(defun pp-macroexpand-last-sexp (arg)
+  "Run `pp-macroexpand-expression' on sexp before point.
+With argument, pretty-print output into current buffer.
+Ignores leading comment characters."
+  (interactive "P")
+  (if arg
+      (insert (pp-to-string (macroexpand (pp-last-sexp))))
+    (pp-macroexpand-expression (pp-last-sexp))))
 
 ;;; Test cases for quote
 ;; (pp-eval-expression ''(quote quote))
