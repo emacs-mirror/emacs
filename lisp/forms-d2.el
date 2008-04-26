@@ -30,7 +30,7 @@
 ;;; Code:
 
 ;; Set the name of the data file.
-(setq forms-file "forms-d2.dat")
+(setq forms-file (expand-file-name "forms-d2.dat" data-directory))
 
 ;; Use 'forms-enumerate' to set field names and number thereof.
 (setq forms-number-of-fields
