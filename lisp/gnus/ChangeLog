@@ -1,8 +1,33 @@
+2008-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail-source.el: Load auth-source.el.
+	(mail-source-bind): Add comments.  Call auth-source-user-or-password to
+	get user name or password, if auth-sources is set up.
+
+	* gnus-registry.el (gnus-registry-split-strategy): New variable for
+	strategy of splitting with parent.
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-post-process-groups): Use it and fix prior
+	bug (returning a list as the split result).
+
+	* auth-source.el (auth-sources): Remove server parameter.
+	(auth-source-pick, auth-source-user-or-password)
+	(auth-source-user-or-password-imap)
+	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
+	(auth-source-user-or-password-sftp)
+	(auth-source-user-or-password-smtp): Remove server parameter.
+
 2008-04-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* smime.el (smime-sign-region, smime-encrypt-region)
 	(smime-decrypt-region):
 	Remove redundant calls to `generate-new-buffer-name'.
+
+2008-04-24  Luca Capello  <luca@pca.it>  (tiny change)
+
+	* mm-encode.el (mm-safer-encoding): Add optional argument `type'.
+	Don't use QP for message/rfc822.
+	(mm-content-transfer-encoding): Pass `type' to mm-safer-encoding.
 
 2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 

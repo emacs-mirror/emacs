@@ -36,6 +36,7 @@
   (require 'cl)
   (require 'imap))
 (eval-and-compile
+  (autoload 'auth-source-user-or-password "auth-source")
   (autoload 'pop3-movemail "pop3")
   (autoload 'pop3-get-message-count "pop3")
   (autoload 'nnheader-cancel-timer "nnheader"))
@@ -43,7 +44,6 @@
 (require 'message) ;; for `message-directory'
 
 (defvar display-time-mail-function)
-
 
 (defgroup mail-source nil
   "The mail-fetching library."
@@ -420,6 +420,8 @@ All keywords that can be used must be listed here."))
     "Strip the leading colon off the KEYWORD."
     (intern (substring (symbol-name keyword) 1))))
 
+;; generate a list of variable names paired with nil values
+;; suitable for usage in a `let' form
 (eval-and-compile
   (defun mail-source-bind-1 (type)
     (let* ((defaults (cdr (assq type mail-source-keyword-map)))
@@ -438,14 +440,30 @@ At run time, the mail source specifier SOURCE will be inspected,
 and the variables will be set according to it.  Variables not
 specified will be given default values.
 
+The user and password will be loaded from the auth-source values
+if those are available.  They override the original user and
+password in a second `let' form.
+
 After this is done, BODY will be executed in the scope
-of the `let' form.
+of the second `let' form.
 
 The variables bound and their default values are described by
 the `mail-source-keyword-map' variable."
-  `(let ,(mail-source-bind-1 (car type-source))
+  `(let* ,(mail-source-bind-1 (car type-source))
      (mail-source-set-1 ,(cadr type-source))
-     ,@body))
+     (let ((user (or
+		  (auth-source-user-or-password 
+		   "login"
+		   server	      ; this is "host" in auth-sources
+		   ',(car type-source))
+		  user))
+	   (password (or
+		      (auth-source-user-or-password 
+		       "password"
+		       server	      ; this is "host" in auth-sources
+		       ',(car type-source))
+		      password)))
+       ,@body)))
 
 (put 'mail-source-bind 'lisp-indent-function 1)
 (put 'mail-source-bind 'edebug-form-spec '(sexp body))
@@ -455,6 +473,8 @@ the `mail-source-keyword-map' variable."
 	 (defaults (cdr (assq type mail-source-keyword-map)))
 	 default value keyword)
     (while (setq default (pop defaults))
+      ;; for each default :SYMBOL, set SYMBOL to the plist value for :SYMBOL
+      ;; using `mail-source-value' to evaluate the plist value
       (set (mail-source-strip-keyword (setq keyword (car default)))
 	   (if (setq value (plist-get source keyword))
 	       (mail-source-value value)
