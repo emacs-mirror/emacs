@@ -1,3 +1,9 @@
+2008-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/ispell.el (ispell-insert-word): Revert previous change.
+
+	* simple.el (quoted-insert, zap-to-char): Revert previous change.
+
 2008-04-26  John Paul Wallington  <jpw@pobox.com>
 
 	* hexl.el (hexl-mode): Stash `eldoc-documentation-function' in
