@@ -120,6 +120,7 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-mode-old-require-final-newline)
 (defvar hexl-mode-old-syntax-table)
 (defvar hexl-mode-old-font-lock-keywords)
+(defvar hexl-mode-old-eldoc-documentation-function)
 
 (defvar hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
@@ -288,6 +289,10 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
+    (make-local-variable 'hexl-mode-old-eldoc-documentation-function)
+    (setq hexl-mode-old-eldoc-documentation-function
+	  (bound-and-true-p eldoc-documentation-function))
+
     (set (make-local-variable 'eldoc-documentation-function)
 	 'hexl-print-current-point-info)
     (eldoc-add-command-completions "hexl-")
@@ -404,6 +409,10 @@ With arg, don't unhexlify buffer."
     (setq hl-line-range-function hexl-mode-old-hl-line-range-function))
   (when (boundp 'hexl-mode-old-hl-line-face)
     (setq hl-line-face hexl-mode-old-hl-line-face))
+
+  (when (boundp 'hexl-mode-old-eldoc-documentation-function)
+    (setq eldoc-documentation-function
+	  hexl-mode-old-eldoc-documentation-function))
 
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
