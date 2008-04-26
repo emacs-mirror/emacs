@@ -96,14 +96,19 @@ This variable should never be set directly, but bound before a call to
       "application/octet-stream"
     (mailcap-extension-to-mime (match-string 0 file))))
 
-(defun mm-safer-encoding (encoding)
+(defun mm-safer-encoding (encoding &optional type)
   "Return an encoding similar to ENCODING but safer than it."
   (cond
    ((eq encoding '7bit) '7bit) ;; 7bit is considered safe.
-   ((memq encoding '(8bit quoted-printable)) 'quoted-printable)
+   ((memq encoding '(8bit quoted-printable))
+    ;; According to RFC2046, 5.2.1, RFC822 Subtype, "quoted-printable" is not
+    ;; a valid encoding for message/rfc822:
+    ;; No encoding other than "7bit", "8bit", or "binary" is permitted for the
+    ;; body of a "message/rfc822" entity.
+    (if (string= type "message/rfc822") '8bit 'quoted-printable))
    ;; The remaining encodings are binary and base64 (and perhaps some
    ;; non-standard ones), which are both turned into base64.
-   (t 'base64)))
+   (t (if (string= type "message/rfc822") 'binary 'base64))))
 
 (defun mm-encode-content-transfer-encoding (encoding &optional type)
   "Encode the current buffer with ENCODING for MIME type TYPE.
@@ -178,7 +183,7 @@ The encoding used is returned."
 			    (mm-qp-or-base64)
 			  (cadr (car rules)))))
 		   (if mm-use-ultra-safe-encoding
-		       (mm-safer-encoding encoding)
+		       (mm-safer-encoding encoding type)
 		     encoding))))
 	(pop rules)))))
 

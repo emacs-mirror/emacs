@@ -1,3 +1,9 @@
+2008-04-24  Luca Capello  <luca@pca.it>  (tiny change)
+
+	* mm-encode.el (mm-safer-encoding): Add optional argument `type'.
+	Don't use QP for message/rfc822.
+	(mm-content-transfer-encoding): Pass `type' to mm-safer-encoding.
+
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	[Backport GNKSA related changes from the Gnus trunk.]
