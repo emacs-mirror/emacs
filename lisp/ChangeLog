@@ -1,3 +1,33 @@
+2008-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (define-abbrev): Don't use `iff' in doc-strings.
+
+	* forms-d2.dat: Move to ../etc.
+	* forms-d2.el (forms-file): Adapt for above change.
+
+	* simple.el (quoted-insert, zap-to-char): Remove uses of obsolete
+	`translation-table-for-input'.
+
+	* emacs-lisp/bytecomp.el (byte-compile-warn-obsolete): New function.
+	(byte-compile-obsolete, byte-compile-variable-ref): Use it.
+
+	* progmodes/fortran.el (fortran-mode-syntax-table): Change `;'
+	to punctuation now it's not needed for abbrevs.
+	(fortran-mode-abbrev-table): Remove defvar, make use of new
+	define-abbrev-table :regexp feature.
+
+	* textmodes/ispell.el (ispell-insert-word): Remove, and replace with
+	insert, now that translation-table-for-input is not needed.
+
+2008-04-26  Johannes Weiner  <hannes@saeurebad.de>
+
+	* emacs-lisp/pp.el (pp-display-expression): New function,
+	extracted from pp-eval-expression.
+	(pp-eval-expression): Use pp-display-expression.
+	(pp-macroexpand-expression, pp-macroexpand-last-sexp): New functions.
+	(pp-last-sexp): New function, extracted from pp-eval-last-sexp.
+	(pp-eval-last-sexp): Use pp-last-sexp.
+
 2008-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (define-abbrev-table): Apply props even if the table
