@@ -2404,6 +2404,10 @@ IGNORE-WORDS List of words which should be removed from the string."
  '(define-key bibtex-mode-map "\C-c&" 'reftex-view-crossref-from-bibtex))
 
 ;; If the user requests so, she can have a few more bindings:
+;; For most of these commands there are already bindings in place.
+;; Setting `reftex-extra-bindings' really is only there to spare users
+;; the hassle of defining bindings in the user space themselves.  This
+;; is why they violate the key binding recommendations.
 (when reftex-extra-bindings
   (loop for x in
         '(("\C-ct" . reftex-toc)
