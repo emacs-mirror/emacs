@@ -114,10 +114,21 @@ You should give VAR a non-nil `risky-local-variable' property."
   ;; TODO: add `suffix' maybe?
   ;; Notice that `pred' is not a predicate when called from read-file-name
   ;; or Info-read-node-name-2.
-  (if (functionp pred)
-      (setq pred (lexical-let ((pred pred))
-                   ;; FIXME: this doesn't work if `table' is an obarray.
-                   (lambda (s) (funcall pred (concat prefix s))))))
+  (when (functionp pred)
+    (setq pred
+          (lexical-let ((pred pred))
+            ;; Predicates are called differently depending on the nature of
+            ;; the completion table :-(
+            (cond
+             ((vectorp table)           ;Obarray.
+              (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
+             ((hash-table-p table)
+              (lambda (s v) (funcall pred (concat prefix s))))
+             ((functionp table)
+              (lambda (s) (funcall pred (concat prefix s))))
+             (t                         ;Lists and alists.
+              (lambda (s)
+                (funcall pred (concat prefix (if (consp s) (car s) s)))))))))
   (let ((comp (complete-with-action action table string pred)))
     (cond
      ;; In case of try-completion, add the prefix.
@@ -243,16 +254,15 @@ the second failed attempt to complete."
   '((basic completion-basic-try-completion completion-basic-all-completions)
     (emacs22 completion-emacs22-try-completion completion-emacs22-all-completions)
     (emacs21 completion-emacs21-try-completion completion-emacs21-all-completions)
-    ;; (partial-completion
-    ;;  completion-pcm--try-completion completion-pcm--all-completions)
-    )
+    (partial-completion
+     completion-pcm-try-completion completion-pcm-all-completions))
   "List of available completion styles.
 Each element has the form (NAME TRY-COMPLETION ALL-COMPLETIONS)
 where NAME is the name that should be used in `completion-styles'
 TRY-COMPLETION is the function that does the completion, and
 ALL-COMPLETIONS is the function that lists the completions.")
 
-(defcustom completion-styles '(basic)
+(defcustom completion-styles '(basic partial-completion)
   "List of completion styles to use."
   :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
                                    completion-styles-alist)))
@@ -1002,19 +1012,215 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
       ;; Merge a trailing / in completion with a / after point.
       ;; We used to only do it for word completion, but it seems to make
       ;; sense for all completions.
-      (if (and (eq ?/ (aref completion (1- (length completion))))
+      ;; Actually, claiming this feature was part of Emacs-22 completion
+      ;; is pushing it a bit: it was only done in minibuffer-completion-word,
+      ;; which was (by default) not bound during file completion, where such
+      ;; slashes are most likely to occur.
+      (if (and (not (zerop (length completion)))
+               (eq ?/ (aref completion (1- (length completion))))
                (not (zerop (length suffix)))
                (eq ?/ (aref suffix 0)))
-          ;; This leaves point before the / .
-          ;; Should we maybe put it after the / ?  --Stef
-          (setq completion (substring completion 0 -1)))
+          ;; This leaves point after the / .
+          (setq suffix (substring suffix 1)))
       (cons (concat completion suffix) (length completion)))))
 
 (defun completion-emacs22-all-completions (string table pred point)
   (all-completions (substring string 0 point) table pred t))
 
-(defalias 'completion-basic-try-completion 'completion-emacs22-try-completion)
+(defun completion-basic-try-completion (string table pred point)
+  (let ((suffix (substring string point))
+        (completion (try-completion (substring string 0 point) table pred)))
+    (if (not (stringp completion))
+        completion
+      ;; Merge end of completion with beginning of suffix.
+      ;; Simple generalization of the "merge trailing /" done in Emacs-22.
+      (when (and (not (zerop (length suffix)))
+                 (string-match "\\(.+\\)\n\\1" (concat completion "\n" suffix)
+                               ;; Make sure we don't compress things to less
+                               ;; than we started with.
+                               point)
+                 ;; Just make sure we didn't match some other \n.
+                 (eq (match-end 1) (length completion)))
+        (setq suffix (substring suffix (- (match-end 1) (match-beginning 1)))))
+
+      (cons (concat completion suffix) (length completion)))))
+
 (defalias 'completion-basic-all-completions 'completion-emacs22-all-completions)
+
+;;; Partial-completion-mode style completion.
+
+;; BUGS:
+
+;; - "minibuffer-s- TAB" with minibuffer-selected-window ends up with
+;;   "minibuffer--s-" which matches other options.
+
+(defvar completion-pcm--delim-wild-regex nil)
+
+(defun completion-pcm--prepare-delim-re (delims)
+  (setq completion-pcm--delim-wild-regex (concat "[" delims "*]")))
+
+(defcustom completion-pcm-word-delimiters "-_. "
+  "A string of characters treated as word delimiters for completion.
+Some arcane rules:
+If `]' is in this string, it must come first.
+If `^' is in this string, it must not come first.
+If `-' is in this string, it must come first or right after `]'.
+In other words, if S is this string, then `[S]' must be a valid Emacs regular
+expression (not containing character ranges like `a-z')."
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         ;; Refresh other vars.
+         (completion-pcm--prepare-delim-re value))
+  :initialize 'custom-initialize-reset
+  :type 'string)
+
+(defun completion-pcm--pattern-trivial-p (pattern)
+  (and (stringp (car pattern)) (null (cdr pattern))))
+
+(defun completion-pcm--string->pattern (basestr &optional point)
+  "Split BASESTR into a pattern.
+A pattern is a list where each element is either a string
+or a symbol chosen among `any', `star', `point'."
+  (if (and point (< point (length basestr)))
+      (let ((prefix (substring basestr 0 point))
+            (suffix (substring basestr point)))
+        (append (completion-pcm--string->pattern prefix)
+                '(point)
+                (completion-pcm--string->pattern suffix)))
+    (let ((pattern nil)
+          (p 0)
+          (p0 0))
+    
+      (while (setq p (string-match completion-pcm--delim-wild-regex basestr p))
+        (push (substring basestr p0 p) pattern)
+        (if (eq (aref basestr p) ?*)
+            (progn
+              (push 'star pattern)
+              (setq p0 (1+ p)))
+          (push 'any pattern)
+          (setq p0 p))
+        (incf p))
+
+      ;; An empty string might be erroneously added at the beginning.
+      ;; It should be avoided properly, but it's so easy to remove it here.
+      (delete "" (nreverse (cons (substring basestr p0) pattern))))))
+
+(defun completion-pcm--pattern->regex (pattern &optional group)
+  (concat "\\`"
+          (mapconcat
+           (lambda (x)
+             (case x
+               ((star any point) (if group "\\(.*?\\)" ".*?"))
+               (t (regexp-quote x))))
+           pattern
+           "")))
+
+(defun completion-pcm--all-completions (pattern table pred)
+  "Find all completions for PATTERN in TABLE obeying PRED.
+PATTERN is as returned by `complete-string->pattern'."
+  ;; Find an initial list of possible completions.
+  (if (completion-pcm--pattern-trivial-p pattern)
+
+      ;; Minibuffer contains no delimiters -- simple case!
+      (all-completions (car pattern) table pred)
+	
+    ;; Use all-completions to do an initial cull.  This is a big win,
+    ;; since all-completions is written in C!
+    (let* (;; Convert search pattern to a standard regular expression.
+	   (regex (completion-pcm--pattern->regex pattern))
+	   (completion-regexp-list (cons regex completion-regexp-list))
+	   (compl (all-completions
+                   (if (stringp (car pattern)) (car pattern))
+		   table pred))
+           (last (last compl)))
+      ;; FIXME: If `base-size' is not 0, we have a problem :-(
+      (if last (setcdr last nil))
+      (if (not (functionp table))
+	  ;; The internal functions already obeyed completion-regexp-list.
+	  compl
+	(let ((case-fold-search completion-ignore-case)
+              (poss ()))
+	  (dolist (c compl)
+	    (when (string-match regex c) (push c poss)))
+	  poss)))))
+
+(defun completion-pcm-all-completions (string table pred point)
+  (let ((pattern (completion-pcm--string->pattern string point)))
+    (completion-pcm--all-completions pattern table pred)))
+
+(defun completion-pcm--merge-completions (strs pattern)
+  "Extract the commonality in STRS, with the help of PATTERN."
+  (cond
+   ((null (cdr strs)) (list (car strs)))
+   (t
+    (let ((re (completion-pcm--pattern->regex pattern 'group))
+          (ccs ()))                     ;Chopped completions.
+
+      ;; First chop each string into the parts corresponding to each
+      ;; non-constant element of `pattern', using regexp-matching.
+      (let ((case-fold-search completion-ignore-case))
+        (dolist (str strs)
+          (unless (string-match re str)
+            (error "Internal error: %s doesn't match %s" str re))
+          (let ((chopped ())
+                (i 1))
+            (while (match-beginning i)
+              (push (match-string i str) chopped)
+              (setq i (1+ i)))
+            ;; Add the text corresponding to the implicit trailing `any'.
+            (push (substring str (match-end 0)) chopped)
+            (push (nreverse chopped) ccs))))
+
+      ;; Then for each of those non-constant elements, extract the
+      ;; commonality between them.
+      (let ((res ()))
+        ;; Make the implicit `any' explicit.  We could make it explicit
+        ;; everywhere, but it would slow down regexp-matching a little bit.
+        (dolist (elem (append pattern '(any)))
+          (if (stringp elem)
+              (push elem res)
+            (let ((comps ()))
+              (dolist (cc (prog1 ccs (setq ccs nil)))
+                (push (car cc) comps)
+                (push (cdr cc) ccs))
+              (let* ((prefix (try-completion "" comps))
+                     (unique (or (and (eq prefix t) (setq prefix ""))
+                                 (eq t (try-completion prefix comps)))))
+                (unless (equal prefix "") (push prefix res))
+                ;; If there's only one completion, `elem' is not useful
+                ;; any more: it can only match the empty string.
+                ;; FIXME: in some cases, it may be necessary to turn an
+                ;; `any' into a `star' because the surrounding context has
+                ;; changed such that string->pattern wouldn't add an `any'
+                ;; here any more.
+                (unless unique (push elem res))))))
+        ;; We return it in reverse order.
+        res)))))
+
+(defun completion-pcm--pattern->string (pattern)
+  (mapconcat (lambda (x) (cond
+                     ((stringp x) x)
+                     ((eq x 'star) "*")
+                     ((eq x 'any) "")
+                     ((eq x 'point) "")))
+             pattern
+             ""))
+
+(defun completion-pcm-try-completion (string table pred point)
+  (let* ((pattern (completion-pcm--string->pattern string point))
+         (all (completion-pcm--all-completions pattern table pred)))
+    (when all
+      (let* ((mergedpat (completion-pcm--merge-completions all pattern))
+             ;; `mergedpat' is in reverse order.
+             (pointpat (or (memq 'point mergedpat) (memq 'any mergedpat)))
+             ;; New pos from the end.
+             (newpos (length (completion-pcm--pattern->string pointpat)))
+             ;; Do it afterwards because it changes `pointpat' by sideeffect.
+             (merged (completion-pcm--pattern->string (nreverse mergedpat))))
+        (cons merged (- (length merged) newpos))))))
+              
+        
+
 
 (provide 'minibuffer)
 

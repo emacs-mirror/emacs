@@ -1,3 +1,22 @@
+2008-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-context): Fix `pred' for the
+	various kinds of completion tables.
+	(completion-emacs22-try-completion): Place cursor after the /, as was
+	done in Emacs-22's minibuffer-complete-word.
+	Fix bug reported by David Hansen <david.hansen@gmx.net>.
+	(completion-emacs22-try-completion): Merge all mergable text rather
+	than just /.
+	(completion-pcm--delim-wild-regex): New var.
+	(completion-pcm-word-delimiters): New custom.
+	(completion-pcm--prepare-delim-re, completion-pcm--pattern-trivial-p)
+	(completion-pcm--string->pattern, completion-pcm--pattern->regex)
+	(completion-pcm--all-completions, completion-pcm-all-completions)
+	(completion-pcm--merge-completions, completion-pcm--pattern->string)
+	(completion-pcm-try-completion): New functions.
+	(completion-styles-alist): Add them.
+	(completion-styles): Add it to the default.
+
 2008-04-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gud-watch): Don't create speedbar...
