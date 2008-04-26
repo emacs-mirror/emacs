@@ -1,3 +1,12 @@
+2008-04-26  John Paul Wallington  <jpw@pobox.com>
+
+	* hexl.el (hexl-mode): Stash `eldoc-documentation-function' in
+	`hexl-mode-old-eldoc-documentation-function'.
+	(hexl-mode-exit): Restore it.
+	(hexl-mode-old-eldoc-documentation-function): Declare for compiler.
+
+	* w32-fns.el (top-level): Don't set `completion-ignore-case' to t.
+
 2008-04-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (completion-pcm-word-delimiters): Add :group.
