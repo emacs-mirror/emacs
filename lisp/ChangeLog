@@ -1,3 +1,36 @@
+2008-04-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: There is now only one variable (whitespace-style) to
+	specify which kind of blank is visualized.  Doc and docstring fix. New
+	version 11.0.
+	(whitespace-style): New option, replace whitespace-style-mark and
+	whitespace-style-color.
+	(whitespace-style-mark, whitespace-style-color): Options removed.
+	(whitespace-hspace, whitespace-tab, whitespace-newline)
+	(whitespace-trailing, whitespace-line, whitespace-space-before-tab)
+	(whitespace-indentation, whitespace-empty, whitespace-space-after-tab)
+	(whitespace-hspace-regexp, whitespace-space-regexp)
+	(whitespace-tab-regexp, whitespace-trailing-regexp)
+	(whitespace-space-before-tab-regexp, whitespace-indentation-regexp)
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp)
+	(whitespace-space-after-tab-regexp, whitespace-line-column)
+	(whitespace-display-mappings, whitespace-report): Docstring fix.
+	(whitespace-color-value-list, whitespace-mark-value-list)
+	(whitespace-active-color, whitespace-active-mark)
+	(whitespace-toggle-color, whitespace-toggle-mark): Vars removed.
+	(whitespace-style-value-list, whitespace-active-style)
+	(whitespace-toggle-style): New vars.
+	(whitespace-toggle-option-alist, whitespace-help-text): Var
+	initialization and docstring fix.
+	(whitespace-toggle-options, global-whitespace-toggle-options)
+	(whitespace-cleanup, whitespace-cleanup-region)
+	(whitespace-report-region, whitespace-interactive-char)
+	(whitespace-toggle-list): Docstring and code fix.
+	(whitespace-insert-option-mark, whitespace-help-on, whitespace-turn-on)
+	(whitespace-turn-off, whitespace-color-on, whitespace-color-off)
+	(whitespace-display-char-on, whitespace-display-char-off): Code fix.
+	(whitespace-style-face-p, whitespace-style-mark-p): New fun.
+
 2008-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-hunk-header-re-unified): Allow elided line counts.

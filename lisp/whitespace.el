@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 10.0
+;; Version: 11.0
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -46,8 +46,8 @@
 ;;   it provides a visual mark for characters, for example, at the end
 ;;   of line (?\xB6), at SPACEs (?\xB7) and at TABs (?\xBB).
 ;;
-;; The `whitespace-style-mark' and `whitespace-style-color' variables
-;; are used to select which way should be used to visualize blanks.
+;; The `whitespace-style' variable is used to select which way should
+;; be used to visualize blanks.
 ;;
 ;; Note that when whitespace is turned on, whitespace saves the
 ;; font-lock state, that is, if font-lock is on or off.  And
@@ -178,41 +178,39 @@
 ;;
 ;; 1. empty lines at beginning of buffer.
 ;; 2. empty lines at end of buffer.
-;;    If `whitespace-style-color' includes the value `empty', remove
-;;    all empty lines at beginning and/or end of buffer.
+;;    If `whitespace-style' includes the value `empty', remove all
+;;    empty lines at beginning and/or end of buffer.
 ;;
 ;; 3. 8 or more SPACEs at beginning of line.
-;;    If `whitespace-style-color' includes the value `indentation':
+;;    If `whitespace-style' includes the value `indentation':
 ;;    replace 8 or more SPACEs at beginning of line by TABs, if
 ;;    `indent-tabs-mode' is non-nil; otherwise, replace TABs by
 ;;    SPACEs.
-;;    If `whitespace-style-color' includes the value
-;;    `indentation::tab', replace 8 or more SPACEs at beginning of line
-;;    by TABs.
-;;    If `whitespace-style-color' includes the value
-;;    `indentation::space', replace TABs by SPACEs.
+;;    If `whitespace-style' includes the value `indentation::tab',
+;;    replace 8 or more SPACEs at beginning of line by TABs.
+;;    If `whitespace-style' includes the value `indentation::space',
+;;    replace TABs by SPACEs.
 ;;
 ;; 4. SPACEs before TAB.
-;;    If `whitespace-style-color' includes the value
-;;    `space-before-tab': replace SPACEs by TABs, if
-;;    `indent-tabs-mode' is non-nil; otherwise, replace TABs by
-;;    SPACEs.
-;;    If `whitespace-style-color' includes the value
+;;    If `whitespace-style' includes the value `space-before-tab':
+;;    replace SPACEs by TABs, if `indent-tabs-mode' is non-nil;
+;;    otherwise, replace TABs by SPACEs.
+;;    If `whitespace-style' includes the value
 ;;    `space-before-tab::tab', replace SPACEs by TABs.
-;;    If `whitespace-style-color' includes the value
+;;    If `whitespace-style' includes the value
 ;;    `space-before-tab::space', replace TABs by SPACEs.
 ;;
 ;; 5. SPACEs or TABs at end of line.
-;;    If `whitespace-style-color' includes the value `trailing',
-;;    remove all SPACEs or TABs at end of line.
+;;    If `whitespace-style' includes the value `trailing', remove all
+;;    SPACEs or TABs at end of line.
 ;;
 ;; 6. 8 or more SPACEs after TAB.
-;;    If `whitespace-style-color' includes the value
-;;    `space-after-tab': replace SPACEs by TABs, if `indent-tabs-mode'
-;;    is non-nil; otherwise, replace TABs by SPACEs.
-;;    If `whitespace-style-color' includes the value
-;;    `space-after-tab::tab', replace SPACEs by TABs.
-;;    If `whitespace-style-color' includes the value
+;;    If `whitespace-style' includes the value `space-after-tab':
+;;    replace SPACEs by TABs, if `indent-tabs-mode' is non-nil;
+;;    otherwise, replace TABs by SPACEs.
+;;    If `whitespace-style' includes the value `space-after-tab::tab',
+;;    replace SPACEs by TABs.
+;;    If `whitespace-style' includes the value
 ;;    `space-after-tab::space', replace TABs by SPACEs.
 ;;
 ;;
@@ -237,11 +235,8 @@
 ;; Below it's shown a brief description of whitespace options, please,
 ;; see the options declaration in the code for a long documentation.
 ;;
-;; `whitespace-style-mark'	Specify which kind of blank is
-;;				visualized via display table.
-;;
-;; `whitespace-style-color'	Specify which kind of blank is
-;;				visualized via faces.
+;; `whitespace-style'		Specify which kind of blank is
+;;				visualized.
 ;;
 ;; `whitespace-space'		Face used to visualize SPACE.
 ;;
@@ -374,103 +369,91 @@
   :group 'data)
 
 
-(defcustom whitespace-style-mark '(space-mark tab-mark newline-mark)
-  "*Specify which kind of blank is visualized via display table.
-
-It's a list containing some or all of the following values:
-
-   space-mark	SPACEs and HARD SPACEs are visualized.
-
-   tab-mark	TABs are visualized.
-
-   newline-mark	NEWLINEs are visualized.
-
-Any other value is ignored.
-
-If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs via display
-table.
-
-See also `whitespace-display-mappings' for documentation."
-  :type '(repeat :tag "Kind of Blank Mark"
-		 (choice :tag "Kind of Blank Mark"
-			 (const :tag "SPACEs and HARD SPACEs"
-				space-mark)
-			 (const :tag "TABs" tab-mark)
-			 (const :tag "NEWLINEs" newline-mark)))
-  :group 'whitespace)
-
-
-(defcustom whitespace-style-color
+(defcustom whitespace-style
   '(tabs spaces trailing lines space-before-tab newline
-	 indentation empty space-after-tab)
-  "*Specify which kind of blank is visualized via faces.
+	 indentation empty space-after-tab
+	 space-mark tab-mark newline-mark)
+  "*Specify which kind of blank is visualized.
 
 It's a list containing some or all of the following values:
 
-   trailing		trailing blanks are visualized.
+   trailing		trailing blanks are visualized via faces.
 
-   tabs			TABs are visualized.
+   tabs			TABs are visualized via faces.
 
-   spaces		SPACEs and HARD SPACEs are visualized.
+   spaces		SPACEs and HARD SPACEs are visualized via
+			faces.
 
    lines		lines whose have columns beyond
-			`whitespace-line-column' are highlighted.
+			`whitespace-line-column' are highlighted via
+			faces .
 			Whole line is highlighted.
-			It has precedence over
-			`lines-tail' (see below).
+			It has precedence over `lines-tail' (see
+			below).
 
    lines-tail		lines whose have columns beyond
-			`whitespace-line-column' are highlighted.
+			`whitespace-line-column' are highlighted via
+			faces.
 			But only the part of line which goes
 			beyond `whitespace-line-column' column.
 			It has effect only if `lines' (see above)
-			is not present in `whitespace-style-color'.
+			is not present in `whitespace-style'.
 
-   newline		NEWLINEs are visualized.
+   newline		NEWLINEs are visualized via faces.
 
    empty		empty lines at beginning and/or end of buffer
-			are visualized.
+			are visualized via faces.
 
    indentation::tab	8 or more SPACEs at beginning of line are
-			visualized.
+			visualized via faces.
 
-   indentation::space	TABs at beginning of line are visualized.
+   indentation::space	TABs at beginning of line are visualized via
+			faces.
 
    indentation		8 or more SPACEs at beginning of line are
 			visualized, if `indent-tabs-mode' (which see)
 			is non-nil; otherwise, TABs at beginning of
-			line are visualized.
+			line are visualized via faces.
 
    space-after-tab::tab		8 or more SPACEs after a TAB are
-				visualized.
+				visualized via faces.
 
    space-after-tab::space	TABs are visualized when occurs 8 or
-				more SPACEs after a TAB.
+				more SPACEs after a TAB via faces.
 
    space-after-tab		8 or more SPACEs after a TAB are
 				visualized, if `indent-tabs-mode'
 				(which see) is non-nil; otherwise,
-				the TABs are visualized.
+				the TABs are visualized via faces.
 
-   space-before-tab::tab	SPACEs before TAB are visualized.
+   space-before-tab::tab	SPACEs before TAB are visualized via
+				faces.
 
    space-before-tab::space	TABs are visualized when occurs SPACEs
-				before TAB.
+				before TAB via faces.
 
    space-before-tab		SPACEs before TAB are visualized, if
 				`indent-tabs-mode' (which see) is
 				non-nil; otherwise, the TABs are
-				visualized.
+				visualized via faces.
+
+   space-mark		SPACEs and HARD SPACEs are visualized via
+			display table.
+
+   tab-mark		TABs are visualized via display table.
+
+   newline-mark		NEWLINEs are visualized via display table.
 
 Any other value is ignored.
 
-If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs via faces.
+If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs via faces and
+via display table.
 
 There is an evaluation order for some values, if some values are
-included in `whitespace-style-color' list.  For example, if
+included in `whitespace-style' list.  For example, if
 indentation, indentation::tab and/or indentation::space are
-included in `whitespace-style-color' list.  The evaluation order
-for these values is:
+included in `whitespace-style' list.  The evaluation order for
+these values is:
 
  * For indentation:
    1. indentation
@@ -488,30 +471,38 @@ for these values is:
    3. space-before-tab::space
 
 So, for example, if indentation and indentation::space are
-included in `whitespace-style-color' list, the indentation value
-is evaluated instead of indentation::space value."
-  :type '(repeat :tag "Kind of Blank Face"
+included in `whitespace-style' list, the indentation value is
+evaluated instead of indentation::space value.
+
+See also `whitespace-display-mappings' for documentation."
+  :type '(repeat :tag "Kind of Blank"
 		 (choice :tag "Kind of Blank Face"
-			 (const :tag "Trailing TABs, SPACEs and HARD SPACEs"
+			 (const :tag "(Face) Trailing TABs, SPACEs and HARD SPACEs"
 				trailing)
-			 (const :tag "SPACEs and HARD SPACEs" spaces)
-			 (const :tag "TABs" tabs)
-			 (const :tag "Lines" lines)
-			 (const :tag "SPACEs before TAB"
+			 (const :tag "(Face) SPACEs and HARD SPACEs"
+				spaces)
+			 (const :tag "(Face) TABs" tabs)
+			 (const :tag "(Face) Lines" lines)
+			 (const :tag "(Face) SPACEs before TAB"
 				space-before-tab)
-			 (const :tag "NEWLINEs" newline)
-			 (const :tag "Indentation SPACEs" indentation)
-			 (const :tag "Empty Lines At BOB And/Or EOB"
+			 (const :tag "(Face) NEWLINEs" newline)
+			 (const :tag "(Face) Indentation SPACEs"
+				indentation)
+			 (const :tag "(Face) Empty Lines At BOB And/Or EOB"
 				empty)
-			 (const :tag "SPACEs after TAB"
-				space-after-tab)))
+			 (const :tag "(Face) SPACEs after TAB"
+				space-after-tab)
+			 (const :tag "(Mark) SPACEs and HARD SPACEs"
+				space-mark)
+			 (const :tag "(Mark) TABs" tab-mark)
+			 (const :tag "(Mark) NEWLINEs" newline-mark)))
   :group 'whitespace)
 
 
 (defcustom whitespace-space 'whitespace-space
   "*Symbol face used to visualize SPACE.
 
-Used when `whitespace-style-color' includes the value `spaces'."
+Used when `whitespace-style' includes the value `spaces'."
   :type 'face
   :group 'whitespace)
 
@@ -529,7 +520,7 @@ Used when `whitespace-style-color' includes the value `spaces'."
 (defcustom whitespace-hspace 'whitespace-hspace
   "*Symbol face used to visualize HARD SPACE.
 
-Used when `whitespace-style-color' includes the value `spaces'."
+Used when `whitespace-style' includes the value `spaces'."
   :type 'face
   :group 'whitespace)
 
@@ -547,7 +538,7 @@ Used when `whitespace-style-color' includes the value `spaces'."
 (defcustom whitespace-tab 'whitespace-tab
   "*Symbol face used to visualize TAB.
 
-Used when `whitespace-style-color' includes the value `tabs'."
+Used when `whitespace-style' includes the value `tabs'."
   :type 'face
   :group 'whitespace)
 
@@ -567,8 +558,8 @@ Used when `whitespace-style-color' includes the value `tabs'."
 
 See `whitespace-display-mappings'.
 
-Used when `whitespace-style-mark' includes the values `newline-mark'
-and `whitespace-style-color' includes `newline'."
+Used when `whitespace-style' includes the values `newline-mark'
+and `newline'."
   :type 'face
   :group 'whitespace)
 
@@ -588,7 +579,7 @@ See `whitespace-display-mappings'."
 (defcustom whitespace-trailing 'whitespace-trailing
   "*Symbol face used to visualize traling blanks.
 
-Used when `whitespace-style-color' includes the value `trailing'."
+Used when `whitespace-style' includes the value `trailing'."
   :type 'face
   :group 'whitespace)
 
@@ -605,7 +596,7 @@ Used when `whitespace-style-color' includes the value `trailing'."
 
 See `whitespace-line-column'.
 
-Used when `whitespace-style-color' includes the value `line'."
+Used when `whitespace-style' includes the value `line'."
   :type 'face
   :group 'whitespace)
 
@@ -622,7 +613,7 @@ See `whitespace-line-column'."
 (defcustom whitespace-space-before-tab 'whitespace-space-before-tab
   "*Symbol face used to visualize SPACEs before TAB.
 
-Used when `whitespace-style-color' includes the value `space-before-tab'."
+Used when `whitespace-style' includes the value `space-before-tab'."
   :type 'face
   :group 'whitespace)
 
@@ -637,7 +628,7 @@ Used when `whitespace-style-color' includes the value `space-before-tab'."
 (defcustom whitespace-indentation 'whitespace-indentation
   "*Symbol face used to visualize 8 or more SPACEs at beginning of line.
 
-Used when `whitespace-style-color' includes the value `indentation'."
+Used when `whitespace-style' includes the value `indentation'."
   :type 'face
   :group 'whitespace)
 
@@ -652,7 +643,7 @@ Used when `whitespace-style-color' includes the value `indentation'."
 (defcustom whitespace-empty 'whitespace-empty
   "*Symbol face used to visualize empty lines at beginning and/or end of buffer.
 
-Used when `whitespace-style-color' includes the value `empty'."
+Used when `whitespace-style' includes the value `empty'."
   :type 'face
   :group 'whitespace)
 
@@ -667,7 +658,7 @@ Used when `whitespace-style-color' includes the value `empty'."
 (defcustom whitespace-space-after-tab 'whitespace-space-after-tab
   "*Symbol face used to visualize 8 or more SPACEs after TAB.
 
-Used when `whitespace-style-color' includes the value `space-after-tab'."
+Used when `whitespace-style' includes the value `space-after-tab'."
   :type 'face
   :group 'whitespace)
 
@@ -703,7 +694,7 @@ visualize only HARD SPACEs between TABs.
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style-color' includes `spaces'."
+Used when `whitespace-style' includes `spaces'."
   :type '(regexp :tag "HARD SPACE Chars")
   :group 'whitespace)
 
@@ -725,7 +716,7 @@ visualize leading and/or trailing SPACEs.
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style-color' includes `spaces'."
+Used when `whitespace-style' includes `spaces'."
   :type '(regexp :tag "SPACE Chars")
   :group 'whitespace)
 
@@ -747,7 +738,7 @@ visualize leading and/or trailing TABs.
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style-color' includes `tabs'."
+Used when `whitespace-style' includes `tabs'."
   :type '(regexp :tag "TAB Chars")
   :group 'whitespace)
 
@@ -767,7 +758,7 @@ NOTE: DO NOT enclose by \\\\( and \\\\) the elements to highlight.
       `whitespace-mode' surrounds this regexp by \"\\\\(\\\\(\" and
       \"\\\\)+\\\\)$\".
 
-Used when `whitespace-style-color' includes `trailing'."
+Used when `whitespace-style' includes `trailing'."
   :type '(regexp :tag "Trailing Chars")
   :group 'whitespace)
 
@@ -782,7 +773,7 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-Used when `whitespace-style-color' includes `space-before-tab',
+Used when `whitespace-style' includes `space-before-tab',
 `space-before-tab::tab' or  `space-before-tab::space'."
   :type '(regexp :tag "SPACEs Before TAB")
   :group 'whitespace)
@@ -803,7 +794,7 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-Used when `whitespace-style-color' includes `indentation',
+Used when `whitespace-style' includes `indentation',
 `indentation::tab' or  `indentation::space'."
   :type '(cons (regexp :tag "Indentation SPACEs")
 	       (regexp :tag "Indentation TABs"))
@@ -820,7 +811,7 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-Used when `whitespace-style-color' includes `empty'."
+Used when `whitespace-style' includes `empty'."
   :type '(regexp :tag "Empty Lines At Beginning Of Buffer")
   :group 'whitespace)
 
@@ -835,7 +826,7 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-Used when `whitespace-style-color' includes `empty'."
+Used when `whitespace-style' includes `empty'."
   :type '(regexp :tag "Empty Lines At End Of Buffer")
   :group 'whitespace)
 
@@ -855,7 +846,7 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-Used when `whitespace-style-color' includes `space-after-tab',
+Used when `whitespace-style' includes `space-after-tab',
 `space-after-tab::tab' or `space-after-tab::space'."
   :type '(regexp :tag "SPACEs After TAB")
   :group 'whitespace)
@@ -864,7 +855,7 @@ Used when `whitespace-style-color' includes `space-after-tab',
 (defcustom whitespace-line-column 80
   "*Specify column beyond which the line is highlighted.
 
-Used when `whitespace-style-color' includes `lines' or `lines-tail'."
+Used when `whitespace-style' includes `lines' or `lines-tail'."
   :type '(integer :tag "Line Length")
   :group 'whitespace)
 
@@ -920,7 +911,8 @@ VECTOR	is a vector of characters to be displayed in place of CHAR.
 The NEWLINE character is displayed using the face given by
 `whitespace-newline' variable.
 
-Used when `whitespace-style-mark' is non-nil."
+Used when `whitespace-style' includes `tab-mark', `space-mark' or
+`newline-mark'."
   :type '(repeat
 	  (list :tag "Character Mapping"
 		(choice :tag "Char Kind"
@@ -983,7 +975,7 @@ It's a list containing some or all of the following values:
 			when local whitespace is turned on.
 
    auto-cleanup		cleanup any bogus whitespace when buffer is
-			written or killed. 
+			written or killed.
 			See `whitespace-cleanup' and
 			`whitespace-cleanup-region'.
 
@@ -1090,7 +1082,7 @@ Only useful with a windowing system."
 ;;;; User commands - Toggle
 
 
-(defconst whitespace-color-value-list
+(defconst whitespace-style-value-list
   '(tabs
     spaces
     trailing
@@ -1107,21 +1099,16 @@ Only useful with a windowing system."
     space-before-tab
     space-before-tab::tab
     space-before-tab::space
-    )
-  "List of valid `whitespace-style-color' values.")
-
-
-(defconst whitespace-mark-value-list
-  '(tab-mark
+    help-newline       ; value used by `whitespace-insert-option-mark'
+    tab-mark
     space-mark
     newline-mark
     )
-  "List of valid `whitespace-style-mark' values.")
+  "List of valid `whitespace-style' values.")
 
 
 (defconst whitespace-toggle-option-alist
-  '( ;; `whitespace-color-value-list' values
-    (?t    . tabs)
+  '((?t    . tabs)
     (?s    . spaces)
     (?r    . trailing)
     (?l    . lines)
@@ -1137,13 +1124,10 @@ Only useful with a windowing system."
     (?\C-b . space-before-tab)
     (?B    . space-before-tab::tab)
     (?b    . space-before-tab::space)
-    ;; `whitespace-mark-value-list' values
     (?T    . tab-mark)
     (?S    . space-mark)
     (?N    . newline-mark)
-    ;; restore values
-    (?x    . whitespace-style-color)
-    (?z    . whitespace-style-mark)
+    (?x    . whitespace-style)
     )
   "Alist of toggle options.
 
@@ -1156,15 +1140,11 @@ Where:
 CHAR	is a char which the user will have to type.
 
 SYMBOL	is a valid symbol associated with CHAR.
-	See `whitespace-color-value-list' and
-	`whitespace-mark-value-list'.")
+	See `whitespace-style-value-list'.")
 
 
-(defvar whitespace-active-color nil
-  "Used to save locally `whitespace-style-color' value.")
-
-(defvar whitespace-active-mark nil
-  "Used to save locally `whitespace-style-mark' value.")
+(defvar whitespace-active-style nil
+  "Used to save locally `whitespace-style' value.")
 
 (defvar whitespace-indent-tabs-mode indent-tabs-mode
   "Used to save locally `indent-tabs-mode' value.")
@@ -1209,8 +1189,7 @@ Interactively, it reads one of the following chars:
    S	toggle SPACEs before TAB visualization
    N	toggle NEWLINE visualization
 
-   x	restore `whitespace-style-color' value
-   z	restore `whitespace-style-mark' value
+   x	restore `whitespace-style' value
    ?	display brief help
 
 Non-interactively, ARG should be a symbol or a list of symbols.
@@ -1237,30 +1216,20 @@ The valid symbols are:
    space-mark		toggle SPACEs before TAB visualization
    newline-mark		toggle NEWLINE visualization
 
-   whitespace-style-color	restore `whitespace-style-color' value
-   whitespace-style-mark	restore `whitespace-style-mark' value
+   whitespace-style	restore `whitespace-style' value
 
 Only useful with a windowing system.
 
-See `whitespace-style-color', `whitespace-style-mark' and
-`indent-tabs-mode' for documentation."
+See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char t))
-  (let ((whitespace-style-color
-	 (whitespace-toggle-list
-	  t arg whitespace-active-color whitespace-style-color
-	  'whitespace-style-color whitespace-color-value-list))
-	(whitespace-style-mark
-	 (whitespace-toggle-list
-	  t arg whitespace-active-mark whitespace-style-mark
-	  'whitespace-style-mark whitespace-mark-value-list)))
+  (let ((whitespace-style
+	 (whitespace-toggle-list t arg whitespace-active-style)))
     (whitespace-mode 0)
     (whitespace-mode 1)))
 
 
-(defvar whitespace-toggle-color nil
-  "Used to toggle the global `whitespace-style-color' value.")
-(defvar whitespace-toggle-mark  nil
-  "Used to toggle the global `whitespace-style-mark' value.")
+(defvar whitespace-toggle-style nil
+  "Used to toggle the global `whitespace-style' value.")
 
 
 ;;;###autoload
@@ -1299,8 +1268,7 @@ Interactively, it accepts one of the following chars:
    S	toggle SPACEs before TAB visualization
    N	toggle NEWLINE visualization
 
-   x	restore `whitespace-style-color' value
-   z	restore `whitespace-style-mark' value
+   x	restore `whitespace-style' value
    ?	display brief help
 
 Non-interactively, ARG should be a symbol or a list of symbols.
@@ -1327,24 +1295,15 @@ The valid symbols are:
    space-mark		toggle SPACEs before TAB visualization
    newline-mark		toggle NEWLINE visualization
 
-   whitespace-style-color	restore `whitespace-style-color' value
-   whitespace-style-mark	restore `whitespace-style-mark' value
+   whitespace-style	restore `whitespace-style' value
 
 Only useful with a windowing system.
 
-See `whitespace-style-color', `whitespace-style-mark' and
-`indent-tabs-mode' for documentation."
+See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char nil))
-  (let ((whitespace-style-color
-	 (whitespace-toggle-list
-	  nil arg whitespace-toggle-color whitespace-style-color
-	  'whitespace-style-color whitespace-color-value-list))
-	(whitespace-style-mark
-	 (whitespace-toggle-list
-	  nil arg whitespace-toggle-mark whitespace-style-mark
-	  'whitespace-style-mark whitespace-mark-value-list)))
-    (setq whitespace-toggle-color whitespace-style-color
-	  whitespace-toggle-mark  whitespace-style-mark)
+  (let ((whitespace-style
+	 (whitespace-toggle-list nil arg whitespace-toggle-style)))
+    (setq whitespace-toggle-style whitespace-style)
     (global-whitespace-mode 0)
     (global-whitespace-mode 1)))
 
@@ -1369,44 +1328,43 @@ The problems cleaned up are:
 
 1. empty lines at beginning of buffer.
 2. empty lines at end of buffer.
-   If `whitespace-style-color' includes the value `empty', remove all
+   If `whitespace-style' includes the value `empty', remove all
    empty lines at beginning and/or end of buffer.
 
 3. 8 or more SPACEs at beginning of line.
-   If `whitespace-style-color' includes the value `indentation':
+   If `whitespace-style' includes the value `indentation':
    replace 8 or more SPACEs at beginning of line by TABs, if
    `indent-tabs-mode' is non-nil; otherwise, replace TABs by
    SPACEs.
-   If `whitespace-style-color' includes the value
-   `indentation::tab', replace 8 or more SPACEs at beginning of
-   line by TABs.
-   If `whitespace-style-color' includes the value
-   `indentation::space', replace TABs by SPACEs.
+   If `whitespace-style' includes the value `indentation::tab',
+   replace 8 or more SPACEs at beginning of line by TABs.
+   If `whitespace-style' includes the value `indentation::space',
+   replace TABs by SPACEs.
 
 4. SPACEs before TAB.
-   If `whitespace-style-color' includes the value `space-before-tab':
+   If `whitespace-style' includes the value `space-before-tab':
    replace SPACEs by TABs, if `indent-tabs-mode' is non-nil;
    otherwise, replace TABs by SPACEs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-before-tab::tab', replace SPACEs by TABs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-before-tab::space', replace TABs by SPACEs.
 
 5. SPACEs or TABs at end of line.
-   If `whitespace-style-color' includes the value `trailing', remove
+   If `whitespace-style' includes the value `trailing', remove
    all SPACEs or TABs at end of line.
 
 6. 8 or more SPACEs after TAB.
-   If `whitespace-style-color' includes the value `space-after-tab':
+   If `whitespace-style' includes the value `space-after-tab':
    replace SPACEs by TABs, if `indent-tabs-mode' is non-nil;
    otherwise, replace TABs by SPACEs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-after-tab::tab', replace SPACEs by TABs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-after-tab::space', replace TABs by SPACEs.
 
-See `whitespace-style-color', `indent-tabs-mode' and `tab-width'
-for documentation."
+See `whitespace-style', `indent-tabs-mode' and `tab-width' for
+documentation."
   (interactive "@*")
   (if (and (or transient-mark-mode
 	       current-prefix-arg)
@@ -1424,7 +1382,7 @@ for documentation."
 	;; PROBLEM 1: empty lines at bob
 	;; PROBLEM 2: empty lines at eob
 	;; ACTION: remove all empty lines at bob and/or eob
-	(when (memq 'empty whitespace-style-color)
+	(when (memq 'empty whitespace-style)
 	  (let (overwrite-mode)		; enforce no overwrite
 	    (goto-char (point-min))
 	    (when (re-search-forward
@@ -1447,40 +1405,39 @@ for documentation."
 The problems cleaned up are:
 
 1. 8 or more SPACEs at beginning of line.
-   If `whitespace-style-color' includes the value `indentation':
+   If `whitespace-style' includes the value `indentation':
    replace 8 or more SPACEs at beginning of line by TABs, if
    `indent-tabs-mode' is non-nil; otherwise, replace TABs by
    SPACEs.
-   If `whitespace-style-color' includes the value
-   `indentation::tab', replace 8 or more SPACEs at beginning of
-   line by TABs.
-   If `whitespace-style-color' includes the value
-   `indentation::space', replace TABs by SPACEs.
+   If `whitespace-style' includes the value `indentation::tab',
+   replace 8 or more SPACEs at beginning of line by TABs.
+   If `whitespace-style' includes the value `indentation::space',
+   replace TABs by SPACEs.
 
 2. SPACEs before TAB.
-   If `whitespace-style-color' includes the value `space-before-tab':
+   If `whitespace-style' includes the value `space-before-tab':
    replace SPACEs by TABs, if `indent-tabs-mode' is non-nil;
    otherwise, replace TABs by SPACEs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-before-tab::tab', replace SPACEs by TABs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-before-tab::space', replace TABs by SPACEs.
 
 3. SPACEs or TABs at end of line.
-   If `whitespace-style-color' includes the value `trailing', remove
+   If `whitespace-style' includes the value `trailing', remove
    all SPACEs or TABs at end of line.
 
 4. 8 or more SPACEs after TAB.
-   If `whitespace-style-color' includes the value `space-after-tab':
+   If `whitespace-style' includes the value `space-after-tab':
    replace SPACEs by TABs, if `indent-tabs-mode' is non-nil;
    otherwise, replace TABs by SPACEs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-after-tab::tab', replace SPACEs by TABs.
-   If `whitespace-style-color' includes the value
+   If `whitespace-style' includes the value
    `space-after-tab::space', replace TABs by SPACEs.
 
-See `whitespace-style-color', `indent-tabs-mode' and `tab-width'
-for documentation."
+See `whitespace-style', `indent-tabs-mode' and `tab-width' for
+documentation."
   (interactive "@*r")
   (let ((rstart           (min start end))
 	(rend             (copy-marker (max start end)))
@@ -1495,7 +1452,7 @@ for documentation."
 	 ;; ACTION: replace 8 or more SPACEs at bol by TABs, if
 	 ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs by
 	 ;; SPACEs.
-	 ((memq 'indentation whitespace-style-color)
+	 ((memq 'indentation whitespace-style)
 	  (let ((regexp (whitespace-indentation-regexp)))
 	    (goto-char rstart)
 	    (while (re-search-forward regexp rend t)
@@ -1505,18 +1462,18 @@ for documentation."
 	      (unless (eolp)
 		(indent-to tmp)))))
 	 ;; ACTION: replace 8 or more SPACEs at bol by TABs.
-	 ((memq 'indentation::tab whitespace-style-color)
+	 ((memq 'indentation::tab whitespace-style)
 	  (whitespace-replace-action
 	   'tabify rstart rend
 	   (whitespace-indentation-regexp 'tab) 0))
 	 ;; ACTION: replace TABs by SPACEs.
-	 ((memq 'indentation::space whitespace-style-color)
+	 ((memq 'indentation::space whitespace-style)
 	  (whitespace-replace-action
 	   'untabify rstart rend
 	   (whitespace-indentation-regexp 'space) 0)))
 	;; PROBLEM 3: SPACEs or TABs at eol
 	;; ACTION: remove all SPACEs or TABs at eol
-	(when (memq 'trailing whitespace-style-color)
+	(when (memq 'trailing whitespace-style)
 	  (whitespace-replace-action
 	   'delete-region rstart rend
 	   (whitespace-trailing-regexp) 1))
@@ -1525,17 +1482,17 @@ for documentation."
 	 ;; ACTION: replace 8 or more SPACEs by TABs, if
 	 ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs by
 	 ;; SPACEs.
-	 ((memq 'space-after-tab whitespace-style-color)
+	 ((memq 'space-after-tab whitespace-style)
 	  (whitespace-replace-action
 	   (if whitespace-indent-tabs-mode 'tabify 'untabify)
 	   rstart rend (whitespace-space-after-tab-regexp) 1))
 	 ;; ACTION: replace 8 or more SPACEs by TABs.
-	 ((memq 'space-after-tab::tab whitespace-style-color)
+	 ((memq 'space-after-tab::tab whitespace-style)
 	  (whitespace-replace-action
 	   'tabify rstart rend
 	   (whitespace-space-after-tab-regexp 'tab) 1))
 	 ;; ACTION: replace TABs by SPACEs.
-	 ((memq 'space-after-tab::space whitespace-style-color)
+	 ((memq 'space-after-tab::space whitespace-style)
 	  (whitespace-replace-action
 	   'untabify rstart rend
 	   (whitespace-space-after-tab-regexp 'space) 1)))
@@ -1544,18 +1501,18 @@ for documentation."
 	 ;; ACTION: replace SPACEs before TAB by TABs, if
 	 ;; `indent-tabs-mode' is non-nil; otherwise, replace TABs by
 	 ;; SPACEs.
-	 ((memq 'space-before-tab whitespace-style-color)
+	 ((memq 'space-before-tab whitespace-style)
 	  (whitespace-replace-action
 	   (if whitespace-indent-tabs-mode 'tabify 'untabify)
 	   rstart rend whitespace-space-before-tab-regexp
 	   (if whitespace-indent-tabs-mode 1 2)))
 	 ;; ACTION: replace SPACEs before TAB by TABs.
-	 ((memq 'space-before-tab::tab whitespace-style-color)
+	 ((memq 'space-before-tab::tab whitespace-style)
 	  (whitespace-replace-action
 	   'tabify rstart rend
 	   whitespace-space-before-tab-regexp 1))
 	 ;; ACTION: replace TABs by SPACEs.
-	 ((memq 'space-before-tab::space whitespace-style-color)
+	 ((memq 'space-before-tab::space whitespace-style)
 	  (whitespace-replace-action
 	   'untabify rstart rend
 	   whitespace-space-before-tab-regexp 2)))))
@@ -1685,7 +1642,7 @@ non-nil.
 
 If FORCE is non-nil or \\[universal-argument] was pressed just
 before calling `whitespace-report' interactively, it forces
-`whitespace-style-color' to have:
+`whitespace-style' to have:
 
    empty
    trailing
@@ -1714,8 +1671,7 @@ Report if some of the following whitespace problems exist:
    space-before-tab	5. SPACEs before TAB.
    space-after-tab	6. 8 or more SPACEs after TAB.
 
-See `whitespace-style-color' and `whitespace-style-mark' for
-documentation.
+See `whitespace-style' for documentation.
 See also `whitespace-cleanup' and `whitespace-cleanup-region' for
 cleaning up these problems."
   (interactive (list current-prefix-arg))
@@ -1732,7 +1688,7 @@ non-nil.
 
 If FORCE is non-nil or \\[universal-argument] was pressed just
 before calling `whitespace-report-region' interactively, it
-forces `whitespace-style-color' to have:
+forces `whitespace-style' to have:
 
    empty
    indentation
@@ -1761,8 +1717,7 @@ Report if some of the following whitespace problems exist:
    space-before-tab	5. SPACEs before TAB.
    space-after-tab	6. 8 or more SPACEs after TAB.
 
-See `whitespace-style-color' and `whitespace-style-mark' for
-documentation.
+See `whitespace-style' for documentation.
 See also `whitespace-cleanup' and `whitespace-cleanup-region' for
 cleaning up these problems."
   (interactive "r")
@@ -1776,8 +1731,7 @@ cleaning up these problems."
 	      (mapcar
 	       #'(lambda (option)
 		   (when force
-		     (add-to-list 'whitespace-style-color
-				  (car option)))
+		     (add-to-list 'whitespace-style (car option)))
 		   (goto-char rstart)
 		   (let ((regexp
 			  (cond
@@ -1815,7 +1769,7 @@ cleaning up these problems."
 	      (dolist (option whitespace-report-list)
 		(forward-line 1)
 		(whitespace-mark-x
-		 27 (memq (car option) whitespace-style-color))
+		 27 (memq (car option) whitespace-style))
 		(whitespace-mark-x 7 (car bogus-list))
 		(setq bogus-list (cdr bogus-list)))
 	      (forward-line 1)
@@ -1872,8 +1826,7 @@ cleaning up these problems."
  []  S - toggle SPACE and HARD SPACE visualization
  []  N - toggle NEWLINE visualization
 
-      x - restore `whitespace-style-color' value
-      z - restore `whitespace-style-mark' value
+      x - restore `whitespace-style' value
 
       ? - display this text\n\n"
   "Text for whitespace toggle options.")
@@ -1898,13 +1851,16 @@ cleaning up these problems."
 
 (defun whitespace-insert-option-mark (the-list the-value)
   "Insert the option mark ('X' or ' ') in toggle options buffer."
+  (goto-char (point-min))
   (forward-line 2)
   (dolist (sym  the-list)
-    (forward-line 1)
-    (whitespace-mark-x 2 (memq sym the-value))))
+    (if (eq sym 'help-newline)
+	(forward-line 2)
+      (forward-line 1)
+      (whitespace-mark-x 2 (memq sym the-value)))))
 
 
-(defun whitespace-help-on (chars style)
+(defun whitespace-help-on (style)
   "Display the whitespace toggle options."
   (unless (get-buffer whitespace-help-buffer-name)
     (delete-other-windows)
@@ -1913,11 +1869,8 @@ cleaning up these problems."
 	(set-buffer buffer)
 	(erase-buffer)
 	(insert whitespace-help-text)
-	(goto-char (point-min))
 	(whitespace-insert-option-mark
-	 whitespace-color-value-list chars)
-	(whitespace-insert-option-mark
-	 whitespace-mark-value-list style)
+	 whitespace-style-value-list style)
 	(whitespace-display-window buffer)))))
 
 
@@ -1981,20 +1934,16 @@ It accepts one of the following chars:
    S	toggle SPACE and HARD SPACE visualization
    N	toggle NEWLINE visualization
 
-   x	restore `whitespace-style-color' value
-   z	restore `whitespace-style-mark' value
+   x	restore `whitespace-style' value
    ?	display brief help
 
 See also `whitespace-toggle-option-alist'."
   (let* ((is-off (not (if local-p
 			  whitespace-mode
 			global-whitespace-mode)))
-	 (chars  (cond (is-off  whitespace-style-color) ; use default value
-		       (local-p whitespace-active-color)
-		       (t       whitespace-toggle-color)))
-	 (style  (cond (is-off  whitespace-style-mark) ; use default value
-		       (local-p whitespace-active-mark)
-		       (t       whitespace-toggle-mark)))
+	 (style  (cond (is-off  whitespace-style) ; use default value
+		       (local-p whitespace-active-style)
+		       (t       whitespace-toggle-style)))
 	 (prompt
 	  (format "Whitespace Toggle %s (type ? for further options)-"
 		  (if local-p "Local" "Global")))
@@ -2013,7 +1962,7 @@ See also `whitespace-toggle-option-alist'."
 			  (assq ch whitespace-toggle-option-alist)))))
 	      ;; while body
 	      (if (eq ch ?\?)
-		  (whitespace-help-on chars style)
+		  (whitespace-help-on style)
 		(ding)))
 	    (whitespace-help-off)
 	    (message " "))		; clean echo area
@@ -2024,8 +1973,7 @@ See also `whitespace-toggle-option-alist'."
     (list sym)))			; return the apropriate symbol
 
 
-(defun whitespace-toggle-list (local-p arg the-list default-list
-				       sym-restore sym-list)
+(defun whitespace-toggle-list (local-p arg the-list)
   "Toggle options in THE-LIST based on list ARG.
 
 If LOCAL-P is non-nil, it uses a local context; otherwise, it
@@ -2034,36 +1982,31 @@ uses a global context.
 ARG is a list of options to be toggled.
 
 THE-LIST is a list of options.  This list will be toggled and the
-resultant list will be returned.
-
-DEFAULT-LIST is the default list of options.  It is used to
-restore the options in THE-LIST.
-
-SYM-RESTORE is the symbol which indicates to restore the options
-in THE-LIST.
-
-SYM-LIST is a list of valid options, used to check if the ARG's
-options are valid."
+resultant list will be returned."
   (unless (if local-p whitespace-mode global-whitespace-mode)
-    (setq the-list default-list))
+    (setq the-list whitespace-style))
   (setq the-list (copy-sequence the-list)) ; keep original list
   (dolist (sym (if (listp arg) arg (list arg)))
     (cond
+     ;; ignore help value
+     ((eq sym 'help-newline))
      ;; restore default values
-     ((eq sym sym-restore)
-      (setq the-list default-list))
+     ((eq sym 'whitespace-style)
+      (setq the-list whitespace-style))
      ;; toggle valid values
-     ((memq sym sym-list)
+     ((memq sym whitespace-style-value-list)
       (setq the-list (if (memq sym the-list)
 			 (delq sym the-list)
 		       (cons sym the-list))))))
   the-list)
+
 
 (defvar whitespace-display-table nil
   "Used to save a local display table.")
 
 (defvar whitespace-display-table-was-local nil
   "Used to remember whether a buffer initially had a local display table.")
+
 
 (defun whitespace-turn-on ()
   "Turn on whitespace visualization."
@@ -2075,37 +2018,51 @@ options are valid."
   (set (make-local-variable 'whitespace-font-lock-keywords) nil)
   (set (make-local-variable 'whitespace-display-table) nil)
   (set (make-local-variable 'whitespace-display-table-was-local) nil)
-  (set (make-local-variable 'whitespace-active-mark)
-       (if (listp whitespace-style-mark)
-	   whitespace-style-mark
-	 (list whitespace-style-mark)))
-  (set (make-local-variable 'whitespace-active-color)
-       (if (listp whitespace-style-color)
-	   whitespace-style-color
-	 (list whitespace-style-color)))
+  (set (make-local-variable 'whitespace-active-style)
+       (if (listp whitespace-style)
+	   whitespace-style
+	 (list whitespace-style)))
   (set (make-local-variable 'whitespace-indent-tabs-mode)
        indent-tabs-mode)
   (set (make-local-variable 'whitespace-tab-width)
        tab-width)
   ;; turn on whitespace
-  (when whitespace-active-color
-    (whitespace-color-on))
-  (when whitespace-active-mark
+  (when whitespace-active-style
+    (whitespace-color-on)
     (whitespace-display-char-on)))
 
 
 (defun whitespace-turn-off ()
   "Turn off whitespace visualization."
   (whitespace-remove-local-hook)
-  (when whitespace-active-color
-    (whitespace-color-off))
-  (when whitespace-active-mark
+  (when whitespace-active-style
+    (whitespace-color-off)
     (whitespace-display-char-off)))
+
+
+(defun whitespace-style-face-p ()
+  "Return t if there is some visualization via face."
+  (or (memq 'tabs                    whitespace-active-style)
+      (memq 'spaces                  whitespace-active-style)
+      (memq 'trailing                whitespace-active-style)
+      (memq 'lines                   whitespace-active-style)
+      (memq 'lines-tail              whitespace-active-style)
+      (memq 'newline                 whitespace-active-style)
+      (memq 'empty                   whitespace-active-style)
+      (memq 'indentation             whitespace-active-style)
+      (memq 'indentation::tab        whitespace-active-style)
+      (memq 'indentation::space      whitespace-active-style)
+      (memq 'space-after-tab         whitespace-active-style)
+      (memq 'space-after-tab::tab    whitespace-active-style)
+      (memq 'space-after-tab::space  whitespace-active-style)
+      (memq 'space-before-tab        whitespace-active-style)
+      (memq 'space-before-tab::tab   whitespace-active-style)
+      (memq 'space-before-tab::space whitespace-active-style)))
 
 
 (defun whitespace-color-on ()
   "Turn on color visualization."
-  (when whitespace-active-color
+  (when (whitespace-style-face-p)
     (unless whitespace-font-lock
       (setq whitespace-font-lock t
 	    whitespace-font-lock-keywords
@@ -2115,7 +2072,7 @@ options are valid."
 	 font-lock-mode)
     (font-lock-mode 0)
     ;; add whitespace-mode color into font lock
-    (when (memq 'spaces whitespace-active-color)
+    (when (memq 'spaces whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2124,22 +2081,22 @@ options are valid."
 	;; Show HARD SPACEs
 	(list whitespace-hspace-regexp 1 whitespace-hspace t))
        t))
-    (when (memq 'tabs whitespace-active-color)
+    (when (memq 'tabs whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
 	;; Show TABs
 	(list whitespace-tab-regexp 1 whitespace-tab t))
        t))
-    (when (memq 'trailing whitespace-active-color)
+    (when (memq 'trailing whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
 	;; Show trailing blanks
 	(list (whitespace-trailing-regexp) 1 whitespace-trailing t))
        t))
-    (when (or (memq 'lines      whitespace-active-color)
-	      (memq 'lines-tail whitespace-active-color))
+    (when (or (memq 'lines      whitespace-active-style)
+	      (memq 'lines-tail whitespace-active-style))
       (font-lock-add-keywords
        nil
        (list
@@ -2153,13 +2110,13 @@ options are valid."
 	    (if (zerop rem)
 		""
 	      (format ".\\{%d\\}" rem))))
-	 (if (memq 'lines whitespace-active-color)
+	 (if (memq 'lines whitespace-active-style)
 	     0				; whole line
 	   2)				; line tail
 	 whitespace-line t))
        t))
     (cond
-     ((memq 'space-before-tab whitespace-active-color)
+     ((memq 'space-before-tab whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2168,7 +2125,7 @@ options are valid."
 	      (if whitespace-indent-tabs-mode 1 2)
 	      whitespace-space-before-tab t))
        t))
-     ((memq 'space-before-tab::tab whitespace-active-color)
+     ((memq 'space-before-tab::tab whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2176,7 +2133,7 @@ options are valid."
 	(list whitespace-space-before-tab-regexp
 	      1 whitespace-space-before-tab t))
        t))
-     ((memq 'space-before-tab::space whitespace-active-color)
+     ((memq 'space-before-tab::space whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2185,7 +2142,7 @@ options are valid."
 	      2 whitespace-space-before-tab t))
        t)))
     (cond
-     ((memq 'indentation whitespace-active-color)
+     ((memq 'indentation whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2193,7 +2150,7 @@ options are valid."
 	(list (whitespace-indentation-regexp)
 	      1 whitespace-indentation t))
        t))
-     ((memq 'indentation::tab whitespace-active-color)
+     ((memq 'indentation::tab whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2201,7 +2158,7 @@ options are valid."
 	(list (whitespace-indentation-regexp 'tab)
 	      1 whitespace-indentation t))
        t))
-     ((memq 'indentation::space whitespace-active-color)
+     ((memq 'indentation::space whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2209,7 +2166,7 @@ options are valid."
 	(list (whitespace-indentation-regexp 'space)
 	      1 whitespace-indentation t))
        t)))
-    (when (memq 'empty whitespace-active-color)
+    (when (memq 'empty whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2225,7 +2182,7 @@ options are valid."
 	      1 whitespace-empty t))
        t))
     (cond
-     ((memq 'space-after-tab whitespace-active-color)
+     ((memq 'space-after-tab whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2233,7 +2190,7 @@ options are valid."
 	(list (whitespace-space-after-tab-regexp)
 	      1 whitespace-space-after-tab t))
        t))
-     ((memq 'space-after-tab::tab whitespace-active-color)
+     ((memq 'space-after-tab::tab whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2241,7 +2198,7 @@ options are valid."
 	(list (whitespace-space-after-tab-regexp 'tab)
 	      1 whitespace-space-after-tab t))
        t))
-     ((memq 'space-after-tab::space whitespace-active-color)
+     ((memq 'space-after-tab::space whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
@@ -2255,8 +2212,8 @@ options are valid."
 
 (defun whitespace-color-off ()
   "Turn off color visualization."
-  (when whitespace-active-color
-    ;; turn off font lock
+  ;; turn off font lock
+  (when (whitespace-style-face-p)
     (font-lock-mode 0)
     (when whitespace-font-lock
       (setq whitespace-font-lock nil
@@ -2267,6 +2224,13 @@ options are valid."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Hacked from visws.el (Miles Bader <miles@gnu.org>)
+
+
+(defun whitespace-style-mark-p ()
+  "Return t if there is some visualization via display table."
+  (or (memq 'tab-mark     whitespace-active-style)
+      (memq 'space-mark   whitespace-active-style)
+      (memq 'newline-mark whitespace-active-style)))
 
 
 (defsubst whitespace-char-valid-p (char)
@@ -2286,7 +2250,8 @@ options are valid."
 
 (defun whitespace-display-char-on ()
   "Turn on character display mapping."
-  (when whitespace-display-mappings
+  (when (and whitespace-display-mappings
+	     (whitespace-style-mark-p))
     (let (vecs vec)
       ;; Remember whether a buffer has a local display table.
       (unless whitespace-display-table-was-local
@@ -2297,7 +2262,7 @@ options are valid."
 	(setq buffer-display-table (make-display-table)))
       (dolist (entry whitespace-display-mappings)
 	;; check if it is to display this mark
-	(when (memq (car entry) whitespace-style-mark)
+	(when (memq (car entry) whitespace-style)
 	  ;; Get a displayable mapping.
 	  (setq vecs (cddr entry))
 	  (while (and vecs
@@ -2308,7 +2273,7 @@ options are valid."
 	    (setq vec (copy-sequence (car vecs)))
 	    ;; NEWLINE char
 	    (when (and (eq (cadr entry) ?\n)
-		       (memq 'newline whitespace-active-color))
+		       (memq 'newline whitespace-active-style))
 	      ;; Only insert face bits on NEWLINE char mapping to avoid
 	      ;; obstruction of other faces like TABs and (HARD) SPACEs
 	      ;; faces, font-lock faces, etc.
@@ -2324,6 +2289,7 @@ options are valid."
 (defun whitespace-display-char-off ()
   "Turn off character display mapping."
   (and whitespace-display-mappings
+       (whitespace-style-mark-p)
        whitespace-display-table-was-local
        (setq whitespace-display-table-was-local nil
 	     buffer-display-table whitespace-display-table)))
