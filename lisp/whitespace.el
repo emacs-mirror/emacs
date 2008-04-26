@@ -46,8 +46,8 @@
 ;;   it provides a visual mark for characters, for example, at the end
 ;;   of line (?\xB6), at SPACEs (?\xB7) and at TABs (?\xBB).
 ;;
-;; The `whitespace-style' variable is used to select which way should
-;; be used to visualize blanks.
+;; The `whitespace-style' variable selects which way blanks are
+;; visualized.
 ;;
 ;; Note that when whitespace is turned on, whitespace saves the
 ;; font-lock state, that is, if font-lock is on or off.  And
