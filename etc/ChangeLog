@@ -1,3 +1,7 @@
+2008-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* forms-d2.dat: Move here from ../lisp.
+
 2008-04-06  Jason Rumney  <jasonr@gnu.org>
 
 	* HELLO (Burmese): Rename from Myanmar.
