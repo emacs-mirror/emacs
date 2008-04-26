@@ -1,3 +1,9 @@
+2008-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-hunk-header-re-unified): Allow elided line counts.
+	(diff-end-of-hunk, diff-unified->context, diff-fixup-modifs)
+	(diff-sanity-check-hunk): Adjust code accordingly.
+
 2008-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* abbrev.el (define-abbrev): Don't use `iff' in doc-strings.

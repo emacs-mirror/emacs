@@ -370,7 +370,7 @@ when editing big diffs)."
 	    (replace-match "" t t)))))))
 
 (defconst diff-hunk-header-re-unified
-  "^@@ -\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? \\+\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\) @@")
+  "^@@ -\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? \\+\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? @@")
 
 (defvar diff-font-lock-keywords
   `((,(concat "\\(" diff-hunk-header-re-unified "\\)\\(.*\\)$")
@@ -438,8 +438,8 @@ See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
       (setq style (diff-hunk-style style))
       (goto-char (match-end 0))
       (when (and (not donttrustheader) (match-end 2))
-        (let* ((nold (string-to-number (match-string 2)))
-               (nnew (string-to-number (match-string 4)))
+        (let* ((nold (string-to-number (or (match-string 2) "1")))
+               (nnew (string-to-number (or (match-string 4) "1")))
                (endold
         (save-excursion
           (re-search-forward (if diff-valid-unified-empty-line
@@ -851,11 +851,9 @@ else cover the whole buffer."
 		(replace-match "***" t t nil 2))
 	    ;; we matched a hunk header
 	    (let ((line1 (match-string 4))
-		  (lines1 (if (match-end 5)
-                              (string-to-number (match-string 5)) 1))
+		  (lines1 (or (match-string 5) "1"))
 		  (line2 (match-string 6))
-		  (lines2 (if (match-end 7)
-                              (string-to-number (match-string 7)) 1))
+		  (lines2 (or (match-string 7) "1"))
 		  ;; Variables to use the special undo function.
 		  (old-undo buffer-undo-list)
 		  (old-end (marker-position end))
@@ -864,7 +862,9 @@ else cover the whole buffer."
 	      (replace-match
 	       (concat "***************\n*** " line1 ","
 		       (number-to-string (+ (string-to-number line1)
-					    lines1 -1)) " ****"))
+					    (string-to-number lines1)
+					    -1))
+		       " ****"))
 	      (save-restriction
 		(narrow-to-region (line-beginning-position 2)
                                   ;; Call diff-end-of-hunk from just before
@@ -898,7 +898,8 @@ else cover the whole buffer."
 		  (save-excursion
 		    (insert "--- " line2 ","
 			    (number-to-string (+ (string-to-number line2)
-						 lines2 -1))
+						 (string-to-number lines2)
+						 -1))
                             " ----\n" hunk))
 		  ;;(goto-char (point-min))
 		  (forward-line 1)
@@ -1381,10 +1382,8 @@ Only works for unified diffs."
        ((eq (char-after) ?@)
         (if (not (looking-at diff-hunk-header-re-unified))
             (error "Unrecognized unified diff hunk header format")
-          (let ((before (if (match-end 2)
-                            (string-to-number (match-string 2)) 1))
-                (after (if (match-end 4)
-                           (string-to-number (match-string 4)) 1)))
+          (let ((before (string-to-number (or (match-string 2) "1")))
+                (after (string-to-number (or (match-string 4) "1"))))
             (forward-line)
             (while
                 (case (char-after)
