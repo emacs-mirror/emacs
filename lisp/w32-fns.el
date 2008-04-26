@@ -74,9 +74,6 @@
 (declare-function w32-get-valid-locale-ids "w32proc.c")
 (declare-function w32-set-clipboard-data "w32select.c")
 
-;; Ignore case on file-name completion
-(setq completion-ignore-case t)
-
 ;; Map all versions of a filename (8.3, longname, mixed case) to the
 ;; same buffer.
 (setq find-file-visit-truename t)
