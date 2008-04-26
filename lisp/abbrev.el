@@ -914,9 +914,14 @@ Properties with special meaning:
   (eval `(defvar ,tablename nil ,@(if (stringp docstring) (list docstring))))
   (let ((table (if (boundp tablename) (symbol-value tablename))))
     (unless table
-      (setq table (make-abbrev-table props))
+      (setq table (make-abbrev-table))
       (set tablename table)
       (push tablename abbrev-table-name-list))
+    ;; We used to just pass them to `make-abbrev-table', but that fails
+    ;; if the table was pre-existing as is the case if it was created by
+    ;; loading the user's abbrev file.
+    (while (consp props)
+      (abbrev-table-put table (pop props) (pop props)))
     (dolist (elt definitions)
       (apply 'define-abbrev table elt))))
 

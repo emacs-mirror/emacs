@@ -1,5 +1,8 @@
 2008-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* abbrev.el (define-abbrev-table): Apply props even if the table
+	exists already.
+
 	* minibuffer.el (completion-table-with-context): Fix `pred' for the
 	various kinds of completion tables.
 	(completion-emacs22-try-completion): Place cursor after the /, as was
