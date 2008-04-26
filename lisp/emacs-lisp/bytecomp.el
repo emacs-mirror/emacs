@@ -1106,6 +1106,22 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
       (error "%s" format)		; byte-compile-file catches and logs it
     (byte-compile-log-warning format t :warning)))
 
+(defun byte-compile-warn-obsolete (symbol)
+  "Warn that SYMBOL (a variable or function) is obsolete."
+  (when (byte-compile-warning-enabled-p 'obsolete)
+    (let* ((funcp (get symbol 'byte-obsolete-info))
+	   (obsolete (or funcp (get symbol 'byte-obsolete-variable)))
+	   (instead (car obsolete))
+	   (asof (if funcp (nth 2 obsolete) (cdr obsolete))))
+      (byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
+			 (if funcp "function" "variable")
+			 (if asof (concat " (as of Emacs " asof ")") "")
+			 (cond ((stringp instead)
+				(concat "; " instead))
+			       (instead
+				(format "; use `%s' instead." instead))
+			       (t "."))))))
+
 (defun byte-compile-report-error (error-info)
   "Report Lisp error in compilation.  ERROR-INFO is the error data."
   (setq byte-compiler-error-flag t)
@@ -1115,19 +1131,10 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
-  (let* ((new (get (car form) 'byte-obsolete-info))
-	 (use (car new))
-	 (handler (nth 1 new))
-	 (when (nth 2 new)))
-    (byte-compile-set-symbol-position (car form))
-    (if (byte-compile-warning-enabled-p 'obsolete)
-	(byte-compile-warn "`%s' is an obsolete function%s%s" (car form)
-			   (if when (concat " (as of Emacs " when ")") "")
-			   (cond ((stringp use)
-				  (concat "; " use))
-				 (use (format "; use `%s' instead." use))
-				 (t "."))))
-    (funcall (or handler 'byte-compile-normal-call) form)))
+  (byte-compile-set-symbol-position (car form))
+  (byte-compile-warn-obsolete (car form))
+  (funcall (or (cadr (get (car form) 'byte-obsolete-info)) ; handler
+	       'byte-compile-normal-call) form))
 
 ;; Compiler options
 
@@ -2930,16 +2937,9 @@ That command is designed for interactive use only" fn))
 	     (t "variable reference to %s `%s'"))
        (if (symbolp var) "constant" "nonvariable")
        (prin1-to-string var))
-    (if (and (get var 'byte-obsolete-variable)
-	     (byte-compile-warning-enabled-p 'obsolete)
-	     (not (eq var byte-compile-not-obsolete-var)))
-	(let* ((ob (get var 'byte-obsolete-variable))
-	       (when (cdr ob)))
-	  (byte-compile-warn "`%s' is an obsolete variable%s; %s" var
-			     (if when (concat " (as of Emacs " when ")") "")
-			     (if (stringp (car ob))
-				 (car ob)
-			       (format "use `%s' instead." (car ob))))))
+    (and (get var 'byte-obsolete-variable)
+	 (not (eq var byte-compile-not-obsolete-var))
+	 (byte-compile-warn-obsolete var))
     (if (byte-compile-warning-enabled-p 'free-vars)
 	(if (eq base-op 'byte-varbind)
 	    (push var byte-compile-bound-variables)
