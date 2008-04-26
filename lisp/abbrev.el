@@ -544,7 +544,7 @@ PROPS is a property list.  The following properties are special:
   overwrite a non-system abbreviation of the same name.
 - `:case-fixed': non-nil means that abbreviations are looked up without
   case-folding, and the expansion is not capitalized/upcased.
-- `:enable-function': a function of no argument which returns non-nil iff the
+- `:enable-function': a function of no argument which returns non-nil if the
   abbrev should be used for a particular call of `expand-abbrev'.
 
 An obsolete but still supported calling form is:
