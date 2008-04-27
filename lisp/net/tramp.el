@@ -3557,11 +3557,23 @@ the result will be a local, non-Tramp, filename."
 	  (tramp-run-real-handler 'expand-file-name
 				  (list localname))))))))
 
+(defun tramp-replace-environment-variables (filename)
+  "Replace environment variables in FILENAME.
+Return the string with the replaced variables."
+  (when (string-match "$\\w+" filename)
+    (setq filename
+	  (replace-match
+	   (substitute-in-file-name (match-string 0 filename))
+	   t nil filename)))
+  filename)
+
 (defun tramp-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
 \"//\" and \"/~\" substitute only in the local filename part.
 If the URL Tramp syntax is chosen, \"//\" as method delimeter and \"/~\" at
 beginning of local filename are not substituted."
+  ;; First, we must replace environment variables.
+  (setq filename (tramp-replace-environment-variables filename))
   (with-parsed-tramp-file-name filename nil
     (if (equal tramp-syntax 'url)
 	;; We need to check localname only.  The other parts cannot contain
@@ -4451,7 +4463,9 @@ ARGS are the arguments OPERATION has been called with."
   "Invoke Tramp file name handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
   (save-match-data
-    (let* ((filename (apply 'tramp-file-name-for-operation operation args))
+    (let* ((filename
+	    (tramp-replace-environment-variables
+	     (apply 'tramp-file-name-for-operation operation args)))
 	   (completion (tramp-completion-mode-p))
 	   (foreign (tramp-find-foreign-file-name-handler filename)))
       (with-parsed-tramp-file-name filename nil
