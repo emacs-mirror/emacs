@@ -5,7 +5,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2007-08-31 03:00:11 ttn>
+;; Time-stamp: <Sat 26-Apr-2008 18:18:44 gm on grasmoor>
 
 ;; This file is part of GNU Emacs.
 
@@ -1806,7 +1806,7 @@ To use this, apply a binary operator (evaluate it), then call this."
       ;; The range errors come from large integer y.
       ((< y 0.0)
        0.0)
-      ((oddp (truncate y))
+      ((not (zerop (% (truncate y) 2)))
        ;; If y is odd
        -1.0e+INF)
       (t
