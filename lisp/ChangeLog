@@ -1,3 +1,9 @@
+2008-04-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-replace-environment-variables): New defun.
+	(tramp-handle-substitute-in-file-name, tramp-file-name-handler):
+	Use it.
+
 2008-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Doc fix.
