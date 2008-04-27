@@ -1,13 +1,13 @@
 ;;; org-irc.el --- Store links to IRC sessions
-
+;;
 ;; Copyright (C) 2008  Free Software Foundation, Inc.
-
+;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
-;; Version: 1.3
-
+;; Version: 6.02b
+;;
 ;; This file is part of GNU Emacs.
-
+;;
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -25,15 +25,16 @@
 
 ;;; Commentary:
 
-;; Link to an IRC session. Only ERC has been implemented at the
-;; moment.
+;; This file implements links to an IRC session from within Org-mode.
+;; Org-mode loads this module by default - if this is not what you want,
+;; configure the variable `org-modules'.
 ;;
-;; This file is loaded by default whenever org.el is loaded.  Please
-;; customize the variable `org-default-extensions' to select extensions
-;; you would like to use, and to deselect those which you don't want.
+;; Please customize the variable `org-default-extensions' to select
+;; extensions you would like to use, and to deselect those which you don't
+;; want.
 ;;
-;; Please note that at the moment only ERC is supported. Other clients
-;; shouldn't be diffficult to add though.
+;; Please note that at the moment only ERC is supported.  Other clients
+;; shouldn't be difficult to add though.
 ;;
 ;; Then set `org-irc-link-to-logs' to non-nil if you would like a
 ;; file:/ type link to be created to the current line in the logs or
@@ -51,27 +52,34 @@
 ;;; Code:
 
 (require 'org)
-(require 'erc)
-(require 'erc-log)
+
+;; Declare the function fomr ERC that we use.
+(declare-function erc-current-logfile "erc-log" (&optional buffer))
+(declare-function erc-prompt "erc" ())
+(declare-function erc-default-target "erc" ())
+(declare-function erc-channel-p "erc" (channel))
+(declare-function erc-buffer-filter "erc" (predicate &optional proc))
+(declare-function erc-server-buffer "erc" ())
+(declare-function erc-get-server-nickname-list "erc" ())
+(declare-function erc-cmd-JOIN "erc" (channel &optional key))
 
 (defvar org-irc-client 'erc
-  "The IRC client to act on")
+  "The IRC client to act on.")
 (defvar org-irc-link-to-logs nil
-  "non-nil will store a link to the logs, nil will store an irc: style link")
+  "Non-nil will store a link to the logs, nil will store an irc: style link.")
 
-(defvar erc-default-port) ; dynamically scoped from erc.el
-(defvar erc-session-port) ; dynamically scoped form erc-backend.el
-(defvar erc-server-announced-name) ; dynamically scoped form erc-backend.el
+(defvar erc-default-port)   ; dynamically scoped from erc.el
+(defvar erc-session-port)   ; dynamically scoped form erc-backend.el
+(defvar erc-session-server) ; dynamically scoped form erc-backend.el
 
 ;; Generic functions/config (extend these for other clients)
 
-(add-to-list 'org-store-link-functions
-             'org-irc-store-link)
+(add-to-list 'org-store-link-functions 'org-irc-store-link)
 
 (org-add-link-type "irc" 'org-irc-visit nil)
 
 (defun org-irc-visit (link)
-  "Dispatch to the correct visit function based on the client"
+  "Parse LINK and dispatch to the correct function based on the client found."
   (let ((link (org-irc-parse-link link)))
     (cond
       ((eq org-irc-client 'erc)
@@ -80,26 +88,28 @@
        (error "erc only known client")))))
 
 (defun org-irc-parse-link (link)
-  "Get a of irc link attributes where `link' looks like
-server:port/chan/user (port, chan and user being optional)."
+  "Parse an IRC LINK and return the attributes found.
+Parse a LINK that looks like server:port/chan/user (port, chan
+and user being optional) and return any or the port, channel or user
+attributes that are found."
   (let* ((parts (split-string link "/" t))
          (len (length parts)))
     (when (or (< len 1) (> len 3))
-      (error "Failed to parse link needed 1-3 parts, got %d." len))
+      (error "Failed to parse link needed 1-3 parts, got %d" len))
     (setcar parts (split-string (car parts) ":" t))
     parts))
 
 ;;;###autoload
 (defun org-irc-store-link ()
-  "Dispatch to the appropreate function to store a link to
-something IRC related"
+  "Dispatch to the appropriate function to store a link to an IRC session."
   (cond
     ((eq major-mode 'erc-mode)
      (org-irc-erc-store-link))))
 
 (defun org-irc-elipsify-description (string &optional after)
-  "Strip starting and ending whitespace and replace any chars
-that appear after the value in `after' with '...'"
+  "Remove unnecessary white space from STRING and add ellipses if necessary.
+Strip starting and ending white space from STRING and replace any
+chars that the value AFTER with '...'"
   (let* ((after (number-to-string (or after 30)))
          (replace-map (list (cons "^[ \t]*" "")
                             (cons "[ \t]*$" "")
@@ -114,11 +124,12 @@ that appear after the value in `after' with '...'"
 ;; ERC specific functions
 
 (defun org-irc-erc-get-line-from-log (erc-line)
-  "Find the most suitable line to link to from the erc logs. If
-the user is on the erc-prompt then search backward for the first
-non-blank line, otherwise return the current line. The result is
-a cons of the filename and search string."
+  "Find the best line to link to from the ERC logs given ERC-LINE as a start.
+If the user is on the ERC-prompt then search backward for the
+first non-blank line, otherwise return the current line.  The
+result is a cons of the filename and search string."
   (erc-save-buffer-in-logs)
+  (require 'erc-log)
   (with-current-buffer (find-file-noselect (erc-current-logfile))
     (goto-char (point-max))
     (list
@@ -135,9 +146,11 @@ a cons of the filename and search string."
                                            (point-at-eol)))))))
 
 (defun org-irc-erc-store-link ()
-  "Depending on the variable `org-irc-link-to-logs' store either
-a link to the log file for the current session or an irc: link to
+  "Store a link to the IRC log file or the session itself.
+Depending on the variable `org-irc-link-to-logs' store either a
+link to the log file for the current session or an irc: link to
 the session itself."
+  (require 'erc-log)
   (if org-irc-link-to-logs
       (let* ((erc-line (buffer-substring-no-properties
                         (point-at-bol) (point-at-eol)))
@@ -162,15 +175,17 @@ the session itself."
                :link (org-make-link "irc:/" link-text)
                :description (concat "irc session '" link-text "'")
                :server (car (car link))
-               :port (or (cadr (pop link)) erc-default-port)
+               :port (or (string-to-number (cadr (pop link))) erc-default-port)
                :nick (pop link))
               t)
             (error "Failed to create ('irc:/' style) ERC link")))))
 
 (defun org-irc-get-erc-link ()
-  "Return an org compatible irc:/ link from an ERC buffer"
-  (let ((link (concat erc-server-announced-name ":"
-                      (number-to-string erc-session-port))))
+  "Return an org compatible irc:/ link from an ERC buffer."
+  (let* ((session-port (if (numberp erc-session-port)
+                           (number-to-string erc-session-port)
+                           erc-session-port))
+          (link (concat erc-session-server ":" session-port)))
     (concat link "/"
             (if (and (erc-default-target)
                      (erc-channel-p (erc-default-target))
@@ -180,10 +195,24 @@ the session itself."
                   (concat (erc-default-target) "/" nick))
                 (erc-default-target)))))
 
+(defun org-irc-get-current-erc-port ()
+  "Return the current port as a number.
+Return the current port number or, if none is set, return the ERC
+default."
+  (cond
+    ((stringp erc-session-port)
+     (string-to-number erc-session-port))
+    ((numberp erc-session-port)
+     erc-session-port)
+    (t
+     erc-default-port)))
+
 (defun org-irc-visit-erc (link)
-  "Visit an ERC buffer based on criteria from the followed link"
+  "Visit an ERC buffer based on criteria found in LINK."
+  (require 'erc)
+  (require 'erc-log)
   (let* ((server (car (car link)))
-         (port (or (cadr (pop link)) erc-default-port))
+         (port (or (string-to-number (cadr (pop link))) erc-default-port))
          (server-buffer)
          (buffer-list
           (erc-buffer-filter
@@ -192,8 +221,8 @@ the session itself."
                (and tmp-server-buf
                     (with-current-buffer tmp-server-buf
                       (and
-                       (string= erc-session-port port)
-                       (string= erc-server-announced-name server)
+                       (eq (org-irc-get-current-erc-port) port)
+                       (string= erc-session-server server)
                        (setq server-buffer tmp-server-buf)))))))))
     (if buffer-list
         (let ((chan-name (pop link)))

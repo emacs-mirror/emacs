@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 5.23
+;; Version: 6.02b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -42,7 +42,7 @@
 ;;    + tags
 ;; * promoting/demoting/moving subtrees with mouse-3
 ;;    + if the drag starts and ends in the same line then promote/demote
-;;    + otherwise move the subtree 
+;;    + otherwise move the subtree
 ;;
 ;; Use
 ;; ---
@@ -93,7 +93,7 @@
 ;; + shift-middleclick or right-drag inserts the text from the clipboard in the form of a link
 ;;
 ;; Version 0.20
-;; + the new "TODO Status" submenu replaces the "Cycle TODO" menu item 
+;; + the new "TODO Status" submenu replaces the "Cycle TODO" menu item
 ;; + the TODO menu can now list occurrences of a specific TODO keyword
 ;; + #+STARTUP line is now recognized
 ;;
@@ -115,10 +115,10 @@
 ;; Version 0.14
 ;; + added a menu option that converts plain list items to outline items
 ;;
-;; Version 0.13 
+;; Version 0.13
 ;; + "Insert Heading" now inserts a sibling heading if the point is
 ;;   on "***" and a child heading otherwise
-;; 
+;;
 ;; Version 0.12
 ;; + compatible with Emacs 21
 ;; + custom agenda commands added to the main menu
@@ -132,7 +132,7 @@
 ;; + added a menu option to remove highlights
 ;; + compatible with org-mode 4.21 now
 ;;
-;; Version 0.08: 
+;; Version 0.08:
 ;; + trees can be moved/promoted/demoted by dragging with the right
 ;;   mouse button (mouse-3)
 ;; + small changes in the above function
@@ -141,6 +141,13 @@
 
 (eval-when-compile (require 'cl))
 (require 'org)
+
+(defvar org-agenda-allow-remote-undo)
+(defvar org-agenda-undo-list)
+(defvar org-agenda-custom-commands)
+(declare-function org-agenda-change-all-lines "org-agenda"
+		  (newhead hdmarker &optional fixface))
+(declare-function org-verify-change-for-undo "org-agenda" (l1 l2))
 
 (defvar org-mouse-plain-list-regexp "\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) "
   "Regular expression that matches a plain list.")
@@ -186,10 +193,10 @@ The value of this variable is the function invoked by
   "Invoke the context menu.
 
 If the value of `org-mouse-context-menu-function' is a function, then
-this function is called.  Otherwise, the current major mode menu is used."  
+this function is called.  Otherwise, the current major mode menu is used."
   (interactive "@e \nP")
   (if (and (= (event-click-count event) 1)
-	   (or (not mark-active) 
+	   (or (not mark-active)
 	       (sit-for (/ double-click-time 1000.0))))
       (progn
  	(select-window (posn-window (event-start event)))
@@ -243,8 +250,8 @@ after the current heading."
     (t (org-mouse-next-heading)
        (org-insert-heading))))
 
-(defun org-mouse-timestamp-today (&optional shift units) 
-  "Change the timestamp into SHIFT UNITS in the future.  
+(defun org-mouse-timestamp-today (&optional shift units)
+  "Change the timestamp into SHIFT UNITS in the future.
 
 For the acceptable UNITS, see `org-timestamp-change'."
   (interactive)
@@ -265,29 +272,29 @@ SELECTED is a function, then each item is a checkbox, which is
 enabled for a given keyword iff (funcall SELECTED keyword) return
 non-nil.  If SELECTED is neither nil nor a function, then the
 items are radio buttons.  A radio button is enabled for the
-keyword `equal' to SELECTED. 
+keyword `equal' to SELECTED.
 
 ITEMFORMAT governs formatting of the elements of KEYWORDS.  If it
 is a function, it is invoked with the keyword as the only
 argument.  If it is a string, it is interpreted as the format
 string to (format ITEMFORMAT keyword).  If it is neither a string
 nor a function, elements of KEYWORDS are used directly. "
-  (mapcar 
-   `(lambda (keyword) 
+  (mapcar
+   `(lambda (keyword)
      (vector (cond
 	      ((functionp ,itemformat) (funcall ,itemformat keyword))
 	      ((stringp ,itemformat) (format ,itemformat keyword))
 	      (t keyword))
 	     (list 'funcall ,function keyword)
-	     :style (cond 
+	     :style (cond
 		     ((null ,selected) t)
 		     ((functionp ,selected) 'toggle)
 		     (t 'radio))
-	     :selected (if (functionp ,selected) 
+	     :selected (if (functionp ,selected)
 			   (and (funcall ,selected keyword) t)
 			 (equal ,selected keyword))))
     keywords))
-     
+
 (defun org-mouse-remove-match-and-spaces ()
   "Remove the match, make just one space around the point."
   (interactive)
@@ -295,16 +302,16 @@ nor a function, elements of KEYWORDS are used directly. "
   (just-one-space))
 
 (defvar rest)
-(defun org-mouse-replace-match-and-surround (newtext &optional fixedcase 
+(defun org-mouse-replace-match-and-surround (newtext &optional fixedcase
 						     literal string subexp)
   "The same as `replace-match', but surrounds the replacement with spaces."
   (apply 'replace-match rest)
   (save-excursion
-    (goto-char (match-beginning (or subexp 0))) 
+    (goto-char (match-beginning (or subexp 0)))
     (just-one-space)
-    (goto-char (match-end (or subexp 0))) 
+    (goto-char (match-end (or subexp 0)))
     (just-one-space)))
-  
+
 
 (defun org-mouse-keyword-replace-menu (keywords &optional group itemformat
 						nosurround)
@@ -323,26 +330,26 @@ ITEMFORMAT governs formatting of the elements of KEYWORDS.  If it
 is a function, it is invoked with the keyword as the only
 argument.  If it is a string, it is interpreted as the format
 string to (format ITEMFORMAT keyword).  If it is neither a string
-nor a function, elements of KEYWORDS are used directly. 
+nor a function, elements of KEYWORDS are used directly.
 "
   (setq group (or group 0))
-  (let ((replace (org-mouse-match-closure 
+  (let ((replace (org-mouse-match-closure
 		  (if nosurround 'replace-match
 		    'org-mouse-replace-match-and-surround))))
     (append
-     (org-mouse-keyword-menu 
+     (org-mouse-keyword-menu
       keywords
       `(lambda (keyword) (funcall ,replace keyword t t nil ,group))
       (match-string group)
       itemformat)
-     `(["None" org-mouse-remove-match-and-spaces 
+     `(["None" org-mouse-remove-match-and-spaces
 	:style radio
 	:selected ,(not (member (match-string group) keywords))]))))
-     
+
 (defun org-mouse-show-headlines ()
   "Change the visibility of the current org buffer to only show headlines."
-  (interactive) 
-  (let ((this-command 'org-cycle) 
+  (interactive)
+  (let ((this-command 'org-cycle)
 	(last-command 'org-cycle)
 	(org-cycle-global-status nil))
     (org-cycle '(4))
@@ -350,7 +357,7 @@ nor a function, elements of KEYWORDS are used directly.
 
 (defun org-mouse-show-overview ()
   "Change visibility of current org buffer to first-level headlines only."
-  (interactive) 
+  (interactive)
   (let ((org-cycle-global-status nil))
     (org-cycle '(4))))
 
@@ -367,7 +374,7 @@ leading '.*?'.")
 (defun org-mouse-get-priority (&optional default)
   "Return the priority of the current headline.
 DEFAULT is returned if no priority is given in the headline."
-  (save-excursion 
+  (save-excursion
     (if (org-mouse-re-search-line org-mouse-priority-regexp)
 	(match-string 1)
       (when default (char-to-string org-default-priority)))))
@@ -390,7 +397,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
     (when (looking-at " *[A-Z][A-Z]+:")
       (replace-match ""))))
 
-(defun org-mouse-looking-at (regexp skipchars &optional movechars) 
+(defun org-mouse-looking-at (regexp skipchars &optional movechars)
   (save-excursion
     (let ((point (point)))
       (if (looking-at regexp) t
@@ -398,19 +405,19 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	(forward-char (or movechars 0))
 	(when (looking-at regexp)
 	  (> (match-end 0) point))))))
-	      
+
 (defun org-mouse-priority-list ()
-   (loop for priority from ?A to org-lowest-priority 
+   (loop for priority from ?A to org-lowest-priority
 	 collect (char-to-string priority)))
 
 (defun org-mouse-tag-menu ()		;todo
   (append
    (let ((tags (org-split-string (org-get-tags) ":")))
-     (org-mouse-keyword-menu 
+     (org-mouse-keyword-menu
       (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-      `(lambda (tag) 
-	 (org-mouse-set-tags 
-	  (sort (if (member tag (quote ,tags)) 
+      `(lambda (tag)
+	 (org-mouse-set-tags
+	  (sort (if (member tag (quote ,tags))
 		    (delete tag (quote ,tags))
 		  (cons tag (quote ,tags)))
 		'string-lessp)))
@@ -420,7 +427,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Align Tags Here" (org-set-tags nil t) t]
      ["Align Tags in Buffer" (org-set-tags t t) t]
      ["Set Tags ..." (org-set-tags) t])))
-   
+
 
 
 (defun org-mouse-set-tags (tags)
@@ -435,7 +442,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
       (end-of-line)
       (insert " :" (mapconcat 'identity tags ":") ":")
       (org-set-tags nil t))))
-			  
+
 (defun org-mouse-insert-checkbox ()
   (interactive)
   (and (org-at-item-p)
@@ -455,15 +462,15 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 
 (defun org-mouse-list-options-menu (alloptions &optional function)
-  (let ((options (save-match-data 
+  (let ((options (save-match-data
 		   (split-string (match-string-no-properties 1)))))
     (print options)
     (loop for name in alloptions
-	  collect 
-	  (vector name 
+	  collect
+	  (vector name
 		  `(progn
-		     (replace-match 
-		      (mapconcat 'identity 
+		     (replace-match
+		      (mapconcat 'identity
 				 (sort (if (member ',name ',options)
 					   (delete ',name ',options)
 					 (cons ',name ',options))
@@ -480,7 +487,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
     text))
 
 (defun org-mouse-popup-global-menu ()
-  (popup-menu  
+  (popup-menu
    `("Main Menu"
      ["Show Overview" org-mouse-show-overview t]
      ["Show Headlines" org-mouse-show-headlines t]
@@ -488,13 +495,13 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Remove Highlights" org-remove-occur-highlights
       :visible org-occur-highlights]
      "--"
-     ["Check Deadlines" 
+     ["Check Deadlines"
       (if (functionp 'org-check-deadlines-and-todos)
 	  (org-check-deadlines-and-todos org-deadline-warning-days)
 	(org-check-deadlines org-deadline-warning-days)) t]
      ["Check TODOs" org-show-todo-tree t]
-     ("Check Tags" 
-      ,@(org-mouse-keyword-menu 
+     ("Check Tags"
+      ,@(org-mouse-keyword-menu
 	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
 	 '(lambda (tag) (org-tags-sparse-tree nil tag)))
       "--"
@@ -504,55 +511,55 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Display Agenda" org-agenda-list t]
      ["Display Timeline" org-timeline t]
      ["Display TODO List" org-todo-list t]
-     ("Display Tags" 
-      ,@(org-mouse-keyword-menu 
+     ("Display Tags"
+      ,@(org-mouse-keyword-menu
 	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
 	 '(lambda (tag) (org-tags-view nil tag)))
       "--"
       ["Custom Tag ..." org-tags-view t])
      ["Display Calendar" org-goto-calendar t]
      "--"
-     ,@(org-mouse-keyword-menu 
+     ,@(org-mouse-keyword-menu
 	(mapcar 'car org-agenda-custom-commands)
-	'(lambda (key) 
-	   (eval `(flet ((read-char-exclusive () (string-to-char ,key))) 
+	'(lambda (key)
+	   (eval `(flet ((read-char-exclusive () (string-to-char ,key)))
 		      (org-agenda nil))))
-	nil 
+	nil
 	'(lambda (key)
 	   (let ((entry (assoc key org-agenda-custom-commands)))
-	     (org-mouse-clip-text 
+	     (org-mouse-clip-text
 	      (cond
 	       ((stringp (nth 1 entry)) (nth 1 entry))
-	       ((stringp (nth 2 entry)) 
+	       ((stringp (nth 2 entry))
 		(concat (org-mouse-agenda-type (nth 1 entry))
 			(nth 2 entry)))
 	       (t "Agenda Command '%s'"))
 	      30))))
      "--"
-     ["Delete Blank Lines" delete-blank-lines 
+     ["Delete Blank Lines" delete-blank-lines
       :visible (org-mouse-empty-line)]
      ["Insert Checkbox" org-mouse-insert-checkbox
       :visible (and (org-at-item-p) (not (org-at-item-checkbox-p)))]
-     ["Insert Checkboxes" 
+     ["Insert Checkboxes"
       (org-mouse-for-each-item 'org-mouse-insert-checkbox)
       :visible (and (org-at-item-p) (not (org-at-item-checkbox-p)))]
      ["Plain List to Outline" org-mouse-transform-to-outline
       :visible (org-at-item-p)])))
 
-			      
+
 (defun org-mouse-get-context (contextlist context)
   (let ((contextdata (assq context contextlist)))
     (when contextdata
-      (save-excursion 
+      (save-excursion
 	(goto-char (second contextdata))
 	(re-search-forward ".*" (third contextdata))))))
 
 (defun org-mouse-for-each-item (function)
-  (save-excursion 
-    (ignore-errors 
+  (save-excursion
+    (ignore-errors
       (while t (org-previous-item)))
-    (ignore-errors 
-      (while t 
+    (ignore-errors
+      (while t
 	(funcall function)
 	(org-next-item)))))
 
@@ -560,28 +567,28 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
   "Returns true if there only spaces, tabs, and '*',  between the beginning of line and the point"
   (save-excursion
     (skip-chars-backward " \t*") (bolp)))
-  
+
 (defun org-mouse-insert-item (text)
   (case (org-mouse-line-position)
-    (:beginning			; insert before 
-     (beginning-of-line) 
+    (:beginning			; insert before
+     (beginning-of-line)
      (looking-at "[ \t]*")
      (open-line 1)
      (indent-to (- (match-end 0) (match-beginning 0)))
      (insert "+ "))
-	 
+
     (:middle			; insert after
-     (end-of-line) 
-     (newline t) 
+     (end-of-line)
+     (newline t)
      (indent-relative)
      (insert "+ "))
 
     (:end				; insert text here
-     (skip-chars-backward " \t") 
+     (skip-chars-backward " \t")
      (kill-region (point) (point-at-eol))
-     (unless (looking-back org-mouse-punctuation) 
+     (unless (looking-back org-mouse-punctuation)
        (insert (concat org-mouse-punctuation " ")))))
-    
+
   (insert text)
   (beginning-of-line))
 
@@ -597,7 +604,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 (defun org-mouse-match-closure (function)
   (let ((match (match-data t)))
-    `(lambda (&rest rest) 
+    `(lambda (&rest rest)
       (save-match-data
 	(set-match-data ',match)
 	(apply ',function rest)))))
@@ -632,28 +639,28 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
        `(nil
 	 ["Sparse Tree" (org-occur ',region-string)]
 	 ["Find in Buffer" (occur ',region-string)]
-	 ["Grep in Current Dir" 
+	 ["Grep in Current Dir"
 	  (grep (format "grep -rnH -e '%s' *" ',region-string))]
-	 ["Grep in Parent Dir" 
+	 ["Grep in Parent Dir"
 	  (grep (format "grep -rnH -e '%s' ../*" ',region-string))]
 	 "--"
-	 ["Convert to Link" 
+	 ["Convert to Link"
 	  (progn (save-excursion (goto-char (region-beginning)) (insert "[["))
 		 (save-excursion (goto-char (region-end)) (insert "]]")))]
 	 ["Insert Link Here" (org-mouse-yank-link ',event)]))))
 
    ((save-excursion (beginning-of-line) (looking-at "#\\+STARTUP: \\(.*\\)"))
-    (popup-menu 
-     `(nil 
+    (popup-menu
+     `(nil
        ,@(org-mouse-list-options-menu (mapcar 'car org-startup-options)
 				      'org-mode-restart))))
-   ((or (eolp) 
+   ((or (eolp)
 	(and (looking-at "\\(  \\|\t\\)\\(+:[0-9a-zA-Z_:]+\\)?\\(  \\|\t\\)+$")
 	     (looking-back "  \\|\t")))
     (org-mouse-popup-global-menu))
    ((get-context :checkbox)
-    (popup-menu 
-     '(nil 
+    (popup-menu
+     '(nil
        ["Toggle" org-toggle-checkbox t]
        ["Remove" org-mouse-remove-match-and-spaces t]
        ""
@@ -673,25 +680,25 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
        )))
    ((and (org-mouse-looking-at "\\b\\w+" "a-zA-Z0-9_")
  	 (member (match-string 0) (org-mouse-todo-keywords)))
-    (popup-menu 
+    (popup-menu
      `(nil
        ,@(org-mouse-keyword-replace-menu (org-mouse-todo-keywords))
-       "--" 
+       "--"
        ["Check TODOs" org-show-todo-tree t]
        ["List all TODO keywords" org-todo-list t]
-       [,(format "List only %s" (match-string 0)) 
+       [,(format "List only %s" (match-string 0))
 	(org-todo-list (match-string 0)) t]
        )))
    ((and (org-mouse-looking-at "\\b[A-Z]+:" "A-Z")
 	 (member (match-string 0) stamp-prefixes))
-    (popup-menu 
-     `(nil 
-       ,@(org-mouse-keyword-replace-menu stamp-prefixes) 
+    (popup-menu
+     `(nil
+       ,@(org-mouse-keyword-replace-menu stamp-prefixes)
        "--"
        ["Check Deadlines" org-check-deadlines t]
        )))
    ((org-mouse-looking-at org-mouse-priority-regexp "[]A-Z#") ; priority
-    (popup-menu `(nil ,@(org-mouse-keyword-replace-menu 
+    (popup-menu `(nil ,@(org-mouse-keyword-replace-menu
 			 (org-mouse-priority-list) 1 "Priority %s" t))))
    ((get-context :link)
     (popup-menu
@@ -700,8 +707,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
        ["Open in Emacs" (org-open-at-point t) t]
        "--"
        ["Copy link" (kill-new (match-string 0))]
-       ["Cut link" 
-	(progn 
+       ["Cut link"
+	(progn
 	  (kill-region (match-beginning 0) (match-end 0))
 	  (just-one-space))]
        "--"
@@ -710,8 +717,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 ;       ["Paste file link" ((insert "file:") (yank))]
        )))
    ((org-mouse-looking-at ":\\([A-Za-z0-9_]+\\):" "A-Za-z0-9_" -1) ;tags
-    (popup-menu 
-     `(nil 
+    (popup-menu
+     `(nil
        [,(format "Display '%s'" (match-string 1))
 	(org-tags-view nil ,(match-string 1))]
        [,(format "Sparse Tree '%s'" (match-string 1))
@@ -719,7 +726,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
        "--"
        ,@(org-mouse-tag-menu))))
    ((org-at-timestamp-p)
-    (popup-menu 
+    (popup-menu
      '(nil
        ["Show Day" org-open-at-point t]
        ["Change Timestamp" org-time-stamp t]
@@ -744,8 +751,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
       (incf (car mdata) 2)
       (store-match-data mdata))
     (message "match: %S" (match-string 0))
-    (popup-menu `(nil ,@(org-mouse-keyword-replace-menu 
-			 '(" " "!" "^" "_" "$" "#" "*" "'") 0 
+    (popup-menu `(nil ,@(org-mouse-keyword-replace-menu
+			 '(" " "!" "^" "_" "$" "#" "*" "'") 0
 			 (lambda (mark)
 			   (case (string-to-char mark)
 			     (?  "( ) Nothing Special")
@@ -804,10 +811,10 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
     (let ((priority (org-mouse-get-priority t)))
       (popup-menu
        `("Headline Menu"
-	 ("Tags and Priorities" 
-	  ,@(org-mouse-keyword-menu 
-	     (org-mouse-priority-list) 
-	     '(lambda (keyword) 
+	 ("Tags and Priorities"
+	  ,@(org-mouse-keyword-menu
+	     (org-mouse-priority-list)
+	     '(lambda (keyword)
 		(org-mouse-set-priority (string-to-char keyword)))
 	     priority "Priority %s")
 	  "--"
@@ -816,23 +823,23 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	  ,@(progn (org-mouse-match-todo-keyword)
 		   (org-mouse-keyword-replace-menu (org-mouse-todo-keywords)
 						   1)))
-	 ["Show Tags" 
+	 ["Show Tags"
 	  (with-current-buffer org-mouse-main-buffer (org-agenda-show-tags))
 	  :visible (not org-mouse-direct)]
-	 ["Show Priority" 
+	 ["Show Priority"
 	  (with-current-buffer org-mouse-main-buffer (org-agenda-show-priority))
 	  :visible (not org-mouse-direct)]
 	 ,@(if org-mouse-direct '("--") nil)
 	 ["New Heading" org-mouse-insert-heading :visible org-mouse-direct]
-	 ["Set Deadline" 
-	  (progn (org-mouse-end-headline) (insert " ") (org-deadline)) 
-	  :active (not (save-excursion 
+	 ["Set Deadline"
+	  (progn (org-mouse-end-headline) (insert " ") (org-deadline))
+	  :active (not (save-excursion
 			 (org-mouse-re-search-line org-deadline-regexp)))]
-	 ["Schedule Task" 
-	  (progn (org-mouse-end-headline) (insert " ") (org-schedule)) 
-	  :active (not (save-excursion 
+	 ["Schedule Task"
+	  (progn (org-mouse-end-headline) (insert " ") (org-schedule))
+	  :active (not (save-excursion
 			 (org-mouse-re-search-line org-scheduled-regexp)))]
-	 ["Insert Timestamp" 
+	 ["Insert Timestamp"
 	  (progn (org-mouse-end-headline) (insert " ") (org-time-stamp nil)) t]
 ;	 ["Timestamp (inactive)" org-time-stamp-inactive t]
 	 "--"
@@ -840,7 +847,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	 ["Cut Subtree"  org-cut-special]
 	 ["Copy Subtree"  org-copy-special]
 	 ["Paste Subtree"  org-paste-special :visible org-mouse-direct]
-	 ("Sort Children" 
+	 ("Sort Children"
 	  ["Alphabetically" (org-sort-entries nil ?a)]
 	  ["Numerically" (org-sort-entries nil ?n)]
 	  ["By Time/Date" (org-sort-entries nil ?t)]
@@ -851,7 +858,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	 "--"
 	 ["Move Trees" org-mouse-move-tree :active nil]
 	 ))))
-   (t 
+   (t
     (org-mouse-popup-global-menu))))))
 
 ;; (defun org-mouse-at-regexp (regexp)
@@ -870,8 +877,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
   (and mark-active transient-mark-mode))
 
 (defun org-mouse-in-region-p (pos)
-  (and (org-mouse-mark-active) 
-       (>= pos (region-beginning)) 
+  (and (org-mouse-mark-active)
+       (>= pos (region-beginning))
        (<  pos (region-end))))
 
 (defun org-mouse-down-mouse (event)
@@ -896,19 +903,19 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      (define-key org-mouse-map [drag-mouse-3] 'org-mouse-move-tree)
      (define-key org-mouse-map [down-mouse-3] 'org-mouse-move-tree-start)
 
-     (font-lock-add-keywords nil 
-	`((,outline-regexp 
-	   0 `(face org-link mouse-face highlight keymap ,org-mouse-map)  
+     (font-lock-add-keywords nil
+	`((,outline-regexp
+	   0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
 	   'prepend)
-	  ("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +" 
+	  ("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +"
 	   (1 `(face org-link keymap ,org-mouse-map mouse-face highlight) 'prepend))
-	  ("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)" 
+	  ("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)"
 	   (2 `(face bold keymap ,org-mouse-map mouse-face highlight) t)))
  	t)
 
      (defadvice org-open-at-point (around org-mouse-open-at-point activate)
        (let ((context (org-context)))
-	 (cond 
+	 (cond
 	  ((assq :headline-stars context) (org-cycle))
 	  ((assq :checkbox context) (org-toggle-checkbox))
 	  ((assq :item-bullet context)
@@ -938,26 +945,26 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
       (goto-char start)
       (org-back-to-heading)
       (if (and (eq sbuf ebuf)
-	       (equal 
+	       (equal
 		(point)
 		(save-excursion (goto-char end) (org-back-to-heading) (point))))
 	;; if the same line then promote/demote
 	(if (>= end start) (org-demote-subtree) (org-promote-subtree))
       ;; if different lines then move
       (org-cut-subtree)
-      
+
       (set-buffer ebuf)
       (goto-char end)
       (org-back-to-heading)
       (when  (and (eq sbuf ebuf)
-		  (equal 
+		  (equal
 		   (point)
-		   (save-excursion (goto-char start) 
+		   (save-excursion (goto-char start)
 				   (org-back-to-heading) (point))))
 	(outline-end-of-subtree)
 	(end-of-line)
 	(if (eobp) (newline) (forward-char)))
-      
+
       (when (looking-at outline-regexp)
 	(let ((level (- (match-end 0) (match-beginning 0))))
 	  (when (> end (match-end 0))
@@ -1003,9 +1010,9 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	   (org-mouse-direct nil)
 	   (org-mouse-main-buffer (current-buffer)))
       (when (eq (with-current-buffer buffer major-mode) 'org-mode)
-	(let ((endmarker (save-excursion 
-			  (set-buffer buffer) 
-			  (outline-end-of-subtree) 
+	(let ((endmarker (save-excursion
+			  (set-buffer buffer)
+			  (outline-end-of-subtree)
 			  (forward-char 1)
 			  (copy-marker (point)))))
 	  (org-with-remote-undo buffer
@@ -1024,7 +1031,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	      (message "this-command: %S" this-command)
 	      (unless (eq (marker-position marker) (marker-position endmarker))
 		(setq newhead (org-get-heading))))
-	    
+
 	    (beginning-of-line 1)
 	    (save-excursion
 	      (org-agenda-change-all-lines newhead hdmarker 'fixface))))
@@ -1032,46 +1039,46 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 (defun org-mouse-agenda-context-menu (&optional event)
   (or (org-mouse-do-remotely 'org-mouse-context-menu)
-      (popup-menu  
+      (popup-menu
        '("Agenda"
 	 ("Agenda Files")
 	 "--"
 	 ["Undo" (progn (message "last command: %S" last-command) (setq this-command 'org-agenda-undo) (org-agenda-undo))
-	  :visible (if (eq last-command 'org-agenda-undo) 
+	  :visible (if (eq last-command 'org-agenda-undo)
 		       org-agenda-pending-undo-list
 		     org-agenda-undo-list)]
 	 ["Rebuild Buffer" org-agenda-redo t]
-	 ["New Diary Entry" 
+	 ["New Diary Entry"
 	  org-agenda-diary-entry (org-agenda-check-type nil 'agenda 'timeline) t]
 	 "--"
-	 ["Goto Today" org-agenda-goto-today 
+	 ["Goto Today" org-agenda-goto-today
 	  (org-agenda-check-type nil 'agenda 'timeline) t]
-	 ["Display Calendar" org-agenda-goto-calendar 
+	 ["Display Calendar" org-agenda-goto-calendar
 	  (org-agenda-check-type nil 'agenda 'timeline) t]
 	 ("Calendar Commands"
-	  ["Phases of the Moon" org-agenda-phases-of-moon 
+	  ["Phases of the Moon" org-agenda-phases-of-moon
 	   (org-agenda-check-type nil 'agenda 'timeline)]
-	  ["Sunrise/Sunset" org-agenda-sunrise-sunset 
+	  ["Sunrise/Sunset" org-agenda-sunrise-sunset
 	   (org-agenda-check-type nil 'agenda 'timeline)]
-	  ["Holidays" org-agenda-holidays 
+	  ["Holidays" org-agenda-holidays
 	   (org-agenda-check-type nil 'agenda 'timeline)]
-	  ["Convert" org-agenda-convert-date 
+	  ["Convert" org-agenda-convert-date
 	   (org-agenda-check-type nil 'agenda 'timeline)]
 	  "--"
 	  ["Create iCalendar file" org-export-icalendar-combine-agenda-files t])
 	 "--"
-	 ["Day View" org-agenda-day-view 
+	 ["Day View" org-agenda-day-view
 	  :active (org-agenda-check-type nil 'agenda)
 	  :style radio :selected (equal org-agenda-ndays 1)]
-	 ["Week View" org-agenda-week-view 
+	 ["Week View" org-agenda-week-view
 	  :active (org-agenda-check-type nil 'agenda)
 	  :style radio :selected (equal org-agenda-ndays 7)]
 	 "--"
 	 ["Show Logbook entries" org-agenda-log-mode
-	  :style toggle :selected org-agenda-show-log 
+	  :style toggle :selected org-agenda-show-log
 	  :active (org-agenda-check-type nil 'agenda 'timeline)]
 	 ["Include Diary" org-agenda-toggle-diary
-	  :style toggle :selected org-agenda-include-diary 
+	  :style toggle :selected org-agenda-include-diary
 	  :active (org-agenda-check-type nil 'agenda)]
 	 ["Use Time Grid" org-agenda-toggle-time-grid
 	  :style toggle :selected org-agenda-use-time-grid
@@ -1090,11 +1097,11 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 
 ; (setq org-agenda-mode-hook nil)
-(add-hook 'org-agenda-mode-hook 
+(add-hook 'org-agenda-mode-hook
    '(lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
-     (define-key org-agenda-keymap 
-       (if (featurep 'xemacs) [button3] [mouse-3]) 
+     (define-key org-agenda-keymap
+       (if (featurep 'xemacs) [button3] [mouse-3])
        'org-mouse-show-context-menu)
      (define-key org-agenda-keymap [down-mouse-3] 'org-mouse-move-tree-start)
      (define-key org-agenda-keymap [C-mouse-4] 'org-agenda-earlier)

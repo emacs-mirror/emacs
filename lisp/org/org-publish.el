@@ -1,11 +1,10 @@
 ;;; org-publish.el --- publish related org-mode files as a website
-
 ;; Copyright (C) 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 5.23a
+;; Version: 6.02b
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -156,8 +155,6 @@
 (eval-and-compile
   (unless (fboundp 'declare-function)
     (defmacro declare-function (fn file &optional arglist fileonly))))
-
-(require 'dired-aux)
 
 (defgroup org-publish nil
 	"Options for publishing a set of Org-mode and related files."
@@ -344,6 +341,11 @@ Each element of this alist is of the form:
 
   (file-name . project-name)")
 
+(defvar org-publish-initial-buffer nil
+  "The buffer `org-publish' has been called from.")
+(defvar org-publish-temp-files nil
+  "Temporary list of files to be published.")
+
 (defun org-publish-initialize-files-alist (&optional refresh)
   "Set `org-publish-files-alist' if it is not set.
 Also set it if the optional argument REFRESH is non-nil."
@@ -414,6 +416,26 @@ If NO-EXCLUSION is non-nil, don't exclude files."
      (delq nil (mapcar (lambda(c) (assoc c org-publish-project-alist))
 		       components)))))
 
+(defun org-publish-get-base-files-1 (base-dir &optional recurse match skip-file skip-dir)
+  "Set `org-publish-temp-files' with files from BASE-DIR directory.
+If RECURSE is non-nil, check BASE-DIR recursively.  If MATCH is
+non-nil, restrict this list to the files matching the regexp
+MATCH.  If SKIP-FILE is non-nil, skip file matching the regexp
+SKIP-FILE.  If SKIP-DIR is non-nil, don't check directories
+matching the regexp SKIP-DIR when recursiing through BASE-DIR."
+  (mapc (lambda (f)
+	  (let ((fd-p (car (file-attributes f)))
+		(fnd (file-name-nondirectory f)))
+	    (if (and fd-p recurse
+		     (not (string-match "^\\.+$" fnd))
+		     (if skip-dir (not (string-match skip-dir fnd)) t))
+		(org-publish-get-base-files-1 f recurse match skip-file skip-dir)
+	      (unless (or fd-p ;; this is a directory
+			  (and skip-file (string-match skip-file fnd))
+			  (not (string-match match fnd)))
+		(pushnew f org-publish-temp-files)))))
+	(directory-files base-dir t (unless recurse match))))
+
 (defun org-publish-get-base-files (project &optional exclude-regexp)
   "Return a list of all files in PROJECT.
 If EXCLUDE-REGEXP is set, this will be used to filter out
@@ -422,33 +444,15 @@ matching filenames."
 	 (base-dir (file-name-as-directory
 		    (plist-get project-plist :base-directory)))
  	 (include-list (plist-get project-plist :include))
- 	 (recursive-p (plist-get project-plist :recursive))
+ 	 (recurse (plist-get project-plist :recursive))
  	 (extension (or (plist-get project-plist :base-extension) "org"))
- 	 (regexp (concat "^[^\\.].*\\.\\(" extension "\\)$"))
- 	 alldirs allfiles files dir)
-    ;; Get all files and directories in base-directory
-    (setq files (dired-files-attributes base-dir))
-    ;; Get all subdirectories if recursive-p
-    (setq alldirs
- 	  (if recursive-p
- 	      (delq nil (mapcar (lambda(f) (if (caaddr f) (cadr f))) files))
- 	    (list base-dir)))
-    (while (setq dir (pop alldirs))
-      (setq files (directory-files dir t regexp))
-      ;; Exclude files
-      (setq files
- 	    (if (not exclude-regexp)
- 		files
- 	      (delq nil
- 		    (mapcar (lambda (x)
- 			      (if (string-match exclude-regexp x) nil x))
- 			    files))))
-      ;; Include extra files
-      (let (inc)
- 	(while (setq inc (pop include-list))
- 	  (setq files (cons (expand-file-name inc dir) files))))
-      (setq allfiles (append allfiles files)))
-    allfiles))
+ 	 (match (concat "^[^\\.].*\\.\\(" extension "\\)$")))
+    (setq org-publish-temp-files nil)
+    (org-publish-get-base-files-1 base-dir recurse match
+				  ;; FIXME distinguish exclude regexp
+				  ;; for skip-file and skip-dir?
+				  exclude-regexp exclude-regexp)
+    org-publish-temp-files))
 
 (defun org-publish-get-project-from-filename (filename)
   "Return the project FILENAME belongs."
@@ -482,13 +486,16 @@ PUB-DIR is the publishing directory."
     ;; run hooks after export and save export
     (and (run-hooks 'org-publish-after-export-hook)
 	 (if (buffer-modified-p) (save-buffer)))
+    (kill-buffer export-buf)
     ;; maybe restore buffer's content
     (set-buffer init-buf)
     (when (buffer-modified-p init-buf)
       (erase-buffer)
       (insert init-buf-string)
       (save-buffer)
-      (goto-char init-point))))
+      (goto-char init-point))
+    (unless (eq init-buf org-publish-initial-buffer)
+      (kill-buffer init-buf))))
 
 (defun org-publish-org-to-latex (plist filename pub-dir)
   "Publish an org file to LaTeX.
@@ -529,7 +536,7 @@ See `org-publish-org-to' to the list of arguments."
 					  (abbreviate-file-name filename))))
 		      (error "Can't publish file outside of a project")))))
 	   (project-plist (cdr project))
-	   (publishing-function 
+	   (publishing-function
 	    (or (plist-get project-plist :publishing-function)
 		'org-publish-org-to-html))
 	   (base-dir (file-name-as-directory
@@ -600,12 +607,13 @@ Default for INDEX-FILENAME is 'index.org'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive publishing functions
 
-(defalias 'org-publish-project 'org-publish "Publish project.")
+(defalias 'org-publish-project 'org-publish)
 
 ;;;###autoload
 (defun org-publish (project &optional force)
   "Publish PROJECT."
   (interactive "P")
+  (setq org-publish-initial-buffer (current-buffer))
   (save-window-excursion
     (let* ((force current-prefix-arg)
 	   (org-publish-use-timestamps-flag

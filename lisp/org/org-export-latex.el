@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 5.23
+;; Version: 6.02b
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -50,6 +50,7 @@
 
 (require 'footnote)
 (require 'org)
+(require 'org-exp)
 
 ;;; Variables:
 (defvar org-export-latex-class nil)
@@ -409,7 +410,7 @@ when PUB-DIR is set, use this as the publishing directory."
 		  (if region-p (region-beginning) (point-min))
 		  (if region-p (region-end) (point-max))))
 	 (string-for-export
-	  (org-cleaned-string-for-export
+	  (org-export-preprocess-string
 	   region :emph-multiline t
 		  :for-LaTeX t
 		  :comments nil
@@ -681,7 +682,7 @@ formatting string like %%%%s if we want to comment them out."
 		    (goto-char (match-beginning 0))
 		  (goto-char (point-max)))))
       (org-export-latex-content
-       (org-cleaned-string-for-export
+       (org-export-preprocess-string
 	(buffer-substring (point-min) end)
 	:for-LaTeX t
 	:emph-multiline t
@@ -944,6 +945,9 @@ Regexps are those from `org-export-latex-special-string-regexps'."
 				      (match-string 2)) t t)
 	       (forward-line))))))
 
+
+(defvar org-table-last-alignment) ; defined in org-table.el
+(declare-function orgtbl-to-latex "org-table" (table params) t)
 (defun org-export-latex-tables (insert)
   "Convert tables to LaTeX and INSERT it."
   (goto-char (point-min))
@@ -1076,7 +1080,7 @@ Regexps are those from `org-export-latex-special-string-regexps'."
 
 (defvar org-latex-entities)   ; defined below
 
-(defun org-export-latex-cleaned-string ()
+(defun org-export-latex-preprocess ()
   "Clean stuff in the LaTeX export."
 
   ;; Preserve line breaks
