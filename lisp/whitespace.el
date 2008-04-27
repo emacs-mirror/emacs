@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 11.0
+;; Version: 11.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -744,7 +744,7 @@ Used when `whitespace-style' includes `tabs'."
 
 
 (defcustom whitespace-trailing-regexp
-  "\t\\| \\|\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20"
+  "\\(\\(\t\\| \\|\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)$"
   "*Specify trailing characters regexp.
 
 If you're using `mule' package, there may be other characters besides:
@@ -754,9 +754,8 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-NOTE: DO NOT enclose by \\\\( and \\\\) the elements to highlight.
-      `whitespace-mode' surrounds this regexp by \"\\\\(\\\\(\" and
-      \"\\\\)+\\\\)$\".
+NOTE: Enclose always by \"\\\\(\\\\(\" and \"\\\\)+\\\\)$\" the elements to highlight.
+      Use exactly one pair of enclosing elements above.
 
 Used when `whitespace-style' includes `trailing'."
   :type '(regexp :tag "Trailing Chars")
@@ -1476,7 +1475,7 @@ documentation."
 	(when (memq 'trailing whitespace-style)
 	  (whitespace-replace-action
 	   'delete-region rstart rend
-	   (whitespace-trailing-regexp) 1))
+	   whitespace-trailing-regexp 1))
 	;; PROBLEM 4: 8 or more SPACEs after TAB
 	(cond
 	 ;; ACTION: replace 8 or more SPACEs by TABs, if
@@ -1535,11 +1534,6 @@ See also `tab-width'."
 ;;;; User command - report
 
 
-(defun whitespace-trailing-regexp ()
-  "Make the `whitespace-trailing-regexp' regexp."
-  (concat "\\(\\(" whitespace-trailing-regexp "\\)+\\)$"))
-
-
 (defun whitespace-regexp (regexp &optional kind)
   "Return REGEXP depending on `whitespace-indent-tabs-mode'."
   (cond
@@ -1565,7 +1559,7 @@ See also `tab-width'."
   (list
    (cons 'empty                   whitespace-empty-at-bob-regexp)
    (cons 'empty                   whitespace-empty-at-eob-regexp)
-   (cons 'trailing                (whitespace-trailing-regexp))
+   (cons 'trailing                whitespace-trailing-regexp)
    (cons 'indentation             nil)
    (cons 'indentation::tab        nil)
    (cons 'indentation::space      nil)
@@ -2093,7 +2087,7 @@ resultant list will be returned."
        nil
        (list
 	;; Show trailing blanks
-	(list (whitespace-trailing-regexp) 1 whitespace-trailing t))
+	(list whitespace-trailing-regexp 1 whitespace-trailing t))
        t))
     (when (or (memq 'lines      whitespace-active-style)
 	      (memq 'lines-tail whitespace-active-style))
