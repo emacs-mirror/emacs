@@ -10,7 +10,7 @@
 	* net/tramp-cache.el (tramp-get-file-property)
 	(tramp-set-file-property, tramp-flush-file-property)
 	(tramp-flush-directory-property)
-	* net/tramp-cpmpat.el (tramp-compat-make-temp-file)
+	* net/tramp-compat.el (tramp-compat-make-temp-file)
 	* net/tramp-fish.el (tramp-fish-handle-expand-file-name): Disable
 	`file-name-handler-alist' when handling localname.  It could have
 	a remote file syntax, like a VMS file name.
