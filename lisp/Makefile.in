@@ -81,9 +81,7 @@ COMPILE_FIRST = \
 
 emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 # Prerequisites for running $(emacs)
-# This should not be necessary because in order to have ../src/emacs
-# we must have built subdirs.el already.
-# emacs-deps = $(lisp)/subdirs.el
+emacs-deps = $(lisp)/subdirs.el
 
 # Common command to find subdirectories
 
