@@ -32,7 +32,7 @@
 
 2008-04-27  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org/org.el (org-html-level-start): Always have id's in HTML
+	* org/org.el (org-html-level-start): Always have id's in HTML.
 	(org-export-as-html): Use `org-link-protocols' to
 	retrieve the export form of the link.
 	(org-add-link-type): Final parameter renamed from PUBLISH.  Better
@@ -74,15 +74,14 @@
 	list of additional keywords.
 	(org-export-as-html): Removed (current-time) as unnecessary second
 	argument of `format-time-string'.
-	(org-clock-find-position): Handle special case at end of
-	buffer.
+	(org-clock-find-position): Handle special case at end of buffer.
 	(org-agenda-day-view): New argument DAY-OF-YEAR, pass it on to
 	`org-agenda-change-time-span'.
 	(org-agenda-week-view): New argument ISO-WEEK, pass it on to
 	`org-agenda-change-time-span'.
 	(org-agenda-month-view): New argument MONTH, pass it on to
 	`org-agenda-change-time-span'.
-	(org-agenda-year-view):  New argument YEAR, pass it on to
+	(org-agenda-year-view): New argument YEAR, pass it on to
 	`org-agenda-change-time-span'.
 	(org-agenda-change-time-span): New optional argument N, pass it on
 	to `org-agenda-compute-time-span'.
@@ -91,33 +90,27 @@
 	(org-small-year-to-year): New function.
 	(org-scheduled-past-days): Respect
 	`org-scheduled-past-days'.
-	(org-auto-repeat-maybe): Make sure that repeating
-	dates are pushed into the future, and that the shift is at least
-	one interval, never 0.
-	(org-update-checkbox-count): Fix bug with checkbox
-	counting.
+	(org-auto-repeat-maybe): Make sure that repeating dates are pushed
+	into the future, and that the shift is at least one interval, never 0.
+	(org-update-checkbox-count): Fix bug with checkbox counting.
 	(org-add-note): New command.
 	(org-add-log-setup): Renamed from `org-add-log-maybe'.
 	(org-log-note-headings): New entry for plain notes (i.e. notes not
 	related to state changes or clocking).
-	(org-get-org-file): Check for availability of
-	`remember-data-file'.
+	(org-get-org-file): Check for availability of `remember-data-file'.
 	(org-cached-entry-get): Allow a regexp value for
 	`org-use-property-inheritance'.
 	(org-use-property-inheritance): Allow regexp value.  Fix bug in
 	customization type.
 	(org-use-tag-inheritance): Allow a list and a regexp value for
 	this variable.
-	(org-scan-tags, org-get-tags-at): Implement selective tag
-	inheritance.
-	(org-entry-get): Respect value `selective' for the INHERIT
-	argument.
+	(org-scan-tags, org-get-tags-at): Implement selective tag inheritance.
+	(org-entry-get): Respect value `selective' for the INHERIT argument.
 	(org-tag-inherit-p, org-property-inherit-p): New functions.
 	(org-agenda-format-date-aligned): Allow 10 characters for
 	weekday, to acomodate German locale.
 	(org-add-archive-files): New function.
-	(org-agenda-files): New argument `ext', to
-	get archive files as well.
+	(org-agenda-files): New argument `ext', to get archive files as well.
 	(org-tbl-menu): Protect the use of variables that
 	are only available when org-table.el gets loaded.
 	(org-read-agenda-file-list): Error if `org-agenda-files' is a
@@ -138,19 +131,16 @@
 	the buffer associated with the entry at point (or with the first
 	entry in the agenda view).
 	(org-modules): Add entry for org-bibtex.el.
-	(org-completion-fallback-command): Moved into `org-completion'
-	group.
+	(org-completion-fallback-command): Moved into `org-completion' group.
 	(org-clock-heading-function): Moved to `org-progress' group.
 	(org-auto-repeat-maybe): Make sure that a note can
 	be enforces if `org-log-repeat' is `note'.
-	(org-modules): Allow additional symbols for external
-	packages.
-	(org-ctrl-c-ctrl-c): Allow for `org-clock-overlays' to be
-	undefined.
+	(org-modules): Allow additional symbols for external packages.
+	(org-ctrl-c-ctrl-c): Allow for `org-clock-overlays' to be undefined.
 	(org-clock-goto): Hide drawers after showing an
 	entry with `org-clock-goto.'
-	(org-shiftup, org-shiftdown, org-shiftright, org-shiftleft): Try
-	also a clocktable block shift.
+	(org-shiftup, org-shiftdown, org-shiftright, org-shiftleft):
+	Try also a clocktable block shift.
 	(org-clocktable-try-shift): New function.
 	(org-columns-hscoll-title): New function.
 	(org-columns-previous-hscroll): New variable.
@@ -226,7 +216,7 @@
 	(*orgtbl-table*, *orgtbl-rtn*): Dynamically
 	bound variables to hold the input collection of lines and output
 	formatted text.
-	(*orgtbl-hline*, *orgtbl-sep*, *orgtbl-fmt*, *orgtbl-efmt*,
+	(*orgtbl-hline*, *orgtbl-sep*, *orgtbl-fmt*, *orgtbl-efmt*)
 	(*orgtbl-lfmt*, *orgtbl-lstart*, *orgtbl-lend*): Dynamically bound
 	format parameters.
 	(orgtbl-format-line): New function encapsulating formatting for a
@@ -268,27 +258,23 @@
 
 	* lisp/org-clock.el (org-clock): New customization group.
 	(org-clock-into-drawer, org-clock-out-when-done)
-	(org-clock-in-switch-to-state, org-clock-heading-function): Moved
-	into the new group.
+	(org-clock-in-switch-to-state, org-clock-heading-function):
+	Moved into the new group.
 	(org-clock-out-remove-zero-time-clocks): New option.
 	(org-clock-out): Use `org-clock-out-remove-zero-time-clocks'.
 	(org-dblock-write:clocktable): Allow a Lisp form for the scope
 	parameter.
-	(org-dblock-write:clocktable): Fixed bug with total time
-	calculation.
-	(org-dblock-write:clocktable): Request the unrestricted list of
-	files.
+	(org-dblock-write:clocktable): Fixed bug with total time calculation.
+	(org-dblock-write:clocktable): Request the unrestricted list of files.
 	(org-get-clocktable): New function.
-	(org-dblock-write:clocktable): Make sure :tstart and :tend can not
-	only be strings but also integers (an absolute day number) and
-	lists (m d y).
+	(org-dblock-write:clocktable): Make sure :tstart and :tend can not only
+	be strings but also integers (an absolute day number) and lists (m d y).
 
 	* org/org-colview.el (org-columns-next-allowed-value)
-	(org-columns-edit-value): Limit the effort for updatig in the
+	(org-columns-edit-value): Limit the effort for updating in the
 	agenda to recomputing a single file.
-	(org-columns-compute): Only write property value if it has
-	changed.  This avoids raising the buffer-change-flag
-	unnecessarily.
+	(org-columns-compute): Only write property value if it has changed.
+	This avoids raising the buffer-change-flag unnecessarily.
 	(org-agenda-colview-summarize)
 	(org-agenda-colview-compute): New functions.
 	(org-agenda-columns): Call `org-agenda-colview-summarize'.
@@ -303,8 +289,7 @@
 	`org-cleaned-string-for-export'.
 	(org-cleaned-string-for-export): Better treatment of heuristic
 	targets, many more internal links will now work in HTML export.
-	(org-get-current-options): Incorporate LINK_UP, LINK_HOME, and
-	INFOJS.
+	(org-get-current-options): Incorporate LINK_UP, LINK_HOME, and INFOJS.
 	(org-export-inbuffer-options-extra): New variable.
 	(org-export-options-filters): New hook.
 	(org-infile-export-plist): Find also the settings keywords in
@@ -322,8 +307,8 @@
 	correctly interpreted by calc.
 	(org-table-current-column): No longer interactive.
 
-	* org/org-export-latex.el (org-export-latex-preprocess): Renamed
-	from `org-export-latex-cleaned-string'.
+	* org/org-export-latex.el (org-export-latex-preprocess):
+	Renamed from `org-export-latex-cleaned-string'.
 
 2008-04-27  Bastien Guerry  <bzg@altern.org>
 
@@ -359,7 +344,7 @@
 
 	* whitespace.el: New version 11.1.
 	(whitespace-trailing-regexp): Option fix, now trailing regexp must be
-	enclosed by \\( and \\)$. Docstring fix.
+	enclosed by \\( and \\)$.  Docstring fix.
 	(whitespace-trailing-regexp): Fun removed.
 	(whitespace-report-list): Const initialization fix.
 	(whitespace-color-on): Code fix.
@@ -407,8 +392,8 @@
 2008-04-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: There is now only one variable (whitespace-style) to
-	specify which kind of blank is visualized.  Doc and docstring fix. New
-	version 11.0.
+	specify which kind of blank is visualized.  Doc and docstring fix.
+	New version 11.0.
 	(whitespace-style): New option, replace whitespace-style-mark and
 	whitespace-style-color.
 	(whitespace-style-mark, whitespace-style-color): Options removed.
@@ -589,7 +574,7 @@
 	* pcvs-defs.el (cvs-mode-map): Use :suppress.
 
 	* net/goto-addr.el (goto-address-unfontify): New function.
-	(goto-address-fontify): Use it.	 Respect goto-address-prog-mode.
+	(goto-address-fontify): Use it.  Respect goto-address-prog-mode.
 	(goto-address-fontify-region, goto-address-mode)
 	(goto-address-prog-mode): New functions.
 
@@ -1440,8 +1425,8 @@
 	into the new generic stage functions.
 	(vc-git-dir-status-files): New function.
 
-	* vc.el (vc-status-update): Revert an incorrect rewrite. Add some
-	comments.
+	* vc.el (vc-status-update): Revert an incorrect rewrite.
+	Add some comments.
 	(vc-status-refresh-files): New function.
 	(vc-status-refresh): Use `vc-status-refresh-files' to refresh the
 	state of up-to-date files.
