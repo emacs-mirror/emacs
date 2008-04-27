@@ -1,3 +1,7 @@
+2008-04-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fringe.c (Fdefine_fringe_bitmap): Doc fix.
+
 2008-04-27  Andreas Schwab  <schwab@suse.de>
 
 	* dired.c (file_name_completion): Fix inappropriate mixing of
@@ -14,7 +18,7 @@
 	on nt/inc/sys/stat.h.  Undo changes from 2007-01-12 and 2007-01-13
 	for the same reasons.
 
-2008-04-25  Chip Coldwell <coldwell@redhat.com>
+2008-04-25  Chip Coldwell  <coldwell@redhat.com>
 
 	* m/sparc.h: Additional redefinitions for GNU/Linux.
 
@@ -94,7 +98,7 @@
 	(create_apple_event, mac_event_parameters_to_lisp)
 	[TARGET_API_MAC_CARBON]: Add externs.
 
-	* mactoolbox.c: (Vmac_ts_script_language_on_focus)
+	* mactoolbox.c (Vmac_ts_script_language_on_focus)
 	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: Remove externs.
 	(XTread_socket) [USE_MAC_TOOLBAR]: Select window if its structure part
 	is clicked.
@@ -142,7 +146,7 @@
 	* Makefile.in (TOOLKIT_DEFINES): Remove.
 	(LIBW): Use a bit less #if, remove left over OPEN_LOOK stuff.
 
-2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (MAC_OBJ): Add mactoolbox.o.
 	(mactoolbox.o): New target.
@@ -297,7 +301,7 @@
 
 	* mactoolbox.c: New file.
 
-2008-03-31  Jason Rumney  <jasonr@gnu.org>
+2008-04-18  Jason Rumney  <jasonr@gnu.org>
 
 	* dired.c (Ffile_attributes) [WINDOWSNT]: Cast uid and gid to unsigned.
 
