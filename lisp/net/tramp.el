@@ -2119,7 +2119,8 @@ this can give surprising results if the user/host for the source and
 target of the symlink differ."
   (with-parsed-tramp-file-name linkname l
     (let ((ln (tramp-get-remote-ln l))
-	  (cwd (file-name-directory l-localname)))
+	  (cwd (tramp-run-real-handler
+		'file-name-directory (list l-localname))))
       (unless ln
 	(tramp-error
 	 l 'file-error
@@ -2150,7 +2151,6 @@ target of the symlink differ."
       (zerop
        (tramp-send-command-and-check
 	l (format "cd %s && %s -sf %s %s" cwd ln filename l-localname) t)))))
-
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."
@@ -2194,12 +2194,13 @@ target of the symlink differ."
      (tramp-file-name-method v)
      (tramp-file-name-user v)
      (tramp-file-name-host v)
-     (file-name-directory (or (tramp-file-name-localname v) "")))))
+     (tramp-run-real-handler
+      'file-name-directory (list (or (tramp-file-name-localname v) ""))))))
 
 (defun tramp-handle-file-name-nondirectory (file)
   "Like `file-name-nondirectory' but aware of Tramp files."
   (with-parsed-tramp-file-name file nil
-    (file-name-nondirectory localname)))
+    (tramp-run-real-handler 'file-name-nondirectory (list localname))))
 
 (defun tramp-handle-file-truename (filename &optional counter prev-dirs)
   "Like `file-truename' for Tramp files."
@@ -2207,7 +2208,8 @@ target of the symlink differ."
     (with-file-property v localname "file-truename"
       (let* ((directory-sep-char ?/) ; for XEmacs
 	     (steps (tramp-split-string localname "/"))
-	     (localnamedir (file-name-as-directory localname))
+	     (localnamedir (tramp-run-real-handler
+			    'file-name-as-directory (list localname)))
 	     (is-dir (string= localname localnamedir))
 	     (thisstep nil)
 	     (numchase 0)
@@ -3128,20 +3130,23 @@ the uid and gid from FILENAME."
 	 ((or t1 t2)
 	  (cond
 	   ;; We can do it directly.
-	   ((and (file-readable-p localname1)
-		 (file-writable-p (file-name-directory localname2))
-		 (or (file-directory-p localname2)
-		     (file-writable-p localname2)))
+	   ((let (file-name-handler-alist)
+	      (and (file-readable-p localname1)
+		   (file-writable-p (file-name-directory localname2))
+		   (or (file-directory-p localname2)
+		       (file-writable-p localname2))))
 	    (if (eq op 'copy)
 		(tramp-compat-copy-file
 		 localname1 localname2 ok-if-already-exists
 		 keep-date preserve-uid-gid)
-	      (rename-file localname1 localname2 ok-if-already-exists)))
+	      (tramp-run-real-handler
+	       'rename-file (list localname1 localname2 ok-if-already-exists))))
 
 	   ;; We can do it directly with `tramp-send-command'
-	   ((and (file-readable-p (concat prefix localname1))
+	   ((let (file-name-handler-alist)
+	      (and (file-readable-p (concat prefix localname1))
 		 (file-writable-p
-		  (file-name-directory (concat prefix localname2))))
+		  (file-name-directory (concat prefix localname2)))))
 	    (tramp-do-copy-or-rename-file-directly
 	     op (concat prefix localname1) (concat prefix localname2)
 	     ok-if-already-exists keep-date t)
@@ -3172,7 +3177,8 @@ the uid and gid from FILENAME."
 		    (tramp-compat-copy-file
 		     localname1 tmpfile ok-if-already-exists
 		     keep-date preserve-uid-gid)
-		  (rename-file localname1 tmpfile ok-if-already-exists))
+		  (tramp-run-real-handler
+		   'rename-file (list localname1 tmpfile ok-if-already-exists)))
 		;; We must change the ownership as local user.
 		(tramp-set-file-uid-gid
 		 tmpfile
@@ -3188,7 +3194,9 @@ the uid and gid from FILENAME."
 		    (tramp-shell-quote-argument tmpfile)
 		    (tramp-shell-quote-argument localname2))))
 	       (t1
-		(rename-file tmpfile localname2 ok-if-already-exists)))))))))
+		(tramp-run-real-handler
+		 'rename-file
+		 (list tmpfile localname2 ok-if-already-exists))))))))))
 
       ;; Set the time and mode. Mask possible errors.
       ;; Won't be applied for 'rename.
@@ -3197,7 +3205,6 @@ the uid and gid from FILENAME."
 	    (set-file-times newname (nth 5 (file-attributes filename)))
 	    (set-file-modes newname (file-modes filename)))
 	(error)))))
-
 
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
   "Invoke rcp program to copy.
@@ -3450,8 +3457,10 @@ This is like `dired-recursive-delete-directory' for Tramp files."
        switches filename (if wildcard "yes" "no")
        (if full-directory-p "yes" "no"))
       (when wildcard
-        (setq wildcard (file-name-nondirectory localname))
-        (setq localname (file-name-directory localname)))
+        (setq wildcard (tramp-run-real-handler
+			'file-name-nondirectory (list localname)))
+        (setq localname (tramp-run-real-handler
+			 'file-name-directory (list localname))))
       (when (listp switches)
         (setq switches (mapconcat 'identity switches " ")))
       (unless full-directory-p
@@ -3472,19 +3481,24 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	(tramp-barf-unless-okay
 	 v
 	 (format "cd %s" (tramp-shell-quote-argument
-			  (file-name-directory localname)))
+			  (tramp-run-real-handler
+			   'file-name-directory (list localname))))
 	 "Couldn't `cd %s'"
-	 (tramp-shell-quote-argument (file-name-directory localname)))
+	 (tramp-shell-quote-argument
+	  (tramp-run-real-handler 'file-name-directory (list localname))))
 	(tramp-send-command
 	 v
 	 (format "%s %s %s"
 		 (tramp-get-ls-command v)
 		 switches
 		 (if (or wildcard
-			 (zerop (length (file-name-nondirectory localname))))
+			 (zerop (length
+				 (tramp-run-real-handler
+				  'file-name-nondirectory (list localname)))))
 		     ""
 		   (tramp-shell-quote-argument
-		    (file-name-nondirectory localname))))))
+		    (tramp-run-real-handler
+		     'file-name-nondirectory (list localname)))))))
       ;; We cannot use `insert-buffer-substring' because the Tramp buffer
       ;; changes its contents before insertion due to calling
       ;; `expand-file' and alike.
@@ -3514,7 +3528,7 @@ the result will be a local, non-Tramp, filename."
       (tramp-run-real-handler 'expand-file-name (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
-      (unless (file-name-absolute-p localname)
+      (unless (tramp-run-real-handler 'file-name-absolute-p (list localname))
 	(setq localname (concat "~/" localname)))
       ;; Tilde expansion if necessary.  This needs a shell which
       ;; groks tilde expansion!  The function `tramp-find-shell' is
@@ -3554,8 +3568,8 @@ the result will be a local, non-Tramp, filename."
 	(tramp-make-tramp-file-name
 	 method user host
 	 (tramp-drop-volume-letter
-	  (tramp-run-real-handler 'expand-file-name
-				  (list localname))))))))
+	  (tramp-run-real-handler
+	   'expand-file-name (list localname))))))))
 
 (defun tramp-replace-environment-variables (filename)
   "Replace environment variables in FILENAME.
@@ -3586,7 +3600,9 @@ beginning of local filename are not substituted."
 	   (when method (substitute-in-file-name method))
 	   (when user (substitute-in-file-name user))
 	   (when host (substitute-in-file-name host))
-	   (when localname (substitute-in-file-name localname))))
+	   (when localname
+	     (tramp-run-real-handler
+	      'substitute-in-file-name (list localname)))))
       ;; Ignore in LOCALNAME everything before "//" or "/~".
       (when (and (stringp localname) (string-match ".+?/\\(/\\|~\\)" localname))
 	(setq filename
@@ -3968,9 +3984,12 @@ coding system might not be determined.  This function repairs it."
 	    (list (expand-file-name filename) 0))
 
 	(if (and (tramp-local-host-p v)
-		 (file-readable-p localname))
+		 (let (file-name-handler-alist) (file-readable-p localname)))
 	    ;; Short track: if we are on the local host, we can run directly.
-	    (setq result (insert-file-contents localname visit beg end replace))
+	    (setq result
+		  (tramp-run-real-handler
+		   'insert-file-contents
+		   (list localname visit beg end replace)))
 
 	  ;; `insert-file-contents-literally' takes care to avoid calling
 	  ;; jka-compr.  By let-binding inhibit-file-name-operation, we
@@ -4146,11 +4165,16 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		   (tramp-get-remote-gid v 'integer))))
 
       (if (and (tramp-local-host-p v)
-	       (file-writable-p (file-name-directory localname))
-	       (or (file-directory-p localname)
-		   (file-writable-p localname)))
+	       ;; `file-writable-p' calls 'file-expand-file-name'.  We
+	       ;; cannot use `tramp-run-real-handler' therefore.
+	       (let (file-name-handler-alist)
+		 (file-writable-p (file-name-directory localname))
+		 (or (file-directory-p localname)
+		     (file-writable-p localname))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (write-region start end localname append 'no-message lockname confirm)
+	  (tramp-run-real-handler
+	   'write-region
+	   (list start end localname append 'no-message lockname confirm))
 
 	(let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
 	      (loc-enc (tramp-get-local-coding v "local-encoding"))
@@ -6643,7 +6667,6 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
         ((zerop i) "0")
         (t (concat (tramp-decimal-to-octal (/ i 8))
                    (number-to-string (% i 8))))))
-
 
 ;; Kudos to Gerd Moellmann for this suggestion.
 (defun tramp-octal-to-decimal (ostr)
