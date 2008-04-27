@@ -539,6 +539,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	{
 	  DIRENTRY *dp;
 	  int len;
+	  Lisp_Object decoded_name;
 
 #ifdef VMS
 	  dp = (*readfunc) (d);
@@ -640,6 +641,9 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  if (!passcount && CONSP (tem))
 	    continue;
 
+	  name = make_unibyte_string (dp->d_name, len);
+	  decoded_name = DECODE_FILE (name);
+
 	  if (!passcount)
 	    {
 	      Lisp_Object regexps;
@@ -650,8 +654,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 		   regexps = XCDR (regexps))
 		{
-		  tem = Fstring_match (XCAR (regexps),
-				       make_string (dp->d_name, len), zero);
+		  tem = Fstring_match (XCAR (regexps), decoded_name, zero);
 		  if (NILP (tem))
 		    break;
 		}
@@ -663,10 +666,8 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  if (directoryp)
 	    {
 	      /* This completion is a directory; make it end with '/' */
-	      name = Ffile_name_as_directory (make_string (dp->d_name, len));
+	      name = ENCODE_FILE (Ffile_name_as_directory (decoded_name));
 	    }
-	  else
-	    name = make_string (dp->d_name, len);
 
 	  /* Test the predicate, if any.  */
 
@@ -674,10 +675,10 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	    {
 	      Lisp_Object decoded;
 	      Lisp_Object val;
-	      struct gcpro gcpro1;
+	      struct gcpro gcpro1, gcpro2;
 
-	      GCPRO1 (name);
-	      decoded = Fexpand_file_name (DECODE_FILE (name), dirname);
+	      GCPRO2 (name, decoded_name);
+	      decoded = Fexpand_file_name (decoded_name, dirname);
 	      val = call1 (predicate, decoded);
 	      UNGCPRO;
 
@@ -690,10 +691,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  matchcount++;
 
 	  if (all_flag)
-	    {
-	      name = DECODE_FILE (name);
-	      bestmatch = Fcons (name, bestmatch);
-	    }
+	    bestmatch = Fcons (decoded_name, bestmatch);
 	  else if (NILP (bestmatch))
 	    {
 	      bestmatch = name;
@@ -729,8 +727,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 			 either both or neither are exact.  */
 		      (((matchsize == len)
 			==
-			(matchsize + !!directoryp
-			 == SCHARS (bestmatch)))
+			(matchsize + !!directoryp == SCHARS (bestmatch)))
 		       && !bcmp (p2, SDATA (encoded_file), SCHARS (encoded_file))
 		       && bcmp (p1, SDATA (encoded_file), SCHARS (encoded_file))))
 		    bestmatch = name;

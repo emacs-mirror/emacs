@@ -1,5 +1,8 @@
 2008-04-27  Andreas Schwab  <schwab@suse.de>
 
+	* dired.c (file_name_completion): Fix inappropriate mixing of
+	encoded and decoded names.
+
 	* xterm.c (XTread_socket): Fix use of uninitialized variable.
 
 	* puresize.h (BASE_PURESIZE): Increase to 1200000.
