@@ -1405,15 +1405,9 @@ extra args."
       (when (and (stringp (car elt))
 		 (string-match
 		  "^cl\\>" (file-name-nondirectory (car elt))))
-	(setq byte-compile-cl-functions
-	      (append byte-compile-cl-functions
-		      (cdr elt)))))
-    (let ((tail byte-compile-cl-functions))
-      (while tail
-	(if (and (consp (car tail))
-		 (eq (car (car tail)) 'autoload))
-	    (setcar tail (cdr (car tail))))
-	(setq tail (cdr tail))))))
+	(dolist (e (cdr elt))
+          (when (memq (car-safe e) '(autoload defun))
+            (push (cdr e) byte-compile-cl-functions)))))))
 
 (defun byte-compile-cl-warn (form)
   "Warn if FORM is a call of a function from the CL package."
