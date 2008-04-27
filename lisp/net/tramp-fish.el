@@ -352,7 +352,7 @@ pass to the OPERATION."
        (tramp-run-real-handler 'expand-file-name (list name nil)))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
-      (unless (file-name-absolute-p localname)
+      (unless (tramp-run-real-handler 'file-name-absolute-p (list localname))
 	(setq localname (concat "~/" localname)))
       ;; Tilde expansion if necessary.
       (when (string-match "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
@@ -385,8 +385,8 @@ pass to the OPERATION."
 	(tramp-make-tramp-file-name
 	 method user host
 	 (tramp-drop-volume-letter
-	  (tramp-run-real-handler 'expand-file-name
-				  (list localname))))))))
+	  (tramp-run-real-handler
+	   'expand-file-name (list localname))))))))
 
 (defun tramp-fish-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
