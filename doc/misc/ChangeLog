@@ -1,3 +1,7 @@
+2008-04-27  Carsten Dominik  <dominik@sam.science.uva.nl>
+
+	* org.texi: Massive changes, in many parts of the file.
+
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Oort Gnus): Add message-fill-column.
