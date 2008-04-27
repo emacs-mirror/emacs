@@ -1,3 +1,311 @@
+2008-04-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org/org.el (org-html-level-start): Always have id's in HTML
+	(org-export-as-html): Use `org-link-protocols' to
+	retrieve the export form of the link.
+	(org-add-link-type): Final parameter renamed from PUBLISH.  Better
+	documentation of how it is to be used.  Avoid double entries for
+	the same link type.
+	(org-add-link-props): New function.
+	(org-modules-loaded): New variable.
+	(org-load-modules-maybe, org-set-modules): New function.
+	(org-modules): New option.
+	(org-mode, org-cycle, orgstruct-mode, org-run-like-in-org-mode)
+	(orgtbl-mode, org-store-link, org-insert-link-global)
+	(org-open-at-point): Call `org-load-modules-maybe'.
+	(org-search-view): Add more text properties.
+	(org-agenda-schedule, org-agenda-deadline): Allow also in
+	search-type agendas.
+	(org-search-view): Order of arguments has been changed.
+	Interpret prefix-arg as TODO-ONLY.
+	(org-agenda, org-run-agenda-series, org-agenda-manipulate-query):
+	Take new argument order of `org-search-view' into account.
+	(org-todo-only): New variable.
+	(org-search-syntax-table): New variable and function.
+	(org-search-view): Do the search with the special syntax table.
+	(define-obsolete-function-alias): Make work with XEmacs.
+	(org-add-planning-info): Use old date as default when modifying an
+	existing deadline or scheduled item.
+	(org-agenda-compute-time-span): Make argument N optional.
+	(org-agenda-format-date-aligned): Require `cal-iso'.
+	(org-agenda-list): Include week into into agenda heading, don't
+	list it at each date (only on Mondays).
+	(org-read-date-analyze): Define local variable `iso-date'.
+	(org-agenda-format-date-aligned): Remove dependency on
+	`calendar-time-from-absolute'.
+	(org-remember-apply-template, org-go-to-remember-target):
+	Interpret filenames relative to `org-directory'.
+	(org-complete): Silently fail when trying to complete
+	keywords that don't have a default value.
+	(org-get-current-options): Added a #+DATE: option.
+	(org-additional-option-like-keywords): Removed "DATE:" from the
+	list of additional keywords.
+	(org-export-as-html): Removed (current-time) as unnecessary second
+	argument of `format-time-string'.
+	(org-clock-find-position): Handle special case at end of
+	buffer.
+	(org-agenda-day-view): New argument DAY-OF-YEAR, pass it on to
+	`org-agenda-change-time-span'.
+	(org-agenda-week-view): New argument ISO-WEEK, pass it on to
+	`org-agenda-change-time-span'.
+	(org-agenda-month-view): New argument MONTH, pass it on to
+	`org-agenda-change-time-span'.
+	(org-agenda-year-view):  New argument YEAR, pass it on to
+	`org-agenda-change-time-span'.
+	(org-agenda-change-time-span): New optional argument N, pass it on
+	to `org-agenda-compute-time-span'.
+	(org-agenda-compute-time-span): New argument N, interpret it by
+	changing the starting day.
+	(org-small-year-to-year): New function.
+	(org-scheduled-past-days): Respect
+	`org-scheduled-past-days'.
+	(org-auto-repeat-maybe): Make sure that repeating
+	dates are pushed into the future, and that the shift is at least
+	one interval, never 0.
+	(org-update-checkbox-count): Fix bug with checkbox
+	counting.
+	(org-add-note): New command.
+	(org-add-log-setup): Renamed from `org-add-log-maybe'.
+	(org-log-note-headings): New entry for plain notes (i.e. notes not
+	related to state changes or clocking).
+	(org-get-org-file): Check for availability of
+	`remember-data-file'.
+	(org-cached-entry-get): Allow a regexp value for
+	`org-use-property-inheritance'.
+	(org-use-property-inheritance): Allow regexp value.  Fix bug in
+	customization type.
+	(org-use-tag-inheritance): Allow a list and a regexp value for
+	this variable.
+	(org-scan-tags, org-get-tags-at): Implement selective tag
+	inheritance.
+	(org-entry-get): Respect value `selective' for the INHERIT
+	argument.
+	(org-tag-inherit-p, org-property-inherit-p): New functions.
+	(org-agenda-format-date-aligned): Allow 10 characters for
+	weekday, to acomodate German locale.
+	(org-add-archive-files): New function.
+	(org-agenda-files): New argument `ext', to
+	get archive files as well.
+	(org-tbl-menu): Protect the use of variables that
+	are only available when org-table.el gets loaded.
+	(org-read-agenda-file-list): Error if `org-agenda-files' is a
+	single directory.
+	(org-open-file): Allow a batch process to trigger
+	waiting after executing a system command.
+	(org-store-link): Link to headline when there is not
+	target and no region in an org-mode buffer when creating a link.
+	(org-link-types-re): New variable.
+	(org-make-link-regexps): Compute `org-link-types-re'.
+	(org-make-link-description-function): New option.
+	(org-agenda-date, org-agenda-date-weekend): New faces.
+	(org-archive-sibling-heading): New option.
+	(org-archive-to-archive-sibling): New function.
+	(org-iswitchb): New command.
+	(org-buffer-list): New function.
+	(org-agenda-columns): Also try the #+COLUMNS line in
+	the buffer associated with the entry at point (or with the first
+	entry in the agenda view).
+	(org-modules): Add entry for org-bibtex.el.
+	(org-completion-fallback-command): Moved into `org-completion'
+	group.
+	(org-clock-heading-function): Moved to `org-progress' group.
+	(org-auto-repeat-maybe): Make sure that a note can
+	be enforces if `org-log-repeat' is `note'.
+	(org-modules): Allow additional symbols for external
+	packages.
+	(org-ctrl-c-ctrl-c): Allow for `org-clock-overlays' to be
+	undefined.
+	(org-clock-goto): Hide drawers after showing an
+	entry with `org-clock-goto.'
+	(org-shiftup, org-shiftdown, org-shiftright, org-shiftleft): Try
+	also a clocktable block shift.
+	(org-clocktable-try-shift): New function.
+	(org-columns-hscoll-title): New function.
+	(org-columns-previous-hscroll): New variable.
+	(org-columns-full-header-line-format): New variable.
+	(org-columns-display-here-title, org-columns-remove-overlays):
+	Install `org-columns-hscoll-title' in post-command-hook.
+
+	* org/org.el: Split into many small files.
+
+	* org/org-agenda.el: New file, split off from org.el.
+
+	* org/org-archive.el: New file, split off from org.el.
+
+	* org/org-bbdb.el: New file.
+
+	* org/org-bibtex.el: New file, split off from org.el.
+
+	* org/org-clock.el: New file, split off from org.el.
+
+	* org/org-colview.el: New file, split off from org.el.
+
+	* org/org-compat.el: New file, split off from org.el.
+
+	* org/org-exp.el: New file, split off from org.el.
+
+	* org/org-faces.el: New file, split off from org.el.
+
+	* org/org-gnus.el: New file, split off from org.el.
+
+	* org/org-info.el: New file, split off from org.el.
+
+	* org/org-infojs.el: New file.
+
+	* org/org-irc.el: New file.
+
+	* org/org-macs.el: New file, split off from org.el.
+
+	* org/org-mew.el: New file.
+
+	* org/org-mhe.el: New file, split off from org.el.
+
+	* org/org-publish.el: New file, split off from org.el.
+
+	* org/org-remember.el: New file, split off from org.el.
+
+	* org/org-rmail.el: New file, split off from org.el.
+
+	* org/org-table.el: New file, split off from org.el.
+
+	* org/org-vm.el: New file, split off from org.el.
+
+	* org/org-wl.el: New file, split off from org.el.
+
+2008-04-27  Jason Riedy  <jason@acm.org>
+
+	* lisp/org-table.el (orgtbl-to-generic): Add a :remove-nil-lines
+	parameter that supresses lines that evaluate to NIL.
+	(orgtbl-get-fmt): New inline function for
+	picking apart formats that may be lists.
+	(orgtbl-apply-fmt): New inline function for applying formats that
+	may be functions.
+	(orgtbl-eval-str): New inline function for strings that may be
+	functions.
+	(orgtbl-format-line, orgtbl-to-generic): Use and document.
+	(orgtbl-to-latex, orgtbl-to-texinfo): Document.
+	(*orgtbl-llfmt*, *orgtbl-llstart*)
+	(*orgtbl-llend*): Dynamic variables for last-line formatting.
+	(orgtbl-format-section): Shift formatting to support detecting the
+	last line and formatting it specially.
+	(orgtbl-to-generic): Document :ll* formats.  Set to the non-ll
+	formats unless overridden.
+	(orgtbl-to-latex): Suggest using :llend to suppress the final \\.
+	(*orgtbl-table*, *orgtbl-rtn*): Dynamically
+	bound variables to hold the input collection of lines and output
+	formatted text.
+	(*orgtbl-hline*, *orgtbl-sep*, *orgtbl-fmt*, *orgtbl-efmt*,
+	(*orgtbl-lfmt*, *orgtbl-lstart*, *orgtbl-lend*): Dynamically bound
+	format parameters.
+	(orgtbl-format-line): New function encapsulating formatting for a
+	single line.
+	(orgtbl-format-section): Similar for each section.  Rebinding the
+	dynamic vars customizes the formatting for each section.
+	(orgtbl-to-generic): Use orgtbl-format-line and
+	orgtbl-format-section.
+	(org-get-param): Now unused, so delete.
+	(orgtbl-gather-send-defs): New function to
+	gather all the SEND definitions before a table.
+	(orgtbl-send-replace-tbl): New function to find the RECEIVE
+	corresponding to the current name.
+	(orgtbl-send-table): Use the previous two functions and implement
+	multiple destinations for each table.
+
+	* doc/org.texi (A LaTeX example): Note that fmt may be a
+	one-argument function, and efmt may be a two-argument function.
+	(Radio tables): Document multiple destinations.
+
+2008-04-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org/org-agenda.el (org-add-to-diary-list): New function.
+	(org-prefix-has-effort): New variable.
+	(org-sort-agenda-noeffort-is-high): New option.
+	(org-agenda-columns-show-summaries)
+	(org-agenda-columns-compute-summary-properties): New options.
+	(org-format-agenda-item): Compute the duration of the item.
+	(org-agenda-weekend-days): New variable.
+	(org-agenda-list, org-timeline): Use the proper faces for dates in
+	the agenda and timeline buffers.
+	(org-agenda-archive-to-archive-sibling): New command.
+	(org-agenda-start-with-clockreport-mode): New option.
+	(org-agenda-clockreport-parameter-plist): New option.
+	(org-agenda-clocktable-mode): New variable.
+	(org-agenda-deadline-leaders): Allow a function value for the
+	deadline leader.
+	(org-agenda-get-deadlines): Deal with new function value.
+
+	* lisp/org-clock.el (org-clock): New customization group.
+	(org-clock-into-drawer, org-clock-out-when-done)
+	(org-clock-in-switch-to-state, org-clock-heading-function): Moved
+	into the new group.
+	(org-clock-out-remove-zero-time-clocks): New option.
+	(org-clock-out): Use `org-clock-out-remove-zero-time-clocks'.
+	(org-dblock-write:clocktable): Allow a Lisp form for the scope
+	parameter.
+	(org-dblock-write:clocktable): Fixed bug with total time
+	calculation.
+	(org-dblock-write:clocktable): Request the unrestricted list of
+	files.
+	(org-get-clocktable): New function.
+	(org-dblock-write:clocktable): Make sure :tstart and :tend can not
+	only be strings but also integers (an absolute day number) and
+	lists (m d y).
+
+	* org/org-colview.el (org-columns-next-allowed-value)
+	(org-columns-edit-value): Limit the effort for updatig in the
+	agenda to recomputing a single file.
+	(org-columns-compute): Only write property value if it has
+	changed.  This avoids raising the buffer-change-flag
+	unnecessarily.
+	(org-agenda-colview-summarize)
+	(org-agenda-colview-compute): New functions.
+	(org-agenda-columns): Call `org-agenda-colview-summarize'.
+
+	* org/org-exp.el (org-export-run-in-background): New option.
+	(org-export-icalendar): Allow a batch process to trigger waiting
+	after executing a system command.
+	(org-export-preprocess-string): Renamed-from
+	`org-cleaned-string-for-export'.
+	(org-export-html-style): Made target class look like normal text.
+	(org-export-as-html): Make use of the better proprocessing in
+	`org-cleaned-string-for-export'.
+	(org-cleaned-string-for-export): Better treatment of heuristic
+	targets, many more internal links will now work in HTML export.
+	(org-get-current-options): Incorporate LINK_UP, LINK_HOME, and
+	INFOJS.
+	(org-export-inbuffer-options-extra): New variable.
+	(org-export-options-filters): New hook.
+	(org-infile-export-plist): Find also the settings keywords in
+	`org-export-inbuffer-options-extra'.
+	(org-infile-export-plist): Allow multiple #+OPTIONS lines and
+	multiple #+INFOJS_OPT lines.
+	(org-export-html-handle-js-options): New function.
+	(org-export-html-infojs-setup): New option.
+	(org-export-as-html): Call `org-export-html-handle-js-options'.
+	Add autoload to all entry points.
+	(org-skip-comments): Function removed.
+
+	* org/org-table.el (org-table-make-reference): Extra parenthesis
+	around single fields, to make sure that algebraic formulas get
+	correctly interpreted by calc.
+	(org-table-current-column): No longer interactive.
+
+	* org/org-export-latex.el (org-export-latex-preprocess): Renamed
+	from `org-export-latex-cleaned-string'.
+
+2008-04-27  Bastien Guerry  <bzg@altern.org>
+
+	* org/org-publish.el (org-publish-get-base-files-1): New function.
+	(org-publish-get-base-files): Use it.
+	(org-publish-temp-files): New variable.
+	Don't require 'dired-aux anymore.
+	(org-publish-initial-buffer): New variable.
+	(org-publish-org-to, org-publish): Use it.
+	(org-publish-get-base-files-1): Bug fix: get
+	the proper list of files when recursing thru a directory.
+	(org-publish-get-base-files): Use the :exclude property to skip
+	both files and directories.
+
 2008-04-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-make-symbolic-link)
