@@ -5,7 +5,6 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <Sat 26-Apr-2008 18:25:36 gm on grasmoor>
 
 ;; This file is part of GNU Emacs.
 
