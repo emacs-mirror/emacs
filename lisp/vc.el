@@ -2933,6 +2933,7 @@ specific headers."
     (define-key map "m" 'vc-dir-mark)
     (define-key map "M" 'vc-dir-mark-all-files)
     (define-key map "u" 'vc-dir-unmark)
+    (define-key map "U" 'vc-dir-unmark-all-files)
     (define-key map "\C-?" 'vc-dir-unmark-file-up)
     (define-key map "\M-\C-?" 'vc-dir-unmark-all-files)
     ;; Movement.
@@ -2948,7 +2949,7 @@ specific headers."
 
     ;;XXX: Maybe use something else here, so we can use 'U' for unmark
     ;;all, similar to 'M'..
-    (define-key map "U" 'vc-revert) ;; u is taken by unmark.
+    (define-key map "R" 'vc-revert) ;; u is taken by unmark.
 
     ;; Can't be "g" (as in vc map), so "A" for "Annotate".
     (define-key map "A" 'vc-annotate)
@@ -3301,23 +3302,74 @@ If a prefix argument is given, move by that many lines."
     (funcall mark-unmark-function)))
 
 (defun vc-dir-parent-marked-p (arg)
-  ;; Return t if any of the children of arg is marked.
-  nil)
+  (when vc-dir-insert-directories
+    ;; Return nil if none of the parent directories of arg is marked.
+    (let* ((argdata (ewoc-data arg))
+	   (argdir
+	    (let ((crtdir (vc-dir-fileinfo->directory argdata)))
+	      (if crtdir
+		  crtdir
+		(file-name-directory (expand-file-name
+				      (vc-dir-fileinfo->name argdata))))))
+	   (arglen (length argdir))
+	   (crt arg)
+	   data dir)
+      ;; Go through the predecessors, checking if any directory that is
+      ;; a parent is marked.
+      (while (setq crt (ewoc-prev vc-ewoc crt))
+	(setq data (ewoc-data crt))
+	(setq dir
+	      (let ((crtdir (vc-dir-fileinfo->directory data)))
+		(if crtdir
+		    crtdir
+		  (file-name-directory (expand-file-name
+					(vc-dir-fileinfo->name data))))))
+
+	(when (and (vc-dir-fileinfo->directory data)
+		   (string-equal (substring argdir 0 (length dir)) dir))
+	  (when (vc-dir-fileinfo->marked data)
+	    (error "Cannot mark `%s', parent directory `%s' marked"
+		   (vc-dir-fileinfo->name argdata)
+		   (vc-dir-fileinfo->name data)))))
+      nil)))
 
 (defun vc-dir-children-marked-p (arg)
-  ;; Return t if any of the children of arg is marked.
-  nil)
+  ;; Return nil if none of the children of arg is marked.
+  (when vc-dir-insert-directories
+    (let* ((argdata (ewoc-data arg))
+	   (argdir (vc-dir-fileinfo->directory argdata))
+	   (arglen (length argdir))
+	   (is-child t)
+	   (crt arg)
+	   data dir)
+      (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
+	(setq data (ewoc-data crt))
+	(setq dir
+	      (let ((crtdir (vc-dir-fileinfo->directory data)))
+		(if crtdir
+		    crtdir
+		  (file-name-directory (expand-file-name
+					(vc-dir-fileinfo->name data))))))
+	(if (string-equal argdir (substring dir 0 arglen))
+	    (when (vc-dir-fileinfo->marked data)
+	      (error "Cannot mark `%s', child `%s' marked"
+		     (vc-dir-fileinfo->name argdata)
+		     (vc-dir-fileinfo->name data)))
+	  ;; We are done, we got to an entry that is not a child of `arg'.
+	  (setq is-child nil)))
+      nil)))
 
-(defun vc-dir-mark-file ()
-  ;; Mark the current file and move to the next line.
-  (let* ((crt (ewoc-locate vc-ewoc))
+(defun vc-dir-mark-file (&optional arg)
+  ;; Mark ARG or the current file and move to the next line.
+  (let* ((crt (or arg (ewoc-locate vc-ewoc)))
          (file (ewoc-data crt))
 	 (isdir (vc-dir-fileinfo->directory file)))
     (when (or (and isdir (not (vc-dir-children-marked-p crt)))
 	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
       (setf (vc-dir-fileinfo->marked file) t)
       (ewoc-invalidate vc-ewoc crt)
-      (vc-dir-next-line 1))))
+      (unless arg
+	(vc-dir-next-line 1)))))
 
 (defun vc-dir-mark ()
   "Mark the current file or all files in the region.
@@ -3332,27 +3384,50 @@ line."
 (defun vc-dir-mark-all-files (arg)
   "Mark all files with the same state as the current one.
 With a prefix argument mark all files.
+If the current entry is a directory, mark all child files.
 
 The VC commands operate on files that are on the same state.
 This command is intended to make it easy to select all files that
 share the same state."
   (interactive "P")
   (if arg
-      (ewoc-map
-       (lambda (filearg)
-	 (unless (vc-dir-fileinfo->marked filearg)
-	   (setf (vc-dir-fileinfo->marked filearg) t)
-	   t))
-       vc-ewoc)
-    (let* ((crt (ewoc-locate vc-ewoc))
-	   (crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
-      (ewoc-map
-       (lambda (filearg)
-	 (when (and (not (vc-dir-fileinfo->marked filearg))
-		    (eq (vc-dir-fileinfo->state filearg) crt-state))
-	   (setf (vc-dir-fileinfo->marked filearg) t)
-	   t))
-       vc-ewoc))))
+      ;; Mark all files.
+      (progn
+	;; First check that no directory is marked, we can't mark
+	;; files in that case.
+	(ewoc-map
+	 (lambda (filearg)
+	   (when (and (vc-dir-fileinfo->directory filearg)
+		      (vc-dir-fileinfo->directory filearg))
+	     (error "Cannot mark all files, directory `%s' marked"
+		    (vc-dir-fileinfo->name filearg))))
+	 vc-ewoc)
+	(ewoc-map
+	 (lambda (filearg)
+	   (unless (vc-dir-fileinfo->marked filearg)
+	     (setf (vc-dir-fileinfo->marked filearg) t)
+	     t))
+	 vc-ewoc))
+    (let ((data (ewoc-data (ewoc-locate vc-ewoc))))
+      (if (vc-dir-fileinfo->directory data)
+	  ;; It's a directory, mark child files.
+	  (let ((crt (ewoc-locate vc-ewoc)))
+	    (unless (vc-dir-children-marked-p crt)
+	      (while (setq crt (ewoc-next vc-ewoc crt))
+		(let ((crt-data (ewoc-data crt)))
+		  (unless (vc-dir-fileinfo->directory crt-data)
+		    (setf (vc-dir-fileinfo->marked crt-data) t)
+		    (ewoc-invalidate vc-ewoc crt))))))
+	;; It's a file
+	(let ((state (vc-dir-fileinfo->state data))
+	      (crt (ewoc-nth vc-ewoc 0)))
+	  (while crt
+	    (let ((crt-data (ewoc-data crt)))
+	      (when (and (not (vc-dir-fileinfo->marked crt-data))
+			 (eq (vc-dir-fileinfo->state crt-data) state)
+			 (not (vc-dir-fileinfo->directory crt-data)))
+		(vc-dir-mark-file crt)))
+	    (setq crt (ewoc-next vc-ewoc crt))))))))
 
 (defun vc-dir-unmark-file ()
   ;; Unmark the current file and move to the next line.
@@ -3384,7 +3459,8 @@ line."
 
 (defun vc-dir-unmark-all-files (arg)
   "Unmark all files with the same state as the current one.
-With a prefix argument mark all files.
+With a prefix argument unmark all files.
+If the current entry is a directory, unmark all the child files.
 
 The VC commands operate on files that are on the same state.
 This command is intended to make it easy to deselect all files
@@ -3398,14 +3474,23 @@ that share the same state."
 	   t))
        vc-ewoc)
     (let* ((crt (ewoc-locate vc-ewoc))
-	   (crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
-      (ewoc-map
-       (lambda (filearg)
-	 (when (and (vc-dir-fileinfo->marked filearg)
-		    (eq (vc-dir-fileinfo->state filearg) crt-state))
-	   (setf (vc-dir-fileinfo->marked filearg) nil)
-	   t))
-       vc-ewoc))))
+	   (data (ewoc-data crt)))
+      (if (vc-dir-fileinfo->directory data)
+	  ;; It's a directory, unmark child files.
+	  (while (setq crt (ewoc-next vc-ewoc crt))
+	    (let ((crt-data (ewoc-data crt)))
+	      (unless (vc-dir-fileinfo->directory crt-data)
+		(setf (vc-dir-fileinfo->marked crt-data) nil)
+		(ewoc-invalidate vc-ewoc crt))))
+	;; It's a file
+	(let ((crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
+	  (ewoc-map
+	   (lambda (filearg)
+	     (when (and (vc-dir-fileinfo->marked filearg)
+			(eq (vc-dir-fileinfo->state filearg) crt-state))
+	       (setf (vc-dir-fileinfo->marked filearg) nil)
+	       t))
+	   vc-ewoc))))))
 
 (defun vc-dir-toggle-mark-file ()
   (let* ((crt (ewoc-locate vc-ewoc))

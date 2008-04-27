@@ -1,3 +1,10 @@
+2008-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-dir-mode-map): Change bindings for unmark all and revert.
+	(vc-dir-parent-marked-p, vc-dir-children-marked-p): Implement.
+	(vc-dir-mark-file): Add an optional argument.
+	(vc-dir-mark-all-files, vc-dir-unmark-all-files): Deal with directories.
+
 2008-04-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (auto-encryption-mode): Rename from epa-file-mode.
