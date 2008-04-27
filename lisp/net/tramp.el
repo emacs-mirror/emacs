@@ -4375,6 +4375,16 @@ ARGS are the arguments OPERATION has been called with."
 	  (setq res (cdr elt))))
       res)))
 
+(defun tramp-replace-environment-variables (filename)
+  "Replace environment variables in FILENAME.
+Return the string with the replaced variables."
+  (when (string-match "$\\w+" filename)
+    (setq filename
+	  (replace-match
+	   (substitute-in-file-name (match-string 0 filename))
+	   t nil filename)))
+  filename)
+
 ;; Main function.
 ;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
@@ -4383,7 +4393,9 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;;  (setq edebug-trace t)
 ;;  (edebug-trace "%s" (with-output-to-string (backtrace)))
   (save-match-data
-    (let* ((filename (apply 'tramp-file-name-for-operation operation args))
+    (let* ((filename
+	    (tramp-replace-environment-variables
+	     (apply 'tramp-file-name-for-operation operation args)))
 	   (completion (tramp-completion-mode-p filename))
 	   (foreign (tramp-find-foreign-file-name-handler filename)))
       (with-parsed-tramp-file-name filename nil
