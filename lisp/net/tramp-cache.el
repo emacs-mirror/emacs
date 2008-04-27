@@ -95,7 +95,7 @@
 Returns DEFAULT if not set."
   ;; Unify localname.
   (setq vec (copy-sequence vec))
-  (aset vec 3 (directory-file-name file))
+  (aset vec 3 (tramp-run-real-handler 'directory-file-name (list file)))
   (let* ((hash (or (gethash vec tramp-cache-data)
 		   (puthash vec (make-hash-table :test 'equal)
 			    tramp-cache-data)))
@@ -110,7 +110,7 @@ Returns DEFAULT if not set."
 Returns VALUE."
   ;; Unify localname.
   (setq vec (copy-sequence vec))
-  (aset vec 3 (directory-file-name file))
+  (aset vec 3 (tramp-run-real-handler 'directory-file-name (list file)))
   (let ((hash (or (gethash vec tramp-cache-data)
 		  (puthash vec (make-hash-table :test 'equal)
 			   tramp-cache-data))))
@@ -122,14 +122,15 @@ Returns VALUE."
   "Remove all properties of FILE in the cache context of VEC."
   ;; Unify localname.
   (setq vec (copy-sequence vec))
-  (aset vec 3 (directory-file-name file))
+  (aset vec 3 (tramp-run-real-handler 'directory-file-name (list file)))
   (tramp-message vec 8 "%s" file)
   (remhash vec tramp-cache-data))
 
 (defun tramp-flush-directory-property (vec directory)
   "Remove all properties of DIRECTORY in the cache context of VEC.
 Remove also properties of all files in subdirectories."
-  (let ((directory (directory-file-name directory)))
+  (let ((directory (tramp-run-real-handler
+		    'directory-file-name (list directory))))
   (tramp-message vec 8 "%s" directory)
     (maphash
      '(lambda (key value)
