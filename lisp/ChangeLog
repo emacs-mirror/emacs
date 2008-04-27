@@ -1,3 +1,7 @@
+2008-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* calculator.el (calculator-expt): Replace cl function `oddp'.
+
 2008-04-27  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
