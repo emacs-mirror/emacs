@@ -1,3 +1,7 @@
+2008-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-put-text-properties): Replace use of cl mapcar*.
+
 2008-04-14  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-remove-text-properties-region): Disable this command
