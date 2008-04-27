@@ -1,3 +1,9 @@
+2008-04-27  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
+	Simplify.  Collect `defun' and `autoload' entries.  Avoid
+	modifying load-history.
+
 2008-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/ispell.el (ispell-insert-word): Revert previous change.
