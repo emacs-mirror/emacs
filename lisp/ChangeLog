@@ -1,3 +1,20 @@
+2008-04-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-make-symbolic-link)
+	(tramp-handle-file-name-directory)
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-truename)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-handle-insert-directory, tramp-handle-expand-file-name)
+	(tramp-handle-substitute-in-file-name)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	* net/tramp-cache.el (tramp-get-file-property)
+	(tramp-set-file-property, tramp-flush-file-property)
+	(tramp-flush-directory-property)
+	* net/tramp-cpmpat.el (tramp-compat-make-temp-file)
+	* net/tramp-fish.el (tramp-fish-handle-expand-file-name): Disable
+	`file-name-handler-alist' when handling localname.  It could have
+	a remote file syntax, like a VMS file name.
+
 2008-04-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: New version 11.1.
