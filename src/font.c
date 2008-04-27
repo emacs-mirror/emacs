@@ -543,8 +543,7 @@ font_prop_validate (spec)
 	{
 	  val = (font_property_table[i].validater) (prop, XCDR (elt));
 	  if (EQ (val, Qerror))
-	    Fsignal (Qfont, list2 (build_string ("invalid font property"),
-				   elt));
+	    signal_error ("invalid font property", elt);
 	  XSETCDR (elt, val);
 	}
     }
