@@ -7329,7 +7329,9 @@ XTread_socket (terminal, expected, hold_quit)
   int count = 0;
   XEvent event;
   int event_found = 0;
+#if 0
   struct x_display_info *dpyinfo;
+#endif
 
   if (interrupt_input_blocked)
     {
@@ -7366,7 +7368,7 @@ XTread_socket (terminal, expected, hold_quit)
   if (terminal->display_info.x == XTread_socket_fake_io_error)
     {
       XTread_socket_fake_io_error = 0;
-      x_io_error_quitter (dpyinfo->display);
+      x_io_error_quitter (terminal->display_info.x->display);
     }
   
 #if 0 /* This loop is a noop now.  */

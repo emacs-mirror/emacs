@@ -1,5 +1,7 @@
 2008-04-27  Andreas Schwab  <schwab@suse.de>
 
+	* xterm.c (XTread_socket): Fix use of uninitialized variable.
+
 	* puresize.h (BASE_PURESIZE): Increase to 1200000.
 
 2008-04-26  Eli Zaretskii  <eliz@gnu.org>
