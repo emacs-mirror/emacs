@@ -1,3 +1,8 @@
+2008-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/reftex-global.el (reftex-isearch-switch-to-next-file):
+	Remove un-needed local `orig-list'.  Replace cl `copy-list'.
+
 2008-04-27  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org/org.el (org-html-level-start): Always have id's in HTML
