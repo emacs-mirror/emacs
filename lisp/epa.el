@@ -45,13 +45,6 @@ the separate window."
   :type 'integer
   :group 'epa)
 
-(defcustom epa-global-minor-modes '(epa-global-dired-mode
-				    epa-global-mail-mode
-				    epa-file-mode)
-  "Globally defined minor modes to hook into other modes."
-  :type '(repeat symbol)
-  :group 'epa)
-
 (defgroup epa-faces nil
   "Faces for epa-mode."
   :version "23.1"
@@ -235,44 +228,6 @@ You should bind this variable with `let', but do not set it globally.")
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap "q" 'delete-window)
     keymap))
-
-(defvar epa-menu nil)
-
-(defconst epa-menu-items
-  '("Encryption/Decryption"
-    ("Decrypt"
-     ["File" epa-decrypt-file
-      :help "Decrypt a file"]
-     ["Region" epa-decrypt-region
-      :help "Decrypt the current region"])
-    ("Verify"
-     ["File" epa-verify-file
-      :help "Verify digital signature of a file"]
-     ["Region" epa-verify-region
-      :help "Verify digital signature of the current region"])
-    ("Sign"
-     ["File" epa-sign-file
-      :help "Create digital signature of a file"]
-     ["Region" epa-sign-region
-      :help "Create digital signature of the current region"])
-    ("Encrypt"
-     ["File" epa-encrypt-file
-      :help "Encrypt a file"]
-     ["Region" epa-encrypt-region
-      :help "Encrypt the current region"])
-    "----"
-    ["Browse keyring" epa-list-keys
-     :help "Browse your public keyring"]
-    ("Import keys"
-     ["File" epa-import-keys
-      :help "Import public keys from a file"]
-     ["Region" epa-import-keys-region
-      :help "Import public keys from the current region"])
-    ("Export key"
-     ["To a File" epa-export-keys
-      :help "Export public keys to a file"]
-     ["To a Buffer" epa-insert-keys
-      :help "Insert public keys after the current point"])))
 
 (defvar epa-exit-buffer-function #'bury-buffer)
 
@@ -1256,27 +1211,6 @@ between START and END."
 ;;     (epg-sign-keys context keys local)
 ;;     (message "Signing keys...done")))
 ;; (make-obsolete 'epa-sign-keys "Do not use.")
-
-;;;###autoload
-(define-minor-mode epa-mode
-  "Minor mode to hook EasyPG into various modes.
-See `epa-global-minor-modes'."
-  :global t :init-value nil :group 'epa :version "23.1"
-  (unless epa-menu
-    (easy-menu-define epa-menu nil "EasyPG Assistant global menu"
-      epa-menu-items))
-  (easy-menu-remove-item nil '("Tools") "Encryption/Decryption")
-  (if epa-mode
-      (easy-menu-add-item nil '("Tools") epa-menu))
-  (let ((modes epa-global-minor-modes)
-	symbol)
-    (while modes
-      (setq symbol (car modes))
-      (if (and symbol
-	       (fboundp symbol))
-	  (funcall symbol epa-mode)
-	(message "`%S' not found" (car modes)))
-      (setq modes (cdr modes)))))
 
 (provide 'epa)
 

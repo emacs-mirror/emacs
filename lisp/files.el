@@ -1803,7 +1803,7 @@ This function ensures that none of these modifications will take place."
              (symbol-function 'find-buffer-file-type)
            nil))
         (inhibit-file-name-handlers
-         (append '(jka-compr-handler image-file-handler)
+         (append '(jka-compr-handler image-file-handler epa-file-handler)
                  inhibit-file-name-handlers))
         (inhibit-file-name-operation 'insert-file-contents))
     (unwind-protect

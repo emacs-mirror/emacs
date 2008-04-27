@@ -126,7 +126,10 @@ May either be a string or a list of strings.")
 (defun epa-file-handler (operation &rest args)
   (save-match-data
     (let ((op (get operation 'epa-file)))
-      (if op
+      (if (and op
+	       (if (and (eq operation 'insert-file-contents)
+			
+			(y-or-n-p ""
 	  (apply op args)
 	(epa-file-run-real-handler operation args)))))
 
@@ -300,7 +303,7 @@ If no one is selected, symmetric encryption will be performed.  "))))
       (message "`epa-file' already enabled")
     (setq file-name-handler-alist
 	  (cons epa-file-handler file-name-handler-alist))
-    (add-hook 'find-file-hooks 'epa-file-find-file-hook)
+    (add-hook 'find-file-hook 'epa-file-find-file-hook)
     (setq auto-mode-alist (cons epa-file-auto-mode-alist-entry auto-mode-alist))
     (message "`epa-file' enabled")))
 
@@ -311,29 +314,34 @@ If no one is selected, symmetric encryption will be performed.  "))))
       (progn
 	(setq file-name-handler-alist
 	      (delq epa-file-handler file-name-handler-alist))
-	(remove-hook 'find-file-hooks 'epa-file-find-file-hook)
+	(remove-hook 'find-file-hook 'epa-file-find-file-hook)
 	(setq auto-mode-alist (delq epa-file-auto-mode-alist-entry
 				    auto-mode-alist))
 	(message "`epa-file' disabled"))
     (message "`epa-file' already disabled")))
 
 ;;;###autoload
-(define-minor-mode epa-file-mode
+(define-minor-mode auto-encryption-mode
   "Toggle automatic file encryption and decryption.
 With prefix argument ARG, turn auto encryption on if positive, else off.
 Return the new status of auto encryption (non-nil means on)."
-  :global t :init-value nil :group 'epa-file :version "23.1"
+  :global t :init-value t :group 'epa-file :version "23.1"
   (setq file-name-handler-alist
 	(delq epa-file-handler file-name-handler-alist))
   (remove-hook 'find-file-hooks 'epa-file-find-file-hook)
   (setq auto-mode-alist (delq epa-file-auto-mode-alist-entry
 			      auto-mode-alist))
-  (when epa-file-mode
+  (when auto-encryption-mode
     (setq file-name-handler-alist
 	  (cons epa-file-handler file-name-handler-alist))
-    (add-hook 'find-file-hooks 'epa-file-find-file-hook)
+    (add-hook 'find-file-hook 'epa-file-find-file-hook)
+    (add-hook 'find-file-not-found-functions
+	      'epa-file-find-file-not-found-functions)
     (setq auto-mode-alist (cons epa-file-auto-mode-alist-entry
 				auto-mode-alist))))
+
+(put 'epa-file-handler 'safe-magic t)
+(put 'epa-file-handler 'operations '(write-region insert-file-contents))
 
 (provide 'epa-file)
 

@@ -1,3 +1,21 @@
+2008-04-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (auto-encryption-mode): Rename from epa-file-mode.
+	(epa-file-handler): Put 'safe-magic and 'operations properties.
+
+	* epa.el (epa-global-minor-modes, epa-mode, epa-menu)
+	(epa-menu-items): Remove.
+
+	* epa-dired.el (epa-dired-do-decrypt, epa-dired-do-verify)
+	(epa-dired-do-sign, epa-dired-do-encrypt): Add autoload cookie.
+	(epa-dired-mode, epa-global-dired-mode): Remove.
+
+	* dired.el (dired-mode-map): Bind encryption/decryption commands.
+
+	* menu-bar.el (menu-bar-encryption-decryption-menu): New menu item.
+
+	* files.el (insert-file-contents-literally): Inhibit epa-file-handler.
+
 2008-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/reftex-global.el (reftex-isearch-switch-to-next-file):

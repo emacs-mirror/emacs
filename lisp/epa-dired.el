@@ -26,23 +26,7 @@
 (require 'epa)
 (require 'dired)
 
-(defvar epa-dired-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap ":d" 'epa-dired-do-decrypt)
-    (define-key keymap ":v" 'epa-dired-do-verify)
-    (define-key keymap ":s" 'epa-dired-do-sign)
-    (define-key keymap ":e" 'epa-dired-do-encrypt)
-    keymap))
-
-(defvar epa-dired-mode-hook nil)
-(defvar epa-dired-mode-on-hook nil)
-(defvar epa-dired-mode-off-hook nil)
-
 ;;;###autoload
-(define-minor-mode epa-dired-mode
-  "A minor-mode for encrypt/decrypt files with Dired."
-  nil " epa-dired" epa-dired-mode-map)
-
 (defun epa-dired-do-decrypt ()
   "Decrypt marked files."
   (interactive)
@@ -52,6 +36,7 @@
       (setq file-list (cdr file-list)))
     (revert-buffer)))
 
+;;;###autoload
 (defun epa-dired-do-verify ()
   "Verify marked files."
   (interactive)
@@ -60,6 +45,7 @@
       (epa-verify-file (expand-file-name (car file-list)))
       (setq file-list (cdr file-list)))))
 
+;;;###autoload
 (defun epa-dired-do-sign ()
   "Sign marked files."
   (interactive)
@@ -74,6 +60,7 @@ If no one is selected, default secret key is used.  "
       (setq file-list (cdr file-list)))
     (revert-buffer)))
 
+;;;###autoload
 (defun epa-dired-do-encrypt ()
   "Encrypt marked files."
   (interactive)
@@ -85,14 +72,6 @@ If no one is selected, default secret key is used.  "
 If no one is selected, symmetric encryption will be performed.  "))
       (setq file-list (cdr file-list)))
     (revert-buffer)))
-
-;;;###autoload
-(define-minor-mode epa-global-dired-mode
-  "Minor mode to hook EasyPG into Dired."
-  :global t :init-value nil :group 'epa-dired :version "23.1"
-  (remove-hook 'dired-mode-hook 'epa-dired-mode)
-  (if epa-global-dired-mode
-      (add-hook 'dired-mode-hook 'epa-dired-mode)))
 
 (provide 'epa-dired)
 

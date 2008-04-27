@@ -1279,6 +1279,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-tf" 'image-dired-mark-tagged-files)
     (define-key map "\C-t\C-t" 'image-dired-dired-insert-marked-thumbs)
     (define-key map "\C-te" 'image-dired-dired-edit-comment-and-tags)
+    ;; encryption and decryption (epa-dired)
+    (define-key map ":d" 'epa-dired-do-decrypt)
+    (define-key map ":v" 'epa-dired-do-verify)
+    (define-key map ":s" 'epa-dired-do-sign)
+    (define-key map ":e" 'epa-dired-do-encrypt)
 
     ;; Make menu bar items.
 
@@ -1323,6 +1328,29 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
     (define-key map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-decrypt]
+      '(menu-item "Decrypt" epa-dired-do-decrypt
+		  :help "Decrypt file at cursor"))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-verify]
+      '(menu-item "Verify" epa-dired-do-verify
+		  :help "Verify digital signature of file at cursor"))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-sign]
+      '(menu-item "Sign" epa-dired-do-sign
+		  :help "Create digital signature of file at cursor"))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-encrypt]
+      '(menu-item "Encrypt" epa-dired-do-encrypt
+		  :help "Encrypt file at cursor"))
+
+    (define-key map [menu-bar immediate dashes-4]
+      '("--"))
 
     (define-key map
       [menu-bar immediate image-dired-dired-display-external]
