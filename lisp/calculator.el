@@ -5,7 +5,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <Sat 26-Apr-2008 18:18:44 gm on grasmoor>
+;; Time-stamp: <Sat 26-Apr-2008 18:25:36 gm on grasmoor>
 
 ;; This file is part of GNU Emacs.
 
@@ -1795,18 +1795,18 @@ To use this, apply a binary operator (evaluate it), then call this."
        ;; For small x, the range error comes from large y.
        0.0)
       ((and (> x 0.0) (< y 0.0))
-       ;; For large positive x and negative y, the range error 
+       ;; For large positive x and negative y, the range error
        ;; comes from large negative y.
        0.0)
       ((and (> x 0.0) (> y 0.0))
-       ;; For large positive x and positive y, the range error 
+       ;; For large positive x and positive y, the range error
        ;; comes from large y.
        1.0e+INF)
       ;; For the rest, x must be large and negative.
       ;; The range errors come from large integer y.
       ((< y 0.0)
        0.0)
-      ((not (zerop (% (truncate y) 2)))
+      ((eq (logand (truncate y) 1) 1)   ; expansion of cl `oddp'
        ;; If y is odd
        -1.0e+INF)
       (t
