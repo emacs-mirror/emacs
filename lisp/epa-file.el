@@ -124,15 +124,15 @@ May either be a string or a list of strings.")
     (epa-passphrase-callback-function context key-id nil)))
 
 (defun epa-file-handler (operation &rest args)
-  (save-match-data
-    (let ((op (get operation 'epa-file)))
-      (if (and op
-	       (if (and (eq operation 'insert-file-contents)
+  ;; (save-match-data
+  ;;   (let ((op (get operation 'epa-file)))
+  ;;     (if (and op
+  ;; 	       (if (and (eq operation 'insert-file-contents)
 			
-			(y-or-n-p ""
-	  (apply op args)
-	(epa-file-run-real-handler operation args)))))
-
+  ;; 			(y-or-n-p ""
+  ;; 	  (apply op args)
+  ;; 	(epa-file-run-real-handler operation args)))))
+  nil)
 (defun epa-file-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers
 	 (cons 'epa-file-handler

@@ -1,5 +1,7 @@
 2008-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* epa-file.el (epa-file-handler): Comment out, does not compile.
+
 	* vc.el (vc-dir-mode-map): Change bindings for unmark all and revert.
 	(vc-dir-parent-marked-p, vc-dir-children-marked-p): Implement.
 	(vc-dir-mark-file): Add an optional argument.
