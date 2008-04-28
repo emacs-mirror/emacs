@@ -150,6 +150,14 @@
   :group 'files
   :version "22.1")
 
+;; Maybe we need once a real Tramp mode, with key bindings etc.
+;;;###autoload
+(defcustom tramp-mode t
+  "*Whether Tramp is enabled.
+If it is set to nil, all remote file names are used literally."
+  :group 'tramp
+  :type 'boolean)
+
 (defcustom tramp-verbose 3
   "*Verbosity level for Tramp.
 Any level x includes messages for all levels 1 .. x-1.  The levels are
@@ -3574,12 +3582,15 @@ the result will be a local, non-Tramp, filename."
 (defun tramp-replace-environment-variables (filename)
   "Replace environment variables in FILENAME.
 Return the string with the replaced variables."
-  (when (string-match "$\\w+" filename)
-    (setq filename
-	  (replace-match
-	   (substitute-in-file-name (match-string 0 filename))
-	   t nil filename)))
-  filename)
+  (save-match-data
+    (let ((idx (string-match "$\\w+" filename)))
+      ;; `$' is coded as `$$'.
+      (when (and idx (or (zerop idx) (not (eq ?$ (aref filename (1- idx))))))
+	(setq filename
+	      (replace-match
+	       (substitute-in-file-name (match-string 0 filename))
+	       t nil filename)))
+      filename)))
 
 (defun tramp-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
@@ -4486,26 +4497,29 @@ ARGS are the arguments OPERATION has been called with."
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
-  (save-match-data
-    (let* ((filename
-	    (tramp-replace-environment-variables
-	     (apply 'tramp-file-name-for-operation operation args)))
-	   (completion (tramp-completion-mode-p))
-	   (foreign (tramp-find-foreign-file-name-handler filename)))
-      (with-parsed-tramp-file-name filename nil
-	(cond
-	 ;; When we are in completion mode, some operations shouldn't be
-	 ;; handled by backend.
-	 ((and completion (zerop (length localname))
-	       (memq operation '(file-exists-p file-directory-p)))
-	  t)
-	 ((and completion (zerop (length localname))
-	       (memq operation '(file-name-as-directory)))
-	  filename)
-	 ;; Call the backend function.
-	 (foreign (apply foreign operation args))
-	 ;; Nothing to do for us.
-	 (t (tramp-run-real-handler operation args)))))))
+  (if tramp-mode
+      (save-match-data
+	(let* ((filename
+		(tramp-replace-environment-variables
+		 (apply 'tramp-file-name-for-operation operation args)))
+	       (completion (tramp-completion-mode-p))
+	       (foreign (tramp-find-foreign-file-name-handler filename)))
+	  (with-parsed-tramp-file-name filename nil
+	    (cond
+	     ;; When we are in completion mode, some operations
+	     ;; shouldn't be handled by backend.
+	     ((and completion (zerop (length localname))
+		   (memq operation '(file-exists-p file-directory-p)))
+	      t)
+	     ((and completion (zerop (length localname))
+		   (memq operation '(file-name-as-directory)))
+	      filename)
+	     ;; Call the backend function.
+	     (foreign (apply foreign operation args))
+	     ;; Nothing to do for us.
+	     (t (tramp-run-real-handler operation args))))))
+    ;; When `tramp-mode' is not enabled, we don't do anything.
+    (tramp-run-real-handler operation args)))
 
 ;; In Emacs, there is some concurrency due to timers.  If a timer
 ;; interrupts Tramp and wishes to use the same connection buffer as
@@ -4559,7 +4573,8 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   ;; would otherwise use backslash.
   (let ((directory-sep-char ?/)
 	(fn (assoc operation tramp-completion-file-name-handler-alist)))
-    (if fn
+    ;; When `tramp-mode' is not enabled, we don't do anything.
+    (if (and fn tramp-mode)
 	(save-match-data (apply (cdr fn) args))
       (tramp-completion-run-real-handler operation args)))))
 
