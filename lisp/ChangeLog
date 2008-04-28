@@ -1,7 +1,5 @@
 2008-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* epa-file.el (epa-file-handler): Comment out, does not compile.
-
 	* vc.el (vc-dir-mode-map): Change bindings for unmark all and revert.
 	(vc-dir-parent-marked-p, vc-dir-children-marked-p): Implement.
 	(vc-dir-mark-file): Add an optional argument.
@@ -9,7 +7,11 @@
 
 2008-04-27  Daiki Ueno  <ueno@unixuser.org>
 
-	* epa-file.el (auto-encryption-mode): Rename from epa-file-mode.
+	* epa-file.el (epa-file-enable, epa-file-disable): Use find-file-hook
+	rather than obsolete alias find-file-hooks.
+	(auto-encryption-mode): Rename from epa-file-mode.  Default to on.
+	Use find-file-hook rather than obsolete alias find-file-hooks.
+	Add to find-file-not-found-functions.
 	(epa-file-handler): Put 'safe-magic and 'operations properties.
 
 	* epa.el (epa-global-minor-modes, epa-mode, epa-menu)
