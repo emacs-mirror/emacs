@@ -84,7 +84,7 @@
 ;;    (add-to-list 'desktop-minor-mode-handlers
 ;;                 '(bar-mode . bar-desktop-restore))
 
-;; in the module itself, and make shure that the mode function is
+;; in the module itself, and make sure that the mode function is
 ;; autoloaded.  See the docstrings of `desktop-buffer-mode-handlers' and
 ;; `desktop-minor-mode-handlers' for more info.
 
@@ -456,7 +456,8 @@ Furthermore the major mode function must be autoloaded.")
   '((auto-fill-function auto-fill-mode)
     (vc-mode nil)
     (vc-dired-mode nil)
-    (erc-track-minor-mode nil))
+    (erc-track-minor-mode nil)
+    (savehist-mode nil))
   "Table mapping minor mode variables to minor mode functions.
 Each entry has the form (NAME RESTORE-FUNCTION).
 NAME is the name of the buffer-local variable indicating that the minor
