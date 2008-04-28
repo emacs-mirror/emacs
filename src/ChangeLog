@@ -1,3 +1,7 @@
+2008-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_define_rgb_color): Fix typo in docstring.
+
 2008-04-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fringe.c (Fdefine_fringe_bitmap): Doc fix.
