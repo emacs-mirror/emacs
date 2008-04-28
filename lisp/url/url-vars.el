@@ -385,7 +385,7 @@ Currently supported methods:
 (modify-syntax-entry ?/ " " url-parse-syntax-table)
 
 (defvar url-load-hook nil
-  "*Hooks to be run after initalizing the URL library.")
+  "*Hooks to be run after initializing the URL library.")
 
 ;;; Make OS/2 happy - yeeks
 ;; (defvar	tcp-binary-process-input-services nil
