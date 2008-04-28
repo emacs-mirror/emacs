@@ -1911,66 +1911,66 @@ static char *magick[] = {
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
 	(let ((buffer-read-only nil))
-	(goto-char (point-min))
-	(while (< (point) (- (point-max) 1))
-	  (forward-line 1)
-	  (if (looking-at gdb-breakpoint-regexp)
-	      (progn
-		(setq bptno (or (match-string 1) (match-string 2)))
-		(setq flag (char-after (match-beginning 3)))
-		(if (match-string 1)
-		    (setq gdb-parent-bptno-enabled (eq flag ?y)))
-		(add-text-properties
-		 (match-beginning 3) (match-end 3)
-		 (if (eq flag ?y)
-		     '(face font-lock-warning-face)
-		   '(face font-lock-type-face)))
-		(let ((bl (point))
-		      (el (line-end-position)))
-		  (when (re-search-forward " in \\(.*\\) at" el t)
-		    (add-text-properties
-		     (match-beginning 1) (match-end 1)
-		     '(face font-lock-function-name-face)))
-		  (if (re-search-forward ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$")
-		      (let ((line (match-string 2))
-			    (file (match-string 1)))
-			(add-text-properties bl el
-			     '(mouse-face highlight
-			       help-echo "mouse-2, RET: visit breakpoint"))
-			(unless (file-exists-p file)
-			(setq file (cdr (assoc bptno gdb-location-alist))))
-			(if (and file
-				 (not (string-equal file "File not found")))
-			(with-current-buffer
-			    (find-file-noselect file 'nowarn)
-			  (gdb-init-buffer)
-			  ;; Only want one breakpoint icon at each
-			  ;; location.
-			  (save-excursion
-			    (goto-line (string-to-number line))
-			    (gdb-put-breakpoint-icon (eq flag ?y) bptno)))
-			(gdb-enqueue-input
-			 (list
-			  (concat gdb-server-prefix "list "
-				  (match-string-no-properties 1) ":1\n")
-			  'ignore))
-			(gdb-enqueue-input
-			 (list (concat gdb-server-prefix "info source\n")
-			       `(lambda () (gdb-get-location
-					    ,bptno ,line ,flag)))))))
-		    (if (re-search-forward
-			 "<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
-			 el t)
-			(add-text-properties
-			 (match-beginning 1) (match-end 1)
-			 '(face font-lock-function-name-face))
-		      (end-of-line)
-		      (re-search-backward "\\s-\\(\\S-*\\)"
-					  bl t)
+	  (goto-char (point-min))
+	  (while (< (point) (- (point-max) 1))
+	    (forward-line 1)
+	    (if (looking-at gdb-breakpoint-regexp)
+		(progn
+		  (setq bptno (or (match-string 1) (match-string 2)))
+		  (setq flag (char-after (match-beginning 3)))
+		  (if (match-string 1)
+		      (setq gdb-parent-bptno-enabled (eq flag ?y)))
+		  (add-text-properties
+		   (match-beginning 3) (match-end 3)
+		   (if (eq flag ?y)
+		       '(face font-lock-warning-face)
+		     '(face font-lock-type-face)))
+		  (let ((bl (point))
+			(el (line-end-position)))
+		    (when (re-search-forward " in \\(.*\\) at" el t)
 		      (add-text-properties
 		       (match-beginning 1) (match-end 1)
-		       '(face font-lock-variable-name-face)))))))
-	  (end-of-line))))))
+		       '(face font-lock-function-name-face)))
+		    (if (re-search-forward ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$")
+			(let ((line (match-string 2))
+			      (file (match-string 1)))
+			  (add-text-properties bl el
+					       '(mouse-face highlight
+							    help-echo "mouse-2, RET: visit breakpoint"))
+			  (unless (file-exists-p file)
+			    (setq file (cdr (assoc bptno gdb-location-alist))))
+			  (if (and file
+				   (not (string-equal file "File not found")))
+			      (with-current-buffer
+				  (find-file-noselect file 'nowarn)
+				(gdb-init-buffer)
+				;; Only want one breakpoint icon at each
+				;; location.
+				(save-excursion
+				  (goto-line (string-to-number line))
+				  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))
+			    (gdb-enqueue-input
+			     (list
+			      (concat gdb-server-prefix "list "
+				      (match-string-no-properties 1) ":1\n")
+			      'ignore))
+			    (gdb-enqueue-input
+			     (list (concat gdb-server-prefix "info source\n")
+				   `(lambda () (gdb-get-location
+						,bptno ,line ,flag))))))
+		      (if (re-search-forward
+			   "<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
+			   el t)
+			  (add-text-properties
+			   (match-beginning 1) (match-end 1)
+			   '(face font-lock-function-name-face))
+			(end-of-line)
+			(re-search-backward "\\s-\\(\\S-*\\)"
+					    bl t)
+			(add-text-properties
+			 (match-beginning 1) (match-end 1)
+			 '(face font-lock-variable-name-face)))))))
+	    (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-set-clear-breakpoint (event)
