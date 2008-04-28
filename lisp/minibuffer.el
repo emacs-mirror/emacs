@@ -1131,7 +1131,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	   (regex (completion-pcm--pattern->regex pattern))
 	   (completion-regexp-list (cons regex completion-regexp-list))
 	   (compl (all-completions
-                   (if (stringp (car pattern)) (car pattern))
+                   (if (stringp (car pattern)) (car pattern) "")
 		   table pred))
            (last (last compl)))
       ;; FIXME: If `base-size' is not 0, we have a problem :-(
