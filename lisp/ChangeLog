@@ -1,3 +1,11 @@
+2008-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* doc-view.el (doc-view-new-window-function): Avoid using WINDOW
+	argument to get-char-property, in case the current buffer hasn't
+	been assigned to that window yet.
+	(doc-view-display): Default to selected window if the current
+	buffer hasn't been assigned to a window yet.
+
 2008-04-28  Vinicius Jose Latorre  <bzg@altern.org>
 
 	* whitespace.el (whitespace-trailing-regexp): Fix docstring.
