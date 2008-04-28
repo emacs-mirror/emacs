@@ -1,3 +1,7 @@
+2008-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-minor-mode-table): Add `savehist-mode'.
+
 2008-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-dir-mode-map): Change bindings for unmark all and revert.
@@ -515,8 +519,8 @@
 
 2008-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-get-remote-stat): Test whether stat supports
-	%s.  Reported by Loris Bennett <loris.bennett@fu-berlin.de>.
+	* net/tramp.el (tramp-get-remote-stat): Test whether stat supports %s.
+	Reported by Loris Bennett <loris.bennett@fu-berlin.de>.
 
 2008-04-24  Sam Steingold  <sds@gnu.org>
 
@@ -2697,7 +2701,7 @@
 	(hilit-chg-set-face-on-change, hilit-chg-update)
 	(highlight-changes-rotate-faces): Use highlight-changes-visible-mode
 	variable instead of testing highlight-changes-mode.
-	(highlight-markup-buffers): Add reuire ediff-util; argument on calls
+	(highlight-markup-buffers): Add require ediff-util; argument on calls
 	to highlight-changes-mode changed.
 	(highlight-compare-with-file): Fix problems with interactive
 	call giving invalid default file.
