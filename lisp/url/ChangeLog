@@ -1,3 +1,7 @@
+2008-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-vars.el (url-load-hook): Fix typo in docstring.
+
 2008-03-09  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-chunked-encoding-after-change-function):
@@ -98,7 +102,7 @@
 2007-11-28  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-dired.el: Don't require w3-fetch and w3-open-local.
-	(url-dired-find-file): Use `find-file'.	 Doc fix.
+	(url-dired-find-file): Use `find-file'.  Doc fix.
 	(url-dired-find-file-mouse, url-dired-minor-mode): Doc fix.
 
 2007-11-24  Glenn Morris  <rgm@gnu.org>
@@ -391,7 +395,7 @@
 	path component and non-empty query component.  Untangle path,
 	query and fragment parsing code.  Add references to RFC 3986 in
 	comments.
-	(url-recreate-url-attributes): Start query string with "?", not	";".
+	(url-recreate-url-attributes): Start query string with "?", not ";".
 
 2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
