@@ -1,3 +1,7 @@
+2008-04-28  Bastien Guerry  <bzg@altern.org>
+
+	* whitespace.el (whitespace-trailing): Fix typo.
+
 2008-04-28  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/remember.el (diary-make-entry): Update the autoload.

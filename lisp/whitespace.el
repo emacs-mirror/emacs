@@ -577,7 +577,7 @@ See `whitespace-display-mappings'."
 
 
 (defcustom whitespace-trailing 'whitespace-trailing
-  "*Symbol face used to visualize traling blanks.
+  "*Symbol face used to visualize trailing blanks.
 
 Used when `whitespace-style' includes the value `trailing'."
   :type 'face
