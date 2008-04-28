@@ -390,7 +390,7 @@ Optional arg REVISION is a revision to annotate from."
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil 0 new old "mv"))
+  (vc-hg-command nil 0 new "mv" old))
 
 (defun vc-hg-register (files &optional rev comment)
   "Register FILES under hg.
