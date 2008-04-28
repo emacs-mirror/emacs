@@ -230,7 +230,7 @@ has finished."
   (let ((ol (image-mode-window-get 'overlay winprops)))
     (if ol
         (setq ol (copy-overlay ol))
-      (assert (not (get-char-property (point-min) 'display (car winprops))))
+      (assert (not (get-char-property (point-min) 'display)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
     (overlay-put ol 'window (car winprops))
@@ -845,16 +845,17 @@ have the page we want to view."
             (sort (directory-files (doc-view-current-cache-dir) t
                                    "page-[0-9]+\\.png" t)
                   'doc-view-sort))
-      (dolist (win (get-buffer-window-list buffer nil t))
-        (let* ((page (doc-view-current-page win))
-               (pagefile (expand-file-name (format "page-%d.png" page)
-                                             (doc-view-current-cache-dir))))
-          (when (or force
-                    (and (not (member pagefile prev-pages))
-                         (member pagefile doc-view-current-files)))
-            (with-selected-window win
-              (assert (eq (current-buffer) buffer))
-              (doc-view-goto-page page))))))))
+      (dolist (win (or (get-buffer-window-list buffer nil t)
+		       (list (selected-window))))
+	(let* ((page (doc-view-current-page win))
+	       (pagefile (expand-file-name (format "page-%d.png" page)
+					   (doc-view-current-cache-dir))))
+	  (when (or force
+		    (and (not (member pagefile prev-pages))
+			 (member pagefile doc-view-current-files)))
+	    (with-selected-window win
+	      (assert (eq (current-buffer) buffer))
+	      (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which
