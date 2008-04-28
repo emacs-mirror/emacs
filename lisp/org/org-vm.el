@@ -127,4 +127,5 @@
 
 (provide 'org-vm)
 
+;; arch-tag: cbc3047b-935e-4d2a-96e7-c5b0117aaa6d
 ;;; org-vm.el ends here

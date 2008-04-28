@@ -925,3 +925,4 @@ the currently selected interval size."
 ;;; org-clock.el ends here
 
 
+;; arch-tag: 7b42c5d4-9b36-48be-97c0-66a869daed4c

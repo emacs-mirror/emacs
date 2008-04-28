@@ -251,4 +251,5 @@ that can be added."
 
 (provide 'org-compat)
 
+;; arch-tag: a0a0579f-e68c-4bdf-9e55-93768b846bbe
 ;;; org-compat.el ends here

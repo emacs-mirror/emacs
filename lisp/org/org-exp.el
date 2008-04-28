@@ -3766,3 +3766,4 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
     (while (setq f (pop functions))
       (setq plist (funcall f plist))))
   plist)
+;; arch-tag: 65985fe9-095c-49c7-a7b6-cb4ee15c0a95

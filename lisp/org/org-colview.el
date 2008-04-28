@@ -1216,3 +1216,4 @@ This will add overlays to the date lines, to show the summary for each day."
 
 ;;; org-colview.el ends here
 
+;; arch-tag: 61f5128d-747c-4983-9479-e3871fa3d73c

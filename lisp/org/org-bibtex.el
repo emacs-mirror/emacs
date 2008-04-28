@@ -201,4 +201,5 @@
 
 (provide 'org-bibtex)
 
+;; arch-tag: 83987d5a-01b8-41c7-85bc-77700f1285f5
 ;;; org-bibtex.el ends here

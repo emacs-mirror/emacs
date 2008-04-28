@@ -221,4 +221,5 @@ This is in contrast to merely setting it to 0."
 
 (provide 'org-macs)
 
+;; arch-tag: 7e6a73ce-aac9-4fc0-9b30-ce6f89dc6668
 ;;; org-macs.el ends here

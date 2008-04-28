@@ -124,4 +124,5 @@
 
 (provide 'org-mew)
 
+;; arch-tag: 07ccdca7-6020-4941-a593-588a1e51b870
 ;;; org-mew.el ends here

@@ -80,4 +80,5 @@
 
 (provide 'org-info)
 
+;; arch-tag: 1e289f54-7176-487f-b575-dd4854bab15e
 ;;; org-info.el ends here

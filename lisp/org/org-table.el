@@ -3912,4 +3912,5 @@ this function is called."
 
 (provide 'org-table)
 
+;; arch-tag: 4d21cfdd-0268-440a-84b0-09237a0fe0ef
 ;;; org-table.el ends here

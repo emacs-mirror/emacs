@@ -458,4 +458,5 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
 
 (provide 'org-faces)
 
+;; arch-tag: 9dab5f91-c4b9-4d6f-bac3-1f6211ad0a04
 ;;; org-faces.el ends here

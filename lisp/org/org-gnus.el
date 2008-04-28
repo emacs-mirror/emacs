@@ -126,4 +126,5 @@ negates this setting for the duration of the command."
 
 (provide 'org-gnus)
 
+;; arch-tag: 512e0840-58fa-45b3-b456-71e10fa2376d
 ;;; org-gnus.el ends here

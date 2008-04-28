@@ -106,4 +106,5 @@
 
 (provide 'org-rmail)
 
+;; arch-tag: c6cf4a8b-6639-4b7f-821f-bdf10746b173
 ;;; org-rmail.el ends here

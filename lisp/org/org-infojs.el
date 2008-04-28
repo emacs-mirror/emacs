@@ -203,4 +203,5 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 
 (provide 'org-infojs)
 
+;; arch-tag: c71d1d85-3337-4817-a066-725e74ac9eac
 ;;; org-infojs.el ends here
