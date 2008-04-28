@@ -1,3 +1,7 @@
+2008-04-28  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/remember.el (diary-make-entry): Update the autoload.
+
 2008-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--all-completions): Don't pass nil to

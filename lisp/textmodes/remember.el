@@ -480,7 +480,7 @@ If this is nil, then `diary-file' will be used instead."
     (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" entry)
         (progn
           ;; For calendar-date-style.  This costs us nothing because
-          ;; the call to make-diary-entry below loads diary-lib
+          ;; the call to diary-make-entry below loads diary-lib
           ;; which requires calendar.
           (require 'calendar)
           (replace-match
@@ -504,7 +504,7 @@ If this is nil, then `diary-file' will be used instead."
            t t entry))
       entry)))
 
-(autoload 'make-diary-entry "diary-lib")
+(autoload 'diary-make-entry "diary-lib")
 
 ;;;###autoload
 (defun remember-diary-extract-entries ()
