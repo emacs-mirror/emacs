@@ -754,7 +754,7 @@ If you're using `mule' package, there may be other characters besides:
 
 that should be considered blank.
 
-NOTE: Enclose always by \"\\\\(\\\\(\" and \"\\\\)+\\\\)$\" the elements to highlight.
+NOTE: Enclose always by \"\\\\(\" and \"\\\\)$\" the elements to highlight.
       Use exactly one pair of enclosing elements above.
 
 Used when `whitespace-style' includes `trailing'."

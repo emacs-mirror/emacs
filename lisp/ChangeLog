@@ -1,3 +1,7 @@
+2008-04-28  Vinicius Jose Latorre  <bzg@altern.org>
+
+	* whitespace.el (whitespace-trailing-regexp): Fix docstring.
+
 2008-04-28  Sam Steingold  <sds@gnu.org>
 
 	* vc-hg.el (vc-hg-rename-file): Fix argument order.
