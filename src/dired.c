@@ -756,7 +756,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	bestmatch = DECODE_FILE (bestmatch);
       return bestmatch;
     }
-  if (matchcount == 1 && bestmatchsize == SCHARS (file))
+  if (matchcount == 1 && bestmatchsize == SCHARS (encoded_file))
     return Qt;
   bestmatch = Fsubstring (bestmatch, make_number (0),
 			  make_number (bestmatchsize));

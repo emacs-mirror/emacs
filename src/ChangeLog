@@ -1,3 +1,8 @@
+2008-04-28  Andreas Schwab  <schwab@suse.de>
+
+	* dired.c (file_name_completion): Fix another mixing of encoded
+	and decoded names.
+
 2008-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fw32_define_rgb_color): Fix typo in docstring.
