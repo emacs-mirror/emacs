@@ -16,6 +16,11 @@ instead of just "make":
 The bootstrap process makes sure all necessary files are rebuilt
 before it builds the final Emacs binary.
 
+If 'make bootstrap' fails, it may be necessary to do 'make maintainer-clean'
+followed by configure before trying it again.  (Occasionally the loaddefs.el
+file gets into a bad state due to changes in the Lisp libraries; this procedure
+forces it to be regenerated.)
+
 Normally, it is not necessary to use "make bootstrap" after every CVS
 update.  Unless there are problems, we suggest using the following
 alternative procedure after you have done "make bootstrap" at least
