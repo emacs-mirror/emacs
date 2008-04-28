@@ -1,3 +1,10 @@
+2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-replace-environment-variables): Remove it.
+	There is a more simple solution.
+	(tramp-file-name-handler): Apply `substitute-in-file-name' w/o
+	Tramp file name handlers.
+
 2008-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Make breakpoint
