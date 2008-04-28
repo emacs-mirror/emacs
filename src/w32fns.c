@@ -505,7 +505,7 @@ x_real_positions (f, xptr, yptr)
 
 DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color,
        Sw32_define_rgb_color, 4, 4, 0,
-       doc: /* Convert RGB numbers to a windows color reference and associate with NAME.
+       doc: /* Convert RGB numbers to a Windows color reference and associate with NAME.
 This adds or updates a named color to `w32-color-map', making it
 available for use.  The original entry's RGB ref is returned, or nil
 if the entry is new.  */)
@@ -2759,7 +2759,7 @@ w32_msg_worker (void *arg)
   dummy_buf.w32msg.msg.hwnd = NULL;
   dummy_buf.w32msg.msg.message = WM_NULL;
 
-  /* This is the inital message loop which should only exit when the
+  /* This is the initial message loop which should only exit when the
      application quits.  */
   w32_msg_pump (&dummy_buf);
 
@@ -4464,7 +4464,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (enable_font_backend)
     x_default_font_parameter (f, parameters);
   else
-#endif 
+#endif
   {
     Lisp_Object font;
 
