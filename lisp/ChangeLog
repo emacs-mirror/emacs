@@ -1,3 +1,10 @@
+2008-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Make breakpoint
+	icons work for assembler, i.e. FILE.s, FILE.S (not disassembly).
+	(gdb-goto-breakpoint): Likewise for visiting breakpoints.
+	(gdb-assembler-custom): Be careful not to match other addresses.
+
 2008-04-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-replace-environment-variables): New defun.
