@@ -1,3 +1,8 @@
+2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Explain, how to disable
+	Tramp via `tramp-mode'.
+
 2008-04-27  Carsten Dominik  <dominik@sam.science.uva.nl>
 
 	* org.texi: Massive changes, in many parts of the file.
