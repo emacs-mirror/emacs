@@ -653,20 +653,17 @@ of the differing parts is, by contrast, slightly highlighted."
       (setcdr last nil)
       (nconc
        (mapcar
-        (lambda (elem)
-          (let ((str
-                 (if (consp elem)
-                     (car (setq elem (cons (copy-sequence (car elem))
-                                           (cdr elem))))
-                   (setq elem (copy-sequence elem)))))
-            (put-text-property 0 com-str-len
-                               'font-lock-face 'completions-common-part
-                               str)
-            (if (> (length str) com-str-len)
-                (put-text-property com-str-len (1+ com-str-len)
-                                   'font-lock-face 'completions-first-difference
-                                   str)))
-          elem)
+        (lambda (str)
+          ;; Don't modify the string itself.
+          (setq str (copy-sequence str))
+          (put-text-property 0 com-str-len
+                             'font-lock-face 'completions-common-part
+                             str)
+          (if (> (length str) com-str-len)
+              (put-text-property com-str-len (1+ com-str-len)
+                                 'font-lock-face 'completions-first-difference
+                                 str))
+          str)
         completions)
        base-size))))
 
@@ -1156,7 +1153,8 @@ or a symbol chosen among `any', `star', `point'."
           (mapconcat
            (lambda (x)
              (case x
-               ((star any point) (if group "\\(.*?\\)" ".*?"))
+               ((star any point) (if (if (consp group) (memq x group) group)
+                                     "\\(.*?\\)" ".*?"))
                (t (regexp-quote x))))
            pattern
            "")))
@@ -1190,9 +1188,37 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	    (when (string-match regex c) (push c poss)))
 	  poss)))))
 
+(defun completion-pcm--hilit-commonality (pattern completions)
+  (when completions
+    (let* ((re (completion-pcm--pattern->regex pattern '(point)))
+           (last (last completions))
+           (base-size (cdr last)))
+      ;; Remove base-size during mapcar, and add it back later.
+      (setcdr last nil)
+      (nconc
+       (mapcar
+        (lambda (str)
+          ;; Don't modify the string itself.
+          (setq str (copy-sequence str))
+          (unless (string-match re str)
+            (error "Internal error: %s does not match %s" re str))
+          (let ((pos (or (match-beginning 1) (match-end 0))))
+            (put-text-property 0 pos
+                               'font-lock-face 'completions-common-part
+                               str)
+            (if (> (length str) pos)
+                (put-text-property pos (1+ pos)
+                                   'font-lock-face 'completions-first-difference
+                                   str)))
+          str)
+        completions)
+       base-size))))
+
 (defun completion-pcm-all-completions (string table pred point)
   (let ((pattern (completion-pcm--string->pattern string point)))
-    (completion-pcm--all-completions pattern table pred)))
+    (completion-pcm--hilit-commonality
+     pattern
+     (completion-pcm--all-completions pattern table pred))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN."

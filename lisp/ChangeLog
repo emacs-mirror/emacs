@@ -1,5 +1,10 @@
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-hilit-commonality): Remove leftover code.
+	(completion-pcm--pattern->regex): Let `group' be a list of symbols.
+	(completion-pcm--hilit-commonality): New function.
+	(completion-pcm-all-completions): Use it.
+
 	* minibuffer.el (completion-common-substring): Mark obsolete.
 	(completions-first-difference, completions-common-part):
 	Move from simple.el.
