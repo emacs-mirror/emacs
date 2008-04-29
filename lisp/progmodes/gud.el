@@ -2689,10 +2689,10 @@ Obeying it means displaying in another window the specified file and line."
 	 (window (and buffer
 		      (or (get-buffer-window buffer)
 			  (if (memq gud-minor-mode '(gdbmi gdba))
-			      (or (if (get-buffer-window buffer 0)
-				      (display-buffer buffer nil 0))
+			      (or (if (get-buffer-window buffer 'visible)
+				      (display-buffer buffer nil 'visible))
 				  (unless (gdb-display-source-buffer buffer)
-				    (gdb-display-buffer buffer nil))))
+				    (gdb-display-buffer buffer nil 'visible))))
 			  (display-buffer buffer))))
 	 (pos))
     (if buffer
