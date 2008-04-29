@@ -689,15 +689,13 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
         (list (list (list month day y) string)))))
 
 (defun holiday-float (month dayname n string &optional day)
-  "Holiday on MONTH, DAYNAME (Nth occurrence) called STRING.
-If the Nth DAYNAME in MONTH is visible, the value returned is the list
-\(((MONTH DAY year) STRING)).
-
-If N<0, count backward from the end of MONTH.
-
-An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
-
-Returns nil if it is not visible in the current calendar window."
+  "Holiday called STRING on the Nth DAYNAME after/before MONTH DAY.
+DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
+If N>0, use the Nth DAYNAME after MONTH DAY.
+If N<0, use the Nth DAYNAME before MONTH DAY.
+DAY defaults to 1 if N>0, and MONTH's last day otherwise.
+If the holiday is visible in the calendar window, returns a
+list (((month day year) STRING)).  Otherwise returns nil."
   ;; This is messy because the holiday may be visible, while the date
   ;; on which it is based is not.  For example, the first Monday after
   ;; December 30 may be visible when January is not.  For large values
