@@ -814,6 +814,8 @@ With arg, enter name of variable to be watched in the minibuffer."
     (push 'gdb-speedbar-timer gdb-pending-triggers)))
 
 (defun gdb-speedbar-timer-fn ()
+  (if gdb-speedbar-auto-raise
+      (raise-frame speedbar-frame))
   (setq gdb-pending-triggers
 	(delq 'gdb-speedbar-timer gdb-pending-triggers))
   (speedbar-timer-fn))
@@ -1472,7 +1474,7 @@ directives."
       (gdb-resync)
       (error "Unexpected frame-begin annotation (%S)" sink)))))
 
-(defcustom gdb-same-frame focus-follows-mouse
+(defcustom gdb-same-frame (not focus-follows-mouse)
   "Non-nil means pop up GUD buffer in same frame."
   :group 'gdb
   :type 'boolean
@@ -3056,28 +3058,15 @@ another GDB command e.g pwd, to see new frames")
 
 ;;;; Window management
 (defun gdb-display-buffer (buf dedicated &optional frame)
-  (let ((answer (get-buffer-window buf (or frame 0)))
-	(must-split nil))
+  (let ((answer (get-buffer-window buf (or frame 0))))
     (if answer
 	(display-buffer buf nil (or frame 0)) ;Deiconify the frame if necessary.
-      (if (get-buffer-window gud-comint-buffer)
-	  (select-window (get-buffer-window gud-comint-buffer))
-	;; If the buffer is not yet displayed, select the right frame.
-	(pop-to-buffer gud-comint-buffer))
       (let ((window (get-lru-window)))
-	(if (and window
-		 (not (memq window `(,(get-buffer-window gud-comint-buffer)
-				     ,gdb-source-window))))
-	    (progn
-	      (set-window-buffer window buf)
-	      (setq answer window))
-	  (setq must-split t)))
-      (if must-split
-	  (let* ((largest (get-largest-window))
-		 (cur-size (window-height largest)))
-	    (setq answer (split-window largest))
-	    (set-window-buffer answer buf)
-	    (set-window-dedicated-p answer dedicated)))
+	(let* ((largest (get-largest-window))
+	       (cur-size (window-height largest)))
+	  (setq answer (split-window largest))
+	  (set-window-buffer answer buf)
+	  (set-window-dedicated-p answer dedicated)))
       answer)))
 
 
@@ -3159,7 +3148,7 @@ another GDB command e.g pwd, to see new frames")
   "Display GUD buffer."
   (interactive)
   (let ((same-window-regexps nil))
-    (pop-to-buffer gud-comint-buffer)))
+    (select-window (display-buffer gud-comint-buffer nil 0))))
 
 (defun gdb-set-window-buffer (name)
   (set-window-buffer (selected-window) (get-buffer name))
