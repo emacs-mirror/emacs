@@ -480,7 +480,7 @@ Bindings:
 \\[flyspell-correct-word] (or down-mouse-2): popup correct words.
 
 Hooks:
-This runs `flyspell-mode-hook' after flyspell is entered.
+This runs `flyspell-mode-hook' after flyspell mode is entered or exit.
 
 Remark:
 `flyspell-mode' uses `ispell-mode'.  Thus all Ispell options are
@@ -618,9 +618,7 @@ in your .emacs file.
 	 (if binding
 	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
 		     (key-description binding))
-	   "Welcome to flyspell. Use Mouse-2 to correct words."))))
-  ;; we end with the flyspell hooks
-  (run-hooks 'flyspell-mode-hook))
+	   "Welcome to flyspell. Use Mouse-2 to correct words.")))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-delay-commands ...                                      */
