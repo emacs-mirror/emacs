@@ -621,15 +621,54 @@ It also eliminates runs of equal strings."
 	    (put-text-property (point) (progn (insert (cadr str)) (point))
                                'mouse-face nil)))))))
 
-(defvar completion-common-substring)
+(defvar completion-common-substring nil)
+(make-obsolete-variable 'completion-common-substring nil "23.1")
 
 (defvar completion-setup-hook nil
   "Normal hook run at the end of setting up a completion list buffer.
 When this hook is run, the current buffer is the one in which the
 command to display the completion list buffer was run.
 The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the value
-of `completion-common-substring'.  See also `display-completion-list'.")
+See also `display-completion-list'.")
+
+(defface completions-first-difference
+  '((t (:inherit bold)))
+  "Face put on the first uncommon character in completions in *Completions* buffer."
+  :group 'completion)
+
+(defface completions-common-part
+  '((t (:inherit default)))
+  "Face put on the common prefix substring in completions in *Completions* buffer.
+The idea of `completions-common-part' is that you can use it to
+make the common parts less visible than normal, so that the rest
+of the differing parts is, by contrast, slightly highlighted."
+  :group 'completion)
+
+(defun completion-hilit-commonality (completions prefix-len)
+  (when completions
+    (let* ((last (last completions))
+           (base-size (cdr last))
+           (com-str-len (- prefix-len (or base-size 0))))
+      ;; Remove base-size during mapcar, and add it back later.
+      (setcdr last nil)
+      (nconc
+       (mapcar
+        (lambda (elem)
+          (let ((str
+                 (if (consp elem)
+                     (car (setq elem (cons (copy-sequence (car elem))
+                                           (cdr elem))))
+                   (setq elem (copy-sequence elem)))))
+            (put-text-property 0 com-str-len
+                               'font-lock-face 'completions-common-part
+                               str)
+            (if (> (length str) com-str-len)
+                (put-text-property com-str-len (1+ com-str-len)
+                                   'font-lock-face 'completions-first-difference
+                                   str)))
+          elem)
+        completions)
+       base-size))))
 
 (defun display-completion-list (completions &optional common-substring)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
@@ -642,14 +681,14 @@ The actual completion alternatives, as inserted, are given `mouse-face'
 properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
 It can find the completion buffer in `standard-output'.
-The optional second arg COMMON-SUBSTRING is a string.
+The obsolete optional second arg COMMON-SUBSTRING is a string.
 It is used to put faces, `completions-first-difference' and
 `completions-common-part' on the completion buffer.  The
 `completions-common-part' face is put on the common substring
-specified by COMMON-SUBSTRING.  If COMMON-SUBSTRING is nil
-and the current buffer is not the minibuffer, the faces are not put.
-Internally, COMMON-SUBSTRING is bound to `completion-common-substring'
-during running `completion-setup-hook'."
+specified by COMMON-SUBSTRING."
+  (if common-substring
+      (setq completions (completion-hilit-commonality
+                         completions (length common-substring))))
   (if (not (bufferp standard-output))
       ;; This *never* (ever) happens, so there's no point trying to be clever.
       (with-temp-buffer
@@ -670,6 +709,8 @@ during running `completion-setup-hook'."
           (setcdr last nil)) ;Make completions a properly nil-terminated list.
 	(completion--insert-strings completions))))
 
+  ;; The hilit used to be applied via completion-setup-hook, so there
+  ;; may still be some code that uses completion-common-substring.
   (let ((completion-common-substring common-substring))
     (run-hooks 'completion-setup-hook))
   nil)
@@ -1000,7 +1041,9 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
       completion)))
 
 (defun completion-emacs21-all-completions (string table pred point)
-  (all-completions string table pred t))
+  (completion-hilit-commonality
+   (all-completions string table pred t)
+   (length string)))
 
 ;;; Basic completion, used in Emacs-22.
 
@@ -1025,7 +1068,9 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
       (cons (concat completion suffix) (length completion)))))
 
 (defun completion-emacs22-all-completions (string table pred point)
-  (all-completions (substring string 0 point) table pred t))
+  (completion-hilit-commonality
+   (all-completions (substring string 0 point) table pred t)
+   point))
 
 (defun completion-basic-try-completion (string table pred point)
   (let ((suffix (substring string point))

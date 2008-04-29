@@ -1,3 +1,16 @@
+2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-common-substring): Mark obsolete.
+	(completions-first-difference, completions-common-part):
+	Move from simple.el.
+	(completion-hilit-commonality): New fun.
+	(display-completion-list, completion-emacs21-all-completions)
+	(completion-emacs22-all-completions): Use it.
+	* simple.el (completions-first-difference, completions-common-part):
+	Move to minibuffer.el.
+	(choose-completion-string): Use field functions and minibufferp.
+	(completion-setup-function): Don't set completions faces.
+
 2008-04-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-nth-named-absday)
@@ -29,8 +42,8 @@
 
 2008-04-29  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-info-stack-custom): Use
-	gud-tool-bar-item-visible-no-fringe.
+	* progmodes/gdb-ui.el (gdb-info-stack-custom):
+	Use gud-tool-bar-item-visible-no-fringe.
 	(gdb-display-buffer): Don't pop new buffer if gud-comint-buffer
 	is already visible in frame.  Remove optional size parameter
 	and add optional frame parameter.
