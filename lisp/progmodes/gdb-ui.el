@@ -1928,33 +1928,32 @@ static char *magick[] = {
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
 	(let ((buffer-read-only nil))
-	(goto-char (point-min))
-	(while (< (point) (- (point-max) 1))
-	  (forward-line 1)
-	  (if (looking-at gdb-breakpoint-regexp)
-	      (progn
-		(setq bptno (or (match-string 1) (match-string 2)))
-		(setq flag (char-after (match-beginning 3)))
-		(if (match-string 1)
-		    (setq gdb-parent-bptno-enabled (eq flag ?y)))
-		(add-text-properties
-		 (match-beginning 3) (match-end 3)
-		 (if (eq flag ?y)
-		     '(face font-lock-warning-face)
-		   '(face font-lock-type-face)))
-		(let ((bl (point))
-		      (el (line-end-position)))
-		  (if (re-search-forward " in \\(.*\\) at\\s-+" el t)
-		      (progn
-			(add-text-properties
-			 (match-beginning 1) (match-end 1)
-			 '(face font-lock-function-name-face))
-			(looking-at "\\(\\S-+\\):\\([0-9]+\\)")
+	  (goto-char (point-min))
+	  (while (< (point) (- (point-max) 1))
+	    (forward-line 1)
+	    (if (looking-at gdb-breakpoint-regexp)
+		(progn
+		  (setq bptno (or (match-string 1) (match-string 2)))
+		  (setq flag (char-after (match-beginning 3)))
+		  (if (match-string 1)
+		      (setq gdb-parent-bptno-enabled (eq flag ?y)))
+		  (add-text-properties
+		   (match-beginning 3) (match-end 3)
+		   (if (eq flag ?y)
+		       '(face font-lock-warning-face)
+		     '(face font-lock-type-face)))
+		  (let ((bl (point))
+			(el (line-end-position)))
+		    (when (re-search-forward " in \\(.*\\) at" el t)
+		      (add-text-properties
+		       (match-beginning 1) (match-end 1)
+		       '(face font-lock-function-name-face)))
+		    (if (re-search-forward ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$")
 			(let ((line (match-string 2))
 			      (file (match-string 1)))
 			  (add-text-properties bl el
-			   '(mouse-face highlight
-			     help-echo "mouse-2, RET: visit breakpoint"))
+					       '(mouse-face highlight
+							    help-echo "mouse-2, RET: visit breakpoint"))
 			  (unless (file-exists-p file)
 			    (setq file (cdr (assoc bptno gdb-location-alist))))
 			  (if (and file
@@ -1975,20 +1974,20 @@ static char *magick[] = {
 			    (gdb-enqueue-input
 			     (list (concat gdb-server-prefix "info source\n")
 				   `(lambda () (gdb-get-location
-						,bptno ,line ,flag)))))))
-		    (if (re-search-forward
-			 "<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
-			 el t)
+						,bptno ,line ,flag))))))
+		      (if (re-search-forward
+			   "<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
+			   el t)
+			  (add-text-properties
+			   (match-beginning 1) (match-end 1)
+			   '(face font-lock-function-name-face))
+			(end-of-line)
+			(re-search-backward "\\s-\\(\\S-*\\)"
+					    bl t)
 			(add-text-properties
 			 (match-beginning 1) (match-end 1)
-			 '(face font-lock-function-name-face))
-		      (end-of-line)
-		      (re-search-backward "\\s-\\(\\S-*\\)"
-					  bl t)
-		      (add-text-properties
-		       (match-beginning 1) (match-end 1)
-		       '(face font-lock-variable-name-face)))))))
-	  (end-of-line))))))
+			 '(face font-lock-variable-name-face)))))))
+	    (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom))
 
   ;; Breakpoints buffer is always present.  Hack to just update
@@ -2201,7 +2200,7 @@ corresponding to the mode line clicked."
   (if event (posn-set-point (event-end event)))
   (save-excursion
     (beginning-of-line 1)
-    (if (looking-at "\\([0-9]+\\.?[0-9]*\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
+    (if (looking-at "\\([0-9]+\\.?[0-9]*\\) .*\\s-+\\(\\S-+\\):\\([0-9]+\\)$")
 	(let ((bptno (match-string 1))
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
@@ -2218,7 +2217,7 @@ corresponding to the mode line clicked."
       (error "No location specified."))))
 
 
-;; Frames buffer.  This displays a perpetually correct bactracktrace
+;; Frames buffer.  This displays a perpetually correct backtrace
 ;; (from the command `where').
 ;;
 ;; Alas, if your stack is deep, it is costly.
@@ -3475,7 +3474,7 @@ BUFFER nil or omitted means use the current buffer."
 	  (with-current-buffer buffer
 	    (save-excursion
 	      (goto-char (point-min))
-	      (if (search-forward address nil t)
+	      (if (re-search-forward (concat "^0x0*" address) nil t)
 		  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
     (if (not (equal gdb-pc-address "main"))
 	(with-current-buffer buffer
