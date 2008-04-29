@@ -1,5 +1,8 @@
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.el (dired-read-dir-and-switches): Replace last change with
+	a new approach that mixes read-file-name and read-directory-name.
+
 	* files.el (read-buffer-to-switch):
 	Avoid making assumptions about `other-buffer'.
 

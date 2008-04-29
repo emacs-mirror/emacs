@@ -594,12 +594,34 @@ Don't use that together with FILTER."
 	    ;; If a dialog is about to be used, call read-directory-name so
 	    ;; the dialog code knows we want directories.  Some dialogs can
 	    ;; only select directories or files when popped up, not both.
-	    (let ((default (and buffer-file-name
-				(abbreviate-file-name buffer-file-name))))
-	      (minibuffer-with-setup-hook
-		  (lambda () (setq minibuffer-default default))
+	    (if (next-read-file-uses-dialog-p)
 		(read-directory-name (format "Dired %s(directory): " str)
-				     nil default-directory nil))))))
+				     nil default-directory nil)
+	      (lexical-let ((default (and buffer-file-name
+                                          (abbreviate-file-name buffer-file-name)))
+                            (defdir default-directory))
+		(minibuffer-with-setup-hook
+		    (lambda ()
+                      (setq minibuffer-default default)
+                      (setq default-directory defdir))
+                  (completing-read
+                   (format "Dired %s(directory): " str)
+                   ;; We need a mix of read-file-name and read-directory-name
+                   ;; so that completion to directories is preferred, but if
+                   ;; the user wants to enter a global pattern, he can still
+                   ;; use completion on filenames to help him write the pattern.
+                   ;; Essentially, we want to use
+                   ;; (completion-table-with-predicate
+                   ;;  'read-file-name-internal 'file-directory-p nil)
+                   ;; but that doesn't work because read-file-name-internal
+                   ;; does not obey its `predicate' argument.
+                   (completion-table-in-turn
+                    (lambda (str pred action)
+                      (let ((read-file-name-predicate 'file-directory-p))
+                        (complete-with-action
+                         action 'read-file-name-internal str nil)))
+                    'read-file-name-internal)
+                   nil nil (abbreviate-file-name defdir) 'file-name-history)))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
