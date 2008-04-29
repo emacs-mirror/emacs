@@ -451,19 +451,7 @@ The variables bound and their default values are described by
 the `mail-source-keyword-map' variable."
   `(let* ,(mail-source-bind-1 (car type-source))
      (mail-source-set-1 ,(cadr type-source))
-     (let ((user (or
-		  (auth-source-user-or-password 
-		   "login"
-		   server	      ; this is "host" in auth-sources
-		   ',(car type-source))
-		  user))
-	   (password (or
-		      (auth-source-user-or-password 
-		       "password"
-		       server	      ; this is "host" in auth-sources
-		       ',(car type-source))
-		      password)))
-       ,@body)))
+     ,@body))
 
 (put 'mail-source-bind 'lisp-indent-function 1)
 (put 'mail-source-bind 'edebug-form-spec '(sexp body))
@@ -471,14 +459,37 @@ the `mail-source-keyword-map' variable."
 (defun mail-source-set-1 (source)
   (let* ((type (pop source))
 	 (defaults (cdr (assq type mail-source-keyword-map)))
-	 default value keyword)
+	 default value keyword user-auth pass-auth)
     (while (setq default (pop defaults))
       ;; for each default :SYMBOL, set SYMBOL to the plist value for :SYMBOL
       ;; using `mail-source-value' to evaluate the plist value
       (set (mail-source-strip-keyword (setq keyword (car default)))
-	   (if (setq value (plist-get source keyword))
-	       (mail-source-value value)
-	     (mail-source-value (cadr default)))))))
+	   ;; note the following reasons for this structure:
+	   ;; 1) the auth-sources user and password override everything
+	   ;; 2) it avoids macros, so it's cleaner
+	   ;; 3) it falls through to the mail-sources and then default values
+	   (cond 
+	    ((and
+	     (eq keyword :user)
+	     (setq user-auth 
+		   (auth-source-user-or-password
+		    "login"
+		    ;; this is "host" in auth-sources
+		    (if (boundp 'server) (symbol-value 'server) "")
+		    type)))
+	     user-auth)
+	    ((and
+	     (eq keyword :password)
+	     (setq pass-auth 
+		   (auth-source-user-or-password
+		    "password"
+		    ;; this is "host" in auth-sources
+		    (if (boundp 'server) (symbol-value 'server) "")
+		    type)))
+	     pass-auth)
+	    (t (if (setq value (plist-get source keyword))
+		 (mail-source-value value)
+	       (mail-source-value (cadr default)))))))))
 
 (eval-and-compile
   (defun mail-source-bind-common-1 ()

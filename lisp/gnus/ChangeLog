@@ -1,3 +1,18 @@
+2008-04-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail-source.el (mail-source-set-1, mail-source-bind): Moved
+	auth-source code out of the macro to clean it up and fix bugs.
+
+2008-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Don't split
+	by sender if it's equal to user-mail-address, it's likely to be
+	useless.
+
+	* mail-source.el (mail-source-bind): Don't use user or password if they
+	are not bound.  Unintern them if they are nil.  Don't use server unless
+	it's bound, and default it to empty string otherwise.
+
 2008-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mail-source.el: Load auth-source.el.
