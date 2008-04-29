@@ -1906,6 +1906,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
   Size headerSize;
+  Bool emptySeg = TRUE;  /* seg has no preserved-in-place objects */
 
   /* All arguments AVERed by AMCReclaim */
 
@@ -1941,6 +1942,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       (*format->pad)(AddrSub(p, headerSize), length);
       bytesReclaimed += length;
     } else {
+      emptySeg = FALSE;
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
     }
@@ -1953,11 +1955,24 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-  if(SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {
-    amcSegDestroyNailboard(seg, pool);
-  }
 
   AVER(bytesReclaimed <= SegSize(seg));
+
+  if(SegNailed(seg) == TraceSetEMPTY) {
+    if(amcSegHasNailboard(seg)) {
+      amcSegDestroyNailboard(seg, pool);
+    }
+    if(emptySeg) {
+      /* fix .nailboard.limitations.middle */
+      amcGen gen = amcSegGen(seg);
+      
+      --gen->segs;
+      gen->pgen.totalSize -= SegSize(seg);
+
+      SegFree(seg);
+    }
+  }
+
   trace->reclaimSize += bytesReclaimed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
