@@ -97,7 +97,10 @@
 ;;; TODO:
 
 ;; 1) Use MI command -data-read-memory for memory window.
-;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
+;; 2) Use tree-buffer.el (from ECB) instead of the speedbar for
+;;    watch-expressions?  Handling of watch-expressions needs to be
+;;    overhauled to work for large arrays/structures by creating variable
+;;    objects for visible watch-expressions only.
 ;; 3) Mark breakpoint locations on scroll-bar of source buffer?
 
 ;;; Code:
@@ -2256,20 +2259,20 @@ corresponding to the mode line clicked."
 		    el (line-end-position))
 	      (when (looking-at "#")
 		(add-text-properties bl el
-				     '(mouse-face highlight
-						  help-echo "mouse-2, RET: Select frame")))
+		    '(mouse-face highlight
+				 help-echo "mouse-2, RET: Select frame")))
 	      (goto-char bl)
 	      (when (looking-at "^#\\([0-9]+\\)")
 		(when (string-equal (match-string 1) gdb-frame-number)
-		  (if (> (car (window-fringes)) 0)
+		  (if (gud-tool-bar-item-visible-no-fringe)
 		      (progn
-			(or gdb-stack-position
-			    (setq gdb-stack-position (make-marker)))
-			(set-marker gdb-stack-position (point))
-			(setq move-to gdb-stack-position))
-		    (put-text-property bl (+ bl 4)
-				       'face '(:inverse-video t))
-		    (setq move-to bl)))
+			(put-text-property bl (+ bl 4)
+					   'face '(:inverse-video t))
+			(setq move-to bl))
+		    (or gdb-stack-position
+			(setq gdb-stack-position (make-marker)))
+		    (set-marker gdb-stack-position (point))
+		    (setq move-to gdb-stack-position)))
 		(when (re-search-forward "\\([^ ]+\\) (" el t)
 		  (put-text-property (match-beginning 1) (match-end 1)
 				     'face font-lock-function-name-face)
@@ -3005,8 +3008,7 @@ another GDB command e.g pwd, to see new frames")
 		 (insert-buffer-substring (gdb-get-buffer-create
 					   'gdb-partial-output-buffer))
 		(set-window-start window start)
-		(set-window-point window p))
-)))
+		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
 
 (defvar gdb-locals-mode-map
@@ -3054,13 +3056,15 @@ another GDB command e.g pwd, to see new frames")
 
 
 ;;;; Window management
-(defun gdb-display-buffer (buf dedicated &optional size)
-  (let ((answer (get-buffer-window buf 0))
+(defun gdb-display-buffer (buf dedicated &optional frame)
+  (let ((answer (get-buffer-window buf (or frame 0)))
 	(must-split nil))
     (if answer
-	(display-buffer buf nil 0)	;Deiconify the frame if necessary.
-      ;; The buffer is not yet displayed.
-      (pop-to-buffer gud-comint-buffer)	;Select the right frame.
+	(display-buffer buf nil (or frame 0)) ;Deiconify the frame if necessary.
+      (if (get-buffer-window gud-comint-buffer)
+	  (select-window (get-buffer-window gud-comint-buffer))
+	;; If the buffer is not yet displayed, select the right frame.
+	(pop-to-buffer gud-comint-buffer))
       (let ((window (get-lru-window)))
 	(if (and window
 		 (not (memq window `(,(get-buffer-window gud-comint-buffer)
@@ -3071,9 +3075,8 @@ another GDB command e.g pwd, to see new frames")
 	  (setq must-split t)))
       (if must-split
 	  (let* ((largest (get-largest-window))
-		 (cur-size (window-height largest))
-		 (new-size (and size (< size cur-size) (- cur-size size))))
-	    (setq answer (split-window largest new-size))
+		 (cur-size (window-height largest)))
+	    (setq answer (split-window largest))
 	    (set-window-buffer answer buf)
 	    (set-window-dedicated-p answer dedicated)))
       answer)))
