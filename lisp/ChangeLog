@@ -1,3 +1,14 @@
+2008-04-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Use
+	gud-tool-bar-item-visible-no-fringe.
+	(gdb-display-buffer): Don't pop new buffer if gud-comint-buffer
+	is already visible in frame.  Remove optional size parameter
+	and add optional frame parameter.
+
+	* progmodes/gud.el (gud-display-line): Only consider visible
+	frames when looking for source buffer.
+
 2008-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* doc-view.el (doc-view-new-window-function): Avoid using WINDOW
