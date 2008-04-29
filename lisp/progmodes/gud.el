@@ -507,8 +507,6 @@ required by the caller."
        ((memq minor-mode '(gdbmi gdba))
 	(erase-buffer)
 	(insert "Watch Expressions:\n")
-	(if gdb-speedbar-auto-raise
-	    (raise-frame speedbar-frame))
 	(let ((var-list gdb-var-list) parent)
 	  (while var-list
 	    (let* (char (depth 0) (start 0) (var (car var-list))
