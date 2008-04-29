@@ -1962,10 +1962,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     if(amcSegHasNailboard(seg)) {
       amcSegDestroyNailboard(seg, pool);
     }
-    if(emptySeg) {
+    if(emptySeg && (SegBuffer(seg) == NULL)) {
       /* fix .nailboard.limitations.middle */
       amcGen gen = amcSegGen(seg);
-      
+
       --gen->segs;
       gen->pgen.totalSize -= SegSize(seg);
 
