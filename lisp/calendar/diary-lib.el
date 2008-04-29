@@ -1606,12 +1606,13 @@ DAY MONTH YEAR in the European style).
     be a list of integers, `t' (meaning all values), or an integer.
 
   %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
-    Entry will appear on the Nth DAYNAME of MONTH (0 being Sunday,
-    1 Monday, etc; if N is negative it counts backward from the end
-    of the month.  MONTH can be a list of months, a single month, or `t'
-    to specify all months.  Optional DAY means the Nth DAYNAME of MONTH
-    on or after/before DAY.  DAY defaults to 1 if N>0 and the last day of
-    the month if N<0.
+    Entry will appear on the Nth DAYNAME after/before MONTH DAY.
+    DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
+    If N>0, use the Nth DAYNAME after MONTH DAY.
+    If N<0, use the Nth DAYNAME before MONTH DAY.
+    DAY defaults to 1 if N>0, and MONTH's last day otherwise.
+    MONTH can be a list of months, a single month, or `t' to
+    specify all months.
 
   %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
     Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
@@ -1793,12 +1794,12 @@ use when highlighting the day in the calendar."
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-float (month dayname n &optional day mark)
-  "Floating diary entry--entry applies if date is the nth dayname of month.
-Parameters are MONTH, DAYNAME, N.  MONTH can be a list of months, an integer,
-or `t' (meaning all months).  If N is negative, count backward from the end
-of the month.
-
-An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
+  "Diary entry for the Nth DAYNAME after/before MONTH DAY.
+DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
+If N>0, use the Nth DAYNAME after MONTH DAY.
+If N<0, use the Nth DAYNAME before MONTH DAY.
+DAY defaults to 1 if N>0, and MONTH's last day otherwise.
+MONTH can be a list of months, an integer, or `t' (meaning all months).
 Optional MARK specifies a face or single-character string to use when
 highlighting the day in the calendar."
   ;; This is messy because the diary entry may apply, but the date on which it
