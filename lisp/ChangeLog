@@ -1,3 +1,8 @@
+2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (read-buffer-to-switch):
+	Avoid making assumptions about `other-buffer'.
+
 2008-04-29  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-dir-mode-hook): Add normal hook.
