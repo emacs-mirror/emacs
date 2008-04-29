@@ -1,3 +1,7 @@
+2008-04-29  Phil Jackson  <phil@shellarchive.co.uk>
+
+	* find-cmd.el: New file.
+
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-hilit-commonality): Remove leftover code.
