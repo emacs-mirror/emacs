@@ -832,6 +832,12 @@ version control backend imposes itself."
   :type 'hook
   :group 'vc)
 
+(defcustom vc-dir-mode-hook nil
+  "Normal hook run by `vc-dir-mode'.
+See `run-hooks'."
+  :type 'hook
+  :group 'vc)
+
 ;; Annotate customization
 (defcustom vc-annotate-color-map
   (if (and (tty-display-color-p) (<= (display-color-cells) 8))
@@ -1592,7 +1598,7 @@ merge in the changes into your working copy."
 	(setq model (vc-checkout-model (car files)))
 	(setq state (vc-state file))
 	(return)))
-    
+
     ;; Verify that the fileset is homogeneous
     (dolist (file (cdr files))
       ;; Ignore directories, they are compatible with anything.
@@ -3046,7 +3052,8 @@ specific headers."
     ;; Make sure that if the VC status buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
-    (vc-dir-refresh)))
+    (vc-dir-refresh))
+  (run-hooks 'vc-dir-mode-hook))
 
 (put 'vc-dir-mode 'mode-class 'special)
 
