@@ -683,14 +683,21 @@ It is used to configure wireless interfaces.
 ---
 ** IPv6 is supported on MS-Windows.
 Emacs now supports IPv6 on Windows XP and later, and earlier versions
-of Windows with third party IPv6 stacks installed.  Previously IPv6 was
+of Windows with third party IPv6 stacks installed.  In Emacs 22, IPv6 was
 supported on other platforms, but not on Windows due to using the winsock
 1.1 header file, even though Emacs was linking to the winsock 2 library.
 
 ---
 ** Busy cursor (hourglass) now displays on MS-Windows.
 When Emacs is busy, an hourglass mouse cursor is displayed on Windows.
-Previously only X supported the busy cursor.
+In Emacs 22 only X supported the busy cursor.
+
+---
+** Battery status is available on MS-Windows
+Emacs can now display the battery status in the mode-line when enabled with
+display-battery-mode or from the Options menu.  More verbose battery
+information is also available with the command `battery'.  In Emacs 22
+battery status was supported only on GNU/Linux and Mac.
 
 ** More keys available on MS-Windows.
 Keys normally associated with IMEs, and some exotic keys not normally found
@@ -704,6 +711,7 @@ by default, since enabling them prevents their system-wide use when
 Emacs has focus.  To enable them, set the variable
 w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
+
 
 * Incompatible Lisp Changes in Emacs 23.1
 
