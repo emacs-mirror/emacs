@@ -1,3 +1,7 @@
+2008-04-29  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Sexp Diary Entries): Clarify diary-float.
+
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
 	* dired.texi (Subdirectories in Dired): Describe using `^'
