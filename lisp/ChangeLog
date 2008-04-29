@@ -1,3 +1,14 @@
+2008-04-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-display-buffer): Don't pop up GUD buffer.
+	Always split windows.
+	(gdb-speedbar-timer-fn): Only raise frame after user input.
+	(gdb-same-frame): Reverse initial value.
+	(gdb-display-gdb-buffer): Check for GUD buffer in other frames.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Raise frame in 
+	gdb-speedbar-timer-fn.
+
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-rationalize-a-list): Beware of side-effects.
