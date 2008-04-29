@@ -1,3 +1,17 @@
+2008-04-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-nth-named-absday)
+	(calendar-nth-named-day):
+	* calendar/diary-lib.el (diary-list-sexp-entries, diary-float):
+	* calendar/holidays.el (holiday-float): Doc fixes.
+
+	* emacs-lisp/check-declare.el (check-declare-errmsg): Fix counting in
+	the `full' case.
+
+	* org/org-agenda.el (calendar-iso-from-absolute):
+	* org/org.el (calendar-absolute-from-iso, calendar-iso-from-absolute):
+	Fix declarations.
+
 2008-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Make breakpoint
