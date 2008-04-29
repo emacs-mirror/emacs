@@ -2129,12 +2129,11 @@ date d, and applying it to d+7 gives the DAYNAME following absolute date d."
   (- date (% (- date dayname) 7)))
 
 (defun calendar-nth-named-absday (n dayname month year &optional day)
-  "The absolute date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
-A DAYNAME of 0 means Sunday, 1 means Monday, and so on.  If N<0,
-return the Nth DAYNAME before MONTH DAY, YEAR (inclusive).
+  "Absolute date of the Nth DAYNAME after/before MONTH YEAR DAY.
+A DAYNAME of 0 means Sunday, 1 means Monday, and so on.
 If N>0, return the Nth DAYNAME after MONTH DAY, YEAR (inclusive).
-
-If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
+If N<0, return the Nth DAYNAME before MONTH DAY, YEAR (inclusive).
+DAY defaults to 1 if N>0, and MONTH's last day otherwise."
   (if (> n 0)
       (+ (* 7 (1- n))
          (calendar-dayname-on-or-before
@@ -2150,7 +2149,7 @@ If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
                year))))))
 
 (defun calendar-nth-named-day (n dayname month year &optional day)
-  "The date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
+  "Date of the Nth DAYNAME after/before MONTH YEAR DAY.
 Like `calendar-nth-named-absday', but returns a Gregorian date."
   (calendar-gregorian-from-absolute
    (calendar-nth-named-absday n dayname month year day)))
