@@ -29,7 +29,7 @@ SRCID(version, "$Id$");
  * (Note: before 2006-02-01 the style was "release.epcore.chub")
  */
 
-#define MPS_RELEASE "release/1.108.1"
+#define MPS_RELEASE "exp-164845"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary
@@ -39,7 +39,7 @@ SRCID(version, "$Id$");
  */
 
 char MPSCopyrightNotice[] =
-  "Portions copyright (c) 2007 Ravenbrook Limited and Global Graphics Software.";
+  "Portions copyright (c) 2008 Ravenbrook Limited and Global Graphics Software.";
 
 
 /* MPSVersion -- return version string
