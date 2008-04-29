@@ -329,7 +329,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	proposed)
     ;; Divide fix-list into items with same proposed names and pass them
     ;; to uniquify-rationalize-conflicting-sublist.
-    (dolist (item (sort fix-list 'uniquify-item-greaterp))
+    (dolist (item (sort (copy-sequence fix-list) 'uniquify-item-greaterp))
       (setq proposed (uniquify-item-proposed item))
       (unless (equal proposed old-proposed)
 	(uniquify-rationalize-conflicting-sublist conflicting-sublist

@@ -1,3 +1,7 @@
+2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-rationalize-a-list): Beware of side-effects.
+
 2008-04-29  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-key-list-mode-map): Add menu.
