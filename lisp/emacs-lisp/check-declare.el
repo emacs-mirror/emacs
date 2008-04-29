@@ -115,7 +115,7 @@ With optional argument FULL, sums the number of elements in each element."
         (when full
           (setq l 0)
           (dolist (e errlist)
-            (setq l (1+ l))))
+            (setq l (+ l (1- (length e))))))
         (format "%d problem%s found" l (if (= l 1) "" "s")))
     "OK"))
 
