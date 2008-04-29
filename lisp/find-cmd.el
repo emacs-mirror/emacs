@@ -39,7 +39,7 @@
 ;;      -or -name '*.pm' -or -name '*.t' \\) -or -mtime '+1' \\) -and \\(
 ;;      -fstype 'nfs' -or -fstype 'ufs' \\) \\)"
 
-(eval-when-compile (require 'cl))
+;;; Code:
 
 (defconst find-constituents
   '((and . find-and)
@@ -239,3 +239,6 @@ them into valid switches. The result is -and(ed) together."
           (error "Sorry I don't know how to handle '%s'" (car form))))))))
 
 (provide 'find-cmd)
+
+;; arch-tag: 9687fd9e-4e90-4022-864a-f904526e2046
+;;; find-cmd.el ends here
