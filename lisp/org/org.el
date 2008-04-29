@@ -2176,11 +2176,11 @@ Normal means, no org-mode-specific context."
 (defvar mark-active)
 
 ;; Various packages
-(declare-function calendar-absolute-from-iso    "cal-iso"    (&optional date))
+(declare-function calendar-absolute-from-iso    "cal-iso"    (date))
 (declare-function calendar-forward-day          "cal-move"   (arg))
 (declare-function calendar-goto-date            "cal-move"   (date))
 (declare-function calendar-goto-today           "cal-move"   ())
-(declare-function calendar-iso-from-absolute    "cal-iso"    (&optional date))
+(declare-function calendar-iso-from-absolute    "cal-iso"    (date))
 (defvar calc-embedded-close-formula)
 (defvar calc-embedded-open-formula)
 (declare-function cdlatex-tab "ext:cdlatex" ())
