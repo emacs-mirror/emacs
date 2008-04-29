@@ -1,3 +1,7 @@
+2008-04-29  Glenn Morris  <rgm@gnu.org>
+
+	* find-cmd.el (top-level): Does not need cl when compiling.
+
 2008-04-29  Phil Jackson  <phil@shellarchive.co.uk>
 
 	* find-cmd.el: New file.
