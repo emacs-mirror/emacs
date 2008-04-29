@@ -193,8 +193,7 @@
         (match-string 2 str)
       str)))
 
-(defun vc-git-checkout-model (file)
-  'implicit)
+(defun vc-git-checkout-model (files) 'implicit)
 
 (defun vc-git-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-git-state file)))

@@ -109,13 +109,12 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;;; The autoload cookie below places vc-rcs-registered directly into
-;;; loaddefs.el, so that vc-rcs.el does not need to be loaded for
-;;; every file that is visited.  The definition is repeated below
-;;; so that Help and etags can find it.
-
-;;;###autoload (defun vc-rcs-registered (f) (vc-default-registered 'RCS f))
-(defun vc-rcs-registered (f) (vc-default-registered 'RCS f))
+;; The autoload cookie below places vc-rcs-registered directly into
+;; loaddefs.el, so that vc-rcs.el does not need to be loaded for
+;; every file that is visited.
+;;;###autoload
+(progn
+(defun vc-rcs-registered (f) (vc-default-registered 'RCS f)))
 
 (defun vc-rcs-state (file)
   "Implementation of `vc-state' for RCS."
@@ -133,7 +132,7 @@ For a description of possible values, see `vc-check-master-templates'."
         state
       (if (vc-workfile-unchanged-p file)
           'up-to-date
-        (if (eq (vc-checkout-model file) 'locking)
+        (if (eq (vc-rcs-checkout-model file) 'locking)
             'unlocked-changes
           'edited)))))
 
@@ -168,7 +167,7 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-file-setprop file 'vc-checkout-model 'locking)
                    'up-to-date)
                   ((string-match ".rw..-..-." permissions)
-		   (if (eq (vc-checkout-model file) 'locking)
+		   (if (eq (vc-rcs-checkout-model file) 'locking)
 		       (if (file-ownership-preserved-p file)
 			   'edited
 			 owner-name)
@@ -218,9 +217,10 @@ When VERSION is given, perform check for that version."
 	       (vc-insert-file (vc-name file) "^desc")
 	       (vc-rcs-find-most-recent-rev (vc-branch-part version))))))
 
-(defun vc-rcs-checkout-model (file)
+(defun vc-rcs-checkout-model (files)
   "RCS-specific version of `vc-checkout-model'."
-  (let (result)
+  (let ((file (if (consp files) (car files) files))
+        result)
     (when vc-consult-headers
       (vc-file-setprop file 'vc-checkout-model nil)
       (vc-rcs-consult-headers file)
@@ -319,7 +319,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."
-  (let ((checkout-model (vc-checkout-model file)))
+  (let ((checkout-model (vc-rcs-checkout-model file)))
     (vc-rcs-register file rev "")
     (when (eq checkout-model 'implicit)
       (vc-rcs-set-non-strict-locking file))
@@ -430,7 +430,7 @@ whether to remove it."
 		   nil 0 "co" (vc-name file)
 		   ;; If locking is not strict, force to overwrite
 		   ;; the writable workfile.
-		   (if (eq (vc-checkout-model file) 'implicit) "-f")
+		   (if (eq (vc-rcs-checkout-model file) 'implicit) "-f")
 		   (if editable "-l")
                    (if (stringp rev)
                        ;; a literal revision was specified
@@ -893,7 +893,7 @@ file."
 	 ;; locked by the calling user
 	 ((and (stringp locking-user)
 	       (string= locking-user (vc-user-login-name file)))
-	  (if (or (eq (vc-checkout-model file) 'locking)
+	  (if (or (eq (vc-rcs-checkout-model file) 'locking)
 		  workfile-is-latest
 		  (vc-rcs-latest-on-branch-p file working-revision))
 	      'edited

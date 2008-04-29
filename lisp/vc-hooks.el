@@ -440,26 +440,23 @@ If the file is not registered, or the master name is not known, return nil."
 	       (vc-call-backend (vc-backend file) 'registered file))
 	  (vc-file-getprop file 'vc-name))))
 
-(defun vc-checkout-model (file)
-  "Indicate how FILE is checked out.
+(defun vc-checkout-model (backend files)
+  "Indicate how FILES are checked out.
 
-If FILE is not registered, this function always returns nil.
+If FILES are not registered, this function always returns nil.
 For registered files, the possible values are:
 
-  'implicit   FILE is always writeable, and checked out `implicitly'
+  'implicit   FILES are always writeable, and checked out `implicitly'
               when the user saves the first changes to the file.
 
-  'locking    FILE is read-only if up-to-date; user must type
+  'locking    FILES are read-only if up-to-date; user must type
               \\[vc-next-action] before editing.  Strict locking
               is assumed.
 
-  'announce   FILE is read-only if up-to-date; user must type
+  'announce   FILES are read-only if up-to-date; user must type
               \\[vc-next-action] before editing.  But other users
               may be editing at the same time."
-  (or (vc-file-getprop file 'vc-checkout-model)
-      (if (vc-backend file)
-          (vc-file-setprop file 'vc-checkout-model
-                           (vc-call checkout-model file)))))
+  (vc-call-backend backend 'checkout-model files))
 
 (defun vc-user-login-name (file)
   "Return the name under which the user accesses the given FILE."
@@ -752,11 +749,12 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; If the file on disk is still in sync with the repository,
   ;; and version backups should be made, copy the file to
   ;; another name.  This enables local diffs and local reverting.
-  (let ((file buffer-file-name))
+  (let ((file buffer-file-name)
+        backend)
     (ignore-errors               ;Be careful not to prevent saving the file.
-      (and (vc-backend file)
+      (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
-           (eq (vc-checkout-model file) 'implicit)
+           (eq (vc-checkout-model backend file) 'implicit)
            (vc-call make-version-backups-p file)
            (vc-make-version-backup file)))))
 
@@ -767,8 +765,9 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; If the file in the current buffer is under version control,
   ;; up-to-date, and locking is not used for the file, set
   ;; the state to 'edited and redisplay the mode line.
-  (let ((file buffer-file-name))
-    (and (vc-backend file)
+  (let* ((file buffer-file-name)
+         (backend (vc-backend file)))
+    (and backend
 	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
 			 (nth 5 (file-attributes file)))
 		  ;; File has been saved in the same second in which
@@ -777,7 +776,7 @@ Before doing that, check if there are any old backups and get rid of them."
 		  (vc-file-setprop file 'vc-checkout-time nil))
 	     t)
          (vc-up-to-date-p file)
-         (eq (vc-checkout-model file) 'implicit)
+         (eq (vc-checkout-model backend file) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
 	 (when (featurep 'vc)

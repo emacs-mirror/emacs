@@ -238,21 +238,25 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (vc-cvs-registered file)
   (vc-file-getprop file 'vc-working-revision))
 
-(defun vc-cvs-checkout-model (file)
+(defun vc-cvs-checkout-model (files)
   "CVS-specific version of `vc-checkout-model'."
   (if (getenv "CVSREAD")
       'announce
-    (let ((attrib (file-attributes file)))
-      (if (and attrib ;; don't check further if FILE doesn't exist
-               ;; If the file is not writable (despite CVSREAD being
-               ;; undefined), this is probably because the file is being
-               ;; "watched" by other developers.
-               ;; (If vc-mistrust-permissions was t, we actually shouldn't
-               ;; trust this, but there is no other way to learn this from CVS
-               ;; at the moment (version 1.9).)
-               (string-match "r-..-..-." (nth 8 attrib)))
-          'announce
-        'implicit))))
+    (let* ((file (if (consp files) (car files) files))
+           (attrib (file-attributes file)))
+      (or (vc-file-getprop file 'vc-checkout-model)
+          (vc-file-setprop
+           file 'vc-checkout-model
+           (if (and attrib ;; don't check further if FILE doesn't exist
+                    ;; If the file is not writable (despite CVSREAD being
+                    ;; undefined), this is probably because the file is being
+                    ;; "watched" by other developers.
+                    ;; (If vc-mistrust-permissions was t, we actually shouldn't
+                    ;; trust this, but there is no other way to learn this from
+                    ;; CVS at the moment (version 1.9).)
+                    (string-match "r-..-..-." (nth 8 attrib)))
+               'announce
+             'implicit))))))
 
 (defun vc-cvs-mode-line-string (file)
   "Return string for placement into the modeline for FILE.
@@ -356,7 +360,7 @@ its parents."
 	(vc-file-setprop
 	 (car files) 'vc-working-revision
 	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
-      (mapc (lambda (file) (vc-file-clearprops file)) files))
+      (mapc 'vc-file-clearprops files))
     ;; Anyway, forget the checkout model of the file, because we might have
     ;; guessed wrong when we found the file.  After commit, we can
     ;; tell it from the permissions of the file (see
@@ -418,7 +422,7 @@ REV is the revision to check out."
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the working revision on which it was based."
   (vc-default-revert 'CVS file contents-done)
-  (unless (eq (vc-checkout-model file) 'implicit)
+  (unless (eq (vc-cvs-checkout-model file) 'implicit)
     (if vc-cvs-use-edit
         (vc-cvs-command nil 0 file "unedit")
       ;; Make the file read-only by switching off all w-bits

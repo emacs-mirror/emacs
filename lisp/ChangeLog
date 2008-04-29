@@ -1,5 +1,23 @@
 2008-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Make `checkout-model' apply to filesets.
+	* vc-hooks.el (vc-checkout-model): Rewrite.
+	(vc-before-save, vc-after-save): Adjust callers accordingly.
+	* vc.el (vc-editable-p, vc-next-action, vc-checkout, vc-update)
+	(vc-transfer-file): Adjust callers accordingly.
+	* vc-rcs.el (vc-rcs-checkout-model): Adjust arg.
+	(vc-rcs-state, vc-rcs-state-heuristic, vc-rcs-receive-file)
+	(vc-rcs-checkout, vc-rcs-fetch-master-state): Use vc-rcs-checkout-model
+	instead of vc-checkout-model.
+	* vc-mcvs.el (vc-mcvs-revert):
+	Use vc-mcvs-checkout-model i.s.o vc-checkout-model.
+	* vc-cvs.el (vc-cvs-checkout-model): Adjust arg.
+	(vc-cvs-revert): Use vc-cvs-checkout-model i.s.o vc-checkout-model.
+	* vc-svn.el (vc-svn-checkout-model):
+	* vc-hg.el (vc-hg-checkout-model):
+	* vc-git.el (vc-git-checkout-model):
+	* vc-bzr.el (vc-bzr-checkout-model): Adjust arg.
+
 	* dired.el (dired-read-dir-and-switches): Replace last change with
 	a new approach that mixes read-file-name and read-directory-name.
 

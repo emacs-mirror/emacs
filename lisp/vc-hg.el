@@ -444,8 +444,7 @@ REV is the revision to check out into WORKFILE."
         (vc-hg-command t 0 file "cat" "-r" rev)
       (vc-hg-command t 0 file "cat")))))
 
-(defun vc-hg-checkout-model (file)
-  'implicit)
+(defun vc-hg-checkout-model (files) 'implicit)
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-workfile-unchanged-p (file)

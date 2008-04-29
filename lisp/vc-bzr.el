@@ -346,8 +346,7 @@ If any error occurred in running `bzr status', then return nil."
          ((eq exitcode 0) (substring output 0 -1))
          (t nil))))))
 
-(defun vc-bzr-checkout-model (file)
-  'implicit)
+(defun vc-bzr-checkout-model (files) 'implicit)
 
 (defun vc-bzr-create-repo ()
   "Create a new Bzr repository."

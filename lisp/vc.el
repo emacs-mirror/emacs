@@ -228,9 +228,9 @@
 ;;   The default implementation always returns t, which means that
 ;;   working with non-current revisions is not supported by default.
 ;;
-;; * checkout-model (file)
+;; * checkout-model (files)
 ;;
-;;   Indicate whether FILE needs to be "checked out" before it can be
+;;   Indicate whether FILES need to be "checked out" before they can be
 ;;   edited.  See `vc-checkout-model' for a list of possible values.
 ;;
 ;; - workfile-unchanged-p (file)
@@ -1506,13 +1506,16 @@ Otherwise, throw an error."
       (unless (vc-backend buffer-file-name)
 	(error "File %s is not under version control" buffer-file-name))))))
 
-;;; Support for the C-x v v command.  This is where all the single-file-oriented
-;;; code from before the fileset rewrite lives.
+;;; Support for the C-x v v command.
+;; This is where all the single-file-oriented code from before the fileset
+;; rewrite lives.
 
 (defsubst vc-editable-p (file)
   "Return non-nil if FILE can be edited."
-  (or (eq (vc-checkout-model file) 'implicit)
-      (memq (vc-state file) '(edited needs-merge conflict))))
+  (let ((backend (vc-backend file)))
+    (and backend
+         (or (eq (vc-checkout-model backend file) 'implicit)
+             (memq (vc-state file) '(edited needs-merge conflict))))))
 
 (defun vc-revert-buffer-internal (&optional arg no-confirm)
   "Revert buffer, keeping point and mark where user expects them.
@@ -1585,9 +1588,10 @@ with the logmessage as change commentary.  A writable file is retained.
 merge in the changes into your working copy."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t))
+         (backend (car vc-fileset))
 	 (files (cdr vc-fileset))
 	 state
-	 model
+	 (model (vc-checkout-model backend files))
 	 revision)
     ;; Check if there's at least one file present, and get `state' and
     ;; `model' from it.
@@ -1595,7 +1599,6 @@ merge in the changes into your working copy."
     ;; present, or `files' is nil.
     (dolist (file files)
       (unless (file-directory-p file)
-	(setq model (vc-checkout-model (car files)))
 	(setq state (vc-state file))
 	(return)))
 
@@ -1605,7 +1608,7 @@ merge in the changes into your working copy."
       (unless (file-directory-p file)
 	(unless (vc-compatible-state (vc-state file) state)
 	  (error "Fileset is in a mixed-up state"))
-	(unless (eq (vc-checkout-model file) model)
+	(unless (eq (vc-checkout-model backend file) model)
 	  (error "Fileset has mixed checkout models"))))
     ;; Check for buffers in the fileset not matching the on-disk contents.
     (dolist (file files)
@@ -1932,23 +1935,23 @@ After check-out, runs the normal hook `vc-checkout-hook'."
        (vc-call make-version-backups-p file)
        (vc-up-to-date-p file)
        (vc-make-version-backup file))
-  (with-vc-properties
-   (list file)
-   (condition-case err
-       (vc-call checkout file writable rev)
-     (file-error
-      ;; Maybe the backend is not installed ;-(
-      (when writable
-	(let ((buf (get-file-buffer file)))
-	  (when buf (with-current-buffer buf (toggle-read-only -1)))))
-      (signal (car err) (cdr err))))
-   `((vc-state . ,(if (or (eq (vc-checkout-model file) 'implicit)
-			  (not writable))
-		      (if (vc-call latest-on-branch-p file)
-			  'up-to-date
-			'needs-patch)
-		    'edited))
-     (vc-checkout-time . ,(nth 5 (file-attributes file)))))
+  (let ((backend (vc-backend file)))
+    (with-vc-properties (list file)
+      (condition-case err
+          (vc-call-backend 'checkout file writable rev)
+        (file-error
+         ;; Maybe the backend is not installed ;-(
+         (when writable
+           (let ((buf (get-file-buffer file)))
+             (when buf (with-current-buffer buf (toggle-read-only -1)))))
+         (signal (car err) (cdr err))))
+      `((vc-state . ,(if (or (eq (vc-checkout-model backend file) 'implicit)
+                             (not writable))
+                         (if (vc-call latest-on-branch-p file)
+                             'up-to-date
+                           'needs-patch)
+                       'edited))
+        (vc-checkout-time . ,(nth 5 (file-attributes file))))))
   (vc-resynch-buffer file t t)
   (run-hooks 'vc-checkout-hook))
 
@@ -3769,7 +3772,7 @@ changes from the current branch are merged into the working file."
 	(error "Please kill or save all modified buffers before updating."))
       (if (vc-up-to-date-p file)
 	  (vc-checkout file nil t)
-	(if (eq (vc-checkout-model file) 'locking)
+	(if (eq (vc-checkout-model backend file) 'locking)
 	    (if (eq (vc-state file) 'edited)
 		(error "%s"
 		       (substitute-command-keys
@@ -3896,7 +3899,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
 	    (vc-switch-backend file new-backend)
-	    (unless (eq (vc-checkout-model file) 'implicit)
+	    (unless (eq (vc-checkout-model new-backend file) 'implicit)
 	      (vc-checkout file t nil))
 	    (rename-file modified-file file 'ok-if-already-exists)
 	    (vc-file-setprop file 'vc-checkout-time nil)))))

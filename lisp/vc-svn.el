@@ -193,7 +193,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-svn-registered file)
   (vc-file-getprop file 'vc-working-revision))
 
-(defun vc-svn-checkout-model (file)
+(defun vc-svn-checkout-model (files)
   "SVN-specific version of `vc-checkout-model'."
   ;; It looks like Subversion has no equivalent of CVSREAD.
   'implicit)
