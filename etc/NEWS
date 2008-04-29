@@ -1127,7 +1127,7 @@ forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
 
-** find-cmd.el can build `find' commands using lisp synax.
+** find-cmd.el can build `find' commands using lisp syntax.
 
 ** The package isearch-multi.el has been added.  It implements a new mode
 `isearch-buffers-minor-mode' that allows isearch to search through
