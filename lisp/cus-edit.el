@@ -1782,7 +1782,7 @@ item in another window.\n\n"))
 ;;; Modification of Basic Widgets.
 ;;
 ;; We add extra properties to the basic widgets needed here.  This is
-;; fine, as long as we are careful to stay within out own namespace.
+;; fine, as long as we are careful to stay within our own namespace.
 ;;
 ;; We want simple widgets to be displayed by default, but complex
 ;; widgets to be hidden.
