@@ -8680,6 +8680,115 @@ Lisp_Object class, name;
   return Qt;
 }
 
+DEFUN ("w32-battery-status", Fw32_battery_status, Sw32_battery_status, 0, 0, 0,
+       doc: /* Get power status information from Windows system.
+
+The following %-sequences are provided:
+%L AC line status (verbose)
+%B Battery status (verbose)
+%b Battery status, empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%p Battery load percentage
+%s Remaining time (to charge or discharge) in seconds
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'  */)
+  ()
+{
+  Lisp_Object status = Qnil;
+
+  SYSTEM_POWER_STATUS system_status;
+  if (GetSystemPowerStatus (&system_status))
+    {
+      Lisp_Object line_status, battery_status, battery_status_symbol;
+      Lisp_Object load_percentage, seconds, minutes, hours, remain;
+      Lisp_Object sequences[8];
+
+      long seconds_left = (long) system_status.BatteryLifeTime;
+
+      if (system_status.ACLineStatus == 0)
+	line_status = build_string ("off-line");
+      else if (system_status.ACLineStatus == 1)
+	line_status = build_string ("on-line");
+      else
+	line_status = build_string ("N/A");
+
+      if (system_status.BatteryFlag & 128)
+	{
+	  battery_status = build_string ("N/A");
+	  battery_status_symbol = build_string ("");
+	}
+      else if (system_status.BatteryFlag & 8)
+	{
+	  battery_status = build_string ("charging");
+	  battery_status_symbol = build_string ("+");
+	  if (system_status.BatteryFullLifeTime != -1L)
+	    seconds_left = system_status.BatteryFullLifeTime - seconds_left;
+	}
+      else if (system_status.BatteryFlag & 4)
+	{
+	  battery_status = build_string ("critical");
+	  battery_status_symbol = build_string ("!");
+	}
+      else if (system_status.BatteryFlag & 2)
+	{
+	  battery_status = build_string ("low");
+	  battery_status_symbol = build_string ("-");
+	}
+      else if (system_status.BatteryFlag & 1)
+	{
+	  battery_status = build_string ("high");
+	  battery_status_symbol = build_string ("");
+	}
+      else
+	{
+	  battery_status = build_string ("medium");
+	  battery_status_symbol = build_string ("");
+	}
+
+      if (system_status.BatteryLifePercent > 100)
+	load_percentage = build_string ("N/A");
+      else
+	{
+	  char buffer[16];
+	  _snprintf (buffer, 16, "%d", system_status.BatteryLifePercent);
+	  load_percentage = build_string (buffer);
+	}
+
+      if (seconds_left < 0)
+	seconds = minutes = hours = remain = build_string ("N/A");
+      else
+	{
+	  long m;
+	  float h;
+	  char buffer[16];
+	  _snprintf (buffer, 16, "%ld", seconds_left);
+	  seconds = build_string (buffer);
+
+	  m = seconds_left / 60;
+	  _snprintf (buffer, 16, "%d", m);
+	  minutes = build_string (buffer);
+
+	  h = seconds_left / 3600.0;
+	  _snprintf (buffer, 16, "%3.1f", h);
+	  hours = build_string (buffer);
+
+	  _snprintf (buffer, 16, "%1.0f:%d", h, m);
+	  remain = build_string (buffer);
+	}
+      sequences[0] = Fcons (make_number ('L'), line_status);
+      sequences[1] = Fcons (make_number ('B'), battery_status);
+      sequences[2] = Fcons (make_number ('b'), battery_status_symbol);
+      sequences[3] = Fcons (make_number ('p'), load_percentage);
+      sequences[4] = Fcons (make_number ('s'), seconds);
+      sequences[5] = Fcons (make_number ('m'), minutes);
+      sequences[6] = Fcons (make_number ('h'), hours);
+      sequences[7] = Fcons (make_number ('t'), remain);
+
+      status = Flist (8, sequences);
+    }
+  return status;
+}
 
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
@@ -9287,6 +9396,7 @@ versions of Windows) characters.  */);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_find_bdf_fonts);
+  defsubr (&Sw32_battery_status);
 
   defsubr (&Sfile_system_info);
   defsubr (&Sdefault_printer_name);
