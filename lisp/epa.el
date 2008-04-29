@@ -201,7 +201,8 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-last-coding-system-specified nil)
 
 (defvar epa-key-list-mode-map
-  (let ((keymap (make-sparse-keymap)))
+  (let ((keymap (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -217,6 +218,24 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap " " 'scroll-up)
     (define-key keymap [delete] 'scroll-down)
     (define-key keymap "q" 'epa-exit-buffer)
+    (define-key keymap [menu-bar epa-key-list-mode] (cons "Keys" menu-map))
+    (define-key menu-map [epa-key-list-delete-keys]
+      '(menu-item "Delete keys" epa-delete-keys
+		  :help "Delete marked keys"))
+    (define-key menu-map [epa-key-list-import-keys]
+      '(menu-item "Import keys" epa-import-keys
+		  :help "Import keys from a file"))
+    (define-key menu-map [epa-key-list-export-keys]
+      '(menu-item "Export keys" epa-export-keys
+		  :help "Export marked keys to a file"))
+    (define-key menu-map [separator-epa-key-list]
+      '(menu-item "--"))
+    (define-key menu-map [epa-key-list-unmark-key]
+      '(menu-item "Unmark key" epa-unmark-key
+		  :help "Unmark a key"))
+    (define-key menu-map [epa-key-list-mark-key]
+      '(menu-item "Mark key" epa-mark-key
+		  :help "Mark a key"))
     keymap))
 
 (defvar epa-key-mode-map
@@ -1094,7 +1113,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (message "Deleting...")
     (epg-delete-keys context keys allow-secret)
     (message "Deleting...done")
-    (apply #'epa-list-keys epa-list-keys-arguments)))
+    (apply #'epa--list-keys epa-list-keys-arguments)))
 
 ;;;###autoload
 (defun epa-import-keys (file)
@@ -1113,7 +1132,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
     (if (eq major-mode 'epa-key-list-mode)
-	(apply #'epa-list-keys epa-list-keys-arguments))))
+	(apply #'epa--list-keys epa-list-keys-arguments))))
 
 ;;;###autoload
 (defun epa-import-keys-region (start end)
