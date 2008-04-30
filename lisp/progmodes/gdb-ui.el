@@ -2288,11 +2288,13 @@ corresponding to the mode line clicked."
 	      (forward-line 1))
 	    (forward-line -1)
 	    (when (looking-at "(More stack frames follow...)")
-	      (add-text-properties (match-beginning 0) (match-end 0)
-				   '(mouse-face highlight
-						gdb-max-frames t
-						help-echo
-						"mouse-2, RET: customize gdb-max-frames to see more frames")))))
+	      (add-text-properties
+	       (match-beginning 0) (match-end 0)
+	       '(mouse-face highlight
+		 gdb-max-frames t
+		 help-echo
+		   "mouse-2, RET: customize gdb-max-frames to see more frames"
+		 )))))
 	(when gdb-look-up-stack
 	  (goto-char (point-min))
 	  (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
@@ -3645,6 +3647,19 @@ from=\"\\(.*?\\)\"\\)")
       (if (gdb-get-buffer 'gdb-assembler-buffer)
 	  (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
 	    (setq mode-name (concat "Machine:" gdb-selected-frame)))))
+    (if (and (match-string 4) (match-string 5) gud-overlay-arrow-position)
+	(let ((buffer (marker-buffer gud-overlay-arrow-position))
+	      (position (marker-position gud-overlay-arrow-position)))
+	  (when (and buffer
+		     (string-equal (file-name-nondirectory
+				    (buffer-file-name buffer))
+				   (file-name-nondirectory (match-string 4))))
+	    (with-current-buffer buffer
+	      (setq fringe-indicator-alist
+		    (if (string-equal gdb-frame-number "0")
+			nil
+		      '((overlay-arrow . hollow-right-triangle))))
+	      (set-marker gud-overlay-arrow-position position)))))
   (gdb-invalidate-assembler))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.4 onwards.
