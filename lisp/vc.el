@@ -613,9 +613,6 @@
 ;;   changeset, especially for VC systems that have per repository
 ;;   version numbers.  log-view should take advantage of this.
 ;;
-;; - a way to do repository wide log (instead of just per
-;;   file/fileset) is needed.
-;;
 ;; - the *VC-log* buffer needs font-locking.
 ;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
@@ -623,6 +620,9 @@
 ;;
 ;; - make vc-state for all backends return 'unregistered instead of
 ;;   nil for unregistered files, then update vc-next-action.
+;;
+;; - vc-default-registered should return 'unregistered not nil for
+;;   unregistered files.
 ;;
 ;; - vc-register should register a fileset at a time. The backends
 ;;   already support this, only the front-end needs to be changed to
@@ -633,8 +633,18 @@
 ;; - vc-next-action should do something about 'missing files. Maybe
 ;;   just warn, or offer to checkout.
 ;;
-;; - display the directory names in vc-dir, similar to what PCL-CVS
-;;   does.
+;; - When vc-next-action calls vc-checkin it could pre-fill the
+;;   *VC-log* buffer with some obvious items: the list of files that
+;;   were added, the list of files that were removed.  If the diff is
+;;   available, maybe it could even call something like
+;;   `diff-add-change-log-entries-other-window' to create a detailed
+;;   skeleton for the log...
+;;
+;; - Set `vc-dir-insert-directories' to t and check what operations
+;;   and backends do not support directory arguments and fix them.
+;;
+;; - a way to do repository wide log (instead of just per
+;;   file/fileset) is needed.  Doing it per directory might be enough...
 ;;
 ;; - most vc-dir backends need more work.  They might need to
 ;;   provide custom headers, use the `extra' field and deal with all
@@ -648,9 +658,8 @@
 ;;
 ;; - vc-dir toolbar needs more icons.
 ;;
-;; - implement `vc-dir-parent-marked-p' and `vc-dir-children-marked-p'.
-;;
-;; - test operations on directories in vc-dir.
+;; - vc-dir-next-line should not print an "end of buffer" message when
+;;   invoked with the cursor on the last file.
 ;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
@@ -660,6 +669,11 @@
 ;; - do not default to RCS anymore when the current directory is not
 ;;   controlled by any VCS and the user does C-x v v
 ;;
+;; - vc-cvs-delete-file should not do a "cvs commit" immediately after
+;;   removing the file.
+;;
+;; - vc-create-snapshot and vc-retrieve-snapshot should update the
+;;   buffers that might be visiting the affected files.
 
 ;;; Code:
 
@@ -1426,7 +1440,8 @@ Only files already under version control are noticed."
        node (lambda (f) (when (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered)
+(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered
+				    include-files-not-directories)
   "Deduce a set of files and a backend to which to apply an operation.
 
 Return (BACKEND . FILESET).
@@ -1435,8 +1450,11 @@ Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
 and we're in a dired buffer, select the current directory.
-If none of these conditions is met, but ALLOW_UNREGISTERED is in and the
-visited file is not registered, return a singletin fileset containing it.
+If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
+visited file is not registered, return a singleton fileset containing it.
+If INCLUDE-FILES-NOT-DIRECTORIES then if directories are marked,
+return the list of files VC files in those directories instead of
+the directories themselves.
 Otherwise, throw an error."
   (let (backend)
     (cond
@@ -1454,8 +1472,11 @@ Otherwise, throw an error."
       ;; FIXME: Maybe the backend should be stored in a buffer-local
       ;; variable?
       (cons (vc-responsible-backend default-directory)
-	    (or (vc-dir-marked-files)
-		(list (vc-dir-current-file)))))
+		(or
+		 (if include-files-not-directories
+		     (vc-dir-marked-only-files)
+		   (vc-dir-marked-files))
+		 (list (vc-dir-current-file)))))
      ((setq backend (vc-backend buffer-file-name))
       (cons backend (list buffer-file-name)))
      ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
@@ -1588,26 +1609,20 @@ with the logmessage as change commentary.  A writable file is retained.
 merge in the changes into your working copy."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t))
+	 (vc-fileset-only-files (vc-deduce-fileset nil t t))
+	 (only-files (cdr vc-fileset-only-files))
          (backend (car vc-fileset))
 	 (files (cdr vc-fileset))
-	 state
+	 (state (vc-state (car only-files)))
 	 (model (vc-checkout-model backend files))
 	 revision)
-    ;; Check if there's at least one file present, and get `state' and
-    ;; `model' from it.
-    ;;FIXME: do something about the case when only directories are
-    ;; present, or `files' is nil.
-    (dolist (file files)
-      (unless (file-directory-p file)
-	(setq state (vc-state file))
-	(return)))
 
     ;; Verify that the fileset is homogeneous
-    (dolist (file (cdr files))
+    (dolist (file (cdr only-files))
       ;; Ignore directories, they are compatible with anything.
       (unless (file-directory-p file)
 	(unless (vc-compatible-state (vc-state file) state)
-	  (error "Fileset is in a mixed-up state"))
+	  (error "Fileset is in a mixed-up state %s %s" state (vc-state file)))
 	(unless (eq (vc-checkout-model backend file) model)
 	  (error "Fileset has mixed checkout models"))))
     ;; Check for buffers in the fileset not matching the on-disk contents.
@@ -3036,7 +3051,25 @@ specific headers."
   "The buffer used for the asynchronous call that computes the VC status.")
 
 (defun vc-dir-mode ()
-  "Major mode for VC status.
+  "Major mode for showing the VC status for a directory.
+Marking/Unmarking key bindings and actions:
+m - marks a file/directory or ff the region is active, mark all the files 
+     in region.
+    Restrictions: - a file cannot be marked if any parent directory is marked
+                  - a directory cannot be marked if any child file or 
+                    directory is marked
+u - marks a file/directory or if the region is active, unmark all the files 
+     in region.
+M - if the cursor is on a file: mark all the files with the same VC state as
+      the current file
+  - if the cursor is on a directory: mark all child files
+  - with a prefix argument: mark all files
+U - if the cursor is on a file: unmark all the files with the same VC state
+      as the current file
+  - if the cursor is on a directory: unmark all child files
+  - with a prefix argument: unmark all files
+
+
 \\{vc-dir-mode-map}"
   (setq mode-name "VC Status")
   (setq major-mode 'vc-dir-mode)
@@ -3544,10 +3577,43 @@ outside of VC) and one wants to do some operation on it."
     (expand-file-name (vc-dir-fileinfo->name (ewoc-data node)))))
 
 (defun vc-dir-marked-files ()
-  "Return the list of marked files"
+  "Return the list of marked files."
   (mapcar
    (lambda (elem) (expand-file-name (vc-dir-fileinfo->name elem)))
    (ewoc-collect vc-ewoc 'vc-dir-fileinfo->marked)))
+
+(defun vc-dir-marked-only-files ()
+  "Return the list of marked files, for marked directories, return child files."
+
+  (let ((crt (ewoc-nth vc-ewoc 0))
+	result)
+    (while crt
+      (let ((crt-data (ewoc-data crt)))
+	(if (vc-dir-fileinfo->marked crt-data)
+	    (if (vc-dir-fileinfo->directory crt-data)
+		(let* ((dir (vc-dir-fileinfo->directory crt-data))
+		       (dirlen (length dir))
+		       data)
+		  (while
+		      (and (setq crt (ewoc-next vc-ewoc crt))
+			   (string-equal
+			    (substring
+			     (progn
+			       (setq data (ewoc-data crt))
+			       (let ((crtdir (vc-dir-fileinfo->directory data)))
+				 (if crtdir
+				     crtdir
+				   (file-name-directory
+				    (expand-file-name
+				     (vc-dir-fileinfo->name data))))))
+			     0 dirlen)
+			    dir))
+		    (unless (vc-dir-fileinfo->directory data)
+		      (push (vc-dir-fileinfo->name data) result))))
+	      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result)
+	      (setq crt (ewoc-next vc-ewoc crt)))
+	  (setq crt (ewoc-next vc-ewoc crt)))))
+    result))
 
 (defun vc-dir-hide-up-to-date ()
   "Hide up-to-date items from display."

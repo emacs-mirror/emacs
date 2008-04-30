@@ -1,3 +1,11 @@
+2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-deduce-fileset): Add new parameter.
+	(vc-dir-marked-only-files): New function.
+	(vc-next-action): Don't ignore directories, look at the files
+	inside them.
+	(vc-dir-mode): Document how the mark/unmark commands work.
+
 2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--do-completion): Move point even if the
