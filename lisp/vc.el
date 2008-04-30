@@ -2985,6 +2985,7 @@ specific headers."
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
+    (define-key map "d" 'vc-dir-delete-file)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
     ;; need to find the file from the mouse position, not `point'.
@@ -3553,6 +3554,12 @@ that share the same state."
   (mapc 'vc-register (or (vc-dir-marked-files)
                          (list (vc-dir-current-file)))))
 
+(defun vc-dir-delete-file ()
+  "Delete the marked files, or the current file if no marks."
+  (interactive)
+  (mapc 'vc-delete-file (or (vc-dir-marked-files)
+                            (list (vc-dir-current-file)))))
+
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current VC status listing.
 This is typically used if the file is up-to-date (or has been added
@@ -4022,7 +4029,8 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (unless (y-or-n-p (format "Really want to delete %s? "
 			      (file-name-nondirectory file)))
       (error "Abort!"))
-    (unless (or (file-directory-p file) (null make-backup-files))
+    (unless (or (file-directory-p file) (null make-backup-files)
+                (not (file-exists-p file)))
       (with-current-buffer (or buf (find-file-noselect file))
 	(let ((backup-inhibited nil))
 	  (backup-buffer))

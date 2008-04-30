@@ -1,3 +1,9 @@
+2008-04-30  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-dir-mode-map): Bind "d" to vc-dir-delete-file.
+	(vc-dir-delete-file): Add.
+	(vc-delete-file): Do not barf when the file has been already deleted.
+
 2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-map): Add menu.
