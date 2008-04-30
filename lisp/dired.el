@@ -1417,9 +1417,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Find This File" dired-find-file
 		  :help "Edit file at cursor"))
     (define-key map [menu-bar immediate create-directory]
-      '(menu-item "Create Directory..." dired-create-directory))
+      '(menu-item "Create Directory..." dired-create-directory
+		  :help "Create a directory"))
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode
+		  :help "Put a dired buffer in a mode in which filenames are editable"
 		  :filter (lambda (x) (if (eq major-mode 'dired-mode) x))))
 
     (define-key map [menu-bar regexp]
