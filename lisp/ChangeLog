@@ -1,3 +1,7 @@
+2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-checkout): Typo.
+
 2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* menu-bar.el (menu-bar-tools-menu): Reorder, place Games last.

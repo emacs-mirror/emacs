@@ -1953,7 +1953,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (let ((backend (vc-backend file)))
     (with-vc-properties (list file)
       (condition-case err
-          (vc-call-backend 'checkout file writable rev)
+          (vc-call-backend backend 'checkout file writable rev)
         (file-error
          ;; Maybe the backend is not installed ;-(
          (when writable
