@@ -1955,27 +1955,29 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   SegSetNailed(seg, TraceSetDel(SegNailed(seg), trace));
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-
-  AVER(bytesReclaimed <= SegSize(seg));
-
-  if(SegNailed(seg) == TraceSetEMPTY) {
-    if(amcSegHasNailboard(seg)) {
-      amcSegDestroyNailboard(seg, pool);
-    }
-    if(emptySeg && (SegBuffer(seg) == NULL)) {
-      /* fix .nailboard.limitations.middle */
-      amcGen gen = amcSegGen(seg);
-
-      --gen->segs;
-      gen->pgen.totalSize -= SegSize(seg);
-
-      SegFree(seg);
-    }
+  if(SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {
+    amcSegDestroyNailboard(seg, pool);
   }
 
+  AVER(bytesReclaimed <= SegSize(seg));
   trace->reclaimSize += bytesReclaimed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
+
+  /* Free the seg if we can; fixes .nailboard.limitations.middle. */
+  if(emptySeg
+     && (SegBuffer(seg) == NULL)
+     && (SegNailed(seg) == TraceSetEMPTY)) {
+
+    amcGen gen = amcSegGen(seg);
+
+    /* We may not free a buffered seg. */
+    AVER(SegBuffer(seg) == NULL);
+
+    --gen->segs;
+    gen->pgen.totalSize -= SegSize(seg);
+    SegFree(seg);
+  }
 }
 
 
@@ -2015,6 +2017,10 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
     amcReclaimNailed(pool, trace, seg);
     return;
   }
+  
+  /* We may not free a buffered seg.  (But all buffered + condemned */
+  /* segs should have been nailed anyway). */
+  AVER(SegBuffer(seg) == NULL);
 
   --gen->segs;
   size = SegSize(seg);
