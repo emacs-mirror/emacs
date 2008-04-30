@@ -1289,7 +1289,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	     ;; the last place where there's something to choose, or
 	     ;; at the very end.
              (pointpat (or (memq 'point mergedpat) (memq 'any mergedpat)
-			   margedpat))
+			   mergedpat))
              ;; New pos from the start.
              (newpos (length (completion-pcm--pattern->string pointpat)))
 	     ;; Do it afterwards because it changes `pointpat' by sideeffect.
