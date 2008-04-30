@@ -523,7 +523,7 @@ w32font_draw (s, from, to, x, y, with_background)
 {
   UINT options;
   HRGN orig_clip;
-  struct w32font_info *w32font = (struct w32font_info *) s->face->font;
+  struct w32font_info *w32font = (struct w32font_info *) s->font;
 
   options = w32font->glyph_idx;
 
@@ -553,7 +553,7 @@ w32font_draw (s, from, to, x, y, with_background)
     {
       HBRUSH brush;
       RECT rect;
-      struct font *font = s->face->font;
+      struct font *font = s->font;
 
       brush = CreateSolidBrush (s->gc->background);
       rect.left = x;
@@ -1875,8 +1875,11 @@ clear_cached_metrics (w32_font)
 {
   int i;
   for (i = 0; i < w32_font->n_cache_blocks; i++)
-    bzero (w32_font->cached_metrics[i],
-	   CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+    {
+      if (w32_font->cached_metrics[i])
+        bzero (w32_font->cached_metrics[i],
+               CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+    }
 }
 
 struct font_driver w32font_driver =
