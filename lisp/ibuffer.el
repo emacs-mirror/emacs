@@ -1759,6 +1759,8 @@ If point is on a group name, this function operates on that group."
 	      (if (stringp dired-directory)
 		  dired-directory
 		(car dired-directory)))
+	 (and (eq major-mode 'vc-dir-mode)
+	      (bound-and-true-p default-directory))
 	 ""))))
 
 (define-ibuffer-column filename-and-process
