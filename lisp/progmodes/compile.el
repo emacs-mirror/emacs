@@ -237,8 +237,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; times of the form "HH:MM:SS" where MM is taken as a line number, so
      ;; the last line tries to rule out message where the info after the
      ;; line number starts with "SS".  --Stef
+
+     ;; The core of the regexp is the one with *?.  It says that a file name
+     ;; can be composed of any non-newline char, but it also rules out some
+     ;; valid but unlikely cases, such as a trailing space or a space
+     ;; followed by a -.
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
-\\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-\n]\\)*?\\): ?\
+\\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-/\n]\\)*?\\): ?\
 \\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\3\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
