@@ -1,3 +1,7 @@
+2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-map): Add menu.
+
 2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (octave-help): New function.

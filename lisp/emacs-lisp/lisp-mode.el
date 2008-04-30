@@ -431,10 +431,21 @@ if that value is non-nil."
 (put 'emacs-lisp-mode 'custom-mode-group 'lisp)
 
 (defvar lisp-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Lisp")))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
+    (define-key map [menu-bar lisp] (cons "Lisp" menu-map))
+    (define-key menu-map [run-lisp]
+      '(menu-item "Run inferior Lisp" run-lisp
+		  :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"))
+    (define-key menu-map [ev-def]
+      '(menu-item "Eval defun" lisp-eval-defun
+		  :help "Send the current defun to the Lisp process made by M-x run-lisp"))
+    (define-key menu-map [ind-sexp]
+      '(menu-item "Indent sexp" indent-sexp
+		  :help "Indent each line of the list starting just after point"))
     map)
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
