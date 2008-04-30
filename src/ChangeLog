@@ -1,3 +1,7 @@
+2008-04-27  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_prop_validate): Signal `error' instead of `font'.
+
 2008-04-29  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fw32_battery_status): New defun.
