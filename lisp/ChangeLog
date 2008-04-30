@@ -1,7 +1,10 @@
 2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* menu-bar.el (menu-bar-tools-menu): Reorder, place Games last.
+	Add "..." in the appropriate places.
+
 	* epa.el (epa-key-list-mode-map): Add more menu entries.
-	Add ... in the appropriate places.
+	Add "..." in the appropriate places.
 
 	* dired.el (dired-mode-map): Add :help.
 
