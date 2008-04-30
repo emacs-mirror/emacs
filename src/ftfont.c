@@ -421,9 +421,9 @@ ftfont_spec_pattern (spec, otlayout, otspec)
     return NULL;
 
   if (INTEGERP (AREF (spec, FONT_DPI_INDEX)))
-    dpi = XINT (dpi);
+    dpi = XINT (AREF (spec, FONT_DPI_INDEX));
   if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
-    spacing = XINT (val);
+    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
   if (INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
       && XINT (AREF (spec, FONT_AVGWIDTH_INDEX)) == 0)
     scalable = 1;

@@ -2975,6 +2975,7 @@ EXFUN (Fread_minibuffer, 2);
 EXFUN (Feval_minibuffer, 2);
 EXFUN (Fread_string, 5);
 EXFUN (Fread_no_blanks_input, 3);
+EXFUN (Fassoc_string, 3);
 extern Lisp_Object get_minibuffer P_ ((int));
 extern void temp_echo_area_glyphs P_ ((Lisp_Object));
 extern void init_minibuf_once P_ ((void));

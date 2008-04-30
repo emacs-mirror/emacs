@@ -763,6 +763,7 @@ EXFUN (Ffont_spec, MANY);
 EXFUN (Fcopy_font_spec, 1);
 EXFUN (Fmerge_font_spec, 2);
 EXFUN (Ffont_get, 2);
+EXFUN (Ffont_put, 3);
 EXFUN (Flist_fonts, 4);
 EXFUN (Ffont_family_list, 1);
 EXFUN (Fclear_font_cache, 0);

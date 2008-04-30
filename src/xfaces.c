@@ -319,7 +319,7 @@ Lisp_Object QCfontset;
 
 /* Keywords symbols used for font properties.  */
 extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
-extern QCspacing, QCsize, QCavgwidth;
+extern Lisp_Object QCspacing, QCsize, QCavgwidth;
 extern Lisp_Object Qp;
 
 /* Symbols used for attribute values.  */
@@ -1892,15 +1892,19 @@ the face font sort order.  */)
       for (i = 0; i < 4; i++)
 	switch (font_sort_order[i])
 	  {
-	  case XLFD_SWIDTH: font_props_for_sorting[i] = QCwidth; break;
-	  case XLFD_POINT_SIZE: font_props_for_sorting[i] = QCsize; break;
-	  case XLFD_WEIGHT: font_props_for_sorting[i] = QCweight; break;
-	  default: font_props_for_sorting[i] = QCslant; break;
+	  case XLFD_SWIDTH:
+	    font_props_for_sorting[i] = FONT_WIDTH_INDEX; break;
+	  case XLFD_POINT_SIZE:
+	    font_props_for_sorting[i] = FONT_SIZE_INDEX; break;
+	  case XLFD_WEIGHT:
+	    font_props_for_sorting[i] = FONT_WEIGHT_INDEX; break;
+	  default:
+	    font_props_for_sorting[i] = FONT_SLANT_INDEX; break;
 	  }
-      font_sort_order[i++] = QCfamily;
-      font_sort_order[i++] = QCfoundry;
-      font_sort_order[i++] = QCadstyle;
-      font_sort_order[i++] = QCregistry;
+      font_props_for_sorting[i++] = FONT_FAMILY_INDEX;
+      font_props_for_sorting[i++] = FONT_FOUNDRY_INDEX;
+      font_props_for_sorting[i++] = FONT_ADSTYLE_INDEX;
+      font_props_for_sorting[i++] = FONT_REGISTRY_INDEX;
 
       qsort (XVECTOR (vec)->contents, nfonts, sizeof (Lisp_Object),
 	     compare_fonts_by_sort_order);
@@ -1916,7 +1920,8 @@ the face font sort order.  */)
 
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
-      point = PIXEL_TO_POINT (AREF (font, FONT_SIZE_INDEX) * 10, f->resy);
+      point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
+			      f->resy);
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));

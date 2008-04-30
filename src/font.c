@@ -213,17 +213,16 @@ font_pixel_size (f, spec)
 {
   Lisp_Object size = AREF (spec, FONT_SIZE_INDEX);
   double point_size;
-  int pixel_size, dpi;
+  int dpi, pixel_size;
   Lisp_Object extra, val;
 
   if (INTEGERP (size))
     return XINT (size);
   if (NILP (size))
-    return 0;
-  xassert (FLOATP (size));
+    return 0;  xassert (FLOATP (size));
   point_size = XFLOAT_DATA (size);
-  dpi = AREF (spec, FONT_DPI_INDEX);
-  if (INTEGERP (dpi))
+  val = AREF (spec, FONT_DPI_INDEX);
+  if (INTEGERP (val))
     dpi = XINT (XCDR (val));
   else
     dpi = f->resy;
@@ -330,7 +329,6 @@ extern Lisp_Object Vface_alternative_font_family_alist;
 
 extern Lisp_Object find_font_encoding P_ ((Lisp_Object));
 
-EXFUN (Fassoc_string, 3);
 
 /* Return encoding charset and repertory charset for REGISTRY in
    ENCODING and REPERTORY correspondingly.  If correct information for
@@ -443,7 +441,7 @@ font_prop_validate_style (style, val)
     {
       int n = font_style_to_value (prop, val, 0);
 
-      val = n >= 0 ? make_number (val) : Qerror;
+      val = n >= 0 ? make_number (n) : Qerror;
     }
   else
     val = Qerror;
@@ -1015,7 +1013,7 @@ font_parse_xlfd (name, font)
       val = INTERN_FIELD (XLFD_SPACING_INDEX);
       if (! NILP (val))
 	{
-	  val = font_prop_validate_spacing (FONT_SPACING_INDEX, val);
+	  val = font_prop_validate_spacing (QCspacing, val);
 	  if (! INTEGERP (val))
 	    return -1;
 	  ASET (font, FONT_SPACING_INDEX, val);
@@ -1091,7 +1089,7 @@ font_parse_xlfd (name, font)
 	ASET (font, FONT_DPI_INDEX, prop[XLFD_RESY_INDEX]);
       if (! NILP (prop[XLFD_SPACING_INDEX]))
 	{
-	  val = font_prop_validate_spacing (FONT_SPACING_INDEX,
+	  val = font_prop_validate_spacing (QCspacing,
 					    prop[XLFD_SPACING_INDEX]);
 	  if (! INTEGERP (val))
 	    return -1;
@@ -1486,7 +1484,7 @@ font_parse_name (name, font)
 
 void
 font_parse_family_registry (family, registry, font_spec)
-     Lisp_Object family, registry;
+     Lisp_Object family, registry, font_spec;
 {
   int len;
   char *p0, *p1;
@@ -2781,7 +2779,7 @@ font_find_for_lface (f, attrs, spec, c)
       if (INTEGERP (size))
 	ASET (prefer, FONT_SIZE_INDEX, size);
       else if (FLOATP (size))
-	ASET (prefer, FONT_SIZE_INDEX, font_pixel_size (f, spec));
+	ASET (prefer, FONT_SIZE_INDEX, make_number (font_pixel_size (f, spec)));
       else
 	{
 	  double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
@@ -3272,7 +3270,7 @@ Optional 2nd argument EXTRA-TYPE, if non-nil, specifies to check
 which kind of font it is.  It must be one of `font-spec', `font-entity'
 `font-object'.  */)
      (object, extra_type)
-     Lisp_Object object;
+     Lisp_Object object, extra_type;
 {
   if (NILP (extra_type))
     return (FONTP (object) ? Qt : Qnil);

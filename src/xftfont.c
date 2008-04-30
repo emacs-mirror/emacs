@@ -545,7 +545,7 @@ xftfont_shape (lgstring)
 {
   struct font *font;
   struct xftfont_info *xftfont_info;
-  int result;
+  Lisp_Object result;
   FT_Face ft_face;
 
   CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
@@ -563,7 +563,7 @@ xftfont_shape (lgstring)
 	    OTF_close (otf);
 	  xftfont_info->maybe_otf = 0;
 	  XftUnlockFace (xftfont_info->xftfont);
-	  return 0;
+	  return Qnil;
 	}
       xftfont_info->otf = otf;
     }
