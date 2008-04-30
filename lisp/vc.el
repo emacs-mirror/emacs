@@ -2985,7 +2985,7 @@ specific headers."
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
-    (define-key map "d" 'vc-dir-delete-file)
+    (define-key map "r" 'vc-dir-delete-file) ; like in PCL-CVS
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
     ;; need to find the file from the mouse position, not `point'.
@@ -3054,12 +3054,12 @@ specific headers."
 (defun vc-dir-mode ()
   "Major mode for showing the VC status for a directory.
 Marking/Unmarking key bindings and actions:
-m - marks a file/directory or ff the region is active, mark all the files 
+m - marks a file/directory or ff the region is active, mark all the files
      in region.
     Restrictions: - a file cannot be marked if any parent directory is marked
-                  - a directory cannot be marked if any child file or 
+                  - a directory cannot be marked if any child file or
                     directory is marked
-u - marks a file/directory or if the region is active, unmark all the files 
+u - marks a file/directory or if the region is active, unmark all the files
      in region.
 M - if the cursor is on a file: mark all the files with the same VC state as
       the current file
