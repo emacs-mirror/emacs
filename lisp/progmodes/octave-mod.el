@@ -31,13 +31,10 @@
 ;; It defines Octave mode, a major mode for editing
 ;; Octave code.
 
-;; The file octave-hlp.el provides `octave-help', a facility for looking up
-;; documentation on a symbol in the Octave info files.
-
 ;; The file octave-inf.el contains code for interacting with an inferior
 ;; Octave process using comint.
 
-;; See the documentation of `octave-mode', `octave-help' and
+;; See the documentation of `octave-mode' and
 ;; `run-octave' for further information on usage and customization.
 
 ;;; Code:
@@ -544,6 +541,12 @@ including a reproducible test case and send the message."
   (octave-add-octave-menu)
   (octave-initialize-completions)
   (run-mode-hooks 'octave-mode-hook))
+
+(defun octave-help ()
+  "Get help on Octave symbols from the Octave info files.
+Look up symbol in the function, operator and variable indices of the info files."
+  (let ((info-lookup-mode 'octave-mode))
+    (call-interactively 'info-lookup-symbol)))
 
 ;;; Miscellaneous useful functions
 (defun octave-describe-major-mode ()
@@ -1259,8 +1262,7 @@ variables."
 	       (display-completion-list list string))
 	     (message "Hit space to flush")
 	     (let (key first)
-	       (if (save-excursion
-		     (set-buffer (get-buffer "*Completions*"))
+	       (if (with-current-buffer (get-buffer "*Completions*")
 		     (setq key (read-key-sequence nil)
 			   first (aref key 0))
 		     (and (consp first) (consp (event-start first))
@@ -1427,8 +1429,7 @@ entered without parens)."
   (let ((proc inferior-octave-process)
 	(string (buffer-substring-no-properties beg end))
 	line)
-    (save-excursion
-      (set-buffer inferior-octave-buffer)
+    (with-current-buffer inferior-octave-buffer
       (setq inferior-octave-output-list nil)
       (while (not (string-equal string ""))
 	(if (string-match "\n" string)
@@ -1517,12 +1518,11 @@ code line."
      'octave-comment-char
      'octave-continuation-offset
      'octave-continuation-string
-     'octave-help-files
      'octave-send-echo-input
      'octave-send-line-auto-forward
      'octave-send-show-buffer))))
 
-;;; provide ourself
+;; provide ourself
 
 (provide 'octave-mod)
 

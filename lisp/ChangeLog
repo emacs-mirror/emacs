@@ -1,5 +1,9 @@
 2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el (octave-help): New function.
+	* progmodes/octave-hlp.el: Delete.
+	* info-look.el (octave-mode): Add operator index.
+
 	* vc.el (vc-checkout): Typo.
 
 2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
