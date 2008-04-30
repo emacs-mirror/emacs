@@ -1,3 +1,9 @@
+2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--do-completion): Move point even if the
+	completion makes no change.
+	(completion-pcm-try-completion): Fix computation of new point.
+
 2008-04-30  David Hansen  <david.hansen@gmx.net>
 
 	* dired.el: Require 'cl.

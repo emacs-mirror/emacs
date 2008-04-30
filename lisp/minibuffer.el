@@ -360,8 +360,9 @@ E = after completion we now have an Exact match.
           ;; Insert in minibuffer the chars we got.
           (goto-char end)
           (insert completion)
-          (delete-region beg end)
-          (goto-char (+ beg comp-pos)))
+          (delete-region beg end))
+	;; Move point.
+	(goto-char (+ beg comp-pos))
 
         (if (not (or unchanged completed))
 	   ;; The case of the string changed, but that's all.  We're not sure
@@ -1283,13 +1284,17 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
          (all (completion-pcm--all-completions pattern table pred)))
     (when all
       (let* ((mergedpat (completion-pcm--merge-completions all pattern))
-             ;; `mergedpat' is in reverse order.
-             (pointpat (or (memq 'point mergedpat) (memq 'any mergedpat)))
-             ;; New pos from the end.
+             ;; `mergedpat' is in reverse order.  Place new point (by
+	     ;; order of preference) either at the old point, or at
+	     ;; the last place where there's something to choose, or
+	     ;; at the very end.
+             (pointpat (or (memq 'point mergedpat) (memq 'any mergedpat)
+			   margedpat))
+             ;; New pos from the start.
              (newpos (length (completion-pcm--pattern->string pointpat)))
-             ;; Do it afterwards because it changes `pointpat' by sideeffect.
+	     ;; Do it afterwards because it changes `pointpat' by sideeffect.
              (merged (completion-pcm--pattern->string (nreverse mergedpat))))
-        (cons merged (- (length merged) newpos))))))
+        (cons merged newpos)))))
 
 
 (provide 'minibuffer)
