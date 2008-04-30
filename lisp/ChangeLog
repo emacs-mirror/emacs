@@ -1,3 +1,7 @@
+2008-04-30  David Hansen  <david.hansen@gmx.net>
+
+	* dired.el: Require 'cl.
+
 2008-04-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-frame-handler-1): Make overlay arrow
