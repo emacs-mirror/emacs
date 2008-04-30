@@ -418,9 +418,6 @@ this buffer, and special Proced commands to operate on the processes listed.
 renamed to `old-whitespace'.
 [FIXME someone explain why this is good, if it is...]
 
-** In Change Log mode, the new function `change-log-find-file', bound to
-C-c C-f, finds the file associated with the current log entry.
-
 ** abbrev was rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
     abbrev-table-p, abbrev-insert, abbrev-table-menu.
@@ -467,19 +464,6 @@ documentation of the given isearch key sequence, `C-h m' displays
 documentation of isearch mode.  All the rest Help commands exit isearch mode
 and execute their global definitions.
 
-** smerge-refine highlights word-level details of changes in conflict.
-It's used automatically as you move through conflicts, see smerge-auto-refine.
-
-** Diff mode
-
-*** diff-refine-hunk highlights word-level details of changes in a diff hunk.
-It's used automatically as you move through hunks, see
-diff-auto-refine.  It is bound to `C-c C-b'.
-
-*** diff-add-change-log-entries-other-window iterates through the diff
-buffer and tries to create ChangeLog entries for each change.
-It is bound to `C-x 4 A'.
-
 ** archive-mode has basic support to browse Rar archives.
 
 ** talk.el has been extended for multiple tty support.
@@ -525,7 +509,7 @@ and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
 
 *** vc-dir is a new command that displays file names and their VC
-status.  It allows to apply various VC operations to apply a file or a
+status.  It allows to apply various VC operations to a file or a
 set of files.
 
 *** Clicking on the VC mode-line entry now pops the VC menu.
@@ -547,8 +531,24 @@ active.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
 
+** smerge-refine highlights word-level details of changes in conflict.
+It's used automatically as you move through conflicts, see smerge-auto-refine.
+
+** Diff mode
+
+*** diff-refine-hunk highlights word-level details of changes in a diff hunk.
+It's used automatically as you move through hunks, see
+diff-auto-refine.  It is bound to `C-c C-b'.
+
+*** diff-add-change-log-entries-other-window iterates through the diff
+buffer and tries to create ChangeLog entries for each change.
+It is bound to `C-x 4 A'.
+
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
+
+** In Change Log mode, the new function `change-log-find-file', bound to
+C-c C-f, finds the file associated with the current log entry.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
