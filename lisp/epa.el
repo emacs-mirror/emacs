@@ -219,23 +219,35 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap [delete] 'scroll-down)
     (define-key keymap "q" 'epa-exit-buffer)
     (define-key keymap [menu-bar epa-key-list-mode] (cons "Keys" menu-map))
-    (define-key menu-map [epa-key-list-delete-keys]
-      '(menu-item "Delete keys" epa-delete-keys
-		  :help "Delete marked keys"))
-    (define-key menu-map [epa-key-list-import-keys]
-      '(menu-item "Import keys" epa-import-keys
-		  :help "Import keys from a file"))
-    (define-key menu-map [epa-key-list-export-keys]
-      '(menu-item "Export keys" epa-export-keys
-		  :help "Export marked keys to a file"))
-    (define-key menu-map [separator-epa-key-list]
-      '(menu-item "--"))
     (define-key menu-map [epa-key-list-unmark-key]
-      '(menu-item "Unmark key" epa-unmark-key
+      '(menu-item "Unmark Key" epa-unmark-key
 		  :help "Unmark a key"))
     (define-key menu-map [epa-key-list-mark-key]
-      '(menu-item "Mark key" epa-mark-key
+      '(menu-item "Mark Key" epa-mark-key
 		  :help "Mark a key"))
+    (define-key menu-map [separator-epa-file] '(menu-item "--"))
+    (define-key menu-map [epa-verify-file]
+      '(menu-item "Verify File..." epa-verify-file
+		  :help "Verify FILE"))
+    (define-key menu-map [epa-sign-file]
+      '(menu-item "Sign File..." epa-sign-file
+		  :help "Sign FILE by SIGNERS keys selected"))
+    (define-key menu-map [epa-decrypt-file]
+      '(menu-item "Decrypt File..." epa-decrypt-file
+		  :help "Decrypt FILE"))
+    (define-key menu-map [epa-encrypt-file]
+      '(menu-item "Encrypt File.." epa-encrypt-file
+		  :help "Encrypt FILE for RECIPIENTS"))
+    (define-key menu-map [separator-epa-key-list] '(menu-item "--"))
+    (define-key menu-map [epa-key-list-delete-keys]
+      '(menu-item "Delete keys" epa-delete-keys
+		  :help "Delete Marked Keys"))
+    (define-key menu-map [epa-key-list-import-keys]
+      '(menu-item "Import Keys" epa-import-keys
+		  :help "Import keys from a file"))
+    (define-key menu-map [epa-key-list-export-keys]
+      '(menu-item "Export Keys" epa-export-keys
+		  :help "Export marked keys to a file"))
     keymap))
 
 (defvar epa-key-mode-map

@@ -1,5 +1,8 @@
 2008-04-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* epa.el (epa-key-list-mode-map): Add more menu entries.
+	Add ... in the appropriate places.
+
 	* dired.el (dired-mode-map): Add :help.
 
 	* vc.el (vc-deduce-fileset): Add new parameter.
