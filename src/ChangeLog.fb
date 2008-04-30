@@ -1,0 +1,103 @@
+2008-04-30  Kenichi Handa  <handa@m17n.org>
+
+	* font.c: Include <strings.h>.
+	(enable_font_backend): Delete it.
+	(Qfont_spec, Qfont_entity, Qfont_object): New variables.
+	(CHECK_VALIDATE_FONT_SPEC): Delete it.
+	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Moved to font.h.
+	(null_string): Delete it.
+	(null_vector): Make it static.
+	(font_family_alist): Delete it.
+	(Qnormal): Extern it.
+	(QCextra, QClanguage): Delete it.
+	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec): New
+	variables.
+	(font_make_spec, font_make_entity, font_make_object)
+	(font_intern_prop): Renamed from intern_downcase.  Don't downcase
+	the string.  Callers changed.
+	(font_pixel_size): Adjusted for the format change of font-related
+	objects.
+	(prop_name_to_numeric, prop_numeric_to_name): Delete them.
+	(font_style_to_value, font_style_symbolic): New function.
+	(build_font_family_alist): Delete it.
+	(font_registry_charsets): Use Fassoc_string instead of
+	assq_no_quit.
+	(font_prop_validate_symbol): Don't return null_string.
+	(font_prop_validate_style): Adjusted for the change of
+	style-related values in a font vector.
+	(font_property_table): Delete entries for QClangauge and
+	QCantialias, add entries for QCavgwidth.
+	(get_font_prop_index): Delete the 2nd argument FROM.
+	(font_prop_validate): Arguments changed.
+	(font_put_extra): Adjusted for the change of font-related objects.
+	(font_expand_wildcards, font_parse_xlfd, font_unparse_xlfd)
+	(font_parse_fcname, font_unparse_fcname)
+	(font_prepare_composition): Likewise.
+	(font_parse_family_registry): Renamed from font_merge_old_spec.
+	(otf_open): Delete the 1st arg entity.
+	(font_otf_capability): Adjusted for the above change.
+	(font_score): New arg alternate_families.  Adjusted for the change
+	of font-related objects.
+	(font_sort_entites): New arg best_only.
+	(font_symbolic_weight, font_symbolic_slant, font_symbolic_width):
+	Delete them.
+	(font_match_p): Check alternate families.
+	(font_find_object): Delete it.
+	(font_check_object): New function.
+	(font_clear_cache): Adjusted for the change of font-related
+	objects.
+	(font_delete_unmatched): New arg.
+	(font_list_entities): Call font_driver->list with a spec that
+	doesn't specify style-related properties.
+	(font_matching_entity): Arguments changed.  Caller changed.
+	(font_open_entity): Adjusted for the change of font-related
+	objects.
+	(font_close_object, font_has_char, font_encode_char)
+	(font_get_name, font_get_spec): Likewise.
+	(font_spec_from_name, font_clear_prop, font_update_lface): New
+	functions.
+	(font_find_for_lface, font_open_for_lface, font_load_for_lface):
+	(font_prepare_for_face, font_done_for_face, font_open_by_name)
+	(font_at): Adjusted for the change of font-related objects.
+	(font_range): New function.
+	(Ffontp, Ffont_spec, Ffont_get, Ffont_put, Flist_fonts)
+	(Ffont_xlfd_name): Adjusted for the change of font-related
+	objects.
+	(Fcopy_font_spec, Fmerge_font_spec): New function.
+	(Ffont_family_list): Renamed from list-families.
+	(Finternal_set_font_style_table): Arguments changed.
+	(Ffont_fill_gstring, Ffont_shape_text, Fopen_font)
+	(Ffont_drive_otf, Fquery_font, Ffont_match_p): Adjusted for the
+	change of font-related objects.
+	(syms_of_font): Delete "ifdef USE_FONT_BACKEND".  DEFSYM new
+	symboles.
+
+2008-04-28  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (Qfont_spec, Qfont_entity, Qfont_object): Extern them.
+	(enum font_property_index): New members FONT_DPI_INDEX,
+	FONT_SPACING_INDEX, FONT_AVGWIDTH_INDEX, FONT_NAME_INDEX,
+	FONT_FULLNAME_INDEX, FONT_FILE_INDEX, FONT_FORMAT_INDEX,
+	FONT_OBJECT_MAX.  Delete FONT_FRAME_INDEX.
+	(FONT_WEIGHT_NUMERIC, FONT_SLANT_NUMERIC, FONT_WIDTH_NUMERIC)
+	(FONT_WEIGHT_SYMBOLIC, FONT_SLANT_SYMBOLIC, FONT_WIDTH_SYMBOLIC)
+	(FONT_WEIGHT_FOR_FACE, FONT_SLANT_FOR_FACE, FONT_WIDTH_FOR_FACE)
+	(FONT_WEIGHT_NAME_NUMERIC, FONT_SLANT_NAME_NUMERIC)
+	(FONT_WIDTH_NAME_NUMERIC, FONT_SET_STYLE): New macros.
+	(struct font_spec, struct font_entity): New structs.
+	(FONT_ENCODING_NOT_DECIDED): Moved from fontset.h.
+	(struct font): Many members from old "struct font_info" moved to
+	here.  Members font and entity deleted.
+	(FONT_SPEC_P, FONT_ENTITY_P, FONT_OBJECT_P, FONTP): Modified for
+	the new font-related objects.
+	(CHECK_FONT_SPEC, CHECK_FONT_ENTITY, CHECK_FONT_OBJECT)
+	(CHECK_FONT_GET_OBJECT): Likewise.
+	(XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT, XSETFONT): New macros.
+	(PT_PER_INCH, POINT_TO_PIXEL, PIXEL_TO_POINT): Moved from font.h.
+	(struct font_driver): New members case_sensitive anc check.  Type
+	of the member open changed.
+	(enable_font_backend, font_symbolic_weight, font_symbolic_slant)
+	(font_symbolic_width, font_find_object, font_get_spec)
+	(font_set_lface_from_name): Delete extern.
+	(Fcopy_font_spec, Fmerge_font_spec, Ffont_family_list): New
+	EXFUNs.

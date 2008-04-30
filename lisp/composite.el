@@ -343,7 +343,7 @@ This function is the default value of `compose-chars-after-function'."
 	pattern func result)
     (or limit
 	(setq limit (if (stringp object) (length object) (point-max))))
-    (when tail
+    (when (and font-obj tail)
       (save-match-data
 	(save-excursion
 	  (while tail
@@ -497,9 +497,8 @@ This function is the default value of `auto-composition-function' (which see)."
 		  (let* ((ch (aref string from))
 			 (elt (aref table ch))
 			 font-obj newpos)
-		    (when elt
-		      (if window
-			  (setq font-obj (font-at from window string)))
+		    (when (and elt
+			       (setq font-obj (font-at from window string)))
 		      (if (functionp elt)
 			  (setq newpos (funcall elt from to font-obj string))
 			(while (and elt
@@ -519,9 +518,8 @@ This function is the default value of `auto-composition-function' (which see)."
 		  (let* ((ch (char-after from))
 			 (elt (aref table ch))
 			 func pattern font-obj newpos)
-		    (when elt
-		      (if window
-			  (setq font-obj (font-at from window)))
+		    (when (and elt
+			       (setq font-obj (font-at from window)))
 		      (if (functionp elt)
 			  (setq newpos (funcall elt from to font-obj nil))
 			(goto-char from)
@@ -661,7 +659,7 @@ With arg, enable it iff arg is positive."
 		(font-obj (and (display-multi-font-p)
 			       (font-at (point) (selected-window))))
 		(pos (point)))
-	    (if (functionp func)
+	    (if (and (functionp func) font-obj)
 		(goto-char (funcall func (point) to font-obj nil)))
 	    (if (<= (point) pos)
 		(forward-char 1)))))

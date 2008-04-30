@@ -36,6 +36,7 @@ Boston, MA 02110-1301, USA.  */
 #include "intervals.h"
 #include "blockinput.h"
 #include "termhooks.h"		/* For struct terminal.  */
+#include "font.h"
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -2127,6 +2128,34 @@ print_object (obj, printcharfun, escapeflag)
 	  print_string (XFRAME (obj)->name, printcharfun);
 	  sprintf (buf, " 0x%lx", (unsigned long) (XFRAME (obj)));
 	  strout (buf, -1, -1, printcharfun, 0);
+	  PRINTCHAR ('>');
+	}
+      else if (FONTP (obj))
+	{
+	  EMACS_INT i;
+
+	  if (! FONT_OBJECT_P (obj))
+	    {
+	      if (FONT_SPEC_P (obj))
+		strout ("#<font-spec", -1, -1, printcharfun, 0);
+	      else
+		strout ("#<font-entity", -1, -1, printcharfun, 0);
+	      for (i = 0; i < FONT_SPEC_MAX; i++)
+		{
+		  PRINTCHAR (' ');
+		  if (i < FONT_WEIGHT_INDEX || i > FONT_WIDTH_INDEX)
+		    print_object (AREF (obj, i), printcharfun, escapeflag);
+		  else
+		    print_object (font_style_symbolic (obj, i, 0),
+				  printcharfun, escapeflag);
+		}
+	    }
+	  else
+	    {
+	      strout ("#<font-object ", -1, -1, printcharfun, 0);
+	      print_object (AREF (obj, FONT_NAME_INDEX), printcharfun,
+			    escapeflag);
+	    }
 	  PRINTCHAR ('>');
 	}
       else

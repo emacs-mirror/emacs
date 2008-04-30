@@ -55,7 +55,10 @@ struct w32font_info
   unsigned int glyph_idx;
   struct w32_metric_cache **cached_metrics;
   int n_cache_blocks;
+  W32FontStruct *compat_w32_font;
 };
+
+#define FONT_COMPAT(f) (((struct w32font_info *) (f))->compat_w32_font)
 
 #define CACHE_BLOCKSIZE 128
 

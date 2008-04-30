@@ -1845,6 +1845,9 @@ specifies the character set for the major languages of Western Europe."
     (if (functionp func)
 	(funcall func)))
 
+  (setq current-iso639-language
+	(get-language-info language-name 'iso639-language))
+
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
 

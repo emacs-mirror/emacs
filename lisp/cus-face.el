@@ -86,7 +86,6 @@
 	     (const :tag "ultracondensed" ultra-condensed)
 	     (const :tag "ultraexpanded" ultra-expanded)
 	     (const :tag "wide" extra-expanded)))
-
     (:height
      (choice :tag "Height"
 	     :help-echo "Face's font height."
@@ -112,7 +111,8 @@
 	     (const :tag "semibold" semi-bold)
 	     (const :tag "semilight" semi-light)
 	     (const :tag "ultralight" ultra-light)
-	     (const :tag "ultrabold" ultra-bold)))
+	     (const :tag "ultrabold" ultra-bold)
+	     (const :tag "thin" thin)))
 
     (:slant
      (choice :tag "Slant"

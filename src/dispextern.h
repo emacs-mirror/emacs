@@ -1161,10 +1161,7 @@ struct glyph_string
   struct face *face;
 
   /* Font in which this string is to be drawn.  */
-  XFontStruct *font;
-
-  /* Font info for this string.  */
-  struct font_info *font_info;
+  struct font *font;
 
   /* Non-null means this string describes (part of) a composition.
      All characters from char2b are drawn composed.  */
@@ -1242,6 +1239,10 @@ struct glyph_string
 
   /* Number of clipping areas. */
   int num_clips;
+
+  int underline_position;
+
+  int underline_thickness;
 
   struct glyph_string *next, *prev;
 };
@@ -1413,7 +1414,6 @@ enum lface_attribute_index
   LFACE_BOX_INDEX,
   LFACE_FONT_INDEX,
   LFACE_INHERIT_INDEX,
-  LFACE_AVGWIDTH_INDEX,
   LFACE_FONTSET_INDEX,
   LFACE_VECTOR_SIZE
 };
@@ -1456,12 +1456,6 @@ struct face
      drawing the characters in this face.  */
   GC gc;
 
-  /* Font used for this face, or null if the font could not be loaded
-     for some reason.  This points to a `font' slot of a struct
-     font_info, and we should not call XFreeFont on it because the
-     font may still be used somewhere else.  */
-  XFontStruct *font;
-
   /* Background stipple or bitmap used for this face.  This is
      an id as returned from load_pixmap.  */
   int stipple;
@@ -1489,17 +1483,7 @@ struct face
   unsigned long strike_through_color;
   unsigned long box_color;
 
-  /* The font's name.  This points to a `name' of a font_info, and it
-     must not be freed.  */
-  char *font_name;
-
-  /* Font info ID for this face's font.  An ID is stored here because
-     pointers to font_info structures may change.  The reason is that
-     they are pointers into a font table vector that is itself
-     reallocated.  */
-  int font_info_id;
-
-  struct font_info *font_info;
+  struct font *font;
 
   /* Fontset ID if for this face's fontset.  Non-ASCII faces derived
      from the same ASCII face have the same fontset.  */
@@ -2351,19 +2335,6 @@ struct redisplay_interface
 				    int h, int wd));
   void (*destroy_fringe_bitmap) P_ ((int which));
 
-/* Get metrics of character CHAR2B in FONT of type FONT_TYPE.
-   Value is null if CHAR2B is not contained in the font.  */
-  XCharStruct * (*per_char_metric) P_ ((XFontStruct *font, XChar2b *char2b,
-					int font_type));
-
-/* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
-   the two-byte form of C.  Encoding is returned in *CHAR2B.  If
-   TWO_BYTE_P is non-null, return non-zero there if font is two-byte.  */
-  int (*encode_char) P_ ((int c, XChar2b *char2b,
-			  struct font_info *font_into,
-			  struct charset *charset,
-			  int *two_byte_p));
-
 /* Compute left and right overhang of glyph string S.
    A NULL pointer if platform does not support this. */
   void (*compute_glyph_string_overhangs) P_ ((struct glyph_string *s));
@@ -2737,7 +2708,7 @@ extern int unibyte_display_via_language_environment;
 extern void reseat_at_previous_visible_line_start P_ ((struct it *));
 
 extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,
-					   /* XFontStruct */ void *, int, int *));
+					   struct font *, int, int *));
 
 #ifdef HAVE_WINDOW_SYSTEM
 

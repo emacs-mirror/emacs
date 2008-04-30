@@ -350,8 +350,9 @@ enum pvec_type
   PVEC_HASH_TABLE = 0x40000,
   PVEC_TERMINAL = 0x80000,
   PVEC_SUB_CHAR_TABLE = 0x100000,
-  PVEC_OTHER = 0x200000,
-  PVEC_TYPE_MASK = 0x2ffe00
+  PVEC_FONT = 0x200000,
+  PVEC_OTHER = 0x400000,
+  PVEC_TYPE_MASK = 0x7ffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in

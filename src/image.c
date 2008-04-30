@@ -40,9 +40,10 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "systime.h"
 #include <epaths.h>
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "termhooks.h"
+#include "font.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
