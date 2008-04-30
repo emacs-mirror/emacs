@@ -21,7 +21,7 @@ suitable for anyone from beginners to experts.
 
 ** Major modes should have a menu entry.  Examples of modes that do
 not have one at the moment and probably should: text-mode,
-change-log-mode, texinfo-mode.
+change-log-mode, texinfo-mode, inferior-lisp-mode.
 
 ** Check if all items on the mode-line have a suitable tooltip for all modes.
 
