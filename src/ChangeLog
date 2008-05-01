@@ -1,3 +1,7 @@
+2008-05-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1210000.
+
 2008-05-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* dispnew.c (change_frame_size_1): Preserve small windows when
