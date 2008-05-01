@@ -14,10 +14,10 @@ To begin, get a copy of the MPS-kit from:
 Unpack the MPS-kit.  (You don't need to compile anything yet, so you can
 skip the MPS-kit readme.txt file for now).
 
-The MPS-kit unpacks to a directory named "mps-kit-1.108.1" (or similar),
+The MPS-kit unpacks to a directory named "mps-kit-1.108.2" (or similar),
 with subdirectories like this:
 
-    mps-kit-1.108.1/
+    mps-kit-1.108.2/
         code/
         design/
         example/
@@ -55,7 +55,7 @@ The "mps.h" header file declares the major (non-optional) MPS
 facilities, and all MPS client code needs to #include it.  Find the
 "mps.h" header file in the "code" subdirectory of the MPS-kit:
 
-    mps-kit-1.108.1/code/mps.h
+    mps-kit-1.108.2/code/mps.h
 
 For now, just put a copy of "mps.h" into a working directory where you
 can try the following examples.  Now you can compile and run
@@ -132,7 +132,7 @@ The MPS library is available on many platforms: Windows, many Unixes,
 Mac OS X, etc.  See the MPS-kit readme.txt file for details.  For
 example, to compile the MPS library for Mac OS X, you might use this:
 
-    % cd mps-kit-1.108.1/code; make -f xcppgc.gmk VARIETY=ci mps.a
+    % cd mps-kit-1.108.2/code; make -f xcppgc.gmk VARIETY=ci mps.a
 
 Briefly: "-f xcppgc.gmk" tells the buildsystem to use the makefile for
 Mac OS X ("xc"), for the PowerPC architecture ("pp"), using the GCC
@@ -154,7 +154,7 @@ choice.
 However, when we try to link with it, we find that the MPS library
 itself has dependencies:
 
-    % gcc  02checkarenaclassheader.c  mps-kit-1.108.1/code/xcppgc/ci/mps.a
+    % gcc  02checkarenaclassheader.c  mps-kit-1.108.2/code/xcppgc/ci/mps.a
     % # (this will fail)
 
 
@@ -183,11 +183,11 @@ library).
 
 To build the example plinth for Mac OS X, use:
 
-    % cd mps-kit-1.108.1/code; make -f xcppgc.gmk VARIETY=ci mpsplan.a
+    % cd mps-kit-1.108.2/code; make -f xcppgc.gmk VARIETY=ci mpsplan.a
 
 Now we can link and run our simple demo file:
 
-    % gcc  02checkarenaclassheader.c  mps-kit-1.108.1/code/xcppgc/ci/mps.a  mps-kit-1.108.1/code/xcppgc/ci/mpsplan.a
+    % gcc  02checkarenaclassheader.c  mps-kit-1.108.2/code/xcppgc/ci/mps.a  mps-kit-1.108.2/code/xcppgc/ci/mpsplan.a
     % ./a.out && echo "success"
 
 
@@ -270,7 +270,7 @@ bytes and a pointer to the first byte:
 
 To run this file:
 
-    % gcc  03arena_create.c  mps-kit-1.108.1/code/xcppgc/ci/mps.a  mps-kit-1.108.1/code/xcppgc/ci/mpsplan.a
+    % gcc  03arena_create.c  mps-kit-1.108.2/code/xcppgc/ci/mps.a  mps-kit-1.108.2/code/xcppgc/ci/mpsplan.a
     % ./a.out
 
 
@@ -424,7 +424,7 @@ Here is code to create an arena, and create an MV class pool within it:
 Compiling and running this produces the possibly surprising result that
 the freshly-created pool has zero (0) bytes free:
 
-    % gcc  04pool_create.c  mps-kit-1.108.1/code/xcppgc/ci/mps.a  mps-kit-1.108.1/code/xcppgc/ci/mpsplan.a
+    % gcc  04pool_create.c  mps-kit-1.108.2/code/xcppgc/ci/mps.a  mps-kit-1.108.2/code/xcppgc/ci/mpsplan.a
     % ./a.out
     % # (should say: "PoolDemo has 0 bytes free.")
 
@@ -551,7 +551,7 @@ out.
 
 To compile and run this:
 
-    % gcc  05alloc.c  mps-kit-1.108.1/code/xcppgc/ci/mps.a  mps-kit-1.108.1/code/xcppgc/ci/mpsplan.a
+    % gcc  05alloc.c  mps-kit-1.108.2/code/xcppgc/ci/mps.a  mps-kit-1.108.2/code/xcppgc/ci/mpsplan.a
     % ./a.out
     % # (should say: "PoolDemo has 0 bytes free.")
     % # (and then:   "PoolDemo has NNNN bytes free.", where NNNN depends on platform.)
@@ -567,6 +567,7 @@ DOCUMENT HISTORY
 2006-12-13  RHSK  Version 1.107
 2007-07-06  RHSK  Version 1.108
 2007-12-21  RHSK  Release 1.108.1
+2008-05-01  RHSK  Release 1.108.2
 
 
 COPYRIGHT AND LICENSE

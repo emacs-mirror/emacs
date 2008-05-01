@@ -53,10 +53,19 @@ record of changes.  In a release of the MPS-Kit, this section becomes
 the summary of what is new for that release.)
 
 [
-......Post 1.108.1 changes:
+......Post 1.108.2 changes:
 
 This is release A.BBB.C, made on YYYY-MM-DD.
 Changes from release A.BBB.C-1:
+
+Functional changes to MPS code:
+
+Other changes:
+
+]
+
+This is release 1.108.2, made on 2008-05-01.
+Changes from release 1.108.1:
 
 Functional changes to MPS code:
 
@@ -118,12 +127,9 @@ the client more control over how a VM arena (mps_arena_class_vm)
 grows.  The interface is under development and is likely to change; 
 please contact us if you would like further details.
 
-Other changes:
 
-]
-
-This is release 1.108.1, made on 2007-12-21.
-Changes from release 1.108.0:
+[
+Historical: changes in release 1.108.1 (2007-12-21).
 
 Functional changes to MPS code:
 
@@ -163,8 +169,7 @@ Note: for further details of this release (including a 'live' report
 of defects found after these release-notes were written), and details 
 of earlier and later releases, please see:
   <http://www.ravenbrook.com/project/mps/release/>
-
-
+]
 
 [
 Historical: changes in release 1.108.0 (2007-07-05).
@@ -504,6 +509,7 @@ B. DOCUMENT HISTORY
 2006-12-13  RHSK  Release 1.107.0
 2007-07-05  RHSK  Release 1.108.0
 2007-12-21  RHSK  Release 1.108.1
+2008-05-01  RHSK  Release 1.108.2
 
 
 C. COPYRIGHT AND LICENSE
