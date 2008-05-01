@@ -1,3 +1,45 @@
+2008-05-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Preserve small windows when
+	shrinking frames by calling set_window_height|width with third
+	arg 2.
+
+	* window.h (struct window): Replace field too_small_ok by field
+	resize_proportionally.
+
+	* window.c (make_window): Initialize resize_proportionally.
+	(enlarge_window): Temporarily set resize_proportionally to make
+	sure that shrink_windows does scale the window proportionally.
+	(shrink_windows): When window has resize_proportionally set try
+	to shrink it proportionally by stealing from other windows.
+	(struct saved_window, Fset_window_configuration)
+	(compare_window_configurations): Handle resize_proportionally.
+	(WINDOW_TOTAL_SIZE): New macro.
+	(window_min_size, shrink_windows, size_window): Use it.
+	(check_min_window_sizes): Removed.  Invalid values of
+	window-min-height|width are handled by window_min_size_2 now.
+	(size_window, Fsplit_window, enlarge_window)
+	(adjust_window_trailing_edge, grow_mini_window): Don't call
+	check_min_window_sizes.
+	(window_min_size_2, window_min_size_1, window_min_size): New
+	argument safe_p for retrieving "safe" minimum sizes.
+	(Fdisplay_buffer, Fsplit_window, enlarge_window):
+	(adjust_window_trailing_edge, grow_mini_window): Adjust
+	arguments of window_min_size... functions.
+	(shrink_windows): Argument min_size removed.  New argument
+	safe_p allows shrinking windows to their safe minimum sizes.
+	Calculate minimum size and decide whether a window shall be
+	deleted for each window individually.
+	(size_window): When nodelete_p equals 2, tell shrink_windows to
+	delete windows only if their new minimum size is no more safe.
+	(shrink_window_lowest_first): Call window_min_size_1 to make
+	sure to preserve modeline of bottom-most window when resizing
+	the minibuffer.
+	(Fset_window_configuration, Fcurrent_window_configuration)
+	(compare_window_configurations): Do not handle
+	window-min-height|width any more.
+	(syms_of_window): Clarify window-min-height|width doc-strings.
+
 2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.c (file_name_completion): Fix up the encoding/decoding issue
