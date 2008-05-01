@@ -457,8 +457,6 @@ REV is the revision to check out into WORKFILE."
 
 ;;; Hg specific functionality.
 
-;; XXX This functionality is experimental/work in progress. It might
-;; change without notice.
 (defvar vc-hg-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))

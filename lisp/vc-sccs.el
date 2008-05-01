@@ -156,10 +156,9 @@ For a description of possible values, see `vc-check-master-templates'."
             (vc-sccs-state file))))
     (vc-sccs-state file)))
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-sccs-dir-status (dir update-function)
-  ;; XXX: quick hack, there should be a better way to do this,
-  ;; but it's not worse than vc-dired :-).
+  ;; Doing loys of undividual VC-state calls is painful, but 
+  ;; there is no better option in SCCS-land.
   (let ((flist (vc-expand-dirs (list dir)))
 	(result nil))
     (dolist (file flist)

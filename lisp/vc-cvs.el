@@ -857,10 +857,9 @@ state."
 	    (vc-cvs-parse-entry file t))))
       (forward-line 1))))
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-cvs-after-dir-status (update-function)
   ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
-  ;; It needs a lot of testing.
+  ;; This needs a lot of testing.
   (let ((status nil)
 	(status-str nil)
 	(file nil)

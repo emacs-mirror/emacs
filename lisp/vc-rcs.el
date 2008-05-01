@@ -182,10 +182,9 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-rcs-dir-status (dir update-function)
-  ;; XXX: quick hack, there should be a better way to do this,
-  ;; but it's not worse than vc-dired :-).
+  ;; Doing individual vc-state calls is painful but tgere
+  ;; is no better way in RCS-land. 
   (let ((flist (vc-expand-dirs (list dir)))
 	(result nil))
     (dolist (file flist)

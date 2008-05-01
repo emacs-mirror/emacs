@@ -3432,8 +3432,6 @@ line."
   (interactive)
   (vc-dir-mark-unmark 'vc-dir-mark-file))
 
-
-;; XXX: Should this take the region into consideration?
 (defun vc-dir-mark-all-files (arg)
   "Mark all files with the same state as the current one.
 With a prefix argument mark all files.

@@ -593,10 +593,9 @@ Optional argument LOCALP is always ignored."
           ;; files are up-to-date unless they appear in the `bzr
           ;; status' output below
           (vc-file-setprop file 'vc-state 'up-to-date)
-          ;; XXX: is this correct? what happens if one 
-          ;; mixes different SCMs in the same dir?
-          ;; Anyway, we're looking at the output of `bzr ls --versioned',
-          ;; so we know these files are registered with Bzr.
+          ;; Anyway, we're looking at the output of `bzr ls
+          ;; --versioned', so we know these files are registered with
+          ;; Bzr.
           (vc-file-setprop file 'vc-backend 'Bzr))))
     ;; `bzr status' reports on added/modified/renamed and unknown/ignored files
     (setq at-start t)
@@ -694,11 +693,8 @@ Optional argument LOCALP is always ignored."
 	(forward-line))
       (funcall update-function result)))
 
-;; XXX Experimental function for the vc-dired replacement.
-;; XXX This probably needs some further refinement and testing.
 (defun vc-bzr-dir-status (dir update-function)
   "Return a list of conses (file . state) for DIR."
-  ;; XXX: Is this the right command to use?
   (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
   (vc-exec-after
    `(vc-bzr-after-dir-status (quote ,update-function))))
