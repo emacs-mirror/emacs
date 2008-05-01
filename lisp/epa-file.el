@@ -24,35 +24,10 @@
 ;;; Code:
 
 (require 'epa)
-
-(defgroup epa-file nil
-  "The EasyPG Assistant hooks for transparent file encryption"
-  :version "23.1"
-  :group 'epa)
-
-(defun epa-file--file-name-regexp-set (variable value)
-  (set-default variable value)
-  (if (fboundp 'epa-file-name-regexp-update)
-      (epa-file-name-regexp-update)))
-
-(defcustom epa-file-name-regexp "\\.gpg\\(~\\|\\.~[0-9]+~\\)?\\'"
-  "Regexp which matches filenames to be encrypted with GnuPG.
-
-If you set this outside Custom while epa-file is already enabled, you
-have to call `epa-file-name-regexp-update' after setting it to
-properly update file-name-handler-alist.  Setting this through Custom
-does that automatically."
-  :type 'regexp
-  :group 'epa-file
-  :set 'epa-file--file-name-regexp-set)
+(require 'epa-file-hook)
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
   "If non-nil, cache passphrase for symmetric encryption."
-  :type 'boolean
-  :group 'epa-file)
-
-(defcustom epa-file-inhibit-auto-save t
-  "If non-nil, disable auto-saving when opening an encrypted file."
   :type 'boolean
   :group 'epa-file)
 
@@ -60,31 +35,6 @@ does that automatically."
   "If non-nil, always asks user to select recipients."
   :type 'boolean
   :group 'epa-file)
-
-(defvar epa-file-encrypt-to nil
-  "*Recipient(s) used for encrypting files.
-May either be a string or a list of strings.")
-
-;;;###autoload
-(put 'epa-file-encrypt-to 'safe-local-variable
-     (lambda (val)
-       (or (stringp val)
-	   (and (listp val)
-		(catch 'safe
-		  (mapc (lambda (elt)
-			  (unless (stringp elt)
-			    (throw 'safe nil)))
-			val)
-		  t)))))
-
-;;;###autoload
-(put 'epa-file-encrypt-to 'permanent-local t)
-
-(defvar epa-file-handler
-  (cons epa-file-name-regexp 'epa-file-handler))
-
-(defvar epa-file-auto-mode-alist-entry
-  (list epa-file-name-regexp nil 'epa-file))
 
 (defvar epa-file-passphrase-alist nil)
 
@@ -97,11 +47,6 @@ May either be a string or a list of strings.")
   (if (fboundp 'decode-coding-string)
       (defalias 'epa-file--decode-coding-string 'decode-coding-string)
     (defalias 'epa-file--decode-coding-string 'identity)))
-
-(defun epa-file-name-regexp-update ()
-  (interactive)
-  (unless (equal (car epa-file-handler) epa-file-name-regexp)
-    (setcar epa-file-handler epa-file-name-regexp)))
 
 (defun epa-file-passphrase-callback-function (context key-id file)
   (if (and epa-file-cache-passphrase-for-symmetric-encryption
@@ -123,6 +68,7 @@ May either be a string or a list of strings.")
 		passphrase))))
     (epa-passphrase-callback-function context key-id nil)))
 
+;;;###autoload
 (defun epa-file-handler (operation &rest args)
   (save-match-data
     (let ((op (get operation 'epa-file)))
@@ -273,13 +219,6 @@ If no one is selected, symmetric encryption will be performed.  "
 	(message "Wrote %s" buffer-file-name))))
 (put 'write-region 'epa-file 'epa-file-write-region)
 
-(defun epa-file-find-file-hook ()
-  (if (and buffer-file-name
-	   (string-match epa-file-name-regexp buffer-file-name)
-	   epa-file-inhibit-auto-save)
-      (auto-save-mode 0))
-  (set-buffer-modified-p nil))
-
 (defun epa-file-select-keys ()
   "Select recipients for encryption."
   (interactive)
@@ -316,29 +255,6 @@ If no one is selected, symmetric encryption will be performed.  "))))
 				    auto-mode-alist))
 	(message "`epa-file' disabled"))
     (message "`epa-file' already disabled")))
-
-;;;###autoload
-(define-minor-mode auto-encryption-mode
-  "Toggle automatic file encryption and decryption.
-With prefix argument ARG, turn auto encryption on if positive, else off.
-Return the new status of auto encryption (non-nil means on)."
-  :global t :init-value t :group 'epa-file :version "23.1"
-  (setq file-name-handler-alist
-	(delq epa-file-handler file-name-handler-alist))
-  (remove-hook 'find-file-hooks 'epa-file-find-file-hook)
-  (setq auto-mode-alist (delq epa-file-auto-mode-alist-entry
-			      auto-mode-alist))
-  (when auto-encryption-mode
-    (setq file-name-handler-alist
-	  (cons epa-file-handler file-name-handler-alist))
-    (add-hook 'find-file-hook 'epa-file-find-file-hook)
-    (add-hook 'find-file-not-found-functions
-	      'epa-file-find-file-not-found-functions)
-    (setq auto-mode-alist (cons epa-file-auto-mode-alist-entry
-				auto-mode-alist))))
-
-(put 'epa-file-handler 'safe-magic t)
-(put 'epa-file-handler 'operations '(write-region insert-file-contents))
 
 (provide 'epa-file)
 

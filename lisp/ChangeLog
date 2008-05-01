@@ -1,3 +1,11 @@
+2008-05-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file-hook.el: New file split from epa-file.el.
+	* epa-file.el: Require 'epa-file-hook.
+	(epa-file-handler): Add autoload cookie.
+	* loadup.el: Load epa-file-hook.
+	* startup.el (command-line): Eval the body of auto-encryption-mode.
+
 2008-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-dir-mode-map): Don't bind "r".
