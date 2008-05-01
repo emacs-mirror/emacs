@@ -278,11 +278,6 @@ struct font
 
   /* Beyond here, there should be no more Lisp_Object components.  */
 
-#ifdef WINDOWSNT
-  /* Codepage of characters that will be displayed by the font.  */
-  int codepage;
-#endif
-
   /* Maximum bound width over all existing characters of the font.  On
      X window, this is same as (font->max_bounds.width).  */
   int max_width;
