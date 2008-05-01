@@ -389,6 +389,7 @@ bit output with no translation."
       (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
       (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
       (w32-add-charset-info "tis620" 'w32-charset-thai 874)
+      (w32-add-charset-info "windows-1258" 'w32-charset-vietnamese 1258)
       (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
       (w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)))
 (if (boundp 'w32-unicode-charset-defined)
