@@ -1,5 +1,9 @@
 2008-05-01  Jason Rumney  <jasonr@gnu.org>
 
+        * font.h (struct font) [WINDOWSNT]: Remove codepage member.
+
+        * w32font.c (w32font_open_internal): Don't set codepage.
+
         * w32font.c (w32font_draw): Use s->font.
         (clear_cached_metrics): Don't clear non-existant blocks.
 
