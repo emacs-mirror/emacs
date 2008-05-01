@@ -3,10 +3,10 @@
 @rem $HopeName: !gathconf.bat(trunk.1) $
 @rem $Id$
 @rem Copyright (C) 2000 Harlequin Limited.  All rights reserved.
-@rem Copyright (C) 2005-2007 Ravenbrook Limited.  All rights reserved.
+@rem Copyright (C) 2005-2008 Ravenbrook Limited.  All rights reserved.
 
 
-@set mpsreleasename=rel-1_108_1
+@set mpsreleasename=rel-1_108_2
 
 
 rmdir /q/s w3i3mv
