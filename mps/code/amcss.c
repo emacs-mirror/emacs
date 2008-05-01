@@ -295,8 +295,14 @@ int main(int argc, char **argv)
   randomize(argc, argv);
 
   /* /4 => too-small arena, to test arena growth */
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE/4),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE/2),
       "arena_create");
+  {
+    mps_res_t res;
+    /* May not desire an increment smaller than the minimum! */
+    res = mps_arena_vm_growth(arena, 16 * 0x1000, 17 * 0x1000);
+    cdie(res == MPS_RES_PARAM, "mps_arena_vm_growth should give MPS_RES_PARAM");
+  }
   die(mps_arena_vm_growth(arena, 16 * 0x1000, 0),
       "arena_vm_growth");
   
