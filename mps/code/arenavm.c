@@ -44,6 +44,9 @@ typedef struct GangStruct *Gang;
 
 typedef struct GangsetStruct *Gangset;
 
+extern void ArenaTractsInZones(Count *tractsUsed, Count *tractsFree,
+  Arena arena, ZoneSet zones);
+
 extern void SegPrefZonesOpen(Arena arena, SegPref pref);
 extern Bool SegPrefZonesNext(ZoneSet *zonesReturn, Arena arena, SegPref pref, 
   Bool pregrow);
@@ -52,13 +55,13 @@ extern void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated,
 
 extern Bool GangCheck(Gang gang);
 extern Res GangDescribe(Gang gang, mps_lib_FILE *stream);
-extern Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
-  mps_lib_FILE *stream);
+extern Res GangFullDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
+  Arena arenaForUsage, mps_lib_FILE *stream);
 
 extern Bool GangsetCheck(Gangset gangset);
 extern Res GangsetDescribe(Gangset gangset, mps_lib_FILE *stream);
-extern Res GangsetNewDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
-  mps_lib_FILE *stream);
+extern Res GangsetFullDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
+  Arena arenaForUsage, mps_lib_FILE *stream);
 static void GangsetInit(Arena arena, Gangset gangset);
 
 enum {
@@ -323,7 +326,8 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
 }
 #endif
 
-  res = GangsetDescribe(&vmArena->gangset, stream);
+  res = GangsetFullDescribe(&vmArena->gangset, NULL, ZoneSetEMPTY, 
+                            arena, stream);
   if(res != ResOK)
     return res;
   
@@ -1143,10 +1147,14 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   } while(0);
 
 
-  DIAG_SINGLEF(( "vmArenaExtend_Start", 
+  DIAG_FIRSTF(( "vmArenaExtend_Start", 
     "to accommodate size $W, try chunkSize $W", size, chunkSize,
     " (VMArenaReserved currently $W bytes)\n",
     VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+
+  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
+
+  DIAG_END("vmArenaExtend_Start");
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
@@ -1767,6 +1775,49 @@ mps_arena_class_t mps_arena_class_vmnz(void)
 }
 
 
+void ArenaTractsInZones(Count *tractsUsed, Count *tractsFree,
+                        Arena arena, ZoneSet zones)
+{
+  Count tTot = 0, tUsed, tFree = 0;  /* count tracts */
+  Ring node, next;
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+    Addr base, limit;
+    for(base = PageIndexBase(chunk, chunk->allocBase);
+        ChunkZonesNextArea(&base, &limit, chunk, zones, base);
+        base = limit) {
+      Index bi, li;  /* index equiv. to base and limit */
+      Index biFound, liFound;  /* free range */
+
+      AVER(AddrIsAligned(base, ChunkPageSize(chunk)));
+      AVER(AddrIsAligned(limit, ChunkPageSize(chunk)));
+      AVER(chunk->base <= base);
+      AVER(base < limit);
+      AVER(limit <= chunk->limit);
+
+      bi = INDEX_OF_ADDR(chunk, base);
+      li = INDEX_OF_ADDR(chunk, limit);
+      tTot += li - bi;
+      
+      /* count all free ranges */
+      /* @@@@ more efficient methods exist; */
+      /* @@@@ see "popcount" in the literature */
+      while((bi < li)
+            && BTFindLongResRange(&biFound, &liFound, chunk->allocTable,
+                                  bi, li, 1)) {
+        AVER(biFound < liFound);
+        tFree += liFound - biFound;
+        bi = liFound;
+      }
+    }
+  }
+  AVER(tFree < (1 << 30));
+  AVER(tFree <= tTot);
+  tUsed = tTot - tFree;
+  *tractsUsed = tUsed;
+  *tractsFree = tFree;
+}
+
 /* GANGS */
 
 /* GangCheck */
@@ -1787,26 +1838,102 @@ Bool GangCheck(Gang gang)
  
 Res GangDescribe(Gang gang, mps_lib_FILE *stream)
 {
-  return GangNewDescribe(gang, NULL, ZoneSetEMPTY, stream);
+  return GangFullDescribe(gang, NULL, ZoneSetEMPTY, NULL, stream);
 }
  
-Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
-                    mps_lib_FILE *stream)
+Res GangFullDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
+                     Arena arenaForUsage, mps_lib_FILE *stream)
 {
   Res res;
   Count zones = MPS_WORD_WIDTH;
   Index zone;
+  /* Count tracts: total, Used, Free; percentage used */
+  Count t1 = 0, t1U = 0, t1F = 0;  /* unique */
+  Count tc = 0, tcU = 0, tcF = 0;  /* claimed */
+  Count th = 0, thU = 0, thF = 0, phU = 0;  /* home = unique + claimed */
+  Count tb = 0, tbU = 0, tbF = 0, pbU = 0;  /* borrowed */
 
   if(!CHECKT(Gang, gang))
+    return ResFAIL;
+  if(gangNew && !CHECKT(Gang, gangNew))
+    return ResFAIL;
+  /* no check for zonesNew */
+  if(arenaForUsage && !CHECKT(Arena, arenaForUsage))
     return ResFAIL;
   if(stream == NULL)
     return ResFAIL;
 
   res = WriteF(stream,
-    "Gang $U \"$S\" ",
-    (WriteFS)gang->index, (WriteFS)gang->name, NULL);
+    "Gang \"$S\" ",
+    (WriteFS)gang->name, NULL);
   if(res != ResOK)
     return res;
+
+  if(arenaForUsage) {
+    for(zone = zones; zone-- > 0;) {
+      ZoneSet z = 1 << zone;
+      Count tractsUsed = 0, tractsFree = 0;
+      Bool in = (ZoneSetInter(z, gang->in) != ZoneSetEMPTY);
+      Bool claimed = (ZoneSetInter(z, gang->claimed) != ZoneSetEMPTY);
+      Bool unique = (ZoneSetInter(z, gang->unique) != ZoneSetEMPTY);
+      Bool borrowed = in && !claimed;
+      ArenaTractsInZones(&tractsUsed, &tractsFree, arenaForUsage, z);
+      if(unique) {
+        t1U += tractsUsed;
+        t1F += tractsFree;
+      } else if(claimed) {
+        tcU += tractsUsed;
+        tcF += tractsFree;
+      } else if(borrowed) {
+        tbU += tractsUsed;
+        tbF += tractsFree;
+      } else {
+        AVER(!in);
+      }
+    }
+    /* home = unique + claimed */
+    thU = t1U + tcU;
+    thF = t1F + tcF;
+
+    /* total = Used + Free */
+    t1 = t1U + t1F;
+    tc = tcU + tcF;
+    th = thU + thF;
+    tb = tbU + tbF;
+
+    if(th != 0)
+      phU = (100 * thU) / th;
+    if(tb != 0)
+      pbU = (100 * tbU) / tb;
+
+    /* home */
+    if(th == 0) {
+      res = WriteF(stream,
+        "            ",
+        NULL);
+    } else {
+      res = WriteF(stream,
+        "$ut ($u%) ",
+        thU, phU,
+        NULL);
+    }
+    if(res != ResOK)
+      return res;
+
+    /* borrowed */
+    if(tb == 0) {
+      res = WriteF(stream,
+        "            ",
+        NULL);
+    } else {
+      res = WriteF(stream,
+        "$ut ($u%) ",
+        tbU, pbU,
+        NULL);
+    }
+    if(res != ResOK)
+      return res;
+  }
 
   for(zone = zones; zone-- > 0;) {
     ZoneSet z = 1 << zone;
@@ -1824,9 +1951,16 @@ Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
   }
 
   res = WriteF(stream,
-    "  has:", (gang->hasCollected ? "Collected " : ""),
-    (gang->hasUncollected ? "Uncollected " : ""), " ",
+    " ",
+    (gang->hasCollected
+      ? (gang->hasUncollected ? "GC+man " : "GC  ")
+      : (gang->hasUncollected ?    "man " : "    ")),
     /* not interesting: " (preferred $B)", (WriteFB)gang->preferred, */
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  res = WriteF(stream,
     "\n",
     NULL);
   if(res != ResOK)
@@ -1834,8 +1968,9 @@ Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
 
   if(gang == gangNew) {
     res = WriteF(stream,
-   /* "             ", */
-      "       (new: ",
+      "           ",
+      "            ",
+      "            ",
       NULL);
     if(res != ResOK)
       return res;
@@ -1850,7 +1985,7 @@ Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
         return res;
     }
     res = WriteF(stream,
-      ")\n",
+      " (new)\n",
       NULL);
     if(res != ResOK)
       return res;
@@ -1916,11 +2051,11 @@ Bool GangsetCheck(Gangset gangset)
 
 Res GangsetDescribe(Gangset gangset, mps_lib_FILE *stream)
 {
-  return GangsetNewDescribe(gangset, NULL, ZoneSetEMPTY, stream);
+  return GangsetFullDescribe(gangset, NULL, ZoneSetEMPTY, NULL, stream);
 }
 
-Res GangsetNewDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
-                       mps_lib_FILE *stream)
+Res GangsetFullDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
+                        Arena arenaForUsage, mps_lib_FILE *stream)
 {
   Res res;
   Index i;
@@ -1930,18 +2065,23 @@ Res GangsetNewDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
   if(gangNew && !CHECKT(Gang, gangNew))
     return ResFAIL;
   /* no check for zonesNew */
+  if(arenaForUsage && !CHECKT(Arena, arenaForUsage))
+    return ResFAIL;
   if(stream == NULL)
     return ResFAIL;
 
   res = WriteF(stream,
-    "Gangset $P {", (WriteFP)gangset,
-    "[ key:  zones are...   1:unique to this gang  c:claimed by this gang (but now shared)  b:borrowed (barged into) ]\n",
+    "Gangset $P {\n", (WriteFP)gangset,
+    "[KEY]  zones are...   1:unique to this gang  c:claimed by this gang (but now shared)  b:borrowed (barged into)\n",
+    "[COLS]      HOME-ZONES   BORROWED\n",
+    "[COLS]   TRACTS (%USED) TRACTS (%USED)\n",
     NULL);
   if(res != ResOK)
     return res;
 
   for(i = 0; i < gangset->gangCount; i += 1) {
-    res = GangNewDescribe(&gangset->gangs[i], gangNew, zonesNew, stream);
+    res = GangFullDescribe(&gangset->gangs[i], gangNew, zonesNew, 
+                          arenaForUsage, stream);
     if(res != ResOK)
       return res;
   }
@@ -2002,8 +2142,8 @@ static void GangsetInit(Arena arena, Gangset gangset)
     if(i < VMArenaGenCount) {
       /* pre-made gangs for generations */
       gang->name[0] = 'g';
-      gang->name[1] = '0' + i;
-      gang->name[2] = ' ';
+      gang->name[1] = 'e';
+      gang->name[2] = '0' + i;
     } else if(i == GangIndexDefault) {
       /* nogen default-zoneset: Gang Default */
       gang->name[0] = 'd';
@@ -2506,7 +2646,7 @@ void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated,
 
     DIAG_FIRSTF(( "SegPrefZonesClose_newzone", NULL));
     DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
-    DIAG( GangsetNewDescribe(gangset, gang, zonesNew, DIAG_STREAM); );
+    DIAG( GangsetFullDescribe(gangset, gang, zonesNew, arena, DIAG_STREAM); );
     DIAG_END("SegPrefZonesClose_newzone");
 
     AVERT(Gangset, gangset);

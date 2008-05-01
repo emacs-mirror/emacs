@@ -30,6 +30,8 @@ typedef struct RuleStruct {
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
+  { "-", "SegPrefZonesNext", "*", "*" },
+  { "-", "SegPrefZonesClose_newzone", "*", "*" },
   { NULL, "", "", "" }
 };
 
@@ -343,7 +345,7 @@ static void filterStream_Output(Diag diag, Rule rules)
     if(rules[ir].action[0] == '+') {
       if(nolinesyet) {
         res = WriteF(filterStream_under(),
-                     DIAG_PREFIX_TAGSTART "$S {", diag->tag, NULL);
+                     DIAG_PREFIX_TAGSTART "$S {\n", diag->tag, NULL);
         AVER(res == ResOK);
         nolinesyet = FALSE;
       }
