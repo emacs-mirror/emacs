@@ -1,3 +1,15 @@
+2008-05-01  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-read-primary-args): Set default to the car of
+	regexp-history and display it in the prompt, but don't add to the
+	list of minibuffer defaults.  Bind history-add-new-input to nil to
+	not add automatically `default'.  For empty input return `default'.
+	Otherwise, add `input' to regexp-history and return it.
+	(occur-1): Signal an error for the empty regexp.
+
+	* progmodes/compile.el (compilation-auto-jump):
+	Set window point to `pos' explicitly.
+
 2008-05-01  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-bzr.el (vc-bzr-state): Allow this to return 'ignored
