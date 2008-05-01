@@ -1039,8 +1039,10 @@ currently used by buffers."
 				       dired-directory
 				     (car dired-directory))))
 			      (and dired-dir
-				   (expand-file-name dired-dir))))))
-    (string-match qualifier it)))
+				   (expand-file-name dired-dir))))
+		       (and (eq major-mode 'vc-dir-mode)
+			    (bound-and-true-p default-directory))))
+		 (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
 (define-ibuffer-filter size-gt
