@@ -77,7 +77,8 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ZoneSet blacklist;             /* zones to use last */
   ZoneSet genZoneSet[VMArenaGenCount]; /* .gencount.const */
   ZoneSet freeSet;               /* unassigned zones */
-  Size extendBy;
+  Size extendBy;                /* desired arena increment */
+  Size extendMin;               /* minimum arena increment */
   Sig sig;                      /* <design/sig/> */
 } VMArenaStruct;
 
@@ -179,6 +180,7 @@ static Bool VMArenaCheck(VMArena vmArena)
   }
   CHECKL(ZoneSetInter(allocSet, vmArena->freeSet) == ZoneSetEMPTY);
   CHECKL(vmArena->extendBy > 0);
+  CHECKL(vmArena->extendMin <= vmArena->extendBy);
 
   if (arena->primary != NULL) {
     primary = Chunk2VMChunk(arena->primary);
@@ -489,6 +491,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena->freeSet = ZoneSetUNIV; /* includes blacklist */
   /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = userSize;
+  vmArena->extendMin = 0;
 
   /* have to have a valid arena before calling ChunkCreate */
   vmArena->sig = VMArenaSig;
@@ -1086,14 +1089,42 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
     VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
-  for(;; chunkSize /= 2) {
-    res = VMChunkCreate(&newChunk, vmArena, chunkSize);
-    if(res == ResOK)
-      break;
+  {
+    int fidelity = 8;  /* max fraction of addr-space we may 'waste' */
+    Size chunkHalf;
+    Size chunkMin = 4 * 1024;  /* typical single page */
+    Size sliceSize;
+    
+    if (vmArena->extendMin > chunkMin)
+      chunkMin = vmArena->extendMin;
+    if (chunkSize < chunkMin)
+      chunkSize = chunkMin;
+    
+    for(;; chunkSize = chunkHalf) {
+      chunkHalf = chunkSize / 2;
+      sliceSize = chunkHalf / fidelity;
+      AVER(sliceSize > 0);
+      
+      /* remove slices, down to chunkHalf but no further */
+      for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
+        if(chunkSize < chunkMin) {
+          DIAG_SINGLEF(( "vmArenaExtend_FailMin", 
+            "no remaining address-space chunk >= min($W)", chunkMin,
+            " (so VMArenaReserved remains $W bytes)\n",
+            VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+          return ResRESOURCE;
+        }
+        res = VMChunkCreate(&newChunk, vmArena, chunkSize);
+        if(res == ResOK)
+          goto vmArenaExtend_Done;
+      }
+    }
   }
 
+vmArenaExtend_Done:
+
   DIAG_SINGLEF(( "vmArenaExtend_Done",
-    "Reserved new chunk of VM $W bytes", chunkSize,
+    "Request for new chunk of VM $W bytes succeeded", chunkSize,
     " (VMArenaReserved now $W bytes)\n", 
     VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
 
@@ -1583,6 +1614,29 @@ static void VMFree(Addr base, Size size, Pool pool)
   /* @@@@ Chunks are never freed. */
 
   return;
+}
+
+
+mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
+                              size_t mps_desired, size_t mps_minimum)
+{
+  Arena arena = (Arena)mps_arena;
+  Size desired = (Size)mps_desired;
+  Size minimum = (Size)mps_minimum;
+  VMArena vmArena;
+  
+  ArenaEnter(arena);
+  
+  AVERT(Arena, arena);
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  
+  vmArena->extendBy = desired;
+  vmArena->extendMin = minimum;
+  
+  ArenaLeave(arena);
+  
+  return MPS_RES_OK;
 }
 
 
