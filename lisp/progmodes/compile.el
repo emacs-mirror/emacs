@@ -772,6 +772,8 @@ from a different message."
 (defun compilation-auto-jump (buffer pos)
   (with-current-buffer buffer
     (goto-char pos)
+    (let ((win (get-buffer-window buffer 0)))
+      (if win (set-window-point win pos)))
     (if compilation-auto-jump-to-first-error
 	(compile-goto-error))))
 
