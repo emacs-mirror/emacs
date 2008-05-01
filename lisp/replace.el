@@ -1005,7 +1005,8 @@ which means to discard all text properties."
       (nreverse result))))
 
 (defun occur-read-primary-args ()
-  (let* ((default
+  (let* ((default (car regexp-history))
+	 (defaults
 	   (list (and transient-mark-mode mark-active
 		      (regexp-quote
 		       (buffer-substring-no-properties
@@ -1020,12 +1021,20 @@ which means to discard all text properties."
 		 (regexp-quote (or (car search-ring) ""))
 		 (car (symbol-value
 		       query-replace-from-history-variable))))
-	 (default (delete-dups (delq nil (delete "" default))))
+	 (defaults (delete-dups (delq nil (delete "" defaults))))
+	 ;; Don't add automatically the car of defaults for empty input
+	 (history-add-new-input nil)
 	 (input
 	  (read-from-minibuffer
-	   "List lines matching regexp: "
-	   nil nil nil 'regexp-history default)))
-    (list input
+	   (if default
+	       (format "List lines matching regexp (default %s): "
+		       (query-replace-descr default))
+	     "List lines matching regexp: ")
+	   nil nil nil 'regexp-history defaults)))
+    (list (if (equal input "")
+	      default
+	    (prog1 input
+	      (add-to-history 'regexp-history input)))
 	  (when current-prefix-arg
 	    (prefix-numeric-value current-prefix-arg)))))
 
@@ -1123,6 +1132,8 @@ See also `multi-occur'."
 			   (buffer-list))))))
 
 (defun occur-1 (regexp nlines bufs &optional buf-name)
+  (unless (and regexp (not (equal regexp "")))
+    (error "Occur doesn't work with the empty regexp"))
   (unless buf-name
     (setq buf-name "*Occur*"))
   (let (occur-buf
