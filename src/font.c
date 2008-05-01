@@ -2010,10 +2010,15 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
 	 thinks they are the same.  That happens, for instance, such a
 	 generic family name as "serif" is specified.  So, to ignore
 	 such a difference, for all properties specified in SPEC, set
-	 the corresponding properties in PREFER_PROP to nil.  */
-      for (i = FONT_FOUNDRY_INDEX; i <= FONT_SIZE_INDEX; i++)
+	 the corresponding properties in PREFER_PROP to nil.  The
+	 exception is the font size.  We prefer fonts of the exact
+	 size to fonts whose size difference is less than
+	 FONT_PIXEL_SIZE_QUANTUM.  */
+      for (i = FONT_FOUNDRY_INDEX; i < FONT_SIZE_INDEX; i++)
 	if (! NILP (AREF (spec, i)))
 	  prefer_prop[i] = Qnil;
+      if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
+	prefer_prop[FONT_SIZE_INDEX] = AREF (spec, FONT_SIZE_INDEX);
     }
 
   if (FLOATP (prefer_prop[FONT_SIZE_INDEX]))
