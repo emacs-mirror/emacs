@@ -224,11 +224,10 @@ Bool ResIsAllocFailure(Res res)
  * given width.  */
 
 static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
-                     unsigned width)
+                     const char pad, unsigned width)
 {
   static const char digit[16 + 1] = "0123456789ABCDEF";
     /* + 1 for terminator: unused, but prevents compiler warning */
-  static const char pad = '0'; /* padding character */
   char buf[MPS_WORD_WIDTH + 1]; /* enough for binary, */
                                 /* plus one for terminator */
   unsigned i;
@@ -470,14 +469,14 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           case 'A': {                   /* address */
             WriteFA addr = va_arg(args, WriteFA);
             res = WriteWord(stream, (Word)addr, 16,
-                            (sizeof(WriteFA) * CHAR_BIT + 3) / 4);
+                            '0', (sizeof(WriteFA) * CHAR_BIT + 3) / 4);
             if (res != ResOK) return res;
           } break;
 
           case 'P': {                   /* pointer, see .writef.p */
             WriteFP p = va_arg(args, WriteFP);
             res = WriteWord(stream, (Word)p, 16,
-                            (sizeof(WriteFP) * CHAR_BIT + 3)/ 4);
+                            '0', (sizeof(WriteFP) * CHAR_BIT + 3)/ 4);
             if (res != ResOK) return res;
           } break;
 
@@ -487,7 +486,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
             Byte *b = *((Byte **)&fp);
             for(i=0; i < sizeof(WriteFF); i++) {
               res = WriteWord(stream, (Word)(b[i]), 16,
-                              (CHAR_BIT + 3) / 4);
+                              '0', (CHAR_BIT + 3) / 4);
               if (res != ResOK) return res;
             }
           } break;
@@ -507,19 +506,26 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           case 'W': {                   /* word */
             WriteFW w = va_arg(args, WriteFW);
             res = WriteWord(stream, (Word)w, 16,
-                            (sizeof(WriteFW) * CHAR_BIT + 3) / 4);
+                            '0', (sizeof(WriteFW) * CHAR_BIT + 3) / 4);
             if (res != ResOK) return res;
           } break;
 
-          case 'U': {                   /* decimal, see .writef.p */
-            WriteFU u = va_arg(args, WriteFU);
-            res = WriteWord(stream, (Word)u, 10, 0);
+          case 'U': {                   /* unsigned decimal */
+            WriteFU u = va_arg(args, WriteFU);  /* see .writef.p */
+            res = WriteWord(stream, (Word)u, 10, '0', 0);
+            if (res != ResOK) return res;
+          } break;
+
+          case 'u': {                   /* 3 digit decimal */
+            WriteFU u = va_arg(args, WriteFU);  /* see .writef.p */
+            res = WriteWord(stream, (Word)u, 10, ' ', 3);
             if (res != ResOK) return res;
           } break;
 
           case 'B': {                   /* binary, see .writef.p */
             WriteFB b = va_arg(args, WriteFB);
-            res = WriteWord(stream, (Word)b, 2, sizeof(WriteFB) * CHAR_BIT);
+            res = WriteWord(stream, (Word)b, 2,
+                            '0', sizeof(WriteFB) * CHAR_BIT);
             if (res != ResOK) return res;
           } break;
        
