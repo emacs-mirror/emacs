@@ -275,7 +275,7 @@ If any error occurred in running `bzr status', then return nil."
                    (renamed . edited)
                    (modified . edited)
                    (removed . removed)
-                   (ignored . unregistered)
+                   (ignored . ignored)
                    (unknown . unregistered)
                    (unchanged . up-to-date)))))))
 

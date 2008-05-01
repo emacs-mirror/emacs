@@ -148,7 +148,8 @@
 ;;   possible values, see `vc-state'.  This function should do a full and
 ;;   reliable state computation; it is usually called immediately after
 ;;   C-x v v.  If you want to use a faster heuristic when visiting a
-;;   file, put that into `state-heuristic' below.
+;;   file, put that into `state-heuristic' below.  Note that under most
+;;   VCSes this won't be called at all, dir-state or dir-stus is used instead.
 ;;
 ;; - state-heuristic (file)
 ;;
@@ -617,12 +618,6 @@
 ;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
-;;
-;; - make vc-state for all backends return 'unregistered instead of
-;;   nil for unregistered files, then update vc-next-action.
-;;
-;; - vc-default-registered should return 'unregistered not nil for
-;;   unregistered files.
 ;;
 ;; - vc-register should register a fileset at a time. The backends
 ;;   already support this, only the front-end needs to be changed to
@@ -1661,12 +1656,11 @@ merge in the changes into your working copy."
     ;; Do the right thing
     (cond
      ;; Files aren't registered
-     ((or (not state)  ;; RCS uses nil for unregistered files.
-	  (eq state 'unregistered)
+     ((or (eq state 'unregistered)
 	  (eq state 'ignored))
       (mapc 'vc-register files))
      ;; Files are up-to-date, or need a merge and user specified a revision
-     ((or (eq state 'up-to-date) (and verbose (eq state 'needs-patch)))
+     ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
        (verbose
 	;; go to a different revision
@@ -1745,8 +1739,8 @@ merge in the changes into your working copy."
      ;; conflict
      ((eq state 'conflict)
       (vc-mark-resolved files))
-     ;; needs-patch
-     ((eq state 'needs-patch)
+     ;; needs-update
+     ((eq state 'needs-update)
       (dolist (file files)
 	(if (yes-or-no-p (format
 			  "%s is not up-to-date.  Get latest revision? "
@@ -1789,7 +1783,10 @@ merge in the changes into your working copy."
 		    "Revert to checked-in revision, instead? "))
 	      (error "Checkout aborted")
 	    (vc-revert-buffer-internal t t)
-	    (vc-checkout file t))))))))
+	    (vc-checkout file t)))))
+     ;; Unknown fileset state
+     (t
+      (error "Fileset is in an unknown state %s" state)))))
 
 (defun vc-create-repo (backend)
   "Create an empty repository in the current directory."
@@ -1974,7 +1971,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
                              (not writable))
                          (if (vc-call latest-on-branch-p file)
                              'up-to-date
-                           'needs-patch)
+                           'needs-update)
                        'edited))
         (vc-checkout-time . ,(nth 5 (file-attributes file))))))
   (vc-resynch-buffer file t t)
@@ -4277,7 +4274,7 @@ to provide the `find-revision' operation instead."
 	  ((stringp state) (concat "(" state ")"))
 	  ((eq state 'edited) "(modified)")
 	  ((eq state 'needs-merge) "(merge)")
-	  ((eq state 'needs-patch) "(patch)")
+	  ((eq state 'needs-update) "(update)")
 	  ((eq state 'added) "(added)")
 	  ((eq state 'removed) "(removed)")
           ((eq state 'ignored) "(ignored)")     ;; dired-hook filters this out

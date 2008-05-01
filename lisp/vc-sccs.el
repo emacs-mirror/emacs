@@ -117,19 +117,21 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."
-  (with-temp-buffer
-    (if (vc-insert-file (vc-sccs-lock-file file))
-        (let* ((locks (vc-sccs-parse-locks))
-               (working-revision (vc-working-revision file))
-               (locking-user (cdr (assoc working-revision locks))))
-          (if (not locking-user)
-              (if (vc-workfile-unchanged-p file)
-                  'up-to-date
-                'unlocked-changes)
-            (if (string= locking-user (vc-user-login-name file))
-                'edited
-              locking-user)))
-      'up-to-date)))
+  (if (not (vc-sccs-registered file))
+      'unregistered
+    (with-temp-buffer
+      (if (vc-insert-file (vc-sccs-lock-file file))
+	  (let* ((locks (vc-sccs-parse-locks))
+		 (working-revision (vc-working-revision file))
+		 (locking-user (cdr (assoc working-revision locks))))
+	    (if (not locking-user)
+		(if (vc-workfile-unchanged-p file)
+		    'up-to-date
+		  'unlocked-changes)
+	      (if (string= locking-user (vc-user-login-name file))
+		  'edited
+		locking-user)))
+	'up-to-date))))
 
 (defun vc-sccs-state-heuristic (file)
   "SCCS-specific state heuristic."

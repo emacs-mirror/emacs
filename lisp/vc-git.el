@@ -156,12 +156,14 @@
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
   ;; FIXME: This can't set 'ignored yet
-  (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
-  (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
-    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0"
-                                diff))
-        (vc-git--state-code (match-string 1 diff))
-      (if (vc-git--empty-db-p) 'added 'up-to-date))))
+  (if (not (vc-git-registered file))
+      'unregistered
+    (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
+    (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
+      (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0"
+				  diff))
+	  (vc-git--state-code (match-string 1 diff))
+	(if (vc-git--empty-db-p) 'added 'up-to-date)))))
 
 (defun vc-git--ls-files-state (state &rest args)
   "Set state to STATE on all files found with git-ls-files ARGS."

@@ -1,3 +1,19 @@
+2008-05-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-bzr.el (vc-bzr-state): Allow this to return 'ignored
+	when appropriate.
+	* vc-sccs.el (vc-sccs-state): Call vc-sccs-unregistered so
+	we report the 'unregistered state reliably.
+	* vc-rcs.el (vc-rcs-state): Call vc-rcs-unregistered so
+	we report the 'unregistered state reliably.
+	* vc-git.el (vc-git-state): Call vc-git-unregistered so
+	we report the 'unregistered state reliably.
+	* vc-hooks (vc-state): Document that vc-unregistered is
+	now expected to be returned reliably.
+	* vc.el (vc-default-dired-state): Change needs-patch state to
+	needs-update, since the name now shows up in dir-status listings
+	and was somewhat misleading.
+
 2008-05-01  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-delete-file): Check if the file has uncommitted changed.

@@ -118,23 +118,25 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-rcs-state (file)
   "Implementation of `vc-state' for RCS."
-  (or (boundp 'vc-rcs-headers-result)
-      (and vc-consult-headers
-           (vc-rcs-consult-headers file)))
-  (let ((state
-         ;; vc-working-revision might not be known; in that case the
-         ;; property is nil.  vc-rcs-fetch-master-state knows how to
-         ;; handle that.
-         (vc-rcs-fetch-master-state file
-                                    (vc-file-getprop file
-                                                     'vc-working-revision))))
-    (if (not (eq state 'up-to-date))
-        state
-      (if (vc-workfile-unchanged-p file)
-          'up-to-date
-        (if (eq (vc-rcs-checkout-model file) 'locking)
-            'unlocked-changes
-          'edited)))))
+  (if (not (vc-rc-registered f))
+      'unregistered
+    (or (boundp 'vc-rcs-headers-result)
+	(and vc-consult-headers
+	     (vc-rcs-consult-headers file)))
+    (let ((state
+	   ;; vc-working-revision might not be known; in that case the
+	   ;; property is nil.  vc-rcs-fetch-master-state knows how to
+	   ;; handle that.
+	   (vc-rcs-fetch-master-state file
+				      (vc-file-getprop file
+						       'vc-working-revision))))
+      (if (not (eq state 'up-to-date))
+	  state
+	(if (vc-workfile-unchanged-p file)
+	    'up-to-date
+	  (if (eq (vc-rcs-checkout-model file) 'locking)
+	      'unlocked-changes
+	    'edited))))))
 
 (defun vc-rcs-state-heuristic (file)
   "State heuristic for RCS."
@@ -889,7 +891,7 @@ file."
               ;; workfile version is latest on branch
               'up-to-date
             ;; workfile version is not latest on branch
-            'needs-patch))
+            'needs-update))
 	 ;; locked by the calling user
 	 ((and (stringp locking-user)
 	       (string= locking-user (vc-user-login-name file)))

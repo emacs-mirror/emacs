@@ -329,7 +329,7 @@ Return non-nil if FILE is unchanged."
 	  (setq rev (replace-match (cdr rule) t nil rev))))
     (format "Arch%c%s"
 	    (case (vc-state file)
-	      ((up-to-date needs-patch) ?-)
+	      ((up-to-date needs-update) ?-)
 	      (added ?@)
 	      (t ?:))
 	    rev)))

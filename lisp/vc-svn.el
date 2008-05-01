@@ -625,7 +625,7 @@ information about FILENAME and return its status."
 	 (cond
 	  ((eq status ?\ )
 	   (if (eq (char-after (match-beginning 1)) ?*)
-	       'needs-patch
+	       'needs-update
              (vc-file-setprop file 'vc-checkout-time
                               (nth 5 (file-attributes file)))
 	     'up-to-date))

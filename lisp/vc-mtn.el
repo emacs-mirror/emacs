@@ -125,7 +125,7 @@
 	  (setq branch (replace-match (cdr rule) t nil branch))))
     (format "Mtn%c%s"
 	    (case (vc-state file)
-	      ((up-to-date needs-patch) ?-)
+	      ((up-to-date needs-update) ?-)
 	      (added ?@)
 	      (t ?:))
 	    branch)))

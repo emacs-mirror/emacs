@@ -491,7 +491,7 @@ For registered files, the value returned is one of:
   USER               The current version of the working file is locked by
                      some other USER (a string).
 
-  'needs-patch       The file has not been edited by the user, but there is
+  'needs-update       The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
                      in the master file.
 
@@ -528,12 +528,7 @@ For registered files, the value returned is one of:
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file showed up in a dir-state listing with a flag
-                     indicating that it is not under version control.
-                     Note: This property is not set reliably (some VCSes
-                     don't have useful directory-status commands) so assume
-                     that any file with vc-state nil might be unregistered
-                     without VC knowing it.
+  'unregistered      The file is not under version control.
 
 A return of nil from this function means we have no information on the
 status of this file.
@@ -856,7 +851,7 @@ This function assumes that the file is registered."
 	(rev     (vc-working-revision file)))
     (propertize
      (cond ((or (eq state 'up-to-date)
-		(eq state 'needs-patch))
+		(eq state 'needs-update))
 	    (setq state-echo "Up to date file")
 	    (concat backend "-" rev))
 	   ((stringp state)
@@ -877,7 +872,7 @@ This function assumes that the file is registered."
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
-	    ;; for 'needs-patch and 'needs-merge.
+	    ;; for 'needs-update and 'needs-merge.
 	    (setq state-echo "Locally modified file")
 	    (concat backend ":" rev)))
      'help-echo (concat state-echo " under the " backend
