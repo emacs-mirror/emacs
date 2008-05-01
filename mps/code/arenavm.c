@@ -1631,6 +1631,12 @@ mps_res_t mps_arena_vm_growth(mps_arena_t mps_arena,
   vmArena = Arena2VMArena(arena);
   AVERT(VMArena, vmArena);
   
+  if(desired < minimum) {
+    /* May not desire an increment smaller than the minimum! */
+    ArenaLeave(arena);
+    return MPS_RES_PARAM;
+  }
+  
   vmArena->extendBy = desired;
   vmArena->extendMin = minimum;
   
