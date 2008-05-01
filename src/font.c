@@ -1935,6 +1935,8 @@ font_score (entity, spec_prop, alternate_families)
 
 	if (diff < 0)
 	  diff = - diff;
+	/* This is to prefer the exact symbol style.  */
+	diff++;
 	score |= min (diff, 127) << sort_shift_bits[i];
       }
 
@@ -1943,12 +1945,16 @@ font_score (entity, spec_prop, alternate_families)
   if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i])
       && XINT (AREF (entity, i)) > 0)
     {
+      /* We use the higher 6-bit for the actual size difference.  The
+	 lowest bit is set if the DPI is different.  */
       int diff = XINT (spec_prop[i]) - XINT (AREF (entity, i));
 
       if (diff < 0)
 	diff = - diff;
-      if (diff <= FONT_PIXEL_SIZE_QUANTUM)
-	diff = 1;
+      diff << 1;
+      if (! NILP (spec_prop[FONT_DPI_INDEX])
+	  && ! EQ (spec_prop[FONT_DPI_INDEX], AREF (entity, FONT_DPI_INDEX)))
+	diff |= 1;
       score |= min (diff, 127) << sort_shift_bits[FONT_SIZE_INDEX];
     }
 
@@ -2000,7 +2006,7 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
   if (len <= 1)
     return best_only ? AREF (vec, 0) : vec;
 
-  for (i = FONT_FOUNDRY_INDEX; i <= FONT_SIZE_INDEX; i++)
+  for (i = FONT_FOUNDRY_INDEX; i <= FONT_DPI_INDEX; i++)
     prefer_prop[i] = AREF (prefer, i);
 
   if (! NILP (spec))
@@ -2010,15 +2016,10 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
 	 thinks they are the same.  That happens, for instance, such a
 	 generic family name as "serif" is specified.  So, to ignore
 	 such a difference, for all properties specified in SPEC, set
-	 the corresponding properties in PREFER_PROP to nil.  The
-	 exception is the font size.  We prefer fonts of the exact
-	 size to fonts whose size difference is less than
-	 FONT_PIXEL_SIZE_QUANTUM.  */
-      for (i = FONT_FOUNDRY_INDEX; i < FONT_SIZE_INDEX; i++)
+	 the corresponding properties in PREFER_PROP to nil.  */
+      for (i = FONT_FOUNDRY_INDEX; i <= FONT_REGISTRY_INDEX; i++)
 	if (! NILP (AREF (spec, i)))
 	  prefer_prop[i] = Qnil;
-      if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
-	prefer_prop[FONT_SIZE_INDEX] = AREF (spec, FONT_SIZE_INDEX);
     }
 
   if (FLOATP (prefer_prop[FONT_SIZE_INDEX]))
@@ -2297,10 +2298,11 @@ font_delete_unmatched (list, spec, size)
 		  : diff > FONT_PIXEL_SIZE_QUANTUM))
 	    prop = FONT_SPEC_MAX;
 	}
-      for (; prop < FONT_EXTRA_INDEX; prop++)
-	if (! NILP (AREF (spec, prop))
-	    && ! EQ (AREF (spec, prop), AREF (entity, prop)))
-	  prop = FONT_SPEC_MAX;
+      if (prop < FONT_SPEC_MAX
+	  && INTEGERP (AREF (spec, FONT_SPACING_INDEX))
+	  && ! EQ (AREF (spec, FONT_SPACING_INDEX),
+		   AREF (entity, FONT_SPACING_INDEX)))
+	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
 	prev = tail, tail = XCDR (tail);
       else if (NILP (prev))
@@ -2776,11 +2778,16 @@ font_find_for_lface (f, attrs, spec, c)
       /* Sort fonts by properties specified in LFACE.  */
       Lisp_Object prefer = scratch_font_prefer;
       double pt;
-
-      font_parse_family_registry (attrs[LFACE_FAMILY_INDEX], Qnil, prefer);
-      FONT_SET_STYLE (prefer, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
-      FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
-      FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
+      for (i = 0; i < FONT_EXTRA_INDEX; i++)
+	ASET (prefer, i, AREF (spec, i));
+      if (NILP (AREF (prefer, FONT_FAMILY_INDEX)))
+	font_parse_family_registry (attrs[LFACE_FAMILY_INDEX], Qnil, prefer);
+      if (NILP (AREF (prefer, FONT_WEIGHT_INDEX)))
+	FONT_SET_STYLE (prefer, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
+      if (NILP (AREF (prefer, FONT_SLANT_INDEX)))
+	FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
+      if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
+	FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
       if (INTEGERP (size))
 	ASET (prefer, FONT_SIZE_INDEX, size);
       else if (FLOATP (size))
@@ -2924,10 +2931,10 @@ font_open_by_name (f, name)
   prefer = scratch_font_prefer;
   for (i = 0; i < FONT_SPEC_MAX; i++)
     {
-      if (i >= FONT_WEIGHT_INDEX && i <= FONT_WIDTH_INDEX)
+      ASET (prefer, i, AREF (spec, i));
+      if (NILP (AREF (prefer, i))
+	  && i >= FONT_WEIGHT_INDEX && i <= FONT_WIDTH_INDEX)
 	FONT_SET_STYLE (prefer, i, make_number (100));
-      else
-	ASET (prefer, i, Qnil);
     }
   size = AREF (spec, FONT_SIZE_INDEX);
   if (NILP (size))
