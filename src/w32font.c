@@ -826,7 +826,6 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
     else
       font->props[FONT_FULLNAME_INDEX] = font->props[FONT_NAME_INDEX];
   }
-  font->codepage = 0;
   font->max_width = w32_font->metrics.tmMaxCharWidth;
   font->height = w32_font->metrics.tmHeight
     + w32_font->metrics.tmExternalLeading;
