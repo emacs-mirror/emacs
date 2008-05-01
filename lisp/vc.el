@@ -672,6 +672,9 @@
 ;; - vc-cvs-delete-file should not do a "cvs commit" immediately after
 ;;   removing the file.
 ;;
+;; - vc-delete-file should check if the file contains non-checked in
+;;   changes and warn about losing them.
+;;
 ;; - vc-create-snapshot and vc-retrieve-snapshot should update the
 ;;   buffers that might be visiting the affected files.
 
@@ -2985,7 +2988,6 @@ specific headers."
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
-    (define-key map "r" 'vc-dir-delete-file) ; like in PCL-CVS
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
     ;; need to find the file from the mouse position, not `point'.

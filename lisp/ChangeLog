@@ -1,3 +1,7 @@
+2008-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-dir-mode-map): Don't bind "r".
+
 2008-05-01  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-last-sorting-mode): New variable.
