@@ -3758,7 +3758,7 @@ x_update_menu_appearance (f)
 	      || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	      || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
 	{
-	  Lisp_Object xlfd = font_xlfd_name (LFACE_FONT (lface))
+	  Lisp_Object xlfd = Ffont_xlfd_name (LFACE_FONT (lface));
 #ifdef USE_MOTIF
 	  const char *suffix = "List";
 	  Bool motif = True;
@@ -3779,7 +3779,7 @@ x_update_menu_appearance (f)
 		P_ ((char *base_fontname, Bool motif));
 	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
-	      char *fontsetname = SDATA (xlfd);
+	      char *fontsetname = (char *) SDATA (xlfd);
 #endif
 	      sprintf (line, "%s.pane.menubar*font%s: %s",
 		       myname, suffix, fontsetname);
@@ -3788,7 +3788,7 @@ x_update_menu_appearance (f)
 		       myname, popup_path, suffix, fontsetname);
 	      XrmPutLineResource (&rdb, line);
 	      changed_p = 1;
-	      if (fontsetname != SDATA (xlfd))
+	      if (fontsetname != (char *) SDATA (xlfd))
 		xfree (fontsetname);
 	    }
 	}
