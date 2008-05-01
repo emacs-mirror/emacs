@@ -2,6 +2,11 @@
 
 	* vc.el (vc-dir-mode-map): Don't bind "r".
 
+	* vc-hg.el (vc-hg-extra-fileinfo): New defstruct.
+	(vc-hg-status-printer): New function.
+	(vc-hg-after-dir-status): Deal with copied and renamed files.
+	(vc-hg-dir-status): Add flag to show copied files.
+
 2008-05-01  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-last-sorting-mode): New variable.

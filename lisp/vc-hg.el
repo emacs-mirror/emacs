@@ -473,7 +473,27 @@ REV is the revision to check out into WORKFILE."
 
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
-;; XXX Experimental function for the vc-dired replacement.
+(defstruct (vc-hg-extra-fileinfo
+            (:copier nil)
+            (:constructor vc-hg-create-extra-fileinfo (rename-state extra-name))
+            (:conc-name vc-hg-extra-fileinfo->))
+  rename-state        ;; rename or copy state
+  extra-name)         ;; original name for copies and rename targets, new name for 
+
+(defun vc-hg-status-printer (info)
+  "Pretty-printer for the vc-dir-fileinfo structure."
+  (let ((extra (vc-dir-fileinfo->extra info)))
+    (vc-default-status-printer 'Hg info)
+    (when extra
+      (insert (propertize
+	       (format "   (%s %s)"
+		       (case (vc-hg-extra-fileinfo->rename-state extra)
+			 ('copied "copied from")
+			 ('renamed-from "renamed from")
+			 ('renamed-to "renamed to"))
+		       (vc-hg-extra-fileinfo->extra-name extra))
+	       'face 'font-lock-comment-face)))))
+
 (defun vc-hg-after-dir-status (update-function)
   (let ((status-char nil)
 	(file nil)
@@ -484,24 +504,50 @@ REV is the revision to check out into WORKFILE."
 		       (?M . edited)
 		       (?I . ignored)
 		       (?! . missing)
+		       (?  . copy-rename-line)
 		       (?? . unregistered)))
 	(translated nil)
-	(result nil))
+	(result nil)
+	(last-added nil)
+	(last-line-copy nil))
       (goto-char (point-min))
       (while (not (eobp))
-	(setq status-char (char-after))
+	(setq translated (cdr (assoc (char-after) translation)))
 	(setq file
 	      (buffer-substring-no-properties (+ (point) 2)
 					      (line-end-position)))
-	(setq translated (assoc status-char translation))
-	(when (and translated (not (eq (cdr translated) 'up-to-date)))
-	  (push (list file (cdr translated)) result))
+	(cond ((not translated)
+	       (setq last-line-copy nil))
+	      ((eq translated 'up-to-date)
+	       (setq last-line-copy nil))
+	      ((eq translated 'copy-rename-line)
+	       ;; For copied files the output looks like this:
+	       ;; A COPIED_FILE_NAME
+	       ;;   ORIGINAL_FILE_NAME
+	       (setf (nth 2 last-added) 
+		     (vc-hg-create-extra-fileinfo 'copied file))
+	       (setq last-line-copy t))
+	      ((and last-line-copy (eq translated 'removed))
+	       ;; For renamed files the output looks like this:
+	       ;; A NEW_FILE_NAME
+	       ;;   ORIGINAL_FILE_NAME
+	       ;; R ORIGINAL_FILE_NAME
+	       ;; We need to adjust the previous entry to not think it is a copy.
+	       (setf (vc-hg-extra-fileinfo->rename-state (nth 2 last-added))
+		     'renamed-from)
+	       (push (list file translated
+			   (vc-hg-create-extra-fileinfo
+			    'renamed-to (nth 0 last-added))) result)
+	       (setq last-line-copy nil))
+	      (t
+	       (setq last-added (list file translated nil))
+	       (push last-added result)
+	       (setq last-line-copy nil)))
 	(forward-line))
       (funcall update-function result)))
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-hg-dir-status (dir update-function)
-  (vc-hg-command (current-buffer) 'async dir "status")
+  (vc-hg-command (current-buffer) 'async dir "status" "-C")
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
 
