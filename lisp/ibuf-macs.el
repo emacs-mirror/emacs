@@ -150,7 +150,10 @@ value if and only if `a' is \"less than\" `b'.
        ,(or documentation "No :documentation specified for this sorting method.")
        (interactive)
        (setq ibuffer-sorting-mode ',name)
-       (ibuffer-redisplay t))
+       (when (eq ibuffer-sorting-mode ibuffer-last-sorting-mode)
+	 (setq ibuffer-sorting-reversep (not ibuffer-sorting-reversep)))
+       (ibuffer-redisplay t)
+       (setq ibuffer-last-sorting-mode ',name))
      (push (list ',name ,description
 		 #'(lambda (a b)
 		     ,@body))
