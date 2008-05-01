@@ -6341,7 +6341,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 			     (newheight
 			      - 1
 			      - FRAME_TOP_MARGIN (f)),
-			      0);
+			     2);
 	  XSETFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top_line,
 		       newheight - 1);
 	  set_window_height (FRAME_MINIBUF_WINDOW (f), 1, 0);
@@ -6349,7 +6349,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
       else
 	/* Frame has just one top-level window.  */
 	set_window_height (FRAME_ROOT_WINDOW (f),
-			   newheight - FRAME_TOP_MARGIN (f), 0);
+			   newheight - FRAME_TOP_MARGIN (f), 2);
 
       if (FRAME_TERMCAP_P (f) && !pretend)
 	FrameRows (FRAME_TTY (f)) = newheight;
@@ -6357,7 +6357,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 
   if (new_frame_total_cols != FRAME_TOTAL_COLS (f))
     {
-      set_window_width (FRAME_ROOT_WINDOW (f), new_frame_total_cols, 0);
+      set_window_width (FRAME_ROOT_WINDOW (f), new_frame_total_cols, 2);
       if (FRAME_HAS_MINIBUF_P (f))
 	set_window_width (FRAME_MINIBUF_WINDOW (f), new_frame_total_cols, 0);
 
