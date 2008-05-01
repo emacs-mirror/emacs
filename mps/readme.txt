@@ -79,6 +79,33 @@ Impact:
     mps_arena_destroy().
 Fixed: correctly release all of this temporary memory.
 
+<http://www.ravenbrook.com/project/mps/issue/job001809/>
+Defect discovered:
+  - AMC pools (mps_class_amc) temporarily retain the memory that was
+    used for a dead object, if there is an ambiguous reference (such 
+    as a value on the stack) that happens to point at the interior of 
+    the (dead) object.
+Impact:
+  - if the (dead) object was small- or medium-sized, this temporary 
+    retention is unlikely to cause a problem;
+  - if the (dead) object was very large, then this retention is more
+    likely, and will retain a large amount of memory;
+  - if many large objects are allocated, this retention can cause 
+    memory to be exhausted when it should not be.
+Fix:
+  - it is usually possible for AMC pools to free the memory 
+    immediately (that is, during the collection that identifies the 
+    object as being dead), and AMC pools now do so;
+Future work:
+  - occasionally, there are adjacently located objects that are 
+    ambiguously referenced and are not dead;
+  - in this case it is not possible to free the memory immediately, 
+    and so temporary retention still occurs (this is not expected to 
+    be very common).
+  - however, the MPS could prevent this by avoiding locating small 
+    objects adjacent to very large objects, see:
+      <http://www.ravenbrook.com/project/mps/issue/job001811/>
+
 Other changes:
 
 ]
@@ -464,6 +491,7 @@ B. DOCUMENT HISTORY
 2006-06-29  RHSK  Note fixed job001421, job001455.
 2006-12-13  RHSK  Release 1.107.0
 2007-07-05  RHSK  Release 1.108.0
+2007-12-21  RHSK  Release 1.108.1
 
 
 C. COPYRIGHT AND LICENSE
