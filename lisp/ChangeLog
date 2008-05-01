@@ -3,6 +3,9 @@
 	* ibuffer.el (define-ibuffer-column filename): When the major mode
 	is `vc-dir-mode' show the buffer's default directory.
 
+	* ibuf-ext.el (define-ibuffer-filter filename): Likewise when the
+	major mode is `vc-dir-mode' use the buffer's default directory.
+
 2008-04-30  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-dir-delete-file): Add.
