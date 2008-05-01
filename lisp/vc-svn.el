@@ -300,8 +300,6 @@ This is only possible if SVN is responsible for FILE's directory.")
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-svn-command nil 0 file
 	   "update"
-	   ;; default for verbose checkout: clear the sticky tag so
-	   ;; that the actual update will get the head of the trunk
 	   (cond
 	    ((null rev) "-rBASE")
 	    ((or (eq rev t) (equal rev "")) nil)

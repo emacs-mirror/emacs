@@ -677,6 +677,7 @@
 ;;
 ;; - vc-create-snapshot and vc-retrieve-snapshot should update the
 ;;   buffers that might be visiting the affected files.
+;;
 ;; - Using multiple backends needs work.  Given a CVS directory with some 
 ;;   files checked into git (but not all), using C-x v l to get a log file 
 ;;   from a file only present in git, and then typing RET on some log entry, 
