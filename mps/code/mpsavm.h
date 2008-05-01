@@ -14,12 +14,16 @@ extern mps_arena_class_t mps_arena_class_vm(void);
 extern mps_arena_class_t mps_arena_class_vmnz(void);
 
 
+/* The vm arena class supports extensions to the arena protocol: */
+extern mps_res_t mps_arena_vm_growth(mps_arena_t, size_t, size_t);
+
+
 #endif /* mpsavm_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002,2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
