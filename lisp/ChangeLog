@@ -1,3 +1,7 @@
+2008-05-01  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-delete-file): Check if the file has uncommitted changed.
+
 2008-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in: Revert incorrect fix for claimed bootstrap breakage.

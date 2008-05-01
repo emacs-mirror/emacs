@@ -672,20 +672,17 @@
 ;; - vc-cvs-delete-file should not do a "cvs commit" immediately after
 ;;   removing the file.
 ;;
-;; - vc-delete-file should check if the file contains non-checked in
-;;   changes and warn about losing them.
-;;
 ;; - vc-create-snapshot and vc-retrieve-snapshot should update the
 ;;   buffers that might be visiting the affected files.
 ;;
-;; - Using multiple backends needs work.  Given a CVS directory with some 
-;;   files checked into git (but not all), using C-x v l to get a log file 
-;;   from a file only present in git, and then typing RET on some log entry, 
+;; - Using multiple backends needs work.  Given a CVS directory with some
+;;   files checked into git (but not all), using C-x v l to get a log file
+;;   from a file only present in git, and then typing RET on some log entry,
 ;;   vc will bombs out because it wants to see the file being in CVS.
 ;;   Those logs should likely use a local variable to hardware the VC they
 ;;   are supposed to work with.
 ;;
-;; More issues here: 
+;; More issues here:
 ;; http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg00664.html
 
 ;;; Code:
@@ -2998,6 +2995,9 @@ specific headers."
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
+    ;; PCL-CVS binds "r" to the delete function, but dann objects to ANY binding
+    ;; <http://thread.gmane.org/gmane.emacs.devel/96234>
+    ;; (define-key map "D" 'vc-dir-delete-file)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
     ;; need to find the file from the mouse position, not `point'.
@@ -4037,7 +4037,12 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (unless (vc-find-backend-function backend 'delete-file)
       (error "Deleting files under %s is not supported in VC" backend))
     (when (and buf (buffer-modified-p buf))
-      (error "Please save files before deleting them"))
+      (error "Please save or undo your changes before deleting %s" file))
+    (let ((state (vc-state file)))
+      (when (eq state 'edited)
+        (error "Please commit or undo your changes before deleting %s" file))
+      (when (eq state 'conflict)
+        (error "Please resolve the conflicts before deleting %s" file)))
     (unless (y-or-n-p (format "Really want to delete %s? "
 			      (file-name-nondirectory file)))
       (error "Abort!"))
