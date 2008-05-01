@@ -214,6 +214,7 @@ view of the buffers."
 		 (const :tag "Major mode" :value major-mode))
   :group 'ibuffer)
 (defvar ibuffer-sorting-mode nil)
+(defvar ibuffer-last-sorting-mode nil)
 
 (defcustom ibuffer-default-sorting-reversep nil
   "If non-nil, reverse the default sorting order."
@@ -1997,7 +1998,10 @@ the value of point at the beginning of the line for that buffer."
   "Sort the buffers by last view time."
   (interactive)
   (setq ibuffer-sorting-mode 'recency)
-  (ibuffer-update nil t))
+  (when (eq ibuffer-last-sorting-mode 'recency)
+    (setq ibuffer-sorting-reversep (not ibuffer-sorting-reversep)))
+  (ibuffer-update nil t)
+  (setq ibuffer-last-sorting-mode 'recency))
 
 (defun ibuffer-update-format ()
   (when (null ibuffer-current-format)
