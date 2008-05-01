@@ -106,6 +106,18 @@ Future work:
     objects adjacent to very large objects, see:
       <http://www.ravenbrook.com/project/mps/issue/job001811/>
 
+<http://www.ravenbrook.com/project/mps/issue/job001737/>
+Further changes to arena growth (see notes below for version 1.108.1).
+When the arena cannot grow by the desired increment, the MPS 
+attempts successively smaller increments, but with a more fine-grained 
+search than in version 1.108.1, thereby achieveing an increment that 
+more closely matches the largest available chunk of remaining 
+address-space.
+New interface function mps_arena_vm_growth().  This function allows
+the client more control over how a VM arena (mps_arena_class_vm) 
+grows.  The interface is under development and is likely to change; 
+please contact us if you would like further details.
+
 Other changes:
 
 ]
