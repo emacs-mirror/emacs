@@ -1,3 +1,7 @@
+2008-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in: Revert incorrect fix for claimed bootstrap breakage.
+
 2008-05-01  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file-hook.el: New file split from epa-file.el.
@@ -590,6 +594,10 @@
 	(whitespace-report-list): Const initialization fix.
 	(whitespace-color-on): Code fix.
 
+2008-04-27  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.el: Unbreak bootstrap.
+
 2008-04-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-replace-environment-variables): New defun.
@@ -871,6 +879,8 @@
 	(read-file-name): New fun, moved from fileio.c.
 	* cus-start.el: Remove insert-default-directory and
 	read-file-name-completion-ignore-case.
+
+	* Makefile.in (emacs-deps): Leave it empty.
 
 2008-04-23  Magnus Henoch  <mange@freemail.hu>
 
