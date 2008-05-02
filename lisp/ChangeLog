@@ -1,3 +1,8 @@
+2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-hooks.el (vc-call, vc-state): Fix typos in docstrings.
+	(vc-default-state-heuristic): Doc fix.
+
 2008-05-02  Richard Sharman  <rsharman@pobox.com>
 
 	* hilit-chg.el (highlight-changes-mode): Removed references to
