@@ -133,14 +133,14 @@ through the history commands.  It should be a string, a list of
 strings, or @code{nil}.  The string or strings become the minibuffer's
 ``future history,'' available to the user with @kbd{M-n}.
 
-If @var{read} is non-@code{nil}, then @var{default} is also used as
-the input to @code{read}, if the user enters empty input.  (If
-@var{read} is non-@code{nil} and @var{default} is @code{nil}, empty
-input results in an @code{end-of-file} error.)  However, in the usual
-case (where @var{read} is @code{nil}), @code{read-from-minibuffer}
-ignores @var{default} when the user enters empty input and returns an
-empty string, @code{""}.  In this respect, it differs from all the
-other minibuffer input functions in this chapter.
+If @var{read} is non-@code{nil}, then @var{default} is also used
+as the input to @code{read}, if the user enters empty input.
+If @var{default} is a list of strings, the first string is used as the input.
+If @var{default} is @code{nil}, empty input results in an @code{end-of-file} error.
+However, in the usual case (where @var{read} is @code{nil}),
+@code{read-from-minibuffer} ignores @var{default} when the user enters
+empty input and returns an empty string, @code{""}.  In this respect,
+it differs from all the other minibuffer input functions in this chapter.
 
 If @var{keymap} is non-@code{nil}, that keymap is the local keymap to
 use in the minibuffer.  If @var{keymap} is omitted or @code{nil}, the
