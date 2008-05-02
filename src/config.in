@@ -90,6 +90,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
+/* Define to 1 if you have the <AvailabilityMacros.h> header file. */
+#undef HAVE_AVAILABILITYMACROS_H
+
 /* Define to 1 if you have the `bcmp' function. */
 #undef HAVE_BCMP
 
