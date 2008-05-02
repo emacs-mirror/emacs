@@ -1,3 +1,10 @@
+2008-05-02  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-start): Move setting of
+	compilation-directory after (funcall mode) as that resets local
+	variables, this fixes recompile in grep buffers.
+	* grep.el (grep-mode-map): Bind "g" to recompile (like in dired &c).
+
 2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-arch.el, vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el,

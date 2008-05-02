@@ -1159,10 +1159,6 @@ Returns the compilation buffer created."
       (buffer-disable-undo (current-buffer))
       ;; first transfer directory from where M-x compile was called
       (setq default-directory thisdir)
-      ;; Remember the original dir, so we can use it when we recompile.
-      ;; default-directory' can't be used reliably for that because it may be
-      ;; affected by the special handling of "cd ...;".
-      (set (make-local-variable 'compilation-directory) thisdir)
       ;; Make compilation buffer read-only.  The filter can still write it.
       ;; Clear out the compilation buffer.
       (let ((inhibit-read-only t)
@@ -1182,6 +1178,11 @@ Returns the compilation buffer created."
 	  (setq buffer-read-only nil)
 	  (with-no-warnings (comint-mode))
 	  (compilation-shell-minor-mode))
+        ;; Remember the original dir, so we can use it when we recompile.
+        ;; default-directory' can't be used reliably for that because it may be
+        ;; affected by the special handling of "cd ...;".
+        ;; NB: must be fone after (funcall mode) as that resets local variables
+        (set (make-local-variable 'compilation-directory) thisdir)
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
