@@ -2991,10 +2991,8 @@ specific headers."
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
-    ;; need to find the file from the mouse position, not `point'.
-    ;; (define-key map [(down-mouse-3)] 'vc-dir-menu)
-    ;; (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
+    (define-key map [(down-mouse-3)] 'vc-dir-menu)
+    (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -3022,10 +3020,21 @@ specific headers."
 	      '("----")
 	      ext-binding))))
 
+(defmacro vc-at-event (event &rest body)
+  "Evaluate `body' wich point located at event-start of `event'.
+If `body' uses `event', it should be a variable,
+ otherwise it will be evaluated twice."
+  (let ((posn (gensym "vc-at-event-posn")))
+    `(let ((,posn (event-start ,event)))
+       (save-excursion
+         (set-buffer (window-buffer (posn-window ,posn)))
+         (goto-char (posn-point ,posn))
+         ,@body))))
+
 (defun vc-dir-menu (e)
   "Popup the VC status menu."
   (interactive "e")
-  (popup-menu vc-dir-menu-map e))
+  (vc-at-event e (popup-menu vc-dir-menu-map e)))
 
 (defvar vc-dir-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -3416,7 +3425,7 @@ If a prefix argument is given, move by that many lines."
 	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
       (setf (vc-dir-fileinfo->marked file) t)
       (ewoc-invalidate vc-ewoc crt)
-      (unless arg
+      (unless (or arg (mouse-event-p last-command-event))
 	(vc-dir-next-line 1)))))
 
 (defun vc-dir-mark ()
@@ -3481,7 +3490,8 @@ share the same state."
          (file (ewoc-data crt)))
     (setf (vc-dir-fileinfo->marked file) nil)
     (ewoc-invalidate vc-ewoc crt)
-    (vc-dir-next-line 1)))
+    (unless (mouse-event-p last-command-event)
+      (vc-dir-next-line 1))))
 
 (defun vc-dir-unmark ()
   "Unmark the current file or all files in the region.
@@ -3545,15 +3555,15 @@ that share the same state."
 	(vc-dir-unmark-file)
       (vc-dir-mark-file))))
 
-(defun vc-dir-toggle-mark ()
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-toggle-mark-file))
+(defun vc-dir-toggle-mark (e)
+  (interactive "e")
+  (vc-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
 
 (defun vc-dir-register ()
   "Register the marked files, or the current file if no marks."
   (interactive)
   ;; FIXME: Just pass the fileset to vc-register.
-  (mapc (lambda (arg) (vc-register nil arg)) 
+  (mapc (lambda (arg) (vc-register nil arg))
 	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
 
 (defun vc-dir-delete-file ()

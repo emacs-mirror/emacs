@@ -828,6 +828,11 @@ in the current Emacs session, then this function may return nil."
   "Return non-nil if OBJECT is a mouse movement event."
   (eq (car-safe object) 'mouse-movement))
 
+(defun mouse-event-p (object)
+  "Return non-nil if OBJECT is a mouse click event."
+  ;; is this really correct? maybe remove mouse-movement?
+  (memq (event-basic-type object) '(mouse-1 mouse-2 mouse-3 mouse-movement)))
+
 (defsubst event-start (event)
   "Return the starting position of EVENT.
 If EVENT is a mouse or key press or a mouse click, this returns the location

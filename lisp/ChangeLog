@@ -1,3 +1,11 @@
+2008-05-02  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-dir-mode-map): Enable mouse bindings.
+	(vc-at-event): New macro: run the body at the even location.
+	(vc-dir-menu, vc-dir-toggle-mark): Use it.
+	(vc-dir-mark-file, vc-dir-unmark-file): Move only on non-mouse events.
+	* subr.d (mouse-event-p): Check if the even is mouse-related.
+
 2008-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Don't
