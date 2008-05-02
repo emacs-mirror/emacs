@@ -1,5 +1,8 @@
 2008-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (minibuffer-with-setup-hook): Allow `fun' expressions rather
+	than only value.
+
 	* dired.el (dired-read-dir-and-switches):
 	Set minibuffer-completing-file-name and call substitute-in-file-name.
 

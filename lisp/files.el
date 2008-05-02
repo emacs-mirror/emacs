@@ -1124,7 +1124,7 @@ Recursive uses of the minibuffer will not be affected."
 	       ;; Clear out this hook so it does not interfere
 	       ;; with any recursive minibuffer usage.
 	       (remove-hook 'minibuffer-setup-hook ,hook)
-	       (,fun)))
+	       (funcall ,fun)))
        (unwind-protect
 	   (progn
 	     (add-hook 'minibuffer-setup-hook ,hook)
