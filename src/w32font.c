@@ -211,12 +211,10 @@ w32font_open (f, font_entity, pixel_size)
      int pixel_size;
 {
   Lisp_Object font_object;
-  struct w32font_info *w32_font;
 
   font_object = font_make_object (VECSIZE (struct w32font_info));
-  w32_font = (struct w32font_info *) XFONT_OBJECT (font_object);
 
-  if (!w32font_open_internal (f, font_entity, pixel_size, w32_font))
+  if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
       return Qnil;
     }
@@ -746,23 +744,32 @@ w32font_match_internal (frame, font_spec, opentype_only)
 }
 
 int
-w32font_open_internal (f, font_entity, pixel_size, w32_font)
+w32font_open_internal (f, font_entity, pixel_size, font_object)
      FRAME_PTR f;
      Lisp_Object font_entity;
      int pixel_size;
-     struct w32font_info *w32_font;
+     Lisp_Object font_object;
 {
-  int len, size;
+  int len, size, i;
   LOGFONT logfont;
   HDC dc;
   HFONT hfont, old_font;
   Lisp_Object val, extra;
   /* For backwards compatibility.  */
   W32FontStruct *compat_w32_font;
+  struct w32font_info *w32_font;
+  struct font * font;
 
-  struct font * font = (struct font *) w32_font;
+  w32_font = (struct w32font_info *) XFONT_OBJECT (font_object);
+  font = (struct font *) w32_font;
+
   if (!font)
     return 0;
+
+  /* Copy from font entity.  */
+  for (i = 0; i < FONT_ENTITY_MAX; i++)
+    ASET (font_object, i, AREF (font_entity, i));
+  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
 
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
