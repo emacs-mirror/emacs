@@ -1,3 +1,7 @@
+2008-05-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* Makefile.in (lisp): Add epa-file-hook.elc.
+
 2008-05-02  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.c (Fread_from_minibuffer, Fread_string, Fread_command)
