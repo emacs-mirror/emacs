@@ -70,7 +70,7 @@ Lisp_Object w32font_match_internal P_ ((Lisp_Object frame,
                                         Lisp_Object font_spec,
                                         int opentype_only));
 int w32font_open_internal P_ ((FRAME_PTR f, Lisp_Object font_entity,
-                               int pixel_size, struct w32font_info *w32_font));
+                               int pixel_size, Lisp_Object font_object));
 void w32font_close P_ ((FRAME_PTR f, struct font *font));
 int w32font_has_char P_ ((Lisp_Object entity, int c));
 int w32font_text_extents P_ ((struct font *font, unsigned *code, int nglyphs,
