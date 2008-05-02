@@ -287,8 +287,8 @@ It is usually called via the `vc-call' macro."
 (defmacro vc-call (fun file &rest args)
   "A convenience macro for calling VC backend functions.
 Functions called by this macro must accept FILE as the first argument.
-ARGS specifies any additional arguments. FUN should be unquoted.
-BEWARE!! `file' is evaluated twice!!"
+ARGS specifies any additional arguments.  FUN should be unquoted.
+BEWARE!! FILE is evaluated twice!!"
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
 
 (defsubst vc-parse-buffer (pattern i)
@@ -365,7 +365,7 @@ the root is the last directory for which WITNESS *is* found."
 ;; Access functions to file properties
 ;; (Properties should be _set_ using vc-file-setprop, but
 ;; _retrieved_ only through these functions, which decide
-;; if the property is already known or not. A property should
+;; if the property is already known or not.  A property should
 ;; only be retrieved by vc-file-getprop if there is no
 ;; access function.)
 
@@ -531,8 +531,7 @@ For registered files, the value returned is one of:
   'unregistered      The file is not under version control.
 
 A return of nil from this function means we have no information on the
-status of this file.
-"
+status of this file."
   ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
   ;; This is potentially a source of backward-compatibility bugs.
 
@@ -556,7 +555,7 @@ rather than the heuristic."
   (eq (vc-state file) 'up-to-date))
 
 (defun vc-default-state-heuristic (backend file)
-  "Default implementation of vc-state-heuristic.
+  "Default implementation of vc-BACKEND-state-heuristic.
 It simply calls the real state computation function `vc-BACKEND-state'
 and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
@@ -679,8 +678,8 @@ this function."
   "Change read-only status of current buffer, perhaps via version control.
 
 If the buffer is visiting a file registered with version control,
-throw an error, because this is not a safe or really meaningful operation 
-on any version-control system newer than RCS.  
+throw an error, because this is not a safe or really meaningful operation
+on any version-control system newer than RCS.
 
 Otherwise, just change the read-only flag of the buffer.
 
