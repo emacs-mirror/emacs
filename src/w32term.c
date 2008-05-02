@@ -1900,7 +1900,7 @@ x_draw_glyph_string_foreground (s)
           x += g->pixel_width;
         }
     }
-
+  else
     {
       int boff = s->font->baseline_offset;
       struct font *font = s->font;
