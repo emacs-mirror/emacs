@@ -871,6 +871,7 @@ shortlisp= \
 	../lisp/vc-hooks.elc \
 	../lisp/jka-cmpr-hook.elc \
 	../lisp/ediff-hook.elc \
+	../lisp/epa-file-hook.elc \
 	../lisp/widget.elc \
 	../lisp/window.elc \
 	../lisp/version.el

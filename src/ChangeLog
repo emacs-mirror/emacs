@@ -1,6 +1,6 @@
 2008-05-02  Daiki Ueno  <ueno@unixuser.org>
 
-	* Makefile.in (lisp): Add epa-file-hook.elc.
+	* Makefile.in (lisp, shortlisp): Add epa-file-hook.elc.
 
 2008-05-02  Juri Linkov  <juri@jurta.org>
 
