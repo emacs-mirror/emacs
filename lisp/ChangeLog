@@ -1,3 +1,9 @@
+2008-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-register): Change argument order so that the prefix
+	argument is assigned correctly.
+	(vc-next-action, vc-dir-register): Update for the above change.
+
 2008-05-01  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (occur-read-primary-args): Set default to the car of
@@ -25,8 +31,8 @@
 	* vc.el (vc-default-dired-state): Change needs-patch state to
 	needs-update, since the name now shows up in dir-status listings
 	and was somewhat misleading.
-	* vc.el (vc-cvs-delete-file) Don't do a "cvs commit" immediately after
-	removing the file.
+	* vc-cvs.el (vc-cvs-delete-file) Don't do a "cvs commit"
+	immediately after removing the file.
 	* vc.el (vc-next-action): More informative message when a fileset
 	is in a mixed state.
 

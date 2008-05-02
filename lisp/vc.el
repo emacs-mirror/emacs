@@ -652,6 +652,10 @@
 ;; - vc-dir-next-line should not print an "end of buffer" message when
 ;;   invoked with the cursor on the last file.
 ;;
+;; - add commands to move to the prev/next directory in vc-dir.
+;;
+;; - document vc-dir in the manual.
+;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
 ;;   vc-dired/vc-dir, it is possible that these commands are called
@@ -670,9 +674,9 @@
 ;;   Those logs should likely use a local variable to hardware the VC they
 ;;   are supposed to work with.
 ;;
-;; More issues here:
-;; http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg00664.html
-
+;; - backends that care about vc-stay-local should try to take it into
+;;   account for vc-dir.  Is this likely to be useful???
+;;
 ;;; Code:
 
 (require 'vc-hooks)
@@ -1652,7 +1656,7 @@ merge in the changes into your working copy."
      ;; Files aren't registered
      ((or (eq state 'unregistered)
 	  (eq state 'ignored))
-      (mapc 'vc-register files))
+      (mapc (lambda (arg) (vc-register nil arg)) files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -1795,7 +1799,7 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional fname set-revision comment)
+(defun vc-register (&optional set-revision fname comment)
   "Register into a version control system.
 If FNAME is given register that file, otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
@@ -2971,9 +2975,6 @@ specific headers."
     (define-key map "=" 'vc-diff)   ;; C-x v =
     (define-key map "a" 'vc-dir-register)
     (define-key map "+" 'vc-update) ;; C-x v +
-
-    ;;XXX: Maybe use something else here, so we can use 'U' for unmark
-    ;;all, similar to 'M'..
     (define-key map "R" 'vc-revert) ;; u is taken by unmark.
 
     ;; Can't be "g" (as in vc map), so "A" for "Annotate".
@@ -2986,9 +2987,6 @@ specific headers."
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
-    ;; PCL-CVS binds "r" to the delete function, but dann objects to ANY binding
-    ;; <http://thread.gmane.org/gmane.emacs.devel/96234>
-    ;; (define-key map "D" 'vc-dir-delete-file)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
     ;; need to find the file from the mouse position, not `point'.
@@ -3552,8 +3550,8 @@ that share the same state."
   "Register the marked files, or the current file if no marks."
   (interactive)
   ;; FIXME: Just pass the fileset to vc-register.
-  (mapc 'vc-register (or (vc-dir-marked-files)
-                         (list (vc-dir-current-file)))))
+  (mapc (lambda (arg) (vc-register nil arg)) 
+	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
 
 (defun vc-dir-delete-file ()
   "Delete the marked files, or the current file if no marks."
