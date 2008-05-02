@@ -2553,6 +2553,7 @@ AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1
 ### Use Mac OS X Carbon API to implement GUI.
 if test "${HAVE_CARBON}" = "yes"; then
   AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
+  AC_CHECK_HEADERS(AvailabilityMacros.h)
   ## Specify the install directory
   carbon_appdir=
   if test "${carbon_appdir_x}" != ""; then
