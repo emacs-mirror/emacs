@@ -1,3 +1,9 @@
+2008-05-02  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (Fread_from_minibuffer, Fread_string, Fread_command)
+	(Fread_variable, Fread_buffer, Fcompleting_read): Document
+	the DEFAULT argument as a list of default values in docstrings.
+
 2008-05-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1210000.
