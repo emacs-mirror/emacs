@@ -621,9 +621,6 @@
 ;;
 ;; - add a mechanism for ignoring files.
 ;;
-;; - vc-next-action should do something about 'missing files. Maybe
-;;   just warn, or offer to checkout.
-;;
 ;; - When vc-next-action calls vc-checkin it could pre-fill the
 ;;   *VC-log* buffer with some obvious items: the list of files that
 ;;   were added, the list of files that were removed.  If the diff is
@@ -1653,6 +1650,8 @@ merge in the changes into your working copy."
 		  (error "Aborted")))))))
     ;; Do the right thing
     (cond
+     ((eq state 'missing)
+      (error "Fileset files are missing, so cannot be operated on."))
      ;; Files aren't registered
      ((or (eq state 'unregistered)
 	  (eq state 'ignored))

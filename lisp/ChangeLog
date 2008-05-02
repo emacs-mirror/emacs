@@ -35,8 +35,8 @@
 	and was somewhat misleading.
 	* vc-cvs.el (vc-cvs-delete-file) Don't do a "cvs commit"
 	immediately after removing the file.
-	* vc.el (vc-next-action): More informative message when a fileset
-	is in a mixed state.
+	* vc.el (vc-next-action): More informative messages when a fileset
+	is in a mixed state or files are missing.
 
 2008-05-01  Sam Steingold  <sds@gnu.org>
 
