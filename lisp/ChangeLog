@@ -1,5 +1,8 @@
 2008-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.el (dired-read-dir-and-switches):
+	Set minibuffer-completing-file-name and call substitute-in-file-name.
+
 	* minibuffer.el (completion-hilit-commonality): Revert last change:
 	the leftover code was actually useful.
 
