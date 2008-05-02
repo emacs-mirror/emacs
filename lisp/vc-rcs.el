@@ -118,7 +118,7 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-rcs-state (file)
   "Implementation of `vc-state' for RCS."
-  (if (not (vc-rc-registered f))
+  (if (not (vc-rcs-registered file))
       'unregistered
     (or (boundp 'vc-rcs-headers-result)
 	(and vc-consult-headers

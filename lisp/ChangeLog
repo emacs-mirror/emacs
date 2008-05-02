@@ -1,5 +1,7 @@
 2008-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-rcs.el (vc-rcs-state): Fix typos.
+
 	* vc.el (vc-register): Change argument order so that the prefix
 	argument is assigned correctly.
 	(vc-next-action, vc-dir-register): Update for the above change.
