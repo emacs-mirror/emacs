@@ -11,6 +11,10 @@
 
 2008-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el (octave-abbrev-table): Move defvar and
+	initialization into define-abbrev-table.  Use :regexp.
+	(octave-mode-syntax-table): Don't set word syntax for `.
+
 	* files.el (minibuffer-with-setup-hook): Allow `fun' expressions rather
 	than only value.
 
