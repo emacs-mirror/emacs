@@ -1620,7 +1620,8 @@ merge in the changes into your working copy."
       ;; Ignore directories, they are compatible with anything.
       (unless (file-directory-p file)
 	(unless (vc-compatible-state (vc-state file) state)
-	  (error "Fileset is in a mixed-up state %s %s" state (vc-state file)))
+	  (error "%s:%s clashes with %s:%s"
+		 file (vc-state file) (car files) state))
 	(unless (eq (vc-checkout-model backend file) model)
 	  (error "Fileset has mixed checkout models"))))
     ;; Check for buffers in the fileset not matching the on-disk contents.
