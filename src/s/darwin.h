@@ -262,9 +262,31 @@ Boston, MA 02110-1301, USA.  */
 /* Indicate that we are compiling for Mac OS X.  */
 #define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
 
+#ifdef HAVE_CARBON
+
+#ifdef HAVE_AVAILABILITYMACROS_H
+#include <AvailabilityMacros.h>
+#endif
+
+/* Whether to use the Image I/O framework for reading images.  */
+#ifndef USE_MAC_IMAGE_IO
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040 && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1040 || MAC_OS_X_VERSION_MIN_REQUIRED < 1020)
+#define USE_MAC_IMAGE_IO 1
+#endif
+#endif
+
+/* If the Image I/O framework is not used, fall back on QuickTime.  */
+#if USE_MAC_IMAGE_IO
+#define LIBS_IMAGE
+#else
+#define LIBS_IMAGE -framework QuickTime
+#endif
+
+#endif	/* HAVE_CARBON */
+
 /* Link in the Carbon lib. */
 #ifdef HAVE_CARBON
-#define LIBS_CARBON -framework Carbon -framework QuickTime
+#define LIBS_CARBON -framework Carbon LIBS_IMAGE
 #else
 #define LIBS_CARBON
 #endif
