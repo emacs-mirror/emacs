@@ -647,13 +647,13 @@ Optional argument LOCALP is always ignored."
           (setq current-vc-state nil)
           (setq current-bzr-state nil)))))))
 
-(defun vc-bzr-dired-state-info (file)
-  "Bzr-specific version of `vc-dired-state-info'."
+(defun vc-bzr-prettify-state-info (file)
+  "Bzr-specific version of `vc-prettify-state-info'."
   (if (eq 'edited (vc-state file))
         (concat "(" (symbol-name (or (vc-file-getprop file 'vc-bzr-state) 
                                      'edited)) ")")
     ;; else fall back to default vc.el representation
-    (vc-default-dired-state-info 'Bzr file)))
+    (vc-default-prettify-state-info 'Bzr file)))
 
 ;; XXX: this needs testing, it's probably incomplete. 
 (defun vc-bzr-after-dir-status (update-function)

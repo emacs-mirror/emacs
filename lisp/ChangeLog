@@ -1,3 +1,10 @@
+2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-default-dired-state-info): Change name of primitive
+	to prettify-state-info, in preparation for ripping out dired mode.
+	* vc-bzr.el (vc-bzr-dired-state-info): Change name of primitive
+	to prettify-state-info, in preparation for ripping out dired mode.
+
 2008-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-rcs.el (vc-rcs-state): Fix typos.
@@ -33,14 +40,14 @@
 	* vc.el (vc-default-dired-state): Change needs-patch state to
 	needs-update, since the name now shows up in dir-status listings
 	and was somewhat misleading.
-	* vc-cvs.el (vc-cvs-delete-file) Don't do a "cvs commit"
+	* vc-cvs.el (vc-cvs-delete-file): Don't do a "cvs commit"
 	immediately after removing the file.
 	* vc.el (vc-next-action): More informative messages when a fileset
 	is in a mixed state or files are missing.
 
 2008-05-01  Sam Steingold  <sds@gnu.org>
 
-	* vc.el (vc-delete-file): Check if the file has uncommitted changed.
+	* vc.el (vc-delete-file): Check if the file has uncommitted changes.
 
 2008-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 

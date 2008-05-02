@@ -254,10 +254,10 @@
 ;;   The default implementation deals well with all states that
 ;;   `vc-state' can return.
 ;;
-;; - dired-state-info (file)
+;; - prettify-state-info (file)
 ;;
 ;;   Translate the `vc-state' property of FILE into a string that can be
-;;   used in a vc-dired buffer.  The default implementation deals well
+;;   used in a human-readable buffer.  The default implementation deals well
 ;;   with all states that `vc-state' can return.
 ;;
 ;; STATE-CHANGING FUNCTIONS
@@ -673,6 +673,9 @@
 ;;
 ;; - backends that care about vc-stay-local should try to take it into
 ;;   account for vc-dir.  Is this likely to be useful???
+;;
+;; - vc-dir listing needs a footer generated when it's done to make it obvious
+;; that it has finished.
 ;;
 ;;; Code:
 
@@ -2678,7 +2681,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	    (forward-line 1)))
 	 ;; Either we're in non-terse mode or it's out of date
 	 ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
-	  (vc-dired-reformat-line (vc-call dired-state-info filename))
+	  (vc-dired-reformat-line (vc-call prettify-state-info filename))
 	  (forward-line 1))
 	 ;; Remaining cases are under version control but uninteresting
 	 (t
@@ -4256,7 +4259,7 @@ to provide the `find-revision' operation instead."
 	    (insert-file-contents-literally tmpfile)))
       (delete-file tmpfile))))
 
-(defun vc-default-dired-state-info (backend file)
+(defun vc-default-prettify-state-info (backend file)
   (let* ((state (vc-state file))
 	(statestring
 	 (cond

@@ -50,7 +50,7 @@
 ;; * checkout-model (file)                     OK
 ;; - workfile-unchanged-p (file)               OK
 ;; - mode-line-string (file)                   NOT NEEDED
-;; - dired-state-info (file)                   OK
+;; - prettify-state-info (file)                OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
