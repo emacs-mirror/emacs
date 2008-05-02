@@ -1739,15 +1739,15 @@ x_set_glyph_string_clipping_exactly (src, dst)
 }
 
 /* RIF:
-   Compute left and right overhang of glyph string S.  If S is a glyph
-   string for a composition, assume overhangs don't exist.  */
+   Compute left and right overhang of glyph string S.  */
 
 static void
 w32_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
   if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
+      && s->first_glyph->type == CHAR_GLYPH
+      && !s->font_not_found_p)
     {
       unsigned *code = alloca (sizeof (unsigned) * s->nchars);
       struct font *font = s->font;
