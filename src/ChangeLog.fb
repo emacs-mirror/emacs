@@ -1,3 +1,7 @@
+2008-05-01  Kenichi Handa  <handa@m17n.org>
+
+	* xrdb.c (x_load_resources): Don't setup a fontset resource.
+
 2008-05-02  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32font_open_internal): Change last argument from
