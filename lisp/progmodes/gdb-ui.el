@@ -1950,12 +1950,13 @@ static char *magick[] = {
 		      (add-text-properties
 		       (match-beginning 1) (match-end 1)
 		       '(face font-lock-function-name-face)))
-		    (if (re-search-forward ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$")
+		    (if (re-search-forward
+			 ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$" nil t)
 			(let ((line (match-string 2))
 			      (file (match-string 1)))
 			  (add-text-properties bl el
-					       '(mouse-face highlight
-							    help-echo "mouse-2, RET: visit breakpoint"))
+			       '(mouse-face highlight
+				 help-echo "mouse-2, RET: visit breakpoint"))
 			  (unless (file-exists-p file)
 			    (setq file (cdr (assoc bptno gdb-location-alist))))
 			  (if (and file

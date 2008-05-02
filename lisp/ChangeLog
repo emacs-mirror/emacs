@@ -1,3 +1,8 @@
+2008-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Don't
+	throw error if no file is found.
+
 2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-hooks.el (vc-call, vc-state): Fix typos in docstrings.
