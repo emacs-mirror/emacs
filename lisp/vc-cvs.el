@@ -416,8 +416,7 @@ REV is the revision to check out."
   (message "Checking out %s...done" file))
 
 (defun vc-cvs-delete-file (file)
-  (vc-cvs-command nil 0 file "remove" "-f")
-  (vc-cvs-command nil 0 file "commit" "-mRemoved."))
+  (vc-cvs-command nil 0 file "remove" "-f"))
 
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the working revision on which it was based."

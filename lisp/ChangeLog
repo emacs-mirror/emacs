@@ -25,6 +25,8 @@
 	* vc.el (vc-default-dired-state): Change needs-patch state to
 	needs-update, since the name now shows up in dir-status listings
 	and was somewhat misleading.
+	* vc.el (vc-cvs-delete-file) Don't do a "cvs commit" immediately after
+	removing the file.
 
 2008-05-01  Sam Steingold  <sds@gnu.org>
 

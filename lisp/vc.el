@@ -660,9 +660,6 @@
 ;; - do not default to RCS anymore when the current directory is not
 ;;   controlled by any VCS and the user does C-x v v
 ;;
-;; - vc-cvs-delete-file should not do a "cvs commit" immediately after
-;;   removing the file.
-;;
 ;; - vc-create-snapshot and vc-retrieve-snapshot should update the
 ;;   buffers that might be visiting the affected files.
 ;;
