@@ -199,7 +199,7 @@
 	 ;; State flag for a clean file is now C, might change to =.
 	 ;; The rest of the possible states in "hg status" output:
 	 ;; 	 ! = deleted, but still tracked
-	 ;; should not show up in vc-dired, so don't deal with them
+	 ;; should not show up in VC directory buffers, so don't deal with them
 	 ;; here.
 
 	 ;; Mercurial up to 0.9.5 used C, = is used now.

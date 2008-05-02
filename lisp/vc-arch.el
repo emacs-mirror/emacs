@@ -50,7 +50,7 @@
 ;; - C-x v u does not work.
 ;; - C-x v s does not work.
 ;; - C-x v r does not work.
-;; - VC-dired does not work.
+;; - VC directory listings do not work.
 ;; - And more...
 
 ;;; Code:
