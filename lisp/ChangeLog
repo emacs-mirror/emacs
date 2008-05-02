@@ -4,12 +4,12 @@
 	to prettify-state-info, in preparation for ripping out dired mode.
 	* vc-bzr.el (vc-bzr-dired-state-info): Change name of primitive
 	to prettify-state-info, in preparation for ripping out dired mode.
-	* vc-hooks.el (vc-toggle-read-only): Throw an error when a user 
-	tries this on a version-controlled buffer. it will do useless or 
+	* vc-hooks.el (vc-toggle-read-only): Throw an error when a user
+	tries this on a version-controlled buffer.  It will do useless or
 	actively bad things on any version control system newer than RCS.
-	* vc-hooks.el (vc-dired-resynch-file),
-	vc.el (vc-dired-resynch-file): Change name of primitive to 
-	vc-directory-resynch-file, preoaring to remove dired.
+	* vc-hooks.el (vc-dired-resynch-file):
+	* vc.el (vc-dired-resynch-file): Change name of primitive to
+	vc-directory-resynch-file, preparing to remove dired.
 
 2008-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
