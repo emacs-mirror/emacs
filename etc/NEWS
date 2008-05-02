@@ -715,6 +715,12 @@ for the list of extra keys that are available.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
+** The argument DEFAULT of minibuffer input functions `read-from-minibuffer',
+`read-string', `completing-read', `read-buffer', `read-command',
+`read-variable' now can be a list of default values.  The elements of
+this list are available for inserting to the minibuffer with `M-n'.
+If the user enters empty input, the first element is used as the default.
+
 ** `functionp' returns nil for special forms.
 I.e., it only returns t for objects that can be passed to `funcall'.
 
