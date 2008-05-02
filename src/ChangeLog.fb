@@ -1,3 +1,15 @@
+2008-05-02  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_open_internal): Change last argument from
+        w32font_info struct to font object. Fill in font object from
+        font_entity.
+        (w32font_open): Pass font_object to w32font_open_internal.
+
+        * w32font.h (w32font_open_internal): Update declaration.
+
+        * w32uniscribe.c (uniscribe_open): Pass font_object to
+        w32font_open_internal.
+
 2008-05-01  Jason Rumney  <jasonr@gnu.org>
 
         * font.h (struct font) [WINDOWSNT]: Remove codepage member.
