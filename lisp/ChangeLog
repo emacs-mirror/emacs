@@ -1,3 +1,8 @@
+2008-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-hilit-commonality): Revert last change:
+	the leftover code was actually useful.
+
 2008-05-02  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-dir-mode-map): Enable mouse bindings.
@@ -8,8 +13,8 @@
 
 2008-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Don't
-	throw error if no file is found.
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom):
+	Don't throw error if no file is found.
 
 2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -18,7 +23,7 @@
 
 2008-05-02  Richard Sharman  <rsharman@pobox.com>
 
-	* hilit-chg.el (highlight-changes-mode): Removed references to
+	* hilit-chg.el (highlight-changes-mode): Remove references to
 	hooks that no longer exist.  Because define-minor-mode is used the
 	hook highlight-changes-mode-hook exists and can do what both the
 	old hooks used to do.  The documentation at the top of the file

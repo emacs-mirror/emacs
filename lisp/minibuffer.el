@@ -654,17 +654,24 @@ of the differing parts is, by contrast, slightly highlighted."
       (setcdr last nil)
       (nconc
        (mapcar
-        (lambda (str)
-          ;; Don't modify the string itself.
-          (setq str (copy-sequence str))
-          (put-text-property 0 com-str-len
-                             'font-lock-face 'completions-common-part
-                             str)
-          (if (> (length str) com-str-len)
-              (put-text-property com-str-len (1+ com-str-len)
-                                 'font-lock-face 'completions-first-difference
-                                 str))
-          str)
+        (lambda (elem)
+          (let ((str
+                 ;; Don't modify the string itself, but a copy, since the
+                 ;; the string may be read-only or used for other purposes.
+                 ;; Furthermore, since `completions' may come from
+                 ;; display-completion-list, `elem' may be a list.
+                 (if (consp elem)
+                     (car (setq elem (cons (copy-sequence (car elem))
+                                           (cdr elem))))
+                   (setq elem (copy-sequence elem)))))
+            (put-text-property 0 com-str-len
+                               'font-lock-face 'completions-common-part
+                               str)
+            (if (> (length str) com-str-len)
+                (put-text-property com-str-len (1+ com-str-len)
+                                   'font-lock-face 'completions-first-difference
+                                   str)))
+          elem)
         completions)
        base-size))))
 
