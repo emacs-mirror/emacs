@@ -1,3 +1,9 @@
+2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmm-utils.el (gmm, gmm-verbose, gmm-lazy, gmm-customize-mode)
+	(gmm-image-load-path-for-library): Fix typos in docstrings.
+	(gmm-message): Reflow docstring.
+
 2008-04-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mail-source.el (mail-source-set-1, mail-source-bind): Moved
