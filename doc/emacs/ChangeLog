@@ -1,3 +1,8 @@
+2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* emacs/buffers.texi, emacs/files.texi (Version-control):
+	vc-toggle-read-only is no longer a good idea...
+
 2008-04-29  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Sexp Diary Entries): Clarify diary-float.

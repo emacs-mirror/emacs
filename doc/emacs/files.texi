@@ -1664,15 +1664,6 @@ RCS normally use locking; CVS and Subversion normally use
 merging but can be configured to do locking.  Later systems such as 
 GNU Arch and Mercurial always use merging.
 
-@findex vc-toggle-read-only
-@kindex C-x C-q @r{(Version Control)}
-  As a special convenience that is particularly useful for files with
-locking, you can let Emacs check a file in or out whenever you change
-its read-only flag.  This means, for example, that you cannot
-accidentally edit a file without properly checking it out first.  To
-achieve this, bind the key @kbd{C-x C-q} to @kbd{vc-toggle-read-only}
-in your @file{~/.emacs} file.  (@xref{Init Rebinding}.)
-
 @node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
 
