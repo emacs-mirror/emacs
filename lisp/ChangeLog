@@ -1,3 +1,14 @@
+2008-05-02  Richard Sharman  <rsharman@pobox.com>
+
+	* hilit-chg.el (highlight-changes-mode): Removed references to
+	hooks that no longer exist.  Because define-minor-mode is used the
+	hook highlight-changes-mode-hook exists and can do what both the
+	old hooks used to do.  The documentation at the top of the file
+	was updated to demonstrate this.
+	(highlight-changes-mode): Remove commented out call to a hook
+	function that is no longer there.
+	(hilit-chg-set): Remove running of highlight-changes-enable-hook.
+
 2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-default-dired-state-info): Change name of primitive
