@@ -934,7 +934,7 @@ dired."
 ;;;
 ;;; `dired-do-shell-command' is bound to `!' by dired.el.
 ;;;
-;;; * Redefine `dired-do-shell-command' so it calls
+;;; * Redefine `dired-read-shell-command' so it calls
 ;;;   `dired-guess-shell-command'.
 ;;;
 ;;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
