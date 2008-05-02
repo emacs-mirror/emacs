@@ -1,3 +1,8 @@
+2008-05-02  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Text from Minibuffer): Document a list of
+	default values for `read-from-minibuffer'.
+
 2008-04-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nonascii.texi (Translation of Characters): Fix previous change.
