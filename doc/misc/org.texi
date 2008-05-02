@@ -1003,7 +1003,7 @@ different tree in the current file, or to a different file, the archive file.
 @table @kbd
 @kindex C-c C-x A
 @item C-c C-x A
-Move the curent entry to the @emph{Attic Sibling}.  This is a sibling of the
+Move the current entry to the @emph{Attic Sibling}.  This is a sibling of the
 entry with the heading @samp{Attic} and the tag @samp{ARCHIVE}
 (@pxref{ARCHIVE tag}).  The entry becomes a child of that sibling and in this
 way retains a lot of its original context, including inherited tags and
