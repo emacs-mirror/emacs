@@ -619,10 +619,6 @@
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
-;; - vc-register should register a fileset at a time. The backends
-;;   already support this, only the front-end needs to be changed to
-;;   handle multiple files at a time.
-;;
 ;; - add a mechanism for ignoring files.
 ;;
 ;; - vc-next-action should do something about 'missing files. Maybe
