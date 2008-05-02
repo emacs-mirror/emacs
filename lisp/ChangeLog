@@ -5,6 +5,7 @@
 
 	* dired.el (dired-read-dir-and-switches):
 	Set minibuffer-completing-file-name and call substitute-in-file-name.
+	(dired-format-columns-of-files): Use completion--insert-strings.
 
 	* minibuffer.el (completion-hilit-commonality): Revert last change:
 	the leftover code was actually useful.

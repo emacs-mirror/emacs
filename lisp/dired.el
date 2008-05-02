@@ -2708,31 +2708,9 @@ just the current file."
       (apply function args))))
 
 (defun dired-format-columns-of-files (files)
-  ;; Files should be in forward order for this loop.
-  ;; i.e., (car files) = first file in buffer.
-  ;; Returns the number of lines used.
-  (let* ((maxlen (+ 2 (apply 'max (mapcar 'length files))))
-	 (width (- (window-width (selected-window)) 2))
-	 (columns (max 1 (/ width maxlen)))
-	 (nfiles (length files))
-	 (rows (+ (/ nfiles columns)
-		  (if (zerop (% nfiles columns)) 0 1)))
-	 (i 0)
-	 (j 0))
-    (setq files (nconc (copy-sequence files) ; fill up with empty fns
-		       (make-list (- (* columns rows) nfiles) "")))
-    (setcdr (nthcdr (1- (length files)) files) files) ; make circular
-    (while (< j rows)
-      (while (< i columns)
-	(indent-to (* i maxlen))
-	(insert (car files))
-	(setq files (nthcdr rows files)
-	      i (1+ i)))
-      (insert "\n")
-      (setq i 0
-	    j (1+ j)
-	    files (cdr files)))
-    rows))
+  (let ((beg (point)))
+    (completion--insert-strings files)
+    (put-text-property beg (point) 'mouse-face nil)))
 
 ;; Commands to mark or flag file(s) at or near current line.
 
