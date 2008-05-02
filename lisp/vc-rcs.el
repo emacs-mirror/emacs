@@ -102,8 +102,19 @@ For a description of possible values, see `vc-check-master-templates'."
 
 ;;; Properties of the backend
 
-(defun vc-rcs-revision-granularity ()
-     'file)
+(defun vc-rcs-revision-granularity () 'file)
+
+(defun vc-rcs-checkout-model (files)
+  "RCS-specific version of `vc-checkout-model'."
+  (let ((file (if (consp files) (car files) files))
+        result)
+    (when vc-consult-headers
+      (vc-file-setprop file 'vc-checkout-model nil)
+      (vc-rcs-consult-headers file)
+      (setq result (vc-file-getprop file 'vc-checkout-model)))
+    (or result
+        (progn (vc-rcs-fetch-master-state file)
+               (vc-file-getprop file 'vc-checkout-model)))))
 
 ;;;
 ;;; State-querying functions
@@ -134,7 +145,7 @@ For a description of possible values, see `vc-check-master-templates'."
 	  state
 	(if (vc-workfile-unchanged-p file)
 	    'up-to-date
-	  (if (eq (vc-rcs-checkout-model file) 'locking)
+	  (if (eq (vc-rcs-checkout-model (list file)) 'locking)
 	      'unlocked-changes
 	    'edited))))))
 
@@ -217,18 +228,6 @@ When VERSION is given, perform check for that version."
 	       ;; whole current branch.
 	       (vc-insert-file (vc-name file) "^desc")
 	       (vc-rcs-find-most-recent-rev (vc-branch-part version))))))
-
-(defun vc-rcs-checkout-model (files)
-  "RCS-specific version of `vc-checkout-model'."
-  (let ((file (if (consp files) (car files) files))
-        result)
-    (when vc-consult-headers
-      (vc-file-setprop file 'vc-checkout-model nil)
-      (vc-rcs-consult-headers file)
-      (setq result (vc-file-getprop file 'vc-checkout-model)))
-    (or result
-        (progn (vc-rcs-fetch-master-state file)
-               (vc-file-getprop file 'vc-checkout-model)))))
 
 (defun vc-rcs-workfile-unchanged-p (file)
   "RCS-specific implementation of `vc-workfile-unchanged-p'."
@@ -320,7 +319,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."
-  (let ((checkout-model (vc-rcs-checkout-model file)))
+  (let ((checkout-model (vc-rcs-checkout-model (list file))))
     (vc-rcs-register file rev "")
     (when (eq checkout-model 'implicit)
       (vc-rcs-set-non-strict-locking file))
@@ -431,7 +430,7 @@ whether to remove it."
 		   nil 0 "co" (vc-name file)
 		   ;; If locking is not strict, force to overwrite
 		   ;; the writable workfile.
-		   (if (eq (vc-rcs-checkout-model file) 'implicit) "-f")
+		   (if (eq (vc-rcs-checkout-model (list file)) 'implicit) "-f")
 		   (if editable "-l")
                    (if (stringp rev)
                        ;; a literal revision was specified
@@ -894,7 +893,7 @@ file."
 	 ;; locked by the calling user
 	 ((and (stringp locking-user)
 	       (string= locking-user (vc-user-login-name file)))
-	  (if (or (eq (vc-rcs-checkout-model file) 'locking)
+	  (if (or (eq (vc-rcs-checkout-model (list file)) 'locking)
 		  workfile-is-latest
 		  (vc-rcs-latest-on-branch-p file working-revision))
 	      'edited

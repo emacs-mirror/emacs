@@ -91,8 +91,9 @@ If you want to force an empty list of arguments, use t."
 
 ;;; Properties of the backend
 
-(defun vc-svn-revision-granularity ()
-     'repository)
+(defun vc-svn-revision-granularity () 'repository)
+(defun vc-svn-checkout-model (files) 'implicit)
+
 ;;;
 ;;; State-querying functions
 ;;;
@@ -192,11 +193,6 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; is registered in SVN.
   (vc-svn-registered file)
   (vc-file-getprop file 'vc-working-revision))
-
-(defun vc-svn-checkout-model (files)
-  "SVN-specific version of `vc-checkout-model'."
-  ;; It looks like Subversion has no equivalent of CVSREAD.
-  'implicit)
 
 ;; vc-svn-mode-line-string doesn't exist because the default implementation
 ;; works just fine.

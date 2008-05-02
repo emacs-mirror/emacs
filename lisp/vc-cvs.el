@@ -35,6 +35,30 @@
 ;; new functions when we reload this file.
 (put 'CVS 'vc-functions nil)
 
+;;; Properties of the backend.
+
+(defun vc-cvs-revision-granularity () 'file)
+
+(defun vc-cvs-checkout-model (files)
+  "CVS-specific version of `vc-checkout-model'."
+  (if (getenv "CVSREAD")
+      'announce
+    (let* ((file (if (consp files) (car files) files))
+           (attrib (file-attributes file)))
+      (or (vc-file-getprop file 'vc-checkout-model)
+          (vc-file-setprop
+           file 'vc-checkout-model
+           (if (and attrib ;; don't check further if FILE doesn't exist
+                    ;; If the file is not writable (despite CVSREAD being
+                    ;; undefined), this is probably because the file is being
+                    ;; "watched" by other developers.
+                    ;; (If vc-mistrust-permissions was t, we actually shouldn't
+                    ;; trust this, but there is no other way to learn this from
+                    ;; CVS at the moment (version 1.9).)
+                    (string-match "r-..-..-." (nth 8 attrib)))
+               'announce
+             'implicit))))))
+
 ;;;
 ;;; Customization options
 ;;;
@@ -238,26 +262,6 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (vc-cvs-registered file)
   (vc-file-getprop file 'vc-working-revision))
 
-(defun vc-cvs-checkout-model (files)
-  "CVS-specific version of `vc-checkout-model'."
-  (if (getenv "CVSREAD")
-      'announce
-    (let* ((file (if (consp files) (car files) files))
-           (attrib (file-attributes file)))
-      (or (vc-file-getprop file 'vc-checkout-model)
-          (vc-file-setprop
-           file 'vc-checkout-model
-           (if (and attrib ;; don't check further if FILE doesn't exist
-                    ;; If the file is not writable (despite CVSREAD being
-                    ;; undefined), this is probably because the file is being
-                    ;; "watched" by other developers.
-                    ;; (If vc-mistrust-permissions was t, we actually shouldn't
-                    ;; trust this, but there is no other way to learn this from
-                    ;; CVS at the moment (version 1.9).)
-                    (string-match "r-..-..-." (nth 8 attrib)))
-               'announce
-             'implicit))))))
-
 (defun vc-cvs-mode-line-string (file)
   "Return string for placement into the modeline for FILE.
 Compared to the default implementation, this function does two things:
@@ -393,7 +397,7 @@ REV is the revision to check out."
     (if (and (file-exists-p file) (not rev))
         ;; If no revision was specified, just make the file writable
         ;; if necessary (using `cvs-edit' if requested).
-        (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
+        (and editable (not (eq (vc-cvs-checkout-model (list file)) 'implicit))
              (if vc-cvs-use-edit
                  (vc-cvs-command nil 0 file "edit")
                (set-file-modes file (logior (file-modes file) 128))
@@ -421,7 +425,7 @@ REV is the revision to check out."
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the working revision on which it was based."
   (vc-default-revert 'CVS file contents-done)
-  (unless (eq (vc-cvs-checkout-model file) 'implicit)
+  (unless (eq (vc-cvs-checkout-model (list file)) 'implicit)
     (if vc-cvs-use-edit
         (vc-cvs-command nil 0 file "unedit")
       ;; Make the file read-only by switching off all w-bits

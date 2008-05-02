@@ -111,8 +111,8 @@ This is only meaningful if you don't use the implicit checkout model
 
 ;;; Properties of the backend
 
-(defun vc-mcvs-revision-granularity ()
-     'file)
+(defalias 'vc-mcvs-revision-granularity 'vc-cvs-revision-granularity)
+(defalias 'vc-mcvs-checkout-model 'vc-cvs-checkout-model)
 
 ;;;
 ;;; State-querying functions
@@ -201,8 +201,6 @@ This is only meaningful if you don't use the implicit checkout model
   (vc-cvs-working-revision
    (expand-file-name (vc-file-getprop file 'mcvs-inode)
 		     (vc-file-getprop file 'mcvs-root))))
-
-(defalias 'vc-mcvs-checkout-model 'vc-cvs-checkout-model)
 
 ;;;
 ;;; State-changing functions
@@ -344,7 +342,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
   (if (and (file-exists-p file) (not rev))
       ;; If no revision was specified, just make the file writable
       ;; if necessary (using `cvs-edit' if requested).
-      (and editable (not (eq (vc-mcvs-checkout-model file) 'implicit))
+      (and editable (not (eq (vc-mcvs-checkout-model (list file)) 'implicit))
 	   (if vc-mcvs-use-edit
 	       (vc-mcvs-command nil 0 file "edit")
 	     (set-file-modes file (logior (file-modes file) 128))
@@ -367,7 +365,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 (defun vc-mcvs-revert (file &optional contents-done)
   "Revert FILE to the working revision it was based on."
   (vc-default-revert 'MCVS file contents-done)
-  (unless (eq (vc-mcvs-checkout-model file) 'implicit)
+  (unless (eq (vc-mcvs-checkout-model (list file)) 'implicit)
     (if vc-mcvs-use-edit
         (vc-mcvs-command nil 0 file "unedit")
       ;; Make the file read-only by switching off all w-bits

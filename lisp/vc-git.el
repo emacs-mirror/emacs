@@ -55,7 +55,7 @@
 ;; - dir-state (dir)				   OK
 ;; * working-revision (file)			   OK
 ;; - latest-on-branch-p (file)			   NOT NEEDED
-;; * checkout-model (file)			   OK
+;; * checkout-model (files)			   OK
 ;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   OK
 ;; - prettify-state-info (file)			   OK
@@ -118,8 +118,8 @@
 
 ;;; BACKEND PROPERTIES
 
-(defun vc-git-revision-granularity ()
-  'repository)
+(defun vc-git-revision-granularity () 'repository)
+(defun vc-git-checkout-model (files) 'implicit)
 
 ;;; STATE-QUERYING FUNCTIONS
 
@@ -194,8 +194,6 @@
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
         (match-string 2 str)
       str)))
-
-(defun vc-git-checkout-model (files) 'implicit)
 
 (defun vc-git-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-git-state file)))

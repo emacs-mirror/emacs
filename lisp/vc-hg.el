@@ -47,7 +47,7 @@
 ;; - dir-state (dir)                           OK
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
-;; * checkout-model (file)                     OK
+;; * checkout-model (files)                    OK
 ;; - workfile-unchanged-p (file)               OK
 ;; - mode-line-string (file)                   NOT NEEDED
 ;; - prettify-state-info (file)                OK
@@ -131,8 +131,8 @@
 
 ;;; Properties of the backend
 
-(defun vc-hg-revision-granularity ()
-     'repository)
+(defun vc-hg-revision-granularity () 'repository)
+(defun vc-hg-checkout-model (files) 'implicit)
 
 ;;; State querying functions
 
@@ -443,8 +443,6 @@ REV is the revision to check out into WORKFILE."
     (if rev
         (vc-hg-command t 0 file "cat" "-r" rev)
       (vc-hg-command t 0 file "cat")))))
-
-(defun vc-hg-checkout-model (files) 'implicit)
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-workfile-unchanged-p (file)

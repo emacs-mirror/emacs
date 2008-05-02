@@ -49,7 +49,7 @@
 ;;;###autoload         (vc-mtn-registered file))))
 
 (defun vc-mtn-revision-granularity () 'repository)
-(defun vc-mtn-checkout-model (file) 'implicit)
+(defun vc-mtn-checkout-model (files) 'implicit)
 
 (defun vc-mtn-root (file)
   (setq file (if (file-directory-p file)

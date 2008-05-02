@@ -44,6 +44,10 @@
 ;; For an up-to-date list of bugs, please see:
 ;;   https://bugs.launchpad.net/vc-bzr/+bugs
 
+;;; Properties of the backend
+
+(defun vc-bzr-revision-granularity () 'repository)
+(defun vc-bzr-checkout-model (files) 'implicit)
 
 ;;; Code:
 
@@ -345,8 +349,6 @@ If any error occurred in running `bzr status', then return nil."
         (cond
          ((eq exitcode 0) (substring output 0 -1))
          (t nil))))))
-
-(defun vc-bzr-checkout-model (files) 'implicit)
 
 (defun vc-bzr-create-repo ()
   "Create a new Bzr repository."

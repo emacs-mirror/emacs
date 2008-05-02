@@ -1537,7 +1537,7 @@ Otherwise, throw an error."
   "Return non-nil if FILE can be edited."
   (let ((backend (vc-backend file)))
     (and backend
-         (or (eq (vc-checkout-model backend file) 'implicit)
+         (or (eq (vc-checkout-model backend (list file)) 'implicit)
              (memq (vc-state file) '(edited needs-merge conflict))))))
 
 (defun vc-revert-buffer-internal (&optional arg no-confirm)
@@ -1626,7 +1626,7 @@ merge in the changes into your working copy."
 	(unless (vc-compatible-state (vc-state file) state)
 	  (error "%s:%s clashes with %s:%s"
 		 file (vc-state file) (car files) state))
-	(unless (eq (vc-checkout-model backend file) model)
+	(unless (eq (vc-checkout-model backend (list file)) model)
 	  (error "Fileset has mixed checkout models"))))
     ;; Check for buffers in the fileset not matching the on-disk contents.
     (dolist (file files)
@@ -1967,7 +1967,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
            (let ((buf (get-file-buffer file)))
              (when buf (with-current-buffer buf (toggle-read-only -1)))))
          (signal (car err) (cdr err))))
-      `((vc-state . ,(if (or (eq (vc-checkout-model backend file) 'implicit)
+      `((vc-state . ,(if (or (eq (vc-checkout-model backend (list file)) 'implicit)
                              (not writable))
                          (if (vc-call latest-on-branch-p file)
                              'up-to-date
@@ -3857,7 +3857,7 @@ changes from the current branch are merged into the working file."
 	(error "Please kill or save all modified buffers before updating."))
       (if (vc-up-to-date-p file)
 	  (vc-checkout file nil t)
-	(if (eq (vc-checkout-model backend file) 'locking)
+	(if (eq (vc-checkout-model backend (list file)) 'locking)
 	    (if (eq (vc-state file) 'edited)
 		(error "%s"
 		       (substitute-command-keys
@@ -3984,7 +3984,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
 	    (vc-switch-backend file new-backend)
-	    (unless (eq (vc-checkout-model new-backend file) 'implicit)
+	    (unless (eq (vc-checkout-model new-backend (list file)) 'implicit)
 	      (vc-checkout file t nil))
 	    (rename-file modified-file file 'ok-if-already-exists)
 	    (vc-file-setprop file 'vc-checkout-time nil)))))

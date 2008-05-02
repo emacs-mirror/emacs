@@ -746,7 +746,7 @@ Before doing that, check if there are any old backups and get rid of them."
     (ignore-errors               ;Be careful not to prevent saving the file.
       (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
-           (eq (vc-checkout-model backend file) 'implicit)
+           (eq (vc-checkout-model backend (list file)) 'implicit)
            (vc-call make-version-backups-p file)
            (vc-make-version-backup file)))))
 
@@ -768,7 +768,7 @@ Before doing that, check if there are any old backups and get rid of them."
 		  (vc-file-setprop file 'vc-checkout-time nil))
 	     t)
          (vc-up-to-date-p file)
-         (eq (vc-checkout-model backend file) 'implicit)
+         (eq (vc-checkout-model backend (list file)) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
 	 (when (featurep 'vc)

@@ -102,6 +102,7 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; Properties of the backend
 
 (defun vc-sccs-revision-granularity () 'file)
+(defun vc-sccs-checkout-model (files) 'locking)
 
 ;;;
 ;;; State-querying functions
@@ -176,10 +177,6 @@ For a description of possible values, see `vc-check-master-templates'."
     ;; first entry might be a deleted ("R") revision.
     (vc-insert-file (vc-name file) "^\001e\n\001[^s]")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
-
-(defun vc-sccs-checkout-model (file)
-  "SCCS-specific version of `vc-checkout-model'."
-  'locking)
 
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of `vc-workfile-unchanged-p'."

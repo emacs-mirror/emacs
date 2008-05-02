@@ -57,6 +57,11 @@
 
 (eval-when-compile (require 'vc) (require 'cl))
 
+;;; Properties of the backend
+
+(defun vc-arch-revision-granularity () 'repository)
+(defun vc-arch-checkout-model (files) 'implicit)
+
 ;;;
 ;;; Customization options
 ;;;
@@ -368,8 +373,6 @@ Return non-nil if FILE is unchanged."
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
-
-(defun vc-arch-checkout-model (file) 'implicit)
 
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))
