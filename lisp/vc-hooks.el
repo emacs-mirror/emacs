@@ -679,19 +679,17 @@ this function."
   "Change read-only status of current buffer, perhaps via version control.
 
 If the buffer is visiting a file registered with version control,
-then check the file in or out.  Otherwise, just change the read-only flag
-of the buffer.
-With prefix argument, ask for version number to check in or check out.
-Check-out of a specified version number does not lock the file;
-to do that, use this command a second time with no argument.
+throw an error, because this is not a safe or really meaningful operation 
+on any version-control system newer than RCS.  
 
-If you bind this function to \\[toggle-read-only], then Emacs checks files
-in or out whenever you toggle the read-only flag."
+Otherwise, just change the read-only flag of the buffer.
+
+If you bind this function to \\[toggle-read-only], then Emacs
+will properly intercept all attempts to toggle the read-only flag
+on version-controlled buffer."
   (interactive "P")
-  (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
-	  ;; use boundp because vc.el might not be loaded
-	  (vc-backend buffer-file-name))
-      (vc-next-action verbose)
+  (if (vc-backend buffer-file-name)
+      (error "Toggling the readability of a version controlled file is likely to wreak havoc.")
     (toggle-read-only)))
 
 (defun vc-default-make-version-backups-p (backend file)
