@@ -751,7 +751,7 @@ Before doing that, check if there are any old backups and get rid of them."
            (vc-call make-version-backups-p file)
            (vc-make-version-backup file)))))
 
-(declare-function vc-dired-resynch-file "vc" (file))
+(declare-function vc-directory-resynch-file "vc" (file))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
@@ -775,7 +775,7 @@ Before doing that, check if there are any old backups and get rid of them."
 	 (when (featurep 'vc)
 	   ;; If VC is not loaded, then there can't be
 	   ;; any VC Dired buffer to synchronize.
-	   (vc-dired-resynch-file file)))))
+	   (vc-directory-resynch-file file)))))
 
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map

@@ -1896,7 +1896,7 @@ rather than user editing!"
       (when buffer
 	(with-current-buffer buffer
 	  (vc-resynch-window file keep noquery)))))
-  (vc-dired-resynch-file file)
+  (vc-directory-resynch-file file)
   (when (memq 'vc-dir-mark-buffer-changed after-save-hook)
     (let ((buffer (get-file-buffer file)))
       (vc-dir-mark-buffer-changed file))))
@@ -2726,8 +2726,9 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	    (push buffer result)))))
     (nreverse result)))
 
-(defun vc-dired-resynch-file (file)
+(defun vc-directory-resynch-file (file)
   "Update the entries for FILE in any VC Dired buffers that list it."
+  ;;FIXME This needs to be implemented so it works for vc-dir
   (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
     (when buffers
       (mapcar (lambda (buffer)
