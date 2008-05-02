@@ -1,3 +1,11 @@
+2008-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-save-parts): Inhibit even more treatment
+	hooks.
+	(gnus-update-read-articles): Speed up non-marks-using users.
+	(gnus-use-marks): Define gnus-use-marks.
+	(gnus-propagate-marks): Rename variable to something more sensible.
+
 2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gmm-utils.el (gmm, gmm-verbose, gmm-lazy, gmm-customize-mode)

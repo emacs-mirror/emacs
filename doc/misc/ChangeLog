@@ -1,3 +1,8 @@
+2008-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Various Summary Stuff): Add gnus-propagate-marks.
+	(Various Summary Stuff): Fix typo in last xref.
+
 2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Moving subtrees): Fix typo.
