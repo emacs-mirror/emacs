@@ -578,8 +578,9 @@ It also eliminates runs of equal strings."
     (let* ((length (apply 'max
 			  (mapcar (lambda (s)
 				    (if (consp s)
-					(+ (length (car s)) (length (cadr s)))
-				      (length s)))
+					(+ (string-width (car s))
+                                           (string-width (cadr s)))
+				      (string-width s)))
 				  strings)))
 	   (window (get-buffer-window (current-buffer) 0))
 	   (wwidth (if window (1- (window-width window)) 79))
@@ -610,8 +611,9 @@ It also eliminates runs of equal strings."
                                  `(display (space :align-to ,column))))
 	  (when (< wwidth (+ (max colwidth
 				  (if (consp str)
-				      (+ (length (car str)) (length (cadr str)))
-				    (length str)))
+				      (+ (string-width (car str))
+                                         (string-width (cadr str)))
+				    (string-width str)))
 			     column))
 	    (delete-char -2) (insert "\n") (setq column 0))
 	  (if (not (consp str))

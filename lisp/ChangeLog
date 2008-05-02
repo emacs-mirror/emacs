@@ -8,6 +8,7 @@
 
 	* minibuffer.el (completion-hilit-commonality): Revert last change:
 	the leftover code was actually useful.
+	(completion--insert-strings): Use string-width rather than length.
 
 2008-05-02  Sam Steingold  <sds@gnu.org>
 
