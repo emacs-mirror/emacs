@@ -974,10 +974,12 @@ Fifth arg HIST, if non-nil, specifies a history list and optionally
   history commands.  For consistency, you should also specify that
   element of the history as the value of INITIAL-CONTENTS.  Positions
   are counted starting from 1 at the beginning of the list.
-Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is available
-  for history commands; but, unless READ is non-nil, `read-from-minibuffer'
-  does NOT return DEFAULT-VALUE if the user enters empty input!  It returns
-  the empty string.
+Sixth arg DEFAULT-VALUE is the default value or the list of default values.
+  If non-nil, it is available for history commands, and as the value
+  (or the first element of the list of default values) to return
+  if the user enters the empty string.  But, unless READ is non-nil,
+  `read-from-minibuffer' does NOT return DEFAULT-VALUE if the user enters
+  empty input!  It returns the empty string.
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
 If the variable `minibuffer-allow-text-properties' is non-nil,
@@ -1073,9 +1075,10 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading.
 The third arg HISTORY, if non-nil, specifies a history list
   and optionally the initial position in the list.
 See `read-from-minibuffer' for details of HISTORY argument.
-Fourth arg DEFAULT-VALUE is the default value.  If non-nil, it is used
- for history commands, and as the value to return if the user enters
- the empty string.
+Fourth arg DEFAULT-VALUE is the default value or the list of default values.
+ If non-nil, it is used for history commands, and as the value (or the first
+ element of the list of default values) to return if the user enters the
+ empty string.
 Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.  */)
      (prompt, initial_input, history, default_value, inherit_input_method)
@@ -1112,7 +1115,8 @@ the current input method and the setting of`enable-multibyte-characters'.  */)
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
        doc: /* Read the name of a command and return as a symbol.
-Prompt with PROMPT.  By default, return DEFAULT-VALUE.  */)
+Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
+if it is a list.  */)
      (prompt, default_value)
      Lisp_Object prompt, default_value;
 {
@@ -1146,7 +1150,8 @@ Prompt with PROMPT.  */)
 
 DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
        doc: /* Read the name of a user variable and return it as a symbol.
-Prompt with PROMPT.  By default, return DEFAULT-VALUE.
+Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
+if it is a list.
 A user variable is one for which `user-variable-p' returns non-nil.  */)
      (prompt, default_value)
      Lisp_Object prompt, default_value;
@@ -1172,6 +1177,7 @@ DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
        doc: /* Read the name of a buffer and return as a string.
 Prompt with PROMPT.
 Optional second arg DEF is value to return if user enters an empty line.
+ If DEF is a list of default values, return its first element.
 If optional third arg REQUIRE-MATCH is non-nil,
  only existing buffer names are allowed.
 The argument PROMPT should be a string ending with a colon and a space.  */)
@@ -1723,8 +1729,9 @@ REQUIRE-MATCH can take the following values:
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
-If the input is null, `completing-read' returns DEF, or an empty string
- if DEF is nil, regardless of the value of REQUIRE-MATCH.
+If the input is null, `completing-read' returns DEF, or the first element
+of the list of default values, or an empty string if DEF is nil,
+regardless of the value of REQUIRE-MATCH.
 
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially,
   with point positioned at the end.
@@ -1748,7 +1755,7 @@ HIST, if non-nil, specifies a history list and optionally the initial
   1 at the beginning of the list.  The variable `history-length'
   controls the maximum length of a history list.
 
-DEF, if non-nil, is the default value.
+DEF, if non-nil, is the default value or the list of default values.
 
 If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
   the current input method and the setting of `enable-multibyte-characters'.
