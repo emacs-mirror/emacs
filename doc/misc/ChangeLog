@@ -1,3 +1,7 @@
+2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Moving subtrees): Fix typo.
+
 2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Explain, how to disable
