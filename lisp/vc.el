@@ -714,14 +714,6 @@
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-delete-logbuf-window t
-  "If non-nil, delete the *VC-log* buffer and window after each logical action.
-If nil, bury that buffer instead.
-This is most useful if you have multiple windows on a frame and would like to
-preserve the setting."
-  :type 'boolean
-  :group 'vc)
-
 (defcustom vc-initial-comment nil
   "If non-nil, prompt for initial comment when a file is registered."
   :type 'boolean
@@ -734,11 +726,6 @@ can also be overridden by a particular VC backend."
   :type 'string
   :group 'vc
   :version "20.3")
-
-(defcustom vc-command-messages nil
-  "If non-nil, display run messages from back-end commands."
-  :type 'boolean
-  :group 'vc)
 
 (defcustom vc-checkin-switches nil
   "A string or list of strings specifying extra switches for checkin.
@@ -1054,121 +1041,6 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
         ,@body
         (save-buffer)))))
 
-(defun vc-position-context (posn)
-  "Save a bit of the text around POSN in the current buffer.
-Used to help us find the corresponding position again later
-if markers are destroyed or corrupted."
-  ;; A lot of this was shamelessly lifted from Sebastian Kremer's
-  ;; rcs.el mode.
-  (list posn
-	(buffer-size)
-	(buffer-substring posn
-			  (min (point-max) (+ posn 100)))))
-
-(defun vc-find-position-by-context (context)
-  "Return the position of CONTEXT in the current buffer.
-If CONTEXT cannot be found, return nil."
-  (let ((context-string (nth 2 context)))
-    (if (equal "" context-string)
-	(point-max)
-      (save-excursion
-	(let ((diff (- (nth 1 context) (buffer-size))))
-	  (when (< diff 0) (setq diff (- diff)))
-	  (goto-char (nth 0 context))
-	  (if (or (search-forward context-string nil t)
-		  ;; Can't use search-backward since the match may continue
-		  ;; after point.
-		  (progn (goto-char (- (point) diff (length context-string)))
-			 ;; goto-char doesn't signal an error at
-			 ;; beginning of buffer like backward-char would
-			 (search-forward context-string nil t)))
-	      ;; to beginning of OSTRING
-	      (- (point) (length context-string))))))))
-
-(defun vc-context-matches-p (posn context)
-  "Return t if POSN matches CONTEXT, nil otherwise."
-  (let* ((context-string (nth 2 context))
-	 (len (length context-string))
-	 (end (+ posn len)))
-    (if (> end (1+ (buffer-size)))
-	nil
-      (string= context-string (buffer-substring posn end)))))
-
-(defun vc-buffer-context ()
-  "Return a list (POINT-CONTEXT MARK-CONTEXT REPARSE).
-Used by `vc-restore-buffer-context' to later restore the context."
-  (let ((point-context (vc-position-context (point)))
-	;; Use mark-marker to avoid confusion in transient-mark-mode.
-	(mark-context  (when (eq (marker-buffer (mark-marker)) (current-buffer))
-			 (vc-position-context (mark-marker))))
-	;; Make the right thing happen in transient-mark-mode.
-	(mark-active nil)
-	;; The new compilation code does not use compilation-error-list any
-	;; more, so the code below is now ineffective and might as well
-	;; be disabled.  -- Stef
-	;; ;; We may want to reparse the compilation buffer after revert
-	;; (reparse (and (boundp 'compilation-error-list) ;compile loaded
-	;; 	      ;; Construct a list; each elt is nil or a buffer
-	;; 	      ;; if that buffer is a compilation output buffer
-	;; 	      ;; that contains markers into the current buffer.
-	;; 	      (save-current-buffer
-	;; 		(mapcar (lambda (buffer)
-	;; 			  (set-buffer buffer)
-	;; 			  (let ((errors (or
-	;; 					 compilation-old-error-list
-	;; 					 compilation-error-list))
-	;; 				(buffer-error-marked-p nil))
-	;; 			    (while (and (consp errors)
-	;; 					(not buffer-error-marked-p))
-	;; 			      (and (markerp (cdr (car errors)))
-	;; 				   (eq buffer
-	;; 				       (marker-buffer
-	;; 					(cdr (car errors))))
-	;; 				   (setq buffer-error-marked-p t))
-	;; 			      (setq errors (cdr errors)))
-	;; 			    (if buffer-error-marked-p buffer)))
-	;; 			(buffer-list)))))
-	(reparse nil))
-    (list point-context mark-context reparse)))
-
-(defun vc-restore-buffer-context (context)
-  "Restore point/mark, and reparse any affected compilation buffers.
-CONTEXT is that which `vc-buffer-context' returns."
-  (let ((point-context (nth 0 context))
-	(mark-context (nth 1 context))
-	;; (reparse (nth 2 context))
-        )
-    ;; The new compilation code does not use compilation-error-list any
-    ;; more, so the code below is now ineffective and might as well
-    ;; be disabled.  -- Stef
-    ;; ;; Reparse affected compilation buffers.
-    ;; (while reparse
-    ;;   (if (car reparse)
-    ;; 	  (with-current-buffer (car reparse)
-    ;; 	    (let ((compilation-last-buffer (current-buffer)) ;select buffer
-    ;; 		  ;; Record the position in the compilation buffer of
-    ;; 		  ;; the last error next-error went to.
-    ;; 		  (error-pos (marker-position
-    ;; 			      (car (car-safe compilation-error-list)))))
-    ;; 	      ;; Reparse the error messages as far as they were parsed before.
-    ;; 	      (compile-reinitialize-errors '(4) compilation-parsing-end)
-    ;; 	      ;; Move the pointer up to find the error we were at before
-    ;; 	      ;; reparsing.  Now next-error should properly go to the next one.
-    ;; 	      (while (and compilation-error-list
-    ;; 			  (/= error-pos (car (car compilation-error-list))))
-    ;; 		(setq compilation-error-list (cdr compilation-error-list))))))
-    ;;   (setq reparse (cdr reparse)))
-
-    ;; if necessary, restore point and mark
-    (if (not (vc-context-matches-p (point) point-context))
-	(let ((new-point (vc-find-position-by-context point-context)))
-	  (when new-point (goto-char new-point))))
-    (and mark-active
-         mark-context
-         (not (vc-context-matches-p (mark) mark-context))
-         (let ((new-mark (vc-find-position-by-context mark-context)))
-           (when new-mark (set-mark new-mark))))))
-
 ;;; Code for deducing what fileset and backend to assume
 
 (defun vc-responsible-backend (file &optional register)
@@ -1317,24 +1189,6 @@ Otherwise, throw an error."
     (and backend
          (or (eq (vc-checkout-model backend (list file)) 'implicit)
              (memq (vc-state file) '(edited needs-merge conflict))))))
-
-(defun vc-revert-buffer-internal (&optional arg no-confirm)
-  "Revert buffer, keeping point and mark where user expects them.
-Try to be clever in the face of changes due to expanded version-control
-key words.  This is important for typeahead to work as expected.
-ARG and NO-CONFIRM are passed on to `revert-buffer'."
-  (interactive "P")
-  (widen)
-  (let ((context (vc-buffer-context)))
-    ;; Use save-excursion here, because it may be able to restore point
-    ;; and mark properly even in cases where vc-restore-buffer-context
-    ;; would fail.  However, save-excursion might also get it wrong --
-    ;; in this case, vc-restore-buffer-context gives it a second try.
-    (save-excursion
-      ;; t means don't call normal-mode;
-      ;; that's to preserve various minor modes.
-      (revert-buffer arg no-confirm t))
-    (vc-restore-buffer-context context)))
 
 (defun vc-buffer-sync (&optional not-urgent)
   "Make sure the current buffer and its working file are in sync.
@@ -1639,46 +1493,6 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
-(declare-function view-mode-exit "view" (&optional return-to-alist exit-action all-win))
-
-(defun vc-resynch-window (file &optional keep noquery)
-  "If FILE is in the current buffer, either revert or unvisit it.
-The choice between revert (to see expanded keywords) and unvisit depends on
-`vc-keep-workfiles'.  NOQUERY if non-nil inhibits confirmation for
-reverting.  NOQUERY should be t *only* if it is known the only
-difference between the buffer and the file is due to version control
-rather than user editing!"
-  (and (string= buffer-file-name file)
-       (if keep
-	   (progn
-	     (vc-revert-buffer-internal t noquery)
-             ;; TODO: Adjusting view mode might no longer be necessary
-             ;; after RMS change to files.el of 1999-08-08.  Investigate
-             ;; this when we install the new VC.
-             (and view-read-only
-                  (if (file-writable-p file)
-                      (and view-mode
-                           (let ((view-old-buffer-read-only nil))
-                             (view-mode-exit)))
-                    (and (not view-mode)
-                         (not (eq (get major-mode 'mode-class) 'special))
-                         (view-mode-enter))))
-	     (vc-mode-line buffer-file-name))
-	 (kill-buffer (current-buffer)))))
-
-(defun vc-resynch-buffer (file &optional keep noquery)
-  "If FILE is currently visited, resynch its buffer."
-  (if (string= buffer-file-name file)
-      (vc-resynch-window file keep noquery)
-    (let ((buffer (get-file-buffer file)))
-      (when buffer
-	(with-current-buffer buffer
-	  (vc-resynch-window file keep noquery)))))
-  (vc-directory-resynch-file file)
-  (when (memq 'vc-dir-mark-buffer-changed after-save-hook)
-    (let ((buffer (get-file-buffer file)))
-      (vc-dir-mark-buffer-changed file))))
-
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
 If WRITABLE is non-nil, make sure the retrieved file is writable.
@@ -1755,7 +1569,9 @@ of the log entry buffer.
 If `vc-keep-workfiles' is nil, FILE is deleted afterwards, provided
 that the version control system supports this mode of operation.
 
-Runs the normal hook `vc-checkin-hook'."
+Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
+  (when vc-before-checkin-hook
+    (run-hooks 'vc-before-checkin-hook))
   (vc-start-logentry
    files rev comment initial-contents
    "Enter a change comment."
@@ -1777,57 +1593,6 @@ Runs the normal hook `vc-checkin-hook'."
 	(vc-working-revision . nil)))
      (message "Checking in %s...done" (vc-delistify files)))
    'vc-checkin-hook))
-
-(defun vc-finish-logentry (&optional nocomment)
-  "Complete the operation implied by the current log entry.
-Use the contents of the current buffer as a check-in or registration
-comment.  If the optional arg NOCOMMENT is non-nil, then don't check
-the buffer contents as a comment."
-  (interactive)
-  ;; Check and record the comment, if any.
-  (unless nocomment
-    (run-hooks 'vc-logentry-check-hook))
-  ;; Sync parent buffer in case the user modified it while editing the comment.
-  ;; But not if it is a vc-dired buffer.
-  (with-current-buffer vc-parent-buffer
-    (or vc-dired-mode (eq major-mode 'vc-dir-mode) (vc-buffer-sync)))
-  (unless vc-log-operation
-    (error "No log operation is pending"))
-  ;; save the parameters held in buffer-local variables
-  (let ((log-operation vc-log-operation)
-	(log-fileset vc-log-fileset)
-	(log-revision vc-log-revision)
-	(log-entry (buffer-string))
-	(after-hook vc-log-after-operation-hook)
-	(tmp-vc-parent-buffer vc-parent-buffer))
-    (pop-to-buffer vc-parent-buffer)
-    ;; OK, do it to it
-    (save-excursion
-      (funcall log-operation
-	       log-fileset
-	       log-revision
-	       log-entry))
-    ;; Remove checkin window (after the checkin so that if that fails
-    ;; we don't zap the *VC-log* buffer and the typing therein).
-    ;; -- IMO this should be replaced with quit-window
-    (let ((logbuf (get-buffer "*VC-log*")))
-      (cond ((and logbuf vc-delete-logbuf-window)
-	     (delete-windows-on logbuf (selected-frame))
-	     ;; Kill buffer and delete any other dedicated windows/frames.
-	     (kill-buffer logbuf))
-	    (logbuf (pop-to-buffer "*VC-log*")
-		    (bury-buffer)
-		    (pop-to-buffer tmp-vc-parent-buffer))))
-    ;; Now make sure we see the expanded headers
-    (when log-fileset
-      (mapc
-       (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
-       log-fileset))
-    (when vc-dired-mode
-      (dired-move-to-filename))
-    (when (eq major-mode 'vc-dir-mode)
-      (vc-dir-move-to-goal-column))
-    (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 ;;; Additional entry points for examining version histories
 
