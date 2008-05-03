@@ -1,3 +1,10 @@
+2008-05-03  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el: New file, separates out the UI and command 
+	execution machinery from VCS-specific logic left in vc.el.  The
+	separation is not yet completely clean, but it's a good start.
+	* vc.el: This file is about 1700 lines shorter now.
+
 2008-05-02  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-start): Move setting of
