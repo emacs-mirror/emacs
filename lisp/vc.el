@@ -626,7 +626,8 @@
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
-;; - add a mechanism for ignoring files.
+;; - add a mechanism for editing the underlying VCS's list of files
+;;   to be ignored, when that's possible.
 ;;
 ;; - When vc-next-action calls vc-checkin it could pre-fill the
 ;;   *VC-log* buffer with some obvious items: the list of files that
