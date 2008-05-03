@@ -76,6 +76,29 @@
 
 (provide 'vc-dispatcher)
 
+;; General customization
+
+(defcustom vc-logentry-check-hook nil
+  "Normal hook run by `vc-finish-logentry'.
+Use this to impose your own rules on the entry in addition to any the
+version control backend imposes itself."
+  :type 'hook
+  :group 'vc)
+
+;; Variables the user doesn't need to know about.
+(defvar vc-log-operation nil)
+(defvar vc-log-after-operation-hook nil)
+(defvar vc-log-fileset)
+(defvar vc-log-extra)
+
+;; In a log entry buffer, this is a local variable
+;; that points to the buffer for which it was made
+;; (either a file, or a VC dired buffer).
+(defvar vc-parent-buffer nil)
+(put 'vc-parent-buffer 'permanent-local t)
+(defvar vc-parent-buffer-name nil)
+(put 'vc-parent-buffer-name 'permanent-local t)
+
 ;; Common command execution logic
 
 (defun vc-process-filter (p s)
@@ -286,5 +309,103 @@ that is inserted into the command line before the filename."
 	 `(run-hook-with-args 'vc-post-command-functions
 			      ',command ',file-or-list ',flags))
 	status))))
+
+;; Command closures
+
+(defun vc-start-logentry (files extra comment initial-contents msg action &optional after-hook)
+  "Accept a comment for an operation on FILES with extra data EXTRA.
+If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
+action on close to ACTION.  If COMMENT is a string and
+INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
+contents of the log entry buffer.  If COMMENT is a string and
+INITIAL-CONTENTS is nil, do action immediately as if the user had
+entered COMMENT.  If COMMENT is t, also do action immediately with an
+empty comment.  Remember the file's buffer in `vc-parent-buffer'
+\(current one if no file).  AFTER-HOOK specifies the local value
+for `vc-log-after-operation-hook'."
+  (let ((parent
+         (if (or (eq major-mode 'vc-dired-mode) (eq major-mode 'vc-dir-mode))
+             ;; If we are called from VC dired, the parent buffer is
+             ;; the current buffer.
+             (current-buffer)
+           (if (and files (equal (length files) 1))
+               (get-file-buffer (car files))
+             (current-buffer)))))
+    (when vc-before-checkin-hook
+      (if files
+	  (with-current-buffer parent
+	    (run-hooks 'vc-before-checkin-hook))
+	(run-hooks 'vc-before-checkin-hook)))
+    (if (and comment (not initial-contents))
+	(set-buffer (get-buffer-create "*VC-log*"))
+      (pop-to-buffer (get-buffer-create "*VC-log*")))
+    (set (make-local-variable 'vc-parent-buffer) parent)
+    (set (make-local-variable 'vc-parent-buffer-name)
+	 (concat " from " (buffer-name vc-parent-buffer)))
+    ;;(if file (vc-mode-line file))
+    (vc-log-edit files)
+    (make-local-variable 'vc-log-after-operation-hook)
+    (when after-hook
+      (setq vc-log-after-operation-hook after-hook))
+    (setq vc-log-operation action)
+    (setq vc-log-extra extra)
+    (when comment
+      (erase-buffer)
+      (when (stringp comment) (insert comment)))
+    (if (or (not comment) initial-contents)
+	(message "%s  Type C-c C-c when done" msg)
+      (vc-finish-logentry (eq comment t)))))
+
+(defun vc-finish-logentry (&optional nocomment)
+  "Complete the operation implied by the current log entry.
+Use the contents of the current buffer as a check-in or registration
+comment.  If the optional arg NOCOMMENT is non-nil, then don't check
+the buffer contents as a comment."
+  (interactive)
+  ;; Check and record the comment, if any.
+  (unless nocomment
+    (run-hooks 'vc-logentry-check-hook))
+  ;; Sync parent buffer in case the user modified it while editing the comment.
+  ;; But not if it is a vc-dired buffer.
+  (with-current-buffer vc-parent-buffer
+    (or vc-dired-mode (eq major-mode 'vc-dir-mode) (vc-buffer-sync)))
+  (unless vc-log-operation
+    (error "No log operation is pending"))
+  ;; save the parameters held in buffer-local variables
+  (let ((log-operation vc-log-operation)
+	(log-fileset vc-log-fileset)
+	(log-extra vc-log-extra)
+	(log-entry (buffer-string))
+	(after-hook vc-log-after-operation-hook)
+	(tmp-vc-parent-buffer vc-parent-buffer))
+    (pop-to-buffer vc-parent-buffer)
+    ;; OK, do it to it
+    (save-excursion
+      (funcall log-operation
+	       log-fileset
+	       log-extra
+	       log-entry))
+    ;; Remove checkin window (after the checkin so that if that fails
+    ;; we don't zap the *VC-log* buffer and the typing therein).
+    ;; -- IMO this should be replaced with quit-window
+    (let ((logbuf (get-buffer "*VC-log*")))
+      (cond ((and logbuf vc-delete-logbuf-window)
+	     (delete-windows-on logbuf (selected-frame))
+	     ;; Kill buffer and delete any other dedicated windows/frames.
+	     (kill-buffer logbuf))
+	    (logbuf (pop-to-buffer "*VC-log*")
+		    (bury-buffer)
+		    (pop-to-buffer tmp-vc-parent-buffer))))
+    ;; Now make sure we see the expanded headers
+    (when log-fileset
+      (mapc
+       (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
+       log-fileset))
+    (when vc-dired-mode
+      (dired-move-to-filename))
+    (when (eq major-mode 'vc-dir-mode)
+      (vc-dir-move-to-goal-column))
+    (run-hooks after-hook 'vc-finish-logentry-hook)))
+
 
 ;;; vc-dispatcher.el ends here

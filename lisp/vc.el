@@ -851,13 +851,6 @@ See `run-hooks'."
   :type 'hook
   :group 'vc)
 
-(defcustom vc-logentry-check-hook nil
-  "Normal hook run by `vc-finish-logentry'.
-Use this to impose your own rules on the entry in addition to any the
-version control backend imposes itself."
-  :type 'hook
-  :group 'vc)
-
 (defcustom vc-dir-mode-hook nil
   "Normal hook run by `vc-dir-mode'.
 See `run-hooks'."
@@ -990,25 +983,12 @@ and that its contents match what the master file says."
                         "21.1")
 
 
-;; Variables the user doesn't need to know about.
-(defvar vc-log-operation nil)
-(defvar vc-log-after-operation-hook nil)
-
-;; In a log entry buffer, this is a local variable
-;; that points to the buffer for which it was made
-;; (either a file, or a VC dired buffer).
-(defvar vc-parent-buffer nil)
-(put 'vc-parent-buffer 'permanent-local t)
-(defvar vc-parent-buffer-name nil)
-(put 'vc-parent-buffer-name 'permanent-local t)
+;; Variables users don't need to see
 
 (defvar vc-disable-async-diff nil
   "VC sets this to t locally to disable some async diff operations.
 Backends that offer asynchronous diffs should respect this variable
 in their implementation of vc-BACKEND-diff.")
-
-(defvar vc-log-fileset)
-(defvar vc-log-revision)
 
 (defvar vc-dired-mode nil)
 (make-variable-buffer-local 'vc-dired-mode)
@@ -1630,7 +1610,7 @@ first backend that could register the file is used."
 		 (not (file-exists-p buffer-file-name)))
 	  (set-buffer-modified-p t))
 	(vc-buffer-sync)))
-    (vc-start-entry (list fname)
+    (vc-start-logentry (list fname)
 		    (if set-revision
 			(read-string (format "Initial revision level for %s: "
 					     fname))
@@ -1698,51 +1678,6 @@ rather than user editing!"
   (when (memq 'vc-dir-mark-buffer-changed after-save-hook)
     (let ((buffer (get-file-buffer file)))
       (vc-dir-mark-buffer-changed file))))
-
-
-(defun vc-start-entry (files rev comment initial-contents msg action &optional after-hook)
-  "Accept a comment for an operation on FILES revision REV.
-If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
-action on close to ACTION.  If COMMENT is a string and
-INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
-contents of the log entry buffer.  If COMMENT is a string and
-INITIAL-CONTENTS is nil, do action immediately as if the user had
-entered COMMENT.  If COMMENT is t, also do action immediately with an
-empty comment.  Remember the file's buffer in `vc-parent-buffer'
-\(current one if no file).  AFTER-HOOK specifies the local value
-for `vc-log-after-operation-hook'."
-  (let ((parent
-         (if (or (eq major-mode 'vc-dired-mode) (eq major-mode 'vc-dir-mode))
-             ;; If we are called from VC dired, the parent buffer is
-             ;; the current buffer.
-             (current-buffer)
-           (if (and files (equal (length files) 1))
-               (get-file-buffer (car files))
-             (current-buffer)))))
-    (when vc-before-checkin-hook
-      (if files
-	  (with-current-buffer parent
-	    (run-hooks 'vc-before-checkin-hook))
-	(run-hooks 'vc-before-checkin-hook)))
-    (if (and comment (not initial-contents))
-	(set-buffer (get-buffer-create "*VC-log*"))
-      (pop-to-buffer (get-buffer-create "*VC-log*")))
-    (set (make-local-variable 'vc-parent-buffer) parent)
-    (set (make-local-variable 'vc-parent-buffer-name)
-	 (concat " from " (buffer-name vc-parent-buffer)))
-    ;;(if file (vc-mode-line file))
-    (vc-log-edit files)
-    (make-local-variable 'vc-log-after-operation-hook)
-    (when after-hook
-      (setq vc-log-after-operation-hook after-hook))
-    (setq vc-log-operation action)
-    (setq vc-log-revision rev)
-    (when comment
-      (erase-buffer)
-      (when (stringp comment) (insert comment)))
-    (if (or (not comment) initial-contents)
-	(message "%s  Type C-c C-c when done" msg)
-      (vc-finish-logentry (eq comment t)))))
 
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
@@ -1821,7 +1756,7 @@ If `vc-keep-workfiles' is nil, FILE is deleted afterwards, provided
 that the version control system supports this mode of operation.
 
 Runs the normal hook `vc-checkin-hook'."
-  (vc-start-entry
+  (vc-start-logentry
    files rev comment initial-contents
    "Enter a change comment."
    (lambda (files rev comment)
@@ -2214,7 +2149,7 @@ The headers are reset to their non-expanded form."
 
 (defun vc-modify-change-comment (files rev oldcomment)
   "Edit the comment associated with the given files and revision."
-  (vc-start-entry
+  (vc-start-logentry
    files rev oldcomment t
    "Enter a replacement change comment."
    (lambda (files rev comment)
