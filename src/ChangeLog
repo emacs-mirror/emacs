@@ -43,7 +43,7 @@
 	(USE_MAC_IMAGE_IO, LIBS_IMAGE) [HAVE_CARBON]: New defines.
 	(LIBS_CARBON) [HAVE_CARBON]: Use LIBS_IMAGE.
 
-2008-04-25  Chip Coldwell <coldwell@redhat.com>
+2008-04-25  Dennis Gilmore  <ausil@fedoraproject.org>  (tiny change)
 
 	* m/sparc.h: Additional redefinitions for GNU/Linux.
 
