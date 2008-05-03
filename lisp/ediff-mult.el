@@ -115,13 +115,8 @@
 
 ;; compiler pacifier
 (eval-when-compile
-  (require 'ediff-init)
-  (if (not (featurep 'ediff-util))
-      (require 'ediff-util))
-  (if (not (featurep 'ediff-ptch))
-      (require 'ediff-ptch))
-  (require 'ediff)
-  )
+  (require 'ediff-ptch)
+  (require 'ediff))
 ;; end pacifier
 
 (require 'ediff-init)

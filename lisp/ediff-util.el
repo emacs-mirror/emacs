@@ -30,8 +30,6 @@
 (provide 'ediff-util)
 
 ;; Compiler pacifier
-(defvar ediff-patch-diagnostics)
-(defvar ediff-patchbufer)
 (defvar ediff-use-toolbar-p)
 (defvar ediff-toolbar-height)
 (defvar ediff-toolbar)
@@ -47,20 +45,8 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 (eval-when-compile
-  (require 'ediff-init)
-  (require 'ediff-help)
-  (if (not (featurep 'ediff-mult))
-      (require 'ediff-mult))
-  (require 'ediff-mult)
-  (require 'ediff-wind)
-  (if (not (featurep 'ediff-diff))
-      (require 'ediff-diff))
-  (require 'ediff-merg)
-  (require 'ediff)
-  ;; for compatibility with current stable version of xemacs
-  (if (featurep 'xemacs)
-      (require 'ediff-tbar))
-  )
+  (require 'ediff))
+
 ;; end pacifier
 
 
@@ -70,7 +56,6 @@
 (require 'ediff-wind)
 (require 'ediff-diff)
 (require 'ediff-merg)
-
 ;; for compatibility with current stable version of xemacs
 (if (featurep 'xemacs)
     (require 'ediff-tbar))

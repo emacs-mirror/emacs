@@ -36,18 +36,8 @@
   :group 'ediff)
 
 ;; compiler pacifier
-(defvar ediff-window-A)
-(defvar ediff-window-B)
-(defvar ediff-window-C)
-(defvar ediff-use-last-dir)
-(defvar ediff-shell)
-
 (eval-when-compile
-  (require 'ediff-init)
-  (if (not (featurep 'ediff-mult))
-      (require 'ediff-mult))
-  (require 'ediff)
-  )
+  (require 'ediff))
 ;; end pacifier
 
 (require 'ediff-init)

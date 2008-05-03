@@ -44,14 +44,9 @@
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
-
 (eval-when-compile
-  (require 'ediff-init)
   (require 'ediff-util)
-  (require 'ediff-help)
-  (if (featurep 'xemacs)
-      (require 'ediff-tbar))
-  )
+  (require 'ediff-help))
 ;; end pacifier
 
 (require 'ediff-init)

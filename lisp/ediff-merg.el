@@ -35,9 +35,7 @@
 (defvar ediff-window-config-saved)
 
 (eval-when-compile
-  (require 'ediff-init)
-  (require 'ediff-util)
-  )
+  (require 'ediff-util))
 ;; end pacifier
 
 (require 'ediff-init)

@@ -29,10 +29,6 @@
 
 ;; Compiler pacifier start
 (defvar ediff-multiframe)
-
-(eval-when-compile
-  (require 'ediff-init)
-  )
 ;; end pacifier
 
 (require 'ediff-init)

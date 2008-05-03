@@ -29,17 +29,8 @@
 
 (provide 'ediff-diff)
 
-;; compiler pacifier
-(defvar ediff-default-variant)
-(defvar null-device)
-(defvar longlines-mode)
-
 (eval-when-compile
-  (require 'ediff-init)
-  (if (not (featurep 'ediff-util))
-      (require 'ediff-util))
-  )
-;; end pacifier
+  (require 'ediff-util))
 
 (require 'ediff-init)
 
