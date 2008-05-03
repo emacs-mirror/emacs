@@ -28,11 +28,6 @@
 
 ;; Compiler pacifier
 (defvar rcs-default-co-switches)
-(defvar sc-mode)
-(defvar cvs-shell)
-(defvar cvs-program)
-(defvar cvs-cookie-handle)
-(defvar ediff-temp-file-prefix)
 
 (and noninteractive
      (eval-when-compile
