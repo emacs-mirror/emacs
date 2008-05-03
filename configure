@@ -1371,6 +1371,7 @@ Optional Packages:
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --without-dbus          don't compile with D-Bus support
+  --without-makeinfo      don't require makeinfo for building manuals
 
   --with-pkg-config-prog=PATH
                           Path to pkg-config for finding GTK and librsvg
@@ -2101,6 +2102,17 @@ if test "${with_dbus+set}" = set; then
   withval=$with_dbus;
 else
      with_dbus=yes
+fi
+
+
+## For the times when you want to build Emacs but don't have
+## a suitable makeinfo, and can live without the manuals.
+
+# Check whether --with-makeinfo was given.
+if test "${with_makeinfo+set}" = set; then
+  withval=$with_makeinfo;
+else
+     with_makeinfo=yes
 fi
 
 
@@ -5492,12 +5504,29 @@ if test "$MAKEINFO" != "no" && \
    MAKEINFO=no
 fi
 
-if test "$MAKEINFO" = "no"; then
-  { { echo "$as_me:$LINENO: error: makeinfo >= 4.6 is required " >&5
-echo "$as_me: error: makeinfo >= 4.6 is required " >&2;}
-   { (exit 1); exit 1; }; }
-fi
+if test "$MAKEINFO" = "no" && test "x${with_makeinfo}" != "xno"; then
 
+   if test -e $srcdir/info/emacs; then
+      gotinfo="seems"
+   else
+      gotinfo="does NOT seem"
+   fi
+
+  { { echo "$as_me:$LINENO: error: You do not seem to have makeinfo >= 4.6.
+You will not be able to build the Emacs manuals.
+In Emacs releases, they are prebuilt, so this might not be a problem.
+Your source tree $gotinfo to have manuals in the \`info' directory.
+Either install a suitable version of makeinfo, or re-run configure
+with the \`--without-makeinfo' option. " >&5
+echo "$as_me: error: You do not seem to have makeinfo >= 4.6.
+You will not be able to build the Emacs manuals.
+In Emacs releases, they are prebuilt, so this might not be a problem.
+Your source tree $gotinfo to have manuals in the \`info' directory.
+Either install a suitable version of makeinfo, or re-run configure
+with the \`--without-makeinfo' option. " >&2;}
+   { (exit 1); exit 1; }; }
+
+fi
 
 
 if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
@@ -9292,6 +9321,7 @@ fi
 ## Workaround for bug in autoconf <= 2.62.
 ## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
 ## No need to do anything special for these standard directories.
+## This is an experiment, take it out if it causes problems.
 if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
 
    x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
