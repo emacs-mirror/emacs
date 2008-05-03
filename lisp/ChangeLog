@@ -3,7 +3,12 @@
 	* vc-dispatcher.el: New file, separates out the UI and command 
 	execution machinery from VCS-specific logic left in vc.el.  The
 	separation is not yet completely clean, but it's a good start.
-	* vc.el: This file is about 1700 lines shorter now.
+	* vc.el: This file is about 1700 lines shorter now.  Obsolete 
+	logentry-check is removed from the backend API.
+	* vc-sccs.el: Obsolete vc-sccs-logentry-check removed.  This was
+	was the only implementation of the logentry-check method, and
+	it guarded against a log length limit that has probably been
+	obsolete for 15 years (!).
 
 2008-05-02  Sam Steingold  <sds@gnu.org>
 

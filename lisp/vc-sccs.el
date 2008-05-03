@@ -332,12 +332,6 @@ locked.  REV is the revision to check out."
   ;; FIXME: not implemented for SCCS
   nil)
 
-(defun vc-sccs-logentry-check ()
-  "Check that the log entry in the current buffer is acceptable for SCCS."
-  (when (>= (buffer-size) 512)
-    (goto-char 512)
-    (error "Log must be less than 512 characters; point is now at pos 512")))
-
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."
   (setq oldvers (vc-sccs-lookup-triple (car files) oldvers))

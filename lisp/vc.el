@@ -401,13 +401,6 @@
 ;;
 ;;   Remove all non-comment information from the output of print-log.
 ;;
-;; - logentry-check ()
-;;
-;;   If defined, this function is run to find out whether the user
-;;   entered a valid log entry for check-in.  The log entry is in the
-;;   current buffer, and if it is not a valid one, the function should
-;;   throw an error.
-;;
 ;; - comment-history (file)
 ;;
 ;;   Return a string containing all log entries that were made for FILE.
@@ -823,7 +816,7 @@ See `run-hooks'."
   :group 'vc)
 
 (defcustom vc-logentry-check-hook nil
-  "Normal hook run by `vc-backend-logentry-check'.
+  "Normal hook run by `vc-finish-logentry'.
 Use this to impose your own rules on the entry in addition to any the
 version control backend imposes itself."
   :type 'hook
@@ -2733,7 +2726,6 @@ to provide the `find-revision' operation instead."
   (with-current-buffer (find-file-noselect new)
     (vc-register)))
 
-(defalias 'vc-default-logentry-check 'ignore)
 (defalias 'vc-default-check-headers 'ignore)
 
 (defun vc-default-log-view-mode (backend) (log-view-mode))

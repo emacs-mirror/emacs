@@ -138,10 +138,8 @@ Another is that undo information is not kept."
             (insert s)
             (set-marker (process-mark p) (point))))))))
 
-(defun vc-setup-buffer (&optional buf)
-  "Prepare BUF for executing a VC command and make it current.
-BUF defaults to \"*vc*\", can be a string and will be created if necessary."
-  (unless buf (setq buf "*vc*"))
+(defun vc-setup-buffer (buf)
+  "Prepare BUF for executing a slave command and make it current."
   (let ((camefrom (current-buffer))
 	(olddir default-directory))
     (set-buffer (get-buffer-create buf))
@@ -501,7 +499,6 @@ for `vc-log-after-operation-hook'."
 	(message "%s  Type C-c C-c when done" msg)
       (vc-finish-logentry (eq comment t)))))
 
-;; FIXME: Reference to vc-call-backend should go.
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry.
 Use the contents of the current buffer as a check-in or registration
@@ -510,10 +507,6 @@ the buffer contents as a comment."
   (interactive)
   ;; Check and record the comment, if any.
   (unless nocomment
-    ;; Comment too long?
-    (vc-call-backend (or (when vc-log-fileset (vc-backend vc-log-fileset))
-			 (vc-responsible-backend default-directory))
-		     'logentry-check)
     (run-hooks 'vc-logentry-check-hook))
   ;; Sync parent buffer in case the user modified it while editing the comment.
   ;; But not if it is a vc-dired buffer.
@@ -556,7 +549,6 @@ the buffer contents as a comment."
     (when (eq major-mode 'vc-dir-mode)
       (vc-dir-move-to-goal-column))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
-
 
 ;; The VC directory major mode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
