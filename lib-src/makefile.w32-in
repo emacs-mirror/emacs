@@ -281,6 +281,7 @@ lisp2 = \
 	$(lispsource)jka-cmpr-hook.elc \
 	$(lispsource)vc-hooks.elc \
 	$(lispsource)ediff-hook.elc \
+	$(lispsource)epa-file-hook.elc \
 	$(TOOLTIP_SUPPORT) \
 	$(WINNT_SUPPORT) \
 	$(WINDOW_SUPPORT) \
