@@ -1,3 +1,11 @@
+2008-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* ediff-diff.el, ediff-help.el, ediff-merg.el, ediff-mult.el:
+	* ediff-ptch.el, ediff-util.el, ediff-wind.el, ediff.el:
+	Simplify compilation requirements.
+	* ediff-init.el, ediff-vers.el: Remove unnecessary variable
+	declarations.
+
 2008-05-03  Dave Love  <fx@gnu.org>
 
 	* progmodes/python.el (python-beginning-of-statement):
