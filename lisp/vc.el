@@ -818,12 +818,6 @@ See `run-hooks'."
   :type 'hook
   :group 'vc)
 
-(defcustom vc-dir-mode-hook nil
-  "Normal hook run by `vc-dir-mode'.
-See `run-hooks'."
-  :type 'hook
-  :group 'vc)
-
 ;; Annotate customization
 (defcustom vc-annotate-color-map
   (if (and (tty-display-color-p) (<= (display-color-cells) 8))
@@ -2035,27 +2029,6 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 
 ;; VC status implementation
 
-;; Used to store information for the files displayed in the *VC status* buffer.
-;; Each item displayed corresponds to one of these defstructs.
-(defstruct (vc-dir-fileinfo
-            (:copier nil)
-            (:type list)            ;So we can use `member' on lists of FIs.
-            (:constructor
-             ;; We could define it as an alias for `list'.
-	     vc-dir-create-fileinfo (name state &optional extra marked directory))
-            (:conc-name vc-dir-fileinfo->))
-  name                                  ;Keep it as first, for `member'.
-  state
-  ;; For storing backend specific information.
-  extra
-  marked
-  ;; To keep track of not updated files during a global refresh
-  needs-update
-  ;; To distinguish files and directories.
-  directory)
-
-(defvar vc-ewoc nil)
-
 (defun vc-default-status-extra-headers (backend dir)
   ;; Be loud by default to remind people to add coded to display
   ;; backend specific headers.
@@ -2102,238 +2075,8 @@ specific headers."
   (let ((backend (vc-responsible-backend default-directory)))
     (vc-call-backend backend 'status-printer fileentry)))
 
-(defun vc-dir-move-to-goal-column ()
-  ;; Used to keep the cursor on the file name column.
-  (beginning-of-line)
-  ;; Must be in sync with vc-default-status-printer.
-  (forward-char 25))
-
-(defun vc-dir-prepare-status-buffer (dir &optional create-new)
-  "Find a *vc-dir* buffer showing DIR, or create a new one."
-  (setq dir (expand-file-name dir))
-  (let* ((bname "*vc-dir*")
-	 ;; Look for another *vc-dir* buffer visiting the same directory.
-	 (buf (save-excursion
-		(unless create-new
-		  (dolist (buffer (buffer-list))
-		    (set-buffer buffer)
-		    (when (and (eq major-mode 'vc-dir-mode)
-			       (string= (expand-file-name default-directory) dir))
-		      (return buffer)))))))
-    (or buf
-        ;; Create a new *vc-dir* buffer.
-        (with-current-buffer (create-file-buffer bname)
-          (cd dir)
-          (vc-setup-buffer (current-buffer))
-          ;; Reset the vc-parent-buffer-name so that it does not appear
-          ;; in the mode-line.
-          (setq vc-parent-buffer-name nil)
-          (current-buffer)))))
-
-;;;###autoload
-(defun vc-dir (dir)
-  "Show the VC status for DIR."
-  (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
-  (if (eq major-mode 'vc-dir-mode)
-      (vc-dir-refresh)
-    (vc-dir-mode)))
-
-(defvar vc-dir-menu-map
-  (let ((map (make-sparse-keymap "VC-dir")))
-    (define-key map [quit]
-      '(menu-item "Quit" quit-window
-		  :help "Quit"))
-    (define-key map [kill]
-      '(menu-item "Kill Update Command" vc-dir-kill-dir-status-process
-		  :enable (vc-dir-busy)
-		  :help "Kill the command that updates VC status buffer"))
-    (define-key map [refresh]
-      '(menu-item "Refresh" vc-dir-refresh
-		  :enable (not (vc-dir-busy))
-		  :help "Refresh the contents of the VC status buffer"))
-    (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
-		  :help "Hide up-to-date items from display"))
-    ;; Movement.
-    (define-key map [sepmv] '("--"))
-    (define-key map [next-line]
-      '(menu-item "Next line" vc-dir-next-line
-		  :help "Go to the next line" :keys "n"))
-    (define-key map [previous-line]
-      '(menu-item "Previous line" vc-dir-previous-line
-		  :help "Go to the previous line"))
-    ;; Marking.
-    (define-key map [sepmrk] '("--"))
-    (define-key map [unmark-all]
-      '(menu-item "Unmark All" vc-dir-unmark-all-files
-		  :help "Unmark all files that are in the same state as the current file\
-\nWith prefix argument unmark all files"))
-    (define-key map [unmark-previous]
-      '(menu-item "Unmark previous " vc-dir-unmark-file-up
-		  :help "Move to the previous line and unmark the file"))
-
-    (define-key map [mark-all]
-      '(menu-item "Mark All" vc-dir-mark-all-files
-		  :help "Mark all files that are in the same state as the current file\
-\nWith prefix argument mark all files"))
-    (define-key map [unmark]
-      '(menu-item "Unmark" vc-dir-unmark
-		  :help "Unmark the current file or all files in the region"))
-
-    (define-key map [mark]
-      '(menu-item "Mark" vc-dir-mark
-		  :help "Mark the current file or all files in the region"))
-
-    (define-key map [sepopn] '("--"))
-    (define-key map [open-other]
-      '(menu-item "Open in other window" vc-dir-find-file-other-window
-		  :help "Find the file on the current line, in another window"))
-    (define-key map [open]
-      '(menu-item "Open file" vc-dir-find-file
-		  :help "Find the file on the current line"))
-    ;; VC info details
-    (define-key map [sepvcdet] '("--"))
-    ;; FIXME: This needs a key binding.  And maybe a better name
-    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
-    (define-key map [ins]
-      '(menu-item "Show File" vc-dir-show-fileentry
-		  :help "Show a file in the VC status listing even though it might be up to date"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [next-action]
-      ;; FIXME: This really really really needs a better name!
-      ;; And a key binding too.
-      '(menu-item "Check In/Out" vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
-    (define-key map [register]
-      '(menu-item "Register" vc-dir-register
-		  :help "Register file set into the version control system"))
-    map)
-  "Menu for VC status")
-
-(defalias 'vc-dir-menu-map vc-dir-menu-map)
-
-(defvar vc-dir-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    ;; Marking.
-    (define-key map "m" 'vc-dir-mark)
-    (define-key map "M" 'vc-dir-mark-all-files)
-    (define-key map "u" 'vc-dir-unmark)
-    (define-key map "U" 'vc-dir-unmark-all-files)
-    (define-key map "\C-?" 'vc-dir-unmark-file-up)
-    (define-key map "\M-\C-?" 'vc-dir-unmark-all-files)
-    ;; Movement.
-    (define-key map "n" 'vc-dir-next-line)
-    (define-key map " " 'vc-dir-next-line)
-    (define-key map "\t" 'vc-dir-next-line)
-    (define-key map "p" 'vc-dir-previous-line)
-    (define-key map [backtab] 'vc-dir-previous-line)
-    ;; VC commands.
-    (define-key map "=" 'vc-diff)   ;; C-x v =
-    (define-key map "a" 'vc-dir-register)
-    (define-key map "+" 'vc-update) ;; C-x v +
-    (define-key map "R" 'vc-revert) ;; u is taken by unmark.
-
-    ;; Can't be "g" (as in vc map), so "A" for "Annotate".
-    (define-key map "A" 'vc-annotate)
-    (define-key map "l" 'vc-print-log) ;; C-x v l
-    ;; The remainder.
-    (define-key map "f" 'vc-dir-find-file)
-    (define-key map "\C-m" 'vc-dir-find-file)
-    (define-key map "o" 'vc-dir-find-file-other-window)
-    (define-key map "x" 'vc-dir-hide-up-to-date)
-    (define-key map "q" 'quit-window)
-    (define-key map "g" 'vc-dir-refresh)
-    (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    (define-key map [(down-mouse-3)] 'vc-dir-menu)
-    (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
-
-    ;; Hook up the menu.
-    (define-key map [menu-bar vc-dir-mode]
-      '(menu-item
-	;; This is used to that VC backends could add backend specific
-	;; menu items to vc-dir-menu-map.
-	"VC Status" vc-dir-menu-map :filter vc-dir-menu-map-filter))
-    map)
-  "Keymap for VC status")
-
 (defun vc-default-extra-status-menu (backend)
   nil)
-
-;; This is used to that VC backends could add backend specific menu
-;; items to vc-dir-menu-map.
-(defun vc-dir-menu-map-filter (orig-binding)
-  (when (and (symbolp orig-binding) (fboundp orig-binding))
-    (setq orig-binding (indirect-function orig-binding)))
-  (let ((ext-binding
-	 (vc-call-backend (vc-responsible-backend default-directory)
-			  'extra-status-menu)))
-    (if (null ext-binding)
-	orig-binding
-      (append orig-binding
-	      '("----")
-	      ext-binding))))
-
-(defmacro vc-at-event (event &rest body)
-  "Evaluate `body' wich point located at event-start of `event'.
-If `body' uses `event', it should be a variable,
- otherwise it will be evaluated twice."
-  (let ((posn (gensym "vc-at-event-posn")))
-    `(let ((,posn (event-start ,event)))
-       (save-excursion
-         (set-buffer (window-buffer (posn-window ,posn)))
-         (goto-char (posn-point ,posn))
-         ,@body))))
-
-(defun vc-dir-menu (e)
-  "Popup the VC status menu."
-  (interactive "e")
-  (vc-at-event e (popup-menu vc-dir-menu-map e)))
-
-(defvar vc-dir-tool-bar-map
-  (let ((map (make-sparse-keymap)))
-    (tool-bar-local-item-from-menu 'vc-dir-find-file "open"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item "bookmark_add"
-			 'vc-dir-toggle-mark 'vc-dir-toggle-mark map
-			 :help "Toggle mark on current item")
-    (tool-bar-local-item-from-menu 'vc-dir-previous-line "left-arrow"
-				   map vc-dir-mode-map
-				   :rtl "right-arrow")
-    (tool-bar-local-item-from-menu 'vc-dir-next-line "right-arrow"
-				   map vc-dir-mode-map
-				   :rtl "left-arrow")
-    (tool-bar-local-item-from-menu 'vc-print-log "info"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'vc-dir-refresh "refresh"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'nonincremental-search-forward
-				   "search" map)
-    (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'quit-window "exit"
-				   map vc-dir-mode-map)
-    map))
-
-(defvar vc-dir-process-buffer nil
-  "The buffer used for the asynchronous call that computes the VC status.")
 
 (defun vc-dir-mode ()
   "Major mode for showing the VC status for a directory.
@@ -2378,130 +2121,28 @@ U - if the cursor is on a file: unmark all the files with the same VC state
 
 (put 'vc-dir-mode 'mode-class 'special)
 
-;; t if directories should be shown in vc-dir.
-;; WORK IN PROGRESS!  DO NOT SET this! ONLY set it if you want to help
-;; write code for this feature.  This variable will likely disappear
-;; when the work is done.
-(defvar vc-dir-insert-directories nil)
+;;;###autoload
+(defun vc-dir (dir)
+  "Show the VC status for DIR."
+  (interactive "DVC status for directory: ")
+  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
+  (if (eq major-mode 'vc-dir-mode)
+      (vc-dir-refresh)
+    (vc-dir-mode)))
 
-(defun vc-dir-update (entries buffer &optional noinsert)
-  "Update BUFFER's ewoc from the list of ENTRIES.
-If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
-  ;; Add ENTRIES to the vc-dir buffer BUFFER.
-  (with-current-buffer buffer
-    ;; Insert the entries sorted by name into the ewoc.
-    ;; We assume the ewoc is sorted too, which should be the
-    ;; case if we always add entries with vc-dir-update.
-    (setq entries
-	  ;; Sort: first files and then subdirectories.
-	  ;; XXX: this is VERY inefficient, it computes the directory
-	  ;; names too many times
-	  (sort entries
-		(lambda (entry1 entry2)
-		  (let ((dir1 (file-name-directory (expand-file-name (car entry1))))
-			(dir2 (file-name-directory (expand-file-name (car entry2)))))
-		    (cond
-		     ((string< dir1 dir2) t)
-		     ((not (string= dir1 dir2)) nil)
-		     ((string< (car entry1) (car entry2))))))))
-    (if (not vc-dir-insert-directories)
-	(let ((entry (car entries))
-	      (node (ewoc-nth vc-ewoc 0)))
-	  (while (and entry node)
-	    (let ((entryfile (car entry))
-		  (nodefile (vc-dir-fileinfo->name (ewoc-data node))))
-	      (cond
-	       ((string-lessp nodefile entryfile)
-		(setq node (ewoc-next vc-ewoc node)))
-	       ((string-lessp entryfile nodefile)
-		(unless noinsert
-		  (ewoc-enter-before vc-ewoc node
-				     (apply 'vc-dir-create-fileinfo entry)))
-		(setq entries (cdr entries) entry (car entries)))
-	       (t
-		(setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		(ewoc-invalidate vc-ewoc node)
-		(setq entries (cdr entries) entry (car entries))
-		(setq node (ewoc-next vc-ewoc node))))))
-	  (unless (or node noinsert)
-	    ;; We're past the last node, all remaining entries go to the end.
-	    (while entries
-	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo (pop entries))))))
-  ;; Insert directory entries in the right places.
-  (let ((entry (car entries))
-	(node (ewoc-nth vc-ewoc 0)))
-    ;; Insert . if it is not present.
-    (unless node
-      (let ((rd (file-relative-name default-directory)))
-	(ewoc-enter-last
-	 vc-ewoc (vc-dir-create-fileinfo
-		  rd nil nil nil (expand-file-name default-directory))))
-      (setq node (ewoc-nth vc-ewoc 0)))
-
-    (while (and entry node)
-      (let* ((entryfile (car entry))
-	     (entrydir (file-name-directory (expand-file-name entryfile)))
-	     (nodedir
-	      (or (vc-dir-fileinfo->directory (ewoc-data node))
-		  (file-name-directory
-		       (expand-file-name
-			(vc-dir-fileinfo->name (ewoc-data node)))))))
-	(cond
-	 ;; First try to find the directory.
-	 ((string-lessp nodedir entrydir)
-	  (setq node (ewoc-next vc-ewoc node)))
-	 ((string-equal nodedir entrydir)
-	  ;; Found the directory, find the place for the file name.
-	  (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
-	    (cond
-	     ((string-lessp nodefile entryfile)
-	      (setq node (ewoc-next vc-ewoc node)))
-	      ((string-equal nodefile entryfile)
-	       (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-	       (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-	       (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-	       (ewoc-invalidate vc-ewoc node)
-	       (setq entries (cdr entries) entry (car entries))
-	       (setq node (ewoc-next vc-ewoc node)))
-	      (t
-	       (ewoc-enter-before vc-ewoc node
-				  (apply 'vc-dir-create-fileinfo entry))
-	       (setq entries (cdr entries) entry (car entries))))))
-	 (t
-	  ;; We need to insert a directory node
-	  (let ((rd (file-relative-name entrydir)))
-	    (ewoc-enter-last
-	     vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir)))
-	  ;; Now insert the node itself.
-	  (ewoc-enter-before vc-ewoc node
-			     (apply 'vc-dir-create-fileinfo entry))
-	  (setq entries (cdr entries) entry (car entries))))))
-    ;; We're past the last node, all remaining entries go to the end.
-    (unless (or node noinsert)
-      (let* ((lastnode (ewoc-nth vc-ewoc -1))
-	     (lastdir
-	      (or (vc-dir-fileinfo->directory (ewoc-data lastnode))
-		  (file-name-directory
-		       (expand-file-name
-			(vc-dir-fileinfo->name (ewoc-data lastnode)))))))
-	(dolist (entry entries)
-	  (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
-	    ;; Insert a directory node if needed.
-	    (unless (string-equal lastdir entrydir)
-	      (setq lastdir entrydir)
-	      (let ((rd (file-relative-name entrydir)))
-		(ewoc-enter-last
-		 vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
-	    ;; Now insert the node itself.
-	    (ewoc-enter-last vc-ewoc
-			     (apply 'vc-dir-create-fileinfo entry))))))))))
-
-(defun vc-dir-busy ()
-  (and (buffer-live-p vc-dir-process-buffer)
-       (get-buffer-process vc-dir-process-buffer)))
+;; This is used to that VC backends could add backend specific menu
+;; items to vc-dir-menu-map.
+(defun vc-dir-menu-map-filter (orig-binding)
+  (when (and (symbolp orig-binding) (fboundp orig-binding))
+    (setq orig-binding (indirect-function orig-binding)))
+  (let ((ext-binding
+	 (vc-call-backend (vc-responsible-backend default-directory)
+			  'extra-status-menu)))
+    (if (null ext-binding)
+	orig-binding
+      (append orig-binding
+	      '("----")
+	      ext-binding))))
 
 (defun vc-dir-refresh-files (files default-state)
   "Refresh some files in the VC status buffer."
@@ -2587,262 +2228,6 @@ Throw an error if another update process is in progress."
                         'up-to-date)
                      (setq mode-line-process nil))))))))))))
 
-(defun vc-dir-kill-dir-status-process ()
-  "Kill the temporary buffer and associated process."
-  (interactive)
-  (when (buffer-live-p vc-dir-process-buffer)
-    (let ((proc (get-buffer-process vc-dir-process-buffer)))
-      (when proc (delete-process proc))
-      (setq vc-dir-process-buffer nil)
-      (setq mode-line-process nil))))
-
-(defun vc-dir-kill-query ()
-  ;; Make sure that when the VC status buffer is killed the update
-  ;; process running in background is also killed.
-  (if (vc-dir-busy)
-    (when (y-or-n-p "Status update process running, really kill status buffer?")
-      (vc-dir-kill-dir-status-process)
-      t)
-    t))
-
-(defun vc-dir-next-line (arg)
-  "Go to the next line.
-If a prefix argument is given, move by that many lines."
-  (interactive "p")
-  (ewoc-goto-next vc-ewoc arg)
-  (vc-dir-move-to-goal-column))
-
-(defun vc-dir-previous-line (arg)
-  "Go to the previous line.
-If a prefix argument is given, move by that many lines."
-  (interactive "p")
-  (ewoc-goto-prev vc-ewoc arg)
-  (vc-dir-move-to-goal-column))
-
-(defun vc-dir-mark-unmark (mark-unmark-function)
-  (if (use-region-p)
-      (let ((firstl (line-number-at-pos (region-beginning)))
-	    (lastl (line-number-at-pos (region-end))))
-	(save-excursion
-	  (goto-char (region-beginning))
-	  (while (<= (line-number-at-pos) lastl)
-	    (funcall mark-unmark-function))))
-    (funcall mark-unmark-function)))
-
-(defun vc-dir-parent-marked-p (arg)
-  (when vc-dir-insert-directories
-    ;; Return nil if none of the parent directories of arg is marked.
-    (let* ((argdata (ewoc-data arg))
-	   (argdir
-	    (let ((crtdir (vc-dir-fileinfo->directory argdata)))
-	      (if crtdir
-		  crtdir
-		(file-name-directory (expand-file-name
-				      (vc-dir-fileinfo->name argdata))))))
-	   (arglen (length argdir))
-	   (crt arg)
-	   data dir)
-      ;; Go through the predecessors, checking if any directory that is
-      ;; a parent is marked.
-      (while (setq crt (ewoc-prev vc-ewoc crt))
-	(setq data (ewoc-data crt))
-	(setq dir
-	      (let ((crtdir (vc-dir-fileinfo->directory data)))
-		(if crtdir
-		    crtdir
-		  (file-name-directory (expand-file-name
-					(vc-dir-fileinfo->name data))))))
-
-	(when (and (vc-dir-fileinfo->directory data)
-		   (string-equal (substring argdir 0 (length dir)) dir))
-	  (when (vc-dir-fileinfo->marked data)
-	    (error "Cannot mark `%s', parent directory `%s' marked"
-		   (vc-dir-fileinfo->name argdata)
-		   (vc-dir-fileinfo->name data)))))
-      nil)))
-
-(defun vc-dir-children-marked-p (arg)
-  ;; Return nil if none of the children of arg is marked.
-  (when vc-dir-insert-directories
-    (let* ((argdata (ewoc-data arg))
-	   (argdir (vc-dir-fileinfo->directory argdata))
-	   (arglen (length argdir))
-	   (is-child t)
-	   (crt arg)
-	   data dir)
-      (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
-	(setq data (ewoc-data crt))
-	(setq dir
-	      (let ((crtdir (vc-dir-fileinfo->directory data)))
-		(if crtdir
-		    crtdir
-		  (file-name-directory (expand-file-name
-					(vc-dir-fileinfo->name data))))))
-	(if (string-equal argdir (substring dir 0 arglen))
-	    (when (vc-dir-fileinfo->marked data)
-	      (error "Cannot mark `%s', child `%s' marked"
-		     (vc-dir-fileinfo->name argdata)
-		     (vc-dir-fileinfo->name data)))
-	  ;; We are done, we got to an entry that is not a child of `arg'.
-	  (setq is-child nil)))
-      nil)))
-
-(defun vc-dir-mark-file (&optional arg)
-  ;; Mark ARG or the current file and move to the next line.
-  (let* ((crt (or arg (ewoc-locate vc-ewoc)))
-         (file (ewoc-data crt))
-	 (isdir (vc-dir-fileinfo->directory file)))
-    (when (or (and isdir (not (vc-dir-children-marked-p crt)))
-	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
-      (setf (vc-dir-fileinfo->marked file) t)
-      (ewoc-invalidate vc-ewoc crt)
-      (unless (or arg (mouse-event-p last-command-event))
-	(vc-dir-next-line 1)))))
-
-(defun vc-dir-mark ()
-  "Mark the current file or all files in the region.
-If the region is active, mark all the files in the region.
-Otherwise mark the file on the current line and move to the next
-line."
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-mark-file))
-
-(defun vc-dir-mark-all-files (arg)
-  "Mark all files with the same state as the current one.
-With a prefix argument mark all files.
-If the current entry is a directory, mark all child files.
-
-The VC commands operate on files that are on the same state.
-This command is intended to make it easy to select all files that
-share the same state."
-  (interactive "P")
-  (if arg
-      ;; Mark all files.
-      (progn
-	;; First check that no directory is marked, we can't mark
-	;; files in that case.
-	(ewoc-map
-	 (lambda (filearg)
-	   (when (and (vc-dir-fileinfo->directory filearg)
-		      (vc-dir-fileinfo->directory filearg))
-	     (error "Cannot mark all files, directory `%s' marked"
-		    (vc-dir-fileinfo->name filearg))))
-	 vc-ewoc)
-	(ewoc-map
-	 (lambda (filearg)
-	   (unless (vc-dir-fileinfo->marked filearg)
-	     (setf (vc-dir-fileinfo->marked filearg) t)
-	     t))
-	 vc-ewoc))
-    (let ((data (ewoc-data (ewoc-locate vc-ewoc))))
-      (if (vc-dir-fileinfo->directory data)
-	  ;; It's a directory, mark child files.
-	  (let ((crt (ewoc-locate vc-ewoc)))
-	    (unless (vc-dir-children-marked-p crt)
-	      (while (setq crt (ewoc-next vc-ewoc crt))
-		(let ((crt-data (ewoc-data crt)))
-		  (unless (vc-dir-fileinfo->directory crt-data)
-		    (setf (vc-dir-fileinfo->marked crt-data) t)
-		    (ewoc-invalidate vc-ewoc crt))))))
-	;; It's a file
-	(let ((state (vc-dir-fileinfo->state data))
-	      (crt (ewoc-nth vc-ewoc 0)))
-	  (while crt
-	    (let ((crt-data (ewoc-data crt)))
-	      (when (and (not (vc-dir-fileinfo->marked crt-data))
-			 (eq (vc-dir-fileinfo->state crt-data) state)
-			 (not (vc-dir-fileinfo->directory crt-data)))
-		(vc-dir-mark-file crt)))
-	    (setq crt (ewoc-next vc-ewoc crt))))))))
-
-(defun vc-dir-unmark-file ()
-  ;; Unmark the current file and move to the next line.
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (setf (vc-dir-fileinfo->marked file) nil)
-    (ewoc-invalidate vc-ewoc crt)
-    (unless (mouse-event-p last-command-event)
-      (vc-dir-next-line 1))))
-
-(defun vc-dir-unmark ()
-  "Unmark the current file or all files in the region.
-If the region is active, unmark all the files in the region.
-Otherwise mark the file on the current line and move to the next
-line."
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-unmark-file))
-
-(defun vc-dir-unmark-file-up ()
-  "Move to the previous line and unmark the file."
-  (interactive)
-  ;; If we're on the first line, we won't move up, but we will still
-  ;; remove the mark.  This seems a bit odd but it is what buffer-menu
-  ;; does.
-  (let* ((prev (ewoc-goto-prev vc-ewoc 1))
-	 (file (ewoc-data prev)))
-    (setf (vc-dir-fileinfo->marked file) nil)
-    (ewoc-invalidate vc-ewoc prev)
-    (vc-dir-move-to-goal-column)))
-
-(defun vc-dir-unmark-all-files (arg)
-  "Unmark all files with the same state as the current one.
-With a prefix argument unmark all files.
-If the current entry is a directory, unmark all the child files.
-
-The VC commands operate on files that are on the same state.
-This command is intended to make it easy to deselect all files
-that share the same state."
-  (interactive "P")
-  (if arg
-      (ewoc-map
-       (lambda (filearg)
-	 (when (vc-dir-fileinfo->marked filearg)
-	   (setf (vc-dir-fileinfo->marked filearg) nil)
-	   t))
-       vc-ewoc)
-    (let* ((crt (ewoc-locate vc-ewoc))
-	   (data (ewoc-data crt)))
-      (if (vc-dir-fileinfo->directory data)
-	  ;; It's a directory, unmark child files.
-	  (while (setq crt (ewoc-next vc-ewoc crt))
-	    (let ((crt-data (ewoc-data crt)))
-	      (unless (vc-dir-fileinfo->directory crt-data)
-		(setf (vc-dir-fileinfo->marked crt-data) nil)
-		(ewoc-invalidate vc-ewoc crt))))
-	;; It's a file
-	(let ((crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
-	  (ewoc-map
-	   (lambda (filearg)
-	     (when (and (vc-dir-fileinfo->marked filearg)
-			(eq (vc-dir-fileinfo->state filearg) crt-state))
-	       (setf (vc-dir-fileinfo->marked filearg) nil)
-	       t))
-	   vc-ewoc))))))
-
-(defun vc-dir-toggle-mark-file ()
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (if (vc-dir-fileinfo->marked file)
-	(vc-dir-unmark-file)
-      (vc-dir-mark-file))))
-
-(defun vc-dir-toggle-mark (e)
-  (interactive "e")
-  (vc-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
-
-(defun vc-dir-register ()
-  "Register the marked files, or the current file if no marks."
-  (interactive)
-  ;; FIXME: Just pass the fileset to vc-register.
-  (mapc (lambda (arg) (vc-register nil arg))
-	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
-
-(defun vc-dir-delete-file ()
-  "Delete the marked files, or the current file if no marks."
-  (interactive)
-  (mapc 'vc-delete-file (or (vc-dir-marked-files)
-                            (list (vc-dir-current-file)))))
-
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current VC status listing.
 This is typically used if the file is up-to-date (or has been added
@@ -2850,67 +2235,19 @@ outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
-(defun vc-dir-find-file ()
-  "Find the file on the current line."
-  (interactive)
-  (find-file (vc-dir-current-file)))
-
-(defun vc-dir-find-file-other-window ()
-  "Find the file on the current line, in another window."
-  (interactive)
-  (find-file-other-window (vc-dir-current-file)))
-
-(defun vc-dir-current-file ()
-  (let ((node (ewoc-locate vc-ewoc)))
-    (unless node
-      (error "No file available."))
-    (expand-file-name (vc-dir-fileinfo->name (ewoc-data node)))))
-
-(defun vc-dir-marked-files ()
-  "Return the list of marked files."
-  (mapcar
-   (lambda (elem) (expand-file-name (vc-dir-fileinfo->name elem)))
-   (ewoc-collect vc-ewoc 'vc-dir-fileinfo->marked)))
-
-(defun vc-dir-marked-only-files ()
-  "Return the list of marked files, for marked directories, return child files."
-
-  (let ((crt (ewoc-nth vc-ewoc 0))
-	result)
-    (while crt
-      (let ((crt-data (ewoc-data crt)))
-	(if (vc-dir-fileinfo->marked crt-data)
-	    (if (vc-dir-fileinfo->directory crt-data)
-		(let* ((dir (vc-dir-fileinfo->directory crt-data))
-		       (dirlen (length dir))
-		       data)
-		  (while
-		      (and (setq crt (ewoc-next vc-ewoc crt))
-			   (string-equal
-			    (substring
-			     (progn
-			       (setq data (ewoc-data crt))
-			       (let ((crtdir (vc-dir-fileinfo->directory data)))
-				 (if crtdir
-				     crtdir
-				   (file-name-directory
-				    (expand-file-name
-				     (vc-dir-fileinfo->name data))))))
-			     0 dirlen)
-			    dir))
-		    (unless (vc-dir-fileinfo->directory data)
-		      (push (vc-dir-fileinfo->name data) result))))
-	      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result)
-	      (setq crt (ewoc-next vc-ewoc crt)))
-	  (setq crt (ewoc-next vc-ewoc crt)))))
-    result))
-
 (defun vc-dir-hide-up-to-date ()
   "Hide up-to-date items from display."
   (interactive)
   (ewoc-filter
    vc-ewoc
    (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
+
+(defun vc-dir-register ()
+  "Register the marked files, or the current file if no marks."
+  (interactive)
+  ;; FIXME: Just pass the fileset to vc-register.
+  (mapc (lambda (arg) (vc-register nil arg))
+	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
 
 (defun vc-default-status-fileinfo-extra (backend file)
   nil)
