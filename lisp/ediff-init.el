@@ -29,7 +29,6 @@
 ;; Start compiler pacifier
 (defvar ediff-metajob-name)
 (defvar ediff-meta-buffer)
-(defvar pm-color-alist)
 (defvar ediff-grab-mouse)
 (defvar ediff-mouse-pixel-position)
 (defvar ediff-mouse-pixel-threshold)
