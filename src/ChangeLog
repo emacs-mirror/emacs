@@ -109,7 +109,7 @@
 	on nt/inc/sys/stat.h.  Undo changes from 2007-01-12 and 2007-01-13
 	for the same reasons.
 
-2008-04-25  Chip Coldwell  <coldwell@redhat.com>
+2008-04-25  Dennis Gilmore  <ausil@fedoraproject.org>  (tiny change)
 
 	* m/sparc.h: Additional redefinitions for GNU/Linux.
 
