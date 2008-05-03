@@ -611,10 +611,9 @@ or a character code.  Return VALUE.  */)
     {
       int i;
 
-      XCHAR_TABLE (char_table)->ascii = Qnil;
+      XCHAR_TABLE (char_table)->ascii = value;
       for (i = 0; i < chartab_size[0]; i++)
-	XCHAR_TABLE (char_table)->contents[i] = Qnil;
-      XCHAR_TABLE (char_table)->defalt = value;
+	XCHAR_TABLE (char_table)->contents[i] = value;
     }
   else if (EQ (range, Qnil))
     XCHAR_TABLE (char_table)->defalt = value;

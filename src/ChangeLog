@@ -1,3 +1,8 @@
+2008-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* chartab.c (Fset_char_table_range): If range is t, really set all
+	chars to that value.
+
 2008-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Don't allow the device number become
@@ -35,16 +40,16 @@
 	(compare_window_configurations): Handle resize_proportionally.
 	(WINDOW_TOTAL_SIZE): New macro.
 	(window_min_size, shrink_windows, size_window): Use it.
-	(check_min_window_sizes): Removed.  Invalid values of
+	(check_min_window_sizes): Remove.  Invalid values of
 	window-min-height|width are handled by window_min_size_2 now.
 	(size_window, Fsplit_window, enlarge_window)
 	(adjust_window_trailing_edge, grow_mini_window): Don't call
 	check_min_window_sizes.
-	(window_min_size_2, window_min_size_1, window_min_size): New
-	argument safe_p for retrieving "safe" minimum sizes.
+	(window_min_size_2, window_min_size_1, window_min_size):
+	New argument safe_p for retrieving "safe" minimum sizes.
 	(Fdisplay_buffer, Fsplit_window, enlarge_window):
-	(adjust_window_trailing_edge, grow_mini_window): Adjust
-	arguments of window_min_size... functions.
+	(adjust_window_trailing_edge, grow_mini_window):
+	Adjust arguments of window_min_size... functions.
 	(shrink_windows): Argument min_size removed.  New argument
 	safe_p allows shrinking windows to their safe minimum sizes.
 	Calculate minimum size and decide whether a window shall be
