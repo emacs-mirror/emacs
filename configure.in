@@ -148,6 +148,11 @@ OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 
+## For the times when you want to build Emacs but don't have
+## a suitable makeinfo, and can live without the manuals.
+dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
+OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
+
 dnl Can remove these in Emacs 24.
 AC_ARG_WITH([gtk],,
   AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
@@ -891,10 +896,22 @@ if test "$MAKEINFO" != "no" && \
    MAKEINFO=no
 fi
 
-if test "$MAKEINFO" = "no"; then
-  AC_MSG_ERROR( [makeinfo >= 4.6 is required] )
-fi
+if test "$MAKEINFO" = "no" && test "x${with_makeinfo}" != "xno"; then
 
+   if test -e $srcdir/info/emacs; then
+      gotinfo="seems"
+   else
+      gotinfo="does NOT seem"
+   fi
+
+  AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6.
+You will not be able to build the Emacs manuals.
+In Emacs releases, they are prebuilt, so this might not be a problem.
+Your source tree $gotinfo to have manuals in the `info' directory.
+Either install a suitable version of makeinfo, or re-run configure
+with the `--without-makeinfo' option.] )
+
+fi
 
 dnl Add our options to ac_link now, after it is set up.
 
