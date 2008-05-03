@@ -604,11 +604,18 @@
 ;; - when a file is in `conflict' state, turn on smerge-mode.
 ;;
 ;; - figure out what to do with conflicts that are not caused by the
-;;   file contents, but by metadata or other causes.
+;;   file contents, but by metadata or other causes.  Example: File A
+;;   gets renamed to B in one branch and to C in another and you merge
+;;   the two branches.  Or you locally add file FOO and then pull a
+;;   change that also adds a new file FOO, ...
 ;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
+;;
+;; - C-x v b does switch to a different backend, but the mode line is not 
+;;   adapted accordingly.  Also, it considers RCS and CVS to be the same, 
+;;   which is pretty confusing.
 ;;
 ;; - vc-diff should be able to show the diff for all files in a
 ;;   changeset, especially for VC systems that have per repository
@@ -671,12 +678,20 @@
 ;;   Those logs should likely use a local variable to hardware the VC they
 ;;   are supposed to work with.
 ;;
+;; - Another important thing: merge all the status-like backend operations.
+;;   We should remove dir-status, state, dir-state, and dir-status-files, and
+;;   replace them with just `status' which takes a fileset and a continuation
+;;   (like dir-status) and returns a buffer in which the process(es) are run
+;;   (or nil if it worked synchronously).  Hopefully we can define the old
+;;   4 operations in term of this one.
+;;
 ;; - backends that care about vc-stay-local should try to take it into
 ;;   account for vc-dir.  Is this likely to be useful???
 ;;
 ;; - vc-dir listing needs a footer generated when it's done to make it obvious
 ;; that it has finished.
 ;;
+
 ;;; Code:
 
 (require 'vc-hooks)
@@ -1504,6 +1519,7 @@ Otherwise, throw an error."
 	(cons
 	 (vc-responsible-backend default-directory)
 	 (list default-directory))))
+     ;; If we're allowing unregistered fiiles and visiting one, select it.
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (cons (vc-responsible-backend
 	     (file-name-directory (buffer-file-name)))
