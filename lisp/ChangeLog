@@ -1,3 +1,8 @@
+2008-05-03  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (python-beginning-of-statement):
+	Loop at least once (fixes 2008-02-21 change).
+
 2008-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-insert-directory): Use `string-width'
@@ -5,10 +10,10 @@
 
 2008-05-03  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-dispatcher.el: New file, separates out the UI and command 
+	* vc-dispatcher.el: New file, separates out the UI and command
 	execution machinery from VCS-specific logic left in vc.el.  The
 	separation is not yet completely clean, but it's a good start.
-	* vc.el: This file is about 1700 lines shorter now.  Obsolete 
+	* vc.el: This file is about 1700 lines shorter now.  Obsolete
 	logentry-check is removed from the backend API.
 	* vc-sccs.el: Obsolete vc-sccs-logentry-check removed.  This was
 	was the only implementation of the logentry-check method, and
