@@ -76,12 +76,17 @@
 
 (provide 'vc-dispatcher)
 
+(eval-when-compile
+  (require 'cl)
+  (require 'dired)      ; for dired-map-over-marks macro
+  (require 'dired-aux))	; for dired-kill-{line,tree}
+
 ;; General customization
 
 (defcustom vc-logentry-check-hook nil
   "Normal hook run by `vc-finish-logentry'.
 Use this to impose your own rules on the entry in addition to any the
-version control backend imposes itself."
+dispatcher client mode imposes itself."
   :type 'hook
   :group 'vc)
 
@@ -590,11 +595,236 @@ the buffer contents as a comment."
       (mapc
        (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
        log-fileset))
-    ;; FIXME: Call into vc.el
     (when vc-dired-mode
       (dired-move-to-filename))
     (when (eq major-mode 'vc-dir-mode)
       (vc-dir-move-to-goal-column))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
+
+;; VC-Dired mode (to be removed when vc-dir support is finished)
+
+(defcustom vc-dired-listing-switches "-al"
+  "Switches passed to `ls' for vc-dired.  MUST contain the `l' option."
+  :type 'string
+  :group 'vc
+  :version "21.1")
+
+(defcustom vc-dired-recurse t
+  "If non-nil, show directory trees recursively in VC Dired."
+  :type 'boolean
+  :group 'vc
+  :version "20.3")
+
+(defcustom vc-dired-terse-display t
+  "If non-nil, show only locked or locally modified files in VC Dired."
+  :type 'boolean
+  :group 'vc
+  :version "20.3")
+
+(defvar vc-dired-mode nil)
+(defvar vc-dired-window-configuration)
+
+(make-variable-buffer-local 'vc-dired-mode)
+
+;; The VC directory major mode.  Coopt Dired for this.
+;; All VC commands get mapped into logical equivalents.
+
+(defvar vc-dired-switches)
+(defvar vc-dired-terse-mode)
+
+(defvar vc-dired-mode-map
+  (let ((map (make-sparse-keymap))
+	(vmap (make-sparse-keymap)))
+    (define-key map "\C-xv" vmap)
+    (define-key map "v" vmap)
+    (set-keymap-parent vmap vc-prefix-map)
+    (define-key vmap "t" 'vc-dired-toggle-terse-mode)
+    map))
+
+(define-derived-mode vc-dired-mode dired-mode "Dired under VC"
+  "The major mode used in VC directory buffers.
+
+It works like Dired, but lists only files under version control, with
+the current VC state of each file being indicated in the place of the
+file's link count, owner, group and size.  Subdirectories are also
+listed, and you may insert them into the buffer as desired, like in
+Dired.
+
+All Dired commands operate normally, with the exception of `v', which
+is redefined as the version control prefix, so that you can type
+`vl', `v=' etc. to invoke `vc-print-log', `vc-diff', and the like on
+the file named in the current Dired buffer line.  `vv' invokes
+`vc-next-action' on this file, or on all files currently marked.
+There is a special command, `*l', to mark all files currently locked."
+  ;; define-derived-mode does it for us in Emacs-21, but not in Emacs-20.
+  ;; We do it here because dired might not be loaded yet
+  ;; when vc-dired-mode-map is initialized.
+  (set-keymap-parent vc-dired-mode-map dired-mode-map)
+  (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
+  ;; The following is slightly modified from files.el,
+  ;; because file lines look a bit different in vc-dired-mode
+  ;; (the column before the date does not end in a digit).
+  ;; albinus: It should be done in the original declaration.  Problem
+  ;; is the optional empty state-info; otherwise ")" would be good
+  ;; enough as delimeter.
+  (set (make-local-variable 'directory-listing-before-filename-regexp)
+  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
+         ;; In some locales, month abbreviations are as short as 2 letters,
+         ;; and they can be followed by ".".
+         (month (concat l l "+\\.?"))
+         (s " ")
+         (yyyy "[0-9][0-9][0-9][0-9]")
+         (dd "[ 0-3][0-9]")
+         (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
+         (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
+         (zone "[-+][0-2][0-9][0-5][0-9]")
+         (iso-mm-dd "[01][0-9]-[0-3][0-9]")
+         (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
+         (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
+                      "\\|" yyyy "-" iso-mm-dd "\\)"))
+         (western (concat "\\(" month s "+" dd "\\|" dd "\\.?" s month "\\)"
+                          s "+"
+                          "\\(" HH:MM "\\|" yyyy "\\)"))
+         (western-comma (concat month s "+" dd "," s "+" yyyy))
+         ;; Japanese MS-Windows ls-lisp has one-digit months, and
+         ;; omits the Kanji characters after month and day-of-month.
+         (mm "[ 0-1]?[0-9]")
+         (japanese
+          (concat mm l "?" s dd l "?" s "+"
+                  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
+    ;; the .* below ensures that we find the last match on a line
+    (concat ".*" s
+            "\\(" western "\\|" western-comma "\\|" japanese "\\|" iso "\\)"
+            s "+")))
+  (and (boundp 'vc-dired-switches)
+       vc-dired-switches
+       (set (make-local-variable 'dired-actual-switches)
+            vc-dired-switches))
+  (set (make-local-variable 'vc-dired-terse-mode) vc-dired-terse-display)
+  ;;(let ((backend-name (symbol-name (vc-responsible-backend
+  ;;			    default-directory))))
+  ;;  (setq mode-name (concat mode-name backend-name))
+  ;;  ;; Add menu after `vc-dired-mode-map' has `dired-mode-map' as the parent.
+  ;;  (let ((vc-dire-menu-map (copy-keymap vc-menu-map)))
+  ;;    (define-key-after (lookup-key vc-dired-mode-map [menu-bar]) [vc]
+  ;;	(cons backend-name vc-dire-menu-map) 'subdir)))
+  (setq vc-dired-mode t))
+
+(defun vc-dired-toggle-terse-mode ()
+  "Toggle terse display in VC Dired."
+  (interactive)
+  (if (not vc-dired-mode)
+      nil
+    (setq vc-dired-terse-mode (not vc-dired-terse-mode))
+    (if vc-dired-terse-mode
+        (vc-dired-hook)
+      (revert-buffer))))
+
+(defun vc-dired-mark-locked ()
+  "Mark all files currently locked."
+  (interactive)
+  (dired-mark-if (let ((f (dired-get-filename nil t)))
+		   (and f
+			(not (file-directory-p f))
+			(not (vc-up-to-date-p f))))
+		 "locked file"))
+
+(define-key vc-dired-mode-map "*l" 'vc-dired-mark-locked)
+
+(defun vc-dired-reformat-line (vc-info)
+  "Reformat a directory-listing line.
+Replace various columns with version control information, VC-INFO.
+This code, like dired, assumes UNIX -l format."
+  (beginning-of-line)
+  (when (re-search-forward
+         ;; Match link count, owner, group, size.  Group may be missing,
+         ;; and only the size is present in OS/2 -l format.
+         "^..[drwxlts-]+ \\( *[0-9]+\\( [^ ]+ +\\([^ ]+ +\\)?[0-9]+\\)?\\) "
+         (line-end-position) t)
+      (replace-match (substring (concat vc-info "          ") 0 10)
+                     t t nil 1)))
+
+(defun vc-dired-ignorable-p (filename)
+  "Should FILENAME be ignored in VC-Dired listings?"
+  (catch t
+    ;; Ignore anything that wouldn't be found by completion (.o, .la, etc.)
+    (dolist (ignorable completion-ignored-extensions)
+      (let ((ext (substring filename
+			      (- (length filename)
+				 (length ignorable)))))
+	(if (string= ignorable ext) (throw t t))))
+    ;; Ignore Makefiles derived from something else
+    (when (string= (file-name-nondirectory filename) "Makefile")
+      (let* ((dir (file-name-directory filename))
+	    (peers (directory-files (or dir default-directory))))
+	(if (or (member "Makefile.in" peers) (member "Makefile.am" peers))
+	   (throw t t))))
+    nil))
+
+(defun vc-dired-purge ()
+  "Remove empty subdirs."
+  (goto-char (point-min))
+  (while (dired-get-subdir)
+    (forward-line 2)
+    (if (dired-get-filename nil t)
+	(if (not (dired-next-subdir 1 t))
+	    (goto-char (point-max)))
+      (forward-line -2)
+      (if (not (string= (dired-current-directory) default-directory))
+	  (dired-do-kill-lines t "")
+	;; We cannot remove the top level directory.
+	;; Just make it look a little nicer.
+	(forward-line 1)
+	(or (eobp) (kill-line))
+	(if (not (dired-next-subdir 1 t))
+	    (goto-char (point-max))))))
+  (goto-char (point-min)))
+
+(defun vc-dired-buffers-for-dir (dir)
+  "Return a list of all vc-dired buffers that currently display DIR."
+  (let (result)
+    ;; Check whether dired is loaded.
+    (when (fboundp 'dired-buffers-for-dir)
+      (dolist (buffer (dired-buffers-for-dir dir))
+        (with-current-buffer buffer
+          (when vc-dired-mode
+	    (push buffer result)))))
+    (nreverse result)))
+
+(defun vc-directory-resynch-file (file)
+  "Update the entries for FILE in any VC Dired buffers that list it."
+  ;;FIXME This needs to be implemented so it works for vc-dir
+  (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
+    (when buffers
+      (mapcar (lambda (buffer)
+		(with-current-buffer buffer
+		  (when (dired-goto-file file)
+		    ;; bind vc-dired-terse-mode to nil so that
+		    ;; files won't vanish when they are checked in
+		    (let ((vc-dired-terse-mode nil))
+		      (dired-do-redisplay 1)))))
+	      buffers))))
+
+;;;###autoload
+(defun vc-directory (dir read-switches)
+  "Create a buffer in VC Dired Mode for directory DIR.
+
+See Info node `VC Dired Mode'.
+
+With prefix arg READ-SWITCHES, specify a value to override
+`dired-listing-switches' when generating the listing."
+  (interactive "DDired under VC (directory): \nP")
+  (let ((vc-dired-switches (concat vc-dired-listing-switches
+                                   (if vc-dired-recurse "R" ""))))
+    (if read-switches
+        (setq vc-dired-switches
+              (read-string "Dired listing switches: "
+                           vc-dired-switches)))
+    (require 'dired)
+    (require 'dired-aux)
+    (switch-to-buffer
+     (dired-internal-noselect (expand-file-name (file-name-as-directory dir))
+                              vc-dired-switches
+                              'vc-dired-mode))))
 
 ;;; vc-dispatcher.el ends here
