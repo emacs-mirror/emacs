@@ -1048,8 +1048,11 @@ Elements of the attribute list are:
 				 make_number (low_ino & 0xffff)));
     }
 
-  /* Likewise for device.  */
-  if (FIXNUM_OVERFLOW_P (s.st_dev))
+  /* Likewise for device, but don't let it become negative.  We used
+     to use FIXNUM_OVERFLOW_P here, but that won't catch large
+     positive numbers such as 0xFFEEDDCC.  */
+  if ((EMACS_INT)s.st_dev < 0
+      || (EMACS_INT)s.st_dev > MOST_POSITIVE_FIXNUM)
     values[11] = Fcons (make_number (s.st_dev >> 16),
 			make_number (s.st_dev & 0xffff));
   else
