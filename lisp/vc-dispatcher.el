@@ -74,6 +74,43 @@
 ;; either case the command messages and error (if any) will remain
 ;; available in a status buffer.
 
+;; Special behavior of dispatcher directory buffers:
+;;
+;; In dispatcher directory buffers, faciltiies to perform basic
+;; navigation and selection operations are provided by keymap and menu
+;; entries that dispatcher sets up itself, so they'll be uniform
+;; across all dispatcher- using client modes.  Client modes are
+;; expected to append to these to provide mode-specific bindings.
+;;
+;; The standard map associates a 'state' slot (that the client mode
+;; may set) with each directory entry.  The dispatcher knows nothing
+;; about the semantics of individual states, but mark and unmark commands
+;; treat all entries with the same state 
+
+;; To do:
+;;
+;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
+;;   it should work for other async commands as well (pull/push/...).
+;;
+;; - the *VC-log* buffer needs font-locking.
+;;
+;; - Set `vc-dir-insert-directories' to t and check what operations
+;;   and backends do not support directory arguments and fix them.
+;;
+;; - vc-dir needs mouse bindings.
+;;
+;; - vc-dir needs more key bindings for VC actions.
+;;
+;; - vc-dir toolbar needs more icons.
+;;
+;; - vc-dir-next-line should not print an "end of buffer" message when
+;;   invoked with the cursor on the last file.
+;;
+;; - add commands to move to the prev/next directory in vc-dir.
+;;
+;; - document vc-dir in the manual.
+;;
+
 (provide 'vc-dispatcher)
 
 (eval-when-compile

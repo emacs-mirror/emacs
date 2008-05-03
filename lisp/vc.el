@@ -584,9 +584,6 @@
 
 ;;; Todo:
 
-;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
-;;   it should work for other async commands as well (pull/push/...).
-;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -614,8 +611,6 @@
 ;;   changeset, especially for VC systems that have per repository
 ;;   version numbers.  log-view should take advantage of this.
 ;;
-;; - the *VC-log* buffer needs font-locking.
-;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
@@ -629,9 +624,6 @@
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
 ;;   skeleton for the log...
 ;;
-;; - Set `vc-dir-insert-directories' to t and check what operations
-;;   and backends do not support directory arguments and fix them.
-;;
 ;; - a way to do repository wide log (instead of just per
 ;;   file/fileset) is needed.  Doing it per directory might be enough...
 ;;
@@ -640,19 +632,6 @@
 ;;   possible VC states.
 ;;
 ;; - add function that calls vc-dir to `find-directory-functions'.
-;;
-;; - vc-dir needs mouse bindings.
-;;
-;; - vc-dir needs more key bindings for VC actions.
-;;
-;; - vc-dir toolbar needs more icons.
-;;
-;; - vc-dir-next-line should not print an "end of buffer" message when
-;;   invoked with the cursor on the last file.
-;;
-;; - add commands to move to the prev/next directory in vc-dir.
-;;
-;; - document vc-dir in the manual.
 ;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
