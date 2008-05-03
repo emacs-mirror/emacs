@@ -2861,7 +2861,7 @@ case "${machine}" in
 esac
 
 case "${opsys}" in
-     bsd386 | bsdos2-1 |  bsdos2 | bsdos3 | bsdos4 | bsd4-1 | bsd4-2 | bsd4-3 | usg5-0 | usg5-2-2 | usg5-2 | usg5-3 | ultrix4-3 | 386bsd | hpux | hpux8 | hpux9 | hpux9shr | hpux10 | hpux10-20 | aix3-1 | aix3-2-5 | aix3-2 | aix4-1 | nextstep | ux4800 | uxpds | uxpv )
+     bsd386 | bsdos2-1 |  bsdos2 | bsdos3 | bsdos4 | bsd4-1 | bsd4-2 | bsd4-3 | usg5-0 | usg5-2-2 | usg5-2 | usg5-3 | ultrix4-3 | 386bsd | hpux | hpux8 | hpux9 | hpux9shr | hpux10 | aix3-1 | aix3-2-5 | aix3-2 | aix4-1 | nextstep | ux4800 | uxpds | uxpv )
      	  echo "The system that you are configuring on: ${canonical} is considered to be obsolete"
 	  echo "and it is planned to be desupported in the next version of Emacs"
 	  echo "Please email emacs-devel@gnu.org as soon as possible if this system is still in use."
@@ -9287,6 +9287,15 @@ if test "$no_x" = yes; then
   window_system=none
 else
   window_system=x11
+fi
+
+## Workaround for bug in autoconf <= 2.62.
+## http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01551.html
+## No need to do anything special for these standard directories.
+if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
+
+   x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
+
 fi
 
 if test "${x_libraries}" != NONE; then
