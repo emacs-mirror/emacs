@@ -977,9 +977,11 @@ Accounts for continuation lines, multi-line strings, and
 multi-line bracketed expressions."
   (beginning-of-line)
   (python-beginning-of-string)
-  (let ((point (point)))
+  (let (point)
     (while (and (python-continuation-line-p)
-		(> point (setq point (point))))
+		(if point
+		    (< (point) point)
+		  t))
       (beginning-of-line)
       (if (python-backslash-continuation-line-p)
 	  (progn
@@ -987,7 +989,8 @@ multi-line bracketed expressions."
 	    (while (python-backslash-continuation-line-p)
 	      (forward-line -1)))
 	(python-beginning-of-string)
-	(python-skip-out))))
+	(python-skip-out))
+      (setq point (point))))
   (back-to-indentation))
 
 (defun python-skip-out (&optional forward syntax)
