@@ -2061,7 +2061,7 @@ specific headers."
 (defun vc-default-extra-status-menu (backend)
   nil)
 
-(defun vc-dir-mode ()
+(defun vc-dir-mode (entry-printer header-printer updater marker)
   "Major mode for showing the VC status for a directory.
 Marking/Unmarking key bindings and actions:
 m - marks a file/directory or ff the region is active, mark all the files
@@ -2092,13 +2092,13 @@ U - if the cursor is on a file: unmark all the files with the same VC state
     (erase-buffer)
     (set (make-local-variable 'vc-dir-process-buffer) nil)
     (set (make-local-variable 'vc-ewoc)
-	 (ewoc-create #'vc-dir-printer
-		      #'vc-dir-header-maker))
-    (add-hook 'after-save-hook 'vc-dir-mark-buffer-changed)
+	 (ewoc-create entry-printer
+		      header-printer))
+    (add-hook 'after-save-hook marker)
     ;; Make sure that if the VC status buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
-    (vc-dir-refresh))
+    (eval updater))
   (run-hooks 'vc-dir-mode-hook))
 
 (put 'vc-dir-mode 'mode-class 'special)
@@ -2110,7 +2110,10 @@ U - if the cursor is on a file: unmark all the files with the same VC state
   (pop-to-buffer (vc-dir-prepare-status-buffer dir))
   (if (eq major-mode 'vc-dir-mode)
       (vc-dir-refresh)
-    (vc-dir-mode)))
+    (vc-dir-mode #'vc-dir-printer
+		 #'vc-dir-header-maker
+		 #'vc-dir-mark-buffer-changed
+		 #'vc-dir-refresh)))
 
 ;; This is used to that VC backends could add backend specific menu
 ;; items to vc-dir-menu-map.
