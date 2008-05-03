@@ -1018,8 +1018,6 @@
 	* cus-start.el: Remove insert-default-directory and
 	read-file-name-completion-ignore-case.
 
-	* Makefile.in (emacs-deps): Leave it empty.
-
 2008-04-23  Magnus Henoch  <mange@freemail.hu>
 
 	* tar-mode.el (tar-untar-buffer): If the entry has directory
