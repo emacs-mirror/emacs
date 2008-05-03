@@ -3,6 +3,13 @@
 	* configure.in (x_libraries): Remove standard 64-bit directories -
 	experimental workaround for minor autoconf bug.
 
+	* configure.in (--without-makeinfo): New option.  If set,
+	absence of suitable makeinfo is not a fatal error.
+	* Makefile.in (MAKEINFO): New, set by configure.
+	(install-arch-indep): Without makeinfo, ignore any missing manuals.
+	(info-real): New target.
+	(info): Without makeinfo, do nothing, else call `info-real'.
+
 2008-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove hpux10.20 from the desupported list.
