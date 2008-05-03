@@ -1,3 +1,8 @@
+2008-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (x_libraries): Remove standard 64-bit directories -
+	experimental workaround for minor autoconf bug.
+
 2008-04-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove hpux10.20 from the desupported list.
