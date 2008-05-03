@@ -2054,6 +2054,10 @@ specific headers."
   (let ((backend (vc-responsible-backend default-directory)))
     (vc-call-backend backend 'status-printer fileentry)))
 
+(defun vc-dir-header-maker ()
+  (let ((backend (vc-responsible-backend default-directory)))
+    (vc-dir-headers backend default-directory)))
+
 (defun vc-default-extra-status-menu (backend)
   nil)
 
@@ -2084,13 +2088,12 @@ U - if the cursor is on a file: unmark all the files with the same VC state
   (use-local-map vc-dir-mode-map)
   (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map)
   (let ((buffer-read-only nil)
-	(backend (vc-responsible-backend default-directory))
 	entries)
     (erase-buffer)
     (set (make-local-variable 'vc-dir-process-buffer) nil)
     (set (make-local-variable 'vc-ewoc)
 	 (ewoc-create #'vc-dir-printer
-		      (vc-dir-headers backend default-directory)))
+		      #'vc-dir-header-maker))
     (add-hook 'after-save-hook 'vc-dir-mark-buffer-changed)
     ;; Make sure that if the VC status buffer is killed, the update
     ;; process running in the background is also killed.
