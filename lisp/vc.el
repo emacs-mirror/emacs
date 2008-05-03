@@ -2050,14 +2050,6 @@ specific headers."
       'face 'font-lock-function-name-face
       'mouse-face 'highlight))))
 
-(defun vc-dir-printer (fileentry)
-  (let ((backend (vc-responsible-backend default-directory)))
-    (vc-call-backend backend 'status-printer fileentry)))
-
-(defun vc-dir-header-maker ()
-  (let ((backend (vc-responsible-backend default-directory)))
-    (vc-dir-headers backend default-directory)))
-
 (defun vc-default-extra-status-menu (backend)
   nil)
 
@@ -2110,10 +2102,13 @@ U - if the cursor is on a file: unmark all the files with the same VC state
   (pop-to-buffer (vc-dir-prepare-status-buffer dir))
   (if (eq major-mode 'vc-dir-mode)
       (vc-dir-refresh)
-    (vc-dir-mode #'vc-dir-printer
-		 #'vc-dir-header-maker
-		 #'vc-dir-mark-buffer-changed
-		 #'vc-dir-refresh)))
+    (let ((backend (vc-responsible-backend default-directory)))
+      (vc-dir-mode (lambda (fileentry)
+		     (vc-call-backend backend 'status-printer fileentry))
+		   (lambda (dir)
+		     (vc-dir-headers backend default-directory))
+		   #'vc-dir-mark-buffer-changed
+		   #'vc-dir-refresh))))
 
 ;; This is used to that VC backends could add backend specific menu
 ;; items to vc-dir-menu-map.
