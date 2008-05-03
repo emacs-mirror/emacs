@@ -230,6 +230,12 @@ Emacs was compiled without font-backend support.
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
 
+** The following input methods were removed in Emacs 22.2, but this
+was not advertized.  Use the versions without "alt-", which are identical.
+danish-alt-postfix, esperanto-alt-postfix, finnish-alt-postfix,
+german-alt-postfix, icelandic-alt-postfix norwegian-alt-postfix,
+scandinavian-alt-postfix, spanish-alt-postfix, swedish-alt-postfix
+
 
 * Editing Changes in Emacs 23.1
 
