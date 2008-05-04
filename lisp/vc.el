@@ -673,6 +673,7 @@
 (require 'ewoc)
 
 (eval-when-compile
+  (require 'dired)
   (require 'cl))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
