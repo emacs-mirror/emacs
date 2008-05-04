@@ -42,6 +42,19 @@
     (autoload 'mm-delete-duplicates "mm-util")
     'mm-delete-duplicates))
 
+;; `mailcap-replace-in-string' is an alias like `gnus-replace-in-string'.
+(eval-and-compile
+  (cond
+   ((fboundp 'replace-regexp-in-string)
+    (defun mailcap-replace-in-string  (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+This is a compatibility function for different Emacsen."
+      (replace-regexp-in-string regexp newtext string nil literal)))
+   ((fboundp 'replace-in-string)
+    (defalias 'mailcap-replace-in-string 'replace-in-string))))
+
 (defgroup mailcap nil
   "Definition of viewers for MIME types."
   :version "21.1"
@@ -1017,15 +1030,17 @@ If FORCE, re-parse even if already parsed."
   (mailcap-parse-mimetypes)
   (let* ((all-mime-type
 	  ;; All unique MIME types from file extensions
-	  (delete-dups (mapcar (lambda (file)
-				 (mailcap-extension-to-mime
-				  (file-name-extension file t)))
-			       files)))
+	  (mailcap-delete-duplicates
+	   (mapcar (lambda (file)
+		     (mailcap-extension-to-mime
+		      (file-name-extension file t)))
+		   files)))
 	 (all-mime-info
 	  ;; All MIME info lists
-	  (delete-dups (mapcar (lambda (mime-type)
-				 (mailcap-mime-info mime-type 'all))
-			       all-mime-type)))
+	  (mailcap-delete-duplicates
+	   (mapcar (lambda (mime-type)
+		     (mailcap-mime-info mime-type 'all))
+		   all-mime-type)))
 	 (common-mime-info
 	  ;; Intersection of mime-infos from different mime-types;
 	  ;; or just the first MIME info for a single MIME type
@@ -1040,18 +1055,17 @@ If FORCE, re-parse even if already parsed."
 	    (car all-mime-info)))
 	 (commands
 	  ;; Command strings from `viewer' field of the MIME info
-	  (delete-dups
+	  (mailcap-delete-duplicates
 	   (delq nil (mapcar (lambda (mime-info)
 			       (let ((command (cdr (assoc 'viewer mime-info))))
 				 (if (stringp command)
-				     (replace-regexp-in-string
+				     (mailcap-replace-in-string
 				      ;; Replace mailcap's `%s' placeholder
 				      ;; with dired's `?' placeholder
-				      "%s" "?"
-				      (replace-regexp-in-string
+				      (mailcap-replace-in-string
 				       ;; Remove the final filename placeholder
-				       "\s*\\('\\)?%s\\1?\s*\\'" "" command nil t)
-				      nil t))))
+				       command "[ \t\n]*\\('\\)?%s\\1?[ \t\n]*\\'" "" t)
+				      "%s" "?" t))))
 			     common-mime-info)))))
     commands))
 
