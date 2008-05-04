@@ -1,3 +1,11 @@
+2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [USE_MAC_IMAGE_IO] (image_load_image_io):
+	Create bitmap context in native byte order.
+
+	* macterm.c (XDrawLine, XCreatePixmapFromBitmapData) [USE_MAC_IMAGE_IO]:
+	Create bitmap context in native byte order.
+
 2008-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Don't allow the device number become
