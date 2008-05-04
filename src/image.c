@@ -2681,7 +2681,11 @@ image_load_image_io (f, img, type)
   context = CGBitmapContextCreate (ximg->data, ximg->width, ximg->height, 8,
 				   ximg->bytes_per_line,
 				   mac_cg_color_space_rgb,
-				   kCGImageAlphaNoneSkipFirst);
+				   kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+				   | kCGBitmapByteOrder32Host
+#endif
+				   );
   if (has_alpha_p)
     {
       Lisp_Object specified_bg;
