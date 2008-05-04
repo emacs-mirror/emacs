@@ -1599,4 +1599,5 @@ U - if the cursor is on a file: unmark all the files with the same VC state
 
 (put 'vc-dir-mode 'mode-class 'special)
 
+;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
 ;;; vc-dispatcher.el ends here
