@@ -1,3 +1,7 @@
+2008-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_battery_status): Fix computation of %t (h:min) format.
+
 2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [USE_MAC_IMAGE_IO] (image_load_image_io):
@@ -257,7 +261,7 @@
 	attributes only for local files.
 
 	* w32proc.c (syms_of_ntproc): Change Vw32_get_true_file attributes
-	default	to Qlocal.
+	default to Qlocal.
 
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
@@ -3549,8 +3553,8 @@
 	(font_put_extra): New function.
 	(font_parse_xlfd): Fix handling of font size.  Add QCdpi property
 	in FONT_EXTRA.
-	(font_parse_fcname): Handle enumenrated values (e.g. bold).  Fix
-	handling font size.  Add QCname property that contains only
+	(font_parse_fcname): Handle enumenrated values (e.g. bold).
+	Fix handling font size.  Add QCname property that contains only
 	unknown properties.
 	(font_score): Change argument.  Change caller.  Pay attention to
 	FONT_PIXEL_SIZE_QUANTUM.
