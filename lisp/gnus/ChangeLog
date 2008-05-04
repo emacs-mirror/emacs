@@ -1,3 +1,10 @@
+2008-05-04  Juri Linkov  <juri@jurta.org>
+
+	* mailcap.el (mailcap-replace-in-string): New compatibility alias.
+	(mailcap-file-default-commands): Use mailcap-replace-in-string
+	instead of replace-regexp-in-string, and mailcap-delete-duplicates
+	instead of delete-dups.  Use [ \t\n]* for whitespace in regexp.
+
 2008-05-03  Reiner Steib  <reiner.steib@gmx.de>
 
 	* gnus-sum.el (gnus-propagate-marks): Fix custom version.
