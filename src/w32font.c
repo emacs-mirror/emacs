@@ -759,6 +759,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   W32FontStruct *compat_w32_font;
   struct w32font_info *w32_font;
   struct font * font;
+  OUTLINETEXTMETRIC* metrics = NULL;
 
   w32_font = (struct w32font_info *) XFONT_OBJECT (font_object);
   font = (struct font *) w32_font;
@@ -788,7 +789,19 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, hfont);
 
-  GetTextMetrics (dc, &w32_font->metrics);
+  /* Try getting the outline metrics (only works for truetype fonts).  */
+  len = GetOutlineTextMetrics (dc, 0, NULL);
+  if (len)
+    {
+      metrics = (OUTLINETEXTMETRIC *) alloca (len);
+      if (GetOutlineTextMetrics (dc, len, metrics))
+        bcopy (&metrics->otmTextMetrics, &w32_font->metrics,
+               sizeof (TEXTMETRIC));
+      else
+        metrics = NULL;
+    }
+  if (!metrics)
+    GetTextMetrics (dc, &w32_font->metrics);
 
   w32_font->glyph_idx = ETO_GLYPH_INDEX;
 
@@ -808,9 +821,6 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
   compat_w32_font->hfont = hfont;
 
-  len = strlen (logfont.lfFaceName);
-  font->props[FONT_NAME_INDEX] = make_unibyte_string (logfont.lfFaceName, len);
-
   {
     char *name;
 
@@ -829,10 +839,12 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
       }
     if (name)
       font->props[FONT_FULLNAME_INDEX]
-	= make_unibyte_string (name, strlen (name));
+        = make_unibyte_string (name, strlen (name));
     else
-      font->props[FONT_FULLNAME_INDEX] = font->props[FONT_NAME_INDEX];
+      font->props[FONT_FULLNAME_INDEX] =
+        make_unibyte_string (logfont.lfFaceName, len);
   }
+
   font->max_width = w32_font->metrics.tmMaxCharWidth;
   font->height = w32_font->metrics.tmHeight
     + w32_font->metrics.tmExternalLeading;
@@ -868,10 +880,23 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   font->ascent = w32_font->metrics.tmAscent;
   font->descent = w32_font->metrics.tmDescent;
 
+  if (metrics)
+    {
+      font->underline_thickness = metrics->otmsUnderscoreSize;
+      font->underline_position = -metrics->otmsUnderscorePosition;
+    }
+  else
+    {
+      font->underline_thickness = 0;
+      font->underline_position = -1;
+    }
+
   /* max_descent is used for underlining in w32term.c.  Hopefully this
      is temporary, as we'll want to get rid of the old compatibility
      stuff later.  */
   compat_w32_font->max_bounds.descent = font->descent;
+
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object);
 
   return 1;
 }
