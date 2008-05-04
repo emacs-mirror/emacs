@@ -415,7 +415,11 @@ XDrawLine (display, p, gc, x1, y1, x2, y2)
   if (ximg->bits_per_pixel == 32)
     {
       color_space = mac_cg_color_space_rgb;
-      alpha_info = kCGImageAlphaNoneSkipFirst;
+      alpha_info = (kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+		    | kCGBitmapByteOrder32Host
+#endif
+		    );
     }
   else
     {
@@ -743,7 +747,11 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
   context = CGBitmapContextCreate (pixmap->data, width, height, 8,
 				   pixmap->bytes_per_line,
 				   mac_cg_color_space_rgb,
-				   kCGImageAlphaNoneSkipFirst);
+				   kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+				   | kCGBitmapByteOrder32Host
+#endif
+				   );
 
   CG_SET_FILL_COLOR (context, fg);
   CGContextFillRect (context, CGRectMake (0, 0, width, height));
