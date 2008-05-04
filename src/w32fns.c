@@ -8766,14 +8766,14 @@ The following %-sequences are provided:
 	  seconds = build_string (buffer);
 
 	  m = seconds_left / 60;
-	  _snprintf (buffer, 16, "%d", m);
+	  _snprintf (buffer, 16, "%ld", m);
 	  minutes = build_string (buffer);
 
 	  h = seconds_left / 3600.0;
 	  _snprintf (buffer, 16, "%3.1f", h);
 	  hours = build_string (buffer);
 
-	  _snprintf (buffer, 16, "%1.0f:%d", h, m);
+	  _snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
 	  remain = build_string (buffer);
 	}
       sequences[0] = Fcons (make_number ('L'), line_status);
