@@ -379,6 +379,13 @@
 
 	* whitespace.el (whitespace-trailing-regexp): Fix docstring.
 
+2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-mode): New defcustom.
+	(tramp-file-name-handler, tramp-completion-file-name-handler): Use
+	it.
+	(tramp-replace-environment-variables): Handle "$$".
+
 2008-04-28  Sam Steingold  <sds@gnu.org>
 
 	* vc-hg.el (vc-hg-rename-file): Fix argument order.
