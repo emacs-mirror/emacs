@@ -608,14 +608,14 @@ It also eliminates runs of equal strings."
                                  ;; We can't just set tab-width, because
                                  ;; completion-setup-function will kill all
                                  ;; local variables :-(
-                                 `(display (space :align-to ,column))))
-	  (when (< wwidth (+ (max colwidth
-				  (if (consp str)
-				      (+ (string-width (car str))
-                                         (string-width (cadr str)))
-				    (string-width str)))
-			     column))
-	    (delete-char -2) (insert "\n") (setq column 0))
+                                 `(display (space :align-to ,column)))
+	    (when (< wwidth (+ (max colwidth
+				    (if (consp str)
+					(+ (string-width (car str))
+					   (string-width (cadr str)))
+				      (string-width str)))
+			       column))
+	      (delete-char -2) (insert "\n") (setq column 0)))
 	  (if (not (consp str))
 	      (put-text-property (point) (progn (insert str) (point))
 				 'mouse-face 'highlight)

@@ -1,3 +1,8 @@
+2008-05-04  Andreas Schwab  <schwab@suse.de>
+
+	* minibuffer.el (completion--insert-strings): Don't delete past
+	bol.
+
 2008-05-03  Glenn Morris  <rgm@gnu.org>
 
 	* ediff-diff.el, ediff-help.el, ediff-merg.el, ediff-mult.el:
