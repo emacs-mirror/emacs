@@ -2888,38 +2888,46 @@ x_draw_glyph_string (s)
   if (!s->for_overlaps)
     {
       /* Draw underline.  */
-      if (s->face->underline_p
-          && (FONT_COMPAT (s->font)->bdf
-	      || !FONT_COMPAT (s->font)->tm.tmUnderlined))
+      if (s->face->underline_p)
         {
-          unsigned long h;
+          unsigned long thickness, position;
           int y;
-	  /* Get the underline thickness.  Default is 1 pixel.  */
-	  /* In the future, we must use information of font.  */
-	  h = 1;
 
-	  if (s->face->font)
-	    /* In the future, we must use information of font.  */
-	    y = s->ybase + (s->face->font->descent + 1) / 2;
-	  else
-	    y = s->y + s->height - h;
-#if OLD_FONT
+          if (s->prev && s->prev->face->underline_p)
             {
-                y = s->y + s->height - h;
-                /* TODO: Use font information for positioning and
-                   thickness of underline.  See OUTLINETEXTMETRIC,
-                   and xterm.c.  Note: If you make this work,
-                   don't forget to change the doc string of
-                   x-use-underline_color-position-properties
-                   below.  */
-#if 0
-              if (!x_underline_at_descent_line)
-                {
-                  ...
-                }
-#endif
+              /* We use the same underline style as the previous one.  */
+              thickness = s->prev->underline_thickness;
+              position = s->prev->underline_position;
             }
-#endif	/* OLD_FONT */
+          else
+            {
+              /* Get the underline thickness.  Default is 1 pixel.  */
+              if (s->font && s->font->underline_thickness > 0)
+                thickness = s->font->underline_thickness;
+              else
+                thickness = 1;
+              if (x_underline_at_descent_line)
+                position = (s->height - thickness) - s->ybase;
+              else
+                {
+                /* Get the underline position.  This is the recommended
+                   vertical offset in pixels from the baseline to the top of
+                   the underline.  This is a signed value according to the
+                   specs, and its default is
+
+                   ROUND ((maximum_descent) / 2), with
+                   ROUND (x) = floor (x + 0.5)  */
+
+                if (x_use_underline_position_properties
+                    && s->font && s->font->underline_position >= 0)
+                  position = s->font->underline_position;
+                else if (s->font)
+                  position = (s->font->descent + 1) / 2;
+                }
+              s->underline_thickness = thickness;
+              s->underline_position =position;
+            }
+          y = s->ybase + position;
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
