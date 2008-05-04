@@ -1,3 +1,7 @@
+2008-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Document removal of duplicated "alt-" input methods.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
