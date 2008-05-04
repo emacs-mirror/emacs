@@ -2054,63 +2054,6 @@ specific headers."
 (defun vc-default-extra-status-menu (backend)
   nil)
 
-(defun vc-dir-mode (entry-printer header-printer updater marker)
-  "Major mode for showing the VC status for a directory.
-Marking/Unmarking key bindings and actions:
-m - marks a file/directory or ff the region is active, mark all the files
-     in region.
-    Restrictions: - a file cannot be marked if any parent directory is marked
-                  - a directory cannot be marked if any child file or
-                    directory is marked
-u - marks a file/directory or if the region is active, unmark all the files
-     in region.
-M - if the cursor is on a file: mark all the files with the same VC state as
-      the current file
-  - if the cursor is on a directory: mark all child files
-  - with a prefix argument: mark all files
-U - if the cursor is on a file: unmark all the files with the same VC state
-      as the current file
-  - if the cursor is on a directory: unmark all child files
-  - with a prefix argument: unmark all files
-
-
-\\{vc-dir-mode-map}"
-  (setq mode-name "VC Status")
-  (setq major-mode 'vc-dir-mode)
-  (setq buffer-read-only t)
-  (use-local-map vc-dir-mode-map)
-  (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map)
-  (let ((buffer-read-only nil)
-	entries)
-    (erase-buffer)
-    (set (make-local-variable 'vc-dir-process-buffer) nil)
-    (set (make-local-variable 'vc-ewoc)
-	 (ewoc-create entry-printer
-		      header-printer))
-    (add-hook 'after-save-hook marker)
-    ;; Make sure that if the VC status buffer is killed, the update
-    ;; process running in the background is also killed.
-    (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
-    (eval updater))
-  (run-hooks 'vc-dir-mode-hook))
-
-(put 'vc-dir-mode 'mode-class 'special)
-
-;;;###autoload
-(defun vc-dir (dir)
-  "Show the VC status for DIR."
-  (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
-  (if (eq major-mode 'vc-dir-mode)
-      (vc-dir-refresh)
-    (let ((backend (vc-responsible-backend default-directory)))
-      (vc-dir-mode (lambda (fileentry)
-		     (vc-call-backend backend 'status-printer fileentry))
-		   (lambda (dir)
-		     (vc-dir-headers backend default-directory))
-		   #'vc-dir-mark-buffer-changed
-		   #'vc-dir-refresh))))
-
 ;; This is used to that VC backends could add backend specific menu
 ;; items to vc-dir-menu-map.
 (defun vc-dir-menu-map-filter (orig-binding)
@@ -2231,33 +2174,58 @@ outside of VC) and one wants to do some operation on it."
 	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
 
 (defun vc-default-status-fileinfo-extra (backend file)
+  "Default absence of extra information returned for a file."
   nil)
 
-(defun vc-dir-mark-buffer-changed (&optional fname)
-  (let* ((file (or fname (expand-file-name buffer-file-name)))
-	 (found-vc-dir-buf nil))
-    (save-excursion
-      (dolist (status-buf (buffer-list))
-	(set-buffer status-buf)
-	;; look for a vc-dir buffer that might show this file.
-	(when (eq major-mode 'vc-dir-mode)
-	  (setq found-vc-dir-buf t)
-	  (let ((ddir (expand-file-name default-directory)))
-	    ;; This test is cvs-string-prefix-p
-	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
-	      (let*
-		  ((file-short (substring file (length ddir)))
-		   (backend (vc-backend file))
-		   (state (and backend (vc-state file)))
-		   (extra
-		    (and backend
-			 (vc-call-backend backend 'status-fileinfo-extra file)))
-		   (entry
-		    (list file-short (if state state 'unregistered) extra)))
-		(vc-dir-update (list entry) status-buf))))))
-      ;; We didn't find any vc-dir buffers, remove the hook, it is
-      ;; not needed.
-      (unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-dir-mark-buffer-changed)))))
+;; FIXME: Replace these with a more efficient dispatch
+
+(defun vc-generic-status-printer (fileentry)
+  (let ((backend (vc-responsible-backend (vc-dir-fileinfo->name fileentry))))
+    (vc-call-backend backend 'status-printer fileentry)))
+  
+(defun vc-generic-state (file)
+  (let ((backend (vc-responsible-backend file)))
+    (vc-call-backend backend 'state)))
+  
+(defun vc-generic-status-fileinfo-extra (file)
+  (let ((backend (vc-responsible-backend file)))
+    (vc-call-backend backend 'status-fileinfo-extra)))
+
+(defun vc-generic-dir-headers (dir)
+  (let ((backend (vc-responsible-backend dir)))
+    (vc-dir-headers backend dir)))
+
+(defun vc-make-backend-object (file-or-dir)
+  (vc-create-client-object 
+   "VC status"
+   (let ((backend (vc-responsible-backend file-or-dir)))
+     (vc-dir-headers backend file-or-dir))
+   #'vc-generic-status-printer
+   #'vc-generic-state
+   #'vc-generic-status-fileinfo-extra
+   #'vc-dir-refresh))
+
+;;;###autoload
+(defun vc-dir (dir)
+  "Show the VC status for DIR."
+  (interactive "DVC status for directory: ")
+  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
+  (if (eq major-mode 'vc-dir-mode)
+      (vc-dir-refresh)
+    ;; Otherwise, initialize a new view using the dispatcher layer
+    (progn
+      ;; Build a capability object and hand it to the dispatcher initializer
+      (vc-dir-mode (vc-make-backend-object backend))
+      ;; Add VC-specific keybindings
+      (let ((map (current-local-map)))
+	(define-key map "=" 'vc-diff) ;; C-x v =
+	(define-key map "a" 'vc-dir-register)
+	(define-key map "+" 'vc-update) ;; C-x v +
+	(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
+	(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher referesh
+	(define-key map "l" 'vc-print-log) ;; C-x v l
+	(define-key map "x" 'vc-dir-hide-up-to-date)
+	))))
 
 ;; Named-configuration entry points
 

@@ -540,11 +540,9 @@ editing!"
       (when buffer
 	(with-current-buffer buffer
 	  (vc-resynch-window file keep noquery)))))
-  ;; FIME: Call into vc.el
   (vc-directory-resynch-file file)
   (when (memq 'vc-dir-mark-buffer-changed after-save-hook)
     (let ((buffer (get-file-buffer file)))
-      ;; FIME: Call into vc.el
       (vc-dir-mark-buffer-changed file))))
 
 ;; Command closures
@@ -888,6 +886,24 @@ See `run-hooks'."
   ;; To distinguish files and directories.
   directory)
 
+;; Used to describe a dispatcher client mode.  
+(defstruct (vc-client-object
+            (:copier nil)
+            (:constructor
+	     vc-create-client-object (name 
+				      headers 
+				      file-to-info
+				      file-to-state 
+				      file-to-extra
+				      updater))
+            (:conc-name vc-client-object->))
+  name 
+  headers
+  file-to-info
+  file-to-state 
+  file-to-extra
+  updater)
+
 (defvar vc-ewoc nil)
 (defvar vc-dir-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")
@@ -1027,25 +1043,17 @@ See `run-hooks'."
     (define-key map "\t" 'vc-dir-next-line)
     (define-key map "p" 'vc-dir-previous-line)
     (define-key map [backtab] 'vc-dir-previous-line)
-    ;; VC commands.
-    ;; FIXME: These need to be in a client-local keymap
-    (define-key map "=" 'vc-diff)   ;; C-x v =
-    (define-key map "a" 'vc-dir-register)
-    (define-key map "+" 'vc-update) ;; C-x v +
-    (define-key map "R" 'vc-revert) ;; u is taken by unmark.
-    (define-key map "A" 'vc-annotate);; Can't be "g" (as in vc map)
-    (define-key map "l" 'vc-print-log) ;; C-x v l
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
     (define-key map "\C-m" 'vc-dir-find-file)
     (define-key map "o" 'vc-dir-find-file-other-window)
-    (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     (define-key map [(down-mouse-3)] 'vc-dir-menu)
     (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
 
+    ;; FIXME: Calls back into vc.el
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
       '(menu-item
@@ -1493,8 +1501,7 @@ that share the same state."
    (ewoc-collect vc-ewoc 'vc-dir-fileinfo->marked)))
 
 (defun vc-dir-marked-only-files ()
-  "Return the list of marked files, for marked directories, return child files."
-
+  "Return the list of marked files, For marked directories return child files."
   (let ((crt (ewoc-nth vc-ewoc 0))
 	result)
     (while crt
@@ -1524,5 +1531,72 @@ that share the same state."
 	      (setq crt (ewoc-next vc-ewoc crt)))
 	  (setq crt (ewoc-next vc-ewoc crt)))))
     result))
+
+(defun vc-dir-mark-buffer-changed (&optional fname)
+  (let* ((file (or fname (expand-file-name buffer-file-name)))
+	 (found-vc-dir-buf nil))
+    (save-excursion
+      (dolist (status-buf (buffer-list))
+	(set-buffer status-buf)
+	;; look for a vc-dir buffer that might show this file.
+	(when (eq major-mode 'vc-dir-mode)
+	  (setq found-vc-dir-buf t)
+	  (let ((ddir (expand-file-name default-directory)))
+	    ;; This test is cvs-string-prefix-p
+	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
+	      (let*
+		  ((file-short (substring file (length ddir)))
+		   (state 
+		    (apply (client-mode->file-to-state client-mode) fname))
+		   (extra
+		    (apply (client-mode->file-to-extra client-mode) fname))
+		   (entry
+		    (list file-short state extra)))
+		(vc-dir-update (list entry) status-buf))))))
+      ;; We didn't find any vc-dir buffers, remove the hook, it is
+      ;; not needed.
+      (unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-dir-mark-buffer-changed)))))
+
+(defun vc-dir-mode (client-object)
+  "Major mode for showing the VC status for a directory.
+Marking/Unmarking key bindings and actions:
+m - marks a file/directory or if the region is active, mark all the files
+     in region.
+    Restrictions: - a file cannot be marked if any parent directory is marked
+                  - a directory cannot be marked if any child file or
+                    directory is marked
+u - marks a file/directory or if the region is active, unmark all the files
+     in region.
+M - if the cursor is on a file: mark all the files with the same VC state as
+      the current file
+  - if the cursor is on a directory: mark all child files
+  - with a prefix argument: mark all files
+U - if the cursor is on a file: unmark all the files with the same VC state
+      as the current file
+  - if the cursor is on a directory: unmark all child files
+  - with a prefix argument: unmark all files
+
+
+\\{vc-dir-mode-map}"
+  (setq mode-name (vc-client-object->name client-object))
+  (setq major-mode 'vc-dir-mode)
+  (setq buffer-read-only t)
+  (use-local-map vc-dir-mode-map)
+  (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map)
+  (set (make-local-variable 'client-mode) client-object)
+  (let ((buffer-read-only nil))
+    (erase-buffer)
+    (set (make-local-variable 'vc-dir-process-buffer) nil)
+    (set (make-local-variable 'vc-ewoc)
+	 (ewoc-create (vc-client-object->file-to-info client-object)
+		      (vc-client-object->headers client-object)))
+    (add-hook 'after-save-hook 'vc-dir-mark-buffer-changed)
+    ;; Make sure that if the VC status buffer is killed, the update
+    ;; process running in the background is also killed.
+    (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
+    (funcall (vc-client-object->updater client-object)))
+  (run-hooks 'vc-dir-mode-hook))
+
+(put 'vc-dir-mode 'mode-class 'special)
 
 ;;; vc-dispatcher.el ends here
