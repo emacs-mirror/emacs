@@ -25,8 +25,10 @@ Boston, MA 02110-1301, USA.  */
 #include "frame.h"
 
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
 
-#define RED_FROM_ULONG(color) ((color) >> 16)
+#define ALPHA_FROM_ULONG(color) ((color) >> 24)
+#define RED_FROM_ULONG(color) (((color) >> 16) & 0xff)
 #define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
 #define BLUE_FROM_ULONG(color) ((color) & 0xff)
 
@@ -648,6 +650,10 @@ extern int mac_quit_char_key_p P_ ((UInt32, UInt32));
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
+
+#if USE_MAC_IMAGE_IO
+extern CGColorSpaceRef mac_cg_color_space_rgb;
+#endif
 
 /* Defined in macselect.c */
 

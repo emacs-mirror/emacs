@@ -1,3 +1,52 @@
+2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [USE_MAC_IMAGE_IO] (image_load_image_io):
+	Create bitmap context in native byte order.
+
+	* macterm.c (XDrawLine)
+	(XCreatePixmapFromBitmapData) [USE_MAC_IMAGE_IO]: Create bitmap
+	context in native byte order.
+
+2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* config.in: Regenerate.
+
+	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN) [USE_MAC_IMAGE_IO]:
+	New definitions for Image I/O support.
+	(XGetImage, XPutPixel, XGetPixel, XDestroyImage)
+	(mac_create_cg_image_from_image, x_create_x_image_and_pixmap)
+	[USE_MAC_IMAGE_IO]: Add implementations for Image I/O support.
+	(mac_data_provider_release_data, image_load_image_io)
+	[USE_MAC_IMAGE_IO]: New functions.
+	(CGImageCreateWithPNGDataProviderProcType) [MAC_OSX]: Remove typedef.
+	(MyCGImageCreateWithPNGDataProvider) [MAC_OSX]: Remove variable.
+	(init_image_func_pointer) [MAC_OSX]: Remove function.
+	(image_load_quartz2d) [MAC_OSX]: Check availability of
+	CGImageCreateWithPNGDataProvider at compile time.
+	Use lowercase `false' for boolean constant.
+	(png_load, jpeg_load, tiff_load, gif_load) [USE_MAC_IMAGE_IO]:
+	Use image_load_image_io.
+	(png_load) [!USE_MAC_IMAGE_IO && MAC_OSX]:
+	Don't check MyCGImageCreateWithPNGDataProvider.
+	(init_image) [MAC_OSX && TARGET_API_MAC_CARBON]:
+	Don't call init_image_func_pointer.
+
+	* macgui.h (Pixmap) [USE_MAC_IMAGE_IO]: New definition for Image I/O.
+
+	* macterm.c (mac_cg_color_space_rgb) [USE_CG_DRAWING]:
+	Make variable non-static.
+	(XDrawLine, XCreatePixmap, XCreatePixmapFromBitmapData, XFreePixmap)
+	[USE_MAC_IMAGE_IO]: Add implementations for Image I/O support.
+
+	* macterm.h (ARGB_TO_ULONG, ALPHA_FROM_ULONG): New macros.
+	(RED_FROM_ULONG): Mask off higher bits.
+	(mac_cg_color_space_rgb) [USE_MAC_IMAGE_IO]: New extern.
+
+	* s/darwin.h [HAVE_CARBON && HAVE_AVAILABILITYMACROS_H]:
+	Include AvailabilityMacros.h.
+	(USE_MAC_IMAGE_IO, LIBS_IMAGE) [HAVE_CARBON]: New defines.
+	(LIBS_CARBON) [HAVE_CARBON]: Use LIBS_IMAGE.
+
 2008-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* chartab.c (Fset_char_table_range): If range is t, really set all

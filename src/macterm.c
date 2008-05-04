@@ -335,7 +335,7 @@ static struct terminal *mac_create_terminal P_ ((struct mac_display_info *dpyinf
 static int max_fringe_bmp = 0;
 static CGImageRef *fringe_bmp = 0;
 
-static CGColorSpaceRef mac_cg_color_space_rgb;
+CGColorSpaceRef mac_cg_color_space_rgb;
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
 static CGColorRef mac_cg_color_black;
 #endif
@@ -508,6 +508,48 @@ XDrawLine (display, p, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
+#if USE_MAC_IMAGE_IO
+  CGContextRef context;
+  XImagePtr ximg = p;
+  CGColorSpaceRef color_space;
+  CGImageAlphaInfo alpha_info;
+  CGFloat gx1 = x1, gy1 = y1, gx2 = x2, gy2 = y2;
+
+  if (y1 != y2)
+    gx1 += 0.5f, gx2 += 0.5f;
+  if (x1 != x2)
+    gy1 += 0.5f, gy2 += 0.5f;
+
+  if (ximg->bits_per_pixel == 32)
+    {
+      color_space = mac_cg_color_space_rgb;
+      alpha_info = (kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+		    | kCGBitmapByteOrder32Host
+#endif
+		    );
+    }
+  else
+    {
+      color_space = NULL;
+      alpha_info = kCGImageAlphaOnly;
+    }
+  if (color_space == NULL)
+    return;
+  context = CGBitmapContextCreate (ximg->data, ximg->width,
+				   ximg->height, 8,
+				   ximg->bytes_per_line, color_space,
+				   alpha_info);
+  if (ximg->bits_per_pixel == 32)
+    CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
+  else
+    CGContextSetGrayStrokeColor (context, gc->xgcv.foreground / 255.0f, 1.0);
+  CGContextMoveToPoint (context, gx1, gy1);
+  CGContextAddLineToPoint (context, gx2, gy2);
+  CGContextClosePath (context);
+  CGContextStrokePath (context);
+  CGContextRelease (context);
+#else
   CGrafPtr old_port;
   GDHandle old_gdh;
 
@@ -537,6 +579,7 @@ XDrawLine (display, p, gc, x1, y1, x2, y2)
   UnlockPixels (GetGWorldPixMap (p));
 
   SetGWorld (old_port, old_gdh);
+#endif
 }
 
 
@@ -748,6 +791,17 @@ XCreatePixmap (display, w, width, height, depth)
      unsigned int width, height;
      unsigned int depth;
 {
+#if USE_MAC_IMAGE_IO
+  XImagePtr ximg;
+
+  ximg = xmalloc (sizeof (*ximg));
+  ximg->width = width;
+  ximg->height = height;
+  ximg->bits_per_pixel = depth == 1 ? 8 : 32;
+  ximg->bytes_per_line = width * (ximg->bits_per_pixel / 8);
+  ximg->data = xmalloc (ximg->bytes_per_line * height);
+  return ximg;
+#else
   Pixmap pixmap;
   Rect r;
   QDErr err;
@@ -768,6 +822,7 @@ XCreatePixmap (display, w, width, height, depth)
   if (err != noErr)
     return NULL;
   return pixmap;
+#endif
 }
 
 
@@ -782,6 +837,38 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 {
   Pixmap pixmap;
   BitMap bitmap;
+#if USE_MAC_IMAGE_IO
+  CGDataProviderRef provider;
+  CGImageRef image_mask;
+  CGContextRef context;
+
+  pixmap = XCreatePixmap (display, w, width, height, depth);
+  if (pixmap == NULL)
+    return NULL;
+
+  mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
+  provider = CGDataProviderCreateWithData (NULL, bitmap.baseAddr,
+					   bitmap.rowBytes * height, NULL);
+  image_mask = CGImageMaskCreate (width, height, 1, 1, bitmap.rowBytes,
+				  provider, NULL, 0);
+  CGDataProviderRelease (provider);
+
+  context = CGBitmapContextCreate (pixmap->data, width, height, 8,
+				   pixmap->bytes_per_line,
+				   mac_cg_color_space_rgb,
+				   kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+				   | kCGBitmapByteOrder32Host
+#endif
+				   );
+
+  CG_SET_FILL_COLOR (context, fg);
+  CGContextFillRect (context, CGRectMake (0, 0, width, height));
+  CG_SET_FILL_COLOR (context, bg);
+  CGContextDrawImage (context, CGRectMake (0, 0, width, height), image_mask);
+  CGContextRelease (context);
+  CGImageRelease (image_mask);
+#else
   CGrafPtr old_port;
   GDHandle old_gdh;
   static GC gc = NULL;
@@ -810,6 +897,7 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (pixmap));
   SetGWorld (old_port, old_gdh);
+#endif
   mac_free_bitmap (&bitmap);
 
   return pixmap;
@@ -821,7 +909,16 @@ XFreePixmap (display, pixmap)
      Display *display;
      Pixmap pixmap;
 {
+#if USE_MAC_IMAGE_IO
+  if (pixmap)
+    {
+      if (pixmap->data)
+	xfree (pixmap->data);
+      xfree (pixmap);
+    }
+#else
   DisposeGWorld (pixmap);
+#endif
 }
 
 
