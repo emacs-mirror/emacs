@@ -1,3 +1,17 @@
+2008-05-04  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (x_draw_glyph_string): Use underline position and
+        thickness from font.
+
+        * w32font.c (w32font_open_internal): Get Outline metrics if possible.
+        Use them to calculate underline position and thickness.
+        (w32font_open_internal): Use xlfd name as name property.
+
+2008-05-02  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (w32_compute_glyph_string_overhangs): Don't compute if
+        font was not found.
+
 2008-05-01  Kenichi Handa  <handa@m17n.org>
 
 	* xrdb.c (x_load_resources): Don't setup a fontset resource.
