@@ -1210,7 +1210,7 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
 
 (defcustom gnus-propagate-marks t
   "If non-nil, do not propagate marks to the backends."
-  :version "21.1"
+  :version "23.1" ;; No Gnus
   :type 'boolean
   :group 'gnus-summary-marks)
 
