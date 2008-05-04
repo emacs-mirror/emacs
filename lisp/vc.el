@@ -2180,8 +2180,9 @@ outside of VC) and one wants to do some operation on it."
 ;; FIXME: Replace these with a more efficient dispatch
 
 (defun vc-generic-status-printer (fileentry)
-  (let ((backend (vc-responsible-backend (vc-dir-fileinfo->name fileentry))))
-    (vc-call-backend backend 'status-printer fileentry)))
+  (let* ((file (vc-dir-fileinfo->name fileentry))
+	 ((backend (vc-responsible-backend file))))
+    (vc-call-backend backend 'status-printer file)))
   
 (defun vc-generic-state (file)
   (let ((backend (vc-responsible-backend file)))
@@ -2196,6 +2197,7 @@ outside of VC) and one wants to do some operation on it."
     (vc-dir-headers backend dir)))
 
 (defun vc-make-backend-object (file-or-dir)
+  "Create the backend capability object needed by vc-dispatcher."
   (vc-create-client-object 
    "VC status"
    (let ((backend (vc-responsible-backend file-or-dir)))
@@ -2210,7 +2212,7 @@ outside of VC) and one wants to do some operation on it."
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
   (pop-to-buffer (vc-dir-prepare-status-buffer dir))
-  (if (eq major-mode 'vc-dir-mode)
+  (if (and (eq major-mode 'vc-dir-mode) (boundp 'client-object))
       (vc-dir-refresh)
     ;; Otherwise, initialize a new view using the dispatcher layer
     (progn
