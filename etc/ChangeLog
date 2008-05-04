@@ -1,3 +1,12 @@
+2008-05-04  Reiner Steib  <reiner.steib@gmx.de>
+
+	* NEWS: Reword previous commit.
+	* NEWS.22: Document removal of duplicated "alt-" input methods.
+
+2008-05-03  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Document removal of duplicated "alt-" input methods.
+
 2008-04-26  Glenn Morris  <rgm@gnu.org>
 
 	* forms-d2.dat: Move here from ../lisp.
