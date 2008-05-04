@@ -2215,7 +2215,7 @@ outside of VC) and one wants to do some operation on it."
     ;; Otherwise, initialize a new view using the dispatcher layer
     (progn
       ;; Build a capability object and hand it to the dispatcher initializer
-      (vc-dir-mode (vc-make-backend-object backend))
+      (vc-dir-mode (vc-make-backend-object dir))
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
 	(define-key map "=" 'vc-diff) ;; C-x v =
