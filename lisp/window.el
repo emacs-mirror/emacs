@@ -1095,6 +1095,21 @@ active.  This function is run by `mouse-autoselect-window-timer'."
 	(run-hooks 'mouse-leave-buffer-hook))
       (select-window window))))
 
+(defun delete-other-windows-vertically (&optional window)
+  "Delete the windows in the same column with WINDOW, but not WINDOW itself.
+This may be a useful alternative binding for \\[delete-other-windows]
+ if you often split windows horizontally."
+  (interactive)
+  (let* ((window (or window (selected-window)))
+         (edges (window-edges window))
+         (w window) delenda)
+    (while (not (eq (setq w (next-window w 1)) window))
+      (let ((e (window-edges w)))
+        (when (and (= (car e) (car edges))
+                   (= (caddr e) (caddr edges)))
+          (push w delenda))))
+    (mapc 'delete-window delenda)))
+
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)

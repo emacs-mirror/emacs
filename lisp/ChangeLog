@@ -1,3 +1,7 @@
+2008-05-05  Sam Steingold  <sds@gnu.org>
+
+	* window.el (delete-other-windows-vertically): New function.
+
 2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-read-dir-and-switches):
