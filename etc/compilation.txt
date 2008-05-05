@@ -263,6 +263,14 @@ keyboard handler.c(537) : warning C4005: 'min' : macro redefinition
 d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
 
 
+* Open Watcom
+
+symbol: watcom
+
+..\src\ctrl\lister.c(109): Error! E1009: Expecting ';' but found '{'
+..\src\ctrl\lister.c(120): Warning! W201: Unreachable code
+
+
 * Oracle pro*c
 
 symbol: oracle
