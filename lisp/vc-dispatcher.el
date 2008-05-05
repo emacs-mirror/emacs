@@ -1546,10 +1546,12 @@ that share the same state."
 	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
 	      (let*
 		  ((file-short (substring file (length ddir)))
-		   (state 
-		    (apply (client-mode->file-to-state client-mode) fname))
+		   (state
+		    (funcall (vc-client-object->file-to-state vc-client-mode)
+                             fname))
 		   (extra
-		    (apply (client-mode->file-to-extra client-mode) fname))
+		    (funcall (vc-client-object->file-to-extra vc-client-mode)
+                             fname))
 		   (entry
 		    (list file-short state extra)))
 		(vc-dir-update (list entry) status-buf))))))
@@ -1583,7 +1585,7 @@ U - if the cursor is on a file: unmark all the files with the same VC state
   (setq buffer-read-only t)
   (use-local-map vc-dir-mode-map)
   (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map)
-  (set (make-local-variable 'client-mode) client-object)
+  (set (make-local-variable 'vc-client-mode) client-object)
   (let ((buffer-read-only nil))
     (erase-buffer)
     (set (make-local-variable 'vc-dir-process-buffer) nil)
