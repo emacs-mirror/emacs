@@ -2187,11 +2187,11 @@ outside of VC) and one wants to do some operation on it."
   
 (defun vc-generic-state (file)
   (let ((backend (vc-responsible-backend file)))
-    (vc-call-backend backend 'state)))
+    (vc-call-backend backend 'state file)))
   
 (defun vc-generic-status-fileinfo-extra (file)
   (let ((backend (vc-responsible-backend file)))
-    (vc-call-backend backend 'status-fileinfo-extra)))
+    (vc-call-backend backend 'status-fileinfo-extra file)))
 
 (defun vc-generic-dir-headers (dir)
   (let ((backend (vc-responsible-backend dir)))
