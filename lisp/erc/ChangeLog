@@ -1,3 +1,10 @@
+2008-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc-goodies.el (erc-noncommands-list, noncommands)
+	(erc-control-characters, erc-interpret-controls-p)
+	(erc-interpret-mirc-color): Fix typos in docstrings.
+	(erc-controls-highlight): Reflow docstring.
+
 2008-04-27  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-put-text-properties): Replace use of cl mapcar*.
