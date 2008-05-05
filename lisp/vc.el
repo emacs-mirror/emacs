@@ -1059,58 +1059,17 @@ If INCLUDE-FILES-NOT-DIRECTORIES then if directories are marked,
 return the list of files VC files in those directories instead of
 the directories themselves.
 Otherwise, throw an error."
-  (let (backend)
-    (cond
-     (vc-dired-mode
-      (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
-	(unless marked
-	  (error "No files have been selected."))
+  (let* ((fileset (vc-dispatcher-selection-set
+		  #'vc-registered
+		  allow-directory-wildcard 
+		  allow-unregistered
+		  include-files-not-directories))
+	(backend (vc-backend (car fileset))))
 	;; All members of the fileset must have the same backend
-	(setq backend (vc-backend (car marked)))
-	(dolist (f (cdr marked))
+	(dolist (f (cdr fileset))
 	  (unless (eq (vc-backend f) backend)
 	    (error "All members of a fileset must be under the same version-control system.")))
-	(cons backend marked)))
-     ((eq major-mode 'vc-dir-mode)
-      ;; FIXME: Maybe the backend should be stored in a buffer-local
-      ;; variable?
-      (cons (vc-responsible-backend default-directory)
-		(or
-		 (if include-files-not-directories
-		     (vc-dir-marked-only-files)
-		   (vc-dir-marked-files))
-		 (list (vc-dir-current-file)))))
-     ((setq backend (vc-backend buffer-file-name))
-      (cons backend (list buffer-file-name)))
-     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
-				(with-current-buffer vc-parent-buffer
-				  (or vc-dired-mode (eq major-mode 'vc-dir-mode)))))
-      (progn
-	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset)))
-     ;; This is guarded by an enabling arg so users won't potentially
-     ;; shoot themselves in the foot by modifying a fileset they can't
-     ;; verify by eyeball.  Allow it for nondestructive commands like
-     ;; making diffs, or possibly for destructive ones that have
-     ;; confirmation prompts.
-     ((and allow-directory-wildcard
-	   ;; I think this is a misfeature.  For now, I'll leave it in, but
-	   ;; I'll disable it anywhere else than in dired buffers.  --Stef
-	   (and (derived-mode-p 'dired-mode)
-		(equal buffer-file-name nil)
-		(equal list-buffers-directory default-directory)))
-      (progn
-	(message "All version-controlled files below %s selected."
-		 default-directory)
-	(cons
-	 (vc-responsible-backend default-directory)
-	 (list default-directory))))
-     ;; If we're allowing unregistered fiiles and visiting one, select it.
-     ((and allow-unregistered (not (vc-registered buffer-file-name)))
-      (cons (vc-responsible-backend
-	     (file-name-directory (buffer-file-name)))
-	    (list buffer-file-name)))
-     (t (error "No fileset is available here.")))))
+    (cons backend fileset)))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."

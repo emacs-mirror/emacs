@@ -1,3 +1,8 @@
+2008-05-05  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-deduce-fileset): Lift all the policy and UI
+	stuff out of this function, move it to vc-dispatcher-selection-set.k
+
 2008-05-05  Sam Steingold  <sds@gnu.org>
 
 	* window.el (delete-other-windows-vertically): New function.

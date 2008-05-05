@@ -1602,5 +1602,73 @@ U - if the cursor is on a file: unmark all the files with the same VC state
 
 (put 'vc-dir-mode 'mode-class 'special)
 
+(defun vc-dispatcher-browsing ()
+  "Are we in a directory browser buffer?"
+  (or vc-dired-mode (eq major-mode 'vc-dir-mode)))
+
+(defun vc-dispatcher-selection-set (eligible
+				   &optional 
+				   allow-directory-wildcard 
+				   allow-inegible
+				   include-files-not-directories)
+  "Deduce a set of files to which to apply an operation. Return the fileset.
+If we're in VC-dired mode, the fileset is the list of marked files.
+Otherwise, if we're looking at a buffer for which ELIGIBLE returns non-NIL,
+the fileset is a singleton containing this file.
+If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
+and we're in a dired buffer, select the current directory.
+If none of these conditions is met, but ALLOW-INELIGIBLE is on and the
+visited file is not registered, return a singleton fileset containing it.
+If INCLUDE-FILES-NOT-DIRECTORIES then if directories are marked,
+return the list of VC files in those directories instead of
+the directories themselves.
+Otherwise, throw an error."
+    (cond
+     ;; Browsing with dired
+     (vc-dired-mode
+      (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
+	(if marked
+	    marked
+	  (error "No files have been selected."))))
+     ;; Browsing with vc-dir
+     ((eq major-mode 'vc-dir-mode)
+      (or
+       (if include-files-not-directories
+	   (vc-dir-marked-only-files)
+	 (vc-dir-marked-files))
+       (list (vc-dir-current-file))))
+     ;; Visiting an eligible file
+     ((funcall eligible buffer-file-name)
+      (list buffer-file-name))
+     ;; No eligible file -- if there's a parent buffer, deuce from there
+     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+				(with-current-buffer vc-parent-buffer
+				  (vc-dispatcher-browsing))))
+      (progn
+	(set-buffer vc-parent-buffer)
+	(vc-dispatcher-selection-set)))
+     ;; No parent buffer, we may want to select entire directory
+     ;;
+     ;; This is guarded by an enabling arg so users won't potentially
+     ;; shoot themselves in the foot by modifying a fileset they can't
+     ;; verify by eyeball.  Allow it for nondestructive commands like
+     ;; making diffs, or possibly for destructive ones that have
+     ;; confirmation prompts.
+     ((and allow-directory-wildcard
+	   ;; I think this is a misfeature.  For now, I'll leave it in, but
+	   ;; I'll disable it anywhere else than in dired buffers.  --Stef
+	   (and (derived-mode-p 'dired-mode)
+		(equal buffer-file-name nil)
+		(equal list-buffers-directory default-directory)))
+      (progn
+	(message "All eligible files below %s selected."
+		 default-directory)
+	 (list default-directory)))
+     ;; Last, if we're allowing ineligible files and visiting one, select it.
+     ((and allow-ineligible (not (eligible buffer-file-name)))
+      (list buffer-file-name))
+     ;; No good set here, throw error
+     (t (error "No fileset is available here."))))
+
 ;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
 ;;; vc-dispatcher.el ends here
