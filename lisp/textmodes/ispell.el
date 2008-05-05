@@ -1209,8 +1209,7 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 	       (not (multibyte-string-p str)))
       (setq str (ispell-decode-string str))
       (or (multibyte-string-p str)
-	  (setq str (string-to-multibyte str)))
-      (setcar (nthcdr n slot) str))
+	  (setq str (string-to-multibyte str))))
     str))
 
 (defun ispell-get-casechars ()
