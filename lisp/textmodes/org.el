@@ -18060,13 +18060,15 @@ WHAT       is \"d\", \"w\", \"m\", or \"y\" for day, week, month, year.
 N          is the number of WHATs to shift.
 DEF-FLAG   is t when a double ++ or -- indicates shift relative to
            the DEFAULT date rather than TODAY."
-  (when (string-match
-	 (concat
-	  "\\`[ \t]*\\([-+]\\{1,2\\}\\)"
-	  "\\([0-9]+\\)?"
-	  "\\([dwmy]\\|\\(" (mapconcat 'car parse-time-weekdays "\\|") "\\)\\)?"
-	  "\\([ \t]\\|$\\)") s)
-    (let* ((dir (if (match-end 1)
+  (when (and
+	 (string-match
+	  (concat
+	   "\\`[ \t]*\\([-+]\\{0,2\\}\\)"
+	   "\\([0-9]+\\)?"
+	   "\\([dwmy]\\|\\(" (mapconcat 'car parse-time-weekdays "\\|") "\\)\\)?"
+	   "\\([ \t]\\|$\\)") s)
+	 (or (> (match-end 1) (match-beginning 1)) (match-end 4)))
+    (let* ((dir (if (> (match-end 1) (match-beginning 1))
 		    (string-to-char (substring (match-string 1 s) -1))
 		  ?+))
 	   (rel (and (match-end 1) (= 2 (- (match-end 1) (match-beginning 1)))))
