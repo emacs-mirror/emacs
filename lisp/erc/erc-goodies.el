@@ -164,13 +164,13 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
                                erc-cmd-SM
                                erc-cmd-SMV
                                erc-cmd-LASTLOG)
-  "List of commands that are aliases for CTCP ACTION or for erc messages.
+  "List of commands that are aliases for CTCP ACTION or for ERC messages.
 
 If a command's function symbol is in this list, the typed command
 does not appear in the ERC buffer after the user presses ENTER.")
 
 (define-erc-module noncommands nil
-  "This mode distinguishies non-commands.
+  "This mode distinguishes non-commands.
 Commands listed in `erc-insert-this' know how to display
 themselves."
   ((add-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands))
@@ -188,11 +188,11 @@ themselves."
 
 ;;; IRC control character processing.
 (defgroup erc-control-characters nil
-  "Dealing with control characters"
+  "Dealing with control characters."
   :group 'erc)
 
 (defcustom erc-interpret-controls-p t
-  "*If non-nil, display IRC colours and other highlighting effects.
+  "*If non-nil, display IRC colors and other highlighting effects.
 
 If this is set to the symbol `remove', ERC removes all IRC colors and
 highlighting effects.  When this variable is non-nil, it can cause Emacs to run
@@ -205,7 +205,7 @@ emergency (message flood) it can be turned off to save processing time.  See
                  (const :tag "Display raw control characters" nil)))
 
 (defcustom erc-interpret-mirc-color nil
-  "*If non-nil, erc will interpret mIRC color codes."
+  "*If non-nil, ERC will interpret mIRC color codes."
   :group 'erc-control-characters
   :type 'boolean)
 
@@ -428,9 +428,8 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
 
 (defun erc-controls-highlight ()
   "Highlight IRC control chars in the buffer.
-This is useful for `erc-insert-modify-hook' and
-`erc-send-modify-hook'. Also see `erc-interpret-controls-p' and
-`erc-interpret-mirc-color'."
+This is useful for `erc-insert-modify-hook' and `erc-send-modify-hook'.
+Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
   (goto-char (point-min))
   (cond ((eq erc-interpret-controls-p 'remove)
          (while (re-search-forward erc-controls-remove-regexp nil t)
