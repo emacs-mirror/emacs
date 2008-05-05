@@ -76,17 +76,18 @@
 
 ;; Special behavior of dispatcher directory buffers:
 ;;
-;; In dispatcher directory buffers, faciltiies to perform basic
+;; In dispatcher directory buffers, facilities to perform basic
 ;; navigation and selection operations are provided by keymap and menu
 ;; entries that dispatcher sets up itself, so they'll be uniform
-;; across all dispatcher- using client modes.  Client modes are
+;; across all dispatcher-using client modes.  Client modes are
 ;; expected to append to these to provide mode-specific bindings.
 ;;
 ;; The standard map associates a 'state' slot (that the client mode
 ;; may set) with each directory entry.  The dispatcher knows nothing
 ;; about the semantics of individual states, but mark and unmark commands
-;; treat all entries with the same state 
-
+;; treat all entries with the same state as the currently selected one as 
+;; a unit.
+ 
 ;; To do:
 ;;
 ;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
@@ -1531,7 +1532,7 @@ that share the same state."
 	      (setq crt (ewoc-next vc-ewoc crt)))
 	  (setq crt (ewoc-next vc-ewoc crt)))))
     result))
-
+ 
 (defun vc-dir-mark-buffer-changed (&optional fname)
   (let* ((file (or fname (expand-file-name buffer-file-name)))
 	 (found-vc-dir-buf nil))
@@ -1548,10 +1549,10 @@ that share the same state."
 		  ((file-short (substring file (length ddir)))
 		   (state
 		    (funcall (vc-client-object->file-to-state vc-client-mode)
-                             fname))
+                             file))
 		   (extra
 		    (funcall (vc-client-object->file-to-extra vc-client-mode)
-                             fname))
+                             file))
 		   (entry
 		    (list file-short state extra)))
 		(vc-dir-update (list entry) status-buf))))))
