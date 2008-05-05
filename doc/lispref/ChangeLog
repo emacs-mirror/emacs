@@ -1,3 +1,8 @@
+2008-05-03  Eric S. Raymond  <esr@golux>
+
+	* keymaps.texi: Clarify that (current-local-map) and 
+	(current-global-map) return references, not copies.
+
 2008-05-02  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.texi (Text from Minibuffer): Document a list of

@@ -766,9 +766,11 @@ out with.
 @end defvar
 
 @defun current-global-map
-This function returns the current global keymap.  This is the
-same as the value of @code{global-map} unless you change one or the
-other.
+This function returns the current global keymap.  This is the same as
+the value of @code{global-map} unless you change one or the other.
+The return value is a reference, not a copy; if you use
+@code{define-key} or other functions on it you will alter global
+bindings.
 
 @example
 @group
@@ -801,6 +803,10 @@ keymap.
 @end group
 @end example
 @end defun
+
+@code{current-local-map} returns a reference to the local keymap, not
+a copy of it; if you use @code{define-key} or other functions on it 
+you will alter local bindings.
 
 @defun current-minor-mode-maps
 This function returns a list of the keymaps of currently enabled minor modes.
