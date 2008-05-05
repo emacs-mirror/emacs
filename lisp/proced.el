@@ -30,7 +30,8 @@
 ;; on the processes listed.
 ;;
 ;; To do:
-;; - sort by CPU time or other criteria
+;; - sort the "cooked" values used in the output format fields
+;;   if ps(1) doesn't support the requested sorting scheme
 ;; - filter by user name or other criteria
 ;; - automatic update of process list
 
@@ -49,12 +50,12 @@
                  (regexp :tag "regexp")))
 
 (defcustom proced-command-alist
-  (cond ((memq system-type '(berkeley-unix netbsd))
+  (cond ((memq system-type '(berkeley-unix))
          '(("user" ("ps" "-uxgww") 2)
            ("user-running" ("ps" "-uxrgww") 2)
            ("all" ("ps" "-auxgww") 2)
            ("all-running" ("ps" "-auxrgww") 2)))
-        ((memq system-type '(linux lignux gnu/linux))
+        ((memq system-type '(gnu gnu/linux)) ; BSD syntax
          `(("user" ("ps" "uxwww") 2)
            ("user-running" ("ps" "uxrwww") 2)
            ("all" ("ps" "auxwww") 2)
@@ -65,7 +66,7 @@
         ((memq system-type '(darwin))
          `(("user" ("ps" "-u" ,(number-to-string (user-uid))) 2)
            ("all" ("ps" "-Au") 2)))
-        (t ; standard syntax doesn't allow us to list running processes only
+        (t ; standard UNIX syntax; doesn't allow to list running processes only
          `(("user" ("ps" "-fu" ,(number-to-string (user-uid))) 2)
            ("all" ("ps" "-ef") 2))))
   "Alist of commands to get list of processes.
@@ -80,8 +81,42 @@ PID-COLUMN is the column number (starting from 1) of the process ID."
   :type '(repeat (group (string :tag "name")
                         (cons (string :tag "command")
                               (repeat (string :tag "option")))
-                        (integer :tag "PID column")
-                        (option (integer :tag "sort column")))))
+                        (integer :tag "PID column"))))
+
+;; Should we incorporate in NAME if sorting is done in descending order?
+(defcustom proced-sorting-schemes-alist
+  (cond ((memq system-type '(gnu gnu/linux)) ; GNU long options
+         '(("%CPU" "--sort" "-pcpu") ; descending order
+           ("%MEM" "--sort" "-pmem") ; descending order
+           ("COMMAND" "--sort" "args")
+           ("PID" "--sort" "pid")
+           ("PGID,PID" "--sort" "pgid,pid")
+           ("PPID,PID" "--sort" "ppid,pid")
+           ("RSS" "--sort" "rss,pid") ; equal RSS's are rare
+           ("STAT,PID" "--sort" "stat,pid")
+           ("START" "--sort" "start_time")
+           ("TIME" "--sort" "cputime")
+           ("TTY,PID" "--sort" "tty,pid")
+           ("UID,PID" "--sort" "uid,pid")
+           ("USER,PID" "--sort" "user,pid")
+           ("VSZ,PID" "--sort" "vsz,pid"))))
+  "Alist of sorting schemes.
+Each element is a list (NAME OPTION1 OPTION2 ...).
+NAME denotes the sorting scheme and OPTION1, OPTION2, ... are options
+defining the sorting scheme."
+  :group 'proced
+  :type '(repeat (cons (string :tag "name")
+                       (repeat (string :tag "option")))))
+
+(defcustom proced-sorting-scheme nil
+  "Proced sorting type.
+Must be the car of an element of `proced-sorting-schemes-alist' or nil."
+  :group 'proced
+  :type `(choice ,@(append '((const nil)) ; sorting type may be nil
+                           (mapcar (lambda (item)
+                                     (list 'const (car item)))
+                                   proced-sorting-schemes-alist))))
+(make-variable-buffer-local 'proced-sorting-scheme)
 
 (defcustom proced-command (if (zerop (user-real-uid)) "all" "user")
   "Name of process listing.
@@ -186,6 +221,12 @@ Initialized based on `proced-procname-column-regexp'.")
     (define-key km "l" 'proced-listing-type)
     (define-key km "g" 'revert-buffer) ; Dired compatibility
     (define-key km "q" 'quit-window)
+    (define-key km "sc" 'proced-sort-pcpu)
+    (define-key km "sm" 'proced-sort-pmem)
+    (define-key km "sp" 'proced-sort-pid)
+    (define-key km "ss" 'proced-sort-start)
+    (define-key km "sS" 'proced-sort)
+    (define-key km "st" 'proced-sort-time)
     (define-key km [remap undo] 'proced-undo)
     (define-key km [remap advertised-undo] 'proced-undo)
     km)
@@ -200,6 +241,13 @@ Initialized based on `proced-procname-column-regexp'.")
     ["Unmark All" proced-unmark-all t]
     ["Toggle Marks" proced-unmark-all t]
     "--"
+    ["Sort" proced-sort t]
+    ["Sort by %CPU" proced-sort-pcpu (proced-sorting-scheme-p "%CPU")]
+    ["Sort by %MEM" proced-sort-pmem (proced-sorting-scheme-p "%MEM")]
+    ["Sort by PID" proced-sort-pid (proced-sorting-scheme-p "PID")]
+    ["Sort by START" proced-sort-start (proced-sorting-scheme-p "START")]
+    ["Sort by TIME" proced-sort-time (proced-sorting-scheme-p "TIME")]
+    "--"
     ["Hide Marked Processes" proced-hide-processes t]
     "--"
     ["Revert" revert-buffer t]
@@ -211,9 +259,11 @@ Initialized based on `proced-procname-column-regexp'.")
   "Help string for proced.")
 
 (defun proced-marker-regexp ()
+  "Return regexp matching `proced-marker-char'."
   (concat "^" (regexp-quote (char-to-string proced-marker-char))))
 
 (defun proced-success-message (action count)
+  "Display success message for ACTION performed for COUNT processes."
   (message "%s %s process%s" action count (if (= 1 count) "" "es")))
 
 (defun proced-move-to-procname ()
@@ -258,20 +308,19 @@ information will be displayed but not selected.
 
 \\{proced-mode-map}"
   (interactive "P")
-  (let ((proced-buffer (get-buffer-create "*Process Info*")) new)
-    (set-buffer proced-buffer)
+  (let ((buffer (get-buffer-create "*Process Info*")) new)
+    (set-buffer buffer)
     (setq new (zerop (buffer-size)))
-    (when new (proced-mode))
+    (if new (proced-mode))
 
     (if (or new arg)
         (proced-update))
 
     (if arg
-	(display-buffer proced-buffer)
-      (pop-to-buffer proced-buffer)
+	(display-buffer buffer)
+      (pop-to-buffer buffer)
       (message (substitute-command-keys
                 "type \\[quit-window] to quit, \\[proced-help] for help")))))
-
 
 (defun proced-mark (&optional count)
   "Mark the current (or next COUNT) processes."
@@ -285,6 +334,8 @@ information will be displayed but not selected.
 
 (defun proced-unmark-backward (&optional count)
   "Unmark the previous (or COUNT previous) processes."
+  ;; Analogous to `dired-unmark-backward',
+  ;; but `ibuffer-unmark-backward' behaves different.
   (interactive "p")
   (proced-do-mark nil (- (or count 1))))
 
@@ -396,7 +447,7 @@ Returns count of hidden lines."
   ;; This is the main function that generates and updates the process listing.
   (interactive)
   (or quiet (message "Updating process information..."))
-  (let* ((command (cdr (assoc proced-command proced-command-alist)))
+  (let* ((command (cadr (assoc proced-command proced-command-alist)))
          (regexp (concat (proced-skip-regexp) "\\s-+\\([0-9]+\\>\\)"))
          (old-pos (if (save-excursion
                         (beginning-of-line)
@@ -411,7 +462,9 @@ Returns count of hidden lines."
                   (match-string-no-properties 1)) plist))
     ;; generate new listing
     (erase-buffer)
-    (apply 'call-process (caar command) nil t nil (cdar command))
+    (apply 'call-process (car command) nil t nil
+           (append (cdr command) (cdr (assoc proced-sorting-scheme
+                                             proced-sorting-schemes-alist))))
     (goto-char (point-min))
     (while (not (eobp))
       (insert "  ")
@@ -447,6 +500,12 @@ Returns count of hidden lines."
           (beginning-of-line)
           (forward-char (cdr old-pos)))
       (proced-move-to-procname))
+    ;; update modeline
+    (setq mode-name (if proced-sorting-scheme
+                        (concat "Proced by " proced-sorting-scheme)
+                      "Proced"))
+    (force-mode-line-update)
+    ;; done
     (or quiet (input-pending-p)
         (message "Updating process information...done."))))
 
@@ -476,6 +535,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                     ;; and the command name?
                     (substring (match-string-no-properties 0) 2))
               plist)))
+    (setq plist (nreverse plist))
     (if (not plist)
         (message "No processes marked")
       (unless signal
@@ -554,6 +614,52 @@ buffer.  You can use it to recover marks."
     (undo))
   (message "Change in proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
+
+;;; Sorting
+(defun proced-sort (scheme)
+  "Sort Proced buffer using SCHEME.
+When called interactively, an empty string means nil, i.e., no sorting."
+  (interactive
+   (list (let* ((completion-ignore-case t)
+                (scheme (completing-read "Sorting type: "
+                                         proced-sorting-schemes-alist nil t)))
+           (if (string= "" scheme) nil scheme))))
+  (if (proced-sorting-scheme-p scheme)
+      (progn
+        (setq proced-sorting-scheme scheme)
+        (proced-update))
+    (error "Proced sorting scheme %s undefined" scheme)))
+
+(defun proced-sorting-scheme-p (scheme)
+  "Return non-nil if SCHEME is an applicable sorting scheme.
+SCHEME must be a string or nil."
+  (or (not scheme)
+      (assoc scheme proced-sorting-schemes-alist)))
+
+(defun proced-sort-pcpu ()
+  "Sort Proced buffer by percentage CPU time (%CPU)."
+  (interactive)
+  (proced-sort "%CPU"))
+
+(defun proced-sort-pmem ()
+  "Sort Proced buffer by percentage memory usage (%MEM)."
+  (interactive)
+  (proced-sort "%MEM"))
+
+(defun proced-sort-pid ()
+  "Sort Proced buffer by PID."
+  (interactive)
+  (proced-sort "PID"))
+
+(defun proced-sort-start ()
+  "Sort Proced buffer by time the command started (START)."
+  (interactive)
+  (proced-sort "START"))
+
+(defun proced-sort-time ()
+  "Sort Proced buffer by cumulative CPU time (TIME)."
+  (interactive)
+  (proced-sort "TIME"))
 
 (provide 'proced)
 
