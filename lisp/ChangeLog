@@ -1,3 +1,15 @@
+2008-05-04  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-command-alist): Fix system-type values.  Fix
+	defcustom.
+	(proced-sorting-schemes-alist, proced-sorting-scheme): New
+	variables.
+	(proced-sort-pcpu, proced-sort-pmem, proced-sort-pid)
+	(proced-sort-start, proced-sort, proced-sort-time): New commands.
+	(proced-update): Use proced-sorting-scheme.  Update modeline.
+	(proced-send-signal): Use nreverse.
+	(proced-sorting-scheme-p): New function.
+
 2008-05-04  Andreas Schwab  <schwab@suse.de>
 
 	* vc.el: Require dired when compiling.
