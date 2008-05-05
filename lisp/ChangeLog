@@ -1,3 +1,7 @@
+2008-05-05  Phil Sung  <psung@mit.edu>  (tiny change)
+
+	* progmodes/python.el (python-block-pairs): Align finally with except.
+
 2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-rcs.el (vc-rcs-fetch-master-state): Fix inf-loop.

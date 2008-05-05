@@ -747,7 +747,7 @@ Set `python-indent' locally to the value guessed."
   '(("else" "if" "elif" "while" "for" "try" "except")
     ("elif" "if" "elif")
     ("except" "try" "except")
-    ("finally" "try"))
+    ("finally" "try" "except"))
   "Alist of keyword matches.
 The car of an element is a keyword introducing a statement which
 can close a block opened by a keyword in the cdr.")
