@@ -104,10 +104,11 @@
 ;; disabled with configuration option "--without-dbus".  Declare used
 ;; subroutines and variables of `dbus' therefore.
 (eval-when-compile
-  (require 'cl)
-  (declare-function dbus-call-method "dbusbind.c")
-  (declare-function dbus-register-signal "dbusbind.c")
-  (defvar dbus-debug))
+  (require 'cl))
+
+(declare-function dbus-call-method "dbusbind.c")
+(declare-function dbus-register-signal "dbusbind.c")
+(defvar dbus-debug)
 
 (require 'dbus)
 

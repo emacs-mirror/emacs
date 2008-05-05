@@ -1,3 +1,8 @@
+2008-05-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* net/zeroconf.el (dbus-call-method, dbus-register-signal)
+	(dbus-debug): Move declarations outside eval-when-compile.
+
 2008-05-04  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-command-alist): Fix system-type values.  Fix
