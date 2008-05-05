@@ -893,7 +893,8 @@ file."
 	 ;; locked by the calling user
 	 ((and (stringp locking-user)
 	       (string= locking-user (vc-user-login-name file)))
-	  (if (or (eq (vc-rcs-checkout-model (list file)) 'locking)
+          ;; Don't call `vc-rcs-checkout-model' to avoid inf-looping.
+	  (if (or (eq (vc-file-getprop file 'vc-checkout-model) 'locking)
 		  workfile-is-latest
 		  (vc-rcs-latest-on-branch-p file working-revision))
 	      'edited

@@ -1,3 +1,7 @@
+2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-rcs.el (vc-rcs-fetch-master-state): Fix inf-loop.
+
 2008-05-05  Tom Tromey  <tromey@redhat.com>
 
 	* smerge-mode.el (smerge-start-session): Don't call smerge-next if
