@@ -1,3 +1,8 @@
+2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Ftry_completion): Remove code left over from when we used
+	scmp instead of Fcompare_strings.
+
 2008-05-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fw32_battery_status): Fix computation of %t (h:min) format.

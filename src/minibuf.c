@@ -1445,9 +1445,6 @@ is used to further constrain the set of candidates.  */)
 	      else
 		matchsize = XINT (tem) - 1;
 
-	      if (matchsize < 0)
-		/* When can this happen ?  -stef  */
-		matchsize = compare;
 	      if (completion_ignore_case)
 		{
 		  /* If this is an exact match except for case,
