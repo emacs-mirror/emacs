@@ -607,6 +607,8 @@ Don't use that together with FILTER."
             (lambda ()
               (setq minibuffer-default default)
               (setq minibuffer-completing-file-name t)
+              (setq completion-ignore-case
+                    read-file-name-completion-ignore-case)
               (setq default-directory defdir))
           (substitute-in-file-name
            (completing-read

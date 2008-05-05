@@ -1,6 +1,11 @@
+2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-read-dir-and-switches):
+	Obey read-file-name-completion-ignore-case.
+
 2008-05-05  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Add regexp for Open Watcom compiler output.
 
 2008-05-05  Phil Sung  <psung@mit.edu>  (tiny change)
@@ -421,8 +426,8 @@
 2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-mode): New defcustom.
-	(tramp-file-name-handler, tramp-completion-file-name-handler): Use
-	it.
+	(tramp-file-name-handler, tramp-completion-file-name-handler):
+	Use it.
 	(tramp-replace-environment-variables): Handle "$$".
 
 2008-04-28  Sam Steingold  <sds@gnu.org>
