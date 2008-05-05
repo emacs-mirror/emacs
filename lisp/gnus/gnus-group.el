@@ -2400,7 +2400,7 @@ Valid input formats include:
 	   "^http://\\(?:thread\\|article\\|permalink\\)\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
-	   ;; Don't advertize these in the doc string yet:
+	   ;; Don't advertise these in the doc string yet:
 	   "^\\(?:nntp\\|news\\)://news\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
