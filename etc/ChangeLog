@@ -1,3 +1,7 @@
+2008-05-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* compilation.txt: Add regexp for Open Watcom compiler output.
+
 2008-05-04  Reiner Steib  <reiner.steib@gmx.de>
 
 	* NEWS: Reword previous commit.
