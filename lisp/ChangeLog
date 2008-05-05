@@ -1,3 +1,8 @@
+2008-05-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): 
+	Add regexp for Open Watcom compiler output.
+
 2008-05-05  Phil Sung  <psung@mit.edu>  (tiny change)
 
 	* progmodes/python.el (python-block-pairs): Align finally with except.
