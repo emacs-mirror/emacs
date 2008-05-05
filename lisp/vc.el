@@ -674,6 +674,7 @@
 
 (eval-when-compile
   (require 'dired)
+  (require 'dired-aux)
   (require 'cl))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
@@ -2182,7 +2183,7 @@ outside of VC) and one wants to do some operation on it."
 (defun vc-generic-status-printer (fileentry)
   (let* ((file (vc-dir-fileinfo->name fileentry))
 	 (backend (vc-responsible-backend file)))
-    (vc-call-backend backend 'status-printer file)))
+    (vc-call-backend backend 'status-printer fileentry)))
   
 (defun vc-generic-state (file)
   (let ((backend (vc-responsible-backend file)))
