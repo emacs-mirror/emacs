@@ -2181,7 +2181,7 @@ outside of VC) and one wants to do some operation on it."
 
 (defun vc-generic-status-printer (fileentry)
   (let* ((file (vc-dir-fileinfo->name fileentry))
-	 ((backend (vc-responsible-backend file))))
+	 (backend (vc-responsible-backend file)))
     (vc-call-backend backend 'status-printer file)))
   
 (defun vc-generic-state (file)
