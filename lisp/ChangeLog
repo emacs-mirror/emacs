@@ -1,3 +1,8 @@
+2008-05-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-read-date-get-relative): Interpret lone
+	weekday abbreviation as relative to today.
+
 2008-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Don't
