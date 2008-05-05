@@ -1,3 +1,8 @@
+2008-05-05  Tom Tromey  <tromey@redhat.com>
+
+	* smerge-mode.el (smerge-start-session): Don't call smerge-next if
+	looking at conflict marker.
+
 2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-dispatcher.el (vc-dir-mark-buffer-changed): Fix typo
