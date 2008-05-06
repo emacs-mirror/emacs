@@ -2089,15 +2089,15 @@ outside of VC) and one wants to do some operation on it."
 
 (defun vc-generic-status-printer (fileentry)
   (let* ((file (vc-dir-fileinfo->name fileentry))
-	 (backend (vc-responsible-backend file)))
+	 (backend (vc-responsible-backend (expand-file-name file))))
     (vc-call-backend backend 'status-printer fileentry)))
   
 (defun vc-generic-state (file)
-  (let ((backend (vc-responsible-backend file)))
+  (let ((backend (vc-responsible-backend (expand-file-name file))))
     (vc-call-backend backend 'state file)))
   
 (defun vc-generic-status-fileinfo-extra (file)
-  (let ((backend (vc-responsible-backend file)))
+  (let ((backend (vc-responsible-backend (expand-file-name file))))
     (vc-call-backend backend 'status-fileinfo-extra file)))
 
 (defun vc-generic-dir-headers (dir)
