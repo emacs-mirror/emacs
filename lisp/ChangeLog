@@ -1,3 +1,39 @@
+2008-05-06 Wilson Snyder <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-getopt-file): Cleanup warning message format.
+	(verilog-auto, verilog-auto-arg, verilog-auto-ascii-enum)
+	(verilog-auto-inout, verilog-auto-inout-module)
+	(verilog-auto-input, verilog-auto-inst, verilog-auto-inst-param)
+	(verilog-auto-output, verilog-auto-output-every, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-reset, verilog-auto-sense)
+	(verilog-auto-sense-sigs, verilog-auto-tieoff)
+	(verilog-auto-unused, verilog-auto-wire)
+	(verilog-decls-get-assigns, verilog-decls-get-consts)
+	(verilog-decls-get-gparams, verilog-decls-get-inouts)
+	(verilog-decls-get-inputs, verilog-decls-get-outputs)
+	(verilog-decls-get-ports, verilog-decls-get-regs)
+	(verilog-decls-get-signals, verilog-decls-get-wires)
+	(verilog-dir-cache-lib-filenames, verilog-dir-cache-list)
+	(verilog-dir-cache-preserving, verilog-dir-file-exists-p)
+	(verilog-dir-files, verilog-expand-dirnames, verilog-getopt-file)
+	(verilog-inject-sense, verilog-library-filenames)
+	(verilog-mode-release-date, verilog-mode-version)
+	(verilog-modi-cache-add, verilog-modi-cache-preserve-buffer)
+	(verilog-modi-cache-preserve-tick, verilog-modi-cache-results)
+	(verilog-modi-get-assigns, verilog-modi-get-consts)
+	(verilog-modi-get-gparams, verilog-modi-get-inouts)
+	(verilog-modi-get-inputs, verilog-modi-get-outputs)
+	(verilog-modi-get-ports, verilog-modi-get-regs)
+	(verilog-modi-get-signals, verilog-modi-get-sub-inouts)
+	(verilog-modi-get-sub-inputs, verilog-modi-get-sub-outputs)
+	(verilog-modi-get-wires, verilog-preserve-cache)
+	(verilog-preserve-dir-cache, verilog-preserve-modi-cache)
+	(verilog-read-sub-decls, verilog-read-sub-decls-line)
+	(verilog-read-sub-decls-sig, verilog-subdecls-get-inouts)
+	(verilog-subdecls-get-inputs, verilog-subdecls-get-outputs):
+	Add caching of additional state, and rework signal extraction
+	routines to improve AUTO expansion performance by 300%++.
+
 2008-05-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
