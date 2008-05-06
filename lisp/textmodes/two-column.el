@@ -9,33 +9,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Esperanto:				 English:
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; ^Ci dosiero estas ero de GNU Emacs.	 This file is part of GNU Emacs.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;; GNU  Emacs estas libera  programaro;	 GNU Emacs is free software; you can
-;; vi povas disdoni ^gin kaj/a^u modifi	 redistribute it and/or modify it
-;; ^gin sub  la  kondi^coj  de  la  GNU	 under the terms of the GNU General
-;; ^Generala  Publika Licenco kiel pub-	 Public License as published by the
-;; likigita far la Liberprogramara Fon-	 Free Software Foundation; either
-;; da^jo; a^u eldono 2a,  a^u (la^u via	 version 3, or (at your option) any
-;; elekto) ajna posta eldono.		 later version.
-
-;; GNU  Emacs  estas  disdonata  en  la	 GNU Emacs is distributed in the hope
-;; espero ke  ^gi estos utila,  sed SEN	 that it will be useful, but WITHOUT
-;; IA  GARANTIO;  sen e^c  la implicita	 ANY WARRANTY; without even the
-;; garantio  de VENDEBLECO  a^u PRETECO	 implied warranty of MERCHANTABILITY
-;; POR  DETERMINITA CELO.  Vidu la  GNU	 or FITNESS FOR A PARTICULAR PURPOSE.
-;; ^Generala Publika Licenco por plenaj	 See the GNU General Public License
-;; detaloj.				 for more details.
-
-;; Vi devus ricevinti kopion de la  GNU	 You should have received a copy of
-;; ^Generala  Publika  Licenco kune kun	 the GNU General Public License along
-;; GNU Emacs; vidu la dosieron COPYING.	 with GNU Emacs; see the file
-;; Alikaze skribu al la			 COPYING.  If not, write to the
-
-;; Free Software Foundation, 51 Franklin Street, Fifth Floor
-;; Boston, MA 02110-1301, USA.
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
