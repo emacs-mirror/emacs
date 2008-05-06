@@ -1712,7 +1712,7 @@ Otherwise, throw an error."
     (dolist (file files)
       (let ((visited (get-file-buffer file)))
 	(when visited
-	  (if (or vc-dired-mode (eq major-mode 'vc-dir-mode))
+	  (if (vc-dispatcher-browsing)
 	      (switch-to-buffer-other-window visited)
 	    (set-buffer visited))
 	  ;; Check relation of buffer and file, and make sure

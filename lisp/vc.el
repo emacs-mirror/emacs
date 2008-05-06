@@ -45,15 +45,6 @@
 ;; with modern version-control systems that do commits by fileset
 ;; rather than per individual file.
 ;;
-;; Features in the new version:
-;; * Key commands (vc-next-action = C-x v v, vc-print-log = C-x v l, vc-revert
-;;   = C-x v u, vc-rollback = C-x v c, vc-diff = C-x v =, vc-update = C-x v +)
-;;   now operate on filesets rather than individual files.
-;; * The fileset for a command is either (a) all marked files in VC-dired
-;;   mode, (b) the currently visited file if it's under version control,
-;;   or (c) the current directory if the visited buffer is not under
-;;   version control and a wildcarding-enable flag has been set.
-;;
 ;; If you maintain a client of the mode or customize it in your .emacs,
 ;; note that some backend functions which formerly took single file arguments
 ;; now take a list of files.  These include: register, checkin, print-log,
@@ -184,10 +175,6 @@
 ;;   To provide more backend specific functionality for `vc-dir'
 ;;   the following functions might be needed: `status-extra-headers',
 ;;   `status-printer', `extra-status-menu' and `dir-status-files'.
-;;   This function is used by `vc-dir', a replacement for
-;;   `vc-dired'.  vc-dir is still under development, and is NOT
-;;   feature complete.  As such, the requirements for this function
-;;   might change.  This is a replacement for `dir-state'.
 ;;
 ;; - dir-status-files (dir files default-state update-function)
 ;;
@@ -2747,7 +2734,7 @@ to provide the `find-revision' operation instead."
 	  ((eq state 'needs-update) "(update)")
 	  ((eq state 'added) "(added)")
 	  ((eq state 'removed) "(removed)")
-          ((eq state 'ignored) "(ignored)")     ;; dired-hook filters this out
+          ((eq state 'ignored) "(ignored)")
           ((eq state 'unregistered) "?")
 	  ((eq state 'unlocked-changes) "(stale)")
 	  ((not state) "(unknown)")))

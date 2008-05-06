@@ -771,7 +771,7 @@ Before doing that, check if there are any old backups and get rid of them."
 	 (vc-mode-line file)
 	 (when (featurep 'vc)
 	   ;; If VC is not loaded, then there can't be
-	   ;; any VC Dired buffer to synchronize.
+	   ;; any directory buffer to synchronize.
 	   (vc-directory-resynch-file file)))))
 
 (defvar vc-menu-entry
