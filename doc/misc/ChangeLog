@@ -1,3 +1,7 @@
+2008-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.texi (Top): Fix typo in xref.
+
 2008-05-05  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Top): @xref to stand-alone manual.
