@@ -1,5 +1,9 @@
 2008-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lread.c (substitute_object_recurse): Use lower-level primitives.
+	Don't signal errors when traversing sub-char-tables.
+	Don't loop over all the possible characters when traversing char-tables.
+
 	* print.c (print_preprocess): Add sub-char-tables to the print-table,
 	just like we do in print.c.
 

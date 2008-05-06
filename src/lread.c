@@ -3057,18 +3057,18 @@ substitute_object_in_subtree (object, placeholder)
 }
 
 /*  Feval doesn't get called from here, so no gc protection is needed. */
-#define SUBSTITUTE(get_val, set_val)                 \
-{                                                    \
-  Lisp_Object old_value = get_val;                   \
-  Lisp_Object true_value                             \
-    = substitute_object_recurse (object, placeholder,\
-			       old_value);           \
-                                                     \
-  if (!EQ (old_value, true_value))                   \
-    {                                                \
-       set_val;                                      \
-    }                                                \
-}
+#define SUBSTITUTE(get_val, set_val)			\
+  do {							\
+    Lisp_Object old_value = get_val;			\
+    Lisp_Object true_value				\
+      = substitute_object_recurse (object, placeholder,	\
+				   old_value);		\
+    							\
+    if (!EQ (old_value, true_value))			\
+      {							\
+	set_val;					\
+      }							\
+  } while (0)
 
 static Lisp_Object
 substitute_object_recurse (object, placeholder, subtree)
@@ -3097,23 +3097,33 @@ substitute_object_recurse (object, placeholder, subtree)
     {
     case Lisp_Vectorlike:
       {
-	int i;
-	int length = XINT (Flength(subtree));
+	int i, length = 0;
+	if (BOOL_VECTOR_P (subtree))
+	  return subtree;		/* No sub-objects anyway.  */
+	else if (CHAR_TABLE_P (subtree) || SUB_CHAR_TABLE_P (subtree)
+		 || COMPILEDP (subtree))
+	  length = ASIZE (subtree) & PSEUDOVECTOR_SIZE_MASK;
+	else if (VECTORP (subtree))
+	  length = ASIZE (subtree);
+	else
+	  /* An unknown pseudovector may contain non-Lisp fields, so we
+	     can't just blindly traverse all its fields.  We used to call
+	     `Flength' which signalled `sequencep', so I just preserved this
+	     behavior.  */
+	  wrong_type_argument (Qsequencep, subtree);
+
 	for (i = 0; i < length; i++)
-	  {
-	    Lisp_Object idx = make_number (i);
-	    SUBSTITUTE (Faref (subtree, idx),
-			Faset (subtree, idx, true_value));
-	  }
+	  SUBSTITUTE (AREF (subtree, i),
+		      ASET (subtree, i, true_value));
 	return subtree;
       }
 
     case Lisp_Cons:
       {
-	SUBSTITUTE (Fcar_safe (subtree),
-		    Fsetcar (subtree, true_value));
-	SUBSTITUTE (Fcdr_safe (subtree),
-		    Fsetcdr (subtree, true_value));
+	SUBSTITUTE (XCAR (subtree),
+		    XSETCAR (subtree, true_value));
+	SUBSTITUTE (XCDR (subtree),
+		    XSETCDR (subtree, true_value));
 	return subtree;
       }
 
