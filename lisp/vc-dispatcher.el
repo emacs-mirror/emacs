@@ -1602,6 +1602,16 @@ U - if the cursor is on a file: unmark all the files with the same VC state
 
 (put 'vc-dir-mode 'mode-class 'special)
 
+(defun vc-buffer-sync (&optional not-urgent)
+  "Make sure the current buffer and its working file are in sync.
+NOT-URGENT means it is ok to continue if the user says not to save."
+  (when (buffer-modified-p)
+    (if (or vc-suppress-confirm
+	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
+	(save-buffer)
+      (unless not-urgent
+	(error "Aborted")))))
+
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
   (or vc-dired-mode (eq major-mode 'vc-dir-mode)))
@@ -1623,6 +1633,7 @@ If INCLUDE-FILES-NOT-DIRECTORIES then if directories are marked,
 return the list of VC files in those directories instead of
 the directories themselves.
 Otherwise, throw an error."
+  (let ((files
     (cond
      ;; Browsing with dired
      (vc-dired-mode
@@ -1668,7 +1679,33 @@ Otherwise, throw an error."
      ((and allow-ineligible (not (eligible buffer-file-name)))
       (list buffer-file-name))
      ;; No good set here, throw error
-     (t (error "No fileset is available here."))))
+     (t (error "No fileset is available here.")))))
+    ;; We assume, in order to avoid unpleasant surprises to the user, 
+    ;; that a fileset is not in good shape to be handed to the user if the  
+    ;; buffers visting the fileset don't match the on-disk contents.
+    (dolist (file files)
+      (let ((visited (get-file-buffer file)))
+	(when visited
+	  (if (or vc-dired-mode (eq major-mode 'vc-dir-mode))
+	      (switch-to-buffer-other-window visited)
+	    (set-buffer visited))
+	  ;; Check relation of buffer and file, and make sure
+	  ;; user knows what he's doing.  First, finding the file
+	  ;; will check whether the file on disk is newer.
+	  ;; Ignore buffer-read-only during this test, and
+	  ;; preserve find-file-literally.
+	  (let ((buffer-read-only (not (file-writable-p file))))
+	    (find-file-noselect file nil find-file-literally))
+	  (if (not (verify-visited-file-modtime (current-buffer)))
+	      (if (yes-or-no-p (format "Replace %s on disk with buffer contents? " file))
+		  (write-file buffer-file-name)
+		(error "Aborted"))
+	    ;; Now, check if we have unsaved changes.
+	    (vc-buffer-sync t)
+	    (when (buffer-modified-p)
+	      (or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
+		  (error "Aborted")))))))
+    files))
 
 ;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
 ;;; vc-dispatcher.el ends here

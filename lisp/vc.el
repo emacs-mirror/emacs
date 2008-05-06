@@ -1046,19 +1046,7 @@ Only files already under version control are noticed."
 (defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered
 				    include-files-not-directories)
   "Deduce a set of files and a backend to which to apply an operation.
-
-Return (BACKEND . FILESET).
-If we're in VC-dired mode, the fileset is the list of marked files.
-Otherwise, if we're looking at a buffer visiting a version-controlled file,
-the fileset is a singleton containing this file.
-If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
-and we're in a dired buffer, select the current directory.
-If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
-visited file is not registered, return a singleton fileset containing it.
-If INCLUDE-FILES-NOT-DIRECTORIES then if directories are marked,
-return the list of files VC files in those directories instead of
-the directories themselves.
-Otherwise, throw an error."
+Return (BACKEND . FILESET)."
   (let* ((fileset (vc-dispatcher-selection-set
 		  #'vc-registered
 		  allow-directory-wildcard 
@@ -1100,16 +1088,6 @@ Otherwise, throw an error."
     (and backend
          (or (eq (vc-checkout-model backend (list file)) 'implicit)
              (memq (vc-state file) '(edited needs-merge conflict))))))
-
-(defun vc-buffer-sync (&optional not-urgent)
-  "Make sure the current buffer and its working file are in sync.
-NOT-URGENT means it is ok to continue if the user says not to save."
-  (when (buffer-modified-p)
-    (if (or vc-suppress-confirm
-	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
-	(save-buffer)
-      (unless not-urgent
-	(error "Aborted")))))
 
 (defun vc-compatible-state (p q)
   "Controls which states can be in the same commit."
@@ -1169,29 +1147,6 @@ merge in the changes into your working copy."
 		 file (vc-state file) (car files) state))
 	(unless (eq (vc-checkout-model backend (list file)) model)
 	  (error "Fileset has mixed checkout models"))))
-    ;; Check for buffers in the fileset not matching the on-disk contents.
-    (dolist (file files)
-      (let ((visited (get-file-buffer file)))
-	(when visited
-	  (if (or vc-dired-mode (eq major-mode 'vc-dir-mode))
-	      (switch-to-buffer-other-window visited)
-	    (set-buffer visited))
-	  ;; Check relation of buffer and file, and make sure
-	  ;; user knows what he's doing.  First, finding the file
-	  ;; will check whether the file on disk is newer.
-	  ;; Ignore buffer-read-only during this test, and
-	  ;; preserve find-file-literally.
-	  (let ((buffer-read-only (not (file-writable-p file))))
-	    (find-file-noselect file nil find-file-literally))
-	  (if (not (verify-visited-file-modtime (current-buffer)))
-	      (if (yes-or-no-p (format "Replace %s on disk with buffer contents? " file))
-		  (write-file buffer-file-name)
-		(error "Aborted"))
-	    ;; Now, check if we have unsaved changes.
-	    (vc-buffer-sync t)
-	    (when (buffer-modified-p)
-	      (or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
-		  (error "Aborted")))))))
     ;; Do the right thing
     (cond
      ((eq state 'missing)
