@@ -1,3 +1,9 @@
+2008-05-06  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-hooks.el (vc-find-file-hook), 
+	vc-dispatcher.el (vc-resynch-window): Decouple vc-dispatcher
+	further from vc.el.
+
 2008-05-06 Wilson Snyder <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-getopt-file): Cleanup warning message format.

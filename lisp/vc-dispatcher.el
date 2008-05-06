@@ -102,7 +102,13 @@
 ;; (vc-dir) sets up a dispatcher browsing buffer; (vc-dispatcher-selection-set)
 ;; returns a selection set of files, either the marked files in a browsing
 ;; buffer or the singleton set consisting of the file visited by the current
-;; buffer (when that is appropriate).
+;; buffer (when that is appropriate).  It also does what is needed to ensure 
+;; that on-disk files and the contents of their visiting Emacs buffers 
+;; coincide.
+;;
+;; When the client mode adds a local mode-line-hook to a buffer, it
+;; will be called with the buffer file name as argument whenever the
+;; dispatcher resynchs the buffer.
 
 ;; To do:
 ;;
@@ -550,8 +556,7 @@ editing!"
                     (and (not view-mode)
                          (not (eq (get major-mode 'mode-class) 'special))
                          (view-mode-enter))))
-	     ;; FIXME: Call into vc.el
-	     (vc-mode-line buffer-file-name))
+	     (run-hook-with-args 'modeline-hook buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 
 (defun vc-resynch-buffer (file &optional keep noquery)
@@ -1640,7 +1645,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 (defun vc-dispatcher-selection-set (eligible
 				   &optional 
 				   allow-directory-wildcard 
-				   allow-inegible
+				   allow-ineligible
 				   include-files-not-directories)
   "Deduce a set of files to which to apply an operation. Return the fileset.
 If we're in VC-dired mode, the fileset is the list of marked files.
@@ -1678,7 +1683,7 @@ Otherwise, throw an error."
 				  (vc-dispatcher-browsing))))
       (progn
 	(set-buffer vc-parent-buffer)
-	(vc-dispatcher-selection-set)))
+	(vc-dispatcher-selection-set eligible)))
      ;; No parent buffer, we may want to select entire directory
      ;;
      ;; This is guarded by an enabling arg so users won't potentially

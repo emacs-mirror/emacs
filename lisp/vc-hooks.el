@@ -901,6 +901,7 @@ current, and kill the buffer that visits the link."
       (setq vc-mode nil))
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
+    (add-hook 'mode-line-hook 'vc-mode-line nil t)
     (cond
      ((with-demoted-errors (vc-backend buffer-file-name))
       ;; Compute the state and put it in the modeline.
