@@ -25,7 +25,7 @@
 ;;; Credits:
 
 ;; Designed and implemented by Eric S. Raymond, originally as part of VC mode.
-;; Stefan Monnier and Dan Nicolaescu contributed substinituial work on the
+;; Stefan Monnier and Dan Nicolaescu contributed substantial work on the
 ;; vc-dir front end.
 
 ;;; Commentary:
