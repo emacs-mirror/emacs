@@ -606,9 +606,12 @@ Don't use that together with FILTER."
         (minibuffer-with-setup-hook
             (lambda ()
               (setq minibuffer-default default)
-              (setq minibuffer-completing-file-name t)
-              (setq completion-ignore-case
-                    read-file-name-completion-ignore-case)
+              (set (make-local-variable 'minibuffer-completing-file-name)
+                   ;; t means "from now until the next minibuffer", whereas
+                   ;; `lambda' means "only here".
+                   'lambda)
+              (set (make-local-variable 'completion-ignore-case)
+                   read-file-name-completion-ignore-case)
               (setq default-directory defdir))
           (substitute-in-file-name
            (completing-read

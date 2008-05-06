@@ -1,7 +1,11 @@
+2008-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-read-dir-and-switches): Fix up last change.
+
 2008-05-05  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-deduce-fileset): Lift all the policy and UI
-	stuff out of this function, move it to vc-dispatcher-selection-set.k
+	stuff out of this function, move it to vc-dispatcher-selection-set.
 
 2008-05-05  Sam Steingold  <sds@gnu.org>
 
