@@ -1,3 +1,9 @@
+2008-05-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Tweak Open Watcom regexp to distinguish between errors and
+	warnings.
+
 2008-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-read-dir-and-switches): Fix up last change.
