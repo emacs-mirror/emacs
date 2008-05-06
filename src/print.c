@@ -1382,7 +1382,7 @@ print_preprocess (obj)
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || COMPILEDP (obj) || CHAR_TABLE_P (obj)
+      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))
