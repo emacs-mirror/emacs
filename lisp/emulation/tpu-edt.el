@@ -2437,7 +2437,7 @@ If FILE is nil, try to load a default file.  The default file names are
 
 
 ;;;### (autoloads (tpu-set-cursor-bound tpu-set-cursor-free tpu-set-scroll-margins
-;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "c7ce8bad68736a5682eb3f5f5edc48db")
+;;;;;;  tpu-cursor-free-mode) "tpu-extras" "tpu-extras.el" "d1893dc337c5370edf3997cc9430c9b7")
 ;;; Generated autoloads from tpu-extras.el
 
 (autoload 'tpu-cursor-free-mode "tpu-extras" "\
