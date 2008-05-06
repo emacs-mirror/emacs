@@ -8,20 +8,20 @@
 
 ;; Keywords: thai, word break, emacs
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; This file is part of GNU Emacs.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; The used Thai word list has been taken from IBM's ICU4J project
 ;; (file `thai6.ucs', version 1.4, converted to TIS encoding, with
@@ -64,6 +64,8 @@
 ;;   the sale, use or other dealings in this Software without prior
 ;;   written authorization of the copyright holder.
 
+
+;;; Commentary:
 
 ;; This file implements an algorithm to find Thai word breaks using a
 ;; dictionary.  It is based on the C program `cttex' written by
