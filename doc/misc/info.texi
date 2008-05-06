@@ -65,7 +65,7 @@ probably using an Info reader to read this now.
 
 There are two primary Info readers: @code{info}, a stand-alone program
 designed just to read Info files (@pxref{Top,,What is Info?,
-info-stnd, GNU Info), and the @code{info} package in GNU Emacs, a
+info-stnd, GNU Info}), and the @code{info} package in GNU Emacs, a
 general-purpose editor.  At present, only the Emacs reader supports
 using a mouse.
 
