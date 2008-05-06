@@ -27,6 +27,8 @@
 ;;; Credits:
 
 ;; Designed and implemented by Eric S. Raymond, originally as part of VC mode.
+;; Stefan Monnier and Dan Nicolaescu contributed substinituial work on the
+;; vc-dir front end.
 
 ;;; Commentary:
 
@@ -87,7 +89,23 @@
 ;; about the semantics of individual states, but mark and unmark commands
 ;; treat all entries with the same state as the currently selected one as 
 ;; a unit.
- 
+
+;; The interface
+;;
+;; The main interface to the lower level is vc-do-command.  This launches a
+;; comand, synchronously or asynchronously, making the output available
+;; in a command log buffer.  Two other functions, (vc-start-annotation) and
+;; (vc-finish-logentry), allow you to associate a command closure with an
+;; abbotation buffer so that when the user confirms the comment the closure
+;; is run (with the comment as part of its context).
+;;
+;; The interface to the upper level has the two main entry points (vc-dir)
+;; and (vc-dispatcher-selection-set) and a couple of convenience functions.
+;; (vc-dir) sets up a dispatcher browsing buffer; (vc-dispatcher-selection-set)
+;; returns a selection set of files, either the marked files in a browsing
+;; buffer or the singleton set consisting of the file visited by the current
+;; buffer (when that is appropriate).
+
 ;; To do:
 ;;
 ;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
@@ -138,6 +156,11 @@ preserve the setting."
 
 (defcustom vc-command-messages nil
   "If non-nil, display run messages from back-end commands."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-suppress-confirm nil
+  "If non-nil, treat user as expert; suppress yes-no prompts on some things."
   :type 'boolean
   :group 'vc)
 

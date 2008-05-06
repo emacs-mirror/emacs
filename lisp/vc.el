@@ -688,11 +688,6 @@
   "Version-control system in Emacs."
   :group 'tools)
 
-(defcustom vc-suppress-confirm nil
-  "If non-nil, treat user as expert; suppress yes-no prompts on some things."
-  :type 'boolean
-  :group 'vc)
-
 (defcustom vc-initial-comment nil
   "If non-nil, prompt for initial comment when a file is registered."
   :type 'boolean
