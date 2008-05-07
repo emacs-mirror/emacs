@@ -445,66 +445,17 @@ If CONTEXT cannot be found, return nil."
 Used by `vc-restore-buffer-context' to later restore the context."
   (let ((point-context (vc-position-context (point)))
 	;; Use mark-marker to avoid confusion in transient-mark-mode.
-	(mark-context  (when (eq (marker-buffer (mark-marker)) (current-buffer))
+	(mark-context (when (eq (marker-buffer (mark-marker)) (current-buffer))
 			 (vc-position-context (mark-marker))))
 	;; Make the right thing happen in transient-mark-mode.
-	(mark-active nil)
-	;; The new compilation code does not use compilation-error-list any
-	;; more, so the code below is now ineffective and might as well
-	;; be disabled.  -- Stef
-	;; ;; We may want to reparse the compilation buffer after revert
-	;; (reparse (and (boundp 'compilation-error-list) ;compile loaded
-	;; 	      ;; Construct a list; each elt is nil or a buffer
-	;; 	      ;; if that buffer is a compilation output buffer
-	;; 	      ;; that contains markers into the current buffer.
-	;; 	      (save-current-buffer
-	;; 		(mapcar (lambda (buffer)
-	;; 			  (set-buffer buffer)
-	;; 			  (let ((errors (or
-	;; 					 compilation-old-error-list
-	;; 					 compilation-error-list))
-	;; 				(buffer-error-marked-p nil))
-	;; 			    (while (and (consp errors)
-	;; 					(not buffer-error-marked-p))
-	;; 			      (and (markerp (cdr (car errors)))
-	;; 				   (eq buffer
-	;; 				       (marker-buffer
-	;; 					(cdr (car errors))))
-	;; 				   (setq buffer-error-marked-p t))
-	;; 			      (setq errors (cdr errors)))
-	;; 			    (if buffer-error-marked-p buffer)))
-	;; 			(buffer-list)))))
-	(reparse nil))
-    (list point-context mark-context reparse)))
+	(mark-active nil))
+    (list point-context mark-context nil)))
 
 (defun vc-restore-buffer-context (context)
   "Restore point/mark, and reparse any affected compilation buffers.
 CONTEXT is that which `vc-buffer-context' returns."
   (let ((point-context (nth 0 context))
-	(mark-context (nth 1 context))
-	;; (reparse (nth 2 context))
-        )
-    ;; The new compilation code does not use compilation-error-list any
-    ;; more, so the code below is now ineffective and might as well
-    ;; be disabled.  -- Stef
-    ;; ;; Reparse affected compilation buffers.
-    ;; (while reparse
-    ;;   (if (car reparse)
-    ;; 	  (with-current-buffer (car reparse)
-    ;; 	    (let ((compilation-last-buffer (current-buffer)) ;select buffer
-    ;; 		  ;; Record the position in the compilation buffer of
-    ;; 		  ;; the last error next-error went to.
-    ;; 		  (error-pos (marker-position
-    ;; 			      (car (car-safe compilation-error-list)))))
-    ;; 	      ;; Reparse the error messages as far as they were parsed before.
-    ;; 	      (compile-reinitialize-errors '(4) compilation-parsing-end)
-    ;; 	      ;; Move the pointer up to find the error we were at before
-    ;; 	      ;; reparsing.  Now next-error should properly go to the next one.
-    ;; 	      (while (and compilation-error-list
-    ;; 			  (/= error-pos (car (car compilation-error-list))))
-    ;; 		(setq compilation-error-list (cdr compilation-error-list))))))
-    ;;   (setq reparse (cdr reparse)))
-
+	(mark-context (nth 1 context)))
     ;; if necessary, restore point and mark
     (if (not (vc-context-matches-p (point) point-context))
 	(let ((new-point (vc-find-position-by-context point-context)))
