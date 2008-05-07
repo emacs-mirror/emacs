@@ -2519,13 +2519,6 @@ omitted, a default message listing FORM itself is used."
 			     (list* 'list (list 'quote form) sargs))))
 	       nil))))
 
-;;;###autoload
-(defmacro ignore-errors (&rest body)
-  "Execute BODY; if an error occurs, return nil.
-Otherwise, return result of last form in BODY."
-  `(condition-case nil (progn ,@body) (error nil)))
-
-
 ;;; Compiler macros.
 
 ;;;###autoload
