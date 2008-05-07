@@ -273,17 +273,16 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (compiler-macroexpand define-compiler-macro ignore-errors
-;;;;;;  assert check-type typep cl-struct-setf-expander defstruct
-;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
-;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
-;;;;;;  declare the locally multiple-value-setq multiple-value-bind
-;;;;;;  lexical-let* lexical-let symbol-macrolet macrolet labels
-;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
-;;;;;;  do* do loop return-from return block etypecase typecase ecase
-;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym cl-compile-time-init) "cl-macs"
-;;;;;;  "cl-macs.el" "6204016dafe0877b3da7ee5bb265506b")
+;;;### (autoloads (compiler-macroexpand define-compiler-macro assert
+;;;;;;  check-type typep cl-struct-setf-expander defstruct define-modify-macro
+;;;;;;  callf2 callf letf* letf rotatef shiftf remf cl-do-pop psetf
+;;;;;;  setf get-setf-method defsetf define-setf-method declare the
+;;;;;;  locally multiple-value-setq multiple-value-bind lexical-let*
+;;;;;;  lexical-let symbol-macrolet macrolet labels flet progv psetq
+;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
+;;;;;;  return block etypecase typecase ecase case load-time-value
+;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
+;;;;;;  gensym cl-compile-time-init) "cl-macs" "cl-macs.el" "cc0d6d8e5b0f777ec88f1098ecb85d59")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-compile-time-init "cl-macs" "\
@@ -707,12 +706,6 @@ They are not evaluated unless the assertion fails.  If STRING is
 omitted, a default message listing FORM itself is used.
 
 \(fn FORM &optional SHOW-ARGS STRING &rest ARGS)" nil (quote macro))
-
-(autoload 'ignore-errors "cl-macs" "\
-Execute BODY; if an error occurs, return nil.
-Otherwise, return result of last form in BODY.
-
-\(fn &rest BODY)" nil (quote macro))
 
 (autoload 'define-compiler-macro "cl-macs" "\
 Define a compiler-only macro.
