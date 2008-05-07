@@ -1,3 +1,10 @@
+2008-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-srvr.el (gnus-enter-server-buffer): Make sure the server-buffer
+	is current before calling gnus-server-prepare.
+	(gnus-server-setup-buffer, gnus-server-update-server)
+	(gnus-server-read-server, gnus-browse-exit): Use with-current-buffer.
+
 2008-05-04  Juri Linkov  <juri@jurta.org>
 
 	* mailcap.el (mailcap-replace-in-string): New compatibility alias.
@@ -25,8 +32,8 @@
 
 2008-04-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* mail-source.el (mail-source-set-1, mail-source-bind): Moved
-	auth-source code out of the macro to clean it up and fix bugs.
+	* mail-source.el (mail-source-set-1, mail-source-bind):
+	Move auth-source code out of the macro to clean it up and fix bugs.
 
 2008-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
