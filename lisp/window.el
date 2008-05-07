@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defvar window-size-fixed nil
  "*Non-nil in a buffer means windows displaying the buffer are fixed-size.
 If the value is `height', then only the window's height is fixed.
