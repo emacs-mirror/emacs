@@ -996,44 +996,8 @@ See `run-hooks'."
     (define-key map [open]
       '(menu-item "Open file" vc-dir-find-file
 		  :help "Find the file on the current line"))
-    ;; FIXME: Stuff starting here should be appended by vc
-    ;; VC info details
-    (define-key map [sepvcdet] '("--"))
-    (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
-		  :help "Hide up-to-date items from display"))
-    ;; FIXME: This needs a key binding.  And maybe a better name
-    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
-    (define-key map [ins]
-      '(menu-item "Show File" vc-dir-show-fileentry
-		  :help "Show a file in the VC status listing even though it might be up to date"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [next-action]
-      ;; FIXME: This really really really needs a better name!
-      ;; And a key binding too.
-      '(menu-item "Check In/Out" vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
-    (define-key map [register]
-      '(menu-item "Register" vc-dir-register
-		  :help "Register file set into the version control system"))
     map)
-  "Menu for VC status")
+  "Menu for dispatcher status")
 
 (defalias 'vc-dir-menu-map vc-dir-menu-map)
 
