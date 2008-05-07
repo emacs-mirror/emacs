@@ -2153,10 +2153,8 @@ XParseGeometry (string, x, y, width, height)
 /* Create and set up the Mac window for frame F.  */
 
 static void
-mac_window (f, window_prompting, minibuffer_only)
+mac_window (f)
      struct frame *f;
-     long window_prompting;
-     int minibuffer_only;
 {
   BLOCK_INPUT;
 
@@ -2410,6 +2408,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   check_mac ();
 
+  parms = Fcopy_alist (parms);
+
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
@@ -2622,7 +2622,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   tem = mac_get_arg (parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  mac_window (f, window_prompting, minibuffer_only);
+  mac_window (f);
   x_icon (f, parameters);
 
   x_make_gc (f);

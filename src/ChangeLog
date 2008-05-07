@@ -1,3 +1,9 @@
+2008-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* macfns.c (Fx_create_frame): Make a copy of frame parameters
+	because the original parameters are in pure storage now.
+	(mac_window): Remove unused params.  Update callers.
+
 2008-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (substitute_object_recurse): Use lower-level primitives.
