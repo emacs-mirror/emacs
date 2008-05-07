@@ -800,7 +800,8 @@ shift-translation.
 handle-shift-selection if shift-select-mode is non-nil, before reading
 the command arguments.
 
-** When deleting a terminal, run the special hook `delete-terminal-functions'.
+** When deleting a terminal, the special hook `delete-terminal-functions'
+is run.
 
 ** The `read-shell-command' function does what its name says, with completion.
 It uses the minibuffer-local-shell-command-map for that.
@@ -863,6 +864,8 @@ this map rather than to function-key-map now.
 undefined functions.  The new `check-declare' package verifies that such
 statements are accurate (i.e. the functions are actually defined in
 the specified files).
+
+** `ignore-errors' is now a standard macro (does not require the CL package).
 
 ** The new function `read-color' reads a color name using the minibuffer.
 
