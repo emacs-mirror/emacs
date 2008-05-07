@@ -50,7 +50,6 @@
 ;; * registered (file)				   OK
 ;; * state (file)				   OK
 ;; - state-heuristic (file)			   NOT NEEDED
-;; - dir-state (dir)				   OK
 ;; * working-revision (file)			   OK
 ;; - latest-on-branch-p (file)			   NOT NEEDED
 ;; * checkout-model (files)			   OK
@@ -174,14 +173,6 @@
 	  (vc-file-setprop file 'vc-backend (if state 'Git 'none))
 	  (vc-file-setprop file 'vc-state state))
 	(setq start (point))))))
-
-(defun vc-git-dir-state (dir)
-  "Git-specific version of `dir-state'."
-  (vc-git--ls-files-state 'up-to-date "-c")
-  (vc-git--ls-files-state 'edited "-m")
-  (vc-git--ls-files-state 'removed "-d")
-  (vc-git--ls-files-state 'ignored "-o" "-i" "--exclude-standard")
-  (vc-git--ls-files-state nil "-o" "--exclude-standard"))
 
 (defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."

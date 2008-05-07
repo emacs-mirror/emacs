@@ -233,25 +233,6 @@ See also variable `vc-cvs-sticky-date-format-string'."
      ((string= (vc-working-revision file) "0") 'added)
      (t 'edited))))
 
-(defun vc-cvs-dir-state (dir)
-  "Find the CVS state of all files in DIR and subdirectories."
-  ;; if DIR is not under CVS control, don't do anything.
-  (when (file-readable-p (expand-file-name "CVS/Entries" dir))
-    (if (vc-stay-local-p dir)
-	(vc-cvs-dir-state-heuristic dir)
-      (let ((default-directory dir))
-	;; Don't specify DIR in this command, the default-directory is
-	;; enough.  Otherwise it might fail with remote repositories.
-	(with-temp-buffer
-	  (buffer-disable-undo)		;; Because these buffers can get huge
-	  (vc-cvs-command t 0 nil "status")
-	  (goto-char (point-min))
-	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
-	    (narrow-to-region (match-beginning 0) (match-end 0))
-	    (vc-cvs-parse-status)
-	    (goto-char (point-max))
-	    (widen)))))))
-
 (defun vc-cvs-working-revision (file)
   "CVS-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under CVS, because we
@@ -844,19 +825,6 @@ state."
 	  ((string-match "Locally Removed" status)              'removed)
 	  ((string-match "File had conflicts " status)          'conflict)
 	  (t 'edited))))))))
-
-(defun vc-cvs-dir-state-heuristic (dir)
-  "Find the CVS state of all files in DIR, using only local information."
-  (with-temp-buffer
-    (vc-cvs-get-entries dir)
-    (goto-char (point-min))
-    (while (not (eobp))
-      ;; CVS-removed files are not taken under VC control.
-      (when (looking-at "/\\([^/]*\\)/[^/-]")
-	(let ((file (expand-file-name (match-string 1) dir)))
-	  (unless (vc-file-getprop file 'vc-state)
-	    (vc-cvs-parse-entry file t))))
-      (forward-line 1))))
 
 (defun vc-cvs-after-dir-status (update-function)
   ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.

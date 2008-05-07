@@ -42,7 +42,6 @@
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
-;; - dir-state (dir)                           OK
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (files)                    OK
@@ -178,54 +177,6 @@
 	     ((eq state ??) 'unregistered)
 	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
-
-(defun vc-hg-dir-state (dir)
-  (with-temp-buffer
-    (buffer-disable-undo)		;; Because these buffers can get huge
-    (vc-hg-command (current-buffer) nil dir "status" "-A")
-    (goto-char (point-min))
-    (let ((status-char nil)
-	  (file nil))
-      (while (not (eobp))
-	(setq status-char (char-after))
-	(setq file
-	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2)
-					       (line-end-position))))
-	(cond
-	 ;; State flag for a clean file is now C, might change to =.
-	 ;; The rest of the possible states in "hg status" output:
-	 ;; 	 ! = deleted, but still tracked
-	 ;; should not show up in VC directory buffers, so don't deal with them
-	 ;; here.
-
-	 ;; Mercurial up to 0.9.5 used C, = is used now.
- 	 ((or (eq status-char ?=) (eq status-char ?C))
-	  (vc-file-setprop file 'vc-backend 'Hg)
- 	  (vc-file-setprop file 'vc-state 'up-to-date))
-	 ((eq status-char ?A)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-working-revision "0")
-	  (vc-file-setprop file 'vc-state 'added))
-	 ((eq status-char ?R)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'removed))
-	 ((eq status-char ?M)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'edited))
-	 ((eq status-char ?I)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'ignored))
-	 ((eq status-char ??)
-	  (vc-file-setprop file 'vc-backend 'none)
-	  (vc-file-setprop file 'vc-state 'unregistered))
-	 ((eq status-char ?!)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'missing))
-	 (t	;; Presently C, might change to = in 0.9.6
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'up-to-date)))
-	(forward-line)))))
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."

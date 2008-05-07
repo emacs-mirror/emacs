@@ -175,26 +175,6 @@ This is only meaningful if you don't use the implicit checkout model
 
 (defalias 'vc-mcvs-state-heuristic 'vc-cvs-state-heuristic)
 
-(defun vc-mcvs-dir-state (dir)
-  "Find the Meta-CVS state of all files in DIR and subdirectories."
-  ;; if DIR is not under Meta-CVS control, don't do anything.
-  (when (file-readable-p (expand-file-name "MCVS/CVS/Entries" dir))
-    (if (vc-stay-local-p dir)
-	(vc-mcvs-dir-state-heuristic dir)
-      (let ((default-directory dir))
-	;; Don't specify DIR in this command, the default-directory is
-	;; enough.  Otherwise it might fail with remote repositories.
-	(with-temp-buffer
-	  (buffer-disable-undo)		;; Because these buffers can get huge
-	  (setq default-directory (vc-mcvs-root dir))
-	  (vc-mcvs-command t 0 nil "status")
-	  (goto-char (point-min))
-	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
-	    (narrow-to-region (match-beginning 0) (match-end 0))
-	    (vc-cvs-parse-status)
-	    (goto-char (point-max))
-	    (widen)))))))
-
 (defun vc-mcvs-working-revision (file)
   (vc-cvs-working-revision
    (expand-file-name (vc-file-getprop file 'mcvs-inode)

@@ -138,7 +138,7 @@
 ;;   reliable state computation; it is usually called immediately after
 ;;   C-x v v.  If you want to use a faster heuristic when visiting a
 ;;   file, put that into `state-heuristic' below.  Note that under most
-;;   VCSes this won't be called at all, dir-state or dir-stus is used instead.
+;;   VCSes this won't be called at all, dir-status is used instead.
 ;;
 ;; - state-heuristic (file)
 ;;
@@ -146,17 +146,6 @@
 ;;   state of FILE at visiting time.  It should be considerably faster
 ;;   than the implementation of `state'.  For a list of possible values,
 ;;   see the doc string of `vc-state'.
-;;
-;; - dir-state (dir)
-;;
-;;   If provided, this function is used to find the version control
-;;   state of as many files as possible in DIR, and all subdirectories
-;;   of DIR, in a fast way; it is used to avoid expensive indivitual
-;;   vc-state calls.  The function should not return anything, but
-;;   rather store the files' states into the corresponding properties.
-;;   Two properties are required: `vc-backend' and `vc-state'.  (Note:
-;;   in older versions this method was not required to recurse into
-;;   subdirectories.)
 ;;
 ;; - dir-status (dir update-function)
 ;;
@@ -620,7 +609,7 @@
 ;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
-;;   vc-dired/vc-dir, it is possible that these commands are called
+;;   vc-dir, it is possible that these commands are called
 ;;   for unregistered/ignored files.
 ;;
 ;; - do not default to RCS anymore when the current directory is not
@@ -637,7 +626,7 @@
 ;;   are supposed to work with.
 ;;
 ;; - Another important thing: merge all the status-like backend operations.
-;;   We should remove dir-status, state, dir-state, and dir-status-files, and
+;;   We should remove dir-status, state, and dir-status-files, and
 ;;   replace them with just `status' which takes a fileset and a continuation
 ;;   (like dir-status) and returns a buffer in which the process(es) are run
 ;;   (or nil if it worked synchronously).  Hopefully we can define the old
@@ -658,8 +647,6 @@
 (require 'ewoc)
 
 (eval-when-compile
-  (require 'dired)
-  (require 'dired-aux)
   (require 'cl))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
@@ -1042,9 +1029,7 @@ Return (BACKEND . FILESET)."
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
   (cond
-   (vc-dired-mode
-    (set-buffer (find-file-noselect (dired-get-filename))))
-   ((eq major-mode 'vc-dir-mode)
+   ((vc-dispatcher-browsing)
     (set-buffer (find-file-noselect (vc-dir-current-file))))
    (t
     (while (and vc-parent-buffer
@@ -1642,9 +1627,7 @@ Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-If no current fileset is available (that is, we are not in
-VC-Dired mode and the visited file of the current buffer is not
-under version control) and we're in a Dired buffer, use
+If no current fileset is available and we're in a directory buffer, use
 the current directory.
 The optional argument NOT-URGENT non-nil means it is ok to say no to
 saving the buffer."
@@ -1822,85 +1805,6 @@ See Info node `Merging'."
 
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
-
-;; VC Dired hook 
-;; FIXME: Remove Dired support when vc-dir is ready.
-
-(defun vc-dired-hook ()
-  "Reformat the listing according to version control.
-Called by dired after any portion of a vc-dired buffer has been read in."
-  (message "Getting version information... ")
-  ;; if the backend supports it, get the state
-  ;; of all files in this directory at once
-  (let ((backend (vc-responsible-backend default-directory)))
-    ;; check `backend' can really handle `default-directory'.
-    (if (and (vc-call-backend backend 'responsible-p default-directory)
-	     (vc-find-backend-function backend 'dir-state))
-	(vc-call-backend backend 'dir-state default-directory)))
-  (let (filename
-	(inhibit-read-only t)
-	(buffer-undo-list t))
-    (goto-char (point-min))
-    (while (not (eobp))
-      (cond
-       ;; subdir header line
-       ((dired-get-subdir)
-        (forward-line 1)
-        ;; erase (but don't remove) the "total" line
-	(delete-region (point) (line-end-position))
-	(beginning-of-line)
-	(forward-line 1))
-       ;; file line
-       ((setq filename (dired-get-filename nil t))
-        (cond
-         ;; subdir
-         ((file-directory-p filename)
-          (cond
-           ((member (file-name-nondirectory filename)
-                    vc-directory-exclusion-list)
-            (let ((pos (point)))
-              (dired-kill-tree filename)
-              (goto-char pos)
-              (dired-kill-line)))
-           (vc-dired-terse-mode
-            ;; Don't show directories in terse mode.  Don't use
-            ;; dired-kill-line to remove it, because in recursive listings,
-            ;; that would remove the directory contents as well.
-            (delete-region (line-beginning-position)
-                           (progn (forward-line 1) (point))))
-           ((string-match "\\`\\.\\.?\\'" (file-name-nondirectory filename))
-            (dired-kill-line))
-           (t
-            (vc-dired-reformat-line nil)
-            (forward-line 1))))
-	 ;; Try to head off calling the expensive state query -
-	 ;; ignore object files, TeX intermediate files, and so forth.
-	 ((vc-dired-ignorable-p filename)
-	  (dired-kill-line))
-         ;; Ordinary file -- call the (possibly expensive) state query
-	 ;;
-	 ;; First case: unregistered or unknown. (Unknown shouldn't happen here)
-	 ((member (vc-state filename) '(nil unregistered))
-	  (if vc-dired-terse-mode
-	      (dired-kill-line)
-	    (vc-dired-reformat-line "?")
-	    (forward-line 1)))
-	 ;; Either we're in non-terse mode or it's out of date
-	 ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
-	  (vc-dired-reformat-line (vc-call prettify-state-info filename))
-	  (forward-line 1))
-	 ;; Remaining cases are under version control but uninteresting
-	 (t
-	  (dired-kill-line))))
-       ;; any other line
-       (t (forward-line 1))))
-    (vc-dired-purge))
-  (message "Getting version information... done")
-  (save-restriction
-    (widen)
-    (cond ((eq (count-lines (point-min) (point-max)) 1)
-           (goto-char (point-min))
-           (message "No changes pending under %s" default-directory)))))
 
 ;; VC status implementation
 

@@ -519,7 +519,7 @@ For registered files, the value returned is one of:
   'missing           The file is not present in the file system, but the VC
                      system still tracks it.
 
-  'ignored           The file showed up in a dir-state listing with a flag
+  'ignored           The file showed up in a dir-status listing with a flag
                      indicating the version-control system is ignoring it,
                      Note: This property is not set reliably (some VCSes
                      don't have useful directory-status commands) so assume

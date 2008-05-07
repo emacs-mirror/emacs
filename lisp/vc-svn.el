@@ -146,17 +146,6 @@ If you want to force an empty list of arguments, use t."
   "SVN-specific state heuristic."
   (vc-svn-state file 'local))
 
-(defun vc-svn-dir-state (dir &optional localp)
-  "Find the SVN state of all files in DIR and its subdirectories."
-  (setq localp (or localp (vc-stay-local-p dir)))
-  (let ((default-directory dir))
-    ;; Don't specify DIR in this command, the default-directory is
-    ;; enough.  Otherwise it might fail with remote repositories.
-    (with-temp-buffer
-      (buffer-disable-undo)		;; Because these buffers can get huge
-      (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
-      (vc-svn-parse-status))))
-
 (defun vc-svn-after-dir-status (callback)
   (let ((state-map '((?A . added)
                      (?C . conflict)
