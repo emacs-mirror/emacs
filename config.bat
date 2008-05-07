@@ -17,7 +17,7 @@ rem   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 rem   GNU General Public License for more details.
 
 rem   You should have received a copy of the GNU General Public License
-rem   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
