@@ -3,7 +3,7 @@
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
-;; Maintainer:  Stefan Monnier <monnier@gnu.org>
+;; Maintainer:  None
 
 ;; This file is part of GNU Emacs.
 

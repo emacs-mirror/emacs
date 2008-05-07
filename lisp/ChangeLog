@@ -2,6 +2,7 @@
 
 	* vc.el, vc-dispatcher.el: VC-Dired support removed.  The code
 	uses a ewoc-based implementation now.
+	* vc-hooks.el: Support for Meta-CVS has been removed.
 
 2008-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 

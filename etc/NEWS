@@ -538,6 +538,9 @@ active.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
 
+*** VC Support for Meta-CVS has been removed for lack of maintainer able
+to update it to the new VC.
+
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
 

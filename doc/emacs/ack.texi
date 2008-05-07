@@ -825,7 +825,7 @@ the @code{ebrowse} C@t{++} browser,
 @end itemize
 
 @item
-Stefan Monnier added support for Arch, Subversion, and Meta-CVS to VC,
+Stefan Monnier added support for Arch and Subversion to VC,
 and re-wrote much of the Emacs server to use the built-in networking
 primitives.  He also wrote:
 

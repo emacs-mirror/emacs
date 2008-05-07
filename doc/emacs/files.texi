@@ -1213,7 +1213,7 @@ description of what was changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
 with different version control systems---currently, it supports CVS,
-GNU Arch, RCS, Meta-CVS, Subversion, and SCCS.  Of these, the GNU
+GNU Arch, RCS, Subversion, and SCCS.  Of these, the GNU
 project distributes CVS, GNU Arch, and RCS.  We also have free
 software to replace SCCS, known as CSSC; if you are using SCCS and
 don't want to make the incompatible change to RCS or CVS, you can
@@ -1291,8 +1291,8 @@ become a vitally important form of communication among developers.
 @subsubsection Supported Version Control Systems
 
 @cindex back end (version control)
-  VC currently works with six different version control systems or
-``back ends'': SCCS, RCS, CVS, Meta-CVS, Subversion, GNU Arch,
+  VC currently works with many different version control systems or
+``back ends'': SCCS, RCS, CVS, Subversion, GNU Arch,
 git, and Mercurial.
 @comment Omitting bzr because support is very scratchy and incomplete.
 
@@ -1325,13 +1325,6 @@ supports all basic editing operations under CVS, but for some less
 common tasks you still need to call CVS from the command line.  Note
 also that before using CVS you must set up a repository, which is a
 subject too complex to treat here.
-
-@cindex Meta-CVS
-  Meta-CVS uses CVS repositories, but has an enhanced client that
-uses client-side information to solve various of the known problems
-with CVS.  It is not widely used, having been overtaken by Subversion.
-The Emacs support for it is rudimentary, and may be removed in a
-future version.
 
 @cindex SVN
 @cindex Subversion
