@@ -849,7 +849,7 @@ with no args, if that value is non-nil."
          nil t ((?/ . "$/") ("_$" . "w"))
          fortran-beginning-of-subprogram
          (font-lock-syntactic-keywords
-          . (fortran-font-lock-syntactic-keywords))))
+          . fortran-font-lock-syntactic-keywords)))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        fortran-imenu-generic-expression)
