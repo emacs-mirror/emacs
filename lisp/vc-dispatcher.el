@@ -1115,10 +1115,9 @@ If `body' uses `event', it should be a variable,
     map))
 
 ;; t if directories should be shown in vc-dir.
-;; WORK IN PROGRESS!  DO NOT SET this! ONLY set it if you want to help
-;; write code for this feature.  This variable will likely disappear
-;; when the work is done.
-(defvar vc-dir-insert-directories nil)
+;; WORK IN PROGRESS!  This variable will likely disappear when the
+;; work is done.
+(defvar vc-dir-insert-directories t)
 
 (defun vc-dir-update (entries buffer &optional noinsert)
   "Update BUFFER's ewoc from the list of ENTRIES.
