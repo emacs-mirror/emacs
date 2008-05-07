@@ -1,3 +1,11 @@
+2008-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tool-bar.el: Choose images dynamically.
+	(tool-bar-make-keymap, tool-bar-find-image): New function.
+	(tool-bar-find-image-cache): New var.
+	(tool-bar-local-item, tool-bar-local-item-from-menu):
+	Don't select the image yet, do it later in tool-bar-make-keymap.
+
 2008-05-07  Andreas Schwab  <schwab@suse.de>
 
 	* window.el: Require 'cl when compiling.
@@ -60,8 +68,7 @@
 2008-05-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
-	Tweak Open Watcom regexp to distinguish between errors and
-	warnings.
+	Tweak Open Watcom regexp to distinguish between errors and warnings.
 
 2008-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -103,7 +110,7 @@
 
 	* vc-dispatcher.el (vc-dir-mark-buffer-changed): Fix typo
 	client-mode -> vc-client-object, and guess `funcall' was meant.
-	(vc-dir-mode): Rename client-mode -> vc-client.mode.
+	(vc-dir-mode): Rename client-mode -> vc-client-mode.
 
 2008-05-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -152,10 +159,9 @@
 	The separation is not yet completely clean, but it's a good start.
 	* vc.el: This file is about 1700 lines shorter now.
 	Remove obsolete logentry-check from the backend API.
-	* vc-sccs.el (vc-sccs-logentry-check): Remove .  This was
-	was the only implementation of the logentry-check method, and
-	it guarded against a log length limit that has probably been
-	obsolete for 15 years (!).
+	* vc-sccs.el (vc-sccs-logentry-check): Remove .  This was the only
+	implementation of the logentry-check method, and it guarded against
+	a log length limit that has probably been obsolete for 15 years (!).
 
 2008-05-02  Sam Steingold  <sds@gnu.org>
 
