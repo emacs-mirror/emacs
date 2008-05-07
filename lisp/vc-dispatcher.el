@@ -567,10 +567,7 @@ editing!"
       (when buffer
 	(with-current-buffer buffer
 	  (vc-resynch-window file keep noquery)))))
-  (vc-directory-resynch-file file)
-  (when (memq 'vc-dir-mark-buffer-changed after-save-hook)
-    (let ((buffer (get-file-buffer file)))
-      (vc-dir-mark-buffer-changed file))))
+  (vc-directory-resynch-file file))
 
 ;; Command closures
 
@@ -849,20 +846,6 @@ This code, like dired, assumes UNIX -l format."
           (when vc-dired-mode
 	    (push buffer result)))))
     (nreverse result)))
-
-(defun vc-directory-resynch-file (file)
-  "Update the entries for FILE in any VC Dired buffers that list it."
-  ;;FIXME This needs to be implemented so it works for vc-dir
-  (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
-    (when buffers
-      (mapcar (lambda (buffer)
-		(with-current-buffer buffer
-		  (when (dired-goto-file file)
-		    ;; bind vc-dired-terse-mode to nil so that
-		    ;; files won't vanish when they are checked in
-		    (let ((vc-dired-terse-mode nil))
-		      (dired-do-redisplay 1)))))
-	      buffers))))
 
 ;;;###autoload
 (defun vc-directory (dir read-switches)
@@ -1559,32 +1542,45 @@ that share the same state."
 	  (setq crt (ewoc-next vc-ewoc crt)))))
     result))
  
-(defun vc-dir-mark-buffer-changed (&optional fname)
-  (let* ((file (or fname (expand-file-name buffer-file-name)))
-	 (found-vc-dir-buf nil))
-    (save-excursion
-      (dolist (status-buf (buffer-list))
-	(set-buffer status-buf)
-	;; look for a vc-dir buffer that might show this file.
-	(when (eq major-mode 'vc-dir-mode)
-	  (setq found-vc-dir-buf t)
-	  (let ((ddir (expand-file-name default-directory)))
-	    ;; This test is cvs-string-prefix-p
-	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
-	      (let*
-		  ((file-short (substring file (length ddir)))
-		   (state
-		    (funcall (vc-client-object->file-to-state vc-client-mode)
-                             file))
-		   (extra
-		    (funcall (vc-client-object->file-to-extra vc-client-mode)
-                             file))
-		   (entry
-		    (list file-short state extra)))
-		(vc-dir-update (list entry) status-buf))))))
-      ;; We didn't find any vc-dir buffers, remove the hook, it is
-      ;; not needed.
-      (unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-dir-mark-buffer-changed)))))
+(defun vc-directory-resynch-file (&optional fname)
+  "Update the entries for FILE in any directory buffers that list it."
+  (let ((file (or fname (expand-file-name buffer-file-name))))
+    ;; The VC-Dired case
+    (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
+      (when buffers
+	(mapc (lambda (buffer)
+		(with-current-buffer buffer
+		  (when (dired-goto-file file)
+		    ;; bind vc-dired-terse-mode to nil so that
+		    ;; files won't vanish when they are checked in
+		    (let ((vc-dired-terse-mode nil))
+		      (dired-do-redisplay 1)))))
+	      buffers)))
+    ;; The vc-dir case
+    (let ((found-vc-dir-buf nil))
+      (save-excursion
+	(dolist (status-buf (buffer-list))
+	  (set-buffer status-buf)
+	  ;; look for a vc-dir buffer that might show this file.
+	  (when (eq major-mode 'vc-dir-mode)
+	    (setq found-vc-dir-buf t)
+	    (let ((ddir (expand-file-name default-directory)))
+	      ;; This test is cvs-string-prefix-p
+	      (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
+		(let*
+		    ((file-short (substring file (length ddir)))
+		     (state
+		      (funcall (vc-client-object->file-to-state vc-client-mode)
+			       file))
+		     (extra
+		      (funcall (vc-client-object->file-to-extra vc-client-mode)
+			       file))
+		     (entry
+		      (list file-short state extra)))
+		  (vc-dir-update (list entry) status-buf))))))
+	;; We didn't find any vc-dir buffers, remove the hook, it is
+	;; not needed.
+	(unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-directory-resynch-file))))))
 
 (defun vc-dir-mode (client-object)
   "Major mode for showing the VC status for a directory.
@@ -1619,7 +1615,7 @@ U - if the cursor is on a file: unmark all the files with the same VC state
     (set (make-local-variable 'vc-ewoc)
 	 (ewoc-create (vc-client-object->file-to-info client-object)
 		      (vc-client-object->headers client-object)))
-    (add-hook 'after-save-hook 'vc-dir-mark-buffer-changed)
+    (add-hook 'after-save-hook 'vc-directory-resynch-file)
     ;; Make sure that if the VC status buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
