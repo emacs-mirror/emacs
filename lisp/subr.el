@@ -202,6 +202,11 @@ the return value (nil if RESULT is omitted).
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
+
+(defmacro ignore-errors (&rest body)
+  "Execute BODY; if an error occurs, return nil.
+Otherwise, return result of last form in BODY."
+  `(condition-case nil (progn ,@body) (error nil)))
 
 ;;;; Basic Lisp functions.
 
