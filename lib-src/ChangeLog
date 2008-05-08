@@ -1,3 +1,7 @@
+2008-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp2): Rename epa-file-hook.elc to epa-hook.elc.
+
 2008-05-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (lisp2): Add epa-file-hook.elc, to track the

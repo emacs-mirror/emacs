@@ -1,5 +1,8 @@
 2008-05-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* epa-hook.el: Renamed from epa-file-hook.el, to avoid
+	file-names clashes on 8+3 filesystems.
+
 	* org/org-jsinfo.el: Renamed from org-infojs.el, to avoid
 	file-names clashes on 8+3 filesystems.
 

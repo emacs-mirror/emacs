@@ -1,4 +1,4 @@
-;;; epa-file-hook.el --- preloaded code to enable epa-file.el
+;;; epa-hook.el --- preloaded code to enable epa-file.el
 ;; Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>

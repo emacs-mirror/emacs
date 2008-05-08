@@ -779,7 +779,7 @@ lisp= \
 	${lispsource}jka-cmpr-hook.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
-	${lispsource}epa-file-hook.elc \
+	${lispsource}epa-hook.elc \
 	TOOLTIP_SUPPORT \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
@@ -871,7 +871,7 @@ shortlisp= \
 	../lisp/vc-hooks.elc \
 	../lisp/jka-cmpr-hook.elc \
 	../lisp/ediff-hook.elc \
-	../lisp/epa-file-hook.elc \
+	../lisp/epa-hook.elc \
 	../lisp/widget.elc \
 	../lisp/window.elc \
 	../lisp/version.el
