@@ -53,8 +53,8 @@
   "Non-nil means, `C-c C-c' stores remember note without further promts.
 In this case, you need `C-u C-c C-c' to get the prompts for
 note file and headline.
-When this variable is nil, `C-c C-c' give you the prompts, and
-`C-u C-c C-c' trigger the fasttrack."
+When this variable is nil, `C-c C-c' gives you the prompts, and
+`C-u C-c C-c' triggers the fasttrack."
   :group 'org-remember
   :type 'boolean)
 
@@ -87,7 +87,7 @@ You can set this on a per-template basis with the variable
 (defcustom org-remember-templates nil
   "Templates for the creation of remember buffers.
 When nil, just let remember make the buffer.
-When not nil, this is a list of 5-element lists.  In each entry, the first
+When non-nil, this is a list of 5-element lists.  In each entry, the first
 element is the name of the template, which should be a single short word.
 The second element is a character, a unique key to select this template.
 The third element is the template.
