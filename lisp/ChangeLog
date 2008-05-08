@@ -1,3 +1,8 @@
+2008-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* org/org-jsinfo.el: Renamed from org-infojs.el, to avoid
+	file-names clashes on 8+3 filesystems.
+
 2008-05-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org/org.el (org-read-date-get-relative): Interpret lone
