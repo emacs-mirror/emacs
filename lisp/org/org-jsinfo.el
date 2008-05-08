@@ -1,4 +1,4 @@
-;;; org-infojs.el --- Support for org-info.js Javascript in Org HTML export
+;;; org-jsinfo.el --- Support for org-info.js Javascript in Org HTML export
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
