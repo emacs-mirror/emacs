@@ -904,8 +904,8 @@ Properties with special meaning:
   means that an abbrev can only be a single word.  The submatch 1 is treated
   as the potential name of an abbrev.
 - `:enable-function' can be set to a function of no argument which returns
-  non-nil iff the abbrevs in this table should be used for this instance
-  of `expand-abbrev'."
+  non-nil if and only if the abbrevs in this table should be used for this
+  instance of `expand-abbrev'."
   ;; We used to manually add the docstring, but we also want to record this
   ;; location as the definition of the variable (in load-history), so we may
   ;; as well just use `defvar'.
