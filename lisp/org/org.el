@@ -140,13 +140,13 @@ With prefix arg HERE, insert it at point."
 
 (defcustom org-modules '(org-bbdb org-bibtex org-gnus org-info org-infojs org-irc org-mew org-mhe org-rmail org-vm org-wl)
   "Modules that should always be loaded together with org.el.
-If a description starts with <C>, the file is not part of emacs
+If a description starts with <C>, the file is not part of Emacs
 and loading it will require that you have downloaded and properly installed
 the org-mode distribution.
 
 You can also use this system to load external packages (i.e. neither Org
 core modules, not modules from the CONTRIB directory).  Just add symbols
-to the end of the list.  If the package is called org-xyz.e, then you need
+to the end of the list.  If the package is called org-xyz.el, then you need
 to add the symbol `xyz', and the package must have a call to
 
    (provide 'org-xyz)"
@@ -1949,13 +1949,13 @@ forth between agenda and calendar."
     :matchers ("begin" "$" "$$" "\\(" "\\["))
   "Options for creating images from LaTeX fragments.
 This is a property list with the following properties:
-:foreground  the foreground color for images embedded in emacs, e.g. \"Black\".
-             `default' means use the forground of the default face.
+:foreground  the foreground color for images embedded in Emacs, e.g. \"Black\".
+             `default' means use the foreground of the default face.
 :background  the background color, or \"Transparent\".
              `default' means use the background of the default face.
-:scale       a scaling factor for the size of the images
+:scale       a scaling factor for the size of the images.
 :html-foreground, :html-background, :html-scale
-             The same numbers for HTML export.
+             the same numbers for HTML export.
 :matchers    a list indicating which matchers should be used to
              find LaTeX fragments.  Valid members of this list are:
              \"begin\"  find environments
