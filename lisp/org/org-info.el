@@ -47,7 +47,6 @@
 ;; Implementation
 (defun org-info-store-link ()
   "Store a link to an Info file and node."
-  "Store a link to an INFO folder or message."
   (when (eq major-mode 'Info-mode)
     (let (link desc)
       (setq link (org-make-link "info:"
