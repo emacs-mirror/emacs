@@ -251,7 +251,7 @@
 
 (defvar robin-package-alist nil
   "List of robin packages.
-A robin pacakge is of the form (NAME DOCSTRING &rest RULES).
+A robin package is of the form (NAME DOCSTRING &rest RULES).
 NAME is a string specifying a particular robin package.
 DOCSTRING is a documentation string for the robin package.
 
@@ -271,7 +271,7 @@ For example, if you evaluate the following,
 this robin package will be the following.
 
   (\"test\" \"Uppercase input characters\"
-   (?a \"A\" 
+   (?a \"A\"
        (?b \"AB\")
        (?c \"AC\"
 	   (?d \"ACD\")
@@ -377,7 +377,7 @@ Internal use only."
 
 (defvar robin-current-package-name nil
   "String representing the name of the current robin package.
-Nil means no packages is selected.")
+A nil value means no package is selected.")
 (make-variable-buffer-local 'robin-current-package-name)
 
 ;;;###autoload
@@ -399,7 +399,7 @@ Nil means no packages is selected.")
 (defun robin-activate (&optional arg)
   "Activate robin input method.
 
-With ARG, activate robin input method iff ARG is positive.
+With ARG, activate robin input method if and only if ARG is positive.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `robin-input-method'."
