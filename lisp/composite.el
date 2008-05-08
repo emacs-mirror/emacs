@@ -620,7 +620,7 @@ Auto Composition mode in all buffers (this is the default)."
 
 (defun toggle-auto-composition (&optional arg)
   "Change whether automatic character composition is enabled in this buffer.
-With arg, enable it iff arg is positive."
+With arg, enable it if and only if arg is positive."
   (interactive "P")
   (let ((enable (if (null arg) (not auto-composition-function)
 		  (> (prefix-numeric-value arg) 0))))
