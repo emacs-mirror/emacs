@@ -1,3 +1,8 @@
+2008-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Appending Kills): Remove a strangely off-topic index
+	entry.
+
 2008-05-07  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* aack.texi, files.texi, vc2-xtra.texi: Meta-CVS is no longer 
