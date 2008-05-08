@@ -1,3 +1,8 @@
+2008-05-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org/org.el (org-read-date-get-relative): Interpret lone
+	weekday abbreviation as relative to today.
+
 2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* abbrev.el (define-abbrev-table):
