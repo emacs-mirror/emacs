@@ -1,3 +1,11 @@
+2008-05-08  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-mode-map):  Bind "g" to recompile and "q" to
+	quit-window.
+	* grep.el (grep-mode-map): Use `set-keymap-parent' to connect it
+	to `compilation-minor-mode-map' (instead of an explicit `cons').
+
 2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org/org.el (org-modules, org-format-latex-options):

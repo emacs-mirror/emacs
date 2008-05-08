@@ -1357,6 +1357,8 @@ Returns the compilation buffer created."
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "g" 'recompile) ; revert
+    (define-key map "q" 'quit-window)
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]
       (cons "Errors" compilation-menu-map))
@@ -1401,6 +1403,8 @@ Returns the compilation buffer created."
     (define-key map "\M-}" 'compilation-next-file)
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
+    (define-key map "g" 'recompile) ; revert
+    (define-key map "q" 'quit-window)
 
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
