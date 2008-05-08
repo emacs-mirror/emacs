@@ -1,3 +1,25 @@
+2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org/org.el (org-modules, org-format-latex-options):
+	* org/org-archive.el (org-archive-stamp-time)
+	(org-archive-save-context-info):
+	* org/org-faces.el (org-hide):
+	* org/org-irc.el (org-irc-parse-link):
+	* org/org-macs.el (org-call-with-arg, org-autoload):
+	* org/org-mew.el (org-mew-store-link):
+	* org/org-remember.el (org-remember-store-without-prompt)
+	(org-remember-templates): Fix typos in docstrings.
+
+	* org/org-info.el (org-info-store-link): Remove leftover docstring.
+
+	* org/org-bbdb.el (org-bbdb-export): Remove leftover docstring.
+	(org-bbdb-anniversary-field, org-bbdb-extract-date-fun)
+	(org-bbdb-anniv-split): Fix typos in docstrings.
+
+	* org/org-publish.el (org-publish-project-alist): Doc fixes.
+	(org-publish-use-timestamps-flag): Reflow docstring.
+	(org-publish-files-alist): Fix typos in docstring.
+
 2008-05-07  Sam Steingold  <sds@gnu.org>
 
 	* pcvs-util.el (cvs-bury-buffer): Revert my patch: quit-window
