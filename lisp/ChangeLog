@@ -1,7 +1,25 @@
+2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.el (define-abbrev-table):
+	* composite.el (toggle-auto-composition):
+	* json.el (json-alist-p, json-plist-p):
+	* minibuffer.el (completion-table-with-predicate):
+	* ps-mule.el (ps-mule-external-libraries):
+	* emacs-lisp/advice.el (ad-special-form-p):
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	* eshell/em-smart.el (eshell-review-quick-commands):
+	* progmodes/python.el (python-comment-line-p, python-blank-line-p)
+	(python-skip-out, python-check-comint-prompt):
+	Don't use `iff' in docstrings.
+
+	* international/robin.el (robin-package-alist): Fix typo in docstring.
+	(robin-current-package-name): Doc fix.
+	(robin-activate): Don't use `iff' in docstring.
+
 2008-05-07  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el, vc-dispatcher.el: VC-Dired support removed.  The code
-	uses a ewoc-based implementation now.
+	* vc.el, vc-dispatcher.el: VC-Dired support removed.
+	The code uses a ewoc-based implementation now.
 	* vc-hooks.el: Support for Meta-CVS has been removed.
 
 2008-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -35,7 +53,7 @@
 	further from vc.el.
 	* vc.el (vc-dir-mode): Move VC-specific context menu entries here.
 
-2008-05-06 Wilson Snyder <wsnyder@wsnyder.org>
+2008-05-06  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-getopt-file): Cleanup warning message format.
 	(verilog-auto, verilog-auto-arg, verilog-auto-ascii-enum)
@@ -82,8 +100,8 @@
 
 2008-05-05  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-deduce-fileset): Lift all the policy and UI
-	stuff out of this function, move it to vc-dispatcher-selection-set.
+	* vc.el (vc-deduce-fileset): Lift all the policy and UI stuff
+	out of this function, move it to vc-dispatcher-selection-set.
 
 2008-05-05  Sam Steingold  <sds@gnu.org>
 
@@ -165,7 +183,7 @@
 	The separation is not yet completely clean, but it's a good start.
 	* vc.el: This file is about 1700 lines shorter now.
 	Remove obsolete logentry-check from the backend API.
-	* vc-sccs.el (vc-sccs-logentry-check): Remove .  This was the only
+	* vc-sccs.el (vc-sccs-logentry-check): Remove.  This was the only
 	implementation of the logentry-check method, and it guarded against
 	a log length limit that has probably been obsolete for 15 years (!).
 
@@ -179,12 +197,12 @@
 2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-arch.el, vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el,
-	vc-hooks.el, vc-mcvs.el, vc-mtn.el, vc-rcs.el, vc-sccs.el,
-	vc-svn.el, vc.el: (vc-*-checkout-model): Make sure every backend
+	* vc-hooks.el, vc-mcvs.el, vc-mtn.el, vc-rcs.el, vc-sccs.el,
+	* vc-svn.el, vc.el (vc-*-checkout-model): Make sure every backend
 	has one of these and that all are called in compatible ways.
 	* vc-arch.el, vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el,
-	vc-hooks.el, vc-mcvs.el, vc-mtn.el, vc-rcs.el, vc-sccs.el,
-	vc-svn.el, vc.el: (vc-*-revision-granularity): Make sure every
+	* vc-hooks.el, vc-mcvs.el, vc-mtn.el, vc-rcs.el, vc-sccs.el,
+	* vc-svn.el, vc.el (vc-*-revision-granularity): Make sure every
 	backend has one of these.
 
 2008-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
