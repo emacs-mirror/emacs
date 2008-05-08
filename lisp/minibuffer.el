@@ -160,7 +160,7 @@ You should give VAR a non-nil `risky-local-variable' property."
 
 (defun completion-table-with-predicate (table pred1 strict string pred2 action)
   "Make a completion table equivalent to TABLE but filtered through PRED1.
-PRED1 is a function of one argument which returns non-nil iff the
+PRED1 is a function of one argument which returns non-nil if and only if the
 argument is an element of TABLE which should be considered for completion.
 STRING, PRED2, and ACTION are the usual arguments to completion tables,
 as described in `try-completion', `all-completions', and `test-completion'.
