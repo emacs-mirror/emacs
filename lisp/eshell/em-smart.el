@@ -108,8 +108,8 @@ If set to nil, quick commands won't be reviewed.  A quick command is a
 command that produces no output, and exits successfully.
 
 If set to `not-even-short-output', then the definition of \"quick
-command\" is extended to include commands that produce output, iff
-that output can be presented in its entirely in the Eshell window."
+command\" is extended to include commands that produce output, if and
+only if that output can be presented in its entirely in the Eshell window."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
 		 (const :tag "Not even short output"
