@@ -329,7 +329,6 @@ alter the undo history and does not temporarily change the screen.
 @subsection Appending Kills
 
 @cindex appending kills in the ring
-@cindex television
   Normally, each kill command pushes a new entry onto the kill ring.
 However, two or more kill commands in a row combine their text into a
 single entry, so that a single @kbd{C-y} yanks all the text as a unit,
