@@ -2469,7 +2469,7 @@ will clear the cache."
   `(cdr ,definition))
 
 (defun ad-special-form-p (definition)
-  "Non-nil iff DEFINITION is a special form."
+  "Non-nil if and only if DEFINITION is a special form."
   (if (and (symbolp definition) (fboundp definition))
       (setq definition (indirect-function definition)))
   (and (subrp definition) (eq (cdr (subr-arity definition)) 'unevalled)))
