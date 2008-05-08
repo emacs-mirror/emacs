@@ -7,20 +7,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -86,11 +84,6 @@ Each entry is the authentication type with optional properties."
 		 (list :tag "Source definition"
 		       (const :format "" :value :source)
 		       (string :tag "Authentication Source")
-		       (const :format "" :value :server)
-		       (choice :tag "Server (logical name) choice"
-			       (const :tag "Any" t)
-			       (regexp :tag "Server regular expression (TODO)")
-			       (const :tag "Fallback" nil))
 		       (const :format "" :value :host)
 		       (choice :tag "Host (machine) choice"
 			       (const :tag "Any" t)
@@ -118,20 +111,16 @@ Each entry is the authentication type with optional properties."
 ;; (auth-source-user-or-password-imap "password" "imap.myhost.com")
 ;; (auth-source-protocol-defaults 'imap)
 
-(defun auth-source-pick (server host protocol &optional fallback)
-  "Parse `auth-sources' for SERVER, HOST, and PROTOCOL matches.
+(defun auth-source-pick (host protocol &optional fallback)
+  "Parse `auth-sources' for HOST, and PROTOCOL matches.
 
-Returns fallback choices (where SERVER. PROTOCOL or HOST are nil) with FALLBACK t."
+Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
   (interactive "sHost: \nsProtocol: \n") ;for testing
   (let (choices)
     (dolist (choice auth-sources)
-      (let ((s (plist-get choice :server))
-	    (h (plist-get choice :host))
+      (let ((h (plist-get choice :host))
 	    (p (plist-get choice :protocol)))
 	(when (and
-	       (or (equal t s)
-		   (and (stringp s) (string-match s server))
-		   (and fallback (equal s nil)))
 	       (or (equal t h)
 		   (and (stringp h) (string-match h host))
 		   (and fallback (equal h nil)))
@@ -142,12 +131,12 @@ Returns fallback choices (where SERVER. PROTOCOL or HOST are nil) with FALLBACK 
     (if choices
 	choices
       (unless fallback
-	(auth-source-pick server host protocol t)))))
+	(auth-source-pick host protocol t)))))
 
-(defun auth-source-user-or-password (mode server host protocol)
-  "Find user or password (from the string MODE) matching SERVER, HOST, and PROTOCOL."
+(defun auth-source-user-or-password (mode host protocol)
+  "Find user or password (from the string MODE) matching HOST and PROTOCOL."
   (let (found)
-    (dolist (choice (auth-source-pick server host protocol))
+    (dolist (choice (auth-source-pick host protocol))
       (setq found (netrc-machine-user-or-password 
 		   mode
 		   (plist-get choice :source)
@@ -161,20 +150,20 @@ Returns fallback choices (where SERVER. PROTOCOL or HOST are nil) with FALLBACK 
   "Return a list of default ports and names for PROTOCOL."
   (cdr-safe (assoc protocol auth-source-protocols)))
 
-(defun auth-source-user-or-password-imap (mode server host)
-  (auth-source-user-or-password mode server host 'imap))
+(defun auth-source-user-or-password-imap (mode host)
+  (auth-source-user-or-password mode host 'imap))
 
-(defun auth-source-user-or-password-pop3 (mode server host)
-  (auth-source-user-or-password mode server host 'pop3))
+(defun auth-source-user-or-password-pop3 (mode host)
+  (auth-source-user-or-password mode host 'pop3))
 
-(defun auth-source-user-or-password-ssh (mode server host)
-  (auth-source-user-or-password mode server host 'ssh))
+(defun auth-source-user-or-password-ssh (mode host)
+  (auth-source-user-or-password mode host 'ssh))
 
-(defun auth-source-user-or-password-sftp (mode server host)
-  (auth-source-user-or-password mode server host 'sftp))
+(defun auth-source-user-or-password-sftp (mode host)
+  (auth-source-user-or-password mode host 'sftp))
 
-(defun auth-source-user-or-password-smtp (mode server host)
-  (auth-source-user-or-password mode server host 'smtp))
+(defun auth-source-user-or-password-smtp (mode host)
+  (auth-source-user-or-password mode host 'smtp))
 
 (provide 'auth-source)
 

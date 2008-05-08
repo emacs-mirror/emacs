@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -409,7 +407,7 @@ comments and strings, or that point is within brackets/parens."
 		    (error nil))))))))
 
 (defun python-comment-line-p ()
-  "Return non-nil iff current line has only a comment."
+  "Return non-nil if and only if current line has only a comment."
   (save-excursion
     (end-of-line)
     (when (eq 'comment (syntax-ppss-context (syntax-ppss)))
@@ -417,7 +415,7 @@ comments and strings, or that point is within brackets/parens."
       (looking-at (rx (or (syntax comment-start) line-end))))))
 
 (defun python-blank-line-p ()
-  "Return non-nil iff current line is blank."
+  "Return non-nil if and only if current line is blank."
   (save-excursion
     (beginning-of-line)
     (looking-at "\\s-*$")))
@@ -747,7 +745,7 @@ Set `python-indent' locally to the value guessed."
   '(("else" "if" "elif" "while" "for" "try" "except")
     ("elif" "if" "elif")
     ("except" "try" "except")
-    ("finally" "try"))
+    ("finally" "try" "except"))
   "Alist of keyword matches.
 The car of an element is a keyword introducing a statement which
 can close a block opened by a keyword in the cdr.")
@@ -977,9 +975,11 @@ Accounts for continuation lines, multi-line strings, and
 multi-line bracketed expressions."
   (beginning-of-line)
   (python-beginning-of-string)
-  (let ((point (point)))
+  (let (point)
     (while (and (python-continuation-line-p)
-		(> point (setq point (point))))
+		(if point
+		    (< (point) point)
+		  t))
       (beginning-of-line)
       (if (python-backslash-continuation-line-p)
 	  (progn
@@ -987,14 +987,15 @@ multi-line bracketed expressions."
 	    (while (python-backslash-continuation-line-p)
 	      (forward-line -1)))
 	(python-beginning-of-string)
-	(python-skip-out))))
+	(python-skip-out))
+      (setq point (point))))
   (back-to-indentation))
 
 (defun python-skip-out (&optional forward syntax)
   "Skip out of any nested brackets.
 Skip forward if FORWARD is non-nil, else backward.
 If SYNTAX is non-nil it is the state returned by `syntax-ppss' at point.
-Return non-nil iff skipping was done."
+Return non-nil if and only if skipping was done."
   (let ((depth (syntax-ppss-depth (or syntax (syntax-ppss))))
 	(forward (if forward -1 1)))
     (unless (zerop depth)
@@ -1804,10 +1805,9 @@ This is a no-op if `python-check-comint-prompt' returns nil."
 	  (kill-local-variable 'python-preoutput-result))))))
 
 (defun python-check-comint-prompt (&optional proc)
-  "Return non-nil iff there's a normal prompt in the inferior buffer.
-If there isn't, it's probably not appropriate to send input to return
-Eldoc information etc.  If PROC is non-nil, check the buffer for that
-process."
+  "Return non-nil if and only if there's a normal prompt in the inferior buffer.
+If there isn't, it's probably not appropriate to send input to return Eldoc
+information etc.  If PROC is non-nil, check the buffer for that process."
   (with-current-buffer (process-buffer (or proc (python-proc)))
     (save-excursion
       (save-match-data (re-search-backward ">>> \\=" nil t)))))

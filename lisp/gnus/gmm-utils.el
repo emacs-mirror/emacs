@@ -7,20 +7,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -33,7 +31,7 @@
 (require 'wid-edit)
 
 (defgroup gmm nil
-  "Utility functions for Gnus, Message and MML"
+  "Utility functions for Gnus, Message and MML."
   :prefix "gmm-"
   :version "22.1" ;; Gnus 5.10.9
   :group 'lisp)
@@ -43,7 +41,7 @@
 (defcustom gmm-verbose 7
   "Integer that says how verbose gmm should be.
 The higher the number, the more messages will flash to say what
-it done.  At zero, it will be totally mute; at five, it will
+it did.  At zero, it will be totally mute; at five, it will
 display most important messages; and at ten, it will keep on
 jabbering all the time."
   :type 'integer
@@ -67,9 +65,11 @@ The concatenation is done with logical ORs."
   "If LEVEL is lower than `gmm-verbose' print ARGS using `message'.
 
 Guideline for numbers:
-1 - error messages, 3 - non-serious error messages, 5 - messages for things
-that take a long time, 7 - not very important messages on stuff, 9 - messages
-inside loops."
+1 - error messages
+3 - non-serious error messages
+5 - messages for things that take a long time
+7 - not very important messages on stuff
+9 - messages inside loops."
   (if (<= level gmm-verbose)
       (apply 'message args)
     ;; We have to do this format thingy here even if the result isn't
@@ -99,7 +99,7 @@ ARGS are passed to `message'."
 (define-widget 'gmm-lazy 'default
   "Base widget for recursive datastructures.
 
-This is copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
+This is a copy of the `lazy' widget in Emacs 22.1 provided for compatibility."
   :format "%{%t%}: %v"
   :convert-widget 'widget-value-convert-widget
   :value-create (lambda (widget)
@@ -321,11 +321,11 @@ in \"`data-directory'/images\".
 
 Then this function returns a list of directories which contains
 first the directory in which IMAGE was found, followed by the
-value of `load-path'. If PATH is given, it is used instead of
+value of `load-path'.  If PATH is given, it is used instead of
 `load-path'.
 
 If NO-ERROR is non-nil and a suitable path can't be found, don't
-signal an error. Instead, return a list of directories as before,
+signal an error.  Instead, return a list of directories as before,
 except that nil appears in place of the image directory.
 
 Here is an example that uses a common idiom to provide
@@ -362,7 +362,7 @@ compatibility with versions of Emacs that lack the variable
       (setq image-directory-load-path dir))
 
     ;; If `image-directory-load-path' isn't Emacs' image directory,
-    ;; it's probably a user preference, so use it. Then use a
+    ;; it's probably a user preference, so use it.  Then use a
     ;; relative setting if possible; otherwise, use
     ;; `image-directory-load-path'.
     (cond
@@ -406,7 +406,7 @@ compatibility with versions of Emacs that lack the variable
 
 (defun gmm-customize-mode (&optional mode)
   "Customize customization group for MODE.
-If mode is nil, use `major-mode' of the curent buffer."
+If mode is nil, use `major-mode' of the current buffer."
   (interactive)
   (customize-group
    (or mode

@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -409,8 +407,17 @@ BS must be a list of (KEY . BINDING) where
 KEY and BINDINGS are suitable for `define-key'.
 Optional NAME is passed to `make-sparse-keymap'.
 Optional map M can be used to modify an existing map.
-ARGS is a list of additional keyword arguments."
-  (let (inherit dense)
+ARGS is a list of additional keyword arguments.
+
+Valid keywords and arguments are:
+
+  :name      Name of the keymap; overrides NAME argument.
+  :dense     Non-nil for a dense keymap.
+  :inherit   Parent keymap.
+  :group     Ignored.
+  :suppress  Non-nil to call `suppress-keymap' on keymap,
+             'nodigits to suppress digits as prefix arguments."
+  (let (inherit dense suppress)
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
@@ -418,11 +425,14 @@ ARGS is a list of additional keyword arguments."
 	 (:name (setq name val))
 	 (:dense (setq dense val))
 	 (:inherit (setq inherit val))
+	 (:suppress (setq suppress val))
 	 (:group)
 	 (t (message "Unknown argument %s in defmap" key)))))
     (unless (keymapp m)
       (setq bs (append m bs))
       (setq m (if dense (make-keymap name) (make-sparse-keymap name))))
+    (when suppress
+      (suppress-keymap m (eq suppress 'nodigits)))
     (dolist (b bs)
       (let ((keys (car b))
 	    (binding (cdr b)))

@@ -1,27 +1,25 @@
 ;;; gnus-registry.el --- article registry for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 
+;;; Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
-;; Keywords: news
+;; Keywords: news registry
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -160,6 +158,17 @@ way."
   '(set :tag "Tracking choices"
     (const :tag "Track by subject (Subject: header)" subject)
     (const :tag "Track by sender (From: header)"  sender)))
+
+(defcustom gnus-registry-split-strategy nil
+  "Whether the registry should track extra data about a message.
+The Subject and Sender (From:) headers are currently tracked this
+way."
+  :group 'gnus-registry
+  :type
+  '(choice :tag "Tracking choices"
+	   (const :tag "Only use single choices, discard multiple matches" nil)
+	   (const :tag "Majority of matches wins" majority)
+	   (const :tag "First found wins"  first)))
 
 (defcustom gnus-registry-entry-caching t
   "Whether the registry should cache extra information."
@@ -486,7 +495,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	      nnmail-split-fancy-with-parent-ignore-groups
 	    (list nnmail-split-fancy-with-parent-ignore-groups)))
 	 (log-agent "gnus-registry-split-fancy-with-parent")
-	 found)
+	 found found-full)
 
     ;; this is a big if-else statement.  it uses
     ;; gnus-registry-post-process-groups to filter the results after
@@ -507,12 +516,15 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	     log-agent reference refstr group)
 	    (push group found))))
       ;; filter the found groups and return them
+      ;; the found groups are the full groups
       (setq found (gnus-registry-post-process-groups 
-		   "references" refstr found)))
-
+		   "references" refstr found found)))
+     
      ;; else: there were no matches, now try the extra tracking by sender
-     ((and (gnus-registry-track-sender-p) 
-	   sender)
+     ((and (gnus-registry-track-sender-p)
+	   sender
+	   (not (equal (gnus-extract-address-component-email sender)
+		       user-mail-address)))
       (maphash
        (lambda (key value)
 	 (let ((this-sender (cdr
@@ -522,6 +534,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		      (equal sender this-sender))
 	     (let ((groups (gnus-registry-fetch-groups key)))
 	       (dolist (group groups)
+		 (push group found-full)
 		 (setq found (append (list group) (delete group found)))))
 	     (push key matches)
 	     (gnus-message
@@ -531,7 +544,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	      log-agent sender found matches))))
        gnus-registry-hashtb)
       ;; filter the found groups and return them
-      (setq found (gnus-registry-post-process-groups "sender" sender found)))
+      ;; the found groups are NOT the full groups
+      (setq found (gnus-registry-post-process-groups 
+		   "sender" sender found found-full)))
       
      ;; else: there were no matches, now try the extra tracking by subject
      ((and (gnus-registry-track-subject-p)
@@ -546,6 +561,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		      (equal subject this-subject))
 	     (let ((groups (gnus-registry-fetch-groups key)))
 	       (dolist (group groups)
+		 (push group found-full)
 		 (setq found (append (list group) (delete group found)))))
 	     (push key matches)
 	     (gnus-message
@@ -555,10 +571,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	      log-agent subject found matches))))
        gnus-registry-hashtb)
       ;; filter the found groups and return them
+      ;; the found groups are NOT the full groups
       (setq found (gnus-registry-post-process-groups 
-		   "subject" subject found))))))
+		   "subject" subject found found-full))))
+    ;; after the (cond) we extract the actual value safely
+    (car-safe found)))
 
-(defun gnus-registry-post-process-groups (mode key groups)
+(defun gnus-registry-post-process-groups (mode key groups groups-full)
   "Modifies GROUPS found by MODE for KEY to determine which ones to follow.
 
 MODE can be 'subject' or 'sender' for example.  The KEY is the
@@ -572,9 +591,28 @@ This is not possible if gnus-registry-use-long-group-names is
 false.  Foreign methods are not supported so they are rejected.
 
 Reduces the list to a single group, or complains if that's not
-possible."
+possible.  Uses `gnus-registry-split-strategy' and GROUPS-FULL if
+necessary."
   (let ((log-agent "gnus-registry-post-process-group")
 	out)
+
+    ;; the strategy can be 'first, 'majority, or nil
+    (when (eq gnus-registry-split-strategy 'first)
+      (when groups
+	(setq groups (list (car-safe groups)))))
+
+    (when (eq gnus-registry-split-strategy 'majority)
+      (let ((freq (make-hash-table
+		   :size 256
+		   :test 'equal)))
+	(mapc (lambda(x) (puthash x (1+ (gethash x freq 0)) freq)) groups-full)
+	(setq groups (list (car-safe
+			    (sort
+			     groups
+			     (lambda (a b)
+			       (> (gethash a freq 0)
+				  (gethash b freq 0)))))))))
+    
     (if gnus-registry-use-long-group-names
 	(dolist (group groups)
 	  (let ((m1 (gnus-find-method-for-group group))
@@ -641,9 +679,8 @@ Consults `gnus-registry-unfollowed-groups' and
   (let (articles)
     (maphash
      (lambda (key value)
-       (when (gnus-registry-grep-in-list
-	      keyword
-	      (cdr (gnus-registry-fetch-extra key 'keywords)))
+       (when (member keyword
+		   (cdr-safe (gnus-registry-fetch-extra key 'keywords)))
 	 (push key articles)))
      gnus-registry-hashtb)
     articles))
@@ -693,15 +730,13 @@ Consults `gnus-registry-unfollowed-groups' and
 			  (assoc article (gnus-data-list nil)))))
     nil))
 
-;;; this should be redone with catch/throw
 (defun gnus-registry-grep-in-list (word list)
-  (when word
-    (memq nil
-	  (mapcar 'not
-		  (mapcar
-		   (lambda (x)
-		     (string-match word x))
-		   list)))))
+"Find if a WORD matches any regular expression in the given LIST."
+  (when (and word list)
+    (catch 'found
+      (dolist (r list)
+	(when (string-match r word)
+	  (throw 'found r))))))
 
 (defun gnus-registry-do-marks (type function)
   "For each known mark, call FUNCTION for each cell of type TYPE.

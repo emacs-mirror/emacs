@@ -11,10 +11,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,9 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -237,8 +235,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; times of the form "HH:MM:SS" where MM is taken as a line number, so
      ;; the last line tries to rule out message where the info after the
      ;; line number starts with "SS".  --Stef
+
+     ;; The core of the regexp is the one with *?.  It says that a file name
+     ;; can be composed of any non-newline char, but it also rules out some
+     ;; valid but unlikely cases, such as a trailing space or a space
+     ;; followed by a -.
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
-\\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-\n]\\)*?\\): ?\
+\\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-/\n]\\)*?\\): ?\
 \\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\3\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
@@ -317,6 +320,11 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 
     (sun-ada
      "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
+
+    (watcom
+     "\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)): ?\
+\\(?:\\(Error! E[0-9]+\\)\\|\\(Warning! W[0-9]+\\)\\):"
+     1 2 nil (4))
 
     (4bsd
      "\\(?:^\\|::  \\|\\S ( \\)\\(/[^ \n\t()]+\\)(\\([0-9]+\\))\
@@ -767,6 +775,8 @@ from a different message."
 (defun compilation-auto-jump (buffer pos)
   (with-current-buffer buffer
     (goto-char pos)
+    (let ((win (get-buffer-window buffer 0)))
+      (if win (set-window-point win pos)))
     (if compilation-auto-jump-to-first-error
 	(compile-goto-error))))
 
@@ -1152,10 +1162,6 @@ Returns the compilation buffer created."
       (buffer-disable-undo (current-buffer))
       ;; first transfer directory from where M-x compile was called
       (setq default-directory thisdir)
-      ;; Remember the original dir, so we can use it when we recompile.
-      ;; default-directory' can't be used reliably for that because it may be
-      ;; affected by the special handling of "cd ...;".
-      (set (make-local-variable 'compilation-directory) thisdir)
       ;; Make compilation buffer read-only.  The filter can still write it.
       ;; Clear out the compilation buffer.
       (let ((inhibit-read-only t)
@@ -1175,6 +1181,11 @@ Returns the compilation buffer created."
 	  (setq buffer-read-only nil)
 	  (with-no-warnings (comint-mode))
 	  (compilation-shell-minor-mode))
+        ;; Remember the original dir, so we can use it when we recompile.
+        ;; default-directory' can't be used reliably for that because it may be
+        ;; affected by the special handling of "cd ...;".
+        ;; NB: must be fone after (funcall mode) as that resets local variables
+        (set (make-local-variable 'compilation-directory) thisdir)
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))

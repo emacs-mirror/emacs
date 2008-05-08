@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1205,6 +1203,12 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
 (defcustom gnus-preserve-marks t
   "Whether marks are preserved when moving, copying and respooling messages."
   :version "21.1"
+  :type 'boolean
+  :group 'gnus-summary-marks)
+
+(defcustom gnus-propagate-marks t
+  "If non-nil, do not propagate marks to the backends."
+  :version "23.1" ;; No Gnus
   :type 'boolean
   :group 'gnus-summary-marks)
 
@@ -11818,6 +11822,10 @@ If REVERSE, save parts that do not match TYPE."
 	 current-prefix-arg))
   (gnus-summary-iterate n
     (let ((gnus-display-mime-function nil)
+	  gnus-article-prepare-hook
+	  gnus-article-decode-hook
+	  gnus-display-mime-function
+	  gnus-break-pages
 	  (gnus-inhibit-treatment t))
       (gnus-summary-select-article))
     (with-current-buffer gnus-article-buffer
@@ -12151,7 +12159,8 @@ UNREAD is a sorted list."
 	(save-excursion
 	  (let (setmarkundo)
 	    ;; Propagate the read marks to the backend.
-	    (when (gnus-check-backend-function 'request-set-mark group)
+	    (when (and gnus-propagate-marks
+		       (gnus-check-backend-function 'request-set-mark group))
 	      (let ((del (gnus-remove-from-range (gnus-info-read info) read))
 		    (add (gnus-remove-from-range read (gnus-info-read info))))
 		(when (or add del)

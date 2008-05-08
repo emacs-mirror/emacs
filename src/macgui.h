@@ -154,7 +154,18 @@ typedef int Selection;
 #define mac_get_global_mouse	GetGlobalMouse
 #define mac_is_window_toolbar_visible	IsWindowToolbarVisible
 #define mac_rect_make(f, x, y, w, h)	CGRectMake (x, y, w, h)
+
+#if USE_MAC_IMAGE_IO
+typedef struct _XImage
+{
+  int width, height;		/* size of image */
+  char *data;			/* pointer to image data */
+  int bytes_per_line;		/* accelarator to next line */
+  int bits_per_pixel;		/* bits per pixel (ZPixmap) */
+} *Pixmap;
+#else
 typedef GWorldPtr Pixmap;
+#endif
 
 #define Cursor ThemeCursor
 #define No_Cursor (-1)

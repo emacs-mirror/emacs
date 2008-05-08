@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -62,7 +60,7 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Mtn Arch MCVS)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Mtn Arch)
   ;; RCS, CVS, SVN and SCCS come first because they are per-dir
   ;; rather than per-tree.  RCS comes first because of the multibackend
   ;; support intended to use RCS for local commits (with a remote CVS server).
@@ -77,6 +75,7 @@ An empty list disables VC altogether."
   :group 'vc)
 
 ;; Note: we don't actually have a darcs back end yet.
+;; Also, Meta-CVS (corresponsding to MCVS) is unsupported.
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
 					 ".svn" ".git" ".hg" ".bzr"
 					 "_MTN" "_darcs" "{arch}")
@@ -287,8 +286,8 @@ It is usually called via the `vc-call' macro."
 (defmacro vc-call (fun file &rest args)
   "A convenience macro for calling VC backend functions.
 Functions called by this macro must accept FILE as the first argument.
-ARGS specifies any additional arguments. FUN should be unquoted.
-BEWARE!! `file' is evaluated twice!!"
+ARGS specifies any additional arguments.  FUN should be unquoted.
+BEWARE!! FILE is evaluated twice!!"
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
 
 (defsubst vc-parse-buffer (pattern i)
@@ -365,7 +364,7 @@ the root is the last directory for which WITNESS *is* found."
 ;; Access functions to file properties
 ;; (Properties should be _set_ using vc-file-setprop, but
 ;; _retrieved_ only through these functions, which decide
-;; if the property is already known or not. A property should
+;; if the property is already known or not.  A property should
 ;; only be retrieved by vc-file-getprop if there is no
 ;; access function.)
 
@@ -440,26 +439,23 @@ If the file is not registered, or the master name is not known, return nil."
 	       (vc-call-backend (vc-backend file) 'registered file))
 	  (vc-file-getprop file 'vc-name))))
 
-(defun vc-checkout-model (file)
-  "Indicate how FILE is checked out.
+(defun vc-checkout-model (backend files)
+  "Indicate how FILES are checked out.
 
-If FILE is not registered, this function always returns nil.
+If FILES are not registered, this function always returns nil.
 For registered files, the possible values are:
 
-  'implicit   FILE is always writeable, and checked out `implicitly'
+  'implicit   FILES are always writeable, and checked out `implicitly'
               when the user saves the first changes to the file.
 
-  'locking    FILE is read-only if up-to-date; user must type
+  'locking    FILES are read-only if up-to-date; user must type
               \\[vc-next-action] before editing.  Strict locking
               is assumed.
 
-  'announce   FILE is read-only if up-to-date; user must type
+  'announce   FILES are read-only if up-to-date; user must type
               \\[vc-next-action] before editing.  But other users
               may be editing at the same time."
-  (or (vc-file-getprop file 'vc-checkout-model)
-      (if (vc-backend file)
-          (vc-file-setprop file 'vc-checkout-model
-                           (vc-call checkout-model file)))))
+  (vc-call-backend backend 'checkout-model files))
 
 (defun vc-user-login-name (file)
   "Return the name under which the user accesses the given FILE."
@@ -494,7 +490,7 @@ For registered files, the value returned is one of:
   USER               The current version of the working file is locked by
                      some other USER (a string).
 
-  'needs-patch       The file has not been edited by the user, but there is
+  'needs-update       The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
                      in the master file.
 
@@ -524,23 +520,17 @@ For registered files, the value returned is one of:
   'missing           The file is not present in the file system, but the VC
                      system still tracks it.
 
-  'ignored           The file showed up in a dir-state listing with a flag
+  'ignored           The file showed up in a dir-status listing with a flag
                      indicating the version-control system is ignoring it,
                      Note: This property is not set reliably (some VCSes
                      don't have useful directory-status commands) so assume
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file showed up in a dir-state listing with a flag
-                     indicating that it is not under version control.
-                     Note: This property is not set reliably (some VCSes
-                     don't have useful directory-status commands) so assume
-                     that any file with vc-state nil might be unregistered
-                     without VC knowing it.
+  'unregistered      The file is not under version control.
 
 A return of nil from this function means we have no information on the
-status of this file.
-"
+status of this file."
   ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
   ;; This is potentially a source of backward-compatibility bugs.
 
@@ -564,7 +554,7 @@ rather than the heuristic."
   (eq (vc-state file) 'up-to-date))
 
 (defun vc-default-state-heuristic (backend file)
-  "Default implementation of vc-state-heuristic.
+  "Default implementation of vc-BACKEND-state-heuristic.
 It simply calls the real state computation function `vc-BACKEND-state'
 and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
@@ -687,19 +677,17 @@ this function."
   "Change read-only status of current buffer, perhaps via version control.
 
 If the buffer is visiting a file registered with version control,
-then check the file in or out.  Otherwise, just change the read-only flag
-of the buffer.
-With prefix argument, ask for version number to check in or check out.
-Check-out of a specified version number does not lock the file;
-to do that, use this command a second time with no argument.
+throw an error, because this is not a safe or really meaningful operation
+on any version-control system newer than RCS.
 
-If you bind this function to \\[toggle-read-only], then Emacs checks files
-in or out whenever you toggle the read-only flag."
+Otherwise, just change the read-only flag of the buffer.
+
+If you bind this function to \\[toggle-read-only], then Emacs
+will properly intercept all attempts to toggle the read-only flag
+on version-controlled buffer."
   (interactive "P")
-  (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
-	  ;; use boundp because vc.el might not be loaded
-	  (vc-backend buffer-file-name))
-      (vc-next-action verbose)
+  (if (vc-backend buffer-file-name)
+      (error "Toggling the readability of a version controlled file is likely to wreak havoc.")
     (toggle-read-only)))
 
 (defun vc-default-make-version-backups-p (backend file)
@@ -752,23 +740,25 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; If the file on disk is still in sync with the repository,
   ;; and version backups should be made, copy the file to
   ;; another name.  This enables local diffs and local reverting.
-  (let ((file buffer-file-name))
+  (let ((file buffer-file-name)
+        backend)
     (ignore-errors               ;Be careful not to prevent saving the file.
-      (and (vc-backend file)
+      (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
-           (eq (vc-checkout-model file) 'implicit)
+           (eq (vc-checkout-model backend (list file)) 'implicit)
            (vc-call make-version-backups-p file)
            (vc-make-version-backup file)))))
 
-(declare-function vc-dired-resynch-file "vc" (file))
+(declare-function vc-directory-resynch-file "vc" (file))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
   ;; If the file in the current buffer is under version control,
   ;; up-to-date, and locking is not used for the file, set
   ;; the state to 'edited and redisplay the mode line.
-  (let ((file buffer-file-name))
-    (and (vc-backend file)
+  (let* ((file buffer-file-name)
+         (backend (vc-backend file)))
+    (and backend
 	 (or (and (equal (vc-file-getprop file 'vc-checkout-time)
 			 (nth 5 (file-attributes file)))
 		  ;; File has been saved in the same second in which
@@ -777,13 +767,13 @@ Before doing that, check if there are any old backups and get rid of them."
 		  (vc-file-setprop file 'vc-checkout-time nil))
 	     t)
          (vc-up-to-date-p file)
-         (eq (vc-checkout-model file) 'implicit)
+         (eq (vc-checkout-model backend (list file)) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
 	 (when (featurep 'vc)
 	   ;; If VC is not loaded, then there can't be
-	   ;; any VC Dired buffer to synchronize.
-	   (vc-dired-resynch-file file)))))
+	   ;; any directory buffer to synchronize.
+	   (vc-directory-resynch-file file)))))
 
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map
@@ -857,7 +847,7 @@ This function assumes that the file is registered."
 	(rev     (vc-working-revision file)))
     (propertize
      (cond ((or (eq state 'up-to-date)
-		(eq state 'needs-patch))
+		(eq state 'needs-update))
 	    (setq state-echo "Up to date file")
 	    (concat backend "-" rev))
 	   ((stringp state)
@@ -878,7 +868,7 @@ This function assumes that the file is registered."
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
-	    ;; for 'needs-patch and 'needs-merge.
+	    ;; for 'needs-update and 'needs-merge.
 	    (setq state-echo "Locally modified file")
 	    (concat backend ":" rev)))
      'help-echo (concat state-echo " under the " backend
@@ -912,6 +902,7 @@ current, and kill the buffer that visits the link."
       (setq vc-mode nil))
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
+    (add-hook 'mode-line-hook 'vc-mode-line nil t)
     (cond
      ((with-demoted-errors (vc-backend buffer-file-name))
       ;; Compute the state and put it in the modeline.

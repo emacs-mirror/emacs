@@ -239,9 +239,8 @@ works by setting the variable @code{buffer-read-only}, which has a local
 value in each buffer and makes the buffer read-only if its value is
 non-@code{nil}.  If you have files under version control, you may find
 it convenient to bind @kbd{C-x C-q} to @code{vc-toggle-read-only}
-instead.  Then, typing @kbd{C-x C-q} not only changes the read-only
-flag, but it also checks the file in or out.  @xref{Version
-Control}.
+instead.  This will guard you against an operation that will confuse
+most modern version-conmtrol systems. @xref{Version Control}.
 
 @findex rename-buffer
   @kbd{M-x rename-buffer} changes the name of the current buffer.  You

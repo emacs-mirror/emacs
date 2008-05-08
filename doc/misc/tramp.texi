@@ -3085,6 +3085,9 @@ How can I disable @value{tramp}?
 
 Shame on you, why did you read until now?
 
+@itemize @minus
+
+@item
 @ifset emacs
 If you just want to have @value{ftppackagename} as default remote
 files access package, you should apply the following code:
@@ -3094,11 +3097,27 @@ files access package, you should apply the following code:
 @end lisp
 @end ifset
 
+@item
+In order to disable
+@ifset emacs
+@value{tramp} (and @value{ftppackagename}),
+@end ifset
+@ifset xemacs
+@value{tramp},
+@end ifset
+you must set @code{tramp-mode} to @code{nil}:
+
+@lisp
+(setq tramp-mode nil)
+@end lisp
+
+@item
 Unloading @value{tramp} can be achieved by applying @kbd{M-x
 tramp-unload-tramp}.
 @ifset emacs
 This resets also the @value{ftppackagename} plugins.
 @end ifset
+@end itemize
 @end itemize
 
 

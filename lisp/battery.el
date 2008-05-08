@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,16 +19,15 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; There is at present support for GNU/Linux and OS X.  This library
-;; supports both the `/proc/apm' file format of Linux version 1.3.58
-;; or newer and the `/proc/acpi/' directory structure of Linux 2.4.20
-;; and 2.6.  Darwin (OS X) is supported by using the `pmset' program.
+;; There is at present support for GNU/Linux, OS X and Windows.  This
+;; library supports both the `/proc/apm' file format of Linux version
+;; 1.3.58 or newer and the `/proc/acpi/' directory structure of Linux
+;; 2.4.20 and 2.6.  Darwin (OS X) is supported by using the `pmset'
+;; program.  Windows is supported by the GetSystemPowerStatus API call.
 
 ;;; Code:
 
@@ -54,7 +53,9 @@
 		    (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
 			 (> (buffer-size) 0)))
 		(error nil)))
-	 'battery-pmset))
+	 'battery-pmset)
+	((eq system-type 'windows-nt)
+	 'w32-battery-status))
   "*Function for getting battery status information.
 The function has to return an alist of conversion definitions.
 Its cons cells are of the form
@@ -67,12 +68,12 @@ introduced by a `%' character in a control string."
   :group 'battery)
 
 (defcustom battery-echo-area-format
-  (cond ((eq battery-status-function 'battery-linux-proc-apm)
-	 "Power %L, battery %B (%p%% load, remaining time %t)")
-	((eq battery-status-function 'battery-linux-proc-acpi)
+  (cond ((eq battery-status-function 'battery-linux-proc-acpi)
 	 "Power %L, battery %B at %r (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-pmset)
-	 "%L power, battery %B (%p%% load, remaining time %t)"))
+	 "%L power, battery %B (%p%% load, remaining time %t)")
+	(battery-status-function
+	 "Power %L, battery %B (%p%% load, remaining time %t)"))
   "*Control string formatting the string to display in the echo area.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -97,11 +98,9 @@ string are substituted as defined by the current value of the variable
 ;;;###autoload (put 'battery-mode-line-string 'risky-local-variable t)
 
 (defcustom battery-mode-line-format
-  (cond ((eq battery-status-function 'battery-linux-proc-apm)
-	 "[%b%p%%]")
-	((eq battery-status-function 'battery-linux-proc-acpi)
+  (cond ((eq battery-status-function 'battery-linux-proc-acpi)
 	 "[%b%p%%,%d°C]")
-	((eq battery-status-function 'battery-pmset)
+	(battery-status-function
 	 "[%b%p%%]"))
   "*Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while

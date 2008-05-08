@@ -10763,6 +10763,13 @@ buffers.  For example:
 @end lisp
 
 Also @pxref{Group Parameters}.
+
+@vindex gnus-propagate-marks
+@item gnus-propagate-marks
+If non-@code{nil}, propagate marks to the backends for possible
+storing.  @xref{NNTP marks}, and friends, for a more fine-grained
+sieve.
+
 @end table
 
 

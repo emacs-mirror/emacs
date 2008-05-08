@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -91,8 +89,9 @@ If you want to force an empty list of arguments, use t."
 
 ;;; Properties of the backend
 
-(defun vc-svn-revision-granularity ()
-     'repository)
+(defun vc-svn-revision-granularity () 'repository)
+(defun vc-svn-checkout-model (files) 'implicit)
+
 ;;;
 ;;; State-querying functions
 ;;;
@@ -147,17 +146,6 @@ If you want to force an empty list of arguments, use t."
   "SVN-specific state heuristic."
   (vc-svn-state file 'local))
 
-(defun vc-svn-dir-state (dir &optional localp)
-  "Find the SVN state of all files in DIR and its subdirectories."
-  (setq localp (or localp (vc-stay-local-p dir)))
-  (let ((default-directory dir))
-    ;; Don't specify DIR in this command, the default-directory is
-    ;; enough.  Otherwise it might fail with remote repositories.
-    (with-temp-buffer
-      (buffer-disable-undo)		;; Because these buffers can get huge
-      (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
-      (vc-svn-parse-status))))
-
 (defun vc-svn-after-dir-status (callback)
   (let ((state-map '((?A . added)
                      (?C . conflict)
@@ -192,11 +180,6 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; is registered in SVN.
   (vc-svn-registered file)
   (vc-file-getprop file 'vc-working-revision))
-
-(defun vc-svn-checkout-model (file)
-  "SVN-specific version of `vc-checkout-model'."
-  ;; It looks like Subversion has no equivalent of CVSREAD.
-  'implicit)
 
 ;; vc-svn-mode-line-string doesn't exist because the default implementation
 ;; works just fine.
@@ -300,8 +283,6 @@ This is only possible if SVN is responsible for FILE's directory.")
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-svn-command nil 0 file
 	   "update"
-	   ;; default for verbose checkout: clear the sticky tag so
-	   ;; that the actual update will get the head of the trunk
 	   (cond
 	    ((null rev) "-rBASE")
 	    ((or (eq rev t) (equal rev "")) nil)
@@ -627,7 +608,7 @@ information about FILENAME and return its status."
 	 (cond
 	  ((eq status ?\ )
 	   (if (eq (char-after (match-beginning 1)) ?*)
-	       'needs-patch
+	       'needs-update
              (vc-file-setprop file 'vc-checkout-time
                               (nth 5 (file-attributes file)))
 	     'up-to-date))

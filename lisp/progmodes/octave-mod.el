@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -31,13 +29,10 @@
 ;; It defines Octave mode, a major mode for editing
 ;; Octave code.
 
-;; The file octave-hlp.el provides `octave-help', a facility for looking up
-;; documentation on a symbol in the Octave info files.
-
 ;; The file octave-inf.el contains code for interacting with an inferior
 ;; Octave process using comint.
 
-;; See the documentation of `octave-mode', `octave-help' and
+;; See the documentation of `octave-mode' and
 ;; `run-octave' for further information on usage and customization.
 
 ;;; Code:
@@ -58,43 +53,41 @@
   "Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>, bug-gnu-emacs@gnu.org"
   "Current maintainer of the Emacs Octave package.")
 
-(defvar octave-abbrev-table nil
+(define-abbrev-table 'octave-abbrev-table
+  (mapcar (lambda (e) (append e '(nil 0 t)))
+          '(("`a" "all_va_args")
+            ("`b" "break")
+            ("`cs" "case")
+            ("`ca" "catch")
+            ("`c" "continue")
+            ("`el" "else")
+            ("`eli" "elseif")
+            ("`et" "end_try_catch")
+            ("`eu" "end_unwind_protect")
+            ("`ef" "endfor")
+            ("`efu" "endfunction")
+            ("`ei" "endif")
+            ("`es" "endswitch")
+            ("`ew" "endwhile")
+            ("`f" "for")
+            ("`fu" "function")
+            ("`gl" "global")
+            ("`gp" "gplot")
+            ("`gs" "gsplot")
+            ("`if" "if ()")
+            ("`o" "otherwise")
+            ("`rp" "replot")
+            ("`r" "return")
+            ("`s" "switch")
+            ("`t" "try")
+            ("`u" "until ()")
+            ("`up" "unwind_protect")
+            ("`upc" "unwind_protect_cleanup")
+            ("`w" "while ()")))
   "Abbrev table for Octave's reserved words.
 Used in `octave-mode' and inferior-octave-mode buffers.
-All Octave abbrevs start with a grave accent (`).")
-(unless octave-abbrev-table
-  (define-abbrev-table 'octave-abbrev-table ()))
-
-(let ((abbrevs-changed abbrevs-changed))
-  (define-abbrev octave-abbrev-table "`a" "all_va_args" nil 0 t)
-  (define-abbrev octave-abbrev-table "`b" "break" nil 0 t)
-  (define-abbrev octave-abbrev-table "`cs" "case" nil 0 t)
-  (define-abbrev octave-abbrev-table "`ca" "catch" nil 0 t)
-  (define-abbrev octave-abbrev-table "`c" "continue" nil 0 t)
-  (define-abbrev octave-abbrev-table "`el" "else" nil 0 t)
-  (define-abbrev octave-abbrev-table "`eli" "elseif" nil 0 t)
-  (define-abbrev octave-abbrev-table "`et" "end_try_catch" nil 0 t)
-  (define-abbrev octave-abbrev-table "`eu" "end_unwind_protect" nil 0 t)
-  (define-abbrev octave-abbrev-table "`ef" "endfor" nil 0 t)
-  (define-abbrev octave-abbrev-table "`efu" "endfunction" nil 0 t)
-  (define-abbrev octave-abbrev-table "`ei" "endif" nil 0 t)
-  (define-abbrev octave-abbrev-table "`es" "endswitch" nil 0 t)
-  (define-abbrev octave-abbrev-table "`ew" "endwhile" nil 0 t)
-  (define-abbrev octave-abbrev-table "`f" "for" nil 0 t)
-  (define-abbrev octave-abbrev-table "`fu" "function" nil 0 t)
-  (define-abbrev octave-abbrev-table "`gl" "global" nil 0 t)
-  (define-abbrev octave-abbrev-table "`gp" "gplot" nil 0 t)
-  (define-abbrev octave-abbrev-table "`gs" "gsplot" nil 0 t)
-  (define-abbrev octave-abbrev-table "`if" "if ()" nil 0 t)
-  (define-abbrev octave-abbrev-table "`o" "otherwise" nil 0 t)
-  (define-abbrev octave-abbrev-table "`rp" "replot" nil 0 t)
-  (define-abbrev octave-abbrev-table "`r" "return" nil 0 t)
-  (define-abbrev octave-abbrev-table "`s" "switch" nil 0 t)
-  (define-abbrev octave-abbrev-table "`t" "try" nil 0 t)
-  (define-abbrev octave-abbrev-table "`u" "until ()" nil 0 t)
-  (define-abbrev octave-abbrev-table "`up" "unwind_protect" nil 0 t)
-  (define-abbrev octave-abbrev-table "`upc" "unwind_protect_cleanup" nil 0 t)
-  (define-abbrev octave-abbrev-table "`w" "while ()" nil 0 t))
+All Octave abbrevs start with a grave accent (`)."
+  :regexp "\\(?:[^`]\\|^\\)\\(\\(?:\\<\\|`\\)\\w+\\)\\W*")
 
 (defvar octave-comment-char ?#
   "Character to start an Octave comment.")
@@ -301,7 +294,8 @@ parenthetical grouping.")
     (modify-syntax-entry ?! "."   table)
     (modify-syntax-entry ?\\ "\\" table)
     (modify-syntax-entry ?\' "."  table)
-    (modify-syntax-entry ?\` "w"  table)
+    ;; Was "w" for abbrevs, but now that it's not necessary any more,
+    (modify-syntax-entry ?\` "."  table)
     (modify-syntax-entry ?\" "\"" table)
     (modify-syntax-entry ?. "w"   table)
     (modify-syntax-entry ?_ "w"   table)
@@ -544,6 +538,12 @@ including a reproducible test case and send the message."
   (octave-add-octave-menu)
   (octave-initialize-completions)
   (run-mode-hooks 'octave-mode-hook))
+
+(defun octave-help ()
+  "Get help on Octave symbols from the Octave info files.
+Look up symbol in the function, operator and variable indices of the info files."
+  (let ((info-lookup-mode 'octave-mode))
+    (call-interactively 'info-lookup-symbol)))
 
 ;;; Miscellaneous useful functions
 (defun octave-describe-major-mode ()
@@ -1259,8 +1259,7 @@ variables."
 	       (display-completion-list list string))
 	     (message "Hit space to flush")
 	     (let (key first)
-	       (if (save-excursion
-		     (set-buffer (get-buffer "*Completions*"))
+	       (if (with-current-buffer (get-buffer "*Completions*")
 		     (setq key (read-key-sequence nil)
 			   first (aref key 0))
 		     (and (consp first) (consp (event-start first))
@@ -1427,8 +1426,7 @@ entered without parens)."
   (let ((proc inferior-octave-process)
 	(string (buffer-substring-no-properties beg end))
 	line)
-    (save-excursion
-      (set-buffer inferior-octave-buffer)
+    (with-current-buffer inferior-octave-buffer
       (setq inferior-octave-output-list nil)
       (while (not (string-equal string ""))
 	(if (string-match "\n" string)
@@ -1517,12 +1515,11 @@ code line."
      'octave-comment-char
      'octave-continuation-offset
      'octave-continuation-string
-     'octave-help-files
      'octave-send-echo-input
      'octave-send-line-auto-forward
      'octave-send-show-buffer))))
 
-;;; provide ourself
+;; provide ourself
 
 (provide 'octave-mod)
 

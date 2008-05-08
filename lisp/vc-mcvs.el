@@ -3,14 +3,14 @@
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
-;; Maintainer:  Stefan Monnier <monnier@gnu.org>
+;; Maintainer:  None
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -111,8 +109,8 @@ This is only meaningful if you don't use the implicit checkout model
 
 ;;; Properties of the backend
 
-(defun vc-mcvs-revision-granularity ()
-     'file)
+(defalias 'vc-mcvs-revision-granularity 'vc-cvs-revision-granularity)
+(defalias 'vc-mcvs-checkout-model 'vc-cvs-checkout-model)
 
 ;;;
 ;;; State-querying functions
@@ -177,32 +175,10 @@ This is only meaningful if you don't use the implicit checkout model
 
 (defalias 'vc-mcvs-state-heuristic 'vc-cvs-state-heuristic)
 
-(defun vc-mcvs-dir-state (dir)
-  "Find the Meta-CVS state of all files in DIR and subdirectories."
-  ;; if DIR is not under Meta-CVS control, don't do anything.
-  (when (file-readable-p (expand-file-name "MCVS/CVS/Entries" dir))
-    (if (vc-stay-local-p dir)
-	(vc-mcvs-dir-state-heuristic dir)
-      (let ((default-directory dir))
-	;; Don't specify DIR in this command, the default-directory is
-	;; enough.  Otherwise it might fail with remote repositories.
-	(with-temp-buffer
-	  (buffer-disable-undo)		;; Because these buffers can get huge
-	  (setq default-directory (vc-mcvs-root dir))
-	  (vc-mcvs-command t 0 nil "status")
-	  (goto-char (point-min))
-	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
-	    (narrow-to-region (match-beginning 0) (match-end 0))
-	    (vc-cvs-parse-status)
-	    (goto-char (point-max))
-	    (widen)))))))
-
 (defun vc-mcvs-working-revision (file)
   (vc-cvs-working-revision
    (expand-file-name (vc-file-getprop file 'mcvs-inode)
 		     (vc-file-getprop file 'mcvs-root))))
-
-(defalias 'vc-mcvs-checkout-model 'vc-cvs-checkout-model)
 
 ;;;
 ;;; State-changing functions
@@ -344,7 +320,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
   (if (and (file-exists-p file) (not rev))
       ;; If no revision was specified, just make the file writable
       ;; if necessary (using `cvs-edit' if requested).
-      (and editable (not (eq (vc-mcvs-checkout-model file) 'implicit))
+      (and editable (not (eq (vc-mcvs-checkout-model (list file)) 'implicit))
 	   (if vc-mcvs-use-edit
 	       (vc-mcvs-command nil 0 file "edit")
 	     (set-file-modes file (logior (file-modes file) 128))
@@ -367,7 +343,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 (defun vc-mcvs-revert (file &optional contents-done)
   "Revert FILE to the working revision it was based on."
   (vc-default-revert 'MCVS file contents-done)
-  (unless (eq (vc-checkout-model file) 'implicit)
+  (unless (eq (vc-mcvs-checkout-model (list file)) 'implicit)
     (if vc-mcvs-use-edit
         (vc-mcvs-command nil 0 file "unedit")
       ;; Make the file read-only by switching off all w-bits

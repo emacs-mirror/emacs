@@ -1,28 +1,25 @@
 ;;; calculator.el --- a [not so] simple calculator for Emacs
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,  2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2007-08-31 03:00:11 ttn>
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by the
-;; Free Software Foundation; either version 3, or (at your option) any
-;; later version.
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-;; MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;;=====================================================================
 ;;; Commentary:
@@ -1795,18 +1792,18 @@ To use this, apply a binary operator (evaluate it), then call this."
        ;; For small x, the range error comes from large y.
        0.0)
       ((and (> x 0.0) (< y 0.0))
-       ;; For large positive x and negative y, the range error 
+       ;; For large positive x and negative y, the range error
        ;; comes from large negative y.
        0.0)
       ((and (> x 0.0) (> y 0.0))
-       ;; For large positive x and positive y, the range error 
+       ;; For large positive x and positive y, the range error
        ;; comes from large y.
        1.0e+INF)
       ;; For the rest, x must be large and negative.
       ;; The range errors come from large integer y.
       ((< y 0.0)
        0.0)
-      ((oddp (truncate y))
+      ((eq (logand (truncate y) 1) 1)   ; expansion of cl `oddp'
        ;; If y is odd
        -1.0e+INF)
       (t

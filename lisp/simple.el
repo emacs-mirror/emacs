@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -5425,11 +5423,15 @@ to decide what to delete."
 	       'choose-completion-string-functions
 	       choice buffer mini-p base-size)
 	;; Insert the completion into the buffer where it was requested.
+        ;; FIXME:
+        ;; - There may not be a field at point, or there may be a field but
+        ;;   it's not a "completion field", in which case we have to
+        ;;   call choose-completion-delete-max-match even if base-size is set.
+        ;; - we may need to delete further than (point) to (field-end),
+        ;;   depending on the completion-style, and for that we need to
+        ;;   extra data `completion-extra-size'.
 	(if base-size
-	    (delete-region (+ base-size (if mini-p
-					    (minibuffer-prompt-end)
-					  (point-min)))
-			   (point))
+	    (delete-region (+ base-size (field-beginning)) (point))
 	  (choose-completion-delete-max-match choice))
 	(insert choice)
 	(remove-text-properties (- (point) (length choice)) (point)
@@ -5439,7 +5441,7 @@ to decide what to delete."
 	  (set-window-point window (point)))
 	;; If completing for the minibuffer, exit it with this choice.
 	(and (not completion-no-auto-exit)
-	     (equal buffer (window-buffer (minibuffer-window)))
+             (minibufferp buffer)
 	     minibuffer-completion-table
 	     ;; If this is reading a file name, and the file name chosen
 	     ;; is a directory, don't exit the minibuffer.
@@ -5478,33 +5480,11 @@ Called from `temp-buffer-show-hook'."
   :version "22.1"
   :group 'completion)
 
-(defface completions-first-difference
-  '((t (:inherit bold)))
-  "Face put on the first uncommon character in completions in *Completions* buffer."
-  :group 'completion)
-
-(defface completions-common-part
-  '((t (:inherit default)))
-  "Face put on the common prefix substring in completions in *Completions* buffer.
-The idea of `completions-common-part' is that you can use it to
-make the common parts less visible than normal, so that the rest
-of the differing parts is, by contrast, slightly highlighted."
-  :group 'completion)
-
 ;; This is for packages that need to bind it to a non-default regexp
 ;; in order to make the first-differing character highlight work
 ;; to their liking
 (defvar completion-root-regexp "^/"
   "Regexp to use in `completion-setup-function' to find the root directory.")
-
-(defvar completion-common-substring nil
-  "Common prefix substring to use in `completion-setup-function' to put faces.
-The value is set by `display-completion-list' during running `completion-setup-hook'.
-
-To put faces `completions-first-difference' and `completions-common-part'
-in the `*Completions*' buffer, the common prefix substring in completions
-is needed as a hint.  (The minibuffer is a special case.  The content
-of the minibuffer before point is always the common substring.)")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
@@ -5539,31 +5519,6 @@ of the minibuffer before point is always the common substring.)")
                (minibuffer-completing-symbol nil)
                ;; Otherwise, in minibuffer, the base size is 0.
                ((minibufferp mainbuf) 0))))
-      (setq common-string-length
-	    (cond
-	     (completion-common-substring
-	      (length completion-common-substring))
-	     (completion-base-size
-	      (- (length mbuf-contents) completion-base-size))))
-      ;; Put faces on first uncommon characters and common parts.
-      (when (and (integerp common-string-length) (>= common-string-length 0))
-	(let ((element-start (point-min))
-              (maxp (point-max))
-              element-common-end)
-	  (while (and (setq element-start
-                            (next-single-property-change
-                             element-start 'mouse-face))
-                      (< (setq element-common-end
-                               (+ element-start common-string-length))
-                         maxp))
-	    (when (get-char-property element-start 'mouse-face)
-	      (if (and (> common-string-length 0)
-		       (get-char-property (1- element-common-end) 'mouse-face))
-		  (put-text-property element-start element-common-end
-				     'font-lock-face 'completions-common-part))
-	      (if (get-char-property element-common-end 'mouse-face)
-		  (put-text-property element-common-end (1+ element-common-end)
-				     'font-lock-face 'completions-first-difference))))))
       ;; Maybe insert help string.
       (when completion-show-help
 	(goto-char (point-min))

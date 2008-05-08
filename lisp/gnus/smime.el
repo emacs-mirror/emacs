@@ -8,20 +8,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published
-;; by the Free Software Foundation; either version 3, or (at your
-;; option) any later version.
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -305,7 +303,7 @@ key and certificate itself."
   (smime-new-details-buffer)
   (let* ((certfiles (and (cdr-safe keyfile) (cadr keyfile)))
 	 (keyfile (or (car-safe keyfile) keyfile))
-	 (buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+	 (buffer (generate-new-buffer " *smime*"))
 	 (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
 	 (tmpfile (smime-make-temp-file "smime")))
     (if passphrase
@@ -340,7 +338,7 @@ If encryption fails, the buffer is not modified.  Region is assumed to
 have proper MIME tags.  CERTFILES is a list of filenames, each file
 is expected to contain of a PEM encoded certificate."
   (smime-new-details-buffer)
-  (let ((buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+  (let ((buffer (generate-new-buffer " *smime*"))
 	(tmpfile (smime-make-temp-file "smime")))
     (prog1
 	(when (prog1
@@ -439,7 +437,7 @@ On success, replaces region with decrypted data and return non-nil.
 Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
   (smime-new-details-buffer)
-  (let ((buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+  (let ((buffer (generate-new-buffer " *smime*"))
 	CAs (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
 	(tmpfile (smime-make-temp-file "smime")))
     (if passphrase

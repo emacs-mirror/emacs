@@ -9,20 +9,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Comentary:
 
@@ -253,7 +251,7 @@
 
 (defvar robin-package-alist nil
   "List of robin packages.
-A robin pacakge is of the form (NAME DOCSTRING &rest RULES).
+A robin package is of the form (NAME DOCSTRING &rest RULES).
 NAME is a string specifying a particular robin package.
 DOCSTRING is a documentation string for the robin package.
 
@@ -273,7 +271,7 @@ For example, if you evaluate the following,
 this robin package will be the following.
 
   (\"test\" \"Uppercase input characters\"
-   (?a \"A\" 
+   (?a \"A\"
        (?b \"AB\")
        (?c \"AC\"
 	   (?d \"ACD\")
@@ -379,7 +377,7 @@ Internal use only."
 
 (defvar robin-current-package-name nil
   "String representing the name of the current robin package.
-Nil means no packages is selected.")
+A nil value means no package is selected.")
 (make-variable-buffer-local 'robin-current-package-name)
 
 ;;;###autoload
@@ -401,7 +399,7 @@ Nil means no packages is selected.")
 (defun robin-activate (&optional arg)
   "Activate robin input method.
 
-With ARG, activate robin input method iff ARG is positive.
+With ARG, activate robin input method if and only if ARG is positive.
 
 While this input method is active, the variable
 `input-method-function' is bound to the function `robin-input-method'."

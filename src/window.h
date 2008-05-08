@@ -222,8 +222,9 @@ struct window
     /* If redisplay in this window goes beyond this buffer position,
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
-    /* Non-nil means don't delete this window for becoming "too small".  */
-    Lisp_Object too_small_ok;
+    /* Non-nil means resizing windows will attempt to resize this window
+       proportionally.  */
+    Lisp_Object resize_proportionally;
 
     /* Original window height and top before mini-window was
        enlarged. */
@@ -337,19 +338,17 @@ struct window
 #define WINDOW_FRAME_LINE_HEIGHT(W) \
   (FRAME_LINE_HEIGHT (WINDOW_XFRAME ((W))))
 
-
-/* Return the frame width in canonical column units.
+/* Return the width of window W in canonical column units.
    This includes scroll bars and fringes.  */
 
 #define WINDOW_TOTAL_COLS(W) \
   (XFASTINT ((W)->total_cols))
 
-/* Return the frame height in canonical line units.
+/* Return the height of window W in canonical line units.
    This includes header and mode lines, if any.  */
 
 #define WINDOW_TOTAL_LINES(W) \
   (XFASTINT ((W)->total_lines))
-
 
 /* Return the total pixel width of window W.  */
 

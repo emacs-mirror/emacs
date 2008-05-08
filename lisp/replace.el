@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1005,7 +1003,8 @@ which means to discard all text properties."
       (nreverse result))))
 
 (defun occur-read-primary-args ()
-  (let* ((default
+  (let* ((default (car regexp-history))
+	 (defaults
 	   (list (and transient-mark-mode mark-active
 		      (regexp-quote
 		       (buffer-substring-no-properties
@@ -1020,12 +1019,20 @@ which means to discard all text properties."
 		 (regexp-quote (or (car search-ring) ""))
 		 (car (symbol-value
 		       query-replace-from-history-variable))))
-	 (default (delete-dups (delq nil (delete "" default))))
+	 (defaults (delete-dups (delq nil (delete "" defaults))))
+	 ;; Don't add automatically the car of defaults for empty input
+	 (history-add-new-input nil)
 	 (input
 	  (read-from-minibuffer
-	   "List lines matching regexp: "
-	   nil nil nil 'regexp-history default)))
-    (list input
+	   (if default
+	       (format "List lines matching regexp (default %s): "
+		       (query-replace-descr default))
+	     "List lines matching regexp: ")
+	   nil nil nil 'regexp-history defaults)))
+    (list (if (equal input "")
+	      default
+	    (prog1 input
+	      (add-to-history 'regexp-history input)))
 	  (when current-prefix-arg
 	    (prefix-numeric-value current-prefix-arg)))))
 
@@ -1123,6 +1130,8 @@ See also `multi-occur'."
 			   (buffer-list))))))
 
 (defun occur-1 (regexp nlines bufs &optional buf-name)
+  (unless (and regexp (not (equal regexp "")))
+    (error "Occur doesn't work with the empty regexp"))
   (unless buf-name
     (setq buf-name "*Occur*"))
   (let (occur-buf

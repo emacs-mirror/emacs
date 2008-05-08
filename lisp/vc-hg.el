@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,13 +42,12 @@
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
-;; - dir-state (dir)                           OK
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
-;; * checkout-model (file)                     OK
+;; * checkout-model (files)                    OK
 ;; - workfile-unchanged-p (file)               OK
 ;; - mode-line-string (file)                   NOT NEEDED
-;; - dired-state-info (file)                   OK
+;; - prettify-state-info (file)                OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
@@ -72,7 +69,6 @@
 ;; - log-view-mode ()                          OK
 ;; - show-log-entry (revision)                  NOT NEEDED, DEFAULT IS GOOD
 ;; - wash-log (file)                           ??
-;; - logentry-check ()                         NOT NEEDED
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK
@@ -131,8 +127,8 @@
 
 ;;; Properties of the backend
 
-(defun vc-hg-revision-granularity ()
-     'repository)
+(defun vc-hg-revision-granularity () 'repository)
+(defun vc-hg-checkout-model (files) 'implicit)
 
 ;;; State querying functions
 
@@ -181,54 +177,6 @@
 	     ((eq state ??) 'unregistered)
 	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
-
-(defun vc-hg-dir-state (dir)
-  (with-temp-buffer
-    (buffer-disable-undo)		;; Because these buffers can get huge
-    (vc-hg-command (current-buffer) nil dir "status" "-A")
-    (goto-char (point-min))
-    (let ((status-char nil)
-	  (file nil))
-      (while (not (eobp))
-	(setq status-char (char-after))
-	(setq file
-	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2)
-					       (line-end-position))))
-	(cond
-	 ;; State flag for a clean file is now C, might change to =.
-	 ;; The rest of the possible states in "hg status" output:
-	 ;; 	 ! = deleted, but still tracked
-	 ;; should not show up in vc-dired, so don't deal with them
-	 ;; here.
-
-	 ;; Mercurial up to 0.9.5 used C, = is used now.
- 	 ((or (eq status-char ?=) (eq status-char ?C))
-	  (vc-file-setprop file 'vc-backend 'Hg)
- 	  (vc-file-setprop file 'vc-state 'up-to-date))
-	 ((eq status-char ?A)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-working-revision "0")
-	  (vc-file-setprop file 'vc-state 'added))
-	 ((eq status-char ?R)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'removed))
-	 ((eq status-char ?M)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'edited))
-	 ((eq status-char ?I)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'ignored))
-	 ((eq status-char ??)
-	  (vc-file-setprop file 'vc-backend 'none)
-	  (vc-file-setprop file 'vc-state 'unregistered))
-	 ((eq status-char ?!)
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'missing))
-	 (t	;; Presently C, might change to = in 0.9.6
-	  (vc-file-setprop file 'vc-backend 'Hg)
-	  (vc-file-setprop file 'vc-state 'up-to-date)))
-	(forward-line)))))
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."
@@ -390,7 +338,7 @@ Optional arg REVISION is a revision to annotate from."
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil 0 new old "mv"))
+  (vc-hg-command nil 0 new "mv" old))
 
 (defun vc-hg-register (files &optional rev comment)
   "Register FILES under hg.
@@ -444,9 +392,6 @@ REV is the revision to check out into WORKFILE."
         (vc-hg-command t 0 file "cat" "-r" rev)
       (vc-hg-command t 0 file "cat")))))
 
-(defun vc-hg-checkout-model (file)
-  'implicit)
-
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-hg-state file)))
@@ -458,8 +403,6 @@ REV is the revision to check out into WORKFILE."
 
 ;;; Hg specific functionality.
 
-;; XXX This functionality is experimental/work in progress. It might
-;; change without notice.
 (defvar vc-hg-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))
@@ -474,7 +417,27 @@ REV is the revision to check out into WORKFILE."
 
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
-;; XXX Experimental function for the vc-dired replacement.
+(defstruct (vc-hg-extra-fileinfo
+            (:copier nil)
+            (:constructor vc-hg-create-extra-fileinfo (rename-state extra-name))
+            (:conc-name vc-hg-extra-fileinfo->))
+  rename-state        ;; rename or copy state
+  extra-name)         ;; original name for copies and rename targets, new name for 
+
+(defun vc-hg-status-printer (info)
+  "Pretty-printer for the vc-dir-fileinfo structure."
+  (let ((extra (vc-dir-fileinfo->extra info)))
+    (vc-default-status-printer 'Hg info)
+    (when extra
+      (insert (propertize
+	       (format "   (%s %s)"
+		       (case (vc-hg-extra-fileinfo->rename-state extra)
+			 ('copied "copied from")
+			 ('renamed-from "renamed from")
+			 ('renamed-to "renamed to"))
+		       (vc-hg-extra-fileinfo->extra-name extra))
+	       'face 'font-lock-comment-face)))))
+
 (defun vc-hg-after-dir-status (update-function)
   (let ((status-char nil)
 	(file nil)
@@ -485,24 +448,50 @@ REV is the revision to check out into WORKFILE."
 		       (?M . edited)
 		       (?I . ignored)
 		       (?! . missing)
+		       (?  . copy-rename-line)
 		       (?? . unregistered)))
 	(translated nil)
-	(result nil))
+	(result nil)
+	(last-added nil)
+	(last-line-copy nil))
       (goto-char (point-min))
       (while (not (eobp))
-	(setq status-char (char-after))
+	(setq translated (cdr (assoc (char-after) translation)))
 	(setq file
 	      (buffer-substring-no-properties (+ (point) 2)
 					      (line-end-position)))
-	(setq translated (assoc status-char translation))
-	(when (and translated (not (eq (cdr translated) 'up-to-date)))
-	  (push (list file (cdr translated)) result))
+	(cond ((not translated)
+	       (setq last-line-copy nil))
+	      ((eq translated 'up-to-date)
+	       (setq last-line-copy nil))
+	      ((eq translated 'copy-rename-line)
+	       ;; For copied files the output looks like this:
+	       ;; A COPIED_FILE_NAME
+	       ;;   ORIGINAL_FILE_NAME
+	       (setf (nth 2 last-added) 
+		     (vc-hg-create-extra-fileinfo 'copied file))
+	       (setq last-line-copy t))
+	      ((and last-line-copy (eq translated 'removed))
+	       ;; For renamed files the output looks like this:
+	       ;; A NEW_FILE_NAME
+	       ;;   ORIGINAL_FILE_NAME
+	       ;; R ORIGINAL_FILE_NAME
+	       ;; We need to adjust the previous entry to not think it is a copy.
+	       (setf (vc-hg-extra-fileinfo->rename-state (nth 2 last-added))
+		     'renamed-from)
+	       (push (list file translated
+			   (vc-hg-create-extra-fileinfo
+			    'renamed-to (nth 0 last-added))) result)
+	       (setq last-line-copy nil))
+	      (t
+	       (setq last-added (list file translated nil))
+	       (push last-added result)
+	       (setq last-line-copy nil)))
 	(forward-line))
       (funcall update-function result)))
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-hg-dir-status (dir update-function)
-  (vc-hg-command (current-buffer) 'async dir "status")
+  (vc-hg-command (current-buffer) 'async dir "status" "-C")
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
 

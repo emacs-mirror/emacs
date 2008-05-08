@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -544,7 +542,7 @@ PROPS is a property list.  The following properties are special:
   overwrite a non-system abbreviation of the same name.
 - `:case-fixed': non-nil means that abbreviations are looked up without
   case-folding, and the expansion is not capitalized/upcased.
-- `:enable-function': a function of no argument which returns non-nil iff the
+- `:enable-function': a function of no argument which returns non-nil if the
   abbrev should be used for a particular call of `expand-abbrev'.
 
 An obsolete but still supported calling form is:
@@ -906,17 +904,22 @@ Properties with special meaning:
   means that an abbrev can only be a single word.  The submatch 1 is treated
   as the potential name of an abbrev.
 - `:enable-function' can be set to a function of no argument which returns
-  non-nil iff the abbrevs in this table should be used for this instance
-  of `expand-abbrev'."
+  non-nil if and only if the abbrevs in this table should be used for this
+  instance of `expand-abbrev'."
   ;; We used to manually add the docstring, but we also want to record this
   ;; location as the definition of the variable (in load-history), so we may
   ;; as well just use `defvar'.
   (eval `(defvar ,tablename nil ,@(if (stringp docstring) (list docstring))))
   (let ((table (if (boundp tablename) (symbol-value tablename))))
     (unless table
-      (setq table (make-abbrev-table props))
+      (setq table (make-abbrev-table))
       (set tablename table)
       (push tablename abbrev-table-name-list))
+    ;; We used to just pass them to `make-abbrev-table', but that fails
+    ;; if the table was pre-existing as is the case if it was created by
+    ;; loading the user's abbrev file.
+    (while (consp props)
+      (abbrev-table-put table (pop props) (pop props)))
     (dolist (elt definitions)
       (apply 'define-abbrev table elt))))
 

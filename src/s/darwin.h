@@ -1,13 +1,13 @@
 /* System description header file for Darwin (Mac OS X).
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+                 2008 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,9 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /*
@@ -265,9 +263,31 @@ Boston, MA 02110-1301, USA.  */
 /* Indicate that we are compiling for Mac OS X.  */
 #define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
 
+#ifdef HAVE_CARBON
+
+#ifdef HAVE_AVAILABILITYMACROS_H
+#include <AvailabilityMacros.h>
+#endif
+
+/* Whether to use the Image I/O framework for reading images.  */
+#ifndef USE_MAC_IMAGE_IO
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040 && (MAC_OS_X_VERSION_MIN_REQUIRED >= 1040 || MAC_OS_X_VERSION_MIN_REQUIRED < 1020)
+#define USE_MAC_IMAGE_IO 1
+#endif
+#endif
+
+/* If the Image I/O framework is not used, fall back on QuickTime.  */
+#if USE_MAC_IMAGE_IO
+#define LIBS_IMAGE
+#else
+#define LIBS_IMAGE -framework QuickTime
+#endif
+
+#endif	/* HAVE_CARBON */
+
 /* Link in the Carbon lib. */
 #ifdef HAVE_CARBON
-#define LIBS_CARBON -framework Carbon -framework QuickTime
+#define LIBS_CARBON -framework Carbon LIBS_IMAGE
 #else
 #define LIBS_CARBON
 #endif

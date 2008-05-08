@@ -65,7 +65,9 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
-** `completion-auto-help' can be set to `lazy' to list the completions only
+** Completion.
+*** `completion-style' can be customized to choose your favorite completion.
+*** `completion-auto-help' can be set to `lazy' to list the completions only
 if you repeat the completion.  This was already supported in
 `partial-completion-mode'.
 
@@ -194,6 +196,9 @@ Emacs initialization.
 ** The minor modes unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 are obsolete.
 
+** The new commands `pp-macroexpand-expression' and `pp-macroexpand-last-sexp'
+pretty-print macro expansions.
+
 
 * Startup Changes in Emacs 23.1
 
@@ -224,6 +229,13 @@ Emacs was compiled without font-backend support.
 ** In Dired-x, all command guesses for ! are now added to the default
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
+
+** The following input methods were removed in Emacs 22.2, but this was
+not advertised: danish-alt-postfix, esperanto-alt-postfix,
+finnish-alt-postfix, german-alt-postfix, icelandic-alt-postfix,
+norwegian-alt-postfix, scandinavian-alt-postfix, spanish-alt-postfix,
+and swedish-alt-postfix.  Use the versions without "alt-", which are
+identical.
 
 
 * Editing Changes in Emacs 23.1
@@ -404,15 +416,14 @@ Proced makes an Emacs buffer containing a listing of the current processes
 (using ps(1)).  You can use the normal Emacs commands to move around in
 this buffer, and special Proced commands to operate on the processes listed.
 
+** bug-reference.el provides clickable links to bug reports.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
 ** A new `whitespace' package has been installed, and the pre-existing one
 renamed to `old-whitespace'.
 [FIXME someone explain why this is good, if it is...]
-
-** In Change Log mode, the new function `change-log-find-file', bound to
-C-c C-f, finds the file associated with the current log entry.
 
 ** abbrev was rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
@@ -460,19 +471,6 @@ documentation of the given isearch key sequence, `C-h m' displays
 documentation of isearch mode.  All the rest Help commands exit isearch mode
 and execute their global definitions.
 
-** smerge-refine highlights word-level details of changes in conflict.
-It's used automatically as you move through conflicts, see smerge-auto-refine.
-
-** Diff mode
-
-*** diff-refine-hunk highlights word-level details of changes in a diff hunk.
-It's used automatically as you move through hunks, see
-diff-auto-refine.  It is bound to `C-c C-b'.
-
-*** diff-add-change-log-entries-other-window iterates through the diff
-buffer and tries to create ChangeLog entries for each change.
-It is bound to `C-x 4 A'.
-
 ** archive-mode has basic support to browse Rar archives.
 
 ** talk.el has been extended for multiple tty support.
@@ -518,7 +516,7 @@ and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
 
 *** vc-dir is a new command that displays file names and their VC
-status.  It allows to apply various VC operations to apply a file or a
+status.  It allows to apply various VC operations to a file or a
 set of files.
 
 *** Clicking on the VC mode-line entry now pops the VC menu.
@@ -540,8 +538,27 @@ active.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
 
+*** VC Support for Meta-CVS has been removed for lack of maintainer able
+to update it to the new VC.
+
+** smerge-refine highlights word-level details of changes in conflict.
+It's used automatically as you move through conflicts, see smerge-auto-refine.
+
+** Diff mode
+
+*** diff-refine-hunk highlights word-level details of changes in a diff hunk.
+It's used automatically as you move through hunks, see
+diff-auto-refine.  It is bound to `C-c C-b'.
+
+*** diff-add-change-log-entries-other-window iterates through the diff
+buffer and tries to create ChangeLog entries for each change.
+It is bound to `C-x 4 A'.
+
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
+
+** In Change Log mode, the new function `change-log-find-file', bound to
+C-c C-f, finds the file associated with the current log entry.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
@@ -646,6 +663,9 @@ See the file GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
 
 ** Miscellaneous
 
+*** goto-address.el provides two new minor modes, goto-address-mode and
+goto-address-prog-mode, which buttonize URLS and email addresses.
+
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
@@ -673,14 +693,21 @@ It is used to configure wireless interfaces.
 ---
 ** IPv6 is supported on MS-Windows.
 Emacs now supports IPv6 on Windows XP and later, and earlier versions
-of Windows with third party IPv6 stacks installed.  Previously IPv6 was
+of Windows with third party IPv6 stacks installed.  In Emacs 22, IPv6 was
 supported on other platforms, but not on Windows due to using the winsock
 1.1 header file, even though Emacs was linking to the winsock 2 library.
 
 ---
 ** Busy cursor (hourglass) now displays on MS-Windows.
 When Emacs is busy, an hourglass mouse cursor is displayed on Windows.
-Previously only X supported the busy cursor.
+In Emacs 22 only X supported the busy cursor.
+
+---
+** Battery status is available on MS-Windows
+Emacs can now display the battery status in the mode-line when enabled with
+display-battery-mode or from the Options menu.  More verbose battery
+information is also available with the command `battery'.  In Emacs 22
+battery status was supported only on GNU/Linux and Mac.
 
 ** More keys available on MS-Windows.
 Keys normally associated with IMEs, and some exotic keys not normally found
@@ -694,8 +721,15 @@ by default, since enabling them prevents their system-wide use when
 Emacs has focus.  To enable them, set the variable
 w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
+
 
 * Incompatible Lisp Changes in Emacs 23.1
+
+** The argument DEFAULT of minibuffer input functions `read-from-minibuffer',
+`read-string', `completing-read', `read-buffer', `read-command',
+`read-variable' now can be a list of default values.  The elements of
+this list are available for inserting to the minibuffer with `M-n'.
+If the user enters empty input, the first element is used as the default.
 
 ** `functionp' returns nil for special forms.
 I.e., it only returns t for objects that can be passed to `funcall'.
@@ -769,7 +803,8 @@ shift-translation.
 handle-shift-selection if shift-select-mode is non-nil, before reading
 the command arguments.
 
-** When deleting a terminal, run the special hook `delete-terminal-functions'.
+** When deleting a terminal, the special hook `delete-terminal-functions'
+is run.
 
 ** The `read-shell-command' function does what its name says, with completion.
 It uses the minibuffer-local-shell-command-map for that.
@@ -832,6 +867,8 @@ this map rather than to function-key-map now.
 undefined functions.  The new `check-declare' package verifies that such
 statements are accurate (i.e. the functions are actually defined in
 the specified files).
+
+** `ignore-errors' is now a standard macro (does not require the CL package).
 
 ** The new function `read-color' reads a color name using the minibuffer.
 
@@ -906,6 +943,8 @@ character is printable or not.
 *** The functions `modify-syntax-entry' and `modify-category-entry' now
 accepts a cons of characters as the first argument, and modify all
 entries in that range of characters.
++++
+*** `translation-table-for-input' is now obsolete.
 
 ** Code conversion changes
 
@@ -1106,6 +1145,8 @@ the match data.
 forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
+
+** find-cmd.el can build `find' commands using lisp syntax.
 
 ** The package isearch-multi.el has been added.  It implements a new mode
 `isearch-buffers-minor-mode' that allows isearch to search through

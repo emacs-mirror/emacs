@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -73,9 +71,6 @@
 (declare-function w32-get-locale-info "w32proc.c")
 (declare-function w32-get-valid-locale-ids "w32proc.c")
 (declare-function w32-set-clipboard-data "w32select.c")
-
-;; Ignore case on file-name completion
-(setq completion-ignore-case t)
 
 ;; Map all versions of a filename (8.3, longname, mixed case) to the
 ;; same buffer.
@@ -392,6 +387,7 @@ bit output with no translation."
       (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
       (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
       (w32-add-charset-info "tis620" 'w32-charset-thai 874)
+      (w32-add-charset-info "windows-1258" 'w32-charset-vietnamese 1258)
       (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
       (w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)))
 (if (boundp 'w32-unicode-charset-defined)

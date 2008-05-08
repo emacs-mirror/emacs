@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -286,13 +284,17 @@ The following commands are available:
   "Set up the server buffer."
   (gnus-server-setup-buffer)
   (gnus-configure-windows 'server)
-  (gnus-server-prepare))
+  ;; Usually `gnus-configure-windows' will finish with the
+  ;; `gnus-server-buffer' selected as the current buffer, but not always (I
+  ;; bumped into it when starting from a dedicated *Group* frame, and
+  ;; gnus-configure-windows opened *Server* into its own dedicated frame).
+  (with-current-buffer (get-buffer gnus-server-buffer)
+    (gnus-server-prepare)))
 
 (defun gnus-server-setup-buffer ()
   "Initialize the server buffer."
   (unless (get-buffer gnus-server-buffer)
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create gnus-server-buffer))
+    (with-current-buffer (gnus-get-buffer-create gnus-server-buffer)
       (gnus-server-mode)
       (when gnus-carpal
 	(gnus-carpal-setup-buffer 'server)))))
@@ -343,8 +345,7 @@ The following commands are available:
 (defconst gnus-server-edit-buffer "*Gnus edit server*")
 
 (defun gnus-server-update-server (server)
-  (save-excursion
-    (set-buffer gnus-server-buffer)
+  (with-current-buffer gnus-server-buffer
     (let* ((buffer-read-only nil)
 	   (entry (assoc server gnus-server-alist))
 	   (oentry (assoc (gnus-server-to-method server)
@@ -620,8 +621,7 @@ The following commands are available:
   (let ((buf (current-buffer)))
     (prog1
 	(gnus-browse-foreign-server server buf)
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(gnus-server-update-server (gnus-server-server-name))
 	(gnus-server-position-point)))))
 
@@ -962,8 +962,7 @@ If NUMBER, fetch this number of articles."
   (when (eq major-mode 'gnus-browse-mode)
     (gnus-kill-buffer (current-buffer)))
   ;; Insert the newly subscribed groups in the group buffer.
-  (save-excursion
-    (set-buffer gnus-group-buffer)
+  (with-current-buffer gnus-group-buffer
     (gnus-group-list-groups nil))
   (if gnus-browse-return-buffer
       (gnus-configure-windows 'server 'force)

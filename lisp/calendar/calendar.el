@@ -11,10 +11,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,9 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1316,7 +1314,7 @@ after the inserted text.  Returns t."
     (define-key map "ic"  'diary-insert-cyclic-entry)
     (define-key map "ihd" 'diary-hebrew-insert-entry)
     (define-key map "ihm" 'diary-hebrew-insert-monthly-entry)
-    (define-key map "ihy" 'diary-hebrew-insert-yeary-entry)
+    (define-key map "ihy" 'diary-hebrew-insert-yearly-entry)
     (define-key map "iid" 'diary-islamic-insert-entry)
     (define-key map "iim" 'diary-islamic-insert-monthly-entry)
     (define-key map "iiy" 'diary-islamic-insert-yearly-entry)
@@ -2129,12 +2127,11 @@ date d, and applying it to d+7 gives the DAYNAME following absolute date d."
   (- date (% (- date dayname) 7)))
 
 (defun calendar-nth-named-absday (n dayname month year &optional day)
-  "The absolute date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
-A DAYNAME of 0 means Sunday, 1 means Monday, and so on.  If N<0,
-return the Nth DAYNAME before MONTH DAY, YEAR (inclusive).
+  "Absolute date of the Nth DAYNAME after/before MONTH YEAR DAY.
+A DAYNAME of 0 means Sunday, 1 means Monday, and so on.
 If N>0, return the Nth DAYNAME after MONTH DAY, YEAR (inclusive).
-
-If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
+If N<0, return the Nth DAYNAME before MONTH DAY, YEAR (inclusive).
+DAY defaults to 1 if N>0, and MONTH's last day otherwise."
   (if (> n 0)
       (+ (* 7 (1- n))
          (calendar-dayname-on-or-before
@@ -2150,7 +2147,7 @@ If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
                year))))))
 
 (defun calendar-nth-named-day (n dayname month year &optional day)
-  "The date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
+  "Date of the Nth DAYNAME after/before MONTH YEAR DAY.
 Like `calendar-nth-named-absday', but returns a Gregorian date."
   (calendar-gregorian-from-absolute
    (calendar-nth-named-absday n dayname month year day)))

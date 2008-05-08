@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -62,24 +60,17 @@
 ;; You can automatically rotate faces when the buffer is saved;
 ;; see function `highlight-changes-rotate-faces' for how to do this.
 
-;; There are two hooks used by `highlight-changes-mode':
-;; `highlight-changes-enable-hook'  - is run when Highlight Changes mode
-;;				    is enabled for a buffer.
-;; `highlight-changes-disable-hook' - is run when Highlight Changes mode
-;;				    is disabled for a buffer.
-
+;; The hook `highlight-changes-mode-hook' is called when
+;; Highlight Changes mode is turned on or off.
+;; When it called, variable `highlight-changes-mode' has been updated
+;; to the new value.
+;;
 ;; Example usage:
-;; (defun my-highlight-changes-enable-hook ()
-;;   (add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)
-;; )
-;;
-;; (defun my-highlight-changes-disable-hook ()
-;;   (remove-hook 'write-file-functions 'highlight-changes-rotate-faces t)
-;; )
-;;
-;; (add-hook 'highlight-changes-enable-hook 'my-highlight-changes-enable-hook)
-;; (add-hook 'highlight-changes-disable-hook
-;;		'my-highlight-changes-disable-hook)
+;; (defun my-highlight-changes-mode-hook ()
+;;   (if highlight-changes-mode
+;;       (add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)
+;;     (remove-hook 'write-file-functions 'highlight-changes-rotate-faces t)
+;;     ))
 
 
 ;;           Automatically enabling Highlight Changes mode
@@ -175,7 +166,9 @@
 ;;   previous active/passive aspect of highlight-changes-mode.
 ;; - Removed highlight-changes-toggle-hook
 ;; - Put back eval-and-compile inadvertently dropped
-
+;; May 2008
+;; - Removed highlight-changes-disable-hook and highlight-changes-enable-hook
+;;   because highlight-changes-mode-hook can do both.
 
 ;;; Code:
 
@@ -353,11 +346,7 @@ Other functions for buffers in this mode include:
 through	various faces.
 \\[highlight-compare-with-file] - mark text as changed by comparing this
 buffer with the contents of a file
-\\[highlight-compare-buffers] highlights differences between two buffers.
-
-Hook variables:
-`highlight-changes-enable-hook': called when enabling Highlight Changes mode.
-`highlight-changes-disable-hook': called when disabling Highlight Changes mode."
+\\[highlight-compare-buffers] highlights differences between two buffers."
   nil			;; init-value
   hilit-chg-string	;; lighter
   nil			;; keymap
@@ -372,8 +361,6 @@ Hook variables:
 	    (setq highlight-changes-mode (not highlight-changes-mode)))
 	(if highlight-changes-mode
 	    ;; it is being turned on
-	    ;; the hook has been moved into hilit-chg-set
-	    ;; (run-hooks 'highlight-changes-enable-hook))
 	    (hilit-chg-set)
 	  ;; mode is turned off
 	  (hilit-chg-clear)))
@@ -634,8 +621,7 @@ This allows you to manually remove highlighting from uninteresting changes."
   (setq highlight-changes-visible-mode highlight-changes-visibility-initial-state)
   (hilit-chg-update)
   (force-mode-line-update)
-  (add-hook 'after-change-functions 'hilit-chg-set-face-on-change nil t)
-  (run-hooks 'highlight-changes-enable-hook))
+  (add-hook 'after-change-functions 'hilit-chg-set-face-on-change nil t))
 
 (defun hilit-chg-clear ()
   "Remove Highlight Changes mode for this buffer.

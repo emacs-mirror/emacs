@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -187,6 +185,7 @@ See `compilation-error-screen-columns'"
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
+    (define-key map "g" 'recompile) ; revert
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
     (define-key map "\t" 'compilation-next-error)
@@ -230,7 +229,7 @@ See `compilation-error-screen-columns'"
   (if (display-graphic-p)
       (let ((map (butlast (copy-keymap tool-bar-map)))
 	    (help (last tool-bar-map))) ;; Keep Help last in tool bar
-	(tool-bar-local-item 
+	(tool-bar-local-item
 	 "left-arrow" 'previous-error-no-select 'previous-error-no-select map
 	 :rtl "right-arrow"
 	 :help "Goto previous match")
@@ -238,12 +237,12 @@ See `compilation-error-screen-columns'"
 	 "right-arrow" 'next-error-no-select 'next-error-no-select map
 	 :rtl "left-arrow"
 	 :help "Goto next match")
-	(tool-bar-local-item 
+	(tool-bar-local-item
 	 "cancel" 'kill-compilation 'kill-compilation map
 	 :enable '(let ((buffer (compilation-find-buffer)))
 		    (get-buffer-process buffer))
 	 :help "Stop grep")
-	(tool-bar-local-item 
+	(tool-bar-local-item
 	 "refresh" 'recompile 'recompile map
 	 :help "Restart grep")
 	(append map help))))

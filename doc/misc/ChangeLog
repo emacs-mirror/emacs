@@ -1,3 +1,29 @@
+2008-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.texi (Top): Fix typo in xref.
+
+2008-05-05  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Top): @xref to stand-alone manual.
+
+2008-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Various Summary Stuff): Add gnus-propagate-marks.
+	(Various Summary Stuff): Fix typo in last xref.
+
+2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Moving subtrees): Fix typo.
+
+2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Explain, how to disable
+	Tramp via `tramp-mode'.
+
+2008-04-27  Carsten Dominik  <dominik@sam.science.uva.nl>
+
+	* org.texi: Massive changes, in many parts of the file.
+
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Oort Gnus): Add message-fill-column.

@@ -543,8 +543,7 @@ font_prop_validate (spec)
 	{
 	  val = (font_property_table[i].validater) (prop, XCDR (elt));
 	  if (EQ (val, Qerror))
-	    Fsignal (Qfont, list2 (build_string ("invalid font property"),
-				   elt));
+	    signal_error ("invalid font property", elt);
 	  XSETCDR (elt, val);
 	}
     }
@@ -4026,7 +4025,7 @@ Each element is a vector [GLYPH-CODE LBEARING RBEARING WIDTH ASCENT DESCENT].  *
 }
 
 DEFUN ("font-match-p", Ffont_match_p, Sfont_match_p, 2, 2, 0,
-       doc: /* Return t iff font-spec SPEC matches with FONT.
+       doc: /* Return t if and only if font-spec SPEC matches with FONT.
 FONT is a font-spec, font-entity, or font-object. */)
      (spec, font)
      Lisp_Object spec, font;

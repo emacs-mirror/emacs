@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,6 +100,7 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; Properties of the backend
 
 (defun vc-sccs-revision-granularity () 'file)
+(defun vc-sccs-checkout-model (files) 'locking)
 
 ;;;
 ;;; State-querying functions
@@ -117,19 +116,21 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."
-  (with-temp-buffer
-    (if (vc-insert-file (vc-sccs-lock-file file))
-        (let* ((locks (vc-sccs-parse-locks))
-               (working-revision (vc-working-revision file))
-               (locking-user (cdr (assoc working-revision locks))))
-          (if (not locking-user)
-              (if (vc-workfile-unchanged-p file)
-                  'up-to-date
-                'unlocked-changes)
-            (if (string= locking-user (vc-user-login-name file))
-                'edited
-              locking-user)))
-      'up-to-date)))
+  (if (not (vc-sccs-registered file))
+      'unregistered
+    (with-temp-buffer
+      (if (vc-insert-file (vc-sccs-lock-file file))
+	  (let* ((locks (vc-sccs-parse-locks))
+		 (working-revision (vc-working-revision file))
+		 (locking-user (cdr (assoc working-revision locks))))
+	    (if (not locking-user)
+		(if (vc-workfile-unchanged-p file)
+		    'up-to-date
+		  'unlocked-changes)
+	      (if (string= locking-user (vc-user-login-name file))
+		  'edited
+		locking-user)))
+	'up-to-date))))
 
 (defun vc-sccs-state-heuristic (file)
   "SCCS-specific state heuristic."
@@ -154,10 +155,9 @@ For a description of possible values, see `vc-check-master-templates'."
             (vc-sccs-state file))))
     (vc-sccs-state file)))
 
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-sccs-dir-status (dir update-function)
-  ;; XXX: quick hack, there should be a better way to do this,
-  ;; but it's not worse than vc-dired :-).
+  ;; Doing loys of undividual VC-state calls is painful, but 
+  ;; there is no better option in SCCS-land.
   (let ((flist (vc-expand-dirs (list dir)))
 	(result nil))
     (dolist (file flist)
@@ -175,10 +175,6 @@ For a description of possible values, see `vc-check-master-templates'."
     ;; first entry might be a deleted ("R") revision.
     (vc-insert-file (vc-name file) "^\001e\n\001[^s]")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
-
-(defun vc-sccs-checkout-model (file)
-  "SCCS-specific version of `vc-checkout-model'."
-  'locking)
 
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of `vc-workfile-unchanged-p'."
@@ -333,12 +329,6 @@ locked.  REV is the revision to check out."
   "Remove all non-comment information from log output."
   ;; FIXME: not implemented for SCCS
   nil)
-
-(defun vc-sccs-logentry-check ()
-  "Check that the log entry in the current buffer is acceptable for SCCS."
-  (when (>= (buffer-size) 512)
-    (goto-char 512)
-    (error "Log must be less than 512 characters; point is now at pos 512")))
 
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."

@@ -8,21 +8,20 @@
 ;; Version: 2008-01-04 (Bzr revno 25)
 ;; URL: http://launchpad.net/vc-bzr
 
-;; This file is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; This file is part of GNU Emacs.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
-
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,7 +29,7 @@
 ;; <URL:http://launchpad.net/vc-bzr> for alternate development
 ;; branches of `vc-bzr'.
 
-;; Load this library to register bzr support in VC.  
+;; Load this library to register bzr support in VC.
 
 ;; Known bugs
 ;; ==========
@@ -38,12 +37,16 @@
 ;; When edititing a symlink and *both* the symlink and its target
 ;; are bzr-versioned, `vc-bzr` presently runs `bzr status` on the
 ;; symlink, thereby not detecting whether the actual contents
-;; (that is, the target contents) are changed.  
+;; (that is, the target contents) are changed.
 ;; See https://bugs.launchpad.net/vc-bzr/+bug/116607
 
 ;; For an up-to-date list of bugs, please see:
 ;;   https://bugs.launchpad.net/vc-bzr/+bugs
 
+;;; Properties of the backend
+
+(defun vc-bzr-revision-granularity () 'repository)
+(defun vc-bzr-checkout-model (files) 'implicit)
 
 ;;; Code:
 
@@ -275,7 +278,7 @@ If any error occurred in running `bzr status', then return nil."
                    (renamed . edited)
                    (modified . edited)
                    (removed . removed)
-                   (ignored . unregistered)
+                   (ignored . ignored)
                    (unknown . unregistered)
                    (unchanged . up-to-date)))))))
 
@@ -345,9 +348,6 @@ If any error occurred in running `bzr status', then return nil."
         (cond
          ((eq exitcode 0) (substring output 0 -1))
          (t nil))))))
-
-(defun vc-bzr-checkout-model (file)
-  'implicit)
 
 (defun vc-bzr-create-repo ()
   "Create a new Bzr repository."
@@ -564,98 +564,13 @@ stream.  Standard error output is discarded."
      (apply #'call-process command nil (list (current-buffer) nil) nil args)
      (buffer-substring (point-min) (point-max)))))
 
-;; TODO: it would be nice to mark the conflicted files in  VC Dired,
-;; and implement a command to run ediff and `bzr resolve' once the 
-;; changes have been merged.
-(defun vc-bzr-dir-state (dir &optional localp)
-  "Find the VC state of all files in DIR and its subdirectories.
-Optional argument LOCALP is always ignored."
-  (let ((bzr-root-directory (vc-bzr-root dir))
-        (at-start t)
-        current-bzr-state current-vc-state)
-    ;; Check that DIR is a bzr repository.
-    (unless (file-name-absolute-p bzr-root-directory)
-      (error "Cannot find bzr repository for directory `%s'" dir))
-    ;; `bzr ls --versioned' lists all versioned files;
-    ;; assume they are up-to-date, unless we are given
-    ;; evidence of the contrary.
-    (setq at-start t)
-    (with-temp-buffer
-      (buffer-disable-undo)		;; Because these buffers can get huge
-      (vc-bzr-command "ls" t 0 nil "--versioned")
-      (goto-char (point-min))
-      (while (or at-start
-                 (eq 0 (forward-line)))
-        (setq at-start nil)
-        (let ((file (expand-file-name
-                     (buffer-substring-no-properties 
-                      (line-beginning-position) (line-end-position))
-                     bzr-root-directory)))
-          ;; files are up-to-date unless they appear in the `bzr
-          ;; status' output below
-          (vc-file-setprop file 'vc-state 'up-to-date)
-          ;; XXX: is this correct? what happens if one 
-          ;; mixes different SCMs in the same dir?
-          ;; Anyway, we're looking at the output of `bzr ls --versioned',
-          ;; so we know these files are registered with Bzr.
-          (vc-file-setprop file 'vc-backend 'Bzr))))
-    ;; `bzr status' reports on added/modified/renamed and unknown/ignored files
-    (setq at-start t)
-    (with-temp-buffer 
-      (vc-bzr-command "status" t 0 nil)
-      (goto-char (point-min))
-      (while (or at-start
-                 (eq 0 (forward-line)))
-        (setq at-start nil)
-        (cond 
-         ((looking-at "^added") 
-          (setq current-vc-state 'added)
-          (setq current-bzr-state 'added))
-         ((looking-at "^kind changed") 
-          (setq current-vc-state 'edited)
-          (setq current-bzr-state 'kindchanged))
-         ((looking-at "^modified") 
-          (setq current-vc-state 'edited)
-          (setq current-bzr-state 'modified))
-         ((looking-at "^renamed") 
-          (setq current-vc-state 'edited)
-          (setq current-bzr-state 'renamed))
-         ((looking-at "^ignored")
-          (setq current-vc-state 'ignored)
-          (setq current-bzr-state 'not-versioned))
-         ((looking-at "^unknown")
-          (setq current-vc-state 'unregistered)
-          (setq current-bzr-state 'not-versioned))
-         ((looking-at "  ")
-          ;; file names are indented by two spaces
-          (when current-vc-state
-            (let ((file (expand-file-name
-                         (buffer-substring-no-properties
-                          (match-end 0) (line-end-position))
-                         bzr-root-directory)))
-              (vc-file-setprop file 'vc-state current-vc-state)
-              (vc-file-setprop file 'vc-bzr-state current-bzr-state)
-              (when (eq 'added current-bzr-state)
-                (vc-file-setprop file 'vc-working-revision "0"))))
-          (when (eq 'not-versioned current-bzr-state)
-            (let ((file (expand-file-name
-                         (buffer-substring-no-properties
-                          (match-end 0) (line-end-position))
-                         bzr-root-directory)))
-              (vc-file-setprop file 'vc-backend 'none)
-              (vc-file-setprop file 'vc-state nil))))
-         (t
-          ;; skip this part of `bzr status' output
-          (setq current-vc-state nil)
-          (setq current-bzr-state nil)))))))
-
-(defun vc-bzr-dired-state-info (file)
-  "Bzr-specific version of `vc-dired-state-info'."
+(defun vc-bzr-prettify-state-info (file)
+  "Bzr-specific version of `vc-prettify-state-info'."
   (if (eq 'edited (vc-state file))
         (concat "(" (symbol-name (or (vc-file-getprop file 'vc-bzr-state) 
                                      'edited)) ")")
     ;; else fall back to default vc.el representation
-    (vc-default-dired-state-info 'Bzr file)))
+    (vc-default-prettify-state-info 'Bzr file)))
 
 ;; XXX: this needs testing, it's probably incomplete. 
 (defun vc-bzr-after-dir-status (update-function)
@@ -695,11 +610,8 @@ Optional argument LOCALP is always ignored."
 	(forward-line))
       (funcall update-function result)))
 
-;; XXX Experimental function for the vc-dired replacement.
-;; XXX This probably needs some further refinement and testing.
 (defun vc-bzr-dir-status (dir update-function)
   "Return a list of conses (file . state) for DIR."
-  ;; XXX: Is this the right command to use?
   (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
   (vc-exec-after
    `(vc-bzr-after-dir-status (quote ,update-function))))

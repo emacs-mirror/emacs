@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1042,13 +1040,12 @@ use with M-x."
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to and return as a string.
 It is intended for `switch-to-buffer' family of commands since they
-need to omit the name of current buffer from the list of complations
+need to omit the name of current buffer from the list of completions
 and default values."
-  (minibuffer-with-setup-hook
-      (lambda ()
-	(set (make-local-variable 'minibuffer-completion-table)
-	     (internal-complete-buffer-except (other-buffer (current-buffer) t))))
-    (read-buffer prompt (other-buffer (current-buffer)))))
+  (let ((rbts-completion-table (internal-complete-buffer-except)))
+    (minibuffer-with-setup-hook
+        (lambda () (setq minibuffer-completion-table rbts-completion-table))
+      (read-buffer prompt (other-buffer (current-buffer))))))
 
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
@@ -1125,7 +1122,7 @@ Recursive uses of the minibuffer will not be affected."
 	       ;; Clear out this hook so it does not interfere
 	       ;; with any recursive minibuffer usage.
 	       (remove-hook 'minibuffer-setup-hook ,hook)
-	       (,fun)))
+	       (funcall ,fun)))
        (unwind-protect
 	   (progn
 	     (add-hook 'minibuffer-setup-hook ,hook)
@@ -1803,7 +1800,7 @@ This function ensures that none of these modifications will take place."
              (symbol-function 'find-buffer-file-type)
            nil))
         (inhibit-file-name-handlers
-         (append '(jka-compr-handler image-file-handler)
+         (append '(jka-compr-handler image-file-handler epa-file-handler)
                  inhibit-file-name-handlers))
         (inhibit-file-name-operation 'insert-file-contents))
     (unwind-protect

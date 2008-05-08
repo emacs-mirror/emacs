@@ -6,10 +6,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -43,13 +41,6 @@ the separate window."
 (defcustom epa-info-window-height 5
   "Number of lines used to display status information."
   :type 'integer
-  :group 'epa)
-
-(defcustom epa-global-minor-modes '(epa-global-dired-mode
-				    epa-global-mail-mode
-				    epa-file-mode)
-  "Globally defined minor modes to hook into other modes."
-  :type '(repeat symbol)
   :group 'epa)
 
 (defgroup epa-faces nil
@@ -208,7 +199,8 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-last-coding-system-specified nil)
 
 (defvar epa-key-list-mode-map
-  (let ((keymap (make-sparse-keymap)))
+  (let ((keymap (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key keymap "m" 'epa-mark-key)
     (define-key keymap "u" 'epa-unmark-key)
     (define-key keymap "d" 'epa-decrypt-file)
@@ -224,6 +216,36 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap " " 'scroll-up)
     (define-key keymap [delete] 'scroll-down)
     (define-key keymap "q" 'epa-exit-buffer)
+    (define-key keymap [menu-bar epa-key-list-mode] (cons "Keys" menu-map))
+    (define-key menu-map [epa-key-list-unmark-key]
+      '(menu-item "Unmark Key" epa-unmark-key
+		  :help "Unmark a key"))
+    (define-key menu-map [epa-key-list-mark-key]
+      '(menu-item "Mark Key" epa-mark-key
+		  :help "Mark a key"))
+    (define-key menu-map [separator-epa-file] '(menu-item "--"))
+    (define-key menu-map [epa-verify-file]
+      '(menu-item "Verify File..." epa-verify-file
+		  :help "Verify FILE"))
+    (define-key menu-map [epa-sign-file]
+      '(menu-item "Sign File..." epa-sign-file
+		  :help "Sign FILE by SIGNERS keys selected"))
+    (define-key menu-map [epa-decrypt-file]
+      '(menu-item "Decrypt File..." epa-decrypt-file
+		  :help "Decrypt FILE"))
+    (define-key menu-map [epa-encrypt-file]
+      '(menu-item "Encrypt File.." epa-encrypt-file
+		  :help "Encrypt FILE for RECIPIENTS"))
+    (define-key menu-map [separator-epa-key-list] '(menu-item "--"))
+    (define-key menu-map [epa-key-list-delete-keys]
+      '(menu-item "Delete keys" epa-delete-keys
+		  :help "Delete Marked Keys"))
+    (define-key menu-map [epa-key-list-import-keys]
+      '(menu-item "Import Keys" epa-import-keys
+		  :help "Import keys from a file"))
+    (define-key menu-map [epa-key-list-export-keys]
+      '(menu-item "Export Keys" epa-export-keys
+		  :help "Export marked keys to a file"))
     keymap))
 
 (defvar epa-key-mode-map
@@ -235,44 +257,6 @@ You should bind this variable with `let', but do not set it globally.")
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap "q" 'delete-window)
     keymap))
-
-(defvar epa-menu nil)
-
-(defconst epa-menu-items
-  '("Encryption/Decryption"
-    ("Decrypt"
-     ["File" epa-decrypt-file
-      :help "Decrypt a file"]
-     ["Region" epa-decrypt-region
-      :help "Decrypt the current region"])
-    ("Verify"
-     ["File" epa-verify-file
-      :help "Verify digital signature of a file"]
-     ["Region" epa-verify-region
-      :help "Verify digital signature of the current region"])
-    ("Sign"
-     ["File" epa-sign-file
-      :help "Create digital signature of a file"]
-     ["Region" epa-sign-region
-      :help "Create digital signature of the current region"])
-    ("Encrypt"
-     ["File" epa-encrypt-file
-      :help "Encrypt a file"]
-     ["Region" epa-encrypt-region
-      :help "Encrypt the current region"])
-    "----"
-    ["Browse keyring" epa-list-keys
-     :help "Browse your public keyring"]
-    ("Import keys"
-     ["File" epa-import-keys
-      :help "Import public keys from a file"]
-     ["Region" epa-import-keys-region
-      :help "Import public keys from the current region"])
-    ("Export key"
-     ["To a File" epa-export-keys
-      :help "Export public keys to a file"]
-     ["To a Buffer" epa-insert-keys
-      :help "Insert public keys after the current point"])))
 
 (defvar epa-exit-buffer-function #'bury-buffer)
 
@@ -1139,7 +1123,7 @@ If no one is selected, symmetric encryption will be performed.  ")
     (message "Deleting...")
     (epg-delete-keys context keys allow-secret)
     (message "Deleting...done")
-    (apply #'epa-list-keys epa-list-keys-arguments)))
+    (apply #'epa--list-keys epa-list-keys-arguments)))
 
 ;;;###autoload
 (defun epa-import-keys (file)
@@ -1158,7 +1142,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 	(epa-display-info (epg-import-result-to-string
 			   (epg-context-result-for context 'import))))
     (if (eq major-mode 'epa-key-list-mode)
-	(apply #'epa-list-keys epa-list-keys-arguments))))
+	(apply #'epa--list-keys epa-list-keys-arguments))))
 
 ;;;###autoload
 (defun epa-import-keys-region (start end)
@@ -1256,27 +1240,6 @@ between START and END."
 ;;     (epg-sign-keys context keys local)
 ;;     (message "Signing keys...done")))
 ;; (make-obsolete 'epa-sign-keys "Do not use.")
-
-;;;###autoload
-(define-minor-mode epa-mode
-  "Minor mode to hook EasyPG into various modes.
-See `epa-global-minor-modes'."
-  :global t :init-value nil :group 'epa :version "23.1"
-  (unless epa-menu
-    (easy-menu-define epa-menu nil "EasyPG Assistant global menu"
-      epa-menu-items))
-  (easy-menu-remove-item nil '("Tools") "Encryption/Decryption")
-  (if epa-mode
-      (easy-menu-add-item nil '("Tools") epa-menu))
-  (let ((modes epa-global-minor-modes)
-	symbol)
-    (while modes
-      (setq symbol (car modes))
-      (if (and symbol
-	       (fboundp symbol))
-	  (funcall symbol epa-mode)
-	(message "`%S' not found" (car modes)))
-      (setq modes (cdr modes)))))
 
 (provide 'epa)
 

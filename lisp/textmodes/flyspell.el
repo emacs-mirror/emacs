@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -480,7 +478,7 @@ Bindings:
 \\[flyspell-correct-word] (or down-mouse-2): popup correct words.
 
 Hooks:
-This runs `flyspell-mode-hook' after flyspell is entered.
+This runs `flyspell-mode-hook' after flyspell mode is entered or exit.
 
 Remark:
 `flyspell-mode' uses `ispell-mode'.  Thus all Ispell options are
@@ -579,7 +577,7 @@ in your .emacs file.
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-mode-on ()
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
-  (ispell-maybe-find-aspell-dictionaries)
+  (ispell-set-spellchecker-params) ; Initialize variables and dicts alists
   (setq ispell-highlight-face 'flyspell-incorrect)
   ;; local dictionaries setup
   (or ispell-local-dictionary ispell-dictionary
@@ -618,9 +616,7 @@ in your .emacs file.
 	 (if binding
 	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
 		     (key-description binding))
-	   "Welcome to flyspell. Use Mouse-2 to correct words."))))
-  ;; we end with the flyspell hooks
-  (run-hooks 'flyspell-mode-hook))
+	   "Welcome to flyspell. Use Mouse-2 to correct words.")))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-delay-commands ...                                      */
@@ -1017,6 +1013,7 @@ Mostly we check word delimiters."
 (defun flyspell-word (&optional following)
   "Spell check a word."
   (interactive (list ispell-following-word))
+  (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
   (save-excursion
     ;; use the correct dictionary
     (flyspell-accept-buffer-local-defs)
@@ -1532,7 +1529,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     ;; this is done, we can start checking...
     (if flyspell-issue-message-flag (message "Checking region..."))
     (set-buffer curbuf)
-    (ispell-check-version)
+    (ispell-set-spellchecker-params)  ; Initialize variables and dicts alists
     ;; Local dictionary becomes the global dictionary in use.
     (setq ispell-current-dictionary
 	  (or ispell-local-dictionary ispell-dictionary))
@@ -1591,6 +1588,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 (defun flyspell-region (beg end)
   "Flyspell text between BEG and END."
   (interactive "r")
+  (ispell-set-spellchecker-params)  ; Initialize variables and dicts alists
   (if (= beg end)
       ()
     (save-excursion

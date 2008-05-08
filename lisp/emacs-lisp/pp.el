@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -96,15 +94,10 @@ can handle, whenever this is possible.
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
-;;;###autoload
-(defun pp-eval-expression (expression)
-  "Evaluate EXPRESSION and pretty-print its value.
-Also add the value to the front of the list in the variable `values'."
-  (interactive
-   (list (read-from-minibuffer "Eval: " nil read-expression-map t
-			       'read-expression-history)))
-  (message "Evaluating...")
-  (setq values (cons (eval expression) values))
+(defun pp-display-expression (expression out-buffer-name)
+  "Prettify and display EXPRESSION in an appropriate way, depending on length.
+If a temporary buffer is needed for representation, it will be named
+after OUT-BUFFER-NAME."
   (let* ((old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all
@@ -128,23 +121,37 @@ Also add the value to the front of the list in the variable `values'."
 			   (select-window window)
 			   (run-hooks 'temp-buffer-show-hook))
 		       (select-window old-selected)
-		       (message "Evaluating...done.  \
-See buffer *Pp Eval Output*.")))
+		       (message "See buffer %s." out-buffer-name)))
 		 (message "%s" (buffer-substring (point-min) (point)))
 		 ))))))
-    (with-output-to-temp-buffer "*Pp Eval Output*"
-      (pp (car values))
+    (with-output-to-temp-buffer out-buffer-name
+      (pp expression)
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
 	(setq buffer-read-only nil)
 	(set (make-local-variable 'font-lock-verbose) nil)))))
 
 ;;;###autoload
-(defun pp-eval-last-sexp (arg)
-  "Run `pp-eval-expression' on sexp before point (which see).
-With argument, pretty-print output into current buffer.
-Ignores leading comment characters."
-  (interactive "P")
+(defun pp-eval-expression (expression)
+  "Evaluate EXPRESSION and pretty-print its value.
+Also add the value to the front of the list in the variable `values'."
+  (interactive
+   (list (read-from-minibuffer "Eval: " nil read-expression-map t
+			       'read-expression-history)))
+  (message "Evaluating...")
+  (setq values (cons (eval expression) values))
+  (pp-display-expression (car values) "*Pp Eval Output*"))
+
+;;;###autoload
+(defun pp-macroexpand-expression (expression)
+  "Macroexpand EXPRESSION and pretty-print its value."
+  (interactive
+   (list (read-from-minibuffer "Macroexpand: " nil read-expression-map t
+			       'read-expression-history)))
+  (pp-display-expression (macroexpand expression) "*Pp Macroexpand Output*"))
+
+(defun pp-last-sexp ()
+  "Read sexp before point.  Ignores leading comment characters."
   (let ((stab (syntax-table)) (pt (point)) start exp)
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (save-excursion
@@ -160,9 +167,27 @@ Ignores leading comment characters."
 	    (setq exp (read exp)))
 	(setq exp (read (current-buffer)))))
     (set-syntax-table stab)
-    (if arg
-	(insert (pp-to-string (eval exp)))
-      (pp-eval-expression exp))))
+    exp))
+
+;;;###autoload
+(defun pp-eval-last-sexp (arg)
+  "Run `pp-eval-expression' on sexp before point.
+With argument, pretty-print output into current buffer.
+Ignores leading comment characters."
+  (interactive "P")
+  (if arg
+      (insert (pp-to-string (eval (pp-last-sexp))))
+    (pp-eval-expression (pp-last-sexp))))
+
+;;;###autoload
+(defun pp-macroexpand-last-sexp (arg)
+  "Run `pp-macroexpand-expression' on sexp before point.
+With argument, pretty-print output into current buffer.
+Ignores leading comment characters."
+  (interactive "P")
+  (if arg
+      (insert (pp-to-string (macroexpand (pp-last-sexp))))
+    (pp-macroexpand-expression (pp-last-sexp))))
 
 ;;; Test cases for quote
 ;; (pp-eval-expression ''(quote quote))

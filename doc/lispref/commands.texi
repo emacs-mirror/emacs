@@ -2419,9 +2419,7 @@ such as @code{recent-keys} and dribble files record the characters after
 translation.
 
 Note also that this translation is done before the characters are
-supplied to input methods (@pxref{Input Methods}).  Use
-@code{translation-table-for-input} (@pxref{Translation of Characters}),
-if you want to translate characters after input methods operate.
+supplied to input methods (@pxref{Input Methods}).
 @end defvar
 
 @defun keyboard-translate from to

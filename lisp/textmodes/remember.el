@@ -11,10 +11,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,9 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -480,7 +478,7 @@ If this is nil, then `diary-file' will be used instead."
     (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" entry)
         (progn
           ;; For calendar-date-style.  This costs us nothing because
-          ;; the call to make-diary-entry below loads diary-lib
+          ;; the call to diary-make-entry below loads diary-lib
           ;; which requires calendar.
           (require 'calendar)
           (replace-match
@@ -504,7 +502,7 @@ If this is nil, then `diary-file' will be used instead."
            t t entry))
       entry)))
 
-(autoload 'make-diary-entry "diary-lib")
+(autoload 'diary-make-entry "diary-lib")
 
 ;;;###autoload
 (defun remember-diary-extract-entries ()
@@ -515,7 +513,7 @@ If this is nil, then `diary-file' will be used instead."
       (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
         (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
       (when list
-        (make-diary-entry (mapconcat 'identity list "\n")
+        (diary-make-entry (mapconcat 'identity list "\n")
                           nil remember-diary-file))
       nil))) ;; Continue processing
 

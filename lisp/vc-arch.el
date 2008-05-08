@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,12 +48,17 @@
 ;; - C-x v u does not work.
 ;; - C-x v s does not work.
 ;; - C-x v r does not work.
-;; - VC-dired does not work.
+;; - VC directory listings do not work.
 ;; - And more...
 
 ;;; Code:
 
 (eval-when-compile (require 'vc) (require 'cl))
+
+;;; Properties of the backend
+
+(defun vc-arch-revision-granularity () 'repository)
+(defun vc-arch-checkout-model (files) 'implicit)
 
 ;;;
 ;;; Customization options
@@ -329,7 +332,7 @@ Return non-nil if FILE is unchanged."
 	  (setq rev (replace-match (cdr rule) t nil rev))))
     (format "Arch%c%s"
 	    (case (vc-state file)
-	      ((up-to-date needs-patch) ?-)
+	      ((up-to-date needs-update) ?-)
 	      (added ?@)
 	      (t ?:))
 	    rev)))
@@ -368,8 +371,6 @@ Return non-nil if FILE is unchanged."
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
-
-(defun vc-arch-checkout-model (file) 'implicit)
 
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))

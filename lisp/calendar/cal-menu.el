@@ -11,10 +11,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,9 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -61,7 +59,7 @@
      ["Yearly" diary-islamic-insert-yearly-entry])
     ("Insert Hebrew"
      ["One time" diary-hebrew-insert-entry]
-     ["Monthly" diary-hebrew--insert-monthly-entry]
+     ["Monthly" diary-hebrew-insert-monthly-entry]
      ["Yearly" diary-hebrew-insert-yearly-entry])))
 
 (defun cal-menu-holiday-window-suffix ()
@@ -145,10 +143,10 @@
   '("Scroll"
     ["Forward 1 Month" calendar-scroll-left]
     ["Forward 3 Months" calendar-scroll-left-three-months]
-    ["Forward 1 Year" "4\C-v"]
+    ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
-    ["Backward 1 Year" "4\ev"]))
+    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"]))
 
 (defun cal-menu-x-popup-menu (position menu)
   "Like `x-popup-menu', but print an error message if popups are unavailable.

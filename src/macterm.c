@@ -335,7 +335,7 @@ static struct terminal *mac_create_terminal P_ ((struct mac_display_info *dpyinf
 static int max_fringe_bmp = 0;
 static CGImageRef *fringe_bmp = 0;
 
-static CGColorSpaceRef mac_cg_color_space_rgb;
+CGColorSpaceRef mac_cg_color_space_rgb;
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
 static CGColorRef mac_cg_color_black;
 #endif
@@ -508,6 +508,48 @@ XDrawLine (display, p, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
+#if USE_MAC_IMAGE_IO
+  CGContextRef context;
+  XImagePtr ximg = p;
+  CGColorSpaceRef color_space;
+  CGImageAlphaInfo alpha_info;
+  CGFloat gx1 = x1, gy1 = y1, gx2 = x2, gy2 = y2;
+
+  if (y1 != y2)
+    gx1 += 0.5f, gx2 += 0.5f;
+  if (x1 != x2)
+    gy1 += 0.5f, gy2 += 0.5f;
+
+  if (ximg->bits_per_pixel == 32)
+    {
+      color_space = mac_cg_color_space_rgb;
+      alpha_info = (kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+		    | kCGBitmapByteOrder32Host
+#endif
+		    );
+    }
+  else
+    {
+      color_space = NULL;
+      alpha_info = kCGImageAlphaOnly;
+    }
+  if (color_space == NULL)
+    return;
+  context = CGBitmapContextCreate (ximg->data, ximg->width,
+				   ximg->height, 8,
+				   ximg->bytes_per_line, color_space,
+				   alpha_info);
+  if (ximg->bits_per_pixel == 32)
+    CG_SET_STROKE_COLOR_WITH_GC_FOREGROUND (context, gc);
+  else
+    CGContextSetGrayStrokeColor (context, gc->xgcv.foreground / 255.0f, 1.0);
+  CGContextMoveToPoint (context, gx1, gy1);
+  CGContextAddLineToPoint (context, gx2, gy2);
+  CGContextClosePath (context);
+  CGContextStrokePath (context);
+  CGContextRelease (context);
+#else
   CGrafPtr old_port;
   GDHandle old_gdh;
 
@@ -537,6 +579,7 @@ XDrawLine (display, p, gc, x1, y1, x2, y2)
   UnlockPixels (GetGWorldPixMap (p));
 
   SetGWorld (old_port, old_gdh);
+#endif
 }
 
 
@@ -748,6 +791,17 @@ XCreatePixmap (display, w, width, height, depth)
      unsigned int width, height;
      unsigned int depth;
 {
+#if USE_MAC_IMAGE_IO
+  XImagePtr ximg;
+
+  ximg = xmalloc (sizeof (*ximg));
+  ximg->width = width;
+  ximg->height = height;
+  ximg->bits_per_pixel = depth == 1 ? 8 : 32;
+  ximg->bytes_per_line = width * (ximg->bits_per_pixel / 8);
+  ximg->data = xmalloc (ximg->bytes_per_line * height);
+  return ximg;
+#else
   Pixmap pixmap;
   Rect r;
   QDErr err;
@@ -768,6 +822,7 @@ XCreatePixmap (display, w, width, height, depth)
   if (err != noErr)
     return NULL;
   return pixmap;
+#endif
 }
 
 
@@ -782,6 +837,38 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 {
   Pixmap pixmap;
   BitMap bitmap;
+#if USE_MAC_IMAGE_IO
+  CGDataProviderRef provider;
+  CGImageRef image_mask;
+  CGContextRef context;
+
+  pixmap = XCreatePixmap (display, w, width, height, depth);
+  if (pixmap == NULL)
+    return NULL;
+
+  mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
+  provider = CGDataProviderCreateWithData (NULL, bitmap.baseAddr,
+					   bitmap.rowBytes * height, NULL);
+  image_mask = CGImageMaskCreate (width, height, 1, 1, bitmap.rowBytes,
+				  provider, NULL, 0);
+  CGDataProviderRelease (provider);
+
+  context = CGBitmapContextCreate (pixmap->data, width, height, 8,
+				   pixmap->bytes_per_line,
+				   mac_cg_color_space_rgb,
+				   kCGImageAlphaNoneSkipFirst
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
+				   | kCGBitmapByteOrder32Host
+#endif
+				   );
+
+  CG_SET_FILL_COLOR (context, fg);
+  CGContextFillRect (context, CGRectMake (0, 0, width, height));
+  CG_SET_FILL_COLOR (context, bg);
+  CGContextDrawImage (context, CGRectMake (0, 0, width, height), image_mask);
+  CGContextRelease (context);
+  CGImageRelease (image_mask);
+#else
   CGrafPtr old_port;
   GDHandle old_gdh;
   static GC gc = NULL;
@@ -810,6 +897,7 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (pixmap));
   SetGWorld (old_port, old_gdh);
+#endif
   mac_free_bitmap (&bitmap);
 
   return pixmap;
@@ -821,7 +909,16 @@ XFreePixmap (display, pixmap)
      Display *display;
      Pixmap pixmap;
 {
+#if USE_MAC_IMAGE_IO
+  if (pixmap)
+    {
+      if (pixmap->data)
+	xfree (pixmap->data);
+      xfree (pixmap);
+    }
+#else
   DisposeGWorld (pixmap);
+#endif
 }
 
 
@@ -9647,9 +9744,9 @@ static Lisp_Object Qtoolbar_switch_mode;
 #endif
 #if USE_MAC_TSM
 static TSMDocumentID tsm_document_id;
-static Lisp_Object Qtext_input;
-static Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
-static Lisp_Object Vmac_ts_active_input_overlay;
+Lisp_Object Qtext_input;
+Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
+Lisp_Object Vmac_ts_active_input_overlay, Vmac_ts_active_input_buf;
 extern Lisp_Object Qbefore_string;
 static Lisp_Object Vmac_ts_script_language_on_focus;
 static Lisp_Object saved_ts_script_language_on_focus;
@@ -9675,7 +9772,8 @@ extern OSStatus install_menu_target_item_handler P_ ((void));
 
 #ifdef MAC_OSX
 extern OSStatus install_service_handler ();
-static Lisp_Object Qservice, Qpaste, Qperform;
+Lisp_Object Qservice, Qpaste, Qperform;
+Lisp_Object Qmouse_drag_overlay;
 #endif
 #endif
 
@@ -9837,6 +9935,216 @@ mac_get_emulated_btn ( UInt32 modifiers )
   }
   return result;
 }
+
+#ifdef MAC_OSX
+void
+mac_get_selected_range (w, range)
+     struct window *w;
+     CFRange *range;
+{
+  Lisp_Object overlay = find_symbol_value (Qmouse_drag_overlay);
+  struct buffer *b = XBUFFER (w->buffer);
+  int begv = BUF_BEGV (b), zv = BUF_ZV (b);
+  int start, end;
+
+  if (OVERLAYP (overlay)
+      && EQ (Foverlay_buffer (overlay), w->buffer)
+      && (start = XINT (Foverlay_start (overlay)),
+	  end = XINT (Foverlay_end (overlay)),
+	  start != end))
+    ;
+  else
+    {
+      if (w == XWINDOW (selected_window) && b == current_buffer)
+	start = PT;
+      else
+	start = marker_position (w->pointm);
+
+      if (NILP (Vtransient_mark_mode) || NILP (b->mark_active))
+	end = start;
+      else
+	{
+	  int mark_pos = marker_position (b->mark);
+
+	  if (start <= mark_pos)
+	    end = mark_pos;
+	  else
+	    {
+	      end = start;
+	      start = mark_pos;
+	    }
+	}
+    }
+
+  if (start != end)
+    {
+      if (start < begv)
+	start = begv;
+      else if (start > zv)
+	start = zv;
+
+      if (end < begv)
+	end = begv;
+      else if (end > zv)
+	end = zv;
+    }
+
+  range->location = start - begv;
+  range->length = end - start;
+}
+
+/* Store the text of the buffer BUF from START to END as Unicode
+   characters in CHARACTERS.  Return non-zero if successful.  */
+
+int
+mac_store_buffer_text_to_unicode_chars (buf, start, end, characters)
+     struct buffer *buf;
+     int start, end;
+     UniChar *characters;
+{
+  int start_byte, end_byte, char_count, byte_count;
+  struct coding_system coding;
+  unsigned char *dst = (unsigned char *) characters;
+
+  start_byte = buf_charpos_to_bytepos (buf, start);
+  end_byte = buf_charpos_to_bytepos (buf, end);
+  char_count = end - start;
+  byte_count = end_byte - start_byte;
+
+  if (setup_coding_system (
+#ifdef WORDS_BIG_ENDIAN
+			   intern ("utf-16be")
+#else
+			   intern ("utf-16le")
+#endif
+			   , &coding) < 0)
+    return 0;
+
+  coding.src_multibyte = !NILP (buf->enable_multibyte_characters);
+  coding.dst_multibyte = 0;
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.composing = COMPOSITION_DISABLED;
+
+  if (BUF_GPT_BYTE (buf) <= start_byte || end_byte <= BUF_GPT_BYTE (buf))
+    encode_coding (&coding, BUF_BYTE_ADDRESS (buf, start_byte), dst,
+		   byte_count, char_count * sizeof (UniChar));
+  else
+    {
+      int first_byte_count = BUF_GPT_BYTE (buf) - start_byte;
+
+      encode_coding (&coding, BUF_BYTE_ADDRESS (buf, start_byte), dst,
+		     first_byte_count, char_count * sizeof (UniChar));
+      if (coding.result == CODING_FINISH_NORMAL)
+	encode_coding (&coding,
+		       BUF_BYTE_ADDRESS (buf, start_byte + first_byte_count),
+		       dst + coding.produced,
+		       byte_count - first_byte_count,
+		       char_count * sizeof (UniChar) - coding.produced);
+    }
+
+  if (coding.result != CODING_FINISH_NORMAL)
+    return 0;
+
+  return 1;
+}
+
+void
+mac_ax_selected_text_range (f, range)
+     struct frame *f;
+     CFRange *range;
+{
+  mac_get_selected_range (XWINDOW (f->selected_window), range);
+}
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+unsigned int
+mac_ax_number_of_characters (f)
+     struct frame *f;
+{
+  struct buffer *b = XBUFFER (XWINDOW (f->selected_window)->buffer);
+
+  return BUF_ZV (b) - BUF_BEGV (b);
+}
+#endif
+#endif
+
+#if USE_MAC_TSM
+OSStatus
+mac_restore_keyboard_input_source ()
+{
+  OSStatus err = noErr;
+  ScriptLanguageRecord slrec, *slptr = NULL;
+
+  if (EQ (Vmac_ts_script_language_on_focus, Qt)
+      && EQ (saved_ts_script_language_on_focus, Qt))
+    slptr = &saved_ts_language;
+  else if (CONSP (Vmac_ts_script_language_on_focus)
+	   && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
+	   && INTEGERP (XCDR (Vmac_ts_script_language_on_focus))
+	   && CONSP (saved_ts_script_language_on_focus)
+	   && EQ (XCAR (saved_ts_script_language_on_focus),
+		  XCAR (Vmac_ts_script_language_on_focus))
+	   && EQ (XCDR (saved_ts_script_language_on_focus),
+		  XCDR (Vmac_ts_script_language_on_focus)))
+    {
+      slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
+      slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
+      slptr = &slrec;
+    }
+
+  if (slptr)
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      err = SetDefaultInputMethodOfClass (saved_ts_component, slptr,
+					  kKeyboardInputMethodClass);
+#else
+      err = SetDefaultInputMethod (saved_ts_component, slptr);
+#endif
+      if (err == noErr)
+	err = SetTextServiceLanguage (slptr);
+
+      /* Seems to be needed on Mac OS X 10.2.  */
+      if (err == noErr)
+	KeyScript (slptr->fScript | smKeyForceKeyScriptMask);
+    }
+
+  return err;
+}
+
+void
+mac_save_keyboard_input_source ()
+{
+  OSStatus err;
+  ScriptLanguageRecord slrec, *slptr = NULL;
+
+  saved_ts_script_language_on_focus = Vmac_ts_script_language_on_focus;
+
+  if (EQ (Vmac_ts_script_language_on_focus, Qt))
+    {
+      err = GetTextServiceLanguage (&saved_ts_language);
+      if (err == noErr)
+	slptr = &saved_ts_language;
+    }
+  else if (CONSP (Vmac_ts_script_language_on_focus)
+	   && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
+	   && INTEGERP (XCDR (Vmac_ts_script_language_on_focus)))
+    {
+      slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
+      slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
+      slptr = &slrec;
+    }
+
+  if (slptr)
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      GetDefaultInputMethodOfClass (&saved_ts_component, slptr,
+				    kKeyboardInputMethodClass);
+#else
+      GetDefaultInputMethod (&saved_ts_component, slptr);
+#endif
+    }
+}
+#endif
 
 #if TARGET_API_MAC_CARBON
 /***** Code to handle C-g testing  *****/
@@ -12982,6 +13290,9 @@ syms_of_macterm ()
   Qservice     = intern ("service");	  staticpro (&Qservice);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
+
+  Qmouse_drag_overlay = intern ("mouse-drag-overlay");
+  staticpro (&Qmouse_drag_overlay);
 #endif
 #if USE_MAC_TSM
   Qtext_input = intern ("text-input");	staticpro (&Qtext_input);
@@ -13141,6 +13452,11 @@ CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
   DEFVAR_LISP ("mac-ts-active-input-overlay", &Vmac_ts_active_input_overlay,
     doc: /* Overlay used to display Mac TSM active input area.  */);
   Vmac_ts_active_input_overlay = Qnil;
+
+  DEFVAR_LISP ("mac-ts-active-input-buf", &Vmac_ts_active_input_buf,
+    doc: /* Byte sequence of the current Mac TSM active input area.  */);
+  /* `empty_string' is not ready yet on Mac OS Classic.  */
+  Vmac_ts_active_input_buf = build_string ("");
 
   DEFVAR_LISP ("mac-ts-script-language-on-focus", &Vmac_ts_script_language_on_focus,
     doc: /* *How to change Mac TSM script/language when a frame gets focus.

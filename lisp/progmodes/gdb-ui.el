@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -97,7 +95,10 @@
 ;;; TODO:
 
 ;; 1) Use MI command -data-read-memory for memory window.
-;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
+;; 2) Use tree-buffer.el (from ECB) instead of the speedbar for
+;;    watch-expressions?  Handling of watch-expressions needs to be
+;;    overhauled to work for large arrays/structures by creating variable
+;;    objects for visible watch-expressions only.
 ;; 3) Mark breakpoint locations on scroll-bar of source buffer?
 
 ;;; Code:
@@ -757,15 +758,14 @@ With arg, enter name of variable to be watched in the minibuffer."
 			 (buffer-substring (region-beginning) (region-end))
 		       (concat (if (eq major-mode 'gdb-registers-mode) "$")
 			       (tooltip-identifier-from-point (point)))))))
-	      (speedbar 1)
-		(set-text-properties 0 (length expr) nil expr)
-		(gdb-enqueue-input
-		 (list
-		  (if (eq minor-mode 'gdba)
-		      (concat
-		       "server interpreter mi \"-var-create - * "  expr "\"\n")
-		    (concat"-var-create - * "  expr "\n"))
-		  `(lambda () (gdb-var-create-handler ,expr)))))))
+	      (set-text-properties 0 (length expr) nil expr)
+	      (gdb-enqueue-input
+	       (list
+		(if (eq minor-mode 'gdba)
+		    (concat
+		     "server interpreter mi \"-var-create - * "  expr "\"\n")
+		  (concat"-var-create - * "  expr "\n"))
+		`(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
 (defconst gdb-var-create-regexp
@@ -785,6 +785,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		  (if (match-string 3) (read (match-string 3)))
 		  nil gdb-frame-address)))
 	(push var gdb-var-list)
+	(speedbar 1)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
 	  (speedbar-change-initial-expansion-list "GUD"))
@@ -811,6 +812,8 @@ With arg, enter name of variable to be watched in the minibuffer."
     (push 'gdb-speedbar-timer gdb-pending-triggers)))
 
 (defun gdb-speedbar-timer-fn ()
+  (if gdb-speedbar-auto-raise
+      (raise-frame speedbar-frame))
   (setq gdb-pending-triggers
 	(delq 'gdb-speedbar-timer gdb-pending-triggers))
   (speedbar-timer-fn))
@@ -1469,7 +1472,7 @@ directives."
       (gdb-resync)
       (error "Unexpected frame-begin annotation (%S)" sink)))))
 
-(defcustom gdb-same-frame focus-follows-mouse
+(defcustom gdb-same-frame (not focus-follows-mouse)
   "Non-nil means pop up GUD buffer in same frame."
   :group 'gdb
   :type 'boolean
@@ -1563,7 +1566,8 @@ happens to be appropriate."
       (gdb-invalidate-locals-1))
 
     (gdb-invalidate-threads)
-    (unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
+    (unless (or (null gdb-var-list)
+	     (eq system-type 'darwin)) ;Breaks on Darwin's GDB-5.3.
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
       ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -1924,33 +1928,33 @@ static char *magick[] = {
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
 	(let ((buffer-read-only nil))
-	(goto-char (point-min))
-	(while (< (point) (- (point-max) 1))
-	  (forward-line 1)
-	  (if (looking-at gdb-breakpoint-regexp)
-	      (progn
-		(setq bptno (or (match-string 1) (match-string 2)))
-		(setq flag (char-after (match-beginning 3)))
-		(if (match-string 1)
-		    (setq gdb-parent-bptno-enabled (eq flag ?y)))
-		(add-text-properties
-		 (match-beginning 3) (match-end 3)
-		 (if (eq flag ?y)
-		     '(face font-lock-warning-face)
-		   '(face font-lock-type-face)))
-		(let ((bl (point))
-		      (el (line-end-position)))
-		  (if (re-search-forward " in \\(.*\\) at\\s-+" el t)
-		      (progn
-			(add-text-properties
-			 (match-beginning 1) (match-end 1)
-			 '(face font-lock-function-name-face))
-			(looking-at "\\(\\S-+\\):\\([0-9]+\\)")
+	  (goto-char (point-min))
+	  (while (< (point) (- (point-max) 1))
+	    (forward-line 1)
+	    (if (looking-at gdb-breakpoint-regexp)
+		(progn
+		  (setq bptno (or (match-string 1) (match-string 2)))
+		  (setq flag (char-after (match-beginning 3)))
+		  (if (match-string 1)
+		      (setq gdb-parent-bptno-enabled (eq flag ?y)))
+		  (add-text-properties
+		   (match-beginning 3) (match-end 3)
+		   (if (eq flag ?y)
+		       '(face font-lock-warning-face)
+		     '(face font-lock-type-face)))
+		  (let ((bl (point))
+			(el (line-end-position)))
+		    (when (re-search-forward " in \\(.*\\) at" el t)
+		      (add-text-properties
+		       (match-beginning 1) (match-end 1)
+		       '(face font-lock-function-name-face)))
+		    (if (re-search-forward
+			 ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$" nil t)
 			(let ((line (match-string 2))
 			      (file (match-string 1)))
 			  (add-text-properties bl el
-			   '(mouse-face highlight
-			     help-echo "mouse-2, RET: visit breakpoint"))
+			       '(mouse-face highlight
+				 help-echo "mouse-2, RET: visit breakpoint"))
 			  (unless (file-exists-p file)
 			    (setq file (cdr (assoc bptno gdb-location-alist))))
 			  (if (and file
@@ -1971,20 +1975,20 @@ static char *magick[] = {
 			    (gdb-enqueue-input
 			     (list (concat gdb-server-prefix "info source\n")
 				   `(lambda () (gdb-get-location
-						,bptno ,line ,flag)))))))
-		    (if (re-search-forward
-			 "<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
-			 el t)
+						,bptno ,line ,flag))))))
+		      (if (re-search-forward
+			   "<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
+			   el t)
+			  (add-text-properties
+			   (match-beginning 1) (match-end 1)
+			   '(face font-lock-function-name-face))
+			(end-of-line)
+			(re-search-backward "\\s-\\(\\S-*\\)"
+					    bl t)
 			(add-text-properties
 			 (match-beginning 1) (match-end 1)
-			 '(face font-lock-function-name-face))
-		      (end-of-line)
-		      (re-search-backward "\\s-\\(\\S-*\\)"
-					  bl t)
-		      (add-text-properties
-		       (match-beginning 1) (match-end 1)
-		       '(face font-lock-variable-name-face)))))))
-	  (end-of-line))))))
+			 '(face font-lock-variable-name-face)))))))
+	    (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom))
 
   ;; Breakpoints buffer is always present.  Hack to just update
@@ -2155,6 +2159,7 @@ corresponding to the mode line clicked."
   (setq mode-name "Breakpoints")
   (use-local-map gdb-breakpoints-mode-map)
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (setq header-line-format gdb-breakpoints-header)
   (run-mode-hooks 'gdb-breakpoints-mode-hook)
   (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
@@ -2196,7 +2201,7 @@ corresponding to the mode line clicked."
   (if event (posn-set-point (event-end event)))
   (save-excursion
     (beginning-of-line 1)
-    (if (looking-at "\\([0-9]+\\.?[0-9]*\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
+    (if (looking-at "\\([0-9]+\\.?[0-9]*\\) .*\\s-+\\(\\S-+\\):\\([0-9]+\\)$")
 	(let ((bptno (match-string 1))
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
@@ -2213,7 +2218,7 @@ corresponding to the mode line clicked."
       (error "No location specified."))))
 
 
-;; Frames buffer.  This displays a perpetually correct bactracktrace
+;; Frames buffer.  This displays a perpetually correct backtrace
 ;; (from the command `where').
 ;;
 ;; Alas, if your stack is deep, it is costly.
@@ -2254,20 +2259,20 @@ corresponding to the mode line clicked."
 		    el (line-end-position))
 	      (when (looking-at "#")
 		(add-text-properties bl el
-				     '(mouse-face highlight
-						  help-echo "mouse-2, RET: Select frame")))
+		    '(mouse-face highlight
+				 help-echo "mouse-2, RET: Select frame")))
 	      (goto-char bl)
 	      (when (looking-at "^#\\([0-9]+\\)")
 		(when (string-equal (match-string 1) gdb-frame-number)
-		  (if (> (car (window-fringes)) 0)
+		  (if (gud-tool-bar-item-visible-no-fringe)
 		      (progn
-			(or gdb-stack-position
-			    (setq gdb-stack-position (make-marker)))
-			(set-marker gdb-stack-position (point))
-			(setq move-to gdb-stack-position))
-		    (put-text-property bl (+ bl 4)
-				       'face '(:inverse-video t))
-		    (setq move-to bl)))
+			(put-text-property bl (+ bl 4)
+					   'face '(:inverse-video t))
+			(setq move-to bl))
+		    (or gdb-stack-position
+			(setq gdb-stack-position (make-marker)))
+		    (set-marker gdb-stack-position (point))
+		    (setq move-to gdb-stack-position)))
 		(when (re-search-forward "\\([^ ]+\\) (" el t)
 		  (put-text-property (match-beginning 1) (match-end 1)
 				     'face font-lock-function-name-face)
@@ -2282,11 +2287,13 @@ corresponding to the mode line clicked."
 	      (forward-line 1))
 	    (forward-line -1)
 	    (when (looking-at "(More stack frames follow...)")
-	      (add-text-properties (match-beginning 0) (match-end 0)
-				   '(mouse-face highlight
-						gdb-max-frames t
-						help-echo
-						"mouse-2, RET: customize gdb-max-frames to see more frames")))))
+	      (add-text-properties
+	       (match-beginning 0) (match-end 0)
+	       '(mouse-face highlight
+		 gdb-max-frames t
+		 help-echo
+		   "mouse-2, RET: customize gdb-max-frames to see more frames"
+		 )))))
 	(when gdb-look-up-stack
 	  (goto-char (point-min))
 	  (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
@@ -2367,6 +2374,7 @@ $pc directly from the GUD buffer.  This command isn't normally needed."
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (gdb-thread-identification)
   (use-local-map gdb-frames-mode-map)
   (run-mode-hooks 'gdb-frames-mode-hook)
@@ -2467,6 +2475,7 @@ another GDB command e.g pwd, to see new frames")
   (setq major-mode 'gdb-threads-mode)
   (setq mode-name "Threads")
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (setq header-line-format gdb-breakpoints-header)
   (use-local-map gdb-threads-mode-map)
   (set (make-local-variable 'font-lock-defaults)
@@ -2591,6 +2600,7 @@ another GDB command e.g pwd, to see new frames")
   (setq mode-name "Registers")
   (setq header-line-format gdb-locals-header)
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (gdb-thread-identification)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
@@ -2846,6 +2856,7 @@ another GDB command e.g pwd, to see new frames")
   (setq major-mode 'gdb-memory-mode)
   (setq mode-name "Memory")
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (use-local-map gdb-memory-mode-map)
   (setq header-line-format
 	'(:eval
@@ -2979,13 +2990,14 @@ another GDB command e.g pwd, to see new frames")
   (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
     (with-current-buffer buf
       (goto-char (point-min))
+      ;; Need this in case "set print pretty" is on.
       (while (re-search-forward "^[ }].*\n" nil t)
 	(replace-match "" nil nil))
       (goto-char (point-min))
       (while (re-search-forward "{\\(.*=.*\n\\|\n\\)" nil t)
 	(replace-match gdb-struct-string nil nil))
       (goto-char (point-min))
-      (while (re-search-forward "\\s-*{.*\n" nil t)
+      (while (re-search-forward "\\s-*{[^.].*\n" nil t)
 	(replace-match gdb-array-string nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
     (and buf
@@ -2998,8 +3010,7 @@ another GDB command e.g pwd, to see new frames")
 		 (insert-buffer-substring (gdb-get-buffer-create
 					   'gdb-partial-output-buffer))
 		(set-window-start window start)
-		(set-window-point window p))
-)))
+		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
 
 (defvar gdb-locals-mode-map
@@ -3017,6 +3028,7 @@ another GDB command e.g pwd, to see new frames")
   (setq mode-name (concat "Locals:" gdb-selected-frame))
   (use-local-map gdb-locals-mode-map)
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (setq header-line-format gdb-locals-header)
   (gdb-thread-identification)
   (set (make-local-variable 'font-lock-defaults)
@@ -3046,28 +3058,16 @@ another GDB command e.g pwd, to see new frames")
 
 
 ;;;; Window management
-(defun gdb-display-buffer (buf dedicated &optional size)
-  (let ((answer (get-buffer-window buf 0))
-	(must-split nil))
+(defun gdb-display-buffer (buf dedicated &optional frame)
+  (let ((answer (get-buffer-window buf (or frame 0))))
     (if answer
-	(display-buffer buf nil 0)	;Deiconify the frame if necessary.
-      ;; The buffer is not yet displayed.
-      (pop-to-buffer gud-comint-buffer)	;Select the right frame.
+	(display-buffer buf nil (or frame 0)) ;Deiconify the frame if necessary.
       (let ((window (get-lru-window)))
-	(if (and window
-		 (not (memq window `(,(get-buffer-window gud-comint-buffer)
-				     ,gdb-source-window))))
-	    (progn
-	      (set-window-buffer window buf)
-	      (setq answer window))
-	  (setq must-split t)))
-      (if must-split
-	  (let* ((largest (get-largest-window))
-		 (cur-size (window-height largest))
-		 (new-size (and size (< size cur-size) (- cur-size size))))
-	    (setq answer (split-window largest new-size))
-	    (set-window-buffer answer buf)
-	    (set-window-dedicated-p answer dedicated)))
+	(let* ((largest (get-largest-window))
+	       (cur-size (window-height largest)))
+	  (setq answer (split-window largest))
+	  (set-window-buffer answer buf)
+	  (set-window-dedicated-p answer dedicated)))
       answer)))
 
 
@@ -3149,7 +3149,7 @@ another GDB command e.g pwd, to see new frames")
   "Display GUD buffer."
   (interactive)
   (let ((same-window-regexps nil))
-    (pop-to-buffer gud-comint-buffer)))
+    (select-window (display-buffer gud-comint-buffer nil 0))))
 
 (defun gdb-set-window-buffer (name)
   (set-window-buffer (selected-window) (get-buffer name))
@@ -3464,7 +3464,7 @@ BUFFER nil or omitted means use the current buffer."
 	  (with-current-buffer buffer
 	    (save-excursion
 	      (goto-char (point-min))
-	      (if (search-forward address nil t)
+	      (if (re-search-forward (concat "^0x0*" address) nil t)
 		  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
     (if (not (equal gdb-pc-address "main"))
 	(with-current-buffer buffer
@@ -3502,6 +3502,7 @@ BUFFER nil or omitted means use the current buffer."
   (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (gdb-thread-identification)
   (use-local-map gdb-assembler-mode-map)
   (gdb-invalidate-assembler)
@@ -3538,8 +3539,9 @@ BUFFER nil or omitted means use the current buffer."
 		     (string-equal gdb-selected-frame gdb-previous-frame))
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       gdb-pending-triggers))
-		  (not (string-equal gdb-pc-address
-				     gdb-previous-frame-pc-address)))
+		  (not (equal (string-to-number gdb-pc-address)
+			      (string-to-number
+			       gdb-previous-frame-pc-address))))
 	  (progn
 	    ;; take previous disassemble command, if any, off the queue
 	    (with-current-buffer gud-comint-buffer
@@ -3550,9 +3552,7 @@ BUFFER nil or omitted means use the current buffer."
 			    (delete item gdb-input-queue))))))
 	    (gdb-enqueue-input
 	     (list
-	      (concat gdb-server-prefix "disassemble "
-		      (if (member gdb-pc-address '(nil "main")) nil "0x")
-			   gdb-pc-address "\n")
+	      (concat gdb-server-prefix "disassemble " gdb-pc-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
 	    (setq gdb-previous-frame-pc-address gdb-pc-address)
@@ -3579,7 +3579,7 @@ BUFFER nil or omitted means use the current buffer."
     (setq gdb-frame-number (match-string 1))
     (setq gdb-frame-address (match-string 2)))
   (goto-char (point-min))
-  (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(.*?\\)\
+  (when (re-search-forward ".*=\\s-+\\(\\S-*\\)\\s-+in\\s-+\\(.*?\\)\
 \\(?: (\\(\\S-+?\\):[0-9]+?)\\)*; "
      nil t)
     (setq gdb-selected-frame (match-string 2))
@@ -3646,6 +3646,19 @@ from=\"\\(.*?\\)\"\\)")
       (if (gdb-get-buffer 'gdb-assembler-buffer)
 	  (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
 	    (setq mode-name (concat "Machine:" gdb-selected-frame)))))
+    (if (and (match-string 4) (match-string 5) gud-overlay-arrow-position)
+	(let ((buffer (marker-buffer gud-overlay-arrow-position))
+	      (position (marker-position gud-overlay-arrow-position)))
+	  (when (and buffer
+		     (string-equal (file-name-nondirectory
+				    (buffer-file-name buffer))
+				   (file-name-nondirectory (match-string 4))))
+	    (with-current-buffer buffer
+	      (setq fringe-indicator-alist
+		    (if (string-equal gdb-frame-number "0")
+			nil
+		      '((overlay-arrow . hollow-right-triangle))))
+	      (set-marker gud-overlay-arrow-position position)))))
   (gdb-invalidate-assembler))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.4 onwards.

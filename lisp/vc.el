@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Credits:
 
@@ -46,15 +44,6 @@
 ;; In July 2007 ESR returned and redesigned the mode to cope better
 ;; with modern version-control systems that do commits by fileset
 ;; rather than per individual file.
-;;
-;; Features in the new version:
-;; * Key commands (vc-next-action = C-x v v, vc-print-log = C-x v l, vc-revert
-;;   = C-x v u, vc-rollback = C-x v c, vc-diff = C-x v =, vc-update = C-x v +)
-;;   now operate on filesets rather than individual files.
-;; * The fileset for a command is either (a) all marked files in VC-dired
-;;   mode, (b) the currently visited file if it's under version control,
-;;   or (c) the current directory if the visited buffer is not under
-;;   version control and a wildcarding-enable flag has been set.
 ;;
 ;; If you maintain a client of the mode or customize it in your .emacs,
 ;; note that some backend functions which formerly took single file arguments
@@ -148,7 +137,8 @@
 ;;   possible values, see `vc-state'.  This function should do a full and
 ;;   reliable state computation; it is usually called immediately after
 ;;   C-x v v.  If you want to use a faster heuristic when visiting a
-;;   file, put that into `state-heuristic' below.
+;;   file, put that into `state-heuristic' below.  Note that under most
+;;   VCSes this won't be called at all, dir-status is used instead.
 ;;
 ;; - state-heuristic (file)
 ;;
@@ -156,17 +146,6 @@
 ;;   state of FILE at visiting time.  It should be considerably faster
 ;;   than the implementation of `state'.  For a list of possible values,
 ;;   see the doc string of `vc-state'.
-;;
-;; - dir-state (dir)
-;;
-;;   If provided, this function is used to find the version control
-;;   state of as many files as possible in DIR, and all subdirectories
-;;   of DIR, in a fast way; it is used to avoid expensive indivitual
-;;   vc-state calls.  The function should not return anything, but
-;;   rather store the files' states into the corresponding properties.
-;;   Two properties are required: `vc-backend' and `vc-state'.  (Note:
-;;   in older versions this method was not required to recurse into
-;;   subdirectories.)
 ;;
 ;; - dir-status (dir update-function)
 ;;
@@ -185,10 +164,6 @@
 ;;   To provide more backend specific functionality for `vc-dir'
 ;;   the following functions might be needed: `status-extra-headers',
 ;;   `status-printer', `extra-status-menu' and `dir-status-files'.
-;;   This function is used by `vc-dir', a replacement for
-;;   `vc-dired'.  vc-dir is still under development, and is NOT
-;;   feature complete.  As such, the requirements for this function
-;;   might change.  This is a replacement for `dir-state'.
 ;;
 ;; - dir-status-files (dir files default-state update-function)
 ;;
@@ -228,9 +203,9 @@
 ;;   The default implementation always returns t, which means that
 ;;   working with non-current revisions is not supported by default.
 ;;
-;; * checkout-model (file)
+;; * checkout-model (files)
 ;;
-;;   Indicate whether FILE needs to be "checked out" before it can be
+;;   Indicate whether FILES need to be "checked out" before they can be
 ;;   edited.  See `vc-checkout-model' for a list of possible values.
 ;;
 ;; - workfile-unchanged-p (file)
@@ -253,10 +228,10 @@
 ;;   The default implementation deals well with all states that
 ;;   `vc-state' can return.
 ;;
-;; - dired-state-info (file)
+;; - prettify-state-info (file)
 ;;
 ;;   Translate the `vc-state' property of FILE into a string that can be
-;;   used in a vc-dired buffer.  The default implementation deals well
+;;   used in a human-readable buffer.  The default implementation deals well
 ;;   with all states that `vc-state' can return.
 ;;
 ;; STATE-CHANGING FUNCTIONS
@@ -399,13 +374,6 @@
 ;; - wash-log (file)
 ;;
 ;;   Remove all non-comment information from the output of print-log.
-;;
-;; - logentry-check ()
-;;
-;;   If defined, this function is run to find out whether the user
-;;   entered a valid log entry for check-in.  The log entry is in the
-;;   current buffer, and if it is not a valid one, the function should
-;;   throw an error.
 ;;
 ;; - comment-history (file)
 ;;
@@ -590,9 +558,6 @@
 
 ;;; Todo:
 
-;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
-;;   it should work for other async commands as well (pull/push/...).
-;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -603,38 +568,38 @@
 ;; - when a file is in `conflict' state, turn on smerge-mode.
 ;;
 ;; - figure out what to do with conflicts that are not caused by the
-;;   file contents, but by metadata or other causes.
+;;   file contents, but by metadata or other causes.  Example: File A
+;;   gets renamed to B in one branch and to C in another and you merge
+;;   the two branches.  Or you locally add file FOO and then pull a
+;;   change that also adds a new file FOO, ...
 ;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
 ;;
+;; - C-x v b does switch to a different backend, but the mode line is not 
+;;   adapted accordingly.  Also, it considers RCS and CVS to be the same, 
+;;   which is pretty confusing.
+;;
 ;; - vc-diff should be able to show the diff for all files in a
 ;;   changeset, especially for VC systems that have per repository
 ;;   version numbers.  log-view should take advantage of this.
 ;;
-;; - a way to do repository wide log (instead of just per
-;;   file/fileset) is needed.
-;;
-;; - the *VC-log* buffer needs font-locking.
-;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
-;; - make vc-state for all backends return 'unregistered instead of
-;;   nil for unregistered files, then update vc-next-action.
+;; - add a mechanism for editing the underlying VCS's list of files
+;;   to be ignored, when that's possible.
 ;;
-;; - vc-register should register a fileset at a time. The backends
-;;   already support this, only the front-end needs to be changed to
-;;   handle multiple files at a time.
+;; - When vc-next-action calls vc-checkin it could pre-fill the
+;;   *VC-log* buffer with some obvious items: the list of files that
+;;   were added, the list of files that were removed.  If the diff is
+;;   available, maybe it could even call something like
+;;   `diff-add-change-log-entries-other-window' to create a detailed
+;;   skeleton for the log...
 ;;
-;; - add a mechanism for ignoring files.
-;;
-;; - vc-next-action should do something about 'missing files. Maybe
-;;   just warn, or offer to checkout.
-;;
-;; - display the directory names in vc-dir, similar to what PCL-CVS
-;;   does.
+;; - a way to do repository wide log (instead of just per
+;;   file/fileset) is needed.  Doing it per directory might be enough...
 ;;
 ;; - most vc-dir backends need more work.  They might need to
 ;;   provide custom headers, use the `extra' field and deal with all
@@ -642,35 +607,47 @@
 ;;
 ;; - add function that calls vc-dir to `find-directory-functions'.
 ;;
-;; - vc-dir needs mouse bindings.
-;;
-;; - vc-dir needs more key bindings for VC actions.
-;;
-;; - vc-dir toolbar needs more icons.
-;;
-;; - implement `vc-dir-parent-marked-p' and `vc-dir-children-marked-p'.
-;;
-;; - test operations on directories in vc-dir.
-;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
-;;   vc-dired/vc-dir, it is possible that these commands are called
+;;   vc-dir, it is possible that these commands are called
 ;;   for unregistered/ignored files.
 ;;
 ;; - do not default to RCS anymore when the current directory is not
 ;;   controlled by any VCS and the user does C-x v v
 ;;
+;; - vc-create-snapshot and vc-retrieve-snapshot should update the
+;;   buffers that might be visiting the affected files.
+;;
+;; - Using multiple backends needs work.  Given a CVS directory with some
+;;   files checked into git (but not all), using C-x v l to get a log file
+;;   from a file only present in git, and then typing RET on some log entry,
+;;   vc will bombs out because it wants to see the file being in CVS.
+;;   Those logs should likely use a local variable to hardware the VC they
+;;   are supposed to work with.
+;;
+;; - Another important thing: merge all the status-like backend operations.
+;;   We should remove dir-status, state, and dir-status-files, and
+;;   replace them with just `status' which takes a fileset and a continuation
+;;   (like dir-status) and returns a buffer in which the process(es) are run
+;;   (or nil if it worked synchronously).  Hopefully we can define the old
+;;   4 operations in term of this one.
+;;
+;; - backends that care about vc-stay-local should try to take it into
+;;   account for vc-dir.  Is this likely to be useful???
+;;
+;; - vc-dir listing needs a footer generated when it's done to make it obvious
+;; that it has finished.
+;;
 
 ;;; Code:
 
 (require 'vc-hooks)
+(require 'vc-dispatcher)
 (require 'tool-bar)
 (require 'ewoc)
 
 (eval-when-compile
-  (require 'cl)
-  (require 'dired)      ; for dired-map-over-marks macro
-  (require 'dired-aux))	; for dired-kill-{line,tree}
+  (require 'cl))
 
 (unless (assoc 'vc-parent-buffer minor-mode-alist)
   (setq minor-mode-alist
@@ -682,19 +659,6 @@
 (defgroup vc nil
   "Version-control system in Emacs."
   :group 'tools)
-
-(defcustom vc-suppress-confirm nil
-  "If non-nil, treat user as expert; suppress yes-no prompts on some things."
-  :type 'boolean
-  :group 'vc)
-
-(defcustom vc-delete-logbuf-window t
-  "If non-nil, delete the *VC-log* buffer and window after each logical action.
-If nil, bury that buffer instead.
-This is most useful if you have multiple windows on a frame and would like to
-preserve the setting."
-  :type 'boolean
-  :group 'vc)
 
 (defcustom vc-initial-comment nil
   "If non-nil, prompt for initial comment when a file is registered."
@@ -708,11 +672,6 @@ can also be overridden by a particular VC backend."
   :type 'string
   :group 'vc
   :version "20.3")
-
-(defcustom vc-command-messages nil
-  "If non-nil, display run messages from back-end commands."
-  :type 'boolean
-  :group 'vc)
 
 (defcustom vc-checkin-switches nil
   "A string or list of strings specifying extra switches for checkin.
@@ -743,24 +702,6 @@ These are passed to the checkin program by \\[vc-register]."
 			 :value ("")
 			 string))
   :group 'vc)
-
-(defcustom vc-dired-listing-switches "-al"
-  "Switches passed to `ls' for vc-dired.  MUST contain the `l' option."
-  :type 'string
-  :group 'vc
-  :version "21.1")
-
-(defcustom vc-dired-recurse t
-  "If non-nil, show directory trees recursively in VC Dired."
-  :type 'boolean
-  :group 'vc
-  :version "20.3")
-
-(defcustom vc-dired-terse-display t
-  "If non-nil, show only locked or locally modified files in VC Dired."
-  :type 'boolean
-  :group 'vc
-  :version "20.3")
 
 (defcustom vc-diff-switches nil
   "A string or list of strings specifying switches for diff under VC.
@@ -822,13 +763,6 @@ See also `log-edit-done-hook'."
 (defcustom vc-before-checkin-hook nil
   "Normal hook (list of functions) run before a commit or a file checkin.
 See `run-hooks'."
-  :type 'hook
-  :group 'vc)
-
-(defcustom vc-logentry-check-hook nil
-  "Normal hook run by `vc-backend-logentry-check'.
-Use this to impose your own rules on the entry in addition to any the
-version control backend imposes itself."
   :type 'hook
   :group 'vc)
 
@@ -958,28 +892,12 @@ and that its contents match what the master file says."
                         "21.1")
 
 
-;; Variables the user doesn't need to know about.
-(defvar vc-log-operation nil)
-(defvar vc-log-after-operation-hook nil)
-
-;; In a log entry buffer, this is a local variable
-;; that points to the buffer for which it was made
-;; (either a file, or a VC dired buffer).
-(defvar vc-parent-buffer nil)
-(put 'vc-parent-buffer 'permanent-local t)
-(defvar vc-parent-buffer-name nil)
-(put 'vc-parent-buffer-name 'permanent-local t)
+;; Variables users don't need to see
 
 (defvar vc-disable-async-diff nil
   "VC sets this to t locally to disable some async diff operations.
 Backends that offer asynchronous diffs should respect this variable
 in their implementation of vc-BACKEND-diff.")
-
-(defvar vc-log-fileset)
-(defvar vc-log-revision)
-
-(defvar vc-dired-mode nil)
-(make-variable-buffer-local 'vc-dired-mode)
 
 ;; File property caching
 
@@ -1042,334 +960,6 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
         ,@body
         (save-buffer)))))
 
-;; Common command execution logic to be used by backends
-
-(defun vc-process-filter (p s)
-  "An alternative output filter for async process P.
-One difference with the default filter is that this inserts S after markers.
-Another is that undo information is not kept."
-  (let ((buffer (process-buffer p)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (save-excursion
-          (let ((buffer-undo-list t)
-                (inhibit-read-only t))
-            (goto-char (process-mark p))
-            (insert s)
-            (set-marker (process-mark p) (point))))))))
-
-(defun vc-setup-buffer (&optional buf)
-  "Prepare BUF for executing a VC command and make it current.
-BUF defaults to \"*vc*\", can be a string and will be created if necessary."
-  (unless buf (setq buf "*vc*"))
-  (let ((camefrom (current-buffer))
-	(olddir default-directory))
-    (set-buffer (get-buffer-create buf))
-    (kill-all-local-variables)
-    (set (make-local-variable 'vc-parent-buffer) camefrom)
-    (set (make-local-variable 'vc-parent-buffer-name)
-	 (concat " from " (buffer-name camefrom)))
-    (setq default-directory olddir)
-    (let ((buffer-undo-list t)
-          (inhibit-read-only t))
-      (erase-buffer))))
-
-(defvar vc-sentinel-movepoint)          ;Dynamically scoped.
-
-(defun vc-process-sentinel (p s)
-  (let ((previous (process-get p 'vc-previous-sentinel))
-        (buf (process-buffer p)))
-    ;; Impatient users sometime kill "slow" buffers; check liveness
-    ;; to avoid "error in process sentinel: Selecting deleted buffer".
-    (when (buffer-live-p buf)
-      (when previous (funcall previous p s))
-      (with-current-buffer buf
-        (setq mode-line-process
-              (let ((status (process-status p)))
-                ;; Leave mode-line uncluttered, normally.
-                (unless (eq 'exit status)
-                  (format " (%s)" status))))
-        (let (vc-sentinel-movepoint)
-          ;; Normally, we want async code such as sentinels to not move point.
-          (save-excursion
-            (goto-char (process-mark p))
-            (let ((cmds (process-get p 'vc-sentinel-commands)))
-              (process-put p 'vc-sentinel-commands nil)
-              (dolist (cmd cmds)
-                ;; Each sentinel may move point and the next one should be run
-                ;; at that new point.  We could get the same result by having
-                ;; each sentinel read&set process-mark, but since `cmd' needs
-                ;; to work both for async and sync processes, this would be
-                ;; difficult to achieve.
-                (vc-exec-after cmd))))
-          ;; But sometimes the sentinels really want to move point.
-          (when vc-sentinel-movepoint
-	    (let ((win (get-buffer-window (current-buffer) 0)))
-	      (if (not win)
-		  (goto-char vc-sentinel-movepoint)
-		(with-selected-window win
-		  (goto-char vc-sentinel-movepoint))))))))))
-
-(defun vc-set-mode-line-busy-indicator ()
-  (setq mode-line-process
-	(concat " " (propertize "[waiting...]"
-                                'face 'mode-line-emphasis
-                                'help-echo
-                                "A VC command is in progress in this buffer"))))
-
-(defun vc-exec-after (code)
-  "Eval CODE when the current buffer's process is done.
-If the current buffer has no process, just evaluate CODE.
-Else, add CODE to the process' sentinel."
-  (let ((proc (get-buffer-process (current-buffer))))
-    (cond
-     ;; If there's no background process, just execute the code.
-     ;; We used to explicitly call delete-process on exited processes,
-     ;; but this led to timing problems causing process output to be
-     ;; lost.  Terminated processes get deleted automatically
-     ;; anyway. -- cyd
-     ((or (null proc) (eq (process-status proc) 'exit))
-      ;; Make sure we've read the process's output before going further.
-      (when proc (accept-process-output proc))
-      (eval code))
-     ;; If a process is running, add CODE to the sentinel
-     ((eq (process-status proc) 'run)
-      (vc-set-mode-line-busy-indicator)
-      (let ((previous (process-sentinel proc)))
-        (unless (eq previous 'vc-process-sentinel)
-          (process-put proc 'vc-previous-sentinel previous))
-        (set-process-sentinel proc 'vc-process-sentinel))
-      (process-put proc 'vc-sentinel-commands
-                   ;; We keep the code fragments in the order given
-                   ;; so that vc-diff-finish's message shows up in
-                   ;; the presence of non-nil vc-command-messages.
-                   (append (process-get proc 'vc-sentinel-commands)
-                           (list code))))
-     (t (error "Unexpected process state"))))
-  nil)
-
-(defvar vc-post-command-functions nil
-  "Hook run at the end of `vc-do-command'.
-Each function is called inside the buffer in which the command was run
-and is passed 3 arguments: the COMMAND, the FILES and the FLAGS.")
-
-(defvar w32-quote-process-args)
-
-(defun vc-delistify (filelist)
-  "Smash a FILELIST into a file list string suitable for info messages."
-  ;; FIXME what about file names with spaces?
-  (if (not filelist) "."  (mapconcat 'identity filelist " ")))
-
-;;;###autoload
-(defun vc-do-command (buffer okstatus command file-or-list &rest flags)
-  "Execute a VC command, notifying user and checking for errors.
-Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
-current buffer if BUFFER is t.  If the destination buffer is not
-already current, set it up properly and erase it.  The command is
-considered successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore error status, if it is `async', that
-means not to wait for termination of the subprocess; if it is t it means to
-ignore all execution errors).  FILE-OR-LIST is the name of a working file;
-it may be a list of files or be nil (to execute commands that don't expect
-a file name or set of files).  If an optional list of FLAGS is present,
-that is inserted into the command line before the filename."
-  ;; FIXME: file-relative-name can return a bogus result because
-  ;; it doesn't look at the actual file-system to see if symlinks
-  ;; come into play.
-  (let* ((files
-	  (mapcar (lambda (f) (file-relative-name (expand-file-name f)))
-		  (if (listp file-or-list) file-or-list (list file-or-list))))
-	 (full-command
-	  ;; What we're doing here is preparing a version of the command
-	  ;; for display in a debug-progess message.  If it's fewer than
-	  ;; 20 characters display the entire command (without trailing
-	  ;; newline).  Otherwise display the first 20 followed by an ellipsis.
-	  (concat (if (string= (substring command -1) "\n")
-		      (substring command 0 -1)
-		    command)
-		  " "
-		  (vc-delistify (mapcar (lambda (s) (if (> (length s) 20) (concat (substring s 0 2) "...")  s)) flags))
-		  " " (vc-delistify files))))
-    (save-current-buffer
-      (unless (or (eq buffer t)
-		  (and (stringp buffer)
-		       (string= (buffer-name) buffer))
-		  (eq buffer (current-buffer)))
-	(vc-setup-buffer buffer))
-      ;; If there's some previous async process still running, just kill it.
-      (let ((oldproc (get-buffer-process (current-buffer))))
-        ;; If we wanted to wait for oldproc to finish before doing
-        ;; something, we'd have used vc-eval-after.
-        ;; Use `delete-process' rather than `kill-process' because we don't
-        ;; want any of its output to appear from now on.
-        (if oldproc (delete-process oldproc)))
-      (let ((squeezed (remq nil flags))
-	    (inhibit-read-only t)
-	    (status 0))
-	(when files
-	  (setq squeezed (nconc squeezed files)))
-	(let ((exec-path (append vc-path exec-path))
-	      ;; Add vc-path to PATH for the execution of this command.
-	      (process-environment
-	       (cons (concat "PATH=" (getenv "PATH")
-			     path-separator
-			     (mapconcat 'identity vc-path path-separator))
-		     process-environment))
-	      (w32-quote-process-args t))
-	  (when (and (eq okstatus 'async) (file-remote-p default-directory))
-	    ;; start-process does not support remote execution
-	    (setq okstatus nil))
-	  (if (eq okstatus 'async)
-	      ;; Run asynchronously.
-	      (let ((proc
-		     (let ((process-connection-type nil))
-		       (apply 'start-file-process command (current-buffer)
-                              command squeezed))))
-		(if vc-command-messages
-		    (message "Running %s in background..." full-command))
-		;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))
-		(set-process-filter proc 'vc-process-filter)
-		(vc-exec-after
-		 `(if vc-command-messages
-		      (message "Running %s in background... done" ',full-command))))
-	    ;; Run synchrously
-	    (when vc-command-messages
-	      (message "Running %s in foreground..." full-command))
-	    (let ((buffer-undo-list t))
-	      (setq status (apply 'process-file command nil t nil squeezed)))
-	    (when (and (not (eq t okstatus))
-		       (or (not (integerp status))
-			   (and okstatus (< okstatus status))))
-              (unless (eq ?\s (aref (buffer-name (current-buffer)) 0))
-                (pop-to-buffer (current-buffer))
-                (goto-char (point-min))
-                (shrink-window-if-larger-than-buffer))
-	      (error "Running %s...FAILED (%s)" full-command
-		     (if (integerp status) (format "status %d" status) status))))
-	  ;; We're done.  But don't emit a status message if running
-	  ;; asychronously, it would just mislead.
-	  (if (and vc-command-messages (not (eq okstatus 'async)))
-	      (message "Running %s...OK = %d" full-command status)))
-	(vc-exec-after
-	 `(run-hook-with-args 'vc-post-command-functions
-			      ',command ',file-or-list ',flags))
-	status))))
-
-(defun vc-position-context (posn)
-  "Save a bit of the text around POSN in the current buffer.
-Used to help us find the corresponding position again later
-if markers are destroyed or corrupted."
-  ;; A lot of this was shamelessly lifted from Sebastian Kremer's
-  ;; rcs.el mode.
-  (list posn
-	(buffer-size)
-	(buffer-substring posn
-			  (min (point-max) (+ posn 100)))))
-
-(defun vc-find-position-by-context (context)
-  "Return the position of CONTEXT in the current buffer.
-If CONTEXT cannot be found, return nil."
-  (let ((context-string (nth 2 context)))
-    (if (equal "" context-string)
-	(point-max)
-      (save-excursion
-	(let ((diff (- (nth 1 context) (buffer-size))))
-	  (when (< diff 0) (setq diff (- diff)))
-	  (goto-char (nth 0 context))
-	  (if (or (search-forward context-string nil t)
-		  ;; Can't use search-backward since the match may continue
-		  ;; after point.
-		  (progn (goto-char (- (point) diff (length context-string)))
-			 ;; goto-char doesn't signal an error at
-			 ;; beginning of buffer like backward-char would
-			 (search-forward context-string nil t)))
-	      ;; to beginning of OSTRING
-	      (- (point) (length context-string))))))))
-
-(defun vc-context-matches-p (posn context)
-  "Return t if POSN matches CONTEXT, nil otherwise."
-  (let* ((context-string (nth 2 context))
-	 (len (length context-string))
-	 (end (+ posn len)))
-    (if (> end (1+ (buffer-size)))
-	nil
-      (string= context-string (buffer-substring posn end)))))
-
-(defun vc-buffer-context ()
-  "Return a list (POINT-CONTEXT MARK-CONTEXT REPARSE).
-Used by `vc-restore-buffer-context' to later restore the context."
-  (let ((point-context (vc-position-context (point)))
-	;; Use mark-marker to avoid confusion in transient-mark-mode.
-	(mark-context  (when (eq (marker-buffer (mark-marker)) (current-buffer))
-			 (vc-position-context (mark-marker))))
-	;; Make the right thing happen in transient-mark-mode.
-	(mark-active nil)
-	;; The new compilation code does not use compilation-error-list any
-	;; more, so the code below is now ineffective and might as well
-	;; be disabled.  -- Stef
-	;; ;; We may want to reparse the compilation buffer after revert
-	;; (reparse (and (boundp 'compilation-error-list) ;compile loaded
-	;; 	      ;; Construct a list; each elt is nil or a buffer
-	;; 	      ;; if that buffer is a compilation output buffer
-	;; 	      ;; that contains markers into the current buffer.
-	;; 	      (save-current-buffer
-	;; 		(mapcar (lambda (buffer)
-	;; 			  (set-buffer buffer)
-	;; 			  (let ((errors (or
-	;; 					 compilation-old-error-list
-	;; 					 compilation-error-list))
-	;; 				(buffer-error-marked-p nil))
-	;; 			    (while (and (consp errors)
-	;; 					(not buffer-error-marked-p))
-	;; 			      (and (markerp (cdr (car errors)))
-	;; 				   (eq buffer
-	;; 				       (marker-buffer
-	;; 					(cdr (car errors))))
-	;; 				   (setq buffer-error-marked-p t))
-	;; 			      (setq errors (cdr errors)))
-	;; 			    (if buffer-error-marked-p buffer)))
-	;; 			(buffer-list)))))
-	(reparse nil))
-    (list point-context mark-context reparse)))
-
-(defun vc-restore-buffer-context (context)
-  "Restore point/mark, and reparse any affected compilation buffers.
-CONTEXT is that which `vc-buffer-context' returns."
-  (let ((point-context (nth 0 context))
-	(mark-context (nth 1 context))
-	;; (reparse (nth 2 context))
-        )
-    ;; The new compilation code does not use compilation-error-list any
-    ;; more, so the code below is now ineffective and might as well
-    ;; be disabled.  -- Stef
-    ;; ;; Reparse affected compilation buffers.
-    ;; (while reparse
-    ;;   (if (car reparse)
-    ;; 	  (with-current-buffer (car reparse)
-    ;; 	    (let ((compilation-last-buffer (current-buffer)) ;select buffer
-    ;; 		  ;; Record the position in the compilation buffer of
-    ;; 		  ;; the last error next-error went to.
-    ;; 		  (error-pos (marker-position
-    ;; 			      (car (car-safe compilation-error-list)))))
-    ;; 	      ;; Reparse the error messages as far as they were parsed before.
-    ;; 	      (compile-reinitialize-errors '(4) compilation-parsing-end)
-    ;; 	      ;; Move the pointer up to find the error we were at before
-    ;; 	      ;; reparsing.  Now next-error should properly go to the next one.
-    ;; 	      (while (and compilation-error-list
-    ;; 			  (/= error-pos (car (car compilation-error-list))))
-    ;; 		(setq compilation-error-list (cdr compilation-error-list))))))
-    ;;   (setq reparse (cdr reparse)))
-
-    ;; if necessary, restore point and mark
-    (if (not (vc-context-matches-p (point) point-context))
-	(let ((new-point (vc-find-position-by-context point-context)))
-	  (when new-point (goto-char new-point))))
-    (and mark-active
-         mark-context
-         (not (vc-context-matches-p (mark) mark-context))
-         (let ((new-mark (vc-find-position-by-context mark-context)))
-           (when new-mark (set-mark new-mark))))))
-
 ;;; Code for deducing what fileset and backend to assume
 
 (defun vc-responsible-backend (file &optional register)
@@ -1420,73 +1010,26 @@ Only files already under version control are noticed."
        node (lambda (f) (when (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered)
+(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered
+				    include-files-not-directories)
   "Deduce a set of files and a backend to which to apply an operation.
-
-Return (BACKEND . FILESET).
-If we're in VC-dired mode, the fileset is the list of marked files.
-Otherwise, if we're looking at a buffer visiting a version-controlled file,
-the fileset is a singleton containing this file.
-If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
-and we're in a dired buffer, select the current directory.
-If none of these conditions is met, but ALLOW_UNREGISTERED is in and the
-visited file is not registered, return a singletin fileset containing it.
-Otherwise, throw an error."
-  (let (backend)
-    (cond
-     (vc-dired-mode
-      (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
-	(unless marked
-	  (error "No files have been selected."))
+Return (BACKEND . FILESET)."
+  (let* ((fileset (vc-dispatcher-selection-set
+		  #'vc-registered
+		  allow-directory-wildcard 
+		  allow-unregistered
+		  include-files-not-directories))
+	(backend (vc-backend (car fileset))))
 	;; All members of the fileset must have the same backend
-	(setq backend (vc-backend (car marked)))
-	(dolist (f (cdr marked))
+	(dolist (f (cdr fileset))
 	  (unless (eq (vc-backend f) backend)
 	    (error "All members of a fileset must be under the same version-control system.")))
-	(cons backend marked)))
-     ((eq major-mode 'vc-dir-mode)
-      ;; FIXME: Maybe the backend should be stored in a buffer-local
-      ;; variable?
-      (cons (vc-responsible-backend default-directory)
-	    (or (vc-dir-marked-files)
-		(list (vc-dir-current-file)))))
-     ((setq backend (vc-backend buffer-file-name))
-      (cons backend (list buffer-file-name)))
-     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
-				(with-current-buffer vc-parent-buffer
-				  (or vc-dired-mode (eq major-mode 'vc-dir-mode)))))
-      (progn
-	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset)))
-     ;; This is guarded by an enabling arg so users won't potentially
-     ;; shoot themselves in the foot by modifying a fileset they can't
-     ;; verify by eyeball.  Allow it for nondestructive commands like
-     ;; making diffs, or possibly for destructive ones that have
-     ;; confirmation prompts.
-     ((and allow-directory-wildcard
-	   ;; I think this is a misfeature.  For now, I'll leave it in, but
-	   ;; I'll disable it anywhere else than in dired buffers.  --Stef
-	   (and (derived-mode-p 'dired-mode)
-		(equal buffer-file-name nil)
-		(equal list-buffers-directory default-directory)))
-      (progn
-	(message "All version-controlled files below %s selected."
-		 default-directory)
-	(cons
-	 (vc-responsible-backend default-directory)
-	 (list default-directory))))
-     ((and allow-unregistered (not (vc-registered buffer-file-name)))
-      (cons (vc-responsible-backend
-	     (file-name-directory (buffer-file-name)))
-	    (list buffer-file-name)))
-     (t (error "No fileset is available here.")))))
+    (cons backend fileset)))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
   (cond
-   (vc-dired-mode
-    (set-buffer (find-file-noselect (dired-get-filename))))
-   ((eq major-mode 'vc-dir-mode)
+   ((vc-dispatcher-browsing)
     (set-buffer (find-file-noselect (vc-dir-current-file))))
    (t
     (while (and vc-parent-buffer
@@ -1500,43 +1043,16 @@ Otherwise, throw an error."
       (unless (vc-backend buffer-file-name)
 	(error "File %s is not under version control" buffer-file-name))))))
 
-;;; Support for the C-x v v command.  This is where all the single-file-oriented
-;;; code from before the fileset rewrite lives.
+;;; Support for the C-x v v command.
+;; This is where all the single-file-oriented code from before the fileset
+;; rewrite lives.
 
 (defsubst vc-editable-p (file)
   "Return non-nil if FILE can be edited."
-  (or (eq (vc-checkout-model file) 'implicit)
-      (memq (vc-state file) '(edited needs-merge conflict))))
-
-(defun vc-revert-buffer-internal (&optional arg no-confirm)
-  "Revert buffer, keeping point and mark where user expects them.
-Try to be clever in the face of changes due to expanded version-control
-key words.  This is important for typeahead to work as expected.
-ARG and NO-CONFIRM are passed on to `revert-buffer'."
-  (interactive "P")
-  (widen)
-  (let ((context (vc-buffer-context)))
-    ;; Use save-excursion here, because it may be able to restore point
-    ;; and mark properly even in cases where vc-restore-buffer-context
-    ;; would fail.  However, save-excursion might also get it wrong --
-    ;; in this case, vc-restore-buffer-context gives it a second try.
-    (save-excursion
-      ;; t means don't call normal-mode;
-      ;; that's to preserve various minor modes.
-      (revert-buffer arg no-confirm t))
-    (vc-restore-buffer-context context)))
-
-(defun vc-buffer-sync (&optional not-urgent)
-  "Make sure the current buffer and its working file are in sync.
-NOT-URGENT means it is ok to continue if the user says not to save."
-  (when (buffer-modified-p)
-    (if (or vc-suppress-confirm
-	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
-	(save-buffer)
-      (unless not-urgent
-	(error "Aborted")))))
-
-(defvar vc-dired-window-configuration)
+  (let ((backend (vc-backend file)))
+    (and backend
+         (or (eq (vc-checkout-model backend (list file)) 'implicit)
+             (memq (vc-state file) '(edited needs-merge conflict))))))
 
 (defun vc-compatible-state (p q)
   "Controls which states can be in the same commit."
@@ -1579,60 +1095,33 @@ with the logmessage as change commentary.  A writable file is retained.
 merge in the changes into your working copy."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset nil t))
+	 (vc-fileset-only-files (vc-deduce-fileset nil t t))
+	 (only-files (cdr vc-fileset-only-files))
+         (backend (car vc-fileset))
 	 (files (cdr vc-fileset))
-	 state
-	 model
+	 (state (vc-state (car only-files)))
+	 (model (vc-checkout-model backend files))
 	 revision)
-    ;; Check if there's at least one file present, and get `state' and
-    ;; `model' from it.
-    ;;FIXME: do something about the case when only directories are
-    ;; present, or `files' is nil.
-    (dolist (file files)
-      (unless (file-directory-p file)
-	(setq model (vc-checkout-model (car files)))
-	(setq state (vc-state file))
-	(return)))
-    
+
     ;; Verify that the fileset is homogeneous
-    (dolist (file (cdr files))
+    (dolist (file (cdr only-files))
       ;; Ignore directories, they are compatible with anything.
       (unless (file-directory-p file)
 	(unless (vc-compatible-state (vc-state file) state)
-	  (error "Fileset is in a mixed-up state"))
-	(unless (eq (vc-checkout-model file) model)
+	  (error "%s:%s clashes with %s:%s"
+		 file (vc-state file) (car files) state))
+	(unless (eq (vc-checkout-model backend (list file)) model)
 	  (error "Fileset has mixed checkout models"))))
-    ;; Check for buffers in the fileset not matching the on-disk contents.
-    (dolist (file files)
-      (let ((visited (get-file-buffer file)))
-	(when visited
-	  (if (or vc-dired-mode (eq major-mode 'vc-dir-mode))
-	      (switch-to-buffer-other-window visited)
-	    (set-buffer visited))
-	  ;; Check relation of buffer and file, and make sure
-	  ;; user knows what he's doing.  First, finding the file
-	  ;; will check whether the file on disk is newer.
-	  ;; Ignore buffer-read-only during this test, and
-	  ;; preserve find-file-literally.
-	  (let ((buffer-read-only (not (file-writable-p file))))
-	    (find-file-noselect file nil find-file-literally))
-	  (if (not (verify-visited-file-modtime (current-buffer)))
-	      (if (yes-or-no-p (format "Replace %s on disk with buffer contents? " file))
-		  (write-file buffer-file-name)
-		(error "Aborted"))
-	    ;; Now, check if we have unsaved changes.
-	    (vc-buffer-sync t)
-	    (when (buffer-modified-p)
-	      (or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
-		  (error "Aborted")))))))
     ;; Do the right thing
     (cond
+     ((eq state 'missing)
+      (error "Fileset files are missing, so cannot be operated on."))
      ;; Files aren't registered
-     ((or (not state)  ;; RCS uses nil for unregistered files.
-	  (eq state 'unregistered)
+     ((or (eq state 'unregistered)
 	  (eq state 'ignored))
-      (mapc 'vc-register files))
+      (mapc (lambda (arg) (vc-register nil arg)) files))
      ;; Files are up-to-date, or need a merge and user specified a revision
-     ((or (eq state 'up-to-date) (and verbose (eq state 'needs-patch)))
+     ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
        (verbose
 	;; go to a different revision
@@ -1711,8 +1200,8 @@ merge in the changes into your working copy."
      ;; conflict
      ((eq state 'conflict)
       (vc-mark-resolved files))
-     ;; needs-patch
-     ((eq state 'needs-patch)
+     ;; needs-update
+     ((eq state 'needs-update)
       (dolist (file files)
 	(if (yes-or-no-p (format
 			  "%s is not up-to-date.  Get latest revision? "
@@ -1755,7 +1244,10 @@ merge in the changes into your working copy."
 		    "Revert to checked-in revision, instead? "))
 	      (error "Checkout aborted")
 	    (vc-revert-buffer-internal t t)
-	    (vc-checkout file t))))))))
+	    (vc-checkout file t)))))
+     ;; Unknown fileset state
+     (t
+      (error "Fileset is in an unknown state %s" state)))))
 
 (defun vc-create-repo (backend)
   "Create an empty repository in the current directory."
@@ -1770,7 +1262,7 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional fname set-revision comment)
+(defun vc-register (&optional set-revision fname comment)
   "Register into a version control system.
 If FNAME is given register that file, otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
@@ -1801,7 +1293,7 @@ first backend that could register the file is used."
 		 (not (file-exists-p buffer-file-name)))
 	  (set-buffer-modified-p t))
 	(vc-buffer-sync)))
-    (vc-start-entry (list fname)
+    (vc-start-logentry (list fname)
 		    (if set-revision
 			(read-string (format "Initial revision level for %s: "
 					     fname))
@@ -1830,91 +1322,6 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
-(declare-function view-mode-exit "view" (&optional return-to-alist exit-action all-win))
-
-(defun vc-resynch-window (file &optional keep noquery)
-  "If FILE is in the current buffer, either revert or unvisit it.
-The choice between revert (to see expanded keywords) and unvisit depends on
-`vc-keep-workfiles'.  NOQUERY if non-nil inhibits confirmation for
-reverting.  NOQUERY should be t *only* if it is known the only
-difference between the buffer and the file is due to version control
-rather than user editing!"
-  (and (string= buffer-file-name file)
-       (if keep
-	   (progn
-	     (vc-revert-buffer-internal t noquery)
-             ;; TODO: Adjusting view mode might no longer be necessary
-             ;; after RMS change to files.el of 1999-08-08.  Investigate
-             ;; this when we install the new VC.
-             (and view-read-only
-                  (if (file-writable-p file)
-                      (and view-mode
-                           (let ((view-old-buffer-read-only nil))
-                             (view-mode-exit)))
-                    (and (not view-mode)
-                         (not (eq (get major-mode 'mode-class) 'special))
-                         (view-mode-enter))))
-	     (vc-mode-line buffer-file-name))
-	 (kill-buffer (current-buffer)))))
-
-(defun vc-resynch-buffer (file &optional keep noquery)
-  "If FILE is currently visited, resynch its buffer."
-  (if (string= buffer-file-name file)
-      (vc-resynch-window file keep noquery)
-    (let ((buffer (get-file-buffer file)))
-      (when buffer
-	(with-current-buffer buffer
-	  (vc-resynch-window file keep noquery)))))
-  (vc-dired-resynch-file file)
-  (when (memq 'vc-dir-mark-buffer-changed after-save-hook)
-    (let ((buffer (get-file-buffer file)))
-      (vc-dir-mark-buffer-changed file))))
-
-
-(defun vc-start-entry (files rev comment initial-contents msg action &optional after-hook)
-  "Accept a comment for an operation on FILES revision REV.
-If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
-action on close to ACTION.  If COMMENT is a string and
-INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
-contents of the log entry buffer.  If COMMENT is a string and
-INITIAL-CONTENTS is nil, do action immediately as if the user had
-entered COMMENT.  If COMMENT is t, also do action immediately with an
-empty comment.  Remember the file's buffer in `vc-parent-buffer'
-\(current one if no file).  AFTER-HOOK specifies the local value
-for `vc-log-after-operation-hook'."
-  (let ((parent
-         (if (or (eq major-mode 'vc-dired-mode) (eq major-mode 'vc-dir-mode))
-             ;; If we are called from VC dired, the parent buffer is
-             ;; the current buffer.
-             (current-buffer)
-           (if (and files (equal (length files) 1))
-               (get-file-buffer (car files))
-             (current-buffer)))))
-    (when vc-before-checkin-hook
-      (if files
-	  (with-current-buffer parent
-	    (run-hooks 'vc-before-checkin-hook))
-	(run-hooks 'vc-before-checkin-hook)))
-    (if (and comment (not initial-contents))
-	(set-buffer (get-buffer-create "*VC-log*"))
-      (pop-to-buffer (get-buffer-create "*VC-log*")))
-    (set (make-local-variable 'vc-parent-buffer) parent)
-    (set (make-local-variable 'vc-parent-buffer-name)
-	 (concat " from " (buffer-name vc-parent-buffer)))
-    ;;(if file (vc-mode-line file))
-    (vc-log-edit files)
-    (make-local-variable 'vc-log-after-operation-hook)
-    (when after-hook
-      (setq vc-log-after-operation-hook after-hook))
-    (setq vc-log-operation action)
-    (setq vc-log-revision rev)
-    (when comment
-      (erase-buffer)
-      (when (stringp comment) (insert comment)))
-    (if (or (not comment) initial-contents)
-	(message "%s  Type C-c C-c when done" msg)
-      (vc-finish-logentry (eq comment t)))))
-
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
 If WRITABLE is non-nil, make sure the retrieved file is writable.
@@ -1926,23 +1333,23 @@ After check-out, runs the normal hook `vc-checkout-hook'."
        (vc-call make-version-backups-p file)
        (vc-up-to-date-p file)
        (vc-make-version-backup file))
-  (with-vc-properties
-   (list file)
-   (condition-case err
-       (vc-call checkout file writable rev)
-     (file-error
-      ;; Maybe the backend is not installed ;-(
-      (when writable
-	(let ((buf (get-file-buffer file)))
-	  (when buf (with-current-buffer buf (toggle-read-only -1)))))
-      (signal (car err) (cdr err))))
-   `((vc-state . ,(if (or (eq (vc-checkout-model file) 'implicit)
-			  (not writable))
-		      (if (vc-call latest-on-branch-p file)
-			  'up-to-date
-			'needs-patch)
-		    'edited))
-     (vc-checkout-time . ,(nth 5 (file-attributes file)))))
+  (let ((backend (vc-backend file)))
+    (with-vc-properties (list file)
+      (condition-case err
+          (vc-call-backend backend 'checkout file writable rev)
+        (file-error
+         ;; Maybe the backend is not installed ;-(
+         (when writable
+           (let ((buf (get-file-buffer file)))
+             (when buf (with-current-buffer buf (toggle-read-only -1)))))
+         (signal (car err) (cdr err))))
+      `((vc-state . ,(if (or (eq (vc-checkout-model backend (list file)) 'implicit)
+                             (not writable))
+                         (if (vc-call latest-on-branch-p file)
+                             'up-to-date
+                           'needs-update)
+                       'edited))
+        (vc-checkout-time . ,(nth 5 (file-attributes file))))))
   (vc-resynch-buffer file t t)
   (run-hooks 'vc-checkout-hook))
 
@@ -1991,8 +1398,10 @@ of the log entry buffer.
 If `vc-keep-workfiles' is nil, FILE is deleted afterwards, provided
 that the version control system supports this mode of operation.
 
-Runs the normal hook `vc-checkin-hook'."
-  (vc-start-entry
+Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
+  (when vc-before-checkin-hook
+    (run-hooks 'vc-before-checkin-hook))
+  (vc-start-logentry
    files rev comment initial-contents
    "Enter a change comment."
    (lambda (files rev comment)
@@ -2013,61 +1422,6 @@ Runs the normal hook `vc-checkin-hook'."
 	(vc-working-revision . nil)))
      (message "Checking in %s...done" (vc-delistify files)))
    'vc-checkin-hook))
-
-(defun vc-finish-logentry (&optional nocomment)
-  "Complete the operation implied by the current log entry.
-Use the contents of the current buffer as a check-in or registration
-comment.  If the optional arg NOCOMMENT is non-nil, then don't check
-the buffer contents as a comment."
-  (interactive)
-  ;; Check and record the comment, if any.
-  (unless nocomment
-    ;; Comment too long?
-    (vc-call-backend (or (when vc-log-fileset (vc-backend vc-log-fileset))
-			 (vc-responsible-backend default-directory))
-		     'logentry-check)
-    (run-hooks 'vc-logentry-check-hook))
-  ;; Sync parent buffer in case the user modified it while editing the comment.
-  ;; But not if it is a vc-dired buffer.
-  (with-current-buffer vc-parent-buffer
-    (or vc-dired-mode (eq major-mode 'vc-dir-mode) (vc-buffer-sync)))
-  (unless vc-log-operation
-    (error "No log operation is pending"))
-  ;; save the parameters held in buffer-local variables
-  (let ((log-operation vc-log-operation)
-	(log-fileset vc-log-fileset)
-	(log-revision vc-log-revision)
-	(log-entry (buffer-string))
-	(after-hook vc-log-after-operation-hook)
-	(tmp-vc-parent-buffer vc-parent-buffer))
-    (pop-to-buffer vc-parent-buffer)
-    ;; OK, do it to it
-    (save-excursion
-      (funcall log-operation
-	       log-fileset
-	       log-revision
-	       log-entry))
-    ;; Remove checkin window (after the checkin so that if that fails
-    ;; we don't zap the *VC-log* buffer and the typing therein).
-    ;; -- IMO this should be replaced with quit-window
-    (let ((logbuf (get-buffer "*VC-log*")))
-      (cond ((and logbuf vc-delete-logbuf-window)
-	     (delete-windows-on logbuf (selected-frame))
-	     ;; Kill buffer and delete any other dedicated windows/frames.
-	     (kill-buffer logbuf))
-	    (logbuf (pop-to-buffer "*VC-log*")
-		    (bury-buffer)
-		    (pop-to-buffer tmp-vc-parent-buffer))))
-    ;; Now make sure we see the expanded headers
-    (when log-fileset
-      (mapc
-       (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
-       log-fileset))
-    (when vc-dired-mode
-      (dired-move-to-filename))
-    (when (eq major-mode 'vc-dir-mode)
-      (vc-dir-move-to-goal-column))
-    (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 ;;; Additional entry points for examining version histories
 
@@ -2273,9 +1627,7 @@ Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-If no current fileset is available (that is, we are not in
-VC-Dired mode and the visited file of the current buffer is not
-under version control) and we're in a Dired buffer, use
+If no current fileset is available and we're in a directory buffer, use
 the current directory.
 The optional argument NOT-URGENT non-nil means it is ok to say no to
 saving the buffer."
@@ -2389,7 +1741,7 @@ The headers are reset to their non-expanded form."
 
 (defun vc-modify-change-comment (files rev oldcomment)
   "Edit the comment associated with the given files and revision."
-  (vc-start-entry
+  (vc-start-logentry
    files rev oldcomment t
    "Enter a replacement change comment."
    (lambda (files rev comment)
@@ -2454,304 +1806,7 @@ See Info node `Merging'."
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
 
-;; The VC directory major mode.  Coopt Dired for this.
-;; All VC commands get mapped into logical equivalents.
-
-(defvar vc-dired-switches)
-(defvar vc-dired-terse-mode)
-
-(defvar vc-dired-mode-map
-  (let ((map (make-sparse-keymap))
-	(vmap (make-sparse-keymap)))
-    (define-key map "\C-xv" vmap)
-    (define-key map "v" vmap)
-    (set-keymap-parent vmap vc-prefix-map)
-    (define-key vmap "t" 'vc-dired-toggle-terse-mode)
-    map))
-
-(define-derived-mode vc-dired-mode dired-mode "Dired under "
-  "The major mode used in VC directory buffers.
-
-It works like Dired, but lists only files under version control, with
-the current VC state of each file being indicated in the place of the
-file's link count, owner, group and size.  Subdirectories are also
-listed, and you may insert them into the buffer as desired, like in
-Dired.
-
-All Dired commands operate normally, with the exception of `v', which
-is redefined as the version control prefix, so that you can type
-`vl', `v=' etc. to invoke `vc-print-log', `vc-diff', and the like on
-the file named in the current Dired buffer line.  `vv' invokes
-`vc-next-action' on this file, or on all files currently marked.
-There is a special command, `*l', to mark all files currently locked."
-  ;; define-derived-mode does it for us in Emacs-21, but not in Emacs-20.
-  ;; We do it here because dired might not be loaded yet
-  ;; when vc-dired-mode-map is initialized.
-  (set-keymap-parent vc-dired-mode-map dired-mode-map)
-  (add-hook 'dired-after-readin-hook 'vc-dired-hook nil t)
-  ;; The following is slightly modified from files.el,
-  ;; because file lines look a bit different in vc-dired-mode
-  ;; (the column before the date does not end in a digit).
-  ;; albinus: It should be done in the original declaration.  Problem
-  ;; is the optional empty state-info; otherwise ")" would be good
-  ;; enough as delimeter.
-  (set (make-local-variable 'directory-listing-before-filename-regexp)
-  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
-         ;; In some locales, month abbreviations are as short as 2 letters,
-         ;; and they can be followed by ".".
-         (month (concat l l "+\\.?"))
-         (s " ")
-         (yyyy "[0-9][0-9][0-9][0-9]")
-         (dd "[ 0-3][0-9]")
-         (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
-         (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
-         (zone "[-+][0-2][0-9][0-5][0-9]")
-         (iso-mm-dd "[01][0-9]-[0-3][0-9]")
-         (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
-         (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
-                      "\\|" yyyy "-" iso-mm-dd "\\)"))
-         (western (concat "\\(" month s "+" dd "\\|" dd "\\.?" s month "\\)"
-                          s "+"
-                          "\\(" HH:MM "\\|" yyyy "\\)"))
-         (western-comma (concat month s "+" dd "," s "+" yyyy))
-         ;; Japanese MS-Windows ls-lisp has one-digit months, and
-         ;; omits the Kanji characters after month and day-of-month.
-         (mm "[ 0-1]?[0-9]")
-         (japanese
-          (concat mm l "?" s dd l "?" s "+"
-                  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
-    ;; the .* below ensures that we find the last match on a line
-    (concat ".*" s
-            "\\(" western "\\|" western-comma "\\|" japanese "\\|" iso "\\)"
-            s "+")))
-  (and (boundp 'vc-dired-switches)
-       vc-dired-switches
-       (set (make-local-variable 'dired-actual-switches)
-            vc-dired-switches))
-  (set (make-local-variable 'vc-dired-terse-mode) vc-dired-terse-display)
-  (let ((backend-name (symbol-name (vc-responsible-backend
-				    default-directory))))
-    (setq mode-name (concat mode-name backend-name))
-    ;; Add menu after `vc-dired-mode-map' has `dired-mode-map' as the parent.
-    (let ((vc-dire-menu-map (copy-keymap vc-menu-map)))
-      (define-key-after (lookup-key vc-dired-mode-map [menu-bar]) [vc]
-	(cons backend-name vc-dire-menu-map) 'subdir)))
-  (setq vc-dired-mode t))
-
-(defun vc-dired-toggle-terse-mode ()
-  "Toggle terse display in VC Dired."
-  (interactive)
-  (if (not vc-dired-mode)
-      nil
-    (setq vc-dired-terse-mode (not vc-dired-terse-mode))
-    (if vc-dired-terse-mode
-        (vc-dired-hook)
-      (revert-buffer))))
-
-(defun vc-dired-mark-locked ()
-  "Mark all files currently locked."
-  (interactive)
-  (dired-mark-if (let ((f (dired-get-filename nil t)))
-		   (and f
-			(not (file-directory-p f))
-			(not (vc-up-to-date-p f))))
-		 "locked file"))
-
-(define-key vc-dired-mode-map "*l" 'vc-dired-mark-locked)
-
-(defun vc-dired-reformat-line (vc-info)
-  "Reformat a directory-listing line.
-Replace various columns with version control information, VC-INFO.
-This code, like dired, assumes UNIX -l format."
-  (beginning-of-line)
-  (when (re-search-forward
-         ;; Match link count, owner, group, size.  Group may be missing,
-         ;; and only the size is present in OS/2 -l format.
-         "^..[drwxlts-]+ \\( *[0-9]+\\( [^ ]+ +\\([^ ]+ +\\)?[0-9]+\\)?\\) "
-         (line-end-position) t)
-      (replace-match (substring (concat vc-info "          ") 0 10)
-                     t t nil 1)))
-
-(defun vc-dired-ignorable-p (filename)
-  "Should FILENAME be ignored in VC-Dired listings?"
-  (catch t
-    ;; Ignore anything that wouldn't be found by completion (.o, .la, etc.)
-    (dolist (ignorable completion-ignored-extensions)
-      (let ((ext (substring filename
-			      (- (length filename)
-				 (length ignorable)))))
-	(if (string= ignorable ext) (throw t t))))
-    ;; Ignore Makefiles derived from something else
-    (when (string= (file-name-nondirectory filename) "Makefile")
-      (let* ((dir (file-name-directory filename))
-	    (peers (directory-files (or dir default-directory))))
-	(if (or (member "Makefile.in" peers) (member "Makefile.am" peers))
-	   (throw t t))))
-    nil))
-
-(defun vc-dired-hook ()
-  "Reformat the listing according to version control.
-Called by dired after any portion of a vc-dired buffer has been read in."
-  (message "Getting version information... ")
-  ;; if the backend supports it, get the state
-  ;; of all files in this directory at once
-  (let ((backend (vc-responsible-backend default-directory)))
-    ;; check `backend' can really handle `default-directory'.
-    (if (and (vc-call-backend backend 'responsible-p default-directory)
-	     (vc-find-backend-function backend 'dir-state))
-	(vc-call-backend backend 'dir-state default-directory)))
-  (let (filename
-	(inhibit-read-only t)
-	(buffer-undo-list t))
-    (goto-char (point-min))
-    (while (not (eobp))
-      (cond
-       ;; subdir header line
-       ((dired-get-subdir)
-        (forward-line 1)
-        ;; erase (but don't remove) the "total" line
-	(delete-region (point) (line-end-position))
-	(beginning-of-line)
-	(forward-line 1))
-       ;; file line
-       ((setq filename (dired-get-filename nil t))
-        (cond
-         ;; subdir
-         ((file-directory-p filename)
-          (cond
-           ((member (file-name-nondirectory filename)
-                    vc-directory-exclusion-list)
-            (let ((pos (point)))
-              (dired-kill-tree filename)
-              (goto-char pos)
-              (dired-kill-line)))
-           (vc-dired-terse-mode
-            ;; Don't show directories in terse mode.  Don't use
-            ;; dired-kill-line to remove it, because in recursive listings,
-            ;; that would remove the directory contents as well.
-            (delete-region (line-beginning-position)
-                           (progn (forward-line 1) (point))))
-           ((string-match "\\`\\.\\.?\\'" (file-name-nondirectory filename))
-            (dired-kill-line))
-           (t
-            (vc-dired-reformat-line nil)
-            (forward-line 1))))
-	 ;; Try to head off calling the expensive state query -
-	 ;; ignore object files, TeX intermediate files, and so forth.
-	 ((vc-dired-ignorable-p filename)
-	  (dired-kill-line))
-         ;; Ordinary file -- call the (possibly expensive) state query
-	 ;;
-	 ;; First case: unregistered or unknown. (Unknown shouldn't happen here)
-	 ((member (vc-state filename) '(nil unregistered))
-	  (if vc-dired-terse-mode
-	      (dired-kill-line)
-	    (vc-dired-reformat-line "?")
-	    (forward-line 1)))
-	 ;; Either we're in non-terse mode or it's out of date
-	 ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
-	  (vc-dired-reformat-line (vc-call dired-state-info filename))
-	  (forward-line 1))
-	 ;; Remaining cases are under version control but uninteresting
-	 (t
-	  (dired-kill-line))))
-       ;; any other line
-       (t (forward-line 1))))
-    (vc-dired-purge))
-  (message "Getting version information... done")
-  (save-restriction
-    (widen)
-    (cond ((eq (count-lines (point-min) (point-max)) 1)
-           (goto-char (point-min))
-           (message "No changes pending under %s" default-directory)))))
-
-(defun vc-dired-purge ()
-  "Remove empty subdirs."
-  (goto-char (point-min))
-  (while (dired-get-subdir)
-    (forward-line 2)
-    (if (dired-get-filename nil t)
-	(if (not (dired-next-subdir 1 t))
-	    (goto-char (point-max)))
-      (forward-line -2)
-      (if (not (string= (dired-current-directory) default-directory))
-	  (dired-do-kill-lines t "")
-	;; We cannot remove the top level directory.
-	;; Just make it look a little nicer.
-	(forward-line 1)
-	(or (eobp) (kill-line))
-	(if (not (dired-next-subdir 1 t))
-	    (goto-char (point-max))))))
-  (goto-char (point-min)))
-
-(defun vc-dired-buffers-for-dir (dir)
-  "Return a list of all vc-dired buffers that currently display DIR."
-  (let (result)
-    ;; Check whether dired is loaded.
-    (when (fboundp 'dired-buffers-for-dir)
-      (dolist (buffer (dired-buffers-for-dir dir))
-        (with-current-buffer buffer
-          (when vc-dired-mode
-	    (push buffer result)))))
-    (nreverse result)))
-
-(defun vc-dired-resynch-file (file)
-  "Update the entries for FILE in any VC Dired buffers that list it."
-  (let ((buffers (vc-dired-buffers-for-dir (file-name-directory file))))
-    (when buffers
-      (mapcar (lambda (buffer)
-		(with-current-buffer buffer
-		  (when (dired-goto-file file)
-		    ;; bind vc-dired-terse-mode to nil so that
-		    ;; files won't vanish when they are checked in
-		    (let ((vc-dired-terse-mode nil))
-		      (dired-do-redisplay 1)))))
-	      buffers))))
-
-;;;###autoload
-(defun vc-directory (dir read-switches)
-  "Create a buffer in VC Dired Mode for directory DIR.
-
-See Info node `VC Dired Mode'.
-
-With prefix arg READ-SWITCHES, specify a value to override
-`dired-listing-switches' when generating the listing."
-  (interactive "DDired under VC (directory): \nP")
-  (let ((vc-dired-switches (concat vc-dired-listing-switches
-                                   (if vc-dired-recurse "R" ""))))
-    (if read-switches
-        (setq vc-dired-switches
-              (read-string "Dired listing switches: "
-                           vc-dired-switches)))
-    (require 'dired)
-    (require 'dired-aux)
-    (switch-to-buffer
-     (dired-internal-noselect (expand-file-name (file-name-as-directory dir))
-                              vc-dired-switches
-                              'vc-dired-mode))))
-
 ;; VC status implementation
-
-;; Used to store information for the files displayed in the *VC status* buffer.
-;; Each item displayed corresponds to one of these defstructs.
-(defstruct (vc-dir-fileinfo
-            (:copier nil)
-            (:type list)            ;So we can use `member' on lists of FIs.
-            (:constructor
-             ;; We could define it as an alias for `list'.
-	     vc-dir-create-fileinfo (name state &optional extra marked directory))
-            (:conc-name vc-dir-fileinfo->))
-  name                                  ;Keep it as first, for `member'.
-  state
-  ;; For storing backend specific information.
-  extra
-  marked
-  ;; To keep track of not updated files during a global refresh
-  needs-update
-  ;; To distinguish files and directories.
-  directory)
-
-(defvar vc-ewoc nil)
 
 (defun vc-default-status-extra-headers (backend dir)
   ;; Be loud by default to remind people to add coded to display
@@ -2795,186 +1850,6 @@ specific headers."
       'face 'font-lock-function-name-face
       'mouse-face 'highlight))))
 
-(defun vc-dir-printer (fileentry)
-  (let ((backend (vc-responsible-backend default-directory)))
-    (vc-call-backend backend 'status-printer fileentry)))
-
-(defun vc-dir-move-to-goal-column ()
-  ;; Used to keep the cursor on the file name column.
-  (beginning-of-line)
-  ;; Must be in sync with vc-default-status-printer.
-  (forward-char 25))
-
-(defun vc-dir-prepare-status-buffer (dir &optional create-new)
-  "Find a *vc-dir* buffer showing DIR, or create a new one."
-  (setq dir (expand-file-name dir))
-  (let* ((bname "*vc-dir*")
-	 ;; Look for another *vc-dir* buffer visiting the same directory.
-	 (buf (save-excursion
-		(unless create-new
-		  (dolist (buffer (buffer-list))
-		    (set-buffer buffer)
-		    (when (and (eq major-mode 'vc-dir-mode)
-			       (string= (expand-file-name default-directory) dir))
-		      (return buffer)))))))
-    (or buf
-        ;; Create a new *vc-dir* buffer.
-        (with-current-buffer (create-file-buffer bname)
-          (cd dir)
-          (vc-setup-buffer (current-buffer))
-          ;; Reset the vc-parent-buffer-name so that it does not appear
-          ;; in the mode-line.
-          (setq vc-parent-buffer-name nil)
-          (current-buffer)))))
-
-;;;###autoload
-(defun vc-dir (dir)
-  "Show the VC status for DIR."
-  (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
-  (if (eq major-mode 'vc-dir-mode)
-      (vc-dir-refresh)
-    (vc-dir-mode)))
-
-(defvar vc-dir-menu-map
-  (let ((map (make-sparse-keymap "VC-dir")))
-    (define-key map [quit]
-      '(menu-item "Quit" quit-window
-		  :help "Quit"))
-    (define-key map [kill]
-      '(menu-item "Kill Update Command" vc-dir-kill-dir-status-process
-		  :enable (vc-dir-busy)
-		  :help "Kill the command that updates VC status buffer"))
-    (define-key map [refresh]
-      '(menu-item "Refresh" vc-dir-refresh
-		  :enable (not (vc-dir-busy))
-		  :help "Refresh the contents of the VC status buffer"))
-    (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
-		  :help "Hide up-to-date items from display"))
-    ;; Movement.
-    (define-key map [sepmv] '("--"))
-    (define-key map [next-line]
-      '(menu-item "Next line" vc-dir-next-line
-		  :help "Go to the next line" :keys "n"))
-    (define-key map [previous-line]
-      '(menu-item "Previous line" vc-dir-previous-line
-		  :help "Go to the previous line"))
-    ;; Marking.
-    (define-key map [sepmrk] '("--"))
-    (define-key map [unmark-all]
-      '(menu-item "Unmark All" vc-dir-unmark-all-files
-		  :help "Unmark all files that are in the same state as the current file\
-\nWith prefix argument unmark all files"))
-    (define-key map [unmark-previous]
-      '(menu-item "Unmark previous " vc-dir-unmark-file-up
-		  :help "Move to the previous line and unmark the file"))
-
-    (define-key map [mark-all]
-      '(menu-item "Mark All" vc-dir-mark-all-files
-		  :help "Mark all files that are in the same state as the current file\
-\nWith prefix argument mark all files"))
-    (define-key map [unmark]
-      '(menu-item "Unmark" vc-dir-unmark
-		  :help "Unmark the current file or all files in the region"))
-
-    (define-key map [mark]
-      '(menu-item "Mark" vc-dir-mark
-		  :help "Mark the current file or all files in the region"))
-
-    (define-key map [sepopn] '("--"))
-    (define-key map [open-other]
-      '(menu-item "Open in other window" vc-dir-find-file-other-window
-		  :help "Find the file on the current line, in another window"))
-    (define-key map [open]
-      '(menu-item "Open file" vc-dir-find-file
-		  :help "Find the file on the current line"))
-    ;; VC info details
-    (define-key map [sepvcdet] '("--"))
-    ;; FIXME: This needs a key binding.  And maybe a better name
-    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
-    (define-key map [ins]
-      '(menu-item "Show File" vc-dir-show-fileentry
-		  :help "Show a file in the VC status listing even though it might be up to date"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [next-action]
-      ;; FIXME: This really really really needs a better name!
-      ;; And a key binding too.
-      '(menu-item "Check In/Out" vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
-    (define-key map [register]
-      '(menu-item "Register" vc-dir-register
-		  :help "Register file set into the version control system"))
-    map)
-  "Menu for VC status")
-
-(defalias 'vc-dir-menu-map vc-dir-menu-map)
-
-(defvar vc-dir-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    ;; Marking.
-    (define-key map "m" 'vc-dir-mark)
-    (define-key map "M" 'vc-dir-mark-all-files)
-    (define-key map "u" 'vc-dir-unmark)
-    (define-key map "\C-?" 'vc-dir-unmark-file-up)
-    (define-key map "\M-\C-?" 'vc-dir-unmark-all-files)
-    ;; Movement.
-    (define-key map "n" 'vc-dir-next-line)
-    (define-key map " " 'vc-dir-next-line)
-    (define-key map "\t" 'vc-dir-next-line)
-    (define-key map "p" 'vc-dir-previous-line)
-    (define-key map [backtab] 'vc-dir-previous-line)
-    ;; VC commands.
-    (define-key map "=" 'vc-diff)   ;; C-x v =
-    (define-key map "a" 'vc-dir-register)
-    (define-key map "+" 'vc-update) ;; C-x v +
-
-    ;;XXX: Maybe use something else here, so we can use 'U' for unmark
-    ;;all, similar to 'M'..
-    (define-key map "U" 'vc-revert) ;; u is taken by unmark.
-
-    ;; Can't be "g" (as in vc map), so "A" for "Annotate".
-    (define-key map "A" 'vc-annotate)
-    (define-key map "l" 'vc-print-log) ;; C-x v l
-    ;; The remainder.
-    (define-key map "f" 'vc-dir-find-file)
-    (define-key map "\C-m" 'vc-dir-find-file)
-    (define-key map "o" 'vc-dir-find-file-other-window)
-    (define-key map "x" 'vc-dir-hide-up-to-date)
-    (define-key map "q" 'quit-window)
-    (define-key map "g" 'vc-dir-refresh)
-    (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    ;; Does not work unless mouse sets point.  Functions like vc-dir-find-file
-    ;; need to find the file from the mouse position, not `point'.
-    ;; (define-key map [(down-mouse-3)] 'vc-dir-menu)
-    ;; (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
-
-    ;; Hook up the menu.
-    (define-key map [menu-bar vc-dir-mode]
-      '(menu-item
-	;; This is used to that VC backends could add backend specific
-	;; menu items to vc-dir-menu-map.
-	"VC Status" vc-dir-menu-map :filter vc-dir-menu-map-filter))
-    map)
-  "Keymap for VC status")
-
 (defun vc-default-extra-status-menu (backend)
   nil)
 
@@ -2991,188 +1866,6 @@ specific headers."
       (append orig-binding
 	      '("----")
 	      ext-binding))))
-
-(defun vc-dir-menu (e)
-  "Popup the VC status menu."
-  (interactive "e")
-  (popup-menu vc-dir-menu-map e))
-
-(defvar vc-dir-tool-bar-map
-  (let ((map (make-sparse-keymap)))
-    (tool-bar-local-item-from-menu 'vc-dir-find-file "open"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item "bookmark_add"
-			 'vc-dir-toggle-mark 'vc-dir-toggle-mark map
-			 :help "Toggle mark on current item")
-    (tool-bar-local-item-from-menu 'vc-dir-previous-line "left-arrow"
-				   map vc-dir-mode-map
-				   :rtl "right-arrow")
-    (tool-bar-local-item-from-menu 'vc-dir-next-line "right-arrow"
-				   map vc-dir-mode-map
-				   :rtl "left-arrow")
-    (tool-bar-local-item-from-menu 'vc-print-log "info"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'vc-dir-refresh "refresh"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'nonincremental-search-forward
-				   "search" map)
-    (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'quit-window "exit"
-				   map vc-dir-mode-map)
-    map))
-
-(defvar vc-dir-process-buffer nil
-  "The buffer used for the asynchronous call that computes the VC status.")
-
-(defun vc-dir-mode ()
-  "Major mode for VC status.
-\\{vc-dir-mode-map}"
-  (setq mode-name "VC Status")
-  (setq major-mode 'vc-dir-mode)
-  (setq buffer-read-only t)
-  (use-local-map vc-dir-mode-map)
-  (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map)
-  (let ((buffer-read-only nil)
-	(backend (vc-responsible-backend default-directory))
-	entries)
-    (erase-buffer)
-    (set (make-local-variable 'vc-dir-process-buffer) nil)
-    (set (make-local-variable 'vc-ewoc)
-	 (ewoc-create #'vc-dir-printer
-		      (vc-dir-headers backend default-directory)))
-    (add-hook 'after-save-hook 'vc-dir-mark-buffer-changed)
-    ;; Make sure that if the VC status buffer is killed, the update
-    ;; process running in the background is also killed.
-    (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
-    (vc-dir-refresh)))
-
-(put 'vc-dir-mode 'mode-class 'special)
-
-;; t if directories should be shown in vc-dir.
-;; WORK IN PROGRESS!  DO NOT SET this! ONLY set it if you want to help
-;; write code for this feature.  This variable will likely disappear
-;; when the work is done.
-(defvar vc-dir-insert-directories nil)
-
-(defun vc-dir-update (entries buffer &optional noinsert)
-  "Update BUFFER's ewoc from the list of ENTRIES.
-If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
-  ;; Add ENTRIES to the vc-dir buffer BUFFER.
-  (with-current-buffer buffer
-    ;; Insert the entries sorted by name into the ewoc.
-    ;; We assume the ewoc is sorted too, which should be the
-    ;; case if we always add entries with vc-dir-update.
-    (setq entries
-	  ;; Sort: first files and then subdirectories.
-	  ;; XXX: this is VERY inefficient, it computes the directory
-	  ;; names too many times
-	  (sort entries
-		(lambda (entry1 entry2)
-		  (let ((dir1 (file-name-directory (expand-file-name (car entry1))))
-			(dir2 (file-name-directory (expand-file-name (car entry2)))))
-		    (cond
-		     ((string< dir1 dir2) t)
-		     ((not (string= dir1 dir2)) nil)
-		     ((string< (car entry1) (car entry2))))))))
-    (if (not vc-dir-insert-directories)
-	(let ((entry (car entries))
-	      (node (ewoc-nth vc-ewoc 0)))
-	  (while (and entry node)
-	    (let ((entryfile (car entry))
-		  (nodefile (vc-dir-fileinfo->name (ewoc-data node))))
-	      (cond
-	       ((string-lessp nodefile entryfile)
-		(setq node (ewoc-next vc-ewoc node)))
-	       ((string-lessp entryfile nodefile)
-		(unless noinsert
-		  (ewoc-enter-before vc-ewoc node
-				     (apply 'vc-dir-create-fileinfo entry)))
-		(setq entries (cdr entries) entry (car entries)))
-	       (t
-		(setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		(ewoc-invalidate vc-ewoc node)
-		(setq entries (cdr entries) entry (car entries))
-		(setq node (ewoc-next vc-ewoc node))))))
-	  (unless (or node noinsert)
-	    ;; We're past the last node, all remaining entries go to the end.
-	    (while entries
-	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo (pop entries))))))
-  ;; Insert directory entries in the right places.
-  (let ((entry (car entries))
-	(node (ewoc-nth vc-ewoc 0)))
-    ;; Insert . if it is not present.
-    (unless node
-      (let ((rd (file-relative-name default-directory)))
-	(ewoc-enter-last
-	 vc-ewoc (vc-dir-create-fileinfo
-		  rd nil nil nil (expand-file-name default-directory))))
-      (setq node (ewoc-nth vc-ewoc 0)))
-
-    (while (and entry node)
-      (let* ((entryfile (car entry))
-	     (entrydir (file-name-directory (expand-file-name entryfile)))
-	     (nodedir
-	      (or (vc-dir-fileinfo->directory (ewoc-data node))
-		  (file-name-directory
-		       (expand-file-name
-			(vc-dir-fileinfo->name (ewoc-data node)))))))
-	(cond
-	 ;; First try to find the directory.
-	 ((string-lessp nodedir entrydir)
-	  (setq node (ewoc-next vc-ewoc node)))
-	 ((string-equal nodedir entrydir)
-	  ;; Found the directory, find the place for the file name.
-	  (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
-	    (cond
-	     ((string-lessp nodefile entryfile)
-	      (setq node (ewoc-next vc-ewoc node)))
-	      ((string-equal nodefile entryfile)
-	       (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-	       (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-	       (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-	       (ewoc-invalidate vc-ewoc node)
-	       (setq entries (cdr entries) entry (car entries))
-	       (setq node (ewoc-next vc-ewoc node)))
-	      (t
-	       (ewoc-enter-before vc-ewoc node
-				  (apply 'vc-dir-create-fileinfo entry))
-	       (setq entries (cdr entries) entry (car entries))))))
-	 (t
-	  ;; We need to insert a directory node
-	  (let ((rd (file-relative-name entrydir)))
-	    (ewoc-enter-last
-	     vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir)))
-	  ;; Now insert the node itself.
-	  (ewoc-enter-before vc-ewoc node
-			     (apply 'vc-dir-create-fileinfo entry))
-	  (setq entries (cdr entries) entry (car entries))))))
-    ;; We're past the last node, all remaining entries go to the end.
-    (unless (or node noinsert)
-      (let* ((lastnode (ewoc-nth vc-ewoc -1))
-	     (lastdir
-	      (or (vc-dir-fileinfo->directory (ewoc-data lastnode))
-		  (file-name-directory
-		       (expand-file-name
-			(vc-dir-fileinfo->name (ewoc-data lastnode)))))))
-	(dolist (entry entries)
-	  (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
-	    ;; Insert a directory node if needed.
-	    (unless (string-equal lastdir entrydir)
-	      (setq lastdir entrydir)
-	      (let ((rd (file-relative-name entrydir)))
-		(ewoc-enter-last
-		 vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
-	    ;; Now insert the node itself.
-	    (ewoc-enter-last vc-ewoc
-			     (apply 'vc-dir-create-fileinfo entry))))))))))
-
-(defun vc-dir-busy ()
-  (and (buffer-live-p vc-dir-process-buffer)
-       (get-buffer-process vc-dir-process-buffer)))
 
 (defun vc-dir-refresh-files (files default-state)
   "Refresh some files in the VC status buffer."
@@ -3258,201 +1951,12 @@ Throw an error if another update process is in progress."
                         'up-to-date)
                      (setq mode-line-process nil))))))))))))
 
-(defun vc-dir-kill-dir-status-process ()
-  "Kill the temporary buffer and associated process."
-  (interactive)
-  (when (buffer-live-p vc-dir-process-buffer)
-    (let ((proc (get-buffer-process vc-dir-process-buffer)))
-      (when proc (delete-process proc))
-      (setq vc-dir-process-buffer nil)
-      (setq mode-line-process nil))))
-
-(defun vc-dir-kill-query ()
-  ;; Make sure that when the VC status buffer is killed the update
-  ;; process running in background is also killed.
-  (if (vc-dir-busy)
-    (when (y-or-n-p "Status update process running, really kill status buffer?")
-      (vc-dir-kill-dir-status-process)
-      t)
-    t))
-
-(defun vc-dir-next-line (arg)
-  "Go to the next line.
-If a prefix argument is given, move by that many lines."
-  (interactive "p")
-  (ewoc-goto-next vc-ewoc arg)
-  (vc-dir-move-to-goal-column))
-
-(defun vc-dir-previous-line (arg)
-  "Go to the previous line.
-If a prefix argument is given, move by that many lines."
-  (interactive "p")
-  (ewoc-goto-prev vc-ewoc arg)
-  (vc-dir-move-to-goal-column))
-
-(defun vc-dir-mark-unmark (mark-unmark-function)
-  (if (use-region-p)
-      (let ((firstl (line-number-at-pos (region-beginning)))
-	    (lastl (line-number-at-pos (region-end))))
-	(save-excursion
-	  (goto-char (region-beginning))
-	  (while (<= (line-number-at-pos) lastl)
-	    (funcall mark-unmark-function))))
-    (funcall mark-unmark-function)))
-
-(defun vc-dir-parent-marked-p (arg)
-  ;; Return t if any of the children of arg is marked.
-  nil)
-
-(defun vc-dir-children-marked-p (arg)
-  ;; Return t if any of the children of arg is marked.
-  nil)
-
-(defun vc-dir-mark-file ()
-  ;; Mark the current file and move to the next line.
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt))
-	 (isdir (vc-dir-fileinfo->directory file)))
-    (when (or (and isdir (not (vc-dir-children-marked-p crt)))
-	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
-      (setf (vc-dir-fileinfo->marked file) t)
-      (ewoc-invalidate vc-ewoc crt)
-      (vc-dir-next-line 1))))
-
-(defun vc-dir-mark ()
-  "Mark the current file or all files in the region.
-If the region is active, mark all the files in the region.
-Otherwise mark the file on the current line and move to the next
-line."
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-mark-file))
-
-
-;; XXX: Should this take the region into consideration?
-(defun vc-dir-mark-all-files (arg)
-  "Mark all files with the same state as the current one.
-With a prefix argument mark all files.
-
-The VC commands operate on files that are on the same state.
-This command is intended to make it easy to select all files that
-share the same state."
-  (interactive "P")
-  (if arg
-      (ewoc-map
-       (lambda (filearg)
-	 (unless (vc-dir-fileinfo->marked filearg)
-	   (setf (vc-dir-fileinfo->marked filearg) t)
-	   t))
-       vc-ewoc)
-    (let* ((crt (ewoc-locate vc-ewoc))
-	   (crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
-      (ewoc-map
-       (lambda (filearg)
-	 (when (and (not (vc-dir-fileinfo->marked filearg))
-		    (eq (vc-dir-fileinfo->state filearg) crt-state))
-	   (setf (vc-dir-fileinfo->marked filearg) t)
-	   t))
-       vc-ewoc))))
-
-(defun vc-dir-unmark-file ()
-  ;; Unmark the current file and move to the next line.
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (setf (vc-dir-fileinfo->marked file) nil)
-    (ewoc-invalidate vc-ewoc crt)
-    (vc-dir-next-line 1)))
-
-(defun vc-dir-unmark ()
-  "Unmark the current file or all files in the region.
-If the region is active, unmark all the files in the region.
-Otherwise mark the file on the current line and move to the next
-line."
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-unmark-file))
-
-(defun vc-dir-unmark-file-up ()
-  "Move to the previous line and unmark the file."
-  (interactive)
-  ;; If we're on the first line, we won't move up, but we will still
-  ;; remove the mark.  This seems a bit odd but it is what buffer-menu
-  ;; does.
-  (let* ((prev (ewoc-goto-prev vc-ewoc 1))
-	 (file (ewoc-data prev)))
-    (setf (vc-dir-fileinfo->marked file) nil)
-    (ewoc-invalidate vc-ewoc prev)
-    (vc-dir-move-to-goal-column)))
-
-(defun vc-dir-unmark-all-files (arg)
-  "Unmark all files with the same state as the current one.
-With a prefix argument mark all files.
-
-The VC commands operate on files that are on the same state.
-This command is intended to make it easy to deselect all files
-that share the same state."
-  (interactive "P")
-  (if arg
-      (ewoc-map
-       (lambda (filearg)
-	 (when (vc-dir-fileinfo->marked filearg)
-	   (setf (vc-dir-fileinfo->marked filearg) nil)
-	   t))
-       vc-ewoc)
-    (let* ((crt (ewoc-locate vc-ewoc))
-	   (crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
-      (ewoc-map
-       (lambda (filearg)
-	 (when (and (vc-dir-fileinfo->marked filearg)
-		    (eq (vc-dir-fileinfo->state filearg) crt-state))
-	   (setf (vc-dir-fileinfo->marked filearg) nil)
-	   t))
-       vc-ewoc))))
-
-(defun vc-dir-toggle-mark-file ()
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (if (vc-dir-fileinfo->marked file)
-	(vc-dir-unmark-file)
-      (vc-dir-mark-file))))
-
-(defun vc-dir-toggle-mark ()
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-toggle-mark-file))
-
-(defun vc-dir-register ()
-  "Register the marked files, or the current file if no marks."
-  (interactive)
-  ;; FIXME: Just pass the fileset to vc-register.
-  (mapc 'vc-register (or (vc-dir-marked-files)
-                         (list (vc-dir-current-file)))))
-
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current VC status listing.
 This is typically used if the file is up-to-date (or has been added
 outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
-
-(defun vc-dir-find-file ()
-  "Find the file on the current line."
-  (interactive)
-  (find-file (vc-dir-current-file)))
-
-(defun vc-dir-find-file-other-window ()
-  "Find the file on the current line, in another window."
-  (interactive)
-  (find-file-other-window (vc-dir-current-file)))
-
-(defun vc-dir-current-file ()
-  (let ((node (ewoc-locate vc-ewoc)))
-    (unless node
-      (error "No file available."))
-    (expand-file-name (vc-dir-fileinfo->name (ewoc-data node)))))
-
-(defun vc-dir-marked-files ()
-  "Return the list of marked files"
-  (mapcar
-   (lambda (elem) (expand-file-name (vc-dir-fileinfo->name elem)))
-   (ewoc-collect vc-ewoc 'vc-dir-fileinfo->marked)))
 
 (defun vc-dir-hide-up-to-date ()
   "Hide up-to-date items from display."
@@ -3461,34 +1965,106 @@ outside of VC) and one wants to do some operation on it."
    vc-ewoc
    (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
 
+(defun vc-dir-register ()
+  "Register the marked files, or the current file if no marks."
+  (interactive)
+  ;; FIXME: Just pass the fileset to vc-register.
+  (mapc (lambda (arg) (vc-register nil arg))
+	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
+
 (defun vc-default-status-fileinfo-extra (backend file)
+  "Default absence of extra information returned for a file."
   nil)
 
-(defun vc-dir-mark-buffer-changed (&optional fname)
-  (let* ((file (or fname (expand-file-name buffer-file-name)))
-	 (found-vc-dir-buf nil))
-    (save-excursion
-      (dolist (status-buf (buffer-list))
-	(set-buffer status-buf)
-	;; look for a vc-dir buffer that might show this file.
-	(when (eq major-mode 'vc-dir-mode)
-	  (setq found-vc-dir-buf t)
-	  (let ((ddir (expand-file-name default-directory)))
-	    ;; This test is cvs-string-prefix-p
-	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
-	      (let*
-		  ((file-short (substring file (length ddir)))
-		   (backend (vc-backend file))
-		   (state (and backend (vc-state file)))
-		   (extra
-		    (and backend
-			 (vc-call-backend backend 'status-fileinfo-extra file)))
-		   (entry
-		    (list file-short (if state state 'unregistered) extra)))
-		(vc-dir-update (list entry) status-buf))))))
-      ;; We didn't find any vc-dir buffers, remove the hook, it is
-      ;; not needed.
-      (unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-dir-mark-buffer-changed)))))
+;; FIXME: Replace these with a more efficient dispatch
+
+(defun vc-generic-status-printer (fileentry)
+  (let* ((file (vc-dir-fileinfo->name fileentry))
+	 (backend (vc-responsible-backend (expand-file-name file))))
+    (vc-call-backend backend 'status-printer fileentry)))
+  
+(defun vc-generic-state (file)
+  (let ((backend (vc-responsible-backend (expand-file-name file))))
+    (vc-call-backend backend 'state file)))
+  
+(defun vc-generic-status-fileinfo-extra (file)
+  (let ((backend (vc-responsible-backend (expand-file-name file))))
+    (vc-call-backend backend 'status-fileinfo-extra file)))
+
+(defun vc-generic-dir-headers (dir)
+  (let ((backend (vc-responsible-backend dir)))
+    (vc-dir-headers backend dir)))
+
+(defun vc-make-backend-object (file-or-dir)
+  "Create the backend capability object needed by vc-dispatcher."
+  (vc-create-client-object 
+   "VC status"
+   (let ((backend (vc-responsible-backend file-or-dir)))
+     (vc-dir-headers backend file-or-dir))
+   #'vc-generic-status-printer
+   #'vc-generic-state
+   #'vc-generic-status-fileinfo-extra
+   #'vc-dir-refresh))
+
+;;;###autoload
+(defun vc-dir (dir)
+  "Show the VC status for DIR."
+  (interactive "DVC status for directory: ")
+  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
+  (if (and (eq major-mode 'vc-dir-mode) (boundp 'client-object))
+      (vc-dir-refresh)
+    ;; Otherwise, initialize a new view using the dispatcher layer
+    (progn
+      ;; Build a capability object and hand it to the dispatcher initializer
+      (vc-dir-mode (vc-make-backend-object dir))
+      ;; Add VC-specific keybindings
+      (let ((map (current-local-map)))
+	(define-key map "=" 'vc-diff) ;; C-x v =
+	(define-key map "a" 'vc-dir-register)
+	(define-key map "+" 'vc-update) ;; C-x v +
+	(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
+	(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher referesh
+	(define-key map "l" 'vc-print-log) ;; C-x v l
+	(define-key map "x" 'vc-dir-hide-up-to-date))
+      )
+    ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash  
+    (let ((map vc-dir-menu-map))
+    ;; VC info details
+    (define-key map [sepvcdet] '("--"))
+    (define-key map [remup]
+      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
+		  :help "Hide up-to-date items from display"))
+    ;; FIXME: This needs a key binding.  And maybe a better name
+    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
+    (define-key map [ins]
+      '(menu-item "Show File" vc-dir-show-fileentry
+		  :help "Show a file in the VC status listing even though it might be up to date"))
+    (define-key map [annotate]
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (define-key map [diff]
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (define-key map [log]
+     '(menu-item "Show history" vc-print-log
+     :help "List the change log of the current file set in a window"))
+    ;; VC commands.
+    (define-key map [sepvccmd] '("--"))
+    (define-key map [update]
+      '(menu-item "Update to latest version" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
+    (define-key map [revert]
+      '(menu-item "Revert to base version" vc-revert
+		  :help "Revert working copies of the selected fileset to their repository contents."))
+    (define-key map [next-action]
+      ;; FIXME: This really really really needs a better name!
+      ;; And a key binding too.
+      '(menu-item "Check In/Out" vc-next-action
+		  :help "Do the next logical version control operation on the current fileset"))
+    (define-key map [register]
+      '(menu-item "Register" vc-dir-register
+		  :help "Register file set into the version control system"))
+    )))
 
 ;; Named-configuration entry points
 
@@ -3677,7 +2253,7 @@ changes from the current branch are merged into the working file."
 	(error "Please kill or save all modified buffers before updating."))
       (if (vc-up-to-date-p file)
 	  (vc-checkout file nil t)
-	(if (eq (vc-checkout-model file) 'locking)
+	(if (eq (vc-checkout-model backend (list file)) 'locking)
 	    (if (eq (vc-state file) 'edited)
 		(error "%s"
 		       (substitute-command-keys
@@ -3804,7 +2380,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
 	    (vc-switch-backend file new-backend)
-	    (unless (eq (vc-checkout-model file) 'implicit)
+	    (unless (eq (vc-checkout-model new-backend (list file)) 'implicit)
 	      (vc-checkout file t nil))
 	    (rename-file modified-file file 'ok-if-already-exists)
 	    (vc-file-setprop file 'vc-checkout-time nil)))))
@@ -3857,11 +2433,17 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (unless (vc-find-backend-function backend 'delete-file)
       (error "Deleting files under %s is not supported in VC" backend))
     (when (and buf (buffer-modified-p buf))
-      (error "Please save files before deleting them"))
+      (error "Please save or undo your changes before deleting %s" file))
+    (let ((state (vc-state file)))
+      (when (eq state 'edited)
+        (error "Please commit or undo your changes before deleting %s" file))
+      (when (eq state 'conflict)
+        (error "Please resolve the conflicts before deleting %s" file)))
     (unless (y-or-n-p (format "Really want to delete %s? "
 			      (file-name-nondirectory file)))
       (error "Abort!"))
-    (unless (or (file-directory-p file) (null make-backup-files))
+    (unless (or (file-directory-p file) (null make-backup-files)
+                (not (file-exists-p file)))
       (with-current-buffer (or buf (find-file-noselect file))
 	(let ((backup-inhibited nil))
 	  (backup-buffer))
@@ -4084,17 +2666,17 @@ to provide the `find-revision' operation instead."
 	    (insert-file-contents-literally tmpfile)))
       (delete-file tmpfile))))
 
-(defun vc-default-dired-state-info (backend file)
+(defun vc-default-prettify-state-info (backend file)
   (let* ((state (vc-state file))
 	(statestring
 	 (cond
 	  ((stringp state) (concat "(" state ")"))
 	  ((eq state 'edited) "(modified)")
 	  ((eq state 'needs-merge) "(merge)")
-	  ((eq state 'needs-patch) "(patch)")
+	  ((eq state 'needs-update) "(update)")
 	  ((eq state 'added) "(added)")
 	  ((eq state 'removed) "(removed)")
-          ((eq state 'ignored) "(ignored)")     ;; dired-hook filters this out
+          ((eq state 'ignored) "(ignored)")
           ((eq state 'unregistered) "?")
 	  ((eq state 'unlocked-changes) "(stale)")
 	  ((not state) "(unknown)")))
@@ -4112,7 +2694,6 @@ to provide the `find-revision' operation instead."
   (with-current-buffer (find-file-noselect new)
     (vc-register)))
 
-(defalias 'vc-default-logentry-check 'ignore)
 (defalias 'vc-default-check-headers 'ignore)
 
 (defun vc-default-log-view-mode (backend) (log-view-mode))

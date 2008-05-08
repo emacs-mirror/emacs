@@ -1,33 +1,31 @@
 ;;; org-export-latex.el --- LaTeX exporter for org-mode
 ;;
-;; Copyright (c) 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 5.23
+;; Version: 6.02b
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
 ;; Description: Converts an org-mode buffer into LaTeX
 ;; URL: http://www.cognition.ens.fr/~guerry/u/org-export-latex.el
-;;
+
 ;; This file is part of GNU Emacs.
-;;
-;; GNU Emacs is free software; you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by the
-;; Free Software Foundation; either version 3, or (at your option) any
-;; later version.
-;;
-;; GNU Emacs is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-;; General Public License for more details.
-;;
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING. If not, write to the Free
-;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-;; MA 02110-1301, USA.
-;;
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 ;;
 ;; This library implements a LaTeX exporter for org-mode.
@@ -50,6 +48,7 @@
 
 (require 'footnote)
 (require 'org)
+(require 'org-exp)
 
 ;;; Variables:
 (defvar org-export-latex-class nil)
@@ -409,7 +408,7 @@ when PUB-DIR is set, use this as the publishing directory."
 		  (if region-p (region-beginning) (point-min))
 		  (if region-p (region-end) (point-max))))
 	 (string-for-export
-	  (org-cleaned-string-for-export
+	  (org-export-preprocess-string
 	   region :emph-multiline t
 		  :for-LaTeX t
 		  :comments nil
@@ -681,7 +680,7 @@ formatting string like %%%%s if we want to comment them out."
 		    (goto-char (match-beginning 0))
 		  (goto-char (point-max)))))
       (org-export-latex-content
-       (org-cleaned-string-for-export
+       (org-export-preprocess-string
 	(buffer-substring (point-min) end)
 	:for-LaTeX t
 	:emph-multiline t
@@ -944,6 +943,9 @@ Regexps are those from `org-export-latex-special-string-regexps'."
 				      (match-string 2)) t t)
 	       (forward-line))))))
 
+
+(defvar org-table-last-alignment) ; defined in org-table.el
+(declare-function orgtbl-to-latex "org-table" (table params) t)
 (defun org-export-latex-tables (insert)
   "Convert tables to LaTeX and INSERT it."
   (goto-char (point-min))
@@ -1076,7 +1078,7 @@ Regexps are those from `org-export-latex-special-string-regexps'."
 
 (defvar org-latex-entities)   ; defined below
 
-(defun org-export-latex-cleaned-string ()
+(defun org-export-latex-preprocess ()
   "Clean stuff in the LaTeX export."
 
   ;; Preserve line breaks

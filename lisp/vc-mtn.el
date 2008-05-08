@@ -5,20 +5,20 @@
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: 
 
-;; This file is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; This file is part of GNU Emacs.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -49,7 +49,7 @@
 ;;;###autoload         (vc-mtn-registered file))))
 
 (defun vc-mtn-revision-granularity () 'repository)
-(defun vc-mtn-checkout-model (file) 'implicit)
+(defun vc-mtn-checkout-model (files) 'implicit)
 
 (defun vc-mtn-root (file)
   (setq file (if (file-directory-p file)
@@ -125,7 +125,7 @@
 	  (setq branch (replace-match (cdr rule) t nil branch))))
     (format "Mtn%c%s"
 	    (case (vc-state file)
-	      ((up-to-date needs-patch) ?-)
+	      ((up-to-date needs-update) ?-)
 	      (added ?@)
 	      (t ?:))
 	    branch)))
@@ -285,8 +285,8 @@
                                 ;; Completion not implemented for these.
                                 "a:" "c:" "d:" "e:" "l:")
                               string pred))))))
-        
-        
+
+
 
 (provide 'vc-mtn)
 

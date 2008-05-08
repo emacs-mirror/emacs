@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "2f89c94c42629315419a9d7404469c42")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "0e52b41c758c56831930100671c58f50")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -273,17 +273,16 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (compiler-macroexpand define-compiler-macro ignore-errors
-;;;;;;  assert check-type typep cl-struct-setf-expander defstruct
-;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
-;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
-;;;;;;  declare the locally multiple-value-setq multiple-value-bind
-;;;;;;  lexical-let* lexical-let symbol-macrolet macrolet labels
-;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
-;;;;;;  do* do loop return-from return block etypecase typecase ecase
-;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym cl-compile-time-init) "cl-macs"
-;;;;;;  "cl-macs.el" "d33a3362d98432c0e9ca0b168f85ba93")
+;;;### (autoloads (compiler-macroexpand define-compiler-macro assert
+;;;;;;  check-type typep cl-struct-setf-expander defstruct define-modify-macro
+;;;;;;  callf2 callf letf* letf rotatef shiftf remf cl-do-pop psetf
+;;;;;;  setf get-setf-method defsetf define-setf-method declare the
+;;;;;;  locally multiple-value-setq multiple-value-bind lexical-let*
+;;;;;;  lexical-let symbol-macrolet macrolet labels flet progv psetq
+;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
+;;;;;;  return block etypecase typecase ecase case load-time-value
+;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
+;;;;;;  gensym cl-compile-time-init) "cl-macs" "cl-macs.el" "cc0d6d8e5b0f777ec88f1098ecb85d59")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-compile-time-init "cl-macs" "\
@@ -708,12 +707,6 @@ omitted, a default message listing FORM itself is used.
 
 \(fn FORM &optional SHOW-ARGS STRING &rest ARGS)" nil (quote macro))
 
-(autoload 'ignore-errors "cl-macs" "\
-Execute BODY; if an error occurs, return nil.
-Otherwise, return result of last form in BODY.
-
-\(fn &rest BODY)" nil (quote macro))
-
 (autoload 'define-compiler-macro "cl-macs" "\
 Define a compiler-only macro.
 This is like `defmacro', but macro expansion occurs only if the call to
@@ -745,7 +738,7 @@ Not documented
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "e3c349e5231811c1c0482dd378dae56a")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "6a0563f6cb397543e7a42bd91372d8c2")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\

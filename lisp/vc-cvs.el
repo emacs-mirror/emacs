@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,6 +32,30 @@
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
 (put 'CVS 'vc-functions nil)
+
+;;; Properties of the backend.
+
+(defun vc-cvs-revision-granularity () 'file)
+
+(defun vc-cvs-checkout-model (files)
+  "CVS-specific version of `vc-checkout-model'."
+  (if (getenv "CVSREAD")
+      'announce
+    (let* ((file (if (consp files) (car files) files))
+           (attrib (file-attributes file)))
+      (or (vc-file-getprop file 'vc-checkout-model)
+          (vc-file-setprop
+           file 'vc-checkout-model
+           (if (and attrib ;; don't check further if FILE doesn't exist
+                    ;; If the file is not writable (despite CVSREAD being
+                    ;; undefined), this is probably because the file is being
+                    ;; "watched" by other developers.
+                    ;; (If vc-mistrust-permissions was t, we actually shouldn't
+                    ;; trust this, but there is no other way to learn this from
+                    ;; CVS at the moment (version 1.9).)
+                    (string-match "r-..-..-." (nth 8 attrib)))
+               'announce
+             'implicit))))))
 
 ;;;
 ;;; Customization options
@@ -211,25 +233,6 @@ See also variable `vc-cvs-sticky-date-format-string'."
      ((string= (vc-working-revision file) "0") 'added)
      (t 'edited))))
 
-(defun vc-cvs-dir-state (dir)
-  "Find the CVS state of all files in DIR and subdirectories."
-  ;; if DIR is not under CVS control, don't do anything.
-  (when (file-readable-p (expand-file-name "CVS/Entries" dir))
-    (if (vc-stay-local-p dir)
-	(vc-cvs-dir-state-heuristic dir)
-      (let ((default-directory dir))
-	;; Don't specify DIR in this command, the default-directory is
-	;; enough.  Otherwise it might fail with remote repositories.
-	(with-temp-buffer
-	  (buffer-disable-undo)		;; Because these buffers can get huge
-	  (vc-cvs-command t 0 nil "status")
-	  (goto-char (point-min))
-	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
-	    (narrow-to-region (match-beginning 0) (match-end 0))
-	    (vc-cvs-parse-status)
-	    (goto-char (point-max))
-	    (widen)))))))
-
 (defun vc-cvs-working-revision (file)
   "CVS-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under CVS, because we
@@ -237,22 +240,6 @@ See also variable `vc-cvs-sticky-date-format-string'."
   ;; is registered in CVS.
   (vc-cvs-registered file)
   (vc-file-getprop file 'vc-working-revision))
-
-(defun vc-cvs-checkout-model (file)
-  "CVS-specific version of `vc-checkout-model'."
-  (if (getenv "CVSREAD")
-      'announce
-    (let ((attrib (file-attributes file)))
-      (if (and attrib ;; don't check further if FILE doesn't exist
-               ;; If the file is not writable (despite CVSREAD being
-               ;; undefined), this is probably because the file is being
-               ;; "watched" by other developers.
-               ;; (If vc-mistrust-permissions was t, we actually shouldn't
-               ;; trust this, but there is no other way to learn this from CVS
-               ;; at the moment (version 1.9).)
-               (string-match "r-..-..-." (nth 8 attrib)))
-          'announce
-        'implicit))))
 
 (defun vc-cvs-mode-line-string (file)
   "Return string for placement into the modeline for FILE.
@@ -356,7 +343,7 @@ its parents."
 	(vc-file-setprop
 	 (car files) 'vc-working-revision
 	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
-      (mapc (lambda (file) (vc-file-clearprops file)) files))
+      (mapc 'vc-file-clearprops files))
     ;; Anyway, forget the checkout model of the file, because we might have
     ;; guessed wrong when we found the file.  After commit, we can
     ;; tell it from the permissions of the file (see
@@ -389,7 +376,7 @@ REV is the revision to check out."
     (if (and (file-exists-p file) (not rev))
         ;; If no revision was specified, just make the file writable
         ;; if necessary (using `cvs-edit' if requested).
-        (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
+        (and editable (not (eq (vc-cvs-checkout-model (list file)) 'implicit))
              (if vc-cvs-use-edit
                  (vc-cvs-command nil 0 file "edit")
                (set-file-modes file (logior (file-modes file) 128))
@@ -412,13 +399,12 @@ REV is the revision to check out."
   (message "Checking out %s...done" file))
 
 (defun vc-cvs-delete-file (file)
-  (vc-cvs-command nil 0 file "remove" "-f")
-  (vc-cvs-command nil 0 file "commit" "-mRemoved."))
+  (vc-cvs-command nil 0 file "remove" "-f"))
 
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the working revision on which it was based."
   (vc-default-revert 'CVS file contents-done)
-  (unless (eq (vc-checkout-model file) 'implicit)
+  (unless (eq (vc-cvs-checkout-model (list file)) 'implicit)
     (if vc-cvs-use-edit
         (vc-cvs-command nil 0 file "unedit")
       ;; Make the file read-only by switching off all w-bits
@@ -795,8 +781,8 @@ For an empty string, nil is returned (invalid CVS root)."
 ;; information is context sensitive, it contains lines like:
 ;; cvs status: Examining DIRNAME
 ;; and the file entries after that don't show the full path.
-;; Because of this vc-dired only shows changed files at the top level
-;; for CVS.
+;; Because of this VC directory listings only show changed files
+;; at the top level for CVS.
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
@@ -834,29 +820,15 @@ state."
 	  ((string-match "Locally Modified" status)             'edited)
 	  ((string-match "Needs Merge" status)                  'needs-merge)
 	  ((string-match "Needs \\(Checkout\\|Patch\\)" status)
-	   (if missing 'missing 'needs-patch))
+	   (if missing 'missing 'needs-update))
 	  ((string-match "Locally Added" status)                'added)
 	  ((string-match "Locally Removed" status)              'removed)
 	  ((string-match "File had conflicts " status)          'conflict)
 	  (t 'edited))))))))
 
-(defun vc-cvs-dir-state-heuristic (dir)
-  "Find the CVS state of all files in DIR, using only local information."
-  (with-temp-buffer
-    (vc-cvs-get-entries dir)
-    (goto-char (point-min))
-    (while (not (eobp))
-      ;; CVS-removed files are not taken under VC control.
-      (when (looking-at "/\\([^/]*\\)/[^/-]")
-	(let ((file (expand-file-name (match-string 1) dir)))
-	  (unless (vc-file-getprop file 'vc-state)
-	    (vc-cvs-parse-entry file t))))
-      (forward-line 1))))
-
-;; XXX Experimental function for the vc-dired replacement.
 (defun vc-cvs-after-dir-status (update-function)
   ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
-  ;; It needs a lot of testing.
+  ;; This needs a lot of testing.
   (let ((status nil)
 	(status-str nil)
 	(file nil)
@@ -899,7 +871,7 @@ state."
 		   ((string-match "Locally Modified" status-str) 'edited)
 		   ((string-match "Needs Merge" status-str) 'needs-merge)
 		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
-		    (if missing 'missing 'needs-patch))
+		    (if missing 'missing 'needs-update))
 		   ((string-match "Locally Added" status-str) 'added)
 		   ((string-match "Locally Removed" status-str) 'removed)
 		   ((string-match "File had conflicts " status-str) 'conflict)
@@ -918,7 +890,7 @@ state."
   ;; 		       (?M . edited)
   ;; 		       (?P . needs-merge)
   ;; 		       (?R . removed)
-  ;; 		       (?U . needs-patch))))
+  ;; 		       (?U . needs-update))))
   ;;   (goto-char (point-min))
   ;;   (while (not (eobp))
   ;;     (if (looking-at "^[ACMPRU?] \\(.*\\)$")

@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -881,10 +879,11 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'octave-mode
- :regexp "[_a-zA-Z0-9]+"
+ :regexp "[_a-zA-Z0-9]+\\|\\s.+\\|[-!=^|*/.\\,><~&+]\\{1,3\\}\\|[][();,\"']"
  :doc-spec '(("(octave)Function Index" nil
 	      "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
 	     ("(octave)Variable Index" nil "^ -+ [^:]+:[ ]+" nil)
+             ("(octave)Operator Index" nil nil nil)
 	     ;; Catch lines of the form "xyz statement"
 	     ("(octave)Concept Index"
 	      (lambda (item)

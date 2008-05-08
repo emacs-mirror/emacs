@@ -2502,10 +2502,10 @@ characters.  These variables specify those characters:
 Holds the character used for vertical lines.  The default value is
 @samp{|}.
 
-@vindex table-cell-horizontal-char
-@item table-cell-horizontal-char
-Holds the character used for horizontal lines.  The default value is
-@samp{-}.
+@vindex table-cell-horizontal-chars
+@item table-cell-horizontal-chars
+Holds the characters used for horizontal lines.  The default value is
+@samp{"-="}.
 
 @vindex table-cell-intersection-char
 @item table-cell-intersection-char

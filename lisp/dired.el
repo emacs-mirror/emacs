@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,6 +32,8 @@
 ;; Finished up by rms in 1992.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 ;;; Customizable variables
 
@@ -587,19 +587,49 @@ Don't use that together with FILTER."
 
 (defun dired-read-dir-and-switches (str)
   ;; For use in interactive.
-  (reverse (list
-	    (if current-prefix-arg
-		(read-string "Dired listing switches: "
-			     dired-listing-switches))
-	    ;; If a dialog is about to be used, call read-directory-name so
-	    ;; the dialog code knows we want directories.  Some dialogs can
-	    ;; only select directories or files when popped up, not both.
-	    (let ((default (and buffer-file-name
-				(abbreviate-file-name buffer-file-name))))
-	      (minibuffer-with-setup-hook
-		  (lambda () (setq minibuffer-default default))
-		(read-directory-name (format "Dired %s(directory): " str)
-				     nil default-directory nil))))))
+  (reverse
+   (list
+    (if current-prefix-arg
+        (read-string "Dired listing switches: "
+                     dired-listing-switches))
+    ;; If a dialog is about to be used, call read-directory-name so
+    ;; the dialog code knows we want directories.  Some dialogs can
+    ;; only select directories or files when popped up, not both.
+    (if (next-read-file-uses-dialog-p)
+        (read-directory-name (format "Dired %s(directory): " str)
+                             nil default-directory nil)
+      (lexical-let ((default (and buffer-file-name
+                                  (abbreviate-file-name buffer-file-name)))
+                    (defdir default-directory))
+        (minibuffer-with-setup-hook
+            (lambda ()
+              (setq minibuffer-default default)
+              (set (make-local-variable 'minibuffer-completing-file-name)
+                   ;; t means "from now until the next minibuffer", whereas
+                   ;; `lambda' means "only here".
+                   'lambda)
+              (set (make-local-variable 'completion-ignore-case)
+                   read-file-name-completion-ignore-case)
+              (setq default-directory defdir))
+          (substitute-in-file-name
+           (completing-read
+            (format "Dired %s(directory): " str)
+            ;; We need a mix of read-file-name and read-directory-name
+            ;; so that completion to directories is preferred, but if
+            ;; the user wants to enter a global pattern, he can still
+            ;; use completion on filenames to help him write the pattern.
+            ;; Essentially, we want to use
+            ;; (completion-table-with-predicate
+            ;;  'read-file-name-internal 'file-directory-p nil)
+            ;; but that doesn't work because read-file-name-internal
+            ;; does not obey its `predicate' argument.
+            (completion-table-in-turn
+             (lambda (str pred action)
+               (let ((read-file-name-predicate 'file-directory-p))
+                 (complete-with-action
+                  action 'read-file-name-internal str nil)))
+             'read-file-name-internal)
+            nil nil (abbreviate-file-name defdir) 'file-name-history))))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -1279,6 +1309,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-tf" 'image-dired-mark-tagged-files)
     (define-key map "\C-t\C-t" 'image-dired-dired-insert-marked-thumbs)
     (define-key map "\C-te" 'image-dired-dired-edit-comment-and-tags)
+    ;; encryption and decryption (epa-dired)
+    (define-key map ":d" 'epa-dired-do-decrypt)
+    (define-key map ":v" 'epa-dired-do-verify)
+    (define-key map ":s" 'epa-dired-do-sign)
+    (define-key map ":e" 'epa-dired-do-encrypt)
 
     ;; Make menu bar items.
 
@@ -1325,6 +1360,29 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
     (define-key map
+      [menu-bar immediate epa-dired-do-decrypt]
+      '(menu-item "Decrypt" epa-dired-do-decrypt
+		  :help "Decrypt file at cursor"))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-verify]
+      '(menu-item "Verify" epa-dired-do-verify
+		  :help "Verify digital signature of file at cursor"))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-sign]
+      '(menu-item "Sign" epa-dired-do-sign
+		  :help "Create digital signature of file at cursor"))
+
+    (define-key map
+      [menu-bar immediate epa-dired-do-encrypt]
+      '(menu-item "Encrypt" epa-dired-do-encrypt
+		  :help "Encrypt file at cursor"))
+
+    (define-key map [menu-bar immediate dashes-4]
+      '("--"))
+
+    (define-key map
       [menu-bar immediate image-dired-dired-display-external]
       '(menu-item "Display Image Externally" image-dired-dired-display-external
                   :help "Display image in external viewer"))
@@ -1365,9 +1423,11 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Find This File" dired-find-file
 		  :help "Edit file at cursor"))
     (define-key map [menu-bar immediate create-directory]
-      '(menu-item "Create Directory..." dired-create-directory))
+      '(menu-item "Create Directory..." dired-create-directory
+		  :help "Create a directory"))
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode
+		  :help "Put a dired buffer in a mode in which filenames are editable"
 		  :filter (lambda (x) (if (eq major-mode 'dired-mode) x))))
 
     (define-key map [menu-bar regexp]
@@ -2651,31 +2711,9 @@ just the current file."
       (apply function args))))
 
 (defun dired-format-columns-of-files (files)
-  ;; Files should be in forward order for this loop.
-  ;; i.e., (car files) = first file in buffer.
-  ;; Returns the number of lines used.
-  (let* ((maxlen (+ 2 (apply 'max (mapcar 'length files))))
-	 (width (- (window-width (selected-window)) 2))
-	 (columns (max 1 (/ width maxlen)))
-	 (nfiles (length files))
-	 (rows (+ (/ nfiles columns)
-		  (if (zerop (% nfiles columns)) 0 1)))
-	 (i 0)
-	 (j 0))
-    (setq files (nconc (copy-sequence files) ; fill up with empty fns
-		       (make-list (- (* columns rows) nfiles) "")))
-    (setcdr (nthcdr (1- (length files)) files) files) ; make circular
-    (while (< j rows)
-      (while (< i columns)
-	(indent-to (* i maxlen))
-	(insert (car files))
-	(setq files (nthcdr rows files)
-	      i (1+ i)))
-      (insert "\n")
-      (setq i 0
-	    j (1+ j)
-	    files (cdr files)))
-    rows))
+  (let ((beg (point)))
+    (completion--insert-strings files)
+    (put-text-property beg (point) 'mouse-face nil)))
 
 ;; Commands to mark or flag file(s) at or near current line.
 

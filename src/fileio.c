@@ -207,19 +207,6 @@ Lisp_Object Vwrite_region_annotations_so_far;
 /* File name in which we write a list of all our auto save files.  */
 Lisp_Object Vauto_save_list_file_name;
 
-/* Function to call to read a file name.  */
-Lisp_Object Vread_file_name_function;
-
-/* Current predicate used by read_file_name_internal.  */
-Lisp_Object Vread_file_name_predicate;
-
-/* Nonzero means completion ignores case when reading file name.  */
-int read_file_name_completion_ignore_case;
-
-/* Nonzero means, when reading a filename in the minibuffer,
- start out by inserting the default directory into the minibuffer. */
-int insert_default_directory;
-
 /* On VMS, nonzero means write new files with record format stmlf.
    Zero means use var format.  */
 int vms_stmlf_recfm;
@@ -6156,218 +6143,22 @@ before any other event (mouse or keypress) is handeled.  */)
   return Qnil;
 }
 
-Lisp_Object Qdefault_directory;
-
-DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
-       doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
-Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-FILENAME if user exits the minibuffer with
-the same non-empty string that was inserted by this function.
- (If DEFAULT-FILENAME is omitted, the visited file name is used,
-  except that if INITIAL is specified, that combined with DIR is used.)
-If the user exits with an empty minibuffer, this function returns
-an empty string.  (This can only happen if the user erased the
-pre-inserted contents or if `insert-default-directory' is nil.)
-Fourth arg MUSTMATCH non-nil means require existing file's name.
- Non-nil and non-t means also require confirmation after completion.
-Fifth arg INITIAL specifies text to start with.
-If optional sixth arg PREDICATE is non-nil, possible completions and
-the resulting file name must satisfy (funcall PREDICATE NAME).
-DIR should be an absolute directory name.  It defaults to the value of
-`default-directory'.
-
-If this command was invoked with the mouse, use a file dialog box if
-`use-dialog-box' is non-nil, and the window system or X toolkit in use
-provides a file dialog box.
-
-See also `read-file-name-completion-ignore-case'
-and `read-file-name-function'.  */)
-     (prompt, dir, default_filename, mustmatch, initial, predicate)
+Lisp_Object
+Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
      Lisp_Object prompt, dir, default_filename, mustmatch, initial, predicate;
 {
-  Lisp_Object val, insdef, tem;
   struct gcpro gcpro1, gcpro2;
-  register char *homedir;
-  Lisp_Object decoded_homedir;
-  int replace_in_history = 0;
-  int add_to_history = 0;
-  int count;
-
-  if (NILP (dir))
-    dir = current_buffer->directory;
-  if (NILP (Ffile_name_absolute_p (dir)))
-    dir = Fexpand_file_name (dir, Qnil);
-  if (NILP (default_filename))
-    default_filename
-      = (!NILP (initial)
-	 ? Fexpand_file_name (initial, dir)
-	 : current_buffer->filename);
-
-  /* If dir starts with user's homedir, change that to ~. */
-  homedir = (char *) egetenv ("HOME");
-#ifdef DOS_NT
-  /* homedir can be NULL in temacs, since Vglobal_environment is not
-     yet set up.  We shouldn't crash in that case.  */
-  if (homedir != 0)
-    {
-      homedir = strcpy (alloca (strlen (homedir) + 1), homedir);
-      CORRECT_DIR_SEPS (homedir);
-    }
-#endif
-  if (homedir != 0)
-    decoded_homedir
-      = DECODE_FILE (make_unibyte_string (homedir, strlen (homedir)));
-  if (homedir != 0
-      && STRINGP (dir)
-      && !strncmp (SDATA (decoded_homedir), SDATA (dir),
-		   SBYTES (decoded_homedir))
-      && IS_DIRECTORY_SEP (SREF (dir, SBYTES (decoded_homedir))))
-    {
-      dir = Fsubstring (dir, make_number (SCHARS (decoded_homedir)), Qnil);
-      dir = concat2 (build_string ("~"), dir);
-    }
-  /* Likewise for default_filename.  */
-  if (homedir != 0
-      && STRINGP (default_filename)
-      && !strncmp (SDATA (decoded_homedir), SDATA (default_filename),
-		   SBYTES (decoded_homedir))
-      && IS_DIRECTORY_SEP (SREF (default_filename, SBYTES (decoded_homedir))))
-    {
-      default_filename
-	= Fsubstring (default_filename,
-		      make_number (SCHARS (decoded_homedir)), Qnil);
-      default_filename = concat2 (build_string ("~"), default_filename);
-    }
-  if (!NILP (default_filename))
-    {
-      CHECK_STRING (default_filename);
-      default_filename = double_dollars (default_filename);
-    }
-
-  if (insert_default_directory && STRINGP (dir))
-    {
-      insdef = dir;
-      if (!NILP (initial))
-	{
-	  Lisp_Object args[2], pos;
-
-	  args[0] = insdef;
-	  args[1] = initial;
-	  insdef = Fconcat (2, args);
-	  pos = make_number (SCHARS (double_dollars (dir)));
-	  insdef = Fcons (double_dollars (insdef), pos);
-	}
-      else
-	insdef = double_dollars (insdef);
-    }
-  else if (STRINGP (initial))
-    insdef = Fcons (double_dollars (initial), make_number (0));
-  else
-    insdef = Qnil;
-
-  if (!NILP (Vread_file_name_function))
-    {
-      Lisp_Object args[7];
-
-      GCPRO2 (insdef, default_filename);
-      args[0] = Vread_file_name_function;
-      args[1] = prompt;
-      args[2] = dir;
-      args[3] = default_filename;
-      args[4] = mustmatch;
-      args[5] = initial;
-      args[6] = predicate;
-      RETURN_UNGCPRO (Ffuncall (7, args));
-    }
-
-  count = SPECPDL_INDEX ();
-  specbind (Qdefault_directory,
-	    Ffile_name_as_directory (Fexpand_file_name (dir, Qnil)));
-  specbind (Qcompletion_ignore_case,
-	    read_file_name_completion_ignore_case ? Qt : Qnil);
-  specbind (intern ("minibuffer-completing-file-name"), Qt);
-  specbind (intern ("read-file-name-predicate"),
-	    (NILP (predicate) ? Qfile_exists_p : predicate));
+  Lisp_Object args[7];
 
   GCPRO2 (insdef, default_filename);
-
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (HAVE_CARBON)
-  if (! NILP (Fnext_read_file_uses_dialog_p ()))
-    {
-      /* If DIR contains a file name, split it.  */
-      Lisp_Object file;
-      file = Ffile_name_nondirectory (dir);
-      if (SCHARS (file) && NILP (default_filename))
-	{
-	  default_filename = file;
-	  dir = Ffile_name_directory (dir);
-	}
-      if (!NILP(default_filename))
-        default_filename = Fexpand_file_name (default_filename, dir);
-      val = Fx_file_dialog (prompt, dir, default_filename, mustmatch,
-                            EQ (predicate, Qfile_directory_p) ? Qt : Qnil);
-      add_to_history = 1;
-    }
-  else
-#endif
-    val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
-			    Qnil, mustmatch, insdef,
-			    Qfile_name_history, default_filename, Qnil);
-
-  tem = Fsymbol_value (Qfile_name_history);
-  if (CONSP (tem) && EQ (XCAR (tem), val))
-    replace_in_history = 1;
-
-  /* If Fcompleting_read returned the inserted default string itself
-     (rather than a new string with the same contents),
-     it has to mean that the user typed RET with the minibuffer empty.
-     In that case, we really want to return ""
-     so that commands such as set-visited-file-name can distinguish.  */
-  if (EQ (val, default_filename))
-    {
-      /* In this case, Fcompleting_read has not added an element
-	 to the history.  Maybe we should.  */
-      if (! replace_in_history)
-	add_to_history = 1;
-
-      val = empty_unibyte_string;
-    }
-
-  unbind_to (count, Qnil);
-  UNGCPRO;
-  if (NILP (val))
-    error ("No file name specified");
-
-  tem = Fstring_equal (val, CONSP (insdef) ? XCAR (insdef) : insdef);
-
-  if (!NILP (tem) && !NILP (default_filename))
-    val = default_filename;
-  val = Fsubstitute_in_file_name (val);
-
-  if (replace_in_history)
-    /* Replace what Fcompleting_read added to the history
-       with what we will actually return.  */
-    {
-       Lisp_Object val1 = double_dollars (val);
-       tem = Fsymbol_value (Qfile_name_history);
-       if (history_delete_duplicates)
-	 XSETCDR (tem, Fdelete (val1, XCDR(tem)));
-       XSETCAR (tem, val1);
-    }
-  else if (add_to_history)
-    {
-      /* Add the value to the history--but not if it matches
-	 the last value already there.  */
-      Lisp_Object val1 = double_dollars (val);
-      tem = Fsymbol_value (Qfile_name_history);
-      if (! CONSP (tem) || NILP (Fequal (XCAR (tem), val1)))
-	{
-	  if (history_delete_duplicates) tem = Fdelete (val1, tem);
-	  Fset (Qfile_name_history, Fcons (val1, tem));
-	}
-    }
-
-  return val;
+  args[0] = intern ("read-file-name");
+  args[1] = prompt;
+  args[2] = dir;
+  args[3] = default_filename;
+  args[4] = mustmatch;
+  args[5] = initial;
+  args[6] = predicate;
+  RETURN_UNGCPRO (Ffuncall (7, args));
 }
 
 
@@ -6488,8 +6279,6 @@ of file names regardless of the current language environment.  */);
 
   Qformat_decode = intern ("format-decode");
   staticpro (&Qformat_decode);
-  Qdefault_directory = intern ("default-directory");
-  staticpro (&Qdefault_directory);
   Qformat_annotate_function = intern ("format-annotate-function");
   staticpro (&Qformat_annotate_function);
   Qafter_insert_file_set_coding = intern ("after-insert-file-set-coding");
@@ -6512,45 +6301,6 @@ of file names regardless of the current language environment.  */);
 	list3 (Qfile_date_error, Qfile_error, Qerror));
   Fput (Qfile_date_error, Qerror_message,
 	build_string ("Cannot set file date"));
-
-  DEFVAR_LISP ("read-file-name-function", &Vread_file_name_function,
-	       doc: /* If this is non-nil, `read-file-name' does its work by calling this function.  */);
-  Vread_file_name_function = Qnil;
-
-  DEFVAR_LISP ("read-file-name-predicate", &Vread_file_name_predicate,
-	       doc: /* Current predicate used by `read-file-name-internal'.  */);
-  Vread_file_name_predicate = Qnil;
-
-  DEFVAR_BOOL ("read-file-name-completion-ignore-case", &read_file_name_completion_ignore_case,
-	       doc: /* *Non-nil means when reading a file name completion ignores case.  */);
-#if defined VMS || defined DOS_NT || defined MAC_OS
-  read_file_name_completion_ignore_case = 1;
-#else
-  read_file_name_completion_ignore_case = 0;
-#endif
-
-  DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
-	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.
-
-When the initial minibuffer contents show a name of a file or a directory,
-typing RETURN without editing the initial contents is equivalent to typing
-the default file name.
-
-If this variable is non-nil, the minibuffer contents are always
-initially non-empty, and typing RETURN without editing will fetch the
-default name, if one is provided.  Note however that this default name
-is not necessarily the same as initial contents inserted in the minibuffer,
-if the initial contents is just the default directory.
-
-If this variable is nil, the minibuffer often starts out empty.  In
-that case you may have to explicitly fetch the next history element to
-request the default name; typing RETURN without editing will leave
-the minibuffer empty.
-
-For some commands, exiting with an empty minibuffer has a special meaning,
-such as making the current buffer visit no file in the case of
-`set-visited-file-name'.  */);
-  insert_default_directory = 1;
 
   DEFVAR_BOOL ("vms-stmlf-recfm", &vms_stmlf_recfm,
 	       doc: /* *Non-nil means write new files with record format `stmlf'.
@@ -6698,7 +6448,6 @@ A non-nil value may result in data loss!  */);
   defsubr (&Sclear_buffer_auto_save_failure);
   defsubr (&Srecent_auto_save_p);
 
-  defsubr (&Sread_file_name);
   defsubr (&Snext_read_file_uses_dialog_p);
 
 #ifdef HAVE_SYNC

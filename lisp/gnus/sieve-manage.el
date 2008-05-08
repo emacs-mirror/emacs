@@ -7,20 +7,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -570,15 +568,14 @@ password is remembered in the buffer."
     (sieve-manage-send (format "HAVESPACE \"%s\" %s" name size))
     (sieve-manage-parse-okno)))
 
-(eval-and-compile
-  (if (fboundp 'string-bytes)
-      (defalias 'sieve-string-bytes 'string-bytes)
-    (defalias 'sieve-string-bytes 'length)))
-
 (defun sieve-manage-putscript (name content &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (sieve-manage-send (format "PUTSCRIPT \"%s\" {%d+}%s%s" name
-			       (sieve-string-bytes content)
+                               ;; Here we assume that the coding-system will
+                               ;; replace each char with a single byte.
+                               ;; This is always the case if `content' is
+                               ;; a unibyte string.
+			       (length content)
 			       sieve-manage-client-eol content))
     (sieve-manage-parse-okno)))
 

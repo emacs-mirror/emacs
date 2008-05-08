@@ -1,3 +1,111 @@
+2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-article-toggle-truncate-lines):
+	Don't use `iff' in docstring.
+
+2008-05-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Adjusted copyright dates and added a keyword.
+
+	* gnus-util.el (gnus-extract-address-component-name)
+	(gnus-extract-address-component-email): Convenience functions around
+	`gnus-extract-address-components'.
+
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Use
+	`gnus-extract-address-component-email' to fix bug of comparing full
+	sender name to `user-mail-address'.
+
+2008-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-grep-in-list): Fix logic, use
+	catch/throw to optimize.
+	(gnus-registry-find-keywords): Just use member to find a keyword.
+
+2008-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-srvr.el (gnus-enter-server-buffer): Make sure the server-buffer
+	is current before calling gnus-server-prepare.
+	(gnus-server-setup-buffer, gnus-server-update-server)
+	(gnus-server-read-server, gnus-browse-exit): Use with-current-buffer.
+
+2008-05-04  Juri Linkov  <juri@jurta.org>
+
+	* mailcap.el (mailcap-replace-in-string): New compatibility alias.
+	(mailcap-file-default-commands): Use mailcap-replace-in-string
+	instead of replace-regexp-in-string, and mailcap-delete-duplicates
+	instead of delete-dups.  Use [ \t\n]* for whitespace in regexp.
+
+2008-05-03  Reiner Steib  <reiner.steib@gmx.de>
+
+	* gnus-sum.el (gnus-propagate-marks): Fix custom version.
+
+2008-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-save-parts): Inhibit even more treatment
+	hooks.
+	(gnus-update-read-articles): Speed up non-marks-using users.
+	(gnus-use-marks): Define gnus-use-marks.
+	(gnus-propagate-marks): Rename variable to something more sensible.
+
+2008-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmm-utils.el (gmm, gmm-verbose, gmm-lazy, gmm-customize-mode)
+	(gmm-image-load-path-for-library): Fix typos in docstrings.
+	(gmm-message): Reflow docstring.
+
+2008-04-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail-source.el (mail-source-set-1, mail-source-bind):
+	Move auth-source code out of the macro to clean it up and fix bugs.
+
+2008-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Don't split
+	by sender if it's equal to user-mail-address, it's likely to be
+	useless.
+
+	* mail-source.el (mail-source-bind): Don't use user or password if they
+	are not bound.  Unintern them if they are nil.  Don't use server unless
+	it's bound, and default it to empty string otherwise.
+
+2008-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail-source.el: Load auth-source.el.
+	(mail-source-bind): Add comments.  Call auth-source-user-or-password to
+	get user name or password, if auth-sources is set up.
+
+	* gnus-registry.el (gnus-registry-split-strategy): New variable for
+	strategy of splitting with parent.
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-post-process-groups): Use it and fix prior
+	bug (returning a list as the split result).
+
+	* auth-source.el (auth-sources): Remove server parameter.
+	(auth-source-pick, auth-source-user-or-password)
+	(auth-source-user-or-password-imap)
+	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
+	(auth-source-user-or-password-sftp)
+	(auth-source-user-or-password-smtp): Remove server parameter.
+
+2008-04-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* smime.el (smime-sign-region, smime-encrypt-region)
+	(smime-decrypt-region):
+	Remove redundant calls to `generate-new-buffer-name'.
+
+2008-04-24  Luca Capello  <luca@pca.it>  (tiny change)
+
+	* mm-encode.el (mm-safer-encoding): Add optional argument `type'.
+	Don't use QP for message/rfc822.
+	(mm-content-transfer-encoding): Pass `type' to mm-safer-encoding.
+
+2008-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sieve-manage.el (sieve-string-bytes): Remove.
+	(sieve-manage-putscript): Use length instead: `string-bytes' gives the
+	correct byte-length only if the process's coding-system is the same as
+	the one used internally by Emacs to represent strings.
+
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
 	* mailcap.el (mailcap-file-default-commands): New function.
@@ -24,7 +132,7 @@
 2008-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Added docs.
-	(auth-sources): Modified format to support server.
+	(auth-sources): Modify format to support server.
 	(auth-source-pick, auth-source-user-or-password)
 	(auth-source-user-or-password-imap)
 	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
@@ -468,7 +576,7 @@
 	(nnmairix-last-server, nnmairix-current-server): Defvar them.
 	(nnmairix-goto-original-article): Defvar gnus-registry-install and
 	autoload gnus-registry-fetch-group when compiling.
-	(nnmairix-request-group-with-article-number-correction): remove
+	(nnmairix-request-group-with-article-number-correction): Remove
 	unreferenced argument passed to nnmairix-call-backend.
 
 2008-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -933,8 +1041,8 @@
 
 2007-12-06  Paul Jarc  <prj@po.cwru.edu>
 
-	* nnmaildir.el (nnmaildir-request-list, nnmaildir-retrieve-groups,
-	nnmaildir-request-group, nnmaildir-retrieve-headers): Escape spaces in
+	* nnmaildir.el (nnmaildir-request-list, nnmaildir-retrieve-groups)
+	(nnmaildir-request-group, nnmaildir-retrieve-headers): Escape spaces in
 	group names with backslashes.  Reported by Tassilo Horn
 	<tassilo@member.fsf.org>.
 
@@ -1433,7 +1541,7 @@
 	* gnus-art.el (gnus-button-mid-or-mail-heuristic-alist): Add "alpine".
 	(gnus-treat-body-boundary): Don't test window-system.
 
-2007-10-28  Leo <sdl.web@gmail.com>  (tiny change)
+2007-10-28  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* gnus-art.el (gnus-treat-emphasize): Don't test window-system.
 
@@ -6818,8 +6926,8 @@
 
 2005-07-18  Romain Francoise  <romain@orebokech.com>
 
-	* gnus-sum.el (gnus-summary-to-prefix,
-	gnus-summary-newsgroup-prefix): New variables.
+	* gnus-sum.el (gnus-summary-to-prefix)
+	(gnus-summary-newsgroup-prefix): New variables.
 	(gnus-summary-from-or-to-or-newsgroups): Use them.
 
 2005-07-17  Romain Francoise  <romain@orebokech.com>
@@ -7631,9 +7739,8 @@
 	* gnus-start.el (gnus-convert-old-newsrc): Fixed numeric
 	comparison on string.
 
-	* gnus-agent.el (gnus-agent-long-article,
-	gnus-agent-short-article, gnus-agent-score): Renamed category
-	keywords to match gnus-cus.
+	* gnus-agent.el (gnus-agent-long-article, gnus-agent-short-article)
+	(gnus-agent-score): Renamed category keywords to match gnus-cus.
 	(gnus-agent-summary-fetch-series): Modified to protect against
 	gnus-agent-summary-fetch-group clearing processable flags.
 	(gnus-agent-synchronize-group-flags): Update live group buffer as
@@ -9460,8 +9567,8 @@
 	* gnus-start.el (gnus-convert-old-newsrc): Changed message text as
 	some users confused by references to .newsrc when they only have a
 	.newsrc.eld file.
-	(gnus-convert-mark-converter-prompt,
-	gnus-convert-converter-needs-prompt): Fixed use of property list.
+	(gnus-convert-mark-converter-prompt)
+	(gnus-convert-converter-needs-prompt): Fixed use of property list.
 	* legacy-gnus-agent.el (gnus-agent-convert-to-compressed-agentview-prompt):
 	New function.  Used internally to only display 'gnus converting
 	files' message when actually necessary.
@@ -10336,9 +10443,8 @@
 	Add spam-use-resend.
 	(spam-group-spam-processor-report-resend-p): Add utility wrapper.
 	(spam-report-articles-gmane): Add doc fix.
-	(spam-report-articles-resend,
-	spam-report-resend-register-routine): Add wrappers around
-	spam-report-resend-to.
+	(spam-report-articles-resend, spam-report-resend-register-routine):
+	Add wrappers around spam-report-resend-to.
 
 	* spam-report.el (spam-report-resend-to, spam-report-resend):
 	Add support for resending spam.
@@ -10991,7 +11097,7 @@
 	(gnus-insert-mime-button): Revert 2004-03-19 change.
 	(gnus-mime-accumulate-hierarchy): Remove.
 	(gnus-mime-enter-multipart): Remove.
-	(gnus-mime-leave-multipart): Remove,
+	(gnus-mime-leave-multipart): Remove.
 	(gnus-mime-display-part): Revert 2004-03-19 change.
 	(gnus-mime-display-alternative): Revert 2004-03-19 change.
 
@@ -11604,8 +11710,8 @@
 
 2004-01-25  Paul Jarc  <prj@po.cwru.edu>
 
-	* nnmaildir.el (nnmaildir--num-file, nnmaildir--mkfile,
-	nnmaildir--emlink-p, nnmaildir--eexist-p, nnmaildir--new-number):
+	* nnmaildir.el (nnmaildir--num-file, nnmaildir--mkfile)
+	(nnmaildir--emlink-p, nnmaildir--eexist-p, nnmaildir--new-number):
 	New macros and functions.
 	* nnmaildir.el (nnmaildir--group-maxnum, nnmaildir--update-nov):
 	Handle > NLINK_MAX messages.
@@ -11673,8 +11779,8 @@
 
 2004-01-21  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
-	* gnus-agent.el (gnus-agent-queue-mail,
-	gnus-agent-prompt-send-queue): New variables.
+	* gnus-agent.el (gnus-agent-queue-mail)
+	(gnus-agent-prompt-send-queue): New variables.
 	(gnus-agent-send-mail): Use gnus-agent-queue-mail.
 	* gnus-draft.el (gnus-group-send-queue): Pass the group name
 	"nndraft:queue" along to gnus-draft-send.  Use
@@ -11700,8 +11806,8 @@
 	servers.  Add use of min/max range limits from server's local
 	file.
 	(gnus-agent-save-alist): Removed unused optional argument.
-	(gnus-agent-load-local, gnus-agent-read-and-cache-local),
-	(gnus-agent-read-local, gnus-agent-save-local, gnus-agent-get-local),
+	(gnus-agent-load-local, gnus-agent-read-and-cache-local)
+	(gnus-agent-read-local, gnus-agent-save-local, gnus-agent-get-local)
 	(gnus-agent-set-local): A per-server file that keeps min/max range
 	limits for articles known to the agent.  Provides a fast mechanism
 	for altering many active ranges.
@@ -11722,9 +11828,8 @@
 	gnus-list-of-unread-articles, to avoid exhausting memory with huge
 	numbers of articles.  Use gnus-range-map to avoid having to
 	uncompress the unread list.
-	(gnus-group-archive-directory,
-	gnus-group-recent-archive-directory): Fixed invalid ange-ftp
-	reference.
+	(gnus-group-archive-directory, gnus-group-recent-archive-directory):
+	Fixed invalid ange-ftp reference.
 
 	* gnus-range.el (gnus-range-map): Iterate over list or sequence.
 	(gnus-sorted-range-intersection): Intersection of two ranges
@@ -11751,7 +11856,7 @@
 	(spam-stat-buffer-words-with-scores): Don't narrow and change
 	syntax table here.  Reported by Andrew Cohen <cohen@andy.bu.edu>.
 
-2004-01-20  Hubert Chan <hubert@uhoreg.ca>:
+2004-01-20  Hubert Chan  <hubert@uhoreg.ca>
 
 	* spam.el (spam-use-spamassassin, spam-use-spamassassin-headers)
 	(spam-install-hooks, spam-spamassassin, spam-spamassassin-path)
@@ -11883,8 +11988,7 @@
 
 2004-01-12  Kai Grossjohann  <kai.grossjohann@mci.com>
 
-	* message.el (message-expand-name): Use EUDC if the user uses
-	that.
+	* message.el (message-expand-name): Use EUDC if the user uses that.
 
 2004-01-12  Jesper Harder  <harder@ifa.au.dk>
 
@@ -12267,7 +12371,7 @@
 2004-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-treat-ansi-sequences,
-	article-treat-ansi-sequences): New variable and function.
+	(article-treat-ansi-sequences): New variable and function.
 	Suggested by Dan Jacobson <jidanni@jidanni.org>.
 
 	* gnus-sum.el (gnus-summary-wash-map, gnus-summary-make-menu-bar):
@@ -12340,8 +12444,8 @@
 
 	* imap.el (imap-point-at-eol): Replace with point-at-eol.
 
-	* flow-fill.el (fill-flowed-point-at-bol,
-	fill-flowed-point-at-eol): Replace with point-at-{eol,bol}.
+	* flow-fill.el (fill-flowed-point-at-bol)
+	(fill-flowed-point-at-eol): Replace with point-at-{eol,bol}.
 
 	* gnus-util.el (gnus-point-at-bol, gnus-point-at-eol): Remove.
 	Replace with point-at-{eol,bol} throughout all files.
@@ -12479,10 +12583,10 @@ See ChangeLog.2 for earlier changes.
 
   This file is part of GNU Emacs.
 
-  GNU Emacs is free software; you can redistribute it and/or modify
+  GNU Emacs is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3, or (at your option)
-  any later version.
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12490,9 +12594,7 @@ See ChangeLog.2 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs; see the file COPYING.  If not, write to the
-  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-  Boston, MA 02110-1301, USA.
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; Local Variables:
 ;; coding: utf-8

@@ -6,10 +6,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,32 +17,14 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'epa)
 (require 'dired)
 
-(defvar epa-dired-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap ":d" 'epa-dired-do-decrypt)
-    (define-key keymap ":v" 'epa-dired-do-verify)
-    (define-key keymap ":s" 'epa-dired-do-sign)
-    (define-key keymap ":e" 'epa-dired-do-encrypt)
-    keymap))
-
-(defvar epa-dired-mode-hook nil)
-(defvar epa-dired-mode-on-hook nil)
-(defvar epa-dired-mode-off-hook nil)
-
 ;;;###autoload
-(define-minor-mode epa-dired-mode
-  "A minor-mode for encrypt/decrypt files with Dired."
-  nil " epa-dired" epa-dired-mode-map)
-
 (defun epa-dired-do-decrypt ()
   "Decrypt marked files."
   (interactive)
@@ -52,6 +34,7 @@
       (setq file-list (cdr file-list)))
     (revert-buffer)))
 
+;;;###autoload
 (defun epa-dired-do-verify ()
   "Verify marked files."
   (interactive)
@@ -60,6 +43,7 @@
       (epa-verify-file (expand-file-name (car file-list)))
       (setq file-list (cdr file-list)))))
 
+;;;###autoload
 (defun epa-dired-do-sign ()
   "Sign marked files."
   (interactive)
@@ -74,6 +58,7 @@ If no one is selected, default secret key is used.  "
       (setq file-list (cdr file-list)))
     (revert-buffer)))
 
+;;;###autoload
 (defun epa-dired-do-encrypt ()
   "Encrypt marked files."
   (interactive)
@@ -85,14 +70,6 @@ If no one is selected, default secret key is used.  "
 If no one is selected, symmetric encryption will be performed.  "))
       (setq file-list (cdr file-list)))
     (revert-buffer)))
-
-;;;###autoload
-(define-minor-mode epa-global-dired-mode
-  "Minor mode to hook EasyPG into Dired."
-  :global t :init-value nil :group 'epa-dired :version "23.1"
-  (remove-hook 'dired-mode-hook 'epa-dired-mode)
-  (if epa-global-dired-mode
-      (add-hook 'dired-mode-hook 'epa-dired-mode)))
 
 (provide 'epa-dired)
 

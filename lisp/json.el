@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -109,13 +107,13 @@ this around your call to `json-read' instead of `setq'ing it.")
   (mapconcat 'identity strings separator))
 
 (defun json-alist-p (list)
-  "Non-null iff LIST is an alist."
+  "Non-null if and only if LIST is an alist."
   (or (null list)
       (and (consp (car list))
            (json-alist-p (cdr list)))))
 
 (defun json-plist-p (list)
-  "Non-null iff LIST is a plist."
+  "Non-null if and only if LIST is a plist."
   (or (null list)
       (and (keywordp (car list))
            (consp (cdr list))

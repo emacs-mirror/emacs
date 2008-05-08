@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2137,13 +2135,15 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	pos1 pos2)
     (setq pos1 (save-excursion (funcall func string bound noerror)))
     (if (and (char-table-p translation-table-for-input)
-	     (> (string-bytes string) len))
-	(let (translated match-data)
-	  (dotimes (i len)
-	    (let ((x (aref translation-table-for-input (aref string i))))
-	      (when x
-		(or translated (setq translated (copy-sequence string)))
-		(aset translated i x))))
+             (multibyte-string-p string)
+             ;; Minor optimization.
+             (string-match-p "[^[:ascii:]]" string))
+	(let ((translated
+               (apply 'string
+                      (mapcar (lambda (c)
+                                (or (aref translation-table-for-input c) c))
+                              string)))
+              match-data)
 	  (when translated
 	    (save-match-data
 	      (save-excursion

@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Requirements:
 
@@ -230,7 +228,7 @@ has finished."
   (let ((ol (image-mode-window-get 'overlay winprops)))
     (if ol
         (setq ol (copy-overlay ol))
-      (assert (not (get-char-property (point-min) 'display (car winprops))))
+      (assert (not (get-char-property (point-min) 'display)))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
     (overlay-put ol 'window (car winprops))
@@ -845,16 +843,17 @@ have the page we want to view."
             (sort (directory-files (doc-view-current-cache-dir) t
                                    "page-[0-9]+\\.png" t)
                   'doc-view-sort))
-      (dolist (win (get-buffer-window-list buffer nil t))
-        (let* ((page (doc-view-current-page win))
-               (pagefile (expand-file-name (format "page-%d.png" page)
-                                             (doc-view-current-cache-dir))))
-          (when (or force
-                    (and (not (member pagefile prev-pages))
-                         (member pagefile doc-view-current-files)))
-            (with-selected-window win
-              (assert (eq (current-buffer) buffer))
-              (doc-view-goto-page page))))))))
+      (dolist (win (or (get-buffer-window-list buffer nil t)
+		       (list (selected-window))))
+	(let* ((page (doc-view-current-page win))
+	       (pagefile (expand-file-name (format "page-%d.png" page)
+					   (doc-view-current-cache-dir))))
+	  (when (or force
+		    (and (not (member pagefile prev-pages))
+			 (member pagefile doc-view-current-files)))
+	    (with-selected-window win
+	      (assert (eq (current-buffer) buffer))
+	      (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which

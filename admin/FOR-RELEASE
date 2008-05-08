@@ -91,7 +91,7 @@ rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
 minimized.  I don't know what is left to do here.
 
 ** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
-
+   
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
 
 ** multi-tty does not work correctly.

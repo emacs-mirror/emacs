@@ -10,10 +10,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -560,9 +558,9 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 
 (defvar fortran-mode-syntax-table
   (let ((table (make-syntax-table)))
-    ;; We might like `;' to be punctuation (g77 multi-statement
-    ;; lines), but that screws abbrevs.
-    (modify-syntax-entry ?\; "w"  table)
+    ;; Was a word-constituent (for abbrevs), now punctuation (g77
+    ;; multi-statement lines).
+    (modify-syntax-entry ?\; "."  table)
     (modify-syntax-entry ?\r " "  table)
     (modify-syntax-entry ?+  "."  table)
     (modify-syntax-entry ?-  "."  table)
@@ -670,78 +668,69 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
   "Keymap used in Fortran mode.")
 
 
-(defvar fortran-mode-abbrev-table
-  (progn
-    (define-abbrev-table 'fortran-mode-abbrev-table nil)
-    fortran-mode-abbrev-table)
-  "Abbrev table for Fortran mode.")
-
-;; Not in defvar because user abbrevs may be restored before this file loads.
-(mapc
- (lambda (e)
-   (condition-case nil
-       (define-abbrev fortran-mode-abbrev-table (car e) (cdr e) nil :count 0
-         :system t)
-     (wrong-number-of-arguments         ; Emacs 22
-      (define-abbrev fortran-mode-abbrev-table (car e) (cdr e) nil 0 t))))
-   '((";au"   . "automatic"         )
-     (";b"    . "byte"              )
-     (";bd"   . "block data"        )
-     (";ch"   . "character"         )
-     (";cl"   . "close"             )
-     (";c"    . "continue"          )
-     (";cm"   . "common"            )
-     (";cx"   . "complex"           )
-     (";df"   . "define"            )
-     (";di"   . "dimension"         )
-     (";do"   . "double"            )
-     (";dc"   . "double complex"    )
-     (";dp"   . "double precision"  )
-     (";dw"   . "do while"          )
-     (";e"    . "else"              )
-     (";ed"   . "enddo"             )
-     (";el"   . "elseif"            )
-     (";en"   . "endif"             )
-     (";eq"   . "equivalence"       )
-     (";ew"   . "endwhere"          )
-     (";ex"   . "external"          )
-     (";ey"   . "entry"             )
-     (";f"    . "format"            )
-     (";fa"   . ".false."           )
-     (";fu"   . "function"          )
-     (";g"    . "goto"              )
-     (";im"   . "implicit"          )
-     (";ib"   . "implicit byte"     )
-     (";ic"   . "implicit complex"  )
-     (";ich"  . "implicit character")
-     (";ii"   . "implicit integer"  )
-     (";il"   . "implicit logical"  )
-     (";ir"   . "implicit real"     )
-     (";inc"  . "include"           )
-     (";in"   . "integer"           )
-     (";intr" . "intrinsic"         )
-     (";l"    . "logical"           )
-     (";n"    . "namelist"          )
-     (";o"    . "open"              )     ; was ;op
-     (";pa"   . "parameter"         )
-     (";pr"   . "program"           )
-     (";ps"   . "pause"             )
-     (";p"    . "print"             )
-     (";rc"   . "record"            )
-     (";re"   . "real"              )
-     (";r"    . "read"              )
-     (";rt"   . "return"            )
-     (";rw"   . "rewind"            )
-     (";s"    . "stop"              )
-     (";sa"   . "save"              )
-     (";st"   . "structure"         )
-     (";sc"   . "static"            )
-     (";su"   . "subroutine"        )
-     (";tr"   . ".true."            )
-     (";ty"   . "type"              )
-     (";vo"   . "volatile"          )
-     (";w"    . "write"             )
-     (";wh"   . "where"             )))
+(define-abbrev-table 'fortran-mode-abbrev-table
+  (mapcar (lambda (e) (list (car e) (cdr e) nil :system t))
+          '((";au"   . "automatic"         )
+            (";b"    . "byte"              )
+            (";bd"   . "block data"        )
+            (";ch"   . "character"         )
+            (";cl"   . "close"             )
+            (";c"    . "continue"          )
+            (";cm"   . "common"            )
+            (";cx"   . "complex"           )
+            (";df"   . "define"            )
+            (";di"   . "dimension"         )
+            (";do"   . "double"            )
+            (";dc"   . "double complex"    )
+            (";dp"   . "double precision"  )
+            (";dw"   . "do while"          )
+            (";e"    . "else"              )
+            (";ed"   . "enddo"             )
+            (";el"   . "elseif"            )
+            (";en"   . "endif"             )
+            (";eq"   . "equivalence"       )
+            (";ew"   . "endwhere"          )
+            (";ex"   . "external"          )
+            (";ey"   . "entry"             )
+            (";f"    . "format"            )
+            (";fa"   . ".false."           )
+            (";fu"   . "function"          )
+            (";g"    . "goto"              )
+            (";im"   . "implicit"          )
+            (";ib"   . "implicit byte"     )
+            (";ic"   . "implicit complex"  )
+            (";ich"  . "implicit character")
+            (";ii"   . "implicit integer"  )
+            (";il"   . "implicit logical"  )
+            (";ir"   . "implicit real"     )
+            (";inc"  . "include"           )
+            (";in"   . "integer"           )
+            (";intr" . "intrinsic"         )
+            (";l"    . "logical"           )
+            (";n"    . "namelist"          )
+            (";o"    . "open"              ) ; was ;op
+            (";pa"   . "parameter"         )
+            (";pr"   . "program"           )
+            (";ps"   . "pause"             )
+            (";p"    . "print"             )
+            (";rc"   . "record"            )
+            (";re"   . "real"              )
+            (";r"    . "read"              )
+            (";rt"   . "return"            )
+            (";rw"   . "rewind"            )
+            (";s"    . "stop"              )
+            (";sa"   . "save"              )
+            (";st"   . "structure"         )
+            (";sc"   . "static"            )
+            (";su"   . "subroutine"        )
+            (";tr"   . ".true."            )
+            (";ty"   . "type"              )
+            (";vo"   . "volatile"          )
+            (";w"    . "write"             )
+            (";wh"   . "where"             )))
+  "Abbrev table for Fortran mode."
+  ;; Accept ; as the first char of an abbrev.  Also allow _ in abbrevs.
+  :regexp "\\(?:[^[:word:]_;]\\|^\\)\\(;?[[:word:]_]+\\)[^[:word:]_]*")
 
 
 ;;;###autoload
@@ -860,7 +849,7 @@ with no args, if that value is non-nil."
          nil t ((?/ . "$/") ("_$" . "w"))
          fortran-beginning-of-subprogram
          (font-lock-syntactic-keywords
-          . (fortran-font-lock-syntactic-keywords))))
+          . fortran-font-lock-syntactic-keywords)))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        fortran-imenu-generic-expression)

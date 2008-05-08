@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -491,8 +489,9 @@ GOTO-END is non-nil, however, it instead replaces up to END."
       (and filename
            (let ((dir (file-name-directory str))
                  (file (file-name-nondirectory str))
-		 ;; The base dir for file-completion is passed in `predicate'.
-		 (default-directory (expand-file-name pred)))
+		 ;; The base dir for file-completion was passed in `predicate'.
+		 (default-directory (if (stringp pred) (expand-file-name pred)
+                                      default-directory)))
              (while (and (stringp dir) (not (file-directory-p dir)))
                (setq dir (directory-file-name dir))
                (setq file (concat (replace-regexp-in-string
@@ -506,8 +505,9 @@ GOTO-END is non-nil, however, it instead replaces up to END."
       (and filename
 	   (string-match "\\*.*/" str)
 	   (let ((pat str)
-		 ;; The base dir for file-completion is passed in `predicate'.
-		 (default-directory (expand-file-name pred))
+		 ;; The base dir for file-completion was passed in `predicate'.
+		 (default-directory (if (stringp pred) (expand-file-name pred)
+                                      default-directory))
 		 files)
 	     (setq p (1+ (string-match "/[^/]*\\'" pat)))
 	     (while (setq p (string-match PC-delim-regex pat p))
@@ -522,7 +522,8 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 		   (while (and (setq p (cdr p))
 			       (equal dir (file-name-directory (car p)))))
 		   (if p
-		       (setq filename nil table nil pred nil
+		       (setq filename nil table nil
+                             pred (if (stringp pred) nil pred)
 			     ambig t)
 		     (delete-region beg end)
 		     (setq str (concat dir (file-name-nondirectory str)))
@@ -535,7 +536,8 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                        ;; even if we couldn't, so remove the added
                        ;; wildcards.
                    (setq str origstr)
-		 (setq filename nil table nil pred nil)))))
+		 (setq filename nil table nil
+                       pred (if (stringp pred) nil pred))))))
 
       ;; Strip directory name if appropriate
       (if filename

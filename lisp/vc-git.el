@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,9 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -52,13 +50,12 @@
 ;; * registered (file)				   OK
 ;; * state (file)				   OK
 ;; - state-heuristic (file)			   NOT NEEDED
-;; - dir-state (dir)				   OK
 ;; * working-revision (file)			   OK
 ;; - latest-on-branch-p (file)			   NOT NEEDED
-;; * checkout-model (file)			   OK
+;; * checkout-model (files)			   OK
 ;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   OK
-;; - dired-state-info (file)			   OK
+;; - prettify-state-info (file)			   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()				   OK
 ;; * register (files &optional rev comment)	   OK
@@ -83,7 +80,6 @@
 ;; - log-view-mode ()				   OK
 ;; - show-log-entry (revision)			   OK
 ;; - wash-log (file)				   COULD BE SUPPORTED
-;; - logentry-check ()				   NOT NEEDED
 ;; - comment-history (file)			   ??
 ;; - update-changelog (files)			   COULD BE SUPPORTED
 ;; * diff (file &optional rev1 rev2 buffer)	   OK
@@ -118,8 +114,8 @@
 
 ;;; BACKEND PROPERTIES
 
-(defun vc-git-revision-granularity ()
-  'repository)
+(defun vc-git-revision-granularity () 'repository)
+(defun vc-git-checkout-model (files) 'implicit)
 
 ;;; STATE-QUERYING FUNCTIONS
 
@@ -156,12 +152,14 @@
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
   ;; FIXME: This can't set 'ignored yet
-  (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
-  (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
-    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0"
-                                diff))
-        (vc-git--state-code (match-string 1 diff))
-      (if (vc-git--empty-db-p) 'added 'up-to-date))))
+  (if (not (vc-git-registered file))
+      'unregistered
+    (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
+    (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
+      (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0"
+				  diff))
+	  (vc-git--state-code (match-string 1 diff))
+	(if (vc-git--empty-db-p) 'added 'up-to-date)))))
 
 (defun vc-git--ls-files-state (state &rest args)
   "Set state to STATE on all files found with git-ls-files ARGS."
@@ -176,14 +174,6 @@
 	  (vc-file-setprop file 'vc-state state))
 	(setq start (point))))))
 
-(defun vc-git-dir-state (dir)
-  "Git-specific version of `dir-state'."
-  (vc-git--ls-files-state 'up-to-date "-c")
-  (vc-git--ls-files-state 'edited "-m")
-  (vc-git--ls-files-state 'removed "-d")
-  (vc-git--ls-files-state 'ignored "-o" "-i" "--exclude-standard")
-  (vc-git--ls-files-state nil "-o" "--exclude-standard"))
-
 (defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."
   (let ((str (with-output-to-string
@@ -192,9 +182,6 @@
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
         (match-string 2 str)
       str)))
-
-(defun vc-git-checkout-model (file)
-  'implicit)
 
 (defun vc-git-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-git-state file)))

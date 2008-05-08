@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -204,6 +202,11 @@ the return value (nil if RESULT is omitted).
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
+
+(defmacro ignore-errors (&rest body)
+  "Execute BODY; if an error occurs, return nil.
+Otherwise, return result of last form in BODY."
+  `(condition-case nil (progn ,@body) (error nil)))
 
 ;;;; Basic Lisp functions.
 
@@ -834,6 +837,11 @@ in the current Emacs session, then this function may return nil."
   "Return non-nil if OBJECT is a mouse movement event."
   (eq (car-safe object) 'mouse-movement))
 
+(defun mouse-event-p (object)
+  "Return non-nil if OBJECT is a mouse click event."
+  ;; is this really correct? maybe remove mouse-movement?
+  (memq (event-basic-type object) '(mouse-1 mouse-2 mouse-3 mouse-movement)))
+
 (defsubst event-start (event)
   "Return the starting position of EVENT.
 If EVENT is a mouse or key press or a mouse click, this returns the location
@@ -1047,6 +1055,9 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
 (make-obsolete-variable 'x-sent-selection-hooks
 			'x-sent-selection-functions "22.1")
+;; This was introduced in 21.4 for pre-unicode unification and was rendered
+;; obsolete by the use of Unicode internally in 23.1.
+(make-obsolete-variable 'translation-table-for-input nil "23.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 

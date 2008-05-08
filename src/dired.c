@@ -465,7 +465,6 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   DIR *d;
   int bestmatchsize = 0, skip;
   register int compare, matchsize;
-  unsigned char *p1, *p2;
   int matchcount = 0;
   /* If ALL_FLAG is 1, BESTMATCH is the list of all matches, decoded.
      If ALL_FLAG is 0, BESTMATCH is either nil
@@ -508,6 +507,9 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   /* Do completion on the encoded file name
      because the other names in the directory are (we presume)
      encoded likewise.  We decode the completed string at the end.  */
+  /* Actually, this is not quite true any more: we do most of the completion
+     work with decoded file names, but we still do some filtering based
+     on the encoded file name.  */
   encoded_file = STRING_MULTIBYTE (file) ? ENCODE_FILE (file) : file;
 
   encoded_dir = ENCODE_FILE (dirname);
@@ -588,6 +590,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 		     CONSP (tem); tem = XCDR (tem))
 		  {
 		    int elt_len;
+		    unsigned char *p1;
 
 		    elt = XCAR (tem);
 		    if (!STRINGP (elt))
@@ -640,6 +643,11 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  if (!passcount && CONSP (tem))
 	    continue;
 
+	  /* FIXME: If we move this `decode' earlier we can eliminate
+	     the repeated ENCODE_FILE on Vcompletion_ignored_extensions.  */
+	  name = make_unibyte_string (dp->d_name, len);
+	  name = DECODE_FILE (name);
+
 	  if (!passcount)
 	    {
 	      Lisp_Object regexps;
@@ -649,12 +657,8 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	      /* Ignore this element if it fails to match all the regexps.  */
 	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 		   regexps = XCDR (regexps))
-		{
-		  tem = Fstring_match (XCAR (regexps),
-				       make_string (dp->d_name, len), zero);
-		  if (NILP (tem))
-		    break;
-		}
+		if (fast_string_match (XCAR (regexps), name) < 0)
+		  break;
 	      if (CONSP (regexps))
 		continue;
 	    }
@@ -663,10 +667,8 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  if (directoryp)
 	    {
 	      /* This completion is a directory; make it end with '/' */
-	      name = Ffile_name_as_directory (make_string (dp->d_name, len));
+	      name = Ffile_name_as_directory (name);
 	    }
-	  else
-	    name = make_string (dp->d_name, len);
 
 	  /* Test the predicate, if any.  */
 
@@ -677,7 +679,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	      struct gcpro gcpro1;
 
 	      GCPRO1 (name);
-	      decoded = Fexpand_file_name (DECODE_FILE (name), dirname);
+	      decoded = Fexpand_file_name (name, dirname);
 	      val = call1 (predicate, decoded);
 	      UNGCPRO;
 
@@ -690,10 +692,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	  matchcount++;
 
 	  if (all_flag)
-	    {
-	      name = DECODE_FILE (name);
-	      bestmatch = Fcons (name, bestmatch);
-	    }
+	    bestmatch = Fcons (name, bestmatch);
 	  else if (NILP (bestmatch))
 	    {
 	      bestmatch = name;
@@ -701,12 +700,21 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	    }
 	  else
 	    {
-	      compare = min (bestmatchsize, len);
-	      p1 = SDATA (bestmatch);
-	      p2 = (unsigned char *) dp->d_name;
-	      matchsize = scmp (p1, p2, compare);
-	      if (matchsize < 0)
+	      Lisp_Object zero = make_number (0);
+	      /* FIXME: This is a copy of the code in Ftry_completion.  */
+	      compare = min (bestmatchsize, SCHARS (name));
+	      tem = Fcompare_strings (bestmatch, zero,
+				      make_number (compare),
+				      name, zero,
+				      make_number (compare),
+				      completion_ignore_case ? Qt : Qnil);
+	      if (EQ (tem, Qt))
 		matchsize = compare;
+	      else if (XINT (tem) < 0)
+		matchsize = - XINT (tem) - 1;
+	      else
+		matchsize = XINT (tem) - 1;
+
 	      if (completion_ignore_case)
 		{
 		  /* If this is an exact match except for case,
@@ -715,9 +723,9 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 		     of the actual match.  */
 		  /* This tests that the current file is an exact match
 		     but BESTMATCH is not (it is too long).  */
-		  if ((matchsize == len
+		  if ((matchsize == SCHARS (name)
 		       && matchsize + !!directoryp
-			  < SCHARS (bestmatch))
+		          < SCHARS (bestmatch))
 		      ||
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
@@ -727,22 +735,23 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 			 prefer that one.  */
 		      /* This == checks that, of current file and BESTMATCH,
 			 either both or neither are exact.  */
-		      (((matchsize == len)
+		      (((matchsize == SCHARS (name))
 			==
-			(matchsize + !!directoryp
-			 == SCHARS (bestmatch)))
-		       && !bcmp (p2, SDATA (encoded_file), SCHARS (encoded_file))
-		       && bcmp (p1, SDATA (encoded_file), SCHARS (encoded_file))))
+			(matchsize + !!directoryp == SCHARS (bestmatch)))
+		       && (tem = Fcompare_strings (name, zero,
+						   make_number (SCHARS (file)),
+						   file, zero,
+						   Qnil,
+						   Qnil),
+			   EQ (Qt, tem))
+		       && (tem = Fcompare_strings (bestmatch, zero,
+						   make_number (SCHARS (file)),
+						   file, zero,
+						   Qnil,
+						   Qnil),
+			   ! EQ (Qt, tem))))
 		    bestmatch = name;
 		}
-
-	      /* If this dirname all matches, see if implicit following
-		 slash does too.  */
-	      if (directoryp
-		  && compare == matchsize
-		  && bestmatchsize > matchsize
-		  && IS_ANY_SEP (p1[matchsize]))
-		matchsize++;
 	      bestmatchsize = matchsize;
 	    }
 	}
@@ -754,18 +763,11 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   bestmatch = unbind_to (count, bestmatch);
 
   if (all_flag || NILP (bestmatch))
-    {
-      if (STRINGP (bestmatch))
-	bestmatch = DECODE_FILE (bestmatch);
-      return bestmatch;
-    }
+    return bestmatch;
   if (matchcount == 1 && bestmatchsize == SCHARS (file))
     return Qt;
   bestmatch = Fsubstring (bestmatch, make_number (0),
 			  make_number (bestmatchsize));
-  /* Now that we got the right initial segment of BESTMATCH,
-     decode it from the coding system in use.  */
-  bestmatch = DECODE_FILE (bestmatch);
   return bestmatch;
 }
 
@@ -942,7 +944,7 @@ Elements of the attribute list are:
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
-  EMACS_INT uid, gid, ino;
+  EMACS_INT ino;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -977,34 +979,20 @@ Elements of the attribute list are:
 #endif
     }
   values[1] = make_number (s.st_nlink);
-  /* When make_fixnum_or_float is called below with types that are
-     shorter than an int (e.g., `short'), GCC whines about comparison
-     being always false due to limited range of data type.  Fix by
-     copying s.st_uid and s.st_gid into int variables.  */
-#ifdef WINDOWSNT
-  /* Windows uses signed short for the uid and gid in the stat structure,
-     but we use an int for getuid (limited to the range 0-60000).
-     So users with uid > 32767 need their uid patched back here.  */ 
-  uid = (unsigned short) s.st_uid;
-  gid = (unsigned short) s.st_gid;
-#else
-  uid = s.st_uid;
-  gid = s.st_gid;
-#endif
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
-      values[2] = make_fixnum_or_float (uid);
-      values[3] = make_fixnum_or_float (gid);
+      values[2] = make_fixnum_or_float (s.st_uid);
+      values[3] = make_fixnum_or_float (s.st_gid);
     }
   else
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwuid (uid);
+      pw = (struct passwd *) getpwuid (s.st_uid);
       values[2] = (pw ? build_string (pw->pw_name)
-                  : make_fixnum_or_float (uid));
-      gr = (struct group *) getgrgid (gid);
+                  : make_fixnum_or_float (s.st_uid));
+      gr = (struct group *) getgrgid (s.st_gid);
       values[3] = (gr ? build_string (gr->gr_name)
-                  : make_fixnum_or_float (gid));
+                  : make_fixnum_or_float (s.st_gid));
       UNBLOCK_INPUT;
     }
   values[4] = make_time (s.st_atime);
@@ -1026,11 +1014,11 @@ Elements of the attribute list are:
   if (! NILP (dirname))
     encoded = ENCODE_FILE (dirname);
   if (! NILP (dirname) && stat (SDATA (encoded), &sdir) == 0)
-    values[9] = (sdir.st_gid != gid) ? Qt : Qnil;
+    values[9] = (sdir.st_gid != s.st_gid) ? Qt : Qnil;
   else					/* if we can't tell, assume worst */
     values[9] = Qt;
 #else					/* file gid will be egid */
-  values[9] = (gid != getegid ()) ? Qt : Qnil;
+  values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
   /* Shut up GCC warnings in FIXNUM_OVERFLOW_P below.  */
   if (sizeof (s.st_ino) > sizeof (ino))
@@ -1060,8 +1048,11 @@ Elements of the attribute list are:
 				 make_number (low_ino & 0xffff)));
     }
 
-  /* Likewise for device.  */
-  if (FIXNUM_OVERFLOW_P (s.st_dev))
+  /* Likewise for device, but don't let it become negative.  We used
+     to use FIXNUM_OVERFLOW_P here, but that won't catch large
+     positive numbers such as 0xFFEEDDCC.  */
+  if ((EMACS_INT)s.st_dev < 0
+      || (EMACS_INT)s.st_dev > MOST_POSITIVE_FIXNUM)
     values[11] = Fcons (make_number (s.st_dev >> 16),
 			make_number (s.st_dev & 0xffff));
   else

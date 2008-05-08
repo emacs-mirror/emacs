@@ -9,20 +9,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,6 +39,19 @@
       'delete-dups
     (autoload 'mm-delete-duplicates "mm-util")
     'mm-delete-duplicates))
+
+;; `mailcap-replace-in-string' is an alias like `gnus-replace-in-string'.
+(eval-and-compile
+  (cond
+   ((fboundp 'replace-regexp-in-string)
+    (defun mailcap-replace-in-string  (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+This is a compatibility function for different Emacsen."
+      (replace-regexp-in-string regexp newtext string nil literal)))
+   ((fboundp 'replace-in-string)
+    (defalias 'mailcap-replace-in-string 'replace-in-string))))
 
 (defgroup mailcap nil
   "Definition of viewers for MIME types."
@@ -1017,15 +1028,17 @@ If FORCE, re-parse even if already parsed."
   (mailcap-parse-mimetypes)
   (let* ((all-mime-type
 	  ;; All unique MIME types from file extensions
-	  (delete-dups (mapcar (lambda (file)
-				 (mailcap-extension-to-mime
-				  (file-name-extension file t)))
-			       files)))
+	  (mailcap-delete-duplicates
+	   (mapcar (lambda (file)
+		     (mailcap-extension-to-mime
+		      (file-name-extension file t)))
+		   files)))
 	 (all-mime-info
 	  ;; All MIME info lists
-	  (delete-dups (mapcar (lambda (mime-type)
-				 (mailcap-mime-info mime-type 'all))
-			       all-mime-type)))
+	  (mailcap-delete-duplicates
+	   (mapcar (lambda (mime-type)
+		     (mailcap-mime-info mime-type 'all))
+		   all-mime-type)))
 	 (common-mime-info
 	  ;; Intersection of mime-infos from different mime-types;
 	  ;; or just the first MIME info for a single MIME type
@@ -1040,18 +1053,17 @@ If FORCE, re-parse even if already parsed."
 	    (car all-mime-info)))
 	 (commands
 	  ;; Command strings from `viewer' field of the MIME info
-	  (delete-dups
+	  (mailcap-delete-duplicates
 	   (delq nil (mapcar (lambda (mime-info)
 			       (let ((command (cdr (assoc 'viewer mime-info))))
 				 (if (stringp command)
-				     (replace-regexp-in-string
+				     (mailcap-replace-in-string
 				      ;; Replace mailcap's `%s' placeholder
 				      ;; with dired's `?' placeholder
-				      "%s" "?"
-				      (replace-regexp-in-string
+				      (mailcap-replace-in-string
 				       ;; Remove the final filename placeholder
-				       "\s*\\('\\)?%s\\1?\s*\\'" "" command nil t)
-				      nil t))))
+				       command "[ \t\n]*\\('\\)?%s\\1?[ \t\n]*\\'" "" t)
+				      "%s" "?" t))))
 			     common-mime-info)))))
     commands))
 

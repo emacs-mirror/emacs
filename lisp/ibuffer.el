@@ -10,20 +10,18 @@
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program ; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -214,6 +212,7 @@ view of the buffers."
 		 (const :tag "Major mode" :value major-mode))
   :group 'ibuffer)
 (defvar ibuffer-sorting-mode nil)
+(defvar ibuffer-last-sorting-mode nil)
 
 (defcustom ibuffer-default-sorting-reversep nil
   "If non-nil, reverse the default sorting order."
@@ -1759,6 +1758,8 @@ If point is on a group name, this function operates on that group."
 	      (if (stringp dired-directory)
 		  dired-directory
 		(car dired-directory)))
+	 (and (eq major-mode 'vc-dir-mode)
+	      (bound-and-true-p default-directory))
 	 ""))))
 
 (define-ibuffer-column filename-and-process
@@ -1995,7 +1996,10 @@ the value of point at the beginning of the line for that buffer."
   "Sort the buffers by last view time."
   (interactive)
   (setq ibuffer-sorting-mode 'recency)
-  (ibuffer-update nil t))
+  (when (eq ibuffer-last-sorting-mode 'recency)
+    (setq ibuffer-sorting-reversep (not ibuffer-sorting-reversep)))
+  (ibuffer-update nil t)
+  (setq ibuffer-last-sorting-mode 'recency))
 
 (defun ibuffer-update-format ()
   (when (null ibuffer-current-format)

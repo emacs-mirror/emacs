@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{5.23}
+\def\orgversionnumber{6.02b}
 \def\versionyear{2008}          % latest update
 \def\year{2008}                 % latest copyright year
 
@@ -325,9 +325,10 @@ are preserved on all copies.
 
 \section{Archiving}
 
-\key{toggle ARCHIVE tag}{C-c C-x C-a}
-%\metax{mark fully done children}{C-u C-c C-x C-a}
+\key{toggle ARCHIVE tag}{C-c C-x a}
 \key{force cycling of an ARCHIVEd tree}{C-TAB}
+\key{move to Attic Sibling}{C-c C-x A}
+%\metax{mark fully done children}{C-u C-c C-x C-a}
 \key{move subtree to archive file}{C-c C-x C-s}
 %\metax{move all fully done children}{C-u C-c C-x C-s}
 %To set archive location for current file, add a line like$^2$:
@@ -648,7 +649,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{digit argument}{0-9}
 \key{change state of current TODO item}{t}
 \key{kill item and source}{C-k}
-\key{archive the subtree}{\$}
+\key{archive the subtree}{\$ / a / A}
 \key{show tags of current headline}{T}
 \key{set tags for current headline/region}{:}
 \key{toggle ARCHIVE tag}{a}

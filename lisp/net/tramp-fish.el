@@ -7,10 +7,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,8 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, see
-;; <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -352,7 +351,7 @@ pass to the OPERATION."
        (tramp-run-real-handler 'expand-file-name (list name nil)))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
-      (unless (file-name-absolute-p localname)
+      (unless (tramp-run-real-handler 'file-name-absolute-p (list localname))
 	(setq localname (concat "~/" localname)))
       ;; Tilde expansion if necessary.
       (when (string-match "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
@@ -385,8 +384,8 @@ pass to the OPERATION."
 	(tramp-make-tramp-file-name
 	 method user host
 	 (tramp-drop-volume-letter
-	  (tramp-run-real-handler 'expand-file-name
-				  (list localname))))))))
+	  (tramp-run-real-handler
+	   'expand-file-name (list localname))))))))
 
 (defun tramp-fish-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

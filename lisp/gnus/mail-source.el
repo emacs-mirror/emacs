@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,6 +34,7 @@
   (require 'cl)
   (require 'imap))
 (eval-and-compile
+  (autoload 'auth-source-user-or-password "auth-source")
   (autoload 'pop3-movemail "pop3")
   (autoload 'pop3-get-message-count "pop3")
   (autoload 'nnheader-cancel-timer "nnheader"))
@@ -43,7 +42,6 @@
 (require 'message) ;; for `message-directory'
 
 (defvar display-time-mail-function)
-
 
 (defgroup mail-source nil
   "The mail-fetching library."
@@ -420,6 +418,8 @@ All keywords that can be used must be listed here."))
     "Strip the leading colon off the KEYWORD."
     (intern (substring (symbol-name keyword) 1))))
 
+;; generate a list of variable names paired with nil values
+;; suitable for usage in a `let' form
 (eval-and-compile
   (defun mail-source-bind-1 (type)
     (let* ((defaults (cdr (assq type mail-source-keyword-map)))
@@ -438,12 +438,16 @@ At run time, the mail source specifier SOURCE will be inspected,
 and the variables will be set according to it.  Variables not
 specified will be given default values.
 
+The user and password will be loaded from the auth-source values
+if those are available.  They override the original user and
+password in a second `let' form.
+
 After this is done, BODY will be executed in the scope
-of the `let' form.
+of the second `let' form.
 
 The variables bound and their default values are described by
 the `mail-source-keyword-map' variable."
-  `(let ,(mail-source-bind-1 (car type-source))
+  `(let* ,(mail-source-bind-1 (car type-source))
      (mail-source-set-1 ,(cadr type-source))
      ,@body))
 
@@ -453,12 +457,37 @@ the `mail-source-keyword-map' variable."
 (defun mail-source-set-1 (source)
   (let* ((type (pop source))
 	 (defaults (cdr (assq type mail-source-keyword-map)))
-	 default value keyword)
+	 default value keyword user-auth pass-auth)
     (while (setq default (pop defaults))
+      ;; for each default :SYMBOL, set SYMBOL to the plist value for :SYMBOL
+      ;; using `mail-source-value' to evaluate the plist value
       (set (mail-source-strip-keyword (setq keyword (car default)))
-	   (if (setq value (plist-get source keyword))
-	       (mail-source-value value)
-	     (mail-source-value (cadr default)))))))
+	   ;; note the following reasons for this structure:
+	   ;; 1) the auth-sources user and password override everything
+	   ;; 2) it avoids macros, so it's cleaner
+	   ;; 3) it falls through to the mail-sources and then default values
+	   (cond 
+	    ((and
+	     (eq keyword :user)
+	     (setq user-auth 
+		   (auth-source-user-or-password
+		    "login"
+		    ;; this is "host" in auth-sources
+		    (if (boundp 'server) (symbol-value 'server) "")
+		    type)))
+	     user-auth)
+	    ((and
+	     (eq keyword :password)
+	     (setq pass-auth 
+		   (auth-source-user-or-password
+		    "password"
+		    ;; this is "host" in auth-sources
+		    (if (boundp 'server) (symbol-value 'server) "")
+		    type)))
+	     pass-auth)
+	    (t (if (setq value (plist-get source keyword))
+		 (mail-source-value value)
+	       (mail-source-value (cadr default)))))))))
 
 (eval-and-compile
   (defun mail-source-bind-common-1 ()

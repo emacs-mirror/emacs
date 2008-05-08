@@ -9,10 +9,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -406,21 +404,19 @@ Also checks if buffers visiting the files are in read-only mode."
 ;;; beginning/end of the file list, depending of the search direction.
 (defun reftex-isearch-switch-to-next-file (crt-buf &optional wrapp)
   (reftex-access-scan-info)
-  (let* ((cb (buffer-file-name crt-buf))
-	 (flist (reftex-all-document-files))
-	 (orig-flist flist))
+  (let ((cb (buffer-file-name crt-buf))
+	(flist (reftex-all-document-files)))
     (when flist
       (if wrapp
 	  (unless isearch-forward
 	      (setq flist (last flist)))
 	(unless isearch-forward
-	  (setq flist (nreverse (copy-list flist)))
-	  (setq orig-flist flist))
+	  (setq flist (reverse flist)))
 	(while (not (string= (car flist) cb))
 	  (setq flist (cdr flist)))
 	(setq flist (cdr flist)))
       (when flist
-	(find-file  (car flist))))))
+	(find-file (car flist))))))
 
 ;;;###autoload
 (defun reftex-isearch-minor-mode (&optional arg)

@@ -1,17 +1,17 @@
-;;; org-mac-message.el --- Support for links to Apple Mail messages by Message-ID
+;;; org-mac-message.el --- Support for links to Apple Mail messages from within Org-mode
 
 ;; Copyright (C) 2008 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
-;; Version: 1.2
+;; Version: 6.02b
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
 
-;; Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;; This file implements links to Apple Mail messages from within Org-mode.
+;; Org-mode does not load this module by default - if you would actually like
+;; this to happen then configure the variable `org-modules'.
 
 ;;; Code:
 
@@ -44,8 +47,8 @@
       (concat "\"" (org-trim return) "\""))))
 
 (defun org-mac-message-open (message-id)
-  "Visit the message with the given Message-ID.
-This will use the command `open' with the message url."
+  "Visit the message with the given MESSAGE-ID.
+This will use the command `open' with the message URL."
   (start-process (concat "open message:" message-id) nil
 		 "open" (concat "message://<" (substring message-id 2) ">")))
 

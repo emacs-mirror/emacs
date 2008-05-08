@@ -597,7 +597,7 @@ headers.
 @vindex vc-handled-backends
 The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
-SVN SCCS BZR GIT HG Arch MCVS)}, so it contains all the version systems
+SVN SCCS BZR GIT HG Arch)}, so it contains all the version systems
 that are currently supported.  If you want VC to ignore one or more of
 these systems, exclude its name from the list.  To disable VC entirely,
 set this variable to @code{nil}.

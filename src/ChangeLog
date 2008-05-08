@@ -1,4 +1,232 @@
-2008-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_match_p): Don't use `iff' in docstring.
+
+2008-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* macfns.c (Fx_create_frame): Make a copy of frame parameters
+	because the original parameters are in pure storage now.
+	(mac_window): Remove unused params.  Update callers.
+
+2008-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (substitute_object_recurse): Use lower-level primitives.
+	Don't signal errors when traversing sub-char-tables.
+	Don't loop over all the possible characters when traversing char-tables.
+
+	* print.c (print_preprocess): Add sub-char-tables to the print-table,
+	just like we do in print.c.
+
+2008-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Ftry_completion): Remove code left over from when we used
+	scmp instead of Fcompare_strings.
+
+2008-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_battery_status): Fix computation of %t (h:min) format.
+
+2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [USE_MAC_IMAGE_IO] (image_load_image_io):
+	Create bitmap context in native byte order.
+
+	* macterm.c (XDrawLine)
+	(XCreatePixmapFromBitmapData) [USE_MAC_IMAGE_IO]: Create bitmap
+	context in native byte order.
+
+2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* config.in: Regenerate.
+
+	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN) [USE_MAC_IMAGE_IO]:
+	New definitions for Image I/O support.
+	(XGetImage, XPutPixel, XGetPixel, XDestroyImage)
+	(mac_create_cg_image_from_image, x_create_x_image_and_pixmap)
+	[USE_MAC_IMAGE_IO]: Add implementations for Image I/O support.
+	(mac_data_provider_release_data, image_load_image_io)
+	[USE_MAC_IMAGE_IO]: New functions.
+	(CGImageCreateWithPNGDataProviderProcType) [MAC_OSX]: Remove typedef.
+	(MyCGImageCreateWithPNGDataProvider) [MAC_OSX]: Remove variable.
+	(init_image_func_pointer) [MAC_OSX]: Remove function.
+	(image_load_quartz2d) [MAC_OSX]: Check availability of
+	CGImageCreateWithPNGDataProvider at compile time.
+	Use lowercase `false' for boolean constant.
+	(png_load, jpeg_load, tiff_load, gif_load) [USE_MAC_IMAGE_IO]:
+	Use image_load_image_io.
+	(png_load) [!USE_MAC_IMAGE_IO && MAC_OSX]:
+	Don't check MyCGImageCreateWithPNGDataProvider.
+	(init_image) [MAC_OSX && TARGET_API_MAC_CARBON]:
+	Don't call init_image_func_pointer.
+
+	* macgui.h (Pixmap) [USE_MAC_IMAGE_IO]: New definition for Image I/O.
+
+	* macterm.c (mac_cg_color_space_rgb) [USE_CG_DRAWING]:
+	Make variable non-static.
+	(XDrawLine, XCreatePixmap, XCreatePixmapFromBitmapData, XFreePixmap)
+	[USE_MAC_IMAGE_IO]: Add implementations for Image I/O support.
+
+	* macterm.h (ARGB_TO_ULONG, ALPHA_FROM_ULONG): New macros.
+	(RED_FROM_ULONG): Mask off higher bits.
+	(mac_cg_color_space_rgb) [USE_MAC_IMAGE_IO]: New extern.
+
+	* s/darwin.h [HAVE_CARBON && HAVE_AVAILABILITYMACROS_H]:
+	Include AvailabilityMacros.h.
+	(USE_MAC_IMAGE_IO, LIBS_IMAGE) [HAVE_CARBON]: New defines.
+	(LIBS_CARBON) [HAVE_CARBON]: Use LIBS_IMAGE.
+
+2008-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* chartab.c (Fset_char_table_range): If range is t, really set all
+	chars to that value.
+
+2008-05-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Don't allow the device number become
+	negative.
+
+2008-05-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* Makefile.in (lisp, shortlisp): Add epa-file-hook.elc.
+
+2008-05-02  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (Fread_from_minibuffer, Fread_string, Fread_command)
+	(Fread_variable, Fread_buffer, Fcompleting_read): Document
+	the DEFAULT argument as a list of default values in docstrings.
+
+2008-05-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1210000.
+
+2008-05-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* dispnew.c (change_frame_size_1): Preserve small windows when
+	shrinking frames by calling set_window_height|width with third
+	arg 2.
+
+	* window.h (struct window): Replace field too_small_ok by field
+	resize_proportionally.
+
+	* window.c (make_window): Initialize resize_proportionally.
+	(enlarge_window): Temporarily set resize_proportionally to make
+	sure that shrink_windows does scale the window proportionally.
+	(shrink_windows): When window has resize_proportionally set try
+	to shrink it proportionally by stealing from other windows.
+	(struct saved_window, Fset_window_configuration)
+	(compare_window_configurations): Handle resize_proportionally.
+	(WINDOW_TOTAL_SIZE): New macro.
+	(window_min_size, shrink_windows, size_window): Use it.
+	(check_min_window_sizes): Remove.  Invalid values of
+	window-min-height|width are handled by window_min_size_2 now.
+	(size_window, Fsplit_window, enlarge_window)
+	(adjust_window_trailing_edge, grow_mini_window): Don't call
+	check_min_window_sizes.
+	(window_min_size_2, window_min_size_1, window_min_size):
+	New argument safe_p for retrieving "safe" minimum sizes.
+	(Fdisplay_buffer, Fsplit_window, enlarge_window):
+	(adjust_window_trailing_edge, grow_mini_window):
+	Adjust arguments of window_min_size... functions.
+	(shrink_windows): Argument min_size removed.  New argument
+	safe_p allows shrinking windows to their safe minimum sizes.
+	Calculate minimum size and decide whether a window shall be
+	deleted for each window individually.
+	(size_window): When nodelete_p equals 2, tell shrink_windows to
+	delete windows only if their new minimum size is no more safe.
+	(shrink_window_lowest_first): Call window_min_size_1 to make
+	sure to preserve modeline of bottom-most window when resizing
+	the minibuffer.
+	(Fset_window_configuration, Fcurrent_window_configuration)
+	(compare_window_configurations): Do not handle
+	window-min-height|width any more.
+	(syms_of_window): Clarify window-min-height|width doc-strings.
+
+2008-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (file_name_completion): Fix up the encoding/decoding issue
+	some more.  Copy some of the code from Ftry_completions.
+	Remove special case code that dates back to initial revision when the
+	slash was only added when necessary and that can't trigger nowadays.
+
+2008-04-27  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_prop_validate): Signal `error' instead of `font'.
+
+2008-04-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_battery_status): New defun.
+	(syms_of_w32fns): Defsubr it.
+
+2008-04-28  Andreas Schwab  <schwab@suse.de>
+
+	* dired.c (file_name_completion): Fix another mixing of encoded
+	and decoded names.
+
+2008-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_define_rgb_color): Fix typo in docstring.
+
+2008-04-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fringe.c (Fdefine_fringe_bitmap): Doc fix.
+
+2008-04-27  Andreas Schwab  <schwab@suse.de>
+
+	* dired.c (file_name_completion): Fix inappropriate mixing of
+	encoded and decoded names.
+
+	* xterm.c (XTread_socket): Fix use of uninitialized variable.
+
+	* puresize.h (BASE_PURESIZE): Increase to 1200000.
+
+2008-04-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Undo change from
+	2008-03-31, it's not needed anymore with `struct stat' definition
+	on nt/inc/sys/stat.h.  Undo changes from 2007-01-12 and 2007-01-13
+	for the same reasons.
+
+2008-04-25  Dennis Gilmore  <ausil@fedoraproject.org>  (tiny change)
+
+	* m/sparc.h: Additional redefinitions for GNU/Linux.
+
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: New variable.
+	(syms_of_macterm) [USE_MAC_TSM]: Defvar it.
+	(Qmouse_drag_overlay) [MAC_OSX]: New variable.
+	(syms_of_macterm) [MAC_OSX]: Intern and staticpro it.
+	(mac_get_selected_range, mac_store_buffer_text_to_unicode_chars)
+	(mac_ax_selected_text_range) [MAC_OSX]: New functions.
+	(mac_ax_number_of_characters) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Likewise.
+
+	* mactoolbox.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: Add extern.
+	(fast_find_position, x_y_to_hpos_vpos, mac_ax_selected_text_range):
+	(mac_ax_number_of_characters): Add externs.
+	(mac_get_selected_range, mac_store_buffer_text_to_unicode_chars)
+	[USE_MAC_TSM]: Likewise.
+	(mac_handle_text_input_event) [MAC_OSX]:
+	Handle kEventTextInputOffsetToPos for no active input area case.
+	Handle kEventTextInputPosToOffset and kEventTextInputGetSelectedText.
+	(mac_handle_document_access_event)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: New function.
+	(install_application_handler) [MAC_OSX]: Register handlers for
+	kEventTextInputPosToOffset and kEventTextInputGetSelectedText.
+	(install_application_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Register mac_handle_document_access_event.
+
+	* xdisp.c (x_y_to_hpos_vpos, fast_find_position) [HAVE_CARBON]:
+	Make functions non-static.
+
+2008-04-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Vread_file_name_function, Vread_file_name_predicate)
+	(read_file_name_completion_ignore_case, insert_default_directory)
+	(Qdefault_directory): Move to minibuffer.el.
+	(Fread_file_name): Call the new `read-file-name' instead.
+
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (create_apple_event) [TARGET_API_MAC_CARBON]:
 	Make function non-static.
@@ -38,7 +266,7 @@
 	(create_apple_event, mac_event_parameters_to_lisp)
 	[TARGET_API_MAC_CARBON]: Add externs.
 
-	* mactoolbox.c: (Vmac_ts_script_language_on_focus)
+	* mactoolbox.c (Vmac_ts_script_language_on_focus)
 	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: Remove externs.
 	(XTread_socket) [USE_MAC_TOOLBAR]: Select window if its structure part
 	is clicked.
@@ -46,18 +274,18 @@
 	(create_apple_event_from_drag_ref) [TARGET_API_MAC_CARBON]:
 	Move from mac.c.
 
-2008-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-04-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c [!SYSTEM_MALLOC && !SYNC_INPUT] (uninterrupt_malloc)
 	[HAVE_GTK_AND_PTHREAD && !DOUG_LEA_MALLOC]: Don't use recursive mutex.
 
-2008-04-10  Jason Rumney  <jasonr@gnu.org>
+2008-04-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (stat): When Vw32_get_true_file_attributes is Qlocal, get
 	attributes only for local files.
 
 	* w32proc.c (syms_of_ntproc): Change Vw32_get_true_file attributes
-	default	to Qlocal.
+	default to Qlocal.
 
 2008-04-22  Juri Linkov  <juri@jurta.org>
 
@@ -86,7 +314,7 @@
 	* Makefile.in (TOOLKIT_DEFINES): Remove.
 	(LIBW): Use a bit less #if, remove left over OPEN_LOOK stuff.
 
-2008-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (MAC_OBJ): Add mactoolbox.o.
 	(mactoolbox.o): New target.
@@ -241,7 +469,7 @@
 
 	* mactoolbox.c: New file.
 
-2008-03-31  Jason Rumney  <jasonr@gnu.org>
+2008-04-18  Jason Rumney  <jasonr@gnu.org>
 
 	* dired.c (Ffile_attributes) [WINDOWSNT]: Cast uid and gid to unsigned.
 
@@ -3349,8 +3577,8 @@
 	(font_put_extra): New function.
 	(font_parse_xlfd): Fix handling of font size.  Add QCdpi property
 	in FONT_EXTRA.
-	(font_parse_fcname): Handle enumenrated values (e.g. bold).  Fix
-	handling font size.  Add QCname property that contains only
+	(font_parse_fcname): Handle enumenrated values (e.g. bold).
+	Fix handling font size.  Add QCname property that contains only
 	unknown properties.
 	(font_score): Change argument.  Change caller.  Pay attention to
 	FONT_PIXEL_SIZE_QUANTUM.
@@ -10531,10 +10759,10 @@ See ChangeLog.10 for earlier changes.
 
   This file is part of GNU Emacs.
 
-  GNU Emacs is free software; you can redistribute it and/or modify
+  GNU Emacs is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3, or (at your option)
-  any later version.
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10542,8 +10770,6 @@ See ChangeLog.10 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs; see the file COPYING.  If not, write to the
-  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-  Boston, MA 02110-1301, USA.
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; arch-tag: dfb6ad96-1550-4905-9e53-d2059ee84c40

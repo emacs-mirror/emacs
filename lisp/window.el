@@ -8,10 +8,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,15 +19,15 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Window tree functions.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defvar window-size-fixed nil
  "*Non-nil in a buffer means windows displaying the buffer are fixed-size.
@@ -1094,6 +1094,21 @@ active.  This function is run by `mouse-autoselect-window-timer'."
 	;; Run `mouse-leave-buffer-hook' when autoselecting window.
 	(run-hooks 'mouse-leave-buffer-hook))
       (select-window window))))
+
+(defun delete-other-windows-vertically (&optional window)
+  "Delete the windows in the same column with WINDOW, but not WINDOW itself.
+This may be a useful alternative binding for \\[delete-other-windows]
+ if you often split windows horizontally."
+  (interactive)
+  (let* ((window (or window (selected-window)))
+         (edges (window-edges window))
+         (w window) delenda)
+    (while (not (eq (setq w (next-window w 1)) window))
+      (let ((e (window-edges w)))
+        (when (and (= (car e) (car edges))
+                   (= (caddr e) (caddr edges)))
+          (push w delenda))))
+    (mapc 'delete-window delenda)))
 
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
