@@ -193,6 +193,15 @@ is slower."
 				   (match-end 0)))))
     (list (if (string= name "") nil name) (or address from))))
 
+(defun gnus-extract-address-component-name (from)
+  "Extract name from a From header.
+Uses `gnus-extract-address-components'."
+  (nth 0 (gnus-extract-address-components from)))
+
+(defun gnus-extract-address-component-email (from)
+  "Extract e-mail address from a From header.
+Uses `gnus-extract-address-components'."
+  (nth 1 (gnus-extract-address-components from)))
 
 (defun gnus-fetch-field (field)
   "Return the value of the header FIELD of current article."

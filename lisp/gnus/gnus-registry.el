@@ -1,10 +1,10 @@
 ;;; gnus-registry.el --- article registry for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 
+;;; Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
-;; Keywords: news
+;; Keywords: news registry
 
 ;; This file is part of GNU Emacs.
 
@@ -523,7 +523,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
      ;; else: there were no matches, now try the extra tracking by sender
      ((and (gnus-registry-track-sender-p)
 	   sender
-	   (not (equal sender user-mail-address)))
+	   (not (equal (gnus-extract-address-component-email sender)
+		       user-mail-address)))
       (maphash
        (lambda (key value)
 	 (let ((this-sender (cdr
@@ -678,9 +679,8 @@ Consults `gnus-registry-unfollowed-groups' and
   (let (articles)
     (maphash
      (lambda (key value)
-       (when (gnus-registry-grep-in-list
-	      keyword
-	      (cdr (gnus-registry-fetch-extra key 'keywords)))
+       (when (member keyword
+		   (cdr-safe (gnus-registry-fetch-extra key 'keywords)))
 	 (push key articles)))
      gnus-registry-hashtb)
     articles))
@@ -730,15 +730,13 @@ Consults `gnus-registry-unfollowed-groups' and
 			  (assoc article (gnus-data-list nil)))))
     nil))
 
-;;; this should be redone with catch/throw
 (defun gnus-registry-grep-in-list (word list)
-  (when word
-    (memq nil
-	  (mapcar 'not
-		  (mapcar
-		   (lambda (x)
-		     (string-match word x))
-		   list)))))
+"Find if a WORD matches any regular expression in the given LIST."
+  (when (and word list)
+    (catch 'found
+      (dolist (r list)
+	(when (string-match r word)
+	  (throw 'found r))))))
 
 (defun gnus-registry-do-marks (type function)
   "For each known mark, call FUNCTION for each cell of type TYPE.
