@@ -2232,7 +2232,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   "Toggle whether to fold or truncate long lines in article the buffer.
 If ARG is non-nil and not a number, toggle
 `gnus-article-truncate-lines' too.  If ARG is a number, truncate
-long lines iff arg is positive."
+long lines if and only if arg is positive."
   (interactive "P")
   (cond
    ((and (numberp arg) (> arg 0))
