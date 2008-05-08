@@ -439,8 +439,8 @@ PostScript procedures that will be called by FONT-FUNC and GLYPHS-FUNC.  It is
 called with no argument, and should return a list of strings.
 
 CHECK-FUNC is a function to check if a font is available or not.
-It is called with one argument FONT-SPEC, and should return non-nil iff the
-font specified in FONT-SPEC is available.
+It is called with one argument FONT-SPEC, and should return non-nil if and
+only if the font specified in FONT-SPEC is available.
 
 FONT-FUNC is a function to generate PostScript code which define a new font.
 It is called with one argument FONT-SPEC, and should return a list of strings.
@@ -736,7 +736,7 @@ the sequence."
 	} ifelse def
 	dup 0 get stringwidth pop dup /WIDTH exch def bmp 0 get div
 	dup LLY mul /LLY exch def
-	URY mul /URY exch def	
+	URY mul /URY exch def
     } {
 	pop
 	dup 0 get stringwidth pop /WIDTH exch def
@@ -791,7 +791,7 @@ the sequence."
     /RIGHT WIDTH def
     /TOP URY def
     /BOTTOM LLY def
-	
+
     1 1 components length 1 sub {
 	components exch get
 	[ exch
@@ -971,7 +971,7 @@ the sequence."
 
 (defun ps-mule-generate-bitmap-glyph (font-spec char code bitmap)
   (let* ((id (ps-mule-font-spec-id font-spec))
-	 ;; FONT-RECORD ::= ([(SUBFONT-OUTPUT-LIST ...) | t] 
+	 ;; FONT-RECORD ::= ([(SUBFONT-OUTPUT-LIST ...) | t]
 	 ;;                  BASEFONT-OUTPUT-LIST SIZE REL-COMP B-OFFSET BBX)
 	 (font-record (aref ps-mule-bitmap-font-record id))
 	 enc-name
@@ -1149,7 +1149,7 @@ It checks if all multi-byte characters in the region are printable or not."
 
 (defun ps-mule-redefine-font (font-number fonttag size ps-font)
   (let* ((font-type (aref ps-mule-font-number-to-type font-number))
-	 (font-spec-alist (char-table-extra-slot 
+	 (font-spec-alist (char-table-extra-slot
 			   (aref ps-mule-font-spec-tables font-type) 0)))
     (ps-output-prologue
      (list (if (ps-mule-font-spec-src (cdr (car font-spec-alist)))
@@ -1170,7 +1170,7 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
   (let ((output-head (list t))
 	(ps-mule-output-list (list t)))
     (dotimes (i 4)
-      (map-char-table 'ps-mule-prepare-glyph 
+      (map-char-table 'ps-mule-prepare-glyph
 		      (aref ps-mule-font-spec-tables i)))
     (ps-mule-restruct-output-list (cdr ps-mule-output-list) output-head)
     (ps-output-prologue (cdr output-head)))
@@ -1198,7 +1198,7 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
 				  (mapconcat #'(lambda (x)
 						 (format "F%02X" (cdr x)))
 					     font-list " ")))))
-       
+
   ;; Redefine fonts f0, f1, f2, f3, h0, h1, H0.
   (ps-mule-redefine-font 4 "h0" ps-header-title-font-size-internal
 			 (ps-font 'ps-font-for-header 'bold))
