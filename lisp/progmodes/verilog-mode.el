@@ -118,9 +118,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "404"
+(defconst verilog-mode-version "423"
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date "2008-03-02-GNU"
+(defconst verilog-mode-release-date "2008-05-07-GNU"
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1953,7 +1953,7 @@ See also `verilog-font-lock-extra-types'.")
        (verilog-pragma-keywords
 	(eval-when-compile
 	  (verilog-regexp-opt
-	   '("surefire" "synopsys" "rtl_synthesis" "verilint" ) nil
+	   '("surefire" "synopsys" "rtl_synthesis" "verilint" "leda" "0in") nil
 	    )))
 
        (verilog-p1800-keywords
@@ -2514,12 +2514,16 @@ Key bindings specific to `verilog-mode-map' are:
   ;; Tell imenu how to handle Verilog.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression verilog-imenu-generic-expression)
+  ;; Tell which-func-modes that imenu knows about verilog
+  (when (boundp 'which-function-modes)
+    (add-to-list 'which-func-modes 'verilog-mode))
   ;; hideshow support
-  (unless (assq 'verilog-mode hs-special-modes-alist)
-    (setq hs-special-modes-alist
-	  (cons '(verilog-mode-mode  "\\<begin\\>" "\\<end\\>" nil
-			     verilog-forward-sexp-function)
-		hs-special-modes-alist)))
+  (when (boundp 'hs-special-modes-alist)
+    (unless (assq 'verilog-mode hs-special-modes-alist)
+      (setq hs-special-modes-alist
+	    (cons '(verilog-mode-mode  "\\<begin\\>" "\\<end\\>" nil
+				       verilog-forward-sexp-function)
+		  hs-special-modes-alist))))
 
   ;; Stuff for autos
   (add-hook 'write-contents-hooks 'verilog-auto-save-check) ; already local
@@ -3468,7 +3472,7 @@ primitive or interface named NAME."
 	       (;- this is end{function,generate,task,module,primitive,table,generate}
 		;- which can not be nested.
 		t
-		(let (string reg (width nil))
+		(let (string reg (name-re nil))
 		  (end-of-line)
 		  (if kill-existing-comment
 		      (save-match-data
@@ -3478,7 +3482,8 @@ primitive or interface named NAME."
 		  (cond
 		   ((match-end 5) ;; of verilog-end-block-ordered-re
 		    (setq reg "\\(\\<function\\>\\)\\|\\(\\<\\(endfunction\\|task\\|\\(macro\\)?module\\|primitive\\)\\>\\)")
-		    (setq width "\\(\\s-*\\(\\[[^]]*\\]\\)\\|\\(real\\(time\\)?\\)\\|\\(integer\\)\\|\\(time\\)\\)?"))
+		    (setq name-re "\\w+\\s-*(")
+		    )
 		   ((match-end 6) ;; of verilog-end-block-ordered-re
 		    (setq reg "\\(\\<task\\>\\)\\|\\(\\<\\(endtask\\|function\\|\\(macro\\)?module\\|primitive\\)\\>\\)"))
 		   ((match-end 7) ;; of verilog-end-block-ordered-re
@@ -3509,9 +3514,9 @@ primitive or interface named NAME."
 			(setq b (progn
 				  (skip-chars-forward "^ \t")
 				  (verilog-forward-ws&directives)
-				  (if (and width (looking-at width))
+				  (if (and name-re (verilog-re-search-forward name-re nil 'move))
 				      (progn
-					(goto-char (match-end 0))
+					(goto-char (match-beginning 0))
 					(verilog-forward-ws&directives)))
 				  (point))
 			      e (progn
@@ -4683,10 +4688,8 @@ Only look at a few lines to determine indent level."
 		   (skip-chars-forward " \t")
 		   (current-column))))
 	(indent-line-to val)
-	(if (and (not (verilog-in-struct-region-p))
-		 (looking-at verilog-declaration-re))
-	    (verilog-indent-declaration ind))))
-
+      ))
+     
      (;-- Handle the ends
       (or
        (looking-at verilog-end-block-re )
@@ -4920,7 +4923,7 @@ ARG is ignored, for `comment-indent-function' compatibility."
     (if (or (eq myre nil)
 	    (string-equal myre ""))
 	(setq myre "\\(<\\|:\\)?="))
-    (setq myre (concat "\\(^[^;#:<=>]*\\)\\(" myre "\\)"))
+    (setq myre (concat "\\(^[^;#<=>]*\\)\\(" myre "\\)"))
     (let ((rexp(concat "^\\s-*" verilog-complete-reg)))
       (beginning-of-line)
       (if (and (not (looking-at rexp ))
@@ -7372,12 +7375,12 @@ Cache the output of function so next call may have faster access."
 		   func-returns)
 	       (setq func-returns (funcall function))
 	       (when fontlocked (font-lock-mode t))
-	     ;; Cache for next time
-	     (setq verilog-modi-cache-list
+	       ;; Cache for next time
+	       (setq verilog-modi-cache-list
 		     (cons (list (list modi function)
-			       (buffer-modified-tick)
-			       (visited-file-modtime)
-			       func-returns)
+				 (buffer-modified-tick)
+				 (visited-file-modtime)
+				 func-returns)
 			   verilog-modi-cache-list))
 	       func-returns))))))
 
@@ -7842,10 +7845,10 @@ Typing \\[verilog-inject-auto] will make this into:
     (goto-char (point-min))
     (while (verilog-re-search-forward-quick "\\<always\\s *@\\s *(" nil t)
       (let* ((start-pt (point))
-	    (modi (verilog-modi-current))
+	     (modi (verilog-modi-current))
 	     (moddecls (verilog-modi-get-decls modi))
-	    pre-sigs
-	    got-sigs)
+	     pre-sigs
+	     got-sigs)
 	(backward-char 1)
 	(forward-sexp 1)
 	(backward-char 1) ;; End )
@@ -8007,7 +8010,7 @@ Avoid declaring ports manually, as it makes code harder to maintain."
   (save-excursion
     (let* ((modi (verilog-modi-current))
 	   (moddecls (verilog-modi-get-decls modi))
-	  (skip-pins (aref (verilog-read-arg-pins) 0)))
+	   (skip-pins (aref (verilog-read-arg-pins) 0)))
       (verilog-repair-open-comma)
       (verilog-auto-arg-ports (verilog-signals-not-in
 			       (verilog-decls-get-outputs moddecls)
@@ -9743,55 +9746,55 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
 	  (verilog-getopt-flags)
 	  ;; From here on out, we can cache anything we read from disk
 	  (verilog-preserve-dir-cache
-	  ;; These two may seem obvious to do always, but on large includes it can be way too slow
-	  (when verilog-auto-read-includes
-	    (verilog-read-includes)
-	    (verilog-read-defines nil nil t))
-	  ;; This particular ordering is important
-	  ;; INST: Lower modules correct, no internal dependencies, FIRST
+	   ;; These two may seem obvious to do always, but on large includes it can be way too slow
+	   (when verilog-auto-read-includes
+	     (verilog-read-includes)
+	     (verilog-read-defines nil nil t))
+	   ;; This particular ordering is important
+	   ;; INST: Lower modules correct, no internal dependencies, FIRST
 	   (verilog-preserve-modi-cache
-	   ;; Clear existing autos else we'll be screwed by existing ones
-	   (verilog-delete-auto)
-	   ;; Injection if appropriate
-	   (when inject
-	     (verilog-inject-inst)
-	     (verilog-inject-sense)
-	     (verilog-inject-arg))
-	   ;;
+	    ;; Clear existing autos else we'll be screwed by existing ones
+	    (verilog-delete-auto)
+	    ;; Injection if appropriate
+	    (when inject
+	      (verilog-inject-inst)
+	      (verilog-inject-sense)
+	      (verilog-inject-arg))
+	    ;;
 	    (verilog-auto-re-search-do "/\\*AUTOINSTPARAM\\*/" 'verilog-auto-inst-param)
 	    (verilog-auto-re-search-do "/\\*AUTOINST\\*/" 'verilog-auto-inst)
 	    (verilog-auto-re-search-do "\\.\\*" 'verilog-auto-star)
-	   ;; Doesn't matter when done, but combine it with a common changer
-	   (verilog-auto-re-search-do "/\\*\\(AUTOSENSE\\|AS\\)\\*/" 'verilog-auto-sense)
-	   (verilog-auto-re-search-do "/\\*AUTORESET\\*/" 'verilog-auto-reset)
-	   ;; Must be done before autoin/out as creates a reg
-	   (verilog-auto-re-search-do "/\\*AUTOASCIIENUM([^)]*)\\*/" 'verilog-auto-ascii-enum)
-	   ;;
-	   ;; first in/outs from other files
-	   (verilog-auto-re-search-do "/\\*AUTOINOUTMODULE([^)]*)\\*/" 'verilog-auto-inout-module)
-	   ;; next in/outs which need previous sucked inputs first
-	   (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\((\"[^\"]*\")\\)\\*/"
-				      '(lambda () (verilog-auto-output t)))
-	   (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\*/" 'verilog-auto-output)
-	   (verilog-auto-re-search-do "/\\*AUTOINPUT\\((\"[^\"]*\")\\)\\*/"
-				      '(lambda () (verilog-auto-input t)))
-	   (verilog-auto-re-search-do "/\\*AUTOINPUT\\*/"  'verilog-auto-input)
-	   (verilog-auto-re-search-do "/\\*AUTOINOUT\\((\"[^\"]*\")\\)\\*/"
-				      '(lambda () (verilog-auto-inout t)))
-	   (verilog-auto-re-search-do "/\\*AUTOINOUT\\*/" 'verilog-auto-inout)
-	   ;; Then tie off those in/outs
+	    ;; Doesn't matter when done, but combine it with a common changer
+	    (verilog-auto-re-search-do "/\\*\\(AUTOSENSE\\|AS\\)\\*/" 'verilog-auto-sense)
+	    (verilog-auto-re-search-do "/\\*AUTORESET\\*/" 'verilog-auto-reset)
+	    ;; Must be done before autoin/out as creates a reg
+	    (verilog-auto-re-search-do "/\\*AUTOASCIIENUM([^)]*)\\*/" 'verilog-auto-ascii-enum)
+	    ;;
+	    ;; first in/outs from other files
+	    (verilog-auto-re-search-do "/\\*AUTOINOUTMODULE([^)]*)\\*/" 'verilog-auto-inout-module)
+	    ;; next in/outs which need previous sucked inputs first
+	    (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\((\"[^\"]*\")\\)\\*/"
+				       '(lambda () (verilog-auto-output t)))
+	    (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\*/" 'verilog-auto-output)
+	    (verilog-auto-re-search-do "/\\*AUTOINPUT\\((\"[^\"]*\")\\)\\*/"
+				       '(lambda () (verilog-auto-input t)))
+	    (verilog-auto-re-search-do "/\\*AUTOINPUT\\*/"  'verilog-auto-input)
+	    (verilog-auto-re-search-do "/\\*AUTOINOUT\\((\"[^\"]*\")\\)\\*/"
+				       '(lambda () (verilog-auto-inout t)))
+	    (verilog-auto-re-search-do "/\\*AUTOINOUT\\*/" 'verilog-auto-inout)
+	    ;; Then tie off those in/outs
 	    (verilog-auto-re-search-do "/\\*AUTOTIEOFF\\*/" 'verilog-auto-tieoff)
-	   ;; Wires/regs must be after inputs/outputs
+	    ;; Wires/regs must be after inputs/outputs
 	    (verilog-auto-re-search-do "/\\*AUTOWIRE\\*/" 'verilog-auto-wire)
 	    (verilog-auto-re-search-do "/\\*AUTOREG\\*/" 'verilog-auto-reg)
 	    (verilog-auto-re-search-do "/\\*AUTOREGINPUT\\*/" 'verilog-auto-reg-input)
-	   ;; outputevery needs AUTOOUTPUTs done first
+	    ;; outputevery needs AUTOOUTPUTs done first
 	    (verilog-auto-re-search-do "/\\*AUTOOUTPUTEVERY\\*/" 'verilog-auto-output-every)
-	   ;; After we've created all new variables
+	    ;; After we've created all new variables
 	    (verilog-auto-re-search-do "/\\*AUTOUNUSED\\*/" 'verilog-auto-unused)
-	   ;; Must be after all inputs outputs are generated
+	    ;; Must be after all inputs outputs are generated
 	    (verilog-auto-re-search-do "/\\*AUTOARG\\*/" 'verilog-auto-arg)
-	   ;; Fix line numbers (comments only)
+	    ;; Fix line numbers (comments only)
 	    (verilog-auto-templated-rel)))
 	  ;;
 	  (run-hooks 'verilog-auto-hook)

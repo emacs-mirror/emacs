@@ -1,3 +1,19 @@
+2008-05-08  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-type-font-keywords): Add leda and 0in
+	as pragma keywords.
+	(verilog-pretty-expr): Support lining up assignments which include
+	part selects.
+	(verilog-mode): More portable check for the availability of
+	hideshow support.
+	(verilog-do-indent): Remove special indent for declarations inside
+	a parenthetical list.  The code is ill-advised, and doesn't work
+	given the new user defined types.
+	(verilog-set-auto-endcomments): Enhance function automatic
+	endcomment to support functions that return user defined types.
+	(verilog-mode): Add code to tell which-function-mode minor mode
+	that Verilog supports this feature.
+
 2008-05-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* epa-file.el: Require epa-hook.
