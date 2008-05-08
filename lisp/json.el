@@ -107,13 +107,13 @@ this around your call to `json-read' instead of `setq'ing it.")
   (mapconcat 'identity strings separator))
 
 (defun json-alist-p (list)
-  "Non-null iff LIST is an alist."
+  "Non-null if and only if LIST is an alist."
   (or (null list)
       (and (consp (car list))
            (json-alist-p (cdr list)))))
 
 (defun json-plist-p (list)
-  "Non-null iff LIST is a plist."
+  "Non-null if and only if LIST is a plist."
   (or (null list)
       (and (keywordp (car list))
            (consp (cdr list))
