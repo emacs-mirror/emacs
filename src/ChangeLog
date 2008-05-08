@@ -1,3 +1,7 @@
+2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_match_p): Don't use `iff' in docstring.
+
 2008-05-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* macfns.c (Fx_create_frame): Make a copy of frame parameters
