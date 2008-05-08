@@ -1,3 +1,8 @@
+2008-05-07  Sam Steingold  <sds@gnu.org>
+
+	* pcvs-util.el (cvs-bury-buffer): Revert my patch: quit-window
+	appears to be too aggressive with window removal.
+
 2008-05-08  Michael McNamara  <mac@mail.brushroad.com>
 
 	* verilog-mode.el (verilog-type-font-keywords): Add leda and 0in
