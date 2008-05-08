@@ -162,7 +162,7 @@
 (defcustom org-publish-project-alist nil
   "Association list to control publishing behavior.
 Each element of the alist is a publishing 'project.'  The CAR of
-each element is a string, uniquely identifying the project. The
+each element is a string, uniquely identifying the project.  The
 CDR of each element is in one of the following forms:
 
   (:property value :property value ... )
@@ -174,12 +174,12 @@ OR,
 When the CDR of an element of org-publish-project-alist is in
 this second form, the elements of the list after :components are
 taken to be components of the project, which group together files
-requiring different publishing options. When you publish such a
-project with M-x org-publish, the components all publish.
+requiring different publishing options.  When you publish such a
+project with \\[org-publish], the components all publish.
 
 When a property is given a value in org-publish-project-alist, its
 setting overrides the value of the corresponding user variable
- (if any) during publishing. However, options set within a file
+\(if any) during publishing.  However, options set within a file
 override everything.
 
 Most properties are optional, but some should always be set:
@@ -191,30 +191,30 @@ Most properties are optional, but some should always be set:
                          files will be published
 
 The :exclude property may be used to prevent certain files from
-being published. Its value may be a string or regexp matching
+being published.  Its value may be a string or regexp matching
 file names you don't want to be published.
 
-The :include property may be used to include extra files. Its
-value may be a list of filenames to include. The filenames are
+The :include property may be used to include extra files.  Its
+value may be a list of filenames to include.  The filenames are
 considered relative to the publishing directory.
 
 When both :include and :exclude properties are given values, the
 exclusion step happens first.
 
 One special property controls which back-end function to use for
-publishing files in the project. This can be used to extend the
+publishing files in the project.  This can be used to extend the
 set of file types publishable by org-publish, as well as the set
 of output formats.
 
-  :publishing-function     Function to publish file. The default is
-                           org-publish-org-to-html, but other
-                           values are possible. May also be a
+  :publishing-function     Function to publish file.  The default is
+                           `org-publish-org-to-html', but other
+                           values are possible.  May also be a
                            list of functions, in which case
                            each function in the list is invoked
                            in turn.
 
 Another property allows you to insert code that prepares a
-project for publishing. For example, you could call GNU Make on a
+project for publishing.  For example, you could call GNU Make on a
 certain makefile, to ensure published files are built up to date.
 
   :preparation-function   Function to be called before publishing
@@ -222,42 +222,42 @@ certain makefile, to ensure published files are built up to date.
 
 Some properties control details of the Org publishing process,
 and are equivalent to the corresponding user variables listed in
-the right column. See the documentation for those variables to
+the right column.  See the documentation for those variables to
 learn more about their use and default values.
 
-  :language              org-export-default-language
-  :headline-levels       org-export-headline-levels
-  :section-numbers       org-export-with-section-numbers
-  :table-of-contents     org-export-with-toc
-  :emphasize             org-export-with-emphasize
-  :sub-superscript       org-export-with-sub-superscripts
-  :TeX-macros            org-export-with-TeX-macros
-  :fixed-width           org-export-with-fixed-width
-  :tables                org-export-with-tables
-  :table-auto-headline   org-export-highlight-first-table-line
-  :style                 org-export-html-style
-  :convert-org-links     org-export-html-link-org-files-as-html
-  :inline-images         org-export-html-inline-images
-  :expand-quoted-html    org-export-html-expand
-  :timestamp             org-export-html-with-timestamp
-  :publishing-directory  org-export-publishing-directory
-  :preamble              org-export-html-preamble
-  :postamble             org-export-html-postamble
-  :auto-preamble         org-export-html-auto-preamble
-  :auto-postamble        org-export-html-auto-postamble
-  :author                user-full-name
-  :email                 user-mail-address
+  :language              `org-export-default-language'
+  :headline-levels       `org-export-headline-levels'
+  :section-numbers       `org-export-with-section-numbers'
+  :table-of-contents     `org-export-with-toc'
+  :emphasize             `org-export-with-emphasize'
+  :sub-superscript       `org-export-with-sub-superscripts'
+  :TeX-macros            `org-export-with-TeX-macros'
+  :fixed-width           `org-export-with-fixed-width'
+  :tables                `org-export-with-tables'
+  :table-auto-headline   `org-export-highlight-first-table-line'
+  :style                 `org-export-html-style'
+  :convert-org-links     `org-export-html-link-org-files-as-html'
+  :inline-images         `org-export-html-inline-images'
+  :expand-quoted-html    `org-export-html-expand'
+  :timestamp             `org-export-html-with-timestamp'
+  :publishing-directory  `org-export-publishing-directory'
+  :preamble              `org-export-html-preamble'
+  :postamble             `org-export-html-postamble'
+  :auto-preamble         `org-export-html-auto-preamble'
+  :auto-postamble        `org-export-html-auto-postamble'
+  :author                `user-full-name'
+  :email                 `user-mail-address'
 
 The following properties may be used to control publishing of an
 index of files or summary page for a given project.
 
   :auto-index            Whether to publish an index during
-                         org-publish-current-project or org-publish-all.
-  :index-filename        Filename for output of index. Defaults
-                         to 'index.org' (which becomes 'index.html')
-  :index-title           Title of index page. Defaults to name of file.
+                         `org-publish-current-project' or `org-publish-all'.
+  :index-filename        Filename for output of index.  Defaults
+                         to 'index.org' (which becomes 'index.html').
+  :index-title           Title of index page.  Defaults to name of file.
   :index-function        Plugin function to use for generation of index.
-                         Defaults to 'org-publish-org-index', which
+                         Defaults to `org-publish-org-index', which
                          generates a plain list of links to all files
                          in the project."
   :group 'org-publish
@@ -265,8 +265,7 @@ index of files or summary page for a given project.
 
 (defcustom org-publish-use-timestamps-flag t
   "When non-nil, use timestamp checking to publish only changed files.
-When nil, do no timestamp checking and always publish all
-files."
+When nil, do no timestamp checking and always publish all files."
   :group 'org-publish
   :type 'boolean)
 
@@ -334,7 +333,7 @@ If there is no timestamp, create one."
 ;;; Mapping files to project names
 
 (defvar org-publish-files-alist nil
-  "Alist of files and their parent project.
+  "Alist of files and their parent projects.
 Each element of this alist is of the form:
 
   (file-name . project-name)")
