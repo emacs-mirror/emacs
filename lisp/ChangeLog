@@ -1,9 +1,11 @@
 2008-05-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* epa-file.el: Require epa-hook.
+
 	* loadup.el ("epa-hook"): Load epa-hook instead of epa-file-hook.
 
 	* epa-hook.el: Renamed from epa-file-hook.el, to avoid
-	file-names clashes on 8+3 filesystems.
+	file-names clashes on 8+3 filesystems.  Provide epa-hook.
 
 	* org/org-jsinfo.el: Renamed from org-infojs.el, to avoid
 	file-names clashes on 8+3 filesystems.
