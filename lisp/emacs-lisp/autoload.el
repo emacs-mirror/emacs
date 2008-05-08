@@ -327,7 +327,7 @@ If provided, OUTFILE is expected to be the file name of OUTBUF.
 If OUTFILE is non-nil and FILE specifies a `generated-autoload-file'
 different from OUTFILE, then OUTBUF is ignored.
 
-Return non-nil iff FILE adds no autoloads to OUTFILE
+Return non-nil if and only if FILE adds no autoloads to OUTFILE
 \(or OUTBUF if OUTFILE is nil)."
   (catch 'done
     (let ((autoloads-done '())
