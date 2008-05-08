@@ -41,7 +41,7 @@
   '((((background light)) (:foreground "white"))
     (((background dark)) (:foreground "black")))
   "Face used to hide leading stars in headlines.
-The forground color of this face should be equal to the background
+The foreground color of this face should be equal to the background
 color of the frame."
   :group 'org-faces)
 
