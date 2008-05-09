@@ -1340,34 +1340,34 @@ NOT-URGENT means it is ok to continue if the user says not to save."
     member))
 
 (defun vc-dispatcher-selection-set ()
-  "Deduce a set of files to which to apply an operation. Return the fileset.
+  "Deduce a set of files to which to apply an operation.  Return the fileset.
 If we're in a directory display, the fileset is the list of marked files (if
-there is one) else the file on the curreent line.  If not in a directory 
-display, but the current buffer visits a file, the fileset is a singleton 
-containing that file. Otherwise, throw an error."
+there is one) else the file on the curreent line.  If not in a directory
+display, but the current buffer visits a file, the fileset is a singleton
+containing that file.  Otherwise, throw an error."
   (let ((files
-    (cond
-     ;; Browsing with vc-dir
-     ((vc-dispatcher-browsing)
-      (or (vc-dir-marked-files) (list (vc-dir-current-file))))
-     ;; Visiting an eligible file
-     ((buffer-file-name)
-      (list buffer-file-name))
-     ;; No eligible file -- if there's a parent buffer, deduce from there
-     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
-				(with-current-buffer vc-parent-buffer
-				  (vc-dispatcher-browsing))))
-      (with-current-buffer vc-parent-buffer
-			    (vc-dispatcher-selection-set)))
-     ;; No good set here, throw error
-     (t (error "No fileset is available here.")))))
+         (cond
+          ;; Browsing with vc-dir
+          ((vc-dispatcher-browsing)
+           (or (vc-dir-marked-files) (list (vc-dir-current-file))))
+          ;; Visiting an eligible file
+          ((buffer-file-name)
+           (list buffer-file-name))
+          ;; No eligible file -- if there's a parent buffer, deduce from there
+          ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+                                     (with-current-buffer vc-parent-buffer
+                                       (vc-dispatcher-browsing))))
+           (with-current-buffer vc-parent-buffer
+             (vc-dispatcher-selection-set)))
+          ;; No good set here, throw error
+          (t (error "No fileset is available here")))))
     ;; We assume, in order to avoid unpleasant surprises to the user,
     ;; that a fileset is not in good shape to be handed to the user if the
     ;; buffers visiting the fileset don't match the on-disk contents.
     ;; This is actually untrue for operations like `print-log' (or `diff'
     ;; between two revisions), so maybe this should be moved elsewhere.
     (save-some-buffers
-     nil (lambda () (vc-dispatcher-in-fileset-p fileset)))
+     nil (lambda () (vc-dispatcher-in-fileset-p files)))
     files))
 
 ;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
