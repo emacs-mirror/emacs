@@ -108,7 +108,8 @@
 ;; To do:
 ;;
 ;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
-;;   it should work for other async commands as well (pull/push/...).
+;;   it should work for other async commands done through vc-do-command 
+;;   as well,
 ;;
 ;; - the *VC-log* buffer needs font-locking.
 ;;
@@ -116,12 +117,11 @@
 ;;
 ;; - vc-dir toolbar needs more icons.
 ;;
-;; - vc-dir-next-line should not print an "end of buffer" message when
-;;   invoked with the cursor on the last file.
-;;
 ;; - add commands to move to the prev/next directory in vc-dir.
 ;;
 ;; - document vc-dir in the manual.
+;;
+;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
 ;;
 
 (provide 'vc-dispatcher)
@@ -921,8 +921,9 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
   "Go to the next line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
-  (ewoc-goto-next vc-ewoc arg)
-  (vc-dir-move-to-goal-column))
+  (with-no-warnings
+    (ewoc-goto-next vc-ewoc arg)
+    (vc-dir-move-to-goal-column)))
 
 (defun vc-dir-previous-line (arg)
   "Go to the previous line.
