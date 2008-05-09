@@ -1,3 +1,9 @@
+2008-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Make absence of makeinfo a fatal error only if the info
+	files don't exist.
+	* Makefile.in (install-arch-indep, info): Handle MAKEINFO == off.
+
 2008-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Fix last change: don't use < and > in "rem" lines,
