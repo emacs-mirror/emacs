@@ -513,35 +513,38 @@ getloadavg (double loadavg[], int nelem)
 
 #define PASSWD_FIELD_SIZE 256
 
-static char the_passwd_name[PASSWD_FIELD_SIZE];
-static char the_passwd_passwd[PASSWD_FIELD_SIZE];
-static char the_passwd_gecos[PASSWD_FIELD_SIZE];
-static char the_passwd_dir[PASSWD_FIELD_SIZE];
-static char the_passwd_shell[PASSWD_FIELD_SIZE];
+static char dflt_passwd_name[PASSWD_FIELD_SIZE];
+static char dflt_passwd_passwd[PASSWD_FIELD_SIZE];
+static char dflt_passwd_gecos[PASSWD_FIELD_SIZE];
+static char dflt_passwd_dir[PASSWD_FIELD_SIZE];
+static char dflt_passwd_shell[PASSWD_FIELD_SIZE];
 
-static struct passwd the_passwd =
+static struct passwd dflt_passwd =
 {
-  the_passwd_name,
-  the_passwd_passwd,
+  dflt_passwd_name,
+  dflt_passwd_passwd,
   0,
   0,
   0,
-  the_passwd_gecos,
-  the_passwd_dir,
-  the_passwd_shell,
+  dflt_passwd_gecos,
+  dflt_passwd_dir,
+  dflt_passwd_shell,
 };
 
-static struct group the_group =
+static char dflt_group_name[GNLEN+1];
+
+static struct group dflt_group =
 {
-  /* There are no groups on NT, so we just return "root" as the
-     group name.  */
-  "root",
+  /* When group information is not available, we return this as the
+     group for all files.  */
+  dflt_group_name,
+  0,
 };
 
 int
 getuid ()
 {
-  return the_passwd.pw_uid;
+  return dflt_passwd.pw_uid;
 }
 
 int
@@ -556,7 +559,7 @@ geteuid ()
 int
 getgid ()
 {
-  return the_passwd.pw_gid;
+  return dflt_passwd.pw_gid;
 }
 
 int
@@ -568,15 +571,15 @@ getegid ()
 struct passwd *
 getpwuid (int uid)
 {
-  if (uid == the_passwd.pw_uid)
-    return &the_passwd;
+  if (uid == dflt_passwd.pw_uid)
+    return &dflt_passwd;
   return NULL;
 }
 
 struct group *
 getgrgid (gid_t gid)
 {
-  return &the_group;
+  return &dflt_group;
 }
 
 struct passwd *
@@ -604,27 +607,30 @@ init_user_info ()
      the user-sid as the user id value (same for group id using the
      primary group sid from the process token). */
 
-  char         name[UNLEN+1], domain[1025];
-  DWORD        length = sizeof (name), dlength = sizeof (domain), trash;
+  char         uname[UNLEN+1], gname[GNLEN+1], domain[1025];
+  DWORD        ulength = sizeof (uname), dlength = sizeof (domain), trash;
+  DWORD	       glength = sizeof (gname);
   HANDLE       token = NULL;
   SID_NAME_USE user_type;
   unsigned char buf[1024];
   TOKEN_USER   user_token;
   TOKEN_PRIMARY_GROUP group_token;
 
+  /* "None" is the default group name on standalone workstations.  */
+  strcpy (dflt_group_name, "None");
   if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
       && get_token_information (token, TokenUser,
 				(PVOID)buf, sizeof (buf), &trash)
       && (memcpy (&user_token, buf, sizeof (user_token)),
-	  lookup_account_sid (NULL, user_token.User.Sid, name, &length,
+	  lookup_account_sid (NULL, user_token.User.Sid, uname, &ulength,
 			      domain, &dlength, &user_type)))
     {
-      strcpy (the_passwd.pw_name, name);
+      strcpy (dflt_passwd.pw_name, uname);
       /* Determine a reasonable uid value.  */
-      if (stricmp ("administrator", name) == 0)
+      if (stricmp ("administrator", uname) == 0)
 	{
-	  the_passwd.pw_uid = 500; /* well-known Administrator uid */
-	  the_passwd.pw_gid = 513; /* well-known None gid */
+	  dflt_passwd.pw_uid = 500; /* well-known Administrator uid */
+	  dflt_passwd.pw_gid = 513; /* well-known None gid */
 	}
       else
 	{
@@ -634,10 +640,10 @@ init_user_info ()
 	    *get_sid_sub_authority_count (user_token.User.Sid);
 
 	  if (n_subauthorities < 1)
-	    the_passwd.pw_uid = 0;	/* the "World" RID */
+	    dflt_passwd.pw_uid = 0;	/* the "World" RID */
 	  else
 	    {
-	      the_passwd.pw_uid =
+	      dflt_passwd.pw_uid =
 		*get_sid_sub_authority (user_token.User.Sid,
 					n_subauthorities - 1);
 	    }
@@ -651,35 +657,41 @@ init_user_info ()
 		*get_sid_sub_authority_count (group_token.PrimaryGroup);
 
 	      if (n_subauthorities < 1)
-		the_passwd.pw_gid = 0;	/* the "World" RID */
+		dflt_passwd.pw_gid = 0;	/* the "World" RID */
 	      else
 		{
-		  the_passwd.pw_gid =
+		  dflt_passwd.pw_gid =
 		    *get_sid_sub_authority (group_token.PrimaryGroup,
 					    n_subauthorities - 1);
 		}
+	      dlength = sizeof (domain);
+	      if (lookup_account_sid (NULL, group_token.PrimaryGroup,
+				      gname, &glength, NULL, &dlength,
+				      &user_type))
+		strcpy (dflt_group_name, gname);
 	    }
 	  else
-	    the_passwd.pw_gid = the_passwd.pw_uid;
+	    dflt_passwd.pw_gid = dflt_passwd.pw_uid;
 	}
     }
   /* If security calls are not supported (presumably because we
      are running under Windows 95), fallback to this. */
-  else if (GetUserName (name, &length))
+  else if (GetUserName (uname, &ulength))
     {
-      strcpy (the_passwd.pw_name, name);
-      if (stricmp ("administrator", name) == 0)
-	the_passwd.pw_uid = 0;
+      strcpy (dflt_passwd.pw_name, uname);
+      if (stricmp ("administrator", uname) == 0)
+	dflt_passwd.pw_uid = 0;
       else
-	the_passwd.pw_uid = 123;
-      the_passwd.pw_gid = the_passwd.pw_uid;
+	dflt_passwd.pw_uid = 123;
+      dflt_passwd.pw_gid = dflt_passwd.pw_uid;
     }
   else
     {
-      strcpy (the_passwd.pw_name, "unknown");
-      the_passwd.pw_uid = 123;
-      the_passwd.pw_gid = 123;
+      strcpy (dflt_passwd.pw_name, "unknown");
+      dflt_passwd.pw_uid = 123;
+      dflt_passwd.pw_gid = 123;
     }
+  dflt_group.gr_gid = dflt_passwd.pw_gid;
 
   /* Ensure HOME and SHELL are defined. */
   if (getenv ("HOME") == NULL)
@@ -688,8 +700,8 @@ init_user_info ()
     abort ();
 
   /* Set dir and shell from environment variables. */
-  strcpy (the_passwd.pw_dir, getenv ("HOME"));
-  strcpy (the_passwd.pw_shell, getenv ("SHELL"));
+  strcpy (dflt_passwd.pw_dir, getenv ("HOME"));
+  strcpy (dflt_passwd.pw_shell, getenv ("SHELL"));
 
   if (token)
     CloseHandle (token);
@@ -2727,8 +2739,8 @@ stat (const char * path, struct stat * buf)
     buf->st_ino = fake_inode;
 
   /* consider files to belong to current user */
-  buf->st_uid = the_passwd.pw_uid;
-  buf->st_gid = the_passwd.pw_gid;
+  buf->st_uid = dflt_passwd.pw_uid;
+  buf->st_gid = dflt_passwd.pw_gid;
 
   /* volume_info is set indirectly by map_w32_filename */
   buf->st_dev = volume_info.serialnum;
@@ -2815,8 +2827,8 @@ fstat (int desc, struct stat * buf)
     buf->st_ino = fake_inode;
 
   /* consider files to belong to current user */
-  buf->st_uid = the_passwd.pw_uid;
-  buf->st_gid = the_passwd.pw_gid;
+  buf->st_uid = dflt_passwd.pw_uid;
+  buf->st_gid = dflt_passwd.pw_gid;
 
   buf->st_dev = info.dwVolumeSerialNumber;
   buf->st_rdev = info.dwVolumeSerialNumber;
