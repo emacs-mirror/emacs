@@ -117,9 +117,6 @@
 ;;
 ;; - the *VC-log* buffer needs font-locking.
 ;;
-;; - Set `vc-dir-insert-directories' to t and check what operations
-;;   and backends do not support directory arguments and fix them.
-;;
 ;; - vc-dir needs mouse bindings.
 ;;
 ;; - vc-dir needs more key bindings for VC actions.
@@ -816,11 +813,6 @@ If `body' uses `event', it should be a variable,
 				   map vc-dir-mode-map)
     map))
 
-;; t if directories should be shown in vc-dir.
-;; WORK IN PROGRESS!  This variable will likely disappear when the
-;; work is done.
-(defvar vc-dir-insert-directories t)
-
 (defun vc-dir-update (entries buffer &optional noinsert)
   "Update BUFFER's ewoc from the list of ENTRIES.
 If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
@@ -841,100 +833,74 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		     ((string< dir1 dir2) t)
 		     ((not (string= dir1 dir2)) nil)
 		     ((string< (car entry1) (car entry2))))))))
-    (if (not vc-dir-insert-directories)
-	(let ((entry (car entries))
-	      (node (ewoc-nth vc-ewoc 0)))
-	  (while (and entry node)
-	    (let ((entryfile (car entry))
-		  (nodefile (vc-dir-fileinfo->name (ewoc-data node))))
+    ;; Insert directory entries in the right places.
+    (let ((entry (car entries))
+	  (node (ewoc-nth vc-ewoc 0)))
+      ;; Insert . if it is not present.
+      (unless node
+	(let ((rd (file-relative-name default-directory)))
+	  (ewoc-enter-last
+	   vc-ewoc (vc-dir-create-fileinfo
+		    rd nil nil nil (expand-file-name default-directory))))
+	(setq node (ewoc-nth vc-ewoc 0)))
+
+      (while (and entry node)
+	(let* ((entryfile (car entry))
+	       (entrydir (file-name-directory (expand-file-name entryfile)))
+	       (nodedir
+		(or (vc-dir-fileinfo->directory (ewoc-data node))
+		    (file-name-directory
+		     (expand-file-name
+		      (vc-dir-fileinfo->name (ewoc-data node)))))))
+	  (cond
+	   ;; First try to find the directory.
+	   ((string-lessp nodedir entrydir)
+	    (setq node (ewoc-next vc-ewoc node)))
+	   ((string-equal nodedir entrydir)
+	    ;; Found the directory, find the place for the file name.
+	    (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
 	      (cond
 	       ((string-lessp nodefile entryfile)
 		(setq node (ewoc-next vc-ewoc node)))
-	       ((string-lessp entryfile nodefile)
-		(unless noinsert
-		  (ewoc-enter-before vc-ewoc node
-				     (apply 'vc-dir-create-fileinfo entry)))
-		(setq entries (cdr entries) entry (car entries)))
-	       (t
+	       ((string-equal nodefile entryfile)
 		(setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
 		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
 		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
 		(ewoc-invalidate vc-ewoc node)
 		(setq entries (cdr entries) entry (car entries))
-		(setq node (ewoc-next vc-ewoc node))))))
-	  (unless (or node noinsert)
-	    ;; We're past the last node, all remaining entries go to the end.
-	    (while entries
-	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo (pop entries))))))
-  ;; Insert directory entries in the right places.
-  (let ((entry (car entries))
-	(node (ewoc-nth vc-ewoc 0)))
-    ;; Insert . if it is not present.
-    (unless node
-      (let ((rd (file-relative-name default-directory)))
-	(ewoc-enter-last
-	 vc-ewoc (vc-dir-create-fileinfo
-		  rd nil nil nil (expand-file-name default-directory))))
-      (setq node (ewoc-nth vc-ewoc 0)))
-
-    (while (and entry node)
-      (let* ((entryfile (car entry))
-	     (entrydir (file-name-directory (expand-file-name entryfile)))
-	     (nodedir
-	      (or (vc-dir-fileinfo->directory (ewoc-data node))
-		  (file-name-directory
-		       (expand-file-name
-			(vc-dir-fileinfo->name (ewoc-data node)))))))
-	(cond
-	 ;; First try to find the directory.
-	 ((string-lessp nodedir entrydir)
-	  (setq node (ewoc-next vc-ewoc node)))
-	 ((string-equal nodedir entrydir)
-	  ;; Found the directory, find the place for the file name.
-	  (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
-	    (cond
-	     ((string-lessp nodefile entryfile)
-	      (setq node (ewoc-next vc-ewoc node)))
-	      ((string-equal nodefile entryfile)
-	       (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-	       (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-	       (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-	       (ewoc-invalidate vc-ewoc node)
-	       (setq entries (cdr entries) entry (car entries))
-	       (setq node (ewoc-next vc-ewoc node)))
-	      (t
-	       (ewoc-enter-before vc-ewoc node
-				  (apply 'vc-dir-create-fileinfo entry))
-	       (setq entries (cdr entries) entry (car entries))))))
-	 (t
-	  ;; We need to insert a directory node
-	  (let ((rd (file-relative-name entrydir)))
-	    (ewoc-enter-last
-	     vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir)))
-	  ;; Now insert the node itself.
-	  (ewoc-enter-before vc-ewoc node
-			     (apply 'vc-dir-create-fileinfo entry))
-	  (setq entries (cdr entries) entry (car entries))))))
-    ;; We're past the last node, all remaining entries go to the end.
-    (unless (or node noinsert)
-      (let* ((lastnode (ewoc-nth vc-ewoc -1))
-	     (lastdir
-	      (or (vc-dir-fileinfo->directory (ewoc-data lastnode))
-		  (file-name-directory
-		       (expand-file-name
-			(vc-dir-fileinfo->name (ewoc-data lastnode)))))))
-	(dolist (entry entries)
-	  (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
-	    ;; Insert a directory node if needed.
-	    (unless (string-equal lastdir entrydir)
-	      (setq lastdir entrydir)
-	      (let ((rd (file-relative-name entrydir)))
-		(ewoc-enter-last
-		 vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
+		(setq node (ewoc-next vc-ewoc node)))
+	       (t
+		(ewoc-enter-before vc-ewoc node
+				   (apply 'vc-dir-create-fileinfo entry))
+		(setq entries (cdr entries) entry (car entries))))))
+	   (t
+	    ;; We need to insert a directory node
+	    (let ((rd (file-relative-name entrydir)))
+	      (ewoc-enter-last
+	       vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir)))
 	    ;; Now insert the node itself.
-	    (ewoc-enter-last vc-ewoc
-			     (apply 'vc-dir-create-fileinfo entry))))))))))
+	    (ewoc-enter-before vc-ewoc node
+			       (apply 'vc-dir-create-fileinfo entry))
+	    (setq entries (cdr entries) entry (car entries))))))
+      ;; We're past the last node, all remaining entries go to the end.
+      (unless (or node noinsert)
+	(let* ((lastnode (ewoc-nth vc-ewoc -1))
+	       (lastdir
+		(or (vc-dir-fileinfo->directory (ewoc-data lastnode))
+		    (file-name-directory
+		     (expand-file-name
+		      (vc-dir-fileinfo->name (ewoc-data lastnode)))))))
+	  (dolist (entry entries)
+	    (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
+	      ;; Insert a directory node if needed.
+	      (unless (string-equal lastdir entrydir)
+		(setq lastdir entrydir)
+		(let ((rd (file-relative-name entrydir)))
+		  (ewoc-enter-last
+		   vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
+	      ;; Now insert the node itself.
+	      (ewoc-enter-last vc-ewoc
+			       (apply 'vc-dir-create-fileinfo entry)))))))))
 
 (defun vc-dir-busy ()
   (and (buffer-live-p vc-dir-process-buffer)
@@ -983,62 +949,60 @@ If a prefix argument is given, move by that many lines."
     (funcall mark-unmark-function)))
 
 (defun vc-dir-parent-marked-p (arg)
-  (when vc-dir-insert-directories
-    ;; Return nil if none of the parent directories of arg is marked.
-    (let* ((argdata (ewoc-data arg))
-	   (argdir
-	    (let ((crtdir (vc-dir-fileinfo->directory argdata)))
+  ;; Return nil if none of the parent directories of arg is marked.
+  (let* ((argdata (ewoc-data arg))
+	 (argdir
+	  (let ((crtdir (vc-dir-fileinfo->directory argdata)))
+	    (if crtdir
+		crtdir
+	      (file-name-directory (expand-file-name
+				    (vc-dir-fileinfo->name argdata))))))
+	 (arglen (length argdir))
+	 (crt arg)
+	 data dir)
+    ;; Go through the predecessors, checking if any directory that is
+    ;; a parent is marked.
+    (while (setq crt (ewoc-prev vc-ewoc crt))
+      (setq data (ewoc-data crt))
+      (setq dir
+	    (let ((crtdir (vc-dir-fileinfo->directory data)))
 	      (if crtdir
 		  crtdir
 		(file-name-directory (expand-file-name
-				      (vc-dir-fileinfo->name argdata))))))
-	   (arglen (length argdir))
-	   (crt arg)
-	   data dir)
-      ;; Go through the predecessors, checking if any directory that is
-      ;; a parent is marked.
-      (while (setq crt (ewoc-prev vc-ewoc crt))
-	(setq data (ewoc-data crt))
-	(setq dir
-	      (let ((crtdir (vc-dir-fileinfo->directory data)))
-		(if crtdir
-		    crtdir
-		  (file-name-directory (expand-file-name
-					(vc-dir-fileinfo->name data))))))
+				      (vc-dir-fileinfo->name data))))))
 
-	(when (and (vc-dir-fileinfo->directory data)
-		   (string-equal (substring argdir 0 (length dir)) dir))
-	  (when (vc-dir-fileinfo->marked data)
-	    (error "Cannot mark `%s', parent directory `%s' marked"
-		   (vc-dir-fileinfo->name argdata)
-		   (vc-dir-fileinfo->name data)))))
-      nil)))
+      (when (and (vc-dir-fileinfo->directory data)
+		 (string-equal (substring argdir 0 (length dir)) dir))
+	(when (vc-dir-fileinfo->marked data)
+	  (error "Cannot mark `%s', parent directory `%s' marked"
+		 (vc-dir-fileinfo->name argdata)
+		 (vc-dir-fileinfo->name data)))))
+    nil))
 
 (defun vc-dir-children-marked-p (arg)
   ;; Return nil if none of the children of arg is marked.
-  (when vc-dir-insert-directories
-    (let* ((argdata (ewoc-data arg))
-	   (argdir (vc-dir-fileinfo->directory argdata))
-	   (arglen (length argdir))
-	   (is-child t)
-	   (crt arg)
-	   data dir)
-      (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
-	(setq data (ewoc-data crt))
-	(setq dir
-	      (let ((crtdir (vc-dir-fileinfo->directory data)))
-		(if crtdir
-		    crtdir
-		  (file-name-directory (expand-file-name
-					(vc-dir-fileinfo->name data))))))
-	(if (string-equal argdir (substring dir 0 arglen))
-	    (when (vc-dir-fileinfo->marked data)
-	      (error "Cannot mark `%s', child `%s' marked"
-		     (vc-dir-fileinfo->name argdata)
-		     (vc-dir-fileinfo->name data)))
-	  ;; We are done, we got to an entry that is not a child of `arg'.
-	  (setq is-child nil)))
-      nil)))
+  (let* ((argdata (ewoc-data arg))
+	 (argdir (vc-dir-fileinfo->directory argdata))
+	 (arglen (length argdir))
+	 (is-child t)
+	 (crt arg)
+	 data dir)
+    (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
+      (setq data (ewoc-data crt))
+      (setq dir
+	    (let ((crtdir (vc-dir-fileinfo->directory data)))
+	      (if crtdir
+		  crtdir
+		(file-name-directory (expand-file-name
+				      (vc-dir-fileinfo->name data))))))
+      (if (string-equal argdir (substring dir 0 arglen))
+	  (when (vc-dir-fileinfo->marked data)
+	    (error "Cannot mark `%s', child `%s' marked"
+		   (vc-dir-fileinfo->name argdata)
+		   (vc-dir-fileinfo->name data)))
+	;; We are done, we got to an entry that is not a child of `arg'.
+	(setq is-child nil)))
+    nil))
 
 (defun vc-dir-mark-file (&optional arg)
   ;; Mark ARG or the current file and move to the next line.

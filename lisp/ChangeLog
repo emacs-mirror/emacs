@@ -1,3 +1,8 @@
+2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p, 
+	vc-dir-children-marked-p): Remove the vc-dir-insert-directories global.
+
 2008-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* simple.el (start-file-process): Clarify docstring.
