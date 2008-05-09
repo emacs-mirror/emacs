@@ -1011,22 +1011,15 @@ Only files already under version control are noticed."
 
 (defun vc-deduce-fileset ()
   "Deduce a set of files and a backend to which to apply an operation and
-the common state of the fileset.  Return (BACKEND . (STATE . FILESET))."
+the common state of the fileset.  Return (BACKEND . FILESET)."
   (let* ((fileset (vc-dispatcher-selection-set))
-	 (fileset-only-files (vc-expand-dirs fileset))
-	 (firstfile (car fileset-only-files))
-	 (firstbackend (vc-backend firstfile))
-	 (firstmodel (vc-checkout-model firstbackend (list firstfile)))
-	 (firststate (vc-state firstfile)))
-	(dolist (file (cdr fileset-only-files))
-	  (unless (eq (vc-backend file) firstbackend)
-	    (error "All members of a fileset must be under the same version-control system."))
-	  (unless (vc-compatible-state (vc-state file) firststate)
-	    (error "%s:%s clashes with %s:%s"
-		   file (vc-state file) firstfile firststate))
-	  (unless (eq (vc-checkout-model firstbackend (list file)) firstmodel)
-	    (error "Fileset has mixed checkout models")))
-	(cons firstbackend (cons firststate fileset))))
+         ;; FIXME: Store the backend in a buffer-local variable.
+         (backend (if (derived-mode-p 'vc-dir-mode)
+                      (vc-responsible-backend default-directory)
+                    (assert (and (= 1 (length fileset))
+                                 (not (file-directory-p (car fileset)))))
+                    (vc-backend (car fileset)))))
+	(cons backend fileset)))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1098,10 +1091,21 @@ merge in the changes into your working copy."
   (interactive "P")
   (let* ((vc-fileset (vc-deduce-fileset))
          (backend (car vc-fileset))
-	 (state (cadr vc-fileset))
-	 (files (cddr vc-fileset))
+	 (files (cdr vc-fileset))
+         (fileset-only-files (vc-expand-dirs files))
+         (state (vc-state (car fileset-only-files)))
+         ;; The backend should check that the checkout-model is consistent
+         ;; among all the `files'.
 	 (model (vc-checkout-model backend files))
 	 revision)
+
+    ;; Check that all files are in a consistent state, since we use that
+    ;; state to decide which operation to perform.
+    (dolist (file (cdr fileset-only-files))
+      (unless (vc-compatible-state (vc-state file) state)
+        (error "%s:%s clashes with %s:%s"
+               file (vc-state file) (car fileset-only-files) state)))
+
     ;; Do the right thing
     (cond
      ((eq state 'missing)
@@ -1493,7 +1497,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   "Report diffs between two revisions of a fileset.
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
-  (let* ((files (cddr vc-fileset))
+  (let* ((files (cdr vc-fileset))
 	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
                          (format "No changes between %s and %s"
@@ -1559,7 +1563,7 @@ returns t if the buffer had changes, nil otherwise."
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
    (let* ((vc-fileset (vc-deduce-fileset))
-	  (files (cddr vc-fileset))
+	  (files (cdr vc-fileset))
 	  (first (car files))
 	  (completion-table
 	   (vc-call revision-completion-table files))
@@ -2001,12 +2005,13 @@ outside of VC) and one wants to do some operation on it."
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
   (pop-to-buffer (vc-dir-prepare-status-buffer dir))
-  (if (and (eq major-mode 'vc-dir-mode) (boundp 'client-object))
+  (if (and (derived-mode-p 'vc-dir-mode) (boundp 'client-object))
       (vc-dir-refresh)
     ;; Otherwise, initialize a new view using the dispatcher layer
     (progn
       ;; Build a capability object and hand it to the dispatcher initializer
       (vc-dir-mode (vc-make-backend-object dir))
+      ;; FIXME: Make a derived-mode instead.
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
 	(define-key map "=" 'vc-diff) ;; C-x v =
@@ -2119,7 +2124,7 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
-	 (files (cddr vc-fileset))
+	 (files (cdr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
@@ -2149,7 +2154,7 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cddr vc-fileset)))
+	 (files (cdr vc-fileset)))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
     ;; we cannot show the changes and ask for confirmation to
@@ -2181,7 +2186,7 @@ depending on the underlying version-control system."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
-	 (files (cddr vc-fileset))
+	 (files (cdr vc-fileset))
 	 (granularity (vc-call-backend backend 'revision-granularity)))
     (unless (vc-find-backend-function backend 'rollback)
       (error "Rollback is not supported in %s" backend))
@@ -2236,7 +2241,7 @@ changes from the current branch are merged into the working file."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
-	 (files (cddr vc-fileset)))
+	 (files (cdr vc-fileset)))
     (dolist (file files)
       (when (let ((buf (get-file-buffer file)))
 	      (and buf (buffer-modified-p buf)))

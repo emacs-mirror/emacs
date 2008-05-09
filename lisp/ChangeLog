@@ -1,5 +1,13 @@
 2008-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-deduce-fileset): Don't require the checkout-model and the
+	state to be consistent since it's often an unwarranted restriction.
+	Don't return the state either.
+	(vc-next-action): Check that the state is consistent.
+	(vc-diff-internal, vc-version-diff, vc-print-log, vc-revert)
+	(vc-rollback, vc-update): Adapt to new return value of
+	vc-deduce-fileset.
+
 	* vc-dispatcher.el (vc-dispatcher-browsing): Use derived-mode-p.
 	(vc-dir-prepare-status-buffer): Use vc-dispatcher-browsing.
 	(vc-dispatcher-in-fileset-p): New fun.
