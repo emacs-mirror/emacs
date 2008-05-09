@@ -68,7 +68,6 @@
 ;; * print-log (files &optional buffer)        OK
 ;; - log-view-mode ()                          OK
 ;; - show-log-entry (revision)                  NOT NEEDED, DEFAULT IS GOOD
-;; - wash-log (file)                           ??
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK

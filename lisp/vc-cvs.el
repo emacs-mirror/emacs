@@ -492,10 +492,9 @@ Will fail unless you have administrative privileges on the repo."
    (if (vc-stay-local-p files) 'async 0)
    files "log"))
 
-(defun vc-cvs-wash-log ()
-  "Remove all non-comment information from log output."
-  (vc-call-backend 'RCS 'wash-log)
-  nil)
+(defun vc-cvs-comment-history (file)
+  "Get comment history of a file."
+  (vc-call-backend 'RCS 'comment-history file))
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."

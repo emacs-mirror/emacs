@@ -431,11 +431,6 @@ or svn+ssh://."
 	;; Dump log for the entire directory.
 	(vc-svn-command buffer 0 nil "log" "-rHEAD:0")))))
 
-(defun vc-svn-wash-log ()
-  "Remove all non-comment information from log output."
-  ;; FIXME: not implemented for SVN
-  nil)
-
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."
   (and oldvers

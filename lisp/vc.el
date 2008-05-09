@@ -55,7 +55,7 @@
 ;; This mode is fully documented in the Emacs user's manual.
 ;;
 ;; Supported version-control systems presently include CVS, RCS, GNU
-;; Arch, Subversion, Bzr, Git, Mercurial, Meta-CVS, Monotone and SCCS
+;; Arch, Subversion, Bzr, Git, Mercurial, Monotone and SCCS
 ;; (or its free replacement, CSSC).
 ;;
 ;; Some features will not work with old RCS versions.  Where
@@ -371,17 +371,11 @@
 ;;   and make sure it is displayed in the buffer's window.  The default
 ;;   implementation of this function works for RCS-style logs.
 ;;
-;; - wash-log (file)
-;;
-;;   Remove all non-comment information from the output of print-log.
-;;
 ;; - comment-history (file)
 ;;
 ;;   Return a string containing all log entries that were made for FILE.
 ;;   This is used for transferring a file from one backend to another,
-;;   retaining comment information.  The default implementation of this
-;;   function does this by calling print-log and then wash-log, and
-;;   returning the resulting buffer contents as a string.
+;;   retaining comment information. 
 ;;
 ;; - update-changelog (files)
 ;;
@@ -2709,7 +2703,6 @@ to provide the `find-revision' operation instead."
   (when (vc-find-backend-function backend 'print-log)
     (with-current-buffer "*vc*"
       (vc-call-backend backend 'print-log (list file))
-      (vc-call-backend backend 'wash-log)
       (buffer-string))))
 
 (defun vc-default-receive-file (backend file rev)

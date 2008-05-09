@@ -79,7 +79,6 @@
 ;; * print-log (files &optional buffer)		   OK
 ;; - log-view-mode ()				   OK
 ;; - show-log-entry (revision)			   OK
-;; - wash-log (file)				   COULD BE SUPPORTED
 ;; - comment-history (file)			   ??
 ;; - update-changelog (files)			   COULD BE SUPPORTED
 ;; * diff (file &optional rev1 rev2 buffer)	   OK

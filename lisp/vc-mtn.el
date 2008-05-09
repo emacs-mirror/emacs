@@ -175,8 +175,6 @@
 ;; (defun vc-mtn-show-log-entry (revision)
 ;;   )
 
-(defun vc-mtn-wash-log (file))
-
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer)
   (apply 'vc-mtn-command (or buffer "*vc-diff*") 1 files "diff"
          (append (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))

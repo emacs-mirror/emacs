@@ -547,23 +547,29 @@ Needs RCS 5.6.2 or later for -M."
                        (and newvers (concat "-r" newvers)))
                  (vc-switches 'RCS 'diff))))
 
-(defun vc-rcs-wash-log ()
-  "Remove all non-comment information from log output."
-  (let ((separator (concat "^-+\nrevision [0-9.]+\ndate: .*\n"
-			   "\\(branches: .*;\n\\)?"
-			   "\\(\\*\\*\\* empty log message \\*\\*\\*\n\\)?")))
-    (goto-char (point-max)) (forward-line -1)
-    (while (looking-at "=*\n")
-      (delete-char (- (match-end 0) (match-beginning 0)))
-      (forward-line -1))
-    (goto-char (point-min))
-    (if (looking-at "[\b\t\n\v\f\r ]+")
-	(delete-char (- (match-end 0) (match-beginning 0))))
-    (goto-char (point-min))
-    (re-search-forward separator nil t)
-    (delete-region (point-min) (point))
-    (while (re-search-forward separator nil t)
-      (delete-region (match-beginning 0) (match-end 0)))))
+(defun vc-rcs-comment-history (file)
+  "Return a string with all log entries stored in BACKEND for FILE."
+  (with-current-buffer "*vc*"
+    ;; Has to be written this way, this function is used by the CVS backend too
+    (vc-call-backend (vc-backend file) 'print-log (list file))
+    ;; Remove cruft
+    (let ((separator (concat "^-+\nrevision [0-9.]+\ndate: .*\n"
+			     "\\(branches: .*;\n\\)?"
+			     "\\(\\*\\*\\* empty log message \\*\\*\\*\n\\)?")))
+      (goto-char (point-max)) (forward-line -1)
+      (while (looking-at "=*\n")
+	(delete-char (- (match-end 0) (match-beginning 0)))
+	(forward-line -1))
+      (goto-char (point-min))
+      (if (looking-at "[\b\t\n\v\f\r ]+")
+	  (delete-char (- (match-end 0) (match-beginning 0))))
+      (goto-char (point-min))
+      (re-search-forward separator nil t)
+      (delete-region (point-min) (point))
+      (while (re-search-forward separator nil t)
+	(delete-region (match-beginning 0) (match-end 0))))
+    ;; Return the de-crufted comment list
+    (buffer-string)))
 
 (defun vc-rcs-annotate-command (file buffer &optional revision)
   "Annotate FILE, inserting the results in BUFFER.

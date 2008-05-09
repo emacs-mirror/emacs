@@ -332,11 +332,6 @@ revert all subfiles."
   (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files)))
 
-(defun vc-sccs-wash-log ()
-  "Remove all non-comment information from log output."
-  ;; FIXME: not implemented for SCCS
-  nil)
-
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."
   (setq files (vc-expand-dirs files))
