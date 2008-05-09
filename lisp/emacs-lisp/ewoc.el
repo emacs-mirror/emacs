@@ -52,7 +52,7 @@
 ;; dll (a doubly linked list) and the contents of a buffer.
 ;; Possible uses are dired (have all files in a list, and show them),
 ;; buffer-list, kom-prioritize (in the LysKOM elisp client) and
-;; others.  pcl-cvs.el uses ewoc.el.
+;; others.  pcl-cvs.el and vc.el use ewoc.el.
 ;;
 ;; Ewoc can be considered as the `view' part of a model-view-controller.
 ;;
