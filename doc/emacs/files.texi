@@ -1609,7 +1609,7 @@ version-control systems.
 
    If you are visiting a version-controlled file in the current buffer,
 the default fileset for any command is simply that one file.  If you
-are visiting a VC Dired buffer, and some files in it are marked,
+are visiting a VC directory buffer, and some files in it are marked,
 your fileset is the marked files only.
 
    All files in a fileset must be under the same version-control system.
@@ -1624,10 +1624,10 @@ fileset will become a joint commit, as though you had typed
 line in the directory of the selected buffer.
 
    If you are accustomed to earlier versions of VC, the change in behavior
-you will notice is in VC-Dired mode. Other than @kbd{C-x v v}, most
+you will notice is in the directory mode. Other than @kbd{C-x v v}, most
 VC-mode commands once operated on only one file selected by the line
 the cursor is on.  The change in the behavior of @kbd{C-x v v} outside
-VC-Dired mode is more subtle.  Formerly it operated in parallel on all
+VC directory mode is more subtle.  Formerly it operated in parallel on all
 marked files, but did not pass them to the version-control backends as
 a group.  Now it does, which enables VC to drive changeset-based
 version-control systems.
@@ -1807,12 +1807,12 @@ the revision control log.
   In the @samp{*VC-Log*} buffer, @kbd{C-c C-f} (@kbd{M-x
 log-edit-show-files}) shows the list of files to be committed in case
 you need to check that.  (This can be a list of more than one file if
-you use VC Dired mode or PCL-CVS.)
+you use VC directory mode or PCL-CVS.)
 @iftex
-@xref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features},
+@xref{VC directory mode,,,emacs-xtra, Specialized Emacs Features},
 @end iftex
 @ifnottex
-@xref{VC Dired Mode},
+@xref{VC directory mode},
 @end ifnottex
 and @ref{Top, , About PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs
 Front-End to CVS}.)
@@ -1831,7 +1831,7 @@ convenient to specify the same log entry for many of the files.  (This
 is the normal way to do things on a changeset-oriented system, where
 comments are attached to changesets rather than the history of
 individual files.)  The most convenient way to do this is to mark all the
-files in VC-Dired mode and check in from there; the log buffer will
+files in VC directory mode and check in from there; the log buffer will
 carry the fileset information with it and do a group commit when you
 confirm it with @kbd{C-c C-c}.
 
@@ -1911,7 +1911,7 @@ revision ID (as opposed to a snapshot name or RSCCS/RCS tag) is
 unlikely to return diffs that are connected in any meaningful way.
 
   If you invoke @kbd{C-u C-x v =} or @kbd{C-u C-x v =} from a buffer
-that is neither visiting a version-controlled file nor a VC Dired
+that is neither visiting a version-controlled file nor a VC directory
 buffer, these commands will generate a diff of all registered files in
 the current directory and its subdirectories.
 
@@ -1999,8 +1999,8 @@ use once a day.
 * VC Status::           Viewing the VC status of files.
 * VC Undo::             Canceling changes before or after check-in.
 @ifnottex
-* VC Dired Mode::       Listing files managed by version control.
-* VC Dired Commands::   Commands to use in a VC Dired buffer.
+* VC Directory Mode::   Listing files managed by version control.
+* VC Directory Commands:: Commands to use in a VC directory buffer.
 @end ifnottex
 @end menu
 
@@ -2092,10 +2092,10 @@ count.
 Move to the log of the previous file, when the logs of multiple files
 are in the log buffer
 @iftex
-(@pxref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features}).
+(@pxref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
-(@pxref{VC Dired Mode}).
+(@pxref{VC Directory Mode}).
 @end ifnottex
 Otherwise, just move to the beginning of the log.  A numeric prefix
 argument is a repeat count, so @kbd{C-u 10 P} would move backward 10
@@ -2105,10 +2105,10 @@ files.
 Move to the log of the next file, when the logs of multiple files are
 in the log buffer
 @iftex
-(@pxref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features}).
+(@pxref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
-(@pxref{VC Dired Mode}).
+(@pxref{VC Directory Mode}).
 @end ifnottex
 It also takes a numeric prefix argument as a repeat count.
 

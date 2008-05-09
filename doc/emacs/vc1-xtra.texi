@@ -4,13 +4,13 @@
 @c
 @c This file is included either in vc-xtra.texi (when producing the
 @c printed version) or in the main Emacs manual (for the on-line version).
-@node VC Dired Mode
-@subsection Dired under VC
+@node VC Directory Mode
+@subsection VC Directory Mode
 
 @cindex PCL-CVS
 @pindex cvs
-@cindex CVS Dired Mode
-  The VC Dired Mode described here works with all the version control
+@cindex CVS directory mode
+  The VC directory mode described here works with all the version control
 systems that VC supports.  Another more powerful facility, designed
 specifically for CVS, is called PCL-CVS.  @xref{Top, , About PCL-CVS,
 pcl-cvs, PCL-CVS --- The Emacs Front-End to CVS}.
@@ -24,59 +24,27 @@ version control operations on collections of files.  You can use the
 command @kbd{C-x v d} (@code{vc-directory}) to make a directory listing
 that includes only files relevant for version control.
 
-@vindex vc-dired-terse-display
-  @kbd{C-x v d} creates a buffer which uses VC Dired Mode.  This looks
-much like an ordinary Dired buffer
-@iftex
-(@pxref{Dired,,,emacs, the Emacs Manual});
-@end iftex
-@ifnottex
-(@pxref{Dired});
-@end ifnottex
-however, normally it shows only the noteworthy files (those locked or
-not up-to-date).  This is called @dfn{terse display}.  If you set the
-variable @code{vc-dired-terse-display} to @code{nil}, then VC Dired
-shows all relevant files---those managed under version control, plus
-all subdirectories (@dfn{full display}).  The command @kbd{v t} in a
-VC Dired buffer toggles between terse display and full display
-(@pxref{VC Dired Commands}).
+  @kbd{C-x v d} creates a buffer which uses VC directory mode. This 
+buffer will contain a listing of version-controlled files beneath
+the current directory, and their containing directories.  Files
+which are up-to-date (have no local differences from the repository
+copy) will be omitted; if all files in a directory are up-to-date,
+the directory will be omitted as well.  But there is an exception; 
+if VC mode detects that a file changed to up-to-date state since your
+last look at it, that state will be shown.
 
-@vindex vc-dired-recurse
-  By default, VC Dired produces a recursive listing of noteworthy or
-relevant files at or below the given directory.  You can change this by
-setting the variable @code{vc-dired-recurse} to @code{nil}; then VC
-Dired shows only the files in the given directory.
-
-  The line for an individual file shows the version control state in the
-place of the hard link count, owner, group, and size of the file.  If
-the file is unmodified, in sync with the master file, the version
-control state shown is blank.  Otherwise it consists of text in
-parentheses.  Under RCS and SCCS, the name of the user locking the file
+  The line for an individual file will show the version control state of
+the file.  Under RCS and SCCS, the name of the user locking the file
 is shown; under CVS, an abbreviated version of the @samp{cvs status}
 output is used.  Here is an example using RCS:
-
-@smallexample
-@group
-  /home/jim/project:
-
-  -rw-r--r-- (jim)      Apr  2 23:39 file1
-  -r--r--r--            Apr  5 20:21 file2
-@end group
-@end smallexample
-
-@noindent
-The files @samp{file1} and @samp{file2} are under version control,
-@samp{file1} is locked by user jim, and @samp{file2} is unlocked.
 
   Here is an example using CVS:
 
 @smallexample
 @group
-  /home/joe/develop:
-
-  -rw-r--r-- (modified) Aug  2  1997 file1.c
-  -rw-r--r--            Apr  4 20:09 file2.c
-  -rw-r--r-- (merge)    Sep 13  1996 file3.c
+    DIRECTORY            ./
+    edited               file1.c
+    up-to-date           file2.c
 @end group
 @end smallexample
 
@@ -104,53 +72,55 @@ less network communication usually outweigh the disadvantage of not
 seeing remote changes immediately.
 
 @vindex vc-directory-exclusion-list
-  When VC Dired displays subdirectories (in the ``full'' display mode),
-it omits some that should never contain any files under version control.
-By default, this includes Version Control subdirectories such as
-@samp{RCS} and @samp{CVS}; you can customize this by setting the
-variable @code{vc-directory-exclusion-list}.
+  When a VC directory displays subdirectories it omits some that
+should never contain any files under version control.  By default,
+this includes Version Control subdirectories such as @samp{RCS} and
+@samp{CVS}; you can customize this by setting the variable
+@code{vc-directory-exclusion-list}.
 
-  You can fine-tune VC Dired's format by typing @kbd{C-u C-x v d}---as in
-ordinary Dired, that allows you to specify additional switches for the
-@samp{ls} command.
+@node VC Directory Commands
+@subsection VC Directory Commands
 
-@node VC Dired Commands
-@subsection VC Dired Commands
+  VC directory mode has a full set of navigation and marking commands
+for picking out filesets.  Some of these are also available in a
+context menu invoked with the right mouse button.
 
-  All the usual Dired commands work normally in VC Dired mode, except
-for @kbd{v}, which is redefined as the version control prefix.  You can
-invoke VC commands such as @code{vc-diff} and @code{vc-print-log} by
-typing @kbd{v =}, or @kbd{v l}, and so on.  These commands will apply
-to the set of files you have marked for operation in the VC-Dired
-buffer.  
+  Up and down-arrow keys move in the buffer; @kbd{n} and @kbd{p}  also
+move vertically as in other list-browsing modes.  @kbd{SPC} and
+@kbd{TAB} behave like down-arrow, and the back-tab behaves like up-arrow.
 
-  The command @kbd{v v} (@code{vc-next-action}) operates on all the
+  Both @kbd{C-m} and @kbd{f} visit the file on the current
+line. @kbd{o} visits that file in another window.  @kbd{q} dismisses
+the directory buffer.
+
+  @kbd{x} toggles hiding of up-to-date files.
+
+  @kbd{m} marks the file on the current line.  @kbd{M} marks all
+files. @kbd{u} marks the file on the current line.  @kbd{U} unmarks all
+files.
+
+  Normal VC command with the @kbd{C-x v} prefix work in directory
+buffers.  Some single-key shortcuts are available as well; @kbd{=},
+@kbd{+}, @kbd{l}, @kbd{i}, and @kbd{v} behave as through prefixed with
+@kbd{C-x v}.
+
+  The command @kbd{C-x v v} (@code{vc-next-action}) operates on all the
 marked files, so that you can lock or check in several files at once.
 If the underlying VC supports atomic commits of multiple-file
 changesets @kbd{v v} with a selected set of modified but not committed 
 files wuill commit all of them at once as a single changeset.
 
-  When @kbd{v v} (@code{vc-next-action}) operates on a set of files,
+  When @kbd{C-x v v} (@code{vc-next-action}) operates on a set of files,
 it requires that all of those files must be in the same state;
 otherwise it will throw an error.  Note that this differs from the 
 behavior of older versions of VC, which did not have fileset
 operations and simply did @code{vc-next-action} on each file 
 individually.
 
-  If any files are in a state that calls for commit, @kbd{v v} reads a
+  If any files are in a state that calls for commit, @kbd{C-x v v} reads a
 single log entry and uses it for the changeset as a whole.  If the
 underling VCS is file- rather than changeset-oriented, the log entry
 will be replicated into the history of each file.
-
-@findex vc-dired-toggle-terse-mode
-@findex vc-dired-mark-locked
-  You can toggle between terse display (only locked files, or files not
-up-to-date) and full display at any time by typing @kbd{v t}
-(@code{vc-dired-toggle-terse-mode}).  There is also a special command
-@kbd{* l} (@code{vc-dired-mark-locked}), which marks all files currently
-locked (or, with CVS, all files not up-to-date).  Thus, typing @kbd{* l
-t k} is another way to delete from the buffer all files except those
-currently locked.
 
 @ignore
    arch-tag: 8e8c2a01-ad41-4e61-a89a-60131ad67263
