@@ -1,3 +1,7 @@
+2008-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (start-file-process): Clarify docstring.
+
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-sccs.el, vc.svn.el, vc-git.el, vc-hg.el, vc-mtn.el: Remove
