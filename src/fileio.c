@@ -6150,7 +6150,7 @@ Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
   struct gcpro gcpro1, gcpro2;
   Lisp_Object args[7];
 
-  GCPRO2 (insdef, default_filename);
+  GCPRO1 (default_filename);
   args[0] = intern ("read-file-name");
   args[1] = prompt;
   args[2] = dir;
