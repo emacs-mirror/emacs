@@ -1,3 +1,10 @@
+2008-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-dispatcher-browsing): Use derived-mode-p.
+	(vc-dir-prepare-status-buffer): Use vc-dispatcher-browsing.
+	(vc-dispatcher-in-fileset-p): New fun.
+	(vc-dispatcher-selection-set): Use it to properly handle directories.
+
 2008-05-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-version-diff, vc-print-log, vc-revert, vc-rollback)

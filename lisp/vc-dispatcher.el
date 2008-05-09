@@ -671,7 +671,7 @@ See `run-hooks'."
 		(unless create-new
 		  (dolist (buffer (buffer-list))
 		    (set-buffer buffer)
-		    (when (and (eq major-mode 'vc-dir-mode)
+		    (when (and (vc-dispatcher-browsing)
 			       (string= (expand-file-name default-directory) dir))
 		      (return buffer)))))))
     (or buf
@@ -1326,7 +1326,17 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
-  (eq major-mode 'vc-dir-mode))
+  (derived-mode-p 'vc-dir-mode))
+
+(defun vc-dispatcher-in-fileset-p (fileset)
+  (let ((member nil))
+    (while (and (not member) fileset)
+      (let ((elem (pop fileset)))
+        (if (if (file-directory-p elem)
+                (eq t (compare-strings buffer-file-name nil (length elem)
+                                       elem nil nil))
+              (eq (current-buffer) (get-file-buffer elem)))
+            (setq member t))))))
 
 (defun vc-dispatcher-selection-set ()
   "Deduce a set of files to which to apply an operation. Return the fileset.
@@ -1350,31 +1360,13 @@ containing that file. Otherwise, throw an error."
 			    (vc-dispatcher-selection-set)))
      ;; No good set here, throw error
      (t (error "No fileset is available here.")))))
-    ;; We assume, in order to avoid unpleasant surprises to the user, 
-    ;; that a fileset is not in good shape to be handed to the user if the  
+    ;; We assume, in order to avoid unpleasant surprises to the user,
+    ;; that a fileset is not in good shape to be handed to the user if the
     ;; buffers visiting the fileset don't match the on-disk contents.
-    (dolist (file files)
-      (let ((visited (get-file-buffer file)))
-	(when visited
-	  (if (vc-dispatcher-browsing)
-	      (switch-to-buffer-other-window visited)
-	    (set-buffer visited))
-	  ;; Check relation of buffer and file, and make sure
-	  ;; user knows what he's doing.  First, finding the file
-	  ;; will check whether the file on disk is newer.
-	  ;; Ignore buffer-read-only during this test, and
-	  ;; preserve find-file-literally.
-	  (let ((buffer-read-only (not (file-writable-p file))))
-	    (find-file-noselect file nil find-file-literally))
-	  (if (not (verify-visited-file-modtime (current-buffer)))
-	      (if (yes-or-no-p (format "Replace %s on disk with buffer contents? " file))
-		  (write-file buffer-file-name)
-		(error "Aborted"))
-	    ;; Now, check if we have unsaved changes.
-	    (vc-buffer-sync t)
-	    (when (buffer-modified-p)
-	      (or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
-		  (error "Aborted")))))))
+    ;; This is actually untrue for operations like `print-log' (or `diff'
+    ;; between two revisions), so maybe this should be moved elsewhere.
+    (save-some-buffers
+     nil (lambda () (vc-dispatcher-in-fileset-p fileset)))
     files))
 
 ;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
