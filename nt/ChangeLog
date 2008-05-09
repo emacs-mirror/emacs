@@ -1,5 +1,9 @@
 2008-05-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* inc/sys/stat.h (struct stat): Move st_dev after st_ino, for
+	better alignment.  Make st_size 64-bit wide.  Add new members
+	st_uname and st_gname.
+
 	* inc/grp.h (struct group): Add gr_gid member.
 
 2008-04-23  Eli Zaretskii  <eliz@gnu.org>
