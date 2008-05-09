@@ -1328,64 +1328,31 @@ NOT-URGENT means it is ok to continue if the user says not to save."
   "Are we in a directory browser buffer?"
   (eq major-mode 'vc-dir-mode))
 
-(defun vc-dispatcher-selection-set (eligible
-				   &optional 
-				   allow-directory-wildcard 
-				   allow-ineligible
-				   include-files-not-directories)
+(defun vc-dispatcher-selection-set ()
   "Deduce a set of files to which to apply an operation. Return the fileset.
-If we're in a directory display, the fileset is the list of marked files.
-Otherwise, if we're looking at a buffer for which ELIGIBLE returns non-NIL,
-the fileset is a singleton containing this file.
-If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
-and we're in a directory buffer, select the current directory.
-If none of these conditions is met, but ALLOW-INELIGIBLE is on and the
-visited file is not registered, return a singleton fileset containing it.
-If INCLUDE-FILES-NOT-DIRECTORIES then if directories are marked,
-return the list of VC files in those directories instead of
-the directories themselves.
-Otherwise, throw an error."
+If we're in a directory display, the fileset is the list of marked files (if
+there is one) else the file on the curreent line.  If not in a directory 
+display, but the current buffer visits a file, the fileset is a singleton 
+containing that file. Otherwise, throw an error."
   (let ((files
     (cond
      ;; Browsing with vc-dir
-     ((eq major-mode 'vc-dir-mode)
-      (or
-       (if include-files-not-directories
-	   (vc-dir-marked-only-files)
-	 (vc-dir-marked-files))
-       (list (vc-dir-current-file))))
+     ((vc-dispatcher-browsing)
+      (or (vc-dir-marked-files) (list (vc-dir-current-file))))
      ;; Visiting an eligible file
-     ((funcall eligible buffer-file-name)
+     ((buffer-file-name)
       (list buffer-file-name))
-     ;; No eligible file -- if there's a parent buffer, deuce from there
+     ;; No eligible file -- if there's a parent buffer, deduce from there
      ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
 				(with-current-buffer vc-parent-buffer
 				  (vc-dispatcher-browsing))))
-      (progn
-	(set-buffer vc-parent-buffer)
-	(vc-dispatcher-selection-set eligible)))
-     ;; No parent buffer, we may want to select entire directory
-     ;;
-     ;; This is guarded by an enabling arg so users won't potentially
-     ;; shoot themselves in the foot by modifying a fileset they can't
-     ;; verify by eyeball.  Allow it for nondestructive commands like
-     ;; making diffs, or possibly for destructive ones that have
-     ;; confirmation prompts.
-     ((and allow-directory-wildcard
-		(equal buffer-file-name nil)
-		(equal list-buffers-directory default-directory))
-      (progn
-	(message "All eligible files below %s selected."
-		 default-directory)
-	 (list default-directory)))
-     ;; Last, if we're allowing ineligible files and visiting one, select it.
-     ((and allow-ineligible (not (eligible buffer-file-name)))
-      (list buffer-file-name))
+      (with-current-buffer vc-parent-buffer
+			    (vc-dispatcher-selection-set)))
      ;; No good set here, throw error
      (t (error "No fileset is available here.")))))
     ;; We assume, in order to avoid unpleasant surprises to the user, 
     ;; that a fileset is not in good shape to be handed to the user if the  
-    ;; buffers visting the fileset don't match the on-disk contents.
+    ;; buffers visiting the fileset don't match the on-disk contents.
     (dolist (file files)
       (let ((visited (get-file-buffer file)))
 	(when visited

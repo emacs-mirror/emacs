@@ -1003,28 +1003,30 @@ be registered."
 (defun vc-expand-dirs (file-or-dir-list)
   "Expands directories in a file list specification.
 Only files already under version control are noticed."
-  ;; FIXME: Kill this function.
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
       (vc-file-tree-walk
        node (lambda (f) (when (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered
-				    include-files-not-directories)
-  "Deduce a set of files and a backend to which to apply an operation.
-Return (BACKEND . FILESET)."
-  (let* ((fileset (vc-dispatcher-selection-set
-		  #'vc-registered
-		  allow-directory-wildcard 
-		  allow-unregistered
-		  include-files-not-directories))
-	(backend (vc-backend (car fileset))))
-	;; All members of the fileset must have the same backend
-	(dolist (f (cdr fileset))
-	  (unless (eq (vc-backend f) backend)
-	    (error "All members of a fileset must be under the same version-control system.")))
-    (cons backend fileset)))
+(defun vc-deduce-fileset ()
+  "Deduce a set of files and a backend to which to apply an operation and
+the common state of the fileset.  Return (BACKEND . (STATE . FILESET))."
+  (let* ((fileset (vc-dispatcher-selection-set))
+	 (fileset-only-files (vc-expand-dirs fileset))
+	 (firstfile (car fileset-only-files))
+	 (firstbackend (vc-backend firstfile))
+	 (firstmodel (vc-checkout-model firstbackend (list firstfile)))
+	 (firststate (vc-state firstfile)))
+	(dolist (file (cdr fileset-only-files))
+	  (unless (eq (vc-backend file) firstbackend)
+	    (error "All members of a fileset must be under the same version-control system."))
+	  (unless (vc-compatible-state (vc-state file) firststate)
+	    (error "%s:%s clashes with %s:%s"
+		   file (vc-state file) firstfile firststate))
+	  (unless (eq (vc-checkout-model firstbackend (list file)) firstmodel)
+	    (error "Fileset has mixed checkout models")))
+	(cons firstbackend (cons firststate fileset))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1094,31 +1096,19 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset nil t))
-	 (vc-fileset-only-files (vc-deduce-fileset nil t t))
-	 (only-files (cdr vc-fileset-only-files))
+  (let* ((vc-fileset (vc-deduce-fileset))
          (backend (car vc-fileset))
-	 (files (cdr vc-fileset))
-	 (state (vc-state (car only-files)))
+	 (state (cadr vc-fileset))
+	 (files (cddr vc-fileset))
 	 (model (vc-checkout-model backend files))
 	 revision)
-
-    ;; Verify that the fileset is homogeneous
-    (dolist (file (cdr only-files))
-      ;; Ignore directories, they are compatible with anything.
-      (unless (file-directory-p file)
-	(unless (vc-compatible-state (vc-state file) state)
-	  (error "%s:%s clashes with %s:%s"
-		 file (vc-state file) (car files) state))
-	(unless (eq (vc-checkout-model backend (list file)) model)
-	  (error "Fileset has mixed checkout models"))))
     ;; Do the right thing
     (cond
      ((eq state 'missing)
       (error "Fileset files are missing, so cannot be operated on."))
-     ;; Files aren't registered
-     ((or (eq state 'unregistered)
-	  (eq state 'ignored))
+     ((eq state 'ignored)
+      (error "Fileset files are ignored by the version-control system."))
+     ((eq state 'unregistered)
       (mapc (lambda (arg) (vc-register nil arg)) files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
@@ -1224,7 +1214,8 @@ merge in the changes into your working copy."
 	(when (not (equal buffer-file-name file))
 	  (find-file-other-window file))
 	(if (save-window-excursion
-	      (vc-diff-internal nil (cons (car vc-fileset) (list file))
+	      (vc-diff-internal nil 
+				(cons (car vc-fileset) (cons (cadr vc-fileset) (list file)))
 				(vc-working-revision file) nil)
 	      (goto-char (point-min))
 	      (let ((inhibit-read-only t))
@@ -1502,7 +1493,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   "Report diffs between two revisions of a fileset.
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
-  (let* ((files (cdr vc-fileset))
+  (let* ((files (cddr vc-fileset))
 	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
                          (format "No changes between %s and %s"
@@ -1567,8 +1558,10 @@ returns t if the buffer had changes, nil otherwise."
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
-   (let* ((vc-fileset (vc-deduce-fileset t))
-	  (files (cdr vc-fileset))
+   (let* ((vc-fileset (vc-deduce-fileset))
+	  (backend (car files))
+	  (state (cadr vc-fileset))
+	  (files (cddr vc-fileset))
 	  (first (car files))
 	  (completion-table
 	   (vc-call revision-completion-table files))
@@ -1609,10 +1602,12 @@ returns t if the buffer had changes, nil otherwise."
        (when (string= rev1 "") (setq rev1 nil))
        (when (string= rev2 "") (setq rev2 nil))
        (list files rev1 rev2))))
+  ;; All that was just so we could do argument completion!
   (when (and (not rev1) rev2)
     (error "Not a valid revision range."))
-  (vc-diff-internal
-   t (cons (car (vc-deduce-fileset t)) files) rev1 rev2 (interactive-p)))
+  ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
+  ;; placement rules for (interactive) don't actually leave us a choice.
+  (vc-diff-internal t (vc-deduce-fileset) rev1 rev2 (interactive-p)))
 
 ;; (defun vc-contains-version-controlled-file (dir)
 ;;   "Return t if DIR contains a version-controlled file, nil otherwise."
@@ -1627,16 +1622,13 @@ Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-If no current fileset is available and we're in a directory buffer, use
-the current directory.
 The optional argument NOT-URGENT non-nil means it is ok to say no to
 saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
-    (vc-diff-internal t (vc-deduce-fileset t) nil nil (interactive-p))))
-
+    (vc-diff-internal t (vc-deduce-fileset) nil nil (interactive-p))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)
@@ -2128,8 +2120,9 @@ allowed and simply skipped)."
 If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset))
 	 (backend (car vc-fileset))
+	 (state (cadr vc-fileset))
+	 (files (cddr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
@@ -2159,7 +2152,9 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset)))
+	 (backend (car vc-fileset))
+	 (state (cadr vc-fileset))
+	 (files (cddr vc-fileset)))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
     ;; we cannot show the changes and ask for confirmation to
@@ -2190,8 +2185,9 @@ This may be either a file-level or a repository-level operation,
 depending on the underlying version-control system."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset))
 	 (backend (car vc-fileset))
+	 (state (cadr vc-fileset))
+	 (files (cddr vc-fileset))
 	 (granularity (vc-call-backend backend 'revision-granularity)))
     (unless (vc-find-backend-function backend 'rollback)
       (error "Rollback is not supported in %s" backend))
@@ -2245,8 +2241,9 @@ contains changes, and the backend supports merging news, then any recent
 changes from the current branch are merged into the working file."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset))
-	 (backend (car vc-fileset)))
+	 (backend (car vc-fileset))
+	 (state (cadr vc-fileset))
+	 (files (cddr vc-fileset)))
     (dolist (file files)
       (when (let ((buf (get-file-buffer file)))
 	      (and buf (buffer-modified-p buf)))
@@ -3138,7 +3135,8 @@ revisions after."
 	    (vc-diff-internal
 	     nil
 	     (cons (vc-backend vc-annotate-parent-file)
-		   (list vc-annotate-parent-file))
+		   (cons nil
+			 (list vc-annotate-parent-file)))
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
