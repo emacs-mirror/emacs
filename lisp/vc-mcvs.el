@@ -312,7 +312,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 (defun vc-mcvs-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
-    (vc-call update file editable rev (vc-switches 'MCVS 'checkout)))
+    (vc-mcvs-update file editable rev (vc-switches 'MCVS 'checkout)))
   (vc-mode-line file)
   (message "Checking out %s...done" file))
 

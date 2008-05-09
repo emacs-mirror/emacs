@@ -539,9 +539,12 @@ status of this file."
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (when (and (> (length file) 0) (vc-backend file))
-	(vc-file-setprop file 'vc-state
-			 (vc-call state-heuristic file)))))
+      (when (> (length file) 0)
+        (let ((backend (vc-backend file)))
+          (when backend
+            (vc-file-setprop
+             file 'vc-state
+             (vc-call-backend backend 'state-heuristic file)))))))
 
 (defun vc-recompute-state (file)
   "Recompute the version control state of FILE, and return it.
@@ -577,26 +580,26 @@ Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
              ;; go to *vc*, not *vc-diff*, since this is an internal call.
-             (vc-call diff (list file) nil nil "*vc*")
+             (vc-call-backend backend 'diff (list file) nil nil "*vc*")
            (wrong-number-of-arguments
             ;; If this error came from the above call to vc-BACKEND-diff,
             ;; try again without the optional buffer argument (for
             ;; backward compatibility).  Otherwise, resignal.
             (if (or (not (eq (cadr err)
                              (indirect-function
-                              (vc-find-backend-function (vc-backend file)
-                                                        'diff))))
+                              (vc-find-backend-function backend 'diff))))
                     (not (eq (caddr err) 4)))
                 (signal (car err) (cdr err))
-              (vc-call diff (list file)))))))
+              (vc-call-backend backend 'diff (list file)))))))
 
 (defun vc-working-revision (file)
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (when (vc-backend file)
-	(vc-file-setprop file 'vc-working-revision
-			 (vc-call working-revision file)))))
+      (let ((backend (vc-backend file)))
+        (when backend
+          (vc-file-setprop file 'vc-working-revision
+                           (vc-call-backend backend 'working-revision file))))))
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
@@ -746,7 +749,7 @@ Before doing that, check if there are any old backups and get rid of them."
       (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
            (eq (vc-checkout-model backend (list file)) 'implicit)
-           (vc-call make-version-backups-p file)
+           (vc-call-backend backend 'make-version-backups-p file)
            (vc-make-version-backup file)))))
 
 (declare-function vc-directory-resynch-file "vc" (file))
@@ -798,7 +801,7 @@ visiting FILE."
   (let ((backend (vc-backend file)))
     (if (not backend)
 	(setq vc-mode nil)
-      (let* ((ml-string (vc-call mode-line-string file))
+      (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
              (ml-echo (get-text-property 0 'help-echo ml-string)))
         (setq vc-mode
               (concat

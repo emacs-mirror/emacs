@@ -1,11 +1,24 @@
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-scs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback, 
-	vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment,
-	vc-sccs-print-log, vc-sccs-diff): Teach SCCS back end to grok 
-	directories.
+	* vc-scs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback)
+	(vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment)
+	(vc-sccs-print-log, vc-sccs-diff): Grok directories.
 
 2008-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-mark-resolved): Add `backend' argument.
+	(vc-next-action): Pass it the backend.
+	(vc-next-action, vc-checkout, vc-mark-resolved, vc-version-diff)
+	(vc-merge, vc-rollback, vc-update, vc-transfer-file, vc-delete-file)
+	(vc-default-comment-history, vc-default-create-snapshot)
+	(vc-default-retrieve-snapshot, vc-default-revert, vc-annotate)
+	(vc-annotate-revision-previous-to-line)
+	(vc-annotate-show-diff-revision-at-line, vc-annotate-warp-revision):
+	* vc-svn.el (vc-svn-checkout):
+	* vc-mcvs.el (vc-mcvs-checkout):
+	* vc-hooks.el (vc-state, vc-default-workfile-unchanged-p)
+	(vc-working-revision, vc-before-save, vc-mode-line):
+	Prefer vc-call-backend to vc-call so as not to recompute the backend.
 
 	* vc.el (vc-deduce-fileset): Don't require the checkout-model and the
 	state to be consistent since it's often an unwarranted restriction.

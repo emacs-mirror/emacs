@@ -271,7 +271,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
-    (vc-call update file editable rev (vc-switches 'SVN 'checkout)))
+    (vc-svn-update file editable rev (vc-switches 'SVN 'checkout)))
   (vc-mode-line file)
   (message "Checking out %s...done" file))
 

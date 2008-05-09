@@ -1193,7 +1193,12 @@ merge in the changes into your working copy."
          state)))
      ;; conflict
      ((eq state 'conflict)
-      (vc-mark-resolved files))
+      ;; FIXME: Is it really the UI we want to provide?
+      ;; In my experience, the conflicted files should be marked as resolved
+      ;; one-by-one when saving the file after resolving the conflicts.
+      ;; I.e. stating explicitly that the conflicts are resolved is done
+      ;; very rarely.
+      (vc-mark-resolved backend files))
      ;; needs-update
      ((eq state 'needs-update)
       (dolist (file files)
@@ -1210,7 +1215,8 @@ merge in the changes into your working copy."
 	(when (yes-or-no-p (format
 			  "%s is not up-to-date.  Merge in changes now? "
 			  (file-name-nondirectory file)))
-	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))
+	  (vc-maybe-resolve-conflicts
+           file (vc-call-backend backend 'merge-news file)))))
 
      ;; unlocked-changes
      ((eq state 'unlocked-changes)
@@ -1228,7 +1234,7 @@ merge in the changes into your working copy."
 	      (not (beep))
 	      (yes-or-no-p (concat "File has unlocked changes.  "
 				   "Claim lock retaining changes? ")))
-	    (progn (vc-call steal-lock file)
+	    (progn (vc-call-backend backend 'steal-lock file)
 		   (clear-visited-file-modtime)
 		   ;; Must clear any headers here because they wouldn't
 		   ;; show that the file is locked now.
@@ -1340,7 +1346,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
          (signal (car err) (cdr err))))
       `((vc-state . ,(if (or (eq (vc-checkout-model backend (list file)) 'implicit)
                              (not writable))
-                         (if (vc-call latest-on-branch-p file)
+                         (if (vc-call-backend backend 'latest-on-branch-p file)
                              'up-to-date
                            'needs-update)
                        'edited))
@@ -1348,10 +1354,10 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (vc-resynch-buffer file t t)
   (run-hooks 'vc-checkout-hook))
 
-(defun vc-mark-resolved (files)
+(defun vc-mark-resolved (backend files)
   (with-vc-properties
    files
-   (vc-call mark-resolved files)
+   (vc-call-backend backend 'mark-resolved files)
    ;; XXX: Is this TRTD?  Might not be.
    `((vc-state . edited))))
 
@@ -1564,9 +1570,10 @@ returns t if the buffer had changes, nil otherwise."
   (interactive
    (let* ((vc-fileset (vc-deduce-fileset))
 	  (files (cdr vc-fileset))
+          (backend (car vc-fileset))
 	  (first (car files))
 	  (completion-table
-	   (vc-call revision-completion-table files))
+	   (vc-call-backend backend 'revision-completion-table files))
 	  (rev1-default nil)
 	  (rev2-default nil))
      (cond
@@ -1582,8 +1589,8 @@ returns t if the buffer had changes, nil otherwise."
        (setq rev1-default (vc-working-revision first)))
       ;; if the file is not locked, use last and previous revisions as defaults
       (t
-       (setq rev1-default (vc-call previous-revision first
-				   (vc-working-revision first)))
+       (setq rev1-default (vc-call-backend backend 'previous-revision first
+                                           (vc-working-revision first)))
        (when (string= rev1-default "") (setq rev1-default nil))
        (setq rev2-default (vc-working-revision first))))
      ;; construct argument list
@@ -1774,9 +1781,7 @@ See Info node `Merging'."
 	  (read-string (concat "Branch or revision to merge from "
 			       "(default news on current branch): ")))
     (if (string= first-revision "")
-	(if (not (vc-find-backend-function backend 'merge-news))
-	    (error "Sorry, merging news is not implemented for %s" backend)
-	  (setq status (vc-call merge-news file)))
+        (setq status (vc-call-backend backend 'merge-news file))
       (if (not (vc-find-backend-function backend 'merge))
 	  (error "Sorry, merging is not implemented for %s" backend)
 	(if (not (vc-branch-p first-revision))
@@ -1788,7 +1793,8 @@ See Info node `Merging'."
 	  (setq second-revision first-revision)
 	  ;; first-revision must be the starting point of the branch
 	  (setq first-revision (vc-branch-part first-revision)))
-	(setq status (vc-call merge file first-revision second-revision))))
+	(setq status (vc-call-backend backend 'merge file
+                                      first-revision second-revision))))
     (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE")))
 
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
@@ -2192,7 +2198,8 @@ depending on the underlying version-control system."
       (error "Rollback is not supported in %s" backend))
     (when (and (not (eq granularity 'repository)) (/= (length files) 1))
       (error "Rollback requires a singleton fileset or repository versioning"))
-    (when (not (vc-call latest-on-branch-p (car files)))
+    ;; FIXME: latest-on-branch-p should take the fileset.
+    (when (not (vc-call-backend backend 'latest-on-branch-p (car files)))
       (error "Rollback is only possible at the tip revision."))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
@@ -2210,7 +2217,9 @@ depending on the underlying version-control system."
     (not-modified)
     (message "Finding changes...")
     (let* ((tip (vc-working-revision (car files)))
-	   (previous (vc-call previous-revision (car files) tip)))
+           ;; FIXME: `previous-revision' should take the fileset.
+	   (previous (vc-call-backend backend 'previous-revision
+                                      (car files) tip)))
       (vc-diff-internal nil vc-fileset previous tip))
     ;; Display changes
     (unless (yes-or-no-p "Discard these revisions? ")
@@ -2257,10 +2266,8 @@ changes from the current branch are merged into the working file."
 		     (vc-state file)
 		     (substitute-command-keys
 		      "\\[vc-next-action] to correct")))
-	  (if (not (vc-find-backend-function backend 'merge-news))
-	      (error "Sorry, merging news is not implemented for %s"
-		     backend)
-	    (vc-maybe-resolve-conflicts file (vc-call merge-news file))))))))
+          (vc-maybe-resolve-conflicts
+           file (vc-call-backend backend 'merge-news file)))))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -2381,8 +2388,8 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	    (vc-file-setprop file 'vc-checkout-time nil)))))
     (when move
       (vc-switch-backend file old-backend)
-      (setq comment (vc-call comment-history file))
-      (vc-call unregister file))
+      (setq comment (vc-call-backend old-backend 'comment-history file))
+      (vc-call-backend old-backend 'unregister file))
     (vc-switch-backend file new-backend)
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
@@ -2446,7 +2453,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	;; command, kill the buffer created by the above
 	;; `find-file-noselect' call.
 	(unless buf (kill-buffer (current-buffer)))))
-    (vc-call delete-file file)
+    (vc-call-backend backend 'delete-file file)
     ;; If the backend hasn't deleted the file itself, let's do it for him.
     (when (file-exists-p file) (delete-file file))
     ;; Forget what VC knew about the file.
@@ -2701,7 +2708,7 @@ to provide the `find-revision' operation instead."
   "Return a string with all log entries stored in BACKEND for FILE."
   (when (vc-find-backend-function backend 'print-log)
     (with-current-buffer "*vc*"
-      (vc-call print-log (list file))
+      (vc-call-backend backend 'print-log (list file))
       (vc-call-backend backend 'wash-log)
       (buffer-string))))
 
@@ -2718,7 +2725,7 @@ to provide the `find-revision' operation instead."
       (vc-file-tree-walk
        dir
        (lambda (f)
-	 (vc-call assign-name f name))))))
+	 (vc-call-backend backend 'assign-name f name))))))
 
 (defun vc-default-retrieve-snapshot (backend dir name update)
   (if (string= name "")
@@ -2728,7 +2735,7 @@ to provide the `find-revision' operation instead."
          (lambda (f) (and
 		 (vc-up-to-date-p f)
 		 (vc-error-occurred
-		  (vc-call checkout f nil "")
+		  (vc-call-backend backend 'checkout f nil "")
 		  (when update (vc-resynch-buffer f t t)))))))
     (let ((result (vc-snapshot-precondition dir)))
       (if (stringp result)
@@ -2737,7 +2744,7 @@ to provide the `find-revision' operation instead."
         (vc-file-tree-walk
          dir
          (lambda (f) (vc-error-occurred
-		 (vc-call checkout f nil name)
+		 (vc-call-backend backend 'checkout f nil name)
 		 (when update (vc-resynch-buffer f t t)))))))))
 
 (defun vc-default-revert (backend file contents-done)
@@ -2759,7 +2766,8 @@ to provide the `find-revision' operation instead."
                   ;; Change buffer to get local value of vc-checkout-switches.
                   (with-current-buffer file-buffer
                     (let ((default-directory (file-name-directory file)))
-                      (vc-call find-revision file rev outbuf)))))
+                      (vc-call-backend backend 'find-revision
+                                       file rev outbuf)))))
               (setq failed nil))
           (when backup-name
             (if failed
@@ -3015,18 +3023,20 @@ mode-specific menu.  `vc-annotate-color-map' and
 		;; In case it had to be uniquified.
 		(setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (vc-call annotate-command file (get-buffer temp-buffer-name) rev)
-      ;; we must setup the mode first, and then set our local
-      ;; variables before the show-function is called at the exit of
-      ;; with-output-to-temp-buffer
-      (with-current-buffer temp-buffer-name
-        (unless (equal major-mode 'vc-annotate-mode)
-	  (vc-annotate-mode))
-        (set (make-local-variable 'vc-annotate-backend) (vc-backend file))
-        (set (make-local-variable 'vc-annotate-parent-file) file)
-        (set (make-local-variable 'vc-annotate-parent-rev) rev)
-        (set (make-local-variable 'vc-annotate-parent-display-mode)
-             display-mode)))
+      (let ((backend (vc-backend file)))
+        (vc-call-backend backend 'annotate-command file
+                         (get-buffer temp-buffer-name) rev)
+        ;; we must setup the mode first, and then set our local
+        ;; variables before the show-function is called at the exit of
+        ;; with-output-to-temp-buffer
+        (with-current-buffer temp-buffer-name
+          (unless (equal major-mode 'vc-annotate-mode)
+            (vc-annotate-mode))
+          (set (make-local-variable 'vc-annotate-backend) backend)
+          (set (make-local-variable 'vc-annotate-parent-file) file)
+          (set (make-local-variable 'vc-annotate-parent-rev) rev)
+          (set (make-local-variable 'vc-annotate-parent-display-mode)
+               display-mode))))
 
     (with-current-buffer temp-buffer-name
       (vc-exec-after
@@ -3103,7 +3113,8 @@ revisions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call previous-revision vc-annotate-parent-file rev-at-line))
+	      (vc-call-backend vc-annotate-backend 'previous-revision
+                               vc-annotate-parent-file rev-at-line))
 	(vc-annotate-warp-revision prev-rev)))))
 
 (defun vc-annotate-show-log-revision-at-line ()
@@ -3126,7 +3137,8 @@ revisions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call previous-revision vc-annotate-parent-file rev-at-line))
+	      (vc-call-backend vc-annotate-backend 'previous-revision
+                               vc-annotate-parent-file rev-at-line))
 	(if (not prev-rev)
 	    (message "Cannot diff from any revision prior to %s" rev-at-line)
 	  (save-window-excursion
@@ -3157,18 +3169,18 @@ revision."
        ((and (integerp revspec) (> revspec 0))
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (> revspec 0) newrev)
-	       (setq newrev (vc-call next-revision
-				     vc-annotate-parent-file newrev))
-	       (setq revspec (1- revspec)))
+          (setq newrev (vc-call-backend vc-annotate-backend 'next-revision
+                                        vc-annotate-parent-file newrev))
+          (setq revspec (1- revspec)))
 	(unless newrev
 	  (message "Cannot increment %d revisions from revision %s"
 		   revspeccopy vc-annotate-parent-rev)))
        ((and (integerp revspec) (< revspec 0))
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (< revspec 0) newrev)
-	       (setq newrev (vc-call previous-revision
-				     vc-annotate-parent-file newrev))
-	       (setq revspec (1+ revspec)))
+          (setq newrev (vc-call-backend vc-annotate-backend 'previous-revision
+                                        vc-annotate-parent-file newrev))
+          (setq revspec (1+ revspec)))
 	(unless newrev
 	  (message "Cannot decrement %d revisions from revision %s"
 		   (- 0 revspeccopy) vc-annotate-parent-rev)))
@@ -3181,8 +3193,8 @@ revision."
 		     ;; Pass the current line so that vc-annotate will
 		     ;; place the point in the line.
 		     (min oldline (progn (goto-char (point-max))
-					   (forward-line -1)
-					   (line-number-at-pos))))))))
+                                         (forward-line -1)
+                                         (line-number-at-pos))))))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.
