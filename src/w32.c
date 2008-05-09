@@ -106,6 +106,7 @@ typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
 void globals_of_w32 ();
+static DWORD get_rid (PSID);
 
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
@@ -132,6 +133,10 @@ static BOOL g_b_init_lookup_account_sid;
 static BOOL g_b_init_get_sid_identifier_authority;
 static BOOL g_b_init_get_sid_sub_authority;
 static BOOL g_b_init_get_sid_sub_authority_count;
+static BOOL g_b_init_get_file_security;
+static BOOL g_b_init_get_security_descriptor_owner;
+static BOOL g_b_init_get_security_descriptor_group;
+static BOOL g_b_init_is_valid_sid;
 
 /*
   BEGIN: Wrapper functions around OpenProcessToken
@@ -160,8 +165,10 @@ GetProcessTimes_Proc get_process_times_fn = NULL;
 
 #ifdef _UNICODE
 const char * const LookupAccountSid_Name = "LookupAccountSidW";
+const char * const GetFileSecurity_Name =  "GetFileSecurityW";
 #else
 const char * const LookupAccountSid_Name = "LookupAccountSidA";
+const char * const GetFileSecurity_Name =  "GetFileSecurityA";
 #endif
 typedef BOOL (WINAPI * LookupAccountSid_Proc) (
     LPCTSTR lpSystemName,
@@ -178,7 +185,22 @@ typedef PDWORD (WINAPI * GetSidSubAuthority_Proc) (
     DWORD n);
 typedef PUCHAR (WINAPI * GetSidSubAuthorityCount_Proc) (
     PSID pSid);
-
+typedef BOOL (WINAPI * GetFileSecurity_Proc) (
+    LPCTSTR lpFileName,
+    SECURITY_INFORMATION RequestedInformation,
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    DWORD nLength,
+    LPDWORD lpnLengthNeeded);
+typedef BOOL (WINAPI * GetSecurityDescriptorOwner_Proc) (
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    PSID *pOwner,
+    LPBOOL lpbOwnerDefaulted);
+typedef BOOL (WINAPI * GetSecurityDescriptorGroup_Proc) (
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    PSID *pGroup,
+    LPBOOL lpbGroupDefaulted);
+typedef BOOL (WINAPI * IsValidSid_Proc) (
+    PSID sid);
 
   /* ** A utility function ** */
 static BOOL
@@ -418,6 +440,114 @@ PUCHAR WINAPI get_sid_sub_authority_count (
   return (s_pfn_Get_Sid_Sub_Authority_Count (pSid));
 }
 
+BOOL WINAPI get_file_security (
+    LPCTSTR lpFileName,
+    SECURITY_INFORMATION RequestedInformation,
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    DWORD nLength,
+    LPDWORD lpnLengthNeeded)
+{
+  static GetFileSecurity_Proc s_pfn_Get_File_Security = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_file_security == 0)
+    {
+      g_b_init_get_file_security = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_File_Security =
+        (GetFileSecurity_Proc) GetProcAddress (
+            hm_advapi32, GetFileSecurity_Name);
+    }
+  if (s_pfn_Get_File_Security == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Get_File_Security (lpFileName, RequestedInformation,
+				   pSecurityDescriptor, nLength,
+				   lpnLengthNeeded));
+}
+
+BOOL WINAPI get_security_descriptor_owner (
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    PSID *pOwner,
+    LPBOOL lpbOwnerDefaulted)
+{
+  static GetSecurityDescriptorOwner_Proc s_pfn_Get_Security_Descriptor_Owner = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_security_descriptor_owner == 0)
+    {
+      g_b_init_get_security_descriptor_owner = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Security_Descriptor_Owner =
+        (GetSecurityDescriptorOwner_Proc) GetProcAddress (
+            hm_advapi32, "GetSecurityDescriptorOwner");
+    }
+  if (s_pfn_Get_Security_Descriptor_Owner == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Get_Security_Descriptor_Owner (pSecurityDescriptor, pOwner,
+					       lpbOwnerDefaulted));
+}
+
+BOOL WINAPI get_security_descriptor_group (
+    PSECURITY_DESCRIPTOR pSecurityDescriptor,
+    PSID *pGroup,
+    LPBOOL lpbGroupDefaulted)
+{
+  static GetSecurityDescriptorGroup_Proc s_pfn_Get_Security_Descriptor_Group = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_security_descriptor_group == 0)
+    {
+      g_b_init_get_security_descriptor_group = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Security_Descriptor_Group =
+        (GetSecurityDescriptorGroup_Proc) GetProcAddress (
+            hm_advapi32, "GetSecurityDescriptorGroup");
+    }
+  if (s_pfn_Get_Security_Descriptor_Group == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Get_Security_Descriptor_Group (pSecurityDescriptor, pGroup,
+					       lpbGroupDefaulted));
+}
+
+BOOL WINAPI is_valid_sid (
+    PSID sid)
+{
+  static IsValidSid_Proc s_pfn_Is_Valid_Sid = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_is_valid_sid == 0)
+    {
+      g_b_init_is_valid_sid = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Is_Valid_Sid =
+        (IsValidSid_Proc) GetProcAddress (
+            hm_advapi32, "IsValidSid");
+    }
+  if (s_pfn_Is_Valid_Sid == NULL)
+    {
+      return FALSE;
+    }
+  return (s_pfn_Is_Valid_Sid (sid));
+}
+
 /*
   END: Wrapper functions around OpenProcessToken
   and other functions in advapi32.dll that are only
@@ -616,8 +746,6 @@ init_user_info ()
   TOKEN_USER   user_token;
   TOKEN_PRIMARY_GROUP group_token;
 
-  /* "None" is the default group name on standalone workstations.  */
-  strcpy (dflt_group_name, "None");
   if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
       && get_token_information (token, TokenUser,
 				(PVOID)buf, sizeof (buf), &trash)
@@ -636,34 +764,14 @@ init_user_info ()
 	{
 	  /* Use the last sub-authority value of the RID, the relative
 	     portion of the SID, as user/group ID. */
-	  DWORD n_subauthorities =
-	    *get_sid_sub_authority_count (user_token.User.Sid);
+	  dflt_passwd.pw_uid = get_rid (user_token.User.Sid);
 
-	  if (n_subauthorities < 1)
-	    dflt_passwd.pw_uid = 0;	/* the "World" RID */
-	  else
-	    {
-	      dflt_passwd.pw_uid =
-		*get_sid_sub_authority (user_token.User.Sid,
-					n_subauthorities - 1);
-	    }
-
-	  /* Get group id */
+	  /* Get group id and name.  */
 	  if (get_token_information (token, TokenPrimaryGroup,
 				     (PVOID)buf, sizeof (buf), &trash))
 	    {
 	      memcpy (&group_token, buf, sizeof (group_token));
-	      n_subauthorities =
-		*get_sid_sub_authority_count (group_token.PrimaryGroup);
-
-	      if (n_subauthorities < 1)
-		dflt_passwd.pw_gid = 0;	/* the "World" RID */
-	      else
-		{
-		  dflt_passwd.pw_gid =
-		    *get_sid_sub_authority (group_token.PrimaryGroup,
-					    n_subauthorities - 1);
-		}
+	      dflt_passwd.pw_gid = get_rid (group_token.PrimaryGroup);
 	      dlength = sizeof (domain);
 	      if (lookup_account_sid (NULL, group_token.PrimaryGroup,
 				      gname, &glength, NULL, &dlength,
@@ -2548,6 +2656,136 @@ generate_inode_val (const char * name)
 
 #endif
 
+static PSECURITY_DESCRIPTOR
+get_file_security_desc (const char *fname)
+{
+  PSECURITY_DESCRIPTOR psd = NULL;
+  DWORD sd_len, err;
+  SECURITY_INFORMATION si = OWNER_SECURITY_INFORMATION
+    | GROUP_SECURITY_INFORMATION  /* | DACL_SECURITY_INFORMATION */ ;
+
+  if (!get_file_security (fname, si, psd, 0, &sd_len))
+    {
+      err = GetLastError ();
+      if (err != ERROR_INSUFFICIENT_BUFFER)
+	return NULL;
+    }
+
+  psd = xmalloc (sd_len);
+  if (!get_file_security (fname, si, psd, sd_len, &sd_len))
+    {
+      xfree (psd);
+      return NULL;
+    }
+
+  return psd;
+}
+
+static DWORD
+get_rid (PSID sid)
+{
+  unsigned n_subauthorities;
+
+  /* Use the last sub-authority value of the RID, the relative
+     portion of the SID, as user/group ID. */
+  n_subauthorities = *get_sid_sub_authority_count (sid);
+  if (n_subauthorities < 1)
+    return 0;	/* the "World" RID */
+  return *get_sid_sub_authority (sid, n_subauthorities - 1);
+}
+
+#define UID 1
+#define GID 2
+
+static int
+get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
+		 int *id, char *nm, int what)
+{
+  PSID sid = NULL;
+  char machine[MAX_COMPUTERNAME_LENGTH+1];
+  BOOL dflt;
+  SID_NAME_USE ignore;
+  char name[UNLEN+1];
+  DWORD name_len = sizeof (name);
+  char domain[1024];
+  DWORD domain_len = sizeof(domain);
+  char *mp = NULL;
+  int use_dflt = 0;
+  int result;
+
+  if (what == UID)
+    result = get_security_descriptor_owner (psd, &sid, &dflt);
+  else if (what == GID)
+    result = get_security_descriptor_group (psd, &sid, &dflt);
+  else
+    result = 0;
+
+  if (!result || !is_valid_sid (sid))
+    use_dflt = 1;
+  else
+    {
+      /* If FNAME is a UNC, we need to lookup account on the
+	 specified machine.  */
+      if (IS_DIRECTORY_SEP (fname[0]) && IS_DIRECTORY_SEP (fname[1])
+	  && fname[2] != '\0')
+	{
+	  const char *s;
+	  char *p;
+
+	  for (s = fname + 2, p = machine;
+	       *s && !IS_DIRECTORY_SEP (*s); s++, p++)
+	    *p = *s;
+	  *p = '\0';
+	  mp = machine;
+	}
+
+      if (!lookup_account_sid (mp, sid, name, &name_len,
+			       domain, &domain_len, &ignore)
+	  || name_len > UNLEN+1)
+	use_dflt = 1;
+      else
+	{
+	  *id = get_rid (sid);
+	  strcpy (nm, name);
+	}
+    }
+  return use_dflt;
+}
+
+static void
+get_file_owner_and_group (
+    PSECURITY_DESCRIPTOR psd,
+    const char *fname,
+    struct stat *st)
+{
+  int dflt_usr = 0, dflt_grp = 0;
+
+  if (!psd)
+    {
+      dflt_usr = 1;
+      dflt_grp = 1;
+    }
+  else
+    {
+      if (get_name_and_id (psd, fname, &st->st_uid, st->st_uname, UID))
+	dflt_usr = 1;
+      if (get_name_and_id (psd, fname, &st->st_gid, st->st_gname, GID))
+	dflt_grp = 1;
+    }
+  /* Consider files to belong to current user/group, if we cannot get
+     more accurate information.  */
+  if (dflt_usr)
+    {
+      st->st_uid = dflt_passwd.pw_uid;
+      strcpy (st->st_uname, dflt_passwd.pw_name);
+    }
+  if (dflt_grp)
+    {
+      st->st_gid = dflt_passwd.pw_gid;
+      strcpy (st->st_gname, dflt_group.gr_name);
+    }
+}
+
 /* MSVC stat function can't cope with UNC names and has other bugs, so
    replace it with our own.  This also allows us to calculate consistent
    inode values without hacks in the main Emacs code. */
@@ -2561,6 +2799,7 @@ stat (const char * path, struct stat * buf)
   int permission;
   int len;
   int rootdir = FALSE;
+  PSECURITY_DESCRIPTOR psd = NULL;
 
   if (path == NULL || buf == NULL)
     {
@@ -2658,9 +2897,9 @@ stat (const char * path, struct stat * buf)
 	}
     }
 
-  if (!NILP (Vw32_get_true_file_attributes)
-      && !(EQ (Vw32_get_true_file_attributes, Qlocal) && 
-	   GetDriveType (name) == DRIVE_FIXED)
+  if (!(NILP (Vw32_get_true_file_attributes)
+	|| (EQ (Vw32_get_true_file_attributes, Qlocal) &&
+	    GetDriveType (name) != DRIVE_FIXED)))
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
@@ -2710,6 +2949,8 @@ stat (const char * path, struct stat * buf)
 	    }
 	}
       CloseHandle (fh);
+      psd = get_file_security_desc (name);
+      get_file_owner_and_group (psd, name, buf);
     }
   else
     {
@@ -2718,7 +2959,11 @@ stat (const char * path, struct stat * buf)
 	S_IFDIR : S_IFREG;
       buf->st_nlink = 1;
       fake_inode = 0;
+
+      get_file_owner_and_group (NULL, name, buf);
     }
+  if (psd)
+    xfree (psd);
 
 #if 0
   /* Not sure if there is any point in this.  */
@@ -2738,16 +2983,14 @@ stat (const char * path, struct stat * buf)
   else
     buf->st_ino = fake_inode;
 
-  /* consider files to belong to current user */
-  buf->st_uid = dflt_passwd.pw_uid;
-  buf->st_gid = dflt_passwd.pw_gid;
-
   /* volume_info is set indirectly by map_w32_filename */
   buf->st_dev = volume_info.serialnum;
   buf->st_rdev = volume_info.serialnum;
 
 
-  buf->st_size = wfd.nFileSizeLow;
+  buf->st_size = wfd.nFileSizeHigh;
+  buf->st_size <<= 32;
+  buf->st_size += wfd.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
   buf->st_mtime = convert_time (wfd.ftLastWriteTime);
@@ -2826,14 +3069,20 @@ fstat (int desc, struct stat * buf)
   else
     buf->st_ino = fake_inode;
 
-  /* consider files to belong to current user */
+  /* Consider files to belong to current user.
+     FIXME: this should use GetSecurityInfo API, but it is only
+     available for _WIN32_WINNT >= 0x501.  */
   buf->st_uid = dflt_passwd.pw_uid;
   buf->st_gid = dflt_passwd.pw_gid;
+  strcpy (buf->st_uname, dflt_passwd.pw_name);
+  strcpy (buf->st_gname, dflt_group.gr_name);
 
   buf->st_dev = info.dwVolumeSerialNumber;
   buf->st_rdev = info.dwVolumeSerialNumber;
 
-  buf->st_size = info.nFileSizeLow;
+  buf->st_size = info.nFileSizeHigh;
+  buf->st_size <<= 32;
+  buf->st_size += info.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
   buf->st_mtime = convert_time (info.ftLastWriteTime);
@@ -4350,11 +4599,18 @@ globals_of_w32 ()
   g_b_init_get_sid_identifier_authority = 0;
   g_b_init_get_sid_sub_authority = 0;
   g_b_init_get_sid_sub_authority_count = 0;
+  g_b_init_get_file_security = 0;
+  g_b_init_get_security_descriptor_owner = 0;
+  g_b_init_get_security_descriptor_group = 0;
+  g_b_init_is_valid_sid = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
      console application to get console mode to work.  */
   SetConsoleCtrlHandler(shutdown_handler, TRUE);
+
+  /* "None" is the default group name on standalone workstations.  */
+  strcpy (dflt_group_name, "None");
 }
 
 /* end of w32.c */

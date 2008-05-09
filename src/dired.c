@@ -899,6 +899,36 @@ make_time (time)
 		Fcons (make_number (time & 0177777), Qnil));
 }
 
+static char *
+stat_uname (struct stat *st)
+{
+#ifdef WINDOWSNT
+  return st->st_uname;
+#else
+  struct passwd *pw = (struct passwd *) getpwuid (st->st_uid);
+
+  if (pw)
+    return pw->pw_name;
+  else
+    return NULL;
+#endif
+}
+
+static char *
+stat_gname (struct stat *st)
+{
+#ifdef WINDOWSNT
+  return st->st_gname;
+#else
+  struct group *gr = (struct group *) getgrgid (st->st_gid);
+
+  if (gr)
+    return gr->gr_name;
+  else
+    return NULL;
+#endif
+}
+
 DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
        doc: /* Return a list of attributes of file FILENAME.
 Value is nil if specified file cannot be opened.
@@ -935,8 +965,6 @@ Elements of the attribute list are:
   Lisp_Object values[12];
   Lisp_Object encoded;
   struct stat s;
-  struct passwd *pw;
-  struct group *gr;
 #if defined (BSD4_2) || defined (BSD4_3)
   Lisp_Object dirname;
   struct stat sdir;
@@ -945,6 +973,7 @@ Elements of the attribute list are:
   Lisp_Object handler;
   struct gcpro gcpro1;
   EMACS_INT ino;
+  char *uname, *gname;
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -987,12 +1016,12 @@ Elements of the attribute list are:
   else
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwuid (s.st_uid);
-      values[2] = (pw ? build_string (pw->pw_name)
-                  : make_fixnum_or_float (s.st_uid));
-      gr = (struct group *) getgrgid (s.st_gid);
-      values[3] = (gr ? build_string (gr->gr_name)
-                  : make_fixnum_or_float (s.st_gid));
+      uname = stat_uname (&s);
+      values[2] = (uname ? build_string (uname)
+		   : make_fixnum_or_float (s.st_uid));
+      gname = stat_gname (&s);
+      values[3] = (gname ? build_string (gname)
+		   : make_fixnum_or_float (s.st_gid));
       UNBLOCK_INPUT;
     }
   values[4] = make_time (s.st_atime);
