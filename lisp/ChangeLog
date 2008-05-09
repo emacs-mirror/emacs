@@ -10,9 +10,12 @@
 	vc-cvs.el (vc-cvs-comment-history):
 	Inline the code that used to be wash-log.
 
-	* vc-scs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback)
-	(vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment)
-	(vc-sccs-print-log, vc-sccs-diff): Grok directories.
+	* vc-sccs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback)
+	(vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment,
+	vc-sccs-print-log, vc-sccs-diff): Grok directories.
+	* vc-rcs.el (vc-sccs-checkin, vc-sccs-checkout,
+	(vc-rcs-revert, vc-rcs-steal-lock, vc-rcs-modify-change-comment)
+	(vc-rcs-print-log): Grok directories.
 
 2008-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -27,10 +27,6 @@
 
 ;; See vc.el
 
-;; TODO:
-;; - remove call to vc-expand-dirs by implementing our own (which can just
-;;   list the RCS subdir instead).
-
 ;;; Code:
 
 ;;;
@@ -346,7 +342,7 @@ whether to remove it."
   "RCS-specific version of `vc-backend-checkin'."
   (let ((switches (vc-switches 'RCS 'checkin)))
     ;; Now operate on the files
-    (dolist (file files)
+    (dolist (file (vc-expand-dirs files))
       (let ((old-version (vc-working-revision file)) new-version
 	    (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
 	;; Force branch creation if an appropriate
@@ -402,50 +398,53 @@ whether to remove it."
 	 (vc-switches 'RCS 'checkout)))
 
 (defun vc-rcs-checkout (file &optional editable rev)
-  "Retrieve a copy of a saved version of FILE."
-  (let ((file-buffer (get-file-buffer file))
-	switches)
-    (message "Checking out %s..." file)
-    (save-excursion
-      ;; Change buffers to get local value of vc-checkout-switches.
-      (if file-buffer (set-buffer file-buffer))
-      (setq switches (vc-switches 'RCS 'checkout))
-      ;; Save this buffer's default-directory
-      ;; and use save-excursion to make sure it is restored
-      ;; in the same buffer it was saved in.
-      (let ((default-directory default-directory))
-	(save-excursion
-	  ;; Adjust the default-directory so that the check-out creates
-	  ;; the file in the right place.
-	  (setq default-directory (file-name-directory file))
-	  (let (new-version)
-	    ;; if we should go to the head of the trunk,
-	    ;; clear the default branch first
-	    (and rev (string= rev "")
-		 (vc-rcs-set-default-branch file nil))
-	    ;; now do the checkout
-	    (apply 'vc-do-command
-		   nil 0 "co" (vc-name file)
-		   ;; If locking is not strict, force to overwrite
-		   ;; the writable workfile.
-		   (if (eq (vc-rcs-checkout-model (list file)) 'implicit) "-f")
-		   (if editable "-l")
-                   (if (stringp rev)
-                       ;; a literal revision was specified
-                       (concat "-r" rev)
-                     (let ((workrev (vc-working-revision file)))
-                       (if workrev
-                           (concat "-r"
-                                   (if (not rev)
-                                       ;; no revision specified:
-                                       ;; use current workfile version
-                                       workrev
-                                     ;; REV is t ...
-                                     (if (not (vc-trunk-p workrev))
-                                         ;; ... go to head of current branch
-                                         (vc-branch-part workrev)
-                                       ;; ... go to head of trunk
-                                       (vc-rcs-set-default-branch file
+  "Retrieve a copy of a saved version of FILE. If FILE is a directory, 
+attempt the checkout for all registered files beneath it."
+  (if (file-directory-p file)
+      (mapc 'vc-rcs-checkout (vc-expand-dirs (list file)))
+    (let ((file-buffer (get-file-buffer file))
+	  switches)
+      (message "Checking out %s..." file)
+      (save-excursion
+	;; Change buffers to get local value of vc-checkout-switches.
+	(if file-buffer (set-buffer file-buffer))
+	(setq switches (vc-switches 'RCS 'checkout))
+	;; Save this buffer's default-directory
+	;; and use save-excursion to make sure it is restored
+	;; in the same buffer it was saved in.
+	(let ((default-directory default-directory))
+	  (save-excursion
+	    ;; Adjust the default-directory so that the check-out creates
+	    ;; the file in the right place.
+	    (setq default-directory (file-name-directory file))
+	    (let (new-version)
+	      ;; if we should go to the head of the trunk,
+	      ;; clear the default branch first
+	      (and rev (string= rev "")
+		   (vc-rcs-set-default-branch file nil))
+	      ;; now do the checkout
+	      (apply 'vc-do-command
+		     nil 0 "co" (vc-name file)
+		     ;; If locking is not strict, force to overwrite
+		     ;; the writable workfile.
+		     (if (eq (vc-rcs-checkout-model (list file)) 'implicit) "-f")
+		     (if editable "-l")
+		     (if (stringp rev)
+			 ;; a literal revision was specified
+			 (concat "-r" rev)
+		       (let ((workrev (vc-working-revision file)))
+			 (if workrev
+			     (concat "-r"
+				     (if (not rev)
+					 ;; no revision specified:
+					 ;; use current workfile version
+					 workrev
+				       ;; REV is t ...
+				       (if (not (vc-trunk-p workrev))
+					   ;; ... go to head of current branch
+					   (vc-branch-part workrev)
+					 ;; ... go to head of trunk
+					 (vc-rcs-set-default-branch file
                                                                   nil)
                                        ""))))))
 		   switches)
@@ -462,13 +461,14 @@ whether to remove it."
 		      (if (vc-trunk-p new-version) nil
 			(vc-branch-part new-version))
 		    new-version)))))
-	(message "Checking out %s...done" file)))))
+	(message "Checking out %s...done" file))))))
 
 (defun vc-rcs-rollback (files)
-  "Roll back, undoing the most recent checkins of FILES."
+  "Roll back, undoing the most recent checkins of FILES.  Directories are 
+expanded to all regidtered subfuiles in them."
   (if (not files)
       (error "RCS backend doesn't support directory-level rollback."))
-  (dolist (file files)
+  (dolist (file (vc-expand-dirs files))
 	  (let* ((discard (vc-working-revision file))
 		 (previous (if (vc-trunk-p discard) "" (vc-branch-part discard)))
 		 (config (current-window-configuration))
@@ -501,10 +501,13 @@ whether to remove it."
 			 (signal (car err) (cdr err)))))))))
 
 (defun vc-rcs-revert (file &optional contents-done)
-  "Revert FILE to the version it was based on."
-  (vc-do-command nil 0 "co" (vc-name file) "-f"
-                 (concat (if (eq (vc-state file) 'edited) "-u" "-r")
-                         (vc-working-revision file))))
+  "Revert FILE to the version it was based on.  If FILE is a directory, 
+revert all registered files beneath it."
+  (if (file-directory-p file)
+      (mapc 'vc-rcs-revert (vc-expand-dirs (list file)))
+    (vc-do-command nil 0 "co" (vc-name file) "-f"
+		   (concat (if (eq (vc-state file) 'edited) "-u" "-r")
+			   (vc-working-revision file)))))
 
 (defun vc-rcs-merge (file first-version &optional second-version)
   "Merge changes into current working copy of FILE.
@@ -516,15 +519,19 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-rcs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV.
+If FUILEis a directory, steal the lock on all registered files beneath it.
 Needs RCS 5.6.2 or later for -M."
-  (vc-do-command nil 0 "rcs" (vc-name file) "-M" (concat "-u" rev))
-  ;; Do a real checkout after stealing the lock, so that we see
-  ;; expanded headers.
-  (vc-do-command nil 0 "co" (vc-name file) "-f" (concat "-l" rev)))
+  (if (file-directory-p file)
+      (mapc 'vc-rcs-steal-lock (vc-expand-dirs (list file)))
+    (vc-do-command nil 0 "rcs" (vc-name file) "-M" (concat "-u" rev))
+    ;; Do a real checkout after stealing the lock, so that we see
+    ;; expanded headers.
+    (vc-do-command nil 0 "co" (vc-name file) "-f" (concat "-l" rev))))
 
 (defun vc-rcs-modify-change-comment (files rev comment)
-  "Modify the change comments change on FILES on a specified REV."
-  (dolist (file files)
+  "Modify the change comments change on FILES on a specified REV.  If FILE is a
+directory the operation is applied to all registered files beneath it."
+  (dolist (file (vc-expand-dirs files))
     (vc-do-command nil 0 "rcs" (vc-name file)
 		   (concat "-m" rev ":" comment))))
 
@@ -534,8 +541,9 @@ Needs RCS 5.6.2 or later for -M."
 ;;;
 
 (defun vc-rcs-print-log (files &optional buffer)
-  "Get change log associated with FILE."
-  (vc-do-command buffer 0 "rlog" (mapcar 'vc-name files)))
+  "Get change log associated with FILE.  If FILE is a
+directory the operation is applied to all registered files beneath it."
+  (vc-do-command buffer 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files))))
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
