@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Emacs uses only gr_name */
 struct group {
   char *gr_name;	/* group name */
+  gid_t gr_gid;		/* group numerical ID */
 };
 
 struct group *getgrgid(gid_t);
