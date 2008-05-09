@@ -552,9 +552,6 @@
 
 ;;; Todo:
 
-;; - vc-update/vc-merge should deal with VC systems that don't
-;;   update/merge on a file basis, but on a whole repository basis.
-;;
 ;; - deal with push/pull operations.
 ;;
 ;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
