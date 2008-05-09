@@ -554,7 +554,7 @@ install-arch-indep: mkdir info install-etc
 	   fi; \
 	   cd ${srcdir}/info ; \
 	   for elt in $(INFO_FILES); do \
-	      test "$(MAKEINFO)" = "no" && ! test -e $$elt && continue; \
+	      test "$(MAKEINFO)" = "off" && ! test -e $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
@@ -566,7 +566,7 @@ install-arch-indep: mkdir info install-etc
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
 	then \
 	  for elt in $(INFO_FILES); do \
-	    test "$(MAKEINFO)" = "no" && ! test -e $$elt && continue; \
+	    test "$(MAKEINFO)" = "off" && ! test -e $$elt && continue; \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
@@ -785,8 +785,11 @@ force-info:
 # put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 info: force-info
-	@if test "$(MAKEINFO)" = "no"; then \
-	  echo "Configured without makeinfo, not building manuals" ; \
+	@if test "$(MAKEINFO)" = "off"; then \
+	  echo "Configured --without-makeinfo, not building manuals" ; \
+	elif test "$(MAKEINFO)" = "no"; then \
+	  echo "makeinfo is missing - cannot build manuals" ; \
+	  exit 1 ; \
 	else \
 	  $(MAKE) $(MFLAGS) info-real ; \
 	fi
