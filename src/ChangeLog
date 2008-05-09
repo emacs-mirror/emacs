@@ -1,3 +1,8 @@
+2008-05-09  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fread_file_name): Remove reference to insdef, deleted
+	2008-04-23.
+
 2008-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	Support for reporting owner and group of each file on MS-Windows:
