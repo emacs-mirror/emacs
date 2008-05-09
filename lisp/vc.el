@@ -552,6 +552,8 @@
 
 ;;; Todo:
 
+;; - vc-dir needs more key bindings for VC actions.
+;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -591,9 +593,6 @@
 ;;   available, maybe it could even call something like
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
 ;;   skeleton for the log...
-;;
-;; - a way to do repository wide log (instead of just per
-;;   file/fileset) is needed.  Doing it per directory might be enough...
 ;;
 ;; - most vc-dir backends need more work.  They might need to
 ;;   provide custom headers, use the `extra' field and deal with all
