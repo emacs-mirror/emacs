@@ -1270,16 +1270,6 @@ U - if the cursor is on a file: unmark all the files with the same VC state
 
 (put 'vc-dir-mode 'mode-class 'special)
 
-(defun vc-buffer-sync (&optional not-urgent)
-  "Make sure the current buffer and its working file are in sync.
-NOT-URGENT means it is ok to continue if the user says not to save."
-  (when (buffer-modified-p)
-    (if (or vc-suppress-confirm
-	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
-	(save-buffer)
-      (unless not-urgent
-	(error "Aborted")))))
-
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
   (derived-mode-p 'vc-dir-mode))
@@ -1295,7 +1285,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
             (setq member t))))
     member))
 
-(defun vc-dispatcher-selection-set ()
+(defun vc-dispatcher-selection-set (&optional observer)
   "Deduce a set of files to which to apply an operation.  Return the fileset.
 If we're in a directory display, the fileset is the list of marked files (if
 there is one) else the file on the curreent line.  If not in a directory
@@ -1320,10 +1310,9 @@ containing that file.  Otherwise, throw an error."
     ;; We assume, in order to avoid unpleasant surprises to the user,
     ;; that a fileset is not in good shape to be handed to the user if the
     ;; buffers visiting the fileset don't match the on-disk contents.
-    ;; This is actually untrue for operations like `print-log' (or `diff'
-    ;; between two revisions), so maybe this should be moved elsewhere.
-    (save-some-buffers
-     nil (lambda () (vc-dispatcher-in-fileset-p files)))
+    (if (not observer)
+	(save-some-buffers
+	 nil (lambda () (vc-dispatcher-in-fileset-p files))))
     files))
 
 ;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246

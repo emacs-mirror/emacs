@@ -1002,10 +1002,10 @@ Only files already under version control are noticed."
        node (lambda (f) (when (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset ()
+(defun vc-deduce-fileset (&optional observer)
   "Deduce a set of files and a backend to which to apply an operation and
 the common state of the fileset.  Return (BACKEND . FILESET)."
-  (let* ((fileset (vc-dispatcher-selection-set))
+  (let* ((fileset (vc-dispatcher-selection-set observer))
          ;; FIXME: Store the backend in a buffer-local variable.
          (backend (if (derived-mode-p 'vc-dir-mode)
                       (vc-responsible-backend default-directory)
@@ -1030,6 +1030,16 @@ the common state of the fileset.  Return (BACKEND . FILESET)."
 	(error "Buffer %s is not associated with a file" (buffer-name))
       (unless (vc-backend buffer-file-name)
 	(error "File %s is not under version control" buffer-file-name))))))
+
+(defun vc-buffer-sync (&optional not-urgent)
+  "Make sure the current buffer and its working file are in sync.
+NOT-URGENT means it is ok to continue if the user says not to save."
+  (when (buffer-modified-p)
+    (if (or vc-suppress-confirm
+	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
+	(save-buffer)
+      (unless not-urgent
+	(error "Aborted")))))
 
 ;;; Support for the C-x v v command.
 ;; This is where all the single-file-oriented code from before the fileset
@@ -1561,7 +1571,7 @@ returns t if the buffer had changes, nil otherwise."
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
-   (let* ((vc-fileset (vc-deduce-fileset))
+   (let* ((vc-fileset (vc-deduce-fileset t))
 	  (files (cdr vc-fileset))
           (backend (car vc-fileset))
 	  (first (car files))
@@ -2123,7 +2133,7 @@ allowed and simply skipped)."
   "List the change log of the current fileset in a window.
 If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
-  (let* ((vc-fileset (vc-deduce-fileset))
+  (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset))
 	 (files (cdr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
