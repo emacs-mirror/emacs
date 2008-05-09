@@ -57,17 +57,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define	S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
 
 struct stat {
-  dev_t st_dev;
   unsigned __int64 st_ino;	/* ino_t in sys/types.h is too narrow */
+  dev_t st_dev;
   unsigned short   st_mode;
   short		   st_nlink;
   int		   st_uid;
   int		   st_gid;
+  unsigned __int64 st_size;
   dev_t		   st_rdev;
-  off_t		   st_size;
   time_t	   st_atime;
   time_t	   st_mtime;
   time_t	   st_ctime;
+  char		   st_uname[260];
+  char		   st_gname[260];
 };
 
 _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);
