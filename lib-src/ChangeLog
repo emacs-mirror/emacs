@@ -1,3 +1,9 @@
+2008-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c: Include sys/types.h, sys/stat.h, and errno.h.
+	(IS_DIRECTORY_SEP): New macro.
+	(convert_time, is_exec, stat): New functions.
+
 2008-05-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (lisp2): Rename epa-file-hook.elc to epa-hook.elc.
