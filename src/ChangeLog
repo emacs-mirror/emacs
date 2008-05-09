@@ -1,10 +1,34 @@
 2008-05-09  Eli Zaretskii  <eliz@gnu.org>
 
+	Support for reporting owner and group of each file on MS-Windows:
+	* dired.c (stat_uname, stat_gname): New functions, with special
+	implementation for w32.
+	(Ffile_attributes): Use them instead of getpwuid and getgrgid.
+
 	* w32.c: Rename the_passwd_* to dflt_passwd_*.
 	(dflt_group_name): New static variable.
 	(dflt_group): Renamed from the_group.
 	(init_user_info): Init dflt_group fields.  Get user's group name
 	from LookupAccountSid.
+	(g_b_init_get_file_security, g_b_init_get_security_descriptor_owner)
+	(g_b_init_get_security_descriptor_group, g_b_init_is_valid_sid):
+	New initialization states.
+	(globals_of_w32): Initialize them to zero.  Initialize the default
+	group name to "None".
+	(GetFileSecurity_Name): New global var, the name of the function
+	to call for GetFileSecurity.
+	(GetFileSecurity_Proc, GetSecurityDescriptorOwner_Proc)
+	(GetSecurityDescriptorGroup_Proc, IsValidSid_Proc): New typedefs.
+	(get_file_security, get_security_descriptor_owner)
+	(get_security_descriptor_group, is_valid_sid)
+	(get_file_security_desc, get_rid, get_name_and_id)
+	(get_file_owner_and_group): New functions.
+	(stat): Use get_file_security_desc and get_file_owner_and_group to
+	report the owner and primary group of each file.  Don't ignore the
+	high 32 bits of file's size, now that st_size is 64-bit wide.  Fix
+	test when to get true file attributes.
+	(init_user_info): Use get_rid instead of equivalent inline code.
+	(fstat): Don't ignore the high 32 bits of file's size.
 
 2008-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
