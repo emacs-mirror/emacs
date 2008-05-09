@@ -1559,8 +1559,6 @@ returns t if the buffer had changes, nil otherwise."
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
    (let* ((vc-fileset (vc-deduce-fileset))
-	  (backend (car files))
-	  (state (cadr vc-fileset))
 	  (files (cddr vc-fileset))
 	  (first (car files))
 	  (completion-table
@@ -2121,7 +2119,6 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
-	 (state (cadr vc-fileset))
 	 (files (cddr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
     ;; Don't switch to the output buffer before running the command,
@@ -2152,8 +2149,6 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (backend (car vc-fileset))
-	 (state (cadr vc-fileset))
 	 (files (cddr vc-fileset)))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
@@ -2186,7 +2181,6 @@ depending on the underlying version-control system."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
-	 (state (cadr vc-fileset))
 	 (files (cddr vc-fileset))
 	 (granularity (vc-call-backend backend 'revision-granularity)))
     (unless (vc-find-backend-function backend 'rollback)
@@ -2242,7 +2236,6 @@ changes from the current branch are merged into the working file."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
-	 (state (cadr vc-fileset))
 	 (files (cddr vc-fileset)))
     (dolist (file files)
       (when (let ((buf (get-file-buffer file)))

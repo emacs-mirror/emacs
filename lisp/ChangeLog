@@ -1,8 +1,13 @@
+2008-05-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-version-diff, vc-print-log, vc-revert, vc-rollback)
+	(vc-update): Remove unused let bindings.
+
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-deduce-fileset, vc-next-action, vc-version-diff)
-	(vc-diff, vc-rwevert, vc-rollback, vc-update), 
-	vc-dispatcher.el (vc-dispatcher-selection-set):
+	(vc-diff, vc-revert, vc-rollback, vc-update):
+	* vc-dispatcher.el (vc-dispatcher-selection-set):
 	Get rid of 4 special cases in fileset selection.  This involved
 	changing the return value of (vc-deduce-fileset) so that it passes
 	back a deduced state as well as a deduced back end,
