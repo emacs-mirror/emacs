@@ -1,3 +1,11 @@
+2008-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c: Rename the_passwd_* to dflt_passwd_*.
+	(dflt_group_name): New static variable.
+	(dflt_group): Renamed from the_group.
+	(init_user_info): Init dflt_group fields.  Get user's group name
+	from LookupAccountSid.
+
 2008-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (png_load): Use correct bit-depth for setting background

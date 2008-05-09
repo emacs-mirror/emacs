@@ -1,3 +1,7 @@
+2008-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/grp.h (struct group): Add gr_gid member.
+
 2008-04-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (ALL): Move $(CLIENTRES) from here...
