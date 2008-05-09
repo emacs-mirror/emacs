@@ -552,8 +552,6 @@
 
 ;;; Todo:
 
-;; - vc-dir needs more key bindings for VC actions.
-;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -627,9 +625,6 @@
 ;;
 ;; - backends that care about vc-stay-local should try to take it into
 ;;   account for vc-dir.  Is this likely to be useful???
-;;
-;; - vc-dir listing needs a footer generated when it's done to make it obvious
-;; that it has finished.
 ;;
 
 ;;; Code:
