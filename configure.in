@@ -894,21 +894,24 @@ if test "$MAKEINFO" != "no" && \
    MAKEINFO=no
 fi
 
-if test "$MAKEINFO" = "no" && test "x${with_makeinfo}" != "xno"; then
-
-   if test -e $srcdir/info/emacs; then
-      gotinfo="seems"
-   else
-      gotinfo="does NOT seem"
-   fi
-
-  AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6.
-You will not be able to build the Emacs manuals.
-In Emacs releases, they are prebuilt, so this might not be a problem.
-Your source tree $gotinfo to have manuals in the `info' directory.
+## Makeinfo is unusual.  For a released Emacs, the manuals are
+## pre-built, and not deleted by the normal clean rules.  makeinfo is
+## therefore in the category of "special tools" not normally required, which
+## configure does not have to check for (eg autoconf itself).
+## In a CVS checkout on the other hand, the manuals are not included.
+## So makeinfo is a requirement to build from CVS, and configure
+## should test for it as it does for any other build requirement.
+## We use the presence of $srcdir/info/emacs to distinguish a release,
+## with pre-built manuals, from a CVS checkout.
+if test "$MAKEINFO" = "no"; then
+  if test "x${with_makeinfo}" = "xno"; then
+    MAKEINFO=off
+  elif ! test -e $srcdir/info/emacs; then
+    AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.6, and your
+source tree does not seem to have pre-built manuals in the `info' directory.
 Either install a suitable version of makeinfo, or re-run configure
-with the `--without-makeinfo' option.] )
-
+with the `--without-makeinfo' option to build without the manuals.] )
+  fi
 fi
 
 dnl Add our options to ac_link now, after it is set up.
