@@ -1,3 +1,8 @@
+2008-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (png_load): Use correct bit-depth for setting background
+	color.
+
 2008-05-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): Rename epa-file-hook.elc to
