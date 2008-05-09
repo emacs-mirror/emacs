@@ -24,10 +24,6 @@
 
 ;;; Commentary:
 
-;; TODO:
-;; - remove call to vc-expand-dirs by implementing our own (which can just
-;;   list the SCCS subdir instead).
-
 ;;; Code:
 
 (eval-when-compile
@@ -156,7 +152,7 @@ For a description of possible values, see `vc-check-master-templates'."
     (vc-sccs-state file)))
 
 (defun vc-sccs-dir-status (dir update-function)
-  ;; Doing loys of undividual VC-state calls is painful, but 
+  ;; Doing lots of individual VC-state calls is painful, but 
   ;; there is no better option in SCCS-land.
   (let ((flist (vc-expand-dirs (list dir)))
 	(result nil))
@@ -233,7 +229,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 
 (defun vc-sccs-checkin (files rev comment)
   "SCCS-specific version of `vc-backend-checkin'."
-  (dolist (file files)
+  (dolist (file (vc-expand-dirs files))
     (apply 'vc-sccs-do-command nil 0 "delta" (vc-name file)
 	   (if rev (concat "-r" rev))
 	   (concat "-y" comment)
@@ -253,35 +249,40 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 
 (defun vc-sccs-checkout (file &optional editable rev)
   "Retrieve a copy of a saved revision of SCCS controlled FILE.
+If FILE is a directory, all version-controlled files beneath are checked out.
 EDITABLE non-nil means that the file should be writable and
 locked.  REV is the revision to check out."
-  (let ((file-buffer (get-file-buffer file))
-	switches)
-    (message "Checking out %s..." file)
-    (save-excursion
-      ;; Change buffers to get local value of vc-checkout-switches.
-      (if file-buffer (set-buffer file-buffer))
-      (setq switches (vc-switches 'SCCS 'checkout))
-      ;; Save this buffer's default-directory
-      ;; and use save-excursion to make sure it is restored
-      ;; in the same buffer it was saved in.
-      (let ((default-directory default-directory))
-	(save-excursion
-	  ;; Adjust the default-directory so that the check-out creates
-	  ;; the file in the right place.
-	  (setq default-directory (file-name-directory file))
+  (if (file-directory-p file) 
+      (mapc 'vc-sccs-checkout (vc-expand-dirs (list file)))
+    (let ((file-buffer (get-file-buffer file))
+	  switches)
+      (message "Checking out %s..." file)
+      (save-excursion
+	;; Change buffers to get local value of vc-checkout-switches.
+	(if file-buffer (set-buffer file-buffer))
+	(setq switches (vc-switches 'SCCS 'checkout))
+	;; Save this buffer's default-directory
+	;; and use save-excursion to make sure it is restored
+	;; in the same buffer it was saved in.
+	(let ((default-directory default-directory))
+	  (save-excursion
+	    ;; Adjust the default-directory so that the check-out creates
+	    ;; the file in the right place.
+	    (setq default-directory (file-name-directory file))
 
-	  (and rev (or (string= rev "")
-                       (not (stringp rev)))
-               (setq rev nil))
-	  (apply 'vc-sccs-do-command nil 0 "get" (vc-name file)
-		 (if editable "-e")
-		 (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
-		 switches))))
-    (message "Checking out %s...done" file)))
+	    (and rev (or (string= rev "")
+			 (not (stringp rev)))
+		 (setq rev nil))
+	    (apply 'vc-sccs-do-command nil 0 "get" (vc-name file)
+		   (if editable "-e")
+		   (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
+		   switches))))
+      (message "Checking out %s...done" file))))
 
 (defun vc-sccs-rollback (files)
-  "Roll back, undoing the most recent checkins of FILES."
+  "Roll back, undoing the most recent checkins of FILES.  Directories
+are expanded to all version-controlled subfiles."
+  (setq files (vc-expand-dirs files))
   (if (not files)
       (error "SCCS backend doesn't support directory-level rollback."))
   (dolist (file files)
@@ -295,24 +296,29 @@ locked.  REV is the revision to check out."
 	    (vc-sccs-do-command nil 0 "get" (vc-name file) nil))))
 
 (defun vc-sccs-revert (file &optional contents-done)
-  "Revert FILE to the version it was based on."
-  (vc-sccs-do-command nil 0 "unget" (vc-name file))
-  (vc-sccs-do-command nil 0 "get" (vc-name file))
-  ;; Checking out explicit revisions is not supported under SCCS, yet.
-  ;; We always "revert" to the latest revision; therefore
-  ;; vc-working-revision is cleared here so that it gets recomputed.
-  (vc-file-setprop file 'vc-working-revision nil))
+  "Revert FILE to the version it was based on. If FILE is a directory,
+revert all subfiles."
+  (if (file-directory-p file) 
+      (mapc 'vc-sccs-revert (vc-expand-dirs (list file)))
+    (vc-sccs-do-command nil 0 "unget" (vc-name file))
+    (vc-sccs-do-command nil 0 "get" (vc-name file))
+    ;; Checking out explicit revisions is not supported under SCCS, yet.
+    ;; We always "revert" to the latest revision; therefore
+    ;; vc-working-revision is cleared here so that it gets recomputed.
+    (vc-file-setprop file 'vc-working-revision nil)))
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
-  (vc-sccs-do-command nil 0 "unget"
-                      (vc-name file) "-n" (if rev (concat "-r" rev)))
-  (vc-sccs-do-command nil 0 "get"
-                      (vc-name file) "-g" (if rev (concat "-r" rev))))
+  (if (file-directory-p file) 
+      (mapc 'vc-sccs-steal-lock (vc-expand-dirs (list file)))
+    (vc-sccs-do-command nil 0 "unget"
+			(vc-name file) "-n" (if rev (concat "-r" rev)))
+    (vc-sccs-do-command nil 0 "get"
+			(vc-name file) "-g" (if rev (concat "-r" rev)))))
 
 (defun vc-sccs-modify-change-comment (files rev comment)
   "Modify (actually, append to) the change comments for FILES on a specified REV."
-  (dolist (file files)
+  (dolist (file (vc-expand-dirs files))
     (vc-sccs-do-command nil 0 "cdc" (vc-name file) 
                         (concat "-y" comment) (concat "-r" rev))))
 
@@ -323,6 +329,7 @@ locked.  REV is the revision to check out."
 
 (defun vc-sccs-print-log (files &optional buffer)
   "Get change log associated with FILES."
+  (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files)))
 
 (defun vc-sccs-wash-log ()
@@ -332,6 +339,7 @@ locked.  REV is the revision to check out."
 
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."
+  (setq files (vc-expand-dirs files))
   (setq oldvers (vc-sccs-lookup-triple (car files) oldvers))
   (setq newvers (vc-sccs-lookup-triple (car files) newvers))
   (apply 'vc-do-command (or buffer "*vc-diff*")
