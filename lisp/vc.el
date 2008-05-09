@@ -2013,12 +2013,14 @@ outside of VC) and one wants to do some operation on it."
       ;; FIXME: Make a derived-mode instead.
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
+	(define-key map "v" 'vc-diff) ;; C-x v v
 	(define-key map "=" 'vc-diff) ;; C-x v =
-	(define-key map "a" 'vc-dir-register)
+	(define-key map "i" 'vc-dir-register)	;; C-x v i
 	(define-key map "+" 'vc-update) ;; C-x v +
-	(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
-	(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher referesh
 	(define-key map "l" 'vc-print-log) ;; C-x v l
+	;; More confusing than helpful, probably
+	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
+	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
 	(define-key map "x" 'vc-dir-hide-up-to-date))
       )
     ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash  

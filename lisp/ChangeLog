@@ -1,5 +1,7 @@
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
+	* vc.el (vc-dir), vc-hooks.el: Tweak the VC directory bindings.
+	These are now documented in the manual.
 	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p, 
 	vc-dir-children-marked-p): Remove the vc-dir-insert-directories global.
 

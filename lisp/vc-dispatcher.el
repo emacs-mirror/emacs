@@ -119,8 +119,6 @@
 ;;
 ;; - add commands to move to the prev/next directory in vc-dir.
 ;;
-;; - document vc-dir in the manual.
-;;
 ;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
 ;;
 
