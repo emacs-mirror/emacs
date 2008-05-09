@@ -5,8 +5,7 @@
 
 2008-05-07  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* aack.texi, files.texi, vc2-xtra.texi: Meta-CVS is no longer 
-	supported.
+	* ack.texi, files.texi, vc2-xtra.texi: Meta-CVS is no longer supported.
 
 2008-05-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
