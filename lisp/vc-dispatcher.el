@@ -1336,7 +1336,8 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                 (eq t (compare-strings buffer-file-name nil (length elem)
                                        elem nil nil))
               (eq (current-buffer) (get-file-buffer elem)))
-            (setq member t))))))
+            (setq member t))))
+    member))
 
 (defun vc-dispatcher-selection-set ()
   "Deduce a set of files to which to apply an operation. Return the fileset.
