@@ -1,5 +1,8 @@
 2008-05-10  Eli Zaretskii  <eliz@gnu.org>
 
+	* dired.c (Ffile_attributes, Fdirectory_files_and_attributes):
+	Mention w32-get-true-file-attributes in doc string.
+
 	* w32proc.c (syms_of_ntproc) <w32-get-true-file-attributes>: Doc fix.
 
 2008-05-09  Glenn Morris  <rgm@gnu.org>
