@@ -1,3 +1,7 @@
+2008-05-10  Reiner Steib  <reiner.steib@gmx.de>
+
+	* smerge-mode.el (smerge-command-prefix): Fix custom type.
+
 2008-05-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-dispatcher.el (vc-dir-next-directory, vc-dir-prev-directory):
