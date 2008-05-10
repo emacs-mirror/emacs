@@ -36,6 +36,9 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-and-compile
+  (autoload 'auth-source-user-or-password "auth-source"))
+
 (defgroup nntp nil
   "NNTP access for Gnus."
   :group 'gnus)
@@ -1177,8 +1180,15 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
-	 (user (or (netrc-get alist "login") nntp-authinfo-user))
-	 (passwd (netrc-get alist "password")))
+	 (user (or 
+		;; this is preferred to netrc-*
+		(auth-source-user-or-password "login" nntp-address "nntp")
+		(netrc-get alist "login") 
+		nntp-authinfo-user))
+	 (passwd (or
+		  ;; this is preferred to netrc-*
+		  (auth-source-user-or-password "password" nntp-address "nntp")
+		  (netrc-get alist "password"))))
     (when (or (not send-if-force)
 	      force)
       (unless user

@@ -1,3 +1,15 @@
+2008-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nntp.el: Autoload `auth-source-user-or-password'.
+	(nntp-send-authinfo): Use it.
+
+	* nnimap.el: Autoload `auth-source-user-or-password'.
+	(nnimap-open-connection): Use it.
+
+	* auth-source.el: Added docs on using with url-auth.  Import gnus-util
+	for the gnus-message function.
+	(auth-source-user-or-password): Use it.
+
 2008-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* rfc2104.el (rfc2104-hexstring-to-bitstring): Rename it back from

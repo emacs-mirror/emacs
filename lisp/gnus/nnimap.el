@@ -71,6 +71,9 @@
 
 (eval-when-compile (require 'cl))
 
+(eval-and-compile
+  (autoload 'auth-source-user-or-password "auth-source"))
+
 (nnoo-declare nnimap)
 
 (defconst nnimap-version "nnimap 1.0")
@@ -796,22 +799,26 @@ If EXAMINE is non-nil the group is selected read-only."
  	   (port (if nnimap-server-port
  		     (int-to-string nnimap-server-port)
  		   "imap"))
-	   (user (netrc-machine-user-or-password
-		  "login"
-		  list
-		  (list server
-			(or nnimap-server-address
-			    nnimap-address))
-		  (list port)
-		  (list "imap" "imaps" "143" "993")))
-	   (passwd (netrc-machine-user-or-password
-		    "password"
-		    list
-		    (list server
-			  (or nnimap-server-address
-			      nnimap-address))
-		    (list port)
-		    (list "imap" "imaps" "143" "993"))))
+	   (user (or 
+		  (auth-source-user-or-password "login" server port) ; this is preferred to netrc-*
+		  (netrc-machine-user-or-password
+		   "login"
+		   list
+		   (list server
+			 (or nnimap-server-address
+			     nnimap-address))
+		   (list port)
+		   (list "imap" "imaps" "143" "993"))))
+	   (passwd (or 
+		    (auth-source-user-or-password "login" server port) ; this is preferred to netrc-*
+		    (netrc-machine-user-or-password
+		     "password"
+		     list
+		     (list server
+			   (or nnimap-server-address
+			       nnimap-address))
+		     (list port)
+		     (list "imap" "imaps" "143" "993")))))
       (if (imap-authenticate user passwd nnimap-server-buffer)
 	  (prog2
 	      (setq nnimap-server-buffer-alist
