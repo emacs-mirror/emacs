@@ -593,7 +593,7 @@
 ;;   provide custom headers, use the `extra' field and deal with all
 ;;   possible VC states.
 ;;
-;; - add function that calls vc-dir to `find-directory-functions'.
+;; - add a function that calls vc-dir to `find-directory-functions'.
 ;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
@@ -602,6 +602,9 @@
 ;;
 ;; - do not default to RCS anymore when the current directory is not
 ;;   controlled by any VCS and the user does C-x v v
+;;
+;; - vc-responsible-backend should not return RCS if no backend
+;;   declares itself responsible.
 ;;
 ;; - vc-create-snapshot and vc-retrieve-snapshot should update the
 ;;   buffers that might be visiting the affected files.
@@ -622,6 +625,9 @@
 ;;
 ;; - backends that care about vc-stay-local should try to take it into
 ;;   account for vc-dir.  Is this likely to be useful???
+;;
+;; - vc-expand-dirs should take a backend parameter and only look for
+;;   files managed by that backend.
 ;;
 
 ;;; Code:

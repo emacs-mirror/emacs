@@ -1,5 +1,7 @@
 2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el: Update todo.
+
 	* vc-sccs.el (vc-sccs-dir-status):
 	* vc-rcs.el (vc-rcs-dir-status): Avoid using results from multiple
 	backends and returning up to date files.
@@ -9,15 +11,16 @@
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-dir):
-	* vc-hooks.el: Tweak the VC directory bindings.
-	These are now documented in the manual.
-	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p,
-	vc-dir-children-marked-p): Remove the vc-dir-insert-directories global.
+	* vc-hooks.el: Tweak the VC directory bindings.  These are now
+	documented in the manual.
 
-	* vc-dispatcher.el (vc-dispatcher-selection-set): Allow callers to
-	pass in an observer flag that says no buffer sync is required.
-	* vc.el (vc-deduce-fileset, vc-print-log, vc-version-diff): Use
-	the observer flag.
+	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p)
+	(vc-dir-children-marked-p): Remove the vc-dir-insert-directories
+	global.
+	(vc-dispatcher-selection-set): Allow callers to pass in an
+	observer flag that says no buffer sync is required.
+	* vc.el (vc-deduce-fileset, vc-print-log, vc-version-diff):
+	Use the observer flag.
 
 2008-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
