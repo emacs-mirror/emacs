@@ -120,10 +120,14 @@
 ;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
 ;;
 
-(provide 'vc-dispatcher)
+(require 'vc-hooks)
+(require 'ewoc)
 
 (eval-when-compile
   (require 'cl))
+
+(declare-function vc-log-edit "vc" (fileset))
+(declare-function vc-buffer-sync "vc" (&optional not-urgent))
 
 ;; General customization
 
@@ -1354,6 +1358,8 @@ containing that file.  Otherwise, throw an error."
 	(save-some-buffers
 	 nil (lambda () (vc-dispatcher-in-fileset-p files))))
     files))
+
+(provide 'vc-dispatcher)
 
 ;; arch-tag: 7d08b17f-5470-4799-914b-bfb9fcf6a246
 ;;; vc-dispatcher.el ends here

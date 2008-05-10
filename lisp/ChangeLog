@@ -1,5 +1,8 @@
 2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dispatcher.el (vc-hooks, ewoc): Require.
+	(vc-log-edit, vc-buffer-sync): Declare for byte compiler.
+
 	* vc-hg.el (vc-hg-diff, vc-hg-annotate-command): Use when not if.
 
 2008-05-10  Chong Yidong  <cyd@stupidchicken.com>
