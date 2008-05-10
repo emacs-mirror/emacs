@@ -995,7 +995,6 @@ Used in `find-file-not-found-functions'."
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
-    (define-key map "?" 'vc-dir)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)

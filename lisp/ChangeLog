@@ -1,6 +1,11 @@
+2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-prefix-map): Remove duplicate binding.
+
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-dir), vc-hooks.el: Tweak the VC directory bindings.
+	* vc.el (vc-dir):
+	* vc-hooks.el: Tweak the VC directory bindings.
 	These are now documented in the manual.
 	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p,
 	vc-dir-children-marked-p): Remove the vc-dir-insert-directories global.
@@ -18,8 +23,8 @@
 
 	* vc-sccs.el, vc.svn.el, vc-git.el, vc-hg.el, vc-mtn.el: Remove
 	stub implementations of, and references to, wash-log.
-	* vc-rcs.el (vc-rcs-comment-history), 
-	vc-cvs.el (vc-cvs-comment-history):
+	* vc-rcs.el (vc-rcs-comment-history):
+	* vc-cvs.el (vc-cvs-comment-history):
 	Inline the code that used to be wash-log.
 
 	* vc-sccs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback)
