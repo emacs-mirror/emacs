@@ -1,3 +1,8 @@
+2008-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Files): Update documentation of
+	w32-get-true-file-attributes.
+
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi, vc-xtra.texi, vc1-xtra.texi: Document the new VC
@@ -6,7 +11,7 @@
 2008-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* killing.texi (Appending Kills): Remove a strangely off-topic index
-	entry.
+	entry "television".
 
 2008-05-07  Eric S. Raymond  <esr@snark.thyrsus.com>
 
