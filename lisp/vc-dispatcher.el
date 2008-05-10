@@ -286,15 +286,16 @@ and is passed 3 arguments: the COMMAND, the FILES and the FLAGS.")
 ;;;###autoload
 (defun vc-do-command (buffer okstatus command file-or-list &rest flags)
   "Execute a slave command, notifying user and checking for errors.
-Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
-current buffer if BUFFER is t.  If the destination buffer is not
-already current, set it up properly and erase it.  The command is
-considered successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore error status, if it is `async', that
-means not to wait for termination of the subprocess; if it is t it means to
-ignore all execution errors).  FILE-OR-LIST is the name of a working file;
-it may be a list of files or be nil (to execute commands that don't expect
-a file name or set of files).  If an optional list of FLAGS is present,
+Output from COMMAND goes to BUFFER, or the current buffer if
+BUFFER is t.  If the destination buffer is not already current,
+set it up properly and erase it.  The command is considered
+successful if its exit status does not exceed OKSTATUS (if
+OKSTATUS is nil, that means to ignore error status, if it is
+`async', that means not to wait for termination of the
+subprocess; if it is t it means to ignore all execution errors).
+FILE-OR-LIST is the name of a working file; it may be a list of
+files or be nil (to execute commands that don't expect a file
+name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename."
   ;; FIXME: file-relative-name can return a bogus result because
   ;; it doesn't look at the actual file-system to see if symlinks
@@ -318,7 +319,7 @@ that is inserted into the command line before the filename."
 		  (and (stringp buffer)
 		       (string= (buffer-name) buffer))
 		  (eq buffer (current-buffer)))
-	(vc-setup-buffer (or buffer "*vc*")))
+	(vc-setup-buffer buffer))
       ;; If there's some previous async process still running, just kill it.
       (let ((oldproc (get-buffer-process (current-buffer))))
         ;; If we wanted to wait for oldproc to finish before doing

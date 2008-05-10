@@ -695,7 +695,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.
 The difference to vc-do-command is that this function always invokes `git'."
-  (apply 'vc-do-command buffer okstatus "git" file-or-list flags))
+  (apply 'vc-do-command (or buffer "*vc*") okstatus "git" file-or-list flags))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."

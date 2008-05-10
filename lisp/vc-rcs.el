@@ -236,12 +236,12 @@ When VERSION is given, perform check for that version."
   ;; do a double take and remember the fact for the future
   (let* ((version (concat "-r" (vc-working-revision file)))
          (status (if (eq vc-rcsdiff-knows-brief 'no)
-                     (vc-do-command nil 1 "rcsdiff" file version)
-                   (vc-do-command nil 2 "rcsdiff" file "--brief" version))))
+                     (vc-do-command "*vc*" 1 "rcsdiff" file version)
+                   (vc-do-command "*vc*" 2 "rcsdiff" file "--brief" version))))
     (if (eq status 2)
         (if (not vc-rcsdiff-knows-brief)
             (setq vc-rcsdiff-knows-brief 'no
-                  status (vc-do-command nil 1 "rcsdiff" file version))
+                  status (vc-do-command "*vc*" 1 "rcsdiff" file version))
           (error "rcsdiff failed"))
       (if (not vc-rcsdiff-knows-brief) (setq vc-rcsdiff-knows-brief 'yes)))
     ;; The workfile is unchanged if rcsdiff found no differences.
@@ -284,7 +284,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 				 nil ".*,v$" t))
 	   (yes-or-no-p "Create RCS subdirectory? ")
 	   (make-directory subdir))
-      (apply 'vc-do-command nil 0 "ci" file
+      (apply 'vc-do-command "*vc*" 0 "ci" file
 	     ;; if available, use the secure registering option
 	     (and (vc-rcs-release-p "5.6.4") "-i")
 	     (concat (if vc-keep-workfiles "-u" "-r") rev)
@@ -362,7 +362,7 @@ whether to remove it."
 	     (setq switches (cons "-f" switches)))
 	(if (and (not rev) old-version)
 	    (setq rev (vc-branch-part old-version)))
-	(apply 'vc-do-command nil 0 "ci" (vc-name file)
+	(apply 'vc-do-command "*vc*" 0 "ci" (vc-name file)
 	       ;; if available, use the secure check-in option
 	       (and (vc-rcs-release-p "5.6.4") "-j")
 	       (concat (if vc-keep-workfiles "-u" "-r") rev)
@@ -394,12 +394,12 @@ whether to remove it."
 	  (if (not (vc-rcs-release-p "5.6.2"))
 	      ;; exit status of 1 is also accepted.
 	      ;; It means that the lock was removed before.
-	      (vc-do-command nil 1 "rcs" (vc-name file)
+	      (vc-do-command "*vc*" 1 "rcs" (vc-name file)
 			     (concat "-u" old-version)))))))))
 
 (defun vc-rcs-find-revision (file rev buffer)
   (apply 'vc-do-command
-	 buffer 0 "co" (vc-name file)
+	 (or buffer "*vc*") 0 "co" (vc-name file)
 	 "-q" ;; suppress diagnostic output
 	 (concat "-p" rev)
 	 (vc-switches 'RCS 'checkout)))
@@ -431,7 +431,7 @@ attempt the checkout for all registered files beneath it."
 		   (vc-rcs-set-default-branch file nil))
 	      ;; now do the checkout
 	      (apply 'vc-do-command
-		     nil 0 "co" (vc-name file)
+		     "*vc*" 0 "co" (vc-name file)
 		     ;; If locking is not strict, force to overwrite
 		     ;; the writable workfile.
 		     (if (eq (vc-rcs-checkout-model (list file)) 'implicit) "-f")
@@ -484,7 +484,7 @@ expanded to all regidtered subfuiles in them."
 					   discard file)))
 		(error "Aborted"))
 	    (message "Removing revision %s from %s." discard file)
-	    (vc-do-command nil 0 "rcs" (vc-name file) (concat "-o" discard))
+	    (vc-do-command "*vc*" 0 "rcs" (vc-name file) (concat "-o" discard))
 	    ;; Check out the most recent remaining version.  If it
 	    ;; fails, because the whole branch got deleted, do a
 	    ;; double-take and check out the version where the branch
@@ -492,7 +492,7 @@ expanded to all regidtered subfuiles in them."
 	    (while (not done)
 	      (condition-case err
 		  (progn
-		    (vc-do-command nil 0 "co" (vc-name file) "-f"
+		    (vc-do-command "*vc*" 0 "co" (vc-name file) "-f"
 				   (concat "-u" previous))
 		    (setq done t))
 		(error (set-buffer "*vc*")
@@ -512,14 +512,14 @@ expanded to all regidtered subfuiles in them."
 revert all registered files beneath it."
   (if (file-directory-p file)
       (mapc 'vc-rcs-revert (vc-expand-dirs (list file)))
-    (vc-do-command nil 0 "co" (vc-name file) "-f"
+    (vc-do-command "*vc*" 0 "co" (vc-name file) "-f"
 		   (concat (if (eq (vc-state file) 'edited) "-u" "-r")
 			   (vc-working-revision file)))))
 
 (defun vc-rcs-merge (file first-version &optional second-version)
   "Merge changes into current working copy of FILE.
 The changes are between FIRST-VERSION and SECOND-VERSION."
-  (vc-do-command nil 1 "rcsmerge" (vc-name file)
+  (vc-do-command "*vc*" 1 "rcsmerge" (vc-name file)
 		 "-kk"			; ignore keyword conflicts
 		 (concat "-r" first-version)
 		 (if second-version (concat "-r" second-version))))
@@ -530,16 +530,16 @@ If FUILEis a directory, steal the lock on all registered files beneath it.
 Needs RCS 5.6.2 or later for -M."
   (if (file-directory-p file)
       (mapc 'vc-rcs-steal-lock (vc-expand-dirs (list file)))
-    (vc-do-command nil 0 "rcs" (vc-name file) "-M" (concat "-u" rev))
+    (vc-do-command "*vc*" 0 "rcs" (vc-name file) "-M" (concat "-u" rev))
     ;; Do a real checkout after stealing the lock, so that we see
     ;; expanded headers.
-    (vc-do-command nil 0 "co" (vc-name file) "-f" (concat "-l" rev))))
+    (vc-do-command "*vc*" 0 "co" (vc-name file) "-f" (concat "-l" rev))))
 
 (defun vc-rcs-modify-change-comment (files rev comment)
   "Modify the change comments change on FILES on a specified REV.  If FILE is a
 directory the operation is applied to all registered files beneath it."
   (dolist (file (vc-expand-dirs files))
-    (vc-do-command nil 0 "rcs" (vc-name file)
+    (vc-do-command "*vc*" 0 "rcs" (vc-name file)
 		   (concat "-m" rev ":" comment))))
 
 
@@ -550,7 +550,7 @@ directory the operation is applied to all registered files beneath it."
 (defun vc-rcs-print-log (files &optional buffer)
   "Get change log associated with FILE.  If FILE is a
 directory the operation is applied to all registered files beneath it."
-  (vc-do-command buffer 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files))))
+  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files))))
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
@@ -792,7 +792,7 @@ systime, or nil if there is none.  Also, reposition point."
 
 (defun vc-rcs-assign-name (file name)
   "Assign to FILE's latest version a given NAME."
-  (vc-do-command nil 0 "rcs" (vc-name file) (concat "-n" name ":")))
+  (vc-do-command "*vc*" 0 "rcs" (vc-name file) (concat "-n" name ":")))
 
 
 ;;;
@@ -1063,18 +1063,18 @@ If the user has not set variable `vc-rcs-release' and it is nil,
 variable `vc-rcs-release' is set to the returned value."
   (or vc-rcs-release
       (setq vc-rcs-release
-	    (or (and (zerop (vc-do-command nil nil "rcs" nil "-V"))
+	    (or (and (zerop (vc-do-command "*vc*" nil "rcs" nil "-V"))
 		     (with-current-buffer (get-buffer "*vc*")
 		       (vc-parse-buffer "^RCS version \\([0-9.]+ *.*\\)" 1)))
 		'unknown))))
 
 (defun vc-rcs-set-non-strict-locking (file)
-  (vc-do-command nil 0 "rcs" file "-U")
+  (vc-do-command "*vc*" 0 "rcs" file "-U")
   (vc-file-setprop file 'vc-checkout-model 'implicit)
   (set-file-modes file (logior (file-modes file) 128)))
 
 (defun vc-rcs-set-default-branch (file branch)
-  (vc-do-command nil 0 "rcs" (vc-name file) (concat "-b" branch))
+  (vc-do-command "*vc*" 0 "rcs" (vc-name file) (concat "-b" branch))
   (vc-file-setprop file 'vc-rcs-default-branch branch))
 
 (defun vc-rcs-parse (&optional buffer)

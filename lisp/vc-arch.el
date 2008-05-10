@@ -426,7 +426,7 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-command (buffer okstatus file &rest flags)
   "A wrapper around `vc-do-command' for use in vc-arch.el."
-  (apply 'vc-do-command buffer okstatus vc-arch-command file flags))
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-arch-command file flags))
 
 (defun vc-arch-init-revision () nil)
 

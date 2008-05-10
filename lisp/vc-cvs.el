@@ -695,7 +695,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
   "A wrapper around `vc-do-command' for use in vc-cvs.el.
 The difference to vc-do-command is that this function always invokes `cvs',
 and that it passes `vc-cvs-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "cvs" files
+  (apply 'vc-do-command (or buffer "*vc*") okstatus "cvs" files
          (if (stringp vc-cvs-global-switches)
              (cons vc-cvs-global-switches flags)
            (append vc-cvs-global-switches

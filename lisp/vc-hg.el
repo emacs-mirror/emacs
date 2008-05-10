@@ -551,7 +551,7 @@ REV is the revision to check out into WORKFILE."
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 The difference to vc-do-command is that this function always invokes `hg',
 and that it passes `vc-hg-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "hg" file-or-list
+  (apply 'vc-do-command (or buffer "*vc*") okstatus "hg" file-or-list
          (if (stringp vc-hg-global-switches)
              (cons vc-hg-global-switches flags)
            (append vc-hg-global-switches

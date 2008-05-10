@@ -180,7 +180,7 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of `vc-workfile-unchanged-p'."
-  (zerop (apply 'vc-do-command nil 1 "vcdiff" (vc-name file)
+  (zerop (apply 'vc-do-command "*vc*" 1 "vcdiff" (vc-name file)
                 (list "--brief" "-q"
                       (concat "-r" (vc-working-revision file))))))
 
@@ -192,7 +192,7 @@ For a description of possible values, see `vc-check-master-templates'."
 (defun vc-sccs-do-command (buffer okstatus command file-or-list &rest flags)
   ;; (let ((load-path (append vc-sccs-path load-path)))
   ;;   (apply 'vc-do-command buffer okstatus command file-or-list flags))
-  (apply 'vc-do-command buffer okstatus "sccs" file-or-list command flags))
+  (apply 'vc-do-command (or buffer "*vc*") okstatus "sccs" file-or-list command flags))
 
 (defun vc-sccs-create-repo ()
   "Create a new SCCS repository."

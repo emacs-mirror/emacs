@@ -92,7 +92,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
          (list* "BZR_PROGRESS_BAR=none" ; Suppress progress output (bzr >=0.9)
                 "LC_MESSAGES=C"         ; Force English output
                 process-environment)))
-    (apply 'vc-do-command buffer okstatus vc-bzr-program
+    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command args)))
 
 

@@ -208,8 +208,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
-  (vc-do-command nil 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command nil 0 "svn" '(".")
+  (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
+  (vc-do-command "*vc*" 0 "svn" '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
@@ -389,17 +389,17 @@ or svn+ssh://."
 	;; Repository Root is a local file.
 	(progn
 	  (unless (vc-do-command
-		   nil 0 "svnadmin" nil
+		   "*vc*" 0 "svnadmin" nil
 		   "setlog" "--bypass-hooks" directory 
 		   "-r" rev (format "%s" tempfile))
 	    (error "Log edit failed"))
 	  (delete-file tempfile))
 
       ;; Remote repository, using svn+ssh.
-      (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
+      (unless (vc-do-command "*vc*" 0 "scp" nil "-q" tempfile remotefile)
 	(error "Copy of comment to %s failed" remotefile))
       (unless (vc-do-command
-	       nil 0 "ssh" nil "-q" host
+	       "*vc*" 0 "ssh" nil "-q" host
 	       (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s"
 		       directory rev tempfile tempfile))
 	(error "Log edit failed")))))
@@ -517,7 +517,7 @@ NAME is assumed to be a URL."
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus vc-svn-program file-or-list
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
          (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
            (append vc-svn-global-switches
@@ -624,10 +624,6 @@ information about FILENAME and return its status."
 	   (vc-file-setprop file 'vc-state 'removed))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
-
-(defun vc-svn-dir-state-heuristic (dir)
-  "Find the SVN state of all files in DIR, using only local information."
-  (vc-svn-dir-state dir 'local))
 
 (defun vc-svn-valid-symbolic-tag-name-p (tag)
   "Return non-nil if TAG is a valid symbolic tag name."

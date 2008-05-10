@@ -533,13 +533,13 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
 			(append vc-mcvs-global-switches flags)))))
     (if (not (member (car flags) '("diff" "log" "status")))
 	;; No need to filter: do it the easy way.
-	(apply 'vc-do-command buffer okstatus "mcvs" file args)
+	(apply 'vc-do-command (or buffer "*vc*") okstatus "mcvs" file args)
       ;; We need to filter the output.
       ;; The output of the filter uses filenames relative to the root,
       ;; so we need to change the default-directory.
       ;; (assert (equal default-directory (vc-mcvs-root file)))
       (vc-do-command
-       buffer okstatus "sh" nil "-c"
+       (or buffer "*vc*") okstatus "sh" nil "-c"
        (concat "mcvs "
 	       (mapconcat
 		'shell-quote-argument
