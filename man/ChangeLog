@@ -1,7 +1,12 @@
+2008-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Files): Update the documentation of
+	w32-get-true-file-attributes.
+
 2008-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* killing.texi (Appending Kills): Remove a strangely off-topic index
-	entry.
+	entry "television".
 
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
