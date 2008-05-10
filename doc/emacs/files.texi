@@ -1627,7 +1627,7 @@ line in the directory of the selected buffer.
 you will notice is in the directory mode. Other than @kbd{C-x v v}, most
 VC-mode commands once operated on only one file selected by the line
 the cursor is on.  The change in the behavior of @kbd{C-x v v} outside
-VC directory mode is more subtle.  Formerly it operated in parallel on all
+VC Directory Mode is more subtle.  Formerly it operated in parallel on all
 marked files, but did not pass them to the version-control backends as
 a group.  Now it does, which enables VC to drive changeset-based
 version-control systems.
@@ -1807,12 +1807,12 @@ the revision control log.
   In the @samp{*VC-Log*} buffer, @kbd{C-c C-f} (@kbd{M-x
 log-edit-show-files}) shows the list of files to be committed in case
 you need to check that.  (This can be a list of more than one file if
-you use VC directory mode or PCL-CVS.)
+you use VC Directory Mode or PCL-CVS.)
 @iftex
-@xref{VC directory mode,,,emacs-xtra, Specialized Emacs Features},
+@xref{VC Directory Mode,,,emacs-xtra, Specialized Emacs Features},
 @end iftex
 @ifnottex
-@xref{VC directory mode},
+@xref{VC Directory Mode},
 @end ifnottex
 and @ref{Top, , About PCL-CVS, pcl-cvs, PCL-CVS --- The Emacs
 Front-End to CVS}.)
@@ -1831,7 +1831,7 @@ convenient to specify the same log entry for many of the files.  (This
 is the normal way to do things on a changeset-oriented system, where
 comments are attached to changesets rather than the history of
 individual files.)  The most convenient way to do this is to mark all the
-files in VC directory mode and check in from there; the log buffer will
+files in VC Directory Mode and check in from there; the log buffer will
 carry the fileset information with it and do a group commit when you
 confirm it with @kbd{C-c C-c}.
 
