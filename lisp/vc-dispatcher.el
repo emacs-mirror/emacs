@@ -120,7 +120,6 @@
 ;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
 ;;
 
-(require 'vc-hooks)
 (require 'ewoc)
 
 (eval-when-compile
