@@ -2353,12 +2353,18 @@ the truename of a file can be slow.  */);
 #endif
 
   DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
-	       doc: /* Non-nil means determine accurate link count in `file-attributes'.
-This option is only useful for files on NTFS volumes, where
-hard links are supported.  The default value `local' means only do
-this for files on local harddrives.  Any other non-nil value means do
-this even on remote and removable drives where the performance impact
-may be noticeable even on modern hardware.  */);
+	       doc: /* Non-nil means determine accurate file attributes in `file-attributes'.
+This option controls whether to issue additional system calls to determine
+accurate link counts, file type, and ownership information.  It is only
+useful for files on NTFS volumes, where hard links and file security are
+supported.
+
+Without these system calls, link count will always be reported as 1 and file
+ownership will be attributed to the current user.
+The default value `local' means only issue these system calls for files
+on local fixed drives.  A value of nil means never issue them.
+Any other non-nil value means do this even on remote and removable drives
+where the performance impact may be noticeable even on modern hardware.  */);
   Vw32_get_true_file_attributes = Qlocal;
 
   staticpro (&Vw32_valid_locale_ids);
