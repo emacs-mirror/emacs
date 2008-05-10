@@ -1,3 +1,10 @@
+2008-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (syms_of_ntproc) <w32-get-true-file-attributes>: Doc fix.
+
+	* w32.c (stat): Fix test of Vw32_get_true_file_attributes against
+	the value returned by GetDriveType.
+
 2008-05-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [USE_MAC_IMAGE_IO] (image_load_image_io):
