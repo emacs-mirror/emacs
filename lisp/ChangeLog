@@ -1,3 +1,7 @@
+2008-05-10  Reiner Steib  <reiner.steib@gmx.de>
+
+	* smerge-mode.el (smerge-command-prefix): Fix custom type.
+
 2008-05-05  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-read-date-get-relative): Interpret lone

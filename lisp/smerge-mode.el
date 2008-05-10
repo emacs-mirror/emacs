@@ -155,7 +155,10 @@ Used in `smerge-diff-base-mine' and related functions."
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
   :group 'smerge
-  :type '(choice (string "\e") (string "\C-c^") (string "") string))
+  :type '(choice (const :tag "ESC"   "\e")
+		 (const :tag "C-c ^" "\C-c^" )
+		 (const :tag "none"  "")
+		 string))
 
 (easy-mmode-defmap smerge-mode-map
   `((,smerge-command-prefix . ,smerge-basic-map))
