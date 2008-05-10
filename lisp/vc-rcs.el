@@ -188,14 +188,21 @@ For a description of possible values, see `vc-check-master-templates'."
         (vc-rcs-state file)))))
 
 (defun vc-rcs-dir-status (dir update-function)
-  ;; Doing individual vc-state calls is painful but tgere
-  ;; is no better way in RCS-land. 
+  ;; FIXME: this function should be rewritten or `vc-expand-dirs'
+  ;; should be changed to take a backend parameter.  Using
+  ;; `vc-expand-dirs' is not TRTD because it returns files from
+  ;; multiple backends.  It should also return 'unregistered files.
+
+  ;; Doing individual vc-state calls is painful but there
+  ;; is no better way in RCS-land.
   (let ((flist (vc-expand-dirs (list dir)))
 	(result nil))
     (dolist (file flist)
       (let ((state (vc-state file))
 	    (frel (file-relative-name file)))
-	(push (list frel state) result)))
+	(when (and (eq (vc-backend file) 'RCS)
+		   (not (eq state 'up-to-date)))
+	  (push (list frel state) result))))
     (funcall update-function result)))
 
 (defun vc-rcs-working-revision (file)

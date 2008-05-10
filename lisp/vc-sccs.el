@@ -152,14 +152,20 @@ For a description of possible values, see `vc-check-master-templates'."
     (vc-sccs-state file)))
 
 (defun vc-sccs-dir-status (dir update-function)
-  ;; Doing lots of individual VC-state calls is painful, but 
+  ;; FIXME: this function should be rewritten, using `vc-expand-dirs'
+  ;; is not TRTD because it returns files from multiple backends.
+  ;; It should also return 'unregistered files.
+
+  ;; Doing lots of individual VC-state calls is painful, but
   ;; there is no better option in SCCS-land.
   (let ((flist (vc-expand-dirs (list dir)))
 	(result nil))
     (dolist (file flist)
       (let ((state (vc-state file))
 	    (frel (file-relative-name file)))
-	(push (list frel state) result)))
+	(when (and (eq (vc-backend file) 'SCCS)
+		   (not (eq state 'up-to-date)))
+	  (push (list frel state) result))))
     (funcall update-function result)))
 
 (defun vc-sccs-working-revision (file)

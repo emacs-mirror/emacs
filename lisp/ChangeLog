@@ -1,5 +1,9 @@
 2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-sccs.el (vc-sccs-dir-status):
+	* vc-rcs.el (vc-rcs-dir-status): Avoid using results from multiple
+	backends and returning up to date files.
+
 	* vc-hooks.el (vc-prefix-map): Remove duplicate binding.
 
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
