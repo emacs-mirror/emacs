@@ -377,7 +377,9 @@ If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself.
 ID-FORMAT specifies the preferred format of attributes uid and gid, see
-`file-attributes' for further documentation. */)
+`file-attributes' for further documentation.
+On MS-Windows, performance depends on `w32-get-true-file-attributes',
+which see.  */)
      (directory, full, match, nosort, id_format)
      Lisp_Object directory, full, match, nosort, id_format;
 {
@@ -958,7 +960,10 @@ Elements of the attribute list are:
   is wider than 32 bits, this is a cons cell containing three integers:
   first the high 24 bits, then middle 24 bits, and finally the low 16 bits.
 11. Device number.  If it is larger than the Emacs integer, this is
-  a cons cell, similar to the inode number.  */)
+  a cons cell, similar to the inode number.
+
+On MS-Windows, performance depends on `w32-get-true-file-attributes',
+which see.  */)
      (filename, id_format)
      Lisp_Object filename, id_format;
 {
