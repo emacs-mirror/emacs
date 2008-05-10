@@ -1,3 +1,7 @@
+2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-diff, vc-hg-annotate-command): Use when not if.
+
 2008-05-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/w32-win.el (x-colors):

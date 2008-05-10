@@ -32,7 +32,7 @@
 
 ;;; Todo:
 
-;; Implement the rest of the vc interface. See the comment at the
+;; 1) Implement the rest of the vc interface. See the comment at the
 ;; beginning of vc.el. The current status is:
 
 ;; FUNCTION NAME                               STATUS
@@ -41,7 +41,7 @@
 ;; STATE-QUERYING FUNCTIONS
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
-;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
+;; - state-heuristic (file)                    NOT NEEDED
 ;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (files)                    OK
@@ -51,30 +51,30 @@
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
-;; - init-revision ()                           NOT NEEDED
+;; - init-revision ()                          NOT NEEDED
 ;; - responsible-p (file)                      OK
 ;; - could-register (file)                     OK
 ;; - receive-file (file rev)                   ?? PROBABLY NOT NEEDED
 ;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
 ;; * checkin (files rev comment)               OK
-;; * find-revision (file rev buffer)            OK
+;; * find-revision (file rev buffer)           OK
 ;; * checkout (file &optional editable rev)    OK
 ;; * revert (file &optional contents-done)     OK
 ;; - rollback (files)                          ?? PROBABLY NOT NEEDED
 ;; - merge (file rev1 rev2)                    NEEDED
 ;; - merge-news (file)                         NEEDED
-;; - steal-lock (file &optional revision)       NOT NEEDED
+;; - steal-lock (file &optional revision)      NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)        OK
 ;; - log-view-mode ()                          OK
-;; - show-log-entry (revision)                  NOT NEEDED, DEFAULT IS GOOD
+;; - show-log-entry (revision)                 NOT NEEDED, DEFAULT IS GOOD
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK
 ;; - revision-completion-table (files)         OK?
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
-;; - annotate-current-time ()                  ?? NOT NEEDED
+;; - annotate-current-time ()                  NOT NEEDED
 ;; - annotate-extract-revision-at-line ()      OK
 ;; SNAPSHOT SYSTEM
 ;; - create-snapshot (dir name branchp)        NEEDED (probably branch?)
@@ -83,8 +83,8 @@
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ??
-;; - previous-revision (file rev)               OK
-;; - next-revision (file rev)                   OK
+;; - previous-revision (file rev)              OK
+;; - next-revision (file rev)                  OK
 ;; - check-headers ()                          ??
 ;; - clear-headers ()                          ??
 ;; - delete-file (file)                        TEST IT
@@ -92,7 +92,7 @@
 ;; - find-file-hook ()                         PROBABLY NOT NEEDED
 ;; - find-file-not-found-hook ()               PROBABLY NOT NEEDED
 
-;; Implement Stefan Monnier's advice:
+;; 2) Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state
 ;; Both of those functions should be super extra careful to fail gracefully in
 ;; unexpected circumstances. The reason this is important is that any error
@@ -253,19 +253,19 @@
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
   (let ((working (vc-working-revision (car files))))
-    (if (and (equal oldvers working) (not newvers))
-	(setq oldvers nil))
-    (if (and (not oldvers) newvers)
-	(setq oldvers working))
+    (when (and (equal oldvers working) (not newvers))
+      (setq oldvers nil))
+    (when (and (not oldvers) newvers)
+      (setq oldvers working))
     (apply #'vc-hg-command (or buffer "*vc-diff*") nil
 	   (mapcar (lambda (file) (file-name-nondirectory file)) files)
 	   "--cwd" (file-name-directory (car files))
 	   "diff"
 	   (append
-	    (if oldvers
-		(if newvers
-		    (list "-r" oldvers "-r" newvers)
-		  (list "-r" oldvers)))))))
+	    (when oldvers
+	      (if newvers
+		  (list "-r" oldvers "-r" newvers)
+		(list "-r" oldvers)))))))
 
 (defun vc-hg-revision-table (files)
   (let ((default-directory (file-name-directory (car files))))
@@ -285,7 +285,8 @@
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if revision (concat "-r" revision)))
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n" 
+		 (when revision (concat "-r" revision)))
   (with-current-buffer buffer
     (goto-char (point-min))
     (re-search-forward "^[0-9]")
