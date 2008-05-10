@@ -117,8 +117,6 @@
 ;;
 ;; - vc-dir toolbar needs more icons.
 ;;
-;; - add commands to move to the prev/next directory in vc-dir.
-;;
 ;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
 ;;
 
@@ -743,6 +741,11 @@ See `run-hooks'."
     (define-key map "\t" 'vc-dir-next-line)
     (define-key map "p" 'vc-dir-previous-line)
     (define-key map [backtab] 'vc-dir-previous-line)
+    ;;; Rebind paragraph-movement commands.
+    (define-key map "\M-}" 'vc-dir-next-directory)
+    (define-key map "\M-{" 'vc-dir-prev-directory)
+    (define-key map "\M-<down>" 'vc-dir-next-directory)
+    (define-key map "\M-<up>" 'vc-dir-prev-directory)
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
     (define-key map "\C-m" 'vc-dir-find-file)
@@ -929,6 +932,42 @@ If a prefix argument is given, move by that many lines."
   (interactive "p")
   (ewoc-goto-prev vc-ewoc arg)
   (vc-dir-move-to-goal-column))
+
+(defun vc-dir-next-directory ()
+  "Go to the next directory."
+  (interactive)
+  (let ((orig (point)))
+    (if 
+	(catch 'foundit
+	  (while t
+	    (let* ((next (ewoc-next vc-ewoc (ewoc-locate vc-ewoc))))
+	      (cond ((not next)
+		     (throw 'foundit t))
+		    (t
+		     (progn
+		       (ewoc-goto-node vc-ewoc next)
+		       (vc-dir-move-to-goal-column)
+		       (if (vc-dir-fileinfo->directory (ewoc-data next))
+			   (throw 'foundit nil))))))))
+	(goto-char orig))))
+
+(defun vc-dir-prev-directory ()
+  "Go to the previous directory."
+  (interactive)
+  (let ((orig (point)))
+    (if 
+	(catch 'foundit
+	  (while t
+	    (let* ((prev (ewoc-prev vc-ewoc (ewoc-locate vc-ewoc))))
+	      (cond ((not prev)
+		     (throw 'foundit t))
+		    (t
+		     (progn
+		       (ewoc-goto-node vc-ewoc prev)
+		       (vc-dir-move-to-goal-column)
+		       (if (vc-dir-fileinfo->directory (ewoc-data prev))
+			   (throw 'foundit nil))))))))
+	(goto-char orig))))
 
 (defun vc-dir-mark-unmark (mark-unmark-function)
   (if (use-region-p)

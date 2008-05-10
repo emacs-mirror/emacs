@@ -1,3 +1,8 @@
+2008-05-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el (vc-dir-next-directory, vc-dir-prev-directory):
+	New functions implementing motion to next and previous directory.
+
 2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Update todo.
