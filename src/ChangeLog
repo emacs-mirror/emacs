@@ -1,3 +1,7 @@
+2008-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (syms_of_ntproc) <w32-get-true-file-attributes>: Doc fix.
+
 2008-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Fread_file_name): Remove reference to insdef, deleted
