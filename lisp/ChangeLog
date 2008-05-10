@@ -1,3 +1,9 @@
+2008-05-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/w32-win.el (x-colors):
+	* term/mac-win.el (x-colors):
+	* term/x-win.el (x-colors): Re-order colors.
+
 2008-05-10  Reiner Steib  <reiner.steib@gmx.de>
 
 	* smerge-mode.el (smerge-command-prefix): Fix custom type.
@@ -15,7 +21,7 @@
 	vc-hg.el (vc-hg-command),
 	vc-mcvs.el (vc-mvcs-command),
 	vc-mtn.el (vc-mtn-command),
-	vc-sccs.el (vc-sccs-command, vc-sccs-workfile, 
+	vc-sccs.el (vc-sccs-command, vc-sccs-workfile,
 	vc-sccs-workfile-unchanged-p),
 	vc-svn.el (vc-svn-command, vc-svn-create-repo),
 	vc-rcs.el (all methods):
