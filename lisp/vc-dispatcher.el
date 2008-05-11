@@ -1,4 +1,4 @@
-7;;; vc-dispatcher.el -- generic command-dispatcher facility.
+;;; vc-dispatcher.el -- generic command-dispatcher facility.
 
 ;; Copyright (C) 2008
 ;;   Free Software Foundation, Inc.
