@@ -1029,16 +1029,6 @@ the common state of the fileset.  Return (BACKEND . FILESET)."
       (unless (vc-backend buffer-file-name)
 	(error "File %s is not under version control" buffer-file-name))))))
 
-(defun vc-buffer-sync (&optional not-urgent)
-  "Make sure the current buffer and its working file are in sync.
-NOT-URGENT means it is ok to continue if the user says not to save."
-  (when (buffer-modified-p)
-    (if (or vc-suppress-confirm
-	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
-	(save-buffer)
-      (unless not-urgent
-	(error "Aborted")))))
-
 ;;; Support for the C-x v v command.
 ;; This is where all the single-file-oriented code from before the fileset
 ;; rewrite lives.
@@ -3269,21 +3259,6 @@ The annotations are relative to the current time, unless overridden by OFFSET."
   ;; Pretend to font-lock there were no matches.
   nil)
 
-
-;; Set up key bindings for use while editing log messages
-
-(defun vc-log-edit (fileset)
-  "Set up `log-edit' for use with VC on FILE."
-  (setq default-directory
-	(with-current-buffer vc-parent-buffer default-directory))
-  (log-edit 'vc-finish-logentry
-	    nil
-	    `((log-edit-listfun . (lambda () ',fileset))
-	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
-  (set (make-local-variable 'vc-log-fileset) fileset)
-  (make-local-variable 'vc-log-revision)
-  (set-buffer-modified-p nil)
-  (setq buffer-file-name nil))
 
 ;; These things should probably be generally available
 

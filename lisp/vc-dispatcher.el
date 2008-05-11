@@ -1,4 +1,4 @@
-;;; vc-dispatcher.el -- generic command-dispatcher facility.
+7;;; vc-dispatcher.el -- generic command-dispatcher facility.
 
 ;; Copyright (C) 2008
 ;;   Free Software Foundation, Inc.
@@ -83,7 +83,7 @@
 ;; treat all entries with the same state as the currently selected one as 
 ;; a unit.
 
-;; The interface
+;; The interface:
 ;;
 ;; The main interface to the lower level is vc-do-command.  This launches a
 ;; comand, synchronously or asynchronously, making the output available
@@ -125,9 +125,6 @@
 (eval-when-compile
   (require 'cl))
 
-(declare-function vc-log-edit "vc" (fileset))
-(declare-function vc-buffer-sync "vc" (&optional not-urgent))
-
 ;; General customization
 
 (defcustom vc-logentry-check-hook nil
@@ -161,6 +158,7 @@ preserve the setting."
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-log-fileset)
 (defvar vc-log-extra)
+(defvar vc-client-mode
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
@@ -508,7 +506,32 @@ editing!"
 	  (vc-resynch-window file keep noquery)))))
   (vc-directory-resynch-file file))
 
+(defun vc-buffer-sync (&optional not-urgent)
+  "Make sure the current buffer and its working file are in sync.
+NOT-URGENT means it is ok to continue if the user says not to save."
+  (when (buffer-modified-p)
+    (if (or vc-suppress-confirm
+	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
+	(save-buffer)
+      (unless not-urgent
+	(error "Aborted")))))
+
 ;; Command closures
+
+;; Set up key bindings for use while editing log messages
+
+(defun vc-log-edit (fileset)
+  "Set up `log-edit' for use with VC on FILE."
+  (setq default-directory
+	(with-current-buffer vc-parent-buffer default-directory))
+  (log-edit 'vc-finish-logentry
+	    nil
+	    `((log-edit-listfun . (lambda () ',fileset))
+	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
+  (set (make-local-variable 'vc-log-fileset) fileset)
+  (make-local-variable 'vc-log-extra)
+  (set-buffer-modified-p nil)
+  (setq buffer-file-name nil))
 
 (defun vc-start-logentry (files extra comment initial-contents msg action &optional after-hook)
   "Accept a comment for an operation on FILES with extra data EXTRA.
