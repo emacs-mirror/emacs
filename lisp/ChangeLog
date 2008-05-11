@@ -1,3 +1,7 @@
+2008-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-hunk-header-re): Refine the regexp.
+
 2008-05-11  Juri Linkov  <juri@jurta.org>
 
 	* wid-edit.el (widget-image-directory): Change default image data
