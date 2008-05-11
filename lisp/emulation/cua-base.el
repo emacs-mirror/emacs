@@ -1151,6 +1151,7 @@ If ARG is the atom `-', scroll downward by nearly full screen."
       (end-of-buffer (goto-char (point-max)))))))
 
 (put 'cua-scroll-up 'CUA 'move)
+(put 'cua-scroll-up 'isearch-scroll t)
 
 (defun cua-scroll-down (&optional arg)
   "Scroll text of current window downward ARG lines; or near full screen if no ARG.
@@ -1171,6 +1172,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
       (beginning-of-buffer (goto-char (point-min)))))))
 
 (put 'cua-scroll-down 'CUA 'move)
+(put 'cua-scroll-down 'isearch-scroll t)
 
 ;;; Cursor indications
 
