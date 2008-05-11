@@ -20,23 +20,23 @@
 	* vc-dispatcher.el (vc-dir-next-directory, vc-dir-prev-directory):
 	New functions implementing motion to next and previous directory.
 
-	* vc-arch.el (vc-arch-command),
-	vc-bzr.el (vc-bzr-command),
-	vc-cvs.el (vc-cvs-command),
-	vc-dispatcher.el (vc-do-command),
-	vc-git.el (vc-git-command),
-	vc-hg.el (vc-hg-command),
-	vc-mcvs.el (vc-mvcs-command),
-	vc-mtn.el (vc-mtn-command),
-	vc-sccs.el (vc-sccs-command, vc-sccs-workfile,
-	vc-sccs-workfile-unchanged-p),
-	vc-svn.el (vc-svn-command, vc-svn-create-repo),
-	vc-rcs.el (all methods):
-	Remove assumption about what a nil argument to vc-do-command
-	means.  This means no buffer name needs to be hardcoded into the
-	dispatcher layer, and it's better to be explicit anyway.
+	* vc-arch.el (vc-arch-command):
+	* vc-bzr.el (vc-bzr-command):
+	* vc-cvs.el (vc-cvs-command):
+	* vc-dispatcher.el (vc-do-command):
+	* vc-git.el (vc-git-command):
+	* vc-hg.el (vc-hg-command):
+	* vc-mcvs.el (vc-mvcs-command):
+	* vc-mtn.el (vc-mtn-command):
+	* vc-sccs.el (vc-sccs-command, vc-sccs-workfile)
+	(vc-sccs-workfile-unchanged-p):
+	* vc-svn.el (vc-svn-command, vc-svn-create-repo),
+	* vc-rcs.el (all methods): Remove assumption about what a nil
+	argument to vc-do-command means.  This means no buffer name needs
+	to be hardcoded into the dispatcher layer, and it's better to be
+	explicit anyway.
 
-	vc-svn.el (vc-svn-dir-state-heuristic): Removed.
+	* vc-svn.el (vc-svn-dir-state-heuristic): Remove.
 
 2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
