@@ -138,7 +138,11 @@ With prefix arg HERE, insert it at point."
   (when (featurep 'org)
     (org-load-modules-maybe 'force)))
 
-(defcustom org-modules '(org-bbdb org-bibtex org-gnus org-info org-infojs org-irc org-mew org-mhe org-rmail org-vm org-wl)
+(when (org-bound-and-true-p org-modules)
+  (let ((a (member 'org-infojs org-modules)))
+    (and a (setcar a 'org-jsinfo))))
+
+(defcustom org-modules '(org-bbdb org-bibtex org-gnus org-info org-jsinfo org-irc org-mew org-mhe org-rmail org-vm org-wl)
   "Modules that should always be loaded together with org.el.
 If a description starts with <C>, the file is not part of Emacs
 and loading it will require that you have downloaded and properly installed
@@ -158,7 +162,7 @@ to add the symbol `xyz', and the package must have a call to
 	(const :tag "   bibtex:            Links to BibTeX entries" org-bibtex)
 	(const :tag "   gnus:              Links to GNUS folders/messages" org-gnus)
 	(const :tag "   info:              Links to Info nodes" org-info)
-	(const :tag "   infojs:            Set up Sebastian Rose's JavaScript org-info.js" org-infojs)
+	(const :tag "   jsinfo:            Set up Sebastian Rose's JavaScript org-info.js" org-jsinfo)
 	(const :tag "   irc:               Links to IRC/ERC chat sessions" org-irc)
 	(const :tag "   mac-message:       Links to messages in Apple Mail" org-mac-message)
 	(const :tag "   mew                Links to Mew folders/messages" org-mew)
