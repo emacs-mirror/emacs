@@ -599,7 +599,7 @@ respectively."
 ;;; Images.
 
 (defcustom widget-image-directory (file-name-as-directory
-				   (expand-file-name "custom" data-directory))
+				   (expand-file-name "images/custom" data-directory))
   "Where widget button images are located.
 If this variable is nil, widget will try to locate the directory
 automatically."
