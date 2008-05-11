@@ -1228,7 +1228,8 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 If no conflict maker is found, turn off `smerge-mode'."
   (smerge-mode 1)
   (condition-case nil
-      (smerge-next)
+      (unless (looking-at smerge-begin-re)
+        (smerge-next))
     (error (smerge-auto-leave))))
 
 (provide 'smerge-mode)
