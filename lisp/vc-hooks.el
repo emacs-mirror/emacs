@@ -531,12 +531,11 @@ For registered files, the value returned is one of:
 
 A return of nil from this function means we have no information on the
 status of this file."
-  ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
-  ;; This is potentially a source of backward-compatibility bugs.
+  ;; Note: in Emacs 22 and older, return of nil meant the file was
+  ;; unregistered.  This is potentially a source of
+  ;; backward-compatibility bugs.
 
   ;; FIXME: New (sub)states needed (?):
-  ;; - `conflict' (i.e. `edited' with conflict markers)
-  ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
       (when (> (length file) 0)
@@ -545,12 +544,6 @@ status of this file."
             (vc-file-setprop
              file 'vc-state
              (vc-call-backend backend 'state-heuristic file)))))))
-
-(defun vc-recompute-state (file)
-  "Recompute the version control state of FILE, and return it.
-This calls the possibly expensive function vc-BACKEND-state,
-rather than the heuristic."
-  (vc-file-setprop file 'vc-state (vc-call state file)))
 
 (defsubst vc-up-to-date-p (file)
   "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
