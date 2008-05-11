@@ -1,3 +1,11 @@
+2008-05-11  Juri Linkov  <juri@jurta.org>
+
+	* images/custom/README:
+	* images/custom/down.xpm:
+	* images/custom/down-pushed.xpm:
+	* images/custom/right.xpm:
+	* images/custom/right-pushed.xpm: New files.
+
 2008-05-07  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* NEWS: Support for Meta-CVS removed.
