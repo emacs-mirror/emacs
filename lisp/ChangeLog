@@ -1,3 +1,17 @@
+2008-05-11  Juri Linkov  <juri@jurta.org>
+
+	* wid-edit.el (widget-image-directory): Change default image data
+	subdirectory from "custom" to "images/custom".
+
+	* info.el (Info-next-preorder): Let-bind `Info-history' to nil
+	before recursive call to `Info-next-preorder' to not add
+	intermediate nodes to the history.
+
+	* isearch.el: Put isearch-scroll property on recenter-top-bottom.
+
+	* emulation/cua-base.el: Put isearch-scroll property
+	on cua-scroll-up and cua-scroll-down.
+
 2008-05-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-hooks.el (vc-recompute-state): Removed (dead code).
