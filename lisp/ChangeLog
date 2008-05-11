@@ -1,5 +1,9 @@
 2008-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-bzr.el (vc-bzr-sha1, vc-bzr-command-discarding-stderr)
+	(vc-bzr-revision-completion-table): Use process-file.
+	(vc-bzr-working-revision): Pass relative file names.
+
 	* diff-mode.el (diff-hunk-header-re): Refine the regexp.
 
 2008-05-11  Juri Linkov  <juri@jurta.org>
@@ -18,7 +22,7 @@
 
 2008-05-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-hooks.el (vc-recompute-state): Removed (dead code).
+	* vc-hooks.el (vc-recompute-state): Remove (dead code).
 
 2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
 

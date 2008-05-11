@@ -134,7 +134,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
       (when (consp prog)
 	(setq args (cdr prog))
         (setq prog (car prog)))
-      (apply 'call-process prog file t nil args)
+      (apply 'process-file prog (file-relative-name file) t nil args)
       (buffer-substring (point-min) (+ (point-min) 40)))))
 
 (defun vc-bzr-state-heuristic (file)
@@ -342,7 +342,7 @@ If any error occurred in running `bzr status', then return nil."
       ;; fallback to calling "bzr revno"
       (lexical-let*
           ((result (vc-bzr-command-discarding-stderr
-                    vc-bzr-program "revno" file))
+                    vc-bzr-program "revno" (file-relative-name file)))
            (exitcode (car result))
            (output (cdr result)))
         (cond
@@ -561,7 +561,7 @@ containing whatever the process sent to its standard output
 stream.  Standard error output is discarded."
   (with-temp-buffer
     (cons
-     (apply #'call-process command nil (list (current-buffer) nil) nil args)
+     (apply #'process-file command nil (list (current-buffer) nil) nil args)
      (buffer-substring (point-min) (point-max)))))
 
 (defun vc-bzr-prettify-state-info (file)
@@ -645,7 +645,7 @@ stream.  Standard error output is discarded."
               (table nil))
           (with-temp-buffer
             ;; "bzr-1.2 tags" is much faster with --show-ids.
-            (call-process vc-bzr-program nil '(t) nil "tags" "--show-ids")
+            (process-file vc-bzr-program nil '(t) nil "tags" "--show-ids")
             ;; The output is ambiguous, unless we assume that revids do not
             ;; contain spaces.
             (goto-char (point-min))
