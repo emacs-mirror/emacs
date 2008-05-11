@@ -1,0 +1,17 @@
+/* XPM */
+static char * right_xpm[] = {
+"10 10 4 1",
+" 	c none",
+".	c gray90",
+"X	c gray45",
+"O	c gray75",
+"..        ",
+"....      ",
+"......    ",
+"..OO....  ",
+"..OOOO....",
+"..OOOOXXXX",
+"..OOXXXX  ",
+"..XXXX    ",
+".XXX      ",
+".X        "};
