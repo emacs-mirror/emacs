@@ -552,17 +552,16 @@
 
 ;;; Todo:
 
+;;;; New Primitives:
+;;
 ;; - deal with push/pull operations.
 ;;
-;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
+;; - add a mechanism for editing the underlying VCS's list of files
+;;   to be ignored, when that's possible.
 ;;
-;; - when a file is in `conflict' state, turn on smerge-mode.
+;;;; Improved branch and tag handling:
 ;;
-;; - figure out what to do with conflicts that are not caused by the
-;;   file contents, but by metadata or other causes.  Example: File A
-;;   gets renamed to B in one branch and to C in another and you merge
-;;   the two branches.  Or you locally add file FOO and then pull a
-;;   change that also adds a new file FOO, ...
+;; - "snapshots" should be renamed to "tags", and thoroughly reworked.
 ;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
@@ -572,15 +571,48 @@
 ;;   adapted accordingly.  Also, it considers RCS and CVS to be the same, 
 ;;   which is pretty confusing.
 ;;
+;; - vc-create-snapshot and vc-retrieve-snapshot should update the
+;;   buffers that might be visiting the affected files.
+;;
+;;;; Default Behavior:
+;;
+;; - do not default to RCS anymore when the current directory is not
+;;   controlled by any VCS and the user does C-x v v
+;;
+;; - vc-responsible-backend should not return RCS if no backend
+;;   declares itself responsible.
+;;
+;;;; Internal cleanups:
+;;
+;; - backends that care about vc-stay-local should try to take it into
+;;   account for vc-dir.  Is this likely to be useful???
+;;
+;; - vc-expand-dirs should take a backend parameter and only look for
+;;   files managed by that backend.
+;;
+;; - Another important thing: merge all the status-like backend operations.
+;;   We should remove dir-status, state, and dir-status-files, and
+;;   replace them with just `status' which takes a fileset and a continuation
+;;   (like dir-status) and returns a buffer in which the process(es) are run
+;;   (or nil if it worked synchronously).  Hopefully we can define the old
+;;   4 operations in term of this one.
+;;
+;;;; Other
+;;
+;; - when a file is in `conflict' state, turn on smerge-mode.
+;;
+;; - figure out what to do with conflicts that are not caused by the
+;;   file contents, but by metadata or other causes.  Example: File A
+;;   gets renamed to B in one branch and to C in another and you merge
+;;   the two branches.  Or you locally add file FOO and then pull a
+;;   change that also adds a new file FOO, ...
+;;
 ;; - vc-diff should be able to show the diff for all files in a
 ;;   changeset, especially for VC systems that have per repository
 ;;   version numbers.  log-view should take advantage of this.
 ;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
-;;
-;; - add a mechanism for editing the underlying VCS's list of files
-;;   to be ignored, when that's possible.
 ;;
 ;; - When vc-next-action calls vc-checkin it could pre-fill the
 ;;   *VC-log* buffer with some obvious items: the list of files that
@@ -600,34 +632,12 @@
 ;;   vc-dir, it is possible that these commands are called
 ;;   for unregistered/ignored files.
 ;;
-;; - do not default to RCS anymore when the current directory is not
-;;   controlled by any VCS and the user does C-x v v
-;;
-;; - vc-responsible-backend should not return RCS if no backend
-;;   declares itself responsible.
-;;
-;; - vc-create-snapshot and vc-retrieve-snapshot should update the
-;;   buffers that might be visiting the affected files.
-;;
 ;; - Using multiple backends needs work.  Given a CVS directory with some
 ;;   files checked into git (but not all), using C-x v l to get a log file
 ;;   from a file only present in git, and then typing RET on some log entry,
 ;;   vc will bombs out because it wants to see the file being in CVS.
 ;;   Those logs should likely use a local variable to hardware the VC they
 ;;   are supposed to work with.
-;;
-;; - Another important thing: merge all the status-like backend operations.
-;;   We should remove dir-status, state, and dir-status-files, and
-;;   replace them with just `status' which takes a fileset and a continuation
-;;   (like dir-status) and returns a buffer in which the process(es) are run
-;;   (or nil if it worked synchronously).  Hopefully we can define the old
-;;   4 operations in term of this one.
-;;
-;; - backends that care about vc-stay-local should try to take it into
-;;   account for vc-dir.  Is this likely to be useful???
-;;
-;; - vc-expand-dirs should take a backend parameter and only look for
-;;   files managed by that backend.
 ;;
 
 ;;; Code:
