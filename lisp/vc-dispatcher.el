@@ -158,7 +158,7 @@ preserve the setting."
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-log-fileset)
 (defvar vc-log-extra)
-(defvar vc-client-mode
+(defvar vc-client-mode)
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
