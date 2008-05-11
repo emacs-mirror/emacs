@@ -1,3 +1,8 @@
+2008-05-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org/org.el (org-modules): Repari problems with loading
+	org-jsinfo.org.
+
 2008-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-sha1, vc-bzr-command-discarding-stderr)
