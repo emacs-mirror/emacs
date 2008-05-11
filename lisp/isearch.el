@@ -1653,6 +1653,7 @@ Scroll-bar or mode-line events are processed appropriately."
 
 ;; Commands which scroll the window:
 (put 'recenter 'isearch-scroll t)
+(put 'recenter-top-bottom 'isearch-scroll t)
 (put 'reposition-window 'isearch-scroll t)
 (put 'scroll-up 'isearch-scroll t)
 (put 'scroll-down 'isearch-scroll t)
