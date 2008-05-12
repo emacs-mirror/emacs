@@ -1080,7 +1080,7 @@ filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
    epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   blockinput.h atimer.h systime.h buffer.h character.h fontset.h font.h \
+   blockinput.h atimer.h systime.h buffer.h character.h fontset.h $(FONTSRC) \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h termchar.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \

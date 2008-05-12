@@ -114,7 +114,10 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
     (bold 200)
     (extra-bold 205 extrabold)
     (ultra-bold 210 ultrabold black))
-  "Alist of font weight symbols vs the corresponding numeric values.")
+  "Alist of font weight symbols vs the corresponding numeric values.
+Each element has the form:
+    \(SYMBOLIC-VALUE NUMERIC-VALUE ALISE-SYMBOL ...)
+")
 
 (defconst font-slant-table
   '((reverse-oblique 0 ro)
@@ -122,7 +125,8 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
     (normal 100 r)
     (italic 200 i ot)
     (oblique 210 o))
-  "Alist of font slant symbols vs the corresponding numeric values.")
+  "Alist of font slant symbols vs the corresponding numeric values.
+See `font-weight-table' for the detailed format.")
 
 (defconst font-width-table
   '((ultra-condensed 50 ultracondensed)
@@ -134,7 +138,8 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
     (expanded 125)
     (extra-expanded 150 extraexpanded)
     (ultra-expanded 200 ultraexpanded wide))
-  "Alist of font width symbols vs the corresponding numeric values.")
+  "Alist of font width symbols vs the corresponding numeric values.
+See `font-weight-table' for the detailed format.")
 
 (internal-set-font-style-table
  font-weight-table font-slant-table font-width-table)

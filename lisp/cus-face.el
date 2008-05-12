@@ -86,6 +86,7 @@
 	     (const :tag "ultracondensed" ultra-condensed)
 	     (const :tag "ultraexpanded" ultra-expanded)
 	     (const :tag "wide" extra-expanded)))
+
     (:height
      (choice :tag "Height"
 	     :help-echo "Face's font height."

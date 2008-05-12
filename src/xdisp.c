@@ -4571,7 +4571,7 @@ handle_auto_composed_prop (it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
 
-  if (FUNCTIONP (Vauto_composition_function))
+  if (FRAME_WINDOW_P (it->f) && FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
       EMACS_INT pos, limit = -1;

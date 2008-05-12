@@ -26,7 +26,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#define FONTSET_DEBUG
+/* #define FONTSET_DEBUG */
 
 #include <config.h>
 
@@ -626,7 +626,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 
 #if 0
       /* The following code makes Emacs to find a font for C by fairly
-	 exhausitive search.  But, that takes long time expecially for
+	 exhausitive search.  But, that takes long time especially for
 	 X font backend.  */
 
       /* Try to find the different font maching with the current spec

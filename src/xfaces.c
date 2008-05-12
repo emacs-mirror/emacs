@@ -6485,9 +6485,10 @@ dump_realized_face (face)
   fprintf (stderr, "background: 0x%lx (%s)\n",
 	   face->background,
 	   SDATA (face->lface[LFACE_BACKGROUND_INDEX]));
-  fprintf (stderr, "font_name: %s (%s)\n",
-	   face->font->full_name,
-	   SDATA (face->lface[LFACE_FAMILY_INDEX]));
+  if (face->font)
+    fprintf (stderr, "font_name: %s (%s)\n",
+	     SDATA (face->font->props[FONT_NAME_INDEX]),
+	     SDATA (face->lface[LFACE_FAMILY_INDEX]));
 #ifdef HAVE_X_WINDOWS
   fprintf (stderr, "font = %p\n", face->font);
 #endif

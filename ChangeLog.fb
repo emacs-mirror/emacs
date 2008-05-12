@@ -1,0 +1,4 @@
+2008-05-12  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in: Don't handle --disable-font-backend.  Don't print
+	a message about a font backend.

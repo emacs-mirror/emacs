@@ -1423,10 +1423,6 @@ main (argc, argv
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
-  if (argmatch (argv, argc, "-disable-font-backend", "--disable-font-backend",
-                4, NULL, &skip_args))
-    ;
-
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
      handle this argument entirely in window system dependent code
