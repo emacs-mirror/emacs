@@ -1094,6 +1094,7 @@ merge in the changes into your working copy."
          (backend (car vc-fileset))
 	 (files (cdr vc-fileset))
          (fileset-only-files (vc-expand-dirs files))
+         ;; FIXME: We used to call `vc-recompute-state' here.
          (state (vc-state (car fileset-only-files)))
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
