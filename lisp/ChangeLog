@@ -1,3 +1,9 @@
+2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail/smtpmail.el: Add autoload for
+	`auth-source-user-or-password'.
+	(smtpmail-try-auth-methods): Use it.
+
 2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el (cl-set-nthcdr): Make it a defsubst so that
