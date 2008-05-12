@@ -559,6 +559,15 @@
 ;; - add a mechanism for editing the underlying VCS's list of files
 ;;   to be ignored, when that's possible.
 ;;
+;;;; Primitives that need changing:
+;;
+;; - vc-update/vc-merge should deal with VC systems that don't
+;;   update/merge on a file basis, but on a whole repository basis.
+;;   vc-update and vc-merge assume the arguments are always files,
+;;   they don't deal with directories.  Make sure the *vc-dir* buffer
+;;   is updated after these operations. 
+;;   At least bzr, git and hg should benefit from this.
+;;
 ;;;; Improved branch and tag handling:
 ;;
 ;; - "snapshots" should be renamed to "tags", and thoroughly reworked.
