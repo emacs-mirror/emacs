@@ -973,11 +973,13 @@ be registered."
 
 (defun vc-expand-dirs (file-or-dir-list)
   "Expands directories in a file list specification.
-Only files already under version control are noticed."
+Within directories, only files already under version control are noticed."
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
-      (vc-file-tree-walk
-       node (lambda (f) (when (vc-backend f) (push f flattened)))))
+      (if (file-directory-p node)
+	  (vc-file-tree-walk
+	   node (lambda (f) (when (vc-backend f) (push f flattened)))))
+      (push node flattened))
     (nreverse flattened)))
 
 (defun vc-deduce-fileset (&optional observer)
