@@ -922,45 +922,6 @@ been updated to their corresponding values."
              (put (intern file vc-file-prop-obarray)
                   property (cdr setting))))))))
 
-;; Two macros for elisp programming
-
-;;;###autoload
-(defmacro with-vc-file (file comment &rest body)
-  "Check out a writable copy of FILE if necessary, then execute BODY.
-Check in FILE with COMMENT (a string) after BODY has been executed.
-FILE is passed through `expand-file-name'; BODY executed within
-`save-excursion'.  If FILE is not under version control, or you are
-using a locking version-control system and the file is locked by
-somebody else, signal error."
-  (declare (debug t) (indent 2))
-  (let ((filevar (make-symbol "file")))
-    `(let ((,filevar (expand-file-name ,file)))
-       (or (vc-backend ,filevar)
-           (error "File not under version control: `%s'" file))
-       (unless (vc-editable-p ,filevar)
-         (let ((state (vc-state ,filevar)))
-           (if (stringp state)
-               (error "`%s' is locking `%s'" state ,filevar)
-             (vc-checkout ,filevar t))))
-       (save-excursion
-         ,@body)
-       (vc-checkin (list ,filevar) nil ,comment))))
-
-;;;###autoload
-(defmacro edit-vc-file (file comment &rest body)
-  "Edit FILE under version control, executing body.
-Checkin with COMMENT after executing BODY.
-This macro uses `with-vc-file', passing args to it.
-However, before executing BODY, find FILE, and after BODY, save buffer."
-  (declare (debug t) (indent 2))
-  (let ((filevar (make-symbol "file")))
-    `(let ((,filevar (expand-file-name ,file)))
-       (with-vc-file
-        ,filevar ,comment
-        (set-buffer (find-file-noselect ,filevar))
-        ,@body
-        (save-buffer)))))
-
 ;;; Code for deducing what fileset and backend to assume
 
 (defun vc-responsible-backend (file &optional register)

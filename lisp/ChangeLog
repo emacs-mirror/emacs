@@ -2,6 +2,7 @@
 
 	* vc.el (vc-annotate-show-diff-revision-at-line): Remove incorrect
 	cons.  Use vc-annotate-backend.
+	(with-vc-file, edit-vc-file): Remove unused macros.
 
 2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
