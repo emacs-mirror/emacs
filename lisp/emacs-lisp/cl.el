@@ -166,7 +166,7 @@ an element already on the list.
 (defun cl-set-elt (seq n val)
   (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
 
-(defun cl-set-nthcdr (n list x)
+(defsubst cl-set-nthcdr (n list x)
   (if (<= n 0) x (setcdr (nthcdr (1- n) list) x) list))
 
 (defun cl-set-buffer-substring (start end val)

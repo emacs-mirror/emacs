@@ -1,3 +1,8 @@
+2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el (cl-set-nthcdr): Make it a defsubst so that
+	(setf (nthcdr ..) ..) doesn't require CL at runtime.
+
 2008-05-11  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org/org.el (org-modules): Repair problems with loading
