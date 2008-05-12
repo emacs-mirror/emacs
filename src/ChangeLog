@@ -1,3 +1,13 @@
+2008-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main_thread): Conditionalize on
+	FORWARD_SIGNAL_TO_MAIN_THREAD instead of HAVE_GTK_AND_PTHREAD.
+	(main) [FORWARD_SIGNAL_TO_MAIN_THREAD]: Initialize it.
+
+	* syssignal.h (FORWARD_SIGNAL_TO_MAIN_THREAD): New define.
+	(main_thread, SIGNAL_THREAD_CHECK): Conditionalize on
+	FORWARD_SIGNAL_TO_MAIN_THREAD instead of HAVE_GTK_AND_PTHREAD.
+
 2008-05-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Fdirectory_files_and_attributes, Ffile_attributes):
@@ -77,7 +87,7 @@
 	Likewise.
 
 	* mactoolbox.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: Add extern.
-	(fast_find_position, x_y_to_hpos_vpos, mac_ax_selected_text_range):
+	(fast_find_position, x_y_to_hpos_vpos, mac_ax_selected_text_range)
 	(mac_ax_number_of_characters): Add externs.
 	(mac_get_selected_range, mac_store_buffer_text_to_unicode_chars)
 	[USE_MAC_TSM]: Likewise.
@@ -139,7 +149,7 @@
 	(create_apple_event, mac_event_parameters_to_lisp)
 	[TARGET_API_MAC_CARBON]: Add externs.
 
-	* mactoolbox.c: (Vmac_ts_script_language_on_focus)
+	* mactoolbox.c (Vmac_ts_script_language_on_focus)
 	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: Remove externs.
 	(XTread_socket) [USE_MAC_TOOLBAR]: Select window if its structure part
 	is clicked.
@@ -295,7 +305,7 @@
 	(syms_of_macselect) <Vmac_dnd_known_types>:
 	Use mac_dnd_default_known_types.
 
-	* macterm.c (mac_end_cg_clip): Add argument F.  All uses changed.
+	* macterm.c (mac_end_clip): Add argument F.  All uses changed.
 	(mac_begin_cg_clip, mac_end_cg_clip): Allow null GC.
 	(mac_invert_rectangle, mac_compute_glyph_string_overhangs)
 	(mac_load_query_font): Use them	instead of SetPortWindowPort.
