@@ -3147,9 +3147,7 @@ revisions after."
 	  (save-window-excursion
 	    (vc-diff-internal
 	     nil
-	     (cons (vc-backend vc-annotate-parent-file)
-		   (cons nil
-			 (list vc-annotate-parent-file)))
+	     (cons vc-annotate-backend (list vc-annotate-parent-file))
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 

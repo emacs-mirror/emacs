@@ -1,3 +1,8 @@
+2008-05-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-show-diff-revision-at-line): Remove incorrect
+	cons.  Use vc-annotate-backend.
+
 2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mail/smtpmail.el: Add autoload for
