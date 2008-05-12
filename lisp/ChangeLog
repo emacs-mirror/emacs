@@ -1,3 +1,8 @@
+2008-05-12  Simon Marshall  <simon@gnu.org>
+
+	* fast-lock.el (fast-lock-cache-directories): Remove "." from its
+	default value and give it the risky-local-variable property.
+
 2008-05-10  Reiner Steib  <reiner.steib@gmx.de>
 
 	* smerge-mode.el (smerge-command-prefix): Fix custom type.
@@ -9,8 +14,8 @@
 
 2008-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Don't
-	throw error if no file is found.
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom):
+	Don't throw error if no file is found.
 
 2008-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
