@@ -1,7 +1,7 @@
 2008-05-12  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-expand-dirs): Stop this function from tossing out 
-	explicitlt specified files.
+	* vc.el (vc-expand-dirs): Stop this function from tossing out
+	explicitly specified files.
 
 2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -173,8 +173,8 @@
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-deduce-fileset, vc-next-action, vc-version-diff)
-	(vc-diff, vc-revert, vc-rollback, vc-update),
-	vc-dispatcher.el (vc-dispatcher-selection-set):
+	(vc-diff, vc-revert, vc-rollback, vc-update):
+	* vc-dispatcher.el (vc-dispatcher-selection-set):
 	Get rid of 4 special cases in fileset selection.  This involved
 	changing the return value of (vc-deduce-fileset) so that it passes
 	back a deduced state as well as a deduced back end,
