@@ -6088,43 +6088,6 @@ then any auto-save counts as "recent".  */)
 }
 
 /* Reading and completing file names */
-extern Lisp_Object Ffile_name_completion (), Ffile_name_all_completions ();
-extern Lisp_Object Qcompletion_ignore_case;
-
-/* In the string VAL, change each $ to $$ and return the result.  */
-
-static Lisp_Object
-double_dollars (val)
-     Lisp_Object val;
-{
-  register const unsigned char *old;
-  register unsigned char *new;
-  register int n;
-  int osize, count;
-
-  osize = SBYTES (val);
-
-  /* Count the number of $ characters.  */
-  for (n = osize, count = 0, old = SDATA (val); n > 0; n--)
-    if (*old++ == '$') count++;
-  if (count > 0)
-    {
-      old = SDATA (val);
-      val = make_uninit_multibyte_string (SCHARS (val) + count,
-					  osize + count);
-      new = SDATA (val);
-      for (n = osize; n > 0; n--)
-	if (*old != '$')
-	  *new++ = *old++;
-	else
-	  {
-	    *new++ = '$';
-	    *new++ = '$';
-	    old++;
-	  }
-    }
-  return val;
-}
 
 DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
        Snext_read_file_uses_dialog_p, 0, 0, 0,

@@ -1,3 +1,7 @@
+2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (double_dollars): Remove dead code.
+
 2008-05-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes, Fdirectory_files_and_attributes):
@@ -19,7 +23,7 @@
 
 	* w32.c: Rename the_passwd_* to dflt_passwd_*.
 	(dflt_group_name): New static variable.
-	(dflt_group): Renamed from the_group.
+	(dflt_group): Rename from the_group.
 	(init_user_info): Init dflt_group fields.  Get user's group name
 	from LookupAccountSid.
 	(g_b_init_get_file_security, g_b_init_get_security_descriptor_owner)
@@ -37,8 +41,8 @@
 	(get_file_owner_and_group): New functions.
 	(stat): Use get_file_security_desc and get_file_owner_and_group to
 	report the owner and primary group of each file.  Don't ignore the
-	high 32 bits of file's size, now that st_size is 64-bit wide.  Fix
-	test when to get true file attributes.
+	high 32 bits of file's size, now that st_size is 64-bit wide.
+	Fix test when to get true file attributes.
 	(init_user_info): Use get_rid instead of equivalent inline code.
 	(fstat): Don't ignore the high 32 bits of file's size.
 
@@ -146,8 +150,8 @@
 2008-05-02  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.c (Fread_from_minibuffer, Fread_string, Fread_command)
-	(Fread_variable, Fread_buffer, Fcompleting_read): Document
-	the DEFAULT argument as a list of default values in docstrings.
+	(Fread_variable, Fread_buffer, Fcompleting_read): Document the
+	DEFAULT argument as a list of default values in docstrings.
 
 2008-05-01  Chong Yidong  <cyd@stupidchicken.com>
 
