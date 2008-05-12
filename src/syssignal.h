@@ -21,8 +21,14 @@ Boston, MA 02110-1301, USA.  */
 
 extern void init_signals P_ ((void));
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#if defined (HAVE_GTK_AND_PTHREAD) || (defined (HAVE_CARBON) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1020)
 #include <pthread.h>
+/* If defined, asynchronous signals delivered to a non-main thread are
+   forwarded to the main thread.  */
+#define FORWARD_SIGNAL_TO_MAIN_THREAD
+#endif
+
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 extern pthread_t main_thread;
 #endif
 
@@ -207,7 +213,7 @@ extern SIGMASKTYPE sigprocmask_set;
 char *strsignal ();
 #endif
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
     if (!pthread_equal (pthread_self (), main_thread))			\
@@ -226,8 +232,8 @@ char *strsignal ();
       }                                                                 \
    } while (0)
 
-#else /* not HAVE_GTK_AND_PTHREAD */
+#else /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
 #define SIGNAL_THREAD_CHECK(signo)
-#endif /* not HAVE_GTK_AND_PTHREAD */
+#endif /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
 /* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
    (do not change this comment) */
