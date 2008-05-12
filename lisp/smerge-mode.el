@@ -458,7 +458,7 @@ BUF contains a plain diff between match-1 and match-3."
             (with-current-buffer textbuf
               (forward-line (- startline line))
               (insert "<<<<<<< " name1 "\n" othertext
-                      (if name2 (concat "||||||| " name2 "\n"))
+                      (if name2 (concat "||||||| " name2 "\n") "")
                       "=======\n")
               (forward-line lines)
               (insert ">>>>>>> " name3 "\n")

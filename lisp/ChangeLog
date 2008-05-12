@@ -1,3 +1,8 @@
+2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-apply-resolution-patch): Don't pass nil
+	to `insert'.
+
 2008-05-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate-show-diff-revision-at-line): Remove incorrect
@@ -6,8 +11,7 @@
 
 2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* mail/smtpmail.el: Add autoload for
-	`auth-source-user-or-password'.
+	* mail/smtpmail.el: Add autoload for `auth-source-user-or-password'.
 	(smtpmail-try-auth-methods): Use it.
 
 2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -17,8 +21,7 @@
 
 2008-05-11  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org/org.el (org-modules): Repair problems with loading
-	org-jsinfo.org.
+	* org/org.el (org-modules): Repair problems with loading org-jsinfo.org.
 
 2008-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -103,8 +106,7 @@
 	documented in the manual.
 
 	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p)
-	(vc-dir-children-marked-p): Remove the vc-dir-insert-directories
-	global.
+	(vc-dir-children-marked-p): Remove the vc-dir-insert-directories global.
 	(vc-dispatcher-selection-set): Allow callers to pass in an
 	observer flag that says no buffer sync is required.
 	* vc.el (vc-deduce-fileset, vc-print-log, vc-version-diff):
@@ -116,16 +118,16 @@
 
 2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-sccs.el, vc.svn.el, vc-git.el, vc-hg.el, vc-mtn.el: Remove
-	stub implementations of, and references to, wash-log.
+	* vc-sccs.el, vc.svn.el, vc-git.el, vc-hg.el, vc-mtn.el:
+	Remove stub implementations of, and references to, wash-log.
 	* vc-rcs.el (vc-rcs-comment-history):
 	* vc-cvs.el (vc-cvs-comment-history):
 	Inline the code that used to be wash-log.
 
 	* vc-sccs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback)
-	(vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment,
-	vc-sccs-print-log, vc-sccs-diff): Grok directories.
-	* vc-rcs.el (vc-sccs-checkin, vc-sccs-checkout,
+	(vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment)
+	(vc-sccs-print-log, vc-sccs-diff): Grok directories.
+	* vc-rcs.el (vc-sccs-checkin, vc-sccs-checkout)
 	(vc-rcs-revert, vc-rcs-steal-lock, vc-rcs-modify-change-comment)
 	(vc-rcs-print-log): Grok directories.
 
