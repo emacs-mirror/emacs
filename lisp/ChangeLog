@@ -1,3 +1,8 @@
+2008-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-mode-map): Remove old keybinding for
+	`calc-yank'.
+
 2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (bootstrap-prepare): Don't chmod files.
