@@ -1,3 +1,8 @@
+2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (update_frame_1): Check if tty output is still valid
+	before flushing it.
+
 2008-05-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Don't pass buttons higher than 3
