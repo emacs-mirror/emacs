@@ -1033,7 +1033,7 @@ Used by `calc-user-invocation'.")
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
           (concat "ABCDEFGHIJKLMNPQRSTUVXZabcdfghjkmoprstuvwxyz"
-                  ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-y\C-_"))
+                  ":\\|!()[]<>{},;=~`\C-k\M-k\C-w\M-w\C-_"))
     (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-start))
           "_0123456789.#@")
     map)
