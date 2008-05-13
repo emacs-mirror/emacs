@@ -1,3 +1,8 @@
+2008-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Don't pass buttons higher than 3
+	to Gtk+ menus.
+
 2008-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main_thread): Conditionalize on
