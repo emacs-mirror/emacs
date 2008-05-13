@@ -1,3 +1,8 @@
+2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-make-keymap): Account for the optional
+	KEY-BINDING-DATA field in menu-item list.
+
 2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-read-dir-and-switches): Move things about to use less
