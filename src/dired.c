@@ -466,8 +466,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
      Lisp_Object predicate;
 {
   DIR *d;
-  int bestmatchsize = 0, skip;
-  register int compare, matchsize;
+  int bestmatchsize = 0;
   int matchcount = 0;
   /* If ALL_FLAG is 1, BESTMATCH is the list of all matches, decoded.
      If ALL_FLAG is 0, BESTMATCH is either nil
@@ -477,7 +476,10 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   Lisp_Object encoded_dir;
   struct stat st;
   int directoryp;
-  int passcount;
+  /* If includeall is zero, exclude files in completion-ignored-extensions as
+     well as "." and "..".  Until shown otherwise, assume we can't exclude
+     anything.  */
+  int includeall = 1;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
@@ -518,76 +520,71 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 
   encoded_dir = ENCODE_FILE (dirname);
 
-  /* With passcount = 0, ignore files that end in an ignored extension.
-     If nothing found then try again with passcount = 1, don't ignore them.
-     If looking for all completions, start with passcount = 1,
-     so always take even the ignored ones.
+  BLOCK_INPUT;
+  d = opendir (SDATA (Fdirectory_file_name (encoded_dir)));
+  UNBLOCK_INPUT;
+  if (!d)
+    report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
-     ** It would not actually be helpful to the user to ignore any possible
-     completions when making a list of them.**  */
+  record_unwind_protect (directory_files_internal_unwind,
+			 make_save_value (d, 0));
 
-  for (passcount = !!all_flag; NILP (bestmatch) && passcount < 2; passcount++)
+  /* Loop reading blocks */
+  /* (att3b compiler bug requires do a null comparison this way) */
+  while (1)
     {
-      int inner_count = SPECPDL_INDEX ();
-
-      BLOCK_INPUT;
-      d = opendir (SDATA (Fdirectory_file_name (encoded_dir)));
-      UNBLOCK_INPUT;
-      if (!d)
-	report_file_error ("Opening directory", Fcons (dirname, Qnil));
-
-      record_unwind_protect (directory_files_internal_unwind,
-                             make_save_value (d, 0));
-
-      /* Loop reading blocks */
-      /* (att3b compiler bug requires do a null comparison this way) */
-      while (1)
-	{
-	  DIRENTRY *dp;
-	  int len;
+      DIRENTRY *dp;
+      int len;
+      int canexclude = 0;
 
 #ifdef VMS
-	  dp = (*readfunc) (d);
+      dp = (*readfunc) (d);
 #else
-	  errno = 0;
-	  dp = readdir (d);
-	  if (dp == NULL && (0
+      errno = 0;
+      dp = readdir (d);
+      if (dp == NULL && (0
 # ifdef EAGAIN
-			     || errno == EAGAIN
+			 || errno == EAGAIN
 # endif
 # ifdef EINTR
-			     || errno == EINTR
+			 || errno == EINTR
 # endif
-			     ))
-	    { QUIT; continue; }
+			 ))
+	{ QUIT; continue; }
 #endif
 
-	  if (!dp) break;
+      if (!dp) break;
 
-	  len = NAMLEN (dp);
+      len = NAMLEN (dp);
 
-	  QUIT;
-	  if (! DIRENTRY_NONEMPTY (dp)
-	      || len < SCHARS (encoded_file)
-	      || 0 <= scmp (dp->d_name, SDATA (encoded_file),
-			    SCHARS (encoded_file)))
-	    continue;
+      QUIT;
+      if (! DIRENTRY_NONEMPTY (dp)
+	  || len < SCHARS (encoded_file)
+	  || 0 <= scmp (dp->d_name, SDATA (encoded_file),
+			SCHARS (encoded_file)))
+	continue;
 
-          if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
-            continue;
+      if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
+	continue;
 
-          directoryp = ((st.st_mode & S_IFMT) == S_IFDIR);
-	  tem = Qnil;
-          if (directoryp)
+      directoryp = ((st.st_mode & S_IFMT) == S_IFDIR);
+      tem = Qnil;
+      /* If all_flag is set, always include all.
+	 It would not actually be helpful to the user to ignore any possible
+	 completions when making a list of them.  */
+      if (!all_flag)
+	{
+	  int skip;
+	  if (directoryp)
 	    {
 #ifndef TRIVIAL_DIRECTORY_ENTRY
 #define TRIVIAL_DIRECTORY_ENTRY(n) (!strcmp (n, ".") || !strcmp (n, ".."))
 #endif
 	      /* "." and ".." are never interesting as completions, and are
 		 actually in the way in a directory with only one file.  */
-	      if (!passcount && TRIVIAL_DIRECTORY_ENTRY (dp->d_name))
-		continue;
-	      if (!passcount && len > SCHARS (encoded_file))
+	      if (TRIVIAL_DIRECTORY_ENTRY (dp->d_name))
+		canexclude = 1;
+	      else if (len > SCHARS (encoded_file))
 		/* Ignore directories if they match an element of
 		   completion-ignored-extensions which ends in a slash.  */
 		for (tem = Vcompletion_ignored_extensions;
@@ -618,10 +615,10 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 		  }
 	    }
 	  else
-            {
+	    {
 	      /* Compare extensions-to-be-ignored against end of this file name */
 	      /* if name is not an exact match against specified string */
-	      if (!passcount && len > SCHARS (encoded_file))
+	      if (len > SCHARS (encoded_file))
 		/* and exit this for loop if a match is found */
 		for (tem = Vcompletion_ignored_extensions;
 		     CONSP (tem); tem = XCDR (tem))
@@ -644,121 +641,131 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 
 	  /* If an ignored-extensions match was found,
 	     don't process this name as a completion.  */
-	  if (!passcount && CONSP (tem))
+	  if (CONSP (tem))
+	    canexclude = 1;
+
+	  if (!includeall && canexclude)
+	    /* We're not including all files and this file can be excluded.  */
 	    continue;
 
-	  /* FIXME: If we move this `decode' earlier we can eliminate
-	     the repeated ENCODE_FILE on Vcompletion_ignored_extensions.  */
-	  name = make_unibyte_string (dp->d_name, len);
-	  name = DECODE_FILE (name);
-
-	  if (!passcount)
-	    {
-	      Lisp_Object regexps;
-	      Lisp_Object zero;
-	      XSETFASTINT (zero, 0);
-
-	      /* Ignore this element if it fails to match all the regexps.  */
-	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-		   regexps = XCDR (regexps))
-		if (fast_string_match (XCAR (regexps), name) < 0)
-		  break;
-	      if (CONSP (regexps))
-		continue;
-	    }
-
-	  /* This is a possible completion */
-	  if (directoryp)
-	    /* This completion is a directory; make it end with '/'.  */
-	    name = Ffile_name_as_directory (name);
-
-	  /* Test the predicate, if any.  */
-	  if (!NILP (predicate))
-	    {
-	      Lisp_Object val;
-	      struct gcpro gcpro1;
-
-	      GCPRO1 (name);
-	      val = call1 (predicate, name);
-	      UNGCPRO;
-
-	      if (NILP (val))
-		continue;
-	    }
-
-	  /* Suitably record this match.  */
-
-	  matchcount++;
-
-	  if (all_flag)
-	    bestmatch = Fcons (name, bestmatch);
-	  else if (NILP (bestmatch))
-	    {
-	      bestmatch = name;
-	      bestmatchsize = SCHARS (name);
-	    }
-	  else
-	    {
-	      Lisp_Object zero = make_number (0);
-	      /* FIXME: This is a copy of the code in Ftry_completion.  */
-	      compare = min (bestmatchsize, SCHARS (name));
-	      tem = Fcompare_strings (bestmatch, zero,
-				      make_number (compare),
-				      name, zero,
-				      make_number (compare),
-				      completion_ignore_case ? Qt : Qnil);
-	      if (EQ (tem, Qt))
-		matchsize = compare;
-	      else if (XINT (tem) < 0)
-		matchsize = - XINT (tem) - 1;
-	      else
-		matchsize = XINT (tem) - 1;
-
-	      if (completion_ignore_case)
-		{
-		  /* If this is an exact match except for case,
-		     use it as the best match rather than one that is not
-		     an exact match.  This way, we get the case pattern
-		     of the actual match.  */
-		  /* This tests that the current file is an exact match
-		     but BESTMATCH is not (it is too long).  */
-		  if ((matchsize == SCHARS (name)
-		       && matchsize + !!directoryp
-		          < SCHARS (bestmatch))
-		      ||
-		      /* If there is no exact match ignoring case,
-			 prefer a match that does not change the case
-			 of the input.  */
-		      /* If there is more than one exact match aside from
-			 case, and one of them is exact including case,
-			 prefer that one.  */
-		      /* This == checks that, of current file and BESTMATCH,
-			 either both or neither are exact.  */
-		      (((matchsize == SCHARS (name))
-			==
-			(matchsize + !!directoryp == SCHARS (bestmatch)))
-		       && (tem = Fcompare_strings (name, zero,
-						   make_number (SCHARS (file)),
-						   file, zero,
-						   Qnil,
-						   Qnil),
-			   EQ (Qt, tem))
-		       && (tem = Fcompare_strings (bestmatch, zero,
-						   make_number (SCHARS (file)),
-						   file, zero,
-						   Qnil,
-						   Qnil),
-			   ! EQ (Qt, tem))))
-		    bestmatch = name;
-		}
-	      bestmatchsize = matchsize;
+	  if (includeall && !canexclude)
+	    { /* If we have one non-excludable file, we want to exclude the
+		 excudable files.  */
+	      includeall = 0;
+	      /* Throw away any previous excludable match found.  */
+	      bestmatch = Qnil;
+	      bestmatchsize = 0;
+	      matchcount = 0;
 	    }
 	}
-      /* This closes the directory.  */
-      bestmatch = unbind_to (inner_count, bestmatch);
+      /* FIXME: If we move this `decode' earlier we can eliminate
+	 the repeated ENCODE_FILE on Vcompletion_ignored_extensions.  */
+      name = make_unibyte_string (dp->d_name, len);
+      name = DECODE_FILE (name);
+
+      {
+	Lisp_Object regexps;
+	Lisp_Object zero;
+	XSETFASTINT (zero, 0);
+
+	/* Ignore this element if it fails to match all the regexps.  */
+	for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+	     regexps = XCDR (regexps))
+	  if (fast_string_match (XCAR (regexps), name) < 0)
+	    break;
+	if (CONSP (regexps))
+	  continue;
+      }
+
+      /* This is a possible completion */
+      if (directoryp)
+	/* This completion is a directory; make it end with '/'.  */
+	name = Ffile_name_as_directory (name);
+
+      /* Test the predicate, if any.  */
+      if (!NILP (predicate))
+	{
+	  Lisp_Object val;
+	  struct gcpro gcpro1;
+
+	  GCPRO1 (name);
+	  val = call1 (predicate, name);
+	  UNGCPRO;
+
+	  if (NILP (val))
+	    continue;
+	}
+
+      /* Suitably record this match.  */
+
+      matchcount++;
+
+      if (all_flag)
+	bestmatch = Fcons (name, bestmatch);
+      else if (NILP (bestmatch))
+	{
+	  bestmatch = name;
+	  bestmatchsize = SCHARS (name);
+	}
+      else
+	{
+	  Lisp_Object zero = make_number (0);
+	  /* FIXME: This is a copy of the code in Ftry_completion.  */
+	  int compare = min (bestmatchsize, SCHARS (name));
+	  Lisp_Object tem
+	    = Fcompare_strings (bestmatch, zero,
+				make_number (compare),
+				name, zero,
+				make_number (compare),
+				completion_ignore_case ? Qt : Qnil);
+	  int matchsize
+	    = (EQ (tem, Qt)     ? compare
+	       : XINT (tem) < 0 ? - XINT (tem) - 1
+	       :                  XINT (tem) - 1);
+
+	  if (completion_ignore_case)
+	    {
+	      /* If this is an exact match except for case,
+		 use it as the best match rather than one that is not
+		 an exact match.  This way, we get the case pattern
+		 of the actual match.  */
+	      /* This tests that the current file is an exact match
+		 but BESTMATCH is not (it is too long).  */
+	      if ((matchsize == SCHARS (name)
+		   && matchsize + !!directoryp
+		   < SCHARS (bestmatch))
+		  ||
+		  /* If there is no exact match ignoring case,
+		     prefer a match that does not change the case
+		     of the input.  */
+		  /* If there is more than one exact match aside from
+		     case, and one of them is exact including case,
+		     prefer that one.  */
+		  /* This == checks that, of current file and BESTMATCH,
+		     either both or neither are exact.  */
+		  (((matchsize == SCHARS (name))
+		    ==
+		    (matchsize + !!directoryp == SCHARS (bestmatch)))
+		   && (tem = Fcompare_strings (name, zero,
+					       make_number (SCHARS (file)),
+					       file, zero,
+					       Qnil,
+					       Qnil),
+		       EQ (Qt, tem))
+		   && (tem = Fcompare_strings (bestmatch, zero,
+					       make_number (SCHARS (file)),
+					       file, zero,
+					       Qnil,
+					       Qnil),
+		       ! EQ (Qt, tem))))
+		bestmatch = name;
+	    }
+	  bestmatchsize = matchsize;
+	}
     }
 
   UNGCPRO;
+  /* This closes the directory.  */
   bestmatch = unbind_to (count, bestmatch);
 
   if (all_flag || NILP (bestmatch))

@@ -1,5 +1,8 @@
 2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.c (file_name_completion): Tweak the code so as to always do it
+	in a single pass.  Tighten the scope of some variables.
+
 	* dired.c (Qdefault_directory): New var.
 	(file_name_completion): Use it instead of Fexpand_file_name.
 	(syms_of_dired): Initialize it.
