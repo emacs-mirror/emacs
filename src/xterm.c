@@ -6848,6 +6848,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         if (
 #ifdef USE_GTK
             ! popup_activated ()
+            /* Gtk+ menus only react to the first three buttons. */
+            && event.xbutton.button < 3
             &&
 #endif
             f && event.type == ButtonPress
