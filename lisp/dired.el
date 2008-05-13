@@ -600,7 +600,6 @@ Don't use that together with FILTER."
                              nil default-directory nil)
       (lexical-let ((default (and buffer-file-name
                                   (abbreviate-file-name buffer-file-name)))
-                    (defdir default-directory)
                     (cie ()))
         (dolist (ext completion-ignored-extensions)
           (if (eq ?/ (aref ext (1- (length ext)))) (push ext cie)))
@@ -608,36 +607,29 @@ Don't use that together with FILTER."
         (minibuffer-with-setup-hook
             (lambda ()
               (setq minibuffer-default default)
-              (set (make-local-variable 'minibuffer-completing-file-name)
-                   ;; t means "from now until the next minibuffer", whereas
-                   ;; `lambda' means "only here".
-                   'lambda)
-              (set (make-local-variable 'completion-ignore-case)
-                   read-file-name-completion-ignore-case)
-              (setq default-directory defdir))
-          (substitute-in-file-name
-           (completing-read
-            (format "Dired %s(directory): " str)
-            ;; We need a mix of read-file-name and read-directory-name
-            ;; so that completion to directories is preferred, but if
-            ;; the user wants to enter a global pattern, he can still
-            ;; use completion on filenames to help him write the pattern.
-            ;; Essentially, we want to use
-            ;; (completion-table-with-predicate
-            ;;  'read-file-name-internal 'file-directory-p nil)
-            ;; but that doesn't work because read-file-name-internal
-            ;; does not obey its `predicate' argument.
-            (completion-table-in-turn
-             (lambda (str pred action)
-               (let ((read-file-name-predicate
-                      (lambda (f) (and (not (member f '("./" "../")))
-                                  ;; Hack! Faster than file-directory-p!
-                                  (eq (aref f (1- (length f))) ?/)
-                                  (not (string-match cie f))))))
-                 (complete-with-action
-                  action 'read-file-name-internal str nil)))
-             'read-file-name-internal)
-            nil nil (abbreviate-file-name defdir) 'file-name-history))))))))
+              (setq minibuffer-completion-table
+                    ;; We need a mix of read-file-name and
+                    ;; read-directory-name so that completion to directories
+                    ;; is preferred, but if the user wants to enter a global
+                    ;; pattern, he can still use completion on filenames to
+                    ;; help him write the pattern.
+                    ;; Essentially, we want to use
+                    ;; (completion-table-with-predicate
+                    ;;  'read-file-name-internal 'file-directory-p nil)
+                    ;; but that doesn't work because read-file-name-internal
+                    ;; does not obey its `predicate' argument.
+                    (completion-table-in-turn
+                     (lambda (str pred action)
+                       (let ((read-file-name-predicate
+                              (lambda (f) (and (not (member f '("./" "../")))
+                                          ;; Hack! Faster than file-directory-p!
+                                          (eq (aref f (1- (length f))) ?/)
+                                          (not (string-match cie f))))))
+                         (complete-with-action
+                          action 'read-file-name-internal str nil)))
+                     'read-file-name-internal)))
+          (read-file-name (format "Dired %s(directory): " str)
+                          nil default-directory nil)))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload

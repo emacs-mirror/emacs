@@ -1,5 +1,7 @@
 2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.el (dired-read-dir-and-switches): Use read-file-name.
+
 	* dired.el (dired-read-dir-and-switches): Ignore ., .., and
 	completion-ignored-extension directories if there's something else.
 	(dired-mark-if, dired-map-over-marks, dired-readin, dired-revert)
