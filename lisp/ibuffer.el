@@ -1233,6 +1233,17 @@ a new window in the current frame, splitting vertically."
 (defsubst ibuffer-map-deletion-lines (func)
   (ibuffer-map-on-mark ibuffer-deletion-char func))
 
+(defun ibuffer-buffer-file-name ()
+  (or buffer-file-name
+      (let ((dirname (or (and (boundp 'dired-directory)
+			      (if (stringp dired-directory)
+				  dired-directory
+				(car dired-directory)))
+			 (and (memq major-mode '(cvs-mode vc-dir-mode))
+			      (bound-and-true-p default-directory)))))
+	(and dirname (expand-file-name dirname)))
+      ""))
+
 (define-ibuffer-op ibuffer-do-save ()
   "Save marked buffers as with `save-buffer'."
   (:complex t
@@ -1753,14 +1764,7 @@ If point is on a group name, this function operates on that group."
 	     (t (format "%d files" total))))))
   (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
     (abbreviate-file-name
-     (or buffer-file-name
-	 (and (boundp 'dired-directory)
-	      (if (stringp dired-directory)
-		  dired-directory
-		(car dired-directory)))
-	 (and (eq major-mode 'vc-dir-mode)
-	      (bound-and-true-p default-directory))
-	 ""))))
+     (ibuffer-buffer-file-name))))
 
 (define-ibuffer-column filename-and-process
   (:name "Filename/Process"
