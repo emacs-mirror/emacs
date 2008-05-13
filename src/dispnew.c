@@ -5302,22 +5302,26 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		 Also flush out if likely to have more than 1k buffered
 		 otherwise.   I'm told that some telnet connections get
 		 really screwed by more than 1k output at once.  */
-	      int outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f)->output);
-	      if (outq > 900
-		  || (outq > 20 && ((i - 1) % preempt_count == 0)))
+	      FILE *display_output = FRAME_TTY (f)->output;
+	      if (display_output)
 		{
-		  fflush (FRAME_TTY (f)->output);
-		  if (preempt_count == 1)
+		  int outq = PENDING_OUTPUT_COUNT (display_output);
+		  if (outq > 900
+		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
 		    {
+		      fflush (display_output);
+		      if (preempt_count == 1)
+			{
 #ifdef EMACS_OUTQSIZE
-		      if (EMACS_OUTQSIZE (0, &outq) < 0)
-			/* Probably not a tty.  Ignore the error and reset
-			   the outq count.  */
-			outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
+			  if (EMACS_OUTQSIZE (0, &outq) < 0)
+			    /* Probably not a tty.  Ignore the error and reset
+			       the outq count.  */
+			    outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
 #endif
-		      outq *= 10;
-		      if (baud_rate <= outq && baud_rate > 0)
-			sleep (outq / baud_rate);
+			  outq *= 10;
+			  if (baud_rate <= outq && baud_rate > 0)
+			    sleep (outq / baud_rate);
+			}
 		    }
 		}
 	    }
