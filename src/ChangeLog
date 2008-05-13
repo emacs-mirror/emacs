@@ -1,3 +1,9 @@
+2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (Qdefault_directory): New var.
+	(file_name_completion): Use it instead of Fexpand_file_name.
+	(syms_of_dired): Initialize it.
+
 2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (double_dollars): Remove dead code.

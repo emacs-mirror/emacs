@@ -457,6 +457,7 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
 }
 
 static int file_name_completion_stat ();
+Lisp_Object Qdefault_directory;
 
 Lisp_Object
 file_name_completion (file, dirname, all_flag, ver_flag, predicate)
@@ -505,6 +506,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
   encoded_file = encoded_dir = Qnil;
   GCPRO5 (file, dirname, bestmatch, encoded_file, encoded_dir);
   dirname = Fexpand_file_name (dirname, Qnil);
+  specbind (Qdefault_directory, dirname);
 
   /* Do completion on the encoded file name
      because the other names in the directory are (we presume)
@@ -667,22 +669,17 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 
 	  /* This is a possible completion */
 	  if (directoryp)
-	    {
-	      /* This completion is a directory; make it end with '/' */
-	      name = Ffile_name_as_directory (name);
-	    }
+	    /* This completion is a directory; make it end with '/'.  */
+	    name = Ffile_name_as_directory (name);
 
 	  /* Test the predicate, if any.  */
-
 	  if (!NILP (predicate))
 	    {
-	      Lisp_Object decoded;
 	      Lisp_Object val;
 	      struct gcpro gcpro1;
 
 	      GCPRO1 (name);
-	      decoded = Fexpand_file_name (name, dirname);
-	      val = call1 (predicate, decoded);
+	      val = call1 (predicate, name);
 	      UNGCPRO;
 
 	      if (NILP (val))
@@ -1113,6 +1110,7 @@ syms_of_dired ()
   Qfile_name_all_completions = intern ("file-name-all-completions");
   Qfile_attributes = intern ("file-attributes");
   Qfile_attributes_lessp = intern ("file-attributes-lessp");
+  Qdefault_directory = intern ("default-directory");
 
   staticpro (&Qdirectory_files);
   staticpro (&Qdirectory_files_and_attributes);
@@ -1120,6 +1118,7 @@ syms_of_dired ()
   staticpro (&Qfile_name_all_completions);
   staticpro (&Qfile_attributes);
   staticpro (&Qfile_attributes_lessp);
+  staticpro (&Qdefault_directory);
 
   defsubr (&Sdirectory_files);
   defsubr (&Sdirectory_files_and_attributes);
