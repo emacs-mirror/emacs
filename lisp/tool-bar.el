@@ -106,7 +106,7 @@ color capability and based on the available image libraries."
 		(if (not (display-images-p))
 		    (setq bind nil)
 		  (let ((image (eval image-exp)))
-		    (unless (image-mask-p image)
+		    (unless (and image (image-mask-p image))
 		      (setq image (append image '(:mask heuristic))))
 		    (setq bind (copy-sequence bind)
 			  plist (nthcdr (if (consp (nth 4 bind)) 5 4)
