@@ -1,3 +1,9 @@
+2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp-intro.texi (Lisp Atoms): Rephrase "in addition" to
+	avoid confusion with addition operation discussed in previous
+	paragraph.
+
 2008-01-31  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi: Update back cover text.
