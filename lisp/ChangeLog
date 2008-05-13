@@ -1,3 +1,8 @@
+2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (bootstrap-prepare): Don't chmod files.
+	(autoloads): Do it here instead, where it's actually needed.
+
 2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tool-bar.el (tool-bar-make-keymap): Account for the optional

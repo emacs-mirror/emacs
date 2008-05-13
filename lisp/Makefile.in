@@ -117,7 +117,11 @@ finder-data: $(emacs-deps) autoloads doit
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
+# The chmod +w is to handle env var CVSREAD=1.  Files named
+# are identified by being the value of `generated-autoload-file'.
 autoloads: $(emacs-deps) $(LOADDEFS) doit
+	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
+	  $(lisp)/emacs-lisp/cl-loaddefs.el
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
@@ -307,16 +311,11 @@ $(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 # an up-to-date copy of loaddefs.el that is uncorrupted by
 # local changes.  (Because loaddefs.el is an automatically generated
 # file, we don't want to store it in the source repository).
-#
-# The chmod +w is to handle env var CVSREAD=1.  Files named
-# are identified by being the value of `generated-autoload-file'.
 
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	fi
-	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
-	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
 maintainer-clean: distclean bootstrap-clean
 	cd $(lisp); rm -f $(AUTOGENEL)
