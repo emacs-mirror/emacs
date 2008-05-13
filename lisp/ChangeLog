@@ -1,3 +1,9 @@
+2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* talk.el (talk): Simplify.  Pass display arg to talk-add-display
+	as a string.
+	(talk-add-display): Simplify.  Accept only string args.
+
 2008-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-mode-map): Remove old keybinding for
