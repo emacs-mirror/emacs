@@ -1030,16 +1030,7 @@ currently used by buffers."
   (:description "filename"
    :reader (read-from-minibuffer "Filter by filename (regexp): "))
   (ibuffer-awhen (with-current-buffer buf
-		   (or buffer-file-name
-		       (and (boundp 'dired-directory)
-			    (let ((dired-dir
-				   (if (stringp dired-directory)
-				       dired-directory
-				     (car dired-directory))))
-			      (and dired-dir
-				   (expand-file-name dired-dir))))
-		       (and (eq major-mode 'vc-dir-mode)
-			    (bound-and-true-p default-directory))))
+		   (ibuffer-buffer-file-name))
 		 (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
