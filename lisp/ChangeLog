@@ -1,3 +1,10 @@
+2008-05-13  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-buffer-file-name): New function.
+	(define-ibuffer-column filename): Use it.
+
+	* ibuf-ext.el (define-ibuffer-filter filename): Use it.
+
 2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* talk.el (talk): Simplify.  Pass display arg to talk-add-display
