@@ -464,7 +464,7 @@ PREDICATE is evaluated on each line, with point at beginning of line.
 MSG is a noun phrase for the type of files being marked.
 It should end with a noun that can be pluralized by adding `s'.
 Return value is the number of files marked, or nil if none were marked."
-  `(let (buffer-read-only count)
+  `(let ((inhibit-read-only t) count)
     (save-excursion
       (setq count 0)
       (if ,msg (message "Marking %ss..." ,msg))
@@ -510,7 +510,7 @@ return (t FILENAME) instead of (FILENAME)."
   ;;endless loop.
   ;;This warning should not apply any longer, sk  2-Sep-1991 14:10.
   `(prog1
-       (let (buffer-read-only case-fold-search found results)
+       (let ((inhibit-read-only t) case-fold-search found results)
 	 (if ,arg
 	     (if (integerp ,arg)
 		 (progn	;; no save-excursion, want to move point.
@@ -600,7 +600,11 @@ Don't use that together with FILTER."
                              nil default-directory nil)
       (lexical-let ((default (and buffer-file-name
                                   (abbreviate-file-name buffer-file-name)))
-                    (defdir default-directory))
+                    (defdir default-directory)
+                    (cie ()))
+        (dolist (ext completion-ignored-extensions)
+          (if (eq ?/ (aref ext (1- (length ext)))) (push ext cie)))
+        (setq cie (concat (regexp-opt cie "\\(?:") "\\'"))
         (minibuffer-with-setup-hook
             (lambda ()
               (setq minibuffer-default default)
@@ -625,7 +629,11 @@ Don't use that together with FILTER."
             ;; does not obey its `predicate' argument.
             (completion-table-in-turn
              (lambda (str pred action)
-               (let ((read-file-name-predicate 'file-directory-p))
+               (let ((read-file-name-predicate
+                      (lambda (f) (and (not (member f '("./" "../")))
+                                  ;; Hack! Faster than file-directory-p!
+                                  (eq (aref f (1- (length f))) ?/)
+                                  (not (string-match cie f))))))
                  (complete-with-action
                   action 'read-file-name-internal str nil)))
              'read-file-name-internal)
@@ -838,7 +846,7 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       (make-local-variable 'file-name-coding-system)
       (setq file-name-coding-system
 	    (or coding-system-for-read file-name-coding-system))
-      (let (buffer-read-only
+      (let ((inhibit-read-only t)
 	    ;; Don't make undo entries for readin.
 	    (buffer-undo-list t))
 	(widen)
@@ -1082,7 +1090,7 @@ Preserves old cursor, marks/flags, hidden-p."
 	(hidden-subdirs (dired-remember-hidden))
 	(old-subdir-alist (cdr (reverse dired-subdir-alist))) ; except pwd
 	(case-fold-search nil)		; we check for upper case ls flags
-	buffer-read-only)
+	(inhibit-read-only t))
     (goto-char (point-min))
     (setq mark-alist;; only after dired-remember-hidden since this unhides:
 	  (dired-remember-marks (point-min) (point-max)))
@@ -1116,7 +1124,7 @@ Preserves old cursor, marks/flags, hidden-p."
 (defun dired-remember-marks (beg end)
   "Return alist of files and their marks, from BEG to END."
   (if selective-display			; must unhide to make this work.
-      (let (buffer-read-only)
+      (let ((inhibit-read-only t))
 	(subst-char-in-region beg end ?\r ?\n)))
   (let (fil chr alist)
     (save-excursion
@@ -1725,7 +1733,7 @@ Keybindings:
 This doesn't recover lost files, it just undoes changes in the buffer itself.
 You can use it to recover marks, killed lines or subdirs."
   (interactive)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (undo))
   (dired-build-subdir-alist)
   (message "Change in dired buffer undone.
@@ -2278,7 +2286,7 @@ instead of `dired-actual-switches'."
   (dired-clear-alist)
   (save-excursion
     (let* ((count 0)
-	   (buffer-read-only nil)
+	   (inhibit-read-only t)
 	   (buffer-undo-list t)
 	   (switches (or switches dired-actual-switches))
 	   new-dir-name
@@ -2546,7 +2554,7 @@ non-empty directories is allowed."
 	  (let (failures);; files better be in reverse order for this loop!
 	    (while l
 	      (goto-char (cdr (car l)))
-	      (let (buffer-read-only)
+	      (let ((inhibit-read-only t))
 		(condition-case err
 		    (let ((fn (car (car l))))
 		      (dired-delete-file fn dired-recursive-deletes)
@@ -2588,7 +2596,7 @@ non-empty directories is allowed."
 (defun dired-delete-entry (file)
   (save-excursion
     (and (dired-goto-file file)
-	 (let (buffer-read-only)
+	 (let ((inhibit-read-only t))
 	   (delete-region (progn (beginning-of-line) (point))
 			  (save-excursion (forward-line 1) (point))))))
   (dired-clean-up-after-deletion file))
@@ -2779,7 +2787,7 @@ just the current file."
 	       (following-char))))))
 
 (defun dired-mark-files-in-region (start end)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (if (> start end)
 	(error "start > end"))
     (goto-char start)			; assumed at beginning of line
@@ -2804,7 +2812,7 @@ this subdir."
   (interactive "P")
   (if (dired-get-subdir)
       (save-excursion (dired-mark-subdir-files))
-    (let (buffer-read-only)
+    (let ((inhibit-read-only t))
       (dired-repeat-over-lines
        (prefix-numeric-value arg)
        (function (lambda () (delete-char 1) (insert dired-marker-char)))))))
@@ -2839,7 +2847,7 @@ As always, hidden subdirs are not affected."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (let (buffer-read-only)
+    (let ((inhibit-read-only t))
       (while (not (eobp))
         (or (dired-between-files)
             (looking-at dired-re-dot)
@@ -3019,7 +3027,7 @@ OLD and NEW are both characters used to mark files."
   (if (or (eq old ?\r) (eq new ?\r))
       (ding)
     (let ((string (format "\n%c" old))
-	  (buffer-read-only))
+	  (inhibit-read-only t))
       (save-excursion
 	(goto-char (point-min))
 	(while (search-forward string nil t)
@@ -3044,7 +3052,7 @@ Type \\[help-command] at that time for help."
   (interactive "cRemove marks (RET means all): \nP")
   (save-excursion
     (let* ((count 0)
-	   buffer-read-only case-fold-search query
+	   (inhibit-read-only t) case-fold-search query
 	   (string (format "\n%c" mark))
 	   (help-form "\
 Type SPC or `y' to unmark one file, DEL or `n' to skip to next,

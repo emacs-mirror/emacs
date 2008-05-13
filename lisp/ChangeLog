@@ -1,3 +1,13 @@
+2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-read-dir-and-switches): Ignore ., .., and
+	completion-ignored-extension directories if there's something else.
+	(dired-mark-if, dired-map-over-marks, dired-readin, dired-revert)
+	(dired-remember-marks, dired-undo, dired-build-subdir-alist)
+	(dired-internal-do-deletions, dired-mark-files-in-region, dired-mark)
+	(dired-toggle-marks, dired-change-marks, dired-unmark-all-files):
+	buffer-read-only -> inhibit-read-only.
+
 2008-05-12  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-expand-dirs): Stop this function from tossing out
