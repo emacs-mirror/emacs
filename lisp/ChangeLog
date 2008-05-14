@@ -1,3 +1,10 @@
+2008-05-14  John Paul Wallington  <jpw@pobox.com>
+
+	* international/mule.el (convert-define-charset-argument): Remove
+	period from end of error message.
+	(coding-system-mnemonic): Doc fix.
+	(ctext-pre-write-conversion): Doc fix.
+
 2008-05-14  Simon Marshall  <simon@gnu.org>
 
 	* obsolete/fast-lock.el (fast-lock-cache-directories): Remove "."
