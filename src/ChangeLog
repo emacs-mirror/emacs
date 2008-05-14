@@ -1,3 +1,8 @@
+2008-05-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_get_glyph_overhangs): Remove.
+	(w32_redisplay_interface): Use x_get_glyph_overhangs instead.
+
 2008-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_prop_validate): Make nil a valid value.
