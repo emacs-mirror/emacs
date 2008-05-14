@@ -2695,6 +2695,8 @@ detect_coding_iso_2022 (coding, detect_info)
       struct coding_system *this = &(coding_categories[i]);
       Lisp_Object attrs, val;
 
+      if (this->id < 0)
+	continue;
       attrs = CODING_ID_ATTRS (this->id);
       if (CODING_ISO_FLAGS (this) & CODING_ISO_FLAG_FULL_SUPPORT
 	  && ! EQ (CODING_ATTR_SAFE_CHARSETS (attrs), Viso_2022_charset_list))
