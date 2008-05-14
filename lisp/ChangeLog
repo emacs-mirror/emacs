@@ -1,3 +1,34 @@
+2008-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* language/korean.el ("Korean"): Set `iso639-language'
+	property to `ko'.
+
+	* language/japanese.el ("Japanese"): Set `iso639-language'
+	property to `ja'.
+
+	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
+	("Chinese-CNS", "Chinese-EUC-TW", "Chinese-GBK")
+	("Chinese-GB18030"): Set `iso639-language' property to `zh'.
+
+	* international/mule-cmds.el (set-language-environment): Set
+	current-iso639-language
+
+	* international/fontset.el (setup-default-fontset): For kana, han,
+	hangul, and cjk-misc, move an entry with font-spec at the end.
+	(generate-fontset-menu): Exclue fontset-auto* from the list.
+
+	* composite.el (compose-chars-after): Assume that WINDOW is always
+	non-nil.
+
+	* faces.el (font-weight-table, font-slant-table)
+	(font-swidth-table): Declare them by defconst.  Change the format
+	of elements.  Call internal-set-font-style-table after their
+	declaration.
+	(face-valid-attribute-values): Call font-family-list.  Get values
+	for width, weight, and slant from font-xxx-table.
+
+	* cus-face.el (custom-face-attributes): Add "thin" for :weight.
+
 2008-05-13  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-buffer-file-name): New function.
