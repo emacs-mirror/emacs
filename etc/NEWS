@@ -34,9 +34,7 @@ supports local fonts (fonts installed on the machine where Emacs is
 running).  Additionally, the Xft library can be used for antialiasing
 support, the otf library for complex text layout by OpenType fonts,
 and the m17n library for text shaping.  Fontconfig-like font names
-(e.g. monospace-12) are accepted.  The old font handling code can
-be used by passing the configure option `--disable-font-backend'
-(also available as a run-time option).
+(e.g. monospace-12) are accepted.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -216,10 +214,6 @@ file or directory.
 This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
-
-** The new command-line option `--disable-font-backend' disables the
-new font backend code at runtime.  This option is not available if
-Emacs was compiled without font-backend support.
 
 ** The abbrev file is no longer read at startup in batch mode.
 
