@@ -50,10 +50,7 @@ Boston, MA 02110-1301, USA.  */
 #include "termhooks.h"
 #include "atimer.h"
 #include "termchar.h"
-
-#ifdef USE_FONT_BACKEND
 #include "font.h"
-#endif	/* USE_FONT_BACKEND */
 
 #ifdef HAVE_X_WINDOWS
 
@@ -1928,8 +1925,7 @@ hack_wm_protocols (f, widget)
 
 #ifdef HAVE_X_I18N
 
-static XFontSet xic_create_xfontset P_ ((struct frame *, char *));
-static XFontSet xic_create_xfontset2 P_ ((struct frame *));
+static XFontSet xic_create_xfontset P_ ((struct frame *));
 static XIMStyle best_xim_style P_ ((XIMStyles *, XIMStyles *));
 
 
@@ -2105,105 +2101,11 @@ print_fontset_result (xfs, name, missing_list, missing_count)
 #endif
 
 static XFontSet
-xic_create_xfontset (f, base_fontname)
-     struct frame *f;
-     char *base_fontname;
-{
-  XFontSet xfs = NULL;
-  char **missing_list = NULL;
-  int missing_count;
-  char *def_string;
-  Lisp_Object rest, frame;
-
-  if (!base_fontname)
-    base_fontname = xic_defaut_fontset;
-
-  /* See if there is another frame already using same fontset.  */
-  FOR_EACH_FRAME (rest, frame)
-    {
-      struct frame *cf = XFRAME (frame);
-      if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
-          && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
-          && FRAME_XIC_BASE_FONTNAME (cf)
-          && !strcmp (FRAME_XIC_BASE_FONTNAME (cf), base_fontname))
-        {
-          xfs = FRAME_XIC_FONTSET (cf);
-          break;
-        }
-    }
-
-  if (!xfs)
-    {
-      char *fontsetname = xic_create_fontsetname (base_fontname, False);
-
-      /* New fontset.  */
-      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-			    fontsetname, &missing_list,
-			    &missing_count, &def_string);
-#ifdef DEBUG_XIC_FONTSET
-      print_fontset_result (xfs, fontsetname, missing_list, missing_count);
-#endif
-      if (missing_list)
-	XFreeStringList (missing_list);
-      if (! xfs)
-	{
-	  /* FONTSETNAME contains a list of font names (specific fonts
-	     first, general fonts last), but giving that to
-	     XCreateFontSet at once occasionally fails (bug of X?).
-	     So, we try to call XCreateFontSet for each fontname.  */
-	  char *p0 = fontsetname, *p1;
-
-	  while (p0)
-	    {
-	      p1 = strchr (p0, ',');
-	      if (p1)
-		*p1 = '\0';
-	      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-				    p0, &missing_list,
-				    &missing_count, &def_string);
-#ifdef DEBUG_XIC_FONTSET
-	      print_fontset_result (xfs, p0, missing_list, missing_count);
-#endif
-	      if (missing_list)
-		XFreeStringList (missing_list);
-	      if (xfs)
-		break;
-	      p0 = p1 ? p1 + 1 : NULL;
-	    }
-	}
-      xfree (fontsetname);
-      if (! xfs && base_fontname != xic_defaut_fontset)
-	{
-	  /* Try the default fontset name at a last resort.  */
-	  fontsetname = xic_create_fontsetname (xic_defaut_fontset, False);
-	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-				fontsetname, &missing_list,
-				&missing_count, &def_string);
-#ifdef DEBUG_XIC_FONTSET
-	  print_fontset_result (xfs, fontsetname, missing_list, missing_count);
-#endif
-	  if (missing_list)
-	    XFreeStringList (missing_list);
-	  xfree (fontsetname);
-	}
-    }
-
-  if (FRAME_XIC_BASE_FONTNAME (f))
-    xfree (FRAME_XIC_BASE_FONTNAME (f));
-  FRAME_XIC_BASE_FONTNAME (f) = xstrdup (base_fontname);
-
-  /* No need to free def_string.  */
-  return xfs;
-}
-
-#ifdef USE_FONT_BACKEND
-
-static XFontSet
-xic_create_xfontset2 (f)
+xic_create_xfontset (f)
      struct frame *f;
 {
   XFontSet xfs = NULL;
-  struct font *font = FRAME_FONT_OBJECT (f);
+  struct font *font = FRAME_FONT (f);
   int pixel_size = font->pixel_size;
   Lisp_Object rest, frame;
 
@@ -2214,8 +2116,8 @@ xic_create_xfontset2 (f)
 
       if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
           && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
-	  && FRAME_FONT_OBJECT (f)
-	  && FRAME_FONT_OBJECT (f)->pixel_size == pixel_size)
+	  && FRAME_FONT (f)
+	  && FRAME_FONT (f)->pixel_size == pixel_size)
         {
           xfs = FRAME_XIC_FONTSET (cf);
           break;
@@ -2295,7 +2197,6 @@ xic_create_xfontset2 (f)
 
   return xfs;
 }
-#endif	/* USE_FONT_BACKEND */
 
 /* Free the X fontset of frame F if it is the last frame using it.  */
 
@@ -2369,15 +2270,7 @@ create_frame_xic (f)
     return;
 
   /* Create X fontset. */
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    xfs = xic_create_xfontset2 (f);
-  else
-#endif
-  xfs = xic_create_xfontset
-    (f, (FRAME_FONTSET (f) < 0) ? NULL
-        : (char *) SDATA (fontset_ascii (FRAME_FONTSET (f))));
-
+  xfs = xic_create_xfontset (f);
   xim = FRAME_X_XIM (f);
   if (xim)
     {
@@ -2532,12 +2425,7 @@ xic_set_xfontset (f, base_fontname)
 
   xic_free_xfontset (f);
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    xfs = xic_create_xfontset2 (f);
-  else
-#endif
-  xfs = xic_create_xfontset (f, base_fontname);
+  xfs = xic_create_xfontset (f);
 
   attr = XVaCreateNestedList (0, XNFontSet, xfs, NULL);
   if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
@@ -3041,20 +2929,13 @@ x_make_gc (f)
   /* Create the GCs of this frame.
      Note that many default values are used.  */
 
-  /* Normal video */
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    gc_values.font = FRAME_X_DISPLAY_INFO (f)->font->fid;
-  else
-#endif
-  gc_values.font = FRAME_FONT (f)->fid;
   gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
   gc_values.background = FRAME_BACKGROUND_PIXEL (f);
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
 		 FRAME_X_WINDOW (f),
-		 GCLineWidth | GCFont | GCForeground | GCBackground,
+		 GCLineWidth | GCForeground | GCBackground,
 		 &gc_values);
 
   /* Reverse video style.  */
@@ -3063,7 +2944,7 @@ x_make_gc (f)
   f->output_data.x->reverse_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
 		 FRAME_X_WINDOW (f),
-		 GCFont | GCForeground | GCBackground | GCLineWidth,
+		 GCForeground | GCBackground | GCLineWidth,
 		 &gc_values);
 
   /* Cursor has cursor-color background, background-color foreground.  */
@@ -3076,7 +2957,7 @@ x_make_gc (f)
 			     cursor_bits, 16, 16);
   f->output_data.x->cursor_gc
     = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 (GCFont | GCForeground | GCBackground
+		 (GCForeground | GCBackground
 		  | GCFillStyle /* | GCStipple */ | GCLineWidth),
 		 &gc_values);
 
@@ -3173,7 +3054,7 @@ unwind_create_frame (frame)
   return Qnil;
 }
 
-#ifdef USE_FONT_BACKEND
+
 static void
 x_default_font_parameter (f, parms)
      struct frame *f;
@@ -3210,7 +3091,7 @@ x_default_font_parameter (f, parms)
     }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
-#endif	/* USE_FONT_BACKEND */
+
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -3394,78 +3275,26 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      /* Perhaps, we must allow frame parameter, say `font-backend',
-	 to specify which font backends to use.  */
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
-      register_font_driver (&xftfont_driver, f);
+  register_font_driver (&xftfont_driver, f);
 #else	/* not HAVE_XFT */
-      register_font_driver (&ftxfont_driver, f);
+  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
-      register_font_driver (&xfont_driver, f);
+  register_font_driver (&xfont_driver, f);
 
-      x_default_parameter (f, parms, Qfont_backend, Qnil,
-			   "fontBackend", "FontBackend", RES_TYPE_STRING);
-    }
-#endif	/* USE_FONT_BACKEND */
+  x_default_parameter (f, parms, Qfont_backend, Qnil,
+		       "fontBackend", "FontBackend", RES_TYPE_STRING);
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    x_default_font_parameter (f, parms);
-else
-#endif	/* USE_FONT_BACKEND */
-  {
-    Lisp_Object font;
-
-    font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
-
-    /* If the caller has specified no font, try out fonts which we
-       hope have bold and italic variations.  */
-    if (!STRINGP (font))
-      {
-	char *names[]
-	  = { "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
-	      "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
-	      "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
-	      /* This was formerly the first thing tried, but it finds
-		 too many fonts and takes too long.  */
-	      "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1",
-	      /* If those didn't work, look for something which will
-		 at least work.  */
-	      "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1",
-	      NULL };
-	int i;
-
-	BLOCK_INPUT;
-	for (i = 0; names[i]; i++)
-	  {
-	    Lisp_Object list;
-
-	    list = x_list_fonts (f, build_string (names[i]), 0, 1);
-	    if (CONSP (list))
-	      {
-		font = XCAR (list);
-		break;
-	      }
-	  }
-	UNBLOCK_INPUT;
-	if (! STRINGP (font))
-	  font = build_string ("fixed");
-      }
-    x_default_parameter (f, parms, Qfont, font,
-			 "font", "Font", RES_TYPE_STRING);
-  }
+  x_default_font_parameter (f, parms);
 
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
-  xlwmenu_default_font = FRAME_FONT (f);
+  xlwmenu_default_font = XLoadQueryFont (FRAME_X_DISPLAY (f), "fixed");
 #endif
 
   /* Frame contents get displaced if an embedded X window has a border.  */
@@ -4987,68 +4816,21 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      /* Perhaps, we must allow frame parameter, say `font-backend',
-	 to specify which font backends to use.  */
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
-      register_font_driver (&xftfont_driver, f);
+  register_font_driver (&xftfont_driver, f);
 #else	/* not HAVE_XFT */
-      register_font_driver (&ftxfont_driver, f);
+  register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
-      register_font_driver (&xfont_driver, f);
+  register_font_driver (&xfont_driver, f);
 
-      x_default_parameter (f, parms, Qfont_backend, Qnil,
-			   "fontBackend", "FontBackend", RES_TYPE_STRING);
-    }
-#endif	/* USE_FONT_BACKEND */
+  x_default_parameter (f, parms, Qfont_backend, Qnil,
+		       "fontBackend", "FontBackend", RES_TYPE_STRING);
 
   /* Extract the window parameters from the supplied values that are
      needed to determine window geometry.  */
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    x_default_font_parameter (f, parms);
-else
-#endif	/* USE_FONT_BACKEND */
-  {
-    Lisp_Object font;
-
-    font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
-
-    BLOCK_INPUT;
-    /* First, try whatever font the caller has specified.  */
-    if (STRINGP (font))
-      {
-	tem = Fquery_fontset (font, Qnil);
-	if (STRINGP (tem))
-	  font = x_new_fontset (f, tem);
-	else
-	  font = x_new_font (f, SDATA (font));
-      }
-
-    /* Try out a font which we hope has bold and italic variations.  */
-    if (!STRINGP (font))
-      font = x_new_font (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
-    if (!STRINGP (font))
-      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      /* This was formerly the first thing tried, but it finds too many fonts
-	 and takes too long.  */
-      font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
-    /* If those didn't work, look for something which will at least work.  */
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
-    UNBLOCK_INPUT;
-    if (! STRINGP (font))
-      font = build_string ("fixed");
-
-    x_set_frame_parameters (f, Fcons (Fcons (Qfont, font), Qnil));
-  }
+  x_default_font_parameter (f, parms);
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
@@ -5991,9 +5773,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_fringe_width,
   x_set_wait_for_wm,
   x_set_fullscreen,
-#ifdef USE_FONT_BACKEND
   x_set_font_backend
-#endif	/* USE_FONT_BACKEND */
 };
 
 void
@@ -6193,18 +5973,6 @@ the tool bar buttons.  */);
   defsubr (&Sx_backspace_delete_keys_p);
 
   /* Setting callback functions for fontset handler.  */
-  get_font_info_func = x_get_font_info;
-
-#if 0 /* This function pointer doesn't seem to be used anywhere.
-	 And the pointer assigned has the wrong type, anyway.  */
-  list_fonts_func = x_list_fonts;
-#endif
-
-  load_font_func = x_load_font;
-  find_ccl_program_func = x_find_ccl_program;
-  query_font_func = x_query_font;
-  set_frame_fontset_func = x_set_font;
-  get_font_repertory_func = x_get_font_repertory;
   check_window_system_func = check_x;
 
   hourglass_atimer = NULL;
