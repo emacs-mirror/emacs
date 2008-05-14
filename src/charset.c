@@ -97,6 +97,10 @@ int charset_unibyte;
 /* List of charsets ordered by the priority.  */
 Lisp_Object Vcharset_ordered_list;
 
+/* Sub-list of Vcharset_ordered_list that contains all non-preferred
+   charsets.  */
+Lisp_Object Vcharset_non_preferred_head;
+
 /* Incremented everytime we change Vcharset_ordered_list.  This is
    unsigned short so that it fits in Lisp_Int and never matches
    -1.  */
@@ -117,6 +121,8 @@ int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 Lisp_Object Vcharset_map_path;
 
 Lisp_Object Vchar_unified_charset_table;
+
+Lisp_Object Vcurrent_iso639_language;
 
 /* Defined in chartab.c */
 extern void
@@ -1810,7 +1816,8 @@ char_charset (c, charset_list, code_return)
   if (NILP (charset_list))
     charset_list = Vcharset_ordered_list;
 
-  while (CONSP (charset_list))
+  while (CONSP (charset_list)
+	 && ! EQ (charset_list, Vcharset_non_preferred_head))
     {
       struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
       unsigned code = ENCODE_CHAR (charset, c);
@@ -1823,7 +1830,8 @@ char_charset (c, charset_list, code_return)
 	}
       charset_list = XCDR (charset_list);
     }
-  return NULL;
+  return (c <= MAX_UNICODE_CHAR ? CHARSET_FROM_ID (charset_unicode)
+	  : CHARSET_FROM_ID (charset_eight_bit));
 }
 
 
@@ -1994,7 +2002,7 @@ usage: (set-charset-priority &rest charsets)  */)
 	}
     }
   arglist[0] = Fnreverse (new_head);
-  arglist[1] = old_list;
+  arglist[1] = Vcharset_non_preferred_head = old_list;
   Vcharset_ordered_list = Fnconc (2, arglist);
   charset_ordered_list_tick++;
 
@@ -2132,6 +2140,12 @@ syms_of_charset ()
   DEFVAR_LISP ("charset-list", &Vcharset_list,
 	       doc: /* List of all charsets ever defined.  */);
   Vcharset_list = Qnil;
+
+  DEFVAR_LISP ("current-iso639-language", &Vcurrent_iso639_language,
+	       doc: /* ISO639 language mnemonic symbol for the current language environment.
+If the current language environment is for multiple languages (e.g. "Latin-1"),
+the value may be a list of mnemonics.  */);
+  Vcurrent_iso639_language = Qnil;
 
   charset_ascii
     = define_charset_internal (Qascii, 1, "\x00\x7F\x00\x00\x00\x00",
