@@ -787,9 +787,6 @@ bug_reporting_address ()
   return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
 }
 
-#ifdef USE_FONT_BACKEND
-extern int enable_font_backend;
-#endif	/* USE_FONT_BACKEND */
 
 /* ARGSUSED */
 int
@@ -1425,13 +1422,6 @@ main (argc, argv
 
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
-
-#ifdef USE_FONT_BACKEND
-  enable_font_backend = 1;
-  if (argmatch (argv, argc, "-disable-font-backend", "--disable-font-backend",
-                4, NULL, &skip_args))
-    enable_font_backend = 0;
-#endif	/* USE_FONT_BACKEND */
 
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
