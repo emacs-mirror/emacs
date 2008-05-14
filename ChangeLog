@@ -1,3 +1,10 @@
+2008-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* configure: Regenerate.
+
+	* configure.in: Don't handle --disable-font-backend.  Don't print
+	a message about a font backend.
+
 2008-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Make absence of makeinfo a fatal error only if the info
