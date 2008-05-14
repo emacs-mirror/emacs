@@ -1,3 +1,9 @@
+2008-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-echo-mark): Update docstring.
+	(tramp-echo-mark-marker): New defconst.
+	(tramp-check-for-regexp): Use it.
+
 2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-deduce-fileset): Do the right thing when visting a
