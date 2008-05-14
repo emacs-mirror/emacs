@@ -359,20 +359,18 @@
 
      (yi ,(font-spec :registry "iso10646-1" :script 'yi))
 
-     (kana ,(font-spec :registry "iso10646-1" :script 'kana)
-	   (nil . "JISX0208*")
+     (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
 	   (nil . "KSC5601.1987*")
 	   (nil . "JISX0201*")
 	   (nil . "JISX0213.2000-1")
-	   (nil . "JISX0213.2004-1"))
+	   (nil . "JISX0213.2004-1")
+	   ,(font-spec :registry "iso10646-1" :script 'kana))
 
      (bopomofo ,(font-spec :registry "iso10646-1" :script 'bopomofo)
 	       (nil . "sisheng_cwnn-0"))
 
-     (han ,(font-spec :registry "iso10646-1" :language 'ja)
-	  ,(font-spec :registry "iso10646-1" :language 'zh)
-	  (nil . "GB2312.1980-0")
+     (han (nil . "GB2312.1980-0")
 	  (nil . "JISX0208*")
 	  (nil . "JISX0212*")
 	  (nil . "big5*")
@@ -388,11 +386,11 @@
 	  (nil . "gb18030")
 	  (nil . "JISX0213.2000-1")
 	  (nil . "JISX0213.2000-2")
-	  (nil . "JISX0213.2004-1"))
+	  (nil . "JISX0213.2004-1")
+	  ,(font-spec :registry "iso10646-1" :lang 'ja)
+	  ,(font-spec :registry "iso10646-1" :lang 'zh))
 
-     (cjk-misc ,(font-spec :registry "iso10646-1" :language 'ja)
-	       ,(font-spec :registry "iso10646-1" :language 'zh)
-	       (nil . "GB2312.1980-0")
+     (cjk-misc (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")
 	       (nil . "JISX0212*")
 	       (nil . "big5*")
@@ -407,10 +405,12 @@
 	       (nil . "gbk-0")
 	       (nil . "gb18030")
 	       (nil . "JISX0213.2000-1")
-	       (nil . "JISX0213.2000-2"))
+	       (nil . "JISX0213.2000-2")
+	       ,(font-spec :registry "iso10646-1" :language 'ja)
+	       ,(font-spec :registry "iso10646-1" :language 'zh))
 
-     (hangul ,(font-spec :registry "iso10646-1" :language 'ko)
-	     (nil . "KSC5601.1987-0"))
+     (hangul (nil . "KSC5601.1987-0")
+	     ,(font-spec :registry "iso10646-1" :language 'ko))
 
      (braille ,(font-spec :registry "iso10646-1" :script 'braille))
 
@@ -743,6 +743,7 @@ Done when `mouse-set-font' is called."
   (let (l)
     (dolist (fontset (fontset-list))
       (or (string-match "fontset-default$" fontset)
+	  (string-match "fontset-auto[0-9]+$" fontset)
 	  (push (list (fontset-plain-name fontset) fontset) l)))
     (cons "Fontset"
 	  (sort l #'(lambda (x y) (string< (car x) (car y)))))))
