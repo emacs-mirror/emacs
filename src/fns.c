@@ -2207,12 +2207,13 @@ internal_equal (o1, o2, depth, props)
 	if (WINDOW_CONFIGURATIONP (o1))
 	  return compare_window_configurations (o1, o2, 0);
 
-	/* Aside from them, only true vectors, char-tables, and compiled
-	   functions are sensible to compare, so eliminate the others now.  */
+	/* Aside from them, only true vectors, char-tables, compiled
+	   functions, and fonts (font-spec, font-entity, font-ojbect)
+	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
 	    if (!(size & (PVEC_COMPILED
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE)))
+			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE | PVEC_FONT)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
