@@ -1,3 +1,8 @@
+2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-deduce-fileset): Do the right thing when visting a
+	buffer (say, a log buffer or diff buffer) with a vc-dir buffer as parent.
+
 2008-05-14  John Paul Wallington  <jpw@pobox.com>
 
 	* international/mule.el (convert-define-charset-argument): Remove

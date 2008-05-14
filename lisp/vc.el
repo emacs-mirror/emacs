@@ -982,12 +982,19 @@ Within directories, only files already under version control are noticed."
       (push node flattened))
     (nreverse flattened)))
 
+(defun vc-derived-from-dir-mode (&optional buffer)
+  "Are we in a VC-directory buffer, or do we have one as an ancestor?"
+  (let ((buffer (or buffer (current-buffer))))
+    (cond ((derived-mode-p 'vc-dir-mode) t)
+	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
+	  (t nil))))
+
 (defun vc-deduce-fileset (&optional observer)
   "Deduce a set of files and a backend to which to apply an operation and
 the common state of the fileset.  Return (BACKEND . FILESET)."
   (let* ((fileset (vc-dispatcher-selection-set observer))
          ;; FIXME: Store the backend in a buffer-local variable.
-         (backend (if (derived-mode-p 'vc-dir-mode)
+         (backend (if (vc-derived-from-dir-mode (current-buffer))
                       (vc-responsible-backend default-directory)
                     (assert (and (= 1 (length fileset))
                                  (not (file-directory-p (car fileset)))))
