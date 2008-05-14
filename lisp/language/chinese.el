@@ -106,6 +106,7 @@
 
 (set-language-info-alist
  "Chinese-GB" '((charset chinese-gb2312 chinese-sisheng)
+		(iso639-language . zh)
 		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
 		(coding-priority chinese-iso-8bit chinese-big5 iso-2022-cn)
 		(input-method . "chinese-py-punct")
@@ -132,6 +133,7 @@
 
 (set-language-info-alist
  "Chinese-BIG5" '((charset chinese-big5-1 chinese-big5-2)
+		  (iso639-language . zh)
 		  (coding-system chinese-big5 chinese-iso-7bit)
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (input-method . "chinese-py-punct-b5")
@@ -183,6 +185,7 @@
 			  chinese-cns11643-3 chinese-cns11643-4
 			  chinese-cns11643-5 chinese-cns11643-6
 			  chinese-cns11643-7)
+		 (iso639-language . zh)
 		 (coding-system iso-2022-cn euc-tw)
 		 (coding-priority iso-2022-cn euc-tw chinese-big5
 				  chinese-iso-8bit)
@@ -199,6 +202,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
 			     chinese-cns11643-3 chinese-cns11643-4
 			     chinese-cns11643-5 chinese-cns11643-6
 			     chinese-cns11643-7 chinese-big5-1 chinese-big5-2)
+		    (iso639-language . zh)
 		    (coding-system euc-tw iso-2022-cn)
 		    (coding-priority euc-tw chinese-big5 iso-2022-cn
 				     chinese-iso-8bit)
@@ -225,6 +229,7 @@ converted to CNS)."))
 
 (set-language-info-alist
  "Chinese-GBK" '((charset chinese-gbk)
+		 (iso639-language . zh)
 		 (coding-system chinese-gbk)
 		 (coding-priority gbk iso-2022-cn chinese-big5
 				  chinese-iso-8bit) ; fixme?
@@ -251,6 +256,7 @@ converted to CNS)."))
 
 (set-language-info-alist
  "Chinese-GB18030" '((charset gb18030)
+		     (iso639-language . zh)
 		     (coding-system chinese-gb18030)
 		     (coding-priority gb18030 gbk iso-2022-cn chinese-big5
 				      chinese-iso-8bit) ; fixme?
