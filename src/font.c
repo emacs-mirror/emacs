@@ -566,6 +566,8 @@ font_prop_validate (idx, prop, val)
 {
   Lisp_Object validated;
 
+  if (NILP (val))
+    return val;
   if (NILP (prop))
     prop = *font_property_table[idx].key;
   else
