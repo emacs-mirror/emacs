@@ -82,7 +82,7 @@ Distribution date of this version of MULE (multilingual environment).")
       (if (> (- private-char-area-2-max private-char-area-2-min) total)
 	  (setq code-offset private-char-area-2-min
 		private-char-area-2-min (+ private-char-area-2-min total))
-	(error "No more space for a new charset.")))
+	(error "No more space for a new charset")))
     (list :dimension dim
 	  :code-space code-space
 	  :iso-final-char (aref info-vector 4)
@@ -834,7 +834,7 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 (defun coding-system-mnemonic (coding-system)
   "Return the mnemonic character of CODING-SYSTEM.
 The mnemonic character of a coding system is used in mode line to
-indicate the coding system.  If CODING-SYSTEM. is nil, return ?=."
+indicate the coding system.  If CODING-SYSTEM is nil, return ?=."
   (plist-get (coding-system-plist coding-system) :mnemonic))
 
 (defun coding-system-type (coding-system)
@@ -1492,7 +1492,7 @@ Each element must be one of the names listed in the variable
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
 
 If FROM is a string, or if the current buffer is not the one set up for us
-by encode-coding-string, generate a new temp buffer, insert the
+by `encode-coding-string', generate a new temp buffer, insert the
 text, and convert it in the temporary buffer.  Otherwise, convert in-place."
   (save-match-data
     ;; Setup a working buffer if necessary.
