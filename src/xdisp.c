@@ -203,9 +203,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
-#ifdef USE_FONT_BACKEND
 #include "font.h"
-#endif	/* USE_FONT_BACKEND */
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 #ifndef FRAME_X_OUTPUT
@@ -4573,7 +4571,7 @@ handle_auto_composed_prop (it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
 
-  if (FUNCTIONP (Vauto_composition_function))
+  if (FRAME_WINDOW_P (it->f) && FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
       EMACS_INT pos, limit = -1;
@@ -4589,10 +4587,8 @@ handle_auto_composed_prop (it)
 	  Lisp_Object cmp_prop;
 	  EMACS_INT cmp_start, cmp_end;
 
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend
-	      && get_property_and_range (pos, Qcomposition, &cmp_prop,
-					 &cmp_start, &cmp_end, it->string)
+	  if (get_property_and_range (pos, Qcomposition, &cmp_prop,
+				      &cmp_start, &cmp_end, it->string)
 	      && cmp_start == pos
 	      && COMPOSITION_METHOD (cmp_prop) == COMPOSITION_WITH_GLYPH_STRING)
 	    {
@@ -4606,7 +4602,7 @@ handle_auto_composed_prop (it)
 		   different font.  */
 		val = Qnil;
 	    }
-#endif
+
 	  if (! NILP (val))
 	    {
 	      Lisp_Object end;
@@ -4641,16 +4637,13 @@ handle_auto_composed_prop (it)
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object args[5];
 
+	      limit = font_range (pos, limit, FACE_FROM_ID (it->f, it->face_id),
+				  it->f, it->string);
 	      args[0] = Vauto_composition_function;
 	      specbind (Qauto_composition_function, Qnil);
 	      args[1] = make_number (pos);
 	      args[2] = make_number (limit);
-#ifdef USE_FONT_BACKEND
-	      if (enable_font_backend)
-		args[3] = it->window;
-	      else
-#endif	/* USE_FONT_BACKEND */
-		args[3] = Qnil;
+	      args[3] = it->window;
 	      args[4] = it->string;
 	      safe_call (5, args);
 	      unbind_to (count, Qnil);
@@ -4737,7 +4730,6 @@ handle_composition_prop (it)
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
 	  /* For a terminal, draw only the first (non-TAB) character
 	     of the components.  */
-#ifdef USE_FONT_BACKEND
 	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
 	    {
 	      /* FIXME: This doesn't do anything!?! */
@@ -4746,7 +4738,6 @@ handle_composition_prop (it)
 					   cmp->hash_index * 2);
 	    }
 	  else
-#endif /* USE_FONT_BACKEND */
 	    {
 	      int i;
 
@@ -18816,7 +18807,7 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
      double *res;
      struct it *it;
      Lisp_Object prop;
-     void *font;
+     struct font *font;
      int width_p, *align_to;
 {
   double pixels;
@@ -18869,9 +18860,9 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (EQ (prop, Qheight))
-	return OK_PIXELS (font ? FONT_HEIGHT ((XFontStruct *)font) : FRAME_LINE_HEIGHT (it->f));
+	return OK_PIXELS (font ? FONT_HEIGHT (font) : FRAME_LINE_HEIGHT (it->f));
       if (EQ (prop, Qwidth))
-	return OK_PIXELS (font ? FONT_WIDTH ((XFontStruct *)font) : FRAME_COLUMN_WIDTH (it->f));
+	return OK_PIXELS (font ? FONT_WIDTH (font) : FRAME_COLUMN_WIDTH (it->f));
 #else
       if (EQ (prop, Qheight) || EQ (prop, Qwidth))
 	return OK_PIXELS (1);
@@ -19154,49 +19145,14 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
 {
   struct face *face = FACE_FROM_ID (f, face_id);
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
+  if (face->font)
     {
-      struct font *font = (struct font *) face->font_info;
+      unsigned code = face->font->driver->encode_char (face->font, c);
 
-      if (font)
-	{
-	  unsigned code = font->driver->encode_char (font, c);
-
-	  if (code != FONT_INVALID_CODE)
-	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-	  else
-	    STORE_XCHAR2B (char2b, 0, 0);
-	}
-    }
-  else
-#endif	/* USE_FONT_BACKEND */
-  if (!multibyte_p)
-    {
-      /* Unibyte case.  We don't have to encode, but we have to make
-	 sure to use a face suitable for unibyte.  */
-      STORE_XCHAR2B (char2b, 0, c);
-      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
-      face = FACE_FROM_ID (f, face_id);
-    }
-  else if (c < 128)
-    {
-      /* Case of ASCII in a face known to fit ASCII.  */
-      STORE_XCHAR2B (char2b, 0, c);
-    }
-  else if (face->font != NULL)
-    {
-      struct font_info *font_info
-	= FONT_INFO_FROM_ID (f, face->font_info_id);
-      struct charset *charset = CHARSET_FROM_ID (font_info->charset);
-      unsigned code = ENCODE_CHAR (charset, c);
-
-      if (CHARSET_DIMENSION (charset) == 1)
-	STORE_XCHAR2B (char2b, 0, code);
-      else
+      if (code != FONT_INVALID_CODE)
 	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-       /* Maybe encode the character in *CHAR2B.  */
-      FRAME_RIF (f)->encode_char (c, char2b, font_info, charset, NULL);
+      else
+	STORE_XCHAR2B (char2b, 0, 0);
     }
 
   /* Make sure X resources of the face are allocated.  */
@@ -19231,56 +19187,14 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
   if (two_byte_p)
     *two_byte_p = 0;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
+  if (face->font)
     {
-      struct font *font = (struct font *) face->font_info;
+      unsigned code = face->font->driver->encode_char (face->font, glyph->u.ch);
 
-      if (font)
-	{
-	  unsigned code = font->driver->encode_char (font, glyph->u.ch);
-
-	  if (code != FONT_INVALID_CODE)
-	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-	  else
-	    STORE_XCHAR2B (char2b, 0, code);
-	}
-    }
-  else
-#endif	/* USE_FONT_BACKEND */
-  if (!glyph->multibyte_p)
-    {
-      /* Unibyte case.  We don't have to encode, but we have to make
-	 sure to use a face suitable for unibyte.  */
-      STORE_XCHAR2B (char2b, 0, glyph->u.ch);
-    }
-  else if (glyph->u.ch < 128)
-    {
-      /* Case of ASCII in a face known to fit ASCII.  */
-      STORE_XCHAR2B (char2b, 0, glyph->u.ch);
-    }
-  else
-    {
-      struct font_info *font_info
-	= FONT_INFO_FROM_ID (f, face->font_info_id);
-      if (font_info)
-	{
-	  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
-	  unsigned code = ENCODE_CHAR (charset, glyph->u.ch);
-
-	  if (CHARSET_DIMENSION (charset) == 1)
-	    STORE_XCHAR2B (char2b, 0, code);
-	  else
-	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-
-	  /* Maybe encode the character in *CHAR2B.  */
-	  if (CHARSET_ID (charset) != charset_ascii)
-	    {
-	      glyph->font_type
-		= FRAME_RIF (f)->encode_char (glyph->u.ch, char2b, font_info,
-					      charset, two_byte_p);
-	    }
-	}
+      if (code != FONT_INVALID_CODE)
+	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+      else
+	STORE_XCHAR2B (char2b, 0, code);
     }
 
   /* Make sure X resources of the face are allocated.  */
@@ -19312,16 +19226,14 @@ fill_composite_glyph_string (s, base_face, overlaps)
 
   s->for_overlaps = overlaps;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend && s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+  if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
     {
       Lisp_Object gstring
 	= AREF (XHASH_TABLE (composition_hash_table)->key_and_value,
 		s->cmp->hash_index * 2);
 
       s->face = base_face;
-      s->font_info = base_face->font_info;
-      s->font = s->font_info->font;
+      s->font = base_face->font;
       for (i = 0, s->nchars = 0; i < s->cmp->glyph_len; i++, s->nchars++)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
@@ -19336,7 +19248,6 @@ fill_composite_glyph_string (s, base_face, overlaps)
       s->width = s->cmp->pixel_width;
     }
   else
-#endif	/* USE_FONT_BACKEND */
     {
       /* For all glyphs of this composition, starting at the offset
 	 S->gidx, until we reach the end of the definition or encounter a
@@ -19345,7 +19256,6 @@ fill_composite_glyph_string (s, base_face, overlaps)
 
       s->face = NULL;
       s->font = NULL;
-      s->font_info = NULL;
       for (i = s->gidx; i < s->cmp->glyph_len; i++)
 	{
 	  int c = COMPOSITION_GLYPH (s->cmp, i);
@@ -19363,7 +19273,6 @@ fill_composite_glyph_string (s, base_face, overlaps)
 		    {
 		      s->face = face;
 		      s->font = s->face->font;
-		      s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
 		    }
 		  else if (s->face != face)
 		    break;
@@ -19448,7 +19357,6 @@ fill_glyph_string (s, face_id, start, end, overlaps)
     }
 
   s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
 
   /* If the specified font could not be loaded, use the frame's font,
      but record the fact that we couldn't load it in
@@ -19512,7 +19420,6 @@ fill_stretch_glyph_string (s, row, area, start, end)
   face_id = glyph->face_id;
   s->face = FACE_FROM_ID (s->f, face_id);
   s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
   s->width = glyph->pixel_width;
   s->nchars = 1;
   voffset = glyph->voffset;
@@ -19534,35 +19441,20 @@ fill_stretch_glyph_string (s, row, area, start, end)
   return glyph - s->row->glyphs[s->area];
 }
 
-static XCharStruct *
-get_per_char_metric (f, font, font_info, char2b, font_type)
+static struct font_metrics *
+get_per_char_metric (f, font, char2b)
      struct frame *f;
-     XFontStruct *font;
-     struct font_info *font_info;
+     struct font *font;
      XChar2b *char2b;
-     int font_type;
 {
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      static XCharStruct pcm_value;
-      unsigned code = (XCHAR2B_BYTE1 (char2b) << 8) | XCHAR2B_BYTE2 (char2b);
-      struct font *fontp;
-      struct font_metrics metrics;
+  static struct font_metrics metrics;
+  unsigned code = (XCHAR2B_BYTE1 (char2b) << 8) | XCHAR2B_BYTE2 (char2b);
+  struct font *fontp;
 
-      if (! font_info || code == FONT_INVALID_CODE)
-	return NULL;
-      fontp = (struct font *) font_info;
-      fontp->driver->text_extents (fontp, &code, 1, &metrics);
-      pcm_value.lbearing = metrics.lbearing;
-      pcm_value.rbearing = metrics.rbearing;
-      pcm_value.ascent = metrics.ascent;
-      pcm_value.descent = metrics.descent;
-      pcm_value.width = metrics.width;
-      return &pcm_value;
-    }
-#endif	/* USE_FONT_BACKEND */
-  return FRAME_RIF (f)->per_char_metric (font, char2b, font_type);
+  if (! font || code == FONT_INVALID_CODE)
+    return NULL;
+  font->driver->text_extents (font, &code, 1, &metrics);
+  return &metrics;
 }
 
 /* EXPORT for RIF:
@@ -19580,17 +19472,12 @@ x_get_glyph_overhangs (glyph, f, left, right)
 
   if (glyph->type == CHAR_GLYPH)
     {
-      XFontStruct *font;
       struct face *face;
-      struct font_info *font_info;
       XChar2b char2b;
-      XCharStruct *pcm;
+      struct font_metrics *pcm;
 
       face = get_glyph_face_and_encoding (f, glyph, &char2b, NULL);
-      font = face->font;
-      font_info = FONT_INFO_FROM_FACE (f, face);
-      if (font  /* ++KFS: Should this be font_info ?  */
-	  && (pcm = get_per_char_metric (f, font, font_info, &char2b, glyph->font_type)))
+      if (face->font && (pcm = get_per_char_metric (f, face->font, &char2b)))
 	{
 	  if (pcm->rbearing > pcm->width)
 	    *right = pcm->rbearing - pcm->width;
@@ -20536,7 +20423,7 @@ produce_stretch_glyph (it)
   int ascent = 0;
   double tem;
   struct face *face = FACE_FROM_ID (it->f, it->face_id);
-  XFontStruct *font = face->font ? face->font : FRAME_FONT (it->f);
+  struct font *font = face->font ? face->font : FRAME_FONT (it->f);
 
   PREPARE_FACE_FOR_DISPLAY (it->f, face);
 
@@ -20677,7 +20564,7 @@ static Lisp_Object
 calc_line_height_property (it, val, font, boff, override)
      struct it *it;
      Lisp_Object val;
-     XFontStruct *font;
+     struct font *font;
      int boff, override;
 {
   Lisp_Object face_name = Qnil;
@@ -20712,7 +20599,6 @@ calc_line_height_property (it, val, font, boff, override)
     {
       int face_id;
       struct face *face;
-      struct font_info *font_info;
 
       face_id = lookup_named_face (it->f, face_name, 0);
       if (face_id < 0)
@@ -20722,10 +20608,8 @@ calc_line_height_property (it, val, font, boff, override)
       font = face->font;
       if (font == NULL)
 	return make_number (-1);
-
-      font_info = FONT_INFO_FROM_FACE (it->f, face);
-      boff = font_info->baseline_offset;
-      if (font_info->vertical_centering)
+      boff = font->baseline_offset;
+      if (font->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
     }
 
@@ -20767,11 +20651,10 @@ x_produce_glyphs (it)
   if (it->what == IT_CHARACTER)
     {
       XChar2b char2b;
-      XFontStruct *font;
+      struct font *font;
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
-      XCharStruct *pcm;
+      struct font_metrics *pcm;
       int font_not_found_p;
-      struct font_info *font_info;
       int boff;			/* baseline offset */
       /* We may change it->multibyte_p upon unibyte<->multibyte
 	 conversion.  So, save the current value now and restore it
@@ -20813,13 +20696,11 @@ x_produce_glyphs (it)
 	{
 	  font = FRAME_FONT (it->f);
 	  boff = FRAME_BASELINE_OFFSET (it->f);
-	  font_info = NULL;
 	}
       else
 	{
-	  font_info = FONT_INFO_FROM_FACE (it->f, face);
-	  boff = font_info->baseline_offset;
-	  if (font_info->vertical_centering)
+	  boff = font->baseline_offset;
+	  if (font->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 	}
 
@@ -20831,8 +20712,7 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
-	  pcm = get_per_char_metric (it->f, font, font_info, &char2b,
-				     FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
+	  pcm = get_per_char_metric (it->f, font, &char2b);
 
  	  if (it->override_ascent >= 0)
  	    {
@@ -21066,8 +20946,7 @@ x_produce_glyphs (it)
 	     multiplying the width of font by the width of the
 	     character.  */
 
-	    pcm = get_per_char_metric (it->f, font, font_info, &char2b,
-				       FONT_TYPE_FOR_MULTIBYTE (font, it->c));
+	  pcm = get_per_char_metric (it->f, font, &char2b);
 
 	  if (font_not_found_p || !pcm)
 	    {
@@ -21147,18 +21026,16 @@ x_produce_glyphs (it)
       int boff;			/* baseline offset */
       struct composition *cmp = composition_table[it->cmp_id];
       int glyph_len = cmp->glyph_len;
-      XFontStruct *font = face->font;
+      struct font *font = face->font;
 
       it->nglyphs = 1;
 
-#ifdef USE_FONT_BACKEND
       if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
 	{
 	  PREPARE_FACE_FOR_DISPLAY (it->f, face);
 	  font_prepare_composition (cmp, it->f);
 	}
       else
-#endif	/* USE_FONT_BACKEND */
       /* If we have not yet calculated pixel size data of glyphs of
 	 the composition for the current face font, calculate them
 	 now.  Theoretically, we have to check all fonts for the
@@ -21181,9 +21058,8 @@ x_produce_glyphs (it)
 	  int face_id;
 	  int c;
 	  XChar2b char2b;
-	  XCharStruct *pcm;
+	  struct font_metrics *pcm;
 	  int font_not_found_p;
-	  struct font_info *font_info;
 	  int pos;
 
 	  for (glyph_len = cmp->glyph_len; glyph_len > 0; glyph_len--)
@@ -21209,9 +21085,8 @@ x_produce_glyphs (it)
 	      face = face->ascii_face;
 	      font = face->font;
 	    }
-	  font_info = FONT_INFO_FROM_FACE (it->f, face);
-	  boff = font_info->baseline_offset;
-	  if (font_info->vertical_centering)
+	  boff = font->baseline_offset;
+	  if (font->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 	  font_ascent = FONT_BASE (font) + boff;
 	  font_descent = FONT_DESCENT (font) - boff;
@@ -21224,8 +21099,7 @@ x_produce_glyphs (it)
 	    {
 	      get_char_face_and_encoding (it->f, c, it->face_id,
 					  &char2b, it->multibyte_p, 0);
-	      pcm = get_per_char_metric (it->f, font, font_info, &char2b,
-					 FONT_TYPE_FOR_MULTIBYTE (font, c));
+	      pcm = get_per_char_metric (it->f, font, &char2b);
 	    }
 
 	  /* Initialize the bounding box.  */
@@ -21252,11 +21126,11 @@ x_produce_glyphs (it)
 	  highest = ascent + boff;
 
 	  if (! font_not_found_p
-	      && font_info->default_ascent
+	      && font->default_ascent
 	      && CHAR_TABLE_P (Vuse_default_ascent)
 	      && !NILP (Faref (Vuse_default_ascent,
 			       make_number (it->char_to_display))))
-	    highest = font_info->default_ascent + boff;
+	    highest = font->default_ascent + boff;
 
 	  /* Draw the first glyph at the normal position.  It may be
 	     shifted to right later if some other glyphs are drawn
@@ -21285,15 +21159,12 @@ x_produce_glyphs (it)
 		pcm = NULL;
 	      else
 		{
-		  font_info = FONT_INFO_FROM_FACE (it->f, this_face);
-		  this_boff = font_info->baseline_offset;
-		  if (font_info->vertical_centering)
+		  this_boff = font->baseline_offset;
+		  if (font->vertical_centering)
 		    this_boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 		  get_char_face_and_encoding (it->f, ch, face_id,
 					      &char2b, it->multibyte_p, 0);
-		  pcm = get_per_char_metric (it->f, font, font_info, &char2b,
-					     FONT_TYPE_FOR_MULTIBYTE (font,
-								      ch));
+		  pcm = get_per_char_metric (it->f, font, &char2b);
 		}
 	      if (! pcm)
 		cmp->offsets[i * 2] = cmp->offsets[i * 2 + 1] = 0;
@@ -21310,13 +21181,13 @@ x_produce_glyphs (it)
 			 alternate chars.  */
 		      left = (leftmost + rightmost - width) / 2;
 		      btm = - descent + boff;
-		      if (font_info->relative_compose
+		      if (font->relative_compose
 			  && (! CHAR_TABLE_P (Vignore_relative_composition)
 			      || NILP (Faref (Vignore_relative_composition,
 					      make_number (ch)))))
 			{
 
-			  if (- descent >= font_info->relative_compose)
+			  if (- descent >= font->relative_compose)
 			    /* One extra pixel between two glyphs.  */
 			    btm = highest + 1;
 			  else if (ascent <= 0)
