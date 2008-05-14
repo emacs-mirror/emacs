@@ -1061,11 +1061,7 @@ extern void x_set_scroll_bar_default_width P_ ((struct frame *));
 extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 
-extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
-#ifdef USE_FONT_BACKEND
-extern Lisp_Object x_new_fontset2 P_ ((struct frame *, int, Lisp_Object));
-#endif	/* USE_FONT_BACKEND */
+extern Lisp_Object x_new_font P_ ((struct frame *, Lisp_Object, int));
 
 /* These are in frame.c  */
 
