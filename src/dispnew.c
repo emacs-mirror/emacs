@@ -324,7 +324,9 @@ static struct frame *frame_matrix_frame;
    matrix adjustments.  Redisplay must stop, and glyph matrices must
    be adjusted when this flag becomes non-zero during display.  The
    reason fonts can be loaded so late is that fonts of fontsets are
-   loaded on demand.  */
+   loaded on demand.  Another reason is that a line contains many
+   characters displayed by zero width or very narrow glyphs of
+   variable-width fonts.  */
 
 int fonts_changed_p;
 
