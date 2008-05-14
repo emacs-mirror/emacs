@@ -2237,7 +2237,7 @@ font_clear_cache (f, cache, driver)
   for (tail = XCDR (XCDR (cache)); CONSP (tail); tail = XCDR (tail))
     {
       elt = XCAR (tail);
-      if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
+      if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)) && VECTORP (XCDR (elt)))
 	{
 	  Lisp_Object vec = XCDR (elt);
 	  int i;
