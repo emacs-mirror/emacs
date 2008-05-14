@@ -137,7 +137,7 @@ xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
 
 static Lisp_Object xftfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object xftfont_match P_ ((Lisp_Object, Lisp_Object));
-static struct font *xftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
+static Lisp_Object xftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void xftfont_close P_ ((FRAME_PTR, struct font *));
 static int xftfont_prepare_face P_ ((FRAME_PTR, struct face *));
 static void xftfont_done_face P_ ((FRAME_PTR, struct face *));
@@ -157,13 +157,12 @@ xftfont_list (frame, spec)
      Lisp_Object frame;
      Lisp_Object spec;
 {
-  Lisp_Object val = ftfont_driver.list (frame, spec);
+  Lisp_Object list = ftfont_driver.list (frame, spec), tail;
   int i;
   
-  if (! NILP (val))
-    for (i = 0; i < ASIZE (val); i++)
-      ASET (AREF (val, i), FONT_TYPE_INDEX, Qxft);
-  return val;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    ASET (XCAR (tail), FONT_TYPE_INDEX, Qxft);
+  return list;
 }
 
 static Lisp_Object
@@ -173,7 +172,7 @@ xftfont_match (frame, spec)
 {
   Lisp_Object entity = ftfont_driver.match (frame, spec);
 
-  if (VECTORP (entity))
+  if (! NILP (entity))
     ASET (entity, FONT_TYPE_INDEX, Qxft);
   return entity;
 }
@@ -182,7 +181,7 @@ extern Lisp_Object ftfont_font_format P_ ((FcPattern *));
 
 static FcChar8 ascii_printable[95];
 
-static struct font *
+static Lisp_Object
 xftfont_open (f, entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object entity;
@@ -190,7 +189,7 @@ xftfont_open (f, entity, pixel_size)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val;
+  Lisp_Object val, font_object;
   FcPattern *pattern, *pat = NULL;
   FcChar8 *file;
   struct xftfont_info *xftfont_info = NULL;
@@ -199,18 +198,19 @@ xftfont_open (f, entity, pixel_size)
   double size = 0;
   XftFont *xftfont = NULL;
   int spacing;
-  char *name;
-  int len;
+  char name[256];
+  int len, i;
   XGlyphInfo extents;
   FT_Face ft_face;
 
-  val = AREF (entity, FONT_EXTRA_INDEX);
-  if (XTYPE (val) != Lisp_Misc
-      || XMISCTYPE (val) != Lisp_Misc_Save_Value)
-    return NULL;
-  pattern = XSAVE_VALUE (val)->pointer;
+  val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+  if (! CONSP (val)
+      || XTYPE (XCDR (val)) != Lisp_Misc
+      || XMISCTYPE (XCDR (val)) != Lisp_Misc_Save_Value)
+    return Qnil;
+  pattern = XSAVE_VALUE (XCDR (val))->pointer;
   if (FcPatternGetString (pattern, FC_FILE, 0, &file) != FcResultMatch)
-    return NULL;
+    return Qnil;
 
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
@@ -228,49 +228,39 @@ xftfont_open (f, entity, pixel_size)
   BLOCK_INPUT;
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
   xftfont = XftFontOpenPattern (display, pat);
+  UNBLOCK_INPUT;
+  if (! xftfont)
+    return Qnil;
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
-  if (! xftfont)
-    goto err;
+  font_object = font_make_object (VECSIZE (struct xftfont_info));
+  ASET (font_object, FONT_TYPE_INDEX, Qxft);
+  for (i = 1; i < FONT_ENTITY_MAX; i++)
+    ASET (font_object, i, AREF (entity, i));
+  ASET (font_object, FONT_SIZE_INDEX, make_number (size));
+  len = font_unparse_xlfd (entity, size, name, 256);
+  if (len > 0)
+    ASET (font_object, FONT_NAME_INDEX, make_unibyte_string (name, len));
+  len = font_unparse_fcname (entity, size, name, 256);
+  if (len > 0)
+    ASET (font_object, FONT_FULLNAME_INDEX, make_unibyte_string (name, len));
+  else
+    ASET (font_object, FONT_FULLNAME_INDEX,
+	  AREF (font_object, FONT_NAME_INDEX));
+  ASET (font_object, FONT_FILE_INDEX,
+	make_unibyte_string ((char *) file, strlen ((char *) file)));
+  ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (pattern));
+  font = XFONT_OBJECT (font_object);
+  font->pixel_size = pixel_size;
+  font->driver = &xftfont_driver;
+  font->encoding_charset = font->repertory_charset = -1;
 
-  xftfont_info = malloc (sizeof (struct xftfont_info));
-  if (! xftfont_info)
-    goto err;
-  xfont = malloc (sizeof (XFontStruct));
-  if (! xfont)
-    goto err;
+  xftfont_info = (struct xftfont_info *) font;
   xftfont_info->display = display;
   xftfont_info->screen = FRAME_X_SCREEN_NUMBER (f);
   xftfont_info->xftfont = xftfont;
-#ifdef HAVE_LIBOTF
-  ft_face = XftLockFace (xftfont);
-  xftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
-  XftUnlockFace (xftfont);
-  xftfont_info->otf = NULL;
-#endif	/* HAVE_LIBOTF */
-
-  font = (struct font *) xftfont_info;
-  font->format = ftfont_font_format (xftfont->pattern);
-  font->entity = entity;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
-  len = 96;
-  name = malloc (len);
-  while (name && font_unparse_fcname (entity, pixel_size, name, len) < 0)
-    {
-      char *new = realloc (name, len += 32);
-
-      if (! new)
-	free (name);
-      name = new;
-    }
-  if (! name)
-    goto err;
-  font->font.full_name = font->font.name = name;
-  font->file_name = (char *) file;
-  font->font.size = xftfont->max_advance_width;
-  font->font.charset = font->encoding_charset = font->repertory_charset = -1;
-
   if (FcPatternGetInteger (xftfont->pattern, FC_SPACING, 0, &spacing)
       != FcResultMatch)
     spacing = FC_PROPORTIONAL;
@@ -280,21 +270,22 @@ xftfont_open (f, entity, pixel_size)
       for (i = 0; i < 95; i++)
 	ascii_printable[i] = ' ' + i;
     }
+  BLOCK_INPUT;
   if (spacing != FC_PROPORTIONAL)
     {
-      font->font.average_width = font->font.space_width
+      font->min_width = font->average_width = font->space_width
 	= xftfont->max_advance_width;
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
     }
   else
     {
       XftTextExtents8 (display, xftfont, ascii_printable, 1, &extents);
-      font->font.space_width = extents.xOff;
-      if (font->font.space_width <= 0)
+      font->space_width = extents.xOff;
+      if (font->space_width <= 0)
 	/* dirty workaround */
-	font->font.space_width = pixel_size;	
+	font->space_width = pixel_size;	
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
-      font->font.average_width = (font->font.space_width + extents.xOff) / 95;
+      font->average_width = (font->space_width + extents.xOff) / 95;
     }
   UNBLOCK_INPUT;
 
@@ -304,57 +295,37 @@ xftfont_open (f, entity, pixel_size)
   font->descent = xftfont->descent;
   if (font->descent < extents.height - extents.y)
     font->descent = extents.height - extents.y;
-  font->font.height = font->ascent + font->descent;
+  font->height = font->ascent + font->descent;
 
-  /* Unfortunately Xft doesn't provide a way to get minimum char
-     width.  So, we use space_width instead.  */
-  font->min_width = font->font.space_width;
-
-  font->font.baseline_offset = 0;
-  font->font.relative_compose = 0;
-  font->font.default_ascent = 0;
-  font->font.vertical_centering = 0;
-
-  /* Setup pseudo XFontStruct */
-  xfont->fid = 0;
-  xfont->ascent = font->ascent;
-  xfont->descent = font->descent;
-  xfont->max_bounds.descent = font->descent;
-  xfont->max_bounds.width = xftfont->max_advance_width;
-  xfont->min_bounds.width = font->font.space_width;
-  font->font.font = xfont;
-
-  dpyinfo->n_fonts++;
-
-  /* Set global flag fonts_changed_p to non-zero if the font loaded
-     has a character with a smaller width than any other character
-     before, or if the font loaded has a smaller height than any other
-     font loaded before.  If this happens, it will make a glyph matrix
-     reallocation necessary.  */
-  if (dpyinfo->n_fonts == 1)
+  ft_face = XftLockFace (xftfont);
+  if (XINT (AREF (entity, FONT_SIZE_INDEX)) == 0)
     {
-      dpyinfo->smallest_font_height = font->font.height;
-      dpyinfo->smallest_char_width = font->min_width;
-      fonts_changed_p = 1;
+      int upEM = ft_face->units_per_EM;
+
+      font->underline_position = -ft_face->underline_position * size / upEM;
+      font->underline_thickness = -ft_face->underline_thickness * size / upEM;
     }
   else
     {
-      if (dpyinfo->smallest_font_height > font->font.height)
-	dpyinfo->smallest_font_height = font->font.height,
-	  fonts_changed_p |= 1;
-      if (dpyinfo->smallest_char_width > font->min_width)
-	dpyinfo->smallest_char_width = font->min_width,
-	  fonts_changed_p |= 1;
+      font->underline_position = -1;
+      font->underline_thickness = 0;
     }
+#ifdef HAVE_LIBOTF
+  xftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  xftfont_info->otf = NULL;
+#endif	/* HAVE_LIBOTF */
+  XftUnlockFace (xftfont);
 
-  return font;
+  /* Unfortunately Xft doesn't provide a way to get minimum char
+     width.  So, we use space_width instead.  */
+  font->min_width = font->space_width;
 
- err:
-  if (xftfont) XftFontClose (display, xftfont);
-  UNBLOCK_INPUT;
-  if (xftfont_info) free (xftfont_info);
-  if (xfont) free (xfont);
-  return NULL;
+  font->baseline_offset = 0;
+  font->relative_compose = 0;
+  font->default_ascent = 0;
+  font->vertical_centering = 0;
+
+  return font_object;
 }
 
 static void
@@ -368,11 +339,9 @@ xftfont_close (f, font)
   if (xftfont_info->otf)
     OTF_close (xftfont_info->otf);
 #endif
+  BLOCK_INPUT;
   XftFontClose (xftfont_info->display, xftfont_info->xftfont);
-  if (font->font.name)
-    free (font->font.name);
-  free (font);
-  FRAME_X_DISPLAY_INFO (f)->n_fonts--;
+  UNBLOCK_INPUT;
 }
 
 static int
@@ -394,12 +363,8 @@ xftfont_prepare_face (f, face)
   xftface_info = malloc (sizeof (struct xftface_info));
   if (! xftface_info)
     return -1;
-
-  BLOCK_INPUT;
   xftfont_get_colors (f, face, face->gc, NULL,
 		      &xftface_info->xft_fg, &xftface_info->xft_bg);
-  UNBLOCK_INPUT;
-
   face->extra = xftface_info;
   return 0;
 }
@@ -491,7 +456,7 @@ xftfont_draw (s, from, to, x, y, with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
-  struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font_info;
+  struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font;
   struct xftface_info *xftface_info = NULL;
   XftDraw *xft_draw = xftfont_get_xft_draw (f);
   FT_UInt *code;
@@ -500,7 +465,7 @@ xftfont_draw (s, from, to, x, y, with_background)
   int len = to - from;
   int i;
 
-  if (s->font_info == face->font_info)
+  if (s->font == face->font)
     xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
 		      &fg, with_background ? &bg : NULL);
@@ -511,12 +476,8 @@ xftfont_draw (s, from, to, x, y, with_background)
     XftDrawSetClip (xft_draw, NULL);
 
   if (with_background)
-    {
-      struct font *font = (struct font *) face->font_info;
-
-      XftDrawRect (xft_draw, &bg,
-		   x, y - face->font->ascent, s->width, font->font.height);
-    }
+    XftDrawRect (xft_draw, &bg,
+		 x, y - face->font->ascent, s->width, face->font->height);
   code = alloca (sizeof (FT_UInt) * len);
   for (i = 0; i < len; i++)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
@@ -584,7 +545,7 @@ xftfont_shape (lgstring)
 {
   struct font *font;
   struct xftfont_info *xftfont_info;
-  int result;
+  Lisp_Object result;
   FT_Face ft_face;
 
   CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
@@ -602,7 +563,7 @@ xftfont_shape (lgstring)
 	    OTF_close (otf);
 	  xftfont_info->maybe_otf = 0;
 	  XftUnlockFace (xftfont_info->xftfont);
-	  return 0;
+	  return Qnil;
 	}
       xftfont_info->otf = otf;
     }
