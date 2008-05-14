@@ -56,15 +56,17 @@ Boston, MA 02110-1301, USA.  */
    13. Whether or not a box should be drawn around characters, the box
    type, and, for simple boxes, in what color.
 
-   14. Font pattern, or nil.  This is a special attribute.
-   When this attribute is specified, the face uses a font opened by
-   that pattern as is.  In addition, all the other font-related
-   attributes (1st thru 5th) are generated from the opened font name.
+   14. Font-spec, or nil.  This is a special attribute.
+
+   A font-spec is a collection of font attributes (specs).
+
+   When this attribute is specified, the face uses a font matching
+   with the specs as is except for what overwritten by the specs in
+   the fontset (see below).  In addition, the other font-related
+   attributes (1st thru 5th) are updated from the spec.
+
    On the other hand, if one of the other font-related attributes are
-   specified, this attribute is set to nil.  In that case, the face
-   doesn't inherit this attribute from the `default' face, and uses a
-   font determined by the other attributes (those may be inherited
-   from the `default' face).
+   specified, the correspoinding specs in this attribute is set to nil.
 
    15. A face name or list of face names from which to inherit attributes.
 
@@ -72,7 +74,11 @@ Boston, MA 02110-1301, USA.  */
    and is used to ensure that a font specified on the command line,
    for example, can be matched exactly.
 
-   17. A fontset name.
+   17. A fontset name.  This is another special attribute.
+
+   A fontset is a mappings from characters to font-specs, and the
+   specs overwrite the font-spec in the 14th attribute.
+
 
    Faces are frame-local by nature because Emacs allows to define the
    same named face (face names are symbols) differently for different
@@ -206,10 +212,6 @@ Boston, MA 02110-1301, USA.  */
 #include "frame.h"
 #include "termhooks.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
-#include "fontset.h"
-#endif /* HAVE_WINDOW_SYSTEM */
-
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #ifdef USE_MOTIF
@@ -251,7 +253,8 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include "font.h"
-#endif	/* HAVE_WINDOW_SYSTEM */
+#include "fontset.h"
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_X_WINDOWS
 
@@ -313,6 +316,11 @@ Lisp_Object QCwidth, QCfont, QCbold, QCitalic;
 Lisp_Object QCreverse_video;
 Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
 Lisp_Object QCfontset;
+
+/* Keywords symbols used for font properties.  */
+extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
+extern Lisp_Object QCspacing, QCsize, QCavgwidth;
+extern Lisp_Object Qp;
 
 /* Symbols used for attribute values.  */
 
@@ -491,7 +499,6 @@ static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
 			      int, int));
 static int x_face_list_fonts P_ ((struct frame *, char *,
 				  struct font_name **, int, int));
-static int font_scalable_p P_ ((struct font_name *));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
@@ -516,7 +523,7 @@ static int try_alternative_families P_ ((struct frame *f, Lisp_Object,
 static int cmp_font_names P_ ((const void *, const void *));
 static struct face *realize_face P_ ((struct face_cache *, Lisp_Object *,
 				      int));
-static struct face *realize_non_ascii_face P_ ((struct frame *, int,
+static struct face *realize_non_ascii_face P_ ((struct frame *, Lisp_Object,
 						struct face *));
 static struct face *realize_x_face P_ ((struct face_cache *, Lisp_Object *));
 static struct face *realize_tty_face P_ ((struct face_cache *, Lisp_Object *));
@@ -531,48 +538,24 @@ static int lface_same_font_attributes_p P_ ((Lisp_Object *, Lisp_Object *));
 static struct face_cache *make_face_cache P_ ((struct frame *));
 static void clear_face_gcs P_ ((struct face_cache *));
 static void free_face_cache P_ ((struct face_cache *));
-static int face_numeric_weight P_ ((Lisp_Object));
-static int face_numeric_slant P_ ((Lisp_Object));
-static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
 static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*,
 				    struct named_merge_point *));
 static int merge_face_ref P_ ((struct frame *, Lisp_Object, Lisp_Object *,
 			       int, struct named_merge_point *));
-static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object,
-					 Lisp_Object, int, int));
-static void set_lface_from_font_and_fontset P_ ((struct frame *, Lisp_Object,
-						 Lisp_Object, int, int));
+static int set_lface_from_font P_ ((struct frame *, Lisp_Object, Lisp_Object,
+				    int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *));
 static char *best_matching_font P_ ((struct frame *, Lisp_Object *,
 				     struct font_name *, int, int, int *));
 static void cache_face P_ ((struct face_cache *, struct face *, unsigned));
 static void uncache_face P_ ((struct face_cache *, struct face *));
-static int xlfd_numeric_slant P_ ((struct font_name *));
-static int xlfd_numeric_weight P_ ((struct font_name *));
-static int xlfd_numeric_swidth P_ ((struct font_name *));
-static Lisp_Object xlfd_symbolic_slant P_ ((struct font_name *));
-static Lisp_Object xlfd_symbolic_weight P_ ((struct font_name *));
-static Lisp_Object xlfd_symbolic_swidth P_ ((struct font_name *));
-static int xlfd_fixed_p P_ ((struct font_name *));
-static int xlfd_numeric_value P_ ((struct table_entry *, int, struct font_name *,
-				   int, int));
-static Lisp_Object xlfd_symbolic_value P_ ((struct table_entry *, int,
-					    struct font_name *, int,
-					    Lisp_Object));
-static struct table_entry *xlfd_lookup_field_contents P_ ((struct table_entry *, int,
-							   struct font_name *, int));
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-static int split_font_name P_ ((struct frame *, struct font_name *, int));
-static int xlfd_point_size P_ ((struct frame *, struct font_name *));
-static void sort_fonts P_ ((struct frame *, struct font_name *, int,
-			       int (*cmpfn) P_ ((const void *, const void *))));
 static GC x_create_gc P_ ((struct frame *, unsigned long, XGCValues *));
 static void x_free_gc P_ ((struct frame *, GC));
-static void clear_font_table P_ ((struct x_display_info *));
 
 #ifdef WINDOWSNT
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
@@ -980,14 +963,11 @@ clear_face_cache (clear_fonts_p)
     {
       struct x_display_info *dpyinfo;
 
-#ifdef USE_FONT_BACKEND
-      if (! enable_font_backend)
-#endif	/* USE_FONT_BACKEND */
-      /* Fonts are common for frames on one display, i.e. on
-	 one X screen.  */
-      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
-	if (dpyinfo->n_fonts > CLEAR_FONT_TABLE_NFONTS)
-	  clear_font_table (dpyinfo);
+#if 0
+      /* Not yet implemented.  */
+      clear_font_cache (frame);
+#endif
+
 
       /* From time to time see if we can unload some fonts.  This also
 	 frees all realized faces on all frames.  Fonts needed by
@@ -1028,70 +1008,6 @@ Optional THOROUGHLY non-nil means try to free unused fonts, too.  */)
   ++windows_or_buffers_changed;
   return Qnil;
 }
-
-
-
-#ifdef HAVE_WINDOW_SYSTEM
-
-
-/* Remove fonts from the font table of DPYINFO except for the default
-   ASCII fonts of frames on that display.  Called from clear_face_cache
-   from time to time.  */
-
-static void
-clear_font_table (dpyinfo)
-     struct x_display_info *dpyinfo;
-{
-  int i;
-
-  /* Free those fonts that are not used by frames on DPYINFO.  */
-  for (i = 0; i < dpyinfo->n_fonts; ++i)
-    {
-      struct font_info *font_info = dpyinfo->font_table + i;
-      Lisp_Object tail, frame;
-
-      /* Check if slot is already free.  */
-      if (font_info->name == NULL)
-	continue;
-
-      /* Don't free a default font of some frame.  */
-      FOR_EACH_FRAME (tail, frame)
-	{
-	  struct frame *f = XFRAME (frame);
-	  if (FRAME_WINDOW_P (f)
-	      && font_info->font == FRAME_FONT (f))
-	    break;
-	}
-
-      if (!NILP (tail))
-	continue;
-
-      /* Free names.  */
-      if (font_info->full_name != font_info->name)
-	xfree (font_info->full_name);
-      xfree (font_info->name);
-
-      /* Free the font.  */
-      BLOCK_INPUT;
-#ifdef HAVE_X_WINDOWS
-      XFreeFont (dpyinfo->display, font_info->font);
-#endif
-#ifdef WINDOWSNT
-      w32_unload_font (dpyinfo, font_info->font);
-#endif
-#ifdef MAC_OS
-      mac_unload_font (dpyinfo, font_info->font);
-#endif
-      UNBLOCK_INPUT;
-
-      /* Mark font table slot free.  */
-      font_info->font = NULL;
-      font_info->name = font_info->full_name = NULL;
-    }
-}
-
-#endif /* HAVE_WINDOW_SYSTEM */
-
 
 
 /***********************************************************************
@@ -1215,64 +1131,6 @@ load_pixmap (f, name, w_ptr, h_ptr)
     }
 
   return bitmap_id;
-}
-
-#endif /* HAVE_WINDOW_SYSTEM */
-
-
-
-/***********************************************************************
-				Fonts
- ***********************************************************************/
-
-#ifdef HAVE_WINDOW_SYSTEM
-
-/* Load font of face FACE which is used on frame F to display ASCII
-   characters.  The name of the font to load is determined by lface.  */
-
-static void
-load_face_font (f, face)
-     struct frame *f;
-     struct face *face;
-{
-  struct font_info *font_info = NULL;
-  char *font_name;
-  int needs_overstrike;
-
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    abort ();
-#endif	/* USE_FONT_BACKEND */
-  face->font_info_id = -1;
-  face->font = NULL;
-  face->font_name = NULL;
-
-  font_name = choose_face_font (f, face->lface, Qnil, &needs_overstrike);
-  if (!font_name)
-    return;
-
-  BLOCK_INPUT;
-  font_info = FS_LOAD_FONT (f, font_name);
-  UNBLOCK_INPUT;
-
-  if (font_info)
-    {
-      face->font_info_id = font_info->font_idx;
-      face->font = font_info->font;
-      face->font_name = font_info->full_name;
-      face->overstrike = needs_overstrike;
-      if (face->gc)
-	{
-	  BLOCK_INPUT;
-	  x_free_gc (f, face->gc);
-	  face->gc = 0;
-	  UNBLOCK_INPUT;
-	}
-    }
-  else
-    add_to_log ("Unable to load font %s",
-		build_string (font_name), Qnil);
-  xfree (font_name);
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1920,33 +1778,6 @@ static struct table_entry swidth_table[] =
   {"wide",		XLFD_SWIDTH_EXTRA_EXPANDED,	&Qextra_expanded}
 };
 
-/* Structure used to hold the result of splitting font names in XLFD
-   format into their fields.  */
-
-struct font_name
-{
-  /* The original name which is modified destructively by
-     split_font_name.  The pointer is kept here to be able to free it
-     if it was allocated from the heap.  */
-  char *name;
-
-  /* Font name fields.  Each vector element points into `name' above.
-     Fields are NUL-terminated.  */
-  char *fields[XLFD_LAST];
-
-  /* Numeric values for those fields that interest us.  See
-     split_font_name for which these are.  */
-  int numeric[XLFD_LAST];
-
-  /* If the original name matches one of Vface_font_rescale_alist,
-     the value is the corresponding rescale ratio.  Otherwise, the
-     value is 1.0.  */
-  double rescale_ratio;
-
-  /* Lower value mean higher priority.  */
-  int registry_priority;
-};
-
 /* The frame in effect when sorting font names.  Set temporarily in
    sort_fonts so that it is available in font comparison functions.  */
 
@@ -1965,424 +1796,8 @@ static int font_sort_order[4] = {
 static int font_sort_order[4];
 #endif
 
-/* Look up FONT.fields[FIELD_INDEX] in TABLE which has DIM entries.
-   TABLE must be sorted by TABLE[i]->name in ascending order.  Value
-   is a pointer to the matching table entry or null if no table entry
-   matches.  */
-
-static struct table_entry *
-xlfd_lookup_field_contents (table, dim, font, field_index)
-     struct table_entry *table;
-     int dim;
-     struct font_name *font;
-     int field_index;
-{
-  /* Function split_font_name converts fields to lower-case, so there
-     is no need to use xstrlwr or xstricmp here.  */
-  char *s = font->fields[field_index];
-  int low, mid, high, cmp;
-
-  low = 0;
-  high = dim - 1;
-
-  while (low <= high)
-    {
-      mid = (low + high) / 2;
-      cmp = strcmp (table[mid].name, s);
-
-      if (cmp < 0)
-	low = mid + 1;
-      else if (cmp > 0)
-	high = mid - 1;
-      else
-	return table + mid;
-    }
-
-  return NULL;
-}
-
-
-/* Return a numeric representation for font name field
-   FONT.fields[FIELD_INDEX].  The field is looked up in TABLE which
-   has DIM entries.  Value is the numeric value found or DFLT if no
-   table entry matches.  This function is used to translate weight,
-   slant, and swidth names of XLFD font names to numeric values.  */
-
-static INLINE int
-xlfd_numeric_value (table, dim, font, field_index, dflt)
-     struct table_entry *table;
-     int dim;
-     struct font_name *font;
-     int field_index;
-     int dflt;
-{
-  struct table_entry *p;
-  p = xlfd_lookup_field_contents (table, dim, font, field_index);
-  return p ? p->numeric : dflt;
-}
-
-
-/* Return a symbolic representation for font name field
-   FONT.fields[FIELD_INDEX].  The field is looked up in TABLE which
-   has DIM entries.  Value is the symbolic value found or DFLT if no
-   table entry matches.  This function is used to translate weight,
-   slant, and swidth names of XLFD font names to symbols.  */
-
-static INLINE Lisp_Object
-xlfd_symbolic_value (table, dim, font, field_index, dflt)
-     struct table_entry *table;
-     int dim;
-     struct font_name *font;
-     int field_index;
-     Lisp_Object dflt;
-{
-  struct table_entry *p;
-  p = xlfd_lookup_field_contents (table, dim, font, field_index);
-  return p ? *p->symbol : dflt;
-}
-
-
-/* Return a numeric value for the slant of the font given by FONT.  */
-
-static INLINE int
-xlfd_numeric_slant (font)
-     struct font_name *font;
-{
-  return xlfd_numeric_value (slant_table, DIM (slant_table),
-			     font, XLFD_SLANT, XLFD_SLANT_ROMAN);
-}
-
-
-/* Return a symbol representing the weight of the font given by FONT.  */
-
-static INLINE Lisp_Object
-xlfd_symbolic_slant (font)
-     struct font_name *font;
-{
-  return xlfd_symbolic_value (slant_table, DIM (slant_table),
-			      font, XLFD_SLANT, Qnormal);
-}
-
-
-/* Return a numeric value for the weight of the font given by FONT.  */
-
-static INLINE int
-xlfd_numeric_weight (font)
-     struct font_name *font;
-{
-  return xlfd_numeric_value (weight_table, DIM (weight_table),
-			     font, XLFD_WEIGHT, XLFD_WEIGHT_MEDIUM);
-}
-
-
-/* Return a symbol representing the slant of the font given by FONT.  */
-
-static INLINE Lisp_Object
-xlfd_symbolic_weight (font)
-     struct font_name *font;
-{
-  return xlfd_symbolic_value (weight_table, DIM (weight_table),
-			      font, XLFD_WEIGHT, Qnormal);
-}
-
-
-/* Return a numeric value for the swidth of the font whose XLFD font
-   name fields are found in FONT.  */
-
-static INLINE int
-xlfd_numeric_swidth (font)
-     struct font_name *font;
-{
-  return xlfd_numeric_value (swidth_table, DIM (swidth_table),
-			     font, XLFD_SWIDTH, XLFD_SWIDTH_MEDIUM);
-}
-
-
-/* Return a symbolic value for the swidth of FONT.  */
-
-static INLINE Lisp_Object
-xlfd_symbolic_swidth (font)
-     struct font_name *font;
-{
-  return xlfd_symbolic_value (swidth_table, DIM (swidth_table),
-			      font, XLFD_SWIDTH, Qnormal);
-}
-
-
-/* Look up the entry of SYMBOL in the vector TABLE which has DIM
-   entries.  Value is a pointer to the matching table entry or null if
-   no element of TABLE contains SYMBOL.  */
-
-static struct table_entry *
-face_value (table, dim, symbol)
-     struct table_entry *table;
-     int dim;
-     Lisp_Object symbol;
-{
-  int i;
-
-  xassert (SYMBOLP (symbol));
-
-  for (i = 0; i < dim; ++i)
-    if (EQ (*table[i].symbol, symbol))
-      break;
-
-  return i < dim ? table + i : NULL;
-}
-
-
-/* Return a numeric value for SYMBOL in the vector TABLE which has DIM
-   entries.  Value is -1 if SYMBOL is not found in TABLE.  */
-
-static INLINE int
-face_numeric_value (table, dim, symbol)
-     struct table_entry *table;
-     size_t dim;
-     Lisp_Object symbol;
-{
-  struct table_entry *p = face_value (table, dim, symbol);
-  return p ? p->numeric : -1;
-}
-
-
-/* Return a numeric value representing the weight specified by Lisp
-   symbol WEIGHT.  Value is one of the enumerators of enum
-   xlfd_weight.  */
-
-static INLINE int
-face_numeric_weight (weight)
-     Lisp_Object weight;
-{
-  return face_numeric_value (weight_table, DIM (weight_table), weight);
-}
-
-
-/* Return a numeric value representing the slant specified by Lisp
-   symbol SLANT.  Value is one of the enumerators of enum xlfd_slant.  */
-
-static INLINE int
-face_numeric_slant (slant)
-     Lisp_Object slant;
-{
-  return face_numeric_value (slant_table, DIM (slant_table), slant);
-}
-
-
-/* Return a numeric value representing the swidth specified by Lisp
-   symbol WIDTH.  Value is one of the enumerators of enum xlfd_swidth.  */
-
-static int
-face_numeric_swidth (width)
-     Lisp_Object width;
-{
-  return face_numeric_value (swidth_table, DIM (swidth_table), width);
-}
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-#ifdef USE_FONT_BACKEND
-static INLINE Lisp_Object
-face_symbolic_value (table, dim, font_prop)
-     struct table_entry *table;
-     int dim;
-     Lisp_Object font_prop;
-{
-  struct table_entry *p;
-  char *s = SDATA (SYMBOL_NAME (font_prop));
-  int low, mid, high, cmp;
-
-  low = 0;
-  high = dim - 1;
-
-  while (low <= high)
-    {
-      mid = (low + high) / 2;
-      cmp = strcmp (table[mid].name, s);
-
-      if (cmp < 0)
-	low = mid + 1;
-      else if (cmp > 0)
-	high = mid - 1;
-      else
-	return *table[mid].symbol;
-    }
-
-  return Qnil;
-}
-
-static INLINE Lisp_Object
-face_symbolic_weight (weight)
-     Lisp_Object weight;
-{
-  return face_symbolic_value (weight_table, DIM (weight_table), weight);
-}
-
-static INLINE Lisp_Object
-face_symbolic_slant (slant)
-     Lisp_Object slant;
-{
-  return face_symbolic_value (slant_table, DIM (slant_table), slant);
-}
-
-static INLINE Lisp_Object
-face_symbolic_swidth (width)
-     Lisp_Object width;
-{
-  return face_symbolic_value (swidth_table, DIM (swidth_table), width);
-}
-#endif	/* USE_FONT_BACKEND */
-
-Lisp_Object
-split_font_name_into_vector (fontname)
-     Lisp_Object fontname;
-{
-  struct font_name font;
-  Lisp_Object vec;
-  int i;
-
-  font.name = LSTRDUPA (fontname);
-  if (! split_font_name (NULL, &font, 0))
-    return Qnil;
-  vec = Fmake_vector (make_number (XLFD_LAST), Qnil);
-  for (i = 0; i < XLFD_LAST; i++)
-    if (font.fields[i][0] != '*')
-      ASET (vec, i, build_string (font.fields[i]));
-  return vec;
-}
-
-Lisp_Object
-build_font_name_from_vector (vec)
-     Lisp_Object vec;
-{
-  struct font_name font;
-  Lisp_Object fontname;
-  char *p;
-  int i;
-
-  for (i = 0; i < XLFD_LAST; i++)
-    {
-      font.fields[i] = (NILP (AREF (vec, i))
-			? "*" : (char *) SDATA (AREF (vec, i)));
-      if ((i == XLFD_FAMILY || i == XLFD_REGISTRY)
-	  && (p = strchr (font.fields[i], '-')))
-	{
-	  char *p1 = STRDUPA (font.fields[i]);
-
-	  p1[p - font.fields[i]] = '\0';
-	  if (i == XLFD_FAMILY)
-	    {
-	      font.fields[XLFD_FOUNDRY] = p1;
-	      font.fields[XLFD_FAMILY] = p + 1;
-	    }
-	  else
-	    {
-	      font.fields[XLFD_REGISTRY] = p1;
-	      font.fields[XLFD_ENCODING] = p + 1;
-	      break;
-	    }
-	}
-    }
-
-  p = build_font_name (&font);
-  fontname = build_string (p);
-  xfree (p);
-  return fontname;
-}
-
-/* Return non-zero if FONT is the name of a fixed-pitch font.  */
-
-static INLINE int
-xlfd_fixed_p (font)
-     struct font_name *font;
-{
-  /* Function split_font_name converts fields to lower-case, so there
-     is no need to use tolower here.  */
-  return *font->fields[XLFD_SPACING] != 'p';
-}
-
-
-/* Return the point size of FONT on frame F, measured in 1/10 pt.
-
-   The actual height of the font when displayed on F depends on the
-   resolution of both the font and frame.  For example, a 10pt font
-   designed for a 100dpi display will display larger than 10pt on a
-   75dpi display.  (It's not unusual to use fonts not designed for the
-   display one is using.  For example, some intlfonts are available in
-   72dpi versions, only.)
-
-   Value is the real point size of FONT on frame F, or 0 if it cannot
-   be determined.
-
-   By side effect, set FONT->numeric[XLFD_PIXEL_SIZE].  */
-
-static INLINE int
-xlfd_point_size (f, font)
-     struct frame *f;
-     struct font_name *font;
-{
-  double resy = FRAME_X_DISPLAY_INFO (f)->resy;
-  char *pixel_field = font->fields[XLFD_PIXEL_SIZE];
-  double pixel;
-  int real_pt;
-
-  if (*pixel_field == '[')
-    {
-      /* The pixel size field is `[A B C D]' which specifies
-	 a transformation matrix.
-
-	 A  B  0
-	 C  D  0
-	 0  0  1
-
-	 by which all glyphs of the font are transformed.  The spec
-	 says that s scalar value N for the pixel size is equivalent
-	 to A = N * resx/resy, B = C = 0, D = N.  */
-      char *start = pixel_field + 1, *end;
-      double matrix[4];
-      int i;
-
-      for (i = 0; i < 4; ++i)
-	{
-	  matrix[i] = strtod (start, &end);
-	  start = end;
-	}
-
-      pixel = matrix[3];
-    }
-  else
-    pixel = atoi (pixel_field);
-
-  font->numeric[XLFD_PIXEL_SIZE] = pixel;
-  if (pixel == 0)
-    real_pt = 0;
-  else
-    real_pt = PT_PER_INCH * 10.0 * pixel / resy + 0.5;
-
-  return real_pt;
-}
-
-
-/* Return point size of PIXEL dots while considering Y-resultion (DPI)
-   of frame F.  This function is used to guess a point size of font
-   when only the pixel height of the font is available.  */
-
-static INLINE int
-pixel_point_size (f, pixel)
-     struct frame *f;
-     int pixel;
-{
-  double resy = FRAME_X_DISPLAY_INFO (f)->resy;
-  double real_pt;
-  int int_pt;
-
-  /* As one inch is PT_PER_INCH points, PT_PER_INCH/RESY gives the
-     point size of one dot.  */
-  real_pt = pixel * PT_PER_INCH / resy;
-  int_pt = real_pt + 0.5;
-
-  return int_pt;
-}
-
 
 /* Return a rescaling ratio of a font of NAME.  */
 
@@ -2402,585 +1817,41 @@ font_rescale_ratio (name)
   return 1.0;
 }
 
-
-/* Split XLFD font name FONT->name destructively into NUL-terminated,
-   lower-case fields in FONT->fields.  NUMERIC_P non-zero means
-   compute numeric values for fields XLFD_POINT_SIZE, XLFD_SWIDTH,
-   XLFD_RESY, XLFD_SLANT, and XLFD_WEIGHT in FONT->numeric.  Value is
-   zero if the font name doesn't have the format we expect.  The
-   expected format is a font name that starts with a `-' and has
-   XLFD_LAST fields separated by `-'.  */
+static enum font_property_index font_props_for_sorting[FONT_SIZE_INDEX];
 
 static int
-split_font_name (f, font, numeric_p)
-     struct frame *f;
-     struct font_name *font;
-     int numeric_p;
+compare_fonts_by_sort_order (v1, v2)
+     const void *v1, *v2;
 {
-  int i = 0;
-  int success_p;
-  double rescale_ratio;
-
-  if (numeric_p)
-    /* This must be done before splitting the font name.  */
-    rescale_ratio = font_rescale_ratio (font->name);
-
-  if (*font->name == '-')
-    {
-      char *p = xstrlwr (font->name) + 1;
-
-      while (i < XLFD_LAST)
-	{
-	  font->fields[i] = p;
-	  ++i;
-
-	  /* Pixel and point size may be of the form `[....]'.  For
-	     BNF, see XLFD spec, chapter 4.  Negative values are
-	     indicated by tilde characters which we replace with
-	     `-' characters, here.  */
-	  if (*p == '['
-	      && (i - 1 == XLFD_PIXEL_SIZE
-		  || i - 1 == XLFD_POINT_SIZE))
-	    {
-	      char *start, *end;
-	      int j;
-
-	      for (++p; *p && *p != ']'; ++p)
-		if (*p == '~')
-		  *p = '-';
-
-	      /* Check that the matrix contains 4 floating point
-		 numbers.  */
-	      for (j = 0, start = font->fields[i - 1] + 1;
-		   j < 4;
-		   ++j, start = end)
-		if (strtod (start, &end) == 0 && start == end)
-		  break;
-
-	      if (j < 4)
-		break;
-	    }
-
-	  while (*p && *p != '-')
-	    ++p;
-
-	  if (*p != '-')
-	    break;
-
-	  *p++ = 0;
-	}
-    }
-
-  success_p = i == XLFD_LAST;
-
-  /* If requested, and font name was in the expected format,
-     compute numeric values for some fields.  */
-  if (numeric_p && success_p)
-    {
-      font->numeric[XLFD_POINT_SIZE] = xlfd_point_size (f, font);
-      font->numeric[XLFD_RESY] = atoi (font->fields[XLFD_RESY]);
-      font->numeric[XLFD_SLANT] = xlfd_numeric_slant (font);
-      font->numeric[XLFD_WEIGHT] = xlfd_numeric_weight (font);
-      font->numeric[XLFD_SWIDTH] = xlfd_numeric_swidth (font);
-      font->numeric[XLFD_AVGWIDTH] = atoi (font->fields[XLFD_AVGWIDTH]);
-      font->rescale_ratio = rescale_ratio;
-    }
-
-  /* Initialize it to zero.  It will be overridden by font_list while
-     trying alternate registries.  */
-  font->registry_priority = 0;
-
-  return success_p;
-}
-
-
-/* Build an XLFD font name from font name fields in FONT.  Value is a
-   pointer to the font name, which is allocated via xmalloc.  */
-
-static char *
-build_font_name (font)
-     struct font_name *font;
-{
+  Lisp_Object font1 = *(Lisp_Object *) v1;
+  Lisp_Object font2 = *(Lisp_Object *) v2;
   int i;
-  int size = 100;
-  char *font_name = (char *) xmalloc (size);
-  int total_length = 0;
-
-  for (i = 0; i < XLFD_LAST; ++i)
+  
+  for (i = 0; i < FONT_SIZE_INDEX; i++)
     {
-      /* Add 1 because of the leading `-'.  */
-      int len = strlen (font->fields[i]) + 1;
+      enum font_property_index idx = font_props_for_sorting[i];
+      Lisp_Object val1 = AREF (font1, idx), val2 = AREF (font2, idx);
+      int result;
 
-      /* Reallocate font_name if necessary.  Add 1 for the final
-         NUL-byte.  */
-      if (total_length + len + 1 >= size)
+      if (idx <= FONT_REGISTRY_INDEX)
 	{
-	  int new_size = max (2 * size, size + len + 1);
-	  int sz = new_size * sizeof *font_name;
-	  font_name = (char *) xrealloc (font_name, sz);
-	  size = new_size;
-	}
-
-      font_name[total_length] = '-';
-      bcopy (font->fields[i], font_name + total_length + 1, len - 1);
-      total_length += len;
-    }
-
-  font_name[total_length] = 0;
-  return font_name;
-}
-
-
-/* Free an array FONTS of N font_name structures.  This frees FONTS
-   itself and all `name' fields in its elements.  */
-
-static INLINE void
-free_font_names (fonts, n)
-     struct font_name *fonts;
-     int n;
-{
-  while (n)
-    xfree (fonts[--n].name);
-  xfree (fonts);
-}
-
-
-/* Sort vector FONTS of font_name structures which contains NFONTS
-   elements using qsort and comparison function CMPFN.  F is the frame
-   on which the fonts will be used.  The global variable font_frame
-   is temporarily set to F to make it available in CMPFN.  */
-
-static INLINE void
-sort_fonts (f, fonts, nfonts, cmpfn)
-     struct frame *f;
-     struct font_name *fonts;
-     int nfonts;
-     int (*cmpfn) P_ ((const void *, const void *));
-{
-  font_frame = f;
-  qsort (fonts, nfonts, sizeof *fonts, cmpfn);
-  font_frame = NULL;
-}
-
-
-/* Get fonts matching PATTERN on frame F.  If F is null, use the first
-   display in x_display_list.  FONTS is a pointer to a vector of
-   NFONTS font_name structures.  TRY_ALTERNATIVES_P non-zero means try
-   alternative patterns from Valternate_fontname_alist if no fonts are
-   found matching PATTERN.
-
-   For all fonts found, set FONTS[i].name to the name of the font,
-   allocated via xmalloc, and split font names into fields.  Ignore
-   fonts that we can't parse.  Value is the number of fonts found.  */
-
-static int
-x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
-     struct frame *f;
-     char *pattern;
-     struct font_name **pfonts;
-     int nfonts, try_alternatives_p;
-{
-  int n, nignored;
-
-  /* NTEMACS_TODO : currently this uses w32_list_fonts, but it may be
-     better to do it the other way around. */
-  Lisp_Object lfonts;
-  Lisp_Object lpattern, tem;
-  struct font_name *fonts = 0;
-  int num_fonts = nfonts;
-
-  *pfonts = 0;
-  lpattern = build_string (pattern);
-
-  /* Get the list of fonts matching PATTERN.  */
-#ifdef WINDOWSNT
-  BLOCK_INPUT;
-  lfonts = w32_list_fonts (f, lpattern, 0, nfonts);
-  UNBLOCK_INPUT;
-#else
-  lfonts = x_list_fonts (f, lpattern, -1, nfonts);
-#endif
-
-  if (nfonts < 0 && CONSP (lfonts))
-    num_fonts = XFASTINT (Flength (lfonts));
-
-  /* Make a copy of the font names we got from X, and
-     split them into fields.  */
-  n = nignored = 0;
-  for (tem = lfonts; CONSP (tem) && n < num_fonts; tem = XCDR (tem))
-    {
-      Lisp_Object elt, tail;
-      const char *name = SDATA (XCAR (tem));
-
-      /* Ignore fonts matching a pattern from face-ignored-fonts.  */
-      for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
-	{
-	  elt = XCAR (tail);
-	  if (STRINGP (elt)
-	      && fast_c_string_match_ignore_case (elt, name) >= 0)
-	    break;
-	}
-      if (!NILP (tail))
-	{
-	  ++nignored;
-	  continue;
-	}
-
-      if (! fonts)
-        {
-          *pfonts = (struct font_name *) xmalloc (num_fonts * sizeof **pfonts);
-          fonts = *pfonts;
-        }
-
-      /* Make a copy of the font name.  */
-      fonts[n].name = xstrdup (name);
-
-      if (split_font_name (f, fonts + n, 1))
-	{
-	  if (font_scalable_p (fonts + n)
-	      && !may_use_scalable_font_p (name))
-	    {
-	      ++nignored;
-	      xfree (fonts[n].name);
-	    }
+	  if (STRINGP (val1))
+	    result = STRINGP (val2) ? strcmp (SDATA (val1), SDATA (val2)) : -1;
 	  else
-	    ++n;
+	    result = STRINGP (val2) ? 1 : 0;
 	}
       else
-	xfree (fonts[n].name);
-    }
-
-  /* If no fonts found, try patterns from Valternate_fontname_alist.  */
-  if (n == 0 && try_alternatives_p)
-    {
-      Lisp_Object list = Valternate_fontname_alist;
-
-      if (*pfonts)
-        {
-          xfree (*pfonts);
-          *pfonts = 0;
-        }
-
-      while (CONSP (list))
 	{
-	  Lisp_Object entry = XCAR (list);
-	  if (CONSP (entry)
-	      && STRINGP (XCAR (entry))
-	      && strcmp (SDATA (XCAR (entry)), pattern) == 0)
-	    break;
-	  list = XCDR (list);
-	}
-
-      if (CONSP (list))
-	{
-	  Lisp_Object patterns = XCAR (list);
-	  Lisp_Object name;
-
-	  while (CONSP (patterns)
-		 /* If list is screwed up, give up.  */
-		 && (name = XCAR (patterns),
-		     STRINGP (name))
-		 /* Ignore patterns equal to PATTERN because we tried that
-		    already with no success.  */
-		 && (strcmp (SDATA (name), pattern) == 0
-		     || (n = x_face_list_fonts (f, SDATA (name),
-						pfonts, nfonts, 0),
-			 n == 0)))
-	    patterns = XCDR (patterns);
-	}
-    }
-
-  return n;
-}
-
-
-/* Check if a font matching pattern_offset_t on frame F is available
-   or not.  PATTERN may be a cons (FAMILY . REGISTRY), in which case,
-   a font name pattern is generated from FAMILY and REGISTRY.  */
-
-int
-face_font_available_p (f, pattern)
-     struct frame *f;
-     Lisp_Object pattern;
-{
-  Lisp_Object fonts;
-
-  if (! STRINGP (pattern))
-    {
-      Lisp_Object family, registry;
-      char *family_str, *registry_str, *pattern_str;
-
-      CHECK_CONS (pattern);
-      family = XCAR (pattern);
-      if (NILP (family))
-	family_str = "*";
-      else
-	{
-	  CHECK_STRING (family);
-	  family_str = (char *) SDATA (family);
-	}
-      registry = XCDR (pattern);
-      if (NILP (registry))
-	registry_str = "*";
-      else
-	{
-	  CHECK_STRING (registry);
-	  registry_str = (char *) SDATA (registry);
-	}
-
-      pattern_str = (char *) alloca (strlen (family_str)
-				     + strlen (registry_str)
-				     + 10);
-      strcpy (pattern_str, index (family_str, '-') ? "-" : "-*-");
-      strcat (pattern_str, family_str);
-      strcat (pattern_str, "-*-");
-      strcat (pattern_str, registry_str);
-      if (!index (registry_str, '-'))
-	{
-	  if (registry_str[strlen (registry_str) - 1] == '*')
-	    strcat (pattern_str, "-*");
+	  if (INTEGERP (val1))
+	    result = INTEGERP (val2) ? XINT (val1) - XINT (val2) : -1;
 	  else
-	    strcat (pattern_str, "*-*");
+	    result = INTEGERP (val2) ? 1 : 0;
 	}
-      pattern = build_string (pattern_str);
+      if (result)
+	return result;
     }
-
-  /* Get the list of fonts matching PATTERN.  */
-#ifdef WINDOWSNT
-  BLOCK_INPUT;
-  fonts = w32_list_fonts (f, pattern, 0, 1);
-  UNBLOCK_INPUT;
-#else
-  fonts = x_list_fonts (f, pattern, -1, 1);
-#endif
-  return XINT (Flength (fonts));
+  return 0;
 }
-
-
-/* Determine fonts matching PATTERN on frame F.  Sort resulting fonts
-   using comparison function CMPFN.  Value is the number of fonts
-   found.  If value is non-zero, *FONTS is set to a vector of
-   font_name structures allocated from the heap containing matching
-   fonts.  Each element of *FONTS contains a name member that is also
-   allocated from the heap.  Font names in these structures are split
-   into fields.  Use free_font_names to free such an array.  */
-
-static int
-sorted_font_list (f, pattern, cmpfn, fonts)
-     struct frame *f;
-     char *pattern;
-     int (*cmpfn) P_ ((const void *, const void *));
-     struct font_name **fonts;
-{
-  int nfonts;
-
-  /* Get the list of fonts matching pattern.  100 should suffice.  */
-  nfonts = DEFAULT_FONT_LIST_LIMIT;
-  if (INTEGERP (Vfont_list_limit))
-    nfonts = XINT (Vfont_list_limit);
-
-  *fonts = NULL;
-  nfonts = x_face_list_fonts (f, pattern, fonts, nfonts, 1);
-
-  /* Sort the resulting array and return it in *FONTS.  If no
-     fonts were found, make sure to set *FONTS to null.  */
-  if (nfonts)
-    sort_fonts (f, *fonts, nfonts, cmpfn);
-  else if (*fonts)
-    {
-      xfree (*fonts);
-      *fonts = NULL;
-    }
-
-  return nfonts;
-}
-
-
-/* Compare two font_name structures *A and *B.  Value is analogous to
-   strcmp.  Sort order is given by the global variable
-   font_sort_order.  Font names are sorted so that, everything else
-   being equal, fonts with a resolution closer to that of the frame on
-   which they are used are listed first.  The global variable
-   font_frame is the frame on which we operate.  */
-
-static int
-cmp_font_names (a, b)
-     const void *a, *b;
-{
-  struct font_name *x = (struct font_name *) a;
-  struct font_name *y = (struct font_name *) b;
-  int cmp;
-
-  /* All strings have been converted to lower-case by split_font_name,
-     so we can use strcmp here.  */
-  cmp = strcmp (x->fields[XLFD_FAMILY], y->fields[XLFD_FAMILY]);
-  if (cmp == 0)
-    {
-      int i;
-
-      for (i = 0; i < DIM (font_sort_order) && cmp == 0; ++i)
-	{
-	  int j = font_sort_order[i];
-	  cmp = x->numeric[j] - y->numeric[j];
-	}
-
-      if (cmp == 0)
-	{
-	  /* Everything else being equal, we prefer fonts with an
-	     y-resolution closer to that of the frame.  */
-	  int resy = FRAME_X_DISPLAY_INFO (font_frame)->resy;
-	  int x_resy = x->numeric[XLFD_RESY];
-	  int y_resy = y->numeric[XLFD_RESY];
-	  cmp = eabs (resy - x_resy) - eabs (resy - y_resy);
-	}
-    }
-
-  return cmp;
-}
-
-
-/* Get a sorted list of fonts matching PATTERN on frame F.  If PATTERN
-   is nil, list fonts matching FAMILY and REGISTRY.  FAMILY is a
-   family name string or nil.  REGISTRY is a registry name string.
-   Set *FONTS to a vector of font_name structures allocated from the
-   heap containing the fonts found.  Value is the number of fonts
-   found.  */
-
-static int
-font_list_1 (f, pattern, family, registry, fonts)
-     struct frame *f;
-     Lisp_Object pattern, family, registry;
-     struct font_name **fonts;
-{
-  char *pattern_str, *family_str, *registry_str;
-
-  if (NILP (pattern))
-    {
-      family_str = (NILP (family) ? "*" : (char *) SDATA (family));
-      registry_str = (NILP (registry) ? "*" : (char *) SDATA (registry));
-
-      pattern_str = (char *) alloca (strlen (family_str)
-				     + strlen (registry_str)
-				     + 10);
-      strcpy (pattern_str, index (family_str, '-') ? "-" : "-*-");
-      strcat (pattern_str, family_str);
-      strcat (pattern_str, "-*-");
-      strcat (pattern_str, registry_str);
-      if (!index (registry_str, '-'))
-	{
-	  if (registry_str[strlen (registry_str) - 1] == '*')
-	    strcat (pattern_str, "-*");
-	  else
-	    strcat (pattern_str, "*-*");
-	}
-    }
-  else
-    pattern_str = (char *) SDATA (pattern);
-
-  return sorted_font_list (f, pattern_str, cmp_font_names, fonts);
-}
-
-
-/* Concatenate font list FONTS1 and FONTS2.  FONTS1 and FONTS2
-   contains NFONTS1 fonts and NFONTS2 fonts respectively.  Return a
-   pointer to a newly allocated font list.  FONTS1 and FONTS2 are
-   freed.  */
-
-static struct font_name *
-concat_font_list (fonts1, nfonts1, fonts2, nfonts2)
-     struct font_name *fonts1, *fonts2;
-     int nfonts1, nfonts2;
-{
-  int new_nfonts = nfonts1 + nfonts2;
-  struct font_name *new_fonts;
-
-  new_fonts = (struct font_name *) xmalloc (sizeof *new_fonts * new_nfonts);
-  bcopy (fonts1, new_fonts, sizeof *new_fonts * nfonts1);
-  bcopy (fonts2, new_fonts + nfonts1, sizeof *new_fonts * nfonts2);
-  xfree (fonts1);
-  xfree (fonts2);
-  return new_fonts;
-}
-
-
-/* Get a sorted list of fonts of family FAMILY on frame F.
-
-   If PATTERN is non-nil, list fonts matching that pattern.
-
-   If REGISTRY is non-nil, it is a list of registry (and encoding)
-   names.  Return fonts with those registries and the alternative
-   registries from Vface_alternative_font_registry_alist.
-
-   If REGISTRY is nil return fonts of any registry.
-
-   Set *FONTS to a vector of font_name structures allocated from the
-   heap containing the fonts found.  Value is the number of fonts
-   found.  */
-
-static int
-font_list (f, pattern, family, registry, fonts)
-     struct frame *f;
-     Lisp_Object pattern, family, registry;
-     struct font_name **fonts;
-{
-  int nfonts;
-  int reg_prio;
-  int i;
-
-  if (NILP (registry))
-    return font_list_1 (f, pattern, family, registry, fonts);
-
-  for (reg_prio = 0, nfonts = 0; CONSP (registry); registry = XCDR (registry))
-    {
-      Lisp_Object elt, alter;
-      int nfonts2;
-      struct font_name *fonts2;
-
-      elt = XCAR (registry);
-      alter = Fassoc (elt, Vface_alternative_font_registry_alist);
-      if (NILP (alter))
-	alter = Fcons (elt, Qnil);
-      for (; CONSP (alter); alter = XCDR (alter), reg_prio++)
-	{
-	  nfonts2 = font_list_1 (f, pattern, family, XCAR (alter), &fonts2);
-	  if (nfonts2 > 0)
-	    {
-	      if (reg_prio > 0)
-		for (i = 0; i < nfonts2; i++)
-		  fonts2[i].registry_priority = reg_prio;
-	      if (nfonts > 0)
-		*fonts = concat_font_list (*fonts, nfonts, fonts2, nfonts2);
-	      else
-		*fonts = fonts2;
-	      nfonts += nfonts2;
-	    }
-	}
-    }
-
-  return nfonts;
-}
-
-
-/* Remove elements from LIST whose cars are `equal'.  Called from
-   x-family-fonts and x-font-family-list to remove duplicate font
-   entries.  */
-
-static void
-remove_duplicates (list)
-     Lisp_Object list;
-{
-  Lisp_Object tail = list;
-
-  while (!NILP (tail) && !NILP (XCDR (tail)))
-    {
-      Lisp_Object next = XCDR (tail);
-      if (!NILP (Fequal (XCAR (next), XCAR (tail))))
-	XSETCDR (tail, XCDR (next));
-      else
-	tail = XCDR (tail);
-    }
-}
-
 
 DEFUN ("x-family-fonts", Fx_family_fonts, Sx_family_fonts, 0, 2, 0,
        doc: /* Return a list of available fonts of family FAMILY on FRAME.
@@ -3002,41 +1873,66 @@ the face font sort order.  */)
      Lisp_Object family, frame;
 {
   struct frame *f = check_x_frame (frame);
-  struct font_name *fonts;
+  Lisp_Object font_spec = Qnil, vec;
   int i, nfonts;
   Lisp_Object result;
-  struct gcpro gcpro1;
 
   if (!NILP (family))
-    CHECK_STRING (family);
+    {
+      CHECK_STRING (family);
+      font_spec = Ffont_spec (0, NULL);
+      Ffont_put (font_spec, QCfamily, family);
+    }
+  vec = font_list_entities (frame, font_spec);
+  nfonts = ASIZE (vec);
+  if (nfonts == 0)
+    return Qnil;
+  if (nfonts > 1)
+    {
+      for (i = 0; i < 4; i++)
+	switch (font_sort_order[i])
+	  {
+	  case XLFD_SWIDTH:
+	    font_props_for_sorting[i] = FONT_WIDTH_INDEX; break;
+	  case XLFD_POINT_SIZE:
+	    font_props_for_sorting[i] = FONT_SIZE_INDEX; break;
+	  case XLFD_WEIGHT:
+	    font_props_for_sorting[i] = FONT_WEIGHT_INDEX; break;
+	  default:
+	    font_props_for_sorting[i] = FONT_SLANT_INDEX; break;
+	  }
+      font_props_for_sorting[i++] = FONT_FAMILY_INDEX;
+      font_props_for_sorting[i++] = FONT_FOUNDRY_INDEX;
+      font_props_for_sorting[i++] = FONT_ADSTYLE_INDEX;
+      font_props_for_sorting[i++] = FONT_REGISTRY_INDEX;
+
+      qsort (XVECTOR (vec)->contents, nfonts, sizeof (Lisp_Object),
+	     compare_fonts_by_sort_order);
+    }
 
   result = Qnil;
-  GCPRO1 (result);
-  nfonts = font_list (f, Qnil, family, Qnil, &fonts);
   for (i = nfonts - 1; i >= 0; --i)
     {
+      Lisp_Object font = AREF (vec, i);
       Lisp_Object v = Fmake_vector (make_number (8), Qnil);
-      char *tem;
+      int point;
+      Lisp_Object spacing;
 
-      ASET (v, 0, build_string (fonts[i].fields[XLFD_FAMILY]));
-      ASET (v, 1, xlfd_symbolic_swidth (fonts + i));
-      ASET (v, 2, make_number (xlfd_point_size (f, fonts + i)));
-      ASET (v, 3, xlfd_symbolic_weight (fonts + i));
-      ASET (v, 4, xlfd_symbolic_slant (fonts + i));
-      ASET (v, 5, xlfd_fixed_p (fonts + i) ? Qt : Qnil);
-      tem = build_font_name (fonts + i);
-      ASET (v, 6, build_string (tem));
-      sprintf (tem, "%s-%s", fonts[i].fields[XLFD_REGISTRY],
-	       fonts[i].fields[XLFD_ENCODING]);
-      ASET (v, 7, build_string (tem));
-      xfree (tem);
+      ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
+      ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
+      point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
+			      f->resy);
+      ASET (v, 2, make_number (point));
+      ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
+      ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
+      spacing = Ffont_get (font, QCspacing);
+      ASET (v, 5, (NILP (spacing) || EQ (spacing, Qp)) ? Qnil : Qt);
+      ASET (v, 6, AREF (font, FONT_NAME_INDEX));
+      ASET (v, 7, AREF (font, FONT_REGISTRY_INDEX));
 
       result = Fcons (v, result);
     }
 
-  remove_duplicates (result);
-  free_font_names (fonts, nfonts);
-  UNGCPRO;
   return result;
 }
 
@@ -3051,28 +1947,7 @@ are fixed-pitch.  */)
      (frame)
      Lisp_Object frame;
 {
-  struct frame *f = check_x_frame (frame);
-  int nfonts, i;
-  struct font_name *fonts;
-  Lisp_Object result;
-  struct gcpro gcpro1;
-  int count = SPECPDL_INDEX ();
-
-  /* Let's consider all fonts.  */
-  specbind (intern ("font-list-limit"), make_number (-1));
-  nfonts = font_list (f, Qnil, Qnil, Qnil, &fonts);
-
-  result = Qnil;
-  GCPRO1 (result);
-  for (i = nfonts - 1; i >= 0; --i)
-    result = Fcons (Fcons (build_string (fonts[i].fields[XLFD_FAMILY]),
-			   xlfd_fixed_p (fonts + i) ? Qt : Qnil),
-		    result);
-
-  remove_duplicates (result);
-  free_font_names (fonts, nfonts);
-  UNGCPRO;
-  return unbind_to (count, result);
+  return Ffont_family_list (frame);
 }
 
 
@@ -3100,30 +1975,27 @@ the WIDTH times as wide as FACE on FRAME.  */)
     Lisp_Object pattern, face, frame, maximum, width;
 {
   struct frame *f;
-  int size;
-  int maxnames;
+  int size, avgwidth;
 
   check_x ();
   CHECK_STRING (pattern);
 
-  if (NILP (maximum))
-    maxnames = -1;
-  else
-    {
-      CHECK_NATNUM (maximum);
-      maxnames = XINT (maximum);
-    }
+  if (! NILP (maximum))
+    CHECK_NATNUM (maximum);
 
   if (!NILP (width))
     CHECK_NUMBER (width);
 
   /* We can't simply call check_x_frame because this function may be
      called before any frame is created.  */
+  if (NILP (frame))
+    frame = selected_frame;
   f = frame_or_selected_frame (frame, 2);
-  if (!FRAME_WINDOW_P (f))
+  if (! FRAME_WINDOW_P (f))
     {
       /* Perhaps we have not yet created any frame.  */
       f = NULL;
+      frame = Qnil;
       face = Qnil;
     }
 
@@ -3141,19 +2013,31 @@ the WIDTH times as wide as FACE on FRAME.  */)
 			   : FACE_FROM_ID (f, face_id));
 
       if (face && face->font)
-	size = FONT_WIDTH (face->font);
+	{
+	  size = face->font->pixel_size;
+	  avgwidth = face->font->average_width;
+	}
       else
-	size = FONT_WIDTH (FRAME_FONT (f));  /* FRAME_COLUMN_WIDTH (f) */
-
+	{
+	  size = FRAME_FONT (f)->pixel_size;
+	  avgwidth = FRAME_FONT (f)->average_width;
+	}
       if (!NILP (width))
-	size *= XINT (width);
+	avgwidth *= XINT (width);
     }
 
   {
+    Lisp_Object font_spec;
     Lisp_Object args[2];
 
-    args[0] = x_list_fonts (f, pattern, size, maxnames);
-    if (f == NULL)
+    font_spec = font_spec_from_name (pattern);
+    if (size)
+      {
+	Ffont_put (font_spec, QCsize, make_number (size));
+	Ffont_put (font_spec, QCavgwidth, make_number (avgwidth));
+      }
+    args[0] = Flist_fonts (font_spec, frame, maximum, Qnil);
+    if (NILP (frame))
       /* We don't have to check fontsets.  */
       return args[0];
     args[1] = list_fontsets (f, pattern, size);
@@ -3186,7 +2070,6 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_BOX(LFACE)	    AREF ((LFACE), LFACE_BOX_INDEX)
 #define LFACE_FONT(LFACE)	    AREF ((LFACE), LFACE_FONT_INDEX)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
-#define LFACE_AVGWIDTH(LFACE)	    AREF ((LFACE), LFACE_AVGWIDTH_INDEX)
 #define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
 
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
@@ -3212,9 +2095,6 @@ check_lface_attrs (attrs)
   xassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_SWIDTH_INDEX])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
-  xassert (UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX])
-	   || IGNORE_DEFFACE_P (attrs[LFACE_AVGWIDTH_INDEX])
-	   || INTEGERP (attrs[LFACE_AVGWIDTH_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_HEIGHT_INDEX])
 	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX])
@@ -3265,11 +2145,7 @@ check_lface_attrs (attrs)
 	   || !NILP (Fbitmap_spec_p (attrs[LFACE_STIPPLE_INDEX])));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FONT_INDEX])
-	   || NILP (attrs[LFACE_FONT_INDEX])
-#ifdef USE_FONT_BACKEND
-	   || FONT_OBJECT_P (attrs[LFACE_FONT_INDEX])
-#endif	/* USE_FONT_BACKEND */
-	   || STRINGP (attrs[LFACE_FONT_INDEX]));
+	   || FONTP (attrs[LFACE_FONT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
 	   || STRINGP (attrs[LFACE_FONTSET_INDEX]));
 #endif
@@ -3478,8 +2354,7 @@ lface_fully_specified_p (attrs)
   int i;
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
-	&& i != LFACE_AVGWIDTH_INDEX && i != LFACE_FONTSET_INDEX)
+    if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX)
       if ((UNSPECIFIEDP (attrs[i]) || IGNORE_DEFFACE_P (attrs[i]))
 #ifdef MAC_OS
         /* MAC_TODO: No stipple support on Mac OS yet, this index is
@@ -3494,144 +2369,19 @@ lface_fully_specified_p (attrs)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Set font-related attributes of Lisp face LFACE from the fullname of
-   the font opened by FONTNAME.  If FORCE_P is zero, set only
-   unspecified attributes of LFACE.  The exception is `font'
-   attribute.  It is set to FONTNAME as is regardless of FORCE_P.
-
-   If FONTNAME is not available on frame F,
-	return 0 if MAY_FAIL_P is non-zero, otherwise abort.
-   If the fullname is not in a valid XLFD format,
-   	return 0 if MAY_FAIL_P is non-zero, otherwise set normal values
-	in LFACE and return 1.
-   Otherwise, return 1.  */
+/* Set font-related attributes of Lisp face LFACE from FONT-OBJECT.
+   If FORCE_P is zero, set only unspecified attributes of LFACE.  The
+   exception is `font' attribute.  It is set to FONT_OBJECT regardless
+   of FORCE_P.  */
 
 static int
-set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
-     struct frame *f;
-     Lisp_Object lface;
-     Lisp_Object fontname;
-     int force_p, may_fail_p;
-{
-  struct font_name font;
-  char *buffer;
-  int pt;
-  int have_xlfd_p;
-  int fontset;
-  char *font_name = SDATA (fontname);
-  struct font_info *font_info;
-
-  /* If FONTNAME is actually a fontset name, get ASCII font name of it.  */
-  fontset = fs_query_fontset (fontname, 0);
-
-  if (fontset > 0)
-    font_name = SDATA (fontset_ascii (fontset));
-  else if (fontset == 0)
-    {
-      if (may_fail_p)
-	return 0;
-      abort ();
-    }
-
-  /* Check if FONT_NAME is surely available on the system.  Usually
-     FONT_NAME is already cached for the frame F and FS_LOAD_FONT
-     returns quickly.  But, even if FONT_NAME is not yet cached,
-     caching it now is not futail because we anyway load the font
-     later.  */
-  BLOCK_INPUT;
-  font_info = FS_LOAD_FONT (f, font_name);
-  UNBLOCK_INPUT;
-
-  if (!font_info)
-    {
-      if (may_fail_p)
-	return 0;
-      abort ();
-    }
-
-  font.name = STRDUPA (font_info->full_name);
-  have_xlfd_p = split_font_name (f, &font, 1);
-
-  /* Set attributes only if unspecified, otherwise face defaults for
-     new frames would never take effect.  If we couldn't get a font
-     name conforming to XLFD, set normal values.  */
-
-  if (force_p || UNSPECIFIEDP (LFACE_FAMILY (lface)))
-    {
-      Lisp_Object val;
-      if (have_xlfd_p)
-	{
-	  buffer = (char *) alloca (strlen (font.fields[XLFD_FAMILY])
-				    + strlen (font.fields[XLFD_FOUNDRY])
-				    + 2);
-	  sprintf (buffer, "%s-%s", font.fields[XLFD_FOUNDRY],
-		   font.fields[XLFD_FAMILY]);
-	  val = build_string (buffer);
-	}
-      else
-	val = build_string ("*");
-      LFACE_FAMILY (lface) = val;
-    }
-
-  if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
-    {
-      if (have_xlfd_p)
-	pt = xlfd_point_size (f, &font);
-      else
-	pt = pixel_point_size (f, font_info->height * 10);
-      xassert (pt > 0);
-      LFACE_HEIGHT (lface) = make_number (pt);
-    }
-
-  if (force_p || UNSPECIFIEDP (LFACE_SWIDTH (lface)))
-    LFACE_SWIDTH (lface)
-      = have_xlfd_p ? xlfd_symbolic_swidth (&font) : Qnormal;
-
-  if (force_p || UNSPECIFIEDP (LFACE_AVGWIDTH (lface)))
-    LFACE_AVGWIDTH (lface)
-      = (have_xlfd_p
-	 ? make_number (font.numeric[XLFD_AVGWIDTH])
-	 : Qunspecified);
-
-  if (force_p || UNSPECIFIEDP (LFACE_WEIGHT (lface)))
-    LFACE_WEIGHT (lface)
-      = have_xlfd_p ? xlfd_symbolic_weight (&font) : Qnormal;
-
-  if (force_p || UNSPECIFIEDP (LFACE_SLANT (lface)))
-    LFACE_SLANT (lface)
-      = have_xlfd_p ? xlfd_symbolic_slant (&font) : Qnormal;
-
-  if (fontset > 0)
-    {
-      LFACE_FONT (lface) = build_string (font_info->full_name);
-      LFACE_FONTSET (lface) = fontset_name (fontset);
-    }
-  else
-    {
-      LFACE_FONT (lface) = fontname;
-      fontset
-	= new_fontset_from_font_name (build_string (font_info->full_name));
-      LFACE_FONTSET (lface) = fontset_name (fontset);
-    }
-  return 1;
-}
-
-#ifdef USE_FONT_BACKEND
-/* Set font-related attributes of Lisp face LFACE from FONT-OBJECT and
-   FONTSET.  If FORCE_P is zero, set only unspecified attributes of
-   LFACE.  The exceptions are `font' and `fontset' attributes.  They
-   are set regardless of FORCE_P.  */
-
-static void
-set_lface_from_font_and_fontset (f, lface, font_object, fontset, force_p)
+set_lface_from_font (f, lface, font_object, force_p)
      struct frame *f;
      Lisp_Object lface, font_object;
-     int fontset;
      int force_p;
 {
-  struct font *font = XSAVE_VALUE (font_object)->pointer;
-  Lisp_Object entity = font->entity;
   Lisp_Object val;
+  struct font *font = XFONT_OBJECT (font_object);
 
   /* Set attributes only if unspecified, otherwise face defaults for
      new frames would never take effect.  If the font doesn't have a
@@ -3639,8 +2389,8 @@ set_lface_from_font_and_fontset (f, lface, font_object, fontset, force_p)
 
   if (force_p || UNSPECIFIEDP (LFACE_FAMILY (lface)))
     {
-      Lisp_Object foundry = AREF (entity, FONT_FOUNDRY_INDEX);
-      Lisp_Object family = AREF (entity, FONT_FAMILY_INDEX);
+      Lisp_Object foundry = AREF (font_object, FONT_FOUNDRY_INDEX);
+      Lisp_Object family = AREF (font_object, FONT_FAMILY_INDEX);
 
       if (! NILP (foundry))
 	{
@@ -3662,42 +2412,31 @@ set_lface_from_font_and_fontset (f, lface, font_object, fontset, force_p)
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
     {
-      int pt = pixel_point_size (f, font->pixel_size * 10);
+      int pt = PIXEL_TO_POINT (font->pixel_size * 10, f->resy);
 
       xassert (pt > 0);
       LFACE_HEIGHT (lface) = make_number (pt);
     }
 
-  if (force_p || UNSPECIFIEDP (LFACE_AVGWIDTH (lface)))
-    LFACE_AVGWIDTH (lface) = make_number (font->font.average_width);
-
   if (force_p || UNSPECIFIEDP (LFACE_WEIGHT (lface)))
     {
-      Lisp_Object weight = font_symbolic_weight (entity);
-
-      val = NILP (weight) ? Qnormal : face_symbolic_weight (weight);
-      LFACE_WEIGHT (lface) = ! NILP (val) ? val : weight;
+      val = FONT_WEIGHT_FOR_FACE (font_object);
+      LFACE_WEIGHT (lface) = ! NILP (val) ? val :Qnormal;
     }
   if (force_p || UNSPECIFIEDP (LFACE_SLANT (lface)))
     {
-      Lisp_Object slant = font_symbolic_slant (entity);
-
-      val = NILP (slant) ? Qnormal : face_symbolic_slant (slant);
-      LFACE_SLANT (lface) = ! NILP (val) ? val : slant;
+      val = FONT_SLANT_FOR_FACE (font_object);
+      LFACE_SLANT (lface) = ! NILP (val) ? val : Qnormal;
     }
   if (force_p || UNSPECIFIEDP (LFACE_SWIDTH (lface)))
     {
-      Lisp_Object width = font_symbolic_width (entity);
-
-      val = NILP (width) ? Qnormal : face_symbolic_swidth (width);
-      LFACE_SWIDTH (lface) = ! NILP (val) ? val : width;
+      val = FONT_WIDTH_FOR_FACE (font_object);
+      LFACE_SWIDTH (lface) = ! NILP (val) ? val : Qnormal;
     }
 
-  LFACE_FONT (lface) = make_unibyte_string (font->font.full_name,
-					    strlen (font->font.full_name));
-  LFACE_FONTSET (lface) = fontset_name (fontset);
+  LFACE_FONT (lface) = font_object;
+  return 1;
 }
-#endif	/* USE_FONT_BACKEND */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -3777,27 +2516,41 @@ merge_face_vectors (f, from, to, named_merge_points)
       && !NILP (from[LFACE_INHERIT_INDEX]))
     merge_face_ref (f, from[LFACE_INHERIT_INDEX], to, 0, named_merge_points);
 
-  /* If TO specifies a :font attribute, and FROM specifies some
-     font-related attribute, we need to clear TO's :font attribute
-     (because it will be inconsistent with whatever FROM specifies, and
-     FROM takes precedence).  */
-  if (!NILP (to[LFACE_FONT_INDEX])
-      && (!UNSPECIFIEDP (from[LFACE_FAMILY_INDEX])
-	  || !UNSPECIFIEDP (from[LFACE_HEIGHT_INDEX])
-	  || !UNSPECIFIEDP (from[LFACE_WEIGHT_INDEX])
-	  || !UNSPECIFIEDP (from[LFACE_SLANT_INDEX])
-	  || !UNSPECIFIEDP (from[LFACE_SWIDTH_INDEX])
-	  || !UNSPECIFIEDP (from[LFACE_AVGWIDTH_INDEX])))
-    to[LFACE_FONT_INDEX] = Qnil;
+  i = LFACE_FONT_INDEX;
+  if (!UNSPECIFIEDP (from[i]))
+    {
+      if (!UNSPECIFIEDP (to[i]))
+	to[i] = Fmerge_font_spec (from[i], to[i]);
+      else
+	to[i] = Fcopy_font_spec (from[i]);
+      ASET (to[i], FONT_SIZE_INDEX, Qnil);
+    }
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (from[i]))
       {
 	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
-	  to[i] = merge_face_heights (from[i], to[i], to[i]);
-	else
-	  to[i] = from[i];
+	  {
+	    to[i] = merge_face_heights (from[i], to[i], to[i]);
+	    font_clear_prop (to, FONT_SIZE_INDEX);
+	  }
+	else if (i != LFACE_FONT_INDEX)
+	  {
+	    to[i] = from[i];
+	    if (i >= LFACE_FAMILY_INDEX && i <=LFACE_SLANT_INDEX)
+	      font_clear_prop (to,
+			       (i == LFACE_FAMILY_INDEX ? FONT_FAMILY_INDEX
+				: i == LFACE_SWIDTH_INDEX ? FONT_WIDTH_INDEX
+				: i == LFACE_HEIGHT_INDEX ? FONT_SIZE_INDEX
+				: i == LFACE_WEIGHT_INDEX ? FONT_WEIGHT_INDEX
+				: FONT_SLANT_INDEX));
+	  }
       }
+
+  /* If `font' attribute is specified, reflect the font properties in
+     it to the other attributes.  */
+  if (0 && !UNSPECIFIEDP (to[LFACE_FONT_INDEX]))
+    font_update_lface (f, to);
 
   /* TO is always an absolute face, which should inherit from nothing.
      We blindly copy the :inherit attribute above and fix it up here.  */
@@ -3914,7 +2667,10 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 	      else if (EQ (keyword, QCfamily))
 		{
 		  if (STRINGP (value))
-		    to[LFACE_FAMILY_INDEX] = value;
+		    {
+		      to[LFACE_FAMILY_INDEX] = value;
+		      font_clear_prop (to, FONT_FAMILY_INDEX);
+		    }
 		  else
 		    err = 1;
 		}
@@ -3924,23 +2680,30 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		    merge_face_heights (value, to[LFACE_HEIGHT_INDEX], Qnil);
 
 		  if (! NILP (new_height))
-		    to[LFACE_HEIGHT_INDEX] = new_height;
+		    {
+		      to[LFACE_HEIGHT_INDEX] = new_height;
+		      font_clear_prop (to, FONT_SIZE_INDEX);
+		    }
 		  else
 		    err = 1;
 		}
 	      else if (EQ (keyword, QCweight))
 		{
-		  if (SYMBOLP (value)
-		      && face_numeric_weight (value) >= 0)
-		    to[LFACE_WEIGHT_INDEX] = value;
+		  if (SYMBOLP (value) && FONT_WEIGHT_NAME_NUMERIC (value) >= 0)
+		    {
+		      to[LFACE_WEIGHT_INDEX] = value;
+		      font_clear_prop (to, FONT_WEIGHT_INDEX);
+		    }
 		  else
 		    err = 1;
 		}
 	      else if (EQ (keyword, QCslant))
 		{
-		  if (SYMBOLP (value)
-		      && face_numeric_slant (value) >= 0)
-		    to[LFACE_SLANT_INDEX] = value;
+		  if (SYMBOLP (value) && FONT_SLANT_NAME_NUMERIC (value) >= 0)
+		    {
+		      to[LFACE_SLANT_INDEX] = value;
+		      font_clear_prop (to, FONT_SLANT_INDEX);
+		    }
 		  else
 		    err = 1;
 		}
@@ -4017,9 +2780,11 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		}
 	      else if (EQ (keyword, QCwidth))
 		{
-		  if (SYMBOLP (value)
-		      && face_numeric_swidth (value) >= 0)
-		    to[LFACE_SWIDTH_INDEX] = value;
+		  if (SYMBOLP (value) && FONT_WIDTH_NAME_NUMERIC (value) >= 0)
+		    {
+		      to[LFACE_SWIDTH_INDEX] = value;
+		      font_clear_prop (to, FONT_WIDTH_INDEX);
+		    }
 		  else
 		    err = 1;
 		}
@@ -4250,10 +3015,9 @@ FRAME 0 means change the face on all frames, and change the default
 {
   Lisp_Object lface;
   Lisp_Object old_value = Qnil;
-  /* Set 1 if ATTR is QCfont.  */
-  int font_attr_p = 0;
-  /* Set 1 if ATTR is one of font-related attributes other than QCfont.  */
-  int font_related_attr_p = 0;
+  /* Set one of enum font_property_index (> 0) if ATTR is one of
+     font-related attributes other than QCfont and QCfontset.  */
+  enum font_property_index prop_index = 0;
 
   CHECK_SYMBOL (face);
   CHECK_SYMBOL (attr);
@@ -4308,7 +3072,7 @@ FRAME 0 means change the face on all frames, and change the default
 	}
       old_value = LFACE_FAMILY (lface);
       LFACE_FAMILY (lface) = value;
-      font_related_attr_p = 1;
+      prop_index = FONT_FAMILY_INDEX;
     }
   else if (EQ (attr, QCheight))
     {
@@ -4329,31 +3093,31 @@ FRAME 0 means change the face on all frames, and change the default
 
       old_value = LFACE_HEIGHT (lface);
       LFACE_HEIGHT (lface) = value;
-      font_related_attr_p = 1;
+      prop_index = FONT_SIZE_INDEX;
     }
   else if (EQ (attr, QCweight))
     {
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
-	  if (face_numeric_weight (value) < 0)
+	  if (FONT_WEIGHT_NAME_NUMERIC (value) < 0)
 	    signal_error ("Invalid face weight", value);
 	}
       old_value = LFACE_WEIGHT (lface);
       LFACE_WEIGHT (lface) = value;
-      font_related_attr_p = 1;
+      prop_index = FONT_WEIGHT_INDEX;
     }
   else if (EQ (attr, QCslant))
     {
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
-	  if (face_numeric_slant (value) < 0)
+	  if (FONT_SLANT_NAME_NUMERIC (value) < 0)
 	    signal_error ("Invalid face slant", value);
 	}
       old_value = LFACE_SLANT (lface);
       LFACE_SLANT (lface) = value;
-      font_related_attr_p = 1;
+      prop_index = FONT_SLANT_INDEX;
     }
   else if (EQ (attr, QCunderline))
     {
@@ -4516,84 +3280,70 @@ FRAME 0 means change the face on all frames, and change the default
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
 	  CHECK_SYMBOL (value);
-	  if (face_numeric_swidth (value) < 0)
+	  if (FONT_WIDTH_NAME_NUMERIC (value) < 0)
 	    signal_error ("Invalid face width", value);
 	}
       old_value = LFACE_SWIDTH (lface);
       LFACE_SWIDTH (lface) = value;
-      font_related_attr_p = 1;
+      prop_index = FONT_WIDTH_INDEX;
     }
-  else if (EQ (attr, QCfont) || EQ (attr, QCfontset))
+  else if (EQ (attr, QCfont))
     {
 #ifdef HAVE_WINDOW_SYSTEM
       if (EQ (frame, Qt) || FRAME_WINDOW_P (XFRAME (frame)))
 	{
-	  /* Set font-related attributes of the Lisp face from an XLFD
-	     font name.  */
-	  struct frame *f;
-	  Lisp_Object tmp;
-
-	  if (EQ (frame, Qt))
-	    f = SELECTED_FRAME ();
-	  else
-	    f = check_x_frame (frame);
-
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend
-	      && !UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
-	    {
-	      tmp = Fquery_fontset (value, Qnil);
-	      if (EQ (attr, QCfontset))
-		{
-		  if (NILP (tmp))
-		    signal_error ("Invalid fontset name", value);
-		  LFACE_FONTSET (lface) = tmp;
-		}
-	      else
-		{
-		  int fontset;
-		  Lisp_Object font_object;
-
-		  if (! NILP (tmp))
-		    {
-		      fontset = fs_query_fontset (tmp, 0);
-		      value = fontset_ascii (fontset);
-		    }
-		  else
-		    {
-		      fontset = FRAME_FONTSET (f);
-		    }
-		  font_object = font_open_by_name (f, SDATA (value));
-		  if (NILP (font_object))
-		    signal_error ("Invalid font", value);
-		  set_lface_from_font_and_fontset (f, lface, font_object,
-						   fontset, 1);
-		}
-	    }
-	  else
-#endif	/* USE_FONT_BACKEND */
 	  if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
-	      CHECK_STRING (value);
+	      FRAME_PTR f;
 
-	      /* VALUE may be a fontset name or an alias of fontset.  In
-		 such a case, use the base fontset name.  */
-	      tmp = Fquery_fontset (value, Qnil);
-	      if (!NILP (tmp))
-		value = tmp;
-	      else if (EQ (attr, QCfontset))
-		signal_error ("Invalid fontset name", value);
-
-	      if (EQ (attr, QCfont))
+	      old_value = LFACE_FONT (lface);
+	      if (! FONTP (value))
 		{
-		  if (!set_lface_from_font_name (f, lface, value, 1, 1))
-		    signal_error ("Invalid font or fontset name", value);
-		}
-	      else
-		LFACE_FONTSET (lface) = value;
-	    }
+		  if (STRINGP (value))
+		    {
+		      int fontset = fs_query_fontset (value, 0);
 
-	  font_attr_p = 1;
+		      if (fontset >= 0)
+			value = fontset_ascii (fontset);
+		      else
+			value = font_spec_from_name (value);
+		    }
+		  else
+		    signal_error ("Invalid font or font-spec", value);
+		}
+	      if (EQ (frame, Qt))
+		f = XFRAME (selected_frame);
+	      else
+		f = XFRAME (frame);
+	      if (! FONT_OBJECT_P (value))
+		{
+		  Lisp_Object *attrs = XVECTOR (lface)->contents;
+		  Lisp_Object font_object;
+
+		  font_object = font_load_for_lface (f, attrs, value);
+		  if (NILP (font_object))
+		    signal_error ("Font not available", value);
+		  value = font_object;
+		}
+	      set_lface_from_font (f, lface, value, 1);
+	    }
+	  else
+	    LFACE_FONT (lface) = value;
+	}
+#endif /* HAVE_WINDOW_SYSTEM */
+    }
+  else if (EQ (attr, QCfontset))
+    {
+#ifdef HAVE_WINDOW_SYSTEM
+      if (EQ (frame, Qt) || FRAME_WINDOW_P (XFRAME (frame)))
+	{
+	  Lisp_Object tmp;
+
+	  old_value = LFACE_FONTSET (lface);
+	  tmp = Fquery_fontset (value, Qnil);
+	  if (NILP (tmp))
+	    signal_error ("Invalid fontset name", value);
+	  LFACE_FONTSET (lface) = value = tmp;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
     }
@@ -4615,24 +3365,25 @@ FRAME 0 means change the face on all frames, and change the default
     {
       old_value = LFACE_WEIGHT (lface);
       LFACE_WEIGHT (lface) = NILP (value) ? Qnormal : Qbold;
-      font_related_attr_p = 1;
+      prop_index = FONT_WEIGHT_INDEX;
     }
   else if (EQ (attr, QCitalic))
     {
+      attr = QCslant;
       old_value = LFACE_SLANT (lface);
       LFACE_SLANT (lface) = NILP (value) ? Qnormal : Qitalic;
-      font_related_attr_p = 1;
+      prop_index = FONT_SLANT_INDEX;
     }
   else
     signal_error ("Invalid face attribute name", attr);
 
-  if (font_related_attr_p
-      && !UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
-    /* If a font-related attribute other than QCfont is specified, the
-       original `font' attribute nor that of default face is useless
-       to determine a new font.  Thus, we set it to nil so that font
-       selection mechanism doesn't use it.  */
-    LFACE_FONT (lface) = Qnil;
+  if (prop_index)
+    /* If a font-related attribute other than QCfont and QCfontset is
+       specified, and if the original QCfont attribute has a font
+       (font-spec or font-object), set the corresponding property in
+       the font to nil so that the font selector doesn't think that
+       the attribute is mandatory.  */
+    font_clear_prop (XVECTOR (lface)->contents, prop_index);
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
@@ -4641,9 +3392,7 @@ FRAME 0 means change the face on all frames, and change the default
      init_iterator will then free realized faces.  */
   if (!EQ (frame, Qt)
       && NILP (Fget (face, Qface_no_inherit))
-      && (EQ (attr, QCfont)
-	  || EQ (attr, QCfontset)
-	  || NILP (Fequal (old_value, value))))
+      && NILP (Fequal (old_value, value)))
     {
       ++face_change_count;
       ++windows_or_buffers_changed;
@@ -4662,7 +3411,7 @@ FRAME 0 means change the face on all frames, and change the default
 	  /* Changed font-related attributes of the `default' face are
 	     reflected in changed `font' frame parameters. */
 	  if (FRAMEP (frame)
-	      && (font_related_attr_p || font_attr_p)
+	      && (prop_index || EQ (attr, QCfont))
 	      && lface_fully_specified_p (XVECTOR (lface)->contents))
 	    set_font_frame_param (frame, lface);
 	  else
@@ -4749,11 +3498,8 @@ FRAME 0 means change the face on all frames, and change the default
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Set the `font' frame parameter of FRAME determined from `default'
-   face attributes LFACE.  If a font name is explicitely
-   specfied in LFACE, use it as is.  Otherwise, determine a font name
-   from the other font-related atrributes of LFACE.  In that case, if
-   there's no matching font, signals an error.  */
+/* Set the `font' frame parameter of FRAME determined from the
+   font-object set in `default' face attributes LFACE.  */
 
 static void
 set_font_frame_param (frame, lface)
@@ -4763,43 +3509,17 @@ set_font_frame_param (frame, lface)
 
   if (FRAME_WINDOW_P (f))
     {
-      Lisp_Object font_name;
-      char *font;
+      Lisp_Object font = LFACE_FONT (lface);
 
-      if (STRINGP (LFACE_FONT (lface)))
-	font_name = LFACE_FONT (lface);
-#ifdef USE_FONT_BACKEND
-      else if (enable_font_backend)
+      if (FONT_SPEC_P (font))
 	{
-	  /* We set FONT_NAME to a font-object.  */
-	  if (FONT_OBJECT_P (LFACE_FONT (lface)))
-	    font_name = LFACE_FONT (lface);
-	  else
-	    {
-	      font_name = font_find_for_lface (f, &AREF (lface, 0), Qnil, -1);
-	      if (NILP (font_name))
-		error ("No font matches the specified attribute");
-	      font_name = font_open_for_lface (f, font_name, &AREF (lface, 0),
-					       Qnil);
-	      if (NILP (font_name))
-		error ("No font matches the specified attribute");
-	    }
+	  font = font_load_for_lface (f, XVECTOR (lface)->contents, font);
+	  if (NILP (font))
+	    return;
+	  LFACE_FONT (lface) = font;
 	}
-#endif
-      else
-	{
-	  /* Choose a font name that reflects LFACE's attributes and has
-	     the registry and encoding pattern specified in the default
-	     fontset (3rd arg: -1) for ASCII characters (4th arg: 0).  */
-	  font = choose_face_font (f, XVECTOR (lface)->contents, Qnil, NULL);
-	  if (!font)
-	    error ("No font matches the specified attribute");
-	  font_name = build_string (font);
-	  xfree (font);
-	}
-
       f->default_face_done_p = 0;
-      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font), Qnil));
     }
 }
 
@@ -5031,14 +3751,14 @@ x_update_menu_appearance (f)
 	  changed_p = 1;
 	}
 
-      if (face->font_name
+      if (face->font
 	  && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
 	      || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
-	      || !UNSPECIFIEDP (LFACE_AVGWIDTH (lface))
 	      || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
 	      || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	      || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
 	{
+	  Lisp_Object xlfd = Ffont_xlfd_name (LFACE_FONT (lface));
 #ifdef USE_MOTIF
 	  const char *suffix = "List";
 	  Bool motif = True;
@@ -5051,22 +3771,26 @@ x_update_menu_appearance (f)
 #endif
 	  Bool motif = False;
 #endif
+
+	  if (! NILP (xlfd))
+	    {
 #if defined HAVE_X_I18N
-	  extern char *xic_create_fontsetname
-	    P_ ((char *base_fontname, Bool motif));
-	  char *fontsetname = xic_create_fontsetname (face->font_name, motif);
+	      extern char *xic_create_fontsetname
+		P_ ((char *base_fontname, Bool motif));
+	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
-	  char *fontsetname = face->font_name;
+	      char *fontsetname = (char *) SDATA (xlfd);
 #endif
-	  sprintf (line, "%s.pane.menubar*font%s: %s",
-		   myname, suffix, fontsetname);
-	  XrmPutLineResource (&rdb, line);
-	  sprintf (line, "%s.%s*font%s: %s",
-		   myname, popup_path, suffix, fontsetname);
-	  XrmPutLineResource (&rdb, line);
-	  changed_p = 1;
-	  if (fontsetname != face->font_name)
-	    xfree (fontsetname);
+	      sprintf (line, "%s.pane.menubar*font%s: %s",
+		       myname, suffix, fontsetname);
+	      XrmPutLineResource (&rdb, line);
+	      sprintf (line, "%s.%s*font%s: %s",
+		       myname, popup_path, suffix, fontsetname);
+	      XrmPutLineResource (&rdb, line);
+	      changed_p = 1;
+	      if (fontsetname != (char *) SDATA (xlfd))
+		xfree (fontsetname);
+	    }
 	}
 
       if (changed_p && f->output_data.x->menubar_widget)
@@ -5198,35 +3922,7 @@ Value is nil if ATTR doesn't have a discrete set of valid values.  */)
 
   CHECK_SYMBOL (attr);
 
-  if (EQ (attr, QCweight)
-      || EQ (attr, QCslant)
-      || EQ (attr, QCwidth))
-    {
-      /* Extract permissible symbols from tables.  */
-      struct table_entry *table;
-      int i, dim;
-
-      if (EQ (attr, QCweight))
-	table = weight_table, dim = DIM (weight_table);
-      else if (EQ (attr, QCslant))
-	table = slant_table, dim = DIM (slant_table);
-      else
-	table = swidth_table, dim = DIM (swidth_table);
-
-      for (i = 0; i < dim; ++i)
-	{
-	  Lisp_Object symbol = *table[i].symbol;
-	  Lisp_Object tail = result;
-
-	  while (!NILP (tail)
-		 && !EQ (XCAR (tail), symbol))
-	    tail = XCDR (tail);
-
-	  if (NILP (tail))
-	    result = Fcons (symbol, result);
-	}
-    }
-  else if (EQ (attr, QCunderline))
+  if (EQ (attr, QCunderline))
     result = Fcons (Qt, Fcons (Qnil, Qnil));
   else if (EQ (attr, QCoverline))
     result = Fcons (Qt, Fcons (Qnil, Qnil));
@@ -5322,12 +4018,11 @@ return the font name used for CHARACTER.  */)
 	  CHECK_CHARACTER (character);
 	  face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
 	  face = FACE_FROM_ID (f, face_id);
-	  return (face->font && face->font_name
-		  ? build_string (face->font_name)
-		  : Qnil);
 	}
 #endif
-      return build_string (face->font_name);
+      return (face->font
+	      ? face->font->props[FONT_NAME_INDEX]
+	      : Qnil);
     }
 }
 
@@ -5490,7 +4185,7 @@ lface_hash (v)
 
 /* Return non-zero if LFACE1 and LFACE2 specify the same font (without
    considering charsets/registries).  They do if they specify the same
-   family, point size, weight, width, slant, font, and fontset.  Both
+   family, point size, weight, width, slant, and font.  Both
    LFACE1 and LFACE2 must be fully-specified.  */
 
 static INLINE int
@@ -5503,14 +4198,9 @@ lface_same_font_attributes_p (lface1, lface2)
 		    SDATA (lface2[LFACE_FAMILY_INDEX])) == 0
 	  && EQ (lface1[LFACE_HEIGHT_INDEX], lface2[LFACE_HEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SWIDTH_INDEX], lface2[LFACE_SWIDTH_INDEX])
-	  && EQ (lface1[LFACE_AVGWIDTH_INDEX], lface2[LFACE_AVGWIDTH_INDEX])
 	  && EQ (lface1[LFACE_WEIGHT_INDEX], lface2[LFACE_WEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SLANT_INDEX], lface2[LFACE_SLANT_INDEX])
-	  && (EQ (lface1[LFACE_FONT_INDEX], lface2[LFACE_FONT_INDEX])
-	      || (STRINGP (lface1[LFACE_FONT_INDEX])
-		  && STRINGP (lface2[LFACE_FONT_INDEX])
-		  && ! xstricmp (SDATA (lface1[LFACE_FONT_INDEX]),
-				 SDATA (lface2[LFACE_FONT_INDEX]))))
+	  && EQ (lface1[LFACE_FONT_INDEX], lface2[LFACE_FONT_INDEX])
 	  && (EQ (lface1[LFACE_FONTSET_INDEX], lface2[LFACE_FONTSET_INDEX])
 	      || (STRINGP (lface1[LFACE_FONTSET_INDEX])
 		  && STRINGP (lface2[LFACE_FONTSET_INDEX])
@@ -5559,10 +4249,8 @@ free_realized_face (f, face)
 	  if (face->gc)
 	    {
 	      BLOCK_INPUT;
-#ifdef USE_FONT_BACKEND
-	      if (enable_font_backend && face->font_info)
+	      if (face->font)
 		font_done_for_face (f, face);
-#endif	/* USE_FONT_BACKEND */
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
 	      UNBLOCK_INPUT;
@@ -5600,25 +4288,6 @@ prepare_face_for_display (f, face)
 #ifdef HAVE_X_WINDOWS
       xgcv.graphics_exposures = False;
 #endif
-      /* The font of FACE may be null if we couldn't load it.  */
-      if (face->font)
-	{
-#ifdef HAVE_X_WINDOWS
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend)
-	    xgcv.font = FRAME_X_DISPLAY_INFO (f)->font->fid;
-	  else
-#endif
-	  xgcv.font = face->font->fid;
-#endif
-#ifdef WINDOWSNT
-	  xgcv.font = face->font;
-#endif
-#ifdef MAC_OS
-	  xgcv.font = face->font;
-#endif
-	  mask |= GCFont;
-	}
 
       BLOCK_INPUT;
 #ifdef HAVE_X_WINDOWS
@@ -5630,10 +4299,8 @@ prepare_face_for_display (f, face)
 	}
 #endif
       face->gc = x_create_gc (f, mask, &xgcv);
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend && face->font)
+      if (face->font)
 	font_prepare_for_face (f, face);
-#endif	/* USE_FONT_BACKEND */
       UNBLOCK_INPUT;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -5739,10 +4406,8 @@ clear_face_gcs (c)
 	  if (face && face->gc)
 	    {
 	      BLOCK_INPUT;
-#ifdef USE_FONT_BACKEND
-	      if (enable_font_backend && face->font_info)
+	      if (face->font)
 		font_done_for_face (c->f, face);
-#endif	/* USE_FONT_BACKEND */
 	      x_free_gc (c->f, face->gc);
 	      face->gc = 0;
 	      UNBLOCK_INPUT;
@@ -6029,16 +4694,15 @@ lookup_face (f, attr)
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Look up a realized face that has the same attributes as BASE_FACE
-   except for the font in the face cache of frame F.  If FONT_ID is
-   not negative, it is an ID number of an already opened font that is
-   used by the face.  If FONT_ID is negative, the face has no font.
-   Value is the ID of the face found.  If no suitable face is found,
-   realize a new one.  */
+   except for the font in the face cache of frame F.  If FONT-OBJECT
+   is not nil, it is an already opened font.  If FONT-OBJECT is nil,
+   the face has no font.  Value is the ID of the face found.  If no
+   suitable face is found, realize a new one.  */
 
 int
-lookup_non_ascii_face (f, font_id, base_face)
+face_for_font (f, font_object, base_face)
      struct frame *f;
-     int font_id;
+     Lisp_Object font_object;
      struct face *base_face;
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
@@ -6056,58 +4720,16 @@ lookup_non_ascii_face (f, font_id, base_face)
       if (face->ascii_face == face)
 	continue;
       if (face->ascii_face == base_face
-	  && face->font_info_id == font_id)
-	break;
-    }
-
-  /* If not found, realize a new face.  */
-  if (face == NULL)
-    face = realize_non_ascii_face (f, font_id, base_face);
-
-#if GLYPH_DEBUG
-  xassert (face == FACE_FROM_ID (f, face->id));
-#endif /* GLYPH_DEBUG */
-
-  return face->id;
-}
-
-#ifdef USE_FONT_BACKEND
-int
-face_for_font (f, font, base_face)
-     struct frame *f;
-     struct font *font;
-     struct face *base_face;
-{
-  struct face_cache *cache = FRAME_FACE_CACHE (f);
-  unsigned hash;
-  int i;
-  struct face *face;
-
-  xassert (cache != NULL);
-  base_face = base_face->ascii_face;
-  hash = lface_hash (base_face->lface);
-  i = hash % FACE_CACHE_BUCKETS_SIZE;
-
-  for (face = cache->buckets[i]; face; face = face->next)
-    {
-      if (face->ascii_face == face)
-	continue;
-      if (face->ascii_face == base_face
-	  && face->font == font->font.font
-	  && face->font_info == (struct font_info *) font)
+	  && face->font == (NILP (font_object) ? NULL
+			    : XFONT_OBJECT (font_object))
+	  && lface_equal_p (face->lface, base_face->lface))
 	return face->id;
     }
 
   /* If not found, realize a new face.  */
-  face = realize_non_ascii_face (f, -1, base_face);
-  face->font = font->font.font;
-  face->font_info = (struct font_info *) font;
-  face->font_info_id = 0;
-  face->font_name = font->font.full_name;
+  face = realize_non_ascii_face (f, font_object, base_face);
   return face->id;
 }
-#endif	/* USE_FONT_BACKEND */
-
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Return the face id of the realized face for named face SYMBOL on
@@ -6363,12 +4985,12 @@ x_supports_face_attributes_p (f, attrs, def_face)
       || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX]))
+      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX]))
     {
       int face_id;
       struct face *face;
       Lisp_Object merged_attrs[LFACE_VECTOR_SIZE];
+      int i;
 
       bcopy (def_attrs, merged_attrs, sizeof merged_attrs);
 
@@ -6383,6 +5005,21 @@ x_supports_face_attributes_p (f, attrs, def_face)
       /* If the font is the same, then not supported.  */
       if (face->font == def_face->font)
 	return 0;
+      for (i = FONT_TYPE_INDEX; i <= FONT_SIZE_INDEX; i++)
+	if (! EQ (face->font->props[i], def_face->font->props[i]))
+	  {
+	    Lisp_Object s1, s2;
+
+	    if (i < FONT_FOUNDRY_INDEX || i > FONT_REGISTRY_INDEX
+		|| face->font->driver->case_sensitive)
+	      return 1;
+	    s1 = SYMBOL_NAME (face->font->props[i]);
+	    s2 = SYMBOL_NAME (def_face->font->props[i]);
+	    if (! EQ (Fcompare_strings (s1, make_number (0), Qnil,
+					s2, make_number (0), Qnil, Qt), Qt))
+	      return 1;
+	  }
+      return 0;
     }
 
   /* Everything checks out, this face is supported.  */
@@ -6443,24 +5080,24 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   /* Test for terminal `capabilities' (non-color character attributes).  */
 
   /* font weight (bold/dim) */
-  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
+  weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
   if (weight >= 0)
     {
-      int def_weight = face_numeric_weight (def_attrs[LFACE_WEIGHT_INDEX]);
+      int def_weight = FONT_WEIGHT_NAME_NUMERIC (def_attrs[LFACE_WEIGHT_INDEX]);
 
-      if (weight > XLFD_WEIGHT_MEDIUM)
+      if (weight > 100)
 	{
-	  if (def_weight > XLFD_WEIGHT_MEDIUM)
+	  if (def_weight > 100)
 	    return 0;		/* same as default */
 	  test_caps = TTY_CAP_BOLD;
 	}
-      else if (weight < XLFD_WEIGHT_MEDIUM)
+      else if (weight < 100)
 	{
-	  if (def_weight < XLFD_WEIGHT_MEDIUM)
+	  if (def_weight < 100)
 	    return 0;		/* same as default */
 	  test_caps = TTY_CAP_DIM;
 	}
-      else if (def_weight == XLFD_WEIGHT_MEDIUM)
+      else if (def_weight == 100)
 	return 0;		/* same as default */
     }
 
@@ -6713,10 +5350,7 @@ Value is ORDER.  */)
       free_all_realized_faces (Qnil);
     }
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    font_update_sort_order (font_sort_order);
-#endif	/* USE_FONT_BACKEND */
+  font_update_sort_order (font_sort_order);
 
   return Qnil;
 }
@@ -6758,493 +5392,9 @@ be found.  Value is ALIST.  */)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Value is non-zero if FONT is the name of a scalable font.  The
-   X11R6 XLFD spec says that point size, pixel size, and average width
-   are zero for scalable fonts.  Intlfonts contain at least one
-   scalable font ("*-muleindian-1") for which this isn't true, so we
-   just test average width.  */
-
-static int
-font_scalable_p (font)
-     struct font_name *font;
-{
-  char *s = font->fields[XLFD_AVGWIDTH];
-  return (*s == '0' && *(s + 1) == '\0')
-#ifdef WINDOWSNT
-  /* Windows implementation of XLFD is slightly broken for backward
-     compatibility with previous broken versions, so test for
-     wildcards as well as 0. */
-  || *s == '*'
-#endif
-    ;
-}
-
-
 /* Ignore the difference of font point size less than this value.  */
 
 #define FONT_POINT_SIZE_QUANTUM 5
-
-/* Value is non-zero if FONT1 is a better match for font attributes
-   VALUES than FONT2.  VALUES is an array of face attribute values in
-   font sort order.  COMPARE_PT_P zero means don't compare point
-   sizes.  AVGWIDTH, if not zero, is a specified font average width
-   to compare with.  */
-
-static int
-better_font_p (values, font1, font2, compare_pt_p, avgwidth)
-     int *values;
-     struct font_name *font1, *font2;
-     int compare_pt_p, avgwidth;
-{
-  int i;
-
-  /* Any font is better than no font.  */
-  if (! font1)
-    return 0;
-  if (! font2)
-    return 1;
-
-  for (i = 0; i < DIM (font_sort_order); ++i)
-    {
-      int xlfd_idx = font_sort_order[i];
-
-      if (compare_pt_p || xlfd_idx != XLFD_POINT_SIZE)
-	{
-	  int delta1, delta2;
-
-	  if (xlfd_idx == XLFD_POINT_SIZE)
-	    {
-	      delta1 = eabs (values[i] - (font1->numeric[xlfd_idx]
-					 / font1->rescale_ratio));
-	      delta2 = eabs (values[i] - (font2->numeric[xlfd_idx]
-					 / font2->rescale_ratio));
-	      if (eabs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
-		continue;
-	    }
-	  else
-	    {
-	      delta1 = eabs (values[i] - font1->numeric[xlfd_idx]);
-	      delta2 = eabs (values[i] - font2->numeric[xlfd_idx]);
-	    }
-
-	  if (delta1 > delta2)
-	    return 0;
-	  else if (delta1 < delta2)
-	    return 1;
-	  else
-	    {
-	      /* The difference may be equal because, e.g., the face
-		 specifies `italic' but we have only `regular' and
-		 `oblique'.  Prefer `oblique' in this case.  */
-	      if ((xlfd_idx == XLFD_WEIGHT || xlfd_idx == XLFD_SLANT)
-		  && font1->numeric[xlfd_idx] > values[i]
-		  && font2->numeric[xlfd_idx] < values[i])
-		return 1;
-	    }
-	}
-    }
-
-  if (avgwidth)
-    {
-      int delta1 = eabs (avgwidth - font1->numeric[XLFD_AVGWIDTH]);
-      int delta2 = eabs (avgwidth - font2->numeric[XLFD_AVGWIDTH]);
-      if (delta1 > delta2)
-	return 0;
-      else if (delta1 < delta2)
-	return 1;
-    }
-
-  if (! compare_pt_p)
-    {
-      /* We prefer a real scalable font; i.e. not what autoscaled.  */
-      int auto_scaled_1 = (font1->numeric[XLFD_POINT_SIZE] == 0
-			   && font1->numeric[XLFD_RESY] > 0);
-      int auto_scaled_2 = (font2->numeric[XLFD_POINT_SIZE] == 0
-			   && font2->numeric[XLFD_RESY] > 0);
-
-      if (auto_scaled_1 != auto_scaled_2)
-	return auto_scaled_2;
-    }
-
-  return font1->registry_priority < font2->registry_priority;
-}
-
-
-/* Value is non-zero if FONT is an exact match for face attributes in
-   SPECIFIED.  SPECIFIED is an array of face attribute values in font
-   sort order.  AVGWIDTH, if non-zero, is an average width to compare
-   with.  */
-
-static int
-exact_face_match_p (specified, font, avgwidth)
-     int *specified;
-     struct font_name *font;
-     int avgwidth;
-{
-  int i;
-
-  for (i = 0; i < DIM (font_sort_order); ++i)
-    if (specified[i] != font->numeric[font_sort_order[i]])
-      break;
-
-  return (i == DIM (font_sort_order)
-	  && (avgwidth <= 0
-	      || avgwidth == font->numeric[XLFD_AVGWIDTH]));
-}
-
-
-/* Value is the name of a scaled font, generated from scalable font
-   FONT on frame F.  SPECIFIED_PT is the point-size to scale FONT to.
-   Value is allocated from heap.  */
-
-static char *
-build_scalable_font_name (f, font, specified_pt)
-     struct frame *f;
-     struct font_name *font;
-     int specified_pt;
-{
-  char pixel_size[20];
-  int pixel_value;
-  double resy = FRAME_X_DISPLAY_INFO (f)->resy;
-  double pt;
-
-  if (font->numeric[XLFD_PIXEL_SIZE] != 0
-      || font->numeric[XLFD_POINT_SIZE] != 0)
-    /* This is a scalable font but is requested for a specific size.
-       We should not change that size.  */
-    return build_font_name (font);
-
-  /* If scalable font is for a specific resolution, compute
-     the point size we must specify from the resolution of
-     the display and the specified resolution of the font.  */
-  if (font->numeric[XLFD_RESY] != 0)
-    {
-      pt = resy / font->numeric[XLFD_RESY] * specified_pt + 0.5;
-      pixel_value = font->numeric[XLFD_RESY] / (PT_PER_INCH * 10.0) * pt + 0.5;
-    }
-  else
-    {
-      pt = specified_pt;
-      pixel_value = resy / (PT_PER_INCH * 10.0) * pt + 0.5;
-    }
-  /* We may need a font of the different size.  */
-  pixel_value *= font->rescale_ratio;
-
-  /* We should keep POINT_SIZE 0.  Otherwise, X server can't open a
-     font of the specified PIXEL_SIZE.  */
-#if 0
-  { /* Set point size of the font.  */
-    char point_size[20];
-    sprintf (point_size, "%d", (int) pt);
-    font->fields[XLFD_POINT_SIZE] = point_size;
-    font->numeric[XLFD_POINT_SIZE] = pt;
-  }
-#endif
-
-  /* Set pixel size.  */
-  sprintf (pixel_size, "%d", pixel_value);
-  font->fields[XLFD_PIXEL_SIZE] = pixel_size;
-  font->numeric[XLFD_PIXEL_SIZE] = pixel_value;
-
-  /* If font doesn't specify its resolution, use the
-     resolution of the display.  */
-  if (font->numeric[XLFD_RESY] == 0)
-    {
-      char buffer[20];
-      sprintf (buffer, "%d", (int) resy);
-      font->fields[XLFD_RESY] = buffer;
-      font->numeric[XLFD_RESY] = resy;
-    }
-
-  if (strcmp (font->fields[XLFD_RESX], "0") == 0)
-    {
-      char buffer[20];
-      int resx = FRAME_X_DISPLAY_INFO (f)->resx;
-      sprintf (buffer, "%d", resx);
-      font->fields[XLFD_RESX] = buffer;
-      font->numeric[XLFD_RESX] = resx;
-    }
-
-  return build_font_name (font);
-}
-
-
-/* Value is non-zero if we are allowed to use scalable font FONT.  We
-   can't run a Lisp function here since this function may be called
-   with input blocked.  */
-
-static int
-may_use_scalable_font_p (font)
-     const char *font;
-{
-  if (EQ (Vscalable_fonts_allowed, Qt))
-    return 1;
-  else if (CONSP (Vscalable_fonts_allowed))
-    {
-      Lisp_Object tail, regexp;
-
-      for (tail = Vscalable_fonts_allowed; CONSP (tail); tail = XCDR (tail))
-	{
-	  regexp = XCAR (tail);
-	  if (STRINGP (regexp)
-	      && fast_c_string_match_ignore_case (regexp, font) >= 0)
-	    return 1;
-	}
-    }
-
-  return 0;
-}
-
-
-
-/* Return the name of the best matching font for face attributes ATTRS
-   in the array of font_name structures FONTS which contains NFONTS
-   elements.  WIDTH_RATIO is a factor with which to multiply average
-   widths if ATTRS specifies such a width.
-
-   Value is a font name which is allocated from the heap.  FONTS is
-   freed by this function.
-
-   If NEEDS_OVERSTRIKE is non-zero, a boolean is returned in it to
-   indicate whether the resulting font should be drawn using overstrike
-   to simulate bold-face.  */
-
-static char *
-best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
-     struct frame *f;
-     Lisp_Object *attrs;
-     struct font_name *fonts;
-     int nfonts;
-     int width_ratio;
-     int *needs_overstrike;
-{
-  char *font_name;
-  struct font_name *best;
-  int i, pt = 0;
-  int specified[5];
-  int exact_p, avgwidth;
-
-  if (nfonts == 0)
-    return NULL;
-
-  /* Make specified font attributes available in `specified',
-     indexed by sort order.  */
-  for (i = 0; i < DIM (font_sort_order); ++i)
-    {
-      int xlfd_idx = font_sort_order[i];
-
-      if (xlfd_idx == XLFD_SWIDTH)
-	specified[i] = face_numeric_swidth (attrs[LFACE_SWIDTH_INDEX]);
-      else if (xlfd_idx == XLFD_POINT_SIZE)
-	specified[i] = pt = XFASTINT (attrs[LFACE_HEIGHT_INDEX]);
-      else if (xlfd_idx == XLFD_WEIGHT)
-	specified[i] = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
-      else if (xlfd_idx == XLFD_SLANT)
-	specified[i] = face_numeric_slant (attrs[LFACE_SLANT_INDEX]);
-      else
-	abort ();
-    }
-
-  avgwidth = (UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX])
-	      ? 0
-	      : XFASTINT (attrs[LFACE_AVGWIDTH_INDEX]) * width_ratio);
-
-  exact_p = 0;
-
-  if (needs_overstrike)
-    *needs_overstrike = 0;
-
-  best = NULL;
-
-  /* Find the best match among the non-scalable fonts.  */
-  for (i = 0; i < nfonts; ++i)
-    if (!font_scalable_p (fonts + i)
-	&& better_font_p (specified, fonts + i, best, 1, avgwidth))
-      {
-	best = fonts + i;
-
-	exact_p = exact_face_match_p (specified, best, avgwidth);
-	if (exact_p)
-	  break;
-      }
-
-  /* Unless we found an exact match among non-scalable fonts, see if
-     we can find a better match among scalable fonts.  */
-  if (!exact_p)
-    {
-      /* A scalable font is better if
-
-	 1. its weight, slant, swidth attributes are better, or.
-
-	 2. the best non-scalable font doesn't have the required
-	 point size, and the scalable fonts weight, slant, swidth
-	 isn't worse.  */
-
-      int non_scalable_has_exact_height_p;
-
-      if (best && best->numeric[XLFD_POINT_SIZE] == pt)
-	non_scalable_has_exact_height_p = 1;
-      else
-	non_scalable_has_exact_height_p = 0;
-
-      for (i = 0; i < nfonts; ++i)
-	if (font_scalable_p (fonts + i))
-	  {
-	    if (better_font_p (specified, fonts + i, best, 0, 0)
-		|| (!non_scalable_has_exact_height_p
-		    && !better_font_p (specified, best, fonts + i, 0, 0)))
-	      {
-		non_scalable_has_exact_height_p = 1;
-		best = fonts + i;
-	      }
-	  }
-    }
-
-  /* We should have found SOME font.  */
-  if (best == NULL)
-    abort ();
-
-  if (! exact_p && needs_overstrike)
-    {
-      enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
-      enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
-
-      if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
-	{
-	  /* We want a bold font, but didn't get one; try to use
-	     overstriking instead to simulate bold-face.  However,
-	     don't overstrike an already-bold font unless the
-	     desired weight grossly exceeds the available weight.  */
-	  if (got_weight > XLFD_WEIGHT_MEDIUM)
-	    *needs_overstrike = (want_weight - got_weight) > 2;
-	  else
-	    *needs_overstrike = 1;
-	}
-    }
-
-  if (font_scalable_p (best))
-    font_name = build_scalable_font_name (f, best, pt);
-  else
-    font_name = build_font_name (best);
-
-  /* Free font_name structures.  */
-  free_font_names (fonts, nfonts);
-
-  return font_name;
-}
-
-
-/* Get a list of matching fonts on frame F, considering FAMILY
-   and alternative font families from Vface_alternative_font_registry_alist.
-
-   FAMILY is the font family whose alternatives are considered.
-
-   REGISTRY, if a string, specifies a font registry and encoding to
-   match.  A value of nil means include fonts of any registry and
-   encoding.
-
-   Return in *FONTS a pointer to a vector of font_name structures for
-   the fonts matched.  Value is the number of fonts found.  */
-
-static int
-try_alternative_families (f, family, registry, fonts)
-     struct frame *f;
-     Lisp_Object family, registry;
-     struct font_name **fonts;
-{
-  Lisp_Object alter;
-  int nfonts = 0;
-
-  nfonts = font_list (f, Qnil, family, registry, fonts);
-  if (nfonts == 0)
-    {
-      /* Try alternative font families.  */
-      alter = Fassoc (family, Vface_alternative_font_family_alist);
-      if (CONSP (alter))
-	{
-	  for (alter = XCDR (alter);
-	       CONSP (alter) && nfonts == 0;
-	       alter = XCDR (alter))
-	    {
-	      if (STRINGP (XCAR (alter)))
-		nfonts = font_list (f, Qnil, XCAR (alter), registry, fonts);
-	    }
-	}
-
-      /* Try all scalable fonts before giving up.  */
-      if (nfonts == 0 && ! EQ (Vscalable_fonts_allowed, Qt))
-	{
-	  int count = SPECPDL_INDEX ();
-	  specbind (Qscalable_fonts_allowed, Qt);
-	  nfonts = try_alternative_families (f, family, registry, fonts);
-	  unbind_to (count, Qnil);
-	}
-    }
-  return nfonts;
-}
-
-
-/* Get a list of matching fonts on frame F.
-
-   PATTERN, if a string, specifies a font name pattern to match while
-   ignoring FAMILY and REGISTRY.
-
-   FAMILY, if a list, specifies a list of font families to try.
-
-   REGISTRY, if a list, specifies a list of font registries and
-   encodinging to try.
-
-   Return in *FONTS a pointer to a vector of font_name structures for
-   the fonts matched.  Value is the number of fonts found.  */
-
-static int
-try_font_list (f, pattern, family, registry, fonts)
-     struct frame *f;
-     Lisp_Object pattern, family, registry;
-     struct font_name **fonts;
-{
-  int nfonts = 0;
-
-  if (STRINGP (pattern))
-    {
-      nfonts = font_list (f, pattern, Qnil, Qnil, fonts);
-      if (nfonts == 0 && ! EQ (Vscalable_fonts_allowed, Qt))
-	{
-	  int count = SPECPDL_INDEX ();
-	  specbind (Qscalable_fonts_allowed, Qt);
-	  nfonts = font_list (f, pattern, Qnil, Qnil, fonts);
-	  unbind_to (count, Qnil);
-	}
-    }
-  else
-    {
-      Lisp_Object tail;
-
-      if (NILP (family))
-	nfonts = font_list (f, Qnil, Qnil, registry, fonts);
-      else
-	for (tail = family; ! nfonts && CONSP (tail); tail = XCDR (tail))
-	  nfonts = try_alternative_families (f, XCAR (tail), registry, fonts);
-
-      /* Try font family of the default face or "fixed".  */
-      if (nfonts == 0 && !NILP (family))
-	{
-	  struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-	  if (default_face)
-	    family = default_face->lface[LFACE_FAMILY_INDEX];
-	  else
-	    family = build_string ("fixed");
-	  nfonts = try_alternative_families (f, family, registry, fonts);
-	}
-
-      /* Try any family with the given registry.  */
-      if (nfonts == 0 && !NILP (family))
-	nfonts = try_alternative_families (f, Qnil, registry, fonts);
-    }
-
-  return nfonts;
-}
-
 
 /* Return the fontset id of the base fontset name or alias name given
    by the fontset attribute of ATTRS.  Value is -1 if the fontset
@@ -7260,107 +5410,6 @@ face_fontset (attrs)
   if (!STRINGP (name))
     return -1;
   return fs_query_fontset (name, 0);
-}
-
-
-/* Choose a name of font to use on frame F to display characters with
-   Lisp face attributes specified by ATTRS.  The font name is
-   determined by the font-related attributes in ATTRS and FONT-SPEC
-   (if specified).
-
-   When we are choosing a font for ASCII characters, FONT-SPEC is
-   always nil.  Otherwise FONT-SPEC is an object created by
-   `font-spec' or a string specifying a font name pattern.
-
-   If NEEDS_OVERSTRIKE is not NULL, a boolean is returned in it to
-   indicate whether the resulting font should be drawn using
-   overstrike to simulate bold-face.
-
-   Value is the font name which is allocated from the heap and must be
-   freed by the caller.  */
-
-char *
-choose_face_font (f, attrs, font_spec, needs_overstrike)
-     struct frame *f;
-     Lisp_Object *attrs;
-     Lisp_Object font_spec;
-     int *needs_overstrike;
-{
-  Lisp_Object pattern, family, adstyle, registry;
-  char *font_name = NULL;
-  struct font_name *fonts;
-  int nfonts;
-
-  if (needs_overstrike)
-    *needs_overstrike = 0;
-
-  /* If we are choosing an ASCII font and a font name is explicitly
-     specified in ATTRS, return it.  */
-  if (NILP (font_spec) && STRINGP (attrs[LFACE_FONT_INDEX]))
-    return xstrdup (SDATA (attrs[LFACE_FONT_INDEX]));
-
-  if (NILP (attrs[LFACE_FAMILY_INDEX]))
-    family = Qnil;
-  else
-    family = Fcons (attrs[LFACE_FAMILY_INDEX], Qnil);
-
-  /* Decide FAMILY, ADSTYLE, and REGISTRY from FONT_SPEC.  But,
-     ADSTYLE is not used in the font selector for the moment.  */
-  if (VECTORP (font_spec))
-    {
-      pattern = Qnil;
-      if (! NILP (AREF (font_spec, FONT_FAMILY_INDEX)))
-	family = Fcons (SYMBOL_NAME (AREF (font_spec, FONT_FAMILY_INDEX)),
-			family);
-      adstyle = AREF (font_spec, FONT_ADSTYLE_INDEX);
-      registry = Fcons (SYMBOL_NAME (AREF (font_spec, FONT_REGISTRY_INDEX)),
-			Qnil);
-    }
-  else if (STRINGP (font_spec))
-    {
-      pattern = font_spec;
-      family = Qnil;
-      adstyle = Qnil;
-      registry = Qnil;
-    }
-  else
-    {
-      /* We are choosing an ASCII font.  By default, use the registry
-	 name "iso8859-1".  But, if the registry name of the ASCII
-	 font specified in the fontset of ATTRS is not "iso8859-1"
-	 (e.g "iso10646-1"), use also that name with higher
-	 priority.  */
-      int fontset = face_fontset (attrs);
-      Lisp_Object ascii;
-      int len;
-      struct font_name font;
-
-      pattern = Qnil;
-      adstyle = Qnil;
-      registry = Fcons (build_string ("iso8859-1"), Qnil);
-
-      ascii = fontset_ascii (fontset);
-      len = SBYTES (ascii);
-      if (len < 9
-	  || strcmp (SDATA (ascii) + len - 9, "iso8859-1"))
-	{
-	  font.name = LSTRDUPA (ascii);
-	  /* Check if the name is in XLFD.  */
-	  if (split_font_name (f, &font, 0))
-	    {
-	      font.fields[XLFD_ENCODING][-1] = '-';
-	      registry = Fcons (build_string (font.fields[XLFD_REGISTRY]),
-				registry);
-	    }
-	}
-    }
-
-  /* Get a list of fonts matching that pattern and choose the
-     best match for the specified face attributes from it.  */
-  nfonts = try_font_list (f, pattern, family, registry, &fonts);
-  font_name = best_matching_font (f, attrs, fonts, nfonts, NILP (font_spec),
-				  needs_overstrike);
-  return font_name;
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -7431,7 +5480,6 @@ realize_default_face (f)
   struct face_cache *c = FRAME_FACE_CACHE (f);
   Lisp_Object lface;
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
-  Lisp_Object frame_font;
   struct face *face;
 
   /* If the `default' face is not yet known, create it.  */
@@ -7443,31 +5491,14 @@ realize_default_face (f)
        lface = Finternal_make_lisp_face (Qdefault, frame);
   }
 
-
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	{
-	  frame_font = font_find_object (FRAME_FONT_OBJECT (f));
-	  xassert (FONT_OBJECT_P (frame_font));
-	  set_lface_from_font_and_fontset (f, lface, frame_font,
-					   FRAME_FONTSET (f),
-					   f->default_face_done_p);
-	}
-      else
-	{
-#endif	/* USE_FONT_BACKEND */
-      /* Set frame_font to the value of the `font' frame parameter.  */
-      frame_font = Fassq (Qfont, f->param_alist);
-      xassert (CONSP (frame_font) && STRINGP (XCDR (frame_font)));
-      frame_font = XCDR (frame_font);
-      set_lface_from_font_name (f, lface, frame_font,
-                                f->default_face_done_p, 1);
-#ifdef USE_FONT_BACKEND
-	}
-#endif	/* USE_FONT_BACKEND */
+      Lisp_Object font_object;
+
+      XSETFONT (font_object, FRAME_FONT (f));
+      set_lface_from_font (f, lface, font_object, f->default_face_done_p);
+      LFACE_FONTSET (lface) = fontset_name (FRAME_FONTSET (f));
       f->default_face_done_p = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -7481,7 +5512,6 @@ realize_default_face (f)
 	LFACE_WEIGHT (lface) = Qnormal;
       if (UNSPECIFIEDP (LFACE_SLANT (lface)))
 	LFACE_SLANT (lface) = Qnormal;
-      LFACE_AVGWIDTH (lface) = Qunspecified;
     }
 
   if (UNSPECIFIEDP (LFACE_UNDERLINE (lface)))
@@ -7552,7 +5582,7 @@ realize_default_face (f)
  	 acceptable as a font for the default face (perhaps because
  	 auto-scaled fonts are rejected), so we must adjust the frame
  	 font.  */
-      x_set_font (f, build_string (face->font_name), Qnil);
+      x_set_font (f, LFACE_FONT (lface), Qnil);
     }
 #endif	/* HAVE_X_WINDOWS */
 #endif	/* HAVE_WINDOW_SYSTEM */
@@ -7642,45 +5672,32 @@ realize_face (cache, attrs, former_face_id)
 
 
 #ifdef HAVE_WINDOW_SYSTEM
-/* Realize the fully-specified face that has the same attributes as
-   BASE_FACE except for the font on frame F.  If FONT_ID is not
-   negative, it is an ID number of an already opened font that should
-   be used by the face.  If FONT_ID is negative, the face has no font,
-   i.e., characters are displayed by empty boxes.  */
+/* Realize the fully-specified face that uses FONT-OBJECT and has the
+   same attributes as BASE_FACE except for the font on frame F.
+   FONT-OBJECT may be nil, in which case, realized a face of
+   no-font.  */
 
 static struct face *
-realize_non_ascii_face (f, font_id, base_face)
+realize_non_ascii_face (f, font_object, base_face)
      struct frame *f;
-     int font_id;
+     Lisp_Object font_object;
      struct face *base_face;
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
   struct face *face;
-  struct font_info *font_info;
 
   face = (struct face *) xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
-#ifdef USE_FONT_BACKEND
   face->extra = NULL;
-#endif	/* USE_FONT_BACKEND */
+  face->overstrike
+    = (! NILP (font_object)
+       && FONT_WEIGHT_NAME_NUMERIC (face->lface[LFACE_WEIGHT_INDEX]) > 100
+       && FONT_WEIGHT_NUMERIC (font_object) <= 100);
 
   /* Don't try to free the colors copied bitwise from BASE_FACE.  */
   face->colors_copied_bitwise_p = 1;
-
-  face->font_info_id = font_id;
-  if (font_id >= 0)
-    {
-      font_info = FONT_INFO_FROM_ID (f, font_id);
-      face->font = font_info->font;
-      face->font_name = font_info->full_name;
-    }
-  else
-    {
-      face->font = NULL;
-      face->font_name = NULL;
-    }
-
+  face->font = NILP (font_object) ? NULL : XFONT_OBJECT (font_object);
   face->gc = 0;
 
   cache_face (cache, face, face->hash);
@@ -7723,14 +5740,7 @@ realize_x_face (cache, attrs)
       && lface_same_font_attributes_p (default_face->lface, attrs))
     {
       face->font = default_face->font;
-      face->font_info_id = default_face->font_info_id;
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	face->font_info = default_face->font_info;
-#endif	/* USE_FONT_BACKEND */
-      face->font_name = default_face->font_name;
-      face->fontset
-	= make_fontset_for_ascii_face (f, default_face->fontset, face);
+      face->fontset = make_fontset_for_ascii_face (f, -1, face);
     }
   else
     {
@@ -7750,17 +5760,25 @@ realize_x_face (cache, attrs)
 	fontset = default_face->fontset;
       if (fontset == -1)
 	abort ();
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	font_load_for_face (f, face);
+      if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
+	attrs[LFACE_FONT_INDEX]
+	  = font_load_for_lface (f, attrs, attrs[LFACE_FONT_INDEX]);
+      if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
+	{
+	  face->font = XFONT_OBJECT (attrs[LFACE_FONT_INDEX]);
+	  face->fontset = make_fontset_for_ascii_face (f, fontset, face);
+	}
       else
-#endif	/* USE_FONT_BACKEND */
-	load_face_font (f, face);
-      if (face->font)
-	face->fontset = make_fontset_for_ascii_face (f, fontset, face);
-      else
-	face->fontset = -1;
+	{
+	  face->font = NULL;
+	  face->fontset = -1;
+	}
     }
+
+  if (face->font
+      && FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]) > 100
+      && FONT_WEIGHT_NUMERIC (attrs[LFACE_FONT_INDEX]) <= 100)
+    face->overstrike = 1;
 
   /* Load colors, and set remaining attributes.  */
 
@@ -7997,17 +6015,18 @@ realize_tty_face (cache, attrs)
 
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs);
+#if 0
   face->font_name = FRAME_MSDOS_P (cache->f) ? "ms-dos" : "tty";
+#endif
 
   /* Map face attributes to TTY appearances.  We map slant to
      dimmed text because we want italic text to appear differently
      and because dimmed text is probably used infrequently.  */
-  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
-  slant = face_numeric_slant (attrs[LFACE_SLANT_INDEX]);
-
-  if (weight > XLFD_WEIGHT_MEDIUM)
+  weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
+  slant = FONT_SLANT_NAME_NUMERIC (attrs[LFACE_SLANT_INDEX]);
+  if (weight > 100)
     face->tty_bold_p = 1;
-  if (weight < XLFD_WEIGHT_MEDIUM || slant != XLFD_SLANT_ROMAN)
+  if (weight < 100 || slant != 100)
     face->tty_dim_p = 1;
   if (!NILP (attrs[LFACE_UNDERLINE_INDEX]))
     face->tty_underline_p = 1;
@@ -8466,13 +6485,13 @@ dump_realized_face (face)
   fprintf (stderr, "background: 0x%lx (%s)\n",
 	   face->background,
 	   SDATA (face->lface[LFACE_BACKGROUND_INDEX]));
-  fprintf (stderr, "font_name: %s (%s)\n",
-	   face->font_name,
-	   SDATA (face->lface[LFACE_FAMILY_INDEX]));
+  if (face->font)
+    fprintf (stderr, "font_name: %s (%s)\n",
+	     SDATA (face->font->props[FONT_NAME_INDEX]),
+	     SDATA (face->lface[LFACE_FAMILY_INDEX]));
 #ifdef HAVE_X_WINDOWS
   fprintf (stderr, "font = %p\n", face->font);
 #endif
-  fprintf (stderr, "font_info_id = %d\n", face->font_info_id);
   fprintf (stderr, "fontset: %d\n", face->fontset);
   fprintf (stderr, "underline: %d (%s)\n",
 	   face->underline_p,
