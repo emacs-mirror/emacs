@@ -101,76 +101,46 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 	   (internal-set-alternative-font-registry-alist value)))
 
 
-(defcustom font-weight-table
-  (if (eq system-type 'windows-nt)
-      '((thin . 100)
-        (ultralight . 199) (ultra-light . 200) (extra-light . 201)
-        (light . 300)
-        (semilight . 330) (semi-light . 331)
-        (book . 350)
-        (normal . 400) (regular . 401)
-        (medium . 500)
-        (semibold . 599) (semi-bold . 600) (demibold . 601) (demi . 602)
-        (bold . 700)
-        (extrabold . 799) (extra-bold . 800)
-        (ultrabold . 801) (ultra-bold . 802)
-        (black . 900) (heavy . 901))
-    '((thin . 0)
-      (ultralight . 39) (ultra-light . 40) (extra-light . 41)
-      (light . 50)
-      (semilight . 65) (semi-light . 66)
-      (book . 75)
-      (medium . 99) (regular . 100) (normal . 101)
-      (semibold . 179) (semi-bold . 180) (demibold . 181) (demi . 182)
-      (bold . 200)
-      (extrabold . 204) (extra-bold . 205)
-      (ultrabold . 206) (ultra-bold . 207)
-      (black . 210) (heavy . 211)))
-  "*Alist of font weight symbols vs the corresponding numeric values."
-  :tag "Font weight table"
-  :version "23.1"
-  :group 'font-selection
-  :type '(repeat (cons symbol integer))
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (if (fboundp 'internal-set-font-style-table)
-	       (internal-set-font-style-table :weight value))))
+(defconst font-weight-table
+  '((thin 0)
+    (ultra-light 20 ultralight)
+    (extra-light 40 extralight)
+    (light 50)
+    (semi-light 75 semilight demilight book)
+    (normal 100 medium regular)
+    (semi-bold 180 semibold demibold demi)
+    (bold 200)
+    (extra-bold 205 extrabold)
+    (ultra-bold 210 ultrabold black))
+  "Alist of font weight symbols vs the corresponding numeric values.
+Each element has the form:
+    \(SYMBOLIC-VALUE NUMERIC-VALUE ALISE-SYMBOL ...)
+")
 
-(defcustom font-slant-table
-  '((ro . 0)
-    (ri . 10)
-    (r . 98) (roman . 99) (normal . 100)
-    (i . 199) (italic . 200) (ot . 201)
-    (o . 210) (oblique . 211))
-  "*Alist of font slant symbols vs the corresponding numeric values."
-  :tag "Font slant table"
-  :version "23.1"
-  :group 'font-selection
-  :type '(repeat (cons symbol integer))
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (if (fboundp 'internal-set-font-style-table)
-	       (internal-set-font-style-table :slant value))))
+(defconst font-slant-table
+  '((reverse-oblique 0 ro)
+    (reverse-italic 10 ri)
+    (normal 100 r)
+    (italic 200 i ot)
+    (oblique 210 o))
+  "Alist of font slant symbols vs the corresponding numeric values.
+See `font-weight-table' for the detailed format.")
 
-(defcustom font-swidth-table
-  '((ultracondensed . 50) (ultra-condensed . 51)
-    (extracondensed . 63) (extra-condensed . 64)
-    (narrow . 74) (compressed . 75) (condensed . 76)
-    (semi-condensed . 87) (semicondensed . 88)
-    (medium . 99) (normal . 100) (regular . 101)
-    (semiexpanded . 112) (semi-expanded . 113) (demiexpanded . 114)
-    (expanded . 125)
-    (extraexpanded . 150) (extra-expanded . 151)
-    (ultraexpanded . 199) (ultra-expanded . 200) (wide . 201))
-  "*Alist of font swidth symbols vs the corresponding numeric values."
-  :tag "Font swidth table"
-  :version "23.1"
-  :group 'font-selection
-  :type '(repeat (cons symbol integer))
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (if (fboundp 'internal-set-font-style-table)
-	       (internal-set-font-style-table :width value))))
+(defconst font-width-table
+  '((ultra-condensed 50 ultracondensed)
+    (extra-condensed 63 extracondensed)
+    (condensed 75 compressed narrow)
+    (semi-condensed 87 semicondensed semicondensed)
+    (normal 100 medium regular)
+    (semi-expanded 113 semiexpanded demiexpanded)
+    (expanded 125)
+    (extra-expanded 150 extraexpanded)
+    (ultra-expanded 200 ultraexpanded wide))
+  "Alist of font width symbols vs the corresponding numeric values.
+See `font-weight-table' for the detailed format.")
+
+(internal-set-font-style-table
+ font-weight-table font-slant-table font-width-table)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Creation, copying.
@@ -1014,12 +984,21 @@ an integer value."
            (:family
             (if (window-system frame)
                 (mapcar #'(lambda (x) (cons (car x) (car x)))
-                        (x-font-family-list))
+                        (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
-           ((:width :weight :slant :inverse-video)
-            (mapcar #'(lambda (x) (cons (symbol-name x) x))
-                    (internal-lisp-face-attribute-values attribute)))
+	   (:width
+	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
+		    font-width-table))
+           (:weight
+	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
+		    font-weight-table))
+	   (:slant
+	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
+		    font-slant-table))
+	   (:inverse-video
+	    (mapcar #'(lambda (x) (cons (symbol-name x) x))
+		    (internal-lisp-face-attribute-values attribute)))
            ((:underline :overline :strike-through :box)
             (if (window-system frame)
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
