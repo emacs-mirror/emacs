@@ -175,12 +175,6 @@ AC_ARG_ENABLE(carbon-app,
 		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
 
-## Enabled by default.
-AC_ARG_ENABLE(font-backend,
-[AS_HELP_STRING([--disable-font-backend],[don't compile font-backend support])],
-      USE_FONT_BACKEND=$enableval,
-      USE_FONT_BACKEND=yes)
-
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
       USE_XASSERTS=$enableval,
@@ -1982,100 +1976,93 @@ either XPointer or XPointer*.])dnl
 fi
 
 ### Start of font-backend section.
-if test "${HAVE_X11}" != "yes"; then
-  USE_FONT_BACKEND=no
+
+## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+HAVE_XFT=maybe
+if test "x${with_freetype}" = "xno"; then
+  with_xft="no";
+fi
+if test "x${with_xft}" != "xno"; then
+
+  PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
+  if test "$HAVE_XFT" != no; then
+    OLD_CPPFLAGS="$CPPFLAGS"
+    OLD_CFLAGS="$CFLAGS"
+    OLD_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+    CFLAGS="$CFLAGS $XFT_CFLAGS"
+    LIBS="$XFT_LIBS $LIBS"
+    AC_CHECK_HEADER(X11/Xft/Xft.h,
+      AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
+
+    if test "${HAVE_XFT}" = "yes"; then
+      AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
+	AC_SUBST(XFT_LIBS)
+      C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+    else
+      CPPFLAGS="$OLD_CPPFLAGS"
+      CFLAGS="$OLD_CFLAGS"
+      LIBS="$OLD_LIBS"
+    fi                        # "${HAVE_XFT}" = "yes"
+  fi                          # "$HAVE_XFT" != no
+fi                            # "x${with_xft}" != "xno"
+
+dnl For the "Does Emacs use" message at the end.
+if test "$HAVE_XFT" != "yes"; then
+   HAVE_XFT=no
 fi
 
-if test "${USE_FONT_BACKEND}" = "yes"; then
-  AC_DEFINE(USE_FONT_BACKEND, 1, [Define to 1 if we should use font-backend.])
 
-  ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
-  HAVE_XFT=maybe
-  if test "x${with_freetype}" = "xno"; then
-    with_xft="no";
-  fi
-  if test "x${with_xft}" != "xno"; then
+HAVE_FREETYPE=no
+### Use -lfreetype if available, unless `--with-freetype=no'.
+if test "${HAVE_XFT}" = "yes"; then
+  dnl As we use Xft, we anyway use freetype.
+  dnl In this case, there's no need of additional CFLAGS and LIBS.
+  HAVE_FREETYPE=yes
+elif test "x${with_freetype}" != "xno"; then
 
-    PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
-    if test "$HAVE_XFT" != no; then
-      OLD_CPPFLAGS="$CPPFLAGS"
-      OLD_CFLAGS="$CFLAGS"
-      OLD_LIBS="$LIBS"
-      CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
-      CFLAGS="$CFLAGS $XFT_CFLAGS"
-      LIBS="$XFT_LIBS $LIBS"
-      AC_CHECK_HEADER(X11/Xft/Xft.h,
-        AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
-
-      if test "${HAVE_XFT}" = "yes"; then
-        AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
- 	AC_SUBST(XFT_LIBS)
-        C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
-      else
-        CPPFLAGS="$OLD_CPPFLAGS"
-        CFLAGS="$OLD_CFLAGS"
-        LIBS="$OLD_LIBS"
-      fi                        # "${HAVE_XFT}" = "yes"
-    fi                          # "$HAVE_XFT" != no
-  fi                            # "x${with_xft}" != "xno"
-
-  dnl For the "Does Emacs use" message at the end.
-  if test "$HAVE_XFT" != "yes"; then
-     HAVE_XFT=no
-  fi
-  
-  
-  HAVE_FREETYPE=no
-  ### Use -lfreetype if available, unless `--with-freetype=no'.
-  if test "${HAVE_XFT}" = "yes"; then
-    dnl As we use Xft, we anyway use freetype.
-    dnl In this case, there's no need of additional CFLAGS and LIBS.
-    HAVE_FREETYPE=yes
-  elif test "x${with_freetype}" != "xno"; then
-  
-    PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
-    if test "${HAVE_FREETYPE}" = "yes"; then
-      PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
-      if test "${HAVE_FC}" = "no"; then
-        dnl Without fontconfig, we can't use freetype at the moment.
-        HAVE_FREETYPE=no
-      fi
-    fi
-  fi
-  
-  HAVE_LIBOTF=no
+  PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
   if test "${HAVE_FREETYPE}" = "yes"; then
-    AC_DEFINE(HAVE_FREETYPE, 1,
-              [Define to 1 if using the freetype and fontconfig libraries.])
-    if test "${with_libotf}" != "no"; then
-      PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes, 
-                        HAVE_LIBOTF=no)
-      if test "$HAVE_LIBOTF" = "yes"; then
-        AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
-      fi
+    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
+    if test "${HAVE_FC}" = "no"; then
+      dnl Without fontconfig, we can't use freetype at the moment.
+      HAVE_FREETYPE=no
     fi
+  fi
+fi
+
+HAVE_LIBOTF=no
+if test "${HAVE_FREETYPE}" = "yes"; then
+  AC_DEFINE(HAVE_FREETYPE, 1,
+            [Define to 1 if using the freetype and fontconfig libraries.])
+  if test "${with_libotf}" != "no"; then
+    PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes, 
+                      HAVE_LIBOTF=no)
+    if test "$HAVE_LIBOTF" = "yes"; then
+      AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
+    fi
+  fi
 dnl FIXME should there be an error if HAVE_FREETYPE != yes?
 dnl Does the new font backend require it, or can it work without it?
+fi
+
+HAVE_M17N_FLT=no
+if test "${with_m17n_flt}" != "no"; then
+  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, HAVE_M17N_FLT=no)
+  if test "$HAVE_M17N_FLT" = "yes"; then
+    AC_DEFINE(HAVE_M17N_FLT, 1, [Define to 1 if using libm17n-flt.])
   fi
-  
-  HAVE_M17N_FLT=no
-  if test "${with_m17n_flt}" != "no"; then
-    PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, HAVE_M17N_FLT=no)
-    if test "$HAVE_M17N_FLT" = "yes"; then
-      AC_DEFINE(HAVE_M17N_FLT, 1, [Define to 1 if using libm17n-flt.])
-    fi
-  fi
-  
-  AC_SUBST(FREETYPE_CFLAGS)
-  AC_SUBST(FREETYPE_LIBS)
-  AC_SUBST(FONTCONFIG_CFLAGS)
-  AC_SUBST(FONTCONFIG_LIBS)
-  AC_SUBST(LIBOTF_CFLAGS)
-  AC_SUBST(LIBOTF_LIBS)
-  AC_SUBST(M17N_FLT_CFLAGS)
-  AC_SUBST(M17N_FLT_LIBS)
-  
-fi                              # "${USE_FONT_BACKEND}" = "yes"
+fi
+
+AC_SUBST(FREETYPE_CFLAGS)
+AC_SUBST(FREETYPE_LIBS)
+AC_SUBST(FONTCONFIG_CFLAGS)
+AC_SUBST(FONTCONFIG_LIBS)
+AC_SUBST(LIBOTF_CFLAGS)
+AC_SUBST(LIBOTF_LIBS)
+AC_SUBST(M17N_FLT_CFLAGS)
+AC_SUBST(M17N_FLT_LIBS)
+
 ### End of font-backend section.
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
@@ -3023,7 +3010,6 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
-echo "  Does Emacs use a font backend?                          ${USE_FONT_BACKEND}"
 
 if test "${USE_FONT_BACKEND}" = "yes"; then
   echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
