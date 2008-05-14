@@ -70,7 +70,6 @@ Boston, MA 02110-1301, USA.  */
 #include "charset.h"
 #include "character.h"
 #include "coding.h"
-#include "ccl.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "fontset.h"
@@ -86,6 +85,7 @@ Boston, MA 02110-1301, USA.  */
 #include "process.h"
 #include "atimer.h"
 #include "keymap.h"
+#include "font.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -101,10 +101,6 @@ Boston, MA 02110-1301, USA.  */
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
-
-#ifdef USE_FONT_BACKEND
-#include "font.h"
-#endif	/* USE_FONT_BACKEND */
 
 #ifdef USE_LUCID
 extern int xlwmenu_window_p P_ ((Widget w, Window window));
@@ -340,8 +336,6 @@ static void x_update_window_end P_ ((struct window *, int, int));
 static int x_io_error_quitter P_ ((Display *));
 static struct terminal *x_create_terminal P_ ((struct x_display_info *));
 void x_delete_terminal P_ ((struct terminal *));
-static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
-static int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
 static void XTset_terminal_modes P_ ((struct terminal *));
@@ -870,155 +864,6 @@ XTreset_terminal_modes (struct terminal *terminal)
 {
 }
 
-
-
-/***********************************************************************
-			   Display Iterator
- ***********************************************************************/
-
-/* Function prototypes of this page.  */
-
-static int x_encode_char P_ ((int, XChar2b *, struct font_info *,
-			      struct charset *, int *));
-
-
-/* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
-   is not contained in the font.  */
-
-static XCharStruct *
-x_per_char_metric (font, char2b, font_type)
-     XFontStruct *font;
-     XChar2b *char2b;
-     int font_type;  /* unused on X */
-{
-  /* The result metric information.  */
-  XCharStruct *pcm = NULL;
-
-  xassert (font && char2b);
-
-  if (font->per_char != NULL)
-    {
-      if (font->min_byte1 == 0 && font->max_byte1 == 0)
-	{
-	  /* min_char_or_byte2 specifies the linear character index
-	     corresponding to the first element of the per_char array,
-	     max_char_or_byte2 is the index of the last character.  A
-	     character with non-zero CHAR2B->byte1 is not in the font.
-	     A character with byte2 less than min_char_or_byte2 or
-	     greater max_char_or_byte2 is not in the font.  */
-	  if (char2b->byte1 == 0
-	      && char2b->byte2 >= font->min_char_or_byte2
-	      && char2b->byte2 <= font->max_char_or_byte2)
-	    pcm = font->per_char + char2b->byte2 - font->min_char_or_byte2;
-	}
-      else
-	{
-	  /* If either min_byte1 or max_byte1 are nonzero, both
-	     min_char_or_byte2 and max_char_or_byte2 are less than
-	     256, and the 2-byte character index values corresponding
-	     to the per_char array element N (counting from 0) are:
-
-	     byte1 = N/D + min_byte1
-	     byte2 = N\D + min_char_or_byte2
-
-	     where:
-
-	     D = max_char_or_byte2 - min_char_or_byte2 + 1
-	     / = integer division
-	     \ = integer modulus  */
-	  if (char2b->byte1 >= font->min_byte1
-	      && char2b->byte1 <= font->max_byte1
-	      && char2b->byte2 >= font->min_char_or_byte2
-	      && char2b->byte2 <= font->max_char_or_byte2)
-	    {
-	      pcm = (font->per_char
-		     + ((font->max_char_or_byte2 - font->min_char_or_byte2 + 1)
-			* (char2b->byte1 - font->min_byte1))
-		     + (char2b->byte2 - font->min_char_or_byte2));
-	    }
-	}
-    }
-  else
-    {
-      /* If the per_char pointer is null, all glyphs between the first
-	 and last character indexes inclusive have the same
-	 information, as given by both min_bounds and max_bounds.  */
-      if (char2b->byte2 >= font->min_char_or_byte2
-	  && char2b->byte2 <= font->max_char_or_byte2)
-	pcm = &font->max_bounds;
-    }
-
-  return ((pcm == NULL
-	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
-	  ? NULL : pcm);
-}
-
-
-/* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
-   the two-byte form of C.  Encoding is returned in *CHAR2B.  */
-
-static int
-x_encode_char (c, char2b, font_info, charset, two_byte_p)
-     int c;
-     XChar2b *char2b;
-     struct font_info *font_info;
-     struct charset *charset;
-     int *two_byte_p;
-{
-  XFontStruct *font = font_info->font;
-
-  /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
-     This may be either a program in a special encoder language or a
-     fixed encoding.  */
-  if (font_info->font_encoder)
-    {
-      /* It's a program.  */
-      struct ccl_program *ccl = font_info->font_encoder;
-
-      check_ccl_update (ccl);
-      if (CHARSET_DIMENSION (charset) == 1)
-	{
-	  ccl->reg[0] = CHARSET_ID (charset);
-	  ccl->reg[1] = char2b->byte2;
-	  ccl->reg[2] = -1;
-	}
-      else
-	{
-	  ccl->reg[0] = CHARSET_ID (charset);
-	  ccl->reg[1] = char2b->byte1;
-	  ccl->reg[2] = char2b->byte2;
-	}
-
-      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
-
-      /* We assume that MSBs are appropriately set/reset by CCL
-	 program.  */
-      if (font->max_byte1 == 0)	/* 1-byte font */
-	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
-      else
-	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
-    }
-  else if (font_info->encoding_type)
-    {
-      /* Fixed encoding scheme.  See fontset.h for the meaning of the
-	 encoding numbers.  */
-      unsigned char enc = font_info->encoding_type;
-
-      if ((enc == 1 || enc == 2)
-	  && CHARSET_DIMENSION (charset) == 2)
-	char2b->byte1 |= 0x80;
-
-      if (enc == 1 || enc == 3)
-	char2b->byte2 |= 0x80;
-    }
-
-  if (two_byte_p)
-    *two_byte_p = ((XFontStruct *) (font_info->font))->max_byte1 > 0;
-
-  return FONT_TYPE_UNKNOWN;
-}
-
-
 
 /***********************************************************************
 			    Glyph display
@@ -1056,7 +901,7 @@ static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, XRectangle *));
 
 #if GLYPH_DEBUG
-static void x_check_font P_ ((struct frame *, XFontStruct *));
+static void x_check_font P_ ((struct frame *, struct font *));
 #endif
 
 
@@ -1098,14 +943,8 @@ x_set_cursor_gc (s)
 	}
 
       IF_DEBUG (x_check_font (s->f, s->font));
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	xgcv.font = FRAME_X_DISPLAY_INFO (s->f)->font->fid;
-      else
-#endif
-      xgcv.font = s->font->fid;
       xgcv.graphics_exposures = False;
-      mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
+      mask = GCForeground | GCBackground | GCGraphicsExposures;
 
       if (FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc)
 	XChangeGC (s->display, FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc,
@@ -1141,32 +980,19 @@ x_set_mouse_face_gc (s)
   s->face = FACE_FROM_ID (s->f, face_id);
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
-  /* If font in this face is same as S->font, use it.  */
   if (s->font == s->face->font)
     s->gc = s->face->gc;
-#ifdef USE_FONT_BACKEND
-  else if (enable_font_backend)
-    /* No need of setting a font for s->gc.  */
-    s->gc = s->face->gc;
-#endif	/* USE_FONT_BACKEND */
   else
     {
       /* Otherwise construct scratch_cursor_gc with values from FACE
-	 but font FONT.  */
+	 except for FONT.  */
       XGCValues xgcv;
       unsigned long mask;
 
       xgcv.background = s->face->background;
       xgcv.foreground = s->face->foreground;
-      IF_DEBUG (x_check_font (s->f, s->font));
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	xgcv.font = FRAME_X_DISPLAY_INFO (s->f)->font->fid;
-      else
-#endif
-      xgcv.font = s->font->fid;
       xgcv.graphics_exposures = False;
-      mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
+      mask = GCForeground | GCBackground | GCGraphicsExposures;
 
       if (FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc)
 	XChangeGC (s->display, FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc,
@@ -1176,8 +1002,8 @@ x_set_mouse_face_gc (s)
 	  = XCreateGC (s->display, s->window, mask, &xgcv);
 
       s->gc = FRAME_X_DISPLAY_INFO (s->f)->scratch_cursor_gc;
-    }
 
+    }
   xassert (s->gc != 0);
 }
 
@@ -1248,18 +1074,12 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-#ifdef USE_FONT_BACKEND
   XRectangle *r = s->clip;
-#else
-  XRectangle r[2];
-#endif
   int n = get_glyph_string_clip_rects (s, r, 2);
 
   if (n > 0)
     XSetClipRectangles (s->display, s->gc, 0, 0, r, n, Unsorted);
-#ifdef USE_FONT_BACKEND
   s->num_clips = n;
-#endif
 }
 
 
@@ -1273,29 +1093,12 @@ x_set_glyph_string_clipping_exactly (src, dst)
 {
   XRectangle r;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      r.x = src->x;
-      r.width = src->width;
-      r.y = src->y;
-      r.height = src->height;
-      dst->clip[0] = r;
-      dst->num_clips = 1;
-    }
-  else
-    {
-#endif	/* USE_FONT_BACKEND */
-  struct glyph_string *clip_head = src->clip_head;
-  struct glyph_string *clip_tail = src->clip_tail;
-
-  /* This foces clipping just this glyph string.  */
-  src->clip_head = src->clip_tail = src;
-  get_glyph_string_clip_rect (src, &r);
-  src->clip_head = clip_head, src->clip_tail = clip_tail;
-#ifdef USE_FONT_BACKEND
-    }
-#endif	/* USE_FONT_BACKEND */
+  r.x = src->x;
+  r.width = src->width;
+  r.y = src->y;
+  r.height = src->height;
+  dst->clip[0] = r;
+  dst->num_clips = 1;
   XSetClipRectangles (dst->display, dst->gc, 0, 0, &r, 1, Unsorted);
 }
 
@@ -1310,30 +1113,17 @@ x_compute_glyph_string_overhangs (s)
   if (s->cmp == NULL
       && s->first_glyph->type == CHAR_GLYPH)
     {
-      XCharStruct cs;
-      int direction, font_ascent, font_descent;
+      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
+      struct font *font = s->font;
+      struct font_metrics metrics;
+      int i;
 
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	{
-	  unsigned *code = alloca (sizeof (unsigned) * s->nchars);
-	  struct font *font = (struct font *) s->font_info;
-	  struct font_metrics metrics;
-	  int i;
-
-	  for (i = 0; i < s->nchars; i++)
-	    code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
-	  font->driver->text_extents (font, code, s->nchars, &metrics);
-	  cs.rbearing = metrics.rbearing;
-	  cs.lbearing = metrics.lbearing;
-	  cs.width = metrics.width;
-	}
-      else
-#endif	/* USE_FONT_BACKEND */
-      XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
-		      &font_ascent, &font_descent, &cs);
-      s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
-      s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+      for (i = 0; i < s->nchars; i++)
+	code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
+      font->driver->text_extents (font, code, s->nchars, &metrics);
+      s->right_overhang = (metrics.rbearing > metrics.width
+			   ? metrics.rbearing - metrics.width : 0);
+      s->left_overhang = metrics.lbearing < 0 ? - metrics.lbearing : 0;
     }
   else if (s->cmp)
     {
@@ -1429,15 +1219,14 @@ x_draw_glyph_string_foreground (s)
 	  x += g->pixel_width;
 	}
     }
-#ifdef USE_FONT_BACKEND
-  else if (enable_font_backend)
+  else
     {
-      int boff = s->font_info->baseline_offset;
-      struct font *font = (struct font *) s->font_info;
+      struct font *font = s->font;
+      int boff = font->baseline_offset;
       int y;
 
-      if (s->font_info->vertical_centering)
-	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+      if (font->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (font, s->f) - boff;
 
       y = s->ybase - boff;
       if (s->for_overlaps
@@ -1447,58 +1236,6 @@ x_draw_glyph_string_foreground (s)
 	font->driver->draw (s, 0, s->nchars, x, y, 1);
       if (s->face->overstrike)
 	font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
-    }
-#endif	/* USE_FONT_BACKEND */
-  else
-    {
-      char *char1b = (char *) s->char2b;
-      int boff = s->font_info->baseline_offset;
-
-      if (s->font_info->vertical_centering)
-	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
-
-      /* If we can use 8-bit functions, condense S->char2b.  */
-      if (!s->two_byte_p)
-	for (i = 0; i < s->nchars; ++i)
-	  char1b[i] = s->char2b[i].byte2;
-
-      /* Draw text with XDrawString if background has already been
-	 filled.  Otherwise, use XDrawImageString.  (Note that
-	 XDrawImageString is usually faster than XDrawString.)  Always
-	 use XDrawImageString when drawing the cursor so that there is
-	 no chance that characters under a box cursor are invisible.  */
-      if (s->for_overlaps
-	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
-	{
-	  /* Draw characters with 16-bit or 8-bit functions.  */
-	  if (s->two_byte_p)
-	    XDrawString16 (s->display, s->window, s->gc, x,
-			   s->ybase - boff, s->char2b, s->nchars);
-	  else
-	    XDrawString (s->display, s->window, s->gc, x,
-			 s->ybase - boff, char1b, s->nchars);
-	}
-      else
-	{
-	  if (s->two_byte_p)
-	    XDrawImageString16 (s->display, s->window, s->gc, x,
-				s->ybase - boff, s->char2b, s->nchars);
-	  else
-	    XDrawImageString (s->display, s->window, s->gc, x,
-			      s->ybase - boff, char1b, s->nchars);
-	}
-
-      if (s->face->overstrike)
-	{
-	  /* For overstriking (to simulate bold-face), draw the
-	     characters again shifted to the right by one pixel.  */
-	  if (s->two_byte_p)
-	    XDrawString16 (s->display, s->window, s->gc, x + 1,
-			   s->ybase - boff, s->char2b, s->nchars);
-	  else
-	    XDrawString (s->display, s->window, s->gc, x + 1,
-			 s->ybase - boff, char1b, s->nchars);
-	}
     }
 }
 
@@ -1531,10 +1268,9 @@ x_draw_composite_glyph_string_foreground (s)
 	XDrawRectangle (s->display, s->window, s->gc, x, s->y,
 			s->width - 1, s->height - 1);
     }
-#ifdef USE_FONT_BACKEND
-  else if (enable_font_backend)
+  else
     {
-      struct font *font = (struct font *) s->font_info;
+      struct font *font = s->font;
       int y = s->ybase;
       int width = 0;
 
@@ -1586,23 +1322,6 @@ x_draw_composite_glyph_string_foreground (s)
 		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
 	      }
 	}
-    }
-#endif	/* USE_FONT_BACKEND */
-  else
-    {
-      for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
-	if (s->face)
-	  {
-	    XDrawString16 (s->display, s->window, s->gc,
-			   x + s->cmp->offsets[j * 2],
-			   s->ybase - s->cmp->offsets[j * 2 + 1],
-			   s->char2b + j, 1);
-	    if (s->face->overstrike)
-	      XDrawString16 (s->display, s->window, s->gc,
-			     x + s->cmp->offsets[j * 2] + 1,
-			     s->ybase - s->cmp->offsets[j * 2 + 1],
-			     s->char2b + j, 1);
-	  }
     }
 }
 
@@ -2865,9 +2584,7 @@ x_draw_glyph_string (s)
 	    x_set_glyph_string_gc (next);
 	    x_set_glyph_string_clipping (next);
 	    x_draw_glyph_string_background (next, 1);
-#ifdef USE_FONT_BACKEND
 	    next->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 	  }
     }
 
@@ -2932,33 +2649,25 @@ x_draw_glyph_string (s)
       /* Draw underline.  */
       if (s->face->underline_p)
 	{
-	  unsigned long tem, h;
+	  unsigned long thickness, position;
 	  int y;
 
-	  /* Get the underline thickness.  Default is 1 pixel.  */
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend)
-	    /* In the future, we must use information of font.  */
-	    h = 1;
-	  else
-#endif	/* USE_FONT_BACKEND */
-	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
-	    h = 1;
-
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend)
+	  if (s->prev && s->prev->face->underline_p)
 	    {
-	      if (s->face->font)
-		/* In the future, we must use information of font.  */
-		y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
-	      else
-		y = s->y + s->height - h;
+	      /* We use the same underline style as the previous one.  */
+	      thickness = s->prev->underline_thickness;
+	      position = s->prev->underline_position;
 	    }
 	  else
-#endif
 	    {
-	      y = s->y + s->height - h;
-	      if (!x_underline_at_descent_line)
+	      /* Get the underline thickness.  Default is 1 pixel.  */
+	      if (s->font && s->font->underline_thickness > 0)
+		thickness = s->font->underline_thickness;
+	      else
+		thickness = 1;
+	      if (x_underline_at_descent_line)
+		position = (s->height - thickness) - s->ybase;
+	      else
 		{
 		  /* Get the underline position.  This is the recommended
 		     vertical offset in pixels from the baseline to the top of
@@ -2969,23 +2678,25 @@ x_draw_glyph_string (s)
 		     ROUND(x) = floor (x + 0.5)  */
 
 		  if (x_use_underline_position_properties
-		      && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
-		    y = s->ybase + (long) tem;
-		  else if (s->face->font)
-		    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+		      && s->font && s->font->underline_position >= 0)
+		    position = s->font->underline_position;
+		  else if (s->font)
+		    position = (s->font->descent + 1) / 2;
 		}
+	      s->underline_thickness = thickness;
+	      s->underline_position = position;
 	    }
-
+	  y = s->ybase + position;
 	  if (s->face->underline_defaulted_p)
 	    XFillRectangle (s->display, s->window, s->gc,
-			    s->x, y, s->background_width, h);
+			    s->x, y, s->background_width, thickness);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
 	      XFillRectangle (s->display, s->window, s->gc,
-			      s->x, y, s->background_width, h);
+			      s->x, y, s->background_width, thickness);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -3054,9 +2765,7 @@ x_draw_glyph_string (s)
 		  x_draw_composite_glyph_string_foreground (prev);
 		XSetClipMask (prev->display, prev->gc, None);
 		prev->hl = save;
-#ifdef USE_FONT_BACKEND
 		prev->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 	      }
 	}
 
@@ -3081,18 +2790,14 @@ x_draw_glyph_string (s)
 		  x_draw_composite_glyph_string_foreground (next);
 		XSetClipMask (next->display, next->gc, None);
 		next->hl = save;
-#ifdef USE_FONT_BACKEND
 		next->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 	      }
 	}
     }
 
   /* Reset clipping.  */
   XSetClipMask (s->display, s->gc, None);
-#ifdef USE_FONT_BACKEND
   s->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 }
 
 /* Shift display to make room for inserted glyphs.   */
@@ -8259,34 +7964,32 @@ x_io_error_quitter (display)
 
 /* Changing the font of the frame.  */
 
-/* Give frame F the font named FONTNAME as its default font, and
-   return the full name of that font.  FONTNAME may be a wildcard
-   pattern; in that case, we choose some font that fits the pattern.
-   The return value shows which font we chose.  */
+/* Give frame F the font FONT-OBJECT as its default font.  The return
+   value is FONT-OBJECT.  FONTSET is an ID of the fontset for the
+   frame.  If it is negative, generate a new fontset from
+   FONT-OBJECT.  */
 
 Lisp_Object
-x_new_font (f, fontname)
+x_new_font (f, font_object, fontset)
      struct frame *f;
-     register char *fontname;
+     Lisp_Object font_object;
+     int fontset;
 {
-  struct font_info *fontp
-    = FS_LOAD_FONT (f, fontname);
+  struct font *font = XFONT_OBJECT (font_object);
 
-  if (!fontp)
-    return Qnil;
-
-  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+  if (fontset < 0)
+    fontset = fontset_from_font (font_object);
+  FRAME_FONTSET (f) = fontset;
+  if (FRAME_FONT (f) == font)
     /* This font is already set in frame F.  There's nothing more to
        do.  */
-    return build_string (fontp->full_name);
+    return font_object;
 
-  FRAME_FONT (f) = (XFontStruct *) (fontp->font);
-  FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
-  FRAME_FONTSET (f) = -1;
-
-  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
-  FRAME_SPACE_WIDTH (f) = fontp->space_width;
-  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
+  FRAME_FONT (f) = font;
+  FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
+  FRAME_COLUMN_WIDTH (f) = font->average_width;
+  FRAME_SPACE_WIDTH (f) = font->space_width;
+  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
 
   compute_fringe_widths (f, 1);
 
@@ -8303,123 +8006,6 @@ x_new_font (f, fontname)
       FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
     }
 
-  /* Now make the frame display the given font.  */
-  if (FRAME_X_WINDOW (f) != 0)
-    {
-      Font fid;
-
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	fid = FRAME_X_DISPLAY_INFO (f)->font->fid;
-      else
-#endif
-      fid = FRAME_FONT (f)->fid;
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc, fid);
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc, fid);
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc, fid);
-
-      /* Don't change the size of a tip frame; there's no point in
-	 doing it because it's done in Fx_show_tip, and it leads to
-	 problems because the tip frame has no widget.  */
-      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
-    }
-
-  return build_string (fontp->full_name);
-}
-
-/* Give frame F the fontset named FONTSETNAME as its default fontset,
-   and return the full name of that fontset.  FONTSETNAME may be a
-   wildcard pattern; in that case, we choose some fontset that fits
-   the pattern.  FONTSETNAME may be a font name for ASCII characters;
-   in that case, we create a fontset from that font name.
-
-   The return value shows which fontset we chose.
-   If FONTSETNAME specifies the default fontset, return Qt.
-   If an ASCII font in the specified fontset can't be loaded, return
-   Qnil.  */
-
-Lisp_Object
-x_new_fontset (f, fontsetname)
-     struct frame *f;
-     Lisp_Object fontsetname;
-{
-  int fontset = fs_query_fontset (fontsetname, 0);
-  Lisp_Object result;
-
-  if (fontset > 0 && f->output_data.x->fontset == fontset)
-    /* This fontset is already set in frame F.  There's nothing more
-       to do.  */
-    return fontset_name (fontset);
-  else if (fontset == 0)
-    /* The default fontset can't be the default font.   */
-    return Qt;
-
-  if (fontset > 0)
-    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
-  else
-    result = x_new_font (f, SDATA (fontsetname));
-
-  if (!STRINGP (result))
-    /* Can't load ASCII font.  */
-    return Qnil;
-
-  if (fontset < 0)
-    fontset = new_fontset_from_font_name (result);
-
-  /* Since x_new_font doesn't update any fontset information, do it now.  */
-  FRAME_FONTSET (f) = fontset;
-
-#ifdef HAVE_X_I18N
-  if (FRAME_XIC (f)
-      && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
-    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
-#endif
-
-  return fontset_name (fontset);
-}
-
-#ifdef USE_FONT_BACKEND
-Lisp_Object
-x_new_fontset2 (f, fontset, font_object)
-     struct frame *f;
-     int fontset;
-     Lisp_Object font_object;
-{
-  struct font *font = XSAVE_VALUE (font_object)->pointer;
-
-  if (FRAME_FONT_OBJECT (f) == font)
-    /* This font is already set in frame F.  There's nothing more to
-       do.  */
-    return fontset_name (fontset);
-
-  BLOCK_INPUT;
-
-  FRAME_FONT_OBJECT (f) = font;
-  FRAME_FONT (f) = font->font.font;
-  FRAME_BASELINE_OFFSET (f) = font->font.baseline_offset;
-  FRAME_FONTSET (f) = fontset;
-
-  FRAME_COLUMN_WIDTH (f) = font->font.average_width;
-  FRAME_SPACE_WIDTH (f) = font->font.space_width;
-  FRAME_LINE_HEIGHT (f) = font->font.height;
-
-  compute_fringe_widths (f, 1);
-
-  /* Compute the scroll bar width in character columns.  */
-  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f)
-	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid - 1) / wid;
-    }
-  else
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
-    }
-
-  /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
     {
       /* Don't change the size of a tip frame; there's no point in
@@ -8432,14 +8018,15 @@ x_new_fontset2 (f, fontset, font_object)
 #ifdef HAVE_X_I18N
   if (FRAME_XIC (f)
       && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
-    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
+    {
+      BLOCK_INPUT;
+      xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
+      UNBLOCK_INPUT;
+    }
 #endif
 
-  UNBLOCK_INPUT;
-
-  return fontset_name (fontset);
+  return font_object;
 }
-#endif	/* USE_FONT_BACKEND */
 
 
 /***********************************************************************
@@ -9772,14 +9359,11 @@ x_free_frame_resources (f)
      commands to the X server.  */
   if (dpyinfo->display)
     {
-#ifdef USE_FONT_BACKEND
       /* We must free faces before destroying windows because some
 	 font-driver (e.g. xft) access a window while finishing a
 	 face.  */
-      if (enable_font_backend
-	  && FRAME_FACE_CACHE (f))
+      if (FRAME_FACE_CACHE (f))
 	free_frame_faces (f);
-#endif	/* USE_FONT_BACKEND */
 
       if (f->output_data.x->icon_desc)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
@@ -10146,316 +9730,6 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 				Fonts
  ***********************************************************************/
 
-/* Return a pointer to struct font_info of font FONT_IDX of frame F.  */
-
-struct font_info *
-x_get_font_info (f, font_idx)
-     FRAME_PTR f;
-     int font_idx;
-{
-  return (FRAME_X_FONT_TABLE (f) + font_idx);
-}
-
-
-/* Return a list of names of available fonts matching PATTERN on frame F.
-
-   If SIZE is > 0, it is the size (maximum bounds width) of fonts
-   to be listed.
-
-   SIZE < 0 means include auto scaled fonts.
-
-   Frame F null means we have not yet created any frame on X, and
-   consult the first display in x_display_list.  MAXNAMES sets a limit
-   on how many fonts to match.  */
-
-Lisp_Object
-x_list_fonts (f, pattern, size, maxnames)
-     struct frame *f;
-     Lisp_Object pattern;
-     int size;
-     int maxnames;
-{
-  Lisp_Object list = Qnil, patterns, newlist = Qnil, key = Qnil;
-  Lisp_Object tem, second_best;
-  struct x_display_info *dpyinfo
-    = f ? FRAME_X_DISPLAY_INFO (f) : x_display_list;
-  Display *dpy = dpyinfo->display;
-  int try_XLoadQueryFont = 0;
-  int allow_auto_scaled_font = 0;
-
-  if (size < 0)
-    {
-      allow_auto_scaled_font = 1;
-      size = 0;
-    }
-
-  patterns = Fassoc (pattern, Valternate_fontname_alist);
-  if (NILP (patterns))
-    patterns = Fcons (pattern, Qnil);
-
-  if (maxnames == 1 && !size)
-    /* We can return any single font matching PATTERN.  */
-    try_XLoadQueryFont = 1;
-
-  for (; CONSP (patterns); patterns = XCDR (patterns))
-    {
-      int num_fonts;
-      char **names = NULL;
-
-      pattern = XCAR (patterns);
-      /* See if we cached the result for this particular query.
-         The cache is an alist of the form:
-	 ((((PATTERN . MAXNAMES) . SCALABLE) (FONTNAME . WIDTH) ...) ...)  */
-      tem = XCDR (dpyinfo->name_list_element);
-      key = Fcons (Fcons (pattern, make_number (maxnames)),
-		   allow_auto_scaled_font ? Qt : Qnil);
-      list = Fassoc (key, tem);
-      if (!NILP (list))
-	{
-	  list = Fcdr_safe (list);
-	  /* We have a cashed list.  Don't have to get the list again.  */
-	  goto label_cached;
-	}
-
-      /* At first, put PATTERN in the cache.  */
-
-      BLOCK_INPUT;
-      x_catch_errors (dpy);
-
-      if (try_XLoadQueryFont)
-	{
-	  XFontStruct *font;
-	  unsigned long value;
-
-	  font = XLoadQueryFont (dpy, SDATA (pattern));
-	  if (x_had_errors_p (dpy))
-	    {
-	      /* This error is perhaps due to insufficient memory on X
-                 server.  Let's just ignore it.  */
-	      font = NULL;
-	      x_clear_errors (dpy);
-	    }
-
-	  if (font
-	      && XGetFontProperty (font, XA_FONT, &value))
-	    {
-	      char *name = (char *) XGetAtomName (dpy, (Atom) value);
-	      int len = strlen (name);
-	      char *tmp;
-
-	      /* If DXPC (a Differential X Protocol Compressor)
-                 Ver.3.7 is running, XGetAtomName will return null
-                 string.  We must avoid such a name.  */
-	      if (len == 0)
-		try_XLoadQueryFont = 0;
-	      else
-		{
-		  num_fonts = 1;
-		  names = (char **) alloca (sizeof (char *));
-		  /* Some systems only allow alloca assigned to a
-                     simple var.  */
-		  tmp = (char *) alloca (len + 1);  names[0] = tmp;
-		  bcopy (name, names[0], len + 1);
-		  XFree (name);
-		}
-	    }
-	  else
-	    try_XLoadQueryFont = 0;
-
-	  if (font)
-	    XFreeFont (dpy, font);
-	}
-
-      if (!try_XLoadQueryFont)
-	{
-	  /* We try at least 10 fonts because XListFonts will return
-	     auto-scaled fonts at the head.  */
-          if (maxnames < 0)
-            {
-              int limit;
-
-              for (limit = 500;;)
-                {
-                  names = XListFonts (dpy, SDATA (pattern), limit, &num_fonts);
-                  if (num_fonts == limit)
-                    {
-                      BLOCK_INPUT;
-                      XFreeFontNames (names);
-                      UNBLOCK_INPUT;
-                      limit *= 2;
-                    }
-                  else
-                    break;
-                }
-            }
-          else
-            names = XListFonts (dpy, SDATA (pattern), max (maxnames, 10),
-                                &num_fonts);
-
-	  if (x_had_errors_p (dpy))
-	    {
-	      /* This error is perhaps due to insufficient memory on X
-                 server.  Let's just ignore it.  */
-	      names = NULL;
-	      x_clear_errors (dpy);
-	    }
-	}
-
-      x_uncatch_errors ();
-      UNBLOCK_INPUT;
-
-      if (names)
-	{
-	  int i;
-
-	  /* Make a list of all the fonts we got back.
-	     Store that in the font cache for the display.  */
-	  for (i = 0; i < num_fonts; i++)
-	    {
-	      int width = 0;
-	      char *p = names[i];
-	      int average_width = -1, resx = 0, dashes = 0;
-
-	      /* Count the number of dashes in NAMES[I].  If there are
-		 14 dashes, the field value following 9th dash
-		 (RESOLUTION_X) is nonzero, and the field value
-		 following 12th dash (AVERAGE_WIDTH) is 0, this is a
-		 auto-scaled font which is usually too ugly to be used
-		 for editing.  Let's ignore it.  */
-	      while (*p)
-		if (*p++ == '-')
-		  {
-		    dashes++;
-		    if (dashes == 7) /* PIXEL_SIZE field */
-		      width = atoi (p);
-		    else if (dashes == 9)
-		      resx = atoi (p);
-		    else if (dashes == 12) /* AVERAGE_WIDTH field */
-		      average_width = atoi (p);
-		  }
-
-	      if (allow_auto_scaled_font
-		  || dashes < 14 || average_width != 0 || resx == 0)
-		{
-		  tem = build_string (names[i]);
-		  if (NILP (Fassoc (tem, list)))
-		    {
-		      if (STRINGP (Vx_pixel_size_width_font_regexp)
-			  && ((fast_c_string_match_ignore_case
-			       (Vx_pixel_size_width_font_regexp, names[i]))
-			      >= 0))
-			/* We can set the value of PIXEL_SIZE to the
-			  width of this font.  */
-			list = Fcons (Fcons (tem, make_number (width)), list);
-		      else
-			/* For the moment, width is not known.  */
-			list = Fcons (Fcons (tem, Qnil), list);
-		    }
-		}
-	    }
-
-	  if (!try_XLoadQueryFont)
-	    {
-	      BLOCK_INPUT;
-	      XFreeFontNames (names);
-	      UNBLOCK_INPUT;
-	    }
-	}
-
-      /* Now store the result in the cache.  */
-      XSETCDR (dpyinfo->name_list_element,
-	       Fcons (Fcons (key, list), XCDR (dpyinfo->name_list_element)));
-
-    label_cached:
-      if (NILP (list)) continue; /* Try the remaining alternatives.  */
-
-      newlist = second_best = Qnil;
-      /* Make a list of the fonts that have the right width.  */
-      for (; CONSP (list); list = XCDR (list))
-	{
-	  int found_size;
-
-	  tem = XCAR (list);
-
-	  if (!CONSP (tem) || NILP (XCAR (tem)))
-	    continue;
-	  if (!size)
-	    {
-	      newlist = Fcons (XCAR (tem), newlist);
-	      continue;
-	    }
-
-	  if (!INTEGERP (XCDR (tem)))
-	    {
-	      /* Since we have not yet known the size of this font, we
-		 must try slow function call XLoadQueryFont.  */
-	      XFontStruct *thisinfo;
-
-	      BLOCK_INPUT;
-	      x_catch_errors (dpy);
-	      thisinfo = XLoadQueryFont (dpy,
-					 SDATA (XCAR (tem)));
-	      if (x_had_errors_p (dpy))
-		{
-		  /* This error is perhaps due to insufficient memory on X
-		     server.  Let's just ignore it.  */
-		  thisinfo = NULL;
-		  x_clear_errors (dpy);
-		}
-	      x_uncatch_errors ();
-	      UNBLOCK_INPUT;
-
-	      if (thisinfo)
-		{
-		  XSETCDR (tem,
-			   (thisinfo->min_bounds.width == 0
-			    ? make_number (0)
-			    : make_number (thisinfo->max_bounds.width)));
-		  BLOCK_INPUT;
-		  XFreeFont (dpy, thisinfo);
-		  UNBLOCK_INPUT;
-		}
-	      else
-		/* For unknown reason, the previous call of XListFont had
-		  returned a font which can't be opened.  Record the size
-		  as 0 not to try to open it again.  */
-		XSETCDR (tem, make_number (0));
-	    }
-
-	  found_size = XINT (XCDR (tem));
-	  if (found_size == size)
-	    newlist = Fcons (XCAR (tem), newlist);
-	  else if (found_size > 0)
-	    {
-	      if (NILP (second_best))
-		second_best = tem;
-	      else if (found_size < size)
-		{
-		  if (XINT (XCDR (second_best)) > size
-		      || XINT (XCDR (second_best)) < found_size)
-		    second_best = tem;
-		}
-	      else
-		{
-		  if (XINT (XCDR (second_best)) > size
-		      && XINT (XCDR (second_best)) > found_size)
-		    second_best = tem;
-		}
-	    }
-	}
-      if (!NILP (newlist))
-	break;
-      else if (!NILP (second_best))
-	{
-	  newlist = Fcons (XCAR (second_best), Qnil);
-	  break;
-	}
-    }
-
-  return newlist;
-}
-
-
 #if GLYPH_DEBUG
 
 /* Check that FONT is valid on frame F.  It is if it can be found in F's
@@ -10464,551 +9738,17 @@ x_list_fonts (f, pattern, size, maxnames)
 static void
 x_check_font (f, font)
      struct frame *f;
-     XFontStruct *font;
+     struct font *font;
 {
-  int i;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Lisp_Object frame;
 
-  xassert (font != NULL);
-
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    /* Fixme: Perhaps we should check all cached fonts.  */
-    return;
-#endif
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name
-	&& font == dpyinfo->font_table[i].font)
-      break;
-
-  xassert (i < dpyinfo->n_fonts);
+  xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
+  if (font->driver->check)
+    xassert (font->driver->check (f, font) == 0);
 }
 
 #endif /* GLYPH_DEBUG != 0 */
 
-/* Set *W to the minimum width, *H to the minimum font height of FONT.
-   Note: There are (broken) X fonts out there with invalid XFontStruct
-   min_bounds contents.  For example, handa@etl.go.jp reports that
-   "-adobe-courier-medium-r-normal--*-180-*-*-m-*-iso8859-1" fonts
-   have font->min_bounds.width == 0.  */
-
-static INLINE void
-x_font_min_bounds (font, w, h)
-     XFontStruct *font;
-     int *w, *h;
-{
-  *h = FONT_HEIGHT (font);
-  *w = font->min_bounds.width;
-
-  /* Try to handle the case where FONT->min_bounds has invalid
-     contents.  Since the only font known to have invalid min_bounds
-     is fixed-width, use max_bounds if min_bounds seems to be invalid.  */
-  if (*w <= 0)
-    *w = font->max_bounds.width;
-}
-
-
-/* Compute the smallest character width and smallest font height over
-   all fonts available on frame F.  Set the members smallest_char_width
-   and smallest_font_height in F's x_display_info structure to
-   the values computed.  Value is non-zero if smallest_font_height or
-   smallest_char_width become smaller than they were before.  */
-
-static int
-x_compute_min_glyph_bounds (f)
-     struct frame *f;
-{
-  int i;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  XFontStruct *font;
-  int old_width = dpyinfo->smallest_char_width;
-  int old_height = dpyinfo->smallest_font_height;
-
-  dpyinfo->smallest_font_height = 100000;
-  dpyinfo->smallest_char_width = 100000;
-
-  for (i = 0; i < dpyinfo->n_fonts; ++i)
-    if (dpyinfo->font_table[i].name)
-      {
-	struct font_info *fontp = dpyinfo->font_table + i;
-	int w, h;
-
-	font = (XFontStruct *) fontp->font;
-	xassert (font != (XFontStruct *) ~0);
-	x_font_min_bounds (font, &w, &h);
-
-	dpyinfo->smallest_font_height = min (dpyinfo->smallest_font_height, h);
-	dpyinfo->smallest_char_width = min (dpyinfo->smallest_char_width, w);
-      }
-
-  xassert (dpyinfo->smallest_char_width > 0
-	   && dpyinfo->smallest_font_height > 0);
-
-  return (dpyinfo->n_fonts == 1
-	  || dpyinfo->smallest_char_width < old_width
-	  || dpyinfo->smallest_font_height < old_height);
-}
-
-
-/* Load font named FONTNAME of the size SIZE for frame F, and return a
-   pointer to the structure font_info while allocating it dynamically.
-   If SIZE is 0, load any size of font.
-   If loading is failed, return NULL.  */
-
-struct font_info *
-x_load_font (f, fontname, size)
-     struct frame *f;
-     register char *fontname;
-     int size;
-{
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  Lisp_Object font_names;
-
-  /* Get a list of all the fonts that match this name.  Once we
-     have a list of matching fonts, we compare them against the fonts
-     we already have by comparing names.  */
-  font_names = x_list_fonts (f, build_string (fontname), size, 1);
-
-  if (!NILP (font_names))
-    {
-      Lisp_Object tail;
-      int i;
-
-      for (i = 0; i < dpyinfo->n_fonts; i++)
-	for (tail = font_names; CONSP (tail); tail = XCDR (tail))
-	  if (dpyinfo->font_table[i].name
-	      && (!strcmp (dpyinfo->font_table[i].name,
-			   SDATA (XCAR (tail)))
-		  || !strcmp (dpyinfo->font_table[i].full_name,
-			      SDATA (XCAR (tail)))))
-	    return (dpyinfo->font_table + i);
-    }
-
-  /* Load the font and add it to the table.  */
-  {
-    char *full_name;
-    XFontStruct *font;
-    struct font_info *fontp;
-    unsigned long value;
-    int i;
-
-    /* If we have found fonts by x_list_font, load one of them.  If
-       not, we still try to load a font by the name given as FONTNAME
-       because XListFonts (called in x_list_font) of some X server has
-       a bug of not finding a font even if the font surely exists and
-       is loadable by XLoadQueryFont.  */
-    if (size > 0 && !NILP (font_names))
-      fontname = (char *) SDATA (XCAR (font_names));
-
-    BLOCK_INPUT;
-    x_catch_errors (FRAME_X_DISPLAY (f));
-    font = (XFontStruct *) XLoadQueryFont (FRAME_X_DISPLAY (f), fontname);
-    if (x_had_errors_p (FRAME_X_DISPLAY (f)))
-      {
-	/* This error is perhaps due to insufficient memory on X
-	   server.  Let's just ignore it.  */
-	font = NULL;
-	x_clear_errors (FRAME_X_DISPLAY (f));
-      }
-    x_uncatch_errors ();
-    UNBLOCK_INPUT;
-    if (!font)
-      return NULL;
-
-    /* Find a free slot in the font table.  */
-    for (i = 0; i < dpyinfo->n_fonts; ++i)
-      if (dpyinfo->font_table[i].name == NULL)
-	break;
-
-    /* If no free slot found, maybe enlarge the font table.  */
-    if (i == dpyinfo->n_fonts
-	&& dpyinfo->n_fonts == dpyinfo->font_table_size)
-      {
-	int sz;
-	dpyinfo->font_table_size = max (16, 2 * dpyinfo->font_table_size);
-	sz = dpyinfo->font_table_size * sizeof *dpyinfo->font_table;
-	dpyinfo->font_table
-	  = (struct font_info *) xrealloc (dpyinfo->font_table, sz);
-      }
-
-    fontp = dpyinfo->font_table + i;
-    if (i == dpyinfo->n_fonts)
-      ++dpyinfo->n_fonts;
-
-    /* Now fill in the slots of *FONTP.  */
-    BLOCK_INPUT;
-    bzero (fontp, sizeof (*fontp));
-    fontp->font = font;
-    fontp->font_idx = i;
-    fontp->charset = -1;	/* fs_load_font sets it.  */
-    fontp->name = (char *) xmalloc (strlen (fontname) + 1);
-    bcopy (fontname, fontp->name, strlen (fontname) + 1);
-
-    if (font->min_bounds.width == font->max_bounds.width)
-      {
-	/* Fixed width font.  */
-	fontp->average_width = fontp->space_width = font->min_bounds.width;
-      }
-    else
-      {
-	XChar2b char2b;
-	XCharStruct *pcm;
-
-	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
-	pcm = x_per_char_metric (font, &char2b, 0);
-	if (pcm)
-	  fontp->space_width = pcm->width;
-	else
-	  fontp->space_width = FONT_WIDTH (font);
-
-	fontp->average_width
-	  = (XGetFontProperty (font, dpyinfo->Xatom_AVERAGE_WIDTH, &value)
-	     ? (long) value / 10 : 0);
-	if (fontp->average_width < 0)
-	  fontp->average_width = - fontp->average_width;
-	if (fontp->average_width == 0)
-	  {
-	    if (pcm)
-	      {
-		int width = pcm->width;
-		for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
-		  if ((pcm = x_per_char_metric (font, &char2b, 0)) != NULL)
-		    width += pcm->width;
-		fontp->average_width = width / 95;
-	      }
-	    else
-	      fontp->average_width = FONT_WIDTH (font);
-	  }
-      }
-
-    /* Try to get the full name of FONT.  Put it in FULL_NAME.  */
-    full_name = 0;
-    if (XGetFontProperty (font, XA_FONT, &value))
-      {
-	char *name = (char *) XGetAtomName (FRAME_X_DISPLAY (f), (Atom) value);
-	char *p = name;
-	int dashes = 0;
-
-	/* Count the number of dashes in the "full name".
-	   If it is too few, this isn't really the font's full name,
-	   so don't use it.
-	   In X11R4, the fonts did not come with their canonical names
-	   stored in them.  */
-	while (*p)
-	  {
-	    if (*p == '-')
-	      dashes++;
-	    p++;
-	  }
-
-	if (dashes >= 13)
-	  {
-	    full_name = (char *) xmalloc (p - name + 1);
-	    bcopy (name, full_name, p - name + 1);
-	  }
-
-	XFree (name);
-      }
-
-    if (full_name != 0)
-      fontp->full_name = full_name;
-    else
-      fontp->full_name = fontp->name;
-
-    fontp->size = font->max_bounds.width;
-    fontp->height = FONT_HEIGHT (font);
-
-    if (NILP (font_names))
-      {
-	/* We come here because of a bug of XListFonts mentioned at
-	   the head of this block.  Let's store this information in
-	   the cache for x_list_fonts.  */
-	Lisp_Object lispy_name = build_string (fontname);
-	Lisp_Object lispy_full_name = build_string (fontp->full_name);
-	Lisp_Object key = Fcons (Fcons (lispy_name, make_number (256)),
-				 Qnil);
-
-	XSETCDR (dpyinfo->name_list_element,
-		 Fcons (Fcons (key,
-			       Fcons (Fcons (lispy_full_name,
-					     make_number (fontp->size)),
-				      Qnil)),
-			XCDR (dpyinfo->name_list_element)));
-	if (full_name)
-	  {
-	    key = Fcons (Fcons (lispy_full_name, make_number (256)),
-			 Qnil);
-	    XSETCDR (dpyinfo->name_list_element,
-		     Fcons (Fcons (key,
-				   Fcons (Fcons (lispy_full_name,
-						 make_number (fontp->size)),
-					  Qnil)),
-			    XCDR (dpyinfo->name_list_element)));
-	  }
-      }
-
-    /* The slot `encoding' specifies how to map a character
-       code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
-       the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
-       (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
-       2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding_type
-       which is never used by any charset.  If mapping can't be
-       decided, set FONT_ENCODING_NOT_DECIDED.  */
-    fontp->encoding_type
-      = (font->max_byte1 == 0
-	 /* 1-byte font */
-	 ? (font->min_char_or_byte2 < 0x80
-	    ? (font->max_char_or_byte2 < 0x80
-	       ? 0		/* 0x20..0x7F */
-	       : FONT_ENCODING_NOT_DECIDED) /* 0x20..0xFF */
-	    : 1)		/* 0xA0..0xFF */
-	 /* 2-byte font */
-	 : (font->min_byte1 < 0x80
-	    ? (font->max_byte1 < 0x80
-	       ? (font->min_char_or_byte2 < 0x80
-		  ? (font->max_char_or_byte2 < 0x80
-		     ? 0		/* 0x2020..0x7F7F */
-		     : FONT_ENCODING_NOT_DECIDED) /* 0x2020..0x7FFF */
-		  : 3)		/* 0x20A0..0x7FFF */
-	       : FONT_ENCODING_NOT_DECIDED) /* 0x20??..0xA0?? */
-	    : (font->min_char_or_byte2 < 0x80
-	       ? (font->max_char_or_byte2 < 0x80
-		  ? 2		/* 0xA020..0xFF7F */
-		  : FONT_ENCODING_NOT_DECIDED) /* 0xA020..0xFFFF */
-	       : 1)));		/* 0xA0A0..0xFFFF */
-
-    fontp->baseline_offset
-      = (XGetFontProperty (font, dpyinfo->Xatom_MULE_BASELINE_OFFSET, &value)
-	 ? (long) value : 0);
-    fontp->relative_compose
-      = (XGetFontProperty (font, dpyinfo->Xatom_MULE_RELATIVE_COMPOSE, &value)
-	 ? (long) value : 0);
-    fontp->default_ascent
-      = (XGetFontProperty (font, dpyinfo->Xatom_MULE_DEFAULT_ASCENT, &value)
-	 ? (long) value : 0);
-
-    /* Set global flag fonts_changed_p to non-zero if the font loaded
-       has a character with a smaller width than any other character
-       before, or if the font loaded has a smaller height than any
-       other font loaded before.  If this happens, it will make a
-       glyph matrix reallocation necessary.  */
-    fonts_changed_p |= x_compute_min_glyph_bounds (f);
-    UNBLOCK_INPUT;
-    return fontp;
-  }
-}
-
-
-/* Return a pointer to struct font_info of a font named FONTNAME for
-   frame F.  If no such font is loaded, return NULL.  */
-
-struct font_info *
-x_query_font (f, fontname)
-     struct frame *f;
-     register char *fontname;
-{
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int i;
-
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name
-	&& (!xstricmp (dpyinfo->font_table[i].name, fontname)
-	    || !xstricmp (dpyinfo->font_table[i].full_name, fontname)))
-      return (dpyinfo->font_table + i);
-  return NULL;
-}
-
-
-/* Find a CCL program for a font specified by FONTP, and set the member
- `encoder' of the structure.  */
-
-void
-x_find_ccl_program (fontp)
-     struct font_info *fontp;
-{
-  Lisp_Object list, elt;
-
-  elt = Qnil;
-  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCDR (list))
-    {
-      elt = XCAR (list);
-      if (CONSP (elt)
-	  && STRINGP (XCAR (elt))
-	  && ((fast_c_string_match_ignore_case (XCAR (elt), fontp->name)
-	       >= 0)
-	      || (fast_c_string_match_ignore_case (XCAR (elt), fontp->full_name)
-		  >= 0)))
-	break;
-    }
-
-  if (! NILP (list))
-    {
-      struct ccl_program *ccl
-	= (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
-
-      if (setup_ccl_program (ccl, XCDR (elt)) < 0)
-	xfree (ccl);
-      else
-	fontp->font_encoder = ccl;
-    }
-}
-
-
-/* Return a char-table whose elements are t if the font FONT_INFO
-   contains a glyph for the corresponding character, and nil if
-   not.  */
-
-Lisp_Object
-x_get_font_repertory (f, font_info)
-     FRAME_PTR f;
-     struct font_info *font_info;
-{
-  XFontStruct *font = (XFontStruct *) font_info->font;
-  Lisp_Object table;
-  int min_byte1, max_byte1, min_byte2, max_byte2;
-  int c;
-  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
-  int offset = CHARSET_OFFSET (charset);
-
-  table = Fmake_char_table (Qnil, Qnil);
-
-  min_byte1 = font->min_byte1;
-  max_byte1 = font->max_byte1;
-  min_byte2 = font->min_char_or_byte2;
-  max_byte2 = font->max_char_or_byte2;
-  if (min_byte1 == 0 && max_byte1 == 0)
-    {
-      if (! font->per_char || font->all_chars_exist == True)
-	{
-	  if (offset >= 0)
-	    char_table_set_range (table, offset + min_byte2,
-				  offset + max_byte2, Qt);
-	  else
-	    for (; min_byte2 <= max_byte2; min_byte2++)
-	      {
-		c = DECODE_CHAR (charset, min_byte2);
-		CHAR_TABLE_SET (table, c, Qt);
-	      }
-	}
-      else
-	{
-	  XCharStruct *pcm = font->per_char;
-	  int from = -1;
-	  int i;
-
-	  for (i = min_byte2; i <= max_byte2; i++, pcm++)
-	    {
-	      if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
-		{
-		  if (from >= 0)
-		    {
-		      if (offset >= 0)
-			char_table_set_range (table, offset + from,
-					      offset + i - 1, Qt);
-		      else
-			for (; from < i; from++)
-			  {
-			    c = DECODE_CHAR (charset, from);
-			    CHAR_TABLE_SET (table, c, Qt);
-			  }
-		      from = -1;
-		    }
-		}
-	      else if (from < 0)
-		from = i;
-	    }
-	  if (from >= 0)
-	    {
-	      if (offset >= 0)
-		char_table_set_range (table, offset + from, offset + i - 1,
-				      Qt);
-	      else
-		for (; from < i; from++)
-		  {
-		    c = DECODE_CHAR (charset, from);
-		    CHAR_TABLE_SET (table, c, Qt);
-		  }
-	    }
-	}
-    }
-  else
-    {
-      if (! font->per_char || font->all_chars_exist == True)
-	{
-	  int i, j;
-
-	  if (offset >= 0)
-	    for (i = min_byte1; i <= max_byte1; i++)
-	      char_table_set_range
-		(table, offset + ((i << 8) | min_byte2),
-		 offset + ((i << 8) | max_byte2), Qt);
-	  else
-	    for (i = min_byte1; i <= max_byte1; i++)	    
-	      for (j = min_byte2; j <= max_byte2; j++)
-		{
-		  unsigned code = (i << 8) | j;
-		  c = DECODE_CHAR (charset, code);
-		  CHAR_TABLE_SET (table, c, Qt);
-		}
-	}
-      else
-	{
-	  XCharStruct *pcm = font->per_char;
-	  int i;
-
-	  for (i = min_byte1; i <= max_byte1; i++)
-	    {
-	      int from = -1;
-	      int j;
-
-	      for (j = min_byte2; j <= max_byte2; j++, pcm++)
-		{
-		  if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
-		    {
-		      if (from >= 0)
-			{
-			  if (offset >= 0)
-			    char_table_set_range
-			      (table, offset + ((i << 8) | from),
-			       offset + ((i << 8) | (j - 1)), Qt);
-			  else
-			    {
-			      for (; from < j; from++)
-				{
-				  unsigned code = (i << 8) | from;
-				  c = ENCODE_CHAR (charset, code);
-				  CHAR_TABLE_SET (table, c, Qt);
-				}
-			    }
-			  from = -1;
-			}
-		    }
-		  else if (from < 0)
-		    from = j;
-		}
-	      if (from >= 0)
-		{
-		  if (offset >= 0)
-		    char_table_set_range
-		      (table, offset + ((i << 8) | from),
-		       offset + ((i << 8) | (j - 1)), Qt);
-		  else
-		    {
-		      for (; from < j; from++)
-			{
-			  unsigned code = (i << 8) | from;
-			  c = DECODE_CHAR (charset, code);
-			  CHAR_TABLE_SET (table, c, Qt);
-			}
-		    }
-		}
-	    }
-	}
-    }
-
-  return table;
-}
 
 /***********************************************************************
 			    Initialization
@@ -11390,16 +10130,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
   dpyinfo->icon_bitmap_id = -1;
-  dpyinfo->font_table = NULL;
   dpyinfo->n_fonts = 0;
-  dpyinfo->font_table_size = 0;
-#ifdef USE_FONT_BACKEND
-  dpyinfo->font = XLoadQueryFont (dpyinfo->display, "fixed");
-  if (! dpyinfo->font)
-    dpyinfo->font = XLoadQueryFont (dpyinfo->display, "*");
-  if (! dpyinfo->font)
-    abort ();
-#endif	/* USE_FONT_BACKEND */
   dpyinfo->bitmaps = 0;
   dpyinfo->bitmaps_size = 0;
   dpyinfo->bitmaps_last = 0;
@@ -11722,29 +10453,6 @@ x_delete_display (dpyinfo)
     xim_close_dpy (dpyinfo);
 #endif
 
-#ifdef USE_FONT_BACKEND
-  if (! enable_font_backend)
-    {
-#endif
-  /* Free the font names in the font table.  */
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name)
-      {
-	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
-	  xfree (dpyinfo->font_table[i].full_name);
-	xfree (dpyinfo->font_table[i].name);
-      }
-
-  if (dpyinfo->font_table)
-    {
-      if (dpyinfo->font_table->font_encoder)
-	xfree (dpyinfo->font_table->font_encoder);
-      xfree (dpyinfo->font_table);
-    }
-#ifdef USE_FONT_BACKEND
-    }
-#endif
-
   if (dpyinfo->x_id_name)
     xfree (dpyinfo->x_id_name);
   if (dpyinfo->color_cells)
@@ -11829,8 +10537,6 @@ static struct redisplay_interface x_redisplay_interface =
     x_draw_fringe_bitmap,
     0, /* define_fringe_bitmap */
     0, /* destroy_fringe_bitmap */
-    x_per_char_metric,
-    x_encode_char,
     x_compute_glyph_string_overhangs,
     x_draw_glyph_string,
     x_define_frame_cursor,
@@ -11858,18 +10564,6 @@ x_delete_terminal (struct terminal *terminal)
      and dpyinfo->display was set to 0 to indicate that.  */
   if (dpyinfo->display)
     {
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	XFreeFont (dpyinfo->display, dpyinfo->font);
-      else
-#endif
-	/* Free the fonts in the font table.  */
-	for (i = 0; i < dpyinfo->n_fonts; i++)
-	  if (dpyinfo->font_table[i].name)
-	    {
-	      XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
-	    }
-
       x_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
