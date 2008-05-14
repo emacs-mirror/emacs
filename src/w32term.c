@@ -59,10 +59,8 @@ Boston, MA 02110-1301, USA.  */
 #include "w32bdf.h"
 #include <shellapi.h>
 
-#ifdef USE_FONT_BACKEND
 #include "font.h"
-#endif	/* USE_FONT_BACKEND */
-
+#include "w32font.h"
 
 /* Fringe bitmaps.  */
 
@@ -896,6 +894,8 @@ w32_reset_terminal_modes (struct terminal *term)
 
 /* Function prototypes of this page.  */
 
+#if OLD_FONT
+
 XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
 static int w32_encode_char P_ ((int, wchar_t *, struct font_info *,
 				struct charset *, int *));
@@ -1139,7 +1139,6 @@ w32_cache_char_metrics (font)
 				    &font->max_bounds);
     }
 }
-
 
 /* Determine if a font is double byte. */
 static int
@@ -1483,6 +1482,7 @@ w32_text_out (s, x, y,chars,nchars)
 		 nchars * charset_dim, NULL);
 }
 
+#endif	/* OLD_FONT */
 
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
@@ -1594,11 +1594,6 @@ x_set_mouse_face_gc (s)
   /* If font in this face is same as S->font, use it.  */
   if (s->font == s->face->font)
     s->gc = s->face->gc;
-#ifdef USE_FONT_BACKEND
-  else if (enable_font_backend)
-    /* No need of setting a font for s->gc.  */
-    s->gc = s->face->gc;
-#endif	/* USE_FONT_BACKEND */
   else
     {
       /* Otherwise construct scratch_cursor_gc with values from FACE
@@ -1692,11 +1687,7 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-#ifdef USE_FONT_BACKEND
   RECT *r = s->clip;
-#else
-  RECT r[2];
-#endif
   int n = get_glyph_string_clip_rects (s, r, 2);
 
   if (n == 1)
@@ -1714,9 +1705,7 @@ x_set_glyph_string_clipping (s)
       DeleteObject (clip2);
       DeleteObject (full_clip);
     }
-#ifdef USE_FONT_BACKEND
     s->num_clips = n;
-#endif	/* USE_FONT_BACKEND */
 }
 
 /* Set SRC's clipping for output of glyph string DST.  This is called
@@ -1729,19 +1718,14 @@ x_set_glyph_string_clipping_exactly (src, dst)
 {
   RECT r;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
+  r.left = src->x;
+  r.right = r.left + src->width;
+  r.top = src->y;
+  r.bottom = r.top + src->height;
+  dst->clip[0] = r;
+  dst->num_clips = 1;
+#if OLD_FONT
     {
-      r.left = src->x;
-      r.right = r.left + src->width;
-      r.top = src->y;
-      r.bottom = r.top + src->height;
-      dst->clip[0] = r;
-      dst->num_clips = 1;
-    }
-  else
-    {
-#endif	/* USE_FONT_BACKEND */
   struct glyph_string *clip_head = src->clip_head;
   struct glyph_string *clip_tail = src->clip_tail;
 
@@ -1749,43 +1733,33 @@ x_set_glyph_string_clipping_exactly (src, dst)
   src->clip_head = src->clip_tail = src;
   get_glyph_string_clip_rect (src, &r);
   src->clip_head = clip_head, src->clip_tail = clip_tail;
-#ifdef USE_FONT_BACKEND
     }
-#endif	/* USE_FONT_BACKEND */
+#endif	/* OLD_FONT */
   w32_set_clip_rectangle (dst->hdc, &r);
 }
 
 /* RIF:
-   Compute left and right overhang of glyph string S.  If S is a glyph
-   string for a composition, assume overhangs don't exist.  */
+   Compute left and right overhang of glyph string S.  */
 
 static void
 w32_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
   if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
+      && s->first_glyph->type == CHAR_GLYPH
+      && !s->font_not_found_p)
     {
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend)
-	{
-	  unsigned *code = alloca (sizeof (unsigned) * s->nchars);
-	  struct font *font = (struct font *) s->font_info;
-	  struct font_metrics metrics;
-	  int i;
+      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
+      struct font *font = s->font;
+      struct font_metrics metrics;
+      int i;
 
-	  for (i = 0; i < s->nchars; i++)
-	    code[i] = s->char2b[i];
-	  font->driver->text_extents (font, code, s->nchars, &metrics);
-	  s->right_overhang = (metrics.rbearing > metrics.width
-			       ? metrics.rbearing - metrics.width : 0);
-	  s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
-	}
-#else
-  /* TODO: Windows does not appear to have a method for
-     getting this info without getting the ABC widths for each
-     individual character and working it out manually. */
-#endif
+      for (i = 0; i < s->nchars; i++)
+	code[i] = s->char2b[i];
+      font->driver->text_extents (font, code, s->nchars, &metrics);
+      s->right_overhang = (metrics.rbearing > metrics.width
+			   ? metrics.rbearing - metrics.width : 0);
+      s->left_overhang = metrics.lbearing < 0 ? -metrics.lbearing : 0;
     }
   else if (s->cmp)
     {
@@ -1870,7 +1844,7 @@ x_draw_glyph_string_background (s, force_p)
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
-               || s->font->bdf
+	       || FONT_COMPAT (s->font)->bdf
 	       || cleartype_active
 	       || force_p)
 	{
@@ -1910,8 +1884,8 @@ x_draw_glyph_string_foreground (s)
   SetBkColor (s->hdc, s->gc->background);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
 
-  if (s->font && s->font->hfont)
-    old_font = SelectObject (s->hdc, s->font->hfont);
+  if (s->font && FONT_COMPAT (s->font)->hfont)
+    old_font = SelectObject (s->hdc, FONT_COMPAT (s->font)->hfont);
 
   /* Draw characters of S as rectangles if S's font could not be
      loaded. */
@@ -1926,14 +1900,13 @@ x_draw_glyph_string_foreground (s)
           x += g->pixel_width;
         }
     }
-#ifdef USE_FONT_BACKEND
-  else if (enable_font_backend)
+  else
     {
-      int boff = s->font_info->baseline_offset;
-      struct font *font = (struct font *) s->font_info;
+      int boff = s->font->baseline_offset;
+      struct font *font = s->font;
       int y;
 
-      if (s->font_info->vertical_centering)
+      if (s->font->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
 
       y = s->ybase - boff;
@@ -1945,34 +1918,8 @@ x_draw_glyph_string_foreground (s)
       if (s->face->overstrike)
 	font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
     }
-#endif	/* USE_FONT_BACKEND */
-  else
-    {
-      char *char1b = (char *) s->char2b;
-      int boff = s->font_info->baseline_offset;
 
-      if (s->font_info->vertical_centering)
-	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
-
-      /* If we can use 8-bit functions, condense S->char2b.  */
-      if (!s->two_byte_p)
-        for (i = 0; i < s->nchars; ++i)
-          char1b[i] = XCHAR2B_BYTE2 (&s->char2b[i]);
-
-      /* Draw text with TextOut and friends. */
-      w32_text_out (s, x, s->ybase - boff, s->char2b, s->nchars);
-
-      if (s->face->overstrike)
-	{
-	  /* For overstriking (to simulate bold-face), draw the
-	     characters again shifted to the right by one pixel.  */
-	  int old_BkMode = SetBkMode (s->hdc, TRANSPARENT);
-	  w32_text_out (s, x + 1, s->ybase - boff, s->char2b, s->nchars);
-	  if (old_BkMode && old_BkMode != TRANSPARENT)
-	    SetBkMode (s->hdc, old_BkMode);
-	}
-    }
-  if (s->font && s->font->hfont)
+  if (s->font && FONT_COMPAT (s->font)->hfont)
     SelectObject (s->hdc, old_font);
 }
 
@@ -2003,8 +1950,8 @@ x_draw_composite_glyph_string_foreground (s)
   SetBkMode (s->hdc, TRANSPARENT);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
 
-  if (s->font && s->font->hfont)
-    old_font = SelectObject (s->hdc, s->font->hfont);
+  if (s->font && FONT_COMPAT (s->font)->hfont)
+    old_font = SelectObject (s->hdc, FONT_COMPAT (s->font)->hfont);
 
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
@@ -2014,10 +1961,9 @@ x_draw_composite_glyph_string_foreground (s)
         w32_draw_rectangle (s->hdc, s->gc, x, s->y, s->width - 1,
                             s->height - 1);
     }
-#ifdef USE_FONT_BACKEND
-  else if (enable_font_backend)
+
     {
-      struct font *font = (struct font *) s->font_info;
+      struct font *font = s->font;
       int y = s->ybase;
       int width = 0;
 
@@ -2070,23 +2016,8 @@ x_draw_composite_glyph_string_foreground (s)
 	      }
 	}
     }
-#endif	/* USE_FONT_BACKEND */
-  else
-    {
-      for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
-	if (s->face)
-          {
-            w32_text_out (s, x + s->cmp->offsets[j * 2],
-                          s->ybase - s->cmp->offsets[j * 2 + 1],
-                          s->char2b + j, 1);
-            if (s->face->overstrike)
-	    w32_text_out (s, x + s->cmp->offsets[j * 2] + 1,
-			  s->ybase - s->cmp->offsets[j + 1],
-			  s->char2b + j, 1);
-          }
-    }
 
-  if (s->font && s->font->hfont)
+  if (s->font && FONT_COMPAT (s->font)->hfont)
     SelectObject (s->hdc, old_font);
 }
 
@@ -2894,9 +2825,7 @@ x_draw_glyph_string (s)
             x_set_glyph_string_gc (next);
             x_set_glyph_string_clipping (next);
             x_draw_glyph_string_background (next, 1);
-#ifdef USE_FONT_BACKEND
             next->num_clips = 0;
-#endif /* USE_FONT_BACKEND */
           }
     }
 
@@ -2959,46 +2888,46 @@ x_draw_glyph_string (s)
   if (!s->for_overlaps)
     {
       /* Draw underline.  */
-      if (s->face->underline_p
-          && (s->font->bdf || !s->font->tm.tmUnderlined))
+      if (s->face->underline_p)
         {
-          unsigned long h;
+          unsigned long thickness, position;
           int y;
-	  /* Get the underline thickness.  Default is 1 pixel.  */
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend)
-	    /* In the future, we must use information of font.  */
-	    h = 1;
-	  else
-#endif	/* USE_FONT_BACKEND */
-            h = 1;
 
-#ifdef USE_FONT_BACKEND
-	  if (enable_font_backend)
-	    {
-	      if (s->face->font)
-		/* In the future, we must use information of font.  */
-		y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
-	      else
-		y = s->y + s->height - h;
-	    }
-	  else
-#endif
+          if (s->prev && s->prev->face->underline_p)
             {
-                y = s->y + s->height - h;
-                /* TODO: Use font information for positioning and
-                   thickness of underline.  See OUTLINETEXTMETRIC,
-                   and xterm.c.  Note: If you make this work,
-                   don't forget to change the doc string of
-                   x-use-underline_color-position-properties
-                   below.  */
-#if 0
-              if (!x_underline_at_descent_line)
-                {
-                  ...
-                }
-#endif
+              /* We use the same underline style as the previous one.  */
+              thickness = s->prev->underline_thickness;
+              position = s->prev->underline_position;
             }
+          else
+            {
+              /* Get the underline thickness.  Default is 1 pixel.  */
+              if (s->font && s->font->underline_thickness > 0)
+                thickness = s->font->underline_thickness;
+              else
+                thickness = 1;
+              if (x_underline_at_descent_line)
+                position = (s->height - thickness) - s->ybase;
+              else
+                {
+                /* Get the underline position.  This is the recommended
+                   vertical offset in pixels from the baseline to the top of
+                   the underline.  This is a signed value according to the
+                   specs, and its default is
+
+                   ROUND ((maximum_descent) / 2), with
+                   ROUND (x) = floor (x + 0.5)  */
+
+                if (x_use_underline_position_properties
+                    && s->font && s->font->underline_position >= 0)
+                  position = s->font->underline_position;
+                else if (s->font)
+                  position = (s->font->descent + 1) / 2;
+                }
+              s->underline_thickness = thickness;
+              s->underline_position =position;
+            }
+          y = s->ybase + position;
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
@@ -3029,7 +2958,8 @@ x_draw_glyph_string (s)
 
       /* Draw strike-through.  */
       if (s->face->strike_through_p
-          && (s->font->bdf || !s->font->tm.tmStruckOut))
+          && (FONT_COMPAT (s->font)->bdf
+	      || !FONT_COMPAT (s->font)->tm.tmStruckOut))
         {
           unsigned long h = 1;
           unsigned long dy = (s->height - h) / 2;
@@ -3071,9 +3001,7 @@ x_draw_glyph_string (s)
 		  x_draw_composite_glyph_string_foreground (prev);
                 w32_set_clip_rectangle (prev->hdc, NULL);
 		prev->hl = save;
-#ifdef USE_FONT_BACKEND
 		prev->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 	      }
 	}
 
@@ -3098,18 +3026,14 @@ x_draw_glyph_string (s)
 		  x_draw_composite_glyph_string_foreground (next);
                 w32_set_clip_rectangle (next->hdc, NULL);
 		next->hl = save;
-#ifdef USE_FONT_BACKEND
 		next->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 	      }
 	}
     }
 
   /* Reset clipping.  */
   w32_set_clip_rectangle (s->hdc, NULL);
-#ifdef USE_FONT_BACKEND
   s->num_clips = 0;
-#endif	/* USE_FONT_BACKEND */
 }
 
 
@@ -5853,6 +5777,8 @@ x_io_error_quitter (display)
 
 /* Changing the font of the frame.  */
 
+#if OLD_FONT
+
 /* Give frame F the font named FONTNAME as its default font, and
    return the full name of that font.  FONTNAME may be a wildcard
    pattern; in that case, we choose some font that fits the pattern.
@@ -5951,31 +5877,32 @@ x_new_fontset (f, fontsetname)
 
   return fontset_name (fontset);
 }
+#endif	/* OLD_FONT */
 
-#ifdef USE_FONT_BACKEND
+
 Lisp_Object
-x_new_fontset2 (f, fontset, font_object)
+x_new_font (f, font_object, fontset)
      struct frame *f;
-     int fontset;
      Lisp_Object font_object;
+     int fontset;
 {
-  struct font *font = XSAVE_VALUE (font_object)->pointer;
+  struct font *font = XFONT_OBJECT (font_object);
 
-  if (FRAME_FONT_OBJECT (f) == font)
+  if (fontset < 0)
+    fontset = fontset_from_font (font_object);
+  FRAME_FONTSET (f) = fontset;
+  if (FRAME_FONT (f) == font)
     /* This font is already set in frame F.  There's nothing more to
        do.  */
     return fontset_name (fontset);
 
   BLOCK_INPUT;
 
-  FRAME_FONT_OBJECT (f) = font;
-  FRAME_FONT (f) = font->font.font;
-  FRAME_BASELINE_OFFSET (f) = font->font.baseline_offset;
-  FRAME_FONTSET (f) = fontset;
-
-  FRAME_COLUMN_WIDTH (f) = font->font.average_width;
-  FRAME_SPACE_WIDTH (f) = font->font.space_width;
-  FRAME_LINE_HEIGHT (f) = font->font.height;
+  FRAME_FONT (f) = font;
+  FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
+  FRAME_COLUMN_WIDTH (f) = font->average_width;
+  FRAME_SPACE_WIDTH (f) = font->space_width;
+  FRAME_LINE_HEIGHT (f) = font->height;
 
   compute_fringe_widths (f, 1);
 
@@ -6012,7 +5939,6 @@ x_new_fontset2 (f, fontset, font_object)
 
   return fontset_name (fontset);
 }
-#endif	/* USE_FONT_BACKEND */
 
 
 /***********************************************************************
@@ -6569,14 +6495,11 @@ x_free_frame_resources (f)
 
   BLOCK_INPUT;
 
-#ifdef USE_FONT_BACKEND
-      /* We must free faces before destroying windows because some
-	 font-driver (e.g. xft) access a window while finishing a
-	 face.  */
-      if (enable_font_backend
-	  && FRAME_FACE_CACHE (f))
-	free_frame_faces (f);
-#endif	/* USE_FONT_BACKEND */
+  /* We must free faces before destroying windows because some
+     font-driver (e.g. xft) access a window while finishing a
+     face.  */
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
 
   if (FRAME_W32_WINDOW (f))
     my_destroy_window (f, FRAME_W32_WINDOW (f));
@@ -6681,6 +6604,8 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 				Fonts
  ***********************************************************************/
 
+#if OLD_FONT
+
 /* The following functions are listed here to help diff stay in step
    with xterm.c.  See w32fns.c for definitions.
 
@@ -6783,6 +6708,9 @@ x_query_font (f, fontname)
 x_find_ccl_program (fontp)
 
 */
+
+#endif	/* OLD_FONT */
+
 
 /***********************************************************************
 			    Initialization
@@ -6916,8 +6844,10 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_draw_fringe_bitmap,
   w32_define_fringe_bitmap,
   w32_destroy_fringe_bitmap,
+#if OLD_FONT
   w32_per_char_metric,
   w32_encode_char,
+#endif
   w32_compute_glyph_string_overhangs,
   x_draw_glyph_string,
   w32_define_frame_cursor,
@@ -7005,12 +6935,14 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+#if OLD_FONT
   /* Free the fonts in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
       {
         DeleteObject (((XFontStruct*)(dpyinfo->font_table[i].font))->hfont);
       }
+#endif
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;
@@ -7139,7 +7071,9 @@ x_delete_display (dpyinfo)
     if (dpyinfo->palette)
       DeleteObject(dpyinfo->palette);
   }
+#if OLD_FONT
   xfree (dpyinfo->font_table);
+#endif
   xfree (dpyinfo->w32_id_name);
 
   w32_reset_fringes ();
