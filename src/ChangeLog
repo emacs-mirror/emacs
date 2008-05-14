@@ -1,6 +1,8 @@
 2008-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_prop_validate): Make nil a valid value.
+	(font_clear_cache): Check if the cached vector of entities is nil
+	or not.
 
 2008-05-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
