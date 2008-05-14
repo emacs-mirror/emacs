@@ -854,9 +854,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the unexec source file name. */
 #undef UNEXEC_SRC
 
-/* Define to 1 if we should use font-backend. */
-#undef USE_FONT_BACKEND
-
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
