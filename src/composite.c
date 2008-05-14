@@ -159,7 +159,6 @@ EXFUN (Fremove_list_of_text_properties, 4);
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
 
-extern int enable_font_backend;
 
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
@@ -276,9 +275,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
      vector or a list.  It should be a sequence of:
 	char1 rule1 char2 rule2 char3 ...    ruleN charN+1  */
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend
-      && VECTORP (components)
+  if (VECTORP (components)
       && ASIZE (components) >= 2
       && VECTORP (AREF (components, 0)))
     {
@@ -289,9 +286,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 	if (! VECTORP (AREF (key, i)))
 	  goto invalid_composition;
     }
-  else
-#endif  /* USE_FONT_BACKEND */
-  if (VECTORP (components) || CONSP (components))
+  else if (VECTORP (components) || CONSP (components))
     {
       int len = XVECTOR (key)->size;
 
@@ -324,12 +319,10 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 		 : ((INTEGERP (components) || STRINGP (components))
 		    ? COMPOSITION_WITH_ALTCHARS
 		    : COMPOSITION_WITH_RULE_ALTCHARS));
-#ifdef USE_FONT_BACKEND
   if (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
       && VECTORP (components)
       && ! INTEGERP (AREF (components, 0)))
     cmp->method = COMPOSITION_WITH_GLYPH_STRING;
-#endif  /* USE_FONT_BACKEND */
   cmp->hash_index = hash_index;
   glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
 	       ? (XVECTOR (key)->size + 1) / 2
@@ -338,16 +331,13 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;
 
-#ifdef USE_FONT_BACKEND
+  /* Calculate the width of overall glyphs of the composition.  */
   if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
     {
       cmp->width = 1;		/* Should be fixed later.  */
       cmp->glyph_len--;
     }
-  else
-#endif	/* USE_FONT_BACKEND */
-  /* Calculate the width of overall glyphs of the composition.  */
-  if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
+  else if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
     {
       /* Relative composition.  */
       cmp->width = 0;
@@ -652,12 +642,6 @@ compose_text (start, end, components, modification_func, string)
 {
   Lisp_Object prop;
 
-#if 0
-  if (VECTORP (components) && ASIZE (components) > 1
-      && VECTORP (AREF (components, 0)))
-    prop = components;
-  else
-#endif	/* USE_FONT_BACKEND */
   prop = Fcons (Fcons (make_number (end - start), components),
 		modification_func);
   Fput_text_property  (make_number (start), make_number (end),
