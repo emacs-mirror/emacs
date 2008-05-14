@@ -541,7 +541,6 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
 
 #ifdef HAVE_WINDOW_SYSTEM
 FONTSRC = font.h
-#ifdef USE_FONT_BACKEND
 #ifdef HAVE_X_WINDOWS
 #if defined (HAVE_XFT)
 FONTOBJ = font.o xfont.o ftfont.o xftfont.o ftxfont.o
@@ -553,9 +552,6 @@ FONTOBJ = font.o xfont.o
 #else /* ! HAVE_X_WINDOWS */
 FONTOBJ = font.o
 #endif /* ! HAVE_X_WINDOWS */
-#else  /* ! USE_FONT_BACKEND */
-FONTOBJ = font.o
-#endif /* ! USE_FONT_BACKEND */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* lastfile must follow all files
@@ -1086,7 +1082,7 @@ filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
    epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   blockinput.h atimer.h systime.h buffer.h character.h fontset.h \
+   blockinput.h atimer.h systime.h buffer.h character.h fontset.h $(FONTSRC) \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h termchar.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
@@ -1096,7 +1092,8 @@ fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h termhooks.h $(FONTSRC) $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
-   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h $(config_h)
+   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h $(FONTSRC) \
+   $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
    dispextern.h keyboard.h
@@ -1222,7 +1219,7 @@ fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
  blockinput.h atimer.h systime.h xterm.h termhooks.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    $(config_h) dispextern.h termchar.h $(INTERVAL_SRC) msdos.h composite.h \
-   blockinput.h atimer.h systime.h
+   blockinput.h atimer.h systime.h $(FONTSRC)
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
  charset.h $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
 
