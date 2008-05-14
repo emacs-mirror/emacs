@@ -69,7 +69,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
 					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
 
-#define FONT_WIDTH(f)	((f)->max_bounds.width)
+#define FONT_WIDTH(f)	((f)->max_width)
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 #define FONT_DESCENT(f) ((f)->descent)
@@ -170,17 +170,6 @@ struct x_display_info
   /* X Resource data base */
   XrmDatabase xrdb;
 
-  /* A table of all the fonts we have already loaded.  */
-  struct font_info *font_table;
-
-  /* The current capacity of x_font_table.  */
-  int font_table_size;
-
-#ifdef USE_FONT_BACKEND
-  /* This provides a commonly used Font ID on this display.  */
-  XFontStruct *font;
-#endif
-
   /* Minimum width over all characters in all fonts in font_table.  */
   int smallest_char_width;
 
@@ -223,9 +212,7 @@ struct x_display_info
 
   char *x_id_name;
 
-  /* The number of fonts actually stored in x_font_table.
-     font_table[n] is used and valid if 0 <= n < n_fonts.  0 <=
-     n_fonts <= font_table_size and font_table[i].name != 0.  */
+  /* The number of fonts opened for this display.  */
   int n_fonts;
 
   /* Pointer to bitmap records.  */
@@ -404,16 +391,11 @@ extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 extern struct x_display_info *x_term_init P_ ((Lisp_Object, char *, char *));
 extern int x_display_ok  P_ ((const char *));
 
-extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 extern void select_visual P_ ((struct x_display_info *));
-extern struct font_info *x_get_font_info P_ ((struct frame *f, int));
-extern struct font_info *x_load_font P_ ((struct frame *, char *, int));
-extern struct font_info *x_query_font P_ ((struct frame *, char *));
-extern void x_find_ccl_program P_ ((struct font_info *));
-extern Lisp_Object x_get_font_repertory P_ ((struct frame *,
-					     struct font_info *));
 
 
+struct font;
+
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
    the information that is specific to X windows.  */
@@ -492,11 +474,7 @@ struct x_output
   int icon_bitmap;
 
   /* Default ASCII font of this frame.  */
-  XFontStruct *font;
-
-#ifdef USE_FONT_BACKEND
-  struct font *fontp;
-#endif	/* USE_FONT_BACKEND */
+  struct font *font;
 
   /* The baseline offset of the default ASCII font.  */
   int baseline_offset;
@@ -684,10 +662,6 @@ enum
 #define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
 #define FRAME_TOOLBAR_HEIGHT(f) ((f)->output_data.x->toolbar_height)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
-
-#ifdef USE_FONT_BACKEND
-#define FRAME_FONT_OBJECT(f) ((f)->output_data.x->fontp)
-#endif	/* USE_FONT_BACKEND */
 
 /* This gives the x_display_info structure for the display F is on.  */
 #define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
