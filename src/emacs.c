@@ -355,10 +355,10 @@ int fatal_error_in_progress;
 
 void (*fatal_error_signal_hook) P_ ((void));
 
-#ifdef HAVE_GTK_AND_PTHREAD
-/* When compiled with GTK and running under Gnome, multiple threads may be
-   created.  Keep track of our main thread to make sure signals are delivered
-   to it (see syssignal.h).  */
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+/* When compiled with GTK and running under Gnome, or Carbon under Mac
+   OS X, multiple threads may be created.  Keep track of our main
+   thread to make sure signals are delivered to it (see syssignal.h).  */
 
 pthread_t main_thread;
 #endif
@@ -1035,9 +1035,9 @@ main (argc, argv
 # endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
   main_thread = pthread_self ();
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* FORWARD_SIGNAL_TO_MAIN_THREAD */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate

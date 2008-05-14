@@ -1,3 +1,13 @@
+2008-05-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main_thread): Conditionalize on
+	FORWARD_SIGNAL_TO_MAIN_THREAD instead of HAVE_GTK_AND_PTHREAD.
+	(main) [FORWARD_SIGNAL_TO_MAIN_THREAD]: Initialize it.
+
+	* syssignal.h (FORWARD_SIGNAL_TO_MAIN_THREAD): New define.
+	(main_thread, SIGNAL_THREAD_CHECK): Conditionalize on
+	FORWARD_SIGNAL_TO_MAIN_THREAD instead of HAVE_GTK_AND_PTHREAD.
+
 2008-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_iso_2022): Ignore a coding category that
