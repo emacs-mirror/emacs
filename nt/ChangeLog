@@ -1,3 +1,7 @@
+2008-05-14  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Remove code dealing with --disable-font-backend.
+
 2008-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (struct stat): Move st_dev after st_ino, for
