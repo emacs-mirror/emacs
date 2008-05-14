@@ -27,16 +27,11 @@ Boston, MA 02110-1301, USA.  */
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
 
-#define FONT_WIDTH(f)       \
-  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
-#define FONT_HEIGHT(f)      \
-   ((f)->bdf ? (f)->bdf->height : (f)->tm.tmHeight)
-#define FONT_BASE(f)        \
-  ((f)->bdf ? (f)->bdf->ury : (f)->tm.tmAscent)
-#define FONT_DESCENT(f)     \
-  ((f)->bdf ? -((f)->bdf->lly) : (f)->tm.tmDescent)
-#define FONT_AVG_WIDTH(f)   \
-  ((f)->bdf ? (f)->bdf->width : (f)->tm.tmAveCharWidth)
+#define FONT_WIDTH(f)     ((f)->max_width)
+#define FONT_HEIGHT(f)    ((f)->height)
+#define FONT_BASE(f)      ((f)->ascent)
+#define FONT_DESCENT(f)   ((f)->descent)
+#define FONT_AVG_WIDTH(f) ((f)->average_width)
 
 #define CP_DEFAULT 1004
 /* Special pseudo-codepages. */
@@ -152,11 +147,13 @@ struct w32_display_info
      received; value is reset after key is received.  */
   int faked_key;
 
+#if OLD_FONT
   /* A table of all the fonts we have already loaded.  */
   struct font_info *font_table;
 
   /* The current capacity of font_table.  */
   int font_table_size;
+#endif
 
   /* Minimum width over all characters in all fonts in font_table.  */
   int smallest_char_width;
@@ -256,12 +253,14 @@ Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
 
 extern struct w32_display_info *w32_term_init ();
 
+#if OLD_FONT
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 extern struct font_info *w32_get_font_info (), *w32_query_font ();
 extern void w32_cache_char_metrics (XFontStruct *font);
 extern void w32_find_ccl_program();
 extern Lisp_Object x_get_font_repertory P_ ((struct frame *,
 					     struct font_info *));
+#endif
 
 #define PIX_TYPE COLORREF
 
@@ -324,11 +323,10 @@ struct w32_output
   Window parent_desc;
 
   /* Default ASCII font of this frame. */
+#if OLD_FONT
   XFontStruct *font;
-
-#ifdef USE_FONT_BACKEND
-  struct font *fontp;
-#endif	/* USE_FONT_BACKEND */
+#endif
+  struct font *font;
 
   /* The baseline offset of the default ASCII font.  */
   int baseline_offset;
@@ -416,10 +414,6 @@ extern struct w32_output w32term_display;
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)
 
-#ifdef USE_FONT_BACKEND
-#define FRAME_FONT_OBJECT(f) ((f)->output_data.w32->fontp)
-#endif	/* USE_FONT_BACKEND */
-
 /* This gives the w32_display_info structure for the display F is on.  */
 #define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
 #define FRAME_X_DISPLAY_INFO(f) (&one_w32_display_info)
@@ -427,8 +421,10 @@ extern struct w32_output w32term_display;
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (0)
 
+#if OLD_FONT
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_W32_FONT_TABLE(f) (FRAME_W32_DISPLAY_INFO (f)->font_table)
+#endif
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -599,8 +595,10 @@ do { \
 #define w32_clear_area(f,hdc,px,py,nx,ny) \
   w32_fill_area (f, hdc, FRAME_BACKGROUND_PIXEL (f), px, py, nx, ny)
 
+#if OLD_FONT
 extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
+#endif
 
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
