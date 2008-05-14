@@ -1332,7 +1332,6 @@ Optional Features:
   --enable-carbon-app[=DIR]
                           specify install directory for Emacs.app on Mac OS X
                           [DIR=/Application]
-  --disable-font-backend  don't compile font-backend support
   --enable-asserts        compile code with asserts enabled
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
@@ -2153,15 +2152,6 @@ fi
 # Check whether --enable-carbon-app was given.
 if test "${enable_carbon_app+set}" = set; then
   enableval=$enable_carbon_app;  carbon_appdir_x=${enableval}
-fi
-
-
-## Enabled by default.
-# Check whether --enable-font-backend was given.
-if test "${enable_font_backend+set}" = set; then
-  enableval=$enable_font_backend; USE_FONT_BACKEND=$enableval
-else
-  USE_FONT_BACKEND=yes
 fi
 
 
@@ -12673,23 +12663,13 @@ _ACEOF
 fi
 
 ### Start of font-backend section.
-if test "${HAVE_X11}" != "yes"; then
-  USE_FONT_BACKEND=no
+
+## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+HAVE_XFT=maybe
+if test "x${with_freetype}" = "xno"; then
+  with_xft="no";
 fi
-
-if test "${USE_FONT_BACKEND}" = "yes"; then
-
-cat >>confdefs.h <<\_ACEOF
-#define USE_FONT_BACKEND 1
-_ACEOF
-
-
-  ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
-  HAVE_XFT=maybe
-  if test "x${with_freetype}" = "xno"; then
-    with_xft="no";
-  fi
-  if test "x${with_xft}" != "xno"; then
+if test "x${with_xft}" != "xno"; then
 
 
   succeeded=no
@@ -12785,14 +12765,14 @@ echo "${ECHO_T}no" >&6; }
      HAVE_XFT=no
   fi
 
-    if test "$HAVE_XFT" != no; then
-      OLD_CPPFLAGS="$CPPFLAGS"
-      OLD_CFLAGS="$CFLAGS"
-      OLD_LIBS="$LIBS"
-      CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
-      CFLAGS="$CFLAGS $XFT_CFLAGS"
-      LIBS="$XFT_LIBS $LIBS"
-      if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
+  if test "$HAVE_XFT" != no; then
+    OLD_CPPFLAGS="$CPPFLAGS"
+    OLD_CFLAGS="$CFLAGS"
+    OLD_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+    CFLAGS="$CFLAGS $XFT_CFLAGS"
+    LIBS="$XFT_LIBS $LIBS"
+    if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
   { echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
 echo $ECHO_N "checking for X11/Xft/Xft.h... $ECHO_C" >&6; }
 if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
@@ -12987,32 +12967,32 @@ fi
 
 
 
-      if test "${HAVE_XFT}" = "yes"; then
+    if test "${HAVE_XFT}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_XFT 1
 _ACEOF
 
 
-        C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
-      else
-        CPPFLAGS="$OLD_CPPFLAGS"
-        CFLAGS="$OLD_CFLAGS"
-        LIBS="$OLD_LIBS"
-      fi                        # "${HAVE_XFT}" = "yes"
-    fi                          # "$HAVE_XFT" != no
-  fi                            # "x${with_xft}" != "xno"
+      C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+    else
+      CPPFLAGS="$OLD_CPPFLAGS"
+      CFLAGS="$OLD_CFLAGS"
+      LIBS="$OLD_LIBS"
+    fi                        # "${HAVE_XFT}" = "yes"
+  fi                          # "$HAVE_XFT" != no
+fi                            # "x${with_xft}" != "xno"
 
-    if test "$HAVE_XFT" != "yes"; then
-     HAVE_XFT=no
-  fi
+if test "$HAVE_XFT" != "yes"; then
+   HAVE_XFT=no
+fi
 
 
-  HAVE_FREETYPE=no
-  ### Use -lfreetype if available, unless `--with-freetype=no'.
-  if test "${HAVE_XFT}" = "yes"; then
-            HAVE_FREETYPE=yes
-  elif test "x${with_freetype}" != "xno"; then
+HAVE_FREETYPE=no
+### Use -lfreetype if available, unless `--with-freetype=no'.
+if test "${HAVE_XFT}" = "yes"; then
+      HAVE_FREETYPE=yes
+elif test "x${with_freetype}" != "xno"; then
 
 
   succeeded=no
@@ -13108,7 +13088,7 @@ echo "${ECHO_T}no" >&6; }
      HAVE_FREETYPE=no
   fi
 
-    if test "${HAVE_FREETYPE}" = "yes"; then
+  if test "${HAVE_FREETYPE}" = "yes"; then
 
   succeeded=no
 
@@ -13203,20 +13183,20 @@ echo "${ECHO_T}no" >&6; }
      HAVE_FC=no
   fi
 
-      if test "${HAVE_FC}" = "no"; then
-                HAVE_FREETYPE=no
-      fi
+    if test "${HAVE_FC}" = "no"; then
+            HAVE_FREETYPE=no
     fi
   fi
+fi
 
-  HAVE_LIBOTF=no
-  if test "${HAVE_FREETYPE}" = "yes"; then
+HAVE_LIBOTF=no
+if test "${HAVE_FREETYPE}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FREETYPE 1
 _ACEOF
 
-    if test "${with_libotf}" != "no"; then
+  if test "${with_libotf}" != "no"; then
 
   succeeded=no
 
@@ -13311,18 +13291,18 @@ echo "${ECHO_T}no" >&6; }
      HAVE_LIBOTF=no
   fi
 
-      if test "$HAVE_LIBOTF" = "yes"; then
+    if test "$HAVE_LIBOTF" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBOTF 1
 _ACEOF
 
-      fi
     fi
   fi
+fi
 
-  HAVE_M17N_FLT=no
-  if test "${with_m17n_flt}" != "no"; then
+HAVE_M17N_FLT=no
+if test "${with_m17n_flt}" != "no"; then
 
   succeeded=no
 
@@ -13417,14 +13397,14 @@ echo "${ECHO_T}no" >&6; }
      HAVE_M17N_FLT=no
   fi
 
-    if test "$HAVE_M17N_FLT" = "yes"; then
+  if test "$HAVE_M17N_FLT" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_M17N_FLT 1
 _ACEOF
 
-    fi
   fi
+fi
 
 
 
@@ -13435,7 +13415,6 @@ _ACEOF
 
 
 
-fi                              # "${USE_FONT_BACKEND}" = "yes"
 ### End of font-backend section.
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
@@ -16914,6 +16893,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 # endif
 #endif
 
+#include <limits.h>
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
@@ -17062,12 +17042,15 @@ main ()
      isn't worth using anyway.  */
   alarm (60);
 
-  for (time_t_max = 1; 0 < time_t_max; time_t_max *= 2)
-    continue;
-  time_t_max--;
-  if ((time_t) -1 < 0)
-    for (time_t_min = -1; (time_t) (time_t_min * 2) < 0; time_t_min *= 2)
-      continue;
+  for (;;)
+    {
+      t = (time_t_max << 1) + 1;
+      if (t <= time_t_max)
+	break;
+      time_t_max = t;
+    }
+  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
+
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)
     {
@@ -17082,10 +17065,12 @@ main ()
 	     && mktime_test ((time_t) (60 * 60 * 24))))
 	return 1;
 
-      for (j = 1; 0 < j; j *= 2)
+      for (j = 1; ; j <<= 1)
 	if (! bigtime_test (j))
 	  return 1;
-      if (! bigtime_test (j - 1))
+	else if (INT_MAX / 2 < j)
+	  break;
+      if (! bigtime_test (INT_MAX))
 	return 1;
     }
   return ! (irix_6_4_bug () && spring_forward_gap () && year_2050_test ());
@@ -18994,11 +18979,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -19038,11 +19025,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -24321,7 +24310,6 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
-echo "  Does Emacs use a font backend?                          ${USE_FONT_BACKEND}"
 
 if test "${USE_FONT_BACKEND}" = "yes"; then
   echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
