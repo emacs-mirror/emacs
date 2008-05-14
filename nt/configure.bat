@@ -88,7 +88,6 @@ set userldflags=
 set doldflags=
 set sep1=
 set sep2=
-set usefontbackend=Y
 
 rem ----------------------------------------------------------------------
 rem   Handle arguments.
@@ -108,7 +107,6 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
-if "%1" == "--disable-font-backend" goto withoutfont
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -126,7 +124,6 @@ echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
-echo.   --disable-font-backend  build without font backend support
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -210,11 +207,6 @@ rem ----------------------------------------------------------------------
 :withoutxpm
 set xpmsupport=N
 set HAVE_XPM=
-shift
-goto again
-
-:withoutfont
-set usefontbackend=N
 shift
 goto again
 
@@ -492,7 +484,6 @@ for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
 if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
 if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
-if (%usefontbackend%) == (Y) echo USE_FONTBACKEND=1 >>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
