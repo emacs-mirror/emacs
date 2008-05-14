@@ -858,15 +858,18 @@ the info pages.")
      (tramp-set-completion-function
       "fcp" tramp-completion-function-alist-ssh)))
 
+(defconst tramp-echo-mark-marker "_echo"
+  "String marker to surround echoed commands.")
+
 (defconst tramp-echo-mark "_echo\b\b\b\b\b"
   "String mark to be transmitted around shell commands.
 Used to separate their echo from the output they produce.  This
 will only be used if we cannot disable remote echo via stty.
 This string must have no effect on the remote shell except for
 producing some echo which can later be detected by
-`tramp-echoed-echo-mark-regexp'.  Using some characters followed
-by an equal number of backspaces to erase them will usually
-suffice.")
+`tramp-echoed-echo-mark-regexp'.  Using `tramp-echo-mark-marker',
+followed by an equal number of backspaces to erase them will
+usually suffice.")
 
 (defconst tramp-echoed-echo-mark-regexp "_echo\\(\b\\( \b\\)?\\)\\{5\\}"
   "Regexp which matches `tramp-echo-mark' as it gets echoed by
@@ -5644,6 +5647,7 @@ for process communication also."
 Erase echoed commands if exists."
   (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
+
     ;; Check whether we need to remove echo output.
     (when (and (tramp-get-connection-property proc "check-remote-echo" nil)
 	       (re-search-forward tramp-echoed-echo-mark-regexp nil t))
@@ -5655,8 +5659,13 @@ Erase echoed commands if exists."
 	  (forward-line)
 	  (delete-region begin (point))
 	  (goto-char (point-min)))))
-    ;; No echo to be handled, now we can look for the regexp.
-    (when (not (tramp-get-connection-property proc "check-remote-echo" nil))
+
+    (when (or
+	   ;; No echo to be handled, now we can look for the regexp.
+	   (not (tramp-get-connection-property proc "check-remote-echo" nil))
+	   ;; Sometimes the echo is invisible.
+	   (not (re-search-forward tramp-echo-mark-marker nil t)))
+      (goto-char (point-min))
       (re-search-forward regexp nil t))))
 
 (defun tramp-wait-for-regexp (proc timeout regexp)
