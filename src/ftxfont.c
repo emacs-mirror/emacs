@@ -244,7 +244,7 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
 /* Prototypes for font-driver methods.  */
 static Lisp_Object ftxfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftxfont_match P_ ((Lisp_Object, Lisp_Object));
-static struct font *ftxfont_open P_ ((FRAME_PTR, Lisp_Object, int));
+static Lisp_Object ftxfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void ftxfont_close P_ ((FRAME_PTR, struct font *));
 static int ftxfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
 
@@ -255,16 +255,11 @@ ftxfont_list (frame, spec)
      Lisp_Object frame;
      Lisp_Object spec;
 {
-  Lisp_Object val = ftfont_driver.list (frame, spec);
+  Lisp_Object list = ftfont_driver.list (frame, spec), tail;
   
-  if (! NILP (val))
-    {
-      int i;
-
-      for (i = 0; i < ASIZE (val); i++)
-	ASET (AREF (val, i), FONT_TYPE_INDEX, Qftx);
-    }
-  return val;
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
+  return list;
 }
 
 static Lisp_Object
@@ -279,62 +274,22 @@ ftxfont_match (frame, spec)
   return entity;
 }
 
-static struct font *
+static Lisp_Object
 ftxfont_open (f, entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object entity;
      int pixel_size;
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Lisp_Object font_object;
   struct font *font;
-  XFontStruct *xfont = malloc (sizeof (XFontStruct));
-  
-  if (! xfont)
-    return NULL;
-  font = ftfont_driver.open (f, entity, pixel_size);
-  if (! font)
-    {
-      free (xfont);
-      return NULL;
-    }
-  xfont->fid = (Font) 0;
-  xfont->ascent = font->ascent;
-  xfont->descent = font->descent;
-  xfont->max_bounds.width = font->font.size;
-  xfont->min_bounds.width = font->min_width;
-  font->font.font = xfont;
+
+  font_object = ftfont_driver.open (f, entity, pixel_size);
+  if (NILP (font_object))
+    return Qnil;
+  font = XFONT_OBJECT (font_object);
   font->driver = &ftxfont_driver;
-
-  dpyinfo->n_fonts++;
-
-  /* Set global flag fonts_changed_p to non-zero if the font loaded
-     has a character with a smaller width than any other character
-     before, or if the font loaded has a smaller height than any other
-     font loaded before.  If this happens, it will make a glyph matrix
-     reallocation necessary.  */
-  if (dpyinfo->n_fonts == 1)
-    {
-      dpyinfo->smallest_font_height = font->font.height;
-      dpyinfo->smallest_char_width = font->min_width;
-      fonts_changed_p = 1;
-    }
-  else
-    {
-      if (dpyinfo->smallest_font_height > font->font.height)
-	dpyinfo->smallest_font_height = font->font.height, fonts_changed_p |= 1;
-      if (dpyinfo->smallest_char_width > font->min_width)
-	dpyinfo->smallest_char_width = font->min_width, fonts_changed_p |= 1;
-    }
-
-  if (fonts_changed_p)
-    {
-      if (dpyinfo->smallest_font_height == 0)
-	dpyinfo->smallest_font_height = 1;
-      if (dpyinfo->smallest_char_width == 0)
-	dpyinfo->smallest_char_width = 1;
-    }
-
-  return font;
+  return font_object;
 }
 
 static void
@@ -343,7 +298,6 @@ ftxfont_close (f, font)
      struct font *font;
 {
   ftfont_driver.close (f, font);
-  FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 }
 
 static int
@@ -353,7 +307,7 @@ ftxfont_draw (s, from, to, x, y, with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
-  struct font *font = (struct font *) s->font_info;
+  struct font *font = s->font;
   XPoint p[0x700];
   int n[7];
   unsigned *code;
