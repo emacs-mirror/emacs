@@ -18,8 +18,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#ifdef USE_FONT_BACKEND
-
 #include <config.h>
 #include <windows.h>
 #include <math.h>
@@ -55,7 +53,7 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object QCantialias, QCotf, QClanguage; /* defined in font.c  */
+extern Lisp_Object QCantialias, QCotf, QClang; /* defined in font.c  */
 extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
@@ -206,24 +204,22 @@ w32font_list_family (frame)
 /* w32 implementation of open for font backend.
    Open a font specified by FONT_ENTITY on frame F.
    If the font is scalable, open it with PIXEL_SIZE.  */
-static struct font *
+static Lisp_Object
 w32font_open (f, font_entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object font_entity;
      int pixel_size;
 {
-  struct w32font_info *w32_font = xmalloc (sizeof (struct w32font_info));
+  Lisp_Object font_object;
 
-  if (w32_font == NULL)
-    return NULL;
+  font_object = font_make_object (VECSIZE (struct w32font_info));
 
-  if (!w32font_open_internal (f, font_entity, pixel_size, w32_font))
+  if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
-      xfree (w32_font);
-      return NULL;
+      return Qnil;
     }
 
-  return (struct font *) w32_font;
+  return font_object;
 }
 
 /* w32 implementation of close for font_backend.
@@ -233,21 +229,15 @@ w32font_close (f, font)
      FRAME_PTR f;
      struct font *font;
 {
-  if (font->font.font)
+  struct w32font_info *w32_font = (struct w32font_info *) font;
+
+  if (w32_font->compat_w32_font)
     {
-      W32FontStruct *old_w32_font = (W32FontStruct *)font->font.font;
+      W32FontStruct *old_w32_font = w32_font->compat_w32_font;
       DeleteObject (old_w32_font->hfont);
       xfree (old_w32_font);
-      font->font.font = 0;
+      w32_font->compat_w32_font = 0;
     }
-
-  if (font->font.full_name && font->font.full_name != font->font.name)
-    xfree (font->font.full_name);
-
-  if (font->font.name)
-    xfree (font->font.name);
-
-  xfree (font);
 }
 
 /* w32 implementation of has_char for font backend.
@@ -320,7 +310,7 @@ w32font_encode_char (font, c)
   f = XFRAME (selected_frame);
 
   dc = get_frame_dc (f);
-  old_font = SelectObject (dc, ((W32FontStruct *) (font->font.font))->hfont);
+  old_font = SelectObject (dc, w32_font->compat_w32_font->hfont);
 
   retval = GetCharacterPlacementW (dc, in, len, 0, &result, 0);
 
@@ -419,8 +409,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
 		  f = XFRAME (selected_frame);
   
                   dc = get_frame_dc (f);
-                  old_font = SelectObject (dc, ((W32FontStruct *)
-                                                (font->font.font))->hfont);
+                  old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
 		}
 	      compute_metrics (dc, w32_font, *(code + i), char_metric);
 	    }
@@ -477,8 +466,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
       f = XFRAME (selected_frame);
 
       dc = get_frame_dc (f);
-      old_font = SelectObject (dc, ((W32FontStruct *)
-                                    (font->font.font))->hfont);
+      old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
     }
 
   if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
@@ -491,7 +479,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
   if (!total_width)
     {
       RECT rect;
-      rect.top = 0; rect.bottom = font->font.height; rect.left = 0; rect.right = 1;
+      rect.top = 0; rect.bottom = font->height; rect.left = 0; rect.right = 1;
       DrawTextW (dc, wcode, nglyphs, &rect,
                  DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
       total_width = rect.right;
@@ -533,7 +521,7 @@ w32font_draw (s, from, to, x, y, with_background)
 {
   UINT options;
   HRGN orig_clip;
-  struct w32font_info *w32font = (struct w32font_info *) s->face->font_info;
+  struct w32font_info *w32font = (struct w32font_info *) s->font;
 
   options = w32font->glyph_idx;
 
@@ -563,7 +551,7 @@ w32font_draw (s, from, to, x, y, with_background)
     {
       HBRUSH brush;
       RECT rect;
-      struct font *font = (struct font *) s->face->font_info;
+      struct font *font = s->font;
 
       brush = CreateSolidBrush (s->gc->background);
       rect.left = x;
@@ -719,7 +707,7 @@ w32font_list_internal (frame, font_spec, opentype_only)
       release_frame_dc (f, dc);
     }
 
-  return NILP (match_data.list) ? null_vector : Fvconcat (1, &match_data.list);
+  return NILP (match_data.list) ? Qnil : match_data.list;
 }
 
 /* Internal implementation of w32font_match.
@@ -756,23 +744,33 @@ w32font_match_internal (frame, font_spec, opentype_only)
 }
 
 int
-w32font_open_internal (f, font_entity, pixel_size, w32_font)
+w32font_open_internal (f, font_entity, pixel_size, font_object)
      FRAME_PTR f;
      Lisp_Object font_entity;
      int pixel_size;
-     struct w32font_info *w32_font;
+     Lisp_Object font_object;
 {
-  int len, size;
+  int len, size, i;
   LOGFONT logfont;
   HDC dc;
   HFONT hfont, old_font;
   Lisp_Object val, extra;
   /* For backwards compatibility.  */
   W32FontStruct *compat_w32_font;
+  struct w32font_info *w32_font;
+  struct font * font;
+  OUTLINETEXTMETRIC* metrics = NULL;
 
-  struct font * font = (struct font *) w32_font;
+  w32_font = (struct w32font_info *) XFONT_OBJECT (font_object);
+  font = (struct font *) w32_font;
+
   if (!font)
     return 0;
+
+  /* Copy from font entity.  */
+  for (i = 0; i < FONT_ENTITY_MAX; i++)
+    ASET (font_object, i, AREF (font_entity, i));
+  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
 
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
@@ -791,7 +789,19 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, hfont);
 
-  GetTextMetrics (dc, &w32_font->metrics);
+  /* Try getting the outline metrics (only works for truetype fonts).  */
+  len = GetOutlineTextMetrics (dc, 0, NULL);
+  if (len)
+    {
+      metrics = (OUTLINETEXTMETRIC *) alloca (len);
+      if (GetOutlineTextMetrics (dc, len, metrics))
+        bcopy (&metrics->otmTextMetrics, &w32_font->metrics,
+               sizeof (TEXTMETRIC));
+      else
+        metrics = NULL;
+    }
+  if (!metrics)
+    GetTextMetrics (dc, &w32_font->metrics);
 
   w32_font->glyph_idx = ETO_GLYPH_INDEX;
 
@@ -803,18 +813,13 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
 
   /* W32FontStruct - we should get rid of this, and use the w32font_info
      struct for any W32 specific fields. font->font.font can then be hfont.  */
-  font->font.font = xmalloc (sizeof (W32FontStruct));
-  compat_w32_font = (W32FontStruct *) font->font.font;
+  w32_font->compat_w32_font = xmalloc (sizeof (W32FontStruct));
+  compat_w32_font = w32_font->compat_w32_font;
   bzero (compat_w32_font, sizeof (W32FontStruct));
   compat_w32_font->font_type = UNICODE_FONT;
   /* Duplicate the text metrics.  */
   bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
   compat_w32_font->hfont = hfont;
-
-  len = strlen (logfont.lfFaceName);
-  font->font.name = (char *) xmalloc (len + 1);
-  bcopy (logfont.lfFaceName, font->font.name, len);
-  font->font.name[len] = '\0';
 
   {
     char *name;
@@ -833,25 +838,24 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
         name = new;
       }
     if (name)
-      font->font.full_name = name;
+      font->props[FONT_FULLNAME_INDEX]
+        = make_unibyte_string (name, strlen (name));
     else
-      font->font.full_name = font->font.name;
+      font->props[FONT_FULLNAME_INDEX] =
+        make_unibyte_string (logfont.lfFaceName, len);
   }
-  font->font.charset = 0;
-  font->font.codepage = 0;
-  font->font.size = w32_font->metrics.tmMaxCharWidth;
-  font->font.height = w32_font->metrics.tmHeight
-    + w32_font->metrics.tmExternalLeading;
-  font->font.space_width = font->font.average_width
-    = w32_font->metrics.tmAveCharWidth;
 
-  font->font.vertical_centering = 0;
-  font->font.encoding_type = 0;
-  font->font.baseline_offset = 0;
-  font->font.relative_compose = 0;
-  font->font.default_ascent = w32_font->metrics.tmAscent;
-  font->font.font_encoder = NULL;
-  font->entity = font_entity;
+  font->max_width = w32_font->metrics.tmMaxCharWidth;
+  font->height = w32_font->metrics.tmHeight
+    + w32_font->metrics.tmExternalLeading;
+  font->space_width = font->average_width = w32_font->metrics.tmAveCharWidth;
+
+  font->vertical_centering = 0;
+  font->encoding_type = 0;
+  font->baseline_offset = 0;
+  font->relative_compose = 0;
+  font->default_ascent = w32_font->metrics.tmAscent;
+  font->font_encoder = NULL;
   font->pixel_size = size;
   font->driver = &w32font_driver;
   /* Use format cached during list, as the information we have access to
@@ -861,55 +865,42 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
     {
       val = assq_no_quit (QCformat, extra);
       if (CONSP (val))
-        font->format = XCDR (val);
+        font->props[FONT_FORMAT_INDEX] = XCDR (val);
       else
-        font->format = Qunknown;
+        font->props[FONT_FORMAT_INDEX] = Qunknown;
     }
   else
-    font->format = Qunknown;
+    font->props[FONT_FORMAT_INDEX] = Qunknown;
 
-  font->file_name = NULL;
+  font->props[FONT_FILE_INDEX] = Qnil;
   font->encoding_charset = -1;
   font->repertory_charset = -1;
   /* TODO: do we really want the minimum width here, which could be negative? */
-  font->min_width = font->font.space_width;
+  font->min_width = font->space_width;
   font->ascent = w32_font->metrics.tmAscent;
   font->descent = w32_font->metrics.tmDescent;
-  font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
+
+  if (metrics)
+    {
+      font->underline_thickness = metrics->otmsUnderscoreSize;
+      font->underline_position = -metrics->otmsUnderscorePosition;
+    }
+  else
+    {
+      font->underline_thickness = 0;
+      font->underline_position = -1;
+    }
 
   /* max_descent is used for underlining in w32term.c.  Hopefully this
      is temporary, as we'll want to get rid of the old compatibility
      stuff later.  */
   compat_w32_font->max_bounds.descent = font->descent;
 
-  /* Set global flag fonts_changed_p to non-zero if the font loaded
-     has a character with a smaller width than any other character
-     before, or if the font loaded has a smaller height than any other
-     font loaded before.  If this happens, it will make a glyph matrix
-     reallocation necessary.  */
-  {
-    struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-    dpyinfo->n_fonts++;
-
-    if (dpyinfo->n_fonts == 1)
-      {
-        dpyinfo->smallest_font_height = font->font.height;
-        dpyinfo->smallest_char_width = font->min_width;
-      }
-    else
-      {
-        if (dpyinfo->smallest_font_height > font->font.height)
-          {
-            dpyinfo->smallest_font_height = font->font.height;
-            fonts_changed_p |= 1;
-          }
-        if (dpyinfo->smallest_char_width > font->min_width)
-          {
-            dpyinfo->smallest_char_width = font->min_width;
-            fonts_changed_p |= 1;
-          }
-      }
-  }
+  /* For temporary compatibility with legacy code that expects the
+     name to be usable in x-list-fonts. Eventually we expect to change
+     x-list-fonts and other places that use fonts so that this can be
+     an fcname or similar.  */
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object);
 
   return 1;
 }
@@ -930,13 +921,16 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
   if (logical_font->elfLogFont.lfFaceName[0] == '@')
     return 1;
 
-  family = intern_downcase (logical_font->elfLogFont.lfFaceName,
-                            strlen (logical_font->elfLogFont.lfFaceName));
+  family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
+			     strlen (logical_font->elfLogFont.lfFaceName));
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
   return 1;
 }
+
+static int w32_decode_weight P_ ((int));
+static int w32_encode_weight P_ ((int));
 
 /* Convert an enumerated Windows font to an Emacs font entity.  */
 static Lisp_Object
@@ -954,16 +948,15 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   BYTE generic_type;
   DWORD full_type = physical_font->ntmTm.ntmFlags;
 
-  entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
+  entity = font_make_entity ();
 
   ASET (entity, FONT_TYPE_INDEX, backend);
-  ASET (entity, FONT_FRAME_INDEX, frame);
   ASET (entity, FONT_REGISTRY_INDEX, w32_registry (lf->lfCharSet, font_type));
   ASET (entity, FONT_OBJLIST_INDEX, Qnil);
 
   /* Foundry is difficult to get in readable form on Windows.
      But Emacs crashes if it is not set, so set it to something more
-     generic.  Thes values make xflds compatible with Emacs 22. */
+     generic.  These values make xflds compatible with Emacs 22. */
   if (lf->lfOutPrecision == OUT_STRING_PRECIS)
     tem = Qraster;
   else if (lf->lfOutPrecision == OUT_STROKE_PRECIS)
@@ -987,14 +980,14 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   else if (generic_type == FF_SWISS)
     tem = Qsans;
   else
-    tem = null_string;
+    tem = Qnil;
 
   ASET (entity, FONT_ADSTYLE_INDEX, tem);
 
   if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
-    font_put_extra (entity, QCspacing, make_number (FONT_SPACING_PROPORTIONAL));
+    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_PROPORTIONAL));
   else
-    font_put_extra (entity, QCspacing, make_number (FONT_SPACING_MONO));
+    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_MONO));
 
   if (requested_font->lfQuality != DEFAULT_QUALITY)
     {
@@ -1002,13 +995,15 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
                       lispy_antialias_type (requested_font->lfQuality));
     }
   ASET (entity, FONT_FAMILY_INDEX,
-        intern_downcase (lf->lfFaceName, strlen (lf->lfFaceName)));
+        font_intern_prop (lf->lfFaceName, strlen (lf->lfFaceName)));
 
-  ASET (entity, FONT_WEIGHT_INDEX, make_number (lf->lfWeight));
-  ASET (entity, FONT_SLANT_INDEX, make_number (lf->lfItalic ? 200 : 100));
+  FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
+		  make_number (w32_decode_weight (lf->lfWeight)));
+  FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
+		  make_number (lf->lfItalic ? 200 : 100));
   /* TODO: PANOSE struct has this info, but need to call GetOutlineTextMetrics
      to get it.  */
-  ASET (entity, FONT_WIDTH_INDEX, make_number (100));
+  FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_number (100));
 
   if (font_type & RASTER_FONTTYPE)
     ASET (entity, FONT_SIZE_INDEX, make_number (physical_font->ntmTm.tmHeight));
@@ -1098,14 +1093,14 @@ font_matches_spec (type, font, spec, backend, logfont)
 
   /* Check italic. Can't check logfonts, since it is a boolean field,
      so there is no difference between "non-italic" and "don't care".  */
-  val = AREF (spec, FONT_SLANT_INDEX);
-  if (INTEGERP (val))
-    {
-      int slant = XINT (val);
-      if ((slant > 150 && !font->ntmTm.tmItalic)
-          || (slant <= 150 && font->ntmTm.tmItalic))
-        return 0;
-    }
+  {
+    int slant = FONT_SLANT_NUMERIC (spec);
+
+    if (slant >= 0
+	&& ((slant > 150 && !font->ntmTm.tmItalic)
+	    || (slant <= 150 && font->ntmTm.tmItalic)))
+	  return 0;
+  }
 
   /* Check adstyle against generic family.  */
   val = AREF (spec, FONT_ADSTYLE_INDEX);
@@ -1117,6 +1112,18 @@ font_matches_spec (type, font, spec, backend, logfont)
         return 0;
     }
 
+  /* Check spacing */
+  val = AREF (spec, FONT_SPACING_INDEX);
+  if (INTEGERP (val))
+    {
+      int spacing = XINT (val);
+      int proportional = (spacing < FONT_SPACING_MONO);
+
+      if ((proportional && !(font->ntmTm.tmPitchAndFamily & 0x01))
+	  || (!proportional && (font->ntmTm.tmPitchAndFamily & 0x01)))
+	return 0;
+    }
+
   /* Check extra parameters.  */
   for (extra = AREF (spec, FONT_EXTRA_INDEX);
        CONSP (extra); extra = XCDR (extra))
@@ -1126,27 +1133,9 @@ font_matches_spec (type, font, spec, backend, logfont)
       if (CONSP (extra_entry))
         {
           Lisp_Object key = XCAR (extra_entry);
-          val = XCDR (extra_entry);
-          if (EQ (key, QCspacing))
-            {
-              int proportional;
-              if (INTEGERP (val))
-                {
-                  int spacing = XINT (val);
-                  proportional = (spacing < FONT_SPACING_MONO);
-                }
-              else if (EQ (val, Qp))
-                proportional = 1;
-              else if (EQ (val, Qc) || EQ (val, Qm))
-                proportional = 0;
-              else
-                return 0; /* Bad font spec.  */
 
-              if ((proportional && !(font->ntmTm.tmPitchAndFamily & 0x01))
-                  || (!proportional && (font->ntmTm.tmPitchAndFamily & 0x01)))
-                return 0;
-            }
-          else if (EQ (key, QCscript) && SYMBOLP (val))
+          val = XCDR (extra_entry);
+          if (EQ (key, QCscript) && SYMBOLP (val))
             {
               /* Only truetype fonts will have information about what
                  scripts they support.  This probably means the user
@@ -1234,7 +1223,7 @@ font_matches_spec (type, font, spec, backend, logfont)
                     return 0;
                 }
             }
-	  else if (EQ (key, QClanguage) && SYMBOLP (val))
+	  else if (EQ (key, QClang) && SYMBOLP (val))
 	    {
 	      /* Just handle the CJK languages here, as the language
 		 parameter is used to select a font with appropriate
@@ -1401,8 +1390,53 @@ w32_registry (w32_charset, font_type)
   else
     {
       char * charset = w32_to_x_charset (w32_charset, NULL);
-      return intern_downcase (charset, strlen(charset));
+      return font_intern_prop (charset, strlen(charset));
     }
+}
+
+static struct
+{
+  unsigned w32_numeric;
+  unsigned numeric;
+} w32_weight_table[] =
+  { { FW_THIN, 0 },
+    { FW_EXTRALIGHT, 40 },
+    { FW_LIGHT, 50},
+    { FW_NORMAL, 100},
+    { FW_MEDIUM, 100},
+    { FW_SEMIBOLD, 180},
+    { FW_BOLD, 200},
+    { FW_EXTRABOLD, 205},
+    { FW_HEAVY, 210} };
+
+static int
+w32_decode_weight (fnweight)
+     int fnweight;
+{
+  if (fnweight >= FW_HEAVY)      return 210;
+  if (fnweight >= FW_EXTRABOLD)  return 205;
+  if (fnweight >= FW_BOLD)       return 200;
+  if (fnweight >= FW_SEMIBOLD)   return 180;
+  if (fnweight >= FW_NORMAL)     return 100;
+  if (fnweight >= FW_LIGHT)      return 50;
+  if (fnweight >= FW_EXTRALIGHT) return 40;
+  if (fnweight > FW_THIN)        return 20;
+  return 0;
+}
+
+static int
+w32_encode_weight (n)
+     int n;
+{
+  if (n >= 210) return FW_HEAVY;
+  if (n >= 205) return FW_EXTRABOLD;
+  if (n >= 200) return FW_BOLD;
+  if (n >= 180) return FW_SEMIBOLD;
+  if (n >= 100) return FW_NORMAL;
+  if (n >= 50)  return FW_LIGHT;
+  if (n >= 40)  return FW_EXTRALIGHT;
+  if (n >= 20)  return  FW_THIN;
+  return 0;
 }
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
@@ -1415,19 +1449,14 @@ fill_in_logfont (f, logfont, font_spec)
   Lisp_Object tmp, extra;
   int dpi = FRAME_W32_DISPLAY_INFO (f)->resy;
 
-  extra = AREF (font_spec, FONT_EXTRA_INDEX);
-  /* Allow user to override dpi settings.  */
-  if (CONSP (extra))
+  tmp = AREF (font_spec, FONT_DPI_INDEX);
+  if (INTEGERP (tmp))
     {
-      tmp = assq_no_quit (QCdpi, extra);
-      if (CONSP (tmp) && INTEGERP (XCDR (tmp)))
-        {
-          dpi = XINT (XCDR (tmp));
-        }
-      else if (CONSP (tmp) && FLOATP (XCDR (tmp)))
-        {
-          dpi = (int) (XFLOAT_DATA (XCDR (tmp)) + 0.5);
-        }
+      dpi = XINT (tmp);
+    }
+  else if (FLOATP (tmp))
+    {
+      dpi = (int) (XFLOAT_DATA (tmp) + 0.5);
     }
 
   /* Height  */
@@ -1444,13 +1473,13 @@ fill_in_logfont (f, logfont, font_spec)
   /* Weight  */
   tmp = AREF (font_spec, FONT_WEIGHT_INDEX);
   if (INTEGERP (tmp))
-    logfont->lfWeight = XINT (tmp);
+    logfont->lfWeight = w32_encode_weight (FONT_WEIGHT_NUMERIC (font_spec));
 
   /* Italic  */
   tmp = AREF (font_spec, FONT_SLANT_INDEX);
   if (INTEGERP (tmp))
     {
-      int slant = XINT (tmp);
+      int slant = FONT_SLANT_NUMERIC (font_spec);
       logfont->lfItalic = slant > 150 ? 1 : 0;
     }
 
@@ -1496,41 +1525,36 @@ fill_in_logfont (f, logfont, font_spec)
         logfont->lfPitchAndFamily = family | DEFAULT_PITCH;
     }
 
+					   
+  /* Set pitch based on the spacing property.  */
+  tmp = AREF (font_spec, FONT_SPACING_INDEX);
+  if (INTEGERP (tmp))
+    {
+      int spacing = XINT (tmp);
+      if (spacing < FONT_SPACING_MONO)
+	logfont->lfPitchAndFamily
+	  = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
+      else
+	logfont->lfPitchAndFamily
+	  = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
+    }
+
   /* Process EXTRA info.  */
-  for ( ; CONSP (extra); extra = XCDR (extra))
+  for (extra = AREF (font_spec, FONT_EXTRA_INDEX);
+       CONSP (extra); extra = XCDR (extra))
     {
       tmp = XCAR (extra);
       if (CONSP (tmp))
         {
           Lisp_Object key, val;
           key = XCAR (tmp), val = XCDR (tmp);
-          if (EQ (key, QCspacing))
-            {
-              /* Set pitch based on the spacing property.  */
-              if (INTEGERP (val))
-                {
-                  int spacing = XINT (val);
-                  if (spacing < FONT_SPACING_MONO)
-                    logfont->lfPitchAndFamily
-                      = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
-                  else
-                    logfont->lfPitchAndFamily
-                      = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
-                }
-              else if (EQ (val, Qp))
-                logfont->lfPitchAndFamily
-                  = logfont->lfPitchAndFamily & 0xF0 | VARIABLE_PITCH;
-              else if (EQ (val, Qc) || EQ (val, Qm))
-                logfont->lfPitchAndFamily
-                  = logfont->lfPitchAndFamily & 0xF0 | FIXED_PITCH;
-            }
           /* Only use QCscript if charset is not provided, or is unicode
              and a single script is specified.  This is rather crude,
              and is only used to narrow down the fonts returned where
              there is a definite match.  Some scripts, such as latin, han,
              cjk-misc match multiple lfCharSet values, so we can't pre-filter
              them.  */
-          else if (EQ (key, QCscript)
+	  if (EQ (key, QCscript)
                    && logfont->lfCharSet == DEFAULT_CHARSET
                    && SYMBOLP (val))
             {
@@ -1797,7 +1821,7 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
 
   if (font->lfWeight && font->lfWeight != FW_NORMAL)
     {
-      weight = font_symbolic_weight (font_obj);
+      weight = FONT_WEIGHT_SYMBOLIC (font_obj);
       len += 8 + SBYTES (SYMBOL_NAME (weight)); /* :weight=NAME */
     }
 
@@ -1886,13 +1910,17 @@ clear_cached_metrics (w32_font)
 {
   int i;
   for (i = 0; i < w32_font->n_cache_blocks; i++)
-    bzero (w32_font->cached_metrics[i],
-	   CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+    {
+      if (w32_font->cached_metrics[i])
+        bzero (w32_font->cached_metrics[i],
+               CACHE_BLOCKSIZE * sizeof (struct font_metrics));
+    }
 }
 
 struct font_driver w32font_driver =
   {
     0, /* Qgdi */
+    0, /* case insensitive */
     w32font_get_cache,
     w32font_list,
     w32font_match,
@@ -2029,7 +2057,6 @@ syms_of_w32font ()
   w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);
 }
-#endif /* USE_FONT_BACKEND  */
 
 /* arch-tag: 65b8a3cd-46aa-4c0d-a1f3-99e75b9c07ee
    (do not change this comment) */
