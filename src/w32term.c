@@ -1766,20 +1766,6 @@ w32_compute_glyph_string_overhangs (s)
     }
 }
 
-
-static void
-w32_get_glyph_overhangs (glyph, f, left, right)
-     struct glyph *glyph;
-     struct frame *f;
-     int *left, *right;
-{
-  HDC hdc = get_frame_dc (f);
-  /* Convert to unicode! */
-  x_get_glyph_overhangs (glyph, f, left, right);
-  release_frame_dc (f, hdc);
-}
-
-
 /* Fill rectangle X, Y, W, H with background color of glyph string S.  */
 
 static INLINE void
@@ -6837,7 +6823,7 @@ static struct redisplay_interface w32_redisplay_interface =
   x_flush,
   0,  /* flush_display_optional */
   x_clear_window_mouse_face,
-  w32_get_glyph_overhangs,
+  x_get_glyph_overhangs,
   x_fix_overlapping_area,
   w32_draw_fringe_bitmap,
   w32_define_fringe_bitmap,
