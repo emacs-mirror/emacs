@@ -135,8 +135,8 @@ WIN32OBJ = $(BLD)/w32term.$(O)		\
 	   $(BLD)/xfaces.$(O)		\
 	   $(BLD)/w32select.$(O)		\
 	   $(BLD)/w32menu.$(O)		\
-	   $(BLD)/w32reg.$(O)		\
-	   $(BLD)/w32bdf.$(O)
+	   $(BLD)/w32reg.$(O)
+#	   $(BLD)/w32bdf.$(O)
 
 FONTOBJ = $(BLD)/w32font.$(O) $(BLD)/w32uniscribe.$(O)
 
