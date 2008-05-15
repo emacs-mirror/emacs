@@ -745,7 +745,7 @@ Before doing that, check if there are any old backups and get rid of them."
            (vc-call-backend backend 'make-version-backups-p file)
            (vc-make-version-backup file)))))
 
-(declare-function vc-directory-resynch-file "vc" (file))
+(declare-function vc-directory-resynch-file "vc-dispatcher" (&optional fname))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
