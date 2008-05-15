@@ -1557,7 +1557,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
     {
       Lisp_Object font_spec = Ffont_spec (0, NULL);
       Lisp_Object short_name;
-      char *xlfd;
+      char xlfd[256];
       int len;
 
       if (font_parse_xlfd (SDATA (name), font_spec) < 0)
@@ -1570,8 +1570,9 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 				    Vfontset_alias_alist);
       ASET (font_spec, FONT_REGISTRY_INDEX, Qiso8859_1);
       fontset = make_fontset (Qnil, name, Qnil);
-      xlfd = alloca (SBYTES (name) + 1);
-      len = font_unparse_xlfd (font_spec, 0, xlfd, SBYTES (name) + 1);
+      len = font_unparse_xlfd (font_spec, 0, xlfd, 256);
+      if (len < 0)
+	error ("Invalid fontset name (perhaps too long): %s", SDATA (name));
       FONTSET_ASCII (fontset) = make_unibyte_string (xlfd, len);
     }
   else
