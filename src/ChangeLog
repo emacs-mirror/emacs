@@ -1,3 +1,8 @@
+2008-05-15  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Fnew_fontset): Call font_unparse_xlfd with 256-byte
+	buffer.  Check the return value of it.
+
 2008-05-14  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_get_glyph_overhangs): Remove.
