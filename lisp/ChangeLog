@@ -1,3 +1,12 @@
+2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el (vc-dispatcher-selection): Change the returned
+	list to a cons so the caller can get back both expanded and
+	unexpanded filesets.
+	* vc.el (vc-deduce-fileseset, vc-next-action, vc-diff-internal,
+	vc-merge, vc-version-diff, vc-print-log, vc-revert, vc-rollback):
+	Change handling of selection-set returns as required.
+
 2008-05-15  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-assert-ibuffer-mode): New defsubst.

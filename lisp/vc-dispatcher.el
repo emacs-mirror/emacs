@@ -1352,19 +1352,30 @@ U - if the cursor is on a file: unmark all the files with the same VC state
     member))
 
 (defun vc-dispatcher-selection-set (&optional observer)
-  "Deduce a set of files to which to apply an operation.  Return the fileset.
+  "Deduce a set of files to which to apply an operation.  Return a cons
+cell (SELECTION . FILESET), where SELECTION is what the user chose 
+and FILES is the flist with any directories replaced by the listed files
+within them.
+
 If we're in a directory display, the fileset is the list of marked files (if
 there is one) else the file on the curreent line.  If not in a directory
 display, but the current buffer visits a file, the fileset is a singleton
 containing that file.  Otherwise, throw an error."
-  (let ((files
+  (let ((selection
          (cond
           ;; Browsing with vc-dir
           ((vc-dispatcher-browsing)
-           (or (vc-dir-marked-files) (list (vc-dir-current-file))))
+	   ;; If no files are marked, temporatrily mark current file
+	   ;; and choose on that basis (so we get subordinate files)
+	   (if (not (vc-dir-marked-files))
+		 (prog2
+		   (vc-dir-mark-file)
+		   (cons (vc-dir-marked-files) (vc-dir-marked-only-files))
+		   (vc-dir-unmark-all-files t))
+	     (cons (vc-dir-marked-files) (vc-dir-marked-only-files))))
           ;; Visiting an eligible file
           ((buffer-file-name)
-           (list buffer-file-name))
+           (cons (list buffer-file-name) (list buffer-file-name)))
           ;; No eligible file -- if there's a parent buffer, deduce from there
           ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
                                      (with-current-buffer vc-parent-buffer
@@ -1378,8 +1389,8 @@ containing that file.  Otherwise, throw an error."
     ;; buffers visiting the fileset don't match the on-disk contents.
     (if (not observer)
 	(save-some-buffers
-	 nil (lambda () (vc-dispatcher-in-fileset-p files))))
-    files))
+	 nil (lambda () (vc-dispatcher-in-fileset-p (cdr selection)))))
+    selection))
 
 (provide 'vc-dispatcher)
 
