@@ -9,12 +9,25 @@
 
 2008-05-15  John Paul Wallington  <jpw@pobox.com>
 
+	* arc-mode.el (archive-add-new-member): Use `derived-mode-p'.
+	(archive-*-extract): Use `zerop'
+	(archive-*-write-file-member): Use `or', use `zerop'.
+
+	* diff-mode.el (diff-current-defun): Use `buffer-local-value'.
+
 	* ibuffer.el (ibuffer-assert-ibuffer-mode): New defsubst.
 	(ibuffer-mark-interactive, ibuffer-set-mark)
 	(ibuffer-insert-buffer-line, ibuffer-redisplay-current)
 	(ibuffer-map-lines, ibuffer-switch-format)
 	(ibuffer-update-title-and-summary)
 	(ibuffer-redisplay-engine): Use it.
+
+	* ibuf-ext.el (ibuffer-interactive-filter-by-mode)
+	(ibuffer-set-filter-groups-by-mode, ibuffer-list-buffer-modes)
+	(define-ibuffer-filter mode, define-ibuffer-filter used-mode)
+	(define-ibuffer-sorter major-mode, ibuffer-mark-unsaved-buffers)
+	(ibuffer-mark-read-only-buffers)
+	(ibuffer-mark-dired-buffers): Use `buffer-local-value'.
 
 	* ibuf-macs.el (ibuffer-aif, ibuffer-awhen, ibuffer-save-marks)
 	(define-ibuffer-column, define-ibuffer-sorter)
