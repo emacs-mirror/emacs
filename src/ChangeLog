@@ -11,6 +11,12 @@
 
 2008-05-15  Kenichi Handa  <handa@m17n.org>
 
+	* ftfont.c (ftfont_list): Downcase family name to check generic
+	families.
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Be sure to make a
+	font-spec for QCfont value.
+
 	* fontset.c (Fnew_fontset): Call font_unparse_xlfd with 256-byte
 	buffer.  Check the return value of it.
 
