@@ -1,3 +1,7 @@
+2008-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (USAGE1, standard_args): Remove -disable-font-backend.
+
 2008-05-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (init_fns): Don't initialize weak_hash_tables here.
