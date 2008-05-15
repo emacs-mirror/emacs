@@ -111,7 +111,7 @@
 ;;   it should work for other async commands done through vc-do-command 
 ;;   as well,
 ;;
-;; - the *VC-log* buffer needs font-locking.
+;; - log buffers need font-locking.
 ;;
 ;; - vc-dir needs mouse bindings.
 ;;
@@ -628,7 +628,7 @@ See `run-hooks'."
   :type 'hook
   :group 'vc)
 
-;; Used to store information for the files displayed in the *VC status* buffer.
+;; Used to store information for the files displayed in the directory buffer.
 ;; Each item displayed corresponds to one of these defstructs.
 (defstruct (vc-dir-fileinfo
             (:copier nil)
@@ -667,7 +667,7 @@ See `run-hooks'."
 
 (defvar vc-ewoc nil)
 (defvar vc-dir-process-buffer nil
-  "The buffer used for the asynchronous call that computes the VC status.")
+  "The buffer used for the asynchronous call that computes status.")
 
 (defun vc-dir-move-to-goal-column ()
   ;; Used to keep the cursor on the file name column.
@@ -705,11 +705,11 @@ See `run-hooks'."
     (define-key map [kill]
       '(menu-item "Kill Update Command" vc-dir-kill-dir-status-process
 		  :enable (vc-dir-busy)
-		  :help "Kill the command that updates VC status buffer"))
+		  :help "Kill the command that updates the directory buffer"))
     (define-key map [refresh]
       '(menu-item "Refresh" vc-dir-refresh
 		  :enable (not (vc-dir-busy))
-		  :help "Refresh the contents of the VC status buffer"))
+		  :help "Refresh the contents of the directory buffer"))
     ;; Movement.
     (define-key map [sepmv] '("--"))
     (define-key map [next-line]
@@ -750,8 +750,6 @@ See `run-hooks'."
     map)
   "Menu for dispatcher status")
 
-(defalias 'vc-dir-menu-map vc-dir-menu-map)
-
 (defvar vc-dir-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
@@ -789,9 +787,9 @@ See `run-hooks'."
       '(menu-item
 	;; This is used so that client modes can add mode-specific
 	;; menu items to vc-dir-menu-map.
-	"VC Status" vc-dir-menu-map :filter vc-dir-menu-map-filter))
+	"*vc-dir*" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
     map)
-  "Keymap for VC status")
+  "Keymap for directory buffer.")
 
 (defmacro vc-at-event (event &rest body)
   "Evaluate `body' wich point located at event-start of `event'.
@@ -805,7 +803,7 @@ If `body' uses `event', it should be a variable,
          ,@body))))
 
 (defun vc-dir-menu (e)
-  "Popup the VC status menu."
+  "Popup the dispatcher status menu."
   (interactive "e")
   (vc-at-event e (popup-menu vc-dir-menu-map e)))
 
@@ -937,7 +935,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
       (setq mode-line-process nil))))
 
 (defun vc-dir-kill-query ()
-  ;; Make sure that when the VC status buffer is killed the update
+  ;; Make sure that when the status buffer is killed the update
   ;; process running in background is also killed.
   (if (vc-dir-busy)
     (when (y-or-n-p "Status update process running, really kill status buffer?")
@@ -1295,7 +1293,7 @@ that share the same state."
 	(unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-directory-resynch-file))))))
 
 (defun vc-dir-mode (client-object)
-  "Major mode for showing the VC status for a directory.
+  "Major mode for dispatcher directory buffers.
 Marking/Unmarking key bindings and actions:
 m - marks a file/directory or if the region is active, mark all the files
      in region.
@@ -1328,7 +1326,7 @@ U - if the cursor is on a file: unmark all the files with the same VC state
 	 (ewoc-create (vc-client-object->file-to-info client-object)
 		      (vc-client-object->headers client-object)))
     (add-hook 'after-save-hook 'vc-directory-resynch-file)
-    ;; Make sure that if the VC status buffer is killed, the update
+    ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
     (funcall (vc-client-object->updater client-object)))

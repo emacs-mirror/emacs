@@ -1,3 +1,8 @@
+2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el: Fix an incorrect buffer name and remove an
+	unneeded defalias.
+
 2008-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* vc-hooks.el (vc-directory-resynch-file): Fix declaration.
