@@ -5,6 +5,9 @@
 
 	* vc.el, vc-dispatcher.el (vc-dir-menu-map-filter): Moved.
 
+	* vc.el, vc-dispatcher.el (vc-dir-menu-map): Remove assumption
+	about buffer names.
+
 2008-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* vc-hooks.el (vc-directory-resynch-file): Fix declaration.

@@ -162,7 +162,7 @@ preserve the setting."
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
-;; (either a file, or a VC directory buffer).
+;; (either a file, or a directory buffer).
 (defvar vc-parent-buffer nil)
 (put 'vc-parent-buffer 'permanent-local t)
 (defvar vc-parent-buffer-name nil)
@@ -239,7 +239,7 @@ Another is that undo information is not kept."
 	(concat " " (propertize "[waiting...]"
                                 'face 'mode-line-emphasis
                                 'help-echo
-                                "A VC command is in progress in this buffer"))))
+                                "A command is in progress in this buffer"))))
 
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
@@ -521,7 +521,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 ;; Set up key bindings for use while editing log messages
 
 (defun vc-log-edit (fileset)
-  "Set up `log-edit' for use with VC on FILE."
+  "Set up `log-edit' for use on FILE."
   (setq default-directory
 	(with-current-buffer vc-parent-buffer default-directory))
   (log-edit 'vc-finish-logentry
@@ -677,12 +677,12 @@ See `run-hooks'."
   ;; Must be in sync with vc-default-status-printer.
   (forward-char 25))
 
-(defun vc-dir-prepare-status-buffer (dir &optional create-new)
-  "Find a *vc-dir* buffer showing DIR, or create a new one."
+(defun vc-dir-prepare-status-buffer (bname dir &optional create-new)
+  "Find a buffer named BNAME showing DIR, or create a new one."
   (setq dir (expand-file-name dir))
-  (let* ((bname "*vc-dir*")
-	 ;; Look for another *vc-dir* buffer visiting the same directory.
-	 (buf (save-excursion
+  (let*
+	 ;; Look for another buffer name BNAME visiting the same directory.
+	 ((buf (save-excursion
 		(unless create-new
 		  (dolist (buffer (buffer-list))
 		    (set-buffer buffer)
@@ -690,7 +690,7 @@ See `run-hooks'."
 			       (string= (expand-file-name default-directory) dir))
 		      (return buffer)))))))
     (or buf
-        ;; Create a new *vc-dir* buffer.
+        ;; Create a new buffer named BNAME.
         (with-current-buffer (create-file-buffer bname)
           (cd dir)
           (vc-setup-buffer (current-buffer))
@@ -700,7 +700,7 @@ See `run-hooks'."
           (current-buffer)))))
 
 (defvar vc-dir-menu-map
-  (let ((map (make-sparse-keymap "VC-dir")))
+  (let ((map (make-sparse-keymap)))
     (define-key map [quit]
       '(menu-item "Quit" quit-window
 		  :help "Quit"))
@@ -801,7 +801,7 @@ See `run-hooks'."
       '(menu-item
 	;; This is used so that client modes can add mode-specific
 	;; menu items to vc-dir-menu-map.
-	"*vc-dir*" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
+	"*vc-dispatcher*" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
     map)
   "Keymap for directory buffer.")
 
@@ -1099,7 +1099,7 @@ line."
 With a prefix argument mark all files.
 If the current entry is a directory, mark all child files.
 
-The VC commands operate on files that are on the same state.
+The commands operate on files that are on the same state.
 This command is intended to make it easy to select all files that
 share the same state."
   (interactive "P")
@@ -1176,7 +1176,7 @@ line."
 With a prefix argument unmark all files.
 If the current entry is a directory, unmark all the child files.
 
-The VC commands operate on files that are on the same state.
+The commands operate on files that are on the same state.
 This command is intended to make it easy to deselect all files
 that share the same state."
   (interactive "P")
@@ -1316,11 +1316,11 @@ m - marks a file/directory or if the region is active, mark all the files
                     directory is marked
 u - marks a file/directory or if the region is active, unmark all the files
      in region.
-M - if the cursor is on a file: mark all the files with the same VC state as
+M - if the cursor is on a file: mark all the files with the same state as
       the current file
   - if the cursor is on a directory: mark all child files
   - with a prefix argument: mark all files
-U - if the cursor is on a file: unmark all the files with the same VC state
+U - if the cursor is on a file: unmark all the files with the same state
       as the current file
   - if the cursor is on a directory: unmark all child files
   - with a prefix argument: unmark all files

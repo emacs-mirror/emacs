@@ -1983,7 +1983,7 @@ outside of VC) and one wants to do some operation on it."
 (defun vc-dir (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
+  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir))
   (if (and (derived-mode-p 'vc-dir-mode) (boundp 'client-object))
       (vc-dir-refresh)
     ;; Otherwise, initialize a new view using the dispatcher layer
