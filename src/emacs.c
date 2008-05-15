@@ -261,7 +261,6 @@ Initialization options:\n\
 \n\
 --batch                     do not do interactive display; implies -q\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
---disable-font-backend      do not use font backend (only if compiled)\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
 --multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
 --no-desktop                do not load a saved desktop\n\
@@ -1807,7 +1806,6 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
-  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
