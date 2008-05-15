@@ -87,6 +87,10 @@
 (require 'shell)
 (require 'advice)
 
+(if (featurep 'xemacs)
+    (load "auth-source" 'noerror)
+  (require 'auth-source nil 'noerror))
+
 ;; Requiring 'tramp-cache results in an endless loop.
 (autoload 'tramp-get-file-property "tramp-cache")
 (autoload 'tramp-set-file-property "tramp-cache")
@@ -4425,7 +4429,7 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-file-modtime 'dired-make-compressed-filename
 		  'dired-recursive-delete-directory 'dired-set-file-modtime
 		  'dired-shell-unhandle-file-name 'dired-uucode-file
-		  'insert-file-contents-literally 'recover-file
+		  'insert-file-contents-literally 'make-temp-name 'recover-file
 		  'vm-imap-check-mail 'vm-pop-check-mail 'vm-spool-check-mail))
     (if (file-name-absolute-p (nth 0 args))
 	(nth 0 args)
@@ -7200,6 +7204,7 @@ ALIST is of the form ((FROM . TO) ...)."
 
 (defun tramp-read-passwd (proc &optional prompt)
   "Read a password from user (compat function).
+Consults the auth-source package.
 Invokes `password-read' if available, `read-passwd' else."
   (let* ((key (tramp-make-tramp-file-name
 	       tramp-current-method tramp-current-user
@@ -7209,12 +7214,24 @@ Invokes `password-read' if available, `read-passwd' else."
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key)))))
-    (if (functionp 'password-read)
-	(let ((password (funcall (symbol-function 'password-read)
-				 pw-prompt key)))
-	  (funcall (symbol-function 'password-cache-add) key password)
-	  password)
-      (read-passwd pw-prompt))))
+
+    (or
+     ;; see if auth-sources contains something useful, if it's bound
+     (when (boundp 'auth-sources)
+       (or
+	;; 1. try with Tramp's current method
+	(auth-source-user-or-password
+	 "password" tramp-current-host tramp-current-method)
+	;; 2. hard-code the method to be "tramp"
+	(auth-source-user-or-password
+	 "password" tramp-current-host "tramp")))
+     ;; 3. else, get the password interactively
+     (if (functionp 'password-read)
+	 (let ((password (funcall (symbol-function 'password-read)
+				  pw-prompt key)))
+	   (funcall (symbol-function 'password-cache-add) key password)
+	   password)
+       (read-passwd pw-prompt)))))
 
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
