@@ -1717,7 +1717,7 @@ For use in `add-log-current-defun-function'."
 	    (let ((old (if switched dst src)))
 	      (with-temp-buffer
 		(insert (car old))
-		(funcall (with-current-buffer buf major-mode))
+		(funcall (buffer-local-value 'major-mode buf))
 		(goto-char (+ (point-min) (cdr old)))
 		(add-log-current-defun))))
 	  (with-current-buffer buf
