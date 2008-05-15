@@ -2780,6 +2780,14 @@ font_find_for_lface (f, attrs, spec, c)
       double pt;
       for (i = 0; i < FONT_EXTRA_INDEX; i++)
 	ASET (prefer, i, AREF (spec, i));
+      if (FONTP (attrs[LFACE_FONT_INDEX]))
+	{
+	  Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
+
+	  for (i = 0; i < FONT_EXTRA_INDEX; i++)
+	    if (NILP (AREF (prefer, i)))
+	      ASET (prefer, i, AREF (face_font, i));
+	}
       if (NILP (AREF (prefer, FONT_FAMILY_INDEX)))
 	font_parse_family_registry (attrs[LFACE_FAMILY_INDEX], Qnil, prefer);
       if (NILP (AREF (prefer, FONT_WEIGHT_INDEX)))
