@@ -1,3 +1,13 @@
+2008-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* vc-hooks.el (vc-directory-resynch-file): Fix declaration.
+
+	* org/org-exp.el (org-infojs-options-inbuffer-template):
+	Fix declaration.
+
+	* progmodes/cc-mode.el (declare-function): Add compat definition.
+	(awk-mode-syntax-table, c-awk-unstick-NL-prop): Declare for compiler.
+
 2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-dispatcher.el (vc-dispatcher-selection): Change the returned
