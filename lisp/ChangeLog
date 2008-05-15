@@ -1,3 +1,15 @@
+2008-05-15  Shigeru Fukaya  <shugeru.fukaya@gmail.com>
+
+	* ses.el (ses-goto-print): Use move-to-column rather than
+	forward-char.
+	(ses-print-cell): Use string-width, truncate-string-to-width,
+	delete-region rather than length, substring, delete-char.
+	(ses-setup): Set inhibit-point-motion-hooks to t.  Calculate
+	position by actually moving point rather than just using unibyte
+	character length.
+	(ses-mode): Set indent-tabs-mode to nil.
+	(ses-center): Use string-width rather than length.
+
 2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-cvs.el, vc-git.el, vc-hg.el, vc-hooks.el, vc-mcvs.el,
