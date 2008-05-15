@@ -1233,6 +1233,9 @@ a new window in the current frame, splitting vertically."
 (defsubst ibuffer-map-deletion-lines (func)
   (ibuffer-map-on-mark ibuffer-deletion-char func))
 
+(defsubst ibuffer-assert-ibuffer-mode ()
+  (assert (derived-mode-p 'ibuffer-mode))) 
+
 (defun ibuffer-buffer-file-name ()
   (or buffer-file-name
       (let ((dirname (or (and (boundp 'dired-directory)
@@ -1365,7 +1368,7 @@ If point is on a group name, this function operates on that group."
   (ibuffer-mark-interactive arg ?\s -1))
 
 (defun ibuffer-mark-interactive (arg mark movement)
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (or arg (setq arg 1))
   (ibuffer-forward-line 0)
   (ibuffer-aif (get-text-property (point) 'ibuffer-filter-group-name)
@@ -1380,7 +1383,7 @@ If point is on a group name, this function operates on that group."
 	(setq arg (1- arg))))))
 
 (defun ibuffer-set-mark (mark)
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (let ((inhibit-read-only t))
     (ibuffer-set-mark-1 mark)
     (setq ibuffer-did-modification t)
@@ -1822,7 +1825,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-insert-buffer-line (buffer mark format)
   "Insert a line describing BUFFER and MARK using FORMAT."
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (let ((beg (point)))
     (funcall format buffer mark)
     (put-text-property beg (point) 'ibuffer-properties (list buffer mark)))
@@ -1831,7 +1834,7 @@ If point is on a group name, this function operates on that group."
 ;; This function knows a bit too much of the internals.  It would be
 ;; nice if it was all abstracted away.
 (defun ibuffer-redisplay-current ()
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (when (eobp)
     (forward-line -1))
   (beginning-of-line)
@@ -1865,7 +1868,7 @@ buffers in filtering group GROUP.
 
 FUNCTION is called with two arguments:
 the buffer object itself and the current mark symbol."
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (ibuffer-forward-line 0)
   (let* ((orig-target-line (1+ (count-lines (save-excursion
 					      (goto-char (point-min))
@@ -2014,7 +2017,7 @@ the value of point at the beginning of the line for that buffer."
 (defun ibuffer-switch-format ()
   "Switch the current display format."
   (interactive)
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (unless (consp ibuffer-formats)
     (error "Ibuffer error: No formats!"))
   (setq ibuffer-current-format
@@ -2025,7 +2028,7 @@ the value of point at the beginning of the line for that buffer."
   (ibuffer-redisplay t))
 
 (defun ibuffer-update-title-and-summary (format)
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   ;; Don't do funky font-lock stuff here
   (let ((after-change-functions nil))
     (if (get-text-property (point-min) 'ibuffer-title)
@@ -2229,7 +2232,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
      name)))
 
 (defun ibuffer-redisplay-engine (bmarklist &optional ignore)
-  (assert (eq major-mode 'ibuffer-mode))
+  (ibuffer-assert-ibuffer-mode)
   (let* ((--ibuffer-insert-buffers-and-marks-format
 	  (ibuffer-current-format))
 	 (--ibuffer-expanded-format (mapcar #'ibuffer-expand-format-entry
