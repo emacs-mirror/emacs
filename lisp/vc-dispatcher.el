@@ -656,14 +656,16 @@ See `run-hooks'."
 				      file-to-info
 				      file-to-state 
 				      file-to-extra
-				      updater))
+				      updater
+				      extra-menu))
             (:conc-name vc-client-object->))
   name 
   headers
   file-to-info
   file-to-state 
   file-to-extra
-  updater)
+  updater
+  extra-menu)
 
 (defvar vc-ewoc nil)
 (defvar vc-dir-process-buffer nil
@@ -750,6 +752,19 @@ See `run-hooks'."
     map)
   "Menu for dispatcher status")
 
+;; This is used to that vlient modes can add mode-specific menu
+;; items to vc-dir-menu-map.
+(defun vc-dir-menu-map-filter (orig-binding)
+  (when (and (symbolp orig-binding) (fboundp orig-binding))
+    (setq orig-binding (indirect-function orig-binding)))
+  (let ((ext-binding
+	 (funcall (vc-client-object->extra-menu vc-client-mode))))
+    (if (null ext-binding)
+	orig-binding
+      (append orig-binding
+	      '("----")
+	      ext-binding))))
+
 (defvar vc-dir-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
@@ -781,7 +796,6 @@ See `run-hooks'."
     (define-key map [(down-mouse-3)] 'vc-dir-menu)
     (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
 
-    ;; FIXME: Calls back into vc.el
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
       '(menu-item

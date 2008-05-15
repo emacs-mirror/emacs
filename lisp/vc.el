@@ -1836,20 +1836,6 @@ specific headers."
 (defun vc-default-extra-status-menu (backend)
   nil)
 
-;; This is used to that VC backends could add backend specific menu
-;; items to vc-dir-menu-map.
-(defun vc-dir-menu-map-filter (orig-binding)
-  (when (and (symbolp orig-binding) (fboundp orig-binding))
-    (setq orig-binding (indirect-function orig-binding)))
-  (let ((ext-binding
-	 (vc-call-backend (vc-responsible-backend default-directory)
-			  'extra-status-menu)))
-    (if (null ext-binding)
-	orig-binding
-      (append orig-binding
-	      '("----")
-	      ext-binding))))
-
 (defun vc-dir-refresh-files (files default-state)
   "Refresh some files in the VC status buffer."
   (let ((backend (vc-responsible-backend default-directory))
@@ -1978,6 +1964,9 @@ outside of VC) and one wants to do some operation on it."
   (let ((backend (vc-responsible-backend dir)))
     (vc-dir-headers backend dir)))
 
+(defun vc-dir-extra-menu ()
+  (vc-call-backend (vc-responsible-backend default-directory) 'extra-status-menu))
+
 (defun vc-make-backend-object (file-or-dir)
   "Create the backend capability object needed by vc-dispatcher."
   (vc-create-client-object 
@@ -1987,7 +1976,8 @@ outside of VC) and one wants to do some operation on it."
    #'vc-generic-status-printer
    #'vc-generic-state
    #'vc-generic-status-fileinfo-extra
-   #'vc-dir-refresh))
+   #'vc-dir-refresh
+   #'vc-dir-extra-menu))
 
 ;;;###autoload
 (defun vc-dir (dir)
