@@ -1,3 +1,13 @@
+2008-05-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-open-connection): Fix login/password bug.
+
+	* nnrss.el (nnrss-normalize-date): Accept Unix-style epoch timestamps.
+
+	* auth-source.el: Preliminary Tramp docs.
+	(auth-sources): Change the default auth-sources to use
+	EPA .gpg files.
+
 2008-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nntp.el: Autoload `auth-source-user-or-password'.

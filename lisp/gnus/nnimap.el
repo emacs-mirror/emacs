@@ -810,7 +810,7 @@ If EXAMINE is non-nil the group is selected read-only."
 		   (list port)
 		   (list "imap" "imaps" "143" "993"))))
 	   (passwd (or 
-		    (auth-source-user-or-password "login" server port) ; this is preferred to netrc-*
+		    (auth-source-user-or-password "password" server port) ; this is preferred to netrc-*
 		    (netrc-machine-user-or-password
 		     "password"
 		     list

@@ -47,6 +47,15 @@
 ;;; digest).  If you want finer controls, explore the url-auth source
 ;;; code and variables.
 
+;;; (Tramp patch pending for this!)
+;;; For tramp authentication, use:
+
+;;; machine yourmachine.com port tramp login testuser password testpass
+
+;;; Note that the port can be scp or ssh, for example, to match only
+;;; those protocols.  When you use port = tramp, you match any Tramp
+;;; protocol.
+
 ;;; Code:
 
 (require 'gnus-util)
@@ -83,8 +92,7 @@
 		    p)))
 	  auth-source-protocols))
 
-;;; this default will be changed to ~/.authinfo.gpg
-(defcustom auth-sources '((:source "~/.authinfo.enc" :host t :protocol t))
+(defcustom auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t))
   "List of authentication sources.
 
 Each entry is the authentication type with optional properties."

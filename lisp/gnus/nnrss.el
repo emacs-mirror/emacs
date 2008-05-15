@@ -498,8 +498,11 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 This function handles the ISO 8601 date format described in
 <URL:http://www.w3.org/TR/NOTE-datetime>, and also the RFC822 style
 which RSS 2.0 allows."
-  (let (case-fold-search vector year month day time zone cts)
-    (cond ((null date))
+  (let (case-fold-search vector year month day time zone cts given)
+    (cond ((null date))			; do nothing for this case
+	  ;; if the date is just digits (unix time stamp):
+	  ((string-match "^[0-9]+$" date)
+	   (setq given (seconds-to-time (string-to-number date))))
 	  ;; RFC822
 	  ((string-match " [0-9]+ " date)
 	   (setq vector (timezone-parse-date date)
@@ -557,7 +560,7 @@ which RSS 2.0 allows."
 		  (if zone
 		      (concat " " zone)
 		    "")))
-      (message-make-date))))
+      (message-make-date given))))
 
 ;;; data functions
 
