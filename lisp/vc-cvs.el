@@ -622,19 +622,19 @@ systime, or nil if there is none."
       nil)))
 
 ;;;
-;;; Snapshot system
+;;; Tag system
 ;;;
 
-(defun vc-cvs-create-snapshot (dir name branchp)
+(defun vc-cvs-create-tag (dir name branchp)
   "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
   (vc-cvs-command nil 0 dir "tag" "-c" (if branchp "-b") name)
   (when branchp (vc-cvs-command nil 0 dir "update" "-r" name)))
 
-(defun vc-cvs-retrieve-snapshot (dir name update)
-  "Retrieve a snapshot at and below DIR.
-NAME is the name of the snapshot; if it is empty, do a `cvs update'.
+(defun vc-cvs-retrieve-tag (dir name update)
+  "Retrieve a tag at and below DIR.
+NAME is the name of the tag; if it is empty, do a `cvs update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers."
   (with-current-buffer (get-buffer-create "*vc*")
     (let ((default-directory dir)

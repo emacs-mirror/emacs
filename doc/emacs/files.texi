@@ -1238,7 +1238,7 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 * Branches::            Multiple lines of development.
 @ifnottex
 * Remote Repositories:: Efficient access to remote CVS servers.
-* Snapshots::           Sets of file versions treated as a unit.
+* Revision Tags::       Symbolic names for revisions
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
 @end ifnottex
@@ -1300,8 +1300,8 @@ git, and Mercurial.
   SCCS was the first version-control system ever built, and was long ago
 superseded by later and more advanced ones; Emacs supports it only for
 backward compatibility and historical reasons.  VC compensates for
-certain features missing in SCCS (snapshots, for example) by
-implementing them itself, but some other VC features, such as multiple
+certain features missing in SCCS (tag names for releases, for example) by
+implementing them itself. Some other VC features, such as multiple
 branches, are not available with SCCS.  Since SCCS is non-free you
 should not use it; use its free replacement CSSC instead.  But you
 should use CSSC only if for some reason you cannot use a more 
@@ -1895,19 +1895,19 @@ buffer in another window.
 
   You can specify a checked-in revision by its ID; an empty input
 specifies the current contents of the work file (which may be different
-from all the checked-in revisions).  You can also specify a snapshot name
+from all the checked-in revisions).  You can also specify a tag or branch name
 @iftex
-(@pxref{Snapshots,,,emacs-xtra, Specialized Emacs Features})
+(@pxref{Tags,,,emacs-xtra, Specialized Emacs Features})
 @end iftex
 @ifnottex
-(@pxref{Snapshots})
+(@pxref{Tags})
 @end ifnottex
 instead of one or both revision ID.
 
   Note that if your version-control system is file-oriented (SCCS,
 RCS, CVS) rather than fileset-oriented (Subversion, GNU Arch, git,
 Mercurial) specifying a revision of a multiple-file fileset by
-revision ID (as opposed to a snapshot name or RSCCS/RCS tag) is
+revision ID (as opposed to a symbolic tag name) is
 unlikely to return diffs that are connected in any meaningful way.
 
   If you invoke @kbd{C-u C-x v =} or @kbd{C-u C-x v =} from a buffer

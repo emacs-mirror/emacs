@@ -352,12 +352,20 @@ revert all subfiles."
 
 
 ;;;
-;;; Snapshot system
+;;; Tag system.  SCCS doesn't have tags, so we simulate them by maintaining
+;;; our own set of name-to-revision mappings.
 ;;;
 
-(defun vc-sccs-assign-name (file name)
-  "Assign to FILE's latest revision a given NAME."
-  (vc-sccs-add-triple name file (vc-working-revision file)))
+(defun vc-sccs-create-tag (backend dir name branchp)
+  (when branchp
+    (error "SCCS backend %s does not support module branches."))
+  (let ((result (vc-tag-precondition dir)))
+    (if (stringp result)
+	(error "File %s is not up-to-date" result)
+      (vc-file-tree-walk
+       dir
+       (lambda (f)
+	 (vc-sccs-add-triple name f (vc-working-revision f)))))))
 
 
 ;;;
@@ -373,7 +381,7 @@ revert all subfiles."
 (defun vc-sccs-rename-file (old new)
   ;; Move the master file (using vc-rcs-master-templates).
   (vc-rename-master (vc-name old) new vc-sccs-master-templates)
-  ;; Update the snapshot file.
+  ;; Update the tag file.
   (with-current-buffer
       (find-file-noselect
        (expand-file-name vc-sccs-name-assoc-file
@@ -446,7 +454,7 @@ The result is a list of the form ((REVISION . USER) (REVISION . USER) ...)."
     (kill-buffer (current-buffer))))
 
 (defun vc-sccs-lookup-triple (file name)
-  "Return the numeric revision corresponding to a named snapshot of FILE.
+  "Return the numeric revision corresponding to a named tag of FILE.
 If NAME is nil or a revision number string it's just passed through."
   (if (or (null name)
 	  (let ((firstchar (aref name 0)))

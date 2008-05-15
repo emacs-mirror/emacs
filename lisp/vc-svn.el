@@ -465,20 +465,20 @@ or svn+ssh://."
 	(buffer-size (get-buffer buffer)))))
 
 ;;;
-;;; Snapshot system
+;;; Tag system
 ;;;
 
-(defun vc-svn-create-snapshot (dir name branchp)
+(defun vc-svn-create-tag (dir name branchp)
   "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch).
 NAME is assumed to be a URL."
   (vc-svn-command nil 0 dir "copy" name)
-  (when branchp (vc-svn-retrieve-snapshot dir name nil)))
+  (when branchp (vc-svn-retrieve-tag dir name nil)))
 
-(defun vc-svn-retrieve-snapshot (dir name update)
-  "Retrieve a snapshot at and below DIR.
-NAME is the name of the snapshot; if it is empty, do a `svn update'.
+(defun vc-svn-retrieve-tag (dir name update)
+  "Retrieve a tag at and below DIR.
+NAME is the name of the tag; if it is empty, do a `svn update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers.
 NAME is assumed to be a URL."
   (vc-svn-command nil 0 dir "switch" name)

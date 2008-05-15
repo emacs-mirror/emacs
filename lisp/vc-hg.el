@@ -76,10 +76,9 @@
 ;; - annotate-time ()                          OK
 ;; - annotate-current-time ()                  NOT NEEDED
 ;; - annotate-extract-revision-at-line ()      OK
-;; SNAPSHOT SYSTEM
-;; - create-snapshot (dir name branchp)        NEEDED (probably branch?)
-;; - assign-name (file name)                   NOT NEEDED
-;; - retrieve-snapshot (dir name update)       ?? NEEDED??
+;; TAG SYSTEM
+;; - create-tag (dir name branchp)       NEEDED
+;; - retrieve-tag (dir name update)       NEEDED
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ??

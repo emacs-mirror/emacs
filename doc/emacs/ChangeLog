@@ -1,3 +1,10 @@
+2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc2-xtra.texi, emacs.texi, files.texi: Snapshots node renamed to
+	Revision Tags and rewritten. Section now uses modern terminology
+	(tags rather than snapshots) and describes post-SCCS systems more 
+	accurately.
+
 2008-05-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Files): Update documentation of

@@ -981,8 +981,8 @@ Used in `find-file-not-found-functions'."
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
     (define-key map "m" 'vc-merge)
-    (define-key map "r" 'vc-retrieve-snapshot)
-    (define-key map "s" 'vc-create-snapshot)
+    (define-key map "r" 'vc-retrieve-tag)
+    (define-key map "s" 'vc-create-tag)
     (define-key map "u" 'vc-revert)
     (define-key map "v" 'vc-next-action)
     (define-key map "+" 'vc-update)
@@ -996,12 +996,12 @@ Used in `find-file-not-found-functions'."
   (let ((map (make-sparse-keymap "Version Control")))
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
-    (define-key map [vc-retrieve-snapshot]
-      '(menu-item "Retrieve Snapshot" vc-retrieve-snapshot
-		  :help "Retrieve snapshot"))
-    (define-key map [vc-create-snapshot]
-      '(menu-item "Create Snapshot" vc-create-snapshot
-		  :help "Create Snapshot"))
+    (define-key map [vc-retrieve-tag]
+      '(menu-item "Retrieve Tag" vc-retrieve-tag
+		  :help "Retrieve tagged version or branch"))
+    (define-key map [vc-create-tag]
+      '(menu-item "Create Tag" vc-create-tag
+		  :help "Create version tag"))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate

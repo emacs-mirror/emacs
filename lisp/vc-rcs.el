@@ -787,12 +787,19 @@ systime, or nil if there is none.  Also, reposition point."
 
 
 ;;;
-;;; Snapshot system
+;;; Tag system
 ;;;
 
-(defun vc-rcs-assign-name (file name)
-  "Assign to FILE's latest version a given NAME."
-  (vc-do-command "*vc*" 0 "rcs" (vc-name file) (concat "-n" name ":")))
+(defun vc-rcs-create-tag (backend dir name branchp)
+  (when branchp
+    (error "RCS backend %s does not support module branches."))
+  (let ((result (vc-tag-precondition dir)))
+    (if (stringp result)
+	(error "File %s is not up-to-date" result)
+      (vc-file-tree-walk
+       dir
+       (lambda (f)
+	 (vc-do-command "*vc*" 0 "rcs" (vc-name f) (concat "-n" name ":")))))))
 
 
 ;;;

@@ -438,28 +438,23 @@
 ;;   corresponding to the current line, or nil if there is no revision
 ;;   corresponding to the current line.
 ;;
-;; SNAPSHOT SYSTEM
+;; TAG SYSTEM
 ;;
-;; - create-snapshot (dir name branchp)
+;; - create-tag (dir name branchp)
 ;;
-;;   Take a snapshot of the current state of files under DIR and name it
-;;   NAME.  This should make sure that files are up-to-date before
-;;   proceeding with the action.  DIR can also be a file and if BRANCHP
-;;   is specified, NAME should be created as a branch and DIR should be
-;;   checked out under this new branch.  The default implementation does
-;;   not support branches but does a sanity check, a tree traversal and
-;;   for each file calls `assign-name'.
+;;   Attach the tag NAME to the state of the working copy.  This
+;;   should make sure that files are up-to-date before proceeding with
+;;   the action.  DIR can also be a file and if BRANCHP is specified,
+;;   NAME should be created as a branch and DIR should be checked out
+;;   under this new branch.  The default implementation does not
+;;   support branches but does a sanity check, a tree traversal and
+;;   assigns the tag to each file.
 ;;
-;; - assign-name (file name)
+;; - retrieve-tag (dir name update)
 ;;
-;;   Give name NAME to the working revision of FILE, assuming it is
-;;   up-to-date.  Only used by the default version of `create-snapshot'.
-;;
-;; - retrieve-snapshot (dir name update)
-;;
-;;   Retrieve a named snapshot of all registered files at or below DIR.
+;;   Retrieve the version tagged by NAME of all registered files at or below DIR.
 ;;   If UPDATE is non-nil, then update buffers of any files in the
-;;   snapshot that are currently visited.  The default implementation
+;;   tag that are currently visited.  The default implementation
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
 ;;   function to retrieve the corresponding revisions.
@@ -570,8 +565,6 @@
 ;;
 ;;;; Improved branch and tag handling:
 ;;
-;; - "snapshots" should be renamed to "tags", and thoroughly reworked.
-;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
@@ -580,7 +573,7 @@
 ;;   adapted accordingly.  Also, it considers RCS and CVS to be the same, 
 ;;   which is pretty confusing.
 ;;
-;; - vc-create-snapshot and vc-retrieve-snapshot should update the
+;; - vc-create-tag and vc-retrieve-tag should update the
 ;;   buffers that might be visiting the affected files.
 ;;
 ;;;; Default Behavior:
@@ -2047,10 +2040,10 @@ outside of VC) and one wants to do some operation on it."
 
 ;; Named-configuration entry points
 
-(defun vc-snapshot-precondition (dir)
+(defun vc-tag-precondition (dir)
   "Scan the tree below DIR, looking for files not up-to-date.
 If any file is not up-to-date, return the name of the first such file.
-\(This means, neither snapshot creation nor retrieval is allowed.\)
+\(This means, neither tag creation nor retrieval is allowed.\)
 If one or more of the files are currently visited, return `visited'.
 Otherwise, return nil."
   (let ((status nil))
@@ -2063,40 +2056,40 @@ Otherwise, return nil."
       status)))
 
 ;;;###autoload
-(defun vc-create-snapshot (dir name branchp)
-  "Descending recursively from DIR, make a snapshot called NAME.
+(defun vc-create-tag (dir name branchp)
+  "Descending recursively from DIR, make a tag called NAME.
 For each registered file, the working revision becomes part of
 the named configuration.  If the prefix argument BRANCHP is
-given, the snapshot is made as a new branch and the files are
+given, the tag is made as a new branch and the files are
 checked out in that new branch."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "New snapshot name: ")
+         (read-string "New tag name: ")
 	 current-prefix-arg))
-  (message "Making %s... " (if branchp "branch" "snapshot"))
+  (message "Making %s... " (if branchp "branch" "tag"))
   (when (file-directory-p dir) (setq dir (file-name-as-directory dir)))
   (vc-call-backend (vc-responsible-backend dir)
-		   'create-snapshot dir name branchp)
-  (message "Making %s... done" (if branchp "branch" "snapshot")))
+		   'create-tag dir name branchp)
+  (message "Making %s... done" (if branchp "branch" "tag")))
 
 ;;;###autoload
-(defun vc-retrieve-snapshot (dir name)
-  "Descending recursively from DIR, retrieve the snapshot called NAME.
+(defun vc-retrieve-tag (dir name)
+  "Descending recursively from DIR, retrieve the tag called NAME.
 If NAME is empty, it refers to the latest revisions.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped)."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "Snapshot name to retrieve (default latest revisions): ")))
+         (read-string "Tag name to retrieve (default latest revisions): ")))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))
 		 (format "Updating %s... " (abbreviate-file-name dir))
-	       (format "Retrieving snapshot into %s... "
+	       (format "Retrieving tag into %s... "
 		       (abbreviate-file-name dir)))))
     (message "%s" msg)
     (vc-call-backend (vc-responsible-backend dir)
-		     'retrieve-snapshot dir name update)
+		     'retrieve-tag dir name update)
     (message "%s" (concat msg "done"))))
 
 ;; Miscellaneous other entry points
@@ -2693,18 +2686,7 @@ to provide the `find-revision' operation instead."
   "Let BACKEND receive FILE from another version control system."
   (vc-call-backend backend 'register file rev ""))
 
-(defun vc-default-create-snapshot (backend dir name branchp)
-  (when branchp
-    (error "VC backend %s does not support module branches" backend))
-  (let ((result (vc-snapshot-precondition dir)))
-    (if (stringp result)
-	(error "File %s is not up-to-date" result)
-      (vc-file-tree-walk
-       dir
-       (lambda (f)
-	 (vc-call-backend backend 'assign-name f name))))))
-
-(defun vc-default-retrieve-snapshot (backend dir name update)
+(defun vc-default-retrieve-tag (backend dir name update)
   (if (string= name "")
       (progn
         (vc-file-tree-walk
@@ -2714,7 +2696,7 @@ to provide the `find-revision' operation instead."
 		 (vc-error-occurred
 		  (vc-call-backend backend 'checkout f nil "")
 		  (when update (vc-resynch-buffer f t t)))))))
-    (let ((result (vc-snapshot-precondition dir)))
+    (let ((result (vc-tag-precondition dir)))
       (if (stringp result)
           (error "File %s is locked" result)
         (setq update (and (eq result 'visited) update))
@@ -3290,7 +3272,7 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 ;; The performance problem, it turns out, simplifies in practice to the
 ;; problem of making vc-state fast.  The two other functions that call
 ;; prs/rlog will not be so commonly used that the slowdown is a problem; one
-;; makes snapshots, the other deletes the calling user's last change in the
+;; makes tags, the other deletes the calling user's last change in the
 ;; master.
 ;;
 ;; The race condition implies that we have to either (a) lock the master
