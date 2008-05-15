@@ -8934,6 +8934,7 @@ mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
 							 names, types));
 	  kbd_buffer_store_event (&buf);
 	  mac_wakeup_from_rne ();
+	  err = noErr;
 	}
     }
 
