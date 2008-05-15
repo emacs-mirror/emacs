@@ -1,3 +1,10 @@
+2008-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (init_fns): Don't initialize weak_hash_tables here.
+	(init_weak_hash_tables): New fun.  Initialize weak_hash_tables.
+
+	* alloc.c (init_alloc_once): Call init_weak_hash_tables.
+
 2008-05-15  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fnew_fontset): Call font_unparse_xlfd with 256-byte
