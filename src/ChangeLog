@@ -1,7 +1,8 @@
 2008-05-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c (mac_store_event_ref_as_apple_event)
-	[TARGET_API_MAC_CARBON]: Fix last change.
+	* macterm.c (x_draw_relief_rect): Remove unused variable `dpy'.
+	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event):
+	Fix last change.
 
 2008-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
