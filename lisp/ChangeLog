@@ -9,6 +9,8 @@
 
 2008-05-15  John Paul Wallington  <jpw@pobox.com>
 
+	* add-log.el (top-level): Don't require cl when compiling.
+
 	* arc-mode.el (archive-add-new-member): Use `derived-mode-p'.
 	(archive-*-extract): Use `zerop'
 	(archive-*-write-file-member): Use `or', use `zerop'.
