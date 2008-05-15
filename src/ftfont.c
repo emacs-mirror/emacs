@@ -597,6 +597,7 @@ ftfont_list (frame, spec)
     family_list = Fcons (Qnil, Qnil);
   else
     {
+      family = Fintern (Fdowncase (SYMBOL_NAME (family)), Qnil);
       family_list = ftfont_list_generic_family (family);
       if (NILP (family_list))
 	family_list = Fcons (family, Qnil);
