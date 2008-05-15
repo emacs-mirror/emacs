@@ -1,3 +1,7 @@
+2008-05-15  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.texi (Acknowledgements): Add Shigeru Fukaya.
+
 2008-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* info.texi (Top): Fix typo in xref.
