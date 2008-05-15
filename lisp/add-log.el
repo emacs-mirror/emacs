@@ -37,7 +37,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)				; ignore-errors
   (require 'timezone))
 
 (defgroup change-log nil
