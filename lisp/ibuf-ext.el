@@ -260,9 +260,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
     (if (assq 'mode ibuffer-filtering-qualifiers)
 	(setq ibuffer-filtering-qualifiers
 	      (ibuffer-delete-alist 'mode ibuffer-filtering-qualifiers))
-      (ibuffer-push-filter (cons 'mode
-				(with-current-buffer buf
-				  major-mode)))))
+      (ibuffer-push-filter (cons 'mode (buffer-local-value 'major-mode buf)))))
   (ibuffer-update nil t))
 
 ;;;###autoload
@@ -562,7 +560,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
                 (let ((modes
                        (ibuffer-remove-duplicates
                         (mapcar (lambda (buf)
-				  (with-current-buffer buf major-mode))
+				  (buffer-local-value 'major-mode buf))
                                 (buffer-list)))))
                   (if ibuffer-view-ibuffer
 		      modes
@@ -966,10 +964,7 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
 	(modes)
 	(this-mode))
     (while bufs
-      (setq this-mode
-	    (with-current-buffer
-		(car bufs)
-	      major-mode)
+      (setq this-mode (buffer-local-value 'major-mode (car bufs))
 	    bufs (cdr bufs))
       (add-to-list
        'modes
@@ -993,10 +988,9 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
 		     t
 		     (let ((buf (ibuffer-current-buffer)))
 		       (if (and buf (buffer-live-p buf))
-			   (with-current-buffer buf
-			     (symbol-name major-mode))
+			   (symbol-name (buffer-local-value 'major-mode buf))
 			 "")))))
-  (eq qualifier (with-current-buffer buf major-mode)))
+  (eq qualifier (buffer-local-value 'major-mode buf)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-used-mode "ibuf-ext")
 (define-ibuffer-filter used-mode
@@ -1012,10 +1006,10 @@ currently used by buffers."
 				  t
 				  (let ((buf (ibuffer-current-buffer)))
 				    (if (and buf (buffer-live-p buf))
-					(with-current-buffer buf
-					  (symbol-name major-mode))
+					(symbol-name (buffer-local-value
+						      'major-mode buf))
 				      "")))))
-  (eq qualifier (with-current-buffer buf major-mode)))
+  (eq qualifier (buffer-local-value 'major-mode buf)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext")
 (define-ibuffer-filter name
@@ -1106,13 +1100,9 @@ Default sorting modes are:
 Ordering is lexicographic."
   (:description "major mode")
   (string-lessp (downcase
-		 (symbol-name (with-current-buffer
-				  (car a)
-				major-mode)))
+		 (symbol-name (buffer-local-value 'major-mode (car a))))
 		(downcase
-		 (symbol-name (with-current-buffer
-				  (car b)
-				major-mode)))))
+		 (symbol-name (buffer-local-value 'major-mode (car b))))))
 
 ;;;###autoload (autoload 'ibuffer-do-sort-by-mode-name "ibuf-ext")
 (define-ibuffer-sorter mode-name
@@ -1120,9 +1110,9 @@ Ordering is lexicographic."
 Ordering is lexicographic."
   (:description "major mode name")
   (string-lessp (downcase
-		  (with-current-buffer
-		      (car a)
-		    (format-mode-line mode-name)))
+		 (with-current-buffer
+		     (car a)
+		   (format-mode-line mode-name)))
 		(downcase
 		 (with-current-buffer
 		     (car b)
@@ -1439,7 +1429,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
   "Mark all modified buffers that have an associated file."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf) (and (with-current-buffer buf buffer-file-name)
+   #'(lambda (buf) (and (buffer-local-value 'buffer-file-name buf)
 			(buffer-modified-p buf)))))
 
 ;;;###autoload
@@ -1508,18 +1498,14 @@ You can then feed the file name(s) to other commands with \\[yank]."
   "Mark all read-only buffers."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 buffer-read-only))))
+   #'(lambda (buf) (buffer-local-value 'buffer-read-only buf))))
 
 ;;;###autoload
 (defun ibuffer-mark-dired-buffers ()
   "Mark all `dired' buffers."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 (eq major-mode 'dired-mode)))))
+   #'(lambda (buf) (eq (buffer-local-value 'major-mode buf) 'dired-mode))))
 
 ;;;###autoload
 (defun ibuffer-do-occur (regexp &optional nlines)
