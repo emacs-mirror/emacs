@@ -3303,8 +3303,7 @@ FRAME 0 means change the face on all frames, and change the default
 
 		      if (fontset >= 0)
 			value = fontset_ascii (fontset);
-		      else
-			value = font_spec_from_name (value);
+		      value = font_spec_from_name (value);
 		    }
 		  else
 		    signal_error ("Invalid font or font-spec", value);
