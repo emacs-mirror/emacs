@@ -4257,6 +4257,12 @@ hash_clear (h)
 			   Weak Hash Tables
  ************************************************************************/
 
+void
+init_weak_hash_tables ()
+{
+  weak_hash_tables = NULL;
+}
+
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
    entries from the table that don't survive the current GC.
    REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
@@ -5284,7 +5290,6 @@ both `use-dialog-box' and this variable are non-nil.  */);
 void
 init_fns ()
 {
-  weak_hash_tables = NULL;
 }
 
 /* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31
