@@ -602,7 +602,7 @@ the buffer contents as a comment."
 	       log-extra
 	       log-entry))
     ;; Remove checkin window (after the checkin so that if that fails
-    ;; we don't zap the *VC-log* buffer and the typing therein).
+    ;; we don't zap the log buffer and the typing therein).
     ;; -- IMO this should be replaced with quit-window
     (cond ((and logbuf vc-delete-logbuf-window)
 	   (delete-windows-on logbuf (selected-frame))
