@@ -135,7 +135,7 @@ dispatcher client mode imposes itself."
   :group 'vc)
 
 (defcustom vc-delete-logbuf-window t
-  "If non-nil, delete the *VC-log* buffer and window after each logical action.
+  "If non-nil, delete the log buffer and window after each logical action.
 If nil, bury that buffer instead.
 This is most useful if you have multiple windows on a frame and would like to
 preserve the setting."
@@ -533,9 +533,9 @@ NOT-URGENT means it is ok to continue if the user says not to save."
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files extra comment initial-contents msg action &optional after-hook)
+(defun vc-start-logentry (files extra comment initial-contents msg logbuf action &optional after-hook)
   "Accept a comment for an operation on FILES with extra data EXTRA.
-If COMMENT is nil, pop up a VC-log buffer, emit MSG, and set the
+If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
 INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial
 contents of the log entry buffer.  If COMMENT is a string and
@@ -553,8 +553,8 @@ for `vc-log-after-operation-hook'."
                (get-file-buffer (car files))
              (current-buffer)))))
     (if (and comment (not initial-contents))
-	(set-buffer (get-buffer-create "*VC-log*"))
-      (pop-to-buffer (get-buffer-create "*VC-log*")))
+	(set-buffer (get-buffer-create logbuf))
+      (pop-to-buffer (get-buffer-create logbuf)))
     (set (make-local-variable 'vc-parent-buffer) parent)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
@@ -587,7 +587,8 @@ the buffer contents as a comment."
   (unless vc-log-operation
     (error "No log operation is pending"))
   ;; save the parameters held in buffer-local variables
-  (let ((log-operation vc-log-operation)
+  (let ((logbuf (current-buffer))
+	(log-operation vc-log-operation)
 	(log-fileset vc-log-fileset)
 	(log-extra vc-log-extra)
 	(log-entry (buffer-string))
@@ -603,14 +604,13 @@ the buffer contents as a comment."
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the *VC-log* buffer and the typing therein).
     ;; -- IMO this should be replaced with quit-window
-    (let ((logbuf (get-buffer "*VC-log*")))
-      (cond ((and logbuf vc-delete-logbuf-window)
-	     (delete-windows-on logbuf (selected-frame))
-	     ;; Kill buffer and delete any other dedicated windows/frames.
-	     (kill-buffer logbuf))
-	    (logbuf (pop-to-buffer "*VC-log*")
-		    (bury-buffer)
-		    (pop-to-buffer tmp-vc-parent-buffer))))
+    (cond ((and logbuf vc-delete-logbuf-window)
+	   (delete-windows-on logbuf (selected-frame))
+	   ;; Kill buffer and delete any other dedicated windows/frames.
+	   (kill-buffer logbuf))
+	  (logbuf (pop-to-buffer logbuf)
+		  (bury-buffer)
+		  (pop-to-buffer tmp-vc-parent-buffer)))
     ;; Now make sure we see the expanded headers
     (when log-fileset
       (mapc

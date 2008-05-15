@@ -1286,6 +1286,7 @@ first backend that could register the file is used."
 		    (or comment (not vc-initial-comment))
 		    nil
 		    "Enter initial comment."
+		    "*VC-log*"
 		    (lambda (files rev comment)
 		      (dolist (file files)
 			(message "Registering %s... " file)
@@ -1388,6 +1389,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (vc-start-logentry
    files rev comment initial-contents
    "Enter a change comment."
+   "*VC-log*"
    (lambda (files rev comment)
      (message "Checking in %s..." (vc-delistify files))
      ;; "This log message intentionally left almost blank".
@@ -1728,6 +1730,7 @@ The headers are reset to their non-expanded form."
   (vc-start-logentry
    files rev oldcomment t
    "Enter a replacement change comment."
+   "*VC-log*"
    (lambda (files rev comment)
      (vc-call-backend
       ;; Less of a kluge than it looks like; log-view mode only passes
