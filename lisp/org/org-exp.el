@@ -32,7 +32,7 @@
 
 (declare-function org-export-latex-preprocess "org-export-latex" ())
 (declare-function org-agenda-skip "org-agenda" ())
-(declare-function org-infojs-options-inbuffer-template "org-infojs" ())
+(declare-function org-infojs-options-inbuffer-template "org-jsinfo" ())
 
 (defgroup org-export nil
   "Options for exporting org-listings."
