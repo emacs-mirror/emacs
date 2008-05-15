@@ -6247,6 +6247,7 @@ init_alloc_once ()
   init_marker ();
   init_float ();
   init_intervals ();
+  init_weak_hash_tables ();
 
 #ifdef REL_ALLOC
   malloc_hysteresis = 32;
