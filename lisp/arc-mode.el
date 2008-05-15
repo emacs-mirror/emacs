@@ -1059,7 +1059,7 @@ using `make-temp-file', and the generated name is returned."
 		 nil
 		 nil
 		 (append (cdr command) (list archive name))))
-    (cond ((and (numberp exit-status) (= exit-status 0))
+    (cond ((and (numberp exit-status) (zerop exit-status))
 	   (if (not (file-exists-p tmpfile))
 	       (ding (message "`%s': no such file or directory" tmpfile))
 	     (insert-file-contents tmpfile)
@@ -1117,7 +1117,7 @@ using `make-temp-file', and the generated name is returned."
 			  (file-name-nondirectory buffer-file-name)
 			""))))
   (with-current-buffer arcbuf
-    (or (eq major-mode 'archive-mode)
+    (or (derived-mode-p 'archive-mode)
 	(error "Buffer is not an archive buffer"))
     (if archive-read-only
 	(error "Archive is read-only")))
@@ -1190,9 +1190,8 @@ using `make-temp-file', and the generated name is returned."
 				  nil
 				  (append (cdr command)
 					  (list archive ename)))))
-            (if (equal exitcode 0)
-                nil
-              (error "Updating was unsuccessful (%S)" exitcode))))
+            (or (zerop exitcode)
+		(error "Updating was unsuccessful (%S)" exitcode))))
       (archive-delete-local tmpfile))))
 
 (defun archive-write-file (&optional file)
