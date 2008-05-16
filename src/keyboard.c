@@ -7990,8 +7990,9 @@ parse_menu_item (item, notreal, inmenubar)
          of equivalent key bindings is sufficiently fast that we
          do not need to cache it here any more. */
       /* CHECK_IMPURE (start);
-         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start))); */
-      cachelist = XCAR (XCDR (start));
+         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
+	 cachelist = XCAR (XCDR (start));  */
+      cachelist = Fcons (Qnil, Qnil);
       newcache = 1;
       tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (!NILP (keyhint))
