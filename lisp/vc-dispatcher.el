@@ -122,8 +122,10 @@
 
 (require 'ewoc)
 
-;; General customization
+(eval-when-compile
+  (require 'cl))
 
+;; General customization
 (defcustom vc-logentry-check-hook nil
   "Normal hook run by `vc-finish-logentry'.
 Use this to impose your own rules on the entry in addition to any the
