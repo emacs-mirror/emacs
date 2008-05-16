@@ -6,10 +6,10 @@
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,10 +41,10 @@ For older news, see Gnus info node \"New Features\".\n\n")
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -54,9 +52,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to the
-Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 \nLocal variables:\nmode: outline
 paragraph-separate: \"[ 	]*$\"\nend:\n")
@@ -117,5 +113,5 @@ paragraph-separate: \"[ 	]*$\"\nend:\n")
       (insert gnus-news-trailer)
       (write-region (point-min) (point-max) outfile))))
 
-;;; arch-tag: e23cdd27-eafd-4ba0-816f-98f5edb0dc29
+;; arch-tag: e23cdd27-eafd-4ba0-816f-98f5edb0dc29
 ;;; gnus-news.el ends here
