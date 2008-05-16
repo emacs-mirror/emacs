@@ -139,7 +139,7 @@
 		  (input-method . "chinese-py-punct-b5")
 		  (ctext-non-standard-encodings "big5-0")
 		  (features china-util)
-		  (sample-text . "Cantonese ($(Gemk#(B,$(Gl]N)fc(B)	$ATg3?(B, $ADc:C(B")
+		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
 		  (documentation . "Support for Chinese Big5 character set.")
 		  (tutorial . "TUTORIAL.zh"))
  '("Chinese"))
