@@ -1,3 +1,8 @@
+2008-05-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-write-region): Fix check for short
+	track.  Reported by Glenn Morris <rgm@gnu.org>.
+
 2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el: Remove my analysis of SCCS/RCS concurrency issues from
