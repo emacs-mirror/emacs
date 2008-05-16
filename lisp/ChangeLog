@@ -22,9 +22,9 @@
 2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-cvs.el, vc-git.el, vc-hg.el, vc-hooks.el, vc-mcvs.el,
-	vc-rcs.el, vc-sccs.el, vc-svn.el, vc.el: Rename
+	* vc-rcs.el, vc-sccs.el, vc-svn.el, vc.el: Rename
 	vc-*-create-snapshot and vc-*-retrieve-snapshot to vc-*-create-tag
-	and vc-*-retireve-tag respectively.
+	and vc-*-retrieve-tag respectively.
 
 	* vc-dispatcher.el: Fix an incorrect buffer name and remove an
 	unneeded defalias.
@@ -49,8 +49,8 @@
 	* vc-dispatcher.el (vc-dispatcher-selection): Change the returned
 	list to a cons so the caller can get back both expanded and
 	unexpanded filesets.
-	* vc.el (vc-deduce-fileseset, vc-next-action, vc-diff-internal,
-	vc-merge, vc-version-diff, vc-print-log, vc-revert, vc-rollback):
+	* vc.el (vc-deduce-fileseset, vc-next-action, vc-diff-internal)
+	(vc-merge, vc-version-diff, vc-print-log, vc-revert, vc-rollback):
 	Change handling of selection-set returns as required.
 
 2008-05-15  John Paul Wallington  <jpw@pobox.com>
@@ -94,12 +94,13 @@
 2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-deduce-fileset): Do the right thing when visting a
-	buffer (say, a log buffer or diff buffer) with a vc-dir buffer as parent.
+	buffer (say, a log buffer or diff buffer) with a vc-dir buffer
+	as parent.
 
 2008-05-14  John Paul Wallington  <jpw@pobox.com>
 
-	* international/mule.el (convert-define-charset-argument): Remove
-	period from end of error message.
+	* international/mule.el (convert-define-charset-argument):
+	Remove period from end of error message.
 	(coding-system-mnemonic): Doc fix.
 	(ctext-pre-write-conversion): Doc fix.
 
@@ -155,8 +156,7 @@
 
 2008-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-mode-map): Remove old keybinding for
-	`calc-yank'.
+	* calc/calc.el (calc-mode-map): Remove old keybinding for `calc-yank'.
 
 2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
