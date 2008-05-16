@@ -173,6 +173,23 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-exec-after
    `(vc-svn-after-dir-status (quote ,callback))))
 
+(defun vc-svn-status-extra-headers (dir)
+  "Generate extra status headers for a Subversion working copy."
+  (vc-svn-command "*vc*" 0 nil "info")
+  (let ((repo
+	 (save-excursion 
+	   (and (progn
+		  (set-buffer "*vc*")
+		  (goto-char (point-min))
+		  (re-search-forward "Repository Root: *\\(.*\\)" nil t))
+		(match-string 1)))))
+    (concat
+     (cond (repo
+	    (concat
+	     (propertize "Repository : " 'face 'font-lock-type-face)
+	     (propertize repo 'face 'font-lock-variable-name-face)))
+	   (t "")))))
+
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under SVN, because we

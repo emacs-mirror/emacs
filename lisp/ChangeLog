@@ -5,6 +5,8 @@
 	stale since 1995 and may now be actively misleading.
 	* vc-cvs.el (vc-cvs-status-extra-headers): Extract and display the
 	CVS repository.
+	* vc-svn.el (vc-svn-status-extra-headers): Extract and display the
+	SVN repository.
 
 2008-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
