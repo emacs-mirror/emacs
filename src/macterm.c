@@ -3550,7 +3550,6 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
      int top_p, bot_p, left_p, right_p, raised_p;
      Rect *clip_rect;
 {
-  Display *dpy = FRAME_MAC_DISPLAY (f);
   int i;
   GC gc;
 
