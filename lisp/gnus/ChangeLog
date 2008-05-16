@@ -1,3 +1,8 @@
+2008-05-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-cite-function): Remove bogus autoload which crept
+	in during merge from v5-10.
+
 2008-05-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nnimap.el (nnimap-open-connection): Fix login/password bug.

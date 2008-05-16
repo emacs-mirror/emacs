@@ -1,3 +1,7 @@
+2008-05-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Scoring On Other Headers): Fix typo.  Rearrange.
+
 2008-05-15  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.texi (Acknowledgements): Add Shigeru Fukaya.
@@ -27,6 +31,10 @@
 2008-04-27  Carsten Dominik  <dominik@sam.science.uva.nl>
 
 	* org.texi: Massive changes, in many parts of the file.
+
+2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Searching, nnir.el, nnmairix.el): New nodes.
 
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
