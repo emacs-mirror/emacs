@@ -7986,8 +7986,11 @@ parse_menu_item (item, notreal, inmenubar)
   if (NILP (cachelist))
     {
       /* We have to create a cachelist.  */
-      CHECK_IMPURE (start);
-      XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
+      /* With the introduction of where_is_cache, the computation
+         of equivalent key bindings is sufficiently fast that we
+         do not need to cache it here any more. */
+      /* CHECK_IMPURE (start);
+         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start))); */
       cachelist = XCAR (XCDR (start));
       newcache = 1;
       tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);

@@ -1,3 +1,7 @@
+2008-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (parse_menu_item): Do not cache key shortcut any more.
+
 2008-05-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_draw_relief_rect): Remove unused variable `dpy'.
