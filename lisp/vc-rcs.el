@@ -405,7 +405,7 @@ whether to remove it."
 	 (vc-switches 'RCS 'checkout)))
 
 (defun vc-rcs-checkout (file &optional editable rev)
-  "Retrieve a copy of a saved version of FILE. If FILE is a directory, 
+  "Retrieve a copy of a saved version of FILE. If FILE is a directory,
 attempt the checkout for all registered files beneath it."
   (if (file-directory-p file)
       (mapc 'vc-rcs-checkout (vc-expand-dirs (list file)))
@@ -471,7 +471,7 @@ attempt the checkout for all registered files beneath it."
 	(message "Checking out %s...done" file))))))
 
 (defun vc-rcs-rollback (files)
-  "Roll back, undoing the most recent checkins of FILES.  Directories are 
+  "Roll back, undoing the most recent checkins of FILES.  Directories are
 expanded to all regidtered subfuiles in them."
   (if (not files)
       (error "RCS backend doesn't support directory-level rollback."))
@@ -508,7 +508,7 @@ expanded to all regidtered subfuiles in them."
 			 (signal (car err) (cdr err)))))))))
 
 (defun vc-rcs-revert (file &optional contents-done)
-  "Revert FILE to the version it was based on.  If FILE is a directory, 
+  "Revert FILE to the version it was based on.  If FILE is a directory,
 revert all registered files beneath it."
   (if (file-directory-p file)
       (mapc 'vc-rcs-revert (vc-expand-dirs (list file)))
@@ -792,7 +792,7 @@ systime, or nil if there is none.  Also, reposition point."
 
 (defun vc-rcs-create-tag (backend dir name branchp)
   (when branchp
-    (error "RCS backend %s does not support module branches."))
+    (error "RCS backend %s does not support module branches" backend))
   (let ((result (vc-tag-precondition dir)))
     (if (stringp result)
 	(error "File %s is not up-to-date" result)
