@@ -4185,9 +4185,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	       ;; `file-writable-p' calls 'file-expand-file-name'.  We
 	       ;; cannot use `tramp-run-real-handler' therefore.
 	       (let (file-name-handler-alist)
-		 (file-writable-p (file-name-directory localname))
-		 (or (file-directory-p localname)
-		     (file-writable-p localname))))
+		 (and
+		  (file-writable-p (file-name-directory localname))
+		  (or (file-directory-p localname)
+		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
 	  (tramp-run-real-handler
 	   'write-region
