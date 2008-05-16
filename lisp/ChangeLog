@@ -1,3 +1,9 @@
+2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el: Remove my analysis of SCCS/RCS concurrency issues from
+	the end of the file, it was good work at one time but has been
+	stale since 1995 and may now be actively misleading.
+
 2008-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-rcs.el (vc-rcs-create-tag):
