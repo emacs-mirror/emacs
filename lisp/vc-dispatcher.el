@@ -122,9 +122,6 @@
 
 (require 'ewoc)
 
-(eval-when-compile
-  (require 'cl))
-
 ;; General customization
 
 (defcustom vc-logentry-check-hook nil
@@ -798,7 +795,7 @@ See `run-hooks'."
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
-      '(menu-item
+      `(menu-item
 	;; This is used so that client modes can add mode-specific
 	;; menu items to vc-dir-menu-map.
 	"*vc-dispatcher*" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
@@ -806,10 +803,10 @@ See `run-hooks'."
   "Keymap for directory buffer.")
 
 (defmacro vc-at-event (event &rest body)
-  "Evaluate `body' wich point located at event-start of `event'.
+  "Evaluate `body' with point located at event-start of `event'.
 If `body' uses `event', it should be a variable,
  otherwise it will be evaluated twice."
-  (let ((posn (gensym "vc-at-event-posn")))
+  (let ((posn (make-symbol "vc-at-event-posn")))
     `(let ((,posn (event-start ,event)))
        (save-excursion
          (set-buffer (window-buffer (posn-window ,posn)))
