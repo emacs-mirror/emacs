@@ -3,6 +3,8 @@
 	* vc.el: Remove my analysis of SCCS/RCS concurrency issues from
 	the end of the file, it was good work at one time but has been
 	stale since 1995 and may now be actively misleading.
+	* vc-cvs.el (vc-cvs-status-extra-headers): Extract and display the
+	CVS repository.
 
 2008-05-16  Juanma Barranquero  <lekktu@gmail.com>
 

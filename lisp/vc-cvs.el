@@ -922,17 +922,26 @@ state."
    `(vc-cvs-after-dir-status (quote ,update-function))))
 
 (defun vc-cvs-status-extra-headers (dir)
-  (concat
-   ;; FIXME: see how PCL-CVS gets the data to print all these
-   (propertize "Module     : " 'face 'font-lock-type-face)
-   (propertize "ADD CODE TO PRINT THE MODULE\n"
-	       'face 'font-lock-warning-face)
-   (propertize "Repository : " 'face 'font-lock-type-face)
-   (propertize "ADD CODE TO PRINT THE REPOSITORY\n"
-	       'face 'font-lock-warning-face)
-   (propertize "Branch     : " 'face 'font-lock-type-face)
-   (propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
-	       'face 'font-lock-warning-face)))
+  (let ((repo
+	 (condition-case nil 
+	     (save-excursion 
+	       (set-buffer (find-file-noselect "CVS/Root" t))
+	       (and (looking-at ":ext:") (delete-char 5))
+	       (buffer-string))
+	   nil)))
+    (concat
+     ;; FIXME: see how PCL-CVS gets the data to print all these
+     (propertize "Module     : " 'face 'font-lock-type-face)
+     (propertize "ADD CODE TO PRINT THE MODULE\n"
+		 'face 'font-lock-warning-face)
+     (cond (repo
+	    (concat
+	      (propertize "Repository : " 'face 'font-lock-type-face)
+	      (propertize repo 'face 'font-lock-warning-face)))
+	   (t ""))
+     (propertize "Branch     : " 'face 'font-lock-type-face)
+     (propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
+		 'face 'font-lock-warning-face))))
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.
