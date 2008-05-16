@@ -927,7 +927,7 @@ state."
 	     (save-excursion 
 	       (set-buffer (find-file-noselect "CVS/Root" t))
 	       (and (looking-at ":ext:") (delete-char 5))
-	       (buffer-string))
+	       (prog1 (buffer-string) (not-modified) (kill-buffer nil)))
 	   nil)))
     (concat
      ;; FIXME: see how PCL-CVS gets the data to print all these
