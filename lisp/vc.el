@@ -1808,24 +1808,24 @@ specific headers."
 (defun vc-default-status-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
-  (let ((state
-	 (if (vc-dir-fileinfo->directory fileentry)
-	     'DIRECTORY
-	   (vc-dir-fileinfo->state fileentry))))
+  (let* ((isdir (vc-dir-fileinfo->directory fileentry))
+	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
+	(filename (vc-dir-fileinfo->name fileentry))
+	(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
       'face 'font-lock-type-face)
      "   "
      (propertize
-      (format "%-20s" state)
+      (format "%-20s" prettified)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      " "
      (propertize
-      (format "%s" (vc-dir-fileinfo->name fileentry))
+      (format "%s" filename)
       'face 'font-lock-function-name-face
       'mouse-face 'highlight))))
 
@@ -2643,16 +2643,16 @@ to provide the `find-revision' operation instead."
   (let* ((state (vc-state file))
 	(statestring
 	 (cond
-	  ((stringp state) (concat "(" state ")"))
+	  ((stringp state) (concat "(locked:" state ")"))
 	  ((eq state 'edited) "(modified)")
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-update) "(update)")
 	  ((eq state 'added) "(added)")
 	  ((eq state 'removed) "(removed)")
           ((eq state 'ignored) "(ignored)")
-          ((eq state 'unregistered) "?")
+          ((eq state 'unregistered) "(unregistered)")
 	  ((eq state 'unlocked-changes) "(stale)")
-	  ((not state) "(unknown)")))
+	  (t (concat "(unknown:" state ")"))))
 	(buffer
 	 (get-file-buffer file))
 	(modflag

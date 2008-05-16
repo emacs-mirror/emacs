@@ -43,8 +43,8 @@ output is used.  Here is an example using RCS:
 @smallexample
 @group
     DIRECTORY            ./
-    edited               file1.c
-    up-to-date           file2.c
+    (modified)           file1.c
+    (update)            file2.c
 @end group
 @end smallexample
 

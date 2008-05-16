@@ -1,3 +1,11 @@
+<<<<<<< ChangeLog
+2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-default-status-printer)
+	(vc-default-prettify-state-info): Enhance the state prettyprinter
+	to deall better with unknown states and indirect through it when
+	painting vc-dir buffers.
+
 2008-05-16  John Paul Wallington  <jpw@pobox.com>
 
 	* vc-dispatcher.el (top-level): Don't require cl when compiling.

@@ -1,3 +1,8 @@
+2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc2-xtra.texi: Mofify an example so it reflects what vc.el 
+	now does.
+
 2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc2-xtra.texi, emacs.texi, files.texi: Snapshots node renamed to
