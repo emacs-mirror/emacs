@@ -258,7 +258,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 If FILE is a directory, all version-controlled files beneath are checked out.
 EDITABLE non-nil means that the file should be writable and
 locked.  REV is the revision to check out."
-  (if (file-directory-p file) 
+  (if (file-directory-p file)
       (mapc 'vc-sccs-checkout (vc-expand-dirs (list file)))
     (let ((file-buffer (get-file-buffer file))
 	  switches)
@@ -293,7 +293,7 @@ are expanded to all version-controlled subfiles."
       (error "SCCS backend doesn't support directory-level rollback."))
   (dolist (file files)
 	  (let ((discard (vc-working-revision file)))
-	    (if (null (yes-or-no-p (format "Remove version %s from %s history? " 
+	    (if (null (yes-or-no-p (format "Remove version %s from %s history? "
 					   discard file)))
 		(error "Aborted"))
 	    (message "Removing revision %s from %s..." discard file)
@@ -304,7 +304,7 @@ are expanded to all version-controlled subfiles."
 (defun vc-sccs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on. If FILE is a directory,
 revert all subfiles."
-  (if (file-directory-p file) 
+  (if (file-directory-p file)
       (mapc 'vc-sccs-revert (vc-expand-dirs (list file)))
     (vc-sccs-do-command nil 0 "unget" (vc-name file))
     (vc-sccs-do-command nil 0 "get" (vc-name file))
@@ -315,7 +315,7 @@ revert all subfiles."
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
-  (if (file-directory-p file) 
+  (if (file-directory-p file)
       (mapc 'vc-sccs-steal-lock (vc-expand-dirs (list file)))
     (vc-sccs-do-command nil 0 "unget"
 			(vc-name file) "-n" (if rev (concat "-r" rev)))
@@ -325,7 +325,7 @@ revert all subfiles."
 (defun vc-sccs-modify-change-comment (files rev comment)
   "Modify (actually, append to) the change comments for FILES on a specified REV."
   (dolist (file (vc-expand-dirs files))
-    (vc-sccs-do-command nil 0 "cdc" (vc-name file) 
+    (vc-sccs-do-command nil 0 "cdc" (vc-name file)
                         (concat "-y" comment) (concat "-r" rev))))
 
 
@@ -358,7 +358,7 @@ revert all subfiles."
 
 (defun vc-sccs-create-tag (backend dir name branchp)
   (when branchp
-    (error "SCCS backend %s does not support module branches."))
+    (error "SCCS backend %s does not support module branches" backend))
   (let ((result (vc-tag-precondition dir)))
     (if (stringp result)
 	(error "File %s is not up-to-date" result)
