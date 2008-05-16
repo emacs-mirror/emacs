@@ -1,5 +1,11 @@
 2008-05-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* dired.c (Ffile_attributes): Shut up GCC warnings about st_uid
+	and st_gid.
+
+	* frame.c (Fdelete_frame): Don't call font_update_drviers if
+	HAVE_WINDOW_SYSTEM is not defined.
+
 	* xfaces.c (merge_face_ref, merge_face_vectors)
 	(Finternal_set_lisp_face_attribute): Use FONT_*_INDEX only when
 	HAVE_WINDOW_SYSTEM is defined.
