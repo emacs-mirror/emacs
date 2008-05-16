@@ -1,3 +1,10 @@
+2008-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (merge_face_ref, merge_face_vectors)
+	(Finternal_set_lisp_face_attribute): Use FONT_*_INDEX only when
+	HAVE_WINDOW_SYSTEM is defined.
+	(Fface_font): Fix non-HAVE_WINDOW_SYSTEM case.
+
 2008-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (parse_menu_item): Do not cache key shortcut any more.
