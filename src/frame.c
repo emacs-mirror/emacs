@@ -1459,8 +1459,10 @@ But FORCE inhibits this too.  */)
      memory. */
   free_glyphs (f);
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Give chance to each font driver to free a frame specific data.  */
   font_update_drivers (f, Qnil);
+#endif
 
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
