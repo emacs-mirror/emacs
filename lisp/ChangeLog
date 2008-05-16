@@ -4,7 +4,7 @@
 	the end of the file, it was good work at one time but has been
 	stale since 1995 and may now be actively misleading.
 	* vc-cvs.el (vc-cvs-status-extra-headers): Extract and display the
-	CVS repository.
+	CVS repository and module (assumptions for the latter a bit iffy).
 	* vc-svn.el (vc-svn-status-extra-headers): Extract and display the
 	SVN repository.
 

@@ -1798,9 +1798,9 @@ See Info node `Merging'."
 It calls the `status-extra-headers' backend method to display backend
 specific headers."
   (concat
-   (propertize "VC backend : " 'face 'font-lock-type-face)
+   (propertize "VC backend:  " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
-   (propertize "Working dir: " 'face 'font-lock-type-face)
+   (propertize "Working dir:  " 'face 'font-lock-type-face)
    (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
    (vc-call-backend backend 'status-extra-headers dir)
    "\n"))
