@@ -979,7 +979,7 @@ which see.  */)
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
-  EMACS_INT ino;
+  EMACS_INT ino, uid, gid;
   char *uname, *gname;
 
   filename = Fexpand_file_name (filename, Qnil);
@@ -1015,20 +1015,22 @@ which see.  */)
 #endif
     }
   values[1] = make_number (s.st_nlink);
+  uid = s.st_uid;
+  gid = s.st_gid;
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
-      values[2] = make_fixnum_or_float (s.st_uid);
-      values[3] = make_fixnum_or_float (s.st_gid);
+      values[2] = make_fixnum_or_float (uid);
+      values[3] = make_fixnum_or_float (gid);
     }
   else
     {
       BLOCK_INPUT;
       uname = stat_uname (&s);
       values[2] = (uname ? build_string (uname)
-		   : make_fixnum_or_float (s.st_uid));
+		   : make_fixnum_or_float (uid));
       gname = stat_gname (&s);
       values[3] = (gname ? build_string (gname)
-		   : make_fixnum_or_float (s.st_gid));
+		   : make_fixnum_or_float (gid));
       UNBLOCK_INPUT;
     }
   values[4] = make_time (s.st_atime);
