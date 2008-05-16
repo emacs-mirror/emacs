@@ -1,3 +1,9 @@
+2008-05-16  John Paul Wallington  <jpw@pobox.com>
+
+	* vc-dispatcher.el (top-level): Don't require cl when compiling.
+	(vc-dir-mode-map): Fix backquote.
+	(vc-at-event): Doc fix.  Use `make-symbol' instead of `gensym'.
+
 2008-05-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-write-region): Fix check for short
