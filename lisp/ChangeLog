@@ -1,5 +1,7 @@
 2008-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* net/tramp.el (top-level): Load auth-source when compiling.
+
 	* progmodes/fortran.el (fortran-font-lock-keywords-2): Add .eqv., .neqv.
 
 2008-05-17  Andreas Schwab  <schwab@suse.de>
