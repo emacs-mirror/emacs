@@ -1,3 +1,7 @@
+2008-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* sysdep.c (child_setup_tty): Handle systems with NLDLY, without FFDLY.
+
 2008-05-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Shut up GCC warnings about st_uid
