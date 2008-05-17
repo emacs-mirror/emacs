@@ -1,4 +1,8 @@
-<<<<<<< ChangeLog
+2008-05-16  John Paul Wallington  <jpw@pobox.com>
+
+	* vc-dispatcher.el (top-level): Revert previous change: require cl
+	when compiling.
+
 2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-default-status-printer)
