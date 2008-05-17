@@ -1,5 +1,7 @@
 2008-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* elide-head.el (elide-head-headers-to-hide): Handle GPLv3 format.
+
 	* net/tramp.el (top-level): Load auth-source when compiling.
 
 	* progmodes/fortran.el (fortran-font-lock-keywords-2): Add .eqv., .neqv.
