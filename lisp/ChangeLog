@@ -1,3 +1,7 @@
+2008-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-font-lock-keywords-2): Add .eqv., .neqv.
+
 2008-05-17  Andreas Schwab  <schwab@suse.de>
 
 	* vc-dispatcher.el (vc-dir-mode-map): Fix M-down and M-up binding.
