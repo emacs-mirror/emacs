@@ -1,3 +1,8 @@
+2008-05-17  David Hull <david@snap.com>  (tiny change)
+
+	* vc-hg.el (vc-hg-annotate-command): Allow white space before
+	version number.
+
 2008-05-12  Simon Marshall  <simon@gnu.org>
 
 	* obsolete/fast-lock.el (fast-lock-cache-directories): Remove "."

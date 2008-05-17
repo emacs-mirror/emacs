@@ -311,8 +311,8 @@ Optional arg VERSION is a version to annotate from."
   (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if version (concat "-r" version)))
   (with-current-buffer buffer
     (goto-char (point-min))
-    (re-search-forward "^[0-9]")
-    (delete-region (point-min) (1- (point)))))
+    (re-search-forward "^[ \t]*[0-9]")
+    (delete-region (point-min) (match-beginning 0))))
 
 
 ;; The format for one line output by "hg annotate -d -n" looks like this:
