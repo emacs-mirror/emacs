@@ -1,3 +1,8 @@
+2008-05-17  Dan Nicolaescu  <dann@rosas>
+
+	* vc.el (vc-annotate-show-diff-revision-at-line): Change
+	vc-diff-internal arg to match what vc-deduce-fileseset returns now.
+
 2008-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* menu-bar.el (menu-bar-select-buffer): Reinsert it as msb.el use it.

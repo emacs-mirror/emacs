@@ -1788,7 +1788,7 @@ See Info node `Merging'."
 ;; VC status implementation
 
 (defun vc-default-status-extra-headers (backend dir)
-  ;; Be loud by default to remind people to add coded to display
+  ;; Be loud by default to remind people to add code to display
   ;; backend specific headers.
   ;; XXX: change this to return nil before the release.
   "Extra      : Add backend specific headers here")
@@ -3103,7 +3103,10 @@ revisions after."
 	  (save-window-excursion
 	    (vc-diff-internal
 	     nil
-	     (cons vc-annotate-backend (list vc-annotate-parent-file))
+	     ;; The value passed here should follow what
+	     ;; `vc-deduce-fileset' returns.
+	     (cons vc-annotate-backend
+		   (cons (list vc-annotate-parent-file) nil))
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
