@@ -600,8 +600,15 @@ child_setup_tty (out)
   s.main.c_oflag |= OPOST;	/* Enable output postprocessing */
   s.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL on output */
 #ifdef NLDLY
+  /* http://lists.gnu.org/archive/html/emacs-devel/2008-05/msg00406.html
+     Some versions of GNU Hurd do not have FFDLY?  */
+#ifdef FFDLY
   s.main.c_oflag &= ~(NLDLY|CRDLY|TABDLY|BSDLY|VTDLY|FFDLY);
   				/* No output delays */
+#else
+  s.main.c_oflag &= ~(NLDLY|CRDLY|TABDLY|BSDLY|VTDLY);
+  				/* No output delays */
+#endif
 #endif
   s.main.c_lflag &= ~ECHO;	/* Disable echo */
   s.main.c_lflag |= ISIG;	/* Enable signals */
