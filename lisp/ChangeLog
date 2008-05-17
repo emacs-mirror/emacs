@@ -1,3 +1,7 @@
+2008-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* menu-bar.el (menu-bar-select-buffer): Reinsert it as msb.el use it.
+
 2008-05-17  Jim Meyering  <meyering@redhat.com>
 
 	* ido.el (ido-save-history): Do not emit a trailing newline at the

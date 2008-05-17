@@ -1624,6 +1624,10 @@ Buffers menu is regenerated."
 
 (defvar list-buffers-directory nil)
 
+(defun menu-bar-select-buffer ()
+  (interactive)
+  (switch-to-buffer last-command-event))
+
 (defun menu-bar-select-frame (frame)
   (make-frame-visible frame)
   (raise-frame frame)
