@@ -87,9 +87,10 @@
 (require 'shell)
 (require 'advice)
 
-(if (featurep 'xemacs)
-    (load "auth-source" 'noerror)
-  (require 'auth-source nil 'noerror))
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (load "auth-source" 'noerror)
+    (require 'auth-source nil 'noerror)))
 
 ;; Requiring 'tramp-cache results in an endless loop.
 (autoload 'tramp-get-file-property "tramp-cache")
