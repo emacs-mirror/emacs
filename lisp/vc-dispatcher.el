@@ -751,7 +751,7 @@ See `run-hooks'."
     map)
   "Menu for dispatcher status")
 
-;; This is used to that vlient modes can add mode-specific menu
+;; This is used to that client modes can add mode-specific menu
 ;; items to vc-dir-menu-map.
 (defun vc-dir-menu-map-filter (orig-binding)
   (when (and (symbolp orig-binding) (fboundp orig-binding))
