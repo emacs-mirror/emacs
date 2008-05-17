@@ -1,4 +1,4 @@
-2008-05-17  Dan Nicolaescu  <dann@rosas>
+2008-05-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate-show-diff-revision-at-line): Change
 	vc-diff-internal arg to match what vc-deduce-fileseset returns now.
