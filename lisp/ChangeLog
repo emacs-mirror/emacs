@@ -1,5 +1,12 @@
 2008-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* ezimage.el (ezimage-use-images): Drop support for Emacs < 21 and
+	simplify initial value.
+	(defezimage): Drop support for Emacs without defimage, use a featurep
+	test rather than fboundp when defining, drop with-no-warnings.
+	(ezimage-insert-over-text): Move featurep test inside
+	add-text-properties.
+
 	* elide-head.el (elide-head-headers-to-hide): Handle GPLv3 format.
 
 	* net/tramp.el (top-level): Load auth-source when compiling.
@@ -17,7 +24,7 @@
 
 2008-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* menu-bar.el (menu-bar-select-buffer): Reinsert it as msb.el use it.
+	* menu-bar.el (menu-bar-select-buffer): Reinsert it as msb.el uses it.
 
 2008-05-17  Jim Meyering  <meyering@redhat.com>
 
