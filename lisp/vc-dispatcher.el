@@ -783,8 +783,8 @@ See `run-hooks'."
     ;;; Rebind paragraph-movement commands.
     (define-key map "\M-}" 'vc-dir-next-directory)
     (define-key map "\M-{" 'vc-dir-prev-directory)
-    (define-key map "\M-<down>" 'vc-dir-next-directory)
-    (define-key map "\M-<up>" 'vc-dir-prev-directory)
+    (define-key map [M-down] 'vc-dir-next-directory)
+    (define-key map [M-up] 'vc-dir-prev-directory)
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
     (define-key map "\C-m" 'vc-dir-find-file)
