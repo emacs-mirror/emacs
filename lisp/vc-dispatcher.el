@@ -36,10 +36,10 @@
 ;; to address that involves selecting sets of files, or possibly
 ;; directories, and passing the selection set to slave commands.  The
 ;; prototypical example, from which this code is derived, is talking
-;; to version-control systems. 
+;; to version-control systems.
 ;;
 ;; vc-dispatcher.el is written to decouple the UI issues in such front
-;; ends from their application-specific logic. It also provides a
+;; ends from their application-specific logic.  It also provides a
 ;; service layer for running the slave commands either synchronously
 ;; or asynchronously and managing the message/error logs from the
 ;; command runs.
@@ -54,8 +54,8 @@
 ;; Dispatcher's universe:
 ;;
 ;; The universe consists of the file tree rooted at the current
-;; directory. The dispatcher's upper layer deduces some subset 
-;; of the file tree from the state of the currently visited buffer 
+;; directory.  The dispatcher's upper layer deduces some subset
+;; of the file tree from the state of the currently visited buffer
 ;; and returns that subset, presumably to a client mode.
 ;;
 ;; The user may be looking at either of two different views; a buffer
@@ -65,7 +65,7 @@
 ;; synchronously or asynchronously.  Commands may be launched in one
 ;; of two ways: they may be run immediately, or the calling mode can
 ;; create a closure associated with a text-entry buffer, to be
-;; executed when the user types C-c to ship the buffer contents. In
+;; executed when the user types C-c to ship the buffer contents.  In
 ;; either case the command messages and error (if any) will remain
 ;; available in a status buffer.
 
@@ -80,16 +80,16 @@
 ;; The standard map associates a 'state' slot (that the client mode
 ;; may set) with each directory entry.  The dispatcher knows nothing
 ;; about the semantics of individual states, but mark and unmark commands
-;; treat all entries with the same state as the currently selected one as 
+;; treat all entries with the same state as the currently selected one as
 ;; a unit.
 
 ;; The interface:
 ;;
 ;; The main interface to the lower level is vc-do-command.  This launches a
-;; comand, synchronously or asynchronously, making the output available
+;; command, synchronously or asynchronously, making the output available
 ;; in a command log buffer.  Two other functions, (vc-start-annotation) and
 ;; (vc-finish-logentry), allow you to associate a command closure with an
-;; abbotation buffer so that when the user confirms the comment the closure
+;; annotation buffer so that when the user confirms the comment the closure
 ;; is run (with the comment as part of its context).
 ;;
 ;; The interface to the upper level has the two main entry points (vc-dir)
@@ -97,8 +97,8 @@
 ;; (vc-dir) sets up a dispatcher browsing buffer; (vc-dispatcher-selection-set)
 ;; returns a selection set of files, either the marked files in a browsing
 ;; buffer or the singleton set consisting of the file visited by the current
-;; buffer (when that is appropriate).  It also does what is needed to ensure 
-;; that on-disk files and the contents of their visiting Emacs buffers 
+;; buffer (when that is appropriate).  It also does what is needed to ensure
+;; that on-disk files and the contents of their visiting Emacs buffers
 ;; coincide.
 ;;
 ;; When the client mode adds a local mode-line-hook to a buffer, it
@@ -108,7 +108,7 @@
 ;; To do:
 ;;
 ;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
-;;   it should work for other async commands done through vc-do-command 
+;;   it should work for other async commands done through vc-do-command
 ;;   as well,
 ;;
 ;; - log buffers need font-locking.
@@ -305,7 +305,7 @@ that is inserted into the command line before the filename."
 		  (if (listp file-or-list) file-or-list (list file-or-list))))
 	 (full-command
 	  ;; What we're doing here is preparing a version of the command
-	  ;; for display in a debug-progess message.  If it's fewer than
+	  ;; for display in a debug-progress message.  If it's fewer than
 	  ;; 20 characters display the entire command (without trailing
 	  ;; newline).  Otherwise display the first 20 followed by an ellipsis.
 	  (concat (if (string= (substring command -1) "\n")
@@ -356,7 +356,7 @@ that is inserted into the command line before the filename."
 		(vc-exec-after
 		 `(if vc-command-messages
 		      (message "Running %s in background... done" ',full-command))))
-	    ;; Run synchrously
+	    ;; Run synchronously
 	    (when vc-command-messages
 	      (message "Running %s in foreground..." full-command))
 	    (let ((buffer-undo-list t))
@@ -371,7 +371,7 @@ that is inserted into the command line before the filename."
 	      (error "Running %s...FAILED (%s)" full-command
 		     (if (integerp status) (format "status %d" status) status))))
 	  ;; We're done.  But don't emit a status message if running
-	  ;; asychronously, it would just mislead.
+	  ;; asynchronously, it would just mislead.
 	  (if (and vc-command-messages (not (eq okstatus 'async)))
 	      (message "Running %s...OK = %d" full-command status)))
 	(vc-exec-after
@@ -380,7 +380,7 @@ that is inserted into the command line before the filename."
 	status))))
 
 ;; These functions are used to ensure that the view the user sees is up to date
-;; even if the dispatcher client mode has messed with file contents (as in, 
+;; even if the dispatcher client mode has messed with file contents (as in,
 ;; for example, VCS keyword expansion).
 
 (declare-function view-mode-exit "view" (&optional return-to-alist exit-action all-win))
@@ -646,22 +646,22 @@ See `run-hooks'."
   ;; To distinguish files and directories.
   directory)
 
-;; Used to describe a dispatcher client mode.  
+;; Used to describe a dispatcher client mode.
 (defstruct (vc-client-object
             (:copier nil)
             (:constructor
-	     vc-create-client-object (name 
-				      headers 
+	     vc-create-client-object (name
+				      headers
 				      file-to-info
-				      file-to-state 
+				      file-to-state
 				      file-to-extra
 				      updater
 				      extra-menu))
             (:conc-name vc-client-object->))
-  name 
+  name
   headers
   file-to-info
-  file-to-state 
+  file-to-state
   file-to-extra
   updater
   extra-menu)
@@ -751,7 +751,7 @@ See `run-hooks'."
     map)
   "Menu for dispatcher status")
 
-;; This is used to that client modes can add mode-specific menu
+;; This is used so that client modes can add mode-specific menu
 ;; items to vc-dir-menu-map.
 (defun vc-dir-menu-map-filter (orig-binding)
   (when (and (symbolp orig-binding) (fboundp orig-binding))
@@ -975,7 +975,7 @@ If a prefix argument is given, move by that many lines."
   "Go to the next directory."
   (interactive)
   (let ((orig (point)))
-    (if 
+    (if
 	(catch 'foundit
 	  (while t
 	    (let* ((next (ewoc-next vc-ewoc (ewoc-locate vc-ewoc))))
@@ -993,7 +993,7 @@ If a prefix argument is given, move by that many lines."
   "Go to the previous directory."
   (interactive)
   (let ((orig (point)))
-    (if 
+    (if
 	(catch 'foundit
 	  (while t
 	    (let* ((prev (ewoc-prev vc-ewoc (ewoc-locate vc-ewoc))))
@@ -1275,7 +1275,7 @@ that share the same state."
 	      (setq crt (ewoc-next vc-ewoc crt)))
 	  (setq crt (ewoc-next vc-ewoc crt)))))
     result))
- 
+
 (defun vc-directory-resynch-file (&optional fname)
   "Update the entries for FILE in any directory buffers that list it."
   (let ((file (or fname (expand-file-name buffer-file-name))))
@@ -1364,19 +1364,19 @@ U - if the cursor is on a file: unmark all the files with the same state
 
 (defun vc-dispatcher-selection-set (&optional observer)
   "Deduce a set of files to which to apply an operation.  Return a cons
-cell (SELECTION . FILESET), where SELECTION is what the user chose 
+cell (SELECTION . FILESET), where SELECTION is what the user chose
 and FILES is the flist with any directories replaced by the listed files
 within them.
 
 If we're in a directory display, the fileset is the list of marked files (if
-there is one) else the file on the curreent line.  If not in a directory
+there is one) else the file on the current line.  If not in a directory
 display, but the current buffer visits a file, the fileset is a singleton
 containing that file.  Otherwise, throw an error."
   (let ((selection
          (cond
           ;; Browsing with vc-dir
           ((vc-dispatcher-browsing)
-	   ;; If no files are marked, temporatrily mark current file
+	   ;; If no files are marked, temporarily mark current file
 	   ;; and choose on that basis (so we get subordinate files)
 	   (if (not (vc-dir-marked-files))
 		 (prog2
