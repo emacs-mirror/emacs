@@ -1,3 +1,7 @@
+2008-05-18  David Hull <david@snap.com>  (tiny change)
+
+	* vc-hg.el (vc-hg-annotate-re): Recognize the output of --follow.
+
 2008-05-18  mohrmarc  <debian@miller-mohr.de>  (tiny change)
 
 	* progmodes/fortran.el (fortran-font-lock-keywords-2): Add keywords for

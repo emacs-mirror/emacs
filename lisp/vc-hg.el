@@ -318,7 +318,11 @@ Optional arg VERSION is a version to annotate from."
 ;; The format for one line output by "hg annotate -d -n" looks like this:
 ;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS
 ;; i.e: VERSION_NUMBER DATE: CONTENTS
-(defconst vc-hg-annotate-re "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\): ")
+;; If the user has set the "--follow" option, the output looks like:
+;;215 Wed Jun 20 21:22:58 2007 -0700 foo.c: CONTENTS
+;; i.e. VERSION_NUMBER DATE FILENAME: CONTENTS
+(defconst vc-hg-annotate-re
+  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)[^:\n]*\\(:[^ \n][^:\n]*\\)*: ")
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
@@ -329,7 +333,7 @@ Optional arg VERSION is a version to annotate from."
 (defun vc-hg-annotate-extract-revision-at-line ()
   (save-excursion
     (beginning-of-line)
-    (if (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
+    (when (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
 
 (defun vc-hg-previous-version (file rev)
   (let ((newrev (1- (string-to-number rev))))
