@@ -28178,8 +28178,7 @@ latter will produce an error message.
 
 @kindex r 0-9
 The @kbd{r} prefix may be followed by a digit, so that @kbd{r 9} is
-equivalent to @kbd{s r 9}.  (The @kbd{r} prefix is otherwise unused
-in the current version of Calc.)
+equivalent to @kbd{s r 9}.
 
 @node Operations on Variables, Let Command, Recalling Variables, Store and Recall
 @section Other Operations on Variables
@@ -29210,6 +29209,8 @@ work with Calc from a regular editing buffer.  @xref{Embedded Mode}.
 @menu
 * Killing From Stack::
 * Yanking Into Stack::
+* Saving Into Registers::
+* Inserting From Registers::
 * Grabbing From Buffers::
 * Yanking Into Buffers::
 * X Cut and Paste::
@@ -29255,7 +29256,7 @@ with no argument copies only the number itself into the kill ring, whereas
 @kbd{C-k} with a prefix argument of 1 copies the number with its trailing
 newline.
 
-@node Yanking Into Stack, Grabbing From Buffers, Killing From Stack, Kill and Yank
+@node Yanking Into Stack, Saving Into Registers, Killing From Stack, Kill and Yank
 @section Yanking into the Stack
 
 @noindent
@@ -29274,7 +29275,53 @@ number in its displayed form, 3.142.  (Since the default display modes
 show all objects to their full precision, this feature normally makes no
 difference.)
 
-@node Grabbing From Buffers, Yanking Into Buffers, Yanking Into Stack, Kill and Yank
+@node Saving Into Registers, Inserting From Registers, Yanking Into Stack, Kill and Yank
+@section Saving into Registers
+
+@noindent
+@kindex r s
+@pindex calc-copy-to-register
+@pindex calc-prepend-to-register
+@pindex calc-append-to-register
+@cindex Registers
+An alternative to killing and yanking stack entries is using 
+registers in Calc.  Saving stack entries in registers is like
+saving text in normal Emacs registers; although, like Calc's kill
+commands, register commands always operate on whole stack
+entries.
+
+Registers in Calc are places to store stack entries for later use;
+each register is indexed by a single character.  To store the current
+region (rounded up, of course, to include full stack entries) into a
+register, use the command @kbd{r s} (@code{calc-copy-to-register}).
+You will then be prompted for a register to use, the next character
+you type will be the index for the register.  To store the region in
+register @var{r}, the full command will be @kbd{r s @var{r}}.  With an
+argument, @kbd{C-u r s @var{r}}, the region being copied to the
+register will be deleted from the Calc buffer.
+
+It is possible to add additional stack entries to a register.  The
+command @kbd{M-x calc-append-to-register} will prompt for a register,
+then add the stack entries in the region to the end of the register
+contents. The command @kbd{M-x calc-prepend-to-register} will
+similarly prompt for a register and add  the stack entries in the
+region to the beginning of the register contents.  Both commands take
+@kbd{C-u} arguments, which will cause the region to be deleted after being
+added to the register.
+
+@node Inserting From Registers, Grabbing From Buffers, Saving Into Registers, Kill and Yank
+@section Inserting from Registers
+@noindent
+@kindex r i
+@pindex calc-insert-register
+The command @kbd{r i} (@code{calc-insert-register}) will prompt for a
+register, then insert the contents of that register into the
+Calculator.  If the contents of the register were placed there from
+within Calc, then the full internal structure of the contents will be
+inserted into the Calculator, otherwise whatever text is in the
+register is reparsed and then inserted into the Calculator.
+
+@node Grabbing From Buffers, Yanking Into Buffers, Inserting From Registers, Kill and Yank
 @section Grabbing from Other Buffers
 
 @noindent
@@ -35608,6 +35655,10 @@ keystrokes are not listed in this summary.
 @r{       @:      m R   @:             @: 12,13  @:calc-mode-record-mode@:}
 @r{       @:      m S   @:             @:    12  @:calc-shift-prefix@:}
 @r{       @:      m U   @:             @:    12  @:calc-units-simplify-mode@:}
+
+@c
+@r{       @:      r s   @:register     @:    27  @:calc-copy-to-register@:}
+@r{       @:      r i   @:register     @:        @:calc-insert-register@:}
 
 @c
 @r{       @:      s c   @:var1, var2   @:    29  @:calc-copy-variable@:}
