@@ -539,8 +539,9 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-r-prefix-help ()
   (interactive)
   (calc-do-prefix-help
-   '("digits 0-9: recall, same as `s r 0-9'")
-   "recall" ?r))
+   '("digits 0-9: recall, same as `s r 0-9'"
+     "Save to register, Insert from register")
+   "recall/register" ?r))
 
 
 (defun calc-j-prefix-help ()
