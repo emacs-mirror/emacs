@@ -132,6 +132,128 @@
 		      val))
 		val))))))))
 
+;;; The Calc set- and get-register commands are modified versions of functions 
+;;; in register.el
+
+(defvar calc-register-alist nil
+  "Alist of elements (NAME . (TEXT . CALCVAL)).
+NAME is a character (a number).
+TEXT and CALCVAL are the TEXT and internal structure of stack entries.")
+
+(defun calc-set-register (register text calcval)
+  "Set the contents of the Calc register REGISTER to (TEXT . CALCVAL),
+as well as set the contents of the Emacs register REGISTER to TEXT."
+  (set-register register text)
+  (let ((aelt (assq register calc-register-alist)))
+    (if aelt
+        (setcdr aelt (cons text calcval))
+      (push (cons register (cons text calcval)) calc-register-alist))))
+
+(defun calc-get-register (reg)
+  "Return the CALCVAL portion of the contents of the Calc register REG,
+unless the TEXT portion doesn't match the contents of the Emacs register REG,
+in which case either return the contents of the Emacs register (if it is
+text) or `nil'."
+  (let ((cval (cdr (assq reg calc-register-alist)))
+        (val (cdr (assq reg register-alist))))
+    (if (and (stringp (car cval))
+             (stringp val))
+        (if (string= (car cval) val)
+            (cdr cval)
+          val))))
+
+(defun calc-copy-to-register (register start end &optional delete-flag)
+  "Copy the lines in the region into register REGISTER.
+With prefix arg, delete as well."
+  (interactive "cCopy to register: \nr\nP")
+  (if (eq major-mode 'calc-mode)
+      (let* ((top-num (calc-locate-cursor-element start))
+             (top-pos (save-excursion
+                        (calc-cursor-stack-index top-num)
+                        (point)))
+             (bot-num (calc-locate-cursor-element (1- end)))
+             (bot-pos (save-excursion
+                        (calc-cursor-stack-index (max 0 (1- bot-num)))
+                        (point)))
+             (num (- top-num bot-num -1))
+             (str (buffer-substring top-pos bot-pos)))
+        (calc-set-register register str (calc-top-list num bot-num))
+        (if delete-flag
+            (calc-wrapper
+             (calc-pop-stack num bot-num))))
+    (copy-to-register register start end delete-flag)))
+
+(defun calc-insert-register (register)
+  "Insert the contents of register REGISTER."
+  (interactive "cInsert register: ")
+  (if (eq major-mode 'calc-mode)
+      (let ((val (calc-get-register register)))
+        (calc-wrapper
+         (calc-pop-push-record-list
+          0 "insr"
+          (if (not val)
+              (error "Bad format in register data")
+            (if (consp val)
+                val
+              (let ((nval (math-read-exprs (calc-clean-newlines val))))
+                (if (eq (car-safe nval) 'error)
+                    (progn
+                      (setq nval (math-read-exprs val))
+                      (if (eq (car-safe nval) 'error)
+                          (error "Bad format in register data")
+                        nval))
+                  nval)))))))
+    (insert-register register)))
+
+(defun calc-add-to-register (register start end prepend delete-flag)
+  "Add the lines in the region to register REGISTER.
+If PREPEND is non-nil, add them to the beginning of the register, 
+otherwise the end.  If DELETE-FLAG is non-nil, also delete the region."
+  (let* ((top-num (calc-locate-cursor-element start))
+         (top-pos (save-excursion
+                    (calc-cursor-stack-index top-num)
+                    (point)))
+         (bot-num (calc-locate-cursor-element (1- end)))
+         (bot-pos (save-excursion
+                    (calc-cursor-stack-index (max 0 (1- bot-num)))
+                    (point)))
+         (num (- top-num bot-num -1))
+         (str (buffer-substring top-pos bot-pos))
+         (calcval (calc-top-list num bot-num))
+         (cval (cdr (assq register calc-register-alist))))
+    (if (not cval)
+        (calc-set-register register str calcval)
+      (if prepend
+          (calc-set-register
+           register
+           (concat str (car cval))
+           (append calcval (cdr cval)))
+        (calc-set-register
+         register
+         (concat (car cval) str)
+         (append (cdr cval) calcval))))
+    (if delete-flag
+        (calc-wrapper
+         (calc-pop-stack num bot-num)))))
+
+(defun calc-append-to-register (register start end &optional delete-flag)
+  "Copy the lines in the region to the end of register REGISTER.
+With prefix arg, also delete the region."
+  (interactive "cAppend to register: \nr\nP")
+  (if (eq major-mode 'calc-mode)
+      (calc-add-to-register register start end nil delete-flag)
+    (append-to-register register start end delete-flag)))
+  
+(defun calc-prepend-to-register (register start end &optional delete-flag)
+  "Copy the lines in the region to the beginning of register REGISTER.
+With prefix arg, also delete the region."
+  (interactive "cPrepend to register: \nr\nP")
+  (if (eq major-mode 'calc-mode)
+      (calc-add-to-register register start end t delete-flag)
+    (prepend-to-register register start end delete-flag)))
+  
+
+
 (defun calc-clean-newlines (s)
   (cond
 
