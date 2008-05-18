@@ -456,6 +456,8 @@
   (define-key calc-mode-map "mX" 'calc-load-everything)
 
   (define-key calc-mode-map "r" nil)
+  (define-key calc-mode-map "ri" 'calc-insert-register)
+  (define-key calc-mode-map "rs" 'calc-copy-to-register)
   (define-key calc-mode-map "r?" 'calc-r-prefix-help)
 
   (define-key calc-mode-map "s" nil)
@@ -956,6 +958,8 @@ math-read-brackets math-reduce-cols math-reduce-vec math-transpose)
 
  ("calc-yank" calc-alg-edit calc-clean-newlines
 calc-do-grab-rectangle calc-do-grab-region calc-finish-stack-edit
+calc-copy-to-register calc-insert-register 
+calc-append-to-register calc-prepend-to-register
 calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
 
 ))
