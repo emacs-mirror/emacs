@@ -1,3 +1,17 @@
+2008-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-yank.el (calc-register-alist): New variable.
+	(calc-set-register,calc-get-register,calc-copy-to-register)
+	(calc-insert-register,calc-add-to-register,calc-append-to-register)
+	(calc-prepend-to-register): New functions.
+
+	* calc/calc-ext.el (calc-init-extensions): Add keybindings for
+	`calc-copy-to-register' and `calc-insert-register'.  Autoload
+	new register functions.
+
+	* calc/calc-help.el (calc-r-prefix-help): Add help for register
+	functions.
+
 2008-05-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (Todo): Add known problems.
