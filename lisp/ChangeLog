@@ -1,5 +1,9 @@
 2008-05-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dispatcher.el (vc-dir-previous-directory): Rename from
+	vc-dir-prev-directory for consistency with vc-dir-previous-line.
+	(vc-dir-mode-map): Fix bindings.
+
 	* vc-bzr.el (vc-bzr-after-dir-status): Remove unused binding.
 
 2008-05-18  Jay Belanger  <jay.p.belanger@gmail.com>

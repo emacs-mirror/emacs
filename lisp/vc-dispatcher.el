@@ -777,14 +777,14 @@ See `run-hooks'."
     ;; Movement.
     (define-key map "n" 'vc-dir-next-line)
     (define-key map " " 'vc-dir-next-line)
-    (define-key map "\t" 'vc-dir-next-line)
+    (define-key map "\t" 'vc-dir-next-directory)
     (define-key map "p" 'vc-dir-previous-line)
-    (define-key map [backtab] 'vc-dir-previous-line)
+    (define-key map [backtab] 'vc-dir-previous-directory)
     ;;; Rebind paragraph-movement commands.
     (define-key map "\M-}" 'vc-dir-next-directory)
-    (define-key map "\M-{" 'vc-dir-prev-directory)
-    (define-key map [M-down] 'vc-dir-next-directory)
-    (define-key map [M-up] 'vc-dir-prev-directory)
+    (define-key map "\M-{" 'vc-dir-previous-directory)
+    (define-key map [C-down] 'vc-dir-next-directory)
+    (define-key map [C-up] 'vc-dir-previous-directory)
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
     (define-key map "\C-m" 'vc-dir-find-file)
@@ -792,8 +792,8 @@ See `run-hooks'."
     (define-key map "q" 'quit-window)
     (define-key map "g" 'vc-dir-refresh)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    (define-key map [(down-mouse-3)] 'vc-dir-menu)
-    (define-key map [(mouse-2)] 'vc-dir-toggle-mark)
+    (define-key map [down-mouse-3] 'vc-dir-menu)
+    (define-key map [mouse-2] 'vc-dir-toggle-mark)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -989,7 +989,7 @@ If a prefix argument is given, move by that many lines."
 			   (throw 'foundit nil))))))))
 	(goto-char orig))))
 
-(defun vc-dir-prev-directory ()
+(defun vc-dir-previous-directory ()
   "Go to the previous directory."
   (interactive)
   (let ((orig (point)))
