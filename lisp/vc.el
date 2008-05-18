@@ -609,6 +609,9 @@
 ;;   the two branches.  Or you locally add file FOO and then pull a
 ;;   change that also adds a new file FOO, ...
 ;;
+;; - C-x v l should insert the file set in the *VC-log* buffer so that
+;;   log-view can recognize it and use it for its commands.
+;;
 ;; - vc-diff should be able to show the diff for all files in a
 ;;   changeset, especially for VC systems that have per repository
 ;;   version numbers.  log-view should take advantage of this.
@@ -641,7 +644,25 @@
 ;;   Those logs should likely use a local variable to hardware the VC they
 ;;   are supposed to work with.
 ;;
-
+;;;; Problems:
+;;
+;; - log-view-diff does not work anymore in the case when the log was
+;;   created from more than one file.  The error is:
+;;   vc-derived-from-dir-mode: Lisp nesting exceeds `max-lisp-eval-depth'.
+;;
+;; - the vc-dir display is now bogus for git and mercurial.
+;;
+;; - the CVS vc-dir display is now incorrect from some states.
+;;
+;; - vc-dir is now broken for RCS and SCCS.
+;;
+;; - the *vc-dir* buffer is not updated correctly anymore after VC
+;;   operations that change the file state.
+;;
+;; - the mouse3 menu for vc-dir does not have a title anymore.
+;;
+;; - the menu for the *vc-dir* buffer uses the wrong name now.
+;;
 ;;; Code:
 
 (require 'vc-hooks)
@@ -990,6 +1011,8 @@ the common state of the fileset.  Return (BACKEND . FILESET)."
 	 (cooked (cdr selection))	;; Files only
          ;; FIXME: Store the backend in a buffer-local variable.
          (backend (if (vc-derived-from-dir-mode (current-buffer))
+		      ;; FIXME: this should use vc-dir-backend from
+		      ;; the *vc-dir* buffer.
                       (vc-responsible-backend default-directory)
                     (assert (and (= 1 (length raw))
                                  (not (file-directory-p (car raw)))))
@@ -1941,34 +1964,28 @@ outside of VC) and one wants to do some operation on it."
   "Default absence of extra information returned for a file."
   nil)
 
+(defvar vc-dir-backend nil
+  "The backend used by the current *vc-dir* buffer.")
+
 ;; FIXME: Replace these with a more efficient dispatch
 
 (defun vc-generic-status-printer (fileentry)
-  (let* ((file (vc-dir-fileinfo->name fileentry))
-	 (backend (vc-responsible-backend (expand-file-name file))))
-    (vc-call-backend backend 'status-printer fileentry)))
-  
-(defun vc-generic-state (file)
-  (let ((backend (vc-responsible-backend (expand-file-name file))))
-    (vc-call-backend backend 'state file)))
-  
-(defun vc-generic-status-fileinfo-extra (file)
-  (let ((backend (vc-responsible-backend (expand-file-name file))))
-    (vc-call-backend backend 'status-fileinfo-extra file)))
+  (vc-call-backend vc-dir-backend 'status-printer fileentry))
 
-(defun vc-generic-dir-headers (dir)
-  (let ((backend (vc-responsible-backend dir)))
-    (vc-dir-headers backend dir)))
+(defun vc-generic-state (file)
+  (vc-call-backend vc-dir-backend 'state file))
+
+(defun vc-generic-status-fileinfo-extra (file)
+  (vc-call-backend vc-dir-backend 'status-fileinfo-extra file))
 
 (defun vc-dir-extra-menu ()
-  (vc-call-backend (vc-responsible-backend default-directory) 'extra-status-menu))
+  (vc-call-backend vc-dir-backend 'extra-status-menu))
 
 (defun vc-make-backend-object (file-or-dir)
   "Create the backend capability object needed by vc-dispatcher."
   (vc-create-client-object 
    "VC status"
-   (let ((backend (vc-responsible-backend file-or-dir)))
-     (vc-dir-headers backend file-or-dir))
+   (vc-dir-headers vc-dir-backend file-or-dir)
    #'vc-generic-status-printer
    #'vc-generic-state
    #'vc-generic-status-fileinfo-extra
@@ -1984,6 +2001,7 @@ outside of VC) and one wants to do some operation on it."
       (vc-dir-refresh)
     ;; Otherwise, initialize a new view using the dispatcher layer
     (progn
+      (set (make-local-variable 'vc-dir-backend) (vc-responsible-backend dir))
       ;; Build a capability object and hand it to the dispatcher initializer
       (vc-dir-mode (vc-make-backend-object dir))
       ;; FIXME: Make a derived-mode instead.

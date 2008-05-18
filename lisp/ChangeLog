@@ -1,5 +1,13 @@
 2008-05-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (Todo): Add known problems.
+	(vc-dir-backend): New variable.
+	(vc-dir): Set it.
+	(vc-make-backend-object, vc-generic-status-printer)
+	(vc-generic-state, vc-generic-status-fileinfo-extra)
+	(vc-dir-extra-menu): Use it.
+	(vc-generic-dir-headers): Remove, unused.
+
 	* vc-dispatcher.el (vc-dir-previous-directory): Rename from
 	vc-dir-prev-directory for consistency with vc-dir-previous-line.
 	(vc-dir-mode-map): Fix bindings.
