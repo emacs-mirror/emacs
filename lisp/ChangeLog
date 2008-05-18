@@ -1,3 +1,8 @@
+2008-05-18  David Hull <david@snap.com>  (tiny change)
+
+	* vc-hg.el (vc-hg-annotate-re): Recognize the output of --follow.
+	(vc-hg-annotate-command): Allow white space before version number.
+
 2008-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-yank.el (calc-register-alist): New variable.
