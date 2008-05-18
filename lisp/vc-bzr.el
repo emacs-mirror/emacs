@@ -575,7 +575,6 @@ stream.  Standard error output is discarded."
 ;; XXX: this needs testing, it's probably incomplete. 
 (defun vc-bzr-after-dir-status (update-function)
   (let ((status-str nil)
-	(file nil)
 	(translation '(("+N" . added)
 		       ("-D" . removed)
 		       (" M" . edited)
