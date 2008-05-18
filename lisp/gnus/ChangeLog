@@ -1,3 +1,11 @@
+2008-05-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-attach-buffer): Prompt for `disposition'.
+
+	* message.el (message-bogus-address-regexp): Fix and improve custom
+	type.
+	(message-setup-hook): Add message-check-recipients as custom option.
+
 2008-05-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-cite-function): Remove bogus autoload which crept

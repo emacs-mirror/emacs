@@ -4064,7 +4064,15 @@ not have PROP."
   "Regexp of potentially bogus mail addresses."
   :version "23.1" ;; No Gnus
   :group 'message-headers
-  :type 'regexp)
+  :type '(choice (const :tag "None" nil)
+		 (repeat :value-to-internal (lambda (widget value)
+					      (custom-split-regexp-maybe value))
+			 :match (lambda (widget value)
+				  (or (stringp value)
+				      (widget-editable-list-match widget value)))
+			 regexp)
+		 (const "noreply\\|nospam\\|invalid")
+		 regexp))
 
 (defun message-fix-before-sending ()
   "Do various things to make the message nice before sending it."
@@ -4150,7 +4158,7 @@ not have PROP."
 	  (forward-char)
 	  (skip-chars-forward mm-7bit-chars)))))
   (message-check 'bogus-recipient
-    ;; Warn before composing or sending a mail to an invalid address.
+    ;; Warn before sending a mail to an invalid address.
     (message-check-recipients)))
 
 (defun message-bogus-recipient-p (recipients)
@@ -4196,6 +4204,8 @@ This function could be useful in `message-setup-hook'."
 		       (format
 			"Address `%s' might be bogus.  Continue? " bog)))
 		 (error "Bogus address."))))))))
+
+(custom-add-option 'message-setup-hook 'message-check-recipients)
 
 (defun message-add-action (action &rest types)
   "Add ACTION to be performed when doing an exit of type TYPES."
