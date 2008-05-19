@@ -1,3 +1,8 @@
+2008-05-19  Tom Tromey  <tromey@redhat.com>
+
+	* custom.texi (Variables): Add Directory Variables to menu.
+	(Directory Variables): New node.
+
 2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc2-xtra.texi: Mofify an example so it reflects what vc.el 
