@@ -1485,7 +1485,7 @@ The effects of this command can be undone by running
                        "mhn"
                        (if extra-args mh-mh-to-mime-args)
                        buffer-file-name)))
-  (revert-buffer t t)
+  (revert-buffer t t t)
   (message "Running %s...done" (if (mh-variant-p 'nmh) "mhbuild" "mhn"))
   (run-hooks 'mh-mh-to-mime-hook))
 
@@ -1531,7 +1531,7 @@ a prefix argument NOCONFIRM."
     (let ((buffer-read-only nil))
       (erase-buffer)
       (insert-file-contents backup-file))
-    (after-find-file nil)))
+    (after-find-file nil nil nil nil t)))
 
 ;; Shush compiler.
 (defvar mh-identity-pgg-default-user-id)
