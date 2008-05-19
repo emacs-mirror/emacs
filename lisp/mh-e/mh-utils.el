@@ -184,9 +184,8 @@ MH-E."
                (getenv "MH")))
     (if (null (mh-variants))
         (error "Install MH and run install-mh before running MH-E"))
-    (let ((profile "~/.mh_profile"))
-      (if (not (file-readable-p profile))
-          (error "Run install-mh before running MH-E")))
+    (if (not (or (getenv "MH") (file-readable-p "~/.mh_profile")))
+        (error "Run install-mh before running MH-E"))
     ;; Read MH profile.
     (setq mh-user-path (mh-profile-component "Path"))
     (if (not mh-user-path)
