@@ -1973,6 +1973,8 @@ in that case, this function acts as if `enable-local-variables' were t."
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
+    (report-errors "Project local-variables error: %s"
+      (hack-project-variables))
     (report-errors "File local-variables error: %s"
       (hack-local-variables)))
   ;; Turn font lock off and on, to make sure it takes account of
@@ -2623,11 +2625,13 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
-(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars)
+(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars project)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
 UNSAFE-VARS is the list of those that aren't marked as safe or risky.
-RISKY-VARS is the list of those that are marked as risky."
+RISKY-VARS is the list of those that are marked as risky.
+PROJECT is a directory name if these settings come from directory-local
+settings; nil otherwise."
   (if noninteractive
       nil
     (let ((name (if buffer-file-name
@@ -2641,15 +2645,16 @@ RISKY-VARS is the list of those that are marked as risky."
 	  (set (make-local-variable 'cursor-type) nil)
 	  (erase-buffer)
 	  (if unsafe-vars
-	      (insert "The local variables list in " name
+	      (insert "The local variables list in " (or project name)
 		      "\ncontains values that may not be safe (*)"
 		      (if risky-vars
 			  ", and variables that are risky (**)."
 			"."))
 	    (if risky-vars
-		(insert "The local variables list in " name
+		(insert "The local variables list in " (or project name)
 			"\ncontains variables that are risky (**).")
-	      (insert "A local variables list is specified in " name ".")))
+	      (insert "A local variables list is specified in " 
+		      (or project name) ".")))
 	  (insert "\n\nDo you want to apply it?  You can type
 y  -- to apply the local variables list.
 n  -- to ignore the local variables list.")
@@ -2771,6 +2776,50 @@ and VAL is the specified value."
 	  mode-specified
 	result))))
 
+(defun hack-local-variables-apply (result project)
+  "Apply an alist of local variable settings.
+RESULT is the alist.
+Will query the user when necessary."
+  (dolist (ignored ignored-local-variables)
+    (setq result (assq-delete-all ignored result)))
+  (if (null enable-local-eval)
+      (setq result (assq-delete-all 'eval result)))
+  (when result
+    (setq result (nreverse result))
+    ;; Find those variables that we may want to save to
+    ;; `safe-local-variable-values'.
+    (let (risky-vars unsafe-vars)
+      (dolist (elt result)
+	(let ((var (car elt))
+	      (val (cdr elt)))
+	  ;; Don't query about the fake variables.
+	  (or (memq var '(mode unibyte coding))
+	      (and (eq var 'eval)
+		   (or (eq enable-local-eval t)
+		       (hack-one-local-variable-eval-safep
+			(eval (quote val)))))
+	      (safe-local-variable-p var val)
+	      (and (risky-local-variable-p var val)
+		   (push elt risky-vars))
+	      (push elt unsafe-vars))))
+      (if (eq enable-local-variables :safe)
+	  ;; If caller wants only the safe variables,
+	  ;; install only them.
+	  (dolist (elt result)
+	    (unless (or (member elt unsafe-vars)
+			(member elt risky-vars))
+	      (hack-one-local-variable (car elt) (cdr elt))))
+	;; Query, except in the case where all are known safe
+	;; if the user wants no query in that case.
+	(if (or (and (eq enable-local-variables t)
+		     (null unsafe-vars)
+		     (null risky-vars))
+		(eq enable-local-variables :all)
+		(hack-local-variables-confirm
+		 result unsafe-vars risky-vars project))
+	    (dolist (elt result)
+	      (hack-one-local-variable (car elt) (cdr elt))))))))
+
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
 If MODE-ONLY is non-nil, all we do is check whether the major mode
@@ -2862,45 +2911,7 @@ is specified, returning t if it is specified."
       ;; variables (if MODE-ONLY is nil.)
       (if mode-only
 	  result
-	(dolist (ignored ignored-local-variables)
-	  (setq result (assq-delete-all ignored result)))
-	(if (null enable-local-eval)
-	    (setq result (assq-delete-all 'eval result)))
-	(when result
-	  (setq result (nreverse result))
-	  ;; Find those variables that we may want to save to
-	  ;; `safe-local-variable-values'.
-	  (let (risky-vars unsafe-vars)
-	    (dolist (elt result)
-	      (let ((var (car elt))
-		    (val (cdr elt)))
-		;; Don't query about the fake variables.
-		(or (memq var '(mode unibyte coding))
-		    (and (eq var 'eval)
-			 (or (eq enable-local-eval t)
-			     (hack-one-local-variable-eval-safep
-			      (eval (quote val)))))
-		    (safe-local-variable-p var val)
-		    (and (risky-local-variable-p var val)
-			 (push elt risky-vars))
-		    (push elt unsafe-vars))))
-	    (if (eq enable-local-variables :safe)
-		;; If caller wants only the safe variables,
-		;; install only them.
-		(dolist (elt result)
-		  (unless (or (member elt unsafe-vars)
-			      (member elt risky-vars))
-		    (hack-one-local-variable (car elt) (cdr elt))))
-	      ;; Query, except in the case where all are known safe
-	      ;; if the user wants no quuery in that case.
-	      (if (or (and (eq enable-local-variables t)
-			   (null unsafe-vars)
-			   (null risky-vars))
-		      (eq enable-local-variables :all)
-		      (hack-local-variables-confirm
-		       result unsafe-vars risky-vars))
-		  (dolist (elt result)
-		    (hack-one-local-variable (car elt) (cdr elt)))))))
+	(hack-local-variables-apply result nil)
 	(run-hooks 'hack-local-variables-hook)))))
 
 (defun safe-local-variable-p (sym val)
@@ -3004,6 +3015,167 @@ already the major mode."
          (if (stringp val)
              (set-text-properties 0 (length val) nil val))
          (set (make-local-variable var) val))))
+
+;;; Handling directory local variables, aka project settings.
+
+(defvar project-class-alist '()
+  "Alist mapping project class names (symbols) to project variable lists.")
+
+(defvar project-directory-alist '()
+  "Alist mapping project directory roots to project classes.")
+
+(defsubst project-get-alist (class)
+  "Return the project variable list for project CLASS."
+  (cdr (assq class project-class-alist)))
+
+(defun project-collect-bindings-from-alist (mode-alist settings)
+  "Collect local variable settings from MODE-ALIST.
+SETTINGS is the initial list of bindings.
+Returns the new list."
+  (dolist (pair mode-alist settings)
+    (let* ((variable (car pair))
+	   (value (cdr pair))
+	   (slot (assq variable settings)))
+      (if slot
+	  (setcdr slot value)
+	;; Need a new cons in case we setcdr later.
+	(push (cons variable value) settings)))))
+
+(defun project-collect-binding-list (binding-list root settings)
+  "Collect entries from BINDING-LIST into SETTINGS.
+ROOT is the root directory of the project.
+Return the new settings list."
+  (let* ((file-name (buffer-file-name))
+	 (sub-file-name (if file-name
+			    (substring file-name (length root)))))
+    (dolist (entry binding-list settings)
+      (let ((key (car entry)))
+	(cond
+	 ((stringp key)
+	  ;; Don't include this in the previous condition, because we
+	  ;; want to filter all strings before the next condition.
+	  (when (and sub-file-name
+		     (>= (length sub-file-name) (length key))
+		     (string= key (substring sub-file-name 0 (length key))))
+	    (setq settings (project-collect-binding-list (cdr entry)
+							 root settings))))
+	 ((or (not key)
+	      (derived-mode-p key))
+	  (setq settings (project-collect-bindings-from-alist (cdr entry)
+							      settings))))))))
+
+(defun set-directory-project (directory class)
+  "Declare that the project rooted at DIRECTORY is an instance of CLASS.
+DIRECTORY is the name of a directory, a string.
+CLASS is the name of a project class, a symbol.
+
+When a file beneath DIRECTORY is visited, the mode-specific
+settings from CLASS will be applied to the buffer.  The settings
+for a class are defined using `define-project-bindings'."
+  (setq directory (file-name-as-directory (expand-file-name directory)))
+  (unless (assq class project-class-alist)
+    (error "No such project class `%s'" (symbol-name class)))
+  (push (cons directory class) project-directory-alist))
+
+(defun define-project-bindings (class list)
+  "Map the project type CLASS to a list of variable settings.
+CLASS is the project class, a symbol.
+LIST is a list that declares variable settings for the class.
+An element in LIST is either of the form:
+    (MAJOR-MODE . ALIST)
+or
+    (DIRECTORY . LIST)
+
+In the first form, MAJOR-MODE is a symbol, and ALIST is an alist
+whose elements are of the form (VARIABLE . VALUE).
+
+In the second form, DIRECTORY is a directory name (a string), and
+LIST is a list of the form accepted by the function.
+
+When a file is visited, the file's class is found.  A directory
+may be assigned a class using `set-directory-project'.  Then
+variables are set in the file's buffer according to the class'
+LIST.  The list is processed in order.
+
+* If the element is of the form (MAJOR-MODE . ALIST), and the
+  buffer's major mode is derived from MAJOR-MODE (as determined
+  by `derived-mode-p'), then all the settings in ALIST are
+  applied.  A MAJOR-MODE of nil may be used to match any buffer.
+  `make-local-variable' is called for each variable before it is
+  set.
+
+* If the element is of the form (DIRECTORY . LIST), and DIRECTORY
+  is an initial substring of the file's directory, then LIST is
+  applied by recursively following these rules."
+  (let ((elt (assq class project-class-alist)))
+    (if elt
+	(setcdr elt list)
+      (push (cons class list) project-class-alist))))
+
+(defun project-find-settings-file (file)
+  "Find the settings file for FILE.
+This searches upward in the directory tree.
+If a settings file is found, the file name is returned.
+If the file is in a registered project, a cons from
+`project-directory-alist' is returned.
+Otherwise this returns nil."
+  (let ((dir (file-name-directory file))
+	(result nil))
+    (while (and (not (string= dir "/"))
+		(not result))
+      (cond
+       ((setq result (assoc dir project-directory-alist))
+	;; Nothing else.
+	nil)
+       ((file-exists-p (concat dir ".dir-settings.el"))
+	(setq result (concat dir ".dir-settings.el")))
+       (t
+	(setq dir (file-name-directory (directory-file-name dir))))))
+    result))
+
+(defun project-define-from-project-file (settings-file)
+  "Load a settings file and register a new project class and instance.
+SETTINGS-FILE is the name of the file holding the settings to apply.
+The new class name is the same as the directory in which SETTINGS-FILE
+is found.  Returns the new class name."
+  (with-temp-buffer
+    ;; We should probably store the modtime of SETTINGS-FILE and then
+    ;; reload it whenever it changes.
+    (insert-file-contents settings-file)
+    (let* ((dir-name (file-name-directory settings-file))
+	   (class-name (intern dir-name))
+	   (list (read (current-buffer))))
+      (define-project-bindings class-name list)
+      (set-directory-project dir-name class-name)
+      class-name)))
+
+(defun hack-project-variables ()
+  "Set local variables in a buffer based on project settings."
+  (when (and (buffer-file-name) (not (file-remote-p (buffer-file-name))))
+    ;; Find the settings file.
+    (let ((settings (project-find-settings-file (buffer-file-name)))
+	  (class nil)
+	  (root-dir nil))
+      (cond
+       ((stringp settings)
+	(setq root-dir (file-name-directory (buffer-file-name)))
+	(setq class (project-define-from-project-file settings)))
+       ((consp settings)
+	(setq root-dir (car settings))
+	(setq class (cdr settings))))
+      (when class
+	(let ((bindings
+	       (project-collect-binding-list (project-get-alist class)
+					     root-dir nil)))
+	  (when bindings
+	    (hack-local-variables-apply bindings root-dir)
+	    ;; Special case C and derived modes.  Note that CC-based
+	    ;; modes don't work with derived-mode-p.  In general I
+	    ;; think modes could use an auxiliary method which is
+	    ;; called after local variables are hacked.
+	    (and (boundp 'c-buffer-is-cc-mode)
+		 c-buffer-is-cc-mode
+		 (c-postprocess-file-styles))))))))
 
 
 (defcustom change-major-mode-with-file-name t

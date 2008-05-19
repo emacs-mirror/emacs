@@ -180,6 +180,9 @@ run processes remotely.
 ** The new command `display-time-world' starts an updating time display
 using several time zones, in a buffer.
 
+** Directory-local variables are now found in .dir-settings.el.  See
+also `set-directory-project' and `define-project-bindings'.
+
 ** The new function `format-seconds' converts a number of seconds into a
 readable string of days, hours, etc.
 
