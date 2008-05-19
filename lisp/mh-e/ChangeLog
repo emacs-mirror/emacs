@@ -1,3 +1,9 @@
+2008-05-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Sort list in a
+	case-insensitive way and add comment about it. Add many header
+	fields (closes SF #1916032).
+
 2008-05-19  Xavier Maillard <xma@gnu.org>  (tiny change)
 
 	* mh-utils.el (mh-find-path): Don't throw error if MH environment
