@@ -2653,7 +2653,7 @@ settings; nil otherwise."
 	    (if risky-vars
 		(insert "The local variables list in " (or project name)
 			"\ncontains variables that are risky (**).")
-	      (insert "A local variables list is specified in " 
+	      (insert "A local variables list is specified in "
 		      (or project name) ".")))
 	  (insert "\n\nDo you want to apply it?  You can type
 y  -- to apply the local variables list.
