@@ -1,3 +1,7 @@
+2008-05-19  Tom Tromey  <tromey@redhat.com>
+
+	* NEWS: Mention directory-local variables.
+
 2008-05-11  Juri Linkov  <juri@jurta.org>
 
 	* images/custom/README:
