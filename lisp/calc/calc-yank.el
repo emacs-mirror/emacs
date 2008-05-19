@@ -156,9 +156,9 @@ in which case either return the contents of the Emacs register (if it is
 text) or `nil'."
   (let ((cval (cdr (assq reg calc-register-alist)))
         (val (cdr (assq reg register-alist))))
-    (if (and (stringp (car cval))
-             (stringp val))
-        (if (string= (car cval) val)
+    (if (stringp val)
+        (if (and (stringp (car cval))
+                 (string= (car cval) val))
             (cdr cval)
           val))))
 
