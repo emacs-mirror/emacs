@@ -1,7 +1,7 @@
 2008-05-19  Nick Dokos <nicholas.dokos@hp.com>  (tiny change)
 
 	* mh-search.el (mh-mairix-regexp-builder): Add additional items to
-	search string to support org-mode. (closes SF #1965704).
+	search string to support org-mode (closes SF #1965704).
 
 2008-03-18  Bill Wohler  <wohler@newt.com>
 
