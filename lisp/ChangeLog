@@ -1,3 +1,16 @@
+2008-05-19  Tom Tromey  <tromey@redhat.com>
+
+	* files.el (normal-mode): Call hack-project-variables.
+	(hack-local-variables-confirm): Add 'project' argument.
+	(hack-local-variables-apply): New function.
+	(hack-local-variables): Use it.
+	(project-class-alist, project-directory-alist): New variables.
+	(project-get-alist): New function.
+	(project-collect-bindings-from-alist)
+	(project-collect-binding-list, set-directory-project)
+	(project-find-settings-file, project-define-from-project-file)
+	(hack-project-variables): New functions.
+
 2008-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-specs.el (destructuring-bind): Fix spec.
