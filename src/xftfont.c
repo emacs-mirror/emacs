@@ -156,7 +156,6 @@ xftfont_list (frame, spec)
      Lisp_Object spec;
 {
   Lisp_Object list = ftfont_driver.list (frame, spec), tail;
-  int i;
   
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qxft);
@@ -185,13 +184,10 @@ xftfont_open (f, entity, pixel_size)
      Lisp_Object entity;
      int pixel_size;
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val, font_object;
-  FcPattern *pattern, *pat = NULL;
-  FcChar8 *file;
+  Lisp_Object val, filename, cache, font_object;
+  FcPattern *pat = NULL;
   struct xftfont_info *xftfont_info = NULL;
-  XFontStruct *xfont = NULL;
   struct font *font;
   double size = 0;
   XftFont *xftfont = NULL;
@@ -202,20 +198,15 @@ xftfont_open (f, entity, pixel_size)
   FT_Face ft_face;
 
   val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
-  if (! CONSP (val)
-      || XTYPE (XCDR (val)) != Lisp_Misc
-      || XMISCTYPE (XCDR (val)) != Lisp_Misc_Save_Value)
+  if (! CONSP (val))
     return Qnil;
-  pattern = XSAVE_VALUE (XCDR (val))->pointer;
-  if (FcPatternGetString (pattern, FC_FILE, 0, &file) != FcResultMatch)
-    return Qnil;
-
+  val = XCDR (val);
+  filename = XCAR (val);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
-
   pat = FcPatternCreate ();
-  FcPatternAddString (pat, FC_FILE, file);
+  FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
   FcPatternAddDouble (pat, FC_PIXEL_SIZE, pixel_size);
   /*FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);*/
   val = AREF (entity, FONT_FAMILY_INDEX);
@@ -245,9 +236,9 @@ xftfont_open (f, entity, pixel_size)
   else
     ASET (font_object, FONT_FULLNAME_INDEX,
 	  AREF (font_object, FONT_NAME_INDEX));
-  ASET (font_object, FONT_FILE_INDEX,
-	make_unibyte_string ((char *) file, strlen ((char *) file)));
-  ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (pattern));
+  ASET (font_object, FONT_FILE_INDEX, filename);
+  ASET (font_object, FONT_FORMAT_INDEX,
+	ftfont_font_format (xftfont->pattern));
   font = XFONT_OBJECT (font_object);
   font->pixel_size = pixel_size;
   font->driver = &xftfont_driver;
@@ -259,8 +250,9 @@ xftfont_open (f, entity, pixel_size)
   xftfont_info->xftfont = xftfont;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
-  if (FcPatternGetInteger (xftfont->pattern, FC_SPACING, 0, &spacing)
-      != FcResultMatch)
+  if (INTEGERP (AREF (entity, FONT_SPACING_INDEX)))
+    spacing = XINT (AREF (entity, FONT_SPACING_INDEX));
+  else
     spacing = FC_PROPORTIONAL;
   if (! ascii_printable[0])
     {
@@ -459,7 +451,6 @@ xftfont_draw (s, from, to, x, y, with_background)
   XftDraw *xft_draw = xftfont_get_xft_draw (f);
   FT_UInt *code;
   XftColor fg, bg;
-  XRectangle r;
   int len = to - from;
   int i;
 
