@@ -1,3 +1,25 @@
+2008-05-19  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_list_entities): Fix handling of cache.
+	(font_matching_entity): Likewise.
+
+	* ftfont.c (cs_iso8859_1): Deleted.
+	(ft_face_cache): New variable.
+	(struct ftfont_info): New member fc_charset_idx;
+	(ftfont_build_basic_charsets): Deleted.
+	(fc_charset_table): New variable.
+	(ftfont_pattern_entity): New arg fc_charset_idx.  Store (FILENAME
+	. FC_CHARSET_IDX) as :font-entity property in the font entity.
+	Callers changed.
+	(ftfont_lookup_cache, ftfont_get_charset): New funcitons.
+	(ftfont_spec_pattern): New argument fc_charset_idx.  Check
+	registry more rigidly.  Callers changed.
+	(ftfont_open, ftfont_close, ftfont_has_char): Adjustd for the
+	change of :font-entity property of the font.
+
+	* xftfont.c (xftfont_open): Ajusted for the change of :font-entity
+	property of the font.
+
 2008-05-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c (Fcoding_system_p): Rename argument to match docstring.
