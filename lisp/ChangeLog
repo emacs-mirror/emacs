@@ -1,4 +1,8 @@
-2008-05-18  David Hull <david@snap.com>  (tiny change)
+2008-05-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (font-weight-table): Fix typo in docstring.
+
+2008-05-18  David Hull  <david@snap.com>  (tiny change)
 
 	* vc-hg.el (vc-hg-annotate-re): Recognize the output of --follow.
 	(vc-hg-annotate-command): Allow white space before version number.
@@ -81,7 +85,7 @@
 
 	* vc.el (vc-default-status-printer)
 	(vc-default-prettify-state-info): Enhance the state prettyprinter
-	to deall better with unknown states and indirect through it when
+	to deal better with unknown states and indirect through it when
 	painting vc-dir buffers.
 
 2008-05-16  John Paul Wallington  <jpw@pobox.com>
@@ -92,8 +96,8 @@
 
 2008-05-16  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-write-region): Fix check for short
-	track.  Reported by Glenn Morris <rgm@gnu.org>.
+	* net/tramp.el (tramp-handle-write-region): Fix check for short track.
+	Reported by Glenn Morris <rgm@gnu.org>.
 
 2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
 
