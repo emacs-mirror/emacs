@@ -114,7 +114,7 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
     (ultra-bold 210 ultrabold black))
   "Alist of font weight symbols vs the corresponding numeric values.
 Each element has the form:
-    \(SYMBOLIC-VALUE NUMERIC-VALUE ALISE-SYMBOL ...)
+    \(SYMBOLIC-VALUE NUMERIC-VALUE ALIAS-SYMBOL ...)
 ")
 
 (defconst font-slant-table
