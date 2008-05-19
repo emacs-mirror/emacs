@@ -1,3 +1,8 @@
+2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>  (tiny change)
+
+	* mh-mime.el (mh-mh-to-mime, mh-mh-to-mime-undo): Preserve modes
+	when converting to or from MIME (closes SF #1966722).
+
 2008-05-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Sort list in a
