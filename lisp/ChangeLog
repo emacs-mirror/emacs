@@ -1,3 +1,7 @@
+2008-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-specs.el (destructuring-bind): Fix spec.
+
 2008-05-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (font-weight-table): Fix typo in docstring.
@@ -15,8 +19,8 @@
 	(calc-prepend-to-register): New functions.
 
 	* calc/calc-ext.el (calc-init-extensions): Add keybindings for
-	`calc-copy-to-register' and `calc-insert-register'.  Autoload
-	new register functions.
+	`calc-copy-to-register' and `calc-insert-register'.
+	Autoload new register functions.
 
 	* calc/calc-help.el (calc-r-prefix-help): Add help for register
 	functions.
@@ -126,27 +130,26 @@
 
 2008-05-15  Shigeru Fukaya  <shugeru.fukaya@gmail.com>
 
-	* ses.el (ses-goto-print): Use move-to-column rather than
-	forward-char.
+	* ses.el (ses-goto-print): Use move-to-column rather than forward-char.
 	(ses-print-cell): Use string-width, truncate-string-to-width,
 	delete-region rather than length, substring, delete-char.
-	(ses-setup): Set inhibit-point-motion-hooks to t.  Calculate
-	position by actually moving point rather than just using unibyte
-	character length.
+	(ses-setup): Set inhibit-point-motion-hooks to t.
+	Calculate position by actually moving point rather than just using
+	unibyte character length.
 	(ses-mode): Set indent-tabs-mode to nil.
 	(ses-center): Use string-width rather than length.
 
 2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-cvs.el, vc-git.el, vc-hg.el, vc-hooks.el, vc-mcvs.el,
-	* vc-rcs.el, vc-sccs.el, vc-svn.el, vc.el: Rename
-	vc-*-create-snapshot and vc-*-retrieve-snapshot to vc-*-create-tag
-	and vc-*-retrieve-tag respectively.
+	* vc-rcs.el, vc-sccs.el, vc-svn.el, vc.el:
+	Rename vc-*-create-snapshot and vc-*-retrieve-snapshot to
+	vc-*-create-tag and vc-*-retrieve-tag respectively.
 
 	* vc-dispatcher.el: Fix an incorrect buffer name and remove an
 	unneeded defalias.
 
-	* vc.el, vc-dispatcher.el (vc-dir-menu-map-filter): Moved.
+	* vc.el, vc-dispatcher.el (vc-dir-menu-map-filter): Move.
 
 	* vc.el, vc-dispatcher.el (vc-dir-menu-map): Remove assumption
 	about buffer names.
