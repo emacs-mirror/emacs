@@ -1,3 +1,8 @@
+2008-05-19  Xavier Maillard <xma@gnu.org>  (tiny change)
+
+	* mh-utils.el (mh-find-path): Don't throw error if MH environment
+	variable is being used (closes SF #1946861).
+
 2008-05-19  Nick Dokos <nicholas.dokos@hp.com>  (tiny change)
 
 	* mh-search.el (mh-mairix-regexp-builder): Add additional items to
