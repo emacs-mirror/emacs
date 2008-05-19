@@ -179,7 +179,7 @@ enum font_property_index
        is not available.  */
     FONT_FILE_INDEX,
 
-    /* Format of the font (symbol).  */
+    /* Format of the font (symbol) or nil if unknown.  */
     FONT_FORMAT_INDEX,
 
     /* This value is the length of font-object vector.  */
