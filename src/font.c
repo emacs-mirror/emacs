@@ -2352,7 +2352,7 @@ font_list_entities (frame, spec)
     size = 0;
 
   ftype = AREF (spec, FONT_TYPE_INDEX);
-  for (i = 0; i <= FONT_REGISTRY_INDEX; i++)
+  for (i = 1; i <= FONT_REGISTRY_INDEX; i++)
     ASET (scratch_font_spec, i, AREF (spec, i));
   for (; i < FONT_EXTRA_INDEX; i++)
     {
@@ -2377,7 +2377,7 @@ font_list_entities (frame, spec)
 	  {
 	    Lisp_Object val = assoc_no_quit (scratch_font_spec, XCDR (cache));
 
-	    if (CONSP (val) && VECTORP (XCDR (val)))
+	    if (CONSP (val))
 	      val = XCDR (val);
 	    else
 	      {
@@ -2430,16 +2430,18 @@ font_matching_entity (f, attrs, spec)
 	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {
 	Lisp_Object cache = font_get_cache (f, driver_list->driver);
+	Lisp_Object copy;
 
 	ASET (spec, FONT_TYPE_INDEX, driver_list->driver->type);
 	entity = assoc_no_quit (spec, XCDR (cache));
-	if (CONSP (entity) && ! VECTORP (XCDR (entity)))
+	if (CONSP (entity))
 	  entity = XCDR (entity);
 	else
 	  {
 	    entity = driver_list->driver->match (frame, spec);
-	    XSETCDR (cache, Fcons (Fcons (Fcopy_font_spec (spec), entity),
-				   XCDR (cache)));
+	    copy = Fcopy_font_spec (spec);
+	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
+	    XSETCDR (cache, Fcons (Fcons (copy, entity), XCDR (cache)));
 	  }
 	if (! NILP (entity))
 	  break;
