@@ -7434,14 +7434,14 @@ DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
        doc: /* Return t if OBJECT is nil or a coding-system.
 See the documentation of `define-coding-system' for information
 about coding-system objects.  */)
-     (obj)
-     Lisp_Object obj;
+     (object)
+     Lisp_Object object;
 {
-  if (NILP (obj)
-      || CODING_SYSTEM_ID (obj) >= 0)
+  if (NILP (object)
+      || CODING_SYSTEM_ID (object) >= 0)
     return Qt;
-  if (! SYMBOLP (obj)
-      || NILP (Fget (obj, Qcoding_system_define_form)))
+  if (! SYMBOLP (object)
+      || NILP (Fget (object, Qcoding_system_define_form)))
     return Qnil;
   return Qt;
 }
@@ -7821,9 +7821,9 @@ DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
 Return a list of possible coding systems ordered by priority.
 
 If only ASCII characters are found (except for such ISO-2022 control
-characters ISO-2022 as ESC), it returns a list of single element
-`undecided' or its subsidiary coding system according to a detected
-end-of-line format.
+characters as ESC), it returns a list of single element `undecided'
+or its subsidiary coding system according to a detected end-of-line
+format.
 
 If optional argument HIGHEST is non-nil, return the coding system of
 highest priority.  */)
@@ -7858,9 +7858,9 @@ DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
 Return a list of possible coding systems ordered by priority.
 
 If only ASCII characters are found (except for such ISO-2022 control
-characters ISO-2022 as ESC), it returns a list of single element
-`undecided' or its subsidiary coding system according to a detected
-end-of-line format.
+characters as ESC), it returns a list of single element `undecided'
+or its subsidiary coding system according to a detected end-of-line
+format.
 
 If optional argument HIGHEST is non-nil, return the coding system of
 highest priority.  */)
@@ -8028,7 +8028,7 @@ DEFUN ("unencodable-char-position", Funencodable_char_position,
        Sunencodable_char_position, 3, 5, 0,
        doc: /*
 Return position of first un-encodable character in a region.
-START and END specfiy the region and CODING-SYSTEM specifies the
+START and END specify the region and CODING-SYSTEM specifies the
 encoding to check.  Return nil if CODING-SYSTEM does encode the region.
 
 If optional 4th argument COUNT is non-nil, it specifies at most how
@@ -8141,7 +8141,7 @@ START and END are buffer positions specifying the region.
 CODING-SYSTEM-LIST is a list of coding systems to check.
 
 The value is an alist ((CODING-SYSTEM POS0 POS1 ...) ...), where
-CODING-SYSTEM is a member of CODING-SYSTEM-LIst and can't encode the
+CODING-SYSTEM is a member of CODING-SYSTEM-LIST and can't encode the
 whole region, POS0, POS1, ... are buffer positions where non-encodable
 characters are found.
 
@@ -8326,8 +8326,9 @@ It returns the length of the decoded text.  */)
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
        3, 4, "r\nzCoding system: ",
        doc: /* Encode the current region by specified coding system.
-When called from a program, takes three arguments:
-START, END, and CODING-SYSTEM.  START and END are buffer positions.
+When called from a program, takes four arguments:
+        START, END, CODING-SYSTEM and DESTINATION.
+START and END are buffer positions.
 
 Optional 4th arguments DESTINATION specifies where the encoded text goes.
 If nil, the region between START and END is replace by the encoded text.
@@ -8410,13 +8411,13 @@ DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
 Optional third arg NOCOPY non-nil means it is OK to return STRING itself
 if the decoding operation is trivial.
 
-Optional fourth arg BUFFER non-nil meant that the decoded text is
+Optional fourth arg BUFFER non-nil means that the decoded text is
 inserted in BUFFER instead of returned as a string.  In this case,
 the return value is BUFFER.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
-not fully specified.  */)
+not fully specified.)  */)
   (string, coding_system, nocopy, buffer)
      Lisp_Object string, coding_system, nocopy, buffer;
 {
@@ -8431,7 +8432,7 @@ DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
 Optional third arg NOCOPY non-nil means it is OK to return STRING
 itself if the encoding operation is trivial.
 
-Optional fourth arg BUFFER non-nil meant that the encoded text is
+Optional fourth arg BUFFER non-nil means that the encoded text is
 inserted in BUFFER instead of returned as a string.  In this case,
 the return value is BUFFER.
 
@@ -8691,9 +8692,9 @@ whichever argument specifies the file name is TARGET.
 TARGET has a meaning which depends on OPERATION:
   For file I/O, TARGET is a file name (except for the special case below).
   For process I/O, TARGET is a process name.
-  For network I/O, TARGET is a service name or a port number
+  For network I/O, TARGET is a service name or a port number.
 
-This function looks up what specified for TARGET in,
+This function looks up what is specified for TARGET in
 `file-coding-system-alist', `process-coding-system-alist',
 or `network-coding-system-alist' depending on OPERATION.
 They may specify a coding system, a cons of coding systems,
@@ -8785,10 +8786,10 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
 DEFUN ("set-coding-system-priority", Fset_coding_system_priority,
        Sset_coding_system_priority, 0, MANY, 0,
        doc: /* Assign higher priority to the coding systems given as arguments.
-If multiple coding systems belongs to the same category,
+If multiple coding systems belong to the same category,
 all but the first one are ignored.
 
-usage: (set-coding-system-priority ...)  */)
+usage: (set-coding-system-priority &rest coding-systems)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -9473,7 +9474,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
   CHECK_SYMBOL (alias);
   CHECK_CODING_SYSTEM_GET_SPEC (coding_system, spec);
   aliases = AREF (spec, 1);
-  /* ALISES should be a list of length more than zero, and the first
+  /* ALIASES should be a list of length more than zero, and the first
      element is a base coding system.  Append ALIAS at the tail of the
      list.  */
   while (!NILP (XCDR (aliases)))
@@ -9551,7 +9552,7 @@ DEFUN ("coding-system-aliases", Fcoding_system_aliases, Scoding_system_aliases,
 DEFUN ("coding-system-eol-type", Fcoding_system_eol_type,
        Scoding_system_eol_type, 1, 1, 0,
        doc: /* Return eol-type of CODING-SYSTEM.
-An eol-type is integer 0, 1, 2, or a vector of coding systems.
+An eol-type is an integer 0, 1, 2, or a vector of coding systems.
 
 Integer values 0, 1, and 2 indicate a format of end-of-line; LF, CRLF,
 and CR respectively.
