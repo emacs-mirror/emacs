@@ -4411,8 +4411,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       /* If status of something has changed, and no input is
 	 available, notify the user of the change right away.  After
 	 this explicit check, we'll let the SIGCHLD handler zap
-	 timeout to get our attention.  */
-      if (update_tick != process_tick && do_display)
+	 timeout to get our attention.  When Emacs is run
+	 interactively, only do this with a nonzero DO_DISPLAY
+	 argument, because status_notify triggers redisplay.  */
+      if (update_tick != process_tick
+	  && (do_display || noninteractive))
 	{
 	  SELECT_TYPE Atemp;
 #ifdef NON_BLOCKING_CONNECT
