@@ -1,3 +1,12 @@
+2008-05-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (Fcoding_system_p): Rename argument to match docstring.
+	(Funencodable_char_position, Fcheck_coding_systems_region)
+	(Fdecode_coding_string, Fencode_coding_string): Fix typos in docstrings.
+	(Fdetect_coding_region, Fdetect_coding_string, Fencode_coding_region)
+	(Ffind_operation_coding_system, Fset_coding_system_priority)
+	(Fcoding_system_eol_type): Doc fixes.
+
 2008-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* sysdep.c (child_setup_tty): Handle systems with NLDLY, without FFDLY.
