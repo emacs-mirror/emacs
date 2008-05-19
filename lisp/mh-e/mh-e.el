@@ -2375,21 +2375,27 @@ of citations entirely, choose \"None\"."
   :group 'mh-show
   :package-version '(MH-E . "8.0"))
 
-;; Theese entries have been intentionally excluded by the developers.
-;;  "X-Operator:"                       ; Similar to X-Mailer, so display it
+;; These entries have been intentionally excluded by the developers.
 ;;  "Comments:"                         ; RFC 2822 - show this one
 ;;  "Fax:"                              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
 ;;  "Mail-System-Version:"              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
 ;;  "Mailer:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+;;  "Organization:"                     ; 
 ;;  "Phone:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
 ;;  "Reply-By:"                         ; RFC 2156
 ;;  "Reply-To:"                         ; RFC 2822
+;;  "Sender:"                           ;
 ;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
-;;
-;; Keep fields alphabetized. Mention source, if known.
+;;  "X-Mailer:"                         ; 
+;;  "X-Operator:"                       ; Similar to X-Mailer, so display it
+
+;; Keep fields alphabetized (set sort-fold-case to t first).
+;; Mention source, if known.
 (defvar mh-invisible-header-fields-internal
   '(
     "Abuse-Reports-To:"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "Accept-Language:"
+    "AcceptLanguage:"
     "Accreditor:"                       ; Habeas
     "Also-Control:"                     ; H. Spencer: News Article Format and Transmission, June 1994
     "Alternate-recipient:"              ; RFC 2156
@@ -2408,8 +2414,6 @@ of citations entirely, choose \"None\"."
     "Control:"                          ; RFC 1036
     "Conversion-With-Loss:"             ; RFC 2156
     "Conversion:"                       ; RFC 2156
-    "DKIM-"                             ; http://antispam.yahoo.com/domainkeys
-    "DL-Expansion-History:"             ; RFC 2156
     "Delivered-To:"                     ; Egroups/yahoogroups mailing list manager
     "Delivery-Date:"                    ; RFC 2156
     "Delivery:"
@@ -2418,7 +2422,11 @@ of citations entirely, choose \"None\"."
     "Disposition-Notification-Options:" ; RFC 2298
     "Disposition-Notification-To:"      ; RFC 2298
     "Distribution:"                     ; RFC 1036
+    "DKIM-"                             ; http://antispam.yahoo.com/domainkeys
+    "DKIM-Signature"
+    "DL-Expansion-History:"             ; RFC 2156
     "DomainKey-"                        ; http://antispam.yahoo.com/domainkeys
+    "DomainKey-Signature:"
     "Encoding:"                         ; RFC 1505
     "Envelope-to:"
     "Errors-To:"                        ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2441,22 +2449,23 @@ of citations entirely, choose \"None\"."
     "List-"                             ; RFC 2369, 2919
     "Mail-Copies-To:"                   ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Mail-Followup-To:"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "Mail-Reply-To:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Mail-from:"                        ; MH
+    "Mail-Reply-To:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Mailing-List:"                     ; Egroups/yahoogroups mailing list manager
     "Message-Content:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Message-Id:"                       ; RFC 822
     "Message-Type:"                     ; RFC 2156
     "Mime-Version"                      ; RFC 2045
-    "NNTP-"                             ; News
+    "Msgid:"
     "Newsgroups:"                       ; RFC 1036
+    "NNTP-"                             ; News
     "Obsoletes:"                        ; RFC 2156
     "Old-Return-Path:"
     "OpenPGP:"
     "Original-Encoded-Information-Types:"  ; RFC 2156
     "Original-Lines:"                   ; mail to news
-    "Original-NNTP-"                    ; mail to news
     "Original-Newsgroups:"              ; mail to news
+    "Original-NNTP-"                    ; mail to news
     "Original-Path:"                    ; mail to news
     "Original-Received:"                ; mail to news
     "Original-Recipt:"                  ; RFC 2298
@@ -2486,29 +2495,30 @@ of citations entirely, choose \"None\"."
     "Return-Path:"                      ; RFC 822
     "Return-Receipt-Requested:"         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Return-Receipt-To:"                ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
     "Seal-Send-Time:"
+    "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
     "Sensitivity:"                      ; RFC 2156, 2421
     "Speach-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Status:"                           ; sendmail
     "Supersedes:"                       ; H. Spencer: News Article Format and Transmission, June 1994
     "Telefax:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Thread-"
+    "Thread-Index:"
+    "Thread-Topic:"
     "Translated-By:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Translation-Of:"                   ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Ua-Content-Id:"                    ; X400
     "Via:"                              ; MH
-    "X-AMAZON"                          ; Amazon.com
-    "X-AOL-IP:"                         ; AOL WebMail
-    "X-Abuse-Info:"
     "X-Abuse-and-DMCA-"
-    "X-Accept-Language:"
+    "X-Abuse-Info:"
     "X-Accept-Language:"                ; Netscape/Mozilla
     "X-Ack:"
     "X-Admin:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Administrivia-To:"
+    "X-AMAZON"                          ; Amazon.com
     "X-AntiAbuse:"                      ; cPanel
     "X-Antivirus-Scanner:"
+    "X-AOL-IP:"                         ; AOL WebMail
     "X-Apparently-From:"                ; MS Outlook
     "X-Apparently-To:"           ; Egroups/yahoogroups mailing list manager
     "X-Attribution:"
@@ -2516,6 +2526,7 @@ of citations entirely, choose \"None\"."
     "X-Authenticated-Info:"             ; Verizon.net?
     "X-Authenticated-Sender:"           ; AT&T Message Center (webmail)
     "X-Authentication-Warning:"         ; sendmail
+    "X-Authority-Analysis:"
     "X-Barracuda-"                      ; Barracuda spam scores
     "X-Beenthere:"                      ; Mailman mailing list manager
     "X-Bigfish:"
@@ -2526,13 +2537,21 @@ of citations entirely, choose \"None\"."
     "X-Comment:"                        ; AT&T Mailennium
     "X-Complaints-To:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Confirm-Reading-To:"             ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-Content-Filtered-By:"
     "X-ContentStamp:"                   ; NetZero
     "X-Cr-Hashedpuzzle:"
     "X-Cr-Puzzleid:"
     "X-Cron-Env:"
-    "X-DMCA"
+    "X-DCC-Usenix-Metrics:"
+    "X-Dedicated:"
     "X-Delivered"
+    "X-DH-Virus-"
+    "X-DMCA"
+    "X-Domain:"
+    "X-Echelon-Distraction"
     "X-EFL-Spamscore:"                  ; MIT alumni spam filtering
+    "X-eGroups-"                        ; Egroups/yahoogroups mailing list manager
+    "X-EID"
     "X-ELNK-Trace:"                     ; Earthlink mailer
     "X-Enigmail-Version:"
     "X-Envelope-Date:"                  ; GNU mailutils
@@ -2548,15 +2567,21 @@ of citations entirely, choose \"None\"."
     "X-Gmail-"                          ; Gmail
     "X-Gnus-Mail-Source:"               ; gnus
     "X-Google-"                         ; Google mail
+    "X-Google-Sender-Auth:"
     "X-Greylist:"                       ; milter-greylist-1.2.1
-    "X-HTTP-UserAgent:"
     "X-Habeas-SWE-"                     ; Spam
     "X-Hashcash:"                       ; hashcash
-    "X-IMAP:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-HPL-"
+    "X-HR-"
+    "X-HTTP-UserAgent:"
     "X-Image-URL:"
+    "X-IMAP:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Info:"                           ; NTMail
     "X-IronPort-"                       ; IronPort AV
+    "X-ISI-4-30-3-MailScanner:"
+    "X-J2-"
     "X-Juno-"                           ; Juno
+    "X-Key:"
     "X-List-Host:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-List-Subscribe:"                 ; Unknown mailing list managers
     "X-List-Unsubscribe:"               ; Unknown mailing list managers
@@ -2565,34 +2590,38 @@ of citations entirely, choose \"None\"."
     "X-Loop:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Lrde-Mailscanner:"
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
+    "X-Mail-from:"                      ; fastmail.fm
     "X-MAIL-INFO:"                      ; NetZero
+    "X-Mailing-List:"                   ; Unknown mailing list managers
+    "X-Mailman-Approved-At:"            ; Mailman mailing list manager
+    "X-Mailman-Version:"                ; Mailman mailing list manager
+    "X-MailScanner"                     ; ListProc(tm) by CREN
+    "X-Mailutils-Message-Id"            ; GNU Mailutils
+    "X-Majordomo:"                      ; Majordomo mailing list manager
     "X-MB-Message-"                     ; AOL WebMail
+    "X-MDaemon-Deliver-To:"
+    "X-MDRemoteIP:"
+    "X-Message-Id"
+    "X-Message-Type:"
+    "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
     "X-MHE-Checksum:"                   ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMEOLE:"                        ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/sendmail
     "X-MIMETrack:"
-    "X-MS-"                             ; MS Outlook
-    "X-MSMail-Priority"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "X-Mail-from:"                      ; fastmail.fm
-    "X-MailScanner"                     ; ListProc(tm) by CREN
-    "X-Mailing-List:"                   ; Unknown mailing list managers
-    "X-Mailman-Approved-At:"            ; Mailman mailing list manager
-    "X-Mailman-Version:"                ; Mailman mailing list manager
-    "X-Mailutils-Message-Id"            ; GNU Mailutils
-    "X-Majordomo:"                      ; Majordomo mailing list manager
-    "X-Message-Id"
-    "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
-    "X-MimeOLE:"                        ; MS Outlook
     "X-Mms-"                            ; T-Mobile pictures
     "X-Mozilla-Status:"                 ; Netscape/Mozilla
+    "X-MS-"                             ; MS Outlook
     "X-Msmail-"                         ; MS Outlook
+    "X-MSMail-Priority"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-NAI-Spam-"                       ; Network Associates Inc. SpamKiller
     "X-News:"                           ; News
     "X-Newsreader:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-No-Archive:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Notes-Item:"                     ; Lotus Notes Domino structured header
     "X-OperatingSystem:"
+    "X-ORBL:"
     "X-Orcl-Content-Type:"
+    "X-Organization:"
     "X-Original-Arrival-Type:"          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Original-Complaints-To:"
     "X-Original-Date:"                  ; SourceForge mailing list manager
@@ -2601,59 +2630,65 @@ of citations entirely, choose \"None\"."
     "X-OriginalArrivalTime:"            ; Hotmail
     "X-Originating-Email:"              ; Hotmail
     "X-Originating-IP:"                 ; Hotmail
+    "X-PGP:"
+    "X-PID:"
     "X-PMG-"
+    "X-PMX-Version:"
     "X-Postfilter:"
     "X-Priority:"                       ; MS Outlook
     "X-Provags-ID:"
+    "X-PSTN-"
     "X-Qotd-"                           ; User added
     "X-RCPT-TO:"                        ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "X-RM"
     "X-Received-Date:"
     "X-Received:"
     "X-Report-Abuse-To:"                ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Request-"
     "X-Resolved-to:"                    ; fastmail.fm
     "X-Return-Path-Hint:"               ; Roving ConstantContact
+    "X-RM"
     "X-RocketYMMF:"                     ; Yahoo
     "X-Roving-"                         ; Roving ConstantContact
     "X-SA-Exim-"                        ; Exim SpamAssassin
+    "X-Sasl-enc:"                       ; Apple Mail
     "X-SBClass:"                        ; Spam
     "X-SBNote:"                         ; Spam
     "X-SBPass:"                         ; Spam
+    "X-SBRS:"
     "X-SBRule:"                         ; Spam
-    "X-SMTP-"
-    "X-Sasl-enc:"                       ; Apple Mail
     "X-Scanned-By:"
     "X-Sender:"                         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Server-Date:"
     "X-Server-Uuid:"
+    "X-Service-Code:"
     "X-Sieve:"                          ; Sieve filtering
+    "X-SMTP-"
     "X-Source"
     "X-Spam-"                           ; Spamassassin
     "X-SpamBouncer:"                    ; Spam
     "X-Status"
+    "X-Submission-Address:"
     "X-Submissions-To:"
+    "X-Sun-Charset:"
     "X-Telecom-Digest"
     "X-Trace:"
     "X-UID"
     "X-UIDL:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-Unity"
     "X-UNTD-"                           ; NetZero
     "X-URI:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-URL:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-USANET-"                         ; usa.net
-    "X-Unity"
     "X-UserInfo1:"
-    "X-VSMLoop:"                        ; NTMail
     "X-Virus-"                          ;
     "X-Vms-To:"
+    "X-VSMLoop:"                        ; NTMail
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
     "X-X-Sender:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "X-YMail-"
     "X-Yahoo"
-    "X-eGroups-"                        ; Egroups/yahoogroups mailing list manager
-    "X-pgp:"
-    "X-submission-address:"
+    "X-Yahoo-Newman-"
+    "X-YMail-"
     "X400-"                             ; X400
     "Xref:"                             ; RFC 1036
     )
