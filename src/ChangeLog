@@ -1,12 +1,19 @@
+2008-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (indirect_variable):
+	* data.c (indirect_variable, let_shadows_buffer_binding_p):
+	Use Lisp_Symbol pointers rather than Lisp_Object.
+	Adjust callers.
+	* buffer.c (buffer_slot_type_mismatch): Use wrong-type-argument.
+	To this end, change calling-convention.
+
+	* minibuf.c (Finternal_complete_buffer): Only strip out hidden buffers
+	if some non-hidden buffers are selected by string&pred.
+
 2008-05-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (wait_reading_process_output): Always check status
 	when in batch mode.
-
-2008-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* minibuf.c (Finternal_complete_buffer): Only strip out hidden buffers
-	if some non-hidden buffers are selected by string&pred.
 
 2008-05-19  Kenichi Handa  <handa@m17n.org>
 

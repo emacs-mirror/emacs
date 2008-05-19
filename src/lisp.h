@@ -993,7 +993,7 @@ struct Lisp_Symbol
 
 #define SYMBOL_VALUE(sym)			\
    (XSYMBOL (sym)->indirect_variable		\
-    ? XSYMBOL (indirect_variable (sym))->value	\
+    ? indirect_variable (XSYMBOL (sym))->value	\
     : XSYMBOL (sym)->value)
 
 /* Set SYM's value to VAL, taking defvaralias into account.  */
@@ -1001,7 +1001,7 @@ struct Lisp_Symbol
 #define SET_SYMBOL_VALUE(sym, val)				\
      do {							\
        if (XSYMBOL (sym)->indirect_variable)			\
-	 XSYMBOL (indirect_variable ((sym)))->value = (val);	\
+	 indirect_variable (XSYMBOL (sym))->value = (val);	\
        else							\
 	 XSYMBOL (sym)->value = (val);				\
      } while (0)
@@ -2263,7 +2263,7 @@ EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
 
-extern Lisp_Object indirect_variable P_ ((Lisp_Object));
+extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern Lisp_Object long_to_cons P_ ((unsigned long));
 extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;

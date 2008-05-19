@@ -927,12 +927,14 @@ is the default binding of the variable. */)
 {
   register struct buffer *buf;
   register Lisp_Object result;
+  struct Lisp_Symbol *sym;
 
   CHECK_SYMBOL (variable);
   CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
 
-  variable = indirect_variable (variable);
+  sym = indirect_variable (XSYMBOL (variable));
+  XSETSYMBOL (variable, sym);
 
   /* Look in local_var_list */
   result = Fassoc (variable, buf->local_var_alist);
@@ -969,7 +971,7 @@ is the default binding of the variable. */)
       Lisp_Object current_alist_element;
 
       /* What binding is loaded right now?  */
-      valcontents = SYMBOL_VALUE (variable);
+      valcontents = sym->value;
       current_alist_element
 	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
 
@@ -4550,32 +4552,21 @@ evaporate_overlays (pos)
    in the slot with offset OFFSET.  */
 
 void
-buffer_slot_type_mismatch (sym, type)
-     Lisp_Object sym;
+buffer_slot_type_mismatch (newval, type)
+     Lisp_Object newval;
      int type;
 {
-  char *type_name;
+  Lisp_Object predicate;
 
   switch (type)
     {
-    case Lisp_Int:
-      type_name = "integers";
-      break;
-
-    case Lisp_String:
-      type_name = "strings";
-      break;
-
-    case Lisp_Symbol:
-      type_name = "symbols";
-      break;
-
-    default:
-      abort ();
+    case Lisp_Int:    predicate = Qintegerp; break;
+    case Lisp_String: predicate = Qstringp;  break;
+    case Lisp_Symbol: predicate = Qsymbolp;  break;
+    default: abort ();
     }
 
-  error ("Only %s should be stored in the buffer-local variable %s",
-	 type_name, SDATA (SYMBOL_NAME (sym)));
+  wrong_type_argument (predicate, newval);
 }
 
 
