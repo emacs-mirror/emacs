@@ -781,10 +781,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       Lisp_Object histval;
 
       /* If variable is unbound, make it nil.  */
-      if (EQ (SYMBOL_VALUE (Vminibuffer_history_variable), Qunbound))
-	Fset (Vminibuffer_history_variable, Qnil);
 
-      histval = Fsymbol_value (Vminibuffer_history_variable);
+      histval = find_symbol_value (Vminibuffer_history_variable);
+      if (EQ (histval, Qunbound))
+	Fset (Vminibuffer_history_variable, Qnil);
 
       /* The value of the history variable must be a cons or nil.  Other
 	 values are unacceptable.  We silently ignore these values.  */
@@ -1959,7 +1959,28 @@ The arguments STRING and PREDICATE are as in `try-completion',
   if (NILP (flag))
     return Ftry_completion (string, Vbuffer_alist, predicate);
   else if (EQ (flag, Qt))
-    return Fall_completions (string, Vbuffer_alist, predicate, Qt);
+    {
+      Lisp_Object res = Fall_completions (string, Vbuffer_alist, predicate);
+      if (SCHARS (string) > 0)
+	return res;
+      else
+	{ /* Strip out internal buffers.  */
+	  Lisp_Object bufs = res;
+	  /* First, look for a non-internal buffer in `res'.  */
+	  while (CONSP (bufs) && SREF (XCAR (bufs), 0) == ' ')
+	    bufs = XCDR (bufs);
+	  if (NILP (bufs))
+	    /* All bufs in `res' are internal, so don't trip them out.  */
+	    return res;
+	  res = bufs;
+	  while (CONSP (XCDR (bufs)))
+	    if (SREF (XCAR (XCDR (bufs)), 0) == ' ')
+	      XSETCDR (bufs, XCDR (XCDR (bufs)));
+	    else
+	      bufs = XCDR (bufs);
+	  return res;
+	}
+    }
   else				/* assume `lambda' */
     return Ftest_completion (string, Vbuffer_alist, predicate);
 }
