@@ -1960,7 +1960,7 @@ The arguments STRING and PREDICATE are as in `try-completion',
     return Ftry_completion (string, Vbuffer_alist, predicate);
   else if (EQ (flag, Qt))
     {
-      Lisp_Object res = Fall_completions (string, Vbuffer_alist, predicate);
+      Lisp_Object res = Fall_completions (string, Vbuffer_alist, predicate, Qnil);
       if (SCHARS (string) > 0)
 	return res;
       else
