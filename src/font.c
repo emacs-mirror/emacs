@@ -93,6 +93,8 @@ Lisp_Object QCantialias, QCfont_entity, QCfc_unknown_spec;
 /* Symbols representing values of font spacing property.  */
 Lisp_Object Qc, Qm, Qp, Qd;
 
+Lisp_Object Vfont_encoding_alist;
+
 /* Alist of font registry symbol and the corresponding charsets
    information.  The information is retrieved from
    Vfont_encoding_alist on demand.
@@ -209,6 +211,7 @@ font_pixel_size (f, spec)
      FRAME_PTR f;
      Lisp_Object spec;
 {
+#ifdef HAVE_WINDOW_SYSTEM
   Lisp_Object size = AREF (spec, FONT_SIZE_INDEX);
   double point_size;
   int dpi, pixel_size;
@@ -217,7 +220,8 @@ font_pixel_size (f, spec)
   if (INTEGERP (size))
     return XINT (size);
   if (NILP (size))
-    return 0;  xassert (FLOATP (size));
+    return 0;
+  xassert (FLOATP (size));
   point_size = XFLOAT_DATA (size);
   val = AREF (spec, FONT_DPI_INDEX);
   if (INTEGERP (val))
@@ -226,6 +230,9 @@ font_pixel_size (f, spec)
     dpi = f->resy;
   pixel_size = POINT_TO_PIXEL (point_size, dpi);
   return pixel_size;
+#else
+  return 1;
+#endif
 }
 
 
@@ -327,6 +334,31 @@ extern Lisp_Object Vface_alternative_font_family_alist;
 
 extern Lisp_Object find_font_encoding P_ ((Lisp_Object));
 
+
+/* Return ENCODING or a cons of ENCODING and REPERTORY of the font
+   FONTNAME.  ENCODING is a charset symbol that specifies the encoding
+   of the font.  REPERTORY is a charset symbol or nil.  */
+
+Lisp_Object
+find_font_encoding (fontname)
+     Lisp_Object fontname;
+{
+  Lisp_Object tail, elt;
+
+  for (tail = Vfont_encoding_alist; CONSP (tail); tail = XCDR (tail))
+    {
+      elt = XCAR (tail);
+      if (CONSP (elt)
+	  && STRINGP (XCAR (elt))
+	  && fast_string_match_ignore_case (XCAR (elt), fontname) >= 0
+	  && (SYMBOLP (XCDR (elt))
+	      ? CHARSETP (XCDR (elt))
+	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
+	return (XCDR (elt));
+    }
+  /* We don't know the encoding of this font.  Let's assume `ascii'.  */
+  return Qascii;
+}
 
 /* Return encoding charset and repertory charset for REGISTRY in
    ENCODING and REPERTORY correspondingly.  If correct information for
@@ -2141,6 +2173,7 @@ font_check_object (font)
 }
 
 
+
 /* Font cache
 
    Each font backend has the callback function get_cache, and it
@@ -2496,6 +2529,7 @@ font_open_entity (f, entity, pixel_size)
 	       : font->average_width ? font->average_width
 	       : font->space_width ? font->space_width
 	       : 1);
+#ifdef HAVE_WINDOW_SYSTEM
   FRAME_X_DISPLAY_INFO (f)->n_fonts++;
   if (FRAME_X_DISPLAY_INFO (f)->n_fonts == 1)
     {
@@ -2510,6 +2544,7 @@ font_open_entity (f, entity, pixel_size)
       if (FRAME_SMALLEST_FONT_HEIGHT (f) > font->height)
 	FRAME_SMALLEST_FONT_HEIGHT (f) = font->height, fonts_changed_p = 1;
     }
+#endif
 
   return font_object;
 }
@@ -2531,9 +2566,11 @@ font_close_object (f, font_object)
        prev = tail, tail = XCDR (tail))
     if (EQ (font_object, XCAR (tail)))
       {
-	xassert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
 	font->driver->close (f, font);
+#ifdef HAVE_WINDOW_SYSTEM
+	xassert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
 	FRAME_X_DISPLAY_INFO (f)->n_fonts--;
+#endif
 	if (NILP (prev))
 	  ASET (font_object, FONT_OBJLIST_INDEX, XCDR (objlist));
 	else
@@ -4409,6 +4446,29 @@ syms_of_font ()
 #endif
 #endif	/* FONT_DEBUG */
 
+  DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
+	       doc: /*
+Alist of fontname patterns vs the corresponding encoding and repertory info.
+Each element looks like (REGEXP . (ENCODING . REPERTORY)),
+where ENCODING is a charset or a char-table,
+and REPERTORY is a charset, a char-table, or nil.
+
+If ENCDING and REPERTORY are the same, the element can have the form
+\(REGEXP . ENCODING).
+
+ENCODING is for converting a character to a glyph code of the font.
+If ENCODING is a charset, encoding a character by the charset gives
+the corresponding glyph code.  If ENCODING is a char-table, looking up
+the table by a character gives the corresponding glyph code.
+
+REPERTORY specifies a repertory of characters supported by the font.
+If REPERTORY is a charset, all characters beloging to the charset are
+supported.  If REPERTORY is a char-table, all characters who have a
+non-nil value in the table are supported.  It REPERTORY is nil, Emacs
+gets the repertory information by an opened font and ENCODING.  */);
+  Vfont_encoding_alist = Qnil;
+
+#ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_FREETYPE
   syms_of_ftfont ();
 #ifdef HAVE_X_WINDOWS
@@ -4432,6 +4492,7 @@ syms_of_font ()
 #ifdef MAC_OS
   syms_of_atmfont ();
 #endif	/* MAC_OS */
+#endif	/* HAVE_WINDOW_SYSTEM */
 }
 
 /* arch-tag: 74c9475d-5976-4c93-a327-942ae3072846
