@@ -1,3 +1,33 @@
+2008-05-20  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (FONTSRC): Delete it.  Change all $(FONTSRC) to
+	font.h through out the file.
+	(FONT_DRIVERS): Renamed from FONTOBJ.
+	(obj): Delete $(FONTOBJ).  Add font.o.
+	(SOME_MACHINE_OBJECTS): Change $(FONTOBJ) to $(FONT_DRIVERS).
+
+	* emacs.c (main): Call syms_of_font unconditionally.
+
+	* font.h (find_font_encoding): Extern it.
+
+	* font.c (Vfont_encoding_alist, find_font_encoding): Moved from
+	fontset.c.
+	(font_pixel_size)[! HAVE_WINDOW_SYSTEM]: Return 1.
+	(font_open_entity): Update FRAME_X_DISPLAY_INFO (f)->n_fonts,
+	FRAME_SMALLEST_CHAR_WIDTH (f), and FRAME_SMALLEST_FONT_HEIGHT (f)
+	only when HAVE_WINDOW_SYSTEM is defined.
+	(font_close_object): Update FRAME_X_DISPLAY_INFO (f)->n_fonts only
+	when HAVE_WINDOW_SYSTEM is defined.
+
+	* fontset.c (Vfont_encoding_alist, find_font_encoding): Moved to
+	font.c.
+	(syms_of_fontset): Declaration of font-encoding-alist moved to
+	font.c.
+
+	* xfaces.c: Include font.h unconditionally.
+	(merge_face_ref, merge_face_vectors)
+	(Finternal_set_lisp_face_attribute): Cancel the previous change.
+
 2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (select_frame_for_redisplay): Adjust for last change to
