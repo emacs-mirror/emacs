@@ -11033,8 +11033,9 @@ static void
 select_frame_for_redisplay (frame)
      Lisp_Object frame;
 {
-  Lisp_Object tail, sym, val;
+  Lisp_Object tail, symbol, val;
   Lisp_Object old = selected_frame;
+  struct Lisp_Symbol *sym;
 
   xassert (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame)));
 
@@ -11044,15 +11045,15 @@ select_frame_for_redisplay (frame)
     {
       for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
 	if (CONSP (XCAR (tail))
-	    && (sym = XCAR (XCAR (tail)),
-		SYMBOLP (sym))
-	    && (sym = indirect_variable (sym),
-		val = SYMBOL_VALUE (sym),
+	    && (symbol = XCAR (XCAR (tail)),
+		SYMBOLP (symbol))
+	    && (sym = indirect_variable (XSYMBOL (symbol)),
+		val = sym->value,
 		(BUFFER_LOCAL_VALUEP (val)))
 	    && XBUFFER_LOCAL_VALUE (val)->check_frame)
 	  /* Use find_symbol_value rather than Fsymbol_value
 	     to avoid an error if it is void.  */
-	  find_symbol_value (sym);
+	  find_symbol_value (symbol);
     } while (!EQ (frame, old) && (frame = old, 1));
 }
 

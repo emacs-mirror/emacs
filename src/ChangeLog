@@ -1,3 +1,10 @@
+2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (select_frame_for_redisplay): Adjust for last change to
+	indirect_variable.
+	* eval.c (lisp_indirect_variable): New fun.
+	(Fuser_variable_p): Use it.
+
 2008-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (indirect_variable):

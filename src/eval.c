@@ -934,6 +934,13 @@ user_variable_p_eh (ignore)
   return Qnil;
 }
 
+static Lisp_Object
+lisp_indirect_variable (Lisp_Object sym)
+{
+  XSETSYMBOL (sym, indirect_variable (XSYMBOL (sym)));
+  return sym;
+}
+
 DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
        doc: /* Return t if VARIABLE is intended to be set and modified by users.
 \(The alternative is a variable used internally in a Lisp program.)
@@ -954,7 +961,7 @@ chain of symbols.  */)
 
   /* If indirect and there's an alias loop, don't check anything else.  */
   if (XSYMBOL (variable)->indirect_variable
-      && NILP (internal_condition_case_1 (indirect_variable, variable,
+      && NILP (internal_condition_case_1 (lisp_indirect_variable, variable,
                                           Qt, user_variable_p_eh)))
     return Qnil;
 
