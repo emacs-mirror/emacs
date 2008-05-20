@@ -191,7 +191,6 @@ static int next_fontset_id;
    font for each character.  */
 static Lisp_Object Vdefault_fontset;
 
-Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vfont_encoding_charset_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Vignore_relative_composition;
@@ -967,31 +966,6 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
 }
 
 
-/* Return ENCODING or a cons of ENCODING and REPERTORY of the font
-   FONTNAME.  ENCODING is a charset symbol that specifies the encoding
-   of the font.  REPERTORY is a charset symbol or nil.  */
-
-Lisp_Object
-find_font_encoding (fontname)
-     Lisp_Object fontname;
-{
-  Lisp_Object tail, elt;
-
-  for (tail = Vfont_encoding_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      elt = XCAR (tail);
-      if (CONSP (elt)
-	  && STRINGP (XCAR (elt))
-	  && fast_string_match_ignore_case (XCAR (elt), fontname) >= 0
-	  && (SYMBOLP (XCDR (elt))
-	      ? CHARSETP (XCDR (elt))
-	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
-	return (XCDR (elt));
-    }
-  /* We don't know the encoding of this font.  Let's assume `ascii'.  */
-  return Qascii;
-}
-
 
 /* Cache data used by fontset_pattern_regexp.  The car part is a
    pattern string containing at least one wild card, the cdr part is
@@ -2098,28 +2072,6 @@ syms_of_fontset ()
 
   auto_fontset_alist = Qnil;
   staticpro (&auto_fontset_alist);
-
-  DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
-	       doc: /*
-Alist of fontname patterns vs the corresponding encoding and repertory info.
-Each element looks like (REGEXP . (ENCODING . REPERTORY)),
-where ENCODING is a charset or a char-table,
-and REPERTORY is a charset, a char-table, or nil.
-
-If ENCDING and REPERTORY are the same, the element can have the form
-\(REGEXP . ENCODING).
-
-ENCODING is for converting a character to a glyph code of the font.
-If ENCODING is a charset, encoding a character by the charset gives
-the corresponding glyph code.  If ENCODING is a char-table, looking up
-the table by a character gives the corresponding glyph code.
-
-REPERTORY specifies a repertory of characters supported by the font.
-If REPERTORY is a charset, all characters beloging to the charset are
-supported.  If REPERTORY is a char-table, all characters who have a
-non-nil value in the table are supported.  It REPERTORY is nil, Emacs
-gets the repertory information by an opened font and ENCODING.  */);
-  Vfont_encoding_alist = Qnil;
 
   DEFVAR_LISP ("font-encoding-charset-alist", &Vfont_encoding_charset_alist,
 	       doc: /*
