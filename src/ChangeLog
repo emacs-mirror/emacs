@@ -3,7 +3,7 @@
 	* Makefile.in (FONTSRC): Delete it.  Change all $(FONTSRC) to
 	font.h through out the file.
 	(FONT_DRIVERS): Renamed from FONTOBJ.
-	(obj): Delete $(FONTOBJ).  Add font.o.
+	(obj): Change $(FONTOBJ) to $(FONT_DRIVERS).  Add font.o.
 	(SOME_MACHINE_OBJECTS): Change $(FONTOBJ) to $(FONT_DRIVERS).
 
 	* emacs.c (main): Call syms_of_font unconditionally.
