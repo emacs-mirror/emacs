@@ -11936,7 +11936,7 @@
 
 	(allout-region-active-p): Fallback to value of mark-active if
 	neither use-region-p nor region-active-p are present, for
-	compatability with current and recent emacs major releases.
+	compatibility with current and recent Emacs major releases.
 
 2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
