@@ -1,3 +1,14 @@
+2008-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fontset.c (Ffontset_info): Doc fix.
+	(syms_of_fontset) <font-encoding-charset-alist, use-default-ascent>:
+	<ignore-relative-composition>: Fix typos in docstrings.
+
+	* font.c (syms-of-font) <font-encoding-alist>:
+	(Ffontp, Ffont_make_gstring): Fix typos in docstrings.
+	(Flist_fonts, Ffont_family_list, Ffont_fill_gstring, Fquery_font)
+	(Ffont_otf_alternates): Doc fixes.
+
 2008-05-20  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (FONTSRC): Delete it.  Change all $(FONTSRC) to
