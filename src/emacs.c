@@ -1590,8 +1590,8 @@ main (argc, argv
 #endif /* WINDOWSNT */
       syms_of_window ();
       syms_of_xdisp ();
-#ifdef HAVE_WINDOW_SYSTEM
       syms_of_font ();
+#ifdef HAVE_WINDOW_SYSTEM
       syms_of_fringe ();
       syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
