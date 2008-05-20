@@ -1,4 +1,4 @@
-2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>  (tiny change)
+2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>
 
 	* mh-mime.el (mh-mh-to-mime, mh-mh-to-mime-undo): Preserve modes
 	when converting to or from MIME (closes SF #1966722).
