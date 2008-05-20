@@ -1347,7 +1347,7 @@ font_parse_fcname (name, font)
 			     : p0[1] == 'm' ? FONT_SPACING_MONO
 			     : FONT_SPACING_PROPORTIONAL);
 	      ASET (font, FONT_SPACING_INDEX, make_number (spacing));
-	    }		  
+	    }
 	  else
 	    {
 	      /* unknown key */
@@ -1943,12 +1943,12 @@ font_score (entity, spec_prop, alternate_families)
 		int j;
 
 		for (j = 1; CONSP (alternate_families);
-		     j++, alternate_families = XCDR (alternate_families)) 
+		     j++, alternate_families = XCDR (alternate_families))
 		  {
 		    spec_str = XCAR (alternate_families);
 		    if (strcasecmp (SDATA (spec_str), SDATA (entity_str)) == 0)
 		      break;
-		    
+
 		  }
 		if (j > 3)
 		  j = 3;
@@ -2369,7 +2369,7 @@ font_list_entities (frame, spec)
     alternate_familes = Qnil;
   else
     {
-      alternate_familes = Fassoc_string (family, 
+      alternate_familes = Fassoc_string (family,
 					 Vface_alternative_font_family_alist,
 					 Qt);
       if (! NILP (alternate_familes))
@@ -3262,7 +3262,7 @@ font_at (c, pos, face, w, string)
    displayed by the same font.  FACE is the face selected for the
    character as POS on frame F.  STRING, if not nil, is the string to
    check instead of the current buffer.
-   
+
    The return value is the position of the character that is displayed
    by the differnt font than that of the character as POS.  */
 
@@ -3326,7 +3326,7 @@ DEFUN ("fontp", Ffontp, Sfontp, 1, 2, 0,
        doc: /* Return t if OBJECT is a font-spec, font-entity, or font-object.
 Return nil otherwise.
 Optional 2nd argument EXTRA-TYPE, if non-nil, specifies to check
-which kind of font it is.  It must be one of `font-spec', `font-entity'
+which kind of font it is.  It must be one of `font-spec', `font-entity',
 `font-object'.  */)
      (object, extra_type)
      Lisp_Object object, extra_type;
@@ -3513,7 +3513,7 @@ Optional 2nd argument FRAME specifies the target frame.
 Optional 3rd argument NUM, if non-nil, limits the number of returned fonts.
 Optional 4th argument PREFER, if non-nil, is a font-spec to
 control the order of the returned list.  Fonts are sorted by
-how they are close to PREFER.  */)
+how close they are to PREFER.  */)
      (font_spec, frame, num, prefer)
      Lisp_Object font_spec, frame, num, prefer;
 {
@@ -3559,7 +3559,7 @@ how they are close to PREFER.  */)
 
 DEFUN ("font-family-list", Ffont_family_list, Sfont_family_list, 0, 1, 0,
        doc: /* List available font families on the current frame.
-Optional argument FRAME specifies the target frame.  */)
+Optional argument FRAME, if non-nil, specifies the target frame.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -3718,7 +3718,7 @@ This function is called after those tables are initialized. */)
   return Qnil;
 }
 
-/* The following three functions are still expremental.  */
+/* The following three functions are still experimental.  */
 
 DEFUN ("font-make-gstring", Ffont_make_gstring, Sfont_make_gstring, 2, 2, 0,
        doc: /* Return a newly created g-string for FONT-OBJECT with NUM glyphs.
@@ -3731,7 +3731,7 @@ HEADER is a vector of this form:
     [FONT-OBJECT WIDTH LBEARING RBEARING ASCENT DESCENT]
 where
     FONT-OBJECT is a font-object for all glyphs in the g-string,
-    WIDTH thry DESCENT are the metrics (in pixels) of the whole G-string.
+    WIDTH thru DESCENT are the metrics (in pixels) of the whole G-string.
 GLYPH is a vector of this form:
     [ FROM-IDX TO-IDX C CODE WIDTH LBEARING RBEARING ASCENT DESCENT
       [ [X-OFF Y-OFF WADJUST] | nil] ]
@@ -3739,7 +3739,7 @@ where
     FROM-IDX and TO-IDX are used internally and should not be touched.
     C is the character of the glyph.
     CODE is the glyph-code of C in FONT-OBJECT.
-    WIDTH thry DESCENT are the metrics (in pixels) of the glyph.
+    WIDTH thru DESCENT are the metrics (in pixels) of the glyph.
     X-OFF and Y-OFF are offests to the base position for the glyph.
     WADJUST is the adjustment to the normal width of the glyph.  */)
      (font_object, num)
@@ -3768,7 +3768,7 @@ DEFUN ("font-fill-gstring", Ffont_fill_gstring, Sfont_fill_gstring, 4, 5, 0,
 START and END specify the region to extract characters.
 If optional 5rd argument OBJECT is non-nil, it is a buffer or a string from
 where to extract characters.
-FONT-OBJECT may be nil if GSTRING already already contains one.  */)
+FONT-OBJECT may be nil if GSTRING already contains one.  */)
      (gstring, font_object, start, end, object)
      Lisp_Object gstring, font_object, start, end, object;
 {
@@ -4063,7 +4063,7 @@ DEFUN ("font-otf-alternates", Ffont_otf_alternates, Sfont_otf_alternates,
 OTF-FEATURES specifies which features of the font FONT-OBJECT to apply
 in this format:
   (SCRIPT LANGSYS FEATURE ...)
-See the documentation of `font-otf-gsub' for more detail.
+See the documentation of `font-drive-otf' for more detail.
 
 The value is a list of cons cells of the format (GLYPH-ID . CHARACTER),
 where GLYPH-ID is a glyph index of the font, and CHARACTER is a
@@ -4165,14 +4165,14 @@ doesn't provide a file name).
 
 PIXEL-SIZE is a pixel size by which the font is opened.
 
-SIZE is a maximum advance width of the font in pixel.
+SIZE is a maximum advance width of the font in pixels.
 
 ASCENT, DESCENT, SPACE-WIDTH, AVERAGE-WIDTH are metrics of the font in
-pixel.
+pixels.
 
 CAPABILITY is a list whose first element is a symbol representing the
 font format \(x, opentype, truetype, type1, pcf, or bdf) and the
-remaining elements describes a detail of the font capability.
+remaining elements describe the details of the font capability.
 
 If the font is OpenType font, the form of the list is
   \(opentype GSUB GPOS)
@@ -4453,7 +4453,7 @@ Each element looks like (REGEXP . (ENCODING . REPERTORY)),
 where ENCODING is a charset or a char-table,
 and REPERTORY is a charset, a char-table, or nil.
 
-If ENCDING and REPERTORY are the same, the element can have the form
+If ENCODING and REPERTORY are the same, the element can have the form
 \(REGEXP . ENCODING).
 
 ENCODING is for converting a character to a glyph code of the font.
@@ -4464,7 +4464,7 @@ the table by a character gives the corresponding glyph code.
 REPERTORY specifies a repertory of characters supported by the font.
 If REPERTORY is a charset, all characters beloging to the charset are
 supported.  If REPERTORY is a char-table, all characters who have a
-non-nil value in the table are supported.  It REPERTORY is nil, Emacs
+non-nil value in the table are supported.  If REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);
   Vfont_encoding_alist = Qnil;
 
