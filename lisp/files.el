@@ -3127,8 +3127,8 @@ Otherwise this returns nil."
        ((setq result (assoc dir project-directory-alist))
 	;; Nothing else.
 	nil)
-       ((file-exists-p (concat dir ".dir-settings.el"))
-	(setq result (concat dir ".dir-settings.el")))
+       ((file-exists-p (expand-file-name ".dir-settings.el" dir))
+	(setq result (expand-file-name ".dir-settings.el" dir)))
        (t
 	(setq dir (file-name-directory (directory-file-name dir))))))
     result))
