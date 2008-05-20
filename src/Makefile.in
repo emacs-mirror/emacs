@@ -538,18 +538,15 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
-FONTSRC = font.h
 #ifdef HAVE_X_WINDOWS
 #if defined (HAVE_XFT)
-FONTOBJ = font.o xfont.o ftfont.o xftfont.o ftxfont.o
+FONT_DRIVERS = xfont.o ftfont.o xftfont.o ftxfont.o
 #elif defined (HAVE_FREETYPE)
-FONTOBJ = font.o xfont.o ftfont.o ftxfont.o
+FONT_DRIVERS = xfont.o ftfont.o ftxfont.o
 #else /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
-FONTOBJ = font.o xfont.o
+FONT_DRIVERS = xfont.o
 #endif /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
-#else /* ! HAVE_X_WINDOWS */
-FONTOBJ = font.o
-#endif /* ! HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* lastfile must follow all files
@@ -562,12 +559,12 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	minibuf.o fileio.o dired.o filemode.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
-	eval.o floatfns.o fns.o print.o lread.o \
+	eval.o floatfns.o fns.o font.o print.o lread.o \
 	syntax.o UNEXEC bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ) $(FONTOBJ)
+	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -576,7 +573,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONTOBJ)
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
 
 
 #ifdef TERMINFO
@@ -1080,17 +1077,17 @@ filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
    epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   blockinput.h atimer.h systime.h buffer.h character.h fontset.h $(FONTSRC) \
+   blockinput.h atimer.h systime.h buffer.h character.h fontset.h font.h \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h termchar.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
    font.h $(config_h)
 ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
-   charset.h frame.h keyboard.h termhooks.h $(FONTSRC) $(config_h)
+   charset.h frame.h keyboard.h termhooks.h font.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
-   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h $(FONTSRC) \
+   systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h font.h \
    $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
@@ -1164,15 +1161,15 @@ xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
    coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
    charset.h $(config_h) keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h    \
    w32term.h macterm.h msdos.h composite.h fontset.h blockinput.h atimer.h    \
-   systime.h keymap.h $(FONTSRC)
+   systime.h keymap.h font.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
    systime.h keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC)	\
-   termchar.h termhooks.h $(FONTSRC) $(config_h)
+   termchar.h termhooks.h font.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    character.h charset.h coding.h gtkutil.h $(config_h) termhooks.h \
-   fontset.h termchar.h $(FONTSRC)
+   fontset.h termchar.h font.h
 xfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
    font.h $(config_h)
 xftfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
@@ -1185,7 +1182,7 @@ xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h emacs-icon.h character.h charset.h ccl.h fontset.h composite.h \
-   coding.h process.h gtkutil.h $(FONTSRC) $(config_h)
+   coding.h process.h gtkutil.h font.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h termhooks.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
@@ -1217,7 +1214,7 @@ fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
  blockinput.h atimer.h systime.h xterm.h termhooks.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    $(config_h) dispextern.h termchar.h $(INTERVAL_SRC) msdos.h composite.h \
-   blockinput.h atimer.h systime.h $(FONTSRC)
+   blockinput.h atimer.h systime.h font.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
  charset.h $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
 
