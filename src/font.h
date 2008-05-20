@@ -58,6 +58,7 @@ extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
 struct font_driver;
 struct font;
+struct glyph_string;
 
 /* An enumerator for each font property.  This is used as an index to
    the vector of FONT-SPEC and FONT-ENTITY.
@@ -766,6 +767,7 @@ extern Lisp_Object font_make_spec P_ ((void));
 extern Lisp_Object font_make_entity P_ ((void));
 extern Lisp_Object font_make_object P_ ((int));
 
+extern Lisp_Object find_font_encoding P_ ((Lisp_Object));
 extern int font_registry_charsets P_ ((Lisp_Object, struct charset **,
 				       struct charset **));
 extern int font_style_to_value P_ ((enum font_property_index prop,
