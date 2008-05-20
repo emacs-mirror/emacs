@@ -249,8 +249,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "termchar.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
 #include "font.h"
+#ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -2514,7 +2514,6 @@ merge_face_vectors (f, from, to, named_merge_points)
       && !NILP (from[LFACE_INHERIT_INDEX]))
     merge_face_ref (f, from[LFACE_INHERIT_INDEX], to, 0, named_merge_points);
 
-#ifdef HAVE_WINDOW_SYSTEM
   i = LFACE_FONT_INDEX;
   if (!UNSPECIFIEDP (from[i]))
     {
@@ -2524,7 +2523,6 @@ merge_face_vectors (f, from, to, named_merge_points)
 	to[i] = Fcopy_font_spec (from[i]);
       ASET (to[i], FONT_SIZE_INDEX, Qnil);
     }
-#endif
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (!UNSPECIFIEDP (from[i]))
@@ -2532,11 +2530,8 @@ merge_face_vectors (f, from, to, named_merge_points)
 	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
 	  {
 	    to[i] = merge_face_heights (from[i], to[i], to[i]);
-#ifdef HAVE_WINDOW_SYSTEM
 	    font_clear_prop (to, FONT_SIZE_INDEX);
-#endif
 	  }
-#ifdef HAVE_WINDOW_SYSTEM
 	else if (i != LFACE_FONT_INDEX)
 	  {
 	    to[i] = from[i];
@@ -2548,7 +2543,6 @@ merge_face_vectors (f, from, to, named_merge_points)
 				: i == LFACE_WEIGHT_INDEX ? FONT_WEIGHT_INDEX
 				: FONT_SLANT_INDEX));
 	  }
-#endif
       }
 
   /* If `font' attribute is specified, reflect the font properties in
@@ -2673,9 +2667,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		  if (STRINGP (value))
 		    {
 		      to[LFACE_FAMILY_INDEX] = value;
-#ifdef HAVE_WINDOW_SYSTEM
 		      font_clear_prop (to, FONT_FAMILY_INDEX);
-#endif
 		    }
 		  else
 		    err = 1;
@@ -2688,9 +2680,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		  if (! NILP (new_height))
 		    {
 		      to[LFACE_HEIGHT_INDEX] = new_height;
-#ifdef HAVE_WINDOW_SYSTEM
 		      font_clear_prop (to, FONT_SIZE_INDEX);
-#endif
 		    }
 		  else
 		    err = 1;
@@ -2700,9 +2690,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		  if (SYMBOLP (value) && FONT_WEIGHT_NAME_NUMERIC (value) >= 0)
 		    {
 		      to[LFACE_WEIGHT_INDEX] = value;
-#ifdef HAVE_WINDOW_SYSTEM
 		      font_clear_prop (to, FONT_WEIGHT_INDEX);
-#endif
 		    }
 		  else
 		    err = 1;
@@ -2712,9 +2700,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		  if (SYMBOLP (value) && FONT_SLANT_NAME_NUMERIC (value) >= 0)
 		    {
 		      to[LFACE_SLANT_INDEX] = value;
-#ifdef HAVE_WINDOW_SYSTEM
 		      font_clear_prop (to, FONT_SLANT_INDEX);
-#endif
 		    }
 		  else
 		    err = 1;
@@ -2795,9 +2781,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		  if (SYMBOLP (value) && FONT_WIDTH_NAME_NUMERIC (value) >= 0)
 		    {
 		      to[LFACE_SWIDTH_INDEX] = value;
-#ifdef HAVE_WINDOW_SYSTEM
 		      font_clear_prop (to, FONT_WIDTH_INDEX);
-#endif
 		    }
 		  else
 		    err = 1;
@@ -3029,11 +3013,9 @@ FRAME 0 means change the face on all frames, and change the default
 {
   Lisp_Object lface;
   Lisp_Object old_value = Qnil;
-#ifdef HAVE_WINDOW_SYSTEM
   /* Set one of enum font_property_index (> 0) if ATTR is one of
      font-related attributes other than QCfont and QCfontset.  */
   enum font_property_index prop_index = 0;
-#endif
 
   CHECK_SYMBOL (face);
   CHECK_SYMBOL (attr);
@@ -3088,9 +3070,7 @@ FRAME 0 means change the face on all frames, and change the default
 	}
       old_value = LFACE_FAMILY (lface);
       LFACE_FAMILY (lface) = value;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_FAMILY_INDEX;
-#endif
     }
   else if (EQ (attr, QCheight))
     {
@@ -3111,9 +3091,7 @@ FRAME 0 means change the face on all frames, and change the default
 
       old_value = LFACE_HEIGHT (lface);
       LFACE_HEIGHT (lface) = value;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_SIZE_INDEX;
-#endif
     }
   else if (EQ (attr, QCweight))
     {
@@ -3125,9 +3103,7 @@ FRAME 0 means change the face on all frames, and change the default
 	}
       old_value = LFACE_WEIGHT (lface);
       LFACE_WEIGHT (lface) = value;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_WEIGHT_INDEX;
-#endif
     }
   else if (EQ (attr, QCslant))
     {
@@ -3139,9 +3115,7 @@ FRAME 0 means change the face on all frames, and change the default
 	}
       old_value = LFACE_SLANT (lface);
       LFACE_SLANT (lface) = value;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_SLANT_INDEX;
-#endif
     }
   else if (EQ (attr, QCunderline))
     {
@@ -3309,9 +3283,7 @@ FRAME 0 means change the face on all frames, and change the default
 	}
       old_value = LFACE_SWIDTH (lface);
       LFACE_SWIDTH (lface) = value;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_WIDTH_INDEX;
-#endif
     }
   else if (EQ (attr, QCfont))
     {
@@ -3390,23 +3362,18 @@ FRAME 0 means change the face on all frames, and change the default
     {
       old_value = LFACE_WEIGHT (lface);
       LFACE_WEIGHT (lface) = NILP (value) ? Qnormal : Qbold;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_WEIGHT_INDEX;
-#endif
     }
   else if (EQ (attr, QCitalic))
     {
       attr = QCslant;
       old_value = LFACE_SLANT (lface);
       LFACE_SLANT (lface) = NILP (value) ? Qnormal : Qitalic;
-#ifdef HAVE_WINDOW_SYSTEM
       prop_index = FONT_SLANT_INDEX;
-#endif
     }
   else
     signal_error ("Invalid face attribute name", attr);
 
-#ifdef HAVE_WINDOW_SYSTEM
   if (prop_index)
     /* If a font-related attribute other than QCfont and QCfontset is
        specified, and if the original QCfont attribute has a font
@@ -3414,7 +3381,6 @@ FRAME 0 means change the face on all frames, and change the default
        the font to nil so that the font selector doesn't think that
        the attribute is mandatory.  */
     font_clear_prop (XVECTOR (lface)->contents, prop_index);
-#endif
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
