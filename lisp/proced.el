@@ -28,6 +28,10 @@
 ;; on the processes listed.
 ;;
 ;; To do:
+;; - decompose ps(1) output into columns (for `proced-header-alist')
+;;   How can we identify columns that may contain whitespace
+;;   and that can be either right or left justified?
+;;   Use a "grammar table"?
 ;; - sort the "cooked" values used in the output format fields
 ;;   if ps(1) doesn't support the requested sorting scheme
 ;; - filter by user name or other criteria
@@ -41,12 +45,8 @@
   :group 'unix
   :prefix "proced-")
 
-(defcustom proced-procname-column-regexp "\\b\\(CMD\\|COMMAND\\)\\b"
-  "If non-nil, regexp that defines the `proced-procname-column'."
-  :group 'proced
-  :type '(choice (const :tag "none" nil)
-                 (regexp :tag "regexp")))
-
+;; FIXME: a better approach instead of PID-COLUMN would be based
+;; on `proced-header-alist' once we have a reliable scheme to set this variable
 (defcustom proced-command-alist
   (cond ((memq system-type '(berkeley-unix))
          '(("user" ("ps" "-uxgww") 2)
@@ -81,7 +81,18 @@ PID-COLUMN is the column number (starting from 1) of the process ID."
                               (repeat (string :tag "option")))
                         (integer :tag "PID column"))))
 
-;; Should we incorporate in NAME if sorting is done in descending order?
+(defcustom proced-command (if (zerop (user-real-uid)) "all" "user")
+  "Name of process listing.
+Must be the car of an element of `proced-command-alist'."
+  :group 'proced
+  :type '(string :tag "name"))
+(make-variable-buffer-local 'proced-command)
+
+;; Should we incorporate in NAME that sorting can be done in ascending
+;; or descending order?  Then we couldn't associate NAME anymore with one
+;; of the headers in the output of ps(1).
+;; FIXME: A sorting scheme without options or with an option being a symbol
+;; should be implemented in elisp
 (defcustom proced-sorting-schemes-alist
   (cond ((memq system-type '(gnu gnu/linux)) ; GNU long options
          '(("%CPU" "--sort" "-pcpu") ; descending order
@@ -100,8 +111,9 @@ PID-COLUMN is the column number (starting from 1) of the process ID."
            ("VSZ,PID" "--sort" "vsz,pid"))))
   "Alist of sorting schemes.
 Each element is a list (NAME OPTION1 OPTION2 ...).
-NAME denotes the sorting scheme and OPTION1, OPTION2, ... are options
-defining the sorting scheme."
+NAME denotes the sorting scheme.  It is the name of a header or a
+comma-separated sequence of headers in the output of ps(1).
+OPTION1, OPTION2, ... are options defining the sorting scheme."
   :group 'proced
   :type '(repeat (cons (string :tag "name")
                        (repeat (string :tag "option")))))
@@ -116,12 +128,11 @@ Must be the car of an element of `proced-sorting-schemes-alist' or nil."
                                    proced-sorting-schemes-alist))))
 (make-variable-buffer-local 'proced-sorting-scheme)
 
-(defcustom proced-command (if (zerop (user-real-uid)) "all" "user")
-  "Name of process listing.
-Must be the car of an element of `proced-command-alist'."
+(defcustom proced-goal-header-re "\\b\\(CMD\\|COMMAND\\)\\b"
+  "If non-nil, regexp that defines the `proced-goal-column'."
   :group 'proced
-  :type '(string :tag "name"))
-(make-variable-buffer-local 'proced-command)
+  :type '(choice (const :tag "none" nil)
+                 (regexp :tag "regexp")))
 
 (defcustom proced-signal-function 'signal-process
   "Name of signal function.
@@ -143,6 +154,7 @@ the external command (usually \"kill\")."
   :group 'proced
   :type '(repeat (string :tag "signal")))
 
+;; Internal variables
 (defvar proced-marker-char ?*		; the answer is 42
   "In proced, the current mark character.")
 
@@ -151,13 +163,6 @@ the external command (usually \"kill\")."
   "Faces used by Proced."
   :group 'proced
   :group 'faces)
-
-(defface proced-header
-  '((t (:inherit font-lock-type-face)))
-  "Face used for proced headers."
-  :group 'proced-faces)
-(defvar proced-header-face 'proced-header
-  "Face name used for proced headers.")
 
 (defface proced-mark
   '((t (:inherit font-lock-constant-face)))
@@ -177,54 +182,56 @@ the external command (usually \"kill\")."
   "Regexp matching a marked line.
 Important: the match ends just after the marker.")
 
-(defvar proced-header-regexp "\\`.*$"
-  "Regexp matching a header line.")
-
-(defvar proced-procname-column nil
-  "Proced command column.
-Initialized based on `proced-procname-column-regexp'.")
-(make-variable-buffer-local 'proced-procname-column)
+(defvar proced-goal-column nil
+  "Proced goal column.  Initialized based on `proced-goal-header-re'.")
+(make-variable-buffer-local 'proced-goal-column)
 
 (defvar proced-font-lock-keywords
   (list
-   ;;
-   ;; Process listing headers.
-   (list proced-header-regexp '(0 proced-header-face))
    ;;
    ;; Proced marks.
    (list proced-re-mark '(0 proced-mark-face))
    ;;
    ;; Marked files.
    (list (concat "^[" (char-to-string proced-marker-char) "]")
-         '(".+" (proced-move-to-procname) nil (0 proced-marked-face)))))
+         '(".+" (proced-move-to-goal-column) nil (0 proced-marked-face)))))
 
 (defvar proced-mode-map
   (let ((km (make-sparse-keymap)))
-    (define-key km " " 'next-line)
-    (define-key km "n" 'next-line)
-    (define-key km "p" 'previous-line)
-    (define-key km "\C-?" 'previous-line)
-    (define-key km "h" 'describe-mode)
-    (define-key km "?" 'proced-help)
+    ;; moving
+    (define-key km " " 'proced-next-line)
+    (define-key km "n" 'proced-next-line)
+    (define-key km "p" 'proced-previous-line)
+    (define-key km "\C-n" 'proced-next-line)
+    (define-key km "\C-p" 'proced-previous-line)
+    (define-key km "\C-?" 'proced-previous-line)
+    (define-key km [down] 'proced-next-line)
+    (define-key km [up] 'proced-previous-line)
+    ;; marking
     (define-key km "d" 'proced-mark) ; Dired compatibility
     (define-key km "m" 'proced-mark)
-    (define-key km "M" 'proced-mark-all)
     (define-key km "u" 'proced-unmark)
     (define-key km "\177" 'proced-unmark-backward)
+    (define-key km "M" 'proced-mark-all)
     (define-key km "U" 'proced-unmark-all)
     (define-key km "t" 'proced-toggle-marks)
-    (define-key km "h" 'proced-hide-processes)
-    (define-key km "x" 'proced-send-signal) ; Dired compatibility
-    (define-key km "k" 'proced-send-signal) ; kill processes
-    (define-key km "l" 'proced-listing-type)
-    (define-key km "g" 'revert-buffer) ; Dired compatibility
-    (define-key km "q" 'quit-window)
+    ;; sorting
     (define-key km "sc" 'proced-sort-pcpu)
     (define-key km "sm" 'proced-sort-pmem)
     (define-key km "sp" 'proced-sort-pid)
     (define-key km "ss" 'proced-sort-start)
     (define-key km "sS" 'proced-sort)
     (define-key km "st" 'proced-sort-time)
+    ;; operate
+    (define-key km "h" 'proced-hide-processes)
+    (define-key km "x" 'proced-send-signal) ; Dired compatibility
+    (define-key km "k" 'proced-send-signal) ; kill processes
+    ;; misc
+    (define-key km "l" 'proced-listing-type)
+    (define-key km "g" 'revert-buffer) ; Dired compatibility
+    (define-key km "h" 'describe-mode)
+    (define-key km "?" 'proced-help)
+    (define-key km "q" 'quit-window)
     (define-key km [remap undo] 'proced-undo)
     (define-key km [remap advertised-undo] 'proced-undo)
     km)
@@ -256,24 +263,40 @@ Initialized based on `proced-procname-column-regexp'.")
   "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit  (type ? for more help)"
   "Help string for proced.")
 
+(defvar proced-header-alist nil
+  "Alist of headers in Proced buffer.
+Each element is of the form (NAME START END JUSTIFY).
+NAME is name of header in the output of ps(1).
+START and END are column numbers starting from 0.
+END is t if there is no end column for that field.
+JUSTIFY is 'left or 'right for left or right-justified output of ps(1).")
+(make-variable-buffer-local 'proced-header-alist)
+
+(defvar proced-sorting-schemes-re nil
+  "Regexp to match valid sorting schemes.")
+(make-variable-buffer-local 'proced-sorting-schemes-re)
+
+;; helper functions
 (defun proced-marker-regexp ()
   "Return regexp matching `proced-marker-char'."
+  ;; `proced-marker-char' must appear in column zero
   (concat "^" (regexp-quote (char-to-string proced-marker-char))))
 
 (defun proced-success-message (action count)
   "Display success message for ACTION performed for COUNT processes."
   (message "%s %s process%s" action count (if (= 1 count) "" "es")))
 
-(defun proced-move-to-procname ()
-  "Move to the beginning of the process name on the current line.
-Return the position of the beginning of the process name, or nil if none found."
+(defun proced-move-to-goal-column ()
+  "Move to `proced-goal-column' if non-nil."
   (beginning-of-line)
-  (if proced-procname-column
-      (forward-char proced-procname-column)
+  (if proced-goal-column
+      (forward-char proced-goal-column)
     (forward-char 2)))
 
+;; FIXME: a better approach would be based on `proced-header-alist'
+;; once we have a reliable scheme to set this variable
 (defsubst proced-skip-regexp ()
-  "Regexp to skip in process listing."
+  "Regexp to skip in process listing to find PID column."
   (apply 'concat (make-list (1- (nth 2 (assoc proced-command
                                               proced-command-alist)))
                             "\\s-+\\S-+")))
@@ -306,7 +329,7 @@ information will be displayed but not selected.
 
 \\{proced-mode-map}"
   (interactive "P")
-  (let ((buffer (get-buffer-create "*Process Info*")) new)
+  (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
     (setq new (zerop (buffer-size)))
     (if new (proced-mode))
@@ -319,6 +342,20 @@ information will be displayed but not selected.
       (pop-to-buffer buffer)
       (message (substitute-command-keys
                 "type \\[quit-window] to quit, \\[proced-help] for help")))))
+
+(defun proced-next-line (arg)
+  "Move down lines then position at `proced-goal-column'.
+Optional prefix ARG says how many lines to move; default is one line."
+  (interactive "p")
+  (next-line arg)
+  (proced-move-to-goal-column))
+
+(defun proced-previous-line (arg)
+  "Move up lines then position at `proced-goal-column'.
+Optional prefix ARG says how many lines to move; default is one line."
+  (interactive "p")
+  (previous-line arg)
+  (proced-move-to-goal-column))
 
 (defun proced-mark (&optional count)
   "Mark the current (or next COUNT) processes."
@@ -341,16 +378,13 @@ information will be displayed but not selected.
   "Mark the current (or next ARG) processes using MARK."
   (or count (setq count 1))
   (let ((backward (< count 0))
-        (line (line-number-at-pos))
 	buffer-read-only)
-    ;; do nothing in the first line
-    (unless (= line 1)
-      (setq count (1+ (if (<= 0 count) count
-                        (min (- line 2) (abs count)))))
-      (beginning-of-line)
-      (while (not (or (zerop (setq count (1- count))) (eobp)))
-        (proced-insert-mark mark backward))
-      (proced-move-to-procname))))
+    (setq count (1+ (if (<= 0 count) count
+                      (min (1- (line-number-at-pos)) (abs count)))))
+    (beginning-of-line)
+    (while (not (or (zerop (setq count (1- count))) (eobp)))
+      (proced-insert-mark mark backward))
+    (proced-move-to-goal-column)))
 
 (defun proced-mark-all ()
   "Mark all processes."
@@ -366,7 +400,7 @@ information will be displayed but not selected.
   "Mark all processes using MARK."
   (let (buffer-read-only)
     (save-excursion
-      (goto-line 2)
+      (goto-char (point-min))
       (while (not (eobp))
         (proced-insert-mark mark)))))
 
@@ -376,7 +410,7 @@ information will be displayed but not selected.
   (let ((mark-re (proced-marker-regexp))
         buffer-read-only)
     (save-excursion
-      (goto-line 2)
+      (goto-char (point-min))
       (while (not (eobp))
         (cond ((looking-at mark-re)
                (proced-insert-mark nil))
@@ -411,26 +445,22 @@ Returns count of hidden lines."
     (save-excursion
       (if arg
           ;; Hide ARG lines starting with the current line.
-          (let ((line (line-number-at-pos)))
-            ;; do nothing in the first line
-            (unless (= line 1)
-              (delete-region (line-beginning-position)
-                             (save-excursion
-                               (if (<= 0 arg)
-                                   (setq count (- arg (forward-line arg)))
-                                 (setq count (min (- line 2) (abs arg)))
-                                 (forward-line (- count)))
-                               (point)))))
+          (delete-region (line-beginning-position)
+                         (save-excursion
+                           (if (<= 0 arg)
+                               (setq count (- arg (forward-line arg)))
+                             (setq count (min (1- (line-number-at-pos))
+                                              (abs arg)))
+                             (forward-line (- count)))
+                           (point)))
         ;; Hide marked lines
-        (goto-line 2)
         (while (and (not (eobp))
                     (re-search-forward mark-re nil t))
           (delete-region (match-beginning 0)
                          (save-excursion (forward-line) (point)))
           (setq count (1+ count)))))
-    (unless (zerop count) (proced-move-to-procname))
-    (unless quiet
-      (proced-success-message "Hid" count))
+    (unless (zerop count) (proced-move-to-goal-column))
+    (unless quiet (proced-success-message "Hid" count))
     count))
 
 (defun proced-listing-type (command)
@@ -439,6 +469,11 @@ Returns count of hidden lines."
    (list (completing-read "Listing type: " proced-command-alist nil t)))
   (setq proced-command command)
   (proced-update))
+
+;; adopted from `ruler-mode-space'
+(defsubst proced-header-space (width)
+  "Return a single space string of WIDTH times the normal character width."
+  (propertize " " 'display (list 'space :width width)))
 
 (defun proced-update (&optional quiet)
   "Update the `proced' process information.  Preserves point and marks."
@@ -452,12 +487,12 @@ Returns count of hidden lines."
                         (looking-at (concat "^[* ]" regexp)))
                       (cons (match-string-no-properties 1)
                             (current-column))))
-         buffer-read-only plist)
+         buffer-read-only mp-list)
     (goto-char (point-min))
     ;; remember marked processes (whatever the mark was)
     (while (re-search-forward (concat "^\\(\\S-\\)" regexp) nil t)
       (push (cons (match-string-no-properties 2)
-                  (match-string-no-properties 1)) plist))
+                  (match-string-no-properties 1)) mp-list))
     ;; generate new listing
     (erase-buffer)
     (apply 'call-process (car command) nil t nil
@@ -471,25 +506,55 @@ Returns count of hidden lines."
     (goto-char (point-min))
     (while (re-search-forward "[ \t\r]+$" nil t)
       (delete-region (match-beginning 0) (match-end 0)))
-    (set-buffer-modified-p nil)
-    ;; set `proced-procname-column'
     (goto-char (point-min))
-    (and proced-procname-column-regexp
-         (re-search-forward proced-procname-column-regexp nil t)
-         (setq proced-procname-column (1- (match-beginning 0))))
+    (let ((lep (line-end-position)))
+      ;; header line: code inspired by `ruler-mode-ruler'
+      (setq header-line-format
+            (list "" (if (eq 'left (car (window-current-scroll-bars)))
+                         (proced-header-space 'scroll-bar))
+                  (proced-header-space 'left-fringe)
+                  (proced-header-space 'left-margin)
+                  (replace-regexp-in-string
+                   "%" "%%" (buffer-substring-no-properties (point) lep))))
+      (setq proced-header-alist nil)
+      ;; FIXME: handle left/right justification properly
+      (while (re-search-forward "\\([^ \t\n]+\\)[ \t]*\\($\\)?" lep t)
+        (push (list (match-string-no-properties 1)
+                    ;; take the column number starting from zero
+                    (1- (match-beginning 0)) (or (not (not (match-beginning 2)))
+                                                 (1- (match-end 0)))
+                    'left)
+              proced-header-alist)))
+    (let ((temp (regexp-opt (mapcar 'car proced-header-alist) t)))
+      (setq proced-sorting-schemes-re
+            (concat "\\`" temp "\\(," temp "\\)*\\'")))
+    ;; remove header line from ps(1) output
+    (goto-char (point-min))
+    (delete-region (point)
+                   (save-excursion (forward-line) (point)))
+    (set-buffer-modified-p nil)
+    ;; set `proced-goal-column'
+    (if proced-goal-header-re
+        (let ((hlist proced-header-alist) header)
+          (while (setq header (pop hlist))
+            (if (string-match proced-goal-header-re (car header))
+                (setq proced-goal-column
+                      (if (eq 'left (nth 3 header))
+                          (nth 1 header) (nth 2 header))
+                      hlist nil)))))
     ;; restore process marks
-    (if plist
+    (if mp-list
         (save-excursion
-          (goto-line 2)
+          (goto-char (point-min))
           (let (mark)
             (while (re-search-forward (concat "^" regexp) nil t)
-              (if (setq mark (assoc (match-string-no-properties 1) plist))
+              (if (setq mark (assoc (match-string-no-properties 1) mp-list))
                   (save-excursion
                     (beginning-of-line)
                     (insert (cdr mark))
                     (delete-char 1)))))))
     ;; restore buffer position (if possible)
-    (goto-line 2)
+    (goto-char (point-min))
     (if (and old-pos
              (re-search-forward
               (concat "^[* ]" (proced-skip-regexp) "\\s-+" (car old-pos) "\\>")
@@ -497,11 +562,13 @@ Returns count of hidden lines."
         (progn
           (beginning-of-line)
           (forward-char (cdr old-pos)))
-      (proced-move-to-procname))
+      (proced-move-to-goal-column))
     ;; update modeline
-    (setq mode-name (if proced-sorting-scheme
-                        (concat "Proced by " proced-sorting-scheme)
-                      "Proced"))
+    ;; Does the long mode-name clutter the modeline?
+    (setq mode-name (concat "Proced: " proced-command
+                            (if proced-sorting-scheme
+                                (concat " by " proced-sorting-scheme)
+                              "")))
     (force-mode-line-update)
     ;; done
     (or quiet (input-pending-p)
@@ -512,7 +579,9 @@ Returns count of hidden lines."
   (proced-update))
 
 ;; I do not want to reinvent the wheel.  Should we rename `dired-pop-to-buffer'
-;; and move it to simple.el so that proced and ibuffer can easily use it, too?
+;; and move it to window.el so that proced and ibuffer can easily use it, too?
+;; What about functions like `appt-disp-window' that use
+;; `shrink-window-if-larger-than-buffer'?
 (autoload 'dired-pop-to-buffer "dired")
 
 (defun proced-send-signal (&optional signal)
@@ -522,7 +591,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
   (interactive)
   (let ((regexp (concat (proced-marker-regexp)
                         (proced-skip-regexp) "\\s-+\\([0-9]+\\>\\).*$"))
-        plist)
+        process-list)
     ;; collect marked processes
     (save-excursion
       (goto-char (point-min))
@@ -532,29 +601,26 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                     ;; better to collect only the PID (to avoid ambiguities)
                     ;; and the command name?
                     (substring (match-string-no-properties 0) 2))
-              plist)))
-    (setq plist (nreverse plist))
-    (if (not plist)
+              process-list)))
+    (setq process-list (nreverse process-list))
+    (if (not process-list)
         (message "No processes marked")
       (unless signal
         ;; Display marked processes (code taken from `dired-mark-pop-up').
         (let ((bufname  " *Marked Processes*")
-              (header (save-excursion
-                        (goto-char (+ 2 (point-min)))
-                        (buffer-substring-no-properties
-                         (point) (line-end-position)))))
+              (header header-line-format)) ; reuse
           (with-current-buffer (get-buffer-create bufname)
-            (setq truncate-lines t)
+            (setq truncate-lines t
+                  header-line-format header)
             (erase-buffer)
-            (insert header "\n")
-            (dolist (proc plist)
-              (insert (cdr proc) "\n"))
+            (dolist (process process-list)
+              (insert "  " (cdr process) "\n"))
             (save-window-excursion
               (dired-pop-to-buffer bufname) ; all we need
               (let* ((completion-ignore-case t)
-                     (pnum (if (= 1 (length plist))
+                     (pnum (if (= 1 (length process-list))
                                "1 process"
-                             (format "%d processes" (length plist))))
+                             (format "%d processes" (length process-list))))
                      ;; The following is an ugly hack. Is there a better way
                      ;; to help people like me to remember the signals and
                      ;; their meanings?
@@ -574,7 +640,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
                                     (string-to-number signal)
                                   (make-symbol signal))
                               signal))) ; number
-                (dolist (process plist)
+                (dolist (process process-list)
                   (if (zerop (funcall
                               proced-signal-function
                               (string-to-number (car process)) signal))
@@ -583,7 +649,7 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
             ;; use external system call
             (let ((signal (concat "-" (if (numberp signal)
                                           (number-to-string signal) signal))))
-              (dolist (process plist)
+              (dolist (process process-list)
                 (if (zerop (call-process
                             proced-signal-function nil 0 nil
                             signal (car process)))
@@ -610,7 +676,7 @@ buffer.  You can use it to recover marks."
   (interactive)
   (let (buffer-read-only)
     (undo))
-  (message "Change in proced buffer undone.
+  (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
 
 ;;; Sorting
@@ -619,20 +685,29 @@ Killed processes cannot be recovered by Emacs."))
 When called interactively, an empty string means nil, i.e., no sorting."
   (interactive
    (list (let* ((completion-ignore-case t)
+                ;; restrict completion list to applicable sorting schemes
+                (completion-list
+                 (apply 'append
+                        (mapcar (lambda (x)
+                                  (if (string-match proced-sorting-schemes-re
+                                                    (car x))
+                                      (list (car x))))
+                                proced-sorting-schemes-alist)))
                 (scheme (completing-read "Sorting type: "
-                                         proced-sorting-schemes-alist nil t)))
+                                         completion-list nil t)))
            (if (string= "" scheme) nil scheme))))
   (if (proced-sorting-scheme-p scheme)
       (progn
         (setq proced-sorting-scheme scheme)
         (proced-update))
-    (error "Proced sorting scheme %s undefined" scheme)))
+    (error "Proced sorting scheme %s not applicable" scheme)))
 
 (defun proced-sorting-scheme-p (scheme)
   "Return non-nil if SCHEME is an applicable sorting scheme.
 SCHEME must be a string or nil."
   (or (not scheme)
-      (assoc scheme proced-sorting-schemes-alist)))
+      (and (string-match proced-sorting-schemes-re scheme)
+           (assoc scheme proced-sorting-schemes-alist))))
 
 (defun proced-sort-pcpu ()
   "Sort Proced buffer by percentage CPU time (%CPU)."
