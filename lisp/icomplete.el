@@ -291,13 +291,14 @@ are exhibited within the square braces.)"
     ;; `icomplete-prospects-length', there is no need for `catch'/`throw'.
     (if (null comps)
         (format " %sNo matches%s" open-bracket close-bracket)
-      (let* ((most-try (completion-try-completion
-                        name
-	                ;; If the `comps' are 0-based, the result should be
-	                ;; the same with `comps'.
-                        (if base-size candidates comps)
-                        predicate
-                        (length name)))
+      (let* ((most-try
+              (if (and base-size (> base-size 0))
+                  (completion-try-completion
+                   name candidates predicate (length name))
+                ;; If the `comps' are 0-based, the result should be
+                ;; the same with `comps'.
+                (completion-try-completion
+                 name comps nil (length name))))
 	     (most (if (consp most-try) (car most-try) (car comps)))
              ;; Compare name and most, so we can determine if name is
              ;; a prefix of most, or something else.

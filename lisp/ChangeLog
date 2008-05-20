@@ -1,3 +1,8 @@
+2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-completions): Don't use `predicate' with
+	a table of a different type than `candidates'.
+
 2008-05-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-goal-header-re): Renamed from
