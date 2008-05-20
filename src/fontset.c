@@ -8,7 +8,7 @@
    Copyright (C) 2003, 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
- 
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
@@ -140,7 +140,7 @@ EXFUN (Fclear_face_cache, 1);
 	base: nil
 	realized: Alist of font index vs the corresponding repertory
 	char-table.
-	
+
    The 8th slot:
 	base: nil
 	realized: If the base is not the default fontset, a fontset
@@ -417,7 +417,7 @@ reorder_font_vector (font_group, preferred_family)
       int score = 0;
 
       if (! NILP (repertory))
-	{  
+	{
 	  Lisp_Object tail;
 
 	  for (score = 0xFFFF, tail = Vcharset_ordered_list;
@@ -617,7 +617,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	    }
 	  RFONT_DEF_SET_OBJECT (elt, font_object);
 	}
-      
+
       if (font_has_char (f, font_object, c))
 	return elt;
 
@@ -835,7 +835,7 @@ free_face_fontset (f, face)
   if (! NILP (FONTSET_DEFAULT (fontset)))
     {
       int id = XINT (FONTSET_ID (FONTSET_DEFAULT (fontset)));
-      
+
       fontset = AREF (Vfontset_table, id);
       xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
       xassert (f == XFRAME (FONTSET_FRAME (fontset)));
@@ -1777,7 +1777,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
        doc: /* Return information about a fontset FONTSET on frame FRAME.
-The value is a char-table of which elements has this form.
+The value is a char-table whose elements have this form:
 
     ((FONT-PATTERN OPENED-FONT ...) ...)
 
@@ -1791,7 +1791,7 @@ OPENED-FONT is a name of a font actually opened.
 
 The char-table has one extra slot.  The value is a char-table
 containing the information about the derived fonts from the default
-fontset.  The format is the same as abobe.  */)
+fontset.  The format is the same as above.  */)
      (fontset, frame)
      Lisp_Object fontset, frame;
 {
@@ -2076,7 +2076,7 @@ syms_of_fontset ()
   DEFVAR_LISP ("font-encoding-charset-alist", &Vfont_encoding_charset_alist,
 	       doc: /*
 Alist of charsets vs the charsets to determine the preferred font encoding.
-Each element looks like (CHARSET . ENCDOING-CHARSET),
+Each element looks like (CHARSET . ENCODING-CHARSET),
 where ENCODING-CHARSET is a charset registered in the variable
 `font-encoding-alist' as ENCODING.
 
@@ -2088,7 +2088,7 @@ whose encoding corresponds to ENCODING-CHARSET is preferred.  */);
 	       doc: /*
 Char table of characters whose ascent values should be ignored.
 If an entry for a character is non-nil, the ascent value of the glyph
-is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.
+is assumed to be specified by _MULE_DEFAULT_ASCENT property of a font.
 
 This affects how a composite character which contains
 such a character is displayed on screen.  */);
@@ -2096,7 +2096,7 @@ such a character is displayed on screen.  */);
 
   DEFVAR_LISP ("ignore-relative-composition", &Vignore_relative_composition,
 	       doc: /*
-Char table of characters which is not composed relatively.
+Char table of characters which are not composed relatively.
 If an entry for a character is non-nil, a composition sequence
 which contains that character is displayed so that
 the glyph of that character is put without considering
