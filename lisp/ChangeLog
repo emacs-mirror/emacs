@@ -1,3 +1,27 @@
+2008-05-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-goal-header-re): Renamed from
+	proced-procname-column-regexp.
+	(proced-goal-column): Renamed from proced-procname-column.
+	(proced-move-to-goal-column): Renamed from
+	proced-move-to-procname.
+	(proced-header-face, proced-header-regexp): Removed.
+	(proced-font-lock-keywords): Remove proced-header-face.
+	(proced-header-alist, proced-sorting-schemes-re): New variables.
+	(proced): Rename Proced buffer to *Proced*.
+	(proced-next-line, proced-previous-line): New commands.
+	(proced-do-mark, proced-do-mark-all, proced-toggle-marks)
+	(proced-hide-processes): Do not treat first line as special.
+	(proced-header-space): New function.
+	(proced-update): Use header-line-format.  Initialize
+	proced-header-alist and proced-sorting-schemes-re.  Set
+	proced-goal-column.  Include proced-command in mode-name.
+	(proced-send-signal): Use header-line-format for *Marked
+	Processes* buffer.
+	(proced-sort): Restrict minibuffer completion to applicable
+	sorting schemes.
+	(proced-sorting-scheme-p): Use proced-sorting-schemes-re.
+
 2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* icomplete.el (icomplete-simple-completing-p):
