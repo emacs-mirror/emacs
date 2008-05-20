@@ -65,7 +65,7 @@
 	(ftfont_pattern_entity): New arg fc_charset_idx.  Store (FILENAME
 	. FC_CHARSET_IDX) as :font-entity property in the font entity.
 	Callers changed.
-	(ftfont_lookup_cache, ftfont_get_charset): New funcitons.
+	(ftfont_lookup_cache, ftfont_get_charset): New functions.
 	(ftfont_spec_pattern): New argument fc_charset_idx.
 	Check registry more rigidly.  Change callers.
 	(ftfont_open, ftfont_close, ftfont_has_char): Adjustd for the
@@ -92,7 +92,7 @@
 	* dired.c (Ffile_attributes): Shut up GCC warnings about st_uid
 	and st_gid.
 
-	* frame.c (Fdelete_frame): Don't call font_update_drviers if
+	* frame.c (Fdelete_frame): Don't call font_update_drivers if
 	HAVE_WINDOW_SYSTEM is not defined.
 
 	* xfaces.c (merge_face_ref, merge_face_vectors)
@@ -2903,7 +2903,7 @@
 	* ftfont.c (ftfont_get_cache): Adjust the argument type.
 
 	* frame.c (x_set_font_backend): Don't call Fclear_font_cache.
-	If none of the new drivers are available, call font_update_drviers
+	If none of the new drivers are available, call font_update_drivers
 	with the old drivers.
 
 	* w32font.c (w32font_get_cache): Adjust the argument type.
