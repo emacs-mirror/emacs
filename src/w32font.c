@@ -1311,8 +1311,7 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
   Lisp_Object backend = match_data->opentype_only ? Quniscribe : Qgdi;
 
   if ((!match_data->opentype_only
-       || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
-       || (font_type & TRUETYPE_FONTTYPE))
+       || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE))
       && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
                             match_data->orig_font_spec, backend,
