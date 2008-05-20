@@ -1,16 +1,33 @@
 2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-boundaries): New function.
+	(completion--some): Delay errors.
+	(complete-with-action, completion-table-with-context):
+	Handle `boundaries' case.
+	(completion--try-word-completion): Avoid partial-completion
+	when the user hasn't entered anything yet.
+	(minibuffer-local-map, minibuffer-local-filename-completion-map)
+	(minibuffer-local-must-match-map, minibuffer-local-completion-map)
+	(minibuffer-local-must-match-filename-map, minibuffer-local-ns-map):
+	Setup default keybindings.
+	(completion--embedded-envvar-re): New var.
+	(completion--embedded-envvar-table): Use it.  Handle `boundaries' case.
+	(completion--file-name-table): Handle `boundaries' case.
+	(completion-pcm--pattern->regex): Avoid pathological backtracking.
+	(completion-pcm--all-completions): Add a `prefix' arg.
+	(completion-pcm--find-all-completions): New function.
+	(completion-pcm-all-completions, completion-pcm-try-completion):
+	Use it.
+
 	* icomplete.el (icomplete-completions): Don't use `predicate' with
 	a table of a different type than `candidates'.
 
 2008-05-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* proced.el (proced-goal-header-re): Renamed from
-	proced-procname-column-regexp.
-	(proced-goal-column): Renamed from proced-procname-column.
-	(proced-move-to-goal-column): Renamed from
-	proced-move-to-procname.
-	(proced-header-face, proced-header-regexp): Removed.
+	* proced.el (proced-goal-column): Rename from proced-procname-column.
+	(proced-goal-header-re): Rename from proced-procname-column-regexp.
+	(proced-move-to-goal-column): Rename from proced-move-to-procname.
+	(proced-header-face, proced-header-regexp): Remove.
 	(proced-font-lock-keywords): Remove proced-header-face.
 	(proced-header-alist, proced-sorting-schemes-re): New variables.
 	(proced): Rename Proced buffer to *Proced*.
@@ -18,9 +35,9 @@
 	(proced-do-mark, proced-do-mark-all, proced-toggle-marks)
 	(proced-hide-processes): Do not treat first line as special.
 	(proced-header-space): New function.
-	(proced-update): Use header-line-format.  Initialize
-	proced-header-alist and proced-sorting-schemes-re.  Set
-	proced-goal-column.  Include proced-command in mode-name.
+	(proced-update): Use header-line-format.
+	Initialize proced-header-alist and proced-sorting-schemes-re.
+	Set proced-goal-column.  Include proced-command in mode-name.
 	(proced-send-signal): Use header-line-format for *Marked
 	Processes* buffer.
 	(proced-sort): Restrict minibuffer completion to applicable
