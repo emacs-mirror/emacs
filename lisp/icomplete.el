@@ -189,6 +189,7 @@ Conditions are:
        (not executing-kbd-macro)
        minibuffer-completion-table
        (or (not (functionp minibuffer-completion-table))
+           (eq icomplete-with-completion-tables t)
            (member minibuffer-completion-table
                    icomplete-with-completion-tables))))
 
@@ -280,29 +281,58 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  (let ((comps (all-completions name candidates predicate))
-                                        ; "-determined" - only one candidate
-        (open-bracket-determined (if require-match "(" "["))
-        (close-bracket-determined (if require-match ")" "]")))
+  (let* ((comps (completion-all-completions name candidates predicate
+                                            (length name)))
+         (last (last comps))
+         (base-size (if (consp last) (prog1 (cdr last) (setcdr last nil))))
+         (open-bracket (if require-match "(" "["))
+         (close-bracket (if require-match ")" "]")))
     ;; `concat'/`mapconcat' is the slow part.  With the introduction of
     ;; `icomplete-prospects-length', there is no need for `catch'/`throw'.
-    (if (null comps) (format " %sNo matches%s"
-			     open-bracket-determined
-			     close-bracket-determined)
-      (let* ((most-try (try-completion name (mapcar (function list) comps)))
-	     (most (if (stringp most-try) most-try (car comps)))
-	     (most-len (length most))
-	     (determ (and (> most-len (length name))
-			  (concat open-bracket-determined
-				  (substring most (length name))
-				  close-bracket-determined)))
+    (if (null comps)
+        (format " %sNo matches%s" open-bracket close-bracket)
+      (let* ((most-try (completion-try-completion
+                        name
+	                ;; If the `comps' are 0-based, the result should be
+	                ;; the same with `comps'.
+                        (if base-size candidates comps)
+                        predicate
+                        (length name)))
+	     (most (if (consp most-try) (car most-try) (car comps)))
+             ;; Compare name and most, so we can determine if name is
+             ;; a prefix of most, or something else.
+	     (compare (compare-strings name nil nil
+				       most nil nil completion-ignore-case))
+	     (determ (unless (or (eq t compare) (eq t most-try)
+				 (= (setq compare (1- (abs compare)))
+				    (length most)))
+		       (concat open-bracket
+			       (cond
+				((= compare (length name))
+                                 ;; Typical case: name is a prefix.
+				 (substring most compare))
+				((< compare 5) most)
+				(t (concat "..." (substring most compare))))
+			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
 	     (prospects-len (+ (length determ) 6)) ;; take {,...} into account
+             (prefix-len
+              ;; Find the common prefix among `comps'.
+	      (if (eq t (compare-strings (car comps) nil (length most)
+					 most nil nil case-fold-search))
+                  ;; Common case.
+		  (length most)
+                ;; Else, use try-completion.
+		(let ((comps-prefix (try-completion "" comps)))
+                  (and (stringp comps-prefix)
+                       (length comps-prefix)))))
+
 	     prospects most-is-exact comp limit)
-	(if (eq most-try t)
+	(if (or (eq most-try t) (null (cdr comps)))
 	    (setq prospects nil)
 	  (while (and comps (not limit))
-	    (setq comp (substring (car comps) most-len)
+	    (setq comp
+                  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))
@@ -327,10 +357,10 @@ are exhibited within the square braces.)"
 		    (if keys (concat "; " keys) ""))
 		  "]"))))))
 
-;;;_* Local emacs vars.
-;;;Local variables:
-;;;allout-layout: (-2 :)
-;;;End:
+;;_* Local emacs vars.
+;;Local variables:
+;;allout-layout: (-2 :)
+;;End:
 
 ;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
 ;;; icomplete.el ends here

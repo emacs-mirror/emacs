@@ -1,3 +1,10 @@
+2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-simple-completing-p):
+	Allow icomplete-with-completion-tables to say "use it everywhere".
+	(icomplete-completions): Obey completion-styles.  Try to accomodate
+	partial-completion style.
+
 2008-05-20  Michael Olson  <mwolson@gnu.org>
 
 	* files.el (project-find-settings-file): Change concat to
