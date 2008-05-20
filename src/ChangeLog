@@ -1,3 +1,8 @@
+2008-05-20  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (add_font_entity_to_list): Don't add non-opentype
+        truetype fonts to opentype list.
+
 2008-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fontset.c (Ffontset_info): Doc fix.
