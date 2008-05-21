@@ -3149,6 +3149,8 @@ is found.  Returns the new class name."
       (set-directory-project dir-name class-name)
       class-name)))
 
+(declare-function c-postprocess-file-styles "cc-mode" ())
+
 (defun hack-project-variables ()
   "Set local variables in a buffer based on project settings."
   (when (and (buffer-file-name) (not (file-remote-p (buffer-file-name))))
