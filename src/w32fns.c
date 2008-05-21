@@ -8922,7 +8922,8 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_fringe_width,
   0, /* x_set_wait_for_wm, */
   x_set_fullscreen,
-  x_set_font_backend
+  x_set_font_backend,
+  0 /* x_set_alpha, */
 };
 
 void
