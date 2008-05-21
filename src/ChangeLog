@@ -1,18 +1,18 @@
-2008-05-21 Seiji Zenitani <zenitani@mac.com>
-	   Ryo Yoshitake <ryo@shiftmode.net>
+2008-05-21  Seiji Zenitani  <zenitani@mac.com>
+	    Ryo Yoshitake  <ryo@shiftmode.net>
 
-        * frame.c (Qalpha): Add a new frame parameter `alpha'.
-        (Vframe_alpha_lower_limit) : New variable.
-        (x_set_alpha): Add function.
+	* frame.c (Qalpha): Add a new frame parameter `alpha'.
+	(Vframe_alpha_lower_limit) : New variable.
+	(x_set_alpha): Add function.
 
-        * frame.h (Qalpha, Vframe_parameter_lower_limit): Export them.
+	* frame.h (Qalpha, Vframe_parameter_lower_limit): Export them.
 
-        * xfns.c (x-create-frame, Qalpha):
-        Initialize the frame parameter `alpha'.
-        * xterm.c (x_set_frame_alpha): Add function.
+	* xfns.c (x-create-frame, Qalpha):
+	Initialize the frame parameter `alpha'.
+	* xterm.c (x_set_frame_alpha): Add function.
 
-        * macfns.c (mac_frame_parm_handlers): A null handler for x_set_alpha.
-        * w32fns.c (w32_frame_parm_handlers): Likewise.
+	* macfns.c (mac_frame_parm_handlers): A null handler for x_set_alpha.
+	* w32fns.c (w32_frame_parm_handlers): Likewise.
 
 2008-05-20  Jason Rumney  <jasonr@gnu.org>
 
