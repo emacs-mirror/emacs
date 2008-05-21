@@ -467,12 +467,14 @@ x_set_frame_alpha (f)
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *dpy = FRAME_X_DISPLAY (f);
   Window win = FRAME_OUTER_WINDOW (f);
+  double alpha = 1.0;
+  double alpha_min = 1.0;
+  unsigned int opac;
+  
   if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
     /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
        we must treat the former instead of the latter. */
     win = FRAME_X_OUTPUT(f)->parent_desc;
-
-  double alpha = 1.0, alpha_min = 1.0;
 
   if (dpyinfo->x_highlight_frame == f)
     alpha = f->alpha[0];
@@ -489,7 +491,7 @@ x_set_frame_alpha (f)
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
-  unsigned int opac = (unsigned int)(alpha * OPAQUE);
+  opac = (unsigned int)(alpha * OPAQUE);
 
   /* return unless necessary */
   {
@@ -508,9 +510,7 @@ x_set_frame_alpha (f)
 	  return;
 	}
       else
-       {
-	  XFree ((void *) data);
-       }
+	XFree ((void *) data);
   }
 
   XChangeProperty (dpy, win, XInternAtom (dpy, OPACITY, False),

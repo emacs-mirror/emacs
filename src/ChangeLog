@@ -1,3 +1,8 @@
+2008-05-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_set_frame_alpha): Move declarations before
+	statements.
+
 2008-05-21  Seiji Zenitani  <zenitani@mac.com>
 	    Ryo Yoshitake  <ryo@shiftmode.net>
 
