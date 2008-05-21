@@ -1,5 +1,7 @@
 2008-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (c-postprocess-file-styles): Declare for compiler.
+
 	* Makefile.in: Allow for parallel byte-compiling.
 	(ELCFILES): New variable.
 	(.el.elc): Remove prerequisites from suffix rule.  Print a message.
