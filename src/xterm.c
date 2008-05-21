@@ -457,6 +457,67 @@ x_display_info_for_display (dpy)
   return 0;
 }
 
+#define OPAQUE  0xffffffff
+#define OPACITY "_NET_WM_WINDOW_OPACITY"
+
+void
+x_set_frame_alpha (f)
+     struct frame *f;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Window win = FRAME_OUTER_WINDOW (f);
+  if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
+    /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
+       we must treat the former instead of the latter. */
+    win = FRAME_X_OUTPUT(f)->parent_desc;
+
+  double alpha = 1.0, alpha_min = 1.0;
+
+  if (dpyinfo->x_highlight_frame == f)
+    alpha = f->alpha[0];
+  else
+    alpha = f->alpha[1];
+
+  if (FLOATP (Vframe_alpha_lower_limit))
+    alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
+  else if (INTEGERP (Vframe_alpha_lower_limit))
+    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+
+  if (alpha < 0.0 || 1.0 < alpha)
+    alpha = 1.0;
+  else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
+    alpha = alpha_min;
+
+  unsigned int opac = (unsigned int)(alpha * OPAQUE);
+
+  /* return unless necessary */
+  {
+    unsigned char *data;
+    Atom actual;
+    int format;
+    unsigned long n, left;
+
+    XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
+		       0L, 1L, False, XA_CARDINAL, &actual, &format, &n, &left,
+		       (unsigned char **) &data);
+    if (data != None)
+      if (*(unsigned int *)data == opac)
+	{
+	  XFree ((void *) data);
+	  return;
+	}
+      else
+       {
+	  XFree ((void *) data);
+       }
+  }
+
+  XChangeProperty (dpy, win, XInternAtom (dpy, OPACITY, False),
+		   XA_CARDINAL, 32, PropModeReplace,
+		   (unsigned char *) &opac, 1L);
+  XSync (dpy, False);
+}
 
 
 /***********************************************************************
@@ -3171,6 +3232,7 @@ frame_highlight (f)
 		    f->output_data.x->border_pixel);
   UNBLOCK_INPUT;
   x_update_cursor (f, 1);
+  x_set_frame_alpha (f);
 }
 
 static void
@@ -3186,6 +3248,7 @@ frame_unhighlight (f)
 			  f->output_data.x->border_tile);
   UNBLOCK_INPUT;
   x_update_cursor (f, 1);
+  x_set_frame_alpha (f);
 }
 
 /* The focus has changed.  Update the frames as necessary to reflect
