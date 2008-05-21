@@ -489,6 +489,59 @@ scroll the window of possible completions."
                t)
         (t     t)))))
 
+(defvar completion-all-sorted-completions nil)
+(make-variable-buffer-local 'completion-all-sorted-completions)
+
+(defun completion--flush-all-sorted-completions (&rest ignore)
+  (setq completion-all-sorted-completions nil))
+
+(defun completion-all-sorted-completions ()
+  (or completion-all-sorted-completions
+      (let* ((start (field-beginning))
+             (end (field-end))
+             (all (completion-all-completions (buffer-substring start end)
+                                              minibuffer-completion-table
+                                              minibuffer-completion-predicate
+                                              (- (point) start)))
+             (last (last all))
+             (base-size (or (cdr last) 0)))
+        (when last
+          (setcdr last nil)
+          ;; Prefer shorter completions.
+          (setq all (sort all (lambda (c1 c2) (< (length c1) (length c2)))))
+          ;; Prefer recently used completions.
+          (let ((hist (symbol-value minibuffer-history-variable)))
+            (setq all (sort all (lambda (c1 c2)
+                                  (> (length (member c1 hist))
+                                     (length (member c2 hist)))))))
+          ;; Cache the result.  This is not just for speed, but also so that
+          ;; repeated calls to minibuffer-force-complete can cycle through
+          ;; all possibilities.
+          (add-hook 'after-change-functions
+                    'completion--flush-all-sorted-completions nil t)
+          (setq completion-all-sorted-completions
+                (nconc all base-size))))))
+
+(defun minibuffer-force-complete ()
+  "Complete the minibuffer to an exact match.
+Repeated uses step through the possible completions."
+  (interactive)
+  ;; FIXME: Need to deal with the extra-size issue here as well.
+  (let* ((start (field-beginning))
+         (end (field-end))
+         (all (completion-all-sorted-completions)))
+    (if (not (consp all))
+        (minibuffer-message (if all "No more completions" "No completions"))
+      (goto-char end)
+      (insert (car all))
+      (delete-region (+ start (cdr (last all))) end)
+      ;; If completing file names, (car all) may be a directory, so we'd now
+      ;; have a new set of possible completions and might want to reset
+      ;; completion-all-sorted-completions to nil, but we prefer not to,
+      ;; so that repeated calls minibuffer-force-complete still cycle
+      ;; through the previous possible completions.
+      (setq completion-all-sorted-completions (cdr all)))))
+
 (defun minibuffer-complete-and-exit ()
   "If the minibuffer contents is a valid completion then exit.
 Otherwise try to complete it.  If completion leads to a valid completion,
@@ -861,6 +914,9 @@ specified by COMMON-SUBSTRING."
 
 (let ((map minibuffer-local-completion-map))
   (define-key map "\t" 'minibuffer-complete)
+  ;; M-TAB is already abused for many other purposes, so we should find
+  ;; another binding for it.
+  ;; (define-key map "\e\t" 'minibuffer-force-complete)
   (define-key map " " 'minibuffer-complete-word)
   (define-key map "?" 'minibuffer-completion-help))
 

@@ -1,3 +1,10 @@
+2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-all-sorted-completions): New var.
+	(completion--flush-all-sorted-completions)
+	(completion-all-sorted-completions): New functions.
+	(minibuffer-force-complete): New command.
+
 2008-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (c-postprocess-file-styles): Declare for compiler.
