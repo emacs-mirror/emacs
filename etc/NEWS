@@ -118,6 +118,11 @@ You can embed Emacs in another application on X11.  The new command line option
 http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
 
+FIXME
+** There is a new frame parameter, alpha.
+This [does something] on [some kind of system] with [some kind of X
+server] and [some kind of window manager].
+
 ** Emacs comes with a new set of default icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The Emacs 22 icon is available as `emacs22.png' in the same location.
