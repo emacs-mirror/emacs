@@ -1,7 +1,7 @@
 ;;; em-alias.el --- creation and management of command aliases
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -95,7 +95,8 @@
   (require 'esh-util))
 (require 'eshell)
 
-(defgroup eshell-alias nil
+;;;###autoload
+(eshell-defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
   ;; :link '(info-link "(eshell)Command aliases")
@@ -273,6 +274,10 @@ These are all the command aliases which begin with NAME."
 		     (eshell-parse-command alias))))))))))
 
 (provide 'em-alias)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 8b018fc1-4e07-4ccc-aa73-c0a1ba361f82
 ;;; em-alias.el ends here

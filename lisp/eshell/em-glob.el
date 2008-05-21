@@ -1,7 +1,7 @@
 ;;; em-glob.el --- extended file name globbing
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -53,7 +53,8 @@
 (eval-when-compile (require 'eshell))
 (require 'esh-util)
 
-(defgroup eshell-glob nil
+;;;###autoload
+(eshell-defgroup eshell-glob nil
   "This module provides extended globbing syntax, similar what is used
 by zsh for filename generation."
   :tag "Extended filename globbing"
@@ -353,6 +354,10 @@ the form:
       (setq rdirs (cdr rdirs)))))
 
 (provide 'em-glob)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
 ;;; em-glob.el ends here

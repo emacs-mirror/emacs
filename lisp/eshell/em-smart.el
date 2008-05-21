@@ -1,7 +1,7 @@
 ;;; em-smart.el --- smart display of output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -71,7 +71,8 @@
 
 (eval-when-compile (require 'eshell))
 
-(defgroup eshell-smart nil
+;;;###autoload
+(eshell-defgroup eshell-smart nil
   "This module combines the facility of normal, modern shells with
 some of the edit/review concepts inherent in the design of Plan 9's
 9term.  See the docs for more details.
@@ -321,6 +322,10 @@ and the end of the buffer are still visible."
 	(remove-hook 'pre-command-hook 'eshell-smart-display-move t))))
 
 (provide 'em-smart)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 8c0112c7-379c-4d54-9a1c-204d68786a4b
 ;;; em-smart.el ends here

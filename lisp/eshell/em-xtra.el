@@ -1,7 +1,7 @@
 ;;; em-xtra.el --- extra alias functions
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -29,7 +29,8 @@
   (require 'pcomplete))
 (require 'compile)
 
-(defgroup eshell-xtra nil
+;;;###autoload
+(eshell-defgroup eshell-xtra nil
   "This module defines some extra alias functions which are entirely
 optional.  They can be viewed as samples for how to write Eshell alias
 functions, or as aliases which make some of Emacs' behavior more
@@ -117,6 +118,10 @@ naturally accessible within Emacs."
 (defalias 'pcomplete/bcc 'pcomplete/bcc32)
 
 (provide 'em-xtra)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: f944cfda-a118-470c-a0d6-b41a3a5c99c7
 ;;; em-xtra.el ends here

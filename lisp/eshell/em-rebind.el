@@ -1,7 +1,7 @@
 ;;; em-rebind.el --- rebind keys when point is at current input
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -26,7 +26,8 @@
 
 (eval-when-compile (require 'eshell))
 
-(defgroup eshell-rebind nil
+;;;###autoload
+(eshell-defgroup eshell-rebind nil
   "This module allows for special keybindings that only take effect
 while the point is in a region of input text.  By default, it binds
 C-a to move to the beginning of the input text (rather than just the
@@ -241,6 +242,10 @@ input."
       (eshell-delete-backward-char (- arg)))))
 
 (provide 'em-rebind)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
 ;;; em-rebind.el ends here

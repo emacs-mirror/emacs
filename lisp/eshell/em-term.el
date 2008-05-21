@@ -1,7 +1,7 @@
 ;;; em-term.el --- running visual commands
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -35,7 +35,8 @@
 (eval-when-compile (require 'eshell))
 (require 'term)
 
-(defgroup eshell-term nil
+;;;###autoload
+(eshell-defgroup eshell-term nil
   "This module causes visual commands (e.g., 'vi') to be executed by
 the `term' package, which comes with Emacs.  This package handles most
 of the ANSI control codes, allowing curses-based applications to run
@@ -262,6 +263,10 @@ allowed."
 ;  (use-local-map term-old-mode-map))
 
 (provide 'em-term)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: ab7c8fe4-3101-4257-925b-1354c6b2fe9d
 ;;; em-term.el ends here
