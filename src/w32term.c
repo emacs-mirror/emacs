@@ -131,14 +131,14 @@ typedef struct tagWCRANGE
   USHORT cGlyphs;
 } WCRANGE;
 
-typedef struct tagGLYPHSET 
+typedef struct tagGLYPHSET
 {
   DWORD cbThis;
   DWORD flAccel;
   DWORD cGlyphsSupported;
   DWORD cRanges;
   WCRANGE ranges[1];
-} GLYPHSET;  
+} GLYPHSET;
 
 #endif
 
@@ -4805,7 +4805,7 @@ w32_read_socket (sd, expected, hold_quit)
 	      inev.timestamp = msg.msg.time;
 	    }
 	  break;
-          
+
 	case WM_MOUSEMOVE:
 	  /* Ignore non-movement.  */
 	  {
@@ -7119,7 +7119,7 @@ w32_initialize ()
      program.  Unfortunately, we have good reasons for doing that, so
      instead we need to send messages to windowsThread to make some API
      calls for us (ones that affect, or depend on, the active/focus
-     window state.  */
+     window state.)  */
 #ifdef ATTACH_THREADS
   AttachThreadInput (dwMainThreadId, dwWindowsThreadId, TRUE);
 #endif
@@ -7134,7 +7134,7 @@ w32_initialize ()
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
     LOAD_PROC (gdi_lib, GetFontUnicodeRanges);
-    
+
 #undef LOAD_PROC
 
     FreeLibrary (gdi_lib);
