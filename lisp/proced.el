@@ -263,6 +263,10 @@ Important: the match ends just after the marker.")
   "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit  (type ? for more help)"
   "Help string for proced.")
 
+(defvar proced-header-line nil
+  "Headers in Proced buffer as a string.")
+(make-variable-buffer-local 'proced-header-line)
+
 (defvar proced-header-alist nil
   "Alist of headers in Proced buffer.
 Each element is of the form (NAME START END JUSTIFY).
@@ -310,7 +314,9 @@ Type \\[proced-send-signal] to send signals to marked processes.
   (abbrev-mode 0)
   (auto-fill-mode 0)
   (setq buffer-read-only t
-        truncate-lines t)
+        truncate-lines t
+        header-line-format '(:eval (proced-header-line)))
+  (add-hook 'post-command-hook 'force-mode-line-update nil t)
   (set (make-local-variable 'revert-buffer-function) 'proced-revert)
   (set (make-local-variable 'font-lock-defaults)
        '(proced-font-lock-keywords t nil nil beginning-of-line)))
@@ -475,6 +481,16 @@ Returns count of hidden lines."
   "Return a single space string of WIDTH times the normal character width."
   (propertize " " 'display (list 'space :width width)))
 
+;; header line: code inspired by `ruler-mode-ruler'
+(defun proced-header-line ()
+  "Return header line for Proced buffer."
+  (list "" (if (eq 'left (car (window-current-scroll-bars)))
+               (proced-header-space 'scroll-bar))
+        (proced-header-space 'left-fringe)
+        (proced-header-space 'left-margin)
+        (replace-regexp-in-string
+         "%" "%%" (substring proced-header-line (window-hscroll)))))
+
 (defun proced-update (&optional quiet)
   "Update the `proced' process information.  Preserves point and marks."
   ;; This is the main function that generates and updates the process listing.
@@ -508,14 +524,7 @@ Returns count of hidden lines."
       (delete-region (match-beginning 0) (match-end 0)))
     (goto-char (point-min))
     (let ((lep (line-end-position)))
-      ;; header line: code inspired by `ruler-mode-ruler'
-      (setq header-line-format
-            (list "" (if (eq 'left (car (window-current-scroll-bars)))
-                         (proced-header-space 'scroll-bar))
-                  (proced-header-space 'left-fringe)
-                  (proced-header-space 'left-margin)
-                  (replace-regexp-in-string
-                   "%" "%%" (buffer-substring-no-properties (point) lep))))
+      (setq proced-header-line (buffer-substring-no-properties (point) lep))
       (setq proced-header-alist nil)
       ;; FIXME: handle left/right justification properly
       (while (re-search-forward "\\([^ \t\n]+\\)[ \t]*\\($\\)?" lep t)
@@ -608,10 +617,12 @@ If SIGNAL is nil display marked processes and query interactively for SIGNAL."
       (unless signal
         ;; Display marked processes (code taken from `dired-mark-pop-up').
         (let ((bufname  " *Marked Processes*")
-              (header header-line-format)) ; reuse
+              (header proced-header-line)) ; inherit header line
           (with-current-buffer (get-buffer-create bufname)
             (setq truncate-lines t
-                  header-line-format header)
+                  proced-header-line header
+                  header-line-format '(:eval (proced-header-line)))
+            (add-hook 'post-command-hook 'force-mode-line-update nil t)
             (erase-buffer)
             (dolist (process process-list)
               (insert "  " (cdr process) "\n"))
