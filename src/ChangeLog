@@ -1,13 +1,12 @@
 2008-05-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* xterm.c (x_set_frame_alpha): Move declarations before
-	statements.
+	* xterm.c (x_set_frame_alpha): Move declarations before statements.
 
 2008-05-21  Seiji Zenitani  <zenitani@mac.com>
 	    Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* frame.c (Qalpha): Add a new frame parameter `alpha'.
-	(Vframe_alpha_lower_limit) : New variable.
+	(Vframe_alpha_lower_limit): New variable.
 	(x_set_alpha): New function.
 
 	* frame.h (Qalpha, Vframe_parameter_lower_limit): Export them.
