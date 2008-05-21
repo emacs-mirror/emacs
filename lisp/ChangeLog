@@ -26,6 +26,13 @@
 	* eshell/esh-module.el (eshell-load-defgroups): Remove.
 	Require esh-groups rather than loading it.
 
+2008-05-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-header-line): New variable and new function.
+	(proced-mode): Set header-line-format.
+	(proced-update): Set proced-header-line.
+	(proced-send-signal): Use proced-header-line.
+
 2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* macros.el (insert-kbd-macro): Use prin1-char.
