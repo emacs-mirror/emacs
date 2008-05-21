@@ -213,6 +213,11 @@ struct frame
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
 
+  /* frame opacity
+     alpha[0]: alpha transparency of the active frame
+     alpha[1]: alpha transparency of inactive frames   */
+  double alpha[2];
+
   /* Set to non-zero in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
@@ -1033,6 +1038,7 @@ extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
 extern Lisp_Object Qfont_backend;
+extern Lisp_Object Qalpha;
 
 extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
@@ -1097,6 +1103,8 @@ extern Lisp_Object x_icon_type P_ ((struct frame *));
 
 extern int x_figure_window_size P_ ((struct frame *, Lisp_Object, int));
 
+extern Lisp_Object Vframe_alpha_lower_limit;
+extern void x_set_alpha P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 extern void validate_x_resource_name P_ ((void));
 
