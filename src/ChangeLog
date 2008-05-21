@@ -3,13 +3,15 @@
 
 	* frame.c (Qalpha): Add a new frame parameter `alpha'.
 	(Vframe_alpha_lower_limit) : New variable.
-	(x_set_alpha): Add function.
+	(x_set_alpha): New function.
 
 	* frame.h (Qalpha, Vframe_parameter_lower_limit): Export them.
 
 	* xfns.c (x-create-frame, Qalpha):
 	Initialize the frame parameter `alpha'.
-	* xterm.c (x_set_frame_alpha): Add function.
+	* xterm.c (OPAQUE, OPACITY): New.
+	(x_set_frame_alpha): New function.
+	(frame_highlight, frame_unhighlight): Call x_set_frame_alpha.
 
 	* macfns.c (mac_frame_parm_handlers): A null handler for x_set_alpha.
 	* w32fns.c (w32_frame_parm_handlers): Likewise.
