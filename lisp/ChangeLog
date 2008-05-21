@@ -1,3 +1,29 @@
+2008-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Allow for parallel byte-compiling.
+	(ELCFILES): New variable.
+	(.el.elc): Remove prerequisites from suffix rule.  Print a message.
+	(compile-first, compile-main, compile-last): New targets.
+	(compile-always): Simplify - delete .elc files, then `make compile'.
+
+	* Makefile.in (compile-calc): Use glob rather than find.
+	($(lisp)/progmodes/cc-mode.elc): Use $@.
+
+	* eshell/esh-module.el: No need for cl when compiling.
+
+	* eshell/eshell.el (eshell-defgroup): New alias.
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/em-xtra.el: Use eshell-defgroup rather than defgroup.
+	Autoload the custom group.  Set generated-autoload-file.
+	* eshell/em-basic.el, eshell/esh-module.el: Require eshell,
+	for eshell-defgroup.
+	* eshell/esh-module.el (eshell-load-defgroups): Remove.
+	Require esh-groups rather than loading it.
+
 2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* macros.el (insert-kbd-macro): Use prin1-char.
