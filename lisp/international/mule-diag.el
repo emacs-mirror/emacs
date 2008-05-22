@@ -1293,6 +1293,21 @@ character)")
 				      (string (string-to-number
 					       (nth 13 fields) 16)))))))))))
 
+;;;###autoload
+(defun font-show-log ()
+  (interactive)
+  (if (eq font-log t)
+      (message "Font logging is currently suppressed")
+    (with-output-to-temp-buffer "*Help*"
+      (set-buffer standard-output)
+      (dolist (elt (reverse font-log))
+	(insert (format "%s: %s\n" (car elt) (cadr elt)))
+	(setq elt (nth 2 elt))
+	(if (or (vectorp elt) (listp elt))
+	    (mapc #'(lambda (x) (insert (format "  %s\n" x))) elt)
+	  (insert (format "  %s\n" elt)))))))
+
+
 (provide 'mule-diag)
 
 ;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
