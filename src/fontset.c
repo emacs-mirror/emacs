@@ -1082,7 +1082,7 @@ fs_query_fontset (name, name_pattern)
       this_name = FONTSET_NAME (fontset);
       if (name_pattern == 1
 	  ? fast_string_match_ignore_case (name, this_name) >= 0
-	  : !strcasecmp (SDATA (name), SDATA (this_name)))
+	  : !xstricmp (SDATA (name), SDATA (this_name)))
 	return i;
     }
   return -1;
