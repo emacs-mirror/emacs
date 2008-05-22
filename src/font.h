@@ -761,7 +761,7 @@ EXFUN (Ffont_put, 3);
 EXFUN (Flist_fonts, 4);
 EXFUN (Ffont_family_list, 1);
 EXFUN (Fclear_font_cache, 0);
-EXFUN (Ffont_xlfd_name, 1);
+EXFUN (Ffont_xlfd_name, 2);
 
 extern Lisp_Object font_make_spec P_ ((void));
 extern Lisp_Object font_make_entity P_ ((void));
@@ -855,6 +855,18 @@ extern struct font_driver uniscribe_font_driver;
 #ifdef MAC_OS
 extern struct font_driver atmfont_driver;
 #endif	/* MAC_OS */
+
+#ifndef FONT_DEBUG
+#define FONT_DEBUG
+#endif
+
+extern void font_add_log P_ ((char *, Lisp_Object, Lisp_Object));
+
+#ifdef FONT_DEBUG
+#define font_assert(X)	do {if (!(X)) abort ();} while (0)
+#else  /* not FONT_DEBUG */
+#define font_assert(X)	(void) 0
+#endif	/* not FONT_DEBUG */
 
 #endif	/* not EMACS_FONT_H */
 
