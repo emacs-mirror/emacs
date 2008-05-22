@@ -1,3 +1,11 @@
+2008-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* w32font.c (w32font_open_internal): Call Ffont_xlfd_name with
+	two args.
+
+	* xfaces.c (x_update_menu_appearance): Call Ffont_xlfd_name with
+	two args.
+
 2008-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (keys_of_minibuf): Delete.
