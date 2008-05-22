@@ -6146,7 +6146,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
  got_it:
 
 #define parse_signal(NAME, VALUE)		\
-  else if (!xstricmp (name, NAME))		\
+  else if (!xstrcasecmp (name, NAME))		\
     XSETINT (sigcode, VALUE)
 
   if (INTEGERP (sigcode))
