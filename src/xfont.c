@@ -206,7 +206,7 @@ extern Lisp_Object Vface_alternative_font_registry_alist;
 static int
 compare_font_names (const void *name1, const void *name2)
 {
-  return strcasecmp (*(const char **) name1, *(const char **) name2);
+  return xstricmp (*(const char **) name1, *(const char **) name2);
 }
 
 static Lisp_Object xfont_list_pattern P_ ((Lisp_Object, Display *, char *));
@@ -253,7 +253,7 @@ xfont_list_pattern (frame, display, pattern)
 	  Lisp_Object entity;
 	  int result;
 
-	  if (i > 0 && strcasecmp (indices[i - 1], indices[i]) == 0)
+	  if (i > 0 && xstricmp (indices[i - 1], indices[i]) == 0)
 	    continue;
 
 	  entity = font_make_entity ();
