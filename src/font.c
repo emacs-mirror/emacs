@@ -51,17 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macterm.h"
 #endif /* MAC_OS */
 
-#ifndef FONT_DEBUG
-#define FONT_DEBUG
-#endif
-
-#ifdef FONT_DEBUG
-#undef xassert
-#define xassert(X)	do {if (!(X)) abort ();} while (0)
-#else
-#define xassert(X)	(void) 0
-#endif
-
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
 Lisp_Object Qopentype;
@@ -73,14 +62,67 @@ Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
    font_driver *)->list when a specified font is not found. */
 static Lisp_Object null_vector;
 
-/* Vector of 3 elements.  Each element is a vector for one of font
-   style properties (weight, slant, width).  The vector contains a
-   mapping between symbolic property values (e.g. `medium' for weight)
-   and numeric property values (e.g. 100).  So, it looks like this:
-	[[(ultra-light . 20) ... (black . 210)]
-	 [(reverse-oblique . 0) ... (oblique . 210)]
-	 [(ultra-contains . 50) ... (wide . 200)]]  */
+static Lisp_Object Vfont_weight_table, Vfont_slant_table, Vfont_width_table;
+
+/* Vector of Vfont_weight_table, Vfont_slant_table, and Vfont_width_table. */
 static Lisp_Object font_style_table;
+
+/* Structure used for tables mapping weight, slant, and width numeric
+   values and their names.  */
+
+struct table_entry
+{
+  int numeric;
+  /* The first one is a valid name as a face attribute.
+     The second one (if any) is a typical name in XLFD field.  */
+  char *names[5];
+  Lisp_Object *symbols;
+};
+
+/* Table of weight numeric values and their names.  This table must be
+   sorted by numeric values in ascending order.  */
+
+static struct table_entry weight_table[] =
+{
+  { 0, { "thin" }},
+  { 20, { "ultra-light", "ultralight" }},
+  { 40, { "extra-light", "extralight" }},
+  { 50, { "light" }},
+  { 75, { "semi-light", "semilight", "demilight", "book" }},
+  { 100, { "normal", "medium", "regular" }},
+  { 180, { "semi-bold", "semibold", "demibold", "demi" }},
+  { 200, { "bold" }},
+  { 205, { "extra-bold", "extrabold" }},
+  { 210, { "ultra-bold", "ultrabold", "black" }}
+};
+
+/* Table of slant numeric values and their names.  This table must be
+   sorted by numeric values in ascending order.  */
+
+static struct table_entry slant_table[] =
+{
+  { 0, { "reverse-oblique", "ro" }},
+  { 10, { "reverse-italic", "ri" }},
+  { 100, { "normal", "r" }},
+  { 200, { "italic" ,"i", "ot" }},
+  { 210, { "oblique", "o" }}
+};
+
+/* Table of width numeric values and their names.  This table must be
+   sorted by numeric values in ascending order.  */
+
+static struct table_entry width_table[] =
+{
+  { 50, { "ultra-condensed", "ultracondensed" }},
+  { 63, { "extra-condensed", "extracondensed" }},
+  { 75, { "condensed", "compressed", "narrow" }},
+  { 87, { "semi-condensed", "semicondensed", "demicondensed" }},
+  { 100, { "normal", "medium", "regular" }},
+  { 113, { "semi-expanded", "semiexpanded", "demiexpanded" }},
+  { 125, { "expanded" }},
+  { 150, { "extra-expanded", "extraexpanded" }},
+  { 200, { "ultra-expanded", "ultraexpanded", "wide" }}
+};
 
 extern Lisp_Object Qnormal;
 
@@ -180,7 +222,7 @@ font_intern_prop (str, len)
      int len;
 {
   int i;
-  Lisp_Object tem, string;
+  Lisp_Object tem;
   Lisp_Object obarray;
 
   if (len == 1 && *str == '*')
@@ -215,13 +257,13 @@ font_pixel_size (f, spec)
   Lisp_Object size = AREF (spec, FONT_SIZE_INDEX);
   double point_size;
   int dpi, pixel_size;
-  Lisp_Object extra, val;
+  Lisp_Object val;
 
   if (INTEGERP (size))
     return XINT (size);
   if (NILP (size))
     return 0;
-  xassert (FLOATP (size));
+  font_assert (FLOATP (size));
   point_size = XFLOAT_DATA (size);
   val = AREF (spec, FONT_DPI_INDEX);
   if (INTEGERP (val))
@@ -251,7 +293,7 @@ font_style_to_value (prop, val, noerror)
 {
   Lisp_Object table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
   int len = ASIZE (table);
-  int i;
+  int i, j;
 
   if (SYMBOLP (val))
     {
@@ -260,50 +302,54 @@ font_style_to_value (prop, val, noerror)
 
       /* At first try exact match.  */
       for (i = 0; i < len; i++)
-	if (EQ (val, XCAR (AREF (table, i))))
-	  return (XINT (XCDR (AREF (table, i))) << 8) | i;
+	for (j = 1; j < ASIZE (AREF (table, i)); j++)
+	  if (EQ (val, AREF (AREF (table, i), j)))
+	    return ((XINT (AREF (AREF (table, i), 0)) << 8)
+		    | (i << 4) | (j - 1));
       /* Try also with case-folding match.  */
-      s = SDATA (SYMBOL_NAME (val));
+      s = (char *) SDATA (SYMBOL_NAME (val));
       for (i = 0; i < len; i++)
-	{
-	  elt = XCAR (AREF (table, i));
-	  if (strcasecmp (s, (char *) SDATA (SYMBOL_NAME (elt))) == 0)
-	    return i;
-	}
+	for (j = 1; j < ASIZE (AREF (table, i)); j++)
+	  {
+	    elt = AREF (AREF (table, i), j);
+	    if (strcasecmp (s, (char *) SDATA (SYMBOL_NAME (elt))) == 0)
+	      return ((XINT (AREF (AREF (table, i), 0)) << 8)
+		      | (i << 4) | (j - 1));
+	  }
       if (! noerror)
 	return -1;
       if (len == 255)
 	abort ();
+      elt = Fmake_vector (make_number (2), make_number (255));
+      ASET (elt, 1, val);
       args[0] = table;
-      args[1] = Fmake_vector (make_number (1), Fcons (val, make_number (255)));
+      args[1] = Fmake_vector (make_number (1), elt);
       ASET (font_style_table, prop - FONT_WEIGHT_INDEX, Fvconcat (2, args));
-      return (255 << 8) | i;
+      return (255 << 8) | (i << 4);
     }
   else
     {
-      int last_i, i, last_n;
+      int i, last_n;
       int numeric = XINT (val);
 
-      for (i = 1, last_i = last_n = -1; i < len;)
+      for (i = 0, last_n = -1; i < len; i++)
 	{
-	  int n = XINT (XCDR (AREF (table, i)));
+	  int n = XINT (AREF (AREF (table, i), 0));
 
 	  if (numeric == n)
-	    return (n << 8) | i;
+	    return (n << 8) | (i << 4);
 	  if (numeric < n)
 	    {
 	      if (! noerror)
 		return -1;
-	      return ((last_i < 0 || n - numeric < numeric - last_n)
-		      ? (n << 8) | i : (last_n << 8 | last_i));
+	      return ((i == 0 || n - numeric < numeric - last_n)
+		      ? (n << 8) | (i << 4): (last_n << 8 | ((i - 1) << 4)));
 	    }
-	  last_i = i;
 	  last_n = n;
-	  for (i++; i < len && n == XINT (XCDR (AREF (table, i + 1))); i++);
 	}
       if (! noerror)
 	return -1;
-      return (last_n << 8) | last_i;
+      return ((last_n << 8) | ((i - 1) << 4));
     }
 }
 
@@ -314,20 +360,17 @@ font_style_symbolic (font, prop, for_face)
      int for_face;
 {
   Lisp_Object val = AREF (font, prop);
-  Lisp_Object table;
-  int i, numeric;
+  Lisp_Object table, elt;
+  int i;
 
   if (NILP (val))
     return Qnil;
   table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
-  if (! for_face)
-    return XCAR (AREF (table, XINT (val) & 0xFF));
-  numeric = XINT (val) >> 8;
-  for (i = 0; i < ASIZE (table); i++)
-    if (XINT (XCDR (AREF (table, i))) == numeric)
-      return XCAR (AREF (table, i));
-  abort ();
-  return Qnil;
+  i = XINT (val) & 0xFF;
+  font_assert (((i >> 4) & 0xF) < ASIZE (table));
+  elt = AREF (table, ((i >> 4) & 0xF));
+  font_assert ((i & 0xF) + 1 < ASIZE (elt));
+  return (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));
 }
 
 extern Lisp_Object Vface_alternative_font_family_alist;
@@ -996,7 +1039,6 @@ font_parse_xlfd (name, font)
     {
       /* Fully specified XLFD.  */
       int pixel_size;
-      int spacing_char;
 
       ASET (font, FONT_FOUNDRY_INDEX, INTERN_FIELD (XLFD_FOUNDRY_INDEX));
       ASET (font, FONT_FAMILY_INDEX, INTERN_FIELD (XLFD_FAMILY_INDEX));
@@ -1030,7 +1072,7 @@ font_parse_xlfd (name, font)
 	    {
 	      double point_size = -1;
 
-	      xassert (FONT_SPEC_P (font));
+	      font_assert (FONT_SPEC_P (font));
 	      p = f[XLFD_POINT_INDEX];
 	      if (*p == '[')
 		point_size = parse_matrix (p);
@@ -1149,7 +1191,7 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
   Lisp_Object val;
   int i, j, len = 0;
 
-  xassert (FONTP (font));
+  font_assert (FONTP (font));
 
   for (i = FONT_FOUNDRY_INDEX, j = XLFD_FOUNDRY_INDEX; i <= FONT_REGISTRY_INDEX;
        i++, j++)
@@ -1206,7 +1248,7 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
     }
 
   val = AREF (font, FONT_SIZE_INDEX);
-  xassert (NUMBERP (val) || NILP (val));
+  font_assert (NUMBERP (val) || NILP (val));
   if (INTEGERP (val))
     {
       i = XINT (val);
@@ -1400,7 +1442,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
 {
   Lisp_Object tail, val;
   int point_size;
-  int dpi, spacing, avgwidth;
+  int dpi;
   int i, len = 1;
   char *p;
   Lisp_Object styles[3];
@@ -1433,8 +1475,6 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
 
   for (i = 0; i < 3; i++)
     {
-      int this_len;
-
       styles[i] = font_style_symbolic (font, FONT_WEIGHT_INDEX + i, 0);
       if (! NILP (styles[i]))
 	len += sprintf (work, ":%s=%s", style_names[i],
@@ -1521,7 +1561,8 @@ font_parse_family_registry (family, registry, font_spec)
   int len;
   char *p0, *p1;
 
-  if (! NILP (family))
+  if (! NILP (family)
+      && NILP (AREF (font_spec, FONT_FAMILY_INDEX)))
     {
       CHECK_STRING (family);
       len = SBYTES (family);
@@ -1529,7 +1570,8 @@ font_parse_family_registry (family, registry, font_spec)
       p1 = index (p0, '-');
       if (p1)
 	{
-	  if (*p0 != '*' || p1 - p0 > 1)
+	  if ((*p0 != '*' || p1 - p0 > 1)
+	      && NILP (AREF (font_spec, FONT_FOUNDRY_INDEX)))
 	    ASET (font_spec, FONT_FOUNDRY_INDEX,
 		  font_intern_prop (p0, p1 - p0));
 	  p1++;
@@ -1936,7 +1978,7 @@ font_score (entity, spec_prop, alternate_families)
 	Lisp_Object entity_str = SYMBOL_NAME (AREF (entity, i));
 	Lisp_Object spec_str = SYMBOL_NAME (spec_prop[i]);
 
-	if (strcasecmp (SDATA (spec_str), SDATA (entity_str)))
+	if (strcasecmp ((char *) SDATA (spec_str), (char *) SDATA (entity_str)))
 	  {
 	    if (i == FONT_FAMILY_INDEX && CONSP (alternate_families))
 	      {
@@ -1946,7 +1988,8 @@ font_score (entity, spec_prop, alternate_families)
 		     j++, alternate_families = XCDR (alternate_families))
 		  {
 		    spec_str = XCAR (alternate_families);
-		    if (strcasecmp (SDATA (spec_str), SDATA (entity_str)) == 0)
+		    if (strcasecmp ((char *) SDATA (spec_str),
+				    (char *) SDATA (entity_str)) == 0)
 		      break;
 
 		  }
@@ -1983,7 +2026,7 @@ font_score (entity, spec_prop, alternate_families)
 
       if (diff < 0)
 	diff = - diff;
-      diff << 1;
+      diff <<= 1;
       if (! NILP (spec_prop[FONT_DPI_INDEX])
 	  && ! EQ (spec_prop[FONT_DPI_INDEX], AREF (entity, FONT_DPI_INDEX)))
 	diff |= 1;
@@ -2093,6 +2136,7 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
     vec = best_entity;
   SAFE_FREE ();
 
+  font_add_log ("sort-by", prefer, vec);
   return vec;
 }
 
@@ -2133,7 +2177,6 @@ font_match_p (spec, entity)
 {
   Lisp_Object prefer_prop[FONT_SPEC_MAX];
   Lisp_Object alternate_families = Qnil;
-  int prefer_style[3];
   int i;
 
   for (i = FONT_FOUNDRY_INDEX; i <= FONT_SIZE_INDEX; i++)
@@ -2229,7 +2272,7 @@ font_finish_cache (f, driver)
   val = XCDR (cache);
   while (CONSP (val) && ! EQ (XCAR (XCAR (val)), driver->type))
     cache = val, val = XCDR (val);
-  xassert (! NILP (val));
+  font_assert (! NILP (val));
   tmp = XCDR (XCAR (val));
   XSETCAR (tmp, make_number (XINT (XCAR (tmp)) - 1));
   if (XINT (XCAR (tmp)) == 0)
@@ -2248,9 +2291,9 @@ font_get_cache (f, driver)
   Lisp_Object val = driver->get_cache (f);
   Lisp_Object type = driver->type;
 
-  xassert (CONSP (val));
+  font_assert (CONSP (val));
   for (val = XCDR (val); ! EQ (XCAR (XCAR (val)), type); val = XCDR (val));
-  xassert (CONSP (val));
+  font_assert (CONSP (val));
   /* VAL = ((DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...) ...) */
   val = XCDR (XCAR (val));
   return val;
@@ -2288,7 +2331,7 @@ font_clear_cache (f, cache, driver)
 		      Lisp_Object val = XCAR (objlist);
 		      struct font *font = XFONT_OBJECT (val);
 
-		      xassert (font && driver == font->driver);
+		      font_assert (font && driver == font->driver);
 		      driver->close (f, font);
 		      num_fonts--;
 		    }
@@ -2309,12 +2352,12 @@ font_delete_unmatched (list, spec, size)
      Lisp_Object list, spec;
      int size;
 {
-  Lisp_Object entity, prev, tail;
+  Lisp_Object entity, val;
   enum font_property_index prop;
 
-  for (tail = list, prev = Qnil; CONSP (tail); )
+  for (val = Qnil; CONSP (list); list = XCDR (list))
     {
-      entity = XCAR (tail);
+      entity = XCAR (list);
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
 	if (INTEGERP (AREF (spec, prop))
 	    && ((XINT (AREF (spec, prop)) >> 8)
@@ -2337,13 +2380,9 @@ font_delete_unmatched (list, spec, size)
 		   AREF (entity, FONT_SPACING_INDEX)))
 	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
-	prev = tail, tail = XCDR (tail);
-      else if (NILP (prev))
-	list = tail = XCDR (tail);
-      else
-	tail = XCDR (tail), XSETCDR (prev, tail);
+	val = Fcons (entity, val);
     }
-  return list;
+  return val;
 }
 
 
@@ -2355,14 +2394,14 @@ font_list_entities (frame, spec)
 {
   FRAME_PTR f = XFRAME (frame);
   struct font_driver_list *driver_list = f->font_driver_list;
-  Lisp_Object ftype, family, alternate_familes;
+  Lisp_Object ftype, family, alternate_familes, val;
   Lisp_Object *vec;
   int size;
   int need_filtering = 0;
   int n_family = 1;
   int i;
 
-  xassert (FONT_SPEC_P (spec));
+  font_assert (FONT_SPEC_P (spec));
 
   family = AREF (spec, FONT_FAMILY_INDEX);
   if (NILP (family))
@@ -2408,8 +2447,7 @@ font_list_entities (frame, spec)
 
 	while (1)
 	  {
-	    Lisp_Object val = assoc_no_quit (scratch_font_spec, XCDR (cache));
-
+	    val = assoc_no_quit (scratch_font_spec, XCDR (cache));
 	    if (CONSP (val))
 	      val = XCDR (val);
 	    else
@@ -2417,11 +2455,11 @@ font_list_entities (frame, spec)
 		Lisp_Object copy;
 
 		val = driver_list->driver->list (frame, scratch_font_spec);
-		if (! NILP (val) && need_filtering)
-		  val = font_delete_unmatched (val, spec, size);
 		copy = Fcopy_font_spec (scratch_font_spec);
 		XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
 	      }
+	    if (! NILP (val) && need_filtering)
+	      val = font_delete_unmatched (val, spec, size);
 	    if (! NILP (val))
 	      {
 		vec[i++] = val;
@@ -2435,7 +2473,9 @@ font_list_entities (frame, spec)
 	  }
       }
 
-  return (i > 0 ? Fvconcat (i, vec) : null_vector);
+  val = (i > 0 ? Fvconcat (i, vec) : null_vector);
+  font_add_log ("list", spec, val);
+  return (val);
 }
 
 
@@ -2481,6 +2521,7 @@ font_matching_entity (f, attrs, spec)
       }
   ASET (spec, FONT_TYPE_INDEX, ftype);
   ASET (spec, FONT_SIZE_INDEX, size);
+  font_add_log ("match", spec, entity);
   return entity;
 }
 
@@ -2499,7 +2540,7 @@ font_open_entity (f, entity, pixel_size)
   struct font *font;
   int min_width;
 
-  xassert (FONT_ENTITY_P (entity));
+  font_assert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
   if (XINT (size) != 0)
     pixel_size = XINT (size);
@@ -2517,6 +2558,7 @@ font_open_entity (f, entity, pixel_size)
     return Qnil;
 
   font_object = driver_list->driver->open (f, entity, pixel_size);
+  font_add_log ("open", entity, font_object);
   if (NILP (font_object))
     return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
@@ -2566,9 +2608,10 @@ font_close_object (f, font_object)
        prev = tail, tail = XCDR (tail))
     if (EQ (font_object, XCAR (tail)))
       {
+	font_add_log ("close", font_object, Qnil);
 	font->driver->close (f, font);
 #ifdef HAVE_WINDOW_SYSTEM
-	xassert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
+	font_assert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
 	FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 #endif
 	if (NILP (prev))
@@ -2608,7 +2651,7 @@ font_has_char (f, font, c)
       return driver_list->driver->has_char (font, c);
     }
 
-  xassert (FONT_OBJECT_P (font));
+  font_assert (FONT_OBJECT_P (font));
   fontp = XFONT_OBJECT (font);
   if (fontp->driver->has_char)
     {
@@ -2630,7 +2673,7 @@ font_encode_char (font_object, c)
 {
   struct font *font;
 
-  xassert (FONT_OBJECT_P (font_object));
+  font_assert (FONT_OBJECT_P (font_object));
   font = XFONT_OBJECT (font_object);
   return font->driver->encode_char (font, c);
 }
@@ -2642,9 +2685,7 @@ Lisp_Object
 font_get_name (font_object)
      Lisp_Object font_object;
 {
-  Lisp_Object name;
-
-  xassert (FONT_OBJECT_P (font_object));
+  font_assert (FONT_OBJECT_P (font_object));
   return AREF (font_object, FONT_NAME_INDEX);
 }
 
@@ -2683,7 +2724,6 @@ font_clear_prop (attrs, prop)
      enum font_property_index prop;
 {
   Lisp_Object font = attrs[LFACE_FONT_INDEX];
-  Lisp_Object extra, prev;
 
   if (! FONTP (font))
     return;
@@ -2715,8 +2755,7 @@ font_update_lface (f, attrs)
      FRAME_PTR f;
      Lisp_Object *attrs;
 {
-  Lisp_Object spec, val;
-  int n;
+  Lisp_Object spec;
 
   spec = attrs[LFACE_FONT_INDEX];
   if (! FONT_SPEC_P (spec))
@@ -2816,7 +2855,7 @@ font_find_for_lface (f, attrs, spec, c)
     {
       /* Sort fonts by properties specified in LFACE.  */
       Lisp_Object prefer = scratch_font_prefer;
-      double pt;
+
       for (i = 0; i < FONT_EXTRA_INDEX; i++)
 	ASET (prefer, i, AREF (spec, i));
       if (FONTP (attrs[LFACE_FONT_INDEX]))
@@ -3252,7 +3291,7 @@ font_at (c, pos, face, w, string)
   if (! face->font)
     return Qnil;
 
-  xassert (font_check_object ((struct font *) face->font));
+  font_assert (font_check_object ((struct font *) face->font));
   XSETFONT (font_object, face->font);
   return font_object;
 }
@@ -3490,7 +3529,6 @@ DEFUN ("font-put", Ffont_put, Sfont_put, 3, 3, 0,
      Lisp_Object font_spec, prop, val;
 {
   int idx;
-  Lisp_Object extra, slot;
 
   CHECK_FONT_SPEC (font_spec);
   idx = get_font_prop_index (prop);
@@ -3605,12 +3643,14 @@ Optional 2nd argument FRAME, if non-nil, specifies the target frame.  */)
   return val;
 }
 
-DEFUN ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 1, 0,
+DEFUN ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 2, 0,
        doc: /*  Return XLFD name of FONT.
 FONT is a font-spec, font-entity, or font-object.
-If the name is too long for XLFD (maximum 255 chars), return nil.  */)
-     (font)
-     Lisp_Object font;
+If the name is too long for XLFD (maximum 255 chars), return nil.
+If the 2nd optional arg FOLD-WILDCARDS is non-nil,
+the consecutive wildcards are folded to one.  */)
+     (font, fold_wildcards)
+     Lisp_Object font, fold_wildcards;
 {
   char name[256];
   int pixel_size = 0;
@@ -3623,11 +3663,28 @@ If the name is too long for XLFD (maximum 255 chars), return nil.  */)
 
       if (STRINGP (font_name)
 	  && SDATA (font_name)[0] == '-')
-	return font_name;
+	{
+	  if (NILP (fold_wildcards))
+	    return font_name;
+	  strcpy (name, (char *) SDATA (font_name));
+	  goto done;
+	}
       pixel_size = XFONT_OBJECT (font)->pixel_size;
     }
   if (font_unparse_xlfd (font, pixel_size, name, 256) < 0)
     return Qnil;
+ done:
+  if (! NILP (fold_wildcards))
+    {
+      char *p0 = name, *p1;
+
+      while ((p1 = strstr (p0, "-*-*")))
+	{
+	  strcpy (p1, p1 + 2);
+	  p0 = p1;
+	}
+    }
+
   return build_string (name);
 }
 
@@ -3652,7 +3709,7 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 	    while (! NILP (val)
 		   && ! EQ (XCAR (XCAR (val)), driver_list->driver->type))
 	      val = XCDR (val);
-	    xassert (! NILP (val));
+	    font_assert (! NILP (val));
 	    val = XCDR (XCAR (val));
 	    if (XINT (XCAR (val)) == 0)
 	      {
@@ -3665,60 +3722,7 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
   return Qnil;
 }
 
-DEFUN ("internal-set-font-style-table", Finternal_set_font_style_table,
-       Sinternal_set_font_style_table, 3, 3, 0,
-       doc: /* Setup font style table from WEIGHT, SLANT, and WIDTH tables.
-WEIGHT, SLANT, WIDTH must be `font-weight-table', `font-slant-table',
-`font-width-table' respectivly.
-This function is called after those tables are initialized. */)
-     (weight, slant, width)
-     Lisp_Object weight, slant, width;
-{
-  Lisp_Object tables[3];
-  int i;
-
-  tables[0] = weight, tables[1] = slant, tables[2] = width;
-
-  font_style_table = Fmake_vector (make_number (3), Qnil);
-  /* In the following loop, we don't use XCAR and XCDR until assuring
-     the argument is a cons cell so that the error in the tables can
-     be detected.  */
-  for (i = 0; i < 3; i++)
-    {
-      Lisp_Object tail, elt, list, val;
-
-      for (tail = tables[i], list = Qnil; CONSP (tail); tail = XCDR (tail))
-	{
-	  int numeric = -1;
-
-	  elt = Fcar (tail);
-	  CHECK_SYMBOL (Fcar (elt));
-	  val = Fcons (XCAR (elt), Qnil);
-	  elt = XCDR (elt);
-	  CHECK_NATNUM (Fcar (elt));
-	  if (numeric >= XINT (XCAR (elt)))
-	    error ("Numeric values not unique nor sorted in %s",
-		   (i == 0 ? "font-weight-table"
-		    : i == 1 ? "font-slant-table"
-		    : "font-width-table"));
-	  numeric = XINT (XCAR (elt));
-	  XSETCDR (val, XCAR (elt));
-	  list = Fcons (val, list);
-	  for (elt = XCDR (elt); CONSP (elt); elt = XCDR (elt))
-	    {
-	      val = XCAR (elt);
-	      CHECK_SYMBOL (val);
-	      list = Fcons (Fcons (XCAR (elt), make_number (numeric)), list);
-	    }
-	}
-      list = Fnreverse (list);
-      ASET (font_style_table, i, Fvconcat (1, &list));
-    }
-
-  return Qnil;
-}
-
-/* The following three functions are still experimental.  */
+/* The following three functions are still expremental.  */
 
 DEFUN ("font-make-gstring", Ffont_make_gstring, Sfont_make_gstring, 2, 2, 0,
        doc: /* Return a newly created g-string for FONT-OBJECT with NUM glyphs.
@@ -4347,6 +4351,77 @@ Type C-l to recover what previously shown.  */)
 #endif	/* FONT_DEBUG */
 
 
+#define BUILD_STYLE_TABLE(TBL) \
+  build_style_table ((TBL), sizeof TBL / sizeof (struct table_entry))
+
+static Lisp_Object
+build_style_table (entry, nelement)
+     struct table_entry *entry;
+     int nelement;
+{
+  int i, j;
+  Lisp_Object table, elt;
+  
+  table = Fmake_vector (make_number (nelement), Qnil);
+  for (i = 0; i < nelement; i++)
+    {
+      for (j = 0; entry[i].names[j]; j++);
+      elt = Fmake_vector (make_number (j + 1), Qnil);
+      ASET (elt, 0, make_number (entry[i].numeric));
+      for (j = 0; entry[i].names[j]; j++)
+	ASET (elt, j + 1, intern (entry[i].names[j])); 
+      ASET (table, i, elt);
+    }
+  return table;
+}
+
+static Lisp_Object Vfont_log;
+static int font_log_env_checked;
+
+void
+font_add_log (action, arg, result)
+     char *action;
+     Lisp_Object arg, result;
+{
+  Lisp_Object tail, val;
+  int i;
+
+  if (! font_log_env_checked)
+    {
+      Vfont_log = egetenv ("EMACS_FONT_LOG") ? Qnil : Qt;
+      font_log_env_checked = 1;
+    }
+  if (EQ (Vfont_log, Qt))
+    return;
+  if (FONTP (arg))
+    arg = Ffont_xlfd_name (arg, Qt);
+  if (FONTP (result))
+    result = Ffont_xlfd_name (result, Qt);
+  else if (CONSP (result))
+    {
+      result = Fcopy_sequence (result);
+      for (tail = result; CONSP (tail); tail = XCDR (tail))
+	{
+	  val = XCAR (tail);
+	  if (FONTP (val))
+	    val = Ffont_xlfd_name (val, Qt);
+	  XSETCAR (tail, val);
+	}
+    }
+  else if (VECTORP (result))
+    {
+      result = Fcopy_sequence (result);
+      for (i = 0; i < ASIZE (result); i++)
+	{
+	  val = AREF (result, i);
+	  if (FONTP (val))
+	    val = Ffont_xlfd_name (val, Qt);
+	  ASET (result, i, val);
+	}
+    }
+  Vfont_log = Fcons (list3 (intern (action), arg, result), Vfont_log);
+}
+
 extern void syms_of_ftfont P_ (());
 extern void syms_of_xfont P_ (());
 extern void syms_of_xftfont P_ (());
@@ -4367,9 +4442,6 @@ syms_of_font ()
   sort_shift_bits[FONT_FAMILY_INDEX] = 30;
   /* Note that sort_shift_bits[FONT_SORT_TYPE] and
      sort_shift_bits[FONT_SORT_REGISTRY] are never used.  */
-
-  staticpro (&font_style_table);
-  font_style_table = Fmake_vector (make_number (3), Qnil);
 
   staticpro (&font_charset_alist);
   font_charset_alist = Qnil;
@@ -4427,7 +4499,6 @@ syms_of_font ()
   defsubr (&Sfind_font);
   defsubr (&Sfont_xlfd_name);
   defsubr (&Sclear_font_cache);
-  defsubr (&Sinternal_set_font_style_table);
   defsubr (&Sfont_make_gstring);
   defsubr (&Sfont_fill_gstring);
   defsubr (&Sfont_shape_text);
@@ -4467,6 +4538,36 @@ supported.  If REPERTORY is a char-table, all characters who have a
 non-nil value in the table are supported.  If REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);
   Vfont_encoding_alist = Qnil;
+
+  DEFVAR_LISP_NOPRO ("font-weight-table", &Vfont_weight_table,
+	       doc: /*  Vector of valid font weight values.
+Each element has the form:
+    [NUMERIC-VALUE SYMBOLIC-NAME ALIAS-NAME ...]
+NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symobls. */);
+  Vfont_weight_table = BUILD_STYLE_TABLE (weight_table);
+
+  DEFVAR_LISP_NOPRO ("font-slant-table", &Vfont_slant_table,
+	       doc: /*  Vector of font slant symbols vs the corresponding numeric values.
+See `font-weight_table' for the format of the vector. */);
+  Vfont_slant_table = BUILD_STYLE_TABLE (slant_table);
+
+  DEFVAR_LISP_NOPRO ("font-width-table", &Vfont_width_table,
+	       doc: /*  Alist of font width symbols vs the corresponding numeric values.
+See `font-weight_table' for the format of the vector. */);
+  Vfont_width_table = BUILD_STYLE_TABLE (width_table);
+
+  staticpro (&font_style_table);
+  font_style_table = Fmake_vector (make_number (3), Qnil);
+  ASET (font_style_table, 0, Vfont_weight_table);
+  ASET (font_style_table, 1, Vfont_slant_table);
+  ASET (font_style_table, 2, Vfont_width_table);
+
+  DEFVAR_LISP ("font-log", &Vfont_log, doc: /*
+*Logging list of font related actions and results.
+The value t means to suppress the logging.
+The initial value is set to nil if the environment variable
+EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
+  Vfont_log = Qnil;
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_FREETYPE
