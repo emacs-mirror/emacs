@@ -898,7 +898,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
      name to be usable in x-list-fonts. Eventually we expect to change
      x-list-fonts and other places that use fonts so that this can be
      an fcname or similar.  */
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object);
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
 
   return 1;
 }
