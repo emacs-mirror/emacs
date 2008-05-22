@@ -3033,9 +3033,9 @@ check_executable (filename)
 #else
   return (S_ISREG (st.st_mode)
 	  && len >= 5
-	  && (stricmp ((suffix = filename + len-4), ".com") == 0
-	      || stricmp (suffix, ".exe") == 0
-	      || stricmp (suffix, ".bat") == 0)
+	  && (xstrcasecmp ((suffix = filename + len-4), ".com") == 0
+	      || xstrcasecmp (suffix, ".exe") == 0
+	      || xstrcasecmp (suffix, ".bat") == 0)
 	  || (st.st_mode & S_IFMT) == S_IFDIR);
 #endif /* not WINDOWSNT */
 #else /* not DOS_NT */
