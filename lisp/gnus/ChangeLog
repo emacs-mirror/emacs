@@ -1,3 +1,22 @@
+2008-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Add more docs.
+
+2008-05-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnheader.el (nnheader-read-timeout): Change the default timeout from
+	0.1 seconds to 0.01 seconds.  This will make nntp and pop3 article
+	retrieval faster in some cases, but might make CPU usage larger.  If
+	this has any bad side effects, we might revert this change.
+
+	* pop3.el (pop3-movemail): Change the sit-for from 0.1 to 0.01, which
+	seems to make mail retrieval much, much faster.
+	(pop3-movemail): Use nnheader-accept-process-output instead of sleeping
+	unconditionally. 
+
+	* gnus-draft.el (gnus-group-send-queue): Bind
+	message-send-mail-partially-limit to nil to avoid being prompted.
+
 2008-05-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mml.el (mml-attach-buffer): Prompt for `disposition'.

@@ -36,6 +36,7 @@
 ;; if you want encrypted sources, which is strongly recommended, do
 ;; (require 'epa-file)
 ;; (epa-file-mode)
+;; (setq epa-file-cache-passphrase-for-symmetric-encryption t) ; VERY important
 
 ;; before you put some data in ~/.authinfo.gpg (the default place)
 

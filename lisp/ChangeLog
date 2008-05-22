@@ -1,3 +1,7 @@
+2008-05-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/netrc.el (netrc-machine): Always match if the port is not given.
+
 2008-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--find-all-completions):
