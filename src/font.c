@@ -312,7 +312,7 @@ font_style_to_value (prop, val, noerror)
 	for (j = 1; j < ASIZE (AREF (table, i)); j++)
 	  {
 	    elt = AREF (AREF (table, i), j);
-	    if (xstricmp (s, (char *) SDATA (SYMBOL_NAME (elt))) == 0)
+	    if (xstrcasecmp (s, (char *) SDATA (SYMBOL_NAME (elt))) == 0)
 	      return ((XINT (AREF (AREF (table, i), 0)) << 8)
 		      | (i << 4) | (j - 1));
 	  }
@@ -1981,7 +1981,8 @@ font_score (entity, spec_prop, alternate_families)
 	Lisp_Object entity_str = SYMBOL_NAME (AREF (entity, i));
 	Lisp_Object spec_str = SYMBOL_NAME (spec_prop[i]);
 
-	if (xstricmp ((char *) SDATA (spec_str), (char *) SDATA (entity_str)))
+	if (xstrcasecmp ((char *) SDATA (spec_str),
+                         (char *) SDATA (entity_str)))
 	  {
 	    if (i == FONT_FAMILY_INDEX && CONSP (alternate_families))
 	      {
@@ -1991,8 +1992,8 @@ font_score (entity, spec_prop, alternate_families)
 		     j++, alternate_families = XCDR (alternate_families))
 		  {
 		    spec_str = XCAR (alternate_families);
-		    if (xstricmp ((char *) SDATA (spec_str),
-                                  (char *) SDATA (entity_str)) == 0)
+		    if (xstrcasecmp ((char *) SDATA (spec_str),
+                                     (char *) SDATA (entity_str)) == 0)
 		      break;
 
 		  }
