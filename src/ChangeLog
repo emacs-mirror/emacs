@@ -1,5 +1,11 @@
 2008-05-22  Jason Rumney  <jasonr@gnu.org>
 
+        * dispextern.h, xfaces.c (xstrcasecmp): Renamed from xstricmp.
+
+        * dosfns.c, fileio.c, font.c, fontset.c, image.c, macfns.c:
+        * macterm.c, process.c, w32.c, w32fns.c, w32proc.c, xfaces.c:
+        * xfns.c, xfont.c: Callers changed.
+
         * xfont.c (xfont_list_pattern, compare_font_names): Use xstricmp.
 
         * fontset.c (fs_query_fontset): Use xstricmp.
