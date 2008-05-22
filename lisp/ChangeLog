@@ -1,3 +1,12 @@
+2008-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (font-show-log): New function.
+
+	* international/fontset.el (script-representative-chars): Add more
+	chars for latin.  Add data for symbol.
+	(setup-default-fontset): Add entries for phonetic, armenian, and
+	symbol.
+
 2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-all-sorted-completions): New var.
