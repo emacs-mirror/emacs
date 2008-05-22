@@ -746,7 +746,8 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
                   (let ((prev-user user))
                     (setq user (nth 2 (file-attributes file)))
                     (or (null prev-user) (equal user prev-user))))
-        (if (setq files (directory-files dir 'full regexp))
+        (if (setq files (and (file-directory-p dir)
+                             (directory-files dir 'full regexp)))
             (throw 'found (car files))
           (if (equal dir
                      (setq dir (file-name-directory
@@ -3119,19 +3120,21 @@ If a settings file is found, the file name is returned.
 If the file is in a registered project, a cons from
 `project-directory-alist' is returned.
 Otherwise this returns nil."
-  (let ((dir (file-name-directory file))
-	(result nil))
-    (while (and (not (string= dir "/"))
-		(not result))
-      (cond
-       ((setq result (assoc dir project-directory-alist))
-	;; Nothing else.
-	nil)
-       ((file-exists-p (expand-file-name ".dir-settings.el" dir))
-	(setq result (expand-file-name ".dir-settings.el" dir)))
-       (t
-	(setq dir (file-name-directory (directory-file-name dir))))))
-    result))
+  (setq file (expand-file-name file))
+  (let* ((settings (locate-dominating-file file "\\`\\.dir-settings\\.el\\'"))
+         (pda nil))
+    ;; `locate-dominating-file' may have abbreviated the name.
+    (if settings (setq settings (expand-file-name settings)))
+    (dolist (x project-directory-alist)
+      (when (and (eq t (compare-strings file nil (length (car x))
+                                        (car x) nil nil))
+                 (> (length (car x)) (length (car pda))))
+        (setq pda x)))
+    (if (and settings pda)
+        (if (> (length (file-name-directory settings))
+               (length (car pda)))
+            settings pda)
+      (or settings pda))))
 
 (defun project-define-from-project-file (settings-file)
   "Load a settings file and register a new project class and instance.

@@ -1,15 +1,18 @@
+2008-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-file): Accept non-existing argument.
+	(project-find-settings-file): Rewrite, using locate-dominating-file.
+
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
-	* faces.el (font-weight-table, font-slant-table)
-	(font-width-table): Delete them.  Don't call
-	internal-set-font-style-table.
+	* faces.el (font-weight-table, font-slant-table, font-width-table):
+	Delete them.  Don't call internal-set-font-style-table.
 
 	* international/mule-diag.el (font-show-log): New function.
 
 	* international/fontset.el (script-representative-chars): Add more
 	chars for latin.  Add data for symbol.
-	(setup-default-fontset): Add entries for phonetic, armenian, and
-	symbol.
+	(setup-default-fontset): Add entries for phonetic, armenian, and symbol.
 
 2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
