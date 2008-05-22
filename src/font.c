@@ -500,13 +500,16 @@ font_prop_validate_style (style, val)
   if (INTEGERP (val))
     {
       n = XINT (val);
-      if ((n & 0xFF)
+      if (((n >> 4) & 0xF)
 	  >= ASIZE (AREF (font_style_table, prop - FONT_WEIGHT_INDEX)))
 	val = Qerror;
       else
 	{
-	  Lisp_Object elt = AREF (AREF (font_style_table, prop - FONT_WEIGHT_INDEX), n & 0xFF);
-	  if (XINT (XCDR (elt)) != (n >> 8))
+	  Lisp_Object elt = AREF (AREF (font_style_table, prop - FONT_WEIGHT_INDEX), (n >> 4) & 0xF);
+
+	  if ((n & 0xF) + 1 >= ASIZE (elt))
+	    val = Qerror;
+	  else if (XINT (AREF (elt, 0)) != (n >> 8))
 	    val = Qerror;
 	}
     }
