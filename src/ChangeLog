@@ -1,3 +1,57 @@
+2008-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_resolve_generic_family): Renamed from
+	ftfont_list_generic_family.  Return a single family for each
+	generic family.
+	(ftfont_spec_pattern): Add FC_FAMILY to pattern.
+	(ftfont_list): Adjusted for the change of
+	ftfont_resolve_generic_family.  Call font_add_log.
+	(ftfont_match): Call font_add_log.
+
+	* font.h (Ffont_xlfd_name): EXFUN adjusted.
+	(FONT_DEBUG): Define it.
+	(font_add_log): Extern it.
+	(font_assert): Renamed from xassert.
+
+	* xfont.c (xfont_get_pcm): Change xassert to font_assert.
+	(xfont_list_family): Call font_add_log.
+	(xfont_match): Likewise.
+	(memq_no_quit): Deleted.
+
+	* fontset.c (fontset_from_font, Ffontset_info): Add the 2nd arg in
+	call of Ffont_xlfd_name.
+
+	* xfaces.c (struct table_entry, slant_table, weight_table)
+	(swidth_table): Moved to font.c.
+
+	* font.c: Checking of FONT_DEBUG is moved to font.h.  All calls of
+	xassert are changed to font_assert.  Many unused variables
+	deleted.
+	(Vfont_weight_table, Vfont_slant_table, Vfont_width_table): New
+	variables.
+	(struct table_entry): Moved from xfaces.c and modified.
+	(weight_table, slant_table, width_table): Moved from xfaces.c and
+	contents adjusted for the change of struct table_entry.
+	(font_style_to_value, font_style_symbolic): Adjuted for the format
+	change of font_style_table.
+	(font_parse_family_registry): Don't overwrite existing foundry and
+	family of font_spec.
+	(font_score): Fix calculation of diff for sizes.
+	(font_sort_entites): Call font_add_log.
+	(font_delete_unmatched): Return a newly created list.
+	(font_list_entities): Fix previous change.  Call font_add_log.
+	(font_matching_entity, font_open_entity, font_close_entity): Call
+	font_add_log.
+	(Ffont_xlfd_name): New arg FOLD-WILDCARDS.
+	(Finternal_set_font_style_table): Deleted.
+	(BUILD_STYLE_TABLE): New macro.
+	(build_style_table): New function.
+	(Vfont_log, font_log_env_checked): New variables.
+	(font_add_log): New function.
+	(syms_of_font): Delete defsubr Sinternal_set_font_style_table.
+	Declare Lisp variables "font-weight-table", "font-slant-table",
+	"font-width-table", and "font-log".  Initialize font_style_table.
+
 2008-05-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xterm.c (x_set_frame_alpha): Move declarations before statements.
