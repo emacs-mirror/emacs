@@ -36,12 +36,6 @@ problems.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** libxpm is loaded too soon
-Since the multi-tty merge, libxpm is loaded before the init files because
-of changes in toolbar setup; that prevents using image-library-alist in
-.emacs to select the desired XPM library.  Reported by Takashi Hiromatsu.
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02191.html
-
 * BUGS WAITING FOR MORE USER INPUT
 
 ** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
@@ -91,7 +85,7 @@ rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
 minimized.  I don't know what is left to do here.
 
 ** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
-   
+
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
 
 ** multi-tty does not work correctly.
