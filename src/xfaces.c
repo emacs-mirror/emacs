@@ -3686,7 +3686,7 @@ x_update_menu_appearance (f)
 	      || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	      || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
 	{
-	  Lisp_Object xlfd = Ffont_xlfd_name (LFACE_FONT (lface));
+	  Lisp_Object xlfd = Ffont_xlfd_name (LFACE_FONT (lface), Qnil);
 #ifdef USE_MOTIF
 	  const char *suffix = "List";
 	  Bool motif = True;
