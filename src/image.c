@@ -4862,7 +4862,7 @@ xpm_load_image (f, img, contents, end)
 
 	  if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
 	    {
-	      if (xstricmp (SDATA (XCDR (specified_color)), "None") == 0)
+	      if (xstrcasecmp (SDATA (XCDR (specified_color)), "None") == 0)
 		color_val = Qt;
 	      else if (x_defined_color (f, SDATA (XCDR (specified_color)),
 					&cdef, 0))
@@ -4871,7 +4871,7 @@ xpm_load_image (f, img, contents, end)
 	}
       if (NILP (color_val) && max_key > 0)
 	{
-	  if (xstricmp (max_color, "None") == 0)
+	  if (xstrcasecmp (max_color, "None") == 0)
 	    color_val = Qt;
 	  else if (x_defined_color (f, max_color, &cdef, 0))
 	    color_val = make_number (cdef.pixel);
