@@ -621,10 +621,10 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
   p = strrchr (filename, '.');
 
   /* We can only identify DOS .com programs from the extension. */
-  if (p && stricmp (p, ".com") == 0)
+  if (p && xstrcasecmp (p, ".com") == 0)
     *is_dos_app = TRUE;
-  else if (p && (stricmp (p, ".bat") == 0
-		 || stricmp (p, ".cmd") == 0))
+  else if (p && (xstrcasecmp (p, ".bat") == 0
+		 || xstrcasecmp (p, ".cmd") == 0))
     {
       /* A DOS shell script - it appears that CreateProcess is happy to
 	 accept this (somewhat surprisingly); presumably it looks at
