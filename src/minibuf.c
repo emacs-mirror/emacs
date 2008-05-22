@@ -2262,41 +2262,5 @@ properties.  */);
   defsubr (&Scompleting_read);
 }
 
-void
-keys_of_minibuf ()
-{
-  initial_define_key (Vminibuffer_local_map, Ctl ('g'),
-		      "abort-recursive-edit");
-  initial_define_key (Vminibuffer_local_map, Ctl ('m'),
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_map, Ctl ('j'),
-		      "exit-minibuffer");
-
-  initial_define_key (Vminibuffer_local_ns_map, ' ',
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_ns_map, '\t',
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_ns_map, '?',
-		      "self-insert-and-exit");
-
-  initial_define_key (Vminibuffer_local_completion_map, '\t',
-		      "minibuffer-complete");
-  initial_define_key (Vminibuffer_local_completion_map, ' ',
-		      "minibuffer-complete-word");
-  initial_define_key (Vminibuffer_local_completion_map, '?',
-		      "minibuffer-completion-help");
-
-  Fdefine_key (Vminibuffer_local_filename_completion_map,
-	       build_string (" "), Qnil);
-
-  initial_define_key (Vminibuffer_local_must_match_map, Ctl ('m'),
-		      "minibuffer-complete-and-exit");
-  initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
-		      "minibuffer-complete-and-exit");
-
-  Fdefine_key (Vminibuffer_local_must_match_filename_map,
-	       build_string (" "), Qnil);
-}
-
 /* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73
    (do not change this comment) */

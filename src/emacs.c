@@ -1647,7 +1647,6 @@ main (argc, argv
       keys_of_buffer ();
       keys_of_keyboard ();
       keys_of_keymap ();
-      keys_of_minibuf ();
       keys_of_window ();
     }
   else
