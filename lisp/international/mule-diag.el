@@ -1304,7 +1304,16 @@ character)")
 	(insert (format "%s: %s\n" (car elt) (cadr elt)))
 	(setq elt (nth 2 elt))
 	(if (or (vectorp elt) (listp elt))
-	    (mapc #'(lambda (x) (insert (format "  %s\n" x))) elt)
+	    (let ((limit 20)
+		  (i 0))
+	      (catch 'tag
+		(mapc #'(lambda (x)
+			  (setq i (1+ i))
+			  (when (= i 20)
+			    (insert "  ...\n")
+			    (throw 'tag nil))
+			  (insert (format "  %s\n" x)))
+		      elt)))
 	  (insert (format "  %s\n" elt)))))))
 
 
