@@ -140,7 +140,8 @@
 	(tibetan . unicode-bmp)))
 
 (setq script-representative-chars
-      '((latin ?A ?Z ?a ?z)
+      '((latin ?A ?Z ?a ?z #x00C0 #x0100 #x0180 #x1e00)
+	(phonetic #x250 #x283)
 	(greek #x3A9)
 	(coptic #x3E2)
 	(cyrillic #x42F)
@@ -171,6 +172,7 @@
 	(runic #x16A0)
 	(khmer #x1780)
 	(mongolian #x1826)
+	(symbol #x201C #x2200 #x2500)
 	(braille #x2800)
 	(ideographic-description #x2FF0)
 	(cjk-misc #x300E)
@@ -288,6 +290,10 @@
 	    (nil . "VISCII1.1-1")
 	    (nil . "ISO10646-1"))
 
+     (phonetic ,(font-spec :registry "iso10646-1" :script 'phonetic))
+
+     (armenian ,(font-spec :registry "iso10646-1" :script 'armenian))
+
      (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
 	    (nil . "TIS620*")
 	    (nil . "ISO8859-11"))
@@ -356,6 +362,8 @@
      (runic ,(font-spec :registry "iso10646-1" :script 'runic))
 
      (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
+
+     (symbol ,(font-spec :registry "iso10646-1" :script 'symbol))
 
      (yi ,(font-spec :registry "iso10646-1" :script 'yi))
 
