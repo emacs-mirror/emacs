@@ -1,5 +1,12 @@
 2008-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* icomplete.el (icomplete-eoinput): Remove.
+	(icomplete-overlay): New var to replace it.
+	(icomplete-tidy): Rewrite.
+	(icomplete-exhibit): Use an overlay.
+	(icomplete-completions): Use completion-all-sorted-completions.
+	Obey completion-ignore-case.
+
 	* files.el (locate-dominating-file): Accept non-existing argument.
 	(project-find-settings-file): Rewrite, using locate-dominating-file.
 
