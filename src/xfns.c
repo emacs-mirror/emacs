@@ -4010,7 +4010,7 @@ select_visual (dpyinfo)
 
       /* Determine the visual class.  */
       for (i = 0; visual_classes[i].name; ++i)
-	if (xstricmp (s, visual_classes[i].name) == 0)
+	if (xstrcasecmp (s, visual_classes[i].name) == 0)
 	  {
 	    class = visual_classes[i].class;
 	    break;
