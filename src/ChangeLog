@@ -1,3 +1,13 @@
+2008-05-22  Jason Rumney  <jasonr@gnu.org>
+
+        * xfont.c (xfont_list_pattern, compare_font_names): Use xstricmp.
+
+        * fontset.c (fs_query_fontset): Use xstricmp.
+
+        * font.c (font_style_to_value, font_score): Use xstricmp.
+
+        * dosfns.c (msdos_stdcolor_idx): Use xstricmp.
+
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
 	* puresize.h (BASE_PURESIZE): Increaed to 1220000.
