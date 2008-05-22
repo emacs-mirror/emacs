@@ -3722,7 +3722,7 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
   return Qnil;
 }
 
-/* The following three functions are still expremental.  */
+/* The following three functions are still experimental.  */
 
 DEFUN ("font-make-gstring", Ffont_make_gstring, Sfont_make_gstring, 2, 2, 0,
        doc: /* Return a newly created g-string for FONT-OBJECT with NUM glyphs.
