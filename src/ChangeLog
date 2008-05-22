@@ -1,5 +1,7 @@
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
+	* puresize.h (BASE_PURESIZE): Increaed to 1220000.
+
 	* font.c (font_prop_validate_style): Adjusted for the format
 	change of font_style_table.
 
