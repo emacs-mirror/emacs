@@ -420,7 +420,7 @@ msdos_stdcolor_idx (const char *name)
   int i;
 
   for (i = 0; i < sizeof (vga_colors) / sizeof (vga_colors[0]); i++)
-    if (xstricmp (name, vga_colors[i]) == 0)
+    if (xstrcasecmp (name, vga_colors[i]) == 0)
       return i;
 
   return
