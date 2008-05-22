@@ -1,5 +1,8 @@
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (font_prop_validate_style): Adjusted for the format
+	change of font_style_table.
+
 	* w32font.c (w32font_open_internal): Call Ffont_xlfd_name with
 	two args.
 
@@ -40,21 +43,21 @@
 
 	* font.c: Checking of FONT_DEBUG is moved to font.h.  All calls of
 	xassert are changed to font_assert.  Delete many unused variables.
-	(Vfont_weight_table, Vfont_slant_table, Vfont_width_table):
-	New variables.
+	(Vfont_weight_table, Vfont_slant_table, Vfont_width_table): New
+	variables.
 	(struct table_entry): Move from xfaces.c and modified.
 	(weight_table, slant_table, width_table): Move from xfaces.c and
 	contents adjusted for the change of struct table_entry.
-	(font_style_to_value, font_style_symbolic): Adjut for the format
-	change of font_style_table.
+	(font_style_to_value, font_style_symbolic): Adjusted for the
+	format change of font_style_table.
 	(font_parse_family_registry): Don't overwrite existing foundry and
 	family of font_spec.
 	(font_score): Fix calculation of diff for sizes.
 	(font_sort_entites): Call font_add_log.
 	(font_delete_unmatched): Return a newly created list.
 	(font_list_entities): Fix previous change.  Call font_add_log.
-	(font_matching_entity, font_open_entity, font_close_entity):
-	Call font_add_log.
+	(font_matching_entity, font_open_entity, font_close_entity): Call
+	font_add_log.
 	(Ffont_xlfd_name): New arg FOLD-WILDCARDS.
 	(Finternal_set_font_style_table): Delete.
 	(BUILD_STYLE_TABLE): New macro.
