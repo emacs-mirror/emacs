@@ -56,10 +56,19 @@
   "Special hook run when image data is requested in a new window.
 It is called with one argument, the initial WINPROPS.")
 
-(defun image-mode-winprops (&optional window)
+(defun image-mode-winprops (&optional window cleanup)
   "Return winprops of WINDOW.
 A winprops object has the shape (WINDOW . ALIST)."
-  (unless window (setq window (selected-window)))
+  (cond ((null window)
+	 (setq window (selected-window)))
+	((not (windowp window))
+	 (error "Not a window: %s" window)))
+  (when cleanup
+    (setq image-mode-winprops-alist
+  	  (delq nil (mapcar (lambda (winprop)
+  			      (if (window-live-p (car-safe winprop))
+  				  winprop))
+  			    image-mode-winprops-alist))))
   (let ((winprops (assq window image-mode-winprops-alist)))
     ;; For new windows, set defaults from the latest.
     (unless winprops
@@ -94,8 +103,9 @@ A winprops object has the shape (WINDOW . ALIST)."
 (defun image-mode-reapply-winprops ()
   ;; When set-window-buffer, set hscroll and vscroll to what they were
   ;; last time the image was displayed in this window.
-  (when (listp image-mode-winprops-alist)
-    (let* ((winprops (image-mode-winprops))
+  (when (and (image-get-display-property)
+	     (listp image-mode-winprops-alist))
+    (let* ((winprops (image-mode-winprops nil t))
            (hscroll (image-mode-window-get 'hscroll winprops))
            (vscroll (image-mode-window-get 'vscroll winprops)))
       (if hscroll (set-window-hscroll (selected-window) hscroll))
