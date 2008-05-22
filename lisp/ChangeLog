@@ -1,5 +1,9 @@
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
+	* faces.el (font-weight-table, font-slant-table)
+	(font-width-table): Delete them.  Don't call
+	internal-set-font-style-table.
+
 	* international/mule-diag.el (font-show-log): New function.
 
 	* international/fontset.el (script-representative-chars): Add more
