@@ -720,7 +720,7 @@ getpwnam (char *name)
   if (!pw)
     return pw;
 
-  if (stricmp (name, pw->pw_name))
+  if (xstrcasecmp (name, pw->pw_name))
     return NULL;
 
   return pw;
@@ -754,7 +754,7 @@ init_user_info ()
     {
       strcpy (dflt_passwd.pw_name, uname);
       /* Determine a reasonable uid value.  */
-      if (stricmp ("administrator", uname) == 0)
+      if (xstrcasecmp ("administrator", uname) == 0)
 	{
 	  dflt_passwd.pw_uid = 500; /* well-known Administrator uid */
 	  dflt_passwd.pw_gid = 513; /* well-known None gid */
@@ -786,7 +786,7 @@ init_user_info ()
   else if (GetUserName (uname, &ulength))
     {
       strcpy (dflt_passwd.pw_name, uname);
-      if (stricmp ("administrator", uname) == 0)
+      if (xstrcasecmp ("administrator", uname) == 0)
 	dflt_passwd.pw_uid = 0;
       else
 	dflt_passwd.pw_uid = 123;
@@ -1296,7 +1296,7 @@ init_environment (char ** argv)
 	abort ();
       *p = 0;
 
-      if ((p = strrchr (modname, '\\')) && stricmp (p, "\\bin") == 0)
+      if ((p = strrchr (modname, '\\')) && xstrcasecmp (p, "\\bin") == 0)
 	{
 	  char buf[SET_ENV_BUF_SIZE];
 
@@ -1312,7 +1312,7 @@ init_environment (char ** argv)
       /* FIXME: should use substring of get_emacs_configuration ().
 	 But I don't think the Windows build supports alpha, mips etc
          anymore, so have taken the easy option for now.  */
-      else if (p && stricmp (p, "\\i386") == 0)
+      else if (p && xstrcasecmp (p, "\\i386") == 0)
 	{
 	  *p = 0;
 	  p = strrchr (modname, '\\');
@@ -1320,7 +1320,7 @@ init_environment (char ** argv)
 	    {
 	      *p = 0;
 	      p = strrchr (modname, '\\');
-	      if (p && stricmp (p, "\\src") == 0)
+	      if (p && xstrcasecmp (p, "\\src") == 0)
 		{
 		  char buf[SET_ENV_BUF_SIZE];
 
@@ -1652,7 +1652,7 @@ lookup_volume_info (char * root_dir)
   volume_info_data * info;
 
   for (info = volume_cache; info; info = info->next)
-    if (stricmp (info->root_dir, root_dir) == 0)
+    if (xstrcasecmp (info->root_dir, root_dir) == 0)
       break;
   return info;
 }
@@ -1930,10 +1930,10 @@ is_exec (const char * name)
   char * p = strrchr (name, '.');
   return
     (p != NULL
-     && (stricmp (p, ".exe") == 0 ||
-	 stricmp (p, ".com") == 0 ||
-	 stricmp (p, ".bat") == 0 ||
-	 stricmp (p, ".cmd") == 0));
+     && (xstrcasecmp (p, ".exe") == 0 ||
+	 xstrcasecmp (p, ".com") == 0 ||
+	 xstrcasecmp (p, ".bat") == 0 ||
+	 xstrcasecmp (p, ".cmd") == 0));
 }
 
 /* Emulate the Unix directory procedures opendir, closedir,
@@ -2877,7 +2877,7 @@ stat (const char * path, struct stat * buf)
       if (dir_find_handle != INVALID_HANDLE_VALUE
 	  && strnicmp (name, dir_pathname, len) == 0
 	  && IS_DIRECTORY_SEP (name[len])
-	  && stricmp (name + len + 1, dir_static.d_name) == 0)
+	  && xstrcasecmp (name + len + 1, dir_static.d_name) == 0)
 	{
 	  /* This was the last entry returned by readdir.  */
 	  wfd = dir_find_data;
@@ -3103,10 +3103,10 @@ fstat (int desc, struct stat * buf)
 #if 0 /* no way of knowing the filename */
       char * p = strrchr (name, '.');
       if (p != NULL &&
-	  (stricmp (p, ".exe") == 0 ||
-	   stricmp (p, ".com") == 0 ||
-	   stricmp (p, ".bat") == 0 ||
-	   stricmp (p, ".cmd") == 0))
+	  (xstrcasecmp (p, ".exe") == 0 ||
+	   xstrcasecmp (p, ".com") == 0 ||
+	   xstrcasecmp (p, ".bat") == 0 ||
+	   xstrcasecmp (p, ".cmd") == 0))
 	permission |= S_IEXEC;
 #endif
     }
