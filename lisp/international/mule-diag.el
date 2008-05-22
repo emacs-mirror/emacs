@@ -1295,6 +1295,7 @@ character)")
 
 ;;;###autoload
 (defun font-show-log ()
+  "Show log of font listing and opening."
   (interactive)
   (if (eq font-log t)
       (message "Font logging is currently suppressed")
