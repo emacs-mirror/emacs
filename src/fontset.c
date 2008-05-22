@@ -1602,7 +1602,7 @@ fontset_from_font (font_object)
     }
   fontset_spec = Fcopy_font_spec (font_spec);
   ASET (fontset_spec, FONT_REGISTRY_INDEX, alias);
-  name = Ffont_xlfd_name (fontset_spec);
+  name = Ffont_xlfd_name (fontset_spec, Qnil);
   if (NILP (name))
     abort ();
   fontset = make_fontset (Qnil, name, Qnil);
@@ -1905,7 +1905,7 @@ fontset.  The format is the same as above.  */)
 	      for (; CONSP (alist); alist = XCDR (alist))
 		{
 		  elt = XCAR (alist);
-		  XSETCAR (elt, Ffont_xlfd_name (XCAR (elt)));
+		  XSETCAR (elt, Ffont_xlfd_name (XCAR (elt), Qnil));
 		}
 	    }
 	  c = to + 1;
