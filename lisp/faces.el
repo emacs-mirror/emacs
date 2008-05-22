@@ -100,47 +100,6 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 	   (set-default symbol value)
 	   (internal-set-alternative-font-registry-alist value)))
 
-
-(defconst font-weight-table
-  '((thin 0)
-    (ultra-light 20 ultralight)
-    (extra-light 40 extralight)
-    (light 50)
-    (semi-light 75 semilight demilight book)
-    (normal 100 medium regular)
-    (semi-bold 180 semibold demibold demi)
-    (bold 200)
-    (extra-bold 205 extrabold)
-    (ultra-bold 210 ultrabold black))
-  "Alist of font weight symbols vs the corresponding numeric values.
-Each element has the form:
-    \(SYMBOLIC-VALUE NUMERIC-VALUE ALIAS-SYMBOL ...)
-")
-
-(defconst font-slant-table
-  '((reverse-oblique 0 ro)
-    (reverse-italic 10 ri)
-    (normal 100 r)
-    (italic 200 i ot)
-    (oblique 210 o))
-  "Alist of font slant symbols vs the corresponding numeric values.
-See `font-weight-table' for the detailed format.")
-
-(defconst font-width-table
-  '((ultra-condensed 50 ultracondensed)
-    (extra-condensed 63 extracondensed)
-    (condensed 75 compressed narrow)
-    (semi-condensed 87 semicondensed semicondensed)
-    (normal 100 medium regular)
-    (semi-expanded 113 semiexpanded demiexpanded)
-    (expanded 125)
-    (extra-expanded 150 extraexpanded)
-    (ultra-expanded 200 ultraexpanded wide))
-  "Alist of font width symbols vs the corresponding numeric values.
-See `font-weight-table' for the detailed format.")
-
-(internal-set-font-style-table
- font-weight-table font-slant-table font-width-table)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Creation, copying.
