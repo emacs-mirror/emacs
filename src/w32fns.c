@@ -4993,16 +4993,16 @@ x_to_w32_weight (lpw)
 {
   if (!lpw) return (FW_DONTCARE);
 
-  if (stricmp (lpw, "heavy") == 0)             return FW_HEAVY;
-  else if (stricmp (lpw, "extrabold") == 0)    return FW_EXTRABOLD;
-  else if (stricmp (lpw, "bold") == 0)         return FW_BOLD;
-  else if (stricmp (lpw, "demibold") == 0)     return FW_SEMIBOLD;
-  else if (stricmp (lpw, "semibold") == 0)     return FW_SEMIBOLD;
-  else if (stricmp (lpw, "medium") == 0)       return FW_MEDIUM;
-  else if (stricmp (lpw, "normal") == 0)       return FW_NORMAL;
-  else if (stricmp (lpw, "light") == 0)        return FW_LIGHT;
-  else if (stricmp (lpw, "extralight") == 0)   return FW_EXTRALIGHT;
-  else if (stricmp (lpw, "thin") == 0)         return FW_THIN;
+  if (xstrcasecmp (lpw, "heavy") == 0)             return FW_HEAVY;
+  else if (xstrcasecmp (lpw, "extrabold") == 0)    return FW_EXTRABOLD;
+  else if (xstrcasecmp (lpw, "bold") == 0)         return FW_BOLD;
+  else if (xstrcasecmp (lpw, "demibold") == 0)     return FW_SEMIBOLD;
+  else if (xstrcasecmp (lpw, "semibold") == 0)     return FW_SEMIBOLD;
+  else if (xstrcasecmp (lpw, "medium") == 0)       return FW_MEDIUM;
+  else if (xstrcasecmp (lpw, "normal") == 0)       return FW_NORMAL;
+  else if (xstrcasecmp (lpw, "light") == 0)        return FW_LIGHT;
+  else if (xstrcasecmp (lpw, "extralight") == 0)   return FW_EXTRALIGHT;
+  else if (xstrcasecmp (lpw, "thin") == 0)         return FW_THIN;
   else
     return FW_DONTCARE;
 }
@@ -5057,7 +5057,7 @@ x_to_w32_charset (lpcs)
   if (NILP (this_entry))
     {
       /* At startup, we want iso8859-1 fonts to come up properly. */
-      if (stricmp (charset, "iso8859-1") == 0)
+      if (xstrcasecmp (charset, "iso8859-1") == 0)
         return ANSI_CHARSET;
       else
         return DEFAULT_CHARSET;
@@ -6483,7 +6483,7 @@ w32_query_font (struct frame *f, char *fontname)
 
   for (i = 0; i < one_w32_display_info.n_fonts ;i++, pfi++)
     {
-      if (stricmp (pfi->name, fontname) == 0) return pfi;
+      if (xstrcasecmp (pfi->name, fontname) == 0) return pfi;
     }
 
   return NULL;
