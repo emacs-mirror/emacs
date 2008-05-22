@@ -798,11 +798,11 @@ x_free_gc (f, gc)
 
 #endif  /* MAC_OS */
 
-/* Like stricmp.  Used to compare parts of font names which are in
-   ISO8859-1.  */
+/* Like strcasecmp/stricmp.  Used to compare parts of font names which
+   are in ISO8859-1.  */
 
 int
-xstricmp (s1, s2)
+xstrcasecmp (s1, s2)
      const unsigned char *s1, *s2;
 {
   while (*s1 && *s2)
@@ -1381,8 +1381,8 @@ face_color_supported_p (f, color_name, background_p)
 #ifdef HAVE_WINDOW_SYSTEM
     FRAME_WINDOW_P (f)
     ? (!NILP (Fxw_display_color_p (frame))
-       || xstricmp (color_name, "black") == 0
-       || xstricmp (color_name, "white") == 0
+       || xstrcasecmp (color_name, "black") == 0
+       || xstrcasecmp (color_name, "white") == 0
        || (background_p
 	   && face_color_gray_p (f, color_name))
        || (!NILP (Fx_display_grayscale_p (frame))
@@ -3564,13 +3564,13 @@ face_boolean_x_resource_value (value, signal_p)
 
   xassert (STRINGP (value));
 
-  if (xstricmp (SDATA (value), "on") == 0
-      || xstricmp (SDATA (value), "true") == 0)
+  if (xstrcasecmp (SDATA (value), "on") == 0
+      || xstrcasecmp (SDATA (value), "true") == 0)
     result = Qt;
-  else if (xstricmp (SDATA (value), "off") == 0
-	   || xstricmp (SDATA (value), "false") == 0)
+  else if (xstrcasecmp (SDATA (value), "off") == 0
+	   || xstrcasecmp (SDATA (value), "false") == 0)
     result = Qnil;
-  else if (xstricmp (SDATA (value), "unspecified") == 0)
+  else if (xstrcasecmp (SDATA (value), "unspecified") == 0)
     result = Qunspecified;
   else if (signal_p)
     signal_error ("Invalid face attribute value from X resource", value);
@@ -3590,7 +3590,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
   CHECK_SYMBOL (attr);
   CHECK_STRING (value);
 
-  if (xstricmp (SDATA (value), "unspecified") == 0)
+  if (xstrcasecmp (SDATA (value), "unspecified") == 0)
     value = Qunspecified;
   else if (EQ (attr, QCheight))
     {
@@ -4127,8 +4127,8 @@ lface_same_font_attributes_p (lface1, lface2)
 {
   xassert (lface_fully_specified_p (lface1)
 	   && lface_fully_specified_p (lface2));
-  return (xstricmp (SDATA (lface1[LFACE_FAMILY_INDEX]),
-		    SDATA (lface2[LFACE_FAMILY_INDEX])) == 0
+  return (xstrcasecmp (SDATA (lface1[LFACE_FAMILY_INDEX]),
+                       SDATA (lface2[LFACE_FAMILY_INDEX])) == 0
 	  && EQ (lface1[LFACE_HEIGHT_INDEX], lface2[LFACE_HEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SWIDTH_INDEX], lface2[LFACE_SWIDTH_INDEX])
 	  && EQ (lface1[LFACE_WEIGHT_INDEX], lface2[LFACE_WEIGHT_INDEX])
@@ -4137,8 +4137,8 @@ lface_same_font_attributes_p (lface1, lface2)
 	  && (EQ (lface1[LFACE_FONTSET_INDEX], lface2[LFACE_FONTSET_INDEX])
 	      || (STRINGP (lface1[LFACE_FONTSET_INDEX])
 		  && STRINGP (lface2[LFACE_FONTSET_INDEX])
-		  && ! xstricmp (SDATA (lface1[LFACE_FONTSET_INDEX]),
-				 SDATA (lface2[LFACE_FONTSET_INDEX]))))
+		  && ! xstrcasecmp (SDATA (lface1[LFACE_FONTSET_INDEX]),
+                                    SDATA (lface2[LFACE_FONTSET_INDEX]))))
 	  );
 }
 
