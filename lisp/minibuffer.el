@@ -48,7 +48,6 @@
 
 ;; - add support for ** to pcm.
 ;; - Make read-file-name-predicate obsolete.
-;; - New command minibuffer-force-complete that chooses one of all-completions.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
 ;; - A feature like completing-help.el.
 ;; - Make the `hide-spaces' arg of all-completions obsolete?
@@ -1476,12 +1475,16 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
                                        (concat subprefix submatch between)
                                        pattern table pred))
                                      all)))
-                  (unless all
-                    ;; Even though we found expansions in the prefix, none
-                    ;; leads to a valid completion.
-                    ;; Let's keep the expansions, tho.
-                    (dolist (submatch suball)
-                      (push (concat submatch between newsubstring) all)))))
+                  ;; FIXME: This can come in handy for try-completion,
+                  ;; but isn't right for all-completions, since it lists
+                  ;; invalid completions.
+                  ;; (unless all
+                  ;;   ;; Even though we found expansions in the prefix, none
+                  ;;   ;; leads to a valid completion.
+                  ;;   ;; Let's keep the expansions, tho.
+                  ;;   (dolist (submatch suball)
+                  ;;     (push (concat submatch between newsubstring) all)))
+                  ))
               (setq pattern (append subpat (list 'any (string sep))
                                     (if between (list between)) pattern))
               (setq prefix subprefix)))))

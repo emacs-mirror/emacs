@@ -1,5 +1,8 @@
 2008-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-pcm--find-all-completions):
+	Don't add pseudo-completions.
+
 	* icomplete.el (icomplete-eoinput): Remove.
 	(icomplete-overlay): New var to replace it.
 	(icomplete-tidy): Rewrite.
