@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
 #include <ctype.h>
 #ifdef HAVE_M17N_FLT
 #include <m17n-flt.h>
