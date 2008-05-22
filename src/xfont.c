@@ -50,9 +50,6 @@ extern void x_clear_errors P_ ((Display *));
 
 static XCharStruct *xfont_get_pcm P_ ((XFontStruct *, XChar2b *));
 static void xfont_find_ccl_program P_ ((struct font *));
-static int xfont_registry_charsets P_ ((Lisp_Object, struct charset **,
-					struct charset **));
-
 
 /* Get metrics of character CHAR2B in XFONT.  Value is null if CHAR2B
    is not contained in the font.  */
@@ -65,7 +62,7 @@ xfont_get_pcm (xfont, char2b)
   /* The result metric information.  */
   XCharStruct *pcm = NULL;
 
-  xassert (xfont && char2b);
+  font_assert (xfont && char2b);
 
   if (xfont->per_char != NULL)
     {
@@ -298,6 +295,7 @@ xfont_list_pattern (frame, display, pattern)
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 
+  font_add_log ("xfont-list", build_string (pattern), list);
   return list;
 }
 
@@ -307,8 +305,7 @@ xfont_list (frame, spec)
 {
   FRAME_PTR f = XFRAME (frame);
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
-  Lisp_Object registry, list, val, extra, font_name;
-  Lisp_Object dpi, avgwidth;
+  Lisp_Object registry, list, val, extra;
   int len;
   char name[256];
   
@@ -421,16 +418,8 @@ xfont_match (frame, spec)
     }
   UNBLOCK_INPUT;
 
+  font_add_log ("xfont-match", spec, entity);
   return entity;
-}
-
-static int
-memq_no_quit (elt, list)
-     Lisp_Object elt, list;
-{
-  while (CONSP (list) && ! EQ (XCAR (list), elt))
-    list = XCDR (list);
-  return (CONSP (list));
 }
 
 static Lisp_Object
@@ -570,7 +559,7 @@ xfont_open (f, entity, pixel_size)
   font_object = font_make_object (VECSIZE (struct xfont_info));
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
-    font_parse_xlfd (SDATA (fullname), font_object);
+    font_parse_xlfd ((char *) SDATA (fullname), font_object);
   for (i = 1; i < FONT_ENTITY_MAX; i++)
     ASET (font_object, i, AREF (entity, i));
   ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
