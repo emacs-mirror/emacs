@@ -105,7 +105,7 @@ extern Lisp_Object Vwindow_system_version;
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
-#if 0 /* Use xstricmp instead.  */
+#if 0 /* Use xstrcasecmp instead.  */
 /* compare two strings ignoring case */
 
 static int
@@ -1011,7 +1011,7 @@ mac_color_map_lookup (colorname)
   BLOCK_INPUT;
 
   for (i = 0; i < sizeof (mac_color_map) / sizeof (mac_color_map[0]); i++)
-    if (xstricmp (colorname, mac_color_map[i].name) == 0)
+    if (xstrcasecmp (colorname, mac_color_map[i].name) == 0)
       {
         ret = make_number (mac_color_map[i].color);
         break;
