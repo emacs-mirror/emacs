@@ -6847,7 +6847,7 @@
 	* Makefile.in: Use 'buildlisppath' instead of 'dumplisppath',
 	since the former is recognizable even if you don't know what
 	'dumping' is.
-	* configure: Accomodate that change.
+	* configure: Accommodate that change.
 
 	* configure: Accept options for all of the directories you can
 	change in the Makefile.
