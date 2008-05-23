@@ -1562,12 +1562,12 @@
 	* (erc-extract-command-from-line): intern-soft the function here.
 	If the function symbol has a property 'do-not-parse-args, operate as before,
 	otherwise, split the arguments prior to calling the command handler.
-	* (erc-process-input-line): Updated to accomodate the change above.
+	* (erc-process-input-line): Updated to accommodate the change above.
 	* (erc-send-distinguish-noncommands): Ditto.
 	* (erc-cmd-NAMES): Ditto.
 	* (erc-cmd-ME): Put 'do-not-parse-args property.
 
-	* erc-dcc.el 1.59:nick:	* erc-dcc.el 1.59: * erc-dcc-list: Renamed 
+	* erc-dcc.el 1.59:nick:	* erc-dcc.el 1.59: * erc-dcc-list: Renamed
 	* (erc-dcc-member). Treat :nick as either a nick!user@host or nick,
 	do appropriate comparisons, simplified.
 	* (erc-dcc-list-add): New functions
