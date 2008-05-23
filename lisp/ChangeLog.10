@@ -10180,7 +10180,7 @@
 
 	* net/tramp.el: Version 2.0.18 released.
 
-	* net/tramp.el (tramp-perl-decode): Perl changes to accomodate
+	* net/tramp.el (tramp-perl-decode): Perl changes to accommodate
 	older versions of Perl.  Now tested with 5.004.  Suggestion from
 	Michael Albinus.
 

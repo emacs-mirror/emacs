@@ -142,7 +142,7 @@
 
 	* icomplete.el (icomplete-simple-completing-p):
 	Allow icomplete-with-completion-tables to say "use it everywhere".
-	(icomplete-completions): Obey completion-styles.  Try to accomodate
+	(icomplete-completions): Obey completion-styles.  Try to accommodate
 	partial-completion style.
 
 2008-05-20  Michael Olson  <mwolson@gnu.org>
@@ -17497,7 +17497,7 @@
 	(org-agenda-to-appt): Require calendar.
 	(org-entry-get-with-inheritance): Widen for search.
 	(org-columns-display-here): Don't mark buffer as modified when
-	adding space characters to accomodate column overlays.
+	adding space characters to accommodate column overlays.
 	(org-export-as-html): Better formatting of tags in the toc.
 	(org-columns-display-here): Make the ITEM column as compact as possible.
 	(org-remember-templates): Customization interface improved.
