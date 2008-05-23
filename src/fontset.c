@@ -384,7 +384,7 @@ fontset_compare_rfontdef (val1, val2)
 /* Update FONT-GROUP which has this form:
 	[ CHARSET-ORDERED-LIST-TICK PREFERRED-RFONT-DEF
 	  RFONT-DEF0 RFONT-DEF1 ... ]
-   Reorder RFONT-DEFs according to the current langauge, and update
+   Reorder RFONT-DEFs according to the current language, and update
    CHARSET-ORDERED-LIST-TICK.
 
    If PREFERRED_FAMILY is not nil, that family has the higher priority
