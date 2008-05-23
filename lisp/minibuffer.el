@@ -28,7 +28,8 @@
 ;; - If completion-all-completions-with-base-size is set, then all-completions
 ;;   should return the base-size in the last cdr.
 ;; - The `action' can be (additionally to nil, t, and lambda) of the form
-;;   (boundaries . POS) in which case it should return (boundaries START . END).
+;;   (boundaries . SUFFIX) in which case it should return
+;;   (boundaries START . END).  See `completion-boundaries'.
 ;;   Any other return value should be ignored (so we ignore values returned
 ;;   from completion tables that don't know about this new `action' form).
 ;;   See `completion-boundaries'.
@@ -64,23 +65,23 @@ element in the returned list of completions.  See `completion-base-size'.")
 ;;; Completion table manipulation
 
 ;; New completion-table operation.
-(defun completion-boundaries (string table pred pos)
-  "Return the boundaries of the completions returned by TABLE at POS.
+(defun completion-boundaries (string table pred suffix)
+  "Return the boundaries of the completions returned by TABLE for STRING.
 STRING is the string on which completion will be performed.
-The result is of the form (START . END) and gives the start and end position
-corresponding to the substring of STRING that can be completed by one
-of the elements returned by
-\(all-completions (substring STRING 0 POS) TABLE PRED).
+SUFFIX is the string after point.
+The result is of the form (START . END) where START is the position
+in STRING of the beginning of the completion field and END is the position
+in SUFFIX of the end of the completion field.
 I.e. START is the same as the `completion-base-size'.
-E.g. for simple completion tables, the result is always (0 . (length STRING))
-and for file names the result is the substring around POS delimited by
+E.g. for simple completion tables, the result is always (0 . (length SUFFIX))
+and for file names the result is the positions delimited by
 the closest directory separators."
   (let ((boundaries (if (functionp table)
-                        (funcall table string pred (cons 'boundaries pos)))))
+                        (funcall table string pred (cons 'boundaries suffix)))))
     (if (not (eq (car-safe boundaries) 'boundaries))
         (setq boundaries nil))
     (cons (or (cadr boundaries) 0)
-          (or (cddr boundaries) (length string)))))
+          (or (cddr boundaries) (length suffix)))))
 
 (defun completion--some (fun xs)
   "Apply FUN to each element of XS in turn.
@@ -177,9 +178,8 @@ You should give VAR a non-nil `risky-local-variable' property."
                 (funcall pred (concat prefix (if (consp s) (car s) s)))))))))
   (if (eq (car-safe action) 'boundaries)
       (let* ((len (length prefix))
-             (bound (completion-boundaries string table pred
-                                           (- (cdr action) len))))
-        (list* 'boundaries (+ (car bound) len) (+ (cdr bound) len)))
+             (bound (completion-boundaries string table pred (cdr action))))
+        (list* 'boundaries (+ (car bound) len) (cdr bound)))
     (let ((comp (complete-with-action action table string pred)))
       (cond
        ;; In case of try-completion, add the prefix.
@@ -951,13 +951,12 @@ specified by COMMON-SUBSTRING."
   (if (eq (car-safe action) 'boundaries)
       ;; Compute the boundaries of the subfield to which this
       ;; completion applies.
-      (let* ((pos (cdr action))
-             (suffix (substring string pos)))
-        (if (string-match completion--embedded-envvar-re
-                          (substring string 0 pos))
-            (list* 'boundaries (or (match-beginning 2) (match-beginning 1))
+      (let ((suffix (cdr action)))
+        (if (string-match completion--embedded-envvar-re string)
+            (list* 'boundaries
+                   (or (match-beginning 2) (match-beginning 1))
                    (when (string-match "[^[:alnum:]_]" suffix)
-                     (+ pos (match-beginning 0))))))
+                     (match-beginning 0)))))
     (when (string-match completion--embedded-envvar-re string)
       (let* ((beg (or (match-beginning 2) (match-beginning 1)))
              (table (completion--make-envvar-table))
@@ -976,9 +975,8 @@ specified by COMMON-SUBSTRING."
    ((eq (car-safe action) 'boundaries)
     ;; FIXME: Actually, this is not always right in the presence of
     ;; envvars, but there's not much we can do, I think.
-    (let ((start (length (file-name-directory
-                          (substring string 0 (cdr action)))))
-          (end (string-match "/" string (cdr action))))
+    (let ((start (length (file-name-directory string)))
+          (end (string-match "/" (cdr action))))
       (list* 'boundaries start end)))
     
    (t
@@ -1414,14 +1412,15 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
        base-size))))
 
 (defun completion-pcm--find-all-completions (string table pred point)
-  (let* ((bounds (completion-boundaries string table pred point))
-         (prefix (substring string 0 (car bounds)))
-         (suffix (substring string (cdr bounds)))
-         (origstring string)
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint))
+         (prefix (substring beforepoint 0 (car bounds)))
+         (suffix (substring afterpoint (cdr bounds)))
          firsterror)
-    (setq string (substring string (car bounds) (cdr bounds)))
-    (let* ((pattern (completion-pcm--string->pattern
-                     string (- point (car bounds))))
+    (setq string (substring string (car bounds) (+ point (cdr bounds))))
+    (let* ((relpoint (- point (car bounds)))
+           (pattern (completion-pcm--string->pattern string relpoint))
            (all (condition-case err
                     (completion-pcm--all-completions prefix pattern table pred)
                   (error (unless firsterror (setq firsterror err)) nil))))
@@ -1446,28 +1445,30 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
                 ;; Update the boundaries and corresponding pattern.
                 ;; We assume that all submatches result in the same boundaries
                 ;; since we wouldn't know how to merge them otherwise anyway.
-                (let* ((newstring (concat subprefix (car suball) string suffix))
-                       (newpoint (+ point (- (length newstring)
-                                             (length origstring))))
+                ;; FIXME: COMPLETE REWRITE!!!
+                (let* ((newbeforepoint
+                        (concat subprefix (car suball)
+                                (substring string 0 relpoint)))
+                       (leftbound (+ (length subprefix) (length (car suball))))
                        (newbounds (completion-boundaries
-                                   newstring table pred newpoint))
-                       (newsubstring
-                        (substring newstring (car newbounds) (cdr newbounds))))
-                  (unless (or (equal newsubstring string)
+                                   newbeforepoint table pred afterpoint)))
+                  (unless (or (and (eq (cdr bounds) (cdr newbounds))
+                                   (eq (car newbounds) leftbound))
                               ;; Refuse new boundaries if they step over
                               ;; the submatch.
-                              (< (car newbounds)
-                                 (+ (length subprefix) (length (car suball)))))
+                              (< (car newbounds) leftbound))
                     ;; The new completed prefix does change the boundaries
                     ;; of the completed substring.
-                    (setq suffix (substring newstring (cdr newbounds)))
-                    (setq string newsubstring)
-                    (setq between (substring newstring
-                                             (+ (length subprefix)
-                                                (length (car suball)))
+                    (setq suffix (substring afterpoint (cdr newbounds)))
+                    (setq string
+                          (concat (substring newbeforepoint (car newbounds))
+                                  (substring afterpoint 0 (cdr newbounds))))
+                    (setq between (substring newbeforepoint leftbound
                                              (car newbounds)))
                     (setq pattern (completion-pcm--string->pattern
-                                   string (- newpoint (car bounds)))))
+                                   string
+                                   (- (length newbeforepoint)
+                                      (car newbounds)))))
                   (dolist (submatch suball)
                     (setq all (nconc (mapcar
                                       (lambda (s) (concat submatch between s))

@@ -1,3 +1,14 @@
+2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-time): Reduce memory allocation.
+	(vc-bzr-revision-completion-table): Handle `boundaries' argument.
+
+	* minibuffer.el (completion-boundaries): Change calling convention, so
+	`string' has the same semantics as in try-completion and all-completions.
+	(completion-table-with-context, completion--embedded-envvar-table)
+	(completion--file-name-table, completion-pcm--find-all-completions):
+	Adjust code accordingly.
+
 2008-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-mode-winprops): Add argument CLEANUP to

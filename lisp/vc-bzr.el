@@ -538,12 +538,12 @@ property containing author and date information."
   (when (re-search-forward "^ *[0-9.]+ +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
+      (let ((str (match-string-no-properties 0 prop)))
       (vc-annotate-convert-time
        (encode-time 0 0 0
-                    (string-to-number (substring (match-string 0 prop) 6 8))
-                    (string-to-number (substring (match-string 0 prop) 4 6))
-                    (string-to-number (substring (match-string 0 prop) 0 4))
-                    )))))
+                      (string-to-number (substring str 6 8))
+                      (string-to-number (substring str 4 6))
+                      (string-to-number (substring str 0 4))))))))
 
 (defun vc-bzr-annotate-extract-revision-at-line ()
   "Return revision for current line of annoation buffer, or nil.
@@ -580,8 +580,11 @@ stream.  Standard error output is discarded."
 		       (" M" . edited)
 		       ;; XXX: what about ignored files?
 		       (" D" . missing)
+                       ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C " . conflict)
-		       ("? " . unregistered)))
+		       ("? " . unregistered)
+                       ;; Ignore "P " and "P." for pending patches.
+                       ))
 	(translated nil)
 	(result nil))
       (goto-char (point-min))
@@ -625,6 +628,8 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
                       string)
         (completion-table-with-context (substring string 0 (match-end 0))
+                                       ;; FIXME: only allow directories.
+                                       ;; FIXME: don't allow envvars.
                                        'read-file-name-internal
                                        (substring string (match-end 0))
                                        ;; Dropping `pred'.   Maybe we should
@@ -655,7 +660,14 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(revid\\):" string)
         ;; FIXME: How can I get a list of revision ids?
         )
+       ((eq (car-safe action) 'boundaries)
+        (list* 'boundaries
+               (if (string-match ":" string) (1+ (match-beginning 0)))
+               (string-match ":" (cdr action))))
        (t
+        ;; Could use completion-table-with-terminator, except that it
+        ;; currently doesn't work right w.r.t pcm and doesn't give
+        ;; the *Completions* output we want.
         (complete-with-action action '("revno:" "revid:" "last:" "before:"
                                        "tag:" "date:" "ancestor:" "branch:"
                                        "submit:")
