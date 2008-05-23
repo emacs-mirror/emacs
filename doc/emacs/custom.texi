@@ -1268,7 +1268,7 @@ variable.
 @cindex local variables in directories
 @cindex directory local variables
 
-  Emacs provides a way to specify local variable values per-directory.
+  Emacs provides a mechanism to specify local variable values per-directory.
 This can be done one of two ways.
 
   The first approach is to put a special file, named
@@ -1320,7 +1320,7 @@ way:
 @end example
 
   Unsafe directory-local variables are handled in the same way as
-unsafe file-local variables.
+unsafe file-local variables (@pxref{Safe File Variables}).
 
 @node Key Bindings
 @section Customizing Key Bindings
