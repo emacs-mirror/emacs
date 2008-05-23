@@ -10,6 +10,10 @@
 
 2008-05-23  Kenichi Handa  <handa@m17n.org>
 
+	* charset.c (Qemacs, charset_emacs): New variables.
+	(char_charset): Fix for non-Unicode characters.
+	(syms_of_charset): Define charset_emacs.
+
 	* w32term.c (x_draw_glyph_string): Be sure to update
 	s->underline_thickness and s->underline_position.  Be sure to draw
 	underline within the current line area.
