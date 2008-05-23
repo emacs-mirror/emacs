@@ -7625,7 +7625,7 @@
 2002-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el ("Swedish"): Change tutorial file name to
-	TUTORIAL.sv in this langauge environment..
+	TUTORIAL.sv in this language environment.
 
 2002-12-09  John Paul Wallington  <jpw@shootybangbang.com>
 
