@@ -74,12 +74,14 @@ Lisp_Object Qascii;
 Lisp_Object Qeight_bit;
 Lisp_Object Qiso_8859_1;
 Lisp_Object Qunicode;
+Lisp_Object Qemacs;
 
 /* The corresponding charsets.  */
 int charset_ascii;
 int charset_eight_bit;
 int charset_iso_8859_1;
 int charset_unicode;
+int charset_emacs;
 
 /* The other special charsets.  */
 int charset_jisx0201_roman;
@@ -1814,8 +1816,7 @@ char_charset (c, charset_list, code_return)
   if (NILP (charset_list))
     charset_list = Vcharset_ordered_list;
 
-  while (CONSP (charset_list)
-	 && ! EQ (charset_list, Vcharset_non_preferred_head))
+  while (CONSP (charset_list))
     {
       struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
       unsigned code = ENCODE_CHAR (charset, c);
@@ -1827,8 +1828,11 @@ char_charset (c, charset_list, code_return)
 	  return charset;
 	}
       charset_list = XCDR (charset_list);
+      if (c <= MAX_UNICODE_CHAR
+	 && EQ (charset_list, Vcharset_non_preferred_head))
+	return CHARSET_FROM_ID (charset_unicode);
     }
-  return (c <= MAX_UNICODE_CHAR ? CHARSET_FROM_ID (charset_unicode)
+  return (c <= MAX_5_BYTE_CHAR ? CHARSET_FROM_ID (charset_emacs)
 	  : CHARSET_FROM_ID (charset_eight_bit));
 }
 
@@ -2073,6 +2077,7 @@ syms_of_charset ()
 
   DEFSYM (Qascii, "ascii");
   DEFSYM (Qunicode, "unicode");
+  DEFSYM (Qemacs, "emacs");
   DEFSYM (Qeight_bit, "eight-bit");
   DEFSYM (Qiso_8859_1, "iso-8859-1");
 
@@ -2154,6 +2159,9 @@ the value may be a list of mnemonics.  */);
   charset_unicode
     = define_charset_internal (Qunicode, 3, "\x00\xFF\x00\xFF\x00\x10",
 			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
+  charset_emacs
+    = define_charset_internal (Qemacs, 3, "\x00\xFF\x00\xFF\x00\x3F",
+			       0, MAX_5_BYTE_CHAR, -1, 0, -1, 1, 1, 0);
   charset_eight_bit
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
 			       128, 255, -1, 0, -1, 0, 1,
