@@ -1,3 +1,63 @@
+2008-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Add more docs.
+
+2008-05-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnheader.el (nnheader-read-timeout): Change the default timeout from
+	0.1 seconds to 0.01 seconds.  This will make nntp and pop3 article
+	retrieval faster in some cases, but might make CPU usage larger.  If
+	this has any bad side effects, we might revert this change.
+
+	* pop3.el (pop3-movemail): Change the sit-for from 0.1 to 0.01, which
+	seems to make mail retrieval much, much faster.
+	(pop3-movemail): Use nnheader-accept-process-output instead of sleeping
+	unconditionally. 
+
+	* gnus-draft.el (gnus-group-send-queue): Bind
+	message-send-mail-partially-limit to nil to avoid being prompted.
+
+2008-05-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-attach-buffer): Prompt for `disposition'.
+
+	* message.el (message-bogus-address-regexp): Fix and improve custom
+	type.
+	(message-setup-hook): Add message-check-recipients as custom option.
+
+2008-05-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-cite-function): Remove bogus autoload which crept
+	in during merge from v5-10.
+
+2008-05-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-open-connection): Fix login/password bug.
+
+	* nnrss.el (nnrss-normalize-date): Accept Unix-style epoch timestamps.
+
+	* auth-source.el: Preliminary Tramp docs.
+	(auth-sources): Change the default auth-sources to use
+	EPA .gpg files.
+
+2008-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nntp.el: Autoload `auth-source-user-or-password'.
+	(nntp-send-authinfo): Use it.
+
+	* nnimap.el: Autoload `auth-source-user-or-password'.
+	(nnimap-open-connection): Use it.
+
+	* auth-source.el: Added docs on using with url-auth.  Import gnus-util
+	for the gnus-message function.
+	(auth-source-user-or-password): Use it.
+
+2008-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rfc2104.el (rfc2104-hexstring-to-bitstring): Rename it back from
+	rfc2104-hexstring-to-byte-list.  Return a unibyte string.
+	(rfc2104-hash): Use it.
+
 2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-article-toggle-truncate-lines):
@@ -11,8 +71,8 @@
 	(gnus-extract-address-component-email): Convenience functions around
 	`gnus-extract-address-components'.
 
-	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Use
-	`gnus-extract-address-component-email' to fix bug of comparing full
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent):
+	Use `gnus-extract-address-component-email' to fix bug of comparing full
 	sender name to `user-mail-address'.
 
 2008-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -696,7 +756,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* rfc2104.el (rfc2104-hexstring-to-byte-list): Renamed from
+	* rfc2104.el (rfc2104-hexstring-to-byte-list): Rename from
 	rfc2104-hexstring-to-bitstring and changed to return a byte list.
 	(rfc2104-hash): Convert the result of concat to unibyte string.
 
@@ -707,7 +767,7 @@
 	(gnus-gnus-to-quick-newsrc-format): Insert coding cookie.
 
 	* mm-util.el (mm-hack-charsets, mm-iso-8859-15-compatible)
-	(mm-iso-8859-x-to-15-table, mm-iso-8859-x-to-15-region): Deleted.
+	(mm-iso-8859-x-to-15-table, mm-iso-8859-x-to-15-region): Delete.
 	(mm-find-mime-charset-region): Remove hack-charsets stuff.
 
 2008-01-24  Michael Sperber  <sperber@deinprogramm.de>

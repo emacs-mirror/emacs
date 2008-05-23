@@ -204,51 +204,57 @@ and what is not.  So we suggest that you return from time to time to
 CVS-only operation, by committing your local changes back to the
 repository using @kbd{C-u C-x v v cvs @key{RET}}.
 
-@node Snapshots
-@subsection Snapshots
-@cindex snapshots and version control
+@node Revision Tags
+@subsection Revision Tags
+@cindex tags and version control
 
-  A @dfn{snapshot} is a named set of file versions (one for each
-registered file) that you can treat as a unit.  One important kind of
-snapshot is a @dfn{release}, a (theoretically) stable version of the
-system that is ready for distribution to users.
+  In a VCS with per-file revision numbers (such as SCCS, RCS, or CVS)
+@dfn{tag} is a named set of file versions (one for each registered
+file) that you can treat as a unit.  In a VCS with per-repository
+version numbers (Subversion and most later ones) a tag is simply
+a symbolic name for a revsion.
+
+   One important kind of tag is a @dfn{release}, a (theoretically)
+stable version of the system that is ready for distribution to users.
 
 @menu
-* Making Snapshots::		The snapshot facilities.
-* Snapshot Caveats::		Things to be careful of when using snapshots.
+* Making Revision Tags::		The tag facilities.
+* Revision Tag Caveats::		Things to be careful of when using tags.
 @end menu
 
-@node Making Snapshots
-@subsubsection Making and Using Snapshots
+@node Making Revision Tags
+@subsubsection Making and Using Revision Tags
 
-  There are two basic commands for snapshots; one makes a
-snapshot with a given name, the other retrieves a named snapshot.
+  There are two basic commands for tags; one makes a
+tag with a given name, the other retrieves a named tag.
 
 @table @code
 @kindex C-x v s
-@findex vc-create-snapshot
+@findex vc-create-tag
 @item C-x v s @var{name} @key{RET}
-Define the last saved versions of every registered file in or under the
-current directory as a snapshot named @var{name}
-(@code{vc-create-snapshot}).
+Define the working revision of every registered file in or under the
+current directory as a tag named @var{name}
+(@code{vc-create-tag}).
 
 @kindex C-x v r
-@findex vc-retrieve-snapshot
+@findex vc-retrieve-tag
 @item C-x v r @var{name} @key{RET}
-For all registered files at or below the current directory level, select
-whatever versions correspond to the snapshot @var{name}
-(@code{vc-retrieve-snapshot}).
+For all registered files at or below the current directory level,
+retrieve the tagged revision @var{name}. This command will 
+switch to a branch if @var{name} is a branch name and your VCS
+distinguishes branches from tags. 
+(@code{vc-retrieve-tag}).
 
 This command reports an error if any files are locked at or below the
 current directory, without changing anything; this is to avoid
 overwriting work in progress.
 @end table
 
-  A snapshot uses a very small amount of resources---just enough to record
-the list of file names and which version belongs to the snapshot.  Thus,
-you need not hesitate to create snapshots whenever they are useful.
+Tags are inexpensive, so you need not hesitate to create them whenever
+they are useful.  Branches vary in cost depending on your VCS; in
+older ones they may be expensive.
 
-  You can give a snapshot name as an argument to @kbd{C-x v =} or
+  You can give a tag or branch name as an argument to @kbd{C-x v =} or
 @kbd{C-x v ~}
 @iftex
 (@pxref{Old Revisions,,,emacs, the Emacs Manual}).
@@ -256,50 +262,40 @@ you need not hesitate to create snapshots whenever they are useful.
 @ifnottex
 (@pxref{Old Revisions}).
 @end ifnottex
-Thus, you can use it to compare a snapshot against the current files,
-or two snapshots against each other, or a snapshot against a named
-version.
+Thus, you can use it to compare a tagged version against the current files,
+or two tagged versions against each other.
 
-@node Snapshot Caveats
-@subsubsection Snapshot Caveats
+@node Revision Tag Caveats
+@subsubsection Revision Tag Caveats
 
-@cindex named configurations (RCS)
-  VC's snapshot facilities are modeled on RCS's named-configuration
-support.  They use RCS's native facilities for this, so
-snapshots made using RCS through VC are visible even when you bypass VC.
+  For SCCS, VC implements tags itself; these tags are visible only
+through VC.  Most later systems (including CVS, Subversion, bzr, git,
+and hg) have a native tag facility, and VC uses it where
+available; those tags will be visible even when you bypass VC.
 
-  With CVS, Meta-CVS, and Subversion, VC also uses the native
-mechanism provided by that back end to make snapshots and retrieve them
-(@dfn{tags} for CVS and Meta-CVS, @dfn{copies} for Subversion).
+  There is no support for VC tags using GNU Arch yet.
 
-@c worded verbosely to avoid overfull hbox.
-  For SCCS, VC implements snapshots itself.  The files it uses contain
-name/file/version-number triples.  These snapshots are visible only
-through VC.
+  Under older VCSes (SCCS, RCS, CVS, early versions of Subversion),
+renaming and deletion could create some difficulties with tags.  This is
+not a VC-specific problem, but a general design issue in version
+control systems that was not solved effectively until the earliest
+third-generation systems.
 
-  There is no support for VC snapshots using GNU Arch yet.
+  In a file-oriented VCS, when you rename a registered file you need
+to rename its master along with it; the command @code{vc-rename-file}
+will do this automatically.  If you are using SCCS, you must also
+update the records of the tag, to mention the file by its new name
+(@code{vc-rename-file} does this, too).  An old tag that refers to a
+master file that no longer exists under the recorded name is invalid;
+VC can no longer retrieve it.  It would be beyond the scope of this
+manual to explain enough about RCS and SCCS to explain how to update
+the tags by hand.
 
-  A snapshot is a set of checked-in versions.  So make sure that all the
-files are checked in and not locked when you make a snapshot.
-
-  File renaming and deletion can create some difficulties with snapshots.
-This is not a VC-specific problem, but a general design issue in version
-control systems that no one has solved very well yet.
-
-  If you rename a registered file, you need to rename its master along
-with it (the command @code{vc-rename-file} does this automatically).  If
-you are using SCCS, you must also update the records of the snapshot, to
-mention the file by its new name (@code{vc-rename-file} does this,
-too).  An old snapshot that refers to a master file that no longer
-exists under the recorded name is invalid; VC can no longer retrieve
-it.  It would be beyond the scope of this manual to explain enough about
-RCS and SCCS to explain how to update the snapshots by hand.
-
-  Using @code{vc-rename-file} makes the snapshot remain valid for
+  Using @code{vc-rename-file} makes the tag remain valid for
 retrieval, but it does not solve all problems.  For example, some of the
 files in your program probably refer to others by name.  At the very
 least, the makefile probably mentions the file that you renamed.  If you
-retrieve an old snapshot, the renamed file is retrieved under its new
+retrieve an old tag, the renamed file is retrieved under its new
 name, which is not the name that the makefile expects.  So the program
 won't really work as retrieved.
 
@@ -473,10 +469,9 @@ to avoid putting such trivia into @file{ChangeLog}.
   When you rename a registered file, you must also rename its master
 file correspondingly to get proper results.  Use @code{vc-rename-file}
 to rename the source file as you specify, and rename its master file
-accordingly.  It also updates any snapshots (@pxref{Snapshots}) that
+accordingly.  It also updates any tags (@pxref{Revision Tags}) that
 mention the file, so that they use the new name; despite this, the
-snapshot thus modified may not completely work (@pxref{Snapshot
-Caveats}).
+tag thus modified may not completely work (@pxref{Revision Tag Caveats}).
 
   Some back ends do not provide an explicit rename operation to their
 repositories.  After issuing @code{vc-rename-file}, use @kbd{C-x v v}

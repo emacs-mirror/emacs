@@ -1,3 +1,11 @@
+2008-05-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Scoring On Other Headers): Fix typo.  Rearrange.
+
+2008-05-15  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.texi (Acknowledgements): Add Shigeru Fukaya.
+
 2008-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* info.texi (Top): Fix typo in xref.
@@ -23,6 +31,10 @@
 2008-04-27  Carsten Dominik  <dominik@sam.science.uva.nl>
 
 	* org.texi: Massive changes, in many parts of the file.
+
+2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Searching, nnir.el, nnmairix.el): New nodes.
 
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -5005,10 +5017,10 @@
 
   This file is part of GNU Emacs.
 
-  GNU Emacs is free software; you can redistribute it and/or modify
+  GNU Emacs is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3, or (at your option)
-  any later version.
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -5016,8 +5028,6 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs; see the file COPYING.  If not, write to the
-  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-  Boston, MA 02110-1301, USA.
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; arch-tag: 08b2903e-900c-4c72-a4a9-e76416a80803

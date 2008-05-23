@@ -6,10 +6,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -53,9 +51,8 @@ static FT_Library ft_library;
 /* Cache for FreeType fonts.  */
 static Lisp_Object freetype_font_cache;
 
-/* Fontconfig's charset used for finding fonts of registry
-   "iso8859-1".  */
-static FcCharSet *cs_iso8859_1;
+/* Cache for FT_Face */
+static Lisp_Object ft_face_cache;
 
 /* The actual structure for FreeType font that can be casted to struct
    font.  */
@@ -64,210 +61,211 @@ struct ftfont_info
 {
   struct font font;
   FT_Size ft_size;
+  int fc_charset_idx;
 #ifdef HAVE_LIBOTF
   int maybe_otf;	/* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
 };
 
-static int ftfont_build_basic_charsets P_ ((void));
-static Lisp_Object ftfont_pattern_entity P_ ((FcPattern *,
-					      Lisp_Object, Lisp_Object));
-static Lisp_Object ftfont_list_generic_family P_ ((Lisp_Object, Lisp_Object,
-						   Lisp_Object));
+static Lisp_Object ftfont_pattern_entity P_ ((FcPattern *, Lisp_Object, int));
+
+static Lisp_Object ftfont_resolve_generic_family P_ ((Lisp_Object));
 Lisp_Object ftfont_font_format P_ ((FcPattern *));
 
 #define SYMBOL_FcChar8(SYM) (FcChar8 *) SDATA (SYMBOL_NAME (SYM))
 
-static int
-ftfont_build_basic_charsets ()
+static struct
 {
-  FcChar32 c;
+  /* charset name */
+  char *name;
+  /* characters to distinguish the charset from the others */
+  int uniquifier[6];
+  /* set in syms_of_ftfont */
+  int charset_id;
+  /* set on demand */
+  FcCharSet *fc_charset;
+} fc_charset_table[] =
+  { { "iso-8859-1", { 0x00A0, 0x00A1, 0x00B4, 0x00BC, 0x00D0 }, -1 },
+    { "iso-8859-2", { 0x00A0, 0x010E }},
+    { "iso-8859-3", { 0x00A0, 0x0108 }},
+    { "iso-8859-4", { 0x00A0, 0x00AF, 0x0128, 0x0156, 0x02C7 }},
+    { "iso-8859-5", { 0x00A0, 0x0401 }},
+    { "iso-8859-6", { 0x00A0, 0x060C }},
+    { "iso-8859-7", { 0x00A0, 0x0384 }},
+    { "iso-8859-8", { 0x00A0, 0x05D0 }},
+    { "iso-8859-9", { 0x00A0, 0x00A1, 0x00BC, 0x011E }},
+    { "iso-8859-10", { 0x00A0, 0x00D0, 0x0128, 0x2015 }},
+    { "iso-8859-11", { 0x00A0, 0x0E01 }},
+    { "iso-8859-13", { 0x00A0, 0x201C }},
+    { "iso-8859-14", { 0x00A0, 0x0174 }},
+    { "iso-8859-15", { 0x00A0, 0x00A1, 0x00D0, 0x0152 }},
+    { "iso-8859-16", { 0x00A0, 0x0218}},
+    { "chinese-gb2312", { 0x4E13 }},
+    { "big5", { 0xF6B1 }},
+    { "japanese-jisx0208", { 0x4E55 }},
+    { "korean-ksc5601", { 0xAC00 }},
+    { "chinese-cns11643-1", { 0xFE32 }},
+    { "chinese-cns11643-2", { 0x4E33, 0x7934 }},
+    { "chinese-cns11643-3", { 0x201A9 }},
+    { "chinese-cns11643-4", { 0x20057 }},
+    { "chinese-cns11643-5", { 0x20000 }},
+    { "chinese-cns11643-6", { 0x20003 }},
+    { "chinese-cns11643-7", { 0x20055 }},
+    { "chinese-gbk", { 0x4E06 }},
+    { "japanese-jisx0212", { 0x4E44 }},
+    { "japanese-jisx0213-1", { 0xFA10 }},
+    { "japanese-jisx0213-2", { 0xFA49 }},
+    { "japanese-jisx0213.2004-1", { 0x20B9F }},
+    { "viscii", { 0x1EA0, 0x1EAE, 0x1ED2 }},
+    { "tis620", { 0x0E01 }},
+    { "windows-1251", { 0x0401, 0x0490 }},
+    { "koi8-r", { 0x0401, 0x2219 }},
+    { "mule-lao", { 0x0E81 }},
+    { NULL }
+  };
 
-  cs_iso8859_1 = FcCharSetCreate ();
-  if (! cs_iso8859_1)
-    return -1;
-  for (c = ' '; c < 127; c++)
-    if (! FcCharSetAddChar (cs_iso8859_1, c))
-      return -1;
-#if 0
-  /* This part is currently disabled.  Should be fixed later.  */
-  for (c = 192; c < 256; c++)
-    if (! FcCharSetAddChar (cs_iso8859_1, c))
-      return -1;
-#endif
-  return 0;
-}
+extern Lisp_Object Qc, Qm, Qp, Qd;
 
 static Lisp_Object
-ftfont_pattern_entity (p, frame, registry)
+ftfont_pattern_entity (p, registry, fc_charset_idx)
      FcPattern *p;
-     Lisp_Object frame, registry;
+     Lisp_Object registry;
+     int fc_charset_idx;
 {
   Lisp_Object entity;
-  FcChar8 *file, *fontformat;
-  FcCharSet *charset;
-  FcChar8 *str;
+  char *file, *str;
   int numeric;
   double dbl;
+  FcBool b;
 
-  if (FcPatternGetString (p, FC_FILE, 0, &file) != FcResultMatch)
+  if (FcPatternGetString (p, FC_FILE, 0, (FcChar8 **) &file) != FcResultMatch)
     return Qnil;
-  if (FcPatternGetCharSet (p, FC_CHARSET, 0, &charset) != FcResultMatch)
-    charset = NULL;
-#ifdef FC_FONTFORMAT
-  if (FcPatternGetString (p, FC_FONTFORMAT, 0, &fontformat) != FcResultMatch)
-#endif	/* FC_FONTFORMAT */
-    fontformat = NULL;
 
-  entity = Fmake_vector (make_number (FONT_ENTITY_MAX), null_string);
+  entity = font_make_entity ();
 
   ASET (entity, FONT_TYPE_INDEX, Qfreetype);
   ASET (entity, FONT_REGISTRY_INDEX, registry);
-  ASET (entity, FONT_FRAME_INDEX, frame);
-  ASET (entity, FONT_OBJLIST_INDEX, Qnil);
 
-  if (FcPatternGetString (p, FC_FOUNDRY, 0, &str) == FcResultMatch)
-    ASET (entity, FONT_FOUNDRY_INDEX, intern_downcase (str, strlen (str)));
-  if (FcPatternGetString (p, FC_FAMILY, 0, &str) == FcResultMatch)
-    ASET (entity, FONT_FAMILY_INDEX, intern_downcase (str, strlen (str)));
+  if (FcPatternGetString (p, FC_FOUNDRY, 0, (FcChar8 **) &str) == FcResultMatch)
+    ASET (entity, FONT_FOUNDRY_INDEX, font_intern_prop (str, strlen (str)));
+  if (FcPatternGetString (p, FC_FAMILY, 0, (FcChar8 **) &str) == FcResultMatch)
+    ASET (entity, FONT_FAMILY_INDEX, font_intern_prop (str, strlen (str)));
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {
-      if (numeric == FC_WEIGHT_REGULAR)
-	numeric = 100;
-      ASET (entity, FONT_WEIGHT_INDEX, make_number (numeric));
+      if (numeric >= FC_WEIGHT_REGULAR && numeric < FC_WEIGHT_MEDIUM)
+	numeric = FC_WEIGHT_MEDIUM;
+      FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX, make_number (numeric));
     }
   if (FcPatternGetInteger (p, FC_SLANT, 0, &numeric) == FcResultMatch)
-    ASET (entity, FONT_SLANT_INDEX, make_number (numeric + 100));
+    {
+      numeric += 100;
+      FONT_SET_STYLE (entity, FONT_SLANT_INDEX, make_number (numeric));
+    }
   if (FcPatternGetInteger (p, FC_WIDTH, 0, &numeric) == FcResultMatch)
-    ASET (entity, FONT_WIDTH_INDEX, make_number (numeric));
+    {
+      FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_number (numeric));
+    }
   if (FcPatternGetDouble (p, FC_PIXEL_SIZE, 0, &dbl) == FcResultMatch)
     ASET (entity, FONT_SIZE_INDEX, make_number (dbl));
   else
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
-
-  if (FcPatternGetInteger (p, FC_SPACING, 0, &numeric) != FcResultMatch)
-    numeric = -1;
-  file = FcStrCopy (file);
-  if (! file)
-    return Qnil;
-
-  p = FcPatternCreate ();
-  if (! p)
-    return Qnil;
-
-  if (FcPatternAddString (p, FC_FILE, file) == FcFalse
-      || (charset
-	  && FcPatternAddCharSet (p, FC_CHARSET, charset) == FcFalse)
-#ifdef FC_FONTFORMAT
-      || (fontformat
-	  && FcPatternAddString (p, FC_FONTFORMAT, fontformat) == FcFalse)
-#endif	/* FC_FONTFORMAT */
-      || (numeric >= 0
-	  && FcPatternAddInteger (p, FC_SPACING, numeric) == FcFalse))
+  if (FcPatternGetInteger (p, FC_SPACING, 0, &numeric) == FcResultMatch)
+    ASET (entity, FONT_SPACING_INDEX, make_number (numeric));
+  if (FcPatternGetDouble (p, FC_DPI, 0, &dbl) == FcResultMatch)
     {
-      FcPatternDestroy (p);
-      return Qnil;
+      int dpi = dbl;
+      ASET (entity, FONT_DPI_INDEX, make_number (dpi));
     }
-  ASET (entity, FONT_EXTRA_INDEX, make_save_value (p, 0));
+  if (FcPatternGetBool (p, FC_SCALABLE, 0, &b) == FcResultMatch
+      && b == FcTrue)
+    ASET (entity, FONT_AVGWIDTH_INDEX, make_number (0));
+
+  font_put_extra (entity, QCfont_entity,
+		  Fcons (make_unibyte_string ((char *) file,
+					      strlen ((char *) file)),
+			 make_number (fc_charset_idx)));
   return entity;
 }
+
 
 static Lisp_Object ftfont_generic_family_list;
 
 static Lisp_Object
-ftfont_list_generic_family (spec, frame, registry)
-     Lisp_Object spec, frame, registry;
+ftfont_resolve_generic_family (family)
+     Lisp_Object family;
 {
-  Lisp_Object family = AREF (spec, FONT_FAMILY_INDEX);
-  Lisp_Object slot, list, val;
+  Lisp_Object slot;
+  FcPattern *pattern = NULL, *match;
+  FcResult result;
 
+  family = Fintern (Fdowncase (SYMBOL_NAME (family)), Qnil);
   if (EQ (family, Qmono))
     family = Qmonospace;
   else if (EQ (family, Qsans) || EQ (family, Qsans__serif))
     family = Qsans_serif;
   slot = assq_no_quit (family, ftfont_generic_family_list);
   if (! CONSP (slot))
-    return null_vector;
-  list = XCDR (slot);
-  if (EQ (list, Qt))
+    return Qnil;
+  if (! EQ (XCDR (slot), Qt))
+    return XCDR (slot);
+  pattern = FcPatternBuild (NULL, FC_FAMILY, FcTypeString,
+			    SYMBOL_FcChar8 (family), (char *) 0);
+  if (! pattern)
+    goto err;
+  FcConfigSubstitute (NULL, pattern, FcMatchPattern);
+  FcDefaultSubstitute (pattern);
+  match = FcFontMatch (NULL, pattern, &result);
+  if (match)
     {
-      /* Not yet listed.  */
-      FcObjectSet *objset = NULL;
-      FcPattern *pattern = NULL, *pat = NULL;
-      FcFontSet *fontset = NULL;
       FcChar8 *fam;
-      int i, j;
 
-      objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
-				 FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING,
-				 FC_CHARSET, FC_FILE,
-#ifdef FC_FONTFORMAT
-				 FC_FONTFORMAT,
-#endif	/* FC_FONTFORMAT */
-				 NULL);
-      if (! objset)
-	goto err;
-      pattern = FcPatternBuild (NULL, FC_FAMILY, FcTypeString,
-				SYMBOL_FcChar8 (family), (char *) 0);
-      if (! pattern)
-	goto err;
-      pat = FcPatternCreate ();
-      if (! pat)
-	goto err;
-      FcConfigSubstitute (NULL, pattern, FcMatchPattern);
-      for (i = 0, val = Qnil;
-	   FcPatternGetString (pattern, FC_FAMILY, i, &fam) == FcResultMatch;
-	   i++)
-	{
-	  if (strcmp ((char *) fam, (char *) SYMBOL_FcChar8 (family)) == 0)
-	    continue;
-	  if (! FcPatternAddString (pat, FC_FAMILY, fam))
-	    goto err;
-	  fontset = FcFontList (NULL, pat, objset);
-	  if (! fontset)
-	    goto err;
-	  /* Here we build the list in reverse order so that the last
-	     loop in this function build a list in the correct
-	     order.  */
-	  for (j = 0; j < fontset->nfont; j++)
-	    {
-	      Lisp_Object entity;
-
-	      entity = ftfont_pattern_entity (fontset->fonts[j],
-					      frame, registry);
-	      if (! NILP (entity))
-		val = Fcons (entity, val);
-	    }
-	  FcFontSetDestroy (fontset);
-	  fontset = NULL;
-	  FcPatternDel (pat, FC_FAMILY);
-	}
-      list = val;
-      XSETCDR (slot, list);
-    err:
-      if (pat) FcPatternDestroy (pat);
-      if (pattern) FcPatternDestroy (pattern);
-      if (fontset) FcFontSetDestroy (fontset);
-      if (objset) FcObjectSetDestroy (objset);
-      if (EQ (list, Qt))
-	return Qnil;
+      if (FcPatternGetString (match, FC_FAMILY, 0, &fam) == FcResultMatch)
+	family = intern ((char *) fam);
     }
-  ASET (spec, FONT_FAMILY_INDEX, Qnil);
-  for (val = Qnil; CONSP (list); list = XCDR (list))
-    if (font_match_p (spec, XCAR (list)))
-      val = Fcons (XCAR (list), val);
-  ASET (spec, FONT_FAMILY_INDEX, family);
-  return Fvconcat (1, &val);
+  else
+    family = Qnil;
+  XSETCDR (slot, family);
+ err:
+  if (match) FcPatternDestroy (match);
+  if (pattern) FcPatternDestroy (pattern);
+  return family;
 }
 
+Lisp_Object
+ftfont_lookup_cache (filename)
+     Lisp_Object filename;
+{
+  Lisp_Object cache, val;
+
+  cache = assoc_no_quit (filename, ft_face_cache);
+  if (NILP (cache))
+    {
+      val = make_save_value (NULL, 0);
+      cache = Fcons (filename, val);
+      ft_face_cache = Fcons (cache, ft_face_cache);
+    }
+  else
+    val = XCDR (cache);
+  if (! XSAVE_VALUE (val)->pointer)
+    {
+      FT_Face ft_face;
+
+      if (! ft_library
+	  && FT_Init_FreeType (&ft_library) != 0)
+	return Qnil;
+      if (FT_New_Face (ft_library, (char *) SDATA (filename), 0, &ft_face) != 0)
+	return Qnil;
+      XSAVE_VALUE (val)->pointer = ft_face;
+    }
+  return cache;
+}
 
 static Lisp_Object ftfont_get_cache P_ ((FRAME_PTR));
 static Lisp_Object ftfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftfont_match P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftfont_list_family P_ ((Lisp_Object));
-static void ftfont_free_entity P_ ((Lisp_Object));
-static struct font *ftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
+static Lisp_Object ftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void ftfont_close P_ ((FRAME_PTR, struct font *));
 static int ftfont_has_char P_ ((Lisp_Object, int));
 static unsigned ftfont_encode_char P_ ((struct font *, int));
@@ -282,11 +280,12 @@ static Lisp_Object ftfont_shape P_ ((Lisp_Object));
 struct font_driver ftfont_driver =
   {
     0,				/* Qfreetype */
+    0,				/* case insensitive */
     ftfont_get_cache,
     ftfont_list,
     ftfont_match,
     ftfont_list_family,
-    ftfont_free_entity,
+    NULL,
     ftfont_open,
     ftfont_close,
     /* We can't draw a text without device dependent functions.  */
@@ -320,6 +319,50 @@ ftfont_get_cache (f)
      FRAME_PTR f;
 {
   return freetype_font_cache;
+}
+
+static int
+ftfont_get_charset (registry)
+     Lisp_Object registry;
+{
+  struct charset *encoding;
+  int i, j;
+
+  if (font_registry_charsets (registry, &encoding, NULL) < 0)
+    return -1;
+  if (fc_charset_table[0].charset_id < 0)
+    /* Setup charset_id field of all elements.  */
+    for (i = 0; fc_charset_table[i].name; i++)
+      {
+	Lisp_Object sym = intern (fc_charset_table[i].name);
+
+	if (CHARSETP (sym))
+	  fc_charset_table[i].charset_id = XINT (CHARSET_SYMBOL_ID (sym));
+	else
+	  fc_charset_table[i].charset_id = -1;
+      }
+
+  for (i = 0; fc_charset_table[i].name; i++)
+    if (encoding->id == fc_charset_table[i].charset_id)
+      break;
+  if (! fc_charset_table[i].name)
+    return -1;
+  if (! fc_charset_table[i].fc_charset)
+    {
+      FcCharSet *charset = FcCharSetCreate ();
+      int *uniquifier = fc_charset_table[i].uniquifier;
+
+      if (! charset)
+	return -1;
+      for (j = 0; uniquifier[j]; j++)
+	if (! FcCharSetAddChar (charset, uniquifier[j]))
+	  {
+	    FcCharSetDestroy (charset);
+	    return -1;
+	  }
+      fc_charset_table[i].fc_charset = charset;      
+    }
+  return i;
 }
 
 struct OpenTypeSpec
@@ -409,77 +452,71 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
   return spec;
 }
 
-static Lisp_Object
-ftfont_list (frame, spec)
-     Lisp_Object frame, spec;
+static FcPattern *ftfont_spec_pattern P_ ((Lisp_Object, int *, char *,
+					   struct OpenTypeSpec **));
+
+static FcPattern *
+ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
+     Lisp_Object spec;
+     int *fc_charset_idx;
+     char *otlayout;
+     struct OpenTypeSpec **otspec;
 {
-  Lisp_Object val, tmp, extra;
-  int i;
+  Lisp_Object tmp, extra;
   FcPattern *pattern = NULL;
   FcCharSet *charset = NULL;
   FcLangSet *langset = NULL;
-  FcFontSet *fontset = NULL;
-  FcObjectSet *objset = NULL;
-  Lisp_Object script;
-  Lisp_Object registry = Qunicode_bmp;
-  struct OpenTypeSpec *otspec= NULL;
-  int weight = 0;
-  double dpi = -1;
+  int n;
+  int dpi = -1;
   int spacing = -1;
   int scalable = -1;
-  char otlayout[15];		/* For "otlayout:XXXX" */
-  
-  val = null_vector;
-
-  if (! fc_initialized)
-    {
-      FcInit ();
-      fc_initialized = 1;
-    }
+  Lisp_Object name = Qnil;
+  Lisp_Object script = Qnil;
+  Lisp_Object registry;
 
   if (! NILP (AREF (spec, FONT_ADSTYLE_INDEX))
-      && ! EQ (AREF (spec, FONT_ADSTYLE_INDEX), null_string))
-    return val;
-  if (! NILP (AREF (spec, FONT_SLANT_INDEX))
-      && XINT (AREF (spec, FONT_SLANT_INDEX)) < 100)
+      && SBYTES (SYMBOL_NAME (AREF (spec, FONT_ADSTYLE_INDEX))) > 0)
+    /* Fontconfig doesn't support adstyle property.  */
+    return NULL;
+  if ((n = FONT_SLANT_NUMERIC (spec)) >= 0
+      && n < 100)
     /* Fontconfig doesn't support reverse-italic/obligue.  */
-    return val;
+    return NULL;
 
-  if (! NILP (AREF (spec, FONT_REGISTRY_INDEX)))
+  if (INTEGERP (AREF (spec, FONT_DPI_INDEX)))
+    dpi = XINT (AREF (spec, FONT_DPI_INDEX));
+  if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
+    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
+  if (INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
+      && XINT (AREF (spec, FONT_AVGWIDTH_INDEX)) == 0)
+    scalable = 1;
+
+  registry = AREF (spec, FONT_REGISTRY_INDEX);
+  if (NILP (registry)
+      || EQ (registry, Qiso10646_1)
+      || EQ (registry, Qunicode_bmp)
+      || EQ (registry, Qunicode_sip))
+    *fc_charset_idx = -1;
+  else
     {
-      registry = AREF (spec, FONT_REGISTRY_INDEX);
-      if (EQ (registry, Qiso8859_1))
-	{
-	  if (! cs_iso8859_1
-	      && ftfont_build_basic_charsets () < 0)
-	    return Qnil;
-	  charset = cs_iso8859_1;
-	}
-      else if (! EQ (registry, Qiso10646_1)
-	       && ! EQ (registry, Qunicode_bmp)
-	       && ! EQ (registry, Qunicode_sip))
-	return val;
+      *fc_charset_idx = ftfont_get_charset (registry);
+      if (*fc_charset_idx < 0)
+	return NULL;
+      charset = fc_charset_table[*fc_charset_idx].fc_charset;
     }
 
   otlayout[0] = '\0';
-  script = Qnil;
   for (extra = AREF (spec, FONT_EXTRA_INDEX);
        CONSP (extra); extra = XCDR (extra))
     {
       Lisp_Object key, val;
 
-      tmp = XCAR (extra);
-      key = XCAR (tmp), val = XCDR (tmp);
-      if (EQ (key, QCotf))
-	{
-	  otspec = ftfont_get_open_type_spec (val);
-	  if (! otspec)
-	    return null_vector;
-	  strcat (otlayout, "otlayout:");
-	  OTF_TAG_STR (otspec->script_tag, otlayout + 9);
-	  script = otspec->script;
-	}
-      else if (EQ (key, QClanguage))
+      key = XCAR (XCAR (extra)), val = XCDR (XCAR (extra));
+      if (EQ (key, QCdpi))
+	dpi = XINT (val);
+      else if (EQ (key, QCfc_unknown_spec))
+	name = val;
+      else if (EQ (key, QClang))
 	{
 	  langset = FcLangSetCreate ();
 	  if (! langset)
@@ -495,12 +532,19 @@ ftfont_list (frame, spec)
 		  && ! FcLangSetAdd (langset, SYMBOL_FcChar8 (XCAR (val))))
 		goto err;
 	}
+      else if (EQ (key, QCname))
+	name = val;
+      else if (EQ (key, QCotf))
+	{
+	  *otspec = ftfont_get_open_type_spec (val);
+	  if (! *otspec)
+	    return NULL;
+	  strcat (otlayout, "otlayout:");
+	  OTF_TAG_STR ((*otspec)->script_tag, otlayout + 9);
+	  script = (*otspec)->script;
+	}
       else if (EQ (key, QCscript))
 	script = val;
-      else if (EQ (key, QCdpi))
-	dpi = XINT (val);
-      else if (EQ (key, QCspacing))
-	spacing = XINT (val);
       else if (EQ (key, QCscalable))
 	scalable = ! NILP (val);
     }
@@ -521,32 +565,21 @@ ftfont_list (frame, spec)
 	}
     }
 
-  pattern = FcPatternCreate ();
+  pattern = NILP (name) ? FcPatternCreate () : FcNameParse (SDATA (name));
   if (! pattern)
     goto err;
+  FcPatternDel (pattern, FC_SIZE);
+  FcPatternDel (pattern, FC_PIXEL_SIZE);
+  FcPatternDel (pattern, FC_FOUNDRY);
+  FcPatternDel (pattern, FC_FAMILY);
   tmp = AREF (spec, FONT_FOUNDRY_INDEX);
-  if (SYMBOLP (tmp) && ! NILP (tmp)
+  if (! NILP (tmp)
       && ! FcPatternAddString (pattern, FC_FOUNDRY, SYMBOL_FcChar8 (tmp)))
     goto err;
   tmp = AREF (spec, FONT_FAMILY_INDEX);
-  if (SYMBOLP (tmp) && ! NILP (tmp)
+  if (! NILP (tmp)
       && ! FcPatternAddString (pattern, FC_FAMILY, SYMBOL_FcChar8 (tmp)))
     goto err;
-  /* Emacs conventionally doesn't distinguish normal, regular, and
-     medium weight, but fontconfig does.  So, we can't restrict font
-     listing by weight.  We check it after getting a list.  */
-  tmp = AREF (spec, FONT_WEIGHT_INDEX);
-  if (INTEGERP (tmp))
-    weight = XINT (tmp);
-  tmp = AREF (spec, FONT_SLANT_INDEX);
-  if (INTEGERP (tmp)
-      && ! FcPatternAddInteger (pattern, FC_SLANT, XINT (tmp) - 100))
-    goto err;
-  tmp = AREF (spec, FONT_WIDTH_INDEX);
-  if (INTEGERP (tmp)
-      && ! FcPatternAddInteger (pattern, FC_WIDTH, XINT (tmp)))
-    goto err;
-
   if (charset
       && ! FcPatternAddCharSet (pattern, FC_CHARSET, charset))
     goto err;
@@ -562,107 +595,127 @@ ftfont_list (frame, spec)
   if (scalable >= 0
       && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
+  goto finish;
+
+ err:
+  /* We come here because of unexpected error in fontconfig API call
+     (usually insufficient memory).  */
+  if (pattern)
+    {
+      FcPatternDestroy (pattern);
+      pattern = NULL;
+    }
+  if (*otspec)
+    {
+      if ((*otspec)->nfeatures[0] > 0)
+	free ((*otspec)->features[0]);
+      if ((*otspec)->nfeatures[1] > 0)
+	free ((*otspec)->features[1]);
+      free (*otspec);
+      *otspec = NULL;
+    }
+
+ finish:
+  if (langset) FcLangSetDestroy (langset);
+  if (charset && *fc_charset_idx < 0) FcCharSetDestroy (charset);
+  return pattern;
+}
+
+static Lisp_Object
+ftfont_list (frame, spec)
+     Lisp_Object frame, spec;
+{
+  Lisp_Object val = Qnil, registry, family;
+  int i;
+  FcPattern *pattern;
+  FcFontSet *fontset = NULL;
+  FcObjectSet *objset = NULL;
+  int fc_charset_idx;
+  char otlayout[15];		/* For "otlayout:XXXX" */
+  struct OpenTypeSpec *otspec = NULL;
+  
+  if (! fc_initialized)
+    {
+      FcInit ();
+      fc_initialized = 1;
+    }
+
+  pattern = ftfont_spec_pattern (spec, &fc_charset_idx, otlayout, &otspec);
+  if (! pattern)
+    return Qnil;
+  registry = AREF (spec, FONT_REGISTRY_INDEX);
+  family = AREF (spec, FONT_FAMILY_INDEX);
+  if (! NILP (family))
+    {
+      Lisp_Object resolved;
+
+      resolved = ftfont_resolve_generic_family (family);
+      if (! NILP (resolved))
+	{
+	  FcPatternDel (pattern, FC_FAMILY);
+	  if (! FcPatternAddString (pattern, FC_FAMILY,
+				    SYMBOL_FcChar8 (resolved)))
+	    goto err;
+	}
+    }
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
-			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING,
+			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING, FC_SCALABLE,
 			     FC_CHARSET, FC_FILE,
-#ifdef FC_FONTFORMAT
-			     FC_FONTFORMAT,
-#endif	/* FC_FONTFORMAT */
+#ifdef FC_CAPABILITY
+			     FC_CAPABILITY,
+#endif	/* FC_CAPABILITY */
 			     NULL);
   if (! objset)
     goto err;
-  if (otlayout[0])
-    {
-#ifdef FC_CAPABILITY
-      if (! FcObjectSetAdd (objset, FC_CAPABILITY))
-	goto err;
-#else  /* not FC_CAPABILITY */
-      goto finish;
-#endif	/* not FC_CAPABILITY */
-    }
 
   fontset = FcFontList (NULL, pattern, objset);
   if (! fontset)
     goto err;
-
-  if (fontset->nfont > 0)
+  for (i = 0; i < fontset->nfont; i++)
     {
-      double pixel_size;
+      Lisp_Object entity;
 
-      if (NILP (AREF (spec, FONT_SIZE_INDEX)))
-	pixel_size = 0;
-      else
-	pixel_size = XINT (AREF (spec, FONT_SIZE_INDEX));
-
-      for (i = 0, val = Qnil; i < fontset->nfont; i++)
-	{
-	  Lisp_Object entity;
-
-	  if (pixel_size > 0)
-	    {
-	      double this;
-
-	      if (FcPatternGetDouble (fontset->fonts[i], FC_PIXEL_SIZE, 0,
-				      &this) == FcResultMatch
-		  && ((this < pixel_size - FONT_PIXEL_SIZE_QUANTUM)
-		      || (this > pixel_size + FONT_PIXEL_SIZE_QUANTUM)))
-		continue;
-	    }
-	  if (weight > 0)
-	    {
-	      int this;
-
-	      if (FcPatternGetInteger (fontset->fonts[i], FC_WEIGHT, 0,
-				       &this) != FcResultMatch
-		  || (this != weight
-		      && (weight != 100
-			  || this < FC_WEIGHT_REGULAR
-			  || this > FC_WEIGHT_MEDIUM)))
-		continue;
-	    }
 #ifdef FC_CAPABILITY
-	  if (otlayout[0])
-	    {
-	      FcChar8 *this;
+      if (otlayout[0])
+	{
+	  FcChar8 *this;
 
-	      if (FcPatternGetString (fontset->fonts[i], FC_CAPABILITY, 0,
-				      &this) != FcResultMatch
-		  || ! strstr ((char *) this, otlayout))
-		continue;
-	    }
+	  if (FcPatternGetString (fontset->fonts[i], FC_CAPABILITY, 0,
+				  &this) != FcResultMatch
+	      || ! strstr ((char *) this, otlayout))
+	    continue;
+	}
 #endif	/* FC_CAPABILITY */
 #ifdef HAVE_LIBOTF
-	  if (otspec)
-	    {
-	      FcChar8 *file;
-	      OTF *otf;
+      if (otspec)
+	{
+	  FcChar8 *file;
+	  OTF *otf;
 
-	      if (FcPatternGetString (fontset->fonts[i], FC_FILE, 0, &file)
-		  != FcResultMatch)
-		continue;
-	      otf = OTF_open ((char *) file);
-	      if (! otf)
-		continue;
-	      if (OTF_check_features (otf, 1,
-				      otspec->script_tag, otspec->langsys_tag,
-				      otspec->features[0],
-				      otspec->nfeatures[0]) != 1
-		  || OTF_check_features (otf, 0,
-					 otspec->script_tag, otspec->langsys_tag,
-					 otspec->features[1],
-					 otspec->nfeatures[1]) != 1)
-		continue;
-	    }
-#endif	/* HAVE_LIBOTF */
-	  entity = ftfont_pattern_entity (fontset->fonts[i], frame, registry);
-	  if (! NILP (entity))
-	    val = Fcons (entity, val);
+	  if (FcPatternGetString (fontset->fonts[i], FC_FILE, 0, &file)
+	      != FcResultMatch)
+	    continue;
+	  otf = OTF_open ((char *) file);
+	  if (! otf)
+	    continue;
+	  if (OTF_check_features (otf, 1,
+				  otspec->script_tag, otspec->langsys_tag,
+				  otspec->features[0],
+				  otspec->nfeatures[0]) != 1
+	      || OTF_check_features (otf, 0,
+				     otspec->script_tag, otspec->langsys_tag,
+				     otspec->features[1],
+				     otspec->nfeatures[1]) != 1)
+	    continue;
 	}
-      val = Fvconcat (1, &val);
+#endif	/* HAVE_LIBOTF */
+      entity = ftfont_pattern_entity (fontset->fonts[i], registry,
+				      fc_charset_idx);
+      if (! NILP (entity))
+	val = Fcons (entity, val);
     }
-  else if (! NILP (AREF (spec, FONT_FAMILY_INDEX)))
-    val = ftfont_list_generic_family (spec, frame, registry);
+  font_add_log ("ftfont-list", spec, val);
   goto finish;
 
  err:
@@ -671,19 +724,9 @@ ftfont_list (frame, spec)
   val = Qnil;
 
  finish:
-  if (charset && charset != cs_iso8859_1) FcCharSetDestroy (charset);
   if (objset) FcObjectSetDestroy (objset);
   if (fontset) FcFontSetDestroy (fontset);
-  if (langset) FcLangSetDestroy (langset);
   if (pattern) FcPatternDestroy (pattern);
-  if (otspec)
-    {
-      if (otspec->nfeatures[0] > 0)
-	free (otspec->features[0]);
-      if (otspec->nfeatures[1] > 0)
-	free (otspec->features[1]);
-      free (otspec);
-    }
   return val;
 }
 
@@ -691,9 +734,12 @@ static Lisp_Object
 ftfont_match (frame, spec)
      Lisp_Object frame, spec;
 {
-  Lisp_Object extra, val, entity;
-  FcPattern *pattern = NULL, *match = NULL;
+  Lisp_Object entity;
+  FcPattern *pattern, *match = NULL;
   FcResult result;
+  char otlayout[15];		/* For "otlayout:XXXX" */
+  struct OpenTypeSpec *otspec = NULL;
+  int fc_charset_idx;
 
   if (! fc_initialized)
     {
@@ -701,36 +747,37 @@ ftfont_match (frame, spec)
       fc_initialized = 1;
     }
 
-  extra = AREF (spec, FONT_EXTRA_INDEX);
-  val = assq_no_quit (QCname, extra);
-  if (! CONSP (val) || ! STRINGP (XCDR (val)))
+  pattern = ftfont_spec_pattern (spec, &fc_charset_idx, otlayout, &otspec);
+  if (! pattern)
     return Qnil;
 
-  entity = Qnil;
-  pattern = FcNameParse (SDATA (XCDR (val)));
-  if (pattern)
+  if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
     {
-      if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
-	{
-	  FcValue value;
+      FcValue value;
 
-	  value.type = FcTypeDouble;
-	  value.u.d = XINT (AREF (spec, FONT_SIZE_INDEX));
-	  FcPatternAdd (pattern, FC_PIXEL_SIZE, value, FcFalse);
-	}
-      if (FcConfigSubstitute (NULL, pattern, FcMatchPattern) == FcTrue)
-	{
-	  FcDefaultSubstitute (pattern);
-	  match = FcFontMatch (NULL, pattern, &result);
-	  if (match)
-	    {
-	      entity = ftfont_pattern_entity (match, frame, Qunicode_bmp);
-	      FcPatternDestroy (match);
-	    }
-	}
-      FcPatternDestroy (pattern);
+      value.type = FcTypeDouble;
+      value.u.d = XINT (AREF (spec, FONT_SIZE_INDEX));
+      FcPatternAdd (pattern, FC_PIXEL_SIZE, value, FcFalse);
     }
+  if (FcConfigSubstitute (NULL, pattern, FcMatchPattern) == FcTrue)
+    {
+      FcDefaultSubstitute (pattern);
+      match = FcFontMatch (NULL, pattern, &result);
+      if (match)
+	{
+	  entity = ftfont_pattern_entity (match, Qunicode_bmp, fc_charset_idx);
+	  FcPatternDestroy (match);
+	  if (! NILP (AREF (spec, FONT_FAMILY_INDEX))
+	      && NILP (assq_no_quit (AREF (spec, FONT_FAMILY_INDEX),
+				     ftfont_generic_family_list))
+	      && NILP (Fstring_equal (AREF (spec, FONT_FAMILY_INDEX),
+				      AREF (entity, FONT_FAMILY_INDEX))))
+	    entity = Qnil;
+	}
+    }
+  FcPatternDestroy (pattern);
 
+  font_add_log ("ftfont-match", spec, entity);
   return entity;
 }
 
@@ -767,8 +814,7 @@ ftfont_list_family (frame)
       FcChar8 *str;
 
       if (FcPatternGetString (pat, FC_FAMILY, 0, &str) == FcResultMatch)
-	list = Fcons (intern_downcase ((char *) str, strlen ((char *) str)),
-		      list);
+	list = Fcons (intern ((char *) str), list);
     }
 
  finish:
@@ -780,17 +826,7 @@ ftfont_list_family (frame)
 }
 
 
-static void 
-ftfont_free_entity (entity)
-     Lisp_Object entity;
-{
-  Lisp_Object val = AREF (entity, FONT_EXTRA_INDEX);
-  FcPattern *pattern = XSAVE_VALUE (val)->pointer;
-
-  FcPatternDestroy (pattern);
-}
-
-static struct font *
+static Lisp_Object
 ftfont_open (f, entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object entity;
@@ -801,45 +837,39 @@ ftfont_open (f, entity, pixel_size)
   FT_Face ft_face;
   FT_Size ft_size;
   FT_UInt size;
-  Lisp_Object val;
+  Lisp_Object val, filename, cache, font_object;
+  int fc_charset_idx;
   FcPattern *pattern;
-  FcChar8 *file;
+  int scalable;
   int spacing;
-  char *name;
-  int len;
+  char name[256];
+  int i, len;
+  int upEM;
 
-  val = AREF (entity, FONT_EXTRA_INDEX);
-  if (XTYPE (val) != Lisp_Misc
-      || XMISCTYPE (val) != Lisp_Misc_Save_Value)
-    return NULL;
-  pattern = XSAVE_VALUE (val)->pointer;
-  if (XSAVE_VALUE (val)->integer == 0)
+  val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+  if (! CONSP (val))
+    return Qnil;
+  val = XCDR (val);
+  filename = XCAR (val);
+  fc_charset_idx = XINT (XCDR (val));
+  cache = ftfont_lookup_cache (filename);
+  if (NILP (cache))
+    return Qnil;
+  filename = XCAR (cache);
+  val = XCDR (cache);
+  ft_face = XSAVE_VALUE (val)->pointer;
+  if (XSAVE_VALUE (val)->integer > 0)
     {
-      /* We have not yet created FT_Face for this font.  */
-      if (! ft_library
-	  && FT_Init_FreeType (&ft_library) != 0)
-	return NULL;
-      if (FcPatternGetString (pattern, FC_FILE, 0, &file) != FcResultMatch)
-	return NULL;
-      if (FT_New_Face (ft_library, (char *) file, 0, &ft_face) != 0)
-	return NULL;
-      FcPatternAddFTFace (pattern, FC_FT_FACE, ft_face);
-      ft_size = ft_face->size;
-    }
-  else
-    {
-      if (FcPatternGetFTFace (pattern, FC_FT_FACE, 0, &ft_face)
-	  != FcResultMatch)
-	return NULL;
+      /* FT_Face in this cache is already used by the different size.  */
       if (FT_New_Size (ft_face, &ft_size) != 0)
-	return NULL;
+	return Qnil;
       if (FT_Activate_Size (ft_size) != 0)
 	{
 	  FT_Done_Size (ft_size);
-	  return NULL;
+	  return Qnil;
 	}
-    } 
-
+    }
+  XSAVE_VALUE (val)->integer++;
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
@@ -847,84 +877,98 @@ ftfont_open (f, entity, pixel_size)
     {
       if (XSAVE_VALUE (val)->integer == 0)
 	FT_Done_Face (ft_face);
-      return NULL;
+      return Qnil;
     }
 
-  ftfont_info = malloc (sizeof (struct ftfont_info));
-  if (! ftfont_info)
-    return NULL;
-  ftfont_info->ft_size = ft_size;
+  font_object = font_make_object (VECSIZE (struct ftfont_info));
+  ASET (font_object, FONT_TYPE_INDEX, Qfreetype);
+  for (i = 1;i < FONT_ENTITY_MAX; i++)
+    ASET (font_object, i, AREF (entity, i));
+  ASET (font_object, FONT_SIZE_INDEX, make_number (size));
+  len = font_unparse_xlfd (entity, size, name, 256);
+  if (len > 0)
+    ASET (font_object, FONT_NAME_INDEX, make_unibyte_string (name, len));
+  len = font_unparse_fcname (entity, size, name, 256);
+  if (len > 0)
+    ASET (font_object, FONT_FULLNAME_INDEX, make_unibyte_string (name, len));
+  else
+    ASET (font_object, FONT_FULLNAME_INDEX,
+	  AREF (font_object, FONT_NAME_INDEX));
+  ASET (font_object, FONT_FILE_INDEX, filename);
+  ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (pattern));
+  font = XFONT_OBJECT (font_object);
+  ftfont_info = (struct ftfont_info *) font;
+  ftfont_info->ft_size = ft_face->size;
+  ftfont_info->fc_charset_idx = fc_charset_idx;
 #ifdef HAVE_LIBOTF
   ftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
   ftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
-
-  font = (struct font *) ftfont_info;
-  font->format = ftfont_font_format (pattern);
-  font->entity = entity;
   font->pixel_size = size;
   font->driver = &ftfont_driver;
-  len = 96;
-  name = malloc (len);
-  while (name && font_unparse_fcname (entity, pixel_size, name, len) < 0)
-    {
-      char *new = realloc (name, len += 32);
+  font->encoding_charset = font->repertory_charset = -1;
 
-      if (! new)
-	free (name);
-      name = new;
+  upEM = ft_face->units_per_EM;
+  scalable = (INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
+	      && XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) == 0);
+  if (scalable)
+    {
+      font->ascent = ft_face->ascender * size / upEM;
+      font->descent = - ft_face->descender * size / upEM;
+      font->height = ft_face->height * size / upEM;
     }
-  font->font.full_name = font->font.name = name;
-  font->file_name = (char *) file;
-  font->font.size = ft_face->size->metrics.max_advance >> 6;
-  if (font->font.size <= 0)
-    font->font.size = size;
-  font->font.charset = font->encoding_charset = font->repertory_charset = -1;
-  font->ascent = ft_face->size->metrics.ascender >> 6;
-  font->descent = - ft_face->size->metrics.descender >> 6;
-  font->font.height = font->ascent + font->descent;
-  if (FcPatternGetInteger (pattern, FC_SPACING, 0, &spacing) != FcResultMatch)
-    spacing = FC_PROPORTIONAL;
-  if (spacing != FC_PROPORTIONAL)
-    font->font.average_width = font->font.space_width = font->font.size;
   else
     {
-      int i;
+      font->ascent = ft_face->size->metrics.ascender >> 6;
+      font->descent = - ft_face->size->metrics.descender >> 6;
+      font->height = ft_face->size->metrics.height >> 6;
+    }
+  if (INTEGERP (AREF (entity, FONT_SPACING_INDEX)))
+    spacing = XINT (AREF (entity, FONT_SPACING_INDEX));
+  else
+    spacing = FC_PROPORTIONAL;
+  if (spacing != FC_PROPORTIONAL)
+    font->min_width = font->average_width = font->space_width
+      = (scalable ? ft_face->max_advance_width * size / upEM
+	 : ft_face->size->metrics.max_advance >> 6);
+  else
+    {
+      int n;
 
-      font->font.average_width = font->font.space_width = 0;
-      for (i = 32; i < 127; i++)
-	{
-	  if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) != 0)
-	    break;
-	  if (i == 32)
-	    font->font.space_width = ft_face->glyph->metrics.horiAdvance >> 6;
-	  font->font.average_width += ft_face->glyph->metrics.horiAdvance >> 6;
-	}
-      if (i == 127)
-	{
-	  /* The font contains all ASCII printable characters.  */
-	  font->font.average_width /= 95;
-	}
-      else
-	{
-	  if (i == 32)
-	    font->font.space_width = font->font.size;
-	  font->font.average_width = font->font.size;
-	}
+      font->min_width = font->average_width = font->space_width = 0;
+      for (i = 32, n = 0; i < 127; i++)
+	if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) != 0)
+	  {
+	    int this_width = ft_face->glyph->metrics.horiAdvance >> 6;
+
+	    if (this_width > 0
+		&& (! font->min_width || font->min_width > this_width))
+	      font->min_width = this_width;
+	    if (i == 32)
+	      font->space_width = this_width;
+	    font->average_width += this_width;
+	    n++;
+	  }
+      if (n > 0)
+	font->average_width /= n;
     }
 
-  /* Unfortunately FreeType doesn't provide a way to get minimum char
-     width.  So, we use space_width instead.  */
-  font->min_width = font->font.space_width;
+  font->baseline_offset = 0;
+  font->relative_compose = 0;
+  font->default_ascent = 0;
+  font->vertical_centering = 0;
+  if (scalable)
+    {
+      font->underline_position = -ft_face->underline_position * size / upEM;
+      font->underline_thickness = -ft_face->underline_thickness * size / upEM;
+    }
+  else
+    {
+      font->underline_position = -1;
+      font->underline_thickness = 0;
+    }
 
-  font->font.baseline_offset = 0;
-  font->font.relative_compose = 0;
-  font->font.default_ascent = 0;
-  font->font.vertical_centering = 0;
-
-  (XSAVE_VALUE (val)->integer)++;
-
-  return font;
+  return font_object;
 }
 
 static void
@@ -933,22 +977,24 @@ ftfont_close (f, font)
      struct font *font;
 {
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
-  Lisp_Object entity = font->entity;
-  Lisp_Object val = AREF (entity, FONT_EXTRA_INDEX);
+  Lisp_Object val, cache;
 
+  cache = ftfont_lookup_cache (font->props[FONT_FILE_INDEX]);
+  val = XCDR (cache);
   (XSAVE_VALUE (val)->integer)--;
   if (XSAVE_VALUE (val)->integer == 0)
     {
-      FT_Done_Face (ftfont_info->ft_size->face);
+      FT_Face ft_face = XSAVE_VALUE (val)->pointer;
+
+      FT_Done_Face (ft_face);
 #ifdef HAVE_LIBOTF
       if (ftfont_info->otf)
 	OTF_close (ftfont_info->otf);
 #endif
+      XSAVE_VALUE (val)->pointer = NULL;
     }
   else
     FT_Done_Size (ftfont_info->ft_size);
-
-  free (font);
 }
 
 static int 
@@ -957,14 +1003,15 @@ ftfont_has_char (entity, c)
      int c;
 {
   Lisp_Object val;
-  FcPattern *pattern;
-  FcCharSet *charset;
+  int fc_charset_idx;
+  struct charset *charset;
 
-  val = AREF (entity, FONT_EXTRA_INDEX);
-  pattern = XSAVE_VALUE (val)->pointer;
-  if (FcPatternGetCharSet (pattern, FC_CHARSET, 0, &charset) != FcResultMatch)
+  val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+  fc_charset_idx = XINT (XCDR (XCDR (val)));
+  if (fc_charset_idx < 0)
     return -1;
-  return (FcCharSetHasChar (charset, (FcChar32) c) == FcTrue);
+  charset = CHARSET_FROM_ID (fc_charset_table[fc_charset_idx].charset_id);
+  return (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset));
 }
 
 static unsigned
@@ -1019,7 +1066,7 @@ ftfont_text_extents (font, code, nglyphs, metrics)
 	}
       else
 	{
-	  width += font->font.space_width;
+	  width += font->space_width;
 	}
     }
   if (metrics)
@@ -1161,7 +1208,7 @@ ftfont_get_metrics (font, gstring, from, to)
 	else
 	  {
 	    g->lbearing = 0;
-	    g->rbearing = g->xadv = flt_font_ft->font->font.space_width << 6;
+	    g->rbearing = g->xadv = flt_font_ft->font->space_width << 6;
 	    g->ascent = flt_font_ft->font->ascent << 6;
 	    g->descent = flt_font_ft->font->descent << 6;
 	  }
@@ -1318,7 +1365,6 @@ ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
 	return -2;
       for (i = 0, otfg = otf_gstring.glyphs; i < otf_gstring.used; )
 	{
-	  OTF_Glyph *endg;
 	  MFLTGlyph *g;
 	  int min_from, max_to;
 	  int j;
@@ -1552,7 +1598,8 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
     if (NILP (family))
       flt_font_ft.flt_font.family = Mnil;
     else
-      flt_font_ft.flt_font.family = msymbol (SDATA (SYMBOL_NAME (family)));
+      flt_font_ft.flt_font.family
+	= msymbol ((char *) SDATA (SYMBOL_NAME (family)));
   }
   flt_font_ft.flt_font.x_ppem = ft_face->size->metrics.x_ppem;
   flt_font_ft.flt_font.y_ppem = ft_face->size->metrics.y_ppem;
@@ -1700,6 +1747,9 @@ syms_of_ftfont ()
     = Fcons (Fcons (Qmonospace, Qt),
 	     Fcons (Fcons (Qsans_serif, Qt),
 		    Fcons (Fcons (Qsans, Qt), Qnil)));
+
+  staticpro (&ft_face_cache);
+  ft_face_cache = Qnil;
 
   ftfont_driver.type = Qfreetype;
   register_font_driver (&ftfont_driver, NULL);

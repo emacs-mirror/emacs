@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef INC_SYS_STAT_H_
 #define INC_SYS_STAT_H_
@@ -59,17 +57,19 @@ Boston, MA 02110-1301, USA.  */
 #define	S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
 
 struct stat {
-  dev_t st_dev;
   unsigned __int64 st_ino;	/* ino_t in sys/types.h is too narrow */
+  dev_t st_dev;
   unsigned short   st_mode;
   short		   st_nlink;
   int		   st_uid;
   int		   st_gid;
+  unsigned __int64 st_size;
   dev_t		   st_rdev;
-  off_t		   st_size;
   time_t	   st_atime;
   time_t	   st_mtime;
   time_t	   st_ctime;
+  char		   st_uname[260];
+  char		   st_gname[260];
 };
 
 _CRTIMP int __cdecl __MINGW_NOTHROW	fstat (int, struct stat*);

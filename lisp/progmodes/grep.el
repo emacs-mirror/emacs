@@ -177,7 +177,8 @@ See `compilation-error-screen-columns'"
   :group 'grep)
 
 (defvar grep-mode-map
-  (let ((map (cons 'keymap compilation-minor-mode-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
@@ -185,7 +186,6 @@ See `compilation-error-screen-columns'"
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
-    (define-key map "g" 'recompile) ; revert
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
     (define-key map "\t" 'compilation-next-error)

@@ -2,25 +2,24 @@
 # Copyright (C) 2004, 2005, 2006, 2007, 2008
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
-#
+
 # This file is part of GNU Emacs.
-#
-# GNU Emacs is free software; you can redistribute it and/or modify
+
+# GNU Emacs is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
-#
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
 # GNU Emacs is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Emacs; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301, USA.
 
-# Comment:
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+# Commentary:
+
 # Add a sort key 0, 1, 2, or 3 at the tail of each line as a comment
 # to realize the round trip mapping to Unicode works as described in
 # this page:

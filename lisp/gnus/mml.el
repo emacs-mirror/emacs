@@ -1313,18 +1313,20 @@ Ask for type, description or disposition according to
 	  (setq disposition (mml-minibuffer-read-disposition type nil file)))
 	(mml-attach-file file type description disposition)))))
 
-(defun mml-attach-buffer (buffer &optional type description)
+(defun mml-attach-buffer (buffer &optional type description disposition)
   "Attach a buffer to the outgoing MIME message.
-See `mml-attach-file' for details of operation."
+BUFFER is the name of the buffer to attach.  See
+`mml-attach-file' for details of operation."
   (interactive
    (let* ((buffer (read-buffer "Attach buffer: "))
 	  (type (mml-minibuffer-read-type buffer "text/plain"))
-	  (description (mml-minibuffer-read-description)))
-     (list buffer type description)))
+	  (description (mml-minibuffer-read-description))
+	  (disposition (mml-minibuffer-read-disposition type nil)))
+     (list buffer type description disposition)))
   (save-excursion
     (unless (message-in-body-p) (goto-char (point-max)))
     (mml-insert-empty-tag 'part 'type type 'buffer buffer
-			  'disposition "attachment"
+			  'disposition disposition
 			  'description description)))
 
 (defun mml-attach-external (file &optional type description)

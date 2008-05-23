@@ -796,6 +796,7 @@ here we describe other aspects of Emacs variables.
 		          of Emacs to run on particular occasions.
 * Locals::	        Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
+* Directory Variables:: How variable values can be specified by directory.
 @end menu
 
 @node Examining
@@ -1261,6 +1262,65 @@ confirmation about processing @code{eval} variables.
 customizable list of eval forms which are safe.  Emacs does not ask
 for confirmation when it finds these forms for the @code{eval}
 variable.
+
+@node Directory Variables
+@subsection Per-Directory Local Variables
+@cindex local variables in directories
+@cindex directory local variables
+
+  Emacs provides a way to specify local variable values per-directory.
+This can be done one of two ways.
+
+  The first approach is to put a special file, named
+@file{.dir-settings.el}, in a directory.  When opening a file, Emacs
+searches for @file{.dir-settings.el} starting in the file's directory
+and then moving up the directory hierarchy.  If
+@file{.dir-settings.el} is found, Emacs applies variable settings from
+the file to the new buffer.  If the file is remote, Emacs skips this
+search, because it would be too slow.
+
+  The file should hold a specially-constructed list.  This list maps
+Emacs mode names (symbols) to alists; each alist maps variable names
+to values.  The special mode name @samp{nil} means that the alist
+should be applied to all buffers.  Finally, a string key can be used
+to specify an alist which applies to a relative subdirectory in the
+project.
+
+@example
+((nil . ((indent-tabs-mode . t)
+         (tab-width . 4)
+         (fill-column . 80)))
+ (c-mode . ((c-file-style . "BSD")))
+ (java-mode . ((c-file-style . "BSD")))
+ ("src/imported"
+  . ((nil . ((change-log-default-name . "ChangeLog.local"))))))
+@end example
+
+  This example shows some settings for a hypothetical project.  This
+sets @samp{indent-tabs-mode} to @samp{t} for any file in the source
+tree, and it sets the indentation style for any C or Java source file
+to @samp{BSD}.  Finally, it specifies a different @file{ChangeLog}
+file name for any file in the project that appears beneath the
+directory @file{src/imported}.
+
+  The second approach to directory-local settings is to explicitly
+define a project class using @code{define-project-bindings}, and then
+to tell Emacs which directory roots correspond to that class, using
+@code{set-directory-project}.  You can put calls to these functions in
+your @file{.emacs}; this can useful when you can't put
+@file{.dir-settings.el} in the directory for some reason.  For
+example, you could apply settings to an unwriteable directory this
+way:
+
+@example
+(define-project-bindings 'unwriteable-directory
+   '((nil . ((some-useful-setting . value)))))
+
+(set-directory-project "/usr/include/" 'unwriteable-directory)
+@end example
+
+  Unsafe directory-local variables are handled in the same way as
+unsafe file-local variables.
 
 @node Key Bindings
 @section Customizing Key Bindings

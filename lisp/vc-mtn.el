@@ -70,7 +70,7 @@
   (let ((process-environment
          ;; Avoid localization of messages so we can parse the output.
          (cons "LC_MESSAGES=C" process-environment)))
-    (apply 'vc-do-command buffer okstatus vc-mtn-command files flags)))
+    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-mtn-command files flags)))
 
 (defun vc-mtn-state (file)
   ;; If `mtn' fails or returns status>0, or if the search files, just
@@ -174,8 +174,6 @@
 
 ;; (defun vc-mtn-show-log-entry (revision)
 ;;   )
-
-(defun vc-mtn-wash-log (file))
 
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer)
   (apply 'vc-mtn-command (or buffer "*vc-diff*") 1 files "diff"

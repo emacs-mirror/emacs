@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -40,9 +38,10 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "systime.h"
 #include <epaths.h>
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "termhooks.h"
+#include "font.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -4863,7 +4862,7 @@ xpm_load_image (f, img, contents, end)
 
 	  if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
 	    {
-	      if (xstricmp (SDATA (XCDR (specified_color)), "None") == 0)
+	      if (xstrcasecmp (SDATA (XCDR (specified_color)), "None") == 0)
 		color_val = Qt;
 	      else if (x_defined_color (f, SDATA (XCDR (specified_color)),
 					&cdef, 0))
@@ -4872,7 +4871,7 @@ xpm_load_image (f, img, contents, end)
 	}
       if (NILP (color_val) && max_key > 0)
 	{
-	  if (xstricmp (max_color, "None") == 0)
+	  if (xstrcasecmp (max_color, "None") == 0)
 	    color_val = Qt;
 	  else if (x_defined_color (f, max_color, &cdef, 0))
 	    color_val = make_number (cdef.pixel);
@@ -6542,7 +6541,6 @@ png_load (f, img)
   png_byte channels;
   png_uint_32 row_bytes;
   int transparent_p;
-  double screen_gamma;
   struct png_memory_storage tbr;  /* Data to be read */
 
   /* Find out what file to load.  */
@@ -6684,27 +6682,6 @@ png_load (f, img)
       || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     fn_png_set_gray_to_rgb (png_ptr);
 
-  screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
-
-#if 0 /* Avoid double gamma correction for PNG images. */
-  { /* Tell the PNG lib to handle gamma correction for us.  */
-    int intent;
-    double image_gamma;
-#if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
-    if (png_get_sRGB (png_ptr, info_ptr, &intent))
-      /* The libpng documentation says this is right in this case.  */
-      png_set_gamma (png_ptr, screen_gamma, 0.45455);
-    else
-#endif
-      if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
-	/* Image contains gamma information.  */
-	png_set_gamma (png_ptr, screen_gamma, image_gamma);
-      else
-	/* Use the standard default for the image gamma.  */
-	png_set_gamma (png_ptr, screen_gamma, 0.45455);
-  }
-#endif /* if 0 */
-
   /* Handle alpha channel by combining the image with a background
      color.  Do this only if a real alpha channel is supplied.  For
      simple transparency, we prefer a clipping mask.  */
@@ -6713,6 +6690,7 @@ png_load (f, img)
       /* png_color_16 *image_bg; */
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
+      int shift = (bit_depth == 16) ? 0 : 8;
 
       if (STRINGP (specified_bg))
 	/* The user specified `:background', use that.  */
@@ -6724,27 +6702,18 @@ png_load (f, img)
 	      png_color_16 user_bg;
 
 	      bzero (&user_bg, sizeof user_bg);
-	      user_bg.red = color.red >> 8;
-	      user_bg.green = color.green >> 8;
-	      user_bg.blue = color.blue >> 8;
+	      user_bg.red = color.red >> shift;
+	      user_bg.green = color.green >> shift;
+	      user_bg.blue = color.blue >> shift;
 
 	      fn_png_set_background (png_ptr, &user_bg,
 				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	    }
 	}
-      /* The commented-out code checked if the png specifies a default
-	 background color, and uses that.  Since we use the current
-	 frame background, it is OK for us to ignore this.
-
-      else if (fn_png_get_bKGD (png_ptr, info_ptr, &image_bg))
-	fn_png_set_background (png_ptr, image_bg,
-			       PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
-	*/
       else
 	{
-	  /* Image does not contain a background color with which
-	     to combine the image data via an alpha channel.  Use
-	     the frame's background instead.  */
+	  /* We use the current frame background, ignoring any default
+	     background color set by the image.  */
 #ifdef HAVE_X_WINDOWS
 	  XColor color;
 	  png_color_16 frame_background;
@@ -6753,9 +6722,9 @@ png_load (f, img)
 	  x_query_color (f, &color);
 
 	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = color.red >> 8;
-	  frame_background.green = color.green >> 8;
-	  frame_background.blue = color.blue >> 8;
+	  frame_background.red = color.red >> shift;
+	  frame_background.green = color.green >> shift;
+	  frame_background.blue = color.blue >> shift;
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef HAVE_NTGUI

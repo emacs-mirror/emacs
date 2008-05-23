@@ -3,10 +3,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,11 +14,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef USE_FONT_BACKEND
 
 #include <config.h>
 /* Override API version - Uniscribe is only available as standard since
@@ -112,32 +109,29 @@ uniscribe_list_family (frame)
   return list;
 }
 
-static struct font *
+static Lisp_Object
 uniscribe_open (f, font_entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object font_entity;
      int pixel_size;
 {
+  Lisp_Object font_object
+    = font_make_object (VECSIZE (struct uniscribe_font_info));
   struct uniscribe_font_info *uniscribe_font
-    = xmalloc (sizeof (struct uniscribe_font_info));
+    = (struct uniscribe_font_info *) XFONT_OBJECT (font_object);
 
-  if (uniscribe_font == NULL)
-    return NULL;
-
-  if (!w32font_open_internal (f, font_entity, pixel_size,
-                              (struct w32font_info *) uniscribe_font))
+  if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
-      xfree (uniscribe_font);
-      return NULL;
+      return Qnil;
     }
 
   /* Initialize the cache for this font.  */
   uniscribe_font->cache = NULL;
   /* Mark the format as opentype  */
-  uniscribe_font->w32_font.font.format = Qopentype;
+  uniscribe_font->w32_font.font.props[FONT_FORMAT_INDEX] = Qopentype;
   uniscribe_font->w32_font.font.driver = &uniscribe_font_driver;
 
-  return (struct font *) uniscribe_font;
+  return font_object;
 }
 
 static void
@@ -168,8 +162,7 @@ uniscribe_otf_capability (font)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context,
-			   ((W32FontStruct *) (font->font.font))->hfont);
+  old_font = SelectObject (context, FONT_COMPAT (font)->hfont);
 
   features = otf_features (context, "GSUB");
   XSETCAR (capability, features);
@@ -262,8 +255,7 @@ uniscribe_shape (lgstring)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context,
-			   ((W32FontStruct *) (font->font.font))->hfont);
+  old_font = SelectObject (context, FONT_COMPAT (font)->hfont);
 
   glyphs = alloca (max_glyphs * sizeof (WORD));
   clusters = alloca (nchars * sizeof (WORD));
@@ -428,8 +420,7 @@ uniscribe_encode_char (font, c)
   /* Use selected frame until API is updated to pass the frame.  */
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context,
-                           ((W32FontStruct *)(font->font.font))->hfont);
+  old_font = SelectObject (context, FONT_COMPAT (font)->hfont);
 
   retval = GetGlyphIndicesW (context, chars, 1, indices,
 			     GGI_MARK_NONEXISTING_GLYPHS);
@@ -494,8 +485,8 @@ add_opentype_font_name_to_list (logical_font, physical_font, font_type,
       && font_type != TRUETYPE_FONTTYPE)
     return 1;
 
-  family = intern_downcase (logical_font->elfLogFont.lfFaceName,
-                            strlen (logical_font->elfLogFont.lfFaceName));
+  family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
+			     strlen (logical_font->elfLogFont.lfFaceName));
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
@@ -819,6 +810,7 @@ font_table_error:
 struct font_driver uniscribe_font_driver =
   {
     0, /* Quniscribe */
+    0, /* case insensitive */
     w32font_get_cache,
     uniscribe_list,
     uniscribe_match,
@@ -865,8 +857,6 @@ syms_of_w32uniscribe ()
 
   register_font_driver (&uniscribe_font_driver, NULL);
 }
-
-#endif /* USE_FONT_BACKEND  */
 
 /* arch-tag: 9530f0e1-7471-47dd-a780-94330af87ea0
    (do not change this comment) */

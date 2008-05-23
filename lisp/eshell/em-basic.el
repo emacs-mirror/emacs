@@ -1,7 +1,7 @@
 ;;; em-basic.el --- basic shell builtin commands
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -63,9 +63,11 @@
 (eval-when-compile
   (require 'esh-util))
 
+(require 'eshell)
 (require 'esh-opt)
 
-(defgroup eshell-basic nil
+;;;###autoload
+(eshell-defgroup eshell-basic nil
   "The \"basic\" code provides a set of convenience functions which
 are traditionally considered shell builtins.  Since all of the
 functionality provided by them is accessible through Lisp, they are
@@ -177,6 +179,10 @@ or `eshell-printn' for display."
    nil))
 
 (provide 'em-basic)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 385a31b1-cb95-46f0-9829-9d352ee77db8
 ;;; em-basic.el ends here

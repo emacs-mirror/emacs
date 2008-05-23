@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <signal.h>
@@ -324,7 +322,9 @@ static struct frame *frame_matrix_frame;
    matrix adjustments.  Redisplay must stop, and glyph matrices must
    be adjusted when this flag becomes non-zero during display.  The
    reason fonts can be loaded so late is that fonts of fontsets are
-   loaded on demand.  */
+   loaded on demand.  Another reason is that a line contains many
+   characters displayed by zero width or very narrow glyphs of
+   variable-width fonts.  */
 
 int fonts_changed_p;
 
@@ -5302,22 +5302,26 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		 Also flush out if likely to have more than 1k buffered
 		 otherwise.   I'm told that some telnet connections get
 		 really screwed by more than 1k output at once.  */
-	      int outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f)->output);
-	      if (outq > 900
-		  || (outq > 20 && ((i - 1) % preempt_count == 0)))
+	      FILE *display_output = FRAME_TTY (f)->output;
+	      if (display_output)
 		{
-		  fflush (FRAME_TTY (f)->output);
-		  if (preempt_count == 1)
+		  int outq = PENDING_OUTPUT_COUNT (display_output);
+		  if (outq > 900
+		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
 		    {
+		      fflush (display_output);
+		      if (preempt_count == 1)
+			{
 #ifdef EMACS_OUTQSIZE
-		      if (EMACS_OUTQSIZE (0, &outq) < 0)
-			/* Probably not a tty.  Ignore the error and reset
-			   the outq count.  */
-			outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
+			  if (EMACS_OUTQSIZE (0, &outq) < 0)
+			    /* Probably not a tty.  Ignore the error and reset
+			       the outq count.  */
+			    outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
 #endif
-		      outq *= 10;
-		      if (baud_rate <= outq && baud_rate > 0)
-			sleep (outq / baud_rate);
+			  outq *= 10;
+			  if (baud_rate <= outq && baud_rate > 0)
+			    sleep (outq / baud_rate);
+			}
 		    }
 		}
 	    }

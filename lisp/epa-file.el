@@ -22,7 +22,7 @@
 ;;; Code:
 
 (require 'epa)
-(require 'epa-file-hook)
+(require 'epa-hook)
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
   "If non-nil, cache passphrase for symmetric encryption."

@@ -4,10 +4,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,9 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Don't multiply include: dispextern.h includes macterm.h which
    includes frame.h some emacs source includes both dispextern.h and
@@ -214,6 +212,11 @@ struct frame
   /* 1 means that glyphs on this frame have been initialized so it can
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
+
+  /* frame opacity
+     alpha[0]: alpha transparency of the active frame
+     alpha[1]: alpha transparency of inactive frames   */
+  double alpha[2];
 
   /* Set to non-zero in change_frame_size when size of frame changed
      Clear the frame in clear_garbaged_frames if set.  */
@@ -1035,6 +1038,7 @@ extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
 extern Lisp_Object Qfont_backend;
+extern Lisp_Object Qalpha;
 
 extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
@@ -1061,11 +1065,7 @@ extern void x_set_scroll_bar_default_width P_ ((struct frame *));
 extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 
-extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
-#ifdef USE_FONT_BACKEND
-extern Lisp_Object x_new_fontset2 P_ ((struct frame *, int, Lisp_Object));
-#endif	/* USE_FONT_BACKEND */
+extern Lisp_Object x_new_font P_ ((struct frame *, Lisp_Object, int));
 
 /* These are in frame.c  */
 
@@ -1103,6 +1103,8 @@ extern Lisp_Object x_icon_type P_ ((struct frame *));
 
 extern int x_figure_window_size P_ ((struct frame *, Lisp_Object, int));
 
+extern Lisp_Object Vframe_alpha_lower_limit;
+extern void x_set_alpha P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 extern void validate_x_resource_name P_ ((void));
 

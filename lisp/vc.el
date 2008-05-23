@@ -55,7 +55,7 @@
 ;; This mode is fully documented in the Emacs user's manual.
 ;;
 ;; Supported version-control systems presently include CVS, RCS, GNU
-;; Arch, Subversion, Bzr, Git, Mercurial, Meta-CVS, Monotone and SCCS
+;; Arch, Subversion, Bzr, Git, Mercurial, Monotone and SCCS
 ;; (or its free replacement, CSSC).
 ;;
 ;; Some features will not work with old RCS versions.  Where
@@ -371,17 +371,11 @@
 ;;   and make sure it is displayed in the buffer's window.  The default
 ;;   implementation of this function works for RCS-style logs.
 ;;
-;; - wash-log (file)
-;;
-;;   Remove all non-comment information from the output of print-log.
-;;
 ;; - comment-history (file)
 ;;
 ;;   Return a string containing all log entries that were made for FILE.
 ;;   This is used for transferring a file from one backend to another,
-;;   retaining comment information.  The default implementation of this
-;;   function does this by calling print-log and then wash-log, and
-;;   returning the resulting buffer contents as a string.
+;;   retaining comment information. 
 ;;
 ;; - update-changelog (files)
 ;;
@@ -444,28 +438,23 @@
 ;;   corresponding to the current line, or nil if there is no revision
 ;;   corresponding to the current line.
 ;;
-;; SNAPSHOT SYSTEM
+;; TAG SYSTEM
 ;;
-;; - create-snapshot (dir name branchp)
+;; - create-tag (dir name branchp)
 ;;
-;;   Take a snapshot of the current state of files under DIR and name it
-;;   NAME.  This should make sure that files are up-to-date before
-;;   proceeding with the action.  DIR can also be a file and if BRANCHP
-;;   is specified, NAME should be created as a branch and DIR should be
-;;   checked out under this new branch.  The default implementation does
-;;   not support branches but does a sanity check, a tree traversal and
-;;   for each file calls `assign-name'.
+;;   Attach the tag NAME to the state of the working copy.  This
+;;   should make sure that files are up-to-date before proceeding with
+;;   the action.  DIR can also be a file and if BRANCHP is specified,
+;;   NAME should be created as a branch and DIR should be checked out
+;;   under this new branch.  The default implementation does not
+;;   support branches but does a sanity check, a tree traversal and
+;;   assigns the tag to each file.
 ;;
-;; - assign-name (file name)
+;; - retrieve-tag (dir name update)
 ;;
-;;   Give name NAME to the working revision of FILE, assuming it is
-;;   up-to-date.  Only used by the default version of `create-snapshot'.
-;;
-;; - retrieve-snapshot (dir name update)
-;;
-;;   Retrieve a named snapshot of all registered files at or below DIR.
+;;   Retrieve the version tagged by NAME of all registered files at or below DIR.
 ;;   If UPDATE is non-nil, then update buffers of any files in the
-;;   snapshot that are currently visited.  The default implementation
+;;   tag that are currently visited.  The default implementation
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
 ;;   function to retrieve the corresponding revisions.
@@ -558,20 +547,23 @@
 
 ;;; Todo:
 
-;; - vc-update/vc-merge should deal with VC systems that don't
-;;   update/merge on a file basis, but on a whole repository basis.
+;;;; New Primitives:
 ;;
 ;; - deal with push/pull operations.
 ;;
-;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
+;; - add a mechanism for editing the underlying VCS's list of files
+;;   to be ignored, when that's possible.
 ;;
-;; - when a file is in `conflict' state, turn on smerge-mode.
+;;;; Primitives that need changing:
 ;;
-;; - figure out what to do with conflicts that are not caused by the
-;;   file contents, but by metadata or other causes.  Example: File A
-;;   gets renamed to B in one branch and to C in another and you merge
-;;   the two branches.  Or you locally add file FOO and then pull a
-;;   change that also adds a new file FOO, ...
+;; - vc-update/vc-merge should deal with VC systems that don't
+;;   update/merge on a file basis, but on a whole repository basis.
+;;   vc-update and vc-merge assume the arguments are always files,
+;;   they don't deal with directories.  Make sure the *vc-dir* buffer
+;;   is updated after these operations. 
+;;   At least bzr, git and hg should benefit from this.
+;;
+;;;; Improved branch and tag handling:
 ;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
@@ -581,49 +573,24 @@
 ;;   adapted accordingly.  Also, it considers RCS and CVS to be the same, 
 ;;   which is pretty confusing.
 ;;
-;; - vc-diff should be able to show the diff for all files in a
-;;   changeset, especially for VC systems that have per repository
-;;   version numbers.  log-view should take advantage of this.
+;; - vc-create-tag and vc-retrieve-tag should update the
+;;   buffers that might be visiting the affected files.
 ;;
-;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
-;;   buffer, if one is present, instead of adding to the ChangeLog.
-;;
-;; - add a mechanism for editing the underlying VCS's list of files
-;;   to be ignored, when that's possible.
-;;
-;; - When vc-next-action calls vc-checkin it could pre-fill the
-;;   *VC-log* buffer with some obvious items: the list of files that
-;;   were added, the list of files that were removed.  If the diff is
-;;   available, maybe it could even call something like
-;;   `diff-add-change-log-entries-other-window' to create a detailed
-;;   skeleton for the log...
-;;
-;; - a way to do repository wide log (instead of just per
-;;   file/fileset) is needed.  Doing it per directory might be enough...
-;;
-;; - most vc-dir backends need more work.  They might need to
-;;   provide custom headers, use the `extra' field and deal with all
-;;   possible VC states.
-;;
-;; - add function that calls vc-dir to `find-directory-functions'.
-;;
-;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
-;;   files. Now that unregistered and ignored files are shown in
-;;   vc-dir, it is possible that these commands are called
-;;   for unregistered/ignored files.
+;;;; Default Behavior:
 ;;
 ;; - do not default to RCS anymore when the current directory is not
 ;;   controlled by any VCS and the user does C-x v v
 ;;
-;; - vc-create-snapshot and vc-retrieve-snapshot should update the
-;;   buffers that might be visiting the affected files.
+;; - vc-responsible-backend should not return RCS if no backend
+;;   declares itself responsible.
 ;;
-;; - Using multiple backends needs work.  Given a CVS directory with some
-;;   files checked into git (but not all), using C-x v l to get a log file
-;;   from a file only present in git, and then typing RET on some log entry,
-;;   vc will bombs out because it wants to see the file being in CVS.
-;;   Those logs should likely use a local variable to hardware the VC they
-;;   are supposed to work with.
+;;;; Internal cleanups:
+;;
+;; - backends that care about vc-stay-local should try to take it into
+;;   account for vc-dir.  Is this likely to be useful???
+;;
+;; - vc-expand-dirs should take a backend parameter and only look for
+;;   files managed by that backend.
 ;;
 ;; - Another important thing: merge all the status-like backend operations.
 ;;   We should remove dir-status, state, and dir-status-files, and
@@ -632,13 +599,70 @@
 ;;   (or nil if it worked synchronously).  Hopefully we can define the old
 ;;   4 operations in term of this one.
 ;;
-;; - backends that care about vc-stay-local should try to take it into
-;;   account for vc-dir.  Is this likely to be useful???
+;;;; Other
 ;;
-;; - vc-dir listing needs a footer generated when it's done to make it obvious
-;; that it has finished.
+;; - when a file is in `conflict' state, turn on smerge-mode.
 ;;
-
+;; - figure out what to do with conflicts that are not caused by the
+;;   file contents, but by metadata or other causes.  Example: File A
+;;   gets renamed to B in one branch and to C in another and you merge
+;;   the two branches.  Or you locally add file FOO and then pull a
+;;   change that also adds a new file FOO, ...
+;;
+;; - C-x v l should insert the file set in the *VC-log* buffer so that
+;;   log-view can recognize it and use it for its commands.
+;;
+;; - vc-diff should be able to show the diff for all files in a
+;;   changeset, especially for VC systems that have per repository
+;;   version numbers.  log-view should take advantage of this.
+;;
+;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
+;;   buffer, if one is present, instead of adding to the ChangeLog.
+;;
+;; - When vc-next-action calls vc-checkin it could pre-fill the
+;;   *VC-log* buffer with some obvious items: the list of files that
+;;   were added, the list of files that were removed.  If the diff is
+;;   available, maybe it could even call something like
+;;   `diff-add-change-log-entries-other-window' to create a detailed
+;;   skeleton for the log...
+;;
+;; - most vc-dir backends need more work.  They might need to
+;;   provide custom headers, use the `extra' field and deal with all
+;;   possible VC states.
+;;
+;; - add a function that calls vc-dir to `find-directory-functions'.
+;;
+;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
+;;   files. Now that unregistered and ignored files are shown in
+;;   vc-dir, it is possible that these commands are called
+;;   for unregistered/ignored files.
+;;
+;; - Using multiple backends needs work.  Given a CVS directory with some
+;;   files checked into git (but not all), using C-x v l to get a log file
+;;   from a file only present in git, and then typing RET on some log entry,
+;;   vc will bombs out because it wants to see the file being in CVS.
+;;   Those logs should likely use a local variable to hardware the VC they
+;;   are supposed to work with.
+;;
+;;;; Problems:
+;;
+;; - log-view-diff does not work anymore in the case when the log was
+;;   created from more than one file.  The error is:
+;;   vc-derived-from-dir-mode: Lisp nesting exceeds `max-lisp-eval-depth'.
+;;
+;; - the vc-dir display is now bogus for git and mercurial.
+;;
+;; - the CVS vc-dir display is now incorrect from some states.
+;;
+;; - vc-dir is now broken for RCS and SCCS.
+;;
+;; - the *vc-dir* buffer is not updated correctly anymore after VC
+;;   operations that change the file state.
+;;
+;; - the mouse3 menu for vc-dir does not have a title anymore.
+;;
+;; - the menu for the *vc-dir* buffer uses the wrong name now.
+;;
 ;;; Code:
 
 (require 'vc-hooks)
@@ -921,45 +945,6 @@ been updated to their corresponding values."
              (put (intern file vc-file-prop-obarray)
                   property (cdr setting))))))))
 
-;; Two macros for elisp programming
-
-;;;###autoload
-(defmacro with-vc-file (file comment &rest body)
-  "Check out a writable copy of FILE if necessary, then execute BODY.
-Check in FILE with COMMENT (a string) after BODY has been executed.
-FILE is passed through `expand-file-name'; BODY executed within
-`save-excursion'.  If FILE is not under version control, or you are
-using a locking version-control system and the file is locked by
-somebody else, signal error."
-  (declare (debug t) (indent 2))
-  (let ((filevar (make-symbol "file")))
-    `(let ((,filevar (expand-file-name ,file)))
-       (or (vc-backend ,filevar)
-           (error "File not under version control: `%s'" file))
-       (unless (vc-editable-p ,filevar)
-         (let ((state (vc-state ,filevar)))
-           (if (stringp state)
-               (error "`%s' is locking `%s'" state ,filevar)
-             (vc-checkout ,filevar t))))
-       (save-excursion
-         ,@body)
-       (vc-checkin (list ,filevar) nil ,comment))))
-
-;;;###autoload
-(defmacro edit-vc-file (file comment &rest body)
-  "Edit FILE under version control, executing body.
-Checkin with COMMENT after executing BODY.
-This macro uses `with-vc-file', passing args to it.
-However, before executing BODY, find FILE, and after BODY, save buffer."
-  (declare (debug t) (indent 2))
-  (let ((filevar (make-symbol "file")))
-    `(let ((,filevar (expand-file-name ,file)))
-       (with-vc-file
-        ,filevar ,comment
-        (set-buffer (find-file-noselect ,filevar))
-        ,@body
-        (save-buffer)))))
-
 ;;; Code for deducing what fileset and backend to assume
 
 (defun vc-responsible-backend (file &optional register)
@@ -1002,29 +987,37 @@ be registered."
 
 (defun vc-expand-dirs (file-or-dir-list)
   "Expands directories in a file list specification.
-Only files already under version control are noticed."
-  ;; FIXME: Kill this function.
+Within directories, only files already under version control are noticed."
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
-      (vc-file-tree-walk
-       node (lambda (f) (when (vc-backend f) (push f flattened)))))
+      (if (file-directory-p node)
+	  (vc-file-tree-walk
+	   node (lambda (f) (when (vc-backend f) (push f flattened)))))
+      (push node flattened))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered
-				    include-files-not-directories)
-  "Deduce a set of files and a backend to which to apply an operation.
-Return (BACKEND . FILESET)."
-  (let* ((fileset (vc-dispatcher-selection-set
-		  #'vc-registered
-		  allow-directory-wildcard 
-		  allow-unregistered
-		  include-files-not-directories))
-	(backend (vc-backend (car fileset))))
-	;; All members of the fileset must have the same backend
-	(dolist (f (cdr fileset))
-	  (unless (eq (vc-backend f) backend)
-	    (error "All members of a fileset must be under the same version-control system.")))
-    (cons backend fileset)))
+(defun vc-derived-from-dir-mode (&optional buffer)
+  "Are we in a VC-directory buffer, or do we have one as an ancestor?"
+  (let ((buffer (or buffer (current-buffer))))
+    (cond ((derived-mode-p 'vc-dir-mode) t)
+	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
+	  (t nil))))
+
+(defun vc-deduce-fileset (&optional observer)
+  "Deduce a set of files and a backend to which to apply an operation and
+the common state of the fileset.  Return (BACKEND . FILESET)."
+  (let* ((selection (vc-dispatcher-selection-set observer))
+	 (raw (car selection))		;; Selection as user made it
+	 (cooked (cdr selection))	;; Files only
+         ;; FIXME: Store the backend in a buffer-local variable.
+         (backend (if (vc-derived-from-dir-mode (current-buffer))
+		      ;; FIXME: this should use vc-dir-backend from
+		      ;; the *vc-dir* buffer.
+                      (vc-responsible-backend default-directory)
+                    (assert (and (= 1 (length raw))
+                                 (not (file-directory-p (car raw)))))
+                    (vc-backend (car cooked)))))
+	(cons backend selection)))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1094,31 +1087,31 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset nil t))
-	 (vc-fileset-only-files (vc-deduce-fileset nil t t))
-	 (only-files (cdr vc-fileset-only-files))
+  (let* ((vc-fileset (vc-deduce-fileset))
          (backend (car vc-fileset))
-	 (files (cdr vc-fileset))
-	 (state (vc-state (car only-files)))
+	 (files (cadr vc-fileset))
+         (fileset-only-files (cddr vc-fileset))
+         ;; FIXME: We used to call `vc-recompute-state' here.
+         (state (vc-state (car fileset-only-files)))
+         ;; The backend should check that the checkout-model is consistent
+         ;; among all the `files'.
 	 (model (vc-checkout-model backend files))
 	 revision)
 
-    ;; Verify that the fileset is homogeneous
-    (dolist (file (cdr only-files))
-      ;; Ignore directories, they are compatible with anything.
-      (unless (file-directory-p file)
-	(unless (vc-compatible-state (vc-state file) state)
-	  (error "%s:%s clashes with %s:%s"
-		 file (vc-state file) (car files) state))
-	(unless (eq (vc-checkout-model backend (list file)) model)
-	  (error "Fileset has mixed checkout models"))))
+    ;; Check that all files are in a consistent state, since we use that
+    ;; state to decide which operation to perform.
+    (dolist (file (cdr fileset-only-files))
+      (unless (vc-compatible-state (vc-state file) state)
+        (error "%s:%s clashes with %s:%s"
+               file (vc-state file) (car fileset-only-files) state)))
+
     ;; Do the right thing
     (cond
      ((eq state 'missing)
       (error "Fileset files are missing, so cannot be operated on."))
-     ;; Files aren't registered
-     ((or (eq state 'unregistered)
-	  (eq state 'ignored))
+     ((eq state 'ignored)
+      (error "Fileset files are ignored by the version-control system."))
+     ((eq state 'unregistered)
       (mapc (lambda (arg) (vc-register nil arg)) files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
@@ -1199,7 +1192,12 @@ merge in the changes into your working copy."
          state)))
      ;; conflict
      ((eq state 'conflict)
-      (vc-mark-resolved files))
+      ;; FIXME: Is it really the UI we want to provide?
+      ;; In my experience, the conflicted files should be marked as resolved
+      ;; one-by-one when saving the file after resolving the conflicts.
+      ;; I.e. stating explicitly that the conflicts are resolved is done
+      ;; very rarely.
+      (vc-mark-resolved backend files))
      ;; needs-update
      ((eq state 'needs-update)
       (dolist (file files)
@@ -1216,7 +1214,8 @@ merge in the changes into your working copy."
 	(when (yes-or-no-p (format
 			  "%s is not up-to-date.  Merge in changes now? "
 			  (file-name-nondirectory file)))
-	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))
+	  (vc-maybe-resolve-conflicts
+           file (vc-call-backend backend 'merge-news file)))))
 
      ;; unlocked-changes
      ((eq state 'unlocked-changes)
@@ -1224,7 +1223,8 @@ merge in the changes into your working copy."
 	(when (not (equal buffer-file-name file))
 	  (find-file-other-window file))
 	(if (save-window-excursion
-	      (vc-diff-internal nil (cons (car vc-fileset) (list file))
+	      (vc-diff-internal nil 
+				(cons (car vc-fileset) (cons (cadr vc-fileset) (list file)))
 				(vc-working-revision file) nil)
 	      (goto-char (point-min))
 	      (let ((inhibit-read-only t))
@@ -1233,7 +1233,7 @@ merge in the changes into your working copy."
 	      (not (beep))
 	      (yes-or-no-p (concat "File has unlocked changes.  "
 				   "Claim lock retaining changes? ")))
-	    (progn (vc-call steal-lock file)
+	    (progn (vc-call-backend backend 'steal-lock file)
 		   (clear-visited-file-modtime)
 		   ;; Must clear any headers here because they wouldn't
 		   ;; show that the file is locked now.
@@ -1302,6 +1302,7 @@ first backend that could register the file is used."
 		    (or comment (not vc-initial-comment))
 		    nil
 		    "Enter initial comment."
+		    "*VC-log*"
 		    (lambda (files rev comment)
 		      (dolist (file files)
 			(message "Registering %s... " file)
@@ -1345,7 +1346,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
          (signal (car err) (cdr err))))
       `((vc-state . ,(if (or (eq (vc-checkout-model backend (list file)) 'implicit)
                              (not writable))
-                         (if (vc-call latest-on-branch-p file)
+                         (if (vc-call-backend backend 'latest-on-branch-p file)
                              'up-to-date
                            'needs-update)
                        'edited))
@@ -1353,10 +1354,10 @@ After check-out, runs the normal hook `vc-checkout-hook'."
   (vc-resynch-buffer file t t)
   (run-hooks 'vc-checkout-hook))
 
-(defun vc-mark-resolved (files)
+(defun vc-mark-resolved (backend files)
   (with-vc-properties
    files
-   (vc-call mark-resolved files)
+   (vc-call-backend backend 'mark-resolved files)
    ;; XXX: Is this TRTD?  Might not be.
    `((vc-state . edited))))
 
@@ -1404,6 +1405,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (vc-start-logentry
    files rev comment initial-contents
    "Enter a change comment."
+   "*VC-log*"
    (lambda (files rev comment)
      (message "Checking in %s..." (vc-delistify files))
      ;; "This log message intentionally left almost blank".
@@ -1502,7 +1504,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   "Report diffs between two revisions of a fileset.
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
-  (let* ((files (cdr vc-fileset))
+  (let* ((files (cadr vc-fileset))
 	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
                          (format "No changes between %s and %s"
@@ -1568,10 +1570,11 @@ returns t if the buffer had changes, nil otherwise."
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
    (let* ((vc-fileset (vc-deduce-fileset t))
-	  (files (cdr vc-fileset))
+	  (files (cadr vc-fileset))
+          (backend (car vc-fileset))
 	  (first (car files))
 	  (completion-table
-	   (vc-call revision-completion-table files))
+	   (vc-call-backend backend 'revision-completion-table files))
 	  (rev1-default nil)
 	  (rev2-default nil))
      (cond
@@ -1587,8 +1590,8 @@ returns t if the buffer had changes, nil otherwise."
        (setq rev1-default (vc-working-revision first)))
       ;; if the file is not locked, use last and previous revisions as defaults
       (t
-       (setq rev1-default (vc-call previous-revision first
-				   (vc-working-revision first)))
+       (setq rev1-default (vc-call-backend backend 'previous-revision first
+                                           (vc-working-revision first)))
        (when (string= rev1-default "") (setq rev1-default nil))
        (setq rev2-default (vc-working-revision first))))
      ;; construct argument list
@@ -1609,10 +1612,12 @@ returns t if the buffer had changes, nil otherwise."
        (when (string= rev1 "") (setq rev1 nil))
        (when (string= rev2 "") (setq rev2 nil))
        (list files rev1 rev2))))
+  ;; All that was just so we could do argument completion!
   (when (and (not rev1) rev2)
     (error "Not a valid revision range."))
-  (vc-diff-internal
-   t (cons (car (vc-deduce-fileset t)) files) rev1 rev2 (interactive-p)))
+  ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
+  ;; placement rules for (interactive) don't actually leave us a choice.
+  (vc-diff-internal t (vc-deduce-fileset) rev1 rev2 (interactive-p)))
 
 ;; (defun vc-contains-version-controlled-file (dir)
 ;;   "Return t if DIR contains a version-controlled file, nil otherwise."
@@ -1627,16 +1632,13 @@ Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-If no current fileset is available and we're in a directory buffer, use
-the current directory.
 The optional argument NOT-URGENT non-nil means it is ok to say no to
 saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
-    (vc-diff-internal t (vc-deduce-fileset t) nil nil (interactive-p))))
-
+    (vc-diff-internal t (vc-deduce-fileset) nil nil (interactive-p))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)
@@ -1744,6 +1746,7 @@ The headers are reset to their non-expanded form."
   (vc-start-logentry
    files rev oldcomment t
    "Enter a replacement change comment."
+   "*VC-log*"
    (lambda (files rev comment)
      (vc-call-backend
       ;; Less of a kluge than it looks like; log-view mode only passes
@@ -1780,9 +1783,7 @@ See Info node `Merging'."
 	  (read-string (concat "Branch or revision to merge from "
 			       "(default news on current branch): ")))
     (if (string= first-revision "")
-	(if (not (vc-find-backend-function backend 'merge-news))
-	    (error "Sorry, merging news is not implemented for %s" backend)
-	  (setq status (vc-call merge-news file)))
+        (setq status (vc-call-backend backend 'merge-news file))
       (if (not (vc-find-backend-function backend 'merge))
 	  (error "Sorry, merging is not implemented for %s" backend)
 	(if (not (vc-branch-p first-revision))
@@ -1794,7 +1795,8 @@ See Info node `Merging'."
 	  (setq second-revision first-revision)
 	  ;; first-revision must be the starting point of the branch
 	  (setq first-revision (vc-branch-part first-revision)))
-	(setq status (vc-call merge file first-revision second-revision))))
+	(setq status (vc-call-backend backend 'merge file
+                                      first-revision second-revision))))
     (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE")))
 
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
@@ -1809,7 +1811,7 @@ See Info node `Merging'."
 ;; VC status implementation
 
 (defun vc-default-status-extra-headers (backend dir)
-  ;; Be loud by default to remind people to add coded to display
+  ;; Be loud by default to remind people to add code to display
   ;; backend specific headers.
   ;; XXX: change this to return nil before the release.
   "Extra      : Add backend specific headers here")
@@ -1819,9 +1821,9 @@ See Info node `Merging'."
 It calls the `status-extra-headers' backend method to display backend
 specific headers."
   (concat
-   (propertize "VC backend : " 'face 'font-lock-type-face)
+   (propertize "VC backend:  " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
-   (propertize "Working dir: " 'face 'font-lock-type-face)
+   (propertize "Working dir:  " 'face 'font-lock-type-face)
    (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
    (vc-call-backend backend 'status-extra-headers dir)
    "\n"))
@@ -1829,43 +1831,29 @@ specific headers."
 (defun vc-default-status-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
-  (let ((state
-	 (if (vc-dir-fileinfo->directory fileentry)
-	     'DIRECTORY
-	   (vc-dir-fileinfo->state fileentry))))
+  (let* ((isdir (vc-dir-fileinfo->directory fileentry))
+	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
+	(filename (vc-dir-fileinfo->name fileentry))
+	(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
       'face 'font-lock-type-face)
      "   "
      (propertize
-      (format "%-20s" state)
+      (format "%-20s" prettified)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      " "
      (propertize
-      (format "%s" (vc-dir-fileinfo->name fileentry))
+      (format "%s" filename)
       'face 'font-lock-function-name-face
       'mouse-face 'highlight))))
 
 (defun vc-default-extra-status-menu (backend)
   nil)
-
-;; This is used to that VC backends could add backend specific menu
-;; items to vc-dir-menu-map.
-(defun vc-dir-menu-map-filter (orig-binding)
-  (when (and (symbolp orig-binding) (fboundp orig-binding))
-    (setq orig-binding (indirect-function orig-binding)))
-  (let ((ext-binding
-	 (vc-call-backend (vc-responsible-backend default-directory)
-			  'extra-status-menu)))
-    (if (null ext-binding)
-	orig-binding
-      (append orig-binding
-	      '("----")
-	      ext-binding))))
 
 (defun vc-dir-refresh-files (files default-state)
   "Refresh some files in the VC status buffer."
@@ -1976,55 +1964,57 @@ outside of VC) and one wants to do some operation on it."
   "Default absence of extra information returned for a file."
   nil)
 
+(defvar vc-dir-backend nil
+  "The backend used by the current *vc-dir* buffer.")
+
 ;; FIXME: Replace these with a more efficient dispatch
 
 (defun vc-generic-status-printer (fileentry)
-  (let* ((file (vc-dir-fileinfo->name fileentry))
-	 (backend (vc-responsible-backend (expand-file-name file))))
-    (vc-call-backend backend 'status-printer fileentry)))
-  
-(defun vc-generic-state (file)
-  (let ((backend (vc-responsible-backend (expand-file-name file))))
-    (vc-call-backend backend 'state file)))
-  
-(defun vc-generic-status-fileinfo-extra (file)
-  (let ((backend (vc-responsible-backend (expand-file-name file))))
-    (vc-call-backend backend 'status-fileinfo-extra file)))
+  (vc-call-backend vc-dir-backend 'status-printer fileentry))
 
-(defun vc-generic-dir-headers (dir)
-  (let ((backend (vc-responsible-backend dir)))
-    (vc-dir-headers backend dir)))
+(defun vc-generic-state (file)
+  (vc-call-backend vc-dir-backend 'state file))
+
+(defun vc-generic-status-fileinfo-extra (file)
+  (vc-call-backend vc-dir-backend 'status-fileinfo-extra file))
+
+(defun vc-dir-extra-menu ()
+  (vc-call-backend vc-dir-backend 'extra-status-menu))
 
 (defun vc-make-backend-object (file-or-dir)
   "Create the backend capability object needed by vc-dispatcher."
   (vc-create-client-object 
    "VC status"
-   (let ((backend (vc-responsible-backend file-or-dir)))
-     (vc-dir-headers backend file-or-dir))
+   (vc-dir-headers vc-dir-backend file-or-dir)
    #'vc-generic-status-printer
    #'vc-generic-state
    #'vc-generic-status-fileinfo-extra
-   #'vc-dir-refresh))
+   #'vc-dir-refresh
+   #'vc-dir-extra-menu))
 
 ;;;###autoload
 (defun vc-dir (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer dir))
-  (if (and (eq major-mode 'vc-dir-mode) (boundp 'client-object))
+  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir))
+  (if (and (derived-mode-p 'vc-dir-mode) (boundp 'client-object))
       (vc-dir-refresh)
     ;; Otherwise, initialize a new view using the dispatcher layer
     (progn
+      (set (make-local-variable 'vc-dir-backend) (vc-responsible-backend dir))
       ;; Build a capability object and hand it to the dispatcher initializer
       (vc-dir-mode (vc-make-backend-object dir))
+      ;; FIXME: Make a derived-mode instead.
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
+	(define-key map "v" 'vc-diff) ;; C-x v v
 	(define-key map "=" 'vc-diff) ;; C-x v =
-	(define-key map "a" 'vc-dir-register)
+	(define-key map "i" 'vc-dir-register)	;; C-x v i
 	(define-key map "+" 'vc-update) ;; C-x v +
-	(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
-	(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher referesh
 	(define-key map "l" 'vc-print-log) ;; C-x v l
+	;; More confusing than helpful, probably
+	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
+	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
 	(define-key map "x" 'vc-dir-hide-up-to-date))
       )
     ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash  
@@ -2068,10 +2058,10 @@ outside of VC) and one wants to do some operation on it."
 
 ;; Named-configuration entry points
 
-(defun vc-snapshot-precondition (dir)
+(defun vc-tag-precondition (dir)
   "Scan the tree below DIR, looking for files not up-to-date.
 If any file is not up-to-date, return the name of the first such file.
-\(This means, neither snapshot creation nor retrieval is allowed.\)
+\(This means, neither tag creation nor retrieval is allowed.\)
 If one or more of the files are currently visited, return `visited'.
 Otherwise, return nil."
   (let ((status nil))
@@ -2084,40 +2074,40 @@ Otherwise, return nil."
       status)))
 
 ;;;###autoload
-(defun vc-create-snapshot (dir name branchp)
-  "Descending recursively from DIR, make a snapshot called NAME.
+(defun vc-create-tag (dir name branchp)
+  "Descending recursively from DIR, make a tag called NAME.
 For each registered file, the working revision becomes part of
 the named configuration.  If the prefix argument BRANCHP is
-given, the snapshot is made as a new branch and the files are
+given, the tag is made as a new branch and the files are
 checked out in that new branch."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "New snapshot name: ")
+         (read-string "New tag name: ")
 	 current-prefix-arg))
-  (message "Making %s... " (if branchp "branch" "snapshot"))
+  (message "Making %s... " (if branchp "branch" "tag"))
   (when (file-directory-p dir) (setq dir (file-name-as-directory dir)))
   (vc-call-backend (vc-responsible-backend dir)
-		   'create-snapshot dir name branchp)
-  (message "Making %s... done" (if branchp "branch" "snapshot")))
+		   'create-tag dir name branchp)
+  (message "Making %s... done" (if branchp "branch" "tag")))
 
 ;;;###autoload
-(defun vc-retrieve-snapshot (dir name)
-  "Descending recursively from DIR, retrieve the snapshot called NAME.
+(defun vc-retrieve-tag (dir name)
+  "Descending recursively from DIR, retrieve the tag called NAME.
 If NAME is empty, it refers to the latest revisions.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped)."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "Snapshot name to retrieve (default latest revisions): ")))
+         (read-string "Tag name to retrieve (default latest revisions): ")))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))
 		 (format "Updating %s... " (abbreviate-file-name dir))
-	       (format "Retrieving snapshot into %s... "
+	       (format "Retrieving tag into %s... "
 		       (abbreviate-file-name dir)))))
     (message "%s" msg)
     (vc-call-backend (vc-responsible-backend dir)
-		     'retrieve-snapshot dir name update)
+		     'retrieve-tag dir name update)
     (message "%s" (concat msg "done"))))
 
 ;; Miscellaneous other entry points
@@ -2127,9 +2117,9 @@ allowed and simply skipped)."
   "List the change log of the current fileset in a window.
 If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
-  (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset))
+  (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset))
+	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
@@ -2159,7 +2149,7 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset)))
+	 (files (cadr vc-fileset)))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
     ;; we cannot show the changes and ask for confirmation to
@@ -2190,14 +2180,15 @@ This may be either a file-level or a repository-level operation,
 depending on the underlying version-control system."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset))
 	 (backend (car vc-fileset))
+	 (files (cadr vc-fileset))
 	 (granularity (vc-call-backend backend 'revision-granularity)))
     (unless (vc-find-backend-function backend 'rollback)
       (error "Rollback is not supported in %s" backend))
     (when (and (not (eq granularity 'repository)) (/= (length files) 1))
       (error "Rollback requires a singleton fileset or repository versioning"))
-    (when (not (vc-call latest-on-branch-p (car files)))
+    ;; FIXME: latest-on-branch-p should take the fileset.
+    (when (not (vc-call-backend backend 'latest-on-branch-p (car files)))
       (error "Rollback is only possible at the tip revision."))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
@@ -2215,7 +2206,9 @@ depending on the underlying version-control system."
     (not-modified)
     (message "Finding changes...")
     (let* ((tip (vc-working-revision (car files)))
-	   (previous (vc-call previous-revision (car files) tip)))
+           ;; FIXME: `previous-revision' should take the fileset.
+	   (previous (vc-call-backend backend 'previous-revision
+                                      (car files) tip)))
       (vc-diff-internal nil vc-fileset previous tip))
     ;; Display changes
     (unless (yes-or-no-p "Discard these revisions? ")
@@ -2245,8 +2238,8 @@ contains changes, and the backend supports merging news, then any recent
 changes from the current branch are merged into the working file."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cdr vc-fileset))
-	 (backend (car vc-fileset)))
+	 (backend (car vc-fileset))
+	 (files (cadr vc-fileset)))
     (dolist (file files)
       (when (let ((buf (get-file-buffer file)))
 	      (and buf (buffer-modified-p buf)))
@@ -2262,10 +2255,8 @@ changes from the current branch are merged into the working file."
 		     (vc-state file)
 		     (substitute-command-keys
 		      "\\[vc-next-action] to correct")))
-	  (if (not (vc-find-backend-function backend 'merge-news))
-	      (error "Sorry, merging news is not implemented for %s"
-		     backend)
-	    (vc-maybe-resolve-conflicts file (vc-call merge-news file))))))))
+          (vc-maybe-resolve-conflicts
+           file (vc-call-backend backend 'merge-news file)))))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -2386,8 +2377,8 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	    (vc-file-setprop file 'vc-checkout-time nil)))))
     (when move
       (vc-switch-backend file old-backend)
-      (setq comment (vc-call comment-history file))
-      (vc-call unregister file))
+      (setq comment (vc-call-backend old-backend 'comment-history file))
+      (vc-call-backend old-backend 'unregister file))
     (vc-switch-backend file new-backend)
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
@@ -2451,7 +2442,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	;; command, kill the buffer created by the above
 	;; `find-file-noselect' call.
 	(unless buf (kill-buffer (current-buffer)))))
-    (vc-call delete-file file)
+    (vc-call-backend backend 'delete-file file)
     ;; If the backend hasn't deleted the file itself, let's do it for him.
     (when (file-exists-p file) (delete-file file))
     ;; Forget what VC knew about the file.
@@ -2670,16 +2661,16 @@ to provide the `find-revision' operation instead."
   (let* ((state (vc-state file))
 	(statestring
 	 (cond
-	  ((stringp state) (concat "(" state ")"))
+	  ((stringp state) (concat "(locked:" state ")"))
 	  ((eq state 'edited) "(modified)")
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-update) "(update)")
 	  ((eq state 'added) "(added)")
 	  ((eq state 'removed) "(removed)")
           ((eq state 'ignored) "(ignored)")
-          ((eq state 'unregistered) "?")
+          ((eq state 'unregistered) "(unregistered)")
 	  ((eq state 'unlocked-changes) "(stale)")
-	  ((not state) "(unknown)")))
+	  (t (concat "(unknown:" state ")"))))
 	(buffer
 	 (get-file-buffer file))
 	(modflag
@@ -2706,26 +2697,14 @@ to provide the `find-revision' operation instead."
   "Return a string with all log entries stored in BACKEND for FILE."
   (when (vc-find-backend-function backend 'print-log)
     (with-current-buffer "*vc*"
-      (vc-call print-log (list file))
-      (vc-call-backend backend 'wash-log)
+      (vc-call-backend backend 'print-log (list file))
       (buffer-string))))
 
 (defun vc-default-receive-file (backend file rev)
   "Let BACKEND receive FILE from another version control system."
   (vc-call-backend backend 'register file rev ""))
 
-(defun vc-default-create-snapshot (backend dir name branchp)
-  (when branchp
-    (error "VC backend %s does not support module branches" backend))
-  (let ((result (vc-snapshot-precondition dir)))
-    (if (stringp result)
-	(error "File %s is not up-to-date" result)
-      (vc-file-tree-walk
-       dir
-       (lambda (f)
-	 (vc-call assign-name f name))))))
-
-(defun vc-default-retrieve-snapshot (backend dir name update)
+(defun vc-default-retrieve-tag (backend dir name update)
   (if (string= name "")
       (progn
         (vc-file-tree-walk
@@ -2733,16 +2712,16 @@ to provide the `find-revision' operation instead."
          (lambda (f) (and
 		 (vc-up-to-date-p f)
 		 (vc-error-occurred
-		  (vc-call checkout f nil "")
+		  (vc-call-backend backend 'checkout f nil "")
 		  (when update (vc-resynch-buffer f t t)))))))
-    (let ((result (vc-snapshot-precondition dir)))
+    (let ((result (vc-tag-precondition dir)))
       (if (stringp result)
           (error "File %s is locked" result)
         (setq update (and (eq result 'visited) update))
         (vc-file-tree-walk
          dir
          (lambda (f) (vc-error-occurred
-		 (vc-call checkout f nil name)
+		 (vc-call-backend backend 'checkout f nil name)
 		 (when update (vc-resynch-buffer f t t)))))))))
 
 (defun vc-default-revert (backend file contents-done)
@@ -2764,7 +2743,8 @@ to provide the `find-revision' operation instead."
                   ;; Change buffer to get local value of vc-checkout-switches.
                   (with-current-buffer file-buffer
                     (let ((default-directory (file-name-directory file)))
-                      (vc-call find-revision file rev outbuf)))))
+                      (vc-call-backend backend 'find-revision
+                                       file rev outbuf)))))
               (setq failed nil))
           (when backup-name
             (if failed
@@ -3020,18 +3000,20 @@ mode-specific menu.  `vc-annotate-color-map' and
 		;; In case it had to be uniquified.
 		(setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (vc-call annotate-command file (get-buffer temp-buffer-name) rev)
-      ;; we must setup the mode first, and then set our local
-      ;; variables before the show-function is called at the exit of
-      ;; with-output-to-temp-buffer
-      (with-current-buffer temp-buffer-name
-        (unless (equal major-mode 'vc-annotate-mode)
-	  (vc-annotate-mode))
-        (set (make-local-variable 'vc-annotate-backend) (vc-backend file))
-        (set (make-local-variable 'vc-annotate-parent-file) file)
-        (set (make-local-variable 'vc-annotate-parent-rev) rev)
-        (set (make-local-variable 'vc-annotate-parent-display-mode)
-             display-mode)))
+      (let ((backend (vc-backend file)))
+        (vc-call-backend backend 'annotate-command file
+                         (get-buffer temp-buffer-name) rev)
+        ;; we must setup the mode first, and then set our local
+        ;; variables before the show-function is called at the exit of
+        ;; with-output-to-temp-buffer
+        (with-current-buffer temp-buffer-name
+          (unless (equal major-mode 'vc-annotate-mode)
+            (vc-annotate-mode))
+          (set (make-local-variable 'vc-annotate-backend) backend)
+          (set (make-local-variable 'vc-annotate-parent-file) file)
+          (set (make-local-variable 'vc-annotate-parent-rev) rev)
+          (set (make-local-variable 'vc-annotate-parent-display-mode)
+               display-mode))))
 
     (with-current-buffer temp-buffer-name
       (vc-exec-after
@@ -3108,7 +3090,8 @@ revisions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call previous-revision vc-annotate-parent-file rev-at-line))
+	      (vc-call-backend vc-annotate-backend 'previous-revision
+                               vc-annotate-parent-file rev-at-line))
 	(vc-annotate-warp-revision prev-rev)))))
 
 (defun vc-annotate-show-log-revision-at-line ()
@@ -3131,14 +3114,17 @@ revisions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call previous-revision vc-annotate-parent-file rev-at-line))
+	      (vc-call-backend vc-annotate-backend 'previous-revision
+                               vc-annotate-parent-file rev-at-line))
 	(if (not prev-rev)
 	    (message "Cannot diff from any revision prior to %s" rev-at-line)
 	  (save-window-excursion
 	    (vc-diff-internal
 	     nil
-	     (cons (vc-backend vc-annotate-parent-file)
-		   (list vc-annotate-parent-file))
+	     ;; The value passed here should follow what
+	     ;; `vc-deduce-fileset' returns.
+	     (cons vc-annotate-backend
+		   (cons (list vc-annotate-parent-file) nil))
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
@@ -3161,18 +3147,18 @@ revision."
        ((and (integerp revspec) (> revspec 0))
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (> revspec 0) newrev)
-	       (setq newrev (vc-call next-revision
-				     vc-annotate-parent-file newrev))
-	       (setq revspec (1- revspec)))
+          (setq newrev (vc-call-backend vc-annotate-backend 'next-revision
+                                        vc-annotate-parent-file newrev))
+          (setq revspec (1- revspec)))
 	(unless newrev
 	  (message "Cannot increment %d revisions from revision %s"
 		   revspeccopy vc-annotate-parent-rev)))
        ((and (integerp revspec) (< revspec 0))
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (< revspec 0) newrev)
-	       (setq newrev (vc-call previous-revision
-				     vc-annotate-parent-file newrev))
-	       (setq revspec (1+ revspec)))
+          (setq newrev (vc-call-backend vc-annotate-backend 'previous-revision
+                                        vc-annotate-parent-file newrev))
+          (setq revspec (1+ revspec)))
 	(unless newrev
 	  (message "Cannot decrement %d revisions from revision %s"
 		   (- 0 revspeccopy) vc-annotate-parent-rev)))
@@ -3185,8 +3171,8 @@ revision."
 		     ;; Pass the current line so that vc-annotate will
 		     ;; place the point in the line.
 		     (min oldline (progn (goto-char (point-max))
-					   (forward-line -1)
-					   (line-number-at-pos))))))))
+                                         (forward-line -1)
+                                         (line-number-at-pos))))))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.
@@ -3260,21 +3246,6 @@ The annotations are relative to the current time, unless overridden by OFFSET."
   nil)
 
 
-;; Set up key bindings for use while editing log messages
-
-(defun vc-log-edit (fileset)
-  "Set up `log-edit' for use with VC on FILE."
-  (setq default-directory
-	(with-current-buffer vc-parent-buffer default-directory))
-  (log-edit 'vc-finish-logentry
-	    nil
-	    `((log-edit-listfun . (lambda () ',fileset))
-	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
-  (set (make-local-variable 'vc-log-fileset) fileset)
-  (make-local-variable 'vc-log-revision)
-  (set-buffer-modified-p nil)
-  (setq buffer-file-name nil))
-
 ;; These things should probably be generally available
 
 (defun vc-file-tree-walk (dirname func &rest args)
@@ -3300,352 +3271,6 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
        (directory-files dir)))))
 
 (provide 'vc)
-
-;; DEVELOPER'S NOTES ON CONCURRENCY PROBLEMS IN THIS CODE
-;;
-;; These may be useful to anyone who has to debug or extend the package.
-;; (Note that this information corresponds to versions 5.x. Some of it
-;; might have been invalidated by the additions to support branching
-;; and RCS keyword lookup. AS, 1995/03/24)
-;;
-;; A fundamental problem in VC is that there are time windows between
-;; vc-next-action's computations of the file's version-control state and
-;; the actions that change it.  This is a window open to lossage in a
-;; multi-user environment; someone else could nip in and change the state
-;; of the master during it.
-;;
-;; The performance problem is that rlog/prs calls are very expensive; we want
-;; to avoid them as much as possible.
-;;
-;; ANALYSIS:
-;;
-;; The performance problem, it turns out, simplifies in practice to the
-;; problem of making vc-state fast.  The two other functions that call
-;; prs/rlog will not be so commonly used that the slowdown is a problem; one
-;; makes snapshots, the other deletes the calling user's last change in the
-;; master.
-;;
-;; The race condition implies that we have to either (a) lock the master
-;; during the entire execution of vc-next-action, or (b) detect and
-;; recover from errors resulting from dispatch on an out-of-date state.
-;;
-;; Alternative (a) appears to be infeasible.  The problem is that we can't
-;; guarantee that the lock will ever be removed.  Suppose a user starts a
-;; checkin, the change message buffer pops up, and the user, having wandered
-;; off to do something else, simply forgets about it?
-;;
-;; Alternative (b), on the other hand, works well with a cheap way to speed up
-;; vc-state.  Usually, if a file is registered, we can read its locked/
-;; unlocked state and its current owner from its permissions.
-;;
-;; This shortcut will fail if someone has manually changed the workfile's
-;; permissions; also if developers are munging the workfile in several
-;; directories, with symlinks to a master (in this latter case, the
-;; permissions shortcut will fail to detect a lock asserted from another
-;; directory).
-;;
-;; Note that these cases correspond exactly to the errors which could happen
-;; because of a competing checkin/checkout race in between two instances of
-;; vc-next-action.
-;;
-;; For VC's purposes, a workfile/master pair may have the following states:
-;;
-;; A. Unregistered.  There is a workfile, there is no master.
-;;
-;; B. Registered and not locked by anyone.
-;;
-;; C. Locked by calling user and unchanged.
-;;
-;; D. Locked by the calling user and changed.
-;;
-;; E. Locked by someone other than the calling user.
-;;
-;; This makes for 25 states and 20 error conditions.  Here's the matrix:
-;;
-;; VC's idea of state
-;;  |
-;;  V  Actual state   RCS action              SCCS action          Effect
-;;    A  B  C  D  E
-;;  A .  1  2  3  4   ci -u -t-          admin -fb -i<file>      initial admin
-;;  B 5  .  6  7  8   co -l              get -e                  checkout
-;;  C 9  10 .  11 12  co -u              unget; get              revert
-;;  D 13 14 15 .  16  ci -u -m<comment>  delta -y<comment>; get  checkin
-;;  E 17 18 19 20 .   rcs -u -M -l       unget -n ; get -g       steal lock
-;;
-;; All commands take the master file name as a last argument (not shown).
-;;
-;; In the discussion below, a "self-race" is a pathological situation in
-;; which VC operations are being attempted simultaneously by two or more
-;; Emacsen running under the same username.
-;;
-;; The vc-next-action code has the following windows:
-;;
-;; Window P:
-;;    Between the check for existence of a master file and the call to
-;; admin/checkin in vc-buffer-admin (apparent state A).  This window may
-;; never close if the initial-comment feature is on.
-;;
-;; Window Q:
-;;    Between the call to vc-workfile-unchanged-p in and the immediately
-;; following revert (apparent state C).
-;;
-;; Window R:
-;;    Between the call to vc-workfile-unchanged-p in and the following
-;; checkin (apparent state D).  This window may never close.
-;;
-;; Window S:
-;;    Between the unlock and the immediately following checkout during a
-;; revert operation (apparent state C).  Included in window Q.
-;;
-;; Window T:
-;;    Between vc-state and the following checkout (apparent state B).
-;;
-;; Window U:
-;;    Between vc-state and the following revert (apparent state C).
-;; Includes windows Q and S.
-;;
-;; Window V:
-;;    Between vc-state and the following checkin (apparent state
-;; D).  This window may never be closed if the user fails to complete the
-;; checkin message.  Includes window R.
-;;
-;; Window W:
-;;    Between vc-state and the following steal-lock (apparent
-;; state E).  This window may never close if the user fails to complete
-;; the steal-lock message.  Includes window X.
-;;
-;; Window X:
-;;    Between the unlock and the immediately following re-lock during a
-;; steal-lock operation (apparent state E).  This window may never close
-;; if the user fails to complete the steal-lock message.
-;;
-;; Errors:
-;;
-;; Apparent state A ---
-;;
-;; 1. File looked unregistered but is actually registered and not locked.
-;;
-;;    Potential cause: someone else's admin during window P, with
-;; caller's admin happening before their checkout.
-;;
-;;    RCS: Prior to version 5.6.4, ci fails with message
-;;         "no lock set by <user>".  From 5.6.4 onwards, VC uses the new
-;;         ci -i option and the message is "<file>,v: already exists".
-;;    SCCS: admin will fail with error (ad19).
-;;
-;;    We can let these errors be passed up to the user.
-;;
-;; 2. File looked unregistered but is actually locked by caller, unchanged.
-;;
-;;    Potential cause: self-race during window P.
-;;
-;;    RCS: Prior to version 5.6.4, reverts the file to the last saved
-;;         version and unlocks it.  From 5.6.4 onwards, VC uses the new
-;;         ci -i option, failing with message "<file>,v: already exists".
-;;    SCCS: will fail with error (ad19).
-;;
-;;    Either of these consequences is acceptable.
-;;
-;; 3. File looked unregistered but is actually locked by caller, changed.
-;;
-;;    Potential cause: self-race during window P.
-;;
-;;    RCS: Prior to version 5.6.4, VC registers the caller's workfile as
-;;         a delta with a null change comment (the -t- switch will be
-;;         ignored). From 5.6.4 onwards, VC uses the new ci -i option,
-;;         failing with message "<file>,v: already exists".
-;;    SCCS: will fail with error (ad19).
-;;
-;; 4. File looked unregistered but is locked by someone else.
-;;;
-;;    Potential cause: someone else's admin during window P, with
-;; caller's admin happening *after* their checkout.
-;;
-;;    RCS: Prior to version 5.6.4, ci fails with a
-;;         "no lock set by <user>" message.  From 5.6.4 onwards,
-;;         VC uses the new ci -i option, failing with message
-;;         "<file>,v: already exists".
-;;    SCCS: will fail with error (ad19).
-;;
-;;    We can let these errors be passed up to the user.
-;;
-;; Apparent state B ---
-;;
-;; 5. File looked registered and not locked, but is actually unregistered.
-;;
-;;    Potential cause: master file got nuked during window P.
-;;
-;;    RCS: will fail with "RCS/<file>: No such file or directory"
-;;    SCCS: will fail with error ut4.
-;;
-;;    We can let these errors be passed up to the user.
-;;
-;; 6. File looked registered and not locked, but is actually locked by the
-;; calling user and unchanged.
-;;
-;;    Potential cause: self-race during window T.
-;;
-;;    RCS: in the same directory as the previous workfile, co -l will fail
-;; with "co error: writable foo exists; checkout aborted".  In any other
-;; directory, checkout will succeed.
-;;    SCCS: will fail with ge17.
-;;
-;;    Either of these consequences is acceptable.
-;;
-;; 7. File looked registered and not locked, but is actually locked by the
-;; calling user and changed.
-;;
-;;    As case 6.
-;;
-;; 8. File looked registered and not locked, but is actually locked by another
-;; user.
-;;
-;;    Potential cause: someone else checks it out during window T.
-;;
-;;    RCS: co error: revision 1.3 already locked by <user>
-;;    SCCS: fails with ge4 (in directory) or ut7 (outside it).
-;;
-;;    We can let these errors be passed up to the user.
-;;
-;; Apparent state C ---
-;;
-;; 9. File looks locked by calling user and unchanged, but is unregistered.
-;;
-;;    As case 5.
-;;
-;; 10. File looks locked by calling user and unchanged, but is actually not
-;; locked.
-;;
-;;    Potential cause: a self-race in window U, or by the revert's
-;; landing during window X of some other user's steal-lock or window S
-;; of another user's revert.
-;;
-;;    RCS: succeeds, refreshing the file from the identical version in
-;; the master.
-;;    SCCS: fails with error ut4 (p file nonexistent).
-;;
-;;    Either of these consequences is acceptable.
-;;
-;; 11. File is locked by calling user.  It looks unchanged, but is actually
-;; changed.
-;;
-;;    Potential cause: the file would have to be touched by a self-race
-;; during window Q.
-;;
-;;    The revert will succeed, removing whatever changes came with
-;; the touch.  It is theoretically possible that work could be lost.
-;;
-;; 12. File looks like it's locked by the calling user and unchanged, but
-;; it's actually locked by someone else.
-;;
-;;    Potential cause: a steal-lock in window V.
-;;
-;;    RCS: co error: revision <rev> locked by <user>; use co -r or rcs -u
-;;    SCCS: fails with error un2
-;;
-;;    We can pass these errors up to the user.
-;;
-;; Apparent state D ---
-;;
-;; 13. File looks like it's locked by the calling user and changed, but it's
-;; actually unregistered.
-;;
-;;    Potential cause: master file got nuked during window P.
-;;
-;;    RCS: Prior to version 5.6.4, checks in the user's version as an
-;;         initial delta.  From 5.6.4 onwards, VC uses the new ci -j
-;;         option, failing with message "no such file or directory".
-;;    SCCS: will fail with error ut4.
-;;
-;;    This case is kind of nasty.  Under RCS prior to version 5.6.4,
-;; VC may fail to detect the loss of previous version information.
-;;
-;; 14. File looks like it's locked by the calling user and changed, but it's
-;; actually unlocked.
-;;
-;;    Potential cause: self-race in window V, or the checkin happening
-;; during the window X of someone else's steal-lock or window S of
-;; someone else's revert.
-;;
-;;    RCS: ci will fail with "no lock set by <user>".
-;;    SCCS: delta will fail with error ut4.
-;;
-;; 15. File looks like it's locked by the calling user and changed, but it's
-;; actually locked by the calling user and unchanged.
-;;
-;;    Potential cause: another self-race --- a whole checkin/checkout
-;; sequence by the calling user would have to land in window R.
-;;
-;;    SCCS: checks in a redundant delta and leaves the file unlocked as usual.
-;;    RCS: reverts to the file state as of the second user's checkin, leaving
-;; the file unlocked.
-;;
-;;    It is theoretically possible that work could be lost under RCS.
-;;
-;; 16. File looks like it's locked by the calling user and changed, but it's
-;; actually locked by a different user.
-;;
-;;    RCS: ci error: no lock set by <user>
-;;    SCCS: unget will fail with error un2
-;;
-;;    We can pass these errors up to the user.
-;;
-;; Apparent state E ---
-;;
-;; 17. File looks like it's locked by some other user, but it's actually
-;; unregistered.
-;;
-;;    As case 13.
-;;
-;; 18. File looks like it's locked by some other user, but it's actually
-;; unlocked.
-;;
-;;    Potential cause: someone released a lock during window W.
-;;
-;;    RCS: The calling user will get the lock on the file.
-;;    SCCS: unget -n will fail with cm4.
-;;
-;;    Either of these consequences will be OK.
-;;
-;; 19. File looks like it's locked by some other user, but it's actually
-;; locked by the calling user and unchanged.
-;;
-;;    Potential cause: the other user relinquishing a lock followed by
-;; a self-race, both in window W.
-;;
-;;     Under both RCS and SCCS, both unlock and lock will succeed, making
-;; the sequence a no-op.
-;;
-;; 20. File looks like it's locked by some other user, but it's actually
-;; locked by the calling user and changed.
-;;
-;;     As case 19.
-;;
-;; PROBLEM CASES:
-;;
-;;    In order of decreasing severity:
-;;
-;;    Cases 11 and 15 are the only ones that potentially lose work.
-;; They would require a self-race for this to happen.
-;;
-;;    Case 13 in RCS loses information about previous deltas, retaining
-;; only the information in the current workfile.  This can only happen
-;; if the master file gets nuked in window P.
-;;
-;;    Case 3 in RCS and case 15 under SCCS insert a redundant delta with
-;; no change comment in the master.  This would require a self-race in
-;; window P or R respectively.
-;;
-;;    Cases 2, 10, 19 and 20 do extra work, but make no changes.
-;;
-;;    Unfortunately, it appears to me that no recovery is possible in these
-;; cases.  They don't yield error messages, so there's no way to tell that
-;; a race condition has occurred.
-;;
-;;    All other cases don't change either the workfile or the master, and
-;; trigger command errors which the user will see.
-;;
-;;    Thus, there is no explicit recovery code.
 
 ;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
 ;;; vc.el ends here

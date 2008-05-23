@@ -216,6 +216,7 @@ Obeys the standard process/prefix convention."
 				     (gnus-info-marks
 				      (gnus-get-info "nndraft:queue"))))))
 	     (gnus-posting-styles nil)
+	     message-send-mail-partially-limit
 	     (total (length articles))
 	     article)
 	(while (setq article (pop articles))

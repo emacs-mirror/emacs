@@ -1,13 +1,13 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
-		 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+		 2006, 2007, 2008  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,10 +15,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+/*
    Drew Bliss                   Oct 14, 1993
      Adapted from alarm.c by Tim Fleehart
 */
@@ -622,10 +621,10 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
   p = strrchr (filename, '.');
 
   /* We can only identify DOS .com programs from the extension. */
-  if (p && stricmp (p, ".com") == 0)
+  if (p && xstrcasecmp (p, ".com") == 0)
     *is_dos_app = TRUE;
-  else if (p && (stricmp (p, ".bat") == 0
-		 || stricmp (p, ".cmd") == 0))
+  else if (p && (xstrcasecmp (p, ".bat") == 0
+		 || xstrcasecmp (p, ".cmd") == 0))
     {
       /* A DOS shell script - it appears that CreateProcess is happy to
 	 accept this (somewhat surprisingly); presumably it looks at
@@ -2353,12 +2352,18 @@ the truename of a file can be slow.  */);
 #endif
 
   DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
-	       doc: /* Non-nil means determine accurate link count in `file-attributes'.
-This option is only useful for files on NTFS volumes, where
-hard links are supported.  The default value `local' means only do
-this for files on local harddrives.  Any other non-nil value means do
-this even on remote and removable drives where the performance impact
-may be noticeable even on modern hardware.  */);
+	       doc: /* Non-nil means determine accurate file attributes in `file-attributes'.
+This option controls whether to issue additional system calls to determine
+accurate link counts, file type, and ownership information.  It is only
+useful for files on NTFS volumes, where hard links and file security are
+supported.
+
+Without these system calls, link count will always be reported as 1 and file
+ownership will be attributed to the current user.
+The default value `local' means only issue these system calls for files
+on local fixed drives.  A value of nil means never issue them.
+Any other non-nil value means do this even on remote and removable drives
+where the performance impact may be noticeable even on modern hardware.  */);
   Vw32_get_true_file_attributes = Qlocal;
 
   staticpro (&Vw32_valid_locale_ids);

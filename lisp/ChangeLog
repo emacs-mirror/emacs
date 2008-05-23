@@ -1,3 +1,717 @@
+2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-annotate-time): Reduce memory allocation.
+	(vc-bzr-revision-completion-table): Handle `boundaries' argument.
+
+	* minibuffer.el (completion-boundaries): Change calling convention, so
+	`string' has the same semantics as in try-completion and all-completions.
+	(completion-table-with-context, completion--embedded-envvar-table)
+	(completion--file-name-table, completion-pcm--find-all-completions):
+	Adjust code accordingly.
+
+2008-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode-winprops): Add argument CLEANUP to
+	prune image-mode-winprops-alist, preventing it from growing
+	indefinitely.
+	(image-mode-reapply-winprops): Use it.
+
+2008-05-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/netrc.el (netrc-machine): Always match if the port is not given.
+
+2008-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--find-all-completions):
+	Don't add pseudo-completions.
+
+	* icomplete.el (icomplete-eoinput): Remove.
+	(icomplete-overlay): New var to replace it.
+	(icomplete-tidy): Rewrite.
+	(icomplete-exhibit): Use an overlay.
+	(icomplete-completions): Use completion-all-sorted-completions.
+	Obey completion-ignore-case.
+
+	* files.el (locate-dominating-file): Accept non-existing argument.
+	(project-find-settings-file): Rewrite, using locate-dominating-file.
+
+2008-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (font-weight-table, font-slant-table, font-width-table):
+	Delete them.  Don't call internal-set-font-style-table.
+
+	* international/mule-diag.el (font-show-log): New function.
+
+	* international/fontset.el (script-representative-chars): Add more
+	chars for latin.  Add data for symbol.
+	(setup-default-fontset): Add entries for phonetic, armenian, and symbol.
+
+2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-all-sorted-completions): New var.
+	(completion--flush-all-sorted-completions)
+	(completion-all-sorted-completions): New functions.
+	(minibuffer-force-complete): New command.
+
+2008-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (c-postprocess-file-styles): Declare for compiler.
+
+	* Makefile.in: Allow for parallel byte-compiling.
+	(ELCFILES): New variable.
+	(.el.elc): Remove prerequisites from suffix rule.  Print a message.
+	(compile-first, compile-main, compile-last): New targets.
+	(compile-always): Simplify - delete .elc files, then `make compile'.
+
+	* Makefile.in (compile-calc): Use glob rather than find.
+	($(lisp)/progmodes/cc-mode.elc): Use $@.
+
+	* eshell/esh-module.el: No need for cl when compiling.
+
+	* eshell/eshell.el (eshell-defgroup): New alias.
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/em-xtra.el: Use eshell-defgroup rather than defgroup.
+	Autoload the custom group.  Set generated-autoload-file.
+	* eshell/em-basic.el, eshell/esh-module.el: Require eshell,
+	for eshell-defgroup.
+	* eshell/esh-module.el (eshell-load-defgroups): Remove.
+	Require esh-groups rather than loading it.
+
+2008-05-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-header-line): New variable and new function.
+	(proced-mode): Set header-line-format.
+	(proced-update): Set proced-header-line.
+	(proced-send-signal): Use proced-header-line.
+
+2008-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* macros.el (insert-kbd-macro): Use prin1-char.
+
+2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-boundaries): New function.
+	(completion--some): Delay errors.
+	(complete-with-action, completion-table-with-context):
+	Handle `boundaries' case.
+	(completion--try-word-completion): Avoid partial-completion
+	when the user hasn't entered anything yet.
+	(minibuffer-local-map, minibuffer-local-filename-completion-map)
+	(minibuffer-local-must-match-map, minibuffer-local-completion-map)
+	(minibuffer-local-must-match-filename-map, minibuffer-local-ns-map):
+	Setup default keybindings.
+	(completion--embedded-envvar-re): New var.
+	(completion--embedded-envvar-table): Use it.  Handle `boundaries' case.
+	(completion--file-name-table): Handle `boundaries' case.
+	(completion-pcm--pattern->regex): Avoid pathological backtracking.
+	(completion-pcm--all-completions): Add a `prefix' arg.
+	(completion-pcm--find-all-completions): New function.
+	(completion-pcm-all-completions, completion-pcm-try-completion):
+	Use it.
+
+	* icomplete.el (icomplete-completions): Don't use `predicate' with
+	a table of a different type than `candidates'.
+
+2008-05-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-goal-column): Rename from proced-procname-column.
+	(proced-goal-header-re): Rename from proced-procname-column-regexp.
+	(proced-move-to-goal-column): Rename from proced-move-to-procname.
+	(proced-header-face, proced-header-regexp): Remove.
+	(proced-font-lock-keywords): Remove proced-header-face.
+	(proced-header-alist, proced-sorting-schemes-re): New variables.
+	(proced): Rename Proced buffer to *Proced*.
+	(proced-next-line, proced-previous-line): New commands.
+	(proced-do-mark, proced-do-mark-all, proced-toggle-marks)
+	(proced-hide-processes): Do not treat first line as special.
+	(proced-header-space): New function.
+	(proced-update): Use header-line-format.
+	Initialize proced-header-alist and proced-sorting-schemes-re.
+	Set proced-goal-column.  Include proced-command in mode-name.
+	(proced-send-signal): Use header-line-format for *Marked
+	Processes* buffer.
+	(proced-sort): Restrict minibuffer completion to applicable
+	sorting schemes.
+	(proced-sorting-scheme-p): Use proced-sorting-schemes-re.
+
+2008-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-simple-completing-p):
+	Allow icomplete-with-completion-tables to say "use it everywhere".
+	(icomplete-completions): Obey completion-styles.  Try to accomodate
+	partial-completion style.
+
+2008-05-20  Michael Olson  <mwolson@gnu.org>
+
+	* files.el (project-find-settings-file): Change concat to
+	expand-file-name.
+
+2008-05-19  Tom Tromey  <tromey@redhat.com>
+
+	* files.el (normal-mode): Call hack-project-variables.
+	(hack-local-variables-confirm): Add 'project' argument.
+	(hack-local-variables-apply): New function.
+	(hack-local-variables): Use it.
+	(project-class-alist, project-directory-alist): New variables.
+	(project-get-alist): New function.
+	(project-collect-bindings-from-alist)
+	(project-collect-binding-list, set-directory-project)
+	(project-find-settings-file, project-define-from-project-file)
+	(hack-project-variables): New functions.
+
+2008-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-specs.el (destructuring-bind): Fix spec.
+
+2008-05-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (font-weight-table): Fix typo in docstring.
+
+2008-05-18  David Hull  <david@snap.com>  (tiny change)
+
+	* vc-hg.el (vc-hg-annotate-re): Recognize the output of --follow.
+	(vc-hg-annotate-command): Allow white space before version number.
+
+2008-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-yank.el (calc-register-alist): New variable.
+	(calc-set-register,calc-get-register,calc-copy-to-register)
+	(calc-insert-register,calc-add-to-register,calc-append-to-register)
+	(calc-prepend-to-register): New functions.
+
+	* calc/calc-ext.el (calc-init-extensions): Add keybindings for
+	`calc-copy-to-register' and `calc-insert-register'.
+	Autoload new register functions.
+
+	* calc/calc-help.el (calc-r-prefix-help): Add help for register
+	functions.
+
+2008-05-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (Todo): Add known problems.
+	(vc-dir-backend): New variable.
+	(vc-dir): Set it.
+	(vc-make-backend-object, vc-generic-status-printer)
+	(vc-generic-state, vc-generic-status-fileinfo-extra)
+	(vc-dir-extra-menu): Use it.
+	(vc-generic-dir-headers): Remove, unused.
+
+	* vc-dispatcher.el (vc-dir-previous-directory): Rename from
+	vc-dir-prev-directory for consistency with vc-dir-previous-line.
+	(vc-dir-mode-map): Fix bindings.
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Remove unused binding.
+
+2008-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-yank.el (calc-kill): Make sure that only the stack is
+	operated on.
+	(calc-kill-region): Kill entire lines.
+
+2008-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* ezimage.el (ezimage-use-images): Drop support for Emacs < 21 and
+	simplify initial value.
+	(defezimage): Drop support for Emacs without defimage, use a featurep
+	test rather than fboundp when defining, drop with-no-warnings.
+	(ezimage-insert-over-text): Move featurep test inside
+	add-text-properties.
+
+	* elide-head.el (elide-head-headers-to-hide): Handle GPLv3 format.
+
+	* net/tramp.el (top-level): Load auth-source when compiling.
+
+	* progmodes/fortran.el (fortran-font-lock-keywords-2): Add .eqv., .neqv.
+
+2008-05-17  Andreas Schwab  <schwab@suse.de>
+
+	* vc-dispatcher.el (vc-dir-mode-map): Fix M-down and M-up binding.
+
+2008-05-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-show-diff-revision-at-line): Change
+	vc-diff-internal arg to match what vc-deduce-fileseset returns now.
+
+2008-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* menu-bar.el (menu-bar-select-buffer): Reinsert it as msb.el uses it.
+
+2008-05-17  Jim Meyering  <meyering@redhat.com>
+
+	* ido.el (ido-save-history): Do not emit a trailing newline at the
+	end of the ido history file.
+
+2008-05-16  John Paul Wallington  <jpw@pobox.com>
+
+	* vc-dispatcher.el (top-level): Revert previous change: require cl
+	when compiling.
+
+2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-default-status-printer)
+	(vc-default-prettify-state-info): Enhance the state prettyprinter
+	to deal better with unknown states and indirect through it when
+	painting vc-dir buffers.
+
+2008-05-16  John Paul Wallington  <jpw@pobox.com>
+
+	* vc-dispatcher.el (top-level): Don't require cl when compiling.
+	(vc-dir-mode-map): Fix backquote.
+	(vc-at-event): Doc fix.  Use `make-symbol' instead of `gensym'.
+
+2008-05-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-write-region): Fix check for short track.
+	Reported by Glenn Morris <rgm@gnu.org>.
+
+2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el: Remove my analysis of SCCS/RCS concurrency issues from
+	the end of the file, it was good work at one time but has been
+	stale since 1995 and may now be actively misleading.
+	* vc-cvs.el (vc-cvs-status-extra-headers): Extract and display the
+	CVS repository and module (assumptions for the latter a bit iffy).
+	* vc-svn.el (vc-svn-status-extra-headers): Extract and display the
+	SVN repository.
+
+2008-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-rcs.el (vc-rcs-create-tag):
+	* vc-sccs.el (vc-sccs-create-tag):
+	Fix typo in error message and pass backend arg.
+
+2008-05-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-for-operation): Add `make-temp-name'.
+
+2008-05-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/tramp.el: Load auth-source library.
+	(tramp-read-passwd): Use it for password, not login.
+
+2008-05-15  Shigeru Fukaya  <shugeru.fukaya@gmail.com>
+
+	* ses.el (ses-goto-print): Use move-to-column rather than forward-char.
+	(ses-print-cell): Use string-width, truncate-string-to-width,
+	delete-region rather than length, substring, delete-char.
+	(ses-setup): Set inhibit-point-motion-hooks to t.
+	Calculate position by actually moving point rather than just using
+	unibyte character length.
+	(ses-mode): Set indent-tabs-mode to nil.
+	(ses-center): Use string-width rather than length.
+
+2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-cvs.el, vc-git.el, vc-hg.el, vc-hooks.el, vc-mcvs.el,
+	* vc-rcs.el, vc-sccs.el, vc-svn.el, vc.el:
+	Rename vc-*-create-snapshot and vc-*-retrieve-snapshot to
+	vc-*-create-tag and vc-*-retrieve-tag respectively.
+
+	* vc-dispatcher.el: Fix an incorrect buffer name and remove an
+	unneeded defalias.
+
+	* vc.el, vc-dispatcher.el (vc-dir-menu-map-filter): Move.
+
+	* vc.el, vc-dispatcher.el (vc-dir-menu-map): Remove assumption
+	about buffer names.
+
+2008-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* vc-hooks.el (vc-directory-resynch-file): Fix declaration.
+
+	* org/org-exp.el (org-infojs-options-inbuffer-template):
+	Fix declaration.
+
+	* progmodes/cc-mode.el (declare-function): Add compat definition.
+	(awk-mode-syntax-table, c-awk-unstick-NL-prop): Declare for compiler.
+
+2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el (vc-dispatcher-selection): Change the returned
+	list to a cons so the caller can get back both expanded and
+	unexpanded filesets.
+	* vc.el (vc-deduce-fileseset, vc-next-action, vc-diff-internal)
+	(vc-merge, vc-version-diff, vc-print-log, vc-revert, vc-rollback):
+	Change handling of selection-set returns as required.
+
+2008-05-15  John Paul Wallington  <jpw@pobox.com>
+
+	* add-log.el (top-level): Don't require cl when compiling.
+
+	* arc-mode.el (archive-add-new-member): Use `derived-mode-p'.
+	(archive-*-extract): Use `zerop'
+	(archive-*-write-file-member): Use `or', use `zerop'.
+
+	* diff-mode.el (diff-current-defun): Use `buffer-local-value'.
+
+	* ibuffer.el (ibuffer-assert-ibuffer-mode): New defsubst.
+	(ibuffer-mark-interactive, ibuffer-set-mark)
+	(ibuffer-insert-buffer-line, ibuffer-redisplay-current)
+	(ibuffer-map-lines, ibuffer-switch-format)
+	(ibuffer-update-title-and-summary)
+	(ibuffer-redisplay-engine): Use it.
+
+	* ibuf-ext.el (ibuffer-interactive-filter-by-mode)
+	(ibuffer-set-filter-groups-by-mode, ibuffer-list-buffer-modes)
+	(define-ibuffer-filter mode, define-ibuffer-filter used-mode)
+	(define-ibuffer-sorter major-mode, ibuffer-mark-unsaved-buffers)
+	(ibuffer-mark-read-only-buffers)
+	(ibuffer-mark-dired-buffers): Use `buffer-local-value'.
+
+	* ibuf-macs.el (ibuffer-aif, ibuffer-awhen, ibuffer-save-marks)
+	(define-ibuffer-column, define-ibuffer-sorter)
+	(define-ibuffer-op, define-ibuffer-filter): Add declarations
+	containing indentation specs, replacing equivalent top-level
+	forms that set `lisp-indent-function' properties.
+	(define-ibuffer-op): Use `derived-mode-p'.
+	(define-ibuffer-filter): Remove redundant `concat' call.
+
+2008-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-echo-mark): Update docstring.
+	(tramp-echo-mark-marker): New defconst.
+	(tramp-check-for-regexp): Use it.
+
+2008-05-14  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-deduce-fileset): Do the right thing when visting a
+	buffer (say, a log buffer or diff buffer) with a vc-dir buffer
+	as parent.
+
+2008-05-14  John Paul Wallington  <jpw@pobox.com>
+
+	* international/mule.el (convert-define-charset-argument):
+	Remove period from end of error message.
+	(coding-system-mnemonic): Doc fix.
+	(ctext-pre-write-conversion): Doc fix.
+
+2008-05-14  Simon Marshall  <simon@gnu.org>
+
+	* obsolete/fast-lock.el (fast-lock-cache-directories): Remove "."
+	from its default value and give it the risky-local-variable
+	property (CVE-2008-2142).
+
+2008-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* language/korean.el ("Korean"): Set `iso639-language'
+	property to `ko'.
+
+	* language/japanese.el ("Japanese"): Set `iso639-language'
+	property to `ja'.
+
+	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
+	("Chinese-CNS", "Chinese-EUC-TW", "Chinese-GBK")
+	("Chinese-GB18030"): Set `iso639-language' property to `zh'.
+
+	* international/mule-cmds.el (set-language-environment): Set
+	current-iso639-language
+
+	* international/fontset.el (setup-default-fontset): For kana, han,
+	hangul, and cjk-misc, move an entry with font-spec at the end.
+	(generate-fontset-menu): Exclue fontset-auto* from the list.
+
+	* composite.el (compose-chars-after): Assume that WINDOW is always
+	non-nil.
+
+	* faces.el (font-weight-table, font-slant-table)
+	(font-swidth-table): Declare them by defconst.  Change the format
+	of elements.  Call internal-set-font-style-table after their
+	declaration.
+	(face-valid-attribute-values): Call font-family-list.  Get values
+	for width, weight, and slant from font-xxx-table.
+
+	* cus-face.el (custom-face-attributes): Add "thin" for :weight.
+
+2008-05-13  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-buffer-file-name): New function.
+	(define-ibuffer-column filename): Use it.
+
+	* ibuf-ext.el (define-ibuffer-filter filename): Use it.
+
+2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* talk.el (talk): Simplify.  Pass display arg to talk-add-display
+	as a string.
+	(talk-add-display): Simplify.  Accept only string args.
+
+2008-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-mode-map): Remove old keybinding for `calc-yank'.
+
+2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (bootstrap-prepare): Don't chmod files.
+	(autoloads): Do it here instead, where it's actually needed.
+
+2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tool-bar.el (tool-bar-make-keymap): Account for the optional
+	KEY-BINDING-DATA field in menu-item list.
+
+2008-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-read-dir-and-switches): Move things about to use less
+	recursion during macroexpansion.
+
+	* dired.el (dired-read-dir-and-switches): Use read-file-name.
+
+	* dired.el (dired-read-dir-and-switches): Ignore ., .., and
+	completion-ignored-extension directories if there's something else.
+	(dired-mark-if, dired-map-over-marks, dired-readin, dired-revert)
+	(dired-remember-marks, dired-undo, dired-build-subdir-alist)
+	(dired-internal-do-deletions, dired-mark-files-in-region, dired-mark)
+	(dired-toggle-marks, dired-change-marks, dired-unmark-all-files):
+	buffer-read-only -> inhibit-read-only.
+
+2008-05-12  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-expand-dirs): Stop this function from tossing out
+	explicitly specified files.
+
+2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-apply-resolution-patch): Don't pass nil
+	to `insert'.
+
+2008-05-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-show-diff-revision-at-line): Remove incorrect
+	cons.  Use vc-annotate-backend.
+	(with-vc-file, edit-vc-file): Remove unused macros.
+
+2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail/smtpmail.el: Add autoload for `auth-source-user-or-password'.
+	(smtpmail-try-auth-methods): Use it.
+
+2008-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el (cl-set-nthcdr): Make it a defsubst so that
+	(setf (nthcdr ..) ..) doesn't require CL at runtime.
+
+2008-05-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org/org.el (org-modules): Repair problems with loading org-jsinfo.org.
+
+2008-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-sha1, vc-bzr-command-discarding-stderr)
+	(vc-bzr-revision-completion-table): Use process-file.
+	(vc-bzr-working-revision): Pass relative file names.
+
+	* diff-mode.el (diff-hunk-header-re): Refine the regexp.
+
+2008-05-11  Juri Linkov  <juri@jurta.org>
+
+	* wid-edit.el (widget-image-directory): Change default image data
+	subdirectory from "custom" to "images/custom".
+
+	* info.el (Info-next-preorder): Let-bind `Info-history' to nil
+	before recursive call to `Info-next-preorder' to not add
+	intermediate nodes to the history.
+
+	* isearch.el: Put isearch-scroll property on recenter-top-bottom.
+
+	* emulation/cua-base.el: Put isearch-scroll property
+	on cua-scroll-up and cua-scroll-down.
+
+2008-05-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-hooks.el (vc-recompute-state): Remove (dead code).
+
+2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dispatcher.el (ewoc): Require.
+	(vc-log-edit, vc-buffer-sync): Declare for byte compiler.
+
+	* vc-hg.el (vc-hg-diff, vc-hg-annotate-command): Use when not if.
+
+2008-05-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/w32-win.el (x-colors):
+	* term/mac-win.el (x-colors):
+	* term/x-win.el (x-colors): Re-order colors.
+
+2008-05-10  Reiner Steib  <reiner.steib@gmx.de>
+
+	* smerge-mode.el (smerge-command-prefix): Fix custom type.
+
+2008-05-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-dispatcher.el (vc-dir-next-directory, vc-dir-prev-directory):
+	New functions implementing motion to next and previous directory.
+
+	* vc-arch.el (vc-arch-command):
+	* vc-bzr.el (vc-bzr-command):
+	* vc-cvs.el (vc-cvs-command):
+	* vc-dispatcher.el (vc-do-command):
+	* vc-git.el (vc-git-command):
+	* vc-hg.el (vc-hg-command):
+	* vc-mcvs.el (vc-mvcs-command):
+	* vc-mtn.el (vc-mtn-command):
+	* vc-sccs.el (vc-sccs-command, vc-sccs-workfile)
+	(vc-sccs-workfile-unchanged-p):
+	* vc-svn.el (vc-svn-command, vc-svn-create-repo),
+	* vc-rcs.el (all methods): Remove assumption about what a nil
+	argument to vc-do-command means.  This means no buffer name needs
+	to be hardcoded into the dispatcher layer, and it's better to be
+	explicit anyway.
+
+	* vc-svn.el (vc-svn-dir-state-heuristic): Remove.
+
+2008-05-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Update todo.
+
+	* vc-sccs.el (vc-sccs-dir-status):
+	* vc-rcs.el (vc-rcs-dir-status): Avoid using results from multiple
+	backends and returning up to date files.
+
+	* vc-hooks.el (vc-prefix-map): Remove duplicate binding.
+
+2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-dir):
+	* vc-hooks.el: Tweak the VC directory bindings.  These are now
+	documented in the manual.
+
+	* vc-dispatcher.el (vc-dir-update, vc-dir-parent-marked-p)
+	(vc-dir-children-marked-p): Remove the vc-dir-insert-directories global.
+	(vc-dispatcher-selection-set): Allow callers to pass in an
+	observer flag that says no buffer sync is required.
+	* vc.el (vc-deduce-fileset, vc-print-log, vc-version-diff):
+	Use the observer flag.
+
+2008-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (start-file-process): Clarify docstring.
+
+2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-sccs.el, vc.svn.el, vc-git.el, vc-hg.el, vc-mtn.el:
+	Remove stub implementations of, and references to, wash-log.
+	* vc-rcs.el (vc-rcs-comment-history):
+	* vc-cvs.el (vc-cvs-comment-history):
+	Inline the code that used to be wash-log.
+
+	* vc-sccs.el (vc-sccs-checkin, vc-sccs-checkout, vc-sccs-rollback)
+	(vc-sccs-revert, vc-sccs-steal-lock, vc-sccs-modify-change-comment)
+	(vc-sccs-print-log, vc-sccs-diff): Grok directories.
+	* vc-rcs.el (vc-sccs-checkin, vc-sccs-checkout)
+	(vc-rcs-revert, vc-rcs-steal-lock, vc-rcs-modify-change-comment)
+	(vc-rcs-print-log): Grok directories.
+
+2008-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-mark-resolved): Add `backend' argument.
+	(vc-next-action): Pass it the backend.
+	(vc-next-action, vc-checkout, vc-mark-resolved, vc-version-diff)
+	(vc-merge, vc-rollback, vc-update, vc-transfer-file, vc-delete-file)
+	(vc-default-comment-history, vc-default-create-snapshot)
+	(vc-default-retrieve-snapshot, vc-default-revert, vc-annotate)
+	(vc-annotate-revision-previous-to-line)
+	(vc-annotate-show-diff-revision-at-line, vc-annotate-warp-revision):
+	* vc-svn.el (vc-svn-checkout):
+	* vc-mcvs.el (vc-mcvs-checkout):
+	* vc-hooks.el (vc-state, vc-default-workfile-unchanged-p)
+	(vc-working-revision, vc-before-save, vc-mode-line):
+	Prefer vc-call-backend to vc-call so as not to recompute the backend.
+
+	* vc.el (vc-deduce-fileset): Don't require the checkout-model and the
+	state to be consistent since it's often an unwarranted restriction.
+	Don't return the state either.
+	(vc-next-action): Check that the state is consistent.
+	(vc-diff-internal, vc-version-diff, vc-print-log, vc-revert)
+	(vc-rollback, vc-update): Adapt to new return value of
+	vc-deduce-fileset.
+
+	* vc-dispatcher.el (vc-dispatcher-browsing): Use derived-mode-p.
+	(vc-dir-prepare-status-buffer): Use vc-dispatcher-browsing.
+	(vc-dispatcher-in-fileset-p): New fun.
+	(vc-dispatcher-selection-set): Use it to properly handle directories.
+
+2008-05-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-version-diff, vc-print-log, vc-revert, vc-rollback)
+	(vc-update): Remove unused let bindings.
+
+2008-05-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-deduce-fileset, vc-next-action, vc-version-diff)
+	(vc-diff, vc-revert, vc-rollback, vc-update):
+	* vc-dispatcher.el (vc-dispatcher-selection-set):
+	Get rid of 4 special cases in fileset selection.  This involved
+	changing the return value of (vc-deduce-fileset) so that it passes
+	back a deduced state as well as a deduced back end,
+
+2008-05-08  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-mode-map):  Bind "g" to recompile and "q" to
+	quit-window.
+	* grep.el (grep-mode-map): Use `set-keymap-parent' to connect it
+	to `compilation-minor-mode-map' (instead of an explicit `cons').
+
+2008-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org/org.el (org-modules, org-format-latex-options):
+	* org/org-archive.el (org-archive-stamp-time)
+	(org-archive-save-context-info):
+	* org/org-faces.el (org-hide):
+	* org/org-irc.el (org-irc-parse-link):
+	* org/org-macs.el (org-call-with-arg, org-autoload):
+	* org/org-mew.el (org-mew-store-link):
+	* org/org-remember.el (org-remember-store-without-prompt)
+	(org-remember-templates): Fix typos in docstrings.
+
+	* org/org-info.el (org-info-store-link): Remove leftover docstring.
+
+	* org/org-bbdb.el (org-bbdb-export): Remove leftover docstring.
+	(org-bbdb-anniversary-field, org-bbdb-extract-date-fun)
+	(org-bbdb-anniv-split): Fix typos in docstrings.
+
+	* org/org-publish.el (org-publish-project-alist): Doc fixes.
+	(org-publish-use-timestamps-flag): Reflow docstring.
+	(org-publish-files-alist): Fix typos in docstring.
+
+2008-05-07  Sam Steingold  <sds@gnu.org>
+
+	* pcvs-util.el (cvs-bury-buffer): Revert my patch: quit-window
+	appears to be too aggressive with window removal.
+
+2008-05-08  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-type-font-keywords): Add leda and 0in
+	as pragma keywords.
+	(verilog-pretty-expr): Support lining up assignments which include
+	part selects.
+	(verilog-mode): More portable check for the availability of
+	hideshow support.
+	(verilog-do-indent): Remove special indent for declarations inside
+	a parenthetical list.  The code is ill-advised, and doesn't work
+	given the new user defined types.
+	(verilog-set-auto-endcomments): Enhance function automatic
+	endcomment to support functions that return user defined types.
+	(verilog-mode): Add code to tell which-function-mode minor mode
+	that Verilog supports this feature.
+
+2008-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* epa-file.el: Require epa-hook.
+
+	* loadup.el ("epa-hook"): Load epa-hook instead of epa-file-hook.
+
+	* epa-hook.el: Renamed from epa-file-hook.el, to avoid
+	file-names clashes on 8+3 filesystems.  Provide epa-hook.
+
+	* org/org-jsinfo.el: Renamed from org-infojs.el, to avoid
+	file-names clashes on 8+3 filesystems.
+
 2008-05-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org/org.el (org-read-date-get-relative): Interpret lone
@@ -11338,7 +12052,7 @@
 
 	(allout-region-active-p): Fallback to value of mark-active if
 	neither use-region-p nor region-active-p are present, for
-	compatability with current and recent emacs major releases.
+	compatibility with current and recent Emacs major releases.
 
 2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 

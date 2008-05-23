@@ -1,7 +1,7 @@
 ;;; ezimage --- Generalized Image management
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -33,20 +33,17 @@
 ;;
 ;; This file requires the `image' package if it is available.
 
-(condition-case nil
+(condition-case nil			; for older XEmacs
     (require 'image)
   (error nil))
 
 ;;; Code:
-(defcustom ezimage-use-images
-  (and (or (fboundp 'defimage) ; emacs 21
-	   (fboundp 'make-image-specifier)) ; xemacs
-       (if (fboundp 'display-graphic-p) ; emacs 21
-	   (display-graphic-p)
-	 window-system) ; old emacs & xemacs
-       (or (not (fboundp 'image-type-available-p)) ; xemacs?
-	   (image-type-available-p 'xpm))) ; emacs 21
-  "*Non-nil if ezimage should display icons."
+(defcustom ezimage-use-images (if (featurep 'xemacs)
+				  (and (fboundp 'make-image-specifier)
+				       window-system)
+				(and (display-images-p)
+				     (image-type-available-p 'xpm)))
+  "Non-nil means ezimage should display icons."
   :group 'ezimage
   :version "21.1"
   :type 'boolean)
@@ -54,18 +51,14 @@
 ;;; Create our own version of defimage
 (eval-and-compile
 
-(if (fboundp 'defimage)
-
+(if (featurep 'emacs)
     (progn
-
-(defmacro defezimage (variable imagespec docstring)
-  "Define VARIABLE as an image if `defimage' is not available.
+      (defmacro defezimage (variable imagespec docstring)
+	"Define VARIABLE as an image if `defimage' is not available.
 IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
-  `(progn
-     (defimage ,variable ,imagespec ,docstring)
-     (put (quote ,variable) 'ezimage t)))
-
-;    (defalias 'defezimage 'defimage)
+	`(progn
+	   (defimage ,variable ,imagespec ,docstring)
+	   (put (quote ,variable) 'ezimage t)))
 
 ;; This hack is for the ezimage install which has an icons direcory for
 ;; the default icons to be used.
@@ -75,64 +68,61 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 ;; 		     "icons"))
 
        )
+
+  ;; XEmacs.
   (if (not (fboundp 'make-glyph))
 
-(defmacro defezimage (variable imagespec docstring)
-  "Don't bother loading up an image...
+      (defmacro defezimage (variable imagespec docstring)
+	"Don't bother loading up an image...
 Argument VARIABLE is the variable to define.
 Argument IMAGESPEC is the list defining the image to create.
 Argument DOCSTRING is the documentation for VARIABLE."
-  `(defvar ,variable nil ,docstring))
+	`(defvar ,variable nil ,docstring))
 
-;; ELSE
-(with-no-warnings
-(defun ezimage-find-image-on-load-path (image)
-  "Find the image file IMAGE on the load path."
-  (let ((l (cons
-	    ;; In XEmacs, try the data directory first (for an
-	    ;; install in XEmacs proper.)   Search the load
-	    ;; path next (for user installs)
-	    (locate-data-directory "ezimage")
-	    load-path))
-	(r nil))
-    (while (and l (not r))
-      (if (file-exists-p (concat (car l) "/" image))
-	  (setq r (concat (car l) "/" image))
-	(if (file-exists-p (concat (car l) "/icons/" image))
-	    (setq r (concat (car l) "/icons/" image))
-	  ))
-      (setq l (cdr l)))
-    r))
-);with-no-warnings
+    (defun ezimage-find-image-on-load-path (image)
+      "Find the image file IMAGE on the load path."
+      (let ((l (cons
+		;; In XEmacs, try the data directory first (for an
+		;; install in XEmacs proper.)   Search the load
+		;; path next (for user installs)
+		(locate-data-directory "ezimage")
+		load-path))
+	    (r nil))
+	(while (and l (not r))
+	  (if (file-exists-p (concat (car l) "/" image))
+	      (setq r (concat (car l) "/" image))
+	    (if (file-exists-p (concat (car l) "/icons/" image))
+		(setq r (concat (car l) "/icons/" image))
+	      ))
+	  (setq l (cdr l)))
+	r))
 
-(with-no-warnings
-(defun ezimage-convert-emacs21-imagespec-to-xemacs (spec)
-  "Convert the Emacs21 image SPEC into an XEmacs image spec.
+    (defun ezimage-convert-emacs21-imagespec-to-xemacs (spec)
+      "Convert the Emacs21 image SPEC into an XEmacs image spec.
 The Emacs 21 spec is what I first learned, and is easy to convert."
-  (let* ((sl (car spec))
-	 (itype (nth 1 sl))
-	 (ifile (nth 3 sl)))
-    (vector itype ':file (ezimage-find-image-on-load-path ifile))))
-);with-no-warnings
+      (let* ((sl (car spec))
+	     (itype (nth 1 sl))
+	     (ifile (nth 3 sl)))
+	(vector itype ':file (ezimage-find-image-on-load-path ifile))))
 
-(defmacro defezimage (variable imagespec docstring)
-  "Define VARIABLE as an image if `defimage' is not available.
+    (defmacro defezimage (variable imagespec docstring)
+      "Define VARIABLE as an image if `defimage' is not available.
 IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
-  `(progn
-     (defvar ,variable
-       ;; The Emacs21 version of defimage looks just like the XEmacs image
-       ;; specifier, except that it needs a :type keyword.  If we line
-       ;; stuff up right, we can use this cheat to support XEmacs specifiers.
-       (condition-case nil
-	   (make-glyph
-	    (make-image-specifier
-	     (ezimage-convert-emacs21-imagespec-to-xemacs (quote ,imagespec)))
-	    'buffer)
-	 (error nil))
-       ,docstring)
-     (put ',variable 'ezimage t)))
+      `(progn
+	 (defvar ,variable
+	   ;; The Emacs21 version of defimage looks just like the XEmacs image
+	   ;; specifier, except that it needs a :type keyword.  If we line
+	   ;; stuff up right, we can use this cheat to support XEmacs specifiers.
+	   (condition-case nil
+	       (make-glyph
+		(make-image-specifier
+		 (ezimage-convert-emacs21-imagespec-to-xemacs (quote ,imagespec)))
+		'buffer)
+	     (error nil))
+	   ,docstring)
+	 (put ',variable 'ezimage t)))
 
-)))
+    )))
 
 (defezimage ezimage-directory
   ((:type xpm :file "ezimage/dir.xpm" :ascent center))
@@ -294,17 +284,15 @@ Return STRING with properties applied."
 Assumes the image is part of a GUI and can be clicked on.
 Optional argument STRING is a string upon which to add text properties."
   (when ezimage-use-images
-    (if (featurep 'xemacs)
-	(add-text-properties start end
+    (add-text-properties start end
+			 (if (featurep 'xemacs)
 			     (list 'end-glyph image
 				   'rear-nonsticky (list 'display)
 				   'invisible t
 				   'detachable t)
-			     string)
-      (add-text-properties start end
 			   (list 'display image
-				 'rear-nonsticky (list 'display))
-			   string)))
+				 'rear-nonsticky (list 'display)))
+			 string))
   string)
 
 (defun ezimage-image-association-dump ()
@@ -357,12 +345,10 @@ See `ezimage-expand-image-button-alist' for details."
   "Return a list of all variables containing ez images."
   (let ((ans nil))
     (mapatoms (lambda (sym)
-		(if (get sym 'ezimage) (setq ans (cons sym ans))))
-	      )
+		(if (get sym 'ezimage) (setq ans (cons sym ans)))))
     (setq ans (sort ans (lambda (a b)
 			  (string< (symbol-name a) (symbol-name b)))))
-    ans)
-  )
+    ans))
 
 (provide 'ezimage)
 

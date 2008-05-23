@@ -239,6 +239,9 @@ the tasks accomplished by such tools."
   :version "21.1"
   :group 'applications)
 
+;; This is hack to force make-autoload to put the whole definition
+;; into the autoload file (see esh-module.el).
+(defalias 'eshell-defgroup 'defgroup)
 
 ;;;_* User Options
 ;;

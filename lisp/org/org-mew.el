@@ -69,7 +69,7 @@
 
 ;; Implementation
 (defun org-mew-store-link ()
- "Store a link to a MEW folder or message."
+ "Store a link to a Mew folder or message."
  (when (memq major-mode '(mew-summary-mode mew-virtual-mode))
    (let* ((msgnum (mew-summary-message-number2))
 	   (mark-info (mew-summary-get-mark))

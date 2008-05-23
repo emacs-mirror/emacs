@@ -137,8 +137,10 @@ Entries without port tokens default to DEFAULTPORT."
       (while (and result
 		  (not (netrc-port-equal
 			(or port defaultport "nntp")
+			;; when port is not given in the netrc file,
+			;; it should mean "any port"
 			(or (netrc-get (car result) "port")
-			    defaultport "nntp"))))
+			    defaultport port))))
 	(pop result))
       (car result))))
 
@@ -159,7 +161,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
       (dolist (default defaults)
 	(dolist (port ports)
 	  (let ((alist (netrc-machine authinfo-list machine port default)))
-	  (setq info (or (netrc-get alist mode) info))))))
+	    (setq info (or (netrc-get alist mode) info))))))
     info))
 
 (defun netrc-get (alist type)

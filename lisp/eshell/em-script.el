@@ -1,7 +1,7 @@
 ;;; em-script.el --- Eshell script files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -26,7 +26,8 @@
 
 (require 'eshell)
 
-(defgroup eshell-script nil
+;;;###autoload
+(eshell-defgroup eshell-script nil
   "This module allows for the execution of files containing Eshell
 commands, as a script file."
   :tag "Running script files."
@@ -134,6 +135,10 @@ environment, binding ARGS to $1, $2, etc.")
 (put 'eshell/. 'eshell-no-numeric-conversions t)
 
 (provide 'em-script)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: a346439d-5ba8-4faf-ac2b-3aacfeaa4647
 ;;; em-script.el ends here

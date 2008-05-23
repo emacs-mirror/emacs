@@ -169,7 +169,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
           (unless pop3-leave-mail-on-server
             (pop3-dele process n))
 	  (setq n (+ 1 n))
-	  (if pop3-debug (sit-for 1) (sit-for 0.1))) ; why?
+	  (nnheader-accept-process-output process))
       (when (and pop3-leave-mail-on-server
 		 (> n 1))
 	(message "pop3.el doesn't support UIDL.  Setting `pop3-leave-mail-on-server'

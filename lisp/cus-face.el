@@ -110,7 +110,8 @@
 	     (const :tag "semibold" semi-bold)
 	     (const :tag "semilight" semi-light)
 	     (const :tag "ultralight" ultra-light)
-	     (const :tag "ultrabold" ultra-bold)))
+	     (const :tag "ultrabold" ultra-bold)
+	     (const :tag "thin" thin)))
 
     (:slant
      (choice :tag "Slant"

@@ -1,4 +1,4 @@
-;;; epa-file-hook.el --- preloaded code to enable epa-file.el
+;;; epa-hook.el --- preloaded code to enable epa-file.el
 ;; Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -102,7 +102,7 @@ Return the new status of auto encryption (non-nil means on)."
 (put 'epa-file-handler 'safe-magic t)
 (put 'epa-file-handler 'operations '(write-region insert-file-contents))
 
-(provide 'epa-file-hook)
+(provide 'epa-hook)
 
 ;; arch-tag: f75c8a50-d32e-4eb3-9ec6-9e940c1fc8b5
-;;; epa-file-hook.el ends here
+;;; epa-hook.el ends here

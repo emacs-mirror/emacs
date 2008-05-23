@@ -173,6 +173,23 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (vc-exec-after
    `(vc-svn-after-dir-status (quote ,callback))))
 
+(defun vc-svn-status-extra-headers (dir)
+  "Generate extra status headers for a Subversion working copy."
+  (vc-svn-command "*vc*" 0 nil "info")
+  (let ((repo
+	 (save-excursion 
+	   (and (progn
+		  (set-buffer "*vc*")
+		  (goto-char (point-min))
+		  (re-search-forward "Repository Root: *\\(.*\\)" nil t))
+		(match-string 1)))))
+    (concat
+     (cond (repo
+	    (concat
+	     (propertize "Repository : " 'face 'font-lock-type-face)
+	     (propertize repo 'face 'font-lock-variable-name-face)))
+	   (t "")))))
+
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under SVN, because we
@@ -208,8 +225,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
-  (vc-do-command nil 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command nil 0 "svn" '(".")
+  (vc-do-command "*vc*" 0 "svnadmin" '("create" "SVN"))
+  (vc-do-command "*vc*" 0 "svn" '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
@@ -271,7 +288,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
-    (vc-call update file editable rev (vc-switches 'SVN 'checkout)))
+    (vc-svn-update file editable rev (vc-switches 'SVN 'checkout)))
   (vc-mode-line file)
   (message "Checking out %s...done" file))
 
@@ -389,17 +406,17 @@ or svn+ssh://."
 	;; Repository Root is a local file.
 	(progn
 	  (unless (vc-do-command
-		   nil 0 "svnadmin" nil
+		   "*vc*" 0 "svnadmin" nil
 		   "setlog" "--bypass-hooks" directory 
 		   "-r" rev (format "%s" tempfile))
 	    (error "Log edit failed"))
 	  (delete-file tempfile))
 
       ;; Remote repository, using svn+ssh.
-      (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
+      (unless (vc-do-command "*vc*" 0 "scp" nil "-q" tempfile remotefile)
 	(error "Copy of comment to %s failed" remotefile))
       (unless (vc-do-command
-	       nil 0 "ssh" nil "-q" host
+	       "*vc*" 0 "ssh" nil "-q" host
 	       (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s"
 		       directory rev tempfile tempfile))
 	(error "Log edit failed")))))
@@ -430,11 +447,6 @@ or svn+ssh://."
 		   "-rHEAD:0"))
 	;; Dump log for the entire directory.
 	(vc-svn-command buffer 0 nil "log" "-rHEAD:0")))))
-
-(defun vc-svn-wash-log ()
-  "Remove all non-comment information from log output."
-  ;; FIXME: not implemented for SVN
-  nil)
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."
@@ -470,20 +482,20 @@ or svn+ssh://."
 	(buffer-size (get-buffer buffer)))))
 
 ;;;
-;;; Snapshot system
+;;; Tag system
 ;;;
 
-(defun vc-svn-create-snapshot (dir name branchp)
+(defun vc-svn-create-tag (dir name branchp)
   "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch).
 NAME is assumed to be a URL."
   (vc-svn-command nil 0 dir "copy" name)
-  (when branchp (vc-svn-retrieve-snapshot dir name nil)))
+  (when branchp (vc-svn-retrieve-tag dir name nil)))
 
-(defun vc-svn-retrieve-snapshot (dir name update)
-  "Retrieve a snapshot at and below DIR.
-NAME is the name of the snapshot; if it is empty, do a `svn update'.
+(defun vc-svn-retrieve-tag (dir name update)
+  "Retrieve a tag at and below DIR.
+NAME is the name of the tag; if it is empty, do a `svn update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers.
 NAME is assumed to be a URL."
   (vc-svn-command nil 0 dir "switch" name)
@@ -522,7 +534,7 @@ NAME is assumed to be a URL."
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus vc-svn-program file-or-list
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
          (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
            (append vc-svn-global-switches
@@ -629,10 +641,6 @@ information about FILENAME and return its status."
 	   (vc-file-setprop file 'vc-state 'removed))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
-
-(defun vc-svn-dir-state-heuristic (dir)
-  "Find the SVN state of all files in DIR, using only local information."
-  (vc-svn-dir-state dir 'local))
 
 (defun vc-svn-valid-symbolic-tag-name-p (tag)
   "Return non-nil if TAG is a valid symbolic tag name."

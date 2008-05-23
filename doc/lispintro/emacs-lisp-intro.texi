@@ -1229,8 +1229,8 @@ this case are symbols, separated by whitespace and enclosed by
 parentheses, without any non-Lisp punctuation.)
 
 @need 1250
-In addition, text between double quotation marks---even sentences or
-paragraphs---is an atom.  Here is an example:
+Text between double quotation marks---even sentences or
+paragraphs---is also an atom.  Here is an example:
 @cindex Text between double quotation marks
 
 @smallexample

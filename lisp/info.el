@@ -2526,8 +2526,10 @@ N is the digit argument used to invoke this command."
 	 ;; go up to the end of this node.
 	 (goto-char (point-max))
 	 ;; Since logically we are done with the node with that menu,
-	 ;; move on from it.
-	 (Info-next-preorder))
+	 ;; move on from it.  But don't add intermediate nodes
+	 ;; to the history on recursive calls.
+	 (let (Info-history)
+	   (Info-next-preorder)))
 	(t
 	 (error "No more nodes"))))
 

@@ -87,6 +87,11 @@
 (require 'shell)
 (require 'advice)
 
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (load "auth-source" 'noerror)
+    (require 'auth-source nil 'noerror)))
+
 ;; Requiring 'tramp-cache results in an endless loop.
 (autoload 'tramp-get-file-property "tramp-cache")
 (autoload 'tramp-set-file-property "tramp-cache")
@@ -858,15 +863,18 @@ the info pages.")
      (tramp-set-completion-function
       "fcp" tramp-completion-function-alist-ssh)))
 
+(defconst tramp-echo-mark-marker "_echo"
+  "String marker to surround echoed commands.")
+
 (defconst tramp-echo-mark "_echo\b\b\b\b\b"
   "String mark to be transmitted around shell commands.
 Used to separate their echo from the output they produce.  This
 will only be used if we cannot disable remote echo via stty.
 This string must have no effect on the remote shell except for
 producing some echo which can later be detected by
-`tramp-echoed-echo-mark-regexp'.  Using some characters followed
-by an equal number of backspaces to erase them will usually
-suffice.")
+`tramp-echoed-echo-mark-regexp'.  Using `tramp-echo-mark-marker',
+followed by an equal number of backspaces to erase them will
+usually suffice.")
 
 (defconst tramp-echoed-echo-mark-regexp "_echo\\(\b\\( \b\\)?\\)\\{5\\}"
   "Regexp which matches `tramp-echo-mark' as it gets echoed by
@@ -4178,9 +4186,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	       ;; `file-writable-p' calls 'file-expand-file-name'.  We
 	       ;; cannot use `tramp-run-real-handler' therefore.
 	       (let (file-name-handler-alist)
-		 (file-writable-p (file-name-directory localname))
-		 (or (file-directory-p localname)
-		     (file-writable-p localname))))
+		 (and
+		  (file-writable-p (file-name-directory localname))
+		  (or (file-directory-p localname)
+		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
 	  (tramp-run-real-handler
 	   'write-region
@@ -4422,7 +4431,7 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-file-modtime 'dired-make-compressed-filename
 		  'dired-recursive-delete-directory 'dired-set-file-modtime
 		  'dired-shell-unhandle-file-name 'dired-uucode-file
-		  'insert-file-contents-literally 'recover-file
+		  'insert-file-contents-literally 'make-temp-name 'recover-file
 		  'vm-imap-check-mail 'vm-pop-check-mail 'vm-spool-check-mail))
     (if (file-name-absolute-p (nth 0 args))
 	(nth 0 args)
@@ -5644,6 +5653,7 @@ for process communication also."
 Erase echoed commands if exists."
   (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
+
     ;; Check whether we need to remove echo output.
     (when (and (tramp-get-connection-property proc "check-remote-echo" nil)
 	       (re-search-forward tramp-echoed-echo-mark-regexp nil t))
@@ -5655,8 +5665,13 @@ Erase echoed commands if exists."
 	  (forward-line)
 	  (delete-region begin (point))
 	  (goto-char (point-min)))))
-    ;; No echo to be handled, now we can look for the regexp.
-    (when (not (tramp-get-connection-property proc "check-remote-echo" nil))
+
+    (when (or
+	   ;; No echo to be handled, now we can look for the regexp.
+	   (not (tramp-get-connection-property proc "check-remote-echo" nil))
+	   ;; Sometimes the echo is invisible.
+	   (not (re-search-forward tramp-echo-mark-marker nil t)))
+      (goto-char (point-min))
       (re-search-forward regexp nil t))))
 
 (defun tramp-wait-for-regexp (proc timeout regexp)
@@ -7191,6 +7206,7 @@ ALIST is of the form ((FROM . TO) ...)."
 
 (defun tramp-read-passwd (proc &optional prompt)
   "Read a password from user (compat function).
+Consults the auth-source package.
 Invokes `password-read' if available, `read-passwd' else."
   (let* ((key (tramp-make-tramp-file-name
 	       tramp-current-method tramp-current-user
@@ -7200,12 +7216,24 @@ Invokes `password-read' if available, `read-passwd' else."
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key)))))
-    (if (functionp 'password-read)
-	(let ((password (funcall (symbol-function 'password-read)
-				 pw-prompt key)))
-	  (funcall (symbol-function 'password-cache-add) key password)
-	  password)
-      (read-passwd pw-prompt))))
+
+    (or
+     ;; see if auth-sources contains something useful, if it's bound
+     (when (boundp 'auth-sources)
+       (or
+	;; 1. try with Tramp's current method
+	(auth-source-user-or-password
+	 "password" tramp-current-host tramp-current-method)
+	;; 2. hard-code the method to be "tramp"
+	(auth-source-user-or-password
+	 "password" tramp-current-host "tramp")))
+     ;; 3. else, get the password interactively
+     (if (functionp 'password-read)
+	 (let ((password (funcall (symbol-function 'password-read)
+				  pw-prompt key)))
+	   (funcall (symbol-function 'password-cache-add) key password)
+	   password)
+       (read-passwd pw-prompt)))))
 
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."

@@ -1,7 +1,7 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -49,7 +49,8 @@
 
 (eval-when-compile (require 'eshell))
 
-(defgroup eshell-pred nil
+;;;###autoload
+(eshell-defgroup eshell-pred nil
   "This module allows for predicates to be applied to globbing
 patterns (similar to zsh), in addition to string modifiers which can
 be applied either to globbing results, variable references, or just
@@ -599,6 +600,10 @@ that 'ls -l' will show in the first column of its display. "
 	   (split-string str ,sep))) lst))))
 
 (provide 'em-pred)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
 ;;; em-pred.el ends here

@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -4413,8 +4411,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       /* If status of something has changed, and no input is
 	 available, notify the user of the change right away.  After
 	 this explicit check, we'll let the SIGCHLD handler zap
-	 timeout to get our attention.  */
-      if (update_tick != process_tick && do_display)
+	 timeout to get our attention.  When Emacs is run
+	 interactively, only do this with a nonzero DO_DISPLAY
+	 argument, because status_notify triggers redisplay.  */
+      if (update_tick != process_tick
+	  && (do_display || noninteractive))
 	{
 	  SELECT_TYPE Atemp;
 #ifdef NON_BLOCKING_CONNECT
@@ -6145,7 +6146,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
  got_it:
 
 #define parse_signal(NAME, VALUE)		\
-  else if (!xstricmp (name, NAME))		\
+  else if (!xstrcasecmp (name, NAME))		\
     XSETINT (sigcode, VALUE)
 
   if (INTEGERP (sigcode))

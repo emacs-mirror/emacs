@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -263,7 +261,6 @@ Initialization options:\n\
 \n\
 --batch                     do not do interactive display; implies -q\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
---disable-font-backend      do not use font backend (only if compiled)\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
 --multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
 --no-desktop                do not load a saved desktop\n\
@@ -355,10 +352,10 @@ int fatal_error_in_progress;
 
 void (*fatal_error_signal_hook) P_ ((void));
 
-#ifdef HAVE_GTK_AND_PTHREAD
-/* When compiled with GTK and running under Gnome, multiple threads may be
-   created.  Keep track of our main thread to make sure signals are delivered
-   to it (see syssignal.h).  */
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+/* When compiled with GTK and running under Gnome, or Carbon under Mac
+   OS X, multiple threads may be created.  Keep track of our main
+   thread to make sure signals are delivered to it (see syssignal.h).  */
 
 pthread_t main_thread;
 #endif
@@ -787,9 +784,6 @@ bug_reporting_address ()
   return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
 }
 
-#ifdef USE_FONT_BACKEND
-extern int enable_font_backend;
-#endif	/* USE_FONT_BACKEND */
 
 /* ARGSUSED */
 int
@@ -1038,9 +1032,9 @@ main (argc, argv
 # endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
   main_thread = pthread_self ();
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* FORWARD_SIGNAL_TO_MAIN_THREAD */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate
@@ -1426,13 +1420,6 @@ main (argc, argv
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
-#ifdef USE_FONT_BACKEND
-  enable_font_backend = 1;
-  if (argmatch (argv, argc, "-disable-font-backend", "--disable-font-backend",
-                4, NULL, &skip_args))
-    enable_font_backend = 0;
-#endif	/* USE_FONT_BACKEND */
-
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
      handle this argument entirely in window system dependent code
@@ -1603,8 +1590,8 @@ main (argc, argv
 #endif /* WINDOWSNT */
       syms_of_window ();
       syms_of_xdisp ();
-#ifdef HAVE_WINDOW_SYSTEM
       syms_of_font ();
+#ifdef HAVE_WINDOW_SYSTEM
       syms_of_fringe ();
       syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1660,7 +1647,6 @@ main (argc, argv
       keys_of_buffer ();
       keys_of_keyboard ();
       keys_of_keymap ();
-      keys_of_minibuf ();
       keys_of_window ();
     }
   else
@@ -1819,7 +1805,6 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
-  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },

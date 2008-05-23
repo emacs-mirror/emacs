@@ -1,3 +1,10 @@
+2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-auth.el: Add autoload cookie for
+	`auth-source-user-or-password'.
+	(url-basic-auth, url-digest-auth): Use it with any realm,
+	overriding the user name and password before the prompt.
+
 2008-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-vars.el (url-load-hook): Fix typo in docstring.

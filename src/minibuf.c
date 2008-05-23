@@ -1,14 +1,14 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+                 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+                 2008  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -783,10 +781,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       Lisp_Object histval;
 
       /* If variable is unbound, make it nil.  */
-      if (EQ (SYMBOL_VALUE (Vminibuffer_history_variable), Qunbound))
-	Fset (Vminibuffer_history_variable, Qnil);
 
-      histval = Fsymbol_value (Vminibuffer_history_variable);
+      histval = find_symbol_value (Vminibuffer_history_variable);
+      if (EQ (histval, Qunbound))
+	Fset (Vminibuffer_history_variable, Qnil);
 
       /* The value of the history variable must be a cons or nil.  Other
 	 values are unacceptable.  We silently ignore these values.  */
@@ -1961,7 +1959,28 @@ The arguments STRING and PREDICATE are as in `try-completion',
   if (NILP (flag))
     return Ftry_completion (string, Vbuffer_alist, predicate);
   else if (EQ (flag, Qt))
-    return Fall_completions (string, Vbuffer_alist, predicate, Qt);
+    {
+      Lisp_Object res = Fall_completions (string, Vbuffer_alist, predicate, Qnil);
+      if (SCHARS (string) > 0)
+	return res;
+      else
+	{ /* Strip out internal buffers.  */
+	  Lisp_Object bufs = res;
+	  /* First, look for a non-internal buffer in `res'.  */
+	  while (CONSP (bufs) && SREF (XCAR (bufs), 0) == ' ')
+	    bufs = XCDR (bufs);
+	  if (NILP (bufs))
+	    /* All bufs in `res' are internal, so don't trip them out.  */
+	    return res;
+	  res = bufs;
+	  while (CONSP (XCDR (bufs)))
+	    if (SREF (XCAR (XCDR (bufs)), 0) == ' ')
+	      XSETCDR (bufs, XCDR (XCDR (bufs)));
+	    else
+	      bufs = XCDR (bufs);
+	  return res;
+	}
+    }
   else				/* assume `lambda' */
     return Ftest_completion (string, Vbuffer_alist, predicate);
 }
@@ -2241,42 +2260,6 @@ properties.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
-}
-
-void
-keys_of_minibuf ()
-{
-  initial_define_key (Vminibuffer_local_map, Ctl ('g'),
-		      "abort-recursive-edit");
-  initial_define_key (Vminibuffer_local_map, Ctl ('m'),
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_map, Ctl ('j'),
-		      "exit-minibuffer");
-
-  initial_define_key (Vminibuffer_local_ns_map, ' ',
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_ns_map, '\t',
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_ns_map, '?',
-		      "self-insert-and-exit");
-
-  initial_define_key (Vminibuffer_local_completion_map, '\t',
-		      "minibuffer-complete");
-  initial_define_key (Vminibuffer_local_completion_map, ' ',
-		      "minibuffer-complete-word");
-  initial_define_key (Vminibuffer_local_completion_map, '?',
-		      "minibuffer-completion-help");
-
-  Fdefine_key (Vminibuffer_local_filename_completion_map,
-	       build_string (" "), Qnil);
-
-  initial_define_key (Vminibuffer_local_must_match_map, Ctl ('m'),
-		      "minibuffer-complete-and-exit");
-  initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
-		      "minibuffer-complete-and-exit");
-
-  Fdefine_key (Vminibuffer_local_must_match_filename_map,
-	       build_string (" "), Qnil);
 }
 
 /* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73

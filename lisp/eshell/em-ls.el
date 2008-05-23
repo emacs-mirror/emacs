@@ -1,7 +1,7 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -31,7 +31,8 @@
 (require 'esh-util)
 (require 'esh-opt)
 
-(defgroup eshell-ls nil
+;;;###autoload
+(eshell-defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.  If it is
 passed any unrecognized command switches, it will revert to the
 operating system's version.  This version of \"ls\" uses text
@@ -920,6 +921,10 @@ to use, and each member of which is the width of that column
   (car file))
 
 (provide 'em-ls)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 9295181c-0cb2-499c-999b-89f5359842cb
 ;;; em-ls.el ends here

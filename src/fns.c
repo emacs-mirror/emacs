@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -2209,12 +2207,14 @@ internal_equal (o1, o2, depth, props)
 	if (WINDOW_CONFIGURATIONP (o1))
 	  return compare_window_configurations (o1, o2, 0);
 
-	/* Aside from them, only true vectors, char-tables, and function
-	   vectors are sensible to compare, so eliminate the others now.  */
+	/* Aside from them, only true vectors, char-tables, function vectors,
+	   and fonts (font-spec, font-entity, font-ojbect) are sensible to
+	   compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
 	    if (!(size & (PVEC_FUNVEC
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE)))
+			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE
+			  | PVEC_FONT)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -4260,6 +4260,12 @@ hash_clear (h)
 			   Weak Hash Tables
  ************************************************************************/
 
+void
+init_weak_hash_tables ()
+{
+  weak_hash_tables = NULL;
+}
+
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
    entries from the table that don't survive the current GC.
    REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
@@ -5287,7 +5293,6 @@ both `use-dialog-box' and this variable are non-nil.  */);
 void
 init_fns ()
 {
-  weak_hash_tables = NULL;
 }
 
 /* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31

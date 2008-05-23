@@ -179,7 +179,7 @@ we turn off invisibility temporarily.  Use this in a `let' form."
 (put 'org-let2 'lisp-indent-function 2)
 
 (defsubst org-call-with-arg (command arg)
-  "Call COMMAND interactively, but pretend prefix are was ARG."
+  "Call COMMAND interactively, but pretend prefix arg was ARG."
   (let ((current-prefix-arg arg)) (call-interactively command)))
 
 (defsubst org-current-line (&optional pos)
@@ -194,7 +194,7 @@ we turn off invisibility temporarily.  Use this in a `let' form."
        (>= (match-end n) pos)))
 
 (defun org-autoload (file functions)
-  "Establish autoload for all FUNCTIONS in FILE, if not boutd already."
+  "Establish autoload for all FUNCTIONS in FILE, if not bound already."
   (let ((d (format "Documentation will be available after `%s.el' is loaded."
 		   file))
 	f)

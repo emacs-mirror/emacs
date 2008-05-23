@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
@@ -350,8 +348,9 @@ enum pvec_type
   PVEC_HASH_TABLE = 0x40000,
   PVEC_TERMINAL = 0x80000,
   PVEC_SUB_CHAR_TABLE = 0x100000,
-  PVEC_OTHER = 0x200000,
-  PVEC_TYPE_MASK = 0x2ffe00
+  PVEC_FONT = 0x200000,
+  PVEC_OTHER = 0x400000,
+  PVEC_TYPE_MASK = 0x7ffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
@@ -1001,7 +1000,7 @@ struct Lisp_Symbol
 
 #define SYMBOL_VALUE(sym)			\
    (XSYMBOL (sym)->indirect_variable		\
-    ? XSYMBOL (indirect_variable (sym))->value	\
+    ? indirect_variable (XSYMBOL (sym))->value	\
     : XSYMBOL (sym)->value)
 
 /* Set SYM's value to VAL, taking defvaralias into account.  */
@@ -1009,7 +1008,7 @@ struct Lisp_Symbol
 #define SET_SYMBOL_VALUE(sym, val)				\
      do {							\
        if (XSYMBOL (sym)->indirect_variable)			\
-	 XSYMBOL (indirect_variable ((sym)))->value = (val);	\
+	 indirect_variable (XSYMBOL (sym))->value = (val);	\
        else							\
 	 XSYMBOL (sym)->value = (val);				\
      } while (0)
@@ -2290,7 +2289,7 @@ EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
 
-extern Lisp_Object indirect_variable P_ ((Lisp_Object));
+extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern Lisp_Object long_to_cons P_ ((unsigned long));
 extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
@@ -3002,11 +3001,11 @@ EXFUN (Fread_minibuffer, 2);
 EXFUN (Feval_minibuffer, 2);
 EXFUN (Fread_string, 5);
 EXFUN (Fread_no_blanks_input, 3);
+EXFUN (Fassoc_string, 3);
 extern Lisp_Object get_minibuffer P_ ((int));
 extern void temp_echo_area_glyphs P_ ((Lisp_Object));
 extern void init_minibuf_once P_ ((void));
 extern void syms_of_minibuf P_ ((void));
-extern void keys_of_minibuf P_ ((void));
 
 /* Defined in callint.c */
 

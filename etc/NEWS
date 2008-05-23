@@ -34,9 +34,7 @@ supports local fonts (fonts installed on the machine where Emacs is
 running).  Additionally, the Xft library can be used for antialiasing
 support, the otf library for complex text layout by OpenType fonts,
 and the m17n library for text shaping.  Fontconfig-like font names
-(e.g. monospace-12) are accepted.  The old font handling code can
-be used by passing the configure option `--disable-font-backend'
-(also available as a run-time option).
+(e.g. monospace-12) are accepted.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -66,7 +64,10 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 * Changes in Emacs 23.1
 
 ** Completion.
-*** `completion-style' can be customized to choose your favorite completion.
+*** `completion-styles' can be customized to choose your favorite completion.
+*** The default completion styles include a form of partial-completion.
+*** The new command `minibuffer-force-complete chooses one of the possible
+completions, rather than stopping at the common prefix.
 *** `completion-auto-help' can be set to `lazy' to list the completions only
 if you repeat the completion.  This was already supported in
 `partial-completion-mode'.
@@ -119,6 +120,11 @@ You can embed Emacs in another application on X11.  The new command line option
 --parent-id is used to pass the parent window id to Emacs.  See
 http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
+
+FIXME
+** There is a new frame parameter, alpha.
+This [does something] on [some kind of system] with [some kind of X
+server] and [some kind of window manager].
 
 ** Emacs comes with a new set of default icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
@@ -182,6 +188,9 @@ run processes remotely.
 ** The new command `display-time-world' starts an updating time display
 using several time zones, in a buffer.
 
+** Directory-local variables are now found in .dir-settings.el.  See
+also `set-directory-project' and `define-project-bindings'.
+
 ** The new function `format-seconds' converts a number of seconds into a
 readable string of days, hours, etc.
 
@@ -216,10 +225,6 @@ file or directory.
 This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
-
-** The new command-line option `--disable-font-backend' disables the
-new font backend code at runtime.  This option is not available if
-Emacs was compiled without font-backend support.
 
 ** The abbrev file is no longer read at startup in batch mode.
 
@@ -1160,10 +1165,10 @@ to get the next buffer to search in the series of multiple buffers.
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1171,9 +1176,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to the
-Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
 Local variables:

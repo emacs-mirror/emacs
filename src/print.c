@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -36,6 +34,7 @@ Boston, MA 02110-1301, USA.  */
 #include "intervals.h"
 #include "blockinput.h"
 #include "termhooks.h"		/* For struct terminal.  */
+#include "font.h"
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -2127,6 +2126,34 @@ print_object (obj, printcharfun, escapeflag)
 	  print_string (XFRAME (obj)->name, printcharfun);
 	  sprintf (buf, " 0x%lx", (unsigned long) (XFRAME (obj)));
 	  strout (buf, -1, -1, printcharfun, 0);
+	  PRINTCHAR ('>');
+	}
+      else if (FONTP (obj))
+	{
+	  EMACS_INT i;
+
+	  if (! FONT_OBJECT_P (obj))
+	    {
+	      if (FONT_SPEC_P (obj))
+		strout ("#<font-spec", -1, -1, printcharfun, 0);
+	      else
+		strout ("#<font-entity", -1, -1, printcharfun, 0);
+	      for (i = 0; i < FONT_SPEC_MAX; i++)
+		{
+		  PRINTCHAR (' ');
+		  if (i < FONT_WEIGHT_INDEX || i > FONT_WIDTH_INDEX)
+		    print_object (AREF (obj, i), printcharfun, escapeflag);
+		  else
+		    print_object (font_style_symbolic (obj, i, 0),
+				  printcharfun, escapeflag);
+		}
+	    }
+	  else
+	    {
+	      strout ("#<font-object ", -1, -1, printcharfun, 0);
+	      print_object (AREF (obj, FONT_NAME_INDEX), printcharfun,
+			    escapeflag);
+	    }
 	  PRINTCHAR ('>');
 	}
       else

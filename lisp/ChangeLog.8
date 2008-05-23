@@ -424,8 +424,8 @@
 
 1999-12-15  Kenichi Handa  <handa@etl.go.jp>
 
-	The following changes are for the new composition mechanism.  We
-	have deleted `composition' charset and composite characters,
+	The following changes are for the new composition mechanism.
+	We have deleted `composition' charset and composite characters,
 	instead introduced a special text property `composition'.
 
 	* composite.el: New file.
@@ -436,8 +436,8 @@
 	external libraries.
 	(ps-mule-prologue): Postscript code modified for new composition.
 	(ps-mule-find-wrappoint): New arg COMPOSITION.
-	(ps-mule-plot-string): Delete code for composite characaters.
-	(ps-mule-plot-composition): New funcion.
+	(ps-mule-plot-string): Delete code for composite characters.
+	(ps-mule-plot-composition): New function.
 	(ps-mule-prepare-font-for-components): New function.
 	(ps-mule-plot-components): New function.
 	(ps-mule-composition-prologue-generated): Renamed from
@@ -458,7 +458,7 @@
 	* simple.el (what-cursor-position): Show "(composed)" if the
 	character is composed.
 
-	* international/characters.el: Fix cateogries of Lao symbols.
+	* international/characters.el: Fix categories of Lao symbols.
 
 	* international/fontset.el (vertical-centering-font-regexp):
 	New variable.
@@ -517,7 +517,7 @@
 	with-category-table.
 	(thai-post-read-conversion): Just call thai-compose-region.
 	(thai-pre-write-conversion): Deleted.
-	(thai-composition-function): New funciton.
+	(thai-composition-function): New function.
 
 	* language/tibet-util.el: Most functions rewritten.
 	(tibetan-char-p): Renamed from tibetan-char-examin.

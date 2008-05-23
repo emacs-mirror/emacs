@@ -90,7 +90,7 @@
   ((&rest (symbol sexp)) cl-declarations body))
 
 (def-edebug-spec destructuring-bind
-  (&define cl-macro-list form cl-declarations def-body))
+  (&define cl-macro-list def-form cl-declarations def-body))
 
 ;; Setf
 

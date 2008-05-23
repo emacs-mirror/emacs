@@ -1315,7 +1315,6 @@ Value is an integer which is number of chars to right of prompt.")
 	    (if (listp ido-unc-hosts-cache)
 		(ido-pp 'ido-unc-hosts-cache)
 	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
-	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
 

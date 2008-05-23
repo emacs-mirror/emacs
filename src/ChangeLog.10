@@ -15517,7 +15517,7 @@
 	line is drawn.
 	(XTset_terminal_window): Add static.
 	(x_make_frame_visible): Add UNBLOCK_INPUT.
-	(x_free_frame_resources): New funcion (from xterm.c).
+	(x_free_frame_resources): New function (from xterm.c).
 	(XTread_socket): Call handle_tool_bar_click if mouse up/down event
 	occurs in tool bar area.
 	(mac_initialize_display_info): Remove dpyinfo->n_cbits.

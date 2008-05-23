@@ -74,6 +74,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile
   (let ((load-path
 	 (if (and (boundp 'byte-compile-dest-file)
@@ -1453,6 +1457,10 @@ Key bindings:
 
 (easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands"
 		  (cons "AWK" (c-lang-const c-mode-menu awk)))
+
+;; (require 'cc-awk) brings these in.
+(defvar awk-mode-syntax-table)
+(declare-function c-awk-unstick-NL-prop "cc-awk" ())
 
 (defun awk-mode ()
   "Major mode for editing AWK code.

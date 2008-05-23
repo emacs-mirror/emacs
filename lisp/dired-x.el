@@ -331,7 +331,7 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
       (define-key global-map "\C-x4\C-j" 'dired-jump-other-window)))
 
 
-;;; Install into appropriate hooks.
+;; Install into appropriate hooks.
 
 (add-hook 'dired-mode-hook 'dired-extra-startup)
 (add-hook 'dired-after-readin-hook 'dired-omit-expunge)
@@ -420,7 +420,7 @@ Remove expanded subdir of deleted dir, if any."
 
 ;;; EXTENSION MARKING FUNCTIONS.
 
-;;; Mark files with some extension.
+;; Mark files with some extension.
 (defun dired-mark-extension (extension &optional marker-char)
   "Mark all files with a certain EXTENSION for use in later commands.
 A `.' is *not* automatically prepended to the string entered."
@@ -442,7 +442,7 @@ A `.' is *not* automatically prepended to the string entered."
   (interactive "sFlagging extension: ")
   (dired-mark-extension extension dired-del-marker))
 
-;;; Define some unpopular file extensions.  Used for cleaning and omitting.
+;; Define some unpopular file extensions.  Used for cleaning and omitting.
 
 (defvar dired-patch-unclean-extensions
   '(".rej" ".orig")
@@ -537,8 +537,8 @@ buffer and try again."
 
 ;;; OMITTING.
 
-;;; Enhanced omitting of lines from directory listings.
-;;; Marked files are never omitted.
+;; Enhanced omitting of lines from directory listings.
+;; Marked files are never omitted.
 
 ;; should probably get rid of this and always use 'no-dir.
 ;; sk 28-Aug-1991 09:37
@@ -650,13 +650,13 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
 ;; Compiler does not get fset.
 (declare-function dired-omit-old-add-entry "dired-x")
 
-;;; REDEFINE.
-;;; Redefine dired-aux.el's version of `dired-add-entry'
-;;; Save old defun if not already done:
+;; REDEFINE.
+;; Redefine dired-aux.el's version of `dired-add-entry'
+;; Save old defun if not already done:
 (or (fboundp 'dired-omit-old-add-entry)
     (fset 'dired-omit-old-add-entry (symbol-function 'dired-add-entry)))
 
-;;; REDEFINE.
+;; REDEFINE.
 (defun dired-omit-new-add-entry (filename &optional marker-char relative)
   ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
   ;; files that are going to be omitted anyway.
@@ -689,7 +689,7 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
 
 ;;; VIRTUAL DIRED MODE.
 
-;;; For browsing `ls -lR' listings in a dired-like fashion.
+;; For browsing `ls -lR' listings in a dired-like fashion.
 
 (defalias 'virtual-dired 'dired-virtual)
 (defun dired-virtual (dirname &optional switches)
@@ -811,14 +811,14 @@ Also useful for `auto-mode-alist' like this:
 
 ;;; SMART SHELL.
 
-;;; An Emacs buffer can have but one working directory, stored in the
-;;; buffer-local variable `default-directory'.  A Dired buffer may have
-;;; several subdirectories inserted, but still has but one working directory:
-;;; that of the top level Dired directory in that buffer.  For some commands
-;;; it is appropriate that they use the current Dired directory instead of
-;;; `default-directory', e.g., `find-file' and `compile'.  This is a general
-;;; mechanism is provided for special handling of the working directory in
-;;; special major modes.
+;; An Emacs buffer can have but one working directory, stored in the
+;; buffer-local variable `default-directory'.  A Dired buffer may have
+;; several subdirectories inserted, but still has but one working directory:
+;; that of the top level Dired directory in that buffer.  For some commands
+;; it is appropriate that they use the current Dired directory instead of
+;; `default-directory', e.g., `find-file' and `compile'.  This is a general
+;; mechanism is provided for special handling of the working directory in
+;; special major modes.
 
 ;; It's easier to add to this alist than redefine function
 ;; default-directory while keeping the old information.
@@ -856,22 +856,22 @@ Knows about the special cases in variable `default-directory-alist'."
 
 ;;; LOCAL VARIABLES FOR DIRED BUFFERS.
 
-;;; Brief Description:
+;; Brief Description:
 ;;;
-;;; * `dired-extra-startup' is part of the `dired-mode-hook'.
+;; * `dired-extra-startup' is part of the `dired-mode-hook'.
 ;;;
-;;; * `dired-extra-startup' calls `dired-hack-local-variables'
+;; * `dired-extra-startup' calls `dired-hack-local-variables'
 ;;;
-;;; * `dired-hack-local-variables' checks the value of
+;; * `dired-hack-local-variables' checks the value of
 ;;;   `dired-local-variables-file'
 ;;;
-;;; * Check if `dired-local-variables-file' is a non-nil string and is a
+;; * Check if `dired-local-variables-file' is a non-nil string and is a
 ;;;   filename found in the directory of the Dired Buffer being created.
 ;;;
-;;; * If `dired-local-variables-file' satisfies the above, then temporarily
+;; * If `dired-local-variables-file' satisfies the above, then temporarily
 ;;;   include it in the Dired Buffer at the bottom.
 ;;;
-;;; * Set `enable-local-variables' temporarily to the user variable
+;; * Set `enable-local-variables' temporarily to the user variable
 ;;;   `dired-enable-local-variables' and run `hack-local-variables' on the
 ;;;   Dired Buffer.
 
@@ -914,8 +914,7 @@ dired."
       (message "File `./%s' already exists." dired-local-variables-file)
 
     ;; Create `dired-local-variables-file'.
-    (save-excursion
-      (set-buffer (get-buffer-create " *dot-dired*"))
+    (with-current-buffer (get-buffer-create " *dot-dired*")
       (erase-buffer)
       (insert "Local Variables:\ndired-omit-mode: t\nEnd:\n")
       (write-file dired-local-variables-file)
@@ -928,37 +927,37 @@ dired."
 
 ;;; GUESS SHELL COMMAND.
 
-;;; Brief Description:
+;; Brief Description:
 ;;;
-;;; `dired-do-shell-command' is bound to `!' by dired.el.
+;; `dired-do-shell-command' is bound to `!' by dired.el.
 ;;;
-;;; * Redefine `dired-read-shell-command' so it calls
+;; * Redefine `dired-read-shell-command' so it calls
 ;;;   `dired-guess-shell-command'.
 ;;;
-;;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
+;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
 ;;;    marked files.
 ;;;
-;;; * Parse `dired-guess-shell-alist-user' and
+;; * Parse `dired-guess-shell-alist-user' and
 ;;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
 ;;;   that matches the first file in the file list.
 ;;;
-;;; * If the REGEXP matches all the entries of the file list then evaluate
+;; * If the REGEXP matches all the entries of the file list then evaluate
 ;;;   COMMAND, which is either a string or a Lisp expression returning a
 ;;;   string.  COMMAND may be a list of commands.
 ;;;
-;;; * Return this command to `dired-guess-shell-command' which prompts user
+;; * Return this command to `dired-guess-shell-command' which prompts user
 ;;;   with it.  The list of commands is put into the list of default values.
 ;;;   If a command is used successfully then it is stored permanently in
 ;;;   `dired-shell-command-history'.
 
-;;; Guess what shell command to apply to a file.
+;; Guess what shell command to apply to a file.
 (defvar dired-shell-command-history nil
   "History list for commands that read dired-shell commands.")
 
-;;; Default list of shell commands.
+;; Default list of shell commands.
 
-;;; NOTE: Use `gunzip -c' instead of `zcat' on `.gz' files.  Some do not
-;;; install GNU zip's version of zcat.
+;; NOTE: Use `gunzip -c' instead of `zcat' on `.gz' files.  Some do not
+;; install GNU zip's version of zcat.
 
 (defvar dired-guess-shell-alist-default
   (list
@@ -1203,8 +1202,8 @@ See `dired-guess-shell-alist-user'."
       ;; If we got a return, then return default.
       (if (equal val "") default val))))
 
-;;; REDEFINE.
-;;; Redefine dired-aux.el's version:
+;; REDEFINE.
+;; Redefine dired-aux.el's version:
 (defun dired-read-shell-command (prompt arg files)
   "Read a dired shell command prompting with PROMPT (using read-string).
 ARG is the prefix arg and may be used to indicate in the prompt which
@@ -1305,27 +1304,27 @@ for more info."
 
 ;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
 
-;;; Brief Description:
+;; Brief Description:
 ;;;
-;;; `dired-do-find-marked-files' is bound to `F' by dired-x.el.
+;; `dired-do-find-marked-files' is bound to `F' by dired-x.el.
 ;;;
-;;; * Use `dired-get-marked-files' to collect the marked files in the current
+;; * Use `dired-get-marked-files' to collect the marked files in the current
 ;;;   Dired Buffer into a list of filenames `FILE-LIST'.
 ;;;
-;;; * Pass FILE-LIST to `dired-simultaneous-find-file' all with
+;; * Pass FILE-LIST to `dired-simultaneous-find-file' all with
 ;;;   `dired-do-find-marked-files''s prefix argument NOSELECT.
 ;;;
-;;; * `dired-simultaneous-find-file' runs through FILE-LIST decrementing the
+;; * `dired-simultaneous-find-file' runs through FILE-LIST decrementing the
 ;;;   list each time.
 ;;;
-;;; * If NOSELECT is non-nil then just run `find-file-noselect'  on each
+;; * If NOSELECT is non-nil then just run `find-file-noselect'  on each
 ;;;   element of FILE-LIST.
 ;;;
-;;; * If NOSELECT is nil then calculate the `size' of the window for each file
+;; * If NOSELECT is nil then calculate the `size' of the window for each file
 ;;;   by dividing the `window-height' by length of FILE-LIST.  Thus, `size' is
 ;;;   cognizant of the window-configuration.
 ;;;
-;;; * If `size' is too small abort, otherwise run `find-file' on each element
+;; * If `size' is too small abort, otherwise run `find-file' on each element
 ;;;   of FILE-LIST giving each a window of height `size'.
 
 (defun dired-do-find-marked-files (&optional noselect)
@@ -1387,7 +1386,7 @@ NOSELECT the files are merely found but not selected."
 
 ;;; MISCELLANEOUS COMMANDS.
 
-;;; Run man on files.
+;; Run man on files.
 
 (defun dired-man ()
   "Run man on this file.  Display old buffer if buffer name matches filename.
@@ -1400,14 +1399,14 @@ Uses `man.el' of \\[manual-entry] fame."
                            "Man command: " (list file)))))
     (Man-getpage-in-background file)))
 
-;;; Run Info on files.
+;; Run Info on files.
 
 (defun dired-info ()
   "Run info on this file."
   (interactive)
   (info (dired-get-filename)))
 
-;;; Run mail on mail folders.
+;; Run mail on mail folders.
 
 ;; Avoid compiler warning.
 (eval-when-compile
@@ -1453,8 +1452,8 @@ See also variable `dired-vm-read-only-folders'."
     (fset 'dired-old-find-buffer-nocreate
           (symbol-function 'dired-find-buffer-nocreate)))
 
-;;; REDEFINE.
-;;; Redefines dired.el's version of `dired-find-buffer-nocreate'
+;; REDEFINE.
+;; Redefines dired.el's version of `dired-find-buffer-nocreate'
 (defun dired-find-buffer-nocreate (dirname &optional mode)
   (if (and dired-find-subdir
 	   ;; don't try to find a wildcard as a subdirectory
@@ -1485,33 +1484,31 @@ See also variable `dired-vm-read-only-folders'."
         (setq list (cdr list)))
       more-recent)))
 
-;;; Same thing as `dired-buffers-for-dir' of dired.el? - lrd 11/23/93
-;;; (defun dired-buffers-for-dir-exact (dir)
-;;; ;; Return a list of buffers that dired DIR (a directory or wildcard)
-;;; ;; at top level, or as subdirectory.
-;;; ;; Top level matches must match the wildcard part too, if any.
-;;; ;; The list is in reverse order of buffer creation, most recent last.
-;;; ;; As a side effect, killed dired buffers for DIR are removed from
-;;; ;; dired-buffers.
-;;;   (let ((alist dired-buffers) result elt)
-;;;     (while alist
-;;;       (setq elt (car alist)
-;;;             alist (cdr alist))
-;;;       (let ((buf (cdr elt)))
-;;;         (if (buffer-name buf)
-;;;             ;; Top level must match exactly against dired-directory in
-;;;             ;; case one of them is a wildcard.
-;;;             (if (or (equal dir (save-excursion (set-buffer buf)
-;;;                                                dired-directory))
-;;;                     (assoc dir (save-excursion (set-buffer buf)
-;;;                                                dired-subdir-alist)))
-;;;                 (setq result (cons buf result)))
-;;;           ;; else buffer is killed - clean up:
-;;;           (setq dired-buffers (delq elt dired-buffers)))))
-;;;     result))
+;; Same thing as `dired-buffers-for-dir' of dired.el? - lrd 11/23/93
+;; (defun dired-buffers-for-dir-exact (dir)
+;; ;; Return a list of buffers that dired DIR (a directory or wildcard)
+;; ;; at top level, or as subdirectory.
+;; ;; Top level matches must match the wildcard part too, if any.
+;; ;; The list is in reverse order of buffer creation, most recent last.
+;; ;; As a side effect, killed dired buffers for DIR are removed from
+;; ;; dired-buffers.
+;;   (let ((alist dired-buffers) result elt)
+;;     (while alist
+;;       (setq elt (car alist)
+;;             alist (cdr alist))
+;;       (let ((buf (cdr elt)))
+;;         (if (buffer-name buf)
+;;             ;; Top level must match exactly against dired-directory in
+;;             ;; case one of them is a wildcard.
+;;             (if (or (equal dir (with-current-buffer buf dired-directory))
+;;                     (assoc dir (with-current-buffer buf dired-subdir-alist)))
+;;                 (setq result (cons buf result)))
+;;           ;; else buffer is killed - clean up:
+;;           (setq dired-buffers (delq elt dired-buffers)))))
+;;     result))
 
-;;; REDEFINE.
-;;; Redefines dired.el's version of `dired-initial-position'
+;; REDEFINE.
+;; Redefines dired.el's version of `dired-initial-position'
 (defun dired-initial-position (dirname)
   "Where point should go in a new listing of DIRNAME.
 Point assumed at beginning of new subdir line.
@@ -1627,8 +1624,8 @@ Similarly for `dired-x-find-file-other-window' over `find-file-other-window'.
 If you change this variable after `dired-x.el' is loaded then do
 \\[dired-x-bind-find-file].")
 
-;;; Bind `dired-x-find-file{-other-window}' over wherever
-;;; `find-file{-other-window}' is bound?
+;; Bind `dired-x-find-file{-other-window}' over wherever
+;; `find-file{-other-window}' is bound?
 (defun dired-x-bind-find-file ()
   "Bind `dired-x-find-file' in place of `find-file' \(or reverse\).
 Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
@@ -1655,8 +1652,8 @@ This function is part of `after-init-hook'."
   ;; Clear mini-buffer.
   (message nil))
 
-;;; Now call it so binding is correct and put on `after-init-hook' in case
-;;; user changes binding.
+;; Now call it so binding is correct and put on `after-init-hook' in case
+;; user changes binding.
 (dired-x-bind-find-file)
 (add-hook 'after-init-hook 'dired-x-bind-find-file)
 
@@ -1741,8 +1738,8 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 ;; Fixme: get rid of this later.
 
-;;; This section is provided for reports.  It uses Barry A. Warsaw's
-;;; reporter.el which is bundled with GNU Emacs v19.
+;; This section is provided for reports.  It uses Barry A. Warsaw's
+;; reporter.el which is bundled with GNU Emacs v19.
 
 (defconst dired-x-help-address "bug-gnu-emacs@gnu.org"
   "Address(es) accepting submission of reports on dired-x.el.")

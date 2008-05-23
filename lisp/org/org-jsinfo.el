@@ -1,4 +1,4 @@
-;;; org-infojs.el --- Support for org-info.js Javascript in Org HTML export
+;;; org-jsinfo.el --- Support for org-info.js Javascript in Org HTML export
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
@@ -202,4 +202,4 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 (provide 'org-infojs)
 
 ;; arch-tag: c71d1d85-3337-4817-a066-725e74ac9eac
-;;; org-infojs.el ends here
+;;; org-jsinfo.el ends here

@@ -50,14 +50,14 @@ use the first keyword in its list that means done."
 
 (defcustom org-archive-stamp-time t
   "Non-nil means, add a time stamp to entries moved to an archive file.
-This variable is obsolete and has no effect anymore, instead add ot remove
-`time' from the variablle `org-archive-save-context-info'."
+This variable is obsolete and has no effect anymore, instead add or remove
+`time' from the variable `org-archive-save-context-info'."
   :group 'org-archive
   :type 'boolean)
 
 (defcustom org-archive-save-context-info '(time file olpath category todo itags)
   "Parts of context info that should be stored as properties when archiving.
-When a subtree is moved to an archive file, it looses information given by
+When a subtree is moved to an archive file, it loses information given by
 context, like inherited tags, the category, and possibly also the TODO
 state (depending on the variable `org-archive-mark-done').
 This variable can be a list of any of the following symbols:

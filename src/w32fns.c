@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Added by Kevin Gallo */
 
@@ -62,9 +60,8 @@ Boston, MA 02110-1301, USA.  */
 #include <imm.h>
 #define FILE_NAME_TEXT_FIELD edt1
 
-#ifdef USE_FONT_BACKEND
 #include "font.h"
-#endif
+#include "w32font.h"
 
 void syms_of_w32fns ();
 void globals_of_w32fns ();
@@ -74,7 +71,9 @@ extern double atof ();
 extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
 extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
 extern void w32_free_menu_strings P_ ((HWND));
+#if OLD_FONT
 extern XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
+#endif
 
 extern int quit_char;
 
@@ -342,10 +341,8 @@ extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
 
 /* From w32uniscribe.c  */
-#ifdef USE_FONT_BACKEND
 extern void syms_of_w32uniscribe ();
 extern int uniscribe_available;
-#endif
 
 /* Function prototypes for hourglass support.  */
 static void show_hourglass P_ ((struct frame *));
@@ -4270,7 +4267,6 @@ unwind_create_frame (frame)
   return Qnil;
 }
 
-#ifdef USE_FONT_BACKEND
 static void
 x_default_font_parameter (f, parms)
      struct frame *f;
@@ -4301,7 +4297,6 @@ x_default_font_parameter (f, parms)
     }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
-#endif
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -4444,58 +4439,15 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      /* Perhaps, we must allow frame parameter, say `font-backend',
-	 to specify which font backends to use.  */
-      if (uniscribe_available)
-	register_font_driver (&uniscribe_font_driver, f);
-      register_font_driver (&w32font_driver, f);
+  if (uniscribe_available)
+    register_font_driver (&uniscribe_font_driver, f);
+  register_font_driver (&w32font_driver, f);
 
-      x_default_parameter (f, parameters, Qfont_backend, Qnil,
-			   "fontBackend", "FontBackend", RES_TYPE_STRING);
-    }
-#endif	/* USE_FONT_BACKEND */
-
+  x_default_parameter (f, parameters, Qfont_backend, Qnil,
+		       "fontBackend", "FontBackend", RES_TYPE_STRING);
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    x_default_font_parameter (f, parameters);
-  else
-#endif
-  {
-    Lisp_Object font;
-
-    font = w32_get_arg (parameters, Qfont, "font", "Font", RES_TYPE_STRING);
-
-    BLOCK_INPUT;
-    /* First, try whatever font the caller has specified.  */
-    if (STRINGP (font))
-      {
-        tem = Fquery_fontset (font, Qnil);
-        if (STRINGP (tem))
-          font = x_new_fontset (f, tem);
-        else
-          font = x_new_font (f, SDATA (font));
-      }
-    /* Try out a font which we hope has bold and italic variations.  */
-    if (!STRINGP (font))
-      font = x_new_font (f, "-*-Courier New-normal-r-*-*-*-100-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1");
-    /* If those didn't work, look for something which will at least work.  */
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1");
-    UNBLOCK_INPUT;
-    if (! STRINGP (font))
-      font = build_string ("Fixedsys");
-
-    x_default_parameter (f, parameters, Qfont, font,
-			 "font", "Font", RES_TYPE_STRING);
-  }
-
+  x_default_font_parameter (f, parameters);
   x_default_parameter (f, parameters, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
   /* This defaults to 2 in order to match xterm.  We recognize either
@@ -4683,6 +4635,8 @@ DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
 }
 
 
+#if OLD_FONT
+
 /* Return the charset portion of a font name.  */
 char *
 xlfd_charset_of_font (char * fontname)
@@ -5008,6 +4962,7 @@ w32_unload_font (dpyinfo, font)
       xfree (font);
     }
 }
+#endif	/* OLD_FONT */
 
 /* The font conversion stuff between x and w32 */
 
@@ -5038,16 +4993,16 @@ x_to_w32_weight (lpw)
 {
   if (!lpw) return (FW_DONTCARE);
 
-  if (stricmp (lpw, "heavy") == 0)             return FW_HEAVY;
-  else if (stricmp (lpw, "extrabold") == 0)    return FW_EXTRABOLD;
-  else if (stricmp (lpw, "bold") == 0)         return FW_BOLD;
-  else if (stricmp (lpw, "demibold") == 0)     return FW_SEMIBOLD;
-  else if (stricmp (lpw, "semibold") == 0)     return FW_SEMIBOLD;
-  else if (stricmp (lpw, "medium") == 0)       return FW_MEDIUM;
-  else if (stricmp (lpw, "normal") == 0)       return FW_NORMAL;
-  else if (stricmp (lpw, "light") == 0)        return FW_LIGHT;
-  else if (stricmp (lpw, "extralight") == 0)   return FW_EXTRALIGHT;
-  else if (stricmp (lpw, "thin") == 0)         return FW_THIN;
+  if (xstrcasecmp (lpw, "heavy") == 0)             return FW_HEAVY;
+  else if (xstrcasecmp (lpw, "extrabold") == 0)    return FW_EXTRABOLD;
+  else if (xstrcasecmp (lpw, "bold") == 0)         return FW_BOLD;
+  else if (xstrcasecmp (lpw, "demibold") == 0)     return FW_SEMIBOLD;
+  else if (xstrcasecmp (lpw, "semibold") == 0)     return FW_SEMIBOLD;
+  else if (xstrcasecmp (lpw, "medium") == 0)       return FW_MEDIUM;
+  else if (xstrcasecmp (lpw, "normal") == 0)       return FW_NORMAL;
+  else if (xstrcasecmp (lpw, "light") == 0)        return FW_LIGHT;
+  else if (xstrcasecmp (lpw, "extralight") == 0)   return FW_EXTRALIGHT;
+  else if (xstrcasecmp (lpw, "thin") == 0)         return FW_THIN;
   else
     return FW_DONTCARE;
 }
@@ -5102,7 +5057,7 @@ x_to_w32_charset (lpcs)
   if (NILP (this_entry))
     {
       /* At startup, we want iso8859-1 fonts to come up properly. */
-      if (stricmp (charset, "iso8859-1") == 0)
+      if (xstrcasecmp (charset, "iso8859-1") == 0)
         return ANSI_CHARSET;
       else
         return DEFAULT_CHARSET;
@@ -5506,6 +5461,8 @@ w32_to_all_x_charsets (fncharset)
   }
 }
 
+#if OLD_FONT
+
 /* Get the Windows codepage corresponding to the specified font.  The
    charset info in the font name is used to look up
    w32-charset-to-codepage-alist.  */
@@ -5561,7 +5518,7 @@ w32_codepage_for_font (char *fontname)
   else
     return CP_UNKNOWN;
 }
-
+#endif	/* OLD_FONT */
 
 static BOOL
 w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
@@ -5846,6 +5803,8 @@ x_to_w32_font (lpxstr, lplogfont)
 
   return (TRUE);
 }
+
+#if OLD_FONT
 
 /* Strip the pixel height and point height from the given xlfd, and
    return the pixel height. If no pixel height is specified, calculate
@@ -6524,7 +6483,7 @@ w32_query_font (struct frame *f, char *fontname)
 
   for (i = 0; i < one_w32_display_info.n_fonts ;i++, pfi++)
     {
-      if (stricmp (pfi->name, fontname) == 0) return pfi;
+      if (xstrcasecmp (pfi->name, fontname) == 0) return pfi;
     }
 
   return NULL;
@@ -6560,10 +6519,14 @@ w32_find_ccl_program (fontp)
     }
 }
 
+#endif	/* OLD_FONT */
+
 /* directory-files from dired.c.  */
 Lisp_Object Fdirectory_files P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 
 
+#if OLD_FONT
+
 /* Find BDF files in a specified directory.  (use GCPRO when calling,
    as this calls lisp to get a directory listing).  */
 static Lisp_Object
@@ -6614,6 +6577,7 @@ in the list.  DIRECTORY may be a list of directories.  */)
     }
   return list;
 }
+#endif	/* OLD_FONT */
 
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
@@ -7084,6 +7048,7 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
     error ("Display still has frames on it");
 
   BLOCK_INPUT;
+#if OLD_FONT
   /* Free the fonts in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
@@ -7093,6 +7058,7 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
         xfree (dpyinfo->font_table[i].name);
         w32_unload_font (dpyinfo, dpyinfo->font_table[i].font);
       }
+#endif
   x_destroy_all_bitmaps (dpyinfo);
 
   x_delete_display (dpyinfo);
@@ -7523,56 +7489,16 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      /* Perhaps, we must allow frame parameter, say `font-backend',
-	 to specify which font backends to use.  */
-      register_font_driver (&w32font_driver, f);
+  /* Perhaps, we must allow frame parameter, say `font-backend',
+     to specify which font backends to use.  */
+  register_font_driver (&w32font_driver, f);
 
-      x_default_parameter (f, parms, Qfont_backend, Qnil,
-			   "fontBackend", "FontBackend", RES_TYPE_STRING);
-    }
-#endif	/* USE_FONT_BACKEND */
+  x_default_parameter (f, parms, Qfont_backend, Qnil,
+		       "fontBackend", "FontBackend", RES_TYPE_STRING);
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    x_default_font_parameter (f, parms);
-  else
-#endif	/* USE_FONT_BACKEND */
-  {
-    Lisp_Object font;
-
-    font = w32_get_arg (parms, Qfont, "font", "Font", RES_TYPE_STRING);
-
-    BLOCK_INPUT;
-    /* First, try whatever font the caller has specified.  */
-    if (STRINGP (font))
-      {
-	tem = Fquery_fontset (font, Qnil);
-	if (STRINGP (tem))
-	  font = x_new_fontset (f, tem);
-	else
-	  font = x_new_font (f, SDATA (font));
-      }
-
-    /* Try out a font which we hope has bold and italic variations.  */
-    if (!STRINGP (font))
-      font = x_new_font (f, "-*-Courier New-normal-r-*-*-*-100-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1");
-    /* If those didn't work, look for something which will at least work.  */
-    if (! STRINGP (font))
-      font = x_new_font (f, "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1");
-    UNBLOCK_INPUT;
-    if (! STRINGP (font))
-      font = build_string ("Fixedsys");
-
-    x_default_parameter (f, parms, Qfont, font,
-			 "font", "Font", RES_TYPE_STRING);
-  }
+  x_default_font_parameter (f, parms);
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
@@ -8304,7 +8230,7 @@ in the font selection dialog. */)
   /* Initialize as much of the font details as we can from the current
      default font.  */
   hdc = GetDC (FRAME_W32_WINDOW (f));
-  oldobj = SelectObject (hdc, FRAME_FONT (f)->hfont);
+  oldobj = SelectObject (hdc, FONT_COMPAT (FRAME_FONT (f))->hfont);
   GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
   if (GetTextMetrics (hdc, &tm))
     {
@@ -8996,9 +8922,8 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_fringe_width,
   0, /* x_set_wait_for_wm, */
   x_set_fullscreen,
-#ifdef USE_FONT_BACKEND
-  x_set_font_backend
-#endif
+  x_set_font_backend,
+  0 /* x_set_alpha, */
 };
 
 void
@@ -9395,12 +9320,15 @@ versions of Windows) characters.  */);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_window_exists_p);
+#if OLD_FONT
   defsubr (&Sw32_find_bdf_fonts);
+#endif
   defsubr (&Sw32_battery_status);
 
   defsubr (&Sfile_system_info);
   defsubr (&Sdefault_printer_name);
 
+#if OLD_FONT
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = w32_get_font_info;
 
@@ -9414,6 +9342,7 @@ versions of Windows) characters.  */);
   query_font_func = w32_query_font;
   set_frame_fontset_func = x_set_font;
   get_font_repertory_func = x_get_font_repertory;
+#endif
   check_window_system_func = check_w32;
 
 
@@ -9476,9 +9405,7 @@ globals_of_w32fns ()
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();
 
-#ifdef USE_FONT_BACKEND
   syms_of_w32uniscribe ();
-#endif
 }
 
 #undef abort

@@ -1,7 +1,7 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools revision-control merge diff3 cvs conflict
@@ -158,7 +158,10 @@ Used in `smerge-diff-base-mine' and related functions."
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
   :group 'smerge
-  :type '(choice (string "\e") (string "\C-c^") (string "") string))
+  :type '(choice (const :tag "ESC"   "\e")
+		 (const :tag "C-c ^" "\C-c^" )
+		 (const :tag "none"  "")
+		 string))
 
 (easy-mmode-defmap smerge-mode-map
   `((,smerge-command-prefix . ,smerge-basic-map))
@@ -455,7 +458,7 @@ BUF contains a plain diff between match-1 and match-3."
             (with-current-buffer textbuf
               (forward-line (- startline line))
               (insert "<<<<<<< " name1 "\n" othertext
-                      (if name2 (concat "||||||| " name2 "\n"))
+                      (if name2 (concat "||||||| " name2 "\n") "")
                       "=======\n")
               (forward-line lines)
               (insert ">>>>>>> " name3 "\n")

@@ -36,10 +36,30 @@
 ;; if you want encrypted sources, which is strongly recommended, do
 ;; (require 'epa-file)
 ;; (epa-file-mode)
+;; (setq epa-file-cache-passphrase-for-symmetric-encryption t) ; VERY important
 
 ;; before you put some data in ~/.authinfo.gpg (the default place)
 
+;;; For url-auth authentication (HTTP/HTTPS), you need to use:
+
+;;; machine yourmachine.com:80 port http login testuser password testpass
+
+;;; This will match any realm and authentication method (basic or
+;;; digest).  If you want finer controls, explore the url-auth source
+;;; code and variables.
+
+;;; (Tramp patch pending for this!)
+;;; For tramp authentication, use:
+
+;;; machine yourmachine.com port tramp login testuser password testpass
+
+;;; Note that the port can be scp or ssh, for example, to match only
+;;; those protocols.  When you use port = tramp, you match any Tramp
+;;; protocol.
+
 ;;; Code:
+
+(require 'gnus-util)
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'netrc))
@@ -73,8 +93,7 @@
 		    p)))
 	  auth-source-protocols))
 
-;;; this default will be changed to ~/.authinfo.gpg
-(defcustom auth-sources '((:source "~/.authinfo.enc" :host t :protocol t))
+(defcustom auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t))
   "List of authentication sources.
 
 Each entry is the authentication type with optional properties."
@@ -135,6 +154,9 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
 
 (defun auth-source-user-or-password (mode host protocol)
   "Find user or password (from the string MODE) matching HOST and PROTOCOL."
+  (gnus-message 9 
+		"auth-source-user-or-password: get %s for %s (%s)"
+		mode host protocol)
   (let (found)
     (dolist (choice (auth-source-pick host protocol))
       (setq found (netrc-machine-user-or-password 
@@ -144,6 +166,12 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
 		   (list (format "%s" protocol))
 		   (auth-source-protocol-defaults protocol)))
       (when found
+	(gnus-message 9 
+		      "auth-source-user-or-password: found %s=%s for %s (%s)"
+		      mode 
+		      ;; don't show the password
+		      (if (equal mode "password") "SECRET" found) 
+		      host protocol)
 	(return found)))))
 
 (defun auth-source-protocol-defaults (protocol)

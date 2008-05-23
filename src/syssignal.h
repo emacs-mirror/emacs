@@ -4,10 +4,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,14 +15,18 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern void init_signals P_ ((void));
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#if defined (HAVE_GTK_AND_PTHREAD) || (defined (HAVE_CARBON) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1020)
 #include <pthread.h>
+/* If defined, asynchronous signals delivered to a non-main thread are
+   forwarded to the main thread.  */
+#define FORWARD_SIGNAL_TO_MAIN_THREAD
+#endif
+
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 extern pthread_t main_thread;
 #endif
 
@@ -208,7 +212,7 @@ extern SIGMASKTYPE sigprocmask_set;
 char *strsignal ();
 #endif
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
     if (!pthread_equal (pthread_self (), main_thread))			\
@@ -227,8 +231,8 @@ char *strsignal ();
       }                                                                 \
    } while (0)
 
-#else /* not HAVE_GTK_AND_PTHREAD */
+#else /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
 #define SIGNAL_THREAD_CHECK(signo)
-#endif /* not HAVE_GTK_AND_PTHREAD */
+#endif /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
 /* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
    (do not change this comment) */

@@ -78,6 +78,9 @@
 (autoload 'netrc-get "netrc")
 (autoload 'password-read "password-cache")
 
+(eval-and-compile
+  (autoload 'auth-source-user-or-password "auth-source"))
+
 ;;;
 (defgroup smtpmail nil
   "SMTP protocol for sending mail."
@@ -539,17 +542,26 @@ This is relative to `smtpmail-queue-dir'."
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
-	 (cred (if (stringp smtpmail-auth-credentials)
-		   (let* ((netrc (netrc-parse smtpmail-auth-credentials))
-                          (port-name (format "%s" (or port "smtp")))
-			  (hostentry (netrc-machine netrc host port-name
-                                                    port-name)))
-                     (when hostentry
-                       (list host port
-                             (netrc-get hostentry "login")
-                             (netrc-get hostentry "password"))))
-		 (smtpmail-find-credentials
-		  smtpmail-auth-credentials host port)))
+	 (auth-user (auth-source-user-or-password 
+		     "login" host (or port "smtp")))
+	 (auth-pass (auth-source-user-or-password 
+		     "password" host (or port "smtp")))
+	 (cred (if (and auth-user auth-pass) ; try user-auth-* before netrc-*
+		   (list host port auth-user auth-pass)
+		 ;; else, if auth-source didn't return them...
+		 (if (stringp smtpmail-auth-credentials)
+		     (let* ((netrc (netrc-parse smtpmail-auth-credentials))
+			    (port-name (format "%s" (or port "smtp")))
+			    (hostentry (netrc-machine netrc host port-name
+						      port-name)))
+		       (when hostentry
+			 (list host port
+			       (netrc-get hostentry "login")
+			       (netrc-get hostentry "password"))))
+		   ;; else, try smtpmail-find-credentials since
+		   ;; smtpmail-auth-credentials is not a string
+		   (smtpmail-find-credentials
+		    smtpmail-auth-credentials host port))))
 	 (prompt (when cred (format "SMTP password for %s:%s: "
 				    (smtpmail-cred-server cred)
 				    (smtpmail-cred-port cred))))

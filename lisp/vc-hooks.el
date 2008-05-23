@@ -531,23 +531,19 @@ For registered files, the value returned is one of:
 
 A return of nil from this function means we have no information on the
 status of this file."
-  ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
-  ;; This is potentially a source of backward-compatibility bugs.
+  ;; Note: in Emacs 22 and older, return of nil meant the file was
+  ;; unregistered.  This is potentially a source of
+  ;; backward-compatibility bugs.
 
   ;; FIXME: New (sub)states needed (?):
-  ;; - `conflict' (i.e. `edited' with conflict markers)
-  ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (when (and (> (length file) 0) (vc-backend file))
-	(vc-file-setprop file 'vc-state
-			 (vc-call state-heuristic file)))))
-
-(defun vc-recompute-state (file)
-  "Recompute the version control state of FILE, and return it.
-This calls the possibly expensive function vc-BACKEND-state,
-rather than the heuristic."
-  (vc-file-setprop file 'vc-state (vc-call state file)))
+      (when (> (length file) 0)
+        (let ((backend (vc-backend file)))
+          (when backend
+            (vc-file-setprop
+             file 'vc-state
+             (vc-call-backend backend 'state-heuristic file)))))))
 
 (defsubst vc-up-to-date-p (file)
   "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
@@ -577,26 +573,26 @@ Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
              ;; go to *vc*, not *vc-diff*, since this is an internal call.
-             (vc-call diff (list file) nil nil "*vc*")
+             (vc-call-backend backend 'diff (list file) nil nil "*vc*")
            (wrong-number-of-arguments
             ;; If this error came from the above call to vc-BACKEND-diff,
             ;; try again without the optional buffer argument (for
             ;; backward compatibility).  Otherwise, resignal.
             (if (or (not (eq (cadr err)
                              (indirect-function
-                              (vc-find-backend-function (vc-backend file)
-                                                        'diff))))
+                              (vc-find-backend-function backend 'diff))))
                     (not (eq (caddr err) 4)))
                 (signal (car err) (cdr err))
-              (vc-call diff (list file)))))))
+              (vc-call-backend backend 'diff (list file)))))))
 
 (defun vc-working-revision (file)
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (when (vc-backend file)
-	(vc-file-setprop file 'vc-working-revision
-			 (vc-call working-revision file)))))
+      (let ((backend (vc-backend file)))
+        (when backend
+          (vc-file-setprop file 'vc-working-revision
+                           (vc-call-backend backend 'working-revision file))))))
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
@@ -746,10 +742,10 @@ Before doing that, check if there are any old backups and get rid of them."
       (and (setq backend (vc-backend file))
            (vc-up-to-date-p file)
            (eq (vc-checkout-model backend (list file)) 'implicit)
-           (vc-call make-version-backups-p file)
+           (vc-call-backend backend 'make-version-backups-p file)
            (vc-make-version-backup file)))))
 
-(declare-function vc-directory-resynch-file "vc" (file))
+(declare-function vc-directory-resynch-file "vc-dispatcher" (&optional fname))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
@@ -798,7 +794,7 @@ visiting FILE."
   (let ((backend (vc-backend file)))
     (if (not backend)
 	(setq vc-mode nil)
-      (let* ((ml-string (vc-call mode-line-string file))
+      (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
              (ml-echo (get-text-property 0 'help-echo ml-string)))
         (setq vc-mode
               (concat
@@ -985,15 +981,13 @@ Used in `find-file-not-found-functions'."
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
     (define-key map "m" 'vc-merge)
-    (define-key map "r" 'vc-retrieve-snapshot)
-    (define-key map "s" 'vc-create-snapshot)
+    (define-key map "r" 'vc-retrieve-tag)
+    (define-key map "s" 'vc-create-tag)
     (define-key map "u" 'vc-revert)
     (define-key map "v" 'vc-next-action)
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
-    ;; `vc-dir' is a not-quite-ready replacement for `vc-directory'
-    ;; (define-key map "?" 'vc-dir)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
@@ -1002,12 +996,12 @@ Used in `find-file-not-found-functions'."
   (let ((map (make-sparse-keymap "Version Control")))
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
-    (define-key map [vc-retrieve-snapshot]
-      '(menu-item "Retrieve Snapshot" vc-retrieve-snapshot
-		  :help "Retrieve snapshot"))
-    (define-key map [vc-create-snapshot]
-      '(menu-item "Create Snapshot" vc-create-snapshot
-		  :help "Create Snapshot"))
+    (define-key map [vc-retrieve-tag]
+      '(menu-item "Retrieve Tag" vc-retrieve-tag
+		  :help "Retrieve tagged version or branch"))
+    (define-key map [vc-create-tag]
+      '(menu-item "Create Tag" vc-create-tag
+		  :help "Create version tag"))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate

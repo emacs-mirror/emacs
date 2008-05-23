@@ -1,7 +1,7 @@
 ;;; em-unix.el --- UNIX command aliases
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -38,7 +38,8 @@
 
 (require 'eshell)
 
-(defgroup eshell-unix nil
+;;;###autoload
+(eshell-defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as
 aliases implemented in Lisp.  These include mv, ln, cp, rm, etc.  If
 the user passes arguments which are too complex, or are unrecognized
@@ -1046,6 +1047,10 @@ Show wall-clock time elapsed during execution of COMMAND.")
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
 
 (provide 'em-unix)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 2462edd2-a76a-4cf2-897d-92e9a82ac1c9
 ;;; em-unix.el ends here

@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
@@ -3035,9 +3033,9 @@ check_executable (filename)
 #else
   return (S_ISREG (st.st_mode)
 	  && len >= 5
-	  && (stricmp ((suffix = filename + len-4), ".com") == 0
-	      || stricmp (suffix, ".exe") == 0
-	      || stricmp (suffix, ".bat") == 0)
+	  && (xstrcasecmp ((suffix = filename + len-4), ".com") == 0
+	      || xstrcasecmp (suffix, ".exe") == 0
+	      || xstrcasecmp (suffix, ".bat") == 0)
 	  || (st.st_mode & S_IFMT) == S_IFDIR);
 #endif /* not WINDOWSNT */
 #else /* not DOS_NT */
@@ -6088,43 +6086,6 @@ then any auto-save counts as "recent".  */)
 }
 
 /* Reading and completing file names */
-extern Lisp_Object Ffile_name_completion (), Ffile_name_all_completions ();
-extern Lisp_Object Qcompletion_ignore_case;
-
-/* In the string VAL, change each $ to $$ and return the result.  */
-
-static Lisp_Object
-double_dollars (val)
-     Lisp_Object val;
-{
-  register const unsigned char *old;
-  register unsigned char *new;
-  register int n;
-  int osize, count;
-
-  osize = SBYTES (val);
-
-  /* Count the number of $ characters.  */
-  for (n = osize, count = 0, old = SDATA (val); n > 0; n--)
-    if (*old++ == '$') count++;
-  if (count > 0)
-    {
-      old = SDATA (val);
-      val = make_uninit_multibyte_string (SCHARS (val) + count,
-					  osize + count);
-      new = SDATA (val);
-      for (n = osize; n > 0; n--)
-	if (*old != '$')
-	  *new++ = *old++;
-	else
-	  {
-	    *new++ = '$';
-	    *new++ = '$';
-	    old++;
-	  }
-    }
-  return val;
-}
 
 DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
        Snext_read_file_uses_dialog_p, 0, 0, 0,
@@ -6150,7 +6111,7 @@ Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
   struct gcpro gcpro1, gcpro2;
   Lisp_Object args[7];
 
-  GCPRO2 (insdef, default_filename);
+  GCPRO1 (default_filename);
   args[0] = intern ("read-file-name");
   args[1] = prompt;
   args[2] = dir;

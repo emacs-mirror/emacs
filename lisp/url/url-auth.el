@@ -26,6 +26,9 @@
 (require 'url-parse)
 (autoload 'url-warn "url")
 
+(eval-and-compile
+  (autoload 'auth-source-user-or-password "auth-source"))
+
 (defsubst url-auth-user-prompt (url realm)
   "String to usefully prompt for a username."
   (concat "Username [for "
@@ -64,6 +67,7 @@ instead of the filename inheritance method."
 		   (url-generic-parse-url url)
 		 url))
 	 (server (url-host href))
+	 (type (url-type href))
 	 (port (url-port href))
 	 (file (url-filename href))
 	 (user (url-user href))
@@ -79,9 +83,13 @@ instead of the filename inheritance method."
 				  (symbol-value url-basic-auth-storage))))
     (cond
      ((and prompt (not byserv))
-      (setq user (read-string (url-auth-user-prompt url realm)
-			      (or user (user-real-login-name)))
-	    pass (read-passwd "Password: " nil (or pass "")))
+      (setq user (or 
+		  (auth-source-user-or-password "login" server type)
+		  (read-string (url-auth-user-prompt url realm)
+			       (or user (user-real-login-name))))
+	    pass (or 
+		  (auth-source-user-or-password "password" server type)
+		  (read-passwd "Password: " nil (or pass ""))))
       (set url-basic-auth-storage
 	   (cons (list server
 		       (cons file
@@ -103,9 +111,13 @@ instead of the filename inheritance method."
 	    (setq byserv (cdr byserv))))
       (if (or (and (not retval) prompt) overwrite)
 	  (progn
-	    (setq user (read-string (url-auth-user-prompt url realm)
-				    (user-real-login-name))
-		  pass (read-passwd "Password: ")
+	    (setq user (or 
+			(auth-source-user-or-password "login" server type)
+			(read-string (url-auth-user-prompt url realm)
+				     (user-real-login-name)))
+		  pass (or 
+			(auth-source-user-or-password "password" server type)
+			(read-passwd "Password: "))
 		  retval (base64-encode-string (format "%s:%s" user pass))
 		  byserv (assoc server (symbol-value url-basic-auth-storage)))
 	    (setcdr byserv
@@ -150,6 +162,7 @@ instead of hostname:portnum."
 		       (url-generic-parse-url url)
 		     url))
 	     (server (url-host href))
+	     (type (url-type href))
 	     (port (url-port href))
 	     (file (url-filename href))
 	     user pass byserv retval data)
@@ -161,9 +174,13 @@ instead of hostname:portnum."
 	      byserv (cdr-safe (assoc server url-digest-auth-storage)))
 	(cond
 	 ((and prompt (not byserv))
-	  (setq user (read-string (url-auth-user-prompt url realm)
-				  (user-real-login-name))
-		pass (read-passwd "Password: ")
+	  (setq user (or
+		      (auth-source-user-or-password "login" server type)
+		      (read-string (url-auth-user-prompt url realm)
+				   (user-real-login-name)))
+		pass (or
+		      (auth-source-user-or-password "password" server type)
+		      (read-passwd "Password: "))
 		url-digest-auth-storage
 		(cons (list server
 			    (cons file
@@ -188,9 +205,13 @@ instead of hostname:portnum."
 		(setq byserv (cdr byserv))))
 	  (if overwrite
 	      (if (and (not retval) prompt)
-		  (setq user (read-string (url-auth-user-prompt url realm)
-					  (user-real-login-name))
-			pass (read-passwd "Password: ")
+		  (setq user (or 
+			      (auth-source-user-or-password "login" server type)
+			      (read-string (url-auth-user-prompt url realm)
+					   (user-real-login-name)))
+			pass (or 
+			      (auth-source-user-or-password "password" server type)
+			      (read-passwd "Password: "))
 			retval (setq retval
 				     (cons user
 					   (url-digest-auth-create-key

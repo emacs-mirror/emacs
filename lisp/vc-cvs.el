@@ -492,10 +492,9 @@ Will fail unless you have administrative privileges on the repo."
    (if (vc-stay-local-p files) 'async 0)
    files "log"))
 
-(defun vc-cvs-wash-log ()
-  "Remove all non-comment information from log output."
-  (vc-call-backend 'RCS 'wash-log)
-  nil)
+(defun vc-cvs-comment-history (file)
+  "Get comment history of a file."
+  (vc-call-backend 'RCS 'comment-history file))
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
@@ -623,19 +622,19 @@ systime, or nil if there is none."
       nil)))
 
 ;;;
-;;; Snapshot system
+;;; Tag system
 ;;;
 
-(defun vc-cvs-create-snapshot (dir name branchp)
+(defun vc-cvs-create-tag (dir name branchp)
   "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
   (vc-cvs-command nil 0 dir "tag" "-c" (if branchp "-b") name)
   (when branchp (vc-cvs-command nil 0 dir "update" "-r" name)))
 
-(defun vc-cvs-retrieve-snapshot (dir name update)
-  "Retrieve a snapshot at and below DIR.
-NAME is the name of the snapshot; if it is empty, do a `cvs update'.
+(defun vc-cvs-retrieve-tag (dir name update)
+  "Retrieve a tag at and below DIR.
+NAME is the name of the tag; if it is empty, do a `cvs update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers."
   (with-current-buffer (get-buffer-create "*vc*")
     (let ((default-directory dir)
@@ -696,7 +695,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
   "A wrapper around `vc-do-command' for use in vc-cvs.el.
 The difference to vc-do-command is that this function always invokes `cvs',
 and that it passes `vc-cvs-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "cvs" files
+  (apply 'vc-do-command (or buffer "*vc*") okstatus "cvs" files
          (if (stringp vc-cvs-global-switches)
              (cons vc-cvs-global-switches flags)
            (append vc-cvs-global-switches
@@ -922,18 +921,50 @@ state."
   (vc-exec-after
    `(vc-cvs-after-dir-status (quote ,update-function))))
 
+(defun vc-cvs-file-to-string (file)
+  "Read the content of FILE and return it as a string."
+  (condition-case nil
+      (with-temp-buffer
+	(insert-file-contents file)
+	(goto-char (point-min))
+	(buffer-substring (point) (point-max)))
+    (file-error nil)))
+
 (defun vc-cvs-status-extra-headers (dir)
-  (concat
-   ;; FIXME: see how PCL-CVS gets the data to print all these
-   (propertize "Module     : " 'face 'font-lock-type-face)
-   (propertize "ADD CODE TO PRINT THE MODULE\n"
-	       'face 'font-lock-warning-face)
-   (propertize "Repository : " 'face 'font-lock-type-face)
-   (propertize "ADD CODE TO PRINT THE REPOSITORY\n"
-	       'face 'font-lock-warning-face)
-   (propertize "Branch     : " 'face 'font-lock-type-face)
-   (propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
-	       'face 'font-lock-warning-face)))
+  "Extract and represent per-directory properties of a CVS working copy."
+  (let ((repo
+	 (condition-case nil
+	     (with-temp-buffer
+	       (insert-file-contents "CVS/Root")
+	       (goto-char (point-min))
+	       (and (looking-at ":ext:") (delete-char 5))
+	       (buffer-substring (point) (point-max)))
+	   (file-error nil)))
+	(module
+	 (condition-case nil
+	     (with-temp-buffer
+	       (insert-file-contents "CVS/Repository")
+	       (goto-char (point-min))
+	       (re-search-forward "[^/]*" nil t)
+	       (concat (match-string 0) "\n"))
+	   (file-error nil))))
+    (concat
+     (cond (module
+	    (concat
+	      (propertize "Module:      " 'face 'font-lock-type-face)
+	      (propertize module 'face 'font-lock-variable-name-face)))
+	   (t ""))
+     (cond (repo
+	    (concat
+	      (propertize "Repository:   " 'face 'font-lock-type-face)
+	      (propertize repo 'face 'font-lock-variable-name-face)))
+	   (t ""))
+     ;; In CVS, branch is a per-file property, not a per-directory property.  We 
+     ;; can't really do this here without making dangerous assumptions. 
+     ;;(propertize "Branch:     " 'face 'font-lock-type-face)
+     ;;(propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
+     ;;	 'face 'font-lock-warning-face)
+     )))
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.

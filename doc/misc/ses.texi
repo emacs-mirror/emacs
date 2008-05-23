@@ -945,7 +945,8 @@ cell.
 Coding by:
 @quotation
 Jonathan Yavner @email{jyavner@@member.fsf.org}@*
-Stefan Monnier @email{monnier@@gnu.org}
+Stefan Monnier @email{monnier@@gnu.org}@*
+Shigeru Fukaya @email{shigeru.fukaya@@gmail.com}
 @end quotation
 
 @noindent

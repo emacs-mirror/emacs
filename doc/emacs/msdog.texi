@@ -172,11 +172,23 @@ backslash, and also knows about drive letters in file names.
 default ignores letter-case in file names during completion.
 
 @vindex w32-get-true-file-attributes
-  If the variable @code{w32-get-true-file-attributes} is
-non-@code{nil} (the default), Emacs tries to determine the accurate
-link counts for files.  This option is only useful on NTFS volumes,
-and it considerably slows down Dired and other features, so disable it
-on slow machines.
+  The variable @code{w32-get-true-file-attributes} controls whether
+Emacs should issue additional system calls to determine more
+accurately file attributes in primitives like @code{file-attributes}
+and @code{directory-files-and-attributes}.  These additional calls are
+needed to report correct file ownership, link counts and file types
+for special files such as pipes.  Without these system calls, file
+ownership will be attributed to the current user, link counts will be
+always reported as 1, and special files will be reported as regular
+files.
+
+  If the value of this variable is @code{local} (the default), Emacs
+will issue these additional system calls only for files on local fixed
+drives.  Any other non-@code{nil} value means do this even for
+removable and remote volumes, where this could potentially slow down
+Dired and other related features.  The value of @code{nil} means never
+issue those system calls.  Non-@code{nil} values are only useful on
+NTFS volumes, which support hard links and file security.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows

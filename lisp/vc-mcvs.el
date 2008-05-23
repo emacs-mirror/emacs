@@ -48,7 +48,7 @@
 
 ;;; Bugs:
 
-;; - Retrieving snapshots doesn't filter `cvs update' output and thus
+;; - Retrieving tags doesn't filter `cvs update' output and thus
 ;;   parses bogus filenames.  Don't know if it harms.
 
 ;;; Code:
@@ -312,7 +312,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 (defun vc-mcvs-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
-    (vc-call update file editable rev (vc-switches 'MCVS 'checkout)))
+    (vc-mcvs-update file editable rev (vc-switches 'MCVS 'checkout)))
   (vc-mode-line file)
   (message "Checking out %s...done" file))
 
@@ -461,10 +461,10 @@ Optional arg REVISION is a revision to annotate from."
 (defalias 'vc-mcvs-annotate-time 'vc-cvs-annotate-time)
 
 ;;;
-;;; Snapshot system
+;;; Tag system
 ;;;
 
-(defun vc-mcvs-create-snapshot (dir name branchp)
+(defun vc-mcvs-create-tag (dir name branchp)
   "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
@@ -473,9 +473,9 @@ workspace is immediately moved to that new branch)."
     (vc-mcvs-command nil 0 dir "branch" name)
     (vc-mcvs-command nil 0 dir "switch" name)))
 
-(defun vc-mcvs-retrieve-snapshot (dir name update)
-  "Retrieve a snapshot at and below DIR.
-NAME is the name of the snapshot; if it is empty, do a `cvs update'.
+(defun vc-mcvs-retrieve-tag (dir name update)
+  "Retrieve a tag at and below DIR.
+NAME is the name of the tag; if it is empty, do a `cvs update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers."
   (with-current-buffer (get-buffer-create "*vc*")
     (let ((default-directory dir)
@@ -533,13 +533,13 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
 			(append vc-mcvs-global-switches flags)))))
     (if (not (member (car flags) '("diff" "log" "status")))
 	;; No need to filter: do it the easy way.
-	(apply 'vc-do-command buffer okstatus "mcvs" file args)
+	(apply 'vc-do-command (or buffer "*vc*") okstatus "mcvs" file args)
       ;; We need to filter the output.
       ;; The output of the filter uses filenames relative to the root,
       ;; so we need to change the default-directory.
       ;; (assert (equal default-directory (vc-mcvs-root file)))
       (vc-do-command
-       buffer okstatus "sh" nil "-c"
+       (or buffer "*vc*") okstatus "sh" nil "-c"
        (concat "mcvs "
 	       (mapconcat
 		'shell-quote-argument

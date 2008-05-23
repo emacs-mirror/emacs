@@ -117,9 +117,9 @@ icompletion is occurring."
 
 ;;;_ + Internal Variables
 ;;;_  = icomplete-eoinput nil
-(defvar icomplete-eoinput nil
-  "Point where minibuffer input ends and completion info begins.")
-(make-variable-buffer-local 'icomplete-eoinput)
+(defvar icomplete-overlay (make-overlay (point-min) (point-min) nil t t)
+  "Overlay used to display the list of completions.")
+
 ;;;_  = icomplete-pre-command-hook
 (defvar icomplete-pre-command-hook nil
   "Incremental-minibuffer-completion pre-command-hook.
@@ -189,6 +189,7 @@ Conditions are:
        (not executing-kbd-macro)
        minibuffer-completion-table
        (or (not (functionp minibuffer-completion-table))
+           (eq icomplete-with-completion-tables t)
            (member minibuffer-completion-table
                    icomplete-with-completion-tables))))
 
@@ -214,15 +215,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   "Remove completions display \(if any) prior to new user input.
 Should be run in on the minibuffer `pre-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
-  (when (and icomplete-mode icomplete-eoinput)
-
-    (unless (>= icomplete-eoinput (point-max))
-      (let ((buffer-undo-list t) ; prevent entry
-	    deactivate-mark)
-	(delete-region icomplete-eoinput (point-max))))
-
-    ;; Reestablish the safe value.
-    (setq icomplete-eoinput nil)))
+  (delete-overlay icomplete-overlay))
 
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
@@ -232,9 +225,6 @@ and `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
     (save-excursion
       (goto-char (point-max))
-      ;; Register the end of input, so we know where the extra stuff
-      ;; (match-status info) begins:
-      (setq icomplete-eoinput (point))
                                         ; Insert the match-status information:
       (if (and (> (point-max) (minibuffer-prompt-end))
 	       buffer-undo-list		; Wait for some user input.
@@ -249,16 +239,21 @@ and `minibuffer-setup-hook'."
 		;; embarking on computing completions:
 		(sit-for icomplete-compute-delay)))
 	  (let ((text (while-no-input
-			(list
 			 (icomplete-completions
 			  (field-string)
 			  minibuffer-completion-table
 			  minibuffer-completion-predicate
-			  (not minibuffer-completion-confirm)))))
+                         (not minibuffer-completion-confirm))))
 		(buffer-undo-list t)
 		deactivate-mark)
 	    ;; Do nothing if while-no-input was aborted.
-	    (if (consp text) (insert (car text))))))))
+	    (when (stringp text)
+              (move-overlay icomplete-overlay (point) (point) (current-buffer))
+              ;; The current C cursor code doesn't know to use the overlay's
+              ;; marker's stickiness to figure out whether to place the cursor
+              ;; before or after the string, so let's spoon-feed it the pos.
+              (put-text-property 0 1 'cursor t text)
+              (overlay-put icomplete-overlay 'after-string text)))))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)
@@ -280,44 +275,76 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  (let ((comps (all-completions name candidates predicate))
-                                        ; "-determined" - only one candidate
-        (open-bracket-determined (if require-match "(" "["))
-        (close-bracket-determined (if require-match ")" "]")))
+  (let* ((comps (completion-all-sorted-completions))
+         (last (if (consp comps) (last comps)))
+         (base-size (cdr last))
+         (open-bracket (if require-match "(" "["))
+         (close-bracket (if require-match ")" "]")))
     ;; `concat'/`mapconcat' is the slow part.  With the introduction of
     ;; `icomplete-prospects-length', there is no need for `catch'/`throw'.
-    (if (null comps) (format " %sNo matches%s"
-			     open-bracket-determined
-			     close-bracket-determined)
-      (let* ((most-try (try-completion name (mapcar (function list) comps)))
-	     (most (if (stringp most-try) most-try (car comps)))
-	     (most-len (length most))
-	     (determ (and (> most-len (length name))
-			  (concat open-bracket-determined
-				  (substring most (length name))
-				  close-bracket-determined)))
+    (if (not (consp comps))
+        (format " %sNo matches%s" open-bracket close-bracket)
+      (if last (setcdr last nil))
+      (let* ((most-try
+              (if (and base-size (> base-size 0))
+                  (completion-try-completion
+                   name candidates predicate (length name))
+                ;; If the `comps' are 0-based, the result should be
+                ;; the same with `comps'.
+                (completion-try-completion
+                 name comps nil (length name))))
+	     (most (if (consp most-try) (car most-try)
+                     (if most-try (car comps) "")))
+             ;; Compare name and most, so we can determine if name is
+             ;; a prefix of most, or something else.
+	     (compare (compare-strings name nil nil
+				       most nil nil completion-ignore-case))
+	     (determ (unless (or (eq t compare) (eq t most-try)
+				 (= (setq compare (1- (abs compare)))
+				    (length most)))
+		       (concat open-bracket
+			       (cond
+				((= compare (length name))
+                                 ;; Typical case: name is a prefix.
+				 (substring most compare))
+				((< compare 5) most)
+				(t (concat "..." (substring most compare))))
+			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
 	     (prospects-len (+ (length determ) 6)) ;; take {,...} into account
+             (prefix-len
+              ;; Find the common prefix among `comps'.
+	      (if (eq t (compare-strings (car comps) nil (length most)
+					 most nil nil completion-ignore-case))
+                  ;; Common case.
+		  (length most)
+                ;; Else, use try-completion.
+		(let ((comps-prefix (try-completion "" comps)))
+                  (and (stringp comps-prefix)
+                       (length comps-prefix)))))
+
 	     prospects most-is-exact comp limit)
-	(if (eq most-try t)
+	(if (eq most-try t) ;; (or (null (cdr comps))
 	    (setq prospects nil)
 	  (while (and comps (not limit))
-	    (setq comp (substring (car comps) most-len)
+	    (setq comp
+                  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))
 		  (t (setq prospects-len (+ (length comp) 1 prospects-len))
 		     (if (< prospects-len icomplete-prospects-length)
-			 (setq prospects (cons comp prospects))
+			 (push comp prospects)
 		       (setq limit t))))))
+        ;; Restore the base-size info, since completion-all-sorted-completions
+        ;; is cached.
+        (if last (setcdr last base-size))
 	(if prospects
 	    (concat determ
 		    "{"
 		    (and most-is-exact ",")
-		    (mapconcat 'identity
-			       (sort prospects (function string-lessp))
-			       ",")
-		    (and comps ",...")
+		    (mapconcat 'identity (nreverse prospects) ",")
+		    (and limit ",...")
 		    "}")
 	  (concat determ
 		  " [Matched"
@@ -327,10 +354,10 @@ are exhibited within the square braces.)"
 		    (if keys (concat "; " keys) ""))
 		  "]"))))))
 
-;;;_* Local emacs vars.
-;;;Local variables:
-;;;allout-layout: (-2 :)
-;;;End:
+;;_* Local emacs vars.
+;;Local variables:
+;;allout-layout: (-2 :)
+;;End:
 
 ;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
 ;;; icomplete.el ends here

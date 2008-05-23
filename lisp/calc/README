@@ -72,6 +72,8 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
+* Added support for using registers.
+
 * Added support for Yacas, Maxima and Giac languages.
 
 * Added a menu.
@@ -82,7 +84,7 @@ Summary of changes to "Calc"
 
 * Made unit conversions exact when possible.
 
-* Lower the precedence of negation.
+* Lowered the precedence of negation.
 
 Version 2.1:
 

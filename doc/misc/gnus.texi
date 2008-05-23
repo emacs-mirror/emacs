@@ -21431,7 +21431,14 @@ other headers requires writing a @code{head} scoring rule, which means
 that Gnus has to request every single article from the back end to find
 matches.  This takes a long time in big groups.
 
-Now, there's not much you can do about this for news groups, but for
+@vindex gnus-inhibit-slow-scoring
+You can inhibit this slow scoring on headers or body by setting the
+variable @code{gnus-inhibit-slow-scoring}.  If
+@code{gnus-inhibit-slow-scoring} is regexp, slow scoring is inhibited if
+the group matches the regexp.  If it is t, slow scoring on it is
+inhibited for all groups.
+
+Now, there's not much you can do about the slowness for news groups, but for
 mail groups, you have greater control.  In @ref{To From Newsgroups},
 it's explained in greater detail what this mechanism does, but here's
 a cookbook example for @code{nnml} on how to allow scoring on the
@@ -21452,13 +21459,6 @@ Now you can score on @samp{To} and @samp{Cc} as ``extra headers'' like
 so: @kbd{I e s p To RET <your name> RET}.
 
 See?  Simple.
-
-@vindex gnus-inhibit-slow-scoring
-You can inhibit scoring the slow scoring on headers or body by setting
-the variable @code{gnus-inhibit-slow-scoring}.  If
-@code{gnus-inhibit-slow-scoring} is regexp, slow scoring is inhibited if
-the group matches the regexp.  If it is t, slow scoring on it is
-inhibited for all groups.
 
 
 @node Scoring Tips

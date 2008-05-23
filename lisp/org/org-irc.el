@@ -88,7 +88,7 @@
 (defun org-irc-parse-link (link)
   "Parse an IRC LINK and return the attributes found.
 Parse a LINK that looks like server:port/chan/user (port, chan
-and user being optional) and return any or the port, channel or user
+and user being optional) and return any of the port, channel or user
 attributes that are found."
   (let* ((parts (split-string link "/" t))
          (len (length parts)))

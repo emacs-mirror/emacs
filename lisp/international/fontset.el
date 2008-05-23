@@ -140,7 +140,8 @@
 	(tibetan . unicode-bmp)))
 
 (setq script-representative-chars
-      '((latin ?A ?Z ?a ?z)
+      '((latin ?A ?Z ?a ?z #x00C0 #x0100 #x0180 #x1e00)
+	(phonetic #x250 #x283)
 	(greek #x3A9)
 	(coptic #x3E2)
 	(cyrillic #x42F)
@@ -171,6 +172,7 @@
 	(runic #x16A0)
 	(khmer #x1780)
 	(mongolian #x1826)
+	(symbol #x201C #x2200 #x2500)
 	(braille #x2800)
 	(ideographic-description #x2FF0)
 	(cjk-misc #x300E)
@@ -288,6 +290,10 @@
 	    (nil . "VISCII1.1-1")
 	    (nil . "ISO10646-1"))
 
+     (phonetic ,(font-spec :registry "iso10646-1" :script 'phonetic))
+
+     (armenian ,(font-spec :registry "iso10646-1" :script 'armenian))
+
      (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
 	    (nil . "TIS620*")
 	    (nil . "ISO8859-11"))
@@ -357,22 +363,22 @@
 
      (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
 
+     (symbol ,(font-spec :registry "iso10646-1" :script 'symbol))
+
      (yi ,(font-spec :registry "iso10646-1" :script 'yi))
 
-     (kana ,(font-spec :registry "iso10646-1" :script 'kana)
-	   (nil . "JISX0208*")
+     (kana (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
 	   (nil . "KSC5601.1987*")
 	   (nil . "JISX0201*")
 	   (nil . "JISX0213.2000-1")
-	   (nil . "JISX0213.2004-1"))
+	   (nil . "JISX0213.2004-1")
+	   ,(font-spec :registry "iso10646-1" :script 'kana))
 
      (bopomofo ,(font-spec :registry "iso10646-1" :script 'bopomofo)
 	       (nil . "sisheng_cwnn-0"))
 
-     (han ,(font-spec :registry "iso10646-1" :language 'ja)
-	  ,(font-spec :registry "iso10646-1" :language 'zh)
-	  (nil . "GB2312.1980-0")
+     (han (nil . "GB2312.1980-0")
 	  (nil . "JISX0208*")
 	  (nil . "JISX0212*")
 	  (nil . "big5*")
@@ -388,11 +394,11 @@
 	  (nil . "gb18030")
 	  (nil . "JISX0213.2000-1")
 	  (nil . "JISX0213.2000-2")
-	  (nil . "JISX0213.2004-1"))
+	  (nil . "JISX0213.2004-1")
+	  ,(font-spec :registry "iso10646-1" :lang 'ja)
+	  ,(font-spec :registry "iso10646-1" :lang 'zh))
 
-     (cjk-misc ,(font-spec :registry "iso10646-1" :language 'ja)
-	       ,(font-spec :registry "iso10646-1" :language 'zh)
-	       (nil . "GB2312.1980-0")
+     (cjk-misc (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")
 	       (nil . "JISX0212*")
 	       (nil . "big5*")
@@ -407,10 +413,12 @@
 	       (nil . "gbk-0")
 	       (nil . "gb18030")
 	       (nil . "JISX0213.2000-1")
-	       (nil . "JISX0213.2000-2"))
+	       (nil . "JISX0213.2000-2")
+	       ,(font-spec :registry "iso10646-1" :language 'ja)
+	       ,(font-spec :registry "iso10646-1" :language 'zh))
 
-     (hangul ,(font-spec :registry "iso10646-1" :language 'ko)
-	     (nil . "KSC5601.1987-0"))
+     (hangul (nil . "KSC5601.1987-0")
+	     ,(font-spec :registry "iso10646-1" :language 'ko))
 
      (braille ,(font-spec :registry "iso10646-1" :script 'braille))
 
@@ -743,6 +751,7 @@ Done when `mouse-set-font' is called."
   (let (l)
     (dolist (fontset (fontset-list))
       (or (string-match "fontset-default$" fontset)
+	  (string-match "fontset-auto[0-9]+$" fontset)
 	  (push (list (fontset-plain-name fontset) fontset) l)))
     (cons "Fontset"
 	  (sort l #'(lambda (x y) (string< (car x) (car y)))))))

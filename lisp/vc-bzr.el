@@ -92,7 +92,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
          (list* "BZR_PROGRESS_BAR=none" ; Suppress progress output (bzr >=0.9)
                 "LC_MESSAGES=C"         ; Force English output
                 process-environment)))
-    (apply 'vc-do-command buffer okstatus vc-bzr-program
+    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command args)))
 
 
@@ -134,7 +134,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
       (when (consp prog)
 	(setq args (cdr prog))
         (setq prog (car prog)))
-      (apply 'call-process prog file t nil args)
+      (apply 'process-file prog (file-relative-name file) t nil args)
       (buffer-substring (point-min) (+ (point-min) 40)))))
 
 (defun vc-bzr-state-heuristic (file)
@@ -342,7 +342,7 @@ If any error occurred in running `bzr status', then return nil."
       ;; fallback to calling "bzr revno"
       (lexical-let*
           ((result (vc-bzr-command-discarding-stderr
-                    vc-bzr-program "revno" file))
+                    vc-bzr-program "revno" (file-relative-name file)))
            (exitcode (car result))
            (output (cdr result)))
         (cond
@@ -538,12 +538,12 @@ property containing author and date information."
   (when (re-search-forward "^ *[0-9.]+ +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
+      (let ((str (match-string-no-properties 0 prop)))
       (vc-annotate-convert-time
        (encode-time 0 0 0
-                    (string-to-number (substring (match-string 0 prop) 6 8))
-                    (string-to-number (substring (match-string 0 prop) 4 6))
-                    (string-to-number (substring (match-string 0 prop) 0 4))
-                    )))))
+                      (string-to-number (substring str 6 8))
+                      (string-to-number (substring str 4 6))
+                      (string-to-number (substring str 0 4))))))))
 
 (defun vc-bzr-annotate-extract-revision-at-line ()
   "Return revision for current line of annoation buffer, or nil.
@@ -561,7 +561,7 @@ containing whatever the process sent to its standard output
 stream.  Standard error output is discarded."
   (with-temp-buffer
     (cons
-     (apply #'call-process command nil (list (current-buffer) nil) nil args)
+     (apply #'process-file command nil (list (current-buffer) nil) nil args)
      (buffer-substring (point-min) (point-max)))))
 
 (defun vc-bzr-prettify-state-info (file)
@@ -575,14 +575,16 @@ stream.  Standard error output is discarded."
 ;; XXX: this needs testing, it's probably incomplete. 
 (defun vc-bzr-after-dir-status (update-function)
   (let ((status-str nil)
-	(file nil)
 	(translation '(("+N" . added)
 		       ("-D" . removed)
 		       (" M" . edited)
 		       ;; XXX: what about ignored files?
 		       (" D" . missing)
+                       ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
 		       ("C " . conflict)
-		       ("? " . unregistered)))
+		       ("? " . unregistered)
+                       ;; Ignore "P " and "P." for pending patches.
+                       ))
 	(translated nil)
 	(result nil))
       (goto-char (point-min))
@@ -626,6 +628,8 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
                       string)
         (completion-table-with-context (substring string 0 (match-end 0))
+                                       ;; FIXME: only allow directories.
+                                       ;; FIXME: don't allow envvars.
                                        'read-file-name-internal
                                        (substring string (match-end 0))
                                        ;; Dropping `pred'.   Maybe we should
@@ -645,7 +649,7 @@ stream.  Standard error output is discarded."
               (table nil))
           (with-temp-buffer
             ;; "bzr-1.2 tags" is much faster with --show-ids.
-            (call-process vc-bzr-program nil '(t) nil "tags" "--show-ids")
+            (process-file vc-bzr-program nil '(t) nil "tags" "--show-ids")
             ;; The output is ambiguous, unless we assume that revids do not
             ;; contain spaces.
             (goto-char (point-min))
@@ -656,7 +660,14 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(revid\\):" string)
         ;; FIXME: How can I get a list of revision ids?
         )
+       ((eq (car-safe action) 'boundaries)
+        (list* 'boundaries
+               (if (string-match ":" string) (1+ (match-beginning 0)))
+               (string-match ":" (cdr action))))
        (t
+        ;; Could use completion-table-with-terminator, except that it
+        ;; currently doesn't work right w.r.t pcm and doesn't give
+        ;; the *Completions* output we want.
         (complete-with-action action '("revno:" "revid:" "last:" "before:"
                                        "tag:" "date:" "ancestor:" "branch:"
                                        "submit:")

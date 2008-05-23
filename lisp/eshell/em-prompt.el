@@ -1,7 +1,7 @@
 ;;; em-prompt.el --- command prompts
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -29,7 +29,8 @@
 
 (eval-when-compile (require 'eshell))
 
-(defgroup eshell-prompt nil
+;;;###autoload
+(eshell-defgroup eshell-prompt nil
   "This module provides command prompts, and navigation between them,
 as is common with most shells."
   :tag "Command prompts"
@@ -172,6 +173,10 @@ If this takes us past the end of the current line, don't skip at all."
 	(goto-char (match-end 0)))))
 
 (provide 'em-prompt)
+
+;; Local Variables:
+;; generated-autoload-file: "esh-groups.el"
+;; End:
 
 ;; arch-tag: 01c1574b-ce70-4e89-bc38-e6619f61e208
 ;;; em-prompt.el ends here

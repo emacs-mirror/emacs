@@ -5,10 +5,10 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is free software; you can redistribute it and/or modify
+GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-Boston, MA 02110-1301, USA.  */
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <signal.h>
@@ -7988,9 +7986,13 @@ parse_menu_item (item, notreal, inmenubar)
   if (NILP (cachelist))
     {
       /* We have to create a cachelist.  */
-      CHECK_IMPURE (start);
-      XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
-      cachelist = XCAR (XCDR (start));
+      /* With the introduction of where_is_cache, the computation
+         of equivalent key bindings is sufficiently fast that we
+         do not need to cache it here any more. */
+      /* CHECK_IMPURE (start);
+         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
+	 cachelist = XCAR (XCDR (start));  */
+      cachelist = Fcons (Qnil, Qnil);
       newcache = 1;
       tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (!NILP (keyhint))

@@ -389,8 +389,8 @@ program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
                           'paren) "\\>")
            ;; Builtin operators.
            (concat "\\." (regexp-opt
-                          '("and" "or" "not" "lt" "le" "eq" "ge"
-                            "gt" "ne" "true" "false")
+                          '("and" "eq" "eqv" "false" "ge" "gt" "le" "lt" "ne"
+                            "neqv" "not" "or" "true")
                           'paren) "\\.")
            ;; do/goto keywords and targets, and goto tags.
            '("\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)?"

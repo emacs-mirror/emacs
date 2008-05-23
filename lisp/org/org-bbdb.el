@@ -146,7 +146,7 @@ substitutions 1) the name of the record containing this
 anniversary, 2) the number of years, and 3) an ordinal suffix for
 the year.
 
-Multiple anniversaries can be separated by \\n"
+Multiple anniversaries can be separated by \\n."
   :type    'symbol
   :group   'org-bbdb-anniversaries
   :require 'bbdb)
@@ -154,9 +154,9 @@ Multiple anniversaries can be separated by \\n"
 (defcustom org-bbdb-extract-date-fun 'org-bbdb-anniv-extract-date
   "How to retrieve `month date year' from the anniversary field.
 
-Customize if you have already filled your bbdb with dates
+Customize if you have already filled your BBDB with dates
 different from YYYY-MM-DD.  The function must return a list (month
-date year)"
+date year)."
   :type 'function
   :group 'org-bbdb-anniversaries
   :require 'bbdb)
@@ -182,7 +182,6 @@ date year)"
   "Create the export version of a BBDB link specified by PATH or DESC.
 If exporting to either HTML or LaTeX FORMAT the link will be
 italicised, in all other cases it is left unchanged."
-  "Create the exprt verison of a bbdb link."
   (cond
    ((eq format 'html) (format "<i>%s</i>" (or desc path)))
    ((eq format 'latex) (format "\\textit{%s}" (or desc path)))
@@ -221,7 +220,7 @@ Argument TIME-STR is the value retrieved from BBDB."
 	  (string-to-number y))))
 
 (defun org-bbdb-anniv-split (str)
-  "Split mutliple entries in the BBDB anniversary field.
+  "Split multiple entries in the BBDB anniversary field.
 Argument STR is the anniversary field in BBDB."
   (let ((pos (string-match "[ \t]" str)))
     (if pos (list (substring str 0 pos)

@@ -86,7 +86,7 @@ Integer values will in effect be rounded up to the nearest multiple of
       ;; what's possible.  Perhaps better, maybe the Windows/DOS primitive
       ;; could round up non-zero timeouts to a minimum of 1.0?
       1.0
-    0.1)
+    0.01)
   "How long nntp should wait between checking for the end of output.
 Shorter values mean quicker response, but are more CPU intensive.")
 

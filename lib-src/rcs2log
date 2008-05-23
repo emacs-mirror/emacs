@@ -2,6 +2,30 @@
 
 # RCS to ChangeLog generator
 
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
+#               2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+Copyright='Copyright (C) 2008 Free Software Foundation, Inc.
+This program comes with NO WARRANTY, to the extent permitted by law.
+You may redistribute copies of this program
+under the terms of the GNU General Public License.
+For more information about these matters, see the files named COPYING.
+Author: Paul Eggert <eggert@twinsun.com>'
+
 Help='
 Generate ChangeLog entries from RCS files (perhaps in a CVS repository)
 and the ChangeLog file (if any).  An RCS file typically has a name
@@ -53,31 +77,6 @@ Options:
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
 Id='$Id$'
-
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
-#               2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
-
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301, USA.
-
-Copyright='Copyright (C) 2008 Free Software Foundation, Inc.
-This program comes with NO WARRANTY, to the extent permitted by law.
-You may redistribute copies of this program
-under the terms of the GNU General Public License.
-For more information about these matters, see the files named COPYING.
-Author: Paul Eggert <eggert@twinsun.com>'
 
 # Use the traditional C locale.
 LANG=C
