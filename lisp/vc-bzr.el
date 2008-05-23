@@ -662,7 +662,7 @@ stream.  Standard error output is discarded."
         )
        ((eq (car-safe action) 'boundaries)
         (list* 'boundaries
-               (if (string-match ":" string) (1+ (match-beginning 0)))
+               (string-match "[^:]*\\'" string)
                (string-match ":" (cdr action))))
        (t
         ;; Could use completion-table-with-terminator, except that it
