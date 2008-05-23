@@ -22,7 +22,6 @@
 	Exclude more '*loaddefs' files.
 	(compile-always): Simplify '.elc' deletion.
 
->>>>>>> 1.13801
 2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-annotate-time): Reduce memory allocation.
