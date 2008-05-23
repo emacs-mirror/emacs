@@ -2921,7 +2921,7 @@
 	* alloc.c (mark_interval_tree): Remove spurious & in front of
 	function name.
 
-	* alloc.c (UNMARK_BALANCE_INTERVALS): Fix to accomodate compilers
+	* alloc.c (UNMARK_BALANCE_INTERVALS): Fix to accommodate compilers
 	other than GCC, which do not allow casts on the LHS of an
 	assignment.
 
@@ -3445,7 +3445,7 @@
 	(XTcondemn_scrollbars, XTredeem_scrollbar, XTjudge_scrollbars)
 	(x_scrollbar_expose, x_scrollbar_handle_click)
 	(x_scrollbar_handle_motion): Substantially rewritten to correct
-	typos and brainos, and to accomodate the lispy structures.
+	typos and brainos, and to accommodate the lispy structures.
 
 	* xterm.c (x_scrollbar_background_expose): Function deleted; we
 	don't want anything in the background there after all.
@@ -8811,7 +8811,7 @@
 	to deal with anything other than ASCII.
 
 	* keymap.c (current_minor_maps): Rewritten not to use
-	function-local static variables, to accomodate DGUX.
+	function-local static variables, to accommodate DGUX.
 
 	* xterm.h (UNBLOCK_INPUT): Replace "abort ()" with "(abort (),
 	0)", to avoid type conflicts on odd systems like Ultrix.
@@ -11024,8 +11024,8 @@
 	(read_char_menu_prompt): Allocate `menu' buffer using alloca,
 	instead of a variable-sized array, which is gcc-specific.
 	(Frecent_keys): Return the most recent "keystrokes" as a vector,
-	to accomodate lispy events.
-	(Fset_input_mode): Accomodate non-characters as quit keys.  If
+	to accommodate lispy events.
+	(Fset_input_mode): Accommodate non-characters as quit keys.  If
 	this is a bad thing, init_sys_modes will tell us.
 	(init_keyboard): this_command_keys is now an array of
 	Lisp_Objects; adjust the amount of storage we request to hold it.
