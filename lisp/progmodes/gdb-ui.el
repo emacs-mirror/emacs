@@ -401,6 +401,21 @@ for `gdba'."
 	  ;; Force mode line redisplay soon.
 	  (force-mode-line-update)))))
 
+(defun gdb-enable-debug (arg)
+  "Toggle logging of transaction between Emacs and Gdb.
+The log is stored in `gdb-debug-log' as an alist with elements
+whose cons is send, send-item or recv and whose cdr is the string
+being transferred.  This list may grow up to a size of
+`gdb-debug-log-max' after which the oldest element (at the end of
+the list) is deleted every time a new one is added (at the front)."
+  (interactive "P")
+  (setq gdb-enable-debug
+	(if (null arg)
+	    (not gdb-enable-debug)
+	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Logging of transaction %sabled"
+		   (if gdb-enable-debug "en" "dis"))))
+
 (defun gdb-many-windows (arg)
   "Toggle the number of windows in the basic arrangement.
 With prefix argument ARG, display additional buffers if ARG is positive,
@@ -1313,7 +1328,9 @@ want the GDB Graphical Interface."
     ("stopped" gdb-stopped)
     ("error-begin" gdb-error)
     ("error" gdb-error)
-    ("new-thread" (lambda (ignored) (gdb-get-buffer-create 'gdb-threads-buffer))))
+    ("new-thread" (lambda (ignored)
+		    (gdb-get-buffer-create 'gdb-threads-buffer)))
+    ("thread-changed" gdb-thread-changed))
   "An assoc mapping annotation tags to functions which process them.")
 
 (defun gdb-resync()
@@ -1538,6 +1555,9 @@ sink to `user' in `gdb-stopping', that is fine."
 
 (defun gdb-error (ignored)
   (setq gdb-error (not gdb-error)))
+
+(defun gdb-thread-changed (ignored)
+  (gdb-frames-force-update))
 
 (defun gdb-post-prompt (ignored)
   "An annotation handler for `post-prompt'.
