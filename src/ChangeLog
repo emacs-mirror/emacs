@@ -4,7 +4,8 @@
 	s->underline_thickness and s->underline_position.
 
 	* xterm.c (x_draw_glyph_string): Be sure to update
-	s->underline_thickness and s->underline_position.
+	s->underline_thickness and s->underline_position.  Be sore to draw
+	underline within the current line area.
 
 	* fontset.c: Delete unused variables and add casting for char *
 	throughout the file.
