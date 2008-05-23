@@ -1,3 +1,7 @@
+2008-05-23  Jason Rumney  <jasonr@gnu.org>
+
+        * xsmfns.c: Remove includes that are already included by config.h
+
 2008-05-23  Kenichi Handa  <handa@m17n.org>
 
 	* w32term.c (x_draw_glyph_string): Be sure to update
