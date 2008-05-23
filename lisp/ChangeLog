@@ -1,3 +1,7 @@
+2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-delete-file): Don't try to resynch the buffer.
+
 2008-05-23  Paul R  <paul.r.ml@gmail.com>
 
 	* textmodes/reftex-vars.el (reftex-extra-bindings-prefix): New var.
