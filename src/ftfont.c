@@ -617,6 +617,7 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
 
  finish:
   if (langset) FcLangSetDestroy (langset);
+  if (charset && *fc_charset_idx < 0) FcCharSetDestroy (charset);
   return pattern;
 }
 
