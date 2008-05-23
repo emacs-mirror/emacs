@@ -290,6 +290,7 @@ xfont_list_pattern (frame, display, pattern)
 		  || XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) > 0))
 	    list = Fcons (entity, list);
 	}
+      XFreeFontNames (names);
     }
 
   x_uncatch_errors ();
