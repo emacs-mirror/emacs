@@ -39,9 +39,8 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.
 
-SOURCES = *.el COPYING Makefile
-lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
-lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
+lisptagsfiles1 = $(lisp)/*.el
+lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = ../lib-src/etags
 
 # Automatically generated autoload files, apart from lisp/loaddefs.el.
@@ -146,13 +145,9 @@ cvs-update: recompile autoloads finder-data custom-deps
 update-authors:
 	$(emacs) -l authors -f batch-update-authors $(srcdir)/etc/AUTHORS $(srcdir)
 
-TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
-	${ETAGS} $$els
-
-TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
-	${ETAGS} -o TAGS-LISP $$els
+TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
+	${ETAGS} -o $@ $$els
 
 
 ## Explicitly list the .elc files, for the sake of parallel builds.
@@ -1253,10 +1248,7 @@ compile: $(emacs-deps) $(LOADDEFS) autoloads compile-first
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
-	for el in $(COMPILE_FIRST); do \
-	  -rm $${el}c; \
-	done
-	-rm $(ELCFILES)
+	cd $(lisp); rm -f *.elc */*.elc
 	$(MAKE) $(MFLAGS) compile
 
 ## In case any files are missing from ELCFILES.
