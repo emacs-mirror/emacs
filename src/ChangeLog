@@ -1,3 +1,15 @@
+2008-05-23  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c: Delete unused variables and add casting for char *
+	throughout the file.
+	(fontset_font): Try the fallback fonts of the current fontset
+	before consulting the default fontset.
+
+	* ftfont.c (ftfont_spec_pattern): Free charset if necessary.
+
+	* xfont.c (xfont_list_pattern): Free names returned from
+	XListFonts.
+
 2008-05-22  Jason Rumney  <jasonr@gnu.org>
 
         * font.c: Don't include strings.h.
