@@ -1,5 +1,11 @@
 2008-05-23  Kenichi Handa  <handa@m17n.org>
 
+	* w32term.c (x_draw_glyph_string): Be sure to update
+	s->underline_thickness and s->underline_position.
+
+	* xterm.c (x_draw_glyph_string): Be sure to update
+	s->underline_thickness and s->underline_position.
+
 	* fontset.c: Delete unused variables and add casting for char *
 	throughout the file.
 	(fontset_font): Try the fallback fonts of the current fontset
