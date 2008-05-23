@@ -2406,16 +2406,23 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;; Setting `reftex-extra-bindings' really is only there to spare users
 ;; the hassle of defining bindings in the user space themselves.  This
 ;; is why they violate the key binding recommendations.
+(defvar reftex-extra-bindings-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "t" 'reftex-toc)
+    (define-key map "l" 'reftex-label)
+    (define-key map "r" 'reftex-reference)
+    (define-key map "c" 'reftex-citation)
+    (define-key map "v" 'reftex-view-crossref)
+    (define-key map "g" 'reftex-grep-document)
+    (define-key map "s" 'reftex-search-document)
+    map)
+  "Reftex extra bindings map")
+
 (when reftex-extra-bindings
-  (loop for x in
-        '(("\C-ct" . reftex-toc)
-          ("\C-cl" . reftex-label)
-          ("\C-cr" . reftex-reference)
-          ("\C-cc" . reftex-citation)
-          ("\C-cv" . reftex-view-crossref)
-          ("\C-cg" . reftex-grep-document)
-          ("\C-cs" . reftex-search-document))
-        do (define-key reftex-mode-map (car x) (cdr x))))
+  (define-key reftex-mode-map
+    reftex-extra-bindings-prefix
+    reftex-extra-bindings-map))
+    
 
 ;;; =========================================================================
 ;;;

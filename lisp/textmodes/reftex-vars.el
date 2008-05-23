@@ -1847,7 +1847,16 @@ symbol indicating in what context the hook is called."
 
 (defcustom reftex-extra-bindings nil
   "Non-nil means, make additional key bindings on startup.
-These extra bindings are located in the users `C-c letter' map."
+These extra bindings are located in the
+`reftex-extra-bindings-map' map, bound to
+`reftex-extra-bindings-prefix'."
+  :group 'reftex-miscellaneous-configurations
+  :type 'boolean)
+
+;; below, default is C-c C-y because it is free in LaTeX mode.
+(defcustom reftex-extra-bindings-prefix "\C-c\C-y"
+  "When `reftex-extra-bindings' is set to non-nil, use extra
+bindings with this prefix bound to `reftex-extra-bindings-map'."
   :group 'reftex-miscellaneous-configurations
   :type 'boolean)
 

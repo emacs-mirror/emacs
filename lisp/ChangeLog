@@ -1,3 +1,16 @@
+2008-05-23  Paul R  <paul.r.ml@gmail.com>
+
+	* textmodes/reftex-vars.el (reftex-extra-bindings-prefix): New var.
+	* textmodes/reftex.el (reftex-extra-bindings-map): New var.
+	(reftex-extra-bindings): Use it.
+
+	* progmodes/mixal-mode.el (mixal-mode-map): Move key-bindings
+	away from the user-reserved keys.
+
+	* progmodes/ada-mode.el (ada-mode-extra-map, ada-mode-extra-prefix):
+	New vars.
+	(ada-create-keymap): Use them.
+
 2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt): Always return
