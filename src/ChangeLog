@@ -1,6 +1,12 @@
+2008-05-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* charset.c (Fencode_char, Fsplit_char): Doc fixes.
+	(Fget_unused_iso_final_char, Fdecode_char, Fiso_charset):
+	Fix typos in docstrings.
+
 2008-05-23  Jason Rumney  <jasonr@gnu.org>
 
-        * xsmfns.c: Remove includes that are already included by config.h
+	* xsmfns.c: Remove includes that are already included by config.h.
 
 2008-05-23  Kenichi Handa  <handa@m17n.org>
 
@@ -24,27 +30,27 @@
 
 2008-05-22  Jason Rumney  <jasonr@gnu.org>
 
-        * font.c: Don't include strings.h.
+	* font.c: Don't include strings.h.
 
-        * dispextern.h, xfaces.c (xstrcasecmp): Renamed from xstricmp.
+	* dispextern.h, xfaces.c (xstrcasecmp): Renamed from xstricmp.
 
-        * dosfns.c, fileio.c, font.c, fontset.c, image.c, macfns.c:
-        * macterm.c, process.c, w32.c, w32fns.c, w32proc.c, xfaces.c:
-        * xfns.c, xfont.c: Callers changed.
+	* dosfns.c, fileio.c, font.c, fontset.c, image.c, macfns.c:
+	* macterm.c, process.c, w32.c, w32fns.c, w32proc.c, xfaces.c:
+	* xfns.c, xfont.c: Callers changed.
 
-        * xfont.c (xfont_list_pattern, compare_font_names): Use xstricmp.
+	* xfont.c (xfont_list_pattern, compare_font_names): Use xstricmp.
 
-        * fontset.c (fs_query_fontset): Use xstricmp.
+	* fontset.c (fs_query_fontset): Use xstricmp.
 
-        * font.c (font_style_to_value, font_score): Use xstricmp.
+	* font.c (font_style_to_value, font_score): Use xstricmp.
 
-        * dosfns.c (msdos_stdcolor_idx): Use xstricmp.
+	* dosfns.c (msdos_stdcolor_idx): Use xstricmp.
 
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
-	* puresize.h (BASE_PURESIZE): Increaed to 1220000.
+	* puresize.h (BASE_PURESIZE): Increase to 1220000.
 
-	* font.c (font_prop_validate_style): Adjusted for the format
+	* font.c (font_prop_validate_style): Adjust for the format
 	change of font_style_table.
 
 	* w32font.c (w32font_open_internal): Call Ffont_xlfd_name with
@@ -65,8 +71,8 @@
 	ftfont_list_generic_family.  Return a single family for each
 	generic family.
 	(ftfont_spec_pattern): Add FC_FAMILY to pattern.
-	(ftfont_list): Adjust for the change of
-	ftfont_resolve_generic_family.  Call font_add_log.
+	(ftfont_list): Adjust for the change of ftfont_resolve_generic_family.
+	Call font_add_log.
 	(ftfont_match): Call font_add_log.
 
 	* font.h (Ffont_xlfd_name): EXFUN adjusted.
@@ -87,12 +93,12 @@
 
 	* font.c: Checking of FONT_DEBUG is moved to font.h.  All calls of
 	xassert are changed to font_assert.  Delete many unused variables.
-	(Vfont_weight_table, Vfont_slant_table, Vfont_width_table): New
-	variables.
+	(Vfont_weight_table, Vfont_slant_table, Vfont_width_table):
+	New variables.
 	(struct table_entry): Move from xfaces.c and modified.
 	(weight_table, slant_table, width_table): Move from xfaces.c and
 	contents adjusted for the change of struct table_entry.
-	(font_style_to_value, font_style_symbolic): Adjusted for the
+	(font_style_to_value, font_style_symbolic): Adjust for the
 	format change of font_style_table.
 	(font_parse_family_registry): Don't overwrite existing foundry and
 	family of font_spec.
@@ -100,8 +106,8 @@
 	(font_sort_entites): Call font_add_log.
 	(font_delete_unmatched): Return a newly created list.
 	(font_list_entities): Fix previous change.  Call font_add_log.
-	(font_matching_entity, font_open_entity, font_close_entity): Call
-	font_add_log.
+	(font_matching_entity, font_open_entity, font_close_entity):
+	Call font_add_log.
 	(Ffont_xlfd_name): New arg FOLD-WILDCARDS.
 	(Finternal_set_font_style_table): Delete.
 	(BUILD_STYLE_TABLE): New macro.
@@ -136,8 +142,8 @@
 
 2008-05-20  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (add_font_entity_to_list): Don't add non-opentype
-        truetype fonts to opentype list.
+	* w32font.c (add_font_entity_to_list): Don't add non-opentype
+	truetype fonts to opentype list.
 
 2008-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -401,8 +407,7 @@
 	(enable_font_backend, font_symbolic_weight, font_symbolic_slant)
 	(font_symbolic_width, font_find_object, font_get_spec)
 	(font_set_lface_from_name): Delete extern.
-	(Fcopy_font_spec, Fmerge_font_spec, Ffont_family_list): New
-	EXFUNs.
+	(Fcopy_font_spec, Fmerge_font_spec, Ffont_family_list): New EXFUNs.
 
 	* font.c: Include <strings.h>.
 	(enable_font_backend): Delete it.
@@ -414,8 +419,7 @@
 	(font_family_alist): Delete it.
 	(Qnormal): Extern it.
 	(QCextra, QClanguage): Delete it.
-	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec): New
-	variables.
+	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec):	New variables.
 	(font_make_spec, font_make_entity, font_make_object)
 	(font_intern_prop): Renamed from intern_downcase.  Don't downcase
 	the string.  Callers changed.
@@ -429,7 +433,7 @@
 	(font_prop_validate_symbol): Don't return null_string.
 	(font_prop_validate_style): Adjusted for the change of
 	style-related values in a font vector.
-	(font_property_table): Delete entries for QClangauge and
+	(font_property_table): Delete entries for QClanguage and
 	QCantialias, add entries for QCavgwidth.
 	(get_font_prop_index): Delete the 2nd argument FROM.
 	(font_prop_validate): Arguments changed.
