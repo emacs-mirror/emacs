@@ -2445,10 +2445,9 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (when (file-exists-p file) (delete-file file))
     ;; Forget what VC knew about the file.
     (vc-file-clearprops file)
-    ;; Since we've deleted the file and we've made sure the buffer had no
-    ;; unsaved changes, we can kill the buffer.  Much easier than trying to
-    ;; properly refresh its VC state.
-    (when buf (kill-buffer buf))))
+    ;; Make sure the buffer is deleted and the *vc-dir* buffers are
+    ;; updated after this.
+    (vc-resynch-buffer file nil t)))
 
 ;;;###autoload
 (defun vc-rename-file (old new)

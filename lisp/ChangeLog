@@ -1,3 +1,8 @@
+2008-05-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-delete-file): Make sure the buffer is deleted and
+	vc-dir buffers are updated.
+
 2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-delete-file): Don't try to resynch the buffer.
