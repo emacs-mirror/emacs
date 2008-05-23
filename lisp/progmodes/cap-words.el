@@ -60,7 +60,7 @@ Looks for word boundaries before capitals."
 
 ;;;###autoload
 (define-minor-mode capitalized-words-mode
-  "Toggle Capitalized- Words mode.
+  "Toggle Capitalized Words mode.
 
 In this minor mode, a word boundary occurs immediately before an
 uppercase letter in a symbol.  This is in addition to all the normal
@@ -74,13 +74,13 @@ E.g. the beginning of words in the following identifier are as marked:
 
 Note that these word boundaries only apply for word motion and
 marking commands such as \\[forward-word].  This mode does not affect word
-boundaries in found by regexp matching (`\\>', `\\w' &c).
+boundaries found by regexp matching (`\\>', `\\w' &c).
 
 This style of identifiers is common in environments like Java ones,
 where underscores aren't trendy enough.  Capitalization rules are
 sometimes part of the language, e.g. Haskell, which may thus encourage
 such a style.  It is appropriate to add `capitalized-words-mode' to
-the mode hook for programming langauge modes in which you encounter
+the mode hook for programming language modes in which you encounter
 variables like this, e.g. `java-mode-hook'.  It's unlikely to cause
 trouble if such identifiers aren't used.
 
