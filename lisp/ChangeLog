@@ -1,3 +1,8 @@
+2008-05-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cap-words.el (capitalized-words-mode):
+	Fix typos in docstring.
+
 2008-05-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el: Don't define the charset `emacs'
