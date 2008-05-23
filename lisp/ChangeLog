@@ -1,3 +1,11 @@
+2008-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOURCES): Remove, unused.
+	(lisptagsfiles1, lisptagsfiles2): Use '*' rather than '[a-zA-Z]*'.
+	(TAGS, TAGS-LISP): Use a single rule with multiple targets.
+	Exclude more '*loaddefs' files.
+	(compile-always): Simplify '.elc' deletion.
+
 2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-annotate-time): Reduce memory allocation.
