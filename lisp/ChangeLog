@@ -1,3 +1,13 @@
+2008-05-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el: Don't define the charset `emacs'
+	here, just put :docstring, :short-name, and :long-name.
+
+2008-05-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (font-show-log): Limit each listing
+	to 20 items.
+
 2008-05-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-enable-debug): New function.
@@ -12,16 +22,18 @@
 	Exclude more '*loaddefs' files.
 	(compile-always): Simplify '.elc' deletion.
 
+>>>>>>> 1.13801
 2008-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-annotate-time): Reduce memory allocation.
 	(vc-bzr-revision-completion-table): Handle `boundaries' argument.
 
-	* minibuffer.el (completion-boundaries): Change calling convention, so
-	`string' has the same semantics as in try-completion and all-completions.
+	* minibuffer.el (completion-boundaries): Change calling
+	convention, so `string' has the same semantics as in
+	try-completion and all-completions.
 	(completion-table-with-context, completion--embedded-envvar-table)
-	(completion--file-name-table, completion-pcm--find-all-completions):
-	Adjust code accordingly.
+	(completion--file-name-table)
+	(completion-pcm--find-all-completions): Adjust code accordingly.
 
 2008-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
