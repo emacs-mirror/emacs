@@ -578,7 +578,7 @@ fontset_find_font (fontset, c, face, id, fallback)
   /* Find the first available font in the vector of RFONT-DEF.  */
   for (; i < ASIZE (vec); i++)
     {
-      Lisp_Object font_def, font_entity, font_object;
+      Lisp_Object font_entity, font_object;
 
       elt = AREF (vec, i);
       if (NILP (elt))
@@ -683,25 +683,26 @@ fontset_font (fontset, c, face, id)
     return rfont_def;
   if (EQ (rfont_def, Qt))
     return Qnil;
-  base_fontset = FONTSET_BASE (fontset);
-  /* Try a font-group for C of the default fontset. */
-  if (! EQ (base_fontset, Vdefault_fontset))
-    {
-      if (NILP (FONTSET_DEFAULT (fontset)))
-	FONTSET_DEFAULT (fontset)
-	  = make_fontset (FONTSET_FRAME (fontset), Qnil, Vdefault_fontset);
-      rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 0);
-      if (VECTORP (rfont_def))
-	return (rfont_def);
-    }
-
   /* Try a fallback font-group. */
   rfont_def = fontset_find_font (fontset, c, face, id, 1);
-  if (! VECTORP (rfont_def)
-      && ! EQ (base_fontset, Vdefault_fontset))
-    /* Try a fallback font-group of the default fontset . */
-    rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 1);
+  if (VECTORP (rfont_def))
+    return rfont_def;
+  if (EQ (rfont_def, Qt))
+    return Qnil;
 
+  base_fontset = FONTSET_BASE (fontset);
+  if (EQ (base_fontset, Vdefault_fontset))
+    return Qnil;
+
+  /* Try a font-group for C of the default fontset. */
+  if (NILP (FONTSET_DEFAULT (fontset)))
+    FONTSET_DEFAULT (fontset)
+      = make_fontset (FONTSET_FRAME (fontset), Qnil, Vdefault_fontset);
+  rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 0);
+  if (VECTORP (rfont_def))
+    return rfont_def;
+  /* Try a fallback font-group of the default fontset . */
+  rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 1);
   if (! VECTORP (rfont_def))
     /* Remeber that we have no font for C.  */
     FONTSET_SET (fontset, make_number (c), Qt);
@@ -972,7 +973,7 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
    the corresponding regular expression.  */
 static Lisp_Object Vcached_fontset_data;
 
-#define CACHED_FONTSET_NAME (SDATA (XCAR (Vcached_fontset_data)))
+#define CACHED_FONTSET_NAME ((char *) SDATA (XCAR (Vcached_fontset_data)))
 #define CACHED_FONTSET_REGEX (XCDR (Vcached_fontset_data))
 
 /* If fontset name PATTERN contains any wild card, return regular
@@ -982,13 +983,13 @@ static Lisp_Object
 fontset_pattern_regexp (pattern)
      Lisp_Object pattern;
 {
-  if (!index (SDATA (pattern), '*')
-      && !index (SDATA (pattern), '?'))
+  if (!index ((char *) SDATA (pattern), '*')
+      && !index ((char *) SDATA (pattern), '?'))
     /* PATTERN does not contain any wild cards.  */
     return Qnil;
 
   if (!CONSP (Vcached_fontset_data)
-      || strcmp (SDATA (pattern), CACHED_FONTSET_NAME))
+      || strcmp ((char *) SDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
       unsigned char *regex, *p0, *p1;
@@ -1029,8 +1030,8 @@ fontset_pattern_regexp (pattern)
       *p1++ = '$';
       *p1++ = 0;
 
-      Vcached_fontset_data = Fcons (build_string (SDATA (pattern)),
-				    build_string (regex));
+      Vcached_fontset_data = Fcons (build_string ((char *) SDATA (pattern)),
+				    build_string ((char *) regex));
     }
 
   return CACHED_FONTSET_REGEX;
@@ -1145,7 +1146,7 @@ list_fontsets (f, pattern, size)
 
       if (STRINGP (regexp)
 	  ? (fast_string_match (regexp, name) < 0)
-	  : strcmp (SDATA (pattern), SDATA (name)))
+	  : strcmp ((char *) SDATA (pattern), (char *) SDATA (name)))
 	continue;
 
       val = Fcons (Fcopy_sequence (FONTSET_NAME (fontset)), val);
@@ -1253,11 +1254,10 @@ generate_ascii_font_name (name, ascii_spec)
      Lisp_Object name, ascii_spec;
 {
   Lisp_Object font_spec = Ffont_spec (0, NULL);
-  Lisp_Object vec;
   int i;
   char xlfd[256];
 
-  if (font_parse_xlfd (SDATA (name), font_spec) < 0)
+  if (font_parse_xlfd ((char *) SDATA (name), font_spec) < 0)
     error ("Not an XLFD font name: %s", SDATA (name));
   for (i = FONT_FOUNDRY_INDEX; i < FONT_EXTRA_INDEX; i++)
     if (! NILP (AREF (ascii_spec, i)))
@@ -1519,7 +1519,6 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
      Lisp_Object name, fontlist;
 {
   Lisp_Object fontset;
-  Lisp_Object val;
   int id;
 
   CHECK_STRING (name);
@@ -1534,10 +1533,10 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       char xlfd[256];
       int len;
 
-      if (font_parse_xlfd (SDATA (name), font_spec) < 0)
+      if (font_parse_xlfd ((char *) SDATA (name), font_spec) < 0)
 	error ("Fontset name must be in XLFD format");
       short_name = AREF (font_spec, FONT_REGISTRY_INDEX);
-      if (strncmp (SDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
+      if (strncmp ((char *) SDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
 	  || SBYTES (SYMBOL_NAME (short_name)) < 9)
 	error ("Registry field of fontset name must be \"fontset-*\"");
       Vfontset_alias_alist = Fcons (Fcons (name, SYMBOL_NAME (short_name)),
@@ -1654,7 +1653,7 @@ If the named font is not yet loaded, return nil.  */)
   CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
 
-  font_object = font_open_by_name (f, SDATA (name));
+  font_object = font_open_by_name (f, (char *) SDATA (name));
   if (NILP (font_object))
     return Qnil;
   font = XFONT_OBJECT (font_object);
@@ -1710,7 +1709,6 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
   int c;
   struct frame *f;
   struct face *face;
-  Lisp_Object rfont_def;
   int cs_id;
 
   if (NILP (position))
