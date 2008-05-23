@@ -2908,9 +2908,9 @@ x_draw_glyph_string (s)
                 else if (s->font)
                   position = (s->font->descent + 1) / 2;
                 }
-              s->underline_thickness = thickness;
-              s->underline_position =position;
             }
+	  s->underline_thickness = thickness;
+	  s->underline_position =position;
           y = s->ybase + position;
           if (s->face->underline_defaulted_p)
             {
