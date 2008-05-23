@@ -107,7 +107,7 @@ by \\=\\< and \\>."
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
 	   (sorted-strings (delete-dups
 			    (sort (copy-sequence strings) 'string-lessp)))
-	   (re (regexp-opt-group sorted-strings open)))
+	   (re (regexp-opt-group sorted-strings (or open t) (not open))))
       (if words (concat "\\<" re "\\>") re))))
 
 ;;;###autoload
