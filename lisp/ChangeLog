@@ -26,7 +26,7 @@
 2008-05-24  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-postprocess-file-styles): Throw an error
-	if c-file-style is set to a non-string
+	if c-file-style is set to a non-string.
 
 	(c-neutralize-CPP-line): Surround by `save-excursion'.
 	(c-neutralize-syntax-in-CPP): Optimize for speed.
@@ -513,8 +513,8 @@
 	("Chinese-CNS", "Chinese-EUC-TW", "Chinese-GBK")
 	("Chinese-GB18030"): Set `iso639-language' property to `zh'.
 
-	* international/mule-cmds.el (set-language-environment): Set
-	current-iso639-language
+	* international/mule-cmds.el (set-language-environment):
+	Set current-iso639-language.
 
 	* international/fontset.el (setup-default-fontset): For kana, han,
 	hangul, and cjk-misc, move an entry with font-spec at the end.
@@ -753,7 +753,7 @@
 	* vc-dispatcher.el (vc-dispatcher-selection-set):
 	Get rid of 4 special cases in fileset selection.  This involved
 	changing the return value of (vc-deduce-fileset) so that it passes
-	back a deduced state as well as a deduced back end,
+	back a deduced state as well as a deduced back end.
 
 2008-05-08  Sam Steingold  <sds@gnu.org>
 
@@ -2041,7 +2041,7 @@
 	Previously gdb-create-define-alist wasn't always run and added to
 	after-save-hook.
 
-	* progmodes/gud.el (gud-tooltip-tips): Use tooltip-event-buffer
+	* progmodes/gud.el (gud-tooltip-tips): Use tooltip-event-buffer.
 
 2008-04-23  Kevin Ryde  <user42@zip.com.au>
 
@@ -2133,7 +2133,7 @@
 	(gdb-get-selected-frame): Use MI command -stack-info-frame instead
 	of "info frame" with Gdb 6.4+.
 	(gdb-stack-list-frames-regexp): New regexp.
-	(gdb-frame-handler-1): Parse output of -stack-info-frame
+	(gdb-frame-handler-1): Parse output of -stack-info-frame.
 
 2008-04-22  David Glasser  <glasser@davidglasser.net>  (tiny change)
 
