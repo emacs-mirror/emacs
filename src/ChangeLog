@@ -1,3 +1,9 @@
+2008-05-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c: Include dispextern.h.
+
+	* w32.c: Include dispextern.h.
+
 2008-05-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* charset.c (Fencode_char, Fsplit_char): Doc fixes.
