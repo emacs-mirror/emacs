@@ -11944,7 +11944,7 @@
 	(change-log-find-file): Fix typo.
 	(change-log-start-entry-re): Move definition earlier.
 
-2007-01-27  Jan Nieuwenhuizen  <janneke@gnu.org>
+2008-01-27  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* add-log.el (change-log-search-file-name, change-log-find-file):
 	New function.
