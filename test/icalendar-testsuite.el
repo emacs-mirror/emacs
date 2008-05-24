@@ -27,6 +27,8 @@
 ;; TODO:
 ;; - Add more unit tests for functions, timezone etc.
 
+;; Note: Watch the trailing blank that is added on import.
+
 ;;; Code:
 (defun icalendar-testsuite-run ()
   "Run icalendar test suite."
@@ -46,10 +48,13 @@
   (icalendar-testsuite--test-parse-summary-and-rest)
   (icalendar-testsuite--test-format-ical-event)
   (icalendar-testsuite--test-import-format-sample)
-  (icalendar-testsuite--test-first-weekday-of-year))
+  (icalendar-testsuite--test-first-weekday-of-year)
+  (icalendar-testsuite--test-datestring-to-isodate)
+  (icalendar-testsuite--test-datetime-to-diary-date)
+  (icalendar-testsuite--test-calendar-style))
 
 (defun icalendar-testsuite--test-format-ical-event ()
-  "Test icalendar--format-ical-event"
+  "Test `icalendar--format-ical-event'."
   (let ((icalendar-import-format "%s%d%l%o%t%u%c")
         (icalendar-import-format-summary "SUM %s")
         (icalendar-import-format-location " LOC %s")
@@ -58,7 +63,6 @@
         (icalendar-import-format-status " STA %s")
         (icalendar-import-format-url " URL %s")
         (icalendar-import-format-class " CLA %s")
-        (was-european-calendar european-calendar-style)
         (event (icalendar-testsuite--get-ical-event "BEGIN:VEVENT
 DTSTAMP:20030509T043439Z
 DTSTART:20030509T103000
@@ -89,7 +93,7 @@ END:VEVENT
                      "-sum-des-loc-org-nil-nil-nil-") t)))
 
 (defun icalendar-testsuite--test-parse-summary-and-rest ()
-  "Test icalendar--parse-summary-and-rest."
+  "Test `icalendar--parse-summary-and-rest'."
   (let ((icalendar-import-format "%s%d%l%o%t%u%c")
         (icalendar-import-format-summary "SUM %s")
         (icalendar-import-format-location " LOC %s")
@@ -98,7 +102,6 @@ END:VEVENT
         (icalendar-import-format-status " STA %s")
         (icalendar-import-format-url " URL %s")
         (icalendar-import-format-class " CLA %s")
-        (was-european-calendar european-calendar-style)
         (result))
     ;; FIXME: need a trailing blank char!
     (setq result (icalendar--parse-summary-and-rest "SUM sum ORG org "))
@@ -119,7 +122,8 @@ END:VEVENT
     ))
 
 (defun icalendar-testsuite--get-ical-event (ical-string)
-  "Helper function for testing `icalendar-testsuite--test-format-ical-event'."
+  "Helper function for testing `icalendar-testsuite--test-format-ical-event'.
+Return icalendar event for ICAL-STRING."
   (save-excursion
     (with-temp-buffer
       (insert ical-string)
@@ -143,6 +147,7 @@ END:VEVENT
                            "ORGANIZER=`d' STATUS=`' URL=`' CLASS=`'"))))
 
 (defun icalendar-testsuite--test-first-weekday-of-year ()
+  "Test method for `icalendar-first-weekday-of-year'."
   (assert (eq 1 (icalendar-first-weekday-of-year "TU" 2008)))
   (assert (eq 3 (icalendar-first-weekday-of-year "WE" 2007)))
   (assert (eq 5 (icalendar-first-weekday-of-year "TH" 2006)))
@@ -153,20 +158,96 @@ END:VEVENT
   (assert (eq 3 (icalendar-first-weekday-of-year "MO" 2000)))
   (assert (eq 1 (icalendar-first-weekday-of-year "TH" 1970))))
 
+(defun icalendar-testsuite--test-datestring-to-isodate ()
+  "Test method for `icalendar--datestring-to-isodate'."
+  (let ((calendar-date-style 'iso))
+    ;; numeric iso
+    (assert (string= (icalendar--datestring-to-isodate "2008 05 11")
+                     "20080511"))
+    (assert (string= (icalendar--datestring-to-isodate "2008 05 31")
+                     "20080531"))
+    (assert (string= (icalendar--datestring-to-isodate "2008 05 31" 2)
+                     "20080602"))
+
+    ;; numeric european
+    (setq calendar-date-style 'european)
+    (assert (string= (icalendar--datestring-to-isodate "11 05 2008")
+                     "20080511"))
+    (assert (string= (icalendar--datestring-to-isodate "31 05 2008")
+                     "20080531"))
+    (assert (string= (icalendar--datestring-to-isodate "31 05 2008" 2)
+                     "20080602"))
+
+    ;; numeric american
+    (setq calendar-date-style 'american)
+    (assert (string= (icalendar--datestring-to-isodate "11 05 2008")
+                     "20081105"))
+    (assert (string= (icalendar--datestring-to-isodate "12 30 2008")
+                     "20081230"))
+    (assert (string= (icalendar--datestring-to-isodate "12 30 2008" 2)
+                     "20090101"))
+
+    ;; non-numeric
+    (setq calendar-date-style nil)      ;not necessary for conversion
+    (assert (string= (icalendar--datestring-to-isodate "Nov 05 2008")
+                     "20081105"))
+    (assert (string= (icalendar--datestring-to-isodate "05 Nov 2008")
+                     "20081105"))
+    (assert (string= (icalendar--datestring-to-isodate "2008 Nov 05")
+                     "20081105"))))
+
+(defun icalendar-testsuite--test-datetime-to-diary-date ()
+  "Test method for `icalendar--datetime-to-diary-date'."
+  (let* ((datetime '(59 59 23 31 12 2008))
+         (calendar-date-style 'iso))
+    (assert (string= (icalendar--datetime-to-diary-date datetime)
+                     "2008 12 31"))
+    (setq calendar-date-style 'european)
+    (assert (string= (icalendar--datetime-to-diary-date datetime)
+                     "31 12 2008"))
+    (setq calendar-date-style 'american)
+    (assert (string= (icalendar--datetime-to-diary-date datetime)
+                     "12 31 2008"))))
+
+(defun icalendar-testsuite--test-calendar-style ()
+  "Test method for `icalendar--date-style'."
+  (dolist (calendar-date-style '(iso american european))
+    (assert (eq (icalendar--date-style) calendar-date-style)))
+  (let ((cds calendar-date-style)
+        (european-calendar-style t))
+    (makunbound 'calendar-date-style)
+    (assert (eq (icalendar--date-style) 'european))
+    (with-no-warnings (setq european-calendar-style nil)) ;still get warning!?! FIXME
+    (assert (eq (icalendar--date-style) 'american))
+    (setq calendar-date-style cds)))
+
 ;; ======================================================================
 ;; Test methods for exporting from diary to icalendar
 ;; ======================================================================
 
-(defun icalendar-testsuite--test-export (input-european input-american
-                                                        expected-output)
+(defun icalendar-testsuite--test-export (input-iso input-european input-american
+                                                   expected-output)
   "Perform an export test.
+Argument INPUT-ISO iso style diary string.
 Argument INPUT-EUROPEAN european style diary string.
 Argument INPUT-AMERICAN american style diary string.
-Argument EXPECTED-OUTPUT expected icalendar result string."
+Argument EXPECTED-OUTPUT expected icalendar result string.
+
+European style input data must use german month names.  American
+and ISO style input data must use english month names."
   (message "--- icalendar-testsuite--test-export ---")
-  (let ((was-european-calendar european-calendar-style)
+  (let ((calendar-date-style 'iso)
         (icalendar-recurring-start-year 2000))
     (set-time-zone-rule "CET") ;;FIXME: reset timezone!
+    (when input-iso
+      (let ((calendar-month-name-array
+             ["January" "February" "March" "April" "May" "June" "July" "August"
+              "September" "October" "November" "December"])
+            (calendar-day-name-array
+             ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday"
+              "Saturday"]))
+        (setq calendar-date-style 'iso)
+        (icalendar-testsuite--do-test-export input-iso expected-output)))
     (when input-european
       (let ((calendar-month-name-array
              ["Januar" "Februar" "März" "April" "Mai" "Juni" "Juli" "August"
@@ -174,7 +255,7 @@ Argument EXPECTED-OUTPUT expected icalendar result string."
             (calendar-day-name-array
              ["Sonntag" "Montag" "Dienstag" "Mittwoch" "Donnerstag" "Freitag"
               "Samstag"]))
-        (european-calendar)
+        (setq calendar-date-style 'european)
         (icalendar-testsuite--do-test-export input-european expected-output)))
     (when input-american
       (let ((calendar-month-name-array
@@ -183,11 +264,8 @@ Argument EXPECTED-OUTPUT expected icalendar result string."
             (calendar-day-name-array
              ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday"
               "Saturday"]))
-        (american-calendar)
-        (icalendar-testsuite--do-test-export input-american expected-output)))
-    (if was-european-calendar
-        (european-calendar)
-      (american-calendar))))
+        (setq calendar-date-style 'american)
+        (icalendar-testsuite--do-test-export input-american expected-output)))))
 
 (defun icalendar-testsuite--do-test-export (input expected-output)
   "Actually perform export test.
@@ -239,10 +317,11 @@ END:VCALENDAR
 ;; Test methods for importing from icalendar to diary
 ;; ======================================================================
 
-(defun icalendar-testsuite--test-import (input expected-european
+(defun icalendar-testsuite--test-import (input expected-iso expected-european
                                                expected-american)
   "Perform import test.
 Argument INPUT icalendar event string.
+Argument EXPECTED-ISO expected iso style diary string.
 Argument EXPECTED-EUROPEAN expected european style diary string.
 Argument EXPECTED-AMERICAN expected american style diary string."
   (message "--- icalendar-testsuite--test-import ---")
@@ -265,16 +344,16 @@ Argument EXPECTED-AMERICAN expected american style diary string."
             (icalendar-import-format-status "\n Status: %s")
             (icalendar-import-format-url "\n URL: %s")
             (icalendar-import-format-class "\n Class: %s")
-            (was-european-calendar european-calendar-style))
+            calendar-date-style)
+        (when expected-iso
+          (setq calendar-date-style 'iso)
+          (icalendar-testsuite--do-test-import input expected-iso))
         (when expected-european
-          (european-calendar)
+          (setq calendar-date-style 'european)
           (icalendar-testsuite--do-test-import input expected-european))
         (when expected-american
-          (american-calendar)
-          (icalendar-testsuite--do-test-import input expected-american))
-        (if was-european-calendar
-            (european-calendar)
-          (american-calendar))))
+          (setq calendar-date-style 'american)
+          (icalendar-testsuite--do-test-import input expected-american))))
     (set-time-zone-rule timezone)))
 
 (defun icalendar-testsuite--do-test-import (input expected-output)
@@ -315,15 +394,9 @@ Argument INPUT icalendar event string."
           (icalendar-import-format-organizer "\n Organizer: %s")
           (icalendar-import-format-status "\n Status: %s")
           (icalendar-import-format-url "\n URL: %s")
-          (icalendar-import-format-class "\n Class: %s")
-          (was-european-calendar european-calendar-style))
-      (european-calendar)
-      (icalendar-testsuite--do-test-cycle)
-      (american-calendar)
-      (icalendar-testsuite--do-test-cycle)
-      (if was-european-calendar
-          (european-calendar)
-        (american-calendar)))))
+          (icalendar-import-format-class "\n Class: %s"))
+      (dolist (calendar-date-style '(iso european american))
+        (icalendar-testsuite--do-test-cycle)))))
 
 (defun icalendar-testsuite--do-test-cycle ()
   "Actually perform import/export cycle test."
@@ -360,12 +433,14 @@ Argument INPUT icalendar event string."
    "SUMMARY:non-recurring
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000"
+   "&2003/9/19 09:00-11:30 non-recurring"
    "&19/9/2003 09:00-11:30 non-recurring"
    "&9/19/2003 09:00-11:30 non-recurring")
 
   (icalendar-testsuite--test-import
    "SUMMARY:non-recurring allday
 DTSTART;VALUE=DATE-TIME:20030919"
+   "&2003/9/19 non-recurring allday"
    "&19/9/2003 non-recurring allday"
    "&9/19/2003 non-recurring allday")
 
@@ -373,6 +448,7 @@ DTSTART;VALUE=DATE-TIME:20030919"
    "SUMMARY:long 
  summary
 DTSTART;VALUE=DATE:20030919"
+   "&2003/9/19 long summary"
    "&19/9/2003 long summary"
    "&9/19/2003 long summary")
 
@@ -387,8 +463,10 @@ DTSTART;VALUE=DATE:20040719
 DTEND;VALUE=DATE:20040828
 DTSTAMP:20031103T011641Z
 "
+   "&%%(and (diary-block 2004 7 19 2004 8 27)) Sommerferien"
    "&%%(and (diary-block 19 7 2004 27 8 2004)) Sommerferien"
    "&%%(and (diary-block 7 19 2004 8 27 2004)) Sommerferien")
+
   (icalendar-testsuite--test-import
    "UID
  :04979712-3902-11d9-93dd-8f9f4afe08da
@@ -409,6 +487,7 @@ DTSTAMP
 LAST-MODIFIED
  :20041118T013640Z
 "
+   "&2004/11/23 14:00-14:30 folded summary"
    "&23/11/2004 14:00-14:30 folded summary"
    "&11/23/2004 14:00-14:30 folded summary")
   (icalendar-testsuite--test-import
@@ -429,14 +508,17 @@ DTEND
 DTSTAMP
  :20041118T013641Z
 "
+   "&2004/11/23 14:45-15:45 another example"
    "&23/11/2004 14:45-15:45 another example"
    "&11/23/2004 14:45-15:45 another example")
+
   (icalendar-testsuite--test-import
    "SUMMARY:rrule daily
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;
 "
+   "&%%(and (diary-cyclic 1 2003 9 19)) 09:00-11:30 rrule daily"
    "&%%(and (diary-cyclic 1 19 9 2003)) 09:00-11:30 rrule daily"
    "&%%(and (diary-cyclic 1 9 19 2003)) 09:00-11:30 rrule daily")
 
@@ -447,6 +529,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;INTERVAL=2
 "
+   "&%%(and (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily"
    "&%%(and (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily"
    "&%%(and (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily")
   (icalendar-testsuite--test-import
@@ -456,14 +539,17 @@ DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;INTERVAL=2
 EXDATE:20030921,20030925
 "
+   "&%%(and (not (diary-date 2003 9 25)) (not (diary-date 2003 9 21)) (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily with exceptions"
    "&%%(and (not (diary-date 25 9 2003)) (not (diary-date 21 9 2003)) (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily with exceptions"
    "&%%(and (not (diary-date 9 25 2003)) (not (diary-date 9 21 2003)) (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily with exceptions")
+
   (icalendar-testsuite--test-import
    "SUMMARY:rrule weekly
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=WEEKLY;
 "
+   "&%%(and (diary-cyclic 7 2003 9 19)) 09:00-11:30 rrule weekly"
    "&%%(and (diary-cyclic 7 19 9 2003)) 09:00-11:30 rrule weekly"
    "&%%(and (diary-cyclic 7 9 19 2003)) 09:00-11:30 rrule weekly")
   (icalendar-testsuite--test-import
@@ -472,6 +558,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;
 "
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 9999 1 1)) 09:00-11:30 rrule monthly no end"
    "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 1 1 9999)) 09:00-11:30 rrule monthly no end"
    "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 1 9999)) 09:00-11:30 rrule monthly no end")
   (icalendar-testsuite--test-import
@@ -480,6 +567,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;UNTIL=20050819;
 "
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2005 8 19)) 09:00-11:30 rrule monthly with end"
    "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 8 2005)) 09:00-11:30 rrule monthly with end"
    "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 8 19 2005)) 09:00-11:30 rrule monthly with end")
   (icalendar-testsuite--test-import
@@ -489,6 +577,7 @@ SUMMARY:Maria Himmelfahrt
 UID:CC56BEA6-49D2-11D8-8833-00039386D1C2-RID
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=8
 "
+   "&%%(and (diary-anniversary 2004 8 15))  Maria Himmelfahrt"
    "&%%(and (diary-anniversary 15 8 2004))  Maria Himmelfahrt"
    "&%%(and (diary-anniversary 8 15 2004))  Maria Himmelfahrt")
   (icalendar-testsuite--test-import
@@ -497,6 +586,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=YEARLY;INTERVAL=2
 "
+   "&%%(and (diary-anniversary 2003 9 19)) 09:00-11:30 rrule yearly" ;FIXME
    "&%%(and (diary-anniversary 19 9 2003)) 09:00-11:30 rrule yearly" ;FIXME
    "&%%(and (diary-anniversary 9 19 2003)) 09:00-11:30 rrule yearly") ;FIXME
   (icalendar-testsuite--test-import
@@ -505,6 +595,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;COUNT=1;INTERVAL=1
 "
+   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 9 19)) 09:00-11:30 rrule count daily short"
    "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 19 9 2003)) 09:00-11:30 rrule count daily short"
    "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 9 19 2003)) 09:00-11:30 rrule count daily short")
   (icalendar-testsuite--test-import
@@ -513,6 +604,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;COUNT=14;INTERVAL=1
 "
+   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 10 2)) 09:00-11:30 rrule count daily long"
    "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 2 10 2003)) 09:00-11:30 rrule count daily long"
    "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 10 2 2003)) 09:00-11:30 rrule count daily long")
   (icalendar-testsuite--test-import
@@ -521,6 +613,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=WEEKLY;COUNT=3;INTERVAL=2
 "
+   "&%%(and (diary-cyclic 14 2003 9 19) (diary-block 2003 9 19 2003 10 31)) 09:00-11:30 rrule count bi-weekly 3 times"
    "&%%(and (diary-cyclic 14 19 9 2003) (diary-block 19 9 2003 31 10 2003)) 09:00-11:30 rrule count bi-weekly 3 times"
    "&%%(and (diary-cyclic 14 9 19 2003) (diary-block 9 19 2003 10 31 2003)) 09:00-11:30 rrule count bi-weekly 3 times")
   (icalendar-testsuite--test-import
@@ -529,6 +622,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;INTERVAL=1;COUNT=5
 "
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 1 19)) 09:00-11:30 rrule count monthly"
    "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 1 2004)) 09:00-11:30 rrule count monthly"
    "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 19 2004)) 09:00-11:30 rrule count monthly")
   (icalendar-testsuite--test-import
@@ -537,6 +631,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=5
 "
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 5 19)) 09:00-11:30 rrule count every second month" ;FIXME
    "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 5 2004)) 09:00-11:30 rrule count every second month" ;FIXME
    "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 5 19 2004)) 09:00-11:30 rrule count every second month") ;FIXME
   (icalendar-testsuite--test-import
@@ -545,6 +640,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=YEARLY;INTERVAL=1;COUNT=5
 "
+   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2007 9 19)) 09:00-11:30 rrule count yearly"
    "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2007)) 09:00-11:30 rrule count yearly"
    "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2007)) 09:00-11:30 rrule count yearly")
   (icalendar-testsuite--test-import
@@ -553,6 +649,7 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=5
 "
+   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2011 9 19)) 09:00-11:30 rrule count every second year" ;FIXME!!!
    "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2011)) 09:00-11:30 rrule count every second year" ;FIXME!!!
    "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2011)) 09:00-11:30 rrule count every second year") ;FIXME!!!
 
@@ -562,6 +659,7 @@ RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=5
 SUMMARY:duration
 DURATION:P7D
 "
+   "&%%(and (diary-block 2005 2 17 2005 2 23)) duration"
    "&%%(and (diary-block 17 2 2005 23 2 2005)) duration"
    "&%%(and (diary-block 2 17 2005 2 23 2005)) duration")
 
@@ -577,6 +675,7 @@ CLASS:PUBLIC
 SEQUENCE:1
 CREATED:20041127T183329
 "
+   "&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub"
    "&%%(and (diary-cyclic 1 21 12 2001) (diary-block 21 12 2001 29 12 2001))  Urlaub"
    "&%%(and (diary-cyclic 1 12 21 2001) (diary-block 12 21 2001 12 29 2001))  Urlaub")
   )
@@ -589,19 +688,22 @@ CREATED:20041127T183329
 
   (let ((icalendar-export-hidden-diary-entries nil))
     (icalendar-testsuite--test-export
+     "&2000 Oct 3 ordinary no time "
      "&3 Okt 2000 ordinary no time "
      "&Oct 3 2000 ordinary no time "
      nil))
 
   ;; "ordinary" events
   (icalendar-testsuite--test-export
+   "2000 Oct 3 ordinary no time "
    "3 Okt 2000 ordinary no time "
    "Oct 3 2000 ordinary no time "
    "DTSTART;VALUE=DATE:20001003
 DTEND;VALUE=DATE:20001004
-SUMMARY:ordinary no time 
+SUMMARY:ordinary no time
 ")
   (icalendar-testsuite--test-export
+   "2000 Oct 3 16:30 ordinary with time"
    "3 Okt 2000 16:30 ordinary with time"
    "Oct 3 2000 16:30 ordinary with time"
    "DTSTART;VALUE=DATE-TIME:20001003T163000
@@ -609,6 +711,7 @@ DTEND;VALUE=DATE-TIME:20001003T173000
 SUMMARY:ordinary with time
 ")
   (icalendar-testsuite--test-export
+   "2000 10 3 16:30 ordinary with time 2"
    "3 10 2000 16:30 ordinary with time 2"
    "10 3 2000 16:30 ordinary with time 2"
    "DTSTART;VALUE=DATE-TIME:20001003T163000
@@ -617,6 +720,7 @@ SUMMARY:ordinary with time 2
 ")
 
   (icalendar-testsuite--test-export
+   "2000/10/3 16:30 ordinary with time 3"
    "3/10/2000 16:30 ordinary with time 3"
    "10/3/2000 16:30 ordinary with time 3"
    "DTSTART;VALUE=DATE-TIME:20001003T163000
@@ -626,6 +730,8 @@ SUMMARY:ordinary with time 3
 
   ;; multiline -- FIXME!!!
   (icalendar-testsuite--test-export
+   "2000 October 3 16:30 multiline
+  17:30 multiline continued FIXME"
    "3 Oktober 2000 16:30 multiline
   17:30 multiline continued FIXME"
    "October 3 2000 16:30 multiline
@@ -639,6 +745,7 @@ DESCRIPTION:
 
   ;; weekly by day
   (icalendar-testsuite--test-export
+   "Monday 1:30pm weekly by day with start time"
    "Montag 13:30 weekly by day with start time"
    "Monday 1:30pm weekly by day with start time"
    "DTSTART;VALUE=DATE-TIME:20000103T133000
@@ -648,6 +755,7 @@ SUMMARY:weekly by day with start time
 ")
 
   (icalendar-testsuite--test-export
+   "Monday 13:30-15:00 weekly by day with start and end time"
    "Montag 13:30-15:00 weekly by day with start and end time"
    "Monday 01:30pm-03:00pm weekly by day with start and end time"
    "DTSTART;VALUE=DATE-TIME:20000103T133000
@@ -658,6 +766,7 @@ SUMMARY:weekly by day with start and end time
 
   ;; yearly
   (icalendar-testsuite--test-export
+   "may 1 yearly no time"
    "1 Mai yearly no time"
    "may 1 yearly no time"
    "DTSTART;VALUE=DATE:19000501
@@ -668,6 +777,7 @@ SUMMARY:yearly no time
 
   ;; anniversaries
   (icalendar-testsuite--test-export
+   "%%(diary-anniversary 1989 10 3) anniversary no time"
    "%%(diary-anniversary 3 10 1989) anniversary no time"
    "%%(diary-anniversary 10 3 1989) anniversary no time"
    "DTSTART;VALUE=DATE:19891003
@@ -676,6 +786,7 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=10;BYMONTHDAY=03
 SUMMARY:anniversary no time
 ")
   (icalendar-testsuite--test-export
+   "%%(diary-anniversary 1989 10 3) 19:00-20:00 anniversary with time"
    "%%(diary-anniversary 3 10 1989) 19:00-20:00 anniversary with time"
    "%%(diary-anniversary 10 3 1989) 19:00-20:00 anniversary with time"
    "DTSTART;VALUE=DATE-TIME:19891003T190000
@@ -686,6 +797,7 @@ SUMMARY:anniversary with time
 
   ;; block
   (icalendar-testsuite--test-export
+   "%%(diary-block 2001 6 18 2001 7 6) block no time"
    "%%(diary-block 18 6 2001 6 7 2001) block no time"
    "%%(diary-block 6 18 2001 7 6 2001) block no time"
    "DTSTART;VALUE=DATE:20010618
@@ -693,6 +805,7 @@ DTEND;VALUE=DATE:20010707
 SUMMARY:block no time
 ")
   (icalendar-testsuite--test-export
+   "%%(diary-block 2001 6 18 2001 7 6) 13:00-17:00 block with time"
    "%%(diary-block 18 6 2001 6 7 2001) 13:00-17:00 block with time"
    "%%(diary-block 6 18 2001 7 6 2001) 13:00-17:00 block with time"
    "DTSTART;VALUE=DATE-TIME:20010618T130000
@@ -701,6 +814,7 @@ RRULE:FREQ=DAILY;INTERVAL=1;UNTIL=20010706
 SUMMARY:block with time
 ")
   (icalendar-testsuite--test-export
+   "%%(diary-block 2001 6 18 2001 7 6) 13:00 block no end time"
    "%%(diary-block 18 6 2001 6 7 2001) 13:00 block no end time"
    "%%(diary-block 6 18 2001 7 6 2001) 13:00 block no end time"
    "DTSTART;VALUE=DATE-TIME:20010618T130000
@@ -771,6 +885,7 @@ TRIGGER;RELATED=START:-PT00H15M00S
 END:VALARM
 END:VEVENT
 END:VCALENDAR"
+   nil
    "&9/5/2003 10:30-15:30 On-Site Interview
  Desc: 10:30am - Blah
  Location: Cccc
@@ -812,6 +927,7 @@ ACTION:DISPLAY
 DESCRIPTION:REMINDER
 TRIGGER;RELATED=START:-PT00H15M00S
 END:VALARM"
+   nil
    "&23/6/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
  Desc: 753 Zeichen hier radiert
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
@@ -878,6 +994,7 @@ TRIGGER;RELATED=START:-PT00H15M00S
 END:VALARM
 END:VEVENT
 END:VCALENDAR"
+   nil
    "&23/6/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
  Desc: Viele Zeichen standen hier früher
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
@@ -892,6 +1009,7 @@ END:VCALENDAR"
   ;; export 2004-10-28 block entries
   (icalendar-testsuite--test-export
    nil
+   nil
    "-*- mode: text; fill-column: 256;-*-
 
 >>>  block entries:
@@ -904,12 +1022,14 @@ SUMMARY:Nov 8-10 aa")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "%%(diary-block 12 13 2004 12 17 2004) Dec 13-17 bb"
    "DTSTART;VALUE=DATE:20041213
 DTEND;VALUE=DATE:20041218
 SUMMARY:Dec 13-17 bb")
 
   (icalendar-testsuite--test-export
+   nil
    nil
    "%%(diary-block 2 3 2005 2 4 2005) Feb 3-4 cc"
    "DTSTART;VALUE=DATE:20050203
@@ -918,12 +1038,14 @@ SUMMARY:Feb 3-4 cc")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "%%(diary-block 4 24 2005 4 29 2005) April 24-29 dd"
    "DTSTART;VALUE=DATE:20050424
 DTEND;VALUE=DATE:20050430
 SUMMARY:April 24-29 dd
 ")
   (icalendar-testsuite--test-export
+   nil
    nil
    "%%(diary-block 5 30 2005 6 1 2005) may 30 - June 1: ee"
    "DTSTART;VALUE=DATE:20050530
@@ -932,6 +1054,7 @@ SUMMARY:may 30 - June 1: ee")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "%%(diary-block 6 6 2005 6 8 2005) ff"
    "DTSTART;VALUE=DATE:20050606
 DTEND;VALUE=DATE:20050609
@@ -939,6 +1062,7 @@ SUMMARY:ff")
 
   ;; export 2004-10-28 anniversary entries
   (icalendar-testsuite--test-export
+   nil
    nil
    "
 >>> anniversaries:
@@ -952,6 +1076,7 @@ SUMMARY:aa birthday (%d years old)
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "%%(diary-anniversary 5 17 1957) bb birthday (%d years old)"
    "DTSTART;VALUE=DATE:19570517
 DTEND;VALUE=DATE:19570518
@@ -959,6 +1084,7 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=05;BYMONTHDAY=17
 SUMMARY:bb birthday (%d years old)")
 
   (icalendar-testsuite--test-export
+   nil
    nil
    "%%(diary-anniversary 6 8 1997) cc birthday (%d years old)"
    "DTSTART;VALUE=DATE:19970608
@@ -968,6 +1094,7 @@ SUMMARY:cc birthday (%d years old)")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "%%(diary-anniversary 7 22 1983) dd (%d years ago...!)"
    "DTSTART;VALUE=DATE:19830722
 DTEND;VALUE=DATE:19830723
@@ -976,6 +1103,7 @@ SUMMARY:dd (%d years ago...!)")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "%%(diary-anniversary 8 1 1988) ee birthday (%d years old)"
    "DTSTART;VALUE=DATE:19880801
 DTEND;VALUE=DATE:19880802
@@ -983,6 +1111,7 @@ RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=08;BYMONTHDAY=01
 SUMMARY:ee birthday (%d years old)")
 
   (icalendar-testsuite--test-export
+   nil
    nil
    "%%(diary-anniversary 9 21 1957) ff birthday (%d years old)"
    "DTSTART;VALUE=DATE:19570921
@@ -1005,6 +1134,7 @@ SUMMARY:ff birthday (%d years old)")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    ">>> ------------ my week:
 
 Monday 13:00 MAC"
@@ -1015,6 +1145,7 @@ SUMMARY:MAC")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "Monday 15:00 a1"
    "DTSTART;VALUE=DATE-TIME:20000103T150000
 DTEND;VALUE=DATE-TIME:20000103T160000
@@ -1024,6 +1155,7 @@ SUMMARY:a1")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "Monday 16:00-17:00 a2"
    "DTSTART;VALUE=DATE-TIME:20000103T160000
 DTEND;VALUE=DATE-TIME:20000103T170000
@@ -1031,6 +1163,7 @@ RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO
 SUMMARY:a2")
 
   (icalendar-testsuite--test-export
+   nil
    nil
    "Tuesday 11:30-13:00 a3"
    "DTSTART;VALUE=DATE-TIME:20000104T113000
@@ -1040,6 +1173,7 @@ SUMMARY:a3")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "Tuesday 15:00 a4"
    "DTSTART;VALUE=DATE-TIME:20000104T150000
 DTEND;VALUE=DATE-TIME:20000104T160000
@@ -1047,6 +1181,7 @@ RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU
 SUMMARY:a4")
 
   (icalendar-testsuite--test-export
+   nil
    nil
    "Wednesday 13:00 a5"
    "DTSTART;VALUE=DATE-TIME:20000105T130000
@@ -1056,6 +1191,7 @@ SUMMARY:a5")
 
   (icalendar-testsuite--test-export
    nil
+   nil
    "Wednesday 11:30-13:30 a6"
    "DTSTART;VALUE=DATE-TIME:20000105T113000
 DTEND;VALUE=DATE-TIME:20000105T133000
@@ -1063,6 +1199,7 @@ RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=WE
 SUMMARY:a6")
 
   (icalendar-testsuite--test-export
+   nil
    nil
    "Wednesday 15:00 s1"
    "DTSTART;VALUE=DATE-TIME:20000105T150000
@@ -1073,6 +1210,7 @@ SUMMARY:s1")
 
   ;; export 2004-10-28 regular entries
   (icalendar-testsuite--test-export
+   nil
    nil
    "
 >>> regular diary entries:
@@ -1217,6 +1355,7 @@ LAST-MODIFIED
 END:VEVENT
 END:VCALENDAR
 "
+   nil
    "&23/11/2004 14:00-14:30 Jjjjj & Wwwww
  Status: TENTATIVE
  Class: PRIVATE 
@@ -1260,12 +1399,14 @@ END:VCALENDAR
   (icalendar-testsuite--test-export
    "%%(diary-block 1 1 2004 4 1 2004) Urlaub"
    nil
+   nil
    "DTSTART;VALUE=DATE:20040101
 DTEND;VALUE=DATE:20040105
 SUMMARY:Urlaub")
 
   ;; 2004-10-25 pg
   (icalendar-testsuite--test-export
+   nil
    "5 11 2004 Bla Fasel"
    nil
    "DTSTART;VALUE=DATE:20041105
@@ -1274,6 +1415,7 @@ SUMMARY:Bla Fasel")
 
   ;; 2004-10-30 pg
   (icalendar-testsuite--test-export
+   nil
    "2 Nov 2004 15:00-16:30 Zahnarzt"
    nil
    "DTSTART;VALUE=DATE-TIME:20041102T150000
@@ -1302,6 +1444,7 @@ DTEND
  :20050207
 DTSTAMP
  :20050128T011209Z"
+   nil
    "&%%(and (diary-block 6 2 2005 6 2 2005)) Waitangi Day
  Desc: abcdef"
    "&%%(and (diary-block 2 6 2005 2 6 2005)) Waitangi Day
@@ -1314,11 +1457,13 @@ SUMMARY:Hhhhhh Aaaaa ii Aaaaaaaa
 UID:6AFA7558-6994-11D9-8A3A-000A95A0E830-RID
 DTSTAMP:20050118T210335Z
 DURATION:P7D"
+   nil
    "&%%(and (diary-block 17 2 2005 23 2 2005)) Hhhhhh Aaaaa ii Aaaaaaaa"
    "&%%(and (diary-block 2 17 2005 2 23 2005)) Hhhhhh Aaaaa ii Aaaaaaaa")
 
   ;; 2005-03-23 lt
   (icalendar-testsuite--test-export
+   nil
    "&%%(diary-cyclic 7 8 2 2005) 16:00-16:45 [WORK] Pppp"
    nil
    "DTSTART;VALUE=DATE-TIME:20050208T160000
@@ -1329,6 +1474,7 @@ SUMMARY:[WORK] Pppp
 
   ;; 2005-05-27 eu
   (icalendar-testsuite--test-export
+   nil
    nil
    ;; FIXME: colon not allowed!
    ;;"Nov 1: NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30"
@@ -1341,6 +1487,7 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
   )
 
 (defun icalendar-testsuite--run-cycle-tests ()
+  "Perform cycling tests."
   (icalendar-testsuite--test-cycle
    "DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
