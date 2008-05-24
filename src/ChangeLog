@@ -40,15 +40,16 @@
 
 	* dosfns.c, fileio.c, font.c, fontset.c, image.c, macfns.c:
 	* macterm.c, process.c, w32.c, w32fns.c, w32proc.c, xfaces.c:
-	* xfns.c, xfont.c: Callers changed.
+	* xfns.c, xfont.c: All callers of stricmp and strcasecmp changed
+	to call xstrcasecmp.
 
-	* xfont.c (xfont_list_pattern, compare_font_names): Use xstricmp.
+	* xfont.c (xfont_list_pattern, compare_font_names): Use xstrcasecmp.
 
-	* fontset.c (fs_query_fontset): Use xstricmp.
+	* fontset.c (fs_query_fontset): Use xstrcasecmp.
 
-	* font.c (font_style_to_value, font_score): Use xstricmp.
+	* font.c (font_style_to_value, font_score): Use xstrcasecmp.
 
-	* dosfns.c (msdos_stdcolor_idx): Use xstricmp.
+	* dosfns.c (msdos_stdcolor_idx): Use xstrcasecmp.
 
 2008-05-22  Kenichi Handa  <handa@m17n.org>
 
