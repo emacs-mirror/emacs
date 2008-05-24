@@ -1,3 +1,11 @@
+2008-05-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-postprocess-file-styles): Throw an error
+	if c-file-style is set to a non-string
+
+	(c-neutralize-CPP-line): Surround by `save-excursion'.
+	(c-neutralize-syntax-in-CPP): Optimize for speed.
+
 2008-05-18  David Hull <david@snap.com>  (tiny change)
 
 	* vc-hg.el (vc-hg-annotate-re): Recognize the output of --follow.
