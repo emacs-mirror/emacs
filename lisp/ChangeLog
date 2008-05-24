@@ -1,3 +1,19 @@
+2008-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): New target, to update ELCFILES.
+	(bootstrap-after): Run update-elclist.
+
+2008-05-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar.el (icalendar-version): Increase to "0.19".
+	(icalendar--date-style): New function.
+	(icalendar--datetime-to-diary-date): Doc fix.
+	Use icalendar--date-style.
+	(icalendar--datestring-to-isodate): Doc fix.  Handle iso date style.
+	(icalendar--convert-yearly-to-ical):
+	(icalendar--convert-recurring-to-diary): Handle iso date style,
+	use icalendar-date-style.
+
 2008-05-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-delete-file): Make sure the buffer is deleted and
