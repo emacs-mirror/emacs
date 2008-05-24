@@ -13442,7 +13442,7 @@
 	the right thing if the name in the alist already an absolute
 	filename.  Make the log-file directory if necessary.
 
-2007-12-29  Richard Stallman  <rms@gnu.org>
+2008-01-02  Richard Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-prepend-text-property)
 	(font-lock-append-text-property): Canonicalize the face and
@@ -13456,12 +13456,12 @@
 	* facemenu.el (list-colors-print): Use :background and :foreground
 	instead of background-color and foreground-color.
 
-2007-12-29  Drew Adams  <drew.adams@oracle.com>
+2008-01-02  Drew Adams  <drew.adams@oracle.com>
 
 	* cus-edit.el (custom-add-parent-links):
 	Fill the "Parent documentation" text.
 
-2007-12-29  Eli Zaretskii  <eliz@gnu.org>
+2008-01-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-grep-command): Use "grep" on
 	MS-Windows and MS-DOS.
