@@ -1,3 +1,27 @@
+2008-05-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
+	Add icalendar-testsuite--test-datestring-to-isodate,
+	icalendar-testsuite--test-datetime-to-diary-date, and
+	icalendar-testsuite--test-calendar-style.
+	(icalendar-testsuite--test-format-ical-event):
+	(icalendar-testsuite--test-parse-summary-and-rest):
+	Doc fix.  Remove european-calendar-style.
+	(icalendar-testsuite--get-ical-event): Doc fix.
+	(icalendar-testsuite--test-first-weekday-of-year):
+	(icalendar-testsuite--run-cycle-tests): Add doc string.
+	(icalendar-testsuite--test-datestring-to-isodate):
+	(icalendar-testsuite--test-datetime-to-diary-date):
+	(icalendar-testsuite--test-calendar-style): New functions.
+	(icalendar-testsuite--test-export): Handle iso date style.
+	New arg INPUT-ISO.  Use calendar-date-style.
+	(icalendar-testsuite--test-import): Handle iso date style.
+	New arg EXPECTED-ISO.  Use calendar-date-style.
+	(icalendar-testsuite--test-cycle): Handle iso date style.
+	(icalendar-testsuite--run-import-tests):
+	(icalendar-testsuite--run-export-tests):
+	(icalendar-testsuite--run-real-world-tests): Add iso style tests.
+
 2008-02-29  Glenn Morris  <rgm@gnu.org>
 
 	* README: New file.
