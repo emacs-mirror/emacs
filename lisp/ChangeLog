@@ -1,3 +1,9 @@
+2008-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* proced.el (proced-header-line): Use the :align-to 0 feature
+	rather than computing the corresponding position manually.
+	(proced-update): Don't hardcode point-min==1.
+
 2008-05-24  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-postprocess-file-styles): Throw an error

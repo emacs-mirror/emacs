@@ -484,10 +484,7 @@ Returns count of hidden lines."
 ;; header line: code inspired by `ruler-mode-ruler'
 (defun proced-header-line ()
   "Return header line for Proced buffer."
-  (list "" (if (eq 'left (car (window-current-scroll-bars)))
-               (proced-header-space 'scroll-bar))
-        (proced-header-space 'left-fringe)
-        (proced-header-space 'left-margin)
+  (list (propertize " " 'display '(space :align-to 0))
         (replace-regexp-in-string
          "%" "%%" (substring proced-header-line (window-hscroll)))))
 
@@ -530,8 +527,9 @@ Returns count of hidden lines."
       (while (re-search-forward "\\([^ \t\n]+\\)[ \t]*\\($\\)?" lep t)
         (push (list (match-string-no-properties 1)
                     ;; take the column number starting from zero
-                    (1- (match-beginning 0)) (or (not (not (match-beginning 2)))
-                                                 (1- (match-end 0)))
+                    (- (match-beginning 0) (point-min))
+                    (or (not (not (match-beginning 2)))
+                        (- (match-end 0) (point-min)))
                     'left)
               proced-header-alist)))
     (let ((temp (regexp-opt (mapcar 'car proced-header-alist) t)))
