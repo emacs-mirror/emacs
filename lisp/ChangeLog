@@ -1,3 +1,22 @@
+2008-05-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/edebug.el (edebug-setup-hook, edebug-all-defs)
+	(edebug-all-forms, edebug-eval-macro-args, edebug-save-windows)
+	(edebug-save-displayed-buffer-points, edebug-initial-mode)
+	(edebug-trace, edebug-test-coverage, edebug-continue-kbd-macro)
+	(edebug-print-length, edebug-print-level, edebug-print-circle)
+	(edebug-unwrap-results, edebug-on-error, edebug-on-quit)
+	(edebug-global-break-condition, edebug-sit-for-seconds):
+	Remove spurious * from defcustom docstrings.
+	(edebug-unwrap*, edebug-signal, edebug-eval-display):
+	Improve argument/docstring consistency.
+	(edebug-test-coverage, edebug-gensym, edebug-read)
+	(edebug-top-level-nonstop, edebug-eval-result-list)
+	(edebug-eval-redisplay, edebug-trace): Fix typos in docstring.
+	(edebug-eval-defun, edebug-eval-top-level-form, edebug)
+	(edebug-display-freq-count): Reflow docstrings.
+	(edebug-restore-status): Doc fix.
+
 2008-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* proced.el (proced-header-line): Use the :align-to 0 feature
@@ -24,7 +43,7 @@
 	(icalendar--datetime-to-diary-date): Doc fix.
 	Use icalendar--date-style.
 	(icalendar--datestring-to-isodate): Doc fix.  Handle iso date style.
-	(icalendar--convert-yearly-to-ical):
+	(icalendar--convert-yearly-to-ical)
 	(icalendar--convert-recurring-to-diary): Handle iso date style,
 	use icalendar-date-style.
 
@@ -739,8 +758,7 @@
 2008-05-08  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-minor-mode-map)
-	(compilation-mode-map):  Bind "g" to recompile and "q" to
-	quit-window.
+	(compilation-mode-map): Bind "g" to recompile and "q" to quit-window.
 	* grep.el (grep-mode-map): Use `set-keymap-parent' to connect it
 	to `compilation-minor-mode-map' (instead of an explicit `cons').
 
@@ -1429,7 +1447,7 @@
 	existing deadline or scheduled item.
 	(org-agenda-compute-time-span): Make argument N optional.
 	(org-agenda-format-date-aligned): Require `cal-iso'.
-	(org-agenda-list): Include week into into agenda heading, don't
+	(org-agenda-list): Include week into agenda heading, don't
 	list it at each date (only on Mondays).
 	(org-read-date-analyze): Define local variable `iso-date'.
 	(org-agenda-format-date-aligned): Remove dependency on
@@ -1902,8 +1920,8 @@
 	* international/quail.el (quail-build-decode-map): Avoid string-bytes.
 
 	* textmodes/ispell.el (ispell-dictionary-alist-1)
-	(ispell-dictionary-alist-2, ispell-dictionary-alist-3):
-	(ispell-dictionary-alist-4, ispell-dictionary-alist-5):
+	(ispell-dictionary-alist-2, ispell-dictionary-alist-3)
+	(ispell-dictionary-alist-4, ispell-dictionary-alist-5)
 	(ispell-dictionary-alist-6): Remove.
 	(ispell-dictionary-base-alist): New var, merges the above.
 	(ispell-find-aspell-dictionaries, ispell-set-spellchecker-params):
@@ -2969,11 +2987,9 @@
 	* vc-hooks.el (vc-state): Add new state `conflict'.
 	(vc-after-save): Use when not if.
 	(vc-default-mode-line-string): Deal with the conflict state.
-	(vc-prefix-map):
-	(vc-menu-map): Bind vc-status instead of vc-directory.
+	(vc-prefix-map, vc-menu-map): Bind vc-status instead of vc-directory.
 
-	* vc.el (vc-editable-p):
-	(vc-default-status-printer):
+	* vc.el (vc-editable-p, vc-default-status-printer)
 	(vc-next-action): Deal with the conflict state.
 	(vc-mark-resolved): New function.
 	(vc-status-mode): Fix mode name.
@@ -2981,8 +2997,7 @@
 	(Todo): Add new entries, remove old ones.
 
 	* vc-cvs.el (vc-cvs-merge, vc-cvs-merge-news): Set conflict state.
-	(vc-cvs-parse-status):
-	(vc-cvs-after-dir-status):
+	(vc-cvs-parse-status, vc-cvs-after-dir-status):
 	* vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):
 	Detect the conflict state.
 
@@ -4388,7 +4403,7 @@
 	* calendar/solar.el (solar-equinoxes-solstices):
 	Reduce nesting of some lets.
 
-	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count):
+	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count)
 	(calendar-goto-mayan-long-count-date): Simplify.
 
 	* calendar/holidays.el (calendar-holiday-list, holiday-easter-etc):
@@ -4966,7 +4981,7 @@
 	obsolete alias.  Doc fix.  Move definition before use.
 
 	* calendar/cal-x.el (diary-frame-parameters)
-	(calendar-frame-parameters, calendar-and-diary-frame-parameters):
+	(calendar-frame-parameters, calendar-and-diary-frame-parameters)
 	(calendar-frame-1): Doc fixes.
 	(make-fancy-diary-buffer): Remove declaration.
 	(calendar-dedicate-diary): Replace call to deleted function
@@ -5457,7 +5472,7 @@
 
 	* calendar/calendar.el (calendar-today-marker)
 	(initial-calendar-window-hook, today-visible-calendar-hook)
-	(today-invisible-calendar-hook, diary-file, calendar-basic-setup):
+	(today-invisible-calendar-hook, diary-file, calendar-basic-setup)
 	(calendar-star-date, calendar-mark-today): Doc fixes.
 	(today-visible-calendar-hook): Add options.
 	(calendar-in-read-only-buffer): New macro.
@@ -5672,7 +5687,7 @@
 
 	* calendar/diary-lib.el (diary-face-attrs)
 	(diary-glob-file-regexp-prefix, diary-selective-display)
-	(number-of-diary-entries, diary-list-entries, diary-goto-entry):
+	(number-of-diary-entries, diary-list-entries, diary-goto-entry)
 	(list-sexp-diary-entries, diary-date, diary-block, diary-float)
 	(diary-anniversary, diary-cyclic)
 	(diary-fancy-font-lock-fontify-region-function): Doc fixes.
@@ -5801,7 +5816,7 @@
 	(make-chinese-month-assoc-list): Use cadr, nth.
 	(chinese-months): Remove un-needed let.
 
-	* calendar/cal-coptic.el (coptic-calendar-month-name-array):
+	* calendar/cal-coptic.el (coptic-calendar-month-name-array)
 	(ethiopic-calendar-month-name-array, ethiopic-name): Add doc strings.
 	(coptic-prompt-for-date): Move definition before use.
 
@@ -6116,7 +6131,7 @@
 	* Makefile.in (LOADDEFS): New variable.
 	(AUTOGENEL): Use $LOADDEFS.
 	(autoloads): Remove $(lisp)/loaddefs.el dependency; add $LOADDEFS.
-	($(lisp)/calendar/cal-loaddefs.el, $(lisp)/calendar/diary-loaddefs.el):
+	($(lisp)/calendar/cal-loaddefs.el, $(lisp)/calendar/diary-loaddefs.el)
 	($(lisp)/calendar/hol-loaddefs.el): New targets.
 	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
 	* calendar/cal-french.el, calendar/cal-hebrew.el, calendar/cal-html.el:
@@ -6168,7 +6183,7 @@
 
 	* calendar/solar.el (solar-moment, solar-exact-local-noon)
 	(solar-sunrise-sunset, solar-sunrise-sunset-string)
-	(solar-ephemeris-time, solar-date-next-longitude, solar-sidereal-time):
+	(solar-ephemeris-time, solar-date-next-longitude, solar-sidereal-time)
 	(diary-sabbath-candles, solar-equinoxes/solstices)
 	(solar-equinoxes-solstices): Use cadr, cdar, nth, zerop.
 	(solar-time-equation, solar-date-to-et): Simplify.
@@ -6925,8 +6940,7 @@
 	* bindings.el (mode-line-remote): Add mouse-face.  Improve tooltip.
 	(standard-mode-line-position): Add mouse-face.
 
-	* progmodes/compile.el (compilation-menu-map):
-	(compilation-mode-map):
+	* progmodes/compile.el (compilation-menu-map, compilation-mode-map):
 	* progmodes/grep.el (grep-mode-map): Add :help.
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Define and
