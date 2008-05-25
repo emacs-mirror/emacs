@@ -1,3 +1,8 @@
+2008-05-25  John Paul Wallington  <jpw@pobox.com>
+
+	* proced.el (proced-next-line, proced-previous-line): Avoid
+	calling `next-line' and `previous-line' from Lisp code.
+
 2008-05-25  Ed Reingold  <reingold@emr.cs.iit.edu>
 
 	* calendar/cal-hebrew.el (diary-hebrew-yahrzeit):
