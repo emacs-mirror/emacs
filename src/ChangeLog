@@ -1,3 +1,31 @@
+2008-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* w32term.c (x_draw_glyph_string): Fix calculation of underline
+	position.
+
+	* xterm.c (x_draw_glyph_string): Fix calculation of underline
+	position.
+
+	* xfaces.c: Delete unused function prototypes.
+	(xstrlwr, font_frame): Delete them.
+	(clear_face_cache): Delete unused variable.
+
+	* xftfont.c (xftfont_open): Delete unused variable.  If
+	underline_thickness is not 1, adjust underline_position.
+
+	* ftxfont.c (ftxfont_open): Delete unused variable.
+
+	* fontset.c (face_for_char): Optimize for the case of no charset
+	property.
+
+	* font.c (LGSTRING_HEADER_SIZE, LGSTRING_GLYPH_SIZE)
+	(check_gstring, check_otf_features, otf_list, otf_tag_symbol)
+	(otf_open, font_otf_capability, generate_otf_features)
+	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor):
+	Commented out by surrounding "#if 0" and "#endif" for the moment.
+	(Ffont_drive_otf, Ffont_otf_alternates): Likewise.
+	(syms_of_font): Codes for accessing above commented out.
+
 2008-05-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c: Include dispextern.h.
