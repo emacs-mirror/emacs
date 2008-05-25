@@ -353,14 +353,14 @@ information will be displayed but not selected.
   "Move down lines then position at `proced-goal-column'.
 Optional prefix ARG says how many lines to move; default is one line."
   (interactive "p")
-  (next-line arg)
+  (forward-line arg)
   (proced-move-to-goal-column))
 
 (defun proced-previous-line (arg)
   "Move up lines then position at `proced-goal-column'.
 Optional prefix ARG says how many lines to move; default is one line."
   (interactive "p")
-  (previous-line arg)
+  (forward-line (- arg))
   (proced-move-to-goal-column))
 
 (defun proced-mark (&optional count)
