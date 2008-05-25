@@ -2891,7 +2891,7 @@ x_draw_glyph_string (s)
               else
                 thickness = 1;
               if (x_underline_at_descent_line)
-                position = (s->height - thickness) - s->ybase;
+                position = (s->height - thickness) - (s->ybase - s->y);
               else
                 {
                 /* Get the underline position.  This is the recommended
@@ -2912,7 +2912,7 @@ x_draw_glyph_string (s)
 	  /* Check the sanity of thickness and position.  We should
 	     avoid drawing underline out of the current line area.  */
 	  if (s->y + s->height <= s->ybase + position)
-	    position = s->y + s->height - 1;
+	    position = (s->height - 1) - (s->ybase - s->y);
 	  if (s->y + s->height < s->ybase + position + thickness)
 	    thickness = (s->y + s->height) - (s->ybase + position);
 	  s->underline_thickness = thickness;
