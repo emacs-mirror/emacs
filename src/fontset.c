@@ -908,6 +908,17 @@ face_for_char (f, face, c, pos, object)
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
 	}
     }
+  if (id < 0)
+    {
+      struct font *font = face->ascii_face->font;
+
+      if (font && font->driver->encode_char (font, c) != FONT_INVALID_CODE)
+	return face->ascii_face->id;
+      font = face->font;
+      if (font && font->driver->encode_char (font, c) != FONT_INVALID_CODE)
+	return face->id;
+    }
+
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
     {
