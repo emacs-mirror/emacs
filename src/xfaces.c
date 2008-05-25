@@ -493,32 +493,13 @@ static void map_tty_color P_ ((struct frame *, struct face *,
 static Lisp_Object resolve_face_name P_ ((Lisp_Object, int));
 static int may_use_scalable_font_p P_ ((const char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
-static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
-			      int, int));
-static int x_face_list_fonts P_ ((struct frame *, char *,
-				  struct font_name **, int, int));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
-static void load_face_font P_ ((struct frame *, struct face *));
 static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
 static void free_face_colors P_ ((struct frame *, struct face *));
 static int face_color_gray_p P_ ((struct frame *, char *));
-static char *build_font_name P_ ((struct font_name *));
-static void free_font_names P_ ((struct font_name *, int));
-static int sorted_font_list P_ ((struct frame *, char *,
-				 int (*cmpfn) P_ ((const void *, const void *)),
-				 struct font_name **));
-static int font_list_1 P_ ((struct frame *, Lisp_Object, Lisp_Object,
-			    Lisp_Object, struct font_name **));
-static int font_list P_ ((struct frame *, Lisp_Object, Lisp_Object,
-			  Lisp_Object, struct font_name **));
-static int try_font_list P_ ((struct frame *, Lisp_Object,
-			      Lisp_Object, Lisp_Object, struct font_name **));
-static int try_alternative_families P_ ((struct frame *f, Lisp_Object,
-					 Lisp_Object, struct font_name **));
-static int cmp_font_names P_ ((const void *, const void *));
 static struct face *realize_face P_ ((struct face_cache *, Lisp_Object *,
 				      int));
 static struct face *realize_non_ascii_face P_ ((struct frame *, Lisp_Object,
@@ -545,8 +526,6 @@ static int set_lface_from_font P_ ((struct frame *, Lisp_Object, Lisp_Object,
 				    int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *));
-static char *best_matching_font P_ ((struct frame *, Lisp_Object *,
-				     struct font_name *, int, int, int *));
 static void cache_face P_ ((struct face_cache *, struct face *, unsigned));
 static void uncache_face P_ ((struct face_cache *, struct face *));
 
@@ -820,24 +799,6 @@ xstrcasecmp (s1, s2)
 }
 
 
-/* Like strlwr, which might not always be available.  */
-
-static unsigned char *
-xstrlwr (s)
-     unsigned char *s;
-{
-  unsigned char *p = s;
-
-  for (p = s; *p; ++p)
-    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
-       for some locales.  */
-    if (isascii (*p))
-      *p = tolower (*p);
-
-  return s;
-}
-
-
 /* If FRAME is nil, return a pointer to the selected frame.
    Otherwise, check that FRAME is a live frame, and return a pointer
    to it.  NPARAM is the parameter number of FRAME, for
@@ -959,13 +920,10 @@ clear_face_cache (clear_fonts_p)
   if (clear_fonts_p
       || ++clear_font_table_count == CLEAR_FONT_TABLE_COUNT)
     {
-      struct x_display_info *dpyinfo;
-
 #if 0
       /* Not yet implemented.  */
       clear_font_cache (frame);
 #endif
-
 
       /* From time to time see if we can unload some fonts.  This also
 	 frees all realized faces on all frames.  Fonts needed by
@@ -1706,11 +1664,6 @@ enum xlfd_swidth
   XLFD_SWIDTH_EXTRA_EXPANDED,	/* 80: ExtraExpanded, Wide...  */
   XLFD_SWIDTH_ULTRA_EXPANDED	/* 90: UltraExpanded... */
 };
-
-/* The frame in effect when sorting font names.  Set temporarily in
-   sort_fonts so that it is available in font comparison functions.  */
-
-static struct frame *font_frame;
 
 /* Order by which font selection chooses fonts.  The default values
    mean `first, find a best match for the font width, then for the
