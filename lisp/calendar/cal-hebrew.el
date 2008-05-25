@@ -953,10 +953,7 @@ use when highlighting the day in the calendar."
 		      entry
 		      (if (= y d) "" " (evening)")
 		      diff
-		      (cond ((= (% diff 10) 1) "st")
-			    ((= (% diff 10) 2) "nd")
-			    ((= (% diff 10) 3) "rd")
-			    (t "th")))))))
+		      (diary-ordinal-suffix diff))))))
 
 (defun diary-rosh-hodesh (&optional mark)
   "Rosh Hodesh diary entry.
