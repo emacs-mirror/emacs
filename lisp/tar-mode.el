@@ -421,6 +421,16 @@ is visible (and the real data of the buffer is hidden)."
                                  (tar-header-block-tokenize
                                   (buffer-substring pos (+ pos 512)))))))
         (setq pos (+ pos 512))
+        (when (equal (tar-header-name tokens) "././@LongLink")
+          ;; This is a GNU Tar long-file-name header.
+          (let* ((size (tar-header-size tokens))
+                 ;; -1 so as to strip the terminating 0 byte.
+                 (name (buffer-substring pos (+ pos size -1))))
+            (setq pos (+ pos (ash (ash (+ 511 size) -9) 9)))
+            (setq tokens (tar-header-block-tokenize
+                          (buffer-substring pos (+ pos 512))))
+            (tar-setf (tar-header-name tokens) name)
+            (setq pos (+ pos 512))))
         (progress-reporter-update progress-reporter pos)
         (if (memq (tar-header-link-type tokens) '(20 55))
             ;; Foo.  There's an extra empty block after these.
@@ -429,20 +439,18 @@ is visible (and the real data of the buffer is hidden)."
           (if (< size 0)
               (error "%s has size %s - corrupted"
                      (tar-header-name tokens) size))
-                                        ;
-                                        ; This is just too slow.  Don't really need it anyway....
-                                        ;(tar-header-block-check-checksum
-                                        ;  hblock (tar-header-block-checksum hblock)
-                                        ;  (tar-header-name tokens))
+          ;;
+          ;; This is just too slow.  Don't really need it anyway....
+          ;;(tar-header-block-check-checksum
+          ;;  hblock (tar-header-block-checksum hblock)
+          ;;  (tar-header-name tokens))
 
           (push (make-tar-desc pos tokens) result)
 
           (and (null (tar-header-link-type tokens))
                (> size 0)
-               (setq pos
-                     (+ pos 512 (ash (ash (1- size) -9) 9)) ; this works
-                                        ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
-                     ))))
+               ;; Round up to a multiple of 512.
+               (setq pos (+ pos (ash (ash (+ 511 size) -9) 9))))))
       (make-local-variable 'tar-parse-info)
       (setq tar-parse-info (nreverse result))
       ;; A tar file should end with a block or two of nulls,

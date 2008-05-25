@@ -1,3 +1,7 @@
+2008-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-summarize-buffer): Handle GNU Tar @LongLink format.
+
 2008-05-24  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-postprocess-file-styles): Throw an error
