@@ -2670,7 +2670,7 @@ to provide the `find-revision' operation instead."
           ((eq state 'ignored) "(ignored)")
           ((eq state 'unregistered) "(unregistered)")
 	  ((eq state 'unlocked-changes) "(stale)")
-	  (t (concat "(unknown:" state ")"))))
+	  (t (format "(unknown:%s)" state))))
 	(buffer
 	 (get-file-buffer file))
 	(modflag

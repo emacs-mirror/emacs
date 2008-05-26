@@ -1,5 +1,8 @@
 2008-05-26  Andreas Schwab  <schwab@suse.de>
 
+	* vc.el (vc-default-prettify-state-info): Fix formatting of an
+	unknown state.
+
 	* tar-mode.el (tar-summarize-buffer): Comment fix.
 
 2008-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
