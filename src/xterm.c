@@ -469,8 +469,8 @@ x_set_frame_alpha (f)
   Window win = FRAME_OUTER_WINDOW (f);
   double alpha = 1.0;
   double alpha_min = 1.0;
-  unsigned int opac;
-  
+  unsigned long opac;
+
   if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
     /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
        we must treat the former instead of the latter. */
@@ -491,7 +491,7 @@ x_set_frame_alpha (f)
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
-  opac = (unsigned int)(alpha * OPAQUE);
+  opac = alpha * OPAQUE;
 
   /* return unless necessary */
   {
@@ -502,9 +502,9 @@ x_set_frame_alpha (f)
 
     XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
 		       0L, 1L, False, XA_CARDINAL, &actual, &format, &n, &left,
-		       (unsigned char **) &data);
-    if (data != None)
-      if (*(unsigned int *)data == opac)
+		       &data);
+    if (actual != None)
+      if (*(unsigned long *)data == opac)
 	{
 	  XFree ((void *) data);
 	  return;
