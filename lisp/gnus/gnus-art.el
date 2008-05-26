@@ -6668,13 +6668,10 @@ positives are possible."
      ;; here to determine where it ends.
      1 (>= gnus-button-emacs-level 1) gnus-button-handle-describe-key 3)
     ;; This is how URLs _should_ be embedded in text (RFC 1738, RFC 2396)...
-    ("<URL: *\\([^<>]*\\)>"
+    ("<URL: *\\([^\n<>]*\\)>"
      1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
     ;; RFC 2396 (2.4.3., delims) ...
-    ("\"URL: *\\([^\"]*\\)\""
-     1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
-    ;; RFC 2396 (2.4.3., delims) ...
-    ("\"URL: *\\([^\"]*\\)\""
+    ("\"URL: *\\([^\n\"]*\\)\""
      1 (>= gnus-button-browse-level 0) gnus-button-embedded-url 1)
     ;; Raw URLs.
     (gnus-button-url-regexp
@@ -6902,19 +6899,79 @@ specified by `gnus-button-alist'."
 	(setq regexp (eval (car entry)))
 	(goto-char beg)
 	(while (re-search-forward regexp nil t)
-	  (let* ((start (and entry (match-beginning (nth 1 entry))))
-		 (end (and entry (match-end (nth 1 entry))))
-		 (from (match-beginning 0)))
+	  (let ((start (match-beginning (nth 1 entry)))
+		(end (match-end (nth 1 entry)))
+		(from (match-beginning 0)))
 	    (when (and (or (eq t (nth 2 entry))
 			   (eval (nth 2 entry)))
 		       (not (gnus-button-in-region-p
 			     start end 'gnus-callback)))
 	      ;; That optional form returned non-nil, so we add the
 	      ;; button.
-	      (gnus-article-add-button
-	       start end 'gnus-button-push
-	       (car (push (set-marker (make-marker) from)
-			  gnus-button-marker-list))))))))))
+	      (setq from (set-marker (make-marker) from))
+	      (push from gnus-button-marker-list)
+	      (unless (and (eq (car entry) 'gnus-button-url-regexp)
+			   (gnus-article-extend-url-button from start end))
+		(gnus-article-add-button start end
+					 'gnus-button-push from)))))))))
+
+(defun gnus-article-extend-url-button (beg start end)
+  "Extend url button if url is folded into two or more lines.
+Return non-nil if button is extended.  BEG is a marker that points to
+the beginning position of a text containing url.  START and END are
+the endpoints of a url button before it is extended.  The concatenated
+url is put as the `gnus-button-url' overlay property on the button."
+  (let ((opoint (point))
+	(points (list start end))
+	url delim regexp)
+    (prog1
+	(when (and (progn
+		     (goto-char end)
+		     (not (looking-at "[\t ]*[\">]")))
+		   (progn
+		     (goto-char start)
+		     (string-match
+		      "\\(?:\"\\|\\(<\\)\\)[\t ]*\\(?:url[\t ]*:[\t ]*\\)?\\'"
+		      (buffer-substring (point-at-bol) start)))
+		   (progn
+		     (setq url (list (buffer-substring start end))
+			   delim (if (match-beginning 1) ">" "\""))
+		     (beginning-of-line)
+		     (setq regexp (concat
+				   (when (and (looking-at
+					       message-cite-prefix-regexp)
+					      (< (match-end 0) start))
+				     (regexp-quote (match-string 0)))
+				   "\
+\[\t ]*\\(?:\\([^\t\n \">]+\\)[\t ]*$\\|\\([^\t\n \">]*\\)[\t ]*"
+				   delim "\\)"))
+		     (while (progn
+			      (forward-line 1)
+			      (and (looking-at regexp)
+				   (prog1
+				       (match-beginning 1)
+				     (push (or (match-string 2)
+					       (match-string 1))
+					   url)
+				     (push (setq end (or (match-end 2)
+							 (match-end 1)))
+					   points)
+				     (push (or (match-beginning 2)
+					       (match-beginning 1))
+					   points)))))
+		     (match-beginning 2)))
+	  (let (gnus-article-mouse-face widget-mouse-face)
+	    (while points
+	      (gnus-article-add-button (pop points) (pop points)
+				       'gnus-button-push beg)))
+	  (let ((overlay (gnus-make-overlay start end)))
+	    (gnus-overlay-put overlay 'evaporate t)
+	    (gnus-overlay-put overlay 'gnus-button-url
+			      (list (mapconcat 'identity (nreverse url) "")))
+	    (when gnus-article-mouse-face
+	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))
+	  t)
+      (goto-char opoint))))
 
 ;; Add buttons to the head of an article.
 (defun gnus-article-add-buttons-to-head ()
@@ -7016,12 +7073,14 @@ specified by `gnus-button-alist'."
     (let* ((entry (gnus-button-entry))
 	   (inhibit-point-motion-hooks t)
 	   (fun (nth 3 entry))
-	   (args (mapcar (lambda (group)
-			   (let ((string (match-string group)))
-			     (gnus-set-text-properties
-			      0 (length string) nil string)
-			     string))
-			 (nthcdr 4 entry))))
+	   (args (or (and (eq (car entry) 'gnus-button-url-regexp)
+			  (get-char-property marker 'gnus-button-url))
+		     (mapcar (lambda (group)
+			       (let ((string (match-string group)))
+				 (set-text-properties
+				  0 (length string) nil string)
+				 string))
+			     (nthcdr 4 entry)))))
       (cond
        ((fboundp fun)
 	(apply fun args))

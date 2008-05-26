@@ -1,3 +1,15 @@
+2008-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-button-alist): Exclude newline in RFC2396-compliant
+	url pattern; remove duplicate one.
+	(gnus-article-extend-url-button): New function.
+	(gnus-article-add-buttons): Use it.
+	(gnus-button-push): Use concatenated url that it makes.
+
+2008-05-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Adjusted copyright dates and added a keyword.
+
 2008-04-24  Luca Capello  <luca@pca.it>  (tiny change)
 
 	* mm-encode.el (mm-safer-encoding): Add optional argument `type'.
