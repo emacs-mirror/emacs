@@ -1,3 +1,8 @@
+2008-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-initial-limit): Use unless instead of if.
+	(gnus-fetch-old-headers): Warn about setting it to t for Gmane groups.
+
 2008-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Add more docs.

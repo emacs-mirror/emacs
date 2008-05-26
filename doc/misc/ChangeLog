@@ -1,3 +1,7 @@
+2008-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Filling In Threads): Additions to gnus-fetch-old-headers.
+
 2008-05-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Scoring On Other Headers): Fix typo.  Rearrange.
