@@ -492,7 +492,7 @@ editing!"
                     (and (not view-mode)
                          (not (eq (get major-mode 'mode-class) 'special))
                          (view-mode-enter))))
-	     (run-hook-with-args 'modeline-hook buffer-file-name))
+	     (run-hook-with-args 'mode-line-hook buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 
 (defun vc-resynch-buffer (file &optional keep noquery)
