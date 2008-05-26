@@ -833,6 +833,8 @@ use when highlighting the day in the calendar."
 
 (autoload 'diary-make-date "diary-lib")
 
+(declare-function diary-ordinal-suffix "diary-lib" (n))
+
 ;;;###diary-autoload
 (defun diary-hebrew-yahrzeit (death-month death-day death-year &optional mark)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
