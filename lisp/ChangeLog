@@ -1,3 +1,11 @@
+2008-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-context-mid-hunk-header-re): New const.
+	(diff-font-lock-keywords, diff-context->unified)
+	(diff-reverse-direction, diff-fixup-modifs, diff-sanity-check-hunk)
+	(diff-hunk-text, diff-find-source-location): Use it.
+	(diff-post-command-hook): Let the user edit the hunk headers.
+
 2008-05-26  Andreas Schwab  <schwab@suse.de>
 
 	* vc.el (vc-default-prettify-state-info): Fix formatting of an
@@ -15,8 +23,8 @@
 
 2008-05-25  John Paul Wallington  <jpw@pobox.com>
 
-	* proced.el (proced-next-line, proced-previous-line): Avoid
-	calling `next-line' and `previous-line' from Lisp code.
+	* proced.el (proced-next-line, proced-previous-line):
+	Avoid calling `next-line' and `previous-line' from Lisp code.
 
 2008-05-25  Ed Reingold  <reingold@emr.cs.iit.edu>
 
