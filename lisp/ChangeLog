@@ -4,6 +4,11 @@
 
 	* vc-dispatcher.el (vc-resynch-window): Fix mode-line updating.
 	(vc-dir-menu-map): Fix menu title for the menu bar and the popup menu.
+	(vc-dir-child-files): New function.
+	(vc-dir-node-directory): New function.
+	(vc-dir-update, vc-dir-parent-marked-p)
+	(vc-dir-children-marked-p, vc-dir-mark-all-files)
+	(vc-dir-marked-only-files, vc-dispatcher-selection-set): Use it.
 
 2008-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
