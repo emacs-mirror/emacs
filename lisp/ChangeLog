@@ -10,6 +10,8 @@
 	(vc-dir-children-marked-p, vc-dir-mark-all-files)
 	(vc-dir-marked-only-files, vc-dispatcher-selection-set): Use it.
 
+	* vc-cvs.el (vc-cvs-status-extra-headers): Align labels.
+
 2008-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-context-mid-hunk-header-re): New const.

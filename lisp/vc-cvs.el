@@ -951,12 +951,12 @@ state."
     (concat
      (cond (module
 	    (concat
-	      (propertize "Module:      " 'face 'font-lock-type-face)
+	      (propertize "Module     : " 'face 'font-lock-type-face)
 	      (propertize module 'face 'font-lock-variable-name-face)))
 	   (t ""))
      (cond (repo
 	    (concat
-	      (propertize "Repository:   " 'face 'font-lock-type-face)
+	      (propertize "Repository : " 'face 'font-lock-type-face)
 	      (propertize repo 'face 'font-lock-variable-name-face)))
 	   (t ""))
      ;; In CVS, branch is a per-file property, not a per-directory property.  We 
