@@ -1,6 +1,7 @@
 2008-05-26  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32font_text_extents): Zero whole metrics struct first.
+        (compute_metrics): Don't set failure if we just cleared the cache.
 
 2008-05-25  Kenichi Handa  <handa@m17n.org>
 
