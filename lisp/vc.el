@@ -656,8 +656,6 @@
 ;;
 ;; - the CVS vc-dir display is now incorrect from some states.
 ;;
-;; - vc-dir is now broken for RCS and SCCS.
-;;
 ;; - the *vc-dir* buffer is not updated correctly anymore after VC
 ;;   operations that change the file state.
 ;;
@@ -988,10 +986,10 @@ be registered."
 Within directories, only files already under version control are noticed."
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
-      (if (file-directory-p node)
-	  (vc-file-tree-walk
-	   node (lambda (f) (when (vc-backend f) (push f flattened)))))
-      (push node flattened))
+      (when (file-directory-p node)
+	(vc-file-tree-walk
+	 node (lambda (f) (when (vc-backend f) (push f flattened)))))
+      (unless (file-directory-p node) (push node flattened)))
     (nreverse flattened)))
 
 (defun vc-derived-from-dir-mode (&optional buffer)

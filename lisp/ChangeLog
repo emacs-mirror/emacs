@@ -1,6 +1,7 @@
 2008-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (Problems): Remove fixed issues.
+	(vc-expand-dirs): Avoid returning directories.
 
 	* vc-dispatcher.el (vc-resynch-window): Fix mode-line updating.
 	(vc-dir-menu-map): Fix menu title for the menu bar and the popup menu.
