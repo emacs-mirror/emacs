@@ -100,9 +100,9 @@ enum charset_attr_index
 
 	(CHARSET-ID . OFFSET)
 
-      CHARSET-IDs are ID numbers of parent charsets.  OFFSET is an
-      integer value to add to a code point of the parent charset to
-      get the corresponding code point of this charset.  */
+       CHARSET-IDs are ID numbers of parent charsets.  OFFSET is an
+       integer value to add to a code point of the parent charset to
+       get the corresponding code point of this charset.  */
     charset_superset,
 
     /* The value is a mapping vector or a file name that contains the
@@ -373,7 +373,7 @@ extern Lisp_Object Vcurrent_iso639_language;
   } while (0)
 
 
-/* Lookup Vcharset_order_list and return the first charset that
+/* Lookup Vcharset_ordered_list and return the first charset that
    contains the character C.  */
 #define CHAR_CHARSET(c)				\
   ((c) < 0x80 ? CHARSET_FROM_ID (charset_ascii)	\

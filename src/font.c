@@ -1608,6 +1608,8 @@ font_parse_family_registry (family, registry, font_spec)
 
 /* OTF handler */
 
+#if 0
+
 #define LGSTRING_HEADER_SIZE 6
 #define LGSTRING_GLYPH_SIZE 8
 
@@ -1843,7 +1845,6 @@ generate_otf_features (spec, features)
     error ("OTF spec too long");
 }
 
-
 Lisp_Object
 font_otf_DeviceTable (device_table)
      OTF_DeviceTable *device_table;
@@ -1898,8 +1899,8 @@ font_otf_Anchor (anchor)
     }
   return val;
 }
-
 #endif	/* HAVE_LIBOTF */
+#endif	/* 0 */
 
 /* G-string (glyph string) handler */
 
@@ -3993,6 +3994,8 @@ FONT-OBJECT.  */)
   return to;
 }
 
+#if 0
+
 DEFUN ("font-drive-otf", Ffont_drive_otf, Sfont_drive_otf, 6, 6, 0,
        doc: /* Apply OpenType features on glyph-string GSTRING-IN.
 OTF-FEATURES specifies which features to apply in this format:
@@ -4112,7 +4115,7 @@ corresponding character.  */)
     }
   return Fnreverse (alternates);
 }
-
+#endif	/* 0 */
 
 #ifdef FONT_DEBUG
 
@@ -4488,10 +4491,12 @@ syms_of_font ()
   staticpro (&scratch_font_prefer);
   scratch_font_prefer = Ffont_spec (0, NULL);
 
+#if 0
 #ifdef HAVE_LIBOTF
   staticpro (&otf_list);
   otf_list = Qnil;
-#endif
+#endif	/* HAVE_LIBOTF */
+#endif	/* 0 */
 
   defsubr (&Sfontp);
   defsubr (&Sfont_spec);
@@ -4505,8 +4510,10 @@ syms_of_font ()
   defsubr (&Sfont_make_gstring);
   defsubr (&Sfont_fill_gstring);
   defsubr (&Sfont_shape_text);
+#if 0
   defsubr (&Sfont_drive_otf);
   defsubr (&Sfont_otf_alternates);
+#endif	/* 0 */
 
 #ifdef FONT_DEBUG
   defsubr (&Sopen_font);

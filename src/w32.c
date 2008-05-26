@@ -100,6 +100,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "ndir.h"
 #include "w32heap.h"
 #include "systime.h"
+#include "dispextern.h"		/* for xstrcasecmp */
 
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);

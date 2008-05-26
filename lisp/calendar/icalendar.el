@@ -103,7 +103,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.18"
+(defconst icalendar-version "0.19"
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -201,7 +201,6 @@ several years beyond the start time.  Set this string to a year
 just before the start of your personal calendar."
   :type 'integer
   :group 'icalendar)
-
 
 (defcustom icalendar-export-hidden-diary-entries
   t
@@ -668,18 +667,24 @@ ISO format: (year month day)."
     ;; datetime == nil
     nil))
 
+(defun icalendar--date-style ()
+  "Return current calendar date style.
+Convenience function to handle transition from old
+`european-calendar-style' to new `calendar-date-style'."
+  (if (boundp 'calendar-date-style)
+      calendar-date-style
+    (if (with-no-warnings european-calendar-style)
+        'european
+      'american)))
+
 (defun icalendar--datetime-to-diary-date (datetime &optional separator)
   "Convert the decoded DATETIME to diary format.
 Optional argument SEPARATOR gives the separator between month,
 day, and year.  If nil a blank character is used as separator.
-Call icalendar--datetime-to-*-date according to the
-value of `calendar-date-style' (or the older `european-calendar-style')."
+Call icalendar--datetime-to-*-date according to the current
+calendar date style."
   (funcall (intern-soft (format "icalendar--datetime-to-%s-date"
-                                (if (boundp 'calendar-date-style)
-                                    calendar-date-style
-                                  (if (with-no-warnings european-calendar-style)
-                                      'european
-                                    'american))))
+                                (icalendar--date-style)))
            datetime separator))
 
 (defun icalendar--datetime-to-colontime (datetime)
@@ -746,10 +751,24 @@ If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days."
   "Convert diary-style DATESTRING to iso-style date.
 If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days
 -- DAY-SHIFT must be either nil or an integer.  This function
-takes care of european-style."
+tries to figure the date style from DATESTRING itself.  If that
+is not possible it uses the current calendar date style."
   (let ((day -1) month year)
     (save-match-data
-      (cond ( ;; numeric date
+      (cond ( ;; iso-style numeric date
+             (string-match (concat "\\s-*"
+                                   "\\([0-9]\\{4\\}\\)[ \t/]\\s-*"
+                                   "0?\\([1-9][0-9]?\\)[ \t/]\\s-*"
+                                   "0?\\([1-9][0-9]?\\)")
+                           datestring)
+             (setq year (read (substring datestring (match-beginning 1)
+                                         (match-end 1))))
+             (setq month (read (substring datestring (match-beginning 2)
+                                          (match-end 2))))
+             (setq day (read (substring datestring (match-beginning 3)
+                                        (match-end 3)))))
+            ( ;; non-iso numeric date -- must rely on configured
+              ;; calendar style
              (string-match (concat "\\s-*"
                                    "0?\\([1-9][0-9]?\\)[ \t/]\\s-*"
                                    "0?\\([1-9][0-9]?\\),?[ \t/]\\s-*"
@@ -761,11 +780,24 @@ takes care of european-style."
                                           (match-end 2))))
              (setq year (read (substring datestring (match-beginning 3)
                                          (match-end 3))))
-             (unless european-calendar-style
-               (let ((x month))
-                 (setq month day)
-                 (setq day x))))
-            ( ;; date contains month names -- european-style
+             (if (eq (icalendar--date-style) 'american)
+                 (let ((x month))
+                   (setq month day)
+                   (setq day x))))
+            ( ;; date contains month names -- iso style
+             (string-match (concat "\\s-*"
+                                   "\\([0-9]\\{4\\}\\)[ \t/]\\s-*"
+                                   "\\([A-Za-z][^ ]+\\)[ \t/]\\s-*"
+                                   "0?\\([123]?[0-9]\\)")
+                           datestring)
+             (setq year (read (substring datestring (match-beginning 1)
+                                        (match-end 1))))
+             (setq month (icalendar--get-month-number
+                          (substring datestring (match-beginning 2)
+                                     (match-end 2))))
+             (setq day (read (substring datestring (match-beginning 3)
+                                        (match-end 3)))))
+            ( ;; date contains month names -- european style
              (string-match (concat "\\s-*"
                                    "0?\\([123]?[0-9]\\)[ \t/]\\s-*"
                                    "\\([A-Za-z][^ ]+\\)[ \t/]\\s-*"
@@ -778,7 +810,7 @@ takes care of european-style."
                                      (match-end 2))))
              (setq year (read (substring datestring (match-beginning 3)
                                          (match-end 3)))))
-            ( ;; date contains month names -- non-european-style
+            ( ;; date contains month names -- american style
              (string-match (concat "\\s-*"
                                    "\\([A-Za-z][^ ]+\\)[ \t/]\\s-*"
                                    "0?\\([123]?[0-9]\\),?[ \t/]\\s-*"
@@ -798,6 +830,7 @@ takes care of european-style."
                     (+ (calendar-absolute-from-gregorian (list month day
                                                                year))
                        (or day-shift 0)))))
+          (icalendar--dmsg (format "%04d%02d%02d" (nth 2 mdy) (nth 0 mdy) (nth 1 mdy)))
           (format "%04d%02d%02d" (nth 2 mdy) (nth 0 mdy) (nth 1 mdy)))
       nil)))
 
@@ -1067,14 +1100,15 @@ Returns an alist."
   "Convert \"ordinary\" diary entry to icalendar format.
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
-  (if (string-match (concat nonmarker
-                            "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)\\s-*"
-                            "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?"
-                            "\\("
-                            "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?"
-                            "\\)?"
-                            "\\s-*\\(.*?\\) ?$")
-                    entry-main)
+  (if (string-match
+       (concat nonmarker
+               "\\([^ /]+[ /]+[^ /]+[ /]+[^ ]+\\)\\s-*" ; date
+               "\\(0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?" ; start time
+               "\\("
+               "-0?\\([1-9][0-9]?:[0-9][0-9]\\)\\([ap]m\\)?\\)?" ; end time
+               "\\)?"
+               "\\s-*\\(.*?\\) ?$")
+       entry-main)
       (let* ((datetime (substring entry-main (match-beginning 1)
                                   (match-end 1)))
              (startisostring (icalendar--datestring-to-isodate
@@ -1229,7 +1263,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
                       (funcall 'format "%04d%02d%02d"
-                       ;; end is non-inclusive!
+                               ;; end is non-inclusive!
                                icalendar-recurring-start-year 1
                                (+ (icalendar-first-weekday-of-year
                                    day icalendar-recurring-start-year)
@@ -1246,7 +1280,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 NONMARKER is a regular expression matching the start of non-marking
 entries.  ENTRY-MAIN is the first line of the diary entry."
   (if (string-match (concat nonmarker
-                            (if european-calendar-style
+                            (if (eq (icalendar--date-style) 'european)
                                 "0?\\([1-9]+[0-9]?\\)\\s-+\\([a-z]+\\)\\s-+"
                               "\\([a-z]+\\)\\s-+0?\\([1-9]+[0-9]?\\)\\s-+")
                             "\\*?\\s-*"
@@ -1257,8 +1291,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                             "\\s-*\\([^0-9]+.*?\\) ?$" ; must not match years
                             )
                     entry-main)
-      (let* ((daypos (if european-calendar-style 1 2))
-             (monpos (if european-calendar-style 2 1))
+      (let* ((daypos (if (eq (icalendar--date-style) 'european) 1 2))
+             (monpos (if (eq (icalendar--date-style) 'european) 2 1))
              (day (read (substring entry-main
                                    (match-beginning daypos)
                                    (match-end daypos))))
@@ -2003,17 +2037,23 @@ END-T is the event's end time in diary format."
           ((string-equal frequency "YEARLY")
            (icalendar--dmsg "yearly")
            (if until
-               (setq result (format
-                             (concat "%%%%(and (diary-date %s %s t) "
-                                     "(diary-block %s %s)) %s%s%s")
-                             (if european-calendar-style (nth 3 dtstart-dec)
-                               (nth 4 dtstart-dec))
-                             (if european-calendar-style (nth 4 dtstart-dec)
-                               (nth 3 dtstart-dec))
-                             dtstart-conv
-                             until-conv
-                             (or start-t "")
-                             (if end-t "-" "") (or end-t "")))
+               (let ((day (nth 3 dtstart-dec))
+                     (month (nth 4 dtstart-dec)))
+                 (setq result (concat "%%(and (diary-date "
+                                      (cond ((eq (icalendar--date-style) 'iso)
+                                             (format "t %d %d" month day))
+                                            ((eq (icalendar--date-style) 'european)
+                                             (format "%d %d t" day month))
+                                            ((eq (icalendar--date-style) 'american)
+                                             (format "%d %d t" month day)))
+                                      ") (diary-block "
+                                      dtstart-conv
+                                      " "
+                                      until-conv
+                                      ")) "
+                                      (or start-t "")
+                                      (if end-t "-" "")
+                                      (or end-t ""))))
              (setq result (format
                            "%%%%(and (diary-anniversary %s)) %s%s%s"
                            dtstart-conv
@@ -2024,14 +2064,18 @@ END-T is the event's end time in diary format."
            (icalendar--dmsg "monthly")
            (setq result
                  (format
-                  "%%%%(and (diary-date %s %s %s) (diary-block %s %s)) %s%s%s"
-                  (if european-calendar-style (nth 3 dtstart-dec) "t")
-                  (if european-calendar-style "t" (nth 3 dtstart-dec))
-                  "t"
+                  "%%%%(and (diary-date %s) (diary-block %s %s)) %s%s%s"
+                  (let ((day (nth 3 dtstart-dec)))
+                    (cond ((eq (icalendar--date-style) 'iso)
+                           (format "t t %d" day))
+                          ((eq (icalendar--date-style) 'european)
+                           (format "%d t t" day))
+                          ((eq (icalendar--date-style) 'american)
+                           (format "t %d t" day))))
                   dtstart-conv
                   (if until
                       until-conv
-                    "1 1 9999") ;; FIXME: should be unlimited
+                    (if (eq (icalendar--date-style) 'iso) "9999 1 1" "1 1 9999")) ;; FIXME: should be unlimited
                   (or start-t "")
                   (if end-t "-" "") (or end-t ""))))
           ;; daily

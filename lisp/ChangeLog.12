@@ -18133,7 +18133,7 @@
 	* progmodes/gdb-ui.el: Remove face-alias left over from change on
 	2005-08-15.
 	(gdb-ann3): New command gud-go.
-	(menu): Accomodate gdb-mi.el.
+	(menu): Accommodate gdb-mi.el.
 	(gdb-assembler-custom): Make buffer of selected window current
 	so that set-window-point works.
 

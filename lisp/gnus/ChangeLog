@@ -1,3 +1,8 @@
+2008-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-initial-limit): Use unless instead of if.
+	(gnus-fetch-old-headers): Warn about setting it to t for Gmane groups.
+
 2008-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Add more docs.
@@ -12,7 +17,7 @@
 	* pop3.el (pop3-movemail): Change the sit-for from 0.1 to 0.01, which
 	seems to make mail retrieval much, much faster.
 	(pop3-movemail): Use nnheader-accept-process-output instead of sleeping
-	unconditionally. 
+	unconditionally.
 
 	* gnus-draft.el (gnus-group-send-queue): Bind
 	message-send-mail-partially-limit to nil to avoid being prompted.
@@ -10187,7 +10192,7 @@
 	* nnheader.el (nnheader-generate-fake-message-id): Accept a
 	number and build a fake message ID localized to a group and
 	article number (so it's repeatable from that point on).
-	(nnheader-fake-message-id-p): Change regex to accomodate new fake
+	(nnheader-fake-message-id-p): Change regex to accommodate new fake
 	ID format.
 
 	* gnus-sum.el (gnus-get-newsgroup-headers): Call

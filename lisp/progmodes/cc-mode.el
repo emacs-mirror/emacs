@@ -715,8 +715,11 @@ Note that the style variables are always made local to the buffer."
   (when c-buffer-is-cc-mode
     (if (or c-file-style c-file-offsets)
 	(c-make-styles-buffer-local t))
-    (and c-file-style
-	 (c-set-style c-file-style))
+    (when c-file-style
+      (or (stringp c-file-style)
+	  (error "c-file-style is not a string"))
+      (c-set-style c-file-style))
+
     (and c-file-offsets
 	 (mapc
 	  (lambda (langentry)
@@ -794,28 +797,30 @@ Note that the style variables are always made local to the buffer."
   (setq c-old-EOM (point)))
 
 (defun c-neutralize-CPP-line (beg end)
-  ;; BEG and END bound a preprocessor line.  Put a "punctuation" syntax-table
-  ;; property on syntactically obtrusive characters, ones which would interact
-  ;; syntactically with stuff outside the CPP line.
+  ;; BEG and END bound a region, typically a preprocessor line.  Put a
+  ;; "punctuation" syntax-table property on syntactically obtrusive
+  ;; characters, ones which would interact syntactically with stuff outside
+  ;; this region.
   ;;
   ;; These are unmatched string delimiters, or unmatched
   ;; parens/brackets/braces.  An unclosed comment is regarded as valid, NOT
   ;; obtrusive.
-  (let (s)
-    (while
-	(progn
-	  (setq s (parse-partial-sexp beg end -1))
-	  (cond
-	   ((< (nth 0 s) 0)		; found an unmated ),},]
-	    (c-put-char-property (1- (point)) 'syntax-table '(1))
-	    t)
-	   ((nth 3 s)			; In a string
-	    (c-put-char-property (nth 8 s) 'syntax-table '(1))
-	    t)
-	   ((> (nth 0 s) 0)		; In a (,{,[
-	    (c-put-char-property (nth 1 s) 'syntax-table '(1))
-	    t)
-	   (t nil))))))
+  (save-excursion
+    (let (s)
+      (while
+	  (progn
+	    (setq s (parse-partial-sexp beg end -1))
+	    (cond
+	     ((< (nth 0 s) 0)		; found an unmated ),},]
+	      (c-put-char-property (1- (point)) 'syntax-table '(1))
+	      t)
+	     ((nth 3 s)			; In a string
+	      (c-put-char-property (nth 8 s) 'syntax-table '(1))
+	      t)
+	     ((> (nth 0 s) 0)		; In a (,{,[
+	      (c-put-char-property (nth 1 s) 'syntax-table '(1))
+	      t)
+	     (t nil)))))))
 
 (defun c-neutralize-syntax-in-CPP (begg endd old-len)
   ;; "Neutralize" every preprocessor line wholly or partially in the changed
@@ -835,27 +840,43 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;; This function is the C/C++/ObjC value of `c-before-font-lock-function'.
   ;;
-  ;; This function might do invisible changes.
+  ;; Note: SPEED _MATTERS_ IN THIS FUNCTION!!!
+  ;; 
+  ;; This function might make hidden buffer changes.
   (c-save-buffer-state (limits mbeg+1 beg end)
-    ;; First calculate the region, possibly to be extended.
-    (setq beg (min begg c-old-BOM))
+    ;; First determine the region, (beg end), which may need "neutralizing".
+    ;; This may not start inside a string, comment, or macro.
+    (goto-char c-old-BOM)	  ; already set to old start of macro or begg.
+    (setq beg
+	  (if (setq limits (c-literal-limits))
+	      (cdr limits)	    ; go forward out of any string or comment.
+	    (point)))
+
     (goto-char endd)
-    (when (c-beginning-of-macro)
-      (c-end-of-macro))
+    (if (setq limits (c-literal-limits))
+	(goto-char (car limits)))  ; go backward out of any string or comment.
+    (if (c-beginning-of-macro)
+	(c-end-of-macro))
     (setq end (max (+ (- c-old-EOM old-len) (- endd begg))
 		   (point)))
+
     ;; Clear all old punctuation properties
     (c-clear-char-property-with-value beg end 'syntax-table '(1))
 
     (goto-char beg)
-    (while (and (< (point) end)
-		(search-forward-regexp c-anchored-cpp-prefix end t))
-      ;; If we've found a "#" inside a string/comment, ignore it.
-      (if (setq limits (c-literal-limits))
-	  (goto-char (cdr limits))
-	(setq mbeg+1 (point))
-	(c-end-of-macro)	  ; Do we need to go forward 1 char here?  No!
-	(c-neutralize-CPP-line mbeg+1 (point))))))
+    (let ((pps-position beg)  pps-state)
+      (while (and (< (point) end)
+		  (search-forward-regexp c-anchored-cpp-prefix end t))
+	;; If we've found a "#" inside a string/comment, ignore it.
+	(setq pps-state
+	      (parse-partial-sexp pps-position (point) nil nil pps-state)
+	      pps-position (point))
+	(unless (or (nth 3 pps-state)	; in a string?
+		    (nth 4 pps-state))	; in a comment?
+	  (setq mbeg+1 (point))
+	  (c-end-of-macro)	  ; Do we need to go forward 1 char here?  No!
+	  (c-neutralize-CPP-line mbeg+1 (point))
+	  (setq pps-position (point))))))) ; no need to update pps-state.
 
 (defun c-before-change (beg end)
   ;; Function to be put on `before-change-function'.  Primarily, this calls

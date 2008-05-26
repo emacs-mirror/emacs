@@ -1,3 +1,8 @@
+2008-05-21  Tom Tromey  <tromey@redhat.com>
+
+	* custom.texi (Directory Variables): Grammar fix.  Link to Safe File
+	Variables node.
+
 2008-05-19  Tom Tromey  <tromey@redhat.com>
 
 	* custom.texi (Variables): Add Directory Variables to menu.

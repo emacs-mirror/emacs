@@ -547,6 +547,8 @@
 
 ;;; Todo:
 
+;; - Add key-binding for vc-delete-file.
+
 ;;;; New Primitives:
 ;;
 ;; - deal with push/pull operations.
@@ -587,7 +589,7 @@
 ;;;; Internal cleanups:
 ;;
 ;; - backends that care about vc-stay-local should try to take it into
-;;   account for vc-dir.  Is this likely to be useful???
+;;   account for vc-dir.  Is this likely to be useful???  YES!
 ;;
 ;; - vc-expand-dirs should take a backend parameter and only look for
 ;;   files managed by that backend.
@@ -2437,17 +2439,15 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
                 (not (file-exists-p file)))
       (with-current-buffer (or buf (find-file-noselect file))
 	(let ((backup-inhibited nil))
-	  (backup-buffer))
-	;; If we didn't have a buffer visiting the file before this
-	;; command, kill the buffer created by the above
-	;; `find-file-noselect' call.
-	(unless buf (kill-buffer (current-buffer)))))
+	  (backup-buffer))))
     (vc-call-backend backend 'delete-file file)
     ;; If the backend hasn't deleted the file itself, let's do it for him.
     (when (file-exists-p file) (delete-file file))
     ;; Forget what VC knew about the file.
     (vc-file-clearprops file)
-    (vc-resynch-buffer file buf t)))
+    ;; Make sure the buffer is deleted and the *vc-dir* buffers are
+    ;; updated after this.
+    (vc-resynch-buffer file nil t)))
 
 ;;;###autoload
 (defun vc-rename-file (old new)

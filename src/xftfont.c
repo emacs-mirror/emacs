@@ -185,7 +185,7 @@ xftfont_open (f, entity, pixel_size)
      int pixel_size;
 {
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val, filename, cache, font_object;
+  Lisp_Object val, filename, font_object;
   FcPattern *pat = NULL;
   struct xftfont_info *xftfont_info = NULL;
   struct font *font;
@@ -294,6 +294,8 @@ xftfont_open (f, entity, pixel_size)
 
       font->underline_position = -ft_face->underline_position * size / upEM;
       font->underline_thickness = -ft_face->underline_thickness * size / upEM;
+      if (font->underline_thickness > 2)
+	font->underline_position -= font->underline_thickness / 2;
     }
   else
     {

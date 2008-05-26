@@ -2380,13 +2380,13 @@ of citations entirely, choose \"None\"."
 ;;  "Fax:"                              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
 ;;  "Mail-System-Version:"              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
 ;;  "Mailer:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-;;  "Organization:"                     ; 
+;;  "Organization:"                     ;
 ;;  "Phone:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
 ;;  "Reply-By:"                         ; RFC 2156
 ;;  "Reply-To:"                         ; RFC 2822
 ;;  "Sender:"                           ;
 ;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
-;;  "X-Mailer:"                         ; 
+;;  "X-Mailer:"                         ;
 ;;  "X-Operator:"                       ; Similar to X-Mailer, so display it
 
 ;; Keep fields alphabetized (set sort-fold-case to t first).
@@ -2423,7 +2423,6 @@ of citations entirely, choose \"None\"."
     "Disposition-Notification-To:"      ; RFC 2298
     "Distribution:"                     ; RFC 1036
     "DKIM-"                             ; http://antispam.yahoo.com/domainkeys
-    "DKIM-Signature"
     "DL-Expansion-History:"             ; RFC 2156
     "DomainKey-"                        ; http://antispam.yahoo.com/domainkeys
     "DomainKey-Signature:"
@@ -2551,7 +2550,7 @@ of citations entirely, choose \"None\"."
     "X-Echelon-Distraction"
     "X-EFL-Spamscore:"                  ; MIT alumni spam filtering
     "X-eGroups-"                        ; Egroups/yahoogroups mailing list manager
-    "X-EID"
+    "X-EID:"
     "X-ELNK-Trace:"                     ; Earthlink mailer
     "X-Enigmail-Version:"
     "X-Envelope-Date:"                  ; GNU mailutils

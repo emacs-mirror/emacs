@@ -77,10 +77,10 @@
 ;;; Key map
 (defvar mixal-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-cc" 'compile)
-    (define-key map "\C-cr" 'mixal-run)
-    (define-key map "\C-cd" 'mixal-debug)
-    (define-key map "\C-ho" 'mixal-describe-operation-code)
+    (define-key map "\C-c\C-c" 'compile)
+    (define-key map "\C-c\C-r" 'mixal-run)
+    (define-key map "\C-c\C-d" 'mixal-debug)
+    (define-key map "\C-h\C-o" 'mixal-describe-operation-code)
     map)
   "Keymap for `mixal-mode'.")
 ;; (makunbound 'mixal-mode-map)

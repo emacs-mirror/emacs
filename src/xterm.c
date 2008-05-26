@@ -2725,7 +2725,7 @@ x_draw_glyph_string (s)
 	      else
 		thickness = 1;
 	      if (x_underline_at_descent_line)
-		position = (s->height - thickness) - s->ybase;
+		position = (s->height - thickness) - (s->ybase - s->y);
 	      else
 		{
 		  /* Get the underline position.  This is the recommended
@@ -2742,9 +2742,15 @@ x_draw_glyph_string (s)
 		  else if (s->font)
 		    position = (s->font->descent + 1) / 2;
 		}
-	      s->underline_thickness = thickness;
-	      s->underline_position = position;
 	    }
+	  /* Check the sanity of thickness and position.  We should
+	     avoid drawing underline out of the current line area.  */
+	  if (s->y + s->height <= s->ybase + position)
+	    position = (s->height - 1) - (s->ybase - s->y);
+	  if (s->y + s->height < s->ybase + position + thickness)
+	    thickness = (s->y + s->height) - (s->ybase + position);
+	  s->underline_thickness = thickness;
+	  s->underline_position = position;
 	  y = s->ybase + position;
 	  if (s->face->underline_defaulted_p)
 	    XFillRectangle (s->display, s->window, s->gc,

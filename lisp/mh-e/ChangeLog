@@ -1,3 +1,8 @@
+2008-05-23  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el: (mh-invisible-header-fields-internal): Remove
+	DKIM-Signature as it is covered by DKIM-. Fully qualify X-EID.
+
 2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>
 
 	* mh-mime.el (mh-mh-to-mime, mh-mh-to-mime-undo): Preserve modes

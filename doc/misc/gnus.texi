@@ -7071,6 +7071,14 @@ This variable can also be set to @code{invisible}.  This won't have any
 visible effects, but is useful if you use the @kbd{A T} command a lot
 (@pxref{Finding the Parent}).
 
+The server has to support @acronym{NOV} for any of this to work.
+
+@cindex Gmane, gnus-fetch-old-headers
+This feature can seriously impact performance it ignores all locally
+cached header entries.  Setting it to @code{t} for groups for a server
+that doesn't expire articles (such as news.gmane.org), leads to very
+slow summary generation.
+
 @item gnus-fetch-old-ephemeral-headers
 @vindex gnus-fetch-old-ephemeral-headers
 Same as @code{gnus-fetch-old-headers}, but only used for ephemeral

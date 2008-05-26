@@ -89,7 +89,9 @@ old headers will be fetched, but none will be displayed.
 The server has to support NOV for any of this to work.
 
 This feature can seriously impact performance it ignores all
-locally cached header entries."
+locally cached header entries.  Setting it to t for groups for a
+server that doesn't expire articles (such as news.gmane.org),
+leads to very slow summary generation."
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
@@ -8596,18 +8598,17 @@ If ALL, mark even excluded ticked and dormants as read."
 This entails weeding out unwanted dormants, low-scored articles,
 fetch-old-headers verbiage, and so on."
   ;; Most groups have nothing to remove.
-  (if (or gnus-inhibit-limiting
-	  (and (null gnus-newsgroup-dormant)
-	       (eq gnus-newsgroup-display 'gnus-not-ignore)
-	       (not (eq gnus-fetch-old-headers 'some))
-	       (not (numberp gnus-fetch-old-headers))
-	       (not (eq gnus-fetch-old-headers 'invisible))
-	       (null gnus-summary-expunge-below)
-	       (not (eq gnus-build-sparse-threads 'some))
-	       (not (eq gnus-build-sparse-threads 'more))
-	       (null gnus-thread-expunge-below)
-	       (not gnus-use-nocem)))
-      ()				; Do nothing.
+  (unless (or gnus-inhibit-limiting
+	      (and (null gnus-newsgroup-dormant)
+		   (eq gnus-newsgroup-display 'gnus-not-ignore)
+		   (not (eq gnus-fetch-old-headers 'some))
+		   (not (numberp gnus-fetch-old-headers))
+		   (not (eq gnus-fetch-old-headers 'invisible))
+		   (null gnus-summary-expunge-below)
+		   (not (eq gnus-build-sparse-threads 'some))
+		   (not (eq gnus-build-sparse-threads 'more))
+		   (null gnus-thread-expunge-below)
+		   (not gnus-use-nocem)))
     (push gnus-newsgroup-limit gnus-newsgroup-limits)
     (setq gnus-newsgroup-limit nil)
     (mapatoms

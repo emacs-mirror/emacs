@@ -64,7 +64,7 @@
 
 
 (defcustom edebug-setup-hook nil
-  "*Functions to call before edebug is used.
+  "Functions to call before edebug is used.
 Each time it is set to a new value, Edebug will call those functions
 once and then `edebug-setup-hook' is reset to nil.  You could use this
 to load up Edebug specifications associated with a package you are
@@ -78,7 +78,7 @@ using but only when you also use Edebug."
 
 ;;;###autoload
 (defcustom edebug-all-defs nil
-  "*If non-nil, evaluating defining forms instruments for Edebug.
+  "If non-nil, evaluating defining forms instruments for Edebug.
 This applies to `eval-defun', `eval-region', `eval-buffer', and
 `eval-current-buffer'.  `eval-region' is also called by
 `eval-last-sexp', and `eval-print-last-sexp'.
@@ -96,14 +96,14 @@ variable.  You may wish to make it local to each buffer with
 
 ;;;###autoload
 (defcustom edebug-all-forms nil
-  "*Non-nil evaluation of all forms will instrument for Edebug.
+  "Non-nil evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
 Use the command `edebug-all-forms' to toggle the value of this option."
   :type 'boolean
   :group 'edebug)
 
 (defcustom edebug-eval-macro-args nil
-  "*Non-nil means all macro call arguments may be evaluated.
+  "Non-nil means all macro call arguments may be evaluated.
 If this variable is nil, the default, Edebug will *not* wrap
 macro call arguments as if they will be evaluated.
 For each macro, a `edebug-form-spec' overrides this option.
@@ -113,7 +113,7 @@ and some not, you should specify an `edebug-form-spec'."
   :group 'edebug)
 
 (defcustom edebug-save-windows t
-  "*If non-nil, Edebug saves and restores the window configuration.
+  "If non-nil, Edebug saves and restores the window configuration.
 That takes some time, so if your program does not care what happens to
 the window configurations, it is better to set this variable to nil.
 
@@ -125,7 +125,7 @@ restored.
   :group 'edebug)
 
 (defcustom edebug-save-displayed-buffer-points nil
-  "*If non-nil, save and restore point in all displayed buffers.
+  "If non-nil, save and restore point in all displayed buffers.
 
 Saving and restoring point in other buffers is necessary if you are
 debugging code that changes the point of a buffer which is displayed
@@ -139,7 +139,7 @@ it."
   :group 'edebug)
 
 (defcustom edebug-initial-mode 'step
-  "*Initial execution mode for Edebug, if non-nil.
+  "Initial execution mode for Edebug, if non-nil.
 If this variable is non-nil, it specifies the initial execution mode
 for Edebug when it is first activated.  Possible values are step, next,
 go, Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
@@ -150,7 +150,7 @@ go, Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
   :group 'edebug)
 
 (defcustom edebug-trace nil
-  "*Non-nil means display a trace of function entry and exit.
+  "Non-nil means display a trace of function entry and exit.
 Tracing output is displayed in a buffer named `*edebug-trace*', one
 function entry or exit per line, indented by the recursion level.
 
@@ -160,9 +160,9 @@ and `edebug-print-trace-after'."
   :group 'edebug)
 
 (defcustom edebug-test-coverage nil
-  "*If non-nil, Edebug tests coverage of all expressions debugged.
-This is done by comparing the result of each expression
-with the previous result. Coverage is considered OK if two different
+  "If non-nil, Edebug tests coverage of all expressions debugged.
+This is done by comparing the result of each expression with the
+previous result.  Coverage is considered OK if two different
 results are found.
 
 Use `edebug-display-freq-count' to display the frequency count and
@@ -171,27 +171,27 @@ coverage information for a definition."
   :group 'edebug)
 
 (defcustom edebug-continue-kbd-macro nil
-  "*If non-nil, continue defining or executing any keyboard macro.
+  "If non-nil, continue defining or executing any keyboard macro.
 Use this with caution since it is not debugged."
   :type 'boolean
   :group 'edebug)
 
 
 (defcustom edebug-print-length 50
-  "*Default value of `print-length' for printing results in Edebug."
+  "Default value of `print-length' for printing results in Edebug."
   :type 'integer
   :group 'edebug)
 (defcustom edebug-print-level 50
-  "*Default value of `print-level' for printing results in Edebug."
+  "Default value of `print-level' for printing results in Edebug."
   :type 'integer
   :group 'edebug)
 (defcustom edebug-print-circle t
-  "*Default value of `print-circle' for printing results in Edebug."
+  "Default value of `print-circle' for printing results in Edebug."
   :type 'boolean
   :group 'edebug)
 
 (defcustom edebug-unwrap-results nil
-  "*Non-nil if Edebug should unwrap results of expressions.
+  "Non-nil if Edebug should unwrap results of expressions.
 This is useful when debugging macros where the results of expressions
 are instrumented expressions.  But don't do this when results might be
 circular or an infinite loop will result."
@@ -199,7 +199,7 @@ circular or an infinite loop will result."
   :group 'edebug)
 
 (defcustom edebug-on-error t
-  "*Value bound to `debug-on-error' while Edebug is active.
+  "Value bound to `debug-on-error' while Edebug is active.
 
 If `debug-on-error' is non-nil, that value is still used.
 
@@ -216,18 +216,18 @@ After execution is resumed, the error is signaled again."
   :group 'edebug)
 
 (defcustom edebug-on-quit t
-  "*Value bound to `debug-on-quit' while Edebug is active."
+  "Value bound to `debug-on-quit' while Edebug is active."
   :type 'boolean
   :group 'edebug)
 
 (defcustom edebug-global-break-condition nil
-  "*If non-nil, an expression to test for at every stop point.
+  "If non-nil, an expression to test for at every stop point.
 If the result is non-nil, then break.  Errors are ignored."
   :type 'sexp
   :group 'edebug)
 
 (defcustom edebug-sit-for-seconds 1
-  "*Number of seconds to pause when execution mode is `trace'."
+  "Number of seconds to pause when execution mode is `trace'."
   :type 'number
   :group 'edebug)
 
@@ -271,8 +271,8 @@ An extant spec symbol is a symbol that is not a function and has a
 
 (defun edebug-gensym (&optional prefix)
   "Generate a fresh uninterned symbol.
-There is an  optional argument, PREFIX.  PREFIX is the
-string that begins the new name. Most people take just the default,
+There is an optional argument, PREFIX.  PREFIX is the string
+that begins the new name.  Most people take just the default,
 except when debugging needs suggest otherwise."
   (if (null prefix)
       (setq prefix "G"))
@@ -470,7 +470,7 @@ STREAM or the value of `standard-input' may be:
  a string (takes text from string, starting at the beginning)
  t (read text line using minibuffer and use it).
 
-This version, from Edebug, maybe instruments the expression. But the
+This version, from Edebug, maybe instruments the expression.  But the
 STREAM must be the current buffer to do so.  Whether it instruments is
 also dependent on the values of `edebug-all-defs' and
 `edebug-all-forms'."
@@ -499,9 +499,9 @@ Setting `edebug-all-defs' to a non-nil value reverses the meaning of
 the prefix argument.  Code is then instrumented when this function is
 invoked without a prefix argument
 
-If acting on a `defun' for FUNCTION, and the function was
-instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
-instrumented, just FUNCTION is printed.
+If acting on a `defun' for FUNCTION, and the function was instrumented,
+`Edebug: FUNCTION' is printed in the minibuffer.  If not instrumented,
+just FUNCTION is printed.
 
 If not acting on a `defun', the result of evaluation is displayed in
 the minibuffer."
@@ -550,11 +550,11 @@ This is like `eval-defun' except that it steps the code for Edebug
 before evaluating it.  It displays the value in the echo area
 using `eval-expression' (which see).
 
-If you do this on a function definition
-such as a defun or defmacro, it defines the function and instruments
-its definition for Edebug, so it will do Edebug stepping when called
-later.  It displays `Edebug: FUNCTION' in the echo area to indicate
-that FUNCTION is now instrumented for Edebug.
+If you do this on a function definition such as a defun or defmacro,
+it defines the function and instruments its definition for Edebug,
+so it will do Edebug stepping when called later.  It displays
+`Edebug: FUNCTION' in the echo area to indicate that FUNCTION is now
+instrumented for Edebug.
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
@@ -1276,7 +1276,7 @@ expressions; a `progn' form will be returned enclosing these forms."
     sexp))
 
 (defun edebug-unwrap* (sexp)
-  "Return the sexp recursively unwrapped."
+  "Return the SEXP recursively unwrapped."
   (let ((new-sexp (edebug-unwrap sexp)))
     (while (not (eq sexp new-sexp))
       (setq sexp new-sexp
@@ -2229,7 +2229,8 @@ See `condition-case'.
 This is the Edebug replacement for the standard `signal'.  It should
 only be active while Edebug is.  It checks `debug-on-error' to see
 whether it should call the debugger.  When execution is resumed, the
-error is signaled again."
+error is signaled again.
+\n(fn SIGNAL-NAME DATA)"
   (if (and (listp debug-on-error) (memq edebug-signal-name debug-on-error))
       (edebug 'error (cons edebug-signal-name edebug-signal-data)))
   ;; If we reach here without another non-local exit, then send signal again.
@@ -2340,7 +2341,7 @@ or nil (if the default binding is current)."
 
 (defun edebug-restore-status (var status)
   "Reset VAR based on STATUS.
-STATUS should be a list you got from `edebug-var-status'."
+STATUS should be a list returned by `edebug-var-status'."
   (let ((locus (car status))
 	(value (cdr status)))
     (cond ((bufferp locus)
@@ -3500,7 +3501,7 @@ Edebug, it calls `edebug-on-entry'."
 
 (defun edebug-top-level-nonstop ()
   "Set mode to Go-nonstop, and exit to top-level.
-This is useful for exiting even if unwind-protect code may be executed."
+This is useful for exiting even if `unwind-protect' code may be executed."
   (interactive)
   (setq edebug-execution-mode 'Go-nonstop)
   (top-level))
@@ -3935,7 +3936,7 @@ edebug-global-break-condition
 ;; A list of expressions and their evaluations is displayed in *edebug*.
 
 (defun edebug-eval-result-list ()
-  "Return a list of evaluations of edebug-eval-list"
+  "Return a list of evaluations of `edebug-eval-list'."
   ;; Assumes in outside environment.
   ;; Don't do any edebug things now.
   (let ((edebug-execution-mode 'Go-nonstop)
@@ -3969,7 +3970,7 @@ edebug-global-break-condition
 ;; with calls in user functions, e.g. (edebug-eval-display)
 
 (defun edebug-eval-display (edebug-eval-result-list)
-  "Display expressions and evaluations in EVAL-LIST.
+  "Display expressions and evaluations in EDEBUG-EVAL-RESULT-LIST.
 It modifies the context by popping up the eval display."
   (if edebug-eval-result-list
       (progn
@@ -3979,7 +3980,7 @@ It modifies the context by popping up the eval display."
 
 (defun edebug-eval-redisplay ()
   "Redisplay eval list in outside environment.
-May only be called from within edebug-recursive-edit."
+May only be called from within `edebug-recursive-edit'."
   (edebug-create-eval-buffer)
   (edebug-outside-excursion
    (edebug-eval-display-list (edebug-eval-result-list))
@@ -4071,9 +4072,9 @@ Global commands prefixed by `global-edebug-prefix':
 ;; edebug is not dependent on this, yet.
 
 (defun edebug (&optional edebug-arg-mode &rest debugger-args)
-  "Replacement for debug.
-If we are running an edebugged function,
-show where we last were.  Otherwise call debug normally."
+  "Replacement for `debug'.
+If we are running an edebugged function, show where we last were.
+Otherwise call `debug' normally."
 ;;  (message "entered: %s  depth: %s  edebug-recursion-depth: %s"
 ;;	   edebug-entered (recursion-depth) edebug-recursion-depth) (sit-for 1)
   (if (and edebug-entered  ; anything active?
@@ -4173,7 +4174,7 @@ You must include newlines in FMT to break lines, but one newline is appended."
 
 
 (defun edebug-trace (fmt &rest args)
-  "Convenience call to edebug-trace-display using edebug-trace-buffer"
+  "Convenience call to `edebug-trace-display' using `edebug-trace-buffer'."
   (apply 'edebug-trace-display edebug-trace-buffer fmt args))
 
 
@@ -4181,8 +4182,8 @@ You must include newlines in FMT to break lines, but one newline is appended."
 
 (defun edebug-display-freq-count ()
   "Display the frequency count data for each line of the current definition.
-The frequency counts are inserted as comment lines after
-each line, and you can undo all insertions with one `undo' command.
+The frequency counts are inserted as comment lines after each line,
+and you can undo all insertions with one `undo' command.
 
 The counts are inserted starting under the `(' before an expression
 or the `)' after an expression, or on the last char of a symbol.

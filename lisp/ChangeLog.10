@@ -7625,7 +7625,7 @@
 2002-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el ("Swedish"): Change tutorial file name to
-	TUTORIAL.sv in this langauge environment..
+	TUTORIAL.sv in this language environment.
 
 2002-12-09  John Paul Wallington  <jpw@shootybangbang.com>
 
@@ -10180,7 +10180,7 @@
 
 	* net/tramp.el: Version 2.0.18 released.
 
-	* net/tramp.el (tramp-perl-decode): Perl changes to accomodate
+	* net/tramp.el (tramp-perl-decode): Perl changes to accommodate
 	older versions of Perl.  Now tested with 5.004.  Suggestion from
 	Michael Albinus.
 

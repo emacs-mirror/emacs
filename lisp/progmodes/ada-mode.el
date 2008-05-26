@@ -448,6 +448,13 @@ The extensions should include a `.' if needed.")
 (defvar ada-mode-map (make-sparse-keymap)
   "Local keymap used for Ada mode.")
 
+(defvar ada-mode-extra-map (make-sparse-keymap)
+  "Keymap used for non-standard keybindings.")
+
+;; default is C-c C-q because it's free in ada-mode-map
+(defvar ada-mode-extra-prefix "\C-c\C-q"
+  "Prefix key to access `ada-mode-extra-map' functions.")
+
 (defvar ada-mode-abbrev-table nil
   "Local abbrev table for Ada mode.")
 
@@ -4537,6 +4544,9 @@ Moves to 'begin' if in a declarative part."
 (defun ada-create-keymap ()
   "Create the keymap associated with the Ada mode."
 
+  ;; All non-standard keys go into ada-mode-extra-map
+  (define-key ada-mode-map ada-mode-extra-prefix ada-mode-extra-map)
+
   ;; Indentation and Formatting
   (define-key ada-mode-map "\C-j"     'ada-indent-newline-indent-conditional)
   (define-key ada-mode-map "\C-m"     'ada-indent-newline-indent-conditional)
@@ -4585,23 +4595,23 @@ Moves to 'begin' if in a declarative part."
     'ada-point-and-xref)
   (define-key ada-mode-map [(control tab)] 'ada-complete-identifier)
 
-  (define-key ada-mode-map "\C-co"     'ff-find-other-file)
+  (define-key ada-mode-extra-map "o"     'ff-find-other-file)
   (define-key ada-mode-map "\C-c5\C-d" 'ada-goto-declaration-other-frame)
   (define-key ada-mode-map "\C-c\C-d"  'ada-goto-declaration)
   (define-key ada-mode-map "\C-c\C-s"  'ada-xref-goto-previous-reference)
   (define-key ada-mode-map "\C-c\C-c"  'ada-compile-application)
-  (define-key ada-mode-map "\C-cc"     'ada-change-prj)
-  (define-key ada-mode-map "\C-cd"     'ada-set-default-project-file)
-  (define-key ada-mode-map "\C-cg"     'ada-gdb-application)
+  (define-key ada-mode-extra-map "c"     'ada-change-prj)
+  (define-key ada-mode-extra-map "d"     'ada-set-default-project-file)
+  (define-key ada-mode-extra-map "g"     'ada-gdb-application)
   (define-key ada-mode-map "\C-c\C-m"  'ada-set-main-compile-application)
-  (define-key ada-mode-map "\C-cr"     'ada-run-application)
+  (define-key ada-mode-extra-map "r"     'ada-run-application)
   (define-key ada-mode-map "\C-c\C-o"  'ada-goto-parent)
   (define-key ada-mode-map "\C-c\C-r"  'ada-find-references)
-  (define-key ada-mode-map "\C-cl"     'ada-find-local-references)
+  (define-key ada-mode-extra-map "l"     'ada-find-local-references)
   (define-key ada-mode-map "\C-c\C-v"  'ada-check-current)
-  (define-key ada-mode-map "\C-cf"     'ada-find-file)
+  (define-key ada-mode-extra-map "f"     'ada-find-file)
 
-  (define-key ada-mode-map "\C-cu"  'ada-prj-edit)
+  (define-key ada-mode-extra-map "u"  'ada-prj-edit)
 
   ;;  The templates, defined in ada-stmt.el
 
@@ -4634,7 +4644,7 @@ Moves to 'begin' if in a declarative part."
     (define-key map "w"    'ada-while-loop)
     (define-key map "\C-x" 'ada-exception)
     (define-key map "x"    'ada-exit)
-    (define-key ada-mode-map "\C-ct" map))
+    (define-key ada-mode-extra-map "t" map))
   )
 
 

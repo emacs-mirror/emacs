@@ -62,6 +62,7 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #include "process.h"
 #include "syssignal.h"
 #include "w32term.h"
+#include "dispextern.h"		/* for xstrcasecmp */
 
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\

@@ -386,7 +386,7 @@ formatting, and then moved afterward.")
 	(forward-line 1)
 	(end-of-line)
 	;; refill-stop should ideally be adjusted to
-	;; accomodate the "<br>" strings which are removed
+	;; accommodate the "<br>" strings which are removed
 	;; between refill-start and refill-stop.  Can simply
 	;; be returned from my-replace-string
 	(setq refill-stop (+ (point)

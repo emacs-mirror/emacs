@@ -74,12 +74,14 @@ Lisp_Object Qascii;
 Lisp_Object Qeight_bit;
 Lisp_Object Qiso_8859_1;
 Lisp_Object Qunicode;
+Lisp_Object Qemacs;
 
 /* The corresponding charsets.  */
 int charset_ascii;
 int charset_eight_bit;
 int charset_iso_8859_1;
 int charset_unicode;
+int charset_emacs;
 
 /* The other special charsets.  */
 int charset_jisx0201_roman;
@@ -1042,7 +1044,7 @@ usage: (define-charset-internal ...)  */)
       else if (ISO_CHARSET_TABLE (2, 0, 'B') == id)
 	charset_jisx0208 = id;
     }
-	
+
   if (charset.emacs_mule_id >= 0)
     {
       emacs_mule_charset[charset.emacs_mule_id] = CHARSET_FROM_ID (id);
@@ -1257,7 +1259,7 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
        Sget_unused_iso_final_char, 2, 2, 0,
        doc: /*
-Return an unused ISO final char for a charset of DIMENISION and CHARS.
+Return an unused ISO final char for a charset of DIMENSION and CHARS.
 DIMENSION is the number of bytes to represent a character: 1 or 2.
 CHARS is the number of characters in a dimension: 94 or 96.
 
@@ -1669,7 +1671,7 @@ Return nil if CODE-POINT is not valid in CHARSET.
 CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
-and CODE-POINT to a chracter.   Currently not supported and just ignored.  */)
+and CODE-POINT to a character.  Currently not supported and just ignored.  */)
   (charset, code_point, restriction)
      Lisp_Object charset, code_point, restriction;
 {
@@ -1699,7 +1701,7 @@ DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 3, 0,
        doc: /* Encode the character CH into a code-point of CHARSET.
 Return nil if CHARSET doesn't include CH.
 
-Optional argument RESTRICTION specifies a way to map CHAR to a
+Optional argument RESTRICTION specifies a way to map CH to a
 code-point in CCS.  Currently not supported and just ignored.  */)
      (ch, charset, restriction)
      Lisp_Object ch, charset, restriction;
@@ -1814,8 +1816,7 @@ char_charset (c, charset_list, code_return)
   if (NILP (charset_list))
     charset_list = Vcharset_ordered_list;
 
-  while (CONSP (charset_list)
-	 && ! EQ (charset_list, Vcharset_non_preferred_head))
+  while (CONSP (charset_list))
     {
       struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
       unsigned code = ENCODE_CHAR (charset, c);
@@ -1827,18 +1828,21 @@ char_charset (c, charset_list, code_return)
 	  return charset;
 	}
       charset_list = XCDR (charset_list);
+      if (c <= MAX_UNICODE_CHAR
+	 && EQ (charset_list, Vcharset_non_preferred_head))
+	return CHARSET_FROM_ID (charset_unicode);
     }
-  return (c <= MAX_UNICODE_CHAR ? CHARSET_FROM_ID (charset_unicode)
+  return (c <= MAX_5_BYTE_CHAR ? CHARSET_FROM_ID (charset_emacs)
 	  : CHARSET_FROM_ID (charset_eight_bit));
 }
 
 
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
        doc:
-       /*Return list of charset and one to four position-codes of CHAR.
+       /*Return list of charset and one to four position-codes of CH.
 The charset is decided by the current priority order of charsets.
 A position-code is a byte value of each dimension of the code-point of
-CHAR in the charset.  */)
+CH in the charset.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1903,7 +1907,7 @@ Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR.
 
 ISO 2022's designation sequence (escape sequence) distinguishes charsets
 by their DIMENSION, CHARS, and FINAL-CHAR,
-where as Emacs distinguishes them by charset symbol.
+whereas Emacs distinguishes them by charset symbol.
 See the documentation of the function `charset-info' for the meanings of
 DIMENSION, CHARS, and FINAL-CHAR.  */)
      (dimension, chars, final_char)
@@ -2073,6 +2077,7 @@ syms_of_charset ()
 
   DEFSYM (Qascii, "ascii");
   DEFSYM (Qunicode, "unicode");
+  DEFSYM (Qemacs, "emacs");
   DEFSYM (Qeight_bit, "eight-bit");
   DEFSYM (Qiso_8859_1, "iso-8859-1");
 
@@ -2154,6 +2159,9 @@ the value may be a list of mnemonics.  */);
   charset_unicode
     = define_charset_internal (Qunicode, 3, "\x00\xFF\x00\xFF\x00\x10",
 			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
+  charset_emacs
+    = define_charset_internal (Qemacs, 3, "\x00\xFF\x00\xFF\x00\x3F",
+			       0, MAX_5_BYTE_CHAR, -1, 0, -1, 1, 1, 0);
   charset_eight_bit
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
 			       128, 255, -1, 0, -1, 0, 1,

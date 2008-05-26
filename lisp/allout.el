@@ -5974,7 +5974,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
 
       (when (not was-encrypted)
         ;; ensure that non-ascii chars pending encryption are noticed before
-        ;; they're encrypted, so the coding system is set to accomodate
+        ;; they're encrypted, so the coding system is set to accommodate
         ;; them.
         (setq buffer-file-coding-system
               (select-safe-coding-system subtree-beg subtree-end))

@@ -384,7 +384,7 @@ fontset_compare_rfontdef (val1, val2)
 /* Update FONT-GROUP which has this form:
 	[ CHARSET-ORDERED-LIST-TICK PREFERRED-RFONT-DEF
 	  RFONT-DEF0 RFONT-DEF1 ... ]
-   Reorder RFONT-DEFs according to the current langauge, and update
+   Reorder RFONT-DEFs according to the current language, and update
    CHARSET-ORDERED-LIST-TICK.
 
    If PREFERRED_FAMILY is not nil, that family has the higher priority
@@ -908,6 +908,17 @@ face_for_char (f, face, c, pos, object)
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
 	}
     }
+  if (id < 0)
+    {
+      struct font *font = face->ascii_face->font;
+
+      if (font && font->driver->encode_char (font, c) != FONT_INVALID_CODE)
+	return face->ascii_face->id;
+      font = face->font;
+      if (font && font->driver->encode_char (font, c) != FONT_INVALID_CODE)
+	return face->id;
+    }
+
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
     {

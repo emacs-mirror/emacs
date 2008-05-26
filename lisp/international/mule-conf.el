@@ -68,6 +68,14 @@
 ;;   :ascii-compatible-p t
 ;;   :code-offset 0)
 ;;
+;; (define-charset 'emacs
+;;   ""
+;;   :dimension 3
+;;   :code-space [0 255 0 255 0 63]
+;;   :ascii-compatible-p t
+;;   :supplementary-p t
+;;   :code-offset 0)
+;;
 ;; (define-charset 'eight-bit
 ;;   ""
 ;;   :dimension 1
@@ -94,17 +102,17 @@
  'unicode :short-name "Unicode")
 (put-charset-property
  'unicode :long-name "Unicode (ISO10646)")
+(put-charset-property
+ 'emacs :docstring "Full Emacs charset (excluding eight bit chars)")
+(put-charset-property
+ 'emacs :short-name "Emacs")
+(put-charset-property
+ 'emacs :long-name "Emacs")
+
 (put-charset-property 'eight-bit :docstring "Raw bytes 0-255")
 (put-charset-property 'eight-bit :short-name "Raw bytes")
 
 (define-charset-alias 'ucs 'unicode)
-
-(define-charset 'emacs
-  "Full Emacs characters"
-  :ascii-compatible-p t
-  :code-space [ 0 255 0 255 0 63 ]
-  :code-offset 0
-  :supplementary-p t)
 
 (define-charset 'latin-iso8859-1
   "Right-Hand Part of ISO/IEC 8859/1 (Latin-1): ISO-IR-100"

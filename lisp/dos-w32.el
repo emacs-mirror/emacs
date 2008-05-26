@@ -204,7 +204,7 @@ set to the appropriate coding system, and the value of
 (add-hook 'find-file-not-found-functions
 	  'find-file-not-found-set-buffer-file-coding-system)
 
-;;; To accomodate filesystems that do not require CR/LF translation.
+;;; To accommodate filesystems that do not require CR/LF translation.
 (defvar untranslated-filesystem-list nil
   "List of filesystems that require no CR/LF translation when reading
 and writing files.  Each filesystem in the list is a string naming

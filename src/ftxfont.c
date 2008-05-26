@@ -278,7 +278,6 @@ ftxfont_open (f, entity, pixel_size)
      Lisp_Object entity;
      int pixel_size;
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object font_object;
   struct font *font;
 
