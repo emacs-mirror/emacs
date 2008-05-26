@@ -358,10 +358,9 @@ w32font_text_extents (font, code, nglyphs, metrics)
     {
       struct w32font_info *w32_font = (struct w32font_info *) font;
 
-      metrics->width = 0;
+      bzero (metrics, sizeof (struct font_metrics));
       metrics->ascent = font->ascent;
       metrics->descent = font->descent;
-      metrics->lbearing = 0;
 
       for (i = 0; i < nglyphs; i++)
         {
