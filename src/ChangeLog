@@ -9,6 +9,9 @@
 
         * w32font.c (w32font_text_extents): Zero whole metrics struct first.
         (compute_metrics): Don't set failure if we just cleared the cache.
+        (w32_weight_table): Remove unused variable.
+        (w32_enumfont_pattern_entity): Use FONT_SPACING_CHARCELL for
+        backwards compatibility.
 
 2008-05-25  Kenichi Handa  <handa@m17n.org>
 
