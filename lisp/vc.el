@@ -661,10 +661,6 @@
 ;; - the *vc-dir* buffer is not updated correctly anymore after VC
 ;;   operations that change the file state.
 ;;
-;; - the mouse3 menu for vc-dir does not have a title anymore.
-;;
-;; - the menu for the *vc-dir* buffer uses the wrong name now.
-;;
 ;;; Code:
 
 (require 'vc-hooks)
