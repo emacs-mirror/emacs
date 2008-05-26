@@ -1896,7 +1896,8 @@ static void compute_metrics (dc, w32_font, code, metrics)
 	  w32_font->glyph_idx = 0;
 	  clear_cached_metrics (w32_font);
 	}
-      metrics->status = W32METRIC_FAIL;
+      else
+        metrics->status = W32METRIC_FAIL;
     }
 }
 
