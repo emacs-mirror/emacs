@@ -719,6 +719,7 @@ Note that the style variables are always made local to the buffer."
       (or (stringp c-file-style)
 	  (error "c-file-style is not a string"))
       (c-set-style c-file-style))
+
     (and c-file-offsets
 	 (mapc
 	  (lambda (langentry)
