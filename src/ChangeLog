@@ -1,5 +1,8 @@
 2008-05-26  Andreas Schwab  <schwab@suse.de>
 
+	* xselect.c (x_reply_selection_request): Properly handle format ==
+	32.  Always send multiples of format size.
+
 	* xterm.c (x_set_frame_alpha): Fix type mismatch.
 
 2008-05-26  Jason Rumney  <jasonr@gnu.org>
