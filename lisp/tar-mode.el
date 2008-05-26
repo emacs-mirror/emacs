@@ -447,7 +447,7 @@ is visible (and the real data of the buffer is hidden)."
               (error "%s has size %s - corrupted"
                      (tar-header-name tokens) size))
           ;;
-          ;; This is just too slow.  Don't really ened it anyway....
+          ;; This is just too slow.  Don't really need it anyway....
           ;;(tar-header-block-check-checksum
           ;;  hblock (tar-header-block-checksum hblock)
           ;;  (tar-header-name tokens))
