@@ -984,7 +984,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
     ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_PROPORTIONAL));
   else
-    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_MONO));
+    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_CHARCELL));
 
   if (requested_font->lfQuality != DEFAULT_QUALITY)
     {
@@ -1389,21 +1389,6 @@ w32_registry (w32_charset, font_type)
       return font_intern_prop (charset, strlen(charset));
     }
 }
-
-static struct
-{
-  unsigned w32_numeric;
-  unsigned numeric;
-} w32_weight_table[] =
-  { { FW_THIN, 0 },
-    { FW_EXTRALIGHT, 40 },
-    { FW_LIGHT, 50},
-    { FW_NORMAL, 100},
-    { FW_MEDIUM, 100},
-    { FW_SEMIBOLD, 180},
-    { FW_BOLD, 200},
-    { FW_EXTRABOLD, 205},
-    { FW_HEAVY, 210} };
 
 static int
 w32_decode_weight (fnweight)
