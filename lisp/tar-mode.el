@@ -349,7 +349,7 @@ MODE should be an integer which is a file mode value."
 	;; (ck (tar-header-checksum tar-hblock))
 	(type (tar-header-link-type tar-hblock))
 	(link-name (tar-header-link-name tar-hblock)))
-    (format "%c%c%s%8s/%-8s%7s%s %s%s"
+    (format "%c%c%s %7s/%-7s %7s%s %s%s"
 	    (if mod-p ?* ? )
 	    (cond ((or (eq type nil) (eq type 0)) ?-)
 		  ((eq type 1) ?h)	; link
