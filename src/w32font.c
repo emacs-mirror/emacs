@@ -796,11 +796,16 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
                sizeof (TEXTMETRIC));
       else
         metrics = NULL;
-    }
-  if (!metrics)
-    GetTextMetrics (dc, &w32_font->metrics);
 
-  w32_font->glyph_idx = ETO_GLYPH_INDEX;
+      /* If it supports outline metrics, it should support Glyph Indices.  */
+      w32_font->glyph_idx = ETO_GLYPH_INDEX;
+    }
+
+  if (!metrics)
+    {
+      GetTextMetrics (dc, &w32_font->metrics);
+      w32_font->glyph_idx = 0;
+    }
 
   w32_font->cached_metrics = NULL;
   w32_font->n_cache_blocks = 0;
