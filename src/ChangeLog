@@ -1,3 +1,8 @@
+2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_glyph_string): If a clipmask is specified, use
+	it.
+
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* coding.c (encode_coding_raw_text): Set coding->produced_char for
