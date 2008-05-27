@@ -1,5 +1,8 @@
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/mule-diag.el (describe-current-coding-system):
+	Don't assume selection-coding-system is always defined.
+
 	* tar-mode.el: Use defstruct and markers.
 	(tar-setf): Remove.
 	(tar-header): Use defstruct.  Add `data-start' field.
