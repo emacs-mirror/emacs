@@ -200,9 +200,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macterm.h"
 #endif
 
-#ifdef HAVE_WINDOW_SYSTEM
 #include "font.h"
-#endif	/* HAVE_WINDOW_SYSTEM */
 
 #ifndef FRAME_X_OUTPUT
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)

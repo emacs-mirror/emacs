@@ -1,3 +1,7 @@
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c [!HAVE_WINDOW_SYSTEM]: Include font.h for --without-x.
+
 2008-05-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32font.c (compute_metrics): Rewrite an "else { if () ... else ... }"
@@ -5,8 +9,8 @@
 
 2008-05-27  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_open_internal): Determine if glyph indices
-        are likely to work here.
+	* w32font.c (w32font_open_internal): Determine if glyph indices
+	are likely to work here.
 
 2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
