@@ -628,6 +628,9 @@
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
 ;;   skeleton for the log...
 ;;
+;; - The *vc-dir* buffer needs to be updated properly after VC
+;;   operations on directories that change the file VC state.
+;;
 ;; - most vc-dir backends need more work.  They might need to
 ;;   provide custom headers, use the `extra' field and deal with all
 ;;   possible VC states.
