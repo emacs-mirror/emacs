@@ -652,10 +652,6 @@
 ;;   created from more than one file.  The error is:
 ;;   vc-derived-from-dir-mode: Lisp nesting exceeds `max-lisp-eval-depth'.
 ;;
-;; - the vc-dir display is now bogus for git and mercurial.
-;;
-;; - the CVS vc-dir display is now incorrect from some states.
-;;
 ;; - the *vc-dir* buffer is not updated correctly anymore after VC
 ;;   operations that change the file state.
 ;;
@@ -1808,18 +1804,21 @@ See Info node `Merging'."
 
 (defun vc-default-status-extra-headers (backend dir)
   ;; Be loud by default to remind people to add code to display
-  ;; backend specific headers.
+  ;; backend specific headers.  
   ;; XXX: change this to return nil before the release.
-  "Extra      : Add backend specific headers here")
+  (concat
+   (propertize "Extra      : " 'face 'font-lock-type-face)
+   (propertize "Please add backend specific headers here.  It's easy!" 
+	       'face 'font-lock-warning-face)))
 
 (defun vc-dir-headers (backend dir)
-  "Display the headers in the *VC status* buffer.
+  "Display the headers in the *VC dir* buffer.
 It calls the `status-extra-headers' backend method to display backend
 specific headers."
   (concat
-   (propertize "VC backend:  " 'face 'font-lock-type-face)
+   (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
-   (propertize "Working dir:  " 'face 'font-lock-type-face)
+   (propertize "Working dir: " 'face 'font-lock-type-face)
    (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
    (vc-call-backend backend 'status-extra-headers dir)
    "\n"))
@@ -1829,15 +1828,19 @@ specific headers."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
 	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
-	(filename (vc-dir-fileinfo->name fileentry))
-	(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
+	(filename (vc-dir-fileinfo->name fileentry)))
+    ;; FIXME: Backends that want to print the state in a different way
+    ;; can do it by defining the `status-printer' function.  Using
+    ;; `prettify-state-info' adds two extra vc-calls per item, which
+    ;; is too expensive.
+    ;;(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
       'face 'font-lock-type-face)
      "   "
      (propertize
-      (format "%-20s" prettified)
+      (format "%-20s" state)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
 		  (t 'font-lock-variable-name-face))
