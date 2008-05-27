@@ -91,7 +91,15 @@
 ;; some scratch directory would be very wasteful, and wouldn't be able to
 ;; preserve the file owners.
 
+;;; Bugs:
+
+;; - Expunge and rename on ././@LongLink files
+;; - Revert confirmation displays the raw data temporarily.
+;; - Incorrect goal-column if username is too long.
+
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defgroup tar nil
   "Simple editing of tar files."
@@ -127,17 +135,41 @@ This information is useful, but it takes screen space away from file names."
   :group 'tar)
 
 (defvar tar-parse-info nil)
-(defvar tar-header-offset nil)
 (defvar tar-superior-buffer nil)
 (defvar tar-superior-descriptor nil)
 (defvar tar-subfile-mode nil)
 (defvar tar-file-name-coding-system nil)
 
-(put 'tar-parse-info 'permanent-local t)
-(put 'tar-header-offset 'permanent-local t)
 (put 'tar-superior-buffer 'permanent-local t)
 (put 'tar-superior-descriptor 'permanent-local t)
-(put 'tar-file-name-coding-system 'permanent-local t)
+
+;; The Tar data is made up of bytes and better manipulated as bytes
+;; and can be very large, so insert/delete can be costly.  The summary we
+;; want to display may contain non-ascci chars, of course, so we'd like it
+;; to be multibyte.  We used to keep both in the same buffer and switch
+;; from/to uni/multibyte.  But this had several downsides:
+;; - set-buffer-multibyte has an O(N^2) worst case that tends to be triggered
+;;   here, so it gets atrociously slow on large Tar files.
+;; - need to widen/narrow the buffer to show/hide the raw data, and need to
+;;   maintain a tar-header-offset that keeps track of the boundary between
+;;   the two.
+;; - can't use markers because they're not preserved by set-buffer-multibyte.
+;; So instead, we now keep the two pieces of data in separate buffers, and
+;; use the new buffer-swap-text primitive when we need to change which data
+;; is associated with "the" buffer.
+(defvar tar-data-buffer nil "Buffer that holds the actual raw tar bytes.")
+(make-variable-buffer-local 'tar-data-buffer)
+
+(defun tar-data-swapped-p ()
+  "Return non-nil if the tar-data is in `tar-data-buffer'."
+  ;; We need to be careful to keep track of which buffer holds the tar-data,
+  ;; since we swap them back and forth.  Since the user may make the summary
+  ;; buffer unibyte, we can't rely on the multibyteness of the buffers.
+  ;; We could try and recognize the tar-format signature, but instead
+  ;; I decided to go for something simpler.
+  (and (buffer-live-p tar-data-buffer)
+       (> (buffer-size tar-data-buffer) (buffer-size))))
+
 
 (defmacro tar-setf (form val)
   "A mind-numbingly simple implementation of setf."
@@ -385,43 +417,41 @@ MODE should be an integer which is a file mode value."
 (defun tar-untar-buffer ()
   "Extract all archive members in the tar-file into the current directory."
   (interactive)
-  (let ((multibyte enable-multibyte-characters))
-    (unwind-protect
-	(save-restriction
-	  (widen)
-	  (set-buffer-multibyte nil)
-	  (dolist (descriptor tar-parse-info)
-	    (let* ((tokens (tar-desc-tokens descriptor))
-		   (name (tar-header-name tokens))
-		   (dir (if (eq (tar-header-link-type tokens) 5)
-			    name
-			  (file-name-directory name)))
-		   (start (+ (tar-desc-data-start descriptor)
-			     (- tar-header-offset (point-min))))
-		   (end (+ start (tar-header-size tokens))))
-	      (unless (file-directory-p name)
-		(message "Extracting %s" name)
-		(if (and dir (not (file-exists-p dir)))
-		    (make-directory dir t))
-		(unless (file-directory-p name)
-		  (write-region start end name))
-		(set-file-modes name (tar-header-mode tokens))))))
-      (if multibyte
-	  (set-buffer-multibyte 'to)))))
+  ;; FIXME: make it work even if we're not in tar-mode.
+  (let ((descriptors tar-parse-info))   ;Read the var in its buffer.
+    (with-current-buffer
+        (if (tar-data-swapped-p) tar-data-buffer (current-buffer))
+      (set-buffer-multibyte nil)          ;Hopefully, a no-op.
+      (dolist (descriptor descriptors)
+        (let* ((tokens (tar-desc-tokens descriptor))
+               (name (tar-header-name tokens))
+               (dir (if (eq (tar-header-link-type tokens) 5)
+                        name
+                      (file-name-directory name)))
+               (start (tar-desc-data-start descriptor))
+               (end (+ start (tar-header-size tokens))))
+          (unless (file-directory-p name)
+            (message "Extracting %s" name)
+            (if (and dir (not (file-exists-p dir)))
+                (make-directory dir t))
+            (unless (file-directory-p name)
+              (write-region start end name))
+            (set-file-modes name (tar-header-mode tokens))))))))
 
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer.
 Place a dired-like listing on the front;
 then narrow to it, so that only that listing
 is visible (and the real data of the buffer is hidden)."
-  (let ((modified (buffer-modified-p)))
-    (set-buffer-multibyte nil)
-    (let* ((result '())
-           (pos (point-min))
-           (progress-reporter
-            (make-progress-reporter "Parsing tar file..."
-                                    (point-min) (max 1 (- (buffer-size) 1024))))
-           tokens)
+  (assert (tar-data-swapped-p))
+  (let* ((modified (buffer-modified-p))
+         (result '())
+         (pos (point-min))
+         (progress-reporter
+          (make-progress-reporter "Parsing tar file..."
+                                  (point-min) (max 1 (- (buffer-size) 1024))))
+         tokens)
+    (with-current-buffer tar-data-buffer
       (while (and (<= (+ pos 512) (point-max))
                   (not (eq 'empty-tar-block
                            (setq tokens
@@ -457,21 +487,16 @@ is visible (and the real data of the buffer is hidden)."
           (and (null (tar-header-link-type tokens))
                (> size 0)
                ;; Round up to a multiple of 512.
-               (setq pos (+ pos (ash (ash (+ 511 size) -9) 9))))))
-      (make-local-variable 'tar-parse-info)
-      (setq tar-parse-info (nreverse result))
-      ;; A tar file should end with a block or two of nulls,
-      ;; but let's not get a fatal error if it doesn't.
-      (if (eq tokens 'empty-tar-block)
-          (progress-reporter-done progress-reporter)
-        (message "Warning: premature EOF parsing tar file")))
-    ;; Obey the user's preference for the use of uni/multibytes.
-    (if default-enable-multibyte-characters
-	(set-buffer-multibyte 'to))
+               (setq pos (+ pos (ash (ash (+ 511 size) -9) 9)))))))
+    (make-local-variable 'tar-parse-info)
+    (setq tar-parse-info (nreverse result))
+    ;; A tar file should end with a block or two of nulls,
+    ;; but let's not get a fatal error if it doesn't.
+    (if (eq tokens 'empty-tar-block)
+        (progress-reporter-done progress-reporter)
+      (message "Warning: premature EOF parsing tar file"))
     (goto-char (point-min))
     (let ((inhibit-read-only t)
-          ;; Collect summary lines and insert them all at once since tar files
-          ;; can be pretty big.
           (total-summaries
            (mapconcat
             (lambda (tar-desc)
@@ -479,8 +504,6 @@ is visible (and the real data of the buffer is hidden)."
             tar-parse-info
             "\n")))
       (insert total-summaries "\n"))
-    (narrow-to-region (point-min) (point))
-    (set (make-local-variable 'tar-header-offset) (position-bytes (point)))
     (goto-char (point-min))
     (restore-buffer-modified-p modified)))
 
@@ -568,6 +591,15 @@ is visible (and the real data of the buffer is hidden)."
 (put 'tar-mode 'mode-class 'special)
 (put 'tar-subfile-mode 'mode-class 'special)
 
+(defun tar-change-major-mode-hook ()
+  ;; Bring the actual Tar data back into the main buffer.
+  (when (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))
+  ;; Throw away the summary.
+  (when (buffer-live-p tar-data-buffer) (kill-buffer tar-data-buffer)))
+
+(defun tar-mode-kill-buffer-hook ()
+  (if (buffer-live-p tar-data-buffer) (kill-buffer tar-data-buffer)))
+
 ;;;###autoload
 (define-derived-mode tar-mode nil "Tar"
   "Major mode for viewing a tar file as a dired-like listing of its contents.
@@ -588,10 +620,8 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   ;; mode on and off.  You can corrupt things that way.
   ;; rms: with permanent locals, it should now be possible to make this work
   ;; interactively in some reasonable fashion.
-  (make-local-variable 'tar-header-offset)
   (make-local-variable 'tar-parse-info)
   (set (make-local-variable 'require-final-newline) nil) ; binary data, dude...
-  (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
   (set (make-local-variable 'local-enable-local-variables) nil)
   (set (make-local-variable 'next-line-add-newlines) nil)
   (set (make-local-variable 'tar-file-name-coding-system)
@@ -601,13 +631,24 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   ;; Prevent loss of data when saving the file.
   (set (make-local-variable 'file-precious-flag) t)
   (auto-save-mode 0)
-  (set (make-local-variable 'write-contents-functions) '(tar-mode-write-file))
   (buffer-disable-undo)
   (widen)
-  (if (and (boundp 'tar-header-offset) tar-header-offset)
-      (narrow-to-region (point-min) tar-header-offset)
-    (tar-summarize-buffer)
-    (tar-next-line 0)))
+  ;; Now move the Tar data into an auxiliary buffer, so we can use the main
+  ;; buffer for the summary.
+  (assert (not (tar-data-swapped-p)))
+  (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
+  (set (make-local-variable 'write-contents-functions) '(tar-mode-write-file))
+  (add-hook 'kill-buffer-hook 'tar-mode-kill-buffer-hook nil t)
+  (add-hook 'change-major-mode-hook 'tar-change-major-mode-hook nil t)
+  ;; Tar data is made of bytes, not chars.
+  (set-buffer-multibyte nil)
+  (set (make-local-variable 'tar-data-buffer)
+       (generate-new-buffer (format " *tar-data %s*"
+                                    (file-name-nondirectory
+                                     (or buffer-file-name (buffer-name))))))
+  (buffer-swap-text tar-data-buffer)
+  (tar-summarize-buffer)
+  (tar-next-line 0))
 
 
 (defun tar-subfile-mode (p)
@@ -639,19 +680,18 @@ appear on disk when you save the tar-file's buffer."
 
 ;; Revert the buffer and recompute the dired-like listing.
 (defun tar-mode-revert (&optional no-auto-save no-confirm)
-  (let ((revert-buffer-function nil)
-	(old-offset tar-header-offset)
-	success)
-    (setq tar-header-offset nil)
-    (unwind-protect
-	(and (revert-buffer t no-confirm)
-	     (progn (widen)
-		    (setq success t)
-		    (tar-mode)))
-      ;; If the revert was canceled,
-      ;; put back the old value of tar-header-offset.
-      (or success
-	  (setq tar-header-offset old-offset)))))
+  (unwind-protect
+      (let ((revert-buffer-function nil))
+        (if (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))
+        ;; FIXME: If we ask for confirmation, the user will be temporarily
+        ;; looking at the raw data.
+        (revert-buffer no-auto-save no-confirm 'preserve-modes)
+        ;; The new raw data may be smaller than the old summary, so let's
+        ;; make sure tar-data-swapped-p doesn't get confused.
+        (if (buffer-live-p tar-data-buffer) (kill-buffer tar-data-buffer))
+        ;; Recompute the summary.
+        (tar-mode))
+    (unless (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))))
 
 
 (defun tar-next-line (arg)
@@ -668,8 +708,7 @@ appear on disk when you save the tar-file's buffer."
 (defun tar-current-descriptor (&optional noerror)
   "Return the tar-descriptor of the current line, or signals an error."
   ;; I wish lines had plists, like in ZMACS...
-  (or (nth (count-lines (point-min)
-			(save-excursion (beginning-of-line) (point)))
+  (or (nth (count-lines (point-min) (line-beginning-position))
 	   tar-parse-info)
       (if noerror
 	  nil
@@ -719,8 +758,7 @@ appear on disk when you save the tar-file's buffer."
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (start (+ (tar-desc-data-start descriptor)
-		   (- tar-header-offset (point-min))))
+	 (start (tar-desc-data-start descriptor))
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (tarname (buffer-name))
@@ -743,60 +781,57 @@ appear on disk when you save the tar-file's buffer."
 		buffer-undo-list t))
 	(setq bufname (buffer-name buffer))
 	(setq just-created t)
-	(unwind-protect
-	    (let (coding)
-	      (narrow-to-region start end)
-	      (goto-char start)
-	      (setq coding (or coding-system-for-read
-			       (and set-auto-coding-function
-				    (funcall set-auto-coding-function
-					     name (- end start)))
-			       ;; The following binding causes
-			       ;; find-buffer-file-type-coding-system
-			       ;; (defined on dos-w32.el) to act as if
-			       ;; the file being extracted existed, so
-			       ;; that the file's contents' encoding and
-			       ;; EOL format are auto-detected.
-			       (let ((file-name-handler-alist
-				      '(("" . tar-file-name-handler))))
-				 (car (find-operation-coding-system
-				       'insert-file-contents
-				       (cons name (current-buffer)) t)))))
-	      (if (or (not coding)
-		      (eq (coding-system-type coding) 'undecided))
-		  (setq coding (detect-coding-region start end t)))
-	      (if (and default-enable-multibyte-characters
-		       (coding-system-get coding :for-unibyte))
-		  (with-current-buffer buffer
-		    (set-buffer-multibyte nil)))
-	      (widen)
-	      (decode-coding-region start end coding buffer)
-	      (with-current-buffer buffer
-		(goto-char (point-min))
-		(setq buffer-file-name new-buffer-file-name)
-		(setq buffer-file-truename
-		      (abbreviate-file-name buffer-file-name))
-		;; Force buffer-file-coding-system to what
-		;; decode-coding-region actually used.
-		(set-buffer-file-coding-system last-coding-system-used t)
-		;; Set the default-directory to the dir of the
-		;; superior buffer.
-		(setq default-directory
-		      (with-current-buffer tar-buffer
-			default-directory))
-		(normal-mode)  ; pick a mode.
-		(rename-buffer bufname)
-		(make-local-variable 'tar-superior-buffer)
-		(make-local-variable 'tar-superior-descriptor)
-		(setq tar-superior-buffer tar-buffer)
-		(setq tar-superior-descriptor descriptor)
-		(setq buffer-read-only read-only-p)
-		(set-buffer-modified-p nil)
-		(setq buffer-undo-list undo-list)
-		(tar-subfile-mode 1))
-	      (set-buffer tar-buffer))
-	  (narrow-to-region (point-min) tar-header-offset)
-	  (goto-char pos)))
+	(with-current-buffer tar-data-buffer
+          (let (coding)
+            (narrow-to-region start end)
+            (goto-char start)
+            (setq coding (or coding-system-for-read
+                             (and set-auto-coding-function
+                                  (funcall set-auto-coding-function
+                                           name (- end start)))
+                             ;; The following binding causes
+                             ;; find-buffer-file-type-coding-system
+                             ;; (defined on dos-w32.el) to act as if
+                             ;; the file being extracted existed, so
+                             ;; that the file's contents' encoding and
+                             ;; EOL format are auto-detected.
+                             (let ((file-name-handler-alist
+                                    '(("" . tar-file-name-handler))))
+                               (car (find-operation-coding-system
+                                     'insert-file-contents
+                                     (cons name (current-buffer)) t)))))
+            (if (or (not coding)
+                    (eq (coding-system-type coding) 'undecided))
+                (setq coding (detect-coding-region start end t)))
+            (if (and default-enable-multibyte-characters
+                     (coding-system-get coding :for-unibyte))
+                (with-current-buffer buffer
+                  (set-buffer-multibyte nil)))
+            (widen)
+            (decode-coding-region start end coding buffer)))
+        (with-current-buffer buffer
+          (goto-char (point-min))
+          (setq buffer-file-name new-buffer-file-name)
+          (setq buffer-file-truename
+                (abbreviate-file-name buffer-file-name))
+          ;; Force buffer-file-coding-system to what
+          ;; decode-coding-region actually used.
+          (set-buffer-file-coding-system last-coding-system-used t)
+          ;; Set the default-directory to the dir of the
+          ;; superior buffer.
+          (setq default-directory
+                (with-current-buffer tar-buffer
+                  default-directory))
+          (normal-mode)  ; pick a mode.
+          (rename-buffer bufname)
+          (make-local-variable 'tar-superior-buffer)
+          (make-local-variable 'tar-superior-descriptor)
+          (setq tar-superior-buffer tar-buffer)
+          (setq tar-superior-descriptor descriptor)
+          (setq buffer-read-only read-only-p)
+          (set-buffer-modified-p nil)
+          (setq buffer-undo-list undo-list)
+          (tar-subfile-mode 1)))
       (if view-p
 	  (view-buffer
 	   buffer (and just-created 'kill-buffer-if-not-modified))
@@ -852,8 +887,7 @@ the current tar-entry."
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (start (+ (tar-desc-data-start descriptor)
-		   (- tar-header-offset (point-min))))
+	 (start (tar-desc-data-start descriptor))
 	 (end (+ start size))
 	 (inhibit-file-name-handlers inhibit-file-name-handlers)
 	 (inhibit-file-name-operation inhibit-file-name-operation))
@@ -911,21 +945,16 @@ With a prefix argument, un-mark that many files backward."
     (if link-p (setq size 0)) ; size lies for hard-links.
     ;;
     ;; delete the current line...
-    (beginning-of-line)
-    (let ((line-start (point)))
-      (end-of-line) (forward-char)
-      ;; decrement the header-pointer to be in sync...
-      (setq tar-header-offset (- tar-header-offset (- (point) line-start)))
-      (delete-region line-start (point)))
+    (delete-region (line-beginning-position) (line-beginning-position 2))
     ;;
     ;; delete the data pointer...
     (setq tar-parse-info (delq descriptor tar-parse-info))
     ;;
     ;; delete the data from inside the file...
-    (widen)
-    (let* ((data-start (+ start (- tar-header-offset (point-min)) -512))
+    (let* ((data-start (+ start -512))
 	   (data-end (+ data-start 512 (ash (ash (+ size 511) -9) 9))))
-      (delete-region data-start data-end)
+      (with-current-buffer tar-data-buffer
+        (delete-region data-start data-end))
       ;;
       ;; and finally, decrement the start-pointers of all following
       ;; entries in the archive.  This is a pig when deleting a bunch
@@ -936,8 +965,7 @@ With a prefix argument, un-mark that many files backward."
 	(dolist (desc following-descs)
 	  (tar-setf (tar-desc-data-start desc)
 		    (- (tar-desc-data-start desc) data-length))))
-      ))
-  (narrow-to-region (point-min) tar-header-offset))
+      )))
 
 
 (defun tar-expunge (&optional noconfirm)
@@ -956,8 +984,7 @@ for this to be permanent."
 		       (setq n (1+ n)))
 		(forward-line 1)))
 	  ;; after doing the deletions, add any padding that may be necessary.
-	  (tar-pad-to-blocksize)
-	  (narrow-to-region (point-min) tar-header-offset))
+	  (tar-pad-to-blocksize))
 	(if (zerop n)
 	    (message "Nothing to expunge.")
 	    (message "%s files expunged.  Be sure to save this buffer." n)))))
@@ -968,7 +995,7 @@ for this to be permanent."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (while (< (point) tar-header-offset)
+    (while (not (eobp))
       (if (not (eq (following-char) ?\s))
 	  (progn (delete-char 1) (insert " ")))
       (forward-line 1))))
@@ -1062,50 +1089,40 @@ for this to be permanent."
 (defun tar-alter-one-field (data-position new-data-string)
   (let* ((descriptor (tar-current-descriptor))
 	 (tokens (tar-desc-tokens descriptor)))
-    (unwind-protect
-	(save-excursion
-	  ;;
-	  ;; update the header-line.
-	  (beginning-of-line)
-	  (let ((p (point)))
-	    (forward-line 1)
-	    (delete-region p (point))
-	    (insert (tar-header-block-summarize tokens) "\n")
-	    (setq tar-header-offset (point-max)))
+    ;;
+    ;; update the header-line.
+    (let ((col (current-column)))
+      (delete-region (line-beginning-position) (line-beginning-position 2))
+      (insert (tar-header-block-summarize tokens) "\n")
+      (forward-line -1) (move-to-column col))
 
-	  (widen)
-	  (let* ((start (+ (tar-desc-data-start descriptor)
-			   (- tar-header-offset (point-min))
-                           -512)))
-	    ;;
-	    ;; delete the old field and insert a new one.
-	    (goto-char (+ start data-position))
-	    (delete-region (point) (+ (point) (length new-data-string))) ; <--
+    (with-current-buffer tar-data-buffer
+      (let* ((start (+ (tar-desc-data-start descriptor)
+                       -512)))
+        ;;
+        ;; delete the old field and insert a new one.
+        (goto-char (+ start data-position))
+        (delete-region (point) (+ (point) (length new-data-string))) ; <--
 
-	    ;; As new-data-string is unibyte, just inserting it will
-	    ;; make eight-bit chars to the corresponding multibyte
-	    ;; chars.  This avoid that conversion, i.e., eight-bit
-	    ;; chars are converted to multibyte form of eight-bit
-	    ;; chars.
-	    (insert (string-to-multibyte new-data-string))
-	    ;;
-	    ;; compute a new checksum and insert it.
-	    (let ((chk (tar-header-block-checksum
-			(buffer-substring start (+ start 512)))))
-	      (goto-char (+ start tar-chk-offset))
-	      (delete-region (point) (+ (point) 8))
-	      (insert (format "%6o" chk))
-	      (insert 0)
-	      (insert ? )
-	      (tar-setf (tar-header-checksum tokens) chk)
-	      ;;
-	      ;; ok, make sure we didn't botch it.
-	      (tar-header-block-check-checksum
-	        (buffer-substring start (+ start 512))
-	        chk (tar-header-name tokens))
-	      )))
-      (narrow-to-region (point-min) tar-header-offset)
-      (tar-next-line 0))))
+        (assert (not (or enable-multibyte-characters
+                         (multibyte-string-p new-data-string))))
+        (insert new-data-string)
+        ;;
+        ;; compute a new checksum and insert it.
+        (let ((chk (tar-header-block-checksum
+                    (buffer-substring start (+ start 512)))))
+          (goto-char (+ start tar-chk-offset))
+          (delete-region (point) (+ (point) 8))
+          (insert (format "%6o" chk))
+          (insert 0)
+          (insert ? )
+          (tar-setf (tar-header-checksum tokens) chk)
+          ;;
+          ;; ok, make sure we didn't botch it.
+          (tar-header-block-check-checksum
+           (buffer-substring start (+ start 512))
+           chk (tar-header-name tokens))
+          )))))
 
 
 (defun tar-octal-time (timeval)
@@ -1124,108 +1141,102 @@ This doesn't write anything to disk; you must save the parent tar-file buffer
 to make your changes permanent."
   (interactive)
   (if (not (and (boundp 'tar-superior-buffer) tar-superior-buffer))
-    (error "This buffer has no superior tar file buffer"))
+      (error "This buffer has no superior tar file buffer"))
   (if (not (and (boundp 'tar-superior-descriptor) tar-superior-descriptor))
-    (error "This buffer doesn't have an index into its superior tar file!"))
-  (save-excursion
+      (error "This buffer doesn't have an index into its superior tar file!"))
   (let ((subfile (current-buffer))
-	(coding buffer-file-coding-system)
-	(descriptor tar-superior-descriptor)
-	subfile-size)
-    (set-buffer tar-superior-buffer)
-    (let* ((tokens (tar-desc-tokens descriptor))
-	   (start (tar-desc-data-start descriptor))
-	   (name (tar-header-name tokens))
-	   (size (tar-header-size tokens))
-	   (size-pad (ash (ash (+ size 511) -9) 9))
-	   (head (memq descriptor tar-parse-info))
-	   (following-descs (cdr head)))
-      (if (not head)
-	(error "Can't find this tar file entry in its parent tar file!"))
-      (unwind-protect
-       (save-excursion
-	;; delete the old data...
-	(let* ((data-start (+ start (- tar-header-offset (point-min))))
-	       (data-end (+ data-start (ash (ash (+ size 511) -9) 9))))
-	  (narrow-to-region data-start data-end)
-	  (delete-region (point-min) (point-max))
-	  ;; insert the new data...
-	  (goto-char data-start)
-	  (with-current-buffer subfile
-	    (save-restriction
-	      (widen)
-	      (encode-coding-region 1 (point-max) coding tar-superior-buffer)))
-	  (setq subfile-size (- (point-max) (point-min)))
-	  ;;
-	  ;; pad the new data out to a multiple of 512...
-	  (let ((subfile-size-pad (ash (ash (+ subfile-size 511) -9) 9)))
-	    (goto-char (point-max))
-	    (insert (make-string (- subfile-size-pad subfile-size) 0))
-	    ;;
-	    ;; update the data pointer of this and all following files...
-	    (tar-setf (tar-header-size tokens) subfile-size)
-	    (let ((difference (- subfile-size-pad size-pad)))
-	      (dolist (desc following-descs)
-		(tar-setf (tar-desc-data-start desc)
-			  (+ (tar-desc-data-start desc) difference))))
-	    ;;
-	    ;; Update the size field in the header block.
-	    (widen)
-	    (let ((header-start (- data-start 512)))
-	      (goto-char (+ header-start tar-size-offset))
-	      (delete-region (point) (+ (point) 12))
-	      (insert (format "%11o" subfile-size))
-	      (insert ? )
-	      ;;
-	      ;; Maybe update the datestamp.
-	      (if (not tar-update-datestamp)
-		  nil
-		(goto-char (+ header-start tar-time-offset))
-		(delete-region (point) (+ (point) 12))
-		(insert (tar-octal-time (current-time)))
-		(insert ? ))
-	      ;;
-	      ;; compute a new checksum and insert it.
-	      (let ((chk (tar-header-block-checksum
-			  (buffer-substring header-start data-start))))
-		(goto-char (+ header-start tar-chk-offset))
-		(delete-region (point) (+ (point) 8))
-		(insert (format "%6o" chk))
-		(insert 0)
-		(insert ? )
-		(tar-setf (tar-header-checksum tokens) chk)))
-	    ;;
-	    ;; alter the descriptor-line...
-	    ;;
-	    (let ((position (- (length tar-parse-info) (length head))))
-	      (goto-char (point-min))
-	      (forward-line position)
-	      (beginning-of-line)
-	      (let ((p (point))
-		    after
-		    (m (set-marker (make-marker) tar-header-offset)))
-		(forward-line 1)
-		(setq after (point))
-		;; Insert the new text after the old, before deleting,
-		;; to preserve the window start.
-		(let ((line (tar-header-block-summarize tokens t)))
-		  (insert-before-markers line "\n"))
-		(delete-region p after)
-		(setq tar-header-offset (marker-position m)))
-	      )))
-	;; after doing the insertion, add any final padding that may be necessary.
-	(tar-pad-to-blocksize))
-       (narrow-to-region (point-min) tar-header-offset)))
-    (set-buffer-modified-p t)   ; mark the tar file as modified
-    (tar-next-line 0)
-    (set-buffer subfile)
-    (set-buffer-modified-p nil) ; mark the tar subfile as unmodified
+        (coding buffer-file-coding-system)
+        (descriptor tar-superior-descriptor)
+        subfile-size)
+    (with-current-buffer tar-superior-buffer
+      (let* ((tokens (tar-desc-tokens descriptor))
+             (start (tar-desc-data-start descriptor))
+             (name (tar-header-name tokens))
+             (size (tar-header-size tokens))
+             (size-pad (ash (ash (+ size 511) -9) 9))
+             (head (memq descriptor tar-parse-info))
+             (following-descs (cdr head)))
+        (if (not head)
+            (error "Can't find this tar file entry in its parent tar file!"))
+        (with-current-buffer tar-data-buffer
+          ;; delete the old data...
+          (let* ((data-start start)
+                 (data-end (+ data-start (ash (ash (+ size 511) -9) 9))))
+            (narrow-to-region data-start data-end)
+            (delete-region (point-min) (point-max))
+            ;; insert the new data...
+            (goto-char data-start)
+            (let ((dest (current-buffer)))
+              (with-current-buffer subfile
+                (save-restriction
+                  (widen)
+                  (encode-coding-region (point-min) (point-max) coding dest))))
+            (setq subfile-size (- (point-max) (point-min)))
+            ;;
+            ;; pad the new data out to a multiple of 512...
+            (let ((subfile-size-pad (ash (ash (+ subfile-size 511) -9) 9)))
+              (goto-char (point-max))
+              (insert (make-string (- subfile-size-pad subfile-size) 0))
+              ;;
+              ;; update the data pointer of this and all following files...
+              (tar-setf (tar-header-size tokens) subfile-size)
+              (let ((difference (- subfile-size-pad size-pad)))
+                (dolist (desc following-descs)
+                  (tar-setf (tar-desc-data-start desc)
+                            (+ (tar-desc-data-start desc) difference))))
+              ;;
+              ;; Update the size field in the header block.
+              (widen)
+              (let ((header-start (- data-start 512)))
+                (goto-char (+ header-start tar-size-offset))
+                (delete-region (point) (+ (point) 12))
+                (insert (format "%11o" subfile-size))
+                (insert ? )
+                ;;
+                ;; Maybe update the datestamp.
+                (if (not tar-update-datestamp)
+                    nil
+                  (goto-char (+ header-start tar-time-offset))
+                  (delete-region (point) (+ (point) 12))
+                  (insert (tar-octal-time (current-time)))
+                  (insert ? ))
+                ;;
+                ;; compute a new checksum and insert it.
+                (let ((chk (tar-header-block-checksum
+                            (buffer-substring header-start data-start))))
+                  (goto-char (+ header-start tar-chk-offset))
+                  (delete-region (point) (+ (point) 8))
+                  (insert (format "%6o" chk))
+                  (insert 0)
+                  (insert ? )
+                  (tar-setf (tar-header-checksum tokens) chk))))))
+        ;;
+        ;; alter the descriptor-line...
+        ;;
+        (let ((position (- (length tar-parse-info) (length head))))
+          (goto-char (point-min))
+          (forward-line position)
+          (beginning-of-line)
+          (let ((p (point))
+                after)
+            (forward-line 1)
+            (setq after (point))
+            ;; Insert the new text after the old, before deleting,
+            ;; to preserve the window start.
+            (let ((line (tar-header-block-summarize tokens t)))
+              (insert-before-markers line "\n"))
+            (delete-region p after)))
+        ;; After doing the insertion, add any necessary final padding.
+        (tar-pad-to-blocksize))
+      (set-buffer-modified-p t)         ; mark the tar file as modified
+      (tar-next-line 0))
+    (set-buffer-modified-p nil)       ; mark the tar subfile as unmodified
     (message "Saved into tar-buffer `%s'.  Be sure to save that buffer!"
-	     (buffer-name tar-superior-buffer))
+             (buffer-name tar-superior-buffer))
     ;; Prevent basic-save-buffer from changing our coding-system.
     (setq last-coding-system-used buffer-file-coding-system)
     ;; Prevent ordinary saving from happening.
-    t)))
+    t))
 
 
 ;; When this function is called, it is sure that the buffer is unibyte.
@@ -1234,7 +1245,6 @@ to make your changes permanent."
 Leaves the region wide."
   (if (null tar-anal-blocksize)
       nil
-    (widen)
     (let* ((last-desc (nth (1- (length tar-parse-info)) tar-parse-info))
 	   (start (tar-desc-data-start last-desc))
 	   (tokens (tar-desc-tokens last-desc))
@@ -1242,37 +1252,30 @@ Leaves the region wide."
 	   (size (if link-p 0 (tar-header-size tokens)))
 	   (data-end (+ start size))
 	   (bbytes (ash tar-anal-blocksize 9))
-	   (pad-to (+ bbytes (* bbytes (/ (- data-end (point-min)) bbytes))))
-	   (inhibit-read-only t) ; ##
-	   )
+	   (pad-to (+ bbytes (* bbytes (/ (- data-end (point-min)) bbytes)))))
       ;; If the padding after the last data is too long, delete some;
       ;; else insert some until we are padded out to the right number of blocks.
       ;;
-      (let ((goal-end (+ (or tar-header-offset 0) pad-to)))
-        (if (> (point-max) goal-end)
-            (delete-region goal-end (point-max))
-          (goto-char (point-max))
-	  (insert (make-string (- goal-end (point-max)) ?\0)))))))
+      (with-current-buffer tar-data-buffer
+        (let ((goal-end (+ (point-min) pad-to)))
+          (if (> (point-max) goal-end)
+              (delete-region goal-end (point-max))
+            (goto-char (point-max))
+            (insert (make-string (- goal-end (point-max)) ?\0))))))))
 
 
 ;; Used in write-file-hook to write tar-files out correctly.
 (defun tar-mode-write-file ()
   (unwind-protect
-      (save-excursion
-	(widen)
-	;; Doing this here confuses things - the region gets left too wide!
-	;; I suppose this is run in a context where changing the buffer is bad.
-	;; (tar-pad-to-blocksize)
-	;; tar-header-offset turns out to be null for files fetched with W3,
-	;; at least.
-	(let ((coding-system-for-write 'no-conversion))
-	  (write-region (or tar-header-offset
-			    (point-min))
-			(point-max)
-			buffer-file-name nil t))
-	(tar-clear-modification-flags)
-	(set-buffer-modified-p nil))
-    (narrow-to-region (point-min) tar-header-offset))
+      (progn
+        (if (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))
+        ;; Yuck: This is an internal function.  We should improve the
+        ;; write-content-functions hook to make it easier to DTRT.
+        (prog1 (basic-save-buffer-1)
+          (unless (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))
+          (tar-clear-modification-flags)
+          (set-buffer-modified-p nil)))
+    (unless (tar-data-swapped-p) (buffer-swap-text tar-data-buffer)))
   ;; Return t because we've written the file.
   t)
 

@@ -1,7 +1,22 @@
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Use buffer-swap-text to separate summary and raw data.
+	(tar-header-offset): Remove.
+	(tar-parse-info, tar-header-offset, tar-file-name-coding-system):
+	Not permanent any more.
+	(tar-data-buffer): New var.
+	(tar-data-swapped-p, tar-change-major-mode-hook)
+	(tar-mode-kill-buffer-hook): New funs.
+	(tar-untar-buffer, tar-summarize-buffer, tar-mode, tar-mode-revert)
+	(tar-extract, tar-copy, tar-expunge-internal, tar-expunge)
+	(tar-clear-modification-flags, tar-alter-one-field)
+	(tar-subfile-save-buffer, tar-pad-to-blocksize, tar-mode-write-file):
+	Change accordingly.
+
 2008-05-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dispatcher.el (vc-directory-resynch-file): Rename to ...
-	(vc-dir-resynch-file): ... this.  Update callers.  
+	(vc-dir-resynch-file): ... this.  Update callers.
 	Use vc-string-prefix-p.  Ignore directory args.
 	(vc-string-prefix-p): CSE.
 	(vc-resynch-buffer): Restore conditional.
