@@ -4818,7 +4818,6 @@ encode_coding_raw_text (coding)
   int *charbuf_end = coding->charbuf + coding->charbuf_used;
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
-  int produced_chars = 0;
   int c;
 
   if (multibytep)
@@ -4873,7 +4872,6 @@ encode_coding_raw_text (coding)
 		*dst++ = CHAR_TO_BYTE8 (c);
 	      else
 		CHAR_STRING_ADVANCE (c, dst);
-	      produced_chars++;
 	    }
 	}
       else
@@ -4881,11 +4879,10 @@ encode_coding_raw_text (coding)
 	  ASSURE_DESTINATION (charbuf_end - charbuf);
 	  while (charbuf < charbuf_end && dst < dst_end)
 	    *dst++ = *charbuf++;
-	  produced_chars = dst - (coding->destination + coding->dst_bytes);
 	}
     }
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
-  coding->produced_char += produced_chars;
+  coding->produced_char += charbuf - coding->charbuf;
   coding->produced = dst - coding->destination;
   return 0;
 }

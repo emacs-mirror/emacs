@@ -1,5 +1,8 @@
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* coding.c (encode_coding_raw_text): Set coding->produced_char for
+	all branches.  Compute it differently.
+
 	* xdisp.c [!HAVE_WINDOW_SYSTEM]: Include font.h for --without-x.
 
 2008-05-27  Juanma Barranquero  <lekktu@gmail.com>
