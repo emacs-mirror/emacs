@@ -1,3 +1,8 @@
+2008-05-27  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_open_internal): Determine if glyph indices
+        are likely to work here.
+
 2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (draw_glyphs): If mouse-highlighting is on, attempt to
