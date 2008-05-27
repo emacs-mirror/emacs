@@ -1,3 +1,10 @@
+2008-05-26  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Remove Newsgroups
+	from the list.  Add Bytes, X-Campaignid, X-Country-Chain,
+	X-Declude-, X-fmx-, X-Identity, X-Mailer_, X-pair-, X-SPF-,
+	X-Usenet-Provider.
+
 2008-05-23  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el: (mh-invisible-header-fields-internal): Remove
