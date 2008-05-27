@@ -613,8 +613,14 @@ xfont_open (f, entity, pixel_size)
 	  for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
 	    if ((pcm = xfont_get_pcm (xfont, &char2b)) != NULL)
 	      width += pcm->width, n++;
-	  font->average_width = width / n;
+	  if (n > 0)
+	    font->average_width = width / n;
 	}
+      if (font->average_width == 0)
+	/* No easy way other than this to get a reasonable
+	   average_width.  */
+	font->average_width
+	  = (xfont->min_bounds.width + xfont->max_bounds.width) / 2;
     }
 
   BLOCK_INPUT;
