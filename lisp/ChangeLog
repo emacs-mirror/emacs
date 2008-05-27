@@ -1,3 +1,7 @@
+2008-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): Make errors in final sed non-fatal.
+
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-dispatcher.el (vc-string-prefix-p): New function.
