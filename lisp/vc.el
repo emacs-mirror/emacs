@@ -648,10 +648,6 @@
 ;;
 ;;;; Problems:
 ;;
-;; - log-view-diff does not work anymore in the case when the log was
-;;   created from more than one file.  The error is:
-;;   vc-derived-from-dir-mode: Lisp nesting exceeds `max-lisp-eval-depth'.
-;;
 ;; - the *vc-dir* buffer is not updated correctly anymore after VC
 ;;   operations that change the file state.
 ;;
@@ -995,21 +991,59 @@ Within directories, only files already under version control are noticed."
 	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
 	  (t nil))))
 
-(defun vc-deduce-fileset (&optional observer)
-  "Deduce a set of files and a backend to which to apply an operation and
-the common state of the fileset.  Return (BACKEND . FILESET)."
-  (let* ((selection (vc-dispatcher-selection-set observer))
-	 (raw (car selection))		;; Selection as user made it
-	 (cooked (cdr selection))	;; Files only
-         ;; FIXME: Store the backend in a buffer-local variable.
-         (backend (if (vc-derived-from-dir-mode (current-buffer))
-		      ;; FIXME: this should use vc-dir-backend from
-		      ;; the *vc-dir* buffer.
-                      (vc-responsible-backend default-directory)
-                    (assert (and (= 1 (length raw))
-                                 (not (file-directory-p (car raw)))))
-                    (vc-backend (car cooked)))))
-	(cons backend selection)))
+(defvar vc-dir-backend nil
+  "The backend used by the current *vc-dir* buffer.")
+
+;; FIXME: this is not functional, commented out.
+;; (defun vc-deduce-fileset (&optional observer)
+;;   "Deduce a set of files and a backend to which to apply an operation and
+;; the common state of the fileset.  Return (BACKEND . FILESET)."
+;;   (let* ((selection (vc-dispatcher-selection-set observer))
+;; 	 (raw (car selection))		;; Selection as user made it
+;; 	 (cooked (cdr selection))	;; Files only
+;;          ;; FIXME: Store the backend in a buffer-local variable.
+;;          (backend (if (vc-derived-from-dir-mode (current-buffer))
+;; 		      ;; FIXME: this should use vc-dir-backend from
+;; 		      ;; the *vc-dir* buffer.
+;;                       (vc-responsible-backend default-directory)
+;;                     (assert (and (= 1 (length raw))
+;;                                  (not (file-directory-p (car raw)))))
+;;                     (vc-backend (car cooked)))))
+;; 	(cons backend selection)))
+
+(defun vc-deduce-fileset (&optional observer allow-unregistered)
+  "Deduce a set of files and a backend to which to apply an operation.
+
+Return (BACKEND FILESET FILESET_ONLY_FILES).
+If we're in VC-dir mode, the fileset is the list of marked files.
+Otherwise, if we're looking at a buffer visiting a version-controlled file,
+the fileset is a singleton containing this file.
+If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
+visited file is not registered, return a singleton fileset containing it.
+Otherwise, throw an error."
+  ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
+  ;; documented.
+  (let (backend)
+    (cond
+     ((derived-mode-p 'vc-dir-mode)
+      (let ((marked (vc-dir-marked-files)))
+	(if marked
+	    (list vc-dir-backend  marked (vc-dir-marked-only-files))
+	  (let ((crt (vc-dir-current-file)))
+	    (list vc-dir-backend (list crt) (vc-dir-child-files))))))
+     ((setq backend (vc-backend buffer-file-name))
+      (list backend (list buffer-file-name) (list buffer-file-name)))
+     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+				(with-current-buffer vc-parent-buffer
+				  (eq major-mode 'vc-dir-mode))))
+      (progn
+	(set-buffer vc-parent-buffer)
+	(vc-deduce-fileset)))
+     ((and allow-unregistered (not (vc-registered buffer-file-name)))
+      (list (vc-responsible-backend
+	     (file-name-directory (buffer-file-name)))
+	    (list buffer-file-name) (list buffer-file-name)))
+     (t (error "No fileset is available here.")))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1079,15 +1113,18 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset))
+  (let* ((vc-fileset (vc-deduce-fileset nil t))
          (backend (car vc-fileset))
-	 (files (cadr vc-fileset))
-         (fileset-only-files (cddr vc-fileset))
+	 (files (nth 1 vc-fileset))
+         (fileset-only-files (nth 2 vc-fileset))
          ;; FIXME: We used to call `vc-recompute-state' here.
          (state (vc-state (car fileset-only-files)))
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
-	 (model (vc-checkout-model backend files))
+	 (model
+	  ;; FIXME: This is not very elegant...
+	  (when (and state (not (eq state 'unregistered)))
+	    (vc-checkout-model backend files)))
 	 revision)
 
     ;; Check that all files are in a consistent state, since we use that
@@ -1103,7 +1140,7 @@ merge in the changes into your working copy."
       (error "Fileset files are missing, so cannot be operated on."))
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system."))
-     ((eq state 'unregistered)
+     ((or (null state) (eq state 'unregistered))
       (mapc (lambda (arg) (vc-register nil arg)) files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
