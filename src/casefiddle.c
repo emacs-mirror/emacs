@@ -57,6 +57,12 @@ casify_object (flag, obj)
 	return obj;
 
       c1 = XFASTINT (obj) & ~flagbits;
+      /* FIXME: Even if enable-multibyte-characters is nil, we may
+	 manipulate multibyte chars.  This means we have a bug for latin-1
+	 chars since when we receive an int 128-255 we can't tell whether
+	 it's an eight-bit byte or a latin-1 char.  */
+      if (c1 >= 256)
+	multibyte = 1;
       if (! multibyte)
 	MAKE_CHAR_MULTIBYTE (c1);
       c = DOWNCASE (c1);

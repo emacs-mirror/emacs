@@ -1,32 +1,34 @@
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* casefiddle.c (casify_object): Try to guess better whether the
+	argument is a byte or a char.
+
 2008-05-26  Andreas Schwab  <schwab@suse.de>
 
-	* xselect.c (x_reply_selection_request): Properly handle format ==
-	32.  Always send multiples of format size.
+	* xselect.c (x_reply_selection_request): Properly handle format == 32.
+	Always send multiples of format size.
 
 	* xterm.c (x_set_frame_alpha): Fix type mismatch.
 
 2008-05-26  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_text_extents): Zero whole metrics struct first.
-        (compute_metrics): Don't set failure if we just cleared the cache.
-        (w32_weight_table): Remove unused variable.
-        (w32_enumfont_pattern_entity): Use FONT_SPACING_CHARCELL for
-        backwards compatibility.
+	* w32font.c (w32font_text_extents): Zero whole metrics struct first.
+	(compute_metrics): Don't set failure if we just cleared the cache.
+	(w32_weight_table): Remove unused variable.
+	(w32_enumfont_pattern_entity): Use FONT_SPACING_CHARCELL for
+	backwards compatibility.
 
 2008-05-25  Kenichi Handa  <handa@m17n.org>
 
-	* w32term.c (x_draw_glyph_string): Fix calculation of underline
-	position.
-
-	* xterm.c (x_draw_glyph_string): Fix calculation of underline
-	position.
+	* w32term.c (x_draw_glyph_string):
+	* xterm.c (x_draw_glyph_string): Fix calculation of underline position.
 
 	* xfaces.c: Delete unused function prototypes.
 	(xstrlwr, font_frame): Delete them.
 	(clear_face_cache): Delete unused variable.
 
-	* xftfont.c (xftfont_open): Delete unused variable.  If
-	underline_thickness is not 1, adjust underline_position.
+	* xftfont.c (xftfont_open): Delete unused variable.
+	If underline_thickness is not 1, adjust underline_position.
 
 	* ftxfont.c (ftxfont_open): Delete unused variable.
 
@@ -37,7 +39,7 @@
 	(check_gstring, check_otf_features, otf_list, otf_tag_symbol)
 	(otf_open, font_otf_capability, generate_otf_features)
 	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor):
-	Commented out by surrounding "#if 0" and "#endif" for the moment.
+	Comment out by surrounding "#if 0" and "#endif" for the moment.
 	(Ffont_drive_otf, Ffont_otf_alternates): Likewise.
 	(syms_of_font): Codes for accessing above commented out.
 
