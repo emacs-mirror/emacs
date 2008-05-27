@@ -1,3 +1,7 @@
+2008-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Fix calculation of font->average_width.
+
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* casefiddle.c (casify_object): Try to guess better whether the
