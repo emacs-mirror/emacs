@@ -404,7 +404,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
 		     font structure.  Use selected_frame until the API
 		     is updated to pass in a frame.  */
 		  f = XFRAME (selected_frame);
-  
+
                   dc = get_frame_dc (f);
                   old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
 		}
@@ -958,7 +958,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
 
   /* Foundry is difficult to get in readable form on Windows.
      But Emacs crashes if it is not set, so set it to something more
-     generic.  These values make xflds compatible with Emacs 22. */
+     generic.  These values make xlfds compatible with Emacs 22. */
   if (lf->lfOutPrecision == OUT_STRING_PRECIS)
     tem = Qraster;
   else if (lf->lfOutPrecision == OUT_STROKE_PRECIS)
@@ -1511,7 +1511,7 @@ fill_in_logfont (f, logfont, font_spec)
         logfont->lfPitchAndFamily = family | DEFAULT_PITCH;
     }
 
-					   
+
   /* Set pitch based on the spacing property.  */
   tmp = AREF (font_spec, FONT_SPACING_INDEX);
   if (INTEGERP (tmp))
@@ -1595,7 +1595,7 @@ list_all_matching_fonts (match_data)
       if (NILP (family))
         continue;
       else if (SYMBOLP (family))
-        name = SDATA (SYMBOL_NAME (family)); 
+        name = SDATA (SYMBOL_NAME (family));
       else
 	continue;
 
@@ -1851,7 +1851,8 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
 }
 
 
-static void compute_metrics (dc, w32_font, code, metrics)
+static void
+compute_metrics (dc, w32_font, code, metrics)
      HDC dc;
      struct w32font_info *w32_font;
      unsigned int code;
@@ -1876,19 +1877,16 @@ static void compute_metrics (dc, w32_font, code, metrics)
       metrics->width = gm.gmCellIncX;
       metrics->status = W32METRIC_SUCCESS;
     }
-  else
+  else if (w32_font->glyph_idx)
     {
-      if (w32_font->glyph_idx)
-	{
-	  /* Can't use glyph indexes after all.
-	     Avoid it in future, and clear any metrics that were based on
-	     glyph indexes.  */
-	  w32_font->glyph_idx = 0;
-	  clear_cached_metrics (w32_font);
-	}
-      else
-        metrics->status = W32METRIC_FAIL;
+      /* Can't use glyph indexes after all.
+	 Avoid it in future, and clear any metrics that were based on
+	 glyph indexes.  */
+      w32_font->glyph_idx = 0;
+      clear_cached_metrics (w32_font);
     }
+  else
+    metrics->status = W32METRIC_FAIL;
 }
 
 static void
