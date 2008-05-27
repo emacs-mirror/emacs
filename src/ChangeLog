@@ -1,3 +1,8 @@
+2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (draw_glyphs): If mouse-highlighting is on, attempt to
+	draw overlap glyphs with appropriate highlighting.
+
 2008-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open): Fix calculation of font->average_width.
