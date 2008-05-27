@@ -1,3 +1,8 @@
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-string-prefix-p): New function.
+	(vc-dir-parent-marked-p): Use it.
+
 2008-05-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (Problems): Remove fixed issues.
@@ -6,14 +11,14 @@
 	(vc-make-backend-object): Fix name.
 	(vc-dir-show-fileentry): Fix docstring.
 	(vc-dir-refresh): Use vc-dir-backend.  Fix docstring.
-	(vc-dir-refresh-files): Use vc-dir-backend.  Fix docstring.  Reset
-	the state for directories.
+	(vc-dir-refresh-files): Use vc-dir-backend.  Fix docstring.
+	Reset the state for directories.
 	(vc-dir-headers): Align labels.
 	(vc-default-status-printer): Do no call prettify-state-info.
 	(vc-deduce-fileset): Replace implementation with one based on a
 	working older version.
-	(vc-next-action): Use the new form of vc-deduce-fileset.  Fix
-	dealing with unregistered files.
+	(vc-next-action): Use the new form of vc-deduce-fileset.
+	Fix dealing with unregistered files.
 
 	* vc-dispatcher.el (vc-resynch-window): Fix mode-line updating.
 	(vc-dir-menu-map): Fix menu title for the menu bar and the popup menu.

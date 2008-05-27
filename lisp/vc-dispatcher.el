@@ -1024,6 +1024,10 @@ If a prefix argument is given, move by that many lines."
 	    (funcall mark-unmark-function))))
     (funcall mark-unmark-function)))
 
+(defun vc-string-prefix-p (prefix string)
+  (and (>= (length string) (length prefix))
+       (eq t (compare-strings prefix nil nil string nil (length prefix)))))
+
 (defun vc-dir-parent-marked-p (arg)
   ;; Return nil if none of the parent directories of arg is marked.
   (let* ((argdir (vc-dir-node-directory arg))
@@ -1036,7 +1040,7 @@ If a prefix argument is given, move by that many lines."
       (setq data (ewoc-data crt))
       (setq dir (vc-dir-node-directory crt))
       (when (and (vc-dir-fileinfo->directory data)
-		 (string-equal (substring argdir 0 (length dir)) dir))
+		 (vc-string-prefix-p dir argdir))
 	(when (vc-dir-fileinfo->marked data)
 	  (error "Cannot mark `%s', parent directory `%s' marked"
 		 (vc-dir-fileinfo->name (ewoc-data arg))
