@@ -1,5 +1,19 @@
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tar-mode.el: Use defstruct and markers.
+	(tar-setf): Remove.
+	(tar-header): Use defstruct.  Add `data-start' field.
+	(make-tar-desc, tar-desc-tokens): Remove, folded into tar-header.
+	(tar-desc-data-start): Remove (now called tar-header-data-start).
+	(tar-roundup-512): New fun.
+	(tar-header-block-tokenize): Receive a buffer position rather than
+	a string.  Handle @longLink here, be more careful about it.
+	Create a marker for data-start.
+	(tar-summarize-buffer): Don't handle @LongLink here any more.
+	(tar-expunge-internal, tar-subfile-save-buffer): Don't update
+	data-start on the following entries any more.
+	(tar-chown-entry, tar-chgrp-entry): Use read-number.
+
 	* tar-mode.el: Use buffer-swap-text to separate summary and raw data.
 	(tar-header-offset): Remove.
 	(tar-parse-info, tar-header-offset, tar-file-name-coding-system):

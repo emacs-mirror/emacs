@@ -171,47 +171,17 @@ This information is useful, but it takes screen space away from file names."
        (> (buffer-size tar-data-buffer) (buffer-size))))
 
 
-(defmacro tar-setf (form val)
-  "A mind-numbingly simple implementation of setf."
-  (let ((mform (macroexpand form (and (boundp 'byte-compile-macro-environment)
-				      byte-compile-macro-environment))))
-    (cond ((symbolp mform) (list 'setq mform val))
-	  ((not (consp mform)) (error "can't setf %s" form))
-	  ((eq (car mform) 'aref)
-	   (list 'aset (nth 1 mform) (nth 2 mform) val))
-	  ((eq (car mform) 'car)
-	   (list 'setcar (nth 1 mform) val))
-	  ((eq (car mform) 'cdr)
-	   (list 'setcdr (nth 1 mform) val))
-	  (t (error "don't know how to setf %s" form)))))
-
 ;;; down to business.
 
-(defmacro make-tar-header (name mode uid git size date ck lt ln
-			   magic uname gname devmaj devmin)
-  (list 'vector name mode uid git size date ck lt ln
-	magic uname gname devmaj devmin))
-
-(defmacro tar-header-name (x) (list 'aref x 0))
-(defmacro tar-header-mode (x) (list 'aref x 1))
-(defmacro tar-header-uid  (x) (list 'aref x 2))
-(defmacro tar-header-gid  (x) (list 'aref x 3))
-(defmacro tar-header-size (x) (list 'aref x 4))
-(defmacro tar-header-date (x) (list 'aref x 5))
-(defmacro tar-header-checksum  (x) (list 'aref x 6))
-(defmacro tar-header-link-type (x) (list 'aref x 7))
-(defmacro tar-header-link-name (x) (list 'aref x 8))
-(defmacro tar-header-magic (x) (list 'aref x 9))
-(defmacro tar-header-uname (x) (list 'aref x 10))
-(defmacro tar-header-gname (x) (list 'aref x 11))
-(defmacro tar-header-dmaj (x) (list 'aref x 12))
-(defmacro tar-header-dmin (x) (list 'aref x 13))
-
-(defmacro make-tar-desc (data-start tokens)
-  (list 'cons data-start tokens))
-
-(defmacro tar-desc-data-start (x) (list 'car x))
-(defmacro tar-desc-tokens     (x) (list 'cdr x))
+(defstruct (tar-header
+            (:constructor nil)
+            (:type vector)
+            :named
+            (:constructor
+             make-tar-header (data-start name mode uid gid size date checksum
+                              link-type link-name magic uname gname dmaj dmin)))
+  data-start name mode uid gid size date checksum link-type link-name
+  magic uname gname dmaj dmin)
 
 (defconst tar-name-offset 0)
 (defconst tar-mode-offset (+ tar-name-offset 100))
@@ -231,68 +201,95 @@ This information is useful, but it takes screen space away from file names."
 (defconst tar-prefix-offset (+ tar-dmin-offset 8))
 (defconst tar-end-offset (+ tar-prefix-offset 155))
 
-(defun tar-header-block-tokenize (string)
+(defun tar-roundup-512 (s)
+  "Round S up to the next multiple of 512."
+  (ash (ash (+ s 511) -9) 9))
+ 
+(defun tar-header-block-tokenize (pos)
   "Return a `tar-header' structure.
 This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
-  (setq string (string-as-unibyte string))
-  (cond ((< (length string) 512) nil)
-	(;(some 'plusp string)		 ; <-- oops, massive cycle hog!
-	 (or (not (= 0 (aref string 0))) ; This will do.
-	     (not (= 0 (aref string 101))))
-	 (let* ((name-end tar-mode-offset)
-		(link-end (1- tar-magic-offset))
-		(uname-end (1- tar-gname-offset))
-		(gname-end (1- tar-dmaj-offset))
-		(link-p (aref string tar-linkp-offset))
-		(magic-str (substring string tar-magic-offset (1- tar-uname-offset)))
-		(uname-valid-p (or (string= "ustar  " magic-str) (string= "GNUtar " magic-str)
-                                   (string= "ustar\0000" magic-str)))
-		name linkname
-		(nulsexp   "[^\000]*\000"))
-	   (when (string-match nulsexp string tar-name-offset)
-	     (setq name-end (min name-end (1- (match-end 0)))))
-	   (when (string-match nulsexp string tar-link-offset)
-	     (setq link-end (min link-end (1- (match-end 0)))))
-	   (when (string-match nulsexp string tar-uname-offset)
-	     (setq uname-end (min uname-end (1- (match-end 0)))))
-	   (when (string-match nulsexp string tar-gname-offset)
-	     (setq gname-end (min gname-end (1- (match-end 0)))))
-	   (setq name (substring string tar-name-offset name-end)
-		 link-p (if (or (= link-p 0) (= link-p ?0))
-			    nil
-			  (- link-p ?0)))
-	   (setq linkname (substring string tar-link-offset link-end))
-           (when (and uname-valid-p
-                      (string-match nulsexp string tar-prefix-offset)
-                      (> (match-end 0) (1+ tar-prefix-offset)))
-             (setq name (concat (substring string tar-prefix-offset
-                                           (1- (match-end 0)))
-                                "/" name)))
-	   (if default-enable-multibyte-characters
-	       (setq name
-		     (decode-coding-string name tar-file-name-coding-system)
-		     linkname
-		     (decode-coding-string linkname
-					   tar-file-name-coding-system)))
-	   (if (and (null link-p) (string-match "/\\'" name)) (setq link-p 5)) ; directory
-	   (make-tar-header
-	     name
-	     (tar-parse-octal-integer string tar-mode-offset tar-uid-offset)
-	     (tar-parse-octal-integer string tar-uid-offset tar-gid-offset)
-	     (tar-parse-octal-integer string tar-gid-offset tar-size-offset)
-	     (tar-parse-octal-integer string tar-size-offset tar-time-offset)
-	     (tar-parse-octal-long-integer string tar-time-offset tar-chk-offset)
-	     (tar-parse-octal-integer string tar-chk-offset tar-linkp-offset)
-	     link-p
-	     linkname
-	     uname-valid-p
-	     (and uname-valid-p (substring string tar-uname-offset uname-end))
-	     (and uname-valid-p (substring string tar-gname-offset gname-end))
-	     (tar-parse-octal-integer string tar-dmaj-offset tar-dmin-offset)
-	     (tar-parse-octal-integer string tar-dmin-offset tar-prefix-offset)
-	     )))
-	(t 'empty-tar-block)))
+  (assert (<= (+ pos 512) (point-max)))
+  (assert (zerop (mod (- pos (point-min)) 512)))
+  (assert (not enable-multibyte-characters))
+  (let ((string (buffer-substring pos (setq pos (+ pos 512)))))
+    (when      ;(some 'plusp string)		 ; <-- oops, massive cycle hog!
+        (or (not (= 0 (aref string 0))) ; This will do.
+            (not (= 0 (aref string 101))))
+      (let* ((name-end tar-mode-offset)
+             (link-end (1- tar-magic-offset))
+             (uname-end (1- tar-gname-offset))
+             (gname-end (1- tar-dmaj-offset))
+             (link-p (aref string tar-linkp-offset))
+             (magic-str (substring string tar-magic-offset
+                                   (1- tar-uname-offset)))
+             (uname-valid-p (member magic-str
+                                    '("ustar  " "GNUtar " "ustar\0\0")))
+             name linkname
+             (nulsexp   "[^\000]*\000"))
+        (when (string-match nulsexp string tar-name-offset)
+          (setq name-end (min name-end (1- (match-end 0)))))
+        (when (string-match nulsexp string tar-link-offset)
+          (setq link-end (min link-end (1- (match-end 0)))))
+        (when (string-match nulsexp string tar-uname-offset)
+          (setq uname-end (min uname-end (1- (match-end 0)))))
+        (when (string-match nulsexp string tar-gname-offset)
+          (setq gname-end (min gname-end (1- (match-end 0)))))
+        (setq name (substring string tar-name-offset name-end)
+              link-p (if (or (= link-p 0) (= link-p ?0))
+                         nil
+                       (- link-p ?0)))
+        (setq linkname (substring string tar-link-offset link-end))
+        (when (and uname-valid-p
+                   (string-match nulsexp string tar-prefix-offset)
+                   (> (match-end 0) (1+ tar-prefix-offset)))
+          (setq name (concat (substring string tar-prefix-offset
+                                        (1- (match-end 0)))
+                             "/" name)))
+        (if default-enable-multibyte-characters
+            (setq name
+                  (decode-coding-string name tar-file-name-coding-system)
+                  linkname
+                  (decode-coding-string linkname
+                                        tar-file-name-coding-system)))
+        (if (and (null link-p) (string-match "/\\'" name))
+            (setq link-p 5))            ; directory
+
+        (if (and (equal name "././@LongLink")
+                 (equal magic-str "ustar  ")) ;OLDGNU_MAGIC.
+            ;; This is a GNU Tar long-file-name header.
+            (let* ((size (tar-parse-octal-integer
+                          string tar-size-offset tar-time-offset))
+                   ;; -1 so as to strip the terminating 0 byte.
+                   (name (buffer-substring pos (+ pos size -1)))
+                   (descriptor (tar-header-block-tokenize
+                                (+ pos (tar-roundup-512 size)))))
+              (cond
+               ((eq link-p (- ?L ?0))      ;GNUTYPE_LONGNAME.
+                (setf (tar-header-name descriptor) name))
+               ((eq link-p (- ?K ?0))      ;GNUTYPE_LONGLINK.
+                (setf (tar-header-link-name descriptor) name))
+               (t
+                (message "Unrecognized GNU Tar @LongLink format")))
+              descriptor)
+        
+          (make-tar-header
+           (copy-marker pos nil)
+           name
+           (tar-parse-octal-integer string tar-mode-offset tar-uid-offset)
+           (tar-parse-octal-integer string tar-uid-offset tar-gid-offset)
+           (tar-parse-octal-integer string tar-gid-offset tar-size-offset)
+           (tar-parse-octal-integer string tar-size-offset tar-time-offset)
+           (tar-parse-octal-long-integer string tar-time-offset tar-chk-offset)
+           (tar-parse-octal-integer string tar-chk-offset tar-linkp-offset)
+           link-p
+           linkname
+           uname-valid-p
+           (and uname-valid-p (substring string tar-uname-offset uname-end))
+           (and uname-valid-p (substring string tar-gname-offset gname-end))
+           (tar-parse-octal-integer string tar-dmaj-offset tar-dmin-offset)
+           (tar-parse-octal-integer string tar-dmin-offset tar-prefix-offset)
+           ))))))
 
 
 (defun tar-parse-octal-integer (string &optional start end)
@@ -333,6 +330,7 @@ write-date, checksum, link-type, and link-name."
 
 (defun tar-header-block-checksum (string)
   "Compute and return a tar-acceptable checksum for this block."
+  (assert (not (multibyte-string-p string)))
   (setq string (string-as-unibyte string))
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
@@ -423,26 +421,22 @@ MODE should be an integer which is a file mode value."
         (if (tar-data-swapped-p) tar-data-buffer (current-buffer))
       (set-buffer-multibyte nil)          ;Hopefully, a no-op.
       (dolist (descriptor descriptors)
-        (let* ((tokens (tar-desc-tokens descriptor))
-               (name (tar-header-name tokens))
-               (dir (if (eq (tar-header-link-type tokens) 5)
+        (let* ((name (tar-header-name descriptor))
+               (dir (if (eq (tar-header-link-type descriptor) 5)
                         name
                       (file-name-directory name)))
-               (start (tar-desc-data-start descriptor))
-               (end (+ start (tar-header-size tokens))))
+               (start (tar-header-data-start descriptor))
+               (end (+ start (tar-header-size descriptor))))
           (unless (file-directory-p name)
             (message "Extracting %s" name)
             (if (and dir (not (file-exists-p dir)))
                 (make-directory dir t))
             (unless (file-directory-p name)
               (write-region start end name))
-            (set-file-modes name (tar-header-mode tokens))))))))
+            (set-file-modes name (tar-header-mode descriptor))))))))
 
 (defun tar-summarize-buffer ()
-  "Parse the contents of the tar file in the current buffer.
-Place a dired-like listing on the front;
-then narrow to it, so that only that listing
-is visible (and the real data of the buffer is hidden)."
+  "Parse the contents of the tar file in the current buffer."
   (assert (tar-data-swapped-p))
   (let* ((modified (buffer-modified-p))
          (result '())
@@ -450,59 +444,42 @@ is visible (and the real data of the buffer is hidden)."
          (progress-reporter
           (make-progress-reporter "Parsing tar file..."
                                   (point-min) (max 1 (- (buffer-size) 1024))))
-         tokens)
+         descriptor)
     (with-current-buffer tar-data-buffer
       (while (and (<= (+ pos 512) (point-max))
-                  (not (eq 'empty-tar-block
-                           (setq tokens
-                                 (tar-header-block-tokenize
-                                  (buffer-substring pos (+ pos 512)))))))
-        (setq pos (+ pos 512))
-        (when (equal (tar-header-name tokens) "././@LongLink")
-          ;; This is a GNU Tar long-file-name header.
-          (let* ((size (tar-header-size tokens))
-                 ;; -1 so as to strip the terminating 0 byte.
-                 (name (buffer-substring pos (+ pos size -1))))
-            (setq pos (+ pos (ash (ash (+ 511 size) -9) 9)))
-            (setq tokens (tar-header-block-tokenize
-                          (buffer-substring pos (+ pos 512))))
-            (tar-setf (tar-header-name tokens) name)
-            (setq pos (+ pos 512))))
+                  (setq descriptor (tar-header-block-tokenize pos)))
+        (setq pos (marker-position (tar-header-data-start descriptor)))
         (progress-reporter-update progress-reporter pos)
-        (if (memq (tar-header-link-type tokens) '(20 55))
+        (if (memq (tar-header-link-type descriptor) '(20 55))
             ;; Foo.  There's an extra empty block after these.
             (setq pos (+ pos 512)))
-        (let ((size (tar-header-size tokens)))
+        (let ((size (tar-header-size descriptor)))
           (if (< size 0)
               (error "%s has size %s - corrupted"
-                     (tar-header-name tokens) size))
+                     (tar-header-name descriptor) size))
           ;;
           ;; This is just too slow.  Don't really need it anyway....
           ;;(tar-header-block-check-checksum
           ;;  hblock (tar-header-block-checksum hblock)
-          ;;  (tar-header-name tokens))
+          ;;  (tar-header-name descriptor))
 
-          (push (make-tar-desc pos tokens) result)
+          (push descriptor result)
 
-          (and (null (tar-header-link-type tokens))
+          (and (null (tar-header-link-type descriptor))
                (> size 0)
                ;; Round up to a multiple of 512.
-               (setq pos (+ pos (ash (ash (+ 511 size) -9) 9)))))))
-    (make-local-variable 'tar-parse-info)
-    (setq tar-parse-info (nreverse result))
+               (setq pos (+ pos (tar-roundup-512 size)))))))
+    
+    (set (make-local-variable 'tar-parse-info) (nreverse result))
     ;; A tar file should end with a block or two of nulls,
     ;; but let's not get a fatal error if it doesn't.
-    (if (eq tokens 'empty-tar-block)
+    (if (null descriptor)
         (progress-reporter-done progress-reporter)
       (message "Warning: premature EOF parsing tar file"))
     (goto-char (point-min))
     (let ((inhibit-read-only t)
           (total-summaries
-           (mapconcat
-            (lambda (tar-desc)
-              (tar-header-block-summarize (tar-desc-tokens tar-desc)))
-            tar-parse-info
-            "\n")))
+           (mapconcat 'tar-header-block-summarize tar-parse-info "\n")))
       (insert total-summaries "\n"))
     (goto-char (point-min))
     (restore-buffer-modified-p modified)))
@@ -716,9 +693,8 @@ appear on disk when you save the tar-file's buffer."
 
 (defun tar-get-descriptor ()
   (let* ((descriptor (tar-current-descriptor))
-	 (tokens (tar-desc-tokens descriptor))
-	 (size (tar-header-size tokens))
-	 (link-p (tar-header-link-type tokens)))
+	 (size (tar-header-size descriptor))
+	 (link-p (tar-header-link-type descriptor)))
     (if link-p
 	(error "This is %s, not a real file"
 	       (cond ((eq link-p 5) "a directory")
@@ -755,10 +731,9 @@ appear on disk when you save the tar-file's buffer."
   (interactive)
   (let* ((view-p (eq other-window-p 'view))
 	 (descriptor (tar-get-descriptor))
-	 (tokens (tar-desc-tokens descriptor))
-	 (name (tar-header-name tokens))
-	 (size (tar-header-size tokens))
-	 (start (tar-desc-data-start descriptor))
+	 (name (tar-header-name descriptor))
+	 (size (tar-header-size descriptor))
+	 (start (tar-header-data-start descriptor))
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (tarname (buffer-name))
@@ -862,8 +837,7 @@ appear on disk when you save the tar-file's buffer."
   "Read a file name with this line's entry as the default."
   (or prompt (setq prompt "Copy to: "))
   (let* ((default-file (expand-file-name
-			(tar-header-name (tar-desc-tokens
-					  (tar-current-descriptor)))))
+			(tar-header-name (tar-current-descriptor))))
 	 (target (expand-file-name
 		  (read-file-name prompt
 				  (file-name-directory default-file)
@@ -884,10 +858,9 @@ If TO-FILE is not supplied, it is prompted for, defaulting to the name of
 the current tar-entry."
   (interactive (list (tar-read-file-name)))
   (let* ((descriptor (tar-get-descriptor))
-	 (tokens (tar-desc-tokens descriptor))
-	 (name (tar-header-name tokens))
-	 (size (tar-header-size tokens))
-	 (start (tar-desc-data-start descriptor))
+	 (name (tar-header-name descriptor))
+	 (size (tar-header-size descriptor))
+	 (start (tar-header-data-start descriptor))
 	 (end (+ start size))
 	 (inhibit-file-name-handlers inhibit-file-name-handlers)
 	 (inhibit-file-name-operation inhibit-file-name-operation))
@@ -935,12 +908,11 @@ With a prefix argument, un-mark that many files backward."
 (defun tar-expunge-internal ()
   "Expunge the tar-entry specified by the current line."
   (let* ((descriptor (tar-current-descriptor))
-	 (tokens (tar-desc-tokens descriptor))
-	 ;; (line (tar-desc-data-start descriptor))
-	 (name (tar-header-name tokens))
-	 (size (tar-header-size tokens))
-	 (link-p (tar-header-link-type tokens))
-	 (start (tar-desc-data-start descriptor))
+	 ;; (line (tar-header-data-start descriptor))
+	 (name (tar-header-name descriptor))
+	 (size (tar-header-size descriptor))
+	 (link-p (tar-header-link-type descriptor))
+	 (start (tar-header-data-start descriptor))
 	 (following-descs (cdr (memq descriptor tar-parse-info))))
     (if link-p (setq size 0)) ; size lies for hard-links.
     ;;
@@ -951,21 +923,10 @@ With a prefix argument, un-mark that many files backward."
     (setq tar-parse-info (delq descriptor tar-parse-info))
     ;;
     ;; delete the data from inside the file...
-    (let* ((data-start (+ start -512))
-	   (data-end (+ data-start 512 (ash (ash (+ size 511) -9) 9))))
+    (let* ((data-start (- start 512))
+	   (data-end (+ start (tar-roundup-512 size))))
       (with-current-buffer tar-data-buffer
-        (delete-region data-start data-end))
-      ;;
-      ;; and finally, decrement the start-pointers of all following
-      ;; entries in the archive.  This is a pig when deleting a bunch
-      ;; of files at once - we could optimize this to only do the
-      ;; iteration over the files that remain, or only iterate up to
-      ;; the next file to be deleted.
-      (let ((data-length (- data-end data-start)))
-	(dolist (desc following-descs)
-	  (tar-setf (tar-desc-data-start desc)
-		    (- (tar-desc-data-start desc) data-length))))
-      )))
+        (delete-region data-start data-end)))))
 
 
 (defun tar-expunge (&optional noconfirm)
@@ -1008,23 +969,20 @@ the user id as a string; otherwise, you must edit it as a number.
 You can force editing as a number by calling this with a prefix arg.
 This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
-  (interactive (list
-		 (let ((tokens (tar-desc-tokens (tar-current-descriptor))))
-		   (if (or current-prefix-arg
-			   (not (tar-header-magic tokens)))
-		       (let (n)
-			 (while (not (numberp (setq n (read-minibuffer
-							"New UID number: "
-							(format "%s" (tar-header-uid tokens)))))))
-			 n)
-		       (read-string "New UID string: " (tar-header-uname tokens))))))
+  (interactive
+   (list
+    (let ((descriptor (tar-current-descriptor)))
+      (if (or current-prefix-arg
+              (not (tar-header-magic descriptor)))
+          (read-number
+           "New UID number: "
+           (format "%s" (tar-header-uid descriptor)))
+        (read-string "New UID string: " (tar-header-uname descriptor))))))
   (cond ((stringp new-uid)
-	 (tar-setf (tar-header-uname (tar-desc-tokens (tar-current-descriptor)))
-		   new-uid)
+	 (setf (tar-header-uname (tar-current-descriptor)) new-uid)
 	 (tar-alter-one-field tar-uname-offset (concat new-uid "\000")))
 	(t
-	 (tar-setf (tar-header-uid (tar-desc-tokens (tar-current-descriptor)))
-		   new-uid)
+	 (setf (tar-header-uid (tar-current-descriptor)) new-uid)
 	 (tar-alter-one-field tar-uid-offset
 	   (concat (substring (format "%6o" new-uid) 0 6) "\000 ")))))
 
@@ -1036,24 +994,21 @@ the group id as a string; otherwise, you must edit it as a number.
 You can force editing as a number by calling this with a prefix arg.
 This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
-  (interactive (list
-		 (let ((tokens (tar-desc-tokens (tar-current-descriptor))))
-		   (if (or current-prefix-arg
-			   (not (tar-header-magic tokens)))
-		       (let (n)
-			 (while (not (numberp (setq n (read-minibuffer
-							"New GID number: "
-							(format "%s" (tar-header-gid tokens)))))))
-			 n)
-		       (read-string "New GID string: " (tar-header-gname tokens))))))
+  (interactive
+   (list
+    (let ((descriptor (tar-current-descriptor)))
+      (if (or current-prefix-arg
+              (not (tar-header-magic descriptor)))
+          (read-number
+           "New GID number: "
+           (format "%s" (tar-header-gid descriptor)))
+        (read-string "New GID string: " (tar-header-gname descriptor))))))
   (cond ((stringp new-gid)
-	 (tar-setf (tar-header-gname (tar-desc-tokens (tar-current-descriptor)))
-		   new-gid)
+	 (setf (tar-header-gname (tar-current-descriptor)) new-gid)
 	 (tar-alter-one-field tar-gname-offset
 	   (concat new-gid "\000")))
 	(t
-	 (tar-setf (tar-header-gid (tar-desc-tokens (tar-current-descriptor)))
-		   new-gid)
+	 (setf (tar-header-gid (tar-current-descriptor)) new-gid)
 	 (tar-alter-one-field tar-gid-offset
 	   (concat (substring (format "%6o" new-gid) 0 6) "\000 ")))))
 
@@ -1063,13 +1018,12 @@ This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive
     (list (read-string "New name: "
-	    (tar-header-name (tar-desc-tokens (tar-current-descriptor))))))
+	    (tar-header-name (tar-current-descriptor)))))
   (if (string= "" new-name) (error "zero length name"))
   (let ((encoded-new-name (encode-coding-string new-name
 						tar-file-name-coding-system)))
     (if (> (length encoded-new-name) 98) (error "name too long"))
-    (tar-setf (tar-header-name (tar-desc-tokens (tar-current-descriptor)))
-	      new-name)
+    (setf (tar-header-name (tar-current-descriptor)) new-name)
     (tar-alter-one-field 0
      (substring (concat encoded-new-name (make-string 99 0)) 0 99))))
 
@@ -1080,25 +1034,22 @@ This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive (list (tar-parse-octal-integer-safe
 		       (read-string "New protection (octal): "))))
-  (tar-setf (tar-header-mode (tar-desc-tokens (tar-current-descriptor)))
-	    new-mode)
+  (setf (tar-header-mode (tar-current-descriptor)) new-mode)
   (tar-alter-one-field tar-mode-offset
     (concat (substring (format "%6o" new-mode) 0 6) "\000 ")))
 
 
 (defun tar-alter-one-field (data-position new-data-string)
-  (let* ((descriptor (tar-current-descriptor))
-	 (tokens (tar-desc-tokens descriptor)))
+  (let* ((descriptor (tar-current-descriptor)))
     ;;
     ;; update the header-line.
     (let ((col (current-column)))
       (delete-region (line-beginning-position) (line-beginning-position 2))
-      (insert (tar-header-block-summarize tokens) "\n")
+      (insert (tar-header-block-summarize descriptor) "\n")
       (forward-line -1) (move-to-column col))
 
     (with-current-buffer tar-data-buffer
-      (let* ((start (+ (tar-desc-data-start descriptor)
-                       -512)))
+      (let* ((start (- (tar-header-data-start descriptor) 512)))
         ;;
         ;; delete the old field and insert a new one.
         (goto-char (+ start data-position))
@@ -1116,12 +1067,12 @@ for this to be permanent."
           (insert (format "%6o" chk))
           (insert 0)
           (insert ? )
-          (tar-setf (tar-header-checksum tokens) chk)
+          (setf (tar-header-checksum descriptor) chk)
           ;;
           ;; ok, make sure we didn't botch it.
           (tar-header-block-check-checksum
            (buffer-substring start (+ start 512))
-           chk (tar-header-name tokens))
+           chk (tar-header-name descriptor))
           )))))
 
 
@@ -1149,11 +1100,9 @@ to make your changes permanent."
         (descriptor tar-superior-descriptor)
         subfile-size)
     (with-current-buffer tar-superior-buffer
-      (let* ((tokens (tar-desc-tokens descriptor))
-             (start (tar-desc-data-start descriptor))
-             (name (tar-header-name tokens))
-             (size (tar-header-size tokens))
-             (size-pad (ash (ash (+ size 511) -9) 9))
+      (let* ((start (tar-header-data-start descriptor))
+             (name (tar-header-name descriptor))
+             (size (tar-header-size descriptor))
              (head (memq descriptor tar-parse-info))
              (following-descs (cdr head)))
         (if (not head)
@@ -1161,7 +1110,7 @@ to make your changes permanent."
         (with-current-buffer tar-data-buffer
           ;; delete the old data...
           (let* ((data-start start)
-                 (data-end (+ data-start (ash (ash (+ size 511) -9) 9))))
+                 (data-end (+ data-start (tar-roundup-512 size))))
             (narrow-to-region data-start data-end)
             (delete-region (point-min) (point-max))
             ;; insert the new data...
@@ -1174,24 +1123,19 @@ to make your changes permanent."
             (setq subfile-size (- (point-max) (point-min)))
             ;;
             ;; pad the new data out to a multiple of 512...
-            (let ((subfile-size-pad (ash (ash (+ subfile-size 511) -9) 9)))
+            (let ((subfile-size-pad (tar-roundup-512 subfile-size)))
               (goto-char (point-max))
               (insert (make-string (- subfile-size-pad subfile-size) 0))
               ;;
-              ;; update the data pointer of this and all following files...
-              (tar-setf (tar-header-size tokens) subfile-size)
-              (let ((difference (- subfile-size-pad size-pad)))
-                (dolist (desc following-descs)
-                  (tar-setf (tar-desc-data-start desc)
-                            (+ (tar-desc-data-start desc) difference))))
+              ;; update the data of this files...
+              (setf (tar-header-size descriptor) subfile-size)
               ;;
               ;; Update the size field in the header block.
               (widen)
               (let ((header-start (- data-start 512)))
                 (goto-char (+ header-start tar-size-offset))
                 (delete-region (point) (+ (point) 12))
-                (insert (format "%11o" subfile-size))
-                (insert ? )
+                (insert (format "%11o " subfile-size))
                 ;;
                 ;; Maybe update the datestamp.
                 (if (not tar-update-datestamp)
@@ -1199,31 +1143,27 @@ to make your changes permanent."
                   (goto-char (+ header-start tar-time-offset))
                   (delete-region (point) (+ (point) 12))
                   (insert (tar-octal-time (current-time)))
-                  (insert ? ))
+                  (insert ?\s))
                 ;;
                 ;; compute a new checksum and insert it.
                 (let ((chk (tar-header-block-checksum
                             (buffer-substring header-start data-start))))
                   (goto-char (+ header-start tar-chk-offset))
                   (delete-region (point) (+ (point) 8))
-                  (insert (format "%6o" chk))
-                  (insert 0)
-                  (insert ? )
-                  (tar-setf (tar-header-checksum tokens) chk))))))
+                  (insert (format "%6o\0 " chk))
+                  (setf (tar-header-checksum descriptor) chk))))))
         ;;
         ;; alter the descriptor-line...
         ;;
         (let ((position (- (length tar-parse-info) (length head))))
           (goto-char (point-min))
           (forward-line position)
-          (beginning-of-line)
           (let ((p (point))
-                after)
-            (forward-line 1)
-            (setq after (point))
+                (after (line-beginning-position 2)))
+            (goto-char after)
             ;; Insert the new text after the old, before deleting,
             ;; to preserve the window start.
-            (let ((line (tar-header-block-summarize tokens t)))
+            (let ((line (tar-header-block-summarize descriptor t)))
               (insert-before-markers line "\n"))
             (delete-region p after)))
         ;; After doing the insertion, add any necessary final padding.
@@ -1246,10 +1186,9 @@ Leaves the region wide."
   (if (null tar-anal-blocksize)
       nil
     (let* ((last-desc (nth (1- (length tar-parse-info)) tar-parse-info))
-	   (start (tar-desc-data-start last-desc))
-	   (tokens (tar-desc-tokens last-desc))
-	   (link-p (tar-header-link-type tokens))
-	   (size (if link-p 0 (tar-header-size tokens)))
+	   (start (tar-header-data-start last-desc))
+	   (link-p (tar-header-link-type last-desc))
+	   (size (if link-p 0 (tar-header-size last-desc)))
 	   (data-end (+ start size))
 	   (bbytes (ash tar-anal-blocksize 9))
 	   (pad-to (+ bbytes (* bbytes (/ (- data-end (point-min)) bbytes)))))
