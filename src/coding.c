@@ -4818,6 +4818,7 @@ encode_coding_raw_text (coding)
   int *charbuf_end = coding->charbuf + coding->charbuf_used;
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
+  int produced_chars = 0;
   int c;
 
   if (multibytep)
@@ -4880,9 +4881,10 @@ encode_coding_raw_text (coding)
 	  while (charbuf < charbuf_end && dst < dst_end)
 	    *dst++ = *charbuf++;
 	}
+      produced_chars = charbuf - coding->charbuf;
     }
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
-  coding->produced_char += charbuf - coding->charbuf;
+  coding->produced_char += produced_chars;
   coding->produced = dst - coding->destination;
   return 0;
 }
