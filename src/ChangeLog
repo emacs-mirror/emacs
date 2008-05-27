@@ -1,3 +1,8 @@
+2008-05-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c (compute_metrics): Rewrite an "else { if () ... else ... }"
+	into "else if () ... else ...".
+
 2008-05-27  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32font_open_internal): Determine if glyph indices
