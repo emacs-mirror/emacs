@@ -1,3 +1,14 @@
+2008-05-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dispatcher.el (vc-directory-resynch-file): Rename to ...
+	(vc-dir-resynch-file): ... this.  Update callers.  
+	Use vc-string-prefix-p.  Ignore directory args.
+	(vc-string-prefix-p): CSE.
+	(vc-resynch-buffer): Restore conditional.
+
+	* vc-hooks.el (vc-after-save): Improve test.
+	(vc-mode-line): Fix indentation.
+
 2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calendar/parse-time.el (parse-time-months)

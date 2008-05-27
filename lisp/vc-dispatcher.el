@@ -503,7 +503,10 @@ editing!"
       (when buffer
 	(with-current-buffer buffer
 	  (vc-resynch-window file keep noquery)))))
-  (vc-directory-resynch-file file))
+  ;; Try to avoid unnecessary work, a *vc-dir* buffer is only present
+  ;; if this is true.
+  (when (memq 'vc-dir-resynch-file after-save-hook)
+    (vc-dir-resynch-file file)))
 
 (defun vc-buffer-sync (&optional not-urgent)
   "Make sure the current buffer and its working file are in sync.
@@ -580,7 +583,7 @@ the buffer contents as a comment."
   (unless nocomment
     (run-hooks 'vc-logentry-check-hook))
   ;; Sync parent buffer in case the user modified it while editing the comment.
-  ;; But not if it is a vc-directory buffer.
+  ;; But not if it is a vc-dir buffer.
   (with-current-buffer vc-parent-buffer
     (or (vc-dispatcher-browsing) (vc-buffer-sync)))
   (unless vc-log-operation
@@ -1025,8 +1028,9 @@ If a prefix argument is given, move by that many lines."
     (funcall mark-unmark-function)))
 
 (defun vc-string-prefix-p (prefix string)
-  (and (>= (length string) (length prefix))
-       (eq t (compare-strings prefix nil nil string nil (length prefix)))))
+  (let ((lpref (length prefix)))
+    (and (>= (length string) lpref)
+	 (eq t (compare-strings prefix nil nil string nil lpref)))))
 
 (defun vc-dir-parent-marked-p (arg)
   ;; Return nil if none of the parent directories of arg is marked.
@@ -1289,34 +1293,38 @@ If it is a file, return the file itself."
       (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result))
     result))
 
-(defun vc-directory-resynch-file (&optional fname)
+(defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FILE in any directory buffers that list it."
   (let ((file (or fname (expand-file-name buffer-file-name))))
-    ;; The vc-dir case
-    (let ((found-vc-dir-buf nil))
-      (save-excursion
-	(dolist (status-buf (buffer-list))
-	  (set-buffer status-buf)
-	  ;; look for a vc-dir buffer that might show this file.
-	  (when (eq major-mode 'vc-dir-mode)
-	    (setq found-vc-dir-buf t)
-	    (let ((ddir (expand-file-name default-directory)))
-	      ;; This test is cvs-string-prefix-p
-	      (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
-		(let*
-		    ((file-short (substring file (length ddir)))
-		     (state
-		      (funcall (vc-client-object->file-to-state vc-client-mode)
-			       file))
-		     (extra
-		      (funcall (vc-client-object->file-to-extra vc-client-mode)
-			       file))
-		     (entry
-		      (list file-short state extra)))
-		  (vc-dir-update (list entry) status-buf))))))
-	;; We didn't find any vc-dir buffers, remove the hook, it is
-	;; not needed.
-	(unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-directory-resynch-file))))))
+    (if (file-directory-p file)
+	;; FIXME: Maybe this should never happen? 
+        ;; FIXME: But it is useful to update the state of a directory
+	;; (more precisely the files in the directory) after some VC
+	;; operations.
+	nil
+      (let ((found-vc-dir-buf nil))
+	(save-excursion
+	  (dolist (status-buf (buffer-list))
+	    (set-buffer status-buf)
+	    ;; look for a vc-dir buffer that might show this file.
+	    (when (derived-mode-p 'vc-dir-mode)
+	      (setq found-vc-dir-buf t)
+	      (let ((ddir (expand-file-name default-directory)))
+		(when (vc-string-prefix-p ddir file)
+		  (let*
+		      ((file-short (substring file (length ddir)))
+		       (state
+			(funcall (vc-client-object->file-to-state vc-client-mode)
+				 file))
+		       (extra
+			(funcall (vc-client-object->file-to-extra vc-client-mode)
+				 file))
+		       (entry
+			(list file-short state extra)))
+		    (vc-dir-update (list entry) status-buf))))))
+	  ;; We didn't find any vc-dir buffers, remove the hook, it is
+	  ;; not needed.
+	  (unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-dir-resynch-file)))))))
 
 (defun vc-dir-mode (client-object)
   "Major mode for dispatcher directory buffers.
@@ -1351,7 +1359,7 @@ U - if the cursor is on a file: unmark all the files with the same state
     (set (make-local-variable 'vc-ewoc)
 	 (ewoc-create (vc-client-object->file-to-info client-object)
 		      (vc-client-object->headers client-object)))
-    (add-hook 'after-save-hook 'vc-directory-resynch-file)
+    (add-hook 'after-save-hook 'vc-dir-resynch-file)
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
