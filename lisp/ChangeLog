@@ -1,7 +1,13 @@
-2008-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-05-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (Problems): Remove fixed issues.
 	(vc-expand-dirs): Avoid returning directories.
+	(vc-dir): Fix C-x v v binding.
+	(vc-make-backend-object): Fix name.
+	(vc-dir-show-fileentry): Fix docstring.
+	(vc-dir-refresh): Use vc-dir-backend.  Fix docstring.
+	(vc-dir-refresh-files): Use vc-dir-backend.  Fix docstring.  Reset
+	the state for directories.
 
 	* vc-dispatcher.el (vc-resynch-window): Fix mode-line updating.
 	(vc-dir-menu-map): Fix menu title for the menu bar and the popup menu.

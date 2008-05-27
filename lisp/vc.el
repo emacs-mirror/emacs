@@ -1852,10 +1852,9 @@ specific headers."
   nil)
 
 (defun vc-dir-refresh-files (files default-state)
-  "Refresh some files in the VC status buffer."
-  (let ((backend (vc-responsible-backend default-directory))
-        (status-buffer (current-buffer))
-        (def-dir default-directory))
+  "Refresh some files in the *VC-dir* buffer."
+  (let ((def-dir default-directory)
+	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
     ;; Call the `dir-status-file' backend function.
     ;; `dir-status-file' is supposed to be asynchronous.
@@ -1884,17 +1883,26 @@ specific headers."
                ;; file/dir doesn't exist and isn't versioned.
                (ewoc-filter vc-ewoc
                             (lambda (info)
+			      ;; The state for directory entries might
+			      ;; have been changed to 'up-to-date,
+			      ;; reset it, othewise it will be removed when doing 'x'
+			      ;; next time.
+			      ;; FIXME: There should be a more elegant way to do this.
+			      (when (and (vc-dir-fileinfo->directory info)
+					 (eq (vc-dir-fileinfo->state info)
+					     'up-to-date))
+				(setf (vc-dir-fileinfo->state info) nil))
+
                               (not (vc-dir-fileinfo->needs-update info))))))))))))
 
 (defun vc-dir-refresh ()
-  "Refresh the contents of the VC status buffer.
+  "Refresh the contents of the *VC-dir* buffer.
 Throw an error if another update process is in progress."
   (interactive)
   (if (vc-dir-busy)
       (error "Another update process is in progress, cannot run two at a time")
-    (let ((backend (vc-responsible-backend default-directory))
-	  (status-buffer (current-buffer))
-	  (def-dir default-directory))
+    (let ((def-dir default-directory)
+	  (backend vc-dir-backend))
       (vc-set-mode-line-busy-indicator)
       ;; Call the `dir-status' backend function.
       ;; `dir-status' is supposed to be asynchronous.
@@ -1936,7 +1944,7 @@ Throw an error if another update process is in progress."
                      (setq mode-line-process nil))))))))))))
 
 (defun vc-dir-show-fileentry (file)
-  "Insert an entry for a specific file into the current VC status listing.
+  "Insert an entry for a specific file into the current *VC-dir* listing.
 This is typically used if the file is up-to-date (or has been added
 outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
@@ -1960,9 +1968,6 @@ outside of VC) and one wants to do some operation on it."
   "Default absence of extra information returned for a file."
   nil)
 
-(defvar vc-dir-backend nil
-  "The backend used by the current *vc-dir* buffer.")
-
 ;; FIXME: Replace these with a more efficient dispatch
 
 (defun vc-generic-status-printer (fileentry)
@@ -1980,7 +1985,7 @@ outside of VC) and one wants to do some operation on it."
 (defun vc-make-backend-object (file-or-dir)
   "Create the backend capability object needed by vc-dispatcher."
   (vc-create-client-object 
-   "VC status"
+   "VC dir"
    (vc-dir-headers vc-dir-backend file-or-dir)
    #'vc-generic-status-printer
    #'vc-generic-state
@@ -2003,7 +2008,7 @@ outside of VC) and one wants to do some operation on it."
       ;; FIXME: Make a derived-mode instead.
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
-	(define-key map "v" 'vc-diff) ;; C-x v v
+	(define-key map "v" 'vc-next-action) ;; C-x v v
 	(define-key map "=" 'vc-diff) ;; C-x v =
 	(define-key map "i" 'vc-dir-register)	;; C-x v i
 	(define-key map "+" 'vc-update) ;; C-x v +
@@ -2585,7 +2590,9 @@ editing non-current revisions is not supported by default."
 (defun vc-default-init-revision (backend) vc-default-init-revision)
 
 (defalias 'vc-cvs-update-changelog 'vc-update-changelog-rcs2log)
+
 (defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
+
 ;; FIXME: This should probably be moved to vc-rcs.el and replaced in
 ;; vc-cvs.el by code using cvs2cl.
 (defun vc-update-changelog-rcs2log (files)
