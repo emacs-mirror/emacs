@@ -2818,7 +2818,7 @@ move the yanking point; just return the Nth kill forward."
   "Kill (\"cut\") text between point and mark.
 This deletes the text from the buffer and saves it in the kill ring.
 The command \\[yank] can retrieve it from there.
-\(If you want to kill and then yank immediately, use \\[kill-ring-save].)
+\(If you want to save the region without killing it, use \\[kill-ring-save].)
 
 If you want to append the killed region to the last killed text,
 use \\[append-next-kill] before \\[kill-region].
