@@ -1,5 +1,9 @@
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/easymenu.el (easy-menu-convert-item)
+	(easy-menu-convert-item-1): Move the duplicate-generation outside of
+	the caching so it also works for identical entries.
+
 	* tar-mode.el (tar-summarize-buffer): Fix reporter initialization.
 	(tar-mode): Use write-region-annotate-functions rather than
 	write-contents-functions.
