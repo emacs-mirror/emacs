@@ -1,5 +1,8 @@
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el (doc-view-mode-map): Bind `q' to quit-window, as is
+	the custom.
+
 	* files.el (basic-save-buffer-2): Pass nil rather than (point-min)
 	to write-region.
 

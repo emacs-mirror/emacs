@@ -295,7 +295,7 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map "+"               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
     ;; Killing/burying the buffer (and the process)
-    (define-key map (kbd "q")         'bury-buffer)
+    (define-key map (kbd "q")         'quit-window)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
     ;; Slicing the image
