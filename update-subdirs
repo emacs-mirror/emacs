@@ -45,7 +45,11 @@ else
 ;; version-control: never
 ;; no-byte-compile: t
 ;; End:" > subdirs.el~
+  if cmp "subdirs.el" "subdirs.el~" >/dev/null 2>&1; then
+    :; # echo "subdirs.el unchanged";
+  else
   mv subdirs.el~ subdirs.el
+  fi
 fi
 
 # arch-tag: 56ebcf1b-5c30-4934-b0b4-72d374064704
