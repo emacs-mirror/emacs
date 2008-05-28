@@ -2830,8 +2830,10 @@ x_draw_glyph_string (s)
       x_set_glyph_string_clipping (s);
       relief_drawn_p = 1;
     }
-  else if ((s->prev && s->prev->hl != s->hl && s->left_overhang)
-	   || (s->next && s->next->hl != s->hl && s->right_overhang))
+  else if (!s->clip_head /* draw_glyphs didn't specify a clip mask.  */
+           && !s->clip_tail
+           && ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+               || (s->next && s->next->hl != s->hl && s->right_overhang)))
     /* We must clip just this glyph.  left_overhang part has already
        drawn when s->prev was drawn, and right_overhang part will be
        drawn later when s->next is drawn. */
