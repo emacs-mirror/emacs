@@ -468,7 +468,6 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
   FcLangSet *langset = NULL;
   int n;
   int dpi = -1;
-  int spacing = -1;
   int scalable = -1;
   Lisp_Object name = Qnil;
   Lisp_Object script = Qnil;
@@ -485,8 +484,6 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
 
   if (INTEGERP (AREF (spec, FONT_DPI_INDEX)))
     dpi = XINT (AREF (spec, FONT_DPI_INDEX));
-  if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
-    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
   if (INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
       && XINT (AREF (spec, FONT_AVGWIDTH_INDEX)) == 0)
     scalable = 1;
@@ -589,9 +586,6 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
   if (dpi >= 0
       && ! FcPatternAddDouble (pattern, FC_DPI, dpi))
     goto err;
-  if (spacing >= 0
-      && ! FcPatternAddInteger (pattern, FC_SPACING, spacing))
-    goto err;
   if (scalable >= 0
       && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
@@ -633,6 +627,7 @@ ftfont_list (frame, spec)
   int fc_charset_idx;
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
+  int spacing = -1;
   
   if (! fc_initialized)
     {
@@ -643,6 +638,8 @@ ftfont_list (frame, spec)
   pattern = ftfont_spec_pattern (spec, &fc_charset_idx, otlayout, &otspec);
   if (! pattern)
     return Qnil;
+  if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
+    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
   registry = AREF (spec, FONT_REGISTRY_INDEX);
   family = AREF (spec, FONT_FAMILY_INDEX);
   if (! NILP (family))
@@ -661,7 +658,7 @@ ftfont_list (frame, spec)
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING, FC_SCALABLE,
-			     FC_CHARSET, FC_FILE,
+			     FC_FILE,
 #ifdef FC_CAPABILITY
 			     FC_CAPABILITY,
 #endif	/* FC_CAPABILITY */
@@ -675,6 +672,16 @@ ftfont_list (frame, spec)
   for (i = 0; i < fontset->nfont; i++)
     {
       Lisp_Object entity;
+
+      if (spacing >= 0)
+	{
+	  int this;
+
+	  if ((FcPatternGetInteger (fontset->fonts[i], FC_SPACING, 0, &this)
+	       == FcResultMatch)
+	      && spacing != this)
+	    continue;
+	}
 
 #ifdef FC_CAPABILITY
       if (otlayout[0])
