@@ -1,5 +1,13 @@
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tar-mode.el (tar-summarize-buffer): Fix reporter initialization.
+	(tar-mode): Use write-region-annotate-functions rather than
+	write-contents-functions.
+	(tar-extract): Remove unused var `pos'.
+	(tar-subfile-save-buffer): Remove unused var `following-descs'.
+	(tar-mode-write-file): Remove.
+	(tar-write-region-annotate): New function.
+
 	* progmodes/flymake.el (flymake-save-buffer-in-file):
 	* shadowfile.el (shadow-copy-file):
 	* arc-mode.el (archive-*-write-file-member):

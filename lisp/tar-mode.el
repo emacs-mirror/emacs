@@ -442,8 +442,9 @@ MODE should be an integer which is a file mode value."
          (result '())
          (pos (point-min))
          (progress-reporter
-          (make-progress-reporter "Parsing tar file..."
-                                  (point-min) (max 1 (- (buffer-size) 1024))))
+          (with-current-buffer tar-data-buffer
+            (make-progress-reporter "Parsing tar file..."
+                                    (point-min) (point-max))))
          descriptor)
     (with-current-buffer tar-data-buffer
       (while (and (<= (+ pos 512) (point-max))
@@ -467,7 +468,6 @@ MODE should be an integer which is a file mode value."
 
           (and (null (tar-header-link-type descriptor))
                (> size 0)
-               ;; Round up to a multiple of 512.
                (setq pos (+ pos (tar-roundup-512 size)))))))
     
     (set (make-local-variable 'tar-parse-info) (nreverse result))
@@ -607,14 +607,13 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 	   locale-coding-system))
   ;; Prevent loss of data when saving the file.
   (set (make-local-variable 'file-precious-flag) t)
-  (auto-save-mode 0)
   (buffer-disable-undo)
   (widen)
   ;; Now move the Tar data into an auxiliary buffer, so we can use the main
   ;; buffer for the summary.
   (assert (not (tar-data-swapped-p)))
   (set (make-local-variable 'revert-buffer-function) 'tar-mode-revert)
-  (set (make-local-variable 'write-contents-functions) '(tar-mode-write-file))
+  (add-hook 'write-region-annotate-functions 'tar-write-region-annotate nil t)
   (add-hook 'kill-buffer-hook 'tar-mode-kill-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'tar-change-major-mode-hook nil t)
   ;; Tar data is made of bytes, not chars.
@@ -747,7 +746,6 @@ appear on disk when you save the tar-file's buffer."
 				  (concat tarname "!" name)))
 	   (buffer (get-file-buffer new-buffer-file-name))
 	   (just-created nil)
-	   (pos (point))
 	   undo-list)
       (unless buffer
 	(setq buffer (generate-new-buffer bufname))
@@ -1024,6 +1022,7 @@ for this to be permanent."
 						tar-file-name-coding-system)))
     (if (> (length encoded-new-name) 98) (error "name too long"))
     (setf (tar-header-name (tar-current-descriptor)) new-name)
+    ;; FIXME: Make it work for ././@LongLink.
     (tar-alter-one-field 0
      (substring (concat encoded-new-name (make-string 99 0)) 0 99))))
 
@@ -1103,8 +1102,7 @@ to make your changes permanent."
       (let* ((start (tar-header-data-start descriptor))
              (name (tar-header-name descriptor))
              (size (tar-header-size descriptor))
-             (head (memq descriptor tar-parse-info))
-             (following-descs (cdr head)))
+             (head (memq descriptor tar-parse-info)))
         (if (not head)
             (error "Can't find this tar file entry in its parent tar file!"))
         (with-current-buffer tar-data-buffer
@@ -1203,20 +1201,15 @@ Leaves the region wide."
             (insert (make-string (- goal-end (point-max)) ?\0))))))))
 
 
-;; Used in write-file-hook to write tar-files out correctly.
-(defun tar-mode-write-file ()
-  (unwind-protect
-      (progn
-        (if (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))
-        ;; Yuck: This is an internal function.  We should improve the
-        ;; write-content-functions hook to make it easier to DTRT.
-        (prog1 (basic-save-buffer-1)
-          (unless (tar-data-swapped-p) (buffer-swap-text tar-data-buffer))
-          (tar-clear-modification-flags)
-          (set-buffer-modified-p nil)))
-    (unless (tar-data-swapped-p) (buffer-swap-text tar-data-buffer)))
-  ;; Return t because we've written the file.
-  t)
+;; Used in write-region-annotate-functions to write tar-files out correctly.
+(defun tar-write-region-annotate (start end)
+  ;; When called from write-file (and auto-save), `start' is nil.
+  ;; When called from M-x write-region, we assume the user wants to save
+  ;; (part of) the summary, not the tar data.
+  (unless (or start (not (tar-data-swapped-p)))
+    (tar-clear-modification-flags)
+    (set-buffer tar-data-buffer)
+    nil))
 
 (provide 'tar-mode)
 
