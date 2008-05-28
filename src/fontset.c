@@ -1678,7 +1678,12 @@ If the named font is not yet loaded, return nil.  */)
   XVECTOR (info)->contents[5] = make_number (font->relative_compose);
   XVECTOR (info)->contents[6] = make_number (font->default_ascent);
 
+#if 0
+  /* As font_object is still in FONT_OBJLIST of the entity, we can't
+     close it now.  Perhaps, we should manage font-objects
+     by `reference-count'.  */
   font_close_object (f, font_object);
+#endif
   return info;
 }
 
