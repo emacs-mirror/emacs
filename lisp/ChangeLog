@@ -1,3 +1,8 @@
+2008-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): Work around non-portability of "\"
+	in various implementations of echo.
+
 2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-diag.el (describe-current-coding-system):
