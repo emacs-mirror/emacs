@@ -1574,11 +1574,10 @@ font_parse_family_registry (family, registry, font_spec)
 	{
 	  if ((*p0 != '*' || p1 - p0 > 1)
 	      && NILP (AREF (font_spec, FONT_FOUNDRY_INDEX)))
-	    ASET (font_spec, FONT_FOUNDRY_INDEX,
-		  font_intern_prop (p0, p1 - p0));
+	    Ffont_put (font_spec, QCfoundry, font_intern_prop (p0, p1 - p0));
 	  p1++;
 	  len -= p1 - p0;
-	  ASET (font_spec, FONT_FAMILY_INDEX, font_intern_prop (p1, len));
+	  Ffont_put (font_spec, QCfamily, font_intern_prop (p1, len));
 	}
       else
 	ASET (font_spec, FONT_FAMILY_INDEX, Fintern (family, Qnil));
@@ -2378,11 +2377,6 @@ font_delete_unmatched (list, spec, size)
 		  : diff > FONT_PIXEL_SIZE_QUANTUM))
 	    prop = FONT_SPEC_MAX;
 	}
-      if (prop < FONT_SPEC_MAX
-	  && INTEGERP (AREF (spec, FONT_SPACING_INDEX))
-	  && ! EQ (AREF (spec, FONT_SPACING_INDEX),
-		   AREF (entity, FONT_SPACING_INDEX)))
-	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
 	val = Fcons (entity, val);
     }
@@ -2430,12 +2424,13 @@ font_list_entities (frame, spec)
   ftype = AREF (spec, FONT_TYPE_INDEX);
   for (i = 1; i <= FONT_REGISTRY_INDEX; i++)
     ASET (scratch_font_spec, i, AREF (spec, i));
-  for (; i < FONT_EXTRA_INDEX; i++)
+  for (i = FONT_DPI_INDEX; i < FONT_EXTRA_INDEX; i += 2)
     {
       ASET (scratch_font_spec, i, Qnil);
       if (! NILP (AREF (spec, i)))
 	need_filtering = 1;
     }
+  ASET (scratch_font_spec, FONT_SPACING_INDEX, AREF (spec, FONT_SPACING_INDEX));
   ASET (scratch_font_spec, FONT_EXTRA_INDEX, AREF (spec, FONT_EXTRA_INDEX));
 
   vec = alloca (sizeof (Lisp_Object) * num_font_drivers * n_family);
