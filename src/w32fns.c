@@ -5584,7 +5584,7 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
       strcpy (height_dpi, "*");
     }
 
-#if 0 /* Never put the width in the xfld. It fails on fonts with
+#if 0 /* Never put the width in the xlfd. It fails on fonts with
 	 double-width characters.  */
   if (lplogfont->lfWidth)
     sprintf (width_pixels, "%u", lplogfont->lfWidth * 10);
