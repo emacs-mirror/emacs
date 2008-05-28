@@ -4881,7 +4881,7 @@ encode_coding_raw_text (coding)
 	  while (charbuf < charbuf_end && dst < dst_end)
 	    *dst++ = *charbuf++;
 	}
-      produced_chars = charbuf - coding->charbuf;
+      produced_chars = dst - (coding->destination + coding->produced);
     }
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding->produced_char += produced_chars;
@@ -7331,8 +7331,13 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	}
       else
 	{
-	  coding->dst_pos = BUF_PT (XBUFFER (dst_object));
-	  coding->dst_pos_byte = BUF_PT_BYTE (XBUFFER (dst_object));
+	  struct buffer *current = current_buffer;
+
+	  set_buffer_temp (XBUFFER (dst_object));
+	  coding->dst_pos = PT;
+	  coding->dst_pos_byte = PT_BYTE;
+	  move_gap_both (coding->dst_pos, coding->dst_pos_byte);
+	  set_buffer_temp (current);
 	}
       coding->dst_multibyte
 	= ! NILP (XBUFFER (dst_object)->enable_multibyte_characters);
@@ -8310,12 +8315,12 @@ START and END are buffer positions.
 Optional 4th arguments DESTINATION specifies where the decoded text goes.
 If nil, the region between START and END is replaced by the decoded text.
 If buffer, the decoded text is inserted in the buffer.
-If t, the decoded text is returned.
+In those cases, the length of the decoded text is returned..
+If DESTINATION is t, the decoded text is returned.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
-not fully specified.)
-It returns the length of the decoded text.  */)
+not fully specified.)  */)
      (start, end, coding_system, destination)
      Lisp_Object start, end, coding_system, destination;
 {
@@ -8332,12 +8337,12 @@ START and END are buffer positions.
 Optional 4th arguments DESTINATION specifies where the encoded text goes.
 If nil, the region between START and END is replace by the encoded text.
 If buffer, the encoded text is inserted in the buffer.
-If t, the encoded text is returned.
+In those cases, the length of the encoded text is returned..
+If DESTINATION is t, the encoded text is returned.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
-not fully specified.)
-It returns the length of the encoded text.  */)
+not fully specified.)  */)
   (start, end, coding_system, destination)
      Lisp_Object start, end, coding_system, destination;
 {
@@ -8412,7 +8417,7 @@ if the decoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the decoded text is
 inserted in BUFFER instead of returned as a string.  In this case,
-the return value is BUFFER.
+the return value is the length of the decoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
@@ -8433,7 +8438,7 @@ itself if the encoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the encoded text is
 inserted in BUFFER instead of returned as a string.  In this case,
-the return value is BUFFER.
+the return value is the length of the encoded.text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
