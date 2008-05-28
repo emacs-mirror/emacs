@@ -4145,9 +4145,8 @@ This requires the external program `diff' to be in your `exec-path'."
 	     (file-exists-p buffer-file-name))
 	(let ((tempfile (make-temp-file "buffer-content-")))
 	  (unwind-protect
-	      (save-restriction
-		(widen)
-		(write-region (point-min) (point-max) tempfile nil 'nomessage)
+	      (progn
+		(write-region nil nil tempfile nil 'nomessage)
 		(diff buffer-file-name tempfile nil t)
 		(sit-for 0))
 	    (when (file-exists-p tempfile)

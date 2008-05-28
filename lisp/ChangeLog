@@ -1,5 +1,12 @@
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-save-buffer-in-file):
+	* shadowfile.el (shadow-copy-file):
+	* arc-mode.el (archive-*-write-file-member):
+	* files.el (diff-buffer-with-file):
+	* subr.el (with-temp-file): Pass nil to write-region.
+	* jka-compr.el (jka-compr-write-region): Preserve `start's nullness.
+
 	* doc-view.el (doc-view-mode-map): Bind `q' to quit-window, as is
 	the custom.
 

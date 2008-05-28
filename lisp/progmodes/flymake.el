@@ -562,10 +562,8 @@ Find master file, patch and save it."
 	nil))))
 
 (defun flymake-save-buffer-in-file (file-name)
-  (save-restriction
-    (widen)
-    (make-directory (file-name-directory file-name) 1)
-    (write-region (point-min) (point-max) file-name nil 566))
+  (make-directory (file-name-directory file-name) 1)
+  (write-region nil nil file-name nil 566)
   (flymake-log 3 "saved buffer %s in file %s" (buffer-name) file-name))
 
 (defun flymake-save-string-to-file (file-name data)

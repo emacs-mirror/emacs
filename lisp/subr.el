@@ -2562,8 +2562,7 @@ See also `with-temp-buffer'."
 	       (with-current-buffer ,temp-buffer
 		 ,@body)
 	     (with-current-buffer ,temp-buffer
-	       (widen)
-	       (write-region (point-min) (point-max) ,temp-file nil 0)))
+	       (write-region nil nil ,temp-file nil 0)))
 	 (and (buffer-name ,temp-buffer)
 	      (kill-buffer ,temp-buffer))))))
 
