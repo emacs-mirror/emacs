@@ -5079,8 +5079,11 @@ This does code conversion according to the value of
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
     {
+      /* Do it later, so write-region-annotate-function can work differently
+	 if we save "the buffer" vs "a region".
+	 This is useful in tar-mode.  --Stef
       XSETFASTINT (start, BEG);
-      XSETFASTINT (end, Z);
+      XSETFASTINT (end, Z); */
       Fwiden ();
     }
 
@@ -5098,6 +5101,12 @@ This does code conversion according to the value of
 	  XSETFASTINT (start, BEGV);
 	  XSETFASTINT (end, ZV);
 	}
+    }
+
+  if (NILP (start))
+    {
+      XSETFASTINT (start, BEGV);
+      XSETFASTINT (end, ZV);
     }
 
   UNGCPRO;

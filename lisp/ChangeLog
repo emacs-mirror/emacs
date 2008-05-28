@@ -1,3 +1,8 @@
+2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (basic-save-buffer-2): Pass nil rather than (point-min)
+	to write-region.
+
 2008-05-28  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (update-elclist): Work around non-portability of "\"

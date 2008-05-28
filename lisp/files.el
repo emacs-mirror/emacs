@@ -4085,7 +4085,10 @@ Before and after saving the buffer, this function runs
 			       (setq tempname
 				     (make-temp-name
 				      (expand-file-name "tmp" dir)))
-			       (write-region (point-min) (point-max)
+                               ;; Pass in nil&nil rather than point-min&max
+                               ;; cause we're saving the whole buffer.
+                               ;; write-region-annotate-functions may use it.
+			       (write-region nil nil
 					     tempname nil  realname
 					     buffer-file-truename 'excl)
 			       nil)
@@ -4119,7 +4122,10 @@ Before and after saving the buffer, this function runs
 	(let (success)
 	  (unwind-protect
 	      (progn
-		(write-region (point-min) (point-max)
+                ;; Pass in nil&nil rather than point-min&max to indicate
+                ;; we're saving the buffer rather than just a region.
+                ;; write-region-annotate-functions may make us of it.
+		(write-region nil nil
 			      buffer-file-name nil t buffer-file-truename)
 		(setq success t))
 	    ;; If we get an error writing the new file, and we made

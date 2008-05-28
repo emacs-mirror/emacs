@@ -1,3 +1,8 @@
+2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fwrite_region): Delay the defaulting to beg&z to after
+	calling build_annotations.
+
 2008-05-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c (Fdecode_coding_region, Fencode_coding_region)
