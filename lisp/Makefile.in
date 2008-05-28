@@ -162,9 +162,13 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 ## so constructed and update Makefile.in.  chmod +w is for CVSREAD=1.
 ## Errors in final sed are non-fatal, since they have no effect on
 ## building Emacs.
+## "echo" is non-portable with regards to backslashes, eg between zsh
+## and bash.  Hence the used of sed on line 2 below (the ones on line
+## 1 seem to be OK).
+## http://lists.gnu.org/archive/html/emacs-devel/2008-05/msg01535.html
 update-elclist:
 	echo "/^ELCFILES/,/^$$/c\\" > temp.sed
-	echo "ELCFILES = \\\\\\" >> temp.sed
+	echo "ELCFILES =" | sed -e 's/$$/ \\\\\\/' >> temp.sed
 	exclude=`echo $(COMPILE_FIRST) | sed -e 's, ,\\\\|,g' -e 's,\/,\\\\/,g'`; \
 	ls $(lisp)/*.elc $(lisp)/*/*.elc | sed -e "/$$exclude/d" -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
 	echo "" >> temp.sed
