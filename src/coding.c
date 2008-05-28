@@ -8315,7 +8315,7 @@ START and END are buffer positions.
 Optional 4th arguments DESTINATION specifies where the decoded text goes.
 If nil, the region between START and END is replaced by the decoded text.
 If buffer, the decoded text is inserted in the buffer.
-In those cases, the length of the decoded text is returned..
+In those cases, the length of the decoded text is returned.
 If DESTINATION is t, the decoded text is returned.
 
 This function sets `last-coding-system-used' to the precise coding system
@@ -8337,7 +8337,7 @@ START and END are buffer positions.
 Optional 4th arguments DESTINATION specifies where the encoded text goes.
 If nil, the region between START and END is replace by the encoded text.
 If buffer, the encoded text is inserted in the buffer.
-In those cases, the length of the encoded text is returned..
+In those cases, the length of the encoded text is returned.
 If DESTINATION is t, the encoded text is returned.
 
 This function sets `last-coding-system-used' to the precise coding system
@@ -8438,7 +8438,7 @@ itself if the encoding operation is trivial.
 
 Optional fourth arg BUFFER non-nil means that the encoded text is
 inserted in BUFFER instead of returned as a string.  In this case,
-the return value is the length of the encoded.text.
+the return value is the length of the encoded text.
 
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
@@ -9834,7 +9834,7 @@ updated by the functions `define-coding-system' and
   DEFVAR_LISP ("coding-system-alist", &Vcoding_system_alist,
 	       doc: /* Alist of coding system names.
 Each element is one element list of coding system name.
-This variable is given to `completing-read' as TABLE argument.
+This variable is given to `completing-read' as COLLECTION argument.
 
 Do not alter the value of this variable manually.  This variable should be
 updated by the functions `make-coding-system' and
@@ -9864,8 +9864,8 @@ Don't modify this variable directly, but use `set-coding-priority'.  */);
 	       doc: /* Specify the coding system for read operations.
 It is useful to bind this variable with `let', but do not set it globally.
 If the value is a coding system, it is used for decoding on read operation.
-If not, an appropriate element is used from one of the coding system alists:
-There are three such tables, `file-coding-system-alist',
+If not, an appropriate element is used from one of the coding system alists.
+There are three such tables: `file-coding-system-alist',
 `process-coding-system-alist', and `network-coding-system-alist'.  */);
   Vcoding_system_for_read = Qnil;
 
@@ -9876,8 +9876,8 @@ If the value is a coding system, it is used for encoding of output,
 when writing it to a file and when sending it to a file or subprocess.
 
 If this does not specify a coding system, an appropriate element
-is used from one of the coding system alists:
-There are three such tables, `file-coding-system-alist',
+is used from one of the coding system alists.
+There are three such tables: `file-coding-system-alist',
 `process-coding-system-alist', and `network-coding-system-alist'.
 For output to files, if the above procedure does not specify a coding system,
 the value of `buffer-file-coding-system' is used.  */);
@@ -10037,7 +10037,7 @@ If Nth element is non-nil, the existence of code N in a file
 a coding system of ISO 2022 variant which has a flag
 `accept-latin-extra-code' t (e.g. iso-latin-1) on reading a file
 or reading output of a subprocess.
-Only 128th through 159th elements has a meaning.  */);
+Only 128th through 159th elements have a meaning.  */);
   Vlatin_extra_code_table = Fmake_vector (make_number (256), Qnil);
 
   DEFVAR_LISP ("select-safe-coding-system-function",
@@ -10093,8 +10093,8 @@ escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argumen
 
   DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.
-This is applied to the result of input methods, not their input.  See also
-`keyboard-translate-table'.  */);
+This is applied to the result of input methods, not their input.
+See also `keyboard-translate-table'.  */);
     Vtranslation_table_for_input = Qnil;
 
   {
