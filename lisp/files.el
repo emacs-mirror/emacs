@@ -2860,7 +2860,10 @@ is specified, returning t if it is specified."
 			  (re-search-forward
 			   (concat prefix "[ \t]*End:[ \t]*" suffix)
 			   nil t))
-		  (error "Local variables list is not properly terminated"))
+                  ;; This used to be an error, but really all it means is
+                  ;; that this may simply not be a local-variables section,
+                  ;; so just ignore it.
+		  (message "Local variables list is not properly terminated"))
 		(beginning-of-line)
 		(setq endpos (point)))
 
