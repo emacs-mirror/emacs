@@ -1,3 +1,7 @@
+2008-05-28  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (x_draw_glyph_string): Use clipmask if specified.
+
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fwrite_region): Delay the defaulting to beg&z to after
