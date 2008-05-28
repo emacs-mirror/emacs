@@ -1,3 +1,9 @@
+2008-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_raw_text): Fix previous change.
+	(encode_coding_object): When the dst_object is a buffer and is
+	different from src_object, move gap to PT.
+
 2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_draw_glyph_string): If a clipmask is specified, use
