@@ -767,6 +767,8 @@ encoding.  This attribute has a meaning only when `:coding-type' is
 				      :reg-usage
 				      :request
 				      :flags))
+				   ((eq coding-type 'utf-8)
+				    '(:bom))
 				   ((eq coding-type 'utf-16)
 				    '(:bom
 				      :endian))
