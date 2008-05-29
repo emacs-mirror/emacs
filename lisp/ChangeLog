@@ -1,3 +1,7 @@
+2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-prospects-height): Add :group.
+
 2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* icomplete.el (icomplete-prospects-length): Make obsolete.
