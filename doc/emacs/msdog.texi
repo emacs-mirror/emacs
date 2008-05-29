@@ -403,6 +403,33 @@ Windows-specific variables in this category.
 key.  If you wish it to produce the @code{Alt} modifier instead, set
 the variable @code{w32-alt-is-meta} to a @code{nil} value.
 
+@findex w32-register-hot-key
+@findex w32-unregister-hot-key
+  Although the @key{ALT} key is mapped by default to the Emacs
+@key{META} key, MS Windows preempts its use by Emacs for certain key
+combinations, such as @kbd{Alt-@key{TAB}}.  You can use function
+@code{w32-register-hot-key} to allow a key sequence to be seen by Emacs
+instead of being grabbed by Windows.  This registers the key sequence as
+a Windows hot key.
+
+  The argument to @code{w32-register-hot-key} must be a one element key
+definition in vector form that would be acceptable to `define-key'.  The
+@code{meta} modifier is interpreted as @key{ALT} if `w32-alt-is-meta' is
+@code{t}, and @code{hyper} is always interpreted as the Windows modifier
+keys.  The return value is the hotkey-id if registered, otherwise
+@code{nil}.
+
+@kindex M-TAB @r{(MS-Windows)}
+@cindex @kbd{M-@key{TAB}} vs @kbd{Alt-@key{TAB}} (MS-Windows)
+@cindex @kbd{Alt-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
+  For example, @code{(w32-register-hot-key [M-tab])} lets you use
+@kbd{M-TAB} normally in Emacs.  This is effective at all levels, so, for
+instance, you can use @kbd{M-TAB} at top level to complete the word or
+symbol at point, and you can use it during incremental search to
+complete the current search string against previously sought strings.
+The function @code{w32-unregister-hot-key} reverses the effect of
+@code{w32-register-hot-key}.
+
 @vindex w32-capslock-is-shiftlock
   By default, the @key{CapsLock} key only affects normal character
 keys (it converts lower-case characters to their upper-case
