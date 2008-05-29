@@ -1910,7 +1910,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
   {
     Lisp_Object font_spec;
-    Lisp_Object args[2];
+    Lisp_Object args[2], tail;
 
     font_spec = font_spec_from_name (pattern);
     if (size)
@@ -1919,6 +1919,8 @@ the WIDTH times as wide as FACE on FRAME.  */)
 	Ffont_put (font_spec, QCavgwidth, make_number (avgwidth));
       }
     args[0] = Flist_fonts (font_spec, frame, maximum, Qnil);
+    for (tail = args[0]; CONSP (tail); tail = XCDR (tail))
+      XSETCAR (tail, Ffont_xlfd_name (XCAR (tail), Qnil));
     if (NILP (frame))
       /* We don't have to check fontsets.  */
       return args[0];
