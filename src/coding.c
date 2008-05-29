@@ -546,6 +546,9 @@ enum iso_code_class_type
    character is prohibited by CODING_ISO_FLAG_SAFE.  */
 #define CODING_INHIBIT_CHARACTER_SUBSTITUTION  '?'
 
+/* UTF-8 section */
+#define CODING_UTF_8_BOM(coding)	\
+  ((coding)->spec.utf_8_bom)
 
 /* UTF-16 section */
 #define CODING_UTF_16_BOM(coding)	\
@@ -576,7 +579,9 @@ enum coding_category
     coding_category_iso_8_2,
     coding_category_iso_7_else,
     coding_category_iso_8_else,
-    coding_category_utf_8,
+    coding_category_utf_8_auto,
+    coding_category_utf_8_nosig,
+    coding_category_utf_8_sig,
     coding_category_utf_16_auto,
     coding_category_utf_16_be,
     coding_category_utf_16_le,
@@ -600,7 +605,9 @@ enum coding_category
 #define CATEGORY_MASK_ISO_8_2		(1 << coding_category_iso_8_2)
 #define CATEGORY_MASK_ISO_7_ELSE	(1 << coding_category_iso_7_else)
 #define CATEGORY_MASK_ISO_8_ELSE	(1 << coding_category_iso_8_else)
-#define CATEGORY_MASK_UTF_8		(1 << coding_category_utf_8)
+#define CATEGORY_MASK_UTF_8_AUTO	(1 << coding_category_utf_8_auto)
+#define CATEGORY_MASK_UTF_8_NOSIG	(1 << coding_category_utf_8_nosig)
+#define CATEGORY_MASK_UTF_8_SIG		(1 << coding_category_utf_8_sig)
 #define CATEGORY_MASK_UTF_16_AUTO	(1 << coding_category_utf_16_auto)
 #define CATEGORY_MASK_UTF_16_BE		(1 << coding_category_utf_16_be)
 #define CATEGORY_MASK_UTF_16_LE		(1 << coding_category_utf_16_le)
@@ -622,7 +629,9 @@ enum coding_category
    | CATEGORY_MASK_ISO_8_2		\
    | CATEGORY_MASK_ISO_7_ELSE		\
    | CATEGORY_MASK_ISO_8_ELSE		\
-   | CATEGORY_MASK_UTF_8		\
+   | CATEGORY_MASK_UTF_8_AUTO		\
+   | CATEGORY_MASK_UTF_8_NOSIG		\
+   | CATEGORY_MASK_UTF_8_SIG		\
    | CATEGORY_MASK_UTF_16_AUTO		\
    | CATEGORY_MASK_UTF_16_BE		\
    | CATEGORY_MASK_UTF_16_LE		\
@@ -662,6 +671,10 @@ enum coding_category
    | CATEGORY_MASK_UTF_16_BE_NOSIG	\
    | CATEGORY_MASK_UTF_16_LE_NOSIG)
 
+#define CATEGORY_MASK_UTF_8	\
+  (CATEGORY_MASK_UTF_8_AUTO	\
+   | CATEGORY_MASK_UTF_8_NOSIG	\
+   | CATEGORY_MASK_UTF_8_SIG)
 
 /* List of symbols `coding-category-xxx' ordered by priority.  This
    variable is exposed to Emacs Lisp.  */
@@ -1214,6 +1227,11 @@ alloc_destination (coding, nbytes, dst)
 #define UTF_8_4_OCTET_LEADING_P(c) (((c) & 0xF8) == 0xF0)
 #define UTF_8_5_OCTET_LEADING_P(c) (((c) & 0xFC) == 0xF8)
 
+#define UTF_BOM 0xFEFF
+#define UTF_8_BOM_1 0xEF
+#define UTF_8_BOM_2 0xBB
+#define UTF_8_BOM_3 0xBF
+
 static int
 detect_coding_utf_8 (coding, detect_info)
      struct coding_system *coding;
@@ -1223,6 +1241,7 @@ detect_coding_utf_8 (coding, detect_info)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
+  int bom_found = 0;
   int found = 0;
 
   detect_info->checked |= CATEGORY_MASK_UTF_8;
@@ -1242,7 +1261,7 @@ detect_coding_utf_8 (coding, detect_info)
 	break;
       if (UTF_8_2_OCTET_LEADING_P (c))
 	{
-	  found = CATEGORY_MASK_UTF_8;
+	  found = 1;
 	  continue;
 	}
       ONE_MORE_BYTE (c2);
@@ -1250,7 +1269,10 @@ detect_coding_utf_8 (coding, detect_info)
 	break;
       if (UTF_8_3_OCTET_LEADING_P (c))
 	{
-	  found = CATEGORY_MASK_UTF_8;
+	  found = 1;
+	  if (src_base == coding->source
+	      && c == UTF_8_BOM_1 && c1 == UTF_8_BOM_2 && c2 == UTF_8_BOM_3)
+	    bom_found = 1;
 	  continue;
 	}
       ONE_MORE_BYTE (c3);
@@ -1258,7 +1280,7 @@ detect_coding_utf_8 (coding, detect_info)
 	break;
       if (UTF_8_4_OCTET_LEADING_P (c))
 	{
-	  found = CATEGORY_MASK_UTF_8;
+	  found = 1;
 	  continue;
 	}
       ONE_MORE_BYTE (c4);
@@ -1266,7 +1288,7 @@ detect_coding_utf_8 (coding, detect_info)
 	break;
       if (UTF_8_5_OCTET_LEADING_P (c))
 	{
-	  found = CATEGORY_MASK_UTF_8;
+	  found = 1;
 	  continue;
 	}
       break;
@@ -1280,7 +1302,16 @@ detect_coding_utf_8 (coding, detect_info)
       detect_info->rejected |= CATEGORY_MASK_UTF_8;
       return 0;
     }
-  detect_info->found |= found;
+  if (bom_found)
+    {
+      /* The first character 0xFFFE doesn't necessarily mean a BOM.  */
+      detect_info->found |= CATEGORY_MASK_UTF_8_SIG | CATEGORY_MASK_UTF_8_NOSIG;
+    }
+  else
+    {
+      detect_info->rejected |= CATEGORY_MASK_UTF_8_SIG;
+      detect_info->found |= CATEGORY_MASK_UTF_8_NOSIG;
+    }
   return 1;
 }
 
@@ -1296,11 +1327,45 @@ decode_coding_utf_8 (coding)
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
+  enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
   Lisp_Object attr, charset_list;
   int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
+
+  if (bom != utf_without_bom)
+    {
+      int c1, c2, c3;
+
+      src_base = src;
+      ONE_MORE_BYTE (c1);
+      if (! UTF_8_3_OCTET_LEADING_P (c1))
+	src = src_base;
+      else
+	{
+	  ONE_MORE_BYTE (c2);      
+	  if (! UTF_8_EXTRA_OCTET_P (c2))
+	    src = src_base;
+	  else
+	    {
+	      ONE_MORE_BYTE (c3);      
+	      if (! UTF_8_EXTRA_OCTET_P (c3))
+		src = src_base;
+	      else
+		{
+		  if ((c1 != UTF_8_BOM_1)
+		      || (c2 != UTF_8_BOM_2) || (c3 != UTF_8_BOM_3))
+		    src = src_base;
+		  else
+		    CODING_UTF_8_BOM (coding) = utf_without_bom;
+		}
+	    }
+	}
+    }
+  CODING_UTF_8_BOM (coding) = utf_without_bom;
+
+
 
   while (1)
     {
@@ -1414,6 +1479,13 @@ encode_coding_utf_8 (coding)
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int produced_chars = 0;
   int c;
+
+  if (CODING_UTF_8_BOM (coding) == utf_with_bom)
+    {
+      ASSURE_DESTINATION (3);
+      EMIT_THREE_BYTES (UTF_8_BOM_1, UTF_8_BOM_2, UTF_8_BOM_3);
+      CODING_UTF_8_BOM (coding) = utf_without_bom;
+    }
 
   if (multibytep)
     {
@@ -1566,7 +1638,7 @@ decode_coding_utf_16 (coding)
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  enum utf_16_bom_type bom = CODING_UTF_16_BOM (coding);
+  enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
   int surrogate = CODING_UTF_16_SURROGATE (coding);
   Lisp_Object attr, charset_list;
@@ -1575,7 +1647,7 @@ decode_coding_utf_16 (coding)
 
   CODING_GET_INFO (coding, attr, charset_list);
 
-  if (bom == utf_16_with_bom)
+  if (bom == utf_with_bom)
     {
       int c, c1, c2;
 
@@ -1592,13 +1664,13 @@ decode_coding_utf_16 (coding)
 	  src = src_base;
 	  coding->errors++;
 	}
-      CODING_UTF_16_BOM (coding) = utf_16_without_bom;
+      CODING_UTF_16_BOM (coding) = utf_without_bom;
     }
-  else if (bom == utf_16_detect_bom)
+  else if (bom == utf_detect_bom)
     {
       /* We have already tried to detect BOM and failed in
 	 detect_coding.  */
-      CODING_UTF_16_BOM (coding) = utf_16_without_bom;
+      CODING_UTF_16_BOM (coding) = utf_without_bom;
     }
 
   while (1)
@@ -1688,7 +1760,7 @@ encode_coding_utf_16 (coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 8;
-  enum utf_16_bom_type bom = CODING_UTF_16_BOM (coding);
+  enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   int big_endian = CODING_UTF_16_ENDIAN (coding) == utf_16_big_endian;
   int produced_chars = 0;
   Lisp_Object attrs, charset_list;
@@ -1696,14 +1768,14 @@ encode_coding_utf_16 (coding)
 
   CODING_GET_INFO (coding, attrs, charset_list);
 
-  if (bom != utf_16_without_bom)
+  if (bom != utf_without_bom)
     {
       ASSURE_DESTINATION (safe_room);
       if (big_endian)
 	EMIT_TWO_BYTES (0xFE, 0xFF);
       else
 	EMIT_TWO_BYTES (0xFF, 0xFE);
-      CODING_UTF_16_BOM (coding) = utf_16_without_bom;
+      CODING_UTF_16_BOM (coding) = utf_without_bom;
     }
 
   while (charbuf < charbuf_end)
@@ -5272,18 +5344,24 @@ setup_coding_system (coding_system, coding)
     }
   else if (EQ (coding_type, Qutf_8))
     {
+      val = AREF (attrs, coding_attr_utf_bom);
+      CODING_UTF_8_BOM (coding) = (CONSP (val) ? utf_detect_bom
+				   : EQ (val, Qt) ? utf_with_bom
+				   : utf_without_bom);
       coding->detector = detect_coding_utf_8;
       coding->decoder = decode_coding_utf_8;
       coding->encoder = encode_coding_utf_8;
       coding->common_flags
 	|= (CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK);
+      if (CODING_UTF_8_BOM (coding) == utf_detect_bom)
+	coding->common_flags |= CODING_REQUIRE_DETECTION_MASK;
     }
   else if (EQ (coding_type, Qutf_16))
     {
-      val = AREF (attrs, coding_attr_utf_16_bom);
-      CODING_UTF_16_BOM (coding) = (CONSP (val) ? utf_16_detect_bom
-				    : EQ (val, Qt) ? utf_16_with_bom
-				    : utf_16_without_bom);
+      val = AREF (attrs, coding_attr_utf_bom);
+      CODING_UTF_16_BOM (coding) = (CONSP (val) ? utf_detect_bom
+				    : EQ (val, Qt) ? utf_with_bom
+				    : utf_without_bom);
       val = AREF (attrs, coding_attr_utf_16_endian);
       CODING_UTF_16_ENDIAN (coding) = (EQ (val, Qbig) ? utf_16_big_endian
 				       : utf_16_little_endian);
@@ -5293,7 +5371,7 @@ setup_coding_system (coding_system, coding)
       coding->encoder = encode_coding_utf_16;
       coding->common_flags
 	|= (CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK);
-      if (CODING_UTF_16_BOM (coding) == utf_16_detect_bom)
+      if (CODING_UTF_16_BOM (coding) == utf_detect_bom)
 	coding->common_flags |= CODING_REQUIRE_DETECTION_MASK;
     }
   else if (EQ (coding_type, Qccl))
@@ -5828,14 +5906,34 @@ detect_coding (coding)
 	}
     }
   else if (XINT (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
+	   == coding_category_utf_8_auto)
+    {
+      Lisp_Object coding_systems;
+      struct coding_detection_info detect_info;
+
+      coding_systems
+	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_bom);
+      detect_info.found = detect_info.rejected = 0;
+      coding->head_ascii = 0;
+      if (CONSP (coding_systems)
+	  && detect_coding_utf_8 (coding, &detect_info))
+	{
+	  if (detect_info.found & CATEGORY_MASK_UTF_8_SIG)
+	    setup_coding_system (XCAR (coding_systems), coding);
+	  else
+	    setup_coding_system (XCDR (coding_systems), coding);
+	}
+    }
+  else if (XINT (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
 	   == coding_category_utf_16_auto)
     {
       Lisp_Object coding_systems;
       struct coding_detection_info detect_info;
 
       coding_systems
-	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_16_bom);
+	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_bom);
       detect_info.found = detect_info.rejected = 0;
+      coding->head_ascii = 0;
       if (CONSP (coding_systems)
 	  && detect_coding_utf_16 (coding, &detect_info))
 	{
@@ -7724,6 +7822,19 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	  detect_info.found |= found;
 	}
     }
+  else if (base_category == coding_category_utf_8_auto)
+    {
+      if (detect_coding_utf_8 (&coding, &detect_info))
+	{
+	  struct coding_system *this;
+
+	  if (detect_info.found & CATEGORY_MASK_UTF_8_SIG)
+	    this = coding_categories + coding_category_utf_8_sig;
+	  else
+	    this = coding_categories + coding_category_utf_8_nosig;
+	  val = Fcons (make_number (this->id), Qnil);
+	}
+    }
   else if (base_category == coding_category_utf_16_auto)
     {
       if (detect_coding_utf_16 (&coding, &detect_info))
@@ -9154,7 +9265,7 @@ usage: (define-coding-system-internal ...)  */)
 	  val = XCDR (bom);
 	  CHECK_CODING_SYSTEM (val);
 	}
-      ASET (attrs, coding_attr_utf_16_bom, bom);
+      ASET (attrs, coding_attr_utf_bom, bom);
 
       endian = args[coding_arg_utf16_endian];
       CHECK_SYMBOL (endian);
@@ -9333,8 +9444,27 @@ usage: (define-coding-system-internal ...)  */)
     }
   else if (EQ (coding_type, Qutf_8))
     {
-      category = coding_category_utf_8;
+      Lisp_Object bom;
+
       CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
+
+      if (nargs < coding_arg_utf8_max)
+	goto short_args;
+
+      bom = args[coding_arg_utf8_bom];
+      if (! NILP (bom) && ! EQ (bom, Qt))
+	{
+	  CHECK_CONS (bom);
+	  val = XCAR (bom);
+	  CHECK_CODING_SYSTEM (val);
+	  val = XCDR (bom);
+	  CHECK_CODING_SYSTEM (val);
+	}
+      ASET (attrs, coding_attr_utf_bom, bom);
+
+      category = (CONSP (bom) ? coding_category_utf_8_auto
+		  : NILP (bom) ? coding_category_utf_8_nosig
+		  : coding_category_utf_8_sig);
     }
   else if (EQ (coding_type, Qundecided))
     category = coding_category_undecided;
@@ -9755,8 +9885,12 @@ syms_of_coding ()
 	intern ("coding-category-iso-7-else"));
   ASET (Vcoding_category_table, coding_category_iso_8_else,
 	intern ("coding-category-iso-8-else"));
-  ASET (Vcoding_category_table, coding_category_utf_8,
+  ASET (Vcoding_category_table, coding_category_utf_8_auto,
+	intern ("coding-category-utf-8-auto"));
+  ASET (Vcoding_category_table, coding_category_utf_8_nosig,
 	intern ("coding-category-utf-8"));
+  ASET (Vcoding_category_table, coding_category_utf_8_sig,
+	intern ("coding-category-utf-8-sig"));
   ASET (Vcoding_category_table, coding_category_utf_16_be,
 	intern ("coding-category-utf-16-be"));
   ASET (Vcoding_category_table, coding_category_utf_16_auto,
