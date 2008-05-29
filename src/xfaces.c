@@ -1708,7 +1708,7 @@ compare_fonts_by_sort_order (v1, v2)
   Lisp_Object font1 = *(Lisp_Object *) v1;
   Lisp_Object font2 = *(Lisp_Object *) v2;
   int i;
-  
+
   for (i = 0; i < FONT_SIZE_INDEX; i++)
     {
       enum font_property_index idx = font_props_for_sorting[i];
@@ -1844,7 +1844,7 @@ PATTERN is a string, perhaps with wildcard characters;
 FACE is a face name--a symbol.
 
 The return value is a list of strings, suitable as arguments to
-set-face-font.
+`set-face-font'.
 
 Fonts Emacs can't use may or may not be excluded
 even if they match PATTERN and FACE.
@@ -2838,7 +2838,7 @@ DEFUN ("internal-copy-lisp-face", Finternal_copy_lisp_face,
 If FRAME is t, copy the global face definition of FROM.
 Otherwise, copy the frame-local definition of FROM on FRAME.
 If NEW-FRAME is a frame, copy that data into the frame-local
-definition of TO on NEW-FRAME.  If NEW-FRAME is nil.
+definition of TO on NEW-FRAME.  If NEW-FRAME is nil,
 FRAME controls where the data is copied to.
 
 The value is TO.  */)
@@ -5465,7 +5465,7 @@ realize_default_face (f)
  	 not support the default font.  */
       if (!face->font)
  	return 0;
- 
+
       /* Otherwise, the font specified for the frame was not
  	 acceptable as a font for the default face (perhaps because
  	 auto-scaled fonts are rejected), so we must adjust the frame
