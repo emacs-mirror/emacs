@@ -1496,7 +1496,9 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 (defun completion-pcm-all-completions (string table pred point)
   (destructuring-bind (pattern all &optional prefix suffix)
       (completion-pcm--find-all-completions string table pred point)
-    (completion-pcm--hilit-commonality pattern all)))
+    (when all
+      (nconc (completion-pcm--hilit-commonality pattern all)
+             (length prefix)))))
 
 (defun completion-pcm--merge-completions (strs pattern)
   "Extract the commonality in STRS, with the help of PATTERN."
