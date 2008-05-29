@@ -6,6 +6,7 @@
 2008-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fx_list_fonts): Make it return a list of font names.
+	(Fx_family_fonts): Set frame correctly.
 
 2008-05-28  Jason Rumney  <jasonr@gnu.org>
 
