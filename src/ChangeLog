@@ -1,7 +1,14 @@
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Faccept_process_output): If `millisec' is non-nil,
+	`seconds' default to 0.
+	(wait_reading_process_output): Also return non-nil if we read output
+	from a non-running process.
+
 2008-05-29  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_open_internal): Prefer truetype fonts unless
-        'raster' specified.
+	* w32font.c (w32font_open_internal): Prefer truetype fonts unless
+	'raster' specified.
 
 2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
 
