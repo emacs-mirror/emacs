@@ -1,3 +1,34 @@
+2008-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (enum define_coding_utf8_arg_index): New enum.
+	(enum coding_attr_index): Change coding_attr_utf_16_bom to
+	coding_attr_utf_bom.
+	(enum utf_bom_type): Renamed from utf_16_bom_type.
+	(struct utf_16_spec): Adjusted for the above change.
+	(struct coding_system): Add utf_8_bom in `spec' union.
+
+	* coding.c (CODING_UTF_8_BOM): New macro.
+	(enum coding_category): Delete coding_category_utf_8, add
+	coding_category_utf_8_auto, coding_category_utf_8_nosig, and
+	coding_category_utf_8_sig.
+	(CATEGORY_MASK_UTF_8): Delete it.
+	(CATEGORY_MASK_UTF_8_AUTO, CATEGORY_MASK_UTF_8_NOSIG)
+	(CATEGORY_MASK_UTF_8_SIG): New macros.
+	(CATEGORY_MASK_ANY): Delete CATEGORY_MASK_UTF_8, add
+	CATEGORY_MASK_UTF_8_AUTO, CATEGORY_MASK_UTF_8_NOSIG, and
+	CATEGORY_MASK_UTF_8_SIG.
+	(CATEGORY_MASK_UTF_8): New macro.
+	(UTF_BOM, UTF_8_BOM_1, UTF_8_BOM_2, UTF_8_BOM_3): New macros.
+	(detect_coding_utf_8): Check BOM.
+	(decode_coding_utf_8, encode_coding_utf_8): Handle BOM.
+	(decode_coding_utf_16): Adjusted for the change of enum
+	utf_bom_type.
+	(encode_coding_utf_16): Likewise.
+	(setup_coding_system): Likewise.  Set CODING_UTF_8_BOM (coding).
+	(detect_coding, detect_coding_system): Handle utf-8-auto.
+	(Fdefine_coding_system_internal): Handle `bom' property for utf-8.
+	(syms_of_coding): Fix setting up of Vcoding_category_table.
+
 2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Faccept_process_output): If `millisec' is non-nil,
