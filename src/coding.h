@@ -56,6 +56,12 @@ enum define_coding_iso2022_arg_index
     coding_arg_iso2022_max
   };
 
+enum define_coding_utf8_arg_index
+  {
+    coding_arg_utf8_bom = coding_arg_max,
+    coding_arg_utf8_max
+  };
+
 enum define_coding_utf16_arg_index
   {
     coding_arg_utf16_bom = coding_arg_max,
@@ -148,7 +154,7 @@ enum coding_attr_index
     coding_attr_iso_request,
     coding_attr_iso_flags,
 
-    coding_attr_utf_16_bom,
+    coding_attr_utf_bom,
     coding_attr_utf_16_endian,
 
     coding_attr_emacs_mule_full,
@@ -325,11 +331,11 @@ struct iso_2022_spec
 
 struct ccl_spec;
 
-enum utf_16_bom_type
+enum utf_bom_type
   {
-    utf_16_detect_bom,
-    utf_16_without_bom,
-    utf_16_with_bom
+    utf_detect_bom,
+    utf_without_bom,
+    utf_with_bom
   };
 
 enum utf_16_endian_type
@@ -340,7 +346,7 @@ enum utf_16_endian_type
 
 struct utf_16_spec
 {
-  enum utf_16_bom_type bom;
+  enum utf_bom_type bom;
   enum utf_16_endian_type endian;
   int surrogate;
 };
@@ -380,6 +386,7 @@ struct coding_system
       struct iso_2022_spec iso_2022;
       struct ccl_spec *ccl;	/* Defined in ccl.h.  */
       struct utf_16_spec utf_16;
+      enum utf_bom_type utf_8_bom;
       int emacs_mule_full_support;
     } spec;
 
