@@ -1,3 +1,9 @@
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-prospects-length): Make obsolete.
+	(icomplete-prospects-height): New var.
+	(icomplete-completions): Use it.
+
 2008-05-29  David Kastrup  <dak@gnu.org>
 
 	* autoinsert.el (auto-insert): Add :link.

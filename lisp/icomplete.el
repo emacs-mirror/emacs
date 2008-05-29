@@ -67,11 +67,17 @@
   :prefix "icomplete-"
   :group 'minibuffer)
 
+(defvar icomplete-prospects-length 80)
+(make-obsolete-variable
+ 'icomplete-prospects-length 'icomplete-prospects-height "23.1")
+
 ;;;_* User Customization variables
-(defcustom icomplete-prospects-length 80
-  "Length of string displaying the prospects."
-  :type 'integer
-  :group 'icomplete)
+(defcustom icomplete-prospects-height
+  ;; 20 is an estimated common size for the prompt + minibuffer content, to
+  ;; try to guess the number of lines used up by icomplete-prospects-length.
+  (+ 1 (/ (+ icomplete-prospects-length 20) (window-width)))
+  "Maximum number of lines to use in the minibuffer."
+  :type 'integer)
 
 (defcustom icomplete-compute-delay .3
   "Completions-computation stall, used only with large-number completions.
@@ -280,8 +286,7 @@ are exhibited within the square braces.)"
          (base-size (cdr last))
          (open-bracket (if require-match "(" "["))
          (close-bracket (if require-match ")" "]")))
-    ;; `concat'/`mapconcat' is the slow part.  With the introduction of
-    ;; `icomplete-prospects-length', there is no need for `catch'/`throw'.
+    ;; `concat'/`mapconcat' is the slow part.
     (if (not (consp comps))
         (format " %sNo matches%s" open-bracket close-bracket)
       (if last (setcdr last nil))
@@ -311,7 +316,15 @@ are exhibited within the square braces.)"
 				(t (concat "..." (substring most compare))))
 			       close-bracket)))
 	     ;;"-prospects" - more than one candidate
-	     (prospects-len (+ (length determ) 6)) ;; take {,...} into account
+	     (prospects-len (+ (length determ) 6 ;; take {,...} into account
+                               (string-width (buffer-string))))
+             (prospects-max
+              ;; Max total length to use, including the minibuffer content.
+              (* (+ icomplete-max-minibuffer-height
+                    ;; If the minibuffer content already uses up more than
+                    ;; one line, increase the allowable space accordingly.
+                    (/ prospects-len (window-width)))
+                 (window-width)))
              (prefix-len
               ;; Find the common prefix among `comps'.
 	      (if (eq t (compare-strings (car comps) nil (length most)
@@ -332,8 +345,9 @@ are exhibited within the square braces.)"
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))
-		  (t (setq prospects-len (+ (length comp) 1 prospects-len))
-		     (if (< prospects-len icomplete-prospects-length)
+		  (t (setq prospects-len
+                           (+ (string-width comp) 1 prospects-len))
+		     (if (< prospects-len prospects-max)
 			 (push comp prospects)
 		       (setq limit t))))))
         ;; Restore the base-size info, since completion-all-sorted-completions
