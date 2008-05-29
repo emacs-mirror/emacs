@@ -77,7 +77,8 @@
   ;; try to guess the number of lines used up by icomplete-prospects-length.
   (+ 1 (/ (+ icomplete-prospects-length 20) (window-width)))
   "Maximum number of lines to use in the minibuffer."
-  :type 'integer)
+  :type 'integer
+  :group 'icomplete)
 
 (defcustom icomplete-compute-delay .3
   "Completions-computation stall, used only with large-number completions.
