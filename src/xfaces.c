@@ -1754,15 +1754,18 @@ the face font sort order.  */)
      (family, frame)
      Lisp_Object family, frame;
 {
-  struct frame *f = check_x_frame (frame);
-  Lisp_Object font_spec = Qnil, vec;
+  Lisp_Object font_spec, vec;
   int i, nfonts;
   Lisp_Object result;
 
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+
+  font_spec = Ffont_spec (0, NULL);
   if (!NILP (family))
     {
       CHECK_STRING (family);
-      font_spec = Ffont_spec (0, NULL);
       Ffont_put (font_spec, QCfamily, family);
     }
   vec = font_list_entities (frame, font_spec);
@@ -1803,13 +1806,13 @@ the face font sort order.  */)
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
       point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      f->resy);
+			      XFRAME (frame)->resy);
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
       spacing = Ffont_get (font, QCspacing);
       ASET (v, 5, (NILP (spacing) || EQ (spacing, Qp)) ? Qnil : Qt);
-      ASET (v, 6, AREF (font, FONT_NAME_INDEX));
+      ASET (v, 6, Ffont_xlfd_name (font, Qnil));
       ASET (v, 7, AREF (font, FONT_REGISTRY_INDEX));
 
       result = Fcons (v, result);
