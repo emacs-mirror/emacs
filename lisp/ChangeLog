@@ -1,3 +1,11 @@
+2008-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-8-sig, utf-8-auto): New coding
+	systems.
+
+	* international/mule.el (define-coding-system): Accept :bom for
+	utf-8.
+
 2008-05-29  Espen Wiborg  <espen.wiborg@telio.no>  (tiny change)
 
 	* international/utf-7.el (utf-7-encode): Use the right escape char
