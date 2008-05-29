@@ -7,8 +7,11 @@
 
 2008-05-29  Jason Rumney  <jasonr@gnu.org>
 
-	* w32font.c (w32font_open_internal): Prefer truetype fonts unless
-	'raster' specified.
+        * w32font.c (w32font_open_internal): Prefer truetype fonts unless
+        `raster' specified.
+        (add_font_entity_to_list): Allow non-opentype truetype fonts back
+        in the uniscribe backend, but disallow any font that has no
+        unicode subrange support.
 
 2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
 
