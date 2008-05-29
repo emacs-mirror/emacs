@@ -320,7 +320,7 @@ are exhibited within the square braces.)"
                                (string-width (buffer-string))))
              (prospects-max
               ;; Max total length to use, including the minibuffer content.
-              (* (+ icomplete-max-minibuffer-height
+              (* (+ icomplete-prospects-height
                     ;; If the minibuffer content already uses up more than
                     ;; one line, increase the allowable space accordingly.
                     (/ prospects-len (window-width)))
