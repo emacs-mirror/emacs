@@ -93,9 +93,8 @@
 
 ;;; Bugs:
 
-;; - Expunge and rename on ././@LongLink files
+;; - Rename on ././@LongLink files
 ;; - Revert confirmation displays the raw data temporarily.
-;; - Incorrect goal-column if username is too long.
 
 ;;; Code:
 
@@ -181,7 +180,10 @@ This information is useful, but it takes screen space away from file names."
              make-tar-header (data-start name mode uid gid size date checksum
                               link-type link-name magic uname gname dmaj dmin)))
   data-start name mode uid gid size date checksum link-type link-name
-  magic uname gname dmaj dmin)
+  magic uname gname dmaj dmin
+  ;; Start of the header can be nil (meaning it's 512 bytes before data-start)
+  ;; or a marker (in case the header uses LongLink thingies).
+  header-start)
 
 (defconst tar-name-offset 0)
 (defconst tar-mode-offset (+ tar-name-offset 100))
@@ -223,8 +225,7 @@ write-date, checksum, link-type, and link-name."
              (link-p (aref string tar-linkp-offset))
              (magic-str (substring string tar-magic-offset
                                    (1- tar-uname-offset)))
-             (uname-valid-p (member magic-str
-                                    '("ustar  " "GNUtar " "ustar\0\0")))
+             (uname-valid-p (car (member magic-str '("ustar  " "ustar\0\0"))))
              name linkname
              (nulsexp   "[^\000]*\000"))
         (when (string-match nulsexp string tar-name-offset)
@@ -240,7 +241,7 @@ write-date, checksum, link-type, and link-name."
                          nil
                        (- link-p ?0)))
         (setq linkname (substring string tar-link-offset link-end))
-        (when (and uname-valid-p
+        (when (and (equal uname-valid-p "ustar\0\0")
                    (string-match nulsexp string tar-prefix-offset)
                    (> (match-end 0) (1+ tar-prefix-offset)))
           (setq name (concat (substring string tar-prefix-offset
@@ -271,6 +272,8 @@ write-date, checksum, link-type, and link-name."
                 (setf (tar-header-link-name descriptor) name))
                (t
                 (message "Unrecognized GNU Tar @LongLink format")))
+              (setf (tar-header-header-start descriptor)
+                    (copy-marker (- pos 512) t))
               descriptor)
         
           (make-tar-header
@@ -291,6 +294,19 @@ write-date, checksum, link-type, and link-name."
            (tar-parse-octal-integer string tar-dmin-offset tar-prefix-offset)
            ))))))
 
+;; Pseudo-field.
+(defun tar-header-data-end (descriptor)
+  (let* ((data-start (tar-header-data-start descriptor))
+         (link-type (tar-header-link-type descriptor))
+         (size (tar-header-size descriptor))
+         (fudge (cond
+                 ;; Foo.  There's an extra empty block after these.
+                 ((memq link-type '(20 55)) 512)
+                 (t 0))))
+    (+ data-start fudge
+       (if (and (null link-type) (> size 0))
+           (tar-roundup-512 size)
+         0))))
 
 (defun tar-parse-octal-integer (string &optional start end)
   (if (null start) (setq start 0))
@@ -331,7 +347,6 @@ write-date, checksum, link-type, and link-name."
 (defun tar-header-block-checksum (string)
   "Compute and return a tar-acceptable checksum for this block."
   (assert (not (multibyte-string-p string)))
-  (setq string (string-as-unibyte string))
   (let* ((chk-field-start tar-chk-offset)
 	 (chk-field-end (+ chk-field-start 8))
 	 (sum 0)
@@ -449,27 +464,20 @@ MODE should be an integer which is a file mode value."
     (with-current-buffer tar-data-buffer
       (while (and (<= (+ pos 512) (point-max))
                   (setq descriptor (tar-header-block-tokenize pos)))
-        (setq pos (marker-position (tar-header-data-start descriptor)))
-        (progress-reporter-update progress-reporter pos)
-        (if (memq (tar-header-link-type descriptor) '(20 55))
-            ;; Foo.  There's an extra empty block after these.
-            (setq pos (+ pos 512)))
         (let ((size (tar-header-size descriptor)))
           (if (< size 0)
               (error "%s has size %s - corrupted"
-                     (tar-header-name descriptor) size))
-          ;;
-          ;; This is just too slow.  Don't really need it anyway....
-          ;;(tar-header-block-check-checksum
-          ;;  hblock (tar-header-block-checksum hblock)
-          ;;  (tar-header-name descriptor))
+                     (tar-header-name descriptor) size)))
+        ;;
+        ;; This is just too slow.  Don't really need it anyway....
+        ;;(tar-header-block-check-checksum
+        ;;  hblock (tar-header-block-checksum hblock)
+        ;;  (tar-header-name descriptor))
+        
+        (push descriptor result)
+        (setq pos (tar-header-data-end descriptor))
+        (progress-reporter-update progress-reporter pos)))
 
-          (push descriptor result)
-
-          (and (null (tar-header-link-type descriptor))
-               (> size 0)
-               (setq pos (+ pos (tar-roundup-512 size)))))))
-    
     (set (make-local-variable 'tar-parse-info) (nreverse result))
     ;; A tar file should end with a block or two of nulls,
     ;; but let's not get a fatal error if it doesn't.
@@ -617,7 +625,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (add-hook 'kill-buffer-hook 'tar-mode-kill-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'tar-change-major-mode-hook nil t)
   ;; Tar data is made of bytes, not chars.
-  (set-buffer-multibyte nil)
+  (set-buffer-multibyte nil)            ;Hopefully a no-op.
   (set (make-local-variable 'tar-data-buffer)
        (generate-new-buffer (format " *tar-data %s*"
                                     (file-name-nondirectory
@@ -674,7 +682,7 @@ appear on disk when you save the tar-file's buffer."
   "Move cursor vertically down ARG lines and to the start of the filename."
   (interactive "p")
   (forward-line arg)
-  (if (eobp) nil (forward-char (if tar-mode-show-date 54 36))))
+  (goto-char (or (next-single-property-change (point) 'mouse-face) (point))))
 
 (defun tar-previous-line (arg)
   "Move cursor vertically up ARG lines and to the start of the filename."
@@ -905,14 +913,7 @@ With a prefix argument, un-mark that many files backward."
 
 (defun tar-expunge-internal ()
   "Expunge the tar-entry specified by the current line."
-  (let* ((descriptor (tar-current-descriptor))
-	 ;; (line (tar-header-data-start descriptor))
-	 (name (tar-header-name descriptor))
-	 (size (tar-header-size descriptor))
-	 (link-p (tar-header-link-type descriptor))
-	 (start (tar-header-data-start descriptor))
-	 (following-descs (cdr (memq descriptor tar-parse-info))))
-    (if link-p (setq size 0)) ; size lies for hard-links.
+  (let ((descriptor (tar-current-descriptor)))
     ;;
     ;; delete the current line...
     (delete-region (line-beginning-position) (line-beginning-position 2))
@@ -921,10 +922,10 @@ With a prefix argument, un-mark that many files backward."
     (setq tar-parse-info (delq descriptor tar-parse-info))
     ;;
     ;; delete the data from inside the file...
-    (let* ((data-start (- start 512))
-	   (data-end (+ start (tar-roundup-512 size))))
-      (with-current-buffer tar-data-buffer
-        (delete-region data-start data-end)))))
+    (with-current-buffer tar-data-buffer
+      (delete-region (or (tar-header-header-start descriptor)
+                         (- (tar-header-data-start descriptor) 512))
+                     (tar-header-data-end descriptor)))))
 
 
 (defun tar-expunge (&optional noconfirm)
@@ -1019,12 +1020,29 @@ for this to be permanent."
 	    (tar-header-name (tar-current-descriptor)))))
   (if (string= "" new-name) (error "zero length name"))
   (let ((encoded-new-name (encode-coding-string new-name
-						tar-file-name-coding-system)))
+						tar-file-name-coding-system))
+        (descriptor (tar-current-descriptor))
+        (prefix nil))
+    (when (tar-header-header-start descriptor)
+      ;; FIXME: Make it work for ././@LongLink.
+      (error "Rename with @LongLink format is not implemented"))
+
+    (when (and (> (length encoded-new-name) 98)
+               (string-match "/" encoded-new-name
+			     (- (length encoded-new-name) 99))
+	       (< (match-beginning 0) 155))
+      (unless (equal (tar-header-magic descriptor) "ustar\0\0")
+        (tar-alter-one-field tar-magic-offset "ustar\0\0"))
+      (setq prefix (substring encoded-new-name 0 (match-beginning 0)))
+      (setq encoded-new-name (substring encoded-new-name (match-end 0))))
+
     (if (> (length encoded-new-name) 98) (error "name too long"))
-    (setf (tar-header-name (tar-current-descriptor)) new-name)
-    ;; FIXME: Make it work for ././@LongLink.
+    (setf (tar-header-name descriptor) new-name)
     (tar-alter-one-field 0
-     (substring (concat encoded-new-name (make-string 99 0)) 0 99))))
+     (substring (concat encoded-new-name (make-string 99 0)) 0 99))
+    (if prefix
+        (tar-alter-one-field tar-prefix-offset
+         (substring (concat prefix (make-string 155 0)) 0 155)))))
 
 
 (defun tar-chmod-entry (new-mode)
@@ -1038,41 +1056,43 @@ for this to be permanent."
     (concat (substring (format "%6o" new-mode) 0 6) "\000 ")))
 
 
-(defun tar-alter-one-field (data-position new-data-string)
-  (let* ((descriptor (tar-current-descriptor)))
-    ;;
-    ;; update the header-line.
-    (let ((col (current-column)))
-      (delete-region (line-beginning-position) (line-beginning-position 2))
-      (insert (tar-header-block-summarize descriptor) "\n")
-      (forward-line -1) (move-to-column col))
+(defun tar-alter-one-field (data-position new-data-string &optional descriptor)
+  (unless descriptor (setq descriptor (tar-current-descriptor)))
+  ;;
+  ;; update the header-line.
+  (let ((col (current-column)))
+    (delete-region (line-beginning-position)
+                   (prog2 (forward-line 1)
+                       (point)
+                     ;; Insert the new text after the old, before deleting,
+                     ;; to preserve markers such as the window start.
+                     (insert (tar-header-block-summarize descriptor) "\n")))
+    (forward-line -1) (move-to-column col))
 
-    (with-current-buffer tar-data-buffer
-      (let* ((start (- (tar-header-data-start descriptor) 512)))
+  (assert (tar-data-swapped-p))
+  (with-current-buffer tar-data-buffer
+    (let* ((start (- (tar-header-data-start descriptor) 512)))
         ;;
         ;; delete the old field and insert a new one.
         (goto-char (+ start data-position))
         (delete-region (point) (+ (point) (length new-data-string))) ; <--
-
         (assert (not (or enable-multibyte-characters
                          (multibyte-string-p new-data-string))))
         (insert new-data-string)
         ;;
         ;; compute a new checksum and insert it.
         (let ((chk (tar-header-block-checksum
-                    (buffer-substring start (+ start 512)))))
-          (goto-char (+ start tar-chk-offset))
-          (delete-region (point) (+ (point) 8))
-          (insert (format "%6o" chk))
-          (insert 0)
-          (insert ? )
-          (setf (tar-header-checksum descriptor) chk)
-          ;;
-          ;; ok, make sure we didn't botch it.
-          (tar-header-block-check-checksum
-           (buffer-substring start (+ start 512))
-           chk (tar-header-name descriptor))
-          )))))
+		  (buffer-substring start (+ start 512)))))
+	(goto-char (+ start tar-chk-offset))
+	(delete-region (point) (+ (point) 8))
+	(insert (format "%6o\0 " chk))
+	(setf (tar-header-checksum descriptor) chk)
+	;;
+	;; ok, make sure we didn't botch it.
+	(tar-header-block-check-checksum
+	 (buffer-substring start (+ start 512))
+	 chk (tar-header-name descriptor))
+	))))
 
 
 (defun tar-octal-time (timeval)
@@ -1129,41 +1149,19 @@ to make your changes permanent."
               (setf (tar-header-size descriptor) subfile-size)
               ;;
               ;; Update the size field in the header block.
-              (widen)
-              (let ((header-start (- data-start 512)))
-                (goto-char (+ header-start tar-size-offset))
-                (delete-region (point) (+ (point) 12))
-                (insert (format "%11o " subfile-size))
-                ;;
-                ;; Maybe update the datestamp.
-                (if (not tar-update-datestamp)
-                    nil
-                  (goto-char (+ header-start tar-time-offset))
-                  (delete-region (point) (+ (point) 12))
-                  (insert (tar-octal-time (current-time)))
-                  (insert ?\s))
-                ;;
-                ;; compute a new checksum and insert it.
-                (let ((chk (tar-header-block-checksum
-                            (buffer-substring header-start data-start))))
-                  (goto-char (+ header-start tar-chk-offset))
-                  (delete-region (point) (+ (point) 8))
-                  (insert (format "%6o\0 " chk))
-                  (setf (tar-header-checksum descriptor) chk))))))
+              (widen))))
         ;;
-        ;; alter the descriptor-line...
+        ;; alter the descriptor-line and header
         ;;
         (let ((position (- (length tar-parse-info) (length head))))
           (goto-char (point-min))
           (forward-line position)
-          (let ((p (point))
-                (after (line-beginning-position 2)))
-            (goto-char after)
-            ;; Insert the new text after the old, before deleting,
-            ;; to preserve the window start.
-            (let ((line (tar-header-block-summarize descriptor t)))
-              (insert-before-markers line "\n"))
-            (delete-region p after)))
+	  (tar-alter-one-field tar-size-offset (format "%11o " subfile-size))
+	  ;;
+	  ;; Maybe update the datestamp.
+	  (when tar-update-datestamp
+	    (tar-alter-one-field tar-time-offset
+				 (concat (tar-octal-time (current-time)) " "))))
         ;; After doing the insertion, add any necessary final padding.
         (tar-pad-to-blocksize))
       (set-buffer-modified-p t)         ; mark the tar file as modified

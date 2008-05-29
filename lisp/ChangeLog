@@ -1,4 +1,21 @@
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header): New field `header-start'.
+	(tar-header-block-tokenize): Set it when useful.
+	Drop "GNUtar " magic value, which even GNU Tar doesn't know about.
+	(tar-header-data-end): New function.
+	(tar-summarize-buffer): Use it.
+	(tar-next-line): Fix goal column for long usernames.
+	(tar-expunge-internal): Use header-start.
+	(tar-rename-entry): Handle ustar-style long names.
+	(tar-alter-one-field): Add optional `descriptor' argument.
+	(tar-subfile-save-buffer): Use it.
+
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header): New field `header-start'.
+	(tar-header-block-tokenize): Set header-start for longlink entries.
+	(tar-expunge-internal): Use header-start to expunge longlink entries.
 
 	* files.el (hack-local-variables): Don't signal an error if the local
 	variable section is not properly terminated.
