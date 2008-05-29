@@ -1,3 +1,8 @@
+2008-05-29  Espen Wiborg  <espen.wiborg@telio.no>  (tiny change)
+
+	* international/utf-7.el (utf-7-encode): Use the right escape char
+	depending on imap/nonimap encoding.
+
 2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm-all-completions): Add the base-size.
