@@ -772,6 +772,12 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
 
+  /* Prefer truetype fonts, to avoid known problems with type1 fonts, and
+     limitations in bitmap fonts.  */
+  val = AREF (font_entity, FONT_FOUNDRY_INDEX);
+  if (!EQ (val, Qraster))
+    logfont.lfOutPrecision = OUT_TT_PRECIS;
+
   size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
   if (!size)
     size = pixel_size;
