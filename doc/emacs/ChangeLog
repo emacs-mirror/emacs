@@ -1,3 +1,8 @@
+2008-05-29  Drew Adams  <drew.adams@oracle.com>
+
+	* msdog.texi (Windows Keyboard): Add descriptions of
+	w32-register-hot-key and w32-unregister-hot-key.
+
 2008-05-21  Tom Tromey  <tromey@redhat.com>
 
 	* custom.texi (Directory Variables): Grammar fix.  Link to Safe File
@@ -10,8 +15,7 @@
 
 2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc2-xtra.texi: Mofify an example so it reflects what vc.el 
-	now does.
+	* vc2-xtra.texi: Modify an example so it reflects what vc.el now does.
 
 2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -111,8 +115,8 @@
 	the default behavior with Transient Mark mode off.
 	(Position Info): Fix typo.
 
-	* display.texi (Standard Faces): Reference the Mark node.  Remove
-	discussion of the region face, which is discussed there.
+	* display.texi (Standard Faces): Reference the Mark node.
+	Remove discussion of the region face, which is discussed there.
 
 	* emacs.texi (Top): Update node listings.
 
