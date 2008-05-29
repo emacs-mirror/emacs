@@ -6790,8 +6790,14 @@ relative_filename (file, dir)
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
+  while (*dp == '/')
+    ++dp;
   while ((dp = etags_strchr (dp + 1, '/')) != NULL)
-    i += 1;
+    {
+      i += 1;
+      while (*dp == '/')
+	++dp;
+    }
   res = xnew (3*i + strlen (fp + 1) + 1, char);
   res[0] = '\0';
   while (i-- > 0)
