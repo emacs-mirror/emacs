@@ -1,10 +1,16 @@
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local): Disallow mixing buffer-local and
+	frame-local settings for the same variable.
+
 2008-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (enum define_coding_utf8_arg_index): New enum.
 	(enum coding_attr_index): Change coding_attr_utf_16_bom to
 	coding_attr_utf_bom.
-	(enum utf_bom_type): Renamed from utf_16_bom_type.
-	(struct utf_16_spec): Adjusted for the above change.
+	(enum utf_bom_type): Rename from utf_16_bom_type.
+	(struct utf_16_spec): Adjust for the above change.
 	(struct coding_system): Add utf_8_bom in `spec' union.
 
 	* coding.c (CODING_UTF_8_BOM): New macro.
@@ -21,8 +27,7 @@
 	(UTF_BOM, UTF_8_BOM_1, UTF_8_BOM_2, UTF_8_BOM_3): New macros.
 	(detect_coding_utf_8): Check BOM.
 	(decode_coding_utf_8, encode_coding_utf_8): Handle BOM.
-	(decode_coding_utf_16): Adjusted for the change of enum
-	utf_bom_type.
+	(decode_coding_utf_16): Adjust for the change of enum utf_bom_type.
 	(encode_coding_utf_16): Likewise.
 	(setup_coding_system): Likewise.  Set CODING_UTF_8_BOM (coding).
 	(detect_coding, detect_coding_system): Handle utf-8-auto.
@@ -38,11 +43,11 @@
 
 2008-05-29  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_open_internal): Prefer truetype fonts unless
-        `raster' specified.
-        (add_font_entity_to_list): Allow non-opentype truetype fonts back
-        in the uniscribe backend, but disallow any font that has no
-        unicode subrange support.
+	* w32font.c (w32font_open_internal): Prefer truetype fonts unless
+	`raster' specified.
+	(add_font_entity_to_list): Allow non-opentype truetype fonts back
+	in the uniscribe backend, but disallow any font that has no
+	unicode subrange support.
 
 2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
 
