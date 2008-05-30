@@ -131,7 +131,7 @@ the value of its argument.  If completion is performed in the minibuffer,
 FUN will be called in the buffer from which the minibuffer was entered.
 
 The result of the `dynamic-completion-table' form is a function
-that can be used as the ALIST argument to `try-completion' and
+that can be used as the COLLECTION argument to `try-completion' and
 `all-completions'.  See Info node `(elisp)Programmed Completion'."
   (lexical-let ((fun fun))
     (lambda (string pred action)
@@ -978,7 +978,7 @@ specified by COMMON-SUBSTRING."
     (let ((start (length (file-name-directory string)))
           (end (string-match "/" (cdr action))))
       (list* 'boundaries start end)))
-    
+
    (t
     (let* ((dir (if (stringp pred)
                     ;; It used to be that `pred' was abused to pass `dir'
