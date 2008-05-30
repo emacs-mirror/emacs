@@ -1,3 +1,9 @@
+2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (describe-font): Don't check fontset
+	here, and just call font-info.  Get the default font by from the
+	default face.
+
 2008-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el (utf-8-sig, utf-8-auto): New coding
