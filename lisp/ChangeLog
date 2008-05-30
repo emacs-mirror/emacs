@@ -1,3 +1,7 @@
+2008-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-table-dynamic): Doc fix.
+
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-cvs.el (vc-cvs-state-heuristic, vc-cvs-parse-status): Try and
@@ -42,11 +46,10 @@
 
 2008-05-29  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el (utf-8-sig, utf-8-auto): New coding
-	systems.
+	* international/mule-conf.el (utf-8-sig, utf-8-auto):
+	New coding systems.
 
-	* international/mule.el (define-coding-system): Accept :bom for
-	utf-8.
+	* international/mule.el (define-coding-system): Accept :bom for utf-8.
 
 2008-05-29  Espen Wiborg  <espen.wiborg@telio.no>  (tiny change)
 
