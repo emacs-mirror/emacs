@@ -1952,7 +1952,7 @@ Clear encoder and decoder of charsets that are loaded from mapfiles.  */)
 
   if (CHAR_TABLE_P (Vchar_unified_charset_table))
     {
-      Foptimize_char_table (Vchar_unified_charset_table);
+      Foptimize_char_table (Vchar_unified_charset_table, Qnil);
       Vchar_unify_table = Vchar_unified_charset_table;
       Vchar_unified_charset_table = Qnil;
     }

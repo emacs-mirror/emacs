@@ -159,14 +159,12 @@ copy_char_table (table)
   XCHAR_TABLE (copy)->defalt = XCHAR_TABLE (table)->defalt;
   XCHAR_TABLE (copy)->parent = XCHAR_TABLE (table)->parent;
   XCHAR_TABLE (copy)->purpose = XCHAR_TABLE (table)->purpose;
-  XCHAR_TABLE (copy)->ascii = XCHAR_TABLE (table)->ascii;
   for (i = 0; i < chartab_size[0]; i++)
     XCHAR_TABLE (copy)->contents[i]
       = (SUB_CHAR_TABLE_P (XCHAR_TABLE (table)->contents[i])
 	 ? copy_sub_char_table (XCHAR_TABLE (table)->contents[i])
 	 : XCHAR_TABLE (table)->contents[i]);
-  if (SUB_CHAR_TABLE_P (XCHAR_TABLE (copy)->ascii))
-    XCHAR_TABLE (copy)->ascii = char_table_ascii (copy);
+  XCHAR_TABLE (copy)->ascii = char_table_ascii (copy);
   size -= VECSIZE (struct Lisp_Char_Table) - 1;
   for (i = 0; i < size; i++)
     XCHAR_TABLE (copy)->extras[i] = XCHAR_TABLE (table)->extras[i];
@@ -656,8 +654,8 @@ char_table_translate (table, ch)
 }
 
 static Lisp_Object
-optimize_sub_char_table (table)
-     Lisp_Object table;
+optimize_sub_char_table (table, test)
+     Lisp_Object table, test;
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -666,7 +664,8 @@ optimize_sub_char_table (table)
 
   elt = XSUB_CHAR_TABLE (table)->contents[0];
   if (SUB_CHAR_TABLE_P (elt))
-    elt = XSUB_CHAR_TABLE (table)->contents[0] = optimize_sub_char_table (elt);
+    elt = XSUB_CHAR_TABLE (table)->contents[0]
+      = optimize_sub_char_table (elt, test);
   if (SUB_CHAR_TABLE_P (elt))
     return table;
   for (i = 1; i < chartab_size[depth]; i++)
@@ -674,9 +673,11 @@ optimize_sub_char_table (table)
       this = XSUB_CHAR_TABLE (table)->contents[i];
       if (SUB_CHAR_TABLE_P (this))
 	this = XSUB_CHAR_TABLE (table)->contents[i]
-	  = optimize_sub_char_table (this);
+	  = optimize_sub_char_table (this, test);
       if (SUB_CHAR_TABLE_P (this)
-	  || NILP (Fequal (this, elt)))
+	  || (NILP (test) ? NILP (Fequal (this, elt)) /* defaults to `equal'. */
+	      : EQ (test, Qeq) ? !EQ (this, elt)      /* Optimize `eq' case.  */
+	      : NILP (call2 (test, this, elt))))
 	break;
     }
 
@@ -684,10 +685,12 @@ optimize_sub_char_table (table)
 }
 
 DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
-       1, 1, 0,
-       doc: /* Optimize CHAR-TABLE.  */)
-     (char_table)
-     Lisp_Object char_table;
+       1, 2, 0,
+       doc: /* Optimize CHAR-TABLE.
+TEST is the comparison function used to decide whether two entries are
+equivalent and can be merged.  It defaults to `equal'.  */)
+     (char_table, test)
+     Lisp_Object char_table, test;
 {
   Lisp_Object elt;
   int i;
@@ -698,7 +701,8 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
     {
       elt = XCHAR_TABLE (char_table)->contents[i];
       if (SUB_CHAR_TABLE_P (elt))
-	XCHAR_TABLE (char_table)->contents[i] = optimize_sub_char_table (elt);
+	XCHAR_TABLE (char_table)->contents[i]
+	  = optimize_sub_char_table (elt, test);
     }
   return Qnil;
 }
@@ -777,7 +781,7 @@ map_sub_char_table (c_function, function, table, arg, val, range,
 	{
 	  if (NILP (this))
 	    this = default_val;
-	  if (NILP (Fequal (val, this)))
+	  if (!EQ (val, this))
 	    {
 	      int different_value = 1;
 
@@ -797,7 +801,7 @@ map_sub_char_table (c_function, function, table, arg, val, range,
 						parent, arg, val, range,
 						XCHAR_TABLE (parent)->defalt,
 						XCHAR_TABLE (parent)->parent);
-		      if (! NILP (Fequal (val, this)))
+		      if (EQ (val, this))
 			different_value = 0;
 		    }
 		}
@@ -841,7 +845,6 @@ map_char_table (c_function, function, table, arg)
      Lisp_Object function, table, arg;
 {
   Lisp_Object range, val;
-  int c, i;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   range = Fcons (make_number (0), make_number (MAX_CHAR));

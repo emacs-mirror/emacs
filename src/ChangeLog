@@ -1,7 +1,15 @@
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* chartab.c (Foptimize_char_table, optimize_sub_char_table):
+	Add a `test' argument so another predicate than `equal' can be used.
+	(map_sub_char_table): Use `eq' rather than `equal' to merge ranges.
+	(map_char_table): Remove unused vars `c' and `i'.
+	* lisp.h (Foptimize_char_table): Adjust declaration.
+	* charset.c (Fclear_charset_maps): Adjust call to Foptimize_char_table.
+
 2008-05-30  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (Ffont_info): Define only if HAVE_WINDOW_SYSTEM is
-	defined.
+	* font.c (Ffont_info): Define only if HAVE_WINDOW_SYSTEM is defined.
 	(syms_of_font): Defsubr Sfont_info only if HAVE_WINDOW_SYSTEM is
 	defined.
 
