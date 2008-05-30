@@ -1633,61 +1633,6 @@ fontset_from_font (font_object)
   return XINT (FONTSET_ID (fontset));
 }
 
-DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
-       doc: /* Return information about a font named NAME on frame FRAME.
-If FRAME is omitted or nil, use the selected frame.
-The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,
-  HEIGHT, BASELINE-OFFSET, RELATIVE-COMPOSE, and DEFAULT-ASCENT,
-where
-  OPENED-NAME is the name used for opening the font,
-  FULL-NAME is the full name of the font,
-  SIZE is the maximum bound width of the font,
-  HEIGHT is the height of the font,
-  BASELINE-OFFSET is the upward offset pixels from ASCII baseline,
-  RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
-    how to compose characters.
-If the named font is not yet loaded, return nil.  */)
-     (name, frame)
-     Lisp_Object name, frame;
-{
-  FRAME_PTR f;
-  struct font *font;
-  Lisp_Object info;
-  Lisp_Object font_object;
-
-  (*check_window_system_func) ();
-
-  CHECK_STRING (name);
-  name = Fdowncase (name);
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  font_object = font_open_by_name (f, (char *) SDATA (name));
-  if (NILP (font_object))
-    return Qnil;
-  font = XFONT_OBJECT (font_object);
-
-  info = Fmake_vector (make_number (7), Qnil);
-  XVECTOR (info)->contents[0] = AREF (font_object, FONT_NAME_INDEX);
-  XVECTOR (info)->contents[1] = AREF (font_object, FONT_NAME_INDEX);
-  XVECTOR (info)->contents[2] = make_number (font->pixel_size);
-  XVECTOR (info)->contents[3] = make_number (font->height);
-  XVECTOR (info)->contents[4] = make_number (font->baseline_offset);
-  XVECTOR (info)->contents[5] = make_number (font->relative_compose);
-  XVECTOR (info)->contents[6] = make_number (font->default_ascent);
-
-#if 0
-  /* As font_object is still in FONT_OBJLIST of the entity, we can't
-     close it now.  Perhaps, we should manage font-objects
-     by `reference-count'.  */
-  font_close_object (f, font_object);
-#endif
-  return info;
-}
-
-
 /* Return a cons (FONT-NAME . GLYPH-CODE).
    FONT-NAME is the font name for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
@@ -2143,7 +2088,6 @@ at the vertical center of lines.  */);
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
   defsubr (&Sset_fontset_font);
-  defsubr (&Sfont_info);
   defsubr (&Sinternal_char_font);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
