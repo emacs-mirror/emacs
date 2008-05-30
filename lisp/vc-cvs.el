@@ -231,6 +231,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
     (cond
      ((equal checkout-time lastmod) 'up-to-date)
      ((string= (vc-working-revision file) "0") 'added)
+     ((null checkout-time) 'unregistered)
      (t 'edited))))
 
 (defun vc-cvs-working-revision (file)
@@ -800,9 +801,8 @@ state."
        ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
 	(setq file (expand-file-name (match-string 1)))
 	(vc-file-setprop file 'vc-backend 'CVS)
-	(if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-	    (setq status "Unknown")
-	  (setq status (match-string 1)))
+	(setq status(if (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t)
+                        (match-string 1) "Unknown"))
 	(when (and full
 		   (re-search-forward
 		    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
@@ -823,6 +823,7 @@ state."
 	  ((string-match "Locally Added" status)                'added)
 	  ((string-match "Locally Removed" status)              'removed)
 	  ((string-match "File had conflicts " status)          'conflict)
+          ((string-match "Unknown" status)			'unregistered)
 	  (t 'edited))))))))
 
 (defun vc-cvs-after-dir-status (update-function)

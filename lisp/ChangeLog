@@ -1,5 +1,8 @@
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-cvs.el (vc-cvs-state-heuristic, vc-cvs-parse-status): Try and
+	return `unregistered' when applicable.
+
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	Don't encourage naming variables with "-flag".
 
@@ -295,7 +298,7 @@
 
 	* vc.el (vc-delete-file): Don't try to resynch the buffer.
 
-2008-05-23  Paul R  <paul.r.ml@gmail.com>
+2008-05-23  Paul Rivier  <paul.r.ml@gmail.com>
 
 	* textmodes/reftex-vars.el (reftex-extra-bindings-prefix): New var.
 	* textmodes/reftex.el (reftex-extra-bindings-map): New var.
