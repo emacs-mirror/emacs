@@ -1,3 +1,10 @@
+2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_info): Define only if HAVE_WINDOW_SYSTEM is
+	defined.
+	(syms_of_font): Defsubr Sfont_info only if HAVE_WINDOW_SYSTEM is
+	defined.
+
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
