@@ -1,3 +1,31 @@
+2008-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): Hide the warning when it does not apply,
+	make it milder when it does.
+	(autogen-clean): New target.
+	(maintainer-clean): Use autogen-clean.
+
+	* calendar/diary-lib.el (diary-display-function): New name for
+	diary-display-hook.  Keep old name as obsolete alias.  Doc fix.
+	Change custom type and version.
+	(diary-list-entries-hook, diary-list-entries, diary-simple-display)
+	(diary-fancy-display): Doc fixes.
+	(diary-list-entries, diary-include-other-diary-files)
+	(diary-mail-entries):
+	Use diary-display-function rather than diary-display-hook.
+
+	* calendar/appt.el (appt-check): Use diary-display-function rather than
+	diary-display-hook.
+	* calendar/cal-x.el (calendar-dedicate-diary): Update for
+	diary-display-function replacing diary-display-hook.
+	* org/org-agenda.el (org-get-entries-from-diary): Also set
+	diary-display-function.
+
+	* calendar/cal-html.el (cal-html-list-diary-entries):
+	* calendar/cal-menu.el (calendar-mouse-view-diary-entries):
+	* calendar/cal-tex.el (cal-tex-list-diary-entries): Use LIST-ONLY
+	argument of diary-list-entries rather than setting diary-display-hook.
+
 2008-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (describe-font): Don't check fontset
