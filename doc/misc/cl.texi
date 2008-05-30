@@ -2599,7 +2599,7 @@ This clause simply counts up to the specified number using an
 internal temporary variable.  The loops
 
 @example
-(loop repeat n do ...)
+(loop repeat (1+ n) do ...)
 (loop for temp to n do ...)
 @end example
 
