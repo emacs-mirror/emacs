@@ -1,3 +1,8 @@
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Don't encourage naming variables with "-flag".
+
 2008-05-30  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (update-elclist): Hide the warning when it does not apply,
