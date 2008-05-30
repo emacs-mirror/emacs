@@ -4349,6 +4349,8 @@ Type C-l to recover what previously shown.  */)
 
 #endif	/* FONT_DEBUG */
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
        doc: /* Return information about a font named NAME on frame FRAME.
 If FRAME is omitted or nil, use the selected frame.
@@ -4420,6 +4422,7 @@ If the named font is not yet loaded, return nil.  */)
 #endif
   return info;
 }
+#endif
 
 
 #define BUILD_STYLE_TABLE(TBL) \
@@ -4591,7 +4594,9 @@ syms_of_font ()
   defsubr (&Sdraw_string);
 #endif
 #endif	/* FONT_DEBUG */
+#ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sfont_info);
+#endif
 
   DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
 	       doc: /*
