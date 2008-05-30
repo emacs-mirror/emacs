@@ -296,7 +296,7 @@ font_style_to_value (prop, val, noerror)
 
   if (SYMBOLP (val))
     {
-      char *s;
+      unsigned char *s;
       Lisp_Object args[2], elt;
 
       /* At first try exact match.  */
@@ -306,12 +306,12 @@ font_style_to_value (prop, val, noerror)
 	    return ((XINT (AREF (AREF (table, i), 0)) << 8)
 		    | (i << 4) | (j - 1));
       /* Try also with case-folding match.  */
-      s = (char *) SDATA (SYMBOL_NAME (val));
+      s = SDATA (SYMBOL_NAME (val));
       for (i = 0; i < len; i++)
 	for (j = 1; j < ASIZE (AREF (table, i)); j++)
 	  {
 	    elt = AREF (AREF (table, i), j);
-	    if (xstrcasecmp (s, (char *) SDATA (SYMBOL_NAME (elt))) == 0)
+	    if (xstrcasecmp (s, SDATA (SYMBOL_NAME (elt))) == 0)
 	      return ((XINT (AREF (AREF (table, i), 0)) << 8)
 		      | (i << 4) | (j - 1));
 	  }
@@ -1980,8 +1980,7 @@ font_score (entity, spec_prop, alternate_families)
 	Lisp_Object entity_str = SYMBOL_NAME (AREF (entity, i));
 	Lisp_Object spec_str = SYMBOL_NAME (spec_prop[i]);
 
-	if (xstrcasecmp ((char *) SDATA (spec_str),
-                         (char *) SDATA (entity_str)))
+	if (xstrcasecmp (SDATA (spec_str), SDATA (entity_str)))
 	  {
 	    if (i == FONT_FAMILY_INDEX && CONSP (alternate_families))
 	      {
@@ -1991,10 +1990,8 @@ font_score (entity, spec_prop, alternate_families)
 		     j++, alternate_families = XCDR (alternate_families))
 		  {
 		    spec_str = XCAR (alternate_families);
-		    if (xstrcasecmp ((char *) SDATA (spec_str),
-                                     (char *) SDATA (entity_str)) == 0)
+		    if (xstrcasecmp (SDATA (spec_str), SDATA (entity_str)) == 0)
 		      break;
-
 		  }
 		if (j > 3)
 		  j = 3;
@@ -3095,7 +3092,8 @@ register_font_driver (driver, f)
     f->font_driver_list = list;
   else
     font_driver_list = list;
-  num_font_drivers++;
+  if (! f)
+    num_font_drivers++;
 }
 
 
@@ -4351,6 +4349,78 @@ Type C-l to recover what previously shown.  */)
 
 #endif	/* FONT_DEBUG */
 
+DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
+       doc: /* Return information about a font named NAME on frame FRAME.
+If FRAME is omitted or nil, use the selected frame.
+The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,
+  HEIGHT, BASELINE-OFFSET, RELATIVE-COMPOSE, and DEFAULT-ASCENT,
+where
+  OPENED-NAME is the name used for opening the font,
+  FULL-NAME is the full name of the font,
+  SIZE is the maximum bound width of the font,
+  HEIGHT is the height of the font,
+  BASELINE-OFFSET is the upward offset pixels from ASCII baseline,
+  RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
+    how to compose characters.
+If the named font is not yet loaded, return nil.  */)
+     (name, frame)
+     Lisp_Object name, frame;
+{
+  FRAME_PTR f;
+  struct font *font;
+  Lisp_Object info;
+  Lisp_Object font_object;
+
+  (*check_window_system_func) ();
+
+  if (! FONTP (name))
+    CHECK_STRING (name);
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  if (STRINGP (name))
+    {
+      int fontset = fs_query_fontset (name, 0);
+
+      if (fontset >= 0)
+	name = fontset_ascii (fontset);
+      font_object = font_open_by_name (f, (char *) SDATA (name));
+    }
+  else if (FONT_OBJECT_P (name))
+    font_object = name;
+  else if (FONT_ENTITY_P (name))
+    font_object = font_open_entity (f, name, 0);
+  else
+    {
+      struct face *face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      Lisp_Object entity = font_matching_entity (f, face->lface, name);
+
+      font_object = ! NILP (entity) ? font_open_entity (f, entity, 0) : Qnil;
+    }
+  if (NILP (font_object))
+    return Qnil;
+  font = XFONT_OBJECT (font_object);
+
+  info = Fmake_vector (make_number (7), Qnil);
+  XVECTOR (info)->contents[0] = AREF (font_object, FONT_NAME_INDEX);
+  XVECTOR (info)->contents[1] = AREF (font_object, FONT_NAME_INDEX);
+  XVECTOR (info)->contents[2] = make_number (font->pixel_size);
+  XVECTOR (info)->contents[3] = make_number (font->height);
+  XVECTOR (info)->contents[4] = make_number (font->baseline_offset);
+  XVECTOR (info)->contents[5] = make_number (font->relative_compose);
+  XVECTOR (info)->contents[6] = make_number (font->default_ascent);
+
+#if 0
+  /* As font_object is still in FONT_OBJLIST of the entity, we can't
+     close it now.  Perhaps, we should manage font-objects
+     by `reference-count'.  */
+  font_close_object (f, font_object);
+#endif
+  return info;
+}
+
 
 #define BUILD_STYLE_TABLE(TBL) \
   build_style_table ((TBL), sizeof TBL / sizeof (struct table_entry))
@@ -4521,6 +4591,7 @@ syms_of_font ()
   defsubr (&Sdraw_string);
 #endif
 #endif	/* FONT_DEBUG */
+  defsubr (&Sfont_info);
 
   DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
 	       doc: /*
