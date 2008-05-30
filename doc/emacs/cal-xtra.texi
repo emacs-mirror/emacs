@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -525,18 +526,19 @@ diary entry.
 
 @node Fancy Diary Display
 @subsection Fancy Diary Display
-@vindex diary-display-hook
+@vindex diary-display-function
 @findex diary-simple-display
 
   Diary display works by preparing the diary buffer and then running the
-hook @code{diary-display-hook}.  The default value of this hook
-(@code{diary-simple-display}) hides the irrelevant diary entries and
-then displays the buffer.  However, if you specify the hook as follows,
+function specified by the variable @code{diary-display-function}.  The
+default value (@code{diary-simple-display}) hides the irrelevant diary
+entries and then displays the buffer.  However, if you set the variable
+as follows,
 
 @cindex diary buffer
 @findex diary-fancy-display
 @example
-(add-hook 'diary-display-hook 'diary-fancy-display)
+(setq diary-display-function 'diary-fancy-display)
 @end example
 
 @noindent
