@@ -138,10 +138,6 @@ the name is one word, add just @samp{p}; if the name is multiple words,
 add @samp{-p}.  Examples are @code{framep} and @code{frame-live-p}.
 
 @item
-If a user option variable records a true-or-false condition, give it a
-name that ends in @samp{-flag}.
-
-@item
 If the purpose of a variable is to store a single function, give it a
 name that ends in @samp{-function}.  If the purpose of a variable is
 to store a list of functions (i.e., the variable is a hook), please
