@@ -288,7 +288,7 @@ They count bytes from the beginning of the body."
           (decode-coding-inserted-region start (point) url visit beg end replace))
         (list url (car size-and-charset))))))
 
-(defun url-file-name-completion (url directory)
+(defun url-file-name-completion (url directory &optional predicate)
   (error "Unimplemented"))
 
 (defun url-file-name-all-completions (file directory)

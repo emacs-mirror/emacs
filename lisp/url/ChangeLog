@@ -1,3 +1,7 @@
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-file-name-completion): Add missing argument.
+
 2008-05-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-auth.el: Add autoload cookie for
