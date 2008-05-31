@@ -89,7 +89,7 @@ setwins=subdirs=`(cd $$wd; find . -type d -print)`; \
 	   esac; \
         done
 
-# Find all subdirectories except `obsolete'.
+# Find all subdirectories except `obsolete' and `term'.
 
 setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
@@ -1271,17 +1271,15 @@ compile-always: doit
 ## In case any files are missing from ELCFILES.
 compile-last:
 	@wd=$(lisp); $(setwins); \
-	els=`echo $$wins | tr ' \011' '\012\012' | \
-		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
+	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $(COMPILE_FIRST) $$els; do \
-	  elc=$${el}c; \
-	  if test -f $$el && ! test -f $$elc && \
-	    ! grep 'no-byte-compile: t' $$el > /dev/null; then \
-	      sel=`echo $el | sed "s|^$$lisp|\$$(lisp)|"`; \
-	      echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
-	      echo "Compiling $$el"; \
-	      $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
-	  fi \
+	  test -f $$el || continue; \
+	  test -f $${el}c && continue; \
+	  grep 'no-byte-compile: t' $$el > /dev/null && continue; \
+	  sel=`echo $$el | sed "s|^$(lisp)|\\$$(lisp)|"`; \
+	  echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
+	  echo "Compiling $$el"; \
+	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 
 compile-calc:
