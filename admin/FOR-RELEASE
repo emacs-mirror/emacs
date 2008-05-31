@@ -124,18 +124,6 @@ The "data" size increased for emacs from ~4MB to ~11MB on x86.
 The temacs sizes are comparable.
 http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 
-** font-backend problems:
-
-*** Xresource pane.menubar.*font no longer takes effect
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00314.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg01683.html
-
-*** font-lock faces use different font with font-backend
-http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00651.html
-
-*** font height problems with font-backend
-http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00620.html
-
 
 * DOCUMENTATION
 
