@@ -870,7 +870,7 @@ state."
 	       ((string-match "Locally Added" status-str) 'added)
 	       ((string-match "Locally Removed" status-str) 'removed)
 	       ((string-match "File had conflicts " status-str) 'conflict)
-	       ((string-match "Unknown" 'unregistered))
+	       ((string-match "Unknown" status-str) 'unregistered)
 	       (t 'edited)))
 	(unless (eq status 'up-to-date)
 	  (push (list file status) result)))
