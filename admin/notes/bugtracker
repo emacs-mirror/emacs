@@ -19,7 +19,7 @@ http://emacsbugs.donarmstrong.com/Developer#tags
 
 To tag bug #123 (for example), send a mail of the form:
 To: control@emacsbugs.donarmstrong.com
-Tag 123 wontfix
+tag 123 wontfix
 
 
 To remove spam from the tracker, email the bug number to don@donarmstrong.com.
