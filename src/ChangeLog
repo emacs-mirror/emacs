@@ -1,3 +1,7 @@
+2008-05-31  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_font_format): Don't use strcasestr.
+
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* chartab.c (Foptimize_char_table, optimize_sub_char_table):
