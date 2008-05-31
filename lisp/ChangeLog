@@ -1,3 +1,8 @@
+2008-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-after-dir-status): Support spaces in file
+	names and improve support for unregistered files.
+
 2008-05-31  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (compile-last): Replace tr in `els' assignment with sed.

@@ -842,7 +842,7 @@ state."
 	(re-search-forward
 	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: Examining .*\n\\)"
 	 nil t)
-      ;; XXX: get rid of narrowing here.
+      ;; FIXME: get rid of narrowing here.
       (narrow-to-region (match-beginning 0) (match-end 0))
       (goto-char (point-min))
       ;; The subdir
@@ -855,29 +855,25 @@ state."
 	(push (list file 'unregistered) result)
 	(forward-line 1))
       ;; A file entry.
-      (when (re-search-forward "^File: " nil t)
-	(when (setq missing (looking-at "no file "))
-	  (goto-char (match-end 0)))
-	(cond
-	 ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
-	  (setq file (file-relative-name 
-		      (expand-file-name (match-string 1) subdir)))
-	  (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-	      (push (list file 'unregistered) result)
-	    (setq status-str (match-string 1))
-	    (setq status
-		  (cond
-		   ((string-match "Up-to-date" status-str) 'up-to-date)
-		   ((string-match "Locally Modified" status-str) 'edited)
-		   ((string-match "Needs Merge" status-str) 'needs-merge)
-		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
-		    (if missing 'missing 'needs-update))
-		   ((string-match "Locally Added" status-str) 'added)
-		   ((string-match "Locally Removed" status-str) 'removed)
-		   ((string-match "File had conflicts " status-str) 'conflict)
-		   (t 'edited)))
-	    (unless (eq status 'up-to-date)
-	      (push (list file status) result))))))
+      (when (re-search-forward "^File: \\(no file \\)?\\(.*[^ \t]\\)[ \t]+Status: \\(.*\\)" nil t)
+	(setq missing (match-string 1))
+	(setq file (file-relative-name
+		    (expand-file-name (match-string 2) subdir)))
+	(setq status-str (match-string 3))
+	(setq status
+	      (cond
+	       ((string-match "Up-to-date" status-str) 'up-to-date)
+	       ((string-match "Locally Modified" status-str) 'edited)
+	       ((string-match "Needs Merge" status-str) 'needs-merge)
+	       ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
+		(if missing 'missing 'needs-update))
+	       ((string-match "Locally Added" status-str) 'added)
+	       ((string-match "Locally Removed" status-str) 'removed)
+	       ((string-match "File had conflicts " status-str) 'conflict)
+	       ((string-match "Unknown" 'unregistered))
+	       (t 'edited)))
+	(unless (eq status 'up-to-date)
+	  (push (list file status) result)))
       (goto-char (point-max))
       (widen))
       (funcall update-function result))
