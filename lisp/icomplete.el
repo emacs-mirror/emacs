@@ -145,22 +145,22 @@ minibuffer completion.")
 (add-hook 'icomplete-post-command-hook 'icomplete-exhibit)
 
 (defun icomplete-get-keys (func-name)
-  "Return strings naming keys bound to `func-name', or nil if none.
+  "Return strings naming keys bound to FUNC-NAME, or nil if none.
 Examines the prior, not current, buffer, presuming that current buffer
 is minibuffer."
-  (if (commandp func-name)
+  (when (commandp func-name)
     (save-excursion
       (let* ((sym (intern func-name))
 	     (buf (other-buffer nil t))
 	     (keys (with-current-buffer buf (where-is-internal sym))))
-	(if keys
-	    (concat "<"
-		    (mapconcat 'key-description
-			       (sort keys
-				     #'(lambda (x y)
-					 (< (length x) (length y))))
-			       ", ")
-		    ">"))))))
+	(when keys
+	  (concat "<"
+		  (mapconcat 'key-description
+			     (sort keys
+				   #'(lambda (x y)
+				       (< (length x) (length y))))
+			     ", ")
+		  ">"))))))
 ;;;_  = icomplete-with-completion-tables
 (defvar icomplete-with-completion-tables '(internal-complete-buffer)
   "Specialized completion tables with which icomplete should operate.
