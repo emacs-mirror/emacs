@@ -876,7 +876,7 @@ state."
 	  (push (list file status) result)))
       (goto-char (point-max))
       (widen))
-      (funcall update-function result))
+    (funcall update-function result))
   ;; Alternative implementation: use the "update" command instead of
   ;; the "status" command.
   ;; (let ((result nil)
