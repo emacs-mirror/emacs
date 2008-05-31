@@ -1,3 +1,7 @@
+2008-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-get-keys): Doc fix.  Use `when'.
+
 2008-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-cvs.el (vc-cvs-after-dir-status): Support spaces in file
@@ -15,8 +19,8 @@
 
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* vc-cvs.el (vc-cvs-state-heuristic, vc-cvs-parse-status): Try and
-	return `unregistered' when applicable.
+	* vc-cvs.el (vc-cvs-state-heuristic, vc-cvs-parse-status):
+	Try and return `unregistered' when applicable.
 
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	Don't encourage naming variables with "-flag".
