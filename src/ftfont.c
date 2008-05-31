@@ -1707,6 +1707,7 @@ Lisp_Object
 ftfont_font_format (FcPattern *pattern)
 {
   FcChar8 *str;
+  int len;
 
 #ifdef FC_FONTFORMAT
   if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
@@ -1722,14 +1723,19 @@ ftfont_font_format (FcPattern *pattern)
 #else  /* not FC_FONTFORMAT */
   if (FcPatternGetString (pattern, FC_FILE, 0, &str) != FcResultMatch)
     return Qnil;
-  if (strcasestr ((char *) str, ".ttf") == 0)
-    return intern ("truetype");
-  if (strcasestr ((char *) str, "pfb") == 0)
-    return intern ("type1");
-  if (strcasestr ((char *) str, "pcf") == 0)  
-    return intern ("pcf");
-  if (strcasestr ((char *) str, "bdf") == 0)  
-    return intern ("bdf");
+  len = strlen ((char *) str);
+  if (len >= 4)
+    {
+      str += len - 4;
+      if (xstrcasecmp ((char *) str, ".ttf") == 0)
+	return intern ("truetype");
+      if (xstrcasecmp ((char *) str, "pfb") == 0)
+	return intern ("type1");
+      if (xstrcasecmp ((char *) str, "pcf") == 0)  
+	return intern ("pcf");
+      if (xstrcasecmp ((char *) str, "bdf") == 0)  
+	return intern ("bdf");
+    }
 #endif	/* not FC_FONTFORMAT */
   return intern ("unknown");
 }
