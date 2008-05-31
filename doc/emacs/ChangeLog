@@ -1,3 +1,7 @@
+2008-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Fix text added on 2008-05-29.
+
 2008-05-31  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Fancy Diary Display): Simplify.
