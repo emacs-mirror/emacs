@@ -2441,6 +2441,8 @@ font_list_entities (frame, spec)
 	Lisp_Object cache = font_get_cache (f, driver_list->driver);
 	Lisp_Object tail = alternate_familes;
 
+	ASET (scratch_font_spec, FONT_TYPE_INDEX, driver_list->driver->type);
+	ASET (scratch_font_spec, FONT_FAMILY_INDEX, family);
 	while (1)
 	  {
 	    val = assoc_no_quit (scratch_font_spec, XCDR (cache));
@@ -2452,6 +2454,7 @@ font_list_entities (frame, spec)
 
 		val = driver_list->driver->list (frame, scratch_font_spec);
 		copy = Fcopy_font_spec (scratch_font_spec);
+		ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
 		XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
 	      }
 	    if (! NILP (val) && need_filtering)
