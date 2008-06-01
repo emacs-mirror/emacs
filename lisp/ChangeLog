@@ -1,3 +1,7 @@
+2008-06-01  Thomas Morgan  <tlm@thomasmorgan.net>  (tiny change)
+
+	* select.el (x-get-selection): Fix typo.
+
 2008-06-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* descr-text.el (describe-text-sexp): Use `string-match-p'.  Simplify.
