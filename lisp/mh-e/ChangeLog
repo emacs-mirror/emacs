@@ -1,3 +1,8 @@
+2008-05-31  John Paul Wallington  <jpw@pobox.com>
+
+	* mh-e.el (mh-path, mh-variant): Use dotted syntax for
+	`package-version' info.
+
 2008-05-26  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-e.el (mh-invisible-header-fields-internal): Remove Newsgroups
