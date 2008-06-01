@@ -1,4 +1,4 @@
-2008-05-31  John Paul Wallington  <jpw@pobox.com>
+2008-06-01  John Paul Wallington  <jpw@pobox.com>
 
 	* mh-e.el (mh-path, mh-variant): Use dotted syntax for
 	`package-version' info.
@@ -12,7 +12,7 @@
 
 2008-05-23  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el: (mh-invisible-header-fields-internal): Remove
+	* mh-e.el (mh-invisible-header-fields-internal): Remove
 	DKIM-Signature as it is covered by DKIM-. Fully qualify X-EID.
 
 2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>
