@@ -1,3 +1,8 @@
+2008-05-31  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable-custom-version-info): Handle
+	dotted `package-version' info.
+
 2008-05-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* icomplete.el (icomplete-get-keys): Doc fix.  Use `when'.
