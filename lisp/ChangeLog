@@ -1,3 +1,8 @@
+2008-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-text-sexp): Use `string-match-p'.  Simplify.
+	(describe-char): Use `looking-at-p', `string-match-p' when possible.
+
 2008-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-header-block-summarize): Ensure one space around
@@ -5,8 +10,8 @@
 
 2008-05-31  John Paul Wallington  <jpw@pobox.com>
 
-	* help-fns.el (describe-variable-custom-version-info): Handle
-	dotted `package-version' info.
+	* help-fns.el (describe-variable-custom-version-info):
+	Handle dotted `package-version' info.
 
 2008-05-31  Juanma Barranquero  <lekktu@gmail.com>
 
