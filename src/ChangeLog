@@ -1,3 +1,9 @@
+2008-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (dot, dotdot): Remove, update users. 
+	".." has been used elsewhere in the file for a long time.
+	(LIBXT_STATIC): Remove conditional based on unused variable.
+
 2008-06-01  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Vface_remapping_alist): New variable.
