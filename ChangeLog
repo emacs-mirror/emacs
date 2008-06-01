@@ -1,3 +1,8 @@
+2008-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (USE_LUCID, USE_MOTIF): Don't use "==".
+	* configure: Regenerate.
+
 2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* update-subdirs: Don't touch subdirs.el if it is unchanged.
