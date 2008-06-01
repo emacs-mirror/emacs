@@ -88,7 +88,7 @@ in `selection-converter-alist', which see."
 		       selection-coding-system
 		       (cond ((eq data-type 'UTF8_STRING)
 			      'utf-8)
-			     ((eq data-type 'COMPOUND-TEXT)
+			     ((eq data-type 'COMPOUND_TEXT)
 			      'compound-text-with-extensions)
 			     ((eq data-type 'C_STRING)
 			      nil)
