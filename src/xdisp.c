@@ -2491,6 +2491,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      enum face_id base_face_id;
 {
   int highlight_region_p;
+  enum face_id remapped_base_face_id = base_face_id;
 
   /* Some precondition checks.  */
   xassert (w != NULL && it != NULL);
@@ -2507,6 +2508,10 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
       free_all_realized_faces (Qnil);
     }
 
+  /* Perhaps remap BASE_FACE_ID to a user-specified alternative.  */
+  if (! NILP (Vface_remapping_alist))
+    remapped_base_face_id = lookup_basic_face (XFRAME (w->frame), base_face_id);
+
   /* Use one of the mode line rows of W's desired matrix if
      appropriate.  */
   if (row == NULL)
@@ -2522,7 +2527,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   bzero (it, sizeof *it);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
-  it->base_face_id = base_face_id;
+  it->base_face_id = remapped_base_face_id;
   it->string = Qnil;
   IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = -1;
 
@@ -2707,11 +2712,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     {
       struct face *face;
 
-      it->face_id = base_face_id;
+      it->face_id = remapped_base_face_id;
 
       /* If we have a boxed mode line, make the first character appear
 	 with a left box line.  */
-      face = FACE_FROM_ID (it->f, base_face_id);
+      face = FACE_FROM_ID (it->f, remapped_base_face_id);
       if (face->box != FACE_NO_BOX)
 	it->start_of_box_run_p = 1;
     }
@@ -4077,7 +4082,8 @@ handle_single_display_spec (it, spec, object, overlay, position,
 	      /* Value is a multiple of the canonical char height.  */
 	      struct face *face;
 
-	      face = FACE_FROM_ID (it->f, DEFAULT_FACE_ID);
+	      face = FACE_FROM_ID (it->f,
+				   lookup_basic_face (it->f, DEFAULT_FACE_ID));
 	      new_height = (XFLOATINT (it->font_height)
 			    * XINT (face->lface[LFACE_HEIGHT_INDEX]));
 	    }
@@ -4187,7 +4193,7 @@ handle_single_display_spec (it, spec, object, overlay, position,
 	  || EQ (XCAR (spec), Qright_fringe))
       && CONSP (XCDR (spec)))
     {
-      int face_id = DEFAULT_FACE_ID;
+      int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
       int fringe_bitmap;
 
       if (!FRAME_WINDOW_P (it->f))

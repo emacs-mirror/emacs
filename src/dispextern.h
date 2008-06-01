@@ -2852,6 +2852,7 @@ int xstrcasecmp P_ ((const unsigned char *, const unsigned char *));
 int lookup_face P_ ((struct frame *, Lisp_Object *));
 int lookup_non_ascii_face P_ ((struct frame *, int, struct face *));
 int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
+int lookup_basic_face P_ ((struct frame *, int));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
 int lookup_derived_face P_ ((struct frame *, Lisp_Object, int, int));
@@ -2879,6 +2880,8 @@ extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
 extern Lisp_Object split_font_name_into_vector P_ ((Lisp_Object));
 extern Lisp_Object build_font_name_from_vector P_ ((Lisp_Object));
+
+extern Lisp_Object Vface_remapping_alist;
 
 /* Defined in xfns.c  */
 

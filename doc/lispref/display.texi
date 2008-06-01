@@ -2365,6 +2365,61 @@ line or a header line), and last the @code{default} face.
   When multiple overlays cover one character, an overlay with higher
 priority overrides those with lower priority.  @xref{Overlays}.
 
+@defvar face-remapping-alist
+  This variable is used for buffer-local or global changes in the
+appearance of a face, for instance making the @code{default} face a
+variable-pitch face in a particular buffer.
+
+  Its value should be an alist, whose elements have the form
+@code{(@var{face} @var{remapping...})}.  This causes Emacs to display
+text using the face @var{face} using @var{remapping...} instead of
+@var{face}'s global definition.  @var{remapping...} may be any face
+specification suitable for a @code{face} text property, usually a face
+name, but also perhaps a property list of face attribute/value pairs.
+@xref{Special Properties}.
+
+  To affect display only in a single buffer,
+@code{face-remapping-alist} should be made buffer-local.
+
+Two points bear emphasizing:
+
+@enumerate
+@item
+The new definition @var{remapping...} is the complete
+specification of how to display @var{face}---it entirely replaces,
+rather than augmenting or modifying, the normal definition of that
+face.
+
+@item
+If @var{remapping...} recursively references the same face name
+@var{face}, either directly remapping entry, or via the
+@code{:inherit} attribute of some other face in
+@var{remapping...}, then that reference uses normal frame-wide
+definition of @var{face} instead of the ``remapped'' definition.
+
+For instance, if the @code{mode-line} face is remapped using this
+entry in @code{face-remapping-alist}:
+@example
+(mode-line italic mode-line)
+@end example
+@noindent
+then the new definition of the @code{mode-line} face inherits from the
+@code{italic} face, and the @emph{normal} (non-remapped) definition of
+@code{mode-line} face.
+@end enumerate
+
+  A typical use of the @code{face-remapping-alist} is to change a
+buffer's @code{default} face; for example, the following changes a
+buffer's @code{default} face to use the @code{variable-pitch} face,
+with the height doubled:
+
+@example
+(set (make-local-variable 'face-remapping-alist)
+     '((default variable-pitch :height 2.0)))
+@end example
+
+@end defvar
+
 @node Font Selection
 @subsection Font Selection
 

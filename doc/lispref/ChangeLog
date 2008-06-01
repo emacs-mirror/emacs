@@ -1,3 +1,7 @@
+2008-06-01  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Displaying Faces): Add face-remapping-alist.
+
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tips.texi (Coding Conventions): Do not encourage the use of "-flag"

@@ -1,3 +1,37 @@
+2008-06-01  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Vface_remapping_alist): New variable.
+	(syms_of_xfaces): Initialize it.
+	(enum named_merge_point_kind): New type.
+	(struct named_merge_point): Add `named_merge_point_kind' field.
+	(push_named_merge_point): Make cycle detection respect different
+	named-merge-point kinds.
+	(lface_from_face_name_no_resolve): Renamed from `lface_from_face_name'.
+	Remove face-name alias resolution.
+	(lface_from_face_name): New definition using
+	`lface_from_face_name_no_resolve'.
+	(get_lface_attributes_no_remap): Renamed from `get_lface_attributes'.
+	Call lface_from_face_name_no_resolve instead of lface_from_face_name.
+	(get_lface_attributes): New definition that layers face-remapping on
+	top of get_lface_attributes_no_remap.  New arg `named_merge_points'.
+	(lookup_basic_face): New function.
+	(lookup_derived_face): Pass new last arg to `get_lface_attributes'.
+	(realize_named_face): Call `get_lface_attributes_no_remap' instead of
+	`get_lface_attributes'.
+	(face_at_buffer_position): Use `lookup_basic_face' to lookup
+	DEFAULT_FACE_ID if necessary.  When optimizing the default-face case,
+	return default_face's face-id instead of the constant DEFAULT_FACE_ID.
+
+	* xdisp.c (init_iterator): Pass base_face_id through
+	`lookup_basic_face' when we actually use it as a face-id.
+	(handle_single_display_prop): Use `lookup_basic_face' to lookup
+	DEFAULT_FACE_ID.
+
+	* fontset.c (Finternal_char_font): Use `lookup_basic_face' to
+	lookup the initial face-id.
+
+	* dispextern.h (lookup_basic_face, Vface_remapping_alist): New decls.
+
 2008-06-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textprop.c (syms_of_textprop) <text-property-default-nonsticky>:
