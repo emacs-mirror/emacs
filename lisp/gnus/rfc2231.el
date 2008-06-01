@@ -214,11 +214,11 @@ These look like:
     (mm-with-unibyte-buffer
       (insert value)
       (goto-char (point-min))
-      (while (search-forward "%" nil t)
+      (while (re-search-forward "%\\([0-9A-Fa-f][0-9A-Fa-f]\\)" nil t)
 	(insert
 	 (prog1
-	     (string-to-number (buffer-substring (point) (+ (point) 2)) 16)
-	   (delete-region (1- (point)) (+ (point) 2)))))
+	     (string-to-number (match-string 1) 16)
+	   (delete-region (match-beginning 0) (match-end 0)))))
       ;; Decode using the charset, if any.
       (if (memq coding-system '(nil ascii))
 	  (buffer-string)
