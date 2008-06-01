@@ -1022,8 +1022,9 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
      of getting this information easily.  */
   if (font_type & TRUETYPE_FONTTYPE)
     {
-      font_put_extra (entity, QCscript,
-                      font_supported_scripts (&physical_font->ntmFontSig));
+      tem = font_supported_scripts (&physical_font->ntmFontSig);
+      if (!NILP (tem))
+        font_put_extra (entity, QCscript, tem);
     }
 
   /* This information is not fully available when opening fonts, so
@@ -1352,7 +1353,44 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
                                        &match_data->pattern,
                                        backend);
       if (!NILP (entity))
-        match_data->list = Fcons (entity, match_data->list);
+        {
+          Lisp_Object spec_charset = AREF (match_data->orig_font_spec,
+                                           FONT_REGISTRY_INDEX);
+
+          /* If registry was specified as iso10646-1, only report
+             ANSI and DEFAULT charsets, as most unicode fonts will
+             contain one of those plus others.  */
+          if (EQ (spec_charset, Qiso10646_1)
+              && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
+              && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
+            return 1;
+          /* If registry was specified, but did not map to a windows
+             charset, only report fonts that have unknown charsets.
+             This will still report fonts that don't match, but at
+             least it eliminates known definite mismatches.  */
+          else if (!NILP (spec_charset)
+                   && !EQ (spec_charset, Qiso10646_1)
+                   && match_data->pattern.lfCharSet == DEFAULT_CHARSET
+                   && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET)
+            return 1;
+
+          /* If registry was specified, ensure it is reported as the same.  */
+          if (!NILP (spec_charset))
+            ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
+
+          match_data->list = Fcons (entity, match_data->list);
+
+          /* If no registry specified, duplicate iso8859-1 truetype fonts
+             as iso10646-1.  */
+          if (NILP (spec_charset)
+              && font_type == TRUETYPE_FONTTYPE
+              && logical_font->elfLogFont.lfCharSet == ANSI_CHARSET)
+            {
+              Lisp_Object tem = Fcopy_font_spec (entity);
+              ASET (tem, FONT_REGISTRY_INDEX, Qiso10646_1);
+              match_data->list = Fcons (tem, match_data->list);
+            }
+        }
     }
   return 1;
 }
@@ -1395,17 +1433,15 @@ w32_registry (w32_charset, font_type)
      LONG w32_charset;
      DWORD font_type;
 {
-  /* If charset is defaulted, use ANSI (unicode for truetype fonts).  */
-  if (w32_charset == DEFAULT_CHARSET)
-    w32_charset = ANSI_CHARSET;
+  char *charset;
 
-  if (font_type == TRUETYPE_FONTTYPE && w32_charset == ANSI_CHARSET)
-    return Qiso10646_1;
-  else
-    {
-      char * charset = w32_to_x_charset (w32_charset, NULL);
-      return font_intern_prop (charset, strlen(charset));
-    }
+  /* If charset is defaulted, charset is unicode or unknown, depending on
+     font type.  */
+  if (w32_charset == DEFAULT_CHARSET)
+    return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
+
+  charset = w32_to_x_charset (w32_charset, NULL);
+  return font_intern_prop (charset, strlen(charset));
 }
 
 static int
