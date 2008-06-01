@@ -714,7 +714,7 @@ keyword, introduced in Emacs 22."
 See `mh-variant'."
   :group 'mh-e
   :type '(repeat (directory))
-  :package-version '(MH-E "8.0"))
+  :package-version '(MH-E . "8.0"))
 
 (defun mh-variants ()
   "Return a list of installed variants of MH on the system.
@@ -949,7 +949,7 @@ necessary and can actually cause problems."
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
   :group 'mh-e
-  :package-version '(MH-E "8.0"))
+  :package-version '(MH-E . "8.0"))
 
 
 
