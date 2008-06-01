@@ -1,3 +1,8 @@
+2008-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textprop.c (syms_of_textprop) <text-property-default-nonsticky>:
+	(Fremove_text_properties): Fix typos in docstrings.
+
 2008-05-31  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_list_entities): Fix the car part of data to be
