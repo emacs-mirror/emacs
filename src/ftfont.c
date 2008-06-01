@@ -42,7 +42,7 @@ Lisp_Object Qfreetype;
 /* Fontconfig's generic families and their aliases.  */
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 
-/* Flag to tell if FcInit is areadly called or not.  */
+/* Flag to tell if FcInit is already called or not.  */
 static int fc_initialized;
 
 /* Handle to a FreeType library instance.  */
@@ -360,7 +360,7 @@ ftfont_get_charset (registry)
 	    FcCharSetDestroy (charset);
 	    return -1;
 	  }
-      fc_charset_table[i].fc_charset = charset;      
+      fc_charset_table[i].fc_charset = charset;
     }
   return i;
 }
@@ -420,7 +420,7 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
     {
       Lisp_Object len;
 
-      otf_spec = XCDR (otf_spec);    
+      otf_spec = XCDR (otf_spec);
       if (NILP (otf_spec))
 	break;
       val = XCAR (otf_spec);
@@ -628,7 +628,7 @@ ftfont_list (frame, spec)
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
   int spacing = -1;
-  
+
   if (! fc_initialized)
     {
       FcInit ();
@@ -1004,7 +1004,7 @@ ftfont_close (f, font)
     FT_Done_Size (ftfont_info->ft_size);
 }
 
-static int 
+static int
 ftfont_has_char (entity, c)
      Lisp_Object entity;
      int c;
@@ -1225,7 +1225,7 @@ ftfont_get_metrics (font, gstring, from, to)
   return 0;
 }
 
-static int 
+static int
 ftfont_check_otf (MFLTFont *font, MFLTOtfSpec *spec)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
@@ -1289,7 +1289,7 @@ adjust_anchor (FT_Face ft_face, OTF_Anchor *anchor,
 
 static OTF_GlyphString otf_gstring;
 
-static int 
+static int
 ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
      MFLTFont *font;
      MFLTOtfSpec *spec;
@@ -1716,9 +1716,9 @@ ftfont_font_format (FcPattern *pattern)
     return intern ("truetype");
   if (strcmp ((char *) str, "Type 1") == 0)
     return intern ("type1");
-  if (strcmp ((char *) str, "PCF") == 0)  
+  if (strcmp ((char *) str, "PCF") == 0)
     return intern ("pcf");
-  if (strcmp ((char *) str, "BDF") == 0)  
+  if (strcmp ((char *) str, "BDF") == 0)
     return intern ("bdf");
 #else  /* not FC_FONTFORMAT */
   if (FcPatternGetString (pattern, FC_FILE, 0, &str) != FcResultMatch)
@@ -1731,9 +1731,9 @@ ftfont_font_format (FcPattern *pattern)
 	return intern ("truetype");
       if (xstrcasecmp ((char *) str, "pfb") == 0)
 	return intern ("type1");
-      if (xstrcasecmp ((char *) str, "pcf") == 0)  
+      if (xstrcasecmp ((char *) str, "pcf") == 0)
 	return intern ("pcf");
-      if (xstrcasecmp ((char *) str, "bdf") == 0)  
+      if (xstrcasecmp ((char *) str, "bdf") == 0)
 	return intern ("bdf");
     }
 #endif	/* not FC_FONTFORMAT */
