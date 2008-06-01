@@ -1,3 +1,8 @@
+2008-06-01  Magnus Henoch  <mange@freemail.hu>
+
+	* play/cookie1.el: Remove obsolete TO DO comment.  (It was
+	implemented on 1993-03-27.)
+
 2008-06-01  Thomas Morgan  <tlm@thomasmorgan.net>  (tiny change)
 
 	* select.el (x-get-selection): Fix typo.
