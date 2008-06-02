@@ -13,6 +13,11 @@ To: 123-done@emacsbugs.donarmstrong.com
 with a brief explanation in the body as to why the bug was closed.
 
 
+To reopen a closed bug #123:
+To: control@emacsbugs.donarmstrong.com
+reopen 123
+
+
 Bugs can be tagged in various ways (eg wontfix, patch, etc).
 For a list of available tags, see:
 http://emacsbugs.donarmstrong.com/Developer#tags
