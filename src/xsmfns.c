@@ -262,8 +262,7 @@ smc_save_yourself_CB (smcConn,
 
   xfree (smid_opt);
 
-  if (cwd)
-    free (cwd);
+  free (cwd);
 
   /* See if we maybe shall interact with the user.  */
   if (interactStyle != SmInteractStyleAny

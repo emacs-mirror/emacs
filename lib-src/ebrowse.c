@@ -595,8 +595,7 @@ void
 xfree (p)
      void *p;
 {
-  if (p)
-    free (p);
+  free (p);
 }
 
 

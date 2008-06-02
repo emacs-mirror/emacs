@@ -2038,8 +2038,7 @@ If TZ is t, use Universal Time.  */)
     }
 
   set_time_zone_rule (tzstring);
-  if (environbuf)
-    free (environbuf);
+  free (environbuf);
   environbuf = environ;
 
   return Qnil;

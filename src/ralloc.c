@@ -425,8 +425,7 @@ get_bloc (size)
   if (! (new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE))
       || ! (new_bloc->data = obtain (break_value, size)))
     {
-      if (new_bloc)
-	free (new_bloc);
+      free (new_bloc);
 
       return 0;
     }

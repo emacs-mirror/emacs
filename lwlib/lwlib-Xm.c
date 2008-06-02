@@ -956,15 +956,13 @@ xm_update_one_value (instance, widget, val)
     }
   else if (class == xmTextWidgetClass)
     {
-      if (val->value)
-	free (val->value);
+      free (val->value);
       val->value = XmTextGetString (widget);
       val->edited = True;
     }
   else if (class == xmTextFieldWidgetClass)
     {
-      if (val->value)
-	free (val->value);
+      free (val->value);
       val->value = XmTextFieldGetString (widget);
       val->edited = True;
     }
@@ -989,8 +987,7 @@ xm_update_one_value (instance, widget, val)
 	      XtVaGetValues (toggle, XmNset, &set, NULL);
 	      if (set)
 		{
-		  if (val->value)
-		    free (val->value);
+		  free (val->value);
 		  val->value = safe_strdup (XtName (toggle));
 		}
 	    }

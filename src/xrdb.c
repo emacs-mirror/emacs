@@ -431,13 +431,11 @@ get_user_app (class)
     {
       XrmDatabase db = XrmGetFileDatabase (file);
       free (file);
-      if (free_it)
-	free (free_it);
+      free (free_it);
       return db;
     }
 
-  if (free_it)
-    free (free_it);
+  free (free_it);
   return NULL;
 }
 
@@ -504,8 +502,8 @@ get_environ_db ()
 
   db = XrmGetFileDatabase (p);
 
-  if (path) free (path);
-  if (home) free (home);
+  free (path);
+  free (home);
 
   return db;
 }
@@ -612,8 +610,7 @@ x_load_resources (display, xrm_string, myname, myclass)
 
   /* Figure out what the "customization string" is, so we can use it
      to decode paths.  */
-  if (x_customization_string)
-    free (x_customization_string);
+  free (x_customization_string);
   x_customization_string
     = x_get_customization_string (user_database, myname, myclass);
 

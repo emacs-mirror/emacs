@@ -1,3 +1,11 @@
+2008-06-02  Jim Meyering  <meyering@redhat.com>
+
+	remove useless if-before-free tests
+	* lib-src/ebrowse.c (xfree): Likewise.
+	* lib-src/etags.c (process_file_name, free_tree, free_fdesc): Likewise.
+	(popclass_above, Prolog_functions, Erlang_functions): Likewise.
+	* lib-src/pop.c (pop_quit): Likewise.
+
 2008-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (lisp2): Add minibuffer.elc.

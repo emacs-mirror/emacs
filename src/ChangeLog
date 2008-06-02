@@ -1,3 +1,14 @@
+2008-06-02  Jim Meyering  <meyering@redhat.com>
+
+	remove useless if-before-free tests
+	* src/editfns.c (Fset_time_zone_rule): Likewise.
+	* src/lread.c (nosuffix): Likewise.
+	* src/ralloc.c (get_bloc): Likewise.
+	* src/regex.c (reg_free): Likewise.
+	* src/xftfont.c (xftfont_open, xftfont_close): Likewise.
+	* src/xrdb.c (get_user_app, get_environ_db, x_load_resources): Likewise.
+	* src/xsmfns.c (smc_save_yourself_CB): Likewise.
+
 2008-06-02  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_find_for_lface): Handle float font size.
