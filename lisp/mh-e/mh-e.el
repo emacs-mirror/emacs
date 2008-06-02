@@ -554,7 +554,7 @@ ARGS are passed to COMMAND as command line arguments."
     process))
 
 (defun mh-exec-cmd-env-daemon (env command filter &rest args)
-  "In ennvironment ENV, execute mh-command COMMAND in the background.
+  "In environment ENV, execute mh-command COMMAND in the background.
 
 ENV is nil or a string of space-separated \"var=value\" elements.
 Signals an error if process does not complete successfully.
