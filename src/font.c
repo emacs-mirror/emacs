@@ -2817,6 +2817,7 @@ font_find_for_lface (f, attrs, spec, c)
 {
   Lisp_Object frame, entities, val, props[FONT_REGISTRY_INDEX + 1] ;
   Lisp_Object size;
+  int pixel_size;
   int i, result;
 
   if (c >= 0)
@@ -2840,6 +2841,13 @@ font_find_for_lface (f, attrs, spec, c)
 
   XSETFRAME (frame, f);
   size = AREF (spec, FONT_SIZE_INDEX);
+  pixel_size = font_pixel_size (f, spec);
+  if (pixel_size == 0)
+    {
+      double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+
+      pixel_size = POINT_TO_PIXEL (pt / 10, f->resy);
+    }
   ASET (spec, FONT_SIZE_INDEX, Qnil);
   entities = font_list_entities (frame, spec);
   ASET (spec, FONT_SIZE_INDEX, size);
@@ -2873,16 +2881,7 @@ font_find_for_lface (f, attrs, spec, c)
 	FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
       if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
 	FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
-      if (INTEGERP (size))
-	ASET (prefer, FONT_SIZE_INDEX, size);
-      else if (FLOATP (size))
-	ASET (prefer, FONT_SIZE_INDEX, make_number (font_pixel_size (f, spec)));
-      else
-	{
-	  double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
-	  int pixel_size = POINT_TO_PIXEL (pt / 10, f->resy);
-	  ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
-	}
+      ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
       ASET (spec, FONT_SIZE_INDEX, Qnil);
       entities = font_sort_entites (entities, prefer, frame, spec, c < 0);
       ASET (spec, FONT_SIZE_INDEX, size);
@@ -2931,8 +2930,8 @@ font_open_for_lface (f, entity, attrs, spec)
 {
   int size;
 
-  if (FONT_SPEC_P (spec) && INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
-    size = XINT (AREF (spec, FONT_SIZE_INDEX));
+  if (FONT_SPEC_P (spec) && ! NILP (AREF (spec, FONT_SIZE_INDEX)))
+    size = font_pixel_size (f, spec);
   else
     {
       double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
