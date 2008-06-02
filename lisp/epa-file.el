@@ -183,8 +183,8 @@
 	       (if (stringp start)
 		   (epa-file--encode-coding-string start coding-system)
 		 (unless start
-		   (setq start (point-min))
-		   (setq end (point-max)))
+		   (setq start (point-min)
+			 end (point-max)))
 		 (epa-file--encode-coding-string (buffer-substring start end)
 						 coding-system))
 	       (if (or epa-file-select-keys
