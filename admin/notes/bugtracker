@@ -28,3 +28,6 @@ tag 123 wontfix
 
 
 To remove spam from the tracker, email the bug number to don@donarmstrong.com.
+Or perhaps reassign to a pseudo "spam" package:
+To: control@emacsbugs.donarmstrong.com
+reassign 123 spam
