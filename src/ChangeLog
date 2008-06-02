@@ -79,6 +79,18 @@
 	(Fmake_variable_frame_local): Disallow mixing buffer-local and
 	frame-local settings for the same variable.
 
+2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Ffont_info): Moved to font.c.
+	(syms_of_fontset): Delete defsubr of Sfont_info.
+
+	* font.c (font_style_to_value, font_score): Delete casting of the
+	args to xstcasecmp.
+	(register_font_driver): Increment num_font_drivers only when
+	registering the driver globally.
+	(Ffont_info): Moved from fontset.c.  Handle a font object too.
+	(syms_of_font): Defsubr Sfont_info.
+
 2008-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (enum define_coding_utf8_arg_index): New enum.
