@@ -5036,8 +5036,10 @@ x_supports_face_attributes_p (f, attrs, def_face)
       if (! face)
 	error ("Cannot make face");
 
-      /* If the font is the same, then not supported.  */
-      if (face->font == def_face->font)
+      /* If the font is the same, or no font is found, then not
+	 supported.  */
+      if (face->font == def_face->font
+	  || ! face->font)
 	return 0;
       for (i = FONT_TYPE_INDEX; i <= FONT_SIZE_INDEX; i++)
 	if (! EQ (face->font->props[i], def_face->font->props[i]))
