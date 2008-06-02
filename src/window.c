@@ -3195,7 +3195,7 @@ size_window (window, size, width_p, nodelete_p, first_only, last_only)
           last_pos += new_size;
 	}
 
-      if (new_sizes) xfree (new_sizes);
+      xfree (new_sizes);
 
       /* We should have covered the parent exactly with child windows.  */
       xassert (size == last_pos - first_pos);

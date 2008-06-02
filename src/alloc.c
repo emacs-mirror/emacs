@@ -797,6 +797,8 @@ void
 xfree (block)
      POINTER_TYPE *block;
 {
+  if (!block)
+    return;
   MALLOC_BLOCK_INPUT;
   free (block);
   MALLOC_UNBLOCK_INPUT;

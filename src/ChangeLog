@@ -1,13 +1,37 @@
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
+	Make "xfree (NULL)" a no-op; remove useless if-before-xfree.
+	* alloc.c (xfree): Return right away for a NULL arg.
+	* lread.c (nosuffix): Remove now-useless if-before-xfree tests.
+	* gtkutil.c (xg_gtk_scroll_destroy): Likewise.
+	* mac.c (create_apple_event_from_event_ref): Likewise.
+	(create_apple_event_from_drag_ref, cfstring_create_normalized): Likewise.
+	* doprnt.c (doprnt1): Likewise.
+	* frame.c (frame): Likewise.
+	* keyboard.c (wipe_kboard): Likewise.
+	* macterm.c (x_free_frame_resources, xlfdpat_destroy, XFreePixmap):
+	(init_font_name_table, mac_unload_font, x_delete_display): Likewise.
+	* term.c (tty_default_color_capabilities, maybe_fatal)
+	(delete_tty): Likewise.
+	* w16select.c (string): Likewise.
+	* w32.c (w32_get_resource, SET_ENV_BUF_SIZE): Likewise.
+	* w32bdf.c (w32_free_bdf_font): Likewise.
+	* w32fns.c (w32_unload_font): Likewise.
+	* w32font.c (w32font_close): Likewise.
+	* window.c (size_window): Likewise.
+	* xselect.c (receive_incremental_selection): Likewise.
+	* xterm.c (x_free_frame_resources, x_delete_display): Likewise.
+	* mactoolbox.c (create_apple_event_from_drag_ref): Likewise.
+	* w32.c (stat): Likewise.
+
 	remove useless if-before-free tests
-	* src/editfns.c (Fset_time_zone_rule): Likewise.
-	* src/lread.c (nosuffix): Likewise.
-	* src/ralloc.c (get_bloc): Likewise.
-	* src/regex.c (reg_free): Likewise.
-	* src/xftfont.c (xftfont_open, xftfont_close): Likewise.
-	* src/xrdb.c (get_user_app, get_environ_db, x_load_resources): Likewise.
-	* src/xsmfns.c (smc_save_yourself_CB): Likewise.
+	* editfns.c (Fset_time_zone_rule): Likewise.
+	* lread.c (nosuffix): Likewise.
+	* ralloc.c (get_bloc): Likewise.
+	* regex.c (reg_free): Likewise.
+	* xftfont.c (xftfont_open, xftfont_close): Likewise.
+	* xrdb.c (get_user_app, get_environ_db, x_load_resources): Likewise.
+	* xsmfns.c (smc_save_yourself_CB): Likewise.
 
 2008-06-02  Kenichi Handa  <handa@m17n.org>
 

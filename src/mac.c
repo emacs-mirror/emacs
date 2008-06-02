@@ -906,8 +906,7 @@ mac_event_parameters_to_lisp (event, num_params, names, types)
 	  break;
 	}
     }
-  if (buf)
-    xfree (buf);
+  xfree (buf);
 
   return result;
 }
@@ -4778,10 +4777,8 @@ cfstring_create_normalized (str, symbol)
 					       out_len / sizeof (UniChar));
       if (uni)
 	DisposeUnicodeToTextInfo (&uni);
-      if (out_buf)
-	xfree (out_buf);
-      if (buffer)
-	xfree (buffer);
+      xfree (out_buf);
+      xfree (buffer);
     }
   else
     {

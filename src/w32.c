@@ -1128,7 +1128,7 @@ w32_get_resource (key, lpdwtype)
 	  return (lpvalue);
 	}
 
-      if (lpvalue) xfree (lpvalue);
+      xfree (lpvalue);
 
       RegCloseKey (hrootkey);
     }
@@ -1145,7 +1145,7 @@ w32_get_resource (key, lpdwtype)
 	  return (lpvalue);
 	}
 
-      if (lpvalue) xfree (lpvalue);
+      xfree (lpvalue);
 
       RegCloseKey (hrootkey);
     }
@@ -1346,7 +1346,7 @@ init_environment (char ** argv)
 		/* Also ignore empty environment variables.  */
 		|| *lpval == 0)
 	      {
-		if (lpval) xfree (lpval);
+		xfree (lpval);
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;
@@ -2962,8 +2962,7 @@ stat (const char * path, struct stat * buf)
 
       get_file_owner_and_group (NULL, name, buf);
     }
-  if (psd)
-    xfree (psd);
+  xfree (psd);
 
 #if 0
   /* Not sure if there is any point in this.  */

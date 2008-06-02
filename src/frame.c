@@ -1477,20 +1477,13 @@ But FORCE inhibits this too.  */)
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
 
-  if (f->namebuf)
-    xfree (f->namebuf);
-  if (f->decode_mode_spec_buffer)
-    xfree (f->decode_mode_spec_buffer);
-  if (FRAME_INSERT_COST (f))
-    xfree (FRAME_INSERT_COST (f));
-  if (FRAME_DELETEN_COST (f))
-    xfree (FRAME_DELETEN_COST (f));
-  if (FRAME_INSERTN_COST (f))
-    xfree (FRAME_INSERTN_COST (f));
-  if (FRAME_DELETE_COST (f))
-    xfree (FRAME_DELETE_COST (f));
-  if (FRAME_MESSAGE_BUF (f))
-    xfree (FRAME_MESSAGE_BUF (f));
+  xfree (f->namebuf);
+  xfree (f->decode_mode_spec_buffer);
+  xfree (FRAME_INSERT_COST (f));
+  xfree (FRAME_DELETEN_COST (f));
+  xfree (FRAME_INSERTN_COST (f));
+  xfree (FRAME_DELETE_COST (f));
+  xfree (FRAME_MESSAGE_BUF (f));
 
   /* Since some events are handled at the interrupt level, we may get
      an event for f at any time; if we zero out the frame's terminal

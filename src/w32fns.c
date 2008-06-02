@@ -4955,7 +4955,7 @@ w32_unload_font (dpyinfo, font)
 {
   if (font)
     {
-      if (font->per_char) xfree (font->per_char);
+      xfree (font->per_char);
       if (font->bdf) w32_free_bdf_font (font->bdf);
 
       if (font->hfont) DeleteObject (font->hfont);

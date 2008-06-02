@@ -1673,7 +1673,7 @@ receive_incremental_selection (display, window, property, target_type,
 	    XSelectInput (display, window, STANDARD_EVENT_SET);
 	  /* Use xfree, not XFree, because x_get_window_property
 	     calls xmalloc itself.  */
-	  if (tmp_data) xfree (tmp_data);
+	  xfree (tmp_data);
 	  break;
 	}
 

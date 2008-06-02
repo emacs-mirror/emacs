@@ -9513,9 +9513,7 @@ x_free_frame_resources (f)
       XFlush (FRAME_X_DISPLAY (f));
     }
 
-  if (f->output_data.x->saved_menu_event)
-    xfree (f->output_data.x->saved_menu_event);
-
+  xfree (f->output_data.x->saved_menu_event);
   xfree (f->output_data.x);
   f->output_data.x = NULL;
 
@@ -10522,10 +10520,8 @@ x_delete_display (dpyinfo)
     xim_close_dpy (dpyinfo);
 #endif
 
-  if (dpyinfo->x_id_name)
-    xfree (dpyinfo->x_id_name);
-  if (dpyinfo->color_cells)
-    xfree (dpyinfo->color_cells);
+  xfree (dpyinfo->x_id_name);
+  xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
 }
 
