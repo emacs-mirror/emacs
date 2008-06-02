@@ -266,7 +266,7 @@ font_pixel_size (f, spec)
   point_size = XFLOAT_DATA (size);
   val = AREF (spec, FONT_DPI_INDEX);
   if (INTEGERP (val))
-    dpi = XINT (XCDR (val));
+    dpi = XINT (val);
   else
     dpi = f->resy;
   pixel_size = POINT_TO_PIXEL (point_size, dpi);
