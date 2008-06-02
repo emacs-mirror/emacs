@@ -1,3 +1,7 @@
+2008-06-02  Chip Coldwell <coldwell@redhat.com>
+
+	* font.c (font_pixel_size): Don't take cdr of an integer.
+
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
 	Make "xfree (NULL)" a no-op; remove useless if-before-xfree.
