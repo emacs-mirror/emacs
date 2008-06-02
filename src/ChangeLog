@@ -1,5 +1,8 @@
 2008-06-02  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (font_find_for_lface): Handle float font size.
+	(font_open_for_lface): Likewise.
+
 	* xfaces.c (x_supports_face_attributes_p): Check face->font before
 	comparing the properties.
 
