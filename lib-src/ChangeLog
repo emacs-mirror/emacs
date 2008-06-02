@@ -1,5 +1,7 @@
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
+	* lib-src/ebrowse.c (xfree): Remove definition; s/xfree/free/
+
 	remove useless if-before-free tests
 	* lib-src/ebrowse.c (xfree): Likewise.
 	* lib-src/etags.c (process_file_name, free_tree, free_fdesc): Likewise.
