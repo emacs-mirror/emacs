@@ -583,7 +583,7 @@ It's flymake process filter."
 
     (flymake-log 3 "received %d byte(s) of output from process %d"
                  (length output) (process-id process))
-    (when source-buffer
+    (when (buffer-live-p source-buffer)
       (with-current-buffer source-buffer
         (flymake-parse-output-and-residual output)))))
 

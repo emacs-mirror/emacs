@@ -1,5 +1,8 @@
 2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-process-filter): Make sure the source
+	buffer isn't dead.
+
 	* obsolete/bg-mouse.el, obsolete/float.el, obsolete/hilit19.el,
 	* obsolete/lselect.el, obsolete/mlsupport.el, obsolete/ooutline.el,
 	* obsolete/profile.el, obsolete/rsz-mini.el, obsolete/uncompress.el,
