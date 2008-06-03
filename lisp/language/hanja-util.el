@@ -7714,4 +7714,5 @@ Then return selected character code."
 ;;
 (provide 'hanja-util)
 
+;; arch-tag: 3358afb4-c63f-472f-989a-5249129924d1
 ;;; hanja-util.el ends here
