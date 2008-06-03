@@ -7,6 +7,16 @@ For a list of all bugs, see
 http://emacsbugs.donarmstrong.com/emacs
 
 
+When reporting a bug, to send a Cc to another address (eg
+bug-cc-mode@gnu.org), do not just use a Cc: header.  
+Instead, use "X-Debbugs-CC:". This ensures the Cc address will get a
+mail with the bug report number in.
+
+
+To not get acknowledgement mail from the tracker, add an
+"X-Debbugs-No-Ack:" header (with any value).
+
+
 To close bug #123 (for example), send mail
 To: 123-done@emacsbugs.donarmstrong.com
 
