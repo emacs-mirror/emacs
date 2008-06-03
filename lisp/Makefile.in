@@ -480,6 +480,7 @@ ELCFILES = \
 	$(lisp)/eshell/eshell.elc \
 	$(lisp)/expand.elc \
 	$(lisp)/ezimage.elc \
+	$(lisp)/face-remap.elc \
 	$(lisp)/facemenu.elc \
 	$(lisp)/faces.elc \
 	$(lisp)/ffap.elc \

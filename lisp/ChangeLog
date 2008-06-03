@@ -1,3 +1,8 @@
+2008-06-03  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el: New file.
+	* Makefile.in (ELCFILES): Add face-remap.elc.
+
 2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-process-filter): Make sure the source

@@ -31,6 +31,7 @@ their values only make a difference at the time of redisplay.
 * Cursor Display::         Features for displaying the cursor.
 * Line Truncation::        Truncating lines to fit the screen width instead
                              of continuing them to multiple screen lines.
+* Temporary Face Changes:: Commands to temporarily modify the default text face
 * Display Custom::         Information on variables for customizing display.
 @end menu
 
@@ -1170,6 +1171,41 @@ non-@code{nil} on a graphical display, then Emacs does not continue or
 truncate a line which is exactly as wide as the window.  Instead, the
 newline overflows into the right fringe, and the cursor appears in the
 fringe when positioned on that newline.
+
+@node Temporary Face Changes
+@section Temporary Face Changes
+
+These are commands which temporarily change the default face used to
+display text in a buffer.
+
+@cindex increase buffer face height
+@findex increase-buffer-face-height
+@cindex decrease buffer face height
+@findex decrease-buffer-face-height
+@findex text-scale-mode
+To increase the size of the font used to display text in the current
+buffer, type @kbd{C-=} or @kbd{C-+}
+(@code{increase-buffer-face-height}).  With a numeric prefix argument,
+the size will be increased by that many steps (the default is 1 step);
+each step scales the font height by the value of the variable
+@code{text-scale-mode-step}.  If repeated, this command has a
+cumulative effect.  As a special case, a prefix argument of 0 will
+remove any scaling currently active.
+
+To decrease the size of the text, type @kbd{C--}
+(@code{decrease-buffer-face-height}).  The behavior is similar to that
+of @code{increase-buffer-face-height}, but in reverse.
+
+These commands automatically enable or disable the
+@code{text-scale-mode} minor-mode, depending on whether the current
+font scaling is other than 1 or not.
+
+@cindex variable pitch mode
+@findex variable-pitch-mode
+To temporarily change the display face in the current buffer to a
+variable-pitch (``proportional'') font, use the command @kbd{M-x
+variable-pitch-mode} to enable or disable the Variable Pitch minor
+mode.
 
 @node Display Custom
 @section Customization of Display
