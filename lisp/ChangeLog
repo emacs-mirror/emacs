@@ -1,5 +1,8 @@
 2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* image-mode.el (image-mode-map): Suppress key map and bind `q'.
+	* doc-view.el (doc-view-mode-map): Inherit from image-mode-map.
+
 	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords): Try to be
 	yet a bit more clever at distinguishing / from /.
 
