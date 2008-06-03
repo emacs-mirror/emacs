@@ -131,6 +131,8 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		   (truncate pop3-read-timeout))
 		1000))))
 
+(autoload 'nnheader-accept-process-output "nnheader")
+
 (defun pop3-movemail (&optional crashbox)
   "Transfer contents of a maildrop to the specified CRASHBOX."
   (or crashbox (setq crashbox (expand-file-name "~/.crashbox")))
