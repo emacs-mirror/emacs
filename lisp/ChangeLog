@@ -1,5 +1,8 @@
 2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-dispatcher.el (vc-dir-menu-map-filter): Don't fail if
+	vc-client-mode is not set.
+
 	* image-mode.el (image-mode-map): Suppress key map and bind `q'.
 	* doc-view.el (doc-view-mode-map): Inherit from image-mode-map.
 

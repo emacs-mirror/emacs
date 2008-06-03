@@ -760,7 +760,10 @@ See `run-hooks'."
   (when (and (symbolp orig-binding) (fboundp orig-binding))
     (setq orig-binding (indirect-function orig-binding)))
   (let ((ext-binding
-	 (funcall (vc-client-object->extra-menu vc-client-mode))))
+         ;; This may be executed at load-time for tool-bar-local-item-from-menu
+         ;; but at that time vc-client-mode is not known (or even bound) yet.
+         (when (and (boundp 'vc-client-mode) vc-client-mode)
+           (funcall (vc-client-object->extra-menu vc-client-mode)))))
     (if (null ext-binding)
 	orig-binding
       (append orig-binding
