@@ -1,3 +1,11 @@
+2008-06-03  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (ELCFILES): Add $(lisp)/language/hanja-util.elc.
+
+2008-06-03 Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* language/hanja-util.el: New file.
+
 2008-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-typedef-matcher, f90-looking-at-type-like):
@@ -83,6 +91,10 @@
 	argument of diary-list-entries rather than setting diary-display-hook.
 
 2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-8-with-signature): Renamed from
+	utf-8-sig.
+	(utf-8-auto): Adjusted for the above change.
 
 	* international/mule-diag.el (describe-font): Don't check fontset
 	here, and just call font-info.  Get the default font by from the
