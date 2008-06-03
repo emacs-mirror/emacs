@@ -345,6 +345,7 @@ xfont_list (frame, spec)
     }
   if (NILP (list) && ! NILP (registry))
     {
+      /* Try alternate registries.  */
       Lisp_Object alter;
 
       if ((alter = Fassoc (SYMBOL_NAME (registry),
@@ -364,6 +365,13 @@ xfont_list (frame, spec)
 		  break;
 	      }
 	}
+    }
+  if (NILP (list))
+    {
+      /* Try alias.  */
+      val = assq_no_quit (QCname, AREF (spec, FONT_EXTRA_INDEX));
+      if (CONSP (val) && STRINGP (XCDR (val)))
+	list = xfont_list_pattern (frame, display, SDATA (XCDR (val)));
     }
 
   return list;
