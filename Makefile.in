@@ -819,10 +819,10 @@ dvi:
 
 #### Bootstrapping.
 
-### This is meant for Emacs maintainers only.  It first cleans the
-### lisp subdirectory, removing all compiled Lisp files.  Then a
-### special emacs executable is built from Lisp sources, which is then
-### used to compile Lisp files.  The last step is a "normal" make.
+### This first cleans the lisp subdirectory, removing all compiled
+### Lisp files.  Then a special emacs executable is built from Lisp
+### sources, which is then used to compile Lisp files.  The last step
+### is a "normal" make.
 
 .PHONY: bootstrap
 .PHONY: bootstrap-build
