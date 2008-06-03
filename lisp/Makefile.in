@@ -707,6 +707,7 @@ ELCFILES = \
 	$(lisp)/language/indian.elc \
 	$(lisp)/language/japan-util.elc \
 	$(lisp)/language/korea-util.elc \
+	$(lisp)/language/hanja-util.elc \
 	$(lisp)/language/lao-util.elc \
 	$(lisp)/language/thai-util.elc \
 	$(lisp)/language/thai-word.elc \
