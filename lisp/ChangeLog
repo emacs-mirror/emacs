@@ -1,5 +1,12 @@
 2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* obsolete/bg-mouse.el, obsolete/float.el, obsolete/hilit19.el,
+	* obsolete/lselect.el, obsolete/mlsupport.el, obsolete/ooutline.el,
+	* obsolete/profile.el, obsolete/rsz-mini.el, obsolete/uncompress.el,
+	* obsolete/auto-show.el, obsolete/hscroll.el:
+	Remove packages that were obsolete in Emacs-20, or that were obsolete
+	in Emacs-21 and do not contain any more code.
+
 	* vc-dispatcher.el (vc-dir-menu-map-filter): Don't fail if
 	vc-client-mode is not set.
 
