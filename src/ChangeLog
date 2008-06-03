@@ -1,5 +1,10 @@
 2008-06-03  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (font_prop_validate_spacing): Handle uppercase symbols.
+	(font_parse_fcname): Fix handling of unknown key.
+
+	* xfont.c (xfont_list): Try an alias.
+
 	* charset.c (char_charset): Return NULL if the arg charset_list is
 	specified and C doesn't belong to any of them.
 
