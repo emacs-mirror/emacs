@@ -1,3 +1,7 @@
+2008-06-03  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (font_prop_validate_spacing): Fix last change.
+
 2008-06-03  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_prop_validate_spacing): Handle uppercase symbols.
