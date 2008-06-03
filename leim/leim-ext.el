@@ -48,4 +48,45 @@ While this input method is active, the variable
 (register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
 		       "Unicode input as hex in the form Uxxxx.")
 
+(autoload 'hangul-input-method-activate "quail/hangul"
+  "Activate Hangul input method INPUT-METHOD.
+FUNC is a function to handle input key.
+HELP-TEXT is a text set in `hangul-input-method-help-text'.")
+
+(register-input-method
+ "korean-hangul"
+ "UTF-8"
+ 'hangul-input-method-activate
+ "한2"
+ "Hangul 2-Bulsik Input"
+ 'hangul2-input-method
+ "Input method: korean-hangul2 (mode line indicator:한2)\n\nHangul 2-Bulsik input method.")
+
+(register-input-method
+ "korean-hangul3f"
+ "UTF-8"
+ 'hangul-input-method-activate
+ "한3f"
+ "Hangul 3-Bulsik final Input"
+ 'hangul3-input-method
+ "Input method: korean-hangul3 (mode line indicator:한3f)\n\nHangul 3-Bulsik final input method.")
+
+(register-input-method
+ "korean-hangul390"
+ "UTF-8"
+ 'hangul-input-method-activate
+ "한390"
+ "Hangul 3-Bulsik 390 Input"
+ 'hangul390-input-method
+ "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
+
+(register-input-method
+ "korean-hangul3"
+ "UTF-8"
+ 'hangul-input-method-activate
+ "한390"
+ "Hangul 3-Bulsik 390 Input"
+ 'hangul390-input-method
+ "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
+
 ;; arch-tag: 75cfdfc7-de85-44f9-b408-ff67d1ec664e
