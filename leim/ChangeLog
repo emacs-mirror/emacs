@@ -1,3 +1,18 @@
+2008-06-03 Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* quail/hangul.el: Completely re-written.
+
+2008-06-03  Kenichi Handa  <handa@m17n.org>
+
+	* makefile.w32-in (KOREAN): Remove ${srcdir}/quail/hangul3.elc.
+	(leim-list.el): Remove leim-list.el at first.
+
+	* Makefile.in (KOREAN): Remove ${srcdir}/quail/hangul3.elc.
+	(leim-list.el): Remove leim-list.el at first.
+
+	* leim-ext.el: Register input methods "korean-hangul",
+	"korean-hangul3f", "korean-hangul390", and "korean-hangul3".
+
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Don't use single-char mapping from ~ to NBSP.
