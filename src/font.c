@@ -537,14 +537,19 @@ font_prop_validate_spacing (prop, val)
 {
   if (NILP (val) || (NATNUMP (val) && XINT (val) <= FONT_SPACING_CHARCELL))
     return val;
-  if (EQ (val, Qc))
-    return make_number (FONT_SPACING_CHARCELL);
-  if (EQ (val, Qm))
-    return make_number (FONT_SPACING_MONO);
-  if (EQ (val, Qp))
-    return make_number (FONT_SPACING_PROPORTIONAL);
-  if (EQ (val, Qd))
-    return make_number (FONT_SPACING_DUAL);
+  if (SYMBOLP (val) && SBYTES (SYMBOL_NAME (val)) == 1)
+    {
+      char spacing = SDATA (SYMBOL_NAME (val))[0];
+
+      if (spacing == 'c' || spacing == 'C')
+	return make_number (FONT_SPACING_CHARCELL);
+      if (spacing == 'm' || spacing == 'M')
+	return make_number (FONT_SPACING_MONO);
+      if (spacing == 'P' || spacing == 'P')
+	return make_number (FONT_SPACING_PROPORTIONAL);
+      if (spacing == 'd' || spacing == 'D')
+	return make_number (FONT_SPACING_DUAL);
+    }
   return Qerror;
 }
 
