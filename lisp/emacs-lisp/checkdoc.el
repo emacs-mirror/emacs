@@ -1636,25 +1636,28 @@ function,command,variable,option or symbol." ms1))))))
 		 (checkdoc-create-error
 		  "Flag variable doc strings should usually start: Non-nil means"
 		  s (marker-position e) t))
+             ;; Don't rename variable to "foo-flag".  This is unnecessary
+             ;; and such names often end up inconvenient when the variable
+             ;; is later expanded to non-boolean values. --Stef
 	     ;; If the doc string starts with "Non-nil means"
-	     (if (and (looking-at "\"\\*?Non-nil\\s-+means\\s-+")
-		      (not (string-match "-flag$" (car fp))))
-		 (let ((newname
-			(if (string-match "-p$" (car fp))
-			    (concat (substring (car fp) 0 -2) "-flag")
-			  (concat (car fp) "-flag"))))
-		   (if (checkdoc-y-or-n-p
-			(format
-			 "Rename to %s and Query-Replace all occurrences? "
-			 newname))
-		       (progn
-			 (beginning-of-defun)
-			 (query-replace-regexp
-			  (concat "\\<" (regexp-quote (car fp)) "\\>")
-			  newname))
-		     (checkdoc-create-error
-		      "Flag variable names should normally end in `-flag'" s
-		      (marker-position e)))))
+	     ;; (if (and (looking-at "\"\\*?Non-nil\\s-+means\\s-+")
+	     ;;          (not (string-match "-flag$" (car fp))))
+	     ;;     (let ((newname
+	     ;;    	(if (string-match "-p$" (car fp))
+	     ;;    	    (concat (substring (car fp) 0 -2) "-flag")
+	     ;;    	  (concat (car fp) "-flag"))))
+	     ;;       (if (checkdoc-y-or-n-p
+	     ;;    	(format
+	     ;;    	 "Rename to %s and Query-Replace all occurrences? "
+	     ;;    	 newname))
+	     ;;           (progn
+	     ;;    	 (beginning-of-defun)
+	     ;;    	 (query-replace-regexp
+	     ;;    	  (concat "\\<" (regexp-quote (car fp)) "\\>")
+	     ;;    	  newname))
+	     ;;         (checkdoc-create-error
+	     ;;          "Flag variable names should normally end in `-flag'" s
+	     ;;          (marker-position e)))))
 	     ;; Done with variables
 	     ))
 	   (t

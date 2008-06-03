@@ -2656,7 +2656,7 @@ EXFUN (Fset_char_table_extra_slot, 3);
 EXFUN (Fchar_table_range, 2);
 EXFUN (Fset_char_table_range, 3);
 EXFUN (Fset_char_table_default, 3);
-EXFUN (Foptimize_char_table, 1);
+EXFUN (Foptimize_char_table, 2);
 EXFUN (Fmap_char_table, 2);
 extern Lisp_Object copy_char_table P_ ((Lisp_Object));
 extern Lisp_Object sub_char_table_ref P_ ((Lisp_Object, int));

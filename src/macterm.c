@@ -910,8 +910,7 @@ XFreePixmap (display, pixmap)
 #if USE_MAC_IMAGE_IO
   if (pixmap)
     {
-      if (pixmap->data)
-	xfree (pixmap->data);
+      xfree (pixmap->data);
       xfree (pixmap);
     }
 #else
@@ -7390,8 +7389,7 @@ x_free_frame_resources (f)
 
   x_free_gcs (f);
 
-  if (FRAME_SIZE_HINTS (f))
-    xfree (FRAME_SIZE_HINTS (f));
+  xfree (FRAME_SIZE_HINTS (f));
 
   xfree (f->output_data.mac);
   f->output_data.mac = NULL;
@@ -7640,8 +7638,7 @@ xlfdpat_destroy (pat)
     {
       if (pat->buf)
 	{
-	  if (pat->blocks)
-	    xfree (pat->blocks);
+	  xfree (pat->blocks);
 	  xfree (pat->buf);
 	}
       xfree (pat);
@@ -8364,8 +8361,7 @@ init_font_name_table ()
 					 HASH_VALUE (h, j));
 	    prev_family = family;
 	  }
-      if (font_ids)
-	xfree (font_ids);
+      xfree (font_ids);
     }
 #endif
 
@@ -9242,20 +9238,17 @@ mac_unload_font (dpyinfo, font)
       int i;
 
       for (i = font->min_byte1; i <= font->max_byte1; i++)
-	if (font->bounds.rows[i])
-	  xfree (font->bounds.rows[i]);
+	xfree (font->bounds.rows[i]);
       xfree (font->bounds.rows);
       ATSUDisposeStyle (font->mac_style);
     }
   else
 #endif
-    if (font->bounds.per_char)
-      xfree (font->bounds.per_char);
+    xfree (font->bounds.per_char);
 #if USE_CG_TEXT_DRAWING
   if (font->cg_font)
     CGFontRelease (font->cg_font);
-  if (font->cg_glyphs)
-    xfree (font->cg_glyphs);
+  xfree (font->cg_glyphs);
 #endif
   xfree (font);
 }
@@ -13026,12 +13019,10 @@ x_delete_display (dpyinfo)
 
   if (dpyinfo->font_table)
     {
-      if (dpyinfo->font_table->font_encoder)
-	xfree (dpyinfo->font_table->font_encoder);
+      xfree (dpyinfo->font_table->font_encoder);
       xfree (dpyinfo->font_table);
     }
-  if (dpyinfo->mac_id_name)
-    xfree (dpyinfo->mac_id_name);
+  xfree (dpyinfo->mac_id_name);
 
   if (x_display_list == 0)
     {

@@ -92,7 +92,7 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
     (goto-char (point-min))
     (while (not (eobp))
       (skip-chars-forward skip-chars)
-      (if (eq ?+ (char-after))
+      (if (eq esc (char-after))
 	  (progn (forward-char)
 		 (insert ?-))
 	(unless (eobp)

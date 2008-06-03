@@ -6091,8 +6091,7 @@ create_apple_event_from_drag_ref (drag, num_types, types, result)
       if (err != noErr)
 	break;
     }
-  if (buf)
-    xfree (buf);
+  xfree (buf);
 
   if (err == noErr)
     {

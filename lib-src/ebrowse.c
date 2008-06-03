@@ -589,17 +589,6 @@ xrealloc (p, sz)
 }
 
 
-/* Like free but always check for null pointers..  */
-
-void
-xfree (p)
-     void *p;
-{
-  if (p)
-    free (p);
-}
-
-
 /* Like strdup, but print an error and exit if not enough memory is
    available..  If S is null, return null.  */
 
@@ -2759,7 +2748,7 @@ member (cls, vis)
           if (LOOKING_AT ('{') && id && cls)
 	    add_member_defn (cls, id, regexp, pos, hash, 0, sc, flags);
 
-	  xfree (id);
+	  free (id);
           id = NULL;
           sc = SC_MEMBER;
           break;
@@ -2838,7 +2827,7 @@ member (cls, vis)
       print_info ();
     }
 
-  xfree (id);
+  free (id);
 }
 
 
@@ -3075,7 +3064,7 @@ parse_qualified_ident_or_type (last_id)
 	    cls = add_sym (id, cls);
 
 	  *last_id = NULL;
-	  xfree (id);
+	  free (id);
 	  id = NULL;
 	  id_size = 0;
 	  MATCH ();
@@ -3278,7 +3267,7 @@ add_declarator (cls, id, flags, sc)
       print_info ();
     }
 
-  xfree (*id);
+  free (*id);
   *id = NULL;
   *cls = NULL;
 }
@@ -3331,7 +3320,7 @@ declaration (flags)
              `declare (X, Y)\n class A : ...'.  */
           if (id)
 	    {
-	      xfree (id);
+	      free (id);
 	      return;
 	    }
 
@@ -3425,7 +3414,7 @@ declaration (flags)
           if (!cls && id && LOOKING_AT ('{'))
 	    add_global_defn (id, regexp, pos, hash, 0, sc, flags);
 
-	  xfree (id);
+	  free (id);
           id = NULL;
           break;
         }
@@ -3481,7 +3470,7 @@ globals (start_flags)
                     MATCH_IF ('}');
                   }
 
-		xfree (namespace_name);
+		free (namespace_name);
               }
           }
           break;

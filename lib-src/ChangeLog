@@ -1,3 +1,21 @@
+2008-06-02  Jim Meyering  <meyering@redhat.com>
+
+	* ebrowse.c (xfree): Remove definition; s/xfree/free/.
+
+	Remove useless if-before-free tests.
+	* ebrowse.c (xfree): Likewise.
+	* etags.c (process_file_name, free_tree, free_fdesc): Likewise.
+	(popclass_above, Prolog_functions, Erlang_functions): Likewise.
+	* pop.c (pop_quit): Likewise.
+
+2008-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (lisp2): Add minibuffer.elc.
+
+2008-05-29  Tom Tromey  <tromey@redhat.com>
+
+	* etags.c (relative_filename): Treat "///" like "/" in filenames.
+
 2008-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* ntlib.c: Include sys/types.h, sys/stat.h, and errno.h.

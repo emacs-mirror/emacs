@@ -1253,11 +1253,25 @@ is treated as a character."
  :mnemonic ?M)
 
 (define-coding-system 'utf-8
-  "UTF-8."
+  "UTF-8 (no signature (BOM))"
   :coding-type 'utf-8
   :mnemonic ?U
   :charset-list '(unicode)
   :mime-charset 'utf-8)
+
+(define-coding-system 'utf-8-with-signature
+  "UTF-8 (with signature (BOM))"
+  :coding-type 'utf-8
+  :mnemonic ?U
+  :charset-list '(unicode)
+  :bom t)
+
+(define-coding-system 'utf-8-auto
+  "UTF-8 (auto-detect signature (BOM))"
+  :coding-type 'utf-8
+  :mnemonic ?U
+  :charset-list '(unicode)
+  :bom '(utf-8-with-signature . utf-8))
 
 (define-coding-system-alias 'mule-utf-8 'utf-8)
 

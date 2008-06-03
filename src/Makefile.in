@@ -51,16 +51,13 @@ version=@version@
 # LIBS = @LIBS@
 LIBOBJS = @LIBOBJS@
 
-# On Xenix and the IBM RS6000, double-dot gets screwed up.
-dot = .
-dotdot = ${dot}${dot}
-lispsource = ${srcdir}/$(dot)$(dot)/lisp/
-admindir = $(srcdir)/$(dot)$(dot)/admin/
-libsrc = $(dot)$(dot)/lib-src/
-etc = $(dot)$(dot)/etc/
-oldXMenudir = $(dot)$(dot)/oldXMenu/
-lwlibdir = $(dot)$(dot)/lwlib/
-lispdir = $(dot)$(dot)/lisp/
+lispsource = ${srcdir}/../lisp/
+admindir = $(srcdir)/../admin/
+libsrc = ../lib-src/
+etc = ../etc/
+oldXMenudir = ../oldXMenu/
+lwlibdir = ../lwlib/
+lispdir = ../lisp/
 
 # Configuration files for .o files to depend on.
 M_FILE = ${srcdir}/@machfile@
@@ -336,14 +333,7 @@ LIBXTR6 = -lSM -lICE
 #define LIBXMU -lXmu
 #endif
 
-#ifdef LIBXT_STATIC
-/* We assume the config files have defined STATIC_OPTION
-   since that might depend on the operating system.
-   (Do not forget you need different definitions with and without __GNUC__.)  */
-LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext DYNAMIC_OPTION
-#else /* not LIBXT_STATIC */
 LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
-#endif /* not LIBXT_STATIC */
 
 #else /* not USE_X_TOOLKIT */
 
@@ -531,7 +521,7 @@ CYGWIN_OBJ = sheap.o
 #endif
 
 #ifdef HAVE_CARBON
-mac = $(dot)$(dot)/mac/
+mac = ../mac/
 MAC_OBJ = mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o fringe.o image.o mactoolbox.o
 emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
@@ -872,21 +862,21 @@ shortlisp= \
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
    for the sake of systems which can''t handle large ones.  */
-SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
-  ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
+SOME_MACHINE_LISP = ../lisp/mouse.elc \
+  ../lisp/select.elc ../lisp/scroll-bar.elc \
   VMS_SUPPORT \
-  ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
-  ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
-  ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
-  ${dotdot}/lisp/tooltip.elc ${dotdot}/lisp/image.elc \
-  ${dotdot}/lisp/fringe.elc ${dotdot}/lisp/dnd.elc \
-  ${dotdot}/lisp/mwheel.elc ${dotdot}/lisp/tool-bar.elc \
-  ${dotdot}/lisp/x-dnd.elc \
-  ${dotdot}/lisp/international/ccl.elc \
-  ${dotdot}/lisp/international/codepage.elc \
-  ${dotdot}/lisp/international/fontset.elc \
-  ${dotdot}/lisp/mouse.elc \
-  ${dotdot}/lisp/term/x-win.elc
+  ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
+  ../lisp/w32-fns.elc ../lisp/dos-w32.elc \
+  ../lisp/disp-table.elc ../lisp/dos-vars.elc \
+  ../lisp/tooltip.elc ../lisp/image.elc \
+  ../lisp/fringe.elc ../lisp/dnd.elc \
+  ../lisp/mwheel.elc ../lisp/tool-bar.elc \
+  ../lisp/x-dnd.elc \
+  ../lisp/international/ccl.elc \
+  ../lisp/international/codepage.elc \
+  ../lisp/international/fontset.elc \
+  ../lisp/mouse.elc \
+  ../lisp/term/x-win.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get

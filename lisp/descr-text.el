@@ -49,19 +49,17 @@
   (let ((pp (condition-case signal
 		(pp-to-string sexp)
 	      (error (prin1-to-string signal)))))
-    (when (string-match "\n\\'" pp)
+    (when (string-match-p "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
-    (if (cond ((string-match "\n" pp)
-	       nil)
-	      ((> (length pp) (- (window-width) (current-column)))
-	       nil)
-	      (t t))
+
+    (if (and (not (string-match-p "\n" pp))
+    	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
        "[Show]" 'action `(lambda (&rest ignore)
-			(with-output-to-temp-buffer
-			    "*Pp Eval Output*"
-			  (princ ',pp)))
+			   (with-output-to-temp-buffer
+			       "*Pp Eval Output*"
+			     (princ ',pp)))
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
@@ -493,7 +491,7 @@ as well as widgets, buttons, overlays, and text properties."
 			 (cond
 			  ((and show-trailing-whitespace
 				(save-excursion (goto-char pos)
-						(looking-at "[ \t]+$")))
+						(looking-at-p "[ \t]+$")))
 			   'trailing-whitespace)
 			  ((and nobreak-char-display char (eq char '#xa0))
 			   'nobreak-space)
@@ -523,7 +521,7 @@ as well as widgets, buttons, overlays, and text properties."
 		(if (eq (car-safe clm) 'insert-text-button)
 		    (progn (insert " ") (eval clm))
 		  (when (>= (+ (current-column)
-			       (or (string-match "\n" clm)
+			       (or (string-match-p "\n" clm)
 				   (string-width clm))
 			       1)
 			    (window-width))

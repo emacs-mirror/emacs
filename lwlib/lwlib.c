@@ -170,7 +170,7 @@ static void
 safe_free_str (s)
      char *s;
 {
-  if (s) free (s);
+  free (s);
 }
 
 static widget_value *widget_value_free_list = 0;
@@ -226,9 +226,9 @@ free_widget_value_tree (wv)
   if (!wv)
     return;
 
-  if (wv->name) free (wv->name);
-  if (wv->value) free (wv->value);
-  if (wv->key) free (wv->key);
+  free (wv->name);
+  free (wv->value);
+  free (wv->key);
 
   wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
 

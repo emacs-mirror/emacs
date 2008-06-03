@@ -90,21 +90,25 @@ Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
       (iconify-or-deiconify-frame)))
 
 ;; c-d-d is only called after (diary) has been run.
-(defvar diary-display-hook)
+(defvar diary-display-function)
 
 (defun calendar-dedicate-diary ()
   "Display and dedicate the window associated with the diary buffer."
   (set-window-dedicated-p
    (display-buffer
-    (if (not (or (memq 'diary-fancy-display diary-display-hook)
-                 (memq 'fancy-diary-display diary-display-hook)))
-        (get-file-buffer diary-file)
-      ;; If there are no diary entries, there won't be a fancy-diary
-      ;; to dedicate, so make a basic one.
-      (or (get-buffer diary-fancy-buffer)
-          (calendar-in-read-only-buffer diary-fancy-buffer
-            (calendar-set-mode-line "Diary Entries")))
-      diary-fancy-buffer))
+    (if (if (listp diary-display-function)
+            (or (memq 'diary-fancy-display diary-display-function)
+                (memq 'fancy-diary-display diary-display-function))
+          (memq diary-display-function '(diary-fancy-display
+                                         fancy-diary-display)))
+        (progn
+          ;; If there are no diary entries, there won't be a fancy-diary
+          ;; to dedicate, so make a basic one.
+          (or (get-buffer diary-fancy-buffer)
+              (calendar-in-read-only-buffer diary-fancy-buffer
+                (calendar-set-mode-line "Diary Entries")))
+          diary-fancy-buffer)
+      (get-file-buffer diary-file)))
    t))
 
 ;;;###cal-autoload

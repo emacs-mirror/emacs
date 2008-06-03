@@ -345,6 +345,7 @@ xfont_list (frame, spec)
     }
   if (NILP (list) && ! NILP (registry))
     {
+      /* Try alternate registries.  */
       Lisp_Object alter;
 
       if ((alter = Fassoc (SYMBOL_NAME (registry),
@@ -364,6 +365,13 @@ xfont_list (frame, spec)
 		  break;
 	      }
 	}
+    }
+  if (NILP (list))
+    {
+      /* Try alias.  */
+      val = assq_no_quit (QCname, AREF (spec, FONT_EXTRA_INDEX));
+      if (CONSP (val) && STRINGP (XCDR (val)))
+	list = xfont_list_pattern (frame, display, SDATA (XCDR (val)));
     }
 
   return list;
@@ -613,8 +621,14 @@ xfont_open (f, entity, pixel_size)
 	  for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
 	    if ((pcm = xfont_get_pcm (xfont, &char2b)) != NULL)
 	      width += pcm->width, n++;
-	  font->average_width = width / n;
+	  if (n > 0)
+	    font->average_width = width / n;
 	}
+      if (font->average_width == 0)
+	/* No easy way other than this to get a reasonable
+	   average_width.  */
+	font->average_width
+	  = (xfont->min_bounds.width + xfont->max_bounds.width) / 2;
     }
 
   BLOCK_INPUT;

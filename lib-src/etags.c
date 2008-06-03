@@ -1799,8 +1799,8 @@ process_file_name (file, lang)
     pfatal (file);
 
  cleanup:
-  if (compressed_name) free (compressed_name);
-  if (uncompressed_name) free (uncompressed_name);
+  free (compressed_name);
+  free (uncompressed_name);
   last_node = NULL;
   curfdp = NULL;
   return;
@@ -2179,8 +2179,7 @@ free_tree (np)
     {
       register node *node_right = np->right;
       free_tree (np->left);
-      if (np->name != NULL)
-	free (np->name);
+      free (np->name);
       free (np->regex);
       free (np);
       np = node_right;
@@ -2195,11 +2194,11 @@ static void
 free_fdesc (fdp)
      register fdesc *fdp;
 {
-  if (fdp->infname != NULL) free (fdp->infname);
-  if (fdp->infabsname != NULL) free (fdp->infabsname);
-  if (fdp->infabsdir != NULL) free (fdp->infabsdir);
-  if (fdp->taggedfname != NULL) free (fdp->taggedfname);
-  if (fdp->prop != NULL) free (fdp->prop);
+  free (fdp->infname);
+  free (fdp->infabsname);
+  free (fdp->infabsdir);
+  free (fdp->taggedfname);
+  free (fdp->prop);
   free (fdp);
 }
 
@@ -2844,8 +2843,7 @@ popclass_above (bracelev)
        nl >= 0 && cstack.bracelev[nl] >= bracelev;
        nl--)
     {
-      if (cstack.cname[nl] != NULL)
-	free (cstack.cname[nl]);
+      free (cstack.cname[nl]);
       cstack.nl = nl;
     }
 }
@@ -5521,8 +5519,7 @@ Prolog_functions (inf)
 	  last[len] = '\0';
 	}
     }
-  if (last != NULL)
-    free (last);
+  free (last);
 }
 
 
@@ -5700,8 +5697,7 @@ Erlang_functions (inf)
 	  last[len] = '\0';
 	}
     }
-  if (last != NULL)
-    free (last);
+  free (last);
 }
 
 
@@ -6790,8 +6786,14 @@ relative_filename (file, dir)
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
+  while (*dp == '/')
+    ++dp;
   while ((dp = etags_strchr (dp + 1, '/')) != NULL)
-    i += 1;
+    {
+      i += 1;
+      while (*dp == '/')
+	++dp;
+    }
   res = xnew (3*i + strlen (fp + 1) + 1, char);
   res[0] = '\0';
   while (i-- > 0)

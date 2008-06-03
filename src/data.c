@@ -1504,7 +1504,11 @@ The function `default-value' gets the default value and `set-default' sets it.  
   if (BUFFER_OBJFWDP (valcontents))
     return variable;
   else if (BUFFER_LOCAL_VALUEP (valcontents))
-    newval = valcontents;
+    {
+      if (XBUFFER_LOCAL_VALUE (valcontents)->check_frame)
+	error ("Symbol %s may not be buffer-local", SDATA (sym->xname));
+      newval = valcontents;
+    }
   else
     {
       if (EQ (valcontents, Qunbound))
@@ -1556,7 +1560,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   sym = indirect_variable (XSYMBOL (variable));
 
   valcontents = sym->value;
-  if (sym->constant || KBOARD_OBJFWDP (valcontents))
+  if (sym->constant || KBOARD_OBJFWDP (valcontents)
+      || (BUFFER_LOCAL_VALUEP (valcontents)
+	  && (XBUFFER_LOCAL_VALUE (valcontents)->check_frame)))
     error ("Symbol %s may not be buffer-local", SDATA (sym->xname));
 
   if ((BUFFER_LOCAL_VALUEP (valcontents)
@@ -1720,7 +1726,8 @@ Buffer-local bindings take precedence over frame-local bindings.  */)
 
   if (BUFFER_LOCAL_VALUEP (valcontents))
     {
-      XBUFFER_LOCAL_VALUE (valcontents)->check_frame = 1;
+      if (!XBUFFER_LOCAL_VALUE (valcontents)->check_frame)
+	error ("Symbol %s may not be frame-local", SDATA (sym->xname));
       return variable;
     }
 

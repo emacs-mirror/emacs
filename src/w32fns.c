@@ -4955,7 +4955,7 @@ w32_unload_font (dpyinfo, font)
 {
   if (font)
     {
-      if (font->per_char) xfree (font->per_char);
+      xfree (font->per_char);
       if (font->bdf) w32_free_bdf_font (font->bdf);
 
       if (font->hfont) DeleteObject (font->hfont);
@@ -5584,7 +5584,7 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
       strcpy (height_dpi, "*");
     }
 
-#if 0 /* Never put the width in the xfld. It fails on fonts with
+#if 0 /* Never put the width in the xlfd. It fails on fonts with
 	 double-width characters.  */
   if (lplogfont->lfWidth)
     sprintf (width_pixels, "%u", lplogfont->lfWidth * 10);

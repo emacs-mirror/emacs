@@ -440,7 +440,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 Set the match data so that subexpression 1,2 are the TYPE, and
 type-name parts, respectively."
   (let (found l)
-    (while (and (re-search-forward "\\<\\(\\(?:end[ \t]*\\)?type\\)[ \t]*"
+    (while (and (re-search-forward "\\<\\(\\(?:end[ \t]*\\)?type\\)\\>[ \t]*"
                                    limit t)
                 (not (setq found
                            (progn
@@ -1213,7 +1213,7 @@ NAME is nil if the statement has no label."
 NAME is non-nil only for type."
   (cond
    ((save-excursion
-      (and (looking-at "\\<type[ \t]*")
+      (and (looking-at "\\<type\\>[ \t]*")
            (goto-char (match-end 0))
            (not (looking-at "\\(is\\>\\|(\\)"))
            (or (looking-at "\\(\\sw+\\)")

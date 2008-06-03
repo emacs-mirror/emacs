@@ -599,8 +599,9 @@ docstring, and print only the first line of the docstring."
       (print-coding-system-briefly (keyboard-coding-system))
       (princ "Coding system for terminal output:\n  ")
       (print-coding-system-briefly (terminal-coding-system))
-      (princ "Coding system for inter-client cut and paste:\n  ")
-      (print-coding-system-briefly selection-coding-system)
+      (when (boundp 'selection-coding-system)
+          (princ "Coding system for inter-client cut and paste:\n  ")
+          (print-coding-system-briefly selection-coding-system))
       (when (get-buffer-process (current-buffer))
 	(princ "Coding systems for process I/O:\n")
 	(princ "  encoding input to the process: ")
@@ -834,23 +835,18 @@ The font must be already used by Emacs."
   (interactive "sFont name (default current choice for ASCII chars): ")
   (or (and window-system (fboundp 'fontset-list))
       (error "No fonts being used"))
-  (let (fontset font-info)
-    (when (or (not fontname) (= (length fontname) 0))
-      (setq fontname (frame-parameter nil 'font))
-      ;; Check if FONTNAME is a fontset.
-      (if (query-fontset fontname)
-	  (setq fontset fontname
-		fontname (nth 1 (assq 'ascii
-				      (aref (fontset-info fontname) 2))))))
+  (let (font-info)
+    (if (or (not fontname) (= (length fontname) 0))
+	(setq fontname (face-attribute 'default :font)))
     (setq font-info (font-info fontname))
     (if (null font-info)
-	(if fontset
+	(if (fontp fontname 'font-object)
 	    ;; The font should be surely used.  So, there's some
 	    ;; problem about getting information about it.  It is
 	    ;; better to print the fontname to show which font has
 	    ;; this problem.
-	    (message "No information about \"%s\"" fontname)
-	  (message "No matching font being used"))
+	    (message "No information about \"%s\"" (font-xlfd-name fontname))
+	  (message "No matching font found"))
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info 'verbose)))))
 

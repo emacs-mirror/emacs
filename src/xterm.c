@@ -469,8 +469,8 @@ x_set_frame_alpha (f)
   Window win = FRAME_OUTER_WINDOW (f);
   double alpha = 1.0;
   double alpha_min = 1.0;
-  unsigned int opac;
-  
+  unsigned long opac;
+
   if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
     /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
        we must treat the former instead of the latter. */
@@ -491,7 +491,7 @@ x_set_frame_alpha (f)
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
-  opac = (unsigned int)(alpha * OPAQUE);
+  opac = alpha * OPAQUE;
 
   /* return unless necessary */
   {
@@ -502,9 +502,9 @@ x_set_frame_alpha (f)
 
     XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
 		       0L, 1L, False, XA_CARDINAL, &actual, &format, &n, &left,
-		       (unsigned char **) &data);
-    if (data != None)
-      if (*(unsigned int *)data == opac)
+		       &data);
+    if (actual != None)
+      if (*(unsigned long *)data == opac)
 	{
 	  XFree ((void *) data);
 	  return;
@@ -2664,8 +2664,10 @@ x_draw_glyph_string (s)
       x_set_glyph_string_clipping (s);
       relief_drawn_p = 1;
     }
-  else if ((s->prev && s->prev->hl != s->hl && s->left_overhang)
-	   || (s->next && s->next->hl != s->hl && s->right_overhang))
+  else if (!s->clip_head /* draw_glyphs didn't specify a clip mask. */
+	   && !s->clip_tail
+	   && ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+	       || (s->next && s->next->hl != s->hl && s->right_overhang)))
     /* We must clip just this glyph.  left_overhang part has already
        drawn when s->prev was drawn, and right_overhang part will be
        drawn later when s->next is drawn. */
@@ -9511,9 +9513,7 @@ x_free_frame_resources (f)
       XFlush (FRAME_X_DISPLAY (f));
     }
 
-  if (f->output_data.x->saved_menu_event)
-    xfree (f->output_data.x->saved_menu_event);
-
+  xfree (f->output_data.x->saved_menu_event);
   xfree (f->output_data.x);
   f->output_data.x = NULL;
 
@@ -10520,10 +10520,8 @@ x_delete_display (dpyinfo)
     xim_close_dpy (dpyinfo);
 #endif
 
-  if (dpyinfo->x_id_name)
-    xfree (dpyinfo->x_id_name);
-  if (dpyinfo->color_cells)
-    xfree (dpyinfo->color_cells);
+  xfree (dpyinfo->x_id_name);
+  xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
 }
 

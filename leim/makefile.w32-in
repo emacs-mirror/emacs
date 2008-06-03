@@ -80,7 +80,6 @@ CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5)
 JAPANESE=$(srcdir)/quail/japanese.elc $(srcdir)/ja-dic/ja-dic.elc
 
 KOREAN=	$(srcdir)/quail/hangul.elc	\
-	$(srcdir)/quail/hangul3.elc	\
 	$(srcdir)/quail/hanja.elc	\
 	$(srcdir)/quail/hanja3.elc	\
 	$(srcdir)/quail/hanja-jis.elc	\
@@ -187,6 +186,7 @@ $(MISC_DIC):
 # WARNING: Do NOT split the parts inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 leim-list.el: $(SUBDIRS) $(WORLD) $(srcdir)/leim-ext.el
+	- $(DEL) leim-list.el
 	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
 	    --eval $(ARGQUOTE)(update-leim-list-file $(DQUOTE).$(DQUOTE))$(ARGQUOTE)
 	$(RUN_EMACS) --eval $(ARGQUOTE)(w32-append-code-lines $(DQUOTE)$@$(DQUOTE) $(DQUOTE)$(srcdir)/leim-ext.el$(DQUOTE))$(ARGQUOTE)

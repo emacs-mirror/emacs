@@ -277,9 +277,25 @@ conversion is done from within a filter.
 This also helps when the NAME of the entry is recreated each time:
 since the menu is built and traversed separately, the lookup
 would always fail because the key is `equal' but not `eq'."
-  (or (gethash item easy-menu-converted-items-table)
-      (puthash item (easy-menu-convert-item-1 item)
-	       easy-menu-converted-items-table)))
+  (let* ((cache (gethash item easy-menu-converted-items-table))
+	 (result (or cache (easy-menu-convert-item-1 item)))
+	 (key (car-safe result)))
+    (when (and (listp easy-menu-avoid-duplicate-keys) (symbolp key))
+      ;; Merging multiple entries with the same name is sometimes what we
+      ;; want, but not when the entries are actually different (e.g. same
+      ;; name but different :suffix as seen in cal-menu.el) and appear in
+      ;; the same menu.  So we try to detect and resolve conflicts.
+      (while (memq key easy-menu-avoid-duplicate-keys)
+	;; We need to use some distinct object, ideally a symbol, ideally
+	;; related to the `name'.  Uninterned symbols do not work (they
+	;; are apparently turned into strings and re-interned later on).
+	(setq key (intern (format "%s-%d" (symbol-name key)
+				  (length easy-menu-avoid-duplicate-keys))))
+	(setq result (cons key (cdr result))))
+      (push key easy-menu-avoid-duplicate-keys))
+
+    (unless cache (puthash item result easy-menu-converted-items-table))
+    result))
 
 (defun easy-menu-convert-item-1 (item)
   "Parse an item description and convert it to a menu keymap element.
@@ -376,20 +392,6 @@ ITEM defines an item as in `easy-menu-define'."
     ;; It also makes it easier/possible to lookup/change menu bindings
     ;; via keymap functions.
     (let ((key (easy-menu-intern name)))
-      (when (listp easy-menu-avoid-duplicate-keys)
-        ;; Merging multiple entries with the same name is sometimes what we
-        ;; want, but not when the entries are actually different (e.g. same
-        ;; name but different :suffix as seen in cal-menu.el) and appear in
-        ;; the same menu.  So we try to detect and resolve conflicts.
-        (while (and (stringp name)
-                    (memq key easy-menu-avoid-duplicate-keys))
-          ;; We need to use some distinct object, ideally a symbol, ideally
-          ;; related to the `name'.  Uninterned symbols do not work (they
-          ;; are apparently turned into strings and re-interned later on).
-          (setq key (intern (format "%s (%d)" (symbol-name key)
-                                    (length easy-menu-avoid-duplicate-keys)))))
-        (push key easy-menu-avoid-duplicate-keys))
-
       (cons key
             (and (not remove)
                  (cons 'menu-item

@@ -1,17 +1,304 @@
+2008-06-03  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_prop_validate_spacing): Handle uppercase symbols.
+	(font_parse_fcname): Fix handling of unknown key.
+
+	* xfont.c (xfont_list): Try an alias.
+
+	* charset.c (char_charset): Return NULL if the arg charset_list is
+	specified and C doesn't belong to any of them.
+
+2008-06-02  Chip Coldwell  <coldwell@redhat.com>
+
+	* font.c (font_pixel_size): Don't take cdr of an integer.
+
+2008-06-02  Jim Meyering  <meyering@redhat.com>
+
+	Make "xfree (NULL)" a no-op; remove useless if-before-xfree.
+	* alloc.c (xfree): Return right away for a NULL arg.
+	* lread.c (nosuffix): Remove now-useless if-before-xfree tests.
+	* gtkutil.c (xg_gtk_scroll_destroy): Likewise.
+	* mac.c (create_apple_event_from_event_ref): Likewise.
+	(create_apple_event_from_drag_ref, cfstring_create_normalized):
+	Likewise.
+	* doprnt.c (doprnt1): Likewise.
+	* frame.c (frame): Likewise.
+	* keyboard.c (wipe_kboard): Likewise.
+	* macterm.c (x_free_frame_resources, xlfdpat_destroy, XFreePixmap):
+	(init_font_name_table, mac_unload_font, x_delete_display): Likewise.
+	* term.c (tty_default_color_capabilities, maybe_fatal)
+	(delete_tty): Likewise.
+	* w16select.c (string): Likewise.
+	* w32.c (w32_get_resource, SET_ENV_BUF_SIZE): Likewise.
+	* w32bdf.c (w32_free_bdf_font): Likewise.
+	* w32fns.c (w32_unload_font): Likewise.
+	* w32font.c (w32font_close): Likewise.
+	* window.c (size_window): Likewise.
+	* xselect.c (receive_incremental_selection): Likewise.
+	* xterm.c (x_free_frame_resources, x_delete_display): Likewise.
+	* mactoolbox.c (create_apple_event_from_drag_ref): Likewise.
+	* w32.c (stat): Likewise.
+
+	Remove useless if-before-free tests.
+	* editfns.c (Fset_time_zone_rule): Likewise.
+	* lread.c (nosuffix): Likewise.
+	* ralloc.c (get_bloc): Likewise.
+	* regex.c (reg_free): Likewise.
+	* xftfont.c (xftfont_open, xftfont_close): Likewise.
+	* xrdb.c (get_user_app, get_environ_db, x_load_resources): Likewise.
+	* xsmfns.c (smc_save_yourself_CB): Likewise.
+
+2008-06-02  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_find_for_lface): Handle float font size.
+	(font_open_for_lface): Likewise.
+
+	* xfaces.c (x_supports_face_attributes_p): Check face->font before
+	comparing the properties.
+
+2008-06-01  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32_enumfont_pattern_entity): Use requested registry.
+        Treat iso10646-1 and Windows DEFAULT_CHARSET specially.
+        Duplicate iso8859-1 fonts as iso10646-1 if no registry specified.
+        Don't add empty script list.
+        (w32_registry): Only map DEFAULT_CHARSET to iso10646-1 here.
+
+2008-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (dot, dotdot): Remove, update users.
+	".." has been used elsewhere in the file for a long time.
+	(LIBXT_STATIC): Remove conditional based on unused variable.
+
+2008-06-01  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Vface_remapping_alist): New variable.
+	(syms_of_xfaces): Initialize it.
+	(enum named_merge_point_kind): New type.
+	(struct named_merge_point): Add `named_merge_point_kind' field.
+	(push_named_merge_point): Make cycle detection respect different
+	named-merge-point kinds.
+	(lface_from_face_name_no_resolve): Renamed from `lface_from_face_name'.
+	Remove face-name alias resolution.
+	(lface_from_face_name): New definition using
+	`lface_from_face_name_no_resolve'.
+	(get_lface_attributes_no_remap): Renamed from `get_lface_attributes'.
+	Call lface_from_face_name_no_resolve instead of lface_from_face_name.
+	(get_lface_attributes): New definition that layers face-remapping on
+	top of get_lface_attributes_no_remap.  New arg `named_merge_points'.
+	(lookup_basic_face): New function.
+	(lookup_derived_face): Pass new last arg to `get_lface_attributes'.
+	(realize_named_face): Call `get_lface_attributes_no_remap' instead of
+	`get_lface_attributes'.
+	(face_at_buffer_position): Use `lookup_basic_face' to lookup
+	DEFAULT_FACE_ID if necessary.  When optimizing the default-face case,
+	return default_face's face-id instead of the constant DEFAULT_FACE_ID.
+
+	* xdisp.c (init_iterator): Pass base_face_id through
+	`lookup_basic_face' when we actually use it as a face-id.
+	(handle_single_display_prop): Use `lookup_basic_face' to lookup
+	DEFAULT_FACE_ID.
+
+	* fontset.c (Finternal_char_font): Use `lookup_basic_face' to
+	lookup the initial face-id.
+
+	* dispextern.h (lookup_basic_face, Vface_remapping_alist): New decls.
+
+2008-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textprop.c (syms_of_textprop) <text-property-default-nonsticky>:
+	(Fremove_text_properties): Fix typos in docstrings.
+
+2008-05-31  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_list_entities): Fix the car part of data to be
+	stored in the cache.
+
+	* ftfont.c (ftfont_font_format): Don't use strcasestr.
+
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* chartab.c (Foptimize_char_table, optimize_sub_char_table):
+	Add a `test' argument so another predicate than `equal' can be used.
+	(map_sub_char_table): Use `eq' rather than `equal' to merge ranges.
+	(map_char_table): Remove unused vars `c' and `i'.
+	* lisp.h (Foptimize_char_table): Adjust declaration.
+	* charset.c (Fclear_charset_maps): Adjust call to Foptimize_char_table.
+
+2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_info): Define only if HAVE_WINDOW_SYSTEM is defined.
+	(syms_of_font): Defsubr Sfont_info only if HAVE_WINDOW_SYSTEM is
+	defined.
+
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local): Disallow mixing buffer-local and
+	frame-local settings for the same variable.
+
+2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Ffont_info): Moved to font.c.
+	(syms_of_fontset): Delete defsubr of Sfont_info.
+
+	* font.c (font_style_to_value, font_score): Delete casting of the
+	args to xstcasecmp.
+	(register_font_driver): Increment num_font_drivers only when
+	registering the driver globally.
+	(Ffont_info): Moved from fontset.c.  Handle a font object too.
+	(syms_of_font): Defsubr Sfont_info.
+
+2008-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (enum define_coding_utf8_arg_index): New enum.
+	(enum coding_attr_index): Change coding_attr_utf_16_bom to
+	coding_attr_utf_bom.
+	(enum utf_bom_type): Rename from utf_16_bom_type.
+	(struct utf_16_spec): Adjust for the above change.
+	(struct coding_system): Add utf_8_bom in `spec' union.
+
+	* coding.c (CODING_UTF_8_BOM): New macro.
+	(enum coding_category): Delete coding_category_utf_8, add
+	coding_category_utf_8_auto, coding_category_utf_8_nosig, and
+	coding_category_utf_8_sig.
+	(CATEGORY_MASK_UTF_8): Delete it.
+	(CATEGORY_MASK_UTF_8_AUTO, CATEGORY_MASK_UTF_8_NOSIG)
+	(CATEGORY_MASK_UTF_8_SIG): New macros.
+	(CATEGORY_MASK_ANY): Delete CATEGORY_MASK_UTF_8, add
+	CATEGORY_MASK_UTF_8_AUTO, CATEGORY_MASK_UTF_8_NOSIG, and
+	CATEGORY_MASK_UTF_8_SIG.
+	(CATEGORY_MASK_UTF_8): New macro.
+	(UTF_BOM, UTF_8_BOM_1, UTF_8_BOM_2, UTF_8_BOM_3): New macros.
+	(detect_coding_utf_8): Check BOM.
+	(decode_coding_utf_8, encode_coding_utf_8): Handle BOM.
+	(decode_coding_utf_16): Adjust for the change of enum utf_bom_type.
+	(encode_coding_utf_16): Likewise.
+	(setup_coding_system): Likewise.  Set CODING_UTF_8_BOM (coding).
+	(detect_coding, detect_coding_system): Handle utf-8-auto.
+	(Fdefine_coding_system_internal): Handle `bom' property for utf-8.
+	(syms_of_coding): Fix setting up of Vcoding_category_table.
+
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Faccept_process_output): If `millisec' is non-nil,
+	`seconds' default to 0.
+	(wait_reading_process_output): Also return non-nil if we read output
+	from a non-running process.
+
+2008-05-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Prefer truetype fonts unless
+	`raster' specified.
+	(add_font_entity_to_list): Allow non-opentype truetype fonts back
+	in the uniscribe backend, but disallow any font that has no
+	unicode subrange support.
+
+2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fx_list_fonts, Finternal_copy_lisp_face):
+	Fix typos in docstrings.
+
+2008-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (Fx_list_fonts): Make it return a list of font names.
+	(Fx_family_fonts): Set frame correctly.
+
+2008-05-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_glyph_string): Use clipmask if specified.
+
+2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fwrite_region): Delay the defaulting to beg&z to after
+	calling build_annotations.
+
+2008-05-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (Fdecode_coding_region, Fencode_coding_region)
+	(Fencode_coding_string):
+	(syms_of_coding) <coding-system-for-read, coding-system-for-write>:
+	<latin-extra-code-table>: Fix typos in docstrings.
+	(syms_of_coding) <coding-system-alist>: Doc fix.
+	(syms_of_coding) <translation-table-for-input>: Reflow docstring.
+
+2008-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Ffont_info): Don't call font_close_object.
+
+	* font.c (font_parse_family_registry): Use Ffont_put to validate
+	foundry and family.
+	(font_delete_unmatched): Don't check spacing.
+	(font_list_entities): Add spacing to the spec to list fonts.
+
+	* ftfont.c (ftfont_spec_pattern): Don't set FC_SPACING to pattern.
+	(ftfont_list): Check spacing here.  Don't include FC_CHARSET in objset.
+
+	* coding.c (encode_coding_raw_text): Fix previous change.
+	(encode_coding_object): When the dst_object is a buffer and is
+	different from src_object, move gap to PT.
+
+2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_glyph_string): If a clipmask is specified, use it.
+
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.c (encode_coding_raw_text): Set coding->produced_char for
+	all branches.  Compute it differently.
+
+	* xdisp.c [!HAVE_WINDOW_SYSTEM]: Include font.h for --without-x.
+
+2008-05-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c (compute_metrics): Rewrite an "else { if () ... else ... }"
+	into "else if () ... else ...".
+
+2008-05-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Determine if glyph indices
+	are likely to work here.
+
+2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (draw_glyphs): If mouse-highlighting is on, attempt to
+	draw overlap glyphs with appropriate highlighting.
+
+2008-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Fix calculation of font->average_width.
+
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* casefiddle.c (casify_object): Try to guess better whether the
+	argument is a byte or a char.
+
+2008-05-26  Andreas Schwab  <schwab@suse.de>
+
+	* xselect.c (x_reply_selection_request): Properly handle format == 32.
+	Always send multiples of format size.
+
+	* xterm.c (x_set_frame_alpha): Fix type mismatch.
+
+2008-05-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Zero whole metrics struct first.
+	(compute_metrics): Don't set failure if we just cleared the cache.
+	(w32_weight_table): Remove unused variable.
+	(w32_enumfont_pattern_entity): Use FONT_SPACING_CHARCELL for
+	backwards compatibility.
+
 2008-05-25  Kenichi Handa  <handa@m17n.org>
 
-	* w32term.c (x_draw_glyph_string): Fix calculation of underline
-	position.
-
-	* xterm.c (x_draw_glyph_string): Fix calculation of underline
-	position.
+	* w32term.c (x_draw_glyph_string):
+	* xterm.c (x_draw_glyph_string): Fix calculation of underline position.
 
 	* xfaces.c: Delete unused function prototypes.
 	(xstrlwr, font_frame): Delete them.
 	(clear_face_cache): Delete unused variable.
 
-	* xftfont.c (xftfont_open): Delete unused variable.  If
-	underline_thickness is not 1, adjust underline_position.
+	* xftfont.c (xftfont_open): Delete unused variable.
+	If underline_thickness is not 1, adjust underline_position.
 
 	* ftxfont.c (ftxfont_open): Delete unused variable.
 
@@ -22,7 +309,7 @@
 	(check_gstring, check_otf_features, otf_list, otf_tag_symbol)
 	(otf_open, font_otf_capability, generate_otf_features)
 	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor):
-	Commented out by surrounding "#if 0" and "#endif" for the moment.
+	Comment out by surrounding "#if 0" and "#endif" for the moment.
 	(Ffont_drive_otf, Ffont_otf_alternates): Likewise.
 	(syms_of_font): Codes for accessing above commented out.
 
@@ -491,33 +778,29 @@
 	(font_match_p): Check alternate families.
 	(font_find_object): Delete it.
 	(font_check_object): New function.
-	(font_clear_cache): Adjusted for the change of font-related
-	objects.
+	(font_clear_cache): Adjusted for the change of font-related objects.
 	(font_delete_unmatched): New arg.
 	(font_list_entities): Call font_driver->list with a spec that
 	doesn't specify style-related properties.
 	(font_matching_entity): Arguments changed.  Caller changed.
-	(font_open_entity): Adjusted for the change of font-related
-	objects.
+	(font_open_entity): Adjusted for the change of font-related objects.
 	(font_close_object, font_has_char, font_encode_char)
 	(font_get_name, font_get_spec): Likewise.
-	(font_spec_from_name, font_clear_prop, font_update_lface): New
-	functions.
-	(font_find_for_lface, font_open_for_lface, font_load_for_lface):
+	(font_spec_from_name, font_clear_prop, font_update_lface):
+	New functions.
+	(font_find_for_lface, font_open_for_lface, font_load_for_lface)
 	(font_prepare_for_face, font_done_for_face, font_open_by_name)
 	(font_at): Adjusted for the change of font-related objects.
 	(font_range): New function.
 	(Ffontp, Ffont_spec, Ffont_get, Ffont_put, Flist_fonts)
-	(Ffont_xlfd_name): Adjusted for the change of font-related
-	objects.
+	(Ffont_xlfd_name): Adjusted for the change of font-related objects.
 	(Fcopy_font_spec, Fmerge_font_spec): New function.
 	(Ffont_family_list): Renamed from list-families.
 	(Finternal_set_font_style_table): Arguments changed.
 	(Ffont_fill_gstring, Ffont_shape_text, Fopen_font)
 	(Ffont_drive_otf, Fquery_font, Ffont_match_p): Adjusted for the
 	change of font-related objects.
-	(syms_of_font): Delete "ifdef USE_FONT_BACKEND".  DEFSYM new
-	symboles.
+	(syms_of_font): Delete "ifdef USE_FONT_BACKEND".  DEFSYM new symbols.
 
 	* fontset.h (struct font_info): Delete it.  Most memnbers go to
 	struct font.
@@ -676,8 +959,8 @@
 	set_lface_from_font_and_fontset.  Caller changed.  Don't set
 	LFACE_AVGWIDTH.  Use FONT_XXX_FOR_FACE to get a symbol suitable
 	for face.
-	(merge_face_vectors): Copy font-spec if necessary.  Clear
-	properties of the font-spec if necessary.
+	(merge_face_vectors): Copy font-spec if necessary.
+	Clear properties of the font-spec if necessary.
 	(merge_face_ref): Clear properties of the font-spec if necessary.
 	(Finternal_set_lisp_face_attribute): Likewise.
 	(set_font_frame_param): Use font_load_for_lface to load a
@@ -691,8 +974,8 @@
 	Compare fonts by EQ.
 	(lookup_non_ascii_face): Deleted.
 	(face_for_font): The 2nd argument changed.
-	(x_supports_face_attributes_p): Don't check LFACE_AVGWIDTH.  Check
-	atomic font properties by case insensitive.
+	(x_supports_face_attributes_p): Don't check LFACE_AVGWIDTH.
+	Check atomic font properties by case insensitive.
 	(realize_non_ascii_face): Set face->overstrike correctly.
 	(realize_x_face): Likewise.  Check if LFACE_FONT is a font_object.
 	(dump_realized_face): Get font name from
@@ -757,12 +1040,11 @@
 
 	* xterm.c: Throughout the file, delete all USE_FONT_BACKEND
 	conditionals.  Don't check enable_font_backend.  Delete all codes
-	used only when USE_FONT_BACKEND is not defined.  Don't include
-	ccl.h.
+	used only when USE_FONT_BACKEND is not defined.  Don't include ccl.h.
 	(x_per_char_metric, x_encode_char): Deleted.
 	(x_set_cursor_gc, x_set_mouse_face_gc): Don't set GCFont.
 	(x_compute_glyph_string_overhangs): Adjusted for the change of
-	`struct face'
+	`struct face'.
 	(x_draw_glyph_string_foreground)
 	(x_draw_composite_glyph_string_foreground): Likewise.
 	(x_draw_glyph_string): Likewise.  Use font->underline_position and
@@ -801,16 +1083,14 @@
 	(w32font_draw): Likewise.
 	(w32font_list_internal): Return a list, not vector.
 	(w32font_open_internal): Change the 4th arg to font-object.
-	Adjusted for the change of struct w32font_info and font-object
-	format.
+	Adjusted for the change of struct w32font_info and font-object format.
 	(add_font_name_to_list): Don't downcase names.
 	(w32_enumfont_pattern_entity): Make a font-entity by
 	font_make_entity.  Adjusted for the format change of font-entity.
 	Use FONT_SET_STYLE to set a style-related font property.  If a
 	font is scalable, set avgwidth property to 0.  Set font-entity
 	property by font_put_extra.
-	(font_matches_spec): Adjusted for the format change of
-	font-entity.
+	(font_matches_spec): Adjusted for the format change of font-entity.
 	(w32_weight_table, w32_decode_weight): New variables.
 	(w32_encode_weight): New function.
 	(fill_in_logfont): Adjusted for the format change of font-spec.
@@ -830,10 +1110,9 @@
 	code by "#ifdef OLD_FONT" and "endif".
 
 	* w32uniscribe.c: Delete USE_FONT_BACKEND conditional.
-	(uniscribe_open): Return value changed to font-object.  Adjusted
-	for the format change of font-object.
-	(uniscribe_otf_capability): Adjusted for the change of struct
-	font.
+	(uniscribe_open): Return value changed to font-object.
+	Adjusted for the format change of font-object.
+	(uniscribe_otf_capability): Adjusted for the change of struct font.
 	(add_opentype_font_name_to_list): Don't downcase names.
 	(uniscribe_font_driver): Adjusted for the change of struct
 	font_driver.
@@ -1041,7 +1320,7 @@
 	check_min_window_sizes.
 	(window_min_size_2, window_min_size_1, window_min_size):
 	New argument safe_p for retrieving "safe" minimum sizes.
-	(Fdisplay_buffer, Fsplit_window, enlarge_window):
+	(Fdisplay_buffer, Fsplit_window, enlarge_window)
 	(adjust_window_trailing_edge, grow_mini_window):
 	Adjust arguments of window_min_size... functions.
 	(shrink_windows): Argument min_size removed.  New argument
@@ -1119,7 +1398,7 @@
 	Likewise.
 
 	* mactoolbox.c (Vmac_ts_active_input_buf) [USE_MAC_TSM]: Add extern.
-	(fast_find_position, x_y_to_hpos_vpos, mac_ax_selected_text_range):
+	(fast_find_position, x_y_to_hpos_vpos, mac_ax_selected_text_range)
 	(mac_ax_number_of_characters): Add externs.
 	(mac_get_selected_range, mac_store_buffer_text_to_unicode_chars)
 	[USE_MAC_TSM]: Likewise.
@@ -2750,7 +3029,7 @@
 
 	* Makefile.in: Update what RMS says about using autoconf.
 	(C_COMPILER, COFF_ENCAPSULATE, MAKE_PARALLEL): Remove obsolete variable.
-	(C_SWITCH_MACHINE_1, C_SWITCH_SYSTEM_1, C_SWITCH_SITE_1):
+	(C_SWITCH_MACHINE_1, C_SWITCH_SYSTEM_1, C_SWITCH_SITE_1)
 	(C_SWITCH_X_SITE_1, C_SWITCH_X_MACHINE_1)
 	(C_SWITCH_X_SYSTEM_1): Move invariant code outside conditional.
 
@@ -2813,7 +3092,7 @@
 	The latter provokes a warning from gcc about the empty else, when
 	followed by ";".  Also, without that trailing semicolon, it would
 	silently swallow up any following statement.
-	* syntax.h (SETUP_SYNTAX_TABLE):
+	* syntax.h (SETUP_SYNTAX_TABLE)
 	(SETUP_SYNTAX_TABLE_FOR_OBJECT): Likewise.
 	* buffer.h (DECODE_POSITION): Likewise.
 	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
@@ -3830,8 +4109,8 @@
 	* w32term.c (w32_native_per_char_metric): Swap width and rbearing
 	calculations for non-Truetype fonts.
 	(x_draw_glyph_string): Sync with xterm.c.
-	(x_draw_glyph_string_foreground) [USE_FONT_BACKEND]: Remove
-	redundant code.
+	(x_draw_glyph_string_foreground) [USE_FONT_BACKEND]:
+	Remove redundant code.
 	(w32_initialize) [USE_FONT_BACKEND]: Call w32font_initialize.
 
 	* w32term.h (w32_output_data) [USE_FONT_BACKEND]: Add fontp member.
@@ -3854,10 +4133,10 @@
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c [USE_FONT_BACKEND]:
-	(x_get_font_repertory, note_mouse_movement, x_set_mouse_face_gc):
-	(x_set_glyph_string_clipping, x_set_glyph_string_clipping_exactly):
-	(x_draw_glyph_string, x_draw_glyph_string_foreground):
-	(x_draw_composite_glyph_string_foreground, x_new_fontset2):
+	(x_get_font_repertory, note_mouse_movement, x_set_mouse_face_gc)
+	(x_set_glyph_string_clipping, x_set_glyph_string_clipping_exactly)
+	(x_draw_glyph_string, x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground, x_new_fontset2)
 	(x_free_frame_resources): Sync with xterm.c.
 
 2008-02-01  Andreas Schwab  <schwab@suse.de>
@@ -3867,8 +4146,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (check_otf_features): Define it regardless of
-	HAVE_LIBOTF.
+	* font.c (check_otf_features): Define it regardless of HAVE_LIBOTF.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3884,8 +4162,8 @@
 	(otf_open): Use lispy otf_list.
 	(generate_otf_features): Rename from parse_gsub_gpos_spec.
 	(check_otf_features): New function.
-	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor): New
-	functinos.
+	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor):
+	New functions.
 	(font_drive_otf): New function merging font_otf_gsub and
 	font_otf_gpos.
 	(font_open_for_lface): New arg spec.  Change argument order.
@@ -7607,7 +7885,7 @@
 	(xsubchartable, xcoding, xcharset, xcurbuf): New commands.
 
 	* Makefile.in (obj): Add character.o and chartab.o.
-	(lisp, shortlisp): Remove utf-8.elc:
+	(lisp, shortlisp): Remove utf-8.elc.
 	(*.o): For many files, change dependency on charset.h to
 	character.h, and add dependency on character.h.
 	(character.o, chartab.o): New targets.
@@ -10164,8 +10442,7 @@
 	* xterm.h: Remove declaration for x_fully_uncatch_errors.
 	(x_output): Remove background_pixel and foreground_pixel fields.
 	(x_display_info): Add new field TERMINAL.  Remove KBOARD field.
-	(x_delete_device):
-	(x_session_close): Declare.
+	(x_delete_device, x_session_close): Declare.
 
 	* lread.c: Include setjmp.h.  Update declaration of `read_char'.
 	(read_filtered_event): Call `read_char' with a local
@@ -10216,7 +10493,7 @@
 	(syms_of_keymap): Remove DEFVAR for Vfunction_key_map.
 	(Vkey_translation_map): Remove.
 	(syms_of_keymap): Remove DEFVAR for key-translation-map.
-	(Fdescribe_buffer_bindings):
+	(Fdescribe_buffer_bindings)
 	(read_key_sequence, init_kboard, syms_of_keyboard, mark_kboards):
 	Update for terminal-local key-translation-map.
 
@@ -10253,9 +10530,9 @@
 
 	* coding.c: Include frame.h and termhooks.h.
 	(terminal_coding, keyboard_coding): Delete.
-	(Fset_terminal_coding_system_internal):
-	(Fset_keyboard_coding_system_internal):
-	(Fkeyboard_coding_system):
+	(Fset_terminal_coding_system_internal)
+	(Fset_keyboard_coding_system_internal)
+	(Fkeyboard_coding_system)
 	(Fterminal_coding_system): Add a terminal parameter.
 	Get terminal_coding from the terminal.
 	(init_coding_once): Don't call setup_coding_system here.

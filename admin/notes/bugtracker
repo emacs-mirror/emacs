@@ -1,0 +1,54 @@
+NOTES ON THE EMACS BUG TRACKER   -*- outline -*-
+
+The Emacs Bug Tracker can be found at http://emacsbugs.donarmstrong.com/
+
+For a list of all bugs, see           http://emacsbugs.donarmstrong.com/emacs
+
+
+** When reporting a bug, to send a Cc to another address (e.g.
+bug-cc-mode@gnu.org), do not just use a Cc: header.
+Instead, use "X-Debbugs-CC:". This ensures the Cc address will get a
+mail with the bug report number in.
+
+** To not get acknowledgement mail from the tracker,
+add an "X-Debbugs-No-Ack:" header (with any value).
+
+** To close bug #123 (for example), send mail
+
+  To: 123-done@emacsbugs.donarmstrong.com
+
+with a brief explanation in the body as to why the bug was closed.
+
+
+** To reopen a closed bug #123:
+
+  To: control@emacsbugs.donarmstrong.com
+
+  reopen 123
+  thanks
+
+
+** Bugs can be tagged in various ways (eg wontfix, patch, etc).
+For a list of available tags, see:
+http://emacsbugs.donarmstrong.com/Developer#tags
+
+** To tag bug #123 (for example), send a mail of the form:
+
+  To: control@emacsbugs.donarmstrong.com
+
+  tag 123 wontfix
+  thanks
+
+Or just add the
+
+  tag 123 wontfix
+  thanks
+
+at the beginning of a reply.
+
+** To remove spam from the tracker, move it to the `spam' pseudo-package:
+
+  To: control@emacsbugs.donarmstrong.com
+
+  reassign 123 spam
+  thanks

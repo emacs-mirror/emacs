@@ -231,6 +231,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
     (cond
      ((equal checkout-time lastmod) 'up-to-date)
      ((string= (vc-working-revision file) "0") 'added)
+     ((null checkout-time) 'unregistered)
      (t 'edited))))
 
 (defun vc-cvs-working-revision (file)
@@ -800,9 +801,8 @@ state."
        ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
 	(setq file (expand-file-name (match-string 1)))
 	(vc-file-setprop file 'vc-backend 'CVS)
-	(if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-	    (setq status "Unknown")
-	  (setq status (match-string 1)))
+	(setq status(if (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t)
+                        (match-string 1) "Unknown"))
 	(when (and full
 		   (re-search-forward
 		    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
@@ -823,6 +823,7 @@ state."
 	  ((string-match "Locally Added" status)                'added)
 	  ((string-match "Locally Removed" status)              'removed)
 	  ((string-match "File had conflicts " status)          'conflict)
+          ((string-match "Unknown" status)			'unregistered)
 	  (t 'edited))))))))
 
 (defun vc-cvs-after-dir-status (update-function)
@@ -841,7 +842,7 @@ state."
 	(re-search-forward
 	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: Examining .*\n\\)"
 	 nil t)
-      ;; XXX: get rid of narrowing here.
+      ;; FIXME: get rid of narrowing here.
       (narrow-to-region (match-beginning 0) (match-end 0))
       (goto-char (point-min))
       ;; The subdir
@@ -854,32 +855,28 @@ state."
 	(push (list file 'unregistered) result)
 	(forward-line 1))
       ;; A file entry.
-      (when (re-search-forward "^File: " nil t)
-	(when (setq missing (looking-at "no file "))
-	  (goto-char (match-end 0)))
-	(cond
-	 ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
-	  (setq file (file-relative-name 
-		      (expand-file-name (match-string 1) subdir)))
-	  (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-	      (push (list file 'unregistered) result)
-	    (setq status-str (match-string 1))
-	    (setq status
-		  (cond
-		   ((string-match "Up-to-date" status-str) 'up-to-date)
-		   ((string-match "Locally Modified" status-str) 'edited)
-		   ((string-match "Needs Merge" status-str) 'needs-merge)
-		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
-		    (if missing 'missing 'needs-update))
-		   ((string-match "Locally Added" status-str) 'added)
-		   ((string-match "Locally Removed" status-str) 'removed)
-		   ((string-match "File had conflicts " status-str) 'conflict)
-		   (t 'edited)))
-	    (unless (eq status 'up-to-date)
-	      (push (list file status) result))))))
+      (when (re-search-forward "^File: \\(no file \\)?\\(.*[^ \t]\\)[ \t]+Status: \\(.*\\)" nil t)
+	(setq missing (match-string 1))
+	(setq file (file-relative-name
+		    (expand-file-name (match-string 2) subdir)))
+	(setq status-str (match-string 3))
+	(setq status
+	      (cond
+	       ((string-match "Up-to-date" status-str) 'up-to-date)
+	       ((string-match "Locally Modified" status-str) 'edited)
+	       ((string-match "Needs Merge" status-str) 'needs-merge)
+	       ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
+		(if missing 'missing 'needs-update))
+	       ((string-match "Locally Added" status-str) 'added)
+	       ((string-match "Locally Removed" status-str) 'removed)
+	       ((string-match "File had conflicts " status-str) 'conflict)
+	       ((string-match "Unknown" status-str) 'unregistered)
+	       (t 'edited)))
+	(unless (eq status 'up-to-date)
+	  (push (list file status) result)))
       (goto-char (point-max))
       (widen))
-      (funcall update-function result))
+    (funcall update-function result))
   ;; Alternative implementation: use the "update" command instead of
   ;; the "status" command.
   ;; (let ((result nil)
@@ -951,12 +948,12 @@ state."
     (concat
      (cond (module
 	    (concat
-	      (propertize "Module:      " 'face 'font-lock-type-face)
+	      (propertize "Module     : " 'face 'font-lock-type-face)
 	      (propertize module 'face 'font-lock-variable-name-face)))
 	   (t ""))
      (cond (repo
 	    (concat
-	      (propertize "Repository:   " 'face 'font-lock-type-face)
+	      (propertize "Repository : " 'face 'font-lock-type-face)
 	      (propertize repo 'face 'font-lock-variable-name-face)))
 	   (t ""))
      ;; In CVS, branch is a per-file property, not a per-directory property.  We 

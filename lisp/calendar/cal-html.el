@@ -343,10 +343,8 @@ DATE-LIST is a list of diary entries.  Return only those matching DATE."
 
 (defun cal-html-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
-  (let (diary-display-hook)
-    (diary-list-entries
-     (calendar-gregorian-from-absolute d1)
-     (1+ (- d2 d1)))))
+  (diary-list-entries (calendar-gregorian-from-absolute d1)
+                      (1+ (- d2 d1)) t))
 
 
 (defun cal-html-insert-agenda-days (month year diary-list)

@@ -257,16 +257,12 @@ There should be no more than seven characters after the final `/'."
 	 (info (jka-compr-get-compression-info visit-file))
 	 (magic (and info (jka-compr-info-file-magic-bytes info))))
 
-    ;; If START is nil, use the whole buffer.
-    (if (null start)
-	(setq start 1 end (1+ (buffer-size))))
-
     ;; If we uncompressed this file when visiting it,
     ;; then recompress it when writing it
     ;; even if the contents look compressed already.
     (if (and jka-compr-really-do-compress
-	     (eq start 1)
-	     (eq end (1+ (buffer-size))))
+             (or (null start)
+                 (= (- end start) (buffer-size))))
 	(setq magic nil))
 
     (if (and info
@@ -277,9 +273,10 @@ There should be no more than seven characters after the final `/'."
 		       (equal (if (stringp start)
 				  (substring start 0 (min (length start)
 							  (length magic)))
-				(buffer-substring start
-						  (min end
-						       (+ start (length magic)))))
+                                (let* ((from (or start (point-min)))
+                                       (to (min (or end (point-max))
+                                                (+ from (length magic)))))
+                                  (buffer-substring from to)))
 			      magic))))
 	(let ((can-append (jka-compr-info-can-append info))
 	      (compress-program (jka-compr-info-compress-program info))

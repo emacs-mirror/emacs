@@ -1,3 +1,9 @@
+2008-06-02  Jim Meyering  <meyering@redhat.com>
+
+	remove useless if-before-free tests
+	* lwlib-Xm.c (xm_update_one_value): Likewise.
+	* lwlib.c (safe_free_str, free_widget_value_tree): Likewise.
+
 2008-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (TOOLKIT_DEFINES): Remove.

@@ -53,7 +53,8 @@
   "Automatic mode-dependent insertion of text into new files."
   :prefix "auto-insert-"
   :group 'files
-  :group 'convenience)
+  :group 'convenience
+  :link '(custom-manual "(autotype) Autoinserting"))
 
 
 (defcustom auto-insert 'not-modified

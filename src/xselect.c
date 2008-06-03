@@ -808,7 +808,7 @@ x_reply_selection_request (event, format, data, size, type)
 	{
           int i = ((bytes_remaining < max_bytes)
                    ? bytes_remaining
-                   : max_bytes);
+                   : max_bytes) / format_bytes;
 
 	  BLOCK_INPUT;
 
@@ -816,15 +816,18 @@ x_reply_selection_request (event, format, data, size, type)
 	    = expect_property_change (display, window, reply.property,
 				      PropertyDelete);
 
-	  TRACE1 ("Sending increment of %d bytes", i);
+	  TRACE1 ("Sending increment of %d elements", i);
 	  TRACE1 ("Set %s to increment data",
 		  XGetAtomName (display, reply.property));
 
 	  /* Append the next chunk of data to the property.  */
 	  XChangeProperty (display, window, reply.property, type, format,
-			   PropModeAppend, data, i / format_bytes);
-	  bytes_remaining -= i;
-	  data += i;
+			   PropModeAppend, data, i);
+	  bytes_remaining -= i * format_bytes;
+	  if (format == 32)
+	    data += i * sizeof (long);
+	  else
+	    data += i * format_bytes;
 	  XFlush (display);
 	  had_errors = x_had_errors_p (display);
 	  UNBLOCK_INPUT;
@@ -1670,7 +1673,7 @@ receive_incremental_selection (display, window, property, target_type,
 	    XSelectInput (display, window, STANDARD_EVENT_SET);
 	  /* Use xfree, not XFree, because x_get_window_property
 	     calls xmalloc itself.  */
-	  if (tmp_data) xfree (tmp_data);
+	  xfree (tmp_data);
 	  break;
 	}
 

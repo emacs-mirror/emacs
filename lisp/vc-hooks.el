@@ -745,7 +745,7 @@ Before doing that, check if there are any old backups and get rid of them."
            (vc-call-backend backend 'make-version-backups-p file)
            (vc-make-version-backup file)))))
 
-(declare-function vc-directory-resynch-file "vc-dispatcher" (&optional fname))
+(declare-function vc-dir-resynch-file "vc-dispatcher" (&optional fname))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
@@ -766,10 +766,10 @@ Before doing that, check if there are any old backups and get rid of them."
          (eq (vc-checkout-model backend (list file)) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
 	 (vc-mode-line file)
-	 (when (featurep 'vc)
-	   ;; If VC is not loaded, then there can't be
-	   ;; any directory buffer to synchronize.
-	   (vc-directory-resynch-file file)))))
+	 ;; Try to avoid unnecessary work, a *vc-dir* buffer is only
+	 ;; present if this is true.
+	 (when (memq 'vc-dir-resynch-file after-save-hook)
+	   (vc-dir-resynch-file file)))))
 
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map
@@ -819,9 +819,9 @@ visiting FILE."
       ;; If the user is root, and the file is not owner-writable,
       ;; then pretend that we can't write it
       ;; even though we can (because root can write anything).
-    ;; This way, even root cannot modify a file that isn't locked.
-    (and (equal file buffer-file-name)
-	 (not buffer-read-only)
+      ;; This way, even root cannot modify a file that isn't locked.
+      (and (equal file buffer-file-name)
+	   (not buffer-read-only)
 	   (zerop (user-real-uid))
 	   (zerop (logand (file-modes buffer-file-name) 128))
 	   (setq buffer-read-only t)))

@@ -998,8 +998,7 @@ pop_quit (server)
       close (server->file);
     }
 
-  if (server->buffer)
-    free (server->buffer);
+  free (server->buffer);
   free ((char *) server);
 
   return (ret);

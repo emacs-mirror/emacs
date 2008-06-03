@@ -276,7 +276,7 @@ Can be `dvi', `pdf', or `ps'.")
 
 (defvar doc-view-mode-map
   (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
+    (set-keymap-parent map image-mode-map)
     ;; Navigation in the document
     (define-key map (kbd "n")         'doc-view-next-page)
     (define-key map (kbd "p")         'doc-view-previous-page)
@@ -289,13 +289,10 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map (kbd "M-<")       'doc-view-first-page)
     (define-key map (kbd "M->")       'doc-view-last-page)
     (define-key map [remap goto-line] 'doc-view-goto-page)
-    (define-key map [remap scroll-up] 'image-scroll-up)
-    (define-key map [remap scroll-down] 'image-scroll-down)
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
-    ;; Killing/burying the buffer (and the process)
-    (define-key map (kbd "q")         'bury-buffer)
+    ;; Killing the buffer (and the process)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
     ;; Slicing the image
@@ -306,13 +303,6 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map (kbd "C-s")       'doc-view-search)
     (define-key map (kbd "<find>")    'doc-view-search)
     (define-key map (kbd "C-r")       'doc-view-search-backward)
-    ;; Scrolling
-    (define-key map [remap forward-char]  'image-forward-hscroll)
-    (define-key map [remap backward-char] 'image-backward-hscroll)
-    (define-key map [remap move-end-of-line]       'image-eol)
-    (define-key map [remap move-beginning-of-line] 'image-bol)
-    (define-key map [remap next-line]     'image-next-line)
-    (define-key map [remap previous-line] 'image-previous-line)
     ;; Show the tooltip
     (define-key map (kbd "C-t")       'doc-view-show-tooltip)
     ;; Toggle between text and image display or editing

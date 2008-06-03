@@ -2090,17 +2090,14 @@ tty_default_color_capabilities (struct tty_display_info *tty, int save)
 
   if (save)
     {
-      if (default_orig_pair)
-	xfree (default_orig_pair);
+      xfree (default_orig_pair);
       default_orig_pair = tty->TS_orig_pair ? xstrdup (tty->TS_orig_pair) : NULL;
 
-      if (default_set_foreground)
-	xfree (default_set_foreground);
+      xfree (default_set_foreground);
       default_set_foreground = tty->TS_set_foreground ? xstrdup (tty->TS_set_foreground)
 			       : NULL;
 
-      if (default_set_background)
-	xfree (default_set_background);
+      xfree (default_set_background);
       default_set_background = tty->TS_set_background ? xstrdup (tty->TS_set_background)
 			       : NULL;
 
@@ -3833,8 +3830,7 @@ maybe_fatal (must_succeed, buffer, terminal, str1, str2, arg1, arg2)
      struct terminal *terminal;
      char *str1, *str2, *arg1, *arg2;
 {
-  if (buffer)
-    xfree (buffer);
+  xfree (buffer);
 
   if (terminal)
     delete_tty (terminal);
@@ -3915,11 +3911,8 @@ delete_tty (struct terminal *terminal)
 
   delete_terminal (terminal);
 
-  if (tty->name)
-    xfree (tty->name);
-
-  if (tty->type)
-    xfree (tty->type);
+  xfree (tty->name);
+  xfree (tty->type);
 
   if (tty->input)
     {
@@ -3932,11 +3925,8 @@ delete_tty (struct terminal *terminal)
   if (tty->termscript)
     fclose (tty->termscript);
 
-  if (tty->old_tty)
-    xfree (tty->old_tty);
-
-  if (tty->Wcm)
-    xfree (tty->Wcm);
+  xfree (tty->old_tty);
+  xfree (tty->Wcm);
 
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);

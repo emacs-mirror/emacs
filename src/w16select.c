@@ -565,8 +565,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   ok = 0;
 
  unblock:
-  if (dst)
-    xfree (dst);
+  xfree (dst);
   UNBLOCK_INPUT;
 
   /* Notify user if the text is too large to fit into DOS memory.

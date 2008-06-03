@@ -1,3 +1,7 @@
+2008-05-30  "Felix -"  <felix.1@canids.net>  (tiny change)
+
+	* cl.texi (Iteration Clauses): Fix incorrect "identical" examples.
+
 2008-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Filling In Threads): Additions to gnus-fetch-old-headers.

@@ -2860,7 +2860,10 @@ is specified, returning t if it is specified."
 			  (re-search-forward
 			   (concat prefix "[ \t]*End:[ \t]*" suffix)
 			   nil t))
-		  (error "Local variables list is not properly terminated"))
+                  ;; This used to be an error, but really all it means is
+                  ;; that this may simply not be a local-variables section,
+                  ;; so just ignore it.
+		  (message "Local variables list is not properly terminated"))
 		(beginning-of-line)
 		(setq endpos (point)))
 
@@ -4085,7 +4088,10 @@ Before and after saving the buffer, this function runs
 			       (setq tempname
 				     (make-temp-name
 				      (expand-file-name "tmp" dir)))
-			       (write-region (point-min) (point-max)
+                               ;; Pass in nil&nil rather than point-min&max
+                               ;; cause we're saving the whole buffer.
+                               ;; write-region-annotate-functions may use it.
+			       (write-region nil nil
 					     tempname nil  realname
 					     buffer-file-truename 'excl)
 			       nil)
@@ -4119,7 +4125,10 @@ Before and after saving the buffer, this function runs
 	(let (success)
 	  (unwind-protect
 	      (progn
-		(write-region (point-min) (point-max)
+                ;; Pass in nil&nil rather than point-min&max to indicate
+                ;; we're saving the buffer rather than just a region.
+                ;; write-region-annotate-functions may make us of it.
+		(write-region nil nil
 			      buffer-file-name nil t buffer-file-truename)
 		(setq success t))
 	    ;; If we get an error writing the new file, and we made
@@ -4139,9 +4148,8 @@ This requires the external program `diff' to be in your `exec-path'."
 	     (file-exists-p buffer-file-name))
 	(let ((tempfile (make-temp-file "buffer-content-")))
 	  (unwind-protect
-	      (save-restriction
-		(widen)
-		(write-region (point-min) (point-max) tempfile nil 'nomessage)
+	      (progn
+		(write-region nil nil tempfile nil 'nomessage)
 		(diff buffer-file-name tempfile nil t)
 		(sit-for 0))
 	    (when (file-exists-p tempfile)

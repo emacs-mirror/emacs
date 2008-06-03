@@ -628,6 +628,9 @@
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
 ;;   skeleton for the log...
 ;;
+;; - The *vc-dir* buffer needs to be updated properly after VC
+;;   operations on directories that change the file VC state.
+;;
 ;; - most vc-dir backends need more work.  They might need to
 ;;   provide custom headers, use the `extra' field and deal with all
 ;;   possible VC states.
@@ -648,22 +651,8 @@
 ;;
 ;;;; Problems:
 ;;
-;; - log-view-diff does not work anymore in the case when the log was
-;;   created from more than one file.  The error is:
-;;   vc-derived-from-dir-mode: Lisp nesting exceeds `max-lisp-eval-depth'.
-;;
-;; - the vc-dir display is now bogus for git and mercurial.
-;;
-;; - the CVS vc-dir display is now incorrect from some states.
-;;
-;; - vc-dir is now broken for RCS and SCCS.
-;;
 ;; - the *vc-dir* buffer is not updated correctly anymore after VC
 ;;   operations that change the file state.
-;;
-;; - the mouse3 menu for vc-dir does not have a title anymore.
-;;
-;; - the menu for the *vc-dir* buffer uses the wrong name now.
 ;;
 ;;; Code:
 
@@ -992,10 +981,10 @@ be registered."
 Within directories, only files already under version control are noticed."
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
-      (if (file-directory-p node)
-	  (vc-file-tree-walk
-	   node (lambda (f) (when (vc-backend f) (push f flattened)))))
-      (push node flattened))
+      (when (file-directory-p node)
+	(vc-file-tree-walk
+	 node (lambda (f) (when (vc-backend f) (push f flattened)))))
+      (unless (file-directory-p node) (push node flattened)))
     (nreverse flattened)))
 
 (defun vc-derived-from-dir-mode (&optional buffer)
@@ -1005,21 +994,59 @@ Within directories, only files already under version control are noticed."
 	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
 	  (t nil))))
 
-(defun vc-deduce-fileset (&optional observer)
-  "Deduce a set of files and a backend to which to apply an operation and
-the common state of the fileset.  Return (BACKEND . FILESET)."
-  (let* ((selection (vc-dispatcher-selection-set observer))
-	 (raw (car selection))		;; Selection as user made it
-	 (cooked (cdr selection))	;; Files only
-         ;; FIXME: Store the backend in a buffer-local variable.
-         (backend (if (vc-derived-from-dir-mode (current-buffer))
-		      ;; FIXME: this should use vc-dir-backend from
-		      ;; the *vc-dir* buffer.
-                      (vc-responsible-backend default-directory)
-                    (assert (and (= 1 (length raw))
-                                 (not (file-directory-p (car raw)))))
-                    (vc-backend (car cooked)))))
-	(cons backend selection)))
+(defvar vc-dir-backend nil
+  "The backend used by the current *vc-dir* buffer.")
+
+;; FIXME: this is not functional, commented out.
+;; (defun vc-deduce-fileset (&optional observer)
+;;   "Deduce a set of files and a backend to which to apply an operation and
+;; the common state of the fileset.  Return (BACKEND . FILESET)."
+;;   (let* ((selection (vc-dispatcher-selection-set observer))
+;; 	 (raw (car selection))		;; Selection as user made it
+;; 	 (cooked (cdr selection))	;; Files only
+;;          ;; FIXME: Store the backend in a buffer-local variable.
+;;          (backend (if (vc-derived-from-dir-mode (current-buffer))
+;; 		      ;; FIXME: this should use vc-dir-backend from
+;; 		      ;; the *vc-dir* buffer.
+;;                       (vc-responsible-backend default-directory)
+;;                     (assert (and (= 1 (length raw))
+;;                                  (not (file-directory-p (car raw)))))
+;;                     (vc-backend (car cooked)))))
+;; 	(cons backend selection)))
+
+(defun vc-deduce-fileset (&optional observer allow-unregistered)
+  "Deduce a set of files and a backend to which to apply an operation.
+
+Return (BACKEND FILESET FILESET_ONLY_FILES).
+If we're in VC-dir mode, the fileset is the list of marked files.
+Otherwise, if we're looking at a buffer visiting a version-controlled file,
+the fileset is a singleton containing this file.
+If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
+visited file is not registered, return a singleton fileset containing it.
+Otherwise, throw an error."
+  ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
+  ;; documented.
+  (let (backend)
+    (cond
+     ((derived-mode-p 'vc-dir-mode)
+      (let ((marked (vc-dir-marked-files)))
+	(if marked
+	    (list vc-dir-backend  marked (vc-dir-marked-only-files))
+	  (let ((crt (vc-dir-current-file)))
+	    (list vc-dir-backend (list crt) (vc-dir-child-files))))))
+     ((setq backend (vc-backend buffer-file-name))
+      (list backend (list buffer-file-name) (list buffer-file-name)))
+     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+				(with-current-buffer vc-parent-buffer
+				  (eq major-mode 'vc-dir-mode))))
+      (progn
+	(set-buffer vc-parent-buffer)
+	(vc-deduce-fileset)))
+     ((and allow-unregistered (not (vc-registered buffer-file-name)))
+      (list (vc-responsible-backend
+	     (file-name-directory (buffer-file-name)))
+	    (list buffer-file-name) (list buffer-file-name)))
+     (t (error "No fileset is available here.")))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1089,15 +1116,18 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset))
+  (let* ((vc-fileset (vc-deduce-fileset nil t))
          (backend (car vc-fileset))
-	 (files (cadr vc-fileset))
-         (fileset-only-files (cddr vc-fileset))
+	 (files (nth 1 vc-fileset))
+         (fileset-only-files (nth 2 vc-fileset))
          ;; FIXME: We used to call `vc-recompute-state' here.
          (state (vc-state (car fileset-only-files)))
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
-	 (model (vc-checkout-model backend files))
+	 (model
+	  ;; FIXME: This is not very elegant...
+	  (when (and state (not (eq state 'unregistered)))
+	    (vc-checkout-model backend files)))
 	 revision)
 
     ;; Check that all files are in a consistent state, since we use that
@@ -1113,7 +1143,7 @@ merge in the changes into your working copy."
       (error "Fileset files are missing, so cannot be operated on."))
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system."))
-     ((eq state 'unregistered)
+     ((or (null state) (eq state 'unregistered))
       (mapc (lambda (arg) (vc-register nil arg)) files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
@@ -1814,18 +1844,21 @@ See Info node `Merging'."
 
 (defun vc-default-status-extra-headers (backend dir)
   ;; Be loud by default to remind people to add code to display
-  ;; backend specific headers.
+  ;; backend specific headers.  
   ;; XXX: change this to return nil before the release.
-  "Extra      : Add backend specific headers here")
+  (concat
+   (propertize "Extra      : " 'face 'font-lock-type-face)
+   (propertize "Please add backend specific headers here.  It's easy!" 
+	       'face 'font-lock-warning-face)))
 
 (defun vc-dir-headers (backend dir)
-  "Display the headers in the *VC status* buffer.
+  "Display the headers in the *VC dir* buffer.
 It calls the `status-extra-headers' backend method to display backend
 specific headers."
   (concat
-   (propertize "VC backend:  " 'face 'font-lock-type-face)
+   (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
-   (propertize "Working dir:  " 'face 'font-lock-type-face)
+   (propertize "Working dir: " 'face 'font-lock-type-face)
    (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
    (vc-call-backend backend 'status-extra-headers dir)
    "\n"))
@@ -1835,15 +1868,19 @@ specific headers."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
 	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
-	(filename (vc-dir-fileinfo->name fileentry))
-	(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
+	(filename (vc-dir-fileinfo->name fileentry)))
+    ;; FIXME: Backends that want to print the state in a different way
+    ;; can do it by defining the `status-printer' function.  Using
+    ;; `prettify-state-info' adds two extra vc-calls per item, which
+    ;; is too expensive.
+    ;;(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
       'face 'font-lock-type-face)
      "   "
      (propertize
-      (format "%-20s" prettified)
+      (format "%-20s" state)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
 		  (t 'font-lock-variable-name-face))
@@ -1858,10 +1895,9 @@ specific headers."
   nil)
 
 (defun vc-dir-refresh-files (files default-state)
-  "Refresh some files in the VC status buffer."
-  (let ((backend (vc-responsible-backend default-directory))
-        (status-buffer (current-buffer))
-        (def-dir default-directory))
+  "Refresh some files in the *VC-dir* buffer."
+  (let ((def-dir default-directory)
+	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
     ;; Call the `dir-status-file' backend function.
     ;; `dir-status-file' is supposed to be asynchronous.
@@ -1890,17 +1926,26 @@ specific headers."
                ;; file/dir doesn't exist and isn't versioned.
                (ewoc-filter vc-ewoc
                             (lambda (info)
+			      ;; The state for directory entries might
+			      ;; have been changed to 'up-to-date,
+			      ;; reset it, othewise it will be removed when doing 'x'
+			      ;; next time.
+			      ;; FIXME: There should be a more elegant way to do this.
+			      (when (and (vc-dir-fileinfo->directory info)
+					 (eq (vc-dir-fileinfo->state info)
+					     'up-to-date))
+				(setf (vc-dir-fileinfo->state info) nil))
+
                               (not (vc-dir-fileinfo->needs-update info))))))))))))
 
 (defun vc-dir-refresh ()
-  "Refresh the contents of the VC status buffer.
+  "Refresh the contents of the *VC-dir* buffer.
 Throw an error if another update process is in progress."
   (interactive)
   (if (vc-dir-busy)
       (error "Another update process is in progress, cannot run two at a time")
-    (let ((backend (vc-responsible-backend default-directory))
-	  (status-buffer (current-buffer))
-	  (def-dir default-directory))
+    (let ((def-dir default-directory)
+	  (backend vc-dir-backend))
       (vc-set-mode-line-busy-indicator)
       ;; Call the `dir-status' backend function.
       ;; `dir-status' is supposed to be asynchronous.
@@ -1942,7 +1987,7 @@ Throw an error if another update process is in progress."
                      (setq mode-line-process nil))))))))))))
 
 (defun vc-dir-show-fileentry (file)
-  "Insert an entry for a specific file into the current VC status listing.
+  "Insert an entry for a specific file into the current *VC-dir* listing.
 This is typically used if the file is up-to-date (or has been added
 outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
@@ -1966,9 +2011,6 @@ outside of VC) and one wants to do some operation on it."
   "Default absence of extra information returned for a file."
   nil)
 
-(defvar vc-dir-backend nil
-  "The backend used by the current *vc-dir* buffer.")
-
 ;; FIXME: Replace these with a more efficient dispatch
 
 (defun vc-generic-status-printer (fileentry)
@@ -1986,7 +2028,7 @@ outside of VC) and one wants to do some operation on it."
 (defun vc-make-backend-object (file-or-dir)
   "Create the backend capability object needed by vc-dispatcher."
   (vc-create-client-object 
-   "VC status"
+   "VC dir"
    (vc-dir-headers vc-dir-backend file-or-dir)
    #'vc-generic-status-printer
    #'vc-generic-state
@@ -2009,7 +2051,7 @@ outside of VC) and one wants to do some operation on it."
       ;; FIXME: Make a derived-mode instead.
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
-	(define-key map "v" 'vc-diff) ;; C-x v v
+	(define-key map "v" 'vc-next-action) ;; C-x v v
 	(define-key map "=" 'vc-diff) ;; C-x v =
 	(define-key map "i" 'vc-dir-register)	;; C-x v i
 	(define-key map "+" 'vc-update) ;; C-x v +
@@ -2591,7 +2633,9 @@ editing non-current revisions is not supported by default."
 (defun vc-default-init-revision (backend) vc-default-init-revision)
 
 (defalias 'vc-cvs-update-changelog 'vc-update-changelog-rcs2log)
+
 (defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
+
 ;; FIXME: This should probably be moved to vc-rcs.el and replaced in
 ;; vc-cvs.el by code using cvs2cl.
 (defun vc-update-changelog-rcs2log (files)
@@ -2670,7 +2714,7 @@ to provide the `find-revision' operation instead."
           ((eq state 'ignored) "(ignored)")
           ((eq state 'unregistered) "(unregistered)")
 	  ((eq state 'unlocked-changes) "(stale)")
-	  (t (concat "(unknown:" state ")"))))
+	  (t (format "(unknown:%s)" state))))
 	(buffer
 	 (get-file-buffer file))
 	(modflag

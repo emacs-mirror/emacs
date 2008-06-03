@@ -227,7 +227,6 @@ is non-nil."
   (let* ((date (or date (cal-menu-event-to-date)))
          (diary-file (or diary diary-file))
          (diary-list-include-blanks nil)
-         (diary-display-hook 'ignore)
          (diary-entries
           (mapcar (lambda (x) (split-string (cadr x) "\n"))
                   (diary-list-entries date 1 'list-only)))

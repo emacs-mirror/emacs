@@ -1171,7 +1171,7 @@ using `make-temp-file', and the generated name is returned."
 	  ;; the dired-like listing we created.
 	  (if (eq major-mode 'archive-mode)
 	      (archive-write-file tmpfile)
-	    (write-region (point-min) (point-max) tmpfile nil 'nomessage))
+	    (write-region nil nil tmpfile nil 'nomessage))
 	  ;; basic-save-buffer needs last-coding-system-used to have
 	  ;; the value used to write the file, so save it before any
 	  ;; further processing clobbers it (we restore it in

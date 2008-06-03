@@ -264,6 +264,7 @@ lisp2 = \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
 	$(lispsource)simple.elc \
+	$(lispsource)minibuffer.elc \
 	$(lispsource)startup.elc \
 	$(lispsource)subr.elc \
 	$(lispsource)term/tty-colors.elc \

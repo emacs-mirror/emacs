@@ -200,9 +200,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macterm.h"
 #endif
 
-#ifdef HAVE_WINDOW_SYSTEM
 #include "font.h"
-#endif	/* HAVE_WINDOW_SYSTEM */
 
 #ifndef FRAME_X_OUTPUT
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
@@ -2493,6 +2491,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      enum face_id base_face_id;
 {
   int highlight_region_p;
+  enum face_id remapped_base_face_id = base_face_id;
 
   /* Some precondition checks.  */
   xassert (w != NULL && it != NULL);
@@ -2509,6 +2508,10 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
       free_all_realized_faces (Qnil);
     }
 
+  /* Perhaps remap BASE_FACE_ID to a user-specified alternative.  */
+  if (! NILP (Vface_remapping_alist))
+    remapped_base_face_id = lookup_basic_face (XFRAME (w->frame), base_face_id);
+
   /* Use one of the mode line rows of W's desired matrix if
      appropriate.  */
   if (row == NULL)
@@ -2524,7 +2527,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   bzero (it, sizeof *it);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
-  it->base_face_id = base_face_id;
+  it->base_face_id = remapped_base_face_id;
   it->string = Qnil;
   IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = -1;
 
@@ -2709,11 +2712,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     {
       struct face *face;
 
-      it->face_id = base_face_id;
+      it->face_id = remapped_base_face_id;
 
       /* If we have a boxed mode line, make the first character appear
 	 with a left box line.  */
-      face = FACE_FROM_ID (it->f, base_face_id);
+      face = FACE_FROM_ID (it->f, remapped_base_face_id);
       if (face->box != FACE_NO_BOX)
 	it->start_of_box_run_p = 1;
     }
@@ -4079,7 +4082,8 @@ handle_single_display_spec (it, spec, object, overlay, position,
 	      /* Value is a multiple of the canonical char height.  */
 	      struct face *face;
 
-	      face = FACE_FROM_ID (it->f, DEFAULT_FACE_ID);
+	      face = FACE_FROM_ID (it->f,
+				   lookup_basic_face (it->f, DEFAULT_FACE_ID));
 	      new_height = (XFLOATINT (it->font_height)
 			    * XINT (face->lface[LFACE_HEIGHT_INDEX]));
 	    }
@@ -4189,7 +4193,7 @@ handle_single_display_spec (it, spec, object, overlay, position,
 	  || EQ (XCAR (spec), Qright_fringe))
       && CONSP (XCDR (spec)))
     {
-      int face_id = DEFAULT_FACE_ID;
+      int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
       int fringe_bitmap;
 
       if (!FRAME_WINDOW_P (it->f))
@@ -19887,9 +19891,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
   struct glyph_string *head, *tail;
   struct glyph_string *s;
   struct glyph_string *clip_head = NULL, *clip_tail = NULL;
-  int last_x, area_width;
-  int x_reached;
-  int i, j;
+  int i, j, x_reached, last_x, area_left = 0;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   DECLARE_HDC (hdc);
 
@@ -19906,16 +19908,15 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
     {
       /* X is relative to the left edge of W, without scroll bars
 	 or fringes.  */
-      x += WINDOW_LEFT_EDGE_X (w);
+      area_left = WINDOW_LEFT_EDGE_X (w);
       last_x = WINDOW_LEFT_EDGE_X (w) + WINDOW_TOTAL_WIDTH (w);
     }
   else
     {
-      int area_left = window_box_left (w, area);
-      x += area_left;
-      area_width = window_box_width (w, area);
-      last_x = area_left + area_width;
+      area_left = window_box_left (w, area);
+      last_x = area_left + window_box_width (w, area);
     }
+  x += area_left;
 
   /* Build a doubly-linked list of glyph_string structures between
      head and tail from what we have to draw.  Note that the macro
@@ -19933,8 +19934,30 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
      strings built above.  */
   if (head && !overlaps && row->contains_overlapping_glyphs_p)
     {
-      int dummy_x = 0;
       struct glyph_string *h, *t;
+      Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      int mouse_beg_col, mouse_end_col, check_mouse_face = 0;
+      int dummy_x = 0;
+
+      /* If mouse highlighting is on, we may need to draw adjacent
+	 glyphs using mouse-face highlighting.  */
+      if (area == TEXT_AREA && row->mouse_face_p)
+	{
+	  struct glyph_row *mouse_beg_row, *mouse_end_row;
+
+	  mouse_beg_row = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_beg_row);
+	  mouse_end_row = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_end_row);
+
+	  if (row >= mouse_beg_row && row <= mouse_end_row)
+	    {
+	      check_mouse_face = 1;
+	      mouse_beg_col = (row == mouse_beg_row)
+		? dpyinfo->mouse_face_beg_col : 0;
+	      mouse_end_col = (row == mouse_end_row)
+		? dpyinfo->mouse_face_end_col
+		: row->used[TEXT_AREA];
+	    }
+	}
 
       /* Compute overhangs for all glyph strings.  */
       if (FRAME_RIF (f)->compute_glyph_string_overhangs)
@@ -19949,10 +19972,24 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       i = left_overwritten (head);
       if (i >= 0)
 	{
+	  enum draw_glyphs_face overlap_hl;
+
+	  /* If this row contains mouse highlighting, attempt to draw
+	     the overlapped glyphs with the correct highlight.  This
+	     code fails if the overlap encompasses more than one glyph
+	     and mouse-highlight spans only some of these glyphs.
+	     However, making it work perfectly involves a lot more
+	     code, and I don't know if the pathological case occurs in
+	     practice, so we'll stick to this for now.  --- cyd  */
+	  if (check_mouse_face
+	      && mouse_beg_col < start && mouse_end_col > i)
+	    overlap_hl = DRAW_MOUSE_FACE;
+	  else
+	    overlap_hl = DRAW_NORMAL_TEXT;
+
 	  j = i;
 	  BUILD_GLYPH_STRINGS (j, start, h, t,
-			       DRAW_NORMAL_TEXT, dummy_x, last_x);
-	  start = i;
+			       overlap_hl, dummy_x, last_x);
 	  compute_overhangs_and_x (t, head->x, 1);
 	  prepend_glyph_string_lists (&head, &tail, h, t);
 	  clip_head = head;
@@ -19968,9 +20005,17 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       i = left_overwriting (head);
       if (i >= 0)
 	{
+	  enum draw_glyphs_face overlap_hl;
+
+	  if (check_mouse_face
+	      && mouse_beg_col < start && mouse_end_col > i)
+	    overlap_hl = DRAW_MOUSE_FACE;
+	  else
+	    overlap_hl = DRAW_NORMAL_TEXT;
+
 	  clip_head = head;
 	  BUILD_GLYPH_STRINGS (i, start, h, t,
-			       DRAW_NORMAL_TEXT, dummy_x, last_x);
+			       overlap_hl, dummy_x, last_x);
 	  for (s = h; s; s = s->next)
 	    s->background_filled_p = 1;
 	  compute_overhangs_and_x (t, head->x, 1);
@@ -19984,8 +20029,16 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       i = right_overwritten (tail);
       if (i >= 0)
 	{
+	  enum draw_glyphs_face overlap_hl;
+
+	  if (check_mouse_face
+	      && mouse_beg_col < i && mouse_end_col > end)
+	    overlap_hl = DRAW_MOUSE_FACE;
+	  else
+	    overlap_hl = DRAW_NORMAL_TEXT;
+
 	  BUILD_GLYPH_STRINGS (end, i, h, t,
-			       DRAW_NORMAL_TEXT, x, last_x);
+			       overlap_hl, x, last_x);
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  append_glyph_string_lists (&head, &tail, h, t);
 	  clip_tail = tail;
@@ -19999,10 +20052,17 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       i = right_overwriting (tail);
       if (i >= 0)
 	{
+	  enum draw_glyphs_face overlap_hl;
+	  if (check_mouse_face
+	      && mouse_beg_col < i && mouse_end_col > end)
+	    overlap_hl = DRAW_MOUSE_FACE;
+	  else
+	    overlap_hl = DRAW_NORMAL_TEXT;
+
 	  clip_tail = tail;
 	  i++;			/* We must include the Ith glyph.  */
 	  BUILD_GLYPH_STRINGS (end, i, h, t,
-			       DRAW_NORMAL_TEXT, x, last_x);
+			       overlap_hl, x, last_x);
 	  for (s = h; s; s = s->next)
 	    s->background_filled_p = 1;
 	  compute_overhangs_and_x (h, tail->x + tail->width, 0);
@@ -20030,10 +20090,8 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
       int x0 = clip_head ? clip_head->x : (head ? head->x : x);
       int x1 = (clip_tail ? clip_tail->x + clip_tail->background_width
 		: (tail ? tail->x + tail->background_width : x));
-
-      int text_left = window_box_left (w, TEXT_AREA);
-      x0 -= text_left;
-      x1 -= text_left;
+      x0 -= area_left;
+      x1 -= area_left;
 
       notice_overwritten_cursor (w, TEXT_AREA, x0, x1,
 				 row->y, MATRIX_ROW_BOTTOM_Y (row));
@@ -20044,7 +20102,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps)
   if (row->full_width_p)
     x_reached = FRAME_TO_WINDOW_PIXEL_X (w, x_reached);
   else
-    x_reached -= window_box_left (w, area);
+    x_reached -= area_left;
 
   RELEASE_HDC (hdc, f);
 

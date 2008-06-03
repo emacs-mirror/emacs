@@ -11575,8 +11575,7 @@ static void
 wipe_kboard (kb)
      KBOARD *kb;
 {
-  if (kb->kbd_macro_buffer)
-    xfree (kb->kbd_macro_buffer);
+  xfree (kb->kbd_macro_buffer);
 }
 
 #ifdef MULTI_KBOARD

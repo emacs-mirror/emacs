@@ -1,3 +1,24 @@
+2008-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* pop3.el (nnheader-accept-process-output): Autoload it.
+
+2008-05-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-decode-encoded-string): Don't decode things that
+	are not 2-digit hexadecimal characters that follow `%'s.
+
+2008-05-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-bogus-recipient-p): Fix type in doc string.
+	Reported by Stephen Eglen <S.J.Eglen@damtp.cam.ac.uk>.
+	(message-bogus-addresses): Rename from message-bogus-address-regexp.
+	Improve custom options.
+	(message-bogus-recipient-p): Adjust accordingly.
+
+2008-05-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmairix.el: Require edmacro when compiling with XEmacs.
+
 2008-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-summary-initial-limit): Use unless instead of if.

@@ -42,7 +42,7 @@ Lisp_Object Qfreetype;
 /* Fontconfig's generic families and their aliases.  */
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 
-/* Flag to tell if FcInit is areadly called or not.  */
+/* Flag to tell if FcInit is already called or not.  */
 static int fc_initialized;
 
 /* Handle to a FreeType library instance.  */
@@ -360,7 +360,7 @@ ftfont_get_charset (registry)
 	    FcCharSetDestroy (charset);
 	    return -1;
 	  }
-      fc_charset_table[i].fc_charset = charset;      
+      fc_charset_table[i].fc_charset = charset;
     }
   return i;
 }
@@ -420,7 +420,7 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
     {
       Lisp_Object len;
 
-      otf_spec = XCDR (otf_spec);    
+      otf_spec = XCDR (otf_spec);
       if (NILP (otf_spec))
 	break;
       val = XCAR (otf_spec);
@@ -468,7 +468,6 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
   FcLangSet *langset = NULL;
   int n;
   int dpi = -1;
-  int spacing = -1;
   int scalable = -1;
   Lisp_Object name = Qnil;
   Lisp_Object script = Qnil;
@@ -485,8 +484,6 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
 
   if (INTEGERP (AREF (spec, FONT_DPI_INDEX)))
     dpi = XINT (AREF (spec, FONT_DPI_INDEX));
-  if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
-    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
   if (INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
       && XINT (AREF (spec, FONT_AVGWIDTH_INDEX)) == 0)
     scalable = 1;
@@ -589,9 +586,6 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
   if (dpi >= 0
       && ! FcPatternAddDouble (pattern, FC_DPI, dpi))
     goto err;
-  if (spacing >= 0
-      && ! FcPatternAddInteger (pattern, FC_SPACING, spacing))
-    goto err;
   if (scalable >= 0
       && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
@@ -633,7 +627,8 @@ ftfont_list (frame, spec)
   int fc_charset_idx;
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
-  
+  int spacing = -1;
+
   if (! fc_initialized)
     {
       FcInit ();
@@ -643,6 +638,8 @@ ftfont_list (frame, spec)
   pattern = ftfont_spec_pattern (spec, &fc_charset_idx, otlayout, &otspec);
   if (! pattern)
     return Qnil;
+  if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
+    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
   registry = AREF (spec, FONT_REGISTRY_INDEX);
   family = AREF (spec, FONT_FAMILY_INDEX);
   if (! NILP (family))
@@ -661,7 +658,7 @@ ftfont_list (frame, spec)
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING, FC_SCALABLE,
-			     FC_CHARSET, FC_FILE,
+			     FC_FILE,
 #ifdef FC_CAPABILITY
 			     FC_CAPABILITY,
 #endif	/* FC_CAPABILITY */
@@ -675,6 +672,16 @@ ftfont_list (frame, spec)
   for (i = 0; i < fontset->nfont; i++)
     {
       Lisp_Object entity;
+
+      if (spacing >= 0)
+	{
+	  int this;
+
+	  if ((FcPatternGetInteger (fontset->fonts[i], FC_SPACING, 0, &this)
+	       == FcResultMatch)
+	      && spacing != this)
+	    continue;
+	}
 
 #ifdef FC_CAPABILITY
       if (otlayout[0])
@@ -997,7 +1004,7 @@ ftfont_close (f, font)
     FT_Done_Size (ftfont_info->ft_size);
 }
 
-static int 
+static int
 ftfont_has_char (entity, c)
      Lisp_Object entity;
      int c;
@@ -1218,7 +1225,7 @@ ftfont_get_metrics (font, gstring, from, to)
   return 0;
 }
 
-static int 
+static int
 ftfont_check_otf (MFLTFont *font, MFLTOtfSpec *spec)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
@@ -1282,7 +1289,7 @@ adjust_anchor (FT_Face ft_face, OTF_Anchor *anchor,
 
 static OTF_GlyphString otf_gstring;
 
-static int 
+static int
 ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
      MFLTFont *font;
      MFLTOtfSpec *spec;
@@ -1700,6 +1707,7 @@ Lisp_Object
 ftfont_font_format (FcPattern *pattern)
 {
   FcChar8 *str;
+  int len;
 
 #ifdef FC_FONTFORMAT
   if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
@@ -1708,21 +1716,26 @@ ftfont_font_format (FcPattern *pattern)
     return intern ("truetype");
   if (strcmp ((char *) str, "Type 1") == 0)
     return intern ("type1");
-  if (strcmp ((char *) str, "PCF") == 0)  
+  if (strcmp ((char *) str, "PCF") == 0)
     return intern ("pcf");
-  if (strcmp ((char *) str, "BDF") == 0)  
+  if (strcmp ((char *) str, "BDF") == 0)
     return intern ("bdf");
 #else  /* not FC_FONTFORMAT */
   if (FcPatternGetString (pattern, FC_FILE, 0, &str) != FcResultMatch)
     return Qnil;
-  if (strcasestr ((char *) str, ".ttf") == 0)
-    return intern ("truetype");
-  if (strcasestr ((char *) str, "pfb") == 0)
-    return intern ("type1");
-  if (strcasestr ((char *) str, "pcf") == 0)  
-    return intern ("pcf");
-  if (strcasestr ((char *) str, "bdf") == 0)  
-    return intern ("bdf");
+  len = strlen ((char *) str);
+  if (len >= 4)
+    {
+      str += len - 4;
+      if (xstrcasecmp ((char *) str, ".ttf") == 0)
+	return intern ("truetype");
+      if (xstrcasecmp ((char *) str, "pfb") == 0)
+	return intern ("type1");
+      if (xstrcasecmp ((char *) str, "pcf") == 0)
+	return intern ("pcf");
+      if (xstrcasecmp ((char *) str, "bdf") == 0)
+	return intern ("bdf");
+    }
 #endif	/* not FC_FONTFORMAT */
   return intern ("unknown");
 }

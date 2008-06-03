@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -525,26 +526,20 @@ diary entry.
 
 @node Fancy Diary Display
 @subsection Fancy Diary Display
-@vindex diary-display-hook
+@vindex diary-display-function
 @findex diary-simple-display
+@findex diary-fancy-display
+@cindex diary buffer
 
   Diary display works by preparing the diary buffer and then running the
-hook @code{diary-display-hook}.  The default value of this hook
-(@code{diary-simple-display}) hides the irrelevant diary entries and
-then displays the buffer.  However, if you specify the hook as follows,
-
-@cindex diary buffer
-@findex diary-fancy-display
-@example
-(add-hook 'diary-display-hook 'diary-fancy-display)
-@end example
-
-@noindent
-this enables fancy diary display.  It displays diary entries and
-holidays by copying them into a special buffer that exists only for the
-sake of display.  Copying to a separate buffer provides an opportunity
-to change the displayed text to make it prettier---for example, to sort
-the entries by the dates they apply to.
+function specified by the variable @code{diary-display-function}.  The
+default value (@code{diary-simple-display}) hides the irrelevant diary
+entries and then displays the buffer.  The alternative
+@code{diary-fancy-display} displays diary entries and holidays by
+copying them into a special buffer that exists only for the sake of
+display.  Copying to a separate buffer provides an opportunity to change
+the displayed text to make it prettier---for example, to sort the
+entries by the dates they apply to.
 
   As with simple diary display, you can print a hard copy of the buffer
 with @code{diary-print-entries}.  To print a hard copy of a day-by-day

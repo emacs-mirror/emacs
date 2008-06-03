@@ -1397,13 +1397,11 @@ Return t if the file exists and loads successfully.  */)
 
   UNGCPRO;
 
-  if (saved_doc_string)
-    free (saved_doc_string);
+  free (saved_doc_string);
   saved_doc_string = 0;
   saved_doc_string_size = 0;
 
-  if (prev_saved_doc_string)
-    xfree (prev_saved_doc_string);
+  xfree (prev_saved_doc_string);
   prev_saved_doc_string = 0;
   prev_saved_doc_string_size = 0;
 

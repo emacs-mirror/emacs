@@ -95,7 +95,7 @@ setwins=subdirs=`(cd $$wd; find . -type d -print)`; \
 	   esac; \
         done
 
-# Find all subdirectories except `obsolete'.
+# Find all subdirectories except `obsolete' and `term'.
 
 setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
@@ -157,25 +157,26 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 .PHONY: update-elclist
 
-## Construct a sed command file that operates on lines between
-## ^ELCFILES and the next blank line.  Convert spaces between members
-## of COMPILE_FIRST to "\|", and escape directory "/".  List the .elc
-## files, exclude the members of COMPILE_FIRST, convert ^$(lisp) to a
-## literal " $(lisp)", add trailing " \\\" to the end of every line
-## (the last \ continues the line in sed, the other \\ result in a
-## single \ at the end of the replacement text).  For the last line,
-## just use a single "\", for sed.  Finally, run sed using the command
-## so constructed and update Makefile.in.  chmod +w is for CVSREAD=1.
+## Post-bootstrap, find the list of .elc files, exclude the members
+## of COMPILE_FIRST, and use sed to update ELCFILES in Makefile.in.
+## Errors in the final sed are non-fatal, since they have no effect on
+## building Emacs.  chmod +w is for CVSREAD=1.
+## "echo" is non-portable with regards to backslashes, eg between zsh
+## and bash.  Hence the use of sed on line 2 below (line 1 seems to be OK).
+## http://lists.gnu.org/archive/html/emacs-devel/2008-05/msg01535.html
 update-elclist:
 	echo "/^ELCFILES/,/^$$/c\\" > temp.sed
-	echo "ELCFILES = \\\\\\" >> temp.sed
+	echo "ELCFILES =" | sed -e 's/$$/ \\\\\\/' >> temp.sed
 	exclude=`echo $(COMPILE_FIRST) | sed -e 's, ,\\\\|,g' -e 's,\/,\\\\/,g'`; \
 	ls $(lisp)/*.elc $(lisp)/*/*.elc | sed -e "/$$exclude/d" -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
 	echo "" >> temp.sed
-	sed -f temp.sed $(lisp)/Makefile.in > temp-elcfiles || { rm temp-elcfiles temp.sed; exit 1 ; }
+	-sed -f temp.sed $(lisp)/Makefile.in > temp-elcfiles || rm temp-elcfiles
 	rm temp.sed
-	chmod +w $(lisp)/Makefile.in
-	mv -f temp-elcfiles $(lisp)/Makefile.in
+	@test -f temp-elcfiles || echo "Maintainer warning: failed to update Makefile.in.  You can ignore this if you are not an Emacs developer."
+	if test -f temp-elcfiles; then \
+	  chmod +w $(lisp)/Makefile.in; \
+	  mv -f temp-elcfiles $(lisp)/Makefile.in; \
+	fi
 
 ## Explicitly list the .elc files, for the sake of parallel builds.
 ## http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-05/msg00016.html
@@ -485,6 +486,7 @@ ELCFILES = \
 	$(lisp)/eshell/eshell.elc \
 	$(lisp)/expand.elc \
 	$(lisp)/ezimage.elc \
+	$(lisp)/face-remap.elc \
 	$(lisp)/facemenu.elc \
 	$(lisp)/faces.elc \
 	$(lisp)/ffap.elc \
@@ -712,6 +714,7 @@ ELCFILES = \
 	$(lisp)/language/indian.elc \
 	$(lisp)/language/japan-util.elc \
 	$(lisp)/language/korea-util.elc \
+	$(lisp)/language/hanja-util.elc \
 	$(lisp)/language/lao-util.elc \
 	$(lisp)/language/thai-util.elc \
 	$(lisp)/language/thai-word.elc \
@@ -1278,19 +1281,17 @@ compile-always: doit
 ## In case any files are missing from ELCFILES.
 compile-last:
 	@wd=$(lisp); $(setwins); \
-	els=`echo $$wins | tr ' \011' '\012\012' | \
-		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
+	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $(COMPILE_FIRST) $$els; do \
-	  elc=$${el}c; \
-	  if test -f $$el && ! test -f $$elc && \
-	    ! grep 'no-byte-compile: t' $$el > /dev/null; then \
-	      sel=`echo $el | sed "s|^$$lisp|\$$(lisp)|"`; \
-	      echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
-	      echo "Compiling $$el"; \
-	      $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS)  \
+	  test -f $$el || continue; \
+	  test -f $${el}c && continue; \
+	  grep 'no-byte-compile: t' $$el > /dev/null && continue; \
+	  sel=`echo $$el | sed "s|^$(lisp)|\\$$(lisp)|"`; \
+	  echo "Maintainer warning: $$sel missing from \$$ELCFILES?"; \
+	  echo "Compiling $$el"; \
+	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		--eval "(setq max-lisp-eval-depth $(COMPILE_FIRST_STACK_DEPTH))" \
 		-f batch-byte-compile $$el || exit 1; \
-	  fi \
 	done
 
 compile-calc:
@@ -1407,8 +1408,10 @@ bootstrap-prepare:
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	fi
 
-maintainer-clean: distclean bootstrap-clean
+autogen-clean:
 	cd $(lisp); rm -f $(AUTOGENEL)
+
+maintainer-clean: distclean bootstrap-clean autogen-clean
 
 ## NB note that this rules assume only one level of subdirs below lisp/.
 ## If nested subdirs are added, it's probably time to switch to:

@@ -3896,6 +3896,7 @@ Non-nil second arg SECONDS and third arg MILLISEC are number of
 seconds and milliseconds to wait; return after that much time whether
 or not there is input.  If SECONDS is a floating point number,
 it specifies a fractional number of seconds to wait.
+The MILLISEC argument is obsolete and should be avoided.
 
 If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
 from PROCESS, suspending reading output from other processes.
@@ -3911,6 +3912,18 @@ Return non-nil if we received any output before the timeout expired.  */)
   else
     just_this_one = Qnil;
 
+  if (!NILP (millisec))
+    { /* Obsolete calling convention using integers rather than floats.  */
+      CHECK_NUMBER (millisec);
+      if (NILP (seconds))
+	seconds = make_float (XINT (millisec) / 1000.0);
+      else
+	{
+	  CHECK_NUMBER (seconds);
+	  seconds = make_float (XINT (millisec) / 1000.0 + XINT (seconds));
+	}
+    }
+
   if (!NILP (seconds))
     {
       if (INTEGERP (seconds))
@@ -3923,19 +3936,6 @@ Return non-nil if we received any output before the timeout expired.  */)
 	}
       else
 	wrong_type_argument (Qnumberp, seconds);
-
-      if (INTEGERP (millisec))
-	{
-	  int carry;
-	  usecs += XINT (millisec) * 1000;
-	  carry = usecs / 1000000;
-	  secs += carry;
-	  if ((usecs -= carry * 1000000) < 0)
-	    {
-	      secs--;
-	      usecs += 1000000;
-	    }
-	}
 
       if (secs < 0 || (secs == 0 && usecs == 0))
 	secs = -1, usecs = 0;
@@ -4475,7 +4475,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		break;
 
               if (0 < nread)
-                total_nread += nread;
+                {
+		  total_nread += nread;
+		  got_some_input = 1;
+		}
 #ifdef EIO
 	      else if (nread == -1 && EIO == errno)
                 break;

@@ -162,6 +162,11 @@
 
 ;;; === Keymaps
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    ;; The `kbd' macro requires that the `read-kbd-macro' macro is available.
+    (require 'edmacro)))
+
 ;; Group mode
 (defun nnmairix-group-mode-hook ()
   "Nnmairix group mode keymap."

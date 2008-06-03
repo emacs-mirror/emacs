@@ -358,10 +358,9 @@ w32font_text_extents (font, code, nglyphs, metrics)
     {
       struct w32font_info *w32_font = (struct w32font_info *) font;
 
-      metrics->width = 0;
+      bzero (metrics, sizeof (struct font_metrics));
       metrics->ascent = font->ascent;
       metrics->descent = font->descent;
-      metrics->lbearing = 0;
 
       for (i = 0; i < nglyphs; i++)
         {
@@ -405,7 +404,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
 		     font structure.  Use selected_frame until the API
 		     is updated to pass in a frame.  */
 		  f = XFRAME (selected_frame);
-  
+
                   dc = get_frame_dc (f);
                   old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
 		}
@@ -773,6 +772,12 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
 
+  /* Prefer truetype fonts, to avoid known problems with type1 fonts, and
+     limitations in bitmap fonts.  */
+  val = AREF (font_entity, FONT_FOUNDRY_INDEX);
+  if (!EQ (val, Qraster))
+    logfont.lfOutPrecision = OUT_TT_PRECIS;
+
   size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
   if (!size)
     size = pixel_size;
@@ -797,11 +802,16 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
                sizeof (TEXTMETRIC));
       else
         metrics = NULL;
-    }
-  if (!metrics)
-    GetTextMetrics (dc, &w32_font->metrics);
 
-  w32_font->glyph_idx = ETO_GLYPH_INDEX;
+      /* If it supports outline metrics, it should support Glyph Indices.  */
+      w32_font->glyph_idx = ETO_GLYPH_INDEX;
+    }
+
+  if (!metrics)
+    {
+      GetTextMetrics (dc, &w32_font->metrics);
+      w32_font->glyph_idx = 0;
+    }
 
   w32_font->cached_metrics = NULL;
   w32_font->n_cache_blocks = 0;
@@ -954,7 +964,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
 
   /* Foundry is difficult to get in readable form on Windows.
      But Emacs crashes if it is not set, so set it to something more
-     generic.  These values make xflds compatible with Emacs 22. */
+     generic.  These values make xlfds compatible with Emacs 22. */
   if (lf->lfOutPrecision == OUT_STRING_PRECIS)
     tem = Qraster;
   else if (lf->lfOutPrecision == OUT_STROKE_PRECIS)
@@ -985,7 +995,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
     ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_PROPORTIONAL));
   else
-    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_MONO));
+    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_CHARCELL));
 
   if (requested_font->lfQuality != DEFAULT_QUALITY)
     {
@@ -1012,8 +1022,9 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
      of getting this information easily.  */
   if (font_type & TRUETYPE_FONTTYPE)
     {
-      font_put_extra (entity, QCscript,
-                      font_supported_scripts (&physical_font->ntmFontSig));
+      tem = font_supported_scripts (&physical_font->ntmFontSig);
+      if (!NILP (tem))
+        font_put_extra (entity, QCscript, tem);
     }
 
   /* This information is not fully available when opening fonts, so
@@ -1311,7 +1322,14 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
   Lisp_Object backend = match_data->opentype_only ? Quniscribe : Qgdi;
 
   if ((!match_data->opentype_only
-       || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE))
+       || (((physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
+            || (font_type & TRUETYPE_FONTTYPE))
+           /* For the uniscribe backend, only consider fonts that claim
+              to cover at least some part of Unicode.  */
+           && (physical_font->ntmFontSig.fsUsb[3]
+               || physical_font->ntmFontSig.fsUsb[2]
+               || physical_font->ntmFontSig.fsUsb[1]
+               || (physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff))))
       && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
                             match_data->orig_font_spec, backend,
@@ -1335,7 +1353,44 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
                                        &match_data->pattern,
                                        backend);
       if (!NILP (entity))
-        match_data->list = Fcons (entity, match_data->list);
+        {
+          Lisp_Object spec_charset = AREF (match_data->orig_font_spec,
+                                           FONT_REGISTRY_INDEX);
+
+          /* If registry was specified as iso10646-1, only report
+             ANSI and DEFAULT charsets, as most unicode fonts will
+             contain one of those plus others.  */
+          if (EQ (spec_charset, Qiso10646_1)
+              && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
+              && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
+            return 1;
+          /* If registry was specified, but did not map to a windows
+             charset, only report fonts that have unknown charsets.
+             This will still report fonts that don't match, but at
+             least it eliminates known definite mismatches.  */
+          else if (!NILP (spec_charset)
+                   && !EQ (spec_charset, Qiso10646_1)
+                   && match_data->pattern.lfCharSet == DEFAULT_CHARSET
+                   && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET)
+            return 1;
+
+          /* If registry was specified, ensure it is reported as the same.  */
+          if (!NILP (spec_charset))
+            ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
+
+          match_data->list = Fcons (entity, match_data->list);
+
+          /* If no registry specified, duplicate iso8859-1 truetype fonts
+             as iso10646-1.  */
+          if (NILP (spec_charset)
+              && font_type == TRUETYPE_FONTTYPE
+              && logical_font->elfLogFont.lfCharSet == ANSI_CHARSET)
+            {
+              Lisp_Object tem = Fcopy_font_spec (entity);
+              ASET (tem, FONT_REGISTRY_INDEX, Qiso10646_1);
+              match_data->list = Fcons (tem, match_data->list);
+            }
+        }
     }
   return 1;
 }
@@ -1378,33 +1433,16 @@ w32_registry (w32_charset, font_type)
      LONG w32_charset;
      DWORD font_type;
 {
-  /* If charset is defaulted, use ANSI (unicode for truetype fonts).  */
+  char *charset;
+
+  /* If charset is defaulted, charset is unicode or unknown, depending on
+     font type.  */
   if (w32_charset == DEFAULT_CHARSET)
-    w32_charset = ANSI_CHARSET;
+    return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
 
-  if (font_type == TRUETYPE_FONTTYPE && w32_charset == ANSI_CHARSET)
-    return Qiso10646_1;
-  else
-    {
-      char * charset = w32_to_x_charset (w32_charset, NULL);
-      return font_intern_prop (charset, strlen(charset));
-    }
+  charset = w32_to_x_charset (w32_charset, NULL);
+  return font_intern_prop (charset, strlen(charset));
 }
-
-static struct
-{
-  unsigned w32_numeric;
-  unsigned numeric;
-} w32_weight_table[] =
-  { { FW_THIN, 0 },
-    { FW_EXTRALIGHT, 40 },
-    { FW_LIGHT, 50},
-    { FW_NORMAL, 100},
-    { FW_MEDIUM, 100},
-    { FW_SEMIBOLD, 180},
-    { FW_BOLD, 200},
-    { FW_EXTRABOLD, 205},
-    { FW_HEAVY, 210} };
 
 static int
 w32_decode_weight (fnweight)
@@ -1522,7 +1560,7 @@ fill_in_logfont (f, logfont, font_spec)
         logfont->lfPitchAndFamily = family | DEFAULT_PITCH;
     }
 
-					   
+
   /* Set pitch based on the spacing property.  */
   tmp = AREF (font_spec, FONT_SPACING_INDEX);
   if (INTEGERP (tmp))
@@ -1606,7 +1644,7 @@ list_all_matching_fonts (match_data)
       if (NILP (family))
         continue;
       else if (SYMBOLP (family))
-        name = SDATA (SYMBOL_NAME (family)); 
+        name = SDATA (SYMBOL_NAME (family));
       else
 	continue;
 
@@ -1862,7 +1900,8 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
 }
 
 
-static void compute_metrics (dc, w32_font, code, metrics)
+static void
+compute_metrics (dc, w32_font, code, metrics)
      HDC dc;
      struct w32font_info *w32_font;
      unsigned int code;
@@ -1887,18 +1926,16 @@ static void compute_metrics (dc, w32_font, code, metrics)
       metrics->width = gm.gmCellIncX;
       metrics->status = W32METRIC_SUCCESS;
     }
-  else
+  else if (w32_font->glyph_idx)
     {
-      if (w32_font->glyph_idx)
-	{
-	  /* Can't use glyph indexes after all.
-	     Avoid it in future, and clear any metrics that were based on
-	     glyph indexes.  */
-	  w32_font->glyph_idx = 0;
-	  clear_cached_metrics (w32_font);
-	}
-      metrics->status = W32METRIC_FAIL;
+      /* Can't use glyph indexes after all.
+	 Avoid it in future, and clear any metrics that were based on
+	 glyph indexes.  */
+      w32_font->glyph_idx = 0;
+      clear_cached_metrics (w32_font);
     }
+  else
+    metrics->status = W32METRIC_FAIL;
 }
 
 static void

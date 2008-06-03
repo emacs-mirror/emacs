@@ -369,6 +369,8 @@ when editing big diffs)."
 
 (defconst diff-hunk-header-re-unified
   "^@@ -\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? \\+\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? @@")
+(defconst diff-context-mid-hunk-header-re
+  "--- \\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? ----$")
 
 (defvar diff-font-lock-keywords
   `((,(concat "\\(" diff-hunk-header-re-unified "\\)\\(.*\\)$")
@@ -376,7 +378,7 @@ when editing big diffs)."
     ("^\\(\\*\\{15\\}\\)\\(.*\\)$"                        ;context
      (1 diff-hunk-header-face) (2 diff-function-face))
     ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
-    ("^--- .+ ----$"             . diff-hunk-header-face) ;context
+    (,diff-context-mid-hunk-header-re . diff-hunk-header-face) ;context
     ("^[0-9,]+[acd][0-9,]+$"     . diff-hunk-header-face) ;normal
     ("^---$"                     . diff-hunk-header-face) ;normal
     ;; For file headers, accept files with spaces, but be careful to rule
@@ -977,7 +979,7 @@ With a prefix argument, convert unified format to context format."
                     (reversible t))
                 (replace-match "")
                 (unless (re-search-forward
-                         "^--- \\([0-9]+\\),\\(-?[0-9]+\\) ----$" nil t)
+                         diff-context-mid-hunk-header-re nil t)
                   (error "Can't find matching `--- n1,n2 ----' line"))
                 (let ((line2s (match-string 1))
                       (line2e (match-string 2))
@@ -1068,11 +1070,14 @@ else cover the whole buffer."
 		  (when (= (char-after) ?-) (delete-char 1) (insert "+"))
 		  (forward-line 1))
 		(let ((half1 (delete-and-extract-region half1s (point))))
-		  (unless (looking-at "^--- \\([0-9]+,-?[0-9]+\\) ----$")
+		  (unless (looking-at diff-context-mid-hunk-header-re)
 		    (insert half1)
 		    (error "Can't find matching `--- n1,n2 ----' line"))
-		  (let ((str1 (match-string 1)))
-		    (replace-match lines1 nil nil nil 1)
+		  (let* ((str1end (or (match-end 2) (match-end 1)))
+                         (str1 (buffer-substring (match-beginning 1) str1end)))
+                    (goto-char str1end)
+                    (insert lines1)
+                    (delete-region (match-beginning 1) str1end)
 		    (forward-line 1)
 		    (let ((half2s (point)))
 		      (while (looking-at "[!+ \\][ \t]\\|#")
@@ -1137,7 +1142,7 @@ else cover the whole buffer."
                 (if old1
                     (unless (string= new1 old1) (replace-match new1 t t nil 2))
                   (goto-char (match-end 2)) (insert "," new1))))
-	     ((looking-at "--- \\([0-9]+\\),\\([0-9]*\\) ----$")
+	     ((looking-at diff-context-mid-hunk-header-re)
 	      (when (> (+ space bang plus) 0)
 		(let* ((old1 (match-string 1))
 		       (old2 (match-string 2))
@@ -1189,25 +1194,29 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	(goto-char (car diff-unhandled-changes))
 	;; Maybe we've cut the end of the hunk before point.
 	(if (and (bolp) (not (bobp))) (backward-char 1))
-	;; We used to fixup modifs on all the changes, but it turns out
-	;; that it's safer not to do it on big changes, for example
-	;; when yanking a big diff, since we might then screw up perfectly
-	;; correct values.  -stef
-	;; (unless (ignore-errors
-	;; 	  (diff-beginning-of-hunk)
-	;; 	  (save-excursion
-	;; 	    (diff-end-of-hunk)
-	;; 	    (> (point) (car diff-unhandled-changes))))
-	;;   (goto-char (car diff-unhandled-changes))
-	;; (re-search-forward diff-hunk-header-re (cdr diff-unhandled-changes))
-	;;   (diff-beginning-of-hunk))
-	;; (diff-fixup-modifs (point) (cdr diff-unhandled-changes))
+	;; We used to fixup modifs on all the changes, but it turns out that
+	;; it's safer not to do it on big changes, e.g. when yanking a big
+	;; diff, or when the user edits the header, since we might then
+	;; screw up perfectly correct values.  --Stef
 	(diff-beginning-of-hunk)
-	(when (save-excursion
+        (let* ((style (if (looking-at "\\*\\*\\*") 'context))
+               (start (line-beginning-position (if (eq style 'context) 3 2)))
+               (mid (if (eq style 'context)
+                        (save-excursion
+                          (re-search-forward diff-context-mid-hunk-header-re
+                                             nil t)))))
+          (when (and ;; Don't try to fixup changes in the hunk header.
+                 (> (car diff-unhandled-changes) start)
+                 ;; Don't try to fixup changes in the mid-hunk header either.
+                 (or (not mid)
+                     (< (cdr diff-unhandled-changes) (match-beginning 0))
+                     (> (car diff-unhandled-changes) (match-end 0)))
+                 (save-excursion
 		(diff-end-of-hunk nil 'donttrustheader)
-		(>= (point) (cdr diff-unhandled-changes)))
+                   ;; Don't try to fixup changes past the end of the hunk.
+                   (>= (point) (cdr diff-unhandled-changes))))
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
-    (setq diff-unhandled-changes nil)))
+      (setq diff-unhandled-changes nil))))
 
 (defun diff-next-error (arg reset)
   ;; Select a window that displays the current buffer so that point
@@ -1367,7 +1376,7 @@ Only works for unified diffs."
 	       (1+ (- (string-to-number (match-string 2))
 		      (string-to-number (match-string 1))))
 	     1))
-          (if (not (looking-at "--- \\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)? ----$"))
+          (if (not (looking-at diff-context-mid-hunk-header-re))
               (error "Unrecognized context diff second hunk header format")
             (forward-line)
             (diff-sanity-check-context-hunk-half
@@ -1447,7 +1456,7 @@ char-offset in TEXT."
 	     ;; context diff
 	     (forward-line 2)
 	     (setq src-pos (point))
-	     (re-search-forward "^--- " nil t)
+	     (re-search-forward diff-context-mid-hunk-header-re nil t)
 	     (forward-line 0)
 	     (setq divider-pos (point))
 	     (forward-line 1)
@@ -1563,7 +1572,8 @@ SWITCHED is non-nil if the patch is already applied."
 		     (error "Can't find the hunk header")
 		   (if other (match-string 1)
 		     (if (match-end 3) (match-string 3)
-		       (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
+		       (unless (re-search-forward
+                                diff-context-mid-hunk-header-re nil t)
 			 (error "Can't find the hunk separator"))
 		       (match-string 1)))))
 	   (file (or (diff-find-file-name other) (error "Can't find the file")))

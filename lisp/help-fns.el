@@ -500,7 +500,9 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 		      custom-version))
       (when cpv
 	(let* ((package (car-safe cpv))
-	       (version (car (cdr-safe cpv)))
+	       (version (if (listp (cdr-safe cpv))
+			    (car (cdr-safe cpv))
+			  (cdr-safe cpv)))
 	       (pkg-versions (assq package customize-package-emacs-version-alist))
 	       (emacsv (cdr (assoc version pkg-versions))))
 	  (if (and package version)

@@ -3106,7 +3106,7 @@ xg_gtk_scroll_destroy (widget, data)
   int id = (int) (EMACS_INT) data; /* The EMACS_INT cast avoids a warning. */
 
   p = g_object_get_data (G_OBJECT (widget), XG_LAST_SB_DATA);
-  if (p) xfree (p);
+  xfree (p);
   xg_remove_widget_from_map (id);
 }
 

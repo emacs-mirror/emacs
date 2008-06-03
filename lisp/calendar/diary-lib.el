@@ -148,33 +148,33 @@ Used for example by the appointment package - see `appt-activate'."
   :type 'hook
   :group 'diary)
 
-(defcustom diary-display-hook nil
-  "List of functions that handle the display of the diary.
-If nil (the default), `diary-simple-display' is used.  Use
-`ignore' for no diary display.
+(define-obsolete-variable-alias 'diary-display-hook 'diary-display-function
+  "23.1")
 
-Ordinarily, this just displays the diary buffer (with holidays
-indicated in the mode line), if there are any relevant entries.
-At the time these functions are called, the variable
-`diary-entries-list' is a list, in order by date, of all relevant
-diary entries in the form of ((MONTH DAY YEAR) STRING), where
-string is the diary entry for the given date.  This can be used,
-for example, a different buffer for display (perhaps combined
-with holidays), or produce hard copy output.
+(defcustom diary-display-function 'diary-simple-display
+  "Function used to display the diary.
+The default is `diary-simple-display'; `diary-fancy-display' is
+an alternative.
 
-A function `diary-fancy-display' is provided for use with this
-hook; this function prepares a special noneditable diary buffer
-with the relevant diary entries that has neat day-by-day
-arrangement with headings.  The fancy diary buffer will show the
-holidays unless the variable `diary-show-holidays-flag' is set to
-nil.  Ordinarily, the fancy diary buffer will not show days for
-which there are no diary entries, even if that day is a holiday;
-if you want such days to be shown in the fancy diary buffer, set
-the variable `diary-list-include-blanks' non-nil."
-  :type 'hook
-  :options '(diary-fancy-display)
+For historical reasons, `nil' is the same as `diary-simple-display'
+\(so you must use `ignore' for no display).  Also for historical
+reasons, this variable can be a list of functions to run.  These
+uses are not recommended and may be removed at some point.
+
+When this function is called, the variable `diary-entries-list'
+is a list, in order by date, of all relevant diary entries in the
+form of ((MONTH DAY YEAR) STRING), where string is the diary
+entry for the given date.  This can be used, for example, to
+produce a different buffer for display (perhaps combined with
+holidays), or hard copy output."
+  :type '(choice (const diary-simple-display :tag "Basic display")
+                 (const diary-fancy-display :tag "Fancy display")
+                 (const ignore :tag "No display")
+                 (const nil :tag "Obsolete way to choose basic display")
+                 (hook :tag "Obsolete form with list of display functions"))
   :initialize 'custom-initialize-default
   :set 'diary-set-maybe-redraw
+  :version "23.1"
   :group 'diary)
 
 (define-obsolete-variable-alias 'list-diary-entries-hook
@@ -186,9 +186,9 @@ You might wish to add `diary-include-other-diary-files', in which case
 you will probably also want to add `diary-mark-included-diary-files' to
 `diary-mark-entries-hook'.  For example, you could use
 
+     (setq diary-display-function 'diary-fancy-display)
      (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
      (add-hook 'diary-list-entries-hook 'diary-sort-entries)
-     (add-hook 'diary-display-hook 'diary-fancy-display)
 
 in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
@@ -728,18 +728,16 @@ After the list is prepared, the following hooks are run:
       from other files or to sort the diary entries.  Invoked *once*
       only, before the display hook is run.
 
-  `diary-display-hook' does the actual display of information.  If nil,
-      `diary-simple-display' is used.  Use `add-hook' to use
-      `diary-fancy-display', if desired, or `ignore' for no display.
-
-  `diary-hook' is run last.  This is used e.g. by `appt-check'.
+  `diary-hook' is run last, after the diary is displayed.
+      This is used e.g. by `appt-check'.
 
 Functions called by these hooks may use the variables ORIGINAL-DATE
 and NUMBER, which are the arguments with which this function was called.
 Note that hook functions should _not_ use DATE, but ORIGINAL-DATE.
 \(Sexp diary entries may use DATE - see `diary-list-sexp-entries'.)
 
-If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
+This function displays the list using `diary-display-function', unless
+LIST-ONLY is non-nil, in which case it just returns the list."
   (unless number
     (setq number (if (vectorp diary-number-of-entries)
                      (aref diary-number-of-entries (calendar-day-of-week date))
@@ -795,9 +793,12 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
             (run-hooks 'diary-nongregorian-listing-hook
                        'diary-list-entries-hook)
             (unless list-only
-              (if diary-display-hook
-                  (run-hooks 'diary-display-hook)
-                (diary-simple-display)))
+              (if (and diary-display-function
+                       (listp diary-display-function))
+                  ;; Backwards compatability.
+                  (run-hooks 'diary-display-function)
+                (funcall (or diary-display-function
+                             'diary-simple-display))))
             (run-hooks 'diary-hook)
             diary-entries-list))))))
 
@@ -829,7 +830,7 @@ changing the variable `diary-include-string'."
                        (match-string-no-properties 1)))
           (diary-list-include-blanks nil)
           (diary-list-entries-hook 'diary-include-other-diary-files)
-          (diary-display-hook 'ignore)
+          (diary-display-function 'ignore)
           (diary-hook nil))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
@@ -886,7 +887,9 @@ Returns a cons (NOENTRIES . HOLIDAY-STRING)."
 (defvar diary-saved-point)              ; bound in diary-list-entries
 
 (defun diary-simple-display ()
-  "Display the diary buffer if there are any relevant entries or holidays."
+  "Display the diary buffer if there are any relevant entries or holidays.
+Entries that do not apply are made invisible.  Holidays are shown
+in the mode line.  This is an option for `diary-display-function'."
   ;; If selected window is dedicated (to the calendar), need a new one
   ;; to display the diary.
   (let* ((pop-up-frames (or pop-up-frames
@@ -941,7 +944,11 @@ Returns a cons (NOENTRIES . HOLIDAY-STRING)."
 
 (defun diary-fancy-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
-To use this function, add it to `diary-display-hook'."
+Holidays are shown unless `diary-show-holidays-flag' is nil.
+Days with no diary entries are not shown (even if that day is a
+holiday), unless `diary-list-include-blanks' is non-nil.
+
+This is an option for `diary-display-function'."
   ;; Turn off selective-display in the diary file's buffer.
   (with-current-buffer
       (find-buffer-visiting (substitute-in-file-name diary-file))
@@ -1117,7 +1124,7 @@ should ensure that all relevant variables are set.
   (interactive "P")
   (if (string-equal diary-mail-addr "")
       (error "You must set `diary-mail-addr' to use this command")
-    (let ((diary-display-hook 'diary-fancy-display))
+    (let ((diary-display-function 'diary-fancy-display))
       (diary-list-entries (calendar-current-date) (or ndays diary-mail-days)))
     (compose-mail diary-mail-addr
                   (concat "Diary entries generated "

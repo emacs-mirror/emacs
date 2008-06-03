@@ -4060,19 +4060,32 @@ not have PROP."
 	(setq start next)))
     (nreverse regions)))
 
-(defcustom message-bogus-address-regexp nil ;; "noreply\\|nospam\\|invalid"
-  "Regexp of potentially bogus mail addresses."
+(defcustom message-bogus-addresses
+  ;; '("noreply" "nospam" "invalid")
+  '("noreply" "nospam" "invalid" "@@" "[^[:ascii:]].*@" "[ \t]")
+  "List of regexps of potentially bogus mail addresses.
+See `message-check-recipients' how to setup checking.
+
+This list should make it possible to catch typos or warn about
+spam-trap addresses.  It doesn't aim to verify strict RFC
+conformance."
   :version "23.1" ;; No Gnus
   :group 'message-headers
-  :type '(choice (const :tag "None" nil)
-		 (repeat :value-to-internal (lambda (widget value)
-					      (custom-split-regexp-maybe value))
-			 :match (lambda (widget value)
-				  (or (stringp value)
-				      (widget-editable-list-match widget value)))
-			 regexp)
-		 (const "noreply\\|nospam\\|invalid")
-		 regexp))
+  :type '(choice
+	  (const :tag "None" nil)
+	  (list
+	   (set :inline t
+		(const "noreply")
+		(const "nospam")
+		(const "invalid")
+		(const :tag "duplicate @" "@@")
+		(const :tag "non-ascii local part" "[^[:ascii:]].*@")
+		;; Already caught by `message-valid-fqdn-regexp'
+		;; (const :tag "`_' in domain part" "@.*_")
+		(const :tag "whitespace" "[ \t]"))
+	   (repeat :inline t
+		   :tag "Other"
+		   (regexp)))))
 
 (defun message-fix-before-sending ()
   "Do various things to make the message nice before sending it."
@@ -4167,9 +4180,9 @@ not have PROP."
 RECIPIENTS is a mail header.  Return a list of potentially bogus
 addresses.  If none is found, return nil.
 
-An addresses might be bogus if the domain part is not fully
-qualified, see `message-valid-fqdn-regexp', or if it matches
-`message-bogus-address-regexp'."
+An address might be bogus if the domain part is not fully
+qualified, see `message-valid-fqdn-regexp', or if there's a
+matching entry in `message-bogus-addresses'."
   ;; FIXME: How about "foo@subdomain", when the MTA adds ".domain.tld"?
   (let (found)
     (mapc (lambda (address)
@@ -4181,9 +4194,15 @@ qualified, see `message-valid-fqdn-regexp', or if it matches
 		      (string-match
 		       (concat ".@.*\\("
 			       message-valid-fqdn-regexp "\\)\\'") address)))
-		    (and (stringp message-bogus-address-regexp)
-			 (string-match message-bogus-address-regexp address)))
-	      (push address found)))
+		    (and message-bogus-addresses
+			 (let ((re
+				(if (listp message-bogus-addresses)
+				    (mapconcat 'identity
+					       message-bogus-addresses
+					       "\\|")
+				  message-bogus-addresses)))
+			   (string-match re address))))
+			 (push address found)))
 	  ;;
 	  (mail-extract-address-components recipients t))
     found))

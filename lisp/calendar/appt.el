@@ -330,7 +330,7 @@ displayed in a window:
                                diary-hook
                              (cons 'appt-make-list diary-hook))))
                       (diary))
-                  (let* ((diary-display-hook 'appt-make-list)
+                  (let* ((diary-display-function 'appt-make-list)
                          (d-buff (find-buffer-visiting
                                   (substitute-in-file-name diary-file)))
                          (selective

@@ -1,3 +1,312 @@
+2008-06-03  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el: New file.
+	* Makefile.in (ELCFILES): Add face-remap.elc.
+
+2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-process-filter): Make sure the source
+	buffer isn't dead.
+
+	* obsolete/bg-mouse.el, obsolete/float.el, obsolete/hilit19.el,
+	* obsolete/lselect.el, obsolete/mlsupport.el, obsolete/ooutline.el,
+	* obsolete/profile.el, obsolete/rsz-mini.el, obsolete/uncompress.el,
+	* obsolete/auto-show.el, obsolete/hscroll.el:
+	Remove packages that were obsolete in Emacs-20, or that were obsolete
+	in Emacs-21 and do not contain any more code.
+
+	* vc-dispatcher.el (vc-dir-menu-map-filter): Don't fail if
+	vc-client-mode is not set.
+
+	* image-mode.el (image-mode-map): Suppress key map and bind `q'.
+	* doc-view.el (doc-view-mode-map): Inherit from image-mode-map.
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords): Try to be
+	yet a bit more clever at distinguishing / from /.
+
+2008-06-03  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (ELCFILES): Add $(lisp)/language/hanja-util.elc.
+
+2008-06-03 Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* language/hanja-util.el: New file.
+
+2008-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-typedef-matcher, f90-looking-at-type-like):
+	Check that end-of-word follows "type".
+
+2008-06-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-write-region): Write the entire buffer
+	content if START is nil.
+
+2008-06-01  Thomas Morgan  <tlm@thomasmorgan.net>  (tiny change)
+
+	* select.el (x-get-selection): Fix typo.
+
+2008-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-text-sexp): Use `string-match-p'.  Simplify.
+	(describe-char): Use `looking-at-p', `string-match-p' when possible.
+
+2008-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header-block-summarize): Ensure one space around
+	user&group.
+
+2008-05-31  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable-custom-version-info):
+	Handle dotted `package-version' info.
+
+2008-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-get-keys): Doc fix.  Use `when'.
+
+2008-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-after-dir-status): Support spaces in file
+	names and improve support for unregistered files.
+
+2008-05-31  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (compile-last): Replace tr in `els' assignment with sed.
+	Remove shell variable `elc'.  Split tests to hopefully be more portable.
+	Fix `sel' assignment.
+
+2008-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (completion-table-dynamic): Doc fix.
+
+2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el (vc-cvs-state-heuristic, vc-cvs-parse-status):
+	Try and return `unregistered' when applicable.
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Don't encourage naming variables with "-flag".
+
+2008-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): Hide the warning when it does not apply,
+	make it milder when it does.
+	(autogen-clean): New target.
+	(maintainer-clean): Use autogen-clean.
+
+	* calendar/diary-lib.el (diary-display-function): New name for
+	diary-display-hook.  Keep old name as obsolete alias.  Doc fix.
+	Change custom type and version.
+	(diary-list-entries-hook, diary-list-entries, diary-simple-display)
+	(diary-fancy-display): Doc fixes.
+	(diary-list-entries, diary-include-other-diary-files)
+	(diary-mail-entries):
+	Use diary-display-function rather than diary-display-hook.
+
+	* calendar/appt.el (appt-check): Use diary-display-function rather than
+	diary-display-hook.
+	* calendar/cal-x.el (calendar-dedicate-diary): Update for
+	diary-display-function replacing diary-display-hook.
+	* org/org-agenda.el (org-get-entries-from-diary): Also set
+	diary-display-function.
+
+	* calendar/cal-html.el (cal-html-list-diary-entries):
+	* calendar/cal-menu.el (calendar-mouse-view-diary-entries):
+	* calendar/cal-tex.el (cal-tex-list-diary-entries): Use LIST-ONLY
+	argument of diary-list-entries rather than setting diary-display-hook.
+
+2008-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-8-with-signature): Renamed from
+	utf-8-sig.
+	(utf-8-auto): Adjusted for the above change.
+
+	* international/mule-diag.el (describe-font): Don't check fontset
+	here, and just call font-info.  Get the default font by from the
+	default face.
+
+2008-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-8-sig, utf-8-auto):
+	New coding systems.
+
+	* international/mule.el (define-coding-system): Accept :bom for utf-8.
+
+2008-05-29  Espen Wiborg  <espen.wiborg@telio.no>  (tiny change)
+
+	* international/utf-7.el (utf-7-encode): Use the right escape char
+	depending on imap/nonimap encoding.
+
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm-all-completions): Add the base-size.
+
+2008-05-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-prospects-height): Add :group.
+
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-prospects-length): Make obsolete.
+	(icomplete-prospects-height): New var.
+	(icomplete-completions): Use it.
+
+2008-05-29  David Kastrup  <dak@gnu.org>
+
+	* autoinsert.el (auto-insert): Add :link.
+
+2008-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header): New field `header-start'.
+	(tar-header-block-tokenize): Set it when useful.
+	Drop "GNUtar " magic value, which even GNU Tar doesn't know about.
+	(tar-header-data-end): New function.
+	(tar-summarize-buffer): Use it.
+	(tar-next-line): Fix goal column for long usernames.
+	(tar-expunge-internal): Use header-start.
+	(tar-rename-entry): Handle ustar-style long names.
+	(tar-alter-one-field): Add optional `descriptor' argument.
+	(tar-subfile-save-buffer): Use it.
+
+2008-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header): New field `header-start'.
+	(tar-header-block-tokenize): Set header-start for longlink entries.
+	(tar-expunge-internal): Use header-start to expunge longlink entries.
+
+	* files.el (hack-local-variables): Don't signal an error if the local
+	variable section is not properly terminated.
+
+	* emacs-lisp/easymenu.el (easy-menu-convert-item)
+	(easy-menu-convert-item-1): Move the duplicate-generation outside of
+	the caching so it also works for identical entries.
+
+	* tar-mode.el (tar-summarize-buffer): Fix reporter initialization.
+	(tar-mode): Use write-region-annotate-functions rather than
+	write-contents-functions.
+	(tar-extract): Remove unused var `pos'.
+	(tar-subfile-save-buffer): Remove unused var `following-descs'.
+	(tar-mode-write-file): Remove.
+	(tar-write-region-annotate): New function.
+
+	* progmodes/flymake.el (flymake-save-buffer-in-file):
+	* shadowfile.el (shadow-copy-file):
+	* arc-mode.el (archive-*-write-file-member):
+	* files.el (diff-buffer-with-file):
+	* subr.el (with-temp-file): Pass nil to write-region.
+	* jka-compr.el (jka-compr-write-region): Preserve `start's nullness.
+
+	* doc-view.el (doc-view-mode-map): Bind `q' to quit-window, as is
+	the custom.
+
+	* files.el (basic-save-buffer-2): Pass nil rather than (point-min)
+	to write-region.
+
+2008-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): Work around non-portability of "\"
+	in various implementations of echo.
+
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-diag.el (describe-current-coding-system):
+	Don't assume selection-coding-system is always defined.
+
+	* tar-mode.el: Use defstruct and markers.
+	(tar-setf): Remove.
+	(tar-header): Use defstruct.  Add `data-start' field.
+	(make-tar-desc, tar-desc-tokens): Remove, folded into tar-header.
+	(tar-desc-data-start): Remove (now called tar-header-data-start).
+	(tar-roundup-512): New fun.
+	(tar-header-block-tokenize): Receive a buffer position rather than
+	a string.  Handle @longLink here, be more careful about it.
+	Create a marker for data-start.
+	(tar-summarize-buffer): Don't handle @LongLink here any more.
+	(tar-expunge-internal, tar-subfile-save-buffer): Don't update
+	data-start on the following entries any more.
+	(tar-chown-entry, tar-chgrp-entry): Use read-number.
+
+	* tar-mode.el: Use buffer-swap-text to separate summary and raw data.
+	(tar-header-offset): Remove.
+	(tar-parse-info, tar-header-offset, tar-file-name-coding-system):
+	Not permanent any more.
+	(tar-data-buffer): New var.
+	(tar-data-swapped-p, tar-change-major-mode-hook)
+	(tar-mode-kill-buffer-hook): New funs.
+	(tar-untar-buffer, tar-summarize-buffer, tar-mode, tar-mode-revert)
+	(tar-extract, tar-copy, tar-expunge-internal, tar-expunge)
+	(tar-clear-modification-flags, tar-alter-one-field)
+	(tar-subfile-save-buffer, tar-pad-to-blocksize, tar-mode-write-file):
+	Change accordingly.
+
+2008-05-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dispatcher.el (vc-directory-resynch-file): Rename to ...
+	(vc-dir-resynch-file): ... this.  Update callers.
+	Use vc-string-prefix-p.  Ignore directory args.
+	(vc-string-prefix-p): CSE.
+	(vc-resynch-buffer): Restore conditional.
+
+	* vc-hooks.el (vc-after-save): Improve test.
+	(vc-mode-line): Fix indentation.
+
+2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar/parse-time.el (parse-time-months)
+	(parse-time-weekdays): Add long-form month and day names.
+
+2008-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-elclist): Make errors in final sed non-fatal.
+
+2008-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-string-prefix-p): New function.
+	(vc-dir-parent-marked-p): Use it.
+
+2008-05-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (Problems): Remove fixed issues.
+	(vc-expand-dirs): Avoid returning directories.
+	(vc-dir): Fix C-x v v binding.
+	(vc-make-backend-object): Fix name.
+	(vc-dir-show-fileentry): Fix docstring.
+	(vc-dir-refresh): Use vc-dir-backend.  Fix docstring.
+	(vc-dir-refresh-files): Use vc-dir-backend.  Fix docstring.
+	Reset the state for directories.
+	(vc-dir-headers): Align labels.
+	(vc-default-status-printer): Do no call prettify-state-info.
+	(vc-deduce-fileset): Replace implementation with one based on a
+	working older version.
+	(vc-next-action): Use the new form of vc-deduce-fileset.
+	Fix dealing with unregistered files.
+
+	* vc-dispatcher.el (vc-resynch-window): Fix mode-line updating.
+	(vc-dir-menu-map): Fix menu title for the menu bar and the popup menu.
+	(vc-dir-child-files): New function.
+	(vc-dir-node-directory): New function.
+	(vc-dir-update, vc-dir-parent-marked-p)
+	(vc-dir-children-marked-p, vc-dir-mark-all-files)
+	(vc-dir-marked-only-files, vc-dispatcher-selection-set): Use it.
+
+	* vc-cvs.el (vc-cvs-status-extra-headers): Align labels.
+
+2008-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-context-mid-hunk-header-re): New const.
+	(diff-font-lock-keywords, diff-context->unified)
+	(diff-reverse-direction, diff-fixup-modifs, diff-sanity-check-hunk)
+	(diff-hunk-text, diff-find-source-location): Use it.
+	(diff-post-command-hook): Let the user edit the hunk headers.
+
+2008-05-26  Andreas Schwab  <schwab@suse.de>
+
+	* vc.el (vc-default-prettify-state-info): Fix formatting of an
+	unknown state.
+
+	* tar-mode.el (tar-summarize-buffer): Comment fix.
+
 2008-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-summarize-buffer): Handle GNU Tar @LongLink format.
@@ -8,8 +317,8 @@
 
 2008-05-25  John Paul Wallington  <jpw@pobox.com>
 
-	* proced.el (proced-next-line, proced-previous-line): Avoid
-	calling `next-line' and `previous-line' from Lisp code.
+	* proced.el (proced-next-line, proced-previous-line):
+	Avoid calling `next-line' and `previous-line' from Lisp code.
 
 2008-05-25  Ed Reingold  <reingold@emr.cs.iit.edu>
 
@@ -74,7 +383,7 @@
 
 	* vc.el (vc-delete-file): Don't try to resynch the buffer.
 
-2008-05-23  Paul R  <paul.r.ml@gmail.com>
+2008-05-23  Paul Rivier  <paul.r.ml@gmail.com>
 
 	* textmodes/reftex-vars.el (reftex-extra-bindings-prefix): New var.
 	* textmodes/reftex.el (reftex-extra-bindings-map): New var.

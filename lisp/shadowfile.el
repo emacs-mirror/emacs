@@ -573,13 +573,11 @@ site."
 	 (to (shadow-expand-cluster-in-file-name (cdr s))))
     (when buffer
       (set-buffer buffer)
-      (save-restriction
-	(widen)
-	(condition-case i
-	    (progn
-	      (write-region (point-min) (point-max) to)
-	      (shadow-remove-from-todo s))
-	  (error (message "Shadow %s not updated!" (cdr s))))))))
+      (condition-case i
+          (progn
+            (write-region nil nil to)
+            (shadow-remove-from-todo s))
+        (error (message "Shadow %s not updated!" (cdr s)))))))
 
 (defun shadow-shadows-of (file)
   "Return copy operations needed to update FILE.

@@ -403,6 +403,39 @@ Windows-specific variables in this category.
 key.  If you wish it to produce the @code{Alt} modifier instead, set
 the variable @code{w32-alt-is-meta} to a @code{nil} value.
 
+@findex w32-register-hot-key
+@findex w32-unregister-hot-key
+  MS-Windows reserves certain key combinations, such as
+@kbd{Alt-@key{TAB}}, for its own use.  These key combinations are
+intercepted by the system before Emacs can see them.  You can use the
+@code{w32-register-hot-key} function to allow a key sequence to be
+seen by Emacs instead of being grabbed by Windows.  This functions
+registers a key sequence as a @dfn{hot key}, overriding the special
+meaning of that key sequence for Windows.  (MS-Windows is told that
+the key sequence is a hot key only when one of the Emacs windows has
+focus, so that the special keys still have their usual meaning for
+other Windows applications.)
+
+  The argument to @code{w32-register-hot-key} must be a single key,
+with or without modifiers, in vector form that would be acceptable to
+@code{define-key}.  The meta modifier is interpreted as the @key{ALT}
+key if @code{w32-alt-is-meta} is @code{t} (the default), and the hyper
+modifier is always interpreted as the Windows key (usually labeled
+with @key{start} and the Windows logo).  If the function succeeds in
+registering the key sequence, it returns the hotkey ID, a number;
+otherwise it returns @code{nil}.
+
+@kindex M-TAB@r{, (MS-Windows)}
+@cindex @kbd{M-@key{TAB}} vs @kbd{Alt-@key{TAB}} (MS-Windows)
+@cindex @kbd{Alt-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
+  For example, @code{(w32-register-hot-key [M-tab])} lets you use
+@kbd{M-TAB} normally in Emacs, for instance, to complete the word or
+symbol at point at top level, or to complete the current search string
+against previously sought strings during incremental search.
+
+  The function @code{w32-unregister-hot-key} reverses the effect of
+@code{w32-register-hot-key} for its argument key sequence.
+
 @vindex w32-capslock-is-shiftlock
   By default, the @key{CapsLock} key only affects normal character
 keys (it converts lower-case characters to their upper-case

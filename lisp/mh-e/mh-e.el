@@ -554,7 +554,7 @@ ARGS are passed to COMMAND as command line arguments."
     process))
 
 (defun mh-exec-cmd-env-daemon (env command filter &rest args)
-  "In ennvironment ENV, execute mh-command COMMAND in the background.
+  "In environment ENV, execute mh-command COMMAND in the background.
 
 ENV is nil or a string of space-separated \"var=value\" elements.
 Signals an error if process does not complete successfully.
@@ -714,7 +714,7 @@ keyword, introduced in Emacs 22."
 See `mh-variant'."
   :group 'mh-e
   :type '(repeat (directory))
-  :package-version '(MH-E "8.0"))
+  :package-version '(MH-E . "8.0"))
 
 (defun mh-variants ()
   "Return a list of installed variants of MH on the system.
@@ -949,7 +949,7 @@ necessary and can actually cause problems."
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
   :group 'mh-e
-  :package-version '(MH-E "8.0"))
+  :package-version '(MH-E . "8.0"))
 
 
 
@@ -2407,6 +2407,7 @@ of citations entirely, choose \"None\"."
     "Auto-forwarded:"                   ; RFC 2156
     "Autoforwarded:"                    ; RFC 2156
     "Bestservhost:"
+    "Bytes:"
     "Cancel-Key:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Cancel-Lock:"                      ; NNTP posts
     "Comment:"                          ; Shows up with DomainKeys
@@ -2456,7 +2457,6 @@ of citations entirely, choose \"None\"."
     "Message-Type:"                     ; RFC 2156
     "Mime-Version"                      ; RFC 2045
     "Msgid:"
-    "Newsgroups:"                       ; RFC 1036
     "NNTP-"                             ; News
     "Obsoletes:"                        ; RFC 2156
     "Old-Return-Path:"
@@ -2533,15 +2533,18 @@ of citations entirely, choose \"None\"."
     "X-Brightmail-Tracker:"             ; Brightmail
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Bugzilla-"                       ; Bugzilla
+    "X-Campaignid:"
     "X-Comment:"                        ; AT&T Mailennium
     "X-Complaints-To:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Confirm-Reading-To:"             ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Content-Filtered-By:"
     "X-ContentStamp:"                   ; NetZero
+    "X-Country-Chain:"                  ; http://www.declude.com/x-note.htm
     "X-Cr-Hashedpuzzle:"
     "X-Cr-Puzzleid:"
     "X-Cron-Env:"
     "X-DCC-Usenix-Metrics:"
+    "X-Declude-"                        ; http://www.declude.com/x-note.htm
     "X-Dedicated:"
     "X-Delivered"
     "X-DH-Virus-"
@@ -2561,6 +2564,7 @@ of citations entirely, choose \"None\"."
     "X-Evolution:"                      ; Evolution mail client
     "X-ExtLoop"
     "X-Face:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-fmx-"
     "X-Folder:"                         ; Spam
     "X-From-Line"
     "X-Gmail-"                          ; Gmail
@@ -2573,6 +2577,7 @@ of citations entirely, choose \"None\"."
     "X-HPL-"
     "X-HR-"
     "X-HTTP-UserAgent:"
+    "X-Identity:"                       ; http://www.declude.com/x-note.htm
     "X-Image-URL:"
     "X-IMAP:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Info:"                           ; NTMail
@@ -2591,6 +2596,7 @@ of citations entirely, choose \"None\"."
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-Mail-from:"                      ; fastmail.fm
     "X-MAIL-INFO:"                      ; NetZero
+    "X-Mailer_"
     "X-Mailing-List:"                   ; Unknown mailing list managers
     "X-Mailman-Approved-At:"            ; Mailman mailing list manager
     "X-Mailman-Version:"                ; Mailman mailing list manager
@@ -2629,6 +2635,7 @@ of citations entirely, choose \"None\"."
     "X-OriginalArrivalTime:"            ; Hotmail
     "X-Originating-Email:"              ; Hotmail
     "X-Originating-IP:"                 ; Hotmail
+    "X-pair-"
     "X-PGP:"
     "X-PID:"
     "X-PMG-"
@@ -2665,6 +2672,7 @@ of citations entirely, choose \"None\"."
     "X-Source"
     "X-Spam-"                           ; Spamassassin
     "X-SpamBouncer:"                    ; Spam
+    "X-SPF-"
     "X-Status"
     "X-Submission-Address:"
     "X-Submissions-To:"
@@ -2678,6 +2686,7 @@ of citations entirely, choose \"None\"."
     "X-URI:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-URL:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-USANET-"                         ; usa.net
+    "X-Usenet-Provider"
     "X-UserInfo1:"
     "X-Virus-"                          ;
     "X-Vms-To:"

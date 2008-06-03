@@ -1813,8 +1813,12 @@ char_charset (c, charset_list, code_return)
      Lisp_Object charset_list;
      unsigned *code_return;
 {
+  int maybe_null = 0;
+
   if (NILP (charset_list))
     charset_list = Vcharset_ordered_list;
+  else
+    maybe_null = 1;
 
   while (CONSP (charset_list))
     {
@@ -1832,7 +1836,8 @@ char_charset (c, charset_list, code_return)
 	 && EQ (charset_list, Vcharset_non_preferred_head))
 	return CHARSET_FROM_ID (charset_unicode);
     }
-  return (c <= MAX_5_BYTE_CHAR ? CHARSET_FROM_ID (charset_emacs)
+  return (maybe_null ? NULL
+	  : c <= MAX_5_BYTE_CHAR ? CHARSET_FROM_ID (charset_emacs)
 	  : CHARSET_FROM_ID (charset_eight_bit));
 }
 
@@ -1952,7 +1957,7 @@ Clear encoder and decoder of charsets that are loaded from mapfiles.  */)
 
   if (CHAR_TABLE_P (Vchar_unified_charset_table))
     {
-      Foptimize_char_table (Vchar_unified_charset_table);
+      Foptimize_char_table (Vchar_unified_charset_table, Qnil);
       Vchar_unify_table = Vchar_unified_charset_table;
       Vchar_unified_charset_table = Qnil;
     }

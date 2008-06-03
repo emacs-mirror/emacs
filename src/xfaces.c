@@ -422,6 +422,23 @@ Lisp_Object Qbitmap_spec_p;
 
 Lisp_Object Vface_new_frame_defaults;
 
+/* Alist of face remappings.  Each element is of the form:
+   (FACE REPLACEMENT...) which causes display of the face FACE to use
+   REPLACEMENT... instead.  REPLACEMENT... is interpreted the same way
+   the value of a `face' text property is: it may be (1) A face name,
+   (2) A list of face names, (3) A property-list of face attribute/value
+   pairs, or (4) A list of face names intermixed with lists containing
+   face attribute/value pairs.
+
+   Multiple entries in REPLACEMENT... are merged together to form the final
+   result, with faces or attributes earlier in the list taking precedence
+   over those that are later.
+
+   Face-name remapping cycles are suppressed; recursive references use
+   the underlying face instead of the remapped face.  */
+
+Lisp_Object Vface_remapping_alist;
+
 /* The next ID to assign to Lisp faces.  */
 
 static int next_lface_id;
@@ -493,7 +510,8 @@ static void map_tty_color P_ ((struct frame *, struct face *,
 static Lisp_Object resolve_face_name P_ ((Lisp_Object, int));
 static int may_use_scalable_font_p P_ ((const char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
-static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
+static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *,
+				     int, struct named_merge_point *));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
@@ -1708,7 +1726,7 @@ compare_fonts_by_sort_order (v1, v2)
   Lisp_Object font1 = *(Lisp_Object *) v1;
   Lisp_Object font2 = *(Lisp_Object *) v2;
   int i;
-  
+
   for (i = 0; i < FONT_SIZE_INDEX; i++)
     {
       enum font_property_index idx = font_props_for_sorting[i];
@@ -1754,15 +1772,18 @@ the face font sort order.  */)
      (family, frame)
      Lisp_Object family, frame;
 {
-  struct frame *f = check_x_frame (frame);
-  Lisp_Object font_spec = Qnil, vec;
+  Lisp_Object font_spec, vec;
   int i, nfonts;
   Lisp_Object result;
 
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+
+  font_spec = Ffont_spec (0, NULL);
   if (!NILP (family))
     {
       CHECK_STRING (family);
-      font_spec = Ffont_spec (0, NULL);
       Ffont_put (font_spec, QCfamily, family);
     }
   vec = font_list_entities (frame, font_spec);
@@ -1803,13 +1824,13 @@ the face font sort order.  */)
       ASET (v, 0, AREF (font, FONT_FAMILY_INDEX));
       ASET (v, 1, FONT_WIDTH_SYMBOLIC (font));
       point = PIXEL_TO_POINT (XINT (AREF (font, FONT_SIZE_INDEX)) * 10,
-			      f->resy);
+			      XFRAME (frame)->resy);
       ASET (v, 2, make_number (point));
       ASET (v, 3, FONT_WEIGHT_SYMBOLIC (font));
       ASET (v, 4, FONT_SLANT_SYMBOLIC (font));
       spacing = Ffont_get (font, QCspacing);
       ASET (v, 5, (NILP (spacing) || EQ (spacing, Qp)) ? Qnil : Qt);
-      ASET (v, 6, AREF (font, FONT_NAME_INDEX));
+      ASET (v, 6, Ffont_xlfd_name (font, Qnil));
       ASET (v, 7, AREF (font, FONT_REGISTRY_INDEX));
 
       result = Fcons (v, result);
@@ -1844,7 +1865,7 @@ PATTERN is a string, perhaps with wildcard characters;
 FACE is a face name--a symbol.
 
 The return value is a list of strings, suitable as arguments to
-set-face-font.
+`set-face-font'.
 
 Fonts Emacs can't use may or may not be excluded
 even if they match PATTERN and FACE.
@@ -1910,7 +1931,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
   {
     Lisp_Object font_spec;
-    Lisp_Object args[2];
+    Lisp_Object args[2], tail;
 
     font_spec = font_spec_from_name (pattern);
     if (size)
@@ -1919,6 +1940,8 @@ the WIDTH times as wide as FACE on FRAME.  */)
 	Ffont_put (font_spec, QCavgwidth, make_number (avgwidth));
       }
     args[0] = Flist_fonts (font_spec, frame, maximum, Qnil);
+    for (tail = args[0]; CONSP (tail); tail = XCDR (tail))
+      XSETCAR (tail, Ffont_xlfd_name (XCAR (tail), Qnil));
     if (NILP (frame))
       /* We don't have to check fontsets.  */
       return args[0];
@@ -2058,6 +2081,12 @@ check_lface (lface)
 
 /* Face-merge cycle checking.  */
 
+enum named_merge_point_kind
+{
+  NAMED_MERGE_POINT_NORMAL,
+  NAMED_MERGE_POINT_REMAP
+};
+
 /* A `named merge point' is simply a point during face-merging where we
    look up a face by name.  We keep a stack of which named lookups we're
    currently processing so that we can easily detect cycles, using a
@@ -2067,27 +2096,40 @@ check_lface (lface)
 struct named_merge_point
 {
   Lisp_Object face_name;
+  enum named_merge_point_kind named_merge_point_kind;
   struct named_merge_point *prev;
 };
 
 
 /* If a face merging cycle is detected for FACE_NAME, return 0,
    otherwise add NEW_NAMED_MERGE_POINT, which is initialized using
-   FACE_NAME, as the head of the linked list pointed to by
-   NAMED_MERGE_POINTS, and return 1.  */
+   FACE_NAME and NAMED_MERGE_POINT_KIND, as the head of the linked list
+   pointed to by NAMED_MERGE_POINTS, and return 1.  */
 
 static INLINE int
 push_named_merge_point (struct named_merge_point *new_named_merge_point,
 			Lisp_Object face_name,
+			enum named_merge_point_kind named_merge_point_kind,
 			struct named_merge_point **named_merge_points)
 {
   struct named_merge_point *prev;
 
   for (prev = *named_merge_points; prev; prev = prev->prev)
     if (EQ (face_name, prev->face_name))
-      return 0;
+      {
+	if (prev->named_merge_point_kind == named_merge_point_kind)
+	  /* A cycle, so fail.  */
+	  return 0;
+	else if (prev->named_merge_point_kind == NAMED_MERGE_POINT_REMAP)
+	  /* A remap `hides ' any previous normal merge points
+	     (because the remap means that it's actually different face),
+	     so as we know the current merge point must be normal, we
+	     can just assume it's OK.  */
+	  break;
+      }
 
   new_named_merge_point->face_name = face_name;
+  new_named_merge_point->named_merge_point_kind = named_merge_point_kind;
   new_named_merge_point->prev = *named_merge_points;
 
   *named_merge_points = new_named_merge_point;
@@ -2165,21 +2207,16 @@ resolve_face_name (face_name, signal_p)
 /* Return the face definition of FACE_NAME on frame F.  F null means
    return the definition for new frames.  FACE_NAME may be a string or
    a symbol (apparently Emacs 20.2 allowed strings as face names in
-   face text properties; Ediff uses that).  If FACE_NAME is an alias
-   for another face, return that face's definition.  If SIGNAL_P is
-   non-zero, signal an error if FACE_NAME is not a valid face name.
-   If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
-   name.  */
-
+   face text properties; Ediff uses that).  If SIGNAL_P is non-zero,
+   signal an error if FACE_NAME is not a valid face name.  If SIGNAL_P
+   is zero, value is nil if FACE_NAME is not a valid face name.  */
 static INLINE Lisp_Object
-lface_from_face_name (f, face_name, signal_p)
+lface_from_face_name_no_resolve (f, face_name, signal_p)
      struct frame *f;
      Lisp_Object face_name;
      int signal_p;
 {
   Lisp_Object lface;
-
-  face_name = resolve_face_name (face_name, signal_p);
 
   if (f)
     lface = assq_no_quit (face_name, f->face_alist);
@@ -2192,7 +2229,26 @@ lface_from_face_name (f, face_name, signal_p)
     signal_error ("Invalid face", face_name);
 
   check_lface (lface);
+
   return lface;
+}
+
+/* Return the face definition of FACE_NAME on frame F.  F null means
+   return the definition for new frames.  FACE_NAME may be a string or
+   a symbol (apparently Emacs 20.2 allowed strings as face names in
+   face text properties; Ediff uses that).  If FACE_NAME is an alias
+   for another face, return that face's definition.  If SIGNAL_P is
+   non-zero, signal an error if FACE_NAME is not a valid face name.
+   If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
+   name.  */
+static INLINE Lisp_Object
+lface_from_face_name (f, face_name, signal_p)
+     struct frame *f;
+     Lisp_Object face_name;
+     int signal_p;
+{
+  face_name = resolve_face_name (face_name, signal_p);
+  return lface_from_face_name_no_resolve (f, face_name, signal_p);
 }
 
 
@@ -2203,26 +2259,65 @@ lface_from_face_name (f, face_name, signal_p)
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
 static INLINE int
-get_lface_attributes (f, face_name, attrs, signal_p)
+get_lface_attributes_no_remap (f, face_name, attrs, signal_p)
      struct frame *f;
      Lisp_Object face_name;
      Lisp_Object *attrs;
      int signal_p;
 {
   Lisp_Object lface;
-  int success_p;
 
-  lface = lface_from_face_name (f, face_name, signal_p);
-  if (!NILP (lface))
+  lface = lface_from_face_name_no_resolve (f, face_name, signal_p);
+
+  if (! NILP (lface))
+    bcopy (XVECTOR (lface)->contents, attrs,
+	   LFACE_VECTOR_SIZE * sizeof *attrs);
+
+  return !NILP (lface);
+}
+
+/* Get face attributes of face FACE_NAME from frame-local faces on frame
+   F.  Store the resulting attributes in ATTRS which must point to a
+   vector of Lisp_Objects of size LFACE_VECTOR_SIZE.  If FACE_NAME is an
+   alias for another face, use that face's definition.  If SIGNAL_P is
+   non-zero, signal an error if FACE_NAME does not name a face.
+   Otherwise, value is zero if FACE_NAME is not a face.  */
+
+static INLINE int
+get_lface_attributes (f, face_name, attrs, signal_p, named_merge_points)
+     struct frame *f;
+     Lisp_Object face_name;
+     Lisp_Object *attrs;
+     int signal_p;
+     struct named_merge_point *named_merge_points;
+{
+  Lisp_Object face_remapping;
+
+  face_name = resolve_face_name (face_name, signal_p);
+
+  /* See if SYMBOL has been remapped to some other face (usually this
+     is done buffer-locally).  */
+  face_remapping = assq_no_quit (face_name, Vface_remapping_alist);
+  if (CONSP (face_remapping))
     {
-      bcopy (XVECTOR (lface)->contents, attrs,
-	     LFACE_VECTOR_SIZE * sizeof *attrs);
-      success_p = 1;
-    }
-  else
-    success_p = 0;
+      struct named_merge_point named_merge_point;
 
-  return success_p;
+      if (push_named_merge_point (&named_merge_point,
+				  face_name, NAMED_MERGE_POINT_REMAP,
+				  &named_merge_points))
+	{
+	  int i;
+
+	  for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
+	    attrs[i] = Qunspecified;
+
+	  return merge_face_ref (f, XCDR (face_remapping), attrs,
+				 signal_p, named_merge_points);
+	}
+    }
+
+  /* Default case, no remapping.  */
+  return get_lface_attributes_no_remap (f, face_name, attrs, signal_p);
 }
 
 
@@ -2378,8 +2473,8 @@ merge_face_heights (from, to, invalid)
    specified attribute of FROM overrides the corresponding attribute of
    TO; relative attributes in FROM are merged with the absolute value in
    TO and replace it.  NAMED_MERGE_POINTS is used internally to detect
-   loops in face inheritance; it should be 0 when called from other
-   places.  */
+   loops in face inheritance/remapping; it should be 0 when called from
+   other places.  */
 
 static INLINE void
 merge_face_vectors (f, from, to, named_merge_points)
@@ -2454,11 +2549,12 @@ merge_named_face (f, face_name, to, named_merge_points)
   struct named_merge_point named_merge_point;
 
   if (push_named_merge_point (&named_merge_point,
-			      face_name, &named_merge_points))
+			      face_name, NAMED_MERGE_POINT_NORMAL,
+			      &named_merge_points))
     {
       struct gcpro gcpro1;
       Lisp_Object from[LFACE_VECTOR_SIZE];
-      int ok = get_lface_attributes (f, face_name, from, 0);
+      int ok = get_lface_attributes (f, face_name, from, 0, named_merge_points);
 
       if (ok)
 	{
@@ -2836,7 +2932,7 @@ DEFUN ("internal-copy-lisp-face", Finternal_copy_lisp_face,
 If FRAME is t, copy the global face definition of FROM.
 Otherwise, copy the frame-local definition of FROM on FRAME.
 If NEW-FRAME is a frame, copy that data into the frame-local
-definition of TO on NEW-FRAME.  If NEW-FRAME is nil.
+definition of TO on NEW-FRAME.  If NEW-FRAME is nil,
 FRAME controls where the data is copied to.
 
 The value is TO.  */)
@@ -3436,7 +3532,7 @@ update_face_from_frame_parameter (f, param, new_value)
 
       /* Changing the background color might change the background
 	 mode, so that we have to load new defface specs.
-	 Call frame-set-background-mode to do that.  */
+	 Call frame-update-face-colors to do that.  */
       XSETFRAME (frame, f);
       call1 (Qframe_set_background_mode, frame);
 
@@ -4642,13 +4738,65 @@ lookup_named_face (f, symbol, signal_p)
 	abort ();  /* realize_basic_faces must have set it up  */
     }
 
-  if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p))
+  if (! get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
     return -1;
 
   bcopy (default_face->lface, attrs, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   return lookup_face (f, attrs);
+}
+
+
+/* Return the display face-id of the basic face who's canonical face-id
+   is FACE_ID.  The return value will usually simply be FACE_ID, unless that
+   basic face has bee remapped via Vface_remapping_alist.  This function is
+   conservative: if something goes wrong, it will simply return FACE_ID
+   rather than signal an error.   */
+
+int
+lookup_basic_face (f, face_id)
+     struct frame *f;
+     int face_id;
+{
+  Lisp_Object name, mapping;
+  int remapped_face_id;
+
+  if (NILP (Vface_remapping_alist))
+    return face_id;		/* Nothing to do.  */
+
+  switch (face_id)
+    {
+    case DEFAULT_FACE_ID:		name = Qdefault;		break;
+    case MODE_LINE_FACE_ID:		name = Qmode_line;		break;
+    case MODE_LINE_INACTIVE_FACE_ID:	name = Qmode_line_inactive;	break;
+    case HEADER_LINE_FACE_ID:		name = Qheader_line;		break;
+    case TOOL_BAR_FACE_ID:		name = Qtool_bar;		break;
+    case FRINGE_FACE_ID:		name = Qfringe;			break;
+    case SCROLL_BAR_FACE_ID:		name = Qscroll_bar;		break;
+    case BORDER_FACE_ID:		name = Qborder;			break;
+    case CURSOR_FACE_ID:		name = Qcursor;			break;
+    case MOUSE_FACE_ID:			name = Qmouse;			break;
+    case MENU_FACE_ID:			name = Qmenu;			break;
+
+    default:
+      abort ();	    /* the caller is supposed to pass us a basic face id */
+    }
+
+  /* Do a quick scan through Vface_remapping_alist, and return immediately
+     if there is no remapping for face NAME.  This is just an optimization
+     for the very common no-remapping case.  */
+  mapping = assq_no_quit (name, Vface_remapping_alist);
+  if (NILP (mapping))
+    return face_id;		/* Give up.  */
+
+  /* If there is a remapping entry, lookup the face using NAME, which will
+     handle the remapping too.  */
+  remapped_face_id = lookup_named_face (f, name, 0);
+  if (remapped_face_id < 0)
+    return face_id;		/* Give up. */
+
+  return remapped_face_id;
 }
 
 
@@ -4784,7 +4932,7 @@ lookup_derived_face (f, symbol, face_id, signal_p)
   if (!default_face)
     abort ();
 
-  get_lface_attributes (f, symbol, symbol_attrs, signal_p);
+  get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0);
   bcopy (default_face->lface, attrs, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
@@ -4888,8 +5036,10 @@ x_supports_face_attributes_p (f, attrs, def_face)
       if (! face)
 	error ("Cannot make face");
 
-      /* If the font is the same, then not supported.  */
-      if (face->font == def_face->font)
+      /* If the font is the same, or no font is found, then not
+	 supported.  */
+      if (face->font == def_face->font
+	  || ! face->font)
 	return 0;
       for (i = FONT_TYPE_INDEX; i <= FONT_SIZE_INDEX; i++)
 	if (! EQ (face->font->props[i], def_face->font->props[i]))
@@ -5463,7 +5613,7 @@ realize_default_face (f)
  	 not support the default font.  */
       if (!face->font)
  	return 0;
- 
+
       /* Otherwise, the font specified for the frame was not
  	 acceptable as a font for the default face (perhaps because
  	 auto-scaled fonts are rejected), so we must adjust the frame
@@ -5493,7 +5643,7 @@ realize_named_face (f, symbol, id)
   struct face *new_face;
 
   /* The default face must exist and be fully specified.  */
-  get_lface_attributes (f, Qdefault, attrs, 1);
+  get_lface_attributes_no_remap (f, Qdefault, attrs, 1);
   check_lface_attrs (attrs);
   xassert (lface_fully_specified_p (attrs));
 
@@ -5506,7 +5656,7 @@ realize_named_face (f, symbol, id)
     }
 
   /* Merge SYMBOL's face with the default face.  */
-  get_lface_attributes (f, symbol, symbol_attrs, 1);
+  get_lface_attributes_no_remap (f, symbol, symbol_attrs, 1);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   /* Realize the face.  */
@@ -6063,13 +6213,18 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   *endptr = endpos;
 
-  default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+
+  /* Perhaps remap BASE_FACE_ID to a user-specified alternative.  */
+  if (NILP (Vface_remapping_alist))
+    default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+  else
+    default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
 
   /* Optimize common cases where we can use the default face.  */
   if (noverlays == 0
       && NILP (prop)
       && !(pos >= region_beg && pos < region_end))
-    return DEFAULT_FACE_ID;
+    return default_face->id;
 
   /* Begin with attributes from the default face.  */
   bcopy (default_face->lface, attrs, sizeof attrs);
@@ -6667,6 +6822,43 @@ other font of the appropriate family and registry is available.  */);
 Each element is a regular expression that matches names of fonts to
 ignore.  */);
   Vface_ignored_fonts = Qnil;
+
+  DEFVAR_LISP ("face-remapping-alist", &Vface_remapping_alist,
+	       doc: /* Alist of face remappings.
+Each element is of the form:
+
+   (FACE REPLACEMENT...),
+
+which causes display of the face FACE to use REPLACEMENT... instead.
+REPLACEMENT... is interpreted the same way the value of a `face' text
+property is: it may be (1) A face name, (2) A list of face names, (3) A
+property-list of face attribute/value pairs, or (4) A list of face names
+intermixed with lists containing face attribute/value pairs.
+
+Multiple entries in REPLACEMENT... are merged together to form the final
+result, with faces or attributes earlier in the list taking precedence
+over those that are later.
+
+Face-name remapping cycles are suppressed; recursive references use the
+underlying face instead of the remapped face.  So a remapping of the form:
+
+   (FACE EXTRA-FACE... FACE)
+
+or:
+
+   (FACE (FACE-ATTR VAL ...) FACE)
+
+will cause EXTRA-FACE... or (FACE-ATTR VAL ...) to be _merged_ with the
+existing definition of FACE.  Note that for the default face, this isn't
+necessary, as every face inherits from the default face.
+
+Making this variable buffer-local is a good way to allow buffer-specific
+face definitions.  For instance, the mode my-mode could define a face
+`my-mode-default', and then in the mode setup function, do:
+
+   (set (make-local-variable 'face-remapping-alist)
+        '((default my-mode-default)))).  */);
+  Vface_remapping_alist = Qnil;
 
   DEFVAR_LISP ("face-font-rescale-alist", &Vface_font_rescale_alist,
 	       doc: /* Alist of fonts vs the rescaling factors.

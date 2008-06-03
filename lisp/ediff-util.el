@@ -2715,7 +2715,7 @@ only if this merge job is part of a group, i.e., was invoked from within
       (if (or (not (file-exists-p file))
 	      (y-or-n-p (format "File %s exists, overwrite? " file)))
 	  (progn
-	    ;;(write-region (point-min) (point-max) file)
+	    ;;(write-region nil nil file)
 	    (ediff-with-current-buffer buf
 	      (set-visited-file-name file)
 	      (save-buffer))

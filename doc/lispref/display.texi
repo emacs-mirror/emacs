@@ -2365,6 +2365,133 @@ line or a header line), and last the @code{default} face.
   When multiple overlays cover one character, an overlay with higher
 priority overrides those with lower priority.  @xref{Overlays}.
 
+@defvar face-remapping-alist
+  This variable is used for buffer-local or global changes in the
+appearance of a face, for instance making the @code{default} face a
+variable-pitch face in a particular buffer.
+
+  Its value should be an alist, whose elements have the form
+@code{(@var{face} @var{remapping...})}.  This causes Emacs to display
+text using the face @var{face} using @var{remapping...} instead of
+@var{face}'s global definition.  @var{remapping...} may be any face
+specification suitable for a @code{face} text property, usually a face
+name, but also perhaps a property list of face attribute/value pairs.
+@xref{Special Properties}.
+
+  To affect display only in a single buffer,
+@code{face-remapping-alist} should be made buffer-local.
+
+Two points bear emphasizing:
+
+@enumerate
+@item
+The new definition @var{remapping...} is the complete
+specification of how to display @var{face}---it entirely replaces,
+rather than augmenting or modifying, the normal definition of that
+face.
+
+@item
+If @var{remapping...} recursively references the same face name
+@var{face}, either directly remapping entry, or via the
+@code{:inherit} attribute of some other face in
+@var{remapping...}, then that reference uses normal frame-wide
+definition of @var{face} instead of the ``remapped'' definition.
+
+For instance, if the @code{mode-line} face is remapped using this
+entry in @code{face-remapping-alist}:
+@example
+(mode-line italic mode-line)
+@end example
+@noindent
+then the new definition of the @code{mode-line} face inherits from the
+@code{italic} face, and the @emph{normal} (non-remapped) definition of
+@code{mode-line} face.
+@end enumerate
+
+  A typical use of the @code{face-remapping-alist} is to change a
+buffer's @code{default} face; for example, the following changes a
+buffer's @code{default} face to use the @code{variable-pitch} face,
+with the height doubled:
+
+@example
+(set (make-local-variable 'face-remapping-alist)
+     '((default variable-pitch :height 2.0)))
+@end example
+
+@end defvar
+
+@noindent
+The following functions implement a somewhat higher-level interface to
+@code{face-remapping-alist}, making it easier to use
+``cooperatively''.  They are mainly intended for buffer-local use, and
+so all make @code{face-remapping-alist} variable buffer-local as a
+side-effect.
+
+These functions use entries in @code{face-remapping-alist} which have
+the general form:
+
+@example
+  (@var{face} @var{relative_specs_1} @var{relative_specs_2} @var{...} @var{base_specs})
+@end example
+
+Everything except the @var{face} is a ``face spec'', a list of face
+names or face attribute-value pairs.  All face specs are merged
+together, with earlier values taking precedence.
+
+The @var{relative_specs_}n values are ``relative specs'', and are
+added by @code{add-relative-face-remapping} (and removed by
+@code{remove-relative-face-remapping}.  These are intended for face
+modifications (such as increasing the size).  Typical users of these
+relative specs would be minor modes.
+
+@var{base_specs} is the lowest-priority value, and by default is just the
+face name, which causes the global definition of that face to be used.
+
+A non-default value of @var{base_specs} may also be set using
+@code{set-base-face-remapping}.  Because this @emph{overwrites} the
+default base-spec value (which inherits the global face definition),
+it is up to the caller of @code{set-base-face-remapping} to add such
+inheritance if it is desired.  A typical use of
+@code{set-base-face-remapping} would be a major mode adding a face
+remappings, e.g., of the default face.
+
+
+@defun add-relative-face-remapping face &rest specs
+This functions adds a face remapping entry of @var{face} to @var{specs}
+in the current buffer.
+
+It returns a ``cookie'' which can be used to later delete the remapping with
+@code{remove-relative-face-remapping}.
+
+@var{specs} can be any value suitable for the @code{face} text
+property, including a face name, a list of face names, or a
+face-attribute property list.  The attributes given by @var{specs}
+will be merged with any other currently active face remappings of
+@var{face}, and with the global definition of @var{face} (by default;
+this may be changed using @code{set-base-face-remapping}),
+with the most recently added relative remapping taking precedence.
+@end defun
+
+@defun remove-relative-face-remapping cookie
+This function removes a face remapping previously added by
+@code{add-relative-face-remapping}.  @var{cookie} should be a return
+value from that function.
+@end defun
+
+@defun set-base-face-remapping face &rest specs
+This function sets the ``base remapping'' of @var{face} in the current
+buffer to @var{specs}.  If @var{specs} is empty, the default base
+remapping is restored, which inherits from the global definition of
+@var{face}; note that this is different from @var{specs} containing a
+single value @code{nil}, which has the opposite result (the global
+definition of @var{face} is ignored).
+@end defun
+
+@defun set-default-base-face-remapping face
+This function sets the ``base remapping'' of @var{face} to its default
+value, which inherits from @var{face}'s global definition.
+@end defun
+
 @node Font Selection
 @subsection Font Selection
 

@@ -51,9 +51,6 @@
 ;; has been generalized so that it supports multiple simultaneous
 ;; cookie databases and fortune files.  It is intended to be called
 ;; from other packages such as yow.el and spook.el.
-;;
-;; TO DO: teach cookie-snarf to auto-detect ITS PINS or UNIX fortune(6)
-;; format and do the right thing.
 
 ;;; Code:
 

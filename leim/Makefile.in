@@ -90,7 +90,6 @@ CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
 JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 
 KOREAN=	${srcdir}/quail/hangul.elc	\
-	${srcdir}/quail/hangul3.elc	\
 	${srcdir}/quail/hanja.elc	\
 	${srcdir}/quail/hanja3.elc	\
 	${srcdir}/quail/hanja-jis.elc	\
@@ -207,6 +206,7 @@ changed.misc: ${MISC-SOURCES}
 	  echo "changed" > $@
 
 leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
+	rm -rf leim-list.el
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \

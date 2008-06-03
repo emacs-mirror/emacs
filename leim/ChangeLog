@@ -1,3 +1,18 @@
+2008-06-03  Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* quail/hangul.el: Completely re-written.
+
+2008-06-03  Kenichi Handa  <handa@m17n.org>
+
+	* makefile.w32-in (KOREAN): Remove ${srcdir}/quail/hangul3.elc.
+	(leim-list.el): Remove leim-list.el at first.
+
+	* Makefile.in (KOREAN): Remove ${srcdir}/quail/hangul3.elc.
+	(leim-list.el): Remove leim-list.el at first.
+
+	* leim-ext.el: Register input methods "korean-hangul",
+	"korean-hangul3f", "korean-hangul390", and "korean-hangul3".
+
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Don't use single-char mapping from ~ to NBSP.
@@ -67,8 +82,8 @@
 	* quail/welsh.el ("welsh"): Doc fix.
 
 	* quail/cyrillic.el: Reinstate some commented-out redundancies.
-	("russian-typewriter"): Rename from cyrillic-typewriter.  Make
-	cyrillic-jcuken effectively an alias for it.
+	("russian-typewriter"): Rename from cyrillic-typewriter.
+	Make cyrillic-jcuken effectively an alias for it.
 	("russian-computer"): New.
 	("bulgarian-phonetic"): Rename from bulgarian-pho.
 	("bulgarian-bds"): Rename from bulgarian-standard.
@@ -133,7 +148,7 @@
 
 	* Makefile.in (install): Change ownership of installed files.
 
-2007-10-20  Edward O'Connor <hober0@gmail.com>  (tiny change)
+2007-10-20  Edward O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* quail/latin-ltx.el ("\\qed"): Add this rule.
 

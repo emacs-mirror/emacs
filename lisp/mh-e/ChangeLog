@@ -1,6 +1,22 @@
+2008-06-02  John Paul Wallington  <jpw@pobox.com>
+
+	* mh-e.el (mh-exec-cmd-env-daemon): Doc fix.
+
+2008-06-01  John Paul Wallington  <jpw@pobox.com>
+
+	* mh-e.el (mh-path, mh-variant): Use dotted syntax for
+	`package-version' info.
+
+2008-05-26  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Remove Newsgroups
+	from the list.  Add Bytes, X-Campaignid, X-Country-Chain,
+	X-Declude-, X-fmx-, X-Identity, X-Mailer_, X-pair-, X-SPF-,
+	X-Usenet-Provider.
+
 2008-05-23  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el: (mh-invisible-header-fields-internal): Remove
+	* mh-e.el (mh-invisible-header-fields-internal): Remove
 	DKIM-Signature as it is covered by DKIM-. Fully qualify X-EID.
 
 2008-05-19  Sergey Poznyakoff <gray@gnu.org.ua>

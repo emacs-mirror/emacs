@@ -1,3 +1,25 @@
+2008-06-03  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Temporary Face Changes): New node.
+
+2008-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard): Fix text added on 2008-05-29.
+
+2008-05-31  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Fancy Diary Display): Simplify.
+
+2008-05-30  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Fancy Diary Display): Update for
+	diary-display-function replacing diary-display-hook.
+
+2008-05-29  Drew Adams  <drew.adams@oracle.com>
+
+	* msdog.texi (Windows Keyboard): Add descriptions of
+	w32-register-hot-key and w32-unregister-hot-key.
+
 2008-05-21  Tom Tromey  <tromey@redhat.com>
 
 	* custom.texi (Directory Variables): Grammar fix.  Link to Safe File
@@ -10,8 +32,7 @@
 
 2008-05-16  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc2-xtra.texi: Mofify an example so it reflects what vc.el 
-	now does.
+	* vc2-xtra.texi: Modify an example so it reflects what vc.el now does.
 
 2008-05-15  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -111,8 +132,8 @@
 	the default behavior with Transient Mark mode off.
 	(Position Info): Fix typo.
 
-	* display.texi (Standard Faces): Reference the Mark node.  Remove
-	discussion of the region face, which is discussed there.
+	* display.texi (Standard Faces): Reference the Mark node.
+	Remove discussion of the region face, which is discussed there.
 
 	* emacs.texi (Top): Update node listings.
 

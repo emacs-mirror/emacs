@@ -304,10 +304,10 @@ w32_free_bdf_font(bdffont *fontp)
   CloseHandle(fontp->hfilemap);
   CloseHandle(fontp->hfile);
 
-  if (fontp->registry) xfree(fontp->registry);
-  if (fontp->encoding) xfree(fontp->encoding);
-  if (fontp->slant) xfree(fontp->slant);
-/*  if (fontp->width) xfree(fontp->width); */
+  xfree(fontp->registry);
+  xfree(fontp->encoding);
+  xfree(fontp->slant);
+/*  xfree(fontp->width); */
 
   xfree(fontp->filename);
   for(i = 0;i < BDF_FIRST_OFFSET_TABLE;i++)
