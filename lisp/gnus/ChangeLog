@@ -1,3 +1,7 @@
+2008-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* pop3.el (nnheader-accept-process-output): Autoload it.
+
 2008-05-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2231.el (rfc2231-decode-encoded-string): Don't decode things that
