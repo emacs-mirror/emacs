@@ -1,3 +1,8 @@
+2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords): Try to be
+	yet a bit more clever at distinguishing / from /.
+
 2008-06-03  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (ELCFILES): Add $(lisp)/language/hanja-util.elc.

@@ -252,7 +252,7 @@ The expansion is entirely correct because it uses the C preprocessor."
 ;; <file*glob>
 (defvar perl-font-lock-syntactic-keywords
   ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
-  '(;; Turn POD into b-style comments
+  `(;; Turn POD into b-style comments
     ("^\\(=\\)\\sw" (1 "< b"))
     ("^=cut[ \t]*\\(\n\\)" (1 "> b"))
     ;; Catch ${ so that ${var} doesn't screw up indentation.
@@ -267,12 +267,27 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Be careful not to match "sub { (...) ... }".
     ("\\<sub\\(?:[[:space:]]+[^{}[:punct:][:space:]]+\\)?[[:space:]]*(\\([^)]+\\))"
      1 '(1))
-    ;; Regexp and funny quotes.
-    ("\\(?:[?:.,;=!~({[]\\|\\(^\\)\\)[ \t\n]*\\(/\\)"
+    ;; Regexp and funny quotes.  Distinguishing a / that starts a regexp
+    ;; match from the division operator is ...interesting.
+    ;; Basically, / is a regexp match if it's preceded by an infix operator
+    ;; (or some similar separator), or by one of the special keywords
+    ;; corresponding to builtin functions that can take their first arg
+    ;; without parentheses.  Of course, that presume we're looking at the
+    ;; *opening* slash.  We can mis-match the closing ones, because they are
+    ;; treated separately later in
+    ;; perl-font-lock-special-syntactic-constructs.
+    (,(concat "\\(?:\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
+              (regexp-opt '("split" "if" "unless" "until" "while" "split"
+                            "grep" "map" "not" "or" "and"))
+              "\\)\\|[?:.,;=!~({[]\\|\\(^\\)\\)[ \t\n]*\\(/\\)")
      (2 (if (and (match-end 1)
                  (save-excursion
                    (goto-char (match-end 1))
-                   (skip-chars-backward " \t\n")
+                   ;; Not 100% correct since we haven't finished setting up
+                   ;; the syntax-table before point, but better than nothing.
+                   (forward-comment (- (point-max)))
+                   (put-text-property (point) (match-end 2)
+                                      'jit-lock-multiline t)
                    (not (memq (char-before)
                               '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[)))))
             nil ;; A division sign instead of a regexp-match.
