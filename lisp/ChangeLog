@@ -1,3 +1,7 @@
+2008-06-03  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-status-extra-headers): Remove extraneous newlines.
+
 2008-06-03  John Paul Wallington  <jpw@pobox.com>
 
 	* progmodes/make-mode.el (makefile-cleanup-continuations)
