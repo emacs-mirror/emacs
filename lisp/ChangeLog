@@ -1,3 +1,8 @@
+2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (update-elclist): Impose a fixed collation for sorting.
+	(ELCFILES): Update.
+
 2008-06-03  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el: New file.
