@@ -1,8 +1,8 @@
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
-	* ebrowse.c (xfree): Remove definition; s/xfree/free/
+	* ebrowse.c (xfree): Remove definition; s/xfree/free/.
 
-	remove useless if-before-free tests
+	Remove useless if-before-free tests.
 	* ebrowse.c (xfree): Likewise.
 	* etags.c (process_file_name, free_tree, free_fdesc): Likewise.
 	(popclass_above, Prolog_functions, Erlang_functions): Likewise.
