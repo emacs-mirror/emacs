@@ -3,7 +3,7 @@
 	* charset.c (char_charset): Return NULL if the arg charset_list is
 	specified and C doesn't belong to any of them.
 
-2008-06-02  Chip Coldwell <coldwell@redhat.com>
+2008-06-02  Chip Coldwell  <coldwell@redhat.com>
 
 	* font.c (font_pixel_size): Don't take cdr of an integer.
 
@@ -14,7 +14,8 @@
 	* lread.c (nosuffix): Remove now-useless if-before-xfree tests.
 	* gtkutil.c (xg_gtk_scroll_destroy): Likewise.
 	* mac.c (create_apple_event_from_event_ref): Likewise.
-	(create_apple_event_from_drag_ref, cfstring_create_normalized): Likewise.
+	(create_apple_event_from_drag_ref, cfstring_create_normalized):
+	Likewise.
 	* doprnt.c (doprnt1): Likewise.
 	* frame.c (frame): Likewise.
 	* keyboard.c (wipe_kboard): Likewise.
@@ -33,7 +34,7 @@
 	* mactoolbox.c (create_apple_event_from_drag_ref): Likewise.
 	* w32.c (stat): Likewise.
 
-	remove useless if-before-free tests
+	Remove useless if-before-free tests.
 	* editfns.c (Fset_time_zone_rule): Likewise.
 	* lread.c (nosuffix): Likewise.
 	* ralloc.c (get_bloc): Likewise.
