@@ -1406,6 +1406,8 @@ font_parse_fcname (name, font)
 	}
       else
 	{
+	  char *keyhead = p0;
+
 	  if (memcmp (p0 + 1, "pixelsize=", 10) == 0)
 	    prop = FONT_SIZE_INDEX;
 	  else
@@ -1423,8 +1425,8 @@ font_parse_fcname (name, font)
 	      else if (prop >= 0)
 		Ffont_put (font, key, val);
 	      else
-		bcopy (p0 - 1, copy, p1 - p0 + 1);
-	      copy += p1 - p0 + 1;
+		bcopy (keyhead, copy, p1 - keyhead);
+	      copy += p1 - keyhead;
 	    }
 	}
       p0 = p1;
