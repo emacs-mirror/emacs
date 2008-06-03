@@ -1,3 +1,8 @@
+2008-06-03  John Paul Wallington  <jpw@pobox.com>
+
+	* progmodes/make-mode.el (makefile-cleanup-continuations)
+	(makefile-warn-suspicious-lines): Use `derived-mode-p'.
+
 2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (update-elclist): Impose a fixed collation for sorting.
