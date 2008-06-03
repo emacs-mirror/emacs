@@ -1,3 +1,8 @@
+2008-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-1): If we did not move as far as desired,
+	ensure that point-left and point-entered hooks are called.
+
 2008-06-03  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-status-extra-headers): Remove extraneous newlines.
