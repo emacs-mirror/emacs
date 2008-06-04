@@ -1,3 +1,12 @@
+2008-06-04  Joakim Verona  <joakim@verona.se>
+
+	* window.h (struct window): Add new member window_parameters.
+
+	* window.c (Fwindow_parameters, Fwindow_parameter)
+	(Fset_window_parameter): New defuns.
+	(syms_of_window): Defsubr the new defuns.
+	(make_window): Initialize window_parameters to nil.
+
 2008-06-04  John Paul Wallington  <jpw@pobox.com>
 
 	* eval.c (Fdefmacro): Doc fix.
@@ -73,11 +82,11 @@
 
 2008-06-01  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32_enumfont_pattern_entity): Use requested registry.
-        Treat iso10646-1 and Windows DEFAULT_CHARSET specially.
-        Duplicate iso8859-1 fonts as iso10646-1 if no registry specified.
-        Don't add empty script list.
-        (w32_registry): Only map DEFAULT_CHARSET to iso10646-1 here.
+	* w32font.c (w32_enumfont_pattern_entity): Use requested registry.
+	Treat iso10646-1 and Windows DEFAULT_CHARSET specially.
+	Duplicate iso8859-1 fonts as iso10646-1 if no registry specified.
+	Don't add empty script list.
+	(w32_registry): Only map DEFAULT_CHARSET to iso10646-1 here.
 
 2008-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
