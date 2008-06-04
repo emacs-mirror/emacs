@@ -5782,6 +5782,7 @@ detect_coding (coding)
   coding_set_source (coding);
 
   src_end = coding->source + coding->src_bytes;
+  coding->head_ascii = 0;
 
   /* If we have not yet decided the text encoding type, detect it
      now.  */
@@ -5792,15 +5793,12 @@ detect_coding (coding)
       int null_byte_found = 0, eight_bit_found = 0;
 
       detect_info.checked = detect_info.found = detect_info.rejected = 0;
-      coding->head_ascii = -1;
       for (src = coding->source; src < src_end; src++)
 	{
 	  c = *src;
 	  if (c & 0x80)
 	    {
 	      eight_bit_found = 1;
-	      if (coding->head_ascii < 0)
-		coding->head_ascii = src - coding->source;
 	      if (null_byte_found)
 		break;
 	    }
@@ -5810,16 +5808,19 @@ detect_coding (coding)
 		  && ! inhibit_iso_escape_detection
 		  && ! detect_info.checked)
 		{
-		  if (coding->head_ascii < 0)
-		    coding->head_ascii = src - coding->source;
 		  if (detect_coding_iso_2022 (coding, &detect_info))
 		    {
 		      /* We have scanned the whole data.  */
 		      if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
-			/* We didn't find an 8-bit code.  We may have
-			   found a null-byte, but it's very rare that
-			   a binary file confirm to ISO-2022.  */
-			src = src_end;
+			{
+			  /* We didn't find an 8-bit code.  We may
+			     have found a null-byte, but it's very
+			     rare that a binary file confirm to
+			     ISO-2022.  */
+			  src = src_end;
+			  coding->head_ascii = src - coding->source;
+			}
+		      detect_info.rejected |= ~CATEGORY_MASK_ISO_ESCAPE;
 		      break;
 		    }
 		}
@@ -5829,10 +5830,11 @@ detect_coding (coding)
 		  if (eight_bit_found)
 		    break;
 		}
+	      coding->head_ascii++;
 	    }
+	  else
+	    coding->head_ascii++;
 	}
-      if (coding->head_ascii < 0)
-	coding->head_ascii = src - coding->source;
 
       if (null_byte_found || eight_bit_found
 	  || coding->head_ascii < coding->src_bytes
@@ -5886,23 +5888,23 @@ detect_coding (coding)
 		      break;
 		    }
 		}
-
-	      if (i < coding_category_raw_text)
-		setup_coding_system (CODING_ID_NAME (this->id), coding);
-	      else if (null_byte_found)
-		setup_coding_system (Qno_conversion, coding);
-	      else if ((detect_info.rejected & CATEGORY_MASK_ANY)
-		       == CATEGORY_MASK_ANY)
-		setup_coding_system (Qraw_text, coding);
-	      else if (detect_info.rejected)
-		for (i = 0; i < coding_category_raw_text; i++)
-		  if (! (detect_info.rejected & (1 << coding_priorities[i])))
-		    {
-		      this = coding_categories + coding_priorities[i];
-		      setup_coding_system (CODING_ID_NAME (this->id), coding);
-		      break;
-		    }
 	    }
+
+	  if (i < coding_category_raw_text)
+	    setup_coding_system (CODING_ID_NAME (this->id), coding);
+	  else if (null_byte_found)
+	    setup_coding_system (Qno_conversion, coding);
+	  else if ((detect_info.rejected & CATEGORY_MASK_ANY)
+		   == CATEGORY_MASK_ANY)
+	    setup_coding_system (Qraw_text, coding);
+	  else if (detect_info.rejected)
+	    for (i = 0; i < coding_category_raw_text; i++)
+	      if (! (detect_info.rejected & (1 << coding_priorities[i])))
+		{
+		  this = coding_categories + coding_priorities[i];
+		  setup_coding_system (CODING_ID_NAME (this->id), coding);
+		  break;
+		}
 	}
     }
   else if (XINT (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
@@ -7655,6 +7657,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
   coding.src_multibyte = multibytep;
   coding.consumed = 0;
   coding.mode |= CODING_MODE_LAST_BLOCK;
+  coding.head_ascii = 0;
 
   detect_info.checked = detect_info.found = detect_info.rejected = 0;
 
@@ -7666,7 +7669,6 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
       struct coding_system *this;
       int c, i;
 
-      coding.head_ascii = -1;
       /* Skip all ASCII bytes except for a few ISO2022 controls.  */
       for (; src < src_end; src++)
 	{
@@ -7674,27 +7676,28 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	  if (c & 0x80)
 	    {
 	      eight_bit_found = 1;
-	      if (coding.head_ascii < 0)
-		coding.head_ascii = src - coding.source;
 	      if (null_byte_found)
 		break;
 	    }
-	  if (c < 0x20)
+	  else if (c < 0x20)
 	    {
 	      if ((c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
 		  && ! inhibit_iso_escape_detection
 		  && ! detect_info.checked)
 		{
-		  if (coding.head_ascii < 0)
-		    coding.head_ascii = src - coding.source;
 		  if (detect_coding_iso_2022 (&coding, &detect_info))
 		    {
 		      /* We have scanned the whole data.  */
 		      if (! (detect_info.rejected & CATEGORY_MASK_ISO_7_ELSE))
-			/* We didn't find an 8-bit code.  We may have
-			   found a null-byte, but it's very rare that
-			   a binary file confirm to ISO-2022.  */
-			src = src_end;
+			{
+			  /* We didn't find an 8-bit code.  We may
+			     have found a null-byte, but it's very
+			     rare that a binary file confirm to
+			     ISO-2022.  */
+			  src = src_end;
+			  coding.head_ascii = src - coding.source;
+			}
+		      detect_info.rejected |= ~CATEGORY_MASK_ISO_ESCAPE;
 		      break;
 		    }
 		}
@@ -7704,10 +7707,11 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		  if (eight_bit_found)
 		    break;
 		}
+	      coding.head_ascii++;
 	    }
+	  else
+	    coding.head_ascii++;
 	}
-      if (coding.head_ascii < 0)
-	coding.head_ascii = src - coding.source;
 
       if (null_byte_found || eight_bit_found
 	  || coding.head_ascii < coding.src_bytes
