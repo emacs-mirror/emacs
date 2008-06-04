@@ -3,6 +3,9 @@
 	* echistory.el (electric-history-map): Define within defvar.
 	Add docstring.
 
+	* international/ccl.el (define-ccl-program): Add `doc-string'
+	declaration.
+
 2008-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* face-remap.el (variable-pitch-mode): Reflow docstrings.
