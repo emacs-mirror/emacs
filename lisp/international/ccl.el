@@ -1304,7 +1304,6 @@ Optional arg VECTOR is a compiled CCL code of the CCL program."
 
 ;;;###autoload
 (defmacro define-ccl-program (name ccl-program &optional doc)
-  (declare (doc-string 3))
   "Set NAME the compiled code of CCL-PROGRAM.
 
 CCL-PROGRAM has this form:
@@ -1515,6 +1514,7 @@ MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
 MAP-ID := integer
 "
+  (declare (doc-string 3))
   `(let ((prog ,(unwind-protect
 		    (progn
 		      ;; To make ,(charset-id CHARSET) works well.
