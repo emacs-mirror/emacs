@@ -273,6 +273,7 @@ make_window ()
   p->frame = Qnil;
   p->display_table = Qnil;
   p->dedicated = Qnil;
+  p->window_parameters = Qnil;
   p->pseudo_window_p = 0;
   bzero (&p->cursor, sizeof (p->cursor));
   bzero (&p->last_cursor, sizeof (p->last_cursor));
@@ -1313,7 +1314,7 @@ DEFUN ("set-window-dedicated-p", Fset_window_dedicated_p,
 If it is dedicated, Emacs will not automatically change
 which buffer appears in it.
 The second argument is the new value for the dedication flag;
-non-nil means yes. */)
+non-nil means yes.  */)
      (window, arg)
      Lisp_Object window, arg;
 {
@@ -1323,6 +1324,52 @@ non-nil means yes. */)
 
   return w->dedicated;
 }
+
+DEFUN ("window-parameters", Fwindow_parameters, Swindow_parameters,
+       0, 1, 0,
+       doc: /* Return the parameters-alist of window WINDOW.
+It is a list of elements of the form (PARAMETER . VALUE).
+The meaningful PARAMETERs depend on the kind of window.
+If WINDOW is omitted, return information on the currently selected window.  */)
+     (window)
+     Lisp_Object window;
+{
+  if (NILP (window))
+    window = selected_window;
+  return decode_window (window)->window_parameters;
+}
+
+DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
+       2, 2, 0,
+       doc:  /* Return WINDOW's value for parameter PARAMETER.
+If WINDOW is nil, describe the currently selected window.  */)
+     (window, parameter)
+     Lisp_Object window, parameter;
+{
+  if (NILP (window))
+    window = selected_window;
+  return Fassq (parameter, decode_window (window)->window_parameters);
+}
+
+
+DEFUN ("set-window-parameter", Fset_window_parameter,
+       Sset_window_parameter, 3, 3, 0,
+       doc: /* Set window parameter PARAMETER to VALUE on WINDOW.
+Return the parameters-alist of WINDOW.  */)
+     (window, parameter, value)
+     Lisp_Object window, parameter, value;
+{
+  register struct window *w = decode_window (window);
+  Lisp_Object old_alist_elt;
+
+  old_alist_elt = Fassq (parameter, w->window_parameters);
+  if (EQ (old_alist_elt, Qnil))
+    w->window_parameters = Fcons (Fcons (parameter, value), w->window_parameters);
+  else
+    Fsetcdr (old_alist_elt, value);
+  return w->window_parameters;
+}
+
 
 DEFUN ("window-display-table", Fwindow_display_table, Swindow_display_table,
        0, 1, 0,
@@ -7687,6 +7734,10 @@ with the relevant frame selected.  */);
   defsubr (&Sset_window_vscroll);
   defsubr (&Scompare_window_configurations);
   defsubr (&Swindow_list);
+  defsubr (&Swindow_parameters);
+  defsubr (&Swindow_parameter);
+  defsubr (&Sset_window_parameter);
+
 }
 
 void
