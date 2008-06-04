@@ -132,7 +132,7 @@ not inherit from the global definition of FACE."
       (if entry
 	  (setcar (last entry) specs)	; overwrite existing base entry
 	(push (list face specs) face-remapping-alist)))))
-  
+
 
 ;; ----------------------------------------------------------------
 ;; text-scale-mode
@@ -159,14 +159,14 @@ Each positive or negative step scales the default face height by this amount."
   "Minor mode for displaying buffer text in a larger/smaller font than usual.
 
 The amount of scaling is determined by the variable
-`text-scale-mode-amount':  one step scales the global default
-face size by the value of the variable `text-scale-mode-step' (a
-negative amount shrinks the text).
+`text-scale-mode-amount': one step scales the global default
+face size by the value of the variable `text-scale-mode-step'
+\(a negative amount shrinks the text).
 
-The `increase-buffer-face-height' and
-`decrease-buffer-face-height' functions may be used to
-interactively modify the variable `text-scale-mode-amount' (they
-also enable or disable `text-scale-mode' as necessary."
+The `increase-buffer-face-height' and `decrease-buffer-face-height'
+functions may be used to interactively modify the variable
+`text-scale-mode-amount' (they also enable or disable `text-scale-mode'
+as necessary)."
   :lighter (" " text-scale-mode-lighter)
   (when text-scale-mode-remapping
     (remove-relative-face-remapping text-scale-mode-remapping))
@@ -210,16 +210,15 @@ See `increase-buffer-face-height' for more details."
   "Increase or decrease the height of the default face in the current buffer.
 
 The actual adjustment made depends on the final component of the
-key-binding used to invoke the command, with all modifiers
-removed:
+key-binding used to invoke the command, with all modifiers removed:
 
    +, =   Increase the default face height by one step
    -      Decrease the default face height by one step
    0      Reset the default face height to the global default
 
 Then, continue to read input events and further adjust the face
-height as long as the input event read (with all modifiers
-removed) is one the above.
+height as long as the input event read (with all modifiers removed)
+is one of the above.
 
 Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number of steps decreases the
@@ -228,11 +227,11 @@ will remove any scaling currently active.
 
 This command is a special-purpose wrapper around the
 `increase-buffer-face-height' command which makes repetition
-convenient even when it is bound in a non-top-level keymap.  For
-binding in a top-level keymap, `increase-buffer-face-height' or
-`decrease-default-face-height' may be more appropriate."
+convenient even when it is bound in a non-top-level keymap.
+For binding in a top-level keymap, `increase-buffer-face-height'
+or `decrease-default-face-height' may be more appropriate."
   (interactive "p")
-  (let ((first t) 
+  (let ((first t)
 	(step t)
 	(ev last-command-event))
     (while step
@@ -243,7 +242,7 @@ binding in a top-level keymap, `increase-buffer-face-height' or
 	       (setq step (- inc)))
 	      ((eq base ?0)
 	       (setq step 0))
-	      (first 
+	      (first
 	       (setq step inc))
 	      (t
 	       (setq step nil))))
@@ -264,8 +263,9 @@ binding in a top-level keymap, `increase-buffer-face-height' or
 (make-variable-buffer-local 'variable-pitch-mode-remapping)
 
 (define-minor-mode variable-pitch-mode
-  "Variable-pitch default-face mode.  When active, causes the
-buffer text to be displayed using the `variable-pitch' face."
+  "Variable-pitch default-face mode.
+When active, causes the buffer text to be displayed using
+the `variable-pitch' face."
   :lighter " VarPitch"
   (when variable-pitch-mode-remapping
     (remove-relative-face-remapping variable-pitch-mode-remapping))
