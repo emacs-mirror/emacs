@@ -1,3 +1,10 @@
+2008-06-04  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (adjust-buffer-face-height): New function.
+	Add autoloaded keybindings in ctl-x-map.
+	(increase-buffer-face-height, decrease-buffer-face-height):
+	Simplify interactive spec to just "p".  Remove autoloaded keybindings.
+
 2008-06-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-1): If we did not move as far as desired,
