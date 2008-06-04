@@ -944,13 +944,7 @@ enclosed in `(and ...)'.
      matches N to M occurrences.
 
 `(backref N)'
-    matches what was matched previously by submatch N.
-
-`(backref N)'
      matches what was matched previously by submatch N.
-
-`(backref N)'
-    matches what was matched previously by submatch N.
 
 `(eval FORM)'
      evaluate FORM and insert result.  If result is a string,
