@@ -795,7 +795,7 @@ coordinates_in_window (w, x, y)
     header_vertical_border_check:
       /* We're somewhere on the mode line.  We consider the place
 	 between mode lines of horizontally adjacent mode lines
-	 as the vertical border.    If scroll bars on the left,
+	 as the vertical border.  If scroll bars on the left,
 	 return the right window.  */
       if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
 	  || WINDOW_RIGHTMOST_P (w))
@@ -1334,8 +1334,6 @@ If WINDOW is omitted, return information on the currently selected window.  */)
      (window)
      Lisp_Object window;
 {
-  if (NILP (window))
-    window = selected_window;
   return decode_window (window)->window_parameters;
 }
 
@@ -1346,8 +1344,6 @@ If WINDOW is nil, describe the currently selected window.  */)
      (window, parameter)
      Lisp_Object window, parameter;
 {
-  if (NILP (window))
-    window = selected_window;
   return Fassq (parameter, decode_window (window)->window_parameters);
 }
 
@@ -1355,6 +1351,7 @@ If WINDOW is nil, describe the currently selected window.  */)
 DEFUN ("set-window-parameter", Fset_window_parameter,
        Sset_window_parameter, 3, 3, 0,
        doc: /* Set window parameter PARAMETER to VALUE on WINDOW.
+If WINDOW is nil, use the currently selected window.
 Return the parameters-alist of WINDOW.  */)
      (window, parameter, value)
      Lisp_Object window, parameter, value;
@@ -5107,7 +5104,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
   struct window *w = XWINDOW (window);
   struct text_pos start;
   int this_scroll_margin;
-  /* True if we fiddled the window vscroll field without really scrolling.   */
+  /* True if we fiddled the window vscroll field without really scrolling.  */
   int vscrolled = 0;
   int x, y, rtop, rbot, rowh, vpos;
 
@@ -6344,7 +6341,7 @@ the return value is nil.  Otherwise the value is t.  */)
       /* Problem: Freeing all matrices and later allocating them again
 	 is a serious redisplay flickering problem.  What we would
 	 really like to do is to free only those matrices not reused
-	 below.   */
+	 below.  */
       root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
       leaf_windows
 	= (struct window **) alloca (count_windows (root_window)
@@ -7257,7 +7254,7 @@ freeze_window_starts (f, freeze_p)
  ***********************************************************************/
 
 /* Return 1 if window configurations C1 and C2
-   describe the same state of affairs.  This is used by Fequal.   */
+   describe the same state of affairs.  This is used by Fequal.  */
 
 int
 compare_window_configurations (c1, c2, ignore_positions)
