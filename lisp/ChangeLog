@@ -1,3 +1,8 @@
+2008-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* face-remap.el (variable-pitch-mode): Reflow docstrings.
+	(text-scale-mode, adjust-buffer-face-height): Fix typos in docstrings.
+
 2008-06-04  Trent W. Buck  <trentbuck@gmail.com>  (tiny change)
 
 	* emacs-lisp/rx.el (rx): Doc fix.
@@ -63,7 +68,7 @@
 
 	* Makefile.in (ELCFILES): Add $(lisp)/language/hanja-util.elc.
 
-2008-06-03 Jihyun Cho  <jihyun.jo@gmail.com>
+2008-06-03  Jihyun Cho  <jihyun.jo@gmail.com>
 
 	* language/hanja-util.el: New file.
 
