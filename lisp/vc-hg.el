@@ -284,7 +284,7 @@
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n" 
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n"
 		 (when revision (concat "-r" revision)))
   (with-current-buffer buffer
     (goto-char (point-min))
@@ -425,7 +425,7 @@ REV is the revision to check out into WORKFILE."
             (:constructor vc-hg-create-extra-fileinfo (rename-state extra-name))
             (:conc-name vc-hg-extra-fileinfo->))
   rename-state        ;; rename or copy state
-  extra-name)         ;; original name for copies and rename targets, new name for 
+  extra-name)         ;; original name for copies and rename targets, new name for
 
 (defun vc-hg-status-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
@@ -471,7 +471,7 @@ REV is the revision to check out into WORKFILE."
 	       ;; For copied files the output looks like this:
 	       ;; A COPIED_FILE_NAME
 	       ;;   ORIGINAL_FILE_NAME
-	       (setf (nth 2 last-added) 
+	       (setf (nth 2 last-added)
 		     (vc-hg-create-extra-fileinfo 'copied file))
 	       (setq last-line-copy t))
 	      ((and last-line-copy (eq translated 'removed))
@@ -497,6 +497,26 @@ REV is the revision to check out into WORKFILE."
   (vc-hg-command (current-buffer) 'async dir "status" "-C")
   (vc-exec-after
    `(vc-hg-after-dir-status (quote ,update-function))))
+
+(defun vc-hg-status-extra-header (name &rest commands)
+  (concat (propertize name 'face 'font-lock-type-face)
+          (propertize
+           (with-temp-buffer
+             (apply 'vc-hg-command (current-buffer) 0 nil commands)
+             (buffer-substring-no-properties (point-min) (1- (point-max))))
+           'face 'font-lock-variable-name-face)))
+
+(defun vc-hg-status-extra-headers (dir)
+  "Generate extra status headers for a Mercurial tree."
+  (let ((default-directory dir))
+    (concat
+     (vc-hg-status-extra-header "Root       : " "root") "\n"
+     (vc-hg-status-extra-header "Branch     : " "id" "-b") "\n"
+     (vc-hg-status-extra-header "Tags       : " "id" "-t") ; "\n"
+     ;; these change after each commit
+     ;; (vc-hg-status-extra-header "Local num  : " "id" "-n") "\n"
+     ;; (vc-hg-status-extra-header "Global id  : " "id" "-i")
+     )))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

@@ -1,3 +1,8 @@
+2008-06-04  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-status-extra-header, vc-hg-status-extra-headers):
+	Generate extra status headers for a Mercurial tree.
+
 2008-06-04  John Paul Wallington  <jpw@pobox.com>
 
 	* echistory.el (electric-history-map): Define within defvar.
