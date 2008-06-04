@@ -370,6 +370,8 @@ for example while waiting for a VC command to finish.
 *** The new function `face-all-attributes' returns an alist describing
 all the basic attributes of a given face.
 
+*** FIXME face-remap
+
 
 * New Modes and Packages in Emacs 23.1
 
