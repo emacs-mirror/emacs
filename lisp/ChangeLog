@@ -8,6 +8,12 @@
 	* echistory.el (electric-history-map): Define within defvar.
 	Add docstring.
 
+	* font-lock.el (font-lock-turn-off-thing-lock)
+	(font-lock-after-fontify-buffer, font-lock-after-unfontify-buffer):
+	Use `bound-and-true-p'.
+	(cpp-font-lock-keywords-source-directives, cpp-font-lock-keywords):
+	Doc fixes.
+
 	* international/ccl.el (define-ccl-program): Add `doc-string'
 	declaration.
 
