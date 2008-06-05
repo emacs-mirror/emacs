@@ -62,7 +62,7 @@
 (eval-and-compile
   (cond
    ;; Prefer `replace-regexp-in-string' (present in Emacs, XEmacs 21.5,
-   ;; SXEmacs 22.1.4) over `replace-in-string'.  The lalter leads to inf-loops
+   ;; SXEmacs 22.1.4) over `replace-in-string'.  The latter leads to inf-loops
    ;; on empty matches:
    ;;   (replace-in-string "foo" "/*$" "/")
    ;;   (replace-in-string "xe" "\\(x\\)?" "")
