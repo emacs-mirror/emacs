@@ -1,3 +1,8 @@
+2008-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding): Fix previous change.
+	(detect_coding_system): Likewise.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* character.h (MAKE_CHAR_MULTIBYTE): Check the arg is a (uni)byte.
