@@ -36,6 +36,17 @@
 
 2008-06-05  Miles Bader  <miles@gnu.org>
 
+	* face-remap.el
+	(face-remap-add-relative): Renamed from `add-relative-face-remapping'.
+	(face-remap-remove-relative): Renamed from
+	`remove-relative-face-remapping'.
+	(face-remap-reset-base): Renamed from
+	`set-default-base-face-remapping'.
+	(face-remap-set-base): Renamed from `set-base-face-remapping'.
+	(text-scale-increase): Renamed from `increase-buffer-face-height'.
+	(text-scale-decrease): Renamed from `decrease-buffer-face-height'.
+	(text-scale-adjust): Renamed from `adjust-buffer-face-height'.
+
 	* face-remap.el (variable-pitch-mode): Autoload.
 
 2008-06-04  Sam Steingold  <sds@gnu.org>
