@@ -1,3 +1,12 @@
+2008-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_list): Don't set registry to iso8859-1 even if it
+	is unspecified.
+
+	* xfaces.c (realize_x_face): If the font-related face attributes
+	are the same as those of default face, realize a new fontset
+	from default->fontset.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (move_it_in_display_line_to): Improve the type of its args.
