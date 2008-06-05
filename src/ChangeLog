@@ -1,3 +1,11 @@
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Vminibuffer_local_filename_must_match_map):
+	Rename from Vminibuffer_local_must_match_filename_map.
+	(syms_of_keymap):
+	* minibuf.c (Fcompleting_read): Adjust accordingly.
+	* commands.h: Rename declaration as well.
+
 2008-06-05  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_list): Don't set registry to iso8859-1 even if it

@@ -74,7 +74,7 @@ Lisp_Object Vminibuffer_local_filename_completion_map;
 
 /* keymap used for minibuffers when doing completion in filenames
    with require-match*/
-Lisp_Object Vminibuffer_local_must_match_filename_map;
+Lisp_Object Vminibuffer_local_filename_must_match_map;
 
 /* keymap used for minibuffers when doing completion and require a match */
 /* was MinibufLocalMustMatchMap */
@@ -3936,11 +3936,11 @@ don't alter it yourself.  */);
   Fset_keymap_parent (Vminibuffer_local_must_match_map,
 		      Vminibuffer_local_completion_map);
 
-  DEFVAR_LISP ("minibuffer-local-must-match-filename-map",
-	       &Vminibuffer_local_must_match_filename_map,
+  DEFVAR_LISP ("minibuffer-local-filename-must-match-map",
+	       &Vminibuffer_local_filename_must_match_map,
 	       doc: /* Local keymap for minibuffer input with completion for filenames with exact match.  */);
-  Vminibuffer_local_must_match_filename_map = Fmake_sparse_keymap (Qnil);
-  Fset_keymap_parent (Vminibuffer_local_must_match_filename_map,
+  Vminibuffer_local_filename_must_match_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_filename_must_match_map,
 		      Vminibuffer_local_must_match_map);
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,

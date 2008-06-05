@@ -1815,7 +1815,7 @@ Completion ignores case if the ambient value of
 		      : (NILP (Vminibuffer_completing_file_name)
 			 || EQ (Vminibuffer_completing_file_name, Qlambda)
 			 ? Vminibuffer_local_must_match_map
-			 : Vminibuffer_local_must_match_filename_map),
+			 : Vminibuffer_local_filename_must_match_map),
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method));

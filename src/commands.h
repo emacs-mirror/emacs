@@ -43,7 +43,7 @@ extern Lisp_Object Vminibuffer_local_must_match_map;
 
 /* keymap used for minibuffers when doing completion in filenames
    and require a match */
-extern Lisp_Object Vminibuffer_local_must_match_filename_map;
+extern Lisp_Object Vminibuffer_local_filename_must_match_map;
 
 /* Last character of last key sequence.  */
 extern Lisp_Object last_command_char;

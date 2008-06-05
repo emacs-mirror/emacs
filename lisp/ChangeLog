@@ -1,5 +1,8 @@
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-local-must-match-filename-map):
+	Declare obsolete alias for the old name.
+
 	* abbrev.el (unexpand-abbrev): Better preserve markers.
 
 2008-06-05  Glenn Morris  <rgm@gnu.org>

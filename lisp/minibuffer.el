@@ -906,6 +906,9 @@ specified by COMMON-SUBSTRING."
 
 ;;; Key bindings.
 
+(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
+  'minibuffer-local-filename-must-match-map "23.1")
+
 (let ((map minibuffer-local-map))
   (define-key map "\C-g" 'abort-recursive-edit)
   (define-key map "\r" 'exit-minibuffer)
@@ -925,7 +928,7 @@ specified by COMMON-SUBSTRING."
 
 (let ((map minibuffer-local-filename-completion-map))
   (define-key map " " nil))
-(let ((map minibuffer-local-must-match-filename-map))
+(let ((map minibuffer-local-filename-must-match-map))
   (define-key map " " nil))
 
 (let ((map minibuffer-local-ns-map))
