@@ -3435,11 +3435,6 @@ usage: (font-spec ARGS ...)  */)
 	  font_parse_name ((char *) SDATA (val), spec);
 	  font_put_extra (spec, key, val);
 	}
-      else if (EQ (key, QCfamily))
-	{
-	  CHECK_STRING (val);
-	  font_parse_family_registry (val, Qnil, spec);
-	}
       else
 	{
 	  int idx = get_font_prop_index (key);
