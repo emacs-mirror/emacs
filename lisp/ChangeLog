@@ -1,3 +1,7 @@
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el (ffap-prompter): Don't use the region.
+
 2008-06-05  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-registered): Consider a directory with a CVS
