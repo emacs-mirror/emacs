@@ -1,3 +1,7 @@
+2008-06-05  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (variable-pitch-mode): Autoload.
+
 2008-06-04  Sam Steingold  <sds@gnu.org>
 
 	* vc-hg.el (vc-hg-status-extra-header, vc-hg-status-extra-headers):

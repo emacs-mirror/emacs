@@ -262,6 +262,7 @@ or `decrease-default-face-height' may be more appropriate."
 (defvar variable-pitch-mode-remapping nil)
 (make-variable-buffer-local 'variable-pitch-mode-remapping)
 
+;;;###autoload
 (define-minor-mode variable-pitch-mode
   "Variable-pitch default-face mode.
 When active, causes the buffer text to be displayed using
