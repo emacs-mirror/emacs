@@ -1,5 +1,10 @@
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/etags.el (tags-verify-table): Be careful to use and update
+	tags-file-name and tags-table-list from the right buffer.
+	(tags-table-check-computed-list, tags-table-extend-computed-list)
+	(find-tag-noselect): Use with-current-buffer.
+
 	* emacs-lisp/trace.el (trace-entry-message, trace-exit-message):
 	Use print-circle.
 

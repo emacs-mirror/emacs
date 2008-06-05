@@ -301,8 +301,7 @@ file the tag was in."
 		     current-prefix-arg))
   (or (stringp file) (signal 'wrong-type-argument (list 'stringp file)))
   ;; Bind tags-file-name so we can control below whether the local or
-  ;; global value gets set.  Calling visit-tags-table-buffer will
-  ;; initialize a buffer for the file and set tags-file-name to the
+  ;; global value gets set.
   ;; Calling visit-tags-table-buffer with tags-file-name set to FILE will
   ;; initialize a buffer for FILE and set tags-file-name to the
   ;; fully-expanded name.
@@ -338,8 +337,7 @@ file the tag was in."
 		     ;; it is initialized as a tag table buffer.
 		     (save-excursion
 		       (tags-verify-table (buffer-file-name table-buffer))))
-		(save-excursion
-		  (set-buffer table-buffer)
+		(with-current-buffer table-buffer
 		  (if (tags-included-tables)
 		      ;; Insert the included tables into the list we
 		      ;; are processing.
@@ -378,8 +376,7 @@ such table and puts its included tables into the list."
 	      (setq computed (cons (car tables) computed)
 		    table-buffer (get-file-buffer (car tables)))
 	      (if table-buffer
-		  (save-excursion
-		    (set-buffer table-buffer)
+		  (with-current-buffer table-buffer
 		    (if (tags-included-tables)
 			;; Insert the included tables into the list we
 			;; are processing.
@@ -448,18 +445,19 @@ Returns non-nil if it is a valid table."
 		 (funcall verify-tags-table-function))
 	  (revert-buffer t t)
 	  (tags-table-mode)))
-    (and (file-exists-p file)
-	 (progn
-	   (set-buffer (find-file-noselect file))
-	   (or (string= file buffer-file-name)
-	       ;; find-file-noselect has changed the file name.
-	       ;; Propagate the change to tags-file-name and tags-table-list.
-	       (let ((tail (member file tags-table-list)))
-		 (if tail
-		     (setcar tail buffer-file-name))
-		 (if (eq file tags-file-name)
-		     (setq tags-file-name buffer-file-name))))
-	   (tags-table-mode)))))
+    (when (file-exists-p file)
+      (let* ((buf (find-file-noselect file))
+             (newfile (buffer-file-name buf)))
+        (unless (string= file newfile)
+          ;; find-file-noselect has changed the file name.
+          ;; Propagate the change to tags-file-name and tags-table-list.
+          (let ((tail (member file tags-table-list)))
+            (if tail (setcar tail newfile)))
+          (if (eq file tags-file-name) (setq tags-file-name newfile)))
+        ;; Only change buffer now that we're done using potentially
+        ;; buffer-local variables.
+        (set-buffer buf)
+        (tags-table-mode)))))
 
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
@@ -883,22 +881,21 @@ See documentation of variable `tags-file-name'."
 	(setq last-tag tagname))
       ;; Record the location so we can pop back to it later.
       (let ((marker (make-marker)))
-	(save-excursion
-	  (set-buffer
-	   ;; find-tag-in-order does the real work.
-	   (find-tag-in-order
-	    (if (and next-p last-tag) last-tag tagname)
-	    (if regexp-p
-		find-tag-regexp-search-function
-	      find-tag-search-function)
-	    (if regexp-p
-		find-tag-regexp-tag-order
-	      find-tag-tag-order)
-	    (if regexp-p
-		find-tag-regexp-next-line-after-failure-p
-	      find-tag-next-line-after-failure-p)
-	    (if regexp-p "matching" "containing")
-	    (or (not next-p) (not last-tag))))
+	(with-current-buffer
+            ;; find-tag-in-order does the real work.
+            (find-tag-in-order
+             (if (and next-p last-tag) last-tag tagname)
+             (if regexp-p
+                 find-tag-regexp-search-function
+               find-tag-search-function)
+             (if regexp-p
+                 find-tag-regexp-tag-order
+               find-tag-tag-order)
+             (if regexp-p
+                 find-tag-regexp-next-line-after-failure-p
+               find-tag-next-line-after-failure-p)
+             (if regexp-p "matching" "containing")
+             (or (not next-p) (not last-tag)))
 	  (set-marker marker (point))
 	  (run-hooks 'local-find-tag-hook)
 	  (ring-insert tags-location-ring marker)
@@ -1560,18 +1557,10 @@ that do nothing."
 
 ;; This might be a neat idea, but it's too hairy at the moment.
 ;;(defmacro tags-with-syntax (&rest body)
-;;   `(let ((current (current-buffer))
-;;	   (otable (syntax-table))
-;;	   (buffer (find-file-noselect (file-of-tag)))
-;;	   table)
-;;       (unwind-protect
-;;	   (progn
-;;	     (set-buffer buffer)
-;;	     (setq table (syntax-table))
-;;	     (set-buffer current)
-;;	     (set-syntax-table table)
-;;            ,@body)
-;;       (set-syntax-table otable))))
+;;   `(with-syntax-table
+;;        (with-current-buffer (find-file-noselect (file-of-tag))
+;;          (syntax-table))
+;;      ,@body))
 ;;(put 'tags-with-syntax 'edebug-form-spec '(&rest form))
 
 ;; exact file name match, i.e. searched tag must match complete file
