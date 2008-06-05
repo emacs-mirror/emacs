@@ -1,5 +1,8 @@
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/trace.el (trace-entry-message, trace-exit-message):
+	Use print-circle.
+
 	* minibuffer.el (minibuffer-local-must-match-filename-map):
 	Declare obsolete alias for the old name.
 
