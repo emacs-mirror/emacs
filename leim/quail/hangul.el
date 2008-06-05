@@ -32,32 +32,43 @@
 (require 'hanja-util)
 
 ;; Hangul double jamo table.
-;; NEED COMMENT.  What is the car and cdr part?
+;; The format is an alist of JAMO-TYPE vs. DOUBLE-JAMO-TABLE.
+;;
+;; JAMO-TYPE is a symbol `cho' for Choseong, `jung' for Jungseong, and
+;; `jong' for Jongseong.
+;;
+;; DOUBLE-JAMO-TABLE is an alist of jamo index vs. the vector of jamo
+;; indies that can be combined with the car part.
+;;
+;; Jamo index is a relative index in `hangul Compatibility Jamo' area
+;; of the Unicode (i.e. 1 for U+3131).
+
 (defconst hangul-djamo-table
-  '((cho . ((1 . [1])
+  '((cho . ((1 . [1])                   ; Choseong
             (7 . [7])
             (18 . [18])
             (21 . [21])
             (24 . [24])))
-    (jung . ((39 . [31 32 51])
+    (jung . ((39 . [31 32 51])          ; Jungseong
              (44 . [35 36 51])
              (49 . [51])))
-    (jong . ((1 . [1 21])
+    (jong . ((1 . [1 21])               ; Jongseong
              (4 . [24 30])
              (9 . [1 17 18 21 28 29 30])
              (18 . [18 21])
              (21 . [21])))))
 
 ;; Hangul 2-Bulsik keymap.
-;; This table has Hangul Jamo index.
-;; NEED COMMENT.  What is "Hangul Jamo index"?
+;; It converts an ASCII code A-Z, a-z, to the corresponding hangul
+;; jamo index.
+
 (defconst hangul2-keymap
   [17 48 26 23 7 9 30 39 33 35 31 51 49 44 32 36 18 1 4 21 37 29 24 28 43 27])
 
 ;; Hangul 3-Bulsik final keymap.  3-Bulsik use full keyboard layout.
-;; Therefore, We must assign all ASCII codes except control codes
+;; Therefore, we must map all printable ASCII codes (`!' to `~')
 ;; to Hangul 3-Bulsik codes.
-;; NEED COMMENT.  What are these numbers?
+;; Other parts are the same as `hangul2-keymap'.
 (defconst hangul3-keymap
   [2 183 24 15 14 8220 120 39 126 8221 43 44 41 46 74 119 30 22 18 78 83
      68 73 85 79 52 110 44 62 46 33 10 7 63 27 12 5 11 69 48 55 49 50 51
@@ -66,7 +77,7 @@
      101 17 37 92 47 8251])
 
 ;; Hangul 3-Bulsik 390 keymap.
-;; NEED COMMENT.  What are these numbers?
+;; The role is the same as `hangul3-keymap'.
 (defconst hangul390-keymap
   [24 34 35 36 37 38 120 40 41 42 43 44 45 46 73 119 30 22 18 77 82 67 72
       84 78 58 110 50 61 51 63 64 7 33 11 10 27 2 47 39 56 52 53 54 49 48
@@ -79,7 +90,7 @@
     (define-key map "\d" 'hangul-delete-backward-char)
     (define-key map [f9] 'hangul-to-hanja-conversion)
     map)
-  "Keymap for Hangul method. It is using all Hangul input method.")
+  "Keymap for Hangul method.  It is used by all Hangul input method.")
 
 ;; Current input character buffer. Store separated hangul character.
 ;; First and second index of vector stored "Choseong".
@@ -96,10 +107,9 @@
       (and (>= char ?a) (<= char ?z))))
 
 (defun hangul-character (cho jung jong)
-  "Choseong, Jungseong, and Jongseong which are contained Hangul Compatibility Jamo area
-are transformed hangul character in Hangul Syllables area."
-  ;; NEED ADJUSTMENT.  Please read the section "Documentation Basics"
-  ;; of elisp info.
+  "Convert CHO, JUNG, JONG to the precomposed `Hangul Syllables' character.
+CHO, JUNG, JONG are relative indices in `Hangul Compatibility Jamo' of unicode.
+Return a zero-length string if the conversion fails."
   (or
    (decode-char
     'ucs
@@ -125,7 +135,9 @@ are transformed hangul character in Hangul Syllables area."
    ""))
 
 (defun hangul-insert-character (&rest queues)
-  "Insert each QUEUES. Then setup overlay last inserted character."
+  "Insert characters generated from QUEUEs.
+Each QUEUE has the same form as `hangul-queue'.
+Setup `quail-overlay' to the last character."
   (if (and mark-active transient-mark-mode)
       (progn
         (delete-region (region-beginning) (region-end))
@@ -147,10 +159,10 @@ are transformed hangul character in Hangul Syllables area."
     (move-overlay quail-overlay (1+ (overlay-start quail-overlay)) (point))))
 
 (defun hangul-djamo (jamo char1 char2)
-  "If CHAR1 and CHAR2 are able to combine,
-this function returns double jamo index."
-  ;; NEED ADJUSTMENT.  Please read the section "Documentation Basics"
-  ;; of elisp info.
+  "Return the dobule jamo index calculated from the arguments.
+JAMO is a type of Hangul jamo; `cho', `jung', or `jong'.
+CHAR1 and CAHR2 are Hangul jamo indices.
+Return nil if CHAR1 and CHAR2 can not combined."
   (let* ((jamo (cdr (assoc jamo hangul-djamo-table)))
          (char1 (cdr (assoc char1 jamo))))
     (if char1
@@ -163,13 +175,13 @@ this function returns double jamo index."
               0))
         0)))
 
-;; NEED ADJUSTMENT.  The following 5 have exactly the same docstring.
-;; How are they different?
-
 (defsubst hangul2-input-method-jaum (char)
-  "CHAR is putted in hangul-queue.
-Unless the function insert CHAR to current input queue,
-commit current character and then start next character."
+  "Store hangul jamo indice CHAR in `hangul-queue'.
+Maybe, it is a Hangul 2-Bulsik jaum.
+This function processes a Hangul 2-Bulsik jaum.
+Unless the function inserts CHAR to current input queue,
+commit current character and then start next character.
+The Hangul 2-Bulsik is composed of `jaum' and `moum'."
   (if (cond ((zerop (aref hangul-queue 0))
              (aset hangul-queue 0 char))
             ((and (zerop (aref hangul-queue 1))
@@ -220,9 +232,10 @@ commit current character and then start next character."
                                (setq hangul-queue (vector char 0 0 0 0 0)))))
 
 (defsubst hangul2-input-method-moum (char)
-  "CHAR is putted in hangul-queue.
-Unless the function insert CHAR to current input queue,
-commit current character and then start next character."
+  "Store hangul jamo indice CHAR in `hangul-queue'.
+Maybe, it is a Hangul 2-Bulsik moum.
+This function process a Hangul 2-Bulsik moum.
+Other parts are the same as a `hangul2-input-method-jaum'."
   (if (cond ((zerop (aref hangul-queue 2))
              (aset hangul-queue 2 char))
             ((and (zerop (aref hangul-queue 3))
@@ -241,9 +254,11 @@ commit current character and then start next character."
                                  (setq hangul-queue next-char)))))
 
 (defsubst hangul3-input-method-cho (char)
-  "CHAR is putted in hangul-queue.
-Unless the function insert CHAR to current input queue,
-commit current character and then start next character."
+  "Store hangul jamo indice CHAR in `hangul-queue'.
+Maybe, it is a Hangul 3-Bulsik choseong.
+This function process a Hangul 3-Bulsik choseong.
+The Hangul 3-Bulsik is composed of `choseong', `jungseong' and `jongseong'.
+Other parts are the same as a `hangul2-input-method-jaum'."
   (if (cond ((and (zerop (aref hangul-queue 0))
                   (zerop (aref hangul-queue 4)))
              (aset hangul-queue 0 char))
@@ -256,9 +271,10 @@ commit current character and then start next character."
                                (setq hangul-queue (vector char 0 0 0 0 0)))))
 
 (defsubst hangul3-input-method-jung (char)
-  "CHAR is putted in hangul-queue.
-Unless the function insert CHAR to current input queue,
-commit current character and then start next character."
+  "Store hangul jamo indice CHAR in `hangul-queue'.
+Maybe, it is a Hangul 3-Bulsik jungseong.
+This function process a Hangul 3-Bulsik jungseong.
+Other parts are the same as a `hangul3-input-method-cho'."
   (if (cond ((and (zerop (aref hangul-queue 2))
                   (zerop (aref hangul-queue 4)))
              (aset hangul-queue 2 char))
@@ -270,9 +286,10 @@ commit current character and then start next character."
                                (setq hangul-queue (vector 0 0 char 0 0 0)))))
 
 (defsubst hangul3-input-method-jong (char)
-  "CHAR is putted in hangul-queue.
-Unless the function insert CHAR to current input queue,
-commit current character and then start next character."
+  "Store hangul jamo indice CHAR in `hangul-queue'.
+Maybe, it is a Hangul 3-Bulsik jongseong.
+This function process a Hangul 3-Bulsik jongseong.
+Other parts are the same as a `hangul3-input-method-cho'."
   (if (cond ((and (zerop (aref hangul-queue 4))
                   (notzerop (aref hangul-queue 0))
                   (notzerop (aref hangul-queue 2))
@@ -317,7 +334,7 @@ commit current character and then start next character."
                                    (setq hangul-queue (vector 0 0 0 0 char 0))))))
 
 (defun hangul-delete-backward-char ()
-  "Backward delete command for hangul. It deletes a hangul character by jaso units."
+  "Delete the previous hangul character by jaso units."
   (interactive)
   (let ((i 5))
     (while (and (> i 0) (zerop (aref hangul-queue i)))
@@ -328,7 +345,7 @@ commit current character and then start next character."
       (delete-backward-char 1)))
 
 (defun hangul-to-hanja-conversion ()
-  "This function converts a hangul character to a hanja character."
+  "Convert the previous hangul character to the corresponding hanja character."
   (interactive)
   (let ((echo-keystrokes 0)
         delete-func
@@ -340,7 +357,9 @@ commit current character and then start next character."
       (setq hangul-queue (make-vector 6 0))
       (move-overlay quail-overlay (point) (point)))))
 
-;; NEED COMMENT.  What is KEY?
+;; Support function for `hangul2-input-method'.  Actually, this
+;; function handles the Hangul 2-Bulsik.  KEY is an entered key code
+;; used for looking up `hangul2-keymap'."
 (defun hangul2-input-method-internal (key)
   (let ((char (+ (aref hangul2-keymap (1- (% key 32)))
                  (cond ((or (= key ?O) (= key ?P)) 2)
@@ -352,7 +371,7 @@ commit current character and then start next character."
         (hangul2-input-method-moum char))))
 
 (defun hangul2-input-method (key)
-  "2-Bulsik input method"
+  "2-Bulsik input method."
   (if (or buffer-read-only (not (alphabetp key)))
       (list key)
       (quail-setup-overlays nil)
@@ -379,7 +398,9 @@ commit current character and then start next character."
                           (throw 'exit-input-loop nil))))))
           (quail-delete-overlays)))))
 
-;; NEED COMMENT.  What is KEY?
+;; Support function for `hangul3-input-method'.  Actually, this
+;; function handles the Hangul 3-Bulsik final.  KEY is an entered key
+;; code used for looking up `hangul3-keymap'."
 (defun hangul3-input-method-internal (key)
   (let ((char (aref hangul3-keymap (- key 33))))
     (cond ((and (> char 92) (< char 123))
@@ -394,7 +415,7 @@ commit current character and then start next character."
            (move-overlay quail-overlay (point) (point))))))
 
 (defun hangul3-input-method (key)
-  "3-Bulsik final input method"
+  "3-Bulsik final input method."
   (if (or buffer-read-only (< key 33) (>= key 127))
       (list key)
       (quail-setup-overlays nil)
@@ -421,7 +442,9 @@ commit current character and then start next character."
                           (throw 'exit-input-loop nil))))))
           (quail-delete-overlays)))))
 
-;; NEED COMMENT.  What is KEY?
+;; Support function for `hangul390-input-method'.  Actually, this
+;; function handles the Hangul 3-Bulsik 390.  KEY is an entered key
+;; code used for looking up `hangul390-keymap'."
 (defun hangul390-input-method-internal (key)
   (let ((char (aref hangul390-keymap (- key 33))))
     (cond ((or (and (> char 86) (< char 91))
@@ -437,7 +460,7 @@ commit current character and then start next character."
            (move-overlay quail-overlay (point) (point))))))
 
 (defun hangul390-input-method (key)
-  "3-Bulsik 390 input method"
+  "3-Bulsik 390 input method."
   (if (or buffer-read-only (< key 33) (>= key 127))
       (list key)
       (quail-setup-overlays nil)
@@ -474,8 +497,8 @@ commit current character and then start next character."
 FUNC is a function to handle input key.
 HELP-TEXT is a text set in `hangul-input-method-help-text'."
   (setq inactivate-current-input-method-function 'hangul-input-method-inactivate
-	describe-current-input-method-function 'hangul-input-method-help
-	hangul-input-method-help-text help-text)
+    describe-current-input-method-function 'hangul-input-method-help
+    hangul-input-method-help-text help-text)
   (quail-delete-overlays)
   (if (eq (selected-window) (minibuffer-window))
       (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
