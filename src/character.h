@@ -95,7 +95,8 @@ extern char unibyte_has_multibyte_table[256];
 
 
 /* If C is not ASCII, make it multibyte.  It assumes C < 256.  */
-#define MAKE_CHAR_MULTIBYTE(c) ((c) = unibyte_to_multibyte_table[(c)])
+#define MAKE_CHAR_MULTIBYTE(c) \
+  (eassert ((c) >= 0 && (c) < 256), (c) = unibyte_to_multibyte_table[(c)])
 
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5

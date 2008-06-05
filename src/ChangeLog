@@ -1,5 +1,7 @@
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* character.h (MAKE_CHAR_MULTIBYTE): Check the arg is a (uni)byte.
+
 	* keymap.c (Vminibuffer_local_filename_must_match_map):
 	Rename from Vminibuffer_local_must_match_filename_map.
 	(syms_of_keymap):
