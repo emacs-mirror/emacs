@@ -196,16 +196,16 @@ See also variable `vc-cvs-sticky-date-format-string'."
         ;; make sure that the file name is searched case-sensitively
         (case-fold-search nil))
     (if (file-readable-p (expand-file-name "CVS/Entries" dirname))
-	(with-temp-buffer
-          (vc-cvs-get-entries dirname)
-          (goto-char (point-min))
-	  (cond
-	   ((re-search-forward
-	     (concat "^/" (regexp-quote basename) "/[^/]") nil t)
-	    (beginning-of-line)
-	    (vc-cvs-parse-entry file)
-	    t)
-	   (t nil)))
+        (or (string= basename "")
+            (with-temp-buffer
+              (vc-cvs-get-entries dirname)
+              (goto-char (point-min))
+              (cond ((re-search-forward
+                      (concat "^/" (regexp-quote basename) "/[^/]") nil t)
+                     (beginning-of-line)
+                     (vc-cvs-parse-entry file)
+                     t)
+                    (t nil))))
       nil)))
 
 (defun vc-cvs-state (file)
