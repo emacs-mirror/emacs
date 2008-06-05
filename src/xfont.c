@@ -206,7 +206,8 @@ extern Lisp_Object Vface_alternative_font_registry_alist;
 static int
 compare_font_names (const void *name1, const void *name2)
 {
-  return xstrcasecmp (*(const char **) name1, *(const char **) name2);
+  return xstrcasecmp (*(const unsigned char **) name1,
+		      *(const unsigned char **) name2);
 }
 
 static Lisp_Object xfont_list_pattern P_ ((Lisp_Object, Display *, char *));
@@ -325,8 +326,6 @@ xfont_list (frame, spec)
     }
 
   registry = AREF (spec, FONT_REGISTRY_INDEX);
-  if (NILP (registry))
-    ASET (spec, FONT_REGISTRY_INDEX, Qiso8859_1);
   len = font_unparse_xlfd (spec, 0, name, 256);
   ASET (spec, FONT_REGISTRY_INDEX, registry);
   if (len < 0)
@@ -371,7 +370,7 @@ xfont_list (frame, spec)
       /* Try alias.  */
       val = assq_no_quit (QCname, AREF (spec, FONT_EXTRA_INDEX));
       if (CONSP (val) && STRINGP (XCDR (val)))
-	list = xfont_list_pattern (frame, display, SDATA (XCDR (val)));
+	list = xfont_list_pattern (frame, display, (char *) SDATA (XCDR (val)));
     }
 
   return list;
