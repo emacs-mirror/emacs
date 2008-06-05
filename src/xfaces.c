@@ -1784,7 +1784,7 @@ the face font sort order.  */)
   if (!NILP (family))
     {
       CHECK_STRING (family);
-      Ffont_put (font_spec, QCfamily, family);
+      font_parse_family_registry (family, Qnil, font_spec);
     }
   vec = font_list_entities (frame, font_spec);
   nfonts = ASIZE (vec);
