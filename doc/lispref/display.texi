@@ -2793,7 +2793,7 @@ This function defines a new fontset according to the specification
 string @var{fontset-spec}.  The string should have this format:
 
 @smallexample
-@var{fontpattern}, @r{[}@var{charsetname}:@var{fontname}@r{]@dots{}}
+@var{fontpattern}, @r{[}@var{charset}:@var{font}@r{]@dots{}}
 @end smallexample
 
 @noindent
