@@ -10,12 +10,21 @@
 
 2008-06-05  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (Ffont_spec): Don't use font_parse_family_registry for
+	family name.
+	(Ffont_put): Likewise.
+
+	* fontset.c (fontset_find_font): Call font_open_for_lface with the
+	current font-spec.
+
 	* xfont.c (xfont_list): Don't set registry to iso8859-1 even if it
 	is unspecified.
 
 	* xfaces.c (realize_x_face): If the font-related face attributes
-	are the same as those of default face, realize a new fontset
-	from default->fontset.
+	are the same as those of default face, realize a new fontset from
+	default->fontset.
+	(Fx_family_fonts): Use font_parse_family_registry instead of
+	Ffont_put.
 
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
