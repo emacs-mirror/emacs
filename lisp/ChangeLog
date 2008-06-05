@@ -1,3 +1,39 @@
+2008-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-rubric): New function,
+	extracted from autoload-ensure-default-file.
+	(autoload-ensure-default-file): Use autoload-rubric.
+
+	* cus-dep.el (generated-custom-dependencies-file): Doc fix.
+	(custom-dependencies-no-scan-regexp): New variable.
+	(custom-make-dependencies): Use with-temp-buffer and autoload-rubric.
+	Don't scan files matching custom-dependencies-no-scan-regexp.
+	Disable undo in the output buffer.  Remove kept-new-versions wackiness.
+
+	* finder.el (finder-headmark): Initialize and add doc string.
+	(generated-finder-keywords-file): Doc fix.
+	(finder-no-scan-regexp): New variable.
+	(finder-compile-keywords): Use a single let binding.
+	Disable undo in the output buffer.  Use autoload-rubric.
+	Use mapc rather than mapcar.  Don't scan files matching
+	finder-no-scan-regexp.  Use with-temp-buffer.  Use expand-file-name
+	rather than concat.  Use directory-files to do regexp matching.
+	No need to require jka-compr.
+	(finder-list-keywords): Remove un-needed set-buffer.  Disable undo.
+	(finder-list-matches): Disable undo.
+	(finder-commentary): Use let rather than let*.  Disable undo.
+	(finder-current-item): Use zerop.
+	(finder-mode): Use define-derived-mode.
+	(finder-exit): Doc fix.  Use dolist.
+
+	* Makefile.in ($(lisp)/cus-load.el): Remove unnecessary rule.
+	(custom-deps): Don't require $(lisp)/cus-load.el.
+	(custom-deps, finder-data): Don't depend on autoloads.
+	Should not be needed now, and doing so was causing make install to
+	re-dump emacs post-bootstrap.
+	(bootstrap-after): Don't run update-elclist, since modifying Makefile.in
+	mid-build forces some things to be rebuilt.
+
 2008-06-05  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el (variable-pitch-mode): Autoload.
