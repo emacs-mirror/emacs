@@ -122,8 +122,9 @@ http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
 
 ** Controlling the frame opacity
-The opacity of a frame can now be controlled by setting the `alpha'
-frame parameter, on an X Window system with the composite extension.
+The opacity of a frame can now be controlled by setting
+the `alpha' frame parameter, on a compositing window manager
+(e.g. Compiz, Beryl and Compiz Fusion) for the X Window System.
 
 The alpha parameter should be an integer between 0 (transparent) and
 100 (opaque) or a float number between 0.0 and 1.0.  Optionally, the
