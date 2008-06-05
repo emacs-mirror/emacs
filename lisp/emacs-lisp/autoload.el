@@ -235,25 +235,29 @@ put the output in."
 	      (print-escape-nonascii t))
 	  (print form outbuf)))))))
 
+(defun autoload-rubric (file &optional type)
+  "Return a string giving the appropriate autoload rubric for FILE.
+TYPE (default \"autoloads\") is a string stating the type of
+information contained in FILE."
+  (let ((basename (file-name-nondirectory file)))
+    (concat ";;; " basename
+	    " --- automatically extracted " (or type "autoloads") "\n"
+	    ";;\n"
+	    ";;; Code:\n\n"
+	    "\n"
+	    "(provide '" (file-name-sans-extension basename) ")\n"
+	    ";; Local Variables:\n"
+	    ";; version-control: never\n"
+	    ";; no-byte-compile: t\n"
+	    ";; no-update-autoloads: t\n"
+	    ";; End:\n"
+	    ";;; " basename
+	    " ends here\n")))
+
 (defun autoload-ensure-default-file (file)
   "Make sure that the autoload file FILE exists and if not create it."
   (unless (file-exists-p file)
-    (let ((basename (file-name-nondirectory file)))
-      (write-region
-       (concat ";;; " basename
-	       " --- automatically extracted autoloads\n"
-	       ";;\n"
-	       ";;; Code:\n\n"
-	       "\n"
-	       "(provide '" (file-name-sans-extension basename) ")\n"
-	       ";; Local Variables:\n"
-	       ";; version-control: never\n"
-	       ";; no-byte-compile: t\n"
-	       ";; no-update-autoloads: t\n"
-	       ";; End:\n"
-	       ";;; " basename
-	       " ends here\n")
-       nil file)))
+    (write-region (autoload-rubric file) nil file))
   file)
 
 (defun autoload-insert-section-header (outbuf autoloads load-name file time)
