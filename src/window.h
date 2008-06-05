@@ -760,7 +760,6 @@ extern Lisp_Object Vmouse_event;
 
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 2);
-EXFUN (Fdisplay_buffer, 3);
 EXFUN (Fset_window_buffer, 3);
 EXFUN (Fset_window_hscroll, 2);
 EXFUN (Fwindow_hscroll, 1);

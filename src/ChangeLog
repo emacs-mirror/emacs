@@ -1,3 +1,20 @@
+2008-06-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (pop_up_windows, pop_up_frames)
+	(display_buffer_reuse_frames, Vpop_up_frame_function)
+	(Vdisplay_buffer_function, Veven_window_heights)
+	(Vspecial_display_buffer_names, Vspecial_display_regexps)
+	(Vspecial_display_function, Vsame_window_buffer_names)
+	(Vsame_window_regexps, split_height_threshold)
+	(Vsplit_window_preferred_function): Move those vars to window.el.
+	(display_buffer_1, Fspecial_display_p, Fsame_window_p)
+	(Fdisplay_buffer): Move those functions to window.el.
+	(syms_of_window): Remove corresponding declarations.
+	(display_buffer): New function.
+	(temp_output_buffer_show, Fother_window_for_scrolling): Use it.
+	* dispnew.c (Flast_nonminibuf_frame): New function.
+	* buffer.c (Fpop_to_buffer): Move to window.el.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (set_internal): Fix up call to let_shadows_buffer_binding_p.

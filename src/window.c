@@ -52,8 +52,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
+Lisp_Object Qdisplay_buffer;
 Lisp_Object Qscroll_up, Qscroll_down;
 Lisp_Object Qwindow_size_fixed;
+
 extern Lisp_Object Qleft_margin, Qright_margin;
 
 static int displayed_window_lines P_ ((struct window *));
@@ -139,62 +141,9 @@ int mode_line_in_non_selected_windows;
 EMACS_INT window_min_height;
 EMACS_INT window_min_width;
 
-/* Nonzero implies Fdisplay_buffer should create windows. */
-
-int pop_up_windows;
-
-/* Nonzero implies make new frames for Fdisplay_buffer.  */
-
-int pop_up_frames;
-
-/* Nonzero means reuse existing frames for displaying buffers.  */
-
-int display_buffer_reuse_frames;
-
-/* Non-nil means use this function instead of default */
-
-Lisp_Object Vpop_up_frame_function;
-
-/* Function to call to handle Fdisplay_buffer.  */
-
-Lisp_Object Vdisplay_buffer_function;
-
-/* Non-nil means that Fdisplay_buffer should even the heights of windows.  */
-
-Lisp_Object Veven_window_heights;
-
-/* List of buffer *names* for buffers that should have their own frames.  */
-
-Lisp_Object Vspecial_display_buffer_names;
-
-/* List of regexps for buffer names that should have their own frames.  */
-
-Lisp_Object Vspecial_display_regexps;
-
-/* Function to pop up a special frame.  */
-
-Lisp_Object Vspecial_display_function;
-
-/* List of buffer *names* for buffers to appear in selected window.  */
-
-Lisp_Object Vsame_window_buffer_names;
-
-/* List of regexps for buffer names to appear in selected window.  */
-
-Lisp_Object Vsame_window_regexps;
-
 /* Hook run at end of temp_output_buffer_show.  */
 
 Lisp_Object Qtemp_buffer_show_hook;
-
-/* Fdisplay_buffer always splits the largest window
-   if that window is more than this high.  */
-
-EMACS_INT split_height_threshold;
-
-/* How to split windows (horizontally/vertically/hybrid).  */
-
-Lisp_Object Vsplit_window_preferred_function;
 
 /* Number of lines of continuity in scrolling by screenfuls.  */
 
@@ -3639,338 +3588,12 @@ select_window_norecord (window)
   return Fselect_window (window, Qt);
 }
 
-/* Deiconify the frame containing the window WINDOW,
-   unless it is the selected frame;
-   then return WINDOW.
-
-   The reason for the exception for the selected frame
-   is that it seems better not to change the selected frames visibility
-   merely because of displaying a different buffer in it.
-   The deiconification is useful when a buffer gets shown in
-   another frame that you were not using lately.  */
-
-static Lisp_Object
-display_buffer_1 (window)
-     Lisp_Object window;
+Lisp_Object
+display_buffer (buffer, not_this_window_p, override_frame)
+     Lisp_Object buffer, not_this_window_p, override_frame;
 {
-  Lisp_Object frame = XWINDOW (window)->frame;
-  FRAME_PTR f = XFRAME (frame);
-
-  FRAME_SAMPLE_VISIBILITY (f);
-
-  if (EQ (frame, selected_frame))
-    ; /* Assume the selected frame is already visible enough.  */
-  else if (minibuf_level > 0
-	   && MINI_WINDOW_P (XWINDOW (selected_window))
-	   && WINDOW_LIVE_P (minibuf_selected_window)
-	   && EQ (frame, WINDOW_FRAME (XWINDOW (minibuf_selected_window))))
-    ; /* Assume the frame from which we invoked the minibuffer is visible.  */
-  else
-    {
-      if (FRAME_ICONIFIED_P (f))
-	Fmake_frame_visible (frame);
-      else if (FRAME_VISIBLE_P (f))
-	Fraise_frame (frame);
-    }
-
-  return window;
+  return call3 (Qdisplay_buffer, buffer, not_this_window_p, override_frame);
 }
-
-DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
-       doc: /* Returns non-nil if a buffer named BUFFER-NAME gets a special frame.
-If the value is t, `display-buffer' or `pop-to-buffer' would create a
-special frame for that buffer using the default frame parameters.
-
-If the value is a list, it is a list of frame parameters that would be used
-to make a frame for that buffer.
-The variables `special-display-buffer-names'
-and `special-display-regexps' control this.  */)
-     (buffer_name)
-     Lisp_Object buffer_name;
-{
-  Lisp_Object tem;
-
-  CHECK_STRING (buffer_name);
-
-  tem = Fmember (buffer_name, Vspecial_display_buffer_names);
-  if (!NILP (tem))
-    return Qt;
-
-  tem = Fassoc (buffer_name, Vspecial_display_buffer_names);
-  if (!NILP (tem))
-    return XCDR (tem);
-
-  for (tem = Vspecial_display_regexps; CONSP (tem); tem = XCDR (tem))
-    {
-      Lisp_Object car = XCAR (tem);
-      if (STRINGP (car)
-	  && fast_string_match (car, buffer_name) >= 0)
-	return Qt;
-      else if (CONSP (car)
-	       && STRINGP (XCAR (car))
-	       && fast_string_match (XCAR (car), buffer_name) >= 0)
-	return XCDR (car);
-    }
-  return Qnil;
-}
-
-DEFUN ("same-window-p", Fsame_window_p, Ssame_window_p, 1, 1, 0,
-       doc: /* Returns non-nil if a buffer named BUFFER-NAME would use the same window.
-More precisely, if `display-buffer' or `pop-to-buffer' would display
-that buffer in the selected window rather than (as usual) in some other window.
-See `same-window-buffer-names' and `same-window-regexps'.  */)
-     (buffer_name)
-     Lisp_Object buffer_name;
-{
-  Lisp_Object tem;
-
-  CHECK_STRING (buffer_name);
-
-  tem = Fmember (buffer_name, Vsame_window_buffer_names);
-  if (!NILP (tem))
-    return Qt;
-
-  tem = Fassoc (buffer_name, Vsame_window_buffer_names);
-  if (!NILP (tem))
-    return Qt;
-
-  for (tem = Vsame_window_regexps; CONSP (tem); tem = XCDR (tem))
-    {
-      Lisp_Object car = XCAR (tem);
-      if (STRINGP (car)
-	  && fast_string_match (car, buffer_name) >= 0)
-	return Qt;
-      else if (CONSP (car)
-	       && STRINGP (XCAR (car))
-	       && fast_string_match (XCAR (car), buffer_name) >= 0)
-	return Qt;
-    }
-  return Qnil;
-}
-
-/* Use B so the default is (other-buffer).  */
-DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 3,
-       "BDisplay buffer: \nP",
-       doc: /* Make BUFFER appear in some window but don't select it.
-BUFFER must be the name of an existing buffer, or, when called from Lisp,
-a buffer.
-If BUFFER is shown already in some window, just use that one,
-unless the window is the selected window and the optional second
-argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).
-If `pop-up-frames' is non-nil, make a new frame if no window shows BUFFER.
-Returns the window displaying BUFFER.
-If `display-buffer-reuse-frames' is non-nil, and another frame is currently
-displaying BUFFER, then simply raise that frame.
-
-The variables `special-display-buffer-names',
-`special-display-regexps', `same-window-buffer-names', and
-`same-window-regexps' customize how certain buffer names are handled.
-The latter two take effect only if NOT-THIS-WINDOW is nil.
-
-If optional argument FRAME is `visible', check all visible frames
-for a window to use.
-If FRAME is 0, check all visible and iconified frames.
-If FRAME is t, check all frames.
-If FRAME is a frame, check only that frame.
-If FRAME is nil, check only the selected frame
- (actually the last nonminibuffer frame),
- unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,
- which means search visible and iconified frames.
-
-If a full-width window on a splittable frame is available to display
-the buffer, it may be split, subject to the value of the variable
-`split-height-threshold'.
-
-If `even-window-heights' is non-nil, window heights will be evened out
-if displaying the buffer causes two vertically adjacent windows to be
-displayed.  */)
-     (buffer, not_this_window, frame)
-     Lisp_Object buffer, not_this_window, frame;
-{
-  register Lisp_Object window, tem, swp;
-  struct frame *f;
-
-  swp = Qnil;
-  buffer = Fget_buffer (buffer);
-  CHECK_BUFFER (buffer);
-
-  if (!NILP (Vdisplay_buffer_function))
-    return call2 (Vdisplay_buffer_function, buffer, not_this_window);
-
-  if (NILP (not_this_window)
-      && XBUFFER (XWINDOW (selected_window)->buffer) == XBUFFER (buffer))
-    return display_buffer_1 (selected_window);
-
-  /* See if the user has specified this buffer should appear
-     in the selected window.  */
-  if (NILP (not_this_window))
-    {
-      swp = Fsame_window_p (XBUFFER (buffer)->name);
-      if (!NILP (swp) && !no_switch_window (selected_window))
-	{
-	  Fswitch_to_buffer (buffer, Qnil);
-	  return display_buffer_1 (selected_window);
-	}
-    }
-
-  /* If the user wants pop-up-frames or display-buffer-reuse-frames,
-     look for a window showing BUFFER on any visible or iconified frame.
-     Otherwise search only the current frame.  */
-  if (! NILP (frame))
-    tem = frame;
-  else if (pop_up_frames
-	   || display_buffer_reuse_frames
-	   || last_nonminibuf_frame == 0)
-    XSETFASTINT (tem, 0);
-  else
-    XSETFRAME (tem, last_nonminibuf_frame);
-
-  window = Fget_buffer_window (buffer, tem);
-  if (!NILP (window)
-      && (NILP (not_this_window) || !EQ (window, selected_window)))
-    return display_buffer_1 (window);
-
-  /* Certain buffer names get special handling.  */
-  if (!NILP (Vspecial_display_function) && NILP (swp))
-    {
-      tem = Fspecial_display_p (XBUFFER (buffer)->name);
-      if (EQ (tem, Qt))
-	return call1 (Vspecial_display_function, buffer);
-      if (CONSP (tem))
-	return call2 (Vspecial_display_function, buffer, tem);
-    }
-
-  /* If there are no frames open that have more than a minibuffer,
-     we need to create a new frame.  */
-  if (pop_up_frames || last_nonminibuf_frame == 0)
-    {
-      window = Fframe_selected_window (call0 (Vpop_up_frame_function));
-      Fset_window_buffer (window, buffer, Qnil);
-      return display_buffer_1 (window);
-    }
-
-  f = SELECTED_FRAME ();
-  if (pop_up_windows
-      || FRAME_MINIBUF_ONLY_P (f)
-      /* If the current frame is a special display frame,
-	 don't try to reuse its windows.  */
-      || !NILP (XWINDOW (FRAME_ROOT_WINDOW (f))->dedicated))
-    {
-      Lisp_Object frames;
-      struct gcpro gcpro1;
-      GCPRO1 (buffer);
-
-      frames = Qnil;
-      if (FRAME_MINIBUF_ONLY_P (f))
-	XSETFRAME (frames, last_nonminibuf_frame);
-
-      /* Note that both Fget_largest_window and Fget_lru_window
-	 ignore minibuffers and dedicated windows.
-	 This means they can return nil.  */
-
-      /* If the frame we would try to split cannot be split,
-	 try other frames.  */
-      if (FRAME_NO_SPLIT_P (NILP (frames) ? f : last_nonminibuf_frame))
-	{
-	  /* Try visible frames first.  */
-	  window = Fget_largest_window (Qvisible, Qt);
-	  /* If that didn't work, try iconified frames.  */
-	  if (NILP (window))
-	    window = Fget_largest_window (make_number (0), Qt);
-#if 0     /* Don't try windows on other displays.  */
-	  if (NILP (window))
-	    window = Fget_largest_window (Qt, Qt);
-#endif
-	}
-      else
-	window = Fget_largest_window (frames, Qt);
-
-      tem = Qnil;
-      if (!NILP (Vsplit_window_preferred_function))
-	tem = call1 (Vsplit_window_preferred_function, window);
-
-      if (!NILP (tem))
-	window = tem;
-      else
-	/* If the largest window is tall enough, full-width, and either eligible
-	   for splitting or the only window, split it.  */
-	if (!NILP (window)
-	    && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	    && WINDOW_FULL_WIDTH_P (XWINDOW (window))
-	    && (window_height (window) >= split_height_threshold
-		|| (NILP (XWINDOW (window)->parent)))
-	    && (window_height (window)
-		>= (2 * window_min_size_2 (XWINDOW (window), 0, 0))))
-	  window = Fsplit_window (window, Qnil, Qnil);
-      else
-	{
-	  Lisp_Object upper, other;
-
-	  window = Fget_lru_window (frames, Qt);
-	  /* If the LRU window is tall enough, and either eligible for
-	     splitting and selected or the only window, split it.  */
-	  if (!NILP (window)
-	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	      && ((EQ (window, selected_window)
-		   && window_height (window) >= split_height_threshold)
-		  || (NILP (XWINDOW (window)->parent)))
-	      && (window_height (window)
-		  >= (2 * window_min_size_2 (XWINDOW (window), 0, 0))))
-	    window = Fsplit_window (window, Qnil, Qnil);
-	  else
-	    window = Fget_lru_window (frames, Qnil);
-	  /* If Fget_lru_window returned nil, try other approaches.  */
-
-	  /* Try visible frames first.  */
-	  if (NILP (window))
-	    window = Fget_buffer_window (buffer, Qvisible);
-	  if (NILP (window))
-	    window = Fget_largest_window (Qvisible, Qnil);
-	  /* If that didn't work, try iconified frames.  */
-	  if (NILP (window))
-	    window = Fget_buffer_window (buffer, make_number (0));
-	  if (NILP (window))
-	    window = Fget_largest_window (make_number (0), Qnil);
-
-#if 0     /* Don't try frames on other displays.  */
-	  if (NILP (window))
-	    window = Fget_buffer_window (buffer, Qt);
-	  if (NILP (window))
-	    window = Fget_largest_window (Qt, Qnil);
-#endif
-	  /* As a last resort, make a new frame.  */
-	  if (NILP (window))
-	    window = Fframe_selected_window (call0 (Vpop_up_frame_function));
-	  /* If window appears above or below another,
-	     even out their heights.  */
-	  other = upper = Qnil;
-	  if (!NILP (XWINDOW (window)->prev))
-	    other = upper = XWINDOW (window)->prev;
-	  if (!NILP (XWINDOW (window)->next))
-	    other = XWINDOW (window)->next, upper = window;
-	  if (!NILP (other)
-	      && !NILP (Veven_window_heights)
-	      /* Check that OTHER and WINDOW are vertically arrayed.  */
-	      && !EQ (XWINDOW (other)->top_line, XWINDOW (window)->top_line)
-	      && (XFASTINT (XWINDOW (other)->total_lines)
-		  > XFASTINT (XWINDOW (window)->total_lines)))
-	    {
-	      int total = (XFASTINT (XWINDOW (other)->total_lines)
-			   + XFASTINT (XWINDOW (window)->total_lines));
-	      enlarge_window (upper,
-			      total / 2 - XFASTINT (XWINDOW (upper)->total_lines),
-			      0);
-	    }
-	}
-      UNGCPRO;
-    }
-  else
-    window = Fget_lru_window (Qnil, Qnil);
-
-  Fset_window_buffer (window, buffer, Qnil);
-  return display_buffer_1 (window);
-}
-
 
 DEFUN ("force-window-update", Fforce_window_update, Sforce_window_update,
        0, 1, 0,
@@ -4041,7 +3664,7 @@ temp_output_buffer_show (buf)
     call1 (Vtemp_buffer_show_function, buf);
   else
     {
-      window = Fdisplay_buffer (buf, Qnil, Qnil);
+      window = display_buffer (buf, Qnil, Qnil);
 
       if (!EQ (XWINDOW (window)->frame, selected_frame))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
@@ -5692,7 +5315,7 @@ specifies the window.  This takes precedence over
     {
       window = Fget_buffer_window (Vother_window_scroll_buffer, Qnil);
       if (NILP (window))
-	window = Fdisplay_buffer (Vother_window_scroll_buffer, Qt, Qnil);
+	window = display_buffer (Vother_window_scroll_buffer, Qt, Qnil);
     }
   else
     {
@@ -7453,6 +7076,9 @@ syms_of_window ()
   Qwindow_live_p = intern ("window-live-p");
   staticpro (&Qwindow_live_p);
 
+  Qdisplay_buffer = intern ("display-buffer");
+  staticpro (&Qdisplay_buffer);
+
   Qtemp_buffer_show_hook = intern ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);
 
@@ -7474,21 +7100,6 @@ If this function is used, then it must do the entire job of showing
 the buffer; `temp-buffer-show-hook' is not run unless this function runs it.  */);
   Vtemp_buffer_show_function = Qnil;
 
-  DEFVAR_LISP ("display-buffer-function", &Vdisplay_buffer_function,
-	       doc: /* If non-nil, function to call to handle `display-buffer'.
-It will receive two args, the buffer and a flag which if non-nil means
-that the currently selected window is not acceptable.
-It should choose or create a window, display the specified buffer in it,
-and return the window.
-Commands such as `switch-to-buffer-other-window' and `find-file-other-window'
-work using this function.  */);
-  Vdisplay_buffer_function = Qnil;
-
-  DEFVAR_LISP ("even-window-heights", &Veven_window_heights,
-	       doc: /* *If non-nil, `display-buffer' should even the window heights.
-If nil, `display-buffer' will leave the window configuration alone.  */);
-  Veven_window_heights = Qt;
-
   DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
 	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);
   Vminibuf_scroll_window = Qnil;
@@ -7503,147 +7114,13 @@ is displayed in the `mode-line' face.  */);
 	       doc: /* If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.  */);
   Vother_window_scroll_buffer = Qnil;
 
-  DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
-	       doc: /* *Non-nil means `display-buffer' should make a separate frame.  */);
-  pop_up_frames = 0;
-
   DEFVAR_BOOL ("auto-window-vscroll", &auto_window_vscroll_p,
 	       doc: /* *Non-nil means to automatically adjust `window-vscroll' to view tall lines.  */);
   auto_window_vscroll_p = 1;
 
-  DEFVAR_BOOL ("display-buffer-reuse-frames", &display_buffer_reuse_frames,
-	       doc: /* *Non-nil means `display-buffer' should reuse frames.
-If the buffer in question is already displayed in a frame, raise that frame.  */);
-  display_buffer_reuse_frames = 0;
-
-  DEFVAR_LISP ("pop-up-frame-function", &Vpop_up_frame_function,
-	       doc: /* Function to call to handle automatic new frame creation.
-It is called with no arguments and should return a newly created frame.
-
-A typical value might be `(lambda () (new-frame pop-up-frame-alist))'
-where `pop-up-frame-alist' would hold the default frame parameters.  */);
-  Vpop_up_frame_function = Qnil;
-
-  DEFVAR_LISP ("special-display-buffer-names", &Vspecial_display_buffer_names,
-	       doc: /* *List of buffer names that should have their own special frames.
-Displaying a buffer with `display-buffer' or `pop-to-buffer',
-if its name is in this list, makes a special frame for it
-using `special-display-function'.  See also `special-display-regexps'.
-
-An element of the list can be a list instead of just a string.
-There are two ways to use a list as an element:
-  (BUFFER FRAME-PARAMETERS...)   (BUFFER FUNCTION OTHER-ARGS...)
-In the first case, the FRAME-PARAMETERS are pairs of the form
-\(PARAMETER . VALUE); these parameter values are used to create the frame.
-In the second case, FUNCTION is called with BUFFER as the first argument,
-followed by the OTHER-ARGS--it can display BUFFER in any way it likes.
-All this is done by the function found in `special-display-function'.
-
-If the specified frame parameters include (same-buffer . t), the
-buffer is displayed in the currently selected window.  Otherwise, if
-they include (same-frame . t), the buffer is displayed in a new window
-in the currently selected frame.
-
-If this variable appears \"not to work\", because you add a name to it
-but that buffer still appears in the selected window, look at the
-values of `same-window-buffer-names' and `same-window-regexps'.
-Those variables take precedence over this one.  */);
-  Vspecial_display_buffer_names = Qnil;
-
-  DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
-	       doc: /* *List of regexps saying which buffers should have their own special frames.
-When displaying a buffer with `display-buffer' or `pop-to-buffer',
-if any regexp in this list matches the buffer name, it makes a
-special frame for the buffer by calling `special-display-function'.
-
-An element of the list can be a list instead of just a string.
-There are two ways to use a list as an element:
-  (REGEXP FRAME-PARAMETERS...)   (REGEXP FUNCTION OTHER-ARGS...)
-In the first case, the FRAME-PARAMETERS are pairs of the form
-\(PARAMETER . VALUE); these parameter values are used to create the frame.
-In the second case, FUNCTION is called with BUFFER as the first argument,
-followed by the OTHER-ARGS--it can display the buffer in any way it likes.
-All this is done by the function found in `special-display-function'.
-
-If the specified frame parameters include (same-buffer . t), the
-buffer is displayed in the currently selected window.  Otherwise, if
-they include (same-frame . t), the buffer is displayed in a new window
-in the currently selected frame.
-
-If this variable appears \"not to work\", because you add a regexp to it
-but the matching buffers still appear in the selected window, look at the
-values of `same-window-buffer-names' and `same-window-regexps'.
-Those variables take precedence over this one.  */);
-  Vspecial_display_regexps = Qnil;
-
-  DEFVAR_LISP ("special-display-function", &Vspecial_display_function,
-	       doc: /* Function to call to make a new frame for a special buffer.
-It is called with two arguments, the buffer and optional buffer specific
-data, and should return a window displaying that buffer.
-The default value normally makes a separate frame for the buffer,
-  using `special-display-frame-alist' to specify the frame parameters.
-But if the buffer specific data includes (same-buffer . t) then the
-  buffer is displayed in the current selected window.
-Otherwise if it includes (same-frame . t) then the buffer is displayed in
-  a new window in the currently selected frame.
-
-A buffer is special if it is listed in `special-display-buffer-names'
-or matches a regexp in `special-display-regexps'.  */);
-  Vspecial_display_function = Qnil;
-
-  DEFVAR_LISP ("same-window-buffer-names", &Vsame_window_buffer_names,
-	       doc: /* *List of buffer names that should appear in the selected window.
-Displaying one of these buffers using `display-buffer' or `pop-to-buffer'
-switches to it in the selected window, rather than making it appear
-in some other window.
-
-An element of the list can be a cons cell instead of just a string.
-Then the car must be a string, which specifies the buffer name.
-This is for compatibility with `special-display-buffer-names';
-the cdr of the cons cell is ignored.
-
-See also `same-window-regexps'.  */);
-  Vsame_window_buffer_names = Qnil;
-
-  DEFVAR_LISP ("same-window-regexps", &Vsame_window_regexps,
-	       doc: /* *List of regexps saying which buffers should appear in the selected window.
-If a buffer name matches one of these regexps, then displaying it
-using `display-buffer' or `pop-to-buffer' switches to it
-in the selected window, rather than making it appear in some other window.
-
-An element of the list can be a cons cell instead of just a string.
-Then the car must be a string, which specifies the buffer name.
-This is for compatibility with `special-display-buffer-names';
-the cdr of the cons cell is ignored.
-
-See also `same-window-buffer-names'.  */);
-  Vsame_window_regexps = Qnil;
-
-  DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,
-	       doc: /* *Non-nil means display-buffer should make new windows.  */);
-  pop_up_windows = 1;
-
   DEFVAR_INT ("next-screen-context-lines", &next_screen_context_lines,
 	      doc: /* *Number of lines of continuity when scrolling by screenfuls.  */);
   next_screen_context_lines = 2;
-
-  DEFVAR_INT ("split-height-threshold", &split_height_threshold,
-	      doc: /* *A window must be at least this tall to be eligible for splitting
-by `display-buffer'.  The value is in line units.
-If there is only one window, it is split regardless of this value.  */);
-  split_height_threshold = 500;
-
-  DEFVAR_LISP ("split-window-preferred-function",
-	       &Vsplit_window_preferred_function,
-	       doc: /* Function to use to split a window.
-This is used by `display-buffer' to allow the user to choose whether
-to split windows horizontally or vertically or some mix of the two.
-When this variable is nil, `display-buffer' splits windows vertically.
-Otherwise, `display-buffer' calls this function to split a window.
-It is called with a window as single argument and should split it in two
-and return the new window, or return an appropriate existing window
-if splitting is not eligible.  */);
-  Vsplit_window_preferred_function = Qnil;
 
   DEFVAR_INT ("window-min-height", &window_min_height,
 	      doc: /* Allow deleting windows less than this tall.
@@ -7724,9 +7201,6 @@ with the relevant frame selected.  */);
   defsubr (&Sdelete_window);
   defsubr (&Sset_window_buffer);
   defsubr (&Sselect_window);
-  defsubr (&Sspecial_display_p);
-  defsubr (&Ssame_window_p);
-  defsubr (&Sdisplay_buffer);
   defsubr (&Sforce_window_update);
   defsubr (&Ssplit_window);
   defsubr (&Senlarge_window);
