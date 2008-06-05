@@ -1329,12 +1329,11 @@ DEFUN ("window-parameters", Fwindow_parameters, Swindow_parameters,
        0, 1, 0,
        doc: /* Return the parameters-alist of window WINDOW.
 It is a list of elements of the form (PARAMETER . VALUE).
-The meaningful PARAMETERs depend on the kind of window.
 If WINDOW is omitted, return information on the currently selected window.  */)
      (window)
      Lisp_Object window;
 {
-  return decode_window (window)->window_parameters;
+  return Fcopy_alist (decode_window (window)->window_parameters);
 }
 
 DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
@@ -1344,7 +1343,10 @@ If WINDOW is nil, describe the currently selected window.  */)
      (window, parameter)
      Lisp_Object window, parameter;
 {
-  return Fassq (parameter, decode_window (window)->window_parameters);
+  Lisp_Object result;
+
+  result = Fassq (parameter, decode_window (window)->window_parameters);
+  return CDR_SAFE (result);
 }
 
 
@@ -1352,7 +1354,7 @@ DEFUN ("set-window-parameter", Fset_window_parameter,
        Sset_window_parameter, 3, 3, 0,
        doc: /* Set window parameter PARAMETER to VALUE on WINDOW.
 If WINDOW is nil, use the currently selected window.
-Return the parameters-alist of WINDOW.  */)
+Return VALUE.  */)
      (window, parameter, value)
      Lisp_Object window, parameter, value;
 {
@@ -1364,7 +1366,7 @@ Return the parameters-alist of WINDOW.  */)
     w->window_parameters = Fcons (Fcons (parameter, value), w->window_parameters);
   else
     Fsetcdr (old_alist_elt, value);
-  return w->window_parameters;
+  return value;
 }
 
 
