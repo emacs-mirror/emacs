@@ -1,3 +1,8 @@
+2008-06-05  John Paul Wallington  <jpw@pobox.com>
+
+	* bindings.el (completion-ignored-extensions):
+	Add .p64fsl, .d64fsl, and .dx64fsl.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ffap.el (ffap-prompter): Don't use the region.
