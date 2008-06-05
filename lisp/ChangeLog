@@ -1,3 +1,7 @@
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (unexpand-abbrev): Better preserve markers.
+
 2008-06-05  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/autoload.el (autoload-rubric): New function,

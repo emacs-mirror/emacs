@@ -824,10 +824,11 @@ is not undone."
         ;; to do the expansion.
         (let ((val (symbol-value last-abbrev)))
           (unless (stringp val)
-            (error "value of abbrev-symbol must be a string"))
-          (delete-region (point) (+ (point) (length val)))
+            (error "Value of abbrev-symbol must be a string"))
           ;; Don't inherit properties here; just copy from old contents.
           (insert last-abbrev-text)
+          ;; Delete after inserting, to better preserve markers.
+          (delete-region (point) (+ (point) (length val)))
           (setq last-abbrev-text nil))))))
 
 (defun abbrev--write (sym)
