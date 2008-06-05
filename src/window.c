@@ -224,7 +224,13 @@ int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
 
+static int window_scroll_pixel_based_preserve_x;
 static int window_scroll_pixel_based_preserve_y;
+
+/* Same for window_scroll_line_based.  */
+
+static int window_scroll_preserve_hpos;
+static int window_scroll_preserve_vpos;
 
 #if 0 /* This isn't used anywhere.  */
 /* Nonzero means we can split a frame even if it is "unsplittable".  */
@@ -5216,10 +5222,12 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 	  window_scroll_pixel_based_preserve_y = it.current_y;
+	  window_scroll_pixel_based_preserve_x = it.current_x;
 	}
     }
   else
-    window_scroll_pixel_based_preserve_y = -1;
+    window_scroll_pixel_based_preserve_y
+      = window_scroll_pixel_based_preserve_x = -1;
 
   /* Move iterator it from start the specified distance forward or
      backward.  The result is the new window start.  */
@@ -5355,10 +5363,11 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  /* If we have a header line, take account of it.
 	     This is necessary because we set it.current_y to 0, above.  */
-	  move_it_to (&it, -1, -1,
+	  move_it_to (&it, -1,
+		      window_scroll_pixel_based_preserve_x,
 		      window_scroll_pixel_based_preserve_y
 		      - (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0 ),
-		      -1, MOVE_TO_Y);
+		      -1, MOVE_TO_Y | MOVE_TO_X);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
       else
@@ -5416,8 +5425,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  /* It would be wrong to subtract CURRENT_HEADER_LINE_HEIGHT
 	     here because we called start_display again and did not
 	     alter it.current_y this time.  */
-	  move_it_to (&it, -1, -1, window_scroll_pixel_based_preserve_y, -1,
-		      MOVE_TO_Y);
+	  move_it_to (&it, -1, window_scroll_pixel_based_preserve_x,
+		      window_scroll_pixel_based_preserve_y, -1,
+		      MOVE_TO_Y | MOVE_TO_X);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
       else
@@ -5455,8 +5465,7 @@ window_scroll_line_based (window, n, whole, noerror)
   int lose;
   Lisp_Object bolp;
   int startpos;
-  struct position posit;
-  int original_vpos;
+  Lisp_Object original_pos = Qnil;
 
   /* If scrolling screen-fulls, compute the number of lines to
      scroll from the window's height.  */
@@ -5465,11 +5474,24 @@ window_scroll_line_based (window, n, whole, noerror)
 
   startpos = marker_position (w->start);
 
-  posit = *compute_motion (startpos, 0, 0, 0,
-			   PT, ht, 0,
-			   -1, XINT (w->hscroll),
-			   0, w);
-  original_vpos = posit.vpos;
+  if (!NILP (Vscroll_preserve_screen_position))
+    {
+      if (window_scroll_preserve_vpos <= 0
+	  || (!EQ (current_kboard->Vlast_command, Qscroll_up)
+	      && !EQ (current_kboard->Vlast_command, Qscroll_down)))
+	{
+	  struct position posit
+	    = *compute_motion (startpos, 0, 0, 0,
+			       PT, ht, 0,
+			       -1, XINT (w->hscroll),
+			       0, w);
+	  window_scroll_preserve_vpos = posit.vpos;
+	  window_scroll_preserve_hpos = posit.hpos + XINT (w->hscroll);
+	}
+
+      original_pos = Fcons (make_number (window_scroll_preserve_hpos),
+			    make_number (window_scroll_preserve_vpos));
+    }
 
   XSETFASTINT (tem, PT);
   tem = Fpos_visible_in_window_p (tem, window, Qnil);
@@ -5520,7 +5542,7 @@ window_scroll_line_based (window, n, whole, noerror)
 	  && (whole || !EQ (Vscroll_preserve_screen_position, Qt)))
 	{
 	  SET_PT_BOTH (pos, pos_byte);
-	  Fvertical_motion (make_number (original_vpos), window);
+	  Fvertical_motion (original_pos, window);
 	}
       /* If we scrolled forward, put point enough lines down
 	 that it is outside the scroll margin.  */
@@ -5542,7 +5564,7 @@ window_scroll_line_based (window, n, whole, noerror)
 	  else if (!NILP (Vscroll_preserve_screen_position))
 	    {
 	      SET_PT_BOTH (pos, pos_byte);
-	      Fvertical_motion (make_number (original_vpos), window);
+	      Fvertical_motion (original_pos, window);
 	    }
 	  else
 	    SET_PT (top_margin);
@@ -5567,7 +5589,7 @@ window_scroll_line_based (window, n, whole, noerror)
 	      if (!NILP (Vscroll_preserve_screen_position))
 		{
 		  SET_PT_BOTH (pos, pos_byte);
-		  Fvertical_motion (make_number (original_vpos), window);
+		  Fvertical_motion (original_pos, window);
 		}
 	      else
 		Fvertical_motion (make_number (-1), window);
@@ -7439,7 +7461,10 @@ syms_of_window ()
   minibuf_selected_window = Qnil;
   staticpro (&minibuf_selected_window);
 
+  window_scroll_pixel_based_preserve_x = -1;
   window_scroll_pixel_based_preserve_y = -1;
+  window_scroll_preserve_hpos = -1;
+  window_scroll_preserve_vpos = -1;
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.
@@ -7640,7 +7665,7 @@ windows horizontally.  A value less than 2 is invalid.  */);
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       &Vscroll_preserve_screen_position,
-	       doc: /* *Controls if scroll commands move point to keep its screen line unchanged.
+	       doc: /* *Controls if scroll commands move point to keep its screen position unchanged.
 A value of nil means point does not keep its screen position except
 at the scroll margin or window boundary respectively.
 A value of t means point keeps its screen position if the scroll

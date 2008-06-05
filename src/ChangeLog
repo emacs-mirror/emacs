@@ -1,3 +1,19 @@
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (move_it_in_display_line_to): Improve the type of its args.
+	(move_it_in_display_line): New wrapper.
+
+	* window.c (window_scroll_pixel_based_preserve_x)
+	(window_scroll_preserve_hpos, window_scroll_preserve_vpos): New vars.
+	(window_scroll_pixel_based, window_scroll_line_based):
+	Use them to preserve column positions.
+	(syms_of_window): Initialize them.
+
+	* indent.c (Fvertical_motion): Extend first arg to allow passing an
+	(HPOS . VPOS) pair.
+
+	* dispextern.h (move_it_in_display_line): Declare.
+
 2008-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fwindow_parameter): Return VALUE, not (PARAMETER . VALUE).
@@ -113,11 +129,11 @@
 	(struct named_merge_point): Add `named_merge_point_kind' field.
 	(push_named_merge_point): Make cycle detection respect different
 	named-merge-point kinds.
-	(lface_from_face_name_no_resolve): Renamed from `lface_from_face_name'.
+	(lface_from_face_name_no_resolve): Rename from `lface_from_face_name'.
 	Remove face-name alias resolution.
 	(lface_from_face_name): New definition using
 	`lface_from_face_name_no_resolve'.
-	(get_lface_attributes_no_remap): Renamed from `get_lface_attributes'.
+	(get_lface_attributes_no_remap): Rename from `get_lface_attributes'.
 	Call lface_from_face_name_no_resolve instead of lface_from_face_name.
 	(get_lface_attributes): New definition that layers face-remapping on
 	top of get_lface_attributes_no_remap.  New arg `named_merge_points'.

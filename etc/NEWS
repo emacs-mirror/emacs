@@ -63,6 +63,7 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
+** scroll-preserve-screen-position also preserves the column position.
 ** Completion.
 *** `completion-styles' can be customized to choose your favorite completion.
 *** The default completion styles include a form of partial-completion.

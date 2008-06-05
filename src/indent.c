@@ -1993,6 +1993,10 @@ The optional second argument WINDOW specifies the window to use for
 parameters such as width, horizontal scrolling, and so on.
 The default is to use the selected window's parameters.
 
+LINES can optionally take the form (COLS . LINES), in which case
+the motion will not stop at the start of a screen line but on
+its column COLS (if such exists on that line, that is).
+
 `vertical-motion' always uses the current buffer,
 regardless of which buffer is displayed in WINDOW.
 This is consistent with other cursor motion functions
@@ -2006,6 +2010,14 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
+  int cols = 0;
+
+  /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
+  if (CONSP (lines) && (NUMBERP (XCAR (lines))))
+    {
+      cols = XINT (XCAR (lines));
+      lines = XCDR (lines);
+    }
 
   CHECK_NUMBER (lines);
   if (! NILP (window))
@@ -2093,6 +2105,11 @@ whether or not it is currently displayed in some window.  */)
 	 to the beginning of the current line as we ought.  */
       if (XINT (lines) >= 0 || IT_CHARPOS (it) > 0)
 	move_it_by_lines (&it, XINT (lines), 0);
+
+      if (cols)
+	move_it_in_display_line (&it, ZV,
+				 cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)),
+				 MOVE_TO_X);
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
     }
