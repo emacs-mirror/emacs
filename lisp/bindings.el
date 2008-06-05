@@ -602,6 +602,7 @@ is okay.  See `mode-line-format'.")
 	 ".x86f" ".sparcf"
          ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
          ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
+	 ".p64fsl" ".d64fsl" ".dx64fsl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
