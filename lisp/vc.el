@@ -375,7 +375,7 @@
 ;;
 ;;   Return a string containing all log entries that were made for FILE.
 ;;   This is used for transferring a file from one backend to another,
-;;   retaining comment information. 
+;;   retaining comment information.
 ;;
 ;; - update-changelog (files)
 ;;
@@ -562,7 +562,7 @@
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;   vc-update and vc-merge assume the arguments are always files,
 ;;   they don't deal with directories.  Make sure the *vc-dir* buffer
-;;   is updated after these operations. 
+;;   is updated after these operations.
 ;;   At least bzr, git and hg should benefit from this.
 ;;
 ;;;; Improved branch and tag handling:
@@ -571,8 +571,8 @@
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
 ;;
-;; - C-x v b does switch to a different backend, but the mode line is not 
-;;   adapted accordingly.  Also, it considers RCS and CVS to be the same, 
+;; - C-x v b does switch to a different backend, but the mode line is not
+;;   adapted accordingly.  Also, it considers RCS and CVS to be the same,
 ;;   which is pretty confusing.
 ;;
 ;; - vc-create-tag and vc-retrieve-tag should update the
@@ -1255,7 +1255,7 @@ merge in the changes into your working copy."
 	(when (not (equal buffer-file-name file))
 	  (find-file-other-window file))
 	(if (save-window-excursion
-	      (vc-diff-internal nil 
+	      (vc-diff-internal nil
 				(cons (car vc-fileset) (cons (cadr vc-fileset) (list file)))
 				(vc-working-revision file) nil)
 	      (goto-char (point-min))
@@ -1844,11 +1844,11 @@ See Info node `Merging'."
 
 (defun vc-default-status-extra-headers (backend dir)
   ;; Be loud by default to remind people to add code to display
-  ;; backend specific headers.  
+  ;; backend specific headers.
   ;; XXX: change this to return nil before the release.
   (concat
    (propertize "Extra      : " 'face 'font-lock-type-face)
-   (propertize "Please add backend specific headers here.  It's easy!" 
+   (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'font-lock-warning-face)))
 
 (defun vc-dir-headers (backend dir)
@@ -2027,7 +2027,7 @@ outside of VC) and one wants to do some operation on it."
 
 (defun vc-make-backend-object (file-or-dir)
   "Create the backend capability object needed by vc-dispatcher."
-  (vc-create-client-object 
+  (vc-create-client-object
    "VC dir"
    (vc-dir-headers vc-dir-backend file-or-dir)
    #'vc-generic-status-printer
@@ -2061,7 +2061,7 @@ outside of VC) and one wants to do some operation on it."
 	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
 	(define-key map "x" 'vc-dir-hide-up-to-date))
       )
-    ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash  
+    ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash
     (let ((map vc-dir-menu-map))
     ;; VC info details
     (define-key map [sepvcdet] '("--"))
@@ -2284,10 +2284,12 @@ changes from the current branch are merged into the working file."
   (let* ((vc-fileset (vc-deduce-fileset))
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset)))
+    (save-some-buffers          ; save buffers visiting files
+     nil (lambda ()
+           (and (buffer-modified-p)
+                (let ((file (buffer-file-name)))
+                  (and file (member file files))))))
     (dolist (file files)
-      (when (let ((buf (get-file-buffer file)))
-	      (and buf (buffer-modified-p buf)))
-	(error "Please kill or save all modified buffers before updating."))
       (if (vc-up-to-date-p file)
 	  (vc-checkout file nil t)
 	(if (eq (vc-checkout-model backend (list file)) 'locking)

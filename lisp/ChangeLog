@@ -1,3 +1,8 @@
+2008-06-05  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-update): Use `save-some-buffers' instead of signaling
+	an error on modified buffers.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/etags.el (tags-verify-table): Be careful to use and update
