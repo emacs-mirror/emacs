@@ -1,5 +1,8 @@
 2008-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* menu-bar.el (menu-bar-options-menu): Add Menu entry for
+	longlines mode.
+
 	* replace.el (replace-search-function)
 	(replace-re-search-function): New vars.
 	(perform-replace): Use them.
