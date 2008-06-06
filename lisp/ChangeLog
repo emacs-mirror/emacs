@@ -8,6 +8,7 @@
 	(longlines-mode): Bind replace-search-function and
 	replace-re-search-function, to ensure that replacement commands
 	treat newlines as spaces.
+	(longlines-show-effect): Default to a pilcrow sign.
 
 2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
