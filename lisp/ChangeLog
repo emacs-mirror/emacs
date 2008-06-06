@@ -1,3 +1,7 @@
+2008-06-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): Remove dead call to get-lru-window.
+
 2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/sendmail.el (mail-interactive): Change default.
@@ -22,13 +26,14 @@
 	(special-display-buffer-names, special-display-regexps)
 	(special-display-function, same-window-p, same-window-buffer-names)
 	(same-window-regexps, pop-up-frames, display-buffer-reuse-frames)
-	(pop-up-frame-function, pop-up-windows)
+	(pop-up-frame-function, pop-up-windows, even-window-heights)
 	(split-window-preferred-function, split-height-threshold)
-	(split-width-threshold, window--splittable-p)
-	(window--try-to-split-window, window--frame-usable-p)
-	(even-window-heights, window--even-window-heights)
-	(window--display-buffer-1, window--display-buffer-2, display-buffer)
-	(pop-to-buffer): Move from window.c and buffer.c.
+	(window--display-buffer-1, display-buffer, pop-to-buffer): Move
+	from window.c and buffer.c.
+	(window--splittable-p, window--try-to-split-window)
+	(window--frame-usable-p, window--display-buffer-2)
+	(window--even-window-heights): New functions.
+	(split-width-threshold): New option.
 	(split-window-preferred-horizontally): Remove.
 	* cus-start.el: Remove corresponding declarations.
 
