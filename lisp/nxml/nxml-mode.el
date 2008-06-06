@@ -24,11 +24,6 @@
 
 ;; See nxml-rap.el for description of parsing strategy.
 
-;; The font locking here is independent of font-lock.el.  We want to
-;; do more sophisticated handling of changes and we want to use the
-;; same xmltok rather than regexps for parsing so that we parse
-;; consistently and correctly.
-
 ;;; Code:
 
 (when (featurep 'mucs)
@@ -55,11 +50,6 @@
   "Faces for XML syntax highlighting."
   :group 'nxml
   :group 'font-lock-faces)
-
-(defcustom nxml-syntax-highlight-flag t
-  "*Non-nil means nxml-mode should perform syntax highlighting."
-  :group 'nxml
-  :type 'boolean)
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "*Non-nil means display glyph following character reference.
@@ -99,8 +89,6 @@ cases, the first attribute on one line is indented the same as the first
 attribute on the previous line."
   :group 'nxml
   :type 'integer)
-
-(defvar nxml-fontify-chunk-size 500)
 
 (defcustom nxml-bind-meta-tab-to-complete-flag (not window-system)
   "*Non-nil means bind M-TAB in `nxml-mode-map' to `nxml-complete'.
@@ -432,19 +420,13 @@ reference.")
     map)
   "Keymap for nxml-mode.")
 
+(defvar nxml-font-lock-keywords
+  '(nxml-fontify-matcher)
+  "Default font lock keywords for nxml-mode.")
+
 (defsubst nxml-set-face (start end face)
   (when (and face (< start end))
-    (put-text-property start end 'face face)))
-
-(defun nxml-clear-face (start end)
-  (remove-text-properties start end '(face nil))
-  (nxml-clear-char-ref-extra-display start end))
-
-(defsubst nxml-set-fontified (start end)
-  (put-text-property start end 'fontified t))
-
-(defsubst nxml-clear-fontified (start end)
-  (remove-text-properties start end '(fontified nil)))
+    (font-lock-append-text-property start end 'face face)))
 
 ;;;###autoload
 (defun nxml-mode ()
@@ -452,9 +434,6 @@ reference.")
   ;; because Emacs turns C-c C-i into C-c TAB which is hard to type and
   ;; not mnemonic.
   "Major mode for editing XML.
-
-Syntax highlighting is performed unless the variable
-`nxml-syntax-highlight-flag' is nil.
 
 \\[nxml-finish-element] finishes the current element by inserting an end-tag.
 C-c C-i closes a start-tag with `>' and then inserts a balancing end-tag
@@ -540,13 +519,9 @@ Many aspects this mode can be customized using
       (nxml-clear-dependent-regions (point-min) (point-max))
       (setq nxml-scan-end (copy-marker (point-min) nil))
       (nxml-with-unmodifying-text-property-changes
-	(when nxml-syntax-highlight-flag
-	  (nxml-clear-fontified (point-min) (point-max)))
-	(nxml-clear-inside (point-min) (point-max))
+        (nxml-clear-inside (point-min) (point-max))
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
-  (when nxml-syntax-highlight-flag
-    (add-hook 'fontification-functions 'nxml-fontify nil t))
   (add-hook 'after-change-functions 'nxml-after-change nil t)
   (add-hook 'change-major-mode-hook 'nxml-cleanup nil t)
 
@@ -561,6 +536,19 @@ Many aspects this mode can be customized using
       (setq buffer-file-coding-system nxml-default-buffer-file-coding-system))
     (when nxml-auto-insert-xml-declaration-flag
       (nxml-insert-xml-declaration)))
+
+  (setq font-lock-defaults
+        '(nxml-font-lock-keywords
+          t    ; keywords-only; we highlight comments and strings here
+          nil  ; font-lock-keywords-case-fold-search. XML is case sensitive
+          nil  ; no special syntax table
+          nil  ; no automatic syntactic fontification
+          (font-lock-extend-after-change-region-function
+           . nxml-extend-after-change-region)
+          (font-lock-extend-region-functions . (nxml-extend-region))
+          (jit-lock-contextually . t)
+          (font-lock-unfontify-region-function . nxml-unfontify-region)))
+
   (rng-nxml-mode-init)
   (nxml-enable-unicode-char-name-sets)
   (run-hooks 'nxml-mode-hook))
@@ -591,84 +579,73 @@ Many aspects this mode can be customized using
     (save-restriction
       (widen)
       (nxml-with-unmodifying-text-property-changes
-	(nxml-clear-face (point-min) (point-max))
-	(nxml-set-fontified (point-min) (point-max))
 	(nxml-clear-inside (point-min) (point-max))))))
 
 ;;; Change management
 
+(defun nxml-debug-region (start end)
+  (interactive "r")
+  (let ((font-lock-beg start)
+        (font-lock-end end))
+    (nxml-extend-region)
+    (goto-char font-lock-beg)
+    (set-mark font-lock-end)))
+
 (defun nxml-after-change (start end pre-change-length)
-  ;; Work around bug in insert-file-contents.
-  (when (> end (1+ (buffer-size)))
-    (setq start 1)
-    (setq end (1+ (buffer-size))))
-  (unless nxml-degraded
-    (condition-case err
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (save-match-data
-	      (nxml-with-invisible-motion
-		(nxml-with-unmodifying-text-property-changes
-		  (nxml-after-change1 start end pre-change-length))))))
-      (error
-       (nxml-degrade 'nxml-after-change err)))))
+  ; In font-lock mode, nxml-after-change1 is called via
+  ; nxml-extend-after-change-region instead so that the updated
+  ; book-keeping information is available for fontification.
+  (unless (or font-lock-mode nxml-degraded)
+    (nxml-with-degradation-on-error 'nxml-after-change
+        (save-excursion
+          (save-restriction
+            (widen)
+            (save-match-data
+              (nxml-with-invisible-motion
+                (nxml-with-unmodifying-text-property-changes
+                  (nxml-after-change1
+                   start end pre-change-length)))))))))
 
 (defun nxml-after-change1 (start end pre-change-length)
-  (setq nxml-last-fontify-end nil)
+  "After-change bookkeeping.  Returns a cons cell containing a
+possibly-enlarged change region.  You must call
+nxml-extend-region on this expanded region to obtain the full
+extent of the area needing refontification.
+
+For bookkeeping, call this function even when fontification is
+disabled."
   (let ((pre-change-end (+ start pre-change-length)))
     (setq start
 	  (nxml-adjust-start-for-dependent-regions start
 						   end
 						   pre-change-length))
+    ;; If the prolog might have changed, rescan the prolog
     (when (<= start
-	      ;; Add 2 so as to include the < and following char
-	      ;; that start the instance, since changing these
-	      ;; can change where the prolog ends.
+	      ;; Add 2 so as to include the < and following char that
+	      ;; start the instance (document element), since changing
+	      ;; these can change where the prolog ends.
 	      (+ nxml-prolog-end 2))
-      ;; end must be extended to at least the end of the old prolog
+      ;; end must be extended to at least the end of the old prolog in
+      ;; case the new prolog is shorter
       (when (< pre-change-end nxml-prolog-end)
 	(setq end
 	      ;; don't let end get out of range even if pre-change-length
 	      ;; is bogus
 	      (min (point-max)
 		   (+ end (- nxml-prolog-end pre-change-end)))))
-      (nxml-scan-prolog)))
-  (cond ((<= end nxml-prolog-end)
-	 (setq end nxml-prolog-end)
-	 (goto-char start)
-	 ;; This is so that Emacs redisplay works
-	 (setq start (line-beginning-position)))
-	((and (<= start nxml-scan-end)
-	      (> start (point-min))
-	      (nxml-get-inside (1- start)))
-	 ;; The closing delimiter might have been removed.
-	 ;; So we may need to redisplay from the beginning
-	 ;; of the token.
-	 (goto-char (1- start))
-	 (nxml-move-outside-backwards)
-	 ;; This is so that Emacs redisplay works
-	 (setq start (line-beginning-position))
-	 (setq end (max (nxml-scan-after-change (point) end)
-			end)))
-	(t
-	 (goto-char start)
-	 ;; This is both for redisplay and to move back
-	 ;; past any incomplete opening delimiters
-	 (setq start (line-beginning-position))
-	 (setq end (max (nxml-scan-after-change start end)
-			end))))
-  (when nxml-syntax-highlight-flag
-    (when (>= start end)
-      ;; Must clear at least one char so as to trigger redisplay.
-      (cond ((< start (point-max))
-	     (setq end (1+ start)))
-	    (t
-	     (setq end (point-max))
-	     (goto-char end)
-	     (setq start (line-beginning-position)))))
-    (nxml-clear-fontified start end)))
-  
+      (nxml-scan-prolog)
+      (setq start (point-min))))
+
+  (when (> end nxml-prolog-end)
+    (goto-char start)
+    (nxml-move-tag-backwards (point-min))
+    (setq start (point))
+    (setq end (max (nxml-scan-after-change start end)
+                   end)))
+
+  (nxml-debug-change "nxml-after-change1" start end)
+  (cons start end))
+
 ;;; Encodings
 
 (defun nxml-insert-xml-declaration ()
@@ -854,51 +831,98 @@ The XML declaration will declare an encoding depending on the buffer's
 
 ;;; Fontification
 
-(defun nxml-fontify (start)
-  (condition-case err
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (save-match-data
-	    (nxml-with-invisible-motion
-	      (nxml-with-unmodifying-text-property-changes
-		(if (or nxml-degraded
-			;; just in case we get called in the wrong buffer
-			(not nxml-prolog-end))
-		    (nxml-set-fontified start (point-max))
-		  (nxml-fontify1 start)))))))
-    (error
-     (nxml-degrade 'nxml-fontify err))))
+(defun nxml-unfontify-region (start end)
+  (font-lock-default-unfontify-region start end)
+  (nxml-clear-char-ref-extra-display start end))
 
-(defun nxml-fontify1 (start)
-  (cond ((< start nxml-prolog-end)
-	 (nxml-fontify-prolog)
-	 (nxml-set-fontified (point-min)
-			     nxml-prolog-end))
-	(t
-	 (goto-char start)
-	 (when (not (eq nxml-last-fontify-end start))
-	   (when (not (equal (char-after) ?\<))
-	     (search-backward "<" nxml-prolog-end t))
-	   (nxml-ensure-scan-up-to-date)
-	   (nxml-move-outside-backwards))
-	 (let ((start (point)))
-	   (nxml-do-fontify (min (point-max)
-				 (+ start nxml-fontify-chunk-size)))
-	   (setq nxml-last-fontify-end (point))
-	   (nxml-set-fontified start nxml-last-fontify-end)))))
+(defvar font-lock-beg) (defvar font-lock-end)
+(defun nxml-extend-region ()
+  "Extend the region to hold the minimum area we can fontify with nXML.
+Called with font-lock-beg and font-lock-end dynamically bound."
+  (let ((start font-lock-beg)
+        (end font-lock-end))
 
-(defun nxml-fontify-buffer ()
-  (interactive)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (nxml-with-invisible-motion
-	(goto-char (point-min))
-	(nxml-with-unmodifying-text-property-changes
-	  (nxml-fontify-prolog)
-	  (goto-char nxml-prolog-end)
-	  (nxml-do-fontify))))))
+    (nxml-debug-change "nxml-extend-region(input)" start end)
+
+    (when (< start nxml-prolog-end)
+      (setq start (point-min)))
+
+    (cond ((<= end nxml-prolog-end)
+           (setq end nxml-prolog-end))
+
+          (t
+           (goto-char start)
+           ;; some font-lock backends (like Emacs 22 jit-lock) snap
+           ;; the region to the beginning of the line no matter what
+           ;; we say here. To mitigate the resulting excess
+           ;; fontification, ignore leading whitespace.
+           (skip-syntax-forward " ")
+
+           ;; find the beginning of the previous tag
+           (when (not (equal (char-after) ?\<))
+             (search-backward "<" nxml-prolog-end t))
+           (nxml-ensure-scan-up-to-date)
+           (nxml-move-outside-backwards)
+           (setq start (point))
+
+           (while (< (point) end)
+             (nxml-tokenize-forward))
+
+           (setq end (point))))
+
+    (when (or (< start font-lock-beg)
+              (> end font-lock-end))
+      (setq font-lock-beg start
+            font-lock-end end)
+      (nxml-debug-change "nxml-extend-region" start end)
+      t)))
+
+(defun nxml-extend-after-change-region (start end pre-change-length)
+  (unless nxml-degraded
+    (setq nxml-last-fontify-end nil)
+
+    (nxml-with-degradation-on-error 'nxml-extend-after-change-region
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (save-match-data
+	      (nxml-with-invisible-motion
+		(nxml-with-unmodifying-text-property-changes
+                  (nxml-extend-after-change-region1
+                   start end pre-change-length)))))))))
+
+(defun nxml-extend-after-change-region1 (start end pre-change-length)
+  (let* ((region (nxml-after-change1 start end pre-change-length))
+         (font-lock-beg (car region))
+         (font-lock-end (cdr region)))
+
+    (nxml-extend-region)
+    (cons font-lock-beg font-lock-end)))
+
+(defun nxml-fontify-matcher (bound)
+  "Called as font-lock keyword matcher."
+
+  (unless nxml-degraded
+    (nxml-debug-change "nxml-fontify-matcher" (point) bound)
+
+    (when (< (point) nxml-prolog-end)
+      ;; prolog needs to be fontified in one go, and
+      ;; nxml-extend-region makes sure we start at BOB.
+      (assert (bobp))
+      (nxml-fontify-prolog)
+      (goto-char nxml-prolog-end))
+
+    (let (xmltok-dependent-regions
+          xmltok-errors)
+      (while (and (nxml-tokenize-forward)
+                  (<= (point) bound)) ; intervals are open-ended
+        (nxml-apply-fontify-rule)))
+
+    (setq nxml-last-fontify-end (point)))
+
+  ;; Since we did the fontification internally, tell font-lock to not
+  ;; do anything itself.
+  nil)
 
 (defun nxml-fontify-prolog ()
   "Fontify the prolog.
@@ -906,24 +930,12 @@ The buffer is assumed to be prepared for fontification.
 This does not set the fontified property, but it does clear
 faces appropriately."
   (let ((regions nxml-prolog-regions))
-    (nxml-clear-face (point-min) nxml-prolog-end)
     (while regions
       (let ((region (car regions)))
 	(nxml-apply-fontify-rule (aref region 0)
 				 (aref region 1)
 				 (aref region 2)))
       (setq regions (cdr regions)))))
-
-(defun nxml-do-fontify (&optional bound)
-  "Fontify at least as far as bound.
-Leave point after last fontified position."
-  (unless bound (setq bound (point-max)))
-  (let (xmltok-dependent-regions
-	xmltok-errors)
-    (while (and (< (point) bound)
-		(nxml-tokenize-forward))
-      (nxml-clear-face xmltok-start (point))
-      (nxml-apply-fontify-rule))))
 
 ;; Vectors identify a substring of the token to be highlighted in some face.
 
@@ -2574,13 +2586,7 @@ With a prefix argument, inserts the character directly."
 	       (> (prefix-numeric-value arg) 0))))
     (when (not (eq new nxml-char-ref-extra-display))
       (setq nxml-char-ref-extra-display new)
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (if nxml-char-ref-extra-display
-	      (nxml-with-unmodifying-text-property-changes
-		(nxml-clear-fontified (point-min) (point-max)))
-	    (nxml-clear-char-ref-extra-display (point-min) (point-max))))))))
+      (font-lock-fontify-buffer))))
 
 (put 'nxml-char-ref 'evaporate t)
 

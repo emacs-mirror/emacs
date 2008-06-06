@@ -110,9 +110,11 @@ There must be no nxml-inside properties after nxml-scan-end.")
   (get-text-property pos 'nxml-inside))
 
 (defsubst nxml-clear-inside (start end)
+  (nxml-debug-clear-inside start end)
   (remove-text-properties start end '(nxml-inside nil)))
 
 (defsubst nxml-set-inside (start end type)
+  (nxml-debug-set-inside start end)
   (put-text-property start end 'nxml-inside type))
 
 (defun nxml-inside-end (pos)
@@ -137,12 +139,10 @@ Return nil if the character at POS is not inside."
   "Restore `nxml-scan-end' invariants after a change.
 The change happened between START and END.
 Return position after which lexical state is unchanged.
-END must be > nxml-prolog-end."
+END must be > nxml-prolog-end. START must be outside
+any 'inside' regions and at the beginning of a token."
   (if (>= start nxml-scan-end)
       nxml-scan-end
-    (goto-char start)
-    (nxml-move-outside-backwards)
-    (setq start (point))
     (let ((inside-remove-start start)
 	  xmltok-errors
 	  xmltok-dependent-regions)
@@ -214,7 +214,7 @@ END must be > nxml-prolog-end."
 	      (setq adjusted-start ostart)))))
       (setq overlays (cdr overlays)))
     adjusted-start))
-		  
+
 (defun nxml-mark-parse-dependent-regions ()
   (while xmltok-dependent-regions
     (apply 'nxml-mark-parse-dependent-region
@@ -299,6 +299,20 @@ Sets variables like `nxml-token-after'."
 	     (nxml-mark-parse-dependent-regions)))
       (set-marker nxml-scan-end (point)))
     xmltok-type))
+
+(defun nxml-move-tag-backwards (bound)
+  "Move point backwards outside any 'inside' regions or tags, up
+to nxml-prolog-end. Point will either be at bound or a '<'
+character starting a tag outside any 'inside' regions. Ignores
+dependent regions. As a precondition, point must be >= bound."
+  (nxml-move-outside-backwards)
+  (when (not (equal (char-after) ?<))
+    (if (search-backward "<" bound t)
+        (progn
+          (nxml-move-outside-backwards)
+          (when (not (equal (char-after) ?<))
+            (search-backward "<" bound t)))
+      (goto-char bound))))
 
 (defun nxml-move-outside-backwards ()
   "Move point to first character of the containing special thing.
