@@ -1,3 +1,9 @@
+2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point): Use emacs-lisp-mode-syntax-table
+	even when calling find-tag-default.
+
 2008-06-06  Daniel Colascione  <danc@merrillpress.com>
 
 	* nxml/nxml-mode.el (nxml-syntax-highlight-flag)
