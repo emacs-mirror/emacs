@@ -1,3 +1,8 @@
+2008-06-06  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (x_produce_glyphs): Calculate tab width based on current
+	face, not frame default.
+
 2008-06-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (pop_up_windows, pop_up_frames)
