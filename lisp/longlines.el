@@ -69,7 +69,7 @@ You can also enable the display temporarily, using the command
   :group 'longlines
   :type 'boolean)
 
-(defcustom longlines-show-effect (propertize "|\n" 'face 'escape-glyph)
+(defcustom longlines-show-effect (propertize "¶\n" 'face 'escape-glyph)
   "A string to display when showing hard newlines.
 This is used when `longlines-show-hard-newlines' is on."
   :group 'longlines
