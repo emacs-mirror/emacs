@@ -855,6 +855,14 @@ search and match primitives from changing the match data.
 ** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.
 
+** The new variable `replace-search-function' determines the function
+to use for searching in query-replace and replace-string.
+
+** The new variable `replace-re-search-function' determines the
+function to use for searching in `query-replace-regexp',
+`replace-regexp', + `query-replace-regexp-eval', and
+`map-query-replace-regexp'.
+
 ** If a local hook function has a non-nil `permanent-local-hook'
 property, then `kill-all-local-variables' does not remove it from
 the local value of the hook variable.  This means it remains
