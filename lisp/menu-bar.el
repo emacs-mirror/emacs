@@ -1016,7 +1016,7 @@ mail status in mode line"))
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 	    "Case-Insensitive Search"
 	    "Case-Insensitive Search %s"
-	    "Globally ignore letter-case in search"))
+	    "Ignore letter-case in search commands"))
 
 (defun menu-bar-text-mode-auto-fill ()
   (interactive)
@@ -1027,16 +1027,24 @@ mail status in mode line"))
   (customize-mark-as-set 'text-mode-hook))
 
 (define-key menu-bar-options-menu [auto-fill-mode]
-  '(menu-item "Word Wrap in Text Modes"
+  '(menu-item "Auto Fill in Text Modes"
               menu-bar-text-mode-auto-fill
-	      :help "Automatically fill text between left and right margins (Auto Fill)"
+	      :help "Automatically fill text while typing (Auto Fill Mode)"
               :button (:toggle . (if (listp text-mode-hook)
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
+
+(define-key menu-bar-options-menu [longlines-mode]
+  '(menu-item "Word Wrap for Long Lines in this Buffer"
+              longlines-mode
+	      :help "Perform word wrapping for long lines (Long Lines mode)"
+              :button (:toggle . (and (boundp 'longlines-mode)
+				      longlines-mode))))
+
 (define-key menu-bar-options-menu [truncate-lines]
   '(menu-item "Truncate Long Lines in this Buffer"
 	      toggle-truncate-lines
-	      :help "Truncate long lines on the screen"
+	      :help "Truncate long lines at the window edge "
 	      :button (:toggle . (if (or (window-full-width-p)
 					 (not truncate-partial-width-windows))
 				     truncate-lines
