@@ -3,12 +3,11 @@
 	* nxml/nxml-mode.el (nxml-syntax-highlight-flag)
 	(nxml-fontify-chunk-size, nxml-clear-face, nxml-set-fontified)
 	(nxml-clear-fontified, nxml-fontify, nxml-fontify1)
-	(nxml-fontify-buffer, nxml-do-fontify): Remove obsolete variables
-	and functions.
+	(nxml-fontify-buffer, nxml-do-fontify):
+	Remove obsolete variables and functions.
 	(nxml-font-lock-keywords, nxml-set-face, nxml-mode)
-	(nxml-degrade, nxml-after-change)
-	(nxml-after-change1, nxml-extend-region)
-	(nxml-extend-after-change-region)
+	(nxml-degrade, nxml-after-change, nxml-after-change1)
+	(nxml-extend-region, nxml-extend-after-change-region)
 	(nxml-extend-after-change-region1, nxml-fontify-matcher)
 	(nxml-toggle-char-ref-extra-display): Use font-lock, and
 	font-lock-extend-region-functions in particular, to fontify
@@ -16,12 +15,12 @@
 	(nxml-debug-region): New debugging helper function.
 
 	* nxml/nxml-rap.el (nxml-clear-inside, nxml-set-inside)
-	(nxml-scan-after-change, nxml-move-tag-backwards): Adapt for
-	font-lock changes.
+	(nxml-scan-after-change, nxml-move-tag-backwards):
+	Adapt for font-lock changes.
 
 	* nxml/nxml-util.el (nxml-debug, nxml-debug-change)
-	(nxml-debug-set-inside, nxml-debug-clear-inside): New debugging
-	functions.
+	(nxml-debug-set-inside, nxml-debug-clear-inside):
+	New debugging functions.
 	(nxml-with-degradation-on-error): New helper macro.
 
 2008-06-06  Martin Rudalics  <rudalics@gmx.at>
@@ -54,13 +53,14 @@
 	(same-window-regexps, pop-up-frames, display-buffer-reuse-frames)
 	(pop-up-frame-function, pop-up-windows, even-window-heights)
 	(split-window-preferred-function, split-height-threshold)
-	(window--display-buffer-1, display-buffer, pop-to-buffer): Move
-	from window.c and buffer.c.
+	(window--display-buffer-1, display-buffer, pop-to-buffer):
+	Move from window.c and buffer.c.
 	(window--splittable-p, window--try-to-split-window)
 	(window--frame-usable-p, window--display-buffer-2)
 	(window--even-window-heights): New functions.
 	(split-width-threshold): New option.
 	(split-window-preferred-horizontally): Remove.
+
 	* cus-start.el: Remove corresponding declarations.
 
 2008-06-05  Sam Steingold  <sds@gnu.org>
@@ -5456,9 +5456,9 @@
 	Fix typos in messages.
 	(reb-mode-buffer-p): New function.
 	(re-builder, reb-kill-buffer): Use `reb-mode-buffer-p'.  Use `when'.
-	(top, reb-show-subexp, reb-auto-update, reb-auto-update)
-	(reb-delete-overlays, reb-cook-regexp, reb-update-regexp)
-	(reb-update-overlays): Use `unless', `when'.
+	(top, reb-show-subexp, reb-auto-update, reb-delete-overlays)
+	(reb-cook-regexp, reb-update-regexp, reb-update-overlays):
+	Use `unless', `when'.
 	(re-builder-unload-function): New function.
 
 2008-03-25  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -8359,7 +8359,7 @@
 
 	* ldefs-boot.el: Regenerated.
 
-	* loadup.el: Don't load language/devanagari, language/kannanda,
+	* loadup.el: Don't load language/devanagari, language/kannada,
 	language/malayalam, and language/tamil.  Load language/sinhala.
 
 	* language/indian.el (indian-font-foundry)
@@ -8372,7 +8372,7 @@
 	New language environments.
 
 	* language/devanagari.el, language/devan-util.el,
-	* language/kannanda.el, language/knd-util.el, language/malayalam.el,
+	* language/kannada.el, language/knd-util.el, language/malayalam.el,
 	* language/mlm-util.el, language/tamil.el, language/tml-util.el:
 	Delete them.
 
