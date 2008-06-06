@@ -849,6 +849,9 @@ returned by `split-window' or `split-window-preferred-function'."
 (defun window--frame-usable-p (frame)
   "Return frame FRAME if it can be used to display another buffer."
   (let ((window (frame-root-window frame)))
+    ;; `frame-root-window' may be an internal window which is considered
+    ;; "dead" by `window-live-p'.  Hence if `window' is not live we
+    ;; implicitly know that `frame' has a visible window we can use.
     (when (or (not (window-live-p window))
 	      (and (not (window-minibuffer-p window))
 		   (not (window-dedicated-p window))))
@@ -1012,8 +1015,7 @@ consider all visible or iconified frames."
 		(get-largest-window 'visible nil)
 		(get-buffer-window buffer 0)
 		(get-largest-window 0 nil)
-		(frame-selected-window (funcall pop-up-frame-function))
-		(get-lru-window t t)))
+		(frame-selected-window (funcall pop-up-frame-function))))
       (window--even-window-heights window-to-use)
       (window--display-buffer-2 buffer window-to-use)))))
 
