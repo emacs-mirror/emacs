@@ -1,3 +1,14 @@
+2008-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (replace-search-function)
+	(replace-re-search-function): New vars.
+	(perform-replace): Use them.
+
+	* longlines.el (longlines-re-search-forward): New function.
+	(longlines-mode): Bind replace-search-function and
+	replace-re-search-function, to ensure that replacement commands
+	treat newlines as spaces.
+
 2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (function-called-at-point):
