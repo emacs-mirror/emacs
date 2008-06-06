@@ -1,3 +1,7 @@
+2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (mail-interactive): Change default.
+
 2008-06-05  John Paul Wallington  <jpw@pobox.com>
 
 	* bindings.el (completion-ignored-extensions):
