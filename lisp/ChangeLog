@@ -1,3 +1,29 @@
+2008-06-06  Daniel Colascione  <danc@merrillpress.com>
+
+	* nxml/nxml-mode.el (nxml-syntax-highlight-flag)
+	(nxml-fontify-chunk-size, nxml-clear-face, nxml-set-fontified)
+	(nxml-clear-fontified, nxml-fontify, nxml-fontify1)
+	(nxml-fontify-buffer, nxml-do-fontify): Remove obsolete variables
+	and functions.
+	(nxml-font-lock-keywords, nxml-set-face, nxml-mode)
+	(nxml-degrade, nxml-after-change)
+	(nxml-after-change1, nxml-extend-region)
+	(nxml-extend-after-change-region)
+	(nxml-extend-after-change-region1, nxml-fontify-matcher)
+	(nxml-toggle-char-ref-extra-display): Use font-lock, and
+	font-lock-extend-region-functions in particular, to fontify
+	nxml-mode buffers.
+	(nxml-debug-region): New debugging helper function.
+
+	* nxml/nxml-rap.el (nxml-clear-inside, nxml-set-inside)
+	(nxml-scan-after-change, nxml-move-tag-backwards): Adapt for
+	font-lock changes.
+
+	* nxml/nxml-util.el (nxml-debug, nxml-debug-change)
+	(nxml-debug-set-inside, nxml-debug-clear-inside): New debugging
+	functions.
+	(nxml-with-degradation-on-error): New helper macro.
+
 2008-06-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer): Remove dead call to get-lru-window.

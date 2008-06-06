@@ -27,9 +27,6 @@
 (defconst nxml-debug nil
   "enable nxml debugging. effective only at compile time")
 
-(eval-when-compile
-  (require 'cl))
-
 (defsubst nxml-debug (format &rest args)
   (when nxml-debug
     (apply #'message format args)))
