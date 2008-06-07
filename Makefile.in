@@ -843,11 +843,13 @@ bootstrap: bootstrap-clean-before FRC
 bootfast: bootstrap-clean-before-fast FRC
 	$(MAKE) $(MFLAGS) info bootstrap-build
 
+## There used to be a src; mostlyclean before all, but it does not
+## seem to serve any purpose, and compiles things twice.
+## http://lists.gnu.org/archive/html/emacs-devel/2008-06/msg00104.html
 bootstrap-build: FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
-	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
 	$(MAKE) $(MFLAGS) all
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
 
