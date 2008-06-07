@@ -1,3 +1,26 @@
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* finder.el (finder-compile-keywords): Use lm-keywords-list rather than
+	lm-keywords.
+
+	* mail/sendmail.el (mail-interactive): Add :version.
+
+	* term/linux.el (terminal-init-linux): Use gpm-mouse-mode rather than
+	obsolete alias.
+
+	* ediff-merg.el, strokes.el, wid-edit.el, emacs-lisp/lisp-mnt.el:
+	* emulation/edt-mapper.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-ls.el, eshell/em-unix.el, eshell/esh-cmd.el:
+	* eshell/esh-io.el, eshell/esh-opt.el, eshell/esh-test.el:
+	* eshell/esh-util.el, international/mule-cmds.el:
+	* international/mule-diag.el, mail/smtpmail.el, net/netrc.el:
+	* net/tls.el, progmodes/etags.el, textmodes/page-ext.el:
+	Remove unnecessary eval-when-compiles and eval-and-compiles.
+
+	* Makefile.in (bootstrap-clean): Run autogen-clean.
+	(maintainer-clean): No need to run autogen-clean now it is included in
+	bootstrap-clean.
+
 2008-06-06  Miles Bader  <miles@gnu.org>
 
 	* Makefile.in (ELCFILES): Add gnus/nndir.elc.
