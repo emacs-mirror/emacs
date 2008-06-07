@@ -1311,7 +1311,7 @@ the stroke as a character in some language."
 ;;;;;###autoload
 ;;(defalias 'edit-strokes 'strokes-edit-strokes)
 
-(eval-when-compile (defvar view-mode-map))
+(defvar view-mode-map)
 
 ;;;###autoload
 (defun strokes-list-strokes (&optional chronological strokes-map)
