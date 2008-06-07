@@ -260,9 +260,8 @@ the form:
 	    (error "No matches found: %s" glob)
 	  glob))))
 
-(eval-when-compile
-  (defvar matches)
-  (defvar message-shown))
+(defvar matches)
+(defvar message-shown)
 
 ;; FIXME does this really need to abuse matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)

@@ -1,7 +1,7 @@
 ;;; esh-cmd.el --- command invocation
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -477,9 +477,8 @@ hooks should be run before and after the command."
   "Execute named command"
   (eshell-command-result-p "+ 1 2" "3\n"))
 
-(eval-when-compile
-  (defvar eshell-command-body)
-  (defvar eshell-test-body))
+(defvar eshell-command-body)
+(defvar eshell-test-body)
 
 (defsubst eshell-invokify-arg (arg &optional share-output silent)
   "Change ARG so it can be invoked from a structured command.

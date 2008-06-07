@@ -152,11 +152,10 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 (defalias 'eshell/basename 'file-name-nondirectory)
 (defalias 'eshell/dirname  'file-name-directory)
 
-(eval-when-compile
-  (defvar interactive)
-  (defvar preview)
-  (defvar recursive)
-  (defvar verbose))
+(defvar interactive)
+(defvar preview)
+(defvar recursive)
+(defvar verbose)
 
 (defun eshell/man (&rest args)
   "Invoke man, flattening the arguments appropriately."
@@ -337,10 +336,9 @@ Remove the DIRECTORY(ies), if they are empty.")
 
 (put 'eshell/rmdir 'eshell-no-numeric-conversions t)
 
-(eval-when-compile
-  (defvar no-dereference)
-  (defvar preview)
-  (defvar verbose))
+(defvar no-dereference)
+(defvar preview)
+(defvar verbose)
 
 (defvar eshell-warn-dot-directories t)
 
@@ -803,15 +801,14 @@ external command."
 
 (defalias 'pcomplete/ssh 'pcomplete/rsh)
 
-(eval-when-compile
-  (defvar block-size)
-  (defvar by-bytes)
-  (defvar dereference-links)
-  (defvar grand-total)
-  (defvar human-readable)
-  (defvar max-depth)
-  (defvar only-one-filesystem)
-  (defvar show-all))
+(defvar block-size)
+(defvar by-bytes)
+(defvar dereference-links)
+(defvar grand-total)
+(defvar human-readable)
+(defvar max-depth)
+(defvar only-one-filesystem)
+(defvar show-all)
 
 (defsubst eshell-du-size-string (size)
   (let* ((str (eshell-printable-size size human-readable block-size t))

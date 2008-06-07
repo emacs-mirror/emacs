@@ -1,7 +1,7 @@
 ;;; esh-io.el --- I/O management
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -380,8 +380,7 @@ it defaults to `insert'."
     (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
 
-(eval-when-compile
-  (defvar grep-null-device))
+(defvar grep-null-device)
 
 (defun eshell-set-output-handle (index mode &optional target)
   "Set handle INDEX, using MODE, to point to TARGET."
