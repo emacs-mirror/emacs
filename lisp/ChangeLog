@@ -1,3 +1,9 @@
+2008-06-07  Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* language/hanja-util.el (hanja-init-load): Use a char-table for
+	hanja-table.
+	(hangul-to-hanja-char): Adjusted for the above change.
+
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* finder.el (finder-compile-keywords): Use lm-keywords-list rather than
