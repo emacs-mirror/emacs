@@ -1,7 +1,7 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -77,9 +77,7 @@
 (autoload 'netrc-machine "netrc")
 (autoload 'netrc-get "netrc")
 (autoload 'password-read "password-cache")
-
-(eval-and-compile
-  (autoload 'auth-source-user-or-password "auth-source"))
+(autoload 'auth-source-user-or-password "auth-source")
 
 ;;;
 (defgroup smtpmail nil
@@ -542,9 +540,9 @@ This is relative to `smtpmail-queue-dir'."
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
-	 (auth-user (auth-source-user-or-password 
+	 (auth-user (auth-source-user-or-password
 		     "login" host (or port "smtp")))
-	 (auth-pass (auth-source-user-or-password 
+	 (auth-pass (auth-source-user-or-password
 		     "password" host (or port "smtp")))
 	 (cred (if (and auth-user auth-pass) ; try user-auth-* before netrc-*
 		   (list host port auth-user auth-pass)
