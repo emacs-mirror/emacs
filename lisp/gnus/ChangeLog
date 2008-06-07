@@ -1,4 +1,8 @@
-2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* nnmairix.el: Remove unnecessary eval-when-compile.
+
+2008-06-06  Kai Großjohann  <grossjohann@ls6.cs.uni-dortmund.de>
 
 	* nnir.el: New file.
 
