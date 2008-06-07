@@ -1,7 +1,7 @@
 ;;; nnir.el --- search mail with various search engines -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -11,6 +11,24 @@
 ;; IMAP search improved by Daniel Pittman  <daniel@rimspace.net>.
 ;; nnmaildir support for Swish++ and Namazu backends by:
 ;;   Justus Piater <Justus <at> Piater.name>
+;; Keywords: news mail searching ir
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;; TODO: Documentation in the Gnus manual
 
@@ -32,26 +50,6 @@
 ;; `gnus-group-make-nnir-group' might be described in (info
 ;; "(gnus)Foreign Groups") as well.
 
-;; Keywords: news mail searching ir
-
-;; This file is part of GNU Emacs.
-
-;; This is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
-
-;;; Commentary:
 
 ;; The most recent version of this can always be fetched from the Gnus
 ;; CVS repository.  See http://www.gnus.org/ for more information.
@@ -366,7 +364,7 @@
   `((wais    nnir-run-waissearch
              ())
     (imap    nnir-run-imap
-             ((criteria 
+             ((criteria
 	       "Search in: "                      ; Prompt
 	       ,nnir-imap-search-arguments        ; alist for completing
 	       nil                                ; no filtering
@@ -842,7 +840,7 @@ and show thread that contains this article."
 
 
 (defmacro nnir-add-result (dirnam artno score prefix server artlist)
-  "Ask `nnir-compose-result' to construct a result vector, 
+  "Ask `nnir-compose-result' to construct a result vector,
 and if it is non-nil, add it to artlist."
   `(let ((result (nnir-compose-result ,dirnam ,artno ,score ,prefix ,server)))
      (when (not (null result))
@@ -977,7 +975,7 @@ This implements a little language designed to return the expected results
 to an arbitrary query string to the end user.
 
 The search is always case-insensitive, as defined by RFC2060, and supports
-the following features (inspired by the Google search input language): 
+the following features (inspired by the Google search input language):
 
 Automatic \"and\" queries
     If you specify multiple words then they will be treated as an \"and\"
@@ -1138,7 +1136,7 @@ returning the one at the supplied position."
   "Are we at the end of input?"
   (skip-chars-forward "[[:blank:]]")
   (looking-at "$"))
-  
+
 
 ;; Swish++ interface.
 ;; -cc- Todo
@@ -1663,4 +1661,5 @@ The Gnus backend/server information is added."
 ;; The end.
 (provide 'nnir)
 
-;;; arch-tag: 9b3fecf8-4397-4bbb-bf3c-6ac3cbbc6664
+;; arch-tag: 9b3fecf8-4397-4bbb-bf3c-6ac3cbbc6664
+;;; nnir.el ends here
