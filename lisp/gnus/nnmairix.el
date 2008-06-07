@@ -851,9 +851,8 @@ with `nnmairix-mairix-update-options'."
 				'nnmairix-sentinel-mairix-update-finished))))))
 
 ;; Silence byte-compiler.
-(eval-when-compile
-  (defvar gnus-registry-install)
-  (autoload 'gnus-registry-fetch-group "gnus-registry"))
+(defvar gnus-registry-install)
+(autoload 'gnus-registry-fetch-group "gnus-registry")
 
 (defun nnmairix-goto-original-article (&optional no-registry)
   "Jump to the original group and display article.
