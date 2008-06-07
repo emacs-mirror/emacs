@@ -1401,12 +1401,9 @@ bootstrap-prepare:
 autogen-clean:
 	cd $(lisp); rm -f $(AUTOGENEL)
 
-maintainer-clean: distclean bootstrap-clean autogen-clean
+maintainer-clean: distclean bootstrap-clean
 
-## NB note that this rules assume only one level of subdirs below lisp/.
-## If nested subdirs are added, it's probably time to switch to:
-## find $(lisp) -name "*.elc" -exec rm -f '{}' ';'
-bootstrap-clean:
+bootstrap-clean: autogen-clean
 	cd $(lisp); rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
