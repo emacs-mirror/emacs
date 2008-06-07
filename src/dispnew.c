@@ -7066,9 +7066,10 @@ DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
        doc: /* Value is last nonminibuffer frame. */)
      ()
 {
-  Lisp_Object frame;
+  Lisp_Object frame = Qnil;
 
-  XSETFRAME (frame, last_nonminibuf_frame);
+  if (last_nonminibuf_frame)
+    XSETFRAME (frame, last_nonminibuf_frame);
 
   return frame;
 }
