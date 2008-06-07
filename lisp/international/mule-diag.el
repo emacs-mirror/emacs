@@ -1,7 +1,7 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -373,8 +373,7 @@ detailed meanings of these arguments."
 
 ;;; CODING-SYSTEM
 
-(eval-when-compile			; dynamic bondage
-  (defvar graphic-register))
+(defvar graphic-register)		; dynamic bondage
 
 ;; Print information about designation of each graphic register in
 ;; DESIGNATIONS in human readable format.  See the documentation of
