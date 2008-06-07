@@ -138,7 +138,7 @@ finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 Optional arguments DIRS are a list of Emacs Lisp directories to compile from;
 no arguments compiles from `load-path'."
   (save-excursion
-    (let (processed summary keystart keywords)
+    (let (processed summary keywords)
       (find-file generated-finder-keywords-file)
       (setq buffer-undo-list t)
       (erase-buffer)
@@ -159,7 +159,7 @@ no arguments compiles from `load-path'."
                 (with-temp-buffer
                   (insert-file-contents (expand-file-name f d))
                   (setq summary (lm-synopsis)
-                        keywords (lm-keywords)))
+                        keywords (lm-keywords-list)))
                 (insert
                  (format "    (\"%s\"\n        "
                          (if (string-match "\\.\\(gz\\|Z\\)$" f)
@@ -167,10 +167,8 @@ no arguments compiles from `load-path'."
                            f)))
                 (prin1 summary (current-buffer))
                 (insert "\n        ")
-                (setq keystart (point))
-                (insert (if keywords (format "(%s)" keywords) "nil")
-                        ")\n")
-                (subst-char-in-region keystart (point) ?, ? )))
+                (princ keywords (current-buffer))
+                (insert ")\n")))
 	    (directory-files d nil
                              ;; Allow compressed files also.  FIXME:
                              ;; generalize this, especially for
