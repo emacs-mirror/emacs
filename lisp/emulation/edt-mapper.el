@@ -1,7 +1,7 @@
 ;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
 
-;; Copyright (C) 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <Kevin.Gallagher@boeing.com>
 ;; Maintainer: Kevin Gallagher <Kevin.Gallagher@boeing.com>
@@ -143,9 +143,8 @@
 (defvar edt-term nil)
 
 ;; To silence the byte-compiler
-(eval-when-compile
-  (defvar EDT-key-name)
-  (defvar edt-save-function-key-map))
+(defvar EDT-key-name)
+(defvar edt-save-function-key-map)
 
 ;;;
 ;;;  Determine Terminal Type (if appropriate).
