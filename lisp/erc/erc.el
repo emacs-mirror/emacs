@@ -3367,9 +3367,8 @@ the message given by REASON."
   t)
 (put 'erc-cmd-SERVER 'process-not-needed t)
 
-(eval-when-compile
-  (defvar motif-version-string)
-  (defvar gtk-version-string))
+(defvar motif-version-string)
+(defvar gtk-version-string)
 
 (defun erc-cmd-SV ()
   "Say the current ERC and Emacs version into channel."

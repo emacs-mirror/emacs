@@ -1,6 +1,7 @@
 ;;; erc-autoaway.el --- Provides autoaway for ERC
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcAutoAway
@@ -45,7 +46,7 @@ This is only used when `erc-autoaway-idle-method' is set to 'emacs.")
   "Indicates whether this module was responsible for setting the
 user's away status.")
 
-(eval-when-compile (defvar erc-autoaway-idle-seconds))
+(defvar erc-autoaway-idle-seconds)
 
 (defun erc-autoaway-reestablish-idletimer ()
   "Reestablish the Emacs idletimer.
