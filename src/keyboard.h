@@ -253,8 +253,6 @@ extern Lisp_Object item_properties;
 /* Not nil if item is enabled.  */
 #define ITEM_PROPERTY_ENABLE 8
 
-#ifdef HAVE_X_WINDOWS
-
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
 
@@ -315,7 +313,7 @@ extern Lisp_Object unuse_menu_items P_ ((Lisp_Object dummy));
    isn't defined.  The use of HAVE_MULTILINGUAL_MENU could probably be
    confined to an extended version of this with sections of code below
    using it unconditionally.  */
-#ifdef HAVE_X_WINDOWS
+#ifndef HAVE_NTGUI
 #ifdef USE_GTK
 /* gtk just uses utf-8.  */
 # define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
@@ -324,10 +322,9 @@ extern Lisp_Object unuse_menu_items P_ ((Lisp_Object dummy));
 #else
 #define ENCODE_MENU_STRING(str) string_make_unibyte (str)
 #endif /* USE_GTK  */
-#elif defined (HAVE_NTGUI)
+#else /* HAVE_NTGUI */
 #define ENCODE_MENU_STRING(str) (str)
 #endif
-#endif /* HAVE_X_WINDOWS  */
 
 /* Macros for dealing with lispy events.  */
 

@@ -1607,9 +1607,7 @@ main (argc, argv
 #endif
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef HAVE_X_WINDOWS
       syms_of_menu ();
-#endif
 
 #ifndef HAVE_NTGUI
 #ifndef MAC_OS

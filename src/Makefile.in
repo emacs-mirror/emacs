@@ -539,13 +539,9 @@ FONT_DRIVERS = xfont.o
 #endif /* HAVE_X_WINDOWS */
 #endif /* HAVE_WINDOW_SYSTEM */
 
-#ifdef HAVE_X_WINDOWS
-MENU_OBJ = menu.o
-#endif
-
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o $(MENU_OBJ) $(XMENU_OBJ) window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
