@@ -717,6 +717,12 @@ It is used to configure wireless interfaces.
 
 * Changes in Emacs 23.1 on non-free operating systems
 
+** Case is now considered significant in completion on MS-Windows.
+The default value of `completion-ignore-case' is now nil on
+MS-Windows, the same as it is for other operating systems.  The
+variable doesn't apply to reading a file name -- in that case Emacs
+heeds `read-file-name-completion-ignore-case' instead.
+
 ---
 ** IPv6 is supported on MS-Windows.
 Emacs now supports IPv6 on Windows XP and later, and earlier versions
