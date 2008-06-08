@@ -1,3 +1,8 @@
+2008-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (compile, compile-always, bootstrap-prepare):
+	Explictly pass EMACS to sub-makes that use it, for non-GNU makes.
+
 2008-06-07  Jihyun Cho  <jihyun.jo@gmail.com>
 
 	* language/hanja-util.el (hanja-init-load): Use a char-table for
