@@ -1,5 +1,8 @@
 2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* apropos.el (apropos-library): New command and new button.
+	(apropos-library-button): New function.
+
 	* apropos.el: Remove spurious * in docstrings.
 	(apropos-label-face): Use variable pitch.
 	(apropos-print): Use dolist and with-current-buffer.

@@ -250,6 +250,12 @@ term, and the rest of the words are alternative terms.")
   'action (lambda (button)
 	    (apropos-describe-plist (button-get button 'apropos-symbol))))
 
+(define-button-type 'apropos-library
+  'help-echo "mouse-2, RET: Display more help on this library"
+  'follow-link t
+  'action (lambda (button)
+	    (apropos-library (button-get button 'apropos-symbol))))
+
 (defun apropos-next-label-button (pos)
   "Return the next apropos label button after POS, or nil if there's none.
 Will also return nil if more than one `apropos-symbol' button is encountered
@@ -530,6 +536,66 @@ Returns list of symbols and documentation found."
 				(facep symbol)
 				(symbol-plist symbol)))))
    (or do-all apropos-do-all)))
+
+(defun apropos-library-button (sym)
+  (if (null sym)
+      "<nothing>"
+    (let ((name (copy-sequence (symbol-name sym))))
+      (make-text-button name nil
+                        'type 'apropos-library
+                        'face apropos-symbol-face
+                        'apropos-symbol name)
+      name)))
+
+;;;###autoload
+(defun apropos-library (file)
+  "List the variables and functions defined by library FILE.
+FILE should be one of the libraries currently loaded and should
+thus be found in `load-history'."
+  (interactive
+   (let ((libs
+          (nconc (delq nil
+                       (mapcar
+                        (lambda (l)
+                          (setq l (file-name-nondirectory l))
+                          (while
+                              (not (equal (setq l (file-name-sans-extension l))
+                                          l)))
+                          l)
+                        (mapcar 'car load-history)))
+                 (mapcar 'car load-history))))
+     (list (completing-read "Describe library: " libs nil t))))
+  (let ((symbols nil)
+	;; (autoloads nil)
+	(provides nil)
+	(requires nil)
+        (lh-entry (assoc file load-history)))
+    (unless lh-entry
+      ;; `file' may be the "shortname".
+      (let ((lh load-history)
+            (re (concat "\\(?:\\`\\|[\\/]\\)" (regexp-quote file)
+                        "\\(\\.\\|\\'\\)")))
+        (while (and lh (null lh-entry))
+          (if (string-match re (caar lh))
+              (setq lh-entry (car lh))
+            (setq lh (cdr lh)))))
+      (unless lh-entry (error "Unknown library `%s'" file)))
+    (dolist (x (cdr lh-entry))
+      (case (car-safe x)
+	;; (autoload (push (cdr x) autoloads))
+	(require (push (cdr x) requires))
+	(provide (push (cdr x) provides))
+	(t (push (or (cdr-safe x) x) symbols))))
+    (let ((apropos-pattern "")) ;Dummy binding for apropos-symbols-internal.
+      (apropos-symbols-internal
+       symbols apropos-do-all
+       (concat
+        (format "Library `%s' provides: %s\nand requires: %s"
+                file
+                (mapconcat 'apropos-library-button
+                           (or provides '(nil)) " and ")
+                (mapconcat 'apropos-library-button
+                           (or requires '(nil)) " and ")))))))
 
 (defun apropos-symbols-internal (symbols keys &optional text)
   ;; Filter out entries that are marked as apropos-inhibit.
