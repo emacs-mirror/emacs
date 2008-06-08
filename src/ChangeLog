@@ -1,3 +1,31 @@
+2008-06-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Compile menu.c.
+
+	* lisp.h: Declare syms_of_menu.
+
+	* emacs.c (main): Call syms_of_menu.
+
+	* keyboard.h: Relocate platform-independent menu definitions from
+	xmenu.c.
+
+	* menu.c: New file.  Relocate platform-independent menu
+	definitions from xmenu.c.
+
+	* xmenu.c: Remove platform-independent menu definitions.
+	(menu_items menu_items_inuse, menu_items_allocated)
+	(menu_items_used, menu_items_n_panes)
+	(menu_items_submenu_depth): Move to keyboard.h.
+	(init_menu_items, finish_menu_items, unuse_menu_items)
+	(discard_menu_items, restore_menu_items, save_menu_items)
+	(grow_menu_items, push_submenu_start, push_submenu_end)
+	(push_left_right_boundary, push_menu_pane, push_menu_item)
+	(keymap_panes, single_keymap_panes, single_menu_item)
+	(list_of_panes, list_of_items, find_and_call_menu_selection)
+	(xmalloc_widget_value, free_menubar_widget_value_tree)
+	(parse_single_submenu, digest_single_submenu)
+	(update_submenu_strings): Move to menu.c.
+
 2008-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dispnew.c (Flast_nonminibuf_frame): Handle the NULL case.
