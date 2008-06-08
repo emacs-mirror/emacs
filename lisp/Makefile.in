@@ -1256,9 +1256,11 @@ compile-main: $(ELCFILES)
 # date.  Some .el files don't get compiled because they set the
 # local variable no-byte-compile.
 # Calling make recursively because suffix rule cannot have prerequisites.
+# Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
+# sub-makes that run rules that use it, for the sake of some non-GNU makes.
 compile: $(emacs-deps) $(LOADDEFS) autoloads compile-first
-	$(MAKE) $(MFLAGS) compile-main
-	$(MAKE) $(MFLAGS) compile-last
+	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS)
+	$(MAKE) $(MFLAGS) compile-last EMACS=$(EMACS)
 
 ## Doing this causes make install to dump another emacs.
 #	$(MAKE) $(MFLAGS) update-elclist
@@ -1268,7 +1270,7 @@ compile: $(emacs-deps) $(LOADDEFS) autoloads compile-first
 # set the local variable no-byte-compile.
 compile-always: doit
 	cd $(lisp); rm -f *.elc */*.elc
-	$(MAKE) $(MFLAGS) compile
+	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
 ## In case any files are missing from ELCFILES.
 compile-last:
@@ -1395,7 +1397,7 @@ $(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
-	  $(MAKE) $(MFLAGS) autoloads;				\
+	  $(MAKE) $(MFLAGS) autoloads EMACS=$(EMACS);		\
 	fi
 
 autogen-clean:
