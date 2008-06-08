@@ -1,5 +1,8 @@
 2008-06-08  Andreas Schwab  <schwab@suse.de>
 
+	* menu.c [HAVE_X_WINDOWS]: Include "xterm.h".
+	* Makefile.in (menu.o): Update dependencies.
+
 	* fontset.c (Ffontset_info): Fix typo.
 
 	* Makefile.in (obj): Always add menu.o

@@ -32,6 +32,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "../lwlib/lwlib.h"
 #endif
 
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
