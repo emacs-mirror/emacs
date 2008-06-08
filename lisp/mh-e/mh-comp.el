@@ -116,14 +116,11 @@ user's MH directory, then in the system MH lib directory.")
   "Regexp of header lines to remove before offering a message as a new draft\\<mh-folder-mode-map>.
 Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
 
-(defvar mh-letter-mode-syntax-table nil
+(defvar mh-letter-mode-syntax-table
+  (let ((syntax-table (make-syntax-table text-mode-syntax-table)))
+    (modify-syntax-entry ?% "." syntax-table)
+    syntax-table)
   "Syntax table used by MH-E while in MH-Letter mode.")
-
-(if mh-letter-mode-syntax-table
-    ()
-  (setq mh-letter-mode-syntax-table
-        (make-syntax-table text-mode-syntax-table))
-  (modify-syntax-entry ?% "." mh-letter-mode-syntax-table))
 
 (defvar mh-send-args ""
   "Extra args to pass to \"send\" command.")
