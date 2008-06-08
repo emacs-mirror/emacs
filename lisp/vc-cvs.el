@@ -909,7 +909,7 @@ state."
 
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
-  (vc-cvs-command (current-buffer) 'async dir "status")
+  (vc-cvs-command (current-buffer) 'async dir "-f" "status")
   ;; Alternative implementation: use the "update" command instead of
   ;; the "status" command.
   ;; (vc-cvs-command (current-buffer) 'async
