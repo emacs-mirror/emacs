@@ -676,8 +676,9 @@ See `run-hooks'."
 (defun vc-dir-move-to-goal-column ()
   ;; Used to keep the cursor on the file name column.
   (beginning-of-line)
-  ;; Must be in sync with vc-default-status-printer.
-  (forward-char 25))
+  (unless (eolp)
+    ;; Must be in sync with vc-default-status-printer.
+    (forward-char 25)))
 
 (defun vc-dir-prepare-status-buffer (bname dir &optional create-new)
   "Find a buffer named BNAME showing DIR, or create a new one."

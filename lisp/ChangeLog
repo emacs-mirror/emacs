@@ -1,5 +1,8 @@
 2008-06-08  Andreas Schwab  <schwab@suse.de>
 
+	* vc-dispatcher.el (vc-dir-move-to-goal-column): Don't move in an
+	empty line.
+
 	* minibuffer.el (minibuffer-message): Bind inhibit-quit around
 	sit-for.
 
