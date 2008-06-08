@@ -7,9 +7,7 @@
 	* menu.c [HAVE_X_WINDOWS]: Include "xterm.h".
 	* Makefile.in (menu.o): Update dependencies.
 
-	* fontset.c (Ffontset_info): Fix typo.
-
-	* Makefile.in (obj): Always add menu.o
+	* Makefile.in (obj): Always add menu.o.
 	* emacs.c (main): Always call syms_of_menu.
 	* keyboard.h: Remove extra #ifdef HAVE_X_WINDOW.
 
