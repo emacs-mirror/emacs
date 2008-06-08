@@ -48,14 +48,12 @@
 ;;; digest).  If you want finer controls, explore the url-auth source
 ;;; code and variables.
 
-;;; (Tramp patch pending for this!)
 ;;; For tramp authentication, use:
 
-;;; machine yourmachine.com port tramp login testuser password testpass
+;;; machine yourmachine.com port scp login testuser password testpass
 
-;;; Note that the port can be scp or ssh, for example, to match only
-;;; those protocols.  When you use port = tramp, you match any Tramp
-;;; protocol.
+;;; Note that the port denotes the Tramp connection method.  When you
+;;; don't use a port entry, you match any Tramp method.
 
 ;;; Code:
 
@@ -88,7 +86,7 @@
 (defconst auth-source-protocols-customize
   (mapcar (lambda (a)
 	    (let ((p (car-safe a)))
-	      (list 'const 
+	      (list 'const
 		    :tag (upcase (symbol-name p))
 		    p)))
 	  auth-source-protocols))
@@ -154,23 +152,23 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
 
 (defun auth-source-user-or-password (mode host protocol)
   "Find user or password (from the string MODE) matching HOST and PROTOCOL."
-  (gnus-message 9 
+  (gnus-message 9
 		"auth-source-user-or-password: get %s for %s (%s)"
 		mode host protocol)
   (let (found)
     (dolist (choice (auth-source-pick host protocol))
-      (setq found (netrc-machine-user-or-password 
+      (setq found (netrc-machine-user-or-password
 		   mode
 		   (plist-get choice :source)
 		   (list host)
 		   (list (format "%s" protocol))
 		   (auth-source-protocol-defaults protocol)))
       (when found
-	(gnus-message 9 
+	(gnus-message 9
 		      "auth-source-user-or-password: found %s=%s for %s (%s)"
-		      mode 
+		      mode
 		      ;; don't show the password
-		      (if (equal mode "password") "SECRET" found) 
+		      (if (equal mode "password") "SECRET" found)
 		      host protocol)
 	(return found)))))
 
