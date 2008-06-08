@@ -26,7 +26,7 @@ If even 'make bootstrap' followed by 'make maintainer-clean' fails, it may
 be that some reorganization of the tree has created a new subdirectory. Try
 this:
 
-  $ cvs -d update
+  $ cvs update -d
   $ make maintainer-clean
   $ ./configure
   $ make bootstrap
