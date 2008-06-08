@@ -1057,15 +1057,14 @@ If a prefix argument is given, move by that many lines."
 
 (defun vc-dir-children-marked-p (arg)
   ;; Return nil if none of the children of arg is marked.
-  (let* ((argdir (vc-dir-node-directory arg))
-	 (arglen (length argdir))
+  (let* ((argdir-re (concat "\\`" (regexp-quote (vc-dir-node-directory arg))))
 	 (is-child t)
 	 (crt arg)
 	 data dir)
     (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
       (setq data (ewoc-data crt))
       (setq dir (vc-dir-node-directory crt))
-      (if (string-equal argdir (substring dir 0 arglen))
+      (if (string-match argdir-re dir)
 	  (when (vc-dir-fileinfo->marked data)
 	    (error "Cannot mark `%s', child `%s' marked"
 		   (vc-dir-fileinfo->name (ewoc-data arg))
