@@ -1,3 +1,8 @@
+2008-06-08  Andreas Schwab  <schwab@suse.de>
+
+	* window.el (display-buffer): Use lru window if current window
+	cannot be split.
+
 2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* apropos.el (apropos-library): New command and new button.

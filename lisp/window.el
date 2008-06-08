@@ -1009,7 +1009,8 @@ consider all visible or iconified frames."
 		 (or (window--try-to-split-window
 		      (get-largest-window frame-to-use t))
 		     (window--try-to-split-window
-		      (get-lru-window frame-to-use t))))
+		      (get-lru-window frame-to-use t))
+		     (get-lru-window frame-to-use nil)))
 	   (window--display-buffer-2 buffer window-to-use)))
      ((setq window-to-use
 	    ;; Reuse an existing window.
