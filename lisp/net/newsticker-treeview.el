@@ -9,8 +9,8 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "7. Juni 2008, 15:10:44 (ulf)"
-;; CVS-Version: $Id: newsticker-treeview.el,v 1.1 2008/06/08 15:36:18 u11 Exp $
+;; Time-stamp:  "8. Juni 2008, 20:42:16 (ulf)"
+;; CVS-Version: $Id: newsticker-treeview.el,v 1.2 2008/06/08 18:09:06 miles Exp $
 
 ;; ======================================================================
 
@@ -1953,6 +1953,7 @@ POS gives the position where EVENT occurred."
   (add-to-list 'newsticker--treeview-windows (selected-window) t)
   (other-window 1))
 
+;;;###autoload
 (defun newsticker-treeview ()
   "Start newsticker treeview."
   (interactive)

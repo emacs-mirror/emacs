@@ -1,5 +1,13 @@
 2008-06-08  Ulf Jasper  <ulf.jasper@web.de>
 
+	* net/newsticker-treeview.el (newsticker-treeview): Added autoload
+	cookie.
+
+	* net/newsticker-plainview.el (newsticker-plainview): Added
+	autoload cookie.
+
+2008-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
 	* net/newsticker.el: Split up into newsticker-backend, -ticker,
 	-reader, -plainview, and -treeview.
 	(newsticker-version): changed to 1.99

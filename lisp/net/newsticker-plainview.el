@@ -7,8 +7,8 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "7. Juni 2008, 23:37:09 (ulf)"
-;; CVS-Version: $Id: newsticker-plainview.el,v 1.1 2008/06/08 15:35:39 u11 Exp $
+;; Time-stamp:  "8. Juni 2008, 20:39:46 (ulf)"
+;; CVS-Version: $Id: newsticker-plainview.el,v 1.2 2008/06/08 18:09:06 miles Exp $
 
 ;; ======================================================================
 
@@ -552,6 +552,7 @@ images."
 ;; ======================================================================
 ;;; User fun
 ;; ======================================================================
+;;;###autoload
 (defun newsticker-plainview ()
   "Start newsticker plainview."
   (interactive)
