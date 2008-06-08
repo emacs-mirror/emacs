@@ -8,7 +8,7 @@
 ;; Filename:    newsticker-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "7. Juni 2008, 15:34:08 (ulf)"
-;; CVS-Version: $Id: newsticker-reader.el,v 1.5 2008/05/04 18:21:08 u11 Exp $
+;; CVS-Version: $Id: newsticker-reader.el,v 1.1 2008/06/08 15:35:57 u11 Exp $
 
 ;; ======================================================================
 
@@ -1115,4 +1115,6 @@ static char * visit_xpm[] = {
    "Image for the browse button."))
 
 (provide 'newsticker-reader)
+
+;; arch-tag: c604b701-bdf1-4fc1-8d05-5fabd1939533
 ;;; newsticker-reader.el ends here

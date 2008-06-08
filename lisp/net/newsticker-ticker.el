@@ -9,7 +9,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "7. Juni 2008, 15:12:27 (ulf)"
-;; CVS-Version: $Id: newsticker-ticker.el,v 1.6 2008/05/04 15:05:35 u11 Exp $
+;; CVS-Version: $Id: newsticker-ticker.el,v 1.1 2008/06/08 15:36:08 u11 Exp $
 
 ;; ======================================================================
 
@@ -288,4 +288,6 @@ running already."
         (setq newsticker--scrollable-text ""))))
 
 (provide 'newsticker-ticker)
+
+;; arch-tag: faee3ebb-749b-4935-9835-7f36d4b700f0
 ;;; newsticker-ticker.el ends here

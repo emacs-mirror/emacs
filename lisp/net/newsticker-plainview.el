@@ -8,7 +8,7 @@
 ;; Filename:    newsticker-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "7. Juni 2008, 23:37:09 (ulf)"
-;; CVS-Version: $Id: newsticker-plainview.el,v 1.10 2008/05/04 15:04:34 u11 Exp $
+;; CVS-Version: $Id: newsticker-plainview.el,v 1.1 2008/06/08 15:35:39 u11 Exp $
 
 ;; ======================================================================
 
@@ -1820,4 +1820,6 @@ Take care: end of item is at the end of its last line!"
           newsticker--cache)))
 
 (provide 'newsticker-plainview)
+
+;; arch-tag: 4e48b683-d48b-48dd-a13e-fe45baf41184
 ;;; newsticker-plainview.el ends here

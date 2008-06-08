@@ -10,7 +10,7 @@
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "7. Juni 2008, 15:10:44 (ulf)"
-;; CVS-Version: $Id: newsticker-treeview.el,v 1.17 2008/06/05 19:57:09 u11 Exp $
+;; CVS-Version: $Id: newsticker-treeview.el,v 1.1 2008/06/08 15:36:18 u11 Exp $
 
 ;; ======================================================================
 
@@ -1979,4 +1979,5 @@ POS gives the position where EVENT occurred."
   
 (provide 'newsticker-treeview)
 
+;; arch-tag: 5dbaff48-1f3e-4fc6-8ebd-e966fc90d2d4
 ;;; newsticker-treeview.el ends here
