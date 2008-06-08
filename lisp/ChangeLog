@@ -1,3 +1,163 @@
+2008-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newsticker.el: Split up into newsticker-backend, -ticker,
+	-reader, -plainview, and -treeview.
+	(newsticker-version): changed to 1.99
+
+	* net/newsticker-backend.el: New. Moved backend functionality from
+	newsticker.el to newsticker-backend.el
+	(newsticker--download-logos): New.
+	(newsticker--sentinel-callback): New.
+	(newsticker--set-customvar): Removed. Split up into specific
+	functions related to retrieval, ticker, buffer, and display.
+	(newsticker--set-customvar-retrieval): New. Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-retrieval): New. Renamed from `newsticker-feed'.
+	(newsticker-url-list-defaults): Use
+	`newsticker--set-customvar-retrieval' for :set. Changed :group.
+	(newsticker-url-list): Doc changed. URL can be a function. Use
+	`newsticker--set-customvar-retrieval' for :set. Changed :group.
+	(newsticker-retrieval-method): New.
+	(newsticker-wget-name): Changed :group.
+	(newsticker-wget-arguments): Changed :group.
+	(newsticker-retrieval-interval): Use
+	`newsticker--set-customvar-retrieval' for :set. Changed :group.
+	(newsticker-desc-comp-max): Changed :group.
+	(newsticker--cache): Doc changed.
+	(newsticker--guid-to-string): New.
+	(newsticker--guid): Use `newsticker--guid-to-string'.
+	(newsticker--real-feed-name): New.
+	(newsticker--start-feed): New. Extracted from `newsticker-start'.
+	(newsticker-start): Use `insert-file-contents' for reading
+	cache. Use `newsticker--start-feed'.
+	(newsticker--stop-feed): New. Extracted from `newsticker-stop'.
+	(newsticker-stop): Check whether `newsticker-stop-ticker' is
+	fbound. Use `newsticker--stop-feed'.
+	(newsticker-save-item): New.
+	(newsticker--get-news-by-funcall): New.
+	(newsticker-get-news): Handle new retrieval methods.
+	(newsticker--sentinel): Use `newsticker--sentinel-work'.
+	(newsticker--sentinel-work): New. Extracted from
+	`newsticker--sentinel'. Use `newsticker--download-logos',
+	`newsticker--sentinel-callback'.
+	(newsticker--parse-atom-0.3): Use `newsticker--guid-to-string'.
+	(newsticker--parse-atom-1.0): Fixed link determination.
+	(newsticker--parse-rss-0.91): Fixed time determination.
+	(newsticker--parse-rss-0.92): Fixed time determination.
+	(newsticker--parse-rss-2.0): Use `newsticker--guid-to-string'.
+	(newsticker--parse-generic-feed): New arg order in
+	`newsticker--cache-add'.
+	(newsticker--parse-generic-items): Fix for multiple items. New arg
+	order in `newsticker--cache-add'.
+	(newsticker--forget-preformatted): Check whether
+	`newsticker--buffer-set-uptodate' is fbound.
+	(newsticker--decode-iso8601-date): Handle fractions of seconds.
+	(newsticker--decode-rfc822-date): Partial timezone handling.
+	(newsticker--cache-contains): Fix guid problem.
+	(newsticker--cache-add): Swapped args AGE and TIME. Fixed guid
+	problem.
+	(newsticker--cache-save): New.
+	(newsticker--cache-update): Use temp buffer.
+	(newsticker--stat-num-items): Allow multiple AGE args.
+	(newsticker--stat-num-items-total): New.
+	(newsticker--opml-import-outlines): New.
+	(newsticker-opml-import): Use `newsticker--opml-import-outlines'.
+	(newsticker--do-run-auto-mark-filter): Doc changed.
+	(newsticker-retrieve-random-message): New.
+
+	* net/newsticker-ticker.el: New. Moved ticker functionality from
+	net/newsticker.el to net/newsticker-ticker.el.
+	(newsticker--ticker-timer): Renamed `newsticker--display-timer' to
+	`newsticker--ticker-timer'.
+	(newsticker-ticker-running-p): Renamed `newsticker--display-timer'
+	to `newsticker--ticker-timer'.
+	(newsticker--set-customvar-ticker): New. Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-ticker-interval): Renamed
+	`newsticker-display-interval' to `newsticker-ticker-interval'. Use
+	`newsticker--set-customvar-ticker for :set. Changed :group.
+	(newsticker-scroll-smoothly): Doc changed. Changed :group.
+	(newsticker-hide-immortal-items-in-echo-area): Use
+	`newsticker--set-customvar-ticker for :set. Changed :group.
+	(newsticker-hide-old-items-in-echo-area): Use
+	`newsticker--set-customvar-ticker for :set. Changed :group.
+	(newsticker-hide-old-items-in-echo-area): Use
+	`newsticker--set-customvar-ticker for :set. Changed :group.
+	(newsticker-hide-obsolete-items-in-echo-area): Use
+	`newsticker--set-customvar-ticker for :set. Changed :group.
+	(newsticker-start-ticker): Renamed `newsticker--display-timer' to
+	`newsticker--ticker-timer'. Renamed `newsticker-display-interval'
+	to `newsticker-ticker-interval'.
+	(newsticker-stop-ticker): Renamed `newsticker--display-timer' to
+	`newsticker--ticker-timer'.
+
+	* net/newsticker-reader.el: New. Moved reader functionality from
+	net/newsticker.el to net/newsticker-reader.el.
+	(newsticker--set-customvar-formatting): New. Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-reader): New.
+	(newsticker-frontend): New.
+	(newsticker-enable-logo-manipulations): Changed :group.
+	(newsticker-justification): Use
+	`newsticker--set-customvar-formatting' for :set. Changed :group.
+	(newsticker-use-full-width): Use
+	`newsticker--set-customvar-formatting' for :set. Changed :group.
+	(newsticker-html-renderer): Doc changed. Use
+	`newsticker--set-customvar-formatting' for :set. Changed :group.
+	(newsticker-date-format): Use
+	`newsticker--set-customvar-formatting' for :set. Changed :group.
+	(newsticker--insert-enclosure): Renamed
+	`newsticker--buffer-insert-enclosure' to
+	`newsticker--insert-enclosure'. Added keymap arg.
+	(newsticker--print-extra-elements): Renamed
+	`newsticker--buffer-print-extra-elements' to
+	`newsticker--print-extra-elements'. Added keymap arg.
+	(newsticker--do-print-extra-element): Renamed
+	`newsticker--buffer-do-print-extra-element' to
+	`newsticker--do-print-extra-element'. Added keymap arg.
+	(newsticker-show-news): Use `newsticker-frontend'.
+
+	* net/newsticker-plainview.el: New. Moved plainview functionality
+	from net/newsticker.el to net/newsticker-reader.el.
+	(newsticker-plainview): New.
+	(newsticker--set-customvar-sorting): New. Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-sort-method): Use `newsticker--set-customvar-sorting
+	for :set. Changed :group.
+	(newsticker-heading-format): Use
+	`newsticker--set-customvar-formatting for :set. Changed :group.
+	(newsticker-item-format): Use
+	`newsticker--set-customvar-formatting for :set. Changed :group.
+	(newsticker-desc-format): Use
+	`newsticker--set-customvar-formatting for :set. Changed :group.
+	(newsticker-statistics-format): Use
+	`newsticker--set-customvar-formatting for :set. Changed :group.
+	(newsticker-faces): Changed :group.
+	(newsticker-default-face): Enabled again.
+	(newsticker-hide-old-items-in-newsticker-buffer): Use
+	`newsticker--set-customvar-buffer' for :set. Changed :group.
+	(newsticker-show-descriptions-of-new-items): Use
+	`newsticker--set-customvar-buffer' for :set. Changed
+	:group.Changed :group.
+	(newsticker-show-all-news-elements): Changed :group.
+	(newsticker-plainview-hooks): New.
+	(newsticker-select-item-hook): Changed :group.
+	(newsticker-select-feed-hook): Changed :group.
+	(newsticker-buffer-change-hook): Changed :group.
+	(newsticker-narrow-hook): Changed :group.
+	(newsticker--plainview-tool-bar-map): Renamed
+	`newsticker--tool-bar-map' to
+	`newsticker--plainview-tool-bar-map'.
+	(newsticker--url-keymap): Added mouse-1 binding.
+	(newsticker-plainview): New.
+	(newsticker-mark-all-items-of-feed-as-read): Doc changed.
+	(newsticker--buffer-do-insert-text): Use renamed
+	newsticker--[buffer-]insert-enclosure and
+	newsticker--[buffer-]print-extra-elements.
+	(newsticker--buffer-set-faces): Use newsticker-default-face.
+
+	* net/newsticker-treeview.el: New.
+
 2008-06-08  Andreas Schwab  <schwab@suse.de>
 
 	* vc-dispatcher.el (vc-dir-children-marked-p): Fix child check.
