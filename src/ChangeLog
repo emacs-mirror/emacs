@@ -10,7 +10,7 @@
 	xmenu.c.
 
 	* menu.c: New file.  Relocate platform-independent menu
-	definitions from xmenu.c.
+	definitions from xmenu.c.  Suggested by Adrian Robert.
 
 	* xmenu.c: Remove platform-independent menu definitions.
 	(menu_items menu_items_inuse, menu_items_allocated)
