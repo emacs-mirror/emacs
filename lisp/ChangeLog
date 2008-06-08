@@ -1,3 +1,9 @@
+2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-group): New var.
+	(byte-compile-file): Initialize it.
+	(byte-compile-nogroup-warn): Keep track of the current group.
+
 2008-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (compile, compile-always, bootstrap-prepare):
@@ -7,7 +13,7 @@
 
 	* language/hanja-util.el (hanja-init-load): Use a char-table for
 	hanja-table.
-	(hangul-to-hanja-char): Adjusted for the above change.
+	(hangul-to-hanja-char): Adjust for the above change.
 
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
