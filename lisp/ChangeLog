@@ -1,3 +1,16 @@
+2008-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-height-threshold, split-width-threshold): Add
+	choice nil.
+	(split-window-preferred-function): Allow either nil or a function.
+	(window--splittable-p, window--try-to-split-window): Handle
+	changed option values.
+
+	(window--frame-usable-p): Handle nil argument.
+
+	(display-buffer): Call get-lru-window when pop-up-windows is nil
+	and window can't be split.
+
 2008-06-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* uniquify.el (uniquify-get-proposed-name): Handle remote files.
