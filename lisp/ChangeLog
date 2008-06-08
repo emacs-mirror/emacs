@@ -1,3 +1,8 @@
+2008-06-08  Andreas Schwab  <schwab@suse.de>
+
+	* minibuffer.el (minibuffer-message): Bind inhibit-quit around
+	sit-for.
+
 2008-06-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (split-height-threshold, split-width-threshold): Add

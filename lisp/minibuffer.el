@@ -281,7 +281,10 @@ If ARGS are provided, then pass MESSAGE through `format'."
                     (copy-sequence message)
                   (concat " [" message "]")))
   (when args (setq message (apply 'format message args)))
-  (let ((ol (make-overlay (point-max) (point-max) nil t t)))
+  (let ((ol (make-overlay (point-max) (point-max) nil t t))
+	;; A quit during sit-for should be (re-)read as
+	;; abort-recursive-edit
+	(inhibit-quit t))
     (unwind-protect
         (progn
           (unless (zerop (length message))
