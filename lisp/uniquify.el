@@ -360,7 +360,8 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	  (setq dirname (directory-file-name dirname)))
 	(setq n (1- n))
 	(push (if (zerop (length file)) ;nil or "".
-		  (prog1 "" (setq dirname nil)) ;Could be `dirname' iso "".
+		  (prog1 (or (file-remote-p dirname) "")
+		    (setq dirname nil)) ;Could be `dirname' iso "".
 		file)
 	      extra-string)))
     (when (zerop n)
