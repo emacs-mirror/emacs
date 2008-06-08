@@ -66,7 +66,7 @@
 
 ;; I see a degradation of maybe 10-20% only.
 (defcustom apropos-do-all nil
-  "*Whether the apropos commands should do more.
+  "Whether the apropos commands should do more.
 
 Slows them down more or less.  Set this non-nil if you have a fast machine."
   :group 'apropos
@@ -74,36 +74,36 @@ Slows them down more or less.  Set this non-nil if you have a fast machine."
 
 
 (defcustom apropos-symbol-face 'bold
-  "*Face for symbol name in Apropos output, or nil for none."
+  "Face for symbol name in Apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-keybinding-face 'underline
-  "*Face for lists of keybinding in Apropos output, or nil for none."
+  "Face for lists of keybinding in Apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-label-face 'italic
-  "*Face for label (`Command', `Variable' ...) in Apropos output.
+(defcustom apropos-label-face '(italic variable-pitch)
+  "Face for label (`Command', `Variable' ...) in Apropos output.
 A value of nil means don't use any special font for them, and also
 turns off mouse highlighting."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-property-face 'bold-italic
-  "*Face for property name in apropos output, or nil for none."
+  "Face for property name in apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-match-face 'match
-  "*Face for matching text in Apropos documentation/value, or nil for none.
+  "Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the pattern; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-sort-by-scores nil
-  "*Non-nil means sort matches by scores; best match is shown first.
+  "Non-nil means sort matches by scores; best match is shown first.
 This applies to all `apropos' commands except `apropos-documentation'.
 If value is `verbose', the computed score is shown for each match."
   :group 'apropos
@@ -134,7 +134,7 @@ If value is `verbose', the computed score is shown for each match."
   "Keymap used in Apropos mode.")
 
 (defvar apropos-mode-hook nil
-  "*Hook run when mode is turned on.")
+  "Hook run when mode is turned on.")
 
 (defvar apropos-pattern nil
   "Apropos pattern as entered by user.")
@@ -885,12 +885,10 @@ If non-nil TEXT is a string that will be printed as a heading."
 		(substitute-command-keys
 		 "and type \\[apropos-follow] to get full documentation.\n\n"))
 	(if text (insert text "\n\n"))
-	(while (consp p)
+	(dolist (apropos-item p)
 	  (when (and spacing (not (bobp)))
 	    (princ spacing))
-	  (setq apropos-item (car p)
-		symbol (car apropos-item)
-		p (cdr p))
+	  (setq symbol (car apropos-item))
 	  ;; Insert dummy score element for backwards compatibility with 21.x
 	  ;; apropos-item format.
 	  (if (not (numberp (cadr apropos-item)))
@@ -907,50 +905,51 @@ If non-nil TEXT is a string that will be printed as a heading."
 		   (cadr apropos-item))
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
 	  ;; Calculate key-bindings if we want them.
-	  (and do-keys
-	       (commandp symbol)
-	       (not (eq symbol 'self-insert-command))
-	       (indent-to 30 1)
-	       (if (let ((keys
-			  (save-excursion
-			    (set-buffer old-buffer)
-			    (where-is-internal symbol)))
-			 filtered)
-		     ;; Copy over the list of key sequences,
-		     ;; omitting any that contain a buffer or a frame.
-		     (while keys
-		       (let ((key (car keys))
-			     (i 0)
-			     loser)
-			 (while (< i (length key))
-			   (if (or (framep (aref key i))
-				   (bufferp (aref key i)))
-			       (setq loser t))
-			   (setq i (1+ i)))
-			 (or loser
-			     (setq filtered (cons key filtered))))
-		       (setq keys (cdr keys)))
-		     (setq item filtered))
-		   ;; Convert the remaining keys to a string and insert.
-		   (insert
-		    (mapconcat
-		     (lambda (key)
-		       (setq key (condition-case ()
-				     (key-description key)
-				   (error)))
-		       (if apropos-keybinding-face
-			   (put-text-property 0 (length key)
-					      'face apropos-keybinding-face
-					      key))
-		       key)
-		     item ", "))
-		 (insert "M-x ... RET")
-		 (when apropos-keybinding-face
-		   (put-text-property (- (point) 11) (- (point) 8)
-				      'face apropos-keybinding-face)
-		   (put-text-property (- (point) 3) (point)
-				      'face apropos-keybinding-face))))
-	  (terpri)
+          (and do-keys
+               (commandp symbol)
+               (not (eq symbol 'self-insert-command))
+               (indent-to 30 1)
+               (if (let ((keys
+                          (with-current-buffer old-buffer
+                            (where-is-internal symbol)))
+                         filtered)
+                     ;; Copy over the list of key sequences,
+                     ;; omitting any that contain a buffer or a frame.
+                     ;; FIXME: Why omit keys that contain buffers and
+                     ;; frames?  This looks like a bad workaround rather
+                     ;; than a proper fix.  Does anybod know what problem
+                     ;; this is trying to address?  --Stef
+                     (dolist (key keys)
+                       (let ((i 0)
+                             loser)
+                         (while (< i (length key))
+                           (if (or (framep (aref key i))
+                                   (bufferp (aref key i)))
+                               (setq loser t))
+                           (setq i (1+ i)))
+                         (or loser
+                             (push key filtered))))
+                     (setq item filtered))
+                   ;; Convert the remaining keys to a string and insert.
+                   (insert
+                    (mapconcat
+                     (lambda (key)
+                       (setq key (condition-case ()
+                                     (key-description key)
+                                   (error)))
+                       (if apropos-keybinding-face
+                           (put-text-property 0 (length key)
+                                              'face apropos-keybinding-face
+                                              key))
+                       key)
+                     item ", "))
+                 (insert "M-x ... RET")
+                 (when apropos-keybinding-face
+                   (put-text-property (- (point) 11) (- (point) 8)
+                                      'face apropos-keybinding-face)
+                   (put-text-property (- (point) 3) (point)
+                                      'face apropos-keybinding-face))))
+          (terpri)
 	  (apropos-print-doc 2
 			     (if (commandp symbol)
 				 'apropos-command
@@ -967,7 +966,6 @@ If non-nil TEXT is a string that will be printed as a heading."
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 
-
 (defun apropos-macrop (symbol)
   "Return t if SYMBOL is a Lisp macro."
   (and (fboundp symbol)
@@ -980,19 +978,18 @@ If non-nil TEXT is a string that will be printed as a heading."
 
 
 (defun apropos-print-doc (i type do-keys)
-  (if (stringp (setq i (nth i apropos-item)))
-      (progn
-	(insert "  ")
-	(insert-text-button (button-type-get type 'apropos-label)
-			    'type type
-			    ;; Can't use the default button face, since
-			    ;; user may have changed the variable!
-			    ;; Just say `no' to variables containing faces!
-			    'face apropos-label-face
-			    'apropos-symbol (car apropos-item))
-	(insert ": ")
-	(insert (if do-keys (substitute-command-keys i) i))
-	(or (bolp) (terpri)))))
+  (when (stringp (setq i (nth i apropos-item)))
+    (insert "  ")
+    (insert-text-button (button-type-get type 'apropos-label)
+                        'type type
+                        ;; Can't use the default button face, since
+                        ;; user may have changed the variable!
+                        ;; Just say `no' to variables containing faces!
+                        'face apropos-label-face
+                        'apropos-symbol (car apropos-item))
+    (insert ": ")
+    (insert (if do-keys (substitute-command-keys i) i))
+    (or (bolp) (terpri))))
 
 
 (defun apropos-follow ()

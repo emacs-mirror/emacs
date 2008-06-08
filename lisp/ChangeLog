@@ -1,5 +1,10 @@
 2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* apropos.el: Remove spurious * in docstrings.
+	(apropos-label-face): Use variable pitch.
+	(apropos-print): Use dolist and with-current-buffer.
+	(apropos-print-doc): Use when.
+
 	* window.el (special-display-p, display-buffer):
 	Fix up C->Elisp transcription error.
 
