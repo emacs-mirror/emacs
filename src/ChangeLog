@@ -1,6 +1,6 @@
 2008-06-08  Kenichi Handa  <handa@m17n.org>
 
-	* .gdbinit (xont): New function.
+	* .gdbinit (xfont): New command.
 
 2008-06-08  Andreas Schwab  <schwab@suse.de>
 
