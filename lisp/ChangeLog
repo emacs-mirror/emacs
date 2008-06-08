@@ -1,5 +1,10 @@
 2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (special-display-p, display-buffer):
+	Fix up C->Elisp transcription error.
+
+2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/bytecomp.el (byte-compile-current-group): New var.
 	(byte-compile-file): Initialize it.
 	(byte-compile-nogroup-warn): Keep track of the current group.

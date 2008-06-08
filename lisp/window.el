@@ -440,6 +440,7 @@ DIRECTION can be nil (i.e. any), `height' or `width'."
   "Factor by which the window area should be over-estimated.
 This is used by `balance-windows-area'.
 Changing this globally has no effect.")
+(make-variable-buffer-local 'window-area-factor)
 
 (defun balance-windows-area ()
   "Make all visible windows the same area (approximately).
@@ -542,20 +543,21 @@ If the value is a list, it is a list of frame parameters that
 would be used to make a frame for that buffer.  The variables
 `special-display-buffer-names' and `special-display-regexps'
 control this."
-  (cond
-   ((not (stringp buffer-name)))
-   ;; Make sure to return t in the following two cases.
-   ((member buffer-name special-display-buffer-names) t)
-   ((assoc buffer-name special-display-buffer-names) t)
-   ((catch 'found
-      (dolist (regexp special-display-regexps)
-	(cond
-	 ((stringp regexp)
-	  (when (string-match-p regexp buffer-name)
-	    (throw 'found t)))
-	 ((and (consp regexp) (stringp (car regexp))
-	       (string-match-p (car regexp) buffer-name))
-	  (throw 'found (cdr regexp)))))))))
+  (let (tmp)
+    (cond
+     ((not (stringp buffer-name)))
+     ;; Make sure to return t in the following two cases.
+     ((member buffer-name special-display-buffer-names) t)
+     ((setq tmp (assoc buffer-name special-display-buffer-names)) (cdr tmp))
+     ((catch 'found
+        (dolist (regexp special-display-regexps)
+          (cond
+           ((stringp regexp)
+            (when (string-match-p regexp buffer-name)
+              (throw 'found t)))
+           ((and (consp regexp) (stringp (car regexp))
+                 (string-match-p (car regexp) buffer-name))
+            (throw 'found (cdr regexp))))))))))
 
 (defcustom special-display-buffer-names nil
   "List of buffer names that should have their own special frames.
@@ -931,11 +933,11 @@ return that window.  Possible values of FRAME are:
 
 0 - consider windows on all visible or iconified frames.
 
-`t' - consider windows on all frames.
+t - consider windows on all frames.
 
 A specific frame - consider windows on that frame only.
 
-`nil' - consider windows on the selected frame \(actually the
+nil - consider windows on the selected frame \(actually the
 last non-minibuffer frame\) only.  If, however, either
 `display-buffer-reuse-frames' or `pop-up-frames' is non-nil,
 consider all visible or iconified frames."
@@ -988,7 +990,7 @@ consider all visible or iconified frames."
 	   (let ((pars (special-display-p name-of-buffer)))
 	     (when pars
 	       (funcall special-display-function
-			(if (eq pars t) buffer pars))))))
+			buffer (if (listp pars) pars))))))
      ((or pop-up-frames (not frame-to-use))
       ;; We want or need a new frame.
       (window--display-buffer-2
@@ -1053,7 +1055,7 @@ at the front of the list of recently selected ones."
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
-  "*If non-nil, \\[split-window-vertically] keeps the original point \
+  "If non-nil, \\[split-window-vertically] keeps the original point \
 in both children.
 This is often more convenient for editing.
 If nil, adjust point in each of the two windows to minimize redisplay.
@@ -1577,8 +1579,8 @@ active.  This function is run by `mouse-autoselect-window-timer'."
 		     (progn
 		       ;; Cancel any delayed autoselection.
 		       (mouse-autoselect-window-cancel t)
-		       ;; Start delayed autoselection from current mouse position
-		       ;; and window.
+		       ;; Start delayed autoselection from current mouse
+		       ;; position and window.
 		       (mouse-autoselect-window-start (mouse-position) window)
 		       ;; Executing a command cancels delayed autoselection.
 		       (add-hook
