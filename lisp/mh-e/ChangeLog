@@ -1,3 +1,14 @@
+2008-06-08  John Paul Wallington  <jpw@pobox.com>
+
+	* mh-acros.el (toplevel): Put `doc-string-elt' properties on
+	`defun-mh' and `defmacro-mh'.
+
+	* mh-alias.el (mh-alias-read-address-map): Define within defvar.
+
+	* mh-comp.el (mh-letter-mode-syntax-table): Define within defvar.
+
+	* mh-letter.el (mh-complete-word): Doc fix.
+
 2008-06-02  John Paul Wallington  <jpw@pobox.com>
 
 	* mh-e.el (mh-exec-cmd-env-daemon): Doc fix.
