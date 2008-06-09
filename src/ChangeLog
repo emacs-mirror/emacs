@@ -1,3 +1,36 @@
+2008-06-09  Jason Rumney  <jasonr@gnu.org>
+
+        Changes to w32 files related to the move of common menu code
+        to menu.c on 2008-06-08 by Chong Yidong.
+
+        * menu.c [HAVE_NTGUI]: Include w32term.h, move widget related
+        defs to w32gui.h.
+        (single_keymap_panes, push_menu_item, push_menu_pane): Make
+        globally visible.
+
+        * w32menu.c (enum button_type, widget_value, local_heap, local_alloc):
+        (local_free, malloc_widget_value, free_widget_value):
+        (MENU_ITEMS_ITEM_NAME, MENU_ITEMS_ITEM_ENABLE, MENU_ITEMS_ITEM_VALUE):
+        (MENU_ITEMS_ITEM_EQUIV_KEY, MENU_ITEMS_ITEM_DEFINITION):
+        (MENU_ITEMS_ITEM_TYPE, MENU_ITEMS_ITEM_SELECTED, MENU_ITEMS_ITEM_HELP):
+        (MENU_ITEMS_ITEM_LENGTH, enum menu_item_idx): Remove defs.
+        (menu_items, menu_items_allocated, menu_items_used):
+        (menu_items_n_panes, menu_items_submenu_depth): Remove global vars.
+        (init_menu_items, finish_menu_items, discard_menu_items):
+        (grow_menu_items, push_submenu_start, push_submenu_end):
+        (push_left_right_boundary, push_menu_pane, push_menu_item,
+        (keymap_panes, single_keymap_panes, list_of_panes, list_of_items):
+        (free_menubar_widget_tree_value, parse_single_submenu):
+        (update_submenu_strings): Remove functions.
+        (xmalloc_widget_value): Remove and declare extern.
+
+        * makefile.w32-in ($(SRC)/menu.$(O)): New target.
+        (OBJ1): Build it.
+
+        * w32gui.h (widget_value, XtPointer, Boolean, enum button_type):
+        (local_heap, local_alloc, local_free, malloc_widget_value):
+        (free_widget_value): Define here.
+
 2008-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Qascii_0): Extern it.
