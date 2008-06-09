@@ -5,6 +5,8 @@
         (digest_single_submenu): Remove.
         (syms_of_w32menu): Don't initialise variables that have moved
         to menu.c.
+        (set_frame_menubar): Sync with version in xmenu.c.
+        (w32_menu_show): Sync with xmenu_show in xmenu.c.
 
         * menu.c (single_keymap_panes, push_menu_pane, push_menu_item):
         Make static again.
