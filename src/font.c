@@ -55,7 +55,7 @@ Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 Lisp_Object Qopentype;
 
 /* Important character set strings.  */
-Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
+Lisp_Object Qascii_0, Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
 /* Special vector of zero length.  This is repeatedly used by (struct
    font_driver *)->list when a specified font is not found. */
@@ -3009,7 +3009,7 @@ font_open_by_name (f, name)
      char *name;
 {
   Lisp_Object args[2];
-  Lisp_Object spec, prefer, size, entity, entity_list;
+  Lisp_Object spec, prefer, size, registry, entity, entity_list;
   Lisp_Object frame;
   int i;
   int pixel_size;
@@ -3049,10 +3049,16 @@ font_open_by_name (f, name)
       size = make_number (pixel_size);
       ASET (prefer, FONT_SIZE_INDEX, size);
     }
-  if (NILP (AREF (spec, FONT_REGISTRY_INDEX)))
+  registry = AREF (spec, FONT_REGISTRY_INDEX);
+  if (NILP (registry))
     ASET (spec, FONT_REGISTRY_INDEX, Qiso8859_1);
-
   entity_list = Flist_fonts (spec, frame, make_number (1), prefer);
+  if (NILP (entity_list) && NILP (registry))
+    {
+      ASET (spec, FONT_REGISTRY_INDEX, Qascii_0);
+      entity_list = Flist_fonts (spec, frame, make_number (1), prefer);
+    }
+  ASET (spec, FONT_REGISTRY_INDEX, registry);
   if (NILP (entity_list))
     entity = font_matching_entity (f, NULL, spec);
   else
@@ -4524,6 +4530,7 @@ syms_of_font ()
 
   DEFSYM (Qopentype, "opentype");
 
+  DEFSYM (Qascii_0, "ascii-0");
   DEFSYM (Qiso8859_1, "iso8859-1");
   DEFSYM (Qiso10646_1, "iso10646-1");
   DEFSYM (Qunicode_bmp, "unicode-bmp");
