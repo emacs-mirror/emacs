@@ -620,33 +620,6 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
   f->output_data.w32->menubar_active = 0;
 }
 
-/* This recursively calls free_widget_value on the tree of widgets.
-   It must free all data that was malloc'ed for these widget_values.
-   In Emacs, many slots are pointers into the data of Lisp_Strings, and
-   must be left alone.  */
-
-void
-free_menubar_widget_value_tree (wv)
-     widget_value *wv;
-{
-  if (! wv) return;
-
-  wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
-
-  if (wv->contents && (wv->contents != (widget_value*)1))
-    {
-      free_menubar_widget_value_tree (wv->contents);
-      wv->contents = (widget_value *) 0xDEADBEEF;
-    }
-  if (wv->next)
-    {
-      free_menubar_widget_value_tree (wv->next);
-      wv->next = (widget_value *) 0xDEADBEEF;
-    }
-  BLOCK_INPUT;
-  free_widget_value (wv);
-  UNBLOCK_INPUT;
-}
 
 /* Set up data i menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
