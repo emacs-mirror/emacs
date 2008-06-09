@@ -2114,8 +2114,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
-      wv_title->next = wv_sep1;
       wv_title->help = Qnil;
+      wv_title->next = wv_sep1;
       first_wv->contents = wv_title;
     }
 
