@@ -238,6 +238,7 @@ extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript;
 extern Lisp_Object QCavgwidth, QCfont_entity, QCfc_unknown_spec;
 
 /* Important character set symbols.  */
+extern Lisp_Object Qascii_0;
 extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
 /* Structure for a font-spec.  */
