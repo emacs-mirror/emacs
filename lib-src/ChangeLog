@@ -2885,7 +2885,7 @@
 	* etags.c (erlang_attribute): Fix undefined variable usage (after
 	Potorti).
 
-1999-05-2  Andrew Innes  <andrewi@gnu.org>
+1999-05-02  Andrew Innes  <andrewi@gnu.org>
 
 	* movemail.c (main) [WINDOWSNT]: Call ftruncate, which is now
 	mapped to _chsize.
