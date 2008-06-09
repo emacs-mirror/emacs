@@ -106,6 +106,7 @@ void w32_free_menu_strings P_((HWND));
 static int next_menubar_widget_id;
 
 extern widget_value *xmalloc_widget_value P_ ((void));
+extern widget_value *digest_single_submenu P_ ((int, int, int));
 
 /* This is set nonzero after the user activates the menu bar, and set
    to zero again after the menu bars are redisplayed by prepare_menu_bar.
@@ -1261,7 +1262,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       complicated than simple yes/no type questions for which we can use
       the MessageBox function.
 */
-      
+
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
   "button6", "button7", "button8", "button9", "button10" };
