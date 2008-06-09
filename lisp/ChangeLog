@@ -1,3 +1,8 @@
+2008-06-09  Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* language/hanja-util.el (hanja-init-load): Show the message only
+	when loading a table.
+
 2008-06-08  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newsticker-treeview.el (newsticker-treeview): Added autoload
