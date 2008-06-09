@@ -702,6 +702,8 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
+      save_menu_items ();
+
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
@@ -761,7 +763,6 @@ set_frame_menubar (f, first_time, deep_p)
 	}
 
       set_buffer_internal_1 (prev);
-      unbind_to (specpdl_count, Qnil);
 
       /* If there has been no change in the Lisp-level contents
 	 of the menu bar, skip redisplaying it.  Just exit.  */
@@ -773,10 +774,16 @@ set_frame_menubar (f, first_time, deep_p)
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
 	  free_menubar_widget_value_tree (first_wv);
-	  menu_items = Qnil;
-
+	  discard_menu_items ();
+          unbind_to (specpdl_count, Qnil);
 	  return;
 	}
+
+      f->menu_bar_vector = menu_items;
+      f->menu_bar_items_used = menu_items_used;
+
+      /* This undoes save_menu_items.  */
+      unbind_to (specpdl_count, Qnil);
 
       /* Now GC cannot happen during the lifetime of the widget_value,
 	 so it's safe to store data from a Lisp_String, as long as
@@ -794,10 +801,6 @@ set_frame_menubar (f, first_time, deep_p)
 	  update_submenu_strings (wv->contents);
 	  wv = wv->next;
 	}
-
-      f->menu_bar_vector = menu_items;
-      f->menu_bar_items_used = menu_items_used;
-      menu_items = Qnil;
     }
   else
     {
@@ -955,6 +958,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 
   *error = NULL;
 
+  if (menu_items_n_panes == 0)
+    return Qnil;
+
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
       *error = "Empty menu";
@@ -1104,6 +1110,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
+
           if (!STRINGP (help))
 	    help = Qnil;
 
@@ -1141,6 +1148,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       first_wv->contents = wv_title;
     }
 
+  /* No selection has been chosen yet.  */
+  menu_item_selection = 0;
+
   /* Actually create the menu.  */
   current_popup_menu = menu = CreatePopupMenu ();
   fill_in_menu (menu, first_wv->contents);
@@ -1149,9 +1159,6 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   pos.x = x;
   pos.y = y;
   ClientToScreen (FRAME_W32_WINDOW (f), &pos);
-
-  /* No selection has been chosen yet.  */
-  menu_item_selection = 0;
 
   /* Display the menu.  */
   menu_item_selection = SendMessage (FRAME_W32_WINDOW (f),
