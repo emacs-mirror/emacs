@@ -92,9 +92,6 @@ extern Lisp_Object Qmenu_bar_update_hook;
 
 void set_frame_menubar P_ ((FRAME_PTR, int, int));
 
-static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				Lisp_Object, Lisp_Object, Lisp_Object,
-				Lisp_Object, Lisp_Object));
 #ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show P_ ((FRAME_PTR, int, Lisp_Object, char**));
 #else
@@ -626,59 +623,6 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
 }
 
 
-/* Set up data i menu_items for a menu bar item
-   whose event type is ITEM_KEY (with string ITEM_NAME)
-   and whose contents come from the list of keymaps MAPS.  */
-
-static int
-parse_single_submenu (item_key, item_name, maps)
-     Lisp_Object item_key, item_name, maps;
-{
-  Lisp_Object length;
-  int len;
-  Lisp_Object *mapvec;
-  int i;
-  int top_level_items = 0;
-
-  length = Flength (maps);
-  len = XINT (length);
-
-  /* Convert the list MAPS into a vector MAPVEC.  */
-  mapvec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-  for (i = 0; i < len; i++)
-    {
-      mapvec[i] = Fcar (maps);
-      maps = Fcdr (maps);
-    }
-
-  /* Loop over the given keymaps, making a pane for each map.
-     But don't make a pane that is empty--ignore that map instead.  */
-  for (i = 0; i < len; i++)
-    {
-      if (SYMBOLP (mapvec[i])
-	  || (CONSP (mapvec[i]) && !KEYMAPP (mapvec[i])))
-	{
-	  /* Here we have a command at top level in the menu bar
-	     as opposed to a submenu.  */
-	  top_level_items = 1;
-	  push_menu_pane (Qnil, Qnil);
-	  push_menu_item (item_name, Qt, item_key, mapvec[i],
-                          Qnil, Qnil, Qnil, Qnil);
-	}
-      else
-	{
-	  Lisp_Object prompt;
-	  prompt = Fkeymap_prompt (mapvec[i]);
-	  single_keymap_panes (mapvec[i],
-			       !NILP (prompt) ? prompt : item_name,
-			       item_key, 0, 10);
-	}
-    }
-
-  return top_level_items;
-}
-
-
 /* Create a tree of widget_value objects
    representing the panes and items
    in menu_items starting at index START, up to index END.  */
