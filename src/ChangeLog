@@ -1,3 +1,12 @@
+2008-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Qascii_0): New variable.
+	(syms_of_font): DEFSYM it.
+	(font_open_by_name): If the registry "iso8859-1" fails, try also
+	"ascii-0".
+
+	* ftfont.c (ftfont_spec_pattern): Accept the registry `ascii-0'.
+
 2008-06-08  Kenichi Handa  <handa@m17n.org>
 
 	* .gdbinit (xfont): New command.
