@@ -36,8 +36,8 @@ character.  This variable is initialized by `hanja-init-load'.")
 
 (defun hanja-init-load ()
   "Initialize `hanja-table' (which see)."
-  (message "Hanja table loading..")
   (when (not hanja-table)
+    (message "Hanja table loading..")
     (setq hanja-table (make-char-table nil))
     (mapc
      (lambda (x) (aset hanja-table (car x) (cdr x)))
@@ -6431,7 +6431,8 @@ character.  This variable is initialized by `hanja-init-load'.")
        (55184 . ((35440 . "물을 힐, 힐문할 힐") (40672 . "약을 힐")
                  32953 (38945 . "곧은목 힐") (32392 . "홀치기염색 힐")
                  25847 32952 25783 32556 35800 39049 (29365 . "오랑캐이름 힐")
-                 (35181 . "옷자락 꽂을 힐") 24644 27439 32723 14954))))))
+                 (35181 . "옷자락 꽂을 힐") 24644 27439 32723 14954))))
+    (message "")))
 
 ;; List of current conversion status.
 ;; The first element is the strating position of shown list.
