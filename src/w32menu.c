@@ -188,6 +188,7 @@ cached information about equivalent key sequences.  */)
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
+  int specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
 #ifdef HAVE_MENUS
@@ -271,6 +272,8 @@ cached information about equivalent key sequences.  */)
     Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
+  record_unwind_protect (unuse_menu_items, Qnil);
+
   title = Qnil;
   GCPRO1 (title);
 
@@ -339,6 +342,8 @@ cached information about equivalent key sequences.  */)
 
       keymaps = 0;
     }
+
+  unbind_to (specpdl_count, Qnil);
 
   if (NILP (position))
     {
