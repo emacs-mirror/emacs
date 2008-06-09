@@ -204,7 +204,7 @@ push_left_right_boundary ()
 /* Start a new menu pane in menu_items.
    NAME is the pane name.  PREFIX_VEC is a prefix key for this pane.  */
 
-void
+static void
 push_menu_pane (name, prefix_vec)
      Lisp_Object name, prefix_vec;
 {
@@ -226,7 +226,7 @@ push_menu_pane (name, prefix_vec)
    for this item (or nil if none).  TYPE is the type of this menu
    item, one of nil, `toggle' or `radio'. */
 
-void
+static void
 push_menu_item (name, enable, key, def, equiv, type, selected, help)
      Lisp_Object name, enable, key, def, equiv, type, selected, help;
 {
@@ -263,7 +263,7 @@ static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 
    If we encounter submenus deeper than MAXDEPTH levels, ignore them.  */
 
-void
+static void
 single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      Lisp_Object keymap;
      Lisp_Object pane_name;
