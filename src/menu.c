@@ -43,14 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NTGUI
 #include "w32term.h"
 
-/* Local memory management */
-#define local_heap (GetProcessHeap ())
-#define local_alloc(n) (HeapAlloc (local_heap, HEAP_ZERO_MEMORY, (n)))
-#define local_free(p) (HeapFree (local_heap, 0, ((LPVOID) (p))))
-
-#define malloc_widget_value() ((widget_value *) local_alloc (sizeof (widget_value)))
-#define free_widget_value(wv) (local_free ((wv)))
-
 extern AppendMenuW_Proc unicode_append_menu;
 
 #endif /* HAVE_NTGUI  */
@@ -212,7 +204,7 @@ push_left_right_boundary ()
 /* Start a new menu pane in menu_items.
    NAME is the pane name.  PREFIX_VEC is a prefix key for this pane.  */
 
-static void
+void
 push_menu_pane (name, prefix_vec)
      Lisp_Object name, prefix_vec;
 {
@@ -234,7 +226,7 @@ push_menu_pane (name, prefix_vec)
    for this item (or nil if none).  TYPE is the type of this menu
    item, one of nil, `toggle' or `radio'. */
 
-static void
+void
 push_menu_item (name, enable, key, def, equiv, type, selected, help)
      Lisp_Object name, enable, key, def, equiv, type, selected, help;
 {
@@ -271,7 +263,7 @@ static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 
    If we encounter submenus deeper than MAXDEPTH levels, ignore them.  */
 
-static void
+void
 single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      Lisp_Object keymap;
      Lisp_Object pane_name;
