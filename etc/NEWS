@@ -155,8 +155,13 @@ starts with a `(', the string is evaluated as a Lisp form.
 ** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
 
-** split-window-preferred-function specifies whether display-buffer should
-split windows vertically or horizontally.
+** Changes affecting display-buffer
+*** New value nil for split-height-threshold inhibits vertical splitting
+unless there's no other window.
+*** New option split-width-threshold controls horizontal splitting.
+*** A window can be split horizontally even when it's not full-width.
+*** New option split-window-preferred-function can be set to a function
+to override the default splitting mechanism of display-buffer.
 
 ** Emacsclient has been extended to support opening a new terminal
 frame.  Its behavior has been changed to open a new Emacs frame by
