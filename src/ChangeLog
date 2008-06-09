@@ -1,5 +1,7 @@
 2008-06-09  Kenichi Handa  <handa@m17n.org>
 
+	* font.h (Qascii_0): Extern it.
+
 	* font.c (Qascii_0): New variable.
 	(syms_of_font): DEFSYM it.
 	(font_open_by_name): If the registry "iso8859-1" fails, try also
