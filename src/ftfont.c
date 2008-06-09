@@ -490,6 +490,7 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
 
   registry = AREF (spec, FONT_REGISTRY_INDEX);
   if (NILP (registry)
+      || EQ (registry, Qascii_0)
       || EQ (registry, Qiso10646_1)
       || EQ (registry, Qunicode_bmp)
       || EQ (registry, Qunicode_sip))
@@ -669,6 +670,33 @@ ftfont_list (frame, spec)
   fontset = FcFontList (NULL, pattern, objset);
   if (! fontset)
     goto err;
+#if 0
+  /* Need fix because this finds any fonts.  */
+  if (fontset->nfont == 0 && ! NILP (family))
+    {
+      /* Try maching with configuration.  For instance, the
+	 configuration may specify "Nimbus Mono L" as an alias of
+	 "Courier".  */
+      FcPattern *pat = FcPatternBuild (0, FC_FAMILY, FcTypeString,
+				       SYMBOL_FcChar8 (family), NULL);
+      FcChar8 *fam;
+
+      if (FcConfigSubstitute (NULL, pat, FcMatchPattern) == FcTrue)
+	{
+	  for (i = 0;
+	       FcPatternGetString (pat, FC_FAMILY, i, &fam) == FcResultMatch;
+	       i++)
+	    {
+	      FcPatternDel (pattern, FC_FAMILY);
+	      FcPatternAddString (pattern, FC_FAMILY, fam);
+	      FcFontSetDestroy (fontset);
+	      fontset = FcFontList (NULL, pattern, objset);
+	      if (fontset->nfont > 0)
+		break;
+	    }
+	}
+    }
+#endif
   for (i = 0; i < fontset->nfont; i++)
     {
       Lisp_Object entity;
@@ -1707,7 +1735,6 @@ Lisp_Object
 ftfont_font_format (FcPattern *pattern)
 {
   FcChar8 *str;
-  int len;
 
 #ifdef FC_FONTFORMAT
   if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
