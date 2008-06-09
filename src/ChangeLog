@@ -1,5 +1,9 @@
 2008-06-09  Jason Rumney  <jasonr@gnu.org>
 
+        * w32menu.c (Fx_popup_menu): Unwind protect while building menu.
+
+2008-06-09  Jason Rumney  <jasonr@gnu.org>
+
         Changes to w32 files related to the move of common menu code
         to menu.c on 2008-06-08 by Chong Yidong.
 
