@@ -21,9 +21,7 @@ directory tree.
 
 So if 'make bootstrap' fails, it may be necessary first to do 'make
 maintainer-clean' to clear out these stale files.  You can then try
-again, starting with `./configure'.  (Occasionally the loaddefs.el
-file gets into a bad state due to changes in the Lisp libraries; this
-procedure forces it to be regenerated.)
+again, starting with `./configure'.
 
 Normally, it is not necessary to use "make bootstrap" after every CVS
 update.  Unless there are problems, we suggest using the following
