@@ -1,3 +1,8 @@
+2008-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Add an entry for
+	"ascii-0".
+
 2008-06-09  Jihyun Cho  <jihyun.jo@gmail.com>
 
 	* language/hanja-util.el (hanja-init-load): Show the message only
