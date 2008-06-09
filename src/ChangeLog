@@ -2,6 +2,9 @@
 
         * w32menu.c (Fx_popup_menu): Unwind protect while building menu.
         (parse_single_submenu): Remove.
+        (digest_single_submenu): Remove.
+        (syms_of_w32menu): Don't initialise variables that have moved
+        to menu.c.
 
         * menu.c (single_keymap_panes, push_menu_pane, push_menu_item):
         Make static again.
