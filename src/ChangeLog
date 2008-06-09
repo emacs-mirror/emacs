@@ -188,7 +188,7 @@
 	* doprnt.c (doprnt1): Likewise.
 	* frame.c (frame): Likewise.
 	* keyboard.c (wipe_kboard): Likewise.
-	* macterm.c (x_free_frame_resources, xlfdpat_destroy, XFreePixmap):
+	* macterm.c (x_free_frame_resources, xlfdpat_destroy, XFreePixmap)
 	(init_font_name_table, mac_unload_font, x_delete_display): Likewise.
 	* term.c (tty_default_color_capabilities, maybe_fatal)
 	(delete_tty): Likewise.
@@ -704,7 +704,7 @@
 
 	* ftfont.c (cs_iso8859_1): Delete.
 	(ft_face_cache): New variable.
-	(struct ftfont_info): New member fc_charset_idx;
+	(struct ftfont_info): New member fc_charset_idx.
 	(ftfont_build_basic_charsets): Delete.
 	(fc_charset_table): New variable.
 	(ftfont_pattern_entity): New arg fc_charset_idx.  Store (FILENAME
@@ -906,7 +906,7 @@
 	(font_family_alist): Delete it.
 	(Qnormal): Extern it.
 	(QCextra, QClanguage): Delete it.
-	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec):	New variables.
+	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec): New variables.
 	(font_make_spec, font_make_entity, font_make_object)
 	(font_intern_prop): Renamed from intern_downcase.  Don't downcase
 	the string.  Callers changed.
@@ -3240,7 +3240,7 @@
 	(x_window): Reparent frame if embedded.
 	(Fx_create_frame): Don't set border width if embedded.
 
-	* emacs.c (USAGE3): Add --parent-id
+	* emacs.c (USAGE3): Add --parent-id.
 	(standard_args): Ditto.
 
 2008-02-07  Jan Djärv  <jan.h.d@swipnet.se>
@@ -3758,7 +3758,7 @@
 	(struct MFLTFontFT) [HAVE_LIBOTF, HAVE_M17N_FLT]: New struct.
 	(ftfont_get_glyph_id, ftfont_get_metrics, ftfont_check_otf)
 	(adjust_anchor, ftfont_drive_otf, ftfont_shape_by_flt)
-	(ftfont_shape) [HAVE_LIBOTF, HAVE_M17N_FLT]: New function.s
+	(ftfont_shape) [HAVE_LIBOTF, HAVE_M17N_FLT]: New function.
 	(DEVICE_DELTA) [HAVE_LIBOTF, HAVE_M17N_FLT]: New macro.
 	(otf_gstring, gstring, m17n_flt_initialized): New variables.
 
@@ -4185,7 +4185,7 @@
 	GetGlyphOutline.  Never look up by glyph index.  Avoid looping
 	twice.  Use unicode version of GetTexExtentPoint32 instead of
 	glyph index version.
-	(set_fonts_frame): Remove
+	(set_fonts_frame): Remove.
 	(w32_enumfont_pattern_entity): Add frame parameter, use it to
 	set frame parameter.  Use backward compatible fake foundries.
 	Save generic family in extra slot under QCfamily.  Make width slot
@@ -4555,12 +4555,6 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Set it->face_id for the
-	first component of a composition.
-	(x_produce_glyphs): Check if the font is changed or not for composition.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	(get_next_display_element): Set it->face_id for the
 	first component of a composition.
 	(x_produce_glyphs): Check if the font is changed or not for composition.
 
@@ -5823,7 +5817,7 @@
 	* emacs.c (main): Call init_charset after syms_of_XXX.
 
 	* charset.c (Vcharset_map_directory): Delete.
-	(Vcharset_map_path): New variable
+	(Vcharset_map_path): New variable.
 	(load_charset_map_from_file): Use Vcharset_map_path instead.
 	(init_charset): Initialize Vcharset_map_path.
 	(syms_of_charset): Delete declaration of "charset-map-directory",
@@ -5941,8 +5935,7 @@
 	FONT_DEF format.
 	(fontset_face): New arg id.  Change caller.
 	(face_for_char): New args pos and object.
-	(make_fontset_for_ascii_face): Adjust for the change of FONT_DEF
-	format.n
+	(make_fontset_for_ascii_face): Adjust for the change of FONT_DEF format.
 	(fs_query_fontset): Check NAME by Fassoc too.
 	(Fset_fontset_font): Allow non-XLFD font name.
 	(Ffontset_info): Adjust for the change of FONT_DEF format.
@@ -6116,7 +6109,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (fontset_face): Create a fallback fontset on demand
+	* fontset.c (fontset_face): Create a fallback fontset on demand.
 	(make_fontset): Don't create a fallback fontset here.
 	(free_face_fontset): Free a fallback fontset (if any) too.
 	(n_auto_fontsets): Delete this variable.
@@ -7491,7 +7484,7 @@
 	(EMACS_MULE_LEADING_CODE_PRIVATE_11)
 	(EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	(EMACS_MULE_LEADING_CODE_PRIVATE_21)
-	(EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros
+	(EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros.
 	(Funify_charset): Adjust for the change of Funify_charset.
 
 	* charset.c (charset_ordered_list_tick): New variable.
@@ -7701,7 +7694,7 @@
 	* charset.h (charset_jisx0201_roman, charset_jisx0208_1978)
 	(charset_jisx0208): Extern them.
 
-	* coding.c (CODING_ISO_FLAG_USE_ROMAN): New macro
+	* coding.c (CODING_ISO_FLAG_USE_ROMAN): New macro.
 	(CODING_ISO_FLAG_USE_OLDJIS): New macro.
 	(CODING_ISO_FLAG_FULL_SUPPORT): Change macro definition.
 	(setup_iso_safe_charsets): Fix arguments to Fassq.
@@ -8707,7 +8700,7 @@
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c: Fix several errors and compiler warnings.
-	Reported by Tom Tromey <tromey@redhat.com>
+	Reported by Tom Tromey <tromey@redhat.com>.
 	(XD_ERROR, XD_DEBUG_MESSAGE)
 	(XD_DEBUG_VALID_LISP_OBJECT_P): Wrap code with "do ... while (0)".
 	(xd_append_arg): Part for basic D-Bus types rewitten.
@@ -10714,7 +10707,7 @@
 	Access foreground_pixel and background_pixel directly from the frame.
 	(tty_display): Delete.
 	(struct frame): Add buried_buffer_list, foreground_pixel,
-	background_pixel and terminal.  Delete kboard
+	background_pixel and terminal.  Delete kboard.
 	(union output_data): Add tty.
 	(FRAME_KBOARD): Get the kboard from the terminal.
 	(FRAME_INITIAL_P): New macro.
@@ -10855,7 +10848,6 @@
 	(syms_of_keyboard): Defsubr them.
 	(Fset_input_meta_mode, Fset_quit_char): New functions.
 	(Fset_input_mode): Split to above functions.
-
 	(read_char_minibuf_menu_prompt): Add wrong_kboard_jmpbuf
 	parameter.  Use it in call to `read_char'.
 	(read_char): Declare.  Update call to `read_char_minibuf_menu_prompt'.
@@ -10968,7 +10960,7 @@
 	* gtkutil.c (xg_tool_bar_expose_callback): Just do SET_FRAME_GARBAGED
 	so no Lisp code is executed.
 	(file_for_image, find_rtl_image): New functions.
-	(xg_get_image_for_pixmap): Use file_for_image
+	(xg_get_image_for_pixmap): Use file_for_image.
 	(update_frame_tool_bar): If direction is RTL, use RTL image if
 	defined.  Use Gtk stock images if defined.
 
