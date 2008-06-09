@@ -4,7 +4,7 @@
 
 2008-06-08  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* INSTALL.CVS: Indicate when cvs -d up may be needed.
+	* INSTALL.CVS: Indicate when "cvs update -d" may be needed.
 
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
