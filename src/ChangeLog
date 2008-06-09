@@ -1,6 +1,10 @@
 2008-06-09  Jason Rumney  <jasonr@gnu.org>
 
         * w32menu.c (Fx_popup_menu): Unwind protect while building menu.
+        (parse_single_submenu): Remove.
+
+        * menu.c (single_keymap_panes, push_menu_pane, push_menu_item):
+        Make static again.
 
 2008-06-09  Jason Rumney  <jasonr@gnu.org>
 
