@@ -41,33 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_NTGUI
-/* Definitions copied from lwlib.h */
-typedef void * XtPointer;
-typedef char Boolean;
-enum button_type
-{
-  BUTTON_TYPE_NONE,
-  BUTTON_TYPE_TOGGLE,
-  BUTTON_TYPE_RADIO
-};
-
-/* This structure is based on the one in ../lwlib/lwlib.h  */
-typedef struct _widget_value
-{
-  Lisp_Object   lname;
-  char*		name;
-  char*		value;
-  Lisp_Object   lkey;
-  char*		key;
-  Lisp_Object	help;
-  Boolean	enabled;
-  Boolean	selected;
-  enum button_type button_type;
-  Boolean       title;
-  struct _widget_value*	contents;
-  XtPointer	call_data;
-  struct _widget_value*	next;
-} widget_value;
+#include "w32term.h"
 
 /* Local memory management */
 #define local_heap (GetProcessHeap ())
