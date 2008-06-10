@@ -627,6 +627,22 @@ by \"Save Options\" in Custom buffers.")
                  :button (:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
 
+;; Function for setting/saving default font.
+
+(defun menu-set-font ()
+  "Interactively select a font and make it the default."
+  (interactive)
+  (let ((font (if (functionp 'x-font-dialog)
+  		  (x-font-dialog)
+  		(mouse-select-font)))
+	spec)
+    (when font
+      (set-face-attribute 'default nil :font font)
+      (setq spec (list (list t (face-attr-construct 'default))))
+      (put 'default 'customized-face spec)
+      (custom-push-theme 'theme-face 'default 'user 'set spec)
+      (put 'default 'face-modified nil))))
+
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
   (list 'menu-item "Customize Emacs" menu-bar-custom-menu))
@@ -660,6 +676,8 @@ by \"Save Options\" in Custom buffers.")
       (and (get elt 'customized-value)
 	   (customize-mark-to-save elt)
 	   (setq need-save t)))
+    (and (get 'default 'customized-face)
+	 (put 'default 'saved-face (get 'default 'customized-face)))
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))
@@ -671,10 +689,10 @@ by \"Save Options\" in Custom buffers.")
 (define-key menu-bar-options-menu [custom-separator]
   '("--"))
 
-(define-key menu-bar-options-menu [mouse-set-font]
-  '(menu-item "Set Font/Fontset..." mouse-set-font
-	       :visible (display-multi-font-p)
-	       :help "Select a font from list of known fonts/fontsets"))
+(define-key menu-bar-options-menu [menu-set-font]
+  '(menu-item "Set Default Font..." menu-set-font
+	      :visible (display-multi-font-p)
+	      :help "Select a default font"))
 
 ;; The "Show/Hide" submenu of menu "Options"
 
