@@ -1,3 +1,9 @@
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+
+	* xterm.c (x_underline_minimum_display_offset): New var.
+	(x_draw_glyph_string): Use it.
+	(syms_of_xterm): Declare it.
+
 2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Accept GTK-style font names too.

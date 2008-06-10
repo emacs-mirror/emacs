@@ -1,3 +1,7 @@
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+
+	* cus-start.el (x-underline-minimum-display-offset): Give it a type.
+
 2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-select-font): New function.

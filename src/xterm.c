@@ -183,6 +183,12 @@ int x_use_underline_position_properties;
 
 int x_underline_at_descent_line;
 
+/* Require underline to be at least this many screen pixels below baseline
+   This to avoid underline "merging" with the base of letters at small
+   font sizes, particularly when x_use_underline_position_properties is on. */
+
+int x_underline_minimum_display_offset;
+
 /* This is a chain of structures for all the X displays currently in
    use.  */
 
@@ -2744,6 +2750,8 @@ x_draw_glyph_string (s)
 		  else if (s->font)
 		    position = (s->font->descent + 1) / 2;
 		}
+	      if (x_underline_minimum_display_offset)
+		position = max (position, eabs (x_underline_minimum_display_offset));
 	    }
 	  /* Check the sanity of thickness and position.  We should
 	     avoid drawing underline out of the current line area.  */
@@ -10781,7 +10789,9 @@ syms_of_xterm ()
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.  */);
+to 4.1, set this to nil.  Variable `x-underline-minimum-display-offset' may
+be used to override the font's UNDERLINE_POSITION for small font display
+sizes.  */);
   x_use_underline_position_properties = 1;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
@@ -10791,6 +10801,16 @@ A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
+
+  DEFVAR_INT ("x-underline-minimum-display-offset",
+	       &x_underline_minimum_display_offset,
+     doc: /* *When > 0, underline is drawn at least that many screen pixels below baseline.
+This can improve legibility of underlined text at small font sizes,
+particularly when using variable `x-use-underline-position-properties'
+with fonts that specify an UNDERLINE_POSITION relatively close to the
+baseline.  The default value is 0. */);
+  x_underline_minimum_display_offset = 0;
+
 
   DEFVAR_BOOL ("x-mouse-click-focus-ignore-position",
 	       &x_mouse_click_focus_ignore_position,

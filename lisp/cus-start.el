@@ -348,6 +348,7 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; xterm.c
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
+	     (x-underline-minimum-display-offset display integer "23.1")
 	     (x-stretch-cursor display boolean "21.1")))
       this symbol group type standard version native-p
       ;; This function turns a value
