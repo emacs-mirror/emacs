@@ -1,17 +1,18 @@
 ;; newsticker-ticker.el --- modeline ticker for newsticker.
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
-
-;; This file is part of GNU Emacs.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker-ticker.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "7. Juni 2008, 15:12:27 (ulf)"
-;; CVS-Version: $Id: newsticker-ticker.el,v 1.1 2008/06/08 15:36:08 u11 Exp $
+;; CVS-Version: $Id: newsticker-ticker.el,v 1.2 2008/06/08 18:09:06 miles Exp $
 
 ;; ======================================================================
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
