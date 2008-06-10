@@ -226,12 +226,12 @@ down the SHIFT key while pressing the mouse button."
 
 (defun turn-on-xterm-mouse-tracking ()
   "Enable Emacs mouse tracking in xterm."
-  (dolist (terminal (delete-dups (mapcar 'frame-terminal (frame-list))))
+  (dolist (terminal (terminal-list))
     (turn-on-xterm-mouse-tracking-on-terminal terminal)))
 
 (defun turn-off-xterm-mouse-tracking (&optional force)
   "Disable Emacs mouse tracking in xterm."
-  (dolist (terminal (delete-dups (mapcar 'frame-terminal (frame-list))))
+  (dolist (terminal (terminal-list))
     (turn-off-xterm-mouse-tracking-on-terminal terminal)))
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)

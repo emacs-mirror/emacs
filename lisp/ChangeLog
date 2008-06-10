@@ -1,5 +1,8 @@
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xt-mouse.el (turn-on-xterm-mouse-tracking, turn-off-xterm-mouse-tracking):
+	Use terminal-list.
+
 	* cus-start.el (underline-minimum-offset) Rename from
 	x-underline-minimum-display-offset.
 
