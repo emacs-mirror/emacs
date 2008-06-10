@@ -1,3 +1,34 @@
+2008-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* net/newsticker-treeview.el (w3m-toggle-inline-images): Declare.
+	(newsticker-treeview-tool-bar-map, newsticker-treeview-mode): Check
+	tool-bar-map is bound, for non-X builds.
+
+	* net/newsticker-reader.el (newsticker--next-item-image)
+	(newsticker--previous-item-image, newsticker--previous-feed-image)
+	(newsticker--next-feed-image, newsticker--mark-read-image)
+	(ewsticker--mark-immortal-image, newsticker--narrow-image)
+	(newsticker--get-all-image, newsticker--update-image)
+	(newsticker--browse-image): Check xpm images are available.
+	(newsticker--mark-read-image, newsticker--mark-immortal-image)
+	(newsticker--narrow-image, newsticker--get-all-image): Doc fix.
+
+	* net/newsticker-plainview.el (tool-bar-map): Don't declare.
+	(newsticker--plainview-tool-bar-map, newsticker-mode):
+	Check tool-bar-map is bound, for non-X builds.
+	(w3m-toggle-inline-image): Declare.
+
+	* net/newsticker-backend.el (tool-bar-map): Don't declare.
+
+	* emacs-lisp/autoload.el (autoload-rubric): Add coding cookie.
+
+	* finder.el (finder-font-lock-keywords): Handle ``quotes''.
+	(finder-compile-keywords): Move let to where needed.
+	(finder-mouse-face-on-line): Go back one more line if needed.
+	(finder-list-matches): Use cadr.
+	(finder-goto-xref): New function.
+	(finder-commentary): Add buttons to jump to foo.el libraries.
+
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* apropos.el (apropos-function, apropos-macro, apropos-command)
