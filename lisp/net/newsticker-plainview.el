@@ -8,7 +8,7 @@
 ;; Filename:    newsticker-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "8. Juni 2008, 20:39:46 (ulf)"
-;; CVS-Version: $Id: newsticker-plainview.el,v 1.2 2008/06/08 18:09:06 miles Exp $
+;; CVS-Version: $Id: newsticker-plainview.el,v 1.3 2008/06/08 18:44:20 u11 Exp $
 
 ;; ======================================================================
 
@@ -39,7 +39,6 @@
 (require 'xml)
 
 ;; Silence warnings
-(defvar tool-bar-map)
 (defvar w3-mode-map)
 (defvar w3m-minor-mode-map)
 
@@ -326,80 +325,81 @@ images."
 (defvar newsticker--plainview-tool-bar-map
   (if (featurep 'xemacs)
       nil
-    (let ((tool-bar-map (make-sparse-keymap)))
-      (define-key tool-bar-map [newsticker-sep-1]
-        (list 'menu-item "--double-line"))
-      (define-key tool-bar-map [newsticker-browse-url]
-        (list 'menu-item "newsticker-browse-url" 'newsticker-browse-url
-              :visible t
-              :help "Browse URL for item at point"
-              :image newsticker--browse-image))
-      (define-key tool-bar-map [newsticker-buffer-force-update]
-        (list 'menu-item "newsticker-buffer-force-update"
-              'newsticker-buffer-force-update
-              :visible t
-              :help "Update newsticker buffer"
-              :image newsticker--update-image
-              :enable '(not newsticker--buffer-uptodate-p)))
-      (define-key tool-bar-map [newsticker-get-all-news]
-        (list 'menu-item "newsticker-get-all-news" 'newsticker-get-all-news
-              :visible t
-              :help "Get news for all feeds"
-              :image newsticker--get-all-image))
-      (define-key tool-bar-map [newsticker-mark-item-at-point-as-read]
-        (list 'menu-item "newsticker-mark-item-at-point-as-read"
-              'newsticker-mark-item-at-point-as-read
-              :visible t
-              :image newsticker--mark-read-image
-              :help "Mark current item as read"
-              :enable '(newsticker-item-not-old-p)))
-      (define-key tool-bar-map [newsticker-mark-item-at-point-as-immortal]
-        (list 'menu-item "newsticker-mark-item-at-point-as-immortal"
-              'newsticker-mark-item-at-point-as-immortal
-              :visible t
-              :image newsticker--mark-immortal-image
-              :help "Mark current item as immortal"
-              :enable '(newsticker-item-not-immortal-p)))
-      (define-key tool-bar-map [newsticker-toggle-auto-narrow-to-feed]
-        (list 'menu-item "newsticker-toggle-auto-narrow-to-feed"
-              'newsticker-toggle-auto-narrow-to-feed
-              :visible t
-              :help "Toggle visibility of other feeds"
-              :image newsticker--narrow-image))
-      (define-key tool-bar-map [newsticker-next-feed]
-        (list 'menu-item "newsticker-next-feed" 'newsticker-next-feed
-              :visible t
-              :help "Go to next feed"
-              :image newsticker--next-feed-image
-              :enable '(newsticker-next-feed-available-p)))
-      (define-key tool-bar-map [newsticker-next-item]
-        (list 'menu-item "newsticker-next-item" 'newsticker-next-item
-              :visible t
-              :help "Go to next item"
-              :image newsticker--next-item-image
-              :enable '(newsticker-next-item-available-p)))
-      (define-key tool-bar-map [newsticker-previous-item]
-        (list 'menu-item "newsticker-previous-item" 'newsticker-previous-item
-              :visible t
-              :help "Go to previous item"
-              :image newsticker--previous-item-image
-              :enable '(newsticker-previous-item-available-p)))
-      (define-key tool-bar-map [newsticker-previous-feed]
-        (list 'menu-item "newsticker-previous-feed" 'newsticker-previous-feed
-              :visible t
-              :help "Go to previous feed"
-              :image newsticker--previous-feed-image
-              :enable '(newsticker-previous-feed-available-p)))
-      ;; standard icons / actions
-      (tool-bar-add-item "close"
-                         'newsticker-close-buffer
-                         'newsticker-close-buffer
-                         :help "Close newsticker buffer")
-      (tool-bar-add-item "preferences"
-                         'newsticker-customize
-                         'newsticker-customize
-                         :help "Customize newsticker")
-      tool-bar-map)))
+    (if (boundp 'tool-bar-map)
+        (let ((tool-bar-map (make-sparse-keymap)))
+          (define-key tool-bar-map [newsticker-sep-1]
+            (list 'menu-item "--double-line"))
+          (define-key tool-bar-map [newsticker-browse-url]
+            (list 'menu-item "newsticker-browse-url" 'newsticker-browse-url
+                  :visible t
+                  :help "Browse URL for item at point"
+                  :image newsticker--browse-image))
+          (define-key tool-bar-map [newsticker-buffer-force-update]
+            (list 'menu-item "newsticker-buffer-force-update"
+                  'newsticker-buffer-force-update
+                  :visible t
+                  :help "Update newsticker buffer"
+                  :image newsticker--update-image
+                  :enable '(not newsticker--buffer-uptodate-p)))
+          (define-key tool-bar-map [newsticker-get-all-news]
+            (list 'menu-item "newsticker-get-all-news" 'newsticker-get-all-news
+                  :visible t
+                  :help "Get news for all feeds"
+                  :image newsticker--get-all-image))
+          (define-key tool-bar-map [newsticker-mark-item-at-point-as-read]
+            (list 'menu-item "newsticker-mark-item-at-point-as-read"
+                  'newsticker-mark-item-at-point-as-read
+                  :visible t
+                  :image newsticker--mark-read-image
+                  :help "Mark current item as read"
+                  :enable '(newsticker-item-not-old-p)))
+          (define-key tool-bar-map [newsticker-mark-item-at-point-as-immortal]
+            (list 'menu-item "newsticker-mark-item-at-point-as-immortal"
+                  'newsticker-mark-item-at-point-as-immortal
+                  :visible t
+                  :image newsticker--mark-immortal-image
+                  :help "Mark current item as immortal"
+                  :enable '(newsticker-item-not-immortal-p)))
+          (define-key tool-bar-map [newsticker-toggle-auto-narrow-to-feed]
+            (list 'menu-item "newsticker-toggle-auto-narrow-to-feed"
+                  'newsticker-toggle-auto-narrow-to-feed
+                  :visible t
+                  :help "Toggle visibility of other feeds"
+                  :image newsticker--narrow-image))
+          (define-key tool-bar-map [newsticker-next-feed]
+            (list 'menu-item "newsticker-next-feed" 'newsticker-next-feed
+                  :visible t
+                  :help "Go to next feed"
+                  :image newsticker--next-feed-image
+                  :enable '(newsticker-next-feed-available-p)))
+          (define-key tool-bar-map [newsticker-next-item]
+            (list 'menu-item "newsticker-next-item" 'newsticker-next-item
+                  :visible t
+                  :help "Go to next item"
+                  :image newsticker--next-item-image
+                  :enable '(newsticker-next-item-available-p)))
+          (define-key tool-bar-map [newsticker-previous-item]
+            (list 'menu-item "newsticker-previous-item" 'newsticker-previous-item
+                  :visible t
+                  :help "Go to previous item"
+                  :image newsticker--previous-item-image
+                  :enable '(newsticker-previous-item-available-p)))
+          (define-key tool-bar-map [newsticker-previous-feed]
+            (list 'menu-item "newsticker-previous-feed" 'newsticker-previous-feed
+                  :visible t
+                  :help "Go to previous feed"
+                  :image newsticker--previous-feed-image
+                  :enable '(newsticker-previous-feed-available-p)))
+          ;; standard icons / actions
+          (tool-bar-add-item "close"
+                             'newsticker-close-buffer
+                             'newsticker-close-buffer
+                             :help "Close newsticker buffer")
+          (tool-bar-add-item "preferences"
+                             'newsticker-customize
+                             'newsticker-customize
+                             :help "Customize newsticker")
+          tool-bar-map))))
 
 ;; ======================================================================
 ;;; Newsticker mode
@@ -408,7 +408,9 @@ images."
 (define-derived-mode newsticker-mode fundamental-mode
   "NewsTicker"
   "Viewing news feeds in Emacs."
-  (set (make-local-variable 'tool-bar-map) newsticker--plainview-tool-bar-map)
+  (if (boundp 'tool-bar-map)
+      (set (make-local-variable 'tool-bar-map)
+           newsticker--plainview-tool-bar-map))
   (set (make-local-variable 'imenu-sort-function) nil)
   (set (make-local-variable 'scroll-conservatively) 999)
   (setq imenu-create-index-function 'newsticker--imenu-create-index)
@@ -619,6 +621,8 @@ This does NOT start the retrieval timers."
       (when feed
         (newsticker--debug-msg "Getting news for %s" (symbol-name feed))
         (newsticker-get-news (symbol-name feed)))))
+
+(declare-function w3m-toggle-inline-image "ext:w3m" (&optional force no-cache))
 
 (defun newsticker-w3m-show-inline-images ()
   "Show inline images in visible text ranges.
