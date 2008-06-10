@@ -1508,13 +1508,7 @@ is used to further constrain the set of candidates.  */)
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
-  if (matchcount == 1 && bestmatchsize == SCHARS (string)
-      && (tem = Fcompare_strings (bestmatch, make_number (0),
-				  make_number (bestmatchsize),
-				  string, make_number (0),
-				  make_number (bestmatchsize),
-				  Qnil),
-	  EQ (Qt, tem)))
+  if (matchcount == 1 && !NILP (Fequal (bestmatch, string)))
     return Qt;
 
   XSETFASTINT (zero, 0);		/* Else extract the part in which */

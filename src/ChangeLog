@@ -1,5 +1,9 @@
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired.c (file_name_completion): Don't return t if the match is exact
+	but with different capitalization.
+	* minibuf.c (Ftry_completion): Simplify.
+
 	* window.c (Vwindow_point_insertion_type): New var.
 	(set_window_buffer): Use it.
 	(syms_of_window): Init and export it to Lisp.
