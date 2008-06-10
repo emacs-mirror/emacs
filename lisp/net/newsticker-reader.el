@@ -3,15 +3,15 @@
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
-;; This file is part of GNU Emacs.
-
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "7. Juni 2008, 15:34:08 (ulf)"
-;; CVS-Version: $Id: newsticker-reader.el,v 1.3 2008/06/10 03:08:58 gm Exp $
+;; CVS-Version: $Id: newsticker-reader.el,v 1.4 2008/06/10 03:16:47 gm Exp $
 
 ;; ======================================================================
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
