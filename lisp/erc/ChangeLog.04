@@ -282,7 +282,7 @@
 	`t'.  Updated documentation and customization `:type' to reflect
 	usage.
 
-2004-10-29  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-10-29  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* AUTHORS: Added self.
 
@@ -553,20 +553,20 @@
 	* erc.el (erc-cmd-JOIN): Use erc-member-ignore-case instead of
 	member-ignore-case.
 
-2004-08-09  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-08-09  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-backend.el: Define an "Edebug specification" for the
 	`define-erc-response-handler' macro.  This means that one can step
 	through response handlers defined by this macro with edebug.  Maybe
 	more macros would benefit from this?
 
-2004-08-09  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-08-09  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-pcomplete.el (pcomplete/erc-mode/CTCP): New function.
 	Completion for the /CTCP command.  (erc-pcomplete-ctcp-commands):
 	New variable.  List of ctcp commands.
 
-2004-08-09  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-08-09  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-list.el: Clean up docstrings.
 	(erc-prettify-channel-list): Extend properties to cover the entire
@@ -667,7 +667,7 @@
 	* erc-match.el (erc-match-current-nick-p): Quote current nick for
 	regexp parsing.
 
-2004-06-27  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-06-27  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-nickserv.el (erc-nickserv-identify-mode): Fix erroneous
 	parentheses in call to `completing-read'.
@@ -1239,11 +1239,11 @@
 	`erc-prompt-for-channel-key' is non-nil.  (erc-format-my-nick): New
 	function.  (erc-send-message, erc-send-current-line): Use it.
 
-2004-04-24  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-04-24  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-track.el (erc-track-modified-channels): Fix indentation.
 
-2004-04-24  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-04-24  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-match.el (erc-hide-fools): Docstring fix.
 	(erc-log-matches-types-alist): Added `current-nick' to valid
@@ -1780,7 +1780,7 @@
 	* erc.el (erc-get-arglist): Use `substitute-command-keys', rather
 	than hard-coding C-h f for `describe-function'.
 
-2004-02-26  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-02-26  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-log.el (erc-save-buffer-in-logs): bind `inhibit-read-only'
 	to t around call to `erase-buffer'.
@@ -1858,7 +1858,7 @@
 
 	* erc.el (erc-get-buffer): Use erc-buffer-filter.
 
-2004-01-30  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-01-30  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc.el: From jbms:
 	(erc-get-channel-nickname-list): New function.
@@ -1866,7 +1866,7 @@
 	(erc-get-server-nickname-alist): New function.
 	(erc-get-channel-nickname-alist): New function.
 
-2004-01-30  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-01-30  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-match.el (erc-add-entry-to-list,
 	erc-remove-entry-from-list): Use `erc-member-ignore-case' to
@@ -1874,12 +1874,12 @@
 	(erc-add-pal, erc-add-fool): Fix type bug.  Use
 	`erc-get-server-nickname-alist'.
 
-2004-01-29  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-01-29  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc.el: From jbms: Adds xemacs compatibility to hash table
 	channel-members patch.
 
-2004-01-29  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-01-29  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc.el (erc-update-undo-list): Rewritten.  Update
 	buffer-undo-list in place.  Deal with XEmacsesque
@@ -1887,13 +1887,13 @@
 	(erc-channel-users): Fix unescaped open-paren in left column in
 	docstring.
 
-2004-01-29  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-01-29  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-ring.el (erc-replace-current-command): Exclude the prompt
 	from the deleted region and don't redisplay the prompt (because
 	`erc-display-prompt' flushes `buffer-undo-list').
 
-2004-01-29  Johan Bockgard  <bojohan@users.sourceforge.net>
+2004-01-29  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-match.el (erc-add-entry-to-list): Use `symbol-value' instead
 	of `eval'.

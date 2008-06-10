@@ -24293,7 +24293,7 @@
 	(mac-services-mail-to): New functions.
 	(mac-application-menu-map): Bind them.
 
-2005-07-12  wulei  <milton@wulei.net>  (tiny change)
+2005-07-12  Milton Wulei  <milton@wulei.net>  (tiny change)
 
 	* progmodes/gdb-ui.el: Add note about buffering with Windows.
 
@@ -29625,7 +29625,7 @@
 
 	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
 
-2005-04-11  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+2005-04-11  Juan León Lahoz García  <juanleon1@gmail.com>
 
 	* wdired.el: Doc fixes.
 	(wdired-confirm-overwrite): Rename from wdired-is-ok-overwrite.
@@ -29910,7 +29910,7 @@
 	* fast-lock.el:
 	* lazy-lock.el: Move them to the obsolete subdir.
 
-2005-04-06  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+2005-04-06  Juan León Lahoz García  <juanleon1@gmail.com>
 
 	* wdired.el (wdired-advise-functions, wdired-add-skip-in-replace)
 	(wdired-add-replace-advice): Remove.
@@ -30756,7 +30756,7 @@
 	(menu-bar-showhide-menu): Use menu-bar-make-mm-toggle.
 	(menu-bar-make-mm-toggle): Simplify.
 
-2005-03-22  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+2005-03-22  Juan León Lahoz García  <juanleon1@gmail.com>
 
 	* progmodes/perl-mode.el (perl-font-lock-keywords-2):
 	Accept qualified variable and function names.
@@ -30940,7 +30940,7 @@
 
 	* language/thai-word.el: New file.
 
-2005-03-19  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+2005-03-19  Juan León Lahoz García  <juanleon1@gmail.com>
 
 	* files.el (backup-buffer): If the file's directory is not
 	writable, use copy instead of move to backup the file.
@@ -31764,7 +31764,7 @@
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/hideif.el (hide-ifdef-use-define-alist):
-	Use completing-read.  Suggested by Juan-Leon Lahoz Garcia.
+	Use completing-read.  Suggested by Juan León Lahoz García.
 
 2005-02-22  Simon Josefsson  <jas@extundo.com>
 
@@ -33257,7 +33257,7 @@
 
 	* progmodes/perl-mode.el (perl-nochange, perl-calculate-indent):
 	Don't confuse module-prefixed identifiers for labels.
-	Reported by Juan-Leon Lahoz Garcia <juanleon1@gmail.com>.
+	Reported by Juan León Lahoz García <juanleon1@gmail.com>.
 
 2005-01-02  Richard M. Stallman  <rms@gnu.org>
 

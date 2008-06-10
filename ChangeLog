@@ -2082,7 +2082,7 @@
 2001-11-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* configure.in: Reindent --help output.
-	From Per Starback (starback@ling.uu.se).
+	From Per Starbäck (starback@ling.uu.se).
 
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 

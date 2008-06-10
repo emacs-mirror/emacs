@@ -3341,7 +3341,7 @@
 	* url.texi (History):
 	Delete duplicate duplicate words.
 
-2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+2005-07-16  Johan Bockgård  <bojohan@users.sourceforge.net>  (tiny change)
 
 	* cl.texi (Type Predicates): Document `atom' type.
 

@@ -52,7 +52,7 @@
 	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
 	* src/Emacs.r: Increase version to 23.0.50.
 
-2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+2007-08-29  Károly Lőrentey  <lorentey@elte.hu>
 
 	* makefile.MPW (EmacsObjects): Add terminal.c.x.
 	(callproc.c.x): Add dependencies frame.h, termhooks.h.

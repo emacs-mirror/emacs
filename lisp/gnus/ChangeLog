@@ -9626,7 +9626,7 @@
 	* flow-fill.el (fill-flowed-display-column)
 	(fill-flowed-encode-column): Ditto.
 
-2004-09-06  Stefan  <monnier@iro.umontreal.ca>
+2004-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-tokenize-header, message-send-mail-with-qmail):
 	Use point-min rather than 1.
@@ -10749,13 +10749,13 @@
 	* gnus-art.el (gnus-emphasis-alist): Removed strikethru; too many
 	false positives.
 
-2004-05-16  Kim Minh Kaplan  <kmkaplan-AwwS6Bc0PDVoiYX5Tdu9fQ@public.gmane.org>
+2004-05-16  Kim-Minh Kaplan  <kmkaplan-AwwS6Bc0PDVoiYX5Tdu9fQ@public.gmane.org>
 
 	* imap.el (imap-sasl-make-mechanisms): Use sasl.
 
 2004-05-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* nneething.el (nneething-file-name): Don't create spurions
+	* nneething.el (nneething-file-name): Don't create spurious
 	files.
 
 	* gnus-msg.el (gnus-inews-do-gcc): Ignore read-only groups.

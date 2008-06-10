@@ -2862,7 +2862,7 @@
 	New functions.
 	(completion-styles-alist): Use them.
 
-2008-04-23  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-04-23  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-set-spellchecker-params): New function to make sure
 	right params and dictionary alists are used after spellchecker changes.

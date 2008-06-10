@@ -1004,7 +1004,7 @@
 
 	* quail/slovak.el ("slovak"): Translate "=q" to "`".
 
-2001-03-16  Pavel Janík ml.  <Pavel@Janik.cz>
+2001-03-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* quail/slovak.el ("slovak"): Delete translations of "q", "Q",
 	"=q", "+q", "=Q", and "+Q".

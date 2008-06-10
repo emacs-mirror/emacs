@@ -6490,7 +6490,7 @@
 	(dist): Make packaged directory name `elisp-manual-19-$(VERSION)'.
 	Compressed file suffix should be `.gz', not `.z'.
 
-1993-11-22 1993  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+1993-11-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* Makefile (elisp): Depend on makeinfo.
 
