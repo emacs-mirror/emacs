@@ -486,7 +486,7 @@ add_opentype_font_name_to_list (logical_font, physical_font, font_type,
     return 1;
 
   family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
-			     strlen (logical_font->elfLogFont.lfFaceName));
+			     strlen (logical_font->elfLogFont.lfFaceName), 1);
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
