@@ -1,3 +1,15 @@
+2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-select-font): New function.
+
+	* faces.el (face-spec-recalc): When the face is set using
+	Customize, avoid recalculating it twice.
+
+	* menu-bar.el (menu-set-font): New function.  Bind "Set Default
+	Font" menu item to it.  Apply selected font to all frames, and
+	make it savable.
+	(menu-bar-options-save): Save `default' font if changed.
+
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ffap.el (ffap-string-at-point-mode-alist): Use alpha rather than lower.
