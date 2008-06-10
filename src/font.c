@@ -212,13 +212,15 @@ static int num_font_drivers;
 
 /* Return a Lispy value of a font property value at STR and LEN bytes.
    If STR is "*", it returns nil.
-   If all characters in STR are digits, it returns an integer.
-   Otherwise, it returns a symbol interned from STR.  */
+   If FORCE_SYMBOL is zero and all characters in STR are digits, it
+   returns an integer.  Otherwise, it returns a symbol interned from
+   STR.  */
 
 Lisp_Object
-font_intern_prop (str, len)
+font_intern_prop (str, len, force_symbol)
      char *str;
      int len;
+     int force_symbol;
 {
   int i;
   Lisp_Object tem;
@@ -226,7 +228,7 @@ font_intern_prop (str, len)
 
   if (len == 1 && *str == '*')
     return Qnil;
-  if (len >=1 && isdigit (*str))
+  if (!force_symbol && len >=1 && isdigit (*str))
     {
       for (i = 1; i < len; i++)
 	if (! isdigit (str[i]))
@@ -1040,33 +1042,35 @@ font_parse_xlfd (name, font)
       }
   f[i] = name + len;
 
-#define INTERN_FIELD(N) font_intern_prop (f[N], f[(N) + 1] - 1 - f[N])
+#define INTERN_FIELD(N) font_intern_prop (f[N], f[(N) + 1] - 1 - f[N], 0)
+#define INTERN_FIELD_SYM(N) font_intern_prop (f[N], f[(N) + 1] - 1 - f[N], 1)
 
   if (i == XLFD_LAST_INDEX)
     {
       /* Fully specified XLFD.  */
       int pixel_size;
 
-      ASET (font, FONT_FOUNDRY_INDEX, INTERN_FIELD (XLFD_FOUNDRY_INDEX));
-      ASET (font, FONT_FAMILY_INDEX, INTERN_FIELD (XLFD_FAMILY_INDEX));
+      ASET (font, FONT_FOUNDRY_INDEX, INTERN_FIELD_SYM (XLFD_FOUNDRY_INDEX));
+      ASET (font, FONT_FAMILY_INDEX, INTERN_FIELD_SYM (XLFD_FAMILY_INDEX));
       for (i = XLFD_WEIGHT_INDEX, j = FONT_WEIGHT_INDEX;
 	   i <= XLFD_SWIDTH_INDEX; i++, j++)
 	{
-	  val = INTERN_FIELD (i);
+	  val = INTERN_FIELD_SYM (i);
 	  if (! NILP (val))
 	    {
-	      if ((n = font_style_to_value (j, INTERN_FIELD (i), 0)) < 0)
+	      if ((n = font_style_to_value (j, INTERN_FIELD_SYM (i), 0)) < 0)
 		return -1;
 	      ASET (font, j, make_number (n));
 	    }
 	}
-      ASET (font, FONT_ADSTYLE_INDEX, INTERN_FIELD (XLFD_ADSTYLE_INDEX));
+      ASET (font, FONT_ADSTYLE_INDEX, INTERN_FIELD_SYM (XLFD_ADSTYLE_INDEX));
       if (strcmp (f[XLFD_REGISTRY_INDEX], "*-*") == 0)
 	ASET (font, FONT_REGISTRY_INDEX, Qnil);
       else
 	ASET (font, FONT_REGISTRY_INDEX,
 	      font_intern_prop (f[XLFD_REGISTRY_INDEX],
-				f[XLFD_LAST_INDEX] - f[XLFD_REGISTRY_INDEX]));
+				f[XLFD_LAST_INDEX] - f[XLFD_REGISTRY_INDEX],
+				1));
       p = f[XLFD_PIXEL_INDEX];
       if (*p == '[' && (pixel_size = parse_matrix (p)) >= 0)
 	ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
@@ -1103,7 +1107,7 @@ font_parse_xlfd (name, font)
       if (*p == '~')
 	p++;
       ASET (font, FONT_AVGWIDTH_INDEX,
-	    font_intern_prop (p, f[XLFD_REGISTRY_INDEX] - 1 - p));
+	    font_intern_prop (p, f[XLFD_REGISTRY_INDEX] - 1 - p, 1));
     }
   else
     {
@@ -1124,7 +1128,7 @@ font_parse_xlfd (name, font)
 	  else if (j + 1 < i)
 	    prop[j] = INTERN_FIELD (j);
 	  else
-	    prop[j] = font_intern_prop (f[j], f[i] - f[j]);
+	    prop[j] = font_intern_prop (f[j], f[i] - f[j], 0);
 	}
       if (! wild_card_found)
 	return -1;
@@ -1345,7 +1349,7 @@ font_parse_fcname (name, font)
       for (p0 = name + 1; *p0 && (*p0 != '-' && *p0 != ':'); p0++)
 	if (*p0 == '\\' && p0[1])
 	  p0++;
-      family = font_intern_prop (name, p0 - name);
+      family = font_intern_prop (name, p0 - name, 1);
       if (*p0 == '-')
 	{
 	  if (! isdigit (p0[1]))
@@ -1377,7 +1381,7 @@ font_parse_fcname (name, font)
       if (*p1 != '=')
 	{
 	  /* Must be an enumerated value.  */
-	  val = font_intern_prop (p0 + 1, p1 - p0 - 1);
+	  val = font_intern_prop (p0 + 1, p1 - p0 - 1, 1);
 	  if (memcmp (p0 + 1, "light", 5) == 0
 	      || memcmp (p0 + 1, "medium", 6) == 0
 	      || memcmp (p0 + 1, "demibold", 8) == 0
@@ -1412,12 +1416,12 @@ font_parse_fcname (name, font)
 	    prop = FONT_SIZE_INDEX;
 	  else
 	    {
-	      key = font_intern_prop (p0, p1 - p0);
+	      key = font_intern_prop (p0, p1 - p0, 1);
 	      prop = get_font_prop_index (key);
 	    }
 	  p0 = p1 + 1;
 	  for (p1 = p0; *p1 && *p1 != ':'; p1++);
-	  val = font_intern_prop (p0, p1 - p0);
+	  val = font_intern_prop (p0, p1 - p0, 0);
 	  if (! NILP (val))
 	    {
 	      if (prop >= FONT_FOUNDRY_INDEX && prop < FONT_EXTRA_INDEX)
@@ -1581,10 +1585,10 @@ font_parse_family_registry (family, registry, font_spec)
 	{
 	  if ((*p0 != '*' || p1 - p0 > 1)
 	      && NILP (AREF (font_spec, FONT_FOUNDRY_INDEX)))
-	    Ffont_put (font_spec, QCfoundry, font_intern_prop (p0, p1 - p0));
+	    Ffont_put (font_spec, QCfoundry, font_intern_prop (p0, p1 - p0, 1));
 	  p1++;
 	  len -= p1 - p0;
-	  Ffont_put (font_spec, QCfamily, font_intern_prop (p1, len));
+	  Ffont_put (font_spec, QCfamily, font_intern_prop (p1, len, 1));
 	}
       else
 	ASET (font_spec, FONT_FAMILY_INDEX, Fintern (family, Qnil));
