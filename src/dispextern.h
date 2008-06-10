@@ -2705,6 +2705,7 @@ extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern Lisp_Object Vmouse_autoselect_window;
 extern int unibyte_display_via_language_environment;
+extern EMACS_INT underline_minimum_offset;
 
 extern void reseat_at_previous_visible_line_start P_ ((struct it *));
 

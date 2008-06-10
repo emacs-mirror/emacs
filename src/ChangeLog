@@ -1,3 +1,14 @@
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (underline_minimum_offset): Rename from xterm.c's
+	x_underline_minimum_display_offset.
+	(syms_of_xdisp): Declare it here rather than in xterm.c.
+	* dispextern.h (underline_minimum_offset): Declare it.
+	* w32term.c (x_draw_glyph_string): Use it.
+	* xterm.c (x_underline_minimum_display_offset): Move to xdisp.c.
+	(syms_of_xterm): Don't declare it any more.
+	(x_draw_glyph_string): Adjust to the new name.
+
 2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
 
 	* xterm.c (x_underline_minimum_display_offset): New var.

@@ -1,3 +1,8 @@
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-start.el (underline-minimum-offset) Rename from
+	x-underline-minimum-display-offset.
+
 2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
 
 	* cus-start.el (x-underline-minimum-display-offset): Give it a type.

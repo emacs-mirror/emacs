@@ -715,6 +715,12 @@ struct buffer *displayed_buffer;
 
 EMACS_INT overline_margin;
 
+/* Require underline to be at least this many screen pixels below baseline
+   This to avoid underline "merging" with the base of letters at small
+   font sizes, particularly when x_use_underline_position_properties is on. */
+
+EMACS_INT underline_minimum_offset;
+
 /* Value returned from text property handlers (see below).  */
 
 enum prop_handled
@@ -24801,6 +24807,15 @@ The enable predicate for a menu binding should check this variable.  */);
 The default value is 2: the height of the overline (1 pixel) plus 1 pixel
 margin to the caracter height.  */);
   overline_margin = 2;
+
+  DEFVAR_INT ("underline-minimum-offset",
+	       &underline_minimum_offset,
+     doc: /* Minimum distance between baseline and underline.
+This can improve legibility of underlined text at small font sizes,
+particularly when using variable `x-use-underline-position-properties'
+with fonts that specify an UNDERLINE_POSITION relatively close to the
+baseline.  The default value is 0.  */);
+  underline_minimum_offset = 0;
 }
 
 

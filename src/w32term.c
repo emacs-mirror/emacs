@@ -2910,6 +2910,7 @@ x_draw_glyph_string (s)
                 else if (s->font)
                   position = (s->font->descent + 1) / 2;
                 }
+	      position = max (position, underline_minimum_offset);
             }
 	  /* Check the sanity of thickness and position.  We should
 	     avoid drawing underline out of the current line area.  */
