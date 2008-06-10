@@ -1,8 +1,7 @@
 ;;; newsticker.el --- A Newsticker for Emacs.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
-
-;; This file is part of GNU Emacs.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker.el
@@ -10,9 +9,11 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "7. Juni 2008, 14:04:59 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.175 2008/05/03 18:36:02 u11 Exp $
+;; CVS-Version: $Id: newsticker.el,v 1.21 2008/06/08 15:37:08 u11 Exp $
 
 ;; ======================================================================
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
