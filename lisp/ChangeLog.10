@@ -17869,7 +17869,7 @@
 
 	* frame.el (display-images-p): Do not explicitly check display type.
 
-2002-03-20  pmr-sav  <pmr-sav@hamm.pajato.com>
+2002-03-20  Paul Reilly  <pmr-sav@hamm.pajato.com>
 
 	* mail-utils.el:
 	Eliminate compilation warnings due to `rfc822-addresses'.
@@ -17901,7 +17901,7 @@
 	* ediff.el (ediff-clone-buffer-for-region-comparison)
 	(ediff-clone-buffer-for-window-comparison): Moved to ediff-util.el.
 
-2002-03-19  pmr-sav  <pmr-sav@hamm.pajato.com>
+2002-03-19  Paul Reilly  <pmr-sav@hamm.pajato.com>
 
 	* mail-utils.el (rmail-dont-reply-to):
 	Overhaul to correctly apply the regular
