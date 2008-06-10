@@ -1,3 +1,7 @@
+2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Accept GTK-style font names too.
+
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.c (file_name_completion): Don't return t if the match is exact
