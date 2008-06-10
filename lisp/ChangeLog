@@ -1,3 +1,14 @@
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* apropos.el (apropos-function, apropos-macro, apropos-command)
+	(apropos-variable, apropos-face, apropos-group, apropos-widget)
+	(apropos-plist): Add apropos-short-label property.
+	(apropos-multi-type): New variables.
+	(apropos-command, apropos-value): Set it.
+	(apropos-compact-layout): New custom.
+	(apropos-print, apropos-print-doc): Use it.
+	(apropos-print): Truncate lines.
+
 2008-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (font-encoding-alist):
@@ -149,7 +160,7 @@
 	to `newsticker--plainview-tool-bar-map'.
 	(newsticker--url-keymap): Add mouse-1 binding.
 	(newsticker-plainview): New.
-	(newsticker-mark-all-items-of-feed-as-read): Doc changed.
+	(newsticker-mark-all-items-of-feed-as-read): Change doc.
 	(newsticker--buffer-do-insert-text): Use renamed
 	newsticker--[buffer-]insert-enclosure and
 	newsticker--[buffer-]print-extra-elements.
@@ -173,8 +184,8 @@
 	* window.el (split-height-threshold, split-width-threshold):
 	Add choice nil.
 	(split-window-preferred-function): Allow either nil or a function.
-	(window--splittable-p, window--try-to-split-window): Handle
-	changed option values.
+	(window--splittable-p, window--try-to-split-window):
+	Handle changed option values.
 
 	(window--frame-usable-p): Handle nil argument.
 

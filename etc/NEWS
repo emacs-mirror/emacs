@@ -63,7 +63,9 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
-** `apropos-library' describes the elements defined in a given library.
+** Apropos
+*** `apropos-library' describes the elements defined in a given library.
+*** Set `apropos-compact-layout' is you want a more compact (but wider) layout.
 
 ** scroll-preserve-screen-position also preserves the column position.
 ** Completion.
