@@ -1,5 +1,7 @@
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ffap.el (ffap-string-at-point-mode-alist): Use alpha rather than lower.
+
 	* dired.el (dired-insert-directory): Don't assume Unix-style dir names.
 
 	* subr.el (momentary-string-display): Use an overlay.
