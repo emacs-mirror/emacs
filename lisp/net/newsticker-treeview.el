@@ -10,7 +10,7 @@
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "8. Juni 2008, 20:42:16 (ulf)"
-;; CVS-Version: $Id: newsticker-treeview.el,v 1.3 2008/06/08 18:44:20 u11 Exp $
+;; CVS-Version: $Id: newsticker-treeview.el,v 1.4 2008/06/10 03:08:14 gm Exp $
 
 ;; ======================================================================
 
@@ -34,7 +34,7 @@
 
 ;; ======================================================================
 ;;; History:
-;; 
+;;
 
 
 ;; ======================================================================
@@ -707,7 +707,7 @@ for the button."
         (when (and newsticker-justification
                    (not is-rendered-HTML))
           (fill-region marker1 marker2 newsticker-justification))
-        
+
         (newsticker-treeview-mode)
         (goto-char (point-min))
         ;; insert logo at top
@@ -723,7 +723,7 @@ for the button."
                                    :nt-link (newsticker--link item)
                                    'keymap newsticker--treeview-url-keymap))
         (setq pos (point))
-        
+
         (insert "\n\n")
         ;; insert title
         (setq pos (point))
@@ -1982,7 +1982,7 @@ POS gives the position where EVENT occurred."
   (interactive)
   (when newsticker--treeview-current-feed
     (newsticker-get-news newsticker--treeview-current-feed)))
-  
+
 (provide 'newsticker-treeview)
 
 ;; arch-tag: 5dbaff48-1f3e-4fc6-8ebd-e966fc90d2d4
