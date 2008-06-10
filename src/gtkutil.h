@@ -137,6 +137,8 @@ extern char *xg_get_file_name P_ ((FRAME_PTR f,
                                    int mustmatch_p,
                                    int only_dir_p));
 
+extern char *xg_get_font_name P_ ((FRAME_PTR f, char *));
+
 extern GtkWidget *xg_create_widget P_ ((char *type,
                                         char *name,
                                         FRAME_PTR f,
