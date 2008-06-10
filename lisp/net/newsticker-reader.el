@@ -8,7 +8,7 @@
 ;; Filename:    newsticker-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "7. Juni 2008, 15:34:08 (ulf)"
-;; CVS-Version: $Id: newsticker-reader.el,v 1.1 2008/06/08 15:35:57 u11 Exp $
+;; CVS-Version: $Id: newsticker-reader.el,v 1.2 2008/06/08 18:09:06 miles Exp $
 
 ;; ======================================================================
 
@@ -264,8 +264,9 @@ Return the image."
 ;;; Toolbar
 ;; ======================================================================
 (defconst newsticker--next-item-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * next_xpm[] = {
 \"24 24 42 1\",
 \" 	c None\",
@@ -335,12 +336,13 @@ static char * next_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the next item button."))
+                     'xpm t))
+  "Image for the next item button.")
 
 (defconst newsticker--previous-item-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * previous_xpm[] = {
 \"24 24 39 1\",
 \" 	c None\",
@@ -407,12 +409,13 @@ static char * previous_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the previous item button."))
+                     'xpm t))
+  "Image for the previous item button.")
 
 (defconst newsticker--previous-feed-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * prev_feed_xpm[] = {
 \"24 24 52 1\",
 \" 	c None\",
@@ -492,12 +495,13 @@ static char * prev_feed_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the previous feed button."))
+                     'xpm t))
+  "Image for the previous feed button.")
 
 (defconst newsticker--next-feed-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * next_feed_xpm[] = {
 \"24 24 57 1\",
 \" 	c None\",
@@ -582,12 +586,13 @@ static char * next_feed_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the next feed button."))
+                     'xpm t))
+  "Image for the next feed button.")
 
 (defconst newsticker--mark-read-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * mark_read_xpm[] = {
 \"24 24 44 1\",
 \" 	c None\",
@@ -659,12 +664,13 @@ static char * mark_read_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the next feed button."))
+                    'xpm t))
+   "Image for the mark read button.")
 
 (defconst newsticker--mark-immortal-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * mark_immortal_xpm[] = {
 \"24 24 93 2\",
 \"  	c None\",
@@ -785,12 +791,13 @@ static char * mark_immortal_xpm[] = {
 \"                                                \",
 \"                                                \"};
 "
-                 'xpm t)
-   "Image for the next feed button."))
+                     'xpm t))
+  "Image for the mark immortal button.")
 
 (defconst newsticker--narrow-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * narrow_xpm[] = {
 \"24 24 48 1\",
 \" 	c None\",
@@ -866,12 +873,13 @@ static char * narrow_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the next feed button."))
+                     'xpm t))
+  "Image for the narrow image button.")
 
 (defconst newsticker--get-all-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * get_all_xpm[] = {
 \"24 24 70 1\",
 \" 	c None\",
@@ -969,12 +977,13 @@ static char * get_all_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the next feed button."))
+                     'xpm t))
+  "Image for the get all image button.")
 
 (defconst newsticker--update-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * update_xpm[] = {
 \"24 24 37 1\",
 \" 	c None\",
@@ -1039,12 +1048,13 @@ static char * update_xpm[] = {
 \"                        \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the update button."))
+                     'xpm t))
+   "Image for the update button.")
 
 (defconst newsticker--browse-image
-  (if (fboundp 'create-image)
-      (create-image "/* XPM */
+  (and (fboundp 'image-type-available-p)
+       (image-type-available-p 'xpm)
+       (create-image "/* XPM */
 static char * visit_xpm[] = {
 \"24 24 39 1\",
 \" 	c None\",
@@ -1111,8 +1121,8 @@ static char * visit_xpm[] = {
 \"            .           \",
 \"                        \"};
 "
-                 'xpm t)
-   "Image for the browse button."))
+                     'xpm t))
+  "Image for the browse button.")
 
 (provide 'newsticker-reader)
 
