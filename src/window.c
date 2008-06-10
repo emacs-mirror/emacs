@@ -167,6 +167,10 @@ static Lisp_Object Vwindow_configuration_change_hook;
 
 Lisp_Object Vscroll_preserve_screen_position;
 
+/* Non-nil means that text is inserted before window's markers.  */
+
+Lisp_Object Vwindow_point_insertion_type;
+
 /* Incremented by 1 whenever a window is deleted.  */
 
 int window_deletion_count;
@@ -3420,6 +3424,8 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
       Fset_buffer (buffer);
     }
 
+  XMARKER (w->pointm)->insertion_type = !NILP (Vwindow_point_insertion_type);
+
   if (!keep_margins_p)
     {
       /* Set left and right marginal area width etc. from buffer.  */
@@ -3486,9 +3492,11 @@ This function runs the hook `window-scroll-functions'.  */)
   else if (! EQ (tem, Qt))	/* w->buffer is t when the window
 				   is first being set up.  */
     {
-      if (!NILP (w->dedicated) && !EQ (tem, buffer))
-	error ("Window is dedicated to `%s'",
-	       SDATA (XBUFFER (tem)->name));
+      if (!EQ (tem, buffer))
+	if (EQ (w->dedicated, Qt))
+	  error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
+	else
+	  w->dedicated = Qnil;
 
       unshow_buffer (w);
     }
@@ -7150,6 +7158,10 @@ command moved it vertically out of the window, e.g. when scrolling
 by full screens.
 Any other value means point always keeps its screen position.  */);
   Vscroll_preserve_screen_position = Qnil;
+
+  DEFVAR_LISP ("window-point-insertion-type", &Vwindow_point_insertion_type,
+	       doc: /* Type of marker to use for `window-point'.  */);
+  Vwindow_point_insertion_type = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",
 	       &Vwindow_configuration_change_hook,

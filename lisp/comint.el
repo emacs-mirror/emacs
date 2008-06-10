@@ -618,6 +618,7 @@ to continue it.
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq mode-line-process '(":%s"))
+  (set (make-local-variable 'window-point-insertion-type) t)
   (set (make-local-variable 'comint-last-input-start) (point-min-marker))
   (set (make-local-variable 'comint-last-input-end) (point-min-marker))
   (set (make-local-variable 'comint-last-output-start) (make-marker))
@@ -1755,48 +1756,9 @@ Make backspaces delete the previous character."
 	    (set-marker comint-last-output-start (point))
 
 	    ;; insert-before-markers is a bad thing. XXX
-	    ;;
-	    ;; It is used here to force window-point markers (used to
-	    ;; store the value of point in non-selected windows) to
-	    ;; advance, but it also screws up any other markers that we
-	    ;; don't _want_ to advance, such as the start-marker of some
-	    ;; of the overlays we create.
-	    ;;
-	    ;; We work around the problem with the overlays by
-	    ;; explicitly adjusting them after we do the insertion, but
-	    ;; in the future this problem should be solved correctly, by
-	    ;; using `insert', and making the insertion-type of
-	    ;; window-point markers settable (via a buffer-local
-	    ;; variable).  In comint buffers, this variable would be set
-	    ;; to `t', to cause point in non-select windows to advance.
-	    (insert-before-markers string)
-	    ;; Fixup markers and overlays that got screwed up because we
-	    ;; used `insert-before-markers'.
-	    (let ((old-point (- (point) (length string))))
-	      ;; comint-last-output-start
-	      (set-marker comint-last-output-start old-point)
-	      ;; comint-last-input-end
-	      (when (and comint-last-input-end
-			 (equal (marker-position comint-last-input-end)
-				(point)))
-		(set-marker comint-last-input-end old-point))
-	      ;; No overlays we create are set to advance upon insertion
-	      ;; (at the start/end), so we assume that any overlay which
-	      ;; is at the current point was incorrectly advanced by
-	      ;; insert-before-markers.  First fixup overlays that might
-	      ;; start at point:
-	      (dolist (over (overlays-at (point)))
-		(when (= (overlay-start over) (point))
-		  (let ((end (overlay-end over)))
-		    (move-overlay over
-				  old-point
-				  (if (= end (point)) old-point end)))))
-	      ;; Then do overlays that might end at point:
-	      (dolist (over (overlays-at (1- (point))))
-		(when (= (overlay-end over) (point))
-		  (move-overlay over
-				(min (overlay-start over) old-point)
-				old-point))))
+	    ;; Luckily we don't have to use it any more, we use
+	    ;; window-point-insertion-type instead.
+	    (insert string)
 
 	    ;; Advance process-mark
 	    (set-marker (process-mark process) (point))

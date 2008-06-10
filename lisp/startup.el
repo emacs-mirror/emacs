@@ -396,10 +396,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
-    ;; Give *Messages* the same default-directory as *scratch*,
-    ;; just to keep things predictable.
     (let ((dir default-directory))
       (with-current-buffer "*Messages*"
+        ;; Make it easy to do like "tail -f".
+        (set (make-local-variable 'window-point-insertion-type) t)
+        ;; Give *Messages* the same default-directory as *scratch*,
+        ;; just to keep things predictable.
 	(setq default-directory dir)))
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
@@ -994,8 +996,7 @@ opening the first frame (e.g. open a connection to an X server).")
 		(setq init-file-had-error nil))
 	    (error
 	     (let ((message-log-max nil))
-	       (save-excursion
-		 (set-buffer (get-buffer-create "*Messages*"))
+	       (with-current-buffer (get-buffer-create "*Messages*")
 		 (insert "\n\n"
 			 (format "An error has occurred while loading `%s':\n\n"
 				 user-init-file)
