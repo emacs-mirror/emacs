@@ -148,9 +148,9 @@ ftfont_pattern_entity (p, registry, fc_charset_idx)
   ASET (entity, FONT_REGISTRY_INDEX, registry);
 
   if (FcPatternGetString (p, FC_FOUNDRY, 0, (FcChar8 **) &str) == FcResultMatch)
-    ASET (entity, FONT_FOUNDRY_INDEX, font_intern_prop (str, strlen (str)));
+    ASET (entity, FONT_FOUNDRY_INDEX, font_intern_prop (str, strlen (str), 1));
   if (FcPatternGetString (p, FC_FAMILY, 0, (FcChar8 **) &str) == FcResultMatch)
-    ASET (entity, FONT_FAMILY_INDEX, font_intern_prop (str, strlen (str)));
+    ASET (entity, FONT_FAMILY_INDEX, font_intern_prop (str, strlen (str), 1));
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {
       if (numeric >= FC_WEIGHT_REGULAR && numeric < FC_WEIGHT_MEDIUM)
