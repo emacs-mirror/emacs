@@ -1,16 +1,17 @@
 ;;; newsticker-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
-
-;; This file is part of GNU Emacs.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "8. Juni 2008, 20:39:46 (ulf)"
-;; CVS-Version: $Id: newsticker-plainview.el,v 1.3 2008/06/08 18:44:20 u11 Exp $
+;; CVS-Version: $Id: newsticker-plainview.el,v 1.4 2008/06/10 03:08:37 gm Exp $
 
 ;; ======================================================================
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
