@@ -930,7 +930,7 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
     return 1;
 
   family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
-			     strlen (logical_font->elfLogFont.lfFaceName));
+			     strlen (logical_font->elfLogFont.lfFaceName), 1);
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
@@ -1003,7 +1003,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
                       lispy_antialias_type (requested_font->lfQuality));
     }
   ASET (entity, FONT_FAMILY_INDEX,
-        font_intern_prop (lf->lfFaceName, strlen (lf->lfFaceName)));
+        font_intern_prop (lf->lfFaceName, strlen (lf->lfFaceName), 1));
 
   FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
 		  make_number (w32_decode_weight (lf->lfWeight)));
@@ -1441,7 +1441,7 @@ w32_registry (w32_charset, font_type)
     return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
 
   charset = w32_to_x_charset (w32_charset, NULL);
-  return font_intern_prop (charset, strlen(charset));
+  return font_intern_prop (charset, strlen(charset), 1);
 }
 
 static int
