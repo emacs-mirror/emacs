@@ -1,3 +1,8 @@
+2008-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/autoload.el (autoload-rubric):
+	Fix coding cookie not to force Unix EOL.
+
 2008-06-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--splittable-p, window--try-to-split-window):
@@ -9315,7 +9320,7 @@
 	(epa-dired-mode-map): Rename from epa-dired-map.
 	(epa-global-dired-mode): Rename the global minor mode.
 
-2008-02-11 Drew Adams  <drew.adams@oracle.com>
+2008-02-11  Drew Adams  <drew.adams@oracle.com>
 
 	* isearch.el (isearch-fail): New face.
 	(isearch-message): Highlight failure part of input.
