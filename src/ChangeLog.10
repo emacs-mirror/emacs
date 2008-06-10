@@ -12320,7 +12320,7 @@
 
 	* dispnew.c (margin_glyphs_to_reserve): Don't use ncols_scale_factor.
 
-2004-10-28  Will  <will@glozer.net>
+2004-10-28  Will Glozer  <will@glozer.net>
 
 	* macterm.c: Allow user to assign key modifiers to the Mac Option
 	key via a 'mac-option-modifier' variable.
