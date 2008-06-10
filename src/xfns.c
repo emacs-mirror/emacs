@@ -5628,6 +5628,47 @@ directories.  */)
   return unbind_to (count, decoded_file);
 }
 
+
+#ifdef HAVE_FREETYPE
+
+DEFUN ("x-font-dialog", Fx_font_dialog, Sx_font_dialog, 0, 0, 0,
+       doc: /* Read a font name using a font selection dialog.
+The font name is returned as a string.  */)
+  ()
+{
+  FRAME_PTR f = SELECTED_FRAME ();
+  char *fontname;
+  Lisp_Object font = Qnil;
+  int count = SPECPDL_INDEX ();
+
+  check_x ();
+
+  if (popup_activated ())
+    error ("Trying to use a menu from within a menu-entry");
+
+  /* Prevent redisplay.  */
+  specbind (Qinhibit_redisplay, Qt);
+  record_unwind_protect (clean_up_dialog, Qnil);
+
+  BLOCK_INPUT;
+
+  fontname = xg_get_font_name (f, NULL);
+
+  if (fontname)
+    {
+      font = build_string (fontname);
+      xfree (fontname);
+    }
+
+  UNBLOCK_INPUT;
+
+  if (NILP (font))
+    Fsignal (Qquit, Qnil);
+
+  return unbind_to (count, font);
+}
+#endif /* HAVE_FREETYPE */
+
 #endif /* USE_GTK */
 
 
@@ -5992,6 +6033,10 @@ the tool bar buttons.  */);
   defsubr (&Sx_uses_old_gtk_dialog);
 #if defined (USE_MOTIF) || defined (USE_GTK)
   defsubr (&Sx_file_dialog);
+#endif
+
+#ifdef USE_GTK
+  defsubr (&Sx_font_dialog);
 #endif
 }
 
