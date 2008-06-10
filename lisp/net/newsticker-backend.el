@@ -9,7 +9,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "8. Juni 2008, 17:18:04 (ulf)"
-;; CVS-Version: $Id: newsticker-backend.el,v 1.1 2008/06/08 15:35:18 u11 Exp $
+;; CVS-Version: $Id: newsticker-backend.el,v 1.2 2008/06/08 18:09:05 miles Exp $
 
 ;; ======================================================================
 
@@ -39,7 +39,6 @@
 (require 'xml)
 
 ;; Silence warnings
-(defvar tool-bar-map)
 (defvar w3-mode-map)
 (defvar w3m-minor-mode-map)
 
