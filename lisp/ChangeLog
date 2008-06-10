@@ -1,5 +1,7 @@
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (momentary-string-display): Use an overlay.
+
 	* progmodes/compile.el (compilation-mode):
 	Set window-point-insertion-type.
 	(compilation-filter): Don't use insert-before-markers any more.
