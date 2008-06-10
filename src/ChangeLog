@@ -1,3 +1,15 @@
+2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_font_dialog): New function.
+
+	* gtkutil.c (xg_dialog_response_cb): Rename from,
+	xg_file_response_callback.
+	(pop_down_dialog): Rename from pop_down_file_dialog.
+	(xg_get_file_name): Callers changed.
+	(xg_get_font_name): New function.
+
+	* gtkutil.h (xg_get_font_name): Insert prototype,
+
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (underline_minimum_offset): Rename from xterm.c's
