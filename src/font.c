@@ -1323,122 +1323,253 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
 		  f[XLFD_REGISTRY_INDEX]);
 }
 
-/* Parse NAME (null terminated) as Fonconfig's name format and store
-   information in FONT (font-spec or font-entity).  If NAME is
-   successfully parsed, return 0.  Otherwise return -1.  */
+/* Parse NAME (null terminated) and store information in FONT
+   (font-spec or font-entity).  NAME is supplied in either the
+   Fontconfig or GTK font name format.  If NAME is successfully
+   parsed, return 0.  Otherwise return -1.
+
+   The fontconfig format is
+
+    FAMILY[-SIZE][:PROP1[=VAL1][:PROP2[=VAL2]...]]
+
+   The GTK format is
+
+    FAMILY [PROPS...] [SIZE]
+
+   This function tries to guess which format it is.  */
 
 int
 font_parse_fcname (name, font)
      char *name;
      Lisp_Object font;
 {
-  char *p0, *p1;
+  char *p, *q;
+  char *size_beg = NULL, *size_end = NULL;
+  char *props_beg = NULL, *family_end = NULL;
   int len = strlen (name);
-  char *copy;
 
   if (len == 0)
     return -1;
-  /* It is assured that (name[0] && name[0] != '-').  */
-  if (name[0] == ':')
-    p0 = name;
+
+  for (p = name; *p; p++)
+    {
+      if (*p == '\\' && p[1])
+	p++;
+      else if (*p == ':')
+	{
+	  family_end = p;
+	  props_beg = p + 1;
+	  break;
+	}
+      else if (*p == '-')
+	{
+	  int size_found = 1;
+	  for (q = p + 1; *q && *q != ':'; q++)
+	    if (! isdigit(*q))
+	      {
+		size_found = 0;
+		break;
+	      }
+	  if (size_found)
+	    {
+	      family_end = p;
+	      size_beg = p + 1;
+	      size_end = q;
+	      break;
+	    }
+	}
+    }
+
+  if (family_end)
+    {
+      /* A fontconfig name with size and/or property data.  */
+      if (family_end > name)
+	{
+	  Lisp_Object family;
+	  family = font_intern_prop (name, family_end - name, 1);
+	  ASET (font, FONT_FAMILY_INDEX, family);
+	}
+      if (size_beg)
+	{
+	  double point_size = strtod (size_beg, &size_end);
+	  ASET (font, FONT_SIZE_INDEX, make_float (point_size));
+	  if (*size_end == ':' && size_end[1])
+	    props_beg = size_end + 1;
+	}
+      if (props_beg)
+	{
+	  /* Now parse ":KEY=VAL" patterns.  Store known keys and values in
+	     extra, copy unknown ones to COPY.  It is stored in extra slot by
+	     the key QCfc_unknown_spec.  */
+	  char *copy;
+
+	  name = copy = alloca (name + len - props_beg);
+	  if (! copy)
+	    return -1;
+
+	  p = props_beg;
+	  while (*p)
+	    {
+	      Lisp_Object val;
+	      int word_len, prop;
+
+#define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
+
+	      for (q = p + 1; *q && *q != '=' && *q != ':'; q++);
+	      word_len = q - p;
+	      if (*q != '=')
+		{
+		  /* Must be an enumerated value.  */
+		  val = font_intern_prop (p, q - p, 1);
+		  if (PROP_MATCH ("light", 5)
+		      || PROP_MATCH ("medium", 6)
+		      || PROP_MATCH ("demibold", 8)
+		      || PROP_MATCH ("bold", 4)
+		      || PROP_MATCH ("black", 5))
+		    FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, val);
+		  else if (PROP_MATCH ("roman", 5)
+			   || PROP_MATCH ("italic", 6)
+			   || PROP_MATCH ("oblique", 7))
+		    FONT_SET_STYLE (font, FONT_SLANT_INDEX, val);
+		  else if (PROP_MATCH ("charcell", 8))
+		    ASET (font, FONT_SPACING_INDEX,
+			  make_number (FONT_SPACING_CHARCELL));
+		  else if (PROP_MATCH ("mono", 4))
+		    ASET (font, FONT_SPACING_INDEX,
+			  make_number (FONT_SPACING_MONO));
+		  else if (PROP_MATCH ("proportional", 12))
+		    ASET (font, FONT_SPACING_INDEX,
+			  make_number (FONT_SPACING_PROPORTIONAL));
+		  else
+		    {
+		      /* Unknown key  */
+		      bcopy (p, copy, word_len);
+		      copy += word_len;
+		    }
+		}
+	      else /* KEY=VAL pairs  */
+		{
+		  Lisp_Object key;
+		  char *keyhead = p;
+
+		  if (PROP_MATCH ("pixelsize=", 10))
+		    prop = FONT_SIZE_INDEX;
+		  else
+		    {
+		      key = font_intern_prop (p, q - p, 1);
+		      prop = get_font_prop_index (key);
+		    }
+		  p = q + 1;
+		  for (q = p; *q && *q != ':'; q++);
+
+		  val = font_intern_prop (p, word_len, 0);
+		  if (! NILP (val))
+		    {
+		      if (prop >= FONT_FOUNDRY_INDEX
+			  && prop < FONT_EXTRA_INDEX)
+			ASET (font, prop,
+			      font_prop_validate (prop, Qnil, val));
+		      else if (prop >= 0)
+			Ffont_put (font, key, val);
+		      else
+			bcopy (keyhead, copy, q - keyhead);
+		      copy += q - keyhead;
+		    }
+		}
+	      p = *q ? q + 1 : q;
+#undef PROP_MATCH
+	    }
+	  if (name != copy)
+	    font_put_extra (font, QCfc_unknown_spec,
+			    make_unibyte_string (name, copy - name));
+	}
+    }
   else
     {
-      Lisp_Object family;
-      double point_size;
+      /* Either a fontconfig-style name with no size and property
+	 data, or a GTK-style name.  */
+      Lisp_Object prop;
+      int word_len, prop_found = 0;
 
-      for (p0 = name + 1; *p0 && (*p0 != '-' && *p0 != ':'); p0++)
-	if (*p0 == '\\' && p0[1])
-	  p0++;
-      family = font_intern_prop (name, p0 - name, 1);
-      if (*p0 == '-')
+      for (p = name; *p; p = *q ? q + 1 : q)
 	{
-	  if (! isdigit (p0[1]))
-	    return -1;
-	  point_size = strtod (p0 + 1, &p1);
-	  if (*p1 && *p1 != ':')
-	    return -1;
-	  ASET (font, FONT_SIZE_INDEX, make_float (point_size));
-	  p0 = p1;
+	  if (isdigit (*p))
+	    {
+	      char *r;
+	      int size_found = 1;
+	      for (q = p + 1; *q && *q != ' '; q++)
+		if (! isdigit (*q))
+		  {
+		    size_found = 0;
+		    break;
+		  }
+	      if (size_found)
+		{
+		  double point_size = strtod (p, &q);
+		  ASET (font, FONT_SIZE_INDEX, make_float (point_size));
+		  continue;
+		}
+	    }
+
+	  for (q = p + 1; *q && *q != ' '; q++)
+	    if (*q == '\\' && q[1])
+	      q++;
+	  word_len = q - p;
+
+#define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
+
+	  if (PROP_MATCH ("Ultra-Light", 11))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("ultra-light", 11, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Light", 5))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("light", 5, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Semi-Bold", 9))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("semi-bold", 9, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Bold", 4))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("bold", 4, 1);
+	      FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Italic", 6))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("italic", 4, 1);
+	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
+	    }
+	  else if (PROP_MATCH ("Oblique", 7))
+	    {
+	      prop_found = 1;
+	      prop = font_intern_prop ("oblique", 7, 1);
+	      FONT_SET_STYLE (font, FONT_SLANT_INDEX, prop);
+	    }
+	  else {
+	    if (prop_found)
+	      return -1; /* Unknown property in GTK-style font name.  */
+	    family_end = q;
+	  }
 	}
-      ASET (font, FONT_FAMILY_INDEX, family);
+#undef PROP_MATCH
+
+      if (family_end)
+	{
+	  Lisp_Object family;
+	  family = font_intern_prop (name, family_end - name, 1);
+	  ASET (font, FONT_FAMILY_INDEX, family);
+	}
     }
-
-  len -= p0 - name;
-  copy = alloca (len + 1);
-  if (! copy)
-    return -1;
-  name = copy;
-
-  /* Now parse ":KEY=VAL" patterns.  Store known keys and values in
-     extra, copy unknown ones to COPY.  It is stored in extra slot by
-     the key QCfc_unknown_spec.  */
-  while (*p0)
-    {
-      Lisp_Object key, val;
-      int prop;
-
-      for (p1 = p0 + 1; *p1 && *p1 != '=' && *p1 != ':'; p1++);
-      if (*p1 != '=')
-	{
-	  /* Must be an enumerated value.  */
-	  val = font_intern_prop (p0 + 1, p1 - p0 - 1, 1);
-	  if (memcmp (p0 + 1, "light", 5) == 0
-	      || memcmp (p0 + 1, "medium", 6) == 0
-	      || memcmp (p0 + 1, "demibold", 8) == 0
-	      || memcmp (p0 + 1, "bold", 4) == 0
-	      || memcmp (p0 + 1, "black", 5) == 0)
-	    FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, val);
-	  else if (memcmp (p0 + 1, "roman", 5) == 0
-		   || memcmp (p0 + 1, "italic", 6) == 0
-		   || memcmp (p0 + 1, "oblique", 7) == 0)
-	    FONT_SET_STYLE (font, FONT_SLANT_INDEX, val);
-	  else if (memcmp (p0 + 1, "charcell", 8) == 0
-		   || memcmp (p0 + 1, "mono", 4) == 0
-		   || memcmp (p0 + 1, "proportional", 12) == 0)
-	    {
-	      int spacing = (p0[1] == 'c' ? FONT_SPACING_CHARCELL
-			     : p0[1] == 'm' ? FONT_SPACING_MONO
-			     : FONT_SPACING_PROPORTIONAL);
-	      ASET (font, FONT_SPACING_INDEX, make_number (spacing));
-	    }
-	  else
-	    {
-	      /* unknown key */
-	      bcopy (p0, copy, p1 - p0);
-	      copy += p1 - p0;
-	    }
-	}
-      else
-	{
-	  char *keyhead = p0;
-
-	  if (memcmp (p0 + 1, "pixelsize=", 10) == 0)
-	    prop = FONT_SIZE_INDEX;
-	  else
-	    {
-	      key = font_intern_prop (p0, p1 - p0, 1);
-	      prop = get_font_prop_index (key);
-	    }
-	  p0 = p1 + 1;
-	  for (p1 = p0; *p1 && *p1 != ':'; p1++);
-	  val = font_intern_prop (p0, p1 - p0, 0);
-	  if (! NILP (val))
-	    {
-	      if (prop >= FONT_FOUNDRY_INDEX && prop < FONT_EXTRA_INDEX)
-		ASET (font, prop, font_prop_validate (prop, Qnil, val));
-	      else if (prop >= 0)
-		Ffont_put (font, key, val);
-	      else
-		bcopy (keyhead, copy, p1 - keyhead);
-	      copy += p1 - keyhead;
-	    }
-	}
-      p0 = p1;
-    }
-  if (name != copy)
-    font_put_extra (font, QCfc_unknown_spec,
-		    make_unibyte_string (name, copy - name));
-
+      
   return 0;
 }
 
