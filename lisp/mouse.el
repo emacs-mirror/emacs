@@ -2425,8 +2425,25 @@ and selects that window."
     )
   "X fonts suitable for use in Emacs.")
 
+(defun mouse-select-font ()
+  "Prompt for a font name, using `x-popup-menu', and return it."
+  (interactive)
+  (unless (display-multi-font-p)
+    (error "Cannot change fonts on this display"))
+  (x-popup-menu
+   (if (listp last-nonmenu-event)
+       last-nonmenu-event
+     (list '(0 0) (selected-window)))
+   (append x-fixed-font-alist
+	   (list (generate-fontset-menu)))))
+
 (defun mouse-set-font (&rest fonts)
-  "Select an Emacs font from a list of known good fonts and fontsets."
+  "Set the default font for the selected frame.
+The argument FONTS is a list of font names; the first valid font
+in this list is used.
+
+When called interactively, pop up a menu and allow the user to
+choose a font."
   (interactive
    (progn (unless (display-multi-font-p)
 	    (error "Cannot change fonts on this display"))
