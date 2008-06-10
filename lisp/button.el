@@ -293,10 +293,15 @@ part of the text instead of being a property of the buffer.  Creating
 large numbers of buttons can also be somewhat faster using
 `make-text-button'.
 
+BEG can also be a string, in which case it is made into a button.
+
 Also see `insert-text-button'."
-  (let ((type-entry
+  (let ((object nil)
+        (type-entry
 	 (or (plist-member properties 'type)
 	     (plist-member properties :type))))
+    (when (stringp beg)
+      (setq object beg beg 0 end (length object)))
     ;; Disallow setting the `category' property directly.
     (when (plist-get properties 'category)
       (error "Button `category' property may not be set directly"))
@@ -308,15 +313,16 @@ Also see `insert-text-button'."
       ;; text-properties for inheritance.
       (setcar type-entry 'category)
       (setcar (cdr type-entry)
-	      (button-category-symbol (car (cdr type-entry))))))
-  ;; Now add all the text properties at once
-  (add-text-properties beg end
-                       ;; Each button should have a non-eq `button'
-                       ;; property so that next-single-property-change can
-                       ;; detect boundaries reliably.
-                       (cons 'button (cons (list t) properties)))
-  ;; Return something that can be used to get at the button.
-  beg)
+	      (button-category-symbol (car (cdr type-entry)))))
+    ;; Now add all the text properties at once
+    (add-text-properties beg end
+                         ;; Each button should have a non-eq `button'
+                         ;; property so that next-single-property-change can
+                         ;; detect boundaries reliably.
+                         (cons 'button (cons (list t) properties))
+                         object)
+    ;; Return something that can be used to get at the button.
+    beg))
 
 (defun insert-text-button (label &rest properties)
   "Insert a button with the label LABEL.

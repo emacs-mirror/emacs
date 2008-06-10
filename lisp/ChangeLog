@@ -1,3 +1,7 @@
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* button.el (make-text-button): Allow `start' to be a string.
+
 2008-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/autoload.el (autoload-rubric):
@@ -13,8 +17,8 @@
 	* subr.el (locate-library): Doc fix.
 
 	* net/newsticker-treeview.el (w3m-toggle-inline-images): Declare.
-	(newsticker-treeview-tool-bar-map, newsticker-treeview-mode): Check
-	tool-bar-map is bound, for non-X builds.
+	(newsticker-treeview-tool-bar-map, newsticker-treeview-mode):
+	Check tool-bar-map is bound, for non-X builds.
 
 	* net/newsticker-reader.el (newsticker--next-item-image)
 	(newsticker--previous-item-image, newsticker--previous-feed-image)
