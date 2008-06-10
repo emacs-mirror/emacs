@@ -3,16 +3,16 @@
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
-;; This file is part of GNU Emacs.
-
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "8. Juni 2008, 17:18:04 (ulf)"
-;; CVS-Version: $Id: newsticker-backend.el,v 1.3 2008/06/10 03:07:46 gm Exp $
+;; CVS-Version: $Id: newsticker-backend.el,v 1.4 2008/06/10 03:17:34 gm Exp $
 
 ;; ======================================================================
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
