@@ -806,7 +806,7 @@ hold:
 - When WINDOW is split evenly, the emanating windows are at least
   `window-min-width' or two (whichever is larger) columns wide."
   (when (window-live-p window)
-    (with-selected-window window
+    (with-current-buffer (window-buffer window)
       (if horizontal
 	  ;; A window can be split horizontally when its width is not
 	  ;; fixed, it is at least `split-width-threshold' columns wide
@@ -847,11 +847,11 @@ by `split-window' or `split-window-preferred-function'."
 	  (and (window--splittable-p window t)
 	       ;; Split window horizontally.
 	       (split-window window nil t))
-	  (and (with-selected-window window
-		 (one-window-p 'nomini))
-	       ;; If WINDOW is the only window on its frame, attempt to
-	       ;; split it vertically disregarding the current value of
-	       ;; `split-height-threshold'.
+	  (and (eq window (frame-root-window (window-frame window)))
+	       (not (window-minibuffer-p window))
+	       ;; If WINDOW is the only window on its frame and not the
+	       ;; minibuffer window, attempt to split it vertically
+	       ;; disregarding the value of `split-height-threshold'.
 	       (let ((split-height-threshold 0))
 		 (window--splittable-p window)
 		 (split-window window)))))))
@@ -1013,7 +1013,7 @@ consider all visible or iconified frames."
 		    (setq frame-to-use (last-nonminibuffer-frame))
 		    (window--frame-usable-p frame-to-use)
 		    (not (frame-parameter frame-to-use 'unsplittable))))
-	   ;; Attempt to split largest or most recently used window.
+	   ;; Attempt to split largest or least recently used window.
 	   (setq window-to-use
 		 (or (window--try-to-split-window
 		      (get-largest-window frame-to-use t))
