@@ -676,8 +676,10 @@ by \"Save Options\" in Custom buffers.")
       (and (get elt 'customized-value)
 	   (customize-mark-to-save elt)
 	   (setq need-save t)))
-    (and (get 'default 'customized-face)
-	 (put 'default 'saved-face (get 'default 'customized-face)))
+    (when (get 'default 'customized-face)
+      (put 'default 'saved-face (get 'default 'customized-face))
+      (put 'default 'customized-face nil)
+      (setq need-save t))
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))
