@@ -7,10 +7,10 @@
 	New functions.
 	(completion-pcm-try-completion): Use them.
 
-	* xt-mouse.el (turn-on-xterm-mouse-tracking, turn-off-xterm-mouse-tracking):
-	Use terminal-list.
+	* xt-mouse.el (turn-on-xterm-mouse-tracking)
+	(turn-off-xterm-mouse-tracking): Use terminal-list.
 
-	* cus-start.el (underline-minimum-offset) Rename from
+	* cus-start.el (underline-minimum-offset): Rename from
 	x-underline-minimum-display-offset.
 
 2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
@@ -31,7 +31,8 @@
 
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* ffap.el (ffap-string-at-point-mode-alist): Use alpha rather than lower.
+	* ffap.el (ffap-string-at-point-mode-alist):
+	Use alpha rather than lower.
 
 	* dired.el (dired-insert-directory): Don't assume Unix-style dir names.
 
@@ -827,7 +828,6 @@
 
 	* vc-hooks.el (vc-after-save): Improve test.
 	(vc-mode-line): Fix indentation.
-
 2008-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calendar/parse-time.el (parse-time-months)
@@ -1256,7 +1256,6 @@
 	end of the ido history file.
 
 2008-05-16  John Paul Wallington  <jpw@pobox.com>
-
 	* vc-dispatcher.el (top-level): Revert previous change: require cl
 	when compiling.
 
@@ -2100,7 +2099,6 @@
 
 	* menu-bar.el (menu-bar-tools-menu): Reorder, place Games last.
 	Add "..." in the appropriate places.
-
 	* epa.el (epa-key-list-mode-map): Add more menu entries.
 	Add "..." in the appropriate places.
 
@@ -9291,7 +9289,6 @@
 	Add support for .pm files and .php files.
 	(flymake-err-line-patterns): Add pattern for PHP errors.
 	(flymake-php-init): New function.  PHP support for flymake.
-
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Add regular expression for PHP errors.
 
