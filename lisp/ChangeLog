@@ -1,5 +1,7 @@
 2008-06-10  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (locate-library): Doc fix.
+
 	* net/newsticker-treeview.el (w3m-toggle-inline-images): Declare.
 	(newsticker-treeview-tool-bar-map, newsticker-treeview-mode): Check
 	tool-bar-map is bound, for non-X builds.
