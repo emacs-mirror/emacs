@@ -1,3 +1,23 @@
+2008-06-10  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (font_intern_prop): Prototype adjusted.
+
+	* font.c (font_intern_prop): New arg force_symbol.
+	(font_parse_xlfd): Adjusted for the change of font_intern_prop.
+	(font_parse_fcname): Likewise.
+	(font_parse_family_registry): Likewise.
+
+	* ftfont.c (ftfont_pattern_entity): Adjusted for the change of
+	font_intern_prop.
+
+	* w32font.c (add_font_name_to_list): Adjusted for
+	the change of font_intern_prop.
+	(w32_enumfont_pattern_entity): Likewise.
+	(w32_registry): Likewise.
+
+	* w32uniscribe.c (add_opentype_font_name_to_list): Adjusted for
+	the change of font_intern_prop.
+
 2008-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32menu.c (digest_single_submenu): Declare extern.
