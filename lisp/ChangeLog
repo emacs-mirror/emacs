@@ -1,3 +1,7 @@
+2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-rcs.el (vc-rcs-state-heuristic): Don't assume the file exists.
+
 2008-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/fortran.el (fortran-end-of-subprogram): Check for a match
