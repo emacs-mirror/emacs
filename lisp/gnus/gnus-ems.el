@@ -42,10 +42,10 @@
 
 (eval-and-compile
   (autoload 'gnus-xmas-define "gnus-xmas")
-  (autoload 'gnus-xmas-redefine "gnus-xmas")
-  (autoload 'gnus-get-buffer-create "gnus")
-  (autoload 'nnheader-find-etc-directory "nnheader"))
+  (autoload 'gnus-xmas-redefine "gnus-xmas"))
 
+(autoload 'gnus-get-buffer-create "gnus")
+(autoload 'nnheader-find-etc-directory "nnheader")
 (autoload 'smiley-region "smiley")
 
 (defun gnus-kill-all-overlays ()
@@ -214,7 +214,8 @@
 		    (car sbars)
 		    (/ (or (car fringes) 0) fcw))
 	    yoffset (cadr (window-edges))
-	    top (max 0 (- (* (max (if (and tool-bar-mode
+	    top (max 0 (- (* (max (if (and (boundp 'tool-bar-mode)
+					   tool-bar-mode
 					   (not (featurep 'gtk))
 					   (eq (frame-first-window)
 					       (selected-window)))
