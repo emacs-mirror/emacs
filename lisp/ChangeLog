@@ -1,3 +1,7 @@
+2008-06-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-make-temp-file): Backport from Tramp 2.1.
+
 2008-06-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* uniquify.el (uniquify-get-proposed-name): Handle remote files.
