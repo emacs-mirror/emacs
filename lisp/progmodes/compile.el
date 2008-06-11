@@ -1675,6 +1675,7 @@ Just inserts the text, and runs `compilation-filter-hook'."
             ;; point at `process-mark' scroll along with the output, but we
             ;; now use window-point-insertion-type instead.
 	    (insert string)
+            (set-marker (process-mark proc) (point))
 	    (run-hooks 'compilation-filter-hook))))))
 
 ;;; test if a buffer is a compilation buffer, assuming we're in the buffer

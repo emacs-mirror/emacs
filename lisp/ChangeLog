@@ -1,5 +1,7 @@
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/compile.el (compilation-filter): Fix up last change.
+
 	* term/linux.el (terminal-init-linux): Use gpm-mouse-enable.
 
 	* t-mouse.el (gpm-mouse-enable, gpm-mouse-disable): New functions.
