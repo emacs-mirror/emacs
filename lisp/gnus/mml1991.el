@@ -1,7 +1,7 @@
 ;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Sascha Ldecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
@@ -79,8 +79,7 @@ Whether the passphrase is cached at all is controlled by
 
 ;;; mailcrypt wrapper
 
-(eval-and-compile
-  (autoload 'mc-sign-generic "mc-toplev"))
+(autoload 'mc-sign-generic "mc-toplev")
 
 (defvar mml1991-decrypt-function 'mailcrypt-decrypt)
 (defvar mml1991-verify-function 'mailcrypt-verify)
@@ -168,8 +167,7 @@ Whether the passphrase is cached at all is controlled by
 
 ;;; gpg wrapper
 
-(eval-and-compile
-  (autoload 'gpg-sign-cleartext "gpg"))
+(autoload 'gpg-sign-cleartext "gpg")
 
 (declare-function gpg-sign-encrypt "ext:gpg"
                   (plaintext ciphertext result recipients &optional
@@ -332,19 +330,18 @@ Whether the passphrase is cached at all is controlled by
 (defvar epg-user-id-alist)
 (defvar password-cache-expiry)
 
-(eval-and-compile
-  (autoload 'epg-make-context "epg")
-  (autoload 'epg-passphrase-callback-function "epg")
-  (autoload 'epa-select-keys "epa")
-  (autoload 'epg-list-keys "epg")
-  (autoload 'epg-context-set-armor "epg")
-  (autoload 'epg-context-set-textmode "epg")
-  (autoload 'epg-context-set-signers "epg")
-  (autoload 'epg-context-set-passphrase-callback "epg")
-  (autoload 'epg-sign-string "epg")
-  (autoload 'epg-encrypt-string "epg")
-  (autoload 'epg-configuration "epg-config")
-  (autoload 'epg-expand-group "epg-config"))
+(autoload 'epg-make-context "epg")
+(autoload 'epg-passphrase-callback-function "epg")
+(autoload 'epa-select-keys "epa")
+(autoload 'epg-list-keys "epg")
+(autoload 'epg-context-set-armor "epg")
+(autoload 'epg-context-set-textmode "epg")
+(autoload 'epg-context-set-signers "epg")
+(autoload 'epg-context-set-passphrase-callback "epg")
+(autoload 'epg-sign-string "epg")
+(autoload 'epg-encrypt-string "epg")
+(autoload 'epg-configuration "epg-config")
+(autoload 'epg-expand-group "epg-config")
 
 (defvar mml1991-epg-secret-key-id-list nil)
 

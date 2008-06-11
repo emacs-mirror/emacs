@@ -1,6 +1,7 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -57,8 +58,7 @@
 (eval-when-compile (require 'nnimap))
 
 ;; autoload query-dig
-(eval-and-compile
-  (autoload 'query-dig "dig"))
+(autoload 'query-dig "dig")
 
 ;; autoload spam-report
 (eval-and-compile
@@ -68,15 +68,13 @@
   (autoload 'spam-report-resend "spam-report"))
 
 ;; autoload gnus-registry
-(eval-and-compile
-  (autoload 'gnus-registry-group-count "gnus-registry")
-  (autoload 'gnus-registry-add-group "gnus-registry")
-  (autoload 'gnus-registry-store-extra-entry "gnus-registry")
-  (autoload 'gnus-registry-fetch-extra "gnus-registry"))
+(autoload 'gnus-registry-group-count "gnus-registry")
+(autoload 'gnus-registry-add-group "gnus-registry")
+(autoload 'gnus-registry-store-extra-entry "gnus-registry")
+(autoload 'gnus-registry-fetch-extra "gnus-registry")
 
 ;; autoload query-dns
-(eval-and-compile
-  (autoload 'query-dns "dns"))
+(autoload 'query-dns "dns")
 
 ;;}}}
 

@@ -1,7 +1,7 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -31,12 +31,11 @@
 (require 'mm-decode)
 (require 'smime)
 
-(eval-and-compile
-  (autoload 'gnus-article-prepare-display "gnus-art")
-  (autoload 'vcard-parse-string "vcard")
-  (autoload 'vcard-format-string "vcard")
-  (autoload 'fill-flowed "flow-fill")
-  (autoload 'html2text "html2text" nil t))
+(autoload 'gnus-article-prepare-display "gnus-art")
+(autoload 'vcard-parse-string "vcard")
+(autoload 'vcard-format-string "vcard")
+(autoload 'fill-flowed "flow-fill")
+(autoload 'html2text "html2text" nil t)
 
 (defvar gnus-article-mime-handles)
 (defvar gnus-newsgroup-charset)

@@ -33,11 +33,10 @@
 (eval-when-compile
   (require 'cl)
   (require 'imap))
-(eval-and-compile
-  (autoload 'auth-source-user-or-password "auth-source")
-  (autoload 'pop3-movemail "pop3")
-  (autoload 'pop3-get-message-count "pop3")
-  (autoload 'nnheader-cancel-timer "nnheader"))
+(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'pop3-movemail "pop3")
+(autoload 'pop3-get-message-count "pop3")
+(autoload 'nnheader-cancel-timer "nnheader")
 (require 'mm-util)
 (require 'message) ;; for `message-directory'
 
@@ -1023,20 +1022,19 @@ This only works when `display-time' is enabled."
 	      (mail-source-delete-crash-box)))))
       found)))
 
-(eval-and-compile
-  (autoload 'imap-open "imap")
-  (autoload 'imap-authenticate "imap")
-  (autoload 'imap-mailbox-select "imap")
-  (autoload 'imap-mailbox-unselect "imap")
-  (autoload 'imap-mailbox-close "imap")
-  (autoload 'imap-search "imap")
-  (autoload 'imap-fetch "imap")
-  (autoload 'imap-close "imap")
-  (autoload 'imap-error-text "imap")
-  (autoload 'imap-message-flags-add "imap")
-  (autoload 'imap-list-to-message-set "imap")
-  (autoload 'imap-range-to-message-set "imap")
-  (autoload 'nnheader-ms-strip-cr "nnheader"))
+(autoload 'imap-open "imap")
+(autoload 'imap-authenticate "imap")
+(autoload 'imap-mailbox-select "imap")
+(autoload 'imap-mailbox-unselect "imap")
+(autoload 'imap-mailbox-close "imap")
+(autoload 'imap-search "imap")
+(autoload 'imap-fetch "imap")
+(autoload 'imap-close "imap")
+(autoload 'imap-error-text "imap")
+(autoload 'imap-message-flags-add "imap")
+(autoload 'imap-list-to-message-set "imap")
+(autoload 'imap-range-to-message-set "imap")
+(autoload 'nnheader-ms-strip-cr "nnheader")
 
 (autoload 'gnus-compress-sequence "gnus-range")
 
@@ -1116,8 +1114,7 @@ This only works when `display-time' is enabled."
 			 ?s server ?P port ?u user))
       found)))
 
-(eval-and-compile
-  (autoload 'webmail-fetch "webmail"))
+(autoload 'webmail-fetch "webmail")
 
 (defun mail-source-fetch-webmail (source callback)
   "Fetch for webmail source."

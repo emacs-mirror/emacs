@@ -53,8 +53,7 @@
     ("body" nil gnus-advanced-body)
     ("all" nil gnus-advanced-body)))
 
-(eval-and-compile
-  (autoload 'parse-time-string "parse-time"))
+(autoload 'parse-time-string "parse-time")
 
 (defun gnus-score-advanced (rule &optional trace)
   "Apply advanced scoring RULE to all the articles in the current group."

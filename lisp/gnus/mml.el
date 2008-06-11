@@ -1,7 +1,7 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -34,16 +34,15 @@
 (require 'mml-sec)
 (eval-when-compile (require 'cl))
 
-(eval-and-compile
-  (autoload 'message-make-message-id "message")
-  (autoload 'gnus-setup-posting-charset "gnus-msg")
-  (autoload 'gnus-make-local-hook "gnus-util")
-  (autoload 'message-fetch-field "message")
-  (autoload 'message-mark-active-p "message")
-  (autoload 'message-info "message")
-  (autoload 'fill-flowed-encode "flow-fill")
-  (autoload 'message-posting-charset "message")
-  (autoload 'dnd-get-local-file-name "dnd"))
+(autoload 'message-make-message-id "message")
+(autoload 'gnus-setup-posting-charset "gnus-msg")
+(autoload 'gnus-make-local-hook "gnus-util")
+(autoload 'message-fetch-field "message")
+(autoload 'message-mark-active-p "message")
+(autoload 'message-info "message")
+(autoload 'fill-flowed-encode "flow-fill")
+(autoload 'message-posting-charset "message")
+(autoload 'dnd-get-local-file-name "dnd")
 
 (autoload 'message-options-set    "message")
 (autoload 'message-narrow-to-head "message")

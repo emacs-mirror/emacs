@@ -96,9 +96,8 @@ it's not cached."
 
 (declare-function nnvirtual-find-group-art "nnvirtual" (group article))
 
-(eval-and-compile
-  (autoload 'nnml-generate-nov-databases-directory "nnml")
-  (autoload 'nnvirtual-find-group-art "nnvirtual"))
+(autoload 'nnml-generate-nov-databases-directory "nnml")
+(autoload 'nnvirtual-find-group-art "nnvirtual")
 
 
 

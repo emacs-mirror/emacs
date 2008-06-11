@@ -81,8 +81,7 @@ component group will show up when you enter the virtual group.")
 
 (defvoo nnvirtual-status-string "")
 
-(eval-and-compile
-  (autoload 'gnus-cache-articles-in-group "gnus-cache"))
+(autoload 'gnus-cache-articles-in-group "gnus-cache")
 
 
 
@@ -715,7 +714,7 @@ based on the marks on the component groups."
 		    tot (+ tot size)
 		    M (max M size))))
 	  nnvirtual-component-groups)
-    
+
     ;; Number of articles in the virtual group.
     (setq nnvirtual-mapping-len tot)
 

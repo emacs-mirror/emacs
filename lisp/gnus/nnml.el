@@ -38,9 +38,9 @@
 (require 'nnoo)
 (eval-when-compile (require 'cl))
 
-(eval-and-compile
-  (autoload 'gnus-article-unpropagatable-p "gnus-sum")
-  (autoload 'gnus-backlog-remove-article "gnus-bcklg"))
+;; FIXME first is unused in this file.
+(autoload 'gnus-article-unpropagatable-p "gnus-sum")
+(autoload 'gnus-backlog-remove-article "gnus-bcklg")
 
 (nnoo-declare nnml)
 

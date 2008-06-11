@@ -1,7 +1,7 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -182,13 +182,12 @@ Whether the passphrase is cached at all is controlled by
 
 ;;; mailcrypt wrapper
 
-(eval-and-compile
-  (autoload 'mailcrypt-decrypt "mailcrypt")
-  (autoload 'mailcrypt-verify "mailcrypt")
-  (autoload 'mc-pgp-always-sign "mailcrypt")
-  (autoload 'mc-encrypt-generic "mc-toplev")
-  (autoload 'mc-cleanup-recipient-headers "mc-toplev")
-  (autoload 'mc-sign-generic "mc-toplev"))
+(autoload 'mailcrypt-decrypt "mailcrypt")
+(autoload 'mailcrypt-verify "mailcrypt")
+(autoload 'mc-pgp-always-sign "mailcrypt")
+(autoload 'mc-encrypt-generic "mc-toplev")
+(autoload 'mc-cleanup-recipient-headers "mc-toplev")
+(autoload 'mc-sign-generic "mc-toplev")
 
 (defvar mc-default-scheme)
 (defvar mc-schemes)
@@ -453,14 +452,13 @@ Whether the passphrase is cached at all is controlled by
 
 ;;; gpg wrapper
 
-(eval-and-compile
-  (autoload 'gpg-decrypt "gpg")
-  (autoload 'gpg-verify "gpg")
-  (autoload 'gpg-verify-cleartext "gpg")
-  (autoload 'gpg-sign-detached "gpg")
-  (autoload 'gpg-sign-encrypt "gpg")
-  (autoload 'gpg-encrypt "gpg")
-  (autoload 'gpg-passphrase-read "gpg"))
+(autoload 'gpg-decrypt "gpg")
+(autoload 'gpg-verify "gpg")
+(autoload 'gpg-verify-cleartext "gpg")
+(autoload 'gpg-sign-detached "gpg")
+(autoload 'gpg-sign-encrypt "gpg")
+(autoload 'gpg-encrypt "gpg")
+(autoload 'gpg-passphrase-read "gpg")
 
 (defun mml2015-gpg-passphrase ()
   (or (message-options-get 'gpg-passphrase)
@@ -731,12 +729,11 @@ Whether the passphrase is cached at all is controlled by
 (defvar pgg-errors-buffer)
 (defvar pgg-output-buffer)
 
-(eval-and-compile
-  (autoload 'pgg-decrypt-region "pgg")
-  (autoload 'pgg-verify-region "pgg")
-  (autoload 'pgg-sign-region "pgg")
-  (autoload 'pgg-encrypt-region "pgg")
-  (autoload 'pgg-parse-armor "pgg-parse"))
+(autoload 'pgg-decrypt-region "pgg")
+(autoload 'pgg-verify-region "pgg")
+(autoload 'pgg-sign-region "pgg")
+(autoload 'pgg-encrypt-region "pgg")
+(autoload 'pgg-parse-armor "pgg-parse")
 
 (defun mml2015-pgg-decrypt (handle ctl)
   (catch 'error
@@ -968,27 +965,26 @@ Whether the passphrase is cached at all is controlled by
 (defvar epg-digest-algorithm-alist)
 (defvar inhibit-redisplay)
 
-(eval-and-compile
-  (autoload 'epg-make-context "epg")
-  (autoload 'epg-context-set-armor "epg")
-  (autoload 'epg-context-set-textmode "epg")
-  (autoload 'epg-context-set-signers "epg")
-  (autoload 'epg-context-result-for "epg")
-  (autoload 'epg-new-signature-digest-algorithm "epg")
-  (autoload 'epg-verify-result-to-string "epg")
-  (autoload 'epg-list-keys "epg")
-  (autoload 'epg-decrypt-string "epg")
-  (autoload 'epg-verify-string "epg")
-  (autoload 'epg-sign-string "epg")
-  (autoload 'epg-encrypt-string "epg")
-  (autoload 'epg-passphrase-callback-function "epg")
-  (autoload 'epg-context-set-passphrase-callback "epg")
-  (autoload 'epg-key-sub-key-list "epg")
-  (autoload 'epg-sub-key-capability "epg")
-  (autoload 'epg-sub-key-validity "epg")
-  (autoload 'epg-configuration "epg-config")
-  (autoload 'epg-expand-group "epg-config")
-  (autoload 'epa-select-keys "epa"))
+(autoload 'epg-make-context "epg")
+(autoload 'epg-context-set-armor "epg")
+(autoload 'epg-context-set-textmode "epg")
+(autoload 'epg-context-set-signers "epg")
+(autoload 'epg-context-result-for "epg")
+(autoload 'epg-new-signature-digest-algorithm "epg")
+(autoload 'epg-verify-result-to-string "epg")
+(autoload 'epg-list-keys "epg")
+(autoload 'epg-decrypt-string "epg")
+(autoload 'epg-verify-string "epg")
+(autoload 'epg-sign-string "epg")
+(autoload 'epg-encrypt-string "epg")
+(autoload 'epg-passphrase-callback-function "epg")
+(autoload 'epg-context-set-passphrase-callback "epg")
+(autoload 'epg-key-sub-key-list "epg")
+(autoload 'epg-sub-key-capability "epg")
+(autoload 'epg-sub-key-validity "epg")
+(autoload 'epg-configuration "epg-config")
+(autoload 'epg-expand-group "epg-config")
+(autoload 'epa-select-keys "epa")
 
 (defvar password-cache-expiry)
 
