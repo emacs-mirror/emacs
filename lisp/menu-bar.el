@@ -1903,14 +1903,17 @@ See `menu-bar-mode' for more information."
 
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
-`x-menu-bar-open'; otherwise it calls `tmm-menubar'.
+`x-menu-bar-open'; on Windows, `w32-menu-bar-open' otherwise it
+calls `tmm-menubar'.
 
 If FRAME is nil or not given, use the selected frame."
   (interactive)
-  (if (eq window-system 'x)
-      (x-menu-bar-open frame)
-    (with-selected-frame (or frame (selected-frame))
-      (tmm-menubar))))
+  (let ((type (framep (or frame (selected-frame)))))
+    (cond
+     ((eq type 'x) (x-menu-bar-open frame))
+     ((eq type 'w32) (w32-menu-bar-open frame))
+     (t (with-selected-frame (or frame (selected-frame))
+          (tmm-menubar))))))
 
 (global-set-key [f10] 'menu-bar-open)
 

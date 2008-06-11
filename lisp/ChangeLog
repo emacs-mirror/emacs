@@ -1,3 +1,11 @@
+2008-06-11  Jason Rumney  <jasonr@gnu.org>
+
+        * term/w32-win.el (w32-menu-bar-open): Rename from menu-bar-open.
+        Use tmm-menubar if menu is disabled in this frame.
+
+        * menu-bar.el (menu-bar-open): Determine how to open menu bar
+        from frame type, per documentation. Add w32 case.
+
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--merge-suffix): New function.

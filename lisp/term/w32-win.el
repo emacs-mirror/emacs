@@ -385,16 +385,21 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
  ;;; make f10 activate the real menubar rather than the mini-buffer menu
  ;;; navigation feature.
- (defun menu-bar-open (&optional frame)
+ (defun w32-menu-bar-open (&optional frame)
    "Start key navigation of the menu bar in FRAME.
  
- This initially activates the first menu-bar item, and you can then navigate
- with the arrow keys, select a menu entry with the Return key or cancel with
- the Escape key.  If FRAME has no menu bar, this function does nothing.
+This initially activates the first menu-bar item, and you can then navigate
+with the arrow keys, select a menu entry with the Return key or cancel with
+the Escape key.  If FRAME has no menu bar, this function does nothing.
  
- If FRAME is nil or not given, use the selected frame."
+If FRAME is nil or not given, use the selected frame.
+If FRAME does not have the menu bar enabled, display a text menu using
+`tmm-menubar'."
    (interactive "i")
-   (w32-send-sys-command ?\xf100 frame))
+   (if menu-bar-mode
+       (w32-send-sys-command ?\xf100 frame)
+     (with-selected-frame (or frame (selected-frame))
+       (tmm-menubar))))
 
 
 ;; W32 systems have different fonts than commonly found on X, so
