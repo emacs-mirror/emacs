@@ -38,6 +38,10 @@
 ;;
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'gnus)
@@ -164,6 +168,8 @@ replacement is added."
 		  gnus-picon-glyph-alist))))
 
 ;;; Functions that does picon transformations:
+
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-picon-transform-address (header category)
   (gnus-with-article-headers
