@@ -1,5 +1,10 @@
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/linux.el (terminal-init-linux): Use gpm-mouse-enable.
+
+	* t-mouse.el (gpm-mouse-enable, gpm-mouse-disable): New functions.
+	(gpm-mouse-mode): Make it into a proper global minor mode.
+
 	* files.el (save-some-buffers-action-alist): Only use recursive-edit
 	if the user enabled recursive-minibuffers.
 
