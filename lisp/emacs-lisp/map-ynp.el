@@ -81,20 +81,14 @@ Returns the number of actions taken."
 	 ;; Non-nil means we should use mouse menus to ask.
 	 use-menus
 	 delayed-switch-frame
-	 (next (if (or (and list (symbolp list))
-		       (subrp list)
-		       (byte-code-function-p list)
-		       (and (consp list)
-			    (eq (car list) 'lambda)))
-		   (function (lambda ()
-			       (setq elt (funcall list))))
-		 (function (lambda ()
-			     (if list
-				 (progn
-				   (setq elt (car list)
-					 list (cdr list))
-				   t)
-			       nil))))))
+         ;; Rebind other-window-scroll-buffer so that subfunctions can set
+         ;; it temporarily, without risking affecting the caller.
+         (other-window-scroll-buffer other-window-scroll-buffer)
+	 (next (if (functionp list)
+                   (lambda () (setq elt (funcall list)))
+                 (lambda () (when list
+                         (setq elt (pop list))
+                         t)))))
     (if (and (listp last-nonmenu-event)
 	     use-dialog-box)
 	;; Make a list describing a dialog box.
@@ -125,11 +119,22 @@ Returns the number of actions taken."
 			"")
 	    ;; Make a map that defines each user key as a vector containing
 	    ;; its definition.
-	    map (cons 'keymap
-		      (append (mapcar (lambda (elt)
-					(cons (car elt) (vector (nth 1 elt))))
-				      action-alist)
-			      query-replace-map))))
+	    map
+            (let ((map (make-sparse-keymap)))
+              (set-keymap-parent map query-replace-map)
+              (define-key map [?\C-\M-v] 'scroll-other-window)
+              (define-key map [M-next] 'scroll-other-window)
+              (define-key map [?\C-\M-\S-v] 'scroll-other-window-down)
+              (define-key map [M-prior] 'scroll-other-window-down)
+              ;; The above are rather inconvenient, so maybe we should
+              ;; provide the non-other keys for the other-scroll as well.
+              ;; (define-key map [?\C-v] 'scroll-other-window)
+              ;; (define-key map [next] 'scroll-other-window)
+              ;; (define-key map [?\M-v] 'scroll-other-window-down)
+              ;; (define-key map [prior] 'scroll-other-window-down)
+              (dolist (elt action-alist)
+                (define-key map (vector (car elt)) (vector (nth 1 elt))))
+              map)))
     (unwind-protect
 	(progn
 	  (if (stringp prompter)
@@ -165,7 +170,7 @@ Returns the number of actions taken."
 				(single-key-description char)))
 		     (setq def (lookup-key map (vector char))))
 		   (cond ((eq def 'exit)
-			  (setq next (function (lambda () nil))))
+			  (setq next (lambda () nil)))
 			 ((eq def 'act)
 			  ;; Act on the object.
 			  (funcall actor elt)
@@ -177,7 +182,7 @@ Returns the number of actions taken."
 			  ;; Act on the object and then exit.
 			  (funcall actor elt)
 			  (setq actions (1+ actions)
-				next (function (lambda () nil))))
+				next (lambda () nil)))
 			 ((eq def 'quit)
 			  (setq quit-flag t)
 			  (setq next `(lambda ()
@@ -220,13 +225,18 @@ C-g to quit (cancel the whole command);
 				(format "or . (period) to %s \
 the current %s and exit."
 					action object))))
-			    (save-excursion
-			      (set-buffer standard-output)
+			    (with-current-buffer standard-output
 			      (help-mode)))
 
 			  (setq next `(lambda ()
 				       (setq next ',next)
 				       ',elt)))
+                         ((and (symbolp def) (commandp def))
+                          (call-interactively def)
+                          ;; Regurgitated; try again.
+                          (setq next `(lambda ()
+                                        (setq next ',next)
+                                        ',elt)))
 			 ((vectorp def)
 			  ;; A user-defined key.
 			  (if (funcall (aref def 0) elt) ;Call its function.
