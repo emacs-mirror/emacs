@@ -1,3 +1,14 @@
+2008-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-end-of-subprogram): Check for a match
+	before trying to move there.
+	(fortran-calculate-indent): When fortran-check-all-num-for-matching-do
+	is non-nil, indent most terminating statements like loop body.
+
+	* calendar/diary-lib.el (diary-list-entries-2): Accept optional
+	Gregorian date, and add it, not the local date, to diary-entries-list.
+	(diary-list-entries-1): Pass Gregorian date to diary-list-entries-2.
+
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-filter): Fix up last change.
