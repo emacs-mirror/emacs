@@ -1187,12 +1187,12 @@ Auto-indent does not happen if a numeric ARG is used."
                  (fortran-check-end-prog-re)))
           (forward-line)
         (beginning-of-line 2)
-        (catch 'ok
-          (while (re-search-forward fortran-end-prog-re nil 'move)
-            (if (fortran-check-end-prog-re)
-                (throw 'ok t))))
-        (goto-char (match-beginning 0))
-        (forward-line)))))
+        (when (catch 'ok
+                (while (re-search-forward fortran-end-prog-re nil 'move)
+                  (if (fortran-check-end-prog-re)
+                      (throw 'ok t))))
+          (goto-char (match-beginning 0))
+          (forward-line))))))
 
 (defun fortran-previous-statement ()
   "Move point to beginning of the previous Fortran statement.
@@ -1651,7 +1651,17 @@ Return point or nil."
               ((and (looking-at fortran-end-prog-re1)
                     (fortran-check-end-prog-re))
                ;; Previous END resets indent to minimum.
-               (setq icol fortran-minimum-statement-indent)))))
+               (setq icol fortran-minimum-statement-indent))
+              ;; Previous statement was a numbered DO loop without a
+              ;; closing CONTINUE or END DO, so we indented the
+              ;; terminator like the loop body.
+              ((and fortran-check-all-num-for-matching-do
+                    (not (looking-at "\\(continue\\|end[ \t]*do\\)\\>"))
+                    (progn
+                      (beginning-of-line)
+                      (and (looking-at "[ \t]*[0-9]+")
+                           (fortran-check-for-matching-do))))
+               (setq icol (- icol fortran-do-indent))))))
     (save-excursion
       (beginning-of-line)
       (cond ((looking-at "[ \t]*$"))
@@ -1676,8 +1686,12 @@ Return point or nil."
                        6
                      (+ icol fortran-continuation-indent))))
             (first-statement)
+            ;; The terminating statement is actually part of the
+            ;; loop body, so unless it is a CONTINUE or END DO, we
+            ;; indent it like the loop body (see above).
             ((and fortran-check-all-num-for-matching-do
-                  (looking-at "[ \t]*[0-9]+")
+                  (looking-at "[ \t]*[0-9]+[ \t]*\
+\\(continue\\|end[ \t]*do\\)\\>")
                   (fortran-check-for-matching-do))
              (setq icol (- icol fortran-do-indent)))
             (t
