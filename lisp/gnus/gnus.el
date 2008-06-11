@@ -1,7 +1,8 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -917,8 +918,7 @@ be set in `.emacs' instead."
 
 (defvar gnus-group-buffer "*Group*")
 
-(eval-and-compile
-  (autoload 'gnus-play-jingle "gnus-audio"))
+(autoload 'gnus-play-jingle "gnus-audio")
 
 (defface gnus-splash
   '((((class color)
@@ -992,6 +992,8 @@ be set in `.emacs' instead."
 (defvar gnus-logo-colors
   (cdr (assq gnus-logo-color-style gnus-logo-color-alist))
   "Colors used for the Gnus logo.")
+
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-group-startup-message (&optional x y)
   "Insert startup message in current buffer."
