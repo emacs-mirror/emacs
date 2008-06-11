@@ -1748,6 +1748,8 @@ ftfont_font_format (FcPattern *pattern)
   if (strcmp ((char *) str, "BDF") == 0)
     return intern ("bdf");
 #else  /* not FC_FONTFORMAT */
+  int len;
+
   if (FcPatternGetString (pattern, FC_FILE, 0, &str) != FcResultMatch)
     return Qnil;
   len = strlen ((char *) str);
