@@ -310,6 +310,9 @@ w32font_encode_char (font, c)
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, w32_font->compat_w32_font->hfont);
 
+  /* GetCharacterPlacement is used here rather than GetGlyphIndices because
+     it is supported on Windows NT 4 and 9x/ME.  But it cannot reliably report
+     missing glyphs, see below for workaround.  */
   retval = GetCharacterPlacementW (dc, in, len, 0, &result, 0);
 
   SelectObject (dc, old_font);
@@ -317,7 +320,11 @@ w32font_encode_char (font, c)
 
   if (retval)
     {
-      if (result.nGlyphs != 1 || !result.lpGlyphs[0])
+      if (result.nGlyphs != 1 || !result.lpGlyphs[0]
+          /* GetCharacterPlacementW seems to return 3, which seems to be
+             the space glyph in most/all truetype fonts, instead of 0
+             for unsupported glyphs.  */
+          || (result.lpGlyphs[0] == 3 && !iswspace (in[0])))
         return FONT_INVALID_CODE;
       return result.lpGlyphs[0];
     }
@@ -1360,7 +1367,9 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
           /* If registry was specified as iso10646-1, only report
              ANSI and DEFAULT charsets, as most unicode fonts will
              contain one of those plus others.  */
-          if (EQ (spec_charset, Qiso10646_1)
+          if ((EQ (spec_charset, Qiso10646_1)
+               || EQ (spec_charset, Qunicode_bmp)
+               || EQ (spec_charset, Qunicode_sip))
               && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
               && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
             return 1;
@@ -1370,6 +1379,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
              least it eliminates known definite mismatches.  */
           else if (!NILP (spec_charset)
                    && !EQ (spec_charset, Qiso10646_1)
+                   && !EQ (spec_charset, Qunicode_bmp)
+                   && !EQ (spec_charset, Qunicode_sip)
                    && match_data->pattern.lfCharSet == DEFAULT_CHARSET
                    && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET)
             return 1;
