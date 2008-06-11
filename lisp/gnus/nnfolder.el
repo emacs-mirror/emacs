@@ -42,7 +42,7 @@
 (require 'gnus-util)
 (require 'gnus-range)
 
-;; FXME not explicitly used in this file.
+;; FIXME not explicitly used in this file.
 (autoload 'gnus-article-unpropagatable-p "gnus-sum")
 
 (nnoo-declare nnfolder)
