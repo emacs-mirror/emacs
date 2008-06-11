@@ -3779,12 +3779,42 @@ This will break if COMMAND prints a newline, followed by the value of
 
 ;; File Editing.
 
+;; `make-temp-file' exists in Emacs only.  The third parameter SUFFIX
+;; has been introduced with Emacs 22.  We try it, if it fails, we fall
+;; back to `make-temp-name', creating the temporary file immediately
+;; in order to avoid a security hole.
 (defsubst tramp-make-temp-file (filename)
-  (concat
-   (funcall (if (fboundp 'make-temp-file) 'make-temp-file 'make-temp-name)
-	    (expand-file-name tramp-temp-name-prefix
-			      (tramp-temporary-file-directory)))
-   (file-name-extension filename t)))
+  "Create a temporary file (compat function).
+Add the extension of FILENAME, if existing."
+  (let* (file-name-handler-alist
+	 (prefix (expand-file-name
+		  (symbol-value 'tramp-temp-name-prefix)
+		  (tramp-temporary-file-directory)))
+	 (extension (file-name-extension filename t))
+	 result)
+    (condition-case nil
+	(setq result
+	      (funcall (symbol-function 'make-temp-file) prefix nil extension))
+      (error
+       ;; We use our own implementation, taken from files.el.
+       (while
+	   (condition-case ()
+	       (progn
+		 (setq result (concat (make-temp-name prefix) extension))
+		 (write-region
+		  "" nil result nil 'silent nil
+		  ;; 7th parameter is MUSTBENEW in Emacs, and
+		  ;; CODING-SYSTEM in XEmacs.  It is not a security
+		  ;; hole in XEmacs if we cannot use this parameter,
+		  ;; because XEmacs uses a user-specific subdirectory
+		  ;; with 0700 permissions.
+		  (when (not (featurep 'xemacs)) 'excl))
+		 nil)
+	     (file-already-exists t))
+	 ;; The file was somehow created by someone else between
+	 ;; `make-temp-name' and `write-region', let's try again.
+	 nil)))
+    result))
 
 (defun tramp-handle-file-local-copy (filename)
   "Like `file-local-copy' for tramp files."
