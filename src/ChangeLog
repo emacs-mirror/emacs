@@ -1,3 +1,10 @@
+2008-06-11  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_encode_char): Detect missing glyphs that are
+        misreported as space.
+        (add_font_entity_to_list): Support unicode-bmp and unicode-sip
+        as aliases for registry iso10646-1.
+
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (clone_per_buffer_values): Skip `name'.
