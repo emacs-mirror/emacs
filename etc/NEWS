@@ -33,8 +33,9 @@ backends.  This requires the freetype and fontconfig libraries, and
 supports local fonts (fonts installed on the machine where Emacs is
 running).  Additionally, the Xft library can be used for antialiasing
 support, the otf library for complex text layout by OpenType fonts,
-and the m17n library for text shaping.  Fontconfig-like font names
-(e.g. monospace-12) are accepted.
+and the m17n library for text shaping.  Emacs now accepts font names
+supplied in the fontconfig format (e.g. "monospace-12:bold") and GTK
+format (e.g. "Monospace Bold 12").
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -164,6 +165,17 @@ unless there's no other window.
 *** A window can be split horizontally even when it's not full-width.
 *** New option split-window-preferred-function can be set to a function
 to override the default splitting mechanism of display-buffer.
+
+** Menu Bar changes
+
+*** The Options menu contains a new entry to turn on Longlines mode.
+
+*** In the Options menu, the "Set Default Font" item applies the
+selected font to the `default' face on all frames, not just the
+current frame.  This font setting will be saved if the "Save Options"
+item is used.  Furthermore, if Emacs is compiled with both GTK and
+Fontconfig support, the "Set Default Font" item uses the GTK font
+selection dialog instead of an Emacs pop-up menu.
 
 ** Emacsclient has been extended to support opening a new terminal
 frame.  Its behavior has been changed to open a new Emacs frame by
