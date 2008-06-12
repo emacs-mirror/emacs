@@ -1,8 +1,11 @@
+2008-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Accept non-char events.
+
 2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* longlines.el (longlines-search-forward)
-	(longlines-search-backward, longlines-re-search-forward): Use a
-	smarter search-spaces-regexp.
+	* longlines.el (longlines-search-forward, longlines-search-backward)
+	(longlines-re-search-forward): Use a smarter search-spaces-regexp.
 
 2008-06-12  Sam Steingold  <sds@gnu.org>
 
@@ -11,8 +14,7 @@
 
 2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* menu-bar.el (menu-set-font): Renamed x-font-dialog to
-	x-select-font.
+	* menu-bar.el (menu-set-font): Rename x-font-dialog to x-select-font.
 
 2008-06-12  Glenn Morris  <rgm@gnu.org>
 
@@ -21,8 +23,8 @@
 
 	* term/mac-win.el (x-toolkit-scroll-bars): Check bound.
 
-	* progmodes/cperl-mode.el (cperl-info-on-command): Use
-	display-pixel-height rather than x-display-pixel-height.
+	* progmodes/cperl-mode.el (cperl-info-on-command):
+	Use display-pixel-height rather than x-display-pixel-height.
 
 	* mail/rmailedit.el (rmail-cease-edit):
 	* vc-dispatcher.el (vc-dir-mode): Check tool-bar-mode is bound.

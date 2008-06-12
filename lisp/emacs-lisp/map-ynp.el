@@ -112,10 +112,9 @@ Returns the number of actions taken."
 		use-menus t
 		mouse-event last-nonmenu-event))
       (setq user-keys (if action-alist
-			  (concat (mapconcat (function
-					      (lambda (elt)
-						(key-description
-						 (char-to-string (car elt)))))
+			  (concat (mapconcat (lambda (elt)
+                                               (key-description
+                                                (vector (car elt))))
 					     action-alist ", ")
 				  " ")
 			"")
