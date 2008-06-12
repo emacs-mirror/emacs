@@ -1,3 +1,8 @@
+2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-set-font): Renamed x-font-dialog to
+	x-select-font.
+
 2008-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-beginning-of-subprogram)
