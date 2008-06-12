@@ -1,7 +1,7 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: utf-8-*-
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 ;; Keywords: terminals
@@ -153,6 +153,8 @@
 	  (concat x-command-line-resources "\n" (car x-invocation-args))))
   (setq x-invocation-args (cdr x-invocation-args)))
 
+(declare-function x-parse-geometry "frame.c" (string))
+
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
   (let* ((geo (x-parse-geometry (car x-invocation-args)))
@@ -178,6 +180,8 @@
 		      (if left (list left))
 		      (if top (list top)))))
     (setq x-invocation-args (cdr x-invocation-args))))
+
+(defvar x-resource-name)
 
 ;; Handle the -name option.  Set the variable x-resource-name
 ;; to the option's operand; set the name of
@@ -768,6 +772,9 @@ This is in addition to the primary selection."
     (setq x-last-selected-text-clipboard text))
   )
 
+(declare-function x-get-selection-internal "xselect.c"
+		  (selection-symbol target-type &optional time-stamp))
+
 (defun x-get-selection (&optional type data-type)
   "Return the value of a selection.
 The argument TYPE (default `PRIMARY') says which selection,
@@ -1197,6 +1204,8 @@ Currently the `mailto' scheme is supported."
 (define-key mac-apple-event-map [internet-event get-url] 'mac-ae-get-url)
 
 (define-key mac-apple-event-map [hi-command about] 'about-emacs)
+
+(declare-function tool-bar-mode "tool-bar" (&optional arg))
 
 ;;; Converted Carbon Events
 (defun mac-handle-toolbar-switch-mode (event)
@@ -1708,6 +1717,9 @@ See also `mac-dnd-known-types'."
 	 ("mac-dingbats" . mac-dingbats))
        font-encoding-alist))
 
+(declare-function set-fontset-font "fontset.c"
+		  (name target font-spec &optional frame add))
+
 (defun fontset-add-mac-fonts (fontset &optional base-family)
   (dolist (elt `((latin . (,(or base-family "Monaco") . "mac-roman"))
 		 (mac-roman . (,base-family . "mac-roman"))
@@ -1716,6 +1728,8 @@ See also `mac-dnd-known-types'."
 		 (mac-symbol . (,base-family . "mac-symbol"))
 		 (mac-dingbats . (,base-family . "mac-dingbats"))))
     (set-fontset-font fontset (car elt) (cdr elt))))
+
+(declare-function new-fontset "fontset.c" (name fontlist))
 
 (defun create-fontset-from-mac-roman-font (font &optional resolved-font
 						fontset-name)
@@ -1765,6 +1779,10 @@ It returns a name of the created fontset."
       (while (setq i (string-match "[.*]" x-resource-name))
 	(aset x-resource-name i ?-))))
 
+(declare-function x-display-list "macfns.c" ())
+(declare-function x-open-connection "macfns.c"
+		  (display &optional xrm-string must-succeed))
+
 (if (x-display-list)
     ;; On Mac OS 8/9, Most coding systems used in code conversion for
     ;; font names are not ready at the time when the terminal frame is
@@ -1807,7 +1825,7 @@ It returns a name of the created fontset."
 
 ;;;; Non-toolkit Scroll bars
 
-(unless x-toolkit-scroll-bars
+(unless (and (boundp 'x-toolkit-scroll-bars) x-toolkit-scroll-bars)
 
 ;; for debugging
 ;; (defun mac-handle-scroll-bar-event (event) (interactive "e") (princ event))
@@ -1849,6 +1867,9 @@ It returns a name of the created fontset."
 
 ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
 (create-fontset-from-x-resource)
+
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
