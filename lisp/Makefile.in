@@ -106,18 +106,25 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 
 doit:
 
-$(lisp)/cus-load.el:
-	touch $@
-# Note that custom-deps and finder-data depend on autoloads rather
-# than on loaddefs.el, so that autoloads does not run in parallel with
-# them under "make -j", because that could delete loaddefs.el from
-# under their feet.
-custom-deps: $(emacs-deps) autoloads $(lisp)/cus-load.el doit
+# custom-deps and finder-data both used to scan _all_ the *.el files.
+# Now they avoid auto-generated files, which should avoid this
+# historical problem:
+# In parallel builds, they should not run at the same time as anything
+# else that might modify any .el files, eg autoloads (or each other).
+# One solution was to add autoloads as a prerequisite:
+# http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
+# http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00171.html
+# However, this means that running these targets modifies loaddefs.el,
+# every time (due to time-stamping).  Calling these rules from
+# bootstrap-after would modify loaddefs after src/emacs, resulting
+# in make install remaking src/emacs for no real reason:
+# http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
+custom-deps: $(emacs-deps) doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
-finder-data: $(emacs-deps) autoloads doit
+finder-data: $(emacs-deps) doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
@@ -1260,6 +1267,9 @@ compile: $(emacs-deps) $(LOADDEFS) autoloads compile-first
 	$(MAKE) $(MFLAGS) compile-main
 	$(MAKE) $(MFLAGS) compile-last
 
+## Doing this causes make install to dump another emacs.
+#	$(MAKE) $(MFLAGS) update-elclist
+
 # Compile all Lisp files.  This is like `compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
@@ -1415,7 +1425,7 @@ bootstrap: update-subdirs autoloads compile
 # Generate/update files after the bootstrap process.
 # custom-deps needs `preloaded-file-list'.
 
-bootstrap-after: finder-data custom-deps update-elclist
+bootstrap-after: finder-data custom-deps
 
 distclean:
 	-rm -f ./Makefile

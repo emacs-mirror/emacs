@@ -1,7 +1,7 @@
 ;;; cus-dep.el --- find customization dependencies
 ;;
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -30,59 +30,65 @@
 (require 'cus-face)
 
 (defvar generated-custom-dependencies-file "cus-load.el"
-  "Output file for \\[custom-make-dependencies].")
+  "Output file for `custom-make-dependencies'.")
+
+;; See finder-no-scan-regexp in finder.el.
+(defvar custom-dependencies-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|\
+cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
+  "Regexp matching file names not to scan for `custom-make-dependencies'.")
+
+(autoload 'autoload-rubric "autoload")
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (let ((enable-local-eval nil))
-    (set-buffer (get-buffer-create " cus-dep temp"))
-    (dolist (subdir command-line-args-left)
-      (message "Directory %s" subdir)
-      (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
-	    (default-directory (expand-file-name subdir))
-	    (preloaded (concat "\\`"
-			       (regexp-opt (mapcar
-					    (lambda (f)
-					      (file-name-sans-extension
-					       (file-name-nondirectory f)))
-					    preloaded-file-list) t)
-			       "\\.el\\'")))
-	(dolist (file files)
-	  (when (and (file-exists-p file)
-		     ;; Ignore files that are preloaded.
-		     (not (string-match preloaded file)))
-	    (erase-buffer)
-	    (insert-file-contents file)
-	    (goto-char (point-min))
-	    (string-match "\\`\\(.*\\)\\.el\\'" file)
-	    (let ((name (file-name-nondirectory (match-string 1 file)))
-		  (load-file-name file))
-	      (if (save-excursion
-		    (re-search-forward
+    (with-temp-buffer
+      (dolist (subdir command-line-args-left)
+        (message "Directory %s" subdir)
+        (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
+              (default-directory (expand-file-name subdir))
+              (preloaded (concat "\\`"
+                                 (regexp-opt (mapcar
+                                              (lambda (f)
+                                                (file-name-sans-extension
+                                                 (file-name-nondirectory f)))
+                                              preloaded-file-list) t)
+                                 "\\.el\\'")))
+          (dolist (file files)
+            (unless (or (string-match custom-dependencies-no-scan-regexp file)
+                        (string-match preloaded file)
+                        (not (file-exists-p file)))
+              (erase-buffer)
+              (insert-file-contents file)
+              (goto-char (point-min))
+              (string-match "\\`\\(.*\\)\\.el\\'" file)
+              (let ((name (file-name-nondirectory (match-string 1 file)))
+                    (load-file-name file))
+                (if (save-excursion
+                      (re-search-forward
 		     (concat "(provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
 			     (regexp-quote name) "[ \t\n)]")
 		     nil t))
-		  (setq name (intern name)))
-	      (condition-case nil
-		  (while (re-search-forward
-			  "^(def\\(custom\\|face\\|group\\)" nil t)
-		    (beginning-of-line)
-		    (let ((expr (read (current-buffer))))
-		      (condition-case nil
-			  (let ((custom-dont-initialize t))
-			    (eval expr)
-			    (put (nth 1 expr) 'custom-where name))
-			(error nil))))
-		(error nil))))))))
+                    (setq name (intern name)))
+                (condition-case nil
+                    (while (re-search-forward
+                            "^(def\\(custom\\|face\\|group\\)" nil t)
+                      (beginning-of-line)
+                      (let ((expr (read (current-buffer))))
+                        (condition-case nil
+                            (let ((custom-dont-initialize t))
+                              (eval expr)
+                              (put (nth 1 expr) 'custom-where name))
+                          (error nil))))
+                  (error nil)))))))))
   (message "Generating %s..." generated-custom-dependencies-file)
   (set-buffer (find-file-noselect generated-custom-dependencies-file))
+  (setq buffer-undo-list t)
   (erase-buffer)
-  (insert ";;; " (file-name-nondirectory generated-custom-dependencies-file)
-      " --- automatically extracted custom dependencies
-;;\n;;; Code:
-
-")
+  (insert (autoload-rubric generated-custom-dependencies-file
+                           "custom dependencies"))
+  (search-backward "")
   (mapatoms (lambda (symbol)
 	      (let ((members (get symbol 'custom-group))
                     where found)
@@ -160,23 +166,8 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	    (if version-alist "'" ""))
     (prin1 version-alist (current-buffer))
     (insert "\n \"For internal use by custom.\")\n"))
-
-  (insert "\
-
-\(provide '" (file-name-sans-extension
-	      (file-name-nondirectory generated-custom-dependencies-file)) ")
-
-;; Local Variables:
-;; version-control: never
-;; no-byte-compile: t
-;; no-update-autoloads: t
-;; End:\n;;; "
-              (file-name-nondirectory generated-custom-dependencies-file)
-              " ends here\n")
-  (let ((kept-new-versions 10000000))
-    (save-buffer))
-  (message "Generating %s...done" generated-custom-dependencies-file)
-  (kill-emacs))
+  (save-buffer)
+  (message "Generating %s...done" generated-custom-dependencies-file))
 
 
 

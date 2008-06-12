@@ -185,15 +185,16 @@
 	  (if (> level 1) " " "")
 	  level
 	  function
-	  (mapconcat (lambda (binding)
-		       (concat
-			(symbol-name (ad-arg-binding-field binding 'name))
-			"="
-			;; do this so we'll see strings:
-			(prin1-to-string
-			 (ad-arg-binding-field binding 'value))))
-		     argument-bindings
-		     " ")))
+          (let ((print-circle t))
+            (mapconcat (lambda (binding)
+                         (concat
+                          (symbol-name (ad-arg-binding-field binding 'name))
+                          "="
+                          ;; do this so we'll see strings:
+                          (prin1-to-string
+                           (ad-arg-binding-field binding 'value))))
+                       argument-bindings
+                       " "))))
 
 (defun trace-exit-message (function level value)
   ;; Generates a string that describes that FUNCTION has been exited at
@@ -204,7 +205,7 @@
 	  level
 	  function
 	  ;; do this so we'll see strings:
-	  (prin1-to-string value)))
+	  (let ((print-circle t)) (prin1-to-string value))))
 
 (defun trace-make-advice (function buffer background)
   ;; Builds the piece of advice to be added to FUNCTION's advice info

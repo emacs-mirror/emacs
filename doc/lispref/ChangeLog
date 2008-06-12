@@ -1,8 +1,17 @@
+2008-06-05  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Displaying Faces): Update to reflect function
+	renamings in face-remap.el.
+
+2008-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Fontsets): Fix typos.
+
 2008-06-03  Miles Bader  <miles@gnu.org>
 
-	* display.texi (Displaying Faces): Add
-	add-relative-face-remapping, remove-relative-face-remapping,
-	set-base-face-remapping, and set-default-base-face-remapping.
+	* display.texi (Displaying Faces): Add add-relative-face-remapping,
+	remove-relative-face-remapping, set-base-face-remapping,
+	and set-default-base-face-remapping.
 
 2008-06-01  Miles Bader  <miles@gnu.org>
 

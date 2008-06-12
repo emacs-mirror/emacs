@@ -2439,8 +2439,8 @@ names or face attribute-value pairs.  All face specs are merged
 together, with earlier values taking precedence.
 
 The @var{relative_specs_}n values are ``relative specs'', and are
-added by @code{add-relative-face-remapping} (and removed by
-@code{remove-relative-face-remapping}.  These are intended for face
+added by @code{face-remap-add-relative} (and removed by
+@code{face-remap-remove-relative}.  These are intended for face
 modifications (such as increasing the size).  Typical users of these
 relative specs would be minor modes.
 
@@ -2448,37 +2448,37 @@ relative specs would be minor modes.
 face name, which causes the global definition of that face to be used.
 
 A non-default value of @var{base_specs} may also be set using
-@code{set-base-face-remapping}.  Because this @emph{overwrites} the
+@code{face-remap-set-base}.  Because this @emph{overwrites} the
 default base-spec value (which inherits the global face definition),
-it is up to the caller of @code{set-base-face-remapping} to add such
+it is up to the caller of @code{face-remap-set-base} to add such
 inheritance if it is desired.  A typical use of
-@code{set-base-face-remapping} would be a major mode adding a face
+@code{face-remap-set-base} would be a major mode adding a face
 remappings, e.g., of the default face.
 
 
-@defun add-relative-face-remapping face &rest specs
+@defun face-remap-add-relative face &rest specs
 This functions adds a face remapping entry of @var{face} to @var{specs}
 in the current buffer.
 
 It returns a ``cookie'' which can be used to later delete the remapping with
-@code{remove-relative-face-remapping}.
+@code{face-remap-remove-relative}.
 
 @var{specs} can be any value suitable for the @code{face} text
 property, including a face name, a list of face names, or a
 face-attribute property list.  The attributes given by @var{specs}
 will be merged with any other currently active face remappings of
 @var{face}, and with the global definition of @var{face} (by default;
-this may be changed using @code{set-base-face-remapping}),
-with the most recently added relative remapping taking precedence.
+this may be changed using @code{face-remap-set-base}), with the most
+recently added relative remapping taking precedence.
 @end defun
 
-@defun remove-relative-face-remapping cookie
+@defun face-remap-remove-relative cookie
 This function removes a face remapping previously added by
-@code{add-relative-face-remapping}.  @var{cookie} should be a return
-value from that function.
+@code{face-remap-add-relative}.  @var{cookie} should be a return value
+from that function.
 @end defun
 
-@defun set-base-face-remapping face &rest specs
+@defun face-remap-set-base face &rest specs
 This function sets the ``base remapping'' of @var{face} in the current
 buffer to @var{specs}.  If @var{specs} is empty, the default base
 remapping is restored, which inherits from the global definition of
@@ -2487,7 +2487,7 @@ single value @code{nil}, which has the opposite result (the global
 definition of @var{face} is ignored).
 @end defun
 
-@defun set-default-base-face-remapping face
+@defun face-remap-reset-base face
 This function sets the ``base remapping'' of @var{face} to its default
 value, which inherits from @var{face}'s global definition.
 @end defun
@@ -2793,7 +2793,7 @@ This function defines a new fontset according to the specification
 string @var{fontset-spec}.  The string should have this format:
 
 @smallexample
-@var{fontpattern}, @r{[}@var{charsetname}:@var{fontname}@r{]@dots{}}
+@var{fontpattern}, @r{[}@var{charset}:@var{font}@r{]@dots{}}
 @end smallexample
 
 @noindent

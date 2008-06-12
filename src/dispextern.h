@@ -2685,6 +2685,9 @@ void move_it_vertically P_ ((struct it *, int));
 void move_it_vertically_backward P_ ((struct it *, int));
 void move_it_by_lines P_ ((struct it *, int, int));
 void move_it_past_eol P_ ((struct it *));
+void move_it_in_display_line (struct it *it,
+			      EMACS_INT to_charpos, int to_x,
+			      enum move_operation_enum op);
 int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));

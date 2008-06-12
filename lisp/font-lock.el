@@ -916,26 +916,26 @@ The value of this variable is used when Font Lock mode is turned on."
                      nil t)))))
 
 (defun font-lock-turn-off-thing-lock ()
-  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
+  (cond ((bound-and-true-p fast-lock-mode)
 	 (fast-lock-mode -1))
-	((and (boundp 'jit-lock-mode) jit-lock-mode)
+	((bound-and-true-p jit-lock-mode)
 	 (jit-lock-unregister 'font-lock-fontify-region)
 	 ;; Reset local vars to the non-jit-lock case.
 	 (kill-local-variable 'font-lock-fontify-buffer-function))
-	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
+	((bound-and-true-p lazy-lock-mode)
 	 (lazy-lock-mode -1))))
 
 (defun font-lock-after-fontify-buffer ()
-  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
+  (cond ((bound-and-true-p fast-lock-mode)
 	 (fast-lock-after-fontify-buffer))
 	;; Useless now that jit-lock intercepts font-lock-fontify-buffer.  -sm
 	;; (jit-lock-mode
 	;;  (jit-lock-after-fontify-buffer))
-	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
+	((bound-and-true-p lazy-lock-mode)
 	 (lazy-lock-after-fontify-buffer))))
 
 (defun font-lock-after-unfontify-buffer ()
-  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
+  (cond ((bound-and-true-p fast-lock-mode)
 	 (fast-lock-after-unfontify-buffer))
 	;; Useless as well.  It's only called when:
 	;; - turning off font-lock: it does not matter if we leave spurious
@@ -945,7 +945,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	;;
 	;; (jit-lock-mode
 	;;  (jit-lock-after-unfontify-buffer))
-	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
+	((bound-and-true-p lazy-lock-mode)
 	 (lazy-lock-after-unfontify-buffer))))
 
 ;;; End of Font Lock Support mode.
@@ -2154,7 +2154,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;;
 (defconst cpp-font-lock-keywords-source-directives
   "define\\|e\\(?:l\\(?:if\\|se\\)\\|ndif\\|rror\\)\\|file\\|i\\(?:f\\(?:n?def\\)?\\|mport\\|nclude\\)\\|line\\|pragma\\|undef\\|warning"
-  "Regular expressoin used in `cpp-font-lock-keywords'.")
+  "Regular expression used in `cpp-font-lock-keywords'.")
 
 ;; `cpp-font-lock-keywords-source-depth' is calculated from:
 ;;
@@ -2203,10 +2203,10 @@ Used in `cpp-font-lock-keywords'.")
       '(1 font-lock-preprocessor-face prepend)
       (list (+ 2 directives-depth)
 	    'font-lock-variable-name-face nil t))))
-    "Font lock keyords for C preprocessor directives.
-`c-mode', `c++-mode' and `objc-mode' have their own
-font lock keyords for C preprocessor directives. This definition is for the
-other modes in which C preprocessor directives are used. e.g. `asm-mode' and
+  "Font lock keywords for C preprocessor directives.
+`c-mode', `c++-mode' and `objc-mode' have their own font lock keywords
+for C preprocessor directives.  This definition is for the other modes
+in which C preprocessor directives are used. e.g. `asm-mode' and
 `ld-script-mode'.")
 
 

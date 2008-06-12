@@ -63,6 +63,7 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
+** scroll-preserve-screen-position also preserves the column position.
 ** Completion.
 *** `completion-styles' can be customized to choose your favorite completion.
 *** The default completion styles include a form of partial-completion.
@@ -122,8 +123,9 @@ http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
 
 ** Controlling the frame opacity
-The opacity of a frame can now be controlled by setting the `alpha'
-frame parameter, on an X Window system with the composite extension.
+The opacity of a frame can now be controlled by setting
+the `alpha' frame parameter, on a compositing window manager
+(e.g. Compiz, Beryl and Compiz Fusion) for the X Window System.
 
 The alpha parameter should be an integer between 0 (transparent) and
 100 (opaque) or a float number between 0.0 and 1.0.  Optionally, the
@@ -808,6 +810,9 @@ functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
+
+** minibuffer-local-must-match-filename-map is now named
+minibuffer-local-filename-must-match-map.
 
 ** `all-completions' may now return the base size in the last cdr.
 Since this means the returned list is not properly nil-terminated, this

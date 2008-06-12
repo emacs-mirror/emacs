@@ -939,8 +939,9 @@ static int init_from_display_pos P_ ((struct it *, struct window *,
 				      struct display_pos *));
 static void reseat_to_string P_ ((struct it *, unsigned char *,
 				  Lisp_Object, int, int, int, int));
-static enum move_it_result move_it_in_display_line_to P_ ((struct it *,
-							   int, int, int));
+static enum move_it_result
+       move_it_in_display_line_to (struct it *, EMACS_INT, int,
+				   enum move_operation_enum);
 void move_it_vertically_backward P_ ((struct it *, int));
 static void init_to_row_start P_ ((struct it *, struct window *,
 				   struct glyph_row *));
@@ -6630,9 +6631,9 @@ next_element_from_composition (it)
      display is on.  */
 
 static enum move_it_result
-move_it_in_display_line_to (it, to_charpos, to_x, op)
-     struct it *it;
-     int to_charpos, to_x, op;
+move_it_in_display_line_to (struct it *it,
+			    EMACS_INT to_charpos, int to_x,
+			    enum move_operation_enum op)
 {
   enum move_it_result result = MOVE_UNDEFINED;
   struct glyph_row *saved_glyph_row;
@@ -6890,6 +6891,15 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
      function.  */
   it->glyph_row = saved_glyph_row;
   return result;
+}
+
+/* For external use.  */
+void
+move_it_in_display_line (struct it *it,
+			 EMACS_INT to_charpos, int to_x,
+			 enum move_operation_enum op)
+{
+  move_it_in_display_line_to (it, to_charpos, to_x, op);
 }
 
 

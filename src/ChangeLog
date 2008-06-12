@@ -1,3 +1,71 @@
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* character.h (MAKE_CHAR_MULTIBYTE): Check the arg is a (uni)byte.
+
+	* keymap.c (Vminibuffer_local_filename_must_match_map):
+	Rename from Vminibuffer_local_must_match_filename_map.
+	(syms_of_keymap):
+	* minibuf.c (Fcompleting_read): Adjust accordingly.
+	* commands.h: Rename declaration as well.
+
+2008-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_spec): Don't use font_parse_family_registry for
+	family name.
+	(Ffont_put): Likewise.
+
+	* fontset.c (fontset_find_font): Call font_open_for_lface with the
+	current font-spec.
+
+	* xfont.c (xfont_list): Don't set registry to iso8859-1 even if it
+	is unspecified.
+
+	* xfaces.c (realize_x_face): If the font-related face attributes
+	are the same as those of default face, realize a new fontset from
+	default->fontset.
+	(Fx_family_fonts): Use font_parse_family_registry instead of
+	Ffont_put.
+
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (move_it_in_display_line_to): Improve the type of its args.
+	(move_it_in_display_line): New wrapper.
+
+	* window.c (window_scroll_pixel_based_preserve_x)
+	(window_scroll_preserve_hpos, window_scroll_preserve_vpos): New vars.
+	(window_scroll_pixel_based, window_scroll_line_based):
+	Use them to preserve column positions.
+	(syms_of_window): Initialize them.
+
+	* indent.c (Fvertical_motion): Extend first arg to allow passing an
+	(HPOS . VPOS) pair.
+
+	* dispextern.h (move_it_in_display_line): Declare.
+
+2008-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fwindow_parameter): Return VALUE, not (PARAMETER . VALUE).
+	(Fwindow_parameters): Return copy of parameter alist.  Doc fix.
+	(Fset_window_parameter): Return VALUE, not parameter alist.  Doc fix.
+
+2008-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.c (Fset_window_parameter): Doc fix.
+	(Fwindow_parameters, Fwindow_parameter): Remove redundant check.
+
+2008-06-04  Joakim Verona  <joakim@verona.se>
+
+	* window.h (struct window): Add new member window_parameters.
+
+	* window.c (Fwindow_parameters, Fwindow_parameter)
+	(Fset_window_parameter): New defuns.
+	(syms_of_window): Defsubr the new defuns.
+	(make_window): Initialize window_parameters to nil.
+
+2008-06-04  John Paul Wallington  <jpw@pobox.com>
+
+	* eval.c (Fdefmacro): Doc fix.
+
 2008-06-04  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix handling of coding->head_ascii.
@@ -69,11 +137,11 @@
 
 2008-06-01  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32_enumfont_pattern_entity): Use requested registry.
-        Treat iso10646-1 and Windows DEFAULT_CHARSET specially.
-        Duplicate iso8859-1 fonts as iso10646-1 if no registry specified.
-        Don't add empty script list.
-        (w32_registry): Only map DEFAULT_CHARSET to iso10646-1 here.
+	* w32font.c (w32_enumfont_pattern_entity): Use requested registry.
+	Treat iso10646-1 and Windows DEFAULT_CHARSET specially.
+	Duplicate iso8859-1 fonts as iso10646-1 if no registry specified.
+	Don't add empty script list.
+	(w32_registry): Only map DEFAULT_CHARSET to iso10646-1 here.
 
 2008-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -89,11 +157,11 @@
 	(struct named_merge_point): Add `named_merge_point_kind' field.
 	(push_named_merge_point): Make cycle detection respect different
 	named-merge-point kinds.
-	(lface_from_face_name_no_resolve): Renamed from `lface_from_face_name'.
+	(lface_from_face_name_no_resolve): Rename from `lface_from_face_name'.
 	Remove face-name alias resolution.
 	(lface_from_face_name): New definition using
 	`lface_from_face_name_no_resolve'.
-	(get_lface_attributes_no_remap): Renamed from `get_lface_attributes'.
+	(get_lface_attributes_no_remap): Rename from `get_lface_attributes'.
 	Call lface_from_face_name_no_resolve instead of lface_from_face_name.
 	(get_lface_attributes): New definition that layers face-remapping on
 	top of get_lface_attributes_no_remap.  New arg `named_merge_points'.

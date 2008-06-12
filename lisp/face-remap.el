@@ -36,8 +36,8 @@
 ;; The "specs" values are a lists of face names or face attribute-value
 ;; pairs, and are merged together, with earlier values taking precedence.
 ;;
-;; The RELATIVE_SPECS_* values are added by `add-relative-face-remapping'
-;; (and removed by `remove-relative-face-remapping', and are intended for
+;; The RELATIVE_SPECS_* values are added by `face-remap-add-relative'
+;; (and removed by `face-remap-remove-relative', and are intended for
 ;; face "modifications" (such as increasing the size).  Typical users of
 ;; relative specs would be minor modes.
 ;;
@@ -45,10 +45,10 @@
 ;; face name, which causes the global definition of that face to be used.
 ;;
 ;; A non-default value of BASE_SPECS may also be set using
-;; `set-base-face-remapping'.  Because this _overwrites_ the default
+;; `face-remap-set-base'.  Because this _overwrites_ the default
 ;; value inheriting from the global face definition, it is up to the
-;; caller of set-base-face-remapping to add such inheritance if it is
-;; desired.  A typical use of set-base-face-remapping would be a major
+;; caller of face-remap-set-base to add such inheritance if it is
+;; desired.  A typical use of face-remap-set-base would be a major
 ;; mode setting face remappings, e.g., of the default face.
 ;;
 ;; All modifications cause face-remapping-alist to be made buffer-local.
@@ -62,11 +62,11 @@
 ;; Utility functions
 
 ;;;### autoload
-(defun add-relative-face-remapping (face &rest specs)
+(defun face-remap-add-relative (face &rest specs)
   "Add a face remapping entry of FACE to SPECS in the current buffer.
 
 Return a cookie which can be used to delete the remapping with
-`remove-relative-face-remapping'.
+`face-remap-remove-relative'.
 
 SPECS can be any value suitable for the `face' text property,
 including a face name, a list of face names, or a face-attribute
@@ -77,7 +77,7 @@ remapping taking precedence.
 
 The base (lowest priority) remapping may be set to a specific
 value, instead of the default of the global face definition,
-using `set-base-face-remapping'."
+using `face-remap-set-base'."
   (make-local-variable 'face-remapping-alist)
   (let ((entry (assq face face-remapping-alist)))
     (when (null entry)
@@ -86,8 +86,8 @@ using `set-base-face-remapping'."
     (setcdr entry (cons specs (cdr entry)))
     (cons face specs)))
 
-(defun remove-relative-face-remapping (cookie)
-  "Remove a face remapping previously added by `add-relative-face-remapping'.
+(defun face-remap-remove-relative (cookie)
+  "Remove a face remapping previously added by `face-remap-add-relative'.
 COOKIE should be the return value from that function."
   (let ((remapping (assq (car cookie) face-remapping-alist)))
     (when remapping
@@ -102,7 +102,7 @@ COOKIE should be the return value from that function."
 	  (cdr cookie))))))
 
 ;;;### autoload
-(defun set-default-base-face-remapping (face)
+(defun face-remap-reset-base (face)
   "Set the base remapping of FACE to inherit from FACE's global definition."
   (let ((entry (assq face face-remapping-alist)))
     (when entry
@@ -116,7 +116,7 @@ COOKIE should be the return value from that function."
 	(setcar (last entry) face)))))  ; otherwise, just inherit global def
 
 ;;;### autoload
-(defun set-base-face-remapping (face &rest specs)
+(defun face-remap-set-base (face &rest specs)
   "Set the base remapping of FACE in the current buffer to SPECS.
 If SPECS is empty, the default base remapping is restored, which
 inherits from the global definition of FACE; note that this is
@@ -125,14 +125,14 @@ not inherit from the global definition of FACE."
   (if (or (null specs)
 	  (and (eq (car specs) face) (null (cdr specs)))) ; default
       ;; Set entry back to default
-      (set-default-base-face-remapping face)
+      (face-remap-reset-base face)
     ;; Set the base remapping
     (make-local-variable 'face-remapping-alist)
     (let ((entry (assq face face-remapping-alist)))
       (if entry
 	  (setcar (last entry) specs)	; overwrite existing base entry
 	(push (list face specs) face-remapping-alist)))))
-  
+
 
 ;; ----------------------------------------------------------------
 ;; text-scale-mode
@@ -159,30 +159,30 @@ Each positive or negative step scales the default face height by this amount."
   "Minor mode for displaying buffer text in a larger/smaller font than usual.
 
 The amount of scaling is determined by the variable
-`text-scale-mode-amount':  one step scales the global default
-face size by the value of the variable `text-scale-mode-step' (a
-negative amount shrinks the text).
+`text-scale-mode-amount': one step scales the global default
+face size by the value of the variable `text-scale-mode-step'
+\(a negative amount shrinks the text).
 
-The `increase-buffer-face-height' and
-`decrease-buffer-face-height' functions may be used to
-interactively modify the variable `text-scale-mode-amount' (they
-also enable or disable `text-scale-mode' as necessary."
+The `text-scale-increase' and `text-scale-decrease' functions may
+be used to interactively modify the variable
+`text-scale-mode-amount' (they also enable or disable
+`text-scale-mode' as necessary)."
   :lighter (" " text-scale-mode-lighter)
   (when text-scale-mode-remapping
-    (remove-relative-face-remapping text-scale-mode-remapping))
+    (face-remap-remove-relative text-scale-mode-remapping))
   (setq text-scale-mode-lighter
 	(format (if (>= text-scale-mode-amount 0) "+%d" "%d")
 		text-scale-mode-amount))
   (setq text-scale-mode-remapping
 	(and text-scale-mode
-	     (add-relative-face-remapping 'default
+	     (face-remap-add-relative 'default
 					  :height
 					  (expt text-scale-mode-step
 						text-scale-mode-amount))))
   (force-window-update (current-buffer)))
 
 ;;;###autoload
-(defun increase-buffer-face-height (&optional inc)
+(defun text-scale-increase (&optional inc)
   "Increase the height of the default face in the current buffer by INC steps.
 If the new height is other than the default, `text-scale-mode' is enabled.
 
@@ -195,31 +195,30 @@ will remove any scaling currently active."
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload
-(defun decrease-buffer-face-height (&optional dec)
+(defun text-scale-decrease (&optional dec)
   "Decrease the height of the default face in the current buffer by DEC steps.
-See `increase-buffer-face-height' for more details."
+See `text-scale-increase' for more details."
   (interactive "p")
-  (increase-buffer-face-height (- dec)))
+  (text-scale-increase (- dec)))
 
-;;;###autoload (define-key ctl-x-map [(control ?+)] 'adjust-buffer-face-height)
-;;;###autoload (define-key ctl-x-map [(control ?-)] 'adjust-buffer-face-height)
-;;;###autoload (define-key ctl-x-map [(control ?=)] 'adjust-buffer-face-height)
-;;;###autoload (define-key ctl-x-map [(control ?0)] 'adjust-buffer-face-height)
+;;;###autoload (define-key ctl-x-map [(control ?+)] 'text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control ?-)] 'text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control ?=)] 'text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 ;;;###autoload
-(defun adjust-buffer-face-height (&optional inc)
+(defun text-scale-adjust (&optional inc)
   "Increase or decrease the height of the default face in the current buffer.
 
 The actual adjustment made depends on the final component of the
-key-binding used to invoke the command, with all modifiers
-removed:
+key-binding used to invoke the command, with all modifiers removed:
 
    +, =   Increase the default face height by one step
    -      Decrease the default face height by one step
    0      Reset the default face height to the global default
 
 Then, continue to read input events and further adjust the face
-height as long as the input event read (with all modifiers
-removed) is one the above.
+height as long as the input event read (with all modifiers removed)
+is one of the above.
 
 Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number of steps decreases the
@@ -227,12 +226,12 @@ height by the same amount).  As a special case, an argument of 0
 will remove any scaling currently active.
 
 This command is a special-purpose wrapper around the
-`increase-buffer-face-height' command which makes repetition
-convenient even when it is bound in a non-top-level keymap.  For
-binding in a top-level keymap, `increase-buffer-face-height' or
-`decrease-default-face-height' may be more appropriate."
+`text-scale-increase' command which makes repetition convenient
+even when it is bound in a non-top-level keymap.  For binding in
+a top-level keymap, `text-scale-increase' or
+`text-scale-decrease' may be more appropriate."
   (interactive "p")
-  (let ((first t) 
+  (let ((first t)
 	(step t)
 	(ev last-command-event))
     (while step
@@ -243,12 +242,12 @@ binding in a top-level keymap, `increase-buffer-face-height' or
 	       (setq step (- inc)))
 	      ((eq base ?0)
 	       (setq step 0))
-	      (first 
+	      (first
 	       (setq step inc))
 	      (t
 	       (setq step nil))))
       (when step
-	(increase-buffer-face-height step)
+	(text-scale-increase step)
 	(setq inc 1 first nil)
 	(setq ev (read-event))))
     (push ev unread-command-events)))
@@ -263,15 +262,17 @@ binding in a top-level keymap, `increase-buffer-face-height' or
 (defvar variable-pitch-mode-remapping nil)
 (make-variable-buffer-local 'variable-pitch-mode-remapping)
 
+;;;###autoload
 (define-minor-mode variable-pitch-mode
-  "Variable-pitch default-face mode.  When active, causes the
-buffer text to be displayed using the `variable-pitch' face."
+  "Variable-pitch default-face mode.
+When active, causes the buffer text to be displayed using
+the `variable-pitch' face."
   :lighter " VarPitch"
   (when variable-pitch-mode-remapping
-    (remove-relative-face-remapping variable-pitch-mode-remapping))
+    (face-remap-remove-relative variable-pitch-mode-remapping))
   (setq variable-pitch-mode-remapping
 	(and variable-pitch-mode
-	     (add-relative-face-remapping 'default 'variable-pitch)))
+	     (face-remap-add-relative 'default 'variable-pitch)))
   (force-window-update (current-buffer)))
 
 

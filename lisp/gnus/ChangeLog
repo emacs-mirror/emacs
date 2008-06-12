@@ -1,3 +1,7 @@
+2008-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-disassociate-draft): Revert 2008-03-18 change.
+
 2008-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* pop3.el (nnheader-accept-process-output): Autoload it.

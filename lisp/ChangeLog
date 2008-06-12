@@ -1,3 +1,93 @@
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/etags.el (tags-verify-table): Be careful to use and update
+	tags-file-name and tags-table-list from the right buffer.
+	(tags-table-check-computed-list, tags-table-extend-computed-list)
+	(find-tag-noselect): Use with-current-buffer.
+
+	* emacs-lisp/trace.el (trace-entry-message, trace-exit-message):
+	Use print-circle.
+
+	* minibuffer.el (minibuffer-local-must-match-filename-map):
+	Declare obsolete alias for the old name.
+
+	* abbrev.el (unexpand-abbrev): Better preserve markers.
+
+2008-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-rubric): New function,
+	extracted from autoload-ensure-default-file.
+	(autoload-ensure-default-file): Use autoload-rubric.
+
+	* cus-dep.el (generated-custom-dependencies-file): Doc fix.
+	(custom-dependencies-no-scan-regexp): New variable.
+	(custom-make-dependencies): Use with-temp-buffer and autoload-rubric.
+	Don't scan files matching custom-dependencies-no-scan-regexp.
+	Disable undo in the output buffer.  Remove kept-new-versions wackiness.
+
+	* finder.el (finder-headmark): Initialize and add doc string.
+	(generated-finder-keywords-file): Doc fix.
+	(finder-no-scan-regexp): New variable.
+	(finder-compile-keywords): Use a single let binding.
+	Disable undo in the output buffer.  Use autoload-rubric.
+	Use mapc rather than mapcar.  Don't scan files matching
+	finder-no-scan-regexp.  Use with-temp-buffer.  Use expand-file-name
+	rather than concat.  Use directory-files to do regexp matching.
+	No need to require jka-compr.
+	(finder-list-keywords): Remove un-needed set-buffer.  Disable undo.
+	(finder-list-matches): Disable undo.
+	(finder-commentary): Use let rather than let*.  Disable undo.
+	(finder-current-item): Use zerop.
+	(finder-mode): Use define-derived-mode.
+	(finder-exit): Doc fix.  Use dolist.
+
+	* Makefile.in ($(lisp)/cus-load.el): Remove unnecessary rule.
+	(custom-deps): Don't require $(lisp)/cus-load.el.
+	(custom-deps, finder-data): Don't depend on autoloads.
+	Should not be needed now, and doing so was causing make install to
+	re-dump emacs post-bootstrap.
+	(bootstrap-after): Don't run update-elclist, since modifying Makefile.in
+	mid-build forces some things to be rebuilt.
+
+2008-06-05  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el
+	(face-remap-add-relative): Renamed from `add-relative-face-remapping'.
+	(face-remap-remove-relative): Renamed from
+	`remove-relative-face-remapping'.
+	(face-remap-reset-base): Renamed from
+	`set-default-base-face-remapping'.
+	(face-remap-set-base): Renamed from `set-base-face-remapping'.
+	(text-scale-increase): Renamed from `increase-buffer-face-height'.
+	(text-scale-decrease): Renamed from `decrease-buffer-face-height'.
+	(text-scale-adjust): Renamed from `adjust-buffer-face-height'.
+
+	* face-remap.el (variable-pitch-mode): Autoload.
+
+2008-06-04  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-status-extra-header, vc-hg-status-extra-headers):
+	Generate extra status headers for a Mercurial tree.
+
+2008-06-04  John Paul Wallington  <jpw@pobox.com>
+
+	* echistory.el (electric-history-map): Define within defvar.
+	Add docstring.
+
+	* font-lock.el (font-lock-turn-off-thing-lock)
+	(font-lock-after-fontify-buffer, font-lock-after-unfontify-buffer):
+	Use `bound-and-true-p'.
+	(cpp-font-lock-keywords-source-directives, cpp-font-lock-keywords):
+	Doc fixes.
+
+	* international/ccl.el (define-ccl-program): Add `doc-string'
+	declaration.
+
+2008-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* face-remap.el (variable-pitch-mode): Reflow docstrings.
+	(text-scale-mode, adjust-buffer-face-height): Fix typos in docstrings.
+
 2008-06-04  Trent W. Buck  <trentbuck@gmail.com>  (tiny change)
 
 	* emacs-lisp/rx.el (rx): Doc fix.
@@ -63,7 +153,7 @@
 
 	* Makefile.in (ELCFILES): Add $(lisp)/language/hanja-util.elc.
 
-2008-06-03 Jihyun Cho  <jihyun.jo@gmail.com>
+2008-06-03  Jihyun Cho  <jihyun.jo@gmail.com>
 
 	* language/hanja-util.el: New file.
 

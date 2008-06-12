@@ -738,7 +738,8 @@ the list ARGS... as it appears in the expression,
 and the result should be a form to be evaluated instead of the original.
 
 DECL is a declaration, optional, which can specify how to indent
-calls to this macro and how Edebug should handle it.  It looks like this:
+calls to this macro, how Edebug should handle it, and which argument
+should be treated as documentation.  It looks like this:
   (declare SPECS...)
 The elements can look like this:
   (indent INDENT)
@@ -747,6 +748,10 @@ The elements can look like this:
   (debug DEBUG)
 	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
 	equivalent to writing a `def-edebug-spec' for the macro.)
+
+  (doc-string ELT)
+	Set NAME's `doc-string-elt' property to ELT.
+
 usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
      (args)
      Lisp_Object args;

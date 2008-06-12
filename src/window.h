@@ -224,9 +224,11 @@ struct window
        proportionally.  */
     Lisp_Object resize_proportionally;
 
-    /* Original window height and top before mini-window was
-       enlarged. */
+    /* Original window height and top before mini-window was enlarged. */
     Lisp_Object orig_total_lines, orig_top_line;
+
+    /* An alist with parameteres.  */
+    Lisp_Object window_parameters;
 
     /* No Lisp data may follow below this point without changing
        mark_object in alloc.c.  The member current_matrix must be the

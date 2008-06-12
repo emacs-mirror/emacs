@@ -608,7 +608,8 @@ fontset_find_font (fontset, c, face, id, fallback)
 	      RFONT_DEF_SET_FACE (elt, -1);
 	      continue;
 	    }
-	  font_object = font_open_for_lface (f, font_entity, face->lface, Qnil);
+	  font_object = font_open_for_lface (f, font_entity, face->lface,
+					     FONT_DEF_SPEC (font_def));
 	  if (NILP (font_object))
 	    {
 	      /* Record that the font is unsable.  */
