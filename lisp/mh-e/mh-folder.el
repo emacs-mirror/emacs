@@ -1,6 +1,7 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -590,7 +591,8 @@ perform the operation on all messages in that region.
   (mh-do-in-gnu-emacs
     (unless mh-folder-tool-bar-map
         (mh-tool-bar-folder-buttons-init))
-    (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map))
+    (if (boundp 'tool-bar-map)
+        (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)))
   (mh-do-in-xemacs
     (mh-tool-bar-init :folder))
   (make-local-variable 'font-lock-defaults)

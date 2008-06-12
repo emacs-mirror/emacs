@@ -1,7 +1,7 @@
 ;;; mh-show.el --- MH-Show mode
 
-;; Copyright (C) 1993, 1995, 1997,
-;;  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -847,7 +847,8 @@ See also `mh-folder-mode'.
 
 \\{mh-show-mode-map}"
   (mh-do-in-gnu-emacs
-    (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map))
+   (if (boundp 'tool-bar-map)
+       (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))
   (mh-do-in-xemacs
     (mh-tool-bar-init :show))
   (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
