@@ -50,14 +50,13 @@
 (require 'time-date)
 (require 'netrc)
 
-(eval-and-compile
-  (autoload 'message-fetch-field "message")
-  (autoload 'gnus-get-buffer-window "gnus-win")
-  (autoload 'rmail-insert-rmail-file-header "rmail")
-  (autoload 'rmail-count-new-messages "rmail")
-  (autoload 'rmail-show-message "rmail")
-  (autoload 'nnheader-narrow-to-headers "nnheader")
-  (autoload 'nnheader-replace-chars-in-string "nnheader"))
+(autoload 'message-fetch-field "message")
+(autoload 'gnus-get-buffer-window "gnus-win")
+(autoload 'rmail-insert-rmail-file-header "rmail")
+(autoload 'rmail-count-new-messages "rmail")
+(autoload 'rmail-show-message "rmail")
+(autoload 'nnheader-narrow-to-headers "nnheader")
+(autoload 'nnheader-replace-chars-in-string "nnheader")
 
 (eval-and-compile
   (cond
@@ -1592,6 +1591,7 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
+(declare-function x-focus-frame "xfns.c" (frame))
 (declare-function w32-focus-frame "../term/w32-win" (frame))
 
 (defun gnus-select-frame-set-input-focus (frame)

@@ -341,8 +341,7 @@ in the minibuffer:
 		  index (1+ index)))))
     oldpath))
 
-(eval-when-compile
-  (defvar dired-directory))
+(defvar dired-directory)
 
 (defun eshell/cd (&rest args)           ; all but first ignored
   "Alias to extend the behavior of `cd'."

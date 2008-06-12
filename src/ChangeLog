@@ -1,3 +1,189 @@
+2008-06-11  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_encode_char): Detect missing glyphs that are
+        misreported as space.
+        (add_font_entity_to_list): Support unicode-bmp and unicode-sip
+        as aliases for registry iso10646-1.
+
+2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (clone_per_buffer_values): Skip `name'.
+
+2008-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Fix last change; accept decimal
+	points in font size.
+
+2008-06-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (add_opentype_font_name_to_list): Skip non unicode
+	fonts.
+
+2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_font_dialog): New function.
+
+	* gtkutil.c (xg_dialog_response_cb): Rename from
+	xg_file_response_callback.
+	(pop_down_dialog): Rename from pop_down_file_dialog.
+	(xg_get_file_name): Callers changed.
+	(xg_get_font_name): New function.
+
+	* gtkutil.h (xg_get_font_name): Insert prototype.
+
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (underline_minimum_offset): Rename from xterm.c's
+	x_underline_minimum_display_offset.
+	(syms_of_xdisp): Declare it here rather than in xterm.c.
+	* dispextern.h (underline_minimum_offset): Declare it.
+	* w32term.c (x_draw_glyph_string): Use it.
+	* xterm.c (x_underline_minimum_display_offset): Move to xdisp.c.
+	(syms_of_xterm): Don't declare it any more.
+	(x_draw_glyph_string): Adjust to the new name.
+
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+
+	* xterm.c (x_underline_minimum_display_offset): New var.
+	(x_draw_glyph_string): Use it.
+	(syms_of_xterm): Declare it.
+
+2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Accept GTK-style font names too.
+
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (file_name_completion): Don't return t if the match is exact
+	but with different capitalization.
+	* minibuf.c (Ftry_completion): Simplify.
+
+	* window.c (Vwindow_point_insertion_type): New var.
+	(set_window_buffer): Use it.
+	(syms_of_window): Init and export it to Lisp.
+
+2008-06-10  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (font_intern_prop): Prototype adjusted.
+
+	* font.c (font_intern_prop): New arg force_symbol.
+	(font_parse_xlfd, font_parse_fcname, font_parse_family_registry):
+	Adjust for the change of font_intern_prop.
+
+	* ftfont.c (ftfont_pattern_entity):
+	* w32font.c (add_font_name_to_list, w32_enumfont_pattern_entity)
+	(w32_registry):
+	* w32uniscribe.c (add_opentype_font_name_to_list): Adjust for
+	the change of font_intern_prop.
+
+2008-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32menu.c (digest_single_submenu): Declare extern.
+
+2008-06-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_make_frame_visible): Use alternate restore flags.
+
+	* w32menu.c (Fx_popup_menu): Unwind protect while building menu.
+	(parse_single_submenu): Remove.
+	(digest_single_submenu): Remove.
+	(syms_of_w32menu): Don't initialise variables that have moved
+	to menu.c.
+	(set_frame_menubar): Sync with version in xmenu.c.
+	(w32_menu_show): Sync with xmenu_show in xmenu.c.
+
+	* menu.c (single_keymap_panes, push_menu_pane, push_menu_item):
+	Make static again.
+
+2008-06-09  Jason Rumney  <jasonr@gnu.org>
+
+	Changes to w32 files related to the move of common menu code
+	to menu.c on 2008-06-08 by Chong Yidong.
+
+	* menu.c [HAVE_NTGUI]: Include w32term.h, move widget related
+	defs to w32gui.h.
+	(single_keymap_panes, push_menu_item, push_menu_pane):
+	Make globally visible.
+
+	* w32menu.c (enum button_type, widget_value, local_heap, local_alloc):
+	(local_free, malloc_widget_value, free_widget_value):
+	(MENU_ITEMS_ITEM_NAME, MENU_ITEMS_ITEM_ENABLE, MENU_ITEMS_ITEM_VALUE):
+	(MENU_ITEMS_ITEM_EQUIV_KEY, MENU_ITEMS_ITEM_DEFINITION):
+	(MENU_ITEMS_ITEM_TYPE, MENU_ITEMS_ITEM_SELECTED, MENU_ITEMS_ITEM_HELP):
+	(MENU_ITEMS_ITEM_LENGTH, enum menu_item_idx): Remove defs.
+	(menu_items, menu_items_allocated, menu_items_used):
+	(menu_items_n_panes, menu_items_submenu_depth): Remove global vars.
+	(init_menu_items, finish_menu_items, discard_menu_items)
+	(grow_menu_items, push_submenu_start, push_submenu_end)
+	(push_left_right_boundary, push_menu_pane, push_menu_item)
+	(keymap_panes, single_keymap_panes, list_of_panes, list_of_items)
+	(free_menubar_widget_tree_value, parse_single_submenu):
+	(update_submenu_strings): Remove functions.
+	(xmalloc_widget_value): Remove and declare extern.
+
+	* makefile.w32-in ($(SRC)/menu.$(O)): New target.
+	(OBJ1): Build it.
+
+	* w32gui.h (widget_value, XtPointer, Boolean, enum button_type)
+	(local_heap, local_alloc, local_free, malloc_widget_value)
+	(free_widget_value): Define here.
+
+2008-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (Qascii_0): Extern it.
+
+	* font.c (Qascii_0): New variable.
+	(syms_of_font): DEFSYM it.
+	(font_open_by_name): If the registry "iso8859-1" fails, try also
+	"ascii-0".
+
+	* ftfont.c (ftfont_spec_pattern): Accept the registry `ascii-0'.
+
+2008-06-08  Kenichi Handa  <handa@m17n.org>
+
+	* .gdbinit (xfont): New command.
+
+2008-06-08  Andreas Schwab  <schwab@suse.de>
+
+	* menu.c [HAVE_X_WINDOWS]: Include "xterm.h".
+	* Makefile.in (menu.o): Update dependencies.
+
+	* Makefile.in (obj): Always add menu.o.
+	* emacs.c (main): Always call syms_of_menu.
+	* keyboard.h: Remove extra #ifdef HAVE_X_WINDOW.
+
+2008-06-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Compile menu.c.
+
+	* lisp.h: Declare syms_of_menu.
+
+	* emacs.c (main): Call syms_of_menu.
+
+	* keyboard.h: Relocate platform-independent menu definitions from
+	xmenu.c.
+
+	* menu.c: New file.  Relocate platform-independent menu
+	definitions from xmenu.c.  Suggested by Adrian Robert.
+
+	* xmenu.c: Remove platform-independent menu definitions.
+	(menu_items menu_items_inuse, menu_items_allocated)
+	(menu_items_used, menu_items_n_panes)
+	(menu_items_submenu_depth): Move to keyboard.h.
+	(init_menu_items, finish_menu_items, unuse_menu_items)
+	(discard_menu_items, restore_menu_items, save_menu_items)
+	(grow_menu_items, push_submenu_start, push_submenu_end)
+	(push_left_right_boundary, push_menu_pane, push_menu_item)
+	(keymap_panes, single_keymap_panes, single_menu_item)
+	(list_of_panes, list_of_items, find_and_call_menu_selection)
+	(xmalloc_widget_value, free_menubar_widget_value_tree)
+	(parse_single_submenu, digest_single_submenu)
+	(update_submenu_strings): Move to menu.c.
+
+2008-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (Flast_nonminibuf_frame): Handle the NULL case.
+
 2008-06-06  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (x_produce_glyphs): Calculate tab width based on current
@@ -132,7 +318,7 @@
 	* doprnt.c (doprnt1): Likewise.
 	* frame.c (frame): Likewise.
 	* keyboard.c (wipe_kboard): Likewise.
-	* macterm.c (x_free_frame_resources, xlfdpat_destroy, XFreePixmap):
+	* macterm.c (x_free_frame_resources, xlfdpat_destroy, XFreePixmap)
 	(init_font_name_table, mac_unload_font, x_delete_display): Likewise.
 	* term.c (tty_default_color_capabilities, maybe_fatal)
 	(delete_tty): Likewise.
@@ -648,7 +834,7 @@
 
 	* ftfont.c (cs_iso8859_1): Delete.
 	(ft_face_cache): New variable.
-	(struct ftfont_info): New member fc_charset_idx;
+	(struct ftfont_info): New member fc_charset_idx.
 	(ftfont_build_basic_charsets): Delete.
 	(fc_charset_table): New variable.
 	(ftfont_pattern_entity): New arg fc_charset_idx.  Store (FILENAME
@@ -850,7 +1036,7 @@
 	(font_family_alist): Delete it.
 	(Qnormal): Extern it.
 	(QCextra, QClanguage): Delete it.
-	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec):	New variables.
+	(QClang, QCavgwidth, QCfont_entity, QCfc_unknown_spec): New variables.
 	(font_make_spec, font_make_entity, font_make_object)
 	(font_intern_prop): Renamed from intern_downcase.  Don't downcase
 	the string.  Callers changed.
@@ -3184,7 +3370,7 @@
 	(x_window): Reparent frame if embedded.
 	(Fx_create_frame): Don't set border width if embedded.
 
-	* emacs.c (USAGE3): Add --parent-id
+	* emacs.c (USAGE3): Add --parent-id.
 	(standard_args): Ditto.
 
 2008-02-07  Jan Djärv  <jan.h.d@swipnet.se>
@@ -3702,7 +3888,7 @@
 	(struct MFLTFontFT) [HAVE_LIBOTF, HAVE_M17N_FLT]: New struct.
 	(ftfont_get_glyph_id, ftfont_get_metrics, ftfont_check_otf)
 	(adjust_anchor, ftfont_drive_otf, ftfont_shape_by_flt)
-	(ftfont_shape) [HAVE_LIBOTF, HAVE_M17N_FLT]: New function.s
+	(ftfont_shape) [HAVE_LIBOTF, HAVE_M17N_FLT]: New function.
 	(DEVICE_DELTA) [HAVE_LIBOTF, HAVE_M17N_FLT]: New macro.
 	(otf_gstring, gstring, m17n_flt_initialized): New variables.
 
@@ -4129,7 +4315,7 @@
 	GetGlyphOutline.  Never look up by glyph index.  Avoid looping
 	twice.  Use unicode version of GetTexExtentPoint32 instead of
 	glyph index version.
-	(set_fonts_frame): Remove
+	(set_fonts_frame): Remove.
 	(w32_enumfont_pattern_entity): Add frame parameter, use it to
 	set frame parameter.  Use backward compatible fake foundries.
 	Save generic family in extra slot under QCfamily.  Make width slot
@@ -4499,12 +4685,6 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Set it->face_id for the
-	first component of a composition.
-	(x_produce_glyphs): Check if the font is changed or not for composition.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	(get_next_display_element): Set it->face_id for the
 	first component of a composition.
 	(x_produce_glyphs): Check if the font is changed or not for composition.
 
@@ -5767,7 +5947,7 @@
 	* emacs.c (main): Call init_charset after syms_of_XXX.
 
 	* charset.c (Vcharset_map_directory): Delete.
-	(Vcharset_map_path): New variable
+	(Vcharset_map_path): New variable.
 	(load_charset_map_from_file): Use Vcharset_map_path instead.
 	(init_charset): Initialize Vcharset_map_path.
 	(syms_of_charset): Delete declaration of "charset-map-directory",
@@ -5885,8 +6065,7 @@
 	FONT_DEF format.
 	(fontset_face): New arg id.  Change caller.
 	(face_for_char): New args pos and object.
-	(make_fontset_for_ascii_face): Adjust for the change of FONT_DEF
-	format.n
+	(make_fontset_for_ascii_face): Adjust for the change of FONT_DEF format.
 	(fs_query_fontset): Check NAME by Fassoc too.
 	(Fset_fontset_font): Allow non-XLFD font name.
 	(Ffontset_info): Adjust for the change of FONT_DEF format.
@@ -6060,7 +6239,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (fontset_face): Create a fallback fontset on demand
+	* fontset.c (fontset_face): Create a fallback fontset on demand.
 	(make_fontset): Don't create a fallback fontset here.
 	(free_face_fontset): Free a fallback fontset (if any) too.
 	(n_auto_fontsets): Delete this variable.
@@ -7435,7 +7614,7 @@
 	(EMACS_MULE_LEADING_CODE_PRIVATE_11)
 	(EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	(EMACS_MULE_LEADING_CODE_PRIVATE_21)
-	(EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros
+	(EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros.
 	(Funify_charset): Adjust for the change of Funify_charset.
 
 	* charset.c (charset_ordered_list_tick): New variable.
@@ -7645,7 +7824,7 @@
 	* charset.h (charset_jisx0201_roman, charset_jisx0208_1978)
 	(charset_jisx0208): Extern them.
 
-	* coding.c (CODING_ISO_FLAG_USE_ROMAN): New macro
+	* coding.c (CODING_ISO_FLAG_USE_ROMAN): New macro.
 	(CODING_ISO_FLAG_USE_OLDJIS): New macro.
 	(CODING_ISO_FLAG_FULL_SUPPORT): Change macro definition.
 	(setup_iso_safe_charsets): Fix arguments to Fassq.
@@ -8651,7 +8830,7 @@
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c: Fix several errors and compiler warnings.
-	Reported by Tom Tromey <tromey@redhat.com>
+	Reported by Tom Tromey <tromey@redhat.com>.
 	(XD_ERROR, XD_DEBUG_MESSAGE)
 	(XD_DEBUG_VALID_LISP_OBJECT_P): Wrap code with "do ... while (0)".
 	(xd_append_arg): Part for basic D-Bus types rewitten.
@@ -9684,7 +9863,7 @@
 
 	* frame.h (enum): Remove trailing comma.
 
-2007-10-08  Dhuvra Krishnamurthy  <dhuvrakm@gmail.com>  (tiny change)
+2007-10-08  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
 
 	* w32proc.c (delete_child): Don't terminate threads of zombies.
 
@@ -10658,7 +10837,7 @@
 	Access foreground_pixel and background_pixel directly from the frame.
 	(tty_display): Delete.
 	(struct frame): Add buried_buffer_list, foreground_pixel,
-	background_pixel and terminal.  Delete kboard
+	background_pixel and terminal.  Delete kboard.
 	(union output_data): Add tty.
 	(FRAME_KBOARD): Get the kboard from the terminal.
 	(FRAME_INITIAL_P): New macro.
@@ -10799,7 +10978,6 @@
 	(syms_of_keyboard): Defsubr them.
 	(Fset_input_meta_mode, Fset_quit_char): New functions.
 	(Fset_input_mode): Split to above functions.
-
 	(read_char_minibuf_menu_prompt): Add wrong_kboard_jmpbuf
 	parameter.  Use it in call to `read_char'.
 	(read_char): Declare.  Update call to `read_char_minibuf_menu_prompt'.
@@ -10912,7 +11090,7 @@
 	* gtkutil.c (xg_tool_bar_expose_callback): Just do SET_FRAME_GARBAGED
 	so no Lisp code is executed.
 	(file_for_image, find_rtl_image): New functions.
-	(xg_get_image_for_pixmap): Use file_for_image
+	(xg_get_image_for_pixmap): Use file_for_image.
 	(update_frame_tool_bar): If direction is RTL, use RTL image if
 	defined.  Use Gtk stock images if defined.
 

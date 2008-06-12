@@ -616,7 +616,7 @@ FILENAME being the file containing the diary entry."
 (define-obsolete-function-alias 'add-to-diary-list 'diary-add-to-list "23.1")
 
 (defun diary-list-entries-2 (date mark globattr list-only
-                                  &optional months symbol)
+                                  &optional months symbol gdate)
   "Internal subroutine of `diary-list-entries'.
 Find diary entries applying to DATE, by searching from point-min for
 each element of `diary-date-forms'.  MARK indicates an entry is non-marking.
@@ -624,7 +624,9 @@ GLOBATTR is the list of global file attributes.  If LIST-ONLY is
 non-nil, don't change the buffer, only return a list of entries.
 Optional array MONTHS replaces `calendar-month-name-array', and
 means months cannot be abbreviated.  Optional string SYMBOL marks diary
-entries of the desired type.  Returns non-nil if any entries were found."
+entries of the desired type.  If DATE is not Gregorian, then the
+Gregorian equivalent should be provided via GDATE.  Returns non-nil if
+any entries were found."
   (let* ((month (calendar-extract-month date))
          (day (calendar-extract-day date))
          (year (calendar-extract-year date))
@@ -678,7 +680,7 @@ entries of the desired type.  Returns non-nil if any entries were found."
                         (buffer-substring-no-properties
                          entry-start (point)) globattr))
             (diary-add-to-list
-             date (car temp)
+             (or gdate date) (car temp)
              (buffer-substring-no-properties (1+ date-start) (1- entry-start))
              (copy-marker entry-start) (cadr temp))))))
     entry-found))
@@ -697,7 +699,7 @@ of the appropriate type."
     (dotimes (idummy number)
       (diary-list-entries-2
        (funcall absfunc (calendar-absolute-from-gregorian gdate))
-       diary-nonmarking-symbol file-glob-attrs list-only months symbol)
+       diary-nonmarking-symbol file-glob-attrs list-only months symbol gdate)
       (setq gdate
             (calendar-gregorian-from-absolute
              (1+ (calendar-absolute-from-gregorian gdate))))))

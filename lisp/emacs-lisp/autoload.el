@@ -250,6 +250,7 @@ information contained in FILE."
 	    ";; version-control: never\n"
 	    ";; no-byte-compile: t\n"
 	    ";; no-update-autoloads: t\n"
+	    ";; coding: utf-8\n"
 	    ";; End:\n"
 	    ";;; " basename
 	    " ends here\n")))

@@ -1,7 +1,7 @@
 ;;; sieve-manage.el --- Implementation of the managesive protocol in elisp
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -85,9 +85,8 @@
 (eval-when-compile
   (require 'sasl)
   (require 'starttls))
-(eval-and-compile
-  (autoload 'sasl-find-mechanism "sasl")
-  (autoload 'starttls-open-stream "starttls"))
+(autoload 'sasl-find-mechanism "sasl")
+(autoload 'starttls-open-stream "starttls")
 
 ;; User customizable variables:
 

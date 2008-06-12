@@ -2743,7 +2743,7 @@
 	* emacs.c (Fdump_emacs): If HAVE_TZSET and not
 	LOCALTIME_CACHE, call tzset to force a tz reload.
 
-1996-01-13  eggert  <eggert@twinsun.com>
+1996-01-13  Paul Eggert  <eggert@twinsun.com>
 
 	* emacs.c (set_time_zone_rule): New decl.
 	(environ): Always declare.
@@ -4375,7 +4375,7 @@
 
 	* insdel.c (signal_after_change): Call report_interval_modification.
 
-	* textprop.c (call_mod_hooks): Moved from intevals.c
+	* textprop.c (call_mod_hooks): Moved from intevals.c.
 	(verify_interval_modification): Moved from intervals.c.
 	(interval_insert_behind_hooks, interval_insert_in_front_hooks):
 	New variables.
@@ -4556,7 +4556,7 @@
 
 	* s/irix5-2.h (SA_RESTART): Add #undef.
 
-	* keyboard.c:
+	* keyboard.c
 	(Qpost_command_idle_hook, Vpost_command_idle_hook): New vars.
 	(syms_of_keyboard): Set up new vars.
 	(command_loop_1): Run Qpost_command_idle_hook.
@@ -4626,7 +4626,7 @@
 
 1995-08-10  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* s/linux.h (ULIMIT_BREAK_VALUE, SEGMENT_MASK): Moved to intel386.h
+	* s/linux.h (ULIMIT_BREAK_VALUE, SEGMENT_MASK): Moved to intel386.h.
 	(LIBS_SYSTEM): Define this instead of LIBS_MACHINE.
 
 	* m/intel386.h [linux] (ULIMIT_BREAK_VALUE, SEGMENT_MASK):
@@ -5043,7 +5043,7 @@
 	* bytecode.c (Fbyte_code): For Beqlsign, if both args are ints,
 	compare as ints.
 
-	* xterm.c [HAVE_X11XTR6]: Include locale.h
+	* xterm.c [HAVE_X11XTR6]: Include locale.h.
 	(x_term_init) [HAVE_X11XTR6]: Set LC_NUMERIC and LC_TIME back to C.
 
 	* data.c (Fnumber_to_string): Make `buffer' long enough.
@@ -5297,7 +5297,7 @@
 	(redisplay): In the "point hasn't moved" shortcut,
 	make sure that the cursor is in the right window already.
 
-	* msdos.c (IT_cursor_to, IT_clear_end_of_line, IT_write_glyphs):
+	* msdos.c (IT_cursor_to, IT_clear_end_of_line, IT_write_glyphs)
 	(IT_set_face): Call internal_flush if short of room.
 
 1995-06-25  Morten Welinder  <terra+@cs.cmu.edu>

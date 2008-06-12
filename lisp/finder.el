@@ -109,7 +109,7 @@
   "Syntax table used while in `finder-mode'.")
 
 (defvar finder-font-lock-keywords
-  '(("`\\([^']+\\)'" 1 font-lock-constant-face prepend))
+  '(("`\\([^'`]+\\)'" 1 font-lock-constant-face prepend))
   "Font-lock keywords for Finder mode.")
 
 (defvar finder-headmark nil
@@ -138,14 +138,14 @@ finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 Optional arguments DIRS are a list of Emacs Lisp directories to compile from;
 no arguments compiles from `load-path'."
   (save-excursion
-    (let (processed summary keystart keywords)
-      (find-file generated-finder-keywords-file)
-      (setq buffer-undo-list t)
-      (erase-buffer)
-      (insert (autoload-rubric generated-finder-keywords-file
-                               "keyword-to-package mapping"))
-      (search-backward "")
-      (insert "(setq finder-package-info '(\n")
+    (find-file generated-finder-keywords-file)
+    (setq buffer-undo-list t)
+    (erase-buffer)
+    (insert (autoload-rubric generated-finder-keywords-file
+                             "keyword-to-package mapping"))
+    (search-backward "")
+    (insert "(setq finder-package-info '(\n")
+    (let (processed summary keywords)
       (mapc
        (lambda (d)
 	 (when (file-exists-p (directory-file-name d))
@@ -159,7 +159,7 @@ no arguments compiles from `load-path'."
                 (with-temp-buffer
                   (insert-file-contents (expand-file-name f d))
                   (setq summary (lm-synopsis)
-                        keywords (lm-keywords)))
+                        keywords (lm-keywords-list)))
                 (insert
                  (format "    (\"%s\"\n        "
                          (if (string-match "\\.\\(gz\\|Z\\)$" f)
@@ -167,20 +167,18 @@ no arguments compiles from `load-path'."
                            f)))
                 (prin1 summary (current-buffer))
                 (insert "\n        ")
-                (setq keystart (point))
-                (insert (if keywords (format "(%s)" keywords) "nil")
-                        ")\n")
-                (subst-char-in-region keystart (point) ?, ? )))
+                (princ keywords (current-buffer))
+                (insert ")\n")))
 	    (directory-files d nil
                              ;; Allow compressed files also.  FIXME:
                              ;; generalize this, especially for
                              ;; MS-DOG-type filenames.
                              "^[^=].*\\.el\\(\\.\\(gz\\|Z\\)\\)?$"
                              ))))
-       (or dirs load-path))
-      (insert "    ))\n")
-      (eval-buffer)       ; so we get the new keyword list immediately
-      (basic-save-buffer))))
+       (or dirs load-path)))
+    (insert "    ))\n")
+    (eval-buffer)         ; so we get the new keyword list immediately
+    (basic-save-buffer)))
 
 (defun finder-compile-keywords-make-dist ()
   "Regenerate `finder-inf.el' for the Emacs distribution."
@@ -201,6 +199,8 @@ no arguments compiles from `load-path'."
   "Put `mouse-face' and `help-echo' properties on the previous line."
   (save-excursion
     (forward-line -1)
+    ;; If finder-insert-at-column moved us to a new line, go back one more.
+    (if (looking-at "[ \t]") (forward-line -1))
     (unless finder-help-echo
       (setq finder-help-echo
 	    (let* ((keys1 (where-is-internal 'finder-select
@@ -252,11 +252,10 @@ no arguments compiles from `load-path'."
     (setq finder-headmark (point))
     (mapc
      (lambda (x)
-       (if (memq id (car (cdr (cdr x))))
-	   (progn
-	     (insert (car x))
-	     (finder-insert-at-column 16 (concat (nth 1 x) "\n"))
-	     (finder-mouse-face-on-line))))
+       (when (memq id (cadr (cdr x)))
+         (insert (car x))
+         (finder-insert-at-column 16 (concat (cadr x) "\n"))
+         (finder-mouse-face-on-line)))
      finder-package-info)
     (goto-char (point-min))
     (forward-line)
@@ -264,6 +263,15 @@ no arguments compiles from `load-path'."
     (set-buffer-modified-p nil)
     (shrink-window-if-larger-than-buffer)
     (finder-summary)))
+
+(define-button-type 'finder-xref 'action #'finder-goto-xref)
+
+(defun finder-goto-xref (button)
+  "Jump to a lisp file for the BUTTON at point."
+  (let* ((file (button-get button 'xref))
+         (lib (locate-library file)))
+    (if lib (finder-commentary lib)
+      (message "Unable to locate `%s'" file))))
 
 ;;;###autoload
 (defun finder-commentary (file)
@@ -292,6 +300,13 @@ FILE should be in a form suitable for passing to `locate-library'."
     (goto-char (point-min))
     (while (re-search-forward "^;+ ?" nil t)
       (replace-match "" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward "\\<\\([-[:alnum:]]+\\.el\\)\\>" nil t)
+      (if (locate-library (match-string 1))
+          (make-text-button (match-beginning 1) (match-end 1)
+                            'xref (match-string-no-properties 1)
+                            'help-echo "Read this file's commentary"
+                            :type 'finder-xref)))
     (goto-char (point-min))
     (setq buffer-read-only t)
     (set-buffer-modified-p nil)

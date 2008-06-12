@@ -155,7 +155,8 @@ For a description of possible values, see `vc-check-master-templates'."
           ;; permissions can tell us whether locking is used for
           ;; the file or not.
           (if (and (eq state 'up-to-date)
-                   (not (vc-mistrust-permissions file)))
+                   (not (vc-mistrust-permissions file))
+                   (file-exists-p file))
               (cond
                ((string-match ".rw..-..-." (nth 8 (file-attributes file)))
                 (vc-file-setprop file 'vc-checkout-model 'implicit)
@@ -170,10 +171,10 @@ For a description of possible values, see `vc-check-master-templates'."
           (let* ((attributes  (file-attributes file 'string))
                  (owner-name  (nth 2 attributes))
                  (permissions (nth 8 attributes)))
-            (cond ((string-match ".r-..-..-." permissions)
+            (cond ((and permissions (string-match ".r-..-..-." permissions))
                    (vc-file-setprop file 'vc-checkout-model 'locking)
                    'up-to-date)
-                  ((string-match ".rw..-..-." permissions)
+                  ((and permissions (string-match ".rw..-..-." permissions))
 		   (if (eq (vc-rcs-checkout-model file) 'locking)
 		       (if (file-ownership-preserved-p file)
 			   'edited

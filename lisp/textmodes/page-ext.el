@@ -1,7 +1,7 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; Copyright (C) 1990, 1991, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.org>
 ;; Keywords: wp data
@@ -640,10 +640,10 @@ directory for only the accessible portion of the buffer."
     (forward-line (if (= 0 pages-buffer-original-page)
                       1
                     pages-buffer-original-page))))
-(eval-when-compile
-  (defvar pages-buffer-original-position)
-  (defvar pages-buffer-original-page)
-  (defvar pages-buffer-original-page))
+
+(defvar pages-buffer-original-position)
+(defvar pages-buffer-original-page)
+(defvar pages-buffer-original-page)
 
 (defun pages-copy-header-and-position (count-lines-p)
   "Copy page header and its position to the Pages Directory.

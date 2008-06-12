@@ -66,7 +66,7 @@
 
 ;; I see a degradation of maybe 10-20% only.
 (defcustom apropos-do-all nil
-  "*Whether the apropos commands should do more.
+  "Whether the apropos commands should do more.
 
 Slows them down more or less.  Set this non-nil if you have a fast machine."
   :group 'apropos
@@ -74,36 +74,36 @@ Slows them down more or less.  Set this non-nil if you have a fast machine."
 
 
 (defcustom apropos-symbol-face 'bold
-  "*Face for symbol name in Apropos output, or nil for none."
+  "Face for symbol name in Apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-keybinding-face 'underline
-  "*Face for lists of keybinding in Apropos output, or nil for none."
+  "Face for lists of keybinding in Apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-label-face 'italic
-  "*Face for label (`Command', `Variable' ...) in Apropos output.
+(defcustom apropos-label-face '(italic variable-pitch)
+  "Face for label (`Command', `Variable' ...) in Apropos output.
 A value of nil means don't use any special font for them, and also
 turns off mouse highlighting."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-property-face 'bold-italic
-  "*Face for property name in apropos output, or nil for none."
+  "Face for property name in apropos output, or nil for none."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-match-face 'match
-  "*Face for matching text in Apropos documentation/value, or nil for none.
+  "Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the pattern; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-sort-by-scores nil
-  "*Non-nil means sort matches by scores; best match is shown first.
+  "Non-nil means sort matches by scores; best match is shown first.
 This applies to all `apropos' commands except `apropos-documentation'.
 If value is `verbose', the computed score is shown for each match."
   :group 'apropos
@@ -134,7 +134,7 @@ If value is `verbose', the computed score is shown for each match."
   "Keymap used in Apropos mode.")
 
 (defvar apropos-mode-hook nil
-  "*Hook run when mode is turned on.")
+  "Hook run when mode is turned on.")
 
 (defvar apropos-pattern nil
   "Apropos pattern as entered by user.")
@@ -190,6 +190,7 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-function
   'apropos-label "Function"
+  'apropos-short-label "f"
   'help-echo "mouse-2, RET: Display more help on this function"
   'follow-link t
   'action (lambda (button)
@@ -197,6 +198,7 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-macro
   'apropos-label "Macro"
+  'apropos-short-label "m"
   'help-echo "mouse-2, RET: Display more help on this macro"
   'follow-link t
   'action (lambda (button)
@@ -204,6 +206,7 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-command
   'apropos-label "Command"
+  'apropos-short-label "c"
   'help-echo "mouse-2, RET: Display more help on this command"
   'follow-link t
   'action (lambda (button)
@@ -216,6 +219,7 @@ term, and the rest of the words are alternative terms.")
 ;; Likewise for `customize-face-other-window'.
 (define-button-type 'apropos-variable
   'apropos-label "Variable"
+  'apropos-short-label "v"
   'help-echo "mouse-2, RET: Display more help on this variable"
   'follow-link t
   'action (lambda (button)
@@ -223,6 +227,7 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-face
   'apropos-label "Face"
+  'apropos-short-label "F"
   'help-echo "mouse-2, RET: Display more help on this face"
   'follow-link t
   'action (lambda (button)
@@ -230,6 +235,7 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-group
   'apropos-label "Group"
+  'apropos-short-label "g"
   'help-echo "mouse-2, RET: Display more help on this group"
   'follow-link t
   'action (lambda (button)
@@ -238,6 +244,7 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-widget
   'apropos-label "Widget"
+  'apropos-short-label "w"
   'help-echo "mouse-2, RET: Display more help on this widget"
   'follow-link t
   'action (lambda (button)
@@ -245,10 +252,17 @@ term, and the rest of the words are alternative terms.")
 
 (define-button-type 'apropos-plist
   'apropos-label "Plist"
+  'apropos-short-label "p"
   'help-echo "mouse-2, RET: Display more help on this plist"
   'follow-link t
   'action (lambda (button)
 	    (apropos-describe-plist (button-get button 'apropos-symbol))))
+
+(define-button-type 'apropos-library
+  'help-echo "mouse-2, RET: Display more help on this library"
+  'follow-link t
+  'action (lambda (button)
+	    (apropos-library (button-get button 'apropos-symbol))))
 
 (defun apropos-next-label-button (pos)
   "Return the next apropos label button after POS, or nil if there's none.
@@ -402,6 +416,10 @@ This requires that at least 2 keywords (unless only one was given)."
 
 \\{apropos-mode-map}")
 
+(defvar apropos-multi-type t
+  "If non-nil, this apropos query concerns multiple types.
+This is used to decide whether to print the result's type or not.")
+
 ;;;###autoload
 (defun apropos-variable (pattern &optional do-all)
   "Show user variables that match PATTERN.
@@ -487,7 +505,8 @@ while a list of strings is used as a word list."
 					  (string-match "\n" doc)))))))
 	(setcar (cdr (car p)) score)
 	(setq p (cdr p))))
-    (and (apropos-print t nil nil t)
+    (and (let ((apropos-multi-type do-all))
+           (apropos-print t nil nil t))
 	 message
 	 (message "%s" message))))
 
@@ -530,6 +549,66 @@ Returns list of symbols and documentation found."
 				(facep symbol)
 				(symbol-plist symbol)))))
    (or do-all apropos-do-all)))
+
+(defun apropos-library-button (sym)
+  (if (null sym)
+      "<nothing>"
+    (let ((name (copy-sequence (symbol-name sym))))
+      (make-text-button name nil
+                        'type 'apropos-library
+                        'face apropos-symbol-face
+                        'apropos-symbol name)
+      name)))
+
+;;;###autoload
+(defun apropos-library (file)
+  "List the variables and functions defined by library FILE.
+FILE should be one of the libraries currently loaded and should
+thus be found in `load-history'."
+  (interactive
+   (let ((libs
+          (nconc (delq nil
+                       (mapcar
+                        (lambda (l)
+                          (setq l (file-name-nondirectory l))
+                          (while
+                              (not (equal (setq l (file-name-sans-extension l))
+                                          l)))
+                          l)
+                        (mapcar 'car load-history)))
+                 (mapcar 'car load-history))))
+     (list (completing-read "Describe library: " libs nil t))))
+  (let ((symbols nil)
+	;; (autoloads nil)
+	(provides nil)
+	(requires nil)
+        (lh-entry (assoc file load-history)))
+    (unless lh-entry
+      ;; `file' may be the "shortname".
+      (let ((lh load-history)
+            (re (concat "\\(?:\\`\\|[\\/]\\)" (regexp-quote file)
+                        "\\(\\.\\|\\'\\)")))
+        (while (and lh (null lh-entry))
+          (if (string-match re (caar lh))
+              (setq lh-entry (car lh))
+            (setq lh (cdr lh)))))
+      (unless lh-entry (error "Unknown library `%s'" file)))
+    (dolist (x (cdr lh-entry))
+      (case (car-safe x)
+	;; (autoload (push (cdr x) autoloads))
+	(require (push (cdr x) requires))
+	(provide (push (cdr x) provides))
+	(t (push (or (cdr-safe x) x) symbols))))
+    (let ((apropos-pattern "")) ;Dummy binding for apropos-symbols-internal.
+      (apropos-symbols-internal
+       symbols apropos-do-all
+       (concat
+        (format "Library `%s' provides: %s\nand requires: %s"
+                file
+                (mapconcat 'apropos-library-button
+                           (or provides '(nil)) " and ")
+                (mapconcat 'apropos-library-button
+                           (or requires '(nil)) " and ")))))))
 
 (defun apropos-symbols-internal (symbols keys &optional text)
   ;; Filter out entries that are marked as apropos-inhibit.
@@ -617,7 +696,8 @@ Returns list of symbols and values found."
 						     (apropos-score-str p))
 						  f v p)
 					    apropos-accumulator))))))
-  (apropos-print nil "\n----------------\n"))
+   (let ((apropos-multi-type do-all))
+     (apropos-print nil "\n----------------\n")))
 
 
 ;;;###autoload
@@ -844,6 +924,9 @@ Will return nil instead."
       nil
     function))
 
+(defcustom apropos-compact-layout nil
+  "If non-nil, use a single line per binding."
+  :type 'boolean)
 
 (defun apropos-print (do-keys spacing &optional text nosubst)
   "Output result of apropos searching into buffer `*Apropos*'.
@@ -885,12 +968,10 @@ If non-nil TEXT is a string that will be printed as a heading."
 		(substitute-command-keys
 		 "and type \\[apropos-follow] to get full documentation.\n\n"))
 	(if text (insert text "\n\n"))
-	(while (consp p)
+	(dolist (apropos-item p)
 	  (when (and spacing (not (bobp)))
 	    (princ spacing))
-	  (setq apropos-item (car p)
-		symbol (car apropos-item)
-		p (cdr p))
+	  (setq symbol (car apropos-item))
 	  ;; Insert dummy score element for backwards compatibility with 21.x
 	  ;; apropos-item format.
 	  (if (not (numberp (cadr apropos-item)))
@@ -907,50 +988,52 @@ If non-nil TEXT is a string that will be printed as a heading."
 		   (cadr apropos-item))
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
 	  ;; Calculate key-bindings if we want them.
-	  (and do-keys
-	       (commandp symbol)
-	       (not (eq symbol 'self-insert-command))
-	       (indent-to 30 1)
-	       (if (let ((keys
-			  (save-excursion
-			    (set-buffer old-buffer)
-			    (where-is-internal symbol)))
-			 filtered)
-		     ;; Copy over the list of key sequences,
-		     ;; omitting any that contain a buffer or a frame.
-		     (while keys
-		       (let ((key (car keys))
-			     (i 0)
-			     loser)
-			 (while (< i (length key))
-			   (if (or (framep (aref key i))
-				   (bufferp (aref key i)))
-			       (setq loser t))
-			   (setq i (1+ i)))
-			 (or loser
-			     (setq filtered (cons key filtered))))
-		       (setq keys (cdr keys)))
-		     (setq item filtered))
-		   ;; Convert the remaining keys to a string and insert.
-		   (insert
-		    (mapconcat
-		     (lambda (key)
-		       (setq key (condition-case ()
-				     (key-description key)
-				   (error)))
-		       (if apropos-keybinding-face
-			   (put-text-property 0 (length key)
-					      'face apropos-keybinding-face
-					      key))
-		       key)
-		     item ", "))
-		 (insert "M-x ... RET")
-		 (when apropos-keybinding-face
-		   (put-text-property (- (point) 11) (- (point) 8)
-				      'face apropos-keybinding-face)
-		   (put-text-property (- (point) 3) (point)
-				      'face apropos-keybinding-face))))
-	  (terpri)
+          (unless apropos-compact-layout
+            (and do-keys
+                 (commandp symbol)
+                 (not (eq symbol 'self-insert-command))
+                 (indent-to 30 1)
+                 (if (let ((keys
+                            (with-current-buffer old-buffer
+                              (where-is-internal symbol)))
+                           filtered)
+                       ;; Copy over the list of key sequences,
+                       ;; omitting any that contain a buffer or a frame.
+                       ;; FIXME: Why omit keys that contain buffers and
+                       ;; frames?  This looks like a bad workaround rather
+                       ;; than a proper fix.  Does anybod know what problem
+                       ;; this is trying to address?  --Stef
+                       (dolist (key keys)
+                         (let ((i 0)
+                               loser)
+                           (while (< i (length key))
+                             (if (or (framep (aref key i))
+                                     (bufferp (aref key i)))
+                                 (setq loser t))
+                             (setq i (1+ i)))
+                           (or loser
+                               (push key filtered))))
+                       (setq item filtered))
+                     ;; Convert the remaining keys to a string and insert.
+                     (insert
+                      (mapconcat
+                       (lambda (key)
+                         (setq key (condition-case ()
+                                       (key-description key)
+                                     (error)))
+                         (if apropos-keybinding-face
+                             (put-text-property 0 (length key)
+                                                'face apropos-keybinding-face
+                                                key))
+                         key)
+                       item ", "))
+                   (insert "M-x ... RET")
+                   (when apropos-keybinding-face
+                     (put-text-property (- (point) 11) (- (point) 8)
+                                        'face apropos-keybinding-face)
+                     (put-text-property (- (point) 3) (point)
+                                        'face apropos-keybinding-face))))
+            (terpri))
 	  (apropos-print-doc 2
 			     (if (commandp symbol)
 				 'apropos-command
@@ -963,10 +1046,11 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (apropos-print-doc 6 'apropos-face t)
 	  (apropos-print-doc 5 'apropos-widget t)
 	  (apropos-print-doc 4 'apropos-plist nil))
+        (set (make-local-variable 'truncate-partial-width-windows) t)
+        (set (make-local-variable 'truncate-lines) t)
 	(setq buffer-read-only t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
-
 
 (defun apropos-macrop (symbol)
   "Return t if SYMBOL is a Lisp macro."
@@ -980,20 +1064,25 @@ If non-nil TEXT is a string that will be printed as a heading."
 
 
 (defun apropos-print-doc (i type do-keys)
-  (if (stringp (setq i (nth i apropos-item)))
-      (progn
-	(insert "  ")
-	(insert-text-button (button-type-get type 'apropos-label)
-			    'type type
-			    ;; Can't use the default button face, since
-			    ;; user may have changed the variable!
-			    ;; Just say `no' to variables containing faces!
-			    'face apropos-label-face
-			    'apropos-symbol (car apropos-item))
-	(insert ": ")
+  (when (stringp (setq i (nth i apropos-item)))
+    (if apropos-compact-layout
+        (insert (propertize "\t" 'display '(space :align-to 32)) " ")
+      (insert "  "))
+    ;; If the query is only for a single type, there's
+    ;; no point writing it over and over again.
+    (when apropos-multi-type
+      (insert-text-button
+       (if apropos-compact-layout
+           (button-type-get type 'apropos-label)
+         (format "<%s>" (button-type-get type 'apropos-short-label)))
+       'type type
+       ;; Can't use the default button face, since user may have changed the
+       ;; variable!  Just say `no' to variables containing faces!
+       'face apropos-label-face
+       'apropos-symbol (car apropos-item))
+      (insert (if apropos-compact-layout " " ": ")))
 	(insert (if do-keys (substitute-command-keys i) i))
-	(or (bolp) (terpri)))))
-
+    (or (bolp) (terpri))))
 
 (defun apropos-follow ()
   "Invokes any button at point, otherwise invokes the nearest label button."

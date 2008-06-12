@@ -238,6 +238,7 @@ extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript;
 extern Lisp_Object QCavgwidth, QCfont_entity, QCfc_unknown_spec;
 
 /* Important character set symbols.  */
+extern Lisp_Object Qascii_0;
 extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
 /* Structure for a font-spec.  */
@@ -802,7 +803,7 @@ extern void font_done_for_face P_ ((FRAME_PTR f, struct face *face));
 extern Lisp_Object font_open_by_name P_ ((FRAME_PTR f, char *name));
 extern void font_close_object (FRAME_PTR f, Lisp_Object font_object);
 
-extern Lisp_Object font_intern_prop P_ ((char *str, int len));
+extern Lisp_Object font_intern_prop P_ ((char *str, int len, int force_symbol));
 extern void font_update_sort_order P_ ((int *order));
 
 extern void font_parse_family_registry P_ ((Lisp_Object family,

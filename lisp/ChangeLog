@@ -1,3 +1,398 @@
+2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-rcs.el (vc-rcs-state-heuristic): Don't assume the file exists.
+
+2008-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-end-of-subprogram): Check for a match
+	before trying to move there.
+	(fortran-calculate-indent): When fortran-check-all-num-for-matching-do
+	is non-nil, indent most terminating statements like loop body.
+
+	* calendar/diary-lib.el (diary-list-entries-2): Accept optional
+	Gregorian date, and add it, not the local date, to diary-entries-list.
+	(diary-list-entries-1): Pass Gregorian date to diary-list-entries-2.
+
+2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-filter): Fix up last change.
+
+	* term/linux.el (terminal-init-linux): Use gpm-mouse-enable.
+
+	* t-mouse.el (gpm-mouse-enable, gpm-mouse-disable): New functions.
+	(gpm-mouse-mode): Make it into a proper global minor mode.
+
+	* files.el (save-some-buffers-action-alist): Only use recursive-edit
+	if the user enabled recursive-minibuffers.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Add support for other-window-scroll.
+
+2008-06-11  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-menu-bar-open): Rename from menu-bar-open.
+	Use tmm-menubar if menu is disabled in this frame.
+
+	* menu-bar.el (menu-bar-open): Determine how to open menu bar
+	from frame type, per documentation.  Add w32 case.
+
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--merge-suffix): New function.
+	(completion-basic-try-completion): Use it.
+	(completion-pcm--find-all-completions): Add argument `filter'.
+	(completion-pcm--filename-try-filter, completion-pcm--merge-try):
+	New functions.
+	(completion-pcm-try-completion): Use them.
+
+	* xt-mouse.el (turn-on-xterm-mouse-tracking)
+	(turn-off-xterm-mouse-tracking): Use terminal-list.
+
+	* cus-start.el (underline-minimum-offset): Rename from
+	x-underline-minimum-display-offset.
+
+2008-06-10  David De La Harpe Golden  <david@harpegolden.net>  (tiny change)
+
+	* cus-start.el (x-underline-minimum-display-offset): Give it a type.
+
+2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-select-font): New function.
+
+	* faces.el (face-spec-recalc): When the face is set using
+	Customize, avoid recalculating it twice.
+
+	* menu-bar.el (menu-set-font): New function.  Bind "Set Default
+	Font" menu item to it.  Apply selected font to all frames, and
+	make it savable.
+	(menu-bar-options-save): Save `default' font if changed.
+
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el (ffap-string-at-point-mode-alist):
+	Use alpha rather than lower.
+
+	* dired.el (dired-insert-directory): Don't assume Unix-style dir names.
+
+	* subr.el (momentary-string-display): Use an overlay.
+
+	* progmodes/compile.el (compilation-mode):
+	Set window-point-insertion-type.
+	(compilation-filter): Don't use insert-before-markers any more.
+	* emacs-lisp/trace.el (trace-make-advice):
+	Set window-point-insertion-type in the trace buffer.
+	* startup.el (normal-top-level): Set window-point-insertion-type in
+	*Messages*.
+	* net/telnet.el (telnet-mode): Set window-point-insertion-type.
+	(telnet-filter): Don't use insert-before-markers any more.
+	* comint.el (comint-mode): Set window-point-insertion-type.
+	(comint-output-filter): Don't use insert-before-markers any more.
+	* button.el (make-text-button): Allow `start' to be a string.
+
+2008-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/autoload.el (autoload-rubric):
+	Fix coding cookie not to force Unix EOL.
+
+2008-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--splittable-p, window--try-to-split-window):
+	Don't use with-selected-window to avoid messing up get-lru-window.
+
+2008-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (locate-library): Doc fix.
+
+	* net/newsticker-treeview.el (w3m-toggle-inline-images): Declare.
+	(newsticker-treeview-tool-bar-map, newsticker-treeview-mode):
+	Check tool-bar-map is bound, for non-X builds.
+
+	* net/newsticker-reader.el (newsticker--next-item-image)
+	(newsticker--previous-item-image, newsticker--previous-feed-image)
+	(newsticker--next-feed-image, newsticker--mark-read-image)
+	(ewsticker--mark-immortal-image, newsticker--narrow-image)
+	(newsticker--get-all-image, newsticker--update-image)
+	(newsticker--browse-image): Check xpm images are available.
+	(newsticker--mark-read-image, newsticker--mark-immortal-image)
+	(newsticker--narrow-image, newsticker--get-all-image): Doc fix.
+
+	* net/newsticker-plainview.el (tool-bar-map): Don't declare.
+	(newsticker--plainview-tool-bar-map, newsticker-mode):
+	Check tool-bar-map is bound, for non-X builds.
+	(w3m-toggle-inline-image): Declare.
+
+	* net/newsticker-backend.el (tool-bar-map): Don't declare.
+
+	* emacs-lisp/autoload.el (autoload-rubric): Add coding cookie.
+
+	* finder.el (finder-font-lock-keywords): Handle ``quotes''.
+	(finder-compile-keywords): Move let to where needed.
+	(finder-mouse-face-on-line): Go back one more line if needed.
+	(finder-list-matches): Use cadr.
+	(finder-goto-xref): New function.
+	(finder-commentary): Add buttons to jump to foo.el libraries.
+
+2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* apropos.el (apropos-function, apropos-macro, apropos-command)
+	(apropos-variable, apropos-face, apropos-group, apropos-widget)
+	(apropos-plist): Add apropos-short-label property.
+	(apropos-multi-type): New variables.
+	(apropos-command, apropos-value): Set it.
+	(apropos-compact-layout): New custom.
+	(apropos-print, apropos-print-doc): Use it.
+	(apropos-print): Truncate lines.
+
+2008-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist):
+	Add an entry for "ascii-0".
+
+2008-06-09  Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* language/hanja-util.el (hanja-init-load): Show the message only
+	when loading a table.
+
+2008-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newsticker-treeview.el (newsticker-treeview):
+	* net/newsticker-plainview.el (newsticker-plainview):
+	Add autoload cookie.
+
+2008-06-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newsticker.el: Split up into newsticker-backend, -ticker,
+	-reader, -plainview, and -treeview.
+	(newsticker-version): Change to 1.99.
+
+	* net/newsticker-backend.el: New.  Move backend functionality from
+	newsticker.el to newsticker-backend.el.
+	(newsticker--download-logos): New.
+	(newsticker--sentinel-callback): New.
+	(newsticker--set-customvar): Remove.  Split up into specific
+	functions related to retrieval, ticker, buffer, and display.
+	(newsticker--set-customvar-retrieval): New.  Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-retrieval): New.  Renamed from `newsticker-feed'.
+	(newsticker-url-list-defaults):
+	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
+	(newsticker-url-list): Doc changed. URL can be a function.
+	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
+	(newsticker-retrieval-method): New.
+	(newsticker-wget-name, newsticker-wget-arguments): Change :group.
+	(newsticker-retrieval-interval):
+	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
+	(newsticker-desc-comp-max): Change :group.
+	(newsticker--cache): Doc changed.
+	(newsticker--guid-to-string): New.
+	(newsticker--guid): Use `newsticker--guid-to-string'.
+	(newsticker--real-feed-name): New.
+	(newsticker--start-feed): New.  Extracted from `newsticker-start'.
+	(newsticker-start): Use `insert-file-contents' for reading cache.
+	Use `newsticker--start-feed'.
+	(newsticker--stop-feed): New.  Extracted from `newsticker-stop'.
+	(newsticker-stop): Check whether `newsticker-stop-ticker' is fbound.
+	Use `newsticker--stop-feed'.
+	(newsticker-save-item): New.
+	(newsticker--get-news-by-funcall): New.
+	(newsticker-get-news): Handle new retrieval methods.
+	(newsticker--sentinel): Use `newsticker--sentinel-work'.
+	(newsticker--sentinel-work): New.  Extracted from
+	`newsticker--sentinel'.  Use `newsticker--download-logos',
+	`newsticker--sentinel-callback'.
+	(newsticker--parse-atom-0.3): Use `newsticker--guid-to-string'.
+	(newsticker--parse-atom-1.0): Fix link determination.
+	(newsticker--parse-rss-0.91): Fix time determination.
+	(newsticker--parse-rss-0.92): Fix time determination.
+	(newsticker--parse-rss-2.0): Use `newsticker--guid-to-string'.
+	(newsticker--parse-generic-feed): New arg order in
+	`newsticker--cache-add'.
+	(newsticker--parse-generic-items): Fix for multiple items.
+	New arg order in `newsticker--cache-add'.
+	(newsticker--forget-preformatted): Check whether
+	`newsticker--buffer-set-uptodate' is fbound.
+	(newsticker--decode-iso8601-date): Handle fractions of seconds.
+	(newsticker--decode-rfc822-date): Partial timezone handling.
+	(newsticker--cache-contains): Fix guid problem.
+	(newsticker--cache-add): Swap args AGE and TIME.  Fix guid problem.
+	(newsticker--cache-save): New.
+	(newsticker--cache-update): Use temp buffer.
+	(newsticker--stat-num-items): Allow multiple AGE args.
+	(newsticker--stat-num-items-total): New.
+	(newsticker--opml-import-outlines): New.
+	(newsticker-opml-import): Use `newsticker--opml-import-outlines'.
+	(newsticker--do-run-auto-mark-filter): Doc changed.
+	(newsticker-retrieve-random-message): New.
+
+	* net/newsticker-ticker.el: New.  Move ticker functionality from
+	net/newsticker.el to net/newsticker-ticker.el.
+	(newsticker--ticker-timer): Rename `newsticker--display-timer' to
+	`newsticker--ticker-timer'.
+	(newsticker-ticker-running-p): Rename `newsticker--display-timer'
+	to `newsticker--ticker-timer'.
+	(newsticker--set-customvar-ticker): New.  Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-ticker-interval): Rename `newsticker-display-interval'
+	to `newsticker-ticker-interval'.  Use `newsticker--set-customvar-ticker
+	for :set.  Change :group.
+	(newsticker-scroll-smoothly): Doc changed.  Change :group.
+	(newsticker-hide-immortal-items-in-echo-area)
+	(newsticker-hide-old-items-in-echo-area)
+	(newsticker-hide-obsolete-items-in-echo-area):
+	Use `newsticker--set-customvar-ticker for :set.  Change :group.
+	(newsticker-start-ticker): Rename `newsticker--display-timer' to
+	`newsticker--ticker-timer'.  Rename `newsticker-display-interval'
+	to `newsticker-ticker-interval'.
+	(newsticker-stop-ticker): Rename `newsticker--display-timer' to
+	`newsticker--ticker-timer'.
+
+	* net/newsticker-reader.el: New.  Move reader functionality from
+	net/newsticker.el to net/newsticker-reader.el.
+	(newsticker--set-customvar-formatting): New.  Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-reader, newsticker-frontend): New.
+	(newsticker-enable-logo-manipulations): Change :group.
+	(newsticker-justification): Use `newsticker--set-customvar-formatting'
+	for :set.  Change :group.
+	(newsticker-use-full-width): Use `newsticker--set-customvar-formatting'
+	for :set.  Change :group.
+	(newsticker-html-renderer): Doc changed.
+	Use `newsticker--set-customvar-formatting' for :set.  Change :group.
+	(newsticker-date-format):
+	Use `newsticker--set-customvar-formatting' for :set.  Change :group.
+	(newsticker--insert-enclosure):
+	Rename `newsticker--buffer-insert-enclosure' to
+	`newsticker--insert-enclosure'.  Add keymap arg.
+	(newsticker--print-extra-elements):
+	Rename `newsticker--buffer-print-extra-elements' to
+	`newsticker--print-extra-elements'.  Add keymap arg.
+	(newsticker--do-print-extra-element):
+	Rename `newsticker--buffer-do-print-extra-element' to
+	`newsticker--do-print-extra-element'.  Add keymap arg.
+	(newsticker-show-news): Use `newsticker-frontend'.
+
+	* net/newsticker-plainview.el: New.  Move plainview functionality
+	from net/newsticker.el to net/newsticker-reader.el.
+	(newsticker-plainview): New.
+	(newsticker--set-customvar-sorting): New.  Extracted from
+	`newsticker--set-customvar'.
+	(newsticker-sort-method): Use `newsticker--set-customvar-sorting
+	for :set. Changed :group.
+	(newsticker-heading-format, newsticker-item-format)
+	(newsticker-desc-format, newsticker-statistics-format):
+	Use `newsticker--set-customvar-formatting for :set.  Change :group.
+	(newsticker-faces): Change :group.
+	(newsticker-default-face): Enable again.
+	(newsticker-hide-old-items-in-newsticker-buffer)
+	(newsticker-show-descriptions-of-new-items):
+	Use `newsticker--set-customvar-buffer' for :set.  Change :group.
+	(newsticker-show-all-news-elements): Change :group.
+	(newsticker-plainview-hooks): New.
+	(newsticker-select-item-hook, newsticker-select-feed-hook)
+	(newsticker-buffer-change-hook, newsticker-narrow-hook): Change :group.
+	(newsticker--plainview-tool-bar-map): Rename `newsticker--tool-bar-map'
+	to `newsticker--plainview-tool-bar-map'.
+	(newsticker--url-keymap): Add mouse-1 binding.
+	(newsticker-plainview): New.
+	(newsticker-mark-all-items-of-feed-as-read): Change doc.
+	(newsticker--buffer-do-insert-text): Use renamed
+	newsticker--[buffer-]insert-enclosure and
+	newsticker--[buffer-]print-extra-elements.
+	(newsticker--buffer-set-faces): Use newsticker-default-face.
+
+	* net/newsticker-treeview.el: New.
+
+2008-06-08  Andreas Schwab  <schwab@suse.de>
+
+	* vc-dispatcher.el (vc-dir-children-marked-p): Fix child check.
+
+	* vc-cvs.el (vc-cvs-dir-status): Pass -f to cvs.
+
+	* vc-dispatcher.el (vc-dir-move-to-goal-column): Don't move in an
+	empty line.
+
+	* minibuffer.el (minibuffer-message): Bind inhibit-quit around sit-for.
+
+2008-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-height-threshold, split-width-threshold):
+	Add choice nil.
+	(split-window-preferred-function): Allow either nil or a function.
+	(window--splittable-p, window--try-to-split-window):
+	Handle changed option values.
+
+	(window--frame-usable-p): Handle nil argument.
+
+	(display-buffer): Call get-lru-window when pop-up-windows is nil
+	and window can't be split.
+
+2008-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* uniquify.el (uniquify-get-proposed-name): Handle remote files.
+
+	* net/tramp.el (top): Quote feature names.  Remove
+	`tramp-rfn-eshadow-setup-minibuffer' from
+	`rfn-eshadow-setup-minibuffer-hook' when unloading.
+	(tramp-read-passwd): There is only one call to
+	`auth-source-user-or-password' needed.  Pacify byte compiler.
+
+2008-06-08  Andreas Schwab  <schwab@suse.de>
+
+	* window.el (display-buffer): Use lru window if current window
+	cannot be split.
+
+2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* apropos.el (apropos-library): New command and new button.
+	(apropos-library-button): New function.
+
+	* apropos.el: Remove spurious * in docstrings.
+	(apropos-label-face): Use variable pitch.
+	(apropos-print): Use dolist and with-current-buffer.
+	(apropos-print-doc): Use when.
+
+	* window.el (special-display-p, display-buffer):
+	Fix up C->Elisp transcription error.
+
+2008-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-group): New var.
+	(byte-compile-file): Initialize it.
+	(byte-compile-nogroup-warn): Keep track of the current group.
+
+2008-06-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (compile, compile-always, bootstrap-prepare):
+	Explictly pass EMACS to sub-makes that use it, for non-GNU makes.
+
+2008-06-07  Jihyun Cho  <jihyun.jo@gmail.com>
+
+	* language/hanja-util.el (hanja-init-load): Use a char-table for
+	hanja-table.
+	(hangul-to-hanja-char): Adjust for the above change.
+
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* finder.el (finder-compile-keywords): Use lm-keywords-list rather than
+	lm-keywords.
+
+	* mail/sendmail.el (mail-interactive): Add :version.
+
+	* term/linux.el (terminal-init-linux): Use gpm-mouse-mode rather than
+	obsolete alias.
+
+	* ediff-merg.el, strokes.el, wid-edit.el, emacs-lisp/lisp-mnt.el:
+	* emulation/edt-mapper.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-ls.el, eshell/em-unix.el, eshell/esh-cmd.el:
+	* eshell/esh-io.el, eshell/esh-opt.el, eshell/esh-test.el:
+	* eshell/esh-util.el, international/mule-cmds.el:
+	* international/mule-diag.el, mail/smtpmail.el, net/netrc.el:
+	* net/tls.el, progmodes/etags.el, textmodes/page-ext.el:
+	Remove unnecessary eval-when-compiles and eval-and-compiles.
+
+	* Makefile.in (bootstrap-clean): Run autogen-clean.
+	(maintainer-clean): No need to run autogen-clean now it is included in
+	bootstrap-clean.
+
 2008-06-06  Miles Bader  <miles@gnu.org>
 
 	* Makefile.in (ELCFILES): Add gnus/nndir.elc.
@@ -832,8 +1227,8 @@
 2008-05-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-yank.el (calc-register-alist): New variable.
-	(calc-set-register,calc-get-register,calc-copy-to-register)
-	(calc-insert-register,calc-add-to-register,calc-append-to-register)
+	(calc-set-register, calc-get-register, calc-copy-to-register)
+	(calc-insert-register, calc-add-to-register, calc-append-to-register)
 	(calc-prepend-to-register): New functions.
 
 	* calc/calc-ext.el (calc-init-extensions): Add keybindings for
@@ -996,7 +1391,7 @@
 	* add-log.el (top-level): Don't require cl when compiling.
 
 	* arc-mode.el (archive-add-new-member): Use `derived-mode-p'.
-	(archive-*-extract): Use `zerop'
+	(archive-*-extract): Use `zerop'.
 	(archive-*-write-file-member): Use `or', use `zerop'.
 
 	* diff-mode.el (diff-current-defun): Use `buffer-local-value'.
@@ -2071,7 +2466,7 @@
 	(org-modules): Allow additional symbols for external packages.
 	(org-ctrl-c-ctrl-c): Allow for `org-clock-overlays' to be undefined.
 	(org-clock-goto): Hide drawers after showing an
-	entry with `org-clock-goto.'
+	entry with `org-clock-goto'.
 	(org-shiftup, org-shiftdown, org-shiftright, org-shiftleft):
 	Try also a clocktable block shift.
 	(org-clocktable-try-shift): New function.
@@ -2540,7 +2935,7 @@
 	New functions.
 	(completion-styles-alist): Use them.
 
-2008-04-23  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-04-23  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-set-spellchecker-params): New function to make sure
 	right params and dictionary alists are used after spellchecker changes.
@@ -3899,7 +4294,7 @@
 	(calendar-increment-month-cons): Rename old calendar-increment-month.
 	Update callers.
 	(calendar-extract-month): Rename extract-calendar-month.
-	Keep old name as alias, update callers
+	Keep old name as alias, update callers.
 	(calendar-extract-day): Rename extract-calendar-day.
 	Keep old name as alias, update callers.
 	(calendar-extract-year): Rename extract-calendar-year.
@@ -3931,7 +4326,7 @@
 	rather than using calendar functions.
 	(org-read-date, org-goto-calendar, org-agenda-goto-calendar):
 	Also set calendar-view-diary-initially-flag,
-	calendar-view-holidays-initially-flag
+	calendar-view-holidays-initially-flag.
 	(org-get-entries-from-diary): Also set diary-fancy-buffer.
 	(org-agenda-execute-calendar-command): No need to set displayed-day.
 
@@ -6573,7 +6968,7 @@
 	(org-todo): Handle the new ways of recording state change stuff.
 	(org-local-logging): New function.
 	(org-columns-open-link): Fix bug with opening link in column view.
-	(org-local-logging): New function
+	(org-local-logging): New function.
 	(org-todo): Make sure that LOGGING properties are honoured.
 	(org-todo-keywords): Improve docstring.
 	(org-startup-options): Cleanup startup options.
@@ -9015,7 +9410,7 @@
 	(epa-dired-mode-map): Rename from epa-dired-map.
 	(epa-global-dired-mode): Rename the global minor mode.
 
-2008-02-11 Drew Adams  <drew.adams@oracle.com>
+2008-02-11  Drew Adams  <drew.adams@oracle.com>
 
 	* isearch.el (isearch-fail): New face.
 	(isearch-message): Highlight failure part of input.

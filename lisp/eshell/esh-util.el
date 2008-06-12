@@ -1,7 +1,7 @@
 ;;; esh-util.el --- general utilities
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -593,8 +593,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
          (cons file (eshell-file-attributes (expand-file-name file directory)))))
        (directory-files directory full match nosort)))))
 
-(eval-when-compile
-  (defvar ange-cache))
+(defvar ange-cache)
 
 (defun eshell-directory-files-and-attributes (dir &optional full match nosort)
   "Make sure to use the handler for `directory-file-and-attributes'."

@@ -440,6 +440,7 @@ DIRECTION can be nil (i.e. any), `height' or `width'."
   "Factor by which the window area should be over-estimated.
 This is used by `balance-windows-area'.
 Changing this globally has no effect.")
+(make-variable-buffer-local 'window-area-factor)
 
 (defun balance-windows-area ()
   "Make all visible windows the same area (approximately).
@@ -542,11 +543,12 @@ If the value is a list, it is a list of frame parameters that
 would be used to make a frame for that buffer.  The variables
 `special-display-buffer-names' and `special-display-regexps'
 control this."
+  (let (tmp)
   (cond
    ((not (stringp buffer-name)))
    ;; Make sure to return t in the following two cases.
    ((member buffer-name special-display-buffer-names) t)
-   ((assoc buffer-name special-display-buffer-names) t)
+     ((setq tmp (assoc buffer-name special-display-buffer-names)) (cdr tmp))
    ((catch 'found
       (dolist (regexp special-display-regexps)
 	(cond
@@ -555,7 +557,7 @@ control this."
 	    (throw 'found t)))
 	 ((and (consp regexp) (stringp (car regexp))
 	       (string-match-p (car regexp) buffer-name))
-	  (throw 'found (cdr regexp)))))))))
+            (throw 'found (cdr regexp))))))))))
 
 (defcustom special-display-buffer-names nil
   "List of buffer names that should have their own special frames.
@@ -740,32 +742,37 @@ parameters."
   :type 'boolean
   :group 'windows)
 
-(defcustom split-window-preferred-function nil
-  "How `display-buffer' shall split windows.
-Choices are `Vertically', `Horizontally', and `Sensibly' where
-the latter attempts to split wide windows horizontally, narrow
-ones vertically.  Alternatively, you can set this to a function
-called with a window as single argument to split that window in
-two and return the new window."
-  :type '(choice
-	  (const :tag "Vertically" nil)
-	  (const :tag "Horizontally" horizontally)
-	  (const :tag "Sensibly" sensibly)
-	  (function :tag "Function"))
-  :version "23.1"
-  :group 'windows)
-
 (defcustom split-height-threshold 80
-  "Minimum height of window to be split vertically by `display-buffer'.
-If there is only one window, it can be split regardless of this."
+  "Minimum height of window to be split vertically.
+If the value is a number, `display-buffer' can split a window
+only if it has at least as many lines.  If the value is nil,
+`display-buffer' cannot split a window vertically.
+
+If the window is the only window on its frame, `display-buffer'
+can split it regardless of this value."
+  :type '(choice (const nil) (number :tag "lines"))
   :type 'number
   :version "23.1"
   :group 'windows)
 
 (defcustom split-width-threshold 160
-  "Minimum width of window to be split horizontally by `display-buffer'.
-If there is only one window, it can be split regardless of this."
-  :type 'number
+  "Minimum width of window to be split horizontally.
+If the value is a number, `display-buffer' can split a window
+only if it has at least as many columns.  If the value is nil,
+`display-buffer' cannot split a window horizontally."
+  :type '(choice (const nil) (number :tag "columns"))
+  :version "23.1"
+  :group 'windows)
+
+(defcustom split-window-preferred-function nil
+  "Function used by `display-buffer' to split windows.
+If non-nil, a function called with a window as single argument
+supposed to split that window and return the new window.  If the
+function returns nil the window is not split.
+
+If nil, `display-buffer' will split the window respecting the
+values of `split-height-threshold' and `split-width-threshold'."
+  :type '(choice (const nil) (function :tag "Function"))
   :version "23.1"
   :group 'windows)
 
@@ -777,11 +784,11 @@ can be split horizontally.
 WINDOW can be split vertically when the following conditions
 hold:
 
-- `window-size-fixed' is either nil or equals `width' for the buffer of
-  WINDOW.
+- `window-size-fixed' is either nil or equals `width' for the
+  buffer of WINDOW.
 
-- WINDOW is at least as high as `split-height-threshold' or it is
-  the only window on its frame.
+- `split-height-threshold' is a number and WINDOW is at least as
+  high as `split-height-threshold'.
 
 - When WINDOW is split evenly, the emanating windows are at least
   `window-min-height' lines tall and can accomodate at least one
@@ -793,69 +800,73 @@ hold:
 - `window-size-fixed' is either nil or equals `height' for the
   buffer of WINDOW.
 
-- WINDOW is at least as wide as `split-width-threshold'.
+- `split-width-threshold' is a number and WINDOW is at least as
+  wide as `split-width-threshold'.
 
 - When WINDOW is split evenly, the emanating windows are at least
   `window-min-width' or two (whichever is larger) columns wide."
   (when (window-live-p window)
-    (with-selected-window window
+    (with-current-buffer (window-buffer window)
       (if horizontal
 	  ;; A window can be split horizontally when its width is not
 	  ;; fixed, it is at least `split-width-threshold' columns wide
 	  ;; and at least twice as wide as `window-min-width' and 2 (the
 	  ;; latter value is hardcoded).
 	  (and (memq window-size-fixed '(nil height))
+	       ;; Testing `window-full-width-p' here hardly makes any
+	       ;; sense nowadays.  This can be done more intuitively by
+	       ;; setting up `split-width-threshold' appropriately.
+	       (numberp split-width-threshold)
 	       (>= (window-width window)
 		   (max split-width-threshold
 			(* 2 (max window-min-width 2)))))
 	;; A window can be split vertically when its height is not
-	;; fixed, it is at least `split-height-threshold' lines high or
-	;; the only window on its frame, and it is at least twice as
-	;; high as `window-min-height' and 2 if it has a modeline or 1.
+	;; fixed, it is at least `split-height-threshold' lines high,
+	;; and it is at least twice as high as `window-min-height' and 2
+	;; if it has a modeline or 1.
 	(and (memq window-size-fixed '(nil width))
+	     (numberp split-height-threshold)
 	     (>= (window-height window)
-		 (max (if (one-window-p 'nomini) 0 split-height-threshold)
+		 (max split-height-threshold
 		      (* 2 (max window-min-height
 				(if mode-line-format 2 1))))))))))
 
 (defun window--try-to-split-window (window)
   "Split window WINDOW if it is splittable.
-See `split-window-preferred-function' for how WINDOW shall be
-split.  See `window--splittable-p' for how to determine whether a
-window is splittable.  If WINDOW can be split, return the value
-returned by `split-window' or `split-window-preferred-function'."
+See `window--splittable-p' for how to determine whether a window
+is splittable.  If WINDOW can be split, return the value returned
+by `split-window' or `split-window-preferred-function'."
   (when (and (window-live-p window)
-	     ;; Testing `window-full-width-p' here hardly makes any
-	     ;; sense nowadays.  This can be done more intuitively by
-	     ;; setting up `split-width-threshold' appropriately.
 	     (not (frame-parameter (window-frame window) 'unsplittable)))
-    (or (and (not split-window-preferred-function)
-	     (window--splittable-p window)
-	     (split-window window))
-	(and (eq split-window-preferred-function 'horizontally)
-	     (window--splittable-p window t)
-	     (split-window window nil t))
-	(and (eq split-window-preferred-function 'sensibly)
-	     ;; The following naive aspect-ratio test should become
-	     ;; more sensible.
-	     (or (and (> (window-width window) (window-height window))
-		      (window--splittable-p window t)
-		      (split-window window nil t))
-		 (and (window--splittable-p window)
-		      (split-window window))))
-	(and (functionp split-window-preferred-function)
-	     (funcall split-window-preferred-function window)))))
+    (if (functionp split-window-preferred-function)
+	;; `split-window-preferred-function' is specified, so use it.
+	(funcall split-window-preferred-function window)
+      (or (and (window--splittable-p window)
+	       ;; Split window vertically.
+	       (split-window window))
+	  (and (window--splittable-p window t)
+	       ;; Split window horizontally.
+	       (split-window window nil t))
+	  (and (eq window (frame-root-window (window-frame window)))
+	       (not (window-minibuffer-p window))
+	       ;; If WINDOW is the only window on its frame and not the
+	       ;; minibuffer window, attempt to split it vertically
+	       ;; disregarding the value of `split-height-threshold'.
+	       (let ((split-height-threshold 0))
+		 (window--splittable-p window)
+		 (split-window window)))))))
 
 (defun window--frame-usable-p (frame)
   "Return frame FRAME if it can be used to display another buffer."
-  (let ((window (frame-root-window frame)))
-    ;; `frame-root-window' may be an internal window which is considered
-    ;; "dead" by `window-live-p'.  Hence if `window' is not live we
-    ;; implicitly know that `frame' has a visible window we can use.
-    (when (or (not (window-live-p window))
-	      (and (not (window-minibuffer-p window))
-		   (not (window-dedicated-p window))))
-      frame)))
+  (when (framep frame)
+    (let ((window (frame-root-window frame)))
+      ;; `frame-root-window' may be an internal window which is considered
+      ;; "dead" by `window-live-p'.  Hence if `window' is not live we
+      ;; implicitly know that `frame' has a visible window we can use.
+      (when (or (not (window-live-p window))
+		(and (not (window-minibuffer-p window))
+		     (not (window-dedicated-p window))))
+	frame))))
 
 (defcustom even-window-heights t
   "If non-nil `display-buffer' will try to even window heights.
@@ -931,11 +942,11 @@ return that window.  Possible values of FRAME are:
 
 0 - consider windows on all visible or iconified frames.
 
-`t' - consider windows on all frames.
+t - consider windows on all frames.
 
 A specific frame - consider windows on that frame only.
 
-`nil' - consider windows on the selected frame \(actually the
+nil - consider windows on the selected frame \(actually the
 last non-minibuffer frame\) only.  If, however, either
 `display-buffer-reuse-frames' or `pop-up-frames' is non-nil,
 consider all visible or iconified frames."
@@ -988,7 +999,7 @@ consider all visible or iconified frames."
 	   (let ((pars (special-display-p name-of-buffer)))
 	     (when pars
 	       (funcall special-display-function
-			(if (eq pars t) buffer pars))))))
+			buffer (if (listp pars) pars))))))
      ((or pop-up-frames (not frame-to-use))
       ;; We want or need a new frame.
       (window--display-buffer-2
@@ -1002,7 +1013,7 @@ consider all visible or iconified frames."
 		    (setq frame-to-use (last-nonminibuffer-frame))
 		    (window--frame-usable-p frame-to-use)
 		    (not (frame-parameter frame-to-use 'unsplittable))))
-	   ;; Attempt to split largest or most recently used window.
+	   ;; Attempt to split largest or least recently used window.
 	   (setq window-to-use
 		 (or (window--try-to-split-window
 		      (get-largest-window frame-to-use t))
@@ -1011,7 +1022,8 @@ consider all visible or iconified frames."
 	   (window--display-buffer-2 buffer window-to-use)))
      ((setq window-to-use
 	    ;; Reuse an existing window.
-	    (or (get-buffer-window buffer 'visible)
+	    (or (get-lru-window frame-to-use)
+		(get-buffer-window buffer 'visible)
 		(get-largest-window 'visible nil)
 		(get-buffer-window buffer 0)
 		(get-largest-window 0 nil)
@@ -1053,7 +1065,7 @@ at the front of the list of recently selected ones."
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
-  "*If non-nil, \\[split-window-vertically] keeps the original point \
+  "If non-nil, \\[split-window-vertically] keeps the original point \
 in both children.
 This is often more convenient for editing.
 If nil, adjust point in each of the two windows to minimize redisplay.
@@ -1577,8 +1589,8 @@ active.  This function is run by `mouse-autoselect-window-timer'."
 		     (progn
 		       ;; Cancel any delayed autoselection.
 		       (mouse-autoselect-window-cancel t)
-		       ;; Start delayed autoselection from current mouse position
-		       ;; and window.
+		       ;; Start delayed autoselection from current mouse
+		       ;; position and window.
 		       (mouse-autoselect-window-start (mouse-position) window)
 		       ;; Executing a command cancels delayed autoselection.
 		       (add-hook

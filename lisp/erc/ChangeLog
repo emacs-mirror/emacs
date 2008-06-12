@@ -1,3 +1,8 @@
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* erc/erc-autoaway.el, erc/erc-ibuffer.el, erc/erc-menu.el:
+	* erc/erc-stamp.el, erc/erc.el: Remove unnecessary eval-when-compiles.
+
 2008-05-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc-goodies.el (erc-noncommands-list, noncommands)

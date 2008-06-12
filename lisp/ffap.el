@@ -978,11 +978,11 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     ;; Slightly controversial decisions:
     ;; * strip trailing "@" and ":"
     ;; * no commas (good for latex)
-    (file "--:\\\\$+<>@-Z_[:lower:]~*?" "<@" "@>;.,!:")
+    (file "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
-    (url "--:=&?$+@-Z_[:lower:]~#,%;*" "^[:alnum:]" ":;.,!?")
+    (url "--:=&?$+@-Z_[:alpha:]~#,%;*" "^[:alnum:]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
-    (nocolon "--9$+<>@-Z_[:lower:]~" "<@" "@>;.,!?")
+    (nocolon "--9$+<>@-Z_[:alpha:]~" "<@" "@>;.,!?")
     ;; A machine:
     (machine "-[:alnum:]." "" ".")
     ;; Mathematica paths: allow backquotes

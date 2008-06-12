@@ -1607,6 +1607,8 @@ main (argc, argv
 #endif
 #endif /* HAVE_X_WINDOWS */
 
+      syms_of_menu ();
+
 #ifndef HAVE_NTGUI
 #ifndef MAC_OS
       /* Called before init_window_once for Mac OS Classic.  */

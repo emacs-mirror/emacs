@@ -496,11 +496,15 @@ clone_per_buffer_values (from, to)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (undo_list) + sizeof (Lisp_Object);
+  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
        offset < sizeof *to;
        offset += sizeof (Lisp_Object))
     {
       Lisp_Object obj;
+
+      /* Don't touch the `name' which should be unique for every buffer.  */
+      if (offset == PER_BUFFER_VAR_OFFSET (name))
+	continue;
 
       obj = PER_BUFFER_VALUE (from, offset);
       if (MARKERP (obj))

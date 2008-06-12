@@ -1467,6 +1467,8 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
   (interactive)
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)
+  ;; Let windows scroll along with the output.
+  (set (make-local-variable 'window-point-insertion-type) t)
   (set (make-local-variable 'tool-bar-map) compilation-mode-tool-bar-map)
   (setq major-mode 'compilation-mode
 	mode-name (or name-of-mode "Compilation"))
@@ -1663,13 +1665,17 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
-Just inserts the text, but uses `insert-before-markers'."
-  (if (buffer-name (process-buffer proc))
+Just inserts the text, and runs `compilation-filter-hook'."
+  (if (buffer-live-p (process-buffer proc))
       (with-current-buffer (process-buffer proc)
 	(let ((inhibit-read-only t))
 	  (save-excursion
 	    (goto-char (process-mark proc))
-	    (insert-before-markers string)
+            ;; We used to use `insert-before-markers', so that windows with
+            ;; point at `process-mark' scroll along with the output, but we
+            ;; now use window-point-insertion-type instead.
+	    (insert string)
+            (set-marker (process-mark proc) (point))
 	    (run-hooks 'compilation-filter-hook))))))
 
 ;;; test if a buffer is a compilation buffer, assuming we're in the buffer

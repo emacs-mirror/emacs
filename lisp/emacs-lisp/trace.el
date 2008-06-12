@@ -219,7 +219,8 @@
 	   (trace-buffer (get-buffer-create ,buffer)))
        (unless inhibit-trace
 	 (with-current-buffer trace-buffer
-	   ,(unless background '(display-buffer trace-buffer))
+	   (set (make-local-variable 'window-point-insertion-type) t)
+           ,(unless background '(display-buffer trace-buffer))
 	   (goto-char (point-max))
 	   ;; Insert a separator from previous trace output:
 	   (if (= trace-level 1) (insert trace-separator))

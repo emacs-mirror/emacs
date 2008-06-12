@@ -124,8 +124,8 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/fontset.$(O)		\
 	$(BLD)/fringe.$(O)			\
 	$(BLD)/image.$(O)			\
-	$(BLD)/terminal.$(O)
-
+	$(BLD)/terminal.$(O)            \
+        $(BLD)/menu.$(O)
 
 WIN32OBJ = $(BLD)/w32term.$(O)		\
 	   $(BLD)/w32xfns.$(O)		\
@@ -924,6 +924,18 @@ $(BLD)/marker.$(O) : \
 $(BLD)/md5.$(O) : \
 	$(SRC)/md5.c \
 	$(SRC)/md5.h
+
+$(BLD)/menu.$(O) : \
+        $(SRC)/menu.c \
+        $(CONFIG_H) \
+        $(SRC)/keyboard.h \
+        $(SRC)/keymap.h \
+        $(SRC)/frame.h \
+        $(SRC)/termhooks.h \
+        $(SRC)/blockinput.h \
+        $(SRC)/dispextern.h \
+        $(SRC)/w32gui.h \
+        $(SRC)/w32term.h
 
 $(BLD)/minibuf.$(O) : \
 	$(SRC)/minibuf.c \

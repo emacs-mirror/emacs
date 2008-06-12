@@ -1500,7 +1500,7 @@ to the specified name LIBRARY.
 If the optional third arg PATH is specified, that list of directories
 is used instead of `load-path'.
 
-When called from a program, the file name is normaly returned as a
+When called from a program, the file name is normally returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
   (interactive (list (completing-read "Locate library: "
@@ -2040,56 +2040,37 @@ input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\s))
-  (let ((inhibit-read-only t)
-	;; Don't modify the undo list at all.
-	(buffer-undo-list t)
-	(modified (buffer-modified-p))
-	(name buffer-file-name)
-	insert-end)
+  (let ((ol (make-overlay pos pos))
+        (message (copy-sequence string)))
     (unwind-protect
-	(progn
-	  (save-excursion
-	    (goto-char pos)
-	    ;; To avoid trouble with out-of-bounds position
-	    (setq pos (point))
-	    ;; defeat file locking... don't try this at home, kids!
-	    (setq buffer-file-name nil)
-	    (insert-before-markers string)
-	    (setq insert-end (point))
-	    ;; If the message end is off screen, recenter now.
-	    (if (< (window-end nil t) insert-end)
-		(recenter (/ (window-height) 2)))
-	    ;; If that pushed message start off the screen,
-	    ;; scroll to start it at the top of the screen.
-	    (move-to-window-line 0)
-	    (if (> (point) pos)
-		(progn
-		  (goto-char pos)
-		  (recenter 0))))
-	  (message (or message "Type %s to continue editing.")
-		   (single-key-description exit-char))
-	  (let (char)
-	    (if (integerp exit-char)
-		(condition-case nil
-		    (progn
-		      (setq char (read-char))
-		      (or (eq char exit-char)
-			  (setq unread-command-events (list char))))
-		  (error
-		   ;; `exit-char' is a character, hence it differs
-		   ;; from char, which is an event.
-		   (setq unread-command-events (list char))))
-	      ;; `exit-char' can be an event, or an event description
-	      ;; list.
-	      (setq char (read-event))
-	      (or (eq char exit-char)
-		  (eq char (event-convert-list exit-char))
-		  (setq unread-command-events (list char))))))
-      (if insert-end
-	  (save-excursion
-	    (delete-region pos insert-end)))
-      (setq buffer-file-name name)
-      (set-buffer-modified-p modified))))
+        (progn
+          (save-excursion
+            (overlay-put ol 'after-string message)
+            (goto-char pos)
+            ;; To avoid trouble with out-of-bounds position
+            (setq pos (point))
+            ;; If the message end is off screen, recenter now.
+            (if (<= (window-end nil t) pos)
+                (recenter (/ (window-height) 2))))
+          (message (or message "Type %s to continue editing.")
+                   (single-key-description exit-char))
+          (let (char)
+            (if (integerp exit-char)
+                (condition-case nil
+                    (progn
+                      (setq char (read-char))
+                      (or (eq char exit-char)
+                          (setq unread-command-events (list char))))
+                  (error
+                   ;; `exit-char' is a character, hence it differs
+                   ;; from char, which is an event.
+                   (setq unread-command-events (list char))))
+              ;; `exit-char' can be an event, or an event description list.
+              (setq char (read-event))
+              (or (eq char exit-char)
+                  (eq char (event-convert-list exit-char))
+                  (setq unread-command-events (list char))))))
+      (delete-overlay ol))))
 
 
 ;;;; Overlay operations

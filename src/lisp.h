@@ -3244,6 +3244,9 @@ extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
 							 Lisp_Object,
 							 Lisp_Object));
 
+/* defined in menu.c */
+extern void syms_of_menu P_ ((void));
+
 /* defined in xmenu.c */
 EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 3);

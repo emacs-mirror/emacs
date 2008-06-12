@@ -34,15 +34,14 @@
 ;;;
 
 ;; use encrypt if loaded (encrypt-file-alist has to be set as well)
-(eval-and-compile
-  (autoload 'encrypt-find-model "encrypt")
-  (autoload 'encrypt-insert-file-contents "encrypt"))
+(autoload 'encrypt-find-model "encrypt")
+(autoload 'encrypt-insert-file-contents "encrypt")
 (defalias 'netrc-point-at-eol
   (if (fboundp 'point-at-eol)
       'point-at-eol
     'line-end-position))
+(defvar encrypt-file-alist)
 (eval-when-compile
-  (defvar encrypt-file-alist)
   ;; This is unnecessary in the compiled version as it is a macro.
   (if (fboundp 'bound-and-true-p)
       (defalias 'netrc-bound-and-true-p 'bound-and-true-p)

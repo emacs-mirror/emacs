@@ -4163,22 +4163,28 @@ This requires the external program `diff' to be in your `exec-path'."
   nil)
 
 (defvar save-some-buffers-action-alist
-  '((?\C-r
-     (lambda (buf)
-       (view-buffer buf
-		    (lambda (ignore)
-		      (exit-recursive-edit)))
-       (recursive-edit)
-       ;; Return nil to ask about BUF again.
-       nil)
+  `((?\C-r
+     ,(lambda (buf)
+        (if (not enable-recursive-minibuffers)
+            (progn (display-buffer buf)
+                   (setq other-window-scroll-buffer buf))
+          (view-buffer buf (lambda (_) (exit-recursive-edit)))
+          (recursive-edit))
+        ;; Return nil to ask about BUF again.
+        nil)
      "view this buffer")
-    (?d (lambda (buf)
-	  (save-window-excursion
-	    (diff-buffer-with-file buf))
-	  (view-buffer (get-buffer-create "*Diff*")
-		       (lambda (ignore) (exit-recursive-edit)))
-	  (recursive-edit)
-	  nil)
+    (?d ,(lambda (buf)
+           (if (null buffer-file-name)
+               (message "Not applicable: no file")
+             (save-window-excursion (diff-buffer-with-file buf))
+             (if (not enable-recursive-minibuffers)
+                 (progn (display-buffer (get-buffer-create "*Diff*"))
+                        (setq other-window-scroll-buffer "*Diff*"))
+               (view-buffer (get-buffer-create "*Diff*")
+                            (lambda (_) (exit-recursive-edit)))
+               (recursive-edit)))
+           ;; Return nil to ask about BUF again.
+           nil)
 	"view changes in this buffer"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 
@@ -4216,31 +4222,29 @@ change the additional actions you can take on files."
       ;; and record the number thus saved.
       (setq files-done
 	    (map-y-or-n-p
-	     (function
-	      (lambda (buffer)
-		(and (buffer-modified-p buffer)
-		     (not (buffer-base-buffer buffer))
-		     (or
-		      (buffer-file-name buffer)
-		      (and pred
-			   (progn
-			     (set-buffer buffer)
-			     (and buffer-offer-save (> (buffer-size) 0)))))
-		     (or (not (functionp pred))
-			 (with-current-buffer buffer (funcall pred)))
-		     (if arg
-			 t
-		       (setq queried t)
-		       (if (buffer-file-name buffer)
-			   (format "Save file %s? "
-				   (buffer-file-name buffer))
-			 (format "Save buffer %s? "
-				 (buffer-name buffer)))))))
-	     (function
-	      (lambda (buffer)
-		(set-buffer buffer)
-		(save-buffer)))
-	     (buffer-list)
+             (lambda (buffer)
+               (and (buffer-modified-p buffer)
+                    (not (buffer-base-buffer buffer))
+                    (or
+                     (buffer-file-name buffer)
+                     (and pred
+                          (progn
+                            (set-buffer buffer)
+                            (and buffer-offer-save (> (buffer-size) 0)))))
+                    (or (not (functionp pred))
+                        (with-current-buffer buffer (funcall pred)))
+                    (if arg
+                        t
+                      (setq queried t)
+                      (if (buffer-file-name buffer)
+                          (format "Save file %s? "
+                                  (buffer-file-name buffer))
+                        (format "Save buffer %s? "
+                                (buffer-name buffer))))))
+             (lambda (buffer)
+               (with-current-buffer buffer
+                 (save-buffer)))
+             (buffer-list)
 	     '("buffer" "buffers" "save")
 	     save-some-buffers-action-alist))
       ;; Maybe to save abbrevs, and record whether

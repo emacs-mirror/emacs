@@ -49,6 +49,7 @@
 	("iso8859-14$" . iso-8859-14)
 	("iso8859-15$" . iso-8859-15)
 	("iso8859-16$" . iso-8859-16)
+	("ascii-0$" . ascii)
 	("gb2312.1980" . chinese-gb2312)
 	("gbk" . chinese-gbk)
 	("gb18030" . (unicode . nil))

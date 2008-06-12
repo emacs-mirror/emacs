@@ -91,6 +91,7 @@ Otherwise, create function NAME with ARG-LIST and BODY."
         `(defalias ',name ',function)
       `(defun ,name ,arg-list ,@body))))
 (put 'defun-mh 'lisp-indent-function 'defun)
+(put 'defun-mh 'doc-string-elt 4)
 
 ;;;###mh-autoload
 (defmacro defmacro-mh (name macro arg-list &rest body)
@@ -102,6 +103,7 @@ Otherwise, create macro NAME with ARG-LIST and BODY."
         `(defalias ',name ',macro)
       `(defmacro ,name ,arg-list ,@body))))
 (put 'defmacro-mh 'lisp-indent-function 'defun)
+(put 'defmacro-mh 'doc-string-elt 4)
 
 
 

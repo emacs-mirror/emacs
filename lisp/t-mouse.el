@@ -41,6 +41,27 @@
 ;; Prevent warning when compiling in an Emacs without gpm support.
 (declare-function gpm-mouse-start "term.c" ())
 
+(defun gpm-mouse-enable ()
+  "Try to enable gpm mouse support on the current terminal."
+  (let ((activated nil))
+    (unwind-protect
+        (progn
+          (unless (fboundp 'gpm-mouse-start)
+            (error "Emacs must be built with Gpm to use this mode"))
+          (when gpm-mouse-mode
+            (gpm-mouse-start)
+            (set-terminal-parameter nil 'gpm-mouse-active t)
+            (setq activated t)))
+      ;; If something failed to turn it on, try to turn it off as well,
+      ;; just in case.
+      (unless activated (gpm-mouse-disable)))))
+
+(defun gpm-mouse-disable ()
+  "Try to disable gpm mouse support on the current terminal."
+  (when (fboundp 'gpm-mouse-stop)
+    (gpm-mouse-stop))
+  (set-terminal-parameter nil 'gpm-mouse-active nil))
+
 ;;;###autoload
 (define-obsolete-function-alias 't-mouse-mode 'gpm-mouse-mode "23.1")
 ;;;###autoload
@@ -52,21 +73,14 @@ otherwise turn it off.
 This allows the use of the mouse when operating on a GNU/Linux console,
 in the same way as you can use the mouse under X11.
 It relies on the `gpm' daemon being activated."
-  :global t :group 'mouse
-  (let ((activated nil))
-    (unwind-protect
-        (progn
-          (unless (fboundp 'gpm-mouse-start)
-            (error "Emacs must be built with Gpm to use this mode"))
-          (when gpm-mouse-mode
-            (gpm-mouse-start)
-            (setq activated t)))
-      ;; If the user asked to turn it off do that.
-      ;; If something failed to turn it on, try to turn it off as well,
-      ;; just in case.
-      (when (and (fboundp 'gpm-mouse-stop) (not activated))
-        (setq gpm-mouse-mode nil)
-        (gpm-mouse-stop)))))
+  :global t :group 'mouse :init-value t
+  (dolist (terminal (terminal-list))
+    (when (and (eq t (terminal-live-p terminal))
+               (not (eq gpm-mouse-mode
+                        (terminal-parameter terminal 'gpm-mouse-active))))
+      ;; Simulate selecting a terminal by selecting one of its frames ;-(
+      (with-selected-frame (car (frames-on-display-list terminal))
+        (if gpm-mouse-mode (gpm-mouse-enable) (gpm-mouse-disable))))))
 
 (provide 't-mouse)
 

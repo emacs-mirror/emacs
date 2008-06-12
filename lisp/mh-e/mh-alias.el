@@ -43,13 +43,11 @@
   "Alist of aliases extracted from passwd file and their expansions.")
 (defvar mh-alias-tstamp nil
   "Time aliases were last loaded.")
-(defvar mh-alias-read-address-map nil)
-(unless mh-alias-read-address-map
-  (setq mh-alias-read-address-map
-        (copy-keymap minibuffer-local-completion-map))
-  (define-key mh-alias-read-address-map
-    "," 'mh-alias-minibuffer-confirm-address)
-  (define-key mh-alias-read-address-map " " 'self-insert-command))
+(defvar mh-alias-read-address-map
+  (let ((map (copy-keymap minibuffer-local-completion-map)))
+    (define-key map "," 'mh-alias-minibuffer-confirm-address)
+    (define-key map " " 'self-insert-command)
+    map))
 
 (defvar mh-alias-system-aliases
   '("/etc/nmh/MailAliases" "/etc/mh/MailAliases"

@@ -1,3 +1,8 @@
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* url-auth.el (auth-source-user-or-password): Remove unnecessary
+	eval-and-compile.
+
 2008-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-file-name-completion): Add missing argument.

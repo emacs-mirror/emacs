@@ -159,8 +159,7 @@ rejecting one login and prompting again for a username and password.")
     (comint-send-string proc telnet-new-line)))
 
 (defun telnet-filter (proc string)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (let* ((last-insertion (marker-position (process-mark proc)))
 	   (delta (- (point) last-insertion))
 	   (ie (and comint-last-input-end
@@ -168,7 +167,7 @@ rejecting one login and prompting again for a username and password.")
 	   (w (get-buffer-window (current-buffer)))
 	   (ws (and w (window-start w))))
       (goto-char last-insertion)
-      (insert-before-markers string)
+      (insert string)
       (set-marker comint-last-output-start last-insertion)
       (set-marker (process-mark proc) (point))
       (if ws (set-window-start w ws t))
@@ -245,6 +244,7 @@ It has most of the same commands as comint-mode.
 There is a variable ``telnet-interrupt-string'' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed."
+  (set (make-local-variable 'window-point-insertion-type) t)
   (set (make-local-variable 'comint-prompt-regexp) telnet-prompt-pattern)
   (set (make-local-variable 'comint-use-prompt-regexp) t))
 

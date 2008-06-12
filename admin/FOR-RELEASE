@@ -166,6 +166,13 @@ etc/TUTORIAL.sv
 etc/TUTORIAL.th          
 etc/TUTORIAL.zh
 
+* PLANNED ADDITIONS
+** ECB
+** Emacs.app
+** ruby-mode
+** js2-mode
+** rst-mode
+** pov-mode
 
 Local variables:
 mode: outline

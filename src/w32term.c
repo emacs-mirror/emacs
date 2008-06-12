@@ -2910,6 +2910,7 @@ x_draw_glyph_string (s)
                 else if (s->font)
                   position = (s->font->descent + 1) / 2;
                 }
+	      position = max (position, underline_minimum_offset);
             }
 	  /* Check the sanity of thickness and position.  We should
 	     avoid drawing underline out of the current line area.  */
@@ -6377,8 +6378,15 @@ x_make_frame_visible (f)
 
       f->output_data.w32->asked_for_visible = 1;
 
-/*      my_show_window (f, FRAME_W32_WINDOW (f), f->async_iconified ? SW_RESTORE : SW_SHOW);  */
-      my_show_window (f, FRAME_W32_WINDOW (f), SW_SHOWNORMAL);
+      /* The first of these seems to give more expected behavior, but
+         was added as a commented out line in Sept 1997, with the
+         second version remaining uncommented. There may have been
+         some problem with it that led to it not being enabled,
+         so the old version remains commented out below in case we
+         decide we need to go back to it [23.0.60 2008-06-09].  */
+      my_show_window (f, FRAME_W32_WINDOW (f),
+                      f->async_iconified ? SW_RESTORE : SW_SHOW);
+      /* my_show_window (f, FRAME_W32_WINDOW (f), SW_SHOWNORMAL);  */
     }
 
   /* Synchronize to ensure Emacs knows the frame is visible

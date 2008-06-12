@@ -4826,7 +4826,7 @@
 
 	* misc.texi: Section "Saving Emacs Sessions" rewritten.
 
-2003-09-29  Jan Djärv.  <jan.h.d@swipnet.se>
+2003-09-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK names in Emacs): Correct typo.
 

@@ -1,3 +1,16 @@
+2008-06-09  Alan Mackenzie  <acm@muc.de>
+
+	* INSTALL.CVS: Clarify why `make bootstrap' sometimes fails.
+
+2008-06-08  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* INSTALL.CVS: Indicate when "cvs update -d" may be needed.
+
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-build): Remove mostlyclean, since it seems to
+	serve no purpose.
+
 2008-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (USE_LUCID, USE_MOTIF): Don't use "==".
@@ -2069,7 +2082,7 @@
 2001-11-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* configure.in: Reindent --help output.
-	From Per Starback (starback@ling.uu.se).
+	From Per Starbäck (starback@ling.uu.se).
 
 2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
 

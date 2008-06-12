@@ -333,8 +333,7 @@ Please describe the bug in annoying, painstaking detail.
 Thank you for your help in stamping out bugs.
 ")
 
-(eval-and-compile
-  (autoload 'gnus-uu-post-news "gnus-uu" nil t))
+(autoload 'gnus-uu-post-news "gnus-uu" nil t)
 
 
 ;;;

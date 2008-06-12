@@ -310,6 +310,9 @@ w32font_encode_char (font, c)
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, w32_font->compat_w32_font->hfont);
 
+  /* GetCharacterPlacement is used here rather than GetGlyphIndices because
+     it is supported on Windows NT 4 and 9x/ME.  But it cannot reliably report
+     missing glyphs, see below for workaround.  */
   retval = GetCharacterPlacementW (dc, in, len, 0, &result, 0);
 
   SelectObject (dc, old_font);
@@ -317,7 +320,11 @@ w32font_encode_char (font, c)
 
   if (retval)
     {
-      if (result.nGlyphs != 1 || !result.lpGlyphs[0])
+      if (result.nGlyphs != 1 || !result.lpGlyphs[0]
+          /* GetCharacterPlacementW seems to return 3, which seems to be
+             the space glyph in most/all truetype fonts, instead of 0
+             for unsupported glyphs.  */
+          || (result.lpGlyphs[0] == 3 && !iswspace (in[0])))
         return FONT_INVALID_CODE;
       return result.lpGlyphs[0];
     }
@@ -930,7 +937,7 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
     return 1;
 
   family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
-			     strlen (logical_font->elfLogFont.lfFaceName));
+			     strlen (logical_font->elfLogFont.lfFaceName), 1);
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
@@ -1003,7 +1010,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
                       lispy_antialias_type (requested_font->lfQuality));
     }
   ASET (entity, FONT_FAMILY_INDEX,
-        font_intern_prop (lf->lfFaceName, strlen (lf->lfFaceName)));
+        font_intern_prop (lf->lfFaceName, strlen (lf->lfFaceName), 1));
 
   FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
 		  make_number (w32_decode_weight (lf->lfWeight)));
@@ -1360,7 +1367,9 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
           /* If registry was specified as iso10646-1, only report
              ANSI and DEFAULT charsets, as most unicode fonts will
              contain one of those plus others.  */
-          if (EQ (spec_charset, Qiso10646_1)
+          if ((EQ (spec_charset, Qiso10646_1)
+               || EQ (spec_charset, Qunicode_bmp)
+               || EQ (spec_charset, Qunicode_sip))
               && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
               && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
             return 1;
@@ -1370,6 +1379,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
              least it eliminates known definite mismatches.  */
           else if (!NILP (spec_charset)
                    && !EQ (spec_charset, Qiso10646_1)
+                   && !EQ (spec_charset, Qunicode_bmp)
+                   && !EQ (spec_charset, Qunicode_sip)
                    && match_data->pattern.lfCharSet == DEFAULT_CHARSET
                    && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET)
             return 1;
@@ -1441,7 +1452,7 @@ w32_registry (w32_charset, font_type)
     return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
 
   charset = w32_to_x_charset (w32_charset, NULL);
-  return font_intern_prop (charset, strlen(charset));
+  return font_intern_prop (charset, strlen(charset), 1);
 }
 
 static int

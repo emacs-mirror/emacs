@@ -485,8 +485,15 @@ add_opentype_font_name_to_list (logical_font, physical_font, font_type,
       && font_type != TRUETYPE_FONTTYPE)
     return 1;
 
+  /* Skip fonts that have no unicode coverage.  */
+  if (!physical_font->ntmFontSig.fsUsb[3]
+      && !physical_font->ntmFontSig.fsUsb[2]
+      && !physical_font->ntmFontSig.fsUsb[1]
+      && !(physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff))
+    return 1;
+
   family = font_intern_prop (logical_font->elfLogFont.lfFaceName,
-			     strlen (logical_font->elfLogFont.lfFaceName));
+			     strlen (logical_font->elfLogFont.lfFaceName), 1);
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 

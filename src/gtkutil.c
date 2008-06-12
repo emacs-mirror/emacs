@@ -1263,12 +1263,12 @@ xg_uses_old_file_dialog ()
 }
 
 
-/* Function that is called when the file dialog pops down.
+/* Function that is called when the file or font dialogs pop down.
    W is the dialog widget, RESPONSE is the response code.
    USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
 
 static void
-xg_file_response_cb (w,
+xg_dialog_response_cb (w,
                      response,
                      user_data)
      GtkDialog *w;
@@ -1283,7 +1283,7 @@ xg_file_response_cb (w,
 /*  Destroy the dialog.  This makes it pop down.  */
 
 static Lisp_Object
-pop_down_file_dialog (arg)
+pop_down_dialog (arg)
      Lisp_Object arg;
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
@@ -1593,7 +1593,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
   g_signal_connect (G_OBJECT (w),
                     "response",
-                    G_CALLBACK (xg_file_response_cb),
+                    G_CALLBACK (xg_dialog_response_cb),
                     &filesel_done);
 
   /* Don't destroy the widget if closed by the window manager close button.  */
@@ -1601,7 +1601,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
   gtk_widget_show (w);
 
-  record_unwind_protect (pop_down_file_dialog, make_save_value (w, 0));
+  record_unwind_protect (pop_down_dialog, make_save_value (w, 0));
   while (! filesel_done)
     {
       x_menu_wait_for_event (0);
@@ -1619,6 +1619,71 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
   return fn;
 }
+
+#ifdef HAVE_FREETYPE
+/* Pop up a GTK font selector and return the name of the font the user
+   selects, as a C string.  The returned font name follows GTK's own
+   format:
+
+   `FAMILY [VALUE1 VALUE2] SIZE'
+
+   This can be parsed using font_parse_fcname in font.c.
+   DEFAULT_NAME, if non-zero, is the default font name.  */
+
+char *
+xg_get_font_name (f, default_name)
+     FRAME_PTR f;
+     char *default_name;
+{
+  GtkWidget *w = 0;
+  int count = SPECPDL_INDEX ();
+  char *fontname = NULL;
+  int done = 0;
+
+#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+  sigblock (sigmask (__SIGRTMIN));
+#endif /* HAVE_GTK_AND_PTHREAD */
+
+  w = gtk_font_selection_dialog_new ("Pick a font");
+  if (default_name)
+    gtk_font_selection_dialog_set_font_name (w, default_name);
+
+  xg_set_screen (w, f);
+  gtk_widget_set_name (w, "emacs-fontdialog");
+  gtk_window_set_transient_for (GTK_WINDOW (w),
+                                GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+  gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
+  gtk_window_set_modal (GTK_WINDOW (w), TRUE);
+
+  g_signal_connect (G_OBJECT (w), "response",
+		    G_CALLBACK (xg_dialog_response_cb), &done);
+
+  /* Don't destroy the widget if closed by the window manager close button.  */
+  g_signal_connect (G_OBJECT (w), "delete-event", G_CALLBACK (gtk_true), NULL);
+
+  gtk_widget_show (w);
+
+  record_unwind_protect (pop_down_dialog, make_save_value (w, 0));
+  while (!done)
+    {
+      x_menu_wait_for_event (0);
+      gtk_main_iteration ();
+    }
+
+#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+  sigunblock (sigmask (__SIGRTMIN));
+#endif
+
+  if (done == GTK_RESPONSE_OK)
+    fontname = gtk_font_selection_dialog_get_font_name
+      ((GtkFontSelectionDialog *) w);
+
+  unbind_to (count, Qnil);
+
+  return fontname;
+}
+#endif /* HAVE_FREETYPE */
+
 
 
 /***********************************************************************

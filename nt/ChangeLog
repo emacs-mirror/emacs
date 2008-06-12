@@ -135,8 +135,8 @@
 
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (unidatagen-SH, unidatagen-clean-SH): Ignore
-	return status.
+	* makefile.w32-in (unidatagen-SH, unidatagen-clean-SH):
+	Ignore return status.
 
 	* configure.bat (dontCopy): Rename admin/unidata/Makefile to keep
 	it out of the way of Windows generated file.  Generate
@@ -208,7 +208,7 @@
 
 	* emacs.rc: Increase version to 23.0.50.
 
-2007-08-14  Dhuvra Krishnamurthy  <dhuvrakm@gmail.com>  (tiny change)
+2007-08-14  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
 
 	* makefile.w32-in (bootstrap-nmake): Change directories once more.
 

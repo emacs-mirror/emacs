@@ -10,16 +10,18 @@ byte-compiled Lisp files, are not stored in the CVS repository.
 Therefore, to build from CVS you must run "make bootstrap"
 instead of just "make":
 
+  $ cvs update -dP
   $ ./configure
   $ make bootstrap
 
 The bootstrap process makes sure all necessary files are rebuilt
-before it builds the final Emacs binary.
+before it builds the final Emacs binary.  Unfortunately, it doesn't
+always work when there are stale files from a previous build in the
+directory tree.
 
-If 'make bootstrap' fails, it may be necessary to do 'make maintainer-clean'
-followed by configure before trying it again.  (Occasionally the loaddefs.el
-file gets into a bad state due to changes in the Lisp libraries; this procedure
-forces it to be regenerated.)
+So if 'make bootstrap' fails, it may be necessary first to do 'make
+maintainer-clean' to clear out these stale files.  You can then try
+again, starting with `./configure'.
 
 Normally, it is not necessary to use "make bootstrap" after every CVS
 update.  Unless there are problems, we suggest using the following
@@ -36,20 +38,22 @@ once:
 (If you want to install the Emacs binary, type "make install" instead
 of "make" in the last command.)
 
-Occasionally the file "lisp/loaddefs.el" (and similar *-loaddefs.el
-files in some subdirectories of lisp/, e.g. mh-e/ and calendar/) will
-need to be updated to reflect new autoloaded functions.  If you see
-errors (rather than warnings) about undefined lisp functions during
-compilation, that may be the reason.  Another symptom may be an error
-saying that "loaddefs.el" could not be found; this is due to a change
-in the way loaddefs.el was handled in CVS, and should only happen
-once, for users that are updating old CVS trees.  Finally, sometimes
-there can be build failures related to *loaddefs.el.  In that case,
-delete them before following the instructions below to update them.
+Occasionally the file "lisp/loaddefs.el" (and similar automatically
+generated files, such as esh-groups.el, and *-loaddefs.el in some
+subdirectories of lisp/, e.g. mh-e/ and calendar/) will need to be
+updated to reflect new autoloaded functions.  If you see errors (rather
+than warnings) about undefined lisp functions during compilation, that
+may be the reason.  Another symptom may be an error saying that
+"loaddefs.el" could not be found; this is due to a change in the way
+loaddefs.el was handled in CVS, and should only happen once, for users
+that are updating old CVS trees.  Finally, sometimes there can be build
+failures related to *loaddefs.el (e.g. "required feature `esh-groups'
+was not provided").  In that case, follow the instructions below.
 
 To update loaddefs.el (and similar files), do:
 
   $ cd lisp
+  $ make autogen-clean
   $ make autoloads EMACS=../src/emacs
 
 If either of the above partial procedures fails, try "make bootstrap".

@@ -1004,6 +1004,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defvar byte-compile-current-form nil)
 (defvar byte-compile-dest-file nil)
 (defvar byte-compile-current-file nil)
+(defvar byte-compile-current-group nil)
 (defvar byte-compile-current-buffer nil)
 
 ;; Log something that isn't a warning.
@@ -1415,9 +1416,13 @@ extra args."
 
 ;; Warn if a custom definition fails to specify :group.
 (defun byte-compile-nogroup-warn (form)
-  (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
-        (name (cadr form)))
-    (or (not (eq (car-safe name) 'quote))
+  (if (and (memq (car form) '(custom-declare-face custom-declare-variable))
+           byte-compile-current-group)
+      ;; The group will be provided implicitly.
+      nil
+    (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
+          (name (cadr form)))
+      (or (not (eq (car-safe name) 'quote))
         (and (eq (car form) 'custom-declare-group)
              (equal name ''emacs))
         (plist-get keyword-args :group)
@@ -1425,10 +1430,15 @@ extra args."
         (byte-compile-warn
          "%s for `%s' fails to specify containing group"
          (cdr (assq (car form)
-                    '((custom-declare-group . defgroup)
-                      (custom-declare-face . defface)
-                      (custom-declare-variable . defcustom))))
-         (cadr name)))))
+                      '((custom-declare-group . defgroup)
+                        (custom-declare-face . defface)
+                        (custom-declare-variable . defcustom))))
+           (cadr name)))
+      ;; Update the current group, if needed.
+      (if (and byte-compile-current-file ;Only when byte-compiling a whole file.
+               (eq (car form) 'custom-declare-group)
+               (eq (car-safe name) 'quote))
+          (setq byte-compile-current-group (cadr name))))))
 
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
@@ -1793,6 +1803,7 @@ The value is non-nil if there were no errors, nil if errors."
   ;; Force logging of the file name for each file compiled.
   (setq byte-compile-last-logged-file nil)
   (let ((byte-compile-current-file bytecomp-filename)
+        (byte-compile-current-group nil)
 	(set-auto-coding-for-load t)
 	target-file input-buffer output-buffer
 	byte-compile-dest-file)

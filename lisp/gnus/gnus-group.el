@@ -1108,6 +1108,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
   :group 'gnus-group)
 
 (defvar image-load-path)
+(defvar tool-bar-map)
 
 (defun gnus-group-make-tool-bar (&optional force)
   "Make a group mode tool bar from `gnus-group-tool-bar'.
@@ -3230,10 +3231,9 @@ score file entries for articles to include in the group."
 		       'summary 'group)))
       (error "Couldn't enter %s" dir))))
 
-(eval-and-compile
-  (autoload 'nnimap-expunge "nnimap")
-  (autoload 'nnimap-acl-get "nnimap")
-  (autoload 'nnimap-acl-edit "nnimap"))
+(autoload 'nnimap-expunge "nnimap")
+(autoload 'nnimap-acl-get "nnimap")
+(autoload 'nnimap-acl-edit "nnimap")
 
 (defun gnus-group-nnimap-expunge (group)
   "Expunge deleted articles in current nnimap GROUP."

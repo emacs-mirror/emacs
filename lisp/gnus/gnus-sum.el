@@ -2889,6 +2889,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
   :group 'gnus-summary)
 
 (defvar image-load-path)
+(defvar tool-bar-map)
 
 (defun gnus-summary-make-tool-bar (&optional force)
   "Make a summary mode tool bar from `gnus-summary-tool-bar'.

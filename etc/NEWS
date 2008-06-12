@@ -33,8 +33,9 @@ backends.  This requires the freetype and fontconfig libraries, and
 supports local fonts (fonts installed on the machine where Emacs is
 running).  Additionally, the Xft library can be used for antialiasing
 support, the otf library for complex text layout by OpenType fonts,
-and the m17n library for text shaping.  Fontconfig-like font names
-(e.g. monospace-12) are accepted.
+and the m17n library for text shaping.  Emacs now accepts font names
+supplied in the fontconfig format (e.g. "monospace-12:bold") and GTK
+format (e.g. "Monospace Bold 12").
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -62,6 +63,10 @@ you need control over which C compiler is used.
 default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
+
+** Apropos
+*** `apropos-library' describes the elements defined in a given library.
+*** Set `apropos-compact-layout' is you want a more compact (but wider) layout.
 
 ** scroll-preserve-screen-position also preserves the column position.
 ** Completion.
@@ -153,8 +158,24 @@ starts with a `(', the string is evaluated as a Lisp form.
 ** set-file-modes is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
 
-** split-window-preferred-function specifies whether display-buffer should
-split windows vertically or horizontally.
+** Changes affecting display-buffer
+*** New value nil for split-height-threshold inhibits vertical splitting
+unless there's no other window.
+*** New option split-width-threshold controls horizontal splitting.
+*** A window can be split horizontally even when it's not full-width.
+*** New option split-window-preferred-function can be set to a function
+to override the default splitting mechanism of display-buffer.
+
+** Menu Bar changes
+
+*** The Options menu contains a new entry to turn on Longlines mode.
+
+*** In the Options menu, the "Set Default Font" item applies the
+selected font to the `default' face on all frames, not just the
+current frame.  This font setting will be saved if the "Save Options"
+item is used.  Furthermore, if Emacs is compiled with both GTK and
+Fontconfig support, the "Set Default Font" item uses the GTK font
+selection dialog instead of an Emacs pop-up menu.
 
 ** Emacsclient has been extended to support opening a new terminal
 frame.  Its behavior has been changed to open a new Emacs frame by
@@ -715,6 +736,12 @@ It is used to configure wireless interfaces.
 
 * Changes in Emacs 23.1 on non-free operating systems
 
+** Case is now considered significant in completion on MS-Windows.
+The default value of `completion-ignore-case' is now nil on
+MS-Windows, the same as it is for other operating systems.  The
+variable doesn't apply to reading a file name -- in that case Emacs
+heeds `read-file-name-completion-ignore-case' instead.
+
 ---
 ** IPv6 is supported on MS-Windows.
 Emacs now supports IPv6 on Windows XP and later, and earlier versions
@@ -810,6 +837,9 @@ functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
+
+** The variable window-point-insertion-type determines the insertion-type
+of the marker used for window-point.
 
 ** minibuffer-local-must-match-filename-map is now named
 minibuffer-local-filename-must-match-map.

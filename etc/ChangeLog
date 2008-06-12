@@ -1,3 +1,8 @@
+2008-06-08  John Paul Wallington  <jpw@pobox.com>
+
+	* NEWS: Document that `completion-ignore-case' is nil on
+	MS-Windows.
+
 2008-05-19  Tom Tromey  <tromey@redhat.com>
 
 	* NEWS: Mention directory-local variables.

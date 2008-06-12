@@ -541,7 +541,7 @@ FONT_DRIVERS = xfont.o
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -1166,6 +1166,8 @@ xftfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
    font.h $(config_h)
 ftxfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
    font.h $(config_h)
+menu.o: menu.c lisp.h keyboard.h keymap.h frame.h termhooks.h blockinput.h \
+   dispextern.h $(srcdir)/../lwlib/lwlib.h xterm.h gtkutil.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
    systime.h gtkutil.h msdos.h coding.h $(config_h)

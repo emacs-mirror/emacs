@@ -1,4 +1,42 @@
-2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
+2008-06-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el: Require edmacro when compiling with XEmacs.
+	(nnir-run-find-grep): Don't use 3rd arg of `split-string' which is not
+	available in Emacs 21.
+
+2008-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (x-focus-frame):
+	* gnus.el (image-size):
+	* mm-decode.el (image-size): Declare.
+
+	* gnus-picon.el (declare-function): Add compat definition.
+	(image-size): Declare.
+
+	* gnus-group.el (tool-bar-map):
+	* gnus-sum.el (tool-bar-map): Define for compiler.
+
+	* gnus-ems.el (gnus-x-splash): Check tool-bar-mode is bound.
+
+	* nnfolder.el (gnus-intersection): Remove unnecessary autoload.
+
+	* gnus-agent.el, gnus-cache.el, gnus-ems.el, gnus-group.el:
+	* gnus-logic.el, gnus-msg.el, gnus-util.el, gnus.el, mail-source.el:
+	* message.el, mm-decode.el, mm-encode.el, mm-view.el, mml.el:
+	* mml1991.el, mml2015.el, nnfolder.el, nnheader.el, nnimap.el:
+	* nnmail.el, nnml.el, nnrss.el, nntp.el, nnvirtual.el:
+	* sieve-manage.el, spam-report.el, spam.el:
+	Remove unnecessary eval-and-compile of autoloads.
+
+2008-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el: Precise Tramp doc.
+
+2008-06-07  Glenn Morris  <rgm@gnu.org>
+
+	* nnmairix.el: Remove unnecessary eval-when-compile.
+
+2008-06-06  Kai Großjohann  <grossjohann@ls6.cs.uni-dortmund.de>
 
 	* nnir.el: New file.
 
@@ -9618,7 +9656,7 @@
 	* flow-fill.el (fill-flowed-display-column)
 	(fill-flowed-encode-column): Ditto.
 
-2004-09-06  Stefan  <monnier@iro.umontreal.ca>
+2004-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-tokenize-header, message-send-mail-with-qmail):
 	Use point-min rather than 1.
@@ -10741,13 +10779,13 @@
 	* gnus-art.el (gnus-emphasis-alist): Removed strikethru; too many
 	false positives.
 
-2004-05-16  Kim Minh Kaplan  <kmkaplan-AwwS6Bc0PDVoiYX5Tdu9fQ@public.gmane.org>
+2004-05-16  Kim-Minh Kaplan  <kmkaplan-AwwS6Bc0PDVoiYX5Tdu9fQ@public.gmane.org>
 
 	* imap.el (imap-sasl-make-mechanisms): Use sasl.
 
 2004-05-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* nneething.el (nneething-file-name): Don't create spurions
+	* nneething.el (nneething-file-name): Don't create spurious
 	files.
 
 	* gnus-msg.el (gnus-inews-do-gcc): Ignore read-only groups.

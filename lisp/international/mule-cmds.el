@@ -1,7 +1,7 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -31,9 +31,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (defvar dos-codepage)
-  (autoload 'widget-value "wid-edit"))
+(defvar dos-codepage)
+(autoload 'widget-value "wid-edit")
 
 (defvar mac-system-coding-system)
 (defvar mac-system-locale)
@@ -1507,7 +1506,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
 	  (when interactive
 	    (customize-mark-as-set 'default-input-method)))))))
 
-(eval-when-compile (autoload 'help-buffer "help-mode"))
+(autoload 'help-buffer "help-mode")
 
 (defun describe-input-method (input-method)
   "Describe input method INPUT-METHOD."

@@ -1,7 +1,7 @@
 ;;; nnrss.el --- interfacing with RSS
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: RSS
@@ -491,7 +491,7 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
       (unless (assoc (car elem) nnrss-group-alist)
 	(insert (prin1-to-string (car elem)) " 0 1 y\n")))))
 
-(eval-and-compile (autoload 'timezone-parse-date "timezone"))
+(autoload 'timezone-parse-date "timezone")
 
 (defun nnrss-normalize-date (date)
   "Return a date string of DATE in the RFC822 style.

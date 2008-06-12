@@ -1,6 +1,7 @@
 ;;; spam-report.el --- Reporting spam
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: network, spam, mail, gmane, report
@@ -30,8 +31,7 @@
 (require 'gnus)
 (require 'gnus-sum)
 
-(eval-and-compile
-  (autoload 'mm-url-insert "mm-url"))
+(autoload 'mm-url-insert "mm-url")
 
 (defgroup spam-report nil
   "Spam reporting configuration."

@@ -75,8 +75,7 @@
 ;;
 ;;    * Maintainer line --- should be a single name/address as in the Author
 ;; line, or an address only, or the string "FSF".  If there is no maintainer
-;; line, the person(s) in the Author field are presumed to be it.  The example
-;; in this file is mildly bogus because the maintainer line is redundant.
+;; line, the person(s) in the Author field are presumed to be it.
 ;;    The idea behind these two fields is to be able to write a Lisp function
 ;; that does "send mail to the author" without having to mine the name out by
 ;; hand.  Please be careful about surrounding the network address with <> if
@@ -94,8 +93,8 @@
 ;; package for the distribution.  (This file doesn't have one because the
 ;; author *is* one of the maintainers.)
 ;;
-;;    * Keywords line --- used by the finder code (now under construction)
-;; for finding Emacs Lisp code related to a topic.
+;;    * Keywords line --- used by the finder code for finding Emacs
+;; Lisp code related to a topic.
 ;;
 ;;    * X-Bogus-Bureaucratic-Cruft line --- this is a joke and an example
 ;; of a comment header.  Headers starting with `X-' should never be used
@@ -589,7 +588,7 @@ which do not include a recognizable synopsis."
               (lm-summary))
           (when must-kill (kill-buffer (current-buffer))))))))
 
-(eval-when-compile (defvar report-emacs-bug-address))
+(defvar report-emacs-bug-address)
 
 (defun lm-report-bug (topic)
   "Report a bug in the package currently being visited to its maintainer.

@@ -1044,7 +1044,9 @@ If HDR is non-nil, insert a header line with the directory name."
     ;; Insert text at the beginning to standardize things.
     (save-excursion
       (goto-char opoint)
-      (if (and (or hdr wildcard) (not (looking-at "^  /.*:$")))
+      (if (and (or hdr wildcard)
+               (not (and (looking-at "^  \\(.*\\):$")
+                         (file-name-absolute-p (match-string 1)))))
 	  ;; Note that dired-build-subdir-alist will replace the name
 	  ;; by its expansion, so it does not matter whether what we insert
 	  ;; here is fully expanded, but it should be absolute.

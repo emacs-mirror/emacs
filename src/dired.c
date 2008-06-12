@@ -768,7 +768,9 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 
   if (all_flag || NILP (bestmatch))
     return bestmatch;
-  if (matchcount == 1 && bestmatchsize == SCHARS (file))
+  /* Return t if the supplied string is an exact match (counting case);
+     it does not require any change to be made.  */
+  if (matchcount == 1 && !NILP (Fequal (bestmatch, file)))
     return Qt;
   bestmatch = Fsubstring (bestmatch, make_number (0),
 			  make_number (bestmatchsize));

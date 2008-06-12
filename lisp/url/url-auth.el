@@ -1,7 +1,7 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -25,9 +25,7 @@
 (require 'url-vars)
 (require 'url-parse)
 (autoload 'url-warn "url")
-
-(eval-and-compile
-  (autoload 'auth-source-user-or-password "auth-source"))
+(autoload 'auth-source-user-or-password "auth-source")
 
 (defsubst url-auth-user-prompt (url realm)
   "String to usefully prompt for a username."
@@ -83,11 +81,11 @@ instead of the filename inheritance method."
 				  (symbol-value url-basic-auth-storage))))
     (cond
      ((and prompt (not byserv))
-      (setq user (or 
+      (setq user (or
 		  (auth-source-user-or-password "login" server type)
 		  (read-string (url-auth-user-prompt url realm)
 			       (or user (user-real-login-name))))
-	    pass (or 
+	    pass (or
 		  (auth-source-user-or-password "password" server type)
 		  (read-passwd "Password: " nil (or pass ""))))
       (set url-basic-auth-storage
@@ -111,11 +109,11 @@ instead of the filename inheritance method."
 	    (setq byserv (cdr byserv))))
       (if (or (and (not retval) prompt) overwrite)
 	  (progn
-	    (setq user (or 
+	    (setq user (or
 			(auth-source-user-or-password "login" server type)
 			(read-string (url-auth-user-prompt url realm)
 				     (user-real-login-name)))
-		  pass (or 
+		  pass (or
 			(auth-source-user-or-password "password" server type)
 			(read-passwd "Password: "))
 		  retval (base64-encode-string (format "%s:%s" user pass))
@@ -205,11 +203,11 @@ instead of hostname:portnum."
 		(setq byserv (cdr byserv))))
 	  (if overwrite
 	      (if (and (not retval) prompt)
-		  (setq user (or 
+		  (setq user (or
 			      (auth-source-user-or-password "login" server type)
 			      (read-string (url-auth-user-prompt url realm)
 					   (user-real-login-name)))
-			pass (or 
+			pass (or
 			      (auth-source-user-or-password "password" server type)
 			      (read-passwd "Password: "))
 			retval (setq retval

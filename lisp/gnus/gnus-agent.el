@@ -1,7 +1,7 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -37,10 +37,8 @@
     (require 'timer))
   (require 'cl))
 
-(eval-and-compile
-  (autoload 'gnus-server-update-server "gnus-srvr")
-  (autoload 'gnus-agent-customize-category "gnus-cus")
-)
+(autoload 'gnus-server-update-server "gnus-srvr")
+(autoload 'gnus-agent-customize-category "gnus-cus")
 
 (defcustom gnus-agent-directory (nnheader-concat gnus-directory "agent/")
   "Where the Gnus agent will store its files."

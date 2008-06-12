@@ -1506,8 +1506,9 @@ This applies the defface/custom spec first, then the custom theme specs,
 then the override spec."
   (face-spec-reset-face face frame)
   (let ((face-sym (or (get face 'face-alias) face)))
-    (face-spec-set-2 face frame
-		     (face-user-default-spec face))
+    (or (get face 'customized-face)
+	(get face 'saved-face)
+	(face-spec-set-2 face frame (face-default-spec face)))
     (let ((theme-faces (reverse (get face-sym 'theme-face))))
       (dolist (spec theme-faces)
 	(face-spec-set-2 face frame (cadr spec))))

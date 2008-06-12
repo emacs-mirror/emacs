@@ -1,7 +1,7 @@
 ;; erc-menu.el -- Menu-bar definitions for ERC
 
-;; Copyright (C) 2001, 2002, 2004, 2005, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm, processes, menu
@@ -129,8 +129,7 @@ ERC menu yet.")
      (message "You might have to restart Emacs to remove the ERC menu"))))
 
 ;; silence byte-compiler warning
-(eval-when-compile
-  (defvar erc-menu nil))
+(defvar erc-menu)
 
 (defun erc-menu-add ()
   "Add the ERC menu to the current buffer."

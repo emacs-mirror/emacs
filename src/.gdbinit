@@ -1039,6 +1039,23 @@ define xfontset
   echo \n
 end
 
+define xfont
+  xgetptr $
+  set $size = (((struct Lisp_Vector *) $ptr)->size & 0x1FF)
+  if $size == FONT_SPEC_MAX
+    print (struct font_spec *) $ptr
+  else
+    if $size == FONT_ENTITY_MAX
+      print (struct font_entity *) $ptr
+    else
+      print (struct font *) $ptr
+    end
+  end
+end
+document xfont
+Print $ assuming it is a list font (font-spec, font-entity, or font-object).
+end
+
 define xbacktrace
   set $bt = backtrace_list
   while $bt

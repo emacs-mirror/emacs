@@ -27,9 +27,8 @@
 (eval-when-compile (require 'cl))
 (require 'mail-parse)
 (require 'mailcap)
-(eval-and-compile
-  (autoload 'mm-body-7-or-8 "mm-bodies")
-  (autoload 'mm-long-lines-p "mm-bodies"))
+(autoload 'mm-body-7-or-8 "mm-bodies")
+(autoload 'mm-long-lines-p "mm-bodies")
 
 (defcustom mm-content-transfer-encoding-defaults
   '(("text/x-patch" 8bit)

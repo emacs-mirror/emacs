@@ -42,9 +42,8 @@
 (require 'gnus-util)
 (require 'gnus-range)
 
-(eval-and-compile
-  (autoload 'gnus-article-unpropagatable-p "gnus-sum")
-  (autoload 'gnus-intersection "gnus-range"))
+;; FIXME not explicitly used in this file.
+(autoload 'gnus-article-unpropagatable-p "gnus-sum")
 
 (nnoo-declare nnfolder)
 

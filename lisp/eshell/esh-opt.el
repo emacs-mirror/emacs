@@ -1,7 +1,7 @@
 ;;; esh-opt.el --- command options processing
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -72,12 +72,11 @@ interned variable `args' (created using a `let' form)."
 
 ;;; Internal Functions:
 
-(eval-when-compile
-  (defvar temp-args)
-  (defvar last-value)
-  (defvar usage-msg)
-  (defvar ext-command)
-  (defvar args))
+(defvar temp-args)
+(defvar last-value)
+(defvar usage-msg)
+(defvar ext-command)
+(defvar args)
 
 (defun eshell-do-opt (name options body-forms)
   "Helper function for `eshell-eval-using-options'.

@@ -35,11 +35,10 @@
 (eval-when-compile (require 'cl)
 		   (require 'term))
 
-(eval-and-compile
-  (autoload 'mm-inline-partial "mm-partial")
-  (autoload 'mm-inline-external-body "mm-extern")
-  (autoload 'mm-extern-cache-contents "mm-extern")
-  (autoload 'mm-insert-inline "mm-view"))
+(autoload 'mm-inline-partial "mm-partial")
+(autoload 'mm-inline-external-body "mm-extern")
+(autoload 'mm-extern-cache-contents "mm-extern")
+(autoload 'mm-insert-inline "mm-view")
 
 (defvar gnus-current-window-configuration)
 
@@ -1437,6 +1436,8 @@ be determined."
 	(or (mm-image-type-from-buffer)
 	    (intern type))
 	:data (buffer-string)))))))
+
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun mm-image-fit-p (handle)
   "Say whether the image in HANDLE will fit the current window."

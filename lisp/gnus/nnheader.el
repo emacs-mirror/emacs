@@ -41,11 +41,11 @@
 (require 'mail-utils)
 (require 'mm-util)
 (require 'gnus-util)
-(eval-and-compile
-  (autoload 'gnus-sorted-intersection "gnus-range")
-  (autoload 'gnus-intersection "gnus-range")
-  (autoload 'gnus-sorted-complement "gnus-range")
-  (autoload 'gnus-sorted-difference "gnus-range"))
+;; FIXME none of these are used explicitly in this file.
+(autoload 'gnus-sorted-intersection "gnus-range")
+(autoload 'gnus-intersection "gnus-range")
+(autoload 'gnus-sorted-complement "gnus-range")
+(autoload 'gnus-sorted-difference "gnus-range")
 
 (defcustom gnus-verbose-backends 7
   "Integer that says how verbose the Gnus backends should be.
@@ -112,11 +112,10 @@ on your system, you could say something like:
   (string-to-char (substring (file-name-as-directory ".") -1))
   "*A character used to a directory separator.")
 
-(eval-and-compile
-  (autoload 'nnmail-message-id "nnmail")
-  (autoload 'mail-position-on-field "sendmail")
-  (autoload 'message-remove-header "message")
-  (autoload 'gnus-buffer-live-p "gnus-util"))
+(autoload 'nnmail-message-id "nnmail")
+(autoload 'mail-position-on-field "sendmail")
+(autoload 'message-remove-header "message")
+(autoload 'gnus-buffer-live-p "gnus-util")
 
 ;;; Header access macros.
 

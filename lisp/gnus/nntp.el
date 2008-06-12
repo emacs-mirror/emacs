@@ -36,8 +36,7 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-and-compile
-  (autoload 'auth-source-user-or-password "auth-source"))
+(autoload 'auth-source-user-or-password "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -1180,10 +1179,10 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
-	 (user (or 
+	 (user (or
 		;; this is preferred to netrc-*
 		(auth-source-user-or-password "login" nntp-address "nntp")
-		(netrc-get alist "login") 
+		(netrc-get alist "login")
 		nntp-authinfo-user))
 	 (passwd (or
 		  ;; this is preferred to netrc-*
@@ -1302,10 +1301,9 @@ password contained in '~/.nntp-authinfo'."
 (defun nntp-open-network-stream (buffer)
   (open-network-stream "nntpd" buffer nntp-address nntp-port-number))
 
-(eval-and-compile
-  (autoload 'format-spec "format-spec")
-  (autoload 'format-spec-make "format-spec")
-  (autoload 'open-tls-stream "tls"))
+(autoload 'format-spec "format-spec")
+(autoload 'format-spec-make "format-spec")
+(autoload 'open-tls-stream "tls")
 
 (defun nntp-open-ssl-stream (buffer)
   (let* ((process-connection-type nil)
@@ -2120,8 +2118,7 @@ Please refer to the following variables to customize the connection:
       (make-directory (directory-file-name dir) t)
       (nnheader-message 5 "Creating nntp marks directory %s" dir))))
 
-(eval-and-compile
-  (autoload 'time-less-p "time-date"))
+(autoload 'time-less-p "time-date")
 
 (defun nntp-marks-changed-p (group server)
   (let ((file (nntp-group-pathname server group nntp-marks-file-name))

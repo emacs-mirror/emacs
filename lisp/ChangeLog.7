@@ -4,7 +4,7 @@
 
 	* language/romanian.el ("Romanian"): Specify the tutorial file.
 
-1998-08-18  Per Starback  <starback@update.uu.se>
+1998-08-18  Per Starbäck  <starback@update.uu.se>
 
 	* language/european.el (setup-latin2-environment): Fix typo.
 	(iso-latin-1): Doc fix.
@@ -1973,7 +1973,7 @@
 
 	* replace.el (occur): Set buffer-read-only.
 
-1998-06-20  Per Starback  <starback@strindberg.ling.uu.se>
+1998-06-20  Per Starbäck  <starback@strindberg.ling.uu.se>
 
 	* international/characters.el, ispell.el, startup.el: Doc fixes.
 
@@ -2506,7 +2506,7 @@
 	don't move point if possible.
 	(rmail-count-screen-lines): Add.
 
-1998-06-03  Per Starback  <starback@update.uu.se>
+1998-06-03  Per Starbäck  <starback@update.uu.se>
 
 	* emacs-lisp/bytecomp.el (byte-compile-lambda): Fix previous
 	change.
@@ -2569,7 +2569,7 @@
 
 	* arc-mode.el (archive-extract): Fix handling of 'view option.
 
-1998-06-01  Per Starback  <starback@update.uu.se>
+1998-06-01  Per Starbäck  <starback@update.uu.se>
 
 	* apropos.el (apropos-variable): Fixed argument to apropos-command.
 	(apropos-command): Let `var-predicate' have higher priority than
@@ -2749,7 +2749,7 @@
 	* abbrev.el: Likewise.
 
 1998-05-26  Emilio Lopes  <Emilio.Lopes@Physik.TU-Muenchen.DE>
-	        and Karl Fogel  <kfogel@red-bean.com>
+	    Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Changes so bookmark list mode works with Info:
 	(bookmark-jump-noselect): Use an inner save-window-excursion.
@@ -4226,7 +4226,7 @@
 	* tmm.el (tmm-get-keymap): Handle new format menu item w/o cache.
 	(tmm-prompt): If reach an empty menu, get an error.
 
-1998-04-20  Per Starback  <starback@update.uu.se>
+1998-04-20  Per Starbäck  <starback@update.uu.se>
 
 	* dired.el (dired-move-to-filename-regexp): There might be a space
 	after the year instead of before it.
@@ -6119,7 +6119,7 @@
 	(reftex-select-next, reftex-select-previous, reftex-select-scroll-up)
 	(reftex-select-scroll-down, reftex-select-next-heading)
 	(reftex-select-previous-heading): Handle prefix arguments.
-	(reftex-toc, reftex-make-and-insert-label-list):
+	(reftex-toc, reftex-make-and-insert-label-list)
 	(reftex-insert-bib-matches): Add mouse-face property.
 	(reftex-highlight-selection): New option.
 	(reftex-select-mouse-accept): New command.
@@ -6140,7 +6140,7 @@
 	(reftex-get-file-buffer-force): Turn off `enable-local-variables'
 	when reading a file literally.
 
-1998-02-25  Per Starback  <starback@strindberg.ling.uu.se>
+1998-02-25  Per Starbäck  <starback@strindberg.ling.uu.se>
 
 	* play/doctor.el (mathlst): Fix typo.
 	(shortlst): Avoid saying "Can you be", which confuses the doctor.
@@ -6627,7 +6627,7 @@
 
 	* jka-compr.el (jka-compr-compression-info-list): Handle bzip.
 
-1998-02-06  Per Starback  <starback@update.uu.se>
+1998-02-06  Per Starbäck  <starback@update.uu.se>
 
 	* international/iso-transl.el (iso-transl-define-keys): Don't add
 	nonascii-insert-offset to ASCII characters.
@@ -6906,7 +6906,7 @@
 	`reftex-select-font-lock-fontify-region'.
 	(reftex-show-entry): Refontification generalized.
 	(reftex-select-search-minibuffer-map): New constant.
-	(reftex-parse-from-file): Look for \begin{thebibliography}
+	(reftex-parse-from-file): Look for \begin{thebibliography}.
 	(reftex-do-citation): Check also for thebibliography.
 	(reftex-bibtex-selection-callback): Handle bibitem.
 	(reftex-view-crossref): Handle bibitem.
@@ -9939,8 +9939,8 @@
 	(reftex-find-files-on-path): Function removed.
 	(reftex-find-file-on-path): New function.
 	(reftex-access-search-path, reftex-parse-colon-path)
-	(reftex-recursive-directory-list,reftex-expand-path): New
-	functions, dealing with recursive TEXINPUTS and BIBINPUTS
+	(reftex-recursive-directory-list, reftex-expand-path):
+	New functions, dealing with recursive TEXINPUTS and BIBINPUTS
 	definitions.
 
 1997-10-20  Per Abrahamsen  <abraham@dina.kvl.dk>
@@ -13052,7 +13052,7 @@
 	* mail/sendmail.el (mail-mode): Make adaptive-fill-regexp
 	match more values.  Bind adaptive-fill-first-line-regexp too.
 
-1997-07-26  Eric Raymond  <esr@snark.thyrsus.com>
+1997-07-26  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* telnet.el (telnet): Handle multiple telnet programs better.
 	(telnet-host-properties): New variable.
@@ -16533,7 +16533,7 @@
 
 	* sendmail.el (mail-setup): Clear out buffer-file-coding-system.
 
-1997-06-02  Martin Lorentzon  <emwson@emw.ericsson.se>
+1997-06-02  Martin Lorentzson  <emwson@emw.ericsson.se>
 
 	* vc-hooks.el (vc-annotate): Entry "Annotate" added to menu and
 	function `vc-annotate' to key-sequence `C-x v g'.
@@ -16867,7 +16867,7 @@
 	(icomplete-max-delay-chars): Maximum number of initial chars to
 	apply icomplete compute delay.
 	(icomplete-compute-delay): Completions-computation stall, used
-	only with large-number completions
+	only with large-number completions.
 	(icomplete-delay-completions-threshold): Pending-completions
 	number over which to apply icomplete-compute-delay.
 
@@ -18279,7 +18279,7 @@
 	and display-time-24hr-format here.
 	(display-time-format): Default value is now nil.
 
-1997-05-04  Reingold Edward M  <emr@silver.wisdom.weizmann.ac.il>
+1997-05-04  Edward M Reingold  <emr@silver.wisdom.weizmann.ac.il>
 
 	* list-holidays.el (list-holidays): Fix buffer title when list is
 	nil.  Do save-excursion to keep from messing up calendar variables.
@@ -19735,7 +19735,7 @@
 
 	* dired-aux.el (dired-mark-confirm): Likewise.
 
-1997-03-19  Reingold Edward M  <emr@silver.wisdom.weizmann.ac.il>
+1997-03-19  Edward M Reingold  <emr@silver.wisdom.weizmann.ac.il>
 
 	* cal-tex.el (cal-tex-preamble): Set \lineskip to 0pt.
 

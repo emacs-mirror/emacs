@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This collection of functions implements the features of calendar.el
-;; and diary.el that deal with the Bahá'í calendar.
+;; and diary-lib.el that deal with the Bahá'í calendar.
 
 ;; The Bahá'í (http://www.bahai.org) calendar system is based on a
 ;; solar cycle of 19 months with 19 days each.  The four remaining

@@ -4083,7 +4083,7 @@ x_draw_glyph_string (s)
 	      if (s->face->font)
                 y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
             }
-
+	  /* FIXME: Obey underline_minimum_offset.  */
 	  if (s->face->underline_defaulted_p)
 	    mac_fill_rectangle (s->f, s->gc, s->x, y,
 				s->background_width, h);

@@ -1829,7 +1829,7 @@ fontset.  The format is the same as above.  */)
 				 alist);
 	      alist = Fnreverse (alist);
 
-	      /* Then store opend font names to cdr of each elements.  */
+	      /* Then store opened font names to cdr of each elements.  */
 	      for (i = 0; ! NILP (realized[k][i]); i++)
 		{
 		  if (c <= MAX_5_BYTE_CHAR)

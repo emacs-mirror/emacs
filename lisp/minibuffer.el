@@ -36,10 +36,9 @@
 
 ;;; Bugs:
 
-;; - completion-ignored-extensions is ignored by partial-completion because
-;;   pcm merges the `all' output to synthesize a `try' output and
-;;   read-file-name-internal's `all' output doesn't obey
-;;   completion-ignored-extensions.
+;; - completion-all-sorted-completions list all the completions, whereas
+;;   it should only lists the ones that `try-completion' would consider.
+;;   E.g.  it should honor completion-ignored-extensions.
 ;; - choose-completion can't automatically figure out the boundaries
 ;;   corresponding to the displayed completions.  `base-size' gives the left
 ;;   boundary, but not the righthand one.  So we need to add
@@ -47,10 +46,12 @@
 
 ;;; Todo:
 
+;; - make lisp-complete-symbol and sym-comp use it.
 ;; - add support for ** to pcm.
 ;; - Make read-file-name-predicate obsolete.
 ;; - Add vc-file-name-completion-table to read-file-name-internal.
 ;; - A feature like completing-help.el.
+;; - make lisp/complete.el obsolete.
 ;; - Make the `hide-spaces' arg of all-completions obsolete?
 
 ;;; Code:
@@ -281,7 +282,14 @@ If ARGS are provided, then pass MESSAGE through `format'."
                     (copy-sequence message)
                   (concat " [" message "]")))
   (when args (setq message (apply 'format message args)))
-  (let ((ol (make-overlay (point-max) (point-max) nil t t)))
+  (let ((ol (make-overlay (point-max) (point-max) nil t t))
+	;; A quit during sit-for normally only interrupts the sit-for,
+        ;; but since minibuffer-message is used at the end of a command,
+        ;; at a time when the command has virtually finished already, a C-g
+        ;; should really cause an abort-recursive-edit instead (i.e. as if
+        ;; the C-g had been typed at top-level).  Binding inhibit-quit here
+        ;; is an attempt to get that behavior.
+	(inhibit-quit t))
     (unwind-protect
         (progn
           (unless (zerop (length message))
@@ -567,6 +575,10 @@ input if confirmed."
           (when (and (stringp compl)
                      ;; If it weren't for this piece of paranoia, I'd replace
                      ;; the whole thing with a call to do-completion.
+                     ;; This is important, e.g. when the current minibuffer's
+                     ;; content is a directory which only contains a single
+                     ;; file, so `try-completion' actually completes to
+                     ;; that file.
                      (= (length string) (length compl)))
             (goto-char end)
             (insert compl)
@@ -1217,7 +1229,7 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 		       (not (equal (if (consp name) (car name) name) except)))
 		     nil)))
 
-;;; Old-style completion, used in Emacs-21.
+;;; Old-style completion, used in Emacs-21 and Emacs-22.
 
 (defun completion-emacs21-try-completion (string table pred point)
   (let ((completion (try-completion string table pred)))
@@ -1227,10 +1239,8 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 
 (defun completion-emacs21-all-completions (string table pred point)
   (completion-hilit-commonality
-   (all-completions string table pred t)
+   (all-completions string table pred)
    (length string)))
-
-;;; Basic completion, used in Emacs-22.
 
 (defun completion-emacs22-try-completion (string table pred point)
   (let ((suffix (substring string point))
@@ -1254,26 +1264,36 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 
 (defun completion-emacs22-all-completions (string table pred point)
   (completion-hilit-commonality
-   (all-completions (substring string 0 point) table pred t)
+   (all-completions (substring string 0 point) table pred)
    point))
 
+;;; Basic completion.
+
+(defun completion--merge-suffix (completion point suffix)
+  "Merge end of COMPLETION with beginning of SUFFIX.
+Simple generalization of the \"merge trailing /\" done in Emacs-22.
+Return the new suffix."
+  (if (and (not (zerop (length suffix)))
+           (string-match "\\(.+\\)\n\\1" (concat completion "\n" suffix)
+                         ;; Make sure we don't compress things to less
+                         ;; than we started with.
+                         point)
+           ;; Just make sure we didn't match some other \n.
+           (eq (match-end 1) (length completion)))
+      (substring suffix (- (match-end 1) (match-beginning 1)))
+    ;; Nothing to merge.
+    suffix))
+
 (defun completion-basic-try-completion (string table pred point)
-  (let ((suffix (substring string point))
-        (completion (try-completion (substring string 0 point) table pred)))
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (completion (try-completion beforepoint table pred)))
     (if (not (stringp completion))
         completion
-      ;; Merge end of completion with beginning of suffix.
-      ;; Simple generalization of the "merge trailing /" done in Emacs-22.
-      (when (and (not (zerop (length suffix)))
-                 (string-match "\\(.+\\)\n\\1" (concat completion "\n" suffix)
-                               ;; Make sure we don't compress things to less
-                               ;; than we started with.
-                               point)
-                 ;; Just make sure we didn't match some other \n.
-                 (eq (match-end 1) (length completion)))
-        (setq suffix (substring suffix (- (match-end 1) (match-beginning 1)))))
-
-      (cons (concat completion suffix) (length completion)))))
+      (cons
+       (concat completion
+               (completion--merge-suffix completion point afterpoint))
+       (length completion)))))
 
 (defalias 'completion-basic-all-completions 'completion-emacs22-all-completions)
 
@@ -1414,7 +1434,13 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
         completions)
        base-size))))
 
-(defun completion-pcm--find-all-completions (string table pred point)
+(defun completion-pcm--find-all-completions (string table pred point
+                                                    &optional filter)
+  "Find all completions for STRING at POINT in TABLE, satisfying PRED.
+POINT is a position inside STRING.
+FILTER is a function applied to the return value, that can be used, e.g. to
+filter out additional entries (because TABLE migth not obey PRED)."
+  (unless filter (setq filter 'identity))
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))
          (bounds (completion-boundaries beforepoint table pred afterpoint))
@@ -1425,7 +1451,9 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
     (let* ((relpoint (- point (car bounds)))
            (pattern (completion-pcm--string->pattern string relpoint))
            (all (condition-case err
-                    (completion-pcm--all-completions prefix pattern table pred)
+                    (funcall filter
+                             (completion-pcm--all-completions
+                              prefix pattern table pred))
                   (error (unless firsterror (setq firsterror err)) nil))))
       (when (and (null all)
                  (> (car bounds) 0)
@@ -1435,7 +1463,7 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
         (let ((substring (substring prefix 0 -1)))
           (destructuring-bind (subpat suball subprefix subsuffix)
               (completion-pcm--find-all-completions
-               substring table pred (length substring))
+               substring table pred (length substring) filter)
             (let ((sep (aref prefix (1- (length prefix))))
                   ;; Text that goes between the new submatches and the
                   ;; completion substring.
@@ -1475,9 +1503,10 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
                   (dolist (submatch suball)
                     (setq all (nconc (mapcar
                                       (lambda (s) (concat submatch between s))
-                                      (completion-pcm--all-completions
-                                       (concat subprefix submatch between)
-                                       pattern table pred))
+                                      (funcall filter
+                                               (completion-pcm--all-completions
+                                                (concat subprefix submatch between)
+                                                pattern table pred)))
                                      all)))
                   ;; FIXME: This can come in handy for try-completion,
                   ;; but isn't right for all-completions, since it lists
@@ -1561,10 +1590,36 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
              pattern
              ""))
 
-(defun completion-pcm-try-completion (string table pred point)
-  (destructuring-bind (pattern all prefix suffix)
-      (completion-pcm--find-all-completions string table pred point)
+;; We want to provide the functionality of `try', but we use `all'
+;; and then merge it.  In most cases, this works perfectly, but
+;; if the completion table doesn't consider the same completions in
+;; `try' as in `all', then we have a problem.  The most common such
+;; case is for filename completion where completion-ignored-extensions
+;; is only obeyed by the `try' code.  We paper over the difference
+;; here.  Note that it is not quite right either: if the completion
+;; table uses completion-table-in-turn, this filtering may take place
+;; too late to correctly fallback from the first to the
+;; second alternative.
+(defun completion-pcm--filename-try-filter (all)
+  "Filter to adjust `all' file completion to the behavior of `try'."
     (when all
+    (let ((try ())
+          (re (concat "\\(?:\\`\\.\\.?/\\|"
+                      (regexp-opt completion-ignored-extensions)
+                      "\\)\\'")))
+      (dolist (f all)
+        (unless (string-match re f) (push f try)))
+      (or try all))))
+      
+
+(defun completion-pcm--merge-try (pattern all prefix suffix)
+  (cond
+   ((not (consp all)) all)
+   ((and (not (consp (cdr all)))        ;Only one completion.
+         ;; Ignore completion-ignore-case here.
+         (equal (completion-pcm--pattern->string pattern) (car all)))
+    t)
+   (t
       (let* ((mergedpat (completion-pcm--merge-completions all pattern))
              ;; `mergedpat' is in reverse order.  Place new point (by
 	     ;; order of preference) either at the old point, or at
@@ -1576,10 +1631,17 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
              (newpos (length (completion-pcm--pattern->string pointpat)))
 	     ;; Do it afterwards because it changes `pointpat' by sideeffect.
              (merged (completion-pcm--pattern->string (nreverse mergedpat))))
-        (if (and (> (length merged) 0) (> (length suffix) 0)
-                 (eq (aref merged (1- (length merged))) (aref suffix 0)))
-            (setq suffix (substring suffix 1)))
+
+      (setq suffix (completion--merge-suffix merged newpos suffix))
         (cons (concat prefix merged suffix) (+ newpos (length prefix)))))))
+
+(defun completion-pcm-try-completion (string table pred point)
+  (destructuring-bind (pattern all prefix suffix)
+      (completion-pcm--find-all-completions
+       string table pred point
+       (if minibuffer-completing-file-name
+           'completion-pcm--filename-try-filter))
+    (completion-pcm--merge-try pattern all prefix suffix)))
 
 
 (provide 'minibuffer)

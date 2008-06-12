@@ -825,9 +825,8 @@ The functions using this are `find-tag-noselect',
 (defvar find-tag-history nil) ; Doc string?
 
 ;; Dynamic bondage:
-(eval-when-compile
-  (defvar etags-case-fold-search)
-  (defvar etags-syntax-table))
+(defvar etags-case-fold-search)
+(defvar etags-syntax-table)
 
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)

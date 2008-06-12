@@ -627,6 +627,22 @@ by \"Save Options\" in Custom buffers.")
                  :button (:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
 
+;; Function for setting/saving default font.
+
+(defun menu-set-font ()
+  "Interactively select a font and make it the default."
+  (interactive)
+  (let ((font (if (functionp 'x-font-dialog)
+  		  (x-font-dialog)
+  		(mouse-select-font)))
+	spec)
+    (when font
+      (set-face-attribute 'default nil :font font)
+      (setq spec (list (list t (face-attr-construct 'default))))
+      (put 'default 'customized-face spec)
+      (custom-push-theme 'theme-face 'default 'user 'set spec)
+      (put 'default 'face-modified nil))))
+
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
   (list 'menu-item "Customize Emacs" menu-bar-custom-menu))
@@ -660,6 +676,10 @@ by \"Save Options\" in Custom buffers.")
       (and (get elt 'customized-value)
 	   (customize-mark-to-save elt)
 	   (setq need-save t)))
+    (when (get 'default 'customized-face)
+      (put 'default 'saved-face (get 'default 'customized-face))
+      (put 'default 'customized-face nil)
+      (setq need-save t))
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))
@@ -671,10 +691,10 @@ by \"Save Options\" in Custom buffers.")
 (define-key menu-bar-options-menu [custom-separator]
   '("--"))
 
-(define-key menu-bar-options-menu [mouse-set-font]
-  '(menu-item "Set Font/Fontset..." mouse-set-font
-	       :visible (display-multi-font-p)
-	       :help "Select a font from list of known fonts/fontsets"))
+(define-key menu-bar-options-menu [menu-set-font]
+  '(menu-item "Set Default Font..." menu-set-font
+	      :visible (display-multi-font-p)
+	      :help "Select a default font"))
 
 ;; The "Show/Hide" submenu of menu "Options"
 
@@ -1883,14 +1903,17 @@ See `menu-bar-mode' for more information."
 
 This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
-`x-menu-bar-open'; otherwise it calls `tmm-menubar'.
+`x-menu-bar-open'; on Windows, `w32-menu-bar-open' otherwise it
+calls `tmm-menubar'.
 
 If FRAME is nil or not given, use the selected frame."
   (interactive)
-  (if (eq window-system 'x)
-      (x-menu-bar-open frame)
-    (with-selected-frame (or frame (selected-frame))
-      (tmm-menubar))))
+  (let ((type (framep (or frame (selected-frame)))))
+    (cond
+     ((eq type 'x) (x-menu-bar-open frame))
+     ((eq type 'w32) (w32-menu-bar-open frame))
+     (t (with-selected-frame (or frame (selected-frame))
+          (tmm-menubar))))))
 
 (global-set-key [f10] 'menu-bar-open)
 

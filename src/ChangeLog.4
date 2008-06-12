@@ -228,8 +228,8 @@
 
 1994-05-19  Jim Blandy  (jimb@totoro.bio.indiana.edu)
 
-        * keyboard.c (read_char_minibuf_menu_prompt): Don't forget to
-        initialize nobindings.
+	* keyboard.c (read_char_minibuf_menu_prompt): Don't forget to
+	initialize nobindings.
 
 1994-05-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -522,9 +522,9 @@
 	* floatfns.c: Don't guard DOMAIN && SING && OVERFLOW check by
 	an #ifndef MSDOS.
 
-1994-05-06  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-05-06  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* m/delta.h: (SYSTEM_MALLOC): deleted.  The problem isn't there.
+	* m/delta.h (SYSTEM_MALLOC): Deleted.  The problem isn't there.
 
 1994-05-06  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -626,9 +626,9 @@
 	x_destroy_window): Use row/col instead of buffer position to keep
 	track of highlighted area.
 
-1994-05-02  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-05-02  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* m/delta.h: (SYSTEM_MALLOC): Defined, since GNU malloc does not work.
+	* m/delta.h (SYSTEM_MALLOC): Defined, since GNU malloc does not work.
 	(BCOPY_UPWARD_SAFE): Defined to 0 for the Green Hills compiler.
 
 1994-05-02  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -674,9 +674,9 @@
 
 1994-04-30  Paul Reilly  (pmr@churchy.gnu.ai.mit.edu)
 
-	* s/dgux5-4R3.h: new file.
+	* s/dgux5-4R3.h: New file.
 
-	* s/dgux5-4R2.h: new file.
+	* s/dgux5-4R2.h: New file.
 
 	* s/dgux.h (SVR4): Make conditional on ELF environment.
 	(INTERRUPT_INPUT, ORDINARY_LINK): Set by default.
@@ -703,7 +703,7 @@
 
 1994-04-29  Jim Blandy  (jimb@totoro.bio.indiana.edu)
 
-        * data.c (Ffset, Ffmakunbound): Signal an error if SYM is nil or t.
+	* data.c (Ffset, Ffmakunbound): Signal an error if SYM is nil or t.
 
 1994-04-29  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -712,8 +712,8 @@
 1994-04-29  Karl Fogel  (kfogel@phylo)
 
 	* editfns.c (Ftranspose_regions): New function.
-        (transpose_markers): Helper func for above.
-        (syms_of_frame): Call defsubr for Stranspose_regions.
+	(transpose_markers): Helper func for above.
+	(syms_of_frame): Call defsubr for Stranspose_regions.
 
 1994-04-29  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -757,10 +757,10 @@
 	Don't expect register %gs to survive calls to other functions
 	(just to be safe, %gs will survive at present).
 
-	* keyboard.c (make_lispy_movement): if HAVE_MOUSE then include
+	* keyboard.c (make_lispy_movement): If HAVE_MOUSE then include
 	the mouse handling code.
-	* msdos.c (glyph_to_pixel_coords, pixel_to_glyph_coords) new
-	functions imitating those in xterm.c.
+	* msdos.c (glyph_to_pixel_coords, pixel_to_glyph_coords):
+	New functions imitating those in xterm.c.
 
 	* s/msdos.h (getppid): Definition deleted.
 
@@ -1019,9 +1019,9 @@
 	* xfns.c (x_window): Test FRAME_EXTERNAL_MENU_BAR
 	to decide on calling initialize_frame_menubar.
 
-1994-04-20  Francesco Potorti`  (pot@fly.cnuce.cnr.it)
+1994-04-20  Francesco Potortì  (pot@fly.cnuce.cnr.it)
 
-	* m/delta.h (HAVE_SOCKETS): defined if HAVE_INET_SOCKETS is defined.
+	* m/delta.h (HAVE_SOCKETS): Defined if HAVE_INET_SOCKETS is defined.
 
 1994-04-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1072,7 +1072,7 @@
 
 1994-04-18  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
-	* config.h.in: (EMACS_INT, EMACS_UINT): Omit if NOT_C_CODE.
+	* config.h.in (EMACS_INT, EMACS_UINT): Omit if NOT_C_CODE.
 
 1994-04-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1174,7 +1174,7 @@
 
 	* keyboard.c (read_avail_input): Fix comment delimiter.
 
-	* m/pmax.h (C_SWITCH_X_MACHINE): add -DNeedVarargsPrototypes=0.
+	* m/pmax.h (C_SWITCH_X_MACHINE): Add -DNeedVarargsPrototypes=0.
 
 1994-04-14  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -1276,8 +1276,8 @@
 
 	Provide a hook for elisp to signal a changed window size
 	to a process inferior.
-	* sysdep.c (set_window_size):  New function.
-	* process.c (Fset_process_window_size):  New function.
+	* sysdep.c (set_window_size): New function.
+	* process.c (Fset_process_window_size): New function.
 
 1994-04-12  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1359,7 +1359,7 @@
 	* buffer.h (Vafter_change_functions, Vbefore_change_functions):
 	Declared.
 
-	* insdel.c (before_change_functions_restore):
+	* insdel.c (before_change_functions_restore)
 	(after_change_functions_restore): New functions.
 	(signal_before_change): Handle Vbefore_change_functions.
 	(signal_after_change): Handle Vafter_change_functions.
@@ -1864,7 +1864,7 @@
 
 1994-03-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* keymap.c: (where_is_string, Fwhere_is): Deleted.
+	* keymap.c (where_is_string, Fwhere_is): Deleted.
 	(syms_of_keymap): Corresponding changes.
 
 1994-03-22  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
@@ -1985,7 +1985,7 @@
 
 1994-03-17  Jim Blandy  (jimb@totoro.bio.indiana.edu)
 
-        * indent.c (compute_motion): Doc fixes.
+	* indent.c (compute_motion): Doc fixes.
 
 1994-03-17  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -2011,8 +2011,8 @@
 
 1994-03-16  Morten Welinder  (terra@diku.dk)
 
-	* fileio.c (Ffile_modes) [MSDOS]: set exec-bit based on file suffix.
-	* s/msdos.h: use bcopy when moving gap.
+	* fileio.c (Ffile_modes) [MSDOS]: Set exec-bit based on file suffix.
+	* s/msdos.h: Use bcopy when moving gap.
 
 1994-03-16  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -2261,7 +2261,7 @@
 	(child_sig): Likewise.
 
 	* emacs.c (shut_down_emacs): Set Vrun_hooks to nil.
-	* minibuf.c (read_minibuf):  Don't call Vrun_hooks if it is nil.
+	* minibuf.c (read_minibuf): Don't call Vrun_hooks if it is nil.
 	* keyboard.c (command_loop_1, read_key_sequence, Fcommand_execute):
 	Don't call Vrun_hooks if it is nil.
 	* editfns.c (save_excursion_restore): Don't call Vrun_hooks if nil.
@@ -2290,8 +2290,8 @@
 	(xmenu_show): No need to check a second time whether the mouse has
 	moved to another menu bar item. This slows down execution.
 
-	* widget.c (EmacsFrameSetCharSize): Don't call XtMakeResizeRequest. Use
-	XtVaSetValues for geometry management.
+	* widget.c (EmacsFrameSetCharSize): Don't call XtMakeResizeRequest.
+	Use XtVaSetValues for geometry management.
 
 1994-03-04  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -2311,7 +2311,7 @@
 
 1994-03-03  Karl Heuer  (kwzh@mole.gnu.ai.mit.edu)
 
-	* fileio.c (Fread_file_name):  Do the right thing when
+	* fileio.c (Fread_file_name): Do the right thing when
 	insert-default-directory is nil.
 	Allow for doubled dollar signs in dir when computing pos.
 
@@ -2519,7 +2519,7 @@
 	* keymap.c (get_keyelt): Cached equiv-key data is now a sublist.
 
 	* xterm.c (x_had_errors_p): New function.
-	(construct_menu_click):	Move function after pixel_to_glyph_coords.
+	(construct_menu_click): Move function after pixel_to_glyph_coords.
 
 	* xmenu.c: Most of file rewritten.
 	(menu_items, menu_items_*): New variables.
@@ -2937,7 +2937,7 @@
 1994-02-01  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
 	* xfns.c (x_set_menu_bar_lines): Test also menubar_widget before
-	calling	XtDestroyWidget.
+	calling XtDestroyWidget.
 
 1994-02-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -3014,15 +3014,15 @@
 	(otherobj): Use widgetobj.
 	(XOBJ): Undo previous change.
 
-1994-01-25  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-01-25  Francesco Potortì  (pot@cnuce.cnr.it)
 
-        * m/delta.h (HAVE_BCOPY): undef'd for efficiency.
-        (bcopy, bzero, bcmp): define'd for efficiency.
-        (GAP_USE_BCOPY, BCOPY_DOWNWARD_SAFE): define'd for GHc compiler.
+	* m/delta.h (HAVE_BCOPY): undef'd for efficiency.
+	(bcopy, bzero, bcmp): define'd for efficiency.
+	(GAP_USE_BCOPY, BCOPY_DOWNWARD_SAFE): define'd for GHc compiler.
 
-1994-01-24  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-01-24  Francesco Potortì  (pot@cnuce.cnr.it)
 
- 	* m/delta.h (HAVE_RANDOM, BROKEN_FIONREAD): Defined if X is used.
+	* m/delta.h (HAVE_RANDOM, BROKEN_FIONREAD): Defined if X is used.
 	(HAVE_XSCREENNUMBEROFSCREEN): Defined if X is used.
 	(LIB_X11_LIB, LIBX11_SYSTEM): Override only if X is used.
 	(USG_SHARED_LIBRARIES): Undefine only if X is used.
@@ -3251,7 +3251,7 @@
 	* process.c (read_process_output): Supply second arg to unbind_to.
 	(exec_sentinel): Likewise.
 
-1994-01-11  (afs@hplb.hpl.hp.com)
+1994-01-11  Andy Seaborne  (afs@hplb.hpl.hp.com)
 
 	* keyboard.c (read_char_x_menu_prompt, read_char_minibuf_menu_prompt):
 	New functions made by dividing up read_char_menu_prompt.
@@ -3334,7 +3334,7 @@
 
 1994-01-08  Morten Welinder  (terra@diku.dk)
 
-	* keyboard.c (interrupt_signal) [MSDOS]: write explicit CRs since
+	* keyboard.c (interrupt_signal) [MSDOS]: Write explicit CRs since
 	stdout has been made binary.  Start at the top of the screen since
 	the internal terminal otherwise will write "below the screen."
 
@@ -3375,7 +3375,7 @@
 
 	* cmds.c (keys_of_cmds) [MSDOS]: Chars 0200 to 0237 self-insert.
 
-	* data.c (Frem) [MSDOS]: use `fmod', not `drem'.  Put in config.h?
+	* data.c (Frem) [MSDOS]: Use `fmod', not `drem'.  Put in config.h?
 
 	* dired.c [MSDOS]: #include <dirent.h> instead of <sys/dir.h>.  Avoid
 	some external definitions.
@@ -3420,7 +3420,7 @@
 	* mem-limits.h [MSDOS] (get_lim_data): Use go32 call.
 
 	* sysdep.c [MSDOS]: #include <dos.h>, "dosfns.h", "msdos.h", and
-	<sys/param.h> needed for the following changes, but not <sys/ioctl.h>
+	<sys/param.h> needed for the following changes, but not <sys/ioctl.h>.
 	(discard_tty_input) [MSDOS]: Do it by reading till no more keys
 	available.
 	(init_baud_rate) [MSDOS]: Assume highest possible speed.
@@ -3434,7 +3434,7 @@
 	(select) [MSDOS]: Don't use signals, use sleeping.
 	(init_sys_modes) [MSDOS]: Initialize internal terminal.
 
-	* systty.h [MSDOS]: don't #include <sgtty.h>.  We haven't got it.
+	* systty.h [MSDOS]: Don't #include <sgtty.h>.  We haven't got it.
 	Declare dummy main field.  Don't ever use TABs.
 
 	* termcap.c (tgetent) [INTERNAL_TERMINAL]: Fake internal terminal
@@ -3506,7 +3506,7 @@
 	(balance_an_interval): Remove recursive rebalancing.
 	Rebalance precisely when imbalanced.  If a rotation is done,
 	rebalance only the node which may have become unbalanced.
-	Iterate	until the current node is balanced.
+	Iterate until the current node is balanced.
 	(balance_possible_root_interval): New function.
 	(balance_intervals): Move the interation into rebalance_an_interval.
 	(balance_intervals_internal): New subroutine of balance_intervals.
@@ -3573,8 +3573,8 @@
 
 1993-12-30  Lawrence R. Dodd  (dodd@roebling.poly.edu)
 
-        * minibuf.c (read_from_minibuffer): Rename arg initial_input
-        to initial_contents.
+	* minibuf.c (read_from_minibuffer): Rename arg initial_input
+	to initial_contents.
 
 1993-12-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -3652,11 +3652,11 @@
 
 	* xterm.c (XTread_socket): Handle a bunch more dead keys.
 
-1993-12-22  Francesco Potorti`  (pot@cnuce.cnr.it)
+1993-12-22  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* m/delta.h (BROKEN_CLOSEDIR): added because closedir is interruptible.
-	(HAVE_UNISTD_H): deleted because configure takes care of it.
-	(C_SWITCH_MACHINE): added optimisation options for gnu cc.
+	* m/delta.h (BROKEN_CLOSEDIR): Added because closedir is interruptible.
+	(HAVE_UNISTD_H): Deleted because configure takes care of it.
+	(C_SWITCH_MACHINE): Added optimisation options for gnu cc.
 
 1993-12-17  Mike Long  (mike.long@analog.com)
 
@@ -3730,8 +3730,8 @@
 
 1993-12-15  Michal Jankowski  (michalj@fuw.edu.pl)
 
-        * insdel.c (del_range): Second argument in call to
-        offset_intervals is 'from', not 'point'.
+	* insdel.c (del_range): Second argument in call to
+	offset_intervals is 'from', not 'point'.
 
 1993-12-14  Richard Stallman  (rms@gnu.ai.mit.edu)
 
@@ -3811,7 +3811,7 @@
 	definition for the GNU C library.  I changed this in version 18 in
 	1991, but the change never got propagated.
 
-1993-12-07  (pmr@legacy.pajato.com)
+1993-12-07  Paul Reilly  (pmr@legacy.pajato.com)
 
 	* s/dgux.h (SYSV4_PTYS): Remove.
 	(SIGNALS_VIA_CHARACTERS): Defined.
@@ -3880,7 +3880,7 @@
 	* fileio.c (Fread_file_name): If defalt is nil and user tries to use
 	it, signal an error.
 
-	* lisp.h (DEFUN_ARGS_MANY, DEFUN_ARGS_UNEVALLED, DEFUN_ARGS_0,...):
+	* lisp.h (DEFUN_ARGS_MANY, DEFUN_ARGS_UNEVALLED, DEFUN_ARGS_0, ...):
 	New macros.
 	(DEFUN) [__STDC__]: Use those macros.
 
@@ -4557,7 +4557,7 @@
 	instead of dup2.  Use the existing X desc number in fcntl calls.
 	* xterm.c (XTread_socket): Don't forget to clear out `mask'.
 
-1993-09-08  Francesco Potorti`  (pot@cnuce.cnr.it)
+1993-09-08  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* filelock.c (fill_in_lock_short_file_name): Fix the crc
 	generation algorithm.
@@ -5030,7 +5030,7 @@
 
 1993-07-30  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * config.h.in (HAVE_AIX_SMT_EXP): New #undef for configure to edit.
+	* config.h.in (HAVE_AIX_SMT_EXP): New #undef for configure to edit.
 	* m/ibmrs6000.h (LD_SWITCH_MACHINE): Don't mention
 	/usr/lpp/X11/bin/smt.exp unless HAVE_AIX_SMT_EXP is #defined.
 
@@ -5130,7 +5130,7 @@
 
 	* dispnew.c (Fsleep_for): If arg is 0, return right away.
 
-1993-07-26  Francesco Potorti`  (pot@spiff.gnu.ai.mit.edu)
+1993-07-26  Francesco Potortì  (pot@spiff.gnu.ai.mit.edu)
 
 	* m/delta.h (SWITCH_ENUM_BUG): Defined only for AT&T's pcc.
 	(BSTRING): Deleted because they are stubs to the memory funcs.
@@ -5389,7 +5389,7 @@
 
 1993-07-15  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-        Consistently use the mark bit of the root interval's parent field
+	Consistently use the mark bit of the root interval's parent field
 	to say whether or not the interval tree has been visited (and skip
 	it when revisited), and the mark bit of the plist field to say
 	whether or not that interval has been visited (and abort if
@@ -5471,7 +5471,7 @@
 
 	* keyboard.c (read_key_sequence): Accept both strings and vectors
 	as bindings in function-key-map.
-    	* keymap.c (Vfunction_key_map in syms_of_keymap): Doc fix.
+	* keymap.c (Vfunction_key_map in syms_of_keymap): Doc fix.
 
 	* keyboard.c (Fsuspend_emacs): Pass selected_frame as the first
 	argument to change_frame_size, not 0.  This function may be called
@@ -5620,7 +5620,7 @@
 
 1993-07-06  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * textprop.c (copy_text_properties): Pass a copy of POS to
+	* textprop.c (copy_text_properties): Pass a copy of POS to
 	validate_interval_range; that function increments its arguments,
 	which isn't what we want.
 
@@ -5966,7 +5966,7 @@
 	* xterm.c (XTread_socket): Never treat a modifier key as a
 	non_ascii_keystroke.
 
-        * emacs.c (Fkill_emacs): Pass third argument to shut_down_emacs.
+	* emacs.c (Fkill_emacs): Pass third argument to shut_down_emacs.
 	* lisp.h (shut_down_emacs): Doc fix.
 
 1993-06-18  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
@@ -5980,7 +5980,7 @@
 	* fileio.c (Fset_visited_file_modtime): We're only passing two
 	arguments to the file name handler; use call2, not call3.
 
-        Changes for Irix 4.0, tested this time:
+	Changes for Irix 4.0, tested this time:
 	* s/irix4-0.h: Get rid of our fake definitions for setpgrp and
 	getpgrp.
 	* callproc.c (Fcall_process): Go ahead and use the USG calling
@@ -6106,7 +6106,7 @@
 	(Fget_buffer_window): Change doc string to mention that passing Qt
 	for the FRAME argument returns windows on visible frames only.
 
-        Changes for correct pgrp behavior; approach suggested by Bob
+	Changes for correct pgrp behavior; approach suggested by Bob
 	Glickstein <bobg@zindigo.z-code.com>:
 	* m/iris4d.h (LIB_STANDARD): Do list -lbsd here.
 	* s/irix4-0.h (getpgrp, setpgrp): #define these to call BSDgetpgrp
@@ -6136,7 +6136,7 @@
 	* buffer.c (list_buffers_1): Return the desired point.
 	(Flist_buffers): Put point there in the buffer summary.
 
-        Bring mumbleclean targets into conformance with GNU coding standards.
+	Bring mumbleclean targets into conformance with GNU coding standards.
 	* Makefile.in (mostlyclean): New target.
 	(clean): Just call mostlyclean.  Get rid of ../etc/DOC too.
 	(distclean): Use clean to do most of the work.
@@ -6313,7 +6313,7 @@
 
 1993-06-11  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-        Interact properly with shells lacking job control (sh, rc, es...)
+	Interact properly with shells lacking job control (sh, rc, es...)
 	* sysdep.c [BSD] (inherited_pgroup): New variable.
 	(narrow_foreground_group, widen_foreground_group): New functions.
 	(init_sys_modes): Call narrow_foreground_group.
@@ -6360,8 +6360,8 @@
 
 1993-06-10  Shane Hartman  (shane@nugget.spr.com)
 
-        * window.c (Fscroll_left): Make argument optional.
-        (Fscroll_right): Ditto.
+	* window.c (Fscroll_left): Make argument optional.
+	(Fscroll_right): Ditto.
 
 1993-06-10  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -6388,7 +6388,7 @@
 	(FIRST_PTY_LETTER): This is 'r', not 'p'.
 	(HAVE_TERMIO, SIGNALS_VIA_CHARACTERS): Don't #define these.
 	(HAVE_TERMIOS): #define these instead.
-	(XREBINDKEYSYM):  Don't #define.
+	(XREBINDKEYSYM): Don't #define.
 	Test THIS_IS_YMAKEFILE instead of MAKING_MAKEFILE.
 	(sigmask, sigpause): #undef these after #including <signal.h>.
 	(LD_SWITCH_SYSTEM, START_FILES, LIBS_SYSTEM, LIB_GCC): #define
@@ -6495,12 +6495,12 @@
 
 1993-06-07  Shane Hartman  (shane@nugget.spr.com)
 
-        * xterm.c (x_caught_error_message): Change type to char* from char*[].
-        (X_CAUGHT_ERROR_MESSAGE_SIZE): New macro.
-        (x_error_catcher): Corresponding changes.
-        (x_catch_errors): Corresponding changes.
-        (x_check_errors): Do not free x_caught_error_message.
-        (x_uncatch_errors): Set x_caught_error_message to 0 after freeing it.
+	* xterm.c (x_caught_error_message): Change type to char* from char*[].
+	(X_CAUGHT_ERROR_MESSAGE_SIZE): New macro.
+	(x_error_catcher): Corresponding changes.
+	(x_catch_errors): Corresponding changes.
+	(x_check_errors): Do not free x_caught_error_message.
+	(x_uncatch_errors): Set x_caught_error_message to 0 after freeing it.
 
 1993-06-06  Paul Eggert  (eggert@twinsun.com)
 
@@ -6591,7 +6591,7 @@
 	in a vertical split.  Adjust the hight counter to the top.
 	(x_set_menu_bar_lines): Don't change overall frame height.
 
-1993-06-04  Francesco Potorti`  (pot@cnuce.cnr.it)
+1993-06-04  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* filelock.c (MAKE_LOCK_PATH): If SHORT_FILE_NAMES allocates
 	different space and calls fill_in_lock_short_file_name.
@@ -6640,7 +6640,7 @@
 	* xfaces.c: Test XOS_NEEDS_TIME_H, not HPUX, for including time.h.
 	* s/sol2.h, s/hpux.h (XOS_NEEDS_TIME_H): Defined.
 
-1993-06-02  Francesco Potorti`  (pot@cnuce.cnr.it)
+1993-06-02  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* ymakefile (alloca.o): Use temp names allocax.o, allocax.s
 
@@ -6902,6 +6902,10 @@
 	this soon.
 
 See ChangeLog.3 for earlier changes.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
     Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 	Free Software Foundation, Inc.

@@ -874,7 +874,7 @@ downcasing the field name."
 
 ;;;###mh-autoload
 (defun mh-complete-word (word choices begin end)
-  "Complete WORD at from CHOICES.
+  "Complete WORD from CHOICES.
 Any match found replaces the text from BEGIN to END."
   (let ((completion (try-completion word choices))
         (completions-buffer "*Completions*"))

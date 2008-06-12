@@ -2,15 +2,14 @@
 ;; The Linux console handles Latin-1 by default.
 
 (defun terminal-init-linux ()
-  "Terminal initialization function for linux."  
+  "Terminal initialization function for linux."
   (unless (terminal-coding-system)
     (set-terminal-coding-system 'iso-latin-1))
 
   ;; It can't really display underlines.
   (tty-no-underline)
 
-  (condition-case nil (t-mouse-mode 1)
-    (error nil))
+  (ignore-errors (if gpm-mouse-mode (gpm-mouse-enable)))
 
   ;; Make Latin-1 input characters work, too.
   ;; Meta will continue to work, because the kernel

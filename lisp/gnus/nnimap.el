@@ -1,7 +1,7 @@
 ;;; nnimap.el --- imap backend for Gnus
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;;         Jim Radford <radford@robby.caltech.edu>
@@ -71,8 +71,7 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-and-compile
-  (autoload 'auth-source-user-or-password "auth-source"))
+(autoload 'auth-source-user-or-password "auth-source")
 
 (nnoo-declare nnimap)
 
@@ -799,7 +798,7 @@ If EXAMINE is non-nil the group is selected read-only."
  	   (port (if nnimap-server-port
  		     (int-to-string nnimap-server-port)
  		   "imap"))
-	   (user (or 
+	   (user (or
 		  (auth-source-user-or-password "login" server port) ; this is preferred to netrc-*
 		  (netrc-machine-user-or-password
 		   "login"
@@ -809,7 +808,7 @@ If EXAMINE is non-nil the group is selected read-only."
 			     nnimap-address))
 		   (list port)
 		   (list "imap" "imaps" "143" "993"))))
-	   (passwd (or 
+	   (passwd (or
 		    (auth-source-user-or-password "password" server port) ; this is preferred to netrc-*
 		    (netrc-machine-user-or-password
 		     "password"
