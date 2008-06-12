@@ -97,37 +97,23 @@
 ;;; Code:
 
 ;;;
-;;;  Make sure we're running Emacs version 19, or higher.
-;;;
-
-(cond
- ((string-lessp emacs-version "19")
-  (insert "
-
-    Whoa!  This isn't going to work...
-
-    You must run edt-mapper.el under Emacs version 19 or higher.
-
-    Press any key to exit.  ")
-  (sit-for 600)
-  (kill-emacs t)))
-
-;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
 ;;;
 (defconst edt-window-system (if (featurep 'xemacs) (console-type) window-system)
   "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
 
-(defconst edt-xserver (if (eq edt-window-system 'x)
-			  (if (featurep 'xemacs)
-			      ;; The Cygwin window manager has a `/' in its
-			      ;; name, which breaks the generated file name of
-			      ;; the custom key map file.  Replace `/' with a
-			      ;; `-' to work around that.
-			      (replace-in-string (x-server-vendor) "[ /]" "-")
-			    (subst-char-in-string ?/ ?- (subst-char-in-string ?  ?- (x-server-vendor))))
-			nil)
+(declare-function x-server-vendor "xfns.c" (&optional terminal))
+
+(defconst edt-xserver (when (eq edt-window-system 'x)
+			;; The Cygwin window manager has a `/' in its
+			;; name, which breaks the generated file name of
+			;; the custom key map file.  Replace `/' with a
+			;; `-' to work around that.
+			(if (featurep 'xemacs)
+			    (replace-in-string (x-server-vendor) "[ /]" "-")
+			  (replace-regexp-in-string "[ /]" "-"
+						    (x-server-vendor))))
   "Indicates X server vendor name, if applicable.")
 
 
