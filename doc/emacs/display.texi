@@ -1178,24 +1178,48 @@ fringe when positioned on that newline.
 These are commands which temporarily change the default face used to
 display text in a buffer.
 
+@cindex adjust buffer face height
+@findex adjust-buffer-face-height
+@kindex C-x C-+
+@kindex C-x C--
+@kindex C-x C-=
+@kindex C-x C-0
+To increase the height of the default face in the current buffer one
+step, type @kbd{C-x C-+} or @kbd{C-x C-=}.  To decrease it one step,
+type @kbd{C-x C--}.  To restore the default (global) face height, type
+@kbd{C-x C-0}.  These keys are all bound to the same command,
+@code{adjust-buffer-face-height}, which looks at the last key typed to
+determine the adjustment to make.
+
+The final key of these commands may be repeated without the leading
+@kbd{C-x} -- for instance, @kbd{C-x C-= C-= C-=} increases the face
+height by three steps.
+
+Each step scales the height of the default face by the value of the
+variable @code{text-scale-mode-step} (a negative number of steps
+decreases the height by the same amount).  As a special case, an
+argument of 0 will remove any scaling currently active.
+
+This command is a special-purpose wrapper around the
+@code{increase-buffer-face-height} command which makes repetition
+convenient even when it is bound in a non-top-level keymap.  For
+binding in a top-level keymap, @code{increase-buffer-face-height} or
+@code{decrease-default-face-height} may be more appropriate."
+
 @cindex increase buffer face height
 @findex increase-buffer-face-height
 @cindex decrease buffer face height
 @findex decrease-buffer-face-height
-@findex text-scale-mode
-To increase the size of the font used to display text in the current
-buffer, type @kbd{C-=} or @kbd{C-+}
-(@code{increase-buffer-face-height}).  With a numeric prefix argument,
-the size will be increased by that many steps (the default is 1 step);
-each step scales the font height by the value of the variable
-@code{text-scale-mode-step}.  If repeated, this command has a
+The @code{increase-buffer-face-height} and
+@code{decrease-buffer-face-height} commands increase or decrease the
+height of the default face in the current buffer by one step.  With a
+numeric prefix argument, the size will be increased/decreased by that
+many steps; each step scales the font height by the value of the
+variable @code{text-scale-mode-step}.  If repeated, this command has a
 cumulative effect.  As a special case, a prefix argument of 0 will
 remove any scaling currently active.
 
-To decrease the size of the text, type @kbd{C--}
-(@code{decrease-buffer-face-height}).  The behavior is similar to that
-of @code{increase-buffer-face-height}, but in reverse.
-
+@findex text-scale-mode
 These commands automatically enable or disable the
 @code{text-scale-mode} minor-mode, depending on whether the current
 font scaling is other than 1 or not.

@@ -168,7 +168,7 @@ update-elclist:
 	echo "/^ELCFILES/,/^$$/c\\" > temp.sed
 	echo "ELCFILES =" | sed -e 's/$$/ \\\\\\/' >> temp.sed
 	exclude=`echo $(COMPILE_FIRST) | sed -e 's, ,\\\\|,g' -e 's,\/,\\\\/,g'`; \
-	ls $(lisp)/*.elc $(lisp)/*/*.elc | sed -e "/$$exclude/d" -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
+	LC_COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc | sed -e "/$$exclude/d" -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
 	echo "" >> temp.sed
 	-sed -f temp.sed $(lisp)/Makefile.in > temp-elcfiles || rm temp-elcfiles
 	rm temp.sed
@@ -710,11 +710,11 @@ ELCFILES = \
 	$(lisp)/language/ethio-util.elc \
 	$(lisp)/language/ethiopic.elc \
 	$(lisp)/language/european.elc \
+	$(lisp)/language/hanja-util.elc \
 	$(lisp)/language/ind-util.elc \
 	$(lisp)/language/indian.elc \
 	$(lisp)/language/japan-util.elc \
 	$(lisp)/language/korea-util.elc \
-	$(lisp)/language/hanja-util.elc \
 	$(lisp)/language/lao-util.elc \
 	$(lisp)/language/thai-util.elc \
 	$(lisp)/language/thai-word.elc \
@@ -877,30 +877,19 @@ ELCFILES = \
 	$(lisp)/nxml/rng-xsd.elc \
 	$(lisp)/nxml/xmltok.elc \
 	$(lisp)/nxml/xsd-regexp.elc \
-	$(lisp)/obsolete/auto-show.elc \
 	$(lisp)/obsolete/awk-mode.elc \
-	$(lisp)/obsolete/bg-mouse.elc \
 	$(lisp)/obsolete/fast-lock.elc \
-	$(lisp)/obsolete/float.elc \
-	$(lisp)/obsolete/hilit19.elc \
-	$(lisp)/obsolete/hscroll.elc \
 	$(lisp)/obsolete/iso-acc.elc \
 	$(lisp)/obsolete/iso-insert.elc \
 	$(lisp)/obsolete/iso-swed.elc \
 	$(lisp)/obsolete/lazy-lock.elc \
-	$(lisp)/obsolete/lselect.elc \
-	$(lisp)/obsolete/mlsupport.elc \
 	$(lisp)/obsolete/old-whitespace.elc \
-	$(lisp)/obsolete/ooutline.elc \
 	$(lisp)/obsolete/options.elc \
-	$(lisp)/obsolete/profile.elc \
 	$(lisp)/obsolete/rnews.elc \
 	$(lisp)/obsolete/rnewspost.elc \
-	$(lisp)/obsolete/rsz-mini.elc \
 	$(lisp)/obsolete/sc.elc \
 	$(lisp)/obsolete/scribe.elc \
 	$(lisp)/obsolete/swedish.elc \
-	$(lisp)/obsolete/uncompress.elc \
 	$(lisp)/obsolete/x-menu.elc \
 	$(lisp)/org/org-agenda.elc \
 	$(lisp)/org/org-archive.elc \

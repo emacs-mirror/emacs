@@ -4059,13 +4059,20 @@ Outline mode sets this."
 	  (= arg 0))
 
       (cond ((> arg 0)
-	     ;; If we did not move down as far as desired,
-	     ;; at least go to end of line.
-	     (end-of-line))
+	     ;; If we did not move down as far as desired, at least go
+	     ;; to end of line.  Be sure to call point-entered and
+	     ;; point-left-hooks.
+	     (let* ((npoint (prog1 (line-end-position)
+			      (goto-char opoint)))
+		    (inhibit-point-motion-hooks nil))
+	       (goto-char npoint)))
 	    ((< arg 0)
 	     ;; If we did not move up as far as desired,
 	     ;; at least go to beginning of line.
-	     (beginning-of-line))
+	     (let* ((npoint (prog1 (line-beginning-position)
+			      (goto-char opoint)))
+		    (inhibit-point-motion-hooks nil))
+	       (goto-char npoint)))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)
 			       opoint (> orig-arg 0)))))))

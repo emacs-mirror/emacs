@@ -1,3 +1,14 @@
+2008-06-04  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding): Fix handling of coding->head_ascii.
+	Be sure to call setup_coding_system when a proper coding system is
+	found.
+	(detect_coding_system): Fix handling of coding->head_ascii.
+
+2008-06-03  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (font_prop_validate_spacing): Fix last change.
+
 2008-06-03  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_prop_validate_spacing): Handle uppercase symbols.

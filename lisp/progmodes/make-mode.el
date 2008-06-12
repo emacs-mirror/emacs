@@ -1688,7 +1688,7 @@ and generates the overview, one line per target name."
 ;;; ------------------------------------------------------------
 
 (defun makefile-cleanup-continuations ()
-  (if (eq major-mode 'makefile-mode)
+  (if (derived-mode-p 'makefile-mode)
       (if (and makefile-cleanup-continuations
 	       (not buffer-read-only))
 	  (save-excursion
@@ -1703,7 +1703,7 @@ and generates the overview, one line per target name."
 
 (defun makefile-warn-suspicious-lines ()
   ;; Returning non-nil cancels the save operation
-  (if (eq major-mode 'makefile-mode)
+  (if (derived-mode-p 'makefile-mode)
       (save-excursion
 	(goto-char (point-min))
 	(if (re-search-forward "^\\(\t+$\\| +\t\\)" nil t)
@@ -1712,7 +1712,7 @@ and generates the overview, one line per target name."
 			  (count-lines (point-min) (point)))))))))
 
 (defun makefile-warn-continuations ()
-  (if (eq major-mode 'makefile-mode)
+  (if (derived-mode-p 'makefile-mode)
       (save-excursion
 	(goto-char (point-min))
 	(if (re-search-forward "\\\\[ \t]+$" nil t)

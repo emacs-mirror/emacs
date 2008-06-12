@@ -121,10 +121,24 @@ You can embed Emacs in another application on X11.  The new command line option
 http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
 
-FIXME
-** There is a new frame parameter, alpha.
-This [does something] on [some kind of system] with [some kind of X
-server] and [some kind of window manager].
+** Controlling the frame opacity
+The opacity of a frame can now be controlled by setting the `alpha'
+frame parameter, on an X Window system with the composite extension.
+
+The alpha parameter should be an integer between 0 (transparent) and
+100 (opaque) or a float number between 0.0 and 1.0.  Optionally, the
+opacity can be set by a cons cell; the first item controls the
+opacity of an active frame, and the second item controls that of
+non-active frames.
+
+ (set-frame-parameter nil 'alpha 80)
+ (set-frame-parameter nil 'alpha 0.8)
+ (set-frame-parameter nil 'alpha '(100 70)) ; (<active> [<inactive>])
+ (set-frame-parameter nil 'alpha nil)
+
+Note that the threshold opacity of a frame is defined by the variable
+`frame-alpha-lower-limit' (default 20), so that the user may not lose
+control of the frame.
 
 ** Emacs comes with a new set of default icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
@@ -355,6 +369,8 @@ for example while waiting for a VC command to finish.
 
 *** The new function `face-all-attributes' returns an alist describing
 all the basic attributes of a given face.
+
+*** FIXME face-remap
 
 
 * New Modes and Packages in Emacs 23.1

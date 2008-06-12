@@ -181,8 +181,6 @@ also enable or disable `text-scale-mode' as necessary."
 						text-scale-mode-amount))))
   (force-window-update (current-buffer)))
 
-;;;###autoload (global-set-key [(control =)] 'increase-buffer-face-height)
-;;;###autoload (global-set-key [(control +)] 'increase-buffer-face-height)
 ;;;###autoload
 (defun increase-buffer-face-height (&optional inc)
   "Increase the height of the default face in the current buffer by INC steps.
@@ -192,27 +190,68 @@ Each step scales the height of the default face by the variable
 `text-scale-mode-step' (a negative number of steps decreases the
 height by the same amount).  As a special case, an argument of 0
 will remove any scaling currently active."
-  (interactive
-   (list
-    (cond ((eq current-prefix-arg '-) -1)
-	  ((numberp current-prefix-arg) current-prefix-arg)
-	  ((consp current-prefix-arg) -1)
-	  (t 1))))
+  (interactive "p")
   (setq text-scale-mode-amount (if (= inc 0) 0 (+ text-scale-mode-amount inc)))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
-;;;###autoload (global-set-key [(control -)] 'decrease-buffer-face-height)
 ;;;###autoload
 (defun decrease-buffer-face-height (&optional dec)
   "Decrease the height of the default face in the current buffer by DEC steps.
 See `increase-buffer-face-height' for more details."
-  (interactive
-   (list
-    (cond ((eq current-prefix-arg '-) -1)
-	  ((numberp current-prefix-arg) current-prefix-arg)
-	  ((consp current-prefix-arg) -1)
-	  (t 1))))
+  (interactive "p")
   (increase-buffer-face-height (- dec)))
+
+;;;###autoload (define-key ctl-x-map [(control ?+)] 'adjust-buffer-face-height)
+;;;###autoload (define-key ctl-x-map [(control ?-)] 'adjust-buffer-face-height)
+;;;###autoload (define-key ctl-x-map [(control ?=)] 'adjust-buffer-face-height)
+;;;###autoload (define-key ctl-x-map [(control ?0)] 'adjust-buffer-face-height)
+;;;###autoload
+(defun adjust-buffer-face-height (&optional inc)
+  "Increase or decrease the height of the default face in the current buffer.
+
+The actual adjustment made depends on the final component of the
+key-binding used to invoke the command, with all modifiers
+removed:
+
+   +, =   Increase the default face height by one step
+   -      Decrease the default face height by one step
+   0      Reset the default face height to the global default
+
+Then, continue to read input events and further adjust the face
+height as long as the input event read (with all modifiers
+removed) is one the above.
+
+Each step scales the height of the default face by the variable
+`text-scale-mode-step' (a negative number of steps decreases the
+height by the same amount).  As a special case, an argument of 0
+will remove any scaling currently active.
+
+This command is a special-purpose wrapper around the
+`increase-buffer-face-height' command which makes repetition
+convenient even when it is bound in a non-top-level keymap.  For
+binding in a top-level keymap, `increase-buffer-face-height' or
+`decrease-default-face-height' may be more appropriate."
+  (interactive "p")
+  (let ((first t) 
+	(step t)
+	(ev last-command-event))
+    (while step
+      (let ((base (event-basic-type ev)))
+	(cond ((or (eq base ?+) (eq base ?=))
+	       (setq step inc))
+	      ((eq base ?-)
+	       (setq step (- inc)))
+	      ((eq base ?0)
+	       (setq step 0))
+	      (first 
+	       (setq step inc))
+	      (t
+	       (setq step nil))))
+      (when step
+	(increase-buffer-face-height step)
+	(setq inc 1 first nil)
+	(setq ev (read-event))))
+    (push ev unread-command-events)))
 
 
 ;; ----------------------------------------------------------------

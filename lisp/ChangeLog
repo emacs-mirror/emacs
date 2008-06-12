@@ -1,3 +1,38 @@
+2008-06-04  Trent W. Buck  <trentbuck@gmail.com>  (tiny change)
+
+	* emacs-lisp/rx.el (rx): Doc fix.
+
+2008-06-04  Markus Triska  <markus.triska@gmx.at>
+
+	* image-mode.el (image-mode-map): Add doc-view-inspired bindings.
+
+2008-06-04  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (adjust-buffer-face-height): New function.
+	Add autoloaded keybindings in ctl-x-map.
+	(increase-buffer-face-height, decrease-buffer-face-height):
+	Simplify interactive spec to just "p".  Remove autoloaded keybindings.
+
+2008-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-1): If we did not move as far as desired,
+	ensure that point-left and point-entered hooks are called.
+
+2008-06-03  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-status-extra-headers): Remove extraneous newlines.
+
+2008-06-03  John Paul Wallington  <jpw@pobox.com>
+
+	* progmodes/make-mode.el (makefile-cleanup-continuations)
+	(makefile-warn-suspicious-lines, makefile-warn-continuations):
+	Use `derived-mode-p'.
+
+2008-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (update-elclist): Impose a fixed collation for sorting.
+	(ELCFILES): Update.
+
 2008-06-03  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el: New file.

@@ -290,6 +290,9 @@ This variable is used to display the current image type in the mode line.")
     (define-key map "q"         'quit-window)
     ;;
     (define-key map "\C-c\C-c" 'image-toggle-display)
+    (define-key map (kbd "SPC")       'image-scroll-up)
+    (define-key map (kbd "DEL")       'image-scroll-down)
+    ;;
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
     (define-key map [remap previous-line] 'image-previous-line)

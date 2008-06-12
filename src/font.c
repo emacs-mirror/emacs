@@ -545,7 +545,7 @@ font_prop_validate_spacing (prop, val)
 	return make_number (FONT_SPACING_CHARCELL);
       if (spacing == 'm' || spacing == 'M')
 	return make_number (FONT_SPACING_MONO);
-      if (spacing == 'P' || spacing == 'P')
+      if (spacing == 'p' || spacing == 'P')
 	return make_number (FONT_SPACING_PROPORTIONAL);
       if (spacing == 'd' || spacing == 'D')
 	return make_number (FONT_SPACING_DUAL);

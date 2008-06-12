@@ -251,13 +251,13 @@ committed and support display of sticky tags."
 	 help-echo
 	 (string
           (let ((def-ml (vc-default-mode-line-string 'CVS file)))
-            (setq help-echo 
+            (setq help-echo
                   (get-text-property 0 'help-echo def-ml))
             def-ml)))
-    (propertize 
+    (propertize
      (if (zerop (length sticky-tag))
 	 string
-       (setq help-echo (format "%s on the '%s' branch" 
+       (setq help-echo (format "%s on the '%s' branch"
 			       help-echo sticky-tag))
        (concat string "[" sticky-tag "]"))
      'help-echo help-echo)))
@@ -422,7 +422,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
     (if (re-search-forward "conflicts during merge" nil t)
-	(progn 
+	(progn
 	  (vc-file-setprop file 'vc-state 'conflict)
 	  ;; signal error
 	  1)
@@ -477,7 +477,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
       (message "Merging changes into %s...done" file))))
 
 (defun vc-cvs-modify-change-comment (files rev comment)
-  "Modify the change comments for FILES on a specified REV. 
+  "Modify the change comments for FILES on a specified REV.
 Will fail unless you have administrative privileges on the repo."
   (vc-cvs-command nil 0 files "admin" (concat "-m" rev ":" comment)))
 
@@ -850,7 +850,7 @@ state."
 	(setq subdir (expand-file-name (match-string 1))))
       ;; Unregistered files
       (while (looking-at "? \\(.*\\)")
-	(setq file (file-relative-name 
+	(setq file (file-relative-name
 		    (expand-file-name (match-string 1) subdir)))
 	(push (list file 'unregistered) result)
 	(forward-line 1))
@@ -890,8 +890,8 @@ state."
   ;;   (goto-char (point-min))
   ;;   (while (not (eobp))
   ;;     (if (looking-at "^[ACMPRU?] \\(.*\\)$")
-  ;; 	  (push (list (match-string 1) 
-  ;; 		      (cdr (assoc (char-after) translation))) 
+  ;; 	  (push (list (match-string 1)
+  ;; 		      (cdr (assoc (char-after) translation)))
   ;; 		result)
   ;; 	(cond
   ;; 	 ((looking-at "cvs update: warning: \\(.*\\) was lost")
@@ -935,7 +935,7 @@ state."
 	       (insert-file-contents "CVS/Root")
 	       (goto-char (point-min))
 	       (and (looking-at ":ext:") (delete-char 5))
-	       (buffer-substring (point) (point-max)))
+	       (buffer-substring (point) (1- (point-max))))
 	   (file-error nil)))
 	(module
 	 (condition-case nil
@@ -947,17 +947,15 @@ state."
 	   (file-error nil))))
     (concat
      (cond (module
-	    (concat
-	      (propertize "Module     : " 'face 'font-lock-type-face)
-	      (propertize module 'face 'font-lock-variable-name-face)))
+	    (concat (propertize "Module     : " 'face 'font-lock-type-face)
+                    (propertize module 'face 'font-lock-variable-name-face)))
 	   (t ""))
      (cond (repo
-	    (concat
-	      (propertize "Repository : " 'face 'font-lock-type-face)
-	      (propertize repo 'face 'font-lock-variable-name-face)))
+	    (concat (propertize "Repository : " 'face 'font-lock-type-face)
+                    (propertize repo 'face 'font-lock-variable-name-face)))
 	   (t ""))
-     ;; In CVS, branch is a per-file property, not a per-directory property.  We 
-     ;; can't really do this here without making dangerous assumptions. 
+     ;; In CVS, branch is a per-file property, not a per-directory property.
+     ;; We can't really do this here without making dangerous assumptions.
      ;;(propertize "Branch:     " 'face 'font-lock-type-face)
      ;;(propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
      ;;	 'face 'font-lock-warning-face)
@@ -1107,7 +1105,7 @@ is non-nil."
     (setq table (lazy-completion-table
                  table (lambda () (vc-cvs-revision-table (car files)))))
     table))
-                                           
+
 
 (provide 'vc-cvs)
 
