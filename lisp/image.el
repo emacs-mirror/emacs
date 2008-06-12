@@ -326,6 +326,8 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
   type)
 
 
+(defvar image-library-alist)
+
 ;;;###autoload
 (defun image-type-available-p (type)
   "Return non-nil if image type TYPE is available.

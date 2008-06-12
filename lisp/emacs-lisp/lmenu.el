@@ -128,6 +128,8 @@
       (setq menu-items (cdr menu-items)))
     menu))
 
+(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
+
 ;; XEmacs compatibility function
 (defun popup-dialog-box (data)
   "Pop up a dialog box.

@@ -34,6 +34,8 @@
 
 ;;; Code:
 
+(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
+
 (defun map-y-or-n-p (prompter actor list &optional help action-alist
 			      no-cursor-in-echo-area)
   "Ask a series of boolean questions.

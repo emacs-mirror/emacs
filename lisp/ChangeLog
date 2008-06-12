@@ -1,3 +1,98 @@
+2008-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-beginning-of-subprogram)
+	(f90-end-of-subprogram): Only give a message when interactive.
+
+	* term/mac-win.el (x-toolkit-scroll-bars): Check bound.
+
+	* progmodes/cperl-mode.el (cperl-info-on-command): Use
+	display-pixel-height rather than x-display-pixel-height.
+
+	* mail/rmailedit.el (rmail-cease-edit):
+	* vc-dispatcher.el (vc-dir-mode): Check tool-bar-mode is bound.
+
+	* emulation/edt.el (edt-xserver):
+	* emulation/edt-mapper.el (edt-xserver): Use replace-regexp-in-string.
+
+	* emulation/edt-mapper.el: Drop test for Emacs < 19.
+
+	* mwheel.el (mouse-wheel-follow-mouse, mwheel-event-window):
+	Evaluate definitions when compiling.  Reverse tests.
+
+	* dframe.el (dframe-reposition-frame-emacs): Reorder test, and
+	use unless.
+
+	* menu-bar.el (w32-menu-bar-open): Declare for compiler.
+
+	* textmodes/artist.el (x-pointer-shape):
+	* term/x-win.el (x-parse-geometry, x-resource-name, accelerate-menu)
+	(x-open-connection, x-server-max-request-size, x-get-resource):
+	* term/w32console.el (x-setup-function-keys):
+	* term/w32-win.el (x-parse-geometry, x-resource-name)
+	(generate-fontset-menu, image-library-alist, x-open-connection)
+	(setup-default-fontset, set-fontset-font, setup-default-fontset)
+	(create-fontset-from-fontset-spec, create-fontset-from-x-resource)
+	(x-get-resource):
+	* term/mac-win.el (x-parse-geometry, x-resource-name)
+	(x-get-selection-internal, tool-bar-mode, set-fontset-font)
+	(new-fontset, x-display-list, x-open-connection, x-get-resource):
+	* progmodes/gud.el (tooltip-last-mouse-motion-event, tooltip-hide)
+	(tooltip-start-delayed-tip, tooltip-use-echo-area, tooltip-show)
+	(tooltip-strip-prompt, tooltip-expr-to-print, tooltip-event-buffer):
+	* progmodes/gdb-ui.el (tooltip-show, tooltip-use-echo-area)
+	(tooltip-identifier-from-point, define-fringe-bitmap):
+	* play/gamegrid.el (image-size):
+	* play/bubbles.el (image-size):
+	* mail/emacsbug.el (x-server-vendor, x-server-version):
+	* international/mule-util.el (internal-char-font):
+	* international/mule-diag.el (font-info, query-fontset, fontset-info)
+	(fontset-alias-alist, fontset-list, fontset-plain-name):
+	* international/mule-cmds.el (x-server-vendor, x-server-version):
+	* international/fontset.el (font-encoding-charset-alist)
+	(otf-script-alist, new-fontset, set-fontset-font)
+	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp)
+	(fontset-list, query-fontset, x-get-resource):
+	* emulation/edt.el (x-server-vendor):
+	* emulation/edt-mapper.el (x-server-vendor):
+	* emacs-lisp/map-ynp.el (x-popup-dialog):
+	* emacs-lisp/lmenu.el (x-popup-dialog):
+	* x-dnd.el (x-window-property, x-change-window-property)
+	(x-get-selection-internal):
+	* woman.el (x-list-fonts):
+	* w32-fns.el (x-server-version):
+	* tooltip.el (x-show-tip, x-hide-tip):
+	* tool-bar.el (image-mask-p):
+	* thumbs.el (image-size):
+	* term.el (overflow-newline-into-fringe):
+	* subr.el (scroll-bar-scale):
+	* startup.el (x-get-resource, tool-bar-mode, image-size):
+	* select.el (x-get-selection-internal, x-own-selection-internal)
+	(x-disown-selection-internal):
+	* mouse.el (generate-fontset-menu):
+	* mouse-sel.el (x-select-text, x-cut-buffer-or-selection-value):
+	* image.el (image-library-alist):
+	* image-mode.el (image-size, image-refresh):
+	* image-dired.el (clear-image-cache):
+	* gs.el (x-display-mm-width, x-display-pixel-width)
+	(x-display-mm-height, x-display-pixel-height)
+	(x-change-window-property, x-display-grayscale-p, x-window-property):
+	* frame.el (tool-bar-mode, x-display-name, x-close-connection)
+	(x-focus-frame, x-list-fonts, x-display-screens)
+	(x-display-pixel-height, x-display-pixel-width, x-display-mm-height)
+	(x-display-mm-width, x-display-backing-store, x-display-save-under)
+	(x-display-planes, x-display-color-cells, x-display-visual-class):
+	* faces.el (internal-face-x-get-resource)
+	(internal-set-lisp-face-attribute-from-resource, x-bitmap-file-path)
+	(fontset-list, x-list-fonts, xw-color-defined-p, xw-color-values)
+	(xw-display-color-p, x-display-grayscale-p, x-get-resource)
+	(x-parse-geometry, x-create-frame, x-setup-function-keys)
+	(tool-bar-setup):
+	* doc-view.el (clear-image-cache, image-size, tooltip-show):
+	* dired.el (dnd-get-local-file-name, dnd-get-local-file-uri):
+	* dframe.el (x-display-pixel-width, x-display-pixel-height):
+	* descr-text.el (internal-char-font):
+	Define for compiler, for builds without X.
+
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-rcs.el (vc-rcs-state-heuristic): Don't assume the file exists.

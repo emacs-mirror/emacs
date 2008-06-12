@@ -1013,6 +1013,9 @@ This is usually either black or white."
 	   (setq symbol-fonts (cons font symbol-fonts))))
     symbol-fonts))
 
+(declare-function x-list-fonts "xfaces.c"
+		  (pattern &optional face frame maximum width))
+
 (when woman-font-support
   (make-face 'woman-symbol)
 

@@ -117,6 +117,8 @@
 	("muletibetan-2" . tibetan)
 	("muletibetan-1" . tibetan-1-column)))
 
+(defvar font-encoding-charset-alist)
+
 (setq font-encoding-charset-alist
       '((latin-iso8859-1 . iso-8859-1)
 	(latin-iso8859-2 . iso-8859-2)
@@ -185,6 +187,8 @@
 	(cham #xAA00)
 	(tai-viet #xAA80)
 	(hangul #xAC00)))
+
+(defvar otf-script-alist)
 
 (setq otf-script-alist
       '((arab . arabic)
@@ -272,6 +276,10 @@
 ;; SCRIPT is a symbol that appears as an element of the char table
 ;; `char-script-table'.  SCRIPT may be a charset specifying the range
 ;; of characters.
+
+(declare-function new-fontset "fontset.c" (name fontlist))
+(declare-function set-fontset-font "fontset.c"
+		  (name target font-spec &optional frame add))
 
 (defun setup-default-fontset ()
   "Setup the default fontset."
@@ -616,6 +624,9 @@
       (setq font-encoding-alist
 	    (cons (cons pattern charset) font-encoding-alist)))))
 
+(defvar x-pixel-size-width-font-regexp)
+(defvar vertical-centering-font-regexp)
+
 ;; Setting for suppressing XLoadQueryFont on big fonts.
 (setq x-pixel-size-width-font-regexp
       "gb2312\\|gbk\\|gb18030\\|jisx0208\\|ksc5601\\|cns11643\\|big5")
@@ -746,6 +757,8 @@ with \"fontset\" in `<CHARSET_REGISTRY>' field."
        (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
 		"fontset")))
 
+(declare-function fontset-list "fontset.c" ())
+
 (defun generate-fontset-menu ()
   "Return list to be appended to `x-fixed-font-alist'.
 Done when `mouse-set-font' is called."
@@ -756,6 +769,8 @@ Done when `mouse-set-font' is called."
 	  (push (list (fontset-plain-name fontset) fontset) l)))
     (cons "Fontset"
 	  (sort l #'(lambda (x y) (string< (car x) (car y)))))))
+
+(declare-function query-fontset "fontset.c" (pattern &optional regexpp))
 
 (defun fontset-plain-name (fontset)
   "Return a plain and descriptive name of FONTSET."
@@ -946,6 +961,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;; Fontset-N)' where N is integer 0, 1, ...
 ;; The values of the resources the string of the same format as
 ;; `standard-fontset-spec'.
+
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
 
 (defun create-fontset-from-x-resource ()
   (let ((idx 0)

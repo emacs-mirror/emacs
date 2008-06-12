@@ -318,6 +318,9 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 				      (string (string-to-number
 					       (nth 13 fields) 16)))))))))))
 
+;; Not defined on builds without X, but behind display-graphic-p.
+(declare-function internal-char-font "fontset.c" (position &optional ch))
+
 ;; Return information about how CHAR is displayed at the buffer
 ;; position POS.  If the selected frame is on a graphic display,
 ;; return a cons (FONTNAME . GLYPH-CODE) where GLYPH-CODE is a

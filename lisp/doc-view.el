@@ -628,6 +628,8 @@ Call CALLBACK with no arguments when done."
                  pdf))
    callback))
 
+(declare-function clear-image-cache "image.c" (&optional filter))
+
 (defun doc-view-pdf->png (pdf png pages)
   "Convert a PDF file to PNG asynchronously.
 Start by converting PAGES, and then the rest."
@@ -727,6 +729,8 @@ Those files are saved in the directory given by the function
        (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))
 
 ;;;; Slicing
+
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun doc-view-set-slice (x y width height)
   "Set the slice of the images that should be displayed.
@@ -863,6 +867,8 @@ For now these keys are useful:
 `q' : Bury this buffer.  Conversion will go on in background.
 `k' : Kill the conversion process and this buffer.
 `K' : Kill the conversion process.\n"))))
+
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 
 (defun doc-view-show-tooltip ()
   (interactive)

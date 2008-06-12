@@ -305,6 +305,8 @@ where   SELECTION-NAME          = name of selection
 	SELECTION-THING-SYMBOL 	= name of variable where the current selection
  				  type for this selection should be stored.")
 
+(declare-function x-select-text "term/x-win" (text &optional push))
+
 (defvar mouse-sel-set-selection-function
   (if (eq mouse-sel-default-bindings 'interprogram-cut-paste)
       'x-set-selection
@@ -320,6 +322,8 @@ Called with two arguments:
 
 This sets the selection as well as the cut buffer for the older applications,
 unless `mouse-sel-default-bindings' is `interprogram-cut-paste'.")
+
+(declare-function x-cut-buffer-or-selection-value "term/x-win" ())
 
 (defvar mouse-sel-get-selection-function
   (lambda (selection)

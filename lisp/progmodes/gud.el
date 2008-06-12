@@ -3339,6 +3339,10 @@ ACTIVATEP non-nil means activate mouse motion events."
       (kill-local-variable 'gud-tooltip-mouse-motions-active)
       (kill-local-variable 'track-mouse))))
 
+(defvar tooltip-last-mouse-motion-event)
+(declare-function tooltip-hide "tooltip" (&optional ignored-arg))
+(declare-function tooltip-start-delayed-tip "tooltip" ())
+
 (defun gud-tooltip-mouse-motion (event)
   "Command handler for mouse movement events in `global-map'."
   (interactive "e")
@@ -3373,6 +3377,9 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 
 (define-obsolete-function-alias 'tooltip-gud-toggle-dereference
                                 'gud-tooltip-dereference "22.1")
+(defvar tooltip-use-echo-area)
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-strip-prompt "tooltip" (process output))
 
 ; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
@@ -3395,6 +3402,8 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 	(sdb (concat expr "/"))))
 
 (declare-function gdb-enqueue-input "gdb-ui" (item))
+(declare-function tooltip-expr-to-print "tooltip" (event))
+(declare-function tooltip-event-buffer "tooltip" (event))
 
 (defun gud-tooltip-tips (event)
   "Show tip for identifier or selection under the mouse.

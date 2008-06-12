@@ -347,6 +347,8 @@ language environment LANG-ENV."
 	(with-coding-priority coding-priority
           (detect-coding-region from to)))))
 
+(declare-function internal-char-font "fontset.c" (position &optional ch))
+
 ;;;###autoload
 (defun char-displayable-p (char)
   "Return non-nil if we should be able to display CHAR.
@@ -374,7 +376,7 @@ basis, this may not be accurate."
 		 (cond
 		  ((listp cs-list)
 		   (catch 'tag
-		     (mapc #'(lambda (charset) 
+		     (mapc #'(lambda (charset)
 			       (if (encode-char char charset)
 				   (throw 'tag charset)))
 			   cs-list)

@@ -4733,6 +4733,8 @@ If optional argument STATE is positive, turn borders on."
   "Perform the update of the X Windows pointer shape."
   (set-mouse-color nil))
 
+(defvar x-pointer-shape)
+
 (defun artist-set-pointer-shape (new-pointer-shape)
   "Set the shape of the X Windows pointer to NEW-POINTER-SHAPE."
   (setq x-pointer-shape new-pointer-shape)

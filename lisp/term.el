@@ -925,6 +925,8 @@ is buffer-local.")
 
 (term-set-escape-char ?\C-c)
 
+(defvar overflow-newline-into-fringe)
+
 (defun term-window-width ()
   (if (featurep 'xemacs)
       (1- (window-width))

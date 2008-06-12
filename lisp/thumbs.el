@@ -334,6 +334,8 @@ smaller according to whether INCREMENT is 1 or -1."
 	((string-match ".*\\.png\\'" img) 'png)
 	((string-match ".*\\.tiff?\\'" img) 'tiff)))
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (defun thumbs-file-size (img)
   (let ((i (image-size
 	    (find-image `((:type ,(thumbs-image-type img) :file ,img))) t)))

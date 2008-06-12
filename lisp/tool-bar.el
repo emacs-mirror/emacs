@@ -88,6 +88,8 @@ Define this locally to override the global tool bar.")
 		'(menu-item "tool bar" ignore
 			    :filter tool-bar-make-keymap))
 
+(declare-function image-mask-p "image.c" (spec &optional frame))
+
 (defun tool-bar-make-keymap (&optional ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's

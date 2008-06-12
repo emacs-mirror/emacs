@@ -1,7 +1,7 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -151,6 +151,8 @@
 	  (concat x-command-line-resources "\n" (car x-invocation-args))))
   (setq x-invocation-args (cdr x-invocation-args)))
 
+(declare-function x-parse-geometry "frame.c" (string))
+
 ;; Handle the geometry option
 (defun x-handle-geometry (switch)
   (let* ((geo (x-parse-geometry (car x-invocation-args)))
@@ -176,6 +178,8 @@
 		      (if left (list left))
 		      (if top (list top)))))
     (setq x-invocation-args (cdr x-invocation-args))))
+
+(defvar x-resource-name)
 
 ;; Handle the -name option.  Set the variable x-resource-name
 ;; to the option's operand; set the name of
@@ -1684,6 +1688,8 @@ The value nil is the same as this list:
 	(kill-new clipboard-text))
     (yank)))
 
+(declare-function accelerate-menu "xmenu.c" (&optional frame) t)
+
 (defun x-menu-bar-open (&optional frame)
   "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
   (interactive "i")
@@ -1698,6 +1704,12 @@ The value nil is the same as this list:
 
 (defvar x-initialized nil
   "Non-nil if the X window system has been initialized.")
+
+(declare-function x-open-connection "xfns.c"
+		  (display &optional xrm-string must-succeed))
+(declare-function x-server-max-request-size "xfns.c" (&optional terminal))
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
 
 (defun x-initialize-window-system ()
   "Initialize Emacs for X frames and open the first connection to an X server."

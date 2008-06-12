@@ -471,6 +471,9 @@ otherwise do not."
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
 
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(defvar tooltip-use-echo-area)
+
 (defun gdb-tooltip-print (expr)
   (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
@@ -754,6 +757,8 @@ positive, otherwise don't automatically raise it."
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
 (define-key global-map (concat gud-key-prefix "\C-w") 'gud-watch)
+
+(declare-function tooltip-identifier-from-point "tooltip" (point))
 
 (defun gud-watch (&optional arg event)
   "Watch expression at point.
@@ -1905,6 +1910,9 @@ static char *magick[] = {
 (defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin.")
 
+(declare-function define-fringe-bitmap "fringe.c"
+		  (bitmap bits &optional height width align))
+
 (and (display-images-p)
      ;; Bitmap for breakpoint in fringe
      (define-fringe-bitmap 'breakpoint
@@ -2019,6 +2027,7 @@ static char *magick[] = {
 
 (declare-function gud-remove "gdb-ui" t t) ; gud-def
 (declare-function gud-break  "gdb-ui" t t) ; gud-def
+(declare-function fringe-bitmaps-at-pos "fringe.c" (&optional pos window))
 
 (defun gdb-mouse-set-clear-breakpoint (event)
   "Set/clear breakpoint in left fringe/margin at mouse click.

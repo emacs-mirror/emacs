@@ -818,6 +818,8 @@ but still contains full information about each coding system."
 
 ;;; FONT
 
+(declare-function font-info "font.c" (name &optional frame))
+
 (defun describe-font-internal (font-info &optional verbose)
   "Print information about a font in FONT-INFO."
   (print-list "name (opened by):" (aref font-info 0))
@@ -910,6 +912,9 @@ The font must be already used by Emacs."
 	    (dolist (opened (cdr elt))
 	      (insert "\n\t[" opened "]")))))))
 
+(declare-function query-fontset "fontset.c" (pattern &optional regexpp))
+(declare-function fontset-info "fontset.c" (fontset &optional frame))
+
 (defun print-fontset (fontset &optional print-opened)
   "Print information about FONTSET.
 If FONTSET is nil, print information about the default fontset.
@@ -929,6 +934,9 @@ the current buffer."
     (describe-vector info 'print-fontset-element)
     (insert "\n  ---<fallback to the default fontset>---")
     (describe-vector (char-table-extra-slot info 0) 'print-fontset-element)))
+
+(defvar fontset-alias-alist)
+(declare-function fontset-list "fontset.c" ())
 
 ;;;###autoload
 (defun describe-fontset (fontset)
@@ -951,6 +959,8 @@ This shows which font is used for which character(s)."
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
       (print-fontset fontset t))))
+
+(declare-function fontset-plain-name "fontset" (fontset))
 
 ;;;###autoload
 (defun list-fontsets (arg)

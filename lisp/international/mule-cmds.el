@@ -1910,6 +1910,9 @@ Setting this variable directly does not take effect.  See
 			   (features (repeat symbol))
 			   (unibyte-display coding-system)))))
 
+(declare-function x-server-vendor "xfns.c" (&optional terminal))
+(declare-function x-server-version "xfns.c" (&optional terminal))
+
 (defun standard-display-european-internal ()
   ;; Actually set up direct output of non-ASCII characters.
   (standard-display-8bit (if (eq window-system 'pc) 128 160) 255)

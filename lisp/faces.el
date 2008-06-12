@@ -299,6 +299,12 @@ X resource class for the attribute."
   :group 'faces)
 
 
+(declare-function internal-face-x-get-resource "xfaces.c"
+		  (resource class frame))
+
+(declare-function internal-set-lisp-face-attribute-from-resource "xfaces.c"
+		  (face attr value &optional frame))
+
 (defun set-face-attribute-from-resource (face attribute resource class frame)
   "Set FACE's ATTRIBUTE from X resource RESOURCE, class CLASS on FRAME.
 Value is the attribute value specified by the resource, or nil
@@ -930,6 +936,8 @@ Otherwise, return a single face."
 	  output
 	(car output)))))
 
+;; Not defined without X, but behind window-system test.
+(defvar x-bitmap-file-path)
 
 (defun face-valid-attribute-values (attribute &optional frame)
   "Return valid values for face attribute ATTRIBUTE.
@@ -1110,6 +1118,9 @@ of a global face.  Value is the new attribute value."
       (setq new-value (read new-value)))
     new-value))
 
+(declare-function fontset-list "fontset.c" ())
+(declare-function x-list-fonts "xfaces.c"
+		  (pattern &optional face frame maximum width))
 
 (defun read-face-font (face &optional frame)
   "Read the name of a font for FACE on FRAME.
@@ -1586,6 +1597,8 @@ If FRAME is nil, that stands for the selected frame."
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
 
+(declare-function xw-color-defined-p "xfns.c" (color &optional frame))
+
 (defun color-defined-p (color &optional frame)
   "Return non-nil if color COLOR is supported on frame FRAME.
 If FRAME is omitted or nil, use the selected frame.
@@ -1597,6 +1610,8 @@ If COLOR is the symbol `unspecified' or one of the strings
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
+
+(declare-function xw-color-values "xfns.c" (color &optional frame))
 
 (defun color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.
@@ -1614,6 +1629,8 @@ If COLOR is the symbol `unspecified' or one of the strings
       (tty-color-values color frame))))
 (defalias 'x-color-values 'color-values)
 
+(declare-function xw-display-color-p "xfns.c" (&optional terminal))
+
 (defun display-color-p (&optional display)
   "Return t if DISPLAY supports color.
 The optional argument DISPLAY specifies which display to ask about.
@@ -1623,6 +1640,8 @@ If omitted or nil, that stands for the selected frame's display."
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
+
+(declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
 (defun display-grayscale-p (&optional display)
   "Return non-nil if frames on DISPLAY can display shades of gray."
@@ -1788,6 +1807,9 @@ variable with `setq'; this won't have the expected effect."
 		 (const :tag "automatic" nil)))
 
 
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
+
 (defun frame-set-background-mode (frame)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
@@ -1870,6 +1892,8 @@ according to the `background-mode' and `display-type' frame parameters."
 ;;; Frame creation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare-function x-parse-geometry "frame.c" (string))
+
 (defun x-handle-named-frame-geometry (parameters)
   "Add geometry parameters for a named frame to parameter list PARAMETERS.
 Value is the new parameter list."
@@ -1916,6 +1940,9 @@ Value is the new parameter list."
 	    (modify-frame-parameters frame
 				     (list (cons 'cursor-color fg)))))))
 
+(declare-function x-create-frame "xfns.c" (parms))
+(declare-function x-setup-function-keys "term/x-win" (frame))
+(declare-function tool-bar-setup "tool-bar" (&optional frame))
 
 (defun x-create-frame-with-faces (&optional parameters)
   "Create a frame from optional frame parameters PARAMETERS.

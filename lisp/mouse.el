@@ -2425,6 +2425,8 @@ and selects that window."
     )
   "X fonts suitable for use in Emacs.")
 
+(declare-function generate-fontset-menu "fontset" ())
+
 (defun mouse-select-font ()
   "Prompt for a font name, using `x-popup-menu', and return it."
   (interactive)

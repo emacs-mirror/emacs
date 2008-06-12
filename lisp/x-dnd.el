@@ -356,6 +356,9 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Old KDE protocol.  Only dropping of files.
 
+(declare-function x-window-property "xfns.c"
+		  (prop &optional frame type source delete-p vector-ret-p))
+
 (defun x-dnd-handle-old-kde (event frame window message format data)
   "Open the files in a KDE 1.x drop."
   (let ((values (x-window-property "DndSelection" frame nil 0 t)))
@@ -375,6 +378,9 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
     ("XdndActionLink" . link)
     ("XdndActionAsk" . ask))
   "Mapping from XDND action types to lisp symbols.")
+
+(declare-function x-change-window-property "xfns.c"
+		  (prop value &optional frame type format outer-P))
 
 (defun x-dnd-init-xdnd-for-frame (frame)
   "Set the XdndAware property for FRAME to indicate that we do XDND."
@@ -420,8 +426,11 @@ otherwise return the frame coordinates."
 	   (+ frame-real-top (nth 1 edges))))
       (cons frame-real-left frame-real-top))))
 
-(declare-function x-get-atom-name "xselect.c")
-(declare-function x-send-client-message "xselect.c")
+(declare-function x-get-atom-name "xselect.c" (value &optional frame))
+(declare-function x-send-client-message "xselect.c"
+		  (display dest from message-type format values))
+(declare-function x-get-selection-internal "xselect.c"
+		  (selection-symbol target-type &optional time-stamp))
 
 (defun x-dnd-handle-xdnd (event frame window message format data)
   "Receive one XDND event (client message) and send the appropriate reply.

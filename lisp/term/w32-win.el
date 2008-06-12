@@ -185,6 +185,8 @@ the last file dropped is selected."
 	  (concat x-command-line-resources "\n" (car x-invocation-args))))
   (setq x-invocation-args (cdr x-invocation-args)))
 
+(declare-function x-parse-geometry "frame.c" (string))
+
 (defun x-handle-geometry (switch)
   "Handle the \"-geometry\" SWITCH."
   (let* ((geo (x-parse-geometry (car x-invocation-args)))
@@ -210,6 +212,8 @@ the last file dropped is selected."
 		      (if left (list left))
 		      (if top (list top)))))
     (setq x-invocation-args (cdr x-invocation-args))))
+
+(defvar x-resource-name)
 
 (defun x-handle-name-switch (switch)
   "Handle the \"-name\" SWITCH."
@@ -417,6 +421,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
 
+(declare-function generate-fontset-menu "fontset" ())
 
 (defun mouse-set-font (&rest fonts)
   "Select an Emacs font from a list of known good fonts and fontsets.
@@ -451,6 +456,8 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 	(if (null font)
 	    (error "Font not found")))))
 
+(defvar image-library-alist)
+
 ;;; Set default known names for image libraries
 (setq image-library-alist
       '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
@@ -467,6 +474,19 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 ;;; multi-tty support
 (defvar w32-initialized nil
   "Non-nil if the w32 window system has been initialized.")
+
+(declare-function x-open-connection "w32fns.c"
+                  (display &optional xrm-string must-succeed))
+
+(declare-function setup-default-fontset "fontset" ())
+(declare-function set-fontset-font "fontset.c"
+                  (name target font-spec &optional frame add))
+(declare-function setup-default-fontset "fontset" ())
+(declare-function create-fontset-from-fontset-spec "fontset"
+                  (fontset-spec &optional style-variant noerror))
+(declare-function create-fontset-from-x-resource "fontset" ())
+(declare-function x-get-resource "frame.c"
+                  (attribute class &optional component subclass))
 
 (defun w32-initialize-window-system ()
   "Initialize Emacs for W32 GUI frames."
