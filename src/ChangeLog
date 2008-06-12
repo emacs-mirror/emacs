@@ -1,3 +1,7 @@
+2008-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c: Include ctype.h.
+
 2008-06-11  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32font_encode_char): Detect missing glyphs that are
@@ -16,8 +20,8 @@
 
 2008-06-10  Jason Rumney  <jasonr@gnu.org>
 
-	* w32uniscribe.c (add_opentype_font_name_to_list): Skip non unicode
-	fonts.
+	* w32uniscribe.c (add_opentype_font_name_to_list):
+	Skip non unicode fonts.
 
 2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
