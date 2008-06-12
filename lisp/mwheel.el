@@ -1,7 +1,7 @@
 ;;; mwheel.el --- Wheel mouse support
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2002, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2002, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
@@ -153,7 +153,9 @@ This can be slightly disconcerting, but some people prefer it."
   :group 'mouse
   :type 'boolean)
 
-(if (not (fboundp 'event-button))
+(eval-and-compile
+  (if (fboundp 'event-button)
+      (fset 'mwheel-event-button 'event-button)
     (defun mwheel-event-button (event)
       (let ((x (event-basic-type event)))
 	;; Map mouse-wheel events to appropriate buttons
@@ -162,13 +164,12 @@ This can be slightly disconcerting, but some people prefer it."
 	      (if (< amount 0)
 		  mouse-wheel-up-event
 		mouse-wheel-down-event))
-	  x)))
-  (fset 'mwheel-event-button 'event-button))
+	  x))))
 
-(if (not (fboundp 'event-window))
+  (if (fboundp 'event-window)
+      (fset 'mwheel-event-window 'event-window)
     (defun mwheel-event-window (event)
-      (posn-window (event-start event)))
-  (fset 'mwheel-event-window 'event-window))
+      (posn-window (event-start event)))))
 
 (defvar mwheel-inhibit-click-event-timer nil
   "Timer running while mouse wheel click event is inhibited.")
