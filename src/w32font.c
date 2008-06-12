@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <windows.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "lisp.h"
 #include "w32term.h"
