@@ -1,3 +1,7 @@
+2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_select_font): Rename from x-font-dialog.
+
 2008-06-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32font.c: Include ctype.h.
