@@ -1,3 +1,12 @@
+2008-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* character.h (CHAR_TO_BYTE_SAFE): New macro.
+	* character.c (Fmultibyte_char_to_unibyte): Obey the docstring.
+	* regex.c (RE_CHAR_TO_UNIBYTE): Use the new macro.
+	(WEAK_ALIAS): Simplify.
+	* syntax.c (skip_chars): Don't mark non-byte chars in the fastmap
+	when searching a unibyte buffer.
+
 2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_select_font): Rename from x-font-dialog.
@@ -8,10 +17,10 @@
 
 2008-06-11  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_encode_char): Detect missing glyphs that are
-        misreported as space.
-        (add_font_entity_to_list): Support unicode-bmp and unicode-sip
-        as aliases for registry iso10646-1.
+	* w32font.c (w32font_encode_char): Detect missing glyphs that are
+	misreported as space.
+	(add_font_entity_to_list): Support unicode-bmp and unicode-sip
+	as aliases for registry iso10646-1.
 
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 

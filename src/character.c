@@ -359,7 +359,7 @@ If the multibyte character does not represent a byte, return -1.  */)
     return ch;
   else
     {
-      int cu = CHAR_TO_BYTE8 (cm);
+      int cu = CHAR_TO_BYTE_SAFE (cm);
       return make_number (cu);
     }
 }
