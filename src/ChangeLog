@@ -1,3 +1,8 @@
+2008-06-12  Jim Meyering  <meyering@redhat.com>
+
+	make unexec_free handle NULL the same way free does
+	* unexmacosx.c (unexec_free): Ignore a NULL argument.
+
 2008-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* character.h (CHAR_TO_BYTE_SAFE): New macro.
