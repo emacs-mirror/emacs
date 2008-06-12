@@ -1,3 +1,7 @@
+2008-06-12  Emanuele Giaquinta <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* lread.c (Fload): Use xfree, not free on saved_doc_string.
+
 2008-06-12  Jim Meyering  <meyering@redhat.com>
 
 	make unexec_free handle NULL the same way free does
