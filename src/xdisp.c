@@ -20980,14 +20980,14 @@ x_produce_glyphs (it)
 	}
       else if (it->char_to_display == '\t')
 	{
-	  int tab_width = it->tab_width * FRAME_SPACE_WIDTH (it->f);
+	  int tab_width = it->tab_width * font->space_width;
 	  int x = it->current_x + it->continuation_lines_width;
 	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
 
 	  /* If the distance from the current position to the next tab
 	     stop is less than a space character width, use the
 	     tab stop after that.  */
-	  if (next_tab_x - x < FRAME_SPACE_WIDTH (it->f))
+	  if (next_tab_x - x < font->space_width)
 	    next_tab_x += tab_width;
 
 	  it->pixel_width = next_tab_x - x;

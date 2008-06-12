@@ -1,3 +1,16 @@
+2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (nnmairix): Markup and othe minor fixes.
+
+2008-06-05  David Engster  <dengste@eml.cc>
+
+	* gnus.texi (nnmairix): New nodes describing nnmairix.el.
+
+2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Group Parameters): Change ~/.gnus to ~/.gnus.el
+	(Searching, nnir, nnmairix): New stub nodes.
+
 2008-05-30  "Felix -"  <felix.1@canids.net>  (tiny change)
 
 	* cl.texi (Iteration Clauses): Fix incorrect "identical" examples.
@@ -39,10 +52,6 @@
 2008-04-27  Carsten Dominik  <dominik@sam.science.uva.nl>
 
 	* org.texi: Massive changes, in many parts of the file.
-
-2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* gnus.texi (Searching, nnir.el, nnmairix.el): New nodes.
 
 2008-04-13  Reiner Steib  <Reiner.Steib@gmx.de>
 

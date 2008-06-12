@@ -1,3 +1,98 @@
+2008-06-06  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (ELCFILES): Add gnus/nndir.elc.
+
+2008-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-options-menu): Add Menu entry for
+	longlines mode.
+
+	* replace.el (replace-search-function)
+	(replace-re-search-function): New vars.
+	(perform-replace): Use them.
+
+	* longlines.el (longlines-re-search-forward): New function.
+	(longlines-mode): Bind replace-search-function and
+	replace-re-search-function, to ensure that replacement commands
+	treat newlines as spaces.
+	(longlines-show-effect): Default to a pilcrow sign.
+
+2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point): Use emacs-lisp-mode-syntax-table
+	even when calling find-tag-default.
+
+2008-06-06  Daniel Colascione  <danc@merrillpress.com>
+
+	* nxml/nxml-mode.el (nxml-syntax-highlight-flag)
+	(nxml-fontify-chunk-size, nxml-clear-face, nxml-set-fontified)
+	(nxml-clear-fontified, nxml-fontify, nxml-fontify1)
+	(nxml-fontify-buffer, nxml-do-fontify):
+	Remove obsolete variables and functions.
+	(nxml-font-lock-keywords, nxml-set-face, nxml-mode)
+	(nxml-degrade, nxml-after-change, nxml-after-change1)
+	(nxml-extend-region, nxml-extend-after-change-region)
+	(nxml-extend-after-change-region1, nxml-fontify-matcher)
+	(nxml-toggle-char-ref-extra-display): Use font-lock, and
+	font-lock-extend-region-functions in particular, to fontify
+	nxml-mode buffers.
+	(nxml-debug-region): New debugging helper function.
+
+	* nxml/nxml-rap.el (nxml-clear-inside, nxml-set-inside)
+	(nxml-scan-after-change, nxml-move-tag-backwards):
+	Adapt for font-lock changes.
+
+	* nxml/nxml-util.el (nxml-debug, nxml-debug-change)
+	(nxml-debug-set-inside, nxml-debug-clear-inside):
+	New debugging functions.
+	(nxml-with-degradation-on-error): New helper macro.
+
+2008-06-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer): Remove dead call to get-lru-window.
+
+2008-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (mail-interactive): Change default.
+
+2008-06-05  John Paul Wallington  <jpw@pobox.com>
+
+	* bindings.el (completion-ignored-extensions):
+	Add .p64fsl, .d64fsl, and .dx64fsl.
+
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el (ffap-prompter): Don't use the region.
+
+2008-06-05  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el (vc-cvs-registered): Consider a directory with a CVS
+	subdirectory to be registered.
+
+2008-06-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-function, special-display-p)
+	(special-display-buffer-names, special-display-regexps)
+	(special-display-function, same-window-p, same-window-buffer-names)
+	(same-window-regexps, pop-up-frames, display-buffer-reuse-frames)
+	(pop-up-frame-function, pop-up-windows, even-window-heights)
+	(split-window-preferred-function, split-height-threshold)
+	(window--display-buffer-1, display-buffer, pop-to-buffer):
+	Move from window.c and buffer.c.
+	(window--splittable-p, window--try-to-split-window)
+	(window--frame-usable-p, window--display-buffer-2)
+	(window--even-window-heights): New functions.
+	(split-width-threshold): New option.
+	(split-window-preferred-horizontally): Remove.
+
+	* cus-start.el: Remove corresponding declarations.
+
+2008-06-05  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-update): Use `save-some-buffers' instead of signaling
+	an error on modified buffers.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/etags.el (tags-verify-table): Be careful to use and update
@@ -5386,9 +5481,9 @@
 	Fix typos in messages.
 	(reb-mode-buffer-p): New function.
 	(re-builder, reb-kill-buffer): Use `reb-mode-buffer-p'.  Use `when'.
-	(top, reb-show-subexp, reb-auto-update, reb-auto-update)
-	(reb-delete-overlays, reb-cook-regexp, reb-update-regexp)
-	(reb-update-overlays): Use `unless', `when'.
+	(top, reb-show-subexp, reb-auto-update, reb-delete-overlays)
+	(reb-cook-regexp, reb-update-regexp, reb-update-overlays):
+	Use `unless', `when'.
 	(re-builder-unload-function): New function.
 
 2008-03-25  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -8289,7 +8384,7 @@
 
 	* ldefs-boot.el: Regenerated.
 
-	* loadup.el: Don't load language/devanagari, language/kannanda,
+	* loadup.el: Don't load language/devanagari, language/kannada,
 	language/malayalam, and language/tamil.  Load language/sinhala.
 
 	* language/indian.el (indian-font-foundry)
@@ -8302,7 +8397,7 @@
 	New language environments.
 
 	* language/devanagari.el, language/devan-util.el,
-	* language/kannanda.el, language/knd-util.el, language/malayalam.el,
+	* language/kannada.el, language/knd-util.el, language/malayalam.el,
 	* language/mlm-util.el, language/tamil.el, language/tml-util.el:
 	Delete them.
 

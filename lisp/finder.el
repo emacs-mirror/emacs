@@ -145,7 +145,7 @@ no arguments compiles from `load-path'."
       (insert (autoload-rubric generated-finder-keywords-file
                                "keyword-to-package mapping"))
       (search-backward "")
-      (insert "\n(setq finder-package-info '(\n")
+      (insert "(setq finder-package-info '(\n")
       (mapc
        (lambda (d)
 	 (when (file-exists-p (directory-file-name d))
@@ -178,7 +178,7 @@ no arguments compiles from `load-path'."
                              "^[^=].*\\.el\\(\\.\\(gz\\|Z\\)\\)?$"
                              ))))
        (or dirs load-path))
-      (insert "))\n")
+      (insert "    ))\n")
       (eval-buffer)       ; so we get the new keyword list immediately
       (basic-save-buffer))))
 

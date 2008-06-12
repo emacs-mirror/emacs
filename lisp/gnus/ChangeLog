@@ -1,3 +1,13 @@
+2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnir.el: New file.
+
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-util.el (gnus-read-shell-command): New function.
+	* mm-decode.el (mm-pipe-part):
+	* gnus-art.el (gnus-summary-save-in-pipe): Use it.
+
 2008-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-disassociate-draft): Revert 2008-03-18 change.

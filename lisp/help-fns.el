@@ -469,8 +469,8 @@ face (according to `face-differs-from-default-p')."
   "Return the bound variable symbol found at or before point.
 Return 0 if there is no such symbol.
 If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
-  (or (condition-case ()
-	  (with-syntax-table emacs-lisp-mode-syntax-table
+  (with-syntax-table emacs-lisp-mode-syntax-table
+    (or (condition-case ()
 	    (save-excursion
 	      (or (not (zerop (skip-syntax-backward "_w")))
 		  (eq (char-syntax (following-char)) ?w)
@@ -478,17 +478,17 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 		  (forward-sexp -1))
 	      (skip-chars-forward "'")
 	      (let ((obj (read (current-buffer))))
-		(and (symbolp obj) (boundp obj) obj))))
-	(error nil))
-      (let* ((str (find-tag-default))
-	     (sym (if str (intern-soft str))))
-	(if (and sym (or any-symbol (boundp sym)))
-	    sym
-	  (save-match-data
-	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
-	      (setq sym (intern-soft (match-string 1 str)))
-	      (and (or any-symbol (boundp sym)) sym)))))
-      0))
+		(and (symbolp obj) (boundp obj) obj)))
+          (error nil))
+        (let* ((str (find-tag-default))
+               (sym (if str (intern-soft str))))
+          (if (and sym (or any-symbol (boundp sym)))
+              sym
+            (save-match-data
+              (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
+                (setq sym (intern-soft (match-string 1 str)))
+                (and (or any-symbol (boundp sym)) sym)))))
+        0)))
 
 (defun describe-variable-custom-version-info (variable)
   (let ((custom-version (get variable 'custom-version))

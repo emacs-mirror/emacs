@@ -1295,7 +1295,8 @@ text/\\(\\sw+\\)\\(?:\;\\s-*charset=\\(.+?\\)\\)?[\"'][^>]*>" nil t)
   "Pipe HANDLE to a process."
   (let* ((name (mail-content-type-get (mm-handle-type handle) 'name))
 	 (command
-	  (read-string "Shell command on MIME part: " mm-last-shell-command)))
+	  (gnus-read-shell-command
+           "Shell command on MIME part: " mm-last-shell-command)))
     (mm-with-unibyte-buffer
       (mm-insert-part handle)
       (mm-add-meta-html-tag handle)

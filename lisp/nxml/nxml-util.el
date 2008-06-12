@@ -24,6 +24,32 @@
 
 ;;; Code:
 
+(defconst nxml-debug nil
+  "enable nxml debugging. effective only at compile time")
+
+(defsubst nxml-debug (format &rest args)
+  (when nxml-debug
+    (apply #'message format args)))
+
+(defmacro nxml-debug-change (name start end)
+  (when nxml-debug
+    `(nxml-debug "%s: %S" ,name
+                (buffer-substring-no-properties ,start ,end))))
+
+(defmacro nxml-debug-set-inside (start end)
+  (when nxml-debug
+    `(let ((overlay (make-overlay ,start ,end)))
+       (overlay-put overlay 'face '(:background "red"))
+       (overlay-put overlay 'nxml-inside-debug t)
+       (nxml-debug-change "nxml-set-inside" ,start ,end))))
+
+(defmacro nxml-debug-clear-inside (start end)
+  (when nxml-debug
+    `(loop for overlay in (overlays-in ,start ,end)
+           if (overlay-get overlay 'nxml-inside-debug)
+           do (delete-overlay overlay)
+           finally (nxml-debug-change "nxml-clear-inside" ,start ,end))))
+
 (defun nxml-make-namespace (str)
   "Return a symbol for the namespace URI STR.
 STR must be a string. If STR is the empty string, return nil.
@@ -37,11 +63,20 @@ Otherwise, return the symbol whose name is STR prefixed with a colon."
 This is the inverse of `nxml-make-namespace'."
   (and ns (substring (symbol-name ns) 1)))
 
-(defconst nxml-xml-namespace-uri 
+(defconst nxml-xml-namespace-uri
   (nxml-make-namespace "http://www.w3.org/XML/1998/namespace"))
 
 (defconst nxml-xmlns-namespace-uri
   (nxml-make-namespace "http://www.w3.org/2000/xmlns/"))
+
+(defmacro nxml-with-degradation-on-error (context &rest body)
+  (if (not nxml-debug)
+      (let ((error-symbol (make-symbol "err")))
+        `(condition-case ,error-symbol
+             (progn ,@body)
+           (error
+            (nxml-degrade ,context ,error-symbol))))
+    `(progn ,@body)))
 
 (defmacro nxml-with-unmodifying-text-property-changes (&rest body)
   "Evaluate BODY without any text property changes modifying the buffer.

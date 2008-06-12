@@ -1398,7 +1398,11 @@ Uses the face `ffap' if it is defined, or else `highlight'."
 	(ffap-read-file-or-url
 	 (if ffap-url-regexp "Find file or URL: " "Find file: ")
 	 (prog1
-	     (setq guess (or guess (ffap-guesser))) ; using ffap-alist here
+             (let ((mark-active nil))
+               ;; Don't use the region here, since it can be something
+               ;; completely unwieldy.  If the user wants that, she could
+               ;; use M-w before and then C-y.  --Stef
+               (setq guess (or guess (ffap-guesser)))) ; using ffap-alist here
 	   (and guess (ffap-highlight))
 	   )))
     (ffap-highlight t)))

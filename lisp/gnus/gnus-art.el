@@ -3944,7 +3944,7 @@ The directory to save in defaults to `gnus-article-save-directory'."
 	       gnus-last-shell-command)
 	      ((stringp command)
 	       command)
-	      (t (read-string
+	      (t (gnus-read-shell-command
 		  (format
 		   "Shell command on %s: "
 		   (if (and gnus-number-of-articles-to-be-saved

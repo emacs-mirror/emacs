@@ -62,7 +62,7 @@
 (eval-and-compile
   (cond
    ;; Prefer `replace-regexp-in-string' (present in Emacs, XEmacs 21.5,
-   ;; SXEmacs 22.1.4) over `replace-in-string'.  The later leads to inf-loops
+   ;; SXEmacs 22.1.4) over `replace-in-string'.  The latter leads to inf-loops
    ;; on empty matches:
    ;;   (replace-in-string "foo" "/*$" "/")
    ;;   (replace-in-string "xe" "\\(x\\)?" "")
@@ -957,10 +957,10 @@ If there's no subdirectory, delete DIRECTORY as well."
 			(overlays-at pos)))))))
 
 ;;; Protected and atomic operations.  dmoore@ucsd.edu 21.11.1996
-;;; The primary idea here is to try to protect internal datastructures
-;;; from becoming corrupted when the user hits C-g, or if a hook or
-;;; similar blows up.  Often in Gnus multiple tables/lists need to be
-;;; updated at the same time, or information can be lost.
+;; The primary idea here is to try to protect internal datastructures
+;; from becoming corrupted when the user hits C-g, or if a hook or
+;; similar blows up.  Often in Gnus multiple tables/lists need to be
+;; updated at the same time, or information can be lost.
 
 (defvar gnus-atomic-be-safe t
   "If t, certain operations will be protected from interruption by C-g.")
@@ -979,7 +979,7 @@ variables and then do only the assignment atomically."
 (put 'gnus-atomic-progn 'lisp-indent-function 0)
 
 (defmacro gnus-atomic-progn-assign (protect &rest forms)
-  "Evaluate FORMS, but insure that the variables listed in PROTECT
+  "Evaluate FORMS, but ensure that the variables listed in PROTECT
 are not changed if anything in FORMS signals an error or otherwise
 non-locally exits.  The variables listed in PROTECT are updated atomically.
 It is safe to use gnus-atomic-progn-assign with long computations.
@@ -1797,6 +1797,9 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
 	     ;; call, and that might allow it to exit thru a condition-case
 	     ;; that intends to handle the quit signal next time.
 	     (eval '(ignore nil))))))
+
+(defalias 'gnus-read-shell-command
+  (if (fboundp 'read-shell-command) 'read-shell-command 'read-string))
 
 (provide 'gnus-util)
 

@@ -1209,7 +1209,7 @@ set_internal (symbol, newval, buf, bindflag)
       int idx = PER_BUFFER_IDX (offset);
       if (idx > 0
 	  && !bindflag
-	  && !let_shadows_buffer_binding_p (symbol))
+	  && !let_shadows_buffer_binding_p (XSYMBOL (symbol)))
 	SET_PER_BUFFER_VALUE_P (buf, idx, 1);
     }
   else if (BUFFER_LOCAL_VALUEP (valcontents))

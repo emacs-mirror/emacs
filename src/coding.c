@@ -5830,9 +5830,10 @@ detect_coding (coding)
 		  if (eight_bit_found)
 		    break;
 		}
-	      coding->head_ascii++;
+	      if (! eight_bit_found)
+		coding->head_ascii++;
 	    }
-	  else
+	  else if (! eight_bit_found)
 	    coding->head_ascii++;
 	}
 
@@ -7707,9 +7708,10 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		  if (eight_bit_found)
 		    break;
 		}
-	      coding.head_ascii++;
+	      if (! eight_bit_found)
+		coding.head_ascii++;
 	    }
-	  else
+	  else if (! eight_bit_found)
 	    coding.head_ascii++;
 	}
 

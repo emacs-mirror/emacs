@@ -7061,6 +7061,17 @@ WINDOW nil or omitted means report on the selected window.  */)
   return w->cursor_off_p ? Qnil : Qt;
 }
 
+DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
+       Slast_nonminibuf_frame, 0, 0, 0,
+       doc: /* Value is last nonminibuffer frame. */)
+     ()
+{
+  Lisp_Object frame;
+
+  XSETFRAME (frame, last_nonminibuf_frame);
+
+  return frame;
+}
 
 /***********************************************************************
 			    Initialization
@@ -7079,6 +7090,7 @@ syms_of_display ()
   defsubr (&Ssend_string_to_terminal);
   defsubr (&Sinternal_show_cursor);
   defsubr (&Sinternal_show_cursor_p);
+  defsubr (&Slast_nonminibuf_frame);
 
 #if GLYPH_DEBUG
   defsubr (&Sdump_redisplay_history);

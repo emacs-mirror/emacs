@@ -606,6 +606,7 @@ ELCFILES = \
 	$(lisp)/gnus/nngateway.elc \
 	$(lisp)/gnus/nnheader.elc \
 	$(lisp)/gnus/nnimap.elc \
+	$(lisp)/gnus/nnir.elc \
 	$(lisp)/gnus/nnkiboze.elc \
 	$(lisp)/gnus/nnlistserv.elc \
 	$(lisp)/gnus/nnmail.elc \

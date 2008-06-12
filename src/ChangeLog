@@ -1,3 +1,34 @@
+2008-06-06  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (x_produce_glyphs): Calculate tab width based on current
+	face, not frame default.
+
+2008-06-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (pop_up_windows, pop_up_frames)
+	(display_buffer_reuse_frames, Vpop_up_frame_function)
+	(Vdisplay_buffer_function, Veven_window_heights)
+	(Vspecial_display_buffer_names, Vspecial_display_regexps)
+	(Vspecial_display_function, Vsame_window_buffer_names)
+	(Vsame_window_regexps, split_height_threshold)
+	(Vsplit_window_preferred_function): Move those vars to window.el.
+	(display_buffer_1, Fspecial_display_p, Fsame_window_p)
+	(Fdisplay_buffer): Move those functions to window.el.
+	(syms_of_window): Remove corresponding declarations.
+	(display_buffer): New function.
+	(temp_output_buffer_show, Fother_window_for_scrolling): Use it.
+	* dispnew.c (Flast_nonminibuf_frame): New function.
+	* buffer.c (Fpop_to_buffer): Move to window.el.
+
+2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (set_internal): Fix up call to let_shadows_buffer_binding_p.
+
+2008-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding): Fix previous change.
+	(detect_coding_system): Likewise.
+
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* character.h (MAKE_CHAR_MULTIBYTE): Check the arg is a (uni)byte.
@@ -23,8 +54,7 @@
 	* xfaces.c (realize_x_face): If the font-related face attributes
 	are the same as those of default face, realize a new fontset from
 	default->fontset.
-	(Fx_family_fonts): Use font_parse_family_registry instead of
-	Ffont_put.
+	(Fx_family_fonts): Use font_parse_family_registry instead of Ffont_put.
 
 2008-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -69,8 +99,7 @@
 2008-06-04  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix handling of coding->head_ascii.
-	Be sure to call setup_coding_system when a proper coding system is
-	found.
+	Be sure to call setup_coding_system when we find a proper coding system.
 	(detect_coding_system): Fix handling of coding->head_ascii.
 
 2008-06-03  Andreas Schwab  <schwab@suse.de>
@@ -218,14 +247,14 @@
 
 2008-05-30  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (Ffont_info): Moved to font.c.
+	* fontset.c (Ffont_info): Move to font.c.
 	(syms_of_fontset): Delete defsubr of Sfont_info.
 
 	* font.c (font_style_to_value, font_score): Delete casting of the
 	args to xstcasecmp.
 	(register_font_driver): Increment num_font_drivers only when
 	registering the driver globally.
-	(Ffont_info): Moved from fontset.c.  Handle a font object too.
+	(Ffont_info): Move from fontset.c.  Handle a font object too.
 	(syms_of_font): Defsubr Sfont_info.
 
 2008-05-29  Kenichi Handa  <handa@m17n.org>
@@ -429,14 +458,13 @@
 
 	* ftfont.c (ftfont_spec_pattern): Free charset if necessary.
 
-	* xfont.c (xfont_list_pattern): Free names returned from
-	XListFonts.
+	* xfont.c (xfont_list_pattern): Free names returned from XListFonts.
 
 2008-05-22  Jason Rumney  <jasonr@gnu.org>
 
 	* font.c: Don't include strings.h.
 
-	* dispextern.h, xfaces.c (xstrcasecmp): Renamed from xstricmp.
+	* dispextern.h, xfaces.c (xstrcasecmp): Rename from xstricmp.
 
 	* dosfns.c, fileio.c, font.c, fontset.c, image.c, macfns.c:
 	* macterm.c, process.c, w32.c, w32fns.c, w32proc.c, xfaces.c:
@@ -565,7 +593,7 @@
 
 	* Makefile.in (FONTSRC): Delete it.  Change all $(FONTSRC) to
 	font.h through out the file.
-	(FONT_DRIVERS): Renamed from FONTOBJ.
+	(FONT_DRIVERS): Rename from FONTOBJ.
 	(obj): Change $(FONTOBJ) to $(FONT_DRIVERS).  Add font.o.
 	(SOME_MACHINE_OBJECTS): Change $(FONTOBJ) to $(FONT_DRIVERS).
 
@@ -573,7 +601,7 @@
 
 	* font.h (find_font_encoding): Extern it.
 
-	* font.c (Vfont_encoding_alist, find_font_encoding): Moved from
+	* font.c (Vfont_encoding_alist, find_font_encoding): Move from
 	fontset.c.
 	(font_pixel_size)[! HAVE_WINDOW_SYSTEM]: Return 1.
 	(font_open_entity): Update FRAME_X_DISPLAY_INFO (f)->n_fonts,
@@ -582,10 +610,8 @@
 	(font_close_object): Update FRAME_X_DISPLAY_INFO (f)->n_fonts only
 	when HAVE_WINDOW_SYSTEM is defined.
 
-	* fontset.c (Vfont_encoding_alist, find_font_encoding): Moved to
-	font.c.
-	(syms_of_fontset): Declaration of font-encoding-alist moved to
-	font.c.
+	* fontset.c (Vfont_encoding_alist, find_font_encoding): Move to font.c.
+	(syms_of_fontset): Move declaration of font-encoding-alist to font.c.
 
 	* xfaces.c: Include font.h unconditionally.
 	(merge_face_ref, merge_face_vectors)

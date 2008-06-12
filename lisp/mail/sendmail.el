@@ -114,7 +114,11 @@ so you can remove or alter the BCC field to override the default."
   :group 'sendmail)
 
 ;;;###autoload
-(defcustom mail-interactive nil
+(defcustom mail-interactive t
+  ;; We used to use a default of nil rather than t, but nowadays it is very
+  ;; common for sendmail to be misconfigured, so one cannot rely on the
+  ;; bounce message to be delivered anywhere, least of all to the
+  ;; user's mailbox.
   "Non-nil means when sending a message wait for and display errors.
 nil means let mailer mail back a message to report errors."
   :type 'boolean

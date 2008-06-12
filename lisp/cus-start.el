@@ -302,51 +302,7 @@ since it could result in memory overflow and make Emacs crash."
 			       "22.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
-	     (display-buffer-function windows (choice (const nil) function))
-	     (pop-up-frames frames boolean)
-	     (pop-up-frame-function frames function)
-	     (special-display-buffer-names
-	      frames
-	      (repeat (choice :tag "Buffer"
-			      :value ""
-			      (string :format "%v")
-			      (cons :tag "With attributes"
-				    :format "%v"
-				    :value ("" . nil)
-				    (string :format "%v")
-				    (repeat :tag "Attributes"
-					    (cons :format "%v"
-						  (symbol :tag "Parameter")
-						  (sexp :tag "Value")))))))
-	     (special-display-regexps
-	      frames
-	      (repeat (choice :tag "Buffer"
-			      :value ""
-			      (regexp :format "%v")
-			      (cons :tag "With attributes"
-				    :format "%v"
-				    :value ("" . nil)
-				    (regexp :format "%v")
-				    (repeat :tag "Attributes"
-					    (cons :format "%v"
-						  (symbol :tag "Parameter")
-						  (sexp :tag "Value")))))))
-	     (special-display-function frames function)
-	     (same-window-buffer-names windows (repeat (string :format "%v")))
-	     (same-window-regexps windows (repeat (regexp :format "%v")))
-	     (pop-up-windows windows boolean)
-	     (even-window-heights windows boolean)
 	     (next-screen-context-lines windows integer)
-	     (split-height-threshold windows integer)
-             (split-window-preferred-function
-              windows
-              (choice (const :tag "vertically" nil)
-                      ;; FIXME: Add `sensibly' which chooses between
-                      ;; vertical or horizontal splits depending on the size
-                      ;; and shape of the window.
-                      (const :tag "horizontally"
-                             split-window-preferred-horizontally))
-	      "23.1")
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
  	     (scroll-preserve-screen-position
@@ -354,7 +310,6 @@ since it could result in memory overflow and make Emacs crash."
  		       (const :tag "Off (nil)" :value nil)
  		       (const :tag "Full screen (t)" :value t)
  		       (other :tag "Always" 1)) "22.1")
-	     (display-buffer-reuse-frames windows boolean "21.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)

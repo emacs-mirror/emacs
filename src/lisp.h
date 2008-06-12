@@ -2893,7 +2893,6 @@ EXFUN (set_buffer_if_live, 1);
 EXFUN (Fbarf_if_buffer_read_only, 0);
 EXFUN (Fcurrent_buffer, 0);
 EXFUN (Fswitch_to_buffer, 2);
-EXFUN (Fpop_to_buffer, 3);
 EXFUN (Fother_buffer, 3);
 EXFUN (Foverlay_get, 2);
 EXFUN (Fbuffer_modified_p, 1);

@@ -1811,42 +1811,6 @@ the window-buffer correspondences.  */)
   return switch_to_buffer_1 (buffer, norecord);
 }
 
-DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
-       doc: /* Select buffer BUFFER in some window, preferably a different one.
-BUFFER may be a buffer, a string \(a buffer name), or nil.
-If BUFFER is a string which is not the name of an existing buffer,
-then this function creates a buffer with that name.
-If BUFFER is nil, then it chooses some other buffer.
-If `pop-up-windows' is non-nil, windows can be split to do this.
-If optional second arg OTHER-WINDOW is non-nil, insist on finding another
-window even if BUFFER is already visible in the selected window,
-and ignore `same-window-regexps' and `same-window-buffer-names'.
-This function returns the buffer it switched to.
-This uses the function `display-buffer' as a subroutine; see the documentation
-of `display-buffer' for additional customization information.
-
-Optional third arg NORECORD non-nil means
-do not put this buffer at the front of the list of recently selected ones.  */)
-     (buffer, other_window, norecord)
-     Lisp_Object buffer, other_window, norecord;
-{
-  register Lisp_Object buf;
-  if (NILP (buffer))
-    buf = Fother_buffer (Fcurrent_buffer (), Qnil, Qnil);
-  else
-    {
-      buf = Fget_buffer (buffer);
-      if (NILP (buf))
-	{
-	  buf = Fget_buffer_create (buffer);
-	  Fset_buffer_major_mode (buf);
-	}
-    }
-  Fset_buffer (buf);
-  Fselect_window (Fdisplay_buffer (buf, other_window, Qnil), norecord);
-  return buf;
-}
-
 DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
        doc: /* Return the current buffer as a Lisp object.  */)
      ()
@@ -6270,7 +6234,6 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
   defsubr (&Skill_buffer);
   defsubr (&Sset_buffer_major_mode);
   defsubr (&Sswitch_to_buffer);
-  defsubr (&Spop_to_buffer);
   defsubr (&Scurrent_buffer);
   defsubr (&Sset_buffer);
   defsubr (&Sbarf_if_buffer_read_only);

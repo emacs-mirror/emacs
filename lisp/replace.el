@@ -1486,6 +1486,17 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   (replace-match newtext fixedcase literal)
   noedit)
 
+(defvar replace-search-function 'search-forward
+  "Function to use when searching for strings to replace.
+It is used by `query-replace' and `replace-string', and is called
+with three arguments, as if it were `search-forward'.")
+
+(defvar replace-re-search-function 're-search-forward
+  "Function to use when searching for regexps to replace.
+It is used by `query-replace-regexp', `replace-regexp',
+`query-replace-regexp-eval', and `map-query-replace-regexp'.  It
+is called with three arguments, as if it were `search-forward'.")
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end)
@@ -1511,7 +1522,10 @@ make, or the user didn't cancel the call."
 	    case-fold-search))
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-         (search-function (if regexp-flag 're-search-forward 'search-forward))
+         (search-function
+	  (if regexp-flag
+	      replace-re-search-function
+	    replace-search-function))
          (search-string from-string)
          (real-match-data nil)       ; The match data for the current match.
          (next-replacement nil)

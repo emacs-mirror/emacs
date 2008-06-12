@@ -69,7 +69,7 @@ You can also enable the display temporarily, using the command
   :group 'longlines
   :type 'boolean)
 
-(defcustom longlines-show-effect (propertize "|\n" 'face 'escape-glyph)
+(defcustom longlines-show-effect (propertize "¶\n" 'face 'escape-glyph)
   "A string to display when showing hard newlines.
 This is used when `longlines-show-hard-newlines' is on."
   :group 'longlines
@@ -119,6 +119,10 @@ are indicated with a symbol."
         (make-local-variable 'longlines-auto-wrap)
 	(set (make-local-variable 'isearch-search-fun-function)
 	     'longlines-search-function)
+	(set (make-local-variable 'replace-search-function)
+	     'longlines-search-forward)
+	(set (make-local-variable 'replace-re-search-function)
+	     'longlines-re-search-forward)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
         (when longlines-wrap-follows-window-size
 	  (let ((dw (if (and (integerp longlines-wrap-follows-window-size)
@@ -191,6 +195,8 @@ are indicated with a symbol."
     (when longlines-wrap-follows-window-size
       (kill-local-variable 'fill-column))
     (kill-local-variable 'isearch-search-fun-function)
+    (kill-local-variable 'replace-search-function)
+    (kill-local-variable 'replace-re-search-function)
     (kill-local-variable 'require-final-newline)
     (kill-local-variable 'buffer-substring-filters)
     (kill-local-variable 'use-hard-newlines)))
@@ -464,6 +470,10 @@ This is called by `window-configuration-change-hook'."
 (defun longlines-search-backward (string &optional bound noerror count)
   (let ((search-spaces-regexp "[ \n]+"))
     (re-search-backward (regexp-quote string) bound noerror count)))
+
+(defun longlines-re-search-forward (string &optional bound noerror count)
+  (let ((search-spaces-regexp "[ \n]"))
+    (re-search-forward string bound noerror count)))
 
 ;; Loading and saving
 
