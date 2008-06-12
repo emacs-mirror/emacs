@@ -1,3 +1,9 @@
+2008-06-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el: Require edmacro when compiling with XEmacs.
+	(nnir-run-find-grep): Don't use 3rd arg of `split-string' which is not
+	available in Emacs 21.
+
 2008-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (x-focus-frame):

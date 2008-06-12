@@ -658,6 +658,11 @@ that it is for Namazu, not Wais."
            gnus-current-window-configuration)
      nil)))
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    ;; The `kbd' macro requires that the `read-kbd-macro' macro is available.
+    (require 'edmacro)))
+
 (defun nnir-group-mode-hook ()
   (define-key gnus-group-mode-map (kbd "G G")
     'gnus-group-make-nnir-group))
@@ -1512,13 +1517,18 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	   'call-process "find" nil t
 	   "find" group "-type" "f" "-name" "[0-9]*" "-exec"
 	   "grep"
-	   `("-l" ,@(and grep-options (split-string grep-options "\\s-" t))
+	   `("-l" ,@(and grep-options
+			 ;; Note: the 3rd arg of `split-string' is not
+			 ;; available in Emacs 21.
+			 (delete "" (split-string grep-options "\\s-")))
 	     "-e" ,regexp "{}" "+"))))
 
       ;; Translate relative paths to group names.
       (while (not (eobp))
-	(let* ((path (split-string
-		      (buffer-substring (point) (line-end-position)) "/" t))
+	(let* ((path (delete
+		      ""
+		      (split-string
+		       (buffer-substring (point) (line-end-position)) "/")))
 	       (art (string-to-number (car (last path)))))
 	  (while (string= "." (car path))
 	    (setq path (cdr path)))
