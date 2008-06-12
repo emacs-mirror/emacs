@@ -5631,12 +5631,15 @@ directories.  */)
 
 #ifdef HAVE_FREETYPE
 
-DEFUN ("x-font-dialog", Fx_font_dialog, Sx_font_dialog, 0, 0, 0,
-       doc: /* Read a font name using a font selection dialog.
-The font name is returned as a string.  */)
-  ()
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font name using a GTK font selection dialog.
+Return a GTK-style font string corresponding to the selection.
+
+If FRAME is omitted or nil, it defaults to the selected frame. */)
+  (frame, ignored)
+     Lisp_Object frame, ignored;
 {
-  FRAME_PTR f = SELECTED_FRAME ();
+  FRAME_PTR f = check_x_frame (frame);
   char *fontname;
   Lisp_Object font = Qnil;
   int count = SPECPDL_INDEX ();
@@ -6036,7 +6039,7 @@ the tool bar buttons.  */);
 #endif
 
 #ifdef USE_GTK
-  defsubr (&Sx_font_dialog);
+  defsubr (&Sx_select_font);
 #endif
 }
 
