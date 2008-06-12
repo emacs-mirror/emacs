@@ -1,7 +1,7 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
 
-;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -121,7 +121,8 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (force-mode-line-update)
     (kill-all-local-variables)
     (rmail-mode-1)
-    (set (make-local-variable 'tool-bar-map) rmail-tool-bar-map)
+    (if (boundp 'tool-bar-map)
+	(set (make-local-variable 'tool-bar-map) rmail-tool-bar-map))
     (rmail-variables)
     ;; As the local value of save-buffer-coding-system is changed by
     ;; rmail-variables, we restore the original value.
