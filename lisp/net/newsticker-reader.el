@@ -7,7 +7,6 @@
 ;; Filename:    newsticker-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "7. Juni 2008, 15:34:08 (ulf)"
-;; CVS-Version: $Id: newsticker-reader.el,v 1.4 2008/06/10 03:16:47 gm Exp $
 
 ;; ======================================================================
 

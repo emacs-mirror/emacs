@@ -8,7 +8,6 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "8. Juni 2008, 17:18:04 (ulf)"
-;; CVS-Version: $Id: newsticker-backend.el,v 1.4 2008/06/10 03:17:34 gm Exp $
 
 ;; ======================================================================
 

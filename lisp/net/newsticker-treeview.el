@@ -8,7 +8,6 @@
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "8. Juni 2008, 20:42:16 (ulf)"
-;; CVS-Version: $Id: newsticker-treeview.el,v 1.5 2008/06/10 03:15:43 gm Exp $
 
 ;; ======================================================================
 

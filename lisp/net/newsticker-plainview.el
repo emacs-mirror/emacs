@@ -7,7 +7,6 @@
 ;; Filename:    newsticker-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "8. Juni 2008, 20:39:46 (ulf)"
-;; CVS-Version: $Id: newsticker-plainview.el,v 1.4 2008/06/10 03:08:37 gm Exp $
 
 ;; ======================================================================
 
