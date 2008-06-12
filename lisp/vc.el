@@ -2497,6 +2497,11 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 (defun vc-rename-file (old new)
   "Rename file OLD to NEW, and rename its master file likewise."
   (interactive "fVC rename file: \nFRename to: ")
+  ;; in CL I would have said (setq new (merge-pathnames new old))
+  (let ((old-base (file-name-nondirectory old)))
+    (when (and (not (string= "" old-base))
+               (string= "" (file-name-nondirectory new)))
+      (setq new (concat new old-base))))
   (let ((oldbuf (get-file-buffer old)))
     (when (and oldbuf (buffer-modified-p oldbuf))
       (error "Please save files before moving them"))

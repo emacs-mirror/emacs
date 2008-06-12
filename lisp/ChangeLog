@@ -1,3 +1,8 @@
+2008-06-12  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-rename-file): DTRT when the destination is a directory
+	name and the source is a file.
+
 2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el (menu-set-font): Renamed x-font-dialog to
