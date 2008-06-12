@@ -1897,6 +1897,7 @@ See `menu-bar-mode' for more information."
     (menu-bar-mode arg)))
 
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
+(declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
 
 (defun menu-bar-open (&optional frame)
   "Start key navigation of the menu bar in FRAME.
