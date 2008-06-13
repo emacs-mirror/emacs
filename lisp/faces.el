@@ -272,6 +272,7 @@ If FRAME is omitted or nil, use the selected frame."
 
 (defcustom face-x-resources
   '((:family (".attributeFamily" . "Face.AttributeFamily"))
+    (:foundry (".attributeFoundry" . "Face.AttributeFoundry"))
     (:width (".attributeWidth" . "Face.AttributeWidth"))
     (:height (".attributeHeight" . "Face.AttributeHeight"))
     (:weight (".attributeWeight" . "Face.AttributeWeight"))
@@ -583,6 +584,12 @@ VALUE must be a string specifying the font family, e.g. ``courier'',
 or a fontset alias name.  If a font family is specified, wild-cards `*'
 and `?' are allowed.
 
+`:foundry'
+
+VALUE must be a string specifying the font foundry,
+e.g. ``adobe''.  If a font foundry is specified, wild-cards `*'
+and `?' are allowed.
+
 `:width'
 
 VALUE specifies the relative proportionate width of the font to use.
@@ -670,8 +677,9 @@ HEIGHT DATA) where WIDTH and HEIGHT are the size in pixels, and DATA
 is a string containing the raw bits of the bitmap.  VALUE nil means
 explicitly don't use a stipple pattern.
 
-For convenience, attributes `:family', `:width', `:height', `:weight',
-and `:slant' may also be set in one step from an X font name:
+For convenience, attributes `:family', `:foundry', `:width',
+`:height', `:weight', and `:slant' may also be set in one step
+from an X font name:
 
 `:font'
 
@@ -697,9 +705,19 @@ like an underlying face would be, with higher priority than underlying faces."
       ;; Don't recursively set the attributes from the frame's font param
       ;; when we update the frame's font param fro the attributes.
       (let ((inhibit-face-set-after-frame-default t))
-	(internal-set-lisp-face-attribute face (car args)
-					  (purecopy (cadr args))
-					  where))
+	(if (and (eq (car args) :family)
+		 (string-match "\\([^-]*\\)-\\([^-]*\\)" (cadr args)))
+	    (let ((foundry (match-string 1 (cadr args)))
+		  (family (match-string 2 (cadr args))))
+	      (internal-set-lisp-face-attribute face :foundry
+						(purecopy foundry)
+						where)
+	      (internal-set-lisp-face-attribute face :family
+						(purecopy family)
+						where))
+	  (internal-set-lisp-face-attribute face (car args)
+					    (purecopy (cadr args))
+					    where)))
       (setq args (cdr (cdr args))))))
 
 
@@ -749,8 +767,9 @@ Use `set-face-attribute' for finer control of font weight and slant."
 (defun set-face-font (face font &optional frame)
   "Change font-related attributes of FACE to those of FONT (a string).
 FRAME nil or not specified means change face on all frames.
-This sets the attributes `:family', `:width', `:height', `:weight',
-and `:slant'.  When called interactively, prompt for the face and font."
+This sets the attributes `:family', `:foundry', `:width',
+`:height', `:weight', and `:slant'.  When called interactively,
+prompt for the face and font."
   (interactive (read-face-and-attribute :font))
   (set-face-attribute face frame :font font))
 
@@ -954,6 +973,8 @@ an integer value."
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
+           (:foundry
+	    (list nil))
 	   (:width
 	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
 		    font-width-table))
@@ -1001,6 +1022,7 @@ an integer value."
 
 (defvar face-attribute-name-alist
   '((:family . "font family")
+    (:foundry . "font foundry")
     (:width . "character set width")
     (:height . "height in 1/10 pt")
     (:weight . "weight")
@@ -1288,6 +1310,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (interactive (list (read-face-name "Describe face" "= `default' face" t)))
   (let* ((attrs '((:family . "Family")
+		  (:foundry . "Foundry")
 		  (:width . "Width")
 		  (:height . "Height")
 		  (:weight . "Weight")
@@ -1978,19 +2001,27 @@ Value is the new frame created."
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
   (unless inhibit-face-set-after-frame-default
-    (if (face-attribute 'default :font t)
+    (or (eq (face-attribute 'default :font t) 'unspecified)
 	(set-face-attribute 'default frame :font
-			    (face-attribute 'default :font t))
-      (set-face-attribute 'default frame :family
-			  (face-attribute 'default :family t))
-      (set-face-attribute 'default frame :height
-			  (face-attribute 'default :height t))
-      (set-face-attribute 'default frame :slant
-			  (face-attribute 'default :slant t))
-      (set-face-attribute 'default frame :weight
-			  (face-attribute 'default :weight t))
-      (set-face-attribute 'default frame :width
-			  (face-attribute 'default :width t))))
+			    (face-attribute 'default :font t)))
+    (or (eq (face-attribute 'default :family t) 'unspecified)
+	(set-face-attribute 'default frame :family
+			    (face-attribute 'default :family t)))
+    (or (eq (face-attribute 'default :foundry t) 'unspecified)
+	(set-face-attribute 'default frame :foundry
+			    (face-attribute 'default :foundry t)))
+    (or (eq (face-attribute 'default :height t) 'unspecified)
+	(set-face-attribute 'default frame :height
+			    (face-attribute 'default :height t)))
+    (or (eq (face-attribute 'default :slant t) 'unspecified)
+	(set-face-attribute 'default frame :slant
+			    (face-attribute 'default :slant t)))
+    (or (eq (face-attribute 'default :weight t) 'unspecified)
+	(set-face-attribute 'default frame :weight
+			    (face-attribute 'default :weight t)))
+    (or (eq (face-attribute 'default :width t) 'unspecified)
+	(set-face-attribute 'default frame :width
+			    (face-attribute 'default :width t))))
   ;; Find attributes that should be initialized from frame parameters.
   (let ((face-params '((foreground-color default :foreground)
 		       (background-color default :background)
