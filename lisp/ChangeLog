@@ -1,3 +1,9 @@
+2008-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-set-font): Use fboundp rather than functionp.
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Doc fix.
+
 2008-06-13  Kenichi Handa  <handa@m17n.org>
 
 	* cus-face.el (custom-face-attributes): Add :foundry.
