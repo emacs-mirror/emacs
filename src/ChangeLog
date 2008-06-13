@@ -25,9 +25,9 @@
 	LFACE_FOUNDRY_INDEX.
 
 	* font.c (font_score): Delete arg alternate_families.  Check only
-	weight, slant, width, and size.  Ignore the diffference of alias
+	weight, slant, width, and size.  Ignore the difference of alias
 	style symbols.
-	(font_sort_entites): Adjusted for the above change.  Reflect the
+	(font_sort_entites): Adjust for the above change.  Reflect the
 	order of font-driver to scores.
 	(font_list_entities): Don't check alternate_familes here.
 	(font_clear_prop): Handle foundry.
@@ -35,7 +35,7 @@
 	Handle FONT_FOUNDRY_INDEX.
 	(font_find_for_lface): Likewise.  Handle alternate families here.
 	(font_open_for_lface): Pay attention to size in ENTITY.
-	(font_open_by_name): Simplified by calling font_load_for_lface.
+	(font_open_by_name): Simplify by calling font_load_for_lface.
 	(free_font_driver_list): Delete it.
 	(font_update_drivers): Preserve the order of backends.
 	(syms_of_font): Setting of sort_shift_bits adjusted for the change
@@ -44,7 +44,7 @@
 
 	* xfaces.c (LFACE_FOUNDRY): New macro.
 	(check_lface_attrs): Check foundry.
-	(set_lface_from_font): Don't parse "FOUNDRY-FAMILY" from.
+	(set_lface_from_font): Don't parse "FOUNDRY-FAMILY" form.
 	(merge_face_vectors): Check foundry.
 	(merge_face_ref): Likewise.
 	(Finternal_set_lisp_face_attribute): Likewise.
