@@ -1,17 +1,22 @@
+2008-06-13  David Reitter  <david.reitter@gmail.com>
+
+	* textmodes/flyspell.el (mail-mode-flyspell-verify):
+	Check message-signature-separator exists before using it.
+
 2008-06-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-delete-file): Bind default-directory before calling
 	the backend.
 	(vc-annotate-show-diff-revision-at-line): Move most of the code to ...
-	(vc-annotate-show-diff-revision-at-line-internal): ... here.  New
-	function.
+	(vc-annotate-show-diff-revision-at-line-internal): ... here.
+	New function.
 	(vc-annotate-show-changeset-diff-revision-at-line): New function.
 	(vc-annotate-mode-menu): Bind it.
 
 2008-06-13  Jason Rumney  <jasonr@gnu.org>
 
-        * term/w32-win.el (mouse-set-font): Remove overridden function.
-        (w32-select-font): Declare as obsolete alias for x-select-font.
+	* term/w32-win.el (mouse-set-font): Remove overridden function.
+	(w32-select-font): Declare as obsolete alias for x-select-font.
 
 2008-06-13  Daniel Engeler  <engeler@gmail.com>
 
