@@ -2266,7 +2266,7 @@ font_update_sort_order (order)
 {
   int i, shift_bits;
 
-  for (i = 0, shift_bits = 21; i < 4; i++, shift_bits -= 7)
+  for (i = 0, shift_bits = 23; i < 4; i++, shift_bits -= 7)
     {
       int xlfd_idx = order[i];
 
