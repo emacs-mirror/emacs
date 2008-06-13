@@ -1433,7 +1433,8 @@ A string, the name of the process.
 
 @item command
 A list containing the command arguments that were used to start this
-process.
+process.  For a network or serial process, it is @code{nil} if the
+process is running or @code{t} if the process is stopped.
 
 @item filter
 A function used to accept output from the process instead of a buffer,
@@ -1449,8 +1450,9 @@ The associated buffer of the process.
 An integer, the operating system's process @acronym{ID}.
 
 @item childp
+
 A flag, non-@code{nil} if this is really a child process.
-It is @code{nil} for a network connection.
+It is @code{nil} for a network or serial connection.
 
 @item mark
 A marker indicating the position of the end of the last output from this
@@ -1515,6 +1517,11 @@ Size of carryover in encoding.
 @item inherit_coding_system_flag
 Flag to set @code{coding-system} of the process buffer from the
 coding system used to decode process output.
+
+@item type
+Symbol indicating the type of process: @code{real}, @code{network},
+@code{serial}
+
 @end table
 
 @ignore

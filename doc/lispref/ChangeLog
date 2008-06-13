@@ -1,3 +1,8 @@
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	* elisp.texi, internals.texi, processes.texi: Add documentation
+	about serial port access.
+
 2008-06-05  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Displaying Faces): Update to reflect function

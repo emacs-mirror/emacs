@@ -1195,6 +1195,7 @@ Processes
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
 * Misc Network::            Additional relevant functions for network connections.
+* Serial Ports::            Communicating with serial ports.
 * Byte Packing::            Using bindat to pack and unpack binary data.
 
 Receiving Output from Processes
