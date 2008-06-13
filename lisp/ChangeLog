@@ -1,7 +1,12 @@
 2008-06-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc.el (vc-delete-file): Bound default-directory before calling
+	* vc.el (vc-delete-file): Bind default-directory before calling
 	the backend.
+	(vc-annotate-show-diff-revision-at-line): Move most of the code to ...
+	(vc-annotate-show-diff-revision-at-line-internal): ... here.  New
+	function.
+	(vc-annotate-show-changeset-diff-revision-at-line): New function.
+	(vc-annotate-mode-menu): Bind it.
 
 2008-06-13  Jason Rumney  <jasonr@gnu.org>
 

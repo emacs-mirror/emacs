@@ -2966,8 +2966,12 @@ cover the range from the oldest annotation to the newest."
     ["Show log of revision at line" vc-annotate-show-log-revision-at-line
      :help "Visit the log of the revision at line"]
     ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
-     :help
-     "Visit the diff of the revision at line from its previous revision"]
+     :help "Visit the diff of the revision at line from its previous revision"]
+    ["Show changeset diff of revision at line"
+     vc-annotate-show-changeset-diff-revision-at-line
+     :enable
+     (eq 'repository (vc-call-backend ,vc-annotate-backend 'revision-granularity))
+     :help "Visit the diff of the revision at line from its previous revision"]
     ["Visit revision at line" vc-annotate-find-revision-at-line
      :help "Visit the revision identified in the current line"]))
 
@@ -3158,9 +3162,7 @@ revisions after."
 	  (message "Cannot extract revision number from the current line")
 	(vc-print-log rev-at-line)))))
 
-(defun vc-annotate-show-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision."
-  (interactive)
+(defun vc-annotate-show-diff-revision-at-line-internal (fileset)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
     (let ((rev-at-line (vc-annotate-extract-revision-at-line))
@@ -3177,10 +3179,21 @@ revisions after."
 	     nil
 	     ;; The value passed here should follow what
 	     ;; `vc-deduce-fileset' returns.
-	     (cons vc-annotate-backend
-		   (cons (list vc-annotate-parent-file) nil))
+	     (cons vc-annotate-backend (cons fileset nil))
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
+
+(defun vc-annotate-show-diff-revision-at-line ()
+  "Visit the diff of the revision at line from its previous revision."
+  (interactive)
+  (vc-annotate-show-diff-revision-at-line-internal (list vc-annotate-parent-file)))
+
+(defun vc-annotate-show-changeset-diff-revision-at-line ()
+  "Visit the diff of the revision at line from its previous revision for all files in the changeset."
+  (interactive)
+  (when (eq 'file (vc-call-backend vc-annotate-backend 'revision-granularity))
+    (error "The %s backend does not support changeset diffs" vc-annotate-backend))
+  (vc-annotate-show-diff-revision-at-line-internal nil))
 
 (defun vc-annotate-warp-revision (revspec)
   "Annotate the revision described by REVSPEC.

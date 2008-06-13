@@ -575,6 +575,10 @@ set of files.
 
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
 
+*** In VC Annotate mode, for VC systems that support changesets, you can
+see the diff for the whole changeset (not only for the current file)
+by using the vc-annotate-show-changeset-diff-revision-at-line function.
+
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
 
 *** In VC Annotate mode, you can type f to show the file revision on
