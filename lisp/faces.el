@@ -2001,27 +2001,19 @@ Value is the new frame created."
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
   (unless inhibit-face-set-after-frame-default
-    (or (eq (face-attribute 'default :font t) 'unspecified)
+    (if (face-attribute 'default :font t)
 	(set-face-attribute 'default frame :font
-			    (face-attribute 'default :font t)))
-    (or (eq (face-attribute 'default :family t) 'unspecified)
-	(set-face-attribute 'default frame :family
-			    (face-attribute 'default :family t)))
-    (or (eq (face-attribute 'default :foundry t) 'unspecified)
-	(set-face-attribute 'default frame :foundry
-			    (face-attribute 'default :foundry t)))
-    (or (eq (face-attribute 'default :height t) 'unspecified)
-	(set-face-attribute 'default frame :height
-			    (face-attribute 'default :height t)))
-    (or (eq (face-attribute 'default :slant t) 'unspecified)
-	(set-face-attribute 'default frame :slant
-			    (face-attribute 'default :slant t)))
-    (or (eq (face-attribute 'default :weight t) 'unspecified)
-	(set-face-attribute 'default frame :weight
-			    (face-attribute 'default :weight t)))
-    (or (eq (face-attribute 'default :width t) 'unspecified)
-	(set-face-attribute 'default frame :width
-			    (face-attribute 'default :width t))))
+			    (face-attribute 'default :font t))
+      (set-face-attribute 'default frame :family
+			  (face-attribute 'default :family t))
+      (set-face-attribute 'default frame :height
+			  (face-attribute 'default :height t))
+      (set-face-attribute 'default frame :slant
+			  (face-attribute 'default :slant t))
+      (set-face-attribute 'default frame :weight
+			  (face-attribute 'default :weight t))
+      (set-face-attribute 'default frame :width
+			  (face-attribute 'default :width t))))
   ;; Find attributes that should be initialized from frame parameters.
   (let ((face-params '((foreground-color default :foreground)
 		       (background-color default :background)
