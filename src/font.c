@@ -2996,7 +2996,7 @@ font_find_for_lface (f, attrs, spec, c)
 	  ASET (work, FONT_FOUNDRY_INDEX, foundry[j]);
 	  for (k = 0; SYMBOLP (registry[k]); k++)
 	    {
-	      ASET (work, FONT_REGISTRY_INDEX, registry[j]);
+	      ASET (work, FONT_REGISTRY_INDEX, registry[k]);
 	      entities = font_list_entities (frame, work);
 	      if (ASIZE (entities) > 0)
 		goto found;
