@@ -1,3 +1,8 @@
+2008-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (syms_of_font) <font-weight-table, font-slant-table>:
+	<font-width-table>: Fix typos in docstrings.
+
 2008-06-13  Daniel Engeler  <engeler@gmail.com>
 
 	These changes add serial port access.

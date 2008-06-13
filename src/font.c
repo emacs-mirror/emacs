@@ -1569,7 +1569,7 @@ font_parse_fcname (name, font)
 	  ASET (font, FONT_FAMILY_INDEX, family);
 	}
     }
-      
+
   return 0;
 }
 
@@ -4550,7 +4550,7 @@ build_style_table (entry, nelement)
 {
   int i, j;
   Lisp_Object table, elt;
-  
+
   table = Fmake_vector (make_number (nelement), Qnil);
   for (i = 0; i < nelement; i++)
     {
@@ -4558,7 +4558,7 @@ build_style_table (entry, nelement)
       elt = Fmake_vector (make_number (j + 1), Qnil);
       ASET (elt, 0, make_number (entry[i].numeric));
       for (j = 0; entry[i].names[j]; j++)
-	ASET (elt, j + 1, intern (entry[i].names[j])); 
+	ASET (elt, j + 1, intern (entry[i].names[j]));
       ASET (table, i, elt);
     }
   return table;
@@ -4737,17 +4737,17 @@ gets the repertory information by an opened font and ENCODING.  */);
 	       doc: /*  Vector of valid font weight values.
 Each element has the form:
     [NUMERIC-VALUE SYMBOLIC-NAME ALIAS-NAME ...]
-NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symobls. */);
+NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symbols. */);
   Vfont_weight_table = BUILD_STYLE_TABLE (weight_table);
 
   DEFVAR_LISP_NOPRO ("font-slant-table", &Vfont_slant_table,
 	       doc: /*  Vector of font slant symbols vs the corresponding numeric values.
-See `font-weight_table' for the format of the vector. */);
+See `font-weight-table' for the format of the vector. */);
   Vfont_slant_table = BUILD_STYLE_TABLE (slant_table);
 
   DEFVAR_LISP_NOPRO ("font-width-table", &Vfont_width_table,
 	       doc: /*  Alist of font width symbols vs the corresponding numeric values.
-See `font-weight_table' for the format of the vector. */);
+See `font-weight-table' for the format of the vector. */);
   Vfont_width_table = BUILD_STYLE_TABLE (width_table);
 
   staticpro (&font_style_table);
