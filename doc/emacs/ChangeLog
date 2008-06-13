@@ -1,3 +1,7 @@
+2008-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-xtra.texi, emacs.texi: Update Back-Cover text per maintain.info.
+
 2008-06-05  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Temporary Face Changes): Update to reflect function
