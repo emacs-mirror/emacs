@@ -1159,7 +1159,6 @@ Returns the compilation buffer created."
 		  (error nil))
 	      (error "Cannot have two processes in `%s' at once"
 		     (buffer-name)))))
-      (buffer-disable-undo (current-buffer))
       ;; first transfer directory from where M-x compile was called
       (setq default-directory thisdir)
       ;; Make compilation buffer read-only.  The filter can still write it.
@@ -1177,7 +1176,9 @@ Returns the compilation buffer created."
 	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))
-	    (funcall mode)
+            (progn
+              (buffer-disable-undo)
+              (funcall mode))
 	  (setq buffer-read-only nil)
 	  (with-no-warnings (comint-mode))
 	  (compilation-shell-minor-mode))
@@ -1262,7 +1263,10 @@ Returns the compilation buffer created."
 	  (setq mode-line-process
 		(list (propertize ":%s" 'face 'compilation-warning)))
 	  (set-process-sentinel proc 'compilation-sentinel)
-	  (set-process-filter proc 'compilation-filter)
+          (unless (eq mode t)
+            ;; Keep the comint filter, since it's needed for proper handling
+            ;; of the prompts.
+            (set-process-filter proc 'compilation-filter))
 	  ;; Use (point-max) here so that output comes in
 	  ;; after the initial text,
 	  ;; regardless of where the user sees point.
@@ -1666,17 +1670,21 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
 Just inserts the text, and runs `compilation-filter-hook'."
-  (if (buffer-live-p (process-buffer proc))
-      (with-current-buffer (process-buffer proc)
-	(let ((inhibit-read-only t))
-	  (save-excursion
-	    (goto-char (process-mark proc))
-            ;; We used to use `insert-before-markers', so that windows with
-            ;; point at `process-mark' scroll along with the output, but we
-            ;; now use window-point-insertion-type instead.
-	    (insert string)
-            (set-marker (process-mark proc) (point))
-	    (run-hooks 'compilation-filter-hook))))))
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (let ((inhibit-read-only t)
+            ;; `save-excursion' doesn't use the right insertion-type for us.
+            (pos (copy-marker (point) t)))
+        (unwind-protect
+            (progn
+              (goto-char (process-mark proc))
+              ;; We used to use `insert-before-markers', so that windows with
+              ;; point at `process-mark' scroll along with the output, but we
+              ;; now use window-point-insertion-type instead.
+              (insert string)
+              (set-marker (process-mark proc) (point))
+              (run-hooks 'compilation-filter-hook))
+          (goto-char pos))))))
 
 ;;; test if a buffer is a compilation buffer, assuming we're in the buffer
 (defsubst compilation-buffer-internal-p ()

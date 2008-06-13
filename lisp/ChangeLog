@@ -1,3 +1,11 @@
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-start): Don't disable undo in
+	comint buffer.  Don't override the comint-filter with our own.
+	(compilation-filter): Change point's insertion-type.
+
+	* comint.el (comint-output-filter): Use copy-marker.
+
 2008-06-13  David Reitter  <david.reitter@gmail.com>
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify):
