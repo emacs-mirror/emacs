@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 #include <math.h>
 #include <ctype.h>
+#include <commdlg.h>
 
 #include "lisp.h"
 #include "w32term.h"
@@ -1861,7 +1862,7 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
   if (outline)
     len += 11; /* -SIZE */
   else
-    len = strlen (font->lfFaceName) + 21;
+    len += 21;
 
   if (font->lfItalic)
     len += 7; /* :italic */
@@ -1911,6 +1912,66 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
   return (p - name);
 }
 
+/* Convert a logfont and point size into a fontconfig style font name.
+   POINTSIZE is in tenths of points.
+   If SIZE indicates the size of buffer FCNAME, into which the font name
+   is written.  If the buffer is not large enough to contain the name,
+   the function returns -1, otherwise it returns the number of bytes
+   written to FCNAME.  */
+static int logfont_to_fcname(font, pointsize, fcname, size)
+     LOGFONT* font;
+     int pointsize;
+     char *fcname;
+     int size;
+{
+  int len, height;
+  char *p = fcname;
+  Lisp_Object weight = Qnil;
+
+  len = strlen (font->lfFaceName) + 2;
+  height = pointsize / 10;
+  while (height /= 10)
+    len++;
+
+  if (pointsize % 10)
+    len += 2;
+
+  if (font->lfItalic)
+    len += 7; /* :italic */
+  if (font->lfWeight && font->lfWeight != FW_NORMAL)
+    {
+      int fc_weight = w32_decode_weight (font->lfWeight);
+      weight = font_style_symbolic_from_value (FONT_WEIGHT_INDEX,
+                                               make_number (fc_weight), 0);
+      len += 8; /* :weight= */
+      if (SYMBOLP (weight))
+        len += SBYTES (SYMBOL_NAME (weight));
+      else
+        {
+          weight = make_number (fc_weight);
+          len++;
+          while (fc_weight /= 10)
+            len++;
+        }
+    }
+
+  if (len > size)
+    return -1;
+
+  p += sprintf (p, "%s-%d", font->lfFaceName, pointsize / 10);
+  if (pointsize % 10)
+    p += sprintf (p, ".%d", pointsize % 10);
+
+  if (font->lfItalic)
+    p += sprintf (p, ":italic");
+
+  if (SYMBOLP (weight) && !NILP (weight))
+    p += sprintf (p, "weight=%s", SDATA (SYMBOL_NAME (weight)));
+  else if (INTEGERP (weight))
+    p += sprintf (p, "weight=%d", XINT (weight));
+
+  return (p - fcname);
+}
 
 static void
 compute_metrics (dc, w32_font, code, metrics)
@@ -1961,6 +2022,63 @@ clear_cached_metrics (w32_font)
         bzero (w32_font->cached_metrics[i],
                CACHE_BLOCKSIZE * sizeof (struct font_metrics));
     }
+}
+
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font name using a W32 font selection dialog.
+Return fontconfig style font string corresponding to the selection.
+
+If FRAME is omitted or nil, it defaults to the selected frame.
+If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
+in the font selection dialog. */)
+  (frame, include_proportional)
+     Lisp_Object frame, include_proportional;
+{
+  FRAME_PTR f = check_x_frame (frame);
+  CHOOSEFONT cf;
+  LOGFONT lf;
+  TEXTMETRIC tm;
+  HDC hdc;
+  HANDLE oldobj;
+  char buf[100];
+
+  bzero (&cf, sizeof (cf));
+  bzero (&lf, sizeof (lf));
+
+  cf.lStructSize = sizeof (cf);
+  cf.hwndOwner = FRAME_W32_WINDOW (f);
+  cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_NOVERTFONTS;
+
+  /* Unless include_proportional is non-nil, limit the selection to
+     monospaced fonts.  */
+  if (NILP (include_proportional))
+    cf.Flags |= CF_FIXEDPITCHONLY;
+
+  cf.lpLogFont = &lf;
+
+  /* Initialize as much of the font details as we can from the current
+     default font.  */
+  hdc = GetDC (FRAME_W32_WINDOW (f));
+  oldobj = SelectObject (hdc, FONT_COMPAT (FRAME_FONT (f))->hfont);
+  GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
+  if (GetTextMetrics (hdc, &tm))
+    {
+      lf.lfHeight = tm.tmInternalLeading - tm.tmHeight;
+      lf.lfWeight = tm.tmWeight;
+      lf.lfItalic = tm.tmItalic;
+      lf.lfUnderline = tm.tmUnderlined;
+      lf.lfStrikeOut = tm.tmStruckOut;
+      lf.lfCharSet = tm.tmCharSet;
+      cf.Flags |= CF_INITTOLOGFONTSTRUCT;
+    }
+  SelectObject (hdc, oldobj);
+  ReleaseDC (FRAME_W32_WINDOW (f), hdc);
+
+  if (!ChooseFont (&cf)
+      || logfont_to_fcname (&lf, cf.iPointSize, buf, 100) < 0)
+    return Qnil;
+
+  return build_string (buf);
 }
 
 struct font_driver w32font_driver =
@@ -2099,6 +2217,8 @@ syms_of_w32font ()
   DEFSYM (Qtai_le, "tai_le");
   DEFSYM (Qtifinagh, "tifinagh");
   DEFSYM (Qugaritic, "ugaritic");
+
+  defsubr (&Sx_select_font);
 
   w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);

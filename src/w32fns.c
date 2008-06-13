@@ -8195,62 +8195,6 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
                          w32 specialized functions
  ***********************************************************************/
 
-DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 2, 0,
-       doc: /* Select a font for the named FRAME using the W32 font dialog.
-Return an X-style font string corresponding to the selection.
-
-If FRAME is omitted or nil, it defaults to the selected frame.
-If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
-in the font selection dialog. */)
-  (frame, include_proportional)
-     Lisp_Object frame, include_proportional;
-{
-  FRAME_PTR f = check_x_frame (frame);
-  CHOOSEFONT cf;
-  LOGFONT lf;
-  TEXTMETRIC tm;
-  HDC hdc;
-  HANDLE oldobj;
-  char buf[100];
-
-  bzero (&cf, sizeof (cf));
-  bzero (&lf, sizeof (lf));
-
-  cf.lStructSize = sizeof (cf);
-  cf.hwndOwner = FRAME_W32_WINDOW (f);
-  cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_NOVERTFONTS;
-
-  /* Unless include_proportional is non-nil, limit the selection to
-     monospaced fonts.  */
-  if (NILP (include_proportional))
-    cf.Flags |= CF_FIXEDPITCHONLY;
-
-  cf.lpLogFont = &lf;
-
-  /* Initialize as much of the font details as we can from the current
-     default font.  */
-  hdc = GetDC (FRAME_W32_WINDOW (f));
-  oldobj = SelectObject (hdc, FONT_COMPAT (FRAME_FONT (f))->hfont);
-  GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
-  if (GetTextMetrics (hdc, &tm))
-    {
-      lf.lfHeight = tm.tmInternalLeading - tm.tmHeight;
-      lf.lfWeight = tm.tmWeight;
-      lf.lfItalic = tm.tmItalic;
-      lf.lfUnderline = tm.tmUnderlined;
-      lf.lfStrikeOut = tm.tmStruckOut;
-      lf.lfCharSet = tm.tmCharSet;
-      cf.Flags |= CF_INITTOLOGFONTSTRUCT;
-    }
-  SelectObject (hdc, oldobj);
-  ReleaseDC (FRAME_W32_WINDOW (f), hdc);
-
-  if (!ChooseFont (&cf) || !w32_to_x_font (&lf, buf, 100, NULL))
-      return Qnil;
-
-  return build_string (buf);
-}
-
 DEFUN ("w32-send-sys-command", Fw32_send_sys_command,
        Sw32_send_sys_command, 1, 2, 0,
        doc: /* Send frame a Windows WM_SYSCOMMAND message of type COMMAND.
@@ -9308,7 +9252,6 @@ versions of Windows) characters.  */);
 
   /* W32 specific functions */
 
-  defsubr (&Sw32_select_font);
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_load_color_file);
