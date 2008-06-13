@@ -2117,9 +2117,8 @@ font_score (entity, spec_prop)
 
 	if (diff < 0)
 	  diff = - diff;
-	/* This is to prefer the exact symbol style.  */
-	diff++;
-	score |= min (diff, 127) << sort_shift_bits[i];
+	if (diff > 0)
+	  score |= min (diff, 127) << sort_shift_bits[i];
       }
 
   /* Score the size.  Maximum difference is 127.  */
