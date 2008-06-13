@@ -1,3 +1,17 @@
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	These changes add serial port access.
+	* term.el (term-update-mode-line): Modify.
+	(serial-port-is-file-p, serial-nice-speed-history)
+	(serial-no-speed, serial-mode-line-speed-menu)
+	(serial-mode-line-config-menu): New variables and constants.
+	(serial-name-history, serial-speed-history)
+	(serial-supported-or-barf, serial-read-name, serial-read-speed)
+	(serial-term, serial-speed, serial-mode-line-speed-menu-1)
+	(serial-mode-line-speed-menu, serial-update-speed-menu)
+	(serial-mode-line-config-menu-1, serial-mode-line-config-menu)
+	(serial-update-config-menu): New functions.
+
 2008-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-set-font): Use fboundp rather than functionp.
