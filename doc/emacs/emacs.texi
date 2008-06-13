@@ -864,6 +864,7 @@ Running Shell Commands from Emacs
 * Term Mode::           Special Emacs commands used in Term mode.
 * Paging in Term::      Paging in the terminal emulator.
 * Remote Host::		Connecting to another computer.
+* Serial Terminal::     Connecting to a serial port.
 
 Using Emacs as a Server
 

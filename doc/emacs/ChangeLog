@@ -1,3 +1,7 @@
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	* emacs.texi, misc.texi: Add documentation about serial port access.
+
 2008-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-xtra.texi, emacs.texi: Update Back-Cover text per maintain.info.
