@@ -3121,66 +3121,65 @@ If FORK is non-nil, it i spassed to `Info-goto-node'."
       (Info-goto-node node fork)))
     node))
 
-(defvar Info-mode-map nil
+(defvar Info-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map "." 'beginning-of-buffer)
+    (define-key map " " 'Info-scroll-up)
+    (define-key map "\C-m" 'Info-follow-nearest-node)
+    (define-key map "\t" 'Info-next-reference)
+    (define-key map "\e\t" 'Info-prev-reference)
+    (define-key map [(shift tab)] 'Info-prev-reference)
+    (define-key map [backtab] 'Info-prev-reference)
+    (define-key map "1" 'Info-nth-menu-item)
+    (define-key map "2" 'Info-nth-menu-item)
+    (define-key map "3" 'Info-nth-menu-item)
+    (define-key map "4" 'Info-nth-menu-item)
+    (define-key map "5" 'Info-nth-menu-item)
+    (define-key map "6" 'Info-nth-menu-item)
+    (define-key map "7" 'Info-nth-menu-item)
+    (define-key map "8" 'Info-nth-menu-item)
+    (define-key map "9" 'Info-nth-menu-item)
+    (define-key map "0" 'undefined)
+    (define-key map "?" 'Info-summary)
+    (define-key map "]" 'Info-forward-node)
+    (define-key map "[" 'Info-backward-node)
+    (define-key map "<" 'Info-top-node)
+    (define-key map ">" 'Info-final-node)
+    (define-key map "b" 'beginning-of-buffer)
+    (define-key map "d" 'Info-directory)
+    (define-key map "e" 'Info-edit)
+    (define-key map "f" 'Info-follow-reference)
+    (define-key map "g" 'Info-goto-node)
+    (define-key map "h" 'Info-help)
+    (define-key map "i" 'Info-index)
+    (define-key map "l" 'Info-history-back)
+    (define-key map "L" 'Info-history)
+    (define-key map "m" 'Info-menu)
+    (define-key map "n" 'Info-next)
+    (define-key map "p" 'Info-prev)
+    (define-key map "q" 'Info-exit)
+    (define-key map "r" 'Info-history-forward)
+    (define-key map "s" 'Info-search)
+    (define-key map "S" 'Info-search-case-sensitively)
+    ;; For consistency with Rmail.
+    (define-key map "\M-s" 'Info-search)
+    (define-key map "\M-n" 'clone-buffer)
+    (define-key map "t" 'Info-top-node)
+    (define-key map "T" 'Info-toc)
+    (define-key map "u" 'Info-up)
+    ;; `w' for consistency with `dired-copy-filename-as-kill'.
+    (define-key map "w" 'Info-copy-current-node-name)
+    (define-key map "c" 'Info-copy-current-node-name)
+    ;; `^' for consistency with `dired-up-directory'.
+    (define-key map "^" 'Info-up)
+    (define-key map "," 'Info-index-next)
+    (define-key map "\177" 'Info-scroll-down)
+    (define-key map [mouse-2] 'Info-mouse-follow-nearest-node)
+    (define-key map [follow-link] 'mouse-face)
+    map)
   "Keymap containing Info commands.")
-(if Info-mode-map
-    nil
-  (setq Info-mode-map (make-keymap))
-  (suppress-keymap Info-mode-map)
-  (define-key Info-mode-map "." 'beginning-of-buffer)
-  (define-key Info-mode-map " " 'Info-scroll-up)
-  (define-key Info-mode-map "\C-m" 'Info-follow-nearest-node)
-  (define-key Info-mode-map "\t" 'Info-next-reference)
-  (define-key Info-mode-map "\e\t" 'Info-prev-reference)
-  (define-key Info-mode-map [(shift tab)] 'Info-prev-reference)
-  (define-key Info-mode-map [backtab] 'Info-prev-reference)
-  (define-key Info-mode-map "1" 'Info-nth-menu-item)
-  (define-key Info-mode-map "2" 'Info-nth-menu-item)
-  (define-key Info-mode-map "3" 'Info-nth-menu-item)
-  (define-key Info-mode-map "4" 'Info-nth-menu-item)
-  (define-key Info-mode-map "5" 'Info-nth-menu-item)
-  (define-key Info-mode-map "6" 'Info-nth-menu-item)
-  (define-key Info-mode-map "7" 'Info-nth-menu-item)
-  (define-key Info-mode-map "8" 'Info-nth-menu-item)
-  (define-key Info-mode-map "9" 'Info-nth-menu-item)
-  (define-key Info-mode-map "0" 'undefined)
-  (define-key Info-mode-map "?" 'Info-summary)
-  (define-key Info-mode-map "]" 'Info-forward-node)
-  (define-key Info-mode-map "[" 'Info-backward-node)
-  (define-key Info-mode-map "<" 'Info-top-node)
-  (define-key Info-mode-map ">" 'Info-final-node)
-  (define-key Info-mode-map "b" 'beginning-of-buffer)
-  (define-key Info-mode-map "d" 'Info-directory)
-  (define-key Info-mode-map "e" 'Info-edit)
-  (define-key Info-mode-map "f" 'Info-follow-reference)
-  (define-key Info-mode-map "g" 'Info-goto-node)
-  (define-key Info-mode-map "h" 'Info-help)
-  (define-key Info-mode-map "i" 'Info-index)
-  (define-key Info-mode-map "l" 'Info-history-back)
-  (define-key Info-mode-map "L" 'Info-history)
-  (define-key Info-mode-map "m" 'Info-menu)
-  (define-key Info-mode-map "n" 'Info-next)
-  (define-key Info-mode-map "p" 'Info-prev)
-  (define-key Info-mode-map "q" 'Info-exit)
-  (define-key Info-mode-map "r" 'Info-history-forward)
-  (define-key Info-mode-map "s" 'Info-search)
-  (define-key Info-mode-map "S" 'Info-search-case-sensitively)
-  ;; For consistency with Rmail.
-  (define-key Info-mode-map "\M-s" 'Info-search)
-  (define-key Info-mode-map "\M-n" 'clone-buffer)
-  (define-key Info-mode-map "t" 'Info-top-node)
-  (define-key Info-mode-map "T" 'Info-toc)
-  (define-key Info-mode-map "u" 'Info-up)
-  ;; `w' for consistency with `dired-copy-filename-as-kill'.
-  (define-key Info-mode-map "w" 'Info-copy-current-node-name)
-  (define-key Info-mode-map "c" 'Info-copy-current-node-name)
-  ;; `^' for consistency with `dired-up-directory'.
-  (define-key Info-mode-map "^" 'Info-up)
-  (define-key Info-mode-map "," 'Info-index-next)
-  (define-key Info-mode-map "\177" 'Info-scroll-down)
-  (define-key Info-mode-map [mouse-2] 'Info-mouse-follow-nearest-node)
-  (define-key Info-mode-map [follow-link] 'mouse-face)
-  )
+
 
 (defun Info-check-pointer (item)
   "Non-nil if ITEM is present in this node."
@@ -3712,6 +3711,49 @@ the variable `Info-file-list-for-emacs'."
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
 
+(defcustom Info-breadcrumbs-depth 3
+  "Depth of breadcrumbs to display.
+0 means do not display breadcrumbs."
+  :type 'integer)
+
+(defun Info-insert-breadcrumbs ()
+  (let ((onode Info-current-node)
+        (crumbs ())
+        (depth Info-breadcrumbs-depth)
+        (Info-fontify-maximum-menu-size nil)) ; Prevent infinite recursion.
+    (unwind-protect
+        (while (and (not (equal "Top" Info-current-node)) (> depth 0))
+          (let ((up (Info-extract-pointer "up")))
+            (push up crumbs)
+            (setq depth (1- depth))
+            (Info-goto-node up)))
+      (Info-goto-node onode)
+      ;; Add bottom node.
+      (when Info-use-header-line
+        ;; Let it disappear if crumbs is nil.
+        (nconc crumbs (list Info-current-node)))
+      (when (or Info-use-header-line crumbs)
+        ;; Add top node (and continuation if needed).
+        (setq crumbs
+              (cons "Top" (if (member (pop crumbs) '(nil "Top"))
+                              crumbs (cons nil crumbs))))
+        ;; Eliminate duplicate.
+        (forward-line 1)
+        (dolist (node crumbs)
+          (let ((text
+                 (if (not (equal node "Top")) node
+                     (format "(%s)Top"
+                             (file-name-nondirectory Info-current-file)))))
+            (insert (if (bolp) "> " " > ")
+                    (cond
+                     ((null node) "...")
+                     ((equal node Info-current-node)
+                      ;; No point linking to ourselves.
+                      (propertize text 'font-lock-face 'info-header-node))
+                     (t
+                      (concat "*Note " text "::"))))))
+        (insert "\n")))))
+
 (defun Info-fontify-node ()
   "Fontify the node."
   (save-excursion
@@ -3756,6 +3798,11 @@ the variable `Info-file-list-for-emacs'."
 		((string-equal (downcase tag) "prev") Info-prev-link-keymap)
 		((string-equal (downcase tag) "next") Info-next-link-keymap)
 		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
+        
+        (when (> Info-breadcrumbs-depth 0)
+          (Info-insert-breadcrumbs))
+        
+        ;; Treat header line.
         (when Info-use-header-line
           (goto-char (point-min))
           (let* ((header-end (line-end-position))
@@ -3783,10 +3830,13 @@ the variable `Info-file-list-for-emacs'."
 				(lambda (s) (concat s s)) header))
             ;; Hide the part of the first line
             ;; that is in the header, if it is just part.
-            (unless (bobp)
+            (cond
+             ((> Info-breadcrumbs-depth 0)
+              (put-text-property (point-min) (1+ header-end) 'invisible t))
+             ((not (bobp))
               ;; Hide the punctuation at the end, too.
               (skip-chars-backward " \t,")
-              (put-text-property (point) header-end 'invisible t)))))
+              (put-text-property (point) header-end 'invisible t))))))
 
       ;; Fontify titles
       (goto-char (point-min))
@@ -3823,7 +3873,8 @@ the variable `Info-file-list-for-emacs'."
                 other-tag)
             (when not-fontified-p
               (when Info-hide-note-references
-                (when (not (eq Info-hide-note-references 'hide))
+                (when (and (not (eq Info-hide-note-references 'hide))
+                           (> (line-number-at-pos) 4)) ; Skip breadcrumbs
                   ;; *Note is often used where *note should have been
                   (goto-char start)
                   (skip-syntax-backward " ")
@@ -4070,8 +4121,8 @@ the variable `Info-file-list-for-emacs'."
                                   nil t)
           (add-text-properties (match-beginning 0) (match-end 0)
                                '(font-lock-face info-xref
-                                                mouse-face highlight
-                                                help-echo "mouse-2: go to this URL"))))
+                                 mouse-face highlight
+                                 help-echo "mouse-2: go to this URL"))))
 
       (set-buffer-modified-p nil))))
 

@@ -1,4 +1,5 @@
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+	        Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-breadcrumbs-depth): New var.
 	(Info-insert-breadcrumbs): New function.
