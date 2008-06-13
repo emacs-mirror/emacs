@@ -1,3 +1,47 @@
+2008-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (enum lface_attribute_index): New member
+	LFACE_FOUNDRY_INDEX.
+
+	* font.c (font_score): Delete arg alternate_families.  Check only
+	weight, slant, width, and size.  Ignore the diffference of alias
+	style symbols.
+	(font_sort_entites): Adjusted for the above change.  Reflect the
+	order of font-driver to scores.
+	(font_list_entities): Don't check alternate_familes here.
+	(font_clear_prop): Handle foundry.
+	(font_update_lface): Don't parse "foundry-family" form here.
+	Handle FONT_FOUNDRY_INDEX.
+	(font_find_for_lface): Likewise.  Handle alternate families here.
+	(font_open_for_lface): Pay attention to size in ENTITY.
+	(font_open_by_name): Simplified by calling font_load_for_lface.
+	(free_font_driver_list): Delete it.
+	(font_update_drivers): Preserve the order of backends.
+	(syms_of_font): Setting of sort_shift_bits adjusted for the change
+	of font_score and font_sort_entites.
+	(font_update_sort_order): Likewise.
+
+	* xfaces.c (LFACE_FOUNDRY): New macro.
+	(check_lface_attrs): Check foundry.
+	(set_lface_from_font): Don't parse "FOUNDRY-FAMILY" from.
+	(merge_face_vectors): Check foundry.
+	(merge_face_ref): Likewise.
+	(Finternal_set_lisp_face_attribute): Likewise.
+	(x_update_menu_appearance): Likewise.
+	(Finternal_get_lisp_face_attribute): Likewise.
+	(lface_hash): Likewise.
+	(lface_same_font_attributes_p): Likewise.
+	(x_supports_face_attributes_p): Likewise.
+	(tty_supports_face_attributes_p): Likewise.
+	(Finternal_set_alternative_font_family_alist): Intern strings.
+	(Finternal_set_alternative_font_registry_alist): Downcase strings.
+	(realize_default_face): Set LFACE_FOUNDRY (lface).
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Register X
+	font-driver at first.
+
+	* ftfont.c (ftfont_font_format) [! FC_FONTFORMAT]: Declare "int len;".
+
 2008-06-12  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* lread.c (Fload): Use xfree, not free on saved_doc_string.
