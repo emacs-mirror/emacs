@@ -1,3 +1,8 @@
+2008-06-13  Jason Rumney  <jasonr@gnu.org>
+
+        * term/w32-win.el (mouse-set-font): Remove overridden function.
+        (w32-select-font): Declare as obsolete alias for x-select-font.
+
 2008-06-13  Daniel Engeler  <engeler@gmail.com>
 
 	These changes add serial port access.
