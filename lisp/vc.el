@@ -2484,7 +2484,10 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (with-current-buffer (or buf (find-file-noselect file))
 	(let ((backup-inhibited nil))
 	  (backup-buffer))))
-    (vc-call-backend backend 'delete-file file)
+    ;; Bind `default-directory' so that the command that the backend
+    ;; runs to remove the file is invoked in the correct context.
+    (let ((default-directory (file-name-directory file)))
+      (vc-call-backend backend 'delete-file file))
     ;; If the backend hasn't deleted the file itself, let's do it for him.
     (when (file-exists-p file) (delete-file file))
     ;; Forget what VC knew about the file.

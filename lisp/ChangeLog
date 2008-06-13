@@ -1,3 +1,8 @@
+2008-06-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-delete-file): Bound default-directory before calling
+	the backend.
+
 2008-06-13  Jason Rumney  <jasonr@gnu.org>
 
         * term/w32-win.el (mouse-set-font): Remove overridden function.
