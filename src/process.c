@@ -2794,7 +2794,7 @@ usage: (serial-process-configure &rest ARGS)  */)
     proc = Fplist_get (contact, QCport);
   proc = get_process (proc);
   p = XPROCESS (proc);
-  if (p->type != Qserial)
+  if (!EQ (p->type, Qserial))
     error ("Not a serial process");
 
   if (NILP (Fplist_get (p->childp, QCspeed)))
@@ -6678,7 +6678,7 @@ process has been transmitted to the serial port.  */)
 #else
   if (XPROCESS (proc)->pty_flag)
     send_process (proc, "\004", 1, Qnil);
-  else if (XPROCESS (proc)->type == Qserial)
+  else if (EQ (XPROCESS (proc)->type, Qserial))
     {
 #ifdef HAVE_TERMIOS
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
@@ -6695,7 +6695,7 @@ process has been transmitted to the serial port.  */)
 	 for communication with the subprocess, call shutdown to cause EOF.
 	 (In some old system, shutdown to socketpair doesn't work.
 	 Then we just can't win.)  */
-      if (XPROCESS (proc)->type == Qnetwork
+      if (EQ (XPROCESS (proc)->type, Qnetwork)
 	  || XPROCESS (proc)->outfd == XPROCESS (proc)->infd)
 	shutdown (XPROCESS (proc)->outfd, 1);
       /* In case of socketpair, outfd == infd, so don't close it.  */

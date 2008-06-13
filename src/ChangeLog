@@ -1,15 +1,20 @@
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fserial_process_configure, Fprocess_send_eof):
+	Use EQ to compare Lisp_Objects.
+
 2008-06-13  Jason Rumney  <jasonr@gnu.org>
 
-        * w32fns.c (Fw32_select_font): Removed old font API function.
+	* w32fns.c (Fw32_select_font): Remove old font API function.
 
-        * w32font.c (logfont_to_fcname): New function.
-        (Fx_select_font): New font dialog function compatible with
-        GTK/fontconfig version.
+	* w32font.c (logfont_to_fcname): New function.
+	(Fx_select_font): New font dialog function compatible with
+	GTK/fontconfig version.
 
-        * font.c (font_style_symbolic_from_value): New function.
-        (font_style_symbolic): Use it.
+	* font.c (font_style_symbolic_from_value): New function.
+	(font_style_symbolic): Use it.
 
-        * font.h (font_style_symbolic_from_value): Declare new function.
+	* font.h (font_style_symbolic_from_value): Declare new function.
 
 2008-06-13  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -52,7 +57,7 @@
 	(font_update_lface): Don't parse "foundry-family" form here.
 	Handle FONT_FOUNDRY_INDEX.
 	(font_find_for_lface): Likewise.  Handle alternate families here.
-        If registry is nil, try iso8859-1 and ascii-0.
+	If registry is nil, try iso8859-1 and ascii-0.
 	(font_open_for_lface): Pay attention to size in ENTITY.
 	(font_open_by_name): Simplify by calling font_load_for_lface.
 	(free_font_driver_list): Delete it.
@@ -1058,15 +1063,13 @@
 	calculate underline position and thickness.  Use xlfd name as name
 	property.  Don't set codepage.
 	(w32font_open): Pass font_object to w32font_open_internal.  Don't
-	update dpyinfo->smallest_font_height and
-	dpyinfo->smallest_char_width.
+	update dpyinfo->smallest_font_height and dpyinfo->smallest_char_width.
 	(w32font_draw): Use s->font.
 	(clear_cached_metrics): Don't clear non-existent blocks.
 
 	* w32term.c (w32_compute_glyph_string_overhangs): Don't compute if
 	font was not found.
-	(x_draw_glyph_string): Use underline position and thickness from
-	font.
+	(x_draw_glyph_string): Use underline position and thickness from font.
 
 	* w32uniscribe.c (uniscribe_open): Pass font_object to
 	w32font_open_internal.
