@@ -7,7 +7,7 @@
 ;; Filename:    newst-ticker.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "13. Juni 2008, 17:43:29 (ulf)"
+;; Time-stamp:  "13. Juni 2008, 19:28:50 (ulf)"
 
 ;; ======================================================================
 
@@ -35,7 +35,7 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-backend)
+(require 'newsticker-backend "newst-backend")
 
 (defvar newsticker--ticker-timer nil
   "Timer for newsticker ticker.")

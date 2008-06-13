@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "13. Juni 2008, 18:49:26 (ulf)"
+;; Time-stamp:  "13. Juni 2008, 19:28:15 (ulf)"
 
 ;; ======================================================================
 
@@ -33,8 +33,8 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-ticker)
-(require 'newsticker-reader)
+(require 'newsticker-ticker "newst-ticker")
+(require 'newsticker-reader "newst-reader")
 (require 'derived)
 (require 'xml)
 

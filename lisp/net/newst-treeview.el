@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "13. Juni 2008, 17:43:54 (ulf)"
+;; Time-stamp:  "13. Juni 2008, 19:29:03 (ulf)"
 
 ;; ======================================================================
 
@@ -38,7 +38,7 @@
 
 ;; ======================================================================
 ;;; Code:
-(require 'newsticker-reader)
+(require 'newsticker-reader "newst-reader")
 (require 'widget)
 (require 'tree-widget)
 (require 'wid-edit)

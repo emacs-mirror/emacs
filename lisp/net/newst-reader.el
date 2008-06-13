@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "13. Juni 2008, 17:45:36 (ulf)"
+;; Time-stamp:  "13. Juni 2008, 19:28:41 (ulf)"
 
 ;; ======================================================================
 
@@ -33,7 +33,7 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-backend)
+(require 'newsticker-backend "newst-backend")
 
 ;; ======================================================================
 ;;; Customization
