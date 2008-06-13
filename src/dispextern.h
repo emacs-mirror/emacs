@@ -1398,6 +1398,7 @@ struct glyph_string
 enum lface_attribute_index
 {
   LFACE_FAMILY_INDEX = 1,
+  LFACE_FOUNDRY_INDEX,
   LFACE_SWIDTH_INDEX,
   LFACE_HEIGHT_INDEX,
   LFACE_WEIGHT_INDEX,
