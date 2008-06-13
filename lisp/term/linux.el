@@ -9,7 +9,7 @@
   ;; It can't really display underlines.
   (tty-no-underline)
 
-  (ignore-errors (if gpm-mouse-mode (gpm-mouse-enable)))
+  (ignore-errors (when gpm-mouse-mode (require 't-mouse) (gpm-mouse-enable)))
 
   ;; Make Latin-1 input characters work, too.
   ;; Meta will continue to work, because the kernel

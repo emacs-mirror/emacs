@@ -1,4 +1,8 @@
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/linux.el (terminal-init-linux): Load t-mouse.
+
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 	        Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-breadcrumbs-depth): New var.
