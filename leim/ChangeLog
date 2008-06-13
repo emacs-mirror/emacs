@@ -1,3 +1,8 @@
+2008-06-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* quail/cyrillic.el: Add quotation marks, paragraph symbol, angled
+	brackets, number symbol, and accented aeio to cyrillic-translit.
+
 2008-06-03  Jihyun Cho  <jihyun.jo@gmail.com>
 
 	* quail/hangul.el: Completely re-written.
