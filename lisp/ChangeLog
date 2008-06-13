@@ -1,16 +1,23 @@
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-breadcrumbs-depth): New var.
+	(Info-insert-breadcrumbs): New function.
+	(Info-fontify-node): Use it.
+	(Info-mode-map): Move initialization into declaration.
+
 2008-06-13  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newsticker.el: Renamed net/newsticker-*.el to net/newst-*.el.
-	* net/newst-backend.el: New. Renamed from net/newsticker-backend.el.
-	* net/newst-plainview.el: New. Renamed from net/newsticker-plainview.el.
-	* net/newst-reader.el: New. Renamed from net/newsticker-reader.el.
-	* net/newst-ticker.el: New. Renamed from net/newsticker-ticker.el.
-	* net/newst-treeview.el: New. Renamed from net/newsticker-treeview.el.
-	* net/newsticker-backend.el: Removed. Renamed to net/newst-backend.el.
-	* net/newsticker-plainview.el: Removed. Renamed to net/newst-plainview.el.
-	* net/newsticker-reader.el: Removed. Renamed to net/newst-reader.el.
-	* net/newsticker-ticker.el: Removed. Renamed to net/newst-ticker.el.
-	* net/newsticker-treeview.el: Removed. Renamed to net/newst-treeview.el.
+	Rename net/newsticker-*.el to net/newst-*.el.
+	* net/newst-backend.el: Rename from net/newsticker-backend.el.
+	* net/newst-plainview.el: Rename from net/newsticker-plainview.el.
+	* net/newst-reader.el: Rename from net/newsticker-reader.el.
+	* net/newst-ticker.el: Rename from net/newsticker-ticker.el.
+	* net/newst-treeview.el: Rename from net/newsticker-treeview.el.
+	* net/newsticker-backend.el: Rename to net/newst-backend.el.
+	* net/newsticker-plainview.el: Rename to net/newst-plainview.el.
+	* net/newsticker-reader.el: Rename to net/newst-reader.el.
+	* net/newsticker-ticker.el: Rename to net/newst-ticker.el.
+	* net/newsticker-treeview.el: Rename to net/newst-treeview.el.
 
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
