@@ -3554,8 +3554,8 @@ That command is designed for interactive use only" fn))
 (defmacro byte-compile-maybe-guarded (condition &rest body)
   "Execute forms in BODY, potentially guarded by CONDITION.
 CONDITION is a variable whose value is a test in an `if' or `cond'.
-BODY is the code to compile  first arm of the if or the body of the
-cond clause.  If CONDITION's value is of the form (fboundp 'foo)
+BODY is the code to compile in the first arm of the if or the body of
+the cond clause.  If CONDITION's value is of the form (fboundp 'foo)
 or (boundp 'foo), the relevant warnings from BODY about foo's
 being undefined will be suppressed.
 
