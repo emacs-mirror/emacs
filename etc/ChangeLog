@@ -2954,7 +2954,7 @@
 	* TUTORIAL, TUTORIAL.cs: Be consistent when naming CONTROL and
 	META keys.
 
-2001-05-17  Francesco Potorti`  <pot@gnu.org>
+2001-05-17  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: Add the latest changes to etags behaviour.
 

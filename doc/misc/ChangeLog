@@ -19,7 +19,7 @@
 
 2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (Group Parameters): Change ~/.gnus to ~/.gnus.el
+	* gnus.texi (Group Parameters): Change ~/.gnus to ~/.gnus.el.
 	(Searching, nnir, nnmairix): New stub nodes.
 
 2008-05-30  Felix Lee  <felix.1@canids.net>
@@ -4166,7 +4166,7 @@
 
 	* smtpmail.texi (Authentication): Improve STARTTLS discussion.
 
-2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
+2004-05-07  Kai Großjohann  <kai@emptydomain.de>
 
 	Version 2.0.40 of Tramp released.
 
@@ -4240,7 +4240,7 @@
 	* makefile.w32-in (mostlyclean, clean, maintainer-clean):
 	Use $(DEL) instead of rm, and ignore exit code.
 
-2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
+2004-02-29  Kai Großjohann  <kgrossjo@eu.uu.net>
 
 	Tramp version 2.0.39 released.
 
@@ -4272,7 +4272,7 @@
 
 	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
 
-2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+2003-11-30  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	Tramp version 2.0.38 released.
 

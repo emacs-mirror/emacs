@@ -4798,7 +4798,7 @@
 	* files.texi (Saving Buffers): Cleanup write-contents-function.
 	(Magic File Names): Cleanup file-remote-p.
 
-2004-07-02  Kai Grossjohann  <kai@emptydomain.de>
+2004-07-02  Kai Großjohann  <kai@emptydomain.de>
 
 	* files.texi (Magic File Names): `file-remote-p' returns an
 	identifier of the remote system, not just t.
@@ -6391,7 +6391,7 @@
 	* display.texi (Defining Faces): Document `graphic' display type
 	in face specs.
 
-2000-10-18  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2000-10-18  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* hooks.texi (Standard Hooks): Replace obsolete
 	`after-make-frame-hook' with `after-make-frame-functions'.

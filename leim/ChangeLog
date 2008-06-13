@@ -805,13 +805,13 @@
 
 	* quail/latin-alt.el ("dutch"): New method.
 
-2001-10-27  Francesco Potorti`  <pot@gnu.org>
+2001-10-27  Francesco Potortì  <pot@gnu.org>
 
 	* quail/latin-post.el ("italian-postfix"): Undo previous change.
 
 	* quail/latin-alt.el ("italian-alt-postfix"): Undo previous change.
 
-2001-10-25  Francesco Potorti`  <pot@gnu.org>
+2001-10-25  Francesco Potortì  <pot@gnu.org>
 
 	* quail/latin-post.el ("italian-postfix"): Euro symbol.
 
@@ -1370,7 +1370,7 @@
 	`(cd foo; pwd)`.
 	(install): Likewise.
 
-1998-10-15  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1998-10-15  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* quail/latin-post.el: Many doc fixes.
 	("latin-1-postfix"): Add sequence for the small superscript o.
@@ -1378,7 +1378,7 @@
 	("latin-1-prefix"): Add sequences for the small
 	superscript underlined o and a.
 
-1998-10-13  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1998-10-13  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* latin-alt.el ("latin-1-alt-postfix"): Add a method to enter the
 	small superscript underlined o and a.

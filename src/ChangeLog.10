@@ -112,7 +112,7 @@
 
 	* emacs.c (main): Fix instructions for building Emacs for profiling.
 
-2007-04-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-04-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_update_menubar): Call g_list_next after moving
 	menu bar item.
@@ -358,7 +358,7 @@
 	* xdisp.c (redisplay_window): Don't automatically select a new window
 	start for a contination line during mouse-click.
 
-2007-03-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-03-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Ignore buttons > 3 for the tool bar.
 
@@ -388,7 +388,7 @@
 	* minibuf.c (read_minibuf): Bind inhibit-read-only a bit longer so as
 	to handle correctly prompts with read-only property.
 
-2007-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-03-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sound.c (wav_play): Check header->data_length to see how much we
 	shall read.
@@ -583,7 +583,7 @@
 	* xfaces.c (Fcolor_distance): Don't continue checking a color for
 	errors after it has been correctly parsed as an RGB list.
 
-2007-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (do_ewmh_fullscreen): Also check for _NET_WM_STATE_FULLSCREEN.
 
@@ -655,7 +655,7 @@
 	Use the foreground color of the scroll-bar face when drawing
 	the scroll-bar's border.
 
-2007-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-02-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (do_ewmh_fullscreen): Check that what != NULL before
 	calling wm_supports.
@@ -665,7 +665,7 @@
 	* lread.c (syms_of_lread) <user-init-file>: Doc fix.
 	Wording by Eli Zaretskii.
 
-2007-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Initialize h/vmargin to 0.
 
@@ -683,7 +683,7 @@
 
 	* m/hp800.h: Restore, removing HP-UX support.
 
-2007-01-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in: Use a variable, XFT_LIBS, instead #define LIB_X11_LIB.
 
@@ -705,7 +705,7 @@
 
 	* minibuf.c (Fcompleting_read): Doc fix.
 
-2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_initialize): Call XftInit if HAVE_XFT.
 
@@ -830,7 +830,7 @@
 	* macterm.h (mac_quit_char_key_p): Move extern outside #ifdef MAC_OSX.
 	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): Parenthesize definitions.
 
-2007-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Use pthread_equal,
 	block/unblock SIGIO.
@@ -887,7 +887,7 @@
 	(XDrawLine): Rename from mac_draw_line_to_pixmap.
 	(mac_quit_char_key_p) [MAC_OSX]: Add extern.
 
-2007-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (init_keyboard): Initialize interrupt_input_blocked and
 	interrupt_input_pending.
@@ -964,7 +964,7 @@
 
 	* window.c (Fwindow_end): Check BUF_OVERLAY_MODIFF like BUF_MODIFF.
 
-2007-01-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h (xg_menu_item_cb_data_): Remove highlight_id and
 	unhighlight_id.
@@ -976,14 +976,14 @@
 	(create_menus): Connect enter/leave-notify-event to the menu instead
 	of individual items.
 
-2006-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Connect create-menu-proxy with
 	xg_tool_bar_menu_proxy.
 	(xg_tool_bar_menu_proxy): New function.
 	(xg_tool_bar_proxy_callback): New function.
 
-2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_button_cb): Save last modifier on widget.
 	(xg_tool_bar_callback): Remove check for button.
@@ -1062,7 +1062,7 @@
 
 	* w32.c (_sys_wait_accept): Fix handle leak.
 
-2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sound.c: Include <alsa/asoundlib.h> if ALSA_SUBDIR_INCLUDE is
 	defined.
@@ -1316,7 +1316,7 @@
 	* Makefile.in (version): New variable, set by configure.
 	(bootstrapclean, mostlyclean): Also remove emacs-${version}.
 
-2006-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Handle modifying a toolbar item
 	without an image.
@@ -1330,7 +1330,7 @@
 	* xdisp.c (move_it_to): Correctly count tab glyphs for continued
 	lines ending in tab.
 
-2006-11-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_raise_frame): Move setting of _NET_ACTIVE_WINDOW
 	property ...
@@ -1519,7 +1519,7 @@
 	(Fstring_equal, Fcompare_strings, Fstring_lessp, Fcopy_sequence)
 	(Fstring_make_unibyte): Fix typos in docstrings.
 
-2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_display_info): Fix indentation.
 
@@ -1623,7 +1623,7 @@
 	* gtkutil.c (update_frame_tool_bar): If icon image is invalid and
 	wicon is null, insert an empty button.
 
-2006-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising the
 	window.
@@ -1786,12 +1786,12 @@
 	New variable.
 	(syms_of_macfns) [TARGET_API_MAC_CARBON]: Defvar it.
 
-2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_handle_selection_request): If the converted_selection
 	is nil or XCDR (converted_selection) is nil, decline the request.
 
-2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-10-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (get_utf8_string): Remove warnings with casts.
 	(xg_tool_bar_button_cb): Ditto.
@@ -1992,7 +1992,7 @@
 	* fns.c (optimize_sub_char_table): Don't optimize a sub-char-table
 	whose default value is non-nil.
 
-2006-09-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Only show C-l help for
 	Gtk+ versions < 2.10.
@@ -2065,7 +2065,7 @@
 	(do_menu_choice): Remove extern.
 	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Add extern.
 
-2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (syms_of_xfns): Rename x_gtk_show_chooser_help_text to
 	x_gtk_file_dialog_help_text.
@@ -2108,7 +2108,7 @@
 
 	* syntax.c (Fmodify_syntax_entry): Clear regexp cache.
 
-2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser):
 	Check x-gtk-show-chooser-help-text before adding the help text.
@@ -2226,7 +2226,7 @@
 
 	* dispnew.c (Fredisplay): Document return value.
 
-2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_close_connection): Call xg_display_close when USE_GTK.
 
@@ -2386,7 +2386,7 @@
 	[USE_MAC_TSM] (mac_handle_text_input_event): Set modifiers for
 	ASCII keystroke event.
 
-2006-09-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Don't mention specific keys in
 	the file chooser message.  Only call gtk_file_chooser_set_current_name
@@ -2411,7 +2411,7 @@
 	* window.c (syms_of_window) <split-height-threshold>:
 	<window-min-height, window-min-width>: Doc fix.
 
-2006-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Change file chooser message
 	for writing files.  Call gtk_file_chooser_set_current_name to keep
@@ -2587,7 +2587,7 @@
 
 	* buffer.c (Fset_buffer_multibyte): Record proper undo entry.
 
-2006-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-08-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Clarify difference between in_sighandler and
 	handling_signal.
@@ -2664,7 +2664,7 @@
 	* frame.c (Fmouse_position, Fmouse_pixel_position)
 	(Fset_mouse_position, Fset_mouse_pixel_position): Doc fix.
 
-2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (Fx_register_dnd_atom): New function.
 	(syms_of_xselect): Defsubr it.
@@ -2676,7 +2676,7 @@
 
 	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*.
 
-2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-08-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Define in_sighandler.
 	(input_available_signal): Set in_sighandler.
@@ -3007,7 +3007,7 @@
 	* w32proc.c (reader_thread): Use _sys_wait_accept to wait on a
 	server socket (FILE_LISTEN flag).
 
-2006-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-07-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sound.c (alsa_init): Call snd_pcm_close after successful snd_pcm_open.
 
@@ -3560,7 +3560,7 @@
 	continued line.
 	(dump_glyph): Dump composite glyph.
 
-2006-06-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-06-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (menu_nav_ended): Check that menubar_widget is not NULL.
 
@@ -3568,7 +3568,7 @@
 
 	* window.c (Fsplit_window): Doc fix.
 
-2006-06-01  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-06-01  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* process.c (deleted_pid_list): New variable to store the pids
 	of deleted processes.  Declare it only if SIGCHLD is defined.
@@ -3591,12 +3591,12 @@
 	* macterm.c (mac_handle_visibility_change): Set buf.arg to Qnil.
 	(XTread_socket): Remove obsolete comment.
 
-2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-06-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (syms_of_xmenu): Make accelerate-menu an alias for
 	menu-bar-open.
 
-2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-06-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (Fmenu_bar_open, syms_of_xmenu): Change menu-bar-start to
 	menu-bar-open.
@@ -3662,7 +3662,7 @@
 
 	* lisp.h (die, nsberror): Likewise.
 
-2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sound.c (alsa_open, alsa_configure, alsa_write):
 	Move assignment to err out of if-statement.
@@ -3734,7 +3734,7 @@
 	when OK-IF-ALREADY-EXISTS is nil.
 	(Frename_file): Call Fcopy_file without MUSTBENEW argument.
 
-2006-05-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sound.c (alsa_configure): Move get period/buffer_size after
 	setting hwparams.
@@ -3838,7 +3838,7 @@
 	resource to backtranslate key with modifiers.
 	(XTread_socket): Don't set read_socket_inev around AEProcessAppleEvent.
 
-2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c: Remove declarations already in xterm.h.
 
@@ -3881,7 +3881,7 @@
 
 	* window.c (foreach_window): Check WINDOWP (FRAME_ROOT_WINDOW (f)).
 
-2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.in: Regenerated (HAVE_ALSA).
 
@@ -3940,7 +3940,7 @@
 
 	* intervals.c (get_local_map): Abort if POSITION outside BEGV, ZV.
 
-2006-05-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Check that f is not NULL before
 	calling _XEditResCheckMessages.
@@ -4418,7 +4418,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increment to 1210000.
 
-2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-04-13  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* print.c (Fprin1_to_string): Mention in the `doc' that the
 	behavior is modified by `print-level' and `print-length'.
@@ -4539,7 +4539,7 @@
 	* xfaces.c (Finternal_merge_in_global_face, try_font_list):
 	Add explicit braces to avoid ambiguous `else'.
 
-2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-04-11  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* dispnew.c (init_display): Don't init X display if the user asked
 	for a non-X display.
@@ -4730,7 +4730,7 @@
 	(generate_stretch_glyph): Rename from produce_stretch_glyph.
 	All callers changed accordingly.
 
-2006-03-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-03-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c: x_session_initialized new variable.
 	(x_term_init): Use x_session_initialized to check if
@@ -4910,7 +4910,7 @@
 	(x_scroll_bar_remove, XTset_vertical_scroll_bar, x_set_window_size)
 	(XTread_socket) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
 
-2006-03-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2006-03-12  Lőrentey Károly  <lorentey@elte.hu>
 
 	* xfns.c (x_icon): Disable redundant call to `x_wm_set_window_state'.
 
@@ -5161,7 +5161,7 @@
 	* buffer.c (modify_overlay): Force redisplay if we modify an
 	overlay at the end of the buffer.
 
-2006-02-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): If x_find_image_file returns
 	nil the image file has been removed, in that case use the (cached)
@@ -5373,7 +5373,7 @@
 
 	* m/ibms390x.h: New file.
 
-2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_detach_callback): Set show-arrow to the
 	value of x-gtk-whole-detached-tool-bar.
@@ -5381,7 +5381,7 @@
 
 	* xfns.c (syms_of_xfns): New variable: x-gtk-whole-detached-tool-bar.
 
-2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_x_to_emacs_modifiers): Make non-static.
 
@@ -5397,7 +5397,7 @@
 
 	* .gdbinit (xwindow): Update the code to show the window box.
 
-2006-02-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (note_mouse_movement): Check for NULL FRAME_X_OUTPUT (frame).
 
@@ -5452,7 +5452,7 @@
 	(current_minor_maps): Pass Qt for NOERROR to Findirect_function
 	instead of using internal_condition_case_1+current_minor_maps_error.
 
-2006-02-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Must note mouse movement even for nil
 	frames for GTK, in that case it is the tool bar.  This is so that
@@ -5462,7 +5462,7 @@
 
 	* alloc.c (Fmake_bool_vector, Fpurecopy): Doc fixes.
 
-2006-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (adjust_window_trailing_edge): Check that shrinking
 	does not set a window to size zero or less.
@@ -5518,7 +5518,7 @@
 	* coding.c (decode_composition_emacs_mule): Fix handling of
 	incorrect format data.
 
-2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-01-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use new tool bar function
 	gtk_toolbar_insert() so we can have tool bars of different sizes.
@@ -5559,7 +5559,7 @@
 
 	* frame.c (x_get_arg): "Clear out" the parm in ALIST if found there.
 
-2006-01-26  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2006-01-26  Lőrentey Károly  <lorentey@elte.hu>
 
 	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.
 	(find_field): Set before_field to after_field when pos is at BEGV.
@@ -5586,7 +5586,7 @@
 	* alloc.c (allocate_string_data): Update next_free immediately, to
 	reduce risk of memory clobberage.
 
-2006-01-24  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2006-01-24  Lőrentey Károly  <lorentey@elte.hu>
 
 	* xdisp.c (handle_invisible_prop): Set it->position to fix cursor
 	display when point moves across an ellipsis.  If there are
@@ -5700,7 +5700,7 @@
 	Fix elimination of // so that it doesn't prevent elimination of an
 	immediately following /. or /..
 
-2006-01-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-01-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_toggle_notify_cb): New function.
 	(xg_toggle_visibility_cb): Move setting of x_gtk_show_hidden_files to
@@ -5730,7 +5730,7 @@
 	gestaltSystemVersionMinor, and gestaltSystemVersionBugFix on Mac
 	OS X 10.4 and later.
 
-2006-01-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-01-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): If the image is from a file,
 	let GTK do all image processing.  Importing Emacs own pixmaps to GTK
@@ -5827,7 +5827,7 @@
 	(struct describe_map_elt): New data type.
 	(describe_map_compare): New function.
 
-2005-12-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Change message shown
 	in file chooser.
@@ -5847,7 +5847,7 @@
 
 	* charset.c (lisp_string_width): Check multibyteness of STRING.
 
-2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_show_hidden_files): New variable.
 	(syms_of_xfns): Defvar it.
@@ -5928,7 +5928,7 @@
 	(insert_before_markers_and_inherit): Make sure FROM is correct
 	when `after-change-functions' are called.
 
-2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_uses_old_gtk_dialog): New function.
 
@@ -5972,7 +5972,7 @@
 	* minibuf.c (Fdisplay_completion_list): Use XCAR/XCDR.
 	(Fminibuffer_completion_help): Remove duplicates before display.
 
-2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-21  Lőrentey Károly  <lorentey@elte.hu>
 
 	* print.c (print_preprocess): Don't lose print_depth levels while
 	iterating.
@@ -6091,7 +6091,7 @@
 	(display_completion_list_1): Use `nil' for second arg of
 	`Fdisplay_completion_list'.
 
-2005-12-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (compute_tip_xy): Handle negative dx and dy.
 
@@ -6108,7 +6108,7 @@
 
 	* coding.c (code_convert_region_unwind): GCPRO arg.
 
-2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (compute_tip_xy): Calculate root_y the same way as root_x,
 	i.e. dy is offset from top of frame instead of bottom.
@@ -6247,7 +6247,7 @@
 
 	* xfns.c (Fx_create_frame): Comment out previous change.
 
-2005-12-07  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-07  Lőrentey Károly  <lorentey@elte.hu>
 
 	* xfns.c (Fx_create_frame): Initialize Vdefault_minibuffer_frame,
 	when needed.
@@ -6277,7 +6277,7 @@
 	* w32fns.c (compute_tip_xy): Put tip above pointer if it doesn't
 	fit below.
 
-2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Add prototype for xg_set_icon_from_xpm_data.
 
@@ -6308,7 +6308,7 @@
 	* window.c (Fset_window_configuration): Don't accidentally copy the
 	window-point of one window to another.
 
-2005-11-30  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-11-30  Lőrentey Károly  <lorentey@elte.hu>
 
 	* buffer.c (Fpop_to_buffer): Remove superfluous call to record_buffer.
 
@@ -6780,7 +6780,7 @@
 
 	* editfns.c (Fcompare_buffer_substrings): Handle multibyte chars.
 
-2005-10-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (note_mouse_movement): Always call note_mouse_highlight
 	so tool tips don't interfere with press on tool bar button.
@@ -7047,7 +7047,7 @@
 	(XTmouse_position): Fix calculation of fake glyph under mouse.
 	Move code to calculate glyph under mouse into remember_mouse_glyph.
 
-2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (USAGE3, standard_args): -nb => -nbi.
 
@@ -7062,7 +7062,7 @@
 
 	* window.c (Fwindow_end): Don't try to redisplay if non-interactive.
 
-2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (standard_args): Remove options -i, -itype, --icon-type.
 	Add options -nb, --no-bitmap-icon.
@@ -7332,7 +7332,7 @@
 	* process.c (create_process) [RTU || UNIPLUS || DONT_REOPEN_PTY]:
 	Setup slave tty options before forking.
 
-2005-09-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-09-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_geometry): Do a gtk_window_move if program
 	positions have been set for the frame (as is done for frames in
@@ -7341,7 +7341,7 @@
 2005-09-19  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Don't scan past end of format string that
-	ends in %.  Reported by Johan Bockg,Ae(Brd.
+	ends in %.  Reported by Johan Bockgård.
 
 2005-09-18  Andreas Schwab  <schwab@suse.de>
 
@@ -7648,7 +7648,7 @@
 	* dispnew.c (buffer_posn_from_coords): Check that target row is
 	within matrix.
 
-2005-08-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-08-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_wm_set_icon_pixmap): Move GTK specific code to
 	xg_set_frame_icon and call it.
@@ -7690,7 +7690,7 @@
 	* image.c (syms_of_image): Init Qxbm, Qpbm before calling
 	define_image_type.
 
-2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask): New function.
 	(xg_get_image_for_pixmap): Move some code to
@@ -7718,7 +7718,7 @@
 
 	* floatfns.c (Fexpt): Use floats for negative exponent.
 
-2005-08-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-08-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_modify_menubar_widgets): Remove semicolon that
 	should not be there, causing menu display errors with GTK 2.6.9.
@@ -8095,7 +8095,7 @@
 
 	* window.c (Frecenter): Yet another int/Lisp_Object mixup (YAILOM).
 
-2005-07-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-07-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (x_update_menu_appearance): Use fontSet resource for
 	Lucid if X_I18N, font otherwise.
@@ -8187,7 +8187,7 @@
 	* w32term.c (w32_initialize): Move check for screen reader here
 	from syms_of_w32term.
 
-2005-06-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): bzero compose_status when nbytes
 	is not zero.
@@ -8568,7 +8568,7 @@
 	* xterm.c (x_create_toolkit_scroll_bar): Use XtNarrowScrollbars
 	if available.
 
-2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-06-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (menu_quit_handler, install_menu_quit_handler):
 	New functions for popping down menus on C-g.
@@ -8608,7 +8608,7 @@
 	codes for iso8859-2 and iso8859-5.  Don't add `\' for them.
 	Use `no-break-space' face for no-break spaces.
 
-2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-06-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (delete_window): Handle the case where a h/vchild has
 	a h/vchild.
@@ -8634,7 +8634,7 @@
 
 	* xmenu.c (popup_get_selection): Click not in menu deactivates menu.
 
-2005-06-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-06-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (cleanup_popup_menu): New function.
 	(Fx_popup_menu): Unwind protect cleanup_popup_menu in case
@@ -9013,7 +9013,7 @@
 	(syms_of_buffer): Add default-cursor-in-non-selected-windows.
 	Fix type of cursor-in-non-selected-windows.
 
-2005-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-05-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* mac.c: #undef init_process so not to conflict with system headers.
 
@@ -9552,7 +9552,7 @@
 	* eval.c (Ffuncall): Always call CHECK_CONS_LIST on entry.
 	Call it again after autoload.
 
-2005-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* alloc.c (allocate_string_data): Call BLOCK_INPUT before calling
 	mallopt.
@@ -9645,7 +9645,7 @@
 	* callproc.c (Vdoc_file_name, Vfile_name_coding_system)
 	(Vdefault_file_name_coding_system): Remove unused declarations.
 
-2005-03-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (create_and_show_popup_menu): Just remove menu and return
 	if it failed to pop up (Gnome "show pointer on ctrl" option makes
@@ -9668,7 +9668,7 @@
 	* fringe.c (draw_fringe_bitmap_1, Fset_fringe_bitmap_face):
 	Derive face from fringe face.
 
-2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xrdb.c (x_load_resources): Undo previous change (2005-03-18).
 
@@ -9699,7 +9699,7 @@
 	* unexec.c (write_segment, unexec): Move these functions to avoid
 	forward references (which cause errors with "gcc -gcoff").
 
-2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_create_tip_frame): Remove setting of Vx_resource_name so
 	that it doesn't become "tooltip".  The specbind is enough.
@@ -9902,7 +9902,7 @@
 	before calling setup_coding_system so that autoloading of a coding
 	system work.
 
-2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (hourglass_started): New function.
 
@@ -10067,7 +10067,7 @@
 	* xdisp.c (fast_find_position): Rename END to BEG.
 	(syms_of_xdisp) <menu-bar-update-hook>: Doc fix.
 
-2005-02-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-02-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_resize_outer_widget): Remove unneeded call to
 	gtk_window_resize and x_wm_set_size_hint.
@@ -10279,7 +10279,7 @@
 	* undo.c (Fprimitive_undo): Check that undo function does not
 	switch buffer.
 
-2005-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-02-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (selection_data_to_lisp_data): For the special case
 	type == XA_ATOM, data contains array of int, not array of Atom.
@@ -10290,7 +10290,7 @@
 
 	* undo.c (Fprimitive_undo): Check veracity of delta,start,end.
 
-2005-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_change_window_property): Use long array when format is 32.
 	(Fx_window_property): If format is 32 and long is bigger than 32 bits,
@@ -10329,7 +10329,7 @@
 
 	* sysdep.c (sys_subshell): Properly terminate execlp argument list.
 
-2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-02-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (Fx_send_client_event, x_handle_dnd_message): Handle
 	the longs in a XClientMessageEvent correctly when long is 64 bits.
@@ -10339,7 +10339,7 @@
 	* xfaces.c (face_color_supported_p): Use HAVE_WINDOW_SYSTEM
 	instead of HAVE_X_WINDOWS, for non-X windowed sessions.
 
-2005-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-02-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (menubar_selection_callback): Force out GTK buffered
 	events so the menu event comes after them.  This is to prevent sit-for
@@ -10425,7 +10425,7 @@
 	* undo.c (syms_of_undo) <undo-outer-limit>: Doc update.
 	Increase value to 3 Meg.
 
-2005-01-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-01-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (show_hourglass): Use FRAME_X_WINDOW as parent for GTK,
 	button events are not received otherwise.
@@ -10551,7 +10551,7 @@
 
 	* fileio.c (Fcopy_file): Doc fix.
 
-2005-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-01-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_detach_callback): Remove unused variable bw.
 	(xg_get_file_name): Move declaration ofx_use_old_gtk_file_dialog to
@@ -10634,7 +10634,7 @@
 
 	* macterm.c (mac_draw_string_common): Fix compilation on OSX 10.1.
 
-2005-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-01-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* fringe.c (Fdefine_fringe_bitmap, init_fringe): When assigning
 	fringe_faces, cast result from xmalloc/xrealloc to Lisp_Object *.
@@ -10748,7 +10748,7 @@
 	(next_element_from_display_vector): If it->dpvec_face_id is set,
 	use that instead of lface_id from glyph itself.
 
-2005-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-01-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_output): New member, toolbar_detached.
 
@@ -10760,7 +10760,7 @@
 	(update_frame_tool_bar): Only set FRAME_TOOLBAR_HEIGHT (f) if
 	toolbar_detached is zero.
 
-2005-01-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-01-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (create_and_show_popup_menu): Pass zero as button to
 	gtk_menu_popup if not for_click, so callbacks for the menu are called.
@@ -10873,7 +10873,7 @@
 
 	* alloc.c (Fgarbage_collect): Don't truncate_undo_list on dead buffers.
 
-2004-12-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Clear area in expose event for GTK.
 
@@ -10981,7 +10981,7 @@
 	(encode_coding_iso2022, decode_coding_sjis_big5, decode_eol)
 	(decode_coding): Constify arguments and local vars.
 
-2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Only pop down dialogs
 	on C-g and Escape.
@@ -11149,7 +11149,7 @@
 
 	* lread.c (syms_of_lread) <load-history>: Doc fix.
 
-2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Pop down on C-g.
 	(set_frame_menubar): Install translations for Lucid/Motif/Lesstif that
@@ -11168,7 +11168,7 @@
 
 	* coding.c (code_convert_region): Fix calculation of `ratio'.
 
-2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Make the value of
 	tool-bar-button-margin control margins of images in tool bar.
@@ -11180,7 +11180,7 @@
 	(overrun_check_free): Only check for overhead if check_depth is 1.
 	Increase/decrease check_depth in entry/exit.
 
-2004-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (input_available_signal): Call SIGNAL_THREAD_CHECK
 	before touching input_available_clear_time, to avoid accessing it
@@ -11258,7 +11258,7 @@
 	(mac_c_string_match, mac_do_list_fonts): Speed up font search by
 	quickly finding a specific font without needing regexps.
 
-2004-12-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* syssignal.h: Declare main_thread.
 	(SIGNAL_THREAD_CHECK): New macro.
@@ -11335,7 +11335,7 @@
 
 	* emacs.c (main, Fdump_emacs): Don't touch malloc hooks if SYNC_INPUT.
 
-2004-12-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* w32term.c (x_calc_absolute_position): Remove calculation of
 	difference between inner and outer window.  Don't subtract difference
@@ -11361,7 +11361,7 @@
 	* image.c (our_fill_input_buffer, jpeg_load, CHECK_LIB_AVAILABLE)
 	(init_image): Use 1 rather than TRUE.  TRUE's not always defined.
 
-2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (Fdump_emacs): Add ! defined (SYSTEM_MALLOC) around
 	reset_malloc_hooks.
@@ -11377,7 +11377,7 @@
 
 	* config.in: Regenerate.
 
-2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (Fx_popup_menu): Correct documentation about position.
 	(xmenu_show): Do not call XTranslateCoordinates.  Adjust position
@@ -11620,7 +11620,7 @@
 	* xdisp.c (move_it_in_display_line_to, display_line):
 	Restore saved_face_id also when truncate-lines or hscrolled.
 
-2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_name): Rename use-old-gtk-file-dialog to
 	x-use-old-gtk-file-dialog.
@@ -11771,7 +11771,7 @@
 
 	* xdisp.c (erase_phys_cursor): Adjust cursor row visible height.
 
-2004-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_name): Typo in HAVE_GTK_FILE_SELECTION_NEW.
 
@@ -11839,7 +11839,7 @@
 
 	* xdisp.c (get_next_display_element): Fix previous change.
 
-2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (shrink_windows): Handle special case of one window left
 	when trying to shrink the final reminder.  Grow windows if
@@ -11860,7 +11860,7 @@
 
 	* minibuf.c (syms_of_minibuf) <completion-ignore-case>: Doc fix.
 
-2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (pop_down_file_dialog): Add BLOCK_INPUT.
 
@@ -11872,7 +11872,7 @@
 
 	* xmenu.c (x_menu_in_use, x_menu_set_in_use): New functions.
 
-2004-11-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_file_sel_ok, xg_file_sel_cancel)
 	(xg_file_sel_destroy): Remove.
@@ -11942,7 +11942,7 @@
 
 	* xmenu.c (pop_down_menu): Return nil.
 
-2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (x_menu_wait_for_event): New function.
 	(popup_get_selection, popup_widget_loop): Call x_menu_wait_for_event
@@ -12000,7 +12000,7 @@
 
 	* callint.c (Fcall_interactively): Remove unused variable 'funcar'.
 
-2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (stamp-oldxmenu): If HAVE_GTK, don't add dependencies
 	to ${OLDXMENU}.
@@ -12011,7 +12011,7 @@
 	connects on BSD.  If connect is interrupted, just close socket and
 	start over rather than sleeping and retry with same socket.
 
-2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* .cvsignore: Add buildobj.lst.
 
@@ -12055,7 +12055,7 @@
 	(check_fontset_name): Try NAME as literal at first, and if it
 	failes, try NAME as pattern.
 
-2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs.c (Fdump_emacs): Only output warning on GNU/Linux.
 
@@ -12065,7 +12065,7 @@
 	* dired.c (Fmsdos_downcase_filename): Don't declare here.
 	* fileio.c: Likewise.
 
-2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dosfns.c (Fdos_memget, Fdos_memput): Use integer variable offs in
 	comparisons with integers instead of Lisp_Object address.
@@ -12105,7 +12105,7 @@
 
 	* frame.c (syms_of_frame): Fix the example in the doc string.
 
-2004-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* eval.c (Feval): Remove check for INPUT_BLOCKED_P.
 
@@ -12167,7 +12167,7 @@
 	and use x_handle_selection_event.
 	(mark_kboards): Don't mark x and y of SELECTION_CLEAR_EVENT.
 
-2004-11-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (TRACE3): New debug macro.
 	(x_reply_selection_request): Use it.
@@ -12178,7 +12178,7 @@
 
 	* fontset.c (fontset_pattern_regexp): Use unsigned char.
 
-2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* fileio.c (Fnext_read_file_uses_dialog_p): New function.
 
@@ -12200,7 +12200,7 @@
 
 	* .gdbinit (ppt): New function.
 
-2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_window_to_scroll_bar): Only call
 	xg_get_scroll_id_for_window if toolkit scroll bars are used.
@@ -12253,7 +12253,7 @@
 	* w32fns.c (w32_font_match): Use fast_string_match_ignore_case for
 	comparing font names.
 
-2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* fileio.c (Fread_file_name): Pass Qt as fifth parameter to
 	Fx_file_dialog if only directories should be read.
@@ -12300,7 +12300,7 @@
 
 	* w32term.c (x_scroll_run): Delete region objects after use.
 
-2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c: Add prototypes for forward function declarations.
 	(popup_get_selection): Remove parameter do_timers, remove call to
@@ -12364,7 +12364,7 @@
 	Remove size arg.  All users changed.
 	(SAFE_FREE_LISP): Remove.  All users changed to use SAFE_FREE.
 
-2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Put empty line between comment and function body.
 	(xg_destroy_widgets): Rename from remove_from_container.
@@ -12386,7 +12386,7 @@
 
 	* buffer.c (syms_of_buffer): Fix a few typos.
 
-2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsmfns.c: Put empty line between comment and function body.
 	Use two spaces before comment end.
@@ -12408,11 +12408,11 @@
 	* editfns.c (Ftranslate_region_internal): New function.
 	(syms_of_editfns): Defsubr it.
 
-2004-10-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
 
-2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2004-10-21  Károly Lőrentey  <lorentey@elte.hu>
 
 	* xterm.h (x_output): New member `xic_base_fontname'.
 	(FRAME_XIC_BASE_FONTNAME): New macro.
@@ -12430,7 +12430,7 @@
 
 	* w32term.c (x_draw_glyph_string): Use overline_color for overlines.
 
-2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (XSync): If USE_GTK, define XSync as process_all and then
 	XSync.
@@ -12463,7 +12463,7 @@
 	* editfns.c (Fdelete_and_extract_region):
 	If region is empty, return null string.
 
-2004-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left
 	and canon_width.
@@ -12490,7 +12490,7 @@
 
 	* xdisp.c (display_mode_element): Fix display of wide chars.
 
-2004-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_update_scrollbar_pos): Change XClearWindow to
 	gdk_window_clear and move gdk_window_process_all_updates after
@@ -12577,7 +12577,7 @@
 	* doc.c (Fsubstitute_command_keys): Ignore remappings unless there
 	are no ordinary bindings.
 
-2004-10-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (syms_of_xfns): Defsubr x-file-dialog for GTK also.
 
@@ -12657,14 +12657,14 @@
 	precedence.
 	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
 
-2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.in: Regenerate.
 
 	* Makefile.in (RUN_TEMACS): Check HAVE_RANDOM_HEAPSTART instead of
 	HAVE_EXECSHIELD.
 
-2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_find_modifier_meanings): Ignore any Super or Hyper for
 	a row if Alt or Meta has been found for that row.  Also stop scanning
@@ -12781,11 +12781,11 @@
 	allow a simple cons.
 	(Ffringe_bitmaps_at_pos): Use nil value for no bitmap.
 
-2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.in: Rebuild.
 
-2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.in: Rebuild.
 
@@ -12833,7 +12833,7 @@
 	properties.  Reverse text property list from the format string,
 	so the positions are in increasing order.
 
-2004-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_reply_selection_request): XSync and UNBLOCK before
 	x_uncatch_errors so that possible protocol errors are delivered.
@@ -12976,7 +12976,7 @@
 	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.
 	Use LIBS_CARBON.
 
-2004-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_name_internal): New function.  Check if we shall call
 	xfree before ENCODE_UTF_8.
@@ -12987,7 +12987,7 @@
 	* w32fns.c (w32_load_font): If a BDF font is already loaded, do not
 	reload it.
 
-2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (_widget_value): Add lname and lkey.
 	(single_submenu): Set lname and lkey in widget_value
@@ -13009,7 +13009,7 @@
 	* macmenu.c (mac_menu_show): Remove shadowing of menu variable
 	by using different names for inner loop variables.
 
-2004-08-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (set_frame_menubar): Reintroduce inhibit_garbage_collection
 	from 1.233 so that strings from ENCODE_UTF_8 isn't GC:ed before used.
@@ -13032,7 +13032,7 @@
 	tool-bar/menu click.
 	* macfns.c (Fx_file_dialog): Implement using NavServices.
 
-2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_catch_errors_unwind): Do not XSync if display has closed.
 
@@ -13066,7 +13066,7 @@
 	* syntax.c (char_quoted): Mixup byte/char pos.
 	(back_comment): Fixup globals in all cases.
 
-2004-08-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_name, x_set_title): Encode title to UTF8 before
 	passing it to gtk_window_set_title.
@@ -13268,7 +13268,7 @@
 	(append_stretch_glyph): Increment ncols_scale_factor and set
 	fonts_changed_p if current area is full.
 
-2004-07-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* widget.c (EmacsFrameDestroy): Don't abort if normal_gc is 0.
 
@@ -13355,7 +13355,7 @@
 	* fileio.c (Fvisited_file_modtime): Return a list of two integers,
 	instead of a cons.
 
-2004-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2004-07-14  Károly Lőrentey  <lorentey@elte.hu>
 
 	* keyboard.c (echo_dash): Do nothing if there already is a dash
 	at the end of the echo string.
@@ -13394,7 +13394,7 @@
 
 	* fns.c (Fclear_string): Signal an error if STRING is not a string.
 
-2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macterm.c (mac_initialize_display_info): Use CGGetActiveDisplayList
 	instead of CGMainDisplayID (only in OSX 10.2 and later).
@@ -13469,7 +13469,7 @@
 	* macterm.c (XTread_socket): Correctly set the frame position
 	after the window is moved.
 
-2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): Call g_object_unref on
 	gpix and gmask just before return to avoid memory leak.
@@ -13592,7 +13592,7 @@
 	predicates, respectively.  Should give satisfactory performance
 	in all relevant cases.
 
-2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-06-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_draw_image_foreground_1): Subtract slice.x/y from
 	clip_x/y_origin.
@@ -13629,7 +13629,7 @@
 	* syntax.c (skip_chars): Only recognize [:class:] when it has the
 	proper format and class is a lower-case word.
 
-2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-06-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): New function.
 	(xg_get_gdk_pixmap_and_mask): Remove.
@@ -13693,7 +13693,7 @@
 	* keyboard.c (cmd_error): Don't call any_kboard_state
 	if inside a recursive edit level.
 
-2004-06-13  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2004-06-13  Károly Lőrentey  <lorentey@elte.hu>
 
 	* keyboard.c (command_loop): Call any_kboard_state before
 	command_loop_2 when at top level.
@@ -14006,7 +14006,7 @@
 	before actually accepting connection in case it has already been
 	accepted due to recursion.
 
-2004-05-23  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2004-05-23  Károly Lőrentey  <lorentey@elte.hu>
 
 	* coding.c (Fset_safe_terminal_coding_system_internal):
 	Set suppress_error in safe_terminal_coding, not terminal_coding.
@@ -14239,7 +14239,7 @@
 	(Finternal_copy_lisp_face): Fix typo in docstring.
 	(Finternal_get_lisp_face_attribute): Fix docstring.
 
-2004-05-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-05-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (syms_of_xfns): Provide x-toolkit also for GTK.
 
@@ -14378,7 +14378,7 @@
 	* image.c (Display) [HAVE_NTGUI]: Redefine while loading xpm.h
 	to avoid name clash.
 
-2004-05-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-05-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* fileio.c (barf_or_query_if_file_exists): Use lstat.
 	(Frename_file): Handle renaming of symlinks across file systems.
@@ -14393,7 +14393,7 @@
 	(x_produce_glyphs): Ignore line-spacing if line-height is 0.
 	Handle total line-spacing property.
 
-2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-05-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_update_scrollbar_pos): Call XClearWindow to clear
 	"under" scroll bar when size/position changes.
@@ -14812,7 +14812,7 @@
 	* emacs.c (gdb_use_union, gdb_use_lsb): New vars.
 	(gdb_emacs_intbits): Remove.
 
-2004-03-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-03-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* data.c (Fbyteorder): Make test work even if unsigned is not 4 bytes.
 
@@ -14858,7 +14858,7 @@
 
 	* editfns.c (Ftranspose_regions): Likewise.
 
-2004-03-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-03-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Do not pass key press events to GTK.
 
@@ -14872,7 +14872,7 @@
 	to_charpos corresponds to newline in right fringe.  Use local
 	BUFFER_POS_REACHED_P macro.
 
-2004-03-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-03-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (calc_pixel_width_or_height): Add ifdef HAVE_WINDOW_SYSTEM
 	to compile on non-window system.
@@ -15223,7 +15223,7 @@
 
 	* makefile.w32-in ($(BLD)/fringe.$(O)): Add dependencies.
 
-2004-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-03-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_display_color_cells): Use number of planes to calculate
 	how many colors can be displayed.
@@ -15244,7 +15244,7 @@
 	updates by setting prevent_redisplay_optimizations_p and
 	update_mode_lines.
 
-2004-02-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_window): Fix indentation.
 
@@ -15729,7 +15729,7 @@
 
 	* window.c (Fwindow_fringes): Doc fix.
 
-2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_get_foreign_selection): Add new optional parameter
 	time_stamp.
@@ -15738,7 +15738,7 @@
 
 	* data.c (Fbyteorder): New function.
 
-2004-02-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* atimer.c: Move include stdio.h to same place as in other files.
 
@@ -15858,7 +15858,7 @@
 	(x_redisplay_interface): Add null handlers for
 	define_fringe_bitmap and destroy_fringe_bitmap functions.
 
-2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* macfns.c (Fx_change_window_property): Make doc string and
 	parameters same as for X version.
@@ -15889,7 +15889,7 @@
 	(Fdisplay_completion_list): Make it handle arguments that are
 	symbols.  Doc fix.
 
-2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Add declaration of free_frame_menubar.
 
@@ -15926,7 +15926,7 @@
 
 	* w32fns.c (x_to_w32_font): Likewise.
 
-2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Add x_handle_dnd_message, x_check_property_data,
 	x_fill_property_data, x_property_data_to_lisp and check_x_display_info.
@@ -15986,7 +15986,7 @@
 	* unexmacosx.c (unexec_copy): Do not copy more than was
 	requested to prevent overwriting during unexec.
 
-2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c (sigchld_handler): Add comment about not calling malloc.
 
@@ -16010,7 +16010,7 @@
 	(Fwindow_pixel_edges, Fwindow_inside_edges)
 	(Fwindow_inside_pixel_edges): Use decode_any_window.
 
-2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.h: synch_process_termsig new variable.
 
@@ -16053,7 +16053,7 @@
 
 	* lisp.h [USE_LSB_TAG && !DECL_ALIGN]: Signal an error.
 
-2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lisp.h: Add undef DECL_ALIGN.
 
@@ -16187,7 +16187,7 @@
 	(x_draw_fringe_bitmap): Handle bottom aligned bitmaps.
 	(mac_draw_window_cursor): Draw cursor in fringe.
 
-2004-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Don't handle characters that are part
 	of an old style (XLookupString) compose sequence.
@@ -16210,7 +16210,7 @@
 	* macterm.c (do_check_ram_size): Don't hardcode the lisp address
 	space size.
 
-2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Check new parameter down_on_keypress
 	if a key press should pop down.  Only pop down if a key is pressed
@@ -16220,12 +16220,12 @@
 	(create_and_show_dialog): Pass 1 for down_on_keypress to
 	popup_get_selection.
 
-2004-01-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* alloc.c (allocate_vectorlike): Surround calls to mallopt with
 	BLOCK/UNBLOCK_INPUT.
 
-2004-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (Fx_popup_dialog): Add an Ok button if no buttons are
 	specified.
@@ -16458,7 +16458,7 @@
 	* termcap.c (tgetst1): Scan for "%pN"; if all
 	N are continuous in [1,9], remove all "%pN".
 
-2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-12-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_set_char_size): Call x_wm_set_size_hint.
 
@@ -16506,7 +16506,7 @@
 	* textprop.c (Fget_char_property_and_overlay): New function.
 	(syms_of_textprop): Defsubr it.
 
-2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dispnew.c (buffer_posn_from_coords): Add ifdef HAVE_WINDOW_SYSTEM
 	to compile on terminal configuration.
@@ -16709,7 +16709,7 @@
 
 	* coding.c (coding_restore_composition): Lisp_Object/int mixup.
 
-2003-11-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_window_to_scroll_bar): Move check of display to
 	where window_id is compared.
@@ -16722,7 +16722,7 @@
 	(try_window_id): Use first_vpos to start display in first _text_
 	line if no reusable lines at start of window with header line.
 
-2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* w32fns.c (XPutPixel):
 	* w32bdf.c (w32_init_bdf_font):
@@ -16785,7 +16785,7 @@
 	Display* argument.
 	(xg_display_open, xg_display_close, xg_create_default_cursor): Declare.
 
-2003-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_detect_focus_change): Do not change focus frame for
 	Enter/LeaveNotify if the current focus frame has explicit focus.
@@ -16811,12 +16811,12 @@
 
 	* xterm.c (x_list_fonts): Fix excluding of auto-scaled fonts.
 
-2003-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_window): Set XtNx and XtNy in shell widget for
 	program specified positions.
 
-2003-11-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XAW_ARROW_SCROLLBARS): Define it for Xaw 1.5E.
 
@@ -16843,11 +16843,11 @@
 	(GCTYPEMASK, XSETTYPE): Remove.
 	(XGCTYPE): Make it an alias of XTYPE.
 
-2003-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Fix formatting.
 
-2003-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h (xg_have_tear_offs): Declare.
 	(xg_keep_popup, xg_did_tearoff): Remove.
@@ -16879,7 +16879,7 @@
 	* macterm.c (XTread_socket): Handle menubar selection and grow
 	window only for mouseDown events.
 
-2003-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-10-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): For GTK part, increase x_initialized
 	to check for more than one display.  Use error instead of return 0.
@@ -16927,7 +16927,7 @@
 
 	* s/darwin.h (GC_MARK_STACK): Define.
 
-2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (shrink_windows): New function.
 	(size_window): Call shrink_windows to calculate window sizes when
@@ -16952,7 +16952,7 @@
 
 	* fns.c (Frequire): Doc fix.
 
-2003-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_send_client_event): New function as a base for
 	manipulating extended window manager hints.
@@ -17101,7 +17101,7 @@
 
 	* window.c (Fwindow_scroll_bars): Doc fix.
 
-2003-09-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-09-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_set_offset): Take window manager decorations into account.
 
@@ -17240,7 +17240,7 @@
 
 	* xdisp.c (init_iterator): Remove old WINDOWSNT conditional.
 
-2003-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-08-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Initialize new fields in x_display_info.
 
@@ -17304,7 +17304,7 @@
 
 	* msdos.c: Include intervals.h, since STRING_INTERVALS requires that.
 
-2003-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-08-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_display_info): New fields: client_leader_window
 	and Xatom_wm_client_leader.
@@ -17403,7 +17403,7 @@
 	* print.c (print_string): Fix printing of multibyte string with
 	nontrivial printcharfun.
 
-2003-07-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (xg_set_icon): Rewrite to compile with GTK 2.0 and 2.2.
 
@@ -17429,7 +17429,7 @@
 
 	* Makefile.in (CFLAGS) [!OPTIMIZE]: Undo previous change.
 
-2003-07-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_mark_data): Update calls to mark_object.
 
@@ -17790,7 +17790,7 @@
 	* window.c (delete_window):
 	* xdisp.c (message_dolog): Update for new types.
 
-2003-06-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-06-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (set_font_frame_param): Set default_face_done_p to zero.
 	(realize_default_face): Use default_face_done_p for the force_p
@@ -17873,9 +17873,9 @@
 2003-06-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (x_fix_overlapping_area): Always use area relative X
-	to fix redisplay problem with tall characters (such as ,AC(B).
+	to fix redisplay problem with tall characters (such as Ã).
 
-2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-06-13  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* fileio.c (Fcopy_file): Doc fix: copies file modes, too.
 
@@ -17967,7 +17967,7 @@
 
 	* buffer.c (init_buffer_once): Make kill-buffer-hook permanent-local.
 
-2003-06-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-06-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (make_menu_item): Make sure we don't crash on a NULL
 	menu item label.
@@ -18184,7 +18184,7 @@
 
 	* alloc.c (Fgarbage_collect): Remove `unused var tail' warning.
 
-2003-05-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-05-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (make_frame): Condition want_fullscreen with
 	HAVE_WINDOW_SYSTEM.
@@ -18982,7 +18982,7 @@
 	(map_keymap_call, Fmap_keymap): New functions.
 	(syms_of_keymap): Defsubr map-keymap.
 
-2003-05-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-05-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (create_dialog, make_widget_for_menu_item)
 	(make_menu_item, create_menus, xg_update_menu_item): Don't call
@@ -19047,7 +19047,7 @@
 	* syntax.c (skip_chars): Make the code faster by using the common
 	technique of *p, *stop, and *endp.
 
-2003-04-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-04-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (update_tool_bar): BLOCK_INPUT before calling
 	tool_bar_items so GTK tool bar expose callback does not access items
@@ -19128,7 +19128,7 @@
 	Call Vafter_insert_file_adjust_coding_function before calling
 	decode-format.
 
-2003-04-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-04-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (xg_scroll_callback): Call gtk_range_get_adjustment to
 	get GtkAdjustment as widget now is a GtkRange.
@@ -19402,7 +19402,7 @@
 	* macterm.c (x_redisplay_interface): Add missing entry for
 	draw_vertical_window_border.
 
-2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-03-29  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* fileio.c (Fexpand_file_name): In the no-handler case, after
 	expanding, look again for a handler and invoke it.  This is needed
@@ -19410,7 +19410,7 @@
 	expansion produces "/user@host:/bar/../baz" which needs to be
 	expanded again for the finame result "/user@host:/baz".
 
-2003-03-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_item_expose_callback): Reduce size
 	of area to be redrawn for better performance.
@@ -19436,7 +19436,7 @@
 	only if the tool bar contents actually change.
 	(update_menu_bar): Undo previous change.
 
-2003-03-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_resize_widgets): Don't call xg_frame_cleared.
 	(xg_frame_set_char_size): Calculate scroll bar width before frame
@@ -19500,7 +19500,7 @@
 	* lisp.h (make_string_from_bytes, make_specified_string):
 	Prototypes adjusted.
 
-2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (get_glyph_string_clip_rect): Remove ; at end of #endif.
 
@@ -19704,7 +19704,7 @@
 	* alloc.c (make_specified_string): If NCHARS is negative, count
 	the number of characters.
 
-2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_cleared): Call gtk_widget_queue_draw for
 	all widgets.
@@ -19725,7 +19725,7 @@
 	(syms_of_coding): Defsubr Sdefine_coding_system_internal.
 	Initialize and staticpro Vcoding_system_safe_chars.
 
-2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_toolkit_scroll_bar_thumb): Check if new values
 	equal old values before updating.
@@ -19734,7 +19734,7 @@
 
 	* gtkutil.c (xg_initialize): Remove xg_ignore_next_thumb.
 
-2003-03-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Removed handle_fixed_child, struct xg_last_sb_pos.
 	(xg_resize_widgets): Don't call foreach(handle_fixed_child).
@@ -19868,7 +19868,7 @@
 
 	* lread.c (read1): After #!, exit loop on eof.
 
-2003-03-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h: Add declaration for xg_frame_cleared.
 
@@ -19951,7 +19951,7 @@
 	* process.c (read_process_output): We have allocated enough space
 	for readmax and carryover, so actually use the alloted space.
 
-2003-03-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (make_lispy_event): Extend mouse_syms if needed for
 	toolkit scrollbar click.
@@ -19973,7 +19973,7 @@
 	(update_frame_tool_bar): Connect xg_tool_bar_item_expose_callback
 	to expose on the tool bar item widgets.
 
-2003-03-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Compare pixmap ID instead of
 	struct image* when deciding to update (struct image* may have been
@@ -20008,12 +20008,12 @@
 	(x_get_string_resource): Use it, so resources passed with -xrm
 	supercede the ones in the registry.
 
-2003-03-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_detect_focus_change): Call x_any_window_to_frame
 	instead of x_top_window_to_frame.
 
-2003-03-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsmfns.c (smc_save_yourself_CB): Add --no-splash to options
 	when restarting Emacs.
@@ -20025,7 +20025,7 @@
 	(Qkill_buffer_query_functions): New var.
 	(syms_of_buffer): Init and staticpro it.
 
-2003-03-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (XSync): Define as gdk_window_process_all_updates for GTK.
 
@@ -20037,7 +20037,7 @@
 
 	* lread.c (read1): Accept `single space' syntax like (? x).
 
-2003-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): Surround with
 	#ifdef HAVE_X_WINDOWS.
@@ -20059,7 +20059,7 @@
 	* xdisp.c (Qwhen): Declare external; it's now defined in callint.c.
 	(syms_of_xdisp): Don't initialize Qwhen.
 
-2003-02-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): New function.
 	(command_loop_1): Cancel hourglass with unwind-protect.
@@ -20074,7 +20074,7 @@
 
 	* regex.c (print_partial_compiled_pattern): Output to stderr.
 
-2003-02-23  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-23  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* dired.c (directory_files_internal): Don't expand directory.
 	(Fdirectory_files, Fdirectory_files_and_attributes): Do it here
@@ -20099,7 +20099,7 @@
 
 	* lread.c (Fload): Don't check STRING_MULTIBYTE.
 
-2003-02-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.h: Removed subtty field from struct Lisp_Process.
 
@@ -20109,7 +20109,7 @@
 	Call emacs_get_tty_pgrp instead of ioctl.
 	(process_send_signal): Call EMACS_KILLPG if ioctl TIOCSIGSEND fails.
 
-2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-21  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* keymap.c (Fdefine_key): Doc fix.
 
@@ -20152,11 +20152,11 @@
 	* xfaces.c (try_alternative_families): Try all scalable fonts if
 	Vscalable_fonts_allowed is not Qt.
 
-2003-02-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (x_face_list_fonts): Set *pfonts to 0 if no fonts found.
 
-2003-02-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_list_fonts): If maxnames is less than 0, get all font
 	names.
@@ -20193,7 +20193,7 @@
 	Allow dotted-pair dot after a character constant.
 	Allow "`" and "," (inside backquote) after a character constant.
 
-2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_expose_callback): New function.
 	(xg_create_tool_bar): Force style of tool bar to be horizontal with
@@ -20305,14 +20305,14 @@
 	* Makefile.in (EXEEXT): Define to @EXEEXT@ and use this variable
 	instead of the substitution.
 
-2003-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_make_frame_visible): Call gtk_window_deiconify.
 
 	* xmenu.c (menu_position_func): Adjust menu popup position so that
 	the menu is fully visible.
 
-2003-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_text_icon, x_raise_frame, x_lower_frame)
 	(x_make_frame_invisible, x_wm_set_icon_position):
@@ -20339,7 +20339,7 @@
 
 	* keyboard.c (syms_of_keyboard) <this-original-command>: Doc fix.
 
-2003-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (remove_from_container): Copying list is not needed.
 	(xg_update_menubar, xg_update_menu_item, xg_update_submenu)
@@ -20393,7 +20393,7 @@
 	* xdisp.c (SKIP_GLYPHS): New macro.
 	(set_cursor_from_row): Skip all glyphs that comes from overlay string.
 
-2003-01-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (free_frame_tool_bar): Remove debug printf.
 
@@ -20434,13 +20434,13 @@
 	* w32fns.c (init_external_image_libraries): Try alternate names for the
 	jpeg dll.
 
-2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (create_dialog, xg_separator_p)
 	(xg_item_label_same_p, xg_update_menu_item): Check for NULL string
 	before calling strcmp or strlen.
 
-2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Call prepare_image_for_display
 	and handle image load failure.
@@ -20466,7 +20466,7 @@
 
 	* buffer.c (Fkill_buffer): Call format2 instead of format1.
 
-2003-01-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Change to return value of x_dispatch_event to int.
 
@@ -20501,7 +20501,7 @@
 
 	* minibuf.c (Fminibuffer_message): Verify type of parameter.
 
-2003-01-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_initialize): Initialize id_to_widget here instead
 	of static initializer.
@@ -20599,7 +20599,7 @@
 
 	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
 
-2003-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Must include stdio.h before termhooks.h.
 
@@ -20637,12 +20637,12 @@
 	* xdisp.c (redisplay_window): If mini window's buffer is not
 	a minibuffer, then redisplay it like other windows.
 
-2003-01-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_create_frame_widgets): Check if there is an
 	external tool bar before setting tool bar height.
 
-2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Surround popup_activated
 	with #ifdef:s for non-toolkit version.
@@ -20758,7 +20758,7 @@
 
 	* charset.h (Funibyte_char_to_multibyte): Export.
 
-2003-01-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (mouse_position_for_popup): New function.
 	(Fx_popup_menu): Call mouse_position_for_popup for X and
@@ -20794,7 +20794,7 @@
 	* xdisp.c (message_dolog): Fix bug of the case that *Message*
 	buffer is unibyte.
 
-2003-01-15  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-15  Francesco Potortì  <pot@gnu.org>
 
 	* fns.c (Fsubstring): Clarify doc string.
 
@@ -20820,11 +20820,11 @@
 	(syms_of_process): Intern, staticpro, defsubr these.
 	(Fmake_network_process): Describe :plist arg.  Remove :vars arg.
 
-2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-14  Francesco Potortì  <pot@gnu.org>
 
 	* m/delta.h: Remove (obsolete).
 
-2003-01-13  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-13  Francesco Potortì  <pot@gnu.org>
 
 	* fileio.c (Fdelete_directory, Fdelete_file): Document the
 	behaviour in front of symlinks.
@@ -20885,7 +20885,7 @@
 	* process.c (Fmake_network_process): Convert new port number
 	to host byte order for `:service t' case.  From Mario Lang.
 
-2003-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_file_dialog): Call XtAppNextEvent and x_dispatch_event
 	instead of XtAppProcessEvent.
@@ -20989,7 +20989,7 @@
 	* macterm.c (syms_of_macterm): Set mac-wheel-button-is-mouse-2
 	to default to t.
 
-2002-12-29  Francesco Potort,Al(B  <pot@gnu.org>
+2002-12-29  Francesco Potortì  <pot@gnu.org>
 
 	* data.c (Fstring_to_number, Fminus): Better English in doc strings.
 
@@ -20999,7 +20999,7 @@
 	allow building in a different directory than source.  Uses some
 	GNU Make extensions, but there is no other make on Mac OS X.
 
-2002-12-26  Francesco Potort,Al(B  <pot@gnu.org>
+2002-12-26  Francesco Potortì  <pot@gnu.org>
 
 	* data.c (Fmakunbound, Ffmakunbound, Fmake_variable_buffer_local)
 	(Fsetq_default, Fmake_local_variable, Fkill_local_variable)
@@ -21274,7 +21274,7 @@
 
 	* alloca.c: Undo ifdef change accidentally made on 12-04.
 
-2002-12-06  Francesco Potort,Al(B  <pot@gnu.org>
+2002-12-06  Francesco Potortì  <pot@gnu.org>
 
 	* xfns.c (png_load): Avoid double gamma correction for PNG images.
 
@@ -21595,7 +21595,7 @@
 	* fns.c (Fcopy_sequence): Doc fix.
 	(Fmap_char_table): Cast `call2'.
 
-2002-11-14  Francesco Potort,Al(B  <pot@gnu.org>
+2002-11-14  Francesco Potortì  <pot@gnu.org>
 
 	* s/sol2-8.h: New file.
 
@@ -21636,7 +21636,7 @@
 	* w32term.c (w32_draw_fringe_bitmap): Remove unused local variable
 	window.
 
-2002-11-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-11-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* process.c (Fformat_network_address): Remove unused locals p,
 	cp, and i.
@@ -21921,7 +21921,7 @@
 	* macmenu.c (mac_menu_show): Add j to count menu items; match
 	menu_item_selection to it to find selected item.
 
-2002-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket): Fix from 2002-10-03 didn't cover all
 	cases.  The correct fix is to pass ReparentNotify to Xt.
@@ -21948,7 +21948,7 @@
 	* macterm.c (keycode_to_xkeysym_table): Change return to be
 	treated like an X keysym.
 
-2002-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-10-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTread_socket): For ConfigureNotify, with x and y == 0,
 	and USE_MOTIF, call XTranslateCoordinates to get the real x and y.
@@ -23186,7 +23186,7 @@
 	CCL_LookupCharConstTbl.
 	(syms_of_ccl): Defvar translation-hash-table-vector.
 
-2002-07-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-07-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused variable `face'.
 
@@ -23251,7 +23251,7 @@
 
 	* xdisp.c (store_mode_line_string): Lisp_Object/int mixup.
 
-2002-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (readable_filtered_events): New function that filters
 	FOCUS_IN_EVENT depending on parameter.
@@ -23355,7 +23355,7 @@
 	* w32fns.c (file_dialog_callback): New function.
 	(Fx_file_dialog): Allow selecting directories as well as files.
 
-2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-06-21  Pavel Janík  <Pavel@Janik.cz>
 
 	* m/pmax.h (START_FILES): Define START_FILES for NetBSD and
 	OpenBSD.  Add support for mipseb-*-netbsd* machines.
@@ -23446,7 +23446,7 @@
 	* w32.c (init_environment): Remove EMACSLOCKDIR.
 	(stat): Swap _S_IFDIR and _S_IFREG.
 
-2002-06-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-06-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c, macterm.c, macmenu.c, msdos.c, sysdep.c
 	* termhooks.h, xmenu.c, xsmfns.c, xterm.h, xterm.c, w32term.c,
@@ -23466,7 +23466,7 @@
 	DRAG_N_DROP_EVENT, save_session_event to SAVE_SESSION_EVENT and
 	no_event to NO_EVENT.
 
-2002-06-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-06-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* macmenu.c: Remove declaration of Qmouse_click and Qevent_kind.
 
@@ -23555,7 +23555,7 @@
 
 	* window.c (Fset_window_hscroll): Doc fix.
 
-2002-06-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-06-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* fileio.c (choose_write_coding_system):
 	Call select-safe-coding-system properly.
@@ -23914,7 +23914,7 @@
 	type if comes from the Lisp object's car.  If the selection
 	contains a pure ASCII text, always return QSTRING as its type.
 
-2002-05-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* mac.c (mac-cut-function): Doc fix.
 
@@ -23993,7 +23993,7 @@
 
 	* xterm.c (XTread_socket): Disable the Xutf8LookupString code.
 
-2002-04-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* dispextern.h (DEFAULT_TOOL_BAR_BUTTON_MARGIN)
 	(DEFAULT_TOOL_BAR_BUTTON_RELIEF): Change default values.
@@ -24058,7 +24058,7 @@
 	cursor on a stretch glyph has a width that depends on
 	x_stretch_cursor_p.
 
-2002-04-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* abbrev.c (abbrev-start-location): Doc fix.
 
@@ -24103,7 +24103,7 @@
 	* xfns.c (x_set_mouse_color): Change default for cross_cursor
 	to XC_hand2.
 
-2002-04-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-23  Pavel Janík  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused global variable `minibuf_prompt_pixel_width'.
 
@@ -24118,11 +24118,11 @@
 	* window.c (make_window): Initialize height_fixed_p,
 	last_cursor_off_p, and p->cursor_off_p slots.
 
-2002-04-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* fns.c (use-dialog-box): Doc fix.
 
-2002-04-19  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-19  Pavel Janík  <Pavel@Janik.cz>
 
 	* xterm.c (note_mode_line_or_margin_highlight): Remove unused
 	variables `row', `i' and `area'.
@@ -24242,7 +24242,7 @@
 	s/sco5.h, s/unixware.h: Don't set HAVE_ALLOCA, C_ALLOCA and
 	STACK_DIRECTION, now set by autoconf.
 
-2002-04-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* dispnew.c (marginal_area_string): Sort arguments.
 
@@ -24301,7 +24301,7 @@
 	Use a single event for HELP_EVENT.
 	(Fexecute_extended_command): Save last_point_position.
 
-2002-04-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* lisp.h (Fpropertize): Add prototype.
 
@@ -24346,7 +24346,7 @@
 	* callint.c (Fcall_interactively): Use INTEGERP instead of
 	NUMBERP for checking Vhistory_length.
 
-2002-04-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* sound.c (Fplay_sound_internal): Renamed from Fplay_sound.
 	Doc fix to reflect it.
@@ -24379,7 +24379,7 @@
 	* msdos.c (syms_of_msdos): Fix last change with
 	mouse_autoselect_window.
 
-2002-04-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* w32term.c, xterm.c, msdos.c: Rename autoselect_window_p to
 	mouse_autoselect_window.
@@ -24427,7 +24427,7 @@
 	(Fset_network_process_options, server_accept_connection):
 	Fix some int/Lisp_Object confusions (thank you union types).
 
-2002-04-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* msdos.c: Rename x_autoselect_window_p to autoselect_window_p.
 
@@ -24486,7 +24486,7 @@
 
 	* process.c (DATAGRAM_CONN_P): Make sure PROC is really a process.
 
-2002-03-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* process.c (set-network-process-options): Add usage.
 	(make-network-process): Doc fix.
@@ -24664,7 +24664,7 @@
 	Don't use "sun" as a variable, it's a predefined constant on Sun
 	machines.
 
-2002-03-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* bytecode.c (Fbyte_code): Revert last change.
 
@@ -24673,7 +24673,7 @@
 	* makefile.w32-in (LIBS): Add $(WSOCK32).
 	From David Ponce <dponce@voila.fr>.
 
-2002-03-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-18  Pavel Janík  <Pavel@Janik.cz>
 
 	* process.c (wait_reading_process_input): Move variables `pname'
 	and `pnamelen' down where they are used.
@@ -24691,7 +24691,7 @@
 	* process.c: Define HAVE_LOCAL_SOCKETS based on HAVE_SYS_UN_H.
 	Remove explicit GNU_LINUX settings for datagram support.
 
-2002-03-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-18  Pavel Janík  <Pavel@Janik.cz>
 
 	* process.c (Fmake_network_process): Remove unused variable `sa'.
 	Doc fix.  Add usage:.
@@ -24795,7 +24795,7 @@
 	* msdos.c (dos_rawgetc): Disable the x-autoselect-window feature,
 	until its implementation is fixed.
 
-2002-03-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* xfns.c (png_load): Remove unused variable `gamma_str'.
 
@@ -24858,7 +24858,7 @@
 	* lread.c (Fload): Don't assume that message_with_string uses the
 	string it is given like a C string.
 
-2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-03-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (x_session_check_input, x_session_initialize): Declare.
 
@@ -24960,7 +24960,7 @@
 	* sysdep.c (sys_subshell) [MSDOS]: If PWD is set in the
 	environment, pass it down with corrected value.
 
-2002-03-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-04  Pavel Janík  <Pavel@Janik.cz>
 
 	* lread.c (read_filtered_event): Do not call start_hourglass
 	before returning.
@@ -25100,7 +25100,7 @@
 
 	* w32proc.c (syms_of_ntproc): Doc fix.
 
-2002-02-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-24  Pavel Janík  <Pavel@Janik.cz>
 
 	* intervals.h: Include "dispextern.h" unconditionally.
 
@@ -25156,7 +25156,7 @@
 
 	* w32fns.c (w32_wnd_proc) <WM_TIMER>: Fix last change.
 
-2002-02-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-23  Pavel Janík  <Pavel@Janik.cz>
 
 	* w32term.c (enter_timestamp): Remove unused static variable to
 	prevent warning.
@@ -25232,7 +25232,7 @@
 	(tool_bar_items): Likewise.
 	(current_active_maps): Removed unused (and buggy) function.
 
-2002-02-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* xfns.c (gif_load): Use correct width and height for GIF images.
 
@@ -25330,7 +25330,7 @@
 	(hscroll_window_tree): Use automatic_hscroll_margin and
 	Vautomatic_hscroll_step to compute the amount of window scrolling.
 
-2002-02-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* xterm.c (x-autoselect-window): New variable.
 	(note_mouse_movement): Use it.
@@ -25343,7 +25343,7 @@
 
 	* alloc.c (NSTATICS): Increase to 1280.
 
-2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-02-15  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* alloc.c (NSTATICS): Bump to 1026.
 
@@ -25448,7 +25448,7 @@
 
 	* floatfns.c (Fround): Doc fix.
 
-2002-02-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* sysdep.c (init_system_name): Put unused variable `p' in #if 0.
 
@@ -25489,7 +25489,7 @@
 	(syms_of_keyboard): DEFVAR_LISP it.
 	(command_loop_1): Set it, and perform command remapping.
 
-2002-02-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c (recursive_edit_1): Call cancel_hourglass unconditionally.
 
@@ -25528,7 +25528,7 @@
 	* xfaces.c (realize_default_face): Don't set the weight and slant of
 	the default face to Qnormal, unless these attributes are unspecified.
 
-2002-02-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c (command_loop_1) [HAVE_X_WINDOWS]:
 	Call cancel_hourglass unconditionally.
@@ -25550,7 +25550,7 @@
 
 	* minibuf.c (Fcompleting_read): Doc fix.
 
-2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* minibuf.c (Fread_from_minibuffer, Fread_command, Fread_function)
 	(Fread_variable, Fread_buffer, minibuffer-completion-confirm):
@@ -25563,7 +25563,7 @@
 	* xdisp.c (try_scrolling): Exchange uses of scroll_down_aggressively
 	and scroll_up_aggressively.
 
-2002-01-26  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-26  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c (parse_tool_bar_item): Remove duplicated prototypes.
 
@@ -25609,16 +25609,16 @@
 
 	* .gdbinit (hookpost-run): Defined.
 
-2002-01-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-01-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_frame_parameters): Typo in previous fix corrected.
 
-2002-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-01-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_frame_parameters): Just call x_fullscreen_adjust
 	if fullscreen is being set.
 
-2002-01-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-21  Pavel Janík  <Pavel@Janik.cz>
 
 	* minibuf.c (Fminibuffer_contents)
 	(Fminibuffer_contents_no_properties, Fread_from_minibuffer)
@@ -25658,7 +25658,7 @@
 
 	* window.c (MIN_SAFE_WINDOW_HEIGHT): Value now 1.
 
-2002-01-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* doprnt.c (doprnt1): Fix typos in error call.
 
@@ -25684,7 +25684,7 @@
 	(w32_enable_synthesized_fonts): Change to a boolean.
 	(Fw32_send_sys_command): Doc fix.
 
-2002-01-19  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-19  Pavel Janík  <Pavel@Janik.cz>
 
 	* dispnew.c (update_frame): Move the variable `tem' to the block
 	where it is used.
@@ -25704,7 +25704,7 @@
 	* window.c (enlarge_window): When exceeding size of parent,
 	directly delete all the siblings instead of trying to resize it.
 
-2002-01-17  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-17  Pavel Janík  <Pavel@Janik.cz>
 
 	* term.c (set_tty_color_mode): Remove unused variable `tem'.
 
@@ -25720,7 +25720,7 @@
 
 	* w32term.c (x_erase_phys_cursor): Ditto.
 
-2002-01-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* xterm.c (XTread_socket) [!USE_X_TOOLKIT]: Compute the value of
 	`dont_resize' only when used.
@@ -25732,12 +25732,12 @@
 	* xdisp.c (display_mode_element): When computing charpos, depend
 	on multibyteness of elt, not the text in field.
 
-2002-01-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-15  Pavel Janík  <Pavel@Janik.cz>
 
 	* buffer.c (Fkill_all_local_variables):
 	Increment `update_mode_lines' only once.
 
-2002-01-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* lisp.h (adjust_after_replace_noundo)
 	(Fupdate_coding_systems_internal): Add prototypes.
@@ -25765,7 +25765,7 @@
 	* emacs.c (USAGE2): Add the --color option.
 	(standard_args): Ditto.
 
-2002-01-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_output): New members want_fullscreen,
 	x_pixels_diff, y_pixels_diff, x_pixels_outer_diff, and
@@ -25806,7 +25806,7 @@
 	(syms_of_w32fns): DEFVAR_BOOL it.
 	(w32_wnd_proc): Handle new "XBUTTON" messages.
 
-2002-01-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c (read_key_sequence): Remove unused variable `extra_maps'.
 
@@ -25910,7 +25910,7 @@
 	* editfns.c (Fformat): Update thissize from field_width
 	based on the actual width, in the string case.
 
-2002-01-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* charset.h (UNIBYTE_STR_AS_MULTIBYTE_P): Parenthesize assignment
 	when used as truth value to prevent gcc warnings.
@@ -26023,7 +26023,7 @@
 	* bytecode.c (Fbyte_code): Use Fstring_make_unibyte
 	instead of Fstring_as_unibyte.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Janík  <Pavel@Janik.cz>
 
 	The following changes remove mocklisp support:
 
@@ -26096,7 +26096,7 @@
 	* Makefile.in (lisp, shortlisp): Synchronize with changes to
 	lisp/Makefile.in:DONTCOMPILE.
 
-2001-12-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-18  Pavel Janík  <Pavel@Janik.cz>
 
 	* xdisp.c (window_box_height): Do not return negative values.
 	From Gerd Moellmann <gerd@gnu.org>.
@@ -26193,7 +26193,7 @@
 
 	* s/gnu-linux.h (GNU_LINUX): Defined.
 
-2001-12-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* macros.c, msdos.c, w16select.c: Change doc-string comments to
 	`new style' [w/`doc:' keyword].
@@ -26203,7 +26203,7 @@
 	* w32menu.c (w32_free_submenu_strings): Clear menu item struct
 	before using.
 
-2001-12-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* dosfns.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
@@ -26224,7 +26224,7 @@
 	Lisp_Object.
 	(w32_free_submenu_strings): Only free owner-drawn strings.
 
-2001-12-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
 
@@ -26323,11 +26323,11 @@
 
 	* eval.c: Use standard syntax for usage in docstrings.
 
-2001-12-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief' an option.
 
-2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* xterm.c (x_draw_image_relief): Use predefined macro instead of
 	constant when the value of `tool_bar_button_relief' is negative.
@@ -26423,7 +26423,7 @@
 	* w32term.c: Merged changes from xterm.c.
 	* w32fns.c: Merged changes from xfns.c.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -26433,7 +26433,7 @@
 	extra extra slot.
 	(detect_coding_mask): Fix call of detect_coding_iso2022.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* fileio.c (file-name-coding-system)
 	(default-file-name-coding-system): Doc fix (links to referenced
@@ -26480,7 +26480,7 @@
 	* xterm.c (x_draw_glyphs): Don't call notice_overwritten_cursor if
 	OVERLAPS_P.
 
-2001-11-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-28  Pavel Janík  <Pavel@Janik.cz>
 
 	* xdisp.c (message_dolog): Remove unused variables `gcpro2',
 	`gcpro3' and `gcpro4'.
@@ -26597,7 +26597,7 @@
 	* msdos.c (IT_clear_screen): If the frame's faces are not yet
 	realized, use the initial screen colors to clear the screen.
 
-2001-11-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-23  Pavel Janík  <Pavel@Janik.cz>
 
 	* textprop.c (Fset_text_properties): Remove unused variables
 	`unchanged', `prev_changed', `s' and `len'.
@@ -26725,7 +26725,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increase to 750000.
 
-2001-11-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-18  Pavel Janík  <Pavel@Janik.cz>
 
 	* frame.c (Fframe_live_p): Doc fix.
 
@@ -26775,7 +26775,7 @@
 	(Fwrite_region): Split the call to build_annotations into two
 	calls to build_annotations and build_annotations_2.
 
-2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* sysdep.c (wait_for_kbd_input) [VMS]: Do not call
 	clear_waiting_for_input with argument.
@@ -26947,7 +26947,7 @@
 
 	* print.c (prin1, print): Doc fix.
 
-2001-11-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* fontset.h: Remove declarations of variables
 	`Vhighlight_wrong_size_font' and `Vclip_large_size_font'.
@@ -26959,7 +26959,7 @@
 
 	* w32fns.c: Doc fix.
 
-2001-11-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* xfaces.c (Fface_attributes_as_vector): Doc fix.
 
@@ -26989,7 +26989,7 @@
 	* w32fns.c: Don't define max.
 	(Fx_open_connection): Only execute once.
 
-2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* ccl.c: Change macros to use do-while block instead of if-else.
 	Use braces to follow GNU Coding Standards.
@@ -27027,7 +27027,7 @@
 	* unexelf.c (unexec): Use mmap/munmap to allocate buffers
 	instead of malloc/free.
 
-2001-11-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* xfaces.c (merge_face_vectors): Use braces to follow GNU
 	Coding Standards.
@@ -27046,7 +27046,7 @@
 	* w32term.c (x_display_and_set_cursor): Do not move system caret
 	if cursor_glyph is NULL.
 
-2001-11-07  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-07  Pavel Janík  <Pavel@Janik.cz>
 
 	* keymap.c (access_keymap): Fix compilation error.
 
@@ -27054,7 +27054,7 @@
 
 	* xfns.c (x_set_frame_parameters): Avoid infinite recursion.
 
-2001-11-07  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-07  Pavel Janík  <Pavel@Janik.cz>
 
 	* intervals.c (graft_intervals_into_buffer):
 	Remove #ifdef'd-out code.
@@ -27075,7 +27075,7 @@
 	* keyboard.c (make_lispy_event): Check integerness and fix
 	Lisp_Object/int mixup.
 
-2001-11-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* fns.c (copy_hash_table): Remove unused variable `v'.
 
@@ -27113,7 +27113,7 @@
 	* unexelf.c (unexec): Don't use `mmap'.  Instead, read and write
 	the program image directly.
 
-2001-11-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* buffer.h (Fbuffer_local_value): Add prototype.
 
@@ -27149,7 +27149,7 @@
 	* xdisp.c (Qcursor_in_non_selected_windows): New variable.
 	(syms_of_xdisp): Initialize it.
 
-2001-11-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-04  Pavel Janík  <Pavel@Janik.cz>
 
 	* xfns.c (Fx_create_frame): Doc fix.
 
@@ -27183,7 +27183,7 @@
 
 	* syssignal.h (sigunblock): Don't define if already defined.
 
-2001-11-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* eval.c (debugger_may_continue, Vdebug_ignored_errors)
 	(call_debugger, Fcondition_case, skip_debugger, unbind_to):
@@ -27236,7 +27236,7 @@
 
 	* textprop.c (Fget_char_property): Doc fix.
 
-2001-11-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* process.c (Fstart_process): Add usage to doc-string.
 
@@ -27259,7 +27259,7 @@
 	bindings along with or instead of the buffer local map.
 	Make the overriding maps override what they should.
 
-2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* window.c (grow_mini_window): Fix typo in comment.
 
@@ -27280,7 +27280,7 @@
 
 	* s/hpux11.h: New file.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Janík  <Pavel@Janik.cz>
 
 	* emacs.c (USAGE1): Show command line option --no-window-system
 	instead of --no-windows in usage.
@@ -27306,7 +27306,7 @@
 
 	* dispextern.h (struct face) <colors_copied_bitwise_p>: New member.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Janík  <Pavel@Janik.cz>
 
 	* marker.c, mocklisp.c: Change doc-string comments to `new style'
 	[w/`doc:' keyword].
@@ -27315,7 +27315,7 @@
 
 	* fns.c (require_unwind): Return Lisp_Object.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c (lucid-menu-bar-dirty-flag): Doc fix.
 	(last-input-char): Revert doc-string to be the same as the
@@ -27409,7 +27409,7 @@
 
 	* window.c (Fscroll_left, Fscroll_right): Doc fix.
 
-2001-10-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* keyboard.c (Finput_pending_p): Fix typo in doc-string.
 	(echo-area-clear-hook): Properly DEFVAR_LISP and staticpro it.
@@ -27444,7 +27444,7 @@
 	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing
 	a loop counter.
 
-2001-10-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-28  Pavel Janík  <Pavel@Janik.cz>
 
 	* emacs.c: Use argv[0] instead of "emacs" when -t was specified.
 
@@ -27484,7 +27484,7 @@
 
 	* w32term.c (note_mouse_highlight): Clear old help_echo.
 
-2001-10-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* xterm.c: Fix typo in a comment.
 
@@ -27571,12 +27571,12 @@
 	* xfaces.c (Fface_attributes_as_vector): New function.
 	(syms_of_xfaces): Defsubr it.
 
-2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-24  Pavel Janík  <Pavel@Janik.cz>
 
 	* dispnew.c (sync_window_with_frame_matrix_rows): Remove unused
 	variable `area'.
 
-2001-10-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* search.c (scan_newline): Remove unused variable `selective_display'.
 
@@ -27617,7 +27617,7 @@
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing of area not covered by scroll bar.
 
-2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-24  Pavel Janík  <Pavel@Janik.cz>
 
 	* xterm.c (x_insert_glyphs): Remove unused variables `real_end'
 	and `real_start'.
@@ -27644,7 +27644,7 @@
 	(try_cursor_movement) [GLYPH_DEBUG]: Don't run if inhibited.
 	(syms_of_xdisp) [GLYPH_DEBUG]: DEFVAR_BOOL the variables.
 
-2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-24  Pavel Janík  <Pavel@Janik.cz>
 
 	* xmenu.c: Spell the name of Emacs properly (GNU Emacs instead of
 	gnuemacs).
@@ -27697,7 +27697,7 @@
 	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p
 	around call to x_draw_glyphs.
 
-2001-10-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-23  Pavel Janík  <Pavel@Janik.cz>
 
 	* syntax.c (modify-syntax-entry): Fix argument names (use CHAR
 	instead of C) and usage.
@@ -27718,7 +27718,7 @@
 	* xdisp.c (display_line): Fix computation of continuation lines
 	width for TABs.
 
-2001-10-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* xdisp.c (build_desired_tool_bar_string): Remove unused variable
 	`Qlaplace'.
@@ -27770,7 +27770,7 @@
 	* mocklisp.c (Finsert_string, Fml_if, Fml_provide_prefix_argument)
 	(Fml_prefix_argument_loop): Likewise.
 
-2001-10-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-21  Pavel Janík  <Pavel@Janik.cz>
 
 	* fileio.c (Finsert_file_contents): Remove unused variable `gap_size'.
 
@@ -27898,7 +27898,7 @@
 	* callproc.c (Fcall_process_region, Fcall_process): Likewise.
 	* alloc.c (Fmake_byte_code, Fvector, Flist): Likewise.
 
-2001-10-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-21  Pavel Janík  <Pavel@Janik.cz>
 
 	* buffer.c: Reindent DEFUNs and DEFVARs with doc: keywords.
 
@@ -27912,7 +27912,7 @@
 See ChangeLog.9 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 

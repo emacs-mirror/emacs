@@ -168,7 +168,8 @@
 	* files.el (save-some-buffers-action-alist): Only use recursive-edit
 	if the user enabled recursive-minibuffers.
 
-	* emacs-lisp/map-ynp.el (map-y-or-n-p): Add support for other-window-scroll.
+	* emacs-lisp/map-ynp.el (map-y-or-n-p):
+	Add support for scroll-other-window.
 
 2008-06-11  Jason Rumney  <jasonr@gnu.org>
 
