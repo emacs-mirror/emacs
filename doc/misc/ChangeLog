@@ -1,3 +1,14 @@
+2008-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi
+	* dbus.texi, dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi
+	* eshell.texi, eudc.texi, flymake.texi, forms.texi, gnus-coding.texi
+	* gnus.texi, idlwave.texi, info.texi, message.texi, newsticker.texi
+	* nxml-mode.texi, org.texi, pcl-cvs.texi, rcirc.texi, reftex.texi
+	* sc.texi, sieve.texi, smtpmail.texi, vip.texi, viper.texi, widget.texi
+	* woman.texi:
+	Update Back-Cover Text as per maintain.info.
+
 2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (nnmairix): Markup and othe minor fixes.
