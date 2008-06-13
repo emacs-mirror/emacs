@@ -2896,9 +2896,19 @@ font_find_for_lface (f, attrs, spec, c)
 {
   Lisp_Object work;
   Lisp_Object frame, entities, val, props[FONT_REGISTRY_INDEX + 1] ;
-  Lisp_Object size, foundry[3], *family;
+  Lisp_Object size, foundry[3], *family, registry[3];
   int pixel_size;
-  int i, j, result;
+  int i, j, k, result;
+
+  registry[0] = AREF (spec, FONT_REGISTRY_INDEX);
+  if (NILP (registry[0]))
+    {
+      registry[0] = Qiso8859_1;
+      registry[1] = Qascii_0;
+      registry[2] = null_vector;
+    }
+  else
+    registry[1] = null_vector;
 
   if (c >= 0 && ! NILP (AREF (spec, FONT_REGISTRY_INDEX)))
     {
@@ -2978,21 +2988,23 @@ font_find_for_lface (f, attrs, spec, c)
 	}
     }
 
-  for (j = 0; SYMBOLP (family[j]); j++)
+  for (i = 0; SYMBOLP (family[i]); i++)
     {
-      ASET (work, FONT_FAMILY_INDEX, family[j]);
-      for (i = 0; SYMBOLP (foundry[i]); i++)
+      ASET (work, FONT_FAMILY_INDEX, family[i]);
+      for (j = 0; SYMBOLP (foundry[j]); j++)
 	{
-	  ASET (work, FONT_FOUNDRY_INDEX, foundry[i]);
-	  entities = font_list_entities (frame, work);
-	  if (ASIZE (entities) > 0)
-	    break;
+	  ASET (work, FONT_FOUNDRY_INDEX, foundry[j]);
+	  for (k = 0; SYMBOLP (registry[k]); k++)
+	    {
+	      ASET (work, FONT_REGISTRY_INDEX, registry[j]);
+	      entities = font_list_entities (frame, work);
+	      if (ASIZE (entities) > 0)
+		goto found;
+	    }
 	}
-      if (ASIZE (entities) > 0)
-	break;
     }
-  if (ASIZE (entities) == 0)
-    return Qnil;
+  return Qnil;
+ found:
   if (ASIZE (entities) == 1)
     {
       if (c < 0)
