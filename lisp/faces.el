@@ -706,6 +706,7 @@ like an underlying face would be, with higher priority than underlying faces."
       ;; when we update the frame's font param fro the attributes.
       (let ((inhibit-face-set-after-frame-default t))
 	(if (and (eq (car args) :family)
+		 (stringp (cadr args))
 		 (string-match "\\([^-]*\\)-\\([^-]*\\)" (cadr args)))
 	    (let ((foundry (match-string 1 (cadr args)))
 		  (family (match-string 2 (cadr args))))
