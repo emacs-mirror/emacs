@@ -1,3 +1,17 @@
+2008-06-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newsticker.el: Renamed net/newsticker-*.el to net/newst-*.el.
+	* net/newst-backend.el: New. Renamed from net/newsticker-backend.el.
+	* net/newst-plainview.el: New. Renamed from net/newsticker-plainview.el.
+	* net/newst-reader.el: New. Renamed from net/newsticker-reader.el.
+	* net/newst-ticker.el: New. Renamed from net/newsticker-ticker.el.
+	* net/newst-treeview.el: New. Renamed from net/newsticker-treeview.el.
+	* net/newsticker-backend.el: Removed. Renamed to net/newst-backend.el.
+	* net/newsticker-plainview.el: Removed. Renamed to net/newst-plainview.el.
+	* net/newsticker-reader.el: Removed. Renamed to net/newst-reader.el.
+	* net/newsticker-ticker.el: Removed. Renamed to net/newst-ticker.el.
+	* net/newsticker-treeview.el: Removed. Renamed to net/newst-treeview.el.
+
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-start): Don't disable undo in
