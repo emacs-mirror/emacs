@@ -64,6 +64,12 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
+** Emacs now supports serial port access on GNU/Linux, Unix, and
+Windows.  `serial-term' starts an interactive terminal,
+`make-serial-process' and `serial-process-configure' provide a Lisp
+interface.  The serial port can be configured at runtime with the
+mode-line mouse menu.
+
 ** Apropos
 *** `apropos-library' describes the elements defined in a given library.
 *** Set `apropos-compact-layout' is you want a more compact (but wider) layout.
