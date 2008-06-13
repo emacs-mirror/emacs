@@ -1,3 +1,13 @@
+2008-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* cus-face.el (custom-face-attributes): Add :foundry.
+
+	* faces.el (set-face-attribute): Parse "FOUNDRY-FAMILY" here.
+	(face-x-resources): Add :foundry.
+	(face-valid-attribute-values): Likewise.
+	(face-attribute-name-alist): Likewise.
+	(describe-face): Likewise.
+
 2008-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/map-ynp.el (map-y-or-n-p): Accept non-char events.
