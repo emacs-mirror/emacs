@@ -1,3 +1,24 @@
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	These changes add serial port access.
+	* process.c: Add HAVE_SERIAL.
+	(Fdelete_process, Fprocess_status, Fset_process_buffer)
+	(Fset_process_filter, Fset_process_sentinel, Fprocess_contact)
+	(list_processes_1, select_wrapper, Fstop_process)
+	(Fcontinue_process, Fprocess_send_eof, kill_buffer_processes)
+	(status_notify): Modify to handle serial processes.
+	[HAVE_SERIAL] (Fserial_process_configure)
+	[HAVE_SERIAL] (make_serial_process_unwind, Fmake_serial_process):
+	New functions.
+	* process.h (struct Lisp_Process): Add `type'.
+	* sysdep.c [HAVE_TERMIOS] (serial_open, serial_configure):
+	New functions.
+	* w32.c (_sys_read_ahead, sys_read, sys_write): Modify to handle
+	serial ports.
+	(serial_open, serial_configure) New functions.
+	* w32.h: Add FILE_SERIAL.
+	(struct _child_process): Add ovl_read, ovl_write.
+
 2008-06-13  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (enum lface_attribute_index): New member
