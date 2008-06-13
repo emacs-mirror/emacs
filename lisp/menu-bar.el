@@ -632,7 +632,7 @@ by \"Save Options\" in Custom buffers.")
 (defun menu-set-font ()
   "Interactively select a font and make it the default."
   (interactive)
-  (let ((font (if (functionp 'x-select-font)
+  (let ((font (if (fboundp 'x-select-font)
   		  (x-select-font)
   		(mouse-select-font)))
 	spec)
