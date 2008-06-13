@@ -39,6 +39,7 @@
 	(font_update_lface): Don't parse "foundry-family" form here.
 	Handle FONT_FOUNDRY_INDEX.
 	(font_find_for_lface): Likewise.  Handle alternate families here.
+	If registry is NULL, try iso8859-1 and ascii-0.
 	(font_open_for_lface): Pay attention to size in ENTITY.
 	(font_open_by_name): Simplify by calling font_load_for_lface.
 	(free_font_driver_list): Delete it.
