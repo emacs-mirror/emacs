@@ -78,15 +78,15 @@
 (require 'dnd)
 (require 'w32-vars)
 
-;; Keep an obsolete alias for w32-focus-frame in case it is used by code
-;; outside Emacs.
+;; Keep an obsolete alias for w32-focus-frame and w32-select-font in case
+;; they are used by code outside Emacs.
 (define-obsolete-function-alias 'w32-focus-frame 'x-focus-frame "23.1")
+(define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
 (defvar xlfd-regexp-registry-subnum)
 (defvar w32-color-map) ;; defined in w32fns.c
 
 (declare-function w32-send-sys-command "w32fns.c")
-(declare-function w32-select-font "w32fns.c")
 (declare-function set-message-beep "w32console.c")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
@@ -420,41 +420,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defun x-win-suspend-error ()
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
-
-(declare-function generate-fontset-menu "fontset" ())
-
-(defun mouse-set-font (&rest fonts)
-  "Select an Emacs font from a list of known good fonts and fontsets.
-
-If `w32-use-w32-font-dialog' is non-nil (the default), use the Windows
-font dialog to display the list of possible fonts.  Otherwise use a
-pop-up menu (like Emacs does on other platforms) initialized with
-the fonts in `w32-fixed-font-alist'.
-If `w32-list-proportional-fonts' is non-nil, add proportional fonts
-to the list in the font selection dialog (the fonts listed by the
-pop-up menu are unaffected by `w32-list-proportional-fonts')."
-  (interactive
-   (if w32-use-w32-font-dialog
-       (let ((chosen-font (w32-select-font (selected-frame)
-					   w32-list-proportional-fonts)))
-	 (and chosen-font (list chosen-font)))
-     (x-popup-menu
-      last-nonmenu-event
-      ;; Append list of fontsets currently defined.
-      ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
-      (if (fboundp 'new-fontset)
-          (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
-  (if fonts
-      (let (font)
-	(while fonts
-	  (condition-case nil
-	      (progn
-                (setq font (car fonts))
-		(set-default-font font)
-                (setq fonts nil))
-	    (error (setq fonts (cdr fonts)))))
-	(if (null font)
-	    (error "Font not found")))))
 
 (defvar image-library-alist)
 
