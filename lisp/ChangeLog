@@ -1,3 +1,9 @@
+2008-06-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--even-window-heights): Even window heights
+	only if the selected window is higher than WINDOW.
+	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
+
 2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* info.el (Info-insert-breadcrumbs): Be careful to preserve history.
@@ -299,6 +305,7 @@
 
 	* window.el (window--splittable-p, window--try-to-split-window):
 	Don't use with-selected-window to avoid messing up get-lru-window.
+	Reported by David Hansen <david.hansen@gmx.net>.
 
 2008-06-10  Glenn Morris  <rgm@gnu.org>
 
