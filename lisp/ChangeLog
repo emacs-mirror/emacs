@@ -1,5 +1,11 @@
 2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* wdired.el (wdired-do-renames): New function.
+	(wdired-finish-edit): Use it to.
+	(wdired-preprocess-files): Don't hardcode (point-min) == 1.
+
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* info.el (Info-insert-breadcrumbs): Don't break in apropos and toc.
 
 2008-06-14  Martin Rudalics  <rudalics@gmx.at>
