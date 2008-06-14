@@ -1,3 +1,9 @@
+2008-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Major packages and programs): Remove references to external
+	Supercite, Calc, VIPER, since they have been included for some time.
+	Update VM, AUCTeX, BBDB entries.
+
 2008-06-14  Ulf Jasper  <ulf.jasper@web.de>
 
 	* newsticker.texi: Updated to match latest newsticker changes.
