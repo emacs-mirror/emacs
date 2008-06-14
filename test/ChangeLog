@@ -1,3 +1,7 @@
+2008-06-14  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker-testsuite.el: New file.
+
 2008-05-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
