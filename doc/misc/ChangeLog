@@ -1,3 +1,7 @@
+2008-06-14  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: Updated to match latest newsticker changes.
+
 2008-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi
