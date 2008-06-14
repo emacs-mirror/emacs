@@ -166,7 +166,7 @@ extern int quit_char;
 #include "process.h"
 #include "cm.h"  /* for reset_sys_modes */
 
-/* For serial_configure() and serial_open()  */
+/* For serial_configure and serial_open.  */
 extern Lisp_Object QCport, QCspeed, QCprocess;
 extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;

@@ -102,7 +102,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */
 
-/* For serial_configure() and serial_open()  */
+/* For serial_configure and serial_open.  */
 #include "process.h"
 /* From process.c  */
 extern Lisp_Object QCport, QCspeed, QCprocess;
