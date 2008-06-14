@@ -3723,9 +3723,12 @@ the variable `Info-file-list-for-emacs'."
     (unwind-protect
         (while (and (not (equal "Top" Info-current-node)) (> depth 0))
           (let ((up (Info-extract-pointer "up")))
-            (push up crumbs)
-            (setq depth (1- depth))
-            (Info-find-node Info-current-file up 'no-going-back)))
+            (if (string-match "\\`(.*)" up)
+                ;; Crossing over to another manual.  This is typically (dir).
+                (setq depth 0)
+              (push up crumbs)
+              (setq depth (1- depth))
+              (Info-find-node Info-current-file up 'no-going-back))))
       (if crumbs                  ;Do bother going back if we haven't moved.
           (Info-find-node Info-current-file onode 'no-going-back))
       ;; Add bottom node.
@@ -3743,7 +3746,10 @@ the variable `Info-file-list-for-emacs'."
           (let ((text
                  (if (not (equal node "Top")) node
                      (format "(%s)Top"
-                             (file-name-nondirectory Info-current-file)))))
+                             (if (stringp Info-current-file)
+                                 (file-name-nondirectory Info-current-file)
+                               ;; Can be `toc', `apropos', or even `history'.
+                               Info-current-file)))))
             (insert (if (bolp) "> " " > ")
                     (cond
                      ((null node) "...")

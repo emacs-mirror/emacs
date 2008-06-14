@@ -1,3 +1,7 @@
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-insert-breadcrumbs): Don't break in apropos and toc.
+
 2008-06-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--even-window-heights): Even window heights
