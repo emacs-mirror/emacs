@@ -1,3 +1,7 @@
+2008-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Add Add net/newst-*.el.
+
 2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* wdired.el (wdired-do-renames): New function.
