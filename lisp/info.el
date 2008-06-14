@@ -681,9 +681,8 @@ it says do not attempt further (recursive) error recovery."
   ;; Record the node we are leaving, if we were in one.
   (and (not no-going-back)
        Info-current-file
-       (setq Info-history
-	     (cons (list Info-current-file Info-current-node (point))
-		   Info-history)))
+       (push (list Info-current-file Info-current-node (point))
+             Info-history))
   (Info-find-node-2 filename nodename no-going-back))
 
 ;;;###autoload
@@ -3726,8 +3725,9 @@ the variable `Info-file-list-for-emacs'."
           (let ((up (Info-extract-pointer "up")))
             (push up crumbs)
             (setq depth (1- depth))
-            (Info-goto-node up)))
-      (Info-goto-node onode)
+            (Info-find-node Info-current-file up 'no-going-back)))
+      (if crumbs                  ;Do bother going back if we haven't moved.
+          (Info-find-node Info-current-file onode 'no-going-back))
       ;; Add bottom node.
       (when Info-use-header-line
         ;; Let it disappear if crumbs is nil.

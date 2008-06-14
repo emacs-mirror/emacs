@@ -1,3 +1,7 @@
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-insert-breadcrumbs): Be careful to preserve history.
+
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/linux.el (terminal-init-linux): Load t-mouse.
