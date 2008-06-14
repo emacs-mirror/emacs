@@ -879,12 +879,13 @@ window that appears above or below the selected window."
 (defun window--even-window-heights (window)
   "Even heights of window WINDOW and selected window.
 Do this only if these windows are vertically adjacent to each
-other and `even-window-heights' is non-nil."
+other, `even-window-heights' is non-nil, and the selected window
+is higher than WINDOW."
   (when (and even-window-heights
 	     (not (eq window (selected-window)))
 	     ;; Don't resize minibuffer windows.
 	     (not (window-minibuffer-p (selected-window)))
-	     (/= (window-height (selected-window)) (window-height window)) 
+	     (> (window-height (selected-window)) (window-height window)) 
 	     (eq (window-frame window) (window-frame (selected-window)))
 	     (let ((sel-edges (window-edges (selected-window)))
 		   (win-edges (window-edges window)))
