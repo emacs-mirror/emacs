@@ -126,7 +126,9 @@ static struct table_entry width_table[] =
 extern Lisp_Object Qnormal;
 
 /* Symbols representing keys of normal font properties.  */
-extern Lisp_Object QCtype, QCfamily, QCweight, QCslant, QCwidth, QCsize, QCname;
+extern Lisp_Object QCtype, QCfamily, QCweight, QCslant, QCwidth;
+extern Lisp_Object QCheight, QCsize, QCname;
+
 Lisp_Object QCfoundry, QCadstyle, QCregistry;
 /* Symbols representing keys of font extra info.  */
 Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript, QCavgwidth;
@@ -1372,12 +1374,16 @@ font_parse_fcname (name, font)
 	}
       else if (*p == '-')
 	{
-	  int size_found = 1;
+	  int decimal = 0, size_found = 1;
 	  for (q = p + 1; *q && *q != ':'; q++)
-	    if (! isdigit(*q) && *q != '.')
+	    if (! isdigit(*q))
 	      {
-		size_found = 0;
-		break;
+		if (*q != '.' || decimal)
+		  {
+		    size_found = 0;
+		    break;
+		  }
+		decimal = 1;
 	      }
 	  if (size_found)
 	    {
@@ -1593,6 +1599,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
      char *name;
      int nbytes;
 {
+  Lisp_Object family, foundry;
   Lisp_Object tail, val;
   int point_size;
   int dpi;
@@ -1602,9 +1609,17 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
   char *style_names[3] = { "weight", "slant", "width" };
   char work[256];
 
-  val = AREF (font, FONT_FAMILY_INDEX);
-  if (STRINGP (val))
-    len += SBYTES (val);
+  family = AREF (font, FONT_FAMILY_INDEX);
+  if (! NILP (family))
+    {
+      if (SYMBOLP (family))
+	{
+	  family = SYMBOL_NAME (family);
+	  len += SBYTES (family);
+	}
+      else
+	family = Qnil;
+    }
 
   val = AREF (font, FONT_SIZE_INDEX);
   if (INTEGERP (val))
@@ -1621,10 +1636,17 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
       len += 11;		/* for "-NUM" */
     }
 
-  val = AREF (font, FONT_FOUNDRY_INDEX);
-  if (STRINGP (val))
-    /* ":foundry=NAME" */
-    len += 9 + SBYTES (val);
+  foundry = AREF (font, FONT_FOUNDRY_INDEX);
+  if (! NILP (foundry))
+    {
+      if (SYMBOLP (foundry))
+	{
+	  foundry = SYMBOL_NAME (foundry);
+	  len += 9 + SBYTES (foundry); /* ":foundry=NAME" */
+	}
+      else
+	foundry = Qnil;
+    }
 
   for (i = 0; i < 3; i++)
     {
@@ -1656,8 +1678,8 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
   if (len > nbytes)
     return -1;
   p = name;
-  if (! NILP (AREF (font, FONT_FAMILY_INDEX)))
-    p += sprintf(p, "%s", SDATA (SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX))));
+  if (! NILP (family))
+    p += sprintf (p, "%s", SDATA (family));
   if (point_size > 0)
     {
       if (p == name)
@@ -1685,6 +1707,94 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
       else
 	p += sprintf (p, ":scalable=false");
     }
+  return (p - name);
+}
+
+/* Store GTK-style font name of FONT (font-spec or font-entity) in
+   NAME (NBYTES length), and return the name length.  F is the frame
+   on which the font is displayed; it is used to calculate the point
+   size.  */
+
+int
+font_unparse_gtkname (font, f, name, nbytes)
+     Lisp_Object font;
+     struct frame *f;
+     char *name;
+     int nbytes;
+{
+  char *p;
+  int len = 1;
+  Lisp_Object family, weight, slant, size;
+  int point_size = -1;
+
+  family = AREF (font, FONT_FAMILY_INDEX);
+  if (! NILP (family))
+    {
+      if (! SYMBOLP (family))
+	return -1;
+      family = SYMBOL_NAME (family);
+      len += SBYTES (family);
+    }
+
+  weight = font_style_symbolic (font, FONT_WEIGHT_INDEX, 0);
+  if (weight == Qnormal)
+    weight = Qnil;
+  else if (! NILP (weight))
+    {
+      weight = SYMBOL_NAME (weight);
+      len += SBYTES (weight);
+    }
+
+  slant = font_style_symbolic (font, FONT_SLANT_INDEX, 0);
+  if (slant == Qnormal)
+    slant = Qnil;
+  else if (! NILP (slant))
+    {
+      slant = SYMBOL_NAME (slant);
+      len += SBYTES (slant);
+    }
+
+  size = AREF (font, FONT_SIZE_INDEX);
+  /* Convert pixel size to point size.  */
+  if (INTEGERP (size))
+    {
+      Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
+      int dpi = 75;
+      if (INTEGERP (font_dpi))
+	dpi = XINT (font_dpi);
+      else if (f)
+	dpi = f->resy;
+      point_size = PIXEL_TO_POINT (XINT (size), dpi);
+      len += 11;
+    }
+  else if (FLOATP (size))
+    {
+      point_size = (int) XFLOAT_DATA (size);
+      len += 11;
+    }
+
+  if (len > nbytes)
+    return -1;
+
+  p = name + sprintf (name, "%s", SDATA (family));
+
+  if (! NILP (weight))
+    {
+      char *q = p;
+      p += sprintf (p, " %s", SDATA (weight));
+      q[1] = toupper (q[1]);
+    }
+
+  if (! NILP (slant))
+    {
+      char *q = p;
+      p += sprintf (p, " %s", SDATA (slant));
+      q[1] = toupper (q[1]);
+    }
+
+  if (point_size > 0)
+    p += sprintf (p, " %d", point_size);
+
   return (p - name);
 }
 
@@ -3659,6 +3769,75 @@ FONT is a font-spec, a font-entity, or a font-object.  */)
   return Fcdr (Fassq (key, AREF (font, FONT_EXTRA_INDEX)));
 }
 
+DEFUN ("font-face-attributes", Ffont_face_attributes, Sfont_face_attributes, 1, 2, 0,
+       doc: /* Return a plist of face attributes generated by FONT.
+FONT is a font name, a font-spec, a font-entity, or a font-object.
+The return value is a list of the form
+
+(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
+
+where FAMILY, FOUNDRY, HEIGHT, WEIGHT, SLANT, and WIDTH are face
+attribute values compatible with `set-face-attribute'.
+
+The optional argument FRAME specifies the frame that the face
+attributes are to be displayed on.  If omitted, the selected frame is
+used.  */)
+     (font, frame)
+     Lisp_Object font;
+{
+  struct frame *f;
+  Lisp_Object plist[10];
+  Lisp_Object val;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  if (STRINGP (font))
+    {
+      int fontset = fs_query_fontset (font, 0);
+      Lisp_Object name = font;
+      if (fontset >= 0)
+	font = fontset_ascii (fontset);
+      font = font_spec_from_name (name);
+      if (! FONTP (font))
+	signal_error ("Invalid font name", name);
+    }
+  else if (! FONTP (font))
+    signal_error ("Invalid font object", font);
+
+  plist[0] = QCfamily;
+  val = AREF (font, FONT_FAMILY_INDEX);
+  plist[1] = NILP (val) ? Qnil : SYMBOL_NAME (val);
+
+  plist[2] = QCheight;
+  val = AREF (font, FONT_SIZE_INDEX);
+  if (INTEGERP (val))
+    {
+      Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
+      int dpi = INTEGERP (font_dpi) ? XINT (font_dpi) : f->resy;
+      plist[3] = make_number (10 * PIXEL_TO_POINT (XINT (val), dpi));
+    }
+  else if (FLOATP (val))
+    plist[3] = make_number (10 * (int) XFLOAT_DATA (val));
+  else
+    plist[3] = Qnil;
+
+  plist[4] = QCweight;
+  val = FONT_WEIGHT_FOR_FACE (font);
+  plist[5] = NILP (val) ? Qnormal : val;
+
+  plist[6] = QCslant;
+  val = FONT_SLANT_FOR_FACE (font);
+  plist[7] = NILP (val) ? Qnormal : val;
+
+  plist[8] = QCwidth;
+  val = FONT_WIDTH_FOR_FACE (font);
+  plist[9] = NILP (val) ? Qnormal : val;
+
+  return Flist (10, plist);
+}
 
 DEFUN ("font-put", Ffont_put, Sfont_put, 3, 3, 0,
        doc: /* Set one property of FONT-SPEC: give property PROP value VAL.  */)
@@ -4701,6 +4880,7 @@ syms_of_font ()
   defsubr (&Sfontp);
   defsubr (&Sfont_spec);
   defsubr (&Sfont_get);
+  defsubr (&Sfont_face_attributes);
   defsubr (&Sfont_put);
   defsubr (&Slist_fonts);
   defsubr (&Sfont_family_list);
