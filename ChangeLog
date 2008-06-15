@@ -1,3 +1,7 @@
+2008-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add sasl.
+
 2008-06-09  Alan Mackenzie  <acm@muc.de>
 
 	* INSTALL.CVS: Clarify why `make bootstrap' sometimes fails.
