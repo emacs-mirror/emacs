@@ -503,12 +503,11 @@ and proceed depending on the answer."
         (setq curr-filename (wdired-get-filename nil t))
         (if (equal curr-filename filename-ori)
             (progn
-              (setq exit-while t)
+              (setq done t)
               (let ((inhibit-read-only t))
                 (dired-move-to-filename)
                 (search-forward (wdired-get-filename t) nil t)
                 (replace-match (file-name-nondirectory filename-ori) t t))
-              (setq done)
               (dired-do-create-files-regexp
                (function dired-rename-file)
                "Move" 1 ".*" filename-new nil t))

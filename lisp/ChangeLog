@@ -1,3 +1,7 @@
+2008-06-15  Andreas Schwab  <schwab@suse.de>
+
+	* wdired.el (wdired-search-and-rename): Fix undocumented change.
+
 2008-06-15  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-plainview.el (newsticker-faces, newsticker-feed-face)
