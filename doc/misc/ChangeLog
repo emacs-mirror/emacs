@@ -1,3 +1,40 @@
+2008-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* mh-e.texi: Remove option of licensing under GPL.
+	Add Cover-Texts to GFDL permissions notice.
+	(GPL): Remove section.
+	(GFDL): Include doclicense.texi rather than the actual text.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add sasl.
+	(sasl, $(infodir)/sasl, sasl.dvi): New rules.
+
+	* sasl.texi: Fix output file name.
+
+	* epa.texi, sasl.texi: Refer to license in Emacs manual.
+
+	* gnus-coding.texi: Refer to license in Gnus manual.
+
+	* idlwave.texi, sasl.texi: Use @copying.
+
+	* org.texi: Change to GFDL 1.2.  Refer to license in Emacs manual.
+
+	* speedbar.texi: Update Back-Cover Text as per maintain.info.
+
+	* url.texi: Use @copying, @title, @subtitle, @author.
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi, dbus.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi:
+	* erc.texi, eshell.texi, eudc.texi, flymake.texi, forms.texi, gnus.texi:
+	* idlwave.texi, message.texi, newsticker.texi, pcl-cvs.texi:
+	* rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi:
+	* smtpmail.texi, speedbar.texi, tramp.texi, vip.texi, viper.texi:
+	* widget.texi, woman.texi:
+	Remove references to external license, since doclicense is included.
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, dired-x.texi:
+	* pcl-cvs.texi, speedbar.texi, url.texi, widget.texi:
+	Remove references to non-existent Invariant Sections.
+
 2008-06-14  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Major packages and programs): Remove references to external
