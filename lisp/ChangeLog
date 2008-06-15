@@ -1,3 +1,16 @@
+2008-06-15  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-list-update)
+	(newsticker--treeview-item-update)
+	(newsticker--treeview-tree-update)
+	(newsticker-treeview-jump, newsticker-group-add-group)
+	(newsticker-group-move-feed, newsticker-group-delete-group):
+	Remove window dedication.
+	(newsticker--group-manage-orphan-feeds): Handle ill-valued
+	newsticker-groups.
+	(newsticker--treeview-tree-expand): Don't manage orphan feeds
+	here.
+
 2008-06-15  Andreas Schwab  <schwab@suse.de>
 
 	* vc-cvs.el (vc-cvs-status-extra-headers): Don't match newline

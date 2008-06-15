@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "13. Juni 2008, 19:29:03 (ulf)"
+;; Time-stamp:  "15. Juni 2008, 12:46:27 (ulf)"
 
 ;; ======================================================================
 
@@ -594,8 +594,6 @@ If CLEAR-BUFFER is non-nil the list buffer is completely erased."
   (save-excursion
     (set-window-buffer (newsticker--treeview-list-window)
                        (newsticker--treeview-list-buffer))
-    (if newsticker-treeview-own-frame
-        (set-window-dedicated-p (newsticker--treeview-list-window) t))
     (set-buffer (newsticker--treeview-list-buffer))
     (if clear-buffer
         (let ((inhibit-read-only t))
@@ -773,8 +771,6 @@ for the button."
   (save-excursion
     (set-window-buffer (newsticker--treeview-item-window)
                        (newsticker--treeview-item-buffer))
-    (if newsticker-treeview-own-frame
-        (set-window-dedicated-p (newsticker--treeview-item-window) t))
     (set-buffer (newsticker--treeview-item-buffer))
     (let ((inhibit-read-only t))
       (erase-buffer))
@@ -786,7 +782,6 @@ for the button."
 (defun newsticker--treeview-tree-expand (tree)
   "Expand TREE.
 Callback function for tree widget that adds nodes for feeds and subgroups."
-  (newsticker--group-manage-orphan-feeds)
   (tree-widget-set-theme "folder")
   (let ((group (widget-get tree :nt-group))
         (i 0)
@@ -856,8 +851,6 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
   (save-excursion
     (set-window-buffer (newsticker--treeview-tree-window)
                        (newsticker--treeview-tree-buffer))
-    (if newsticker-treeview-own-frame
-        (set-window-dedicated-p (newsticker--treeview-tree-window) t))
     (set-buffer (newsticker--treeview-tree-buffer))
     (kill-all-local-variables)
     (let ((inhibit-read-only t))
@@ -1563,15 +1556,11 @@ is activated."
   "Jump to feed FEED-NAME in newsticker treeview."
   (interactive
    (list (let ((completion-ignore-case t))
-           (if newsticker-treeview-own-frame
-               (set-window-dedicated-p (newsticker--treeview-item-window) nil))
            (completing-read
             "Jump to feed: "
             (mapcar 'car (append newsticker-url-list
                                  newsticker-url-list-defaults))
                             nil t))))
-  (if newsticker-treeview-own-frame
-      (set-window-dedicated-p (newsticker--treeview-item-window) t))
   (newsticker--treeview-unfold-node feed-name))
 
 ;; ======================================================================
@@ -1668,12 +1657,8 @@ return a nested list."
   (interactive
    (list (read-string "Group Name: ")
          (let ((completion-ignore-case t))
-           (if newsticker-treeview-own-frame
-               (set-window-dedicated-p (newsticker--treeview-item-window) nil))
            (completing-read "Parent Group: " (newsticker--group-all-groups)
                             nil t))))
-  (if newsticker-treeview-own-frame
-      (set-window-dedicated-p (newsticker--treeview-item-window) t))
   (if (newsticker--group-get-group name)
       (error "Group %s exists already" name))
   (let ((p (if (and parent (not (string= parent "")))
@@ -1689,15 +1674,11 @@ return a nested list."
 Update teeview afterwards unless NO-UPDATE is non-nil."
   (interactive
    (let ((completion-ignore-case t))
-     (if newsticker-treeview-own-frame
-         (set-window-dedicated-p (newsticker--treeview-item-window) nil))
      (list (completing-read "Feed Name: "
                             (mapcar 'car newsticker-url-list)
                             nil t newsticker--treeview-current-feed)
            (completing-read "Group Name: " (newsticker--group-all-groups)
                             nil t))))
-  (if newsticker-treeview-own-frame
-      (set-window-dedicated-p (newsticker--treeview-item-window) t))
   (let ((group (if (and group-name (not (string= group-name "")))
                    (newsticker--group-get-group group-name)
                  newsticker-groups)))
@@ -1717,12 +1698,8 @@ Update teeview afterwards unless NO-UPDATE is non-nil."
   "Remove group NAME."
   (interactive
    (let ((completion-ignore-case t))
-     (if newsticker-treeview-own-frame
-         (set-window-dedicated-p (newsticker--treeview-item-window) nil))
      (list (completing-read "Group Name: " (newsticker--group-all-groups)
                             nil t))))
-  (if newsticker-treeview-own-frame
-      (set-window-dedicated-p (newsticker--treeview-item-window) t))
   (let* ((g (newsticker--group-get-group name))
          (p (or (newsticker--group-get-parent-group name)
                 newsticker-groups)))
@@ -1770,6 +1747,8 @@ Update teeview afterwards unless NO-UPDATE is non-nil."
 (defun newsticker--group-manage-orphan-feeds ()
   "Put unmanaged feeds into `newsticker-groups'.
 Remove obsolete feeds as well."
+  (unless newsticker-groups
+    (setq newsticker-groups '("Feeds")))
   (let ((new-feed nil)
         (grouped-feeds (newsticker--count-grouped-feeds newsticker-groups)))
     (mapc (lambda (f)
