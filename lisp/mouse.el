@@ -2534,7 +2534,8 @@ choose a font."
 		      (font-face-attributes 
 		       (if (eq choice 'x-select-font)
 			   (x-select-font)
-			 (symbol-name choice))))))))))
+			 (symbol-name choice))))
+	       (force-window-update (current-buffer))))))))
 
 
 ;;; Bindings for mouse commands.
