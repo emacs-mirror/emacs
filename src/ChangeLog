@@ -1,3 +1,7 @@
+2008-06-15  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (font_update_drivers): Fix crash when no drivers match.
+
 2008-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xfns.c (Fx_create_frame): internal-border-width default to 0 for Gtk.

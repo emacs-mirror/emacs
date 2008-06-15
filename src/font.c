@@ -3272,7 +3272,7 @@ font_update_drivers (f, new_drivers)
   if (! EQ (new_drivers, Qt))
     {
       /* Re-order the driver list according to new_drivers.  */
-      struct font_driver_list **list_table, *list;
+      struct font_driver_list **list_table, **next;
       Lisp_Object tail;
       int i;
 
@@ -3290,15 +3290,13 @@ font_update_drivers (f, new_drivers)
 	  list_table[i] = list;
       list_table[i] = NULL;
 
-      f->font_driver_list = list = NULL;
+      next = &f->font_driver_list;
       for (i = 0; list_table[i]; i++)
 	{
-	  if (list)
-	    list->next = list_table[i], list = list->next;
-	  else
-	    f->font_driver_list = list = list_table[i];
+	  *next = list_table[i];
+	  next = &(*next)->next;
 	}
-      list->next = NULL;
+      *next = NULL;
     }
 
   for (list = f->font_driver_list; list; list = list->next)
