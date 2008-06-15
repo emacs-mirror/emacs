@@ -1,5 +1,7 @@
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* faq.texi (VER): Update to 23.0.60.
+
 	* mh-e.texi: Remove option of licensing under GPL.
 	Add Cover-Texts to GFDL permissions notice.
 	(GPL): Remove section.
