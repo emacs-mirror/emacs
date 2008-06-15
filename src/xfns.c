@@ -5645,8 +5645,8 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
      Lisp_Object frame, ignored;
 {
   FRAME_PTR f = check_x_frame (frame);
-  char *fontname;
-  Lisp_Object font = Qnil;
+  char *name;
+  Lisp_Object default_font, font = Qnil;
   int count = SPECPDL_INDEX ();
 
   check_x ();
@@ -5660,12 +5660,21 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  fontname = xg_get_font_name (f, NULL);
-
-  if (fontname)
+  XSETFONT (default_font, FRAME_FONT (f));
+  if (FONTP (default_font))
     {
-      font = build_string (fontname);
-      xfree (fontname);
+      char *default_name = alloca (256);
+      if (font_unparse_gtkname (default_font, f, default_name, 256) < 0)
+	default_name = NULL;
+      name = xg_get_font_name (f, default_name);
+    }
+  else
+    name = xg_get_font_name (f, NULL);
+
+  if (name)
+    {
+      font = build_string (name);
+      xfree (name);
     }
 
   UNBLOCK_INPUT;
