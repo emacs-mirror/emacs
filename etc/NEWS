@@ -1097,6 +1097,9 @@ currently `x' and `xft'.
 
 *** New function `font-get' returns a font property value.
 
+*** New function `font-face-attributes' returns a plist of face
+attributes set by a font.
+
 *** New function `font-put' sets a font property value.
 
 *** New function `list-fonts' returns a list of font-entities matching
