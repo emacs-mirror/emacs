@@ -1,3 +1,8 @@
+2008-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfns.c (Fx_create_frame): internal-border-width default to 0 for Gtk.
+	* gtkutil.c (xg_create_frame_widgets): Don't set internal_border_width.
+
 2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (syms_of_xdisp): Default underline-minimum-offset to 1.

@@ -3313,7 +3313,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
+  x_default_parameter (f, parms, Qinternal_border_width,
+#ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
+		       make_number (0),
+#else
+		       make_number (1),
+#endif
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qleft,
