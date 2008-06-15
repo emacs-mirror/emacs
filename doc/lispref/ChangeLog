@@ -1,5 +1,10 @@
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* makefile.w32-in (manual): Use "23" rather than "21".
+
+	* Makefile.in (emacsver): New, set by configure.
+	(manual): Use emacsver.
+
 	* intro.texi: Report bugs using M-x report-emacs-bug.
 
 	* elisp.texi (EMACSVER): Remove duplicate, outdated setting.
