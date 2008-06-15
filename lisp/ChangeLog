@@ -1,3 +1,13 @@
+2008-06-15  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-plainview.el (newsticker-faces, newsticker-feed-face)
+	(newsticker-extra-face, newsticker-enclosure-face): Moved to
+	net/newst-reader.el.
+
+	* net/newst-reader.el (newsticker-faces, newsticker-feed-face)
+	(newsticker-extra-face, newsticker-enclosure-face): Moved from
+	net/newst-reader.el.
+
 2008-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-utf-8):

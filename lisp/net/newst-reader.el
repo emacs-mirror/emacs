@@ -6,7 +6,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "13. Juni 2008, 19:28:41 (ulf)"
+;; Time-stamp:  "15. Juni 2008, 09:42:01 (ulf)"
 
 ;; ======================================================================
 
@@ -140,6 +140,34 @@ See `format-time-string' for a list of valid specifiers."
   :type 'string
   :set 'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
+
+(defgroup newsticker-faces nil
+  "Settings for the faces of the feed reader."
+  :group 'newsticker-reader)
+
+(defface newsticker-feed-face
+  '((((class color) (background dark))
+     (:family "helvetica" :bold t :height 1.2 :foreground "misty rose"))
+    (((class color) (background light))
+     (:family "helvetica" :bold t :height 1.2 :foreground "black")))
+  "Face for news feeds."
+  :group 'newsticker-faces)
+
+(defface newsticker-extra-face
+  '((((class color) (background dark))
+     (:italic t :foreground "gray50" :height 0.8))
+    (((class color) (background light))
+     (:italic t :foreground "gray50" :height 0.8)))
+  "Face for newsticker dates."
+  :group 'newsticker-faces)
+
+(defface newsticker-enclosure-face
+  '((((class color) (background dark))
+     (:bold t :background "orange"))
+    (((class color) (background light))
+     (:bold t :background "orange")))
+  "Face for enclosed elements."
+  :group 'newsticker-faces)
 
 ;; ======================================================================
 ;;; Utility functions
