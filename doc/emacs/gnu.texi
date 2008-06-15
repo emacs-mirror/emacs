@@ -1,31 +1,19 @@
-@c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1995, 2001, 2002, 2003, 2004,
 @c   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c
+@c Permission is granted to anyone to make or distribute verbatim copies
+@c of this document, in any medium, provided that the copyright notice and
+@c permission notice are preserved, and that the distributor grants the
+@c recipient permission for further redistribution as permitted by this
+@c notice.
+@c
+@c Modified versions may not be made.
+
 @ifclear justgnu
 @node Manifesto,, Microsoft Windows, Top
 @unnumbered The GNU Manifesto
 @end ifclear
 @ifset justgnu
-Copyright @copyright{} 1985, 1993, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008  Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-
 @node Top
 @top The GNU Manifesto
 @end ifset
