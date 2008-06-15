@@ -37,7 +37,8 @@ texinputdir = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" /
 
 # The name of the manual:
 VERSION=2.9
-manual = elisp-manual-21-$(VERSION)
+## FIXME can this be set by configure, as per Makefile.in?
+manual = elisp-manual-23-$(VERSION)
 
 # List of all the texinfo files in the manual:
 
