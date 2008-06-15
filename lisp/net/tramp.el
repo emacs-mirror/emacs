@@ -3681,7 +3681,10 @@ beginning of local filename are not substituted."
 	   ;; BUFFER can be nil.
 	   (get-buffer-create (or buffer (current-buffer))))
 	  ;; Activate narrowing in order to save BUFFER contents.
+	  ;; Clear also the modification time; otherwise we might be
+	  ;; interrupted by `verify-visited-file-modtime'.
 	  (with-current-buffer (tramp-get-connection-buffer v)
+	    (clear-visited-file-modtime)
 	    (narrow-to-region (point-max) (point-max)))
 	  ;; Goto working directory.  `tramp-send-command' opens a new
 	  ;; connection.
@@ -4564,6 +4567,7 @@ preventing reentrant calls of Tramp.")
   "Invoke remote-shell Tramp file name handler.
 Fall back to normal file name handler if no Tramp handler exists."
   (when (and tramp-locked (not tramp-locker))
+    (setq tramp-locked nil)
     (signal 'file-error (list "Forbidden reentrant call of Tramp")))
   (let ((tl tramp-locked))
     (unwind-protect
@@ -7515,6 +7519,8 @@ Only works for Bourne-like shells."
 ;; * Make `tramp-default-user' obsolete.
 ;; * Tramp shall reconnect automatically to its ssh connection when it
 ;;   detects that the process "has died". (David Reitter)
+;; * How can I interrupt the remote process with a signal
+;;   (interrupt-process seems not to work)? (Markus Triska)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
