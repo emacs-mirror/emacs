@@ -1,3 +1,8 @@
+2008-06-15  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
+
+	* fontset.c (fontset_pattern_regexp): Escape `+' characters in
+	pattern.
+
 2008-06-15  Andreas Schwab  <schwab@suse.de>
 
 	* font.c (font_update_drivers): Fix crash when no drivers match.
