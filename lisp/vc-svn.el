@@ -425,6 +425,10 @@ or svn+ssh://."
 ;;; History functions
 ;;;
 
+(define-derived-mode vc-svn-log-view-mode log-view-mode "SVN-Log-View"
+  (require 'add-log)
+  (set (make-local-variable 'log-view-per-file-logs) nil))
+
 (defun vc-svn-print-log (files &optional buffer)
   "Get change log(s) associated with FILES."
   (save-current-buffer

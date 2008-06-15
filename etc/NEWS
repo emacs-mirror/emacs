@@ -597,6 +597,10 @@ active.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
 
+*** In log-view-mode, for VC systems that support changesets, you can
+see the diff for the whole changeset (not only for the current file)
+by typing the D key or using the "Changeset Diff" menu entry.
+
 *** VC Support for Meta-CVS has been removed for lack of maintainer able
 to update it to the new VC.
 

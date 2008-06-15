@@ -1,3 +1,28 @@
+2008-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-diff-changeset): New function.
+	(log-view-mode-map, log-view-mode-menu): Bind it.
+	(log-view-per-file-logs, log-view-vc-fileset)
+	(log-view-vc-backend): New variables.
+	(log-view-find-revision, log-view-modify-change-comment)
+	(log-view-annotate-version): Throw an error if the log is for more
+	than one file and we can't find the current file.  Get the current
+	file from log-view-vc-fileset if necessary.
+	(log-view-diff): Get the current file from log-view-vc-fileset if
+	necessary.
+
+	* vc.el (vc-print-log): Set log-view-vc-fileset and log-view-vc-backend.
+
+	* vc-hg.el (vc-hg-log-view-mode): Call the log method only once.
+	(vc-hg-log-view-mode): Declare for compiler.
+	(vc-hg-log-view-mode): Set log-view-per-file-logs and
+	log-view-file-re.
+	(vc-hg-diff): If no file is passed, use default-directory for cwd.
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Set log-view-per-file-logs.
+
+	* vc-svn.el (vc-svn-log-view-mode): New derived mode.
+
 2008-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-start-file-process): Clear

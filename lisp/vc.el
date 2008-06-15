@@ -2175,6 +2175,8 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
     (vc-exec-after
      `(let ((inhibit-read-only t))
     	(vc-call-backend ',backend 'log-view-mode)
+	(set (make-local-variable 'log-view-vc-backend) ',backend)
+	(set (make-local-variable 'log-view-vc-fileset) ',files)
 	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))

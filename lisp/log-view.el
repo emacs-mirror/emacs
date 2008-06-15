@@ -128,6 +128,7 @@
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
+    ("D" . log-view-diff-changeset)
     ("a" . log-view-annotate-version)
     ("f" . log-view-find-revision)
     ("n" . log-view-msg-next)
@@ -154,6 +155,8 @@
      :help ""]
     ["Diff Revisions"  log-view-diff
      :help "Get the diff between two revisions"]
+    ["Changeset Diff"  log-view-diff-changeset
+     :help "Get the changeset diff between two revisions"]
     ["Visit Version"  log-view-find-revision
      :help "Visit the version at point"]
     ["Annotate Version"  log-view-annotate-version
@@ -201,6 +204,9 @@
   "Regexp matching the text identifying the file.
 The match group number 1 should match the file name itself.")
 
+(defvar log-view-per-file-logs t
+  "Set if to t if the logs are shown one file at a time.")
+
 (defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
           "\\|r\\(?1:[0-9]+\\) | .* | .*"                ; Subversion.
@@ -228,6 +234,12 @@ The match group number 1 should match the revision number itself.")
 
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
+
+(defvar log-view-vc-fileset nil
+  "Set this to the fileset corresponding to the current log.")
+
+(defvar log-view-vc-backend nil
+  "Set this to the VC backend that created the current log.")
 
 ;;;;
 ;;;; Actual code
@@ -415,10 +427,15 @@ log entries."
 (defun log-view-find-revision (pos)
   "Visit the version at point."
   (interactive "d")
+  (unless log-view-per-file-logs
+    (when (> (length log-view-vc-fileset) 1)
+      (error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-find-revision (log-view-current-file)
-                                       (log-view-current-tag)))))
+    (switch-to-buffer (vc-find-revision (if log-view-per-file-logs
+					    (log-view-current-file)
+					  (car log-view-vc-fileset))
+					(log-view-current-tag)))))
 
 
 (defun log-view-extract-comment ()
@@ -443,16 +460,23 @@ log entries."
 (defun log-view-modify-change-comment ()
   "Edit the change comment displayed at point."
   (interactive)
-  (vc-modify-change-comment (list (log-view-current-file))
-			  (log-view-current-tag)
-			  (log-view-extract-comment)))
+  (vc-modify-change-comment (list (if log-view-per-file-logs
+				      (log-view-current-file)
+				    (car log-view-vc-fileset)))
+			    (log-view-current-tag)
+			    (log-view-extract-comment)))
 
 (defun log-view-annotate-version (pos)
   "Annotate the version at point."
   (interactive "d")
+  (unless log-view-per-file-logs
+    (when (> (length log-view-vc-fileset) 1)
+      (error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-annotate (log-view-current-file)
+    (switch-to-buffer (vc-annotate (if log-view-per-file-logs
+				       (log-view-current-file)
+				     (car log-view-vc-fileset))
 				   (log-view-current-tag)))))
 
 ;;
@@ -475,7 +499,35 @@ and ends."
         (goto-char end)
         (log-view-msg-next)
         (setq to (log-view-current-tag))))
-    (vc-version-diff (list (log-view-current-file)) to fr)))
+    (vc-version-diff
+     (if log-view-per-file-logs
+	 (list (log-view-current-file))
+       log-view-vc-fileset)
+       to fr)))
+
+(defun log-view-diff-changeset (beg end)
+  "Get the diff between two revisions.
+If the mark is not active or the mark is on the revision at point,
+get the diff between the revision at point and its previous revision.
+Otherwise, get the diff between the revisions where the region starts
+and ends."
+  (interactive
+   (list (if mark-active (region-beginning) (point))
+         (if mark-active (region-end) (point))))
+  (when (eq (vc-call-backend log-view-vc-backend 'revision-granularity) 'file)
+    (error "The %s backend does not support changeset diffs" log-view-vc-backend))
+  (let ((fr (log-view-current-tag beg))
+        (to (log-view-current-tag end)))
+    (when (string-equal fr to)
+      ;; TO and FR are the same, look at the previous revision.
+      (setq to (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
+    (vc-diff-internal
+     t
+     ;; We want to see the diff for all the files in the changeset, so
+     ;; pass NIL for the file list.  The value passed here should
+     ;; follow what `vc-deduce-fileset' returns.
+     (list log-view-vc-backend nil)
+     to fr)))
 
 (provide 'log-view)
 
