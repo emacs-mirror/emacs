@@ -1,3 +1,7 @@
+2008-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi (EMACSVER): Remove duplicate, outdated setting.
+
 2008-06-13  Daniel Engeler  <engeler@gmail.com>
 
 	* elisp.texi, internals.texi, processes.texi: Add documentation
