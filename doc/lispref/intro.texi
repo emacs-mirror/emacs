@@ -86,19 +86,7 @@ you are criticizing.
 
 @cindex bugs
 @cindex suggestions
-Please mail comments and corrections to
-
-@example
-bug-lisp-manual@@gnu.org
-@end example
-
-@noindent
-We let mail to this list accumulate unread until someone decides to
-apply the corrections.  Months, and sometimes years, go by between
-updates.  So please attach no significance to the lack of a reply---your
-mail @emph{will} be acted on in due time.  If you want to contact the
-Emacs maintainers more quickly, send mail to
-@code{bug-gnu-emacs@@gnu.org}.
+Please send comments and corrections using @kbd{M-x report-emacs-bug}.
 
 @node Lisp History
 @section Lisp History
