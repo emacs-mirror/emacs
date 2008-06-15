@@ -47,6 +47,7 @@ Emacs network features
 * PGG: (pgg).   Emacs interface to various PGP implementations.
 * ERC: (erc).           Powerful, modular, and extensible IRC client for Emacs.
 * Rcirc: (rcirc).       Internet Relay Chat (IRC) client.
+* SASL: (sasl).         The Emacs SASL library.
 * SC: (sc).		Supercite lets you cite parts of messages you're
 			  replying to, in flexible ways.
 * Sieve: (sieve).               Managing Sieve scripts in Emacs.
