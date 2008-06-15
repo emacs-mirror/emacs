@@ -1,5 +1,8 @@
 2008-06-15  Andreas Schwab  <schwab@suse.de>
 
+	* vc-cvs.el (vc-cvs-status-extra-headers): Don't match newline
+	when parsing CVS/Repository.
+
 	* wdired.el (wdired-search-and-rename): Fix undocumented change.
 
 2008-06-15  Ulf Jasper  <ulf@web.de>
