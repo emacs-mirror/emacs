@@ -10,10 +10,8 @@ Manual, make-permuted-index, and the latest version of texinfo.tex,
 which handles forms that cannot be handled by the older versions of
 texinfo.tex.
 
-* Report Lisp Manual bugs to bug-lisp-manual@gnu.org.  We don't read
-these bug reports until it's time for a new edition.  To report other
-Emacs bugs, use bug-gnu-emacs@gnu.org.  To ask questions, use the
-newsgroup gnu.emacs.help.
+* Report bugs in the Lisp Manual or in Emacs using M-x report-emacs-bug.
+To ask questions, use the newsgroup gnu.emacs.help.
 
 * The Emacs Lisp Reference Manual is quite large.  It totals around
 1100 pages in smallbook format; the info files total over
@@ -23,9 +21,8 @@ newsgroup gnu.emacs.help.
 using TeX.
 
 * You can buy nicely printed copies from the Free Software Foundation.
-For info, send mail to gnu@gnu.org or phone 617-542-5942.  Buying a
-manual from the Free Software Foundation helps support our GNU
-development work.
+Buying a manual from the Free Software Foundation helps support our GNU
+development work.  See <http://shop.fsf.org/>.
 
 ** This distribution contains a Makefile that you can use with GNU Make.
 Otherwise, here are detailed instructions:
