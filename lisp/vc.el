@@ -1042,6 +1042,8 @@ Otherwise, throw an error."
       (progn
 	(set-buffer vc-parent-buffer)
 	(vc-deduce-fileset)))
+     ((not buffer-file-name)
+       (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (list (vc-responsible-backend
 	     (file-name-directory (buffer-file-name)))
@@ -1144,7 +1146,7 @@ merge in the changes into your working copy."
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system."))
      ((or (null state) (eq state 'unregistered))
-      (mapc (lambda (arg) (vc-register nil arg)) files))
+      (vc-register nil vc-fileset))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -1294,9 +1296,10 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional set-revision fname comment)
+(defun vc-register (&optional set-revision vc-fileset comment)
   "Register into a version control system.
-If FNAME is given register that file, otherwise register the current file.
+If VC-FILESET is given, register the files in that fileset.
+Otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
@@ -1307,45 +1310,51 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used."
   (interactive "P")
-  (when (and (null fname) (null buffer-file-name)) (error "No visited file"))
-
-  (let ((bname (if fname (get-file-buffer fname) (current-buffer))))
-    (unless fname (setq fname buffer-file-name))
-    (when (vc-backend fname)
-      (if (vc-registered fname)
-	  (error "This file is already registered")
-	(unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
-	  (error "Aborted"))))
-    ;; Watch out for new buffers of size 0: the corresponding file
-    ;; does not exist yet, even though buffer-modified-p is nil.
-    (when bname
-      (with-current-buffer bname
-	(when (and (not (buffer-modified-p))
-		 (zerop (buffer-size))
-		 (not (file-exists-p buffer-file-name)))
-	  (set-buffer-modified-p t))
-	(vc-buffer-sync)))
-    (vc-start-logentry (list fname)
-		    (if set-revision
-			(read-string (format "Initial revision level for %s: "
-					     fname))
-		      (vc-call-backend (vc-responsible-backend fname)
-				       'init-revision))
-		    (or comment (not vc-initial-comment))
-		    nil
-		    "Enter initial comment."
-		    "*VC-log*"
-		    (lambda (files rev comment)
-		      (dolist (file files)
-			(message "Registering %s... " file)
-			(let ((backend (vc-responsible-backend file t)))
-			  (vc-file-clearprops file)
-			  (vc-call-backend backend 'register (list file) rev comment)
-			  (vc-file-setprop file 'vc-backend backend)
-			  (unless vc-make-backup-files
-			    (make-local-variable 'backup-inhibited)
-			    (setq backup-inhibited t)))
-			(message "Registering %s... done" file))))))
+  (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
+         (backend (car fileset-arg))
+	 (files (nth 1 fileset-arg))
+	 (fileset-only-files (nth 2 fileset-arg)))
+    (dolist (fname fileset-only-files)
+      (let ((bname (get-file-buffer fname)))
+	(unless fname (setq fname buffer-file-name))
+	(when (vc-backend fname)
+	  (if (vc-registered fname)
+	      (error "This file is already registered")
+	    (unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
+	      (error "Aborted"))))
+	;; Watch out for new buffers of size 0: the corresponding file
+	;; does not exist yet, even though buffer-modified-p is nil.
+	(when bname
+	  (with-current-buffer bname
+	    (when (and (not (buffer-modified-p))
+		       (zerop (buffer-size))
+		       (not (file-exists-p buffer-file-name)))
+	      (set-buffer-modified-p t))
+	    (vc-buffer-sync)))))
+    (lexical-let ((backend backend)
+		  (files fileset-only-files))
+      (vc-start-logentry
+       files
+       (if set-revision
+	   (read-string (format "Initial revision level for %s: "
+				files))
+	 (vc-call-backend backend 'init-revision))
+       (or comment (not vc-initial-comment))
+       nil
+       "Enter initial comment."
+       "*VC-log*"
+       (lambda (files rev comment)
+	 (message "Registering %s... " files)
+	 (dolist (file files)
+	   (vc-file-clearprops file))
+	 (vc-call-backend backend 'register files rev comment)
+	 (dolist (file files)
+	   (vc-file-setprop file 'vc-backend backend)
+	   (unless vc-make-backup-files
+	     ;; FIXME: Is this code right?  What is it supposed to do?
+	     (make-local-variable 'backup-inhibited)
+	     (setq backup-inhibited t)))
+	 (message "Registering %s... done" files))))))
 
 (defun vc-register-with (backend)
   "Register the current file with a specified back end."
@@ -2000,13 +2009,6 @@ outside of VC) and one wants to do some operation on it."
    vc-ewoc
    (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
 
-(defun vc-dir-register ()
-  "Register the marked files, or the current file if no marks."
-  (interactive)
-  ;; FIXME: Just pass the fileset to vc-register.
-  (mapc (lambda (arg) (vc-register nil arg))
-	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
-
 (defun vc-default-status-fileinfo-extra (backend file)
   "Default absence of extra information returned for a file."
   nil)
@@ -2052,10 +2054,10 @@ outside of VC) and one wants to do some operation on it."
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
 	(define-key map "v" 'vc-next-action) ;; C-x v v
-	(define-key map "=" 'vc-diff) ;; C-x v =
-	(define-key map "i" 'vc-dir-register)	;; C-x v i
-	(define-key map "+" 'vc-update) ;; C-x v +
-	(define-key map "l" 'vc-print-log) ;; C-x v l
+	(define-key map "=" 'vc-diff)        ;; C-x v =
+	(define-key map "i" 'vc-register)    ;; C-x v i
+	(define-key map "+" 'vc-update)      ;; C-x v +
+	(define-key map "l" 'vc-print-log)   ;; C-x v l
 	;; More confusing than helpful, probably
 	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
 	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh

@@ -1,3 +1,12 @@
+2008-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-deduce-fileset): Check if the buffer has a file.
+	(vc-register): Call the backend function only once, instead of
+	once for each file.
+	(vc-next-action): Update call to vc-register.
+	(vc-dir-register): Remove function.
+	(vc-dir): Bind vc-register instead of vc-dir-register.
+
 2008-06-14  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Add net/newst-*.el.
