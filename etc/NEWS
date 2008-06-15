@@ -402,6 +402,10 @@ for example while waiting for a VC command to finish.
 *** The new function `face-all-attributes' returns an alist describing
 all the basic attributes of a given face.
 
+*** S-down-mouse-1 now pops up a menu for changing the default font
+and text size of the default face in the current buffer.  The face is
+changed via face remapping (see below).
+
 *** FIXME face-remap
 
 
