@@ -26,6 +26,8 @@ srcdir = @srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
+emacsver=@version@		# eg 23.0.60
+
 infodir = ../../info
 usermanualdir = $(srcdir)/../emacs
 miscmanualdir = $(srcdir)/../misc
@@ -37,7 +39,7 @@ MAKEINFO = makeinfo --force
 
 # The name of the manual:
 VERSION=2.9
-manual = elisp-manual-21-$(VERSION)
+manual = elisp-manual-$(emacsver)-$(VERSION)
 
 # List of all the texinfo files in the manual:
 
