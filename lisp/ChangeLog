@@ -1,3 +1,9 @@
+2008-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-appearance-menu-map): New var.
+	(mouse-appearance-menu): New function.
+	Bind it to S-down-mouse-1.
+
 2008-06-15  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-toc): Call Info-toc-nodes instead of Info-build-toc.
