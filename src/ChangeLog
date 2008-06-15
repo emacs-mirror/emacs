@@ -1,19 +1,17 @@
 2008-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* font.c (font_parse_fcname): Only only one decimal point.
+	* font.c (font_parse_fcname): Only one decimal point.
 	(font_unparse_fcname): Handle data in family and foundry indices
 	as symbols, not strings.
 	(font_unparse_gtkname, Ffont_face_attributes): New functions.
 
-	* xfns.c (Fx_select_font): Give GTK font dialog the default font
-	name.
+	* xfns.c (Fx_select_font): Give GTK font dialog the default font name.
 
 	* font.h (font_unparse_gtkname): Add prototype.
 
 2008-06-15  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
 
-	* fontset.c (fontset_pattern_regexp): Escape `+' characters in
-	pattern.
+	* fontset.c (fontset_pattern_regexp): Escape `+' characters in pattern.
 
 2008-06-15  Andreas Schwab  <schwab@suse.de>
 
