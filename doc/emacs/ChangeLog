@@ -1,3 +1,8 @@
+2008-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* gnu.texi: Use a verbatim license for this invariant section,
+	as per etc/GNU.
+
 2008-06-13  Daniel Engeler  <engeler@gmail.com>
 
 	* emacs.texi, misc.texi: Add documentation about serial port access.
