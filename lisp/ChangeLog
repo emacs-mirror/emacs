@@ -1,3 +1,13 @@
+2008-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Clear
+	modification time of the connection buffer.
+	(tramp-sh-file-name-handler): Reset `tramp-locked' in case of
+	error.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections): Reset
+	`tramp-locked'.
+
 2008-06-15  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-list-update)
