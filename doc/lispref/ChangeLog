@@ -1,5 +1,7 @@
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
+	* intro.texi: Report bugs using M-x report-emacs-bug.
+
 	* elisp.texi (EMACSVER): Remove duplicate, outdated setting.
 
 2008-06-13  Daniel Engeler  <engeler@gmail.com>
