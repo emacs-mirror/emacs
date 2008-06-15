@@ -1991,14 +1991,14 @@ Table of contents is created from the tree structure of menus."
 	    p)
 	(with-current-buffer (get-buffer-create " *info-toc*")
 	  (let ((inhibit-read-only t)
-		(node-list (Info-build-toc curr-file)))
+		(node-list (Info-toc-nodes curr-file)))
 	    (erase-buffer)
 	    (goto-char (point-min))
 	    (insert "\n\^_\nFile: toc,  Node: Top,  Up: (dir)\n\n")
 	    (insert "Table of Contents\n*****************\n\n")
 	    (insert "*Note Top: (" curr-file ")Top.\n")
 	    (Info-insert-toc
-	     (nth 2 (assoc "Top" node-list)) ; get Top nodes
+	     (nth 3 (assoc "Top" node-list)) ; get Top nodes
 	     node-list 0 curr-file))
 	  (if (not (bobp))
 	      (let ((Info-hide-note-references 'hide)
@@ -2022,11 +2022,11 @@ Table of contents is created from the tree structure of menus."
   (let ((section "Top"))
     (while nodes
       (let ((node (assoc (car nodes) node-list)))
-        (unless (member (nth 1 node) (list nil section))
-          (insert (setq section (nth 1 node)) "\n"))
+        (unless (member (nth 2 node) (list nil section))
+          (insert (setq section (nth 2 node)) "\n"))
         (insert (make-string level ?\t))
         (insert "*Note " (car nodes) ": (" curr-file ")" (car nodes) ".\n")
-        (Info-insert-toc (nth 2 node) node-list (1+ level) curr-file)
+        (Info-insert-toc (nth 3 node) node-list (1+ level) curr-file)
         (setq nodes (cdr nodes))))))
 
 (defun Info-build-toc (file)
@@ -2040,17 +2040,22 @@ Table of contents is created from the tree structure of menus."
            (sections '(("Top" "Top")))
            nodes subfiles)
       (while (or main-file subfiles)
-        (or main-file (message "Searching subfile %s..." (car subfiles)))
+        ;; (or main-file (message "Searching subfile %s..." (car subfiles)))
         (erase-buffer)
         (info-insert-file-contents (or main-file (car subfiles)))
         (goto-char (point-min))
         (while (and (search-forward "\n\^_\nFile:" nil 'move)
                     (search-forward "Node: " nil 'move))
-          (let ((nodename (substring-no-properties (Info-following-node-name)))
-                (bound (- (or (save-excursion (search-forward "\n\^_" nil t))
-                              (point-max)) 2))
-                (section "Top")
-                menu-items)
+          (let* ((nodename (substring-no-properties (Info-following-node-name)))
+		 (bound (- (or (save-excursion (search-forward "\n\^_" nil t))
+			       (point-max)) 2))
+		 (upnode (and (re-search-forward
+			       (concat "Up:" (Info-following-node-name-re))
+			       bound t)
+			      (match-string-no-properties 1)))
+		 (section "Top")
+		 menu-items)
+	    (when (string-match "(" upnode) (setq upnode nil))
             (when (and (not (Info-index-node nodename file))
                        (re-search-forward "^\\* Menu:" bound t))
               (forward-line 1)
@@ -2078,7 +2083,7 @@ Table of contents is created from the tree structure of menus."
                   (setq section (match-string-no-properties 1))))
                 (forward-line 1)
                 (beginning-of-line)))
-            (setq nodes (cons (list nodename
+            (setq nodes (cons (list nodename upnode
                                     (cadr (assoc nodename sections))
                                     (nreverse menu-items))
                               nodes))
@@ -2096,6 +2101,32 @@ Table of contents is created from the tree structure of menus."
           (setq subfiles (cdr subfiles))))
       (message "")
       (nreverse nodes))))
+
+(defvar Info-toc-nodes nil
+  "Alist of cached parent-children node information in visited Info files.
+Each element is (FILE (NODE-NAME PARENT SECTION CHILDREN) ...)
+where PARENT is the parent node extracted from the Up pointer,
+SECTION is the section name in the Top node where this node is placed,
+CHILDREN is a list of child nodes extracted from the node menu.")
+
+(defun Info-toc-nodes (file)
+  "Return a node list of Info FILE with parent-children information.
+This information is cached in the variable `Info-toc-nodes' with the help
+of the function `Info-build-toc'."
+  (or file (setq file Info-current-file))
+  (or (assoc file Info-toc-nodes)
+      ;; Skip virtual Info files
+      (and (or (not (stringp file))
+	       (member file '("dir" apropos history toc)))
+           (push (cons file nil) Info-toc-nodes))
+      ;; Scan the entire manual and cache the result in Info-toc-nodes
+      (let ((nodes (Info-build-toc file)))
+	(push (cons file nodes) Info-toc-nodes)
+	nodes)
+      ;; If there is an error, still add nil to the cache
+      (push (cons file nil) Info-toc-nodes))
+  (cdr (assoc file Info-toc-nodes)))
+
 
 (defun Info-follow-reference (footnotename &optional fork)
   "Follow cross reference named FOOTNOTENAME to the node it refers to.
@@ -2700,9 +2731,9 @@ following nodes whose names also contain the word \"Index\"."
   (or file (setq file Info-current-file))
   (or (assoc file Info-index-nodes)
       ;; Skip virtual Info files
-      (and (member file '("dir" apropos history toc))
+      (and (or (not (stringp file))
+	       (member file '("dir" apropos history toc)))
            (setq Info-index-nodes (cons (cons file nil) Info-index-nodes)))
-      (not (stringp file))
       (if Info-file-supports-index-cookies
 	  ;; Find nodes with index cookie
 	  (let* ((default-directory (or (and (stringp file)
@@ -3710,55 +3741,51 @@ the variable `Info-file-list-for-emacs'."
     keymap)
   "Keymap to put on the Up link in the text or the header line.")
 
-(defcustom Info-breadcrumbs-depth 3
+(defcustom Info-breadcrumbs-depth 4
   "Depth of breadcrumbs to display.
 0 means do not display breadcrumbs."
   :type 'integer)
 
 (defun Info-insert-breadcrumbs ()
-  (let ((onode Info-current-node)
+  (let ((nodes (Info-toc-nodes Info-current-file))
+	(node Info-current-node)
         (crumbs ())
-        (depth Info-breadcrumbs-depth)
-        (Info-fontify-maximum-menu-size nil)) ; Prevent infinite recursion.
-    (unwind-protect
-        (while (and (not (equal "Top" Info-current-node)) (> depth 0))
-          (let ((up (Info-extract-pointer "up")))
-            (if (string-match "\\`(.*)" up)
-                ;; Crossing over to another manual.  This is typically (dir).
-                (setq depth 0)
-              (push up crumbs)
-              (setq depth (1- depth))
-              (Info-find-node Info-current-file up 'no-going-back))))
-      (if crumbs                  ;Do bother going back if we haven't moved.
-          (Info-find-node Info-current-file onode 'no-going-back))
-      ;; Add bottom node.
-      (when Info-use-header-line
-        ;; Let it disappear if crumbs is nil.
-        (nconc crumbs (list Info-current-node)))
-      (when (or Info-use-header-line crumbs)
-        ;; Add top node (and continuation if needed).
-        (setq crumbs
-              (cons "Top" (if (member (pop crumbs) '(nil "Top"))
-                              crumbs (cons nil crumbs))))
-        ;; Eliminate duplicate.
-        (forward-line 1)
-        (dolist (node crumbs)
-          (let ((text
-                 (if (not (equal node "Top")) node
-                     (format "(%s)Top"
-                             (if (stringp Info-current-file)
-                                 (file-name-nondirectory Info-current-file)
-                               ;; Can be `toc', `apropos', or even `history'.
-                               Info-current-file)))))
-            (insert (if (bolp) "> " " > ")
-                    (cond
-                     ((null node) "...")
-                     ((equal node Info-current-node)
-                      ;; No point linking to ourselves.
-                      (propertize text 'font-lock-face 'info-header-node))
-                     (t
-                      (concat "*Note " text "::"))))))
-        (insert "\n")))))
+        (depth Info-breadcrumbs-depth))
+
+    ;; Get ancestors from the cached parent-children node info
+    (while (and (not (equal "Top" node)) (> depth 0))
+      (setq node (nth 1 (assoc node nodes)))
+      (if node (push node crumbs))
+      (setq depth (1- depth)))
+
+    ;; Add bottom node.
+    (when Info-use-header-line
+      ;; Let it disappear if crumbs is nil.
+      (nconc crumbs (list Info-current-node)))
+    (when (or Info-use-header-line crumbs)
+      ;; Add top node (and continuation if needed).
+      (setq crumbs
+	    (cons "Top" (if (member (pop crumbs) '(nil "Top"))
+			    crumbs (cons nil crumbs))))
+      ;; Eliminate duplicate.
+      (forward-line 1)
+      (dolist (node crumbs)
+	(let ((text
+	       (if (not (equal node "Top")) node
+		 (format "(%s)Top"
+			 (if (stringp Info-current-file)
+			     (file-name-nondirectory Info-current-file)
+			   ;; Can be `toc', `apropos', or even `history'.
+			   Info-current-file)))))
+	  (insert (if (bolp) "" " > ")
+		  (cond
+		   ((null node) "...")
+		   ((equal node Info-current-node)
+		    ;; No point linking to ourselves.
+		    (propertize text 'font-lock-face 'info-header-node))
+		   (t
+		    (concat "*Note " text "::"))))))
+      (insert "\n"))))
 
 (defun Info-fontify-node ()
   "Fontify the node."
