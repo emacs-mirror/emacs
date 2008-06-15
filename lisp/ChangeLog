@@ -1,3 +1,10 @@
+2008-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-utf-8):
+	Catch and recover from case when the bytes we thought we were reading
+	turn out to be something else entirely, such as latin-1 chars from
+	quail.  See bug#396.
+
 2008-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-deduce-fileset): Check if the buffer has a file.
