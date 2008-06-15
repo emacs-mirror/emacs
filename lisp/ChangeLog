@@ -1,3 +1,16 @@
+2008-06-15  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-toc): Call Info-toc-nodes instead of Info-build-toc.
+	(Info-toc, Info-insert-toc): Increment nth's index to add PARENT
+	as the second element.
+	(Info-build-toc): Add PARENT element extracted from the Up pointer.
+	Don't print progress messages.
+	(Info-toc-nodes): New variable and function.
+	(Info-index-nodes): Optimize non-string file name case.
+	(Info-breadcrumbs-depth): Increment the default value from 3 to 4.
+	(Info-insert-breadcrumbs): Use the cached document structure instead
+	of visiting all ancestor nodes.  Remove the initial `>'.
+
 2008-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* log-view.el (log-view-diff-changeset): New function.
