@@ -1734,7 +1734,7 @@ font_unparse_gtkname (font, f, name, nbytes)
     }
 
   weight = font_style_symbolic (font, FONT_WEIGHT_INDEX, 0);
-  if (weight == Qnormal)
+  if (EQ (weight, Qnormal))
     weight = Qnil;
   else if (! NILP (weight))
     {
@@ -1743,7 +1743,7 @@ font_unparse_gtkname (font, f, name, nbytes)
     }
 
   slant = font_style_symbolic (font, FONT_SLANT_INDEX, 0);
-  if (slant == Qnormal)
+  if (EQ (slant, Qnormal))
     slant = Qnil;
   else if (! NILP (slant))
     {
