@@ -1,3 +1,12 @@
+2008-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_check_object): Delete it.
+	(font_clear_cache): Check if a font-object is alive.
+	(font_open_entity): Likewise.  Set FONT_OBJLST_INDEX of a
+	font-object to nil.
+	(font_close_object): Don't check FONT_CLOSE_OBJECT.
+	(font_at): Don't call font_check_object.
+
 2008-06-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1230000.
