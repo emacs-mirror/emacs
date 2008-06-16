@@ -3627,7 +3627,11 @@ encoding of a font, e.g. ``iso8859-1''.
 VALUE must be a non-negative integer or a floating point number
 specifying the font size.  It specifies the font size in pixels
 (if VALUE is an integer), or in points (if VALUE is a float).
-usage: (font-spec ARGS ...)  */)
+usage: (font-spec ARGS ...)
+
+`:name'
+
+VALUE must be a string of XLFD-style or fontconfig-style font name.  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3728,6 +3732,8 @@ FONT is a font-spec, a font-entity, or a font-object.  */)
   CHECK_SYMBOL (key);
 
   idx = get_font_prop_index (key);
+  if (idx >= FONT_WEIGHT_INDEX && idx <= FONT_WIDTH_INDEX)
+    return font_style_symbolic (font, idx, 0);
   if (idx >= 0 && idx < FONT_EXTRA_INDEX)
     return AREF (font, idx);
   return Fcdr (Fassq (key, AREF (font, FONT_EXTRA_INDEX)));
