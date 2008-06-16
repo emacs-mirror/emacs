@@ -26,7 +26,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22
+@set EMACSVER 23.0.60
 
 @dircategory Emacs
 @direntry
@@ -79,8 +79,8 @@ Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
 Texts as in (a) below.  A copy of the license is included in the
 section entitled ``GNU Free Documentation License.''
 
-(a) The FSF's Back-Cover Text is: ``You are free to copy and modify
-this GNU Manual. Buying copies from GNU Press supports the FSF in
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
