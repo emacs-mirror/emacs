@@ -3744,7 +3744,7 @@ DEFUN ("font-face-attributes", Ffont_face_attributes, Sfont_face_attributes, 1, 
 FONT is a font name, a font-spec, a font-entity, or a font-object.
 The return value is a list of the form
 
-(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
+\(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
 
 where FAMILY, FOUNDRY, HEIGHT, WEIGHT, SLANT, and WIDTH are face
 attribute values compatible with `set-face-attribute'.
@@ -3753,7 +3753,7 @@ The optional argument FRAME specifies the frame that the face
 attributes are to be displayed on.  If omitted, the selected frame is
 used.  */)
      (font, frame)
-     Lisp_Object font;
+     Lisp_Object font, frame;
 {
   struct frame *f;
   Lisp_Object plist[10];

@@ -1,3 +1,7 @@
+2008-06-16  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (Ffont_face_attributes): Fix definition.
+
 2008-06-16  Jason Rumney  <jasonr@gnu.org>
 
         * font.h (font_style_symbolic_from_value): Remove.
