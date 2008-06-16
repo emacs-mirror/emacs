@@ -2427,26 +2427,6 @@ font_match_p (spec, entity)
 
   return (font_score (entity, prefer_prop) == 0);
 }
-
-
-/* CHeck a lispy font object corresponding to FONT.  */
-
-int
-font_check_object (font)
-     struct font *font;
-{
-  Lisp_Object tail, elt;
-
-  for (tail = font->props[FONT_OBJLIST_INDEX]; CONSP (tail);
-       tail = XCDR (tail))
-    {
-      elt = XCAR (tail);
-      if (font == XFONT_OBJECT (elt))
-	return 1;
-    }
-  return 0;
-}
-
 
 
 /* Font cache
@@ -2563,9 +2543,12 @@ font_clear_cache (f, cache, driver)
 		      Lisp_Object val = XCAR (objlist);
 		      struct font *font = XFONT_OBJECT (val);
 
-		      font_assert (font && driver == font->driver);
-		      driver->close (f, font);
-		      num_fonts--;
+		      if (! NILP (AREF (val, FONT_TYPE_INDEX)))
+			{
+			  font_assert (font && driver == font->driver);
+			  driver->close (f, font);
+			  num_fonts--;
+			}
 		    }
 		  if (driver->free_entity)
 		    driver->free_entity (entity);
@@ -2754,7 +2737,8 @@ font_open_entity (f, entity, pixel_size)
 
   for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
        objlist = XCDR (objlist))
-    if (XFONT_OBJECT (XCAR (objlist))->pixel_size == pixel_size)
+    if (! NILP (AREF (XCAR (objlist), FONT_TYPE_INDEX))
+	&& XFONT_OBJECT (XCAR (objlist))->pixel_size == pixel_size)
       return  XCAR (objlist);
 
   val = AREF (entity, FONT_TYPE_INDEX);
@@ -2770,7 +2754,7 @@ font_open_entity (f, entity, pixel_size)
     return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
 	Fcons (font_object, AREF (entity, FONT_OBJLIST_INDEX)));
-  ASET (font_object, FONT_OBJLIST_INDEX, AREF (entity, FONT_OBJLIST_INDEX));
+  ASET (font_object, FONT_OBJLIST_INDEX, Qnil);
   num_fonts++;
 
   font = XFONT_OBJECT (font_object);
@@ -2807,28 +2791,17 @@ font_close_object (f, font_object)
      Lisp_Object font_object;
 {
   struct font *font = XFONT_OBJECT (font_object);
-  Lisp_Object objlist;
-  Lisp_Object tail, prev = Qnil;
 
-  objlist = AREF (font_object, FONT_OBJLIST_INDEX);
-  for (prev = Qnil, tail = objlist; CONSP (tail);
-       prev = tail, tail = XCDR (tail))
-    if (EQ (font_object, XCAR (tail)))
-      {
-	font_add_log ("close", font_object, Qnil);
-	font->driver->close (f, font);
+  if (NILP (AREF (font_object, FONT_TYPE_INDEX)))
+    /* Already closed.  */
+    return;
+  font_add_log ("close", font_object, Qnil);
+  font->driver->close (f, font);
 #ifdef HAVE_WINDOW_SYSTEM
-	font_assert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
-	FRAME_X_DISPLAY_INFO (f)->n_fonts--;
+  font_assert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
+  FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 #endif
-	if (NILP (prev))
-	  ASET (font_object, FONT_OBJLIST_INDEX, XCDR (objlist));
-	else
-	  XSETCDR (prev, XCDR (objlist));
-	num_fonts--;
-	return;
-      }
-  abort ();
+  num_fonts--;
 }
 
 
@@ -3544,7 +3517,6 @@ font_at (c, pos, face, w, string)
   if (! face->font)
     return Qnil;
 
-  font_assert (font_check_object ((struct font *) face->font));
   XSETFONT (font_object, face->font);
   return font_object;
 }
