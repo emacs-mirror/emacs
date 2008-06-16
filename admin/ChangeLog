@@ -1,6 +1,7 @@
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
-	* admin.el (set-version): Add doc/lispref/vol1.texi,vol2.texi.
+	* admin.el (set-version): Add doc/lispref/vol1.texi,vol2.texi,
+	doc/lispref/book-spine.texinfo.
 
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
