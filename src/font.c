@@ -3746,12 +3746,11 @@ The return value is a list of the form
 
 \(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
 
-where FAMILY, FOUNDRY, HEIGHT, WEIGHT, SLANT, and WIDTH are face
-attribute values compatible with `set-face-attribute'.
+where FAMILY, HEIGHT, WEIGHT, SLANT, and WIDTH are face attribute values
+compatible with `set-face-attribute'.
 
-The optional argument FRAME specifies the frame that the face
-attributes are to be displayed on.  If omitted, the selected frame is
-used.  */)
+The optional argument FRAME specifies the frame that the face attributes
+are to be displayed on.  If omitted, the selected frame is used.  */)
      (font, frame)
      Lisp_Object font, frame;
 {
