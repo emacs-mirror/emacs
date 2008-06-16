@@ -776,10 +776,6 @@ extern int font_style_to_value P_ ((enum font_property_index prop,
 extern Lisp_Object font_style_symbolic P_ ((Lisp_Object font,
 					    enum font_property_index prop,
 					    int for_face));
-extern Lisp_Object font_style_symbolic_from_value
-                      P_ ((enum font_property_index prop,
-                           Lisp_Object val,
-                           int for_face));
                            
 extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object entity));
 extern Lisp_Object font_list_entities P_ ((Lisp_Object frame,

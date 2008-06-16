@@ -357,11 +357,12 @@ font_style_to_value (prop, val, noerror)
 }
 
 Lisp_Object
-font_style_symbolic_from_value (prop, val, for_face)
+font_style_symbolic (font, prop, for_face)
+     Lisp_Object font;
      enum font_property_index prop;
-     Lisp_Object val;
      int for_face;
 {
+  Lisp_Object val = AREF (font, prop);
   Lisp_Object table, elt;
   int i;
 
@@ -373,16 +374,6 @@ font_style_symbolic_from_value (prop, val, for_face)
   elt = AREF (table, ((i >> 4) & 0xF));
   font_assert ((i & 0xF) + 1 < ASIZE (elt));
   return (for_face ? AREF (elt, 1) : AREF (elt, (i & 0xF) + 1));  
-}
-
-Lisp_Object
-font_style_symbolic (font, prop, for_face)
-     Lisp_Object font;
-     enum font_property_index prop;
-     int for_face;
-{
-  Lisp_Object val = AREF (font, prop);
-  return font_style_symbolic_from_value (prop, val, for_face);
 }
 
 extern Lisp_Object Vface_alternative_font_family_alist;

@@ -1487,6 +1487,19 @@ w32_encode_weight (n)
   return 0;
 }
 
+/* Convert a Windows font weight into one of the weights supported
+   by fontconfig (see font.c:font_parse_fcname).  */
+static Lisp_Object
+w32_to_fc_weight (n)
+     int n;
+{
+  if (n >= FW_EXTRABOLD) return intern ("black");
+  if (n >= FW_BOLD) return intern ("bold");
+  if (n >= FW_SEMIBOLD) return intern ("demibold");
+  if (n >= FW_NORMAL) return intern ("medium");
+  return intern ("light");
+}
+
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
 static void
 fill_in_logfont (f, logfont, font_spec)
@@ -1869,8 +1882,8 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
 
   if (font->lfWeight && font->lfWeight != FW_NORMAL)
     {
-      weight = FONT_WEIGHT_SYMBOLIC (font_obj);
-      len += 8 + SBYTES (SYMBOL_NAME (weight)); /* :weight=NAME */
+      weight = w32_to_fc_weight (font->lfWeight);
+      len += 1 + SBYTES (SYMBOL_NAME (weight)); /* :WEIGHT */
     }
 
   antialiasing = lispy_antialias_type (font->lfQuality);
@@ -1900,11 +1913,11 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
         p += sprintf (p, ":pixelsize=%d", height);
     }
 
+  if (SYMBOLP (weight) && ! NILP (weight))
+    p += sprintf (p, ":%s", SDATA (SYMBOL_NAME (weight)));
+
   if (font->lfItalic)
     p += sprintf (p, ":italic");
-
-  if (SYMBOLP (weight) && ! NILP (weight))
-    p += sprintf (p, ":weight=%s", SDATA (SYMBOL_NAME (weight)));
 
   if (SYMBOLP (antialiasing) && ! NILP (antialiasing))
     p += sprintf (p, ":antialias=%s", SDATA (SYMBOL_NAME (antialiasing)));
@@ -1940,19 +1953,8 @@ static int logfont_to_fcname(font, pointsize, fcname, size)
     len += 7; /* :italic */
   if (font->lfWeight && font->lfWeight != FW_NORMAL)
     {
-      int fc_weight = w32_decode_weight (font->lfWeight);
-      weight = font_style_symbolic_from_value (FONT_WEIGHT_INDEX,
-                                               make_number (fc_weight), 0);
-      len += 8; /* :weight= */
-      if (SYMBOLP (weight))
-        len += SBYTES (SYMBOL_NAME (weight));
-      else
-        {
-          weight = make_number (fc_weight);
-          len++;
-          while (fc_weight /= 10)
-            len++;
-        }
+      weight = w32_to_fc_weight (font->lfWeight);
+      len += SBYTES (SYMBOL_NAME (weight)) + 1;
     }
 
   if (len > size)
@@ -1962,13 +1964,11 @@ static int logfont_to_fcname(font, pointsize, fcname, size)
   if (pointsize % 10)
     p += sprintf (p, ".%d", pointsize % 10);
 
+  if (SYMBOLP (weight) && !NILP (weight))
+    p += sprintf (p, ":%s", SDATA (SYMBOL_NAME (weight)));
+
   if (font->lfItalic)
     p += sprintf (p, ":italic");
-
-  if (SYMBOLP (weight) && !NILP (weight))
-    p += sprintf (p, "weight=%s", SDATA (SYMBOL_NAME (weight)));
-  else if (INTEGERP (weight))
-    p += sprintf (p, "weight=%d", XINT (weight));
 
   return (p - fcname);
 }
