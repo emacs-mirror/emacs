@@ -1467,7 +1467,7 @@ font_parse_fcname (name, font)
 		  Lisp_Object key;
 		  char *keyhead = p;
 
-		  if (PROP_MATCH ("pixelsize=", 10))
+		  if (word_len == 9 && memcmp (p, "pixelsize=", 10) == 0)
 		    prop = FONT_SIZE_INDEX;
 		  else
 		    {
@@ -1477,7 +1477,7 @@ font_parse_fcname (name, font)
 		  p = q + 1;
 		  for (q = p; *q && *q != ':'; q++);
 
-		  val = font_intern_prop (p, word_len, 0);
+		  val = font_intern_prop (p, q - p, 0);
 		  if (! NILP (val))
 		    {
 		      if (prop >= FONT_FOUNDRY_INDEX
