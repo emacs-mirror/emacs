@@ -1,3 +1,7 @@
+2008-06-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Correctly parse KEY=VAL values.
+
 2008-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Only one decimal point.
