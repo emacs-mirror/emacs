@@ -1,5 +1,8 @@
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
+	* configure, configure.in, mkinstalldirs: Remove unused files.
+
+	* book-spine.texinfo: Set version to 23.0.60.
 	* vol1.texi (EMACSVER):
 	* vol2.texi (EMACSVER):	Set to 23.0.60.
 
