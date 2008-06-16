@@ -1428,14 +1428,15 @@ font_parse_fcname (name, font)
 	      Lisp_Object val;
 	      int word_len, prop;
 
-#define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
-
 	      for (q = p + 1; *q && *q != '=' && *q != ':'; q++);
 	      word_len = q - p;
 	      if (*q != '=')
 		{
 		  /* Must be an enumerated value.  */
 		  val = font_intern_prop (p, q - p, 1);
+
+#define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
+
 		  if (PROP_MATCH ("light", 5)
 		      || PROP_MATCH ("medium", 6)
 		      || PROP_MATCH ("demibold", 8)
@@ -1461,6 +1462,7 @@ font_parse_fcname (name, font)
 		      bcopy (p, copy, word_len);
 		      copy += word_len;
 		    }
+#undef PROP_MATCH
 		}
 	      else /* KEY=VAL pairs  */
 		{
@@ -1492,7 +1494,6 @@ font_parse_fcname (name, font)
 		    }
 		}
 	      p = *q ? q + 1 : q;
-#undef PROP_MATCH
 	    }
 	  if (name != copy)
 	    font_put_extra (font, QCfc_unknown_spec,
