@@ -1,3 +1,8 @@
+2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-bzr.el (log-view-per-file-logs):
+	* vc-svn.el (log-view-per-file-logs): Pacify byte compiler.
+
 2008-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-appearance-menu-map): New var.
@@ -44,17 +49,16 @@
 
 2008-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-start-file-process): Clear
-	modification time of the connection buffer.
-	(tramp-sh-file-name-handler): Reset `tramp-locked' in case of
-	error.
+	* net/tramp.el (tramp-handle-start-file-process):
+	Clear modification time of the connection buffer.
+	(tramp-sh-file-name-handler): Reset `tramp-locked' in case of error.
 	(tramp-open-connection-setup-interactive-shell): Flush cache, and
 	restart `tramp-maybe-open-connection' when the remote system has
 	been changed. Throw 'uname-changed event.
 	(tramp-maybe-open-connection): Catch it.
 
-	* net/tramp-cmds.el (tramp-cleanup-all-connections): Reset
-	`tramp-locked'.
+	* net/tramp-cmds.el (tramp-cleanup-all-connections):
+	Reset `tramp-locked'.
 
 2008-06-15  Ulf Jasper  <ulf@web.de>
 
@@ -66,8 +70,7 @@
 	Remove window dedication.
 	(newsticker--group-manage-orphan-feeds): Handle ill-valued
 	newsticker-groups.
-	(newsticker--treeview-tree-expand): Don't manage orphan feeds
-	here.
+	(newsticker--treeview-tree-expand): Don't manage orphan feeds here.
 
 2008-06-15  Andreas Schwab  <schwab@suse.de>
 
