@@ -1407,9 +1407,9 @@ font_parse_fcname (name, font)
 	  /* Now parse ":KEY=VAL" patterns.  Store known keys and values in
 	     extra, copy unknown ones to COPY.  It is stored in extra slot by
 	     the key QCfc_unknown_spec.  */
-	  char *copy;
+	  char *copy_start, *copy;
 
-	  name = copy = alloca (name + len - props_beg);
+	  copy_start = copy = alloca (name + len - props_beg);
 	  if (! copy)
 	    return -1;
 
@@ -1467,10 +1467,11 @@ font_parse_fcname (name, font)
 		      key = font_intern_prop (p, q - p, 1);
 		      prop = get_font_prop_index (key);
 		    }
+
 		  p = q + 1;
 		  for (q = p; *q && *q != ':'; q++);
-
 		  val = font_intern_prop (p, q - p, 0);
+
 		  if (! NILP (val))
 		    {
 		      if (prop >= FONT_FOUNDRY_INDEX
@@ -1480,15 +1481,19 @@ font_parse_fcname (name, font)
 		      else if (prop >= 0)
 			Ffont_put (font, key, val);
 		      else
-			bcopy (keyhead, copy, q - keyhead);
-		      copy += q - keyhead;
+			{
+			  if (copy_start != copy)
+			    *copy++ = ':';
+			  bcopy (keyhead, copy, q - keyhead);
+			  copy += q - keyhead;
+			}
 		    }
 		}
 	      p = *q ? q + 1 : q;
 	    }
-	  if (name != copy)
+	  if (copy_start != copy)
 	    font_put_extra (font, QCfc_unknown_spec,
-			    make_unibyte_string (name, copy - name));
+			    make_unibyte_string (copy_start, copy - copy_start));
 	}
     }
   else
