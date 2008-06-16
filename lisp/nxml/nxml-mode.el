@@ -551,7 +551,7 @@ Many aspects this mode can be customized using
 
   (rng-nxml-mode-init)
   (nxml-enable-unicode-char-name-sets)
-  (run-hooks 'nxml-mode-hook))
+  (run-mode-hooks 'nxml-mode-hook))
 
 (defun nxml-cleanup ()
   "Clean up after nxml-mode."

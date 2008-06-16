@@ -1,3 +1,7 @@
+2008-06-16  Derek Upham  <sand@blarg.net>  (tiny change)
+
+        * nxml/nxml-mode.el (nxml-mode): Use run-mode-hooks.
+
 2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* log-view.el (vc-diff-internal): Declare for compiler.
