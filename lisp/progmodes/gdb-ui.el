@@ -2720,29 +2720,27 @@ another GDB command e.g pwd, to see new frames")
 (defvar gdb-memory-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "S" 'gdb-memory-set-address)
+    (define-key map "N" 'gdb-memory-set-repeat-count)
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defun gdb-memory-set-address (event)
+(defun gdb-memory-set-address (&optional event)
   "Set the start memory address."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (let ((arg (read-from-minibuffer "Memory address: ")))
-      (setq gdb-memory-address arg))
-    (gdb-invalidate-memory)))
+  (interactive)
+  (let ((arg (read-from-minibuffer "Start address: ")))
+    (setq gdb-memory-address arg))
+    (gdb-invalidate-memory))
 
-(defun gdb-memory-set-repeat-count (event)
+(defun gdb-memory-set-repeat-count (&optional event)
   "Set the number of data items in memory window."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (let* ((arg (read-from-minibuffer "Repeat count: "))
-	  (count (string-to-number arg)))
-      (if (<= count 0)
-	  (error "Positive numbers only")
-	(customize-set-variable 'gdb-memory-repeat-count count)
-	(gdb-invalidate-memory)))))
+  (interactive)
+  (let* ((arg (read-from-minibuffer "Repeat count: "))
+	 (count (string-to-number arg)))
+    (if (<= count 0)
+	(error "Positive numbers only")
+      (customize-set-variable 'gdb-memory-repeat-count count)
+      (gdb-invalidate-memory))))
 
 (defun gdb-memory-format-binary ()
   "Set the display format to binary."
@@ -2890,7 +2888,7 @@ another GDB command e.g pwd, to see new frames")
   (setq header-line-format
 	'(:eval
 	  (concat
-	   "Read address["
+	   "Start address["
 	   (propertize
 	    "-"
 	    'face font-lock-warning-face
@@ -2924,7 +2922,7 @@ another GDB command e.g pwd, to see new frames")
 	   "]: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
-		       'help-echo "mouse-1: set memory address"
+		       'help-echo "mouse-1: set start address"
 		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
