@@ -1,3 +1,8 @@
+2008-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* epa.texi, erc.texi, pgg.texi, remember.texi, sasl.texi, url.texi:
+	Add Cover-Texts.
+
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (VER): Update to 23.0.60.
