@@ -1,3 +1,8 @@
+2008-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-dir-child-files): Use vc-string-prefix-p.
+	(vc-dir-marked-only-files): vc-string-prefix-p.
+
 2008-06-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-memory-set-address)
@@ -7,7 +12,7 @@
 
 2008-06-16  Derek Upham  <sand@blarg.net>  (tiny change)
 
-        * nxml/nxml-mode.el (nxml-mode): Use run-mode-hooks.
+	* nxml/nxml-mode.el (nxml-mode): Use run-mode-hooks.
 
 2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
