@@ -1,3 +1,7 @@
+2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_spec): Fix usage in docstring.
+
 2008-06-16  Andreas Schwab  <schwab@suse.de>
 
 	* font.c (Ffont_face_attributes): Fix definition.

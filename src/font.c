@@ -3627,11 +3627,11 @@ encoding of a font, e.g. ``iso8859-1''.
 VALUE must be a non-negative integer or a floating point number
 specifying the font size.  It specifies the font size in pixels
 (if VALUE is an integer), or in points (if VALUE is a float).
-usage: (font-spec ARGS ...)
 
 `:name'
 
-VALUE must be a string of XLFD-style or fontconfig-style font name.  */)
+VALUE must be a string of XLFD-style or fontconfig-style font name.
+usage: (font-spec ARGS ...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
