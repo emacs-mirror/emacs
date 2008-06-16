@@ -1,3 +1,11 @@
+2008-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* vol1.texi (EMACSVER):
+	* vol2.texi (EMACSVER):	Set to 23.0.60.
+
+	* elisp.texi, vol1.texi, vol2.texi: Update Back-Cover Text
+	as per maintain.info.
+
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (manual): Use "23" rather than "21".
