@@ -1,3 +1,10 @@
+2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispextern.h (lookup_non_ascii_face, split_font_name_into_vector)
+	(build_font_name_from_vector): Delete externs.
+
+	* xfaces.c (struct font_name): Don't declare.
+
 2008-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font.c (font_unparse_gtkname): Use EQ to compare Lisp_Objects.
@@ -1279,7 +1286,7 @@
 	change of font-related objects.
 	(syms_of_font): Delete "ifdef USE_FONT_BACKEND".  DEFSYM new symbols.
 
-	* fontset.h (struct font_info): Delete it.  Most memnbers go to
+	* fontset.h (struct font_info): Delete it.  Most members go to
 	struct font.
 	(FONT_ENCODING_NOT_DECIDED): Moved to font.h.
 	(enum FONT_SPEC_INDEX): Delete it.

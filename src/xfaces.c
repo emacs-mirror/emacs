@@ -503,7 +503,6 @@ int menu_face_changed_default;
 
 /* Function prototypes.  */
 
-struct font_name;
 struct table_entry;
 struct named_merge_point;
 
