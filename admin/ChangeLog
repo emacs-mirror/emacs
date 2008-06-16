@@ -1,3 +1,7 @@
+2008-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): Add doc/lispref/vol1.texi,vol2.texi.
+
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version): Add doc/misc/faq.texi.
