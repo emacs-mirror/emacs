@@ -16,6 +16,7 @@
 	font-object to nil.
 	(font_close_object): Don't check FONT_CLOSE_OBJECT.
 	(font_at): Don't call font_check_object.
+	(Ffont_get): Return a symbol for :weight, :slant, and :width.
 
 2008-06-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
