@@ -1,5 +1,7 @@
 2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
+	* log-view.el (vc-diff-internal): Declare for compiler.
+
 	* vc-bzr.el (log-view-per-file-logs):
 	* vc-svn.el (log-view-per-file-logs): Pacify byte compiler.
 
