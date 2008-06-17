@@ -262,10 +262,8 @@ detailed description of this mode.
 |  Stack buffer                     |  Breakpoints/threads buffer      |
 +-----------------------------------+----------------------------------+
 
-To run GDB in text command mode, replace the GDB \"--annotate=3\"
-option with \"--fullname\" either in the minibuffer for the
-current Emacs session, or the custom variable
-`gud-gdb-command-name' for all future sessions.  You need to use
+The option \"--annotate=3\" must be included in this value.  To
+run GDB in text command mode, use `gud-gdb'.  You need to use
 text command mode to debug multiple programs within one Emacs
 session."
   (interactive (list (gud-query-cmdline 'gdb)))
@@ -1666,15 +1664,12 @@ happens to be appropriate."
 	  (let* ((annotation-type (match-string 1 annotation))
 		 (annotation-arguments (match-string 2 annotation))
 		 (annotation-rule (assoc annotation-type
-					 gdb-annotation-rules))
-		 (fullname (string-match gdb-fullname-regexp annotation-type)))
+					 gdb-annotation-rules)))
 
 	    ;; Stuff prior to the match is just ordinary output.
 	    ;; It is either concatenated to OUTPUT or directed
 	    ;; elsewhere.
-	    (setq output
-		  (gdb-concat-output output
-				     (concat before (if fullname "\n"))))
+	    (setq output (gdb-concat-output output before))
 
 	    ;; Take that stuff off the gud-marker-acc.
 	    (setq gud-marker-acc after)
@@ -1682,19 +1677,7 @@ happens to be appropriate."
 	    ;; Call the handler for this annotation.
 	    (if annotation-rule
 		(funcall (car (cdr annotation-rule))
-			 annotation-arguments)
-
-	      ;; Switch to gud-gdb-marker-filter if appropriate.
-	      (when fullname
-
-		;; Extract the frame position from the marker.
-		(setq gud-last-frame (cons (match-string 1 annotation)
-					   (string-to-number
-					    (match-string 2 annotation))))
-
-		(set (make-local-variable 'gud-minor-mode) 'gdb)
-		(set (make-local-variable 'gud-marker-filter)
-		     'gud-gdb-marker-filter)))
+			 annotation-arguments))
 
 	    ;; Else the annotation is not recognized.  Ignore it silently,
 	    ;; so that GDB can add new annotations without causing
@@ -3263,7 +3246,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
   (remove-hook 'after-save-hook 'gdb-create-define-alist t))
 
 (defun gdb-source-info ()
-  "Find the source file where the program starts and displays it with related
+  "Find the source file where the program starts and display it with related
 buffers."
   (goto-char (point-min))
   (if (and (search-forward "Located in " nil t)
