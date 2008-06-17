@@ -2521,22 +2521,15 @@ choose a font."
 	       (text-scale-increase -1))
 	      ((eq choice 'face-remap-reset-base)
 	       (text-scale-mode 0)
-	       (let ((entry (assq 'default face-remapping-alist)))
-		 (when entry
-		   (setq face-remapping-alist
-			 (remq entry face-remapping-alist))
-		   (force-window-update (current-buffer)))))
+	       (buffer-face-mode 0))
 	      (t
 	       ;; Either choice == 'x-select-font, or choice is a
 	       ;; symbol whose name is a font.
-	       (make-local-variable 'face-remapping-alist)
-	       (apply 'face-remap-add-relative
-		      'default
-		      (font-face-attributes 
-		       (if (eq choice 'x-select-font)
-			   (x-select-font)
-			 (symbol-name choice))))
-	       (force-window-update (current-buffer))))))))
+	       (buffer-face-mode-invoke (font-face-attributes
+					 (if (eq choice 'x-select-font)
+					     (x-select-font)
+					   (symbol-name choice)))
+					t (interactive-p))))))))
 
 
 ;;; Bindings for mouse commands.

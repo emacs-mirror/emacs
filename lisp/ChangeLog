@@ -1,5 +1,7 @@
 2008-06-17  Miles Bader  <miles@gnu.org>
 
+	* mouse.el (mouse-appearance-menu): Use buffer-face-mode.
+
 	* face-remap.el (buffer-face-mode-face)
 	(buffer-face-mode-remapping): New variables.
 	(buffer-face-mode, buffer-face-set, buffer-face-toggle)
