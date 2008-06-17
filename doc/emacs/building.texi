@@ -527,9 +527,14 @@ debugger supports.  However, shell wildcards and variables are not
 allowed.  GUD assumes that the first argument not starting with a
 @samp{-} is the executable file name.
 
+@c Running a debugger on a remote host
 Tramp provides a facility to debug programs on remote hosts.
 @xref{Running a debugger on a remote host, Running a debugger on a remote host,, tramp, The Tramp Manual}.
-@c Running a debugger on a remote host
+Both debugger and program are on the same remote host.
+This should not confused with debugging remote programs
+where the program runs on diferent machine to the debugger,
+as can be done with GDB, for example.
+@xref{Remote Debugging,, Debugging Remote Programs, gdb, The GNU debugger}.
 
 @node Debugger Operation
 @subsection Debugger Operation
@@ -1079,8 +1084,9 @@ The memory buffer lets you examine sections of program memory
 (@pxref{Memory, Memory, Examining memory, gdb, The GNU debugger}).
 Click @kbd{Mouse-1} on the appropriate part of the header line to
 change the starting address or number of data items that the buffer
-displays.  Click @kbd{Mouse-3} on the header line to select the
-display format or unit size for these data items.
+displays.  Alternatively, use @kbd{S} or @kbd{N} respectively.  Click
+@kbd{Mouse-3} on the header line to select the display format or unit
+size for these data items.
 @end table
 
 When @code{gdb-many-windows} is non-@code{nil}, the threads buffer
