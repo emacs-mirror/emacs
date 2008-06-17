@@ -1,3 +1,7 @@
+2008-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-disassociate-draft): Revert 2008-03-18 change.
+
 2008-05-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-button-alist): Exclude newline in RFC2396-compliant

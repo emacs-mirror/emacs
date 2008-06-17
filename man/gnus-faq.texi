@@ -63,8 +63,12 @@ the archive (BROKEN)}.
 @itemize @bullet
 
 @item
-Updated FAQ to reflect release of Gnus 5.10 and start of
-No Gnus development.
+2008-06-15: Adjust for message-fill-column.  Add x-face-file.
+Clarify difference between ding and gnu.emacs.gnus.  Remove
+reference to discontinued service.
+
+@item
+2006-04-15: Added tip on how to delete sent buffer on exit.
 @end itemize
 
 @node FAQ - Introduction
@@ -109,17 +113,17 @@ misprints are the my.gnus.org team's fault, sorry.
 @subsection Installation FAQ
 
 @menu
-* [1.1]::    What is the latest version of Gnus?
-* [1.2]::    What's new in 5.10?
-* [1.3]::    Where and how to get Gnus?
-* [1.4]::    What to do with the tarball now?
-* [1.5]::    I sometimes read references to No Gnus and Oort Gnus, what
-             are those?
-* [1.6]::    Which version of Emacs do I need?
-* [1.7]::    How do I run Gnus on both Emacs and XEmacs?
+* FAQ 1-1::    What is the latest version of Gnus?
+* FAQ 1-2::    What's new in 5.10?
+* FAQ 1-3::    Where and how to get Gnus?
+* FAQ 1-4::    What to do with the tarball now?
+* FAQ 1-5::    I sometimes read references to No Gnus and Oort Gnus,
+               what are those?
+* FAQ 1-6::    Which version of Emacs do I need?
+* FAQ 1-7::    How do I run Gnus on both Emacs and XEmacs?
 @end menu
 
-@node [1.1]
+@node FAQ 1-1
 @subsubheading Question 1.1
 
 What is the latest version of Gnus?
@@ -129,10 +133,10 @@ What is the latest version of Gnus?
 Jingle please: Gnus 5.10 is released, get it while it's
 hot! As well as the step in version number is rather
 small, Gnus 5.10 has tons of new features which you
-shouldn't miss. The current release (5.10.11) should be at
+shouldn't miss. The current release (5.10.10) should be at
 least as stable as the latest release of the 5.8 series.
 
-@node [1.2]
+@node FAQ 1-2
 @subsubheading Question 1.2
 
 What's new in 5.10?
@@ -166,7 +170,7 @@ New format specifiers for summary lines, e.g. %B for
 a complex trn-style thread tree.
 @end itemize
 
-@node [1.3]
+@node FAQ 1-3
 @subsubheading Question 1.3
 
 Where and how to get Gnus?
@@ -176,13 +180,13 @@ Where and how to get Gnus?
 Gnus is released independent from releases of Emacs and XEmacs.
 Therefore, the version bundled with Emacs or the version in XEmacs'
 package system might not be up to date (e.g. Gnus 5.9 bundled with Emacs
-20 is outdated).
-@c
+21 is outdated).
 You can get the latest released version of Gnus from
-@uref{http://www.gnus.org/dist/gnus.tar.gz} or via anonymous FTP from
+@uref{http://www.gnus.org/dist/gnus.tar.gz}
+or via anonymous FTP from 
 @uref{ftp://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
 
-@node [1.4]
+@node FAQ 1-4
 @subsubheading Question 1.4
 
 What to do with the tarball now?
@@ -213,7 +217,7 @@ Make sure that you don't have any Gnus related stuff
 before this line, on MS Windows use something like
 "C:/path/to/lisp" (yes, "/").
 
-@node [1.5]
+@node FAQ 1-5
 @subsubheading Question 1.5
 
 I sometimes read references to No Gnus and Oort Gnus,
@@ -228,7 +232,7 @@ once become Gnus 5.12 or Gnus 6. (If you're wondering why
 not 5.11, the odd version numbers are normally used for
 the Gnus versions bundled with Emacs)
 
-@node [1.6]
+@node FAQ 1-6
 @subsubheading Question 1.6
 
 Which version of Emacs do I need?
@@ -240,7 +244,7 @@ to Emacs 20.7 or XEmacs 21.1.
 The development versions of Gnus (aka No Gnus) requires Emacs 21
 or XEmacs 21.4.
 
-@node [1.7]
+@node FAQ 1-7
 @subsubheading Question 1.7
 
 How do I run Gnus on both Emacs and XEmacs?
@@ -256,20 +260,20 @@ of Gnus for Emacs and one for XEmacs.
 @subsection Startup / Group buffer
 
 @menu
-* [2.1]::    Every time I start Gnus I get a message "Gnus auto-save
-             file exists. Do you want to read it?", what does this mean and
-             how to prevent it?
-* [2.2]::    Gnus doesn't remember which groups I'm subscribed to,
-             what's this?
-* [2.3]::    How to change the format of the lines in Group buffer?
-* [2.4]::    My group buffer becomes a bit crowded, is there a way to
-             sort my groups into categories so I can easier browse through
-             them?
-* [2.5]::    How to manually sort the groups in Group buffer? How to
-             sort the groups in a topic?
+* FAQ 2-1::    Every time I start Gnus I get a message "Gnus auto-save
+               file exists. Do you want to read it?", what does this mean and
+               how to prevent it?
+* FAQ 2-2::    Gnus doesn't remember which groups I'm subscribed to,
+               what's this?
+* FAQ 2-3::    How to change the format of the lines in Group buffer?
+* FAQ 2-4::    My group buffer becomes a bit crowded, is there a way to
+               sort my groups into categories so I can easier browse through
+               them?
+* FAQ 2-5::    How to manually sort the groups in Group buffer? How to
+               sort the groups in a topic?
 @end menu
 
-@node [2.1]
+@node FAQ 2-1
 @subsubheading Question 2.1
 
 Every time I start Gnus I get a message "Gnus auto-save
@@ -288,7 +292,7 @@ To prevent this message make sure you exit Gnus
 via @samp{q} in group buffer instead of
 just killing Emacs.
 
-@node [2.2]
+@node FAQ 2-2
 @subsubheading Question 2.2
 
 Gnus doesn't remember which groups I'm subscribed to,
@@ -300,7 +304,7 @@ You get the message described in the q/a pair above while
 starting Gnus, right? It's an other symptom for the same
 problem, so read the answer above.
 
-@node [2.3]
+@node FAQ 2-3
 @subsubheading Question 2.3
 
 How to change the format of the lines in Group buffer?
@@ -317,7 +321,7 @@ example for this (guess from whose .gnus :-)):
 @end example
 @noindent
 
-@node [2.4]
+@node FAQ 2-4
 @subsubheading Question 2.4
 
 My group buffer becomes a bit crowded, is there a way to
@@ -340,7 +344,7 @@ menu. You might want to include the %P specifier at the
 beginning of your gnus-group-line-format variable to have
 the groups nicely indented.
 
-@node [2.5]
+@node FAQ 2-5
 @subsubheading Question 2.5
 
 How to manually sort the groups in Group buffer? How to
@@ -357,29 +361,29 @@ hit @samp{C-y}.
 @subsection Getting Messages
 
 @menu
-* [3.1]::     I just installed Gnus, started it via  @samp{M-x gnus} 
-              but it only says "nntp (news) open error", what to do?
-* [3.2]::     I'm working under Windows and have no idea what ~/.gnus.el
-              means.
-* [3.3]::     My news server requires authentication, how to store user
-              name and password on disk?
-* [3.4]::     Gnus seems to start up OK, but I can't find out how to
-              subscribe to a group.
-* [3.5]::     Gnus doesn't show all groups / Gnus says I'm not allowed
-              to post on this server as well as I am, what's that?
-* [3.6]::     I want Gnus to fetch news from several servers, is this
-              possible?
-* [3.7]::     And how about local spool files?
-* [3.8]::     OK, reading news works now, but I want to be able to read
-              my mail with Gnus, too. How to do it?
-* [3.9]::     And what about IMAP?
-* [3.10]::    At the office we use one of those MS Exchange servers, can
-              I use Gnus to read my mail from it?
-* [3.11]::    Can I tell Gnus not to delete the mails on the server it
-              retrieves via POP3?
+* FAQ 3-1::     I just installed Gnus, started it via  @samp{M-x gnus} 
+                but it only says "nntp (news) open error", what to do?
+* FAQ 3-2::     I'm working under Windows and have no idea what
+                ~/.gnus.el means.
+* FAQ 3-3::     My news server requires authentication, how to store
+                user name and password on disk?
+* FAQ 3-4::     Gnus seems to start up OK, but I can't find out how to
+                subscribe to a group.
+* FAQ 3-5::     Gnus doesn't show all groups / Gnus says I'm not allowed
+                to post on this server as well as I am, what's that?
+* FAQ 3-6::     I want Gnus to fetch news from several servers, is this
+                possible?
+* FAQ 3-7::     And how about local spool files?
+* FAQ 3-8::     OK, reading news works now, but I want to be able to
+                read my mail with Gnus, too. How to do it?
+* FAQ 3-9::     And what about IMAP?
+* FAQ 3-10::    At the office we use one of those MS Exchange servers,
+                can I use Gnus to read my mail from it?
+* FAQ 3-11::    Can I tell Gnus not to delete the mails on the server it
+                retrieves via POP3?
 @end menu
 
-@node [3.1]
+@node FAQ 3-1
 @subsubheading Question 3.1
 
 I just installed Gnus, started it via 
@@ -399,7 +403,7 @@ first start, put those lines in ~/.gnus.el:
 @end example
 @noindent
 
-@node [3.2]
+@node FAQ 3-2
 @subsubheading Question 3.2
 
 I'm working under Windows and have no idea what ~/.gnus.el means.
@@ -429,16 +433,16 @@ SET HOME=C:\myhome
 @noindent
 
 in your autoexec.bat and reboot.  Under NT, 2000 and XP, hit
-Winkey+Pause/Break to enter system options (if it doesn't work, go to
-Control Panel -> System -> Advanced). There you'll find the possibility
-to set environment variables.  Create a new one with name HOME and value
-C:\myhome.  Rebooting is not necessary.
+Winkey+Pause/Break to enter system options (if it doesn't work, go
+to Control Panel -> System -> Advanced). There you'll find the
+possibility to set environment variables.  Create a new one with
+name HOME and value C:\myhome.  Rebooting is not necessary.
 
 Now to create ~/.gnus.el, say
 @samp{C-x C-f ~/.gnus.el RET C-x C-s}.
 in Emacs.
 
-@node [3.3]
+@node FAQ 3-3
 @subsubheading Question 3.3
 
 My news server requires authentication, how to store
@@ -463,7 +467,7 @@ chmod 600 ~/.authinfo
 
 in a shell.)
 
-@node [3.4]
+@node FAQ 3-4
 @subsubheading Question 3.4
 
 Gnus seems to start up OK, but I can't find out how to
@@ -480,7 +484,7 @@ hit @samp{RET}, move point to the group
 you want to subscribe to and say @samp{u}
 to subscribe to it.
 
-@node [3.5]
+@node FAQ 3-5
 @subsubheading Question 3.5
 
 Gnus doesn't show all groups / Gnus says I'm not allowed to
@@ -499,7 +503,7 @@ force yes
  
 to the line for those servers in ~/.authinfo.
 
-@node [3.6]
+@node FAQ 3-6
 @subsubheading Question 3.6
 
 I want Gnus to fetch news from several servers, is this possible?
@@ -518,7 +522,7 @@ this in ~/.gnus.el:
 @end example
 @noindent
 
-@node [3.7]
+@node FAQ 3-7
 @subsubheading Question 3.7
 
 And how about local spool files?
@@ -554,7 +558,7 @@ This sets the spool directory for this server only.
 You might have to specify more stuff like the program used
 to post articles, see the Gnus manual on how to do this.
 
-@node [3.8]
+@node FAQ 3-8
 @subsubheading Question 3.8
 
 OK, reading news works now, but I want to be able to read my mail
@@ -652,7 +656,7 @@ SMTP Server you need the following in your ~/.gnus.el
 @end example
 @noindent
 
-@node [3.9]
+@node FAQ 3-9
 @subsubheading Question 3.9
 
 And what about IMAP?
@@ -698,7 +702,7 @@ Again, you might have to specify how to authenticate to the
 server if Gnus can't guess the correct way, see the Manual
 Node "IMAP" for detailed information.
 
-@node [3.10]
+@node FAQ 3-10
 @subsubheading Question 3.10
 
 At the office we use one of those MS Exchange servers, can I use
@@ -710,7 +714,7 @@ Offer your administrator a pair of new running shoes for
 activating IMAP on the server and follow the instructions
 above.
 
-@node [3.11]
+@node FAQ 3-11
 @subsubheading Question 3.11
 
 Can I tell Gnus not to delete the mails on the server it
@@ -749,38 +753,38 @@ it.
 @subsection Reading messages
 
 @menu
-* [4.1]::     When I enter a group, all read messages are gone. How to
-              view them again?
-* [4.2]::     How to tell Gnus to show an important message every time I
-              enter a group, even when it's read?
-* [4.3]::     How to view the headers of a message?
-* [4.4]::     How to view the raw unformatted message?
-* [4.5]::     How can I change the headers Gnus displays by default at
-              the top of the article buffer?
-* [4.6]::     I'd like Gnus NOT to render HTML-mails but show me the
-              text part if it's available. How to do it?
-* [4.7]::     Can I use some other browser than w3 to render my
-              HTML-mails?
-* [4.8]::     Is there anything I can do to make poorly formatted mails
-              more readable?
-* [4.9]::     Is there a way to automatically ignore posts by specific
-              authors or with specific words in the subject? And can I highlight
-              more interesting ones in some way?
-* [4.10]::    How can I disable threading in some (e.g. mail-) groups,
-              or set other variables specific for some groups?
-* [4.11]::    Can I highlight messages written by me and follow-ups to
-              those?
-* [4.12]::    The number of total messages in a group which Gnus
-              displays in group buffer is by far to high, especially in mail
-              groups. Is this a bug?
-* [4.13]::    I don't like the layout of summary and article buffer, how
-              to change it? Perhaps even a three pane display?
-* [4.14]::    I don't like the way the Summary buffer looks, how to
-              tweak it?
-* [4.15]::    How to split incoming mails in several groups?
+* FAQ 4-1::     When I enter a group, all read messages are gone. How to
+                view them again?
+* FAQ 4-2::     How to tell Gnus to show an important message every time
+                I enter a group, even when it's read?
+* FAQ 4-3::     How to view the headers of a message?
+* FAQ 4-4::     How to view the raw unformatted message?
+* FAQ 4-5::     How can I change the headers Gnus displays by default at
+                the top of the article buffer?
+* FAQ 4-6::     I'd like Gnus NOT to render HTML-mails but show me the
+                text part if it's available. How to do it?
+* FAQ 4-7::     Can I use some other browser than w3 to render my
+                HTML-mails?
+* FAQ 4-8::     Is there anything I can do to make poorly formatted
+                mails more readable?
+* FAQ 4-9::     Is there a way to automatically ignore posts by specific
+                authors or with specific words in the subject? And can I
+                highlight more interesting ones in some way?
+* FAQ 4-10::    How can I disable threading in some (e.g. mail-) groups,
+                or set other variables specific for some groups?
+* FAQ 4-11::    Can I highlight messages written by me and follow-ups to
+                those?
+* FAQ 4-12::    The number of total messages in a group which Gnus
+                displays in group buffer is by far to high, especially in mail
+                groups. Is this a bug?
+* FAQ 4-13::    I don't like the layout of summary and article buffer,
+                how to change it? Perhaps even a three pane display?
+* FAQ 4-14::    I don't like the way the Summary buffer looks, how to
+                tweak it?
+* FAQ 4-15::    How to split incoming mails in several groups?
 @end menu
 
-@node [4.1]
+@node FAQ 4-1
 @subsubheading Question 4.1
 
 When I enter a group, all read messages are gone. How to view them again?
@@ -813,7 +817,7 @@ If you don't want all old messages, but the parent of the message you're just re
 you can say @samp{^}, if you want to retrieve the whole thread
 the message you're just reading belongs to, @samp{A T} is your friend.
 
-@node [4.2]
+@node FAQ 4-2
 @subsubheading Question 4.2
 
 How to tell Gnus to show an important message every time I
@@ -828,7 +832,7 @@ either @samp{d} (this deletes the tick
 mark and set's unread mark) or @samp{M c}
 (which deletes all marks for the message).
 
-@node [4.3]
+@node FAQ 4-3
 @subsubheading Question 4.3
 
 How to view the headers of a message?
@@ -840,7 +844,7 @@ to show all headers, one more
 @samp{t} 
 hides them again.
 
-@node [4.4]
+@node FAQ 4-4
 @subsubheading Question 4.4
 
 How to view the raw unformatted message?
@@ -853,7 +857,7 @@ to show the raw message
 @samp{g} 
 returns to normal view.
 
-@node [4.5]
+@node FAQ 4-5
 @subsubheading Question 4.5
 
 How can I change the headers Gnus displays by default at
@@ -874,7 +878,7 @@ say this in ~/.gnus.el:
 @end example
 @noindent
 
-@node [4.6]
+@node FAQ 4-6
 @subsubheading Question 4.6
 
 I'd like Gnus NOT to render HTML-mails but show me the
@@ -901,7 +905,7 @@ in ~/.gnus.el. If you don't want HTML rendered, even if there's no text alternat
 
 too.
 
-@node [4.7]
+@node FAQ 4-7
 @subsubheading Question 4.7
 
 Can I use some other browser than w3 to render my HTML-mails?
@@ -919,7 +923,7 @@ mail say
 @end example
 @noindent
 
-@node [4.8]
+@node FAQ 4-8
 @subsubheading Question 4.8
 
 Is there anything I can do to make poorly formatted mails
@@ -938,7 +942,7 @@ See @samp{W Y C-h} or have a look at the menus for
 other deuglifications).  Outlook deuglify is only available since
 Gnus 5.10.
 
-@node [4.9]
+@node FAQ 4-9
 @subsubheading Question 4.9
 
 Is there a way to automatically ignore posts by specific
@@ -1008,7 +1012,7 @@ adaptive scoring say
 
 in ~/.gnus.el.
 
-@node [4.10]
+@node FAQ 4-10
 @subsubheading Question 4.10
 
 How can I disable threading in some (e.g. mail-) groups, or
@@ -1025,7 +1029,7 @@ gnus-show-threads as name of variable and nil as
 value. Hit button done at the top of the buffer when
 you're ready.
 
-@node [4.11]
+@node FAQ 4-11
 @subsubheading Question 4.11
 
 Can I highlight messages written by me and follow-ups to
@@ -1041,7 +1045,7 @@ special score and finally we'll tell Gnus to use the new
 faces. You can find detailed instructions on how to do it on
 @uref{http://my.gnus.org/node/view/224, my.gnus.org}
 
-@node [4.12]
+@node FAQ 4-12
 @subsubheading Question 4.12
 
 The number of total messages in a group which Gnus
@@ -1065,7 +1069,7 @@ get new message numbers in this process and the count is
 right again (until you delete and move your mail to other
 groups again).
 
-@node [4.13]
+@node FAQ 4-13
 @subsubheading Question 4.13
 
 I don't like the layout of summary and article buffer, how
@@ -1110,7 +1114,7 @@ buffer top-right, article buffer bottom-right:
 @end example
 @noindent
 
-@node [4.14]
+@node FAQ 4-14
 @subsubheading Question 4.14
 
 I don't like the way the Summary buffer looks, how to tweak it?
@@ -1155,7 +1159,7 @@ resulting in:
 @end example
 @noindent
 
-@node [4.15]
+@node FAQ 4-15
 @subsubheading Question 4.15
 
 How to split incoming mails in several groups?
@@ -1226,31 +1230,36 @@ from using them):
 @subsection Composing messages
 
 @menu
-* [5.1]::     What are the basic commands I need to know for sending
-              mail and postings?
-* [5.2]::     How to enable automatic word-wrap when composing messages?
-* [5.3]::     How to set stuff like From, Organization, Reply-To,
-              signature...?
-* [5.4]::     Can I set things like From, Signature etc group based on
-              the group I post too?
-* [5.5]::     Is there a spell-checker? Perhaps even on-the-fly
-              spell-checking?
-* [5.6]::     Can I set the dictionary based on the group I'm posting
-              to?
-* [5.7]::     Is there some kind of address-book, so I needn't remember
-              all those email addresses?
-* [5.8]::     Sometimes I see little images at the top of article
-              buffer. What's that and how can I send one with my postings, too?
-* [5.9]::     Sometimes I accidentally hit r instead of f in newsgroups.
-              Can Gnus warn me, when I'm replying by mail in newsgroups?
-* [5.10]::    How to tell Gnus not to generate a sender header?
-* [5.11]::    I want Gnus to locally store copies of my send mail and
-              news, how to do it?
-* [5.12]::    People tell me my Message-IDs are not correct, why aren't
-              they and how to fix it?
+* FAQ 5-1::     What are the basic commands I need to know for sending
+                mail and postings?
+* FAQ 5-2::     How to enable automatic word-wrap when composing
+                messages?
+* FAQ 5-3::     How to set stuff like From, Organization, Reply-To,
+                signature...?
+* FAQ 5-4::     Can I set things like From, Signature etc group based on
+                the group I post too?
+* FAQ 5-5::     Is there a spell-checker? Perhaps even on-the-fly
+                spell-checking?
+* FAQ 5-6::     Can I set the dictionary based on the group I'm posting
+                to?
+* FAQ 5-7::     Is there some kind of address-book, so I needn't
+                remember all those email addresses?
+* FAQ 5-8::     Sometimes I see little images at the top of article
+                buffer. What's that and how can I send one with my postings,
+                too?
+* FAQ 5-9::     Sometimes I accidentally hit r instead of f in
+                newsgroups. Can Gnus warn me, when I'm replying by mail in
+                newsgroups?
+* FAQ 5-10::    How to tell Gnus not to generate a sender header?
+* FAQ 5-11::    I want Gnus to locally store copies of my send mail and
+                news, how to do it?
+* FAQ 5-12::    I want Gnus to kill the buffer after successful sending
+                instead of keeping it alive as "Sent mail to...", how to do it?
+* FAQ 5-13::    People tell me my Message-IDs are not correct, why
+                aren't they and how to fix it?
 @end menu
 
-@node [5.1]
+@node FAQ 5-1
 @subsubheading Question 5.1
 
 What are the basic commands I need to know for sending mail and postings?
@@ -1280,7 +1289,7 @@ C-d} to save it in the drafts group, where you
 can start editing it again by saying @samp{D
 e}.
 
-@node [5.2]
+@node FAQ 5-2
 @subsubheading Question 5.2
 
 How to enable automatic word-wrap when composing messages?
@@ -1303,9 +1312,10 @@ For other versions of Gnus, say
 
 in ~/.gnus.el.
 
-You can reformat a paragraph by hitting @samp{M-q} (as usual).
+You can reformat a paragraph by hitting @samp{M-q}
+(as usual).
 
-@node [5.3]
+@node FAQ 5-3
 @subsubheading Question 5.3
 
 How to set stuff like From, Organization, Reply-To, signature...?
@@ -1339,7 +1349,7 @@ name will be removed. You can also say (eval (foo bar)),
 then the function foo will be evaluated with argument bar
 and the result will be thrown away.
 
-@node [5.4]
+@node FAQ 5-4
 @subsubheading Question 5.4
 
 Can I set things like From, Signature etc group based on the group I post too?
@@ -1390,7 +1400,7 @@ at the bottom.
 @end example
 @noindent
 
-@node [5.5]
+@node FAQ 5-5
 @subsubheading Question 5.5
 
 Is there a spell-checker? Perhaps even on-the-fly spell-checking?
@@ -1433,7 +1443,7 @@ In your ~/.gnus.el, if you prefer on-the-fly spell-checking say
 @end example
 @noindent
 
-@node [5.6]
+@node FAQ 5-6
 @subsubheading Question 5.6
 
 Can I set the dictionary based on the group I'm posting to?
@@ -1457,7 +1467,7 @@ Yes, say something like
 in ~/.gnus.el. Change "^de\\." and "deutsch8" to something
 that suits your needs.
 
-@node [5.7]
+@node FAQ 5-7
 @subsubheading Question 5.7
 
 Is there some kind of address-book, so I needn't remember
@@ -1521,7 +1531,7 @@ you are done. When you now compose a new mail,
 hit @samp{TAB} to cycle through know
 recipients.
 
-@node [5.8]
+@node FAQ 5-8
 @subsubheading Question 5.8
 
 Sometimes I see little images at the top of article
@@ -1571,7 +1581,7 @@ in ~/.gnus.el.  If you use Gnus 5.10, you can simply add an entry
 
 to gnus-posting-styles.
 
-@node [5.9]
+@node FAQ 5-9
 @subsubheading Question 5.9
 
 Sometimes I accidentally hit r instead of f in
@@ -1602,7 +1612,7 @@ if you already use Gnus 5.10, if you still use 5.8.8 or
 @end example
 @noindent
 
-@node [5.10]
+@node FAQ 5-10
 @subsubheading Question 5.10
 
 How to tell Gnus not to generate a sender header?
@@ -1618,7 +1628,7 @@ default. For older Gnus' try this in ~/.gnus.el:
 @end example
 @noindent
 
-@node [5.11]
+@node FAQ 5-11
 @subsubheading Question 5.11
 
 I want Gnus to locally store copies of my send mail and
@@ -1640,8 +1650,23 @@ the group to use.
 @end example
 @noindent
 
-@node [5.12]
+@node FAQ 5-12
 @subsubheading Question 5.12
+
+I want Gnus to kill the buffer after successful sending instead of keeping
+it alive as "Sent mail to...", how to do it?
+
+@subsubheading Answer
+
+Add this to your ~/.gnus:
+
+@example
+(setq message-kill-buffer-on-exit t)
+@end example
+@noindent
+
+@node FAQ 5-13
+@subsubheading Question 5.13
 
 People tell me my Message-IDs are not correct, why
 aren't they and how to fix it?
@@ -1661,7 +1686,7 @@ by saying:
 @noindent
 
 in ~/.gnus.el.  If you use Gnus 5.9 or earlier, you can use this
-instead (works for newer versions a well): 
+instead (works for newer versions as well): 
 
 @example
 (eval-after-load "message"
@@ -1709,17 +1734,17 @@ correctly by sending yourself a Mail and looking at the Message-ID.
 @subsection Old messages
 
 @menu
-* [6.1]::    How to import my old mail into Gnus?
-* [6.2]::    How to archive interesting messages?
-* [6.3]::    How to search for a specific message?
-* [6.4]::    How to get rid of old unwanted mail?
-* [6.5]::    I want that all read messages are expired (at least in some
-             groups). How to do it?
-* [6.6]::    I don't want expiration to delete my mails but to move them
-             to another group.
+* FAQ 6-1::    How to import my old mail into Gnus?
+* FAQ 6-2::    How to archive interesting messages?
+* FAQ 6-3::    How to search for a specific message?
+* FAQ 6-4::    How to get rid of old unwanted mail?
+* FAQ 6-5::    I want that all read messages are expired (at least in
+               some groups). How to do it?
+* FAQ 6-6::    I don't want expiration to delete my mails but to move
+               them to another group.
 @end menu
 
-@node [6.1]
+@node FAQ 6-1
 @subsubheading Question 6.1
 
 How to import my old mail into Gnus?
@@ -1746,7 +1771,7 @@ either copy them to the desired group by saying
 through nnmail-split-methods (respool them) by saying
 @samp{B r}.
 
-@node [6.2]
+@node FAQ 6-2
 @subsubheading Question 6.2
 
 How to archive interesting messages?
@@ -1797,7 +1822,7 @@ then you only have to set either the tick or the dormant
 mark for articles you want to keep, setting the read
 mark will remove them from cache.
 
-@node [6.3]
+@node FAQ 6-3
 @subsubheading Question 6.3
 
 How to search for a specific message?
@@ -1839,7 +1864,7 @@ cool to you get nnir.el from
 or @uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
 Instructions on how to use it are at the top of the file.
 
-@node [6.4]
+@node FAQ 6-4
 @subsubheading Question 6.4
 
 How to get rid of old unwanted mail?
@@ -1864,7 +1889,7 @@ group, Gnus looks at all messages which you marked as
 expirable before and if they are old enough (default is
 older than a week) they are deleted.
 
-@node [6.5]
+@node FAQ 6-5
 @subsubheading Question 6.5
 
 I want that all read messages are expired (at least in
@@ -1900,7 +1925,7 @@ tick (hit @samp{u}) or dormant mark (hit
 can also set the read mark (hit
 @samp{d}).
 
-@node [6.6]
+@node FAQ 6-6
 @subsubheading Question 6.6
 
 I don't want expiration to delete my mails but to move them
@@ -1924,15 +1949,16 @@ variables specific for some groups?")
 @subsection Gnus in a dial-up environment
 
 @menu
-* [7.1]::    I don't have a permanent connection to the net, how can I
-             minimize the time I've got to be connected?
-* [7.2]::    So what was this thing about the Agent?
-* [7.3]::    I want to store article bodies on disk, too. How to do it?
-* [7.4]::    How to tell Gnus not to try to send mails / postings while
-             I'm offline?
+* FAQ 7-1::    I don't have a permanent connection to the net, how can I
+               minimize the time I've got to be connected?
+* FAQ 7-2::    So what was this thing about the Agent?
+* FAQ 7-3::    I want to store article bodies on disk, too. How to do
+               it?
+* FAQ 7-4::    How to tell Gnus not to try to send mails / postings
+               while I'm offline?
 @end menu
 
-@node [7.1]
+@node FAQ 7-1
 @subsubheading Question 7.1
 
 I don't have a permanent connection to the net, how can
@@ -1978,7 +2004,7 @@ to Gnus (or any other mail and/or news reader) via nntp
 respectively POP3 or IMAP. It also includes a smtp
 server for receiving mails from Gnus.
 
-@node [7.2]
+@node FAQ 7-2
 @subsubheading Question 7.2
 
 So what was this thing about the Agent?
@@ -2010,7 +2036,7 @@ Now the next time you enter a group on a agentized
 server, the headers will be stored on disk and read from
 there the next time you enter the group.
 
-@node [7.3]
+@node FAQ 7-3
 @subsubheading Question 7.3
 
 I want to store article bodies on disk, too. How to do it?
@@ -2045,7 +2071,7 @@ the headers for every selected group on an agentized
 server.  Depending on the volume of headers, the initial
 fetch session could take hours.
 
-@node [7.4]
+@node FAQ 7-4
 @subsubheading Question 7.4
 
 How to tell Gnus not to try to send mails / postings
@@ -2066,16 +2092,16 @@ work, the agent must be active.
 @subsection Getting help
 
 @menu
-* [8.1]::    How to find information and help inside Emacs?
-* [8.2]::    I can't find anything in the Gnus manual about X (e.g.
-             attachments, PGP, MIME...), is it not documented?
-* [8.3]::    Which websites should I know?
-* [8.4]::    Which mailing lists and newsgroups are there?
-* [8.5]::    Where to report bugs?
-* [8.6]::    I need real-time help, where to find it?
+* FAQ 8-1::    How to find information and help inside Emacs?
+* FAQ 8-2::    I can't find anything in the Gnus manual about X (e.g.
+               attachments, PGP, MIME...), is it not documented?
+* FAQ 8-3::    Which websites should I know?
+* FAQ 8-4::    Which mailing lists and newsgroups are there?
+* FAQ 8-5::    Where to report bugs?
+* FAQ 8-6::    I need real-time help, where to find it?
 @end menu
 
-@node [8.1]
+@node FAQ 8-1
 @subsubheading Question 8.1
 
 How to find information and help inside Emacs?
@@ -2093,7 +2119,7 @@ of all available help commands and their meaning. Finally
 search through all available functions and @samp{M-x
 apropos} searches the bound variables.
 
-@node [8.2]
+@node FAQ 8-2
 @subsubheading Question 8.2
 
 I can't find anything in the Gnus manual about X
@@ -2108,7 +2134,7 @@ really part of core Gnus, so they are documented in
 different info files, you should have a look in those
 manuals, too.
 
-@node [8.3]
+@node FAQ 8-3
 @subsubheading Question 8.3
 
 Which websites should I know?
@@ -2124,7 +2150,7 @@ really finished) tutorial and this FAQ.
 
 Tell me about other sites which are interesting.
 
-@node [8.4]
+@node FAQ 8-4
 @subsubheading Question 8.4
 
 Which mailing lists and newsgroups are there?
@@ -2132,15 +2158,15 @@ Which mailing lists and newsgroups are there?
 @subsubheading Answer
 
 There's the newsgroup gnu.emacs.gnus (also available as
-@uref{http://dir.gmane.org/gmane.emacs.gnus.user,
-gmane.emacs.gnus.user}) which deals with general Gnus questions.  If you
-have questions about development versions of Gnus, you should better ask
-on the ding mailing list, see below.
+@uref{http://dir.gmane.org/gmane.emacs.gnus.user, 
+gmane.emacs.gnus.user}) which deals with general Gnus
+questions.  If you have questions about development versions of
+Gnus, you should better ask on the ding mailing list, see below.
 
 If you want to stay in the big8,
 news.software.newssreaders is also read by some Gnus
 users (but chances for qualified help are much better in
-the above groups). If you speak German, there's
+the above groups).  If you speak German, there's
 de.comm.software.gnus.
 
 The ding mailing list (ding@@gnus.org) deals with development of
@@ -2148,7 +2174,7 @@ Gnus. You can read the ding list via NNTP, too under the name
 @uref{http://dir.gmane.org/gmane.emacs.gnus.general, 
 gmane.emacs.gnus.general} from news.gmane.org.
 
-@node [8.5]
+@node FAQ 8-5
 @subsubheading Question 8.5
 
 Where to report bugs?
@@ -2161,7 +2187,7 @@ a message to the
 including information about your environment which make
 it easier to help you.
 
-@node [8.6]
+@node FAQ 8-6
 @subsubheading Question 8.6
 
 I need real-time help, where to find it?
@@ -2174,12 +2200,12 @@ Point your IRC client to irc.freenode.net, channel #gnus.
 @subsection Tuning Gnus
 
 @menu
-* [9.1]::    Starting Gnus is really slow, how to speed it up?
-* [9.2]::    How to speed up the process of entering a group?
-* [9.3]::    Sending mail becomes slower and slower, what's up?
+* FAQ 9-1::    Starting Gnus is really slow, how to speed it up?
+* FAQ 9-2::    How to speed up the process of entering a group?
+* FAQ 9-3::    Sending mail becomes slower and slower, what's up?
 @end menu
 
-@node [9.1]
+@node FAQ 9-1
 @subsubheading Question 9.1
 
 Starting Gnus is really slow, how to speed it up?
@@ -2214,7 +2240,7 @@ you replace it with
 
 it's loaded when it's needed.
 
-@node [9.2]
+@node FAQ 9-2
 @subsubheading Question 9.2
 
 How to speed up the process of entering a group?
@@ -2258,7 +2284,7 @@ buffer generation, you definitely should update to
 5.10 since there quite some work on improving it has
 been done.
 
-@node [9.3]
+@node FAQ 9-3
 @subsubheading Question 9.3
 
 Sending mail becomes slower and slower, what's up?

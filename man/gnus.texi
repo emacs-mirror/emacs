@@ -14097,8 +14097,8 @@ files.  If a positive number, delete files older than number of days
 (the deletion will only happen when receiving new mail).  You may also
 set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
-@code{mail-source-delete-incoming} defaults to @code{2} in alpha Gnusae
-and @code{10} in released Gnusae.  @xref{Gnus Development}.
+@code{mail-source-delete-incoming} defaults to @code{10} in alpha Gnusae
+and @code{2} in released Gnusae.  @xref{Gnus Development}.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
@@ -27240,7 +27240,7 @@ controls this.
 @item You can now drag and drop attachments to the Message buffer.
 See @code{mml-dnd-protocol-alist} and @code{mml-dnd-attach-options}.
 @xref{MIME, ,MIME, message, Message Manual}.
-@c New in 5.10.9 / 5.11 (Emacs 21.1)
+@c New in 5.10.9 / 5.11 (Emacs 22.1)
 
 @item @code{auto-fill-mode} is enabled by default in Message mode.
 See @code{message-fill-column}.  @xref{Various Message Variables, ,

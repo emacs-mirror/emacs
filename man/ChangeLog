@@ -1,3 +1,20 @@
+2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi: Generate.  Change node names to "FAQ N-M".
+
+	* gnus-faq.texi: Generate from gnus-faq.xml (sourceforge.net).
+
+2008-06-15  Frank Schmitt  <ich@frank-schmitt.net>
+
+	* gnus-faq.texi ([5.12]): Add entry about message-kill-buffer-on-exit.
+	Fix a typo.
+
+2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Customization): Correct values of
+	 `mail-source-delete-incoming'.  Reported by Tassilo Horn.
+	(Oort Gnus): Fix version comment for mml-dnd-protocol-alist.
+
 2008-05-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Files): Update the documentation of
