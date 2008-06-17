@@ -2471,6 +2471,7 @@ choose a font."
 	    (error "Font not found")))))
 
 (defvar mouse-appearance-menu-map nil)
+(declare-function x-select-font "xfns.c" (&optional frame ignored)) ; USE_GTK
 
 (defun mouse-appearance-menu (event)
   (interactive "@e")
