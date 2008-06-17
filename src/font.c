@@ -1359,8 +1359,7 @@ font_parse_fcname (name, font)
 	p++;
       else if (*p == ':')
 	{
-	  family_end = p;
-	  props_beg = p + 1;
+	  props_beg = family_end = p;
 	  break;
 	}
       else if (*p == '-')
@@ -1400,7 +1399,7 @@ font_parse_fcname (name, font)
 	  double point_size = strtod (size_beg, &size_end);
 	  ASET (font, FONT_SIZE_INDEX, make_float (point_size));
 	  if (*size_end == ':' && size_end[1])
-	    props_beg = size_end + 1;
+	    props_beg = size_end;
 	}
       if (props_beg)
 	{
@@ -1408,22 +1407,21 @@ font_parse_fcname (name, font)
 	     extra, copy unknown ones to COPY.  It is stored in extra slot by
 	     the key QCfc_unknown_spec.  */
 	  char *copy_start, *copy;
+	  Lisp_Object val;
 
 	  copy_start = copy = alloca (name + len - props_beg + 2);
 	  if (! copy)
 	    return -1;
 
-	  p = props_beg;
-	  while (*p)
+	  for (p = props_beg; *p; p = q)
 	    {
-	      Lisp_Object val;
-	      int word_len, prop;
-
 	      for (q = p + 1; *q && *q != '=' && *q != ':'; q++);
-	      word_len = q - p;
 	      if (*q != '=')
 		{
 		  /* Must be an enumerated value.  */
+		  int word_len;
+		  p = p + 1;
+		  word_len = q - p;
 		  val = font_intern_prop (p, q - p, 1);
 
 #define PROP_MATCH(STR,N) ((word_len == N) && memcmp (p, STR, N) == 0)
@@ -1456,12 +1454,14 @@ font_parse_fcname (name, font)
 		    }
 #undef PROP_MATCH
 		}
-	      else /* KEY=VAL pairs  */
+	      else
 		{
+		  /* KEY=VAL pairs  */
 		  Lisp_Object key;
 		  char *keyhead = p;
+		  int prop;
 
-		  if (word_len == 9 && memcmp (p, "pixelsize=", 10) == 0)
+		  if (q - p == 10 && memcmp (p + 1, "pixelsize", 9) == 0)
 		    prop = FONT_SIZE_INDEX;
 		  else
 		    {
@@ -1483,13 +1483,11 @@ font_parse_fcname (name, font)
 			Ffont_put (font, key, val);
 		      else
 			{
-			  *copy++ = ':';
 			  bcopy (keyhead, copy, q - keyhead);
 			  copy += q - keyhead;
 			}
 		    }
 		}
-	      p = *q ? q + 1 : q;
 	    }
 	  if (copy_start != copy)
 	    font_put_extra (font, QCfc_unknown_spec,
