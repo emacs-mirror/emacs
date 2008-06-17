@@ -853,13 +853,13 @@ This function is suitable for execution in a .emacs file."
 contents of temp window."))))))
 
 ;;;###cal-autoload
-(defun calendar-sunrise-sunset ()
+(defun calendar-sunrise-sunset (&optional event)
   "Local time of sunrise and sunset for date under cursor.
 Accurate to a few seconds."
-  (interactive)
+  (interactive (list last-nonmenu-event))
   (or (and calendar-latitude calendar-longitude calendar-time-zone)
       (solar-setup))
-  (let ((date (calendar-cursor-to-date t)))
+  (let ((date (calendar-cursor-to-date t event)))
     (message "%s: %s"
              (calendar-date-string date t t)
              (solar-sunrise-sunset-string date))))

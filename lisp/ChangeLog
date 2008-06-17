@@ -1,5 +1,14 @@
 2008-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/calendar.el (calendar-cursor-to-date): Add argument `event'.
+	(calendar-set-mark):
+	* calendar/diary-lib.el (diary-insert-entry):
+	* calendar/solar.el (calendar-sunrise-sunset): Use it.
+	* calendar/cal-menu.el (calendar-mouse-sunrise/sunset)
+	(calendar-mouse-insert-diary-entry, calendar-mouse-set-mark): Delete.
+	(cal-menu-context-mouse-menu): Use calendar-set-mark,
+	diary-insert-entry, and calendar-sunrise-sunset instead.
+
 	* vc.el (vc-deduce-fileset): Add arg `only-files'.
 	(vc-next-action): Pass the new arg.
 	(vc-register): Don't use `only-files'.

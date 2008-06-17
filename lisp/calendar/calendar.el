@@ -1571,10 +1571,17 @@ the STRINGS are just concatenated and the result truncated."
   (let ((now (decode-time)))
     (list (nth 4 now) (nth 3 now) (nth 5 now))))
 
-(defun calendar-cursor-to-date (&optional error)
+(defun calendar-cursor-to-date (&optional error event)
   "Return a list (month day year) of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
-ERROR is non-nil, otherwise just returns nil."
+ERROR is non-nil, otherwise just returns nil.
+If EVENT is non-nil, it's an event indicating the buffer position to
+use instead of point."
+  (with-current-buffer
+      (if event (window-buffer (posn-window (event-start event)))
+        (current-buffer))
+    (save-excursion
+      (if event (goto-char (posn-point (event-start event))))
   (let* ((segment (/ (current-column) 25))
          (month (% (+ displayed-month segment -1) 12))
          (month (if (zerop month) 12 month))
@@ -1583,15 +1590,14 @@ ERROR is non-nil, otherwise just returns nil."
            ((and (=  12 month) (zerop segment)) (1- displayed-year))
            ((and (=   1 month) (= segment 2)) (1+ displayed-year))
            (t displayed-year))))
-    (if (and (looking-at "[ 0-9]?[0-9][^0-9]")
-             (< 2 (count-lines (point-min) (point))))
-        (save-excursion
+        (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
+                      (< 2 (count-lines (point-min) (point)))))
+            (if error (error "Not on a date!"))
           (if (not (looking-at " "))
               (re-search-backward "[^0-9]"))
           (list month
                 (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
-                year))
-      (if error (error "Not on a date!")))))
+                year))))))
 
 (add-to-list 'debug-ignored-errors "Not on a date!")
 
@@ -1668,12 +1674,13 @@ EVENT is an event like `last-nonmenu-event'."
           ((calendar-date-is-visible-p today) today)
           (t (list month 1 year))))))))
 
-(defun calendar-set-mark (arg)
+(defun calendar-set-mark (arg &optional event)
   "Mark the date under the cursor, or jump to marked date.
 With no prefix argument, push current date onto marked date ring.
 With argument ARG, jump to mark, pop it, and put point at end of ring."
-  (interactive "P")
-  (let ((date (calendar-cursor-to-date t)))
+  (interactive
+   (list current-prefix-arg last-nonmenu-event))
+  (let ((date (calendar-cursor-to-date t event)))
     (if arg
         (if (null calendar-mark-ring)
             (error "No mark set in this buffer")

@@ -184,13 +184,6 @@ ERROR is non-nil, otherwise just returns nil."
   (set-buffer (window-buffer (posn-window (event-start last-input-event))))
   (calendar-goto-date date))
 
-(defun calendar-mouse-sunrise/sunset ()
-  "Show sunrise/sunset times for mouse-selected date."
-  (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (cal-menu-event-to-date))
-    (calendar-sunrise-sunset)))
-
 (defun cal-menu-today-holidays ()
   "Show holidays for today's date."
   (interactive)
@@ -256,20 +249,6 @@ is non-nil."
   (calendar-mouse-view-diary-entries
    (cal-menu-event-to-date)
    (read-file-name "Enter diary file name: " default-directory nil t)))
-
-(defun calendar-mouse-insert-diary-entry ()
-  "Insert diary entry for mouse-selected date."
-  (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (cal-menu-event-to-date))
-    (diary-insert-entry nil)))
-
-(defun calendar-mouse-set-mark ()
-  "Mark the date under the cursor."
-  (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (cal-menu-event-to-date))
-    (calendar-set-mark nil)))
 
 (defun calendar-mouse-tex-day ()
   "Make a buffer with LaTeX commands for the day mouse is on."
@@ -391,8 +370,8 @@ EVENT is the event that invoked this command."
   '("cal-menu-mouse2" :filter cal-menu-set-date-title
     "--"
     ["Holidays" calendar-mouse-holidays]
-    ["Mark date" calendar-mouse-set-mark]
-    ["Sunrise/sunset" calendar-mouse-sunrise/sunset]
+    ["Mark date" calendar-set-mark]
+    ["Sunrise/sunset" calendar-sunrise-sunset]
     ["Other calendars" calendar-mouse-print-dates]
     ("Prepare LaTeX buffer"
      ["Daily (1 page)" calendar-mouse-tex-day]
@@ -410,7 +389,7 @@ EVENT is the event that invoked this command."
       ["Filofax Weekly (week-at-a-glance)" calendar-mouse-tex-filofax-week]
       ["Filofax Yearly" calendar-mouse-tex-filofax-year]))
     ["Diary entries" calendar-mouse-view-diary-entries]
-    ["Insert diary entry" calendar-mouse-insert-diary-entry]
+    ["Insert diary entry" diary-insert-entry]
     ["Other diary file entries" calendar-mouse-view-other-diary-entries]))
 
 (easy-menu-define cal-menu-global-mouse-menu nil
