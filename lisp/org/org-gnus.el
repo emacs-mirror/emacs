@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -125,4 +125,5 @@ negates this setting for the duration of the command."
 (provide 'org-gnus)
 
 ;; arch-tag: 512e0840-58fa-45b3-b456-71e10fa2376d
+
 ;;; org-gnus.el ends here

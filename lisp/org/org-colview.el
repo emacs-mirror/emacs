@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,6 +31,8 @@
 
 (eval-when-compile (require 'cl))
 (require 'org)
+
+(declare-function org-agenda-redo "org-agenda" ())
 
 ;;; Column View
 
@@ -90,6 +92,10 @@ This is the compiled version of the format.")
 (org-defkey org-columns-map [(meta left)] 'org-columns-move-left)
 (org-defkey org-columns-map [(shift meta right)] 'org-columns-new)
 (org-defkey org-columns-map [(shift meta left)] 'org-columns-delete)
+(dotimes (i 10)
+  (org-defkey org-columns-map (number-to-string i)
+              `(lambda () (interactive)
+                 (org-columns-next-allowed-value nil ,i))))
 
 (easy-menu-define org-columns-menu org-columns-map "Org Column Menu"
   '("Column"
@@ -137,12 +143,11 @@ This is the compiled version of the format.")
 		       (and (eq major-mode 'org-agenda-mode)
 			    (get-text-property (point-at-bol) 'face))
 		       'default))
-	 (color (list :foreground
-		      (face-attribute ref-face :foreground)
-		      :weight 'normal :strike-through nil
-		      :underline nil))
-	 (face (list color 'org-column level-face))
-	 pom property ass width f string ov column val modval)
+	 (color (list :foreground (face-attribute ref-face :foreground)))
+	 (face (list color 'org-column ref-face))
+	 (pl (or (get-text-property (point-at-bol) 'prefix-length) 0))
+	 (cphr (get-text-property (point-at-bol) 'org-complex-heading-regexp))
+	 pom property ass width f string ov column val modval s1 s2)
     ;; Check if the entry is in another buffer.
     (unless props
       (if (eq major-mode 'org-agenda-mode)
@@ -167,8 +172,13 @@ This is the compiled version of the format.")
 	    f (format "%%-%d.%ds | " width width)
 	    val (or (cdr ass) "")
 	    modval (if (equal property "ITEM")
-		       (org-columns-cleanup-item val org-columns-current-fmt-compiled))
-	    string (format f (or modval val)))
+		       (if (org-mode-p)
+			   (org-columns-cleanup-item
+			    val org-columns-current-fmt-compiled)
+			 (org-agenda-columns-cleanup-item
+			  val pl cphr org-columns-current-fmt-compiled))))
+      (setq s2 (org-columns-add-ellipses (or modval val) width))
+      (setq string (format f s2))
       ;; Create the overlay
       (org-unmodified
        (setq ov (org-columns-new-overlay
@@ -199,6 +209,15 @@ This is the compiled version of the format.")
        (put-text-property (max (point-min) (1- (point-at-bol)))
 			  (min (point-max) (1+ (point-at-eol)))
 			  'read-only "Type `e' to edit property")))))
+
+(defun org-columns-add-ellipses (string width)
+  "Truncate STRING with WIDTH characters, with ellipses."
+  (cond 
+   ((<= (length string) width) string)
+   ((<= width (length org-columns-ellipses))
+    (substring org-columns-ellipses 0 width))
+   (t (concat (substring string 0 (- width (length org-columns-ellipses)))
+	      org-columns-ellipses))))
 
 (defvar org-columns-full-header-line-format nil
   "Fthe full header line format, will be shifted by horizontal scrolling." )
@@ -275,13 +294,40 @@ for the duration of the command.")
   (if (not org-complex-heading-regexp)
       item
     (when (string-match org-complex-heading-regexp item)
-      (concat
-       (org-add-props (concat (match-string 1 item) " ") nil
-	 'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
-       (and (match-end 2) (not (assoc "TODO" fmt)) (concat " " (match-string 2 item)))
-       (and (match-end 3) (not (assoc "PRIORITY" fmt)) (concat " " (match-string 3 item)))
-       " " (match-string 4 item)
-       (and (match-end 5) (not (assoc "TAGS" fmt)) (concat " " (match-string 5 item)))))))
+      (setq item
+	    (concat
+	     (org-add-props (match-string 1 item) nil
+	       'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
+	     (and (match-end 2) (not (assoc "TODO" fmt)) (concat " " (match-string 2 item)))
+	     (and (match-end 3) (not (assoc "PRIORITY" fmt)) (concat " " (match-string 3 item)))
+	     " " (save-match-data (org-columns-compact-links (match-string 4 item)))
+	     (and (match-end 5) (not (assoc "TAGS" fmt)) (concat " " (match-string 5 item)))))
+      (add-text-properties
+       0 (1+ (match-end 1))
+       (list 'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
+       item)
+      item)))
+
+(defun org-columns-compact-links (s)
+  "Replace [[link][desc]] with [desc] or [link]."
+  (while (string-match org-bracket-link-regexp s)
+    (setq s (replace-match
+	     (concat "[" (match-string (if (match-end 3) 3 1) s) "]")
+	     t t s)))
+  s)
+
+(defvar org-agenda-columns-remove-prefix-from-item)
+(defun org-agenda-columns-cleanup-item (item pl cphr fmt)
+  "Cleanup the tiem property for agenda column view.
+See also the variable `org-agenda-columns-remove-prefix-from-item'."
+  (let* ((org-complex-heading-regexp cphr)
+	 (prefix (substring item 0 pl))
+	 (rest (substring item pl))
+	 (fake (concat "* " rest))
+	 (cleaned (org-trim (substring (org-columns-cleanup-item fake fmt) 1))))
+    (if org-agenda-columns-remove-prefix-from-item
+	cleaned
+      (concat prefix cleaned))))
 
 (defun org-columns-show-value ()
   "Show the full value of the property."
@@ -381,7 +427,7 @@ Where possible, use the standard interface for changing this line."
 
       (cond
        ((equal major-mode 'org-agenda-mode)
-	(org-columns-eval '(org-entry-put pom key nval))
+	(org-columns-eval eval)
 	;; The following let preserves the current format, and makes sure
 	;; that in only a single file things need to be upated.
 	(let* ((org-agenda-overriding-columns-format org-columns-current-fmt)
@@ -411,7 +457,8 @@ Where possible, use the standard interface for changing this line."
   "Edit the current headline, the part without TODO keyword, TAGS."
   (org-back-to-heading)
   (when (looking-at org-todo-line-regexp)
-    (let ((pre (buffer-substring (match-beginning 0) (match-beginning 3)))
+    (let ((pos (point))
+	  (pre (buffer-substring (match-beginning 0) (match-beginning 3)))
 	  (txt (match-string 3))
 	  (post "")
 	  txt2)
@@ -420,7 +467,7 @@ Where possible, use the standard interface for changing this line."
 		txt (substring txt 0 (match-beginning 0))))
       (setq txt2 (read-string "Edit: " txt))
       (when (not (equal txt txt2))
-	(beginning-of-line 1)
+	(goto-char pos)
 	(insert pre txt2 post)
 	(delete-region (point) (point-at-eol))
 	(org-set-tags nil t)))))
@@ -461,8 +508,10 @@ Where possible, use the standard interface for changing this line."
   (interactive)
   (org-columns-next-allowed-value t))
 
-(defun org-columns-next-allowed-value (&optional previous)
-  "Switch to the next allowed value for this column."
+(defun org-columns-next-allowed-value (&optional previous nth)
+  "Switch to the next allowed value for this column.
+When PREVIOUS is set, go to the previous value.  When NTH is
+an integer, select that value."
   (interactive)
   (org-columns-check-computed)
   (let* ((col (current-column))
@@ -484,6 +533,9 @@ Where possible, use the standard interface for changing this line."
 			    '(checkbox checkbox-n-of-m checkbox-percent))
 			   '("[ ]" "[X]"))))
 	 nval)
+    (when (integerp nth)
+      (setq nth (1- nth))
+      (if (= nth -1) (setq nth 9)))
     (when (equal key "ITEM")
       (error "Cannot edit item headline from here"))
     (unless (or allowed (member key '("SCHEDULED" "DEADLINE")))
@@ -491,11 +543,18 @@ Where possible, use the standard interface for changing this line."
     (if (member key '("SCHEDULED" "DEADLINE"))
 	(setq nval (if previous 'earlier 'later))
       (if previous (setq allowed (reverse allowed)))
-      (if (member value allowed)
-	  (setq nval (car (cdr (member value allowed)))))
-      (setq nval (or nval (car allowed)))
-      (if (equal nval value)
-	  (error "Only one allowed value for this property")))
+      (cond
+       (nth
+	(setq nval (nth nth allowed))
+	(if (not nval)
+	    (error "There are only %d allowed values for property `%s'"
+		   (length allowed) key)))
+       ((member value allowed)
+	(setq nval (or (car (cdr (member value allowed)))
+		       (car allowed)))
+	(if (equal nval value)
+	    (error "Only one allowed value for this property")))
+       (t (setq nval (car allowed)))))
     (cond
      ((equal major-mode 'org-agenda-mode)
       (org-columns-eval '(org-entry-put pom key nval))
@@ -812,13 +871,18 @@ Don't set this, this is meant for dynamic scoping.")
   "Construct the column display again."
   (interactive)
   (message "Recomputing columns...")
-  (save-excursion
-    (if (marker-position org-columns-begin-marker)
-	(goto-char org-columns-begin-marker))
-    (org-columns-remove-overlays)
-    (if (org-mode-p)
-	(call-interactively 'org-columns)
-      (call-interactively 'org-agenda-columns)))
+  (let ((line (org-current-line))
+	(col (current-column)))
+    (save-excursion
+      (if (marker-position org-columns-begin-marker)
+	  (goto-char org-columns-begin-marker))
+      (org-columns-remove-overlays)
+      (if (org-mode-p)
+	  (call-interactively 'org-columns)
+	(org-agenda-redo)
+	(call-interactively 'org-agenda-columns)))
+    (goto-line line)
+    (move-to-column col))
   (message "Recomputing columns...done"))
 
 (defun org-columns-not-in-agenda ()
@@ -840,7 +904,7 @@ Don't set this, this is meant for dynamic scoping.")
   (cond
    ((eq fmt 'add_times)
     (let* ((h (floor n)) (m (floor (+ 0.5 (* 60 (- n h))))))
-      (format "%d:%02d" h m)))
+      (format org-time-clocksum-format h m)))
    ((eq fmt 'checkbox)
     (cond ((= n (floor n)) "[X]")
 	  ((> n 1.) "[-]")
@@ -1212,6 +1276,6 @@ This will add overlays to the date lines, to show the summary for each day."
 
 (provide 'org-colview)
 
-;;; org-colview.el ends here
-
 ;; arch-tag: 61f5128d-747c-4983-9479-e3871fa3d73c
+
+;;; org-colview.el ends here

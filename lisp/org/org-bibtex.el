@@ -5,7 +5,7 @@
 ;; Author: Bastien Guerry <bzg at altern dot org>
 ;;         Carsten Dominik <carsten dot dominik at gmail dot com>
 ;; Keywords: org, wp, remember
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -200,4 +200,5 @@
 (provide 'org-bibtex)
 
 ;; arch-tag: 83987d5a-01b8-41c7-85bc-77700f1285f5
+
 ;;; org-bibtex.el ends here

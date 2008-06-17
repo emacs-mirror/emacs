@@ -1,3 +1,21 @@
+2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Modify license to no longer include back- and front
+	cover matters.
+	(Using the mapping API): New section.
+	(Agenda column view): New section.
+	(Moving subtrees): Document archiving to the archive
+	sibling.
+	(Agenda commands): Document columns view in the agenda.
+	(Using the property API): Document the API for
+	multi-valued properties.
+
+2008-06-17  Jason Riedy  <jason@acm.org>
+
+	* org.texi (A LaTeX example): Note that fmt may be a one-argument
+	function, and efmt may be a two-argument function.
+	(Radio tables): Document multiple destinations.
+
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* epa.texi, erc.texi, pgg.texi, remember.texi, sasl.texi, url.texi:

@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.02b
+;; Version: 6.05a
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -361,12 +361,19 @@ when PUB-DIR is set, use this as the publishing directory."
   (let* ((wcf (current-window-configuration))
 	 (opt-plist org-export-latex-options-plist)
 	 (region-p (org-region-active-p))
+	 (rbeg (and region-p (region-beginning)))
+	 (rend (and region-p (region-end)))
 	 (subtree-p
 	  (when region-p
 	    (save-excursion
-	      (goto-char (region-beginning))
+	      (goto-char rbeg)
 	      (and (org-at-heading-p)
-		   (>= (org-end-of-subtree t t) (region-end))))))
+		   (>= (org-end-of-subtree t t) rend)))))
+	 (opt-plist (if subtree-p 
+			(org-export-add-subtree-options opt-plist rbeg)
+		      opt-plist))
+	 ;; Make sure the variable contains the updated values.
+	 (org-export-latex-options-plist opt-plist)
 	 (title (or (and subtree-p (org-export-get-title-from-subtree))
 		    (plist-get opt-plist :title)
 		    (and (not
@@ -378,8 +385,11 @@ when PUB-DIR is set, use this as the publishing directory."
 			    (or pub-dir
 				(org-export-directory :LaTeX ext-plist)))
 			   (file-name-sans-extension
-			    (file-name-nondirectory ;sans-extension
-			     buffer-file-name)) ".tex"))
+			    (or (and subtree-p
+				     (org-entry-get rbeg "EXPORT_FILE_NAME" t))
+				(file-name-nondirectory ;sans-extension
+				 buffer-file-name)))
+			   ".tex"))
 	 (filename (if (equal (file-truename filename)
 			      (file-truename buffer-file-name))
 		       (concat filename ".tex")
@@ -1094,6 +1104,22 @@ Regexps are those from `org-export-latex-special-string-regexps'."
     (replace-match (org-export-latex-protect-string
 		    (concat (match-string 1) "\\LaTeX{}")) t t)))
 
+  ;; Convert blockquotes
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+BEGIN_QUOTE" nil t)
+    (replace-match "\\begin{quote}" t t))
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+END_QUOTE" nil t)
+    (replace-match "\\end{quote}" t t))
+
+  ;; Convert verse
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+BEGIN_VERSE" nil t)
+    (replace-match "\\begin{verse}" t t))
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+END_VERSE" nil t)
+    (replace-match "\\end{verse}" t t))
+
   ;; Convert horizontal rules
   (goto-char (point-min))
   (while (re-search-forward "^----+.$" nil t)
@@ -1538,4 +1564,5 @@ Valid parameters are
 (provide 'org-export-latex)
 
 ;; arch-tag: 23c2b87d-da04-4c2d-ad2d-1eb6487bc3ad
+
 ;;; org-export-latex.el ends here

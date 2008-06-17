@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -187,7 +187,7 @@ t:      accept as input and present for editing"
 
 (defcustom org-calc-default-modes
   '(calc-internal-prec 12
-    calc-float-format  (float 5)
+    calc-float-format  (float 8)
     calc-angle-mode    deg
     calc-prefer-frac   nil
     calc-symbolic-mode nil
@@ -249,12 +249,11 @@ Automatically means, when TAB or RET or C-c C-c are pressed in the line."
   :tag "Org Table Import Export"
   :group 'org-table)
 
-(defcustom org-table-export-default-format
-  "orgtbl-to-generic :splice t :sep \"\t\""
+(defcustom org-table-export-default-format "orgtbl-to-tsv"
   "Default export parameters for org-table-export. These can be
-  overridden on for a specific table by setting the
-  TABLE_EXPORT_FORMAT parameter. See orgtbl-export for the
-  different export transforms and available parameters."
+overridden on for a specific table by setting the TABLE_EXPORT_FORMAT
+property.  See the manual section on orgtbl radio tables for the different
+export transformations and available parameters."
   :group 'org-table-import-export
   :type 'string)
 
@@ -428,7 +427,7 @@ are found, lines will be split on whitespace into fields."
 (defvar org-table-last-alignment)
 (defvar org-table-last-column-widths)
 (defun org-table-export (&optional file format)
-  "Export table as a tab-separated file.
+  "Export table to a file, with configurable format.
 Such a file can be imported into a spreadsheet program like Excel.
 FILE can be the output file name.  If not given, it will be taken from
 a TABLE_EXPORT_FILE property in the current entry or higher up in the
@@ -439,19 +438,33 @@ be found in the variable `org-table-export-default-format', but the function
 first checks if there is an export format specified in a TABLE_EXPORT_FORMAT
 property, locally or anywhere up in the hierarchy."
   (interactive)
+  (unless (org-at-table-p)
+    (error "No table at point"))
+  (require 'org-exp)
   (org-table-align) ;; make sure we have everything we need
   (let* ((beg (org-table-begin))
 	 (end (org-table-end))
 	 (txt (buffer-substring-no-properties beg end))
-	 (file (or file (org-entry-get beg "TABLE_EXPORT_FILE" t)
-		   (read-file-name "Export table to: ")))
-	 (format (or (org-entry-get beg "TABLE_EXPORT_FORMAT" t)
-		     org-table-export-default-format))
-	 buf)
-    (unless (or (not (file-exists-p file))
-		(y-or-n-p (format "Overwrite file %s? " file)))
-      (error "Abort"))
-    (message format)
+	 (file (or file (org-entry-get beg "TABLE_EXPORT_FILE" t)))
+	 (format (or format (org-entry-get beg "TABLE_EXPORT_FORMAT" t)))
+	 buf deffmt-readable)
+    (unless file
+      (setq file (read-file-name "Export table to: "))
+      (unless (or (not (file-exists-p file))
+		  (y-or-n-p (format "Overwrite file %s? " file)))
+	(error "Abort")))
+    (if (file-directory-p file)
+	(error "This is a directory path, not a file"))
+    (if (equal (file-truename file)
+	       (file-truename (buffer-file-name)))
+	(error "Please specify a file name that is different from current"))
+    (unless format
+      (setq deffmt-readable org-table-export-default-format)
+      (while (string-match "\t" deffmt-readable)
+	(setq deffmt-readable (replace-match "\\t" t t deffmt-readable)))
+      (while (string-match "\n" deffmt-readable)
+	(setq deffmt-readable (replace-match "\\n" t t deffmt-readable)))
+      (setq format (read-string "Format: " deffmt-readable)))
 
     (if (string-match "\\([^ \t\r\n]+\\)\\( +.*\\)?" format)
 	(let* ((transform (intern (match-string 1 format)))
@@ -2363,7 +2376,7 @@ With prefix arg ALL, do this for all lines in the table."
       (goto-char beg)
       (and all (message "Re-applying formulas to full table..."))
 
-      ;; First find the named fields, and mark them untouchanble
+      ;; First find the named fields, and mark them untouchable
       (remove-text-properties beg end '(org-untouchable t))
       (while (setq eq (pop eqlname))
 	(setq name (car eq)
@@ -2371,8 +2384,11 @@ With prefix arg ALL, do this for all lines in the table."
 	(and (not a)
 	     (string-match "@\\([0-9]+\\)\\$\\([0-9]+\\)" name)
 	     (setq a (list name
-			   (aref org-table-dlines
-				 (string-to-number (match-string 1 name)))
+			   (condition-case nil
+			       (aref org-table-dlines
+				     (string-to-number (match-string 1 name)))
+			     (error (error "Invalid row number in %s"
+					   name)))
 			   (string-to-number (match-string 2 name)))))
 	(when (and a (or all (equal (nth 1 a) thisline)))
 	  (message "Re-applying formula to field: %s" name)
@@ -3497,7 +3513,7 @@ a radio table."
     (goto-char (org-table-begin))
     (let (rtn)
       (beginning-of-line 0)
-      (while (looking-at "#\\+ORGTBL: *SEND +\\([a-zA-Z0-9_]+\\) +\\([^ \t\r\n]+\\)\\( +.*\\)?")
+      (while (looking-at "#\\+ORGTBL[: \t][ \t]*SEND +\\([a-zA-Z0-9_]+\\) +\\([^ \t\r\n]+\\)\\( +.*\\)?")
 	(let ((name (org-no-properties (match-string 1)))
 	      (transform (intern (match-string 2)))
 	      (params (if (match-end 3)
@@ -3629,6 +3645,7 @@ First element has index 0, or I0 if given."
 ;; Formatting parameters for the current table section.
 (defvar *orgtbl-hline* nil "Text used for horizontal lines")
 (defvar *orgtbl-sep* nil "Text used as a column separator")
+(defvar *orgtbl-default-fmt* nil "Default format for each entry")
 (defvar *orgtbl-fmt* nil "Format for each entry")
 (defvar *orgtbl-efmt* nil "Format for numbers")
 (defvar *orgtbl-lfmt* nil "Format for an entire line, overrides fmt")
@@ -3670,7 +3687,9 @@ First element has index 0, or I0 if given."
 			     (orgtbl-apply-fmt efmt (match-string 1 f)
 					       (match-string 2 f))
 			   f)))
-		 (orgtbl-apply-fmt (orgtbl-get-fmt *orgtbl-fmt* i) f)))
+                 (orgtbl-apply-fmt (or (orgtbl-get-fmt *orgtbl-fmt* i)
+                                       *orgtbl-default-fmt*)
+                                   f)))
 	     line)))
       (push (if *orgtbl-lfmt*
 		(orgtbl-apply-fmt *orgtbl-lfmt* line)
@@ -3698,13 +3717,14 @@ TABLE is a list, each entry either the symbol `hline' for a horizontal
 separator line, or a list of fields for that line.
 PARAMS is a property list of parameters that can influence the conversion.
 For the generic converter, some parameters are obligatory:  You need to
-specify either :lfmt, or all of (:lstart :lend :sep).  If you do not use
-:splice, you must have :tstart and :tend.
+specify either :lfmt, or all of (:lstart :lend :sep).
 
 Valid parameters are
 
 :splice     When set to t, return only table body lines, don't wrap
-            them into :tstart and :tend.  Default is nil.
+            them into :tstart and :tend.  Default is nil.  When :splice
+            is non-nil, this also means that the exporter should not look
+            for and interpret header and footer sections.
 
 :hline      String to be inserted on horizontal separation lines.
             May be nil to ignore hlines.
@@ -3713,8 +3733,8 @@ Valid parameters are
 :remove-nil-lines Do not include lines that evaluate to nil.
 
 
-  Each in the following group may be either a string or a function
-  of no arguments returning a string:
+Each in the following group may be either a string or a function
+of no arguments returning a string:
 :tstart     String to start the table.  Ignored when :splice is t.
 :tend       String to end the table.  Ignored when :splice is t.
 :lstart     String to start a new table line.
@@ -3722,9 +3742,9 @@ Valid parameters are
 :lend       String to end a table line
 :llend      String to end the last table line, defaults to :lend.
 
-  Each in the following group may be a string, a function of one
-  argument (the field or line) returning a string, or a plist
-  mapping columns to either of the above:
+Each in the following group may be a string, a function of one
+argument (the field or line) returning a string, or a plist
+mapping columns to either of the above:
 :lfmt       Format for entire line, with enough %s to capture all fields.
             If this is present, :lstart, :lend, and :sep are ignored.
 :llfmt      Format for the entire last line, defaults to :lfmt.
@@ -3739,7 +3759,7 @@ Valid parameters are
             All lines before the first hline are treated as header.
             If any of these is not present, the data line value is used.
 
-  This may be either a string or a function of two arguments:
+This may be either a string or a function of two arguments:
 :efmt       Use this format to print numbers with exponentials.
             The format should have %s twice for inserting mantissa
             and exponent, for example \"%s\\\\times10^{%s}\".  This
@@ -3768,8 +3788,9 @@ directly by `orgtbl-send-table'.  See manual."
 
     ;; Put header
     (unless splicep
-      (push (or (orgtbl-eval-str (plist-get params :tstart))
-		"ERROR: no :tstart") *orgtbl-rtn*))
+      (when (plist-member params :tstart)
+	(let ((tstart (orgtbl-eval-str (plist-get params :tstart))))
+	  (if tstart (push tstart *orgtbl-rtn*)))))
 
     ;; Do we have a heading section?  If so, format it and handle the
     ;; trailing hline.
@@ -3796,12 +3817,23 @@ directly by `orgtbl-send-table'.  See manual."
     (orgtbl-format-section nil)
 
     (unless splicep
-      (push (or (orgtbl-eval-str (plist-get params :tend))
-		"ERROR: no :tend") *orgtbl-rtn*))
+      (when (plist-member params :tend)
+        (let ((tend (orgtbl-eval-str (plist-get params :tend))))
+          (if tend (push tend *orgtbl-rtn*)))))
 
     (mapconcat 'identity (nreverse (if remove-nil-linesp
 				       (remq nil *orgtbl-rtn*)
 				     *orgtbl-rtn*)) "\n")))
+
+(defun orgtbl-to-tsv (table params)
+  "Convert the orgtbl-mode table to TAB separated material."
+  (orgtbl-to-generic table (org-combine-plists '(:sep "\t") params)))
+(defun orgtbl-to-csv (table params)
+  "Convert the orgtbl-mode table to CSV material.
+This does take care of the proper quoting of fields with comma or quotes."
+  (orgtbl-to-generic table (org-combine-plists
+			    '(:sep "," :fmt org-quote-csv-field)
+			    params)))
 
 (defun orgtbl-to-latex (table params)
   "Convert the orgtbl-mode TABLE to LaTeX.
@@ -3908,7 +3940,24 @@ this function is called."
 	   :hlstart "@headitem ")))
     (orgtbl-to-generic table (org-combine-plists params2 params))))
 
+(defun orgtbl-to-orgtbl (table params)
+  "Convert the orgtbl-mode TABLE into another orgtbl-mode table.
+Useful when slicing one table into many.  The :hline, :sep,
+:lstart, and :lend provide orgtbl framing.  The default nil :tstart
+and :tend suppress strings without splicing; they can be set to
+provide ORGTBL directives for the generated table."
+  (let* ((params2
+	  (list
+           :tstart nil :tend nil
+           :hline "|---"
+           :sep " | "
+           :lstart "| "
+           :lend " |"))
+	 (params (org-combine-plists params2 params)))
+    (orgtbl-to-generic table params)))
+
 (provide 'org-table)
 
 ;; arch-tag: 4d21cfdd-0268-440a-84b0-09237a0fe0ef
+
 ;;; org-table.el ends here

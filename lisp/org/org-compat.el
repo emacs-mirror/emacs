@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -246,8 +246,8 @@ that can be added."
 			      (cadr ext-inv-spec))))
    (move-to-column column force)))
  
-
 (provide 'org-compat)
 
 ;; arch-tag: a0a0579f-e68c-4bdf-9e55-93768b846bbe
+
 ;;; org-compat.el ends here

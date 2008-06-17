@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,6 +33,8 @@
 (declare-function org-export-latex-preprocess "org-export-latex" ())
 (declare-function org-agenda-skip "org-agenda" ())
 (declare-function org-infojs-options-inbuffer-template "org-jsinfo" ())
+(declare-function htmlize-region "ext:htmlize" (beg end))
+(defvar htmlize-buffer-places)  ; from htmlize.el
 
 (defgroup org-export nil
   "Options for exporting org-listings."
@@ -86,7 +88,9 @@ This option can also be set with the +OPTIONS line, e.g. \"-:nil\"."
     ("fr"  "Auteur"          "Date"  "Table des mati\xe8res")
     ("it"  "Autore"          "Data"  "Indice")
     ("nl"  "Auteur"          "Datum" "Inhoudsopgave")
-    ("nn"  "Forfattar"       "Dato"  "Innhold")  ;; nn = Norsk (nynorsk)
+    ("no"  "Forfatter"       "Dato"  "Innhold")
+    ("nb"  "Forfatter"       "Dato"  "Innhold")  ;; nb = Norsk (bokm.l)
+    ("nn"  "Forfattar"       "Dato"  "Innhald")  ;; nn = Norsk (nynorsk)
     ("sv"  "F\xf6rfattarens" "Datum" "Inneh\xe5ll"))
   "Terms used in export text, translated to different languages.
 Use the variable `org-export-default-language' to set the language,
@@ -105,7 +109,7 @@ This should have an association in `org-export-language-setup'."
   :group 'org-export-general
   :type 'string)
 
-(defcustom org-export-skip-text-before-1st-heading t
+(defcustom org-export-skip-text-before-1st-heading nil
   "Non-nil means, skip all text before the first headline when exporting.
 When nil, that text is exported as well."
   :group 'org-export-general
@@ -127,6 +131,26 @@ This option can also be set with the +OPTIONS line, e.g. \"H:2\"."
 This option can also be set with the +OPTIONS line, e.g. \"num:t\"."
   :group 'org-export-general
   :type 'boolean)
+
+(defcustom org-export-section-number-format '((("1" ".")) . "")
+  "Format of section numbers for export.
+The variable has two components.
+1. A list of lists, each indicating a counter type and a separator.
+   The counter type can be any of \"1\", \"A\", \"a\", \"I\", or \"a\".
+   It causes causes numeric, alphabetic, or roman counters, respectively.
+   The separator is only used if another counter for a subsection is being
+   added.
+   If there are more numbered section levels than entries in this lists,
+   then the last entry will be reused.
+2. A terminator string that will be added after the entire
+   section number."
+  :group 'org-export-general
+  :type '(cons
+	  (repeat
+	   (list
+	    (string :tag "Counter Type")
+	    (string :tag "Separator   ")))
+	  (string :tag "Terminator")))
 
 (defcustom org-export-with-toc t
   "Non-nil means, create a table of contents in exported files.
@@ -226,6 +250,10 @@ drawer names to export."
 	  (const :tag "None" nil)
 	  (repeat :tag "Selected drawers"
 		  (string :tag "Drawer name"))))
+
+(defvar org-export-preprocess-hook nil
+  "Hook for preprocessing an export buffer.
+Pretty much the first thing when exporting is running this hook.")
 
 (defgroup org-export-translation nil
   "Options for translating special ascii sequences for the export backends."
@@ -456,12 +484,14 @@ Org-mode file."
 	background-color: #F3F5F7;
 	padding: 5pt;
 	font-family: courier, monospace;
+        font-size: 90%;
   }
   table { border-collapse: collapse; }
   td, th {
 	vertical-align: top;
 	<!--border: 1pt solid #ADB9CC;-->
   }
+  dt { font-weight: bold; }
 </style>"
   "The default style specification for exported HTML files.
 Since there are different ways of setting style information, this variable
@@ -564,6 +594,25 @@ to a file."
   :group 'org-export-html
   :type 'string)
 
+(defgroup org-export-htmlize nil
+  "Options for processing examples with htmlize.el."
+  :tag "Org Export Htmlize"
+  :group 'org-export-html)
+
+(defcustom org-export-htmlize-output-type 'inline-css
+  "Output type to be used by htmlize when formatting code snippets.
+Normally this is `inline-css', but if you have defined to appropriate
+classes in your css style file, setting this to `css' means that the
+fontification will use the class names.
+See also the function `org-export-htmlize-generate-css'."
+  :group 'org-export-htmlize
+  :type '(choice (const css) (const inline-css)))
+
+(defcustom org-export-htmlize-css-font-prefix "org-"
+  "The prefix for CSS class names for htmlize font specifications."
+  :group 'org-export-htmlize
+  :type 'string)
+
 (defgroup org-export-icalendar nil
   "Options specific for iCalendar export of Org-mode files."
   :tag "Org Export iCalendar"
@@ -606,6 +655,20 @@ The text will be inserted into the DESCRIPTION field."
   :group 'org-export-icalendar
   :type 'string)
 
+(defcustom org-icalendar-store-UID nil
+  "Non-nil means, store any created UIDs in properties.
+The iCalendar standard requires that all entries have a unique identifyer.
+Org will create these identifiers as needed.  When this variable is non-nil,
+the created UIDs will be stored in the ID property of the entry.  Then the
+next time this entry is exported, it will be exported with the same UID,
+superceeding the previous form of it.  This is essential for
+synchronization services.
+This variable is not turned on by default because we want to avoid creating
+a property drawer in every entry if people are only playing with this feature,
+or if they are only using it locally."
+  :group 'org-export-icalendar
+  :type 'boolean)
+
 ;;;; Exporting
 
 ;;; Variables, constants, and parameter plists
@@ -630,6 +693,7 @@ The text will be inserted into the DESCRIPTION field."
     (:customtime           . org-display-custom-times)
     (:headline-levels      . org-export-headline-levels)
     (:section-numbers      . org-export-with-section-numbers)
+    (:section-number-format . org-export-section-number-format)
     (:table-of-contents    . org-export-with-toc)
     (:preserve-breaks      . org-export-preserve-breaks)
     (:archived-trees       . org-export-with-archived-trees)
@@ -694,16 +758,21 @@ modified) list.")
   (save-excursion
     (save-restriction
       (widen)
-      (goto-char 0)
+      (goto-char (point-min))
       (let ((re (org-make-options-regexp
 		 (append
 		  '("TITLE" "AUTHOR" "DATE" "EMAIL" "TEXT" "OPTIONS" "LANGUAGE"
-		    "LINK_UP" "LINK_HOME")
+		    "LINK_UP" "LINK_HOME" "SETUPFILE")
 		  (mapcar 'car org-export-inbuffer-options-extra))))
-	    p key val text options js-up js-main js-css js-opt a pr)
-	(while (re-search-forward re nil t)
-	  (setq key (org-match-string-no-properties 1)
-		val (org-match-string-no-properties 2))
+	    p key val text options js-up js-main js-css js-opt a pr
+	    ext-setup-or-nil setup-contents (start 0))
+	(while (or (and ext-setup-or-nil
+			(string-match re ext-setup-or-nil start)
+			(setq start (match-end 0)))
+		   (and (setq ext-setup-or-nil nil start 0)
+			(re-search-forward re nil t)))
+	  (setq key (upcase (org-match-string-no-properties 1 ext-setup-or-nil))
+		val (org-match-string-no-properties 2 ext-setup-or-nil))
 	  (cond
 	   ((setq a (assoc key org-export-inbuffer-options-extra))
 	    (setq pr (nth 1 a))
@@ -716,40 +785,74 @@ modified) list.")
 	   ((string-equal key "TEXT")
 	    (setq text (if text (concat text "\n" val) val)))
 	   ((string-equal key "OPTIONS")
-	    (setq options (concat options " " val)))
+	    (setq options (concat val " " options)))
 	   ((string-equal key "LINK_UP")
 	    (setq p (plist-put p :link-up val)))
 	   ((string-equal key "LINK_HOME")
-	    (setq p (plist-put p :link-home val)))))
+	    (setq p (plist-put p :link-home val)))
+	   ((equal key "SETUPFILE")
+	    (setq setup-contents (org-file-contents
+				  (expand-file-name
+				   (org-remove-double-quotes
+				    (org-trim val)))
+				  'noerror))
+	    (if (not ext-setup-or-nil)
+		(setq ext-setup-or-nil setup-contents start 0)
+	      (setq ext-setup-or-nil
+		    (concat (substring ext-setup-or-nil 0 start)
+			    "\n" setup-contents "\n"
+			    (substring ext-setup-or-nil start)))))))
 	(setq p (plist-put p :text text))
 	(when options
-	  (let ((op '(("H"     . :headline-levels)
-		      ("num"   . :section-numbers)
-		      ("toc"   . :table-of-contents)
-		      ("\\n"   . :preserve-breaks)
-		      ("@"     . :expand-quoted-html)
-		      (":"     . :fixed-width)
-		      ("|"     . :tables)
-		      ("^"     . :sub-superscript)
-		      ("-"     . :special-strings)
-		      ("f"     . :footnotes)
-		      ("d"     . :drawers)
-		      ("tags"  . :tags)
-		      ("*"     . :emphasize)
-		      ("TeX"   . :TeX-macros)
-		      ("LaTeX" . :LaTeX-fragments)
-		      ("skip"  . :skip-before-1st-heading)
-		      ("author" . :author-info)
-		      ("timestamp" . :time-stamp-file)))
-		o)
-	    (while (setq o (pop op))
-	      (if (string-match (concat (regexp-quote (car o))
-					":\\([^ \t\n\r;,.]*\\)")
-				options)
-		  (setq p (plist-put p (cdr o)
-				     (car (read-from-string
-					   (match-string 1 options)))))))))
+	  (setq p (org-export-add-options-to-plist p options)))
 	p))))
+
+(defun org-export-add-options-to-plist (p options)
+  "Parse an OPTONS line and set values in the property list P."
+  (let (o)
+    (when options
+      (let ((op '(("H"     . :headline-levels)
+		  ("num"   . :section-numbers)
+		  ("toc"   . :table-of-contents)
+		  ("\\n"   . :preserve-breaks)
+		  ("@"     . :expand-quoted-html)
+		  (":"     . :fixed-width)
+		  ("|"     . :tables)
+		  ("^"     . :sub-superscript)
+		  ("-"     . :special-strings)
+		  ("f"     . :footnotes)
+		  ("d"     . :drawers)
+		  ("tags"  . :tags)
+		  ("*"     . :emphasize)
+		  ("TeX"   . :TeX-macros)
+		  ("LaTeX" . :LaTeX-fragments)
+		  ("skip"  . :skip-before-1st-heading)
+		  ("author" . :author-info)
+		  ("timestamp" . :time-stamp-file)))
+	    o)
+	(while (setq o (pop op))
+	  (if (string-match (concat (regexp-quote (car o))
+				    ":\\([^ \t\n\r;,.]*\\)")
+			    options)
+	      (setq p (plist-put p (cdr o)
+				 (car (read-from-string
+				       (match-string 1 options))))))))))
+  p)
+  
+(defun org-export-add-subtree-options (p pos)
+  "Add options in subtree at position POS to property list P."
+  (save-excursion
+    (goto-char pos)
+    (when (org-at-heading-p)
+      (let (a)
+	;; This is actually read in `org-export-get-title-from-subtree'
+	;; (when (setq a (org-entry-get pos "EXPORT_TITLE"))
+	;;   (setq p (plist-put p :title a)))
+	(when (setq a (org-entry-get pos "EXPORT_TEXT"))
+	  (setq p (plist-put p :text a)))
+	(when (setq a (org-entry-get pos "EXPORT_OPTIONS"))
+	  (setq p (org-export-add-options-to-plist p a)))))
+    p))
 
 (defun org-export-directory (type plist)
   (let* ((val (plist-get plist :publishing-directory))
@@ -757,6 +860,12 @@ modified) list.")
 		  (or (cdr (assoc type val)) ".")
 		val)))
     dir))
+
+(defun org-export-process-option-filters (plist)
+  (let ((functions org-export-options-filters) f)
+    (while (setq f (pop functions))
+      (setq plist (funcall f plist))))
+  plist)
 
 ;;;###autoload
 (defun org-export (&optional arg)
@@ -1151,51 +1260,41 @@ to export.  It then creates a temporary buffer where it does its job.
 The result is then again returned as a string, and the exporter works
 on this string to produce the exported version."
   (interactive)
-  (let* ((re-radio (and org-target-link-regexp
-			(concat "\\([^<]\\)\\(" org-target-link-regexp "\\)")))
-	 (re-plain-link (concat "\\([^[<]\\)" org-plain-link-re))
-	 (re-angle-link (concat "\\([^[]\\)" org-angle-link-re))
-	 (re-archive (concat ":" org-archive-tag ":"))
-	 (re-quote (concat "^\\*+[ \t]+" org-quote-string "\\>"))
-	 (re-commented (concat "^\\*+[ \t]+" org-comment-string "\\>"))
-	 (htmlp (plist-get parameters :for-html))
+  (let* ((htmlp (plist-get parameters :for-html))
 	 (asciip (plist-get parameters :for-ascii))
 	 (latexp (plist-get parameters :for-LaTeX))
-	 (commentsp (plist-get parameters :comments))
 	 (archived-trees (plist-get parameters :archived-trees))
 	 (inhibit-read-only t)
 	 (drawers org-drawers)
-	 (exp-drawers (plist-get parameters :drawers))
 	 (outline-regexp "\\*+ ")
-	 target-alist tmp target level
-	 a b xx rtn p)
+	 target-alist rtn)
 
     (with-current-buffer (get-buffer-create " org-mode-tmp")
       (erase-buffer)
       (insert string)
+      (setq case-fold-search t)
+      ;; Call the hook
+      (run-hooks 'org-export-preprocess-hook)
+
       ;; Remove license-to-kill stuff
       ;; The caller markes some stuff fo killing, stuff that has been
       ;; used to create the page title, for example.
-      (while (setq p (text-property-any (point-min) (point-max)
-					:org-license-to-kill t))
-	(delete-region p (next-single-property-change p :org-license-to-kill)))
-
+      (org-export-kill-licensed-text)
+      
       (let ((org-inhibit-startup t)) (org-mode))
+      (setq case-fold-search t)
       (untabify (point-min) (point-max))
-
+      
+      ;; Handle incude files
+      (org-export-handle-include-files)
+      
+      ;; Handle source code snippets
+      (org-export-replace-src-segments)
+      
       ;; Get rid of drawers
-      (unless (eq t exp-drawers)
-	(goto-char (point-min))
-	(let ((re (concat "^[ \t]*:\\("
-			  (mapconcat
-			   'identity
-			   (org-delete-all exp-drawers
-					   (copy-sequence drawers))
-			   "\\|")
-			  "\\):[ \t]*\n\\([^@]*?\n\\)?[ \t]*:END:[ \t]*\n")))
-	  (while (re-search-forward re nil t)
-	    (replace-match ""))))
-
+      (org-export-remove-or-extract-drawers drawers
+					    (plist-get parameters :drawers))
+      
       ;; Get the correct stuff before the first headline
       (when (plist-get parameters :skip-before-1st-heading)
 	(goto-char (point-min))
@@ -1206,246 +1305,389 @@ on this string to produce the exported version."
       (when (plist-get parameters :add-text)
 	(goto-char (point-min))
 	(insert (plist-get parameters :add-text) "\n"))
-
+      
       ;; Get rid of archived trees
-      (when (not (eq archived-trees t))
-	(goto-char (point-min))
-	(while (re-search-forward re-archive nil t)
-	  (if (not (org-on-heading-p t))
-	      (org-end-of-subtree t)
-	    (beginning-of-line 1)
-	    (setq a (if archived-trees
-			(1+ (point-at-eol)) (point))
-		  b (org-end-of-subtree t))
-	    (if (> b a) (delete-region a b)))))
-
+      (org-export-remove-archived-trees archived-trees)
+      
       ;; Find all headings and compute the targets for them
-      (goto-char (point-min))
-      (org-init-section-numbers)
-      (let ((re (concat "^" org-outline-regexp)))
-	(while (re-search-forward re nil t)
-	  (setq level (org-reduced-level
-		       (save-excursion (goto-char (point-at-bol))
-				       (org-outline-level))))
-	  (setq target (org-solidify-link-text
-			(format "sec-%s" (org-section-number level))))
-	  (push (cons target target) target-alist)
-	  (add-text-properties
-	   (point-at-bol) (point-at-eol)
-	   (list 'target target))))
+      (setq target-alist (org-export-define-heading-targets target-alist))
 
       ;; Find targets in comments and move them out of comments,
       ;; but mark them as targets that should be invisible
-      (goto-char (point-min))
-      (while (re-search-forward "^#.*?\\(<<<?\\([^>\r\n]+\\)>>>?\\).*" nil t)
-	;; Check if the line before or after is a headline with a target
-	(if (setq target (or (get-text-property (point-at-bol 0) 'target)
-			     (get-text-property (point-at-bol 2) 'target)))
-	    (progn
-	      ;; use the existing target in a neighboring line
-	      (setq tmp (match-string 2))
-	      (replace-match "")
-	      (and (looking-at "\n") (delete-char 1))
-	      (push (cons (org-solidify-link-text tmp) target)
-		    target-alist))
-	  ;; Make an invisible target
-	  (replace-match "\\1(INVISIBLE)")))
+      (setq target-alist (org-export-handle-invisible-targets target-alist))
+
+      ;; Protect examples
+      (org-export-protect-examples)
 
       ;; Protect backend specific stuff, throw away the others.
-      (let ((formatters
-	     `((,htmlp "HTML" "BEGIN_HTML" "END_HTML")
-	       (,asciip "ASCII" "BEGIN_ASCII" "END_ASCII")
-	       (,latexp "LaTeX" "BEGIN_LaTeX" "END_LaTeX")))
-	    fmt)
-	(goto-char (point-min))
-	(while (re-search-forward "^#\\+BEGIN_EXAMPLE[ \t]*\n" nil t)
-	  (goto-char (match-end 0))
-	  (while (not (looking-at "#\\+END_EXAMPLE"))
-	    (insert ": ")
-	    (beginning-of-line 2)))
-	(goto-char (point-min))
-	(while (re-search-forward "^[ \t]*:.*\\(\n[ \t]*:.*\\)*" nil t)
-	  (add-text-properties (match-beginning 0) (match-end 0)
-			       '(org-protected t)))
-	(while formatters
-	  (setq fmt (pop formatters))
-	  (when (car fmt)
-	    (goto-char (point-min))
-	    (while (re-search-forward (concat "^#\\+" (cadr fmt)
-					      ":[ \t]*\\(.*\\)") nil t)
-	      (replace-match "\\1" t)
-	      (add-text-properties
-	       (point-at-bol) (min (1+ (point-at-eol)) (point-max))
-	       '(org-protected t))))
-	  (goto-char (point-min))
-	  (while (re-search-forward
-		  (concat "^#\\+"
-			  (caddr fmt) "\\>.*\\(\\(\n.*\\)*?\n\\)#\\+"
-			  (cadddr fmt) "\\>.*\n?") nil t)
-	    (if (car fmt)
-		(add-text-properties (match-beginning 1) (1+ (match-end 1))
-				     '(org-protected t))
-	      (delete-region (match-beginning 0) (match-end 0))))))
+      (org-export-select-backend-specific-text
+       (cond (htmlp 'html) (latexp 'latex) (asciip 'ascii)))
 
       ;; Protect quoted subtrees
-      (goto-char (point-min))
-      (while (re-search-forward re-quote nil t)
-	(goto-char (match-beginning 0))
-	(end-of-line 1)
-	(add-text-properties (point) (org-end-of-subtree t)
-			     '(org-protected t)))
+      (org-export-protect-quoted-subtrees)
 
       ;; Protect verbatim elements
-      (goto-char (point-min))
-      (while (re-search-forward org-verbatim-re nil t)
-	(add-text-properties (match-beginning 4) (match-end 4)
-			     '(org-protected t))
-	(goto-char (1+ (match-end 4))))
+      (org-export-protect-verbatim)
 
-      ;; Remove subtrees that are commented
-      (goto-char (point-min))
-      (while (re-search-forward re-commented nil t)
-	(goto-char (match-beginning 0))
-	(delete-region (point) (org-end-of-subtree t)))
+      ;; Blockquotes and verse
+      (org-export-mark-blockquote-and-verse)
+
+      ;; Remove comment environment and comment subtrees
+      (org-export-remove-comment-blocks-and-subtrees)
 
       ;; Remove special table lines
       (when org-export-table-remove-special-lines
-	(goto-char (point-min))
-	(while (re-search-forward "^[ \t]*|" nil t)
-	  (beginning-of-line 1)
-	  (if (or (looking-at "[ \t]*| *[!_^] *|")
-		  (and (looking-at ".*?| *<[0-9]+> *|")
-		       (not (looking-at ".*?| *[^ <|]"))))
-	      (delete-region (max (point-min) (1- (point-at-bol)))
-			     (point-at-eol))
-	    (end-of-line 1))))
+	(org-export-remove-special-table-lines))
 
       ;; Specific LaTeX stuff
       (when latexp
 	(require 'org-export-latex nil)
 	(org-export-latex-preprocess))
 
+      ;; Specific ASCII stuff
       (when asciip
-	(org-export-ascii-clean-string))
+	(org-export-ascii-preprocess))
 
       ;; Specific HTML stuff
       (when htmlp
-	;; Convert LaTeX fragments to images
-	(when (plist-get parameters :LaTeX-fragments)
-	  (org-format-latex
-	   (concat "ltxpng/" (file-name-sans-extension
-			      (file-name-nondirectory
-			       org-current-export-file)))
-	   org-current-export-dir nil "Creating LaTeX image %s"))
-	(message "Exporting..."))
+	(org-export-html-preprocess parameters))
 
       ;; Remove or replace comments
-      (goto-char (point-min))
-      (while (re-search-forward "^#\\(.*\n?\\)" nil t)
-	(if commentsp
-	    (progn (add-text-properties
-		    (match-beginning 0) (match-end 0) '(org-protected t))
-		   (replace-match (format commentsp (match-string 1)) t t))
-	  (replace-match "")))
+      (org-export-handle-comments (plist-get parameters :comments))
 
       ;; Find matches for radio targets and turn them into internal links
-      (goto-char (point-min))
-      (when re-radio
-	(while (re-search-forward re-radio nil t)
-	  (org-if-unprotected
-	   (replace-match "\\1[[\\2]]"))))
+      (org-export-mark-radio-links)
 
       ;; Find all links that contain a newline and put them into a single line
-      (goto-char (point-min))
-      (while (re-search-forward "\\(\\(\\[\\|\\]\\)\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\(\\[\\|\\]\\)\\)" nil t)
-	(org-if-unprotected
-	 (replace-match "\\1 \\3")
-	 (goto-char (match-beginning 0))))
+      (org-export-concatenate-multiline-links)
 
       ;; Find all internal links.  If they have a fuzzy match (i.e. not
       ;; a *dedicated* target match, let the link  point to the
-      ;; correspinding section.
-
-      (goto-char (point-min))
-      (while (re-search-forward org-bracket-link-regexp nil t)
-	(org-if-unprotected
-	 (let* ((md (match-data))
-		(desc (match-end 2))
-		(link (org-link-unescape (match-string 1)))
-		(slink (org-solidify-link-text link))
-		found props pos
-		(target
-		 (or (cdr (assoc slink target-alist))
-		     (save-excursion
-		       (unless (string-match org-link-types-re link)
-			 (setq found (condition-case nil (org-link-search link)
-				       (error nil)))
-			 (when (and found
-				    (or (org-on-heading-p)
-					(not (eq found 'dedicated))))
-			   (or (get-text-property (point) 'target)
-			       (get-text-property
-				(max (point-min)
-				     (1- (previous-single-property-change
-					  (point) 'target)))
-				'target))))))))
-	   (when target
-	     (set-match-data md)
-	     (goto-char (match-beginning 1))
-	     (setq props (text-properties-at (point)))
-	     (delete-region (match-beginning 1) (match-end 1))
-	     (setq pos (point))
-	     (insert target)
-	     (unless desc (insert "][" link))
-	     (add-text-properties pos (point) props)))))
+      ;; corresponding section.
+      (org-export-target-internal-links target-alist)
 
       ;; Normalize links: Convert angle and plain links into bracket links
-      ;; Expand link abbreviations
-      (goto-char (point-min))
-      (while (re-search-forward re-plain-link nil t)
-	(goto-char (1- (match-end 0)))
-	(org-if-unprotected
-	 (let* ((s (concat (match-string 1) "[[" (match-string 2)
-			   ":" (match-string 3) "]]")))
-	   ;; added 'org-link face to links
-	   (put-text-property 0 (length s) 'face 'org-link s)
-	   (replace-match s t t))))
-      (goto-char (point-min))
-      (while (re-search-forward re-angle-link nil t)
-	(goto-char (1- (match-end 0)))
-	(org-if-unprotected
-	 (let* ((s (concat (match-string 1) "[[" (match-string 2)
-			   ":" (match-string 3) "]]")))
-	   (put-text-property 0 (length s) 'face 'org-link s)
-	   (replace-match s t t))))
-      (goto-char (point-min))
-      (while (re-search-forward org-bracket-link-regexp nil t)
-	(org-if-unprotected
-	 (let* ((s (concat "[[" (setq xx (save-match-data
-					   (org-link-expand-abbrev (match-string 1))))
-			   "]"
-			   (if (match-end 3)
-			       (match-string 2)
-			     (concat "[" xx "]"))
-			   "]")))
-	   (put-text-property 0 (length s) 'face 'org-link s)
-	   (replace-match s t t))))
+      ;; and expand link abbreviations
+      (org-export-normalize-links)
 
       ;; Find multiline emphasis and put them into single line
-      (when (plist-get  parameters :emph-multiline)
-	(goto-char (point-min))
-	(while (re-search-forward org-emph-re nil t)
-	  (if (not (= (char-after (match-beginning 3))
-		      (char-after (match-beginning 4))))
-	      (org-if-unprotected
-	       (subst-char-in-region (match-beginning 0) (match-end 0)
-				     ?\n ?\  t)
-	       (goto-char (1- (match-end 0))))
-	    (goto-char (1+ (match-beginning 0))))))
+      (when (plist-get parameters :emph-multiline)
+	(org-export-concatenate-multiline-emphasis))
 
       (setq rtn (buffer-string)))
     (kill-buffer " org-mode-tmp")
     rtn))
+
+(defun org-export-kill-licensed-text ()
+  "Remove all text that is marked with a :org-license-to-kill property."
+  (let (p)
+    (while (setq p (text-property-any (point-min) (point-max)
+				      :org-license-to-kill t))
+      (delete-region p (next-single-property-change p :org-license-to-kill)))))
+
+(defun org-export-define-heading-targets (target-alist)
+  "Find all headings and define the targets for them.
+The new targets are added to TARGET-ALIST, which is also returned."
+  (goto-char (point-min))
+  (org-init-section-numbers)
+  (let ((re (concat "^" org-outline-regexp))
+	level target)
+    (while (re-search-forward re nil t)
+      (setq level (org-reduced-level
+		   (save-excursion (goto-char (point-at-bol))
+				   (org-outline-level))))
+      (setq target (org-solidify-link-text
+		    (format "sec-%s" (org-section-number level))))
+      (push (cons target target) target-alist)
+      (add-text-properties
+       (point-at-bol) (point-at-eol)
+       (list 'target target))))
+  target-alist)
+
+(defun org-export-handle-invisible-targets (target-alist)
+  "Find targets in comments and move them out of comments.
+Mark them as invisible targets."
+  (let (target tmp)
+    (goto-char (point-min))
+    (while (re-search-forward "^#.*?\\(<<<?\\([^>\r\n]+\\)>>>?\\).*" nil t)
+      ;; Check if the line before or after is a headline with a target
+      (if (setq target (or (get-text-property (point-at-bol 0) 'target)
+			   (get-text-property (point-at-bol 2) 'target)))
+	  (progn
+	    ;; use the existing target in a neighboring line
+	    (setq tmp (match-string 2))
+	    (replace-match "")
+	    (and (looking-at "\n") (delete-char 1))
+	    (push (cons (org-solidify-link-text tmp) target)
+		  target-alist))
+	;; Make an invisible target
+	(replace-match "\\1(INVISIBLE)"))))
+  target-alist)
+
+(defun org-export-target-internal-links (target-alist)
+  "Find all internal links and assign target to them.
+If a link has a fuzzy match (i.e. not a *dedicated* target match),
+let the link  point to the corresponding section."
+  (goto-char (point-min))
+  (while (re-search-forward org-bracket-link-regexp nil t)
+    (org-if-unprotected
+     (let* ((md (match-data))
+	    (desc (match-end 2))
+	    (link (org-link-unescape (match-string 1)))
+	    (slink (org-solidify-link-text link))
+	    found props pos
+	    (target
+	     (or (cdr (assoc slink target-alist))
+		 (save-excursion
+		   (unless (string-match org-link-types-re link)
+		     (setq found (condition-case nil (org-link-search link)
+				   (error nil)))
+		     (when (and found
+				(or (org-on-heading-p)
+				    (not (eq found 'dedicated))))
+		       (or (get-text-property (point) 'target)
+			   (get-text-property
+			    (max (point-min)
+				 (1- (previous-single-property-change
+				      (point) 'target)))
+			    'target))))))))
+       (when target
+	 (set-match-data md)
+	 (goto-char (match-beginning 1))
+	 (setq props (text-properties-at (point)))
+	 (delete-region (match-beginning 1) (match-end 1))
+	 (setq pos (point))
+	 (insert target)
+	 (unless desc (insert "][" link))
+	 (add-text-properties pos (point) props))))))
+
+(defun org-export-remove-or-extract-drawers (all-drawers exp-drawers)
+  "Remove drawers, or extract the content.
+ALL-DRAWERS is a list of all drawer names valid in the current buffer.
+EXP-DRAWERS can be t to keep all drawer contents, or a list of drawers
+whose content to keep."
+  (unless (eq t exp-drawers)
+    (goto-char (point-min))
+    (let ((re (concat "^[ \t]*:\\("
+		      (mapconcat
+		       'identity
+		       (org-delete-all exp-drawers
+				       (copy-sequence all-drawers))
+		       "\\|")
+		      "\\):[ \t]*\n\\([^@]*?\n\\)?[ \t]*:END:[ \t]*\n")))
+      (while (re-search-forward re nil t)
+	(replace-match "")))))
+
+(defun org-export-remove-archived-trees (export-archived-trees)
+  "Remove archived trees.
+When EXPORT-ARCHIVED-TREES is `headline;, only the headline will be exported.
+When it is t, the entire archived tree will be exported.
+When it is nil the entire tree including the headline will be removed
+from the buffer."
+  (let ((re-archive (concat ":" org-archive-tag ":"))
+	a b)
+    (when (not (eq export-archived-trees t))
+      (goto-char (point-min))
+      (while (re-search-forward re-archive nil t)
+	(if (not (org-on-heading-p t))
+	    (org-end-of-subtree t)
+	  (beginning-of-line 1)
+	  (setq a (if export-archived-trees
+		      (1+ (point-at-eol)) (point))
+		b (org-end-of-subtree t))
+	  (if (> b a) (delete-region a b)))))))
+
+(defun org-export-protect-quoted-subtrees ()
+  "Mark quoted subtrees with the protection property."
+  (let ((re-quote (concat "^\\*+[ \t]+" org-quote-string "\\>")))
+    (goto-char (point-min))
+    (while (re-search-forward re-quote nil t)
+      (goto-char (match-beginning 0))
+      (end-of-line 1)
+      (add-text-properties (point) (org-end-of-subtree t)
+			   '(org-protected t)))))
+
+(defun org-export-protect-verbatim ()
+  "Mark verbatim snippets with the protection property."
+  (goto-char (point-min))
+  (while (re-search-forward org-verbatim-re nil t)
+    (add-text-properties (match-beginning 4) (match-end 4)
+			 '(org-protected t))
+    (goto-char (1+ (match-end 4)))))
+
+(defun org-export-protect-examples ()
+  "Protect code that should be exported as monospaced examples."
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+BEGIN_EXAMPLE[ \t]*\n" nil t)
+    (goto-char (match-end 0))
+    (while (and (not (looking-at "#\\+END_EXAMPLE")) (not (eobp)))
+      (insert ":  ")
+      (beginning-of-line 2)))
+  (goto-char (point-min))
+  (while (re-search-forward "^[ \t]*:.*\\(\n[ \t]*:.*\\)*" nil t)
+    (add-text-properties (match-beginning 0) (match-end 0)
+			 '(org-protected t))))
+
+(defun org-export-select-backend-specific-text (backend)
+  (let ((formatters
+	 '((html "HTML" "BEGIN_HTML" "END_HTML")
+	   (ascii "ASCII" "BEGIN_ASCII" "END_ASCII")
+	   (latex "LaTeX" "BEGIN_LaTeX" "END_LaTeX")))
+	fmt)
+
+    (while formatters
+      (setq fmt (pop formatters))
+      (when (eq (car fmt) backend)
+	;; This is selected code, put it into the file for real
+	(goto-char (point-min))
+	(while (re-search-forward (concat "^#\\+" (cadr fmt)
+					  ":[ \t]*\\(.*\\)") nil t)
+	  (replace-match "\\1" t)
+	  (add-text-properties
+	   (point-at-bol) (min (1+ (point-at-eol)) (point-max))
+	   '(org-protected t))))
+      (goto-char (point-min))
+      (while (re-search-forward
+	      (concat "^#\\+"
+		      (caddr fmt) "\\>.*\\(\\(\n.*\\)*?\n\\)#\\+"
+		      (cadddr fmt) "\\>.*\n?") nil t)
+	(if (eq (car fmt) backend)
+	    ;; yes, keep this
+	    (add-text-properties (match-beginning 1) (1+ (match-end 1))
+				 '(org-protected t))
+	  ;; No, this is for a different backend, kill it
+	  (delete-region (match-beginning 0) (match-end 0)))))))
+
+(defun org-export-mark-blockquote-and-verse ()
+  "Mark block quote and verse environments with special cookies.
+These special cookies will later be interpreted by the backend."
+  ;; Blockquotes
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+\\(begin\\|end\\)_\\(block\\)?quote\\>.*"
+			    nil t)
+    (replace-match (if (equal (downcase (match-string 1)) "end")
+		       "ORG-BLOCKQUOTE-END" "ORG-BLOCKQUOTE-START")
+		   t t))
+  ;; Verse
+  (goto-char (point-min))
+  (while (re-search-forward "^#\\+\\(begin\\|end\\)_verse\\>.*" nil t)
+    (replace-match (if (equal (downcase (match-string 1)) "end")
+		       "ORG-VERSE-END" "ORG-VERSE-START")
+		   t t)))
+
+(defun org-export-remove-comment-blocks-and-subtrees ()
+  "Remove the comment environment, and also commented subtrees."
+  (let ((re-commented (concat "^\\*+[ \t]+" org-comment-string "\\>")))
+    ;; Remove comment environment
+    (goto-char (point-min))
+    (while (re-search-forward
+	    "^#\\+BEGIN_COMMENT[ \t]*\n[^\000]*?^#\\+END_COMMENT\\>.*" nil t)
+      (replace-match "" t t))
+    ;; Remove subtrees that are commented
+    (goto-char (point-min))
+    (while (re-search-forward re-commented nil t)
+      (goto-char (match-beginning 0))
+      (delete-region (point) (org-end-of-subtree t)))))
+
+(defun org-export-handle-comments (commentsp)
+  "Remove comments, or convert to backend-specific format.
+COMMENTSP can be a format string for publishing comments.
+When it is nil, all comments will be removed."
+  (let ((re "^#\\(.*\n?\\)")
+	pos)
+    (goto-char (point-min))
+    (while (or (looking-at re)
+	       (re-search-forward re nil t))
+      (setq pos (match-beginning 0))
+      (if commentsp
+	  (progn (add-text-properties
+		  (match-beginning 0) (match-end 0) '(org-protected t))
+		 (replace-match (format commentsp (match-string 1)) t t))
+	(goto-char (1+ pos))
+	(org-if-unprotected
+	 (replace-match "")
+	 (goto-char (max (point-min) (1- pos))))))))
+
+(defun org-export-mark-radio-links ()
+  "Find all matches for radio targets and turn them into internal links."
+  (let ((re-radio (and org-target-link-regexp
+		       (concat "\\([^<]\\)\\(" org-target-link-regexp "\\)"))))
+    (goto-char (point-min))
+    (when re-radio
+      (while (re-search-forward re-radio nil t)
+	(org-if-unprotected
+	 (replace-match "\\1[[\\2]]"))))))
+
+(defun org-export-remove-special-table-lines ()
+  "Remove tables lines that are used for internal purposes."
+  (goto-char (point-min))
+  (while (re-search-forward "^[ \t]*|" nil t)
+    (beginning-of-line 1)
+    (if (or (looking-at "[ \t]*| *[!_^] *|")
+	    (and (looking-at ".*?| *<[0-9]+> *|")
+		 (not (looking-at ".*?| *[^ <|]"))))
+	(delete-region (max (point-min) (1- (point-at-bol)))
+		       (point-at-eol))
+      (end-of-line 1))))
+
+(defun org-export-normalize-links ()
+  "Convert all links to bracket links, and expand link abbreviations."
+  (let ((re-plain-link (concat "\\([^[<]\\)" org-plain-link-re))
+	(re-angle-link (concat "\\([^[]\\)" org-angle-link-re)))
+    (goto-char (point-min))
+    (while (re-search-forward re-plain-link nil t)
+      (goto-char (1- (match-end 0)))
+      (org-if-unprotected
+       (let* ((s (concat (match-string 1) "[[" (match-string 2)
+			 ":" (match-string 3) "]]")))
+	 ;; added 'org-link face to links
+	 (put-text-property 0 (length s) 'face 'org-link s)
+	 (replace-match s t t))))
+    (goto-char (point-min))
+    (while (re-search-forward re-angle-link nil t)
+      (goto-char (1- (match-end 0)))
+      (org-if-unprotected
+       (let* ((s (concat (match-string 1) "[[" (match-string 2)
+			 ":" (match-string 3) "]]")))
+	 (put-text-property 0 (length s) 'face 'org-link s)
+	 (replace-match s t t))))
+    (goto-char (point-min))
+    (while (re-search-forward org-bracket-link-regexp nil t)
+      (org-if-unprotected
+       (let* ((xx (save-match-data
+		    (org-link-expand-abbrev (match-string 1))))
+	      (s (concat
+		  "[[" xx "]"
+		  (if (match-end 3)
+		      (match-string 2)
+		    (concat "[" xx "]"))
+		  "]")))
+	 (put-text-property 0 (length s) 'face 'org-link s)
+	 (replace-match s t t))))))
+  
+(defun org-export-concatenate-multiline-links ()
+  "Find multi-line links and put it all into a single line.
+This is to make sure that the line-processing export backends
+can work correctly."
+  (goto-char (point-min))
+  (while (re-search-forward "\\(\\(\\[\\|\\]\\)\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\(\\[\\|\\]\\)\\)" nil t)
+    (org-if-unprotected
+     (replace-match "\\1 \\3")
+     (goto-char (match-beginning 0)))))
+
+(defun org-export-concatenate-multiline-emphasis ()
+  "Find multi-line emphasis and put it all into a single line.
+This is to make sure that the line-processing export backends
+can work correctly."
+  (goto-char (point-min))
+  (while (re-search-forward org-emph-re nil t)
+    (if (not (= (char-after (match-beginning 3))
+		(char-after (match-beginning 4))))
+	(org-if-unprotected
+	 (subst-char-in-region (match-beginning 0) (match-end 0)
+			       ?\n ?\  t)
+	 (goto-char (1- (match-end 0))))
+      (goto-char (1+ (match-beginning 0))))))
 
 (defun org-export-grab-title-from-buffer ()
   "Get a title for the current document, from looking at the buffer."
@@ -1463,18 +1705,19 @@ on this string to produce the exported version."
 
 (defun org-export-get-title-from-subtree ()
   "Return subtree title and exclude it from export."
-  (let (title (m (mark)))
+  (let (title (m (mark)) (rbeg (region-beginning)) (rend (region-end)))
     (save-excursion
-      (goto-char (region-beginning))
+      (goto-char rbeg)
       (when (and (org-at-heading-p)
-		 (>= (org-end-of-subtree t t) (region-end)))
+		 (>= (org-end-of-subtree t t) rend))
 	;; This is a subtree, we take the title from the first heading
-	(goto-char (region-beginning))
+	(goto-char rbeg)
 	(looking-at org-todo-line-regexp)
 	(setq title (match-string 3))
 	(org-unmodified
 	 (add-text-properties (point) (1+ (point-at-eol))
-			      (list :org-license-to-kill t)))))
+			      (list :org-license-to-kill t)))
+	(setq title (or (org-entry-get nil "EXPORT_TITLE") title))))
     title))
 
 (defun org-solidify-link-text (s &optional alist)
@@ -1512,14 +1755,19 @@ on this string to produce the exported version."
 	(if (string-match "\\`[A-Z]\\'" number-string)
 	    (aset org-section-numbers i
 		  (- (string-to-char number-string) ?A -1))
-	    (aset org-section-numbers i (string-to-number number-string)))
+	  (aset org-section-numbers i (string-to-number number-string)))
 	(pop numbers))
       (setq i (1- i)))))
 
 (defun org-section-number (&optional level)
   "Return a string with the current section number.
 When LEVEL is non-nil, increase section numbers on that level."
-  (let* ((depth (1- (length org-section-numbers))) idx n (string ""))
+  (let* ((depth (1- (length org-section-numbers)))
+	 (string "")
+	 (fmts (car org-export-section-number-format))
+	 (term (cdr org-export-section-number-format))
+	 (sep "")
+	 ctype fmt idx n)
     (when level
       (when (> level -1)
 	(aset org-section-numbers
@@ -1531,16 +1779,153 @@ When LEVEL is non-nil, increase section numbers on that level."
 	(setq idx (1+ idx))))
     (setq idx 0)
     (while (<= idx depth)
-      (setq n (aref org-section-numbers idx))
-      (setq string (concat string (if (not (string= string "")) "." "")
-			   (int-to-string n)))
+      (when (> (aref org-section-numbers idx) 0)
+	(setq fmt (or (pop fmts) fmt)
+	      ctype (car fmt)
+	      n (aref org-section-numbers idx)
+	      string (if (> n 0)
+			 (concat string sep (org-number-to-counter n ctype))
+		       (concat string ".0"))
+	      sep (nth 1 fmt)))
       (setq idx (1+ idx)))
     (save-match-data
       (if (string-match "\\`\\([@0]\\.\\)+" string)
 	  (setq string (replace-match "" t nil string)))
       (if (string-match "\\(\\.0\\)+\\'" string)
 	  (setq string (replace-match "" t nil string))))
-    string))
+    (concat string term)))
+
+(defun org-number-to-counter (n type)
+  "Concert number N to a string counter, according to TYPE.
+TYPE must be a string, any of:
+ 1  number
+ A  A,B,....
+ a  a,b,....
+ I  uppper case roman numeral
+ i  lower case roman numeral"
+  (cond
+   ((equal type "1") (number-to-string n))
+   ((equal type "A") (char-to-string (+ ?A n -1)))
+   ((equal type "a") (char-to-string (+ ?a n -1)))
+   ((equal type "I") (org-number-to-roman n))
+   ((equal type "i") (downcase (org-number-to-roman n)))
+   (t (error "Invalid counter type `%s'" type))))
+
+(defun org-number-to-roman (n)
+  "Convert integer N into a roman numeral."
+  (let ((roman '((1000 . "M") (900 . "CM") (500 . "D") (400 . "CD")
+		 ( 100 . "C") ( 90 . "XC") ( 50 . "L") ( 40 . "XL")
+		 (  10 . "X") (  9 . "IX") (  5 . "V") (  4 . "IV")
+		 (   1 . "I")))
+	(res ""))
+    (if (<= n 0)
+	(number-to-string n)
+      (while roman
+	(if (>= n (caar roman))
+	    (setq n (- n (caar roman))
+		  res (concat res (cdar roman)))
+	  (pop roman)))
+      res)))
+
+(org-number-to-roman 1961)
+   
+
+;;; Include files
+
+(defun org-export-handle-include-files ()
+  "Include the contents of include files, with proper formatting."
+  (let ((case-fold-search t)
+	params file markup lang start end)
+    (goto-char (point-min))
+    (while (re-search-forward "^#\\+INCLUDE:?[ \t]+\\(.*\\)" nil t)
+      (setq params (read (concat "(" (match-string 1) ")"))
+	    file (org-symname-or-string (pop params))
+	    markup (org-symname-or-string (pop params))
+	    lang (org-symname-or-string (pop params)))
+      (delete-region (match-beginning 0) (match-end 0))
+      (if (or (not file)
+	      (not (file-exists-p file))
+	      (not (file-readable-p file)))
+	  (insert (format "CANNOT INCLUDE FILE %s" file))
+	(when markup
+	  (if (equal (downcase markup) "src")
+	      (setq start (format "#+begin_src %s\n" (or lang "fundamental"))
+		    end "#+end_src")
+	    (setq start (format "#+begin_%s\n" markup)
+		  end  (format "#+end_%s" markup))))
+	(insert (or start ""))
+	(forward-char (nth 1 (insert-file-contents (expand-file-name file))))
+	(or (bolp) (newline))
+	(insert (or end ""))))))
+
+(defun org-symname-or-string (s)
+  (if (symbolp s)
+      (if s (symbol-name s) s)
+    s))
+
+;;; Fontification of code
+;; Currently only for th HTML backend, but who knows....
+(defun org-export-replace-src-segments ()
+  "Replace source code segments with special code for export."
+  (let ((case-fold-search t)
+	lang code trans)
+    (goto-char (point-min))
+    (while (re-search-forward
+	    "^#\\+BEGIN_SRC:?[ \t]+\\([^ \t\n]+\\)[ \t]*\n\\([^\000]+?\n\\)#\\+END_SRC.*"
+	    nil t)
+      (setq lang (match-string 1) code (match-string 2)
+	    trans (org-export-format-source-code lang code))
+      (replace-match trans t t))))
+
+(defvar htmlp)  ;; dynamically scoped from org-exp.el
+
+(defun org-export-format-source-code (lang code)
+  "Format CODE from language LANG and return it formatted for export.
+Currently, this only does something for HTML export, for all other
+backends, it converts the segment into an EXAMPLE segment."
+  (save-match-data
+    (cond
+     (htmlp
+      ;; We are exporting to HTML
+      (condition-case nil (require 'htmlize) (nil t))
+      (if (not (fboundp 'htmlize-region-for-paste))
+	  (progn
+	    ;; we do not have htmlize.el, or an old version of it
+	    (message
+	     "htmlize.el 1.34 or later is needed for source code formatting")
+	    (concat "#+BEGIN_EXAMPLE\n" code
+		    (if (string-match "\n\\'" code) "" "\n")
+		    "#+END_EXAMPLE\n"))
+	;; ok, we are good to go
+	(let* ((mode (and lang (intern (concat lang "-mode"))))
+	       (org-inhibit-startup t)
+	       (org-startup-folded nil)
+	       (htmltext
+		(with-temp-buffer
+		  (insert code)
+		  ;; Free up the protected stuff
+		  (goto-char (point-min))
+		  (while (re-search-forward "^," nil t)
+		    (replace-match "")
+		    (end-of-line 1))
+		  (if (functionp mode)
+		      (funcall mode)
+		    (fundamental-mode))
+		  (font-lock-fontify-buffer)
+		  (org-export-htmlize-region-for-paste
+		   (point-min) (point-max)))))
+	  (if (string-match "<pre\\([^>]*\\)>\n?" htmltext)
+	      (setq htmltext (replace-match "<pre class=\"src\">"
+					    t t htmltext)))
+	  (concat "#+BEGIN_HTML\n" htmltext "\n#+END_HTML\n"))))
+     (t
+      ;; This is not HTML, so just make it an example.
+      (when (equal lang "org")
+	(while (string-match "^," code)
+	  (setq code (replace-match "" t t code))))
+      (concat "#+BEGIN_EXAMPLE\n" code
+	      (if (string-match "\n\\'" code) "" "\n")
+	      "#+END_EXAMPLE\n")))))
 
 ;;; ASCII export
 
@@ -1560,12 +1945,17 @@ underlined headlines.  The default is 3."
   (let* ((opt-plist (org-combine-plists (org-default-export-plist)
 					(org-infile-export-plist)))
 	 (region-p (org-region-active-p))
+	 (rbeg (and region-p (region-beginning)))
+	 (rend (and region-p (region-end)))
 	 (subtree-p
 	  (when region-p
 	    (save-excursion
-	      (goto-char (region-beginning))
+	      (goto-char rbeg)
 	      (and (org-at-heading-p)
-		   (>= (org-end-of-subtree t t) (region-end))))))
+		   (>= (org-end-of-subtree t t) rend)))))
+	 (opt-plist (if subtree-p 
+			(org-export-add-subtree-options opt-plist rbeg)
+		      opt-plist))
 	 (custom-times org-display-custom-times)
 	 (org-ascii-current-indentation '(0 . 0))
 	 (level 0) line txt
@@ -1673,7 +2063,8 @@ underlined headlines.  The default is 3."
     (if org-export-with-toc
 	(progn
 	  (push (concat (nth 3 lang-words) "\n") thetoc)
-	  (push (concat (make-string (length (nth 3 lang-words)) ?=) "\n") thetoc)
+	  (push (concat (make-string (string-width (nth 3 lang-words)) ?=)
+			"\n") thetoc)
 	  (mapc '(lambda (line)
 		   (if (string-match org-todo-line-regexp
 				     line)
@@ -1810,7 +2201,7 @@ underlined headlines.  The default is 3."
 	(goto-char beg)))
     (goto-char (point-min))))
 
-(defun org-export-ascii-clean-string ()
+(defun org-export-ascii-preprocess ()
   "Do extra work for ASCII export"
   (goto-char (point-min))
   (while (re-search-forward org-verbatim-re nil t)
@@ -1847,7 +2238,7 @@ underlined headlines.  The default is 3."
 
 (defun org-insert-centered (s &optional underline)
   "Insert the string S centered and underline it with character UNDERLINE."
-  (let ((ind (max (/ (- 80 (string-width s)) 2) 0)))
+  (let ((ind (max (/ (- fill-column (string-width s)) 2) 0)))
     (insert (make-string ind ?\ ) s "\n")
     (if underline
 	(insert (make-string ind ?\ )
@@ -1984,6 +2375,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+DRAWERS:   %s
 #+STARTUP:   %s %s %s %s %s
 #+TAGS:      %s
+#+FILETAGS:  %s
 #+ARCHIVE:   %s
 #+LINK:      %s
 "
@@ -2006,7 +2398,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-skip-text-before-1st-heading
    org-export-with-drawers
    org-export-with-tags
-   (if (featurep 'org-infojs) (org-infojs-options-inbuffer-template) "")
+   (if (featurep 'org-jsinfo) (org-infojs-options-inbuffer-template) "")
    org-export-html-link-up
    org-export-html-link-home
    (file-name-nondirectory buffer-file-name)
@@ -2029,9 +2421,20 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 		     ((cdr x) (format "%s(%c)" (car x) (cdr x)))
 		     (t (car x))))
 		  (or org-tag-alist (org-get-buffer-tags)) " ") "")
+   (mapconcat 'identity org-file-tags " ")
    org-archive-location
    "org file:~/org/%s.org"
    ))
+
+(defun org-export-html-preprocess (parameters)
+  ;; Convert LaTeX fragments to images
+  (when (plist-get parameters :LaTeX-fragments)
+    (org-format-latex
+     (concat "ltxpng/" (file-name-sans-extension
+			(file-name-nondirectory
+			 org-current-export-file)))
+     org-current-export-dir nil "Creating LaTeX image %s"))
+  (message "Exporting..."))
 
 ;;;###autoload
 (defun org-insert-export-options-template ()
@@ -2171,12 +2574,17 @@ PUB-DIR is set, use this as the publishing directory."
 	 valid thetoc have-headings first-heading-pos
 	 (odd org-odd-levels-only)
 	 (region-p (org-region-active-p))
+	 (rbeg (and region-p (region-beginning)))
+	 (rend (and region-p (region-end)))
 	 (subtree-p
 	  (when region-p
 	    (save-excursion
-	      (goto-char (region-beginning))
+	      (goto-char rbeg)
 	      (and (org-at-heading-p)
-		   (>= (org-end-of-subtree t t) (region-end))))))
+		   (>= (org-end-of-subtree t t) rend)))))
+	 (opt-plist (if subtree-p 
+			(org-export-add-subtree-options opt-plist rbeg)
+		      opt-plist))
 	 ;; The following two are dynamically scoped into other
 	 ;; routines below.
 	 (org-current-export-dir
@@ -2222,7 +2630,7 @@ PUB-DIR is set, use this as the publishing directory."
 	 (inquote     nil)
 	 (infixed     nil)
 	 (in-local-list nil)
-	 (local-list-num nil)
+	 (local-list-type nil)
 	 (local-list-indent nil)
 	 (llt org-plain-list-ordered-item-terminator)
 	 (email       (plist-get opt-plist :email))
@@ -2262,9 +2670,9 @@ PUB-DIR is set, use this as the publishing directory."
 	   "[\r\n]"))
 	 table-open type
 	 table-buffer table-orig-buffer
-	 ind start-is-num starter didclose
+	 ind item-type starter didclose
 	 rpl path desc descp desc1 desc2 link
-	 snumber fnc
+	 snumber fnc item-tag
 	 )
 
     (let ((inhibit-read-only t))
@@ -2435,9 +2843,9 @@ lang=\"%s\" xml:lang=\"%s\">
 	      (setq infixed t)
 	      (insert "<pre>\n"))
 	    (insert (org-html-protect (match-string 1 line)) "\n")
-	    (when (and lines
-		       (not (string-match "^[ \t]*\\(:.*\\)"
-					  (car lines))))
+	    (when (or (not lines)
+		      (not (string-match "^[ \t]*\\(:.*\\)"
+					 (car lines))))
 	      (setq infixed nil)
 	      (insert "</pre>\n"))
 	    (throw 'nextline nil))
@@ -2451,6 +2859,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		(replace-match "\\2\n"))
 	      (insert line "\n")
 	      (while (and lines
+			  (not (string-match "^[ \t]*:" (car lines)))
 			  (or (= (length (car lines)) 0)
 			      (get-text-property 0 'org-protected (car lines))))
 		(insert (pop lines) "\n"))
@@ -2460,6 +2869,20 @@ lang=\"%s\" xml:lang=\"%s\">
 	  ;; Horizontal line
 	  (when (string-match "^[ \t]*-\\{5,\\}[ \t]*$" line)
 	    (insert "\n<hr/>\n")
+	    (throw 'nextline nil))
+
+	  ;; Blockquotes and verse
+	  (when (equal "ORG-BLOCKQUOTE-START" line)
+	    (insert "<blockquote>\n<p>\n")
+	    (throw 'nextline nil))
+	  (when (equal "ORG-BLOCKQUOTE-END" line)
+	    (insert "</p>\n</blockquote>\n")
+	    (throw 'nextline nil))
+	  (when (equal "ORG-VERSE-START" line)
+	    (insert "<verse>\n<p>\n")
+	    (throw 'nextline nil))
+	  (when (equal "ORG-VERSE-END" line)
+	    (insert "</p>\n</verse>\n")
 	    (throw 'nextline nil))
 
 	  ;; make targets to anchors
@@ -2620,10 +3043,10 @@ lang=\"%s\" xml:lang=\"%s\">
 		(setq head-count (+ head-count 1)))
 	    (when in-local-list
 	      ;; Close any local lists before inserting a new header line
-	      (while local-list-num
-		(org-close-li)
-		(insert (if (car local-list-num) "</ol>\n" "</ul>"))
-		(pop local-list-num))
+	      (while local-list-type
+		(org-close-li (car local-list-type))
+		(insert (format "</%sl>\n" (car local-list-type)))
+		(pop local-list-type))
 	      (setq local-list-indent nil
 		    in-local-list nil))
 	    (setq first-heading-pos (or first-heading-pos (point)))
@@ -2661,11 +3084,17 @@ lang=\"%s\" xml:lang=\"%s\">
 		    (t (error "Invalid value of `org-plain-list-ordered-item-terminator'")))
 		   line)
 	      (setq ind (org-get-string-indentation line)
-		    start-is-num (match-beginning 4)
+		    item-type (if (match-beginning 4) "o" "u")
 		    starter (if (match-beginning 2)
 				(substring (match-string 2 line) 0 -1))
-		    line (substring line (match-beginning 5)))
-	      (unless (string-match "[^ \t]" line)
+		    line (substring line (match-beginning 5))
+		    item-tag nil)
+	      (if (and starter (string-match "\\(.*?\\) ::[ \t]*" line))
+		  (setq item-type "d"
+			item-tag (match-string 1 line)
+			line (substring line (match-end 0))))
+	      (when (and (not (equal item-type "d"))
+			 (not (string-match "[^ \t]" line)))
 		;; empty line.  Pretend indentation is large.
 		(setq ind (if org-empty-line-terminates-plain-lists
 			      0
@@ -2676,9 +3105,9 @@ lang=\"%s\" xml:lang=\"%s\">
 				   (not starter))
 			      (< ind (car local-list-indent))))
 		(setq didclose t)
-		(org-close-li)
-		(insert (if (car local-list-num) "</ol>\n" "</ul>"))
-		(pop local-list-num) (pop local-list-indent)
+		(org-close-li (car local-list-type))
+		(insert (format "</%sl>\n" (car local-list-type)))
+		(pop local-list-type) (pop local-list-indent)
 		(setq in-local-list local-list-indent))
 	      (cond
 	       ((and starter
@@ -2686,14 +3115,21 @@ lang=\"%s\" xml:lang=\"%s\">
 			 (> ind (car local-list-indent))))
 		;; Start new (level of) list
 		(org-close-par-maybe)
-		(insert (if start-is-num "<ol>\n<li>\n" "<ul>\n<li>\n"))
-		(push start-is-num local-list-num)
+		(insert (cond
+			 ((equal item-type "u") "<ul>\n<li>\n")
+			 ((equal item-type "o") "<ol>\n<li>\n")
+			 ((equal item-type "d") 
+			  (format "<dl>\n<dt>%s</dt><dd>\n" item-tag))))
+		(push item-type local-list-type)
 		(push ind local-list-indent)
 		(setq in-local-list t))
 	       (starter
 		;; continue current list
-		(org-close-li)
-		(insert "<li>\n"))
+		(org-close-li (car local-list-type))
+		(insert (cond
+			 ((equal (car local-list-type) "d")
+			  (format "<dt>%s</dt><dd>\n" (or item-tag "???")))
+			 (t "<li>\n"))))
 	       (didclose
 		;; we did close a list, normal text follows: need <p>
 		(org-open-par)))
@@ -2716,7 +3152,8 @@ lang=\"%s\" xml:lang=\"%s\">
 		(org-close-par-maybe)
 		(let ((n (match-string 1 line)))
 		  (setq line (replace-match
-			      (format "<p class=\"footnote\"><sup><a class=\"footnum\" name=\"fn.%s\" href=\"#fnr.%s\">%s</a></sup>" n n n) t t line)))))
+			      (format "<p class=\"footnote\"><sup><a class=\"footnum\" name=\"fn.%s\" href=\"#fnr.%s\">%s</a></sup>" n n n) t t line))
+		  (setq line (concat line "</p>")))))
 
 	    ;; Check if the line break needs to be conserved
 	    (cond
@@ -2731,10 +3168,10 @@ lang=\"%s\" xml:lang=\"%s\">
       (when inquote (insert "</pre>\n"))
       (when in-local-list
 	;; Close any local lists before inserting a new header line
-	(while local-list-num
-	  (org-close-li)
-	  (insert (if (car local-list-num) "</ol>\n" "</ul>\n"))
-	  (pop local-list-num))
+	(while local-list-type
+	  (org-close-li (car local-list-type))
+	  (insert (format "</%sl>\n" (car local-list-type)))
+	  (pop local-list-type))
 	(setq local-list-indent nil
 	      in-local-list nil))
       (org-html-level-start 1 nil umax
@@ -2762,6 +3199,8 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (insert "<p class=\"date\"> "
 		    (nth 2 lang-words) ": "
 		    date "</p>\n"))
+	  (insert (format "<p>HTML generated by org-mode %s in emacs %s<\p>\n"
+			  org-version emacs-major-version))
 	  (insert "</div>"))
 
 	(if org-export-html-with-timestamp
@@ -3106,6 +3545,54 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
 	  (setq r (concat r "@<br/>")))
 	r))))
 
+(defun org-export-htmlize-region-for-paste (beg end)
+  "Convert the region to HTML, using htmlize.el.
+This is much like `htmlize-region-for-paste', only that it uses
+the settings define in the org-... variables."
+  (let* ((htmlize-output-type org-export-htmlize-output-type)
+	 (htmlize-css-name-prefix org-export-htmlize-css-font-prefix)
+	 (htmlbuf (htmlize-region beg end)))
+    (unwind-protect
+	(with-current-buffer htmlbuf
+	  (buffer-substring (plist-get htmlize-buffer-places 'content-start)
+			    (plist-get htmlize-buffer-places 'content-end)))
+      (kill-buffer htmlbuf))))
+
+;;;###autoload
+(defun org-export-htmlize-generate-css ()
+  "Create the CSS for all font definitions in the current Emacs session.
+Use this to create face definitions in your CSS style file that can then
+be used by code snippets transformed by htmlize.
+This command just produces a buffer that contains class definitions for all
+faces used in the current Emacs session.  You can copy and paste the ones you
+need into your CSS file.
+
+If you then set `org-export-htmlize-output-type' to `css', calls to
+the function `org-export-htmlize-region-for-paste' will produce code
+that uses these same face definitions."
+  (interactive)
+  (require 'htmlize)
+  (and (get-buffer "*html*") (kill-buffer "*html*"))
+  (with-temp-buffer
+    (let ((fl (face-list))
+	  (htmlize-css-name-prefix "org-")
+	  (htmlize-output-type 'css)
+	  f i)
+      (while (setq f (pop fl)
+		   i (and f (face-attribute f :inherit)))
+	(when (and (symbolp f) (or (not i) (not (listp i))))
+	  (insert (org-add-props (copy-sequence "1") nil 'face f))))
+      (htmlize-region (point-min) (point-max))))
+  (switch-to-buffer "*html*")
+  (goto-char (point-min))
+  (if (re-search-forward "<style" nil t)
+      (delete-region (point-min) (match-beginning 0)))
+  (if (re-search-forward "</style>" nil t)
+      (delete-region (1+ (match-end 0)) (point-max)))
+  (beginning-of-line 1)
+  (if (looking-at " +") (replace-match ""))
+  (goto-char (point-min)))
+
 (defun org-html-protect (s)
   ;; convert & to &amp;, < to &lt; and > to &gt;
   (let ((start 0))
@@ -3280,10 +3767,10 @@ stacked delimiters is N.  Escaping delimiters is not possible."
   (when org-par-open
     (insert "</p>")
     (setq org-par-open nil)))
-(defun org-close-li ()
+(defun org-close-li (&optional type)
   "Close <li> if necessary."
   (org-close-par-maybe)
-  (insert "</li>\n"))
+  (insert (if (equal type "d") "</dd>\n" "</li>\n")))
 
 (defvar body-only) ; dynamically scoped into this.
 (defun org-html-level-start (level title umax with-toc head-count)
@@ -3417,11 +3904,16 @@ file and store it under the name `org-combined-agenda-icalendar-file'."
 	    (when (or (and combine (not files)) (not combine))
 	      (org-finish-icalendar-file)
 	      (set-buffer ical-buffer)
+	      (run-hooks 'org-before-save-iCalendar-file-hook)
 	      (save-buffer)
 	      (run-hooks 'org-after-save-iCalendar-file-hook)
 	      (and (boundp 'org-wait) (numberp org-wait) (sit-for org-wait))
 	      ))))
       (org-release-buffers org-agenda-new-buffers))))
+
+(defvar org-before-save-iCalendar-file-hook nil
+  "Hook run before  an iCalendar file has been saved.
+This can be used to modify the result of the export.")
 
 (defvar org-after-save-iCalendar-file-hook nil
   "Hook run after an iCalendar file has been saved.
@@ -3440,7 +3932,8 @@ When COMBINE is non nil, add the category to each line."
 	      (format-time-string (cdr org-time-stamp-formats) (current-time))
 	      "DTSTART"))
 	hd ts ts2 state status (inc t) pos b sexp rrule
-	scheduledp deadlinep tmp pri category entry location summary desc
+	scheduledp deadlinep prefix
+	tmp pri category entry location summary desc uid
 	(sexp-buffer (get-buffer-create "*ical-tmp*")))
     (org-refresh-category-properties)
     (save-excursion
@@ -3456,7 +3949,9 @@ When COMBINE is non nil, add the category to each line."
 	  (setq pos (match-beginning 0)
 		ts (match-string 0)
 		inc t
-		hd (condition-case nil (org-get-heading)
+		hd (condition-case nil
+		       (org-icalendar-cleanup-string
+			(org-get-heading))
 		     (error (throw :skip nil)))
 		summary (org-icalendar-cleanup-string
 			 (org-entry-get nil "SUMMARY"))
@@ -3466,11 +3961,16 @@ When COMBINE is non nil, add the category to each line."
 		      t org-icalendar-include-body)
 		location (org-icalendar-cleanup-string
 			  (org-entry-get nil "LOCATION"))
-		category (org-get-category))
+		uid (if org-icalendar-store-UID
+			(org-id-get-create)
+		      (or (org-id-get) (org-id-new)))
+		category (org-get-category)
+		deadlinep nil scheduledp nil)
 	  (if (looking-at re2)
 	      (progn
 		(goto-char (match-end 0))
-		(setq ts2 (match-string 1) inc nil))
+		(setq ts2 (match-string 1)
+		      inc (not (string-match "[0-9]\\{1,2\\}:[0-9][0-9]" ts2))))
 	    (setq tmp (buffer-substring (max (point-min)
 					     (- pos org-ds-keyword-length))
 					pos)
@@ -3483,6 +3983,7 @@ When COMBINE is non nil, add the category to each line."
 		  scheduledp (string-match org-scheduled-regexp tmp)
 		  ;; donep (org-entry-is-done-p)
 		  ))
+	  (setq prefix (if deadlinep "DL-" (if scheduledp "SC-" "TS-")))
 	  (if (or (string-match org-tr-regexp hd)
 		  (string-match org-ts-regexp hd))
 	      (setq hd (replace-match "" t t hd)))
@@ -3500,19 +4001,21 @@ When COMBINE is non nil, add the category to each line."
 	      (setq summary
 		    (replace-match (if (match-end 3)
 				       (match-string 3 summary)
-					(match-string 1 summary))
-				      t t summary)))
+				     (match-string 1 summary))
+				   t t summary)))
 	  (if deadlinep (setq summary (concat "DL: " summary)))
 	  (if scheduledp (setq summary (concat "S: " summary)))
 	  (if (string-match "\\`<%%" ts)
 	      (with-current-buffer sexp-buffer
 		(insert (substring ts 1 -1) " " summary "\n"))
 	    (princ (format "BEGIN:VEVENT
+UID: %s
 %s
 %s%s
 SUMMARY:%s%s%s
 CATEGORIES:%s
 END:VEVENT\n"
+			   (concat prefix uid)
 			   (org-ical-ts-to-string ts "DTSTART")
 			   (org-ical-ts-to-string ts2 "DTEND" inc)
 			   rrule summary
@@ -3521,7 +4024,6 @@ END:VEVENT\n"
 			   (if (and location (string-match "\\S-" location))
 			       (concat "\nLOCATION: " location) "")
 			   category)))))
-
       (when (and org-icalendar-include-sexps
 		 (condition-case nil (require 'icalendar) (error nil))
 		 (fboundp 'icalendar-export-region))
@@ -3536,10 +4038,12 @@ END:VEVENT\n"
 	    (end-of-line 1)
 	    (setq sexp (buffer-substring b (point)))
 	    (with-current-buffer sexp-buffer
-	      (insert sexp "\n"))
-	    (princ (org-diary-to-ical-string sexp-buffer)))))
-
+	      (insert sexp "\n"))))
+	(princ (org-diary-to-ical-string sexp-buffer))
+	(kill-buffer sexp-buffer))
+      
       (when org-icalendar-include-todo
+	(setq prefix "TODO-")
 	(goto-char (point-min))
 	(while (re-search-forward org-todo-line-regexp nil t)
 	  (catch :skip
@@ -3565,7 +4069,10 @@ END:VEVENT\n"
 			      (and org-icalendar-include-body (org-get-entry)))
 			  t org-icalendar-include-body)
 		    location (org-icalendar-cleanup-string
-			      (org-entry-get nil "LOCATION")))
+			      (org-entry-get nil "LOCATION"))
+		    uid (if org-icalendar-store-UID
+			    (org-id-get-create)
+			  (or (org-id-get) (org-id-new))))
 	      (if (string-match org-bracket-link-regexp hd)
 		  (setq hd (replace-match (if (match-end 3) (match-string 3 hd)
 					    (match-string 1 hd))
@@ -3579,6 +4086,7 @@ END:VEVENT\n"
 					    (- org-lowest-priority org-highest-priority))))))
 
 	      (princ (format "BEGIN:VTODO
+UID: %s
 %s
 SUMMARY:%s%s%s
 CATEGORIES:%s
@@ -3586,13 +4094,15 @@ SEQUENCE:1
 PRIORITY:%d
 STATUS:%s
 END:VTODO\n"
+			     (concat prefix uid)
 			     dts
 			     (or summary hd)
 			     (if (and location (string-match "\\S-" location))
 				 (concat "\nLOCATION: " location) "")
 			     (if (and desc (string-match "\\S-" desc))
 				 (concat "\nDESCRIPTION: " desc) "")
-			     category pri status)))))))))
+			     category
+			     pri status)))))))))
 
 (defun org-icalendar-cleanup-string (s &optional is-body maxlength)
   "Take out stuff and quote what needs to be quoted.
@@ -3607,7 +4117,7 @@ characters."
 	(while (string-match re s) (setq s (replace-match "" t t s)))
 	(while (string-match re2 s) (setq s (replace-match "" t t s)))))
     (let ((start 0))
-      (while (string-match "\\([,;\\]\\)" s start)
+      (while (string-match "\\([,;]\\)" s start)
 	(setq start (+ (match-beginning 0) 2)
 	      s (replace-match "\\\\\\1" nil nil s))))
     (when is-body
@@ -3756,12 +4266,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 
 (provide 'org-exp)
 
+;; arch-tag: 65985fe9-095c-49c7-a7b6-cb4ee15c0a95
+
 ;;; org-exp.el ends here
 
-
-(defun org-export-process-option-filters (plist)
-  (let ((functions org-export-options-filters) f)
-    (while (setq f (pop functions))
-      (setq plist (funcall f plist))))
-  plist)
-;; arch-tag: 65985fe9-095c-49c7-a7b6-cb4ee15c0a95

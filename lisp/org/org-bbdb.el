@@ -6,7 +6,7 @@
 ;;         Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -29,7 +29,6 @@
 ;; This file implements links to BBDB database entries from within Org-mode.
 ;; Org-mode loads this module by default - if this is not what you want,
 ;; configure the variable `org-modules'.
-
 
 ;; It also implements an interface (based on Ivar Rummelhoff's
 ;; bbdb-anniv.el) for those org-mode users, who do not use the diary
@@ -77,7 +76,10 @@
 ;;       1973-06-22
 ;;       20??-??-?? wedding
 ;;       1998-03-12 %s created bbdb-anniv.el %d years ago
-
+;;
+;; From Org's agenda, you can use `C-c C-o' to jump to the BBDB
+;; link from which the entry at point originates.
+;;
 ;;; Code:
 
 (require 'org)
@@ -100,7 +102,7 @@
 (declare-function calendar-leap-year-p "calendar" (year))
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
-(defvar date)
+(defvar date)   ;; dynamically scoped from Org
 
 ;; Customization
 
@@ -115,8 +117,16 @@
   :require 'bbdb)
 
 (defcustom org-bbdb-anniversary-format-alist
-  '( ("birthday" . "Birthday: %s (%d%s)")
-     ("wedding"  . "%s's %d%s wedding anniversary") )
+  '(("birthday" lambda
+     (name years suffix)
+     (concat "Birthday: [[bbdb:" name "][" name " ("
+	     (number-to-string years)
+	     suffix ")]]"))
+    ("wedding" lambda
+     (name years suffix)
+     (concat "[[bbdb:" name "][" name "'s "
+	     (number-to-string years)
+	     suffix " wedding anniversary]]")))
   "How different types of anniversaries should be formatted.
 An alist of elements (STRING . FORMAT) where STRING is the name of an
 anniversary class and format is either:
@@ -227,17 +237,19 @@ Argument STR is the anniversary field in BBDB."
 		  (bbdb-string-trim (substring str pos)))
       (list str nil))))
 
+(defvar org-bbdb-anniv-hash nil
+  "A hash holding anniversaries extracted from BBDB.
+The hash table is created on first use.")
 
-;;;###autoload
-(defun org-bbdb-anniversaries ()
-  "Extract anniversaries from BBDB for display in the agenda."
-  (require 'diary-lib)
-  (let ((dates (list (cons (cons (car date)    ; month
-                                 (nth 1 date)) ; day
-                           (nth 2 date))))     ; year
-        (text ())
-        annivs date years
-        split class form)
+(defvar org-bbdb-updated-p t
+  "This is non-nil if BBDB has been updated since we last built the hash.")
+
+(defun org-bbdb-make-anniv-hash ()
+  "Create a hash with anniversaries extracted from BBDB, for fast access.
+The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
+
+  (let (split tmp annivs)
+    (clrhash org-bbdb-anniv-hash)
     (dolist (rec (bbdb-records))
       (when (setq annivs (bbdb-record-getprop
                           rec org-bbdb-anniversary-field))
@@ -246,33 +258,70 @@ Argument STR is the anniversary field in BBDB."
           (setq split (org-bbdb-anniv-split (pop annivs)))
           (multiple-value-bind (m d y)
               (funcall org-bbdb-extract-date-fun (car split))
+            (setq tmp (gethash (list m d) org-bbdb-anniv-hash))
+            (puthash (list m d) (cons (list y 
+                                            (bbdb-record-name rec) 
+                                            (cadr split))
+                                      tmp)
+                     org-bbdb-anniv-hash))))))
+  (setq org-bbdb-updated-p nil))
 
-            (when (and (or (setq date (assoc (cons m d) dates))
-                           (and (= d 29)
-                                (= m 2)
-                                (setq date (assoc '(3 . 1) dates))
-                                (not (calendar-leap-year-p (cdr date)))))
-                       (< 0 (setq years (-  (cdr date) y))))
-              (let* ((class (or (cadr split)
-                                org-bbdb-default-anniversary-format))
-                     (form (or (cdr (assoc class
-                                           org-bbdb-anniversary-format-alist))
-                               class))	; (as format string)
-                     (name (bbdb-record-name rec))
-                     (suffix (diary-ordinal-suffix years))
-                     (tmp (cond
-                           ((functionp form)
-                            (funcall form name years suffix))
-                           ((listp form) (eval form))
-                           (t (format form name years suffix)))))
-                (if text
-                    (setq text (append text (list tmp)))
-                  (setq text (list tmp))))
-              )))))
+(defun org-bbdb-updated (rec)
+  "Record the fact that BBDB has been updated.
+This is used by Org to re-create the anniversary hash table."
+  (setq org-bbdb-updated-p t))
+
+(add-hook 'bbdb-after-change-hook 'org-bbdb-updated)
+
+;;;###autoload
+(defun org-bbdb-anniversaries()
+  "Extract anniversaries from BBDB for display in the agenda."
+  (require 'diary-lib)
+  (unless (hash-table-p org-bbdb-anniv-hash)
+    (setq org-bbdb-anniv-hash
+	  (make-hash-table :test 'equal :size 366)))
+
+  (when (or org-bbdb-updated-p
+            (= 0 (hash-table-count org-bbdb-anniv-hash)))
+    (org-bbdb-make-anniv-hash))
+
+  (let* ((m (car date))    ; month
+         (d (nth 1 date))  ; day
+         (y (nth 2 date))  ; year
+         (annivs (gethash (list m d) org-bbdb-anniv-hash))
+         (text ())
+         split class form rec)
+    
+    ;; we don't want to miss people born on Feb. 29th
+    (when (and (= m 3) (= d 1) (not (calendar-leap-year-p y)))
+      (setq annivs (cons annivs (gethash (list 2 29) org-bbdb-anniv-hash))))
+
+    (when annivs
+      (while (setq rec (pop annivs))
+        (when rec 
+          (let* ((class (or (nth 2 rec)
+                            org-bbdb-default-anniversary-format))
+                 (form (or (cdr (assoc class
+                                       org-bbdb-anniversary-format-alist))
+                           class))	; (as format string)
+                 (name (nth 1 rec))
+                 (years (- y (car rec)))
+                 (suffix (diary-ordinal-suffix years))
+                 (tmp (cond
+                       ((functionp form)
+                        (funcall form name years suffix))
+                       ((listp form) (eval form))
+                       (t (format form name years suffix)))))
+	    (org-add-props tmp nil 'org-bbdb-name name)
+            (if text
+                (setq text (append text (list tmp)))
+              (setq text (list tmp)))))
+        ))
     (when text
       (mapconcat 'identity text "; "))))
 
 (provide 'org-bbdb)
 
 ;; arch-tag: 9e4f275d-d080-48c1-b040-62247f66b5c2
+
 ;;; org-bbdb.el ends here

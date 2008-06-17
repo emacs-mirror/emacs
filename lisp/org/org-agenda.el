@@ -1,4 +1,4 @@
-;;; org-agenda.el --- The table editor for Org-mode
+;;; org-agenda.el --- Dynamic task and appointment lists for Org
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,7 +34,7 @@
 (eval-when-compile
   (require 'calendar))
 
-(declare-function add-to-diary-list "diary-lib"
+(declare-function diary-add-to-list "diary-lib"
                   (date string specifier &optional marker globcolor literal))
 (declare-function calendar-absolute-from-iso    "cal-iso"    (date))
 (declare-function calendar-astro-date-string    "cal-julian" (&optional date))
@@ -392,6 +392,12 @@ or `C-c a #' to produce the list."
  :tag "Org Agenda Skip"
  :group 'org-agenda)
 
+(defcustom org-agenda-skip-comment-trees t
+  "Non-nil means, skip trees that start with teh COMMENT keyword.
+When nil, these trees are also scand by agenda commands."
+  :group 'org-agenda-skip
+  :type 'boolean)
+
 (defcustom org-agenda-todo-list-sublevels t
   "Non-nil means, check also the sublevels of a TODO entry for TODO entries.
 When nil, the sublevels of a TODO entry are not checked, resulting in
@@ -463,7 +469,6 @@ N days, just insert a special line indicating the size of the gap."
 	  (const :tag "None" nil)
 	  (const :tag "All" t)
 	  (number :tag "at most")))
-
 
 (defgroup org-agenda-startup nil
   "Options concerning initial settings in the Agenda in Org Mode."
@@ -676,7 +681,7 @@ symbols specifying conditions when the grid should be displayed:
  today         show grid on current date, independent of daily/weekly display
  require-timed show grid only if at least one item has a time specification
 
-The second item is a string which will be places behing the grid time.
+The second item is a string which will be placed behind the grid time.
 
 The third item is a list of integers, indicating the times that should have
 a grid line."
@@ -849,8 +854,10 @@ to occupy a fixed space in the agenda display."
   "Text preceeding scheduled items in the agenda view.
 This is a list with two strings.  The first applies when the item is
 scheduled on the current day.  The second applies when it has been scheduled
-previously, it may contain a %d to capture how many days ago the item was
-scheduled."
+previously, it may contain a %d indicating that this is the nth time that
+this item is scheduled, due to automatic rescheduling of unfinished items
+for the following day.  So this number is one larger than the number of days
+that passed since this item was scheduled first."
   :group 'org-agenda-line-format
   :type '(list
 	  (string :tag "Scheduled today     ")
@@ -944,6 +951,16 @@ a names face, or a list like `(:background \"Red\")'."
 (defcustom org-agenda-columns-show-summaries t
   "Non-nil means, show summaries for columns displayed in the agenda view."
   :group 'org-agenda-column-view
+  :type 'boolean)
+
+(defcustom org-agenda-columns-remove-prefix-from-item t
+  "Non-nil means, remove the prefix from a headline for agenda column view.
+The special ITEM field in the columns format contains the current line, with
+all information shown in other columns (like the TODO state or a tag).
+When this variable is non-nil, also the agenda prefix will be removed from
+the content of the ITEM field, to make sure as much as possible of the
+headline can be shown in the limited width of the field."
+  :group 'org-agenda
   :type 'boolean)
 
 (defcustom org-agenda-columns-compute-summary-properties t
@@ -1071,6 +1088,8 @@ The following commands are available:
 (org-defkey org-agenda-mode-map "y"        'org-agenda-year-view)
 (org-defkey org-agenda-mode-map "\C-c\C-z" 'org-agenda-add-note)
 (org-defkey org-agenda-mode-map "z"        'org-agenda-add-note)
+(org-defkey org-agenda-mode-map "k"        'org-agenda-action)
+(org-defkey org-agenda-mode-map "\C-c\C-x\C-k" 'org-agenda-action)
 (org-defkey org-agenda-mode-map [(shift right)] 'org-agenda-date-later)
 (org-defkey org-agenda-mode-map [(shift left)] 'org-agenda-date-earlier)
 (org-defkey org-agenda-mode-map [?\C-c ?\C-x (right)] 'org-agenda-date-later)
@@ -1176,6 +1195,11 @@ The following commands are available:
     ("Date/Schedule"
      ["Schedule" org-agenda-schedule t]
      ["Set Deadline" org-agenda-deadline t]
+     "--"
+     ["Mark item" org-agenda-action :active t :keys "k m"]
+     ["Show mark item" org-agenda-action :active t :keys "k v"]
+     ["Schedule marked item" org-agenda-action :active t :keys "k s"]
+     ["Set Deadline for marked item" org-agenda-action :active t :keys "k d"]
      "--"
      ["Change Date +1 day" org-agenda-date-later (org-agenda-check-type nil 'agenda 'timeline)]
      ["Change Date -1 day" org-agenda-date-earlier (org-agenda-check-type nil 'agenda 'timeline)]
@@ -2012,7 +2036,8 @@ continue from there."
 	 (get-text-property p :org-archived)
 	 (org-end-of-subtree t)
 	 (throw :skip t))
-    (and (get-text-property p :org-comment)
+    (and org-agenda-skip-comment-trees
+	 (get-text-property p :org-comment)
 	 (org-end-of-subtree t)
 	 (throw :skip t))
     (if (equal (char-after p) ?#) (throw :skip t))
@@ -2044,6 +2069,11 @@ no longer in use."
   "Reset markers created by `org-agenda'."
   (while org-agenda-markers
     (move-marker (pop org-agenda-markers) nil)))
+
+(defun org-agenda-save-markers-for-cut-and-paste (beg end)
+  "Save relative positions of markers in region."
+  (mapc (lambda (m) (org-check-and-save-marker m beg end))
+	org-agenda-markers))
 
 ;;; Agenda timeline
 
@@ -2425,6 +2455,7 @@ in `org-agenda-text-search-extra-files'."
 		      'done-face 'org-done
 		      'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo (format "mouse-2 or RET jump to location")))
@@ -2539,6 +2570,7 @@ in `org-agenda-text-search-extra-files'."
 		      (org-add-props txt props
 			'org-marker marker 'org-hd-marker marker
 			'org-todo-regexp org-todo-regexp
+			'org-complex-heading-regexp org-complex-heading-regexp
 			'priority 1000 'org-category category
 			'type "search")
 		      (push txt ee)
@@ -3065,6 +3097,7 @@ the documentation of `org-diary'."
 		      'done-face 'org-done
 		      'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -3123,6 +3156,7 @@ the documentation of `org-diary'."
   (let* ((props (list 'face nil
 		      'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -3255,6 +3289,7 @@ the documentation of `org-diary'."
   (let* ((props (list 'mouse-face 'highlight
 		      'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
@@ -3269,7 +3304,7 @@ the documentation of `org-diary'."
 			    (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
 		    1 11))))
 	 marker hdmarker priority category tags closedp
-	 ee txt timestr)
+	 ee txt timestr rest)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (catch :skip
@@ -3280,9 +3315,15 @@ the documentation of `org-diary'."
 	      timestr (buffer-substring (match-beginning 0) (point-at-eol))
 	      ;; donep (org-entry-is-done-p)
 	      )
-	(if (string-match "\\]" timestr)
-	    ;; substring should only run to end of time stamp
-	    (setq timestr (substring timestr 0 (match-end 0))))
+	(when (string-match "\\]" timestr)
+	  ;; substring should only run to end of time stamp
+	  (setq rest (substring timestr (match-end 0))
+		timestr (substring timestr 0 (match-end 0)))
+	  (if (and (not closedp)
+		   (string-match "\\([0-9]\\{1,2\\}:[0-9]\\{2\\}\\)\\]" rest))
+	      (setq timestr (concat (substring timestr 0 -1)
+				    "-" (match-string 1 rest) "]"))))
+		
 	(save-excursion
 	  (if (re-search-backward "^\\*+ " nil t)
 	      (progn
@@ -3309,6 +3350,7 @@ the documentation of `org-diary'."
   (let* ((props (list 'mouse-face 'highlight
 		      'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'keymap org-agenda-keymap
 		      'help-echo
 		      (format "mouse-2 or RET jump to org file %s"
@@ -3394,6 +3436,7 @@ FRACTION is what fraction of the head-warning time has passed."
   "Return the scheduled information for agenda display."
   (let* ((props (list 'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'done-face 'org-done
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
@@ -3469,6 +3512,7 @@ FRACTION is what fraction of the head-warning time has passed."
   (let* ((props (list 'face nil
 		      'org-not-done-regexp org-not-done-regexp
 		      'org-todo-regexp org-todo-regexp
+		      'org-complex-heading-regexp org-complex-heading-regexp
 		      'mouse-face 'highlight
 		      'keymap org-agenda-keymap
 		      'help-echo
@@ -4137,12 +4181,12 @@ written as 2-digit years."
   (setq org-agenda-ndays 7)
   (org-agenda-change-time-span 'week iso-week))
 (defun org-agenda-month-view (&optional month)
-  "Switch to daily view for agenda.
+  "Switch to monthly view for agenda.
 With argument MONTH, switch to that month."
   (interactive "P")
   (org-agenda-change-time-span 'month month))
 (defun org-agenda-year-view (&optional year)
-  "Switch to daily view for agenda.
+  "Switch to yearly view for agenda.
 With argument YEAR, switch to that year.
 If MONTH has more then 2 digits, only the last two encode the
 month.  Any digits before this encode a year.  So 200712 means
@@ -4331,7 +4375,10 @@ so that the date SD will be in that range."
 
 (defun org-agenda-post-command-hook ()
   (and (eolp) (not (bolp)) (backward-char 1))
-  (setq org-agenda-type (get-text-property (point) 'org-agenda-type))
+  (setq org-agenda-type
+	(or (get-text-property (point) 'org-agenda-type)
+	    (get-text-property (max (point-min) (1- (point)))
+			       'org-agenda-type)))
   (if (and org-agenda-follow-mode
 	   (get-text-property (point) 'org-marker))
       (org-agenda-show)))
@@ -4890,6 +4937,69 @@ be used to request time specification in the time stamp."
       (org-agenda-show-new-time marker ts "S"))
 	(message "Deadline for this item set to %s" ts)))
 
+(defun org-agenda-action ()
+  "Select entry for agenda action, or execute an agenda action.
+This command prompts for another letter.  Valid inputs are:
+
+m     Mark the entry at point for an agenda action
+s     Schedule the marked entry to the date at the cursor
+d     Set the deadline of the marked entry to the date at the cursor
+r     Call `org-remember' with cursor date as the default date
+SPC   Show marked entry in other window
+TAB   Visit marked entry in other window
+
+The cursor may be at a date in the calendar, or in the Org agenda."
+  (interactive)
+  (let (pos ans)
+    (message "Select action: [m]ark | [s]chedule [d]eadline [r]emember [ ]show")
+    (setq ans (read-char-exclusive))
+    (cond
+     ((equal ans ?m)
+      ;; Mark this entry
+      (if (eq major-mode 'org-agenda-mode)
+	  (let ((m (or (get-text-property (point) 'org-hd-marker)
+		       (get-text-property (point) 'org-marker))))
+	    (if m
+		(progn
+		  (move-marker org-agenda-action-marker
+			       (marker-position m) (marker-buffer m))
+		  (message "Entry marked for action; press `k' at desired date in agenda or calendar"))
+	      (error "Don't know which entry to mark")))
+	(error "This command works only in the agenda")))
+     ((equal ans ?s)
+      (org-agenda-do-action '(org-schedule nil org-overriding-default-time)))
+     ((equal ans ?d)
+      (org-agenda-do-action '(org-deadline nil org-overriding-default-time)))
+     ((equal ans ?r)
+      (org-agenda-do-action '(org-remember) t))
+     ((equal ans ?\ )
+      (let ((cw (selected-window)))
+	(org-switch-to-buffer-other-window
+	 (marker-buffer org-agenda-action-marker))
+	(goto-char org-agenda-action-marker)
+	(org-show-context 'agenda)
+	(select-window cw)))
+     ((equal ans ?\C-i)
+      (org-switch-to-buffer-other-window
+       (marker-buffer org-agenda-action-marker))
+      (goto-char org-agenda-action-marker)
+      (org-show-context 'agenda))
+     (t (error "Invalid agenda action %c" ans)))))
+
+(defun org-agenda-do-action (form &optional current-buffer)
+  "Evaluate FORM at the entry pointed to by `org-agenda-action-marker'."
+  (let ((org-overriding-default-time (org-get-cursor-date)))
+    (if current-buffer
+	(eval form)
+      (if (not (marker-buffer org-agenda-action-marker))
+	  (error "No entry has bee selected for agenda action")
+	(with-current-buffer (marker-buffer org-agenda-action-marker)
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char org-agenda-action-marker)
+	      (eval form))))))))
+  
 (defun org-agenda-clock-in (&optional arg)
   "Start the clock on the currently selected item."
   (interactive "P")
@@ -4898,12 +5008,20 @@ be used to request time specification in the time stamp."
       (org-clock-in arg)
     (let* ((marker (or (get-text-property (point) 'org-marker)
 		       (org-agenda-error)))
-	   (pos (marker-position marker)))
+	   (hdmarker (or (get-text-property (point) 'org-hd-marker)
+			 marker))
+	   (pos (marker-position marker))
+	   newhead)
       (org-with-remote-undo (marker-buffer marker)
         (with-current-buffer (marker-buffer marker)
 	  (widen)
 	  (goto-char pos)
-	  (org-clock-in arg))))))
+	  (org-show-context 'agenda)
+	  (org-show-entry)
+	  (org-cycle-hide-drawers 'children)
+	  (org-clock-in arg)
+	  (setq newhead (org-get-heading)))
+	(org-agenda-change-all-lines newhead hdmarker t)))))
 
 (defun org-agenda-clock-out (&optional arg)
   "Stop the currently running clock."
@@ -5141,6 +5259,8 @@ belonging to the \"Work\" category."
 
 (provide 'org-agenda)
 
+;; arch-tag: 77f7565d-7c4b-44af-a2df-9f6f7070cff1
+
 ;;; org-agenda.el ends here
 
-;; arch-tag: 77f7565d-7c4b-44af-a2df-9f6f7070cff1
+
