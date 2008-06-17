@@ -5587,6 +5587,8 @@ realize_default_face (f)
 	LFACE_WEIGHT (lface) = Qnormal;
       if (UNSPECIFIEDP (LFACE_SLANT (lface)))
 	LFACE_SLANT (lface) = Qnormal;
+      if (UNSPECIFIEDP (LFACE_FONTSET (lface)))
+	LFACE_FONTSET (lface) = Qnil;
     }
 
   if (UNSPECIFIEDP (LFACE_UNDERLINE (lface)))
