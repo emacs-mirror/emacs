@@ -1,3 +1,8 @@
+2008-06-17  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
+
+	* fontset.c (fontset_pattern_regexp): Escape some reg-expr
+	characters.
+
 2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dispextern.h (lookup_non_ascii_face, split_font_name_into_vector)
