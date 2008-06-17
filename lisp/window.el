@@ -751,7 +751,6 @@ only if it has at least as many lines.  If the value is nil,
 If the window is the only window on its frame, `display-buffer'
 can split it regardless of this value."
   :type '(choice (const nil) (number :tag "lines"))
-  :type 'number
   :version "23.1"
   :group 'windows)
 
