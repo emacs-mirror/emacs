@@ -1,3 +1,8 @@
+2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Store divider characters for
+	unknown-spec list.
+
 2008-06-17  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (realize_default_face): If the frame is not on window
