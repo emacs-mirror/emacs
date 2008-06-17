@@ -1,3 +1,9 @@
+2008-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacsver, miscmanualdir, VERSION, manual, install)
+	(elisp, dist): Remove rules and variables that are obsolete now
+	the lisp manual is no longer distributed separately.
+
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* configure, configure.in, mkinstalldirs: Remove unused files.
