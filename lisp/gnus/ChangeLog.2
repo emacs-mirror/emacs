@@ -214,12 +214,6 @@
 
 	* mml1991.el (mml1991-pgg-sign): Use unibyte when re-encoding.
 
-2003-12-26  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el: Add an advice to byte-optimize-form-code-walker to
-	avoid the warning ``...called for effect'' for the pop form when
-	running Emacs 21.3.
-
 2003-12-26  Jesper Harder  <harder@ifa.au.dk>
 
 	* mm-bodies.el (mm-body-encoding): Don't use 7bit if the body
@@ -230,19 +224,8 @@
 	* mml1991.el (mml1991-pgg-sign): Encode and decode according to
 	CTE header.  Don't insert gpg output as unibyte.
 
-2003-12-25  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Remove display-time-event-handler and open-ssl-stream;
-	add delete-extent for Emacs; rearrange bindings assuming w3 may
-	not be available and XEmacs without the file-coding feature may be
-	used.
-
-2003-12-24  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (dgnushack-compile): Increase the value for
-	max-specpdl-size when compiling Gnus with Emacs 20.
-
 2003-12-22  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+
 	* gnus-int.el (gnus-open-server): Fixed the server status such
 	that an agentized server, when opened offline, has a status of
 	offline.  Also fixes bug whereby the agent's backend was called
@@ -668,11 +651,8 @@
 	* gnus-art.el (article-hide-boring-headers): Don't hide Reply-To
 	unless its list of addresses is identical to From.
 
-2003-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (mapc): Add the compiler macro for Emacs 20.
-
 2003-11-24  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+
 	* gnus-srvr.el (gnus-server-insert-server-line): The server names
 	used in gnus-agent are different (for example, the native server
 	uses the alias "native") from the names in gnus-srvr.
@@ -1045,15 +1025,6 @@
 	* spam.el (spam-move-spam-nonspam-groups-only): Documentation fix
 	for the variable.
 
-2003-10-25  Steve Youngs  <sryoungs@bigpond.net.au>
-
-	* Makefile.in (clean-some): Remove auto-autoloads.* and
-	custom-load.* as well.
-	(distclean): Ditto.
-
-	* dgnushack.el (dgnushack-make-load): Add a local vars section to
-	the dummy gnus-load.el.
-
 2003-10-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam.el (spam-ham-copy-or-move-routine): Do not delete if copy
@@ -1068,18 +1039,6 @@
 	* nndoc.el (nndoc-guess-type): Reverse the sort order.  Suggested
 	by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
 	(nndoc-dissect-buffer): Don't miss even-numbered articles.
-
-2003-10-24  Steve Youngs  <sryoungs@bigpond.net.au>
-
-	* dgnushack.el (dgnushack-gnus-load-file): Set to
-	"auto-autoloads.el" if building with XEmacs.
-	(dgnushack-cus-load-file): Set to "custom-load.el" if building
-	with XEmacs.
-	(dgnushack-make-cus-load): We don't delete the resulting file if
-	building with XEmacs so byte-compile it.
-	(dgnushack-make-load): When building with XEmacs do nothing except
-	byte-compile the autoload file and create a dummy gnus-load.el
-	file.
 
 2003-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -2272,10 +2231,6 @@
 	* rfc2047.el (rfc2047-encode-region): Skip ASCII at beginning and
 	end of region.
 
-2003-05-28  Jesper Harder  <harder@ifa.au.dk>
-
-	* lpath.el: Add put-char-table and get-char-table.
-
 2003-05-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-dirty): Flag for modified registry.
@@ -2311,10 +2266,6 @@
 	* gnus-sum.el (gnus-summary-move-article): Don't copy expirable
 	marks if the destination group is not auto-expirable.
 
-2003-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (assq-delete-all): Removed the compiler macro.
-
 2003-05-14  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
 	* gnus-agent.el (gnus-agentize): Updated documentation to match
@@ -2337,9 +2288,6 @@
 	* mail-source.el (mail-source-delete-incoming): Changed to t.
 
 	* rfc2047.el (rfc2047-syntax-table): Funcall.
-
-	* lpath.el ((featurep 'xemacs)): Added set-char-table-range.
-	((featurep 'xemacs)): No, don't.
 
 	* rfc2047.el (rfc2047-encodable-p): Use the header charset.
 
@@ -2374,18 +2322,6 @@
 
 	* gnus-fun.el (gnus-display-x-face-in-from): Don't use centering
 	since none of the other image things do.
-
-2003-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (assq-delete-all): New compiler macro for Emacs 20.
-
-2003-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Fbind find-coding-system.
-
-	* dgnushack.el (dgnushack-make-load): Remove redundant format call
-	in message.  Suggested by Yoichi NAKAYAMA <yoichi@geiin.org>.
-	* pop3.el (pop3-movemail): Ditto.
 
 2003-05-12  Colin Marquardt  <c.marquardt@alcatel.de>  (tiny change)
 
@@ -2731,10 +2667,6 @@
 
 	* gnus.el: Oort Gnus v0.24 is released.
 
-2003-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* dgnushack.el (when): Check whether defadvice is fbound.
-
 2003-05-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-unregistered-group-regex):
@@ -2763,10 +2695,6 @@
 
 	* message.el (message-forward-subject-name-subject): Decode
 	string when forwarding.
-
-2003-05-01  Oystein Viggen  <oysteivi@tihlde.org>
-
-	* dgnushack.el (when): Add defadvice.
 
 2003-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -2833,10 +2761,6 @@
 
 2003-05-01  Steve Youngs  <youngs@xemacs.org>
 
-	* lpath.el: Add a section for non-Mule XEmacsen.
-	fbind `find-charset-string' and `coding-system-base' in that
-	section.
-
 	* gnus-util.el (gnus-completing-read-maybe-default): New.
 	(gnus-completing-read): Use it.
 
@@ -2892,14 +2816,6 @@
 
 	* gnus-int.el (gnus-open-server): Restructured to only open
 	nnagent when gnus-plugged is nil.
-
-2003-04-30  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Fbind string-to-multibyte.
-
-2003-04-30  Steve Youngs  <youngs@xemacs.org>
-
-	* dgnushack.el: Add some missing autoloads for XEmacs 21.1.
 
 2003-04-29  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -2972,21 +2888,12 @@
 	(gnus-article-goto-prev-page): Revert 2003-02-12 change to make
 	gnus-pick-mode work.
 
-2003-04-28  Steve Youngs  <youngs@xemacs.org>
-
-	* Makefile.in (FLAGS): Use @FLAGS@.
-
 2003-04-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-mime-display-multipart-as-mixed)
 	(gnus-mime-display-multipart-alternative-as-mixed)
 	(gnus-mime-display-multipart-related-as-mixed): Added doc-strings,
 	allow customization.
-
-2003-04-27  Kevin Greiner  <kgreiner@xpediantsolutions.com>
-
-	* dgnushack.el (dgnushack-compile-verbosely): New function.
-	Not currently called (See source for explanation).
 
 2003-04-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -3123,11 +3030,6 @@
 
 	* mm-bodies.el (mm-decode-body): Don't override supplied charset.
 
-2003-04-23  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (merge, copy-list): Remove compiler macros.
-	(butlast): Add a compiler macro.
-
 2003-04-22  Paul Jarc  <prj@po.cwru.edu>
 
 	* gnus-util.el (gnus-merge): Added "type" argument to match CL
@@ -3230,18 +3132,6 @@
 	Korytov <deskpot@myrealbox.com>.
 
 2003-04-17  Steve Youngs  <youngs@xemacs.org>
-
-	* dgnushack.el: 'setenv' is in env.el for XEmacsen <= 21.4, but in
-	process.el in XEmacsen >= 21.5.
-
-2003-04-17  Steve Youngs  <youngs@xemacs.org>
-
-	* dgnushack.el: Add a whole swag of autoloads and defaliases to
-	satisfy the byte-compiler when building with XEmacs.
-
-	* lpath.el (maybe-bind): Add 'w3-meta-content-type-charset-regexp'
-	and 'w3-meta-charset-content-type-regexp' in XEmacs.  The upstream
-	W3 doesn't have these.
 
 	* mailcap.el: Maybe require 'lpr in XEmacs.
 
@@ -3446,8 +3336,6 @@
 	nil.
 	(message-hide-headers): Narrow to headers.
 
-	* lpath.el (featurep): Bind Info-directory, Info-menu.
-
 2003-04-12  Jesper Harder  <harder@ifa.au.dk>
 
 	* mm-bodies.el (mm-body-charset-encoding-alist): UTF-16 *must* be
@@ -3644,10 +3532,6 @@
 	unsafe.
 	(pgg-temporary-file-directory): Remove.
 
-2003-04-02  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Fbind Info-directory and Info-menu.
-
 2003-04-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-util.el (gnus-message): Added doc-string.
@@ -3788,12 +3672,6 @@
 	* gnus-art.el (article-decode-group-name): Be correct instead of
 	smart.
 
-2003-03-27  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Bind url-current-object for Emacs; bind
-	gnus-agent-expire-current-dirs for XEmacs; fbind open-ssl-stream
-	for both Emacsen.
-
 2003-03-27  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-sum.el (gnus-article-loose-mime)
@@ -3905,8 +3783,6 @@
 2003-03-20  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-split-line): Ignore error.
-
-	* lpath.el (split-line): Avoid split-line warning message.
 
 2003-03-20  Kim F. Storm  <storm@cua.dk>
 
@@ -4054,9 +3930,6 @@
 	* gnus-art.el (gnus-article-wash-html-with-w3m): Don't bind
 	w3m-display-inline-images.
 
-	* lpath.el: Bind w3m-display-inline-images; bind mm-w3m-mode-map
-	regardless of an Emacs flavor.
-
 2003-03-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.el (gnus-version-number): Bump.
@@ -4064,10 +3937,6 @@
 2003-03-18 00:38:22  Lars Magne Ingebrigtsen  <lars@ingebrigtsen.no>
 
 	* gnus.el: Oort Gnus v0.16 is released.
-
-2003-03-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* lpath.el (featurep): Bind mm-w3m-mode-map.
 
 2003-03-17  Paul Jarc  <prj@po.cwru.edu>
 
@@ -5994,8 +5863,6 @@
 	* spam.el: Fixed the BBDB autoloads again, using
 	bbdb-search-simple now (which is not a macro, thank god).
 
-	* lpath.el (bbdb-search): Removed function from maybe-fbind list.
-
 	* gnus.el (ham-process-destination): Added new parameter for
 	destination of ham articles found in spam groups at summary exit.
 
@@ -6025,10 +5892,6 @@
 
 	* nnmail.el (nnmail-expiry-target-group): Request group, create it
 	not successful.
-
-2003-01-08  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el (bbdb-records): Fbind it for both Emacs and XEmacs.
 
 2003-01-07  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -6102,9 +5965,6 @@
 2003-01-07  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam.el: Removed unnecessary condition-case for loading bbdb-com.el.
-
-	* lpath.el (bbdb-search): Added BBDB functions for a better way to
-	fix missing functions.
 
 	* spam.el (spam-check-ifile): If should be an unless.
 
@@ -6399,8 +6259,6 @@
 	* gnus-art.el (gnus-treat-predicate): Check condition first.
 
 2003-01-02  Jesper Harder  <harder@ifa.au.dk>
-
-	* lpath.el: Add url-http-file-exists-p.
 
 	* gnus-group.el (gnus-group-fetch-charter): Use
 	http://TLH.news-admin.org/charters/GROUPNAME as a fallback.
@@ -6821,8 +6679,6 @@
 	* binhex.el (binhex-insert-char): Eval-and-compile.
 
 2002-12-17  Jesper Harder  <harder@ifa.au.dk>
-
-	* lpath.el: Add tool-bar-local-item-from-menu.
 
 	* message.el (message-tool-bar-local-item-from-menu): New function.
 	(message-tool-bar-map): Use it.
@@ -7372,8 +7228,6 @@
 	* mm-view.el (mm-w3m-local-map-property): Make it work with older
 	versions of emacs-w3m than 1.3.3.
 
-	* lpath.el: Bind w3m-minor-mode-map.
-
 	* mm-view.el (mm-w3m-mode-command-alist)
 	(mm-w3m-mode-dont-bind-keys, mm-w3m-mode-ignored-keys): Removed.
 	(mm-w3m-mode-map): Undefined for Emacs21 and XEmacs.
@@ -7457,10 +7311,6 @@
 	(gnus-agent-save-fetched-headers): New functions, for remembering
 	which headers have been fetched before.
 
-2002-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Remove useless bindings.
-
 2002-10-22  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-sum.el (gnus-summary-execute-command): Disable visual
@@ -7476,8 +7326,6 @@
 	(pgg-snarf-keys): Add.
 
 2002-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Fbind bbdb-records.
 
 	* spam.el: Don't autoload bbdb-records.
 
@@ -8405,9 +8253,6 @@
 
 	* gnus-util.el (gnus-frame-or-window-display-name): New function.
 
-	* lpath.el: Fbind `frame-parameter', `make-frame-on-display',
-	`device-connection' and `dfw-device'.
-
 2002-08-22  Jochen Hein  <jochen@jochen.org>  (tiny change)
 
 	* gnus-art.el (gnus-emphasis-alist): Strikethru had a lot of false
@@ -8425,8 +8270,6 @@
 	read new news; delete frame on exit.
 
 	* gnus-util.el (gnus-select-frame-set-input-focus): New function.
-
-	* lpath.el: Fbind w32-focus-frame and x-focus-frame.
 
 2002-08-20  小関 吉則 (KOSEKI Yoshinori)  <kose@meadowy.org>.
 
@@ -8514,10 +8357,6 @@
 	(mm-uu-yenc-extract): New function.
 
 	* mm-bodies.el (mm-decode-content-transfer-encoding): Add yenc.
-
-2002-08-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* dgnushack.el (merge): Don't use coerce.
 
 2002-05-27  Jesper Harder  <harder@ifa.au.dk>
 
@@ -8744,12 +8583,6 @@
 
 	* gnus-delay.el (gnus-delay-send-queue): Delete the delay header
 	before sending.  Suggested by Jan Rychter.
-
-2002-06-18  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (remove): New compiler macro.
-	(last, coerce, subseq): Remove compiler macros for those built-in
-	or unused functions.
 
 2002-06-17  Simon Josefsson  <jas@extundo.com>
 
@@ -9067,10 +8900,6 @@
 
 	* gnus.el: Oort Gnus v0.06 is released.
 
-2002-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* lpath.el: Bind url-package-version.
-
 2002-05-01  Simon Josefsson  <jas@extundo.com>
 
 	* nnfolder.el (nnfolder-request-delete-group): Figure out nov/mrk
@@ -9382,10 +9211,6 @@
 
 	* dns.el (query-dns): Test.
 
-2002-03-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* lpath.el (featurep): Bind make-network-process.
-
 2002-03-31  Paul Jarc  <prj@po.cwru.edu>
 
 	* nnmaildir.el: Use defstruct.  Use a single copy of
@@ -9658,8 +9483,6 @@
 	* gnus-start.el (gnus-read-init-file): Ditto.
 
 	* gnus-agent.el (gnus-agent-fetch-session): Ditto.
-
-	* dgnushack.el (dgnushack-make-load): Ditto.
 
 	* mail-source.el (mail-source-fetch): Extract the right error
 	code.
@@ -10407,9 +10230,6 @@
 	* gnus-art.el (gnus-article-wash-html-with-w3m): Replace w3m to
 	emacs-w3m in doc-string.
 
-	* lpath.el: Bind `w3m-cid-retrieve-function-alist' and
-	`w3m-current-buffer'.
-
 2002-01-27  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>
 
 	* gnus-art.el (gnus-article-wash-html-with-w3m): Handle cid: URLs.
@@ -10515,10 +10335,6 @@
 
 	* gnus-agent.el (gnus-agent-save-alist): Optimized.
 
-2002-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el: Commented out the experimental code.
-
 2002-01-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-range.el (gnus-inverse-list-range-intersection): Off-by-one
@@ -10548,9 +10364,6 @@
 
 2002-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* lpath.el: Fbind `w3m-charset-to-coding-system'; bind
-	`w3m-meta-content-type-charset-regexp'.
-
 	* mm-view.el (mm-inline-text-html-render-with-w3m): Decode
 	charset-encoded html contents.
 
@@ -10565,8 +10378,6 @@
 
 2002-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* lpath.el: Fbind `w3m-region'; bind `w3m-mode-map'.
-
 	* mm-decode.el (mm-inline-text-html-renderer): New user option.
 	(mm-inline-media-tests): Test whether the value of
 	`mm-inline-text-html-renderer' is a function for text/html.
@@ -10579,10 +10390,6 @@
 	(mm-inline-text-html-render-with-w3m): New function.
 	(mm-inline-text): Funcall `mm-inline-text-html-renderer' for
 	text/html.
-
-2002-01-23  Paul Jarc  <prj@po.cwru.edu>
-
-	* lpath.el: fbind make-symbolic-link and unix-sync for nnmaildir.
 
 2002-01-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -10657,11 +10464,6 @@
 	(article-wash-html): Use it.
 	(gnus-article-wash-function): New variable.
 	(gnus-article-wash-html-with-w3m): New function.
-
-2002-01-20  Bj,Avrn Torkelsson  <torkel@acc.umu.se>
-
-	* dgnushack.el (dgnushack-compile): Compile smiley-ems for
-	XEmacs.
 
 2002-01-20  John H. Palmieri  <palmieri@math.washington.edu>
 
@@ -11759,8 +11561,6 @@
 
 	* gnus-xmas.el (gnus-xmas-put-image): Insert the string itself.
 
-	* lpath.el ((featurep 'xemacs)): fbind url function.
-
 	* gnus-xmas.el (gnus-xmas-article-display-xface): Use data, not
 	buffer.
 	(gnus-xmas-remove-image): Implementation that does something.
@@ -11993,7 +11793,6 @@
 	(sha1-region): Use it.
 	(sha1-string): Ditto.
 
-	* dgnushack.el (dgnushack-compile): Compile gnus-picon for Emacs.
 	* gnus-picon.el: Less warnings when compile.
 
 2001-12-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -12358,9 +12157,6 @@
 
 2001-12-06 01:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* dgnushack.el (dgnushack-compile): nnrss.el and
-	nnslashdot.el don't depend on nnweb, url, w3.
-
 	* nnrss.el: Use mm-url.
 
 2001-12-06 00:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
@@ -12390,8 +12186,6 @@
 
 	* pop3.el (pop3-munge-message-separator): Only use valid date.
 	Trivial patch from Michael Welsh Duggan <md5i@cs.cmu.edu>.
-
-	* Makefile.in: gnus-load.elc may not be generated.
 
 2001-12-03 09:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -12826,11 +12620,6 @@
 2001-11-01 13:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-msg.el (gnus-copy-article-buffer): Copy sequence.
-
-2001-11-01 12:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* dgnushack.el (dgnushack-make-load): A workaround for
-	custom-add-loads bug in some versions of XEmacs.
 
 2001-11-01 10:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -13294,10 +13083,6 @@
 	`find-coding-system' for XEmacs to check whether the coding-system
 	`utf-8' is available.
 
-2001-10-09 13:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* dgnushack.el (dgnushack-compile): Detect mh-e and xml.
-
 2001-10-09  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* message.el (message-send-news): Oops, missed case with no
@@ -13308,15 +13093,6 @@
 	* message.el (message-send-news): Allow
 	`gnus-group-name-charset-group-alist' to affect encoding of the
 	"Newsgroups" and "Followup-To" headers.
-
-2001-10-07 15:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* Makefile.in (install-el): Depend on gnus-load.el.
-
-2001-10-07 13:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* Makefile.in (install-el): Use -f.
-	From: Amos Gouaux <amos+lists.ding@utdallas.edu>
 
 2001-10-07  Per Abrahamsen  <abraham@dina.kvl.dk>
 
@@ -13363,10 +13139,6 @@
 
 	* gnus-srvr.el (gnus-browse-foreign-server): Fixed bug non-nil
 	`gnus-group-name-charset-group-alist'.
-
-2001-10-06 08:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* Makefile.in: Install el in install.  Add uninstall.
 
 2001-10-05  Simon Josefsson  <jas@extundo.com>
 
@@ -13923,8 +13695,6 @@
 
 	* gnus-util.el (gnus-not-ignore): New function.
 
-	* lpath.el (featurep): Don't fbind char-int.
-
 	* gnus-util.el (gnus-create-info-command): New function.
 
 	* gnus-group.el (gnus-group-edit-group): Make C-c C-i go to the
@@ -14201,8 +13971,6 @@
 	run, return nil instead of sit-for looping.
 
 2001-08-17 10:41:14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* lpath.el (featurep): fbind xml-parse-region.
 
 	* gnus.el (gnus-message-archive-method): Default to "archive".
 	(gnus-message-archive-method): Doc fix.
@@ -14775,10 +14543,6 @@
 	* mm-encode.el (mm-encode-buffer): Don't use 7bit encoding if
 	there are long lines.
 
-2001-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (copy-list): New compiler macro.
-
 2001-07-24 09:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-bounce): If no Return-Path, the whole
@@ -14922,11 +14686,6 @@
 	* gnus-group.el (gnus-group-select-group): Doc fix.
 
 	* gnus-eform.el (gnus-edit-form-done): Return nil if end-of-file.
-
-2001-07-17  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (dgnushack-make-auto-load): Advise `make-autoload'
-	to handle `define-derived-mode'.
 
 2001-07-16 12:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 	From:  Stefan Monnier  <monnier@cs.yale.edu>
@@ -15993,16 +15752,6 @@
 
 	* gnus-sum.el (gnus-summary-limit-include-expunged): Fix.
 
-2001-03-01 22:00:00  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* dgnushack.el (coerce, merge, subseq): defmacro.
-
-2001-03-01 22:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* lpath.el (nndraft-request-group): Move it here from nndraft.el.
-	A fake defalias in nndraft.el results a not-activated bug in
-	uncompiled versions.
-
 2001-02-26 11:27:27  Paul Jarc  <prj@po.cwru.edu>
 
 	* gnus-util.el (gnus-split-references): Handle malformed References:.
@@ -16233,14 +15982,6 @@
 
 	* gnus-cus.el (gnus-score-customize): Doc fix.
 
-2001-02-11  Jesper Harder  <harder@ifa.au.dk>
-
-	* dgnushack.el (my-getenv): Typo.
-
-2001-02-11 11:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* dgnushack.el (dgnushack-make-load): Don't autoload smiley functions.
-
 2001-02-11 09:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-group.el (gnus-group-suspend): Offer save summaries.
@@ -16254,18 +15995,6 @@
 	remove-leading-whitespace.
 	(gnus-summary-wash-map): Bind strip-headers-in-body to `W a',
 	because of conflict.
-
-2001-02-09 23:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* Makefile.in: Hack generating gnus-load.el.
-	* dgnushack.el: Ditto.
-	* gnus-load.el: Remove it.
-
-2001-02-09 20:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* dgnushack.el : Add URLDIR.
-
-	* Makefile.in (EMACS_COMP): Ditto.
 
 2001-02-09 19:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -16713,8 +16442,6 @@
 
 2001-01-09  Didier Verna  <didier@xemacs.org>
 
-	* dgnushack.el (dgnushack-compile): Give a dummy value to
-	`gnus-xmas-glyph-directory' for the time of compilation.
 	* gnus-agent.el: Moved some XEmacs specific hook add-ons from
 	`gnus-xmas-[re]define' to avoid loosing user custom settings.
 	* gnus-art.el: Ditto.
@@ -16823,9 +16550,6 @@
 	functions before the header sorting functions.
 
 	* mm-uu.el (mm-uu-pgp-signed-extract-1): Unquote "- " quotes.
-
-	* dgnushack.el (dgnushack-compile): Message whether there is w3.
-	Don't (push "/usr/share/emacs/site-lisp" load-path).
 
 	* gnus-cite.el (gnus-article-fill-cited-article): Don't add space
 	to empty fill prefixes.
@@ -16938,8 +16662,6 @@
 
 2000-12-25 00:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* dgnushack.el (dgnushack-compile): elc is in the current directory.
-
 	* qp.el (quoted-printable-encode-region): Don't check multibyte in
 	XEmacs.
 
@@ -17032,8 +16754,6 @@
 	* gnus-sum.el (gnus-summary-make-tool-bar): Use it.
 
 	* message.el (message-tool-bar-map): Use it.
-
-	* Makefile.in (install-el): New rule.
 
 2000-12-21  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -18103,10 +17823,6 @@
 	WSP, break in the cite prefix.
 	(message-fill-paragraph): New function.
 
-2000-11-17 13:44  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* lpath.el: Shut up.
-
 2000-11-17  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* gnus-msg.el (gnus-group-posting-charset-alist): No longer allow
@@ -18631,7 +18347,6 @@
 
 	* gnus-art.el (gnus-mime-display-single): Forward line -1.
 	* mml.el (mml-read-tag): Don't skip the leading space.
-	* lpath.el (font-lock-set-defaults): Shut up.
 
 2000-10-31 00:04:35  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
