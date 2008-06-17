@@ -1409,7 +1409,7 @@ font_parse_fcname (name, font)
 	     the key QCfc_unknown_spec.  */
 	  char *copy_start, *copy;
 
-	  copy_start = copy = alloca (name + len - props_beg);
+	  copy_start = copy = alloca (name + len - props_beg + 2);
 	  if (! copy)
 	    return -1;
 
@@ -1450,6 +1450,7 @@ font_parse_fcname (name, font)
 		  else
 		    {
 		      /* Unknown key  */
+		      *copy++ = ':';
 		      bcopy (p, copy, word_len);
 		      copy += word_len;
 		    }
@@ -1482,8 +1483,7 @@ font_parse_fcname (name, font)
 			Ffont_put (font, key, val);
 		      else
 			{
-			  if (copy_start != copy)
-			    *copy++ = ':';
+			  *copy++ = ':';
 			  bcopy (keyhead, copy, q - keyhead);
 			  copy += q - keyhead;
 			}
