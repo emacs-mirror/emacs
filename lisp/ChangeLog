@@ -1,5 +1,7 @@
 2008-06-17  Glenn Morris  <rgm@gnu.org>
 
+	* mouse.el (x-select-font): Declare.
+
 	* calendar/calendar.el (calendar-move-hook):
 	Add calendar-update-mode-line as an option.
 	(calendar-date-echo-text): New user option.
