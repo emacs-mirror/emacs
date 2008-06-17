@@ -1,7 +1,8 @@
 2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Store divider characters for
-	unknown-spec list.
+	unknown-spec list.  For known key symbols, intern using correct
+	symbol name.
 
 2008-06-17  Kenichi Handa  <handa@m17n.org>
 
