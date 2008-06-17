@@ -1,3 +1,9 @@
+2008-06-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-gdba-marker-filter): Don't switch to
+	text command mode.
+	(gdb): Explain that gud-gdb is needed for text command mode.
+
 2008-06-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (split-height-threshold): Remove spurious extra line.
