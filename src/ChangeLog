@@ -1,3 +1,8 @@
+2008-06-17  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (realize_default_face): If the frame is not on window
+	system, set the fontset of face to nil.
+
 2008-06-17  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
 
 	* fontset.c (fontset_pattern_regexp): Escape some reg-expr
