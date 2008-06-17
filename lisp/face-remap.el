@@ -297,26 +297,87 @@ a top-level keymap, `text-scale-increase' or
 
 
 ;; ----------------------------------------------------------------
-;; variable-pitch-mode
+;; buffer-face-mode
 
-;; suggested key binding: (global-set-key "\C-cv" 'variable-pitch-mode)
+(defcustom buffer-face-mode-face 'variable-pitch
+  "The face specification used by `buffer-face-mode'.
+It may contain any value suitable for a `face' text property,
+including a face name, a list of face names, a face-attribute
+plist, etc."
+  :group 'display)
 
-;; current remapping cookie for  variable-pitch-mode
-(defvar variable-pitch-mode-remapping nil)
-(make-variable-buffer-local 'variable-pitch-mode-remapping)
+;; current remapping cookie for  buffer-face-mode
+(defvar buffer-face-mode-remapping nil)
+(make-variable-buffer-local 'buffer-face-mode-remapping)
 
 ;;;###autoload
-(define-minor-mode variable-pitch-mode
-  "Variable-pitch default-face mode.
-When active, causes the buffer text to be displayed using
-the `variable-pitch' face."
-  :lighter " VarPitch"
-  (when variable-pitch-mode-remapping
-    (face-remap-remove-relative variable-pitch-mode-remapping))
-  (setq variable-pitch-mode-remapping
-	(and variable-pitch-mode
-	     (face-remap-add-relative 'default 'variable-pitch)))
+(define-minor-mode buffer-face-mode
+  "Minor mode for a buffer-specific default face.
+When enabled, the face specified by the variable
+`buffer-face-mode-face' is used to display the buffer text."
+  :lighter " BufFace"
+  (when buffer-face-mode-remapping
+    (face-remap-remove-relative buffer-face-mode-remapping))
+  (setq buffer-face-mode-remapping
+	(and buffer-face-mode
+	     (face-remap-add-relative 'default buffer-face-mode-face)))
   (force-window-update (current-buffer)))
+
+;;;###autoload
+(defun buffer-face-set (face)
+  "Enable `buffer-face-mode', using the face FACE.
+If FACE is nil, then `buffer-face-mode' is disabled.  This
+function will make the variable `buffer-face-mode-face' buffer
+local, and set it to FACE."
+  (interactive (list (read-face-name "Set buffer face")))
+  (if (null face)
+      (buffer-face-mode 0)
+    (set (make-local-variable 'buffer-face-mode-face) face)
+    (buffer-face-mode t)))
+
+;;;###autoload
+(defun buffer-face-toggle (face)
+  "Toggle `buffer-face-mode', using the face FACE.
+
+If `buffer-face-mode' is already enabled, and is currently using
+the face FACE, then it is disabled; if buffer-face-mode is
+disabled, or is enabled and currently displaying some other face,
+then is left enabled, but the face changed to FACE.  This
+function will make the variable `buffer-face-mode-face' buffer
+local, and set it to FACE."
+  (interactive (list buffer-face-mode-face))
+  (if (or (null face)
+	  (and buffer-face-mode (equal buffer-face-mode-face face)))
+      (buffer-face-mode 0)
+    (set (make-local-variable 'buffer-face-mode-face) face)
+    (buffer-face-mode t)))
+
+(defun buffer-face-mode-invoke (face arg &optional interactive)
+  "Enable or disable `buffer-face-mode' using the face FACE, and argument ARG.
+ARG is interpreted in the usual manner for minor-mode commands.
+Besides the choice of face, this is the same as the `buffer-face-mode' command.
+If INTERACTIVE is non-nil, a message will be displayed describing the result."
+  (let ((last-message (current-message)))
+    (if (or (eq arg 'toggle) (not arg))
+	(buffer-face-toggle face)
+      (buffer-face-set (and (> (prefix-numeric-value arg) 0) face)))
+    (when interactive
+      (unless (and (current-message)
+		   (not (equal last-message (current-message))))
+	(message "Buffer-Face mode %sabled"
+		 (if buffer-face-mode "en" "dis"))))))
+
+
+;; ----------------------------------------------------------------
+;; variable-pitch-mode
+
+;;;###autoload
+(defun variable-pitch-mode (&optional arg)
+  "Variable-pitch default-face mode.
+An interface to `buffer-face-mode' which uses the `variable-pitch' face.
+Besides the choice of face, it is the same as `buffer-face-mode'."
+  (interactive (list (or current-prefix-arg 'toggle)))
+  (buffer-face-mode-invoke 'variable-pitch arg (interactive-p)))
 
 
 (provide 'face-remap)

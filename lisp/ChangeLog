@@ -1,5 +1,12 @@
 2008-06-17  Miles Bader  <miles@gnu.org>
 
+	* face-remap.el (buffer-face-mode-face)
+	(buffer-face-mode-remapping): New variables.
+	(buffer-face-mode, buffer-face-set, buffer-face-toggle)
+	(buffer-face-mode-invoke): New functions.
+	(variable-pitch-mode-remapping): Variable removed.
+	(variable-pitch-mode): Rewrite as an interface to `buffer-face-mode'.
+
 	* face-remap.el (internal-lisp-face-attributes): New variable.
 	(face-attrs-more-relative-p, face-remap-order): New functions.
 	(face-remap-add-relative): Use `face-remap-order'.
