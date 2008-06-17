@@ -1608,6 +1608,8 @@ function is generally only called when Gnus is shutting down."
 
 (deffoo nnimap-request-delete-group (group force &optional server)
   (when (nnimap-possibly-change-server server)
+    (when (string= group (imap-current-mailbox nnimap-server-buffer))
+      (imap-mailbox-unselect nnimap-server-buffer))
     (with-current-buffer nnimap-server-buffer
       (if force
 	  (or (null (imap-mailbox-status group 'uidvalidity))
