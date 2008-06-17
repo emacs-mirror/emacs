@@ -1,3 +1,20 @@
+2008-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-move-hook):
+	Add calendar-update-mode-line as an option.
+	(calendar-date-echo-text): New user option.
+	(calendar-generate-month): Set `day'.  Use calendar-date-echo-text.
+	(calendar-insert-indented): Simplify newline insertion.
+	(calendar-describe-mode): Remove unused function.
+	(calendar-mode-line-entry): New function.
+	(calendar-mode-line-format): Doc fix.  Use calendar-mode-line-entry.
+	Mark as risky.
+	(calendar-mouse-other-month): Remove function.
+	(calendar-other-month): Handle mouse events.
+	(calendar-goto-info-node): Call fit-window-to-buffer.
+	(calendar-mode): Use define-derived-mode.  Doc fix.
+	(calendar-update-mode-line): Tweak whitespace.
+
 2008-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-dispatcher.el (vc-dir-child-files): Use vc-string-prefix-p.
