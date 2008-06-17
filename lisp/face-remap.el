@@ -61,6 +61,48 @@
 ;; ----------------------------------------------------------------
 ;; Utility functions
 
+;; Names of face attributes corresponding to lisp face-vector positions.
+;; This variable should probably be defined in C code where the actual
+;; definitions are available.
+;;
+(defvar internal-lisp-face-attributes
+  [nil
+   :family :foundry :swidth :height :weight :slant :underline :inverse
+   :foreground :background :stipple :overline :strike :box
+   :font :inherit :fontset :vector])
+
+(defun face-attrs-more-relative-p (attrs1 attrs2)
+"Return true if ATTRS1 contains a greater number of relative
+face-attributes than ATTRS2.  A face attribute is considered
+relative if `face-attribute-relative-p' returns non-nil.
+
+ATTRS1 and ATTRS2 may be any value suitable for a `face' text
+property, including face names, lists of face names,
+face-attribute plists, etc.
+
+This function can be used as a predicate with `sort', to sort
+face lists so that more specific faces are located near the end."
+  (unless (vectorp attrs1)
+    (setq attrs1 (face-attributes-as-vector attrs1)))
+  (unless (vectorp attrs2)
+    (setq attrs2 (face-attributes-as-vector attrs2)))
+  (let ((rel1-count 0) (rel2-count 0))
+    (dotimes (i (length attrs1))
+      (let ((attr (aref internal-lisp-face-attributes i)))
+	(when attr
+	  (when (face-attribute-relative-p attr (aref attrs1 i))
+	    (setq rel1-count (+ rel1-count 1)))
+	  (when (face-attribute-relative-p attr (aref attrs2 i))
+	    (setq rel2-count (+ rel2-count 1))))))
+    (< rel1-count rel2-count)))
+
+(defun face-remap-order (entry)
+  "Order ENTRY so that more relative face specs are near the beginning.
+The list structure of ENTRY may be destructively modified."
+  (setq entry (nreverse entry))
+  (setcdr entry (sort (cdr entry) 'face-attrs-more-relative-p))
+  (nreverse entry))
+
 ;;;### autoload
 (defun face-remap-add-relative (face &rest specs)
   "Add a face remapping entry of FACE to SPECS in the current buffer.
@@ -72,8 +114,9 @@ SPECS can be any value suitable for the `face' text property,
 including a face name, a list of face names, or a face-attribute
 property list.  The attributes given by SPECS will be merged with
 any other currently active face remappings of FACE, and with the
-global definition of FACE, with the most recently added relative
-remapping taking precedence.
+global definition of FACE.  An attempt is made to sort multiple
+entries so that entries with relative face-attributes are applied
+after entries with absolute face-attributes.
 
 The base (lowest priority) remapping may be set to a specific
 value, instead of the default of the global face definition,
@@ -83,7 +126,7 @@ using `face-remap-set-base'."
     (when (null entry)
       (setq entry (list face face))	; explicitly merge with global def
       (push entry face-remapping-alist))
-    (setcdr entry (cons specs (cdr entry)))
+    (setcdr entry (face-remap-order (cons specs (cdr entry))))
     (cons face specs)))
 
 (defun face-remap-remove-relative (cookie)

@@ -1,3 +1,9 @@
+2008-06-17  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (internal-lisp-face-attributes): New variable.
+	(face-attrs-more-relative-p, face-remap-order): New functions.
+	(face-remap-add-relative): Use `face-remap-order'.
+
 2008-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* mouse.el (x-select-font): Declare.
