@@ -478,3 +478,4 @@
 	(org-font-lock-hook): New function.
 	(org-set-font-lock-defaults): Call `org-font-lock-hook'.
 
+;; arch-tag: a9bdcf06-7c2d-4b5a-bf7a-c5e7b706f67c
