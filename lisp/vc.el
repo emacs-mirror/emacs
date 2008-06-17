@@ -547,6 +547,8 @@
 
 ;;; Todo:
 
+;; - Get rid of the "master file" terminology.
+
 ;; - Add key-binding for vc-delete-file.
 
 ;;;; New Primitives:
@@ -1014,34 +1016,41 @@ Within directories, only files already under version control are noticed."
 ;;                     (vc-backend (car cooked)))))
 ;; 	(cons backend selection)))
 
-(defun vc-deduce-fileset (&optional observer allow-unregistered)
+(defun vc-deduce-fileset (&optional observer allow-unregistered only-files)
   "Deduce a set of files and a backend to which to apply an operation.
 
-Return (BACKEND FILESET FILESET_ONLY_FILES).
+Return (BACKEND FILESET FILESET-ONLY-FILES).
 If we're in VC-dir mode, the fileset is the list of marked files.
 Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
 visited file is not registered, return a singleton fileset containing it.
-Otherwise, throw an error."
+Otherwise, throw an error.
+ONLY-FILES if non-nil, means that the caller needs to FILESET-ONLY-FILES
+info.  Otherwise, that part may be skipped.
+BEWARE: this function may change the current buffer."
   ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
-  ;; documented.
+  ;; documented.  It's set to t when called from diff and print-log.
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
       (let ((marked (vc-dir-marked-files)))
 	(if marked
-	    (list vc-dir-backend  marked (vc-dir-marked-only-files))
+	    (list vc-dir-backend marked
+                  (if only-files (vc-dir-marked-only-files)))
 	  (let ((crt (vc-dir-current-file)))
-	    (list vc-dir-backend (list crt) (vc-dir-child-files))))))
+	    (list vc-dir-backend (list crt)
+                  (if only-files (vc-dir-child-files)))))))
      ((setq backend (vc-backend buffer-file-name))
       (list backend (list buffer-file-name) (list buffer-file-name)))
-     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+     ((and (buffer-live-p vc-parent-buffer)
+           ;; FIXME: Why this test?  --Stef
+           (or (buffer-file-name vc-parent-buffer)
 				(with-current-buffer vc-parent-buffer
 				  (eq major-mode 'vc-dir-mode))))
-      (progn
+      (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset)))
+	(vc-deduce-fileset observer allow-unregistered only-files)))
      ((not buffer-file-name)
        (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
@@ -1118,7 +1127,7 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset nil t))
+  (let* ((vc-fileset (vc-deduce-fileset nil t 'only-files))
          (backend (car vc-fileset))
 	 (files (nth 1 vc-fileset))
          (fileset-only-files (nth 2 vc-fileset))
@@ -1312,9 +1321,11 @@ first backend that could register the file is used."
   (interactive "P")
   (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
          (backend (car fileset-arg))
-	 (files (nth 1 fileset-arg))
-	 (fileset-only-files (nth 2 fileset-arg)))
-    (dolist (fname fileset-only-files)
+	 (files (nth 1 fileset-arg)))
+    ;; We used to operate on `only-files', but VC wants to provide the
+    ;; possibility to register directories rather than files only, since
+    ;; many VCS allow that as well.
+    (dolist (fname files)
       (let ((bname (get-file-buffer fname)))
 	(unless fname (setq fname buffer-file-name))
 	(when (vc-backend fname)
@@ -1332,12 +1343,11 @@ first backend that could register the file is used."
 	      (set-buffer-modified-p t))
 	    (vc-buffer-sync)))))
     (lexical-let ((backend backend)
-		  (files fileset-only-files))
+                  (files files))
       (vc-start-logentry
        files
        (if set-revision
-	   (read-string (format "Initial revision level for %s: "
-				files))
+	   (read-string (format "Initial revision level for %s: " files))
 	 (vc-call-backend backend 'init-revision))
        (or comment (not vc-initial-comment))
        nil
@@ -1345,15 +1355,17 @@ first backend that could register the file is used."
        "*VC-log*"
        (lambda (files rev comment)
 	 (message "Registering %s... " files)
-	 (dolist (file files)
-	   (vc-file-clearprops file))
+	 (mapc 'vc-file-clearprops files)
 	 (vc-call-backend backend 'register files rev comment)
 	 (dolist (file files)
 	   (vc-file-setprop file 'vc-backend backend)
-	   (unless vc-make-backup-files
-	     ;; FIXME: Is this code right?  What is it supposed to do?
-	     (make-local-variable 'backup-inhibited)
-	     (setq backup-inhibited t)))
+           ;; FIXME: This is wrong: it should set `backup-inhibited' in all
+           ;; the buffers visiting files affected by this `vc-register', not
+           ;; in the current-buffer.
+	   ;; (unless vc-make-backup-files
+	   ;;   (make-local-variable 'backup-inhibited)
+	   ;;   (setq backup-inhibited t))
+           )
 	 (message "Registering %s... done" files))))))
 
 (defun vc-register-with (backend)
@@ -1610,7 +1622,7 @@ returns t if the buffer had changes, nil otherwise."
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
-   (let* ((vc-fileset (vc-deduce-fileset t))
+   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: why t?  --Stef
 	  (files (cadr vc-fileset))
           (backend (car vc-fileset))
 	  (first (car files))
@@ -2163,7 +2175,7 @@ allowed and simply skipped)."
   "List the change log of the current fileset in a window.
 If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
-  (let* ((vc-fileset (vc-deduce-fileset t))
+  (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))

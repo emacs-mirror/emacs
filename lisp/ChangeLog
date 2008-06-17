@@ -1,3 +1,10 @@
+2008-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-deduce-fileset): Add arg `only-files'.
+	(vc-next-action): Pass the new arg.
+	(vc-register): Don't use `only-files'.
+	Don't set `backup-inhibited' in the current buffer.
+
 2008-06-17  Miles Bader  <miles@gnu.org>
 
 	* mouse.el (mouse-appearance-menu): Use buffer-face-mode.
