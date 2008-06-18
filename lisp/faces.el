@@ -2045,7 +2045,10 @@ Initialize colors of certain faces from frame parameters."
     ;; Initialize faces from face specs and X resources.  The
     ;; condition-case prevents invalid specs from causing frame
     ;; creation to fail.
-    (dolist (face (delq 'default (face-list)))
+    (dolist (face (face-list))
+      ;; This loop used to exclude the `default' face for an unknown reason.
+      ;; It lead to odd behaviors where face-spec settings on the `default'
+      ;; face weren't obeyed for new frame.
       (condition-case ()
 	  (progn
 	    (face-spec-recalc face frame)
