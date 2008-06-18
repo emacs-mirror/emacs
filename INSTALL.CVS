@@ -31,7 +31,7 @@ once:
   $ ./configure
   $ make
   $ cd lisp
-  $ make recompile EMACS=../src/emacs
+  $ make recompile
   $ cd ..
   $ make
 
@@ -54,7 +54,7 @@ To update loaddefs.el (and similar files), do:
 
   $ cd lisp
   $ make autogen-clean
-  $ make autoloads EMACS=../src/emacs
+  $ make autoloads
 
 If either of the above partial procedures fails, try "make bootstrap".
 
@@ -68,9 +68,7 @@ method.
 Users of non-Posix systems (MS-Windows etc.) should run the
 platform-specific configuration scripts (nt/configure.bat, config.bat,
 etc.) before "make bootstrap" or "make"; the rest of the procedure is
-applicable to those systems as well, except that the value of the
-EMACS variable on the Make command line might be different, e.g.,
-../bin/emacs.exe or some such.
+applicable to those systems as well.
 
 Questions, requests, and bug reports about the CVS versions of Emacs
 should be sent to emacs-pretest-bug@gnu.org rather than gnu.emacs.help
