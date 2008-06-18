@@ -5687,7 +5687,7 @@ previously used indirect buffer.
 @c
 @kindex l
 @item l
-Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
+Toggle Logbook mode.  In Logbook mode, entries that were marked DONE while
 logging was on (variable @code{org-log-done}) are shown in the agenda,
 as are entries that have been clocked on that day.
 @c
