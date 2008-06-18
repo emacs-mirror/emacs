@@ -1,3 +1,9 @@
+2008-06-18  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (Ffont_face_attributes): Only define if
+	HAVE_WINDOW_SYSTEM.
+	(syms_of_font): Only defsubr if HAVE_WINDOW_SYSTEM.
+
 2008-06-18  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32font_list, w32font_match): Add logging.
