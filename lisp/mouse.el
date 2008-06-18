@@ -1,7 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -2472,6 +2472,8 @@ choose a font."
 
 (defvar mouse-appearance-menu-map nil)
 (declare-function x-select-font "xfns.c" (&optional frame ignored)) ; USE_GTK
+(declare-function buffer-face-mode-invoke "face-remap"
+                  (face arg &optional interactive))
 
 (defun mouse-appearance-menu (event)
   (interactive "@e")
