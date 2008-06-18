@@ -1,3 +1,9 @@
+2008-06-18  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_list, w32font_match): Add logging.
+
+        * w32uniscribe (uniscribe_list, uniscribe_match): Add logging.
+
 2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_parse_fcname): Store divider characters for

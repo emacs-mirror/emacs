@@ -162,7 +162,9 @@ static Lisp_Object
 w32font_list (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  return w32font_list_internal (frame, font_spec, 0);
+  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 0);
+  font_add_log ("w32font-list", font_spec, fonts);
+  return fonts;
 }
 
 /* w32 implementation of match for font backend.
@@ -173,7 +175,9 @@ static Lisp_Object
 w32font_match (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  return w32font_match_internal (frame, font_spec, 0);
+  Lisp_Object entity = w32font_match_internal (frame, font_spec, 0);
+  font_add_log ("w32font-match", font_spec, entity);
+  return entity;
 }
 
 /* w32 implementation of list_family for font backend.
