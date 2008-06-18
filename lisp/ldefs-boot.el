@@ -2825,8 +2825,8 @@ See the documentation for `calculator-mode' for more information.
 
 ;;;***
 
-;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (18463
-;;;;;;  52127))
+;;;### (autoloads (calendar) "calendar" "calendar/calendar.el" (18520
+;;;;;;  10253))
 ;;; Generated autoloads from calendar/calendar.el
 
 (autoload 'calendar "calendar" "\
@@ -5872,7 +5872,7 @@ Deuglify broken Outlook (Express) articles and redisplay.
 ;;;***
 
 ;;;### (autoloads (diary-mode diary-mail-entries diary) "diary-lib"
-;;;;;;  "calendar/diary-lib.el" (18511 16129))
+;;;;;;  "calendar/diary-lib.el" (18520 10254))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload 'diary "diary-lib" "\
@@ -10280,9 +10280,9 @@ with no args, if that value is non-nil.
 
 ;;;***
 
-;;;### (autoloads (variable-pitch-mode text-scale-adjust text-scale-decrease
-;;;;;;  text-scale-increase) "face-remap" "face-remap.el" (18503
-;;;;;;  49202))
+;;;### (autoloads (variable-pitch-mode buffer-face-toggle buffer-face-set
+;;;;;;  buffer-face-mode text-scale-adjust text-scale-decrease text-scale-increase)
+;;;;;;  "face-remap" "face-remap.el" (18519 64211))
 ;;; Generated autoloads from face-remap.el
 
 (autoload 'text-scale-increase "face-remap" "\
@@ -10333,10 +10333,37 @@ a top-level keymap, `text-scale-increase' or
 
 \(fn &optional INC)" t nil)
 
+(autoload 'buffer-face-mode "face-remap" "\
+Minor mode for a buffer-specific default face.
+When enabled, the face specified by the variable
+`buffer-face-mode-face' is used to display the buffer text.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'buffer-face-set "face-remap" "\
+Enable `buffer-face-mode', using the face FACE.
+If FACE is nil, then `buffer-face-mode' is disabled.  This
+function will make the variable `buffer-face-mode-face' buffer
+local, and set it to FACE.
+
+\(fn FACE)" t nil)
+
+(autoload 'buffer-face-toggle "face-remap" "\
+Toggle `buffer-face-mode', using the face FACE.
+
+If `buffer-face-mode' is already enabled, and is currently using
+the face FACE, then it is disabled; if buffer-face-mode is
+disabled, or is enabled and currently displaying some other face,
+then is left enabled, but the face changed to FACE.  This
+function will make the variable `buffer-face-mode-face' buffer
+local, and set it to FACE.
+
+\(fn FACE)" t nil)
+
 (autoload 'variable-pitch-mode "face-remap" "\
 Variable-pitch default-face mode.
-When active, causes the buffer text to be displayed using
-the `variable-pitch' face.
+An interface to `buffer-face-mode' which uses the `variable-pitch' face.
+Besides the choice of face, it is the same as `buffer-face-mode'.
 
 \(fn &optional ARG)" t nil)
 
@@ -11296,7 +11323,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdb) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (18518 42900))
+;;;;;;  (18520 21843))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload 'gdb "gdb-ui" "\
@@ -11337,10 +11364,8 @@ detailed description of this mode.
 |  Stack buffer                     |  Breakpoints/threads buffer      |
 +-----------------------------------+----------------------------------+
 
-To run GDB in text command mode, replace the GDB \"--annotate=3\"
-option with \"--fullname\" either in the minibuffer for the
-current Emacs session, or the custom variable
-`gud-gdb-command-name' for all future sessions.  You need to use
+The option \"--annotate=3\" must be included in this value.  To
+run GDB in text command mode, use `gud-gdb'.  You need to use
 text command mode to debug multiple programs within one Emacs
 session.
 
@@ -13544,7 +13569,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 ;;;;;;  holiday-bahai-holidays holiday-islamic-holidays holiday-christian-holidays
 ;;;;;;  holiday-hebrew-holidays holiday-other-holidays holiday-local-holidays
 ;;;;;;  holiday-oriental-holidays holiday-general-holidays) "holidays"
-;;;;;;  "calendar/holidays.el" (18463 52127))
+;;;;;;  "calendar/holidays.el" (18520 27527))
 ;;; Generated autoloads from calendar/holidays.el
 
 (defvar holiday-general-holidays '((holiday-fixed 1 1 "New Year's Day") (holiday-float 1 1 3 "Martin Luther King Day") (holiday-fixed 2 2 "Groundhog Day") (holiday-fixed 2 14 "Valentine's Day") (holiday-float 2 1 3 "President's Day") (holiday-fixed 3 17 "St. Patrick's Day") (holiday-fixed 4 1 "April Fools' Day") (holiday-float 5 0 2 "Mother's Day") (holiday-float 5 1 -1 "Memorial Day") (holiday-fixed 6 14 "Flag Day") (holiday-float 6 0 3 "Father's Day") (holiday-fixed 7 4 "Independence Day") (holiday-float 9 1 1 "Labor Day") (holiday-float 10 1 2 "Columbus Day") (holiday-fixed 10 31 "Halloween") (holiday-fixed 11 11 "Veteran's Day") (holiday-float 11 4 4 "Thanksgiving")) "\
@@ -19399,11 +19424,11 @@ including a reproducible test case and send the message.
 
 ;;;***
 
-;;;### (autoloads (org-cycle-agenda-files org-iswitchb org-open-link-from-string
-;;;;;;  org-open-at-point-global org-insert-link-global org-store-link
-;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
-;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode) "org"
-;;;;;;  "org/org.el" (18472 7294))
+;;;### (autoloads (org-customize org-require-autoloaded-modules org-cycle-agenda-files
+;;;;;;  org-iswitchb org-map-entries org-open-link-from-string org-open-at-point-global
+;;;;;;  org-insert-link-global org-store-link org-run-like-in-org-mode
+;;;;;;  turn-on-orgstruct++ turn-on-orgstruct orgstruct-mode org-global-cycle
+;;;;;;  org-cycle org-mode) "org" "org/org.el" (18520 1426))
 ;;; Generated autoloads from org/org.el
 
 (autoload 'org-mode "org" "\
@@ -19435,6 +19460,9 @@ Visibility cycling for Org-mode.
   1. OVERVIEW: Show only top-level headlines.
   2. CONTENTS: Show all headlines of all levels, but no body text.
   3. SHOW ALL: Show everything.
+  When called with two C-c C-u prefixes, switch to the startup visibility,
+  determined by the variable `org-startup-folded', and by any VISIBILITY
+  properties in the buffer.
 
 - When point is at the beginning of a headline, rotate the subtree started
   by this line through 3 different states (local cycling)
@@ -19448,8 +19476,8 @@ Visibility cycling for Org-mode.
   a `show-subtree' and return to the previous cursor position.  If ARG
   is negative, go up that many levels.
 
-- When point is not at the beginning of a headline, execute
-  `indent-relative', like TAB normally does.  See the option
+- When point is not at the beginning of a headline, execute the global
+  binding for TAB, which is re-indenting the line.  See the option
   `org-cycle-emulate-tab' for details.
 
 - Special case: if point is at the beginning of the buffer and there is
@@ -19460,6 +19488,8 @@ Visibility cycling for Org-mode.
 
 (autoload 'org-global-cycle "org" "\
 Cycle the global visibility.  For details see `org-cycle'.
+With C-u prefix arg, switch to startup visibility.
+With a numeric prefix, show all headlines up to that level.
 
 \(fn &optional ARG)" t nil)
 
@@ -19535,6 +19565,45 @@ Open a link in the string S, as if it was in Org-mode.
 
 \(fn S &optional ARG)" t nil)
 
+(autoload 'org-map-entries "org" "\
+Call FUNC at each headline selected by MATCH in SCOPE.
+
+FUNC is a function or a lisp form.  The function will be called without
+arguments, with the cursor positioned at the beginning of the headline.
+The return values of all calls to the function will be collected and
+returned as a list.
+
+MATCH is a tags/property/todo match as it is used in the agenda tags view.
+Only headlines that are matched by this query will be considered during
+the iteration.  When MATCH is nil or t, all headlines will be
+visited by the iteration.
+
+SCOPE determines the scope of this command.  It can be any of:
+
+nil     The current buffer, respecting the restriction if any
+tree    The subtree started with the entry at point
+file    The current buffer, without restriction
+file-with-archives
+        The current buffer, and any archives associated with it
+agenda  All agenda files
+agenda-with-archives
+        All agenda files with any archive files associated with them
+\(file1 file2 ...)
+        If this is a list, all files in the list will be scanned
+
+The remaining args are treated as settings for the skipping facilities of
+the scanner.  The following items can be given here:
+
+  archive    skip trees with the archive tag.
+  comment    skip trees with the COMMENT keyword
+  function or Emacs Lisp form:
+             will be used as value for `org-agenda-skip-function', so whenever
+             the the function returns t, FUNC will not be called for that
+             entry and search will continue from the point where the
+             function leaves it.
+
+\(fn FUNC &optional MATCH SCOPE &rest SKIP)" nil nil)
+
 (autoload 'org-iswitchb "org" "\
 Use `iswitchb-read-buffer' to prompt for an Org buffer to switch to.
 With a prefix argument, restrict available to files.
@@ -19552,13 +19621,23 @@ If the current buffer does not, find the first agenda file.
 
 \(fn)" t nil)
 
+(autoload 'org-require-autoloaded-modules "org" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'org-customize "org" "\
+Call the customize function with org as argument.
+
+\(fn)" t nil)
+
 ;;;***
 
 ;;;### (autoloads (org-agenda-to-appt org-calendar-goto-agenda org-diary
 ;;;;;;  org-agenda-list-stuck-projects org-tags-view org-todo-list
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
-;;;;;;  org-agenda) "org-agenda" "org/org-agenda.el" (18495 28159))
+;;;;;;  org-agenda) "org-agenda" "org/org-agenda.el" (18519 64213))
 ;;; Generated autoloads from org/org-agenda.el
 
 (autoload 'org-agenda "org-agenda" "\
@@ -19797,7 +19876,7 @@ belonging to the \"Work\" category.
 ;;;***
 
 ;;;### (autoloads (org-bbdb-anniversaries) "org-bbdb" "org/org-bbdb.el"
-;;;;;;  (18467 53782))
+;;;;;;  (18519 64213))
 ;;; Generated autoloads from org/org-bbdb.el
 
 (autoload 'org-bbdb-anniversaries "org-bbdb" "\
@@ -19808,7 +19887,7 @@ Extract anniversaries from BBDB for display in the agenda.
 ;;;***
 
 ;;;### (autoloads (org-get-clocktable) "org-clock" "org/org-clock.el"
-;;;;;;  (18464 4596))
+;;;;;;  (18519 64213))
 ;;; Generated autoloads from org/org-clock.el
 
 (autoload 'org-get-clocktable "org-clock" "\
@@ -19822,10 +19901,11 @@ fontified, and then returned.
 
 ;;;### (autoloads (org-export-as-xoxo org-export-icalendar-combine-agenda-files
 ;;;;;;  org-export-icalendar-all-agenda-files org-export-icalendar-this-file
-;;;;;;  org-export-as-html org-export-region-as-html org-replace-region-by-html
-;;;;;;  org-export-as-html-to-buffer org-export-as-html-batch org-export-as-html-and-open
-;;;;;;  org-insert-export-options-template org-export-visible org-export-as-ascii
-;;;;;;  org-export) "org-exp" "org/org-exp.el" (18475 44751))
+;;;;;;  org-export-htmlize-generate-css org-export-as-html org-export-region-as-html
+;;;;;;  org-replace-region-by-html org-export-as-html-to-buffer org-export-as-html-batch
+;;;;;;  org-export-as-html-and-open org-insert-export-options-template
+;;;;;;  org-export-visible org-export-as-ascii org-export) "org-exp"
+;;;;;;  "org/org-exp.el" (18519 64213))
 ;;; Generated autoloads from org/org-exp.el
 
 (autoload 'org-export "org-exp" "\
@@ -19931,6 +20011,20 @@ PUB-DIR is set, use this as the publishing directory.
 
 \(fn ARG &optional HIDDEN EXT-PLIST TO-BUFFER BODY-ONLY PUB-DIR)" t nil)
 
+(autoload 'org-export-htmlize-generate-css "org-exp" "\
+Create the CSS for all font definitions in the current Emacs session.
+Use this to create face definitions in your CSS style file that can then
+be used by code snippets transformed by htmlize.
+This command just produces a buffer that contains class definitions for all
+faces used in the current Emacs session.  You can copy and paste the ones you
+need into your CSS file.
+
+If you then set `org-export-htmlize-output-type' to `css', calls to
+the function `org-export-htmlize-region-for-paste' will produce code
+that uses these same face definitions.
+
+\(fn)" t nil)
+
 (autoload 'org-export-icalendar-this-file "org-exp" "\
 Export current file as an iCalendar file.
 The iCalendar file will be located in the same directory as the Org-mode
@@ -19962,7 +20056,7 @@ The XOXO buffer is named *xoxo-<source buffer name>*
 ;;;### (autoloads (org-export-as-latex org-export-region-as-latex
 ;;;;;;  org-replace-region-by-latex org-export-as-latex-to-buffer
 ;;;;;;  org-export-as-latex-batch) "org-export-latex" "org/org-export-latex.el"
-;;;;;;  (18464 4596))
+;;;;;;  (18519 64213))
 ;;; Generated autoloads from org/org-export-latex.el
 
 (autoload 'org-export-as-latex-batch "org-export-latex" "\
@@ -20028,8 +20122,68 @@ when PUB-DIR is set, use this as the publishing directory.
 
 ;;;***
 
+;;;### (autoloads (org-id-find org-id-goto org-id-get-with-outline-drilling
+;;;;;;  org-id-get-with-outline-path-completion org-id-get org-id-copy
+;;;;;;  org-id-get-create) "org-id" "org/org-id.el" (18520 11861))
+;;; Generated autoloads from org/org-id.el
+
+(autoload 'org-id-get-create "org-id" "\
+Create an ID for the current entry and return it.
+If the entry already has an ID, just return it.
+With optional argument FORCE, force the creation of a new ID.
+
+\(fn &optional FORCE)" t nil)
+
+(autoload 'org-id-copy "org-id" "\
+Copy the ID of the entry at point to the kill ring.
+Create an ID if necessary.
+
+\(fn)" t nil)
+
+(autoload 'org-id-get "org-id" "\
+Get the ID property of the entry at point-or-marker POM.
+If POM is nil, refer to the entry at point.
+If the entry does not have an ID, the function returns nil.
+However, when CREATE is non nil, create an ID if none is present already.
+PREFIX will be passed through to `org-id-new'.
+In any case, the ID of the entry is returned.
+
+\(fn &optional POM CREATE PREFIX)" nil nil)
+
+(autoload 'org-id-get-with-outline-path-completion "org-id" "\
+Use outline-path-completion to retrieve the ID of an entry.
+TARGETS may be a setting for `org-refile-targets' to define the eligible
+headlines.  When omitted, all headlines in all agenda files are
+eligible.
+It returns the ID of the entry.  If necessary, the ID is created.
+
+\(fn &optional TARGETS)" nil nil)
+
+(autoload 'org-id-get-with-outline-drilling "org-id" "\
+Use an outline-cycling interface to retrieve the ID of an entry.
+This only finds entries in the current buffer, using `org-get-location'.
+It returns the ID of the entry.  If necessary, the ID is created.
+
+\(fn &optional TARGETS)" nil nil)
+
+(autoload 'org-id-goto "org-id" "\
+Switch to the buffer containing the entry with id ID.
+Move the cursor to that entry in that buffer.
+
+\(fn ID)" t nil)
+
+(autoload 'org-id-find "org-id" "\
+Return the location of the entry with the id ID.
+The return value is a cons cell (file-name . position), or nil
+if there is no entry with that ID.
+With optional argument MARKERP, return the position as a new marker.
+
+\(fn ID &optional MARKERP)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (org-irc-store-link) "org-irc" "org/org-irc.el"
-;;;;;;  (18467 53782))
+;;;;;;  (18519 64213))
 ;;; Generated autoloads from org/org-irc.el
 
 (autoload 'org-irc-store-link "org-irc" "\
@@ -20041,7 +20195,7 @@ Dispatch to the appropriate function to store a link to an IRC session.
 
 ;;;### (autoloads (org-publish-current-project org-publish-current-file
 ;;;;;;  org-publish-all org-publish) "org-publish" "org/org-publish.el"
-;;;;;;  (18467 53782))
+;;;;;;  (18519 64213))
 ;;; Generated autoloads from org/org-publish.el
 
 (autoload 'org-publish "org-publish" "\
@@ -20072,7 +20226,7 @@ the project.
 
 ;;;### (autoloads (org-remember-handler org-remember org-remember-apply-template
 ;;;;;;  org-remember-annotation org-remember-insinuate) "org-remember"
-;;;;;;  "org/org-remember.el" (18467 53782))
+;;;;;;  "org/org-remember.el" (18519 64213))
 ;;; Generated autoloads from org/org-remember.el
 
 (autoload 'org-remember-insinuate "org-remember" "\
@@ -20151,7 +20305,7 @@ See also the variable `org-reverse-note-order'.
 ;;;***
 
 ;;;### (autoloads (orgtbl-mode turn-on-orgtbl) "org-table" "org/org-table.el"
-;;;;;;  (18464 4596))
+;;;;;;  (18519 64213))
 ;;; Generated autoloads from org/org-table.el
 
 (autoload 'turn-on-orgtbl "org-table" "\
@@ -25114,8 +25268,8 @@ then `snmpv2-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads (sunrise-sunset) "solar" "calendar/solar.el" (18463
-;;;;;;  52127))
+;;;### (autoloads (sunrise-sunset) "solar" "calendar/solar.el" (18520
+;;;;;;  10254))
 ;;; Generated autoloads from calendar/solar.el
 
 (autoload 'sunrise-sunset "solar" "\
@@ -29468,7 +29622,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-rollback vc-revert vc-print-log vc-retrieve-tag vc-create-tag
 ;;;;;;  vc-dir vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-before-checkin-hook
-;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18517 53416))
+;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18519 64212))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -29756,7 +29910,7 @@ Name of the directory containing Bzr repository status files.")
 ;;;***
 
 ;;;### (autoloads (vc-do-command) "vc-dispatcher" "vc-dispatcher.el"
-;;;;;;  (18512 40701))
+;;;;;;  (18519 324))
 ;;; Generated autoloads from vc-dispatcher.el
 
 (autoload 'vc-do-command "vc-dispatcher" "\
@@ -32084,7 +32238,7 @@ Zone out, completely.
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "url/vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el"
 ;;;;;;  "vt-control.el" "vt100-led.el" "w32-fns.el" "w32-vars.el"
-;;;;;;  "widget.el" "window.el" "x-dnd.el") (18518 43087 264509))
+;;;;;;  "widget.el" "window.el" "x-dnd.el") (18520 28091 826694))
 
 ;;;***
 
