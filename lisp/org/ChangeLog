@@ -1,3 +1,7 @@
+2008-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* org.el (org-map-entries): Let-bind `file'.
+
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-colview.el (org-columns-next-allowed-value): Bug fix.
@@ -477,5 +481,27 @@
 	* org.el (org-font-lock-hook): New variable.
 	(org-font-lock-hook): New function.
 	(org-set-font-lock-defaults): Call `org-font-lock-hook'.
+
+;; Local Variables:
+;; coding: utf-8
+;; add-log-time-zone-rule: t
+;; End:
+
+    Copyright (C) 2008  Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; arch-tag: a9bdcf06-7c2d-4b5a-bf7a-c5e7b706f67c
