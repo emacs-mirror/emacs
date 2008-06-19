@@ -2368,8 +2368,8 @@ If STRING is nil, the function does nothing."
 	  (unless (string-match "\n$" string)
 	    (setq string (concat string "\n"))
 	    (when (erc-string-invisible-p string)
-	      (erc-put-text-properties 0 (length string) string
-				       '(invisible intangible))))
+	      (erc-put-text-properties 0 (length string)
+				       '(invisible intangible) string)))
 	  (erc-log (concat "erc-display-line: " string
 			   (format "(%S)" string) " in buffer "
 			   (format "%s" buffer)))
@@ -5040,9 +5040,9 @@ each property to the corresponding value in VALUE-LIST."
     (setq value-list (mapcar (lambda (x)
 			       t)
 			     properties)))
-  (dotimes (i (min (length properties) (length value-list)))
-    (erc-put-text-property start end (nth i properties)
-			   (nth i value-list) object)))
+  (while (and properties value-list)
+    (erc-put-text-property
+     start end (pop properties) (pop value-list) object)))
 
 ;;; Input area handling:
 
@@ -6312,6 +6312,7 @@ All windows are opened in the current frame."
    (s321   . "Channel  Users  Topic")
    (s322   . "%c [%u] %t")
    (s324   . "%c modes: %m")
+   (s328   . "%c URL: %u")
    (s329   . "%c was created on %t")
    (s330   . "%n %a %i")
    (s331   . "No topic is set for %c")

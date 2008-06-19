@@ -3,6 +3,17 @@
 	* erc/erc-autoaway.el, erc/erc-ibuffer.el, erc/erc-menu.el:
 	* erc/erc-stamp.el, erc/erc.el: Remove unnecessary eval-when-compiles.
 
+2008-05-30  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-backend.el (328): New response handler.
+
+	* erc.el (english): Added 328 to catalog.
+
+2008-05-29  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-services.el (erc-nickserv-alist): Updated REGEXP and
+	SUCCESS-REGEXP for freenode.
+
 2008-05-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc-goodies.el (erc-noncommands-list, noncommands)
@@ -10,9 +21,11 @@
 	(erc-interpret-mirc-color): Fix typos in docstrings.
 	(erc-controls-highlight): Reflow docstring.
 
-2008-04-27  Glenn Morris  <rgm@gnu.org>
+2008-04-26  Johan Bockgård  <bojohan@gnu.org>
 
-	* erc.el (erc-put-text-properties): Replace use of cl mapcar*.
+	* erc.el (erc-put-text-properties): Don't use mapcar*.
+	(erc-display-line-1): Fix argument order in call to
+	erc-put-text-properties.
 
 2008-04-14  Michael Olson  <mwolson@gnu.org>
 

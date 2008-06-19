@@ -1684,6 +1684,13 @@ See `erc-display-server-message'." nil
      parsed 'notice (erc-get-buffer channel proc)
      's324 ?c channel ?m modes)))
 
+(define-erc-response-handler (328)
+  "Channel URL (on freenode network)." nil
+  (let ((channel (second (erc-response.command-args parsed)))
+        (url (erc-response.contents parsed)))
+    (erc-display-message parsed 'notice (erc-get-buffer channel proc)
+                         's328 ?c channel ?u url)))
+
 (define-erc-response-handler (329)
   "Channel creation date." nil
   (let ((channel (second (erc-response.command-args parsed)))
