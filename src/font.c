@@ -1109,7 +1109,7 @@ font_parse_xlfd (name, font)
       if (*p == '~')
 	p++;
       ASET (font, FONT_AVGWIDTH_INDEX,
-	    font_intern_prop (p, f[XLFD_REGISTRY_INDEX] - 1 - p, 1));
+	    font_intern_prop (p, f[XLFD_REGISTRY_INDEX] - 1 - p, 0));
     }
   else
     {
@@ -1403,15 +1403,8 @@ font_parse_fcname (name, font)
 	}
       if (props_beg)
 	{
-	  /* Now parse ":KEY=VAL" patterns.  Store known keys and values in
-	     extra, copy unknown ones to COPY.  It is stored in extra slot by
-	     the key QCfc_unknown_spec.  */
-	  char *copy_start, *copy;
+	  /* Now parse ":KEY=VAL" patterns.  */
 	  Lisp_Object val;
-
-	  copy_start = copy = alloca (name + len - props_beg + 2);
-	  if (! copy)
-	    return -1;
 
 	  for (p = props_beg; *p; p = q)
 	    {
@@ -1445,13 +1438,6 @@ font_parse_fcname (name, font)
 		  else if (PROP_MATCH ("proportional", 12))
 		    ASET (font, FONT_SPACING_INDEX,
 			  make_number (FONT_SPACING_PROPORTIONAL));
-		  else
-		    {
-		      /* Unknown key  */
-		      *copy++ = ':';
-		      bcopy (p, copy, word_len);
-		      copy += word_len;
-		    }
 #undef PROP_MATCH
 		}
 	      else
@@ -1473,25 +1459,14 @@ font_parse_fcname (name, font)
 		  for (q = p; *q && *q != ':'; q++);
 		  val = font_intern_prop (p, q - p, 0);
 
-		  if (! NILP (val))
-		    {
-		      if (prop >= FONT_FOUNDRY_INDEX
-			  && prop < FONT_EXTRA_INDEX)
-			ASET (font, prop,
-			      font_prop_validate (prop, Qnil, val));
-		      else if (prop >= 0)
-			Ffont_put (font, key, val);
-		      else
-			{
-			  bcopy (keyhead, copy, q - keyhead);
-			  copy += q - keyhead;
-			}
-		    }
+		  if (prop >= FONT_FOUNDRY_INDEX
+		      && prop < FONT_EXTRA_INDEX)
+		    ASET (font, prop, font_prop_validate (prop, Qnil, val));
+		  else
+		    Ffont_put (font, key, val);
 		}
+	      p = q;
 	    }
-	  if (copy_start != copy)
-	    font_put_extra (font, QCfc_unknown_spec,
-			    make_unibyte_string (copy_start, copy - copy_start));
 	}
     }
   else
@@ -2722,7 +2697,7 @@ font_open_entity (f, entity, pixel_size)
   struct font_driver_list *driver_list;
   Lisp_Object objlist, size, val, font_object;
   struct font *font;
-  int min_width;
+  int min_width, height;
 
   font_assert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
@@ -2756,20 +2731,21 @@ font_open_entity (f, entity, pixel_size)
 	       : font->average_width ? font->average_width
 	       : font->space_width ? font->space_width
 	       : 1);
+  height = (font->height ? font->height : 1);
 #ifdef HAVE_WINDOW_SYSTEM
   FRAME_X_DISPLAY_INFO (f)->n_fonts++;
   if (FRAME_X_DISPLAY_INFO (f)->n_fonts == 1)
     {
       FRAME_SMALLEST_CHAR_WIDTH (f) = min_width;
-      FRAME_SMALLEST_FONT_HEIGHT (f) = font->height;
+      FRAME_SMALLEST_FONT_HEIGHT (f) = height;
       fonts_changed_p = 1;
     }
   else
     {
       if (FRAME_SMALLEST_CHAR_WIDTH (f) > min_width)
 	FRAME_SMALLEST_CHAR_WIDTH (f) = min_width, fonts_changed_p = 1;
-      if (FRAME_SMALLEST_FONT_HEIGHT (f) > font->height)
-	FRAME_SMALLEST_FONT_HEIGHT (f) = font->height, fonts_changed_p = 1;
+      if (FRAME_SMALLEST_FONT_HEIGHT (f) > height)
+	FRAME_SMALLEST_FONT_HEIGHT (f) = height, fonts_changed_p = 1;
     }
 #endif
 
@@ -3676,19 +3652,24 @@ DEFUN ("copy-font-spec", Fcopy_font_spec, Scopy_font_spec, 1, 1, 0,
      (font)
      Lisp_Object font;
 {
-  Lisp_Object new_spec, tail, extra;
+  Lisp_Object new_spec, tail, prev, extra;
   int i;
 
   CHECK_FONT (font);
   new_spec = font_make_spec ();
   for (i = 1; i < FONT_EXTRA_INDEX; i++)
     ASET (new_spec, i, AREF (font, i));
-  extra = Qnil;
-  for (tail = AREF (font, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
-    {
-      if (! EQ (XCAR (XCAR (tail)), QCfont_entity))
-	extra = Fcons (Fcons (XCAR (XCAR (tail)), XCDR (XCAR (tail))), extra);
-    }
+  extra = Fcopy_sequence (AREF (font, FONT_EXTRA_INDEX));
+  /* We must remove :font-entity property.  */
+  for (prev = Qnil, tail = extra; CONSP (tail); prev = tail, tail = XCDR (tail))
+    if (EQ (XCAR (XCAR (tail)), QCfont_entity))
+      {
+	if (NILP (prev))
+	  extra = XCDR (extra);
+	else
+	  XSETCDR (prev, XCDR (tail));
+	break;
+      }
   ASET (new_spec, FONT_EXTRA_INDEX, extra);
   return new_spec;
 }
@@ -4759,7 +4740,13 @@ font_add_log (action, arg, result)
   if (FONTP (arg))
     arg = Ffont_xlfd_name (arg, Qt);
   if (FONTP (result))
-    result = Ffont_xlfd_name (result, Qt);
+    {
+      val = Ffont_xlfd_name (result, Qt);
+      if (! FONT_SPEC_P (result))
+	val = concat3 (SYMBOL_NAME (AREF (result, FONT_TYPE_INDEX)),
+		       build_string (":"), val);
+      result = val;
+    }
   else if (CONSP (result))
     {
       result = Fcopy_sequence (result);
