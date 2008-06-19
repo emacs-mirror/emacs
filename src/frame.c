@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
+#include <ctype.h>
 #include "lisp.h"
 #include "character.h"
 #ifdef HAVE_X_WINDOWS
@@ -3419,12 +3420,16 @@ x_set_font_backend (f, new_value, old_value)
       new_value = Qnil;
       while (*p0)
 	{
-	  while (*p1 && *p1 != ',') p1++;
+	  while (*p1 && ! isspace (*p1) && *p1 != ',') p1++;
 	  if (p0 < p1)
 	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil),
 			       new_value);
 	  if (*p1)
-	    p1++;
+	    {
+	      int c;
+
+	      while ((c = *++p1) && isspace (c));
+	    }
 	  p0 = p1;
 	}
       new_value = Fnreverse (new_value);
