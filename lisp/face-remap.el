@@ -234,7 +234,8 @@ Each step scales the height of the default face by the variable
 height by the same amount).  As a special case, an argument of 0
 will remove any scaling currently active."
   (interactive "p")
-  (setq text-scale-mode-amount (if (= inc 0) 0 (+ text-scale-mode-amount inc)))
+  (setq text-scale-mode-amount
+	(if (= inc 0) 0 (+ (if text-scale-mode text-scale-mode-amount 0) inc)))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload

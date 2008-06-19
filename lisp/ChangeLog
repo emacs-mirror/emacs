@@ -1,3 +1,8 @@
+2008-06-19  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (text-scale-increase): Start from zero if
+	text-scale-mode isn't enabled.
+
 2008-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* faces.el (face-set-after-frame-default): Re-apply explicit `font'
