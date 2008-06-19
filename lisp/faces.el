@@ -703,7 +703,7 @@ like an underlying face would be, with higher priority than underlying faces."
 	(put (or (get face 'face-alias) face) 'face-modified t))
     (while args
       ;; Don't recursively set the attributes from the frame's font param
-      ;; when we update the frame's font param fro the attributes.
+      ;; when we update the frame's font param from the attributes.
       (let ((inhibit-face-set-after-frame-default t))
 	(if (and (eq (car args) :family)
 		 (stringp (cadr args))
@@ -2018,6 +2018,7 @@ Initialize colors of certain faces from frame parameters."
   ;; Find attributes that should be initialized from frame parameters.
   (let ((face-params '((foreground-color default :foreground)
 		       (background-color default :background)
+                       (font-parameter default :font)
 		       (border-color border :background)
 		       (cursor-color cursor :background)
 		       (scroll-bar-foreground scroll-bar :foreground)

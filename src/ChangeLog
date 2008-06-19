@@ -1,3 +1,9 @@
+2008-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32fns.c, xfns.c (Qfont_param): New var.
+	(syms_of_w32fns): Initialize it.
+	(x_default_font_parameter): Record explicit `font' into `font-parameter'.
+
 2008-06-18  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_parse_xlfd): Fix previous change.
@@ -24,9 +30,9 @@
 
 2008-06-18  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_list, w32font_match): Add logging.
+	* w32font.c (w32font_list, w32font_match): Add logging.
 
-        * w32uniscribe (uniscribe_list, uniscribe_match): Add logging.
+	* w32uniscribe (uniscribe_list, uniscribe_match): Add logging.
 
 2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
 

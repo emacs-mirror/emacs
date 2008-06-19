@@ -206,6 +206,7 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
+Lisp_Object Qfont_param;
 Lisp_Object Qhyper;
 Lisp_Object Qsuper;
 Lisp_Object Qmeta;
@@ -4295,6 +4296,12 @@ x_default_font_parameter (f, parms)
       if (NILP (font))
         error ("No suitable font was found");
     }
+  else
+    {
+      /* Remember the explicit font parameter, so we can re-apply it after
+	 we've applied the `default' face settings.  */
+      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font), Qnil));
+  }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 
@@ -8891,6 +8898,7 @@ syms_of_w32fns ()
   DEFSYM (Qctrl, "ctrl");
   DEFSYM (Qcontrol, "control");
   DEFSYM (Qshift, "shift");
+  DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */

@@ -204,6 +204,7 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
+static Lisp_Object Qfont_param;
 
 /* In dispnew.c */
 
@@ -3087,6 +3088,12 @@ x_default_font_parameter (f, parms)
       if (NILP (font))
 	error ("No suitable font was found");
     }
+  else
+    {
+      /* Remember the explicit font parameter, so we can re-apply it after
+	 we've applied the `default' face settings.  */
+      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font), Qnil));
+  }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 
@@ -5854,6 +5861,8 @@ syms_of_xfns ()
   staticpro (&Qcompound_text);
   Qcancel_timer = intern ("cancel-timer");
   staticpro (&Qcancel_timer);
+  Qfont_param = intern ("font-parameter");
+  staticpro (&Qfont_param);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
