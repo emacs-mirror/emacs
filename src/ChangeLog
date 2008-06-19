@@ -1,8 +1,15 @@
+2008-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* frame.c: Include <ctype.h>.
+	(x_set_font_backend): Allow spacing characters in the X resource
+	for FontBackend.
+
 2008-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* w32fns.c, xfns.c (Qfont_param): New var.
 	(syms_of_w32fns): Initialize it.
-	(x_default_font_parameter): Record explicit `font' into `font-parameter'.
+	(x_default_font_parameter): Record explicit `font' into
+	`font-parameter'.
 
 2008-06-18  Kenichi Handa  <handa@m17n.org>
 
