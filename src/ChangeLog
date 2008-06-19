@@ -1,3 +1,21 @@
+2008-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): Fix previous change.
+	(font_parse_fcname): Don't use :fc-unknown-spec.
+	(FRAME_X_DISPLAY_INFO): Besure to have at least 1 pixel height.
+	(Fcopy_font_spec): Preserve the order of elements in FONT_EXTRA.
+	(font_add_log): Prepend the driver name to the resulting fonts.
+
+	* ftfont.c (ftfont_pattern_entity): New arg extra.  Caller changed.
+	(ftfont_spec_pattern): Don't check QCfc_unknown_spec and QCname.
+	(ftfont_list) [FC_FONTFORMAT]: Include FC_FONTFORMAT in objset.
+
+	* xftfont.c (QChinting , QCautohint, QChintstyle, QCrgba)
+	(QCembolden): New variables.
+	(syms_of_xftfont): DEFSYM them.
+	(xftfont_open): Call XftFontMatch.  Don't trust the result of
+	XftTextExtents8 if the pixel_size is less than 5.
+
 2008-06-18  Andreas Schwab  <schwab@suse.de>
 
 	* font.c (Ffont_face_attributes): Only define if
