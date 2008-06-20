@@ -1,3 +1,7 @@
+2008-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (distclean): Remove makefile.
+
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Using the mapping API): New section.
