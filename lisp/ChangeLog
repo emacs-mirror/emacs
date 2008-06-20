@@ -1,3 +1,11 @@
+2008-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH):
+	Don't copy ldefs-boot.el over loaddefs.el.
+	(bootstrap-clean): Remove loaddefs.el and don't depend on it.
+	(loaddefs.el-SH, loaddefs.el-CMD): Don't add autoloads and defvars
+	to loaddefs.el; they are not needed now.  Add coding cookie.
+
 2008-06-20  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el (face-remap-add-relative, face-remap-set-base):
