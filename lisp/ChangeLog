@@ -1,5 +1,8 @@
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* Makefile.in ($(lisp)/progmodes/cc-mode.elc): Pass the .el file not
+	the .elc file to batch-byte-compile.
+
 	* progmodes/cc-mode.el (c-make-inherited-keymap): Only use
 	set-keymap-parents if set-keymap-parent doesn't exist.
 

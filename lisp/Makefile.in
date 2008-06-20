@@ -1324,7 +1324,7 @@ $(lisp)/progmodes/cc-mode.elc: \
 	$(lisp)/progmodes/cc-mode.el \
 	$(lisp)/progmodes/cc-langs.el \
 	$(lisp)/progmodes/cc-defs.el
-	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $@
+	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.
