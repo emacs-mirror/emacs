@@ -2,6 +2,8 @@
 
 	* makefile.w32-in (distclean): Don't delete `quail' subdir: if we
 	are building in the sandbox, there are precious files there.
+	(clean mostlyclean): Delete leim-list.el~.
+	(distclean): Delete makefile.
 
 2008-06-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
