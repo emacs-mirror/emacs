@@ -2605,7 +2605,9 @@ function called to create the messages."
       (checkdoc-output-mode)
       (setq default-directory dir)
       (goto-char (point-max))
-      (insert "\n\n\C-l\n*** " label ": " check-type " V " checkdoc-version))))
+      (let ((inhibit-read-only t))
+        (insert "\n\n\C-l\n*** " label ": "
+                check-type " V " checkdoc-version)))))
 
 (defun checkdoc-error (point msg)
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."
@@ -2616,7 +2618,8 @@ function called to create the messages."
 		    ": " msg)))
     (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
       (goto-char (point-max))
-      (apply 'insert text))))
+      (let ((inhibit-read-only t))
+        (apply 'insert text)))))
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."

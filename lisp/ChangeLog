@@ -1,3 +1,8 @@
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-start-section, checkdoc-error):
+	Bind inhibit-read-only since the buffer is always read-only.
+
 2008-06-20  Ulf Jasper  <ulf@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-own-frame): Changed
