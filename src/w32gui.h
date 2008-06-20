@@ -129,9 +129,6 @@ typedef struct _XGCValues
 {
   COLORREF foreground;
   COLORREF background;
-#if OLD_FONT
-  XFontStruct * font;
-#endif
   struct font *font;
 } XGCValues;
 

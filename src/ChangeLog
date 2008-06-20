@@ -1,5 +1,8 @@
 2008-06-20  Jason Rumney  <jasonr@gnu.org>
 
+        * w32fns.c, w32term.c, w32term.h, w32gui.h [OLD_FONT]: Remove
+        obsolete font code.
+
         * w32font.c (font_matches_spec): Use csb bitfield from font signature
         to determine language support.
 

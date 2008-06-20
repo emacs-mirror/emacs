@@ -145,14 +145,6 @@ struct w32_display_info
      received; value is reset after key is received.  */
   int faked_key;
 
-#if OLD_FONT
-  /* A table of all the fonts we have already loaded.  */
-  struct font_info *font_table;
-
-  /* The current capacity of font_table.  */
-  int font_table_size;
-#endif
-
   /* Minimum width over all characters in all fonts in font_table.  */
   int smallest_char_width;
 
@@ -251,15 +243,6 @@ Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
 
 extern struct w32_display_info *w32_term_init ();
 
-#if OLD_FONT
-extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-extern struct font_info *w32_get_font_info (), *w32_query_font ();
-extern void w32_cache_char_metrics (XFontStruct *font);
-extern void w32_find_ccl_program();
-extern Lisp_Object x_get_font_repertory P_ ((struct frame *,
-					     struct font_info *));
-#endif
-
 #define PIX_TYPE COLORREF
 
 /* Each W32 frame object points to its own struct w32_display object
@@ -321,9 +304,6 @@ struct w32_output
   Window parent_desc;
 
   /* Default ASCII font of this frame. */
-#if OLD_FONT
-  XFontStruct *font;
-#endif
   struct font *font;
 
   /* The baseline offset of the default ASCII font.  */
@@ -418,11 +398,6 @@ extern struct w32_output w32term_display;
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (0)
-
-#if OLD_FONT
-/* This is the 'font_info *' which frame F has.  */
-#define FRAME_W32_FONT_TABLE(f) (FRAME_W32_DISPLAY_INFO (f)->font_table)
-#endif
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -592,11 +567,6 @@ do { \
 
 #define w32_clear_area(f,hdc,px,py,nx,ny) \
   w32_fill_area (f, hdc, FRAME_BACKGROUND_PIXEL (f), px, py, nx, ny)
-
-#if OLD_FONT
-extern struct font_info *w32_load_font ();
-extern void w32_unload_font ();
-#endif
 
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
