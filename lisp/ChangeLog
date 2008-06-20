@@ -1,5 +1,20 @@
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/rst.el: Fix up docstring conventions.
+	Move vars to before their first use.
+	(rst-mode): Don't mess with font-lock-support-mode.
+	(rst-suggest-new-decoration, rst-adjust-decoration):
+	Avoid CL's copy-list.
+	(rst-delete-entire-line): Use line-beginning-position.
+	(rst-position): New fun.
+	(rst-straighten-decorations): Use it instead of CL's position.
+	(rst-straighten-bullets-region): Avoid CL's mapcar*.
+	(rst-toc-mode): Use define-derived-mode.
+	(rst-iterate-leftmost-paragraphs, rst-iterate-leftmost-paragraphs-2):
+	Remove unused var `in-par'.  Use `point' rather than `point-marker'.
+	(rst-line-block-region): Reduce redundancy.  Use the `pfxarg' arg.
+	(rst-replace-lines): Simplify.
+
 	* simple.el (special-mode-map): New var.
 	(special-mode): New major mode.
 
