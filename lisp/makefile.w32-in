@@ -109,8 +109,31 @@ WINS= $(WINS_ALMOST) \
 
 doit:
 
+cus-load.el-SH:
+	echo ";;; cus-load.el --- automatically extracted custom dependencies" > $@
+	echo ";;" >> $@; echo ";;; Code:" >> $@
+	echo "" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
+
+cus-load.el-CMD:
+	echo ;;; cus-load.el --- automatically extracted custom dependencies> $@
+	echo ;;>> $@
+	echo ;;; Code:>> $@
+	echo.>> $@
+	echo ;; Local Variables:>> $@
+	echo ;; version-control: never>> $@
+	echo ;; no-byte-compile: t>> $@
+	echo ;; no-update-autoloads: t>> $@
+	echo ;; End:>> $@
+
 $(lisp)/cus-load.el:
-	touch $@
+	$(MAKE) $(MFLAGS) cus-load.el-$(SHELLTYPE)
+	mv cus-load.el-$(SHELLTYPE) $@
+
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 custom-deps: $(lisp)/cus-load.el $(lisp)/loaddefs.el doit
