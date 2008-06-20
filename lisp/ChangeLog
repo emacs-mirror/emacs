@@ -1,6 +1,11 @@
 2008-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-dir-hide-up-to-date): Undo previous change.
+	(vc-switch-backend): Simplify.
+	(Todo): Remove solved items.
+	
+	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-parse-entry): Do not set
+	the vc-backend property.
 
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -573,10 +573,6 @@
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
 ;;
-;; - C-x v b does switch to a different backend, but the mode line is not
-;;   adapted accordingly.  Also, it considers RCS and CVS to be the same,
-;;   which is pretty confusing.
-;;
 ;; - vc-create-tag and vc-retrieve-tag should update the
 ;;   buffers that might be visiting the affected files.
 ;;
@@ -612,13 +608,6 @@
 ;;   gets renamed to B in one branch and to C in another and you merge
 ;;   the two branches.  Or you locally add file FOO and then pull a
 ;;   change that also adds a new file FOO, ...
-;;
-;; - C-x v l should insert the file set in the *VC-log* buffer so that
-;;   log-view can recognize it and use it for its commands.
-;;
-;; - vc-diff should be able to show the diff for all files in a
-;;   changeset, especially for VC systems that have per repository
-;;   version numbers.  log-view should take advantage of this.
 ;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
@@ -2359,17 +2348,18 @@ To get a prompt, use a prefix argument."
    (list
     (or buffer-file-name
         (error "There is no version-controlled file in this buffer"))
-    (let ((backend (vc-backend buffer-file-name))
+    (let ((crt-bk (vc-backend buffer-file-name))
 	  (backends nil))
-      (unless backend
+      (unless crt-bk
         (error "File %s is not under version control" buffer-file-name))
       ;; Find the registered backends.
-      (dolist (backend vc-handled-backends)
-	(when (vc-call-backend backend 'registered buffer-file-name)
-	  (push backend backends)))
+      (dolist (crt vc-handled-backends)
+	(when (and (vc-call-backend crt 'registered buffer-file-name)
+		   (not (eq crt-bk crt)))
+	  (push crt backends)))
       ;; Find the next backend.
-      (let ((def (car (delq backend (append (memq backend backends) backends))))
-	    (others (delete backend backends)))
+      (let ((def (car backends))
+	    (others backends))
 	(cond
 	 ((null others) (error "No other backend to switch to"))
 	 (current-prefix-arg
@@ -2379,7 +2369,7 @@ To get a prompt, use a prefix argument."
 	     (format "Switch to backend [%s]: " def)
 	     (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
 	     nil t nil nil (downcase (symbol-name def))))))
-       (t def))))))
+	 (t def))))))
   (unless (eq backend (vc-backend file))
     (vc-file-clearprops file)
     (vc-file-setprop file 'vc-backend backend)
