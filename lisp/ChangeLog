@@ -1,3 +1,7 @@
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/rst.el: New file.
+
 2008-06-20  Sam Steingold  <sds@gnu.org>
 
 	* vc.el (vc-dir-hide-up-to-date): Accept a prefix argument to also
@@ -33,8 +37,8 @@
 
 2008-06-20  Jason Rumney  <jasonr@gnu.org>
 
-        * international/fontset.el (setup-default-fontset): Specify script
-        for latin use of iso10646-1.  Fix use of lang tags.
+	* international/fontset.el (setup-default-fontset): Specify script
+	for latin use of iso10646-1.  Fix use of lang tags.
 
 2008-06-19  Miles Bader  <miles@gnu.org>
 
