@@ -1,3 +1,8 @@
+2008-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (Ffont_face_attributes): Omit key-attribute pairs not
+	defined by the font.
+
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (emacs${EXEEXT}): Depend on the machine-specific files.
