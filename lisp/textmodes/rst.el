@@ -3414,4 +3414,6 @@ column is used (fill-column vs. end of previous/next line)."
 
 
 (provide 'rst)
+
+;; arch-tag: 255ac0a3-a689-44cb-8643-04ca55ae490d
 ;;; rst.el ends here
