@@ -1,5 +1,8 @@
 2008-06-20  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (fontset_from_font): Copy font_spec before changing
+	the elements.
+
 	* xfns.c (x_default_font_parameter): Try "monospace-12" too.
 
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
