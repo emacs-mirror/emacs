@@ -1,3 +1,10 @@
+2008-06-20  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker-treeview-own-frame): Changed
+	default value to nil.
+	(newsticker--treeview-list-add-item)
+	(newsticker--treeview-propertize-tag): Show item title in tooltip.
+
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/rst.el: New file.

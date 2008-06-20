@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "15. Juni 2008, 12:46:27 (ulf)"
+;; Time-stamp:  "20. Juni 2008, 18:13:52 (ulf)"
 
 ;; ======================================================================
 
@@ -99,7 +99,7 @@
   :group 'newsticker-treeview)
 
 (defcustom newsticker-treeview-own-frame
-  t
+  nil
   "Decides whether newsticker creates and uses its own frame."
   :type 'boolean
   :group 'newsticker-treeview)
@@ -327,7 +327,8 @@ If string SHOW-FEED is non-nil it is shown in the item string."
                                    :nt-link (newsticker--link item)
                                    'mouse-face 'highlight
                                    'keymap map
-                                   'help-echo "Show item")))
+                                   'help-echo (buffer-substring pos2
+                                                                (point-max)))))
       (insert "\n"))))
 
 (defun newsticker--treeview-list-clear ()
@@ -898,7 +899,7 @@ arguments NT-ID, FEED, and VFEED are added as properties."
                 :nt-id nt-id
                 :nt-feed feed
                 :nt-vfeed vfeed
-                'help-echo "Clickme!"
+                'help-echo tag
                 'mouse-face 'highlight)))
 
 (defun newsticker--treeview-tree-get-tag (feed-name vfeed-name
