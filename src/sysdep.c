@@ -244,6 +244,10 @@ void hft_reset P_ ((struct tty_display_info *));
 
 SIGMASKTYPE sigprocmask_set;
 
+#if !defined (HAVE_CFMAKERAW)
+void cfmakeraw(struct termios *);
+#endif /* !defined (HAVE_CFMAKERAW */
+
 
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
 
@@ -5447,7 +5451,12 @@ serial_configure (struct Lisp_Process *p,
   else
     tem = Fplist_get (p->childp, QCspeed);
   CHECK_NUMBER (tem);
+#ifdef HAVE_CFSETSPEED
   err = cfsetspeed (&attr, XINT (tem));
+#else
+  err = cfsetispeed(&attr, XINT (tem));
+  err = err +  cfsetospeed(&attr, XINT (tem));
+#endif
   if (err != 0)
     error ("cfsetspeed(%d) failed: %s", XINT (tem), emacs_strerror (errno));
   childp2 = Fplist_put (childp2, QCspeed, tem);
@@ -5577,6 +5586,18 @@ serial_configure (struct Lisp_Process *p,
   p->childp = childp2;
 
 }
+#if !defined (HAVE_CFMAKERAW)
+/* Workaround for targets which are missing cfmakeraw */
+/* Pasted from man page; added in serial.c arbitrarily */
+void cfmakeraw(struct termios *termios_p)
+{
+    termios_p->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+    termios_p->c_oflag &= ~OPOST;
+    termios_p->c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+    termios_p->c_cflag &= ~(CSIZE|PARENB);
+    termios_p->c_cflag |= CS8;
+}
+#endif /* !defined (HAVE_CFMAKERAW */
 #endif /* TERMIOS  */
 
 /* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf

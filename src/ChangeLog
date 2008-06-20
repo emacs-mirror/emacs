@@ -1,3 +1,8 @@
+2008-06-20  Angelo Graziosi  <angelo.graziosi@alice.it>  (tiny change)
+
+	* sysdep.c (cfmakeraw): Provide fallback implementation.
+	(serial_configure): Provide fallback implementation of cfsetspeed.
+
 2008-06-20  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Add FOUNDRY, SPACING, DPI, SCALABLE to
