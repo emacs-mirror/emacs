@@ -209,7 +209,6 @@ clean mostlyclean:
 	- $(DEL) leim-list.el
 
 distclean: clean
-	- $(DELTREE) $(SUBDIRS)
 	- $(DEL) stamp-subdir
 
 maintainer-clean: distclean
