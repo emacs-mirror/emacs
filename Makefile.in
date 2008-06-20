@@ -56,11 +56,6 @@
 # make bootstrap
 #      Recompiles all the Emacs Lisp files using the latest source,
 #      then rebuilds Emacs.
-#
-# make bootfast
-#      Recompiles changed Emacs Lisp files using the latest C source,
-#      then rebuilds Emacs.  This is faster than `make bootstrap'
-#      but once in a while an old .elc file can cause trouble.
 
 SHELL = /bin/sh
 
@@ -261,7 +256,11 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
 # leim is not included because it needs special handling.
-SUBDIR = lib-src src
+# 
+# Actually, we now include `lisp' as well, since the compiled files
+# are not included any more in case of bootstrap or in case Emacs was
+# checked out from a VCS.
+SUBDIR = lib-src src lisp
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile
@@ -312,6 +311,9 @@ src:	lib-src FRC
 lib-src: FRC src/config.stamp
 
 .RECURSIVE: ${SUBDIR} leim
+
+# We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
+lisp: src
 
 ${SUBDIR}: maybe_bootstrap ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all $(MFLAGS) \
@@ -711,7 +713,7 @@ clean: FRC
 ###      `make distclean' should leave only the files that were in the
 ###      distribution.
 top_distclean=\
-	rm -f config.status config.cache config.log ; \
+	rm -f config.cache config.log ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
 	if [ -d lock ] ; then (cd lock && (rm -f * || true)); else true; fi
 distclean: FRC
@@ -727,6 +729,22 @@ distclean: FRC
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
 
+### `bootstrap-clean'
+###      Delete everything that can be reconstructed by `make' and that
+###      needs to be deleted in order to force a bootstrap from a clean state.
+bootstrap-clean: FRC
+	(cd src;      $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd oldXMenu; $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/misc &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
+	${top_distclean}
+
 ### `maintainer-clean'
 ###      Delete everything from the current directory that can be
 ###      reconstructed with this Makefile.  This typically includes
@@ -738,18 +756,9 @@ distclean: FRC
 ###      Makefile.  More generally, `make maintainer-clean' should not delete
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
-maintainer-clean: FRC
+maintainer-clean: bootstrap-clean
 	(cd src;      $(MAKE) $(MFLAGS) maintainer-clean)
-	(cd oldXMenu; $(MAKE) $(MFLAGS) maintainer-clean)
-	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
-	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd doc/misc &&   $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
-	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
-	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
-	${top_distclean}
+	-rm -f config.status
 
 ### This doesn't actually appear in the coding standards, but Karl
 ### says GCC supports it, and that's where the configuration part of
@@ -826,7 +835,6 @@ dvi:
 
 .PHONY: bootstrap
 .PHONY: bootstrap-build
-.PHONY: bootfast
 .PHONY: maybe_bootstrap
 
 maybe_bootstrap:
@@ -837,39 +845,25 @@ maybe_bootstrap:
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before FRC
+bootstrap: bootstrap-clean FRC
+	if [ -x ./config.status ]; then           \
+	    ./config.status --recheck;            \
+	    ./config.status;                      \
+	else                                      \
+	    ./configure --enable-maintainer-mode; \
+	fi
 	$(MAKE) $(MFLAGS) info bootstrap-build
 
-bootfast: bootstrap-clean-before-fast FRC
-	$(MAKE) $(MFLAGS) info bootstrap-build
+src/bootstrap-emacs${EXEEXT}:
+	(cd src; $(MAKE) $(MFLAGS) bootstrap-emacs${EXEEXT})
 
 ## There used to be a src; mostlyclean before all, but it does not
 ## seem to serve any purpose, and compiles things twice.
 ## http://lists.gnu.org/archive/html/emacs-devel/2008-06/msg00104.html
-bootstrap-build: FRC
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
-	(cd src; $(MAKE) $(MFLAGS) bootstrap)
+bootstrap-build: src/bootstrap-emacs$(EXEEXT) FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
 	$(MAKE) $(MFLAGS) all
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
-
-### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
-bootstrap-clean-before: bootstrap-clean-before-fast FRC
-	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
-	(cd leim;     $(MAKE) $(MFLAGS) bootstrap-clean)
-
-### Used for `bootfast' to avoid deleting existing dumped Emacs executables
-### and compiled .elc files.
-bootstrap-clean-before-fast: FRC
-	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
-	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
-	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
-	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
-	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) clean)
-	-(cd doc/misc &&   $(MAKE) $(MFLAGS) clean)
-	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
-	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
-	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
 .PHONY: check-declare
 

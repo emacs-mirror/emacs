@@ -1,5 +1,8 @@
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* Makefile.in (all): New target.
+	(bootstrap-prepare): Remove.
+
 	* Makefile.in ($(lisp)/progmodes/cc-mode.elc): Pass the .el file not
 	the .elc file to batch-byte-compile.
 

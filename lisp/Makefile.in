@@ -98,6 +98,10 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	   esac; \
         done
 
+# `compile-main' tends to be slower than `recompile' but can be parallelized
+# with "make -j" and results in more deterministic compilation warnings.
+all: compile-main
+
 doit:
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
@@ -1400,11 +1404,6 @@ $(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 # an up-to-date copy of loaddefs.el that is uncorrupted by
 # local changes.  (Because loaddefs.el is an automatically generated
 # file, we don't want to store it in the source repository).
-
-bootstrap-prepare:
-	if test -x $(EMACS); then				\
-	  $(MAKE) $(MFLAGS) autoloads EMACS=$(EMACS);		\
-	fi
 
 autogen-clean:
 	cd $(lisp); rm -f $(AUTOGENEL)

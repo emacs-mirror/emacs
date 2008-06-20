@@ -1,6 +1,15 @@
-2008-06-20  Angelo Graziosi  <angelo.graziosi@alice.it>  (tiny change)
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* configure.in: Check for presence of cfmakeraw and cfsetspeed.
+	* Makefile.in (SUBDIR): Include `lisp'.
+	(lisp): Depend on `src'.
+	(top_distclean): Don't remove config.status.
+	(bootstrap-clean): New target.
+	(maintainer-clean): Use it.
+	(bootstrap): Use bootstrap-clean.  Re-run config.status.
+	(src/bootstrap-emacs${EXEEXT}): New target.
+	(bootstrap-build): Use it.  Don't use bootstrap-prepare because
+	src/Makefile now takes care of it.
+	(bootfast, bootstrap-clean-before, bootstrap-clean-before-fast): Remove.
 
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
