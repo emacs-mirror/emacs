@@ -5,6 +5,9 @@
 
 2008-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-mtn.el (vc-mtn-log-view-mode): Set log-view-per-file-logs and
+	log-view-file-re.
+
 	* vc.el (vc-dir-hide-up-to-date): Undo previous change.
 	(vc-switch-backend): Simplify.
 	(Todo): Remove solved items.
