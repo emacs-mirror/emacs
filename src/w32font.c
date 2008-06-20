@@ -1103,6 +1103,11 @@ logfonts_match (font, pattern)
   return 1;
 }
 
+/* Codepage Bitfields in FONTSIGNATURE struct.  */
+#define CSB_JAPANESE (1 << 17)
+#define CSB_KOREAN ((1 << 19) | (1 << 21))
+#define CSB_CHINESE ((1 << 18) | (1 << 20))
+
 static int
 font_matches_spec (type, font, spec, backend, logfont)
      DWORD type;
@@ -1247,30 +1252,32 @@ font_matches_spec (type, font, spec, backend, logfont)
             }
 	  else if (EQ (key, QClang) && SYMBOLP (val))
 	    {
-	      /* Just handle the CJK languages here, as the language
+	      /* Just handle the CJK languages here, as the lang
 		 parameter is used to select a font with appropriate
 		 glyphs in the cjk unified ideographs block. Other fonts
 	         support for a language can be solely determined by
 	         its character coverage.  */
 	      if (EQ (val, Qja))
 		{
-		  if (font->ntmTm.tmCharSet != SHIFTJIS_CHARSET)
+		  if (!(font->ntmFontSig.fsCsb[0] & CSB_JAPANESE))
 		    return 0;
 		}
 	      else if (EQ (val, Qko))
 		{
-		  if (font->ntmTm.tmCharSet != HANGUL_CHARSET
-		      && font->ntmTm.tmCharSet != JOHAB_CHARSET)
+		  if (!(font->ntmFontSig.fsCsb[0] & CSB_KOREAN))
 		    return 0;
 		}
 	      else if (EQ (val, Qzh))
 		{
-		  if (font->ntmTm.tmCharSet != GB2312_CHARSET
-		      && font->ntmTm.tmCharSet != CHINESEBIG5_CHARSET)
-		return 0;
+		  if (!(font->ntmFontSig.fsCsb[0] & CSB_CHINESE))
+                    return 0;
 		}
 	      else
-		/* Any other language, we don't recognize it. Fontset
+		/* Any other language, we don't recognize it. Only the above
+                   currently appear in fontset.el, so it isn't worth
+                   creating a mapping table of codepages/scripts to languages
+                   or opening the font to see if there are any language tags
+                   in it that the W32 API does not expose. Fontset
 		   spec should have a fallback, as some backends do
 		   not recognize language at all.  */
 		return 0;
