@@ -1,5 +1,8 @@
 2008-06-20  Kenichi Handa  <handa@m17n.org>
 
+	* xftfont.c (xftfont_open): Add FOUNDRY, SPACING, DPI, SCALABLE to
+	the pattern.
+
 	* fontset.c (fontset_from_font): Copy font_spec before changing
 	the elements.
 
