@@ -1,3 +1,7 @@
+2008-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (distclean): Remove makefile.
+
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.am, Makefile.old, aclocal.m4, configure, configure.in:
