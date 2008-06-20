@@ -1,3 +1,8 @@
+2008-06-20  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-dir-hide-up-to-date): Accept a prefix argument to also
+	remove DIRECTORY entries.
+
 2008-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (distclean): Depend on `clean'.

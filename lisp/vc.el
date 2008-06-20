@@ -2014,12 +2014,17 @@ outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
-(defun vc-dir-hide-up-to-date ()
-  "Hide up-to-date items from display."
-  (interactive)
+(defun vc-dir-hide-up-to-date (&optional drop-directory)
+  "Hide up-to-date items from display.
+With a prefix argument, also drop DIRECTORY entries."
+  (interactive "P")
   (ewoc-filter
    vc-ewoc
-   (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
+   (if drop-directory
+       (lambda (crt)
+         (not (or (eq (vc-dir-fileinfo->state crt) 'up-to-date)
+                  (vc-dir-fileinfo->directory crt))))
+       (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date))))))
 
 (defun vc-default-status-fileinfo-extra (backend file)
   "Default absence of extra information returned for a file."
