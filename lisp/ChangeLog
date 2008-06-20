@@ -1,5 +1,8 @@
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-bzr.el (vc-bzr-annotate-extract-revision-at-line):
+	Allow more than one space before the |.
+
 	* textmodes/rst.el: Fix up docstring conventions.
 	Move vars to before their first use.
 	(rst-mode): Don't mess with font-lock-support-mode.
