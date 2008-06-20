@@ -1,3 +1,8 @@
+2008-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (distclean): Don't delete `quail' subdir: if we
+	are building in the sandbox, there are precious files there.
+
 2008-06-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* quail/cyrillic.el: Add quotation marks, paragraph symbol, angled
