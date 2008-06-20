@@ -1633,6 +1633,7 @@ fontset_from_font (font_object)
   Vfontset_alias_alist = Fcons (Fcons (name, alias), Vfontset_alias_alist);
   auto_fontset_alist = Fcons (Fcons (font_spec, fontset), auto_fontset_alist);
   FONTSET_ASCII (fontset) = font_name;
+  font_spec = Fcopy_font_spec (font_spec);
   ASET (font_spec, FONT_FOUNDRY_INDEX, Qnil);
   ASET (font_spec, FONT_ADSTYLE_INDEX, Qnil);
   for (i = FONT_WEIGHT_INDEX; i < FONT_EXTRA_INDEX; i++)
