@@ -3073,6 +3073,8 @@ x_default_font_parameter (f, parms)
       char *names[]
 	= { "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
 	    "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	    /* This will find the normal Xft font.  */
+	    "monospace-12",
 	    "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
 	    /* This was formerly the first thing tried, but it finds
 	       too many fonts and takes too long.  */
