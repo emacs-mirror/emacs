@@ -297,7 +297,7 @@
 	    (nil . "ISO8859-15")
 	    (nil . "ISO8859-16")
 	    (nil . "VISCII1.1-1")
-	    (nil . "ISO10646-1"))
+	    ,(font-spec :registry "iso10646-1" :script 'latin))
 
      (phonetic ,(font-spec :registry "iso10646-1" :script 'phonetic))
 
@@ -423,11 +423,11 @@
 	       (nil . "gb18030")
 	       (nil . "JISX0213.2000-1")
 	       (nil . "JISX0213.2000-2")
-	       ,(font-spec :registry "iso10646-1" :language 'ja)
-	       ,(font-spec :registry "iso10646-1" :language 'zh))
+	       ,(font-spec :registry "iso10646-1" :lang 'ja)
+	       ,(font-spec :registry "iso10646-1" :lang 'zh))
 
      (hangul (nil . "KSC5601.1987-0")
-	     ,(font-spec :registry "iso10646-1" :language 'ko))
+	     ,(font-spec :registry "iso10646-1" :lang 'ko))
 
      (braille ,(font-spec :registry "iso10646-1" :script 'braille))
 

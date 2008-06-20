@@ -1,3 +1,8 @@
+2008-06-20  Jason Rumney  <jasonr@gnu.org>
+
+        * international/fontset.el (setup-default-fontset): Specify script
+        for latin use of iso10646-1.  Fix use of lang tags.
+
 2008-06-19  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el (text-scale-increase): Start from zero if
