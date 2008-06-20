@@ -219,6 +219,23 @@ xftfont_open (f, entity, pixel_size)
   val = AREF (entity, FONT_FAMILY_INDEX);
   if (! NILP (val))
     FcPatternAddString (pat, FC_FAMILY, (FcChar8 *) SDATA (SYMBOL_NAME (val)));
+  val = AREF (entity, FONT_FOUNDRY_INDEX);
+  if (! NILP (val))
+    FcPatternAddString (pat, FC_FOUNDRY, (FcChar8 *) SDATA (SYMBOL_NAME (val)));
+  val = AREF (entity, FONT_SPACING_INDEX);
+  if (! NILP (val))
+    FcPatternAddInteger (pat, FC_SPACING, XINT (val));
+  val = AREF (entity, FONT_DPI_INDEX);
+  if (! NILP (val))
+    {
+      double dbl = XINT (val);
+
+      FcPatternAddDouble (pat, FC_DPI, dbl);
+    }
+  val = AREF (entity, FONT_AVGWIDTH_INDEX);
+  if (INTEGERP (val) && XINT (val) == 0)
+    FcPatternAddBool (pat, FC_SCALABLE, FcTrue);
+
   for (tail = AREF (entity, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object key, val;
