@@ -358,7 +358,7 @@ The current frame height is taken into consideration."
 If the buffer we start in is still visible and DONT-RETURN is nil
 then switch to it after that."
   `(defun ,function ()
-     ,(format "Calls %s from the message's folder.\n%s\nSee \"%s\" for more info.\n"
+     ,(format "Calls %s from the message's folder.\n%s\nSee `%s' for more info.\n"
               original-function
               (if dont-return ""
                 "When function completes, returns to the show buffer if it is
