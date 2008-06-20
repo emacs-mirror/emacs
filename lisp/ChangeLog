@@ -1,5 +1,8 @@
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cc-mode.el (c-make-inherited-keymap): Only use
+	set-keymap-parents if set-keymap-parent doesn't exist.
+
 	* vc-bzr.el (vc-bzr-annotate-extract-revision-at-line):
 	Allow more than one space before the |.
 
