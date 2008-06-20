@@ -1,3 +1,7 @@
+2008-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (x_default_font_parameter): Try "monospace-12" too.
+
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* w32fns.c, xfnc.c (x_default_font_parameter): Only set `font-param'
