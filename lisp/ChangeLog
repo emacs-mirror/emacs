@@ -1,9 +1,14 @@
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (special-mode-map): New var.
+	(special-mode): New major mode.
+
 2008-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-dir-hide-up-to-date): Undo previous change.
 	(vc-switch-backend): Simplify.
 	(Todo): Remove solved items.
-	
+
 	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-parse-entry): Do not set
 	the vc-backend property.
 
@@ -14,8 +19,8 @@
 
 2008-06-20  Ulf Jasper  <ulf@web.de>
 
-	* net/newst-treeview.el (newsticker-treeview-own-frame): Changed
-	default value to nil.
+	* net/newst-treeview.el (newsticker-treeview-own-frame):
+	Change default value to nil.
 	(newsticker--treeview-list-add-item)
 	(newsticker--treeview-propertize-tag): Show item title in tooltip.
 

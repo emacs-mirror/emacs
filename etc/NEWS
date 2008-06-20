@@ -1241,6 +1241,9 @@ forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
 
+** The new major mode `special-mode' is intended as a parent for
+major modes such as those that set the "'mode-class 'special" property.
+
 ** find-cmd.el can build `find' commands using lisp syntax.
 
 ** The package isearch-multi.el has been added.  It implements a new mode
