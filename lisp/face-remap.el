@@ -383,8 +383,8 @@ message in the echo area.  In many cases one of those functions
 may be more appropriate."
   (let ((last-message (current-message)))
     (if (or (eq arg 'toggle) (not arg))
-	(buffer-face-toggle face)
-      (buffer-face-set (and (> (prefix-numeric-value arg) 0) face)))
+	(buffer-face-toggle specs)
+      (buffer-face-set (and (> (prefix-numeric-value arg) 0) specs)))
     (when interactive
       (unless (and (current-message)
 		   (not (equal last-message (current-message))))
