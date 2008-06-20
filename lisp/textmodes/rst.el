@@ -361,7 +361,9 @@ The value of this variable is used when Rst Mode is turned on."
   :group 'rst
   :type '(boolean))
 
-
+;; Use rst-mode for *.rst and *.rest files.  Many ReStructured-Text files
+;; use *.txt, but this is too generic to be set as a default.
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.re?st\\'" . rst-mode))
 ;;;###autoload
 (define-derived-mode rst-mode text-mode "ReST"
   :abbrev-table rst-mode-abbrev-table

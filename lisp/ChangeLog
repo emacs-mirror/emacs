@@ -14,6 +14,7 @@
 	Remove unused var `in-par'.  Use `point' rather than `point-marker'.
 	(rst-line-block-region): Reduce redundancy.  Use the `pfxarg' arg.
 	(rst-replace-lines): Simplify.
+	(auto-mode-alist): Use rst-mode for *.rst and *.rest files.
 
 	* simple.el (special-mode-map): New var.
 	(special-mode): New major mode.
