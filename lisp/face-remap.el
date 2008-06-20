@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
-;; Keywords: faces face display user commands
+;; Keywords: faces face remapping display user commands
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -121,6 +121,8 @@ after entries with absolute face-attributes.
 The base (lowest priority) remapping may be set to a specific
 value, instead of the default of the global face definition,
 using `face-remap-set-base'."
+  (while (and (consp specs) (null (cdr specs)))
+    (setq specs (car specs)))
   (make-local-variable 'face-remapping-alist)
   (let ((entry (assq face face-remapping-alist)))
     (when (null entry)
@@ -165,6 +167,8 @@ If SPECS is empty, the default base remapping is restored, which
 inherits from the global definition of FACE; note that this is
 different from SPECS containing a single value `nil', which does
 not inherit from the global definition of FACE."
+  (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
+    (setq specs (car specs)))
   (if (or (null specs)
 	  (and (eq (car specs) face) (null (cdr specs)))) ; default
       ;; Set entry back to default
@@ -325,39 +329,58 @@ When enabled, the face specified by the variable
   (force-window-update (current-buffer)))
 
 ;;;###autoload
-(defun buffer-face-set (face)
-  "Enable `buffer-face-mode', using the face FACE.
-If FACE is nil, then `buffer-face-mode' is disabled.  This
-function will make the variable `buffer-face-mode-face' buffer
-local, and set it to FACE."
+(defun buffer-face-set (&rest specs)
+  "Enable `buffer-face-mode', using face specs SPECS.
+SPECS can be any value suitable for the `face' text property,
+including a face name, a list of face names, or a face-attribute
+If SPECS is nil, then `buffer-face-mode' is disabled.
+
+This function will make the variable `buffer-face-mode-face'
+buffer local, and set it to FACE."
   (interactive (list (read-face-name "Set buffer face")))
-  (if (null face)
+  (while (and (consp specs) (null (cdr specs)))
+    (setq specs (car specs)))
+  (if (null specs)
       (buffer-face-mode 0)
-    (set (make-local-variable 'buffer-face-mode-face) face)
+    (set (make-local-variable 'buffer-face-mode-face) specs)
     (buffer-face-mode t)))
 
 ;;;###autoload
-(defun buffer-face-toggle (face)
-  "Toggle `buffer-face-mode', using the face FACE.
+(defun buffer-face-toggle (&rest specs)
+  "Toggle `buffer-face-mode', using face specs SPECS.
+SPECS can be any value suitable for the `face' text property,
+including a face name, a list of face names, or a face-attribute
 
 If `buffer-face-mode' is already enabled, and is currently using
-the face FACE, then it is disabled; if buffer-face-mode is
+the face specs SPECS, then it is disabled; if buffer-face-mode is
 disabled, or is enabled and currently displaying some other face,
-then is left enabled, but the face changed to FACE.  This
-function will make the variable `buffer-face-mode-face' buffer
-local, and set it to FACE."
+then is left enabled, but the face changed to reflect SPECS.
+
+This function will make the variable `buffer-face-mode-face'
+buffer local, and set it to SPECS."
   (interactive (list buffer-face-mode-face))
-  (if (or (null face)
-	  (and buffer-face-mode (equal buffer-face-mode-face face)))
+  (while (and (consp specs) (null (cdr specs)))
+    (setq specs (car specs)))
+  (if (or (null specs)
+	  (and buffer-face-mode (equal buffer-face-mode-face specs)))
       (buffer-face-mode 0)
-    (set (make-local-variable 'buffer-face-mode-face) face)
+    (set (make-local-variable 'buffer-face-mode-face) specs)
     (buffer-face-mode t)))
 
-(defun buffer-face-mode-invoke (face arg &optional interactive)
-  "Enable or disable `buffer-face-mode' using the face FACE, and argument ARG.
-ARG is interpreted in the usual manner for minor-mode commands.
-Besides the choice of face, this is the same as the `buffer-face-mode' command.
-If INTERACTIVE is non-nil, a message will be displayed describing the result."
+(defun buffer-face-mode-invoke (specs arg &optional interactive)
+  "Enable or disable `buffer-face-mode' using face specs SPECS, and argument ARG.
+ARG controls whether the mode is enabled or disabled, and is
+interpreted in the usual manner for minor-mode commands.
+
+SPECS can be any value suitable for the `face' text property,
+including a face name, a list of face names, or a face-attribute
+
+If INTERACTIVE is non-nil, a message will be displayed describing the result.
+
+This is a wrapper function which calls just `buffer-face-set' or
+`buffer-face-toggle' (depending on ARG), and prints a status
+message in the echo area.  In many cases one of those functions
+may be more appropriate."
   (let ((last-message (current-message)))
     (if (or (eq arg 'toggle) (not arg))
 	(buffer-face-toggle face)
