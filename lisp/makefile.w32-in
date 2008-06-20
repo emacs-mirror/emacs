@@ -60,7 +60,7 @@ LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 
 AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
 	$(lisp)/finder-inf.el $(lisp)/subdirs.el $(lisp)/eshell/esh-groups.el \
-	$(lisp)/calc/calc-loaddefs.el
+	$(lisp)/calc/calc-loaddefs.el $(lisp)/nxml/subdirs.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -446,8 +446,10 @@ check-declare:
 # precious files if it happens to match their short 8+3 aliases.
 clean:
 	- $(DEL) *.el~
+	- $(DEL) calc/calc-loaddefs.el~
+	- $(DEL) eshell/esh-groups.el~
 
-distclean:
+distclean: clean
 	- $(DEL) $(lisp)/Makefile
 
 maintainer-clean: bootstrap-clean distclean
