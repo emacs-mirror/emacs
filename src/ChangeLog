@@ -1,3 +1,8 @@
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sysdep.c (cfsetspeed): New fun extracted from the code.
+	(cfmakeraw): Move before first use.
+
 2008-06-20  Angelo Graziosi  <angelo.graziosi@alice.it>  (tiny change)
 
 	* sysdep.c (cfmakeraw): Provide fallback implementation.
