@@ -3733,7 +3733,8 @@ The return value is a list of the form
 \(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
 
 where FAMILY, HEIGHT, WEIGHT, SLANT, and WIDTH are face attribute values
-compatible with `set-face-attribute'.
+compatible with `set-face-attribute'.  Some of these key-attribute pairs
+may be omitted from the list if they are not specified by FONT.
 
 The optional argument FRAME specifies the frame that the face attributes
 are to be displayed on.  If omitted, the selected frame is used.  */)
@@ -3743,6 +3744,7 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
   struct frame *f;
   Lisp_Object plist[10];
   Lisp_Object val;
+  int n = 0;
 
   if (NILP (frame))
     frame = selected_frame;
@@ -3762,36 +3764,49 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
   else if (! FONTP (font))
     signal_error ("Invalid font object", font);
 
-  plist[0] = QCfamily;
   val = AREF (font, FONT_FAMILY_INDEX);
-  plist[1] = NILP (val) ? Qnil : SYMBOL_NAME (val);
+  if (! NILP (val))
+    {
+      plist[n++] = QCfamily;
+      plist[n++] = SYMBOL_NAME (val);
+    }
 
-  plist[2] = QCheight;
   val = AREF (font, FONT_SIZE_INDEX);
   if (INTEGERP (val))
     {
       Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
       int dpi = INTEGERP (font_dpi) ? XINT (font_dpi) : f->resy;
-      plist[3] = make_number (10 * PIXEL_TO_POINT (XINT (val), dpi));
+      plist[n++] = QCheight;
+      plist[n++] = make_number (10 * PIXEL_TO_POINT (XINT (val), dpi));
     }
   else if (FLOATP (val))
-    plist[3] = make_number (10 * (int) XFLOAT_DATA (val));
-  else
-    plist[3] = Qnil;
+    {
+      plist[n++] = QCheight;
+      plist[n++] = make_number (10 * (int) XFLOAT_DATA (val));
+    }
 
-  plist[4] = QCweight;
   val = FONT_WEIGHT_FOR_FACE (font);
-  plist[5] = NILP (val) ? Qnormal : val;
+  if (! NILP (val))
+    {
+      plist[n++] = QCweight;
+      plist[n++] = val;
+    }
 
-  plist[6] = QCslant;
   val = FONT_SLANT_FOR_FACE (font);
-  plist[7] = NILP (val) ? Qnormal : val;
+  if (! NILP (val))
+    {
+      plist[n++] = QCslant;
+      plist[n++] = val;
+    }
 
-  plist[8] = QCwidth;
   val = FONT_WIDTH_FOR_FACE (font);
-  plist[9] = NILP (val) ? Qnormal : val;
+  if (! NILP (val))
+    {
+      plist[n++] = QCwidth;
+      plist[n++] = val;
+    }
 
-  return Flist (10, plist);
+  return Flist (n, plist);
 }
 
 #endif
