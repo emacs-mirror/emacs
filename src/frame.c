@@ -3400,7 +3400,13 @@ x_set_font (f, arg, oldval)
   if (FRAME_FACE_CACHE (f))
     {
       XSETFRAME (frame, f);
-      call1 (Qface_set_after_frame_default, frame);
+      /* We used to call face-set-after-frame-default here, but it leads to
+	 recursive calls (since that function can set the `default' face's
+	 font which in turns changes the frame's `font' parameter).
+	 Also I don't know what this call is meant to do, but it seems the
+	 wrong way to do it anyway (it does a lot more work than what seems
+	 reasonable in response to a change to `font').  */
+      /* call1 (Qface_set_after_frame_default, frame); */
     }
 }
 

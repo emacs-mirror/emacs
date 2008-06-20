@@ -4274,8 +4274,13 @@ x_default_font_parameter (f, parms)
      Lisp_Object parms;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-  Lisp_Object font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font",
-                                RES_TYPE_STRING);
+  Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
+				RES_TYPE_STRING);
+  Lisp_Object font;
+  if (EQ (font_param, Qunbound))
+    font_param = Qnil;
+  font = !NILP (font_param) ? font_param
+    : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
   if (!STRINGP (font))
     {
@@ -4296,12 +4301,12 @@ x_default_font_parameter (f, parms)
       if (NILP (font))
         error ("No suitable font was found");
     }
-  else
+  else if (!NILP (font_param))
     {
       /* Remember the explicit font parameter, so we can re-apply it after
 	 we've applied the `default' face settings.  */
-      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font), Qnil));
-  }
+      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
+    }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 

@@ -1,3 +1,10 @@
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32fns.c, xfnc.c (x_default_font_parameter): Only set `font-param'
+	for explicit `font' parameters.
+
+	* frame.c (x_set_font): Remove unexplained call to fix inf-recursion.
+
 2008-06-19  Kenichi Handa  <handa@m17n.org>
 
 	* frame.c: Include <ctype.h>.
