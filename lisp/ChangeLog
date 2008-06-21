@@ -16,6 +16,12 @@
 
 2008-06-21  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/bug-reference.el (bug-reference-map): Bind down-mouse-1
+	rather than mouse-1.
+	(bug-reference-url-format): Autoload safe if string.
+	(bug-reference-bug-regexp): Make space after "bug" optional.
+	(bug-reference-fontify): Save match data.
+
 	* Makefile.in (all): Explicitly pass EMACS to sub-make,
 	for some non-GNU makes.
 
@@ -10383,6 +10389,7 @@ See ChangeLog.13 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
+;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 2008  Free Software Foundation, Inc.
