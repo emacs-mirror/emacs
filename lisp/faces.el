@@ -61,7 +61,9 @@ a font height that isn't optimal."
 
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-family-alternatives
-  '(("courier" "fixed")
+  '(("Monospace" "courier" "fixed")
+    ("courier" "fixed")
+    ("Sans" "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
@@ -2220,12 +2222,12 @@ terminal type to a different value."
   :group 'basic-faces)
 
 (defface fixed-pitch
-  '((t :family "courier"))
+  '((t :family "Monospace"))
   "The basic fixed-pitch face."
   :group 'basic-faces)
 
 (defface variable-pitch
-  '((t :family "helv"))
+  '((t :family "Sans"))
   "The basic variable-pitch face."
   :group 'basic-faces)
 
