@@ -32,7 +32,7 @@
 
 (defvar bug-reference-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'bug-reference-push-button)
+    (define-key map [down-mouse-1] 'bug-reference-push-button)
     (define-key map (kbd "C-c RET") 'bug-reference-push-button)
     map)
   "Keymap used by bug reference buttons.")
@@ -43,8 +43,11 @@
 The bug number is supplied as a string, so this should have a single %s.
 There is no default setting for this, it must be set per file.")
 
+;;;###autoload
+(put 'bug-reference-url-format 'safe-local-variable 'stringp)
+
 (defconst bug-reference-bug-regexp
-  "\\(?:[Bb]ug #\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
+  "\\(?:[Bb]ug ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
   "Regular expression which matches bug references.")
 
 (defun bug-reference-set-overlay-properties ()
@@ -74,17 +77,18 @@ There is no default setting for this, it must be set per file.")
       ;; Remove old overlays.
       (bug-reference-unfontify beg-line end-line)
       (goto-char beg-line)
-      (while (and (< (point) end-line)
-		  (re-search-forward bug-reference-bug-regexp end-line 'move))
-	(when (or (not bug-reference-prog-mode)
-		  ;; This tests for both comment and string syntax.
-		  (nth 8 (syntax-ppss)))
-	  (let ((overlay (make-overlay (match-beginning 0) (match-end 0)
-				       nil t nil)))
-	    (overlay-put overlay 'category 'bug-reference)
-	    (overlay-put overlay 'bug-reference-url
-			 (format bug-reference-url-format
-				 (match-string-no-properties 1)))))))))
+      (save-match-data
+	(while (and (< (point) end-line)
+		    (re-search-forward bug-reference-bug-regexp end-line 'move))
+	  (when (or (not bug-reference-prog-mode)
+		    ;; This tests for both comment and string syntax.
+		    (nth 8 (syntax-ppss)))
+	    (let ((overlay (make-overlay (match-beginning 0) (match-end 0)
+					 nil t nil)))
+	      (overlay-put overlay 'category 'bug-reference)
+	      (overlay-put overlay 'bug-reference-url
+			   (format bug-reference-url-format
+				   (match-string-no-properties 1))))))))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos use-mouse-action)
