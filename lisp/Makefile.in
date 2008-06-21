@@ -62,17 +62,19 @@ AUTOGENEL = loaddefs.el \
 	eshell/esh-groups.el
 
 # Files to compile before others during a bootstrap.  This is done to
-# speed up the bootstrap process.  The CC files are compiled first
-# because CC mode tweaks the compilation process, and requiring
-# cc-mode when it is not compiled doesn't work during the
-# bootstrapping.
+# speed up the bootstrap process.
+# Why `subr.elc'?  It's dumped so byte-compiling it early shouldn't make
+# any difference!?  --Stef
+# Some CC files are compiled first because CC mode tweaks the compilation
+# process, and requiring cc-mode when it is not compiled doesn't work during
+# the bootstrapping.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/byte-opt.el \
-	$(lisp)/emacs-lisp/bytecomp.el \
-	$(lisp)/subr.el \
-	$(lisp)/progmodes/cc-mode.el \
-	$(lisp)/progmodes/cc-vars.el
+	$(lisp)/emacs-lisp/bytecomp.elc \
+	$(lisp)/emacs-lisp/byte-opt.elc \
+	$(lisp)/subr.elc \
+	$(lisp)/progmodes/cc-mode.elc \
+	$(lisp)/progmodes/cc-vars.elc
 
 # The actual Emacs command run in the targets below.
 
@@ -101,6 +103,8 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 # cus-load ans finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
+	@: Let us check that we byte-compiled all the files.
+	$(MAKE) $(MFLAGS) compile-last
 
 doit:
 
@@ -166,8 +170,8 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 .PHONY: update-elclist
 
-## Post-bootstrap, find the list of .elc files, exclude the members
-## of COMPILE_FIRST, and use sed to update ELCFILES in Makefile.in.
+## Post-bootstrap, find the list of .elc files and use sed to update
+## ELCFILES in Makefile.in.
 ## Errors in the final sed are non-fatal, since they have no effect on
 ## building Emacs.  chmod +w is for CVSREAD=1.
 ## "echo" is non-portable with regards to backslashes, eg between zsh
@@ -176,8 +180,7 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 update-elclist:
 	echo "/^ELCFILES/,/^$$/c\\" > temp.sed
 	echo "ELCFILES =" | sed -e 's/$$/ \\\\\\/' >> temp.sed
-	exclude=`echo $(COMPILE_FIRST) | sed -e 's, ,\\\\|,g' -e 's,\/,\\\\/,g'`; \
-	LC_COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc | sed -e "/$$exclude/d" -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
+	LC_COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc | sed -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
 	echo "" >> temp.sed
 	-sed -f temp.sed $(lisp)/Makefile.in > temp-elcfiles || rm temp-elcfiles
 	rm temp.sed
@@ -341,7 +344,9 @@ ELCFILES = \
 	$(lisp)/emacs-lisp/backquote.elc \
 	$(lisp)/emacs-lisp/benchmark.elc \
 	$(lisp)/emacs-lisp/bindat.elc \
+	$(lisp)/emacs-lisp/byte-opt.elc \
 	$(lisp)/emacs-lisp/byte-run.elc \
+	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/check-declare.elc \
 	$(lisp)/emacs-lisp/checkdoc.elc \
 	$(lisp)/emacs-lisp/cl-compat.elc \
@@ -1002,8 +1007,10 @@ ELCFILES = \
 	$(lisp)/progmodes/cc-fonts.elc \
 	$(lisp)/progmodes/cc-langs.elc \
 	$(lisp)/progmodes/cc-menus.elc \
+	$(lisp)/progmodes/cc-mode.elc \
 	$(lisp)/progmodes/cc-styles.elc \
 	$(lisp)/progmodes/cc-subword.elc \
+	$(lisp)/progmodes/cc-vars.elc \
 	$(lisp)/progmodes/cfengine.elc \
 	$(lisp)/progmodes/cmacexp.elc \
 	$(lisp)/progmodes/compile.elc \
@@ -1101,6 +1108,7 @@ ELCFILES = \
 	$(lisp)/speedbar.elc \
 	$(lisp)/startup.elc \
 	$(lisp)/strokes.elc \
+	$(lisp)/subr.elc \
 	$(lisp)/t-mouse.elc \
 	$(lisp)/tabify.elc \
 	$(lisp)/talk.elc \
@@ -1153,6 +1161,7 @@ ELCFILES = \
 	$(lisp)/textmodes/reftex-vars.elc \
 	$(lisp)/textmodes/reftex.elc \
 	$(lisp)/textmodes/remember.elc \
+	$(lisp)/textmodes/rst.elc \
 	$(lisp)/textmodes/sgml-mode.elc \
 	$(lisp)/textmodes/spell.elc \
 	$(lisp)/textmodes/table.elc \
@@ -1239,6 +1248,19 @@ ELCFILES = \
 	$(lisp)/xml.elc \
 	$(lisp)/xt-mouse.elc
 
+# The src/Makefile.in has its own set of dependencies and when they decide
+# that one Lisp file needs to be re-compiled, we had better recompile it as
+# well, otherwise every subsequent make will again call us, until we finally
+# end up deciding that yes, the file deserves recompilation.
+# One option is to try and reproduce exactly the same dependencies here as
+# we have in src/Makefile.in, but it turns out to be painful
+# (e.g. src/Makefile.in may have a dependency for ../lisp/foo.elc where we
+# only know of $(lisp)/foo.elc).  So instead we provide a direct way for
+# src/Makefile.in to rebuild a particular Lisp file, no questions asked.
+compile-onefile:
+	@echo Compiling $(THEFILE)
+	@$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
+
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
 # the compilation environment is clean.  We also set the load-path of
@@ -1258,11 +1280,7 @@ ELCFILES = \
 
 .PHONY: compile-first compile-main compile-last compile compile-always
 
-compile-first: $(LOADDEFS) autoloads $(COMPILE_FIRST)
-	for el in $(COMPILE_FIRST); do \
-	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done $$el || exit 1; \
-	done
+compile-first: $(COMPILE_FIRST)
 
 compile-main: $(ELCFILES)
 
@@ -1290,7 +1308,7 @@ compile-always: doit
 compile-last:
 	@wd=$(lisp); $(setwins); \
 	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
-	for el in $(COMPILE_FIRST) $$els; do \
+	for el in $$els; do \
 	  test -f $$el || continue; \
 	  test -f $${el}c && continue; \
 	  grep 'no-byte-compile: t' $$el > /dev/null && continue; \

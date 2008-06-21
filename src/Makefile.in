@@ -1335,18 +1335,15 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 /* These suffix rules do not allow additional dependencies, sadly, so
    adding a bootstrap-emacs%{EXEEXT} dependency does not work --Stef */
 .el.elc:
-	cd ../lisp; $(MAKE) $(MFLAGS) $@ EMACS=../src/bootstrap-emacs${EXEEXT}
-
-/* Files that need to be compiled early to speed up further compilation.  */
-PRECOMP=../lisp/emacs-lisp/bytecomp.elc ../lisp/emacs-lisp/byte-opt.elc
-${PRECOMP}: witness-emacs
+	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
+	                    THEFILE=$< EMACS=../src/bootstrap-emacs${EXEEXT}
 
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.
    The byte-compiler dependency is not necessary, but it substantially
    speeds up byte-compilation of the other files.
    Of course, it also has the downside of forcing a recompilation of all
    those files whenever a file in $PRECOMP changes.  */
-${lisp} ${SOME_MACHINE_LISP}: witness-emacs ${PRECOMP}
+${lisp} ${SOME_MACHINE_LISP}: witness-emacs
 
 ../lisp/loaddefs.el: witness-emacs
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
@@ -1366,3 +1363,5 @@ witness-emacs:
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 	$(MAKE) $(MFLAGS) bootstrap-emacs${EXEEXT}
 	touch witness-emacs
+	@: Compile some files earlier to speed up further compilation.
+	cd $(lispsource); $(MAKE) $(MFLAGS) compile-first

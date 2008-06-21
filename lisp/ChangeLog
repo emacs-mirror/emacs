@@ -1,16 +1,25 @@
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (update-elclist): Don't exclude COMPILE_FIRST.
+	(all): Run compile-last.
+	(compile-onefile): New target.
+	(compile-first): Simplify.
+	(compile-last): Don't treat COMPILE_FIRST specially.
+	(COMPILE_FIRST): List the elc files rather than the el files.
+	(ELCFILES): Update.
+
 2008-06-21  Ulf Jasper  <ulf@web.de>
 
-	* net/newst-treeview.el: Removed dead code.
-	(newsticker--window-config): Removed
+	* net/newst-treeview.el: Remove dead code.
+	(newsticker--window-config): Remove.
 	(newsticker-treeview-quit): Do not save window config.
 	(newsticker-treeview): Do not try to restore window config.
-	(newsticker-groups),
-	(newsticker--treeview-list-sort-by-column),
+	(newsticker-groups, newsticker--treeview-list-sort-by-column)
 	(newsticker--treeview-list-new-items)
-	(newsticker--treeview-list-immortal-items),
-	(newsticker--treeview-list-obsolete-items),
-	(newsticker--treeview-list-all-items),
-	(newsticker--treeview-list-feed-items): Documentation fixed.
+	(newsticker--treeview-list-immortal-items)
+	(newsticker--treeview-list-obsolete-items)
+	(newsticker--treeview-list-all-items)
+	(newsticker--treeview-list-feed-items): Fix documentation.
 
 2008-06-21  Miles Bader  <miles@gnu.org>
 
