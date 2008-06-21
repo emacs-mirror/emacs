@@ -719,6 +719,9 @@ rather than fortran-indent-comment.
 +++
 *** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
 
+*** The function `gdb' only works with the graphical interface now.
+Use `gud-gdb' if you want the (old) text command mode.
+
 ** Gnus package
 
 *** The Gnus package has been updated
