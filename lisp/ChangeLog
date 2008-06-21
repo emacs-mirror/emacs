@@ -1,5 +1,8 @@
 2008-06-21  Glenn Morris  <rgm@gnu.org>
 
+	* cus-dep.el (custom-dependencies-no-scan-regexp):
+	* finder.el (finder-no-scan-regexp): Add ldefs-boot.el
+
 	* calendar/cal-move.el (calendar-forward-day): Scroll in one month
 	increments.
 
