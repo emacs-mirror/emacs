@@ -1251,7 +1251,7 @@ Each element in the list should be a list of strings or pairs
      "\n"
      (lambda () (emacs-version))
      "\n"
-     :face (variable-pitch (:height 0.5))
+     :face (variable-pitch (:height 0.8))
      (lambda () emacs-copyright)
      "\n\n"
      :face variable-pitch
@@ -1429,7 +1429,7 @@ a face or button specification."
 			 "\nThis is "
 			 (emacs-version)
 			 "\n"
-			 :face '(variable-pitch (:height 0.5))
+			 :face '(variable-pitch (:height 0.8))
 			 emacs-copyright
 			 "\n")
     (and auto-save-list-file-prefix
