@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))	; block, return
 (require 'tramp)
 (require 'tramp-cache)
 (require 'tramp-compat)
