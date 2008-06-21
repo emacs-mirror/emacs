@@ -1,3 +1,17 @@
+2008-06-21  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el: Removed dead code.
+	(newsticker--window-config): Removed
+	(newsticker-treeview-quit): Do not save window config.
+	(newsticker-treeview): Do not try to restore window config.
+	(newsticker-groups),
+	(newsticker--treeview-list-sort-by-column),
+	(newsticker--treeview-list-new-items)
+	(newsticker--treeview-list-immortal-items),
+	(newsticker--treeview-list-obsolete-items),
+	(newsticker--treeview-list-all-items),
+	(newsticker--treeview-list-feed-items): Documentation fixed.
+
 2008-06-21  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el (text-scale-adjust): Bind `echo-keystrokes' to nil.
