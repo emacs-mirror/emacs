@@ -77,18 +77,17 @@ There is no default setting for this, it must be set per file.")
       ;; Remove old overlays.
       (bug-reference-unfontify beg-line end-line)
       (goto-char beg-line)
-      (save-match-data
-	(while (and (< (point) end-line)
-		    (re-search-forward bug-reference-bug-regexp end-line 'move))
-	  (when (or (not bug-reference-prog-mode)
-		    ;; This tests for both comment and string syntax.
-		    (nth 8 (syntax-ppss)))
-	    (let ((overlay (make-overlay (match-beginning 0) (match-end 0)
-					 nil t nil)))
-	      (overlay-put overlay 'category 'bug-reference)
-	      (overlay-put overlay 'bug-reference-url
-			   (format bug-reference-url-format
-				   (match-string-no-properties 1))))))))))
+      (while (and (< (point) end-line)
+		  (re-search-forward bug-reference-bug-regexp end-line 'move))
+	(when (or (not bug-reference-prog-mode)
+		  ;; This tests for both comment and string syntax.
+		  (nth 8 (syntax-ppss)))
+	  (let ((overlay (make-overlay (match-beginning 0) (match-end 0)
+				       nil t nil)))
+	    (overlay-put overlay 'category 'bug-reference)
+	    (overlay-put overlay 'bug-reference-url
+			 (format bug-reference-url-format
+				 (match-string-no-properties 1)))))))))
 
 ;; Taken from button.el.
 (defun bug-reference-push-button (&optional pos use-mouse-action)
