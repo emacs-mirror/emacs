@@ -100,7 +100,7 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 
 # `compile-main' tends to be slower than `recompile' but can be parallelized
 # with "make -j" and results in more deterministic compilation warnings.
-# cus-load ans finder-inf are not explicitly requested by anything, so
+# cus-load and finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 	@: Let us check that we byte-compiled all the files.
@@ -109,18 +109,19 @@ all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 doit:
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
-# Now they avoid auto-generated files, which should avoid this
-# historical problem:
-# In parallel builds, they should not run at the same time as anything
-# else that might modify any .el files, eg autoloads (or each other).
+# This could lead to problems in parallel builds if automatically
+# generated *.el files (eg loaddefs etc) were being changed at the same time.
 # One solution was to add autoloads as a prerequisite:
 # http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
 # http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00171.html
-# However, this means that running these targets modifies loaddefs.el,
+# However, this meant that running these targets modified loaddefs.el,
 # every time (due to time-stamping).  Calling these rules from
 # bootstrap-after would modify loaddefs after src/emacs, resulting
 # in make install remaking src/emacs for no real reason:
 # http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
+# Nowadays these commands don't scan automatically generated files,
+# since they will never contain any useful information
+# (see finder-no-scan-regexp and custom-dependencies-no-scan-regexp).
 $(lisp)/cus-load.el:
 	$(MAKE) $(MFLAGS) custom-deps
 custom-deps: doit
