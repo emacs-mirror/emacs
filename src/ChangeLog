@@ -1,6 +1,7 @@
 2008-06-21  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (witness-emacs): Use ../lisp, not $(lispsource).
+	(.el.elc): Likewise.
 
 2008-06-21  Miles Bader  <miles@gnu.org>
 
