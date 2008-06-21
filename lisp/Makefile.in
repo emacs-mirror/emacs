@@ -104,7 +104,7 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 # we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 	@: Let us check that we byte-compiled all the files.
-	$(MAKE) $(MFLAGS) compile-last
+	$(MAKE) $(MFLAGS) compile-last EMACS=$(EMACS)
 
 doit:
 
