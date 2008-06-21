@@ -8252,21 +8252,24 @@ comment at the start of cc-engine.el for more info."
 	      (c-add-syntax 'inher-cont (c-point 'boi)))
 
 	     ;; CASE 5D.5: Continuation of the "expression part" of a
-	     ;; top level construct.
+	     ;; top level construct.  Or, perhaps, an unrecognised construct.
 	     (t
-	      (while (and (eq (car (c-beginning-of-decl-1 containing-sexp))
+	      (while (and (setq placeholder (point))
+			  (eq (car (c-beginning-of-decl-1 containing-sexp))
 			      'same)
 			  (save-excursion
 			    (c-backward-syntactic-ws)
-			    (eq (char-before) ?}))))
+			    (eq (char-before) ?}))
+			  (< (point) placeholder)))
 	      (c-add-stmt-syntax
-	       (if (eq char-before-ip ?,)
+	       (cond
+		((eq (point) placeholder) 'statement) ; unrecognised construct
 		   ;; A preceding comma at the top level means that a
 		   ;; new variable declaration starts here.  Use
 		   ;; topmost-intro-cont for it, for consistency with
 		   ;; the first variable declaration.  C.f. case 5N.
-		   'topmost-intro-cont
-		 'statement-cont)
+		((eq char-before-ip ?,) 'topmost-intro-cont)
+		(t 'statement-cont))
 	       nil nil containing-sexp paren-state))
 	     ))
 
