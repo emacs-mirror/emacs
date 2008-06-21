@@ -54,8 +54,8 @@
 #      Still more severe - delete backup and autosave files, too.
 #
 # make bootstrap
-#      Recompiles all the Emacs Lisp files using the latest source,
-#      then rebuilds Emacs.
+#      Removes all the compiled files to force a new bootstrap from a
+#      clean slate, and then build in the normal way.
 
 SHELL = /bin/sh
 
@@ -315,7 +315,7 @@ lib-src: FRC src/config.stamp
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
 lisp: src
 
-${SUBDIR}: maybe_bootstrap ${SUBDIR_MAKEFILES} FRC
+${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all $(MFLAGS) \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -706,6 +706,11 @@ clean: FRC
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
+### `bootclean'
+###      Delete all files that need to be remade for a clean bootstrap.
+top_bootclean=\
+	rm -f config.cache config.log ; \
+	if [ -d lock ] ; then (cd lock && (rm -f * || true)); else true; fi
 ### `distclean'
 ###      Delete all files from the current directory that are created by
 ###      configuring or building the program.  If you have unpacked the
@@ -713,9 +718,8 @@ clean: FRC
 ###      `make distclean' should leave only the files that were in the
 ###      distribution.
 top_distclean=\
-	rm -f config.cache config.log ; \
-	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
-	if [ -d lock ] ; then (cd lock && (rm -f * || true)); else true; fi
+	${top_bootclean}; \
+	rm -f config.status Makefile ${SUBDIR_MAKEFILES}
 distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
@@ -742,8 +746,8 @@ bootstrap-clean: FRC
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
-	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
-	${top_distclean}
+	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	${top_bootclean}
 
 ### `maintainer-clean'
 ###      Delete everything from the current directory that can be
@@ -756,9 +760,10 @@ bootstrap-clean: FRC
 ###      Makefile.  More generally, `make maintainer-clean' should not delete
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
-maintainer-clean: bootstrap-clean
+maintainer-clean: bootstrap-clean FRC
 	(cd src;      $(MAKE) $(MFLAGS) maintainer-clean)
-	-rm -f config.status
+	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
+	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
 ### says GCC supports it, and that's where the configuration part of
@@ -829,41 +834,17 @@ dvi:
 #### Bootstrapping.
 
 ### This first cleans the lisp subdirectory, removing all compiled
-### Lisp files.  Then a special emacs executable is built from Lisp
-### sources, which is then used to compile Lisp files.  The last step
-### is a "normal" make.
+### Lisp files.  Then re-run make to build all the files anew.
 
 .PHONY: bootstrap
-.PHONY: bootstrap-build
-.PHONY: maybe_bootstrap
-
-maybe_bootstrap:
-	@bar="`echo $(srcdir)/lisp/*.elc`"; \
-	if [ \( "$$bar" = '$(srcdir)/lisp/*.elc' \) -o \( "$$bar" = '' \) ]; then \
-	  echo "Your tree does not include the compiled Lisp files."; \
-	  echo "You need to do \`make bootstrap' to build Emacs."; \
-	  exit 1;\
-	fi
 
 bootstrap: bootstrap-clean FRC
 	if [ -x ./config.status ]; then           \
-	    ./config.status --recheck;            \
 	    ./config.status;                      \
 	else                                      \
 	    ./configure --enable-maintainer-mode; \
 	fi
-	$(MAKE) $(MFLAGS) info bootstrap-build
-
-src/bootstrap-emacs${EXEEXT}:
-	(cd src; $(MAKE) $(MFLAGS) bootstrap-emacs${EXEEXT})
-
-## There used to be a src; mostlyclean before all, but it does not
-## seem to serve any purpose, and compiles things twice.
-## http://lists.gnu.org/archive/html/emacs-devel/2008-06/msg00104.html
-bootstrap-build: src/bootstrap-emacs$(EXEEXT) FRC
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
-	$(MAKE) $(MFLAGS) all
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
+	$(MAKE) $(MFLAGS) info all
 
 .PHONY: check-declare
 

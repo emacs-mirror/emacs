@@ -1,3 +1,16 @@
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (emacs${EXEEXT}): Link the new emacs to bootstrap-emacs.
+	(bootstrapclean): Remove.
+	(.el.elc): New rule.
+	(PRECOMP): New var.
+	(../lisp/subdirs.el): Remove.
+	(bootstrap-emacs${EXEEXT}): Remove subdirs.el and charpro.el dependency.
+	(witness-emacs): New target.
+	(mostlyclean): Remove witness-emacs as well.
+	(../lisp/loaddefs.el, ${lisp} ${SOME_MACHINE_LISP}):
+	Add witness-emacs dependency.
+
 2008-06-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (Ffont_face_attributes): Omit key-attribute pairs not

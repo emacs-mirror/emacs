@@ -343,14 +343,9 @@
 	  (message "Dumping data as file temacs.dump")
 	  (dump-emacs "temacs.dump" "temacs")
 	  (kill-emacs))
-      (let ((name (concat "emacs-" emacs-version)))
-	(while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			     "-"
-			     (substring name (match-end 0)))))
-	(if (memq system-type '(ms-dos windows-nt cygwin))
-	    (message "Dumping under the name emacs")
-	  (message "Dumping under names emacs and %s" name)))
+      (if (memq system-type '(ms-dos windows-nt cygwin))
+          (message "Dumping under the name emacs")
+        (message "Dumping under the name emacs"))
       (condition-case ()
 	  (delete-file "emacs")
 	(file-error nil))
@@ -361,12 +356,17 @@
       (dump-emacs "emacs" "temacs")
       (message "%d pure bytes used" pure-bytes-used)
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (if (not (memq system-type '(ms-dos windows-nt cygwin)))
+      (if (not (or (memq system-type '(ms-dos windows-nt cygwin))
+                   ;; Don't bother adding another name if we're just
+                   ;; building bootstrap-emacs.
+                   (equal (nth 3 command-line-args) "bootstrap")
+                   (equal (nth 4 command-line-args) "bootstrap")))
 	  (let ((name (concat "emacs-" emacs-version)))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 				 "-"
 				 (substring name (match-end 0)))))
+            (message "Adding name %s" name)
 	    (add-name-to-file "emacs" name t)))
       (kill-emacs)))
 

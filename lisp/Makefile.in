@@ -77,8 +77,6 @@ COMPILE_FIRST = \
 # The actual Emacs command run in the targets below.
 
 emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
-# Prerequisites for running $(emacs)
-emacs-deps = $(lisp)/subdirs.el
 
 # Common command to find subdirectories
 
@@ -100,7 +98,9 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 
 # `compile-main' tends to be slower than `recompile' but can be parallelized
 # with "make -j" and results in more deterministic compilation warnings.
-all: compile-main
+# cus-load ans finder-inf are not explicitly requested by anything, so
+# we add them here to make sure they get built.
+all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
 
 doit:
 
@@ -117,27 +117,31 @@ doit:
 # bootstrap-after would modify loaddefs after src/emacs, resulting
 # in make install remaking src/emacs for no real reason:
 # http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
-custom-deps: $(emacs-deps) doit
+$(lisp)/cus-load.el:
+	$(MAKE) $(MFLAGS) custom-deps
+custom-deps: doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
-finder-data: $(emacs-deps) doit
+$(lisp)/finder-inf.el:
+	$(MAKE) $(MFLAGS) finder-data
+finder-data: doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
 # The chmod +w is to handle env var CVSREAD=1.  Files named
 # are identified by being the value of `generated-autoload-file'.
-autoloads: $(emacs-deps) $(LOADDEFS) doit
+autoloads: $(LOADDEFS) doit
 	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
-# Note: every rule that runs $(emacs) and is called during bootstrap must
-# depend on this.
+# This is required by the witness-emacs target in ../src/Makefile, so
+# we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
@@ -1254,7 +1258,7 @@ ELCFILES = \
 
 .PHONY: compile-first compile-main compile-last compile compile-always
 
-compile-first: $(emacs-deps) $(LOADDEFS) autoloads $(COMPILE_FIRST)
+compile-first: $(LOADDEFS) autoloads $(COMPILE_FIRST)
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
 	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done $$el || exit 1; \
@@ -1268,7 +1272,7 @@ compile-main: $(ELCFILES)
 # Calling make recursively because suffix rule cannot have prerequisites.
 # Explicitly pass EMACS (sometimes ../src/bootstrap-emacs) to those
 # sub-makes that run rules that use it, for the sake of some non-GNU makes.
-compile: $(emacs-deps) $(LOADDEFS) autoloads compile-first
+compile: $(LOADDEFS) autoloads compile-first
 	$(MAKE) $(MFLAGS) compile-main EMACS=$(EMACS)
 	$(MAKE) $(MFLAGS) compile-last EMACS=$(EMACS)
 
@@ -1349,7 +1353,7 @@ MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
 	$(MH_E_DIR)/mh-xface.el
 
 mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
-$(MH_E_DIR)/mh-loaddefs.el: $(emacs-deps) $(MH_E_SRC)
+$(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
@@ -1371,21 +1375,21 @@ CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
 	$(CAL_DIR)/holidays.el    $(CAL_DIR)/lunar.el      \
 	$(CAL_DIR)/solar.el
 
-$(CAL_DIR)/cal-loaddefs.el: $(emacs-deps) $(CAL_SRC)
+$(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-$(CAL_DIR)/diary-loaddefs.el: $(emacs-deps) $(CAL_SRC)
+$(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-$(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
+$(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$@\")" \
@@ -1405,25 +1409,12 @@ $(CAL_DIR)/hol-loaddefs.el: $(emacs-deps) $(CAL_SRC)
 # local changes.  (Because loaddefs.el is an automatically generated
 # file, we don't want to store it in the source repository).
 
-autogen-clean:
-	cd $(lisp); rm -f $(AUTOGENEL)
+bootstrap-clean:
+	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
 
-maintainer-clean: distclean bootstrap-clean
-
-bootstrap-clean: autogen-clean
-	cd $(lisp); rm -f *.elc */*.elc
-
-# Generate/update files for the bootstrap process.
-
-bootstrap: update-subdirs autoloads compile
-
-# Generate/update files after the bootstrap process.
-# custom-deps needs `preloaded-file-list'.
-
-bootstrap-after: finder-data custom-deps
-
-distclean:
+distclean: bootstrap-clean
 	-rm -f ./Makefile
+maintainer-clean: distclean
 
 .PHONY: check-declare
 

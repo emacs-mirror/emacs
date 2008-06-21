@@ -1,3 +1,11 @@
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (maybe_bootstrap, src/bootstrap-emacs${EXEEXT})
+	(bootstrap-build): Remove.
+	(top_bootclean): New var.
+	(top_distclean, bootstrap-clean): Use it.
+	(bootstrap): Don't recheck config.  Make normally.
+
 2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (SUBDIR): Include `lisp'.

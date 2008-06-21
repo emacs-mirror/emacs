@@ -912,6 +912,9 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
 	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
+	@: This new Emacs is as functional and more efficient then
+	@: bootstrap-emacs, so let us replace it.
+	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
 
@@ -1268,12 +1271,10 @@ ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
 #endif
 
-bootstrapclean:
-	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
-	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
+	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT} witness-emacs
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
@@ -1319,22 +1320,49 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 
 
 /* Bootstrapping.  */
+/* Bootstrapping right is difficult because of the circular dependencies.
+   Furthermore, we have to deal with the fact that many compilation targets
+   such as loaddefs.el or *.elc can typically be produced by any old
+   Emacs executable, so we would like to avoid rebuilding them whenever
+   we build a new Emacs executable.
+   To solve the circularity, we use 2 different Emacs executables,
+   "emacs" is the main target and "bootstrap-emacs" is the one used
+   to build the *.elc and loaddefs.el files.
+   To solve the freshness issue, we use a third file "witness-emacs"
+   which is used to witness the fact that there is a bootstrap-emacs
+   executable.  */
 
-bootstrap: bootstrap-emacs${EXEEXT}
+/* These suffix rules do not allow additional dependencies, sadly, so
+   adding a bootstrap-emacs%{EXEEXT} dependency does not work --Stef */
+.el.elc:
+	cd ${lispsource}; $(MAKE) $(MFLAGS) $@ EMACS=../src/bootstrap-emacs${EXEEXT}
 
-../lisp/subdirs.el:
-	cd $(lispsource); $(MAKE) update-subdirs
+/* Files that need to be compiled early to speed up further compilation.  */
+PRECOMP=../lisp/emacs-lisp/bytecomp.elc ../lisp/emacs-lisp/byte-opt.elc
+${PRECOMP}: witness-emacs
 
-../lisp/loaddefs.el: bootstrap-emacs${EXEEXT}
-	cd $(lispsource); $(MAKE) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
+/* Since the .el.elc rule cannot specify an extra dependency, we do it here.
+   The byte-compiler dependency is not necessary, but it substantially
+   speeds up byte-compilation of the other files.
+   Of course, it also has the downside of forcing a recompilation of all
+   those files whenever a file in $PRECOMP changes.  */
+${lisp} ${SOME_MACHINE_LISP}: witness-emacs ${PRECOMP}
+
+../lisp/loaddefs.el: witness-emacs
+	cd $(lispsource); $(MAKE) $(MFLAGS) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
 
-bootstrap-emacs${EXEEXT}: temacs${EXEEXT} ${lispsource}international/charprop.el ../lisp/subdirs.el
+bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 #ifdef CANNOT_DUMP
 	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 	$(RUN_TEMACS) --batch --load loadup bootstrap
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
+
+witness-emacs:
+	cd $(lispsource); $(MAKE) $(MFLAGS) update-subdirs
+	$(MAKE) $(MFLAGS) bootstrap-emacs${EXEEXT}
+	touch witness-emacs
