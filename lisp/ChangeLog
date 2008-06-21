@@ -16,7 +16,7 @@
 
 2008-06-21  Glenn Morris  <rgm@gnu.org>
 
-	* nxml/nxml-mode.el: Require 'cl when compiling.
+	* mail/hashcash.el, nxml/nxml-mode.el: Require 'cl when compiling.
 
 	* progmodes/bug-reference.el (bug-reference-map): Bind down-mouse-1
 	rather than mouse-1.
