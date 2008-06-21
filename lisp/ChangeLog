@@ -16,6 +16,8 @@
 
 2008-06-21  Glenn Morris  <rgm@gnu.org>
 
+	* nxml/nxml-mode.el: Require 'cl when compiling.
+
 	* progmodes/bug-reference.el (bug-reference-map): Bind down-mouse-1
 	rather than mouse-1.
 	(bug-reference-url-format): Autoload safe if string.
