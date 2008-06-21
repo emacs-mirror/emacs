@@ -1,3 +1,10 @@
+2008-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (fixed-pitch): Use "Monospace" family.
+	(variable-pitch): Use "Sans" family.
+	(face-font-family-alternatives): Define alternatives for "Sans"
+	and "Monospace".
+
 2008-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* cus-dep.el (custom-dependencies-no-scan-regexp):
