@@ -127,8 +127,9 @@
 ;; useful, and because in parallel builds of Emacs they may get
 ;; modified while we are trying to read them.
 ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
-(defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|cus-load\\|\
-finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
+;; ldefs-boot is not auto-generated, but has nothing useful.
+(defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|ldefs-boot\\|\
+cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
   "Regexp matching file names not to scan for keywords.")
 
 (autoload 'autoload-rubric "autoload")
