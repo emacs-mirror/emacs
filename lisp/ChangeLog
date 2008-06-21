@@ -7,6 +7,9 @@
 
 2008-06-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (all): Explicitly pass EMACS to sub-make,
+	for some non-GNU makes.
+
 	* cus-dep.el (custom-dependencies-no-scan-regexp):
 	* finder.el (finder-no-scan-regexp): Add ldefs-boot.el
 
