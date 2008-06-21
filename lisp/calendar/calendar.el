@@ -375,6 +375,90 @@ pre-existing calendar windows."
                  (sexp :tag "Lisp expression"))
   :version "23.1")
 
+
+(defvar calendar-month-digit-width nil
+  "Width of the region with numbers in each month in the calendar.")
+
+(defvar calendar-month-width nil
+  "Full width of each month in the calendar.")
+
+(defvar calendar-right-margin nil
+  "Right margin of the calendar.")
+
+(defun calendar-recompute-layout-variables ()
+  "Recompute some layout-related calendar \"constants\"."
+  (setq calendar-month-digit-width (+ (* 6 calendar-column-width)
+                                      calendar-day-digit-width)
+        calendar-month-width (+ (* 7 calendar-column-width)
+                                calendar-intermonth-spacing)
+        calendar-right-margin (+ calendar-left-margin
+                                   (* 3 (* 7 calendar-column-width))
+                                   (* 2 calendar-intermonth-spacing))))
+
+;; FIXME add font-lock-keywords.
+(defun calendar-set-layout-variable (symbol value &optional minmax)
+  "Set SYMBOL's value to VALUE, an integer.
+A positive/negative MINMAX enforces a minimum/maximum value.
+Then redraw the calendar, if necessary."
+  (let ((oldvalue (symbol-value symbol)))
+    (custom-set-default symbol (if minmax
+                                   (if (< minmax 0)
+                                       (min value (- minmax))
+                                     (max value minmax))
+                                 value))
+    (unless (equal value oldvalue)
+      (calendar-recompute-layout-variables)
+      (calendar-redraw))))
+
+(defcustom calendar-left-margin 5
+  "Empty space to the left of the first month in the calendar."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set 'calendar-set-layout-variable
+  :type 'integer
+  :version "23.1")
+
+;; Or you can view it as columns of width 2, with 1 space, no space
+;; after the last column, and a 5 space gap between month.
+;; FIXME check things work if this is odd.
+(defcustom calendar-intermonth-spacing 4
+  "Space between months in the calendar.  Minimum value is 1."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (calendar-set-layout-variable sym val 1))
+  :type 'integer
+  :version "23.1")
+
+(defcustom calendar-column-width 3
+  "Width of each day column in the calendar.  Minimum value is 3."
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (calendar-set-layout-variable sym val 3))
+  :type 'integer
+  :version "23.1")
+
+(defcustom calendar-day-header-width 2
+  "Width of the day column headers in the calendar.
+Must be at least one less than `calendar-column-width'."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (calendar-set-layout-variable sym val (- 1 calendar-column-width)))
+  :type 'integer
+  :version "23.1")
+
+;; FIXME a format specifier instead?
+(defcustom calendar-day-digit-width 2
+  "Width of the day digits in the calendar.  Minimum value is 2."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (calendar-set-layout-variable sym val 2))
+  :type 'integer
+  :version "23.1")
+
+
 (defcustom diary-file "~/diary"
   "Name of the file in which one's personal diary of dates is kept.
 
@@ -824,6 +908,11 @@ calendar."
 
 ;;; End of user options.
 
+(calendar-recompute-layout-variables)
+
+(defconst calendar-first-date-row 3
+  "First row in the calendar with actual dates.")
+
 (defconst calendar-buffer "*Calendar*"
   "Name of the buffer used for the calendar.")
 
@@ -1163,8 +1252,20 @@ Optional integers MON and YR are used instead of today's date."
   (erase-buffer)
   (calendar-increment-month month year -1)
   (dotimes (i 3)
-    (calendar-generate-month month year (+ 5 (* 25 i)))
+    (calendar-generate-month month year
+                             (+ calendar-left-margin
+                                (* calendar-month-width i)))
     (calendar-increment-month month year 1)))
+
+(defun calendar-move-to-column (indent)
+  "Like `move-to-column', but indents if the line is too short."
+  (if (< (move-to-column indent) indent)
+      (indent-to indent)))
+
+(defun calendar-ensure-newline ()
+  "Move to the next line, adding a newline if necessary."
+  (or (zerop (forward-line 1))
+      (insert "\n")))
 
 (defun calendar-generate-month (month year indent)
   "Produce a calendar for MONTH, YEAR on the Gregorian calendar.
@@ -1180,11 +1281,13 @@ line."
          (last (calendar-last-day-of-month month year))
          string day)
    (goto-char (point-min))
-   (calendar-insert-indented
+   (calendar-move-to-column indent)
+   (insert
     (calendar-string-spread
-     (list (format "%s %d" (calendar-month-name month) year)) ?\s 20)
-    indent t)
-   (calendar-insert-indented "" indent) ; go to proper spot
+     (list (format "%s %d" (calendar-month-name month) year))
+     ?\s calendar-month-digit-width))
+   (calendar-ensure-newline)
+   (calendar-move-to-column indent)      ; go to proper spot
    ;; Use the first two characters of each day to head the columns.
    (dotimes (i 7)
      (insert
@@ -1192,43 +1295,29 @@ line."
         (setq string
               (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t))
         (if enable-multibyte-characters
-            (truncate-string-to-width string 2)
-          (substring string 0 2)))
-      " "))
-   (calendar-insert-indented "" 0 t)    ; force onto following line
-   (calendar-insert-indented "" indent) ; go to proper spot
+            (truncate-string-to-width string calendar-day-header-width)
+          (substring string 0 calendar-day-header-width)))
+      (make-string (- calendar-column-width calendar-day-header-width) ?\s)))
+   (calendar-ensure-newline)
+   (calendar-move-to-column indent)
    ;; Add blank days before the first of the month.
-   (dotimes (idummy blank-days) (insert "   "))
+   (insert (make-string (* blank-days calendar-column-width) ?\s))
    ;; Put in the days of the month.
    (dotimes (i last)
      (setq day (1+ i))
-     (insert (format "%2d " day))
+     ;; TODO should numbers be left-justified, centred...?
+     (insert (format (format "%%%dd%%s" calendar-day-digit-width) day
+                     (make-string
+                      (- calendar-column-width calendar-day-digit-width) ?\s)))
      ;; FIXME set-text-properties?
      (add-text-properties
-      (- (point) 3) (1- (point))
+      (- (point) (1+ calendar-day-digit-width)) (1- (point))
       `(mouse-face highlight help-echo ,(eval calendar-date-echo-text)))
      (and (zerop (mod (+ day blank-days) 7))
           (/= day last)
-          (calendar-insert-indented "" 0 t) ; force onto following line
-          (calendar-insert-indented "" indent))))) ; go to proper spot
-
-(defun calendar-insert-indented (string indent &optional newline)
-  "Insert STRING at column INDENT.
-If the optional parameter NEWLINE is non-nil, leave point at start of next
-line, inserting a newline if there was no next line; otherwise, leave point
-after the inserted text.  Returns t."
-  ;; Try to move to that column.
-  (move-to-column indent)
-  ;; If line is too short, indent out to that column.
-  (if (< (current-column) indent)
-      (indent-to indent))
-  (insert string)
-  ;; Advance to next line, if requested.
-  (when newline
-    (end-of-line)
-    (or (zerop (forward-line 1))
-        (insert "\n")))
-  t)
+          (progn
+            (calendar-ensure-newline)
+            (calendar-move-to-column indent))))))
 
 (defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
@@ -1497,17 +1586,17 @@ the STRINGS are just concatenated and the result truncated."
   "Update the calendar mode line with the current date and date style."
   (if (bufferp (get-buffer calendar-buffer))
       (with-current-buffer calendar-buffer
-        (setq mode-line-format
-              ;; The magic numbers are based on the fixed calendar layout.
-              (concat (make-string (+ 3
-                                      (- (car (window-inside-edges))
-                                         (car (window-edges)))) ?\s)
-                      (calendar-string-spread
-                       (let ((date (condition-case nil
-                                       (calendar-cursor-to-nearest-date)
-                                     (error (calendar-current-date)))))
-                         (mapcar 'eval calendar-mode-line-format))
-                       ?\s 74)))
+        (let ((start (- calendar-left-margin 2))
+              (date (condition-case nil
+                        (calendar-cursor-to-nearest-date)
+                      (error (calendar-current-date)))))
+          (setq mode-line-format
+                (concat (make-string (max 0 (+ start
+                                               (- (car (window-inside-edges))
+                                                  (car (window-edges))))) ?\s)
+                        (calendar-string-spread
+                         (mapcar 'eval calendar-mode-line-format)
+                         ?\s (- calendar-right-margin (1- start))))))
         (force-mode-line-update))))
 
 (defun calendar-window-list ()
@@ -1571,6 +1660,40 @@ the STRINGS are just concatenated and the result truncated."
   (let ((now (decode-time)))
     (list (nth 4 now) (nth 3 now) (nth 5 now))))
 
+(defun calendar-column-to-month (&optional real)
+  "Convert current column to calendar month offset number (leftmost is 0).
+If the cursor is in the right margin (i.e. beyond the last digit) of
+month N, returns -(N+1).  If optional REAL is non-nil, return a
+cons (month year), where month is the real month number (1-12)."
+  (let* ((ccol (current-column))
+         (col (max 0 (+ ccol (/ calendar-intermonth-spacing 2)
+                        (- calendar-left-margin))))
+         (segment (/ col (+ (* 7 calendar-column-width)
+                            calendar-intermonth-spacing)))
+         month year lastdigit edge)
+    (if real
+        (progn
+          ;; NB assumes 3 month display.
+          (if (zerop (setq month (% (+ displayed-month segment -1) 12)))
+              (setq month 12))
+          (setq year (cond
+                      ((and (= 12 month) (zerop segment)) (1- displayed-year))
+                      ((and (= 1 month) (= segment 2)) (1+ displayed-year))
+                      (t displayed-year)))
+          (cons month year))
+      ;; The rightmost column with a digit in it in this month segment.
+      (setq lastdigit (+ calendar-left-margin
+                         calendar-month-digit-width -1
+                         (* segment calendar-month-width))
+            ;; The rightmost edge of this month segment, dividing the
+            ;; space between months in two.
+            edge (+ calendar-left-margin
+                    (* (1+ segment) calendar-month-width)
+                    (- (/ calendar-intermonth-spacing 2))))
+      (if (and (> ccol lastdigit) (< ccol edge))
+          (- (1+ segment))
+        segment))))
+
 (defun calendar-cursor-to-date (&optional error event)
   "Return a list (month day year) of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
@@ -1582,21 +1705,22 @@ use instead of point."
         (current-buffer))
     (save-excursion
       (if event (goto-char (posn-point (event-start event))))
-  (let* ((segment (/ (current-column) 25))
-         (month (% (+ displayed-month segment -1) 12))
-         (month (if (zerop month) 12 month))
-         (year
-          (cond
-           ((and (=  12 month) (zerop segment)) (1- displayed-year))
-           ((and (=   1 month) (= segment 2)) (1+ displayed-year))
-           (t displayed-year))))
+      (let* ((month (calendar-column-to-month t))
+             (year (cdr month))
+             (month (car month)))
+        ;; Call with point on either of the two digits in a 2-digit date,
+        ;; or on or before the digit of a 1-digit date.
         (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
-                      (< 2 (count-lines (point-min) (point)))))
+                      (>= (count-lines (point-min) (point))
+                          calendar-first-date-row)))
             (if error (error "Not on a date!"))
-          (if (not (looking-at " "))
+          ;; Go back to before the first date digit.
+          (or (looking-at " ")
               (re-search-backward "[^0-9]"))
           (list month
-                (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
+                (string-to-number
+                 (buffer-substring (1+ (point))
+                                   (+ 1 calendar-day-digit-width (point))))
                 year))))))
 
 (add-to-list 'debug-ignored-errors "Not on a date!")
@@ -1884,12 +2008,14 @@ each element returned has a final `.' character."
               " -?[0-9]+")
      . font-lock-function-name-face) ; month and year
     (,(regexp-opt
-       (list (substring (aref calendar-day-name-array 6) 0 2)
-             (substring (aref calendar-day-name-array 0) 0 2)))
+       (list (substring (aref calendar-day-name-array 6)
+                        0 calendar-day-header-width)
+             (substring (aref calendar-day-name-array 0)
+                        0 calendar-day-header-width)))
      ;; Saturdays and Sundays are highlighted differently.
      . font-lock-comment-face)
     ;; First two chars of each day are used in the calendar.
-    (,(regexp-opt (mapcar (lambda (x) (substring x 0 2))
+    (,(regexp-opt (mapcar (lambda (x) (substring x 0 calendar-day-header-width))
                           calendar-day-name-array))
      . font-lock-reference-face))
   "Default keywords to highlight in Calendar mode.")
