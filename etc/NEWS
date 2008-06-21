@@ -679,6 +679,10 @@ Running processes on a remote host can be controlled by settings in
 When the variable `file-precious-flag' is set, the success of a remote
 file copy is checked via the file's checksum.
 
+*** Passwords can be read from an authentification file.
+Tramp uses the package `auth-source' to read passwords from a file, if
+necessary.
+
 ** Calendar and diary
 
 +++
