@@ -29,6 +29,8 @@
 (when (featurep 'mucs)
   (error "nxml-mode is not compatible with Mule-UCS"))
 
+(eval-when-compile (require 'cl))	; for assert
+
 (require 'xmltok)
 (require 'nxml-enc)
 (require 'nxml-glyph)
