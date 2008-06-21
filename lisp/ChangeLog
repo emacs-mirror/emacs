@@ -1,3 +1,32 @@
+2008-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-move.el (calendar-forward-day): Scroll in one month
+	increments.
+
+	* calendar/calendar.el: Factor out the magic numbers controlling the
+	calendar layout.
+	(calendar-month-digit-width, calendar-month-width)
+	(calendar-right-margin): New variables.
+	(calendar-recompute-layout-variables, calendar-set-layout-variable):
+	New functions.
+	(calendar-left-margin, calendar-intermonth-spacing)
+	(calendar-column-width, calendar-day-header-width)
+	(calendar-day-digit-width): New options.
+	(calendar-first-date-row): New constant.
+	(calendar-move-to-column, calendar-ensure-newline): New functions,
+	replacing calendar-insert-indented.
+	(calendar-insert-indented): Remove function.
+	(calendar-generate-month): Use calendar-move-to-column and
+	calendar-ensure-newline.  Use layout variables.
+	(calendar-generate, calendar-update-mode-line)
+	(calendar-font-lock-keywords): Use layout variables.
+	(calendar-column-to-month): New function.
+	(calendar-cursor-to-date): Use calendar-column-to-month.
+	Use layout variables.
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date):
+	Use layout variables.  Use calendar-column-to-month.
+	(calendar-cursor-to-visible-date): Use layout variables.
+
 2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (update-elclist): Don't exclude COMPILE_FIRST.
