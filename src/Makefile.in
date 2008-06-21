@@ -1364,4 +1364,4 @@ witness-emacs:
 	$(MAKE) $(MFLAGS) bootstrap-emacs${EXEEXT}
 	touch witness-emacs
 	@: Compile some files earlier to speed up further compilation.
-	cd $(lispsource); $(MAKE) $(MFLAGS) compile-first
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first
