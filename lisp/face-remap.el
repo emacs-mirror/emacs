@@ -103,7 +103,7 @@ The list structure of ENTRY may be destructively modified."
   (setcdr entry (sort (cdr entry) 'face-attrs-more-relative-p))
   (nreverse entry))
 
-;;;### autoload
+;;;###autoload
 (defun face-remap-add-relative (face &rest specs)
   "Add a face remapping entry of FACE to SPECS in the current buffer.
 
@@ -146,7 +146,7 @@ COOKIE should be the return value from that function."
 		  (remq remapping face-remapping-alist)))
 	  (cdr cookie))))))
 
-;;;### autoload
+;;;###autoload
 (defun face-remap-reset-base (face)
   "Set the base remapping of FACE to inherit from FACE's global definition."
   (let ((entry (assq face face-remapping-alist)))
@@ -160,7 +160,7 @@ COOKIE should be the return value from that function."
 		(remq entry face-remapping-alist))
 	(setcar (last entry) face)))))  ; otherwise, just inherit global def
 
-;;;### autoload
+;;;###autoload
 (defun face-remap-set-base (face &rest specs)
   "Set the base remapping of FACE in the current buffer to SPECS.
 If SPECS is empty, the default base remapping is restored, which
@@ -377,7 +377,7 @@ including a face name, a list of face names, or a face-attribute
 
 If INTERACTIVE is non-nil, a message will be displayed describing the result.
 
-This is a wrapper function which calls just `buffer-face-set' or
+This is a wrapper function which calls `buffer-face-set' or
 `buffer-face-toggle' (depending on ARG), and prints a status
 message in the echo area.  In many cases one of those functions
 may be more appropriate."
