@@ -1,5 +1,10 @@
 2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/rst.el: Run rst-define-level-faces when loading.
+	(rst-mode): Don't set the font-lock-multiline var.
+	(rst-font-lock-find-unindented-line, rst-font-lock-handle-adornment):
+	Set the font-lock-multiline property by hand.
+
 	* loadup.el: Don't add emacs-<VERS> name when bootstrapping.
 
 	* Makefile.in (emacs-deps): Remove.

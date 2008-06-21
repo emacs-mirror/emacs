@@ -406,7 +406,6 @@ blocks."
   (set (make-local-variable 'font-lock-defaults)
        '(rst-font-lock-keywords-function
 	 t nil nil nil
-	 (font-lock-multiline . t)
 	 (font-lock-mark-block-function . mark-paragraph)))
   ;; `jit-lock-mode' has been the default since Emacs-21.1, so there's no
   ;; point messing around with font-lock-support-mode any more.
@@ -2749,6 +2748,7 @@ details check the Rst Faces Defaults group."
 	(set sym sym)
 	(setq i (1+ i))))))
 
+(rst-define-level-faces)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3044,15 +3044,21 @@ point is not moved."
       ;; Always succeeds because the limit set by PRE-MATCH-FORM is the
       ;; ultimate point to find
       (goto-char (or (rst-forward-indented-block nil limit) limit))
+      (save-excursion
+        ;; Include subsequent empty lines in the font-lock block,
+        ;; in case the user subsequently changes the indentation of the next
+        ;; non-empty line to move it into the indented element.
+        (skip-chars-forward " \t\n")
+        (put-text-property beg-pnt (point) 'font-lock-multiline t))
       (set-match-data (list beg-pnt (point)))
       t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Adornments
 
-;; Stores the point where the current adornment ends. Also used as a trigger
-;; for `rst-font-lock-handle-adornment'.
-(defvar rst-font-lock-adornment-point nil)
+(defvar rst-font-lock-adornment-point nil
+  "Stores the point where the current adornment ends.  Also used as a trigger
+for `rst-font-lock-handle-adornment'.")
 
 ;; Here `rst-font-lock-handle-adornment' stores the section level of the
 ;; current adornment or t for a transition.
@@ -3174,6 +3180,7 @@ entered.")
 	     (mtc (cdr ado)))
 	(setq rst-font-lock-level (rst-adornment-level key t))
 	(goto-char (nth 1 mtc))
+        (put-text-property (nth 0 mtc) (nth 1 mtc) 'font-lock-multiline t)
 	(set-match-data mtc)
 	t))))
 
