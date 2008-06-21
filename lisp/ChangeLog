@@ -133,7 +133,9 @@
 	(newsticker--treeview-list-add-item)
 	(newsticker--treeview-propertize-tag): Show item title in tooltip.
 
-2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-06-20  Martin Blais <blais@furius.ca>,
+	    Stefan Merten <smerten@oekonux.de>
+	    David Goodger <goodger@python.org>
 
 	* textmodes/rst.el: New file.
 
