@@ -257,8 +257,10 @@ xftfont_open (f, entity, pixel_size)
 	  if (INTEGERP (val))
 	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
 	}
+#ifdef FC_EMBOLDEN
       else if (EQ (key, QCembolden))
 	FcPatternAddBool (pat, FC_EMBOLDEN, NILP (val) ? FcFalse : FcTrue);
+#endif
     }
   FcConfigSubstitute (NULL, pat, FcMatchPattern);
 
