@@ -1,5 +1,8 @@
 2008-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* startup.el (fancy-about-text, fancy-startup-tail): Increase text
+	size for legibility.
+
 	* faces.el (fixed-pitch): Use "Monospace" family.
 	(variable-pitch): Use "Sans" family.
 	(face-font-family-alternatives): Define alternatives for "Sans"
