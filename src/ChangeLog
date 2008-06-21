@@ -1,3 +1,7 @@
+2008-06-21  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (witness-emacs): Use ../lisp, not $(lispsource).
+
 2008-06-21  Miles Bader  <miles@gnu.org>
 
 	* Makefile.in (../lisp/loaddefs.el): Build autoloads in the lisp
