@@ -1,3 +1,8 @@
+2008-06-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5D.5): Fix an
+	infinite loop on invalid syntax.
+
 2008-06-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-make-temp-file): Backport from Tramp 2.1.
