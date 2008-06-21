@@ -20,7 +20,6 @@
 	rather than mouse-1.
 	(bug-reference-url-format): Autoload safe if string.
 	(bug-reference-bug-regexp): Make space after "bug" optional.
-	(bug-reference-fontify): Save match data.
 
 	* Makefile.in (all): Explicitly pass EMACS to sub-make,
 	for some non-GNU makes.
