@@ -366,9 +366,6 @@ The value of this variable is used when Rst Mode is turned on."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.re?st\\'" . rst-mode))
 ;;;###autoload
 (define-derived-mode rst-mode text-mode "ReST"
-  :abbrev-table rst-mode-abbrev-table
-  :syntax-table rst-mode-syntax-table
-  :group 'rst
   "Major mode for editing reStructuredText documents.
 
 There are a number of convenient keybindings provided by
@@ -382,6 +379,9 @@ Turning on `rst-mode' calls the normal hooks `text-mode-hook' and
 `rst-mode-hook'. This mode also supports font-lock highlighting.
 You may customize `rst-mode-lazy' to toggle font-locking of
 blocks."
+  :abbrev-table rst-mode-abbrev-table
+  :syntax-table rst-mode-syntax-table
+  :group 'rst
 
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'indent-line-function) 'indent-relative-maybe)
