@@ -281,7 +281,8 @@ a top-level keymap, `text-scale-increase' or
   (interactive "p")
   (let ((first t)
 	(step t)
-	(ev last-command-event))
+	(ev last-command-event)
+	(echo-keystrokes nil))
     (while step
       (let ((base (event-basic-type ev)))
 	(cond ((or (eq base ?+) (eq base ?=))
