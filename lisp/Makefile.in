@@ -1208,11 +1208,11 @@ ELCFILES = \
 	$(lisp)/url/url-util.elc \
 	$(lisp)/url/url-vars.elc \
 	$(lisp)/url/url.elc \
-	$(lisp)/url/vc-dav.elc \
 	$(lisp)/userlock.elc \
 	$(lisp)/vc-arch.elc \
 	$(lisp)/vc-bzr.elc \
 	$(lisp)/vc-cvs.elc \
+	$(lisp)/vc-dav.elc \
 	$(lisp)/vc-dispatcher.elc \
 	$(lisp)/vc-git.elc \
 	$(lisp)/vc-hg.elc \
