@@ -1,5 +1,9 @@
 2008-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el: Move vc-annotate variables and functions ...
+	* vc-annotate.el: ... here.  New file.
+	* Makefile.in (ELCFILES): Add vc-annotate.elc.
+	
 	* vc-dav.el: Move here from url/vc-dav.el.
 	(Todo): Note work needed to make this backend functional.
 

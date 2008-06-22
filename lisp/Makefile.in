@@ -1209,6 +1209,7 @@ ELCFILES = \
 	$(lisp)/url/url-vars.elc \
 	$(lisp)/url/url.elc \
 	$(lisp)/userlock.elc \
+	$(lisp)/vc-annotate.elc \
 	$(lisp)/vc-arch.elc \
 	$(lisp)/vc-bzr.elc \
 	$(lisp)/vc-cvs.elc \
