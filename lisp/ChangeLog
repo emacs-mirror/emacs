@@ -1,7 +1,8 @@
 2008-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dav.el: Move here from url/vc-dav.el.
-	
+	(Todo): Note work needed to make this backend functional.
+
 	* Makefile.in (ELCFILES): Update vc-dav.el location.
 
 2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>

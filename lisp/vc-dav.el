@@ -22,6 +22,13 @@
 
 ;;; Commentary:
 
+;;; Todo:
+;;
+;; - Some methods need to be updated to match the current vc.el.
+;;     - rename "version" -> "revision"
+;;     - some methods need to take a fileset as a parameter instead of a
+;;       single file.
+
 ;;; Code:
 
 (require 'url)
