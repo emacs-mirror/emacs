@@ -1359,7 +1359,7 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 
-witness-emacs:
+witness-emacs: temacs${EXEEXT}
 	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 	$(MAKE) $(MFLAGS) bootstrap-emacs${EXEEXT}
 	touch witness-emacs
