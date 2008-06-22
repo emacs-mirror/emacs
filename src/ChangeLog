@@ -1,3 +1,8 @@
+2008-06-22  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_find_for_lface): Try the adstyle specified in
+	the property of LFACE_FONT of LFACE (if any).
+
 2008-06-21  Seiji Zenitani  <zenitani@mac.com>
             Ryo Yoshitake  <ryo@shiftmode.net>
 
