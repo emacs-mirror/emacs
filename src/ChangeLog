@@ -1,3 +1,7 @@
+2008-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (witness-emacs): Depend on temacs${EXEEXT}.
+
 2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (PRECOMP): Remove.
