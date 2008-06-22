@@ -1334,6 +1334,8 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 
 /* These suffix rules do not allow additional dependencies, sadly, so
    adding a bootstrap-emacs%{EXEEXT} dependency does not work --Stef */
+.SUFFIXES: .elc .el
+
 .el.elc:
 	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
 	                    THEFILE=$< EMACS=../src/bootstrap-emacs${EXEEXT}
