@@ -1,3 +1,7 @@
+2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (COMPILE_FIRST): Trim down and add autoload.el.
+
 2008-06-21  John Paul Wallington  <jpw@pobox.com>
 
 	* emacs-lisp/derived.el (define-derived-mode): Add `doc-string' decl.
@@ -21,8 +25,8 @@
 
 	* emacs-lisp/debug.el (help-xref-interned): Declare.
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-set-keymap-parents): Evaluate
-	definition when compiling.
+	* emacs-lisp/easy-mmode.el (easy-mmode-set-keymap-parents):
+	Evaluate definition when compiling.
 
 	* progmodes/bug-reference.el (bug-reference-map): Bind down-mouse-1
 	rather than mouse-1.

@@ -1,3 +1,12 @@
+2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (${lisp} ${SOME_MACHINE_LISP}, ../lisp/loaddefs.el):
+	Use $(BOOTSTRAPEMACS) rather than witness-emacs.
+	(bootstrap-emacs${EXEEXT}): Merge witness-emacs into it.
+	(witness-emacs): Remove.
+	(lisp, shortlisp): Move loaddefs.el earlier.
+	(mostlyclean): Forget about witness-emacs.
+
 2008-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (witness-emacs): Depend on temacs${EXEEXT}.

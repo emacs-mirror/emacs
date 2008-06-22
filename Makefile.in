@@ -315,10 +315,21 @@ lib-src: FRC src/config.stamp
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
 lisp: src
 
+# Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
+# is either set to bootstrap-emacs (in case bootstrap-emacs has not been
+# constructed yet) or the empty string (otherwise).
+# src/Makefile.in uses it to implement conditional dependencies, so that
+# files that need bootstrap-emacs to be built do not additionally need
+# to be kept fresher than bootstrap-emacs.  Otherwise changing a single
+# file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
+# all preloaded elisp files, and only then dump the actual src/emacs, which
+# is not wrong, but is overkill in 99.99% of the cases.
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
-	cd $@; $(MAKE) all $(MFLAGS) \
+	boot=bootstrap-emacs$(EXEEXT);                         \
+	if [ -x "src/$$boot" ]; then boot=""; fi;                   \
+	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"
 
 blessmail: ${SUBDIR_MAKEFILES} src FRC
 	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \

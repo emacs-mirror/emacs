@@ -63,18 +63,11 @@ AUTOGENEL = loaddefs.el \
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.
-# Why `subr.elc'?  It's dumped so byte-compiling it early shouldn't make
-# any difference!?  --Stef
-# Some CC files are compiled first because CC mode tweaks the compilation
-# process, and requiring cc-mode when it is not compiled doesn't work during
-# the bootstrapping.
 
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/byte-opt.elc \
-	$(lisp)/subr.elc \
-	$(lisp)/progmodes/cc-mode.elc \
-	$(lisp)/progmodes/cc-vars.elc
+	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
 
@@ -145,7 +138,7 @@ autoloads: $(LOADDEFS) doit
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
-# This is required by the witness-emacs target in ../src/Makefile, so
+# This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
