@@ -709,8 +709,7 @@ clean: FRC
 ### `bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
 top_bootclean=\
-	rm -f config.cache config.log ; \
-	if [ -d lock ] ; then (cd lock && (rm -f * || true)); else true; fi
+	rm -f config.cache config.log
 ### `distclean'
 ###      Delete all files from the current directory that are created by
 ###      configuring or building the program.  If you have unpacked the
