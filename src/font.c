@@ -2959,9 +2959,9 @@ font_find_for_lface (f, attrs, spec, c)
 {
   Lisp_Object work;
   Lisp_Object frame, entities, val, props[FONT_REGISTRY_INDEX + 1] ;
-  Lisp_Object size, foundry[3], *family, registry[3];
+  Lisp_Object size, foundry[3], *family, registry[3], adstyle[3];
   int pixel_size;
-  int i, j, k, result;
+  int i, j, k, l, result;
 
   registry[0] = AREF (spec, FONT_REGISTRY_INDEX);
   if (NILP (registry[0]))
@@ -3016,6 +3016,26 @@ font_find_for_lface (f, attrs, spec, c)
   else
     foundry[0] = Qnil, foundry[1] = null_vector;
 
+  adstyle[0] = AREF (work, FONT_ADSTYLE_INDEX);
+  if (! NILP (adstyle[0]))
+    adstyle[1] = null_vector;
+  else if (FONTP (attrs[LFACE_FONT_INDEX]))
+    {
+      Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
+
+      if (! NILP (AREF (face_font, FONT_ADSTYLE_INDEX)))
+	{
+	  adstyle[0] = AREF (face_font, FONT_ADSTYLE_INDEX);
+	  adstyle[1] = Qnil;
+	  adstyle[2] = null_vector;
+	}
+      else
+	adstyle[0] = Qnil, adstyle[1] = null_vector;
+    }
+  else
+    adstyle[0] = Qnil, adstyle[1] = null_vector;
+
+
   val = AREF (work, FONT_FAMILY_INDEX);
   if (NILP (val) && STRINGP (attrs[LFACE_FAMILY_INDEX]))
     val = font_intern_prop (SDATA (attrs[LFACE_FAMILY_INDEX]),
@@ -3060,9 +3080,13 @@ font_find_for_lface (f, attrs, spec, c)
 	  for (k = 0; SYMBOLP (registry[k]); k++)
 	    {
 	      ASET (work, FONT_REGISTRY_INDEX, registry[k]);
-	      entities = font_list_entities (frame, work);
-	      if (ASIZE (entities) > 0)
-		goto found;
+	      for (l = 0; SYMBOLP (adstyle[l]); l++)
+		{
+		  ASET (work, FONT_ADSTYLE_INDEX, adstyle[l]);
+		  entities = font_list_entities (frame, work);
+		  if (ASIZE (entities) > 0)
+		    goto found;
+		}
 	    }
 	}
     }
