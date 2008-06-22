@@ -1214,6 +1214,7 @@ ELCFILES = \
 	$(lisp)/vc-bzr.elc \
 	$(lisp)/vc-cvs.elc \
 	$(lisp)/vc-dav.elc \
+	$(lisp)/vc-dir.elc \
 	$(lisp)/vc-dispatcher.elc \
 	$(lisp)/vc-git.elc \
 	$(lisp)/vc-hg.elc \

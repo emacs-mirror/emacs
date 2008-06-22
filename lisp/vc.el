@@ -640,6 +640,14 @@
 ;;   Those logs should likely use a local variable to hardware the VC they
 ;;   are supposed to work with.
 ;;
+;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
+;;   it should work for other async commands done through vc-do-command
+;;   as well,
+;;
+;; - vc-dir toolbar needs more icons.
+;;
+;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
+;;
 ;;;; Problems:
 ;;
 ;; - the *vc-dir* buffer is not updated correctly anymore after VC
@@ -886,8 +894,7 @@ Within directories, only files already under version control are noticed."
 	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
 	  (t nil))))
 
-(defvar vc-dir-backend nil
-  "The backend used by the current *vc-dir* buffer.")
+(defvar vc-dir-backend)
 
 ;; FIXME: this is not functional, commented out.
 ;; (defun vc-deduce-fileset (&optional observer)
@@ -905,6 +912,11 @@ Within directories, only files already under version control are noticed."
 ;;                                  (not (file-directory-p (car raw)))))
 ;;                     (vc-backend (car cooked)))))
 ;; 	(cons backend selection)))
+
+(declare-function vc-dir-child-files "vc-dir" ())
+(declare-function vc-dir-current-file "vc-dir" ())
+(declare-function vc-dir-marked-files "vc-dir" ())
+(declare-function vc-dir-marked-only-files "vc-dir" ())
 
 (defun vc-deduce-fileset (&optional observer allow-unregistered only-files)
   "Deduce a set of files and a backend to which to apply an operation.
@@ -1750,259 +1762,6 @@ See Info node `Merging'."
 
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
-
-;; VC status implementation
-
-(defun vc-default-status-extra-headers (backend dir)
-  ;; Be loud by default to remind people to add code to display
-  ;; backend specific headers.
-  ;; XXX: change this to return nil before the release.
-  (concat
-   (propertize "Extra      : " 'face 'font-lock-type-face)
-   (propertize "Please add backend specific headers here.  It's easy!"
-	       'face 'font-lock-warning-face)))
-
-(defun vc-dir-headers (backend dir)
-  "Display the headers in the *VC dir* buffer.
-It calls the `status-extra-headers' backend method to display backend
-specific headers."
-  (concat
-   (propertize "VC backend : " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
-   (propertize "Working dir: " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
-   (vc-call-backend backend 'status-extra-headers dir)
-   "\n"))
-
-(defun vc-default-status-printer (backend fileentry)
-  "Pretty print FILEENTRY."
-  ;; If you change the layout here, change vc-dir-move-to-goal-column.
-  (let* ((isdir (vc-dir-fileinfo->directory fileentry))
-	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
-	(filename (vc-dir-fileinfo->name fileentry)))
-    ;; FIXME: Backends that want to print the state in a different way
-    ;; can do it by defining the `status-printer' function.  Using
-    ;; `prettify-state-info' adds two extra vc-calls per item, which
-    ;; is too expensive.
-    ;;(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
-    (insert
-     (propertize
-      (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
-      'face 'font-lock-type-face)
-     "   "
-     (propertize
-      (format "%-20s" state)
-      'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
-		  ((memq state '(missing conflict)) 'font-lock-warning-face)
-		  (t 'font-lock-variable-name-face))
-      'mouse-face 'highlight)
-     " "
-     (propertize
-      (format "%s" filename)
-      'face 'font-lock-function-name-face
-      'mouse-face 'highlight))))
-
-(defun vc-default-extra-status-menu (backend)
-  nil)
-
-(defun vc-dir-refresh-files (files default-state)
-  "Refresh some files in the *VC-dir* buffer."
-  (let ((def-dir default-directory)
-	(backend vc-dir-backend))
-    (vc-set-mode-line-busy-indicator)
-    ;; Call the `dir-status-file' backend function.
-    ;; `dir-status-file' is supposed to be asynchronous.
-    ;; It should compute the results, and then call the function
-    ;; passed as an argument in order to update the vc-dir buffer
-    ;; with the results.
-    (unless (buffer-live-p vc-dir-process-buffer)
-      (setq vc-dir-process-buffer
-            (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-    (lexical-let ((buffer (current-buffer)))
-      (with-current-buffer vc-dir-process-buffer
-        (cd def-dir)
-        (erase-buffer)
-        (vc-call-backend
-         backend 'dir-status-files def-dir files default-state
-         (lambda (entries &optional more-to-come)
-           ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
-           ;; If MORE-TO-COME is true, then more updates will come from
-           ;; the asynchronous process.
-           (with-current-buffer buffer
-             (vc-dir-update entries buffer)
-             (unless more-to-come
-               (setq mode-line-process nil)
-               ;; Remove the ones that haven't been updated at all.
-               ;; Those not-updated are those whose state is nil because the
-               ;; file/dir doesn't exist and isn't versioned.
-               (ewoc-filter vc-ewoc
-                            (lambda (info)
-			      ;; The state for directory entries might
-			      ;; have been changed to 'up-to-date,
-			      ;; reset it, othewise it will be removed when doing 'x'
-			      ;; next time.
-			      ;; FIXME: There should be a more elegant way to do this.
-			      (when (and (vc-dir-fileinfo->directory info)
-					 (eq (vc-dir-fileinfo->state info)
-					     'up-to-date))
-				(setf (vc-dir-fileinfo->state info) nil))
-
-                              (not (vc-dir-fileinfo->needs-update info))))))))))))
-
-(defun vc-dir-refresh ()
-  "Refresh the contents of the *VC-dir* buffer.
-Throw an error if another update process is in progress."
-  (interactive)
-  (if (vc-dir-busy)
-      (error "Another update process is in progress, cannot run two at a time")
-    (let ((def-dir default-directory)
-	  (backend vc-dir-backend))
-      (vc-set-mode-line-busy-indicator)
-      ;; Call the `dir-status' backend function.
-      ;; `dir-status' is supposed to be asynchronous.
-      ;; It should compute the results, and then call the function
-      ;; passed as an argument in order to update the vc-dir buffer
-      ;; with the results.
-
-      ;; Create a buffer that can be used by `dir-status' and call
-      ;; `dir-status' with this buffer as the current buffer.  Use
-      ;; `vc-dir-process-buffer' to remember this buffer, so that
-      ;; it can be used later to kill the update process in case it
-      ;; takes too long.
-      (unless (buffer-live-p vc-dir-process-buffer)
-        (setq vc-dir-process-buffer
-              (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-      ;; set the needs-update flag on all entries
-      (ewoc-map (lambda (info) (setf (vc-dir-fileinfo->needs-update info) t) nil)
-                vc-ewoc)
-      (lexical-let ((buffer (current-buffer)))
-        (with-current-buffer vc-dir-process-buffer
-          (cd def-dir)
-          (erase-buffer)
-          (vc-call-backend
-           backend 'dir-status def-dir
-           (lambda (entries &optional more-to-come)
-             ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
-             ;; If MORE-TO-COME is true, then more updates will come from
-             ;; the asynchronous process.
-             (with-current-buffer buffer
-               (vc-dir-update entries buffer)
-               (unless more-to-come
-                 (let ((remaining
-                        (ewoc-collect
-                         vc-ewoc 'vc-dir-fileinfo->needs-update)))
-                   (if remaining
-                       (vc-dir-refresh-files
-                        (mapcar 'vc-dir-fileinfo->name remaining)
-                        'up-to-date)
-                     (setq mode-line-process nil))))))))))))
-
-(defun vc-dir-show-fileentry (file)
-  "Insert an entry for a specific file into the current *VC-dir* listing.
-This is typically used if the file is up-to-date (or has been added
-outside of VC) and one wants to do some operation on it."
-  (interactive "fShow file: ")
-  (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
-
-(defun vc-dir-hide-up-to-date ()
-  "Hide up-to-date items from display."
-  (interactive)
-  (ewoc-filter
-   vc-ewoc
-   (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
-
-(defun vc-default-status-fileinfo-extra (backend file)
-  "Default absence of extra information returned for a file."
-  nil)
-
-;; FIXME: Replace these with a more efficient dispatch
-
-(defun vc-generic-status-printer (fileentry)
-  (vc-call-backend vc-dir-backend 'status-printer fileentry))
-
-(defun vc-generic-state (file)
-  (vc-call-backend vc-dir-backend 'state file))
-
-(defun vc-generic-status-fileinfo-extra (file)
-  (vc-call-backend vc-dir-backend 'status-fileinfo-extra file))
-
-(defun vc-dir-extra-menu ()
-  (vc-call-backend vc-dir-backend 'extra-status-menu))
-
-(defun vc-make-backend-object (file-or-dir)
-  "Create the backend capability object needed by vc-dispatcher."
-  (vc-create-client-object
-   "VC dir"
-   (vc-dir-headers vc-dir-backend file-or-dir)
-   #'vc-generic-status-printer
-   #'vc-generic-state
-   #'vc-generic-status-fileinfo-extra
-   #'vc-dir-refresh
-   #'vc-dir-extra-menu))
-
-;;;###autoload
-(defun vc-dir (dir)
-  "Show the VC status for DIR."
-  (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir))
-  (if (and (derived-mode-p 'vc-dir-mode) (boundp 'client-object))
-      (vc-dir-refresh)
-    ;; Otherwise, initialize a new view using the dispatcher layer
-    (progn
-      (set (make-local-variable 'vc-dir-backend) (vc-responsible-backend dir))
-      ;; Build a capability object and hand it to the dispatcher initializer
-      (vc-dir-mode (vc-make-backend-object dir))
-      ;; FIXME: Make a derived-mode instead.
-      ;; Add VC-specific keybindings
-      (let ((map (current-local-map)))
-	(define-key map "v" 'vc-next-action) ;; C-x v v
-	(define-key map "=" 'vc-diff)        ;; C-x v =
-	(define-key map "i" 'vc-register)    ;; C-x v i
-	(define-key map "+" 'vc-update)      ;; C-x v +
-	(define-key map "l" 'vc-print-log)   ;; C-x v l
-	;; More confusing than helpful, probably
-	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
-	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
-	(define-key map "x" 'vc-dir-hide-up-to-date))
-      )
-    ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash
-    (let ((map vc-dir-menu-map))
-    ;; VC info details
-    (define-key map [sepvcdet] '("--"))
-    (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
-		  :help "Hide up-to-date items from display"))
-    ;; FIXME: This needs a key binding.  And maybe a better name
-    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
-    (define-key map [ins]
-      '(menu-item "Show File" vc-dir-show-fileentry
-		  :help "Show a file in the VC status listing even though it might be up to date"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [next-action]
-      ;; FIXME: This really really really needs a better name!
-      ;; And a key binding too.
-      '(menu-item "Check In/Out" vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
-    (define-key map [register]
-      '(menu-item "Register" vc-dir-register
-		  :help "Register file set into the version control system"))
-    )))
 
 ;; Named-configuration entry points
 

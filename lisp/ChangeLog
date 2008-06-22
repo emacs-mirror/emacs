@@ -1,5 +1,11 @@
 2008-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el:
+	* vc-hooks.el:
+	* vc-dispatcher.el: Move vc-dir variables and functions ...  
+	* vc-dir.el: ... here.  New file.
+	* Makefile.in (ELCFILES): Add vc-dir.elc.
+
 	* vc.el: Move vc-annotate variables and functions ...
 	* vc-annotate.el: ... here.  New file.
 	* Makefile.in (ELCFILES): Add vc-annotate.elc.
