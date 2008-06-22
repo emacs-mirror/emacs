@@ -1,6 +1,7 @@
 2008-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (witness-emacs): Depend on temacs${EXEEXT}.
+	(.SUFFIXES): Declare .el.elc as a suffix rule, for non-GNU makes.
 
 2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
