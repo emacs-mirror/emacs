@@ -1,3 +1,13 @@
+2008-06-23  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (DEBUG_FLAG, DEBUG_LINK) [!NODEBUG]:
+	Don't hardcode -gstabs+, use DEBUG_INFO.
+
+	* configure.bat (gccdebug): Check for DWARF-2 support in GCC.
+	Default to stabs if the compiler does not support DWARF-2.
+	(genmakefiles): Write new variable DEBUG_INFO to config.settings.
+
 2008-05-14  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Remove code dealing with --disable-font-backend.

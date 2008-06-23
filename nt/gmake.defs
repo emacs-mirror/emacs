@@ -262,8 +262,8 @@ ifdef NODEBUG
 DEBUG_FLAG =
 DEBUG_LINK =
 else
-DEBUG_FLAG = -gstabs+ -g3
-DEBUG_LINK = -gstabs+ -g3
+DEBUG_FLAG = $(DEBUG_INFO)
+DEBUG_LINK = $(DEBUG_INFO)
 endif
 
 ifdef NOCYGWIN
