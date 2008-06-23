@@ -1,3 +1,8 @@
+2008-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-annotate.el (vc-annotate-mode): Derive from special-mode
+	instead of using view-mode.
+
 2008-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (distclean): Don't delete *.elc and autogen files.

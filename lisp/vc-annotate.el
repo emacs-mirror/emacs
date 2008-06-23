@@ -149,7 +149,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   ;; The fontification is done by vc-annotate-lines instead of font-lock.
   '((vc-annotate-lines)))
 
-(define-derived-mode vc-annotate-mode fundamental-mode "Annotate"
+(define-derived-mode vc-annotate-mode special-mode "Annotate"
   "Major mode for output buffers of the `vc-annotate' command.
 
 You can use the mode-specific menu to alter the time-span of the used
@@ -161,8 +161,7 @@ menu items."
   (remove-from-invisibility-spec 'foo)
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
-       '(vc-annotate-font-lock-keywords t))
-  (view-mode 1))
+       '(vc-annotate-font-lock-keywords t)))
 
 (defun vc-annotate-toggle-annotation-visibility ()
   "Toggle whether or not the annotation is visible."
