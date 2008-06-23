@@ -729,15 +729,6 @@ struct frame * check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 
-#define FONT_TYPE_FOR_UNIBYTE(font, ch)			\
-  ((font)->bdf ? BDF_1D_FONT : ANSI_FONT)
-
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch)		\
-  (!(font)->bdf						\
-   ? UNICODE_FONT					\
-   : ((CHARSET_DIMENSION (CHAR_CHARSET ((ch))) == 1)	\
-      ? BDF_1D_FONT : BDF_2D_FONT))
-
 typedef DWORD (WINAPI * ClipboardSequence_Proc) ();
 typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN HMENU,
