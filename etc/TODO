@@ -545,13 +545,6 @@ when the body only calls primitives.
   the definition of `file-attributes' and `directory-files-and-attributes'
   and from the calls.
 
-** Modify the emulation of `stat' for MS-Windows to support large files.
-  The current version uses the stock Windows definition of `struct
-  stat', where the file's size is returned as a 32-bit integer.  That
-  overflows for files larger than 4GB.  To fix, modify `stat' to use
-  64-bit size, and use a declaration of `struct stat' that supports
-  such sizes.
-
 ** Make language-info-alist customizable.  Currently a user can customize
   only the variable `current-language-environment'.
 
