@@ -627,4 +627,5 @@ The annotations are relative to the current time, unless overridden by OFFSET."
 
 (provide 'vc-annotate)
 
+;; arch-tag: c3454a89-80e5-4ffd-8993-671b59612898
 ;;; vc-annotate.el ends here

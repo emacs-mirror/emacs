@@ -1046,4 +1046,5 @@ outside of VC) and one wants to do some operation on it."
 
 (provide 'vc-dir)
 
+;; arch-tag: 0274a2e3-e8e9-4b1a-a73c-e8b9129d5d15
 ;;; vc-dir.el ends here
