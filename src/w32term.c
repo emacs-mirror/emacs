@@ -54,7 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #include "w32heap.h"
-#include "w32bdf.h"
 #include <shellapi.h>
 
 #include "font.h"
@@ -102,8 +101,6 @@ extern void free_frame_menubar ();
 extern int w32_codepage_for_font (char *fontname);
 extern Cursor w32_load_cursor (LPCTSTR name);
 
-extern glyph_metric *w32_BDF_TextMetric(bdffont *fontp,
-					unsigned char *text, int dim);
 extern Lisp_Object Vwindow_system;
 
 #define x_any_window_to_frame x_window_to_frame
@@ -1223,7 +1220,6 @@ x_draw_glyph_string_background (s, force_p)
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
-	       || FONT_COMPAT (s->font)->bdf
 	       || cleartype_active
 	       || force_p)
 	{
@@ -2346,8 +2342,7 @@ x_draw_glyph_string (s)
 
       /* Draw strike-through.  */
       if (s->face->strike_through_p
-          && (FONT_COMPAT (s->font)->bdf
-	      || !FONT_COMPAT (s->font)->tm.tmStruckOut))
+          && !FONT_COMPAT (s->font)->tm.tmStruckOut)
         {
           unsigned long h = 1;
           unsigned long dy = (s->height - h) / 2;
