@@ -1426,9 +1426,10 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
 
-distclean: bootstrap-clean
+distclean:
 	-rm -f ./Makefile
-maintainer-clean: distclean
+
+maintainer-clean: distclean bootstrap-clean
 
 .PHONY: check-declare
 

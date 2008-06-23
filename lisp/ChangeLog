@@ -1,15 +1,19 @@
+2008-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (distclean): Don't delete *.elc and autogen files.
+
 2008-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el:
 	* vc-hooks.el:
-	* vc-dispatcher.el: Move vc-dir variables and functions ...  
+	* vc-dispatcher.el: Move vc-dir variables and functions ...
 	* vc-dir.el: ... here.  New file.
 	* Makefile.in (ELCFILES): Add vc-dir.elc.
 
 	* vc.el: Move vc-annotate variables and functions ...
 	* vc-annotate.el: ... here.  New file.
 	* Makefile.in (ELCFILES): Add vc-annotate.elc.
-	
+
 	* vc-dav.el: Move here from url/vc-dav.el.
 	(Todo): Note work needed to make this backend functional.
 
