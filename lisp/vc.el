@@ -633,25 +633,15 @@
 ;;   vc-dir, it is possible that these commands are called
 ;;   for unregistered/ignored files.
 ;;
-;; - Using multiple backends needs work.  Given a CVS directory with some
-;;   files checked into git (but not all), using C-x v l to get a log file
-;;   from a file only present in git, and then typing RET on some log entry,
-;;   vc will bombs out because it wants to see the file being in CVS.
-;;   Those logs should likely use a local variable to hardware the VC they
-;;   are supposed to work with.
+;; - vc-next-action needs work in order to work with multiple
+;;   backends: `vc-state' returns the state for the default backend,
+;;   not for the backend in the current *vc-dir* buffer.
 ;;
 ;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
 ;;   it should work for other async commands done through vc-do-command
 ;;   as well,
 ;;
 ;; - vc-dir toolbar needs more icons.
-;;
-;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
-;;
-;;;; Problems:
-;;
-;; - the *vc-dir* buffer is not updated correctly anymore after VC
-;;   operations that change the file state.
 ;;
 ;;; Code:
 

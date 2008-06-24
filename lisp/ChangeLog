@@ -1,5 +1,7 @@
 2008-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (Todo): Update.
+
 	* vc-hg.el (vc-annotate-convert-time, vc-default-status-printer): 
 	* vc-rcs.el (vc-annotate-convert-time): 
 	* vc-mtn.el (vc-annotate-convert-time): 
