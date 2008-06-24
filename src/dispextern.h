@@ -1804,6 +1804,14 @@ enum prop_idx
   LAST_PROP_IDX
 };
 
+/* An enumerator for the method of wrapping long lines.  */
+
+enum line_wrap_method
+{
+  TRUNCATE,
+  WORD_WRAP,
+  WINDOW_WRAP
+};
 
 struct it_slice
 {
@@ -2008,8 +2016,7 @@ struct it
      where the `^' can be replaced by a display table entry.  */
   unsigned ctl_arrow_p : 1;
 
-  /* 1 means lines are truncated.  */
-  unsigned truncate_lines_p : 1;
+  enum line_wrap_method line_wrap;
 
   /* Non-zero means that the current face has a box.  */
   unsigned face_box_p : 1;
