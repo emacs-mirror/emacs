@@ -2212,8 +2212,7 @@ font_score (entity, spec_prop)
 
   /* Score the size.  Maximum difference is 127.  */
   i = FONT_SIZE_INDEX;
-  if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i])
-      && XINT (AREF (entity, i)) > 0)
+  if (! NILP (spec_prop[i]) && XINT (AREF (entity, i)) > 0)
     {
       /* We use the higher 6-bit for the actual size difference.  The
 	 lowest bit is set if the DPI is different.  */
@@ -2278,7 +2277,7 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
   if (len <= 1)
     return best_only ? AREF (vec, 0) : vec;
 
-  for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
+  for (i = FONT_WEIGHT_INDEX; i <= FONT_DPI_INDEX; i++)
     prefer_prop[i] = AREF (prefer, i);
 
   if (! NILP (spec))
