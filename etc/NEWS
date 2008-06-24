@@ -345,6 +345,21 @@ variable `word-wrap', if non-nil turns on word-wrapping.  Word
 wrapping does not take place if continuation lines are not shown,
 e.g. if truncate-lines is non-nil.
 
+** Window management changes
+
+*** truncate-partial-width-windows now accepts integer values, which
+specify a minimum window width for partial-width windows, below which
+lines are truncated.  The default has been changed to 30.
+
+*** The new command balance-windows-area balances windows both
+vertically and horizontally.
+
+** Continuation lines can be wrapped at word boundaries
+(word-wrapping) instead of the right window edge.  The new per-buffer
+variable `word-wrap', if non-nil turns on word-wrapping.  Word
+wrapping does not take place if continuation lines are not shown,
+e.g. if truncate-lines is non-nil.
+
 ** Miscellaneous changes:
 
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
@@ -352,9 +367,6 @@ This moves the current line to window center, top and bottom on
 successive invokations.
 
 *** scroll-preserve-screen-position also preserves the column position.
-
-*** The new command balance-windows-area balances windows both
-vertically and horizontally.
 
 *** If `yank-pop-change-selection' is t, rotating the kill ring also
 updates the selection or clipboard to the current yank, just as M-w
