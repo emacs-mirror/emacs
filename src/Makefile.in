@@ -1281,17 +1281,20 @@ mostlyclean:
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
-/**/# This is used in making a distribution.
-/**/# Do not use it on development directories!
-distclean: clean
-	rm -f epaths.h config.h Makefile Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
-	mv ./.gdbinit ./.gdbinit.save
-	if test -f "${srcdir}/.gdbinit"; then rm -f ./.gdbinit.save; \
-	else mv ./.gdbinit.save ./.gdbinit; fi
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,
    but not things like config.status or TAGS.  */
-bootstrap-clean: distclean
+bootstrap-clean: clean
+	rm -f epaths.h config.h Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
+	if test -f ./.gdbinit; then \
+	  mv ./.gdbinit ./.gdbinit.save; \
+	  if test -f "${srcdir}/.gdbinit"; then rm -f ./.gdbinit.save; \
+	  else mv ./.gdbinit.save ./.gdbinit; fi; \
+	fi
+/**/# This is used in making a distribution.
+/**/# Do not use it on development directories!
+distclean: bootstrap-clean
+	rm -f Makefile
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."

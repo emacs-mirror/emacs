@@ -2,6 +2,9 @@
 
 	* Makefile.in (${lispsource}/loaddefs.el): Renamed from
 	../lisp/loaddefs.el.
+	(bootstrap-clean): Do what distclean does but don't remove
+	Makefile.
+	(distclean): Depend on bootstrap-clean and remove Makefile.
 
 2008-06-24  Chong Yidong  <cyd@stupidchicken.com>
 
