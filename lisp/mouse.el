@@ -2524,7 +2524,7 @@ choose a font."
 	      ((eq choice 'face-remap-reset-base)
 	       (text-scale-mode 0)
 	       (buffer-face-mode 0))
-	      (t
+	      (choice
 	       ;; Either choice == 'x-select-font, or choice is a
 	       ;; symbol whose name is a font.
 	       (buffer-face-mode-invoke (font-face-attributes

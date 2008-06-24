@@ -1,3 +1,8 @@
+2008-06-24  Miles Bader  <miles@gnu.org>
+
+	* mouse.el (mouse-appearance-menu): Don't do anything if the user
+	pops up the menu but doesn't select anything.
+
 2008-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* add-log.el (add-change-log-entry): Add new arg to force each new
