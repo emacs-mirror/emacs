@@ -339,6 +339,12 @@ possible completions, rather than stopping at the common prefix.
 if you repeat the completion.  This was already supported in
 `partial-completion-mode'.
 
+** Continuation lines can be wrapped at word boundaries
+(word-wrapping) instead of the right window edge.  The new per-buffer
+variable `word-wrap', if non-nil turns on word-wrapping.  Word
+wrapping does not take place if continuation lines are not shown,
+e.g. if truncate-lines is non-nil.
+
 ** Miscellaneous changes:
 
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
