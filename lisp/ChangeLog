@@ -1,3 +1,10 @@
+2008-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-mode-map): Add extra keybindings to
+	`calc-missing-key'.
+	* calc/calc-ext.el (calc-init-extensions): Add keybinding for
+	`kill-ring-save'.
+
 2008-06-24  Miles Bader  <miles@gnu.org>
 
 	* mouse.el (mouse-appearance-menu): Don't do anything if the user
