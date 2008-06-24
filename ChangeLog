@@ -1,6 +1,6 @@
 2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* Makefile.in ${SUBDIR}: Pass additional BOOTSTRAPEMACS argument.
+	* Makefile.in (${SUBDIR}): Pass additional BOOTSTRAPEMACS argument.
 
 2008-06-22  Glenn Morris  <rgm@gnu.org>
 
@@ -161,14 +161,12 @@
 
 2008-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* configure.in: Print an error for systems that we think are
-	obsolete and are proposed to be removed.  Remove some more unused
-	systems.
+	* configure.in: Print an error for systems that we think are obsolete
+	and are proposed to be removed.  Remove some more unused systems.
 
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* configure.in: Remove references to obsolete variables and
-	systems.
+	* configure.in: Remove references to obsolete variables and systems.
 
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
@@ -180,7 +178,7 @@
 
 2008-02-10  Matthew Luckie  <mjl@luckie.org.nz>  (tiny change)
 
-	* configure.in (arm*-*-freebsd*): Added.
+	* configure.in (arm*-*-freebsd*): Add.
 
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 

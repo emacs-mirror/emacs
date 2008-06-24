@@ -1,9 +1,9 @@
 2008-06-23  Jason Rumney  <jasonr@gnu.org>
 
-        * w32term.c (x_draw_glyph_string_background)
-        (x_draw_glyph_string): Remove old bdf font code.
+	* w32term.c (x_draw_glyph_string_background)
+	(x_draw_glyph_string): Remove old bdf font code.
 
-        * w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove. 
+	* w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove.
 
 2008-06-22  Kenichi Handa  <handa@m17n.org>
 
@@ -11,7 +11,7 @@
 	the property of LFACE_FONT of LFACE (if any).
 
 2008-06-21  Seiji Zenitani  <zenitani@mac.com>
-            Ryo Yoshitake  <ryo@shiftmode.net>
+	    Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* xterm.c (x_set_frame_alpha): Add x_catch_errors for bug#437.
 
@@ -144,8 +144,7 @@
 
 2008-06-18  Andreas Schwab  <schwab@suse.de>
 
-	* font.c (Ffont_face_attributes): Only define if
-	HAVE_WINDOW_SYSTEM.
+	* font.c (Ffont_face_attributes): Only define if HAVE_WINDOW_SYSTEM.
 	(syms_of_font): Only defsubr if HAVE_WINDOW_SYSTEM.
 
 2008-06-18  Jason Rumney  <jasonr@gnu.org>
@@ -167,8 +166,7 @@
 
 2008-06-17  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
 
-	* fontset.c (fontset_pattern_regexp): Escape some reg-expr
-	characters.
+	* fontset.c (fontset_pattern_regexp): Escape some reg-expr characters.
 
 2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1755,7 +1753,7 @@
 	(w32font_driver): Adjusted for the change of struct font_driver.
 
 	* w32term.h: Throughout the file, delete all USE_FONT_BACKEND
-	conditionals.  Don't check enable_font_backend. Surround non-used
+	conditionals.  Don't check enable_font_backend.  Surround non-used
 	code by "#ifdef OLD_FONT" and "endif".
 	(FONT_WIDTH, FONT_HEIGHT, FONT_BASE, FONT_DESCENT)
 	(FONT_AVG_WIDTH): Adjusted for the change of struct font.
@@ -7312,8 +7310,8 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* xterm.c (XTread_socket): Fix changes for defined keysyms.  Add
-	XK_ISO... case.
+	* xterm.c (XTread_socket): Fix changes for defined keysyms.
+	Add XK_ISO... case.
 	(xaw_scroll_callback): Revert last change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>

@@ -435,7 +435,7 @@
 	(tramp-sh-file-name-handler): Reset `tramp-locked' in case of error.
 	(tramp-open-connection-setup-interactive-shell): Flush cache, and
 	restart `tramp-maybe-open-connection' when the remote system has
-	been changed. Throw 'uname-changed event.
+	been changed.  Throw 'uname-changed event.
 	(tramp-maybe-open-connection): Catch it.
 
 	* net/tramp-cmds.el (tramp-cleanup-all-connections):
@@ -515,7 +515,7 @@
 	* term/linux.el (terminal-init-linux): Load t-mouse.
 
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-	        Drew Adams  <drew.adams@oracle.com>
+	    Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-breadcrumbs-depth): New var.
 	(Info-insert-breadcrumbs): New function.
@@ -886,7 +886,7 @@
 	(newsticker-retrieval): New.  Renamed from `newsticker-feed'.
 	(newsticker-url-list-defaults):
 	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
-	(newsticker-url-list): Doc changed. URL can be a function.
+	(newsticker-url-list): Doc changed.  URL can be a function.
 	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
 	(newsticker-retrieval-method): New.
 	(newsticker-wget-name, newsticker-wget-arguments): Change :group.
@@ -987,7 +987,7 @@
 	(newsticker--set-customvar-sorting): New.  Extracted from
 	`newsticker--set-customvar'.
 	(newsticker-sort-method): Use `newsticker--set-customvar-sorting
-	for :set. Changed :group.
+	for :set.  Changed :group.
 	(newsticker-heading-format, newsticker-item-format)
 	(newsticker-desc-format, newsticker-statistics-format):
 	Use `newsticker--set-customvar-formatting for :set.  Change :group.
@@ -2315,7 +2315,7 @@
 	* vc-mtn.el (vc-mtn-command):
 	* vc-sccs.el (vc-sccs-command, vc-sccs-workfile)
 	(vc-sccs-workfile-unchanged-p):
-	* vc-svn.el (vc-svn-command, vc-svn-create-repo),
+	* vc-svn.el (vc-svn-command, vc-svn-create-repo):
 	* vc-rcs.el (all methods): Remove assumption about what a nil
 	argument to vc-do-command means.  This means no buffer name needs
 	to be hardcoded into the dispatcher layer, and it's better to be
