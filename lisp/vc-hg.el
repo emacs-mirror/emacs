@@ -289,6 +289,7 @@ Optional arg REVISION is a revision to annotate from."
     (re-search-forward "^[ \t]*[0-9]")
     (delete-region (point-min) (match-beginning 0))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 ;; The format for one line output by "hg annotate -d -n" looks like this:
 ;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS
@@ -424,6 +425,8 @@ REV is the revision to check out into WORKFILE."
             (:conc-name vc-hg-extra-fileinfo->))
   rename-state        ;; rename or copy state
   extra-name)         ;; original name for copies and rename targets, new name for
+
+(declare-function vc-default-status-printer "vc-dir" (backend fileentry))
 
 (defun vc-hg-status-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."

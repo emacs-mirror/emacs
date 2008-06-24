@@ -542,6 +542,8 @@ or BRANCH^ (where \"^\" can be repeated)."
   (let ((name (file-relative-name file)))
     (vc-git-command buf 0 name "blame" (if rev (concat "-r" rev)))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
+
 (defun vc-git-annotate-time ()
   (and (re-search-forward "[0-9a-f]+[^()]+(.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+) " nil t)
        (vc-annotate-convert-time

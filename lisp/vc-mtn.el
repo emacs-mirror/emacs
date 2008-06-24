@@ -190,6 +190,8 @@
   (apply 'vc-mtn-command buf 0 file "annotate"
          (if rev (list "-r" rev))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
+
 (defconst vc-mtn-annotate-full-re
   "^ *\\([0-9a-f]+\\)\\.* by [^ ]+ \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\): ")
 (defconst vc-mtn-annotate-any-re

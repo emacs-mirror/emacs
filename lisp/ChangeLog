@@ -1,3 +1,12 @@
+2008-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-annotate-convert-time, vc-default-status-printer): 
+	* vc-rcs.el (vc-annotate-convert-time): 
+	* vc-mtn.el (vc-annotate-convert-time): 
+	* vc-git.el (vc-annotate-convert-time): 
+	* vc-cvs.el (vc-annotate-convert-time): 
+	* vc-bzr.el (vc-annotate-convert-time): Declare as functions.
+
 2008-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-annotate.el (vc-annotate-mode): Derive from special-mode

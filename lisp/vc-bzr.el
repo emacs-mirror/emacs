@@ -536,6 +536,8 @@ property containing author and date information."
         (replace-match "")
         (insert tag " |")))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
+
 (defun vc-bzr-annotate-time ()
   (when (re-search-forward "^ *[0-9.]+ +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
