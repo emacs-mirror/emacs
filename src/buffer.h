@@ -650,6 +650,8 @@ struct buffer
 
   /* Non-nil means do not display continuation lines.  */
   Lisp_Object truncate_lines;
+  /* Non-nil means to use word wrapping when displaying continuation lines.  */
+  Lisp_Object word_wrap;
   /* Non-nil means display ctl chars with uparrow.  */
   Lisp_Object ctl_arrow;
   /* Non-nil means display text from right to left.  */
