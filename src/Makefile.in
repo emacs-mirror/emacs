@@ -1360,7 +1360,7 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
-${lispsource}/loaddefs.el: $(BOOTSTRAPEMACS)
+${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
 	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
