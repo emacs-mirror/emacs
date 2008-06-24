@@ -3800,7 +3800,7 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
       Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
       int dpi = INTEGERP (font_dpi) ? XINT (font_dpi) : f->resy;
       plist[n++] = QCheight;
-      plist[n++] = make_number (10 * PIXEL_TO_POINT (XINT (val), dpi));
+      plist[n++] = make_number (PIXEL_TO_POINT (XINT (val) * 10, dpi));
     }
   else if (FLOATP (val))
     {
