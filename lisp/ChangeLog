@@ -1,5 +1,9 @@
 2008-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* add-log.el (add-change-log-entry): Add new arg to force each new
+	entry to be on a new line.
+	* diff-mode.el (diff-add-change-log-entries-other-window): Use it.
+
 	* vc-dir.el (vc-client-object): Remove.
 	(vc-dir-prepare-status-buffer): Take a backend as an argument and
 	use it when looking for a buffer.
@@ -17,11 +21,11 @@
 
 	* vc.el (Todo): Update.
 
-	* vc-hg.el (vc-annotate-convert-time, vc-default-status-printer): 
-	* vc-rcs.el (vc-annotate-convert-time): 
-	* vc-mtn.el (vc-annotate-convert-time): 
-	* vc-git.el (vc-annotate-convert-time): 
-	* vc-cvs.el (vc-annotate-convert-time): 
+	* vc-hg.el (vc-annotate-convert-time, vc-default-status-printer):
+	* vc-rcs.el (vc-annotate-convert-time):
+	* vc-mtn.el (vc-annotate-convert-time):
+	* vc-git.el (vc-annotate-convert-time):
+	* vc-cvs.el (vc-annotate-convert-time):
 	* vc-bzr.el (vc-annotate-convert-time): Declare as functions.
 
 2008-06-23  Dan Nicolaescu  <dann@ics.uci.edu>

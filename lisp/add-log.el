@@ -518,7 +518,8 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 	buffer-file))))
 
 ;;;###autoload
-(defun add-change-log-entry (&optional whoami file-name other-window new-entry)
+(defun add-change-log-entry (&optional whoami file-name other-window new-entry
+				       put-new-entry-on-new-line)
   "Find change log file, and add an entry for today and an item for this file.
 Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
 name and email (stored in `add-log-full-name' and `add-log-mailing-address').
@@ -531,6 +532,10 @@ Third arg OTHER-WINDOW non-nil means visit in other window.
 Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry.  Option `add-log-keep-changes-together'
 otherwise affects whether a new entry is created.
+
+Fifth arg PUT-NEW-ENTRY-ON-NEW-LINE non-nil means that if a new
+entry is created, put it on a new line by itself, do not put it
+after a comma on an existing line.
 
 Option `add-log-always-start-new-record' non-nil means always create a
 new record, even when the last record was made on the same date and by
@@ -679,7 +684,8 @@ non-nil, otherwise in local time."
       (let ((pos (point-marker)))
 	(skip-syntax-backward " ")
 	(skip-chars-backward "):")
-	(if (and (looking-at "):")
+	(if (and (not put-new-entry-on-new-line)
+		 (looking-at "):")
 		 (let ((pos (save-excursion (backward-sexp 1) (point))))
 		   (when (equal (buffer-substring pos (point)) defun)
 		     (delete-region pos (point)))
@@ -687,8 +693,8 @@ non-nil, otherwise in local time."
 	    (progn (skip-chars-backward ", ")
 		   (delete-region (point) pos)
 		   (unless (memq (char-before) '(?\()) (insert ", ")))
-	  (if (looking-at "):")
-	      (delete-region (+ 1 (point)) (line-end-position)))
+	  (when (and (not put-new-entry-on-new-line) (looking-at "):"))
+	    (delete-region (+ 1 (point)) (line-end-position)))
 	  (goto-char pos)
 	  (insert "("))
 	(set-marker pos nil))
