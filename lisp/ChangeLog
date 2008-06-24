@@ -1,5 +1,20 @@
 2008-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dir.el (vc-client-object): Remove.
+	(vc-dir-prepare-status-buffer): Take a backend as an argument and
+	use it when looking for a buffer.
+	(vc-dir): Add a backend argument.  Set revert-buffer-function.
+	Don't create a client object.  Move bindings ...
+	(vc-dir-menu-map, vc-dir-mode-map): ... here.
+	(vc-dir-revert-buffer-function): New function.
+	(vc-generic-status-printer): Rename to ...
+	(vc-dir-status-printer): ... this.
+	(vc-generic-state, vc-generic-status-fileinfo-extra)
+	(vc-dir-extra-menu, vc-make-backend-object): Remove.
+	(vc-default-status-printer): Use a different face for
+	directories.  Don't display any text for directories in the state
+	column.  Add tooltips.
+
 	* vc.el (Todo): Update.
 
 	* vc-hg.el (vc-annotate-convert-time, vc-default-status-printer): 

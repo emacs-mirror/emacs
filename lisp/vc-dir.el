@@ -62,7 +62,7 @@ See `run-hooks'."
             (:conc-name vc-dir-fileinfo->))
   name                                  ;Keep it as first, for `member'.
   state
-  ;; For storing client-mode specific information.
+  ;; For storing backend specific information.
   extra
   marked
   ;; To keep track of not updated files during a global refresh
@@ -70,29 +70,13 @@ See `run-hooks'."
   ;; To distinguish files and directories.
   directory)
 
-;; Used to describe a dispatcher client mode.
-(defstruct (vc-client-object
-            (:copier nil)
-            (:constructor
-	     vc-create-client-object (name
-				      headers
-				      file-to-info
-				      file-to-state
-				      file-to-extra
-				      updater
-				      extra-menu))
-            (:conc-name vc-client-object->))
-  name
-  headers
-  file-to-info
-  file-to-state
-  file-to-extra
-  updater
-  extra-menu)
-
 (defvar vc-ewoc nil)
+
 (defvar vc-dir-process-buffer nil
   "The buffer used for the asynchronous call that computes status.")
+
+(defvar vc-dir-backend nil
+  "The backend used by the current *vc-dir* buffer.")
 
 (defun vc-dir-move-to-goal-column ()
   ;; Used to keep the cursor on the file name column.
@@ -101,7 +85,7 @@ See `run-hooks'."
     ;; Must be in sync with vc-default-status-printer.
     (forward-char 25)))
 
-(defun vc-dir-prepare-status-buffer (bname dir &optional create-new)
+(defun vc-dir-prepare-status-buffer (bname dir backend &optional create-new)
   "Find a buffer named BNAME showing DIR, or create a new one."
   (setq dir (expand-file-name dir))
   (let*
@@ -110,7 +94,8 @@ See `run-hooks'."
 		(unless create-new
 		  (dolist (buffer (buffer-list))
 		    (set-buffer buffer)
-		    (when (and (vc-dispatcher-browsing)
+		    (when (and (derived-mode-p 'vc-dir-mode)
+			       (eq vc-dir-backend backend)
 			       (string= (expand-file-name default-directory) dir))
 		      (return buffer)))))))
     (or buf
@@ -133,9 +118,12 @@ See `run-hooks'."
 		  :enable (vc-dir-busy)
 		  :help "Kill the command that updates the directory buffer"))
     (define-key map [refresh]
-      '(menu-item "Refresh" vc-dir-refresh
+      '(menu-item "Refresh" revert-buffer
 		  :enable (not (vc-dir-busy))
 		  :help "Refresh the contents of the directory buffer"))
+    (define-key map [remup]
+      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
+		  :help "Hide up-to-date items from display"))
     ;; Movement.
     (define-key map [sepmv] '("--"))
     (define-key map [next-line]
@@ -173,21 +161,48 @@ See `run-hooks'."
     (define-key map [open]
       '(menu-item "Open file" vc-dir-find-file
 		  :help "Find the file on the current line"))
+    (define-key map [sepvcdet] '("--"))
+    ;; FIXME: This needs a key binding.  And maybe a better name
+    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
+    (define-key map [ins]
+      '(menu-item "Show File" vc-dir-show-fileentry
+		  :help "Show a file in the VC status listing even though it might be up to date"))
+    (define-key map [annotate]
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (define-key map [diff]
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (define-key map [log]
+     '(menu-item "Show history" vc-print-log
+     :help "List the change log of the current file set in a window"))
+    ;; VC commands.
+    (define-key map [sepvccmd] '("--"))
+    (define-key map [update]
+      '(menu-item "Update to latest version" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
+    (define-key map [revert]
+      '(menu-item "Revert to base version" vc-revert
+		  :help "Revert working copies of the selected fileset to their repository contents."))
+    (define-key map [next-action]
+      ;; FIXME: This really really really needs a better name!
+      ;; And a key binding too.
+      '(menu-item "Check In/Out" vc-next-action
+		  :help "Do the next logical version control operation on the current fileset"))
+    (define-key map [register]
+      '(menu-item "Register" vc-register
+		  :help "Register file set into the version control system"))
     map)
   "Menu for dispatcher status")
 
-(defvar vc-client-mode)
-
-;; This is used so that client modes can add mode-specific menu
-;; items to vc-dir-menu-map.
+;; VC backends can use this to add mode-specific menu items to
+;; vc-dir-menu-map.
 (defun vc-dir-menu-map-filter (orig-binding)
   (when (and (symbolp orig-binding) (fboundp orig-binding))
     (setq orig-binding (indirect-function orig-binding)))
   (let ((ext-binding
-         ;; This may be executed at load-time for tool-bar-local-item-from-menu
-         ;; but at that time vc-client-mode is not known (or even bound) yet.
-         (when (and (boundp 'vc-client-mode) vc-client-mode)
-           (funcall (vc-client-object->extra-menu vc-client-mode)))))
+         (when (derived-mode-p 'vc-dir-mode)
+	   (vc-call-backend vc-dir-backend 'extra-status-menu))))
     (if (null ext-binding)
 	orig-binding
       (append orig-binding
@@ -197,6 +212,15 @@ See `run-hooks'."
 (defvar vc-dir-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
+    ;; VC commands
+    (define-key map "v" 'vc-next-action)   ;; C-x v v
+    (define-key map "=" 'vc-diff)	   ;; C-x v =
+    (define-key map "i" 'vc-register)	   ;; C-x v i
+    (define-key map "+" 'vc-update)	   ;; C-x v +
+    (define-key map "l" 'vc-print-log)	   ;; C-x v l
+    ;; More confusing than helpful, probably
+    ;;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
+    ;;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
     ;; Marking.
     (define-key map "m" 'vc-dir-mark)
     (define-key map "M" 'vc-dir-mark-all-files)
@@ -219,17 +243,16 @@ See `run-hooks'."
     (define-key map "f" 'vc-dir-find-file)
     (define-key map "\C-m" 'vc-dir-find-file)
     (define-key map "o" 'vc-dir-find-file-other-window)
-    (define-key map "q" 'quit-window)
-    (define-key map "g" 'vc-dir-refresh)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     (define-key map [down-mouse-3] 'vc-dir-menu)
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
+    (define-key map "x" 'vc-dir-hide-up-to-date)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
       `(menu-item
-	;; This is used so that client modes can add mode-specific
-	;; menu items to vc-dir-menu-map.
+	;; VC backends can use this to add mode-specific menu items to
+	;; vc-dir-menu-map.
 	"VC-dir" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
     map)
   "Keymap for directory buffer.")
@@ -265,7 +288,7 @@ If `body' uses `event', it should be a variable,
 				   :rtl "left-arrow")
     (tool-bar-local-item-from-menu 'vc-print-log "info"
 				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'vc-dir-refresh "refresh"
+    (tool-bar-local-item-from-menu 'revert-buffer "refresh"
 				   map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'nonincremental-search-forward
 				   "search" map)
@@ -733,12 +756,9 @@ If it is a file, return the file itself."
 		  (let*
                       ;; FIXME: Any reason we don't use file-relative-name?
 		      ((file-short (substring file (length ddir)))
-		       (state (funcall (vc-client-object->file-to-state
-                                        vc-client-mode)
-				 file))
-		       (extra (funcall (vc-client-object->file-to-extra
-                                        vc-client-mode)
-				 file))
+		       (state (vc-call-backend vc-dir-backend 'state file))
+		       (extra (vc-call-backend vc-dir-backend
+					       'status-fileinfo-extra file))
 		       (entry
 			(list file-short state extra)))
 		    (vc-dir-update (list entry) status-buf))))))
@@ -747,7 +767,9 @@ If it is a file, return the file itself."
 	  (unless found-vc-dir-buf
             (remove-hook 'after-save-hook 'vc-dir-resynch-file)))))))
 
-(defun vc-dir-mode (client-object)
+(defvar use-vc-backend)  ;; dynamically bound
+
+(define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for dispatcher directory buffers.
 Marking/Unmarking key bindings and actions:
 m - marks a file/directory or if the region is active, mark all the files
@@ -768,30 +790,23 @@ U - if the cursor is on a file: unmark all the files with the same state
 
 
 \\{vc-dir-mode-map}"
-  (setq mode-name (vc-client-object->name client-object))
-  (setq major-mode 'vc-dir-mode)
+  (set (make-local-variable 'vc-dir-backend) use-vc-backend)
   (setq buffer-read-only t)
-  (use-local-map vc-dir-mode-map)
-  (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
-  (set (make-local-variable 'vc-client-mode) client-object)
+  (when (boundp 'tool-bar-map)
+    (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
   (let ((buffer-read-only nil))
     (erase-buffer)
     (set (make-local-variable 'vc-dir-process-buffer) nil)
     (set (make-local-variable 'vc-ewoc)
-	 (ewoc-create (vc-client-object->file-to-info client-object)
-		      (vc-client-object->headers client-object)))
+	 (ewoc-create #'vc-dir-status-printer
+		      (vc-dir-headers vc-dir-backend default-directory)))
+    (set (make-local-variable 'revert-buffer-function)
+	 'vc-dir-revert-buffer-function)
     (add-hook 'after-save-hook 'vc-dir-resynch-file)
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
-    (funcall (vc-client-object->updater client-object)))
-  (run-hooks 'vc-dir-mode-hook))
-
-(put 'vc-dir-mode 'mode-class 'special)
-
-(defvar vc-dir-backend nil
-  "The backend used by the current *vc-dir* buffer.")
+    (vc-dir-refresh)))
 
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC dir* buffer.
@@ -848,6 +863,9 @@ specific headers."
 				(setf (vc-dir-fileinfo->state info) nil))
 
                               (not (vc-dir-fileinfo->needs-update info))))))))))))
+
+(defun vc-dir-revert-buffer-function (&optional ignore-auto noconfirm)
+  (vc-dir-refresh))
 
 (defun vc-dir-refresh ()
   "Refresh the contents of the *VC-dir* buffer.
@@ -911,94 +929,30 @@ outside of VC) and one wants to do some operation on it."
    vc-ewoc
    (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
 
-;; FIXME: Replace these with a more efficient dispatch
-
-(defun vc-generic-status-printer (fileentry)
+(defun vc-dir-status-printer (fileentry)
   (vc-call-backend vc-dir-backend 'status-printer fileentry))
 
-(defun vc-generic-state (file)
-  (vc-call-backend vc-dir-backend 'state file))
-
-(defun vc-generic-status-fileinfo-extra (file)
-  (vc-call-backend vc-dir-backend 'status-fileinfo-extra file))
-
-(defun vc-dir-extra-menu ()
-  (vc-call-backend vc-dir-backend 'extra-status-menu))
-
-(defun vc-make-backend-object (file-or-dir)
-  "Create the backend capability object needed by vc-dispatcher."
-  (vc-create-client-object
-   "VC dir"
-   (vc-dir-headers vc-dir-backend file-or-dir)
-   #'vc-generic-status-printer
-   #'vc-generic-state
-   #'vc-generic-status-fileinfo-extra
-   #'vc-dir-refresh
-   #'vc-dir-extra-menu))
-
 ;;;###autoload
-(defun vc-dir (dir)
-  "Show the VC status for DIR."
-  (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir))
-  (if (and (derived-mode-p 'vc-dir-mode) (boundp 'client-object))
+(defun vc-dir (dir backend)
+  "Show the VC status for DIR.
+With a prefix argument ask what VC backend to use."
+  (interactive
+   (list
+    (read-file-name "VC status for directory: "
+		    default-directory default-directory t)
+    (if current-prefix-arg
+	(intern
+	 (completing-read
+	  "Use VC backend: "
+	  (mapcar (lambda (b) (list (symbol-name b))) vc-handled-backends)
+	  nil t nil nil))
+      (vc-responsible-backend default-directory))))
+  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend))
+  (if (derived-mode-p 'vc-dir-mode)
       (vc-dir-refresh)
-    ;; Otherwise, initialize a new view using the dispatcher layer
-    (progn
-      (set (make-local-variable 'vc-dir-backend) (vc-responsible-backend dir))
-      ;; Build a capability object and hand it to the dispatcher initializer
-      (vc-dir-mode (vc-make-backend-object dir))
-      ;; FIXME: Make a derived-mode instead.
-      ;; Add VC-specific keybindings
-      (let ((map (current-local-map)))
-	(define-key map "v" 'vc-next-action) ;; C-x v v
-	(define-key map "=" 'vc-diff)        ;; C-x v =
-	(define-key map "i" 'vc-register)    ;; C-x v i
-	(define-key map "+" 'vc-update)      ;; C-x v +
-	(define-key map "l" 'vc-print-log)   ;; C-x v l
-	;; More confusing than helpful, probably
-	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
-	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
-	(define-key map "x" 'vc-dir-hide-up-to-date))
-      )
-    ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash
-    (let ((map vc-dir-menu-map))
-    ;; VC info details
-    (define-key map [sepvcdet] '("--"))
-    (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
-		  :help "Hide up-to-date items from display"))
-    ;; FIXME: This needs a key binding.  And maybe a better name
-    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
-    (define-key map [ins]
-      '(menu-item "Show File" vc-dir-show-fileentry
-		  :help "Show a file in the VC status listing even though it might be up to date"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [next-action]
-      ;; FIXME: This really really really needs a better name!
-      ;; And a key binding too.
-      '(menu-item "Check In/Out" vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
-    (define-key map [register]
-      '(menu-item "Register" vc-dir-register
-		  :help "Register file set into the version control system"))
-    )))
+    ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
+    (let ((use-vc-backend backend))
+      (vc-dir-mode))))
 
 (defun vc-default-status-extra-headers (backend dir)
   ;; Be loud by default to remind people to add code to display
@@ -1013,13 +967,8 @@ outside of VC) and one wants to do some operation on it."
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
-	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
+	(state (if isdir "" (vc-dir-fileinfo->state fileentry)))
 	(filename (vc-dir-fileinfo->name fileentry)))
-    ;; FIXME: Backends that want to print the state in a different way
-    ;; can do it by defining the `status-printer' function.  Using
-    ;; `prettify-state-info' adds two extra vc-calls per item, which
-    ;; is too expensive.
-    ;;(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
@@ -1034,7 +983,12 @@ outside of VC) and one wants to do some operation on it."
      " "
      (propertize
       (format "%s" filename)
-      'face 'font-lock-function-name-face
+      'face
+      (if isdir 'font-lock-comment-delimiter-face 'font-lock-function-name-face)
+      'help-echo
+      (if isdir 
+	  "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu" 
+	"File\nmouse-3: Pop-up menu")
       'mouse-face 'highlight))))
 
 (defun vc-default-extra-status-menu (backend)
