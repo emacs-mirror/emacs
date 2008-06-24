@@ -1,3 +1,38 @@
+2008-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.h (struct buffer): New member word_wrap.
+
+	* buffer.c (syms_of_buffer): New variables default-word-wrap and
+	word-wrap.
+	(init_buffer_once): Initialize them.
+
+	* dispextern.h (struct it): Replace bool truncate_lines_p with a
+	line_wrap enum possessing three possible values.
+
+	* termopts.h: Replace truncate_partial_width_windows with
+	Vtruncate_partial_width_windows.
+
+	* dispnew.c (direct_output_for_insert): Avoid direct output when
+	inserting a space with word wrap on.
+
+	* indent.c (compute_motion): Obey integer values of
+	truncate-partial-width-windows.
+
+	* xdisp.c (Vtruncate_partial_width_windows): New Lisp_Object,
+	replacing truncate_partial_width_windows.
+	(init_iterator): If Vtruncate_partial_width_windows is an integer,
+	truncate only if the window width is below that integer.
+	(start_display. resize_mini_window, produce_stretch_glyph)
+	(display_string, move_it_in_display_line_to): Use line_wrap.
+	(back_to_previous_visible_line_start, reseat_1): Reset
+	string_from_display_prop_p.
+	(display_line): Extend default face to end of line when wrapping.
+
+2008-06-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_line, move_it_in_display_line_to): Add ability
+	to wrap continued lines at word boundaries.
+
 2008-06-24  Jason Rumney  <jasonr@gnu.org>
 
         * font.c (Ffont_face_attributes): Multiply pixel size before point
@@ -8,7 +43,7 @@
 	* w32term.c (x_draw_glyph_string_background)
 	(x_draw_glyph_string): Remove old bdf font code.
 
-	* w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove.
+        * w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove.
 
 2008-06-22  Kenichi Handa  <handa@m17n.org>
 
