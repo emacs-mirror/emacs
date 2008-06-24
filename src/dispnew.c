@@ -3514,6 +3514,7 @@ direct_output_for_insert (g)
       || g == '\t'
       || g == '\n'
       || g == '\r'
+      || (g == ' ' && !NILP (current_buffer->word_wrap))
       /* Give up if unable to display the cursor in the window.  */
       || w->cursor.vpos < 0
       /* Give up if we are showing a message or just cleared the message
