@@ -1,3 +1,7 @@
+2008-06-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-svn.el (vc-annotate-parent-rev): Pacify byte compiler.
+
 2008-06-25  Andreas Schwab  <schwab@suse.de>
 
 	* faces.el (face-font-family-alternatives, variable-pitch): Use
