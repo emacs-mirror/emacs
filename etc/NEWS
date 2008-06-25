@@ -362,6 +362,10 @@ e.g. if truncate-lines is non-nil.
 
 ** Miscellaneous changes:
 
+*** New keymap `search-map' bound to `M-s' provides global bindings
+for search related commands: `M-s o' for `occur', `M-s h r' for
+`highlight-regexp' and other hi-lock commands on the `M-s h' prefix.
+
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
 successive invokations.
@@ -576,6 +580,10 @@ window shall be automatically selected when invoking help.
 position of point in help window (for example in `view-lossage').
 
 ** Isearch
+
+*** New command `isearch-highlight-regexp' bound to `M-s h r'
+in isearch mode runs `highlight-regexp' (`hi-lock-face-buffer')
+with the current search string as its regexp argument.
 
 *** New command `isearch-occur' bound to `M-s o' in isearch mode
 runs `occur' with the current search string.
