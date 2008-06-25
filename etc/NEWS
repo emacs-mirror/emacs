@@ -1121,6 +1121,10 @@ robin rule can hold the original ASCII sequence as a char-code-property)
 *** The new function `robin-use-package' starts using a Robin package
 as an input method.
 
+*** The new function `string-to-unibyte' is like `string-as-unibyte'
+but signals an error if STRING contains a non-ASCII, non-eight-bit
+character.
+
 ** Changes related to the new font backend
 
 Which font backends to use can be specified by the X resource "FontBackend".
