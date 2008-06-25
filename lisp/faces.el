@@ -584,7 +584,7 @@ The following attributes are recognized:
 
 `:family'
 
-VALUE must be a string specifying the font family, e.g. ``courier'',
+VALUE must be a string specifying the font family, e.g. ``monospace'',
 or a fontset alias name.  If a font family is specified, wild-cards `*'
 and `?' are allowed.
 
