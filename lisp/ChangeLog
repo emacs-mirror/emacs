@@ -1,3 +1,10 @@
+2008-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (tex-verbatim): Use monospace instead of
+	courier.
+
+	* faces.el (set-face-attribute): Doc fix.
+
 2008-06-25  Juri Linkov  <juri@jurta.org>
 
 	* bindings.el (goto-map): New variable.  Rebind goto-related
