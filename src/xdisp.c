@@ -19349,7 +19349,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
       if (code != FONT_INVALID_CODE)
 	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
       else
-	STORE_XCHAR2B (char2b, 0, code);
+	STORE_XCHAR2B (char2b, 0, 0);
     }
 
   /* Make sure X resources of the face are allocated.  */

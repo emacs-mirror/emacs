@@ -1,3 +1,7 @@
+2008-06-25  Jason Rumney  <jasonr@gnu.org>
+
+        * xdisp.c (get_glyph_face_and_encoding): Encode invalid glyphs as 0.
+
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (Fbyte_code): Disable debugging code that doesn't compile.
