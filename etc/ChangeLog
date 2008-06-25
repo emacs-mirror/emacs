@@ -1,3 +1,7 @@
+2008-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Mention string-to-unibyte.
+
 2008-06-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Tramp uses auth-source.
