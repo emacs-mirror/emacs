@@ -834,6 +834,38 @@ str_as_unibyte (str, bytes)
   return (to - str);
 }
 
+/* Convert eight-bit chars in SRC (in multibyte form) to the
+   corresponding byte and store in DST.  CHARS is the number of
+   characters in SRC.  The value is the number of bytes stored in DST.
+   Usually, the value is the same as CHARS, but is less than it if SRC
+   contains a non-ASCII, non-eight-bit characater.  If ACCEPT_LATIN_1
+   is nonzero, a Latin-1 character is accepted and converted to a byte
+   of that character code. */
+
+EMACS_INT
+str_to_unibyte (src, dst, chars, accept_latin_1)
+     const unsigned char *src;
+     unsigned char *dst;
+     EMACS_INT chars;
+     int accept_latin_1;
+{
+  EMACS_INT i;
+
+  for (i = 0; i < chars; i++)
+    {
+      int c = STRING_CHAR_ADVANCE (src);
+
+      if (CHAR_BYTE8_P (c))
+	c = CHAR_TO_BYTE8 (c);
+      else if (! ASCII_CHAR_P (c)
+	       && (! accept_latin_1 || c >= 0x100))
+	return i;
+      *dst++ = c;
+    }
+  return i;
+}
+
+
 int
 string_count_byte8 (string)
      Lisp_Object string;
