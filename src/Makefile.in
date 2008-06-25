@@ -680,7 +680,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
    Files included conditionally here should be included (unconditionally)
    in SOME_MACHINE_LISP.  */
 
-/* Please loaddefs.el first, so it gets generated first, since it is on
+/* Place loaddefs.el first, so it gets generated first, since it is on
    the critical path (relevant in parallel compilations).  */
 
 lisp= \
