@@ -4,6 +4,9 @@
 
 2008-06-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el:
+	* vc-git.el: Require vc-dir when compiling.
+
 	* vc-dir.el (vc-dir-marked-only-files-and-states): Rename from
 	vc-dir-marked-only-files.  Change the return value.
 	(vc-dir-child-files-and-states): Rename from vc-dir-child-files.

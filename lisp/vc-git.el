@@ -107,6 +107,7 @@
 (eval-when-compile
   (require 'cl)
   (require 'vc)
+  (require 'vc-dir)
   (require 'grep))
 
 (defvar git-commits-coding-system 'utf-8

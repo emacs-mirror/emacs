@@ -108,7 +108,8 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'vc))
+  (require 'vc)
+  (require 'vc-dir))
 
 ;;; Customization options
 
