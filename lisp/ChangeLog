@@ -9,6 +9,7 @@
 	(vc-deduce-fileset): ... here.
 
 	* vc-svn.el (vc-annotate-parent-rev): Pacify byte compiler.
+	(vc-svn-parse-status): Do not set the vc-backend property.
 
 2008-06-25  Andreas Schwab  <schwab@suse.de>
 

@@ -613,9 +613,6 @@ information about FILENAME and return its status."
       (setq status (char-after (line-beginning-position)))
       (if (eq status ??)
 	  (vc-file-setprop file 'vc-state 'unregistered)
-	;; `vc-BACKEND-registered' must not set vc-backend,
-	;; which is instead set in vc-registered.
-	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
 	;; Use the last-modified revision, so that searching in vc-print-log
 	;; output works.
 	(vc-file-setprop file 'vc-working-revision (match-string 3))
