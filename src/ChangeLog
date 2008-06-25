@@ -1,15 +1,22 @@
+2008-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <truncate-partial-width-windows>: Doc fix.
+	<scroll-conservatively>: Fix typo in docstring.
+
+	* xselect.c (Fx_send_client_event): Doc fix.
+
 2008-06-25  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fx_list_fonts): Call Flist_fonts with the arg PREFER.
 
 	* font.c (font_parse_fcname): Remove unused variables.
-	(font_sort_entites): Delete the arg SPEC.  Caller changed.  Fix
-	for the case of ! best_only.
+	(font_sort_entites): Delete the arg SPEC.  Caller changed.
+	Fix for the case of ! best_only.
 	(font_delete_unmatched): Check DPI and AVGWIDTH too.
 
 	* lisp.h (Fstring_to_unibyte): EXFUN it.
 
-	* character.h: (str_to_unibyte): Extern it.
+	* character.h (str_to_unibyte): Extern it.
 
 	* character.c (str_to_unibyte): New function.
 
@@ -24,7 +31,7 @@
 
 2008-06-24  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (${lispsource}loaddefs.el): Renamed from
+	* Makefile.in (${lispsource}loaddefs.el): Rename from
 	../lisp/loaddefs.el.
 	(bootstrap-clean): Do what distclean does but don't remove
 	Makefile.
@@ -67,15 +74,15 @@
 
 2008-06-24  Jason Rumney  <jasonr@gnu.org>
 
-        * font.c (Ffont_face_attributes): Multiply pixel size before point
-        conversion to avoid multiplying rounding error.
+	* font.c (Ffont_face_attributes): Multiply pixel size before point
+	conversion to avoid multiplying rounding error.
 
 2008-06-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_glyph_string_background)
 	(x_draw_glyph_string): Remove old bdf font code.
 
-        * w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove.
+	* w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove.
 
 2008-06-22  Kenichi Handa  <handa@m17n.org>
 

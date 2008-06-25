@@ -628,7 +628,7 @@ int message_truncate_lines;
 Lisp_Object Qmessage_truncate_lines;
 
 /* Set to 1 in clear_message to make redisplay_internal aware
-   of an emptied echo area.   */
+   of an emptied echo area.  */
 
 static int message_cleared_p;
 
@@ -6782,7 +6782,7 @@ move_it_in_display_line_to (struct it *it,
 	 next line.
 
 	 Note that both for tabs and padding glyphs, all glyphs have
-	 the same width.   */
+	 the same width.  */
       if (it->nglyphs)
 	{
 	  /* More than one glyph or glyph doesn't fit on line.  All
@@ -10041,7 +10041,7 @@ display_tool_bar_line (it, height)
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
 	      /* If this is the only glyph on this line, it will never fit on the
-		 toolbar, so skip it.   But ensure there is at least one glyph,
+		 toolbar, so skip it.  But ensure there is at least one glyph,
 		 so we don't accidentally disable the tool-bar.  */
 	      if (n_glyphs_before == 0
 		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
@@ -17746,7 +17746,7 @@ If FACE is an integer, the value string has no text properties.
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
 are the selected window and the window's buffer).  */)
-  (format, face, window, buffer)
+     (format, face, window, buffer)
      Lisp_Object format, face, window, buffer;
 {
   struct it it;
@@ -21613,7 +21613,7 @@ x_write_glyphs (start, len)
 
 
 /* EXPORT for RIF:
-   Insert LEN glyphs from START at the nominal cursor position.   */
+   Insert LEN glyphs from START at the nominal cursor position.  */
 
 void
 x_insert_glyphs (start, len)
@@ -22981,7 +22981,7 @@ and the radius of the circle; r may be a float or integer.
 A polygon is a cons (poly . [x0 y0 x1 y1 ...]) where each pair in the
 vector describes one corner in the polygon.
 Returns the alist element for the first matching AREA in MAP.  */)
-  (map, x, y)
+     (map, x, y)
      Lisp_Object map;
      Lisp_Object x, y;
 {
@@ -24653,7 +24653,7 @@ If you want scrolling to always be a line at a time, you should set
     doc: /* *Scroll up to this many lines, to bring point back on screen.
 If point moves off-screen, redisplay will scroll by up to
 `scroll-conservatively' lines in order to bring point just barely
-onto the screen again.   If that cannot be done, then redisplay
+onto the screen again.  If that cannot be done, then redisplay
 recenters point as usual.
 
 A value of zero means always recenter point if it moves off screen.  */);
@@ -24684,7 +24684,7 @@ otherwise, respect the value of `truncate-lines'.
 For any other non-nil value, truncate lines in all windows with
 less than the full frame width.
 
-Nil means to respect the value of `truncate-lines'.  */);
+A value of nil means to respect the value of `truncate-lines'.  */);
   Vtruncate_partial_width_windows = make_number (30);
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
