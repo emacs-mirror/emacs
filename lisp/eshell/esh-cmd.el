@@ -397,8 +397,7 @@ hooks should be run before and after the command."
   "Output a debugging message to '*eshell last cmd*'."
   (let ((buf (get-buffer-create "*eshell last cmd*"))
 	(text (eshell-stringify eshell-current-command)))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (if (not tag)
 	  (erase-buffer)
 	(insert "\n\C-l\n" tag "\n\n" text
@@ -997,11 +996,9 @@ at the moment are:
 			  (list 'eshell-do-eval
 				(list 'quote command)))))
     (and eshell-debug-command
-	 (save-excursion
-	   (let ((buf (get-buffer-create "*eshell last cmd*")))
-	     (set-buffer buf)
-	     (erase-buffer)
-	     (insert "command: \"" input "\"\n"))))
+         (with-current-buffer (get-buffer-create "*eshell last cmd*")
+           (erase-buffer)
+           (insert "command: \"" input "\"\n")))
     (setq eshell-current-command command)
     (let ((delim (catch 'eshell-incomplete
 		   (eshell-resume-eval))))
@@ -1041,7 +1038,9 @@ at the moment are:
 
 (defmacro eshell-manipulate (tag &rest commands)
   "Manipulate a COMMAND form, with TAG as a debug identifier."
-  (if (not eshell-debug-command)
+  ;; Check `bound'ness since at compile time the code until here has not
+  ;; executed yet.
+  (if (not (and (boundp 'eshell-debug-command) eshell-debug-command))
       `(progn ,@commands)
     `(progn
        (eshell-debug-command ,(eval tag) form)

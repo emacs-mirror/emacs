@@ -1,3 +1,8 @@
+2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eshell/esh-cmd.el (eshell-manipulate): Check eshell-debug-command
+	is bound before using it.
+
 2008-06-25  Kenichi Handa  <handa@m17n.org>
 
 	* image.el (image-jpeg-p): Convert DATA to unibyte at first.
@@ -20,13 +25,13 @@
 
 2008-06-25  Andreas Schwab  <schwab@suse.de>
 
-	* faces.el (face-font-family-alternatives, variable-pitch): Use
-	"Sans Serif", not "Sans-Serif".
+	* faces.el (face-font-family-alternatives, variable-pitch):
+	Use "Sans Serif", not "Sans-Serif".
 
 2008-06-24  Chong Yidong  <cyd@stupidchicken.com>
 
-	* faces.el (face-font-family-alternatives, variable-pitch): Change
-	"Sans" to the canonical name "Sans-Serif".
+	* faces.el (face-font-family-alternatives, variable-pitch):
+	Change "Sans" to the canonical name "Sans-Serif".
 
 2008-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
 
