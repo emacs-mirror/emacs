@@ -725,7 +725,7 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
 
 (defface tex-verbatim
   ;; '((t :inherit font-lock-string-face))
-  '((t :family "courier"))
+  '((t :family "monospace"))
   "Face used to highlight TeX verbatim environments."
   :group 'tex)
 ;; backward-compatibility alias
