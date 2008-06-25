@@ -1,3 +1,8 @@
+2008-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_default_font_parameter): If Xft is available, first
+	try Monospace-12 for the default font.
+
 2008-06-25  Jason Rumney  <jasonr@gnu.org>
 
         * xdisp.c (get_glyph_face_and_encoding): Encode invalid glyphs as 0.
