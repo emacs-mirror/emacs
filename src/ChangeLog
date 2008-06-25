@@ -1,3 +1,9 @@
+2008-06-24  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_score): Even if the PIXEL_SIZE is the same, check
+	DPI too.
+	(font_sort_entites): Setup prefer_prop[FONT_DPI_INDEX] too.
+
 2008-06-24  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (${lispsource}loaddefs.el): Renamed from
