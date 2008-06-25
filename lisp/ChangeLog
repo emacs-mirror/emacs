@@ -1,5 +1,34 @@
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* info.el (Info-bookmark-make-record):
+	Use bookmark-make-record-default.
+	(Info-bookmark-jump): Use bookmark-default-handler.
+
+	* image-mode.el (image-bookmark-make-record):
+	Use bookmark-make-record-default.
+	(image-bookmark-jump): Use bookmark-default-handler.
+
+	* doc-view.el (doc-view-bookmark-make-record):
+	Use bookmark-make-record-default.
+	(doc-view-bookmark-jump): Use bookmark-default-handler.
+
+	* bookmark.el (bookmark-alist): Allow the 2 slightly different formats
+	used until now in bookmark.el's code.
+	(bookmark-get-bookmark): Accept bookmark names or bookmark records.
+	(bookmark-get-bookmark-record): Allow the 2 slightly different formats
+	used until now in bookmark.el's code.
+	(bookmark-set-filename): Remove special code, moved to its only caller.
+	(bookmark-store): Use the newer format.
+	(bookmark-make-record-default): Add arg `point-only'.
+	Rename from bookmark-make-record-for-text-file.
+	(bookmark--jump-via): New function.
+	(bookmark-jump, bookmark-jump-other-window, bookmark-bmenu-2-window)
+	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window):
+	Use it.
+	(bookmark-jump-noselect, bookmark-default-handler):
+	Don't return an alist, instead return the data implicitly by changing
+	current buffer and point.  Signal an error if the file doesn't exist.
+
 	* buff-menu.el: Use with-current-buffer and inhibit-read-only.
 	(Buffer-menu-toggle-read-only): Avoid vc-toggle-read-only.
 

@@ -258,16 +258,18 @@ The format of the alist is
 
        \(BOOKMARK1 BOOKMARK2 ...\)
 
-where each BOOKMARK is typically of the form
+where each BOOKMARK is of the form
 
-\(NAME
- (filename . FILE)
- (front-context-string . FRONT-STR)
- (rear-context-string  . REAR-STR)
- (position . POS)
- (annotation . ANNOTATION))
+  (NAME PARAM-ALIST) or (NAME . PARAM-ALIST)
 
-So the cdr of each bookmark is an alist too.")
+where the first form is the old deprecated one and the second is
+the new favored one.  PARAM-ALIST is typically of the form:
+
+ ((filename . FILE)
+  (front-context-string . FRONT-STR)
+  (rear-context-string  . REAR-STR)
+  (position . POS)
+  (annotation . ANNOTATION)))")
 
 
 (defvar bookmarks-already-loaded nil)
@@ -312,23 +314,27 @@ through a file easier.")
 (defun bookmark-all-names ()
   "Return a list of all current bookmark names."
   (bookmark-maybe-load-default-file)
-  (mapcar
-   (lambda (full-record)
-     (bookmark-name-from-full-record full-record))
-   bookmark-alist))
+  (mapcar 'bookmark-name-from-full-record bookmark-alist))
 
 
 (defun bookmark-get-bookmark (bookmark)
-  "Return the full entry for BOOKMARK in `bookmark-alist'.
-If BOOKMARK is not a string, return nil."
-  (when (stringp bookmark)
-    (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case)))
+  "Return the bookmark record corresponding to BOOKMARK.
+If BOOKMARK is already a bookmark record, just return it,
+Otherwise look for the corresponding bookmark in `bookmark-alist'."
+  (cond
+   ((consp bookmark) bookmark)
+   ((stringp bookmark)
+    (assoc-string bookmark bookmark-alist bookmark-completion-ignore-case))))
 
 
 (defun bookmark-get-bookmark-record (bookmark)
   "Return the guts of the entry for BOOKMARK in `bookmark-alist'.
 That is, all information but the name."
-  (car (cdr (bookmark-get-bookmark bookmark))))
+  (let ((alist (cdr (bookmark-get-bookmark bookmark))))
+    ;; The bookmark objects can either look like (NAME ALIST) or
+    ;; (NAME . ALIST), so we have to distinguish the two here.
+    (if (and (null (cdr alist)) (consp (caar alist)))
+        (car alist) alist)))
 
 
 (defun bookmark-set-name (bookmark newname)
@@ -365,11 +371,7 @@ That is, all information but the name."
 
 (defun bookmark-set-filename (bookmark filename)
   "Set the full filename of BOOKMARK to FILENAME."
-  (bookmark-prop-set bookmark 'filename filename)
-  (setq bookmark-alist-modification-count
-        (1+ bookmark-alist-modification-count))
-  (if (bookmark-time-to-save-p)
-      (bookmark-save)))
+  (bookmark-prop-set bookmark 'filename filename))
 
 
 (defun bookmark-get-position (bookmark)
@@ -441,26 +443,26 @@ menus, so `completing-read' never gets a chance to set `bookmark-history'."
     (interactive-p)
     (setq bookmark-history (cons ,string bookmark-history))))
 
-(defvar bookmark-make-record-function 'bookmark-make-record-for-text-file
+(defvar bookmark-make-record-function 'bookmark-make-record-default
   "A function that should be called to create a bookmark record.
 Modes may set this variable buffer-locally to enable bookmarking of
 locations that should be treated specially, such as Info nodes,
 news posts, images, pdf documents, etc.
 
 The function will be called with no arguments.
+It should signal a user error if it is unable to construct a record for
+the current location.
 
 The returned record should be a cons cell of the form (NAME . ALIST)
 where ALIST is as described in `bookmark-alist' and may typically contain
 a special cons (handler . SOME-FUNCTION) which sets the handler function
 that should be used to open this bookmark instead of
-`bookmark-default-handler'.  The handler should return an alist like the
-one that function returns, and (of course) should likewise
-not select the buffer.
-It should signal a user error if it is unable to construct a record for the current
-location.
+`bookmark-default-handler'.  The handler should follow the same calling
+convention as the one used by `bookmark-default-handler'.
 
 NAME is a suggested name for the constructed bookmark.  It can be nil
-in which case a default heuristic will be used.")
+in which case a default heuristic will be used.  The function can also
+equivalently just return ALIST without NAME.")
 
 (defun bookmark-make-record ()
   "Return a new bookmark record (NAME . ALIST) for the current location."
@@ -487,13 +489,14 @@ old one."
     (if (and (bookmark-get-bookmark stripped-name) (not no-overwrite))
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
-        (setcdr (bookmark-get-bookmark stripped-name) (list alist))
+        ;; Use the new (NAME . ALIST) format.
+        (setcdr (bookmark-get-bookmark stripped-name) alist)
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
       ;; case, we want the new bookmark consed onto the alist...)
 
-      (push (list stripped-name alist) bookmark-alist))
+      (push (cons stripped-name alist) bookmark-alist))
 
     ;; Added by db
     (setq bookmark-current-bookmark stripped-name)
@@ -505,11 +508,13 @@ old one."
     (setq bookmark-current-bookmark stripped-name)
     (bookmark-bmenu-surreptitiously-rebuild-list)))
 
-(defun bookmark-make-record-for-text-file ()
+(defun bookmark-make-record-default (&optional point-only)
   "Return the record describing the location of a new bookmark.
 Must be at the correct position in the buffer in which the bookmark is
-being set (this might change someday)."
-  `((filename . ,(bookmark-buffer-file-name))
+being set.
+If POINT-ONLY is non-nil, then only return the subset of the
+record that pertains to the location within the buffer."
+  `(,@(unless point-only `((filename . ,(bookmark-buffer-file-name))))
     (front-context-string
      . ,(if (>= (- (point-max) (point)) bookmark-search-size)
             (buffer-substring-no-properties
@@ -871,14 +876,13 @@ Default to file name if it's nil."
   (interactive)
   ;; get the next word from the buffer and append it to the name of
   ;; the bookmark currently being set.
-  (let ((string (save-excursion
-                    (set-buffer bookmark-current-buffer)
-                    (goto-char bookmark-yank-point)
-                    (buffer-substring-no-properties
-                     (point)
-                     (progn
-                       (forward-word 1)
-                       (setq bookmark-yank-point (point)))))))
+  (let ((string (with-current-buffer bookmark-current-buffer
+                  (goto-char bookmark-yank-point)
+                  (buffer-substring-no-properties
+                   (point)
+                   (progn
+                     (forward-word 1)
+                     (setq bookmark-yank-point (point)))))))
     (insert string)))
 
 (defun bookmark-buffer-file-name ()
@@ -929,6 +933,21 @@ Default to file name if it's nil."
   "Hook run after `bookmark-jump' jumps to a bookmark.
 Useful for example to unhide text in `outline-mode'.")
 
+(defun bookmark--jump-via (bookmark display-function)
+  (bookmark-jump-noselect bookmark)
+  (save-current-buffer
+    (funcall display-function (current-buffer)))
+  (let ((win (get-buffer-window (current-buffer) 0)))
+    (if win (set-window-point win (point))))
+  ;; FIXME: we used to only run bookmark-after-jump-hook in
+  ;; `bookmark-jump' itself, but in none of the other commands.
+  (run-hooks 'bookmark-after-jump-hook)
+  (if bookmark-automatically-show-annotations
+      ;; if there is an annotation for this bookmark,
+      ;; show it in a buffer.
+      (bookmark-show-annotation bookmark)))
+  
+
 ;;;###autoload
 (defun bookmark-jump (bookmark)
   "Jump to bookmark BOOKMARK (a point in some file).
@@ -947,15 +966,7 @@ of the old one in the permanent bookmark record."
   (unless bookmark
     (error "No bookmark specified"))
   (bookmark-maybe-historicize-string bookmark)
-  (let ((alist (bookmark-jump-noselect bookmark)))
-    (and alist
-         (switch-to-buffer (cadr (assq 'buffer alist)))
-         (goto-char (cadr (assq 'position alist)))
-	 (progn (run-hooks 'bookmark-after-jump-hook) t)
-	 (if bookmark-automatically-show-annotations
-             ;; if there is an annotation for this bookmark,
-             ;; show it in a buffer.
-             (bookmark-show-annotation bookmark)))))
+  (bookmark--jump-via bookmark 'switch-to-buffer))
 
 
 ;;;###autoload
@@ -969,14 +980,7 @@ See `bookmark-jump'."
          (list bkm) bkm)))
   (when bookmark
     (bookmark-maybe-historicize-string bookmark)
-    (let ((alist (bookmark-jump-noselect bookmark)))
-      (and alist
-           (switch-to-buffer-other-window (cadr (assq 'buffer alist)))
-           (goto-char (cadr (assq 'position alist)))
-           (if bookmark-automatically-show-annotations
-               ;; if there is an annotation for this bookmark,
-               ;; show it in a buffer.
-               (bookmark-show-annotation bookmark))))))
+    (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
 
 
 (defun bookmark-file-or-variation-thereof (file)
@@ -1000,66 +1004,75 @@ be retrieved from a VC backend, else return nil."
      (if (vc-backend file) file))))
 
 (defun bookmark-jump-noselect (bookmark)
-  "Call BOOKMARK's handler or `bookmark-default-handler' if it has none."
-  (let ((found (funcall (or (bookmark-get-handler bookmark)
-                          'bookmark-default-handler)
-                      bookmark)))
-    (unless found
-      ;; Else unable to find the marked file, so ask if user wants to
-      ;; relocate the bookmark, else remind them to consider deletion.
-      (let ((file (bookmark-get-filename bookmark)))
-        (when file         ;Don't know how to relocate if there's no `file'.
-          (setq file (expand-file-name file))
-          (ding)
-          (if (y-or-n-p (concat (file-name-nondirectory file)
-                                " nonexistent.  Relocate \""
-                                bookmark
-                                "\"? "))
-              (progn
-                (bookmark-relocate bookmark)
-                ;; Try again.
-                (setq found (funcall (or (bookmark-get-handler bookmark)
-                                         'bookmark-default-handler)
-                                     bookmark)))
-            (message
-             "Bookmark not relocated; consider removing it \(%s\)." bookmark)))))
-    (when found
-      ;; Added by db.
-      (setq bookmark-current-bookmark bookmark)
-      found)))
+  "Call BOOKMARK's handler or `bookmark-default-handler' if it has none.
+Changes current buffer and point and returns nil, or signals a `file-error'.
+BOOKMARK can be a bookmark record used internally by some other
+elisp package, or the name of a bookmark to be found in `bookmark-alist'."
+  (condition-case err
+      (funcall (or (bookmark-get-handler bookmark)
+                   'bookmark-default-handler)
+               (bookmark-get-bookmark bookmark))
+    (file-error
+     ;; We were unable to find the marked file, so ask if user wants to
+     ;; relocate the bookmark, else remind them to consider deletion.
+     (when (stringp bookmark)
+       ;; `bookmark' can either be a bookmark name (found in
+       ;; `bookmark-alist') or a bookmark object.  If it's an object, we
+       ;; assume it's a bookmark used internally by some other package.
+       (let ((file (bookmark-get-filename bookmark)))
+         (when file        ;Don't know how to relocate if there's no `file'.
+           (setq file (expand-file-name file))
+           (ding)
+           (if (y-or-n-p (concat (file-name-nondirectory file)
+                                 " nonexistent.  Relocate \""
+                                 bookmark
+                                 "\"? "))
+               (progn
+                 (bookmark-relocate bookmark)
+                 ;; Try again.
+                 (funcall (or (bookmark-get-handler bookmark)
+                              'bookmark-default-handler)
+                          (bookmark-get-bookmark bookmark)))
+             (message
+              "Bookmark not relocated; consider removing it \(%s\)." bookmark)
+             (signal (car err) (cdr err))))))))
+  ;; Added by db.
+  (when (stringp bookmark)
+    (setq bookmark-current-bookmark bookmark))
+  nil)
 
-(defun bookmark-default-handler (str)
-  ;; Helper for bookmark-jump.  STR is a bookmark name, of the sort
-  ;; accepted by `bookmark-get-bookmark'.
-  ;;
-  ;; Return an alist '((buffer BUFFER) (position POSITION) ...)
-  ;; indicating the bookmarked point within the specied buffer.  Any
-  ;; elements not documented here should be ignored.
-  (bookmark-maybe-load-default-file)
-  (let* ((file (expand-file-name (bookmark-get-filename str)))
-         (forward-str            (bookmark-get-front-context-string str))
-         (behind-str             (bookmark-get-rear-context-string str))
-         (place                  (bookmark-get-position str)))
+(defun bookmark-default-handler (bmk)
+  "Default handler to jump to a particular bookmark location.
+BMK is a bookmark record.
+Changes current buffer and point and returns nil, or signals a `file-error'."
+  (let* ((file                   (bookmark-get-filename bmk))
+         (buf                    (bookmark-prop-get bmk 'buffer))
+         (forward-str            (bookmark-get-front-context-string bmk))
+         (behind-str             (bookmark-get-rear-context-string bmk))
+         (place                  (bookmark-get-position bmk)))
     ;; FIXME: bookmark-file-or-variation-thereof was needed for Info files,
     ;; but now that Info bookmarks are handled elsewhere it seems that we
     ;; should be able to get rid of it.  --Stef
-    (if (setq file (bookmark-file-or-variation-thereof file))
-        (with-current-buffer (find-file-noselect file)
-          (goto-char place)
+    (if (not (if buf (buffer-live-p buf)
+               (setq file (bookmark-file-or-variation-thereof file))))
+        (signal 'file-error
+                `("Jumping to bookmark" "No such file or directory"
+                  (bookmark-get-filename bmk)))
+      (set-buffer (or buf (find-file-noselect file)))
+      (if place (goto-char place))
 
-          ;; Go searching forward first.  Then, if forward-str exists and
-          ;; was found in the file, we can search backward for behind-str.
-          ;; Rationale is that if text was inserted between the two in the
-          ;; file, it's better to be put before it so you can read it,
-          ;; rather than after and remain perhaps unaware of the changes.
-          (if forward-str
-              (if (search-forward forward-str (point-max) t)
-                  (goto-char (match-beginning 0))))
-          (if behind-str
-              (if (search-backward behind-str (point-min) t)
-                  (goto-char (match-end 0))))
-          `((buffer ,(current-buffer)) (position ,(point)))))))
-
+      ;; Go searching forward first.  Then, if forward-str exists and
+      ;; was found in the file, we can search backward for behind-str.
+      ;; Rationale is that if text was inserted between the two in the
+      ;; file, it's better to be put before it so you can read it,
+      ;; rather than after and remain perhaps unaware of the changes.
+      (if forward-str
+          (if (search-forward forward-str (point-max) t)
+              (goto-char (match-beginning 0))))
+      (if behind-str
+          (if (search-backward behind-str (point-min) t)
+              (goto-char (match-end 0)))))
+    nil))
 
 ;;;###autoload
 (defun bookmark-relocate (bookmark)
@@ -1076,6 +1089,10 @@ after a bookmark was set in it."
                    (format "Relocate %s to: " bookmark)
                    (file-name-directory bmrk-filename)))))
     (bookmark-set-filename bookmark newloc)
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
+    (if (bookmark-time-to-save-p)
+        (bookmark-save))
     (bookmark-bmenu-surreptitiously-rebuild-list)))
 
 
@@ -1159,8 +1176,8 @@ this."
   (bookmark-maybe-load-default-file)
   (let ((orig-point (point))
 	(str-to-insert
-	 (save-excursion
-	   (set-buffer (cadr (assq 'buffer (bookmark-jump-noselect bookmark))))
+	 (save-current-buffer
+           (bookmark-jump-noselect bookmark)
 	   (buffer-string))))
     (insert str-to-insert)
     (push-mark)
@@ -1262,29 +1279,26 @@ for a file, defaulting to the file defined by variable
 
 
 (defun bookmark-write-file (file)
-  (save-excursion
-    (save-window-excursion
-      (bookmark-maybe-message "Saving bookmarks to file %s..." file)
-      (set-buffer (get-buffer-create " *Bookmarks*"))
-      (goto-char (point-min))
-      (delete-region (point-min) (point-max))
-      (let ((print-length nil)
-	    (print-level nil))
-	(bookmark-insert-file-format-version-stamp)
-	(pp bookmark-alist (current-buffer))
-	(let ((version-control
-	       (cond
-		((null bookmark-version-control) nil)
-		((eq 'never bookmark-version-control) 'never)
-		((eq 'nospecial bookmark-version-control) version-control)
-		(t
-		 t))))
-          (condition-case nil
-              (write-region (point-min) (point-max) file)
-            (file-error (message "Can't write %s" file)))
-	  (kill-buffer (current-buffer))
-          (bookmark-maybe-message
-           "Saving bookmarks to file %s...done" file))))))
+  (bookmark-maybe-message "Saving bookmarks to file %s..." file)
+  (with-current-buffer (get-buffer-create " *Bookmarks*")
+    (goto-char (point-min))
+    (delete-region (point-min) (point-max))
+    (let ((print-length nil)
+          (print-level nil))
+      (bookmark-insert-file-format-version-stamp)
+      (pp bookmark-alist (current-buffer))
+      (let ((version-control
+             (cond
+              ((null bookmark-version-control) nil)
+              ((eq 'never bookmark-version-control) 'never)
+              ((eq 'nospecial bookmark-version-control) version-control)
+              (t t))))
+        (condition-case nil
+            (write-region (point-min) (point-max) file)
+          (file-error (message "Can't write %s" file)))
+        (kill-buffer (current-buffer))
+        (bookmark-maybe-message
+         "Saving bookmarks to file %s...done" file)))))
 
 
 (defun bookmark-import-new-list (new-list)
@@ -1347,41 +1361,39 @@ method buffers use to resolve name collisions."
           ;;I guess it's better than none at all.
           "~/" bookmark-default-file 'confirm)))
   (setq file (expand-file-name file))
-  (if (file-readable-p file)
-      (save-excursion
-        (save-window-excursion
-          (if (null no-msg)
-              (bookmark-maybe-message "Loading bookmarks from %s..." file))
-          (set-buffer (let ((enable-local-variables nil))
-                        (find-file-noselect file)))
-          (goto-char (point-min))
-          (bookmark-maybe-upgrade-file-format)
-          (let ((blist (bookmark-alist-from-buffer)))
-            (if (listp blist)
-                (progn
-                  (if overwrite
-                      (progn
-                        (setq bookmark-alist blist)
-                        (setq bookmark-alist-modification-count 0))
-                    ;; else
-                    (bookmark-import-new-list blist)
-                    (setq bookmark-alist-modification-count
-                          (1+ bookmark-alist-modification-count)))
-                  (if (string-equal
-                       (expand-file-name bookmark-default-file)
-                       file)
-                      (setq bookmarks-already-loaded t))
-                  (bookmark-bmenu-surreptitiously-rebuild-list))
-              (error "Invalid bookmark list in %s" file)))
-          (kill-buffer (current-buffer)))
-	(if (null no-msg)
-            (bookmark-maybe-message "Loading bookmarks from %s...done" file)))
-    (error "Cannot read bookmark file %s" file)))
+  (if (not (file-readable-p file))
+      (error "Cannot read bookmark file %s" file)
+    (if (null no-msg)
+        (bookmark-maybe-message "Loading bookmarks from %s..." file))
+    (with-current-buffer (let ((enable-local-variables nil))
+                           (find-file-noselect file))
+      (goto-char (point-min))
+      (bookmark-maybe-upgrade-file-format)
+      (let ((blist (bookmark-alist-from-buffer)))
+        (if (listp blist)
+            (progn
+              (if overwrite
+                  (progn
+                    (setq bookmark-alist blist)
+                    (setq bookmark-alist-modification-count 0))
+                ;; else
+                (bookmark-import-new-list blist)
+                (setq bookmark-alist-modification-count
+                      (1+ bookmark-alist-modification-count)))
+              (if (string-equal
+                   (expand-file-name bookmark-default-file)
+                   file)
+                  (setq bookmarks-already-loaded t))
+              (bookmark-bmenu-surreptitiously-rebuild-list))
+          (error "Invalid bookmark list in %s" file)))
+      (kill-buffer (current-buffer)))
+    (if (null no-msg)
+        (bookmark-maybe-message "Loading bookmarks from %s...done" file))))
 
 
 
-;;; Code supporting the dired-like bookmark menu.  Prefix is
-;;; "bookmark-bmenu" for "buffer-menu":
+;;; Code supporting the dired-like bookmark menu.
+;; Prefix is "bookmark-bmenu" for "buffer-menu":
 
 
 (defvar bookmark-bmenu-bookmark-column nil)
@@ -1789,11 +1801,8 @@ With a prefix arg, prompts for a file to save them in."
             (pop-up-windows t))
         (delete-other-windows)
         (switch-to-buffer (other-buffer))
-	(let* ((alist (bookmark-jump-noselect bmrk))
-               (buff (cadr (assq 'buffer alist)))
-               (pos  (cadr (assq 'position alist))))
-          (pop-to-buffer buff)
-          (goto-char pos))
+        (let ((bookmark-automatically-show-annotations nil)) ;FIXME: needed?
+          (bookmark--jump-via bmrk 'pop-to-buffer))
         (bury-buffer menu))))
 
 
@@ -1809,13 +1818,8 @@ With a prefix arg, prompts for a file to save them in."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (if (bookmark-bmenu-check-position)
-	(let* ((alist (bookmark-jump-noselect bookmark))
-               (buff (cadr (assq 'buffer alist)))
-               (pos  (cadr (assq 'position alist))))
-	  (switch-to-buffer-other-window buff)
-          (goto-char pos)
-          (set-window-point (get-buffer-window buff) pos)
-	  (bookmark-show-annotation bookmark)))))
+        (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
+          (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))))
 
 
 (defun bookmark-bmenu-switch-other-window ()
@@ -1827,23 +1831,13 @@ The current window remains selected."
         same-window-buffer-names
         same-window-regexps)
     (if (bookmark-bmenu-check-position)
-	(let* ((alist (bookmark-jump-noselect bookmark))
-               (buff (cadr (assq 'buffer alist)))
-               (pos  (cadr (assq 'position alist))))
-	  (display-buffer buff)
-          (let ((o-buffer (current-buffer)))
-            ;; save-excursion won't do
-            (set-buffer buff)
-            (goto-char pos)
-            (set-window-point (get-buffer-window buff) pos)
-            (set-buffer o-buffer))
-	  (bookmark-show-annotation bookmark)))))
+        (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
+          (bookmark--jump-via bookmark 'display-buffer)))))
 
 (defun bookmark-bmenu-other-window-with-mouse (event)
   "Select bookmark at the mouse pointer in other window, leaving bookmark menu visible."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-end event))))
+  (with-current-buffer (window-buffer (posn-window (event-end event)))
     (save-excursion
       (goto-char (posn-point (event-end event)))
       (bookmark-bmenu-other-window))))
@@ -2064,11 +2058,11 @@ strings returned are not."
 ;;;; end bookmark menu stuff ;;;;
 
 
-;;; Load Hook
+;; Load Hook
 (defvar bookmark-load-hook nil
   "Hook run at the end of loading bookmark.")
 
-;;; Exit Hook, called from kill-emacs-hook
+;; Exit Hook, called from kill-emacs-hook
 (defvar bookmark-exit-hook nil
   "Hook run when Emacs exits.")
 

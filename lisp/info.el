@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'jka-compr))
+(eval-when-compile (require 'jka-compr) (require 'cl))
 
 (defgroup info nil
   "Info subsystem."
@@ -4379,62 +4379,30 @@ BUFFER is the buffer speedbar is requesting buttons for."
 	     '(Info-mode . Info-restore-desktop-buffer))
 
 ;;;; Bookmark support
-
-(defvar bookmark-search-size)
-
-;; This is only called from bookmark.el.
-(declare-function bookmark-buffer-file-name "bookmark" ())
+(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
+(declare-function bookmark-get-bookmark-record "bookmark" (bmk))
 
 (defun Info-bookmark-make-record ()
   `(,Info-current-node
-    (filename . ,(bookmark-buffer-file-name))
-    (front-context-string
-     . ,(if (>= (- (point-max) (point)) bookmark-search-size)
-            (buffer-substring-no-properties
-             (point)
-             (+ (point) bookmark-search-size))
-          nil))
-    (rear-context-string
-     . ,(if (>= (- (point) (point-min)) bookmark-search-size)
-            (buffer-substring-no-properties
-             (point)
-             (- (point) bookmark-search-size))
-          nil))
+    ,@(bookmark-make-record-default 'point-only)
+    (filename . ,Info-current-file)
     (info-node . ,Info-current-node)
     (handler . Info-bookmark-jump)))
-
-
-(defvar bookmark-current-bookmark)
-(declare-function bookmark-prop-get                  "bookmark" (bookmark prop))
-(declare-function bookmark-file-or-variation-thereof "bookmark" (file))
-(declare-function bookmark-jump-noselect             "bookmark" (str))
-(declare-function bookmark-get-bookmark-record       "bookmark" (bookmark))
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type returned
   ;; by `Info-bookmark-make-record', which see.
-  (let* ((file (expand-file-name (bookmark-prop-get bmk 'filename)))
-         (forward-str            (bookmark-prop-get bmk 'front-context-string))
-         (behind-str             (bookmark-prop-get bmk 'rear-context-string))
-	 (info-node              (bookmark-prop-get bmk 'info-node)))
-    (if (setq file (bookmark-file-or-variation-thereof file))
-        (save-excursion
-          (save-window-excursion
-	    (with-no-warnings
-	      (Info-find-node file info-node))
-	    ;; Go searching forward first.  Then, if forward-str exists and was
-            ;; found in the file, we can search backward for behind-str.
-            ;; Rationale is that if text was inserted between the two in the
-            ;; file, it's better to be put before it so you can read it, rather
-            ;; than after and remain perhaps unaware of the changes.
-            (if forward-str
-                (if (search-forward forward-str (point-max) t)
-                    (goto-char (match-beginning 0))))
-            (if behind-str
-                (if (search-backward behind-str (point-min) t)
-                    (goto-char (match-end 0))))
-	    `((buffer ,(current-buffer)) (position ,(point))))))))
+  (let* ((file                   (bookmark-prop-get bmk 'filename))
+         (info-node              (bookmark-prop-get bmk 'info-node))
+         (buf (save-window-excursion    ;FIXME: doesn't work with frames!
+                (Info-find-node file info-node) (current-buffer))))
+    ;; Use bookmark-default-handler to move to the appropriate location
+    ;; within the node.
+    (bookmark-default-handler
+     (list* "" `(buffer . ,buf) (bookmark-get-bookmark-record bmk)))))
 
 (provide 'info)
 
