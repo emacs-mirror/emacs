@@ -1138,7 +1138,7 @@ If STRING is unibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties,
 where each `eight-bit' character is converted to the corresponding byte.
 If STRING contains a non-ASCII, non-`eight-bit' character,
-an error is signaled.
+an error is signalled.
 If the optional 2nd arg ACCEPT-LATIN-1 is non-nil, a Latin-1 character
 doesn't cause an error, but is converted to a byte of same code.  */)
      (string, accept_latin_1)
