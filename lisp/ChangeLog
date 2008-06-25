@@ -1,5 +1,11 @@
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* buff-menu.el: Use with-current-buffer and inhibit-read-only.
+	(Buffer-menu-toggle-read-only): Avoid vc-toggle-read-only.
+
+	* bs.el: Use with-current-buffer.  Simplify.
+	(bs-toggle-readonly): Avoid vc-toggle-read-only.
+
 	* eshell/esh-cmd.el (eshell-manipulate): Check eshell-debug-command
 	is bound before using it.
 
