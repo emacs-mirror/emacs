@@ -632,6 +632,8 @@ extern int parse_str_to_multibyte P_ ((unsigned char *, int));
 extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
 extern int str_to_multibyte P_ ((unsigned char *, int, int));
 extern int str_as_unibyte P_ ((unsigned char *, int));
+extern EMACS_INT str_to_unibyte P_ ((const unsigned char *, unsigned char *,
+				     EMACS_INT, int));
 extern int strwidth P_ ((unsigned char *, int));
 extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
 extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
