@@ -1,3 +1,14 @@
+2008-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (Fstring_to_unibyte): EXFUN it.
+
+	* character.h: (str_to_unibyte): Extern it.
+
+	* character.c (str_to_unibyte): New function.
+
+	* fns.c (Fstring_to_unibyte): New function.
+	(syms_of_fns): Defsubr it.
+
 2008-06-24  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_score): Even if the PIXEL_SIZE is the same, check
