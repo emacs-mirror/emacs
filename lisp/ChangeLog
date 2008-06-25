@@ -1,3 +1,17 @@
+2008-06-25  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el (goto-map): New variable.  Rebind goto-related
+	commands to this `M-g' prefix keymap.
+	(search-map): New variable for `M-s' prefix keymap.
+	Bind `M-s o' to `occur', `M-shr' to `highlight-regexp', `M-shp' to
+	`highlight-phrase', `M-shl' to `highlight-lines-matching-regexp',
+	`M-shu' to `unhighlight-regexp', `M-shf' to `hi-lock-find-patterns',
+	`M-shw' to `hi-lock-write-interactive-patterns'.
+
+	* isearch.el (isearch-mode-map): Bind `M-s h r' to
+	`isearch-highlight-regexp'.
+	(isearch-highlight-regexp): New function.
+
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* info.el (Info-bookmark-make-record):
