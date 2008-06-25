@@ -1939,7 +1939,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 	Ffont_put (font_spec, QCsize, make_number (size));
 	Ffont_put (font_spec, QCavgwidth, make_number (avgwidth));
       }
-    args[0] = Flist_fonts (font_spec, frame, maximum, Qnil);
+    args[0] = Flist_fonts (font_spec, frame, maximum, font_spec);
     for (tail = args[0]; CONSP (tail); tail = XCDR (tail))
       XSETCAR (tail, Ffont_xlfd_name (XCAR (tail), Qnil));
     if (NILP (frame))
