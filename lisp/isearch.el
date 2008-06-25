@@ -494,6 +494,7 @@ This is like `describe-bindings', but displays only isearch keys."
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
     (define-key map "\M-so" 'isearch-occur)
+    (define-key map "\M-shr" 'isearch-highlight-regexp)
 
     map)
   "Keymap for `isearch-mode'.")
@@ -1363,6 +1364,26 @@ string.  NLINES has the same meaning as in `occur'."
 	;; `isearch-no-upper-case-p' in `occur-1'
 	(search-upper-case nil))
     (occur regexp nlines)))
+
+(declare-function hi-lock-regexp-okay "hi-lock" (regexp))
+(declare-function hi-lock-read-face-name "hi-lock" ())
+
+(defun isearch-highlight-regexp (regexp &optional face)
+  "Run `highlight-regexp' with regexp from the current search string.
+Interactively, REGEXP is the current search regexp or a quoted search
+string.  FACE has the same meaning as in `highlight-regexp'."
+  (interactive
+   (list
+    (progn
+      (require 'hi-lock nil t)
+      (hi-lock-regexp-okay
+       (if isearch-regexp isearch-string (regexp-quote isearch-string))))
+    (hi-lock-read-face-name)))
+  (isearch-done)
+  (isearch-clean-overlays)
+  ;; (add-to-history 'hi-lock-regexp-history regexp)
+  (let ((case-fold-search isearch-case-fold-search))
+    (hi-lock-face-buffer regexp face)))
 
 
 (defun isearch-delete-char ()
