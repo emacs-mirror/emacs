@@ -1,5 +1,13 @@
 2008-06-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dir.el (vc-dir-marked-only-files-and-states): Rename from
+	vc-dir-marked-only-files.  Change the return value.
+	(vc-dir-child-files-and-states): Rename from vc-dir-child-files.
+	Change the return value.
+	(vc-dir-deduce-fileset): New function broken out from ...
+	* vc.el (vc-deduce-fileset): ... here and ...
+	(vc-deduce-fileset): ... here.
+
 	* vc-svn.el (vc-annotate-parent-rev): Pacify byte compiler.
 
 2008-06-25  Andreas Schwab  <schwab@suse.de>

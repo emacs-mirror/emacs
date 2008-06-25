@@ -643,6 +643,9 @@
 ;;
 ;; - vc-dir toolbar needs more icons.
 ;;
+;; - vc-dir-hide-up-to-date needs to hide directories that do not have
+;;   any children anymore.
+;;
 ;;; Code:
 
 (require 'vc-hooks)
@@ -903,38 +906,39 @@ Within directories, only files already under version control are noticed."
 ;;                     (vc-backend (car cooked)))))
 ;; 	(cons backend selection)))
 
-(declare-function vc-dir-child-files "vc-dir" ())
 (declare-function vc-dir-current-file "vc-dir" ())
-(declare-function vc-dir-marked-files "vc-dir" ())
-(declare-function vc-dir-marked-only-files "vc-dir" ())
+(declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
 
-(defun vc-deduce-fileset (&optional observer allow-unregistered only-files)
+(defun vc-deduce-fileset (&optional observer allow-unregistered
+				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
 
-Return (BACKEND FILESET FILESET-ONLY-FILES).
+Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
 If we're in VC-dir mode, the fileset is the list of marked files.
 Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
 visited file is not registered, return a singleton fileset containing it.
 Otherwise, throw an error.
-ONLY-FILES if non-nil, means that the caller needs to FILESET-ONLY-FILES
-info.  Otherwise, that part may be skipped.
-BEWARE: this function may change the current buffer."
+
+STATE-MODEL-ONLY-FILES if non-nil, means that the caller needs
+the FILESET-ONLY-FILES STATE and MODEL info.  Otherwise, that
+part may be skipped.
+BEWARE: this function may change the
+current buffer."
   ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
   ;; documented.  It's set to t when called from diff and print-log.
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
-      (let ((marked (vc-dir-marked-files)))
-	(if marked
-	    (list vc-dir-backend marked
-                  (if only-files (vc-dir-marked-only-files)))
-	  (let ((crt (vc-dir-current-file)))
-	    (list vc-dir-backend (list crt)
-                  (if only-files (vc-dir-child-files)))))))
+      (vc-dir-deduce-fileset state-model-only-files))
      ((setq backend (vc-backend buffer-file-name))
-      (list backend (list buffer-file-name) (list buffer-file-name)))
+      (if state-model-only-files
+	(list backend (list buffer-file-name)
+	      (list buffer-file-name)
+	      (vc-state buffer-file-name)
+	      (vc-checkout-model backend buffer-file-name))
+	(list backend (list buffer-file-name))))
      ((and (buffer-live-p vc-parent-buffer)
            ;; FIXME: Why this test?  --Stef
            (or (buffer-file-name vc-parent-buffer)
@@ -942,19 +946,26 @@ BEWARE: this function may change the current buffer."
 				  (eq major-mode 'vc-dir-mode))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset observer allow-unregistered only-files)))
+	(vc-deduce-fileset observer allow-unregistered state-model-only-files)))
      ((not buffer-file-name)
        (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
-      (list (vc-responsible-backend
-	     (file-name-directory (buffer-file-name)))
-	    (list buffer-file-name) (list buffer-file-name)))
+      (if state-model-only-files
+	  (list (vc-responsible-backend
+		 (file-name-directory (buffer-file-name)))
+		(list buffer-file-name)
+		(list buffer-file-name)
+		(when state-model-only-files 'unregistered)
+		nil)
+	(list (vc-responsible-backend
+	       (file-name-directory (buffer-file-name)))
+	      (list buffer-file-name))))
      (t (error "No fileset is available here.")))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
   (cond
-   ((vc-dispatcher-browsing)
+   ((derived-mode-p 'vc-dir-mode)
     (set-buffer (find-file-noselect (vc-dir-current-file))))
    (t
     (while (and vc-parent-buffer
@@ -1019,26 +1030,16 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset nil t 'only-files))
+  (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
 	 (files (nth 1 vc-fileset))
          (fileset-only-files (nth 2 vc-fileset))
          ;; FIXME: We used to call `vc-recompute-state' here.
-         (state (vc-state (car fileset-only-files)))
+         (state (nth 3 vc-fileset))
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
-	 (model
-	  ;; FIXME: This is not very elegant...
-	  (when (and state (not (eq state 'unregistered)))
-	    (vc-checkout-model backend files)))
+	 (model (nth 4 vc-fileset))
 	 revision)
-
-    ;; Check that all files are in a consistent state, since we use that
-    ;; state to decide which operation to perform.
-    (dolist (file (cdr fileset-only-files))
-      (unless (vc-compatible-state (vc-state file) state)
-        (error "%s:%s clashes with %s:%s"
-               file (vc-state file) (car fileset-only-files) state)))
 
     ;; Do the right thing
     (cond

@@ -690,14 +690,16 @@ that share the same state."
    (lambda (elem) (expand-file-name (vc-dir-fileinfo->name elem)))
    (ewoc-collect vc-ewoc 'vc-dir-fileinfo->marked)))
 
-(defun vc-dir-marked-only-files ()
-  "Return the list of marked files, for marked directories return child files."
+(defun vc-dir-marked-only-files-and-states ()
+  "Return the list of conses (FILE . STATE) for the marked files.
+For marked directories return the corresponding conses for the
+child files."
   (let ((crt (ewoc-nth vc-ewoc 0))
 	result)
     (while crt
       (let ((crt-data (ewoc-data crt)))
 	(if (vc-dir-fileinfo->marked crt-data)
-	    ;; FIXME: use vc-dir-child-files here instead of duplicating it.
+	    ;; FIXME: use vc-dir-child-files-and-states here instead of duplicating it.
 	    (if (vc-dir-fileinfo->directory crt-data)
 		(let* ((dir (vc-dir-fileinfo->directory crt-data))
 		       (dirlen (length dir))
@@ -709,15 +711,20 @@ that share the same state."
                                                  (setq data (ewoc-data crt))
                                                  (vc-dir-node-directory crt))))
 		    (unless (vc-dir-fileinfo->directory data)
-		      (push (expand-file-name (vc-dir-fileinfo->name data)) result))))
-	      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result)
+		      (push 
+		       (cons (expand-file-name (vc-dir-fileinfo->name data))
+			     (vc-dir-fileinfo->state data))
+		       result))))
+	      (push (cons (expand-file-name (vc-dir-fileinfo->name crt-data))
+			  (vc-dir-fileinfo->state crt-data))
+		    result)
 	      (setq crt (ewoc-next vc-ewoc crt)))
 	  (setq crt (ewoc-next vc-ewoc crt)))))
     result))
 
-(defun vc-dir-child-files ()
-  "Return the list of child files for the current entry if it's a directory.
-If it is a file, return the file itself."
+(defun vc-dir-child-files-and-states ()
+  "Return the list of conses (FILE . STATE) for child files of the current entry if it's a directory.
+If it is a file, return the corresponding cons for the file itself."
   (let* ((crt (ewoc-locate vc-ewoc))
 	 (crt-data (ewoc-data crt))
          result)
@@ -731,8 +738,13 @@ If it is a file, return the file itself."
                                              (setq data (ewoc-data crt))
                                              (vc-dir-node-directory crt))))
 	    (unless (vc-dir-fileinfo->directory data)
-	      (push (expand-file-name (vc-dir-fileinfo->name data)) result))))
-      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result))
+	      (push 
+	       (cons (expand-file-name (vc-dir-fileinfo->name data))
+		     (vc-dir-fileinfo->state data))
+	       result))))
+      (push 
+       (cons (expand-file-name (vc-dir-fileinfo->name crt-data))
+	     (vc-dir-fileinfo->state crt-data)) result))
     result))
 
 (defun vc-dir-resynch-file (&optional fname)
@@ -931,6 +943,35 @@ outside of VC) and one wants to do some operation on it."
 
 (defun vc-dir-status-printer (fileentry)
   (vc-call-backend vc-dir-backend 'status-printer fileentry))
+
+(defun vc-dir-deduce-fileset (&optional state-model-only-files)
+  (let ((marked (vc-dir-marked-files))
+	files
+	only-files-list
+	state
+	model)
+    (if marked
+	(progn
+	  (setq files marked)
+	  (when state-model-only-files
+	    (setq only-files-list (vc-dir-marked-only-files-and-states))))
+      (let ((crt (vc-dir-current-file)))
+	(setq files (list crt))
+	(when state-model-only-files 
+	  (setq only-files-list (vc-dir-child-files-and-states)))))
+
+    (when state-model-only-files
+      (setq state (cdar only-files-list))
+      ;; Check that all files are in a consistent state, since we use that
+      ;; state to decide which operation to perform.
+      (dolist (crt (cdr only-files-list))
+	(unless (vc-compatible-state (cdr crt) state)
+	  (error "%s:%s clashes with %s:%s"
+		 (car crt) (cdr crt) (caar only-files-list) state)))
+      (setq only-files-list (mapcar 'car only-files-list))
+      (when (and state (not (eq state 'unregistered)))
+	(setq model (vc-checkout-model vc-dir-backend only-files-list))))
+    (list vc-dir-backend files only-files-list state model)))
 
 ;;;###autoload
 (defun vc-dir (dir backend)
