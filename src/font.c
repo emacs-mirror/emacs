@@ -1444,7 +1444,6 @@ font_parse_fcname (name, font)
 		{
 		  /* KEY=VAL pairs  */
 		  Lisp_Object key;
-		  char *keyhead = p;
 		  int prop;
 
 		  if (q - p == 10 && memcmp (p + 1, "pixelsize", 9) == 0)
@@ -1480,8 +1479,8 @@ font_parse_fcname (name, font)
 	{
 	  if (isdigit (*p))
 	    {
-	      char *r;
 	      int size_found = 1;
+
 	      for (q = p + 1; *q && *q != ' '; q++)
 		if (! isdigit (*q))
 		  {
@@ -2166,8 +2165,7 @@ font_prepare_composition (cmp, f)
 static unsigned font_score P_ ((Lisp_Object, Lisp_Object *));
 static int font_compare P_ ((const void *, const void *));
 static Lisp_Object font_sort_entites P_ ((Lisp_Object, Lisp_Object,
-					  Lisp_Object, Lisp_Object,
-					  int));
+					  Lisp_Object, int));
 
 /* We sort fonts by scoring each of them against a specified
    font-spec.  The score value is 32 bit (`unsigned'), and the smaller
@@ -2252,15 +2250,14 @@ struct font_sort_data
 /* Sort font-entities in vector VEC by closeness to font-spec PREFER.
    If PREFER specifies a point-size, calculate the corresponding
    pixel-size from QCdpi property of PREFER or from the Y-resolution
-   of FRAME before sorting.  If SPEC is not nil, it is a font-spec to
-   get the font-entities in VEC.
+   of FRAME before sorting.
 
    If BEST-ONLY is nonzero, return the best matching entity.  Otherwise,
    return the sorted VEC.  */
 
 static Lisp_Object
-font_sort_entites (vec, prefer, frame, spec, best_only)
-     Lisp_Object vec, prefer, frame, spec;
+font_sort_entites (vec, prefer, frame, best_only)
+     Lisp_Object vec, prefer, frame;
      int best_only;
 {
   Lisp_Object prefer_prop[FONT_SPEC_MAX];
@@ -2279,20 +2276,6 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
 
   for (i = FONT_WEIGHT_INDEX; i <= FONT_DPI_INDEX; i++)
     prefer_prop[i] = AREF (prefer, i);
-
-  if (! NILP (spec))
-    {
-      /* A font driver may return a font that has a property value
-	 different from the value specified in SPEC if the driver
-	 thinks they are the same.  That happens, for instance, such a
-	 generic family name as "serif" is specified.  So, to ignore
-	 such a difference, for all properties specified in SPEC, set
-	 the corresponding properties in PREFER_PROP to nil.  */
-      for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
-	if (! NILP (AREF (spec, i)))
-	  prefer_prop[i] = Qnil;
-    }
-
   if (FLOATP (prefer_prop[FONT_SIZE_INDEX]))
     prefer_prop[FONT_SIZE_INDEX]
       = make_number (font_pixel_size (XFRAME (frame), prefer));
@@ -2326,7 +2309,7 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
 	    break;
 	}
     }
-  if (NILP (best_entity))
+  if (! best_only)
     {
       qsort (data, len, sizeof *data, font_compare);
       for (i = 0; i < len; i++)
@@ -2546,7 +2529,7 @@ font_delete_unmatched (list, spec, size)
 	    && ((XINT (AREF (spec, prop)) >> 8)
 		!= (XINT (AREF (entity, prop)) >> 8)))
 	  prop = FONT_SPEC_MAX;
-      if (prop++ <= FONT_SIZE_INDEX
+      if (prop < FONT_SPEC_MAX
 	  && size
 	  && XINT (AREF (entity, FONT_SIZE_INDEX)) > 0)
 	{
@@ -2557,6 +2540,17 @@ font_delete_unmatched (list, spec, size)
 		  : diff > FONT_PIXEL_SIZE_QUANTUM))
 	    prop = FONT_SPEC_MAX;
 	}
+      if (prop < FONT_SPEC_MAX
+	  && INTEGERP (AREF (spec, FONT_DPI_INDEX))
+	  && INTEGERP (AREF (entity, FONT_DPI_INDEX))
+	  && ! EQ (AREF (spec, FONT_DPI_INDEX), AREF (entity, FONT_DPI_INDEX)))
+	prop = FONT_SPEC_MAX;
+      if (prop < FONT_SPEC_MAX
+	  && INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
+	  && INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
+	  && ! EQ (AREF (spec, FONT_AVGWIDTH_INDEX),
+		   AREF (entity, FONT_AVGWIDTH_INDEX)))
+	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
 	val = Fcons (entity, val);
     }
@@ -3118,7 +3112,7 @@ font_find_for_lface (f, attrs, spec, c)
       if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
 	FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
       ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
-      entities = font_sort_entites (entities, prefer, frame, work, c < 0);
+      entities = font_sort_entites (entities, prefer, frame, c < 0);
     }
   if (c < 0)
     return entities;
@@ -3885,7 +3879,7 @@ how close they are to PREFER.  */)
     return Fcons (AREF (vec, 0), Qnil);
 
   if (! NILP (prefer))
-    vec = font_sort_entites (vec, prefer, frame, font_spec, 0);
+    vec = font_sort_entites (vec, prefer, frame, 0);
 
   list = tail = Fcons (AREF (vec, 0), Qnil);
   if (n == 0 || n > len)
