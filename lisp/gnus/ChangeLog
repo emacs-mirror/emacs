@@ -1,5 +1,10 @@
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-util.el (mm-with-multibyte, mm-with-unibyte): Remove.
+
+	* nnkiboze.el (nnkiboze-generate-group):
+	Use explicit mm-disable-multibyte rather than mm-with-unibyte.
+
 	* nnmairix.el: Require CL.
 
 2008-06-15  David Engster  <dengste@eml.cc>
