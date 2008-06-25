@@ -21338,7 +21338,7 @@
 
 	* fns.c (Frequire): Change nesting allowance from 2 to 3 to cause
 	more descriptive error output from lread.c:Fload upon most require
-	cycles during boostrapping.
+	cycles during bootstrapping.
 
 2002-11-27  Jason Rumney  <jasonr@gnu.org>
 
