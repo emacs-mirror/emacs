@@ -1,5 +1,12 @@
 2008-06-25  Kenichi Handa  <handa@m17n.org>
 
+	* xfaces.c (Fx_list_fonts): Call Flist_fonts with the arg PREFER.
+
+	* font.c (font_parse_fcname): Remove unused variables.
+	(font_sort_entites): Delete the arg SPEC.  Caller changed.  Fix
+	for the case of ! best_only.
+	(font_delete_unmatched): Check DPI and AVGWIDTH too.
+
 	* lisp.h (Fstring_to_unibyte): EXFUN it.
 
 	* character.h: (str_to_unibyte): Extern it.
