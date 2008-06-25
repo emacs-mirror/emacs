@@ -1,3 +1,7 @@
+2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (syms_of_buffer): Remove default-word-wrap.
+
 2008-06-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (syms_of_xdisp) <truncate-partial-width-windows>: Doc fix.

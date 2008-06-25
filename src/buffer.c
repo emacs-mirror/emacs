@@ -5504,11 +5504,6 @@ This is the same as (default-value 'buffer-file-coding-system).  */);
 		     doc: /* Default value of `truncate-lines' for buffers that do not override it.
 This is the same as (default-value 'truncate-lines).  */);
 
-  DEFVAR_LISP_NOPRO ("default-word-wrap",
-		     &buffer_defaults.word_wrap,
-		     doc: /* Default value of `word-wrap' for buffers that do not override it.
-This is the same as (default-value 'word-wrap).  */);
-
   DEFVAR_LISP_NOPRO ("default-fill-column",
 		     &buffer_defaults.fill_column,
 		     doc: /* Default value of `fill-column' for buffers that do not override it.
