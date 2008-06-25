@@ -815,8 +815,8 @@ Leave Buffer Selection Menu."
   "Save buffer on current line."
   (interactive)
   (with-current-buffer (bs--current-buffer)
-    (save-buffer)
-    (bs--update-current-line)))
+    (save-buffer))
+  (bs--update-current-line))
 
 (defun bs-visit-tags-table ()
   "Visit the tags table in the buffer on this line.
