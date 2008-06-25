@@ -421,7 +421,7 @@ If the third argument is incorrect, Emacs may crash.  */)
   Lisp_Object *top;
   Lisp_Object result;
 
-#ifdef CHECK_FRAME_FONT
+#if 0 /* CHECK_FRAME_FONT */
  {
    struct frame *f = SELECTED_FRAME ();
    if (FRAME_X_P (f)

@@ -1,5 +1,7 @@
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bytecode.c (Fbyte_code): Disable debugging code that doesn't compile.
+
 	* buffer.c (syms_of_buffer): Remove default-word-wrap.
 
 2008-06-25  Juanma Barranquero  <lekktu@gmail.com>
