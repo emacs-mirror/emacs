@@ -301,14 +301,12 @@ epaths-force: FRC
 # "export PARALLEL=0" is for SGI's Make, to prevent it from
 # running more than 1 process in the leim directory, especially for
 # the $TIT files there.
-leim:   src ${SUBDIR_MAKEFILES} FRC
+leim:   src Makefile FRC
 	(export PARALLEL; PARALLEL=0; cd $@; $(MAKE) all $(MFLAGS) \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}')
 
 src:	lib-src FRC
-
-lib-src: FRC src/config.stamp
 
 .RECURSIVE: ${SUBDIR} leim
 
@@ -324,18 +322,32 @@ lisp: src
 # file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
-${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
+${SUBDIR}: Makefile FRC
 	boot=bootstrap-emacs$(EXEEXT);                         \
 	if [ -x "src/$$boot" ]; then boot=""; fi;                   \
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"
 
-blessmail: ${SUBDIR_MAKEFILES} src FRC
+blessmail: Makefile src FRC
 	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
 	  MAKE='${MAKE}' archlibdir='$(archlibdir)'
 
-Makefile: $(srcdir)/Makefile.in config.status
+# We used to have one rule per */Makefile.in, but that leads to race
+# conditions with parallel makes, so let's assume that the time stamp on
+# ./Makefile is representative of the time stamp on all the other Makefiles.
+Makefile: config.status $(srcdir)/src/config.in \
+          $(srcdir)/Makefile.in \
+          $(srcdir)/src/Makefile.in \
+          $(srcdir)/lib-src/Makefile.in \
+          $(srcdir)/doc/emacs/Makefile.in \
+          $(srcdir)/doc/misc/Makefile.in \
+          $(srcdir)/doc/lispref/Makefile.in \
+          $(srcdir)/doc/lispintro/Makefile.in \
+          $(srcdir)/oldXMenu/Makefile.in \
+          $(srcdir)/lwlib/Makefile.in \
+          $(srcdir)/leim/Makefile.in \
+          $(srcdir)/lisp/Makefile.in
 	./config.status
 
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
@@ -352,40 +364,6 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoheader
 	rm -f $(srcdir)/src/stamp-h.in
 	echo timestamp > $(srcdir)/src/stamp-h.in
-
-src/Makefile: $(srcdir)/src/Makefile.in config.status
-	./config.status
-
-src/config.stamp: $(srcdir)/src/config.in config.status
-	./config.status
-	touch src/config.stamp
-
-lib-src/Makefile: $(srcdir)/lib-src/Makefile.in config.status
-	./config.status
-
-doc/emacs/Makefile: $(srcdir)/doc/emacs/Makefile.in config.status
-	./config.status
-
-doc/misc/Makefile: $(srcdir)/doc/misc/Makefile.in config.status
-	./config.status
-
-doc/lispref/Makefile: $(srcdir)/doc/lispref/Makefile.in config.status
-	./config.status
-
-doc/lispintro/Makefile: $(srcdir)/doc/lispintro/Makefile.in config.status
-	./config.status
-
-oldXMenu/Makefile: $(srcdir)/oldXMenu/Makefile.in config.status
-	./config.status
-
-lwlib/Makefile: $(srcdir)/lwlib/Makefile.in config.status
-	./config.status
-
-leim/Makefile: $(srcdir)/leim/Makefile.in config.status
-	./config.status
-
-lisp/Makefile: $(srcdir)/lisp/Makefile.in config.status
-	./config.status
 
 # ==================== Installation ====================
 

@@ -3141,9 +3141,6 @@ if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
 
-# This is how we know whether to re-run configure in certain cases.
-touch src/config.stamp
-
 ], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
 
 m4_if(dnl	Do not change this comment
