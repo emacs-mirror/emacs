@@ -208,6 +208,7 @@ compatibility with versions of Emacs that lack the variable
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
+  (setq data (string-to-unibyte data))
   (when (string-match "\\`\xff\xd8" data)
     (catch 'jfif
       (let ((len (length data)) (i 2))
