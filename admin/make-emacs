@@ -65,7 +65,7 @@ Build Emacs.
 
  --help			show this help
  --all			make clean versionclean first
- --boot			make boostrap, log to boot.log
+ --boot			make bootstrap, log to boot.log
  --enable-checking	ENABLE_CHECKING=1
  --no-warn		disable warnings
  --check-marked		GC_CHECK_MARKED_OBJECTS=1
