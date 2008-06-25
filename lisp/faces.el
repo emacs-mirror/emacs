@@ -59,13 +59,13 @@ a font height that isn't optimal."
 	   (internal-set-font-selection-order value)))
 
 
-;; In the absence of Fontconfig support, Monospace and Sans-Serif are
+;; In the absence of Fontconfig support, Monospace and Sans Serif are
 ;; unavailable, and we fall back on the courier and helv families,
 ;; which are generally available.
 (defcustom face-font-family-alternatives
   '(("Monospace" "courier" "fixed")
     ("courier" "fixed")
-    ("Sans-Serif" "helv" "helvetica" "arial" "fixed")
+    ("Sans Serif" "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
@@ -2229,7 +2229,7 @@ terminal type to a different value."
   :group 'basic-faces)
 
 (defface variable-pitch
-  '((t :family "Sans-Serif"))
+  '((t :family "Sans Serif"))
   "The basic variable-pitch face."
   :group 'basic-faces)
 
