@@ -173,6 +173,10 @@ selection dialog instead of an Emacs pop-up menu.
 *** The font setting chosen by "Set Default Font" is saved if the
 "Save Options" item is used.
 
+*** The Tools menu contains a new Encryption/Decryption submenu.
+This contains commands provided by EasyPG, the newly-included
+interface to GnuPG (see New Modes and Packages).
+
 *** The Options menu contains a new entry to turn on Longlines mode.
 
 ** Mode-line changes
@@ -238,7 +242,8 @@ new multi-tty support (see `Improved X Window System support' above).
 +++
 *** mark-even-if-inactive now defaults to t
 +++
-*** When Transient Mark mode is on, C-SPC C-SPC pushes a mark without activating it.
+*** When Transient Mark mode is on, C-SPC C-SPC pushes a mark without
+activating it.
 +++
 *** When Transient Mark mode is on, M-q now fills the region if the
 region is active.  Otherwise, it fills the current paragraph.
@@ -306,12 +311,9 @@ history element containing the search string becomes the current.
 
 ** Face changes
 
-*** The new function `face-all-attributes' returns an alist describing
-all the basic attributes of a given face.
-
-*** S-down-mouse-1 now pops up a menu for changing the default font
-and text size of the default face in the current buffer.  The face is
-changed via face remapping (see below).
+*** S-down-mouse-1 now pops up a menu for changing the font and text
+size of the default face in the current buffer.  The face is changed
+via face remapping (see below).
 
 *** FIXME face-remap
 
@@ -322,8 +324,8 @@ makes the new region into the primary selection (for interaction with
 other window applications).  If you enable this, you might want to
 bind `mouse-yank-primary' to Mouse-2.
 
-*** You can disable kill ring commands from accessing the primary selection
-by setting `x-select-enable-primary' to nil.
+*** You can disable kill ring commands from accessing the primary
+selection by setting `x-select-enable-primary' to nil.
 
 ** Completion changes
 
@@ -335,9 +337,9 @@ completion style.
 *** The new command `minibuffer-force-complete' chooses one of the
 possible completions, rather than stopping at the common prefix.
 
-*** `completion-auto-help' can be set to `lazy' to list the completions only
-if you repeat the completion.  This was already supported in
-`partial-completion-mode'.
+*** `completion-auto-help' can be set to `lazy' to list the
+completions only if you repeat the completion.  This was already
+supported in `partial-completion-mode'.
 
 ** Continuation lines can be wrapped at word boundaries
 (word-wrapping) instead of the right window edge.  The new per-buffer
@@ -353,12 +355,6 @@ lines are truncated.  The default has been changed to 30.
 
 *** The new command balance-windows-area balances windows both
 vertically and horizontally.
-
-** Continuation lines can be wrapped at word boundaries
-(word-wrapping) instead of the right window edge.  The new per-buffer
-variable `word-wrap', if non-nil turns on word-wrapping.  Word
-wrapping does not take place if continuation lines are not shown,
-e.g. if truncate-lines is non-nil.
 
 ** Miscellaneous changes:
 
@@ -389,8 +385,8 @@ run processes remotely.
 *** The new command kill-matching-buffers kills buffers whose name
 matches a regexp.
 
-*** The new commands `pp-macroexpand-expression' and `pp-macroexpand-last-sexp'
-pretty-print macro expansions.
+*** The new commands `pp-macroexpand-expression' and
+`pp-macroexpand-last-sexp' pretty-print macro expansions.
 
 
 * New Modes and Packages in Emacs 23.1
@@ -406,28 +402,20 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 
 ** bug-reference.el provides clickable links to bug reports.
 
-** copyright.el adds utilities for specifying copyright holders' names.
-
-*** Only copyright lines with holders matching copyright-names-regexp
-will be considered for update.
-
-*** The Copyright package looks for copyright at the end of the buffer
-if `copyright-at-end-flag' is non-nil (change-log-mode sets this).
+** copyright.el provides utilities for updating copyright notices in files.
 
 ** dbus.el provides D-Bus language bindings.
 D-Bus is an inter-process communication mechanism for applications
-residing on the same host, based on messages.  See the manual for
-details.
+residing on the same host.  See the manual for details.
 
-** Doc View Mode supports viewing of PDF, PostScript and DVI documents
-inside an Emacs buffer.  It works by converting the document to a set
-of PNG images first.  One can also search for a regular expression in
-the document.  The commentary in doc-view.el explains its usage.
+** Doc View Mode allows viewing of PDF, PostScript and DVI documents.
+One can also search for a regular expression in the document.  For
+details, see the commentary in doc-view.el.
 
-** EasyPG is an all-in-one GnuPG interface.
-It includes GnuPG keyring browser, cryptographic operations on regions
-and files, and automatic encryption of *.gpg files.  For details, see
-the EasyPG Assistant User's Manual.
+** EasyPG provides an interface to the GNU Privacy Guard (GnuPG).
+It includes a GnuPG keyring browser, cryptographic operations on
+regions and files, and automatic encryption of *.gpg files.  For
+details, see the EasyPG Assistant User's Manual.
 
 ** json.el is a library for parsing and generating JSON
 (JavaScript Object Notation), a lightweight data-interchange format.
@@ -820,35 +808,22 @@ for the list of extra keys that are available.
 * Incompatible Lisp Changes in Emacs 23.1
 
 ** Variables cannot be both buffer-local and frame-local any more.
-** The argument DEFAULT of minibuffer input functions `read-from-minibuffer',
-`read-string', `completing-read', `read-buffer', `read-command',
-`read-variable' now can be a list of default values.  The elements of
-this list are available for inserting to the minibuffer with `M-n'.
-If the user enters empty input, the first element is used as the default.
 
 ** `functionp' returns nil for special forms.
 I.e., it only returns t for objects that can be passed to `funcall'.
-
-+++
-** The multibyteness of process filters is determined by the coding-system
-used for decoding.  The functions `process-filter-multibyte-p' and
-`set-process-filter-multibyte' are obsolete.
 
 ** The behavior of map-char-table has changed.  It may call the
 specified function with a cons (FROM . TO) as a key if characters in
 that range have the same value.
 
-** The value of the function `charset-id' is now always 0.
-
-** The functions `register-char-codings' and `coding-system-spec'
-have been removed.
-
-** The cpXXX coding systems are now supported automatically.  The
-functions cp-...-codepage, which you had to use in Emacs 22 to enable
-support for these coding systems, have been deleted.
-
+** Process changes
 +++
-** The function `dired-call-process' has been removed.
+*** The function `dired-call-process' has been removed.
++++
+*** The multibyteness of process filters is now determined by the
+coding-system used for decoding.  The functions
+`process-filter-multibyte-p' and `set-process-filter-multibyte' are
+obsolete.
 
 ** The variable `byte-compile-warnings' can now be a list starting with `not',
 meaning to disable the specified warnings.  The meaning of this list
@@ -861,31 +836,110 @@ checking/manipulating elements directly, use the new functions
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
-** The following features have been removed.  They were used for
+** Internationalization changes
+
+*** The value of the function `charset-id' is now always 0.
+
+*** The functions `register-char-codings' and `coding-system-spec'
+have been removed.
+
+*** The cpXXX coding systems are now supported automatically.
+The functions cp-...-codepage, which you had to use in Emacs 22 to
+enable support for these coding systems, have been deleted.
+
+*** The following features have been removed.  They were used for
 displaying various scripts with specific fonts, and are no longer
 needed now that OpenType font support is available:
 
-*** `devanagari' and `devan-util', and all associated devanagari-* and
+**** `devanagari' and `devan-util', and all associated devanagari-* and
 dev-* functions and variables (formerly used for Devanagari script).
 
-*** `kannada' and `knd-util', and all associated kannada-* and knd-*
+**** `kannada' and `knd-util', and all associated kannada-* and knd-*
 functions and variables (formerly used for Kannada script).
 
-*** `malayalam' and `mlm-util', and all associated malayalam-* and
+**** `malayalam' and `mlm-util', and all associated malayalam-* and
 mlm-* functions and variables (formerly used for Malayalam script).
 
-*** `tamil' and `tml-util, and all associated tamil-* and tml-*
+**** `tamil' and `tml-util, and all associated tamil-* and tml-*
 functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
 
-** bookmark provides `bookmark-make-record-function' so special major modes
-like Info can teach bookmark.el how to save&restore the relevant data.
++++
+** New variable `user-emacs-directory'.
+Use this instead of "~/.emacs.d".
 
-** The new variable next-error-recenter specifies how next-error should
-recenter the visited source file.  Its value can be a number (for example,
-0 for top line, -1 for bottom line), or nil for no recentering.
+** If a local hook function has a non-nil `permanent-local-hook'
+property, `kill-all-local-variables' does not remove it from the local
+value of the hook variable; it remains even if you change major modes.
+
+** `frame-inherited-parameters' lets new frames inherit parameters from
+the selected frame.
+
+** New keymap `input-decode-map' overrides like key-translation-map, but
+applies before function-key-map.  Also it is terminal-local contrary to
+key-translation-map.  Terminal-specific key-sequences are generally added to
+this map rather than to function-key-map now.
+
+** `ignore-errors' is now a standard macro (does not require the CL package).
+
+** `interprogram-paste-function' can now return one string or a list
+of strings.  In the latter case, Emacs puts the second and following
+strings on the kill ring.
+
++++
+** In `condition-case', a handler can specify "let the debugger run first".
+You do this by writing `debug' in the list of conditions to be handled,
+like this:
+
+    (condition-case nil
+	(foo bar)
+      ((debug error) nil))
+
+** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
+
+** `beginning-of-defun-function' now takes one argument, the count
+given to `beginning-of-defun'.
+
++++
+** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
+IDENTIFICATION specifies which part of the remote identifier has to be
+returned.  With CONNECTED passed non-nil, it is checked whether a
+remote connection has been established already.
+
+** The new macro `declare-function' suppresses compiler warnings about
+undefined functions.
+
+** Changes to interactive function handling
+
+*** The new interactive spec code ^ says to first call
+handle-shift-selection if shift-select-mode is non-nil, before reading
+the command arguments.  This is used for shift-selection (see above).
+
+*** Built-in functions can now have an interactive specification that
+is not a prompt string.  If the `intspec' parameter of a `DEFUN'
+starts with a `(', the string is evaluated as a Lisp form.
+
+*** The interactive-form of a function can be added post-facto via the
+`interactive-form' symbol property.  Mostly useful to add complex
+interactive forms to subroutines.
+
+** Region changes
+
+*** Commands should use `use-region-p' to test whether there is
+an active region that they should operate on.
+
+*** `region-active-p' returns non-nil when Transient Mark mode is
+enabled and there is an active region.  This is NOT the best function
+to use to test whether a command should operate on the region instead
+of the usual behavior -- for that, use `use-region-p'.
+
+*** If a command sets `transient-mark-mode' to (only . OLDVAL), that
+means to activate transient-mark-mode temporarily, until the next
+unshifted point motion command or mark deactivation.  Afterwards,
+reset transient-mark-mode to the value OLDVAL.  The values `only' and
+`identity', introduced in Emacs 22, are now deprecated.
 
 ** Emacs session information
 
@@ -897,131 +951,73 @@ value of `current-time' before and after Emacs loads the init files.
 *** The new function `emacs-init-time' returns the duration of the
 Emacs initialization.
 
-** The new function `format-seconds' converts a number of seconds into a
-readable string of days, hours, etc.
-
-** set-file-modes is now interactive and can take the mode value in
-symbolic notation thanks to auxiliary functions.
-
-** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
-requires confirmation before opening a non-existent file.
-
-** Built-in functions (subr) can now have an interactive specification
-that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
-starts with a `(', the string is evaluated as a Lisp form.
-
 ** Changes affecting display-buffer
+
 *** New value nil for split-height-threshold inhibits vertical splitting
 unless there's no other window.
+
 *** New option split-width-threshold controls horizontal splitting.
+
 *** A window can be split horizontally even when it's not full-width.
+
 *** New option split-window-preferred-function can be set to a function
 to override the default splitting mechanism of display-buffer.
 
-** The variable window-point-insertion-type determines the insertion-type
-of the marker used for window-point.
-
-** minibuffer-local-must-match-filename-map is now named
-minibuffer-local-filename-must-match-map.
-
-** `all-completions' may now return the base size in the last cdr.
-Since this means the returned list is not properly nil-terminated, this
-is an incompatible change and is thus enabled by the new variable
-completion-all-completions-with-base-size.
-
-** New function `apply-partially' for curried application.
-
-** `fill-forward-paragraph-function' specifies which function the filling
-code should use to find paragraph boundaries.
-
-** The variable `this-command-keys-shift-translated' is non-nil if the
-key sequence invoking the current command was found by
-shift-translation.
-
-** The new interactive spec code ^ says to first call
-handle-shift-selection if shift-select-mode is non-nil, before reading
-the command arguments.
-
-** When deleting a terminal, the special hook `delete-terminal-functions'
-is run.
-
-** The `read-shell-command' function does what its name says, with completion.
-It uses the minibuffer-local-shell-command-map for that.
-
-** The `buffer-swap-text' function can swap the text between two buffers.
-This can be useful for modes such as tar-mode, archive-mode, RMAIL.
-
-** `clear-image-cache' can be told to flush only images of a specific file.
-
-** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
-
-** `beginning-of-defun-function' now takes one argument, the count
- given to `beginning-of-defun'.
-
-** The variable `inhibit-changing-match-data', if non-nil, prevents the
-search and match primitives from changing the match data.
-
+** Minibuffer and completion changes
 +++
-** New function `match-substitute-replacement' returns the result of
-`replace-match' without actually using it in the buffer.
-
-** The new variable `replace-search-function' determines the function
-to use for searching in query-replace and replace-string.
-
-** The new variable `replace-re-search-function' determines the
-function to use for searching in `query-replace-regexp',
-`replace-regexp', + `query-replace-regexp-eval', and
-`map-query-replace-regexp'.
-
-** If a local hook function has a non-nil `permanent-local-hook'
-property, then `kill-all-local-variables' does not remove it from
-the local value of the hook variable.  This means it remains
-even if you change major modes.
-
-+++
-** A list of default values can be specified for the DEFAULT argument of
+*** A list of default values can be specified for the DEFAULT argument of
 functions `read-from-minibuffer', `read-string', `read-command',
 `read-variable', `read-buffer', `completing-read'.  Elements of this list
 are available for inserting into the minibuffer by typing `M-n'.
 For empty input these functions return the first element of this list.
 
-** `custom-note-var-changed' tells Custom to treat the change in a certain
-variable as having been made within Custom.
+*** minibuffer-local-must-match-filename-map is now named
+minibuffer-local-filename-must-match-map.
 
-** `frame-inherited-parameters' lets new frames inherit parameters from
-the selected frame.
+*** `all-completions' may now return the base size in the last cdr.
+Since this means the returned list is not properly nil-terminated, this
+is an incompatible change and is thus enabled by the new variable
+completion-all-completions-with-base-size.
 
-** Commands should use `use-region-p' to test whether there is
-an active region that they should operate on.
+*** The `require-match' argument to `completing-read' accepts a new value
+`confirm-only'.
 
-** `region-active-p' returns non-nil when Transient Mark mode
-is enabled and there is an active region.  This is NOT the best function
-to use to test whether a command should operate on the region instead
-of the usual behavior -- for that, use `use-region-p'.
+** Search and replacement changes
++++
+*** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
++++
+*** New function `match-substitute-replacement' returns the result of
+`replace-match' without actually using it in the buffer.
 
-** If a command sets `transient-mark-mode' to (only . OLDVAL), that
-means to activate transient-mark-mode temporarily, until the next
-unshifted point motion command or mark deactivation.  Afterwards,
-reset transient-mark-mode to the value OLDVAL.  The values `only' and
-`identity', introduced in Emacs 22, are now deprecated.
+*** The new variable `replace-search-function' determines the function
+to use for searching in query-replace and replace-string.
 
-** New keymap `input-decode-map' overrides like key-translation-map, but
-applies before function-key-map.  Also it is terminal-local contrary to
-key-translation-map.  Terminal-specific key-sequences are generally added to
-this map rather than to function-key-map now.
+*** The new variable `replace-re-search-function' determines the
+function to use for searching in `query-replace-regexp',
+`replace-regexp', `query-replace-regexp-eval', and
+`map-query-replace-regexp'.
 
-** The new macro `declare-function' suppresses compiler warnings about
-undefined functions.  The new `check-declare' package verifies that such
-statements are accurate (i.e. the functions are actually defined in
-the specified files).
+*** The variable `inhibit-changing-match-data', if non-nil, prevents
+the search and match primitives from changing the match data.
 
-** `ignore-errors' is now a standard macro (does not require the CL package).
+** File handling changes
 
-** The new function `read-color' reads a color name using the minibuffer.
+*** set-file-modes is now interactive and can take the mode value in
+symbolic notation thanks to auxiliary functions.
 
-** `interprogram-paste-function' can now return one string or a list
-of strings.  In the latter case, Emacs puts the second and following
-strings on the kill ring.
+*** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
+requires confirmation before opening a non-existent file.
+
+** Process changes
++++
+*** The new function `start-file-process' is similar to `start-process',
+but obeys file handlers.  The file handler is chosen based on
+`default-directory'.  The functions `start-file-process-shell-command'
+and `process-file-shell-command' are also new; they call internally
+`start-file-process' and `process-file', respectively.
+
+*** The new function `process-lines' executes an external program and
+returns its output as a list of lines.
 
 ** Character code, representation, and charset changes.
 
@@ -1031,41 +1027,20 @@ Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit bytes.
 
 Generic characters no longer exist.
 
-In buffer and string, characters are represented by UTF-8 byte
-sequence in a multibyte buffer/string.
+In buffers and strings, characters are represented by UTF-8 byte
+sequences in a multibyte buffer/string.
 
-The concept of a charset has changed.  A single character may belong to
-multiple charsets (e.g. a-grave, U+00E0, belongs to charsets unicode,
-iso-8859-1, iso-8859-3, etc).
-
-*** The new function `characterp' returns t if and only if the argument
-is a character.  This replaces `char-valid-p', which is now obsolete.
-
-*** The new function `max-char' returns the maximum character code
-(currently it is #x3FFFFF).
+The concept of a charset has changed.  A single character may belong
+to multiple charsets (e.g. a-grave, U+00E0, belongs to charsets
+unicode, iso-8859-1, iso-8859-3, etc).
 
 *** The functions `encode-char' and `decode-char' now accept any character sets.
 
 *** The function `define-charset' now accepts a completely different
 form of arguments (old-style arguments still work).
 
-*** The new function `define-charset-alias' defines an alias of a charset.
-
 *** The value of the function `char-charset' depends on the current
 priorities of charsets.
-
-*** The new function `charset-priority-list' returns the list of
-charsets ordered by priority.
-
-*** The new function `set-charset-priority' sets priorities of charsets.
-
-*** The new function `unibyte-string' make a unibyte string from bytes.
-
-*** The new function `define-char-code-property' defines a character
-code property.
-
-*** The new function `char-code-property-description' returns the
-description string of a character code property.
 
 *** The function get-char-code-property now accepts many Unicode base
 character properties.  They are `name', `general-category',
@@ -1074,24 +1049,46 @@ character properties.  They are `name', `general-category',
 `old-name', `iso-10646-comment', `uppercase', `lowercase', and
 `titlecase'.
 
-*** The new variable `find-word-boundary-function-table' is a
-char-table of functions to search for a word boundary.
-
-*** The new variable `char-script-table' is a char-table of script names.
-
-*** The new variable `char-width-table' is a char-table of character widths.
-
-*** The new variable `print-charset-text-property' controls how to
-handle `charset' text property on printing a string.
-
-*** The new variable `printable-chars' is a char-table defining if a
-character is printable or not.
-
 *** The functions `modify-syntax-entry' and `modify-category-entry' now
-accepts a cons of characters as the first argument, and modify all
+accept a cons of characters as the first argument, and modify all
 entries in that range of characters.
+
 +++
 *** `translation-table-for-input' is now obsolete.
+
+*** New functions:
+
+**** `characterp' returns t if and only if the argument is a character.
+This replaces `char-valid-p', which is now obsolete.
+
+**** `max-char' returns the maximum character code (currently #x3FFFFF).
+
+**** `define-charset-alias' defines an alias of a charset.
+
+**** `set-charset-priority' sets priorities of charsets.
+
+**** `charset-priority-list' returns a prioritized list of charsets.
+
+**** `unibyte-string' makes a unibyte string from bytes.
+
+**** `define-char-code-property' defines a character code property.
+
+**** `char-code-property-description' returns the description string of
+a character code property.
+
+*** New variables:
+
+**** `find-word-boundary-function-table' is a char-table of functions to
+search for a word boundary.
+
+**** `char-script-table' is a char-table of script names.
+
+**** `char-width-table' is a char-table of character widths.
+
+**** `print-charset-text-property' controls how to handle `charset' text
+property on printing a string.
+
+**** `printable-chars' is a char-table of printable characters.
 
 ** Code conversion changes
 
@@ -1106,25 +1103,25 @@ conversion should go.
 have an optional 4th argument specifying a buffer to store the result
 of conversion.
 
-*** The new function `with-coding-priority' executes the body part with
-the specified coding system priority order.
-
-*** The new function `check-coding-systems-region' checks if the text
-in the region is encodable by the specified coding systems.
-
-*** The new function `coding-system-aliases' returns a list of aliases
-of a coding system.
-
-*** The new function `coding-system-charset-list' returns a list of
-charsets supported by a coding system.
-
-*** The new function `coding-system-priority-list' returns a list of
-coding systems ordered by their priorities.
-
-*** The new function `set-coding-system-priority' sets priorities of
-coding systems.
-
 *** The functions `set-coding-priority' and `make-coding-system' are obsolete.
+
+*** New functions:
+
+**** `with-coding-priority' executes Lisp code using the specified
+coding system priority order.
+
+**** `check-coding-systems-region' checks if the text in the region is
+encodable by the specified coding systems.
+
+**** `coding-system-aliases' returns a list of aliases of a coding system.
+
+**** `coding-system-charset-list' returns a list of charsets supported
+by a coding system.
+
+**** `coding-system-priority-list' returns a list of coding systems
+ordered by their priorities.
+
+**** `set-coding-system-priority' sets priorities of coding systems.
 
 ** There is a new input method, Robin, different from Quail.
 It has three functionalities:
@@ -1158,151 +1155,160 @@ available on your graphic device.
 font-backends supported by the frame's graphic device.  On X, they are
 currently `x' and `xft'.
 
-*** New function `fontp' checks if the argument is a font-spec or font-entity.
-
-*** New function `font-spec' creates a new font-spec object.
-
-*** New function `font-get' returns a font property value.
-
-*** New function `font-face-attributes' returns a plist of face
-attributes set by a font.
-
-*** New function `font-put' sets a font property value.
-
-*** New function `list-fonts' returns a list of font-entities matching
-the given specification.
-
-*** New function `list-families' returns a list of family names of
-available fonts.
-
-*** New function `font-font' returns a font-entity best matching with
-the given specification.
-
-*** New function `font-xlfd-name' returns an XLFD name of a given font
-(font-spec, font-entity, or font-object).
-
-*** New function `clear-font-cache' clears all font caches.
-
 *** The function `set-fontset-font' now accepts a script name as the
 second argument, and has an optional 5th argument to control how to
 set the font.
 
-** Changes related to multiple tty support
+*** New functions:
+
+**** `fontp' checks if the argument is a font-spec or font-entity.
+
+**** `font-spec' creates a new font-spec object.
+
+**** `font-get' returns a font property value.
+
+**** `font-put' sets a font property value.
+
+**** `font-face-attributes' returns a plist of face attributes set by a font.
+
+**** `list-fonts' returns a list of font-entities matching a font spec.
+
+**** `font-font' returns the font-entity best matching the given font spec.
+
+**** `list-families' returns a list of family names of available fonts.
+
+**** `font-xlfd-name' returns an XLFD name of a given font spec, font
+entity, or font object.
+
+**** `clear-font-cache' clears all font caches.
+
+** Changes related to multiple-terminal (multi-tty) support
 
 *** $TERM is now set to `dumb' for subprocesses.  If you want to know the
 $TERM inherited by Emacs you will have to look inside initial-environment.
 
 *** $DISPLAY is now dynamically inherited from the frame's `display'.
 
-*** The `window-system' variable has been made frame-local.  The new
+*** The `window-system' variable is now frame-local.  The new
 `initial-window-system' variable contains the `window-system' value
 for the first frame.  `window-system' is also now a function that
 takes a frame argument.
 
+*** The `keyboard-translate-table' variable and the terminal and
+keyboard coding systems are now terminal-local.
+
 *** You can specify a terminal device (`tty' parameter) and a terminal
 type (`tty-type' parameter) to `make-terminal-frame'.
-
-*** The new function `make-frame-on-tty' allows you to create a new
-frame on another tty device interactively.
 
 *** The function `make-frame-on-display' now works during a tty
 session, and `make-frame-on-tty' works during a graphical session.
 
-*** New functions: `delete-tty', `suspend-tty', `resume-tty'.
-
 *** A new data type for terminals with functions: `get-device-terminal',
 `terminal-parameters', `terminal-parameter', `set-terminal-parameter'.
 
-*** New hooks: `suspend-tty-functions' and `resume-tty-functions'
-are called after a tty frame has been suspended or resumed,
-respectively.  The functions are called with the terminal id of the frame
-being suspended/resumed as a parameter.
+*** Function key sequences are now mapped using `local-function-key-map',
+a new variable.  This inherits from the global variable function-key-map,
+which is not used directly any more.
 
-*** New function: `environment'.
+*** New hooks:
 
-*** New variable: `local-function-key-map'.
-This in addition to the global function-key-map variable that
-already existed.  The global variable is not used directly any more;
-instead, the local-function-key-map is initialized so as to inherit from
-function-key-map.
+**** `suspend-tty-functions' and `resume-tty-functions' are called
+after a tty frame has been suspended or resumed, respectively.  The
+functions are called with the terminal id of the frame being
+suspended/resumed as a parameter.
+
+**** The special hook `delete-terminal-functions' is called before
+deleting a terminal.
+
+*** New functions:
+
+**** `environment'
+
+**** `make-frame-on-tty' creates a new frame on another tty device.
+
+**** `delete-tty'
+
+**** `suspend-tty'
+
+**** `resume-tty'.
 
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 
-*** The `keyboard-translate-table' variable and the terminal and
-keyboard coding systems have been made terminal-local.
+** Redisplay changes
 
-*** In addition to the global function-key-map, Emacs has terminal-local
-local-function-key-map variables, and uses them instead of the
-global keymaps to set up translations and function key sequences
-relevant to a specific terminal device.
+*** For underlined characters, the distance between the underline and
+the baseline is controlled by a new variable, `underline-minimum-offset'.
 
-*** `underline-minimum-offset' keeps the underline away from the baseline.
-
-** You can now also pass the value of the `invisible' property to invisible-p
-to check whether it would cause the text to be invisible.  Convenient when
-checking invisibility of text which has no buffer position
+*** You can now pass the value of the `invisible' property to
+invisible-p to check whether it would cause the text to be invisible.
+Convenient when checking invisibility of text with no buffer position
 (e.g. in before/after-strings).
 
-** Non-breaking space now acts as whitespace.
+*** Non-breaking space is now displayed as whitespace.
 
-+++
-** In `condition-case', a handler can specify "let the debugger run first".
+*** `clear-image-cache' can be told to flush only images of a specific file.
 
-You do this by writing `debug' in the list of conditions to be handled,
-like this:
+** Miscellaneous new functions
 
-    (condition-case nil
-	(foo bar)
-      ((debug error) nil))
+*** `format-seconds' converts a number of seconds into a readable
+string of days, hours, etc.
 
-** The `require-match' argument to `completing-read' accepts a new value
-`confirm-only'.
+*** `apply-partially' performs a "curried" application of a function.
 
-+++
-** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
+*** `read-shell-command' does what its name says, with completion.  It
+uses the minibuffer-local-shell-command-map for that.
 
-** New function `window-full-width-p' returns t if a window is as wide
-as its frame.
+*** `buffer-swap-text' swaps text between two buffers.  This can be
+useful for modes such as tar-mode, archive-mode, RMAIL.
 
-** The new function `split-string-and-unquote' does (what?)
+*** `read-color' reads a color name using the minibuffer.
 
-** The new function `combine-and-quote-strings' does (what?)
+*** `face-all-attributes' returns an alist describing all the basic
+attributes of a given face.
 
-** The new function `image-refresh' refreshes all images associated
-with a given image specification.
+*** `window-full-width-p' returns t if a window is as wide as its
+frame.
 
-+++
-** New variable `user-emacs-directory'.
-Use this instead of "~/.emacs.d".
+*** `split-string-and-unquote' does (what?)
 
-+++
-** The new function `start-file-process' is similar to `start-process',
-but obeys file handlers.  The file handler is chosen based on
-`default-directory'.  The functions `start-file-process-shell-command'
-and `process-file-shell-command' are also new; they call internally
-`start-file-process' and `process-file', respectively.
+*** `combine-and-quote-strings' does (what?)
 
-** The new function `process-lines' executes an external program and
-returns its output as a list of lines.
+*** `image-refresh' refreshes all images associated with a given image
+specification.
 
-+++
-** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
-IDENTIFICATION specifies which part of the remote identifier has to be
-returned.  With CONNECTED passed non-nil, it is checked whether a
-remote connection has been established already.
-
-** The two new functions `looking-at-p' and `string-match-p' can do
+*** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
 
-** The interactive-form of a function can be added post-facto via the
-`interactive-form' symbol property.  Mostly useful to add complex interactive
-forms to subroutines.
+** Miscellaneous new variables
+
+*** `this-command-keys-shift-translated' is non-nil if the key
+sequence invoking the current command was found by shift-translation.
+
+*** `window-point-insertion-type' determines the insertion-type of the
+marker used for window-point.
+
+*** bookmark provides `bookmark-make-record-function' so special major
+modes like Info can teach bookmark.el how to save and restore the
+relevant data.
+
+*** `next-error-recenter' specifies how next-error should recenter the
+visited source file.  Its value can be a number (for example, 0 for
+top line, -1 for bottom line), or nil for no recentering.
+
+*** `fill-forward-paragraph-function' specifies which function the
+filling code should use to find paragraph boundaries.
+
+*** `custom-note-var-changed' tells Custom to treat the change in a
+certain variable as having been made within Custom.
+
 
 * New Packages for Lisp Programming in Emacs 23.1
 
-** The new major mode `special-mode' is intended as a parent for
-major modes such as those that set the "'mode-class 'special" property.
+** The new package avl-tree.el deals with the AVL tree data structure.
+
+** The new package check-declare.el verifies the accuracy of
+declare-function macros (see Lisp Changes, above).
 
 ** find-cmd.el can build `find' commands using lisp syntax.
 
@@ -1312,7 +1318,8 @@ multiple buffers.  In this mode a new variable
 `isearch-buffers-next-buffer-function' defines the function to call
 to get the next buffer to search in the series of multiple buffers.
 
-** The new package avl-tree.el deals with the AVL tree data structure.
+** The new major mode `special-mode' is intended as a parent for
+major modes such as those that set the "'mode-class 'special" property.
 
 
 ----------------------------------------------------------------------
