@@ -1,3 +1,9 @@
+2008-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-basic-try-completion): Use the text after
+	point to consrain the completion candidates.
+	(completion-basic-all-completions): Adjust accordingly.
+
 2008-06-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/tex-mode.el (tex-verbatim): Use monospace instead of
