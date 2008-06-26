@@ -16088,8 +16088,7 @@ extend_face_to_end_of_line (it)
       && it->glyph_row->displays_text_p
       && face->box == FACE_NO_BOX
       && face->background == FRAME_BACKGROUND_PIXEL (f)
-      && !face->stipple
-      && it->line_wrap != WORD_WRAP)
+      && !face->stipple)
     return;
 
   /* Set the glyph row flag indicating that the face of the last glyph
