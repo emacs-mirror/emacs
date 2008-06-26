@@ -2,7 +2,7 @@
 
 	* vc-dir.el (tool-bar): Require.
 
-	* vc.el (ewoc, tool-bar): Do no require.
+	* vc.el (ewoc, tool-bar): Do not require.
 
 2008-06-26  Kenichi Handa  <handa@m17n.org>
 
