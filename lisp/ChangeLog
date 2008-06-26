@@ -1,3 +1,13 @@
+2008-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (terminal-composition-base-character-p): New
+	funciton.
+	(terminal-composition-function): Use
+	terminal-composition-base-character-p.  Include the base character
+	in the composition.
+	(auto-compose-chars): Don't check font-object for terminal
+	display.
+
 2008-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-date-echo-text): Doc fix.
