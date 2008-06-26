@@ -4588,7 +4588,7 @@ handle_auto_composed_prop (it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
 
-  if (FRAME_WINDOW_P (it->f) && FUNCTIONP (Vauto_composition_function))
+  if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
       EMACS_INT pos, limit = -1;
@@ -4654,8 +4654,10 @@ handle_auto_composed_prop (it)
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object args[5];
 
-	      limit = font_range (pos, limit, FACE_FROM_ID (it->f, it->face_id),
-				  it->f, it->string);
+	      if (FRAME_WINDOW_P (it->f))
+		limit = font_range (pos, limit,
+				    FACE_FROM_ID (it->f, it->face_id),
+				    it->f, it->string);
 	      args[0] = Vauto_composition_function;
 	      specbind (Qauto_composition_function, Qnil);
 	      args[1] = make_number (pos);
