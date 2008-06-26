@@ -32,11 +32,12 @@
 
 (require 'calendar)
 
-(defconst cal-menu-moon-menu
-  '("Moon"
+(defconst cal-menu-sunmoon-menu
+  '("Sun/Moon"
     ["Lunar Phases" calendar-phases-of-moon]
-    ["Sunrise/sunset for cursor date" calendar-sunrise-sunset])
-  "Key map for \"Moon\" menu in the calendar.")
+    ["Sunrise/sunset for cursor date" calendar-sunrise-sunset]
+    ["Sunrise/sunset for cursor month" calendar-sunrise-sunset-month])
+  "Key map for \"Sun/Moon\" menu in the calendar.")
 
 (defconst cal-menu-diary-menu
   '("Diary"
@@ -111,7 +112,7 @@
   "Key map for \"Holidays\" menu in the calendar.")
 
 (defconst cal-menu-goto-menu
-  '("Go To"
+  '("Goto"
     ["Today" calendar-goto-today]
     ["Beginning of Week" calendar-beginning-of-week]
     ["End of Week" calendar-end-of-week]
@@ -140,7 +141,7 @@
      ["Next Round" calendar-mayan-next-round-date]
      ["Previous Round" calendar-mayan-previous-round-date])
     ["French Date" calendar-french-goto-date])
-  "Key map for \"Go To\" menu in the calendar.")
+  "Key map for \"Goto\" menu in the calendar.")
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
@@ -246,6 +247,7 @@ is non-nil."
     ["Mark holidays" calendar-mark-holidays]
     ["Unmark" calendar-unmark]
     ["Lunar phases" calendar-phases-of-moon]
+    ["Sunrise times for month" calendar-sunrise-sunset-month]
     ["Show diary" diary-show-all-entries]
     ["Exit calendar" calendar-exit]))
 
