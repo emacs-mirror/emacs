@@ -48,6 +48,10 @@
 	Add doc strings.
 	(cal-menu-context-mouse-menu): Add some :keys.
 
+	* calendar/cal-menu.el (cal-menu-moon-menu): Add sunrise/sunset.
+	* calendar/calendar.el (calendar-cursor-to-date): Handle case where
+	event-start is nil.
+
 2008-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-basic-try-completion): Use the text after
