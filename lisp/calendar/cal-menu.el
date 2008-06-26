@@ -34,7 +34,9 @@
 
 (defconst cal-menu-moon-menu
   '("Moon"
-    ["Lunar Phases" calendar-phases-of-moon]))
+    ;; FIXME add solar?
+    ["Lunar Phases" calendar-phases-of-moon])
+  "Key map for \"Moon\" menu in the calendar.")
 
 (defconst cal-menu-diary-menu
   '("Diary"
@@ -60,7 +62,8 @@
     ("Insert Hebrew"
      ["One time" diary-hebrew-insert-entry]
      ["Monthly" diary-hebrew-insert-monthly-entry]
-     ["Yearly" diary-hebrew-insert-yearly-entry])))
+     ["Yearly" diary-hebrew-insert-yearly-entry]))
+    "Key map for \"Diary\" menu in the calendar.")
 
 (defun cal-menu-holiday-window-suffix ()
   "Return a string suffix for the \"Window\" entry in `cal-menu-holidays-menu'."
@@ -104,7 +107,8 @@
         (nreverse l))
     "--"
     ["Unmark Calendar" calendar-unmark]
-    ["Mark Holidays" calendar-mark-holidays]))
+    ["Mark Holidays" calendar-mark-holidays])
+  "Key map for \"Holidays\" menu in the calendar.")
 
 (defconst cal-menu-goto-menu
   '("Go To"
@@ -135,7 +139,8 @@
      ["Previous Haab" calendar-mayan-previous-haab-date]
      ["Next Round" calendar-mayan-next-round-date]
      ["Previous Round" calendar-mayan-previous-round-date])
-    ["French Date" calendar-french-goto-date]))
+    ["French Date" calendar-french-goto-date])
+  "Key map for \"Go To\" menu in the calendar.")
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
@@ -144,7 +149,8 @@
     ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
-    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"]))
+    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"])
+  "Key map for \"Scroll\" menu in the calendar.")
 
 (defmacro cal-menu-x-popup-menu (event title &rest body)
   "Call `x-popup-menu' at position EVENT, with TITLE and contents BODY.
@@ -203,16 +209,6 @@ is non-nil."
    (read-file-name "Enter diary file name: " default-directory nil t)
    event))
 
-(defun calendar-mouse-print-dates (&optional event)
-  "Pop up menu of equivalent dates to mouse selected date.
-EVENT is the event that invoked this command."
-  (interactive "e")
-  (let* ((date (calendar-cursor-to-date nil event))
-         (title (format "%s (Gregorian)" (calendar-date-string date)))
-         (selection (cal-menu-x-popup-menu event title
-                      (mapcar 'list (calendar-other-dates date)))))
-    (and selection (call-interactively selection))))
-
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
   (easy-menu-filter-return
@@ -226,7 +222,7 @@ EVENT is the event that invoked this command."
     ["Holidays" calendar-mouse-holidays]
     ["Mark date" calendar-set-mark]
     ["Sunrise/sunset" calendar-sunrise-sunset]
-    ["Other calendars" calendar-mouse-print-dates]
+    ["Other calendars" calendar-print-other-dates]
     ;; FIXME there is a bug with last-nonmenu-event and submenus.
     ;; These currently don't work if called without calendar window selected.
     ("Prepare LaTeX buffer"
