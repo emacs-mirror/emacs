@@ -1,3 +1,8 @@
+2008-06-26  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.h (FONT_AVG_WIDTH): Remove obsolete macro.
+        (CP_8BIT, CP_UNICODE, CP_UNKNOWN): Remove obsolete constants.
+
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* Makefile.in (SOME_MACHINE_OBJECTS): Remove w32bdf.o.
