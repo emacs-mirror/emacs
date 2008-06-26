@@ -161,18 +161,6 @@ Signals an error if popups are unavailable."
      (error "Popup menus are not available on this system")))
 
 (autoload 'calendar-check-holidays "holidays")
-
-(defun calendar-mouse-holidays (&optional event)
-  "Pop up menu of holidays for mouse selected date.
-EVENT is the event that invoked this command."
-  (interactive "e")
-  (let* ((date (calendar-cursor-to-date nil event))
-         (title (format "Holidays for %s" (calendar-date-string date)))
-         (selection (cal-menu-x-popup-menu event title
-                      (or (mapcar 'list (calendar-check-holidays date))
-                          '("None")))))
-    (and selection (call-interactively selection))))
-
 (autoload 'diary-list-entries "diary-lib")
 (defvar diary-show-holidays-flag)       ; only called from calendar.el
 
@@ -219,11 +207,11 @@ is non-nil."
   "Pop up menu for Mouse-2 for selected date in the calendar window."
   '("cal-menu-mouse2" :filter cal-menu-set-date-title
     "--"
-    ["Holidays" calendar-mouse-holidays]
+    ["Holidays" calendar-cursor-holidays]
     ["Mark date" calendar-set-mark]
     ["Sunrise/sunset" calendar-sunrise-sunset]
     ["Other calendars" calendar-print-other-dates]
-    ;; FIXME there is a bug with last-nonmenu-event and submenus.
+    ;; FIXME there is a bug (#447) with last-nonmenu-event and submenus.
     ;; These currently don't work if called without calendar window selected.
     ("Prepare LaTeX buffer"
      ["Daily (1 page)" cal-tex-cursor-day]
