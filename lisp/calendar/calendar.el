@@ -1018,6 +1018,9 @@ calendar."
 (defconst lunar-phases-buffer "*Phases of Moon*"
   "Name of the buffer used for the lunar phases.")
 
+(defconst solar-sunrises-buffer "*Sunrise/Sunset Times"
+  "Name of buffer used for sunrise/sunset times.")
+
 (defconst calendar-hebrew-yahrzeit-buffer "*Yahrzeits*"
   "Name of the buffer used by `list-yahrzeit-dates'.")
 
@@ -1565,7 +1568,7 @@ line."
     (define-key map [menu-bar edit] 'undefined)
     (define-key map [menu-bar search] 'undefined)
 
-    (easy-menu-define nil map nil cal-menu-moon-menu)
+    (easy-menu-define nil map nil cal-menu-sunmoon-menu)
     (easy-menu-define nil map nil cal-menu-diary-menu)
     (easy-menu-define nil map nil cal-menu-holidays-menu)
     (easy-menu-define nil map nil cal-menu-goto-menu)
@@ -1722,7 +1725,7 @@ the STRINGS are just concatenated and the result truncated."
   "List of all calendar-related buffers (as buffers, not strings)."
   (let (buffs)
     (dolist (b (list calendar-hebrew-yahrzeit-buffer lunar-phases-buffer
-                     holiday-buffer diary-fancy-buffer
+                     holiday-buffer diary-fancy-buffer solar-sunrises-buffer
                      (get-file-buffer diary-file)
                      calendar-buffer calendar-other-calendars-buffer))
       (and b (setq b (get-buffer b))
