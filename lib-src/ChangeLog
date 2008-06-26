@@ -1,3 +1,7 @@
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Remove w32bdf.o.
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fakemail.c: Remove references to obsolete variables.

@@ -1,28 +1,32 @@
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Remove w32bdf.o.
+
 2008-06-26  Jason Rumney  <jasonr@gnu.org>
 
-        * w32bdf.c, w32bdf.h: Remove obsolete files.
+	* w32bdf.c, w32bdf.h: Remove obsolete files.
 
-        * makefile.w32-in: Remove refs to w32bdf.h and w32bdf.c.
+	* makefile.w32-in: Remove refs to w32bdf.h and w32bdf.c.
 
-        * w32gui.h: Don't include w32bdf.h.
-        (XCharStruct, enum w32_char_font_type, W32FontStruct):
-        Remove obsolete font support.
+	* w32gui.h: Don't include w32bdf.h.
+	(XCharStruct, enum w32_char_font_type, W32FontStruct):
+	Remove obsolete font support.
 
-        * w32font.h (struct w32font_info): Remove compat_w32_font.
-        Add hfont member.
-        (FONT_COMPAT): Remove obsolete macro.
+	* w32font.h (struct w32font_info): Remove compat_w32_font.
+	Add hfont member.
+	(FONT_COMPAT): Remove obsolete macro.
 
-        * w32font.c (w32font_close): Remove compat code. Delete hfont member.
-        (w32font_encode_char, w32font_text_extents): Use new hfont member.
-        (w32font_open_internal): Remove compat code. Set new hfont member.
-        (Fx_select_font): Use new hfont member.
+	* w32font.c (w32font_close): Remove compat code. Delete hfont member.
+	(w32font_encode_char, w32font_text_extents): Use new hfont member.
+	(w32font_open_internal): Remove compat code. Set new hfont member.
+	(Fx_select_font): Use new hfont member.
 
-        * w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
-        (uniscribe_encode_char): Use new hfont member.
+	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
+	(uniscribe_encode_char): Use new hfont member.
 
-        * w32term.c (x_draw_glyph_string_foreground):
-        (x_draw_composite_glyph_string_foreground): Use new hfont member.
-        (x_draw_glyph_string): Use metrics in w32font_info.
+	* w32term.c (x_draw_glyph_string_foreground):
+	(x_draw_composite_glyph_string_foreground): Use new hfont member.
+	(x_draw_glyph_string): Use metrics in w32font_info.
 
 2008-06-26  Kenichi Handa  <handa@m17n.org>
 
@@ -105,7 +109,7 @@
 
 2008-06-25  Jason Rumney  <jasonr@gnu.org>
 
-        * xdisp.c (get_glyph_face_and_encoding): Encode invalid glyphs as 0.
+	* xdisp.c (get_glyph_face_and_encoding): Encode invalid glyphs as 0.
 
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
