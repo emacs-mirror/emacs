@@ -1,3 +1,9 @@
+2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Shift selection): New node.
+	(Mark): Copyedits.
+	(Persistent Mark): Move to the end of the chapter.
+
 2008-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (distclean): Remove makefile.
