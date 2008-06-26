@@ -467,7 +467,8 @@ and showing the image as an image."
 	  (message "Repeat this command to go back to displaying the file as text")))))
 
 ;;; Support for bookmark.el
-(declare-function bookmark-make-record-default "bookmark" ())
+(declare-function bookmark-make-record-default "bookmark"
+                  (&optional point-only))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 
