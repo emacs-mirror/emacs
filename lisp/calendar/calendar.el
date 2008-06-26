@@ -494,6 +494,58 @@ Must be at least one less than `calendar-column-width'."
   :type 'integer
   :version "23.1")
 
+(defcustom calendar-intermonth-header nil
+  "Header text display in the space to the left of each calendar month.
+See `calendar-intermonth-text'."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :type '(choice (const nil :tag "Nothing")
+                 (string :tag "Fixed string")
+                 (sexp :value
+                       (propertize "WK" 'font-lock-face
+                                   'font-lock-function-name-face)))
+  :version "23.1")
+
+(defcustom calendar-intermonth-text nil
+  "Text to display in the space to the left of each calendar month.
+Can be nil, a fixed string, or a lisp expression that returns a string.
+When the expression is evaluated, the variables DAY, MONTH and YEAR
+are integers appropriate for the first day in each week.
+Will be truncated to the smaller of `calendar-left-margin' and
+`calendar-intermonth-spacing'.  The last character is forced to be a space.
+For example, to display the ISO week numbers:
+
+  (setq calendar-week-start-day 1
+        calendar-intermonth-text
+        '(propertize
+          (format \"%2d\"
+                  (car
+                   (calendar-iso-from-absolute
+                    (calendar-absolute-from-gregorian (list month day year)))))
+          'font-lock-face 'font-lock-function-name-face))
+
+See also `calendar-intermonth-header'."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :type '(choice (const nil :tag "Nothing")
+                 (string :tag "Fixed string")
+                 (sexp :value
+                       (propertize
+                        (format "%2d"
+                                (car
+                                 (calendar-iso-from-absolute
+                                  (calendar-absolute-from-gregorian
+                                   (list month day year)))))
+                        'font-lock-face 'font-lock-function-name-face)))
+  :version "23.1")
 
 (defcustom diary-file "~/diary"
   "Name of the file in which one's personal diary of dates is kept.
@@ -1302,59 +1354,6 @@ Optional integers MON and YR are used instead of today's date."
   "Move to the next line, adding a newline if necessary."
   (or (zerop (forward-line 1))
       (insert "\n")))
-
-(defcustom calendar-intermonth-header nil
-  "Header text display in the space to the left of each calendar month.
-See `calendar-intermonth-text'."
-  :group 'calendar
-  :initialize 'custom-initialize-default
-  :risky t
-  :set (lambda (sym val)
-         (set sym val)
-         (calendar-redraw))
-  :type '(choice (const nil :tag "Nothing")
-                 (string :tag "Fixed string")
-                 (sexp :value
-                       (propertize "WK" 'font-lock-face
-                                   'font-lock-function-name-face)))
-  :version "23.1")
-
-(defcustom calendar-intermonth-text nil
-  "Text to display in the space to the left of each calendar month.
-Can be nil, a fixed string, or a lisp expression that returns a string.
-When the expression is evaluated, the variables DAY, MONTH and YEAR
-are integers appropriate for the first day in each week.
-Will be truncated to the smaller of `calendar-left-margin' and
-`calendar-intermonth-spacing'.  The last character is forced to be a space.
-For example, to display the ISO week numbers:
-
-  (setq calendar-week-start-day 1
-        calendar-intermonth-text
-        '(propertize
-          (format \"%2d\"
-                  (car
-                   (calendar-iso-from-absolute
-                    (calendar-absolute-from-gregorian (list month day year)))))
-          'font-lock-face 'font-lock-function-name-face))
-
-See also `calendar-intermonth-header'."
-  :group 'calendar
-  :initialize 'custom-initialize-default
-  :risky t
-  :set (lambda (sym val)
-         (set sym val)
-         (calendar-redraw))
-  :type '(choice (const nil :tag "Nothing")
-                 (string :tag "Fixed string")
-                 (sexp :value
-                       (propertize
-                        (format "%2d"
-                                (car
-                                 (calendar-iso-from-absolute
-                                  (calendar-absolute-from-gregorian
-                                   (list month day year)))))
-                        'font-lock-face 'font-lock-function-name-face)))
-  :version "23.1")
 
 (defun calendar-insert-at-column (indent string truncate)
   "Move to column INDENT, adding spaces as needed.
@@ -2425,14 +2424,15 @@ If called by a mouse-event, pops up a menu with the result."
   (interactive (list last-nonmenu-event))
   (let* ((date (calendar-cursor-to-date t event))
          (title (format "%s (Gregorian)" (calendar-date-string date)))
+         (others (calendar-other-dates date))
          selection)
     (if (mouse-event-p event)
         (and (setq selection (cal-menu-x-popup-menu event title
-                               (mapcar 'list (calendar-other-dates date))))
+                               (mapcar 'list others)))
              (call-interactively selection))
       (calendar-in-read-only-buffer calendar-other-calendars-buffer
         (calendar-set-mode-line title)
-        (insert (mapconcat 'identity (calendar-other-dates date) "\n"))))))
+        (insert (mapconcat 'identity others "\n"))))))
 
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
