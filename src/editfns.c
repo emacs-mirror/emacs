@@ -1485,7 +1485,7 @@ on systems that do not provide resolution finer than a second.  */)
 		make_number ((secs >> 0)  & 0xffff),
 		make_number (usecs));
 #else /* ! HAVE_GETRUSAGE  */
-#if WINDOWSNT
+#ifdef WINDOWSNT
   return w32_get_internal_run_time ();
 #else /* ! WINDOWSNT  */
   return Fcurrent_time ();

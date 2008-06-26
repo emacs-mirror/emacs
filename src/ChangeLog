@@ -1,19 +1,31 @@
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS):
+	Don't include WINDOWSNT, DOS_NT and _UCHAR_T.
+
+	* sysdep.c (_spawnlp, _getpid):
+	Declare with explicit _cdecl instead of _CRTAPI1.
+
+	* editfns.c (Fget_internal_run_time):
+	Check for WINDOWSNT with #ifdef, not #if.
+
 2008-06-26  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.h (FONT_HANDLE, FONT_TEXTMETRIC): New macros.
+	* w32font.h (FONT_HANDLE, FONT_TEXTMETRIC): New macros.
 
-        * w32term.c (x_draw_glyph_string_foreground):
-        (x_draw_composite_glyph_string_foreground): Sync with xterm.c.
-        Use FONT_HANDLE macro.
-        (x_draw_glyph_string): Use FONT_TEXTMETRIC macro.
+	* w32term.c (x_draw_glyph_string_foreground):
+	(x_draw_composite_glyph_string_foreground): Sync with xterm.c.
+	Use FONT_HANDLE macro.
+	(x_draw_glyph_string): Use FONT_TEXTMETRIC macro.
 
-        * w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
-        (uniscribe_encode_char): Use FONT_HANDLE macro.
+	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
+	(uniscribe_encode_char): Use FONT_HANDLE macro.
 
-        * w32font.c (Fx_select_font): Use FONT_HANDLE macro.
-        (w32font_text_extents): Use precast w32_font.
-        (w32font_close): Free cached metrics.
-        (w32font_open_internal): Allocate space for name on stack.
+	* w32font.c (Fx_select_font): Use FONT_HANDLE macro.
+	(w32font_text_extents): Use precast w32_font.
+	(w32font_close): Free cached metrics.
+	(w32font_open_internal): Allocate space for name on stack.
 
 2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -21,8 +33,8 @@
 
 2008-06-26  Jason Rumney  <jasonr@gnu.org>
 
-        * w32term.h (FONT_AVG_WIDTH): Remove obsolete macro.
-        (CP_8BIT, CP_UNICODE, CP_UNKNOWN): Remove obsolete constants.
+	* w32term.h (FONT_AVG_WIDTH): Remove obsolete macro.
+	(CP_8BIT, CP_UNICODE, CP_UNKNOWN): Remove obsolete constants.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 

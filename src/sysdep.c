@@ -175,8 +175,8 @@ extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 #include <direct.h>
 /* In process.h which conflicts with the local copy.  */
 #define _P_WAIT 0
-int _CRTAPI1 _spawnlp (int, const char *, const char *, ...);
-int _CRTAPI1 _getpid (void);
+int _cdecl _spawnlp (int, const char *, const char *, ...);
+int _cdecl _getpid (void);
 extern char *getwd (char *);
 #endif
 

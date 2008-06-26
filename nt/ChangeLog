@@ -1,3 +1,15 @@
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs:
+	* gmake.defs (FONT_CFLAGS): Remove.
+	(EMACS_EXTRA_C_FLAGS): Don't include FONT_CFLAGS.
+	(CFLAGS): Don't include WIN32_LEAN_AND_MEAN, _WIN32_WINNT, -D$(ARCH)
+	and _CRTAPI1.
+	(ARCH_FLAGS): Don't include _X86_.
+
+	* config.nt (_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Define.
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt: Remove reference to UNEXEC_SRC.

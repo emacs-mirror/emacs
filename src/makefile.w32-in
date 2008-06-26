@@ -29,7 +29,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
 #
-LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I../nt/inc -D_UCHAR_T -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
 EMACS           = $(BLD)/emacs.exe
 TEMACS          = $(BLD)/temacs.exe

@@ -130,21 +130,14 @@ WINSPOOL	= winspool.lib
 OLE32		= ole32.lib
 UNISCRIBE	= usp10.lib
 
-!ifdef USE_FONTBACKEND
-FONT_CFLAGS	= -DUSE_FONT_BACKEND=1
-!else
-FONT_CFLAGS	=
-!endif
-
 !ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
 !else
 DEBUG_CFLAGS	=
 !endif
-CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 \
-		  $(ARCH_CFLAGS) -D$(ARCH) -D_CRTAPI1=_cdecl \
+CFLAGS          = -I. $(ARCH_CFLAGS) \
 		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
-EMACS_EXTRA_C_FLAGS = $(FONT_CFLAGS)
+EMACS_EXTRA_C_FLAGS =
 
 SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
 
@@ -189,9 +182,9 @@ DEBUG_LINK = -debug:full
 
 !if "$(ARCH)" == "i386"
 !ifdef NOOPT
-ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -Od -G3d -Zp8 $(DEBUG_FLAG)
+ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Od -G3d -Zp8 $(DEBUG_FLAG)
 !else
-ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -Oxsb2 -Oy- -G6dF -Zp8 $(DEBUG_FLAG)
+ARCH_CFLAGS     = -nologo -c -Zel -W2 -H63 -Oxsb2 -Oy- -G6dF -Zp8 $(DEBUG_FLAG)
 !endif
 ARCH_LDFLAGS	= $(SYS_LDFLAGS)
 
