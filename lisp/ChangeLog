@@ -14,6 +14,9 @@
 
 2008-06-26  Glenn Morris  <rgm@gnu.org>
 
+	* doc-view.el (bookmark-make-record-default):
+	* image-mode.el (bookmark-make-record-default): Fix declaration.
+
 	* calendar/calendar.el (calendar-date-echo-text): Doc fix.
 	Add default :value for sexp type.
 	(calendar-month-edges): New variable.
