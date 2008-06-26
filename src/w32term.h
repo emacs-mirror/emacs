@@ -29,13 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FONT_HEIGHT(f)    ((f)->height)
 #define FONT_BASE(f)      ((f)->ascent)
 #define FONT_DESCENT(f)   ((f)->descent)
-#define FONT_AVG_WIDTH(f) ((f)->average_width)
 
 #define CP_DEFAULT 1004
-/* Special pseudo-codepages. */
-#define CP_8BIT      -1
-#define CP_UNICODE   -2
-#define CP_UNKNOWN   -3
 
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
