@@ -234,14 +234,7 @@ w32font_close (f, font)
      struct font *font;
 {
   struct w32font_info *w32_font = (struct w32font_info *) font;
-
-  if (w32_font->compat_w32_font)
-    {
-      W32FontStruct *old_w32_font = w32_font->compat_w32_font;
-      DeleteObject (old_w32_font->hfont);
-      xfree (old_w32_font);
-      w32_font->compat_w32_font = 0;
-    }
+  DeleteObject (w32_font->hfont);
 }
 
 /* w32 implementation of has_char for font backend.
@@ -314,7 +307,7 @@ w32font_encode_char (font, c)
   f = XFRAME (selected_frame);
 
   dc = get_frame_dc (f);
-  old_font = SelectObject (dc, w32_font->compat_w32_font->hfont);
+  old_font = SelectObject (dc, w32_font->hfont);
 
   /* GetCharacterPlacement is used here rather than GetGlyphIndices because
      it is supported on Windows NT 4 and 9x/ME.  But it cannot reliably report
@@ -367,10 +360,10 @@ w32font_text_extents (font, code, nglyphs, metrics)
   WORD *wcode = NULL;
   SIZE size;
 
+  struct w32font_info *w32_font = (struct w32font_info *) font;
+
   if (metrics)
     {
-      struct w32font_info *w32_font = (struct w32font_info *) font;
-
       bzero (metrics, sizeof (struct font_metrics));
       metrics->ascent = font->ascent;
       metrics->descent = font->descent;
@@ -419,7 +412,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
 		  f = XFRAME (selected_frame);
 
                   dc = get_frame_dc (f);
-                  old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
+                  old_font = SelectObject (dc, w32_font->hfont);
 		}
 	      compute_metrics (dc, w32_font, *(code + i), char_metric);
 	    }
@@ -476,7 +469,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
       f = XFRAME (selected_frame);
 
       dc = get_frame_dc (f);
-      old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
+      old_font = SelectObject (dc, w32_font->hfont);
     }
 
   if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
@@ -765,8 +758,6 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   HDC dc;
   HFONT hfont, old_font;
   Lisp_Object val, extra;
-  /* For backwards compatibility.  */
-  W32FontStruct *compat_w32_font;
   struct w32font_info *w32_font;
   struct font * font;
   OUTLINETEXTMETRIC* metrics = NULL;
@@ -832,15 +823,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
 
-  /* W32FontStruct - we should get rid of this, and use the w32font_info
-     struct for any W32 specific fields. font->font.font can then be hfont.  */
-  w32_font->compat_w32_font = xmalloc (sizeof (W32FontStruct));
-  compat_w32_font = w32_font->compat_w32_font;
-  bzero (compat_w32_font, sizeof (W32FontStruct));
-  compat_w32_font->font_type = UNICODE_FONT;
-  /* Duplicate the text metrics.  */
-  bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
-  compat_w32_font->hfont = hfont;
+  w32_font->hfont = hfont;
 
   {
     char *name;
@@ -911,11 +894,6 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
       font->underline_thickness = 0;
       font->underline_position = -1;
     }
-
-  /* max_descent is used for underlining in w32term.c.  Hopefully this
-     is temporary, as we'll want to get rid of the old compatibility
-     stuff later.  */
-  compat_w32_font->max_bounds.descent = font->descent;
 
   /* For temporary compatibility with legacy code that expects the
      name to be usable in x-list-fonts. Eventually we expect to change
@@ -2070,7 +2048,7 @@ in the font selection dialog. */)
   /* Initialize as much of the font details as we can from the current
      default font.  */
   hdc = GetDC (FRAME_W32_WINDOW (f));
-  oldobj = SelectObject (hdc, FONT_COMPAT (FRAME_FONT (f))->hfont);
+  oldobj = SelectObject (hdc, ((struct w32font_info *) FRAME_FONT (f))->hfont);
   GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
   if (GetTextMetrics (hdc, &tm))
     {
