@@ -47,6 +47,8 @@
 	(cal-menu-holidays-menu, cal-menu-goto-menu, cal-menu-scroll-menu):
 	Add doc strings.
 	(cal-menu-context-mouse-menu): Add some :keys.
+	(calendar-check-holidays): Declare rather than autoloading.
+	(diary-show-holidays-flag): Remove unneeded declaration.
 
 	* calendar/cal-menu.el (cal-menu-moon-menu): Add sunrise/sunset.
 	* calendar/calendar.el (calendar-cursor-to-date): Handle case where
