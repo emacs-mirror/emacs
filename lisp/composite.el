@@ -452,7 +452,8 @@ character.  All non-spacing characters has this function in
 		      (= (aref char-width-table (aref string pos)) 0))
 	    (setq pos (1+ pos)))
 	  (if (and (> from 0)
-		   (terminal-composition-base-character-p (aref string (1- from))))
+		   (terminal-composition-base-character-p
+		    (aref string (1- from))))
 	      (compose-string string (1- from) pos)
 	    (compose-string string from pos
 			    (concat " " (buffer-substring from pos)))))
@@ -460,7 +461,7 @@ character.  All non-spacing characters has this function in
 		  (= (aref char-width-table (char-after pos)) 0))
 	(setq pos (1+ pos)))
       (if (and (> from (point-min))
-	       (terminal-composition-base-character-p (char-after pos)))
+	       (terminal-composition-base-character-p (char-after (1- from))))
 	  (compose-region (1- from) pos)
 	(compose-region from pos
 			(concat " " (buffer-substring from pos)))))
