@@ -1,3 +1,7 @@
+2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (extend_face_to_end_of_line): Fix last change.
+
 2008-06-26  Jason Rumney  <jasonr@gnu.org>
 
         * w32term.h (FONT_AVG_WIDTH): Remove obsolete macro.
