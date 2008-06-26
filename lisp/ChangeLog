@@ -40,6 +40,7 @@
 	* calendar/cal-menu.el (cal-menu-moon-menu, cal-menu-diary-menu)
 	(cal-menu-holidays-menu, cal-menu-goto-menu, cal-menu-scroll-menu):
 	Add doc strings.
+	(cal-menu-context-mouse-menu): Add some :keys.
 
 2008-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
