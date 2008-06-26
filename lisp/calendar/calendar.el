@@ -353,16 +353,14 @@ redisplays the diary for whatever date the cursor is moved to."
 (defcustom calendar-date-echo-text
   "mouse-2: general menu\nmouse-3: menu for this date"
   "String displayed when the cursor is over a date in the calendar.
-When this variable is evaluated, DAY, MONTH, and YEAR are
+Can be either a fixed string, or a lisp expression that returns one.
+When this expression is evaluated, DAY, MONTH, and YEAR are
 integers appropriate to the relevant date.  For example, to
-display the ISO week:
+display the ISO date:
 
-  (require 'cal-iso)
-  (setq calendar-date-echo-text '(format \"ISO week: %2d \"
-                                    (car
-                                     (calendar-iso-from-absolute
-                                      (calendar-absolute-from-gregorian
-                                       (list month day year))))))
+  (setq calendar-date-echo-text '(format \"ISO date: %s\"
+                                         (calendar-iso-date-string
+                                          (list month day year))))
 Changing this variable without using customize has no effect on
 pre-existing calendar windows."
   :group 'calendar
@@ -371,8 +369,11 @@ pre-existing calendar windows."
   :set (lambda (sym val)
          (set sym val)
          (calendar-redraw))
-  :type '(choice (string :tag "Literal string")
-                 (sexp :tag "Lisp expression"))
+  :type '(choice (string :tag "Fixed string")
+                 (sexp :value
+                       (format "ISO date: %s"
+                                (calendar-iso-date-string
+                                 (list month day year)))))
   :version "23.1")
 
 
@@ -385,6 +386,36 @@ pre-existing calendar windows."
 (defvar calendar-right-margin nil
   "Right margin of the calendar.")
 
+(defvar calendar-month-edges nil
+  "Alist of month edge columns.
+Each element has the form (N LEFT FIRST LAST RIGHT), where
+LEFT is the leftmost column associated with month segment N,
+FIRST and LAST are the first and last columns with day digits in,
+and LAST is the rightmost column.")
+
+(defun calendar-month-edges (segment)
+  "Compute the month edge columns for month SEGMENT.
+Returns a list (LEFT FIRST LAST RIGHT), where LEFT is the
+leftmost column associated with a month, FIRST and LAST are the
+first and last columns with day digits in, and LAST is the
+rightmost column."
+  ;; The leftmost column with a digit in it in this month segment.
+  (let* ((first (+ calendar-left-margin
+                        (* segment calendar-month-width)))
+         ;; The rightmost column with a digit in it in this month segment.
+         (last (+ first (1- calendar-month-digit-width)))
+         (left (if (eq segment 0)
+                   0
+                 (+ calendar-left-margin
+                    (* segment calendar-month-width)
+                    (- (/ calendar-intermonth-spacing 2)))))
+         ;; The rightmost edge of this month segment, dividing the
+         ;; space between months in two.
+         (right (+ calendar-left-margin
+                  (* (1+ segment) calendar-month-width)
+                  (- (/ calendar-intermonth-spacing 2)))))
+    (list left first last right)))
+
 (defun calendar-recompute-layout-variables ()
   "Recompute some layout-related calendar \"constants\"."
   (setq calendar-month-digit-width (+ (* 6 calendar-column-width)
@@ -393,7 +424,11 @@ pre-existing calendar windows."
                                 calendar-intermonth-spacing)
         calendar-right-margin (+ calendar-left-margin
                                    (* 3 (* 7 calendar-column-width))
-                                   (* 2 calendar-intermonth-spacing))))
+                                   (* 2 calendar-intermonth-spacing))
+        calendar-month-edges nil)
+  (dotimes (i 3)
+    (push (cons i (calendar-month-edges i)) calendar-month-edges))
+  (setq calendar-month-edges (reverse calendar-month-edges)))
 
 ;; FIXME add font-lock-keywords.
 (defun calendar-set-layout-variable (symbol value &optional minmax)
@@ -430,6 +465,7 @@ Then redraw the calendar, if necessary."
   :type 'integer
   :version "23.1")
 
+;; FIXME calendar-month-column-width?
 (defcustom calendar-column-width 3
   "Width of each day column in the calendar.  Minimum value is 3."
   :initialize 'custom-initialize-default
@@ -1267,6 +1303,75 @@ Optional integers MON and YR are used instead of today's date."
   (or (zerop (forward-line 1))
       (insert "\n")))
 
+(defcustom calendar-intermonth-header nil
+  "Header text display in the space to the left of each calendar month.
+See `calendar-intermonth-text'."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :type '(choice (const nil :tag "Nothing")
+                 (string :tag "Fixed string")
+                 (sexp :value
+                       (propertize "WK" 'font-lock-face
+                                   'font-lock-function-name-face)))
+  :version "23.1")
+
+(defcustom calendar-intermonth-text nil
+  "Text to display in the space to the left of each calendar month.
+Can be nil, a fixed string, or a lisp expression that returns a string.
+When the expression is evaluated, the variables DAY, MONTH and YEAR
+are integers appropriate for the first day in each week.
+Will be truncated to the smaller of `calendar-left-margin' and
+`calendar-intermonth-spacing'.  The last character is forced to be a space.
+For example, to display the ISO week numbers:
+
+  (setq calendar-week-start-day 1
+        calendar-intermonth-text
+        '(propertize
+          (format \"%2d\"
+                  (car
+                   (calendar-iso-from-absolute
+                    (calendar-absolute-from-gregorian (list month day year)))))
+          'font-lock-face 'font-lock-function-name-face))
+
+See also `calendar-intermonth-header'."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :type '(choice (const nil :tag "Nothing")
+                 (string :tag "Fixed string")
+                 (sexp :value
+                       (propertize
+                        (format "%2d"
+                                (car
+                                 (calendar-iso-from-absolute
+                                  (calendar-absolute-from-gregorian
+                                   (list month day year)))))
+                        'font-lock-face 'font-lock-function-name-face)))
+  :version "23.1")
+
+(defun calendar-insert-at-column (indent string truncate)
+  "Move to column INDENT, adding spaces as needed.
+Inserts STRING so that it ends at INDENT.  STRING is either a
+literal string, or a sexp to evaluate to return such.  Truncates
+STRING to length TRUNCATE, ensure a trailing space."
+  (if (not (ignore-errors (stringp (setq string (eval string)))))
+      (calendar-move-to-column indent)
+    (if (> (length string) truncate)
+        (setq string (substring string 0 truncate)))
+    (or (string-match " $" string)
+        (if (= (length string) truncate)
+            (aset string (1- truncate) ?\s)
+          (setq string (concat string " "))))
+    (calendar-move-to-column (- indent (length string)))
+    (insert string)))
+
 (defun calendar-generate-month (month year indent)
   "Produce a calendar for MONTH, YEAR on the Gregorian calendar.
 The calendar is inserted at the top of the buffer in which point is currently
@@ -1279,7 +1384,10 @@ line."
              calendar-week-start-day)
           7))
          (last (calendar-last-day-of-month month year))
-         string day)
+         (trunc (min calendar-intermonth-spacing
+                     (1- calendar-left-margin)))
+         (day 1)
+         string)
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
@@ -1287,7 +1395,7 @@ line."
      (list (format "%s %d" (calendar-month-name month) year))
      ?\s calendar-month-digit-width))
    (calendar-ensure-newline)
-   (calendar-move-to-column indent)      ; go to proper spot
+   (calendar-insert-at-column indent calendar-intermonth-header trunc)
    ;; Use the first two characters of each day to head the columns.
    (dotimes (i 7)
      (insert
@@ -1299,7 +1407,7 @@ line."
           (substring string 0 calendar-day-header-width)))
       (make-string (- calendar-column-width calendar-day-header-width) ?\s)))
    (calendar-ensure-newline)
-   (calendar-move-to-column indent)
+   (calendar-insert-at-column indent calendar-intermonth-text trunc)
    ;; Add blank days before the first of the month.
    (insert (make-string (* blank-days calendar-column-width) ?\s))
    ;; Put in the days of the month.
@@ -1309,15 +1417,17 @@ line."
      (insert (format (format "%%%dd%%s" calendar-day-digit-width) day
                      (make-string
                       (- calendar-column-width calendar-day-digit-width) ?\s)))
-     ;; FIXME set-text-properties?
-     (add-text-properties
+     ;; 'date property prevents intermonth text confusing re-searches.
+     ;; (Tried intangible, it did not really work.)
+     (set-text-properties
       (- (point) (1+ calendar-day-digit-width)) (1- (point))
-      `(mouse-face highlight help-echo ,(eval calendar-date-echo-text)))
-     (and (zerop (mod (+ day blank-days) 7))
-          (/= day last)
-          (progn
-            (calendar-ensure-newline)
-            (calendar-move-to-column indent))))))
+      `(mouse-face highlight help-echo ,(eval calendar-date-echo-text)
+                   date t))
+     (when (and (zerop (mod (+ day blank-days) 7))
+                (/= day last))
+       (calendar-ensure-newline)
+       (setq day (1+ day))              ; first day of next week
+       (calendar-insert-at-column indent calendar-intermonth-text trunc)))))
 
 (defun calendar-redraw ()
   "Redraw the calendar display, if `calendar-buffer' is live."
@@ -1660,39 +1770,13 @@ the STRINGS are just concatenated and the result truncated."
   (let ((now (decode-time)))
     (list (nth 4 now) (nth 3 now) (nth 5 now))))
 
-(defun calendar-column-to-month (&optional real)
-  "Convert current column to calendar month offset number (leftmost is 0).
-If the cursor is in the right margin (i.e. beyond the last digit) of
-month N, returns -(N+1).  If optional REAL is non-nil, return a
-cons (month year), where month is the real month number (1-12)."
-  (let* ((ccol (current-column))
-         (col (max 0 (+ ccol (/ calendar-intermonth-spacing 2)
-                        (- calendar-left-margin))))
-         (segment (/ col (+ (* 7 calendar-column-width)
-                            calendar-intermonth-spacing)))
-         month year lastdigit edge)
-    (if real
-        (progn
-          ;; NB assumes 3 month display.
-          (if (zerop (setq month (% (+ displayed-month segment -1) 12)))
-              (setq month 12))
-          (setq year (cond
-                      ((and (= 12 month) (zerop segment)) (1- displayed-year))
-                      ((and (= 1 month) (= segment 2)) (1+ displayed-year))
-                      (t displayed-year)))
-          (cons month year))
-      ;; The rightmost column with a digit in it in this month segment.
-      (setq lastdigit (+ calendar-left-margin
-                         calendar-month-digit-width -1
-                         (* segment calendar-month-width))
-            ;; The rightmost edge of this month segment, dividing the
-            ;; space between months in two.
-            edge (+ calendar-left-margin
-                    (* (1+ segment) calendar-month-width)
-                    (- (/ calendar-intermonth-spacing 2))))
-      (if (and (> ccol lastdigit) (< ccol edge))
-          (- (1+ segment))
-        segment))))
+(defun calendar-column-to-segment ()
+  "Convert current column to calendar month \"segment\".
+The left-most month returns 0, the next right 1, and so on."
+  (let ((col (max 0 (+ (current-column)
+                       (/ calendar-intermonth-spacing 2)
+                       (- calendar-left-margin)))))
+    (/ col (+ (* 7 calendar-column-width) calendar-intermonth-spacing))))
 
 (defun calendar-cursor-to-date (&optional error event)
   "Return a list (month day year) of current cursor position.
@@ -1705,15 +1789,15 @@ use instead of point."
         (current-buffer))
     (save-excursion
       (if event (goto-char (posn-point (event-start event))))
-      (let* ((month (calendar-column-to-month t))
-             (year (cdr month))
-             (month (car month)))
+      (let* ((segment (calendar-column-to-segment))
+             (month (% (+ displayed-month (1- segment)) 12)))
         ;; Call with point on either of the two digits in a 2-digit date,
         ;; or on or before the digit of a 1-digit date.
         (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
-                      (>= (count-lines (point-min) (point))
-                          calendar-first-date-row)))
+                      (get-text-property (point) 'date)))
             (if error (error "Not on a date!"))
+          ;; Convert segment to real month and year.
+          (if (zerop month) (setq month 12))
           ;; Go back to before the first date digit.
           (or (looking-at " ")
               (re-search-backward "[^0-9]"))
@@ -1721,7 +1805,10 @@ use instead of point."
                 (string-to-number
                  (buffer-substring (1+ (point))
                                    (+ 1 calendar-day-digit-width (point))))
-                year))))))
+                (cond
+                 ((and (= 12 month) (zerop segment)) (1- displayed-year))
+                 ((and (= 1 month) (= segment 2)) (1+ displayed-year))
+                 (t displayed-year))))))))
 
 (add-to-list 'debug-ignored-errors "Not on a date!")
 
@@ -2332,14 +2419,20 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (format "Mayan date: %s"
                    (calendar-mayan-date-string date))))))
 
-(defun calendar-print-other-dates ()
-  "Show dates on other calendars for date under the cursor."
-  (interactive)
-  (let ((date (calendar-cursor-to-date t)))
-    (calendar-in-read-only-buffer calendar-other-calendars-buffer
-      (calendar-set-mode-line (format "%s (Gregorian)"
-                                      (calendar-date-string date)))
-      (insert (mapconcat 'identity (calendar-other-dates date) "\n")))))
+(defun calendar-print-other-dates (&optional event)
+  "Show dates on other calendars for date under the cursor.
+If called by a mouse-event, pops up a menu with the result."
+  (interactive (list last-nonmenu-event))
+  (let* ((date (calendar-cursor-to-date t event))
+         (title (format "%s (Gregorian)" (calendar-date-string date)))
+         selection)
+    (if (mouse-event-p event)
+        (and (setq selection (cal-menu-x-popup-menu event title
+                               (mapcar 'list (calendar-other-dates date))))
+             (call-interactively selection))
+      (calendar-in-read-only-buffer calendar-other-calendars-buffer
+        (calendar-set-mode-line title)
+        (insert (mapconcat 'identity (calendar-other-dates date) "\n"))))))
 
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
