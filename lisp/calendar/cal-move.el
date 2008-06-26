@@ -32,28 +32,39 @@
 ;; FIXME should calendar just require this?
 (require 'calendar)
 
+
+;; Note that this is not really the "closest" date.
+;; In most cases, it just searches forwards for the next day.
 ;;;###cal-autoload
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
 The position of the cursor is unchanged if it is already on a date.
 Returns the list (month day year) giving the cursor position."
   (or (calendar-cursor-to-date)
-      (let ((column (current-column)))
-        (when (> calendar-first-date-row (count-lines (point-min) (point)))
+      (let* ((col (current-column))
+             (edges (cdr (assoc (calendar-column-to-segment)
+                                calendar-month-edges)))
+             (last (nth 2 edges))
+             (right (nth 3 edges)))
+        (when (< (count-lines (point-min) (point)) calendar-first-date-row)
           (goto-line calendar-first-date-row)
-          (move-to-column column))
-        ;; FIXME the date positions are fixed and computable,
-        ;; but searching is probably more flexible.
-        ;; Note also that this may not be the "nearest" date.
-        ;; Eg with cursor just after end of month, can skip to next month.
-        (or (looking-at "[0-9]")
-            ;; We search forwards for a number, except close to the RH
-            ;; margin of a month, where we search backwards.
-            (if (or (looking-at " *$")
-                    (< (calendar-column-to-month) 0))
-                (re-search-backward "[0-9]" nil t)
-              (re-search-forward "[0-9]" nil t)
-              (backward-char 1)))
+          (move-to-column col))
+        ;; The date positions are fixed and computable, but searching
+        ;; is probably more flexible.  Need to consider blank days at
+        ;; start and end of month if computing positions.
+        ;; 'date text-property is used to exclude intermonth text.
+        (unless (and (looking-at "[0-9]")
+                     (get-text-property (point) 'date))
+          ;; We search forwards for a number, except close to the RH
+          ;; margin of a month, where we search backwards.
+          ;; Note that the searches can go to other lines.
+          (if (or (looking-at " *$")
+                  (and (> col last) (< col right)))
+              (while (and (re-search-backward "[0-9]" nil t)
+                          (not (get-text-property (point) 'date))))
+            (while (and (re-search-forward "[0-9]" nil t)
+                        (not (get-text-property (1- (point)) 'date))))
+            (backward-char 1)))
         (calendar-cursor-to-date))))
 
 (defvar displayed-month)                ; from calendar-generate
