@@ -1,3 +1,20 @@
+2008-06-26  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.h (FONT_HANDLE, FONT_TEXTMETRIC): New macros.
+
+        * w32term.c (x_draw_glyph_string_foreground):
+        (x_draw_composite_glyph_string_foreground): Sync with xterm.c.
+        Use FONT_HANDLE macro.
+        (x_draw_glyph_string): Use FONT_TEXTMETRIC macro.
+
+        * w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
+        (uniscribe_encode_char): Use FONT_HANDLE macro.
+
+        * w32font.c (Fx_select_font): Use FONT_HANDLE macro.
+        (w32font_text_extents): Use precast w32_font.
+        (w32font_close): Free cached metrics.
+        (w32font_open_internal): Allocate space for name on stack.
+
 2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (extend_face_to_end_of_line): Fix last change.

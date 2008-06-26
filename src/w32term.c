@@ -1237,8 +1237,6 @@ x_draw_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, x;
-  struct w32font_info * w32_font;
-  HFONT old_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1248,20 +1246,9 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR)
-      || cleartype_active)
-    SetBkMode (s->hdc, TRANSPARENT);
-  else
-    SetBkMode (s->hdc, OPAQUE);
-
   SetTextColor (s->hdc, s->gc->foreground);
   SetBkColor (s->hdc, s->gc->background);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
-
-  w32_font = (struct w32font_info *) s->font;
-
-  if (w32_font && w32_font->hfont)
-    old_font = SelectObject (s->hdc, w32_font->hfont);
 
   /* Draw characters of S as rectangles if S's font could not be
      loaded. */
@@ -1278,24 +1265,27 @@ x_draw_glyph_string_foreground (s)
     }
   else
     {
-      int boff = s->font->baseline_offset;
+      struct font *font = s->font;
+      int boff = font->baseline_offset;
       int y;
+      HFONT old_font;
 
-      if (s->font->vertical_centering)
-	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+      old_font = SelectObject (s->hdc, FONT_HANDLE (font));
+
+      if (font->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (font, s->f) - boff;
 
       y = s->ybase - boff;
       if (s->for_overlaps
 	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
-	s->font->driver->draw (s, 0, s->nchars, x, y, 0);
+	font->driver->draw (s, 0, s->nchars, x, y, 0);
       else
-	s->font->driver->draw (s, 0, s->nchars, x, y, 1);
+	font->driver->draw (s, 0, s->nchars, x, y, 1);
       if (s->face->overstrike)
-	s->font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
-    }
+	font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
 
-  if (w32_font && w32_font->hfont)
-    SelectObject (s->hdc, old_font);
+      SelectObject (s->hdc, old_font);
+    }
 }
 
 /* Draw the foreground of composite glyph string S.  */
@@ -1305,8 +1295,6 @@ x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, j, x;
-  HFONT old_font;
-  struct w32font_info * w32_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1323,13 +1311,7 @@ x_draw_composite_glyph_string_foreground (s)
 
   SetTextColor (s->hdc, s->gc->foreground);
   SetBkColor (s->hdc, s->gc->background);
-  SetBkMode (s->hdc, TRANSPARENT);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
-
-  w32_font = (struct w32font_info *) s->font;
-
-  if (w32_font && w32_font->hfont)
-    old_font = SelectObject (s->hdc, w32_font->hfont);
 
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
@@ -1339,11 +1321,14 @@ x_draw_composite_glyph_string_foreground (s)
         w32_draw_rectangle (s->hdc, s->gc, x, s->y, s->width - 1,
                             s->height - 1);
     }
-
+  else
     {
       struct font *font = s->font;
       int y = s->ybase;
       int width = 0;
+      HFONT old_font;
+
+      old_font = SelectObject (s->hdc, FONT_HANDLE (font));
 
       if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
 	{
@@ -1393,10 +1378,8 @@ x_draw_composite_glyph_string_foreground (s)
 		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
 	      }
 	}
+      SelectObject (s->hdc, old_font);
     }
-
-  if (w32_font && w32_font->hfont)
-    SelectObject (s->hdc, old_font);
 }
 
 
@@ -2345,7 +2328,7 @@ x_draw_glyph_string (s)
 
       /* Draw strike-through.  */
       if (s->face->strike_through_p
-          && !((struct w32font_info *) s->font)->metrics.tmStruckOut)
+          && !FONT_TEXTMETRIC(s->font).tmStruckOut)
         {
           unsigned long h = 1;
           unsigned long dy = (s->height - h) / 2;

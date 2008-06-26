@@ -233,8 +233,23 @@ w32font_close (f, font)
      FRAME_PTR f;
      struct font *font;
 {
+  int i;
   struct w32font_info *w32_font = (struct w32font_info *) font;
+
+  /* Delete the GDI font object.  */
   DeleteObject (w32_font->hfont);
+
+  /* Free all the cached metrics.  */
+  if (w32_font->cached_metrics)
+    {
+      for (i = 0; i < w32_font->n_cache_blocks; i++)
+        {
+          if (w32_font->cached_metrics[i])
+            xfree (w32_font->cached_metrics[i]);
+        }
+      xfree (w32_font->cached_metrics);
+      w32_font->cached_metrics = NULL;
+    }
 }
 
 /* w32 implementation of has_char for font backend.
@@ -493,8 +508,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
     {
       metrics->width = total_width;
       metrics->lbearing = 0;
-      metrics->rbearing = total_width
-        + ((struct w32font_info *) font)->metrics.tmOverhang;
+      metrics->rbearing = total_width + w32_font->metrics.tmOverhang;
     }
 
   /* Restore state and release DC.  */
@@ -831,15 +845,12 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
     /* We don't know how much space we need for the full name, so start with
        96 bytes and go up in steps of 32.  */
     len = 96;
-    name = xmalloc (len);
+    name = alloca (len);
     while (name && w32font_full_name (&logfont, font_entity, pixel_size,
                                       name, len) < 0)
       {
-        char *new = xrealloc (name, len += 32);
-
-        if (! new)
-          xfree (name);
-        name = new;
+        len += 32;
+        name = alloca (len);
       }
     if (name)
       font->props[FONT_FULLNAME_INDEX]
@@ -2048,7 +2059,7 @@ in the font selection dialog. */)
   /* Initialize as much of the font details as we can from the current
      default font.  */
   hdc = GetDC (FRAME_W32_WINDOW (f));
-  oldobj = SelectObject (hdc, ((struct w32font_info *) FRAME_FONT (f))->hfont);
+  oldobj = SelectObject (hdc, FONT_HANDLE (FRAME_FONT (f)));
   GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
   if (GetTextMetrics (hdc, &tm))
     {

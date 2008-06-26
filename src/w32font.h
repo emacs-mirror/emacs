@@ -56,6 +56,10 @@ struct w32font_info
   HFONT hfont;
 };
 
+/* Macros for getting OS specific information from a font struct.  */
+#define FONT_HANDLE(f) (((struct w32font_info *)(f))->hfont)
+#define FONT_TEXTMETRIC(f) (((struct w32font_info *)(f))->metrics)
+
 #define CACHE_BLOCKSIZE 128
 
 Lisp_Object w32font_get_cache P_ ((FRAME_PTR fe));
