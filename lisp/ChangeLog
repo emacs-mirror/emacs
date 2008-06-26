@@ -1,3 +1,17 @@
+2008-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/solar.el (solar-sunrise-sunset-string): Add optional
+	argument `nolocation'.
+	(calendar-sunrise-sunset-month): New function.
+	* calendar/cal-menu.el (cal-menu-sunmoon-menu): Rename from
+	cal-menu-moon-menu.  Add calendar-sunrise-sunset-month.
+	(cal-menu-global-mouse-menu): Add calendar-sunrise-sunset-month.
+	* calendar/calendar.el (solar-sunrises-buffer): New constant.
+	(calendar-mode-map): Use cal-menu-sunmoon-menu.
+	(calendar-buffer-list): Add solar-sunrises-buffer.
+
+	* calendar/cal-menu.el (cal-menu-goto-menu): Tweak menu name.
+
 2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-start.el: Add customization types for word-wrap and
