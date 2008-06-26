@@ -34,8 +34,8 @@
 
 (defconst cal-menu-moon-menu
   '("Moon"
-    ;; FIXME add solar?
-    ["Lunar Phases" calendar-phases-of-moon])
+    ["Lunar Phases" calendar-phases-of-moon]
+    ["Sunrise/sunset for cursor date" calendar-sunrise-sunset])
   "Key map for \"Moon\" menu in the calendar.")
 
 (defconst cal-menu-diary-menu
