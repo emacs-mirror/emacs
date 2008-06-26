@@ -650,8 +650,6 @@
 
 (require 'vc-hooks)
 (require 'vc-dispatcher)
-(require 'tool-bar)
-(require 'ewoc)
 
 (eval-when-compile
   (require 'cl))

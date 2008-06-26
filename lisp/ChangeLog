@@ -1,3 +1,9 @@
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (tool-bar): Require.
+
+	* vc.el (ewoc, tool-bar): Do no require.
+
 2008-06-26  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (terminal-composition-base-character-p): New function.

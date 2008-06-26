@@ -39,6 +39,7 @@
 
 (require 'vc-hooks)
 (require 'vc)
+(require 'tool-bar)
 (require 'ewoc)
 
 ;;; Code:
