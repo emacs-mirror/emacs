@@ -1,3 +1,10 @@
+2008-06-26  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): New function.
+	(ibuffer-diff-with-file): Use it.  Do diff on marked buffers
+	(ibuffer-mark-on-buffer): Don't display message when removing marks.
+	(ibuffer-mark-by-mode): Use `buffer-local-value'.
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (tool-bar): Require.
