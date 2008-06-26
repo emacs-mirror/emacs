@@ -1,12 +1,10 @@
 2008-06-26  Kenichi Handa  <handa@m17n.org>
 
-	* composite.el (terminal-composition-base-character-p): New
-	funciton.
-	(terminal-composition-function): Use
-	terminal-composition-base-character-p.  Include the base character
+	* composite.el (terminal-composition-base-character-p): New function.
+	(terminal-composition-function):
+	Use terminal-composition-base-character-p.  Include the base character
 	in the composition.
-	(auto-compose-chars): Don't check font-object for terminal
-	display.
+	(auto-compose-chars): Don't check font-object for terminal display.
 
 2008-06-26  Glenn Morris  <rgm@gnu.org>
 
@@ -28,6 +26,10 @@
 	Handle mouse events.
 	* calendar/cal-menu.el (calendar-mouse-print-dates): Remove function.
 	(cal-menu-context-mouse-menu): Use calendar-print-other-dates.
+
+	* calendar/holidays.el (calendar-cursor-holidays): Handle mouse events.
+	* calendar/cal-menu.el (calendar-mouse-holidays): Remove function.
+	(cal-menu-context-mouse-menu): Use calendar-cursor-holidays.
 
 	* calendar/cal-move.el (calendar-cursor-to-nearest-date):
 	Use calendar-column-to-segment, calendar-month-edges, and
