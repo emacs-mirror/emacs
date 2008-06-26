@@ -1,3 +1,7 @@
+2008-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_auto_composed_prop): Fix for the terminal case.
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* unexnext.c:
