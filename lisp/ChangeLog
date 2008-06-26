@@ -1,3 +1,34 @@
+2008-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-date-echo-text): Doc fix.
+	Add default :value for sexp type.
+	(calendar-month-edges): New variable.
+	(calendar-month-edges): New function.
+	(calendar-recompute-layout-variables): Set calendar-month-edges.
+	(calendar-intermonth-header, calendar-intermonth-text): New options.
+	(calendar-insert-at-column): New function.
+	(calendar-generate-month): Use calendar-insert-at-column.
+	Handle intermonth text.  Add 'date property.
+	(calendar-column-to-month): Remove function.
+	(calendar-column-to-segment): New function.
+	(calendar-cursor-to-date): Use calendar-column-to-segment.
+	Check 'date property.
+
+	* calendar/calendar.el (calendar-print-other-dates):
+	Handle mouse events.
+	* calendar/cal-menu.el (calendar-mouse-print-dates): Remove function.
+	(cal-menu-context-mouse-menu): Use calendar-print-other-dates.
+
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date):
+	Use calendar-column-to-segment, calendar-month-edges, and
+	the 'date property to handle intermonth text.
+
+	* calendar/cal-iso.el (calendar-iso-from-absolute): Add autoload cookie.
+
+	* calendar/cal-menu.el (cal-menu-moon-menu, cal-menu-diary-menu)
+	(cal-menu-holidays-menu, cal-menu-goto-menu, cal-menu-scroll-menu):
+	Add doc strings.
+
 2008-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-basic-try-completion): Use the text after
