@@ -1,3 +1,8 @@
+2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-start.el: Add customization types for word-wrap and
+	shift-select-mode.
+
 2008-06-26  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): New function.
