@@ -640,18 +640,20 @@ Corresponding value is nil if there is no sunrise/sunset."
      (and set-time (calendar-date-equal date (car adj-set)) (cdr adj-set))
      (solar-daylight length))))
 
-(defun solar-sunrise-sunset-string (date)
-  "String of *local* times of sunrise, sunset, and daylight on Gregorian DATE."
+(defun solar-sunrise-sunset-string (date &optional nolocation)
+  "String of *local* times of sunrise, sunset, and daylight on Gregorian DATE.
+Optional NOLOCATION non-nil means do not print the location."
   (let ((l (solar-sunrise-sunset date)))
     (format
-     "%s, %s at %s (%s hours daylight)"
+     "%s, %s%s (%s hours daylight)"
      (if (car l)
          (concat "Sunrise " (apply 'solar-time-string (car l)))
        "No sunrise")
      (if (cadr l)
          (concat "sunset " (apply 'solar-time-string (cadr l)))
        "no sunset")
-     (eval calendar-location-name)
+     (if nolocation ""
+       (format " at %s" (eval calendar-location-name)))
      (nth 2 l))))
 
 (defconst solar-data-list
@@ -863,6 +865,27 @@ Accurate to a few seconds."
     (message "%s: %s"
              (calendar-date-string date t t)
              (solar-sunrise-sunset-string date))))
+
+;;;###cal-autoload
+(defun calendar-sunrise-sunset-month (&optional event)
+  "Local time of sunrise and sunset for month under cursor or at EVENT."
+  (interactive (list last-nonmenu-event))
+  (or (and calendar-latitude calendar-longitude calendar-time-zone)
+      (solar-setup))
+  (let* ((date (calendar-cursor-to-date t event))
+         (month (car date))
+         (year (nth 2 date))
+         (last (calendar-last-day-of-month month year))
+         (title (format "Sunrise/sunset times for %s %d at %s"
+                        (calendar-month-name month) year
+                        (eval calendar-location-name))))
+    (calendar-in-read-only-buffer solar-sunrises-buffer
+      (calendar-set-mode-line title)
+      (insert title ":\n\n")
+      (dotimes (i last)
+        (setq date (list month (1+ i) year))
+        (insert (format "%s %2d: " (calendar-month-name month t) (1+ i))
+                (solar-sunrise-sunset-string date t) "\n")))))
 
 (defvar date)
 
