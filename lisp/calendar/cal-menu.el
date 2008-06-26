@@ -160,9 +160,9 @@ Signals an error if popups are unavailable."
        (x-popup-menu ,event (list ,title (append (list ,title) ,@body)))
      (error "Popup menus are not available on this system")))
 
-(autoload 'calendar-check-holidays "holidays")
 (autoload 'diary-list-entries "diary-lib")
-(defvar diary-show-holidays-flag)       ; only called from calendar.el
+;; Autoloaded in diary-lib.
+(declare-function calendar-check-holidays "holidays" (date))
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.
