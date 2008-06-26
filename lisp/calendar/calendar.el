@@ -1787,7 +1787,8 @@ use instead of point."
       (if event (window-buffer (posn-window (event-start event)))
         (current-buffer))
     (save-excursion
-      (if event (goto-char (posn-point (event-start event))))
+      (and event (setq event (event-start event))
+           (goto-char (posn-point event)))
       (let* ((segment (calendar-column-to-segment))
              (month (% (+ displayed-month (1- segment)) 12)))
         ;; Call with point on either of the two digits in a 2-digit date,
