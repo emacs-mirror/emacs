@@ -5199,7 +5199,7 @@ serial_configure (struct Lisp_Process *p,
   attr.c_cflag &= ~CSIZE;
   attr.c_cflag |= ((XINT (tem) == 7) ? CS7 : CS8);
 #else
-  /* Don't error on bytesize 8, which should be set by cfmakeraw().  */
+  /* Don't error on bytesize 8, which should be set by cfmakeraw.  */
   if (XINT (tem) != 8)
     error ("Bytesize cannot be changed");
 #endif
@@ -5232,7 +5232,7 @@ serial_configure (struct Lisp_Process *p,
       attr.c_iflag |= (IGNPAR | INPCK);
     }
 #else
-  /* Don't error on no parity, which should be set by cfmakeraw().  */
+  /* Don't error on no parity, which should be set by cfmakeraw.  */
   if (!NILP (tem))
     error ("Parity cannot be configured");
 #endif
@@ -5254,7 +5254,7 @@ serial_configure (struct Lisp_Process *p,
   if (XINT (tem) == 2)
     attr.c_cflag |= CSTOPB;
 #else
-  /* Don't error on 1 stopbit, which should be set by cfmakeraw().  */
+  /* Don't error on 1 stopbit, which should be set by cfmakeraw.  */
   if (XINT (tem) != 1)
     error ("Stopbits cannot be configured");
 #endif
