@@ -93,19 +93,6 @@ static struct sensemode {
 #include <termios.h>
 #endif
 
-#ifdef AIXHFT
-/* Get files for keyboard remapping */
-#define HFNKEYS 2
-#include <sys/hft.h>
-#include <sys/devinfo.h>
-#endif
-
-/* Get rid of LLITOUT in 4.1, since it is said to stimulate kernel bugs.  */
-#ifdef BSD4_1
-#undef LLITOUT
-#define LLITOUT 0
-#endif /* 4.1 */
-
 #ifdef NEED_BSDTTY
 #include <sys/bsdtty.h>
 #endif

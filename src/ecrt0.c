@@ -200,120 +200,6 @@ start1 (ignore, argc, xargv)
 
 #endif /* not CRT0_DUMMIES */
 
-#ifdef hp9000s300
-int argc_value;
-char **argv_value;
-#ifdef OLD_HP_ASSEMBLER
-	asm("   text");
-	asm("	globl __start");
-	asm("	globl _exit");
-	asm("	globl _main");
-	asm("__start");
-	asm("	dc.l	0");
-	asm("	subq.w	#0x1,d0");
-	asm("	move.w	d0,float_soft");
-	asm("	move.l	0x4(a7),d0");
-	asm("	beq.s	skip_1");
-	asm("	move.l	d0,a0");
-	asm("	clr.l	-0x4(a0)");
-	asm("skip_1");
-	asm("	move.l	a7,a0");
-	asm("	subq.l	#0x8,a7");
-	asm("	move.l	(a0),(a7)");
-	asm("	move.l	(a0),_argc_value");
-	asm("	addq.l	#0x4,a0");
-	asm("	move.l	a0,0x4(a7)");
-	asm("	move.l	a0,_argv_value");
-	asm("incr_loop");
-	asm("	tst.l	(a0)+");
-	asm("	bne.s	incr_loop");
-	asm("	move.l	0x4(a7),a1");
-	asm("	cmp.l	(a1),a0");
-	asm("	blt.s	skip_2");
-	asm("	subq.l	#0x4,a0");
-	asm("skip_2");
-	asm("	move.l	a0,0x8(a7)");
-	asm("	move.l	a0,_environ");
-	asm("	jsr	_main");
-	asm("	addq.l	#0x8,a7");
-	asm("	move.l	d0,-(a7)");
-	asm("	jsr	_exit");
-	asm("	move.w	#0x1,d0");
-	asm("	trap	#0x0");
-	asm("	comm	float_soft,4");
-/* float_soft is allocated in this way because C would
-   put an underscore character in its name otherwise. */
-
-#else /* new hp assembler */
-
-	asm("	text");
-        asm("   global  float_loc");
-        asm("   set     float_loc,0xFFFFB000");
- 	asm("	global	fpa_loc");
-	asm("	set	fpa_loc,0xfff08000");
-	asm("	global	__start");
-	asm("	global	_exit");
-	asm("	global	_main");
-	asm("__start:");
-	asm("	byte	0,0,0,0");
-	asm("	subq.w	&1,%d0");
-	asm("	mov.w	%d0,float_soft");
-	asm("	mov.w	%d1,flag_68881");
-#ifndef HPUX_68010
-	asm("	beq.b	skip_float");
-	asm("	fmov.l	&0x7400,%fpcr");
-/*	asm("	fmov.l	&0x7480,%fpcr"); */
-#endif /* HPUX_68010 */
-	asm("skip_float:");
-	asm("	mov.l	%a0,%d0");
-	asm("	add.l	%d0,%d0");
-	asm("	subx.w	%d1,%d1");
-	asm("	mov.w	%d1,flag_68010");
-	asm("	add.l	%d0,%d0");
-	asm("	subx.w	%d1,%d1");
-	asm("	mov.w	%d1,flag_fpa");
-	asm("	tst.l	%d2");
-	asm("	ble.b	skip_3");
-	asm("	lsl	flag_68881");
-	asm("	lsl	flag_fpa");
-	asm("skip_3:");
-	asm("	mov.l	4(%a7),%d0");
-	asm("	beq.b	skip_1");
-	asm("	mov.l	%d0,%a0");
-	asm("	clr.l	-4(%a0)");
-	asm("skip_1:");
-	asm("	mov.l	%a7,%a0");
-	asm("	subq.l	&8,%a7");
-	asm("	mov.l	(%a0),(%a7)");
-	asm("	mov.l	(%a0),_argc_value");
-	asm("	addq.l	&4,%a0");
-	asm("	mov.l	%a0,4(%a7)");
-	asm("	mov.l	%a0,_argv_value");
-	asm("incr_loop:");
-	asm("	tst.l	(%a0)+");
-	asm("	bne.b	incr_loop");
-	asm("	mov.l	4(%a7),%a1");
-	asm("	cmp.l	%a0,(%a1)");
-	asm("	blt.b	skip_2");
-	asm("	subq.l	&4,%a0");
-	asm("skip_2:");
-	asm("	mov.l	%a0,8(%a7)");
-	asm("	mov.l	%a0,_environ");
-	asm("	jsr	_main");
-	asm("	addq.l	&8,%a7");
-	asm("	mov.l	%d0,-(%a7)");
-	asm("	jsr	_exit");
-	asm("	mov.w	&1,%d0");
-	asm("	trap	&0");
-	asm("	comm	float_soft, 4");
-	asm("	comm	flag_68881, 4");
-	asm("	comm	flag_68010, 4");
-	asm("	comm	flag_68040, 4");
-	asm("	comm	flag_fpa, 4");
-
-#endif /* new hp assembler */
-#endif /* hp9000s300 */
-
 #ifdef sparc
 asm (".global __start");
 asm (".text");
@@ -337,12 +223,6 @@ asm ("	nop");
 #if __FreeBSD__ == 2
 char *__progname;
 #endif
-#ifdef __bsdi__
-#include <sys/param.h> /* for version number */
-#if defined(_BSDI_VERSION) && (_BSDI_VERSION >= 199501)
-char *__progname;
-#endif
-#endif /* __bsdi__ */
 
 /* arch-tag: 4025c2fb-d6b1-4d29-b1b6-8100b6bd1e74
    (do not change this comment) */

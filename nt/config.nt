@@ -202,8 +202,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef CRAY_STACKSEG_END
 
-#undef UNEXEC_SRC
-
 #undef HAVE_LIBXBSD
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING

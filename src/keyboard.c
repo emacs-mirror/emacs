@@ -7305,10 +7305,6 @@ tty_read_avail_input (struct terminal *terminal,
 void
 handle_async_input ()
 {
-#ifdef BSD4_1
-  extern int select_alarmed;
-#endif
-
   interrupt_input_pending = 0;
 
   while (1)
@@ -7321,9 +7317,6 @@ handle_async_input ()
       if (nread <= 0)
 	break;
 
-#ifdef BSD4_1
-      select_alarmed = 1;  /* Force the select emulator back to life */
-#endif
     }
 }
 
@@ -7342,10 +7335,6 @@ input_available_signal (signo)
   signal (signo, input_available_signal);
 #endif /* USG */
 
-#ifdef BSD4_1
-  sigisheld (SIGIO);
-#endif
-
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
 #else
@@ -7359,9 +7348,6 @@ input_available_signal (signo)
   handle_async_input ();
 #endif
 
-#ifdef BSD4_1
-  sigfree ();
-#endif
   errno = old_errno;
 }
 #endif /* SIGIO */

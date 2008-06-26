@@ -1,3 +1,73 @@
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* unexnext.c:
+	* m/ews4800.h:
+	* m/hp9000s300.h:
+	* m/ibm370aix.h:
+	* m/mips-siemens.h:
+	* m/ncr386.h:
+	* m/next.h:
+	* m/pmax.h:
+	* m/powerpcle.h:
+	* m/tandem-s2.h:
+	* s/386bsd.h:
+	* s/bsd386.h:
+	* s/bsd4-1.h:
+	* s/bsd4-2.h:
+	* s/bsdos2-1.h:
+	* s/bsdos2.h:
+	* s/bsdos3.h:
+	* s/bsdos4.h:
+	* s/nextstep.h:
+	* s/ultrix4-3.h:
+	* s/usg5-0.h:
+	* s/usg5-2-2.h:
+	* s/usg5-2.h:
+	* s/usg5-4-3.h:
+	* s/ux4800.h:
+	* s/uxpds.h:
+	* s/uxpv.h: Remove support for obsolete systems.
+	* s/hpux.h, s/hpux10.h, s/hpux8.h, s/hpux9.h, s/hpux9shr.h:
+	Remove, insert contents in s/hpux-10.20.h
+	* s/aix3-1.h, s/aix3-2-5.h, s/aix3-2.h, s/aix4-1.h, s/aix4.h:
+	Remove, insert contents in s/aix-4.2.h
+	* s/usg5-3.h: Remove, insert contents in s/usg5-4.h.
+	* s/bsd4-3.h: Rename to ..
+	* s/bsd-common.h: ... this.
+	* src/data.c:
+	* src/doc.c:
+	* src/ecrt0.c:
+	* src/emacs.c:
+	* src/fileio.c:
+	* src/floatfns.c:
+	* src/keyboard.c:
+	* src/mem-limits.h:
+	* src/print.c:
+	* src/process.c:
+	* src/sysdep.c:
+	* src/syssignal.h:
+	* src/systty.h:
+	* src/syswait.h:
+	* src/term.c:
+	* src/unexec.c:
+	* src/unexelf.c:
+	* src/unexhp9k800.c:
+	* src/m/hp800.h:
+	* src/m/ibmrs6000.h:
+	* src/m/mips.h:
+	* src/m/vax.h:
+	* src/s/darwin.h:
+	* src/s/freebsd.h:
+	* src/s/gnu.h:
+	* src/s/ms-w32.h:
+	* src/s/msdos.h:
+	* src/s/netbsd.h:
+	* src/s/template.h: Remove references to obsolete variables.
+
+	* Makefile.in: Add dependencies for all unexec files.
+	(admindir): Remove unused variable.
+	(UNEXEC_SRC): Remove references.
+
 2008-06-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (x_default_font_parameter): If Xft is available, first

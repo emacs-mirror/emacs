@@ -25,12 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *	Define all the symbols that apply correctly.
  */
 
-/* #define UNIPLUS */
 /* #define USG5 */
 /* #define USG */
 /* #define HPUX */
-/* #define UMAX */
-/* #define BSD4_1 */
 /* #define BSD4_2 */
 /* #define BSD4_3 */
 /* #define BSD_SYSTEM */

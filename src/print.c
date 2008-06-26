@@ -45,16 +45,6 @@ extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
 Lisp_Object Vfloat_output_format, Qfloat_output_format;
 
-/* Work around a problem that happens because math.h on hpux 7
-   defines two static variables--which, in Emacs, are not really static,
-   because `static' is defined as nothing.  The problem is that they are
-   defined both here and in lread.c.
-   These macros prevent the name conflict.  */
-#if defined (HPUX) && !defined (HPUX8)
-#define _MAXLDBL print_maxldbl
-#define _NMAXLDBL print_nmaxldbl
-#endif
-
 #include <math.h>
 
 #if STDC_HEADERS

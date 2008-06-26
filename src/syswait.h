@@ -91,11 +91,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #else
 
-#ifdef BSD4_1
-#include <wait.h>
-#else
 #include <sys/wait.h>
-#endif /* not BSD 4.1 */
 
 #define WAITTYPE union wait
 #define WRETCODE(w) w.w_retcode

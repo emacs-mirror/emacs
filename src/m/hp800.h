@@ -62,13 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Common definitions for HPUX and GNU/Linux.  */
 
 #if defined (__hpux) || defined (GNU_LINUX)
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
-#ifndef hp9000s800
-#     define hp9000s800
-#endif
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined

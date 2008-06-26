@@ -1,3 +1,7 @@
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* fakemail.c: Remove references to obsolete variables.
+
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
 	* ebrowse.c (xfree): Remove definition; s/xfree/free/.

@@ -52,7 +52,6 @@ version=@version@
 LIBOBJS = @LIBOBJS@
 
 lispsource = ${srcdir}/../lisp/
-admindir = $(srcdir)/../admin/
 libsrc = ../lib-src/
 etc = ../etc/
 oldXMenudir = ../oldXMenu/
@@ -93,11 +92,6 @@ SHELL=/bin/sh
 /* On some machines #define register is done in config;
    do not let it interfere with this file.  */
 #undef register
-
-/* On some systems we may not be able to use the system make command. */
-#ifdef MAKE_COMMAND
-MAKE = MAKE_COMMAND
-#endif
 
 /* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
    GNU/Linux is an exception because it uses a funny variant of GNU libc.  */
@@ -499,9 +493,6 @@ TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_S
 /* Allow config.h to specify a replacement file for unexec.c.  */
 #ifndef UNEXEC
 #define UNEXEC unexec.o
-#endif
-#ifndef UNEXEC_SRC
-#define UNEXEC_SRC unexec.c
 #endif
 
 INTERVAL_SRC = intervals.h composite.h
@@ -1141,10 +1132,17 @@ terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
 undo.o: undo.c buffer.h commands.h window.h $(config_h)
-/* This hack is to discard any space that cpp might put at the beginning
-   of UNEXEC when substituting it in.  */
-UNEXEC_ALIAS=UNEXEC
-$(UNEXEC_ALIAS): UNEXEC_SRC $(config_h)
+unexaix.o: unexaix.c $(config_h)
+unexalpha.o: unexalpha.c $(config_h)
+unexcw.o: unexcw.c $(config_h)
+unexec.o: unexec.c $(config_h)
+unexelf.o: unexelf.c $(config_h)
+unexhp9k800.o: unexhp9k800.c $(config_h)
+unexmacosx.o: unexmacosx.c $(config_h)
+unexmips.o: unexmips.c $(config_h)
+unexnext.o: unexnext.c $(config_h)
+unexsol.o: unexsol.c $(config_h)
+unexw32.o: unexw32.c $(config_h)
 w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
    msdos.h buffer.h charset.h coding.h composite.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \

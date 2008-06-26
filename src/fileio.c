@@ -122,11 +122,6 @@ extern int errno;
 
 #ifdef HPUX
 #include <netio.h>
-#ifndef HPUX8
-#ifndef HPUX9
-#include <errnet.h>
-#endif
-#endif
 #endif
 
 #include "commands.h"
@@ -2792,12 +2787,7 @@ This is what happens in interactive use with M-x.  */)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0, 0);
-#ifndef BSD4_1
   if (0 > rename (SDATA (encoded_file), SDATA (encoded_newname)))
-#else
-  if (0 > link (SDATA (encoded_file), SDATA (encoded_newname))
-      || 0 > unlink (SDATA (encoded_file)))
-#endif
     {
       if (errno == EXDEV)
 	{

@@ -1,3 +1,8 @@
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in:
+	* configure: Remove references to obsolete systems.
+
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (Makefile): Use it for its timestamp value as well, and

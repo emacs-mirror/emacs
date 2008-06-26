@@ -1,3 +1,7 @@
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi: Remove references to obsolete systems.
+
 2008-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (distclean): Remove makefile.

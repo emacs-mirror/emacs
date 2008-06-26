@@ -922,16 +922,6 @@ main (argc, argv
     }
 #endif
 
-#ifdef NeXT
-  {
-    extern int malloc_cookie;
-    /* This helps out unexnext.c.  */
-    if (initialized)
-      if (malloc_jumpstart (malloc_cookie) != 0)
-	printf ("malloc jumpstart failed!\n");
-  }
-#endif /* NeXT */
-
 #ifdef MAC_OSX
   /* Skip process serial number passed in the form -psn_x_y as
      command-line argument.  The WindowServer adds this option when
@@ -1505,7 +1495,7 @@ main (argc, argv
      if this is not done.  Do it after set_global_environment so that we
      don't pollute Vglobal_environment.  */
   /* Setting LANG here will defeat the startup locale processing...  */
-#ifdef AIX3_2
+#ifdef AIX
   putenv ("LANG=C");
 #endif
 

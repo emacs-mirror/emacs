@@ -143,9 +143,7 @@ extern SIGMASKTYPE sigprocmask_set;
 { SIGMASKTYPE omask = sigblock (SIGFULLMASK); sigsetmask (omask & ~SIG); }
 #endif
 
-#ifndef BSD4_1
 #define sigfree() sigsetmask (SIGEMPTYMASK)
-#endif /* not BSD4_1 */
 
 #if defined (SIGINFO) && defined (BROKEN_SIGINFO)
 #undef SIGINFO
@@ -179,11 +177,6 @@ extern SIGMASKTYPE sigprocmask_set;
 # endif
 # define NSIG NSIG_MINIMUM
 #endif
-
-#ifdef BSD4_1
-#define SIGIO SIGTINT
-/* sigfree is in sysdep.c */
-#endif /* BSD4_1 */
 
 /* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
    Must do that using the killpg call.  */

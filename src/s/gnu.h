@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* Get most of the stuff from bsd4.3 */
-#include "bsd4-3.h"
+/* Get most of the stuff from bsd-common */
+#include "bsd-common.h"
 
 /* For mem-limits.h.  */
 #define BSD4_2
