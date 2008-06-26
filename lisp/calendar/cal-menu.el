@@ -231,9 +231,10 @@ is non-nil."
     ("Write HTML calendar"
      ["For selected month" cal-html-cursor-month]
      ["For selected year" cal-html-cursor-year])
-    ["Diary entries" calendar-mouse-view-diary-entries]
+    ["Diary entries" calendar-mouse-view-diary-entries :keys "d"]
     ["Insert diary entry" diary-insert-entry]
-    ["Other diary file entries" calendar-mouse-view-other-diary-entries]))
+    ["Other diary file entries" calendar-mouse-view-other-diary-entries
+     :keys "D"]))
 
 (easy-menu-define cal-menu-global-mouse-menu nil
   "Menu bound to a mouse event, not specific to the mouse-click location."
