@@ -18817,7 +18817,7 @@
 	(gdb-goto-breakpoint): Try to force display in source buffer.
 	(gdb-frame-gdb-buffer): Copy other similar functions.
 	(gdb-restore-windows): Don't display source if not asked for.
-	(gdb-assembler-buffer-name): Don't capitalise.
+	(gdb-assembler-buffer-name): Don't capitalize.
 
 2005-11-03  Richard M. Stallman  <rms@gnu.org>
 
