@@ -755,7 +755,7 @@ a sexp diary entry that matches those dates:
 diary display) to concoct diary entries whose text varies based on the date:
 
 @findex diary-sunrise-sunset
-@findex diary-phases-of-moon
+@findex diary-lunar-phases
 @findex diary-day-of-year
 @findex diary-iso-date
 @findex diary-julian-date
@@ -768,7 +768,7 @@ diary display) to concoct diary entries whose text varies based on the date:
 @table @code
 @item %%(diary-sunrise-sunset)
 Make a diary entry for the local times of today's sunrise and sunset.
-@item %%(diary-phases-of-moon)
+@item %%(diary-lunar-phases)
 Make a diary entry for the phases (quarters) of the moon.
 @item %%(diary-day-of-year)
 Make a diary entry with today's day number in the current year and the number
