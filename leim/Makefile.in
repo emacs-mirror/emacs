@@ -153,7 +153,8 @@ NON-TIT-MISC=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${OTHERS}
 .SUFFIXES: .elc .el
 
 .el.elc:
-	${RUN-EMACS} -f batch-byte-compile $<
+	@echo Compiling $<
+	@${RUN-EMACS} -f batch-byte-compile $<
 
 all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el ${WORLD}
 
