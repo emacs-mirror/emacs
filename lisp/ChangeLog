@@ -1,3 +1,7 @@
+2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-dir.el (vc-dir): Complete only directory names.
+
 2008-06-27  Jason Rumney  <jasonr@gnu.org>
 
         * w32-fns.el (top-level): Unconditionally define all charsets.
@@ -8,7 +12,7 @@
 	the CC Mode specific functions; this is no longer needed, since
 	{beginning,end}-of-defun now pass ARG to ...-of-defun-function.
 
-	* progmodes/cc-defs.el (c-emacs-features): new feature
+	* progmodes/cc-defs.el (c-emacs-features): New feature
 	'argumentative-bod-function.
 
 2008-06-27  John Paul Wallington  <jpw@pobox.com>
