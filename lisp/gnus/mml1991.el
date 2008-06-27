@@ -133,7 +133,7 @@ Whether the passphrase is cached at all is controlled by
 	     'never))
 	cipher
 	(result-buffer (get-buffer-create "*GPG Result*")))
-    ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMOURED
+    ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMORED
     (goto-char (point-min))
     (while (looking-at "^Content[^ ]+:") (forward-line))
     (unless (bobp)
@@ -213,7 +213,7 @@ Whether the passphrase is cached at all is controlled by
   (let ((text (current-buffer))
 	cipher
 	(result-buffer (get-buffer-create "*GPG Result*")))
-    ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMOURED
+    ;; Strip MIME Content[^ ]: headers since it will be ASCII ARMORED
     (goto-char (point-min))
     (while (looking-at "^Content[^ ]+:") (forward-line))
     (unless (bobp)
@@ -303,7 +303,7 @@ Whether the passphrase is cached at all is controlled by
     (let ((cte (save-restriction
 		 (narrow-to-region (point-min) (point))
 		 (mail-fetch-field "content-transfer-encoding"))))
-      ;; Strip MIME headers since it will be ASCII armoured.
+      ;; Strip MIME headers since it will be ASCII armored.
       (forward-line 1)
       (delete-region (point-min) (point))
       (when cte
@@ -424,7 +424,7 @@ If no one is selected, default secret key is used.  "
     (let ((cte (save-restriction
 		 (narrow-to-region (point-min) (point))
 		 (mail-fetch-field "content-transfer-encoding"))))
-      ;; Strip MIME headers since it will be ASCII armoured.
+      ;; Strip MIME headers since it will be ASCII armored.
       (forward-line 1)
       (delete-region (point-min) (point))
       (when cte
