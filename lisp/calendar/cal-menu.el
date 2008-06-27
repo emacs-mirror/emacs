@@ -34,7 +34,7 @@
 
 (defconst cal-menu-sunmoon-menu
   '("Sun/Moon"
-    ["Lunar Phases" calendar-phases-of-moon]
+    ["Lunar Phases" calendar-lunar-phases]
     ["Sunrise/sunset for cursor date" calendar-sunrise-sunset]
     ["Sunrise/sunset for cursor month" calendar-sunrise-sunset-month])
   "Key map for \"Sun/Moon\" menu in the calendar.")
@@ -246,7 +246,7 @@ is non-nil."
     ["List holidays" calendar-list-holidays]
     ["Mark holidays" calendar-mark-holidays]
     ["Unmark" calendar-unmark]
-    ["Lunar phases" calendar-phases-of-moon]
+    ["Lunar phases" calendar-lunar-phases]
     ["Sunrise times for month" calendar-sunrise-sunset-month]
     ["Show diary" diary-show-all-entries]
     ["Exit calendar" calendar-exit]))
