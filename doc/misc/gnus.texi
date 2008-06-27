@@ -12766,7 +12766,7 @@ Displayed when the signature has been hidden in the Article buffer.
 Displayed when Gnus has treated overstrike characters in the article buffer.
 
 @item e
-Displayed when Gnus has treated emphasised strings in the article buffer.
+Displayed when Gnus has treated emphasized strings in the article buffer.
 
 @end table
 
