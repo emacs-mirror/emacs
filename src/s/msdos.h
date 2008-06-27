@@ -200,7 +200,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define FLOAT_CHECK_DOMAIN
 
 /* When $TERM is "internal" then this is substituted:  */
-#define INTERNAL_TERMINAL "pc|bios|IBM PC with colour display:\
+#define INTERNAL_TERMINAL "pc|bios|IBM PC with color display:\
 :co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>:\
 :se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>:\
 :AB=<BG %d>:AF=<FG %d>:op=<DefC>:"

@@ -1474,7 +1474,7 @@
 
 	* erc.el 1.441:
 	erc-error-face: setting a background doesn't work so well with multi-line
-	    messages, so we don't. fg colour is negotiable ;-)
+	    messages, so we don't. fg color is negotiable ;-)
 	(erc-cmd-QUERY): fixed, new doco, supress (erc-delete-query) until we fix it
 	(erc-send-current-line): allow multi-line messages provided they don't start
 	    with a slash - there's no need to prohibit them if the slash isn't the

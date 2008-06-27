@@ -526,8 +526,8 @@ when the body only calls primitives.
   probably in separate manual.
 
 ** Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
-  the XPMs so that the colour versions work generally.  (Requires care
-  with the colour used for the transparent regions.)
+  the XPMs so that the color versions work generally.  (Requires care
+  with the color used for the transparent regions.)
 
 ** Convenient access to the `values' variable.  It would be nice to have an
   interface that would show you the printed reps of the elements of the

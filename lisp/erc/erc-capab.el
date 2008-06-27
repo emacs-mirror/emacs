@@ -43,7 +43,7 @@
 ;; From freenode.net's web site (not there anymore) on how to mark
 ;; unidentified users:
 ;; "We recommend that you add an asterisk before the nick, and
-;;  optionally either highlight or colourize the line in some
+;;  optionally either highlight or colorize the line in some
 ;;  appropriate fashion, if the user is not identified."
 
 ;;; Usage:

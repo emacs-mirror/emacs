@@ -1025,7 +1025,7 @@ x_wm_set_size_hint (f, flags, user_position)
 }
 
 /* Change background color of a frame.
-   Since GTK uses the background colour to clear the window, we must
+   Since GTK uses the background color to clear the window, we must
    keep the GTK and X colors in sync.
    F is the frame to change,
    BG is the pixel value to change to.  */

@@ -1953,7 +1953,7 @@ A new user option Man-fontify-manpage-flag disables fontification
 window system is used.  Two new user options Man-overstrike-face
 (default 'bold) and Man-underline-face (default 'underline) can be set
 to the preferred faces to be used for the words that man overstrikes
-and underlines.  Useful for those who like coloured man pages.
+and underlines.  Useful for those who like colored man pages.
 
 Two new interactive functions are provided: Man-cleanup-manpage and
 Man-fontify-manpage.  Both can be used on a buffer that contains the

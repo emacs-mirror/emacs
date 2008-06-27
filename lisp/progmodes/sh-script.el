@@ -875,7 +875,7 @@ See `sh-feature'.")
   "Face to show a here-document"
   :group 'sh-indentation)
 
-;; These colours are probably icky.  It's just a placeholder though.
+;; These colors are probably icky.  It's just a placeholder though.
 (defface sh-quoted-exec
   '((((class color) (background dark))
      (:foreground "salmon"))
