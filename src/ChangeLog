@@ -1,3 +1,8 @@
+2008-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h: Fix previous change: keep the correct branch of a
+	removed #if.
+
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 

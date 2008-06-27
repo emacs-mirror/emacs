@@ -171,8 +171,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGTYPE void
 
-#define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
-#define LIB_STANDARD -lc /usr/ccs/lib/crtn.o
+#define ORDINARY_LINK
+
+#define LIB_STANDARD
 
 /* there are no -lg libraries on this system, and no libPW */
 
