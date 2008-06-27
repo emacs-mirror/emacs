@@ -1,3 +1,28 @@
+2008-06-27  Jason Rumney  <jasonr@gnu.org>
+
+        * w32fns.c (x_to_w32_font, w32_to_x_font, x_to_w32_weight)
+        (w32_to_x_weight, w32_to_all_x_charsets): Remove obsolete functions.
+        (w32_to_x_charset, x_to_w32_charset)
+        (Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
+        (Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
+        (Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
+        (Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
+        (Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
+        (Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
+        (Qw32_charset_mac, Vw32_charset_info_alist): Move to w32font.c.
+        (Qw32_charset_unicode): Remove.
+        (syms_of_w32fns): Update for above changes.
+
+        * w32font.c (w32_to_x_charset, x_to_w32_charset)
+        (Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
+        (Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
+        (Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
+        (Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
+        (Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
+        (Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
+        (Qw32_charset_mac, Vw32_charset_info_alist): Move from w32fns.c.
+        (syms_of_w32font): Update for above changes.
+
 2008-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/usg5-4.h: Fix previous change: keep the correct branch of a
@@ -20,12 +45,12 @@
 
 	* w32font.h (FONT_HANDLE, FONT_TEXTMETRIC): New macros.
 
-	* w32term.c (x_draw_glyph_string_foreground):
+	* w32term.c (x_draw_glyph_string_foreground)
 	(x_draw_composite_glyph_string_foreground): Sync with xterm.c.
 	Use FONT_HANDLE macro.
 	(x_draw_glyph_string): Use FONT_TEXTMETRIC macro.
 
-	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
+	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape)
 	(uniscribe_encode_char): Use FONT_HANDLE macro.
 
 	* w32font.c (Fx_select_font): Use FONT_HANDLE macro.
@@ -65,10 +90,10 @@
 	(w32font_open_internal): Remove compat code. Set new hfont member.
 	(Fx_select_font): Use new hfont member.
 
-	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape):
+	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape)
 	(uniscribe_encode_char): Use new hfont member.
 
-	* w32term.c (x_draw_glyph_string_foreground):
+	* w32term.c (x_draw_glyph_string_foreground)
 	(x_draw_composite_glyph_string_foreground): Use new hfont member.
 	(x_draw_glyph_string): Use metrics in w32font_info.
 
