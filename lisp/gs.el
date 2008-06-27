@@ -196,7 +196,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
  	;; proper implementation not waiting at all but creating
  	;; appropriate queues, or b) permanently bad display due to
  	;; bad cached images.  So remember that this
- 	;; is just a hack and if people don't like the behaviour, they
+ 	;; is just a hack and if people don't like the behavior, they
  	;; will most likely like the easy alternatives even less.
  	;; And at least the image cache will make the delay apparent
  	;; just once.

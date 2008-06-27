@@ -4964,7 +4964,7 @@
 
 2003-08-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* calendar.texi (Date Formats): Document changed behaviour of
+	* calendar.texi (Date Formats): Document changed behavior of
 	abbreviations.
 
 2003-07-24  Markus Rost  <rost@math.ohio-state.edu>

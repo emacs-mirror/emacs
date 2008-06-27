@@ -4274,7 +4274,7 @@
 
 	* systty.h (EMACS_GETPGRP): New macro hides argument passing to
 	system getpgrp.  Reinstate some semblance of control over this
-	macros behaviour by paying attention to GETPGRP_NO_ARG.
+	macros behavior by paying attention to GETPGRP_NO_ARG.
 	* sysdep.c (sys_suspend): Use EMACS_GETPGRP macro.
 	* emacs.c (main): Use EMACS_GETPGRP macro.
 	(shut_down_emacs): Use EMACS_GETPGRP macro.

@@ -2964,7 +2964,7 @@
 
 2001-05-17  Francesco Potortì  <pot@gnu.org>
 
-	* etags.1: Add the latest changes to etags behaviour.
+	* etags.1: Add the latest changes to etags behavior.
 
 2001-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 

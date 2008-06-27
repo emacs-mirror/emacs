@@ -5401,7 +5401,7 @@ x_set_window_size (f, change_gravity, cols, rows)
      resize will happen asynchronously. But on Windows, the menu bar
      automatically wraps when the frame is too narrow to contain it,
      and that causes any calculations made here to come out wrong. The
-     end is some nasty buggy behaviour, including the potential loss
+     end is some nasty buggy behavior, including the potential loss
      of the minibuffer.
 
      Disabling this code is either not sufficient to fix the problems
@@ -5524,9 +5524,9 @@ x_raise_frame (f)
   BLOCK_INPUT;
 
   /* Strictly speaking, raise-frame should only change the frame's Z
-     order, leaving input focus unchanged.  This is reasonable behaviour
+     order, leaving input focus unchanged.  This is reasonable behavior
      on X where the usual policy is point-to-focus.  However, this
-     behaviour would be very odd on Windows where the usual policy is
+     behavior would be very odd on Windows where the usual policy is
      click-to-focus.
 
      On X, if the mouse happens to be over the raised frame, it gets

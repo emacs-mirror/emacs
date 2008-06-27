@@ -109,7 +109,7 @@
 ;; the pattern definitions.)  Font Lock mode chooses which variable to use for
 ;; fontification based on `font-lock-maximum-decoration'.
 ;;
-;; Font Lock mode fontification behaviour can be modified in a number of ways.
+;; Font Lock mode fontification behavior can be modified in a number of ways.
 ;; See the below comments and the comments distributed throughout this file.
 
 ;;; Constructing patterns:

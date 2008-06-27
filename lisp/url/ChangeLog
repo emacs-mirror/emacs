@@ -1444,7 +1444,7 @@
 	needed.  I should use my brain sometime.
 
 	* lisp/url-vars.el (and): Fix feature test for xemacs and
-	coding-system-list behaviour.
+	coding-system-list behavior.
 
 	* lisp/url-http.el
 	(url-http-chunked-encoding-after-change-function): Add optional

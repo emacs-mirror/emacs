@@ -6841,7 +6841,7 @@ Value is t if tooltip was open, nil otherwise.  */)
  ***********************************************************************/
 extern Lisp_Object Qfile_name_history;
 
-/* Callback for altering the behaviour of the Open File dialog.
+/* Callback for altering the behavior of the Open File dialog.
    Makes the Filename text field contain "Current Directory" and be
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File

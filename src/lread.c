@@ -2034,7 +2034,7 @@ read_escape (readcharfun, stringp)
 {
   register int c = READCHAR;
   /* \u allows up to four hex digits, \U up to eight. Default to the
-     behaviour for \u, and change this value in the case that \U is seen. */
+     behavior for \u, and change this value in the case that \U is seen. */
   int unicode_hex_count = 4;
 
   switch (c)

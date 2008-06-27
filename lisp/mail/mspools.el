@@ -103,7 +103,7 @@
 ;; Rather than showing size in bytes, could we see the number of msgs
 ;; waiting?  (Could be more time demanding / system dependent).
 ;; Maybe just call a perl script to do all the hard work, and
-;; visualise the results in the buffer.
+;; visualize the results in the buffer.
 
 ;; Shrink wrap the buffer to remove excess white-space?
 

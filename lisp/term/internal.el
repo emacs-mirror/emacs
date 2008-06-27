@@ -27,7 +27,7 @@
 ;; ---------------------------------------------------------------------------
 ;; keyboard setup -- that's simple!
 (set-input-mode nil nil 0)
-(define-key local-function-key-map [backspace] "\177") ; Normal behaviour for BS
+(define-key local-function-key-map [backspace] "\177") ; Normal behavior for BS
 (define-key local-function-key-map [delete] "\C-d") ; ... and Delete
 (define-key local-function-key-map [tab] [?\t])
 (define-key local-function-key-map [linefeed] [?\n])

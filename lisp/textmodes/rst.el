@@ -1014,9 +1014,9 @@ REVERSE-DIRECTION is used to reverse the cycling order."
 Adjust/rotate the section decoration for the section title
 around point or promote/demote the decorations inside the region,
 depending on if the region is active.  This function is meant to
-be invoked possibly multiple times, and can vary its behaviour
+be invoked possibly multiple times, and can vary its behavior
 with a positive prefix argument (toggle style), or with a
-negative prefix argument (alternate behaviour).
+negative prefix argument (alternate behavior).
 
 This function is the main focus of this module and is a bit of a
 swiss knife.  It is meant as the single most essential function
@@ -1079,7 +1079,7 @@ decoration.")
 "Adjust/rotate the section decoration for the section title around point.
 
 This function is meant to be invoked possibly multiple times, and
-can vary its behaviour with a true TOGGLE-STYLE argument, or with
+can vary its behavior with a true TOGGLE-STYLE argument, or with
 a REVERSE-DIRECTION argument.
 
 General Behaviour

@@ -1110,7 +1110,7 @@ If DIR is positive skip forward; if negative, skip backward."
 	   ;; Here, we can't use skip-syntax-forward/backward because
 	   ;; they don't pay attention to word-separating-categories,
 	   ;; and thus they will skip over a true word boundary.  So,
-	   ;; we simulate the original behaviour by using forward-word.
+	   ;; we simulate the original behavior by using forward-word.
 	   (if (< dir 0)
 	       (if (not (looking-at "\\<"))
 		   (forward-word -1))

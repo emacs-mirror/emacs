@@ -30,7 +30,7 @@
 ;; - *IMPORTANT* vcursor-key-bindings is now nil by default, to avoid
 ;;   side-effects when the package is loaded.  This means no keys are
 ;;   bound by default.  Use customize to change it to t to restore
-;;   the old behaviour.  (If you do it by hand in .emacs, it
+;;   the old behavior.  (If you do it by hand in .emacs, it
 ;;   must come before vcursor is loaded.)
 ;; - You can alter the main variables and the vcursor face via
 ;;   M-x customize: go to the Editing group and find Vcursor.
@@ -52,7 +52,7 @@
 ;; Virtual cursor commands.  I got this idea from the old BBC micro.
 ;; You need Emacs 19 or 20 and a window system for the best effects.
 ;; For character terminals, at least Emacs 19.29 is required
-;; (special behaviour for the overlay property
+;; (special behavior for the overlay property
 ;; "before-string" must be implemented).  Search for "dumb terminals"
 ;; for more information.
 ;;
@@ -104,7 +104,7 @@
 ;; In the "on" state, moving the virtual cursor will copy the
 ;; moved-over text to the normal cursor position (including when going
 ;; backwards, though each piece of text moved over is copied forwards:
-;; compare the behaviour of C-S-up and C-S-left).
+;; compare the behavior of C-S-up and C-S-left).
 ;;
 ;; However, that's just a small part of the magic.  If the virtual
 ;; cursor goes off the display, it will be redisplayed in some other

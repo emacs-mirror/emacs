@@ -341,7 +341,7 @@ console_event_handler (DWORD event)
     case CTRL_BREAK_EVENT:
       if (!interactive)
 	{
-	  /* Both command.com and cmd.exe have the annoying behaviour of
+	  /* Both command.com and cmd.exe have the annoying behavior of
 	     prompting "Terminate batch job (y/n)?" when interrupted
 	     while running a batch file, even if running in
 	     non-interactive (-c) mode.  Try to make up for this

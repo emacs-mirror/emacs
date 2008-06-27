@@ -109,7 +109,7 @@
 
 ;; (By default, WoMan will automatically define the dired keys "W" and
 ;; "w" when it loads, but only if they are not already defined.  This
-;; behaviour is controlled by the user option `woman-dired-keys'.
+;; behavior is controlled by the user option `woman-dired-keys'.
 ;; Note that the `dired-x' (dired extra) package binds
 ;; `dired-copy-filename-as-kill' to the key "w" (as pointed out by Jim
 ;; Davidson), although "W" appears to be really unused.  The `dired-x'

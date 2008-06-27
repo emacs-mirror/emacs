@@ -659,7 +659,7 @@
 2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename completion): Simplify explanation of
-	double-slash behaviour.  Explain directory contents flushing.
+	double-slash behavior.  Explain directory contents flushing.
 
 2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 

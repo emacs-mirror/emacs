@@ -635,7 +635,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (modify-syntax-entry ?=  "."  table)
     (modify-syntax-entry ?*  "."  table)
     (modify-syntax-entry ?/  "."  table)
-    ;; I think that the f95 standard leaves the behaviour of \
+    ;; I think that the f95 standard leaves the behavior of \
     ;; unspecified, but that f2k will require it to be non-special.
     ;; Use `f90-backslash-not-special' to change.
     (modify-syntax-entry ?\\ "\\" table) ; escape chars

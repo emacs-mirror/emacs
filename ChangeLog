@@ -6894,7 +6894,7 @@
 
 	* make-dist: Check the flag called "make_tar", not "make_dir"; the
 	latter, being a typo, is always false, resulting in a program
-	whose default behaviour is to painstakingly build a copy of the
+	whose default behavior is to painstakingly build a copy of the
 	source tree, and then delete it.  Rah.
 
 	* Makefile.in: Add dist target, and comment for it.

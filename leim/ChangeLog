@@ -544,7 +544,7 @@
 2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (quail-indian-update-translation): Adjust the
-	behaviour according to the change of quail-translate-key.
+	behavior according to the change of quail-translate-key.
 
 2003-05-22  Kenichi Handa  <handa@m17n.org>
 

@@ -162,7 +162,7 @@
 
 	* erc.el 1.384 (erc-truncate-buffer-on-save):
 	Removed documentation that
-	described behaviour now changed.  It used to say "When nil, no
+	described behavior now changed.  It used to say "When nil, no
 	buffer is ever truncated."  This is no longer true; even when
 	buffers are NOT truncated on save, they can be truncated, eg. by
 	adding erc-truncate-buffer to the hook.
@@ -1916,7 +1916,7 @@
 	Fix C-c C-t to not include the nick/time info
 	(both from antifuchs)
 
-	* erc-complete.el 1.9: Fix for xemacs elt behaviour
+	* erc-complete.el 1.9: Fix for xemacs elt behavior
 
 2002-04-17  John Wiegley  <johnw@gnu.org>
 
@@ -1970,7 +1970,7 @@
 2002-04-11  Mario Lang  <mlang@delysid.org>
 
 	* erc-track.el 1.10:
-	try to fix behaviour when used with different frames.
+	try to fix behavior when used with different frames.
 
 2002-04-09  Mario Lang  <mlang@delysid.org>
 
@@ -2162,7 +2162,7 @@
 	* erc-match.el 1.3:
 	Minor fix related to hook call method change (-until-seccess now)
 
-	* erc.el 1.222: fixed ctcp behaviour abit (with auto-query on)
+	* erc.el 1.222: fixed ctcp behavior abit (with auto-query on)
 
 	* erc-list.el 1.1: ChanList mode.
 	Load it, and type M-x erc-chanlist RET
@@ -2396,7 +2396,7 @@
 2002-01-30  Andreas Fuchs  <asf@void.at>
 
 	* erc.el 1.190:
-	* erc-send-current-line: fix behaviour where buffer changes.
+	* erc-send-current-line: fix behavior where buffer changes.
 	* erc-mark-message: fix stupid face bug. highlighting of pals should work now.
 
 	* erc-ring.el 1.2, erc.el 1.189:

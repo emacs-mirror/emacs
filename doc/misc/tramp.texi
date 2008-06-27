@@ -2278,7 +2278,7 @@ for files on the local host, with the exception that minibuffer
 killing via a double-slash works only on the filename part, except
 that filename part starts with @file{//}.
 @ifset emacs
-A triple-slash stands for the default behaviour.
+A triple-slash stands for the default behavior.
 @end ifset
 @ifinfo
 @xref{Minibuffer File, , , @value{emacsdir}}.

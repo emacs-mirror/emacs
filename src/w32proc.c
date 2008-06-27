@@ -71,7 +71,7 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 
 /* Control whether spawnve quotes arguments as necessary to ensure
    correct parsing by child process.  Because not all uses of spawnve
-   are careful about constructing argv arrays, we make this behaviour
+   are careful about constructing argv arrays, we make this behavior
    conditional (off by default). */
 Lisp_Object Vw32_quote_process_args;
 
@@ -973,7 +973,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 #if 0
 	  /* This version does not escape quotes if they occur at the
 	     beginning or end of the arg - this could lead to incorrect
-	     behaviour when the arg itself represents a command line
+	     behavior when the arg itself represents a command line
 	     containing quoted args.  I believe this was originally done
 	     as a hack to make some things work, before
 	     `w32-quote-process-args' was added.  */

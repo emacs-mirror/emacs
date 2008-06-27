@@ -230,7 +230,7 @@ be added."
 			(string :format "%v")))
   :group 'archive-zip)
 
-;; For several reasons the latter behaviour is not desirable in general.
+;; For several reasons the latter behavior is not desirable in general.
 ;; (1) It uses more disk space.  (2) Error checking is worse or non-
 ;; existent.  (3) It tends to do funny things with other systems' file
 ;; names.

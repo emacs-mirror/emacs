@@ -115,7 +115,7 @@
 ;; If you want multiple addresses separated by a string other than ", " then
 ;; you can set the variable mail-alias-separator-string to it.  This has to
 ;; be a comma bracketed by whitespace if you want any kind of reasonable
-;; behaviour.
+;; behavior.
 ;;
 ;; Thanks to Harald Hanche-Olsen, Michael Ernst, David Loeffler, and
 ;; Noah Friedman for suggestions and bug reports.

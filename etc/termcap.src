@@ -6070,7 +6070,7 @@ wy99gt-w-vb|wy99gt-wvb|wyse99gt-wvb|Wyse 99gt 132-column visible bell:\
 # this speed.
 #   dch1 has been commented out because it causes annoying glittering when
 # vi deletes one character at the beginning of a line with tabs in it.
-#   dch makes sysgen(1M) have a horrible behaviour when deleting
+#   dch makes sysgen(1M) have a horrible behavior when deleting
 # a screen and makes screen(1) behave badly, so it is disabled too. The nice
 # thing is that vi goes crazy if smir-rmir are present and both dch-dch1 are
 # not, so smir and rmir are commented out as well.
@@ -6323,7 +6323,7 @@ wy85-wvb|wyse85-wvb|wyse 85 with visible bell 132-columns:\
 # terminal bug (not sending \E[) was acknowledged by Wyse (so it's not just
 # me), but I can't find that and the server under my bookmark to "Wyse
 # Technical" isn't responding.  So there's the question of wether the wy85
-# terminfo should reflect the manufactuer's intended behaviour of the terminal
+# terminfo should reflect the manufactuer's intended behavior of the terminal
 # or the actual."
 # (untranslatable capabilities removed to fit entry within 1023 bytes)
 # (sgr removed to fit entry within 1023 bytes)

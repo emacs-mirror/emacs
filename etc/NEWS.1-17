@@ -1026,7 +1026,7 @@ cursor's line.  There are a number of other commands which are the same
 as those of buffer-menu-mode.
 
 This is a useful thing to bind to c-x c-b in your `.emacs' file if the
-rather non-standard `electric' behaviour of the buffer list suits your taste.
+rather non-standard `electric' behavior of the buffer list suits your taste.
 Type C-h after invoking electric-buffer-list for more information.
 
 Calls value of `electric-buffer-menu-mode-hook' if non-nil on entry.

@@ -102,7 +102,7 @@ in to make it use the scrollbars from the system theme.
 ** focus-follows-mouse defaults to nil on MS Windows.
 Previously this variable was incorrectly documented as having no effect
 on MS Windows, and the default was inappropriate for the majority of
-Windows installations. Users of software which modifies the behaviour of
+Windows installations. Users of software which modifies the behavior of
 Windows to cause focus to follow the mouse will now need to explicitly set
 this variable.
 
@@ -2484,7 +2484,7 @@ Emacs 21/22 such as the toolbar, and bitmaps in the fringe to indicate
 breakpoints.
 
 To use this package just type M-x gdb.  See the Emacs manual if you want the
-old behaviour.
+old behavior.
 
 *** GUD mode has its own tool bar for controlling execution of the inferior
 and other common debugger commands.
