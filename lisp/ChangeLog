@@ -1,3 +1,8 @@
+2008-06-27  John Paul Wallington  <jpw@pobox.com>
+
+	* chistory.el (list-command-history): Use `bound-and-true-p'.
+	(command-history-map): Define within defvar.  Add docstring.
+
 2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.el (image-jpeg-p): Don't fail if the arg cannot be converted
@@ -43,7 +48,7 @@
 2008-06-26  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): New function.
-	(ibuffer-diff-with-file): Use it.  Do diff on marked buffers
+	(ibuffer-diff-with-file): Use it.  Do diff on marked buffers.
 	(ibuffer-mark-on-buffer): Don't display message when removing marks.
 	(ibuffer-mark-by-mode): Use `buffer-local-value'.
 
