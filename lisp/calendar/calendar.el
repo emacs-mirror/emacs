@@ -1415,7 +1415,7 @@ line."
    ;; Put in the days of the month.
    (dotimes (i last)
      (setq day (1+ i))
-     ;; TODO should numbers be left-justified, centred...?
+     ;; TODO should numbers be left-justified, centered...?
      (insert (format (format "%%%dd%%s" calendar-day-digit-width) day
                      (make-string
                       (- calendar-column-width calendar-day-digit-width) ?\s)))

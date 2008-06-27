@@ -209,7 +209,7 @@
 ;;     	the end of the loop and you will insert your item just before
 ;;     	that point.  If you set the threshold to, e.g. 8, it will stop
 ;;     	as soon as the window size drops below that amount and will
-;;     	insert the item in the approximate centre of that window.  I
+;;     	insert the item in the approximate center of that window.  I
 ;;     	got the idea for this feature after reading a very helpful
 ;;     	e-mail reply from Trey Jackson <trey@cs.berkeley.edu> who
 ;;     	corrected some of my awful coding and pointed me towards some
