@@ -14874,7 +14874,7 @@ ddr|rebus3180|ddr3180|Rebus/DDR 3180 vt100 emulator:\
 # Approximate date of release was 1982 (early 80s, anyway), and it had several
 # evolutions including (limited) color versions such as the PS330C. PS300s
 # were effectively obsolete by the late 80s, replaced by raster graphics
-# systems, although specialized applications like molecular modelling
+# systems, although specialized applications like molecular modeling
 # hung onto them for a while longer.  AFAIK all E&S vector graphics systems
 # are out of production, though of course E&S is very much alive (in 1996).
 # (ps300: changed ":pt@:" to "it@" -- esr)
