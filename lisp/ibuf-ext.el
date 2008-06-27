@@ -1298,6 +1298,8 @@ a prefix argument reverses the meaning of that variable."
 	  (error "No buffer with name %s" name)
 	(goto-char buf-point)))))
 
+(declare-function diff-sentinel "diff" (code))
+
 (defun ibuffer-diff-buffer-with-file-1 (buffer)
   (let ((bufferfile (buffer-local-value 'buffer-file-name buffer))
 	(tempfile (make-temp-file "buffer-content-")))

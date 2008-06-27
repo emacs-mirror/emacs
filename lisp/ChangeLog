@@ -1,3 +1,7 @@
+2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ibuf-ext.el (diff-sentinel): Declare.
+
 2008-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/lunar.el (calendar-lunar-phases): Rename from
