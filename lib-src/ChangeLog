@@ -1533,7 +1533,7 @@
 
 	* etags.c (add_regex): Better check for null regexps.
 	(readline): Check for regex matching null string.
-	(find_entries): Reorganisation.
+	(find_entries): Reorganization.
 
 2002-06-07  Francesco Potortì  <pot@gnu.org>
 

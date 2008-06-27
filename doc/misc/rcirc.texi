@@ -174,7 +174,7 @@ network are equivalent.  Some networks use a round-robin system where a
 single server redirects new connections to a random server in the
 network.  @code{irc.freenode.net} is such a server for the Freenode
 network.  Freenode provides the network ``for the Free and Open Source
-Software communities, for not-for-profit organisations and for related
+Software communities, for not-for-profit organizations and for related
 communities and organizations.''
 
 @cindex port, connecting
