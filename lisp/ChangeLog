@@ -1,3 +1,13 @@
+2008-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/lunar.el (calendar-lunar-phases): Rename from
+	calendar-phases-of-moon.  Keep old name as alias, update callers.
+	(lunar-phases): Rename from phases-of-moon.  Keep old name as alias.
+	(diary-lunar-phases): Rename from diary-phases-of-moon.
+	Keep old name as alias.
+	* calendar/calendar.el (calendar-mode-map): Update for name change.
+	* calendar/diary-lib.el (diary-list-sexp-entries): Doc update.
+
 2008-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/solar.el (solar-sunrise-sunset-string): Add optional
