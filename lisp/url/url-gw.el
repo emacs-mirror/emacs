@@ -1,6 +1,7 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 
-;; Copyright (C) 1997, 1998, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -263,7 +264,7 @@ Might do a non-blocking connection; use `process-status' to check."
 			  (error "Bad setting of url-gateway-method: %s"
 				 url-gateway-method)))))
         ;; Ignoring errors here seems wrong.  E.g. it'll throw away the
-        ;; error signalled two lines above.  It was also found inconvenient
+        ;; error signaled two lines above.  It was also found inconvenient
         ;; during debugging.
 	;; (error
 	;;  (setq conn nil))

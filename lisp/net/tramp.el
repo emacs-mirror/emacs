@@ -4404,7 +4404,7 @@ pass to the OPERATION."
 
 ;; We handle here all file primitives.  Most of them have the file
 ;; name as first parameter; nevertheless we check for them explicitly
-;; in order to be signalled if a new primitive appears.  This
+;; in order to be signaled if a new primitive appears.  This
 ;; scenario is needed because there isn't a way to decide by
 ;; syntactical means whether a foreign method must be called.  It would
 ;; ease the life if `file-name-handler-alist' would support a decision

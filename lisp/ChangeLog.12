@@ -12372,7 +12372,7 @@
 	(gud-watch, gdb-var-create-handler): Display function::var format
 	but don't use to create variable object.
 	(gdb-var-create-handler): Use message-box in place of message.
-	(gdb-stopped): Call gdb-exited if signalled.
+	(gdb-stopped): Call gdb-exited if signaled.
 
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 

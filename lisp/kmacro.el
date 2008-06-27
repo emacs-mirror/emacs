@@ -39,7 +39,7 @@
 ;; you can give a numeric prefix argument specifying the number of
 ;; times to repeat the macro.  Macro execution automatically
 ;; terminates when point reaches the end of the buffer or if an error
-;; is signalled by ringing the bell.
+;; is signaled by ringing the bell.
 
 ;; When you define a macro with F3/F4, it is automatically added to
 ;; the head of the "keyboard macro ring", and F4 actually executes the

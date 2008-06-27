@@ -4554,7 +4554,7 @@
 	* doc-view.el (doc-view-scroll-up-or-next-page)
 	(doc-view-scroll-down-or-previous-page): Use image-scroll-up and
 	image-scroll-down instead of the non-image equivalents.
-	Don't rely on a signalled condition but switch pages when scrolling
+	Don't rely on a signaled condition but switch pages when scrolling
 	doesn't change the vertical position anymore.
 	(doc-view-mode-map): Remap scroll-{up,down} to
 	image-scroll-{up,down}.

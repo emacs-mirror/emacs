@@ -4173,7 +4173,7 @@ enlarge_window (window, delta, horiz_flag)
 
 	     The number of children n equals the number of resizable
 	     children of this window + 1 because we know window itself
-	     is resizable (otherwise we would have signalled an error).
+	     is resizable (otherwise we would have signaled an error).
 
 	     This reasoning is not correct when other windows become too
 	     small and shrink_windows refuses to delete them.  Below we

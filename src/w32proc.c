@@ -274,7 +274,7 @@ find_child_pid (DWORD pid)
 
 /* Thread proc for child process and socket reader threads. Each thread
    is normally blocked until woken by select() to check for input by
-   reading one char.  When the read completes, char_avail is signalled
+   reading one char.  When the read completes, char_avail is signaled
    to wake up the select emulator and the thread blocks itself again. */
 DWORD WINAPI
 reader_thread (void *arg)
@@ -1088,7 +1088,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
    To reduce the number of places in which Emacs can be hung such that
    C-g is not able to interrupt it, we always wait on interrupt_handle
-   (which is signalled by the input thread when C-g is detected).  If we
+   (which is signaled by the input thread when C-g is detected).  If we
    detect that we were woken up by C-g, we return -1 with errno set to
    EINTR as on Unix.  */
 
@@ -1185,7 +1185,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		current_status = cp->status;
 		if (WaitForSingleObject (cp->char_avail, 0) == WAIT_OBJECT_0)
 		  {
-		    /* char_avail has been signalled, so status (which may
+		    /* char_avail has been signaled, so status (which may
 		       have changed) should indicate read has completed
 		       but has not been acknowledged. */
 		    current_status = cp->status;
@@ -1196,9 +1196,9 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		  }
 		else
 		  {
-		    /* char_avail has not been signalled, so status should
+		    /* char_avail has not been signaled, so status should
 		       indicate that read is in progress; small possibility
-		       that read has completed but event wasn't yet signalled
+		       that read has completed but event wasn't yet signaled
 		       when we tested it (because a context switch occurred
 		       or if running on separate CPUs). */
 		    if (current_status != STATUS_READ_READY
@@ -1264,7 +1264,7 @@ count_children:
 
   start_time = GetTickCount ();
 
-  /* Wait for input or child death to be signalled.  If user input is
+  /* Wait for input or child death to be signaled.  If user input is
      allowed, then also accept window messages.  */
   if (FD_ISSET (0, &orfds))
     active = MsgWaitForMultipleObjects (nh + nc, wait_hnd, FALSE, timeout_ms,
@@ -1301,7 +1301,7 @@ count_children:
     abort ();
 
   /* Loop over all handles after active (now officially documented as
-     being the first signalled handle in the array).  We do this to
+     being the first signaled handle in the array).  We do this to
      ensure fairness, so that all channels with data available will be
      processed - otherwise higher numbered channels could be starved. */
   do

@@ -3104,7 +3104,7 @@ substitute_object_recurse (object, placeholder, subtree)
 	else
 	  /* An unknown pseudovector may contain non-Lisp fields, so we
 	     can't just blindly traverse all its fields.  We used to call
-	     `Flength' which signalled `sequencep', so I just preserved this
+	     `Flength' which signaled `sequencep', so I just preserved this
 	     behavior.  */
 	  wrong_type_argument (Qsequencep, subtree);
 
