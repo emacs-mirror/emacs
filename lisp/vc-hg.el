@@ -138,7 +138,7 @@
 ;;;###autoload         (load "vc-hg")
 ;;;###autoload         (vc-hg-registered file))))
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
@@ -272,7 +272,7 @@
       (split-string
        (buffer-substring-no-properties (point-min) (point-max))))))
 
-;; Modelled after the similar function in vc-cvs.el
+;; Modeled after the similar function in vc-cvs.el
 (defun vc-hg-revision-completion-table (files)
   (lexical-let ((files files)
                 table)
@@ -330,7 +330,7 @@ Optional arg REVISION is a revision to annotate from."
     (when (<= newrev tip-revision)
       (number-to-string newrev))))
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-delete-file (file)
   "Delete FILE and delete it in the hg repository."
   (condition-case ()
@@ -338,7 +338,7 @@ Optional arg REVISION is a revision to annotate from."
     (file-error nil))
   (vc-hg-command nil 0 file "remove" "--after" "--force"))
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
   (vc-hg-command nil 0 new "mv" old))
@@ -355,7 +355,7 @@ COMMENT is ignored."
 
 (defalias 'vc-hg-responsible-p 'vc-hg-root)
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-could-register (file)
   "Return non-nil if FILE could be registered under hg."
   (and (vc-hg-responsible-p file)      ; shortcut
@@ -383,7 +383,7 @@ REV is ignored."
 	(vc-hg-command buffer 0 file "cat" "-r" rev)
       (vc-hg-command buffer 0 file "cat"))))
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional editable rev)
   "Retrieve a revision of FILE.
 EDITABLE is ignored.
@@ -395,11 +395,11 @@ REV is the revision to check out into WORKFILE."
         (vc-hg-command t 0 file "cat" "-r" rev)
       (vc-hg-command t 0 file "cat")))))
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-hg-state file)))
 
-;; Modelled after the similar function in vc-bzr.el
+;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
     (with-temp-buffer (vc-hg-command t 0 file "revert"))))

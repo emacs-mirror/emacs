@@ -2800,7 +2800,7 @@ Replaces || by |, but | by \, where | denotes the internal escape."
   "Process .de/am xx yy -- (re)define/append macro xx; end at `..'.
 \(Should be up to call of yy, which defaults to `.')
 Optional argument APPEND, if non-nil, means append macro."
-  ;; Modelled on woman-strings.  BEWARE: Processing of .am is a hack!
+  ;; Modeled on woman-strings.  BEWARE: Processing of .am is a hack!
   ;; Add support for .rm?
   ;; (skip-chars-forward " \t")
   (if (eolp)				; ignore if no argument
