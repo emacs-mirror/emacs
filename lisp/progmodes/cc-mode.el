@@ -285,8 +285,9 @@ control).  See \"cc-mode.el\" for more info."
 
   ;; RMS says don't make these the default.
   ;; (April 2006): RMS has now approved these commands as defaults.
-  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
-  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
+  (unless (memq 'argumentative-bod-function c-emacs-features)
+    (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
+    (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun))
 
   (define-key c-mode-base-map "\C-c\C-n"  'c-forward-conditional)
   (define-key c-mode-base-map "\C-c\C-p"  'c-backward-conditional)

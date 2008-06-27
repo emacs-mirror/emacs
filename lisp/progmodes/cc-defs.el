@@ -1440,6 +1440,14 @@ non-nil, a caret is prepended to invert the set."
 			 '1-bit)
 		       list)))
 
+    ;; In Emacs >= 23, beginning-of-defun will passes its parameter to
+    ;; beginning-of-defun-function.  Assume end-of-defun does the same.
+    (let ((beginning-of-defun-function
+	   (lambda (&optional arg)
+	     (not (eq arg nil)))))
+      (if (beginning-of-defun 1)
+	  (setq list (cons 'argumentative-bod-function list))))
+
     (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties
 	  parse-sexp-ignore-comments
@@ -1539,6 +1547,9 @@ might be present:
 
 '8-bit              8 bit syntax entry flags (XEmacs style).
 '1-bit              1 bit syntax entry flags (Emacs style).
+'argumentative-bod-function         beginning-of-defun passes ARG through
+                    to a non-null beginning-of-defun-function.  It is assumed
+		    the end-of-defun does the same thing.
 'syntax-properties  It works to override the syntax for specific characters
 		    in the buffer with the 'syntax-table property.  It's
 		    always set - CC Mode no longer works in emacsen without
