@@ -723,7 +723,7 @@ archive.
 		(string-match "\\.[aA][rR][cC]$"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
-          ;; This pattern modelled on the BSD/GNU+Linux `file' command.
+          ;; This pattern modeled on the BSD/GNU+Linux `file' command.
           ;; Have seen capital "LHA's", and file has lower case "LHa's" too.
           ;; Note this regexp is also in archive-exe-p.
           ((looking-at "MZ\\(.\\|\n\\)\\{34\\}LH[aA]'s SFX ") 'lzh-exe)

@@ -234,7 +234,7 @@
 ;; The *WoMan-Log* buffer
 ;; ======================
 
-;; This is modelled on the byte-compiler.  It logs all files formatted
+;; This is modeled on the byte-compiler.  It logs all files formatted
 ;; by WoMan, and if WoMan finds anything that it cannot handle then it
 ;; writes a warning to this buffer.  If the variable `woman-show-log'
 ;; is non-nil (by default it is `nil') then WoMan automatically
