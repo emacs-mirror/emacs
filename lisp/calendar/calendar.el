@@ -1503,7 +1503,7 @@ line."
     (define-key map "Aa"   'appt-add)
     (define-key map "Ad"   'appt-delete)
     (define-key map "S"   'calendar-sunrise-sunset)
-    (define-key map "M"   'calendar-phases-of-moon)
+    (define-key map "M"   'calendar-lunar-phases)
     (define-key map " "   'scroll-other-window)
     (define-key map "\d"  'scroll-other-window-down)
     (define-key map "\C-c\C-l" 'calendar-redraw)
