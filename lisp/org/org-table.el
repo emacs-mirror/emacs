@@ -1864,7 +1864,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 		     (string-match "^[a-zA-Z][a-zA-Z0-9]*$" field))
 	      (push (cons field v) org-table-local-parameters)
 	      (push (list field line col) org-table-named-field-locations))))
-      ;; Analyse the line types
+      ;; Analyze the line types
       (goto-char beg)
       (setq org-table-current-begin-line (org-current-line)
 	    org-table-current-begin-pos (point)

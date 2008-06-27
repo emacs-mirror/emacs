@@ -11224,7 +11224,7 @@
 	(server-execute, server-return-error): New functions extracted from
 	server-process-filter.
 	(server-execute-continuation): New functions.
-	(server-process-filter): Restructure so that all arguments are analysed
+	(server-process-filter): Restructure so that all arguments are analyzed
 	first and then acted upon in a subsequent stage.  This way
 	server-goto-toplevel can be executed later, when we know if
 	it's necessary.
