@@ -1,3 +1,8 @@
+2008-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Sexp Diary Entries):
+	* calendar.texi (Lunar Phases): Update for lunar.el name changes.
+
 2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mark.texi (Shift selection): New node.
