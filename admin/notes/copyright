@@ -151,7 +151,7 @@ etc/emacs.csh
  enough to not need license.
 
 etc/future-bug
- - doesn't need a humourless disclaimer, because Karl Fogel says we
+ - doesn't need a humorless disclaimer, because Karl Fogel says we
  can consider it part of Emacs, and he has a blanker disclaimer for
  Emacs changes. (email to rgm "[Emacs-commit] emacs/etc future-bug",
  2007028)
