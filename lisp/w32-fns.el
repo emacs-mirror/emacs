@@ -389,8 +389,8 @@ bit output with no translation."
 (w32-add-charset-info "tis620" 'w32-charset-thai 874)
 (w32-add-charset-info "windows-1258" 'w32-charset-vietnamese 1258)
 (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
-(w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)))
-(w32-add-charset-info "iso10646-1" 'w32-charset-default t))
+(w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)
+(w32-add-charset-info "iso10646-1" 'w32-charset-default t)
 
 ;;   ;; If unicode windows charset is not defined, use ansi fonts.
 ;;   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
