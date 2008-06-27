@@ -1,5 +1,12 @@
 2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
+	* image.el (image-jpeg-p): Don't fail if the arg cannot be converted
+	to unibyte; just assume it is not a JPEG.  Use `string-match-p'.
+	(image-type-from-data, image-type-from-file-name): Use `string-match-p'.
+	(image-type-from-buffer): Use `looking-at-p'.
+
+2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
 	* ibuf-ext.el (diff-sentinel): Declare.
 
 2008-06-27  Glenn Morris  <rgm@gnu.org>
