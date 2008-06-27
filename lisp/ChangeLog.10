@@ -10404,7 +10404,7 @@
 	`file-exists-p.
 	(tramp-completion-handle-file-exists-p): New function.
 	(tramp-completion-handle-file-name-completion): Simplified.
-	(tramp-completion-dissect-file-name): Regexp's reorganised.
+	(tramp-completion-dissect-file-name): Regexp's reorganized.
 	(tramp-completion-handle-file-name-all-completions):
 	Call completion-function only if `user' or `host' is given.
 	(tramp-get-completion-user-host): New function.

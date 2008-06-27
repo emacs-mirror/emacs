@@ -65,7 +65,7 @@ University of California, as described above. */
  * 1985	Emacs TAGS format by Richard Stallman.
  * 1989	Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
- * 1993	Francesco Potortì reorganised C and C++.
+ * 1993	Francesco Potortì reorganized C and C++.
  * 1994	Line-by-line regexp tags by Tom Tromey.
  * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
  * 2002 #line directives by Francesco Potortì.

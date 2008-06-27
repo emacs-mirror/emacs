@@ -26,7 +26,7 @@
 
 ;; This file contains (most of) the adaptations to cc-mode required for the
 ;; integration of AWK Mode.
-;; It is organised thusly, the sections being separated by page breaks:
+;; It is organized thusly, the sections being separated by page breaks:
 ;;   1. The AWK Mode syntax table.
 ;;   2. Regular expressions for analyzing AWK code.
 ;;   3. Indentation calculation stuff ("c-awk-NL-prop text-property").
