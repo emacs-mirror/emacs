@@ -27,13 +27,13 @@
 ;; This implementation was inspired by PCL-CVS.
 ;; Many people contributed comments, ideas and code to this
 ;; implementation.  These include:
-;; 
+;;
 ;;   Alexandre Julliard  <julliard@winehq.org>
 ;;   Stefan Monnier  <monnier@iro.umontreal.ca>
 ;;   Tom Tromey  <tromey@redhat.com>
 
 ;;; Commentary:
-;; 
+;;
 
 ;;; Todo:  see vc.el.
 
@@ -339,7 +339,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	   vc-ewoc (vc-dir-create-fileinfo
 		    rd nil nil nil (expand-file-name default-directory))))
 	(setq node (ewoc-nth vc-ewoc 0)))
-      
+
       (while (and entry node)
 	(let* ((entryfile (car entry))
 	       (entrydir (file-name-directory (expand-file-name entryfile)))
@@ -359,7 +359,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
 		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
 		(ewoc-invalidate vc-ewoc node)
-		(setq entries (cdr entries)) 
+		(setq entries (cdr entries))
 		(setq entry (car entries))
 		(setq node (ewoc-next vc-ewoc node)))
 	       (t
@@ -712,7 +712,7 @@ child files."
                                                  (setq data (ewoc-data crt))
                                                  (vc-dir-node-directory crt))))
 		    (unless (vc-dir-fileinfo->directory data)
-		      (push 
+		      (push
 		       (cons (expand-file-name (vc-dir-fileinfo->name data))
 			     (vc-dir-fileinfo->state data))
 		       result))))
@@ -739,11 +739,11 @@ If it is a file, return the corresponding cons for the file itself."
                                              (setq data (ewoc-data crt))
                                              (vc-dir-node-directory crt))))
 	    (unless (vc-dir-fileinfo->directory data)
-	      (push 
+	      (push
 	       (cons (expand-file-name (vc-dir-fileinfo->name data))
 		     (vc-dir-fileinfo->state data))
 	       result))))
-      (push 
+      (push
        (cons (expand-file-name (vc-dir-fileinfo->name crt-data))
 	     (vc-dir-fileinfo->state crt-data)) result))
     result))
@@ -752,7 +752,7 @@ If it is a file, return the corresponding cons for the file itself."
   "Update the entries for FILE in any directory buffers that list it."
   (let ((file (or fname (expand-file-name buffer-file-name))))
     (if (file-directory-p file)
-	;; FIXME: Maybe this should never happen? 
+	;; FIXME: Maybe this should never happen?
         ;; FIXME: But it is useful to update the state of a directory
 	;; (more precisely the files in the directory) after some VC
 	;; operations.
@@ -958,7 +958,7 @@ outside of VC) and one wants to do some operation on it."
 	    (setq only-files-list (vc-dir-marked-only-files-and-states))))
       (let ((crt (vc-dir-current-file)))
 	(setq files (list crt))
-	(when state-model-only-files 
+	(when state-model-only-files
 	  (setq only-files-list (vc-dir-child-files-and-states)))))
 
     (when state-model-only-files
@@ -981,7 +981,8 @@ With a prefix argument ask what VC backend to use."
   (interactive
    (list
     (read-file-name "VC status for directory: "
-		    default-directory default-directory t)
+		    default-directory default-directory t
+		    nil #'file-directory-p)
     (if current-prefix-arg
 	(intern
 	 (completing-read
@@ -1028,8 +1029,8 @@ With a prefix argument ask what VC backend to use."
       'face
       (if isdir 'font-lock-comment-delimiter-face 'font-lock-function-name-face)
       'help-echo
-      (if isdir 
-	  "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu" 
+      (if isdir
+	  "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
 	"File\nmouse-3: Pop-up menu")
       'mouse-face 'highlight))))
 
