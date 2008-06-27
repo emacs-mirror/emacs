@@ -5,6 +5,8 @@
 	(lunar-phases): Rename from phases-of-moon.  Keep old name as alias.
 	(diary-lunar-phases): Rename from diary-phases-of-moon.
 	Keep old name as alias.
+	* calendar/cal-menu.el (cal-menu-sunmoon-menu)
+	(cal-menu-global-mouse-menu): Update for lunar name changes.
 	* calendar/calendar.el (calendar-mode-map): Update for name change.
 	* calendar/diary-lib.el (diary-list-sexp-entries): Doc update.
 
