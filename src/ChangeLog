@@ -2,6 +2,7 @@
 
 	* s/usg5-4.h: Fix previous change: keep the correct branch of a
 	removed #if.
+	(USG_SHARED_LIBRARIES): Remove duplicate definition.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>

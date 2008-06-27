@@ -219,12 +219,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 #define NSIG_MINIMUM 32
 
-/* We need bss_end from emacs.c for undumping */
-
-#ifndef USG_SHARED_LIBRARIES
-#define USG_SHARED_LIBRARIES
-#endif
-
 /* We can support this */
 
 #define CLASH_DETECTION
