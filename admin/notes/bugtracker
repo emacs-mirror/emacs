@@ -13,6 +13,17 @@ mail with the bug report number in.
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).
 
+** Not interested in tracker control messages (tags being set, etc)?
+Discard mails matching:
+
+^X-Emacs-PR-Message: transcript
+
+** How to avoid multiple copies of mails.
+When you reply to a bug, respect the Reply-To address, ie send mail
+only to the submitter address and the numbered bug address.  Do not
+send mail direct to bug-gnu-emacs or emacs-pretest-bug unless you are
+reporting a new bug.
+
 ** To close bug #123 (for example), send mail
 
   To: 123-done@emacsbugs.donarmstrong.com
