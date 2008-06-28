@@ -643,9 +643,6 @@
 ;;
 ;; - vc-dir toolbar needs more icons.
 ;;
-;; - vc-dir-hide-up-to-date needs to hide directories that do not have
-;;   any children anymore.
-;;
 ;;; Code:
 
 (require 'vc-hooks)
@@ -2475,6 +2472,11 @@ to provide the `find-revision' operation instead."
 
 
 ;; These things should probably be generally available
+
+(defun vc-string-prefix-p (prefix string)
+  (let ((lpref (length prefix)))
+    (and (>= (length string) lpref)
+	 (eq t (compare-strings prefix nil nil string nil lpref)))))
 
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.

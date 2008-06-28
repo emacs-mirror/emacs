@@ -1,3 +1,9 @@
+2008-06-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-hide-up-to-date): Also hide empty directories.
+	(vc-string-prefix-p): Move function ...
+	* vc.el (vc-string-prefix-p): ... here.
+
 2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-dir.el (vc-dir): Complete only directory names.

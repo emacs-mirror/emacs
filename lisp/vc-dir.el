@@ -478,11 +478,6 @@ If a prefix argument is given, move by that many lines."
 	    (funcall mark-unmark-function))))
     (funcall mark-unmark-function)))
 
-(defun vc-string-prefix-p (prefix string)
-  (let ((lpref (length prefix)))
-    (and (>= (length string) lpref)
-	 (eq t (compare-strings prefix nil nil string nil lpref)))))
-
 (defun vc-dir-parent-marked-p (arg)
   ;; Return nil if none of the parent directories of arg is marked.
   (let* ((argdir (vc-dir-node-directory arg))
@@ -938,9 +933,29 @@ outside of VC) and one wants to do some operation on it."
 (defun vc-dir-hide-up-to-date ()
   "Hide up-to-date items from display."
   (interactive)
-  (ewoc-filter
-   vc-ewoc
-   (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
+  (let ((crt (ewoc-nth vc-ewoc -1))
+	(first (ewoc-nth vc-ewoc 0)))
+    ;; Go over from the last item to the first and remove the
+    ;; up-to-date files and directories with no child files.
+    (while (not (eq crt first))
+      (let* ((data (ewoc-data crt))
+	     (dir (vc-dir-fileinfo->directory data))
+	     (next (ewoc-next vc-ewoc crt))
+	     (prev (ewoc-prev vc-ewoc crt))
+	     ;; ewoc-delete does not work without this...
+	     (inhibit-read-only t))
+	  (when (or
+		 ;; Remove directories with no child files.
+		 (and dir
+		      (or
+		       ;; Nothing follows this directory.
+		       (not next)
+		       ;; Next item is a directory.
+		       (vc-dir-fileinfo->directory (ewoc-data next))))
+		 ;; Remove files in the up-to-date state.
+		 (eq (vc-dir-fileinfo->state data) 'up-to-date))
+	    (ewoc-delete vc-ewoc crt))
+	  (setq crt prev)))))
 
 (defun vc-dir-status-printer (fileentry)
   (vc-call-backend vc-dir-backend 'status-printer fileentry))
