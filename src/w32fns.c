@@ -4521,6 +4521,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
   x_default_parameter (f, parameters, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
+  x_default_parameter (f, parameters, Qalpha, Qnil,
+                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -6883,7 +6885,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   0, /* x_set_wait_for_wm, */
   x_set_fullscreen,
   x_set_font_backend,
-  0 /* x_set_alpha, */
+  x_set_alpha
 };
 
 void

@@ -1,3 +1,15 @@
+2008-06-28  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (pfnGetFontUnicodeRanges): Remove unused function pointer.
+        (pfnSetLayeredWindowAttributes): New function pointer.
+        (w32_initialize): Initialize it when supported.
+        (x_set_frame_alpha): New function.
+
+        * w32fns.c (Fx_create_frame): Initialize frame parameter `alpha'.
+        (w32_frame_parm_handlers): Set alpha handler.
+
+        * frame.c (x_set_alpha) [HAVE_NTGUI]: Call x_set_frame_alpha.
+
 2008-06-27  Jason Rumney  <jasonr@gnu.org>
 
         * w32fns.c (x_to_w32_font, w32_to_x_font, x_to_w32_weight)
