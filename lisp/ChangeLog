@@ -1,3 +1,7 @@
+2008-06-28  John Paul Wallington  <jpw@pobox.com>
+
+	* calc/calc.el (defmath): Add `doc-string' decl.  Add docstring.
+
 2008-06-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-modes): Handle symlinks.
