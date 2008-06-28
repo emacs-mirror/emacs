@@ -18,6 +18,10 @@ Discard mails matching:
 
 ^X-Emacs-PR-Message: transcript
 
+When you close a bug, you get a message matching:
+
+^X-Emacs-PR-Message: closed
+
 ** How to avoid multiple copies of mails.
 When you reply to a bug, respect the Reply-To address, ie send mail
 only to the submitter address and the numbered bug address.  Do not
