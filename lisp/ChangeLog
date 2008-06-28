@@ -1,3 +1,8 @@
+2008-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (inhibit-face-set-after-frame-default): Var deleted.
+	(set-face-attribute, face-set-after-frame-default)): Don't use it.
+
 2008-06-28  John Paul Wallington  <jpw@pobox.com>
 
 	* calc/calc.el (defmath): Add `doc-string' decl.  Add docstring.
