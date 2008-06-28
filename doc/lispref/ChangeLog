@@ -1,3 +1,8 @@
+2008-06-28  Johan Bockgård  <bojohan@gnu.org>
+
+	* display.texi (Other Image Types): Fix copy/paste error; say
+	"PBM", not "XBM".
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* os.texi: Remove references to obsolete systems.
