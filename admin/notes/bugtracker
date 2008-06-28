@@ -27,6 +27,9 @@ with a brief explanation in the body as to why the bug was closed.
   reopen 123
   thanks
 
+** quit|stop|thank|thanks|thankyou|thank you
+On a line by itself, this tells the control server to ignore the rest of
+the message.
 
 ** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 For a list of available tags, see:
@@ -36,15 +39,16 @@ http://emacsbugs.donarmstrong.com/Developer#tags
 
   To: control@emacsbugs.donarmstrong.com
 
-  tag 123 wontfix
+  tags 123 wontfix
   thanks
 
 Or just add the
 
-  tag 123 wontfix
+  tags 123 wontfix
   thanks
 
-at the beginning of a reply.
+at the beginning of a reply.  The tag can be prefixed with +, - or =,
+meaning to add (the default), remove, or reset the tags.
 
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 
@@ -52,3 +56,17 @@ at the beginning of a reply.
 
   reassign 123 spam
   thanks
+
+** To merge bugs:
+Eg when bad replies create a bunch of new bugs for the same report.
+Bugs must all be in the same state.
+
+  To: control@emacsbugs.donarmstrong.com
+  merge 123 124 125 ...
+
+** To set severity:
+
+  To: control@emacsbugs.donarmstrong.com
+  severity 123 critical|grave|serious|important|normal|minor|wishlist
+
+See http://emacsbugs.donarmstrong.com/Developer#severities for the meanings.
