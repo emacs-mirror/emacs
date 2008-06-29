@@ -522,6 +522,38 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
+(defun read-regexp (prompt)
+  "Read regexp as a string using the regexp history and some useful defaults.
+Prompt for a regular expression with PROMPT in the minibuffer.
+Provide the last element of the regexp history as the basic default,
+and return it on typing RET.  Additional defaults are the string
+at point, the last isearch regexp, the last isearch string, and the
+last replacement regexp.  Return the regexp as a string."
+  (let* ((default (car regexp-history))
+	 (defaults
+	   (list (regexp-quote
+		  (or (funcall (or find-tag-default-function
+				   (get major-mode 'find-tag-default-function)
+				   'find-tag-default))
+		      ""))
+		 (car regexp-search-ring)
+		 (regexp-quote (or (car search-ring) ""))
+		 (car (symbol-value
+		       query-replace-from-history-variable))))
+	 (defaults (delete-dups (delq nil (delete "" defaults))))
+	 ;; Don't add automatically the car of defaults for empty input
+	 (history-add-new-input nil)
+	 (input
+	  (read-from-minibuffer
+	   (if default
+	       (format "%s (default %s): " prompt (query-replace-descr default))
+	     (format "%s: " prompt))
+	   nil nil nil 'regexp-history defaults t)))
+    (if (equal input "")
+	default
+      (prog1 input
+	(add-to-history 'regexp-history input)))))
+
 
 (defalias 'delete-non-matching-lines 'keep-lines)
 (defalias 'delete-matching-lines 'flush-lines)
@@ -532,20 +564,7 @@ of `history-length', which see.")
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
 Value is a list, (REGEXP)."
-  (let* ((default (list
-		   (regexp-quote
-		    (or (funcall (or find-tag-default-function
-				     (get major-mode 'find-tag-default-function)
-				     'find-tag-default))
-			""))
-		   (car regexp-search-ring)
-		   (regexp-quote (or (car search-ring) ""))
-		   (car (symbol-value
-			 query-replace-from-history-variable))))
-	 (default (delete-dups (delq nil (delete "" default)))))
-    (list (read-from-minibuffer prompt nil nil nil
-				'regexp-history default t)
-	  nil nil t)))
+  (list (read-regexp prompt) nil nil t))
 
 (defun keep-lines (regexp &optional rstart rend interactive)
   "Delete all lines except those containing matches for REGEXP.
@@ -574,7 +593,7 @@ a previously found match."
   (interactive
    (progn
      (barf-if-buffer-read-only)
-     (keep-lines-read-args "Keep lines (containing match for regexp): ")))
+     (keep-lines-read-args "Keep lines containing match for regexp")))
   (if rstart
       (progn
 	(goto-char (min rstart rend))
@@ -649,7 +668,7 @@ starting on the same line at which another match ended is ignored."
   (interactive
    (progn
      (barf-if-buffer-read-only)
-     (keep-lines-read-args "Flush lines (containing match for regexp): ")))
+     (keep-lines-read-args "Flush lines containing match for regexp")))
   (if rstart
       (progn
 	(goto-char (min rstart rend))
@@ -695,7 +714,7 @@ the previous match.  Hence, it ignores matches that overlap
 a previously found match."
 
   (interactive
-   (keep-lines-read-args "How many matches for (regexp): "))
+   (keep-lines-read-args "How many matches for regexp"))
   (save-excursion
     (if rstart
 	(progn
@@ -1003,38 +1022,9 @@ which means to discard all text properties."
       (nreverse result))))
 
 (defun occur-read-primary-args ()
-  (let* ((default (car regexp-history))
-	 (defaults
-	   (list (and transient-mark-mode mark-active
-		      (regexp-quote
-		       (buffer-substring-no-properties
-			(region-beginning) (region-end))))
-		 (regexp-quote
-		  (or (funcall
-		       (or find-tag-default-function
-			   (get major-mode 'find-tag-default-function)
-			   'find-tag-default))
-		      ""))
-		 (car regexp-search-ring)
-		 (regexp-quote (or (car search-ring) ""))
-		 (car (symbol-value
-		       query-replace-from-history-variable))))
-	 (defaults (delete-dups (delq nil (delete "" defaults))))
-	 ;; Don't add automatically the car of defaults for empty input
-	 (history-add-new-input nil)
-	 (input
-	  (read-from-minibuffer
-	   (if default
-	       (format "List lines matching regexp (default %s): "
-		       (query-replace-descr default))
-	     "List lines matching regexp: ")
-	   nil nil nil 'regexp-history defaults)))
-    (list (if (equal input "")
-	      default
-	    (prog1 input
-	      (add-to-history 'regexp-history input)))
-	  (when current-prefix-arg
-	    (prefix-numeric-value current-prefix-arg)))))
+  (list (read-regexp "List lines matching regexp")
+	(when current-prefix-arg
+	  (prefix-numeric-value current-prefix-arg))))
 
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
@@ -1494,8 +1484,9 @@ with three arguments, as if it were `search-forward'.")
 (defvar replace-re-search-function 're-search-forward
   "Function to use when searching for regexps to replace.
 It is used by `query-replace-regexp', `replace-regexp',
-`query-replace-regexp-eval', and `map-query-replace-regexp'.  It
-is called with three arguments, as if it were `search-forward'.")
+`query-replace-regexp-eval', and `map-query-replace-regexp'.
+It is called with three arguments, as if it were
+`re-search-forward'.")
 
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
