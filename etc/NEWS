@@ -972,6 +972,10 @@ functions `read-from-minibuffer', `read-string', `read-command',
 are available for inserting into the minibuffer by typing `M-n'.
 For empty input these functions return the first element of this list.
 
+*** New function `read-regexp' uses the regexp history and some useful
+regexp defaults (string at point, last isearch/replacement regexp/string)
+via M-n when reading a regexp in the minibuffer.
+
 *** minibuffer-local-must-match-filename-map is now named
 minibuffer-local-filename-must-match-map.
 
