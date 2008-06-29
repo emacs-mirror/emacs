@@ -2577,6 +2577,7 @@ of citations entirely, choose \"None\"."
     "X-HPL-"
     "X-HR-"
     "X-HTTP-UserAgent:"
+    "X-Hz"				; Hertz
     "X-Identity:"                       ; http://www.declude.com/x-note.htm
     "X-Image-URL:"
     "X-IMAP:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2642,6 +2643,7 @@ of citations entirely, choose \"None\"."
     "X-PMX-Version:"
     "X-Postfilter:"
     "X-Priority:"                       ; MS Outlook
+    "X-Proofpoint-"			; Proofpoint mail filter
     "X-Provags-ID:"
     "X-PSTN-"
     "X-Qotd-"                           ; User added
@@ -2652,6 +2654,7 @@ of citations entirely, choose \"None\"."
     "X-Request-"
     "X-Resolved-to:"                    ; fastmail.fm
     "X-Return-Path-Hint:"               ; Roving ConstantContact
+    "X-RIM-"				; Research In Motion (i.e. BlackBerry)
     "X-RM"
     "X-RocketYMMF:"                     ; Yahoo
     "X-Roving-"                         ; Roving ConstantContact
