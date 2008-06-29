@@ -1,3 +1,11 @@
+2008-06-29  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Finternal_char_font): Return font-object instead of
+	font-name.
+
+	* composite.c (get_composition_id): Fix the width calculation for
+	TAB.
+
 2008-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent.c (Fvertical_motion): Properly handle float column arg.
