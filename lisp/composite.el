@@ -197,7 +197,12 @@ or a vector or list of integers and rules.
 If it is a character, it is an alternate character to display instead
 of the text in the region.
 
-If it is a string, the elements are alternate characters.
+If it is a string, the elements are alternate characters.  In
+this case, TAB element has a special meaning.  If the first
+characer is TAB, the glyphs are displayed with left padding space
+so that no pixel overlaps with the previous column.  If the last
+character is TAB, the glyphs are displayed with rigth padding
+space so that no pixel overlaps with the following column.
 
 If it is a vector or list, it is a sequence of alternate characters and
 composition rules, where (2N)th elements are characters and (2N+1)th
