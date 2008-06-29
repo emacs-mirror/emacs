@@ -189,7 +189,7 @@ pass to the OPERATION."
        ;; local file name could be in Tramp syntax as well (for
        ;; example, returning VMS file names like "/DISK$CAM:/AAA").
        ;; That's why we set also `tramp-mode' to nil.
-       (t (let* ((tramp-mode nil)
+       (t (let* (;(tramp-mode nil)
 		 (inhibit-file-name-handlers
 		  (list 'tramp-file-name-handler
 			'tramp-completion-file-name-handler
