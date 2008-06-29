@@ -453,7 +453,7 @@ x_set_frame_alpha (f)
   ex_style = GetWindowLong (window, GWL_EXSTYLE);
 
   if (opac == OPAQUE_FRAME)
-    ex_style ^= WS_EX_LAYERED;
+    ex_style &= ~WS_EX_LAYERED;
   else
     ex_style |= WS_EX_LAYERED;
 
