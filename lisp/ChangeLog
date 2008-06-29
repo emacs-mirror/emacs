@@ -106,7 +106,10 @@
 
 2008-06-26  Kenichi Handa  <handa@m17n.org>
 
-	* composite.el (terminal-composition-base-character-p): New function.
+	* international/mule-cmds.el (encode-coding-char): Fix for ASCII
+	characters.
+
+	* composite.el (terminal-composition-base-character-p): New funciton.
 	(terminal-composition-function):
 	Use terminal-composition-base-character-p.  Include the base character
 	in the composition.
