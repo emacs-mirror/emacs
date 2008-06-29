@@ -2020,12 +2020,14 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
-  int cols = 0;
+  Lisp_Object lcols = Qnil;
+  double cols;
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
     {
-      cols = XINT (XCAR (lines));
+      lcols = XCAR (lines);
+      cols = INTEGERP (lcols) ? (double) XINT (lcols) : XFLOAT_DATA (lcols);
       lines = XCDR (lines);
     }
 
@@ -2116,10 +2118,11 @@ whether or not it is currently displayed in some window.  */)
       if (XINT (lines) >= 0 || IT_CHARPOS (it) > 0)
 	move_it_by_lines (&it, XINT (lines), 0);
 
-      if (cols)
-	move_it_in_display_line (&it, ZV,
-				 cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)),
-				 MOVE_TO_X);
+      if (!NILP (lcols))
+	move_it_in_display_line
+	  (&it, ZV,
+	   (int)(cols * FRAME_COLUMN_WIDTH (XFRAME (w->frame)) + 0.5),
+	   MOVE_TO_X);
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
     }
