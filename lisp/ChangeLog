@@ -1,3 +1,7 @@
+2008-06-29  Andreas Schwab  <schwab@suse.de>
+
+	* find-dired.el (find-dired-filter): Preserve point.
+
 2008-06-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/sasl.el (sasl-client-set-property, sasl-make-mechanism)
