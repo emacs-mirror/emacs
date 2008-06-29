@@ -990,9 +990,10 @@ outside of VC) and one wants to do some operation on it."
     (list vc-dir-backend files only-files-list state model)))
 
 ;;;###autoload
-(defun vc-dir (dir backend)
+(defun vc-dir (dir &optional backend)
   "Show the VC status for DIR.
-With a prefix argument ask what VC backend to use."
+Optional second argument BACKEND specifies the VC backend to use.
+Interactively, a prefix argument means to ask for the backend."
   (interactive
    (list
     (read-file-name "VC status for directory: "
@@ -1002,9 +1003,11 @@ With a prefix argument ask what VC backend to use."
 	(intern
 	 (completing-read
 	  "Use VC backend: "
-	  (mapcar (lambda (b) (list (symbol-name b))) vc-handled-backends)
-	  nil t nil nil))
-      (vc-responsible-backend default-directory))))
+	  (mapcar (lambda (b) (list (symbol-name b)))
+		  vc-handled-backends)
+	  nil t nil nil)))))
+  (unless backend
+    (setq backend (vc-responsible-backend dir)))
   (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend))
   (if (derived-mode-p 'vc-dir-mode)
       (vc-dir-refresh)

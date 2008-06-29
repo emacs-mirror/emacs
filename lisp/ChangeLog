@@ -1,5 +1,10 @@
 2008-06-29  Andreas Schwab  <schwab@suse.de>
 
+	* vc-dir.el (vc-dir): Make backend argument optional and use
+	vc-responsible-backend when nil.  Interactively pass nil for
+	backend instead of using the backend of what happens to be
+	default-directory at the time of the call.
+
 	* find-dired.el (find-dired-filter): Preserve point.
 
 2008-06-28  Juanma Barranquero  <lekktu@gmail.com>
