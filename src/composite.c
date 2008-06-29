@@ -343,7 +343,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 	{
 	  int this_width;
 	  ch = XINT (key_contents[i]);
-	  this_width = CHAR_WIDTH (ch);
+	  this_width = (ch == '\t' ? 1 : CHAR_WIDTH (ch));
 	  if (cmp->width < this_width)
 	    cmp->width = this_width;
 	}
