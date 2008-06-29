@@ -1,3 +1,10 @@
+2008-06-29  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-display): Always return a string.
+	(describe-char-padded-string): New function.
+	(describe-char): Adjusted for the change of
+	describe-char-display.  Use describe-char-padded-string.
+
 2008-06-29  Andreas Schwab  <schwab@suse.de>
 
 	* vc-dir.el (vc-dir): Make backend argument optional and use
