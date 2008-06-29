@@ -643,7 +643,7 @@ with the file you were editing on top and Calc on the bottom.
                                                 |  * 8
                                                 |  ->-5
                                                 |
---%%-Calc: 12 Deg       (Calculator)----All----- --%%-Emacs: *Calc Trail*
+--%*-Calc: 12 Deg       (Calculator)----All----- --%*- *Calc Trail*
 @end group
 @end smallexample
 
@@ -761,7 +761,7 @@ Stack; the lower window is a picture of a typical calculator keypad.
 |2:  17.3
 |1:  -5
 |    .
-|--%%-Calc: 12 Deg       (Calcul
+|--%*-Calc: 12 Deg       (Calcul
 |----+-----Calc 2.1------+----1
 |FLR |CEIL|RND |TRNC|CLN2|FLT |
 |----+----+----+----+----+----|
@@ -2180,7 +2180,7 @@ Perhaps the most fundamental mode in Calc is the current @dfn{precision}.
 Notice the @samp{12} on the Calc window's mode line:
 
 @smallexample
---%%-Calc: 12 Deg       (Calculator)----All------
+--%*-Calc: 12 Deg       (Calculator)----All------
 @end smallexample
 
 @noindent
@@ -15750,10 +15750,10 @@ stack window (or under an editing window in Embedded mode).
 The basic mode line format is:
 
 @example
---%%-Calc: 12 Deg @var{other modes}       (Calculator)
+--%*-Calc: 12 Deg @var{other modes}       (Calculator)
 @end example
 
-The @samp{%%} is the Emacs symbol for ``read-only''; it shows that
+The @samp{%*} indicates that the buffer is ``read-only''; it shows that
 regular Emacs commands are not allowed to edit the stack buffer
 as if it were text.
 
