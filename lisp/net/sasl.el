@@ -86,7 +86,7 @@ The second argument PLIST is the new property list."
   (setplist (aref client 4) plist))
 
 (defun sasl-client-set-property (client property value)
-  "Add the given property/value to CLIENT."
+  "Add the given PROPERTY/VALUE to CLIENT."
   (put (aref client 4) property value))
 
 (defun sasl-client-property (client property)
@@ -103,7 +103,7 @@ The second argument PLIST is the new property list."
 (defun sasl-make-mechanism (name steps)
   "Make an authentication mechanism.
 NAME is a IANA registered SASL mechanism name.
-STEPS is list of continuation function."
+STEPS is list of continuation functions."
   (vector name
 	  (mapcar
 	   (lambda (step)
@@ -121,7 +121,7 @@ STEPS is list of continuation function."
   (aref mechanism 1))
 
 (defun sasl-find-mechanism (mechanisms)
-  "Retrieve an apropriate mechanism object from MECHANISMS hints."
+  "Retrieve an appropriate mechanism object from MECHANISMS hints."
   (let* ((sasl-mechanisms sasl-mechanisms)
 	 (mechanism
 	  (catch 'done
@@ -147,9 +147,9 @@ STEPS is list of continuation function."
 
 (defun sasl-next-step (client step)
   "Evaluate the challenge and prepare an appropriate next response.
-The data type of the value and optional 2nd argument STEP is nil or
-opaque authentication step which holds the reference to the next action
-and the current challenge.  At the first time STEP should be set to nil."
+The data type of the value and 2nd argument STEP is nil or opaque
+authentication step which holds the reference to the next action and
+the current challenge.  At the first time STEP should be set to nil."
   (let* ((steps
 	  (sasl-mechanism-steps
 	   (sasl-client-mechanism client)))

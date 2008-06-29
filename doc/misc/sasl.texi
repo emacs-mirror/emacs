@@ -124,9 +124,9 @@ A list of mechanism names.
 
 @defun sasl-find-mechanism mechanisms
 
-Retrieve an apropriate mechanism.
+Retrieve an appropriate mechanism.
 This function compares @var{mechanisms} and @code{sasl-mechanisms} then
-returns apropriate @code{sasl-mechanism} object.
+returns appropriate @code{sasl-mechanism} object.
 
 @example
 (let ((sasl-mechanisms '("CRAM-MD5" "DIGEST-MD5")))

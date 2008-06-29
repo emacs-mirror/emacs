@@ -36,12 +36,12 @@
   '(ignore				;nothing to do before making
     sasl-ntlm-request			;authentication request
     sasl-ntlm-response)			;response to challenge
-  "A list of functions to be called in sequnece for the NTLM
-authentication steps.  Ther are called by 'sasl-next-step.")
+  "A list of functions to be called in sequence for the NTLM
+authentication steps.  They are called by `sasl-next-step'.")
 
 (defun sasl-ntlm-request (client step)
   "SASL step function to generate a NTLM authentication request to the server.
-Called from 'sasl-next-step.
+Called from `sasl-next-step'.
 CLIENT is a vector [mechanism user service server sasl-client-properties]
 STEP is a vector [<previous step function> <result of previous step function>]"
   (let ((user (sasl-client-name client)))
@@ -49,7 +49,7 @@ STEP is a vector [<previous step function> <result of previous step function>]"
 
 (defun sasl-ntlm-response (client step)
   "SASL step function to generate a NTLM response against the server
-challenge stored in the 2nd element of STEP.  Called from 'sasl-next-step."
+challenge stored in the 2nd element of STEP.  Called from `sasl-next-step'."
   (let* ((user (sasl-client-name client))
 	 (passphrase
 	  (sasl-read-passphrase (format "NTLM passphrase for %s: " user)))

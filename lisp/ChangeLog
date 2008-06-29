@@ -1,3 +1,10 @@
+2008-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/sasl.el (sasl-client-set-property, sasl-make-mechanism)
+	(sasl-find-mechanism, sasl-next-step):
+	* net/sasl-ntlm.el (sasl-ntlm-steps, sasl-ntlm-request)
+	(sasl-ntlm-response): Fix typos in docstrings.
+
 2008-06-28  robert marshall  <robert@capuchin.co.uk>  (tiny change)
 
 	* international/mule-cmds.el (view-hello-file): Doc fix.
@@ -109,7 +116,7 @@
 	* international/mule-cmds.el (encode-coding-char): Fix for ASCII
 	characters.
 
-	* composite.el (terminal-composition-base-character-p): New funciton.
+	* composite.el (terminal-composition-base-character-p): New function.
 	(terminal-composition-function):
 	Use terminal-composition-base-character-p.  Include the base character
 	in the composition.
