@@ -1,3 +1,7 @@
+2008-06-29  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (x_set_frame_alpha): Fix logic.
+
 2008-06-29  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Finternal_char_font): Return font-object instead of
