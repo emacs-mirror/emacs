@@ -1645,11 +1645,11 @@ fontset_from_font (font_object)
   return XINT (FONTSET_ID (fontset));
 }
 
-/* Return a cons (FONT-NAME . GLYPH-CODE).
-   FONT-NAME is the font name for the character at POSITION in the current
+/* Return a cons (FONT-OBJECT . GLYPH-CODE).
+   FONT-OBJECT is the font for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
    that apply to POSITION.  POSTION may be nil, in which case,
-   FONT-NAME is the font name for display the character CH with the
+   FONT-SPEC is the font for displaying the character CH with the
    default face.
 
    GLYPH-CODE is the glyph code in the font to use for the character.
@@ -1728,18 +1728,18 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
   face = FACE_FROM_ID (f, face_id);
   if (face->font)
     {
-      struct font *font = face->font;
-      unsigned code = font->driver->encode_char (font, c);
-      Lisp_Object fontname = font->props[FONT_NAME_INDEX];
+      unsigned code = face->font->driver->encode_char (face->font, c);
+      Lisp_Object font_object;
       /* Assignment to EMACS_INT stops GCC whining about limited range
 	 of data type.  */
       EMACS_INT cod = code;
 
       if (code == FONT_INVALID_CODE)
 	return Qnil;
+      XSETFONT (font_object, face->font);
       if (cod <= MOST_POSITIVE_FIXNUM)
-	return Fcons (fontname, make_number (code));
-      return Fcons (fontname, Fcons (make_number (code >> 16),
+	return Fcons (font_object, make_number (code));
+      return Fcons (font_object, Fcons (make_number (code >> 16),
 				     make_number (code & 0xFFFF)));
     }
   return Qnil;
