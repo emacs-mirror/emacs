@@ -1,3 +1,47 @@
+2008-06-30  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (face-name-history): New variable.
+	(make-face, make-empty-face): Replace interactive spec "S"
+	with `read-from-minibuffer' where `read' arg is t and
+	`hist' arg is `face-name-history'.
+	(read-face-name): Set `hist' arg of `completing-read-multiple'
+	to `face-name-history'.
+	(list-faces-display): Use `read-regexp' instead of `read-string'
+	to read regexp.
+
+	* hi-lock.el (hi-lock-regexp-history): Make it an obsolete alias
+	to `regexp-history'.
+	(hi-lock-face-history): Rename to `hi-lock-face-defaults' and
+	make it an obsolete alias to it.
+	(hi-lock-face-defaults): New variable renamed from
+	`hi-lock-face-history'.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Use `read-regexp' instead of
+	`read-from-minibuffer'.  Doc fix.
+	(hi-lock-read-face-name): Replace `hi-lock-face-history' with
+	`hi-lock-face-defaults'.  Remove `mapcar (lambda (f) (cons f f))'.
+	Set `hist' arg of `completing-read' to `face-name-history'.
+	Put a list of default faces to `default' arg instead of `hist' arg.
+
+	* bindings.el (abbrev-map, narrow-map): New variables.
+	Bind `C-x a' to `abbrev-map' and `C-x n' to `narrow-map'.
+	Rebind related commands to these new maps.
+	(ctl-x-r-map): New variable for rectangle, register and bookmark
+	keys.  Move rectangle keybindings to rect.el and register
+	keybindings to register.el.
+	(next-buffer, previous-buffer): Remove C-x prefix and move
+	keybindings to ctl-x-map.
+
+	* bookmark.el: Rebind three global `C-x r' keys "b", "m", "l"
+	to the new map `ctl-x-r-map'  in autoload cookies.
+
+	* expand.el: Rebind two global `C-x a' keys "n", "p"
+	to the new map `abbrev-map' in autoload cookies.
+
+	* rect.el: Bind global keys to ctl-x-r-map in autoload cookies.
+
+	* register.el: Bind global keys to ctl-x-r-map in autoload cookies.
+
 2008-06-30  Miles Bader  <miles@gnu.org>
 
 	* net/rcirc.el (rcirc-markup-attributes): Don't skip a character
