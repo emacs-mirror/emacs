@@ -1,3 +1,16 @@
+2008-06-30  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Don't call FcConfigSubstitute and
+	XftDefaultSubstitute (they are called in XftFontMatch).
+	(xftfont_open): Fix args to ftfont_font_format.
+
+	* ftfont.c (fc_charset_table): New member lang.
+	(ftfont_resolve_generic_family): New arg pattern.
+	(ftfont_spec_pattern): Check fc_cahrset_table[]->lang.
+	(ftfont_list): Call ftfont_resolve_generic_family with `pattern'.
+	(ftfont_open): Fix args to ftfont_font_format.
+	(ftfont_font_format): New arg filename.
+
 2008-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (Finternal_merge_in_global_face): If default face was
