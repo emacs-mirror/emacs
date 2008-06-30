@@ -217,9 +217,9 @@ following in your `.emacs' file:
 ;; Set up these bindings dumping time *only*;
 ;; if the user alters them, don't override the user when loading bookmark.el.
 
-;;;###autoload (define-key ctl-x-map "rb" 'bookmark-jump)
-;;;###autoload (define-key ctl-x-map "rm" 'bookmark-set)
-;;;###autoload (define-key ctl-x-map "rl" 'bookmark-bmenu-list)
+;;;###autoload (define-key ctl-x-r-map "b" 'bookmark-jump)
+;;;###autoload (define-key ctl-x-r-map "m" 'bookmark-set)
+;;;###autoload (define-key ctl-x-r-map "l" 'bookmark-bmenu-list)
 
 ;;;###autoload
 (defvar bookmark-map
