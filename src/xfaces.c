@@ -3964,7 +3964,7 @@ Default face attributes override any local face attributes.  */)
       lvec[i] = gvec[i];
 
   /* If the default face was changed, realize it again, and update the
-     `font' face parameter.  */
+     `font' frame parameter.  */
   if (EQ (face, Qdefault))
     {
       struct face_cache *c = FRAME_FACE_CACHE (f);
