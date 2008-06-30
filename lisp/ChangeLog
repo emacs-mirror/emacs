@@ -1,3 +1,8 @@
+2008-06-30  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-markup-attributes): Don't skip a character
+	after processing an escape sequence.
+
 2008-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Revert patch

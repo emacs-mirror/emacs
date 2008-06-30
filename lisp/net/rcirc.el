@@ -2196,7 +2196,7 @@ keywords when no KEYWORD is given."
     (when (not (eq ?\C-o (char-before (match-end 2))))
       (delete-region (match-beginning 2) (match-end 2)))
     (delete-region (match-beginning 1) (match-end 1))
-    (goto-char (1+ (match-beginning 1))))
+    (goto-char (match-beginning 1)))
   ;; remove the ^O characters now
   (while (re-search-forward "\C-o+" nil t)
     (delete-region (match-beginning 0) (match-end 0))))
