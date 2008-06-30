@@ -700,10 +700,13 @@ language you are using."
 ;These commands are defined in editfns.c
 ;but they are not assigned to keys there.
 (put 'narrow-to-region 'disabled t)
-(define-key ctl-x-map "nn" 'narrow-to-region)
-(define-key ctl-x-map "nw" 'widen)
-;; (define-key ctl-x-map "n" 'narrow-to-region)
-;; (define-key ctl-x-map "w" 'widen)
+
+(defvar narrow-map (make-sparse-keymap)
+  "Keymap for narrowing commands.")
+(define-key ctl-x-map "n" narrow-map)
+
+(define-key narrow-map "n" 'narrow-to-region)
+(define-key narrow-map "w" 'widen)
 
 ;; Quitting
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
@@ -744,10 +747,10 @@ language you are using."
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
 
-(define-key global-map [?\C-x right] 'next-buffer)
-(define-key global-map [?\C-x C-right] 'next-buffer)
-(define-key global-map [?\C-x left] 'previous-buffer)
-(define-key global-map [?\C-x C-left] 'previous-buffer)
+(define-key ctl-x-map [right] 'next-buffer)
+(define-key ctl-x-map [C-right] 'next-buffer)
+(define-key ctl-x-map [left] 'previous-buffer)
+(define-key ctl-x-map [C-left] 'previous-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
@@ -1089,25 +1092,10 @@ language you are using."
 (define-key ctl-x-4-map "m" 'compose-mail-other-window)
 (define-key ctl-x-5-map "m" 'compose-mail-other-frame)
 
-(define-key ctl-x-map "r\C-@" 'point-to-register)
-(define-key ctl-x-map [?r ?\C-\ ] 'point-to-register)
-(define-key ctl-x-map "r " 'point-to-register)
-(define-key ctl-x-map "rj" 'jump-to-register)
-(define-key ctl-x-map "rs" 'copy-to-register)
-(define-key ctl-x-map "rx" 'copy-to-register)
-(define-key ctl-x-map "ri" 'insert-register)
-(define-key ctl-x-map "rg" 'insert-register)
-(define-key ctl-x-map "rr" 'copy-rectangle-to-register)
-(define-key ctl-x-map "rn" 'number-to-register)
-(define-key ctl-x-map "r+" 'increment-register)
-(define-key ctl-x-map "rc" 'clear-rectangle)
-(define-key ctl-x-map "rk" 'kill-rectangle)
-(define-key ctl-x-map "rd" 'delete-rectangle)
-(define-key ctl-x-map "ry" 'yank-rectangle)
-(define-key ctl-x-map "ro" 'open-rectangle)
-(define-key ctl-x-map "rt" 'string-rectangle)
-(define-key ctl-x-map "rw" 'window-configuration-to-register)
-(define-key ctl-x-map "rf" 'frame-configuration-to-register)
+
+(defvar ctl-x-r-map (make-sparse-keymap)
+  "Keymap for subcommands of C-x r.")
+(define-key ctl-x-map "r" ctl-x-r-map)
 
 (define-key esc-map "q" 'fill-paragraph)
 (define-key ctl-x-map "." 'set-fill-prefix)
@@ -1127,16 +1115,20 @@ language you are using."
 (define-key ctl-x-map "np" 'narrow-to-page)
 ;; (define-key ctl-x-map "p" 'narrow-to-page)
 
-(define-key ctl-x-map "al" 'add-mode-abbrev)
-(define-key ctl-x-map "a\C-a" 'add-mode-abbrev)
-(define-key ctl-x-map "ag" 'add-global-abbrev)
-(define-key ctl-x-map "a+" 'add-mode-abbrev)
-(define-key ctl-x-map "aig" 'inverse-add-global-abbrev)
-(define-key ctl-x-map "ail" 'inverse-add-mode-abbrev)
-;; (define-key ctl-x-map "a\C-h" 'inverse-add-global-abbrev)
-(define-key ctl-x-map "a-" 'inverse-add-global-abbrev)
-(define-key ctl-x-map "ae" 'expand-abbrev)
-(define-key ctl-x-map "a'" 'expand-abbrev)
+(defvar abbrev-map (make-sparse-keymap)
+  "Keymap for abbrev commands.")
+(define-key ctl-x-map "a" abbrev-map)
+
+(define-key abbrev-map "l" 'add-mode-abbrev)
+(define-key abbrev-map "\C-a" 'add-mode-abbrev)
+(define-key abbrev-map "g" 'add-global-abbrev)
+(define-key abbrev-map "+" 'add-mode-abbrev)
+(define-key abbrev-map "ig" 'inverse-add-global-abbrev)
+(define-key abbrev-map "il" 'inverse-add-mode-abbrev)
+;; (define-key abbrev-map "\C-h" 'inverse-add-global-abbrev)
+(define-key abbrev-map "-" 'inverse-add-global-abbrev)
+(define-key abbrev-map "e" 'expand-abbrev)
+(define-key abbrev-map "'" 'expand-abbrev)
 ;; (define-key ctl-x-map "\C-a" 'add-mode-abbrev)
 ;; (define-key ctl-x-map "\+" 'add-global-abbrev)
 ;; (define-key ctl-x-map "\C-h" 'inverse-add-mode-abbrev)
