@@ -31,6 +31,14 @@
 ;; intrusive and fill lines with whitespaces only when needed. A few functions
 ;; are untouched though, as noted above their definition.
 
+;;; Global key bindings
+
+;;;###autoload (define-key ctl-x-r-map "c" 'clear-rectangle)
+;;;###autoload (define-key ctl-x-r-map "k" 'kill-rectangle)
+;;;###autoload (define-key ctl-x-r-map "d" 'delete-rectangle)
+;;;###autoload (define-key ctl-x-r-map "y" 'yank-rectangle)
+;;;###autoload (define-key ctl-x-r-map "o" 'open-rectangle)
+;;;###autoload (define-key ctl-x-r-map "t" 'string-rectangle)
 
 ;;; Code:
 
