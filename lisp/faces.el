@@ -31,6 +31,12 @@
 (declare-function xw-defined-colors "term/x-win" (&optional frame))
 
 (defvar help-xref-stack-item)
+
+(defvar face-name-history nil
+  "History list for some commands that read face names.
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font selection.
@@ -123,7 +129,8 @@ NO-INIT-FROM-RESOURCES non-nil means don't initialize frame-local
 variants of FACE from X resources.  (X resources recognized are found
 in the global variable `face-x-resources'.)  If FACE is already known
 as a face, leave it unmodified.  Value is FACE."
-  (interactive "SMake face: ")
+  (interactive (list (read-from-minibuffer
+		      "Make face: " nil nil t 'face-name-history)))
   (unless (facep face)
     ;; Make frame-local faces (this also makes the global one).
     (dolist (frame (frame-list))
@@ -140,7 +147,8 @@ as a face, leave it unmodified.  Value is FACE."
 (defun make-empty-face (face)
   "Define a new, empty face with name FACE.
 If the face already exists, it is left unmodified.  Value is FACE."
-  (interactive "SMake empty face: ")
+  (interactive (list (read-from-minibuffer
+		      "Make empty face: " nil nil t 'face-name-history)))
   (make-face face 'no-init-from-resources))
 
 
@@ -940,7 +948,7 @@ Otherwise, return a single face."
 			   string-describing-default))
 	       (format "%s: " prompt))
 	     (completion-table-in-turn nonaliasfaces aliasfaces)
-	     nil t nil nil
+	     nil t nil 'face-name-history
 	     (if faces (mapconcat 'symbol-name faces ","))))
 	   ;; Canonicalize the output.
 	   (output
@@ -1227,7 +1235,7 @@ If REGEXP is non-nil, list only those faces with names matching
 this regular expression.  When called interactively with a prefix
 arg, prompt for a regular expression."
   (interactive (list (and current-prefix-arg
-                          (read-string "List faces matching regexp: "))))
+                          (read-regexp "List faces matching regexp"))))
   (let ((all-faces (zerop (length regexp)))
 	(frame (selected-frame))
 	(max-length 0)
