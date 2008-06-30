@@ -71,8 +71,9 @@ struct ftfont_info
 static Lisp_Object ftfont_pattern_entity P_ ((FcPattern *, Lisp_Object,
 					      Lisp_Object, int));
 
-static Lisp_Object ftfont_resolve_generic_family P_ ((Lisp_Object));
-Lisp_Object ftfont_font_format P_ ((FcPattern *));
+static Lisp_Object ftfont_resolve_generic_family P_ ((Lisp_Object,
+						      FcPattern *));
+Lisp_Object ftfont_font_format P_ ((FcPattern *, Lisp_Object));
 
 #define SYMBOL_FcChar8(SYM) (FcChar8 *) SDATA (SYMBOL_NAME (SYM))
 
@@ -82,12 +83,14 @@ static struct
   char *name;
   /* characters to distinguish the charset from the others */
   int uniquifier[6];
+  /* additional constraint by language */
+  char *lang;
   /* set in syms_of_ftfont */
   int charset_id;
   /* set on demand */
   FcCharSet *fc_charset;
 } fc_charset_table[] =
-  { { "iso-8859-1", { 0x00A0, 0x00A1, 0x00B4, 0x00BC, 0x00D0 }, -1 },
+  { { "iso-8859-1", { 0x00A0, 0x00A1, 0x00B4, 0x00BC, 0x00D0 }, "en", -1 },
     { "iso-8859-2", { 0x00A0, 0x010E }},
     { "iso-8859-3", { 0x00A0, 0x0108 }},
     { "iso-8859-4", { 0x00A0, 0x00AF, 0x0128, 0x0156, 0x02C7 }},
@@ -102,27 +105,27 @@ static struct
     { "iso-8859-14", { 0x00A0, 0x0174 }},
     { "iso-8859-15", { 0x00A0, 0x00A1, 0x00D0, 0x0152 }},
     { "iso-8859-16", { 0x00A0, 0x0218}},
-    { "chinese-gb2312", { 0x4E13 }},
-    { "big5", { 0xF6B1 }},
-    { "japanese-jisx0208", { 0x4E55 }},
-    { "korean-ksc5601", { 0xAC00 }},
-    { "chinese-cns11643-1", { 0xFE32 }},
+    { "chinese-gb2312", { 0x4E13 }, "zh-cn"},
+    { "big5", { 0xF6B1 }, "zh-tw" },
+    { "japanese-jisx0208", { 0x4E55 }, "ja"},
+    { "korean-ksc5601", { 0xAC00 }, "ko"},
+    { "chinese-cns11643-1", { 0xFE32 }, "zh-tw"},
     { "chinese-cns11643-2", { 0x4E33, 0x7934 }},
     { "chinese-cns11643-3", { 0x201A9 }},
     { "chinese-cns11643-4", { 0x20057 }},
     { "chinese-cns11643-5", { 0x20000 }},
     { "chinese-cns11643-6", { 0x20003 }},
     { "chinese-cns11643-7", { 0x20055 }},
-    { "chinese-gbk", { 0x4E06 }},
+    { "chinese-gbk", { 0x4E06 }, "zh-cn"},
     { "japanese-jisx0212", { 0x4E44 }},
-    { "japanese-jisx0213-1", { 0xFA10 }},
+    { "japanese-jisx0213-1", { 0xFA10 }, "ja"},
     { "japanese-jisx0213-2", { 0xFA49 }},
     { "japanese-jisx0213.2004-1", { 0x20B9F }},
-    { "viscii", { 0x1EA0, 0x1EAE, 0x1ED2 }},
-    { "tis620", { 0x0E01 }},
-    { "windows-1251", { 0x0401, 0x0490 }},
-    { "koi8-r", { 0x0401, 0x2219 }},
-    { "mule-lao", { 0x0E81 }},
+    { "viscii", { 0x1EA0, 0x1EAE, 0x1ED2 }, "vi"},
+    { "tis620", { 0x0E01 }, "th"},
+    { "windows-1251", { 0x0401, 0x0490 }, "ru"},
+    { "koi8-r", { 0x0401, 0x2219 }, "ru"},
+    { "mule-lao", { 0x0E81 }, "lo"},
     { NULL }
   };
 
@@ -194,11 +197,12 @@ ftfont_pattern_entity (p, registry, extra, fc_charset_idx)
 static Lisp_Object ftfont_generic_family_list;
 
 static Lisp_Object
-ftfont_resolve_generic_family (family)
+ftfont_resolve_generic_family (family, pattern)
      Lisp_Object family;
+     FcPattern *pattern;
 {
   Lisp_Object slot;
-  FcPattern *pattern = NULL, *match;
+  FcPattern *match;
   FcResult result;
 
   family = Fintern (Fdowncase (SYMBOL_NAME (family)), Qnil);
@@ -211,10 +215,11 @@ ftfont_resolve_generic_family (family)
     return Qnil;
   if (! EQ (XCDR (slot), Qt))
     return XCDR (slot);
-  pattern = FcPatternBuild (NULL, FC_FAMILY, FcTypeString,
-			    SYMBOL_FcChar8 (family), (char *) 0);
+  pattern = FcPatternDuplicate (pattern);
   if (! pattern)
     goto err;
+  FcPatternDel (pattern, FC_FAMILY);
+  FcPatternAddString (pattern, FC_FAMILY, SYMBOL_FcChar8 (family));
   FcConfigSubstitute (NULL, pattern, FcMatchPattern);
   FcDefaultSubstitute (pattern);
   match = FcFontMatch (NULL, pattern, &result);
@@ -498,10 +503,20 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
     *fc_charset_idx = -1;
   else
     {
+      FcChar8 *lang;
+
       *fc_charset_idx = ftfont_get_charset (registry);
       if (*fc_charset_idx < 0)
 	return NULL;
       charset = fc_charset_table[*fc_charset_idx].fc_charset;
+      lang = (FcChar8 *) fc_charset_table[*fc_charset_idx].lang;
+      if (lang)
+	{
+	  langset = FcLangSetCreate ();
+	  if (! langset)
+	    goto err;
+	  FcLangSetAdd (langset, lang);
+	}
     }
 
   otlayout[0] = '\0';
@@ -515,7 +530,8 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
 	dpi = XINT (val);
       else if (EQ (key, QClang))
 	{
-	  langset = FcLangSetCreate ();
+	  if (! langset)
+	    langset = FcLangSetCreate ();
 	  if (! langset)
 	    goto err;
 	  if (SYMBOLP (val))
@@ -583,6 +599,7 @@ ftfont_spec_pattern (spec, fc_charset_idx, otlayout, otspec)
   if (scalable >= 0
       && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
+
   goto finish;
 
  err:
@@ -640,7 +657,7 @@ ftfont_list (frame, spec)
     {
       Lisp_Object resolved;
 
-      resolved = ftfont_resolve_generic_family (family);
+      resolved = ftfont_resolve_generic_family (family, pattern);
       if (! NILP (resolved))
 	{
 	  FcPatternDel (pattern, FC_FAMILY);
@@ -929,7 +946,7 @@ ftfont_open (f, entity, pixel_size)
     ASET (font_object, FONT_FULLNAME_INDEX,
 	  AREF (font_object, FONT_NAME_INDEX));
   ASET (font_object, FONT_FILE_INDEX, filename);
-  ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (pattern));
+  ASET (font_object, FONT_FORMAT_INDEX, ftfont_font_format (NULL, filename));
   font = XFONT_OBJECT (font_object);
   ftfont_info = (struct ftfont_info *) font;
   ftfont_info->ft_size = ft_face->size;
@@ -1731,40 +1748,42 @@ ftfont_shape (lgstring)
 #endif	/* HAVE_LIBOTF */
 
 Lisp_Object
-ftfont_font_format (FcPattern *pattern)
+ftfont_font_format (FcPattern *pattern, Lisp_Object filename)
 {
   FcChar8 *str;
 
 #ifdef FC_FONTFORMAT
-  if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
-    return Qnil;
-  if (strcmp ((char *) str, "TrueType") == 0)
-    return intern ("truetype");
-  if (strcmp ((char *) str, "Type 1") == 0)
-    return intern ("type1");
-  if (strcmp ((char *) str, "PCF") == 0)
-    return intern ("pcf");
-  if (strcmp ((char *) str, "BDF") == 0)
-    return intern ("bdf");
-#else  /* not FC_FONTFORMAT */
-  int len;
-
-  if (FcPatternGetString (pattern, FC_FILE, 0, &str) != FcResultMatch)
-    return Qnil;
-  len = strlen ((char *) str);
-  if (len >= 4)
+  if (pattern)
     {
-      str += len - 4;
-      if (xstrcasecmp ((char *) str, ".ttf") == 0)
+      if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &str) != FcResultMatch)
+	return Qnil;
+      if (strcmp ((char *) str, "TrueType") == 0)
 	return intern ("truetype");
-      if (xstrcasecmp ((char *) str, "pfb") == 0)
+      if (strcmp ((char *) str, "Type 1") == 0)
 	return intern ("type1");
-      if (xstrcasecmp ((char *) str, "pcf") == 0)
+      if (strcmp ((char *) str, "PCF") == 0)
 	return intern ("pcf");
-      if (xstrcasecmp ((char *) str, "bdf") == 0)
+      if (strcmp ((char *) str, "BDF") == 0)
 	return intern ("bdf");
     }
-#endif	/* not FC_FONTFORMAT */
+#endif  /* FC_FONTFORMAT */
+  if (STRINGP (filename))
+    {
+      int len = SBYTES (filename);
+
+      if (len >= 4)
+	{
+	  str = (FcChar8 *) (SDATA (filename) + len - 4);
+	  if (xstrcasecmp ((char *) str, ".ttf") == 0)
+	    return intern ("truetype");
+	  if (xstrcasecmp ((char *) str, ".pfb") == 0)
+	    return intern ("type1");
+	  if (xstrcasecmp ((char *) str, ".pcf") == 0)
+	    return intern ("pcf");
+	  if (xstrcasecmp ((char *) str, ".bdf") == 0)
+	    return intern ("bdf");
+	}
+    }
   return intern ("unknown");
 }
 
