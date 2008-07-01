@@ -2,8 +2,9 @@
 @c %**start of header
 @setfilename ../../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
+@c FIXME
 @c Manual last updated:
-@set UPDATED Time-stamp: <Fri 13-Jun-2008 13:07:05 gmorris on xoc2.stanford.edu>
+@set UPDATED Time-stamp: <Mon 30-Jun-2008 19:59:42 gm on grasmoor>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -1163,7 +1164,7 @@ headings.  Default is @code{t}.  [Heading emboldening is @emph{not} standard
 @code{man} behavior.]
 
 @item woman-ignore
-A boolean value.  If non-@code{nil} then unrecognised requests etc. are
+A boolean value.  If non-@code{nil} then unrecognized requests etc. are
 ignored.  Default is @code{t}.  This gives the standard @code{roff} behavior.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 
