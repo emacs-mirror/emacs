@@ -1,3 +1,7 @@
+2008-07-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-mode): Set list-buffers-function.
+
 2008-07-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-create-source-file-list): New option.

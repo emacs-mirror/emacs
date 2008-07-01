@@ -810,6 +810,8 @@ U - if the cursor is on a file: unmark all the files with the same state
 		      (vc-dir-headers vc-dir-backend default-directory)))
     (set (make-local-variable 'revert-buffer-function)
 	 'vc-dir-revert-buffer-function)
+    (set (make-local-variable 'list-buffers-directory)
+         (expand-file-name default-directory))
     (add-hook 'after-save-hook 'vc-dir-resynch-file)
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
