@@ -233,7 +233,7 @@ Available modes are `shift-default' and`shift-always'."
   "Current Bubbles score.")
 
 (defvar bubbles--neighbourhood-score 0
-  "Score of active bubbles neighbourhood.")
+  "Score of active bubbles neighborhood.")
 
 (defvar bubbles--faces nil
   "List of currently used faces.")
@@ -1083,7 +1083,7 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
       nil)))
 
 (defun bubbles--mark-direct-neighbours (row col char)
-  "Mark direct neighbours of bubble at ROW COL with same CHAR."
+  "Mark direct neighbors of bubble at ROW COL with same CHAR."
   (save-excursion
     (let ((count 0))
       (when (and (bubbles--goto row col)
@@ -1099,7 +1099,7 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
       count)))
 
 (defun bubbles--mark-neighbourhood (&optional pos)
-  "Mark neighbourhood of point.
+  "Mark neighborhood of point.
 Use optional parameter POS instead of point if given."
   (when bubbles--playing
     (unless pos (setq pos (point)))
@@ -1124,7 +1124,7 @@ Use optional parameter POS instead of point if given."
       (error (message "Bubbles: Internal error %s" err)))))
 
 (defun bubbles--neighbourhood-available ()
-  "Return t if another valid neighbourhood is available."
+  "Return t if another valid neighborhood is available."
   (catch 'found
     (save-excursion
       (dotimes (i (bubbles--grid-height))
@@ -1159,7 +1159,7 @@ Use optional parameter POS instead of point if given."
   (bubbles--show-scores))
 
 (defun bubbles--update-neighbourhood-score (size)
-  "Calculate and display score of active neighbourhood from its SIZE."
+  "Calculate and display score of active neighborhood from its SIZE."
   (if (> size 1)
       (setq bubbles--neighbourhood-score (expt (- size 1) 2))
     (setq bubbles--neighbourhood-score 0))
