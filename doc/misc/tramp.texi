@@ -2634,7 +2634,7 @@ setting the cursor at the top of the buffer, and applying the expression
 @end example
 
 If it fails, or the cursor is not moved at the end of the buffer, your
-prompt is not recognised correctly.
+prompt is not recognized correctly.
 
 A special problem is the zsh, which uses left-hand side and right-hand
 side prompts in parallel.  Therefore, it is necessary to disable the
