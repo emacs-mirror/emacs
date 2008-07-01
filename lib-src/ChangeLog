@@ -436,7 +436,7 @@
 
 	* etags.c (readline): When creating a relative file name from a
 	#line directive, leave the file name alone.  The previous
-	behaviour was to make it relative to the tags file directory,
+	behavior was to make it relative to the tags file directory,
 	under the hypothesis that the #line directive file name was
 	relative to the directory of the tagged file.  That hypothesis is
 	wrong with Cpp and Lex.
@@ -1784,7 +1784,7 @@
 2002-03-05  Francesco Potortì  <pot@gnu.org>
 
 	* etags.c: Honour #line directives.
-	(no_line_directive): New global var; set it for old behaviour.
+	(no_line_directive): New global var; set it for old behavior.
 	(main): Remove some #ifdef in the getopt switch.
 	(add_node, put_entries): Code added to merge different chunks of
 	nodes referring to the same file.  Currently the tags are just
@@ -2662,7 +2662,7 @@
 
 	* etags.c (sym_type): New st_C_extern tag.
 	(gperf input): Use it for spotting external declarations.
-	(print_help): Document the new behaviour of --declarations.
+	(print_help): Document the new behavior of --declarations.
 	(fvextern): New global variable.
 	(consider_token, C_entries): Use it.
 
