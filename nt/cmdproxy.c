@@ -2,7 +2,7 @@
    Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
      2008  Free Software Foundation, Inc.
 
-   Accepts subset of Unix sh(1) command-line options, for compatability
+   Accepts subset of Unix sh(1) command-line options, for compatibility
    with elisp code written for Unix.  When possible, executes external
    programs directly (a common use of /bin/sh by Emacs), otherwise
    invokes the user-specified command processor to handle built-in shell
@@ -513,10 +513,10 @@ main (int argc, char ** argv)
     {
       ++argv;
       /* Act on switches we recognize (mostly single letter switches,
-	 except for -e); all unrecognised switches and extra args are
+	 except for -e); all unrecognized switches and extra args are
 	 passed on to real shell if used (only really of benefit for
 	 interactive use, but allow for batch use as well).  Accept / as
-	 switch char for compatability with cmd.exe.  */
+	 switch char for compatibility with cmd.exe.  */
       if (((*argv)[0] == '-' || (*argv)[0] == '/') && (*argv)[1] != '\0')
 	{
 	  if (((*argv)[1] == 'c' || (*argv)[1] == 'C') && ((*argv)[2] == '\0'))
