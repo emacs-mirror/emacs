@@ -1,4 +1,4 @@
-2008-06-30  Miles Bader  <Miles Bader <miles@gnu.org>>
+2008-06-30  Miles Bader  <miles@gnu.org>
 
 	* dispextern.h (struct glyph, struct it, struct iterator_stack_entry):
 	Add `avoid_cursor_p' field.
@@ -6,13 +6,13 @@
 	* xdisp.c (push_it, pop_it): Save/restore avoid_cursor_p field.
 	(set_cursor_from_row): Skip glyphs with avoid_cursor_p set.
 	(append_glyph, append_composite_glyph, produce_image_glyph)
-	(append_stretch_glyph): Initialize avoid_cursor_p
-	(get_it_property): Renamed from `get_line_height_property'.
+	(append_stretch_glyph): Initialize avoid_cursor_p.
+	(get_it_property): Rename from `get_line_height_property'.
 	(x_produce_glyphs): Use get_it_property.
 	(handle_line_prefix, push_display_prop): New functions.
 	(display_line, move_it_in_display_line_to): Handle line/wrap prefixes.
-	(Vwrap_prefix, Qwrap_prefix, Vline_prefix, Qline_prefix): New
-	variables.
+	(Vwrap_prefix, Qwrap_prefix, Vline_prefix, Qline_prefix):
+	New variables.
 	(syms_of_xdisp): Initialize them.
 
 2008-06-30  Kenichi Handa  <handa@m17n.org>
@@ -35,15 +35,14 @@
 
 2008-06-29  Jason Rumney  <jasonr@gnu.org>
 
-        * w32term.c (x_set_frame_alpha): Fix logic.
+	* w32term.c (x_set_frame_alpha): Fix logic.
 
 2008-06-29  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Finternal_char_font): Return font-object instead of
 	font-name.
 
-	* composite.c (get_composition_id): Fix the width calculation for
-	TAB.
+	* composite.c (get_composition_id): Fix the width calculation for TAB.
 
 2008-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
