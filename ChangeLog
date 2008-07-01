@@ -1,3 +1,9 @@
+2008-07-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (cpp_undefs): Rename from `undefs', update uses.
+	Use $srcdir rather than $top_srcdir.  Set before calling AC_OUTPUT,
+	and explicitly export there.  (Bug#507.)
+
 2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in:
@@ -7163,6 +7169,7 @@
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
+;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
