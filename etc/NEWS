@@ -672,12 +672,21 @@ set of files.
 
 *** In VC Annotate mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
-by using the vc-annotate-show-changeset-diff-revision-at-line function.
+by typing the D key.
 
-*** In VC Annotate mode, you can type V to toggle the annotation visibility.
+*** In VC Annotate mode, you can type v to toggle the annotation visibility.
 
 *** In VC Annotate mode, you can type f to show the file revision on
 the current line.
+
+*** In VC Annotate mode, for VC systems that support changesets, you
+can see the diff for the whole changeset (not only for the current
+file) by typing the D key or using the "Show changeset diff of
+revision at line" menu entry.
+
+*** In log-view-mode, for VC systems that support changesets, you can
+see the diff for the whole changeset (not only for the current file)
+by typing the D key or using the "Changeset Diff" menu entry.
 
 *** vc-git supports the "git grep" command.
 
