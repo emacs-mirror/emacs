@@ -366,6 +366,18 @@ predefined macros."
   :group 'gdb
   :version "22.1")
 
+(defcustom gdb-create-source-file-list t
+  "Non-nil means create a list of files from which the executable was built.
+Set this to nil if the GUD buffer displays \"initializing...\" in the mode
+line for a long time when starting, possibly because your executable was
+built from a large number of files.  This allows quicker initialization
+but means that these files are not automatically enabled for debugging,
+e.g., you won't be able to click in the fringe to set a breakpoint until
+execution has already stopped there."
+  :type 'boolean
+  :group 'gdb
+  :version "23.1")
+
 (defcustom gdb-show-main nil
   "Non-nil means display source file containing the main routine at startup.
 Also display the main routine in the disassembly buffer if present."
@@ -652,7 +664,7 @@ otherwise do not."
   (gdb-enqueue-input (list "set width 0\n" 'ignore))
 
   (if (string-equal gdb-version "pre-6.4")
-      (progn
+      (if gdb-create-source-file-list
 	(gdb-enqueue-input (list (concat gdb-server-prefix "info sources\n")
 				 'gdb-set-gud-minor-mode-existing-buffers))
 	(setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-1))
@@ -660,17 +672,16 @@ otherwise do not."
      (list "server interpreter mi -data-list-register-names\n"
 	 'gdb-get-register-names))
     ; Needs GDB 6.2 onwards.
-    (gdb-enqueue-input
-     (list "server interpreter mi \"-file-list-exec-source-files\"\n"
-	   'gdb-set-gud-minor-mode-existing-buffers-1))
+    (if gdb-create-source-file-list
+	(gdb-enqueue-input
+	 (list "server interpreter mi \"-file-list-exec-source-files\"\n"
+	       'gdb-set-gud-minor-mode-existing-buffers-1)))
     (setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-2))
 
   ;; Find source file and compilation directory here.
   ;; Works for C, C++, Fortran and Ada but not Java (GDB 6.4)
   (gdb-enqueue-input (list "server list\n" 'ignore))
-  (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
-
-  (run-hooks 'gdb-mode-hook))
+  (gdb-enqueue-input (list "server info source\n" 'gdb-source-info)))
 
 (defun gdb-get-version ()
   (goto-char (point-min))
@@ -853,8 +864,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 	 `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
-  "child={.*?name=\"\\(.*?\\)\",.*?exp=\"\\(.*?\\)\",.*?\
-numchild=\"\\(.*?\\)\"\\(}\\|,.*?\\(type=\"\\(.*?\\)\"\\)?.*?}\\)")
+  "child={.*?name=\"\\(.*?\\)\".*?,exp=\"\\(.*?\\)\".*?,\
+numchild=\"\\(.*?\\)\"\\(}\\|.*?,\\(type=\"\\(.*?\\)\"\\)?.*?}\\)")
 
 (defun gdb-var-list-children-handler (varnum)
   (goto-char (point-min))
@@ -891,7 +902,7 @@ numchild=\"\\(.*?\\)\"\\(}\\|,.*?\\(type=\"\\(.*?\\)\"\\)?.*?}\\)")
     (push 'gdb-var-update gdb-pending-triggers)))
 
 (defconst gdb-var-update-regexp
-  "{.*?name=\"\\(.*?\\)\",.*?in_scope=\"\\(.*?\\)\",.*?\
+  "{.*?name=\"\\(.*?\\)\".*?,in_scope=\"\\(.*?\\)\".*?,\
 type_changed=\".*?\".*?}")
 
 (defun gdb-var-update-handler ()
@@ -1960,7 +1971,7 @@ static char *magick[] = {
 		       (match-beginning 1) (match-end 1)
 		       '(face font-lock-function-name-face)))
 		    (if (re-search-forward
-			 ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$" nil t)
+			 ".*\\s-+\\(\\S-+\\):\\([0-9]+\\)$" el t)
 			(let ((line (match-string 2))
 			      (file (match-string 1)))
 			  (add-text-properties bl el
@@ -3638,8 +3649,8 @@ is set in them."
 
 ;; Used for -stack-info-frame but could be used for -stack-list-frames too.
 (defconst gdb-stack-list-frames-regexp
-".*?level=\"\\(.*?\\)\",.*?addr=\"\\(.*?\\)\",.*?func=\"\\(.*?\\)\",\
-\\(?:.*?file=\".*?\",.*?fullname=\"\\(.*?\\)\",.*?line=\"\\(.*?\\)\".*?}\\|\
+".*?level=\"\\(.*?\\)\".*?,addr=\"\\(.*?\\)\".*?,func=\"\\(.*?\\)\",\
+\\(?:.*?file=\".*?\".*?,fullname=\"\\(.*?\\)\".*?,line=\"\\(.*?\\)\".*?}\\|\
 from=\"\\(.*?\\)\"\\)")
 
 (defun gdb-frame-handler-1 ()
@@ -3682,9 +3693,9 @@ from=\"\\(.*?\\)\"\\)")
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
 
 (defconst gdb-var-list-children-regexp-1
-  "child={.*?name=\"\\(.+?\\)\",.*?exp=\"\\(.+?\\)\",.*?\
-numchild=\"\\(.+?\\)\",.*?value=\\(\".*?\"\\)\
-\\(}\\|,.*?\\(type=\"\\(.+?\\)\"\\)?.*?}\\)")
+  "child={.*?name=\"\\(.+?\\)\".*?,exp=\"\\(.+?\\)\".*?,\
+numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\)\
+\\(}\\|.*?,\\(type=\"\\(.+?\\)\"\\)?.*?}\\)")
 
 (defun gdb-var-list-children-handler-1 (varnum)
   (goto-char (point-min))
@@ -3721,7 +3732,7 @@ numchild=\"\\(.+?\\)\",.*?value=\\(\".*?\"\\)\
 	(push 'gdb-var-update gdb-pending-triggers))))
 
 (defconst gdb-var-update-regexp-1
-  "{.*?name=\"\\(.*?\\)\",.*?\\(?:value=\\(\".*?\"\\),\\)?.*?\
+  "{.*?name=\"\\(.*?\\)\".*?,\\(?:value=\\(\".*?\"\\),\\)?.*?\
 in_scope=\"\\(.*?\\)\".*?}")
 
 (defun gdb-var-update-handler-1 ()
@@ -3761,7 +3772,7 @@ in_scope=\"\\(.*?\\)\".*?}")
     gdb-data-list-register-values-handler)
 
 (defconst gdb-data-list-register-values-regexp
-  "{.*?number=\"\\(.*?\\)\",.*?value=\"\\(.*?\\)\".*?}")
+  "{.*?number=\"\\(.*?\\)\".*?,value=\"\\(.*?\\)\".*?}")
 
 (defun gdb-data-list-register-values-handler ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-registers-1
@@ -3856,7 +3867,7 @@ in_scope=\"\\(.*?\\)\".*?}")
   gdb-stack-list-locals-handler)
 
 (defconst gdb-stack-list-locals-regexp
-  "{.*?name=\"\\(.*?\\)\",.*?type=\"\\(.*?\\)\"")
+  "{.*?name=\"\\(.*?\\)\".*?,type=\"\\(.*?\\)\"")
 
 (defvar gdb-locals-watch-map-1
   (let ((map (make-sparse-keymap)))
@@ -3883,7 +3894,7 @@ in_scope=\"\\(.*?\\)\".*?}")
     (let* ((var (current-word))
 	   (value (read-string (format "New value (%s): " var))))
       (gdb-enqueue-input
-       (list (concat  gdb-server-prefix"set variable " var " = " value "\n")
+       (list (concat  gdb-server-prefix "set variable " var " = " value "\n")
 	     'ignore)))))
 
 ;; Dont display values of arrays or structures.
