@@ -1,3 +1,8 @@
+2008-07-01  Jason Rumney  <jasonr@gnu.org>
+
+        * w32font.c (w32font_text_extents): Don't count overhang as part
+        of width.
+
 2008-06-30  Miles Bader  <miles@gnu.org>
 
 	* dispextern.h (struct glyph, struct it, struct iterator_stack_entry):
