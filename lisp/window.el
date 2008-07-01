@@ -790,7 +790,7 @@ hold:
   high as `split-height-threshold'.
 
 - When WINDOW is split evenly, the emanating windows are at least
-  `window-min-height' lines tall and can accomodate at least one
+  `window-min-height' lines tall and can accommodate at least one
   line plus - if WINDOW has one - a modeline.
 
 WINDOW can be split horizontally when the following conditions
