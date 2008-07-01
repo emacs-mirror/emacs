@@ -225,7 +225,7 @@ If this is non-nil, appointment checking is active.")
 The string STRING describes the appointment, due in integer MINS minutes.
 The format of the visible reminder is controlled by `appt-display-format'.
 The variable `appt-audible' controls the audible reminder."
-  ;; Let-binding for backwards compatability.  Remove when obsolete
+  ;; Let-binding for backwards compatibility.  Remove when obsolete
   ;; vars appt-msg-window and appt-visible are dropped.
   (let ((appt-display-format
          (if (eq appt-display-format 'ignore)

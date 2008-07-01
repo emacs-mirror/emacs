@@ -797,7 +797,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
             (unless list-only
               (if (and diary-display-function
                        (listp diary-display-function))
-                  ;; Backwards compatability.
+                  ;; Backwards compatibility.
                   (run-hooks 'diary-display-function)
                 (funcall (or diary-display-function
                              'diary-simple-display))))
