@@ -252,10 +252,10 @@ transmission via SSL.  It is defined in RFC 2069.  Its default port is
 @code{ssl} gateway method to be used.  @xref{Gateways in general}.
 
 @defopt url-honor-refresh-requests
-This controls honouring of HTTP @samp{Refresh} headers by which
+This controls honoring of HTTP @samp{Refresh} headers by which
 servers can direct clients to reload documents from the same URL or a
-or different one.  @code{nil} means they will not be honoured,
-@code{t} (the default) means they will always be honoured, and
+or different one.  @code{nil} means they will not be honored,
+@code{t} (the default) means they will always be honored, and
 otherwise the user will be asked on each request.
 @end defopt
 
@@ -305,7 +305,7 @@ Default is one hour.
 @subsection Language and Encoding Preferences
 
 HTTP allows clients to express preferences for the language and
-encoding of documents which servers may honour.  For each of these
+encoding of documents which servers may honor.  For each of these
 variables, the value is a string; it can specify a single choice, or
 it can be a comma-separated list.
 
