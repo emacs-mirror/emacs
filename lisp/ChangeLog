@@ -1,3 +1,12 @@
+2008-07-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-create-source-file-list): New option.
+	(gdb-init-2): Use it.  Don't run gdb-mode-hook again.
+	(gdb-var-list-children-regexp, gdb-var-update-regexp)
+	(gdb-info-breakpoints-custom, gdb-stack-list-frames-regexp)
+	(gdb-var-list-children-regexp-1, gdb-var-update-regexp-1)
+	(gdb-stack-list-locals-regexp): Future proof regexps better.
+
 2008-06-30  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (face-name-history): New variable.
