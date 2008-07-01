@@ -85,3 +85,15 @@ Bugs must all be in the same state.
   severity 123 critical|grave|serious|important|normal|minor|wishlist
 
 See http://emacsbugs.donarmstrong.com/Developer#severities for the meanings.
+
+** To set the onwer of a bug:
+
+  To: control@emacsbugs.donarmstrong.com
+  owner 123 A Hacker <none@example.com>
+
+The shorthand `!' means your own address.
+
+** To mark a bug as fixed in a particular version:
+
+  To: control@emacsbugs.donarmstrong.com
+  fixed 123 23.0.60
