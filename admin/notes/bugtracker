@@ -13,6 +13,18 @@ mail with the bug report number in.
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).
 
+** To record a bug in the tracker without sending mail to the bug list.
+This can be useful to make a note of something discussed on
+emacs-devel that needs fixing.
+
+To: quiet@emacsbugs.donarmstrong.com
+[headers end]
+Package: emacs
+Version: 23.0.60
+Severity: minor
+
+Remember to fix FOO, as discussed on emacs-devel at http://... .
+
 ** Not interested in tracker control messages (tags being set, etc)?
 Discard mails matching:
 
