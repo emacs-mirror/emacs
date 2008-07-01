@@ -1,6 +1,8 @@
 2008-07-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-annotate.el (vc-annotate-mode-map): Bind to lower case keys.
+	* uniquify.el (uniquify-list-buffers-directory-modes): Add vc-dir-mode.
+
+	* vc-annotate.el (vc-annotate-mode-map): Use lower case keys.
 	Add binding for vc-annotate-show-changeset-diff-revision-at-line.
 
 	* vc-dir.el (vc-dir-mode): Set list-buffers-function.

@@ -166,7 +166,7 @@ This can be handy when you have deep parallel hierarchies."
   :type 'boolean
   :group 'uniquify)
 
-(defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode)
+(defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode vc-dir-mode)
   "List of modes for which uniquify should obey `list-buffers-directory'.
 That means that when `buffer-file-name' is set to nil, `list-buffers-directory'
 contains the name of the directory which the buffer is visiting.")
