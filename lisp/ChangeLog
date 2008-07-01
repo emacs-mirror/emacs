@@ -5,7 +5,7 @@
 	* vc-annotate.el (vc-annotate-mode-map): Use lower case keys.
 	Add binding for vc-annotate-show-changeset-diff-revision-at-line.
 
-	* vc-dir.el (vc-dir-mode): Set list-buffers-function.
+	* vc-dir.el (vc-dir-mode): Set list-buffers-directory.
 
 2008-07-01  Nick Roberts  <nickrob@snap.net.nz>
 
