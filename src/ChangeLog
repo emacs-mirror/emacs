@@ -12906,6 +12906,7 @@ See ChangeLog.10 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
+;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 2007, 2008  Free Software Foundation, Inc.
