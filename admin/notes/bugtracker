@@ -87,10 +87,17 @@ meaning to add (the default), remove, or reset the tags.
 
 ** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
-Bugs must all be in the same state.
+Bugs must all be in the same state, but need not have the same tags.
 
   To: control@emacsbugs.donarmstrong.com
   merge 123 124 125 ...
+
+** Forcing a merge:
+Like `merge', but bugs need not be in the same state.  The first one
+listed is the master.
+
+  To: control@emacsbugs.donarmstrong.com
+  forcemerge 123 124 125 ...
 
 ** To set severity:
 
