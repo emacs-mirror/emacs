@@ -1,3 +1,15 @@
+2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
+
+        * lisp.h (Qdelete_file, Qdelete_directory): Declare extern.
+
+        * fileio.c (delete_by_moving_to_trash, Qmove_file_to_trash): New vars.
+        (syms_of_fileio): Initialize and export them.
+        (Fdelete_directory, Fdelete_file): Optionally delete via trash.
+
+        * w32fns.c (FOF_NO_CONNECTED_ELEMENTS): Define if not already.
+        (Fsystem_move_file_to_trash): New function.
+        (syms_of_w32fns): Export it to lisp.
+
 2008-07-01  Jason Rumney  <jasonr@gnu.org>
 
         * w32font.c (w32font_text_extents): Don't count overhang as part

@@ -164,6 +164,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    :value (nil)
 					    (symbol :format "%v"))
 				    (const :tag "always" t)))
+             ;; fileio.c
+             (delete-by-moving-to-trash auto-save boolean "23.1")
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")

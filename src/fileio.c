@@ -213,6 +213,13 @@ Lisp_Object Vdirectory_sep_char;
 int write_region_inhibit_fsync;
 #endif
 
+/* Non-zero means call move-file-to-trash in Fdelete_file or
+   Fdelete_directory.  */
+int delete_by_moving_to_trash;
+
+/* Lisp function for moving files to trash.  */
+Lisp_Object Qmove_file_to_trash;
+
 extern Lisp_Object Vuser_login_name;
 
 #ifdef WINDOWSNT
@@ -2674,6 +2681,9 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
   if (!NILP (handler))
     return call2 (handler, Qdelete_directory, directory);
 
+  if (delete_by_moving_to_trash)
+    return call1 (Qmove_file_to_trash, directory);
+
   encoded_dir = ENCODE_FILE (directory);
 
   dir = SDATA (encoded_dir);
@@ -2706,6 +2716,9 @@ If file has multiple names, it continues to exist with the other names.  */)
   handler = Ffind_file_name_handler (filename, Qdelete_file);
   if (!NILP (handler))
     return call2 (handler, Qdelete_file, filename);
+
+  if (delete_by_moving_to_trash)
+    return call1 (Qmove_file_to_trash, filename);
 
   encoded_file = ENCODE_FILE (filename);
 
@@ -6357,6 +6370,14 @@ This variable affects calls to `write-region' as well as save commands.
 A non-nil value may result in data loss!  */);
   write_region_inhibit_fsync = 0;
 #endif
+
+  DEFVAR_BOOL ("delete-by-moving-to-trash", &delete_by_moving_to_trash,
+               doc: /* Specifies whether to use the system's trash can.
+When non-nil, the function `move-file-to-trash' will be used by
+`delete-file' and `delete-directory'.  */);
+  delete_by_moving_to_trash = 0;
+  Qmove_file_to_trash = intern ("move-file-to-trash");
+  staticpro (&Qmove_file_to_trash);
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);

@@ -1,7 +1,15 @@
+2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
+
+	* files.el (backup-extract-version): Handle versioned directories.
+	(trash-directory): New variable.
+	(move-file-to-trash): New function.
+
+	* cus-start.el (delete-by-moving-to-trash): Declare for custom.
+
 2008-07-02  Magnus Henoch  <mange@freemail.hu>
 
-    	* vc-git.el (vc-git-annotate-command): Use proper option for
-    	specifying revision.
+	* vc-git.el (vc-git-annotate-command): Use proper option for
+	specifying revision.
 
 2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
 
