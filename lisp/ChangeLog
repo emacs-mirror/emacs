@@ -1,3 +1,9 @@
+2008-07-02  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-buffer-file-name):
+	Use `list-buffers-directory'.  Remove special-casing for `cvs-mode'
+	and `vc-dir-mode'.  Suggested by Dan Nicolaescu.
+
 2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
 
 	* files.el (backup-extract-version): Handle versioned directories.
