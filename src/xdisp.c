@@ -6227,9 +6227,9 @@ next_element_from_display_vector (it)
 
   /* KFS: This code used to check ip->dpvec[0] instead of the current element.
           That seemed totally bogus - so I changed it...  */
+  gc = it->dpvec[it->current.dpvec_index];
 
-  if ((gc = it->dpvec[it->current.dpvec_index], GLYPH_CODE_P (gc))
-      && GLYPH_CODE_CHAR_VALID_P (gc))
+  if (GLYPH_CODE_P (gc) && GLYPH_CODE_CHAR_VALID_P (gc))
     {
       it->c = GLYPH_CODE_CHAR (gc);
       it->len = CHAR_BYTES (it->c);
