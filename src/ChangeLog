@@ -1,3 +1,11 @@
+2008-07-02  Jason Rumney  <jasonr@gnu.org>
+
+        * xfns.c (syms_of_xfns): Only define x-select-font when both
+        HAVE_FREETYPE and USE_GTK
+
+        * xdisp.c (next_element_from_display_vector): Move assignment out
+        of if statement.
+
 2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
 
         * lisp.h (Qdelete_file, Qdelete_directory): Declare extern.
