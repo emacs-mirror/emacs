@@ -16,22 +16,24 @@ Thanks to jan.h.d@swipnet.se for the help.
 
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
-* The following icons are a part of Emacs:
+* The following icons are part of Emacs.  All are licensed under the
+  GNU General Public License version 3 (see COPYING) or later.
+  The xpm and svg files contain copyright and license information, but
+  it is reproduced here for convenience.  
 
 File: mh-logo.xpm
-Author: Satyaki Das
-Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
-  Free Software Foundation, Inc.
-License: GNU General Public License version 3 or later (see COPYING)
-
-The files splash.xpm, splash8.xpm contain copyright and license
-information, but it is reproduced here for convenience.
+  Author: Satyaki Das
+  Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+    Free Software Foundation, Inc.
 
 Files: splash.pbm, splash.xpm, splash8.xpm, gnus.pbm
   Author: Luis Fernandes <elf@ee.ryerson.ca>
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
     Free Software Foundation, Inc.
-  License: GNU General Public License version 3 or later (see COPYING)
+
+Files: splash.png, splash.svg
+  Author: Francesc Rocher <rocher@member.fsf.org>
+  Copyright (C) 2008 Free Software Foundation, Inc.
 
 
 * The following icons are from GTK+ 2.x. They are not part of Emacs, but
