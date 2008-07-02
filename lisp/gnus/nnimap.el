@@ -424,8 +424,8 @@ restrict visible folders.")
 
 (defcustom nnimap-id nil
   "Plist with client identity to send to server upon login.
-Nil means no information is sent, symbol `no' to disable ID query
-alltogheter, or plist with identifier-value pairs to send to
+A nil value means no information is sent, symbol `no' to disable ID query
+altogether, or plist with identifier-value pairs to send to
 server.  RFC 2971 describes the list as follows:
 
    Any string may be sent as a field, but the following are defined to

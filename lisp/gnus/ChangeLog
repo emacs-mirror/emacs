@@ -1,3 +1,8 @@
+2008-07-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nnimap.el (nnimap-id):
+	* sieve-manage.el (sieve-manage-open): Doc fixes.
+
 2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
 
 	* gnus.el (gnus-group-startup-message): Prefer SVG or PNG image,
@@ -9795,7 +9800,7 @@
 2004-09-01  Simon Josefsson  <jas@extundo.com>
 
 	* message.el (message-canlock-generate): Require sha1, not
-	sha1-el.  (Can we get rid of this require alltogheter? It is ugly
+	sha1-el.  (Can we get rid of this require altogether?  It is ugly
 	to require within a function.  Sadly, if sha1.el isn't loaded, the
 	let binding in m-c-g will hide the defcustom definition, which is
 	bad.)

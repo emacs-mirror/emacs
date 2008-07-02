@@ -443,12 +443,12 @@ Returns t if login was successful, nil otherwise."
 
 (defun sieve-manage-open (server &optional port stream auth buffer)
   "Open a network connection to a managesieve SERVER (string).
-Optional variable PORT is port number (integer) on remote server.
-Optional variable STREAM is any of `sieve-manage-streams' (a symbol).
-Optional variable AUTH indicates authenticator to use, see
-`sieve-manage-authenticators' for available authenticators.  If nil, chooses
-the best stream the server is capable of.
-Optional variable BUFFER is buffer (buffer, or string naming buffer)
+Optional argument PORT is port number (integer) on remote server.
+Optional argument STREAM is any of `sieve-manage-streams' (a symbol).
+Optional argument AUTH indicates authenticator to use, see
+`sieve-manage-authenticators' for available authenticators.
+If nil, chooses the best stream the server is capable of.
+Optional argument BUFFER is buffer (buffer, or string naming buffer)
 to work in."
   (setq buffer (or buffer (format " *sieve* %s:%d" server (or port 2000))))
   (with-current-buffer (get-buffer-create buffer)
