@@ -6071,7 +6071,7 @@ the tool bar buttons.  */);
   defsubr (&Sx_file_dialog);
 #endif
 
-#ifdef USE_GTK
+#if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
 #endif
 }
