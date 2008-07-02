@@ -3665,7 +3665,7 @@ x_set_alpha (f, arg, oldval)
           arg  = CDR (arg);
         }
       else
-        item=arg;
+        item = arg;
 
       if (! NILP (item))
         {
