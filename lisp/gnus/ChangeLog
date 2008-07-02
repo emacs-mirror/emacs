@@ -1,3 +1,8 @@
+2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
+
+	* gnus.el (gnus-group-startup-message): Prefer SVG or PNG image,
+	if available.
+
 2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-with-multibyte, mm-with-unibyte): Remove.

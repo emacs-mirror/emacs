@@ -1,3 +1,8 @@
+2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
+
+	* startup.el (fancy-splash-head): Prefer SVG or PNG splash image,
+	if available.
+
 2008-07-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* uniquify.el (uniquify-list-buffers-directory-modes): Add vc-dir-mode.
@@ -137,7 +142,7 @@
 
 2008-06-27  Jason Rumney  <jasonr@gnu.org>
 
-        * w32-fns.el (top-level): Unconditionally define all charsets.
+	* w32-fns.el (top-level): Unconditionally define all charsets.
 
 2008-06-27  Alan Mackenzie  <acm@muc.de>
 
