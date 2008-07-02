@@ -35,7 +35,7 @@
 (require 'nnimap)
 (require 'mm-util)
 
-(defconst url-imap-default-port 143 "Default IMAP port")
+(defconst url-imap-default-port 143 "Default IMAP port.")
 
 (defun url-imap-open-host (host port user pass)
   ;; xxx use user and password
@@ -70,7 +70,7 @@
 	     ;; fetch message part
 	     ;; xxx handle partial fetches
 	     (insert "Content-type: message/rfc822\n\n")
-	     (nnimap-request-article (cdr (assoc "UID" (url-attributes url))) 
+	     (nnimap-request-article (cdr (assoc "UID" (url-attributes url)))
 				     mailbox host (current-buffer)))
 	    (t
 	     ;; xxx list messages in mailbox (start gnus?)

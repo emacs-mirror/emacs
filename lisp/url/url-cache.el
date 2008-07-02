@@ -46,8 +46,8 @@ Creates any necessary parent directories, deleting any non-directory files
 that would stop this.  Returns nil if parent directories can not be
 created.  If FILE already exists as a non-directory, it changes
 permissions of FILE or deletes FILE to make it possible to write a new
-version of FILE.  Returns nil if this can not be done.  Returns nil if
-FILE already exists as a directory.  Otherwise, returns t, indicating that
+version of FILE.  Returns nil if this can not be done, or if FILE already
+exists as a directory.  Otherwise, returns t, indicating that
 FILE can be created or overwritten."
   (cond
    ((url-cache-file-writable-p file)
@@ -82,7 +82,7 @@ FILE can be created or overwritten."
 	 (nth 5 attribs))))		; Can get last mod-time
 
 (defun url-cache-create-filename-human-readable (url)
-  "Return a filename in the local cache for URL"
+  "Return a filename in the local cache for URL."
   (if url
       (let* ((url (if (vectorp url) (url-recreate-url url) url))
 	     (urlobj (url-generic-parse-url url))
@@ -178,7 +178,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 
 ;;;###autoload
 (defun url-cache-extract (fnam)
-  "Extract FNAM from the local disk cache"
+  "Extract FNAM from the local disk cache."
   (erase-buffer)
   (insert-file-contents-literally fnam))
 

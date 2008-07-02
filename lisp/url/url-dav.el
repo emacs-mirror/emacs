@@ -38,7 +38,7 @@
   "List of supported DAV versions.")
 
 (defun url-intersection (l1 l2)
-  "Return a list of the elements occuring in both of the lists L1 and L2."
+  "Return a list of the elements occurring in both of the lists L1 and L2."
   (if (null l2)
       l2
     (let (result)
@@ -100,7 +100,7 @@
     (list (concat "^" full-date)
 	  (concat "T" partial-time)
 	  (concat "Z" time-numoffset)))
-  "List of regular expressions matching iso8601 dates.
+  "List of regular expressions matching ISO 8601 dates.
 1st regular expression matches the date.
 2nd regular expression matches the time.
 3rd regular expression matches the (optional) timezone specification.")
@@ -472,7 +472,7 @@ names (ie: DAV:resourcetype)."
 		   depth nil namespaces))
 
 (defmacro url-dav-http-success-p (status)
-  "Return whether PROPERTIES was the result of a successful DAV request."
+  "Return whether STATUS was the result of a successful DAV request."
   `(= (/ (or ,status 500) 100) 2))
 
 
@@ -714,8 +714,7 @@ OBJ may be a buffer or a string."
   (defmacro url-dav-delete-something (url lock-token &rest error-checking)
     "Delete URL completely, with no sanity checking whatsoever.  DO NOT USE.
 This is defined as a macro that will not be visible from compiled files.
-Use with care, and even then think three times.
-"
+Use with care, and even then think three times."
     `(progn
        ,@error-checking
        (url-dav-request ,url "DELETE" nil nil -1
@@ -769,7 +768,7 @@ files in the collection as well."
   nil)
 
 (defun url-dav-directory-files (url &optional full match nosort files-only)
-  "Return a list of names of files in DIRECTORY.
+  "Return a list of names of files in URL.
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
@@ -889,16 +888,16 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     t))
 
 (defun url-dav-file-name-all-completions (file url)
-  "Return a list of all completions of file name FILE in directory DIRECTORY.
-These are all file names in directory DIRECTORY which begin with FILE."
+  "Return a list of all completions of file name FILE in URL.
+These are all file names in URL which begin with FILE."
   (url-dav-directory-files url nil (concat "^" file ".*")))
 
 (defun url-dav-file-name-completion (file url)
-  "Complete file name FILE in directory DIRECTORY.
-Returns the longest string
-common to all file names in DIRECTORY that start with FILE.
+  "Complete file name FILE in URL.
+Returns the longest string common to all file names in URL
+that start with FILE.
 If there is only one and FILE matches it exactly, returns t.
-Returns nil if DIR contains no name starting with FILE."
+Returns nil if URL contains no name starting with FILE."
   (let ((matches (url-dav-file-name-all-completions file url))
 	(result nil))
     (cond

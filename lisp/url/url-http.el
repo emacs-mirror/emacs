@@ -153,7 +153,7 @@ request.")
 
 (defun url-http-create-request (&optional ref-url)
   "Create an HTTP request for `url-http-target-url', referred to by REF-URL."
-  (declare (special proxy-info 
+  (declare (special proxy-info
 		    url-http-method url-http-data
 		    url-http-extra-headers))
   (let* ((extra-headers)
@@ -323,10 +323,10 @@ This allows us to use `mail-fetch-field', etc."
 
     ;; find strongest supported auth
     (dolist (this-auth auths)
-      (setq this-auth (url-eat-trailing-space 
-		       (url-strip-leading-spaces 
+      (setq this-auth (url-eat-trailing-space
+		       (url-strip-leading-spaces
 			this-auth)))
-      (let* ((this-type 
+      (let* ((this-type
 	      (if (string-match "[ \t]" this-auth)
 		  (downcase (substring this-auth 0 (match-beginning 0)))
 		(downcase this-auth)))
@@ -418,7 +418,7 @@ should be shown to the user."
     ;; "Connection: keep-alive" header.
     ;; In HTTP 1.1 (and greater), keep the connection unless there is a
     ;; "Connection: close" header
-    (cond 
+    (cond
      ((string= url-http-response-version "1.0")
       (unless (and connection
 		   (string= (downcase connection) "keep-alive"))
@@ -800,7 +800,7 @@ should be shown to the user."
 
 ;; These unfortunately cannot be macros... please ignore them!
 (defun url-http-idle-sentinel (proc why)
-  "Remove this (now defunct) process PROC from the list of open connections."
+  "Remove (now defunct) process PROC from the list of open connections."
   (maphash (lambda (key val)
 		(if (memq proc val)
 		    (puthash key (delq proc val) url-http-open-connections)))

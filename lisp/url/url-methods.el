@@ -110,7 +110,7 @@
 	   (message "Using a proxy for %s..." scheme)))))
 
 (defun url-scheme-get-property (scheme property)
-  "Get property of a URL SCHEME.
+  "Get PROPERTY of a URL SCHEME.
 Will automatically try to load a backend from url-SCHEME.el if
 it has not already been loaded."
   (setq scheme (downcase scheme))
