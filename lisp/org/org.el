@@ -1987,8 +1987,8 @@ scope."
       'org-agenda-text-search-extra-files))
 
 (defcustom org-agenda-skip-unavailable-files nil
-  "t means to just skip non-reachable files in `org-agenda-files'.
-Nil means to remove them, after a query, from the list."
+  "Non-nil means to just skip non-reachable files in `org-agenda-files'.
+A nil value means to remove them, after a query, from the list."
   :group 'org-agenda
   :type 'boolean)
 

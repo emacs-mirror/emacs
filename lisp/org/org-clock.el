@@ -55,7 +55,7 @@ reaches or exceeds this number, a drawer will be created."
 
 (defcustom org-clock-out-when-done t
   "When t, the clock will be stopped when the relevant entry is marked DONE.
-Nil means, clock will keep running until stopped explicitly with
+When nil, clock will keep running until stopped explicitly with
 `C-c C-x C-o', or until the clock is started in a different item."
   :group 'org-clock
   :type 'boolean)
@@ -136,7 +136,7 @@ of a different task.")
   "Select a task that recently was associated with clocking."
   (interactive)
   (let (sel-list rpl file task (i 0) s)
-    (save-window-excursion 
+    (save-window-excursion
       (org-switch-to-buffer-other-window
        (get-buffer-create "*Clock Task Select*"))
       (erase-buffer)
@@ -190,7 +190,7 @@ of a different task.")
       (when (and cat task)
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
-  
+
 (defun org-update-mode-line ()
   (let* ((delta (- (time-to-seconds (current-time))
                    (time-to-seconds org-clock-start-time)))
@@ -226,13 +226,13 @@ the clocking selection, associated with the letter `d'."
 		   (marker-position org-clock-marker)
 		   (marker-buffer org-clock-marker))
       (org-clock-out t))
-    
+
     (when (equal select '(16))
       ;; Mark as default clocking task
       (save-excursion
 	(org-back-to-heading t)
 	(move-marker org-clock-default-task (point))))
-    
+
     (setq target-pos (point))  ;; we want to clock in at this location
     (save-excursion
       (when (and selected-task (marker-buffer selected-task))
@@ -261,7 +261,7 @@ the clocking selection, associated with the letter `d'."
 	      (setq org-clock-heading "???")))
 	  (setq org-clock-heading (propertize org-clock-heading 'face nil))
 	  (org-clock-find-position)
-	  
+
 	  (insert "\n") (backward-char 1)
 	  (indent-relative)
 	  (insert org-clock-string " ")
@@ -735,9 +735,9 @@ the currently selected interval size."
 	   (ins (make-marker))
 	   (total-time nil)
 	   (scope (plist-get params :scope))
-	   (tostring (plist-get  params :tostring))
-	   (multifile (plist-get  params :multifile))
-	   (header (plist-get  params :header))
+	   (tostring (plist-get params :tostring))
+	   (multifile (plist-get params :multifile))
+	   (header (plist-get params :header))
 	   (maxlevel (or (plist-get params :maxlevel) 3))
 	   (step (plist-get params :step))
 	   (emph (plist-get params :emphasize))
