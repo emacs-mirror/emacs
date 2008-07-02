@@ -1,3 +1,8 @@
+2008-07-02  Magnus Henoch  <mange@freemail.hu>
+
+    	* vc-git.el (vc-git-annotate-command): Use proper option for
+    	specifying revision.
+
 2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
 
 	* startup.el (fancy-splash-head): Prefer SVG or PNG splash image,
