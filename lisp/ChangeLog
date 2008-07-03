@@ -1,5 +1,30 @@
 2008-07-03  Juanma Barranquero  <lekktu@gmail.com>
 
+	* eshell/esh-arg.el (eshell-quote-backslash): Fix typo in docstring.
+	(eshell-parse-argument-hook, eshell-special-chars-inside-quoting)
+	(eshell-arg-load-hook, eshell-special-chars-outside-quoting):
+	Remove spurious * in defcustom docstrings.
+
+	* textmodes/fill.el (fill-paragraph): Fix typo in docstring.
+	(fill-individual-varying-indent, colon-double-space, enable-kinsoku)
+	(adaptive-fill-mode, adaptive-fill-first-line-regexp)
+	(default-justification): Remove spurious * in defcustom docstrings.
+
+	* textmodes/rst.el (rst, rst-line-homogeneous-p, rst-mode-abbrev-table)
+	(rst-font-lock-keywords-function, rst-mode, rst-minor-mode)
+	(rst-compare-decorations, rst-default-indent, rst-update-section)
+	(rst-decoration-complete-p, rst-section-tree, rst-toc-insert-node)
+	(rst-toc-insert-find-delete-contents, rst-toc-count-lines)
+	(rst-toc-mode-goto-section, rst-faces, rst-level-face-base-color):
+	Fix typos in docstrings.
+	(rst-mode-lazy): Fix typo in docstring.  Remove spurious *.
+	(rst-adjust, rst-line-homogeneous-p, rst-suggest-new-decoration)
+	(rst-get-decorations-around, rst-section-tree-point)
+	(rst-font-lock-adornment-point): Reflow docstrings.
+	(rst-get-decoration, rst-get-decoration-match, rst-adjust-decoration):
+	Doc fixes.
+	(rst-re-enumerations): Comment out.
+
 	* nxml/nxml-glyph.el (nxml-glyph-set-hook):
 	* nxml/nxml-uchnm.el (nxml-unicode-blocks)
 	(nxml-unicode-block-char-name-set):

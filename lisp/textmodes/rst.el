@@ -199,7 +199,7 @@
 ;;; Code:
 
 
-(defgroup rst nil "Support for reStructuredText documents"
+(defgroup rst nil "Support for reStructuredText documents."
   :group 'wp
   :version "23.1"
   :link '(url-link "http://docutils.sourceforge.net/rst.html"))
@@ -308,7 +308,7 @@ This inherits from Text mode.")
 
 ;; Abbrevs.
 (defvar rst-mode-abbrev-table nil
-  "Abbrev table used while in rst mode.")
+  "Abbrev table used while in Rst mode.")
 (define-abbrev-table 'rst-mode-abbrev-table
   '(
     ("contents" ".. contents::\n..\n   " nil 0)
@@ -351,13 +351,13 @@ The hook for Text Mode is run before this one."
 
 
 (defcustom rst-mode-lazy t
-  "*If non-nil Rst Mode tries to font-lock multi-line elements correctly.
+  "If non-nil Rst mode tries to font-lock multi-line elements correctly.
 Because this is really slow it should be set to nil if neither `jit-lock-mode'
 not `lazy-lock-mode' and activated.
 
 If nil, comments and literal blocks are font-locked only on the line they start.
 
-The value of this variable is used when Rst Mode is turned on."
+The value of this variable is used when Rst mode is turned on."
   :group 'rst
   :type '(boolean))
 
@@ -369,10 +369,10 @@ The value of this variable is used when Rst Mode is turned on."
   "Major mode for editing reStructuredText documents.
 
 There are a number of convenient keybindings provided by
-rst-mode. The main one is \[rst-adjust\], it updates or rotates
+Rst mode.  The main one is \\[rst-adjust\], it updates or rotates
 the section title around point or promotes/demotes the
-decorations within the region (see full details below). Use
-negative prefix arg to rotate in the other direction.
+decorations within the region (see full details below).
+Use negative prefix arg to rotate in the other direction.
 \\{rst-mode-map}
 
 Turning on `rst-mode' calls the normal hooks `text-mode-hook' and
@@ -448,10 +448,9 @@ With no argument, this command toggles the mode.
 Non-null prefix argument turns on the mode.
 Null prefix argument turns off the mode.
 
-When ReST minor mode is enabled, the ReST mode
-keybindings are installed on top of the major
-mode bindings. Use this for modes derived from
-text-mode, like mail-mode.."
+When ReST minor mode is enabled, the ReST mode keybindings
+are installed on top of the major mode bindings.  Use this
+for modes derived from Text mode, like Mail mode."
  ;; The initial value.
  nil
  ;; The indicator for the mode line.
@@ -555,8 +554,7 @@ text-mode, like mail-mode.."
 ;; that has been found previously).
 
 (defgroup rst-adjust nil
-  "Settings for adjustment and cycling of section title
-decorations."
+  "Settings for adjustment and cycling of section title decorations."
   :group 'rst
   :version "21.1")
 
@@ -580,7 +578,7 @@ title in the file."
 (defcustom rst-default-indent 1
   "Number of characters to indent the section title.
 
-THis is used for when toggling decoration styles, when switching
+This is used for when toggling decoration styles, when switching
 from a simple decoration style to a over-and-under decoration
 style."
   :group 'rst-adjust)
@@ -594,13 +592,13 @@ style."
   "Return true if the line is homogeneous.
 
 Predicate that returns the unique char if the current line is
-composed only of a single repeated non-whitespace character.  This
-returns the char even if there is whitespace at the beginning of
-the line.
+composed only of a single repeated non-whitespace character.
+This returns the char even if there is whitespace at the
+beginning of the line.
 
 If ACCEPT-SPECIAL is specified we do not ignore special sequences
 which normally we would ignore when doing a search on many lines.
-For example, normally we have cases to ignore commonly occuring
+For example, normally we have cases to ignore commonly occurring
 patterns, such as :: or ...; with the flag do not ignore them."
   (save-excursion
     (back-to-indentation)
@@ -632,9 +630,9 @@ See `rst-line-homogeneous-p' about ACCEPT-SPECIAL."
 
 (defun rst-compare-decorations (deco1 deco2)
   "Compare decorations.
-Returns true if both DECO1 and DECO2 decorations are equal,
+Return true if both DECO1 and DECO2 decorations are equal,
 according to restructured text semantics (only the character and
-the style are compared, the indentation does not matter."
+the style are compared, the indentation does not matter)."
   (and (eq (car deco1) (car deco2))
        (eq (cadr deco1) (cadr deco2))))
 
@@ -642,7 +640,7 @@ the style are compared, the indentation does not matter."
 (defun rst-get-decoration-match (hier deco)
   "Return the index (level) in hierarchy HIER of decoration DECO.
 This basically just searches for the item using the appropriate
-comparison and returns the index.  We return nil if the item is
+comparison and returns the index.  Return nil if the item is
 not found."
   (let ((cur hier))
     (while (and cur (not (rst-compare-decorations (car cur) deco)))
@@ -653,9 +651,9 @@ not found."
 (defun rst-suggest-new-decoration (alldecos &optional prev)
   "Suggest a new, different decoration from all that have been seen.
 
-ALLDECOS is the set of all decorations, including the line
-numbers.  PREV is the optional previous decoration, in order to
-suggest a better match."
+ALLDECOS is the set of all decorations, including the line numbers.
+PREV is the optional previous decoration, in order to suggest a
+better match."
 
   ;; For all the preferred decorations...
   (let* (
@@ -689,10 +687,10 @@ suggest a better match."
 (defun rst-update-section (char style &optional indent)
   "Unconditionally update the style of a section decoration.
 
-Do this using the given character CHAR, with STYLE 'simple or
-'over-and-under, and with indent INDENT.  If the STYLE is
-'simple, whitespace before the title is removed (indent is always
-assume to be 0).
+Do this using the given character CHAR, with STYLE 'simple
+or 'over-and-under, and with indent INDENT.  If the STYLE
+is 'simple, whitespace before the title is removed (indent
+is always assumed to be 0).
 
 If there are existing overline and/or underline from the
 existing decoration, they are removed before adding the
@@ -859,14 +857,14 @@ is one) is not taken into account when building the hierarchy."
   "Get the decoration at POINT.
 
 Looks around point and finds the characteristics of the
-decoration that is found there.  We assume that the cursor is
+decoration that is found there.  Assumes that the cursor is
 already placed on the title line (and not on the overline or
 underline).
 
 This function returns a (char, style, indent) triple.  If the
-characters of overline and underline are different, we return
-the underline character.  The indent is always calculated.  A
-decoration can be said to exist if the style is not nil.
+characters of overline and underline are different, return
+the underline character.  The indent is always calculated.
+A decoration can be said to exist if the style is not nil.
 
 A point can be specified to go to the given location before
 extracting the decoration."
@@ -925,9 +923,9 @@ extracting the decoration."
 (defun rst-get-decorations-around (&optional alldecos)
   "Return the decorations around point.
 
-Given the list of all decorations ALLDECOS (with positions), find
-the decorations before and after the given point.  A list of the
-previous and next decorations is returned."
+Given the list of all decorations ALLDECOS (with positions),
+find the decorations before and after the given point.
+A list of the previous and next decorations is returned."
   (let* ((all (or alldecos (rst-find-all-decorations)))
          (curline (line-number-at-pos))
          prev next
@@ -947,7 +945,7 @@ previous and next decorations is returned."
 
 
 (defun rst-decoration-complete-p (deco)
-  "Return true if the decoration DECO around POINT is complete."
+  "Return true if the decoration DECO around point is complete."
   ;; Note: we assume that the detection of the overline as being the underline
   ;; of a preceding title has already been detected, and has been eliminated
   ;; from the decoration that is given to us.
@@ -1082,8 +1080,8 @@ This function is meant to be invoked possibly multiple times, and
 can vary its behavior with a true TOGGLE-STYLE argument, or with
 a REVERSE-DIRECTION argument.
 
-General Behaviour
-=================
+General Behavior
+================
 
 The next action it takes depends on context around the point, and
 it is meant to be invoked possibly more than once to rotate among
@@ -1121,8 +1119,8 @@ The decorations consist in
 See source code for mode details.
 
 
-Detailed Behaviour Description
-==============================
+Detailed Behavior Description
+=============================
 
 Here are the gory details of the algorithm (it seems quite
 complicated, but really, it does the most obvious thing in all
@@ -1183,7 +1181,7 @@ of those decoration that has not been seen in the file yet (and
 not including the decoration around point), and the next
 invocation rolls over to the other end of the hierarchy (i.e. it
 cycles).  This allows you to avoid having to set which character
-to use by always using the
+to use.
 
 If REVERSE-DIRECTION is true, the effect is to change the
 direction of rotation in the hierarchy of decorations, thus
@@ -1212,7 +1210,7 @@ Indented section titles such as ::
    My Title
    --------
 
-are illegal in restructuredtext and thus not recognized by the
+are invalid in restructuredtext and thus not recognized by the
 parser.  This code will thus not work in a way that would support
 indented sections (it would be ambiguous anyway).
 
@@ -1533,9 +1531,9 @@ is a regular expression for matching the lines with items."
   (format "\\([%s][ \t]\\)[^ \t]" (regexp-quote (concat rst-bullets)))
   "Regexp for finding bullets.")
 
-(defvar rst-re-enumerations
-  "\\(\\(#\\|[0-9]+\\)\\.[ \t]\\)[^ \t]"
-  "Regexp for finding bullets.")
+;; (defvar rst-re-enumerations
+;;   "\\(\\(#\\|[0-9]+\\)\\.[ \t]\\)[^ \t]"
+;;   "Regexp for finding bullets.")
 
 (defvar rst-re-items
   (format "\\(%s\\|%s\\)[^ \t]"
@@ -1610,7 +1608,7 @@ string and a marker to the section in the original text document.
 If there are missing section levels, the section titles are
 inserted automatically, and the title string is set to nil, and
 the marker set to the first non-nil child of itself.
-Conceptually, the nil nodes--i.e.  those which have no title--are
+Conceptually, the nil nodes--i.e. those which have no title--are
 to be considered as being the same line as their first non-nil
 child.  This has advantages later in processing the graph."
 
@@ -1684,9 +1682,9 @@ POINT (default being the current point in the current buffer),
 find and return the node within the sectree where the cursor
 lives.
 
-Return values: a pair of (parent path, container subtree).  The
-parent path is simply a list of the nodes above the container
-subtree node that we're returning."
+Return values: a pair of (parent path, container subtree).
+The parent path is simply a list of the nodes above the
+container subtree node that we're returning."
 
   (let (path outtree)
 
@@ -1789,11 +1787,11 @@ The TOC is inserted indented at the current column."
 
 (defun rst-toc-insert-node (node level indent pfx)
   "Insert tree node NODE in table-of-contents.
-Recursive function that does printing of the inserted toc.  LEVEL
-is the depth level of the sections in the tree.  INDENT bis the
-indentation string.  PFX is the prefix numbering, that includes
-the alignment necessary for all the children of level to
-align."
+Recursive function that does printing of the inserted toc.
+LEVEL is the depth level of the sections in the tree.
+INDENT is the indentation string.  PFX is the prefix numbering,
+that includes the alignment necessary for all the children of
+level to align."
 
   ;; Note: we do child numbering from the parent, so we start number the
   ;; children one level before we print them.
@@ -1864,7 +1862,7 @@ align."
 
 
 (defun rst-toc-insert-find-delete-contents ()
-  "Find and deletes an existing comment after the first contents directive.
+  "Find and delete an existing comment after the first contents directive.
 Delete that region.  Return t if found and the cursor is left after the comment."
   (goto-char (point-min))
   ;; We look for the following and the following only (in other words, if your
@@ -1955,8 +1953,8 @@ file-write hook to always make it up-to-date automatically."
 (defun rst-toc-count-lines (node target-node)
   "Count the number of lines from NODE to the TARGET-NODE node.
 This recursive function returns a cons of the number of
-additional lines that have been counted for its node and children
-and 't if the node has been found."
+additional lines that have been counted for its node and
+children, and t if the node has been found."
 
   (let ((count 1)
 	found)
@@ -2045,7 +2043,7 @@ brings the cursor in that section."
     (recenter 5)))
 
 (defun rst-toc-mode-goto-section ()
-  "Go to the section the current line describes and kill the toc buffer."
+  "Go to the section the current line describes and kill the TOC buffer."
   (interactive)
   (rst-goto-section t))
 
@@ -2575,7 +2573,7 @@ With prefix argument set the empty lines too."
 
 (require 'font-lock)
 
-(defgroup rst-faces nil "Faces used in Rst Mode"
+(defgroup rst-faces nil "Faces used in Rst Mode."
   :group 'rst
   :group 'faces
   :version "21.1")
@@ -2668,7 +2666,7 @@ general but you do not like the details."
   :set 'rst-set-level-default)
 (defcustom rst-level-face-base-color "grey"
   "The base name of the color to be used for creating background colors in
-ection title faces for all levels."
+section title faces for all levels."
   :group 'rst-faces-defaults
   :type '(string)
   :set 'rst-set-level-default)
@@ -2759,7 +2757,7 @@ details check the Rst Faces Defaults group."
   "Non-nil if we can use the character classes in our regexps.")
 
 (defun rst-font-lock-keywords-function ()
-  "Return keywords to highlight in rst mode according to current settings."
+  "Return keywords to highlight in Rst mode according to current settings."
   ;; The reST-links in the comments below all relate to sections in
   ;; http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
   (let* ( ;; This gets big - so let's define some abbreviations
@@ -3057,8 +3055,8 @@ point is not moved."
 ;; Adornments
 
 (defvar rst-font-lock-adornment-point nil
-  "Stores the point where the current adornment ends.  Also used as a trigger
-for `rst-font-lock-handle-adornment'.")
+  "Stores the point where the current adornment ends.
+Also used as a trigger for `rst-font-lock-handle-adornment'.")
 
 ;; Here `rst-font-lock-handle-adornment' stores the section level of the
 ;; current adornment or t for a transition.
