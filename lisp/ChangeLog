@@ -1,3 +1,84 @@
+2008-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nxml/nxml-glyph.el (nxml-glyph-set-hook):
+	* nxml/nxml-uchnm.el (nxml-unicode-blocks)
+	(nxml-unicode-block-char-name-set):
+	* nxml/nxml-util.el (nxml-debug, nxml-make-namespace):
+	* nxml/rng-nxml.el (rng-set-state-after):
+	* nxml/rng-uri.el (rng-file-name-uri): Fix typo in docstring.
+
+	* nxml/rng-cmpct.el (rng-c-lookup-create, rng-c-parse-primary)
+	(rng-c-parse-annotation-body):
+	* nxml/rng-dt.el (rng-dt-namespace-context-getter): Reflow docstrings.
+
+	* nxml/nxml-mode.el (nxml, nxml-mode, nxml-after-change1)
+	(nxml-extend-region, nxml-merge-indent-context-type, nxml-complete)
+	(nxml-forward-balanced-item, nxml-dynamic-markup-word)
+	(nxml-define-char-name-set, nxml-toggle-char-ref-extra-display):
+	Fix typos in docstrings.
+	(nxml-attribute-indent): Reflow docstring.
+	(nxml-bind-meta-tab-to-complete-flag, nxml-last-fontify-end)
+	(nxml-default-buffer-file-coding-system): Doc fixes.
+
+	* nxml/nxml-ns.el (nxml-ns-state, nxml-ns-initial-state)
+	(nxml-ns-set-prefix): Fix typos in docstrings.
+	(nxml-ns-push-state, nxml-ns-pop-state, nxml-ns-set-default):
+	Reflow docstring.
+	(nxml-ns-get-prefix, nxml-ns-get-default): Doc fixes.
+
+	* nxml/nxml-outln.el (nxml-hide-all-text-content)
+	(nxml-show-direct-text-content, nxml-show-direct-subheadings)
+	(nxml-hide-direct-text-content, nxml-hide-subheadings)
+	(nxml-hide-text-content, nxml-show-subheadings, nxml-hide-other)
+	(nxml-outline-display-rest, nxml-outline-set-overlay)
+	(nxml-section-tag-forward, nxml-section-tag-backward)
+	(nxml-back-to-section-start): Fix typos in docstrings.
+
+	* nxml/nxml-parse.el (nxml-validate-function, nxml-parse-file):
+	Doc fixes.
+
+	* nxml/nxml-rap.el (nxml-scan-end, nxml-move-tag-backwards)
+	(nxml-scan-element-forward, nxml-scan-element-backward): Doc fixes.
+	(nxml-scan-after-change): Fix typo in docstring.
+
+	* nxml/rng-match.el (rng-being-compiled, rng-normalize-choice-list)
+	(rng-name-class-possible-names): Doc fixes.
+	(rng-memo-map-add, rng-intern-group, rng-match-possible-namespace-uris)
+	(rng-match-possible-start-tag-names, rng-match-possible-value-strings):
+	Fix typos in docstrings.
+	(rng-intern-group-shortcut, rng-intern-choice-shortcut):
+	Reflow docstrings.
+
+	* nxml/rng-util.el (rng-uniquify-eq, rng-uniquify-equal): Doc fixes.
+	(rng-substq, rng-complete-before-point): Fix typos in docstrings.
+
+	* nxml/rng-xsd.el (rng-xsd-make-date-time-regexp)
+	(rng-xsd-convert-date-time): Reflow docstrings.
+	(rng-xsd-compile): Fix typo in docstring.
+
+	* nxml/rng-loc.el (rng-current-schema-file-name)
+	(rng-locate-schema-file-using, rng-locate-schema-file-from-type-id):
+	Doc fixes.
+	(rng-set-schema-file): Fix typo in docstring.
+
+	* nxml/rng-valid.el (rng-error-count, rng-validate-mode)
+	(rng-do-some-validation, rng-process-start-tag, rng-process-text):
+	Fix typos in docstrings.
+	(rng-message-overlay, rng-conditional-up-to-date-start)
+	(rng-conditional-up-to-date-end): Doc fixes.
+	(rng-next-error, rng-previous-error): Reflow docstrings.
+
+	* nxml/xmltok.el (xmltok-attribute-raw-normalized-value): Doc fix.
+	(xmltok-dtd, xmltok-dependent-regions, xmltok-attribute-refs)
+	(xmltok-valid-char-p, xmltok-standalone, xmltok-forward-prolog)
+	(xmltok-merge-attributes): Fix typos in docstrings.
+	(xmltok-make-attribute, xmltok-forward-special)
+	(xmltok-get-declared-encoding-position): Reflow docstrings.
+
+	* nxml/xsd-regexp.el (xsdre-char-class-to-range-list): Doc fix.
+	(xsdre-range-list-union, xsdre-check-range-list, xsdre-current-regexp):
+	Fix typos in docstrings.
+
 2008-07-02  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-buffer-file-name):

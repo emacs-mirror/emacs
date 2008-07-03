@@ -245,14 +245,16 @@ and URI is a symbol.")
 (defconst rng-c-about-combine-slot 1)
 
 (defun rng-c-lookup-create (name grammar)
-  "Return a def object for NAME.  A def object is a pair
-\(ABOUT . REF) where REF is returned by `rng-make-ref'.  ABOUT is a
-two-element vector [OVERRIDE COMBINE].  COMBINE is either nil, choice
-or interleave.  OVERRIDE is either nil, require or t."
+  "Return a def object for NAME.
+A def object is a pair \(ABOUT . REF) where REF is returned by
+`rng-make-ref'.
+ABOUT is a two-element vector [OVERRIDE COMBINE].
+COMBINE is either nil, choice or interleave.
+OVERRIDE is either nil, require or t."
   (let ((def (gethash name grammar)))
     (if def
 	def
-      (progn 
+      (progn
 	(setq def (cons (vector nil nil) (rng-make-ref name)))
 	(puthash name def grammar)
 	def))))
@@ -470,14 +472,14 @@ or interleave.  OVERRIDE is either nil, require or t."
 	  (cons (cons prefix
 		      (rng-make-datatypes-uri (rng-c-parse-literal)))
 		rng-c-datatype-decls))))
-    
+
 (defun rng-c-parse-namespace ()
   (rng-c-declare-namespace nil
 			   (rng-c-parse-identifier-or-keyword)))
 
 (defun rng-c-parse-default ()
   (rng-c-expect "namespace")
-  (rng-c-declare-namespace t 
+  (rng-c-declare-namespace t
 			   (if (string-equal rng-c-current-token "=")
 			       nil
 			     (rng-c-parse-identifier-or-keyword))))
@@ -615,9 +617,10 @@ or interleave.  OVERRIDE is either nil, require or t."
       p)))
 
 (defun rng-c-parse-primary ()
-  "Parse a primary expression.  The current token must be the first
-token of the expression.  After parsing the current token should be
-token following the primary expression."
+  "Parse a primary expression.
+The current token must be the first token of the expression.
+After parsing the current token should be the token following
+the primary expression."
   (cond ((rng-c-current-token-keyword-p)
 	 (let ((parse-function (get (intern rng-c-current-token)
 				    'rng-c-pattern)))
@@ -691,7 +694,7 @@ token following the primary expression."
 	((rng-c-current-token-quoted-identifier-p)
 	 (rng-c-advance-with (substring rng-c-current-token 1)))
 	(t (rng-c-error "Expected identifier or keyword"))))
-   
+
 (put 'string 'rng-c-pattern 'rng-c-parse-string)
 (put 'token 'rng-c-pattern 'rng-c-parse-token)
 (put 'element 'rng-c-pattern 'rng-c-parse-element)
@@ -740,7 +743,7 @@ token following the primary expression."
 		   (string-equal rng-c-current-token "|")))
 	  (rng-make-choice-name-class name-classes))
       name-class)))
-	  
+
 (defun rng-c-parse-primary-name-class (attribute)
   (cond ((rng-c-current-token-ncname-p)
 	 (rng-c-advance-with
@@ -901,8 +904,8 @@ token following the primary expression."
 ;; XXX don't allow attributes after text
 
 (defun rng-c-parse-annotation-body (&optional allow-text)
-  "Current token is [.  Parse up to matching ]. Current token after
-parse is token following ]."
+  "Current token is [.  Parse up to matching ].
+Current token after parse is token following ]."
   (or (string-equal rng-c-current-token "[")
       (rng-c-error "Expected ["))
   (rng-c-advance)
@@ -922,7 +925,7 @@ parse is token following ]."
 		  (rng-c-parse-literal))
 		 (t (rng-c-error "Expected = or ["))))))
   (rng-c-advance))
-	     
+
 (defun rng-c-advance-with (pattern)
   (rng-c-advance)
   pattern)

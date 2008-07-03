@@ -148,13 +148,13 @@ A quick validation validates at most one chunk."
 (put 'rng-validate-quick-timer 'permanent-local t)
 
 (defvar rng-error-count nil
-  "Number of errors in the current buffer.  Always equal to number of
-overlays with category rng-error.")
+  "Number of errors in the current buffer.
+Always equal to number of overlays with category `rng-error'.")
 (make-variable-buffer-local 'rng-error-count)
 
 (defvar rng-message-overlay nil
-  "Overlay in this buffer whose help-echo property was last printed.
-Nil if none.")
+  "Overlay in this buffer whose `help-echo' property was last printed.
+It is nil if none.")
 (make-variable-buffer-local 'rng-message-overlay)
 
 (defvar rng-message-overlay-inhibit-point nil
@@ -189,19 +189,19 @@ indicating an unresolvable entity or character reference.")
 
 (defvar rng-conditional-up-to-date-start nil
   "Marker for the start of the conditionally up-to-date region.
-Nil if there is no conditionally up-to-date region.  The conditionally
-up-to-date region must be such that for any cached state S with
-position P in the conditionally up-to-date region, if at some point it
-is determined that S becomes correct for P, then all states with
-position >= P in the conditionally up to date region must also then be
-correct and all errors between P and the end of the region must then
-be correctly marked.")
+It is nil if there is no conditionally up-to-date region.  The
+conditionally up-to-date region must be such that for any cached
+state S with position P in the conditionally up-to-date region,
+if at some point it is determined that S becomes correct for P,
+then all states with position >= P in the conditionally up to
+date region must also then be correct and all errors between P
+and the end of the region must then be correctly marked.")
 (make-variable-buffer-local 'rng-conditional-up-to-date-start)
 
 (defvar rng-conditional-up-to-date-end nil
   "Marker for the end of the conditionally up-to-date region.
-Nil if there is no conditionally up-to-date region.  See the variable
-`rng-conditional-up-to-date-start'.")
+It is nil if there is no conditionally up-to-date region.
+See the variable `rng-conditional-up-to-date-start'.")
 (make-variable-buffer-local 'rng-conditional-up-to-date-end)
 
 (defvar rng-parsing-for-state nil
@@ -220,17 +220,17 @@ Should be dynamically bound.")
 
 Checks whether the buffer is a well-formed XML 1.0 document,
 conforming to the XML Namespaces Recommendation and valid against a
-RELAX NG schema. The mode-line indicates whether it is or not.  Any
+RELAX NG schema.  The mode-line indicates whether it is or not.  Any
 parts of the buffer that cause it not to be are considered errors and
-are highlighted with face `rng-error'. A description of each error is
+are highlighted with face `rng-error'.  A description of each error is
 available as a tooltip.  \\[rng-next-error] goes to the next error
-after point. Clicking mouse-1 on the word `Invalid' in the mode-line
-goes to the first error in the buffer. If the buffer changes, then it
+after point.  Clicking mouse-1 on the word `Invalid' in the mode-line
+goes to the first error in the buffer.  If the buffer changes, then it
 will be automatically rechecked when Emacs becomes idle; the
-rechecking will be paused whenever there is input pending..
+rechecking will be paused whenever there is input pending.
 
 By default, uses a vacuous schema that allows any well-formed XML
-document. A schema can be specified explictly using
+document.  A schema can be specified explictly using
 \\[rng-set-schema-file-and-validate], or implicitly based on the buffer's
 file name or on the root element name.  In each case the schema must
 be a RELAX NG schema using the compact schema \(such schemas
@@ -295,7 +295,7 @@ The schema is set like `rng-set-schema'."
   (interactive (list (rng-read-type-id)))
   (and (rng-set-document-type type-id)
        (or rng-validate-mode (rng-validate-mode))))
-    
+
 (defun rng-auto-set-schema-and-validate ()
   "Set the schema for this buffer automatically and turn on `rng-validate-mode'.
 The schema is set like `rng-auto-set-schema'."
@@ -365,7 +365,7 @@ The schema is set like `rng-auto-set-schema'."
 					 'mouse-1
 					 'rng-mouse-first-error))))
 	(t " Valid")))
-   
+
 (defun rng-cancel-timers ()
   (let ((inhibit-quit t))
     (when rng-validate-timer
@@ -389,7 +389,7 @@ The schema is set like `rng-auto-set-schema'."
     (when rng-validate-quick-timer
       (cancel-timer rng-validate-quick-timer))
     (kill-local-variable 'rng-validate-quick-timer)))
-      
+
 (defun rng-activate-timers ()
   (unless rng-validate-timer
     (let ((inhibit-quit t))
@@ -465,13 +465,13 @@ The schema is set like `rng-auto-set-schema'."
 (defun rng-validate-done ()
   (when (or (not (current-message))
 	    (rng-current-message-from-error-overlay-p))
-    (rng-error-overlay-message (or (rng-error-overlay-after (point)) 
+    (rng-error-overlay-message (or (rng-error-overlay-after (point))
 				   (rng-error-overlay-after (1- (point))))))
   (rng-cancel-timers)
   (force-mode-line-update))
 
 (defun rng-do-some-validation (&optional continue-p-function)
-  "Do some validation work. Return t if more to do, nil otherwise."
+  "Do some validation work.  Return t if more to do, nil otherwise."
   (save-excursion
     (save-restriction
       (widen)
@@ -605,7 +605,7 @@ Return t if there is work to do, nil otherwise."
 			  (set-marker rng-conditional-up-to-date-start
 				      pos)))))))))
     have-remaining-chars))
-    
+
 (defun rng-clear-conditional-region ()
   (when rng-conditional-up-to-date-start
     (set-marker rng-conditional-up-to-date-start nil)
@@ -784,7 +784,7 @@ Return t if there is work to do, nil otherwise."
   (setq rng-message-overlay-current nil))
 
 ;;; Error navigation
-	     
+
 (defun rng-maybe-echo-error-at-point ()
   (when (or (not (current-message))
 	    (rng-current-message-from-error-overlay-p))
@@ -830,8 +830,8 @@ Turn on `rng-validate-mode' if it is not already on."
 (defun rng-next-error (arg)
   "Go to the next validation error after point.
 Turn on `rng-validate-mode' if it is not already on.
-A prefix ARG specifies how many errors to move. A negative ARG
-moves backwards. Just \\[universal-argument] as a prefix
+A prefix ARG specifies how many errors to move.
+A negative ARG moves backwards.  Just \\[universal-argument] as a prefix
 means goto the first error."
   (interactive "P")
   (if (consp arg)
@@ -845,8 +845,8 @@ means goto the first error."
 (defun rng-previous-error (arg)
   "Go to the previous validation error before point.
 Turn on `rng-validate-mode' if it is not already on.
-A prefix ARG specifies how many errors to move. A negative ARG
-moves forwards. Just \\[universal-argument] as a prefix
+A prefix ARG specifies how many errors to move.
+A negative ARG moves forwards.  Just \\[universal-argument] as a prefix
 means goto the first error."
   (interactive "P")
   (if (consp arg)
@@ -866,7 +866,7 @@ means goto the first error."
       (setq last-err err)
       (setq pos (overlay-start err)))
     (when (> arg 0)
-      (setq pos (max pos (1- rng-validate-up-to-date-end)))      
+      (setq pos (max pos (1- rng-validate-up-to-date-end)))
       (when (< rng-validate-up-to-date-end (point-max))
 	(message "Parsing...")
 	(while (let ((more-to-do (rng-do-some-validation)))
@@ -917,7 +917,7 @@ means goto the first error."
 	(rng-goto-error-overlay last-err)
       (message "No previous errors")
       nil)))
-      
+
 (defun rng-goto-error-overlay (err)
   "Goto the start of error overlay ERR and print its message."
   (goto-char (overlay-start err))
@@ -1051,7 +1051,7 @@ Return nil at end of buffer, t otherwise."
 
 (defun rng-process-start-tag (tag-type)
   "TAG-TYPE is `start-tag' for a start-tag, `empty-element' for
-an empty element.  partial-empty-element should be passed
+an empty element.  `partial-empty-element' should be passed
 as empty-element."
   (and rng-collecting-text (rng-flush-text))
   (setq rng-collecting-text nil)
@@ -1255,7 +1255,7 @@ as empty-element."
 				 (rng-name-to-string nm t)))
 			      required-attributes
 			      ", "))))))
-      
+
 (defun rng-process-end-tag (&optional partial)
   (cond ((not rng-open-elements)
 	 (rng-mark-not-well-formed "Extra end-tag"
@@ -1386,9 +1386,9 @@ as empty-element."
 
 (defun rng-process-text (start end whitespace &optional value)
   "Process characters between position START and END as text.
-END nil means point. WHITESPACE t means known to be whitespace, nil
+END nil means point.  WHITESPACE t means known to be whitespace, nil
 means known not to be, anything else means unknown whether whitespace
-or not. END must not be nil if WHITESPACE is neither t nor nil.
+or not.  END must not be nil if WHITESPACE is neither t nor nil.
 VALUE is a string or nil; nil means the value is equal to the
 string between START and END."
   (cond (rng-collecting-text

@@ -372,7 +372,7 @@ If unsure, return non-nil."
 (defun rng-set-state-after (&optional pos)
   "Set the state for after parsing the first token with endpoint >= POS.
 This does not change the xmltok state or point.  However, it does
-set `xmltok-dtd'. Returns the position of the end of the token."
+set `xmltok-dtd'.  Returns the position of the end of the token."
   (unless pos (setq pos (point)))
   (when (< rng-validate-up-to-date-end pos)
     (message "Parsing...")
@@ -448,7 +448,7 @@ set `xmltok-dtd'. Returns the position of the end of the token."
 	  (rng-process-start-tag 'stop)
 	  (rng-find-undeclared-prefixes)
 	  t)))))
-	
+
 (defun rng-find-undeclared-prefixes ()
   ;; Start with the newly effective namespace declarations.
   ;; (Includes declarations added during recovery.)
@@ -567,7 +567,7 @@ set `xmltok-dtd'. Returns the position of the end of the token."
 				    (list (cdr name))))
 				rng-complete-target-names)))
 	   'string<))))
-	
+
 (defun rng-get-preferred-unused-prefix (ns)
   (let ((ns-prefix (assoc (symbol-name ns) rng-preferred-prefix-alist))
 	iter prefix)

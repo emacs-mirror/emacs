@@ -34,13 +34,13 @@
     nil))
 
 (defvar rng-dt-namespace-context-getter nil
-  "A list used by datatype libraries to expand names.  The car of the
-list is a symbol which is the name of a function.  This function is
-applied to the cdr of the list.  The function must return a list whose
-car is the default namespace and whose cdr is an alist of (PREFIX
-. NAMESPACE) pairs, where PREFIX is a string and NAMESPACE is a
-symbol.  This must be dynamically bound before calling a datatype
-library.")
+  "A list used by datatype libraries to expand names.
+The car of the list is a symbol which is the name of a function.
+This function is applied to the cdr of the list.  The function must
+return a list whose car is the default namespace and whose cdr is an
+alist of (PREFIX . NAMESPACE) pairs, where PREFIX is a string and
+NAMESPACE is a symbol.  This must be dynamically bound before calling
+a datatype library.")
 
 (defsubst rng-dt-make-value (dt str)
   (apply (car dt) (cons str (cdr dt))))

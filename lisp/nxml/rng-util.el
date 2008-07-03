@@ -37,8 +37,7 @@
 (defconst rng-builtin-datatypes-uri (rng-make-datatypes-uri ""))
 
 (defun rng-uniquify-eq (list)
-  "Destructively remove any element from LIST that is eq to
-its predecessor."
+  "Destructively remove `eq' duplicates from LIST."
   (and list
        (let ((head list))
 	 (while (cdr head)
@@ -48,8 +47,7 @@ its predecessor."
 	 list)))
 
 (defun rng-uniquify-equal (list)
-  "Destructively remove any element from LIST that is equal to
-its predecessor."
+  "Destructively remove `equal' duplicates from LIST."
   (and list
        (let ((head list))
 	 (while (cdr head)
@@ -61,7 +59,7 @@ its predecessor."
 (defun rng-blank-p (str) (string-match "\\`[ \t\n\r]*\\'" str))
 
 (defun rng-substq (new old list)
-  "Replace first member of LIST (if any) that is eq to OLD by NEW.
+  "Replace first member of LIST (if any) that is `eq' to OLD by NEW.
 LIST is not modified."
   (cond ((null list) nil)
 	((eq (car list) old)
@@ -90,7 +88,7 @@ Replaces the text between START and point with a string chosen using a
 completion table and, when needed, input read from the user with the
 minibuffer.
 Returns the new string if either a complete and unique completion was
-determined automatically or input was read from the user. Otherwise,
+determined automatically or input was read from the user.  Otherwise,
 returns nil.
 TABLE is an alist, a symbol bound to a function or an obarray as with
 the function `completing-read'.

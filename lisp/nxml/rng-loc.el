@@ -33,7 +33,7 @@
 
 (defvar rng-current-schema-file-name nil
   "Filename of schema being used for current buffer.
-Nil if using a vacuous schema.")
+It is nil if using a vacuous schema.")
 (make-variable-buffer-local 'rng-current-schema-file-name)
 
 (defvar rng-schema-locating-files-default
@@ -91,7 +91,7 @@ Nil if using a vacuous schema.")
 FILENAME must be the name of a file containing a schema.
 The extension of FILENAME is used to determine what kind of schema it
 is.  The variable `rng-schema-loader-alist' maps from schema
-extensions to schema loader functions. The function
+extensions to schema loader functions.  The function
 `rng-c-load-schema' is the loader for RELAX NG compact syntax.  The
 association is between the buffer and the schema: the association is
 lost when the buffer is killed."
@@ -117,7 +117,7 @@ lost when the buffer is killed."
 	  rng-any-element))
   (setq rng-current-schema-file-name filename)
   (run-hooks 'rng-schema-change-hook))
-  
+
 (defun rng-load-schema (filename)
   (let* ((extension (file-name-extension filename))
 	 (loader (cdr (assoc extension rng-schema-loader-alist))))
@@ -132,7 +132,7 @@ lost when the buffer is killed."
   "Display a message saying what schema `rng-validate-mode' is using."
   (interactive)
   (if rng-current-schema-file-name
-      (message "Using schema %s" 
+      (message "Using schema %s"
 	       (abbreviate-file-name rng-current-schema-file-name))
     (message "Using vacuous schema")))
 
@@ -188,7 +188,7 @@ If TYPE-ID is non-nil, then locate the schema for this TYPE-ID."
 (defun rng-locate-schema-file-using (files)
   "Locate a schema using the schema locating files FILES.
 FILES is a list of file-names.
-Return either a URI, a list (TYPE-ID) where TYPE-ID is a string
+Return either a URI, a list (TYPE-ID) where TYPE-ID is a string,
 or nil."
   (let (rules
 	;; List of types that override normal order-based
@@ -381,7 +381,7 @@ NS is t if the document has a non-nil, but not otherwise known namespace."
 
 (defun rng-locate-schema-file-from-type-id (type-id file)
   "Locate the schema for type id TYPE-ID using schema locating file FILE.
-Return either a URI, a list (TYPE-ID) where TYPE-ID is a string
+Return either a URI, a list (TYPE-ID) where TYPE-ID is a string,
 or nil."
   (let ((rules (rng-get-parsed-schema-locating-file file))
 	schema rule)
@@ -425,7 +425,7 @@ or nil."
 		   (cons (list file mtime parsed)
 			 rng-schema-locating-file-alist)))
 	   parsed))))
-  
+
 (defconst rng-locate-namespace-uri
   (nxml-make-namespace "http://thaiopensource.com/ns/locating-rules/1.0"))
 

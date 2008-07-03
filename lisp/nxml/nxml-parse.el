@@ -34,17 +34,17 @@
 (defvar nxml-parse-file-name nil)
 
 (defvar nxml-validate-function nil
-  "Nil or a function to be called by `nxml-parse-file' to perform validation.
+  "Either nil or a function called by `nxml-parse-file' to perform validation.
 The function will be called once for each start-tag or end-tag.  The
 function is passed two arguments TEXT and START-TAG.  For a start-tag,
 START-TAG is a list (NAME ATTRIBUTES) where NAME and ATTRIBUTES are in
-the same form as returned by `nxml-parse-file.  For an end-tag,
+the same form as returned by `nxml-parse-file'.  For an end-tag,
 START-TAG is nil.  TEXT is a string containing the text immediately
 preceding the tag, or nil if there was no such text.  An empty element
 is treated as a start-tag followed by an end-tag.
 
 For a start-tag, the namespace state will be the state after
-processing the namespace declarations in the start-tag. For an
+processing the namespace declarations in the start-tag.  For an
 end-tag, the namespace state will be the state before popping the
 namespace declarations for the corresponding start-tag.
 
@@ -75,7 +75,7 @@ An XML element is represented as a list (NAME ATTRIBUTES . CHILDREN).
 NAME is either a string, in the case where the name does not have a
 namespace, or a cons (NAMESPACE . LOCAL-NAME), where NAMESPACE is a
 symbol and LOCAL-NAME is a string, in the case where the name does
-have a namespace. NAMESPACE is a keyword whose name is `:URI', where
+have a namespace.  NAMESPACE is a keyword whose name is `:URI', where
 URI is the namespace name.  ATTRIBUTES is an alist of attributes where
 each attribute has the form (NAME . VALUE), where NAME has the same
 form as an element name, and VALUE is a string.  A namespace
@@ -88,16 +88,16 @@ list representing the document element.
 
 If the XML document is not well-formed, an error having the condition
 `nxml-file-parse-error' will be signaled; the error data will be a
-list of the \(FILE POSITION MESSAGE), where POSITION is an integer
-specifying the position where the error was detected, and MESSAGE is a
-string describing the error.
+list of the form \(FILE POSITION MESSAGE), where POSITION is an
+integer specifying the position where the error was detected, and
+MESSAGE is a string describing the error.
 
 The current contents of FILE will be parsed even if there is a
 modified buffer currently visiting FILE.
 
-If the variable `nxml-validation-function' is non-nil, it will be
-called twice for each element, and any reported error will be signaled
-in the same way as well-formedness error."
+If the variable `nxml-validate-function' is non-nil, it will be called
+twice for each element, and any reported error will be signaled in the
+same way as well-formedness error."
   (save-excursion
     (set-buffer (nxml-parse-find-file file))
     (unwind-protect
@@ -112,7 +112,7 @@ in the same way as well-formedness error."
     (let ((set-auto-coding-function 'nxml-set-xml-coding))
       (insert-file-contents file))
     (current-buffer)))
-      
+
 (defun nxml-parse-instance ()
   (let (xmltok-dtd)
     (xmltok-save
