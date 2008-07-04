@@ -552,13 +552,15 @@ Gnus provides the following functions:
 * gnus-summary-save-in-vm (use VM's folder format)
 * gnus-summary-write-to-file (article format -- overwrite)
 * gnus-summary-write-body-to-file (article body -- overwrite)
+* gnus-summary-save-in-pipe (article format)
 
 The symbol of each function may have the following properties:
 
 * :decode
 The value non-nil means save decoded articles.  This is meaningful
 only with `gnus-summary-save-in-file', `gnus-summary-save-body-in-file',
-`gnus-summary-write-to-file', and `gnus-summary-write-body-to-file'.
+`gnus-summary-write-to-file', `gnus-summary-write-body-to-file', and
+`gnus-summary-save-in-pipe'.
 
 * :function
 The value specifies an alternative function which appends, not
@@ -581,6 +583,7 @@ headers should be saved."
 		(function-item gnus-summary-save-in-vm)
 		(function-item gnus-summary-write-to-file)
 		(function-item gnus-summary-write-body-to-file)
+		(function-item gnus-summary-save-in-pipe)
 		(function)))
 
 (defcustom gnus-article-save-coding-system
@@ -3936,39 +3939,43 @@ The directory to save in defaults to `gnus-article-save-directory'."
 		  gnus-current-headers nil 'gnus-newsgroup-last-directory))
   (gnus-summary-save-body-in-file filename t))
 
+(put 'gnus-summary-save-in-pipe :decode t)
+(put 'gnus-summary-save-in-pipe :headers 'gnus-saved-headers)
 (defun gnus-summary-save-in-pipe (&optional command)
   "Pipe this article to subprocess."
-  (setq command
-	(cond ((and (eq command 'default)
-		    gnus-last-shell-command)
-	       gnus-last-shell-command)
-	      ((stringp command)
-	       command)
-	      (t (gnus-read-shell-command
-		  (format
-		   "Shell command on %s: "
-		   (if (and gnus-number-of-articles-to-be-saved
-			    (> gnus-number-of-articles-to-be-saved 1))
-		       (format "these %d articles"
-			       gnus-number-of-articles-to-be-saved)
-		     "this article"))
-		  gnus-last-shell-command))))
-  (when (string-equal command "")
-    (if gnus-last-shell-command
-	(setq command gnus-last-shell-command)
-      (error "A command is required")))
-  (gnus-eval-in-buffer-window gnus-article-buffer
+  (let ((default (or gnus-summary-pipe-output-default-command
+		     gnus-last-shell-command)))
+    (unless (stringp command)
+      (setq command
+	    (if (and (eq command 'default) default)
+		default
+	      (gnus-read-shell-command
+	       (format
+		"Shell command on %s: "
+		(if (and gnus-number-of-articles-to-be-saved
+			 (> gnus-number-of-articles-to-be-saved 1))
+		    (format "these %d articles"
+			    gnus-number-of-articles-to-be-saved)
+		  "this article"))
+	       default))))
+    (when (string-equal command "")
+      (if default
+	  (setq command default)
+	(error "A command is required"))))
+  (gnus-eval-in-buffer-window gnus-save-article-buffer
     (save-restriction
       (widen)
       (shell-command-on-region (point-min) (point-max) command nil)))
-  (setq gnus-last-shell-command command))
+  (setq gnus-summary-pipe-output-default-command command))
 
 (defun gnus-summary-pipe-to-muttprint (&optional command)
   "Pipe this article to muttprint."
   (setq command (read-string
 		 "Print using command: " gnus-summary-muttprint-program
 		 nil gnus-summary-muttprint-program))
-  (gnus-summary-save-in-pipe command))
+  (let ((gnus-last-shell-command gnus-last-shell-command))
+    (gnus-summary-save-in-pipe command)
+    (setq gnus-summary-muttprint-program gnus-last-shell-command)))
 
 ;;; Article file names when saving.
 

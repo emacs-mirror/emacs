@@ -1242,8 +1242,19 @@ that were fetched.  Say, for nnultimate groups."
   :group 'gnus-summary
   :type '(choice boolean regexp))
 
+(defcustom gnus-summary-pipe-output-default-command nil
+  "Command (and optional arguments) used to pipe article to subprocess.
+This will be used as the default command if it is non-nil.  The value
+will be updated if you modify it when executing the command
+`gnus-summary-pipe-output' or the function `gnus-summary-save-in-pipe'."
+  :version "23.1" ;; No Gnus
+  :group 'gnus-summary
+  :type '(radio (const :tag "None" nil) (string :tag "Command")))
+
 (defcustom gnus-summary-muttprint-program "muttprint"
-  "Command (and optional arguments) used to run Muttprint."
+  "Command (and optional arguments) used to run Muttprint.
+The value will be updated if you modify it when executing the command
+`gnus-summary-muttprint'."
   :version "22.1"
   :group 'gnus-summary
   :type 'string)
@@ -11583,7 +11594,7 @@ will not be marked as saved."
 					      gnus-display-mime-function))
 		(gnus-article-prepare-hook (when decode
 					     gnus-article-prepare-hook)))
-	    (gnus-summary-select-article t nil nil article)
+	    (gnus-summary-select-article t t nil article)
 	    (gnus-summary-goto-subject article)))
 	(with-current-buffer save-buffer
 	  (erase-buffer)
@@ -11608,12 +11619,19 @@ If N is a positive number, pipe the N next articles.
 If N is a negative number, pipe the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 pipe those articles instead.
-If HEADERS (the symbolic prefix), include the headers, too."
+If HEADERS (the symbolic prefix) is given, force including all headers."
   (interactive (gnus-interactive "P\ny"))
   (require 'gnus-art)
-  (let ((gnus-default-article-saver 'gnus-summary-save-in-pipe)
-	(gnus-save-all-headers (or headers gnus-save-all-headers)))
-    (gnus-summary-save-article arg t))
+  (let ((gnus-default-article-saver 'gnus-summary-save-in-pipe))
+    (if headers
+	(let ((gnus-save-all-headers t)
+	      (headers (get gnus-default-article-saver :headers)))
+	  (unwind-protect
+	      (progn
+		(put gnus-default-article-saver :headers nil)
+		(gnus-summary-save-article arg t))
+	    (put gnus-default-article-saver :headers headers)))
+      (gnus-summary-save-article arg t)))
   (let ((buffer (get-buffer "*Shell Command Output*")))
     (when (and buffer
 	       (not (zerop (buffer-size buffer))))

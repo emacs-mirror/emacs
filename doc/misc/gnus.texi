@@ -8514,10 +8514,13 @@ Save the current article in a VM folder
 @kindex O p (Summary)
 @kindex | (Summary)
 @findex gnus-summary-pipe-output
+@vindex gnus-summary-pipe-output-default-command
 Save the current article in a pipe.  Uhm, like, what I mean is---Pipe
 the current article to a process (@code{gnus-summary-pipe-output}).
 If given a symbolic prefix (@pxref{Symbolic Prefixes}), include the
-complete headers in the piped output.
+complete headers in the piped output.  The
+@code{gnus-summary-pipe-output-default-command} variable can be set to a
+string containing the default command and options (default @code{nil}).
 
 @item O P
 @kindex O P (Summary)
@@ -8613,6 +8616,17 @@ to get a file name to save the article in.  The default is
 @findex gnus-summary-save-in-vm
 Save the article in a VM folder.  You have to have the VM mail
 reader to use this setting.
+
+@item gnus-summary-save-in-pipe
+@findex gnus-summary-save-in-pipe
+Pipe the article to a shell command.  This function takes optional one
+argument; if it is a string, it is used as the command; if it is
+@code{nil} or omitted, you will be prompted for the command; if it is
+the symbol @code{default}, the command which the
+@code{gnus-summary-pipe-output-default-command} variable holds or the
+command last used for saving will be used if it is non-@code{nil}.  The
+command should be a string that the shell can interpret (e.g. the
+executable command name and the arguments).
 @end table
 
 The symbol of each function may have the following properties:
@@ -8622,8 +8636,9 @@ The symbol of each function may have the following properties:
 The value non-@code{nil} means save decoded articles.  This is
 meaningful only with @code{gnus-summary-save-in-file},
 @code{gnus-summary-save-body-in-file},
-@code{gnus-summary-write-to-file}, and
-@code{gnus-summary-write-body-to-file}.
+@code{gnus-summary-write-to-file},
+@code{gnus-summary-write-body-to-file}, and
+@code{gnus-summary-save-in-pipe}.
 
 @item :function
 The value specifies an alternative function which appends, not
