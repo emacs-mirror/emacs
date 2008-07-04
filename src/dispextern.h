@@ -1398,6 +1398,7 @@ struct glyph_string
 enum lface_attribute_index
 {
   LFACE_FAMILY_INDEX = 1,
+  LFACE_FOUNDRY_INDEX,
   LFACE_SWIDTH_INDEX,
   LFACE_HEIGHT_INDEX,
   LFACE_WEIGHT_INDEX,
@@ -2854,7 +2855,6 @@ int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstrcasecmp P_ ((const unsigned char *, const unsigned char *));
 int lookup_face P_ ((struct frame *, Lisp_Object *));
-int lookup_non_ascii_face P_ ((struct frame *, int, struct face *));
 int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
 int lookup_basic_face P_ ((struct frame *, int));
 int smaller_face P_ ((struct frame *, int, int));
@@ -2882,8 +2882,6 @@ void free_realized_face P_ ((struct frame *, struct face *));
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
-extern Lisp_Object split_font_name_into_vector P_ ((Lisp_Object));
-extern Lisp_Object build_font_name_from_vector P_ ((Lisp_Object));
 
 extern Lisp_Object Vface_remapping_alist;
 

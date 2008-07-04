@@ -25,8 +25,8 @@ Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License.''
 
-(a) The FSF's Back-Cover Text is: ``You are free to copy and modify
-this GNU Manual. Buying copies from GNU Press supports the FSF in
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
@@ -864,6 +864,7 @@ Running Shell Commands from Emacs
 * Term Mode::           Special Emacs commands used in Term mode.
 * Paging in Term::      Paging in the terminal emulator.
 * Remote Host::		Connecting to another computer.
+* Serial Terminal::     Connecting to a serial port.
 
 Using Emacs as a Server
 

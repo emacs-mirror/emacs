@@ -65,6 +65,9 @@
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
 
+(declare-function x-server-vendor "xfns.c" (&optional terminal))
+(declare-function x-server-version "xfns.c" (&optional terminal))
+
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
   "Report a bug in GNU Emacs.

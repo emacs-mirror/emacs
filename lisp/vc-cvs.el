@@ -942,7 +942,7 @@ state."
 	     (with-temp-buffer
 	       (insert-file-contents "CVS/Repository")
 	       (goto-char (point-min))
-	       (re-search-forward "[^/]*" nil t)
+	       (re-search-forward "[^/\n]*" nil t)
 	       (concat (match-string 0) "\n"))
 	   (file-error nil))))
     (concat

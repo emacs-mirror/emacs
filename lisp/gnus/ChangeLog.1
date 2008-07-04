@@ -248,8 +248,6 @@
 
 1998-08-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* Makefile.in (warn): New.
-
 	* gnus.el: Removed unreferenced bound variables all over.
 
 	* gnus-group.el (gnus-update-group-mark-positions): Removed topic.
@@ -3254,8 +3252,6 @@
 
 1997-10-12  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
 
-	* dgnushack.el (lpath): Reversed.
-
 	* gnus-msg.el (gnus-summary-cancel-article): Use sym prefix.
 
 	* gnus-art.el (article-translate-characters): New function.
@@ -3416,16 +3412,11 @@
 	(gnus-nocem-check-article): Use it.
 	(gnus-nocem-issuers): Dox ofx.
 
-	* dgnushack.el (dgnushack-compile): Check for cus-edit.
-
 	* message.el (message-included-forward-headers): Include Mime
 	headers.
 	(message-send): Allow posting without confirming from Agent.
 
 1997-09-22  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
-
-	* dgnushack.el (byte-compile-warnings): Don't warn about obsolete
-	variables.
 
 	* gnus-sum.el (gnus-summary-refer-thread): New command and
 	keystroke.
@@ -3475,8 +3466,6 @@
 	(gnus-draft-send): Ditto.
 	(gnus-draft-setup): Don't save buffer.
 
-	* dgnushack.el (dgnushack-compile): Warn people about Custom.
-
 	* gnus-group.el (gnus-group-iterate): Use gensymmed variables.
 
 	* pop3.el (pop3-md5): `with-temp-buffer' doesn't exist in Emacs
@@ -3486,8 +3475,6 @@
 
 	* message.el: Autoloaded nndraft things.
 	(message-set-auto-save-file-name): Use it.
-
-	* dgnushack.el (dgnushack-compile): Warn about things.
 
 	* gnus-art.el: Autoload w3-region.
 
@@ -3585,11 +3572,6 @@
 1997-09-17  Lars Magne Ingebrigtsen  <larsi@menja.ifi.uio.no>
 
 	* gnus.el: Quassia Gnus v0.6 is released.
-
-1997-08-17  SL Baur  <steve@altair.xemacs.org>
-
-	* dgnushack.el (dgnushack-compile): Ignore .el files beginning
-	with an `=' character.
 
 1997-09-17  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
 

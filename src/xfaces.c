@@ -27,34 +27,36 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    1. Font family name.
 
-   2. Relative proportionate width, aka character set width or set
+   2. Font foundary name.
+
+   3. Relative proportionate width, aka character set width or set
    width (swidth), e.g. `semi-compressed'.
 
-   3. Font height in 1/10pt.
+   4. Font height in 1/10pt.
 
-   4. Font weight, e.g. `bold'.
+   5. Font weight, e.g. `bold'.
 
-   5. Font slant, e.g. `italic'.
+   6. Font slant, e.g. `italic'.
 
-   6. Foreground color.
+   7. Foreground color.
 
-   7. Background color.
+   8. Background color.
 
-   8. Whether or not characters should be underlined, and in what color.
+   9. Whether or not characters should be underlined, and in what color.
 
-   9. Whether or not characters should be displayed in inverse video.
+   10. Whether or not characters should be displayed in inverse video.
 
-   10. A background stipple, a bitmap.
+   11. A background stipple, a bitmap.
 
-   11. Whether or not characters should be overlined, and in what color.
+   12. Whether or not characters should be overlined, and in what color.
 
-   12. Whether or not characters should be strike-through, and in what
+   13. Whether or not characters should be strike-through, and in what
    color.
 
-   13. Whether or not a box should be drawn around characters, the box
+   14. Whether or not a box should be drawn around characters, the box
    type, and, for simple boxes, in what color.
 
-   14. Font-spec, or nil.  This is a special attribute.
+   15. Font-spec, or nil.  This is a special attribute.
 
    A font-spec is a collection of font attributes (specs).
 
@@ -501,7 +503,6 @@ int menu_face_changed_default;
 
 /* Function prototypes.  */
 
-struct font_name;
 struct table_entry;
 struct named_merge_point;
 
@@ -513,7 +514,6 @@ static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *,
 				     int, struct named_merge_point *));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
-static unsigned char *xstrlwr P_ ((unsigned char *));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
 static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
 static void free_face_colors P_ ((struct frame *, struct face *));
@@ -1961,6 +1961,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 /* Access face attributes of face LFACE, a Lisp vector.  */
 
 #define LFACE_FAMILY(LFACE)	    AREF ((LFACE), LFACE_FAMILY_INDEX)
+#define LFACE_FOUNDRY(LFACE)	    AREF ((LFACE), LFACE_FOUNDRY_INDEX)
 #define LFACE_HEIGHT(LFACE)	    AREF ((LFACE), LFACE_HEIGHT_INDEX)
 #define LFACE_WEIGHT(LFACE)	    AREF ((LFACE), LFACE_WEIGHT_INDEX)
 #define LFACE_SLANT(LFACE)	    AREF ((LFACE), LFACE_SLANT_INDEX)
@@ -1997,6 +1998,9 @@ check_lface_attrs (attrs)
   xassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FAMILY_INDEX])
 	   || STRINGP (attrs[LFACE_FAMILY_INDEX]));
+  xassert (UNSPECIFIEDP (attrs[LFACE_FOUNDRY_INDEX])
+	   || IGNORE_DEFFACE_P (attrs[LFACE_FOUNDRY_INDEX])
+	   || STRINGP (attrs[LFACE_FOUNDRY_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_SWIDTH_INDEX])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
@@ -2366,25 +2370,16 @@ set_lface_from_font (f, lface, font_object, force_p)
 
   if (force_p || UNSPECIFIEDP (LFACE_FAMILY (lface)))
     {
-      Lisp_Object foundry = AREF (font_object, FONT_FOUNDRY_INDEX);
       Lisp_Object family = AREF (font_object, FONT_FAMILY_INDEX);
 
-      if (! NILP (foundry))
-	{
-	  if (! NILP (family))
-	    val = concat3 (SYMBOL_NAME (foundry), build_string ("-"),
-			   SYMBOL_NAME (family));
-	  else
-	    val = concat2 (SYMBOL_NAME (foundry), build_string ("-*"));
-	}
-      else
-	{
-	  if (! NILP (family))
-	    val = SYMBOL_NAME (family);
-	  else
-	    val = build_string ("*");
-	}
-      LFACE_FAMILY (lface) = val;
+      LFACE_FAMILY (lface) = SYMBOL_NAME (family);
+    }
+
+  if (force_p || UNSPECIFIEDP (LFACE_FOUNDRY (lface)))
+    {
+      Lisp_Object foundry = AREF (font_object, FONT_FOUNDRY_INDEX);
+
+      LFACE_FOUNDRY (lface) = SYMBOL_NAME (foundry);
     }
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
@@ -2517,6 +2512,7 @@ merge_face_vectors (f, from, to, named_merge_points)
 	    if (i >= LFACE_FAMILY_INDEX && i <=LFACE_SLANT_INDEX)
 	      font_clear_prop (to,
 			       (i == LFACE_FAMILY_INDEX ? FONT_FAMILY_INDEX
+				: i == LFACE_FOUNDRY_INDEX ? FONT_FOUNDRY_INDEX
 				: i == LFACE_SWIDTH_INDEX ? FONT_WIDTH_INDEX
 				: i == LFACE_HEIGHT_INDEX ? FONT_SIZE_INDEX
 				: i == LFACE_WEIGHT_INDEX ? FONT_WEIGHT_INDEX
@@ -2648,6 +2644,16 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		    {
 		      to[LFACE_FAMILY_INDEX] = value;
 		      font_clear_prop (to, FONT_FAMILY_INDEX);
+		    }
+		  else
+		    err = 1;
+		}
+	      else if (EQ (keyword, QCfoundry))
+		{
+		  if (STRINGP (value))
+		    {
+		      to[LFACE_FOUNDRY_INDEX] = value;
+		      font_clear_prop (to, FONT_FOUNDRY_INDEX);
 		    }
 		  else
 		    err = 1;
@@ -3051,6 +3057,18 @@ FRAME 0 means change the face on all frames, and change the default
       old_value = LFACE_FAMILY (lface);
       LFACE_FAMILY (lface) = value;
       prop_index = FONT_FAMILY_INDEX;
+    }
+  else if (EQ (attr, QCfoundry))
+    {
+      if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
+	{
+	  CHECK_STRING (value);
+	  if (SCHARS (value) == 0)
+	    signal_error ("Invalid face foundry", value);
+	}
+      old_value = LFACE_FOUNDRY (lface);
+      LFACE_FOUNDRY (lface) = value;
+      prop_index = FONT_FOUNDRY_INDEX;
     }
   else if (EQ (attr, QCheight))
     {
@@ -3730,6 +3748,7 @@ x_update_menu_appearance (f)
 
       if (face->font
 	  && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
+	      || !UNSPECIFIEDP (LFACE_FOUNDRY (lface))
 	      || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
 	      || !UNSPECIFIEDP (LFACE_WEIGHT (lface))
 	      || !UNSPECIFIEDP (LFACE_SLANT (lface))
@@ -3846,6 +3865,8 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
 
   if (EQ (keyword, QCfamily))
     value = LFACE_FAMILY (lface);
+  else if (EQ (keyword, QCfoundry))
+    value = LFACE_FOUNDRY (lface);
   else if (EQ (keyword, QCheight))
     value = LFACE_HEIGHT (lface);
   else if (EQ (keyword, QCweight))
@@ -4156,6 +4177,7 @@ lface_hash (v)
      Lisp_Object *v;
 {
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
+	  ^ hash_string_case_insensitive (v[LFACE_FOUNDRY_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_FOREGROUND_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_BACKGROUND_INDEX])
 	  ^ XHASH (v[LFACE_WEIGHT_INDEX])
@@ -4178,6 +4200,8 @@ lface_same_font_attributes_p (lface1, lface2)
 	   && lface_fully_specified_p (lface2));
   return (xstrcasecmp (SDATA (lface1[LFACE_FAMILY_INDEX]),
                        SDATA (lface2[LFACE_FAMILY_INDEX])) == 0
+	  && xstrcasecmp (SDATA (lface1[LFACE_FOUNDRY_INDEX]),
+			  SDATA (lface2[LFACE_FOUNDRY_INDEX])) == 0
 	  && EQ (lface1[LFACE_HEIGHT_INDEX], lface2[LFACE_HEIGHT_INDEX])
 	  && EQ (lface1[LFACE_SWIDTH_INDEX], lface2[LFACE_SWIDTH_INDEX])
 	  && EQ (lface1[LFACE_WEIGHT_INDEX], lface2[LFACE_WEIGHT_INDEX])
@@ -5016,6 +5040,7 @@ x_supports_face_attributes_p (f, attrs, def_face)
   /* Check font-related attributes, as those are the most commonly
      "unsupported" on a window-system (because of missing fonts).  */
   if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_FOUNDRY_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
@@ -5103,6 +5128,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
      because the faked result is too different from what the face
      specifies.  */
   if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_FOUNDRY_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
       || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
@@ -5402,7 +5428,13 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
+  Lisp_Object tail, tail2;
+
   CHECK_LIST (alist);
+  alist = Fcopy_sequence (alist);
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
+    for (tail2 = XCAR (tail); CONSP (tail2); tail2 = XCDR (tail2))
+      XSETCAR (tail2, Fintern (XCAR (tail2), Qnil));
   Vface_alternative_font_family_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -5419,7 +5451,13 @@ be found.  Value is ALIST.  */)
      (alist)
      Lisp_Object alist;
 {
+  Lisp_Object tail, tail2;
+
   CHECK_LIST (alist);
+  alist = Fcopy_sequence (alist);
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
+    for (tail2 = XCAR (tail); CONSP (tail2); tail2 = XCDR (tail2))
+      XSETCAR (tail2, Fdowncase (XCAR (tail2)));
   Vface_alternative_font_registry_alist = alist;
   free_all_realized_faces (Qnil);
   return alist;
@@ -5542,12 +5580,15 @@ realize_default_face (f)
   if (!FRAME_WINDOW_P (f))
     {
       LFACE_FAMILY (lface) = build_string ("default");
+      LFACE_FOUNDRY (lface) = LFACE_FAMILY (lface);
       LFACE_SWIDTH (lface) = Qnormal;
       LFACE_HEIGHT (lface) = make_number (1);
       if (UNSPECIFIEDP (LFACE_WEIGHT (lface)))
 	LFACE_WEIGHT (lface) = Qnormal;
       if (UNSPECIFIEDP (LFACE_SLANT (lface)))
 	LFACE_SLANT (lface) = Qnormal;
+      if (UNSPECIFIEDP (LFACE_FONTSET (lface)))
+	LFACE_FONTSET (lface) = Qnil;
     }
 
   if (UNSPECIFIEDP (LFACE_UNDERLINE (lface)))

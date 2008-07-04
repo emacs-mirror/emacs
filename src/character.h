@@ -68,6 +68,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ? (c) - 0x3FFF00		\
    : multibyte_char_to_unibyte (c, Qnil))
 
+/* Return the raw 8-bit byte for character C,
+   or -1 if C doesn't correspond to a byte.  */
+#define CHAR_TO_BYTE_SAFE(c)	\
+  (CHAR_BYTE8_P (c)		\
+   ? (c) - 0x3FFF00		\
+   : multibyte_char_to_unibyte_safe (c))
+
 /* Nonzero iff BYTE is the 1st byte of a multibyte form of a character
    that corresponds to a raw 8-bit byte.  */
 #define CHAR_BYTE8_HEAD_P(byte) ((byte) == 0xC0 || (byte) == 0xC1)

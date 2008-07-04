@@ -776,7 +776,7 @@ extern int font_style_to_value P_ ((enum font_property_index prop,
 extern Lisp_Object font_style_symbolic P_ ((Lisp_Object font,
 					    enum font_property_index prop,
 					    int for_face));
-
+                           
 extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object entity));
 extern Lisp_Object font_list_entities P_ ((Lisp_Object frame,
 					   Lisp_Object spec));
@@ -818,6 +818,7 @@ extern int font_unparse_xlfd P_ ((Lisp_Object font, int pixel_size,
 extern int font_parse_fcname P_ ((char *name, Lisp_Object font));
 extern int font_unparse_fcname P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
+extern int font_unparse_gtkname P_ ((Lisp_Object, struct frame *, char *, int));
 extern void register_font_driver P_ ((struct font_driver *driver, FRAME_PTR f));
 extern void free_font_driver_list P_ ((FRAME_PTR f));
 extern Lisp_Object font_update_drivers P_ ((FRAME_PTR f, Lisp_Object list));

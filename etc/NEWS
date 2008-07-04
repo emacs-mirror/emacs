@@ -64,6 +64,17 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
+** `underline-minimum-offset' keeps the underline away from the baseline.
+
+** Info displays breadcrumbs in the header of the page.
+See Info-breadcrumbs-depth to control it.
+
+** Emacs now supports serial port access on GNU/Linux, Unix, and
+Windows.  `serial-term' starts an interactive terminal,
+`make-serial-process' and `serial-process-configure' provide a Lisp
+interface.  The serial port can be configured at runtime with the
+mode-line mouse menu.
+
 ** Apropos
 *** `apropos-library' describes the elements defined in a given library.
 *** Set `apropos-compact-layout' is you want a more compact (but wider) layout.
@@ -393,6 +404,10 @@ for example while waiting for a VC command to finish.
 *** The new function `face-all-attributes' returns an alist describing
 all the basic attributes of a given face.
 
+*** S-down-mouse-1 now pops up a menu for changing the default font
+and text size of the default face in the current buffer.  The face is
+changed via face remapping (see below).
+
 *** FIXME face-remap
 
 
@@ -569,6 +584,10 @@ set of files.
 
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
 
+*** In VC Annotate mode, for VC systems that support changesets, you can
+see the diff for the whole changeset (not only for the current file)
+by using the vc-annotate-show-changeset-diff-revision-at-line function.
+
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
 
 *** In VC Annotate mode, you can type f to show the file revision on
@@ -583,6 +602,10 @@ active.
 *** Log entries can be modified using the key "e" in log-view.
 For now only CVS, RCS, SCCS and SVN support this functionality.
 This is done by the `modify-change-comment' backend function.
+
+*** In log-view-mode, for VC systems that support changesets, you can
+see the diff for the whole changeset (not only for the current file)
+by typing the D key or using the "Changeset Diff" menu entry.
 
 *** VC Support for Meta-CVS has been removed for lack of maintainer able
 to update it to the new VC.
@@ -1079,6 +1102,9 @@ currently `x' and `xft'.
 *** New function `font-spec' creates a new font-spec object.
 
 *** New function `font-get' returns a font property value.
+
+*** New function `font-face-attributes' returns a plist of face
+attributes set by a font.
 
 *** New function `font-put' sets a font property value.
 

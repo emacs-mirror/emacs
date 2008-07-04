@@ -50,33 +50,33 @@
 
 ;; ------------------------------------------------------------------------
 ;; r4622 | ckuethe | 2007-12-23 18:18:01 -0500 (Sun, 23 Dec 2007) | 2 lines
-;; 
+;;
 ;; uBlox AEK-4T in binary mode. Added to unstable because it breaks gpsfake
-;; 
+;;
 ;; ------------------------------------------------------------------------
 ;; r4621 | ckuethe | 2007-12-23 16:48:11 -0500 (Sun, 23 Dec 2007) | 3 lines
-;; 
+;;
 ;; Add a note about requiring usbfs to use the garmin gps18 (usb)
 ;; Mention firmware testing the AC12 with firmware BQ00 and BQ04
-;; 
+;;
 ;; ------------------------------------------------------------------------
 ;; r4620 | ckuethe | 2007-12-23 15:52:34 -0500 (Sun, 23 Dec 2007) | 1 line
-;; 
+;;
 ;; add link to latest hardware reference
 ;; ------------------------------------------------------------------------
 ;; r4619 | ckuethe | 2007-12-23 14:37:31 -0500 (Sun, 23 Dec 2007) | 1 line
-;; 
+;;
 ;; there is now a regression test for AC12 without raw data output
 
 ;;;; Darcs:
 
 ;; Changes to darcsum.el:
-;; 
+;;
 ;; Mon Nov 28 15:19:38 GMT 2005  Dave Love <fx@gnu.org>
 ;;   * Abstract process startup into darcsum-start-process.  Use TERM=dumb.
-;;   TERM=dumb avoids escape characters, at least, for any old darcs that 
+;;   TERM=dumb avoids escape characters, at least, for any old darcs that
 ;;   doesn't understand DARCS_DONT_COLOR & al.
-;; 
+;;
 ;; Thu Nov 24 15:20:45 GMT 2005  Dave Love <fx@gnu.org>
 ;;   * darcsum-mode-related changes.
 ;;   Don't call font-lock-mode (unnecessary) or use-local-map (redundant).
@@ -91,12 +91,12 @@
 ;; user:        Eric S. Raymond <esr@thyrsus.com>
 ;; date:        Wed Dec 26 12:18:58 2007 -0500
 ;; summary:     Explain keywords.  Add markup fixes.
-;; 
+;;
 ;; changeset:   10:20abc7ab09c3
 ;; user:        Eric S. Raymond <esr@thyrsus.com>
 ;; date:        Wed Dec 26 11:37:28 2007 -0500
 ;; summary:     Typo fixes.
-;; 
+;;
 ;; changeset:   9:ada9f4da88aa
 ;; user:        Eric S. Raymond <esr@thyrsus.com>
 ;; date:        Wed Dec 26 11:23:00 2007 -0500
@@ -128,6 +128,7 @@
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
+    ("D" . log-view-diff-changeset)
     ("a" . log-view-annotate-version)
     ("f" . log-view-find-revision)
     ("n" . log-view-msg-next)
@@ -154,6 +155,8 @@
      :help ""]
     ["Diff Revisions"  log-view-diff
      :help "Get the diff between two revisions"]
+    ["Changeset Diff"  log-view-diff-changeset
+     :help "Get the changeset diff between two revisions"]
     ["Visit Version"  log-view-find-revision
      :help "Visit the version at point"]
     ["Annotate Version"  log-view-annotate-version
@@ -201,6 +204,9 @@
   "Regexp matching the text identifying the file.
 The match group number 1 should match the file name itself.")
 
+(defvar log-view-per-file-logs t
+  "Set if to t if the logs are shown one file at a time.")
+
 (defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
           "\\|r\\(?1:[0-9]+\\) | .* | .*"                ; Subversion.
@@ -229,6 +235,12 @@ The match group number 1 should match the revision number itself.")
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 
+(defvar log-view-vc-fileset nil
+  "Set this to the fileset corresponding to the current log.")
+
+(defvar log-view-vc-backend nil
+  "Set this to the VC backend that created the current log.")
+
 ;;;;
 ;;;; Actual code
 ;;;;
@@ -238,9 +250,9 @@ The match group number 1 should match the revision number itself.")
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
-  (set (make-local-variable 'beginning-of-defun-function) 
+  (set (make-local-variable 'beginning-of-defun-function)
        'log-view-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) 
+  (set (make-local-variable 'end-of-defun-function)
        'log-view-end-of-defun)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
 
@@ -415,10 +427,15 @@ log entries."
 (defun log-view-find-revision (pos)
   "Visit the version at point."
   (interactive "d")
+  (unless log-view-per-file-logs
+    (when (> (length log-view-vc-fileset) 1)
+      (error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-find-revision (log-view-current-file)
-                                       (log-view-current-tag)))))
+    (switch-to-buffer (vc-find-revision (if log-view-per-file-logs
+					    (log-view-current-file)
+					  (car log-view-vc-fileset))
+					(log-view-current-tag)))))
 
 
 (defun log-view-extract-comment ()
@@ -434,7 +451,7 @@ log entries."
 	     (forward-line 2))
 	    ((eq backend 'Hg)
 	     (forward-line 4)
-	     (re-search-forward "summary: *" nil t)))      
+	     (re-search-forward "summary: *" nil t)))
       (setq st (point))
       (buffer-substring st en))))
 
@@ -443,16 +460,23 @@ log entries."
 (defun log-view-modify-change-comment ()
   "Edit the change comment displayed at point."
   (interactive)
-  (vc-modify-change-comment (list (log-view-current-file))
-			  (log-view-current-tag)
-			  (log-view-extract-comment)))
+  (vc-modify-change-comment (list (if log-view-per-file-logs
+				      (log-view-current-file)
+				    (car log-view-vc-fileset)))
+			    (log-view-current-tag)
+			    (log-view-extract-comment)))
 
 (defun log-view-annotate-version (pos)
   "Annotate the version at point."
   (interactive "d")
+  (unless log-view-per-file-logs
+    (when (> (length log-view-vc-fileset) 1)
+      (error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-annotate (log-view-current-file)
+    (switch-to-buffer (vc-annotate (if log-view-per-file-logs
+				       (log-view-current-file)
+				     (car log-view-vc-fileset))
 				   (log-view-current-tag)))))
 
 ;;
@@ -475,7 +499,38 @@ and ends."
         (goto-char end)
         (log-view-msg-next)
         (setq to (log-view-current-tag))))
-    (vc-version-diff (list (log-view-current-file)) to fr)))
+    (vc-version-diff
+     (if log-view-per-file-logs
+	 (list (log-view-current-file))
+       log-view-vc-fileset)
+       to fr)))
+
+(declare-function vc-diff-internal "vc"
+		  (async vc-fileset rev1 rev2 &optional verbose))
+
+(defun log-view-diff-changeset (beg end)
+  "Get the diff between two revisions.
+If the mark is not active or the mark is on the revision at point,
+get the diff between the revision at point and its previous revision.
+Otherwise, get the diff between the revisions where the region starts
+and ends."
+  (interactive
+   (list (if mark-active (region-beginning) (point))
+         (if mark-active (region-end) (point))))
+  (when (eq (vc-call-backend log-view-vc-backend 'revision-granularity) 'file)
+    (error "The %s backend does not support changeset diffs" log-view-vc-backend))
+  (let ((fr (log-view-current-tag beg))
+        (to (log-view-current-tag end)))
+    (when (string-equal fr to)
+      ;; TO and FR are the same, look at the previous revision.
+      (setq to (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
+    (vc-diff-internal
+     t
+     ;; We want to see the diff for all the files in the changeset, so
+     ;; pass NIL for the file list.  The value passed here should
+     ;; follow what `vc-deduce-fileset' returns.
+     (list log-view-vc-backend nil)
+     to fr)))
 
 (provide 'log-view)
 

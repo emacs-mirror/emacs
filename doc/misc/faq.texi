@@ -7,7 +7,7 @@
 @setchapternewpage odd
 
 @c This is used in many places
-@set VER 22.1
+@set VER 23.0.60
 
 @c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
 @c Feel free to install changes without prior permission (but I'd
@@ -2165,7 +2165,6 @@ type @kbd{C-x e}.  (@inforef{Keyboard Macros, Keyboard Macros, emacs}.)
 If you're really desperate for the @code{.} command in @code{vi} that
 redoes the last insertion/deletion, use VIPER, a @code{vi} emulation
 mode which comes with Emacs, and which appears to support it.
-(@xref{VIPER}.)
 
 @node Valid X resources, Evaluating Emacs Lisp code, Repeating commands, Common requests
 @section What are the valid X resource settings (i.e., stuff in .Xdefaults)?
@@ -3865,9 +3864,6 @@ Java code.  It is distributed with Emacs, but has
 
 @menu
 * VM::
-* Supercite::
-* Calc::
-* VIPER::
 * AUCTeX::
 * BBDB::
 * Ispell::
@@ -3878,7 +3874,7 @@ Java code.  It is distributed with Emacs, but has
 * Patch::
 @end menu
 
-@node VM, Supercite, Major packages and programs, Major packages and programs
+@node VM, AUCTeX, Major packages and programs, Major packages and programs
 @section VM (View Mail) --- another mail reader within Emacs, with MIME support
 @cindex VM
 @cindex Alternative mail software
@@ -3887,111 +3883,28 @@ Java code.  It is distributed with Emacs, but has
 
 @table @b
 
-@item Author
-@email{kyle_jones@@wonderworks.com, Kyle Jones}
+@item Maintainer
+@email{hack@@robf.de, Robert Widhopf-Fenk}
 
 @item Latest version
-7.19
+8.0
 
-@item Distribution
-@uref{ftp://ftp.wonderworks.com/pub/vm/vm.tar.gz}
+@item Web site
+@uref{http://www.nongnu.org/viewmail/}
 
 @item Informational newsgroup
 @uref{news:gnu.emacs.vm.info}@*
 
 @item Bug reports newsgroup
 @uref{news:gnu.emacs.vm.bug}@*
-Or send reports to @email{bug-vm@@wonderworks.com}
 @end table
 
-VM 7 works well with Emacs 21 and Emacs 22. Older versions of VM
-suitable for use with older versions of Emacs are available from
-@uref{ftp://ftp.wonderworks.com/pub/vm/, the same FTP site}.
+VM was originally written by @uref{http://www.wonderworks.com/vm/,Kyle Jones}.
+@uref{ftp://ftp.wonderworks.com/pub/vm/,Older versions} of VM remain
+available.
 
 
-@node Supercite, Calc, VM, Major packages and programs
-@section Supercite --- mail and news citation package within Emacs
-@cindex Supercite
-@cindex Superyank
-@cindex Mail and news citations
-@cindex News and mail citations
-@cindex Citations in mail and news
-
-@table @b
-
-@item Author
-@email{barry@@python.org, Barry Warsaw}
-
-@item Latest version
-3.54 (comes bundled with Emacs since version 20)
-
-@item Distribution
-@uref{http://www.python.org/emacs/supercite.tar.gz}
-
-@item Mailing list
-Subscription requests to @email{supercite-request@@python.org}@*
-Submissions @email{supercite@@python.org}
-
-@end table
-
-Superyank is an old version of Supercite.
-
-@node Calc, VIPER, Supercite, Major packages and programs
-@section Calc --- poor man's Mathematica within Emacs
-@cindex Programmable calculator
-@cindex Calc
-@cindex Mathematical package
-
-@table @b
-
-@item Author
-@email{daveg@@csvax.cs.caltech.edu, Dave Gillespie}
-
-@item Latest version
-2.1 (part of Emacs since version 22.1)
-
-@item Distribution
-No separate distribution outside of Emacs.  Older versions
-are available at @uref{ftp://ftp.gnu.org/pub/gnu/calc/}.
-
-@end table
-
-Note that Calc 2.02f needs patching to work with Emacs 21 and later.
-
-@cindex @code{calculator}, a package
-Emacs 21.1 and later comes with a package called @file{calculator.el}.
-It doesn't support all the mathematical wizardry offered by Calc, such
-as matrices, special functions, and statistics, but is more than
-adequate as a replacement for @code{xcalc} and similar programs.
-
-@node VIPER, AUCTeX, Calc, Major packages and programs
-@section VIPER --- @code{vi} emulation for Emacs
-@cindex @code{vi} emulation
-@cindex VIPER
-@cindex Emulation of @code{vi}
-
-Since Emacs 19.29, the preferred @code{vi} emulation in Emacs is VIPER
-(@kbd{M-x viper-mode @key{RET}}), which comes with Emacs.  It extends
-and supersedes VIP (including VIP 4.3) and provides @code{vi} emulation
-at several levels, from one that closely follows @code{vi} to one that
-departs from @code{vi} in several significant ways.
-
-For Emacs 19.28 and earlier, the following version of VIP is generally
-better than the one distributed with Emacs:
-
-@table @b
-@item Author
-@email{sane@@cs.uiuc.edu, Aamod Sane}
-
-@item Latest version
-4.3
-
-@item Distribution
-@uref{ftp://www.club.cc.cmu.edu/pub/gnu/elisp-archive/modes/vip-mode.tar.Z}
-
-@end table
-
-@node AUCTeX, BBDB, VIPER, Major packages and programs
+@node AUCTeX, BBDB, VM, Major packages and programs
 @section AUC@TeX{} --- enhanced @TeX{} modes with debugging facilities
 @cindex Mode for @TeX{}
 @cindex @TeX{} mode
@@ -4004,7 +3917,7 @@ indentation, formatting and folding, macro completion, @TeX{} shell
 functionality, and debugging.  Be also sure to check out
 @ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{} User Manual}.
 Current versions of AUC@TeX{} include the
-@uref{http://www.gnu.org/software/auctex/preview-latex,preview-latex}
+@uref{http://www.gnu.org/software/auctex/preview-latex.html,preview-latex}
 package for WYSIWYG previews of various LaTeX constructs in the Emacs
 source buffer.
 
@@ -4018,7 +3931,7 @@ source buffer.
 @email{dak@@gnu.org, David Kastrup}
 
 @item Latest version
-11.84
+11.85
 
 @item Distribution
 @uref{ftp://ftp.gnu.org/pub/gnu/auctex/}
@@ -4044,10 +3957,10 @@ Submissions to @email{auctex@@gnu.org}
 @table @b
 
 @item Maintainer
-@email{waider@@waider.ie, Ronan Waide}
+@email{hack@@robf.de, Robert Widhopf-Fenk}
 
 @item Latest version
-2.34
+2.35
 
 @item Distribution
 @uref{http://bbdb.sourceforge.net/}
@@ -5153,7 +5066,7 @@ If you read mail with Rmail or news with Gnus, set the variable
 @code{mail-yank-prefix}.  For VM, set @code{vm-included-text-prefix}.
 For mh-e, set @code{mh-ins-buf-prefix}.
 
-For fancier control of citations, use Supercite.  @xref{Supercite}.
+For fancier control of citations, use Supercite (part of Emacs).
 
 To prevent Emacs from including various headers of the replied-to
 message, set the value of @code{mail-yank-ignored-headers} to an

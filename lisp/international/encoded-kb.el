@@ -219,8 +219,9 @@ The following key sequence may cause multilingual text insertion."
 
 (defun encoded-kbd-self-insert-utf-8 (arg)
   (interactive "p")
-  (let ((char (encoded-kbd-last-key))
-	len)
+  (let* ((lead (encoded-kbd-last-key))
+         (char lead)
+         len event)
     (cond ((< char #xE0)
 	   (setq len 1 char (logand char #x1F)))
 	  ((< char #xF0)
@@ -230,8 +231,22 @@ The following key sequence may cause multilingual text insertion."
 	  (t
 	   (setq len 4 char 0)))
     (while (> len 0)
-      (setq char (logior (lsh char 6) (logand (read-char-exclusive) #x3F))
-	    len (1- len)))
+      (setq event (read-char-exclusive))
+      (if (and (>= event #x80) (< event #xc0))
+          ;; Valid utf-8 sequence.
+          (setq char (logior (lsh char 6) (- event #x80))
+                len (1- len))
+        ;; Invalid utf-8 sequence.  Might be because Quail got involved
+        ;; in-between and the bytes we thought we were reading were actually
+        ;; latin-1 chars.  Let's presume that `event' is the second "byte",
+        ;; i.e. there weren't any "apprently correct" between `lead' and
+        ;; `event': it's easy to recover in this case, and the more general
+        ;; case seems pretty unlikely.
+        ;; FIXME: We should really do encoded-kbd decoding before processing
+        ;; input-methods.
+        (push event unread-command-events)
+        (setq char lead)
+        (setq len 0)))
     (vector char)))
 
 (defun encoded-kbd-setup-keymap (keymap coding)

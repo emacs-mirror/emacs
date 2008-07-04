@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Xft font driver.  */
 
 static Lisp_Object Qxft;
+static Lisp_Object QChinting , QCautohint, QChintstyle, QCrgba, QCembolden;
 
 /* The actual structure for Xft font that can be casted to struct
    font.  */
@@ -175,6 +176,7 @@ xftfont_match (frame, spec)
 }
 
 extern Lisp_Object ftfont_font_format P_ ((FcPattern *));
+extern Lisp_Object QCantialias;
 
 static FcChar8 ascii_printable[95];
 
@@ -184,9 +186,10 @@ xftfont_open (f, entity, pixel_size)
      Lisp_Object entity;
      int pixel_size;
 {
+  FcResult result;
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val, filename, font_object;
-  FcPattern *pat = NULL;
+  Lisp_Object val, filename, tail, font_object;
+  FcPattern *pat = NULL, *match;
   struct xftfont_info *xftfont_info = NULL;
   struct font *font;
   double size = 0;
@@ -207,17 +210,65 @@ xftfont_open (f, entity, pixel_size)
     size = pixel_size;
   pat = FcPatternCreate ();
   FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
+  FcPatternAddInteger (pat, FC_WEIGHT, FONT_WEIGHT_NUMERIC (entity));
+  i = FONT_SLANT_NUMERIC (entity) - 100;
+  if (i < 0) i = 0;
+  FcPatternAddInteger (pat, FC_SLANT, i);
+  FcPatternAddInteger (pat, FC_WIDTH, FONT_WIDTH_NUMERIC (entity));
   FcPatternAddDouble (pat, FC_PIXEL_SIZE, pixel_size);
-  /*FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);*/
   val = AREF (entity, FONT_FAMILY_INDEX);
   if (! NILP (val))
     FcPatternAddString (pat, FC_FAMILY, (FcChar8 *) SDATA (SYMBOL_NAME (val)));
+  val = AREF (entity, FONT_FOUNDRY_INDEX);
+  if (! NILP (val))
+    FcPatternAddString (pat, FC_FOUNDRY, (FcChar8 *) SDATA (SYMBOL_NAME (val)));
+  val = AREF (entity, FONT_SPACING_INDEX);
+  if (! NILP (val))
+    FcPatternAddInteger (pat, FC_SPACING, XINT (val));
+  val = AREF (entity, FONT_DPI_INDEX);
+  if (! NILP (val))
+    {
+      double dbl = XINT (val);
+
+      FcPatternAddDouble (pat, FC_DPI, dbl);
+    }
+  val = AREF (entity, FONT_AVGWIDTH_INDEX);
+  if (INTEGERP (val) && XINT (val) == 0)
+    FcPatternAddBool (pat, FC_SCALABLE, FcTrue);
+
+  for (tail = AREF (entity, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object key, val;
+
+      key = XCAR (XCAR (tail)), val = XCDR (XCAR (tail));
+      if (EQ (key, QCantialias))
+	FcPatternAddBool (pat, FC_ANTIALIAS, NILP (val) ? FcFalse : FcTrue);
+      else if (EQ (key, QChinting))
+	FcPatternAddBool (pat, FC_HINTING, NILP (val) ? FcFalse : FcTrue);
+      else if (EQ (key, QCautohint))
+	FcPatternAddBool (pat, FC_AUTOHINT, NILP (val) ? FcFalse : FcTrue);
+      else if (EQ (key, QChintstyle))
+	{
+	  if (INTEGERP (val))
+	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
+	}
+      else if (EQ (key, QCrgba))
+	{
+	  if (INTEGERP (val))
+	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
+	}
+      else if (EQ (key, QCembolden))
+	FcPatternAddBool (pat, FC_EMBOLDEN, NILP (val) ? FcFalse : FcTrue);
+    }
   FcConfigSubstitute (NULL, pat, FcMatchPattern);
 
   BLOCK_INPUT;
   XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
-  xftfont = XftFontOpenPattern (display, pat);
+  match = XftFontMatch (display, FRAME_X_SCREEN_NUMBER (f), pat, &result);
+  FcPatternDestroy (pat);
+  xftfont = XftFontOpenPattern (display, match);
   UNBLOCK_INPUT;
+
   if (! xftfont)
     return Qnil;
   /* We should not destroy PAT here because it is kept in XFTFONT and
@@ -280,11 +331,17 @@ xftfont_open (f, entity, pixel_size)
   UNBLOCK_INPUT;
 
   font->ascent = xftfont->ascent;
-  if (font->ascent < extents.y)
-    font->ascent = extents.y;
   font->descent = xftfont->descent;
-  if (font->descent < extents.height - extents.y)
-    font->descent = extents.height - extents.y;
+  if (pixel_size >= 5)
+    {
+      /* The above condition is a dirty workaround because
+	 XftTextExtents8 behaves strangely for some fonts
+	 (e.g. "Dejavu Sans Mono") when pixel_size is less than 5. */
+      if (font->ascent < extents.y)
+	font->ascent = extents.y;
+      if (font->descent < extents.height - extents.y)
+	font->descent = extents.height - extents.y;
+    }
   font->height = font->ascent + font->descent;
 
   ft_face = XftLockFace (xftfont);
@@ -570,6 +627,11 @@ void
 syms_of_xftfont ()
 {
   DEFSYM (Qxft, "xft");
+  DEFSYM (QChinting, ":hinting");
+  DEFSYM (QCautohint, ":autohing");
+  DEFSYM (QChintstyle, ":hintstyle");
+  DEFSYM (QCrgba, ":rgba");
+  DEFSYM (QCembolden, ":embolden");
 
   xftfont_driver = ftfont_driver;
   xftfont_driver.type = Qxft;

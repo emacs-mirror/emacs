@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -66,6 +66,7 @@ line in the buffer.  See also the variable `org-infojs-options'."
   '((path PATH "http://orgmode.org/org-info.js")
     (view VIEW "info")
     (toc TOC :table-of-contents)
+    (ftoc FIXED_TOC "0")
     (tdepth TOC_DEPTH "max")
     (sdepth SECTION_DEPTH "max")
     (mouse MOUSE_HINT "underline")
@@ -200,6 +201,8 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 	  (cdr (assoc 'path org-infojs-options))))
 
 (provide 'org-infojs)
+(provide 'org-jsinfo)
 
 ;; arch-tag: c71d1d85-3337-4817-a066-725e74ac9eac
+
 ;;; org-jsinfo.el ends here

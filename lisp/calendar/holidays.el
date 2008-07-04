@@ -625,12 +625,14 @@ The holidays are those in the list `calendar-holidays'."
   'check-calendar-holidays 'calendar-check-holidays "23.1")
 
 ;;;###cal-autoload
-(defun calendar-cursor-holidays ()
-  "Find holidays for the date specified by the cursor in the calendar window."
+(defun calendar-cursor-holidays (&optional date)
+  "Find holidays for the date specified by the cursor in the calendar window.
+Optional DATE is a list (month day year) to use instead of the
+cursor position."
   (interactive)
   (message "Checking holidays...")
-  (let* ((date (calendar-cursor-to-date t))
-         (date-string (calendar-date-string date))
+  (or date (setq date (calendar-cursor-to-date t)))
+  (let* ((date-string (calendar-date-string date))
          (holiday-list (calendar-check-holidays date))
          (holiday-string (mapconcat 'identity holiday-list ";  "))
          (msg (format "%s:  %s" date-string holiday-string)))

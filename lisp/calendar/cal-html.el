@@ -408,27 +408,30 @@ four-digit YEAR.  Diary entries in DIARY-LIST are included."
 ;;; User commands.
 
 ;;;###cal-autoload
-(defun cal-html-cursor-month (month year dir)
+(defun cal-html-cursor-month (month year dir &optional event)
   "Write an HTML calendar file for numeric MONTH of four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
-MONTH and YEAR are taken from the calendar cursor position.  Note
-that any existing output files are overwritten."
-  (interactive (let* ((date (calendar-cursor-to-date t))
+MONTH and YEAR are taken from the calendar cursor position, or from
+the position specified by EVENT.  Note that any existing output files
+are overwritten."
+  (interactive (let* ((event last-nonmenu-event)
+                      (date (calendar-cursor-to-date t event))
                       (month (calendar-extract-month date))
                       (year (calendar-extract-year date)))
-                 (list month year (cal-html-year-dir-ask-user year))))
+                 (list month year (cal-html-year-dir-ask-user year) event)))
   (make-directory dir t)
   (cal-html-one-month month year dir))
 
 ;;;###cal-autoload
-(defun cal-html-cursor-year (year dir)
+(defun cal-html-cursor-year (year dir &optional event)
   "Write HTML calendar files (index and monthly pages) for four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
-YEAR is taken from the calendar cursor position.  Note that any
-existing output files are overwritten."
-  (interactive (let ((year (calendar-extract-year
-                            (calendar-cursor-to-date t))))
-                 (list year (cal-html-year-dir-ask-user year))))
+YEAR is taken from the calendar cursor position, or from the position
+specified by EVENT.  Note that any existing output files are overwritten."
+  (interactive (let* ((event last-nonmenu-event)
+                      (year (calendar-extract-year
+                             (calendar-cursor-to-date t event))))
+                 (list year (cal-html-year-dir-ask-user year) event)))
   (make-directory dir t)
   (with-temp-buffer
     (cal-html-insert-year-minicals year cal-html-year-index-cols)

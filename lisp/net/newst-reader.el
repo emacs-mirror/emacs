@@ -1,13 +1,12 @@
-;;; newsticker-reader.el --- Generic RSS reader functions.
+;;; newst-reader.el --- Generic RSS reader functions.
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newsticker-reader.el
+;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "7. Juni 2008, 15:34:08 (ulf)"
-;; CVS-Version: $Id: newsticker-reader.el,v 1.5 2008/06/10 03:29:43 gm Exp $
+;; Time-stamp:  "15. Juni 2008, 09:42:01 (ulf)"
 
 ;; ======================================================================
 
@@ -34,7 +33,7 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-backend)
+(require 'newsticker-backend "newst-backend")
 
 ;; ======================================================================
 ;;; Customization
@@ -141,6 +140,34 @@ See `format-time-string' for a list of valid specifiers."
   :type 'string
   :set 'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
+
+(defgroup newsticker-faces nil
+  "Settings for the faces of the feed reader."
+  :group 'newsticker-reader)
+
+(defface newsticker-feed-face
+  '((((class color) (background dark))
+     (:family "helvetica" :bold t :height 1.2 :foreground "misty rose"))
+    (((class color) (background light))
+     (:family "helvetica" :bold t :height 1.2 :foreground "black")))
+  "Face for news feeds."
+  :group 'newsticker-faces)
+
+(defface newsticker-extra-face
+  '((((class color) (background dark))
+     (:italic t :foreground "gray50" :height 0.8))
+    (((class color) (background light))
+     (:italic t :foreground "gray50" :height 0.8)))
+  "Face for newsticker dates."
+  :group 'newsticker-faces)
+
+(defface newsticker-enclosure-face
+  '((((class color) (background dark))
+     (:bold t :background "orange"))
+    (((class color) (background light))
+     (:bold t :background "orange")))
+  "Face for enclosed elements."
+  :group 'newsticker-faces)
 
 ;; ======================================================================
 ;;; Utility functions
@@ -1128,4 +1155,4 @@ static char * visit_xpm[] = {
 (provide 'newsticker-reader)
 
 ;; arch-tag: c604b701-bdf1-4fc1-8d05-5fabd1939533
-;;; newsticker-reader.el ends here
+;;; newst-reader.el ends here

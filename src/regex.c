@@ -153,10 +153,7 @@
 
 # define RE_CHAR_TO_MULTIBYTE(c) unibyte_to_multibyte_table[(c)]
 
-# define RE_CHAR_TO_UNIBYTE(c)			\
-  (ASCII_CHAR_P (c) ? (c)			\
-   : CHAR_BYTE8_P (c) ? CHAR_TO_BYTE8 (c)	\
-   : multibyte_char_to_unibyte_safe (c))
+# define RE_CHAR_TO_UNIBYTE(c) CHAR_TO_BYTE_SAFE (c)
 
 /* Set C a (possibly converted to multibyte) character before P.  P
    points into a string which is the virtual concatenation of STR1
@@ -5574,10 +5571,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		if (multibyte)
 		  {
 		    pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
-		    if (CHAR_BYTE8_P (pat_ch))
-		      pat_ch = CHAR_TO_BYTE8 (pat_ch);
-		    else
-		      pat_ch = RE_CHAR_TO_UNIBYTE (pat_ch);
+		    pat_ch = RE_CHAR_TO_UNIBYTE (pat_ch);
 		  }
 		else
 		  {

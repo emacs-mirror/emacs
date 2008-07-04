@@ -1318,6 +1318,8 @@ unexec_realloc (void *old_ptr, size_t new_size)
 void
 unexec_free (void *ptr)
 {
+  if (ptr == NULL)
+    return;
   if (in_dumped_exec)
     {
       if (!ptr_in_unexec_regions (ptr))

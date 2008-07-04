@@ -347,7 +347,33 @@ For example,
 
 redisplays the diary for whatever date the cursor is moved to."
   :type 'hook
+  :options '(calendar-update-mode-line)
   :group 'calendar-hooks)
+
+(defcustom calendar-date-echo-text
+  "mouse-2: general menu\nmouse-3: menu for this date"
+  "String displayed when the cursor is over a date in the calendar.
+When this variable is evaluated, DAY, MONTH, and YEAR are
+integers appropriate to the relevant date.  For example, to
+display the ISO week:
+
+  (require 'cal-iso)
+  (setq calendar-date-echo-text '(format \"ISO week: %2d \"
+                                    (car
+                                     (calendar-iso-from-absolute
+                                      (calendar-absolute-from-gregorian
+                                       (list month day year))))))
+Changing this variable without using customize has no effect on
+pre-existing calendar windows."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :risky t
+  :set (lambda (sym val)
+         (set sym val)
+         (calendar-redraw))
+  :type '(choice (string :tag "Literal string")
+                 (sexp :tag "Lisp expression"))
+  :version "23.1")
 
 (defcustom diary-file "~/diary"
   "Name of the file in which one's personal diary of dates is kept.
@@ -1152,7 +1178,7 @@ line."
              calendar-week-start-day)
           7))
          (last (calendar-last-day-of-month month year))
-         string)
+         string day)
    (goto-char (point-min))
    (calendar-insert-indented
     (calendar-string-spread
@@ -1175,13 +1201,14 @@ line."
    (dotimes (idummy blank-days) (insert "   "))
    ;; Put in the days of the month.
    (dotimes (i last)
-     (insert (format "%2d " (1+ i)))
+     (setq day (1+ i))
+     (insert (format "%2d " day))
+     ;; FIXME set-text-properties?
      (add-text-properties
       (- (point) 3) (1- (point))
-      '(mouse-face highlight
-                   help-echo "mouse-2: menu of operations for this date"))
-     (and (zerop (mod (+ i 1 blank-days) 7))
-          (/= i (1- last))
+      `(mouse-face highlight help-echo ,(eval calendar-date-echo-text)))
+     (and (zerop (mod (+ day blank-days) 7))
+          (/= day last)
           (calendar-insert-indented "" 0 t) ; force onto following line
           (calendar-insert-indented "" indent))))) ; go to proper spot
 
@@ -1199,9 +1226,8 @@ after the inserted text.  Returns t."
   ;; Advance to next line, if requested.
   (when newline
     (end-of-line)
-    (if (eobp)
-        (newline)
-      (forward-line 1)))
+    (or (zerop (forward-line 1))
+        (insert "\n")))
   t)
 
 (defun calendar-redraw ()
@@ -1340,10 +1366,6 @@ after the inserted text.  Returns t."
 
     (define-key map [menu-bar edit] 'undefined)
     (define-key map [menu-bar search] 'undefined)
-    ;; This ignores the mouse-up event after the mouse-down that pops up the
-    ;; context menu.  It should not be necessary because the mouse-up event
-    ;; should be eaten up by the menu-handling toolkit.
-    ;; (define-key map [mouse-2] 'ignore)
 
     (easy-menu-define nil map nil cal-menu-moon-menu)
     (easy-menu-define nil map nil cal-menu-diary-menu)
@@ -1351,6 +1373,7 @@ after the inserted text.  Returns t."
     (easy-menu-define nil map nil cal-menu-goto-menu)
     (easy-menu-define nil map nil cal-menu-scroll-menu)
 
+    ;; These are referenced in the default calendar-date-echo-text.
     (define-key map [down-mouse-3]
       (easy-menu-binding cal-menu-context-mouse-menu))
     (define-key map [down-mouse-2]
@@ -1359,118 +1382,80 @@ after the inserted text.  Returns t."
     map)
   "Keymap for `calendar-mode'.")
 
-;; FIXME unused?
-(defun calendar-describe-mode ()
-  "Create a help buffer with a brief description of the `calendar-mode'."
-  (interactive)
-  (help-setup-xref (list #'calendar-describe-mode) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
-    (princ
-     (format
-      "Calendar Mode:\nFor a complete description, type %s\n%s\n"
-      (substitute-command-keys
-       "\\<calendar-mode-map>\\[describe-mode] from within the calendar")
-      (substitute-command-keys "\\{calendar-mode-map}")))
-    (print-help-return-message)))
-
 ;; Calendar mode is suitable only for specially formatted data.
 (put 'calendar-mode 'mode-class 'special)
+
+(defun calendar-mode-line-entry (command echo &optional key string)
+  "Return a propertized string for `calendar-mode-line-format'.
+COMMAND is a command to run, ECHO is the help-echo text, KEY
+is COMMAND's keybinding, STRING describes the binding."
+  (propertize (or key
+                  (substitute-command-keys
+                   (format "\\<calendar-mode-map>\\[%s] %s" command string)))
+              'help-echo (format "mouse-1: %s" echo)
+              'mouse-face 'mode-line-highlight
+              'keymap (make-mode-line-mouse-map 'mouse-1 command)))
 
 ;; After calendar-mode-map.
 (defcustom calendar-mode-line-format
   (list
-   (propertize "<"
-               'help-echo "mouse-1: previous month"
-               'mouse-face 'mode-line-highlight
-               'keymap (make-mode-line-mouse-map 'mouse-1
-                                                 'calendar-scroll-right))
+   (calendar-mode-line-entry 'calendar-scroll-right "previous month" "<")
    "Calendar"
    (concat
-    (propertize
-     (substitute-command-keys
-      "\\<calendar-mode-map>\\[calendar-goto-info-node] info")
-     'help-echo "mouse-1: read Info on Calendar"
-     'mouse-face 'mode-line-highlight
-     'keymap (make-mode-line-mouse-map 'mouse-1 'calendar-goto-info-node))
+    (calendar-mode-line-entry 'calendar-goto-info-node "read Info on Calendar"
+                              nil "info")
     " / "
-    (propertize
-     (substitute-command-keys
-     " \\<calendar-mode-map>\\[calendar-other-month] other")
-     'help-echo "mouse-1: choose another month"
-     'mouse-face 'mode-line-highlight
-     'keymap (make-mode-line-mouse-map
-              'mouse-1 'calendar-mouse-other-month))
+    (calendar-mode-line-entry 'calendar-other-month "choose another month"
+                              nil "other")
     " / "
-    (propertize
-     (substitute-command-keys
-     "\\<calendar-mode-map>\\[calendar-goto-today] today")
-     'help-echo "mouse-1: go to today's date"
-     'mouse-face 'mode-line-highlight
-     'keymap (make-mode-line-mouse-map 'mouse-1 #'calendar-goto-today)))
+    (calendar-mode-line-entry 'calendar-goto-today "go to today's date"
+                              nil "today"))
    '(calendar-date-string (calendar-current-date) t)
-   (propertize ">"
-               'help-echo "mouse-1: next month"
-               'mouse-face 'mode-line-highlight
-               'keymap (make-mode-line-mouse-map
-                        'mouse-1 'calendar-scroll-left)))
+   (calendar-mode-line-entry 'calendar-scroll-left "next month" ">"))
   "The mode line of the calendar buffer.
+This is a list of items that evaluate to strings.  The elements
+are evaluated and concatenated, evenly separated by blanks.
+During evaluation, the variable `date' is available as the date
+nearest the cursor (or today's date if that fails).  To update
+the mode-line as the cursor moves, add `calendar-update-mode-line'
+to `calendar-move-hook'.  Here is an example that has the Hebrew date,
+the day number/days remaining in the year, and the ISO week/year numbers:
 
-This must be a list of items that evaluate to strings--those strings are
-evaluated and concatenated together, evenly separated by blanks.  The variable
-`date' is available for use as the date under (or near) the cursor; `date'
-defaults to the current date if it is otherwise undefined.  Here is an example
-value that has the Hebrew date, the day number/days remaining in the year,
-and the ISO week/year numbers in the mode.  When `calendar-move-hook' is set
-to `calendar-update-mode-line', the mode line shows these values for the date
-under the cursor:
-
-      (list
-       \"\"
-       '(calendar-hebrew-date-string date)
-       '(let* ((year (calendar-extract-year date))
-               (d (calendar-day-number date))
-               (days-remaining
-                (- (calendar-day-number (list 12 31 year)) d)))
-          (format \"%d/%d\" d days-remaining))
-       '(let* ((d (calendar-absolute-from-gregorian date))
-               (iso-date (calendar-iso-from-absolute d)))
-          (format \"ISO week %d of %d\"
-            (calendar-extract-month iso-date)
-            (calendar-extract-year iso-date)))
-       \"\"))"
+  (list
+   \"\"
+   '(calendar-hebrew-date-string date)
+   '(let* ((year (calendar-extract-year date))
+           (d (calendar-day-number date))
+           (days-remaining
+            (- (calendar-day-number (list 12 31 year)) d)))
+      (format \"%d/%d\" d days-remaining))
+   '(let* ((d (calendar-absolute-from-gregorian date))
+           (iso-date (calendar-iso-from-absolute d)))
+      (format \"ISO week %d of %d\"
+        (calendar-extract-month iso-date)
+        (calendar-extract-year iso-date)))
+   \"\"))"
+  :risky t
   :type 'sexp
   :group 'calendar)
-
-(defun calendar-mouse-other-month (event)
-  "Display a three-month calendar centered around a specified month and year.
-EVENT is the last mouse event."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (call-interactively 'calendar-other-month)))
 
 (defun calendar-goto-info-node ()
   "Go to the info node for the calendar."
   (interactive)
-  (info "(emacs)Calendar/Diary"))
+  (info "(emacs)Calendar/Diary")
+  (fit-window-to-buffer))
 
 (defvar calendar-mark-ring nil
   "Used by `calendar-set-mark'.")
 
-(defun calendar-mode ()
+(define-derived-mode calendar-mode nil "Calendar"
   "A major mode for the calendar window.
-
-For a complete description, type \
-\\<calendar-mode-map>\\[calendar-goto-info-node] from within the calendar.
+For a complete description, see the info node `Calendar/Diary'.
 
 \\<calendar-mode-map>\\{calendar-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'calendar-mode
-        mode-name "Calendar"
-        buffer-read-only t
+  (setq buffer-read-only t
         buffer-undo-list t
         indent-tabs-mode nil)
-  (use-local-map calendar-mode-map)
   (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
@@ -1481,8 +1466,7 @@ For a complete description, type \
   (unless (boundp 'displayed-month) (setq displayed-month 1))
   (unless (boundp 'displayed-year)  (setq displayed-year  2001))
   (set (make-local-variable 'font-lock-defaults)
-       '(calendar-font-lock-keywords t))
-  (run-mode-hooks 'calendar-mode-hook))
+       '(calendar-font-lock-keywords t)))
 
 (defun calendar-string-spread (strings char length)
   "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.
@@ -1514,12 +1498,16 @@ the STRINGS are just concatenated and the result truncated."
   (if (bufferp (get-buffer calendar-buffer))
       (with-current-buffer calendar-buffer
         (setq mode-line-format
-              (calendar-string-spread
-               (let ((date (condition-case nil
-                               (calendar-cursor-to-nearest-date)
-                             (error (calendar-current-date)))))
-                 (mapcar 'eval calendar-mode-line-format))
-               ?\s (frame-width)))
+              ;; The magic numbers are based on the fixed calendar layout.
+              (concat (make-string (+ 3
+                                      (- (car (window-inside-edges))
+                                         (car (window-edges)))) ?\s)
+                      (calendar-string-spread
+                       (let ((date (condition-case nil
+                                       (calendar-cursor-to-nearest-date)
+                                     (error (calendar-current-date)))))
+                         (mapcar 'eval calendar-mode-line-format))
+                       ?\s 74)))
         (force-mode-line-update))))
 
 (defun calendar-window-list ()
@@ -1583,10 +1571,17 @@ the STRINGS are just concatenated and the result truncated."
   (let ((now (decode-time)))
     (list (nth 4 now) (nth 3 now) (nth 5 now))))
 
-(defun calendar-cursor-to-date (&optional error)
+(defun calendar-cursor-to-date (&optional error event)
   "Return a list (month day year) of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
-ERROR is non-nil, otherwise just returns nil."
+ERROR is non-nil, otherwise just returns nil.
+If EVENT is non-nil, it's an event indicating the buffer position to
+use instead of point."
+  (with-current-buffer
+      (if event (window-buffer (posn-window (event-start event)))
+        (current-buffer))
+    (save-excursion
+      (if event (goto-char (posn-point (event-start event))))
   (let* ((segment (/ (current-column) 25))
          (month (% (+ displayed-month segment -1) 12))
          (month (if (zerop month) 12 month))
@@ -1595,15 +1590,14 @@ ERROR is non-nil, otherwise just returns nil."
            ((and (=  12 month) (zerop segment)) (1- displayed-year))
            ((and (=   1 month) (= segment 2)) (1+ displayed-year))
            (t displayed-year))))
-    (if (and (looking-at "[ 0-9]?[0-9][^0-9]")
-             (< 2 (count-lines (point-min) (point))))
-        (save-excursion
+        (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
+                      (< 2 (count-lines (point-min) (point)))))
+            (if error (error "Not on a date!"))
           (if (not (looking-at " "))
               (re-search-backward "[^0-9]"))
           (list month
                 (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
-                year))
-      (if error (error "Not on a date!")))))
+                year))))))
 
 (add-to-list 'debug-ignored-errors "Not on a date!")
 
@@ -1660,26 +1654,33 @@ handle dates in years BC."
               month (1+ month)))
       (list month day year))))
 
-(defun calendar-other-month (month year)
-  "Display a three-month calendar centered around MONTH and YEAR."
-  (interactive (calendar-read-date 'noday))
-  (unless (and (= month displayed-month)
-               (= year displayed-year))
-    (let ((old-date (calendar-cursor-to-date))
-          (today (calendar-current-date)))
-      (calendar-generate-window month year)
-      (calendar-cursor-to-visible-date
-       (cond
-        ((calendar-date-is-visible-p old-date) old-date)
-        ((calendar-date-is-visible-p today) today)
-        (t (list month 1 year)))))))
+(defun calendar-other-month (month year &optional event)
+  "Display a three-month calendar centered around MONTH and YEAR.
+EVENT is an event like `last-nonmenu-event'."
+  (interactive (let ((event (list last-nonmenu-event)))
+                 (append (calendar-read-date 'noday) event)))
+  (save-selected-window
+    (and event
+         (setq event (event-start event))
+         (select-window (posn-window event)))
+    (unless (and (= month displayed-month)
+                 (= year displayed-year))
+      (let ((old-date (calendar-cursor-to-date))
+            (today (calendar-current-date)))
+        (calendar-generate-window month year)
+        (calendar-cursor-to-visible-date
+         (cond
+          ((calendar-date-is-visible-p old-date) old-date)
+          ((calendar-date-is-visible-p today) today)
+          (t (list month 1 year))))))))
 
-(defun calendar-set-mark (arg)
+(defun calendar-set-mark (arg &optional event)
   "Mark the date under the cursor, or jump to marked date.
 With no prefix argument, push current date onto marked date ring.
 With argument ARG, jump to mark, pop it, and put point at end of ring."
-  (interactive "P")
-  (let ((date (calendar-cursor-to-date t)))
+  (interactive
+   (list current-prefix-arg last-nonmenu-event))
+  (let ((date (calendar-cursor-to-date t event)))
     (if arg
         (if (null calendar-mark-ring)
             (error "No mark set in this buffer")

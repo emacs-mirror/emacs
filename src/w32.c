@@ -102,6 +102,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */
 
+/* For serial_configure and serial_open.  */
+#include "process.h"
+/* From process.c  */
+extern Lisp_Object QCport, QCspeed, QCprocess;
+extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
+extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
+
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
@@ -4063,10 +4070,10 @@ _sys_read_ahead (int fd)
   if (cp == NULL || cp->fd != fd || cp->status != STATUS_READ_READY)
     return STATUS_READ_ERROR;
 
-  if ((fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET)) == 0
+  if ((fd_info[fd].flags & (FILE_PIPE | FILE_SERIAL | FILE_SOCKET)) == 0
       || (fd_info[fd].flags & FILE_READ) == 0)
     {
-      DebPrint (("_sys_read_ahead: internal error: fd %d is not a pipe or socket!\n", fd));
+      DebPrint (("_sys_read_ahead: internal error: fd %d is not a pipe, serial port, or socket!\n", fd));
       abort ();
     }
 
@@ -4080,7 +4087,7 @@ _sys_read_ahead (int fd)
 	 reporting that input is available; we need this because Windows 95
 	 connects DOS programs to pipes by making the pipe appear to be
 	 the normal console stdout - as a result most DOS programs will
-	 write to stdout without buffering, ie.  one character at a
+	 write to stdout without buffering, ie. one character at a
 	 time.  Even some W32 programs do this - "dir" in a command
 	 shell on NT is very slow if we don't do this. */
       if (rc > 0)
@@ -4094,6 +4101,29 @@ _sys_read_ahead (int fd)
 	      /* Yield remainder of our time slice, effectively giving a
 		 temporary priority boost to the child process. */
 	      Sleep (0);
+	}
+    }
+  else if (fd_info[fd].flags & FILE_SERIAL)
+    {
+      HANDLE hnd = fd_info[fd].hnd;
+      OVERLAPPED *ovl = &fd_info[fd].cp->ovl_read;
+      COMMTIMEOUTS ct;
+
+      /* Configure timeouts for blocking read.  */
+      if (!GetCommTimeouts (hnd, &ct))
+	return STATUS_READ_ERROR;
+      ct.ReadIntervalTimeout		= 0;
+      ct.ReadTotalTimeoutMultiplier	= 0;
+      ct.ReadTotalTimeoutConstant	= 0;
+      if (!SetCommTimeouts (hnd, &ct))
+	return STATUS_READ_ERROR;
+
+      if (!ReadFile (hnd, &cp->chr, sizeof (char), (DWORD*) &rc, ovl))
+	{
+	  if (GetLastError () != ERROR_IO_PENDING)
+	    return STATUS_READ_ERROR;
+	  if (!GetOverlappedResult (hnd, ovl, (DWORD*) &rc, TRUE))
+	    return STATUS_READ_ERROR;
 	}
     }
 #ifdef HAVE_SOCKETS
@@ -4167,7 +4197,7 @@ sys_read (int fd, char * buffer, unsigned int count)
       return -1;
     }
 
-  if (fd < MAXDESC && fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
+  if (fd < MAXDESC && fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET | FILE_SERIAL))
     {
       child_process *cp = fd_info[fd].cp;
 
@@ -4238,6 +4268,52 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      if (to_read > 0)
 		nchars += _read (fd, buffer, to_read);
 	    }
+	  else if (fd_info[fd].flags & FILE_SERIAL)
+	    {
+	      HANDLE hnd = fd_info[fd].hnd;
+	      OVERLAPPED *ovl = &fd_info[fd].cp->ovl_read;
+	      DWORD err = 0;
+	      int rc = 0;
+	      COMMTIMEOUTS ct;
+
+	      if (count > 0)
+		{
+		  /* Configure timeouts for non-blocking read.  */
+		  if (!GetCommTimeouts (hnd, &ct))
+		    {
+		      errno = EIO;
+		      return -1;
+		    }
+		  ct.ReadIntervalTimeout	 = MAXDWORD;
+		  ct.ReadTotalTimeoutMultiplier	 = 0;
+		  ct.ReadTotalTimeoutConstant	 = 0;
+		  if (!SetCommTimeouts (hnd, &ct))
+		    {
+		      errno = EIO;
+		      return -1;
+		    }
+
+		  if (!ResetEvent (ovl->hEvent))
+		    {
+		      errno = EIO;
+		      return -1;
+		    }
+		  if (!ReadFile (hnd, buffer, count, (DWORD*) &rc, ovl))
+		    {
+		      if (GetLastError () != ERROR_IO_PENDING)
+			{
+			  errno = EIO;
+			  return -1;
+			}
+		      if (!GetOverlappedResult (hnd, ovl, (DWORD*) &rc, TRUE))
+			{
+			  errno = EIO;
+			  return -1;
+			}
+		    }
+		  nchars += rc;
+		}
+	    }
 #ifdef HAVE_SOCKETS
 	  else /* FILE_SOCKET */
 	    {
@@ -4299,6 +4375,9 @@ sys_read (int fd, char * buffer, unsigned int count)
   return nchars;
 }
 
+/* From w32xfns.c */
+extern HANDLE interrupt_handle;
+
 /* For now, don't bother with a non-blocking mode */
 int
 sys_write (int fd, const void * buffer, unsigned int count)
@@ -4311,7 +4390,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
       return -1;
     }
 
-  if (fd < MAXDESC && fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
+  if (fd < MAXDESC && fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET | FILE_SERIAL))
     {
       if ((fd_info[fd].flags & FILE_WRITE) == 0)
 	{
@@ -4352,6 +4431,42 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	}
     }
 
+  if (fd < MAXDESC && fd_info[fd].flags & FILE_SERIAL)
+    {
+      HANDLE hnd = (HANDLE) _get_osfhandle (fd);
+      OVERLAPPED *ovl = &fd_info[fd].cp->ovl_write;
+      HANDLE wait_hnd[2] = { interrupt_handle, ovl->hEvent };
+      DWORD active = 0;
+
+      if (!WriteFile (hnd, buffer, count, (DWORD*) &nchars, ovl))
+	{
+	  if (GetLastError () != ERROR_IO_PENDING)
+	    {
+	      errno = EIO;
+	      return -1;
+	    }
+	  if (detect_input_pending ())
+	    active = MsgWaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE,
+						QS_ALLINPUT);
+	  else
+	    active = WaitForMultipleObjects (2, wait_hnd, FALSE, INFINITE);
+	  if (active == WAIT_OBJECT_0)
+	    { /* User pressed C-g, cancel write, then leave.  Don't bother
+		 cleaning up as we may only get stuck in buggy drivers.  */
+	      PurgeComm (hnd, PURGE_TXABORT | PURGE_TXCLEAR);
+	      CancelIo (hnd);
+	      errno = EIO;
+	      return -1;
+	    }
+	  if (active == WAIT_OBJECT_0 + 1
+	      && !GetOverlappedResult (hnd, ovl, (DWORD*) &nchars, TRUE))
+	    {
+	      errno = EIO;
+	      return -1;
+	    }
+	}
+    }
+  else
 #ifdef HAVE_SOCKETS
   if (fd < MAXDESC && fd_info[fd].flags & FILE_SOCKET)
     {
@@ -4610,6 +4725,196 @@ globals_of_w32 ()
 
   /* "None" is the default group name on standalone workstations.  */
   strcpy (dflt_group_name, "None");
+}
+
+/* For make-serial-process  */
+int serial_open (char *port)
+{
+  HANDLE hnd;
+  child_process *cp;
+  int fd = -1;
+
+  hnd = CreateFile (port, GENERIC_READ | GENERIC_WRITE, 0, 0,
+		    OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
+  if (hnd == INVALID_HANDLE_VALUE)
+    error ("Could not open %s", port);
+  fd = (int) _open_osfhandle ((int) hnd, 0);
+  if (fd == -1)
+    error ("Could not open %s", port);
+
+  cp = new_child ();
+  if (!cp)
+    error ("Could not create child process");
+  cp->fd = fd;
+  cp->status = STATUS_READ_ACKNOWLEDGED;
+  fd_info[ fd ].hnd = hnd;
+  fd_info[ fd ].flags |=
+    FILE_READ | FILE_WRITE | FILE_BINARY | FILE_SERIAL;
+  if (fd_info[ fd ].cp != NULL)
+    {
+      error ("fd_info[fd = %d] is already in use", fd);
+    }
+  fd_info[ fd ].cp = cp;
+  cp->ovl_read.hEvent = CreateEvent (NULL, TRUE, FALSE, NULL);
+  if (cp->ovl_read.hEvent == NULL)
+      error ("Could not create read event");
+  cp->ovl_write.hEvent = CreateEvent (NULL, TRUE, FALSE, NULL);
+  if (cp->ovl_write.hEvent == NULL)
+      error ("Could not create write event");
+
+  return fd;
+}
+
+/* For serial-process-configure  */
+void
+serial_configure (struct Lisp_Process *p,
+		      Lisp_Object contact)
+{
+  Lisp_Object childp2 = Qnil;
+  Lisp_Object tem = Qnil;
+  HANDLE hnd;
+  DCB dcb;
+  COMMTIMEOUTS ct;
+  char summary[4] = "???"; /* This usually becomes "8N1".  */
+
+  if ((fd_info[ p->outfd ].flags & FILE_SERIAL) == 0)
+    error ("Not a serial process");
+  hnd = fd_info[ p->outfd ].hnd;
+
+  childp2 = Fcopy_sequence (p->childp);
+
+  /* Initialize timeouts for blocking read and blocking write.  */
+  if (!GetCommTimeouts (hnd, &ct))
+    error ("GetCommTimeouts() failed");
+  ct.ReadIntervalTimeout	 = 0;
+  ct.ReadTotalTimeoutMultiplier	 = 0;
+  ct.ReadTotalTimeoutConstant	 = 0;
+  ct.WriteTotalTimeoutMultiplier = 0;
+  ct.WriteTotalTimeoutConstant	 = 0;
+  if (!SetCommTimeouts (hnd, &ct))
+    error ("SetCommTimeouts() failed");
+  /* Read port attributes and prepare default configuration.  */
+  memset (&dcb, 0, sizeof (dcb));
+  dcb.DCBlength = sizeof (DCB);
+  if (!GetCommState (hnd, &dcb))
+    error ("GetCommState() failed");
+  dcb.fBinary	    = TRUE;
+  dcb.fNull	    = FALSE;
+  dcb.fAbortOnError = FALSE;
+  /* dcb.XonLim and dcb.XoffLim are set by GetCommState() */
+  dcb.ErrorChar	    = 0;
+  dcb.EofChar	    = 0;
+  dcb.EvtChar       = 0;
+
+  /* Configure speed.  */
+  if (!NILP (Fplist_member (contact, QCspeed)))
+    tem = Fplist_get (contact, QCspeed);
+  else
+    tem = Fplist_get (p->childp, QCspeed);
+  CHECK_NUMBER (tem);
+  dcb.BaudRate = XINT (tem);
+  childp2 = Fplist_put (childp2, QCspeed, tem);
+
+  /* Configure bytesize.  */
+  if (!NILP (Fplist_member (contact, QCbytesize)))
+    tem = Fplist_get (contact, QCbytesize);
+  else
+    tem = Fplist_get (p->childp, QCbytesize);
+  if (NILP (tem))
+    tem = make_number (8);
+  CHECK_NUMBER (tem);
+  if (XINT (tem) != 7 && XINT (tem) != 8)
+    error (":bytesize must be nil (8), 7, or 8");
+  dcb.ByteSize = XINT (tem);
+  summary[0] = XINT (tem) + '0';
+  childp2 = Fplist_put (childp2, QCbytesize, tem);
+
+  /* Configure parity.  */
+  if (!NILP (Fplist_member (contact, QCparity)))
+    tem = Fplist_get (contact, QCparity);
+  else
+    tem = Fplist_get (p->childp, QCparity);
+  if (!NILP (tem) && !EQ (tem, Qeven) && !EQ (tem, Qodd))
+    error (":parity must be nil (no parity), `even', or `odd'");
+  dcb.fParity = FALSE;
+  dcb.Parity = NOPARITY;
+  dcb.fErrorChar = FALSE;
+  if (NILP (tem))
+    {
+      summary[1] = 'N';
+    }
+  else if (EQ (tem, Qeven))
+    {
+      summary[1] = 'E';
+      dcb.fParity = TRUE;
+      dcb.Parity = EVENPARITY;
+      dcb.fErrorChar = TRUE;
+    }
+  else if (EQ (tem, Qodd))
+    {
+      summary[1] = 'O';
+      dcb.fParity = TRUE;
+      dcb.Parity = ODDPARITY;
+      dcb.fErrorChar = TRUE;
+    }
+  childp2 = Fplist_put (childp2, QCparity, tem);
+
+  /* Configure stopbits.  */
+  if (!NILP (Fplist_member (contact, QCstopbits)))
+    tem = Fplist_get (contact, QCstopbits);
+  else
+    tem = Fplist_get (p->childp, QCstopbits);
+  if (NILP (tem))
+    tem = make_number (1);
+  CHECK_NUMBER (tem);
+  if (XINT (tem) != 1 && XINT (tem) != 2)
+    error (":stopbits must be nil (1 stopbit), 1, or 2");
+  summary[2] = XINT (tem) + '0';
+  if (XINT (tem) == 1)
+    dcb.StopBits = ONESTOPBIT;
+  else if (XINT (tem) == 2)
+    dcb.StopBits = TWOSTOPBITS;
+  childp2 = Fplist_put (childp2, QCstopbits, tem);
+
+  /* Configure flowcontrol.  */
+  if (!NILP (Fplist_member (contact, QCflowcontrol)))
+    tem = Fplist_get (contact, QCflowcontrol);
+  else
+    tem = Fplist_get (p->childp, QCflowcontrol);
+  if (!NILP (tem) && !EQ (tem, Qhw) && !EQ (tem, Qsw))
+    error (":flowcontrol must be nil (no flowcontrol), `hw', or `sw'");
+  dcb.fOutxCtsFlow	= FALSE;
+  dcb.fOutxDsrFlow	= FALSE;
+  dcb.fDtrControl	= DTR_CONTROL_DISABLE;
+  dcb.fDsrSensitivity	= FALSE;
+  dcb.fTXContinueOnXoff	= FALSE;
+  dcb.fOutX		= FALSE;
+  dcb.fInX		= FALSE;
+  dcb.fRtsControl	= RTS_CONTROL_DISABLE;
+  dcb.XonChar		= 17; /* Control-Q  */
+  dcb.XoffChar		= 19; /* Control-S  */
+  if (NILP (tem))
+    {
+      /* Already configured.  */
+    }
+  else if (EQ (tem, Qhw))
+    {
+      dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+      dcb.fOutxCtsFlow = TRUE;
+    }
+  else if (EQ (tem, Qsw))
+    {
+      dcb.fOutX = TRUE;
+      dcb.fInX = TRUE;
+    }
+  childp2 = Fplist_put (childp2, QCflowcontrol, tem);
+
+  /* Activate configuration.  */
+  if (!SetCommState (hnd, &dcb))
+    error ("SetCommState() failed");
+
+  childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
+  p->childp = childp2;
 }
 
 /* end of w32.c */

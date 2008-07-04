@@ -53,6 +53,7 @@ This function returns @code{t} if @var{object} is a process,
 * Low-Level Network::        Lower-level but more general function
                                to create connections and servers.
 * Misc Network::             Additional relevant functions for network connections.
+* Serial Ports::             Communicating with serial ports.
 * Byte Packing::             Using bindat to pack and unpack binary data.
 @end menu
 
@@ -676,6 +677,49 @@ were given to the program.
 @end smallexample
 @end defun
 
+@defun process-contact process &optional key
+
+This function returns information about how a network or serial
+process was set up.  For a network process, when @var{key} is
+@code{nil}, it returns @code{(@var{hostname} @var{service})} which
+specifies what you connected to.  For a serial process, when @var{key}
+is @code{nil}, it returns @code{(@var{port} @var{speed})}.  For an
+ordinary child process, this function always returns @code{t}.
+
+If @var{key} is @code{t}, the value is the complete status information
+for the connection, server, or serial port; that is, the list of
+keywords and values specified in @code{make-network-process} or
+@code{make-serial-process}, except that some of the values represent
+the current status instead of what you specified.
+
+For a network process:
+
+@table @code
+@item :buffer
+The associated value is the process buffer.
+@item :filter
+The associated value is the process filter function.
+@item :sentinel
+The associated value is the process sentinel function.
+@item :remote
+In a connection, the address in internal format of the remote peer.
+@item :local
+The local address, in internal format.
+@item :service
+In a server, if you specified @code{t} for @var{service},
+this value is the actual port number.
+@end table
+
+@code{:local} and @code{:remote} are included even if they were not
+specified explicitly in @code{make-network-process}.
+
+For a serial process, see @code{make-serial-process} and
+@code{serial-process-configure} for a list of keys.
+
+If @var{key} is a keyword, the function returns the value corresponding
+to that keyword.
+@end defun
+
 @defun process-id process
 This function returns the @acronym{PID} of @var{process}.  This is an
 integer that distinguishes the process @var{process} from all other
@@ -740,6 +784,12 @@ x
 For a network connection, @code{process-status} returns one of the symbols
 @code{open} or @code{closed}.  The latter means that the other side
 closed the connection, or Emacs did @code{delete-process}.
+@end defun
+
+@defun process-type process
+This function returns the symbol @code{network} for a network
+connection or server, @code{serial} for a serial port connection, or
+@code{real} for a real subprocess.
 @end defun
 
 @defun process-exit-status process
@@ -1593,11 +1643,14 @@ server process, or @code{:type 'datagram} to create a datagram
 connection.  @xref{Low-Level Network}, for details.  You can also use
 the @code{open-network-stream} function described below.
 
-  You can distinguish process objects representing network connections
-and servers from those representing subprocesses with the
-@code{process-status} function.  The possible status values for
-network connections are @code{open}, @code{closed}, @code{connect},
-and @code{failed}.  For a network server, the status is always
+  To distinguish the different types of processes, the
+@code{process-type} function returns the symbol @code{network} for a
+network connection or server, @code{serial} for a serial port
+connection, or @code{real} for a real subprocess.
+
+  The @code{process-status} function returns @code{open},
+@code{closed}, @code{connect}, and @code{failed} for network
+connections.  For a network server, the status is always
 @code{listen}.  None of those values is possible for a real
 subprocess.  @xref{Process Information}.
 
@@ -1629,42 +1682,6 @@ associated with any buffer.
 The arguments @var{host} and @var{service} specify where to connect to;
 @var{host} is the host name (a string), and @var{service} is the name of
 a defined network service (a string) or a port number (an integer).
-@end defun
-
-@defun process-contact process &optional key
-This function returns information about how a network process was set
-up.  For a connection, when @var{key} is @code{nil}, it returns
-@code{(@var{hostname} @var{service})} which specifies what you
-connected to.
-
-If @var{key} is @code{t}, the value is the complete status information
-for the connection or server; that is, the list of keywords and values
-specified in @code{make-network-process}, except that some of the
-values represent the current status instead of what you specified:
-
-@table @code
-@item :buffer
-The associated value is the process buffer.
-@item :filter
-The associated value is the process filter function.
-@item :sentinel
-The associated value is the process sentinel function.
-@item :remote
-In a connection, the address in internal format of the remote peer.
-@item :local
-The local address, in internal format.
-@item :service
-In a server, if you specified @code{t} for @var{service},
-this value is the actual port number.
-@end table
-
-@code{:local} and @code{:remote} are included even if they were not
-specified explicitly in @code{make-network-process}.
-
-If @var{key} is a keyword, the function returns the value corresponding
-to that keyword.
-
-For an ordinary child process, this function always returns @code{t}.
 @end defun
 
 @node Network Servers
@@ -2097,6 +2114,192 @@ the string
 If the vector does not include the port number, @var{p}, or if
 @var{omit-port} is non-@code{nil}, the result does not include the
 @code{:@var{p}} suffix.
+@end defun
+
+@node Serial Ports
+@section Communicating with Serial Ports
+@cindex @file{/dev/tty}
+@cindex @file{COM1}
+
+  Emacs can communicate with serial ports.  For interactive use,
+@kbd{M-x serial-term} opens a terminal window.  In a Lisp program,
+@code{make-serial-process} creates a process object.
+
+  The serial port can be configured at run-time, without having to
+close and re-open it.  The function @code{serial-process-configure}
+lets you change the speed, bytesize, and other parameters.  In a
+terminal window created by @code{serial-term}, you can click on the
+mode line for configuration.
+
+  A serial connection is represented by a process object which can be
+used similar to a subprocess or network process.  You can send and
+receive data and configure the serial port.  A serial process object
+has no process ID, and you can't send signals to it.
+@code{delete-process} on the process object or @code{kill-buffer} on
+the process buffer close the connection, but this does not affect the
+device connected to the serial port.
+
+  The function @code{process-type} returns the symbol @code{serial}
+for a process object representing a serial port.
+
+  Serial ports are available on GNU/Linux, Unix, and Windows systems.
+
+@defun serial-term port speed
+Start a terminal-emulator for a serial port in a new buffer.
+@var{port} is the path or name of the serial port.  For example, this
+could be @file{/dev/ttyS0} on Unix.  On Windows, this could be
+@file{COM1}, or @file{\\.\COM10} (double the backslashes in strings).
+
+@var{speed} is the speed of the serial port in bits per second.  9600
+is a common value.  The buffer is in Term mode; see @code{term-mode}
+for the commands to use in that buffer.  You can change the speed and
+the configuration in the mode line menu.  @end defun
+
+@defun make-serial-process &rest args
+@code{make-serial-process} creates a process and a buffer.  Arguments
+are specified as keyword/argument pairs.  The following arguments are
+defined:
+
+@table @code
+@item :port port
+@var{port} (mandatory) is the path or name of the serial port.
+For example, this could be @file{/dev/ttyS0} on Unix.  On Windows,
+this could be @file{COM1}, or @file{\\.\COM10} for ports higher than
+@file{COM9} (double the backslashes in strings).
+
+@item :speed speed
+@var{speed} (mandatory) is handled by @code{serial-process-configure},
+which is called by @code{make-serial-process}.
+
+@item :name name
+@var{name} is the name of the process.  If @var{name} is not given, the
+value of @var{port} is used.
+
+@item :buffer buffer
+@var{buffer} is the buffer (or buffer-name) to associate with the
+process.  Process output goes at the end of that buffer, unless you
+specify an output stream or filter function to handle the output.  If
+@var{buffer} is not given, the value of @var{name} is used.
+
+@item :coding coding
+If @var{coding} is a symbol, it specifies the coding system used for
+both reading and writing for this process.  If @var{coding} is a cons
+@code{(decoding . encoding)}, @var{decoding} is used for reading, and
+@var{encoding} is used for writing.
+
+@item :noquery bool
+When exiting Emacs, query the user if @var{bool} is @code{nil} and the
+process is running.  If @var{bool} is not given, query before exiting.
+
+@item :stop bool
+Start process in the @code{stopped} state if @var{bool} is
+non-@code{nil}.  In the stopped state, a serial process does not
+accept incoming data, but you can send outgoing data.  The stopped
+state is cleared by @code{continue-process} and set by
+@code{stop-process}.
+
+@item :filter filter
+Install @var{filter} as the process filter.
+
+@item :sentinel sentinel
+Install @var{sentinel} as the process sentinel.
+
+@item :plist plist
+Install @var{plist} as the initial plist of the process.
+
+@item :speed
+@itemx :bytesize
+@itemx :parity
+@itemx :stopbits
+@itemx :flowcontrol
+These arguments are handled by @code{serial-process-configure}, which
+is called by @code{make-serial-process}.
+@end table
+
+The original argument list, possibly modified by later configuration,
+is available via the function @code{process-contact}.
+
+Examples:
+
+@example
+(make-serial-process :port "/dev/ttyS0" :speed 9600)
+
+(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
+
+(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity 'odd)
+
+(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
+@end example
+@end defun
+
+@defun serial-process-configure &rest args
+@cindex baud
+@cindex bytesize
+@cindex parity
+@cindex stopbits
+@cindex flowcontrol
+
+Configure a serial port.  Arguments are specified as keyword/argument
+pairs.  Attributes that are not given are re-initialized from the
+process's current configuration (available via the function
+@code{process-contact}) or set to reasonable default values.  The
+following arguments are defined:
+
+@table @code
+@item :process process
+@itemx :name name
+@itemx :buffer buffer
+@itemx :port port
+Any of these arguments can be given to identify the process that is to
+be configured.  If none of these arguments is given, the current
+buffer's process is used.
+
+@item :speed @var{speed}
+@var{speed} is the speed of the serial port in bits per second, also
+called baud rate.  Any value can be given for @var{speed}, but most
+serial ports work only at a few defined values between 1200 and
+115200, with 9600 being the most common value.  If @var{speed} is
+@code{nil}, the serial port is not configured any further, i.e., all
+other arguments are ignored.  This may be useful for special serial
+ports such as Bluetooth-to-serial converters which can only be
+configured through AT commands.  A value of @code{nil} for @var{speed}
+can be used only when passed through @code{make-serial-process} or
+@code{serial-term}.
+
+@item :bytesize @var{bytesize}
+@var{bytesize} is the number of bits per byte, which can be 7 or 8.
+If @var{bytesize} is not given or @code{nil}, a value of 8 is used.
+
+@item :parity @var{parity}
+@var{parity} can be @code{nil} (don't use parity), the symbol
+@code{odd} (use odd parity), or the symbol @code{even} (use even
+parity).  If @var{parity} is not given, no parity is used.
+
+@item :stopbits @var{stopbits}
+@var{stopbits} is the number of stopbits used to terminate a byte
+transmission.  @var{stopbits} can be 1 or 2.  If @var{stopbits} is not
+given or @code{nil}, 1 stopbit is used.
+
+@item :flowcontrol @var{flowcontrol}
+@var{flowcontrol} determines the type of flowcontrol to be used, which
+is either @code{nil} (don't use flowcontrol), the symbol @code{hw}
+(use RTS/CTS hardware flowcontrol), or the symbol @code{sw} (use
+XON/XOFF software flowcontrol).  If @var{flowcontrol} is not given, no
+flowcontrol is used.
+@end table
+
+@code{serial-process-configure} is called by @code{make-serial-process} for the
+initial configuration of the serial port.
+
+Examples:
+
+@example
+(serial-process-configure :process "/dev/ttyS0" :speed 1200)
+
+(serial-process-configure :buffer "COM1" :stopbits 1 :parity 'odd :flowcontrol 'hw)
+
+(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
+@end example
 @end defun
 
 @node Byte Packing

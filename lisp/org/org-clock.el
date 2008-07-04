@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -97,11 +97,7 @@ The function is called with point at the beginning of the headline."
 (defvar org-clock-start-time "")
 
 (defvar org-clock-history nil
-  "Marker pointing to the previous task teking clock time.
-This is used to find back to the previous task after interrupting work.
-When clocking into a task and the clock is currently running, this marker
-is moved to the position of the currently running task and continues
-to point there even after the task is clocked out.")
+  "List of marker pointing to recent clocked tasks.")
 
 (defvar org-clock-default-task (make-marker)
   "Marker pointing to the default task that should clock time.
@@ -109,12 +105,11 @@ The clock can be made to switch to this task after clocking out
 of a different task.")
 
 (defvar org-clock-interrupted-task (make-marker)
-  "Marker pointing to the default task that should clock time.
-The clock can be made to switch to this task after clocking out
-of a different task.")
+  "Marker pointing to the task that has been interrupted by the current clock.")
 
 (defun org-clock-history-push (&optional pos buffer)
   "Push a marker to the clock history."
+  (setq org-clock-history-length (max 1 (min 35 org-clock-history-length)))
   (let ((m (move-marker (make-marker) (or pos (point)) buffer)) n l)
     (while (setq n (member m org-clock-history))
       (move-marker (car n) nil))
@@ -128,6 +123,14 @@ of a different task.")
 	     (nthcdr (- l org-clock-history-length -1)
 		     (nreverse org-clock-history)))))
     (push m org-clock-history)))
+
+(defun org-clock-save-markers-for-cut-and-paste (beg end)
+  "Save relative positions of markers in region."
+  (org-check-and-save-marker org-clock-marker beg end)
+  (org-check-and-save-marker org-clock-default-task beg end)
+  (org-check-and-save-marker org-clock-interrupted-task beg end)
+  (mapc (lambda (m) (org-check-and-save-marker m beg end))
+	org-clock-history))
 
 (defun org-clock-select-task (&optional prompt)
   "Select a task that recently was associated with clocking."
@@ -155,10 +158,14 @@ of a different task.")
 	 (when (marker-buffer m)
 	   (setq i (1+ i)
 		 s (org-clock-insert-selection-line
-		    (string-to-char (number-to-string i)) m))
+		    (if (< i 10)
+			(+ i ?0)
+		      (+ i (- ?A 10))) m))
 	   (push s sel-list)))
        org-clock-history)
-      (shrink-window-if-larger-than-buffer)
+      (if (fboundp 'fit-window-to-buffer)
+	  (fit-window-to-buffer)
+	(shrink-window-if-larger-than-buffer))
       (message (or prompt "Select task for clocking:"))
       (setq rpl (read-char-exclusive))
       (cond
@@ -170,14 +177,16 @@ of a different task.")
 (defun org-clock-insert-selection-line (i marker)
   (when (marker-buffer marker)
     (let (file cat task)
-      (with-current-buffer (marker-buffer marker)
+      (with-current-buffer (org-base-buffer (marker-buffer marker))
 	(save-excursion
-	  (goto-char marker)
-	  (setq file (buffer-file-name (marker-buffer marker))
-		cat (or (org-get-category)
-			(progn (org-refresh-category-properties)
-			       (org-get-category)))
-		task (org-get-heading 'notags))))
+	  (save-restriction
+	    (widen)
+	    (goto-char marker)
+	    (setq file (buffer-file-name (marker-buffer marker))
+		  cat (or (org-get-category)
+			  (progn (org-refresh-category-properties)
+				 (org-get-category)))
+		  task (org-get-heading 'notags)))))
       (when (and cat task)
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
@@ -188,7 +197,7 @@ of a different task.")
 	 (h (floor delta 3600))
 	 (m (floor (- delta (* 3600 h)) 60)))
     (setq org-mode-line-string
-	  (propertize (format "-[%d:%02d (%s)]" h m org-clock-heading)
+	  (propertize (format (concat "-[" org-time-clocksum-format " (%s)]") h m org-clock-heading)
 		      'help-echo "Org-mode clock is running"))
     (force-mode-line-update)))
 
@@ -204,60 +213,69 @@ is as the default task, a special task that will always be offered in
 the clocking selection, associated with the letter `d'."
   (interactive "P")
   (let ((interrupting (marker-buffer org-clock-marker))
-	ts selected-task)
+	ts selected-task target-pos)
     (when (equal select '(4))
       (setq selected-task (org-clock-select-task "Clock-in on task: "))
       (if selected-task
 	  (setq selected-task (copy-marker selected-task))
 	(error "Abort")))
-    ;; Are we interrupting the clocking of a differnt task?
-    (if interrupting
-	(progn
-	  (move-marker org-clock-interrupted-task
-		       (marker-position org-clock-marker)
-		       (marker-buffer org-clock-marker))
-	  (org-clock-out t)))
+    (when interrupting
+      ;; We are interrupting the clocking of a differnt task.
+      ;; Save a marker to this task, so that we can go back.
+      (move-marker org-clock-interrupted-task
+		   (marker-position org-clock-marker)
+		   (marker-buffer org-clock-marker))
+      (org-clock-out t))
     
     (when (equal select '(16))
+      ;; Mark as default clocking task
       (save-excursion
 	(org-back-to-heading t)
 	(move-marker org-clock-default-task (point))))
     
+    (setq target-pos (point))  ;; we want to clock in at this location
     (save-excursion
-      (org-back-to-heading t)
       (when (and selected-task (marker-buffer selected-task))
-	(set-buffer (marker-buffer selected-task))
-	(goto-char selected-task)
+	;; There is a selected task, move to the correct buffer
+	;; and set the new target position.
+	(set-buffer (org-base-buffer (marker-buffer selected-task)))
+	(setq target-pos (marker-position selected-task))
 	(move-marker selected-task nil))
-      (or interrupting (move-marker org-clock-interrupted-task nil))
-      (org-clock-history-push)
-      (when (and org-clock-in-switch-to-state
-		 (not (looking-at (concat outline-regexp "[ \t]*"
-					  org-clock-in-switch-to-state
-					  "\\>"))))
-	(org-todo org-clock-in-switch-to-state))
-      (if (and org-clock-heading-function
-	       (functionp org-clock-heading-function))
-	  (setq org-clock-heading (funcall org-clock-heading-function))
-	(if (looking-at org-complex-heading-regexp)
-	    (setq org-clock-heading (match-string 4))
-	  (setq org-clock-heading "???")))
-      (setq org-clock-heading (propertize org-clock-heading 'face nil))
-      (org-clock-find-position)
-      
-      (insert "\n") (backward-char 1)
-      (indent-relative)
-      (insert org-clock-string " ")
-      (setq org-clock-start-time (current-time))
-      (setq ts (org-insert-time-stamp (current-time) 'with-hm 'inactive))
-      (move-marker org-clock-marker (point) (buffer-base-buffer))
-      (or global-mode-string (setq global-mode-string '("")))
-      (or (memq 'org-mode-line-string global-mode-string)
-	  (setq global-mode-string
-		(append global-mode-string '(org-mode-line-string))))
-      (org-update-mode-line)
-      (setq org-mode-line-timer (run-with-timer 60 60 'org-update-mode-line))
-      (message "Clock started at %s" ts))))
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char target-pos)
+	  (org-back-to-heading t)
+	  (or interrupting (move-marker org-clock-interrupted-task nil))
+	  (org-clock-history-push)
+	  (when (and org-clock-in-switch-to-state
+		     (not (looking-at (concat outline-regexp "[ \t]*"
+					      org-clock-in-switch-to-state
+					      "\\>"))))
+	    (org-todo org-clock-in-switch-to-state))
+	  (if (and org-clock-heading-function
+		   (functionp org-clock-heading-function))
+	      (setq org-clock-heading (funcall org-clock-heading-function))
+	    (if (looking-at org-complex-heading-regexp)
+		(setq org-clock-heading (match-string 4))
+	      (setq org-clock-heading "???")))
+	  (setq org-clock-heading (propertize org-clock-heading 'face nil))
+	  (org-clock-find-position)
+	  
+	  (insert "\n") (backward-char 1)
+	  (indent-relative)
+	  (insert org-clock-string " ")
+	  (setq org-clock-start-time (current-time))
+	  (setq ts (org-insert-time-stamp (current-time) 'with-hm 'inactive))
+	  (move-marker org-clock-marker (point) (buffer-base-buffer))
+	  (or global-mode-string (setq global-mode-string '("")))
+	  (or (memq 'org-mode-line-string global-mode-string)
+	      (setq global-mode-string
+		    (append global-mode-string '(org-mode-line-string))))
+	  (org-update-mode-line)
+	  (setq org-mode-line-timer
+		(run-with-timer 60 60 'org-update-mode-line))
+	  (message "Clock started at %s" ts))))))
 
 (defun org-clock-find-position ()
   "Find the location where the next clock line should be inserted."
@@ -288,7 +306,6 @@ the clocking selection, associated with the letter `d'."
 	;; Wrap current entries into a new drawer
 	(goto-char last)
 	(beginning-of-line 2)
-	(if (org-at-item-p) (org-end-of-item))
 	(insert ":END:\n")
 	(beginning-of-line 0)
 	(org-indent-line-function)
@@ -358,7 +375,7 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	(setq global-mode-string
 	      (delq 'org-mode-line-string global-mode-string))
 	(force-mode-line-update)
-	(message "Clock stopped at %s after HH:MM = %d:%02d%s" te h m
+	(message (concat "Clock stopped at %s after HH:MM = " org-time-clocksum-format "%s") te h m
 		 (if remove " => LINE REMOVED" "")))))))
 
 (defun org-clock-cancel ()
@@ -387,6 +404,7 @@ With prefix arg SELECT, offer recently clocked tasks."
 	    (error "No task selected")
 	  (error "No active clock")))
     (switch-to-buffer (marker-buffer m))
+    (if (or (< m (point-min)) (> m (point-max))) (widen))
     (goto-char m)
     (org-show-entry)
     (org-back-to-heading)
@@ -469,7 +487,7 @@ in the echo area."
 	(when org-remove-highlights-with-change
 	  (org-add-hook 'before-change-functions 'org-remove-clock-overlays
 			nil 'local))))
-    (message "Total file time: %d:%02d (%d hours and %d minutes)" h m h m)))
+    (message (concat "Total file time: " org-time-clocksum-format " (%d hours and %d minutes)") h m h m)))
 
 (defvar org-clock-overlays nil)
 (make-variable-buffer-local 'org-clock-overlays)
@@ -481,6 +499,7 @@ This creates a new overlay and stores it in `org-clock-overlays', so that it
 will be easy to remove."
   (let* ((c 60) (h (floor (/ time 60))) (m (- time (* 60 h)))
 	 (l (if level (org-get-valid-level level 0) 0))
+	 (fmt (concat "%s " org-time-clocksum-format "%s"))
 	 (off 0)
 	 ov tx)
     (org-move-to-column c)
@@ -489,7 +508,7 @@ will be easy to remove."
     (setq ov (org-make-overlay (1- (point)) (point-at-eol))
 	  tx (concat (buffer-substring (1- (point)) (point))
 		     (make-string (+ off (max 0 (- c (current-column)))) ?.)
-		     (org-add-props (format "%s %2d:%02d%s"
+		     (org-add-props (format fmt
 					    (make-string l ?*) h m
 					    (make-string (- 16 l) ?\ ))
 			 '(face secondary-selection))
@@ -920,7 +939,6 @@ the currently selected interval size."
 
 (provide 'org-clock)
 
-;;; org-clock.el ends here
-
-
 ;; arch-tag: 7b42c5d4-9b36-48be-97c0-66a869daed4c
+
+;;; org-clock.el ends here

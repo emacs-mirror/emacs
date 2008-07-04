@@ -28,16 +28,11 @@ VPATH=@srcdir@
 
 infodir = ../../info
 usermanualdir = $(srcdir)/../emacs
-miscmanualdir = $(srcdir)/../misc
 
 TEXI2DVI = texi2dvi
 SHELL = /bin/sh
 INSTALL_INFO = install-info
 MAKEINFO = makeinfo --force
-
-# The name of the manual:
-VERSION=2.9
-manual = elisp-manual-21-$(VERSION)
 
 # List of all the texinfo files in the manual:
 
@@ -107,16 +102,6 @@ $(infodir)/elisp: $(srcs)
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(usermanualdir) $(srcdir)/elisp.texi
 
-# This is for use in a separate distro of the Emacs Lisp manual.
-install: elisp
-	$(srcdir)/mkinstalldirs $(infodir)
-	cp elisp elisp-[1-9] elisp-[1-9][0-9] $(infodir)
-	${INSTALL_INFO} --info-dir=${infodir} ${infodir}/elisp
-
-# This is for use in a separate distro of the Emacs Lisp manual.
-elisp: $(srcs)
-	$(MAKEINFO) -I. -I$(srcdir) $(srcdir)/elisp.texi
-
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
               *.vr *.vrs *.pg *.pgs *.ky *.kys
@@ -127,19 +112,3 @@ distclean: clean
 maintainer-clean: clean
 	rm -f elisp.dvi elisp.oaux
 	cd $(infodir); rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
-
-dist: $(infodir)/elisp elisp.dvi
-	-rm -rf temp
-	-mkdir temp
-	-mkdir temp/$(manual)
-	-ln $(srcdir)/README $(srcdir)/configure.in $(srcdir)/configure \
- $(srcdir)/Makefile.in $(srcs) \
- $(miscmanualdir)/texinfo.tex \
- elisp.dvi elisp.aux elisp.??s \
- $(infodir)/elisp $(infodir)/elisp-[1-9] $(infodir)/elisp-[1-9][0-9] \
- temp/$(manual)
-	-(cd temp/$(manual); rm -f mkinstalldirs)
-	cp $(srcdir)/mkinstalldirs temp/$(manual)
-	(cd temp/$(manual); rm -f *~)
-	(cd temp; tar chf - $(manual)) | gzip > $(manual).tar.gz
-	-rm -rf temp

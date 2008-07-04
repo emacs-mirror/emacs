@@ -1998,11 +1998,12 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
 (define-obsolete-function-alias 'make-diary-entry 'diary-make-entry "23.1")
 
 ;;;###cal-autoload
-(defun diary-insert-entry (arg)
+(defun diary-insert-entry (arg &optional event)
   "Insert a diary entry for the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
-  (interactive "P")
-  (diary-make-entry (calendar-date-string (calendar-cursor-to-date t) t t)
+  (interactive
+   (list current-prefix-arg last-nonmenu-event))
+  (diary-make-entry (calendar-date-string (calendar-cursor-to-date t event) t t)
                     arg))
 
 ;;;###cal-autoload

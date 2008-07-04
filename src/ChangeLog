@@ -1,9 +1,280 @@
+2008-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Add FOUNDRY, SPACING, DPI, SCALABLE to
+	the pattern.
+
+	* fontset.c (fontset_from_font): Copy font_spec before changing
+	the elements.
+
+	* xfns.c (x_default_font_parameter): Try "monospace-12" too.
+
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32fns.c, xfnc.c (x_default_font_parameter): Only set `font-param'
+	for explicit `font' parameters.
+
+	* frame.c (x_set_font): Remove unexplained call to fix inf-recursion.
+
+2008-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* frame.c: Include <ctype.h>.
+	(x_set_font_backend): Allow spacing characters in the X resource
+	for FontBackend.
+
+2008-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32fns.c, xfns.c (Qfont_param): New var.
+	(syms_of_w32fns): Initialize it.
+	(x_default_font_parameter): Record explicit `font' into
+	`font-parameter'.
+
+2008-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): Fix previous change.
+	(font_parse_fcname): Don't use :fc-unknown-spec.
+	(FRAME_X_DISPLAY_INFO): Besure to have at least 1 pixel height.
+	(Fcopy_font_spec): Preserve the order of elements in FONT_EXTRA.
+	(font_add_log): Prepend the driver name to the resulting fonts.
+
+	* ftfont.c (ftfont_pattern_entity): New arg extra.  Caller changed.
+	(ftfont_spec_pattern): Don't check QCfc_unknown_spec and QCname.
+	(ftfont_list) [FC_FONTFORMAT]: Include FC_FONTFORMAT in objset.
+
+	* xftfont.c (QChinting , QCautohint, QChintstyle, QCrgba)
+	(QCembolden): New variables.
+	(syms_of_xftfont): DEFSYM them.
+	(xftfont_open): Call XftFontMatch.  Don't trust the result of
+	XftTextExtents8 if the pixel_size is less than 5.
+
+2008-06-18  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (Ffont_face_attributes): Only define if
+	HAVE_WINDOW_SYSTEM.
+	(syms_of_font): Only defsubr if HAVE_WINDOW_SYSTEM.
+
+2008-06-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_list, w32font_match): Add logging.
+
+	* w32uniscribe (uniscribe_list, uniscribe_match): Add logging.
+
+2008-06-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Store divider characters for
+	unknown-spec list.  For known key symbols, intern using correct
+	symbol name.
+
+2008-06-17  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (realize_default_face): If the frame is not on window
+	system, set the fontset of face to nil.
+
+2008-06-17  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
+
+	* fontset.c (fontset_pattern_regexp): Escape some reg-expr
+	characters.
+
+2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispextern.h (lookup_non_ascii_face, split_font_name_into_vector)
+	(build_font_name_from_vector): Delete externs.
+
+	* xfaces.c (struct font_name): Don't declare.
+
+2008-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.c (font_unparse_gtkname): Use EQ to compare Lisp_Objects.
+
+2008-06-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Fix handling of unknown-spec string.
+
+2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_spec): Fix usage in docstring.
+	(Ffont_face_attributes): Doc fix.
+
+2008-06-16  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (Ffont_face_attributes): Fix definition.
+
+2008-06-16  Jason Rumney  <jasonr@gnu.org>
+
+	* font.h (font_style_symbolic_from_value): Remove.
+
+	* font.c (font_style_symbolic_from_value): Remove.
+	(font_style_symbolic): Revert to pre 2008-06-13 version.
+
+	* w32font.c (w32_to_fc_weight): New function.
+	(w32font_full_name, logfont_to_fcname): Use it.
+
+2008-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_check_object): Delete it.
+	(font_clear_cache): Check if a font-object is alive.
+	(font_open_entity): Likewise.  Set FONT_OBJLST_INDEX of a
+	font-object to nil.
+	(font_close_object): Don't check FONT_CLOSE_OBJECT.
+	(font_at): Don't call font_check_object.
+	(Ffont_get): Return a symbol for :weight, :slant, and :width.
+
+2008-06-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1230000.
+
+2008-06-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Correctly parse KEY=VAL values.
+
+2008-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Only one decimal point.
+	(font_unparse_fcname): Handle data in family and foundry indices
+	as symbols, not strings.
+	(font_unparse_gtkname, Ffont_face_attributes): New functions.
+
+	* xfns.c (Fx_select_font): Give GTK font dialog the default font name.
+
+	* font.h (font_unparse_gtkname): Add prototype.
+
+2008-06-15  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
+
+	* fontset.c (fontset_pattern_regexp): Escape `+' characters in pattern.
+
+2008-06-15  Andreas Schwab  <schwab@suse.de>
+
+	* font.c (font_update_drivers): Fix crash when no drivers match.
+
+2008-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfns.c (Fx_create_frame): internal-border-width default to 0 for Gtk.
+	* gtkutil.c (xg_create_frame_widgets): Don't set internal_border_width.
+
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (syms_of_xdisp): Default underline-minimum-offset to 1.
+
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fserial_process_configure, Fprocess_send_eof):
+	Use EQ to compare Lisp_Objects.
+
+2008-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_select_font): Remove old font API function.
+
+	* w32font.c (logfont_to_fcname): New function.
+	(Fx_select_font): New font dialog function compatible with
+	GTK/fontconfig version.
+
+	* font.c (font_style_symbolic_from_value): New function.
+	(font_style_symbolic): Use it.
+
+	* font.h (font_style_symbolic_from_value): Declare new function.
+
+2008-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (syms_of_font) <font-weight-table, font-slant-table>:
+	<font-width-table>: Fix typos in docstrings.
+
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	These changes add serial port access.
+	* process.c: Add HAVE_SERIAL.
+	(Fdelete_process, Fprocess_status, Fset_process_buffer)
+	(Fset_process_filter, Fset_process_sentinel, Fprocess_contact)
+	(list_processes_1, select_wrapper, Fstop_process)
+	(Fcontinue_process, Fprocess_send_eof, kill_buffer_processes)
+	(status_notify): Modify to handle serial processes.
+	[HAVE_SERIAL] (Fserial_process_configure)
+	[HAVE_SERIAL] (make_serial_process_unwind, Fmake_serial_process):
+	New functions.
+	* process.h (struct Lisp_Process): Add `type'.
+	* sysdep.c [HAVE_TERMIOS] (serial_open, serial_configure):
+	New functions.
+	* w32.c (_sys_read_ahead, sys_read, sys_write): Modify to handle
+	serial ports.
+	(serial_open, serial_configure) New functions.
+	* w32.h: Add FILE_SERIAL.
+	(struct _child_process): Add ovl_read, ovl_write.
+
+2008-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (enum lface_attribute_index): New member
+	LFACE_FOUNDRY_INDEX.
+
+	* font.c (font_score): Delete arg alternate_families.  Check only
+	weight, slant, width, and size.  Ignore the difference of alias
+	style symbols.
+	(font_sort_entites): Adjust for the above change.  Reflect the
+	order of font-driver to scores.
+	(font_list_entities): Don't check alternate_familes here.
+	(font_clear_prop): Handle foundry.
+	(font_update_lface): Don't parse "foundry-family" form here.
+	Handle FONT_FOUNDRY_INDEX.
+	(font_find_for_lface): Likewise.  Handle alternate families here.
+	If registry is nil, try iso8859-1 and ascii-0.
+	(font_open_for_lface): Pay attention to size in ENTITY.
+	(font_open_by_name): Simplify by calling font_load_for_lface.
+	(free_font_driver_list): Delete it.
+	(font_update_drivers): Preserve the order of backends.
+	(syms_of_font): Setting of sort_shift_bits adjusted for the change
+	of font_score and font_sort_entites.
+	(font_update_sort_order): Likewise.
+
+	* xfaces.c (LFACE_FOUNDRY): New macro.
+	(check_lface_attrs): Check foundry.
+	(set_lface_from_font): Don't parse "FOUNDRY-FAMILY" form.
+	(merge_face_vectors): Check foundry.
+	(merge_face_ref): Likewise.
+	(Finternal_set_lisp_face_attribute): Likewise.
+	(x_update_menu_appearance): Likewise.
+	(Finternal_get_lisp_face_attribute): Likewise.
+	(lface_hash): Likewise.
+	(lface_same_font_attributes_p): Likewise.
+	(x_supports_face_attributes_p): Likewise.
+	(tty_supports_face_attributes_p): Likewise.
+	(Finternal_set_alternative_font_family_alist): Intern strings.
+	(Finternal_set_alternative_font_registry_alist): Downcase strings.
+	(realize_default_face): Set LFACE_FOUNDRY (lface).
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Register X
+	font-driver at first.
+
+	* ftfont.c (ftfont_font_format) [! FC_FONTFORMAT]: Declare "int len;".
+
+2008-06-12  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* lread.c (Fload): Use xfree, not free on saved_doc_string.
+
+2008-06-12  Jim Meyering  <meyering@redhat.com>
+
+	Make unexec_free handle NULL the same way free does.
+	* unexmacosx.c (unexec_free): Ignore a NULL argument.
+
+2008-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* character.h (CHAR_TO_BYTE_SAFE): New macro.
+	* character.c (Fmultibyte_char_to_unibyte): Obey the docstring.
+	* regex.c (RE_CHAR_TO_UNIBYTE): Use the new macro.
+	(WEAK_ALIAS): Simplify.
+	* syntax.c (skip_chars): Don't mark non-byte chars in the fastmap
+	when searching a unibyte buffer.
+
+2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_select_font): Rename from x-font-dialog.
+
+2008-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c: Include ctype.h.
+
 2008-06-11  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_encode_char): Detect missing glyphs that are
-        misreported as space.
-        (add_font_entity_to_list): Support unicode-bmp and unicode-sip
-        as aliases for registry iso10646-1.
+	* w32font.c (w32font_encode_char): Detect missing glyphs that are
+	misreported as space.
+	(add_font_entity_to_list): Support unicode-bmp and unicode-sip
+	as aliases for registry iso10646-1.
 
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -16,8 +287,8 @@
 
 2008-06-10  Jason Rumney  <jasonr@gnu.org>
 
-	* w32uniscribe.c (add_opentype_font_name_to_list): Skip non unicode
-	fonts.
+	* w32uniscribe.c (add_opentype_font_name_to_list):
+	Skip non unicode fonts.
 
 2008-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -105,19 +376,19 @@
 	(single_keymap_panes, push_menu_item, push_menu_pane):
 	Make globally visible.
 
-	* w32menu.c (enum button_type, widget_value, local_heap, local_alloc):
-	(local_free, malloc_widget_value, free_widget_value):
-	(MENU_ITEMS_ITEM_NAME, MENU_ITEMS_ITEM_ENABLE, MENU_ITEMS_ITEM_VALUE):
-	(MENU_ITEMS_ITEM_EQUIV_KEY, MENU_ITEMS_ITEM_DEFINITION):
-	(MENU_ITEMS_ITEM_TYPE, MENU_ITEMS_ITEM_SELECTED, MENU_ITEMS_ITEM_HELP):
+	* w32menu.c (enum button_type, widget_value, local_heap, local_alloc)
+	(local_free, malloc_widget_value, free_widget_value)
+	(MENU_ITEMS_ITEM_NAME, MENU_ITEMS_ITEM_ENABLE, MENU_ITEMS_ITEM_VALUE)
+	(MENU_ITEMS_ITEM_EQUIV_KEY, MENU_ITEMS_ITEM_DEFINITION)
+	(MENU_ITEMS_ITEM_TYPE, MENU_ITEMS_ITEM_SELECTED, MENU_ITEMS_ITEM_HELP)
 	(MENU_ITEMS_ITEM_LENGTH, enum menu_item_idx): Remove defs.
-	(menu_items, menu_items_allocated, menu_items_used):
+	(menu_items, menu_items_allocated, menu_items_used)
 	(menu_items_n_panes, menu_items_submenu_depth): Remove global vars.
 	(init_menu_items, finish_menu_items, discard_menu_items)
 	(grow_menu_items, push_submenu_start, push_submenu_end)
 	(push_left_right_boundary, push_menu_pane, push_menu_item)
 	(keymap_panes, single_keymap_panes, list_of_panes, list_of_items)
-	(free_menubar_widget_tree_value, parse_single_submenu):
+	(free_menubar_widget_tree_value, parse_single_submenu)
 	(update_submenu_strings): Remove functions.
 	(xmalloc_widget_value): Remove and declare extern.
 
@@ -948,15 +1219,13 @@
 	calculate underline position and thickness.  Use xlfd name as name
 	property.  Don't set codepage.
 	(w32font_open): Pass font_object to w32font_open_internal.  Don't
-	update dpyinfo->smallest_font_height and
-	dpyinfo->smallest_char_width.
+	update dpyinfo->smallest_font_height and dpyinfo->smallest_char_width.
 	(w32font_draw): Use s->font.
 	(clear_cached_metrics): Don't clear non-existent blocks.
 
 	* w32term.c (w32_compute_glyph_string_overhangs): Don't compute if
 	font was not found.
-	(x_draw_glyph_string): Use underline position and thickness from
-	font.
+	(x_draw_glyph_string): Use underline position and thickness from font.
 
 	* w32uniscribe.c (uniscribe_open): Pass font_object to
 	w32font_open_internal.
@@ -1093,7 +1362,7 @@
 	change of font-related objects.
 	(syms_of_font): Delete "ifdef USE_FONT_BACKEND".  DEFSYM new symbols.
 
-	* fontset.h (struct font_info): Delete it.  Most memnbers go to
+	* fontset.h (struct font_info): Delete it.  Most members go to
 	struct font.
 	(FONT_ENCODING_NOT_DECIDED): Moved to font.h.
 	(enum FONT_SPEC_INDEX): Delete it.

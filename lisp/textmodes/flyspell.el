@@ -306,11 +306,13 @@ property of the major mode name.")
 			       "$")
 		       nil t)
 		      (point)))
-	(signature-begin (save-excursion
-			   (goto-char (point-max))
-			   (re-search-backward message-signature-separator
-					       nil t)
-			   (point))))
+	(signature-begin
+         (if (not (boundp 'message-signature-separator))
+             (point-max)
+           (save-excursion
+             (goto-char (point-max))
+             (re-search-backward message-signature-separator nil t)
+             (point)))))
     (cond ((< (point) header-end)
 	   (and (save-excursion (beginning-of-line)
 				(looking-at "^Subject:"))

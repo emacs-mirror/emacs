@@ -547,6 +547,8 @@
 
 ;;; Todo:
 
+;; - Get rid of the "master file" terminology.
+
 ;; - Add key-binding for vc-delete-file.
 
 ;;;; New Primitives:
@@ -1014,34 +1016,43 @@ Within directories, only files already under version control are noticed."
 ;;                     (vc-backend (car cooked)))))
 ;; 	(cons backend selection)))
 
-(defun vc-deduce-fileset (&optional observer allow-unregistered)
+(defun vc-deduce-fileset (&optional observer allow-unregistered only-files)
   "Deduce a set of files and a backend to which to apply an operation.
 
-Return (BACKEND FILESET FILESET_ONLY_FILES).
+Return (BACKEND FILESET FILESET-ONLY-FILES).
 If we're in VC-dir mode, the fileset is the list of marked files.
 Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
 visited file is not registered, return a singleton fileset containing it.
-Otherwise, throw an error."
+Otherwise, throw an error.
+ONLY-FILES if non-nil, means that the caller needs to FILESET-ONLY-FILES
+info.  Otherwise, that part may be skipped.
+BEWARE: this function may change the current buffer."
   ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
-  ;; documented.
+  ;; documented.  It's set to t when called from diff and print-log.
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
       (let ((marked (vc-dir-marked-files)))
 	(if marked
-	    (list vc-dir-backend  marked (vc-dir-marked-only-files))
+	    (list vc-dir-backend marked
+                  (if only-files (vc-dir-marked-only-files)))
 	  (let ((crt (vc-dir-current-file)))
-	    (list vc-dir-backend (list crt) (vc-dir-child-files))))))
+	    (list vc-dir-backend (list crt)
+                  (if only-files (vc-dir-child-files)))))))
      ((setq backend (vc-backend buffer-file-name))
       (list backend (list buffer-file-name) (list buffer-file-name)))
-     ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+     ((and (buffer-live-p vc-parent-buffer)
+           ;; FIXME: Why this test?  --Stef
+           (or (buffer-file-name vc-parent-buffer)
 				(with-current-buffer vc-parent-buffer
 				  (eq major-mode 'vc-dir-mode))))
-      (progn
+      (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset)))
+	(vc-deduce-fileset observer allow-unregistered only-files)))
+     ((not buffer-file-name)
+       (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
       (list (vc-responsible-backend
 	     (file-name-directory (buffer-file-name)))
@@ -1116,7 +1127,7 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset nil t))
+  (let* ((vc-fileset (vc-deduce-fileset nil t 'only-files))
          (backend (car vc-fileset))
 	 (files (nth 1 vc-fileset))
          (fileset-only-files (nth 2 vc-fileset))
@@ -1144,7 +1155,7 @@ merge in the changes into your working copy."
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system."))
      ((or (null state) (eq state 'unregistered))
-      (mapc (lambda (arg) (vc-register nil arg)) files))
+      (vc-register nil vc-fileset))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -1294,9 +1305,10 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional set-revision fname comment)
+(defun vc-register (&optional set-revision vc-fileset comment)
   "Register into a version control system.
-If FNAME is given register that file, otherwise register the current file.
+If VC-FILESET is given, register the files in that fileset.
+Otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
@@ -1307,45 +1319,54 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used."
   (interactive "P")
-  (when (and (null fname) (null buffer-file-name)) (error "No visited file"))
-
-  (let ((bname (if fname (get-file-buffer fname) (current-buffer))))
-    (unless fname (setq fname buffer-file-name))
-    (when (vc-backend fname)
-      (if (vc-registered fname)
-	  (error "This file is already registered")
-	(unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
-	  (error "Aborted"))))
-    ;; Watch out for new buffers of size 0: the corresponding file
-    ;; does not exist yet, even though buffer-modified-p is nil.
-    (when bname
-      (with-current-buffer bname
-	(when (and (not (buffer-modified-p))
-		 (zerop (buffer-size))
-		 (not (file-exists-p buffer-file-name)))
-	  (set-buffer-modified-p t))
-	(vc-buffer-sync)))
-    (vc-start-logentry (list fname)
-		    (if set-revision
-			(read-string (format "Initial revision level for %s: "
-					     fname))
-		      (vc-call-backend (vc-responsible-backend fname)
-				       'init-revision))
-		    (or comment (not vc-initial-comment))
-		    nil
-		    "Enter initial comment."
-		    "*VC-log*"
-		    (lambda (files rev comment)
-		      (dolist (file files)
-			(message "Registering %s... " file)
-			(let ((backend (vc-responsible-backend file t)))
-			  (vc-file-clearprops file)
-			  (vc-call-backend backend 'register (list file) rev comment)
-			  (vc-file-setprop file 'vc-backend backend)
-			  (unless vc-make-backup-files
-			    (make-local-variable 'backup-inhibited)
-			    (setq backup-inhibited t)))
-			(message "Registering %s... done" file))))))
+  (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
+         (backend (car fileset-arg))
+	 (files (nth 1 fileset-arg)))
+    ;; We used to operate on `only-files', but VC wants to provide the
+    ;; possibility to register directories rather than files only, since
+    ;; many VCS allow that as well.
+    (dolist (fname files)
+      (let ((bname (get-file-buffer fname)))
+	(unless fname (setq fname buffer-file-name))
+	(when (vc-backend fname)
+	  (if (vc-registered fname)
+	      (error "This file is already registered")
+	    (unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
+	      (error "Aborted"))))
+	;; Watch out for new buffers of size 0: the corresponding file
+	;; does not exist yet, even though buffer-modified-p is nil.
+	(when bname
+	  (with-current-buffer bname
+	    (when (and (not (buffer-modified-p))
+		       (zerop (buffer-size))
+		       (not (file-exists-p buffer-file-name)))
+	      (set-buffer-modified-p t))
+	    (vc-buffer-sync)))))
+    (lexical-let ((backend backend)
+                  (files files))
+      (vc-start-logentry
+       files
+       (if set-revision
+	   (read-string (format "Initial revision level for %s: " files))
+	 (vc-call-backend backend 'init-revision))
+       (or comment (not vc-initial-comment))
+       nil
+       "Enter initial comment."
+       "*VC-log*"
+       (lambda (files rev comment)
+	 (message "Registering %s... " files)
+	 (mapc 'vc-file-clearprops files)
+	 (vc-call-backend backend 'register files rev comment)
+	 (dolist (file files)
+	   (vc-file-setprop file 'vc-backend backend)
+           ;; FIXME: This is wrong: it should set `backup-inhibited' in all
+           ;; the buffers visiting files affected by this `vc-register', not
+           ;; in the current-buffer.
+	   ;; (unless vc-make-backup-files
+	   ;;   (make-local-variable 'backup-inhibited)
+	   ;;   (setq backup-inhibited t))
+           )
+	 (message "Registering %s... done" files))))))
 
 (defun vc-register-with (backend)
   "Register the current file with a specified back end."
@@ -1601,7 +1622,7 @@ returns t if the buffer had changes, nil otherwise."
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
   (interactive
-   (let* ((vc-fileset (vc-deduce-fileset t))
+   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: why t?  --Stef
 	  (files (cadr vc-fileset))
           (backend (car vc-fileset))
 	  (first (car files))
@@ -2000,13 +2021,6 @@ outside of VC) and one wants to do some operation on it."
    vc-ewoc
    (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
 
-(defun vc-dir-register ()
-  "Register the marked files, or the current file if no marks."
-  (interactive)
-  ;; FIXME: Just pass the fileset to vc-register.
-  (mapc (lambda (arg) (vc-register nil arg))
-	(or (vc-dir-marked-files) (list (vc-dir-current-file)))))
-
 (defun vc-default-status-fileinfo-extra (backend file)
   "Default absence of extra information returned for a file."
   nil)
@@ -2052,10 +2066,10 @@ outside of VC) and one wants to do some operation on it."
       ;; Add VC-specific keybindings
       (let ((map (current-local-map)))
 	(define-key map "v" 'vc-next-action) ;; C-x v v
-	(define-key map "=" 'vc-diff) ;; C-x v =
-	(define-key map "i" 'vc-dir-register)	;; C-x v i
-	(define-key map "+" 'vc-update) ;; C-x v +
-	(define-key map "l" 'vc-print-log) ;; C-x v l
+	(define-key map "=" 'vc-diff)        ;; C-x v =
+	(define-key map "i" 'vc-register)    ;; C-x v i
+	(define-key map "+" 'vc-update)      ;; C-x v +
+	(define-key map "l" 'vc-print-log)   ;; C-x v l
 	;; More confusing than helpful, probably
 	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
 	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
@@ -2161,7 +2175,7 @@ allowed and simply skipped)."
   "List the change log of the current fileset in a window.
 If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
-  (let* ((vc-fileset (vc-deduce-fileset t))
+  (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
@@ -2173,6 +2187,8 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
     (vc-exec-after
      `(let ((inhibit-read-only t))
     	(vc-call-backend ',backend 'log-view-mode)
+	(set (make-local-variable 'log-view-vc-backend) ',backend)
+	(set (make-local-variable 'log-view-vc-fileset) ',files)
 	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
@@ -2484,7 +2500,10 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (with-current-buffer (or buf (find-file-noselect file))
 	(let ((backup-inhibited nil))
 	  (backup-buffer))))
-    (vc-call-backend backend 'delete-file file)
+    ;; Bind `default-directory' so that the command that the backend
+    ;; runs to remove the file is invoked in the correct context.
+    (let ((default-directory (file-name-directory file)))
+      (vc-call-backend backend 'delete-file file))
     ;; If the backend hasn't deleted the file itself, let's do it for him.
     (when (file-exists-p file) (delete-file file))
     ;; Forget what VC knew about the file.
@@ -2497,6 +2516,11 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 (defun vc-rename-file (old new)
   "Rename file OLD to NEW, and rename its master file likewise."
   (interactive "fVC rename file: \nFRename to: ")
+  ;; in CL I would have said (setq new (merge-pathnames new old))
+  (let ((old-base (file-name-nondirectory old)))
+    (when (and (not (string= "" old-base))
+               (string= "" (file-name-nondirectory new)))
+      (setq new (concat new old-base))))
   (let ((oldbuf (get-file-buffer old)))
     (when (and oldbuf (buffer-modified-p oldbuf))
       (error "Please save files before moving them"))
@@ -2958,8 +2982,12 @@ cover the range from the oldest annotation to the newest."
     ["Show log of revision at line" vc-annotate-show-log-revision-at-line
      :help "Visit the log of the revision at line"]
     ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
-     :help
-     "Visit the diff of the revision at line from its previous revision"]
+     :help "Visit the diff of the revision at line from its previous revision"]
+    ["Show changeset diff of revision at line"
+     vc-annotate-show-changeset-diff-revision-at-line
+     :enable
+     (eq 'repository (vc-call-backend ,vc-annotate-backend 'revision-granularity))
+     :help "Visit the diff of the revision at line from its previous revision"]
     ["Visit revision at line" vc-annotate-find-revision-at-line
      :help "Visit the revision identified in the current line"]))
 
@@ -3150,9 +3178,7 @@ revisions after."
 	  (message "Cannot extract revision number from the current line")
 	(vc-print-log rev-at-line)))))
 
-(defun vc-annotate-show-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision."
-  (interactive)
+(defun vc-annotate-show-diff-revision-at-line-internal (fileset)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
     (let ((rev-at-line (vc-annotate-extract-revision-at-line))
@@ -3169,10 +3195,21 @@ revisions after."
 	     nil
 	     ;; The value passed here should follow what
 	     ;; `vc-deduce-fileset' returns.
-	     (cons vc-annotate-backend
-		   (cons (list vc-annotate-parent-file) nil))
+	     (cons vc-annotate-backend (cons fileset nil))
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
+
+(defun vc-annotate-show-diff-revision-at-line ()
+  "Visit the diff of the revision at line from its previous revision."
+  (interactive)
+  (vc-annotate-show-diff-revision-at-line-internal (list vc-annotate-parent-file)))
+
+(defun vc-annotate-show-changeset-diff-revision-at-line ()
+  "Visit the diff of the revision at line from its previous revision for all files in the changeset."
+  (interactive)
+  (when (eq 'file (vc-call-backend vc-annotate-backend 'revision-granularity))
+    (error "The %s backend does not support changeset diffs" vc-annotate-backend))
+  (vc-annotate-show-diff-revision-at-line-internal nil))
 
 (defun vc-annotate-warp-revision (revspec)
   "Annotate the revision described by REVSPEC.

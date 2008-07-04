@@ -1022,12 +1022,16 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
- ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B)
+ ("a" ?,LP(B) 
+ ("'a" ?,A`(B) ; not strictly Cyrillic but may be used
+ ("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B)
  ("e" ?,LU(B) ("je" ?,LU(B)
- ("yo" ?,Lq(B) ("jo" ?,Lq(B)
+ ("'e" ?$,1(p(B) ("yo" ?,Lq(B) ("jo" ?,Lq(B)
  ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B)
- ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
- ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B)
+ ("'i" ?$,1(}(B) ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
+ ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) 
+ ("'o" ?,Ar(B) ; not strictly Cyrillic but may be used
+ ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B)
  ("f" ?,Ld(B) ("x" ?,Le(B) ("h" ?,Le(B) ("kh" ?,Le(B)
  ("c" ?,Lf(B) ("ch" ?,Lg(B)
  ("sh" ?,Lh(B)
@@ -1038,12 +1042,16 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("yu" ?,Ln(B) ("ju" ?,Ln(B)
  ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
 
- ("A" ?,L0(B) ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B)
- ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
- ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B)
+ ("A" ?,L0(B) 
+ ("'A" ?,A@(B) ; not strictly Cyrillic but may be used
+ ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B)
+ ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B) 
+ ("'E" ?$,1( (B) ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B)
  ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B)
- ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
- ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B) ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
+ ("'I" ?$,1(-(B) ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
+ ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B)
+ ("'O" ?,AR(B) ; not strictly Cyrillic but may be used
+ ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
  ("F" ?,LD(B) ("X" ?,LE(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
  ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B)
  ("Sh" ?,LH(B) ("SH" ?,LH(B)
@@ -1061,6 +1069,19 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
  ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B)
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
+
+ ;; quote marks: low 99 and high 66, low 9 and high 6
+ (",," ?,Y%(B)
+ ("\"\"" ?,Y4(B)
+ ("/," ?$,1rz(B)
+ ("/'" ?,F!(B)
+
+ ("/&" ?,A'(B)
+ ("/ab" ?,A'(B) 				; _,LPQ(B_,LWPf(B
+ ("/#" ?$,1uV(B)
+ ("/no" ?$,1uV(B)				; _,L]^(B_,L\U`(B
+ ("<<" ?,A+(B)
+ (">>" ?,A;(B)
 )
 
 ;; Originally from Yudit's `Belarusian input table according to

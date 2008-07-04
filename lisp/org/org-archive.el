@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -64,8 +64,8 @@ This variable can be a list of any of the following symbols:
 
 time       The time of archiving.
 file       The file where the entry originates.
-itags      The local tags, in the headline of the subtree.
-ltags      The tags the subtree inherits from further up the hierarchy.
+ltags      The local tags, in the headline of the subtree.
+itags      The tags the subtree inherits from further up the hierarchy.
 todo       The pre-archive TODO state.
 category   The category, taken from file name or #+CATEGORY lines.
 olpath     The outline path to the item.  These are all headlines above
@@ -80,7 +80,7 @@ information."
 	  (const :tag "File" file)
 	  (const :tag "Category" category)
 	  (const :tag "TODO state" todo)
-	  (const :tag "TODO state" priority)
+	  (const :tag "Priority" priority)
 	  (const :tag "Inherited tags" itags)
 	  (const :tag "Outline path" olpath)
 	  (const :tag "Local tags" ltags)))
@@ -135,14 +135,19 @@ archive file is."
     files))
 
 (defun org-extract-archive-file (&optional location)
+  "Extract and expand the file name from archive LOCATION.
+if LOCATION is not given, the value of `org-archive-location' is used."
   (setq location (or location org-archive-location))
   (if (string-match "\\(.*\\)::\\(.*\\)" location)
       (if (= (match-beginning 1) (match-end 1))
 	  (buffer-file-name)
 	(expand-file-name
-	 (format (match-string 1 location) buffer-file-name)))))
+	 (format (match-string 1 location)
+		 (file-name-nondirectory buffer-file-name))))))
 
 (defun org-extract-archive-heading (&optional location)
+  "Extract the heading from archive LOCATION.
+if LOCATION is not given, the value of `org-archive-location' is used."
   (setq location (or location org-archive-location))
   (if (string-match "\\(.*\\)::\\(.*\\)" location)
       (match-string 2 location)))
@@ -180,7 +185,7 @@ this heading."
 		 (current-time)))
 	  category todo priority ltags itags
           ;; end of variables that will be used for saving context
-	  location afile heading buffer level newfile-p)
+	  location afile heading buffer level newfile-p visiting)
 
       ;; Find the local archive location
       (setq location (org-get-local-archive-location)
@@ -191,7 +196,8 @@ this heading."
 
       (if (> (length afile) 0)
 	  (setq newfile-p (not (file-exists-p afile))
-		buffer (find-file-noselect afile))
+		visiting (find-buffer-visiting afile)
+		buffer (or visiting (find-file-noselect afile)))
 	(setq buffer (current-buffer)))
       (unless buffer
 	(error "Cannot access file \"%s\"" afile))
@@ -213,9 +219,9 @@ this heading."
 	(setq ltags (mapconcat 'identity ltags " ")
 	      itags (mapconcat 'identity itags " "))
 	;; We first only copy, in case something goes wrong
-	;; we need to protect this-command, to avoid kill-region sets it,
+	;; we need to protect `this-command', to avoid kill-region sets it,
 	;; which would lead to duplication of subtrees
-	(let (this-command) (org-copy-subtree))
+	(let (this-command) (org-copy-subtree 1 nil t))
 	(set-buffer buffer)
 	;; Enforce org-mode for the archive buffer
 	(if (not (org-mode-p))
@@ -283,12 +289,18 @@ this heading."
 		  (org-entry-put (point) n v)))))
 
 	  ;; Save and kill the buffer, if it is not the same buffer.
-	  (if (not (eq this-buffer buffer))
-	      (progn (save-buffer) (kill-buffer buffer)))))
+	  (when (not (eq this-buffer buffer))
+	    (save-buffer)
+	    ;; Check if it is OK to kill the buffer
+	    (unless
+		(or visiting
+		    (equal (marker-buffer org-clock-marker) (current-buffer)))
+	      (kill-buffer buffer)))
+	  ))
       ;; Here we are back in the original buffer.  Everything seems to have
       ;; worked.  So now cut the tree and finish up.
       (let (this-command) (org-cut-subtree))
-      (if (and (not (eobp)) (looking-at "[ \t]*$")) (kill-line))
+      (setq org-markers-to-move nil)
       (message "Subtree archived %s"
 	       (if (eq this-buffer buffer)
 		   (concat "under heading: " heading)
@@ -404,4 +416,5 @@ the children that do not contain any open TODO items."
 (provide 'org-archive)
 
 ;; arch-tag: 0837f601-9699-43c3-8b90-631572ae6c85
+
 ;;; org-archive.el ends here

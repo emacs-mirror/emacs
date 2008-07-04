@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.02b}
+\def\orgversionnumber{6.05a}
 \def\versionyear{2008}          % latest update
 \def\year{2008}                 % latest copyright year
 
@@ -309,10 +309,8 @@ are preserved on all copies.
 \key{insert new heading after subtree}{C-RET}
 \key{insert new TODO entry/checkbox item}{M-S-RET}
 
-\key{promote current heading up one level}{M-LEFT}
-\key{demote current heading down one level}{M-RIGHT}
-\key{promote current subtree up one level}{M-S-LEFT}
-\key{demote current subtree down one level}{M-S-RIGHT}
+\key{promote/demote heading}{M-LEFT/RIGHT}
+\metax{promote/demote current subtree}{M-S-LEFT/RIGHT}
 
 \key{move subtree/list item up/down}{M-S-UP/DOWN}
 \key{refile subtree}{C-c C-w}
@@ -320,6 +318,7 @@ are preserved on all copies.
 \key{copy subtree}{C-c C-x M-w}
 \key{yank subtree}{C-c C-x C-y}
 \key{narrow buffer to current subtree}{C-x n s}
+\key{widen restriction to full buffer}{C-x n w}
 
 \section{Archiving}
 
@@ -452,7 +451,7 @@ formula, \kbd{:=} a field formula.
 \key{jump back to last followed link(s)}{C-c \&}
 \key{Find next link}{C-c C-x C-n}
 \key{Find previous link}{C-c C-x C-p}
-
+\key{Edit code snippet of file at point}{C-c '}
 {\bf Internal Links}
 
 \key{\kbd{<<My Target>>}}{\rm target}

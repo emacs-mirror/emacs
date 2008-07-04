@@ -8,8 +8,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "7. Juni 2008, 14:04:59 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.22 2008/06/10 03:19:15 gm Exp $
+;; Time-stamp:  "13. Juni 2008, 17:46:44 (ulf)"
 
 ;; ======================================================================
 
@@ -401,11 +400,11 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-backend)
-(require 'newsticker-ticker)
-(require 'newsticker-reader)
-(require 'newsticker-plainview)
-(require 'newsticker-treeview)
+(require 'newsticker-backend "newst-backend.el")
+(require 'newsticker-ticker "newst-ticker.el")
+(require 'newsticker-reader "newst-reader.el")
+(require 'newsticker-plainview "newst-plainview.el")
+(require 'newsticker-treeview "newst-treeview.el")
 
 (provide 'newsticker)
 

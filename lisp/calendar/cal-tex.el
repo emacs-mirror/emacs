@@ -309,20 +309,24 @@ Optional string ARGS are included as options for the article document class."
 ;;;
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-year (&optional arg)
+(defun cal-tex-cursor-year (&optional n event)
   "Make a buffer with LaTeX commands for the year cursor is on.
-Optional prefix argument ARG specifies number of years."
-  (interactive "p")
-  (cal-tex-year (calendar-extract-year (calendar-cursor-to-date t))
-                (or arg 1)))
+Optional prefix argument N specifies number of years.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (cal-tex-year (calendar-extract-year (calendar-cursor-to-date t event))
+                (or n 1)))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-year-landscape (&optional arg)
+(defun cal-tex-cursor-year-landscape (&optional n event)
   "Make a buffer with LaTeX commands for the year cursor is on.
-Optional prefix argument ARG specifies number of years."
-  (interactive "p")
-  (cal-tex-year (calendar-extract-year (calendar-cursor-to-date t))
-                (or arg 1) t))
+Optional prefix argument N specifies number of years.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (cal-tex-year (calendar-extract-year (calendar-cursor-to-date t event))
+                (or n 1) t))
 
 (defun cal-tex-year (year n &optional landscape)
   "Make a one page yearly calendar of YEAR; do this for N years.
@@ -361,12 +365,14 @@ landscape mode with three rows of four months each."
   (run-hooks 'cal-tex-hook))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-filofax-year (&optional arg)
+(defun cal-tex-cursor-filofax-year (&optional n event)
   "Make a Filofax one page yearly calendar of year indicated by cursor.
-Optional prefix argument ARG specifies number of years."
-  (interactive "p")
-  (let ((n (or arg 1))
-        (year (calendar-extract-year (calendar-cursor-to-date t))))
+Optional prefix argument N specifies number of years.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let ((year (calendar-extract-year (calendar-cursor-to-date t event))))
     (cal-tex-preamble "twoside")
     (cal-tex-cmd "\\textwidth 3.25in")
     (cal-tex-cmd "\\textheight 6.5in")
@@ -414,15 +420,17 @@ Optional prefix argument ARG specifies number of years."
 ;;;
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-month-landscape (&optional arg)
+(defun cal-tex-cursor-month-landscape (&optional n event)
   "Make a LaTeX calendar buffer for the month the cursor is on.
-Optional prefix argument ARG specifies number of months to be
+Optional prefix argument N specifies number of months to be
 produced (default 1).  The output is in landscape format, one
 month to a page.  It shows holiday and diary entries if
-`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-cursor-to-date t))
+`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-cursor-to-date t event))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (end-month month)
@@ -482,15 +490,17 @@ month to a page.  It shows holiday and diary entries if
   (run-hooks 'cal-tex-hook))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-month (arg)
+(defun cal-tex-cursor-month (&optional n event)
   "Make a LaTeX calendar buffer for the month the cursor is on.
-Optional prefix argument ARG specifies number of months to be
+Optional prefix argument N specifies number of months to be
 produced (default 1).  The calendar is condensed onto one page.
 It shows holiday and diary entries if `cal-tex-holidays' and
-`cal-tex-diary', respectively, are non-nil."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-cursor-to-date t))
+`cal-tex-diary', respectively, are non-nil.  Optional EVENT
+indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-cursor-to-date t event))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (end-month month)
@@ -668,19 +678,20 @@ this is only an upper bound."
 ;; TODO cal-tex-diary-support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 ;;;###cal-autoload
-(defun cal-tex-cursor-week (&optional arg)
+(defun cal-tex-cursor-week (&optional n event)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  The optional prefix
-argument ARG specifies the number of weeks (default 1).  The calendar
+argument N specifies the number of weeks (default 1).  The calendar
 shows holidays if `cal-tex-holidays' is non-nil (note that diary
 entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-gregorian-from-absolute
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  calendar-week-start-day
                  (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t)))))
+                  (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (d1 (calendar-absolute-from-gregorian date))
@@ -721,19 +732,21 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
 ;; TODO cal-tex-diary support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 ;;;###cal-autoload
-(defun cal-tex-cursor-week2 (&optional arg)
+(defun cal-tex-cursor-week2 (&optional n event)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  Optional prefix
-argument ARG specifies number of weeks (default 1).  The calendar
+argument N specifies number of weeks (default 1).  The calendar
 shows holidays if `cal-tex-holidays' is non-nil (note that diary
-entries are not shown).  The calendar shows the hours 8-12am, 1-5pm"
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-gregorian-from-absolute
+entries are not shown).  The calendar shows the hours 8-12am, 1-5pm.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  calendar-week-start-day
                  (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t)))))
+                  (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (d date)
@@ -803,19 +816,21 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm"
 (autoload 'calendar-iso-from-absolute "cal-iso")
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-week-iso (&optional arg)
+(defun cal-tex-cursor-week-iso (&optional n event)
   "Make a LaTeX calendar buffer for a one page ISO-style weekly calendar.
-Optional prefix argument ARG specifies number of weeks (default 1).
+Optional prefix argument N specifies number of weeks (default 1).
 The calendar shows holiday and diary entries if
 `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
-It does not show hours of the day."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-gregorian-from-absolute
+It does not show hours of the day.  Optional EVENT indicates a buffer
+position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  1
                  (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t)))))
+                  (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (day (calendar-extract-day date))
@@ -935,20 +950,22 @@ shown are hard-coded to 8-12, 13-17."
 ;; TODO cal-tex-diary support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-weekly4-box).
 ;;;###cal-autoload
-(defun cal-tex-cursor-week-monday (&optional arg)
+(defun cal-tex-cursor-week-monday (&optional n event)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in, and starts on Monday.
-Optional prefix argument ARG specifies number of weeks (default 1).
+Optional prefix argument N specifies number of weeks (default 1).
 The calendar shows holidays if `cal-tex-holidays' is
 non-nil (note that diary entries are not shown).   The calendar shows
-the hours 8-12am, 1-5pm."
-  (interactive "p")
-  (let ((n (or arg 1))
-        (date (calendar-gregorian-from-absolute
+the hours 8-12am, 1-5pm.  Optional EVENT indicates a buffer position
+to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let ((date (calendar-gregorian-from-absolute
                (calendar-dayname-on-or-before
                 0
                 (calendar-absolute-from-gregorian
-                 (calendar-cursor-to-date t))))))
+                 (calendar-cursor-to-date t event))))))
     (cal-tex-preamble "11pt")
     (cal-tex-cmd "\\textwidth   6.5in")
     (cal-tex-cmd "\\textheight 10.5in")
@@ -1016,18 +1033,20 @@ shown are hard-coded to 8-12, 13-17."
      (cal-tex-hspace "1cm")))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-filofax-2week (&optional arg)
+(defun cal-tex-cursor-filofax-2week (&optional n event)
   "Two-weeks-at-a-glance Filofax style calendar for week cursor is in.
-Optional prefix argument ARG specifies number of weeks (default 1).
+Optional prefix argument N specifies number of weeks (default 1).
 The calendar shows holiday and diary entries if
-`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-gregorian-from-absolute
+`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  calendar-week-start-day
                  (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t)))))
+                  (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (day (calendar-extract-day date))
@@ -1111,18 +1130,20 @@ The calendar shows holiday and diary entries if
     (run-hooks 'cal-tex-hook)))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-filofax-week (&optional arg)
+(defun cal-tex-cursor-filofax-week (&optional n event)
   "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
-Optional prefix argument ARG specifies number of weeks (default 1),
+Optional prefix argument N specifies number of weeks (default 1),
 starting on Mondays.  The calendar shows holiday and diary entries
-if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-gregorian-from-absolute
+if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  1
                  (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t)))))
+                  (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (day (calendar-extract-day date))
@@ -1251,19 +1272,21 @@ if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
     (run-hooks 'cal-tex-hook)))
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-filofax-daily (&optional arg)
+(defun cal-tex-cursor-filofax-daily (&optional n event)
   "Day-per-page Filofax style calendar for week indicated by cursor.
-Optional prefix argument ARG specifies number of weeks (default 1),
+Optional prefix argument N specifies number of weeks (default 1),
 starting on Mondays.  The calendar shows holiday and diary
 entries if `cal-tex-holidays' and `cal-tex-diary', respectively,
-are non-nil.  Pages are ruled if `cal-tex-rules' is non-nil."
-  (interactive "p")
-  (let* ((n (or arg 1))
-         (date (calendar-gregorian-from-absolute
+are non-nil.  Pages are ruled if `cal-tex-rules' is non-nil.
+Optional EVENT indicates a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  1
                  (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t)))))
+                  (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
          (day (calendar-extract-day date))
@@ -1365,14 +1388,17 @@ are non-nil.  Pages are ruled if `cal-tex-rules' is non-nil."
 ;;;
 
 ;;;###cal-autoload
-(defun cal-tex-cursor-day (&optional arg)
+(defun cal-tex-cursor-day (&optional n event)
   "Make a buffer with LaTeX commands for the day cursor is on.
-Optional prefix argument ARG specifies number of days.  The calendar shows
+Optional prefix argument N specifies number of days.  The calendar shows
 the hours between `cal-tex-daily-start' and `cal-tex-daily-end', using
-the 24-hour clock if `cal-tex-24' is non-nil."
-  (interactive "p")
-  (let ((n (or arg 1))
-        (date (calendar-absolute-from-gregorian (calendar-cursor-to-date t))))
+the 24-hour clock if `cal-tex-24' is non-nil.  Optional EVENT indicates
+a buffer position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (or n (setq n 1))
+  (let ((date (calendar-absolute-from-gregorian
+               (calendar-cursor-to-date t event))))
     (cal-tex-preamble "12pt")
     (cal-tex-cmd "\\textwidth 6.5in")
     (cal-tex-cmd "\\textheight 10.5in")

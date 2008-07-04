@@ -11,7 +11,7 @@
 @center @titlefont{GNU Emacs Lisp Reference Manual}
 @sp 5
 @center GNU
-@center Emacs Version 22.1
+@center Emacs Version 23.0.60
 @center for Unix Users
 @sp 5
 

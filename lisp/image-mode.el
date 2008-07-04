@@ -126,6 +126,8 @@ A winprops object has the shape (WINDOW . ALIST)."
                      (if (eq (window-buffer) (current-buffer))
                          (selected-window))))
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (defun image-forward-hscroll (&optional n)
   "Scroll image in current window to the left by N character widths.
 Stop if the right edge of the image is reached."
@@ -397,6 +399,7 @@ information on these modes."
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
+(declare-function image-refresh "image.c" (spec &optional frame))
 
 (defun image-toggle-display ()
   "Start or stop displaying an image file as the actual image.

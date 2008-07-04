@@ -1258,13 +1258,10 @@ that share the same state."
 		       data)
 		  (while
 		      (and (setq crt (ewoc-next vc-ewoc crt))
-			   (string-equal
-			    (substring
-			     (progn
-			       (setq data (ewoc-data crt))
-			       (vc-dir-node-directory crt))
-			     0 dirlen)
-			    dir))
+			   (vc-string-prefix-p dir
+                                               (progn
+                                                 (setq data (ewoc-data crt))
+                                                 (vc-dir-node-directory crt))))
 		    (unless (vc-dir-fileinfo->directory data)
 		      (push (expand-file-name (vc-dir-fileinfo->name data)) result))))
 	      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result)
@@ -1277,20 +1274,16 @@ that share the same state."
 If it is a file, return the file itself."
   (let* ((crt (ewoc-locate vc-ewoc))
 	 (crt-data (ewoc-data crt))
-	 result)
+         result)
     (if (vc-dir-fileinfo->directory crt-data)
 	(let* ((dir (vc-dir-fileinfo->directory crt-data))
 	       (dirlen (length dir))
 	       data)
 	  (while
 	      (and (setq crt (ewoc-next vc-ewoc crt))
-		   (string-equal
-		    (substring
-		     (progn
-		       (setq data (ewoc-data crt))
-		       (vc-dir-node-directory crt))
-		     0 dirlen)
-		    dir))
+                   (vc-string-prefix-p dir (progn
+                                             (setq data (ewoc-data crt))
+                                             (vc-dir-node-directory crt))))
 	    (unless (vc-dir-fileinfo->directory data)
 	      (push (expand-file-name (vc-dir-fileinfo->name data)) result))))
       (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result))
@@ -1315,19 +1308,21 @@ If it is a file, return the file itself."
 	      (let ((ddir (expand-file-name default-directory)))
 		(when (vc-string-prefix-p ddir file)
 		  (let*
+                      ;; FIXME: Any reason we don't use file-relative-name?
 		      ((file-short (substring file (length ddir)))
-		       (state
-			(funcall (vc-client-object->file-to-state vc-client-mode)
+		       (state (funcall (vc-client-object->file-to-state
+                                        vc-client-mode)
 				 file))
-		       (extra
-			(funcall (vc-client-object->file-to-extra vc-client-mode)
+		       (extra (funcall (vc-client-object->file-to-extra
+                                        vc-client-mode)
 				 file))
 		       (entry
 			(list file-short state extra)))
 		    (vc-dir-update (list entry) status-buf))))))
 	  ;; We didn't find any vc-dir buffers, remove the hook, it is
 	  ;; not needed.
-	  (unless found-vc-dir-buf (remove-hook 'after-save-hook 'vc-dir-resynch-file)))))))
+	  (unless found-vc-dir-buf
+            (remove-hook 'after-save-hook 'vc-dir-resynch-file)))))))
 
 (defun vc-dir-mode (client-object)
   "Major mode for dispatcher directory buffers.
@@ -1354,7 +1349,8 @@ U - if the cursor is on a file: unmark all the files with the same state
   (setq major-mode 'vc-dir-mode)
   (setq buffer-read-only t)
   (use-local-map vc-dir-mode-map)
-  (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map)
+  (if (boundp 'tool-bar-map)
+      (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
   (set (make-local-variable 'vc-client-mode) client-object)
   (let ((buffer-read-only nil))
     (erase-buffer)

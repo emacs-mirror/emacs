@@ -1740,12 +1740,8 @@ Make backspaces delete the previous character."
 
 	;; Insert STRING
 	(let ((inhibit-read-only t)
-	      ;; Avoid the overhead of save-excursion, since we just
-	      ;; fiddle with the point
-	      (saved-point (point-marker)))
-
-	  ;; The point should float after any insertion we do
-	  (set-marker-insertion-type saved-point t)
+              ;; The point should float after any insertion we do.
+	      (saved-point (copy-marker (point) t)))
 
 	  ;; We temporarly remove any buffer narrowing, in case the
 	  ;; process mark is outside of the restriction

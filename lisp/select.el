@@ -64,6 +64,9 @@ other X clients.  But, if this variable is set, it is used for
 the next communication only.  After the communication, this
 variable is set to nil.")
 
+(declare-function x-get-selection-internal "xselect.c"
+		  (selection-symbol target-type &optional time-stamp))
+
 ;; This is for temporary compatibility with pre-release Emacs 19.
 (defalias 'x-selection 'x-get-selection)
 (defun x-get-selection (&optional type data-type)
@@ -105,6 +108,11 @@ in `selection-converter-alist', which see."
 (defun x-get-clipboard ()
   "Return text pasted to the clipboard."
   (x-get-selection-internal 'CLIPBOARD 'STRING))
+
+(declare-function x-own-selection-internal "xselect.c"
+		  (selection-name selection-value))
+(declare-function x-disown-selection-internal "xselect.c"
+		  (selection &optional time))
 
 (defun x-set-selection (type data)
   "Make an X Windows selection of type TYPE and value DATA.

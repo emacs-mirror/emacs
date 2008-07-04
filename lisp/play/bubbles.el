@@ -950,6 +950,8 @@ static char * dot3d_xpm[] = {
   (message "bubbles-quit")
   (bury-buffer))
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (defun bubbles--compute-offsets ()
   "Update horizontal and vertical offsets for centering the bubbles grid.
 Set `bubbles--col-offset' and `bubbles--row-offset'."

@@ -271,7 +271,7 @@ or \\[wdired-abort-changes] to abort changes")))
 ;; Protect the buffer so only the filenames can be changed, and put
 ;; properties so filenames (old and new) can be easily found.
 (defun wdired-preprocess-files ()
-  (put-text-property 1 2 'front-sticky t)
+  (put-text-property (point-min) (1+ (point-min))'front-sticky t)
   (save-excursion
     (goto-char (point-min))
     (let ((b-protection (point))
@@ -368,9 +368,9 @@ non-nil means return old filename."
   "Actually rename files based on your editing in the Dired buffer."
   (interactive)
   (wdired-change-to-dired-mode)
-  (let ((overwrite (or (not wdired-confirm-overwrite) 1))
-	(changes nil)
+  (let ((changes nil)
 	(files-deleted nil)
+        (file-renames ())
 	(errors 0)
 	file-ori file-new tmp-value)
     (save-excursion
@@ -388,29 +388,16 @@ non-nil means return old filename."
       (while (not (bobp))
 	(setq file-ori (wdired-get-filename nil t))
 	(when file-ori
-	  (setq file-new (wdired-get-filename)))
-	(when (and file-ori (not (equal file-new file-ori)))
-	  (setq changes t)
-	  (if (not file-new)		;empty filename!
-	      (setq files-deleted (cons file-ori files-deleted))
-	    (setq file-new (substitute-in-file-name file-new))
-	    (if wdired-use-interactive-rename
-		(wdired-search-and-rename file-ori file-new)
-	      ;; If dired-rename-file autoloads dired-aux while
-	      ;; dired-backup-overwrite is locally bound,
-	      ;; dired-backup-overwrite won't be initialized.
-	      ;; So we must ensure dired-aux is loaded.
-	      (require 'dired-aux)
-	      (condition-case err
-		  (let ((dired-backup-overwrite nil))
-		    (dired-rename-file file-ori file-new
-				       overwrite))
-		(error
-		 (setq errors (1+ errors))
-		 (dired-log (concat "Rename `" file-ori "' to `"
-				    file-new "' failed:\n%s\n")
-			    err))))))
+	  (setq file-new (wdired-get-filename))
+          (unless (equal file-new file-ori)
+            (setq changes t)
+            (if (not file-new)		;empty filename!
+                (push file-ori files-deleted)
+              (push (cons file-ori (substitute-in-file-name file-new))
+                    file-renames))))
 	(forward-line -1)))
+    (when file-renames
+      (setq errors (+ errors (wdired-do-renames file-renames))))
     (if changes
         (revert-buffer) ;The "revert" is necessary to re-sort the buffer
       (let ((inhibit-read-only t))
@@ -425,6 +412,67 @@ non-nil means return old filename."
       (dired-log-summary (format "%d rename actions failed" errors) nil)))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil))
+
+(defun wdired-do-renames (renames)
+  "Perform RENAMES in parallel."
+  (let ((residue ())
+        (progress nil)
+        (errors 0)
+        (overwrite (or (not wdired-confirm-overwrite) 1)))
+    (while (or renames
+               ;; We've done one round through the renames, we have found
+               ;; some residue, but we also made some progress, so maybe
+               ;; some of the residue were resolved: try again.
+               (prog1 (setq renames residue)
+                 (setq progress nil)
+                 (setq residue nil)))
+      (let* ((rename (pop renames))
+             (file-new (cdr rename)))
+        (cond
+         ((rassoc file-new renames)
+          (error "Trying to rename 2 files to the same name"))
+         ((assoc file-new renames)
+          ;; Renaming to a file name that already exists but will itself be
+          ;; renamed as well.  Let's wait until that one gets renamed.
+          (push rename residue))
+         ((and (assoc file-new residue)
+               ;; Make sure the file really exists: if it doesn't it's
+               ;; not really a conflict.  It might be a temp-file generated
+               ;; specifically to break a circular renaming.
+               (file-exists-p file-new))
+          ;; Renaming to a file name that already exists, needed to be renamed,
+          ;; but whose renaming could not be performed right away.
+          (if (or progress renames)
+              ;; There's still a chance the conflict will be resolved.
+              (push rename residue)
+            ;; We have not made any progress and we've reached the end of
+            ;; the renames, so we really have a circular conflict, and we
+            ;; have to forcefully break the cycle.
+            (message "Circular renaming: using temporary file name")
+            (let ((tmp (make-temp-name file-new)))
+              (push (cons (car rename) tmp) renames)
+              (push (cons tmp file-new) residue))))
+         (t
+          (setq progress t)
+          (let ((file-ori (car rename)))
+            (if wdired-use-interactive-rename
+                (wdired-search-and-rename file-ori file-new)
+              ;; If dired-rename-file autoloads dired-aux while
+              ;; dired-backup-overwrite is locally bound,
+              ;; dired-backup-overwrite won't be initialized.
+              ;; So we must ensure dired-aux is loaded.
+              (require 'dired-aux)
+              (condition-case err
+                  (let ((dired-backup-overwrite nil))
+                    (dired-rename-file file-ori file-new
+                                       overwrite))
+                (error
+                 (setq errors (1+ errors))
+                 (dired-log (concat "Rename `" file-ori "' to `"
+                                    file-new "' failed:\n%s\n")
+                            err)))))))))
+    errors))
+      
 
 (defun wdired-exit ()
   "Exit wdired and return to dired mode.
@@ -449,14 +497,13 @@ and proceed depending on the answer."
   (save-excursion
     (goto-char (point-max))
     (forward-line -1)
-    (let ((exit-while nil)
+    (let ((done nil)
 	  curr-filename)
-      (while (not exit-while)
-        (setq curr-filename (wdired-get-filename))
-        (if (and curr-filename
-                 (equal (substitute-in-file-name curr-filename) filename-new))
+      (while (and (not done) (not (bobp)))
+        (setq curr-filename (wdired-get-filename nil t))
+        (if (equal curr-filename filename-ori)
             (progn
-              (setq exit-while t)
+              (setq done t)
               (let ((inhibit-read-only t))
                 (dired-move-to-filename)
                 (search-forward (wdired-get-filename t) nil t)
@@ -464,9 +511,7 @@ and proceed depending on the answer."
               (dired-do-create-files-regexp
                (function dired-rename-file)
                "Move" 1 ".*" filename-new nil t))
-	  (forward-line -1)
-	  (beginning-of-line)
-	  (setq exit-while (bobp)))))))
+	  (forward-line -1))))))
 
 ;; marks a list of files for deletion
 (defun wdired-flag-for-deletion (filenames-ori)

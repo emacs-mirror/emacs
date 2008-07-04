@@ -1711,7 +1711,11 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 	      int c2 = char_ranges[i + 1];
 
 	      for (; c1 <= c2; c1++)
-		fastmap[CHAR_TO_BYTE8 (c1)] = 1;
+		{
+		  int b = CHAR_TO_BYTE_SAFE (c1);
+		  if (b >= 0)
+		    fastmap[b] = 1;
+		}
 	    }
 	}
     }

@@ -925,6 +925,8 @@ is buffer-local.")
 
 (term-set-escape-char ?\C-c)
 
+(defvar overflow-newline-into-fringe)
+
 (defun term-window-width ()
   (if (featurep 'xemacs)
       (1- (window-width))
@@ -1275,18 +1277,42 @@ you type \\[term-send-input] which sends the current line to the inferior."
     (term-update-mode-line)))
 
 (defun term-update-mode-line ()
-  (setq mode-line-process
-	(if (term-in-char-mode)
-	    (if (term-pager-enabled) '(": char page %s") '(": char %s"))
-	  (if (term-pager-enabled) '(": line page %s") '(": line %s"))))
+  (let ((term-mode (if (term-in-char-mode) "char" "line"))
+        (term-page (when (term-pager-enabled) " page"))
+        (serial-item-speed)
+        (serial-item-config)
+        (temp)
+        (proc (get-buffer-process (current-buffer))))
+    (when (and (term-check-proc (current-buffer))
+               (equal (process-type nil) 'serial))
+      (let ((temp (serial-speed)))
+        (setq serial-item-speed
+            `(:propertize
+              ,(or (and temp (format " %d" temp)) "")
+              help-echo "mouse-1: Change the speed of the serial port"
+              mouse-face mode-line-highlight
+              local-map (keymap (mode-line keymap
+                                (down-mouse-1 . serial-mode-line-speed-menu-1))))))
+      (let ((temp (process-contact proc :summary)))
+        (setq serial-item-config
+              `(:propertize
+                ,(or (and temp (format " %s" temp)) "")
+                help-echo "mouse-1: Change the configuration of the serial port"
+                mouse-face mode-line-highlight
+                local-map (keymap (mode-line keymap
+                           (down-mouse-1 . serial-mode-line-config-menu-1)))))))
+    (setq mode-line-process
+          (list ": " term-mode term-page
+                serial-item-speed
+                serial-item-config
+                " %s")))
   (force-mode-line-update))
 
 (defun term-check-proc (buffer)
-  "True if there is a process associated w/buffer BUFFER, and
-it is alive (status RUN or STOP).  BUFFER can be either a buffer or the
-name of one."
+  "True if there is a process associated w/buffer BUFFER, and it
+is alive.  BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
-    (and proc (memq (process-status proc) '(run stop)))))
+    (and proc (memq (process-status proc) '(run stop open listen connect)))))
 
 ;;;###autoload
 (defun make-term (name program &optional startfile &rest switches)
@@ -4201,6 +4227,238 @@ the process.  Any more args are arguments to PROGRAM."
   (term-set-escape-char ?\C-x)
 
   (switch-to-buffer term-ansi-buffer-name))
+
+
+;;; Serial terminals
+;;; ===========================================================================
+(defun serial-port-is-file-p ()
+  "Guess whether serial ports are files on this system.
+Return t if this is a Unix-based system, where serial ports are
+files, such as /dev/ttyS0.
+Return nil if this is Windows or DOS, where serial ports have
+special identifiers such as COM1."
+  (not (member system-type (list 'windows-nt 'cygwin 'ms-dos))))
+
+(defvar serial-name-history
+  (if (serial-port-is-file-p)
+      (or (when (file-exists-p "/dev/ttys0") (list "/dev/ttys0"))
+          (when (file-exists-p "/dev/ttyS0") (list "/dev/ttyS0")))
+    (list "COM1"))
+  "History of serial ports used by `serial-read-name'.")
+
+(defvar serial-speed-history
+  ;; Initialised with reasonable values for newbies.
+  (list "9600" ;; Given twice because 9600 b/s is the most common speed
+        "1200" "2400" "4800" "9600" "14400" "19200"
+        "28800" "38400" "57600" "115200")
+  "History of serial port speeds used by `serial-read-speed'.")
+
+(defun serial-nice-speed-history ()
+  "Return `serial-speed-history' cleaned up for a mouse-menu."
+  (let ((x) (y))
+    (setq x
+         (sort
+          (copy-sequence serial-speed-history)
+          '(lambda (a b) (when (and (stringp a) (stringp b))
+                           (> (string-to-number a) (string-to-number b))))))
+    (dolist (i x) (when (not (equal i (car y))) (push i y)))
+    y))
+
+(defconst serial-no-speed "nil"
+  "String for `serial-read-speed' for special serial ports.
+If `serial-read-speed' reads this string from the user, it
+returns nil, which is recognized by `serial-process-configure'
+for special serial ports that cannot be configured.")
+
+(defun serial-supported-or-barf ()
+  "Signal an error if serial processes are not supported"
+  (unless (fboundp 'make-serial-process)
+    (error "Serial processes are not supported on this system")))
+
+(defun serial-read-name ()
+  "Read a serial port name from the user.
+Try to be nice by providing useful defaults and history.
+On Windows, prepend \\.\ to the port name unless it already
+contains a backslash.  This handles the legacy ports COM1-COM9 as
+well as the newer ports COM10 and higher."
+  (serial-supported-or-barf)
+  (let* ((file-name-history serial-name-history)
+         (h (car file-name-history))
+         (x (if (serial-port-is-file-p)
+                (read-file-name
+                 ;; `prompt': The most recently used port is provided as
+                 ;; the default value, which is used when the user
+                 ;; simply presses return.
+                 (if (stringp h) (format "Serial port (default %s): " h)
+                   "Serial port: ")
+                 ;; `directory': Most systems have their serial ports
+                 ;; in the same directory, so start in the directory
+                 ;; of the most recently used port, or in a reasonable
+                 ;; default directory.
+                 (or (and h (file-name-directory h))
+                     (and (file-exists-p "/dev/") "/dev/")
+                     (and (file-exists-p "/") "/"))
+                 ;; `default': This causes (read-file-name) to return
+                 ;; the empty string if he user simply presses return.
+                 ;; Using nil here may result in a default directory
+                 ;; of the current buffer, which is not useful for
+                 ;; serial port.
+                 "")
+              (read-from-minibuffer
+               (if (stringp h) (format "Serial port (default %s): " h)
+                 "Serial port: ")
+               nil nil nil '(file-name-history . 1) nil nil))))
+    (if (or (null x) (and (stringp x) (zerop (length x))))
+        (setq x h)
+      (setq serial-name-history file-name-history))
+    (when (or (null x) (and (stringp x) (zerop (length x))))
+      (error "No serial port selected"))
+    (when (and (not (serial-port-is-file-p))
+               (not (string-match "\\\\" x)))
+      (set 'x (concat "\\\\.\\" x)))
+    x))
+
+(defun serial-read-speed ()
+  "Read a serial port speed (in bits per second) from the user.
+Try to be nice by providing useful defaults and history."
+  (serial-supported-or-barf)
+  (let* ((history serial-speed-history)
+         (h (car history))
+         (x (read-from-minibuffer
+             (cond ((string= h serial-no-speed)
+                    "Speed (default nil = set by port): ")
+                   (h
+                    (format "Speed (default %s b/s): " h))
+                   (t
+		    (format "Speed (b/s): ")))
+             nil nil nil '(history . 1) nil nil)))
+    (when (or (null x) (and (stringp x) (zerop (length x))))
+      (setq x h))
+    (when (or (null x) (not (stringp x)) (zerop (length x)))
+      (error "Invalid speed"))
+    (if (string= x serial-no-speed)
+        (setq x nil)
+      (setq x (string-to-number x))
+      (when (or (null x) (not (integerp x)) (<= x 0))
+        (error "Invalid speed")))
+    (setq serial-speed-history history)
+    x))
+
+;;;###autoload
+(defun serial-term (port speed)
+  "Start a terminal-emulator for a serial port in a new buffer.
+PORT is the path or name of the serial port.  For example, this
+could be \"/dev/ttyS0\" on Unix.  On Windows, this could be
+\"COM1\" or \"\\\\.\\COM10\".
+SPEED is the speed of the serial port in bits per second.  9600
+is a common value.  SPEED can be nil, see
+`serial-process-configure' for details.
+The buffer is in Term mode; see `term-mode' for the commands to
+use in that buffer.
+\\<term-raw-map>Type \\[switch-to-buffer] to switch to another buffer."
+  (interactive (list (serial-read-name) (serial-read-speed)))
+  (serial-supported-or-barf)
+  (let* ((process (make-serial-process
+                   :port port
+                   :speed speed
+                   :coding 'no-conversion
+                   :noquery t))
+         (buffer (process-buffer process)))
+    (save-excursion
+      (set-buffer buffer)
+      (term-mode)
+      (term-char-mode)
+      (goto-char (point-max))
+      (set-marker (process-mark process) (point))
+      (set-process-filter process 'term-emulate-terminal)
+      (set-process-sentinel process 'term-sentinel))
+    (switch-to-buffer buffer)
+    buffer))
+
+(defvar serial-mode-line-speed-menu nil)
+(defvar serial-mode-line-config-menu nil)
+
+(defun serial-speed ()
+  "Return the speed of the serial port of the current buffer's process.
+The return value may be nil for a special serial port."
+  (process-contact (get-buffer-process (current-buffer)) :speed))
+
+(defun serial-mode-line-speed-menu-1 (event)
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (serial-update-speed-menu)
+    (let* ((selection (serial-mode-line-speed-menu event))
+	   (binding (and selection (lookup-key serial-mode-line-speed-menu
+					       (vector (car selection))))))
+      (when binding (call-interactively binding)))))
+
+(defun serial-mode-line-speed-menu (event)
+  (x-popup-menu event serial-mode-line-speed-menu))
+
+(defun serial-update-speed-menu ()
+  (setq serial-mode-line-speed-menu (make-sparse-keymap "Speed (b/s)"))
+  (define-key serial-mode-line-speed-menu [serial-mode-line-speed-menu-other]
+    '(menu-item "Other..."
+                (lambda (event) (interactive "e")
+                  (let ((speed (serial-read-speed)))
+                    (serial-process-configure :speed speed)
+                    (term-update-mode-line)
+                    (message "Speed set to %d b/s" speed)))))
+  (dolist (str (serial-nice-speed-history))
+    (let ((num (or (and (stringp str) (string-to-number str)) 0)))
+      (define-key
+        serial-mode-line-speed-menu
+        (vector (make-symbol (format "serial-mode-line-speed-menu-%s" str)))
+        `(menu-item
+          ,str
+          (lambda (event) (interactive "e")
+            (serial-process-configure :speed ,num)
+            (term-update-mode-line)
+            (message "Speed set to %d b/s" ,num))
+          :button (:toggle . (= (serial-speed) ,num)))))))
+
+(defun serial-mode-line-config-menu-1 (event)
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (serial-update-config-menu)
+    (let* ((selection (serial-mode-line-config-menu event))
+           (binding (and selection (lookup-key serial-mode-line-config-menu
+                                               (vector (car selection))))))
+      (when binding (call-interactively binding)))))
+
+(defun serial-mode-line-config-menu (event)
+  (x-popup-menu event serial-mode-line-config-menu))
+
+(defun serial-update-config-menu ()
+  (setq serial-mode-line-config-menu (make-sparse-keymap "Configuration"))
+  (let ((config (process-contact
+                 (get-buffer-process (current-buffer)) t))
+        (y)
+        (str))
+    (dolist (y '((:flowcontrol hw   "Hardware flowcontrol (RTS/CTS)")
+                 (:flowcontrol sw   "Software flowcontrol (XON/XOFF)")
+                 (:flowcontrol nil  "No flowcontrol")
+                 (:stopbits    2    "2 stopbits")
+                 (:stopbits    1    "1 stopbit")
+                 (:parity      odd  "Odd parity")
+                 (:parity      even "Even parity")
+                 (:parity      nil  "No parity")
+                 (:bytesize    7    "7 bits per byte")
+                 (:bytesize    8    "8 bits per byte")))
+      (define-key serial-mode-line-config-menu
+        (vector (make-symbol (format "%s-%s" (nth 0 y) (nth 1 y))))
+        `(menu-item
+          ,(nth 2 y)
+          (lambda (event) (interactive "e")
+            (serial-process-configure ,(nth 0 y) ',(nth 1 y))
+            (term-update-mode-line)
+            (message "%s" ,(nth 2 y)))
+          ;; Use :toggle instead of :radio because a non-standard port
+          ;; configuration may not match any menu items.
+          :button (:toggle . ,(equal (plist-get config (nth 0 y))
+                                     (nth 1 y))))))))
 
 
 ;;; Converting process modes to use term mode

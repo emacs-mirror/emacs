@@ -45,6 +45,8 @@
     ("white"         15 65535 65535 65535))
 "A list of VGA console colors, their indices and 16-bit RGB values.")
 
+(declare-function x-setup-function-keys "w32-fns" (frame))
+
 (defun terminal-init-w32console ()
   "Terminal initialization function for w32 console."
   ;; Share function key initialization with w32 gui frames

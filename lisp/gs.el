@@ -1,7 +1,7 @@
 ;;; gs.el --- interface to Ghostscript
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -93,6 +93,9 @@ FILE is the value to substitute for the place-holder `<file>'."
 ;; specified in PostScript points.  If omitted, the margins are
 ;; assumed to be 0.
 
+(declare-function x-display-mm-width "xfns.c" (&optional terminal))
+(declare-function x-display-pixel-width "xfns.c" (&optional terminal))
+
 (defun gs-width-in-pt (frame pixel-width)
   "Return, on FRAME, pixel width PIXEL-WIDTH tranlated to pt."
   (let ((mm (* (float pixel-width)
@@ -100,6 +103,8 @@ FILE is the value to substitute for the place-holder `<file>'."
 		  (float (x-display-pixel-width frame))))))
     (/ (* 25.4 mm) 72.0)))
 
+(declare-function x-display-mm-height "xfns.c" (&optional terminal))
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
 
 (defun gs-height-in-pt (frame pixel-height)
   "Return, on FRAME, pixel height PIXEL-HEIGHT tranlated to pt."
@@ -108,6 +113,8 @@ FILE is the value to substitute for the place-holder `<file>'."
 		  (float (x-display-pixel-height frame))))))
     (/ (* 25.4 mm) 72.0)))
 
+(declare-function x-change-window-property "xfns.c"
+		  (prop value &optional frame type format outer-p))
 
 (defun gs-set-ghostview-window-prop (frame spec img-width img-height)
   "Set the `GHOSTVIEW' window property of FRAME.
@@ -131,6 +138,7 @@ image in pixels."
 				      rotation llx lly urx ury xdpi ydpi)
 			      frame)))
 
+(declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
 (defun gs-set-ghostview-colors-window-prop (frame pixel-colors)
   "Set the `GHOSTVIEW_COLORS' environment variable depending on FRAME."
@@ -141,8 +149,9 @@ image in pixels."
 			      (format "%s %s" mode pixel-colors)
 			      frame)))
 
+(declare-function x-window-property "xfns.c"
+		  (prop &optional frame type source delete-p vector-ret-p))
 
-;
 ;;;###autoload
 (defun gs-load-image (frame spec img-width img-height window-and-pixmap-id
 			    pixel-colors)

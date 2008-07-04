@@ -16,19 +16,13 @@ Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001,
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''.
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
@@ -4404,9 +4398,9 @@ bound to mairix searches and are automatically updated.
 * nnmairix caveats::            Some more stuff you might want to know
 @end menu
 
-@c FIXME: The markup in this section needs improvement.  E.g. add
-@c @sample{...}, maybe remove some @strong{...}, convert ` - ' to `---`,
-@c ...
+@c FIXME: The markup in this section might need improvement.
+@c E.g. adding @samp, @var, @file, @command, etc.
+@c Cf. (info "(texinfo)Indicating")
 
 @node About mairix
 @subsubsection About mairix
@@ -4442,16 +4436,15 @@ but much faster.
 @node nnmairix requirements
 @subsubsection nnmairix requirements
 
-Mairix searches local mail - that means, mairix absolutely must have
+Mairix searches local mail---that means, mairix absolutely must have
 direct access to your mail folders.  If your mail resides on another
 server (e.g. an @acronym{IMAP} server) and you happen to have shell
 access, @code{nnmairix} supports running mairix remotely, e.g. via ssh.
 
 Additionally, @code{nnmairix} only supports the following Gnus back
-ends: @code{nnml}, @code{nnmaildir}, and @code{nnimap}.  You
-@strong{must} use one of these back ends for using
-@code{nnmairix}.  Other back ends, like @code{nnmbox}, @code{nnfolder} or
-@code{nnmh}, won't work.
+ends: @code{nnml}, @code{nnmaildir}, and @code{nnimap}.  You must use
+one of these back ends for using @code{nnmairix}.  Other back ends, like
+@code{nnmbox}, @code{nnfolder} or @code{nnmh}, won't work.
 
 If you absolutely must use mbox and still want to use @code{nnmairix},
 you can set up a local @acronym{IMAP} server, which you then access via
@@ -4479,7 +4472,7 @@ automatically update themselves by calling mairix.
 You might ask why you need @code{nnmairix} at all, since mairix already
 creates the group, populates it with links to the mails so that you can
 then access it with Gnus, right? Well, this @emph{might} work, but often
-does not - at least not without problems.  Most probably you will get
+does not---at least not without problems.  Most probably you will get
 strange article counts, and sometimes you might see mails which Gnus
 claims have already been canceled and are inaccessible.  This is due to
 the fact that Gnus isn't really amused when things are happening behind
@@ -4488,7 +4481,7 @@ use mairix with an @acronym{IMAP} server (I had Dovecot complaining
 about corrupt index files when mairix changed the contents of the search
 group).  Using @code{nnmairix} should circumvent these problems.
 
-@code{nnmairix} is not really a mail back end - it's actually more like a
+@code{nnmairix} is not really a mail back end---it's actually more like a
 wrapper, sitting between a ``real'' mail back end where mairix stores the
 searches and the Gnus front end.  You can choose between three different
 mail back ends for the mairix folders: @code{nnml}, @code{nnmaildir} or
@@ -4501,7 +4494,7 @@ if you're uncomfortable with @code{nnmairix} creating new mail groups
 alongside your other mail, you can also create e.g. a new
 @code{nnmaildir} server exclusively for mairix.  However, a special case
 exists if you want to use mairix remotely on an IMAP server with
-@code{nnimap} - here the mairix folders and your other mail must be on
+@code{nnimap}---here the mairix folders and your other mail must be on
 the same @code{nnimap} back end.
 
 @node Setting up mairix
@@ -4517,12 +4510,11 @@ Setting up mairix is easy: simply create a @file{.mairixrc} file with
 base=~/Maildir
 @end example
 
-This is the base folder for your mails.  All the following paths are
-relative to this base folder.  If you want to use @code{nnmairix} with
-@code{nnimap}, this base path has to point to the mail path where the
-@acronym{IMAP} server stores the mail folders!
+This is the base folder for your mails.  All the following directories
+are relative to this base folder.  If you want to use @code{nnmairix}
+with @code{nnimap}, this base directory has to point to the mail
+directory where the @acronym{IMAP} server stores the mail folders!
 
-@c FIXME: Add typical examples?
 @example
 maildir= ... your maildir folders which should be indexed ...
 mh= ... your nnml/mh folders which should be indexed ...
@@ -4530,7 +4522,7 @@ mbox = ... your mbox files which should be indexed ...
 @end example
 
 Specify all your maildir/nnml folders and mbox files (relative to the
-base path!) you want to index with mairix.  See the man-page for
+base directory!) you want to index with mairix.  See the man-page for
 mairixrc for details.
 
 @example
@@ -4542,7 +4534,6 @@ This should make sure that you don't accidentally index the mairix
 search results.  You can change the prefix of these folders with the
 variable @code{nnmairix-group-prefix}.
 
-@c FIXME: Add typical examples?
 @example
 mformat= ... 'maildir' or 'mh' ...
 database= ... location of database file ...
@@ -4552,8 +4543,38 @@ The @code{format} setting specifies the output format for the mairix
 search folder.  Set this to @code{mh} if you want to access search results
 with @code{nnml}.  Otherwise choose @code{maildir}.
 
-See the man pages for mairix and mairixrc for further options.  Now
-simply call @code{mairix} to create the index for the first time.
+To summarize, here is my shortened @file{.mairixrc} file as an example:
+
+@example
+base=~/Maildir
+maildir=.personal:.work:.logcheck:.sent
+mh=../Mail/nnml/*...
+mbox=../mboxmail/mailarchive_year*
+mformat=maildir
+omit=zz_mairix-*
+database=~/.mairixdatabase
+@end example
+
+In this case, the base directory is @file{~/Maildir}, where all my Maildir
+folders are stored.  As you can see, the folders are separated by
+colons.  If you wonder why every folder begins with a dot: this is
+because I use Dovecot as @acronym{IMAP} server, which again uses
+@code{Maildir++} folders.  For testing nnmairix, I also have some
+@code{nnml} mail, which is saved in @file{~/Mail/nnml}.  Since this has
+to be specified relative to the @code{base} directory, the @code{../Mail}
+notation is needed.  Note that the line ends in @code{*...}, which means
+to recursively scan all files under this directory.  Without the three
+dots, the wildcard @code{*} will not work recursively.  I also have some
+old mbox files with archived mail lying around in @file{~/mboxmail}.
+The other lines should be obvious.
+
+See the man page for @code{mairixrc} for details and further options,
+especially regarding wildcard usage, which may be a little different
+than you are used to.
+
+Now simply call @code{mairix} to create the index for the first time.
+Note that this may take a few minutes, but every following index will do
+the updates incrementally and hence is very fast.
 
 @node Configuring nnmairix
 @subsubsection Configuring nnmairix
@@ -4566,7 +4587,7 @@ server.  You will have to specify the following:
 @itemize @bullet
 
 @item
-The @strong{name} of the @code{nnmairix} server - choose whatever you
+The @strong{name} of the @code{nnmairix} server---choose whatever you
 want.
 
 @item
@@ -4749,7 +4770,7 @@ originally came from and displays the article in this group, so that
 e.g. replying to this article the correct posting styles/group
 parameters are applied (@code{nnmairix-goto-original-article}).  This
 function will use the registry if available, but can also parse the
-article file path as a fallback method.
+article file name as a fallback method.
 
 @item $ u
 @kindex $ u (Summary)
@@ -4787,11 +4808,11 @@ implies that you will usually read your mails in the @code{nnmairix}
 groups instead of your ``real'' mail groups.
 
 There is one problem, though: say you got a new mail from
-@samp{david@@foobar.com} - it will now show up in two groups, the
+@samp{david@@foobar.com}; it will now show up in two groups, the
 ``real'' group (your INBOX, for example) and in the @code{nnmairix}
 search group (provided you have updated the mairix database). Now you
 enter the @code{nnmairix} group and read the mail. The mail will be
-marked as read, but only in the @code{nnmairix} group - in the ``real''
+marked as read, but only in the @code{nnmairix} group---in the ``real''
 mail group it will be still shown as unread.
 
 You could now catch up the mail group (@pxref{Group Data}), but this is
@@ -4838,11 +4859,11 @@ the safe side, choose roughly the amount of mails you index with mairix.
 
 @vindex nnmairix-only-use-registry
 If you don't want to use the registry or the registry hasn't seen the
-original article yet, @code{nnmairix} will use an additional mairix search
-for determining the file path of the article. This, of course, is way
-slower than the registry - if you set hundreds or even thousands of
-marks this way, it might take some time. You can avoid this situation
-by setting @code{nnmairix-only-use-registry} to t.
+original article yet, @code{nnmairix} will use an additional mairix
+search for determining the file name of the article. This, of course, is
+way slower than the registry---if you set hundreds or even thousands of
+marks this way, it might take some time. You can avoid this situation by
+setting @code{nnmairix-only-use-registry} to t.
 
 Maybe you also want to propagate marks the other way round, i.e. if you
 tick an article in a "real" mail group, you'd like to have the same
@@ -4904,7 +4925,7 @@ Hit @kbd{G b g}, enter group name (e.g. @samp{important}), use
 Now activate marks propagation for this group by using @kbd{G b p}. Then
 activate the always-unread feature by using @kbd{G b r} twice.
 
-So far so good - but how do you remove the tick marks in the @code{nnmairix}
+So far so good---but how do you remove the tick marks in the @code{nnmairix}
 group?  There are two options: You may simply use
 @code{nnmairix-remove-tick-mark-original-article} (bound to @kbd{$ u}) to remove
 tick marks from the original article. The other possibility is to set
@@ -4926,7 +4947,7 @@ As described before, all @code{nnmairix} groups are in fact stored on
 the mail back end in the form @samp{zz_mairix-<NAME>-<NUMBER>}. You can
 see them when you enter the back end server in the server buffer. You
 should not subscribe these groups! Unfortunately, these groups will
-usually get @strong{auto-subscribed} when you use @code{nnmaildir} or
+usually get @emph{auto-subscribed} when you use @code{nnmaildir} or
 @code{nnml}, i.e. you will suddenly see groups of the form
 @samp{zz_mairix*} pop up in your group buffer. If this happens to you,
 simply kill these groups with C-k.  For avoiding this, turn off
@@ -4953,13 +4974,13 @@ If you use the Gnus agent (@pxref{Gnus Unplugged}): don't agentize
 @item
 If you use the Gnus registry: don't use the registry with
 @code{nnmairix} groups (put them in
-@code{gnus-registry-unfollowed-groups}).  Be @strong{extra careful} if
-you use @code{gnus-registry-split-fancy-with-parent} - mails which are
+@code{gnus-registry-unfollowed-groups}).  Be @emph{extra careful} if
+you use @code{gnus-registry-split-fancy-with-parent}; mails which are
 split into @code{nnmairix} groups are usually gone for good as soon as
 you check the group for new mail (yes, it has happened to me...).
 
 @item
-Therefore: @strong{Never ever} put ``real'' mails into @code{nnmairix}
+Therefore: @emph{Never ever} put ``real'' mails into @code{nnmairix}
 groups (you shouldn't be able to, anyway).
 
 @item
@@ -4968,7 +4989,7 @@ mairix does only support us-ascii characters.
 @item
 @code{nnmairix} uses a rather brute force method to force Gnus to
 completely reread the group on the mail back end after mairix was
-called - it simply deletes and re-creates the group on the mail
+called---it simply deletes and re-creates the group on the mail
 back end. So far, this has worked for me without any problems, and I
 don't see how @code{nnmairix} could delete other mail groups than its
 own, but anyway: you really should have a backup of your mail
@@ -4992,7 +5013,7 @@ save any ``real'' mail in folders of the form
 @code{nnmairix-group-prefix}.
 
 @item
-The following only applies if you @strong{don't} use the mentioned patch
+The following only applies if you @emph{don't} use the mentioned patch
 for mairix (@pxref{Propagating marks}):
 
 A problem can occur when using @code{nnmairix} with maildir folders and
@@ -15388,8 +15409,8 @@ files.  If a positive number, delete files older than number of days
 (the deletion will only happen when receiving new mail).  You may also
 set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
-@code{mail-source-delete-incoming} defaults to @code{2} in alpha Gnusae
-and @code{10} in released Gnusae.  @xref{Gnus Development}.
+@code{mail-source-delete-incoming} defaults to @code{10} in alpha Gnusae
+and @code{2} in released Gnusae.  @xref{Gnus Development}.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
@@ -28610,7 +28631,7 @@ controls this.
 @item You can now drag and drop attachments to the Message buffer.
 See @code{mml-dnd-protocol-alist} and @code{mml-dnd-attach-options}.
 @xref{MIME, ,MIME, message, Message Manual}.
-@c New in 5.10.9 / 5.11 (Emacs 21.1)
+@c New in 5.10.9 / 5.11 (Emacs 22.1)
 
 @item @code{auto-fill-mode} is enabled by default in Message mode.
 See @code{message-fill-column}.  @xref{Various Message Variables, ,

@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
 @comment %**start of header
 @setfilename ../../info/newsticker
-@set VERSION 1.9
-@set UPDATED November 2005
+@set VERSION 1.99
+@set UPDATED June 2008
 @settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -13,7 +13,8 @@
 This manual is for Newsticker (version @value{VERSION}, @value{UPDATED}).
 
 @noindent
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2006, 2007, 2008
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -21,17 +22,11 @@ under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
 and with the Back-Cover Texts as in (a) below.  A copy of the license
-is included in the section entitled ``GNU Free Documentation License''
-in the Emacs manual.
+is included in the section entitled ``GNU Free Documentation License''.
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
@@ -45,7 +40,7 @@ license to the document, as described in section 6 of the license.
 @subtitle for version @value{VERSION}, @value{UPDATED}
 @author Ulf Jasper
 @author @email{ulf.jasper@@web.de}
-@author @uref{http://de.geocities.com/ulf_jasper}
+@author @uref{http://ulf.epplejasper.de/}
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -80,7 +75,7 @@ corresponding articles in a web browser.
 
 Headlines consist of a title and (possibly) a small description.  They
 are contained in "RSS" (RDF Site Summary) or "Atom" files.  Newsticker
-should work with the following RSS formats:
+works with the following RSS formats:
 
 @itemize
 @item RSS 0.91 (see @uref{http://backend.userland.com/rss091} or
@@ -96,8 +91,8 @@ as well as the following Atom formats:
 @uref{http://www.ietf.org/internet-drafts/draft-ietf-atompub-format-11.txt}).
 @end itemize
 
-That makes Newsticker.el an "Atom aggregator, "RSS reader", or "RSS
-aggregator".
+That makes Newsticker.el an ``Atom aggregator'', ``RSS reader'', ``Feed
+aggregator'', or ``Feed reader''.
 
 Newsticker provides several commands for reading headlines, navigating
 through them, marking them as read/unread, hiding old headlines etc.
@@ -130,9 +125,11 @@ requires an XML-parser (@file{xml.el}) which is part of GNU Emacs.  If
 you are using XEmacs you want to get the @file{net-utils} package
 which contains @file{xml.el} for XEmacs.
 
-Newsticker requires a program which can retrieve files via http and
-prints them to stdout.  By default Newsticker will use
-@uref{http://www.gnu.org/software/wget/wget.html, wget} for this task.
+Newsticker retrieves headlines either via Emacs' built-in retrieval
+functions, by an arbitrary external program that retrieves files via
+http and prints them to stdout (like
+@uref{http://www.gnu.org/software/wget/wget.html, wget}, or -- on a
+per feed basis -- via an arbitrary Lisp command.
 
 
 @node Installation
@@ -156,12 +153,22 @@ That's it.
 
 @findex newsticker-show-news
 The command @code{newsticker-show-news} will display all available
-headlines in a special buffer, called @samp{*newsticker*}.  It will
-also start the asynchronous download of headlines.  The modeline in
-the @samp{*newsticker*} buffer informs whenever new headlines have
-arrived.  Clicking mouse-button 2 or pressing RET in this buffer on a
-headline will call @code{browse-url} to load the corresponding news
-story in your favourite web browser.
+headlines.  It will also start the asynchronous download of headlines.
+
+You can choose between two different frontends for reading headlines:
+@itemize
+@item Newsticker's @emph{treeview} uses separate windows for the
+feeds (in tree form), a list of headlines for the current feed, and
+the content of the current headline. Feeds can be placed into groups
+which itself can be placed in groups and so on. 
+@item Newsticker's @emph{plainview} displays all headlines in a
+single buffer, called @samp{*newsticker*}. The modeline in the
+@samp{*newsticker*} buffer informs whenever new headlines have
+arrived.
+@end itemize
+In both views clicking mouse-button 2 or pressing RET on a headline
+will call @code{browse-url} to load the corresponding news story in
+your favourite web browser.
 
 @findex newsticker-start-ticker
 @findex newsticker-stop-ticker
@@ -188,12 +195,13 @@ All Newsticker options have reasonable default values, so that in most
 cases it is not necessary to customize settings before starting Newsticker
 for the first time.
 
-Newsticker options are organized in the following groups.
+The following list shows the available groups of newsticker options
+and some of the most important options.
 
 @itemize
 
 @item
-@code{newsticker-feed} contains options that define which news
+@code{newsticker-retrieval} contains options that define which news
 feeds are retrieved and how this is done.  
 
 @itemize
@@ -201,6 +209,11 @@ feeds are retrieved and how this is done.
 @vindex newsticker-url-list
 @code{newsticker-url-list} defines the list of headlines which are
 retrieved.
+@item
+@vindex newsticker-retrieval-method
+@code{newsticker-retrieval-method} defines how headlines are
+retrieved. This is either done using Emacs' built-in download
+capabilities or using an external tool.
 @item
 @vindex newsticker-retrieval-interval
 @code{newsticker-retrieval-interval} defines how often headlines
@@ -217,30 +230,10 @@ how the retrieved headlines are processed.
 @code{newsticker-keep-obsolete-items} decides whether unread
 headlines that have been removed from the feed are kept in the
 Newsticker cache.
-@end itemize
-
 @item
-@code{newsticker-layout} contains options that define how the
-buffer for reading news headlines is formatted.
-
-@itemize
-@item
-@vindex newsticker-heading-format
-@code{newsticker-item-format} defines how the title of a headline
-is formatted.
-@end itemize
-
-@item
-@code{newsticker-ticker} contains options that define how headlines
-are shown in the echo area.
-
-@itemize
-@item
-@vindex newsticker-display-interval
-@vindex newsticker-scroll-smoothly
-@code{newsticker-display-interval} and
-@code{newsticker-scroll-smoothly} define how headlines are shown in
-the echo area.
+@vindex newsticker-auto-mark-filter-list
+@code{newsticker-auto-mark-filter-list} provides the possibility to
+automatically mark headlines as immortal or old.
 @end itemize
 
 @item
@@ -252,23 +245,58 @@ commands to newsticker functions.
 @code{newsticker-new-item-functions} allows for automatic
 processing of headlines. See `newsticker-download-images', and
 `newsticker-download-enclosures' for sample functions.
+@item
+@vindex newsticker-plainview-hooks
+The subgroup @code{newsticker-plainview-hooks} contains hook which
+apply to the plainview reader only.
 @end itemize
 
 @item
 @code{newsticker-miscellaneous} contains other Newsticker options.
 
+@item
+@code{newsticker-ticker} contains options that define how headlines
+are shown in the echo area, i.e. the ``ticker''.
+
+@itemize
+@item
+@vindex newsticker-display-interval
+@vindex newsticker-scroll-smoothly
+@code{newsticker-ticker-interval} and
+@code{newsticker-scroll-smoothly} define how headlines are shown in
+the echo area.
 @end itemize
 
-Please have a look at the customization buffers for the complete list
-of options.
+
+@item
+@code{newsticker-reader} contains options for adjusting the headline reader.
+
+@itemize
+@item
+@vindex newsticker-frontend
+@code{newsticker-frontend} determines the actual headline reader. The
+``plainview'' reader uses a single buffer, the ``treeview'' uses
+separate buffers and windows.
+@end itemize
+
+@itemize
+@item
+@vindex newsticker-plainview
+The subgroup @code{newsticker-plainview} contains options for the
+plainview reader.
+@item
+@vindex newsticker-treeview
+The subgroup @code{newsticker-treeview} contains options for the
+treeview reader.
+@end itemize
+
+@end itemize
+
+For the complete list of options please have a look at the
+customization buffers.
 
 @node Remarks
 @chapter Remarks
-
-This newsticker is designed do its job silently in the background
-without disturbing you.  However, it is probably impossible to prevent
-such a tool from slightly attenuating your Editor's responsiveness
-every once in a while.
 
 Byte-compiling newsticker.el is recommended.
 

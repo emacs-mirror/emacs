@@ -1,3 +1,8 @@
+2008-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.am, Makefile.old, aclocal.m4, configure, configure.in:
+	* install-sh, missing, mkinstalldirs: Remove obsolete files.
+
 2008-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp-intro.texi (Lisp Atoms): Rephrase "in addition" to

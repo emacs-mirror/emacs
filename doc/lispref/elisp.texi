@@ -24,7 +24,6 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-@set EMACSVER 22.1
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
 @end ifset
@@ -56,8 +55,8 @@ Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
 Texts as in (a) below.  A copy of the license is included in the
 section entitled ``GNU Free Documentation License.''
 
-(a) The FSF's Back-Cover Text is: ``You are free to copy and modify
-this GNU Manual. Buying copies from GNU Press supports the FSF in
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
@@ -1196,6 +1195,7 @@ Processes
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
 * Misc Network::            Additional relevant functions for network connections.
+* Serial Ports::            Communicating with serial ports.
 * Byte Packing::            Using bindat to pack and unpack binary data.
 
 Receiving Output from Processes

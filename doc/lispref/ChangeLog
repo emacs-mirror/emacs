@@ -1,3 +1,36 @@
+2008-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacsver, miscmanualdir, VERSION, manual, install)
+	(elisp, dist): Remove rules and variables that are obsolete now
+	the lisp manual is no longer distributed separately.
+
+2008-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure, configure.in, mkinstalldirs: Remove unused files.
+
+	* book-spine.texinfo: Set version to 23.0.60.
+	* vol1.texi (EMACSVER):
+	* vol2.texi (EMACSVER):	Set to 23.0.60.
+
+	* elisp.texi, vol1.texi, vol2.texi: Update Back-Cover Text
+	as per maintain.info.
+
+2008-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (manual): Use "23" rather than "21".
+
+	* Makefile.in (emacsver): New, set by configure.
+	(manual): Use emacsver.
+
+	* intro.texi: Report bugs using M-x report-emacs-bug.
+
+	* elisp.texi (EMACSVER): Remove duplicate, outdated setting.
+
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	* elisp.texi, internals.texi, processes.texi: Add documentation
+	about serial port access.
+
 2008-06-05  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Displaying Faces): Update to reflect function
@@ -4793,7 +4826,7 @@
 	* files.texi (Saving Buffers): Cleanup write-contents-function.
 	(Magic File Names): Cleanup file-remote-p.
 
-2004-07-02  Kai Grossjohann  <kai@emptydomain.de>
+2004-07-02  Kai Großjohann  <kai@emptydomain.de>
 
 	* files.texi (Magic File Names): `file-remote-p' returns an
 	identifier of the remote system, not just t.
@@ -6386,7 +6419,7 @@
 	* display.texi (Defining Faces): Document `graphic' display type
 	in face specs.
 
-2000-10-18  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2000-10-18  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* hooks.texi (Standard Hooks): Replace obsolete
 	`after-make-frame-hook' with `after-make-frame-functions'.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
-;; Keywords: faces face display user commands
+;; Keywords: faces face remapping display user commands
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -61,6 +61,48 @@
 ;; ----------------------------------------------------------------
 ;; Utility functions
 
+;; Names of face attributes corresponding to lisp face-vector positions.
+;; This variable should probably be defined in C code where the actual
+;; definitions are available.
+;;
+(defvar internal-lisp-face-attributes
+  [nil
+   :family :foundry :swidth :height :weight :slant :underline :inverse
+   :foreground :background :stipple :overline :strike :box
+   :font :inherit :fontset :vector])
+
+(defun face-attrs-more-relative-p (attrs1 attrs2)
+"Return true if ATTRS1 contains a greater number of relative
+face-attributes than ATTRS2.  A face attribute is considered
+relative if `face-attribute-relative-p' returns non-nil.
+
+ATTRS1 and ATTRS2 may be any value suitable for a `face' text
+property, including face names, lists of face names,
+face-attribute plists, etc.
+
+This function can be used as a predicate with `sort', to sort
+face lists so that more specific faces are located near the end."
+  (unless (vectorp attrs1)
+    (setq attrs1 (face-attributes-as-vector attrs1)))
+  (unless (vectorp attrs2)
+    (setq attrs2 (face-attributes-as-vector attrs2)))
+  (let ((rel1-count 0) (rel2-count 0))
+    (dotimes (i (length attrs1))
+      (let ((attr (aref internal-lisp-face-attributes i)))
+	(when attr
+	  (when (face-attribute-relative-p attr (aref attrs1 i))
+	    (setq rel1-count (+ rel1-count 1)))
+	  (when (face-attribute-relative-p attr (aref attrs2 i))
+	    (setq rel2-count (+ rel2-count 1))))))
+    (< rel1-count rel2-count)))
+
+(defun face-remap-order (entry)
+  "Order ENTRY so that more relative face specs are near the beginning.
+The list structure of ENTRY may be destructively modified."
+  (setq entry (nreverse entry))
+  (setcdr entry (sort (cdr entry) 'face-attrs-more-relative-p))
+  (nreverse entry))
+
 ;;;### autoload
 (defun face-remap-add-relative (face &rest specs)
   "Add a face remapping entry of FACE to SPECS in the current buffer.
@@ -72,18 +114,21 @@ SPECS can be any value suitable for the `face' text property,
 including a face name, a list of face names, or a face-attribute
 property list.  The attributes given by SPECS will be merged with
 any other currently active face remappings of FACE, and with the
-global definition of FACE, with the most recently added relative
-remapping taking precedence.
+global definition of FACE.  An attempt is made to sort multiple
+entries so that entries with relative face-attributes are applied
+after entries with absolute face-attributes.
 
 The base (lowest priority) remapping may be set to a specific
 value, instead of the default of the global face definition,
 using `face-remap-set-base'."
+  (while (and (consp specs) (null (cdr specs)))
+    (setq specs (car specs)))
   (make-local-variable 'face-remapping-alist)
   (let ((entry (assq face face-remapping-alist)))
     (when (null entry)
       (setq entry (list face face))	; explicitly merge with global def
       (push entry face-remapping-alist))
-    (setcdr entry (cons specs (cdr entry)))
+    (setcdr entry (face-remap-order (cons specs (cdr entry))))
     (cons face specs)))
 
 (defun face-remap-remove-relative (cookie)
@@ -122,6 +167,8 @@ If SPECS is empty, the default base remapping is restored, which
 inherits from the global definition of FACE; note that this is
 different from SPECS containing a single value `nil', which does
 not inherit from the global definition of FACE."
+  (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
+    (setq specs (car specs)))
   (if (or (null specs)
 	  (and (eq (car specs) face) (null (cdr specs)))) ; default
       ;; Set entry back to default
@@ -191,7 +238,8 @@ Each step scales the height of the default face by the variable
 height by the same amount).  As a special case, an argument of 0
 will remove any scaling currently active."
   (interactive "p")
-  (setq text-scale-mode-amount (if (= inc 0) 0 (+ text-scale-mode-amount inc)))
+  (setq text-scale-mode-amount
+	(if (= inc 0) 0 (+ (if text-scale-mode text-scale-mode-amount 0) inc)))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload
@@ -254,26 +302,106 @@ a top-level keymap, `text-scale-increase' or
 
 
 ;; ----------------------------------------------------------------
-;; variable-pitch-mode
+;; buffer-face-mode
 
-;; suggested key binding: (global-set-key "\C-cv" 'variable-pitch-mode)
+(defcustom buffer-face-mode-face 'variable-pitch
+  "The face specification used by `buffer-face-mode'.
+It may contain any value suitable for a `face' text property,
+including a face name, a list of face names, a face-attribute
+plist, etc."
+  :group 'display)
 
-;; current remapping cookie for  variable-pitch-mode
-(defvar variable-pitch-mode-remapping nil)
-(make-variable-buffer-local 'variable-pitch-mode-remapping)
+;; current remapping cookie for  buffer-face-mode
+(defvar buffer-face-mode-remapping nil)
+(make-variable-buffer-local 'buffer-face-mode-remapping)
 
 ;;;###autoload
-(define-minor-mode variable-pitch-mode
-  "Variable-pitch default-face mode.
-When active, causes the buffer text to be displayed using
-the `variable-pitch' face."
-  :lighter " VarPitch"
-  (when variable-pitch-mode-remapping
-    (face-remap-remove-relative variable-pitch-mode-remapping))
-  (setq variable-pitch-mode-remapping
-	(and variable-pitch-mode
-	     (face-remap-add-relative 'default 'variable-pitch)))
+(define-minor-mode buffer-face-mode
+  "Minor mode for a buffer-specific default face.
+When enabled, the face specified by the variable
+`buffer-face-mode-face' is used to display the buffer text."
+  :lighter " BufFace"
+  (when buffer-face-mode-remapping
+    (face-remap-remove-relative buffer-face-mode-remapping))
+  (setq buffer-face-mode-remapping
+	(and buffer-face-mode
+	     (face-remap-add-relative 'default buffer-face-mode-face)))
   (force-window-update (current-buffer)))
+
+;;;###autoload
+(defun buffer-face-set (&rest specs)
+  "Enable `buffer-face-mode', using face specs SPECS.
+SPECS can be any value suitable for the `face' text property,
+including a face name, a list of face names, or a face-attribute
+If SPECS is nil, then `buffer-face-mode' is disabled.
+
+This function will make the variable `buffer-face-mode-face'
+buffer local, and set it to FACE."
+  (interactive (list (read-face-name "Set buffer face")))
+  (while (and (consp specs) (null (cdr specs)))
+    (setq specs (car specs)))
+  (if (null specs)
+      (buffer-face-mode 0)
+    (set (make-local-variable 'buffer-face-mode-face) specs)
+    (buffer-face-mode t)))
+
+;;;###autoload
+(defun buffer-face-toggle (&rest specs)
+  "Toggle `buffer-face-mode', using face specs SPECS.
+SPECS can be any value suitable for the `face' text property,
+including a face name, a list of face names, or a face-attribute
+
+If `buffer-face-mode' is already enabled, and is currently using
+the face specs SPECS, then it is disabled; if buffer-face-mode is
+disabled, or is enabled and currently displaying some other face,
+then is left enabled, but the face changed to reflect SPECS.
+
+This function will make the variable `buffer-face-mode-face'
+buffer local, and set it to SPECS."
+  (interactive (list buffer-face-mode-face))
+  (while (and (consp specs) (null (cdr specs)))
+    (setq specs (car specs)))
+  (if (or (null specs)
+	  (and buffer-face-mode (equal buffer-face-mode-face specs)))
+      (buffer-face-mode 0)
+    (set (make-local-variable 'buffer-face-mode-face) specs)
+    (buffer-face-mode t)))
+
+(defun buffer-face-mode-invoke (specs arg &optional interactive)
+  "Enable or disable `buffer-face-mode' using face specs SPECS, and argument ARG.
+ARG controls whether the mode is enabled or disabled, and is
+interpreted in the usual manner for minor-mode commands.
+
+SPECS can be any value suitable for the `face' text property,
+including a face name, a list of face names, or a face-attribute
+
+If INTERACTIVE is non-nil, a message will be displayed describing the result.
+
+This is a wrapper function which calls just `buffer-face-set' or
+`buffer-face-toggle' (depending on ARG), and prints a status
+message in the echo area.  In many cases one of those functions
+may be more appropriate."
+  (let ((last-message (current-message)))
+    (if (or (eq arg 'toggle) (not arg))
+	(buffer-face-toggle specs)
+      (buffer-face-set (and (> (prefix-numeric-value arg) 0) specs)))
+    (when interactive
+      (unless (and (current-message)
+		   (not (equal last-message (current-message))))
+	(message "Buffer-Face mode %sabled"
+		 (if buffer-face-mode "en" "dis"))))))
+
+
+;; ----------------------------------------------------------------
+;; variable-pitch-mode
+
+;;;###autoload
+(defun variable-pitch-mode (&optional arg)
+  "Variable-pitch default-face mode.
+An interface to `buffer-face-mode' which uses the `variable-pitch' face.
+Besides the choice of face, it is the same as `buffer-face-mode'."
+  (interactive (list (or current-prefix-arg 'toggle)))
+  (buffer-face-mode-invoke 'variable-pitch arg (interactive-p)))
 
 
 (provide 'face-remap)

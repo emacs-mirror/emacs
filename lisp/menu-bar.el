@@ -632,8 +632,8 @@ by \"Save Options\" in Custom buffers.")
 (defun menu-set-font ()
   "Interactively select a font and make it the default."
   (interactive)
-  (let ((font (if (functionp 'x-font-dialog)
-  		  (x-font-dialog)
+  (let ((font (if (fboundp 'x-select-font)
+  		  (x-select-font)
   		(mouse-select-font)))
 	spec)
     (when font
@@ -1897,6 +1897,7 @@ See `menu-bar-mode' for more information."
     (menu-bar-mode arg)))
 
 (declare-function x-menu-bar-open "term/x-win" (&optional frame))
+(declare-function w32-menu-bar-open "term/w32-win" (&optional frame))
 
 (defun menu-bar-open (&optional frame)
   "Start key navigation of the menu bar in FRAME.

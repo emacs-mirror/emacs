@@ -6571,7 +6571,7 @@ Customized by setting variables `cperl-shrink-wrap-info-frame',
 			 ;; Non-functioning under OS/2:
 			 (if (eq char-height 1) (setq char-height 18))
 			 ;; Title, menubar, + 2 for slack
-			 (- (/ (x-display-pixel-height) char-height) 4)))
+			 (- (/ (display-pixel-height) char-height) 4)))
 		 (if (> height max-height) (setq height max-height))
 		 ;;(message "was %s doing %s" iniheight height)
 		 (if not-loner

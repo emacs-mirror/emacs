@@ -34,6 +34,8 @@
 
 ;;; Code:
 
+(declare-function x-popup-dialog "xmenu.c" (position contents &optional header))
+
 (defun map-y-or-n-p (prompter actor list &optional help action-alist
 			      no-cursor-in-echo-area)
   "Ask a series of boolean questions.
@@ -110,10 +112,9 @@ Returns the number of actions taken."
 		use-menus t
 		mouse-event last-nonmenu-event))
       (setq user-keys (if action-alist
-			  (concat (mapconcat (function
-					      (lambda (elt)
-						(key-description
-						 (char-to-string (car elt)))))
+			  (concat (mapconcat (lambda (elt)
+                                               (key-description
+                                                (vector (car elt))))
 					     action-alist ", ")
 				  " ")
 			"")

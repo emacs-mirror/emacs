@@ -206,6 +206,7 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
+Lisp_Object Qfont_param;
 Lisp_Object Qhyper;
 Lisp_Object Qsuper;
 Lisp_Object Qmeta;
@@ -4273,8 +4274,13 @@ x_default_font_parameter (f, parms)
      Lisp_Object parms;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-  Lisp_Object font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font",
-                                RES_TYPE_STRING);
+  Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
+				RES_TYPE_STRING);
+  Lisp_Object font;
+  if (EQ (font_param, Qunbound))
+    font_param = Qnil;
+  font = !NILP (font_param) ? font_param
+    : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
   if (!STRINGP (font))
     {
@@ -4294,6 +4300,12 @@ x_default_font_parameter (f, parms)
         }
       if (NILP (font))
         error ("No suitable font was found");
+    }
+  else if (!NILP (font_param))
+    {
+      /* Remember the explicit font parameter, so we can re-apply it after
+	 we've applied the `default' face settings.  */
+      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
     }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
@@ -8195,62 +8207,6 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
                          w32 specialized functions
  ***********************************************************************/
 
-DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 2, 0,
-       doc: /* Select a font for the named FRAME using the W32 font dialog.
-Return an X-style font string corresponding to the selection.
-
-If FRAME is omitted or nil, it defaults to the selected frame.
-If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
-in the font selection dialog. */)
-  (frame, include_proportional)
-     Lisp_Object frame, include_proportional;
-{
-  FRAME_PTR f = check_x_frame (frame);
-  CHOOSEFONT cf;
-  LOGFONT lf;
-  TEXTMETRIC tm;
-  HDC hdc;
-  HANDLE oldobj;
-  char buf[100];
-
-  bzero (&cf, sizeof (cf));
-  bzero (&lf, sizeof (lf));
-
-  cf.lStructSize = sizeof (cf);
-  cf.hwndOwner = FRAME_W32_WINDOW (f);
-  cf.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_NOVERTFONTS;
-
-  /* Unless include_proportional is non-nil, limit the selection to
-     monospaced fonts.  */
-  if (NILP (include_proportional))
-    cf.Flags |= CF_FIXEDPITCHONLY;
-
-  cf.lpLogFont = &lf;
-
-  /* Initialize as much of the font details as we can from the current
-     default font.  */
-  hdc = GetDC (FRAME_W32_WINDOW (f));
-  oldobj = SelectObject (hdc, FONT_COMPAT (FRAME_FONT (f))->hfont);
-  GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
-  if (GetTextMetrics (hdc, &tm))
-    {
-      lf.lfHeight = tm.tmInternalLeading - tm.tmHeight;
-      lf.lfWeight = tm.tmWeight;
-      lf.lfItalic = tm.tmItalic;
-      lf.lfUnderline = tm.tmUnderlined;
-      lf.lfStrikeOut = tm.tmStruckOut;
-      lf.lfCharSet = tm.tmCharSet;
-      cf.Flags |= CF_INITTOLOGFONTSTRUCT;
-    }
-  SelectObject (hdc, oldobj);
-  ReleaseDC (FRAME_W32_WINDOW (f), hdc);
-
-  if (!ChooseFont (&cf) || !w32_to_x_font (&lf, buf, 100, NULL))
-      return Qnil;
-
-  return build_string (buf);
-}
-
 DEFUN ("w32-send-sys-command", Fw32_send_sys_command,
        Sw32_send_sys_command, 1, 2, 0,
        doc: /* Send frame a Windows WM_SYSCOMMAND message of type COMMAND.
@@ -8947,6 +8903,7 @@ syms_of_w32fns ()
   DEFSYM (Qctrl, "ctrl");
   DEFSYM (Qcontrol, "control");
   DEFSYM (Qshift, "shift");
+  DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
@@ -9308,7 +9265,6 @@ versions of Windows) characters.  */);
 
   /* W32 specific functions */
 
-  defsubr (&Sw32_select_font);
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_load_color_file);

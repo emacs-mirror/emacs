@@ -1,14 +1,13 @@
-;;; newsticker-backend.el --- Retrieval backend for newsticker.
+;;; newst-backend.el --- Retrieval backend for newsticker.
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newsticker-backend.el
+;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "8. Juni 2008, 17:18:04 (ulf)"
-;; CVS-Version: $Id: newsticker-backend.el,v 1.5 2008/06/10 03:18:14 gm Exp $
+;; Time-stamp:  "13. Juni 2008, 17:41:00 (ulf)"
 
 ;; ======================================================================
 

@@ -72,6 +72,8 @@ typedef struct _child_process
   PROCESS_INFORMATION   procinfo;
   volatile int          status;
   char                  chr;
+  OVERLAPPED            ovl_read;
+  OVERLAPPED            ovl_write;
 } child_process;
 
 #define MAXDESC FD_SETSIZE
@@ -99,6 +101,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_PIPE               0x0100
 #define FILE_SOCKET             0x0200
 #define FILE_NDELAY             0x0400
+#define FILE_SERIAL             0x0800
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);

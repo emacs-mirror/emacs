@@ -1,7 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -2425,6 +2425,8 @@ and selects that window."
     )
   "X fonts suitable for use in Emacs.")
 
+(declare-function generate-fontset-menu "fontset" ())
+
 (defun mouse-select-font ()
   "Prompt for a font name, using `x-popup-menu', and return it."
   (interactive)
@@ -2436,6 +2438,8 @@ and selects that window."
      (list '(0 0) (selected-window)))
    (append x-fixed-font-alist
 	   (list (generate-fontset-menu)))))
+
+(declare-function text-scale-mode "face-remap")
 
 (defun mouse-set-font (&rest fonts)
   "Set the default font for the selected frame.
@@ -2465,6 +2469,70 @@ choose a font."
 	     (setq fonts (cdr fonts)))))
 	(if (null font)
 	    (error "Font not found")))))
+
+(defvar mouse-appearance-menu-map nil)
+(declare-function x-select-font "xfns.c" (&optional frame ignored)) ; USE_GTK
+(declare-function buffer-face-mode-invoke "face-remap"
+                  (face arg &optional interactive))
+
+(defun mouse-appearance-menu (event)
+  (interactive "@e")
+  (require 'face-remap)
+  (when (display-multi-font-p)
+    (with-selected-window (car (event-start event))
+      (if mouse-appearance-menu-map
+	  nil ; regenerate new fonts
+	;; Initialize mouse-appearance-menu-map
+	(setq mouse-appearance-menu-map
+	      (make-sparse-keymap "Change Default Buffer Face"))
+	(define-key mouse-appearance-menu-map [face-remap-reset-base]
+	  '(menu-item "Reset to Default" face-remap-reset-base))
+	(define-key mouse-appearance-menu-map [text-scale-decrease]
+	  '(menu-item "Decrease Buffer Text Size" text-scale-decrease))
+	(define-key mouse-appearance-menu-map [text-scale-increase]
+	  '(menu-item "Increase Buffer Text Size" text-scale-increase))
+	;; Font selector
+	(if (functionp 'x-select-font)
+	    (define-key mouse-appearance-menu-map [x-select-font]
+	      '(menu-item "Change Buffer Font..." x-select-font))
+	  ;; If the select-font is unavailable, construct a menu.
+	  (let ((font-submenu (make-sparse-keymap "Change Text Font"))
+		(font-alist (cdr (append x-fixed-font-alist
+					 (list (generate-fontset-menu))))))
+	    (dolist (family font-alist)
+	      (let* ((submenu-name (car family))
+		     (submenu-map (make-sparse-keymap submenu-name)))
+		(dolist (font (cdr family))
+		  (let ((font-name (car font))
+			font-symbol)
+		    (if (string= font-name "")
+			(define-key submenu-map [space]
+			  '("--"))
+		      (setq font-symbol (intern (cadr font)))
+		      (define-key submenu-map (vector font-symbol)
+			(list 'menu-item (car font) font-symbol)))))
+		(define-key font-submenu (vector (intern submenu-name))
+		  (list 'menu-item submenu-name submenu-map))))
+	    (define-key mouse-appearance-menu-map [font-submenu]
+	      (list 'menu-item "Change Text Font" font-submenu)))))
+      (let ((choice (x-popup-menu event mouse-appearance-menu-map)))
+	(setq choice (nth (1- (length choice)) choice))
+	(cond ((eq choice 'text-scale-increase)
+	       (text-scale-increase 1))
+	      ((eq choice 'text-scale-decrease)
+	       (text-scale-increase -1))
+	      ((eq choice 'face-remap-reset-base)
+	       (text-scale-mode 0)
+	       (buffer-face-mode 0))
+	      (t
+	       ;; Either choice == 'x-select-font, or choice is a
+	       ;; symbol whose name is a font.
+	       (buffer-face-mode-invoke (font-face-attributes
+					 (if (eq choice 'x-select-font)
+					     (x-select-font)
+					   (symbol-name choice)))
+					t (interactive-p))))))))
+
 
 ;;; Bindings for mouse commands.
 
@@ -2492,7 +2560,7 @@ choose a font."
 ;; event to make the selection, saving a click.
 (global-set-key [C-down-mouse-1] 'mouse-buffer-menu)
 (if (not (eq system-type 'ms-dos))
-    (global-set-key [S-down-mouse-1] 'mouse-set-font))
+    (global-set-key [S-down-mouse-1] 'mouse-appearance-menu))
 ;; C-down-mouse-2 is bound in facemenu.el.
 (global-set-key [C-down-mouse-3]
   '(menu-item "Menu Bar" ignore

@@ -18,19 +18,10 @@ reported error using `pdfeTeXk', Version 3.141592-1.21a-2.2 (Web2C
 7.5.4) and texinfo.tex version 2006-08-26.17 started by `texi2dvi'
 version 4.8, and with `makeinfo' version 4.8.
 
-Also, this tar file contains the following optional Encapsulated Post
-Script figures.
+This directory contains the following Encapsulated PostScript figures:
 
-    drawers.eps         7129 bytes
-    cons-1.eps          12136
-    cons-2.eps          12523
-    cons-2a.eps         12420
-    cons-3.eps          12984
-    cons-4.eps          13866
-    cons-5.eps          12986
-    lambda-1.eps        10252
-    lambda-2.eps        10278
-    lambda-3.eps        10275
+  cons-1.eps, cons-2.eps, cons-2a.eps, cons-3.eps, cons-4.eps, cons-5.eps
+  drawers.eps, lambda-1.eps, lambda-2.eps, lambda-3.eps
 
 See the beginning of the `emacs-lisp-intro.texi' file for appropriate
 settings.  These figures are not necessary; they are merely nice to

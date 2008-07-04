@@ -65,6 +65,10 @@
      (string :tag "Font Family"
 	     :help-echo "Font family or fontset alias name."))
 
+    (:foundry
+     (string :tag "Font Foundry"
+	     :help-echo "Font foundry name."))
+
     (:width
      (choice :tag "Width"
 	     :help-echo "Font width."

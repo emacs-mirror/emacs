@@ -1005,7 +1005,7 @@ fontset_pattern_regexp (pattern)
     {
       /* We must at first update the cached data.  */
       unsigned char *regex, *p0, *p1;
-      int ndashes = 0, nstars = 0;
+      int ndashes = 0, nstars = 0, nescs = 0;
 
       for (p0 = SDATA (pattern); *p0; p0++)
 	{
@@ -1013,15 +1013,20 @@ fontset_pattern_regexp (pattern)
 	    ndashes++;
 	  else if (*p0 == '*')
 	    nstars++;
+	  else if (*p0 == '['
+		   || *p0 == '.' || *p0 == '\\'
+		   || *p0 == '+' || *p0 == '^' 
+		   || *p0 == '$')
+	    nescs++;
 	}
 
       /* If PATTERN is not full XLFD we conert "*" to ".*".  Otherwise
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 1);
+	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
       else
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 1);
+	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
 
       *p1++ = '^';
       for (p0 = SDATA (pattern); *p0; p0++)
@@ -1036,6 +1041,11 @@ fontset_pattern_regexp (pattern)
 	    }
 	  else if (*p0 == '?')
 	    *p1++ = '.';
+	  else if (*p0 == '['
+		   || *p0 == '.' || *p0 == '\\'
+		   || *p0 == '+' || *p0 == '^' 
+		   || *p0 == '$')
+	    *p1++ = '\\', *p1++ = *p0;
 	  else
 	    *p1++ = *p0;
 	}
@@ -1623,6 +1633,7 @@ fontset_from_font (font_object)
   Vfontset_alias_alist = Fcons (Fcons (name, alias), Vfontset_alias_alist);
   auto_fontset_alist = Fcons (Fcons (font_spec, fontset), auto_fontset_alist);
   FONTSET_ASCII (fontset) = font_name;
+  font_spec = Fcopy_font_spec (font_spec);
   ASET (font_spec, FONT_FOUNDRY_INDEX, Qnil);
   ASET (font_spec, FONT_ADSTYLE_INDEX, Qnil);
   for (i = FONT_WEIGHT_INDEX; i < FONT_EXTRA_INDEX; i++)

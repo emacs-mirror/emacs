@@ -1,3 +1,16 @@
+2008-06-20  Stephen Eglen  <stephen@gnu.org>
+
+	* mh-show.el (mh-defun-show-buffer): Use `...' rather than than
+	"..." in generated docstrings.
+
+2008-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* mh-seq.el (tool-bar-map): Define for compiler.
+
+	* mh-folder.el (mh-folder-mode):
+	* mh-letter.el (mh-letter-mode):
+	* mh-show.el (mh-show-mode):  Check tool-bar-map is bound.
+
 2008-06-08  John Paul Wallington  <jpw@pobox.com>
 
 	* mh-acros.el (toplevel): Put `doc-string-elt' properties on

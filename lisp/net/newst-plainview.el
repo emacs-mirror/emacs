@@ -1,13 +1,12 @@
-;;; newsticker-plainview.el --- Single buffer frontend for newsticker.
+;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newsticker-plainview.el
+;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "8. Juni 2008, 20:39:46 (ulf)"
-;; CVS-Version: $Id: newsticker-plainview.el,v 1.5 2008/06/10 03:20:18 gm Exp $
+;; Time-stamp:  "15. Juni 2008, 09:41:55 (ulf)"
 
 ;; ======================================================================
 
@@ -34,8 +33,8 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-ticker)
-(require 'newsticker-reader)
+(require 'newsticker-ticker "newst-ticker")
+(require 'newsticker-reader "newst-reader")
 (require 'derived)
 (require 'xml)
 
@@ -155,17 +154,6 @@ The following printf-like specifiers can be used:
 
 ;; ======================================================================
 ;; faces
-(defgroup newsticker-faces nil
-  "Settings for the faces of the feed reader."
-  :group 'newsticker-plainview)
-
-(defface newsticker-feed-face
-  '((((class color) (background dark))
-     (:family "helvetica" :bold t :height 1.2 :foreground "misty rose"))
-    (((class color) (background light))
-     (:family "helvetica" :bold t :height 1.2 :foreground "black")))
-  "Face for news feeds."
-  :group 'newsticker-faces)
 
 (defface newsticker-new-item-face
   '((((class color) (background dark))
@@ -212,22 +200,6 @@ The following printf-like specifiers can be used:
      (:family "helvetica" :italic t :height 0.8))
     (((class color) (background light))
      (:family "helvetica" :italic t :height 0.8)))
-  "Face for newsticker dates."
-  :group 'newsticker-faces)
-
-(defface newsticker-enclosure-face
-  '((((class color) (background dark))
-     (:bold t :background "orange"))
-    (((class color) (background light))
-     (:bold t :background "orange")))
-  "Face for enclosed elements."
-  :group 'newsticker-faces)
-
-(defface newsticker-extra-face
-  '((((class color) (background dark))
-     (:italic t :foreground "gray50" :height 0.8))
-    (((class color) (background light))
-     (:italic t :foreground "gray50" :height 0.8)))
   "Face for newsticker dates."
   :group 'newsticker-faces)
 
@@ -1828,4 +1800,4 @@ Take care: end of item is at the end of its last line!"
 (provide 'newsticker-plainview)
 
 ;; arch-tag: 4e48b683-d48b-48dd-a13e-fe45baf41184
-;;; newsticker-plainview.el ends here
+;;; newst-plainview.el ends here

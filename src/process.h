@@ -51,11 +51,14 @@ struct Lisp_Process
     Lisp_Object log;
     /* Buffer that output is going to */
     Lisp_Object buffer;
-    /* t if this is a real child process.
-       For a net connection, it is a plist based on the arguments to make-network-process.  */
+    /* t if this is a real child process.  For a network or serial
+       connection, it is a plist based on the arguments to
+       make-network-process or make-serial-process.  */
     Lisp_Object childp;
     /* Plist for programs to keep per-process state information, parameters, etc.  */
     Lisp_Object plist;
+    /* Symbol indicating the type of process: real, network, serial  */
+    Lisp_Object type;
     /* Marker set to end of last buffer-inserted output from this process */
     Lisp_Object mark;
     /* Symbol indicating status of process.
@@ -78,7 +81,8 @@ struct Lisp_Process
 
     /* Number of this process.
        allocate_process assumes this is the first non-Lisp_Object field.
-       A value 0 is used for pseudo-processes such as network connections.  */
+       A value 0 is used for pseudo-processes such as network or serial
+       connections.  */
     pid_t pid;
     /* Descriptor by which we read from this process */
     int infd;

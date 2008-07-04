@@ -350,6 +350,7 @@ Eshell: The Emacs Shell}.
 * Term Mode::              Special Emacs commands used in Term mode.
 * Paging in Term::         Paging in the terminal emulator.
 * Remote Host::            Connecting to another computer.
+* Serial Terminal::        Connecting to a serial port.
 @end menu
 
 @node Single Shell
@@ -1076,7 +1077,10 @@ handles each one appropriately, changing the buffer so that the
 appearance of the window matches what it would be on a real terminal.
 You can actually run Emacs inside an Emacs Term window.
 
-   The file name used to load the subshell is determined the same way
+  You can use Term mode to communicate with a device connected to a
+serial port of your computer, see @ref{Serial Terminal}.
+
+  The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
 buffer @samp{*terminal*} to something different using @kbd{M-x
 rename-uniquely}, just as with Shell mode.
@@ -1231,6 +1235,33 @@ argument means use local names, and a negative argument means turn
 off directory tracking.
 
 @end ignore
+
+@node Serial Terminal
+@subsection Serial Terminal
+@cindex terminal, serial
+@findex serial-term
+
+  If you have a device connected to a serial port of your computer,
+you can use Emacs to communicate with it.  @kbd{M-x serial-term} will
+ask you for a serial port name and speed and will then open a new
+window in @ref{Term Mode}.
+
+  The speed of the serial port is measured in bits per second.  The
+most common speed is 9600 bits per second.  You can change the speed
+interactively by clicking on the mode line.
+
+  A serial port can be configured even more by clicking on ``8N1'' in
+the mode line.  By default, a serial port is configured as ``8N1'',
+which means that each byte consists of 8 data bits, No parity check
+bit, and 1 stopbit.
+
+  When you have opened the serial port connection, you will see output
+from the device in the window.  Also, what you type in the window is
+sent to the device.
+
+  If the speed or the configuration is wrong, you cannot communicate
+with your device and will probably only see garbage output in the
+window.
 
 @node Emacs Server, Printing, Shell, Top
 @section Using Emacs as a Server

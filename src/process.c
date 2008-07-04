@@ -136,9 +136,13 @@ Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal;
 Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
 Lisp_Object Qlocal, Qipv4, Qdatagram;
+Lisp_Object Qreal, Qnetwork, Qserial;
 #ifdef AF_INET6
 Lisp_Object Qipv6;
 #endif
+Lisp_Object QCport, QCspeed, QCprocess;
+Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
+Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 Lisp_Object QCname, QCbuffer, QChost, QCservice, QCtype;
 Lisp_Object QClocal, QCremote, QCcoding;
 Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
@@ -155,15 +159,16 @@ extern Lisp_Object QCfamily;
 /* QCfilter is defined in keyboard.c.  */
 extern Lisp_Object QCfilter;
 
-/* a process object is a network connection when its childp field is neither
-   Qt nor Qnil but is instead a property list (KEY VAL ...).  */
-
 #ifdef HAVE_SOCKETS
-#define NETCONN_P(p) (CONSP (XPROCESS (p)->childp))
-#define NETCONN1_P(p) (CONSP ((p)->childp))
+#define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
+#define NETCONN1_P(p) (EQ ((p)->type, Qnetwork))
+#define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
+#define SERIALCONN1_P(p) (EQ ((p)->type, Qserial))
 #else
 #define NETCONN_P(p) 0
 #define NETCONN1_P(p) 0
+#define SERIALCONN_P(p) 0
+#define SERIALCONN1_P(p) 0
 #endif /* HAVE_SOCKETS */
 
 /* Define first descriptor number available for subprocesses.  */
@@ -185,6 +190,17 @@ extern Lisp_Object QCfilter;
 #include "syswait.h"
 
 extern char *get_operating_system_release ();
+
+/* Serial processes require termios or Windows.  */
+#if defined (HAVE_TERMIOS) || defined (WINDOWSNT)
+#define HAVE_SERIAL
+#endif
+
+#ifdef HAVE_SERIAL
+/* From sysdep.c or w32.c  */
+extern int serial_open (char *port);
+extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
+#endif
 
 #ifndef USE_CRT_DLL
 extern int errno;
@@ -784,7 +800,7 @@ nil, indicating the current buffer's process.  */)
   p = XPROCESS (process);
 
   p->raw_status_new = 0;
-  if (NETCONN1_P (p))
+  if (NETCONN1_P (p) || SERIALCONN1_P (p))
     {
       p->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
       p->tick = ++process_tick;
@@ -861,7 +877,7 @@ nil, indicating the current buffer's process.  */)
   status = p->status;
   if (CONSP (status))
     status = XCAR (status);
-  if (NETCONN1_P (p))
+  if (NETCONN1_P (p) || SERIALCONN1_P (p))
     {
       if (EQ (status, Qexit))
 	status = Qclosed;
@@ -919,7 +935,8 @@ DEFUN ("process-command", Fprocess_command, Sprocess_command, 1, 1, 0,
        doc: /* Return the command that was executed to start PROCESS.
 This is a list of strings, the first string being the program executed
 and the rest of the strings being the arguments given to it.
-For a non-child channel, this is nil.  */)
+For a network or serial process, this is nil (process is running) or t
+\(process is stopped).  */)
      (process)
      register Lisp_Object process;
 {
@@ -951,7 +968,7 @@ DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
     CHECK_BUFFER (buffer);
   p = XPROCESS (process);
   p->buffer = buffer;
-  if (NETCONN1_P (p))
+  if (NETCONN1_P (p) || SERIALCONN1_P (p))
     p->childp = Fplist_put (p->childp, QCbuffer, buffer);
   setup_process_coding_systems (process);
   return buffer;
@@ -1018,7 +1035,8 @@ The string argument is normally a multibyte string, except:
 	  FD_CLR (p->infd, &non_keyboard_wait_mask);
 	}
       else if (EQ (p->filter, Qt)
-	       && !EQ (p->command, Qt)) /* Network process not stopped. */
+	       /* Network or serial process not stopped:  */
+	       && !EQ (p->command, Qt))
 	{
 	  FD_SET (p->infd, &input_wait_mask);
 	  FD_SET (p->infd, &non_keyboard_wait_mask);
@@ -1026,7 +1044,7 @@ The string argument is normally a multibyte string, except:
     }
 
   p->filter = filter;
-  if (NETCONN1_P (p))
+  if (NETCONN1_P (p) || SERIALCONN1_P (p))
     p->childp = Fplist_put (p->childp, QCfilter, filter);
   setup_process_coding_systems (process);
   return filter;
@@ -1057,7 +1075,7 @@ It gets two arguments: the process, and a string describing the change.  */)
   p = XPROCESS (process);
 
   p->sentinel = sentinel;
-  if (NETCONN1_P (p))
+  if (NETCONN1_P (p) || SERIALCONN1_P (p))
     p->childp = Fplist_put (p->childp, QCsentinel, sentinel);
   return sentinel;
 }
@@ -1162,11 +1180,13 @@ Lisp_Object Fprocess_datagram_address ();
 DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
        1, 2, 0,
        doc: /* Return the contact info of PROCESS; t for a real child.
-For a net connection, the value depends on the optional KEY arg.
-If KEY is nil, value is a cons cell of the form (HOST SERVICE),
-if KEY is t, the complete contact information for the connection is
-returned, else the specific value for the keyword KEY is returned.
-See `make-network-process' for a list of keywords.  */)
+For a network or serial connection, the value depends on the optional
+KEY arg.  If KEY is nil, value is a cons cell of the form (HOST
+SERVICE) for a network connection or (PORT SPEED) for a serial
+connection.  If KEY is t, the complete contact information for the
+connection is returned, else the specific value for the keyword KEY is
+returned.  See `make-network-process' or `make-serial-process' for a
+list of keywords.  */)
      (process, key)
      register Lisp_Object process, key;
 {
@@ -1182,11 +1202,14 @@ See `make-network-process' for a list of keywords.  */)
 			  Fprocess_datagram_address (process));
 #endif
 
-  if (!NETCONN_P (process) || EQ (key, Qt))
+  if ((!NETCONN_P (process) && !SERIALCONN_P (process)) || EQ (key, Qt))
     return contact;
-  if (NILP (key))
+  if (NILP (key) && NETCONN_P (process))
     return Fcons (Fplist_get (contact, QChost),
 		  Fcons (Fplist_get (contact, QCservice), Qnil));
+  if (NILP (key) && SERIALCONN_P (process))
+    return Fcons (Fplist_get (contact, QCport),
+		  Fcons (Fplist_get (contact, QCspeed), Qnil));
   return Fplist_get (contact, key);
 }
 
@@ -1225,6 +1248,19 @@ a socket connection.  */)
   return XPROCESS (process)->type;
 }
 #endif
+  
+DEFUN ("process-type", Fprocess_type, Sprocess_type, 1, 1, 0,
+       doc: /* Return the connection type of PROCESS.
+The value is either the symbol `real', `network', or `serial'.
+PROCESS may be a process, a buffer, the name of a process or buffer, or
+nil, indicating the current buffer's process.  */)
+     (process)
+     Lisp_Object process;
+{
+  Lisp_Object proc;
+  proc = get_process (process);
+  return XPROCESS (proc)->type;
+}
 
 #ifdef HAVE_SOCKETS
 DEFUN ("format-network-address", Fformat_network_address, Sformat_network_address,
@@ -1325,7 +1361,7 @@ list_processes_1 (query_only)
 
       proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
-      if (NILP (p->childp))
+      if (NILP (p->type))
 	continue;
       if (!NILP (query_only) && p->kill_without_query)
 	continue;
@@ -1393,7 +1429,7 @@ list_processes_1 (query_only)
 
       proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
-      if (NILP (p->childp))
+      if (NILP (p->type))
 	continue;
       if (!NILP (query_only) && p->kill_without_query)
 	continue;
@@ -1418,7 +1454,7 @@ list_processes_1 (query_only)
 #endif
 	    Fprinc (symbol, Qnil);
 	}
-      else if (NETCONN1_P (p))
+      else if (NETCONN1_P (p) || SERIALCONN1_P (p))
 	{
 	  if (EQ (symbol, Qexit))
 	    write_string ("closed", -1);
@@ -1428,6 +1464,10 @@ list_processes_1 (query_only)
 	    write_string ("open", -1);
 	  else
 	    Fprinc (symbol, Qnil);
+	}
+      else if (SERIALCONN1_P (p))
+	{
+	  write_string ("running", -1);
 	}
       else
 	Fprinc (symbol, Qnil);
@@ -1493,6 +1533,22 @@ list_processes_1 (query_only)
 		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
 	  insert_string (tembuf);
         }
+      else if (SERIALCONN1_P (p))
+	{
+	  Lisp_Object port = Fplist_get (p->childp, QCport);
+	  Lisp_Object speed = Fplist_get (p->childp, QCspeed);
+	  insert_string ("(serial port ");
+	  if (STRINGP (port))
+	    insert_string (SDATA (port));
+	  else
+	    insert_string ("?");
+	  if (INTEGERP (speed))
+	    {
+	      sprintf (tembuf, " at %d b/s", XINT (speed));
+	      insert_string (tembuf);
+	    }
+	  insert_string (")\n");
+	}
       else
 	{
 	  tem = p->command;
@@ -1619,6 +1675,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
   XPROCESS (proc)->childp = Qt;
   XPROCESS (proc)->plist = Qnil;
+  XPROCESS (proc)->type = Qreal;
   XPROCESS (proc)->buffer = buffer;
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
@@ -2656,6 +2713,312 @@ unwind_request_sigio (dummy)
 }
 #endif
 
+#ifdef HAVE_SERIAL
+DEFUN ("serial-process-configure",
+       Fserial_process_configure,
+       Sserial_process_configure,
+       0, MANY, 0,
+       doc: /* Configure speed, bytesize, etc. of a serial process.
+
+Arguments are specified as keyword/argument pairs.  Attributes that
+are not given are re-initialized from the process's current
+configuration (available via the function `process-contact') or set to
+reasonable default values.  The following arguments are defined:
+
+:process PROCESS
+:name NAME
+:buffer BUFFER
+:port PORT
+-- Any of these arguments can be given to identify the process that is
+to be configured.  If none of these arguments is given, the current
+buffer's process is used.
+
+:speed SPEED -- SPEED is the speed of the serial port in bits per
+second, also called baud rate.  Any value can be given for SPEED, but
+most serial ports work only at a few defined values between 1200 and
+115200, with 9600 being the most common value.  If SPEED is nil, the
+serial port is not configured any further, i.e., all other arguments
+are ignored.  This may be useful for special serial ports such as
+Bluetooth-to-serial converters which can only be configured through AT
+commands.  A value of nil for SPEED can be used only when passed
+through `make-serial-process' or `serial-term'.
+
+:bytesize BYTESIZE -- BYTESIZE is the number of bits per byte, which
+can be 7 or 8.  If BYTESIZE is not given or nil, a value of 8 is used.
+
+:parity PARITY -- PARITY can be nil (don't use parity), the symbol
+`odd' (use odd parity), or the symbol `even' (use even parity).  If
+PARITY is not given, no parity is used.
+
+:stopbits STOPBITS -- STOPBITS is the number of stopbits used to
+terminate a byte transmission.  STOPBITS can be 1 or 2.  If STOPBITS
+is not given or nil, 1 stopbit is used.
+
+:flowcontrol FLOWCONTROL -- FLOWCONTROL determines the type of
+flowcontrol to be used, which is either nil (don't use flowcontrol),
+the symbol `hw' (use RTS/CTS hardware flowcontrol), or the symbol `sw'
+\(use XON/XOFF software flowcontrol).  If FLOWCONTROL is not given, no
+flowcontrol is used.
+
+`serial-process-configure' is called by `make-serial-process' for the
+initial configuration of the serial port.
+
+Examples:
+
+\(serial-process-configure :process "/dev/ttyS0" :speed 1200)
+
+\(serial-process-configure
+    :buffer "COM1" :stopbits 1 :parity 'odd :flowcontrol 'hw)
+
+\(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
+
+usage: (serial-process-configure &rest ARGS)  */)
+     (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  struct Lisp_Process *p;
+  Lisp_Object contact = Qnil;
+  Lisp_Object proc = Qnil;
+  struct gcpro gcpro1;
+
+  contact = Flist (nargs, args);
+  GCPRO1 (contact);
+
+  proc = Fplist_get (contact, QCprocess);
+  if (NILP (proc))
+    proc = Fplist_get (contact, QCname);
+  if (NILP (proc))
+    proc = Fplist_get (contact, QCbuffer);
+  if (NILP (proc))
+    proc = Fplist_get (contact, QCport);
+  proc = get_process (proc);
+  p = XPROCESS (proc);
+  if (!EQ (p->type, Qserial))
+    error ("Not a serial process");
+
+  if (NILP (Fplist_get (p->childp, QCspeed)))
+    {
+      UNGCPRO;
+      return Qnil;
+    }
+
+  serial_configure (p, contact);
+
+  UNGCPRO;
+  return Qnil;
+}
+#endif /* HAVE_SERIAL  */
+
+#ifdef HAVE_SERIAL
+/* Used by make-serial-process to recover from errors.  */
+Lisp_Object make_serial_process_unwind (Lisp_Object proc)
+{
+  if (!PROCESSP (proc))
+    abort ();
+  remove_process (proc);
+  return Qnil;
+}
+#endif /* HAVE_SERIAL  */
+
+#ifdef HAVE_SERIAL
+DEFUN ("make-serial-process", Fmake_serial_process, Smake_serial_process,
+       0, MANY, 0,
+       doc: /* Create and return a serial port process.
+
+In Emacs, serial port connections are represented by process objects,
+so input and output work as for subprocesses, and `delete-process'
+closes a serial port connection.  However, a serial process has no
+process id, it cannot be signaled, and the status codes are different
+from normal processes.
+
+`make-serial-process' creates a process and a buffer, on which you
+probably want to use `process-send-string'.  Try \\[serial-term] for
+an interactive terminal.  See below for examples.
+
+Arguments are specified as keyword/argument pairs.  The following
+arguments are defined:
+
+:port PORT -- (mandatory) PORT is the path or name of the serial port.
+For example, this could be "/dev/ttyS0" on Unix.  On Windows, this
+could be "COM1", or "\\\\.\\COM10" for ports higher than COM9 (double
+the backslashes in strings).
+
+:speed SPEED -- (mandatory) is handled by `serial-process-configure',
+which is called by `make-serial-process'.
+
+:name NAME -- NAME is the name of the process.  If NAME is not given,
+the value of PORT is used.
+
+:buffer BUFFER -- BUFFER is the buffer (or buffer-name) to associate
+with the process.  Process output goes at the end of that buffer,
+unless you specify an output stream or filter function to handle the
+output.  If BUFFER is not given, the value of NAME is used.
+
+:coding CODING -- If CODING is a symbol, it specifies the coding
+system used for both reading and writing for this process.  If CODING
+is a cons (DECODING . ENCODING), DECODING is used for reading, and
+ENCODING is used for writing.
+
+:noquery BOOL -- When exiting Emacs, query the user if BOOL is nil and
+the process is running.  If BOOL is not given, query before exiting.
+
+:stop BOOL -- Start process in the `stopped' state if BOOL is non-nil.
+In the stopped state, a serial process does not accept incoming data,
+but you can send outgoing data.  The stopped state is cleared by
+`continue-process' and set by `stop-process'.
+
+:filter FILTER -- Install FILTER as the process filter.
+
+:sentinel SENTINEL -- Install SENTINEL as the process sentinel.
+
+:plist PLIST -- Install PLIST as the initial plist of the process.
+
+:speed
+:bytesize
+:parity
+:stopbits
+:flowcontrol
+-- These arguments are handled by `serial-process-configure', which is
+called by `make-serial-process'.
+
+The original argument list, possibly modified by later configuration,
+is available via the function `process-contact'.
+
+Examples:
+
+\(make-serial-process :port "/dev/ttyS0" :speed 9600)
+
+\(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
+
+\(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity 'odd)
+
+\(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
+
+usage:  (make-serial-process &rest ARGS)  */)
+     (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  int fd = -1;
+  Lisp_Object proc, contact, port;
+  struct Lisp_Process *p;
+  struct gcpro gcpro1;
+  Lisp_Object name, buffer;
+  Lisp_Object tem, val;
+  int specpdl_count = -1;
+
+  if (nargs == 0)
+    return Qnil;
+
+  contact = Flist (nargs, args);
+  GCPRO1 (contact);
+
+  port = Fplist_get (contact, QCport);
+  if (NILP (port))
+    error ("No port specified");
+  CHECK_STRING (port);
+
+  if (NILP (Fplist_member (contact, QCspeed)))
+    error (":speed not specified");
+  if (!NILP (Fplist_get (contact, QCspeed)))
+    CHECK_NUMBER (Fplist_get (contact, QCspeed));
+
+  name = Fplist_get (contact, QCname);
+  if (NILP (name))
+    name = port;
+  CHECK_STRING (name);
+  proc = make_process (name);
+  specpdl_count = SPECPDL_INDEX ();
+  record_unwind_protect (make_serial_process_unwind, proc);
+  p = XPROCESS (proc);
+
+  fd = serial_open ((char*) SDATA (port));
+  p->infd = fd;
+  p->outfd = fd;
+  if (fd > max_process_desc)
+    max_process_desc = fd;
+  chan_process[fd] = proc;
+
+  buffer = Fplist_get (contact, QCbuffer);
+  if (NILP (buffer))
+    buffer = name;
+  buffer = Fget_buffer_create (buffer);
+  p->buffer = buffer;
+
+  p->childp = contact;
+  p->plist = Fcopy_sequence (Fplist_get (contact, QCplist));
+  p->type = Qserial;
+  p->sentinel = Fplist_get (contact, QCsentinel);
+  p->filter = Fplist_get (contact, QCfilter);
+  p->log = Qnil;
+  if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
+    p->kill_without_query = 1;
+  if (tem = Fplist_get (contact, QCstop), !NILP (tem))
+    p->command = Qt;
+  p->pty_flag = 0;
+
+  if (!EQ (p->command, Qt))
+    {
+      FD_SET (fd, &input_wait_mask);
+      FD_SET (fd, &non_keyboard_wait_mask);
+    }
+
+  if (BUFFERP (buffer))
+    {
+      set_marker_both (p->mark, buffer,
+		       BUF_ZV (XBUFFER (buffer)),
+		       BUF_ZV_BYTE (XBUFFER (buffer)));
+    }
+
+  tem = Fplist_member (contact, QCcoding);
+  if (!NILP (tem) && (!CONSP (tem) || !CONSP (XCDR (tem))))
+    tem = Qnil;
+
+  val = Qnil;
+  if (!NILP (tem))
+    {
+      val = XCAR (XCDR (tem));
+      if (CONSP (val))
+	val = XCAR (val);
+    }
+  else if (!NILP (Vcoding_system_for_read))
+    val = Vcoding_system_for_read;
+  else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
+	   || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+    val = Qnil;
+  p->decode_coding_system = val;
+
+  val = Qnil;
+  if (!NILP (tem))
+    {
+      val = XCAR (XCDR (tem));
+      if (CONSP (val))
+	val = XCDR (val);
+    }
+  else if (!NILP (Vcoding_system_for_write))
+    val = Vcoding_system_for_write;
+  else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
+	   || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+    val = Qnil;
+  p->encode_coding_system = val;
+
+  setup_process_coding_systems (proc);
+  p->decoding_buf = make_uninit_string (0);
+  p->decoding_carryover = 0;
+  p->encoding_buf = make_uninit_string (0);
+  p->inherit_coding_system_flag
+    = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
+
+  Fserial_process_configure(nargs, args);
+
+  specpdl_ptr = specpdl + specpdl_count;
+
+  UNGCPRO;
+  return proc;
+}
+#endif /* HAVE_SERIAL  */
+
 /* Create a network stream/datagram client/server process.  Treated
    exactly like a normal process when reading and writing.  Primary
    differences are in status display and process deletion.  A network
@@ -3395,6 +3758,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   p->childp = contact;
   p->plist = Fcopy_sequence (Fplist_get (contact, QCplist));
+  p->type = Qnetwork;
 
   p->buffer = buffer;
   p->sentinel = sentinel;
@@ -4113,6 +4477,7 @@ server_accept_connection (server, channel)
 
   p->childp = contact;
   p->plist = Fcopy_sequence (ps->plist);
+  p->type = Qnetwork;
 
   p->buffer = buffer;
   p->sentinel = ps->sentinel;
@@ -4811,7 +5176,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 available now and a closed pipe.
 		 With luck, a closed pipe will be accompanied by
 		 subprocess termination and SIGCHLD.  */
-	      else if (nread == 0 && !NETCONN_P (proc))
+	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
 #endif /* O_NDELAY */
 #endif /* O_NONBLOCK */
@@ -4839,7 +5204,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      /* If we can detect process termination, don't consider the process
 		 gone just because its pipe is closed.  */
 #ifdef SIGCHLD
-	      else if (nread == 0 && !NETCONN_P (proc))
+	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc))
 		;
 #endif
 	      else
@@ -5628,7 +5993,7 @@ send_process (proc, buf, len, object)
 	      this -= rv;
 	    }
 
-	  /* If we sent just part of the string, put in an EOF
+	  /* If we sent just part of the string, put in an EOF (C-d)
 	     to force it through, before we send the rest.  */
 	  if (len > 0)
 	    Fprocess_send_eof (proc);
@@ -5748,7 +6113,7 @@ return t unconditionally.  */)
   proc = get_process (process);
   p = XPROCESS (proc);
 
-  if (!EQ (p->childp, Qt))
+  if (!EQ (p->type, Qreal))
     error ("Process %s is not a subprocess",
 	   SDATA (p->name));
   if (p->infd < 0)
@@ -5791,7 +6156,7 @@ process_send_signal (process, signo, current_group, nomsg)
   proc = get_process (process);
   p = XPROCESS (proc);
 
-  if (!EQ (p->childp, Qt))
+  if (!EQ (p->type, Qreal))
     error ("Process %s is not a subprocess",
 	   SDATA (p->name));
   if (p->infd < 0)
@@ -6040,12 +6405,13 @@ See function `interrupt-process' for more details on usage.  */)
 DEFUN ("stop-process", Fstop_process, Sstop_process, 0, 2, 0,
        doc: /* Stop process PROCESS.  May be process or name of one.
 See function `interrupt-process' for more details on usage.
-If PROCESS is a network process, inhibit handling of incoming traffic.  */)
+If PROCESS is a network or serial process, inhibit handling of incoming
+traffic.  */)
      (process, current_group)
      Lisp_Object process, current_group;
 {
 #ifdef HAVE_SOCKETS
-  if (PROCESSP (process) && NETCONN_P (process))
+  if (PROCESSP (process) && (NETCONN_P (process) || SERIALCONN_P (process)))
     {
       struct Lisp_Process *p;
 
@@ -6071,12 +6437,13 @@ If PROCESS is a network process, inhibit handling of incoming traffic.  */)
 DEFUN ("continue-process", Fcontinue_process, Scontinue_process, 0, 2, 0,
        doc: /* Continue process PROCESS.  May be process or name of one.
 See function `interrupt-process' for more details on usage.
-If PROCESS is a network process, resume handling of incoming traffic.  */)
+If PROCESS is a network or serial process, resume handling of incoming
+traffic.  */)
      (process, current_group)
      Lisp_Object process, current_group;
 {
 #ifdef HAVE_SOCKETS
-  if (PROCESSP (process) && NETCONN_P (process))
+  if (PROCESSP (process) && (NETCONN_P (process) || SERIALCONN_P (process)))
     {
       struct Lisp_Process *p;
 
@@ -6087,6 +6454,13 @@ If PROCESS is a network process, resume handling of incoming traffic.  */)
 	{
 	  FD_SET (p->infd, &input_wait_mask);
 	  FD_SET (p->infd, &non_keyboard_wait_mask);
+#ifdef WINDOWSNT
+	  if (fd_info[ p->infd ].flags & FILE_SERIAL)
+	    PurgeComm (fd_info[ p->infd ].hnd, PURGE_RXABORT | PURGE_RXCLEAR);
+#endif
+#ifdef HAVE_TERMIOS
+	  tcflush (p->infd, TCIFLUSH);
+#endif
 	}
       p->command = Qnil;
       return process;
@@ -6272,7 +6646,9 @@ PROCESS may be a process, a buffer, the name of a process or buffer, or
 nil, indicating the current buffer's process.
 If PROCESS is a network connection, or is a process communicating
 through a pipe (as opposed to a pty), then you cannot send any more
-text to PROCESS after you call this function.  */)
+text to PROCESS after you call this function.
+If PROCESS is a serial process, wait until all output written to the
+process has been transmitted to the serial port.  */)
      (process)
      Lisp_Object process;
 {
@@ -6302,6 +6678,14 @@ text to PROCESS after you call this function.  */)
 #else
   if (XPROCESS (proc)->pty_flag)
     send_process (proc, "\004", 1, Qnil);
+  else if (EQ (XPROCESS (proc)->type, Qserial))
+    {
+#ifdef HAVE_TERMIOS
+      if (tcdrain (XPROCESS (proc)->outfd) != 0)
+	error ("tcdrain() failed: %s", emacs_strerror (errno));
+#endif
+      /* Do nothing on Windows because writes are blocking.  */
+    }
   else
     {
       int old_outfd, new_outfd;
@@ -6311,7 +6695,7 @@ text to PROCESS after you call this function.  */)
 	 for communication with the subprocess, call shutdown to cause EOF.
 	 (In some old system, shutdown to socketpair doesn't work.
 	 Then we just can't win.)  */
-      if (XPROCESS (proc)->pid == 0
+      if (EQ (XPROCESS (proc)->type, Qnetwork)
 	  || XPROCESS (proc)->outfd == XPROCESS (proc)->infd)
 	shutdown (XPROCESS (proc)->outfd, 1);
       /* In case of socketpair, outfd == infd, so don't close it.  */
@@ -6355,7 +6739,7 @@ kill_buffer_processes (buffer)
       if (PROCESSP (proc)
 	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
 	{
-	  if (NETCONN_P (proc))
+	  if (NETCONN_P (proc) || SERIALCONN_P (proc))
 	    Fdelete_process (proc);
 	  else if (XPROCESS (proc)->infd >= 0)
 	    process_send_signal (proc, SIGHUP, Qnil, 1);
@@ -6464,7 +6848,7 @@ sigchld_handler (signo)
 	{
 	  proc = XCDR (XCAR (tail));
 	  p = XPROCESS (proc);
-	  if (EQ (p->childp, Qt) && p->pid == pid)
+	  if (EQ (p->type, Qreal) && p->pid == pid)
 	    break;
 	  p = 0;
 	}
@@ -6686,7 +7070,8 @@ status_notify (deleting_process)
 	  while (! EQ (p->filter, Qt)
 		 && ! EQ (p->status, Qconnect)
 		 && ! EQ (p->status, Qlisten)
-		 && ! EQ (p->command, Qt)  /* Network process not stopped.  */
+		 /* Network or serial process not stopped:  */
+		 && ! EQ (p->command, Qt)
 		 && p->infd >= 0
 		 && p != deleting_process
 		 && read_process_output (proc, p->infd) > 0);
@@ -7073,6 +7458,39 @@ syms_of_process ()
   Qdatagram = intern ("datagram");
   staticpro (&Qdatagram);
 
+  QCport = intern (":port");
+  staticpro (&QCport);
+  QCspeed = intern (":speed");
+  staticpro (&QCspeed);
+  QCprocess = intern (":process");
+  staticpro (&QCprocess);
+
+  QCbytesize = intern (":bytesize");
+  staticpro (&QCbytesize);
+  QCstopbits = intern (":stopbits");
+  staticpro (&QCstopbits);
+  QCparity = intern (":parity");
+  staticpro (&QCparity);
+  Qodd = intern ("odd");
+  staticpro (&Qodd);
+  Qeven = intern ("even");
+  staticpro (&Qeven);
+  QCflowcontrol = intern (":flowcontrol");
+  staticpro (&QCflowcontrol);
+  Qhw = intern ("hw");
+  staticpro (&Qhw);
+  Qsw = intern ("sw");
+  staticpro (&Qsw);
+  QCsummary = intern (":summary");
+  staticpro (&QCsummary);
+
+  Qreal = intern ("real");
+  staticpro (&Qreal);
+  Qnetwork = intern ("network");
+  staticpro (&Qnetwork);
+  Qserial = intern ("serial");
+  staticpro (&Qserial);
+
   QCname = intern (":name");
   staticpro (&QCname);
   QCbuffer = intern (":buffer");
@@ -7170,6 +7588,10 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
+#ifdef HAVE_SERIAL
+  defsubr (&Sserial_process_configure);
+  defsubr (&Smake_serial_process);
+#endif /* HAVE_SERIAL  */
 #ifdef HAVE_SOCKETS
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
@@ -7199,7 +7621,7 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_send_eof);
   defsubr (&Ssignal_process);
   defsubr (&Swaiting_for_user_input_p);
-/*  defsubr (&Sprocess_connection); */
+  defsubr (&Sprocess_type);
   defsubr (&Sset_process_coding_system);
   defsubr (&Sprocess_coding_system);
   defsubr (&Sset_process_filter_multibyte);

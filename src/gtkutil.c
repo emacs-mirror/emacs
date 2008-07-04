@@ -909,8 +909,10 @@ xg_create_frame_widgets (f)
   gtk_widget_modify_style (wfixed, style);
 
   /* GTK does not set any border, and they look bad with GTK.  */
+  /* That they look bad is no excuse for imposing this here.  --Stef
+     It should be done by providing the proper default in Fx_create_Frame.
   f->border_width = 0;
-  f->internal_border_width = 0;
+  f->internal_border_width = 0; */
 
   UNBLOCK_INPUT;
 

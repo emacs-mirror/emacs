@@ -76,6 +76,8 @@
 ;; same buffer.
 (setq find-file-visit-truename t)
 
+(declare-function x-server-version "w32fns.c" (&optional display))
+
 (defun w32-version ()
   "Return the MS-Windows version numbers.
 The value is a list of three integers: the major and minor version

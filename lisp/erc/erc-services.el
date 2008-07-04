@@ -232,10 +232,11 @@ Example of use:
      "NickServ!NickServ@services."
      ;; freenode also accepts a password at login, see the `erc'
      ;; :password argument.
-     "/msg\\s-NickServ\\s-IDENTIFY\\s-<password>"
+     "This\\s-nickname\\s-is\\s-registered.\\s-Please\\s-choose"
      "NickServ"
      "IDENTIFY" nil nil
-     "Password\\s-accepted\\s--\\s-you\\s-are\\s-now\\s-recognized")
+     ;; See also the 901 response code message.
+     "You\\s-are\\s-now\\s-identified\\s-for\\s-")
     (GalaxyNet
      "NS!nickserv@galaxynet.org"
      "Please\\s-change\\s-nicks\\s-or\\s-authenticate."

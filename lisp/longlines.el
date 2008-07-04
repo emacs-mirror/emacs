@@ -464,15 +464,15 @@ This is called by `window-configuration-change-hook'."
       'longlines-search-backward))))
 
 (defun longlines-search-forward (string &optional bound noerror count)
-  (let ((search-spaces-regexp "[ \n]+"))
+  (let ((search-spaces-regexp " *[ \n]"))
     (re-search-forward (regexp-quote string) bound noerror count)))
 
 (defun longlines-search-backward (string &optional bound noerror count)
-  (let ((search-spaces-regexp "[ \n]+"))
+  (let ((search-spaces-regexp " *[ \n]"))
     (re-search-backward (regexp-quote string) bound noerror count)))
 
 (defun longlines-re-search-forward (string &optional bound noerror count)
-  (let ((search-spaces-regexp "[ \n]"))
+  (let ((search-spaces-regexp " *[ \n]"))
     (re-search-forward string bound noerror count)))
 
 ;; Loading and saving

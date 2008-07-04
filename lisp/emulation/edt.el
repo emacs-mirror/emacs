@@ -315,15 +315,17 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 (defconst edt-window-system (if (featurep 'emacs) window-system (console-type))
   "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
 
-(defconst edt-xserver (if (eq edt-window-system 'x)
-			  (if (featurep 'xemacs)
-			      ;; The Cygwin window manager has a `/' in its
-			      ;; name, which breaks the generated file name of
-			      ;; the custom key map file.  Replace `/' with a
-			      ;; `-' to work around that.
-			      (replace-in-string (x-server-vendor) "[ /]" "-")
-			    (subst-char-in-string ?/ ?- (subst-char-in-string ?  ?- (x-server-vendor))))
-			nil)
+(declare-function x-server-vendor "xfns.c" (&optional terminal))
+
+(defconst edt-xserver (when (eq edt-window-system 'x)
+			;; The Cygwin window manager has a `/' in its
+			;; name, which breaks the generated file name of
+			;; the custom key map file.  Replace `/' with a
+			;; `-' to work around that.
+			(if (featurep 'xemacs)
+			    (replace-in-string (x-server-vendor) "[ /]" "-")
+			  (replace-regexp-in-string "[ /]" "-"
+						    (x-server-vendor))))
   "Indicates X server vendor name, if applicable.")
 
 (defvar edt-keys-file nil

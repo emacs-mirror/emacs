@@ -67,6 +67,7 @@ INFO_TARGETS = \
 	$(infodir)/rcirc \
 	$(infodir)/remember \
 	$(infodir)/reftex \
+	$(infodir)/sasl \
 	$(infodir)/sc \
 	$(infodir)/ses \
 	$(infodir)/sieve \
@@ -110,6 +111,7 @@ DVI_TARGETS = \
 	rcirc.dvi \
 	reftex.dvi \
 	remember.dvi \
+	sasl.dvi \
 	sc.dvi \
 	ses.dvi \
 	sieve.dvi \
@@ -335,6 +337,12 @@ $(infodir)/remember: remember.texi
 	cd $(srcdir); $(MAKEINFO) remember.texi
 remember.dvi: remember.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/remember.texi
+
+sasl : $(infodir)/sasl
+$(infodir)/sasl: sasl.texi
+	cd $(srcdir); $(MAKEINFO) sasl.texi
+sasl.dvi: sasl.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/sasl.texi
 
 sc : $(infodir)/sc
 $(infodir)/sc: sc.texi

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -89,9 +89,9 @@ We use a macro so that the test can happen at compilation time."
 (defmacro org-with-point-at (pom &rest body)
   "Move to buffer and point of point-or-marker POM for the duration of BODY."
   `(save-excursion
-     (if (markerp pom) (set-buffer (marker-buffer pom)))
+     (if (markerp ,pom) (set-buffer (marker-buffer ,pom)))
      (save-excursion
-       (goto-char (or pom (point)))
+       (goto-char (or ,pom (point)))
        ,@body)))
 
 (defmacro org-no-warnings (&rest body)
@@ -220,4 +220,5 @@ This is in contrast to merely setting it to 0."
 (provide 'org-macs)
 
 ;; arch-tag: 7e6a73ce-aac9-4fc0-9b30-ce6f89dc6668
+
 ;;; org-macs.el ends here

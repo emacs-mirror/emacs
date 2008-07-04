@@ -911,10 +911,9 @@
 	(scan_lists): Likewise.
 	(prev_char_comstart_first): New function.
 
-	* syntax.c
 1998-06-05  Andrew Innes  <andrewi@harlequin.co.uk>
 
-	* w32.c: #include sys/file.h
+	* w32.c: #include sys/file.h.
 	(sys_access): Provide our own implementation which recognizes D_OK.
 	(is_exec): New function.
 	(stat): Use it.
@@ -948,7 +947,7 @@
 	in a string's intervals start from zero.
 	(validate_interval_range, interval_of, Fnext_property_change)
 	(property_change_between_p, Fnext_single_property_change)
-	(Fprevious_property_change, Fprevious_single_property_change):
+	(Fprevious_property_change, Fprevious_single_property_change)
 	(Ftext_property_any, Ftext_property_not_all): Implement that.
 
 	* textprop.c: Undo previous change.
@@ -1939,7 +1938,7 @@
 	Insist on MAX_LENGTH_OF_MULTI_BYTE_FORM bytes when checking
 	for read_buffer full; this way need not check specially for multibyte.
 
-	* emacs.c: Include buffer.h
+	* emacs.c: Include buffer.h.
 	(main): When handling --unibyte, mark all existing
 	buffers as unibyte; but don't handle it when dumping.
 
@@ -2168,7 +2167,6 @@
 	CCL_ReadMultibyteCharacter.
 	(CCL_WriteMultibyteChar2): Macro name changed from
 	CCL_WriteMultibyteChar2.
-	(CCL_
 	(MAX_TABLE_SET_LEVEL): New macro.
 	(tr_stack): New type.
 	(translate_stack, translate_stack_pointer): New variables.
@@ -2776,8 +2774,8 @@
 
 	* cmds.c (internal_self_insert): Pass new arg to replace_range.
 
-	* insdel.c (insert_1_both, insert_from_string_1, insert_from_buffer_1):
-	(adjust_before_replace, adjust_after_replace, replace_range):
+	* insdel.c (insert_1_both, insert_from_string_1, insert_from_buffer_1)
+	(adjust_before_replace, adjust_after_replace, replace_range)
 	(del_range_2): Call record_delete the new way.
 	Use make_buffer_string_both to make the string to pass.
 
@@ -2805,7 +2803,7 @@
 	(menu_bar_one_keymap): Moved some code to menu_bar_item.
 	(menu_bar_item): Rewritten to use parse_menu_item.
 	(menu_bar_item_1): Function deleted.
-	(QCenable, QCvisible, QChelp, QCfilter, QCbutton, QCtoggle, QCradio):
+	(QCenable, QCvisible, QChelp, QCfilter, QCbutton, QCtoggle, QCradio)
 	(Qmenu_alias): New variables.
 	(syms_of_keyboard): Initialize them, and item_properties.
 
@@ -3682,7 +3680,7 @@
 	New macros.
 	(Qraw_text): Extern it.
 
-	* coding.c (DECODE_CHARACTER_ASCII): Update coding->produced_char;
+	* coding.c (DECODE_CHARACTER_ASCII): Update coding->produced_char.
 	(DECODE_CHARACTER_DIMENSION1): Likewise.
 	(Qraw_text, Qcoding_category): New variables.
 	(syms_of_coding): Intern and staticpro them.
@@ -4216,8 +4214,8 @@
 	* keyboard.c (read_char): Use Faref on Vkeyboard_translate_table
 	if it is a string.
 	(apply_modifiers_uncached): New arg base_len_byte.  Calls changed.
-	(read_char_minibuf_menu_prompt):
-	(read_key_sequence): Access buffer's downcase_table with XCHAR_TABLE.
+	(read_char_minibuf_menu_prompt, read_key_sequence): Access buffer's
+	downcase_table with XCHAR_TABLE.
 	(Fexecute_extended_command): Use Faref to access FUNCTION.
 	Use size_byte of BINDING.
 	(stuff_buffered_input): Use size_byte of STUFFSTRING.
@@ -4272,9 +4270,8 @@
 	(Fmessage, Fmessage_box): Update message_text based on size_byte.
 
 	* insdel.c (insert_from_string): New args POS_BYTE, LENGTH.
-	(insert_from_string_before_markers):
-	(insert_from_string_1): New arg POS_BYTE.  Swap args NCHARS, NBYTES.
-	Don't fail to use POS_BYTE!
+	(insert_from_string_before_markers, insert_from_string_1): New arg
+	POS_BYTE.  Swap args NCHARS, NBYTES. Don't fail to use POS_BYTE!
 	(insert_from_buffer_1): Get both inschars and insbytes from NEW.
 
 	* alloc.c (make_uninit_multibyte_string): New function.
@@ -4802,11 +4799,11 @@
 
 	* keymap.c (describe_map): Fix decl of arg ELT_DESCRIBER.
 
-	* process.c (create_process, deactivate_process, close_process_descs):
+	* process.c (create_process, deactivate_process, close_process_descs)
 	(kill_buffer_processes, status_notify): Return void.
 	(Fstart_process): Cast arg to create_process.
 
-	* undo.c (record_insert, record_delete, record_marker_adjustment):
+	* undo.c (record_insert, record_delete, record_marker_adjustment)
 	(record_change, record_first_change, record_property_change):
 	Return void.
 
@@ -5142,7 +5139,7 @@
 	* charset.h (CHAR_VALID_P): Renamed from VALID_CHAR_P, new
 	argument GENERICP.  Call char_valid_p for a non-ASCII character.
 
-	* charset.c (char_valid_p): New function
+	* charset.c (char_valid_p): New function.
 	(Fchar_valid_p): New function.
 	(syms_of_charset): Declare it as a Lisp function.
 
@@ -5305,9 +5302,9 @@
 	* dosfns.c (__tb): Define.
 	(restore_parent_vm_title): New function.
 	(ms_windows_version): New function.
-	(w95_set_virtual_machine_title): New function
+	(w95_set_virtual_machine_title): New function.
 	(x_set_title): New function.
-	(dos_cleanup): New function
+	(dos_cleanup): New function.
 	(syms_of_dosfns): Define `dos-windows-version' Lisp variable.
 	(init_dosfns): Compute MS-Windows version and save the original
 	title of our DOS box.
@@ -6065,7 +6062,7 @@
 	(Fread_string): New argument INHERIT_INPUT_METHOD.
 	(Fread_no_blanks_input): Likewise.
 	(Fread_command): Call Fcompleting_read with INHERIT_INPUT_METHOD nil.
-	(Fread_function, Fread_variable, Fread_buffer): Likewise
+	(Fread_function, Fread_variable, Fread_buffer): Likewise.
 	(Fcompleting_read): New argument INHERIT_INPUT_METHOD.
 
 	* lisp.h (DEFUN_ARGS_8): New macro.
@@ -6605,8 +6602,7 @@
 
 1997-07-25  Ken'ichi Handa  <handa@psilocin.gnu.ai.mit.edu>
 
-	* fontset.c (syms_of_fontset): Set Vhighlight_wrong_size_font to
-	Qnil.
+	* fontset.c (syms_of_fontset): Set Vhighlight_wrong_size_font to Qnil.
 
 	* coding.h (CODING_REQUIRE_TEXT_CONVERSION)
 	(CODING_REQUIRE_EOL_CONVERSION, CODING_REQUIRE_CONVERSION): Deleted.
@@ -6614,12 +6610,11 @@
 	(CODING_MAY_REQUIRE_NO_CONVERSION): New macro.
 
 	* fileio.c (Finsert_file_contents): Use new macros
-	CODING_MAY_REQUIRE_NO_CONVERSION and
-	CODING_MAY_REQUIRE_NO_CONVERSION.
+	CODING_MAY_REQUIRE_NO_CONVERSION and CODING_REQUIRE_NO_CONVERSION.
 	(Fwrite_region): Correct the logic for deciding coding system.
 
 	* process.c (read_process_output): Use new macro
-	CODING_REQUIRE_NO_CONVERSION
+	CODING_REQUIRE_NO_CONVERSION.
 	(send_process): Use new macro CODING_MAY_REQUIRE_NO_CONVERSION.
 
 	* xterm.c (dumpglyphs): Check the member `encoding' of *FONTP while
@@ -6777,9 +6772,9 @@
 
 1997-07-15  Kenichi HANDA  <handa@etl.go.jp>
 
-	* coding.h (CODING_CATEGORY_IDX_ISO_7_ELSE): This macro is deleted
+	* coding.h (CODING_CATEGORY_IDX_ISO_7_ELSE): This macro is deleted.
 	(CODING_CATEGORY_IDX_ISO_7_ELSE): New macro.
-	(CODING_CATEGORY_IDX_ISO_8_ELSE): New macro
+	(CODING_CATEGORY_IDX_ISO_8_ELSE): New macro.
 	(CODING_CATEGORY_MASK_ISO_ELSE): This macro is deleted.
 	(CODING_CATEGORY_MASK_ISO_7_ELSE): New macro.
 	(CODING_CATEGORY_MASK_ISO_8_ELSE): New macro.
@@ -6992,7 +6987,7 @@
 	* syntax.h (struct gl_state_s): New field `offset'.
 	(SETUP_SYNTAX_TABLE_FOR_OBJECT): Set offset field.
 	(SETUP_SYNTAX_TABLE): Clear offset field.
-	(UPDATE_SYNTAX_TABLE, UPDATE_SYNTAX_TABLE_FORWARD):
+	(UPDATE_SYNTAX_TABLE, UPDATE_SYNTAX_TABLE_FORWARD)
 	(UPDATE_SYNTAX_TABLE_BACKWARD): Use the offset field.
 
 	* s/sol2.h (LIBS_SYSTEM): Add -lkvm and -lelf.
@@ -7126,7 +7121,7 @@
 
 1997-07-02  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
-	* process.c (send_process): Make buf and temp_buf  `unsigned char *'.
+	* process.c (send_process): Make buf and temp_buf `unsigned char *'.
 
 	* buffer.c (overlay_strings): Use unsigned char for things
 	that relate to overlay_str_buf.
@@ -7868,7 +7863,7 @@
 1997-05-18  Erik Naggum  <erik@naggum.no>
 
 	* lisp.h (Vtty_erase_char): Declared.
-	* keyboard.c (Vtty_erase_char): Variable defined
+	* keyboard.c (Vtty_erase_char): Variable defined.
 	(syms_of_keyboard): Set up Lisp variable.
 	Also set up `num-nonmacro-input-chars' to report actual keystrokes.
 	* sysdep.c (init_sys_modes): Initialize Vtty_erase_char if
@@ -8103,7 +8098,7 @@
 
 	* fontset.c (Vfontset_alias_alist): New variable.
 	(fontset_pattern_regexp): Delete code for handling nickname of a
-	fonset.  It is now handled in Fquery_fontset by consulting
+	fontset.  It is now handled in Fquery_fontset by consulting
 	Vfontset_alias_alist.
 	(Fquery_fontset): Handle Vfontset_alias_alist.
 	(syms_of_fontset): Terminate each line by `\n\' in doc-string of
@@ -9229,7 +9224,7 @@
 	* lread.c: Include charset.h.
 	(Vload_source_file_function): New variable.
 	(Fload): Call Vload_source_file_function if defined while loading
-	an Emacs Lisp source file.  */
+	an Emacs Lisp source file.
 	(read_multibyte): New function.
 	(read_escape): Handle multibyte characters.
 	(read1): Correct the value of size_in_chars of a bool vector.
@@ -9890,7 +9885,7 @@
 	* editfns.c (Fline_beginning_position, Fline_end_position): New fns.
 	* cmds.c (Fend_of_line, Fbeginning_of_line):
 	Use Fline_beginning_position, Fline_end_position.
-	* lisp.h  (Fend_of_line, Fbeginning_of_line): Declared.
+	* lisp.h (Fend_of_line, Fbeginning_of_line): Declared.
 
 1996-11-23  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
@@ -10367,7 +10362,7 @@
 
 1996-09-20  Richard Stallman  <rms@ethanol.gnu.ai.mit.edu>
 
-	* xterm.c (x_scroll_bar_create, x_scroll_bar_move):
+	* xterm.c (x_scroll_bar_create, x_scroll_bar_move)
 	(x_scroll_bar_expose): Use VERTICAL_SCROLL_BAR_WIDTH_TRIM.
 
 	* xterm.h (VERTICAL_SCROLL_BAR_WIDTH_TRIM): Renamed from
@@ -10414,7 +10409,7 @@
 	(x_scroll_bar_expose): Narrow the box slightly for a left-side
 	scroll bar.
 
-	* xfns.c:  Add the symbol `right'; this symbol is used to indicate
+	* xfns.c: Add the symbol `right'; this symbol is used to indicate
 	that a right-side scroll bar is wanted.
 	(x_set_vertical_scroll_bars): Check for left<->right<->none
 	scroll bar changes, and modify the vertical scroll bar type
@@ -10472,7 +10467,7 @@
 
 	* keyboard.c (make_lispy_event): When converting from pixel to
 	glyph coordinates, offset by WINDOW_LEFT_MARGIN instead of XINT
-	(XWINDOW (window)->left; this is necessary when there are
+	(XWINDOW (window)->left); this is necessary when there are
 	left-side scrollbars.
 
 	* frame.c (make_frame): Switch from boolean
@@ -10682,7 +10677,7 @@
 	before read0 call.
 	(read1): New variable `uninterned_symbol', which controls how to
 	make symbols.  Support #:, #n=object and #n#.
-	(make_symbol): New function, used in read1 to make uninterned symbols
+	(make_symbol): New function, used in read1 to make uninterned symbols.
 	(Fintern): Set `obarray' field of interned symbols.
 	(init_obarray): Explicit set `obarray' field of symbol `nil'.
 	(syms_of_lread): staticpro read_objects, the list of read objects.

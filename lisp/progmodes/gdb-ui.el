@@ -262,10 +262,8 @@ detailed description of this mode.
 |  Stack buffer                     |  Breakpoints/threads buffer      |
 +-----------------------------------+----------------------------------+
 
-To run GDB in text command mode, replace the GDB \"--annotate=3\"
-option with \"--fullname\" either in the minibuffer for the
-current Emacs session, or the custom variable
-`gud-gdb-command-name' for all future sessions.  You need to use
+The option \"--annotate=3\" must be included in this value.  To
+run GDB in text command mode, use `gud-gdb'.  You need to use
 text command mode to debug multiple programs within one Emacs
 session."
   (interactive (list (gud-query-cmdline 'gdb)))
@@ -470,6 +468,9 @@ otherwise do not."
     (dolist (define define-list)
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
+
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(defvar tooltip-use-echo-area)
 
 (defun gdb-tooltip-print (expr)
   (tooltip-show
@@ -754,6 +755,8 @@ positive, otherwise don't automatically raise it."
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
 (define-key global-map (concat gud-key-prefix "\C-w") 'gud-watch)
+
+(declare-function tooltip-identifier-from-point "tooltip" (point))
 
 (defun gud-watch (&optional arg event)
   "Watch expression at point.
@@ -1661,15 +1664,12 @@ happens to be appropriate."
 	  (let* ((annotation-type (match-string 1 annotation))
 		 (annotation-arguments (match-string 2 annotation))
 		 (annotation-rule (assoc annotation-type
-					 gdb-annotation-rules))
-		 (fullname (string-match gdb-fullname-regexp annotation-type)))
+					 gdb-annotation-rules)))
 
 	    ;; Stuff prior to the match is just ordinary output.
 	    ;; It is either concatenated to OUTPUT or directed
 	    ;; elsewhere.
-	    (setq output
-		  (gdb-concat-output output
-				     (concat before (if fullname "\n"))))
+	    (setq output (gdb-concat-output output before))
 
 	    ;; Take that stuff off the gud-marker-acc.
 	    (setq gud-marker-acc after)
@@ -1677,19 +1677,7 @@ happens to be appropriate."
 	    ;; Call the handler for this annotation.
 	    (if annotation-rule
 		(funcall (car (cdr annotation-rule))
-			 annotation-arguments)
-
-	      ;; Switch to gud-gdb-marker-filter if appropriate.
-	      (when fullname
-
-		;; Extract the frame position from the marker.
-		(setq gud-last-frame (cons (match-string 1 annotation)
-					   (string-to-number
-					    (match-string 2 annotation))))
-
-		(set (make-local-variable 'gud-minor-mode) 'gdb)
-		(set (make-local-variable 'gud-marker-filter)
-		     'gud-gdb-marker-filter)))
+			 annotation-arguments))
 
 	    ;; Else the annotation is not recognized.  Ignore it silently,
 	    ;; so that GDB can add new annotations without causing
@@ -1905,6 +1893,9 @@ static char *magick[] = {
 (defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin.")
 
+(declare-function define-fringe-bitmap "fringe.c"
+		  (bitmap bits &optional height width align))
+
 (and (display-images-p)
      ;; Bitmap for breakpoint in fringe
      (define-fringe-bitmap 'breakpoint
@@ -2019,6 +2010,7 @@ static char *magick[] = {
 
 (declare-function gud-remove "gdb-ui" t t) ; gud-def
 (declare-function gud-break  "gdb-ui" t t) ; gud-def
+(declare-function fringe-bitmaps-at-pos "fringe.c" (&optional pos window))
 
 (defun gdb-mouse-set-clear-breakpoint (event)
   "Set/clear breakpoint in left fringe/margin at mouse click.
@@ -2711,29 +2703,27 @@ another GDB command e.g pwd, to see new frames")
 (defvar gdb-memory-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "S" 'gdb-memory-set-address)
+    (define-key map "N" 'gdb-memory-set-repeat-count)
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defun gdb-memory-set-address (event)
+(defun gdb-memory-set-address (&optional event)
   "Set the start memory address."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (let ((arg (read-from-minibuffer "Memory address: ")))
-      (setq gdb-memory-address arg))
-    (gdb-invalidate-memory)))
+  (interactive)
+  (let ((arg (read-from-minibuffer "Start address: ")))
+    (setq gdb-memory-address arg))
+    (gdb-invalidate-memory))
 
-(defun gdb-memory-set-repeat-count (event)
+(defun gdb-memory-set-repeat-count (&optional event)
   "Set the number of data items in memory window."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (let* ((arg (read-from-minibuffer "Repeat count: "))
-	  (count (string-to-number arg)))
-      (if (<= count 0)
-	  (error "Positive numbers only")
-	(customize-set-variable 'gdb-memory-repeat-count count)
-	(gdb-invalidate-memory)))))
+  (interactive)
+  (let* ((arg (read-from-minibuffer "Repeat count: "))
+	 (count (string-to-number arg)))
+    (if (<= count 0)
+	(error "Positive numbers only")
+      (customize-set-variable 'gdb-memory-repeat-count count)
+      (gdb-invalidate-memory))))
 
 (defun gdb-memory-format-binary ()
   "Set the display format to binary."
@@ -2881,7 +2871,7 @@ another GDB command e.g pwd, to see new frames")
   (setq header-line-format
 	'(:eval
 	  (concat
-	   "Read address["
+	   "Start address["
 	   (propertize
 	    "-"
 	    'face font-lock-warning-face
@@ -2915,7 +2905,7 @@ another GDB command e.g pwd, to see new frames")
 	   "]: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
-		       'help-echo "mouse-1: set memory address"
+		       'help-echo "mouse-1: set start address"
 		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
@@ -3256,7 +3246,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
   (remove-hook 'after-save-hook 'gdb-create-define-alist t))
 
 (defun gdb-source-info ()
-  "Find the source file where the program starts and displays it with related
+  "Find the source file where the program starts and display it with related
 buffers."
   (goto-char (point-min))
   (if (and (search-forward "Located in " nil t)

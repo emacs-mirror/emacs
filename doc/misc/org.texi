@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.02b
-@set DATE April 2008
+@set VERSION 6.05a
+@set DATE June 2008
 
 @dircategory Emacs
 @direntry
@@ -39,16 +39,20 @@ Copyright @copyright{} 2004, 2005, 2006, 2007, 2008 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
-and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License.''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
@@ -89,7 +93,8 @@ Software Foundation raise funds for GNU development.''
 * Exporting::                   Sharing and publishing of notes
 * Publishing::                  Create a web site of linked Org files
 * Miscellaneous::               All the rest which did not fit elsewhere
-* Extensions and Hacking::      It is possible to write add-on code
+* Extensions::                 
+* Hacking::                     
 * History and Acknowledgments::  How Org came into being
 * Main Index::                  An index of Org's concepts and features
 * Key Index::                   Key bindings and where they are described
@@ -274,16 +279,35 @@ Embedded LaTeX
 
 Exporting
 
+* Markup rules::                Which structures are recognized?
+* Export options::              Per-file export settings
+* The export dispatcher::       How to access exporter commands
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
 * LaTeX export::                Exporting to LaTeX
 * XOXO export::                 Exporting to XOXO
 * iCalendar export::            Exporting in iCalendar format
-* Text interpretation::         How the exporter looks at the file
+
+Markup rules
+
+* Document title::              How the document title is determined
+* Headings and sections::       The main structure of the exported document
+* Table of contents::           If, where, how to create a table of contents
+* Initial text::                Text before the first headline
+* Lists::                       Plain lists are exported
+* Paragraphs::                  What determines beginning and ending
+* Literal examples::            Source code and other examples
+* Include files::               Include the contents of a file during export
+* Tables exported::             Tables are exported richly
+* Footnotes::                   Numbers like [1]
+* Emphasis and monospace::      To bold or not to bold
+* TeX macros and LaTeX fragments::  Create special, rich export.
+* Horizontal rules::            A line across the page
+* Comment lines::               Some lines will not be exported
 
 HTML export
 
-* HTML Export commands::        How to invoke LaTeX export
+* HTML Export commands::        How to invoke HTML export
 * Quoting HTML tags::           Using direct HTML in Org mode
 * Links::                       Transformation of links for HTML
 * Images::                      How to include images
@@ -295,15 +319,6 @@ LaTeX export
 * LaTeX export commands::       How to invoke LaTeX export
 * Quoting LaTeX code::          Incorporating literal LaTeX code
 * Sectioning structure::        Changing sectioning in LaTeX output
-
-Text interpretation by the exporter
-
-* Comment lines::               Some lines will not be exported
-* Initial text::                Text before the first headline
-* Footnotes::                   Numbers like [1]
-* Quoted examples::             Inserting quoted chunks of text
-* Enhancing text::              Subscripts, symbols and more
-* Export options::              How to influence the export settings
 
 Publishing
 
@@ -342,14 +357,19 @@ Interaction with other packages
 * Cooperation::                 Packages Org cooperates with
 * Conflicts::                   Packages that lead to conflicts
 
-Extensions, Hooks and Hacking
+Extensions
 
-* Extensions::                  Existing 3rd-party extensions
+* Extensions in the contrib directory::  These come with the Org distro
+* Other extensions::            These you have to find on the web.
+
+Hacking
+
 * Adding hyperlink types::      New custom link types
 * Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
 * Special agenda views::        Customized views
 * Using the property API::      Writing programs that use entry properties
+* Using the mapping API::       Mapping over all or selected entries
 
 Tables and lists in arbitrary syntax
 
@@ -556,9 +576,10 @@ the file's name is.  See also the variable
 @cindex maintainer
 @cindex author
 
-If you find problems with Org, or if you have questions, remarks,
-or ideas about it, please contact the maintainer @value{MAINTAINER} at
-@value{MAINTAINEREMAIL}.
+If you find problems with Org, or if you have questions, remarks, or ideas
+about it, please mail to the Org mailing list @code{emacs-orgmode@@gnu.org}.
+If you are not a member of the mailing list, your mail will be reviewed by a
+moderator and then passed through to the list.
 
 For bug reports, please provide as much information as possible,
 including the version information of Emacs (@kbd{C-h v emacs-version
@@ -787,6 +808,19 @@ buffer:
 #+STARTUP: showall
 @end example
 
+@noindent
+Forthermore, any entries with a @samp{VISIBILITY} property (@pxref{Properties
+and Columns}) will get their visibility adapted accordingly.  Allowed values
+for this property are @code{folded}, @code{children}, @code{content}, and
+@code{all}.
+@table @kbd
+@kindex C-u C-u @key{TAB}
+@item C-u C-u @key{TAB}
+Switch back to the startup visibility of the buffer, i.e. whatever is
+requested by startup options and @samp{VISIBILITY} properties in individual
+entries.
+@end table
+
 @node Motion, Structure editing, Visibility cycling, Document Structure
 @section Motion
 @cindex motion, between headlines
@@ -910,6 +944,12 @@ been defined in the setup).  Reverse sorting is possible as well.  You can
 also supply your own function to extract the sorting key.  With a @kbd{C-u}
 prefix, sorting will be case-sensitive.  With two @kbd{C-u C-u} prefixes,
 duplicate entries will also be removed.
+@kindex C-x n s
+@item C-x n s
+Narrow buffer to current subtree.
+@kindex C-x n w
+@item C-x n w
+Widen buffer to remove a narrowing.
 @kindex C-c *
 @item C-c *
 Turn a normal line or plain list item into a headline (so that it
@@ -1059,14 +1099,14 @@ added.
 @cindex folding, sparse trees
 @cindex occur, command
 
-An important feature of Org mode is the ability to construct
-@emph{sparse trees} for selected information in an outline tree, so that
-the entire document is folded as much as possible, but the selected
-information is made visible along with the headline structure above
-it@footnote{See also the variables @code{org-show-hierarchy-above},
-@code{org-show-following-heading}, and @code{org-show-siblings} for
-detailed control on how much context is shown around each match.}.  Just
-try it out and you will see immediately how it works.
+An important feature of Org mode is the ability to construct @emph{sparse
+trees} for selected information in an outline tree, so that the entire
+document is folded as much as possible, but the selected information is made
+visible along with the headline structure above it@footnote{See also the
+variables @code{org-show-hierarchy-above}, @code{org-show-following-heading},
+@code{org-show-siblings}, and @code{org-show-entry-below} for detailed
+control on how much context is shown around each match.}.  Just try it out
+and you will see immediately how it works.
 
 Org mode contains several commands creating such trees, all these
 commands can be accessed through a dispatcher:
@@ -1077,15 +1117,16 @@ commands can be accessed through a dispatcher:
 This prompts for an extra key to select a sparse-tree creating command.
 @kindex C-c / r
 @item C-c / r
-Occur.  Prompts for a regexp and shows a sparse tree with all matches.
-If the match is in a headline, the headline is made visible.  If the
-match is in the body of an entry, headline and body are made visible.
-In order to provide minimal context, also the full hierarchy of
-headlines above the match is shown, as well as the headline following
-the match.  Each match is also highlighted; the highlights disappear
-when the buffer is changed by an editing command, or by pressing
-@kbd{C-c C-c}.  When called with a @kbd{C-u} prefix argument, previous
-highlights are kept, so several calls to this command can be stacked.
+Occur.  Prompts for a regexp and shows a sparse tree with all matches.  If
+the match is in a headline, the headline is made visible.  If the match is in
+the body of an entry, headline and body are made visible.  In order to
+provide minimal context, also the full hierarchy of headlines above the match
+is shown, as well as the headline following the match.  Each match is also
+highlighted; the highlights disappear when the buffer is changed by an
+editing command@footnote{depending on the option
+@code{org-remove-highlights-with-change}}, or by pressing @kbd{C-c C-c}.
+When called with a @kbd{C-u} prefix argument, previous highlights are kept,
+so several calls to this command can be stacked.
 @end table
 
 @noindent
@@ -1128,24 +1169,34 @@ additional structure.  They also provide a way to create lists of
 checkboxes (@pxref{Checkboxes}).  Org supports editing such lists,
 and the HTML exporter (@pxref{Exporting}) parses and formats them.
 
-Org knows ordered and unordered lists.  Unordered list items start
-with @samp{-}, @samp{+}, or @samp{*}@footnote{When using @samp{*} as a
-bullet, lines must be indented or they will be seen as top-level
-headlines.  Also, when you are hiding leading stars to get a clean
-outline view, plain list items starting with a star are visually
-indistinguishable from true headlines.  In short: even though @samp{*}
-is supported, it may be better to not use it for plain list items.} as
-bullets.  Ordered list items start with a numeral followed by either a
-period or a right parenthesis, such as @samp{1.} or @samp{1)}.  Items
-belonging to the same list must have the same indentation on the first
-line.  In particular, if an ordered list reaches number @samp{10.}, then
-the 2--digit numbers must be written left-aligned with the other numbers
-in the list.  Indentation also determines the end of a list item.  It
-ends before the next line that is indented like the bullet/number, or
-less.  Empty lines are part of the previous item, so you can have
-several paragraphs in one item.  If you would like an empty line to
-terminate all currently open plain lists, configure the variable
-@code{org-empty-line-terminates-plain-lists}.  Here is an example:
+Org knows ordered lists, unordered lists, and description lists.
+@itemize @bullet
+@item
+@emph{Unordered} list items start with @samp{-}, @samp{+}, or
+@samp{*}@footnote{When using @samp{*} as a bullet, lines must be indented or
+they will be seen as top-level headlines.  Also, when you are hiding leading
+stars to get a clean outline view, plain list items starting with a star are
+visually indistinguishable from true headlines.  In short: even though
+@samp{*} is supported, it may be better to not use it for plain list items.}
+as bullets.
+@item
+@emph{Ordered} list items start with a numeral followed by either a period or
+a right parenthesis, such as @samp{1.} or @samp{1)}.
+@item
+@emph{Description} list items are like unordered list items, but contain the
+separator @samp{ :: } to separate the description @emph{term} from the
+desciption.
+@end itemize
+
+Items belonging to the same list must have the same indentation on the first
+line.  In particular, if an ordered list reaches number @samp{10.}, then the
+2--digit numbers must be written left-aligned with the other numbers in the
+list.  Indentation also determines the end of a list item.  It ends before
+the next line that is indented like the bullet/number, or less.  Empty lines
+are part of the previous item, so you can have several paragraphs in one
+item.  If you would like an empty line to terminate all currently open plain
+lists, configure the variable @code{org-empty-line-terminates-plain-lists}.
+Here is an example:
 
 @example
 @group
@@ -1159,6 +1210,10 @@ terminate all currently open plain lists, configure the variable
        - on DVD only
       He makes a really funny face when it happens.
    But in the end, not individual scenes matter but the film as a whole.
+   Important actors in this film are:
+   - @b{Elijah Wood} :: He plays the Frodo
+   - @b{Sean Austin} :: He plays the Sam, Frodos friend.  I still remember
+     him very well from his role as Mikey Walsh a in the Goonies.
 @end group
 @end example
 
@@ -1166,7 +1221,8 @@ Org supports these lists by tuning filling and wrapping commands to
 deal with them correctly@footnote{Org only changes the filling
 settings for Emacs.  For XEmacs, you should use Kyle E. Jones'
 @file{filladapt.el}.  To turn this on,  put into @file{.emacs}:
-@code{(require 'filladapt)}}.
+@code{(require 'filladapt)}}, and by exporting them properly
+(@pxref{Exporting}).
 
 The following commands act on items when the cursor is in the first line
 of an item (the line with the bullet or number).
@@ -1260,7 +1316,8 @@ Visibility cycling (@pxref{Visibility cycling}) on the headline will
 hide and show the entry, but keep the drawer collapsed to a single line.
 In order to look inside the drawer, you need to move the cursor to the
 drawer line and press @key{TAB} there.  Org mode uses a drawer for
-storing properties (@pxref{Properties and Columns}).
+storing properties (@pxref{Properties and Columns}), and another one for
+storing clock times (@pxref{Clocking work time}).
 
 @node Orgstruct mode,  , Drawers, Document Structure
 @section The Orgstruct minor mode
@@ -1515,7 +1572,10 @@ exchange with, for example, spreadsheet or database programs.  The format
 used to export the file can be configured in the variable
 @code{org-table-export-default-format}.  You may also use properties
 @code{TABLE_EXPORT_FILE} and @code{TABLE_EXPORT_FORMAT} to specify the file
-name and the format for table export in a subtree.
+name and the format for table export in a subtree.  Org supports quite
+general formats for exported tables.  The exporter format is the same as the
+format used by Orgtbl radio tables, see @ref{Translator functions} for a
+detailed description.
 @end table
 
 If you don't like the automatic table editor because it gets in your
@@ -2651,8 +2711,6 @@ for Bib@TeX{} database files, and you can use the corresponding code as
 an implementation example.  Search for @samp{BibTeX links} in the source
 file.
 
-
-
 @node TODO Items, Tags, Hyperlinks, Top
 @chapter TODO Items
 @cindex TODO items
@@ -3131,12 +3189,37 @@ priority):
 @cindex tasks, breaking down
 
 It is often advisable to break down large tasks into smaller, manageable
-subtasks.  You can do this by creating an outline tree below a TODO
-item, with detailed subtasks on the tree@footnote{To keep subtasks out
-of the global TODO list, see the
-@code{org-agenda-todo-list-sublevels}.}.  Another possibility is the use
-of checkboxes to identify (a hierarchy of) a large number of subtasks
-(@pxref{Checkboxes}).
+subtasks.  You can do this by creating an outline tree below a TODO item,
+with detailed subtasks on the tree@footnote{To keep subtasks out of the
+global TODO list, see the @code{org-agenda-todo-list-sublevels}.}.  To keep
+the overview over the fraction of subtasks that are already completed, insert
+either @samp{[/]} or @samp{[%]} anywhere in the headline.  These cookies will
+be updates each time the todo status of a child changes.  For example:
+
+@example
+* Organize Party [33%]
+** TODO Call people [1/2]
+*** TODO Peter
+*** DONE Sarah
+** TODO Buy food
+** DONE Talk to neighbor
+@end example
+
+If you would like a TODO entry to automatically change to DONE when all
+chilrden are done, you can use the following setup:
+
+@example
+(defun org-summary-todo (n-done n-not-done)
+  "Switch entry to DONE when all subentries are done, to TODO otherwise."
+  (let (org-log-done org-log-states)   ; turn off logging
+    (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+
+(add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+@end example
+
+
+Another possibility is the use of checkboxes to identify (a hierarchy of) a
+large number of subtasks (@pxref{Checkboxes}).
 
 
 @node Checkboxes,  , Breaking down tasks, TODO Items
@@ -3263,14 +3346,24 @@ well.  For example, in the list
 @noindent
 the final heading will have the tags @samp{:work:}, @samp{:boss:},
 @samp{:notes:}, and @samp{:action:} even though the final heading is not
-explicitly marked with those tags.  When executing tag searches and
-Org mode finds that a certain headline matches the search criterion, it
-will not check any sublevel headline, assuming that these also match and
-that the list of matches could become very long because of that.  If you
-do want the sublevels be tested and listed as well, you may set the
-variable @code{org-tags-match-list-sublevels}.  To limit tag inheritance
-to specific tags, or to turn it off entirely, use the variable
-@code{org-use-tag-inheritance}.
+explicitly marked with those tags.  You can also set tags that all entries in
+a file should inherit as if these tags would be defined in a hypothetical
+level zero that surounds the entire file.
+
+@example
+#+FILETAGS: :Peter:Boss:Secret:
+@end example
+
+@noindent
+To limit tag inheritance to specific tags, or to turn it off entirely, use
+the variable @code{org-use-tag-inheritance}.
+
+When a headline matches during a tags search while tag inheritance is turned
+on, all the sublevels in the same tree will match as well@footnote{This is
+only true if the the search does not involve more complex tests including
+properties (@pxref{Property searches}).}.  The list of matches may then
+become very long.  If you only want to see the first tags match in a subtree,
+configure the variable @code{org-tags-match-list-sublevels}.
 
 @node Setting tags, Tag searches, Tag inheritance, Tags
 @section Setting tags
@@ -3881,6 +3974,8 @@ Move through the column view from field to field.
 @item  S-@key{left}/@key{right}
 Switch to the next/previous allowed value of the field.  For this, you
 have to have specified allowed values for a property.
+@item 1..9,0
+Directly select the nth allowed value, @kbd{0} selects the 10th value.
 @kindex n
 @kindex p
 @itemx  n / p
@@ -3925,6 +4020,7 @@ exported or printed directly.  If you want to capture a column view, use
 this @code{columnview} dynamic block (@pxref{Dynamic blocks}).  The frame
 of this block looks like this:
 
+@cindex #+BEGIN: columnview
 @example
 * The column view
 #+BEGIN: columnview :hlines 1 :id "label"
@@ -3943,8 +4039,10 @@ capture, you can use 3 values:
 @example
 local     @r{use the tree in which the capture block is located}
 global    @r{make a global view, including all headings in the file}
-"label"   @r{call column view in the tree that has and @code{:ID:}}
-          @r{property with the value @i{label}}
+"label"   @r{call column view in the tree that has an @code{:ID:}}
+          @r{property with the value @i{label}.  You can use}
+          @r{@kbd{M-x org-id-copy} to create a globally unique ID for}
+          @r{the current entry and copy it to the kill-ring.}
 @end example
 @item :hlines
 When @code{t}, insert a hline after every line.  When a number N, insert
@@ -4210,6 +4308,8 @@ a single letter, you use the abbreviation of day name, the date will be
 the nth such day.  E.g.
 
 @example
++0            --> today
+.             --> today
 +4d           --> four days from today
 +4            --> same as above
 +2w           --> two weeks from today
@@ -4406,6 +4506,15 @@ Insert @samp{SCHEDULED} keyword along with a stamp.  The insertion will
 happen in the line directly following the headline.  Any CLOSED
 timestamp will be removed.  When called with a prefix argument, remove
 the scheduling date from the entry.
+@c
+@kindex C-c C-x C-k
+@kindex k a
+@kindex k s
+@item C-c C-x C-k
+Mark the current entry for agenda action.  After you have marked the entry
+like this, you can open the agenda or the calendar to find an appropriate
+date.  With the cursor on the selected date, press @kbd{k s} or @kbd{k d} to
+schedule the marked item.
 @end table
 
 @node Repeated tasks,  , Inserting deadline/schedule, Deadlines and scheduling
@@ -4540,6 +4649,7 @@ report as an Org mode table into the current file.  When the cursor is
 at an existing clock table, just update it.  When called with a prefix
 argument, jump to the first clock report in the current document and
 update it.
+@cindex #+BEGIN: clocktable
 @example
 #+BEGIN: clocktable :maxlevel 2 :emphasize nil :scope file
 #+END: clocktable
@@ -4615,7 +4725,7 @@ The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
 the agenda (@pxref{Weekly/daily agenda}) to show which tasks have been
 worked on or closed during a day.
 
-@node Effort estimates
+@node Effort estimates,  , Clocking work time, Dates and Times
 @section Effort estimates
 @cindex Effort estimates
 
@@ -4650,7 +4760,7 @@ In the column next to it, any clocked time will be displayed.
 If you switch to column view in the daily/weekly agenda, the effort column
 will summarize the estimated work effort for each day@footnote{Please note
 the pitfalls of summing hierarchical data in a flat list (@pxref{Agenda
-column view}.}, and you can use this to find space in your schedule.  To get
+column view}).}, and you can use this to find space in your schedule.  To get
 an overview of the entire part of the day that is committed, you can set the
 option @code{org-agenda-columns-add-appointments-to-effort-sum}.  The
 appointments on a day that take place over a specified time interval will
@@ -4700,6 +4810,11 @@ stored: Just call @code{org-remember} with a prefix argument.  If you
 use two prefix arguments, Org jumps to the location where the last
 remember note was stored.
 
+You can also call @code{org-remember} in a special way from the agenda,
+using the @kbd{k r} key combination.  With this access, any time stamps
+inserted by the selected remember template (see below) will default to
+the cursor date in the agenda, rather than to the current date.
+
 @node Remember templates, Storing notes, Setting up Remember, Remember
 @section Remember templates
 @cindex templates, for remember
@@ -4719,26 +4834,29 @@ use:
 
 @noindent In these entries, the first string is just a name, and the
 character specifies how to select the template.  It is useful if the
-character is also the first letter of the name.  The next string
-specifies the template.  Two more (optional) strings give the file in
-which, and the headline under which the new note should be stored.  The
-file (if not present or @code{nil}) defaults to
-@code{org-default-notes-file}, the heading to
-@code{org-remember-default-headline}.  If the file name is not an
-absolute path, it will be interpreted relative to @code{org-directory}.
+character is also the first letter of the name.  The next string specifies
+the template.  Two more (optional) strings give the file in which, and the
+headline under which the new note should be stored.  The file (if not present
+or @code{nil}) defaults to @code{org-default-notes-file}, the heading to
+@code{org-remember-default-headline}.  If the file name is not an absolute
+path, it will be interpreted relative to @code{org-directory}.  The heading
+can also be the symbols @code{top} or @code{bottom} to send note as level 1
+entries to the beginning or end of the file, respectively.
 
-An optional sixth element specifies the contexts in which the user can
-select the template.  This element can be either a list of major modes
-or a function.  @code{org-remember} will first check whether the function
-returns @code{t} or if we are in any of the listed major mode, and select
-the template accordingly.
+An optional sixth element specifies the contexts in which the user can select
+the template.  This element can be a list of major modes or a function.
+@code{org-remember} will first check whether the function returns @code{t} or
+if we are in any of the listed major mode, and exclude templates fo which
+this condition is not fulfilled.  Templates that do not specify this element
+at all, or that use @code{nil} or @code{t} as a value will always be
+selectable.
 
 So for example:
 
 @example
 (setq org-remember-templates
  '(("Bug" ?b "* BUG %?\n  %i\n  %a" "~/org/BUGS.org" "Bugs" (emacs-lisp-mode))
-   ("Journal" ?j "* %U %?\n\n  %i\n  %a" "~/org/JOURNAL.org" my-check)
+   ("Journal" ?j "* %U %?\n\n  %i\n  %a" "~/org/JOURNAL.org" "X" my-check)
    ("Idea" ?i "* %^@{Title@}\n  %i\n  %a" "~/org/JOURNAL.org" "New Ideas")))
 @end example
 
@@ -4747,8 +4865,8 @@ from an buffer in @code{emacs-lisp-mode}.  The second template will only be
 available when the function @code{my-check} returns @code{t}.  The third
 template will be proposed in any context.
 
-When you call @kbd{M-x remember} (or @kbd{M-x org-remember}) to remember
-something, org will prompt for a key to select the template (if you have
+When you call @kbd{M-x org-remember} (or @kbd{M-x remember}) to remember
+something, Org will prompt for a key to select the template (if you have
 more than one template) and then prepare the buffer like
 @example
 * TODO
@@ -4763,16 +4881,16 @@ insertion of content:
             @r{You may specify a default value and a completion table with}
             @r{%^@{prompt|default|completion2|completion3...@}}
             @r{The arrow keys access a prompt-specific history.}
+%a          @r{annotation, normally the link created with @code{org-store-link}}
+%A          @r{like @code{%a}, but prompt for the description part}
+%i          @r{initial content, the region when remember is called with C-u.}
+            @r{The entire text will be indented like @code{%i} itself.}
 %t          @r{time stamp, date only}
 %T          @r{time stamp with date and time}
 %u, %U      @r{like the above, but inactive time stamps}
 %^t         @r{like @code{%t}, but prompt for date.  Similarly @code{%^T}, @code{%^u}, @code{%^U}}
             @r{You may define a prompt like @code{%^@{Birthday@}t}}
 %n          @r{user name (taken from @code{user-full-name})}
-%a          @r{annotation, normally the link created with @code{org-store-link}}
-%A          @r{like @code{%a}, but prompt for the description part}
-%i          @r{initial content, the region when remember is called with C-u.}
-            @r{The entire text will be indented like @code{%i} itself.}
 %c          @r{Current kill ring head.}
 %x          @r{Content of the X clipboard.}
 %^C         @r{Interactive selection of which kill or clip to use.}
@@ -4784,6 +4902,7 @@ insertion of content:
 %(sexp)     @r{evaluate elisp @code{(sexp)} and replace with the result}
 %!          @r{immediately store note after completing the template}
             @r{(skipping the @kbd{C-c C-c} that normally triggers storing)}
+%&          @r{jump to target location immediately after storing note}
 @end example
 
 @noindent
@@ -4823,14 +4942,20 @@ template that will be filled with the previous context information.
 @node Storing notes, Refiling notes, Remember templates, Remember
 @section Storing notes
 
-When you are finished preparing a note with @i{remember}, you have to
-press @kbd{C-c C-c} to file the note away.  The handler will store the
-note in the file and under the headline specified in the template, or it
-will use the default file and headlines.  The window configuration will
-be restored, sending you back to the working context before the call to
-@code{remember}.  To re-use the location found during the last call to
-@code{remember}, exit the remember buffer with @kbd{C-u C-u C-c C-c},
-i.e. specify a double prefix argument to @kbd{C-c C-c}.
+When you are finished preparing a note with @i{remember}, you have to press
+@kbd{C-c C-c} to file the note away.  If you have started the clock in the
+remember buffer, you will first be asked if you want to clock out
+now@footnote{To avoid this query, configure the variable
+@code{org-remember-clock-out-on-exit}.}.  If you answer @kbd{n}, the clock
+will continue to run after the note is filed away.
+
+The handler will then store the note in the file and under the headline
+specified in the template, or it will use the default file and headlines.
+The window configuration will be restored, sending you back to the working
+context before the call to @code{remember}.  To re-use the location found
+during the last call to @code{remember}, exit the remember buffer with
+@kbd{C-u C-u C-c C-c}, i.e. specify a double prefix argument to @kbd{C-c
+C-c}.
 
 If you want to store the note directly to a different place, use
 @kbd{C-u C-c C-c} instead to exit remember@footnote{Configure the
@@ -4893,7 +5018,9 @@ filed below the target heading as a subitem.  Depending on
 subitem.@* By default, all level 1 headlines in the current buffer are
 considered to be targets, but you can have more complex definitions
 across a number of files.  See the variable @code{org-refile-targets}
-for details.
+for details.  If you would like to select a location via a file-pathlike
+completion along the outline path, see the variable
+@code{org-refile-use-outline-path}.
 @kindex C-u C-c C-w
 @item C-u C-c C-w
 Use the refile interface to jump to a heading.
@@ -5560,7 +5687,7 @@ previously used indirect buffer.
 @c
 @kindex l
 @item l
-Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
+Toggle Logbook mode.  In Logbook mode, entries that were marked DONE while
 logging was on (variable @code{org-log-done}) are shown in the agenda,
 as are entries that have been clocked on that day.
 @c
@@ -5691,13 +5818,13 @@ Toggle the ARCHIVE tag for the current headline.
 @c
 @kindex A
 @item A
-Move the subtree correspoding to the current entry to its @emph{Archive
+Move the subtree corresponding to the current entry to its @emph{Archive
 Sibling}.
 @c
 @kindex $
 @item $
 Archive the subtree corresponding to the current headline.  This means the
-entry will be moved to the configured archive locatin, most likely a
+entry will be moved to the configured archive location, most likely a
 different file.
 @c
 @kindex T
@@ -5741,6 +5868,21 @@ Schedule this item
 @kindex C-c C-d
 @item C-c C-d
 Set a deadline for this item.
+@c
+@kindex k
+@item k
+Agenda actions, to set dates for selected items to the cursor date.
+This command also works in the calendar!  The command prompts for an
+additonal key:
+@example
+m   @r{Mark the entry at point for action.  You can also make entries}
+    @r{in Org files with @kbd{C-c C-x C-k}.}
+d   @r{Set the deadline of the marked entry to the date at point.}
+s   @r{Schedule the marked entry at the date at point.}
+r   @r{Call @code{org-remember} with the cursor date as default date.}
+@end example
+Press @kbd{r} afterwards to refresh the agenda and see the effect of the
+command.
 @c
 @kindex S-@key{right}
 @item S-@key{right}
@@ -6549,8 +6691,425 @@ deadlines or appointments into a desktop calendar program like iCal,
 Org mode can also produce extracts in the iCalendar format.  Currently
 Org mode only supports export, not import of these different formats.
 
-When exporting, Org mode uses special conventions to enrich the output
-produced.  @xref{Text interpretation}, for more details.
+@menu
+* Markup rules::                Which structures are recognized?
+* Export options::              Per-file export settings
+* The export dispatcher::       How to access exporter commands
+* ASCII export::                Exporting to plain ASCII
+* HTML export::                 Exporting to HTML
+* LaTeX export::                Exporting to LaTeX
+* XOXO export::                 Exporting to XOXO
+* iCalendar export::            Exporting in iCalendar format
+@end menu
+
+@node Markup rules, Export options, Exporting, Exporting
+@section Markup rules
+
+When exporting Org mode documents,  the exporter tries to reflect the
+structure of the document as accurately as possible in the back-end.  Since
+export targets like HTML or La@TeX{} allow much richer formatting, Org mode
+has rules how to prepare text for rich export.  This section summarizes the
+markup rule used in an Org mode buffer.
+
+@menu
+* Document title::              How the document title is determined
+* Headings and sections::       The main structure of the exported document
+* Table of contents::           If, where, how to create a table of contents
+* Initial text::                Text before the first headline
+* Lists::                       Plain lists are exported
+* Paragraphs::                  What determines beginning and ending
+* Literal examples::            Source code and other examples
+* Include files::               Include the contents of a file during export
+* Tables exported::             Tables are exported richly
+* Footnotes::                   Numbers like [1]
+* Emphasis and monospace::      To bold or not to bold
+* TeX macros and LaTeX fragments::  Create special, rich export.
+* Horizontal rules::            A line across the page
+* Comment lines::               Some lines will not be exported
+@end menu
+
+@node Document title, Headings and sections, Markup rules, Markup rules
+@subheading Document title
+@cindex document title, markup rules
+
+@noindent
+The title of the exported document is taken from the special line
+
+@example
+#+TITLE: This is the title of the document
+@end example
+
+@noindent
+If this line does not exist, the title is derived from the first non-empty,
+non-comment line in the buffer.  If no such line exists, or if you have
+turned off exporting of the text before the first headline (see below), the
+title will be the file name without extension.
+
+If you are exporting only a subtree by marking is as the region, the heading
+of the subtree will become the title of the document.  If the subtree has a
+property @code{EXPORT_TITLE}, that will take precedence.
+
+@node Headings and sections, Table of contents, Document title, Markup rules
+@subheading Headings and sections
+@cindex headings and sections, markup rules
+
+The outline structure of the document as described in @ref{Document
+Structure} forms the basis for defining sections of the exported document.
+However, since the outline structure is also used for (for example) lists of
+tasks, only the first three outline levels will be used as headings.  Deeper
+levels will become itemized lists.  You can change the location of this
+switch, globally by setting the variable @code{org-headline-levels}, or on a
+per file basis with a line
+
+@example
+#+OPTIONS: H:4
+@end example
+
+@node Table of contents, Initial text, Headings and sections, Markup rules
+@subheading Table of contents
+@cindex table of contents, markup rules
+
+The table of contents is normally inserted directly before the first headline
+of the file.  If you would like to get it to a different location, insert the
+string @code{[TABLE-OF-CONTENTS]} on a line by itself at the desired
+location.  The depth of the table of contents is by default the same as the
+number of headline levels, but you can choose a smaller number or turn off
+the table of contents entirely by configuring the variable
+@code{org-export-with-toc}, or on a per-file basis with a line like
+
+@example
+#+OPTIONS: toc:2          (only to two levels in TOC)
+#+OPTIONS: toc:nil        (no TOC at all)
+@end example
+
+@node Initial text, Lists, Table of contents, Markup rules
+@subheading Text before the first headline
+@cindex text before first headline, markup rules
+@cindex #+TEXT
+
+Org mode normally exports the text before the first headline, and even uses
+the first line as the document title.  The text will be fully marked up.  If
+you need to include literal HTML or La@TeX{} code, use the special constructs
+described below in the sections for the individual exporters.
+
+Some people like to use the space before the first headline for setup and
+internal links and therefore would like to control the exported text before
+the first headline in a different way.  You can do so by setting the variable
+@code{org-export-skip-text-before-1st-heading} to @code{t}.  On a per-file
+basis, you can get the same effect with @samp{#+OPTIONS: skip:t}.
+
+@noindent
+If you still want to have some text before the first headline, use the
+@code{#+TEXT} construct:
+
+@example
+#+OPTIONS: skip:t
+#+TEXT: This text will go before the *first* headline.
+#+TEXT: [TABLE-OF-CONTENTS]
+#+TEXT: This goes between the table of contents and the first headline
+@end example
+
+@node Lists, Paragraphs, Initial text, Markup rules
+@subheading Lists
+@cindex lists, markup rules
+
+Plain lists as described in @ref{Plain lists} are translated to the back-ends
+syntax for such lists.  Most back-ends support unordered, ordered, and
+description lists.
+
+@node Paragraphs, Literal examples, Lists, Markup rules
+@subheading Paragraphs, line breaks, and quoting
+@cindex paragraphs, markup rules
+
+Paragraphs are separated by at least one empty line.  If you need to enforce
+a line break within a paragraph, use @samp{\\} at the end of a line.
+
+To keep the line breaks in a region, but otherwise use normal formatting, you
+can use this construct, which can also be used to format poetry.
+
+@example
+#+BEGIN_VERSE
+Everything should be made as simple as possible,
+but not any simpler -- Albert Einstein
+#+END_VERSE
+@end example
+
+When quoting a passage from another document, it is customary to format this
+as a paragraph that is indented on both the left and the right margin.  You
+can include quotations in Org mode documents like this:
+
+@example
+#+BEGIN_QUOTE
+Everything should be made as simple as possible,
+but not any simpler -- Albert Einstein
+#+END_QUOTE
+@end example
+
+
+@node Literal examples, Include files, Paragraphs, Markup rules
+@subheading Literal examples
+@cindex literal examples, markup rules
+
+You can include literal examples that should not be subjected to
+markup.  Such examples will be typeset in monospace, so this is well suited
+for source code and similar examples.
+@cindex #+BEGIN_EXAMPLE
+
+@example
+#+BEGIN_EXAMPLE
+Some example from a text file.
+#+END_EXAMPLE
+@end example
+
+For simplicity when using small examples, you can also start the example
+lines with a colon:
+
+@example
+: Some example from a text file.
+@end example
+
+@cindex formatting source code, markup rules
+If the example is source code from a programming language, or any other text
+that can be marked up by font-lock in Emacs, you can ask for the example to
+look like the fontified Emacs buffer@footnote{Currently this works only for
+the HTML back-end, and requires the @file{htmlize.el} package version 1.34 or
+later.}.  This is done with the @samp{src} block, where you also need to
+specify the name of the major mode that should be used to fontify the
+example:
+@cindex #+BEGIN_SRC
+
+@example
+#+BEGIN_SRC emacs-lisp
+(defun org-xor (a b)
+   "Exclusive or."
+   (if a (not b) b))
+#+END_SRC
+@end example
+
+@table @kbd
+@kindex C-c '
+@item C-c '
+Edit the source code example at point in its native mode.  This works by
+switching to an indirect buffer, narrowing the buffer and switching to the
+other mode.  You need to exit by pressing @kbd{C-c '} again.
+@end table
+
+
+@node Include files, Tables exported, Literal examples, Markup rules
+@subheading Include files
+@cindex include files, markup rules
+
+During export, you can include the content of another file.  For example, to
+include your .emacs file, you could use:
+@cindex #+INCLUDE
+
+@example
+#+INCLUDE: "~/.emacs" src emacs-lisp
+@end example
+
+The optional second and third parameter are the markup (@samp{quote},
+@samp{example}, or @samp{src}), and, if the markup is @samp{src}, the
+language for formatting the contents.  The markup is optional, if it is not
+given, the text will be assumed to be in Org mode format and will be
+processed normally.
+
+@table @kbd
+@kindex C-c '
+@item C-c '
+Visit the include file at point.
+@end table
+
+@node Tables exported, Footnotes, Include files, Markup rules
+@subheading Tables
+@cindex tables, markup rules
+
+Both the native Org mode tables (@pxref{Tables}) and tables formatted with
+the @file{table.el} package will be exported properly.  For Org mode tables,
+the lines before the first horizontal separator line will become table header
+lines.
+
+@node Footnotes, Emphasis and monospace, Tables exported, Markup rules
+@subheading Footnotes
+@cindex footnotes, markup rules
+@cindex @file{footnote.el}
+
+@kindex C-c !
+Numbers in square brackets are treated as footnote markers, and lines
+starting with such a marker are interpreted as the footnote itself.  You can
+use the Emacs package @file{footnote.el} to create footnotes@footnote{The
+@file{footnote} package uses @kbd{C-c !} to invoke its commands.  This
+binding conflicts with the Org mode command for inserting inactive time
+stamps.  You could use the variable @code{footnote-prefix} to switch
+footnotes commands to another key.  Or, if you are too used to this binding,
+you could use @code{org-replace-disputed-keys} and @code{org-disputed-keys}
+to change the settings in Org.}.  For example:
+
+@example
+The Org homepage[1] now looks a lot better than it used to.
+
+[1] The link is: http://orgmode.org
+@end example
+
+@node Emphasis and monospace, TeX macros and LaTeX fragments, Footnotes, Markup rules
+@subheading Emphasis and monospace
+
+@cindex underlined text, markup rules
+@cindex bold text, markup rules
+@cindex italic text, markup rules
+@cindex verbatim text, markup rules
+@cindex code text, markup rules
+@cindex strike-through text, markup rules
+You can make words @b{*bold*}, @i{/italic/}, _underlined_, @code{=code=}
+and @code{~verbatim~}, and, if you must, @samp{+strike-through+}.  Text
+in the code and verbatim string is not processed for Org mode specific
+syntax, it is exported verbatim.
+
+@node TeX macros and LaTeX fragments, Horizontal rules, Emphasis and monospace, Markup rules
+@subheading @TeX{} macros and La@TeX{} fragments
+@cindex LaTeX fragments, markup rules
+@cindex TeX macros, markup rules
+@cindex HTML entities
+@cindex LaTeX entities
+
+A @TeX{}-like syntax is used to specify special characters.  Where possible,
+these will be transformed into the native format of the exporter back-end.
+Strings like @code{\alpha} will be exported as @code{&alpha;} in the HTML
+output, and as @code{$\alpha$} in the La@TeX{} output.  Similarly,
+@code{\nbsp} will become @code{&nbsp;} in HTML and @code{~} in La@TeX{}.
+This applies for a large number of entities, with names taken from both HTML
+and La@TeX{}, see the variable @code{org-html-entities} for the complete
+list.  If you are unsure about a name, use @kbd{M-@key{TAB}} for completion
+after having types the backslash and maybe a few characters
+(@pxref{Completion}).
+
+La@TeX{} fragments are converted into images for HTML export, and they are
+written literally into the La@TeX{} export.  See also @ref{Embedded LaTeX}.
+
+Finally, @samp{\-} is treated as a shy hyphen, and @samp{--}, @samp{---}, and
+@samp{...} are all converted into special commands creating hyphens of
+different lengths or a compact set of dots.
+
+@node Horizontal rules, Comment lines, TeX macros and LaTeX fragments, Markup rules
+@subheading  Horizontal rules
+@cindex horizontal rules, markup rules
+A line consisting of only dashes, and at least 5 of them, will be
+exported as a horizontal line (@samp{<hr/>} in HTML).
+
+@node Comment lines,  , Horizontal rules, Markup rules
+@subheading Comment lines
+@cindex comment lines
+@cindex exporting, not
+
+Lines starting with @samp{#} in column zero are treated as comments and will
+never be exported.  Also entire subtrees starting with the word
+@samp{COMMENT} will never be exported.  Finally, regions surrounded by
+@samp{#+BEGIN_COMMENT} ... @samp{#+END_COMMENT} will not be exported.
+
+@table @kbd
+@kindex C-c ;
+@item C-c ;
+Toggle the COMMENT keyword at the beginning of an entry.
+@end table
+
+@node Export options, The export dispatcher, Markup rules, Exporting
+@section Export options
+@cindex options, for export
+
+@cindex completion, of option keywords
+The exporter recognizes special lines in the buffer which provide
+additional information.  These lines may be put anywhere in the file.
+The whole set of lines can be inserted into the buffer with @kbd{C-c
+C-e t}.  For individual lines, a good way to make sure the keyword is
+correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
+(@pxref{Completion}).
+
+@table @kbd
+@kindex C-c C-e t
+@item C-c C-e t
+Insert template with export options, see example below.
+@end table
+
+@cindex #+TITLE:
+@cindex #+AUTHOR:
+@cindex #+DATE:
+@cindex #+EMAIL:
+@cindex #+LANGUAGE:
+@cindex #+TEXT:
+@cindex #+OPTIONS:
+@cindex #+LINK_UP:
+@cindex #+LINK_HOME:
+@example
+#+TITLE:     the title to be shown (default is the buffer name)
+#+AUTHOR:    the author (default taken from @code{user-full-name})
+#+DATE:      A date, fixed, of a format string for @code{format-time-string}
+#+EMAIL:     his/her email address (default from @code{user-mail-address})
+#+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
+#+TEXT:      Some descriptive text to be inserted at the beginning.
+#+TEXT:      Several lines may be given.
+#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t TeX:t ...
+#+LINK_UP:   the ``up'' link of an exported page
+#+LINK_HOME: the ``home'' link of an exported page
+@end example
+
+@noindent
+The OPTIONS line is a compact@footnote{If you want to configure many options
+this way, you can use several OPTIONS lines.} form to specify export settings.  Here
+you can:
+@cindex headline levels
+@cindex section-numbers
+@cindex table of contents
+@cindex line-break preservation
+@cindex quoted HTML tags
+@cindex fixed-width sections
+@cindex tables
+@cindex @TeX{}-like syntax for sub- and superscripts
+@cindex footnotes
+@cindex special strings
+@cindex emphasized text
+@cindex @TeX{} macros
+@cindex La@TeX{} fragments
+@cindex author info, in export
+@cindex time info, in export
+@example
+H:         @r{set the number of headline levels for export}
+num:       @r{turn on/off section-numbers}
+toc:       @r{turn on/off table of contents, or set level limit (integer)}
+\n:        @r{turn on/off line-break-preservation}
+@@:         @r{turn on/off quoted HTML tags}
+::         @r{turn on/off fixed-width sections}
+|:         @r{turn on/off tables}
+^:         @r{turn on/off @TeX{}-like syntax for sub- and superscripts.  If}
+           @r{you write "^:@{@}", @code{a_@{b@}} will be interpreted, but}
+           @r{the simple @code{a_b} will be left as it is.}
+-:         @r{turn on/off conversion of special strings.}
+f:         @r{turn on/off footnotes like this[1].}
+*:         @r{turn on/off emphasized text (bold, italic, underlined)}
+TeX:       @r{turn on/off simple @TeX{} macros in plain text}
+LaTeX:     @r{turn on/off La@TeX{} fragments}
+skip:      @r{turn on/off skipping the text before the first heading}
+author:    @r{turn on/off inclusion of author name/email into exported file}
+timestamp: @r{turn on/off inclusion creation time into exported file}
+d:         @r{turn on/off inclusion of drawers}
+@end example
+
+These options take effect in both the HTML and La@TeX{} export, except
+for @code{TeX} and @code{LaTeX}, which are respectively @code{t} and
+@code{nil} for the La@TeX{} export.
+
+When exporting only a single subtree by selecting it with @kbd{C-c @@} before
+calling an export command, the subtree can overrule some of the file's export
+settings with properties @code{EXPORT_FILE_NAME}, @code{EXPORT_TITLE},
+@code{EXPORT_TEXT}, and @code{EXPORT_OPTIONS}.
+
+@node The export dispatcher, ASCII export, Export options, Exporting
+@section The export dispatcher
+@cindex dispatcher, for export commands
+
+All export commands can be reached using the export dispatcher, which is a
+prefix key that prompts for an additional key specifying the command.
+Normally the entire file is exported, but if there is an active region that
+contains one outline tree, the first heading is used as document title and
+the subtrees are exported.
 
 @table @kbd
 @kindex C-c C-e
@@ -6561,6 +7120,10 @@ command.  The prefix arg is passed through to the exporter.  If the option
 @code{org-export-run-in-background} is set, Org will run the command in the
 background if that seems useful for the specific command (i.e. commands that
 write to a file).
+@kindex C-c C-e v
+@item C-c C-e v
+Like @kbd{C-c C-e}, but only export the text that is currently visible
+(i.e. not hidden by outline visibility).
 @kindex C-u C-u C-c C-e
 @item C-u C-u C-c C-e
 Call an the exporter, but reverse the setting of
@@ -6568,16 +7131,7 @@ Call an the exporter, but reverse the setting of
 not set, or force processing in the current Emacs process if st.
 @end table
 
-@menu
-* ASCII export::                Exporting to plain ASCII
-* HTML export::                 Exporting to HTML
-* LaTeX export::                Exporting to LaTeX
-* XOXO export::                 Exporting to XOXO
-* iCalendar export::            Exporting in iCalendar format
-* Text interpretation::         How the exporter looks at the file
-@end menu
-
-@node ASCII export, HTML export, Exporting, Exporting
+@node ASCII export, HTML export, The export dispatcher, Exporting
 @section ASCII export
 @cindex ASCII export
 
@@ -6593,9 +7147,10 @@ file.
 Export as ASCII file.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
 warning.  If there is an active region, only the region will be
-exported. If the selected region is a single tree, the tree head will
+exported. If the selected region is a single tree@footnote{To select the
+current subtree, use @kbd{C-c @@}.}, the tree head will
 become the document title.  If the tree head entry has or inherits an
-@code{:EXPORT_FILE_NAME:} property, that name will be used for the
+@code{EXPORT_FILE_NAME} property, that name will be used for the
 export.
 @kindex C-c C-e v a
 @item C-c C-e v a
@@ -6630,7 +7185,7 @@ HTML formatting, in ways similar to John Grubers @emph{markdown}
 language, but with additional support for tables.
 
 @menu
-* HTML Export commands::        How to invoke LaTeX export
+* HTML Export commands::        How to invoke HTML export
 * Quoting HTML tags::           Using direct HTML in Org mode
 * Links::                       Transformation of links for HTML
 * Images::                      How to include images
@@ -6647,13 +7202,13 @@ language, but with additional support for tables.
 @table @kbd
 @kindex C-c C-e h
 @item C-c C-e h
-Export as HTML file @file{myfile.html}.  For an org file
-@file{myfile.org}, the ASCII file will be @file{myfile.html}.  The file
-will be overwritten without warning.  If there is an active region, only
-the region will be exported. If the selected region is a single tree,
-the tree head will become the document title.  If the tree head entry
-has or inherits an @code{:EXPORT_FILE_NAME:} property, that name will be
-used for the export.
+Export as HTML file @file{myfile.html}.  For an org file @file{myfile.org},
+the ASCII file will be @file{myfile.html}.  The file will be overwritten
+without warning.  If there is an active region, only the region will be
+exported. If the selected region is a single tree@footnote{To select the
+current subtree, use @kbd{C-c @@}.}, the tree head will become the document
+title.  If the tree head entry has or inherits an @code{EXPORT_FILE_NAME}
+property, that name will be used for the export.
 @kindex C-c C-e b
 @item C-c C-e b
 Export as HTML file and immediately open it with a browser.
@@ -6711,6 +7266,7 @@ the exported file use either
 @end example
 
 @noindent or
+@cindex #+BEGIN_HTML
 
 @example
 #+BEGIN_HTML
@@ -6813,19 +7369,20 @@ navigation can be done with the @kbd{n} and @kbd{p} keys (and some other keys
 as well, press @kbd{?} for an overview of the available keys).  The second
 view type is a @emph{folding} view much like Org provides it inside Emacs.
 The script is available at @url{http://orgmode.org/org-info.js} and you can
-find the documentation for it at @url{http://orgmode.org/org-infojs.html}.
-We are serving the script from our site, but if you use it a lot, you might
-not want to be dependent on @url{orgmode.org} and prefer to install a local
-copy on your own web server.
+find the documentation for it at
+@url{http://orgmode.org/worg/code/org-info-js/org-info.js.html}.  We are
+serving the script from our site, but if you use it a lot, you might not want
+to be dependent on @url{orgmode.org} and prefer to install a local copy on
+your own web server.
 
-To use the script, you need to make sure that the @file{org-infojs.el} module
+To use the script, you need to make sure that the @file{org-jsinfo.el} module
 gets loaded.  It should be loaded by default, try @kbd{M-x customize-variable
 @key{RET} org-modules @key{RET}} to convince yourself that this is indeed the
 case.  All it then takes to make use of the program is adding a single line
 to the Org file:
 
 @example
-#+INFOSJ_OPT: view:info toc:nil
+#+INFOJS_OPT: view:info toc:nil
 @end example
 
 @noindent
@@ -6837,7 +7394,7 @@ viewing options:
 path:    @r{The path to the script.  The default is to grab the script from}
          @r{@url{http://orgmode.org/org-info.js}, but you might want to have}
          @r{a local copy and use a path like @samp{../scripts/org-info.js}.}
-view:    @r{Initial view when website is first shown.  Possible values are}
+view:    @r{Initial view when website is first shown.  Possible values are:}
          info      @r{Info-like interface with one section per page.}
          overview  @r{Folding interface, initially showing only top-level.}
          content   @r{Folding interface, starting with all headlines visible.}
@@ -6851,6 +7408,8 @@ toc:     @r{Should the table of content @emph{initially} be visible?}
          @r{Even when @code{nil}, you can always get to the toc with @kbd{i}.}
 tdepth:  @r{The depth of the table of contents.  The defaults are taken from}
          @r{the variables @code{org-headline-levels} and @code{org-export-with-toc}.}
+ftoc:    @r{Does the css of the page specify a fixed position for the toc?}
+         @r{If yes, the toc will never be displayed as a section.}
 ltoc:    @r{Should there be short contents (children) in each section?}
 mouse:   @r{Headings are highlighted when the mouse is over them.  Should be}
          @r{@samp{underline} (default) or a background color like @samp{#cccccc}.}
@@ -6880,7 +7439,13 @@ Org mode contains a La@TeX{} exporter written by Bastien Guerry.
 @table @kbd
 @kindex C-c C-e l
 @item C-c C-e l
-Export as La@TeX{} file @file{myfile.tex}.
+Export as La@TeX{} file @file{myfile.tex}.  For an org file
+@file{myfile.org}, the ASCII file will be @file{myfile.tex}.  The file will
+be overwritten without warning.  If there is an active region, only the
+region will be exported. If the selected region is a single tree@footnote{To
+select the current subtree, use @kbd{C-c @@}.}, the tree head will become the
+document title.  If the tree head entry has or inherits an
+@code{EXPORT_FILE_NAME} property, that name will be used for the export.
 @kindex C-c C-e L
 @item C-c C-e L
 Export to a temporary buffer, do not create a file.
@@ -6928,14 +7493,13 @@ constructs:
 @end example
 
 @noindent or
+@cindex #+BEGIN_LaTeX
 
 @example
 #+BEGIN_LaTeX
 All lines between these markers are exported literally
 #+END_LaTeX
 @end example
-
-
 
 @node   Sectioning structure,  , Quoting LaTeX code, LaTeX export
 @subsection Sectioning structure
@@ -6968,7 +7532,7 @@ Export as XOXO file @file{myfile.html}.
 Export only the visible part of the document.
 @end table
 
-@node iCalendar export, Text interpretation, XOXO export, Exporting
+@node iCalendar export,  , XOXO export, Exporting
 @section iCalendar export
 @cindex iCalendar export
 
@@ -6979,6 +7543,16 @@ other time-stamped items in Org files show up in the calendar
 application.  Org mode can export calendar information in the standard
 iCalendar format.  If you also want to have TODO entries included in the
 export, configure the variable @code{org-icalendar-include-todo}.
+
+The iCalendar standard requires each entry to have a globally unique
+identifier (UID).  Org creates these identifiers during export.  If you set
+the variable @code{org-icalendar-store-UID}, the UID will be stored in the
+@code{:ID:} property of the entry and re-used next time you report this
+entry.  Since a single entry can give rise to multiple iCalendar entries (as
+a timestamp, a deadline, a scheduled item, and as a TODO item), Org adds
+prefixes to the UID, depending on what triggered the inclusion of the entry.
+In this way the UID remains unique, but a synchronization program can still
+figure out from which entry all the different instances originate.
 
 @table @kbd
 @kindex C-c C-e i
@@ -7004,294 +7578,6 @@ from the headline, and the description from the body (limited to
 
 How this calendar is best read and updated, depends on the application
 you are using.  The FAQ covers this issue.
-
-
-@node Text interpretation,  , iCalendar export, Exporting
-@section Text interpretation by the exporter
-
-The exporter backends interpret additional structure in the Org file
-in order to produce better output.
-
-@menu
-* Comment lines::               Some lines will not be exported
-* Initial text::                Text before the first headline
-* Footnotes::                   Numbers like [1]
-* Quoted examples::             Inserting quoted chunks of text
-* Enhancing text::              Subscripts, symbols and more
-* Export options::              How to influence the export settings
-@end menu
-
-@node Comment lines, Initial text, Text interpretation, Text interpretation
-@subsection Comment lines
-@cindex comment lines
-@cindex exporting, not
-
-Lines starting with @samp{#} in column zero are treated as comments
-and will never be exported.  Also entire subtrees starting with the
-word @samp{COMMENT} will never be exported.
-
-@table @kbd
-@kindex C-c ;
-@item C-c ;
-Toggle the COMMENT keyword at the beginning of an entry.
-@end table
-
-@node Initial text, Footnotes, Comment lines, Text interpretation
-@subsection Text before the first headline
-
-Org mode normally ignores any text before the first headline when
-exporting, leaving this region for internal links to speed up navigation
-etc.  However, in publishing-oriented files, you might want to have some
-text before the first headline, like a small introduction, special HTML
-code with a navigation bar, etc.  You can ask to have this part of the
-file exported as well by setting the variable
-@code{org-export-skip-text-before-1st-heading} to @code{nil}.  On a
-per-file basis, you can get the same effect with
-
-@example
-#+OPTIONS: skip:nil
-@end example
-
-The text before the first headline will be fully processed
-(@pxref{Enhancing text}), and the first non-comment line becomes the
-title of the exported document.  If you need to include literal HTML,
-use the special constructs described in @ref{Quoting HTML tags}.  The
-table of contents is normally inserted directly before the first
-headline of the file.  If you would like to get it to a different
-location, insert the string @code{[TABLE-OF-CONTENTS]} on a line by
-itself at the desired location.
-
-Finally, if you want to use the space before the first headline for
-internal purposes, but @emph{still} want to place something before the
-first headline when exporting the file, you can use the @code{#+TEXT}
-construct:
-
-@example
-#+OPTIONS: skip:t
-#+TEXT: This text will go before the *first* headline.
-#+TEXT: We place the table of contents here:
-#+TEXT: [TABLE-OF-CONTENTS]
-#+TEXT: This goes between the table of contents and the first headline
-@end example
-
-@node Footnotes, Quoted examples, Initial text, Text interpretation
-@subsection Footnotes
-@cindex footnotes
-@cindex @file{footnote.el}
-
-Numbers in square brackets are treated as footnotes, so that you can use
-the Emacs package @file{footnote.el} to create footnotes.  For example:
-
-@example
-The Org homepage[1] clearly needs help from
-a good web designer.
-
-[1] The link is: http://orgmode.org
-@end example
-
-@noindent
-@kindex C-c !
-Note that the @file{footnote} package uses @kbd{C-c !} to invoke its
-commands.  This binding conflicts with the Org mode command for
-inserting inactive time stamps.  You could use the variable
-@code{footnote-prefix} to switch footnotes commands to another key.  Or,
-if you are too used to this binding, you could use
-@code{org-replace-disputed-keys} and @code{org-disputed-keys} to change
-the settings in Org.
-
-@node Quoted examples, Enhancing text, Footnotes, Text interpretation
-@subsection Quoted examples
-@cindex quoted examples
-@cindex examples, quoted
-@cindex text, fixed width
-@cindex fixed width text
-
-When writing technical documents, you often need to insert examples that
-are not further interpreted by Org mode.  For historical reasons, there
-are several ways to do this:
-
-@itemize @bullet
-@item
-If a headline starts with the word @samp{QUOTE}, the text below the
-headline will be typeset as fixed-width, to allow quoting of computer
-codes etc.
-@item
-Lines starting with @samp{:} are also typeset in fixed-width font.
-@table @kbd
-@kindex C-c :
-@item C-c :
-Toggle fixed-width for entry (QUOTE) or region, see below.
-@end table
-@item
-Finally, text between
-@example
-#+BEGIN_EXAMPLE
-quoted text
-#+END_EXAMPLE
-@end example
-will also be exported in this way.
-@end itemize
-
-
-@node Enhancing text, Export options, Quoted examples, Text interpretation
-@subsection Enhancing text for export
-@cindex enhancing text
-@cindex richer text
-
-Some of the export backends of Org mode allow for sophisticated text
-formatting, this is true in particular for the HTML and La@TeX{}
-backends.  Org mode has a number of typing conventions that allow to
-produce a richly formatted output.
-
-@itemize @bullet
-
-@cindex hand-formatted lists
-@cindex lists, hand-formatted
-@item
-Plain lists @samp{-}, @samp{*} or @samp{+} as bullet, or with @samp{1.}
-or @samp{2)} as enumerator will be recognized and transformed if the
-backend supports lists.  See @xref{Plain lists}.
-
-@cindex underlined text
-@cindex bold text
-@cindex italic text
-@cindex verbatim text
-@item
-You can make words @b{*bold*}, @i{/italic/}, _underlined_, @code{=code=}
-and @code{~verbatim~}, and, if you must, @samp{+strikethrough+}.  Text
-in the code and verbatim string is not processed for Org mode specific
-syntax, it is exported verbatim.
-
-@cindex horizontal rules, in exported files
-@item
-A line consisting of only dashes, and at least 5 of them, will be
-exported as a horizontal line (@samp{<hr/>} in HTML).
-
-@cindex LaTeX fragments, export
-@cindex TeX macros, export
-@item
-Many @TeX{} macros and entire La@TeX{} fragments are converted into HTML
-entities or images (@pxref{Embedded LaTeX}).
-
-@cindex tables, export
-@item
-Tables are transformed into native tables under the exporter, if the
-export backend supports this. Data fields before the first horizontal
-separator line will be formatted as table header fields.
-
-@cindex fixed width
-@item
-If a headline starts with the word @samp{QUOTE}, the text below the
-headline will be typeset as fixed-width, to allow quoting of computer
-codes etc.  Lines starting with @samp{:} are also typeset in fixed-width
-font.
-@table @kbd
-@kindex C-c :
-@item C-c :
-Toggle fixed-width for entry (QUOTE) or region, see below.
-@end table
-Finally, text between
-@example
-#+BEGIN_EXAMPLE
-quoted text
-#+END_EXAMPLE
-@end example
-will also be exported in this way.
-
-@cindex linebreak, forced
-@item
-A double backslash @emph{at the end of a line} enforces a line break at
-this position.
-
-@cindex HTML entities, LaTeX entities
-@item
-Strings like @code{\alpha} will be exported as @code{&alpha;}, in the
-HTML output.  These strings are exported as @code{$\alpha$} in the
-La@TeX{} output.  Similarly, @code{\nbsp} will become @code{&nbsp;} in
-HTML and in La@TeX{}.  This applies for a long list of entities, see
-the variable @code{org-html-entities} for the complete list.
-@c FIXME
-@end itemize
-
-If these conversions conflict with your habits of typing ASCII text,
-they can all be turned off with corresponding variables.  See the
-customization group @code{org-export-general}, and the following section
-which explains how to set export options with special lines in a
-buffer.
-
-
-@node Export options,  , Enhancing text, Text interpretation
-@subsection Export options
-@cindex options, for export
-
-@cindex completion, of option keywords
-The exporter recognizes special lines in the buffer which provide
-additional information.  These lines may be put anywhere in the file.
-The whole set of lines can be inserted into the buffer with @kbd{C-c
-C-e t}.  For individual lines, a good way to make sure the keyword is
-correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
-(@pxref{Completion}).
-
-@table @kbd
-@kindex C-c C-e t
-@item C-c C-e t
-Insert template with export options, see example below.
-@end table
-
-@example
-#+TITLE:     the title to be shown (default is the buffer name)
-#+AUTHOR:    the author (default taken from @code{user-full-name})
-#+DATE:      A date, fixed, of a format string for @code{format-time-string}
-#+EMAIL:     his/her email address (default from @code{user-mail-address})
-#+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
-#+TEXT:      Some descriptive text to be inserted at the beginning.
-#+TEXT:      Several lines may be given.
-#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t TeX:t ...
-@end example
-
-@noindent
-The OPTIONS line is a compact form to specify export settings.  Here
-you can:
-@cindex headline levels
-@cindex section-numbers
-@cindex table of contents
-@cindex linebreak preservation
-@cindex quoted HTML tags
-@cindex fixed-width sections
-@cindex tables
-@cindex @TeX{}-like syntax for sub- and superscripts
-@cindex footnotes
-@cindex special strings
-@cindex emphasized text
-@cindex @TeX{} macros
-@cindex La@TeX{} fragments
-@cindex author info, in export
-@cindex time info, in export
-@example
-H:         @r{set the number of headline levels for export}
-num:       @r{turn on/off section-numbers}
-toc:       @r{turn on/off table of contents, or set level limit (integer)}
-\n:        @r{turn on/off linebreak-preservation}
-@@:         @r{turn on/off quoted HTML tags}
-::         @r{turn on/off fixed-width sections}
-|:         @r{turn on/off tables}
-^:         @r{turn on/off @TeX{}-like syntax for sub- and superscripts.  If}
-           @r{you write "^:@{@}", @code{a_@{b@}} will be interpreted, but}
-           @r{the simple @code{a_b} will be left as it is.}
--:         @r{turn on/off conversion of special strings.}
-f:         @r{turn on/off foototes like this[1].}
-*:         @r{turn on/off emphasized text (bold, italic, underlined)}
-TeX:       @r{turn on/off simple @TeX{} macros in plain text}
-LaTeX:     @r{turn on/off La@TeX{} fragments}
-skip:      @r{turn on/off skipping the text before the first heading}
-author:    @r{turn on/off inclusion of author name/email into exported file}
-timestamp: @r{turn on/off inclusion creation time into exported file}
-d:         @r{turn on/off inclusion of drawers}
-@end example
-
-These options take effect in both the HTML and La@TeX{} export, except
-for @code{TeX} and @code{LaTeX}, which are respectively @code{t} and
-@code{nil} for the La@TeX{} export.
 
 @node Publishing, Miscellaneous, Exporting, Top
 @chapter Publishing
@@ -7378,8 +7664,11 @@ and where to put published files.
 @item @code{:publishing-directory}
 @tab Directory (possibly remote) where output files will be published.
 @item @code{:preparation-function}
-@tab Function called before starting publishing process, for example to
+@tab Function called before starting the publishing process, for example to
 run @code{make} for updating files to be published.
+@item @code{:completion-function}
+@tab Function called after finishing the publishing process, for example to
+change permissions of the resulting files.
 @end multitable
 @noindent
 
@@ -7646,7 +7935,7 @@ Org uses timestamps to track when a file has changed. The above
 functions normally only publish changed files. You can override this and
 force publishing of all files by giving a prefix argument.
 
-@node Miscellaneous, Extensions and Hacking, Publishing, Top
+@node Miscellaneous, Extensions, Publishing, Top
 @chapter Miscellaneous
 
 @menu
@@ -7764,6 +8053,9 @@ Set file-local values for constants to be used in table formulas.  This
 line set the local variable @code{org-table-formula-constants-local}.
 The global version of this variable is
 @code{org-table-formula-constants}.
+@item #+FILETAGS: :tag1:tag2:tag3:
+Set tags that can be inherited by any entry in the file, including the
+top-level entries.
 @item #+DRAWERS: NAME1 .....
 Set the file-local set of drawers.  The corresponding global variable is
 @code{org-drawers}.
@@ -7778,6 +8070,14 @@ have a lower ASCII number that the lowest priority.
 @item #+PROPERTY: Property_Name Value
 This line sets a default inheritance value for entries in the current
 buffer, most useful for specifying the allowed values of a property.
+@item #+SETUPFILE: file
+This line defines a file that holds more in-buffer setup.  Normally this is
+entirely ignored.  Only when the buffer is parsed for option-setting lines
+(i.e. when starting Org mode for a file, when pressing @kbd{C-c C-c} in a
+settings line, or when exporting), then the contents of this file are parsed
+as if they had been included in the buffer.  In particlar, the file can be
+any other Org mode file with internal setup.  You can visit the file the
+cursor is in the line with @kbd{C-c '}.
 @item #+STARTUP:
 This line sets options to be used at startup of Org mode, when an
 Org file is being visited.  The first set of options deals with the
@@ -7823,10 +8123,10 @@ nologrepeat        @r{do not record when reinstating repeating item}
 lognoteclock-out   @r{record a note when clocking out}
 nolognoteclock-out @r{don't record a note when clocking out}
 @end example
-Here are the options for hiding leading stars in outline headings.  The
-corresponding variables are @code{org-hide-leading-stars} and
-@code{org-odd-levels-only}, both with a default setting @code{nil}
-(meaning @code{showstars} and @code{oddeven}).
+Here are the options for hiding leading stars in outline headings, and for
+indenting outlines.  The corresponding variables are
+@code{org-hide-leading-stars} and @code{org-odd-levels-only}, both with a
+default setting @code{nil} (meaning @code{showstars} and @code{oddeven}).
 @cindex @code{hidestars}, STARTUP keyword
 @cindex @code{showstars}, STARTUP keyword
 @cindex @code{odd}, STARTUP keyword
@@ -7834,6 +8134,8 @@ corresponding variables are @code{org-hide-leading-stars} and
 @example
 hidestars  @r{make all but one of the stars starting a headline invisible.}
 showstars  @r{show all stars starting a headline}
+indent     @r{virtual indentation according to outline level}
+noindent   @r{no virtual indentation according to outline level}
 odd        @r{allow only odd outline levels (1,3,...)}
 oddeven    @r{allow all outline levels}
 @end example
@@ -7920,56 +8222,73 @@ block is updated.
 @node Clean view, TTY keys, The very busy C-c C-c key, Miscellaneous
 @section A cleaner outline view
 @cindex hiding leading stars
+@cindex dynamic indentation
+@cindex odd-levels-only outlines
 @cindex clean outline view
 
-Some people find it noisy and distracting that the Org headlines
-are starting with a potentially large number of stars.  For example
-the tree from @ref{Headlines}:
+Some people find it noisy and distracting that the Org headlines are starting
+with a potentially large number of stars, and that text below the headlines
+is not indented.  This is not really a problem when you are writing a book
+where the outline headings are really section headlines.  However, in a more
+list-oriented outline, it is clear that an indented structure is a lot
+cleaner, as can be seen by comparing the two columns in the following
+example: 
 
 @example
-* Top level headline
-** Second level
-*** 3rd level
-    some text
-*** 3rd level
-    more text
-* Another top level headline
+@group
+* Top level headline             |    * Top level headline
+** Second level                  |      * Second level
+*** 3rd level                    |        * 3rd level
+some text                        |          some text
+*** 3rd level                    |        * 3rd level
+more text                        |          more text
+* Another top level headline     |    * Another top level headline
+@end group
 @end example
 
 @noindent
-Unfortunately this is deeply ingrained into the code of Org and
-cannot be easily changed.  You can, however, modify the display in such
-a way that all leading stars become invisible and the outline more easy
-to read.  To do this, customize the variable
-@code{org-hide-leading-stars} like this:
+It is non-trivial to make such a look work in Emacs, but Org contains three
+separate features that, combined, achieve just that.
 
-@lisp
-(setq org-hide-leading-stars t)
-@end lisp
+@enumerate
+@item 
+@emph{Indentation of text below headlines}@*
+You may indent text below each headline to make the left boundary line up
+with the headline, like
 
-@noindent
-or change this on a per-file basis with one of the lines (anywhere in
-the buffer)
+@example
+*** 3rd level
+    more text, now indented
+@end example
+
+A good way to get this indentation is by hand, and Org supports this with
+paragraph filling, line wrapping, and structure editing@footnote{See also the
+variable @code{org-adapt-indentation}.} preserving or adapting the
+indentation appropriate.  A different approach would be to have a way to
+automatically indent lines according to outline structure by adding overlays
+or text properties.  But I have not yet found a robust and efficient way to
+do this in large files.
+
+@item
+@emph{Hiding leading stars}@* You can modify the display in such a way that
+all leading stars become invisible.  To do this in a global way, configure
+the variable @code{org-hide-leading-stars} or change this on a per-file basis
+with
 
 @example
 #+STARTUP: showstars
 #+STARTUP: hidestars
 @end example
 
-@noindent
-Press @kbd{C-c C-c} with the cursor in a @samp{STARTUP} line to activate
-the modifications.
-
-With stars hidden, the tree becomes:
+With hidden stars, the tree becomes:
 
 @example
+@group
 * Top level headline
  * Second level
   * 3rd level
-    some text
-  * 3rd level
-    more text
-* Another top level headline
+  ...
+@end group
 @end example
 
 @noindent
@@ -7981,32 +8300,14 @@ effect.  Another possibility is to set this font such that the extra
 stars are @i{almost} invisible, for example using the color
 @code{grey90} on a white background.
 
-Things become cleaner still if you skip all the even levels and use only
-odd levels 1, 3, 5..., effectively adding two stars to go from one
-outline level to the next:
-
-@example
-* Top level headline
-  * Second level
-    * 3rd level
-      some text
-    * 3rd level
-      more text
-* Another top level headline
-@end example
-
-@noindent
-In order to make the structure editing and export commands handle this
-convention correctly, use
-
-@lisp
-(setq org-odd-levels-only t)
-@end lisp
-
-@noindent
-or set this on a per-file basis with one of the following lines (don't
-forget to press @kbd{C-c C-c} with the cursor in the startup line to
-activate changes immediately).
+@item
+Things become cleaner still if you skip all the even levels and use only odd
+levels 1, 3, 5..., effectively adding two stars to go from one outline level
+to the next.  In this way we get the outline view shown at the beginning of
+this section.  In order to make the structure editing and export commands
+handle this convention correctly, configure the variable
+@code{org-odd-levels-only}, or set this on a per-file basis with one of the
+following lines:
 
 @example
 #+STARTUP: odd
@@ -8017,6 +8318,7 @@ You can convert an Org file from single-star-per-level to the
 double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
 RET} in that file.  The reverse operation is @kbd{M-x
 org-convert-to-oddeven-levels}.
+@end enumerate
 
 @node TTY keys, Interaction, Clean view, Miscellaneous
 @section Using Org on a tty
@@ -8235,39 +8537,108 @@ multiple recalculation may be needed to get all fields consistent.  You
 may use the command @code{org-table-iterate} (@kbd{C-u C-c *}) to
 recalculate until convergence.
 @item
-A single letter cannot be made bold, for example @samp{*a*}.
-@item
 The exporters work well, but could be made more efficient.
 @end itemize
 
 
-@node Extensions and Hacking, History and Acknowledgments, Miscellaneous, Top
-@appendix Extensions, Hooks and Hacking
+@node Extensions, Hacking, Miscellaneous, Top
+@appendix Extensions
 
-This appendix lists extensions for Org written by other authors.
-It also covers some aspects where users can extend the functionality of
+This appendix lists the extension modules that have been written for Org.
+Many of these extensions live in the @file{contrib} directory of the Org
+distribution, others are available somewhere on the web.
+
+@menu
+* Extensions in the contrib directory::  These come with the Org distro
+* Other extensions::            These you have to find on the web.
+@end menu
+
+@node Extensions in the contrib directory, Other extensions, Extensions, Extensions
+@section Extensions in the @file{contrib} directory
+
+@table @asis
+@item @file{org-annotate-file.el} by @i{Philip Jackson}
+      Annotate a file with org syntax, in a separate file, with links back to
+      the annotated file.
+@item @file{org-annotation-helper.el} by @i{Bastien Guerry and Daniel E. German} 
+      Call @i{remember} directly from Firefox/Opera, or from Adobe Reader.
+      When activating a special link or bookmark, Emacs receives a trigger to
+      create a note with a link back to the website.  Requires some setup, a
+      detailes description is in
+      @file{contrib/packages/org-annotation-helper}.
+@item @file{org-bookmark.el} by @i{Tokuya Kameshima}
+      Support for links to Emacs bookmarks.
+@item @file{org-depend.el} by @i{Carsten Dominik}
+      TODO dependencies for Org-mode.  Make TODO state changes in one entry
+      trigger changes in another, or be blocked by the state of another
+      entry.  Also, easily create chains of TODO items with exactly one
+      active item at any time.
+@item @file{org-elisp-symbol.el} by @i{Bastien Guerry}
+      Org links to emacs-lisp symbols.  This can create annotated links that
+      exactly point to the definition location of a variable of function.
+@item @file{org-eval.el} by @i{Carsten Dominik}
+      The @code{<lisp>} tag, adapted from Emacs Wiki and Emacs Muse, allows
+      to include text in a document that is the result of evaluating some
+      code.  Other scripting languages like @code{perl} can be supported with
+      this package as well.
+@item @file{org-expiry.el} by @i{Bastien Guerry}
+      Expiry mechanism for Org entries.
+@item @file{org-indent.el} by @i{Carsten Dominik}
+      Dynamic indentation of Org outlines.  The plan is to indent an outline
+      according to level, but so far this is too hard for a proper and stable
+      implementation.  Still, it works somewhat.
+@item @file{org-interactive-query.el} by @i{Christopher League}
+      Interactive modification of tags queries.  After running a general
+      query in Org, this package allows to narrow down the results by adding
+      more tags or keywords.
+@item @file{org-mairix.el} by @i{Georg C. F. Greve}
+      Hook mairix search into Org for different MUAs.
+@item @file{org-man.el} by @i{Carsten Dominik}
+      Support for links to manpages in Org-mode.
+@item @file{org-mtags.el} by @i{Carsten Dominik}
+      Support for some Muse-like tags in Org-mode.  This package allows you
+      to write @code{<example>} and @code{<src>} and other syntax copied from
+      Emacs Muse, right inside an Org file.  The goal here is to make it easy
+      to publish the same file using either org-publish or Muse.
+@item @file{org-panel.el} by @i{Lennard Borgman}
+      Simplified and display-aided access to some Org commands.
+@item @file{org-registry.el} by @i{Bastien Guerry}
+      A registry for Org links, to find out from where links point to a given
+      file or location.
+@item @file{org2rem.el} by @i{Bastien Guerry}
+      Convert org appointments into reminders for the @file{remind} program.
+@item @file{org-screen.el} by @i{Andrew Hyatt}
+      Visit screen sessions through Org-mode links.
+@item @file{org-toc.el} by @i{Bastien Guerry}
+      Table of contents in a separate buffer, with fast access to sections
+      and easy visibility cycling.
+@item @file{orgtbl-sqlinsert.el} by @i{Jason Riedy}
+      Convert Org-mode tables to SQL insertions.  Documentation for this can
+      be found on the Worg pages.
+@end table
+
+
+@node Other extensions,  , Extensions in the contrib directory, Extensions
+@section Other extensions
+
+@i{TO BE DONE}
+
+@node Hacking, History and Acknowledgments, Extensions, Top
+@appendix Hacking
+
+This appendix covers some aspects where users can extend the functionality of
 Org.
 
 @menu
-* Extensions::                  Existing 3rd-party extensions
 * Adding hyperlink types::      New custom link types
 * Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
 * Special agenda views::        Customized views
 * Using the property API::      Writing programs that use entry properties
+* Using the mapping API::       Mapping over all or selected entries
 @end menu
 
-@node Extensions, Adding hyperlink types, Extensions and Hacking, Extensions and Hacking
-@section Third-party extensions for Org
-@cindex extension, third-party
-
-There are lots of extensions that have been written by other people.  Most of
-them have either been integrated into Org by now, or they can be found in the
-Org distribution, in the @file{contrib} directory.  The list has gotten too
-long to cover in any detail here, but there is a seaparate manual for these
-extensions.
-
-@node Adding hyperlink types, Tables in arbitrary syntax, Extensions, Extensions and Hacking
+@node Adding hyperlink types, Tables in arbitrary syntax, Hacking, Hacking
 @section Adding hyperlink types
 @cindex hyperlinks, adding new types
 
@@ -8364,7 +8735,7 @@ can also set the @code{:description} property to provide a default for
 the link description when the link is later inserted into an Org
 buffer with @kbd{C-c C-l}.
 
-@node Tables in arbitrary syntax, Dynamic blocks, Adding hyperlink types, Extensions and Hacking
+@node Tables in arbitrary syntax, Dynamic blocks, Adding hyperlink types, Hacking
 @section Tables and lists in arbitrary syntax
 @cindex tables, in other modes
 @cindex lists, in other modes
@@ -8431,7 +8802,9 @@ acted upon before the translation function is called:
 
 @table @code
 @item :skip N
-Skip the first N lines of the table. Hlines do count!
+Skip the first N lines of the table.  Hlines do count as separate lines for
+this parameter!
+
 @item :skipcols (n1 n2 ...)
 List of columns that should be skipped.  If the table has a column with
 calculation marks, that column is automatically discarded as well.
@@ -8477,6 +8850,7 @@ modes.}  with the command @kbd{M-x orgtbl-insert-radio-table}.  You will
 be prompted for a table name, lets say we use @samp{salesfigures}.  You
 will then get the following template:
 
+@cindex #+ORGTBL: SEND
 @example
 % BEGIN RECEIVE ORGTBL salesfigures
 % END RECEIVE ORGTBL salesfigures
@@ -8545,7 +8919,7 @@ Month & \multicolumn@{1@}@{c@}@{Days@} & Nr.\ sold & per day\\
 The La@TeX{} translator function @code{orgtbl-to-latex} is already part of
 Orgtbl mode.  It uses a @code{tabular} environment to typeset the table
 and marks horizontal lines with @code{\hline}.  Furthermore, it
-interprets the following parameters:
+interprets the following parameters (see also @ref{Translator functions}):
 
 @table @code
 @item :splice nil/t
@@ -8576,15 +8950,15 @@ supplied instead of strings.
 @cindex HTML, and Orgtbl mode
 @cindex translator function
 
-Orgtbl mode has several translator functions built-in:
-@code{orgtbl-to-latex}, @code{orgtbl-to-html}, and
-@code{orgtbl-to-texinfo}.  Except for @code{orgtbl-to-html}@footnote{The
-HTML translator uses the same code that produces tables during HTML
-export.}, these all use a generic translator, @code{orgtbl-to-generic}.
-For example, @code{orgtbl-to-latex} itself is a very short function that
-computes the column definitions for the @code{tabular} environment,
-defines a few field and line separators and then hands over to the
-generic translator.  Here is the entire code:
+Orgtbl mode has several translator functions built-in: @code{orgtbl-to-csv}
+(comma-separated values), @code{orgtbl-to-tsv} (TAB-separated values)
+@code{orgtbl-to-latex}, @code{orgtbl-to-html}, and @code{orgtbl-to-texinfo}.
+Except for @code{orgtbl-to-html}@footnote{The HTML translator uses the same
+code that produces tables during HTML export.}, these all use a generic
+translator, @code{orgtbl-to-generic}.  For example, @code{orgtbl-to-latex}
+itself is a very short function that computes the column definitions for the
+@code{tabular} environment, defines a few field and line separators and then
+hands over to the generic translator.  Here is the entire code:
 
 @lisp
 @group
@@ -8687,7 +9061,7 @@ La@TeX{} file:
 Pressing `C-c C-c' on @code{a new house} and will insert the converted
 La@TeX{} list between the two marker lines.
 
-@node Dynamic blocks, Special agenda views, Tables in arbitrary syntax, Extensions and Hacking
+@node Dynamic blocks, Special agenda views, Tables in arbitrary syntax, Hacking
 @section Dynamic blocks
 @cindex dynamic blocks
 
@@ -8700,6 +9074,7 @@ Dynamic block are enclosed by a BEGIN-END structure that assigns a name
 to the block and can also specify parameters for the function producing
 the content of the block.
 
+#+BEGIN:dynamic block
 @example
 #+BEGIN: myblock :parameter1 value1 :parameter2 value2 ...
 
@@ -8751,7 +9126,7 @@ example @code{before-save-hook}.  @code{org-update-all-dblocks} is
 written in a way that is does nothing in buffers that are not in
 @code{org-mode}.
 
-@node Special agenda views, Using the property API, Dynamic blocks, Extensions and Hacking
+@node Special agenda views, Using the property API, Dynamic blocks, Hacking
 @section Special agenda views
 @cindex agenda views, user-defined
 
@@ -8833,7 +9208,7 @@ like this, even without defining a special function:
     (org-agenda-overriding-header "Projects waiting for something: "))))
 @end lisp
 
-@node Using the property API,  , Special agenda views, Extensions and Hacking
+@node Using the property API, Using the mapping API, Special agenda views, Hacking
 @section Using the property API
 @cindex API, for properties
 @cindex properties, API
@@ -8891,7 +9266,105 @@ Treat the value of the property PROPERTY as a whitespace-separated list of
 values and check if VALUE is in this list.
 @end defun
 
-@node History and Acknowledgments, Main Index, Extensions and Hacking, Top
+@node Using the mapping API,  , Using the property API, Hacking
+@section Using the mapping API
+@cindex API, for mapping
+@cindex mapping entries, API
+
+Org has sophisticated mapping capabilities to find all entries satisfying
+certain criteria.  Internally, this functionality is used to produce agenda
+views, but there is also an API that can be used to execute arbitrary
+functions for each or selected entries.  The main entry point for this API
+is: 
+
+@defun org-map-entries func &optional match scope &rest skip
+Call FUNC at each headline selected by MATCH in SCOPE.
+
+FUNC is a function or a lisp form.  The function will be called without
+arguments, with the cursor positioned at the beginning of the headline.
+The return values of all calls to the function will be collected and
+returned as a list.
+
+MATCH is a tags/property/todo match as it is used in the agenda tags view.
+Only headlines that are matched by this query will be considered during
+the iteration.  When MATCH is nil or t, all headlines will be
+visited by the iteration.
+
+SCOPE determines the scope of this command.  It can be any of:
+
+@example
+nil     @r{the current buffer, respecting the restriction if any}
+tree    @r{the subtree started with the entry at point}
+file    @r{the current buffer, without restriction}
+file-with-archives
+        @r{the current buffer, and any archives associated with it}
+agenda  @r{all agenda files}
+agenda-with-archives
+        @r{all agenda files with any archive files associated with them}
+(file1 file2 ...)
+        @r{if this is a list, all files in the list will be scanned}
+@end example
+
+The remaining args are treated as settings for the skipping facilities of
+the scanner.  The following items can be given here:
+
+@example
+archive   @r{skip trees with the archive tag}
+comment   @r{skip trees with the COMMENT keyword}
+function or Lisp form
+          @r{will be used as value for @code{org-agenda-skip-function},}
+          @r{so whenever the the function returns t, FUNC}
+          @r{will not be called for that entry and search will}
+          @r{continue from the point where the function leaves it}
+@end example
+@end defun
+
+The function given to that mapping routine can really do anything you like.
+It can uce the property API (@pxref{Using the property API}) to gather more
+information about the entry, or in order to change metadate in the entry.
+Here are a couple of functions that might be handy:
+ 
+@defun org-todo &optional arg
+Change the TODO state of the entry, see the docstring of the functions for
+the many possible values for the argument ARG.
+@end defun
+
+@defun org-priority &optional action
+Change the priority of the entry, see the docstring of this function for the
+possible values for ACTION.
+@end defun
+
+@defun org-toggle-tag tag &optional onoff
+Toggle the tag TAG in the current entry.  Setting ONOFF to either @code{on}
+or @code{off} will not toggle tag, but ensure that it is either on or off.
+@end defun
+
+@defun org-promote
+Promote the current entry.
+@end defun
+
+@defun org-demote
+Demote the current entry.
+@end defun
+
+Here is a simple example that will turn all entries in the current file with
+a tag @code{TOMORROW} into TODO entries with the keyword @code{UPCOMING}.
+Entries in comment trees and in archive trees will be ignored.
+
+@lisp
+(org-map-entries
+   '(org-todo "UPCOMING")
+   "+TOMORROW" 'file 'archive 'comment)
+@end lisp
+
+The following example counts the number of entries with TODO keyword
+@code{WAITING}, in all agenda files.
+
+@lisp
+(length (org-map-entries t "/+WAITING" nil 'agenda))
+@end lisp
+
+@node History and Acknowledgments, Main Index, Hacking, Top
 @appendix History and Acknowledgments
 @cindex acknowledgments
 @cindex history
@@ -8934,6 +9407,9 @@ let me know.
 @i{Russel Adams} came up with the idea for drawers.
 @item
 @i{Thomas Baumann} wrote @file{org-bbdb.el} and @file{org-mhe.el}.
+@item
+@i{Christophe Bataillon} created the great unicorn logo that we use on the
+Org-mode website.
 @item
 @i{Alex Bochannek} provided a patch for rounding time stamps.
 @item
@@ -9034,15 +9510,16 @@ single key navigation.
 @i{Frank Ruell} solved the mystery of the @code{keymapp nil} bug, a
 conflict with @file{allout.el}.
 @item
-@i{Jason Riedy} sent a patch to fix a bug with export of TODO keywords.
+@i{Jason Riedy} generalized the send-receive mechanism for orgtbl tables with
+extensive patches.
 @item
-@i{Philip Rooke} created the Org reference card and provided lots
-of feedback.
+@i{Philip Rooke} created the Org reference card, provided lots
+of feedback, developed and applied standards to the Org documentation.
 @item
 @i{Christian Schlauer} proposed angular brackets around links, among
 other things.
 @item
-Linking to VM/BBDB/Gnus was inspired by @i{Tom Shannon}'s
+Linking to VM/BBDB/Gnus was first inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
 @item
 @i{Ilya Shlyakhter} proposed the Archive Sibling.
@@ -9052,8 +9529,8 @@ subtrees.
 @item
 @i{Dale Smith} proposed link abbreviations.
 @item
-@i{Adam Spiers} asked for global linking commands and inspired the link
-extension system.  support mairix.
+@i{Adam Spiers} asked for global linking commands, inspired the link
+extension system, added support for mairix, and proposed the mapping API.
 @item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
 chapter about publishing.
@@ -9067,12 +9544,11 @@ keyword.
 @i{David Wainberg} suggested archiving, and improvements to the linking
 system.
 @item
-@i{John Wiegley} wrote @file{emacs-wiki.el} and @file{planner.el}.  The
-development of Org was fully independent, and both systems are really
-different beasts in their basic ideas and implementation details.  I later
-looked at John's code, however, and learned from his implementation of (i)
-links where the link itself is hidden and only a description is shown, and
-(ii) popping up a calendar to select a date.  John has also contributed a
+@i{John Wiegley} wrote @file{emacs-wiki.el}, @file{planner.el}, and
+@file{muse.el}, which have similar goals as Org.  Initially the
+development of Org was fully independent because I was not aware of the
+existence of these packages.  But with time I have accasionally looked
+at John's code and learned a lot from it.  John has also contributed a
 number of great ideas and patches directly to Org, including the file
 @code{org-mac-message.el}'
 @item

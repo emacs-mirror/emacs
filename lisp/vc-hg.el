@@ -212,23 +212,19 @@
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
   (let ((inhibit-read-only t))
-    ;; We need to loop and call "hg log" on each file separately.
-    ;; "hg log" with multiple file arguments mashes all the logs
-    ;; together.  Ironically enough, this puts us back near CVS
-    ;; which can't generate proper fileset logs either.
-    (dolist (file files)
-      (with-current-buffer
-	  buffer
-	(insert "Working file: " file "\n"))	;; Like RCS/CVS.
-      (vc-hg-command buffer 0 file "log"))))
+    (with-current-buffer
+	buffer
+      (vc-hg-command buffer 0 files "log"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
+(defvar log-view-per-file-logs)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
+  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
+  (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
@@ -251,14 +247,16 @@
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
-  (let ((working (vc-working-revision (car files))))
+  (let* ((firstfile (car files))
+	 (working (and firstfile (vc-working-revision firstfile))))
     (when (and (equal oldvers working) (not newvers))
       (setq oldvers nil))
     (when (and (not oldvers) newvers)
       (setq oldvers working))
     (apply #'vc-hg-command (or buffer "*vc-diff*") nil
 	   (mapcar (lambda (file) (file-name-nondirectory file)) files)
-	   "--cwd" (file-name-directory (car files))
+	   "--cwd" (or (when firstfile (file-name-directory firstfile))
+		       (expand-file-name default-directory))
 	   "diff"
 	   (append
 	    (when oldvers

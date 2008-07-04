@@ -1,6 +1,118 @@
+2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Using the mapping API): New section.
+	(Agenda column view): New section.
+	(Moving subtrees): Document archiving to the archive sibling.
+	(Agenda commands): Document columns view in the agenda.
+	(Using the property API): Document the API for multi-valued properties.
+
+2008-06-17  Jason Riedy  <jason@acm.org>
+
+	* org.texi (A LaTeX example): Note that fmt may be a one-argument
+	function, and efmt may be a two-argument function.
+	(Radio tables): Document multiple destinations.
+
+2008-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* epa.texi, erc.texi, pgg.texi, remember.texi, sasl.texi, url.texi:
+	Add Cover-Texts.
+
+2008-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (VER): Update to 23.0.60.
+
+	* mh-e.texi: Remove option of licensing under GPL.
+	Add Cover-Texts to GFDL permissions notice.
+	(GPL): Remove section.
+	(GFDL): Include doclicense.texi rather than the actual text.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add sasl.
+	(sasl, $(infodir)/sasl, sasl.dvi): New rules.
+
+	* sasl.texi: Fix output file name.
+
+	* epa.texi, sasl.texi: Refer to license in Emacs manual.
+
+	* gnus-coding.texi: Refer to license in Gnus manual.
+
+	* idlwave.texi, sasl.texi: Use @copying.
+
+	* org.texi: Change to GFDL 1.2.  Refer to license in Emacs manual.
+
+	* speedbar.texi: Update Back-Cover Text as per maintain.info.
+
+	* url.texi: Use @copying, @title, @subtitle, @author.
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi, dbus.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi:
+	* erc.texi, eshell.texi, eudc.texi, flymake.texi, forms.texi, gnus.texi:
+	* idlwave.texi, message.texi, newsticker.texi, pcl-cvs.texi:
+	* rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi:
+	* smtpmail.texi, speedbar.texi, tramp.texi, vip.texi, viper.texi:
+	* widget.texi, woman.texi:
+	Remove references to external license, since doclicense is included.
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, dired-x.texi:
+	* pcl-cvs.texi, speedbar.texi, url.texi, widget.texi:
+	Remove references to non-existent Invariant Sections.
+
+2008-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Major packages and programs): Remove references to external
+	Supercite, Calc, VIPER, since they have been included for some time.
+	Update VM, AUCTeX, BBDB entries.
+
+2008-06-14  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: Updated to match latest newsticker changes.
+
+2008-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi
+	* dbus.texi, dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi
+	* eshell.texi, eudc.texi, flymake.texi, forms.texi, gnus-coding.texi
+	* gnus.texi, idlwave.texi, info.texi, message.texi, newsticker.texi
+	* nxml-mode.texi, org.texi, pcl-cvs.texi, rcirc.texi, reftex.texi
+	* sc.texi, sieve.texi, smtpmail.texi, vip.texi, viper.texi, widget.texi
+	* woman.texi:
+	Update Back-Cover Text as per maintain.info.
+
+2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi: Generate.  Change node names to "FAQ N-M".
+
+	* Makefile.in (gnus-faq-clean): Don't remove gnus-faq.texi.
+	(gnus-faq.xml): Update repository host.
+
+	* xml2texi.scm (boilerplate): Update copyright years.
+	(format-q-level): Change node names to "FAQ N-M", since period in
+	"[N.M]" is invalid, see "(texinfo)Node Line Requirements".
+
+	* gnus-faq.texi: Generate from gnus-faq.xml (sourceforge.net).
+
+2008-06-15  Frank Schmitt  <ich@frank-schmitt.net>
+
+	* gnus-faq.texi ([5.12]): Add entry about message-kill-buffer-on-exit.
+	Fix a typo.
+
+2008-06-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Customization): Correct values of
+	 `mail-source-delete-incoming'.  Reported by Tassilo Horn.
+	(Oort Gnus): Fix version comment for mml-dnd-protocol-alist.
+
+2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (nnmairix): Eliminate wrong use of `path', cf. the GNU
+	coding standards.
+
+2008-06-14  David Engster  <dengste@eml.cc>
+
+	* gnus.texi (nnmairix): Markup fixes.
+
 2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (nnmairix): Markup and othe minor fixes.
+	* gnus.texi (nnmairix): Markup and other minor fixes.
 
 2008-06-05  David Engster  <dengste@eml.cc>
 
@@ -8,7 +120,7 @@
 
 2008-06-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (Group Parameters): Change ~/.gnus to ~/.gnus.el
+	* gnus.texi (Group Parameters): Change ~/.gnus to ~/.gnus.el.
 	(Searching, nnir, nnmairix): New stub nodes.
 
 2008-05-30  Felix Lee  <felix.1@canids.net>
@@ -4155,7 +4267,7 @@
 
 	* smtpmail.texi (Authentication): Improve STARTTLS discussion.
 
-2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
+2004-05-07  Kai Großjohann  <kai@emptydomain.de>
 
 	Version 2.0.40 of Tramp released.
 
@@ -4229,7 +4341,7 @@
 	* makefile.w32-in (mostlyclean, clean, maintainer-clean):
 	Use $(DEL) instead of rm, and ignore exit code.
 
-2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
+2004-02-29  Kai Großjohann  <kgrossjo@eu.uu.net>
 
 	Tramp version 2.0.39 released.
 
@@ -4261,7 +4373,7 @@
 
 	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
 
-2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+2003-11-30  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	Tramp version 2.0.38 released.
 

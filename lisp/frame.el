@@ -246,6 +246,8 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 (defvar frame-notice-user-settings t
   "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
 
+(declare-function tool-bar-mode "tool-bar" (&optional arg))
+
 ;; startup.el calls this function after loading the user's init
 ;; file.  Now default-frame-alist and initial-frame-alist contain
 ;; information to which we must react; do what needs to be done.
@@ -602,6 +604,7 @@ is not considered (see `next-frame')."
   (select-frame-set-input-focus (selected-frame)))
 
 (declare-function x-initialize-window-system "term/x-win" ())
+(defvar x-display-name)
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on X display DISPLAY.
@@ -626,6 +629,8 @@ additional frame parameters."
   (unless type
     (error "Invalid terminal type"))
   (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters)))
+
+(declare-function x-close-connection "xfns.c" (terminal))
 
 (defun close-display-connection (display)
   "Close the connection to a display, deleting all its associated frames.
@@ -823,6 +828,8 @@ the user during startup."
 	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
 
+(declare-function x-focus-frame "xfns.c" (frame))
+
 (defun select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible."
     (select-frame frame)
@@ -991,6 +998,9 @@ If FRAME is omitted, describe the currently selected frame."
   "Return number of columns available for display on FRAME.
 If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
+
+(declare-function x-list-fonts "xfaces.c"
+                  (pattern &optional face frame maximum width))
 
 (defalias 'set-default-font 'set-frame-font)
 (defun set-frame-font (font-name &optional keep-size)
@@ -1206,6 +1216,8 @@ frame's display)."
      (t
       nil))))
 
+(declare-function x-display-screens "xfns.c" (&optional terminal))
+
 (defun display-screens (&optional display)
   "Return the number of screens associated with DISPLAY."
   (let ((frame-type (framep-on-display display)))
@@ -1214,6 +1226,8 @@ frame's display)."
       (x-display-screens display))
      (t
       1))))
+
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
 
 (defun display-pixel-height (&optional display)
   "Return the height of DISPLAY's screen in pixels.
@@ -1224,6 +1238,8 @@ For character terminals, each character counts as a single pixel."
       (x-display-pixel-height display))
      (t
       (frame-height (if (framep display) display (selected-frame)))))))
+
+(declare-function x-display-pixel-width "xfns.c" (&optional terminal))
 
 (defun display-pixel-width (&optional display)
   "Return the width of DISPLAY's screen in pixels.
@@ -1253,6 +1269,8 @@ displays not explicitely specified."
 				  (integer :tag "Height")))
   :group 'frames)
 
+(declare-function x-display-mm-height "xfns.c" (&optional terminal))
+
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
@@ -1263,6 +1281,8 @@ If the information is unavailable, value is nil."
 	   (cddr (assoc t display-mm-dimensions-alist))
 	   (x-display-mm-height display))))
 
+(declare-function x-display-mm-width "xfns.c" (&optional terminal))
+
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
@@ -1272,6 +1292,8 @@ If the information is unavailable, value is nil."
 			display-mm-dimensions-alist))
 	   (cadr (assoc t display-mm-dimensions-alist))
 	   (x-display-mm-width display))))
+
+(declare-function x-display-backing-store "xfns.c" (&optional terminal))
 
 (defun display-backing-store (&optional display)
   "Return the backing store capability of DISPLAY's screen.
@@ -1284,6 +1306,8 @@ the question is inapplicable to a certain kind of display."
      (t
       'not-useful))))
 
+(declare-function x-display-save-under "xfns.c" (&optional terminal))
+
 (defun display-save-under (&optional display)
   "Return non-nil if DISPLAY's screen supports the SaveUnder feature."
   (let ((frame-type (framep-on-display display)))
@@ -1292,6 +1316,8 @@ the question is inapplicable to a certain kind of display."
       (x-display-save-under display))
      (t
       'not-useful))))
+
+(declare-function x-display-planes "xfns.c" (&optional terminal))
 
 (defun display-planes (&optional display)
   "Return the number of planes supported by DISPLAY."
@@ -1304,6 +1330,8 @@ the question is inapplicable to a certain kind of display."
      (t
       (truncate (log (length (tty-color-alist)) 2))))))
 
+(declare-function x-display-color-cells "xfns.c" (&optional terminal))
+
 (defun display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY."
   (let ((frame-type (framep-on-display display)))
@@ -1314,6 +1342,8 @@ the question is inapplicable to a certain kind of display."
       16)
      (t
       (tty-display-color-cells display)))))
+
+(declare-function x-display-visual-class "xfns.c" (&optional terminal))
 
 (defun display-visual-class (&optional display)
   "Returns the visual class of DISPLAY.

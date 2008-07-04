@@ -911,6 +911,8 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 2 position))
 
+(declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
+
 (defun posn-col-row (position)
   "Return the nominal column and row in POSITION, measured in characters.
 The column and row values are approximations calculated from the x

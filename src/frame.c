@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
+#include <ctype.h>
 #include "lisp.h"
 #include "character.h"
 #ifdef HAVE_X_WINDOWS
@@ -3399,7 +3400,13 @@ x_set_font (f, arg, oldval)
   if (FRAME_FACE_CACHE (f))
     {
       XSETFRAME (frame, f);
-      call1 (Qface_set_after_frame_default, frame);
+      /* We used to call face-set-after-frame-default here, but it leads to
+	 recursive calls (since that function can set the `default' face's
+	 font which in turns changes the frame's `font' parameter).
+	 Also I don't know what this call is meant to do, but it seems the
+	 wrong way to do it anyway (it does a lot more work than what seems
+	 reasonable in response to a change to `font').  */
+      /* call1 (Qface_set_after_frame_default, frame); */
     }
 }
 
@@ -3419,12 +3426,16 @@ x_set_font_backend (f, new_value, old_value)
       new_value = Qnil;
       while (*p0)
 	{
-	  while (*p1 && *p1 != ',') p1++;
+	  while (*p1 && ! isspace (*p1) && *p1 != ',') p1++;
 	  if (p0 < p1)
 	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil),
 			       new_value);
 	  if (*p1)
-	    p1++;
+	    {
+	      int c;
+
+	      while ((c = *++p1) && isspace (c));
+	    }
 	  p0 = p1;
 	}
       new_value = Fnreverse (new_value);

@@ -210,6 +210,9 @@ change the existing association.  Value is the resulting alist."
       (push (cons key value) alist))
     alist))
 
+(declare-function x-show-tip "xfns.c"
+		  (string &optional frame parms timeout dx dy))
+
 (defun tooltip-show (text &optional use-echo-area)
   "Show a tooltip window displaying TEXT.
 
@@ -244,6 +247,8 @@ in echo area."
        (message "Error while displaying tooltip: %s" error)
        (sit-for 1)
        (message "%s" text)))))
+
+(declare-function x-hide-tip "xfns.c" ())
 
 (defun tooltip-hide (&optional ignored-arg)
   "Hide a tooltip, if one is displayed.

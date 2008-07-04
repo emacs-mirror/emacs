@@ -1486,7 +1486,7 @@ Return (TYPE NAME), or nil if not found."
         matching-beg
       ;; Note this includes the case of an un-named main program,
       ;; in which case we go to (point-min).
-      (message "No beginning found.")
+      (if (interactive-p) (message "No beginning found"))
       nil)))
 
 (defun f90-end-of-subprogram ()
@@ -1494,7 +1494,7 @@ Return (TYPE NAME), or nil if not found."
 Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((case-fold-search t)
-        (count 1) 
+        (count 1)
         matching-end)
     (end-of-line)
     (while (and (> count 0)
@@ -1511,7 +1511,7 @@ Return (TYPE NAME), or nil if not found."
 ;;;    (forward-line 1)
     (if (zerop count)
         matching-end
-      (message "No end found.")
+      (if (interactive-p) (message "No end found"))
       nil)))
 
 

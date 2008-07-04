@@ -1583,6 +1583,8 @@ Note that n, p and <down> and <up> will be hijacked and bound to
     [menu-bar image-dired image-dired-next-line-and-display]
     '("Display thumb for next file" . image-dired-next-line-and-display)))
 
+(declare-function clear-image-cache "image.c" (&optional filter))
+
 (defun image-dired-create-thumbs (&optional arg)
   "Create thumbnail images for all marked files in dired.
 With prefix argument ARG, create thumbnails even if they already exist

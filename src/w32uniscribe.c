@@ -76,14 +76,18 @@ static Lisp_Object
 uniscribe_list (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  return w32font_list_internal (frame, font_spec, 1);
+  Lisp_Object fonts = w32font_list_internal (frame, font_spec, 1);
+  font_add_log ("uniscribe-list", font_spec, fonts);
+  return fonts;
 }
 
 static Lisp_Object
 uniscribe_match (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  return w32font_match_internal (frame, font_spec, 1);
+  Lisp_Object entity = w32font_match_internal (frame, font_spec, 1);
+  font_add_log ("uniscribe-match", font_spec, entity);
+  return entity;
 }
 
 static Lisp_Object

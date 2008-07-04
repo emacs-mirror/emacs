@@ -177,7 +177,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   "Generate extra status headers for a Subversion working copy."
   (vc-svn-command "*vc*" 0 nil "info")
   (let ((repo
-	 (save-excursion 
+	 (save-excursion
 	   (and (progn
 		  (set-buffer "*vc*")
 		  (goto-char (point-min))
@@ -407,7 +407,7 @@ or svn+ssh://."
 	(progn
 	  (unless (vc-do-command
 		   "*vc*" 0 "svnadmin" nil
-		   "setlog" "--bypass-hooks" directory 
+		   "setlog" "--bypass-hooks" directory
 		   "-r" rev (format "%s" tempfile))
 	    (error "Log edit failed"))
 	  (delete-file tempfile))
@@ -424,6 +424,12 @@ or svn+ssh://."
 ;;;
 ;;; History functions
 ;;;
+
+(defvar log-view-per-file-logs)
+
+(define-derived-mode vc-svn-log-view-mode log-view-mode "SVN-Log-View"
+  (require 'add-log)
+  (set (make-local-variable 'log-view-per-file-logs) nil))
 
 (defun vc-svn-print-log (files &optional buffer)
   "Get change log(s) associated with FILES."

@@ -213,7 +213,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
   (lexical-let*
       ((filename* (expand-file-name filename))
        (rootdir (vc-bzr-root filename*)))
-    (when rootdir 
+    (when rootdir
          (file-relative-name filename* rootdir))))
 
 (defun vc-bzr-status (file)
@@ -325,18 +325,18 @@ If any error occurred in running `bzr status', then return nil."
     ;; May break if they change their format.
     (if (file-exists-p branch-format-file)
         (with-temp-buffer
-          (insert-file-contents branch-format-file) 
+          (insert-file-contents branch-format-file)
           (goto-char (point-min))
           (cond
            ((or
              (looking-at "Bazaar-NG branch, format 0.0.4")
              (looking-at "Bazaar-NG branch format 5"))
             ;; count lines in .bzr/branch/revision-history
-            (insert-file-contents revhistory-file) 
+            (insert-file-contents revhistory-file)
             (number-to-string (count-lines (line-end-position) (point-max))))
            ((looking-at "Bazaar Branch Format 6 (bzr 0.15)")
             ;; revno is the first number in .bzr/branch/last-revision
-            (insert-file-contents lastrev-file) 
+            (insert-file-contents lastrev-file)
             (if (re-search-forward "[0-9]+" nil t)
                 (buffer-substring (match-beginning 0) (match-end 0))))))
       ;; fallback to calling "bzr revno"
@@ -423,10 +423,12 @@ REV non-nil gets an error."
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-current-tag-function)
+(defvar log-view-per-file-logs)
 
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
   (require 'add-log)
+  (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
        "^ *-+\n *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
@@ -468,7 +470,7 @@ REV non-nil gets an error."
   (let (case-fold-search)
     (if (re-search-forward
 	 ;; "revno:" can appear either at the beginning of a line, or indented.
-	 (concat "^[ ]*-+\n[ ]*revno: " 
+	 (concat "^[ ]*-+\n[ ]*revno: "
 		 ;; The revision can contain ".", quote it so that it
 		 ;; does not interfere with regexp matching.
 		 (regexp-quote revision) "$") nil t)
@@ -479,14 +481,14 @@ REV non-nil gets an error."
   "VC bzr backend for diff."
   ;; `bzr diff' exits with code 1 if diff is non-empty.
   (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 'async files
-         "--diff-options" (mapconcat 'identity 
+         "--diff-options" (mapconcat 'identity
                                      (vc-diff-switches-list bzr)
 				     " ")
          ;; This `when' is just an optimization because bzr-1.2 is *much*
          ;; faster when the revision argument is not given.
          (when (or rev1 rev2)
            (list "-r" (format "%s..%s"
-                              (or rev1 "revno:-1") 
+                              (or rev1 "revno:-1")
                               (or rev2 ""))))))
 
 
@@ -567,12 +569,12 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-prettify-state-info (file)
   "Bzr-specific version of `vc-prettify-state-info'."
   (if (eq 'edited (vc-state file))
-        (concat "(" (symbol-name (or (vc-file-getprop file 'vc-bzr-state) 
+        (concat "(" (symbol-name (or (vc-file-getprop file 'vc-bzr-state)
                                      'edited)) ")")
     ;; else fall back to default vc.el representation
     (vc-default-prettify-state-info 'Bzr file)))
 
-;; XXX: this needs testing, it's probably incomplete. 
+;; XXX: this needs testing, it's probably incomplete.
 (defun vc-bzr-after-dir-status (update-function)
   (let ((status-str nil)
 	(translation '(("+N" . added)
@@ -607,7 +609,7 @@ stream.  Standard error output is discarded."
 		(setf (nth 1 entry) 'conflict)))
 	  (push (list (buffer-substring-no-properties
 		       (+ (point) 4)
-		       (line-end-position)) 
+		       (line-end-position))
 		      translated) result))
 	(forward-line))
       (funcall update-function result)))

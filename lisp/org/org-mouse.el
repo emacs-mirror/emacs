@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.02b
+;; Version: 6.05a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1113,3 +1113,5 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 (provide 'org-mouse)
 
 ;; arch-tag: ff1ae557-3529-41a3-95c6-baaebdcc280f
+
+;;; org-mouse.el ends-here

@@ -629,6 +629,10 @@ opening the first frame (e.g. open a connection to an X server).")
                (push argi rest)))))
     (nreverse rest)))
 
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
+(declare-function tool-bar-mode "tool-bar" (&optional arg))
+
 (defun command-line ()
   (setq before-init-time (current-time)
         command-line-default-directory default-directory)
@@ -1365,6 +1369,7 @@ a face or button specification."
 				   'help-echo (startup-echo-area-message)))))
       (setq args (cdr args)))))
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun fancy-splash-head ()
   "Insert the head part of the splash screen into the current buffer."

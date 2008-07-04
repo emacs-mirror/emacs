@@ -417,22 +417,24 @@ LOCATION can be one of 'random, 'left, 'right, 'left-right, or 'top-bottom."
       (dframe-reposition-frame-xemacs new-frame parent-frame location)
     (dframe-reposition-frame-emacs new-frame parent-frame location)))
 
+;; Not defined in builds without X, but behind window-system test.
+(declare-function x-display-pixel-width "xfns.c" (&optional terminal))
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+
 (defun dframe-reposition-frame-emacs (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
 LOCATION can be one of 'random, 'left-right, 'top-bottom, or
 a cons cell indicationg a position of the form (LEFT . TOP)."
-  (let* ((pfx (dframe-frame-parameter parent-frame 'left))
-	 (pfy (dframe-frame-parameter parent-frame 'top))
-	 (pfw (frame-pixel-width parent-frame))
-	 (pfh (frame-pixel-height parent-frame))
-	 (nfw (frame-pixel-width new-frame))
-	 (nfh (frame-pixel-height new-frame))
-	 newleft newtop
-	 )
-    ;; Position dframe.
-    (if (or (not window-system) (eq window-system 'pc))
-	;; Do no positioning if not on a windowing system,
-	nil
+  ;; Position dframe.
+  ;; Do no positioning if not on a windowing system,
+  (unless (or (not window-system) (eq window-system 'pc))
+    (let* ((pfx (dframe-frame-parameter parent-frame 'left))
+	   (pfy (dframe-frame-parameter parent-frame 'top))
+	   (pfw (frame-pixel-width parent-frame))
+	   (pfh (frame-pixel-height parent-frame))
+	   (nfw (frame-pixel-width new-frame))
+	   (nfh (frame-pixel-height new-frame))
+	   newleft newtop)
       ;; Rebuild pfx,pfy to be absolute positions.
       (setq pfx (if (not (consp pfx))
 		    pfx
@@ -455,8 +457,7 @@ a cons cell indicationg a position of the form (LEFT . TOP)."
 		      ;; A - means distance from the right edge
 		      ;; of the display, or DW - pfx - framewidth
 		      (- (x-display-pixel-height) (car (cdr pfy)) pfh)
-		    (car (cdr pfy))))
-	    )
+		    (car (cdr pfy)))))
       (cond ((eq location 'right)
 	     (setq newleft (+ pfx pfw 5)
 		   newtop pfy))
@@ -479,8 +480,7 @@ a cons cell indicationg a position of the form (LEFT . TOP)."
 			   ;; otherwise choose side we overlap less
 			   ((> left-margin right-margin) 0)
 			   (t (- (x-display-pixel-width) nfw 5))))
-		   newtop pfy
-		   ))
+		   newtop pfy))
 	    ((eq location 'top-bottom)
 	     (setq newleft pfx
 		   newtop
@@ -494,15 +494,14 @@ a cons cell indicationg a position of the form (LEFT . TOP)."
 			   ((>= bottom-margin 0) bottom-guess)
 			   ;; Choose a side to overlap the least.
 			   ((> top-margin bottom-margin) 0)
-			   (t (- (x-display-pixel-height) nfh 5)))))
-	     )
+			   (t (- (x-display-pixel-height) nfh 5))))))
 	    ((consp location)
 	     (setq newleft (or (car location) 0)
 		   newtop (or (cdr location) 0)))
 	    (t nil))
       (modify-frame-parameters new-frame
-       (list (cons 'left newleft)
-	     (cons 'top newtop))))))
+			       (list (cons 'left newleft)
+				     (cons 'top newtop))))))
 
 (defun dframe-reposition-frame-xemacs (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.

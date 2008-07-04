@@ -833,6 +833,11 @@ ELCFILES = \
 	$(lisp)/net/ldap.elc \
 	$(lisp)/net/net-utils.elc \
 	$(lisp)/net/netrc.elc \
+	$(lisp)/net/newst-backend.elc \
+	$(lisp)/net/newst-plainview.elc \
+	$(lisp)/net/newst-reader.elc \
+	$(lisp)/net/newst-ticker.elc \
+	$(lisp)/net/newst-treeview.elc \
 	$(lisp)/net/newsticker.elc \
 	$(lisp)/net/ntlm.elc \
 	$(lisp)/net/quickurl.elc \
@@ -910,6 +915,7 @@ ELCFILES = \
 	$(lisp)/org/org-export-latex.elc \
 	$(lisp)/org/org-faces.elc \
 	$(lisp)/org/org-gnus.elc \
+	$(lisp)/org/org-id.elc \
 	$(lisp)/org/org-info.elc \
 	$(lisp)/org/org-irc.elc \
 	$(lisp)/org/org-jsinfo.elc \

@@ -1,3 +1,485 @@
+2008-06-20  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (face-remap-add-relative, face-remap-set-base):
+	Strip unnecessary list levels from SPECS.
+	(buffer-face-set, buffer-face-toggle):
+	Change argument from FACE to &rest SPECS, and strip unnecessary
+	list levels from SPECS.
+	(buffer-face-mode-invoke): Change argument from FACE to SPECS.
+
+2008-06-20  Jason Rumney  <jasonr@gnu.org>
+
+        * international/fontset.el (setup-default-fontset): Specify script
+        for latin use of iso10646-1.  Fix use of lang tags.
+
+2008-06-19  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (text-scale-increase): Start from zero if
+	text-scale-mode isn't enabled.
+
+2008-06-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (face-set-after-frame-default): Re-apply explicit `font'
+	frame parameters after setting up the `default' face.
+
+2008-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (face-set-after-frame-default): Don't exclude `default'.
+
+2008-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (buffer-face-mode-invoke): Declare.
+
+	* Makefile.in (ELCFILES): Add org/org-id.elc.
+
+	* calendar/holidays.el (calendar-cursor-holidays): Accept optional date.
+	* calendar/cal-menu.el (cal-menu-holidays-menu):
+	Use calendar-cursor-holidays rather than cal-menu-today-holidays.
+	(cal-menu-today-holidays): Remove function.
+
+	* calendar/cal-menu.el (cal-menu-holiday-window-suffix): Simplify.
+	(cal-menu-list-holidays-year, cal-menu-list-holidays-following-year)
+	(cal-menu-list-holidays-previous-year, calendar-mouse-goto-date):
+	Remove unused functions.
+	(calendar-mouse-view-diary-entries): Use format rather than concat.
+
+	* calendar/cal-menu.el (cal-menu-x-popup-menu): Turn it into a macro.
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries)
+	(calendar-mouse-print-dates): Adapt for cal-menu-x-popup-menu change.
+
+	* calendar/cal-menu.el (cal-menu-event-to-date): Remove function.
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries)
+	(calendar-mouse-view-other-diary-entries, calendar-mouse-print-dates)
+	(cal-menu-set-date-title): Use calendar-cursor-to-date rather than
+	cal-menu-event-to-date.
+
+	* calendar/cal-html.el (cal-html-cursor-month, cal-html-cursor-year):
+	Handle mouse events.
+	* calendar/cal-tex.el (cal-tex-cursor-year)
+	(cal-tex-cursor-year-landscape, cal-tex-cursor-filofax-year)
+	(cal-tex-cursor-month-landscape, cal-tex-cursor-month)
+	(cal-tex-cursor-week, cal-tex-cursor-week2, cal-tex-cursor-week-iso)
+	(cal-tex-cursor-week-monday, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week, cal-tex-cursor-filofax-daily)
+	(cal-tex-cursor-day): Handle mouse events.  Rename ARG to N.
+	(cal-tex-cursor-month): Mark N as optional.
+	* calendar/cal-menu.el (calendar-mouse-tex-day)
+	(calendar-mouse-tex-week, calendar-mouse-tex-week2)
+	(calendar-mouse-tex-week-iso, calendar-mouse-tex-week-monday)
+	(calendar-mouse-tex-filofax-daily, calendar-mouse-tex-filofax-2week)
+	(calendar-mouse-tex-filofax-week, calendar-mouse-tex-month)
+	(calendar-mouse-tex-month-landscape, calendar-mouse-tex-year)
+	(calendar-mouse-tex-filofax-year, calendar-mouse-tex-year-landscape):
+	Remove functions.
+	(cal-menu-context-mouse-menu): Replace the above functions with the
+	cal-tex versions.  Add HTML submenu.
+
+2008-06-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-gdba-marker-filter): Don't switch to
+	text command mode.
+	(gdb): Explain that gud-gdb is needed for text command mode.
+
+2008-06-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-height-threshold): Remove spurious extra line.
+
+2008-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-cursor-to-date): Add argument `event'.
+	(calendar-set-mark):
+	* calendar/diary-lib.el (diary-insert-entry):
+	* calendar/solar.el (calendar-sunrise-sunset): Use it.
+	* calendar/cal-menu.el (calendar-mouse-sunrise/sunset)
+	(calendar-mouse-insert-diary-entry, calendar-mouse-set-mark): Delete.
+	(cal-menu-context-mouse-menu): Use calendar-set-mark,
+	diary-insert-entry, and calendar-sunrise-sunset instead.
+
+	* vc.el (vc-deduce-fileset): Add arg `only-files'.
+	(vc-next-action): Pass the new arg.
+	(vc-register): Don't use `only-files'.
+	Don't set `backup-inhibited' in the current buffer.
+
+2008-06-17  Miles Bader  <miles@gnu.org>
+
+	* mouse.el (mouse-appearance-menu): Use buffer-face-mode.
+
+	* face-remap.el (buffer-face-mode-face)
+	(buffer-face-mode-remapping): New variables.
+	(buffer-face-mode, buffer-face-set, buffer-face-toggle)
+	(buffer-face-mode-invoke): New functions.
+	(variable-pitch-mode-remapping): Variable removed.
+	(variable-pitch-mode): Rewrite as an interface to `buffer-face-mode'.
+
+	* face-remap.el (internal-lisp-face-attributes): New variable.
+	(face-attrs-more-relative-p, face-remap-order): New functions.
+	(face-remap-add-relative): Use `face-remap-order'.
+
+2008-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (x-select-font): Declare.
+
+	* calendar/calendar.el (calendar-move-hook):
+	Add calendar-update-mode-line as an option.
+	(calendar-date-echo-text): New user option.
+	(calendar-generate-month): Set `day'.  Use calendar-date-echo-text.
+	(calendar-insert-indented): Simplify newline insertion.
+	(calendar-describe-mode): Remove unused function.
+	(calendar-mode-line-entry): New function.
+	(calendar-mode-line-format): Doc fix.  Use calendar-mode-line-entry.
+	Mark as risky.
+	(calendar-mouse-other-month): Remove function.
+	(calendar-other-month): Handle mouse events.
+	(calendar-goto-info-node): Call fit-window-to-buffer.
+	(calendar-mode): Use define-derived-mode.  Doc fix.
+	(calendar-update-mode-line): Tweak whitespace.
+
+2008-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el (vc-dir-child-files): Use vc-string-prefix-p.
+	(vc-dir-marked-only-files): vc-string-prefix-p.
+
+2008-06-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-memory-set-address)
+	(gdb-memory-set-repeat-count): Allow keyboard bindings.
+	(gdb-memory-mode-map): Bind above functions respectively
+	to 'S' and 'N'.
+
+2008-06-16  Derek Upham  <sand@blarg.net>  (tiny change)
+
+	* nxml/nxml-mode.el (nxml-mode): Use run-mode-hooks.
+
+2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* log-view.el (vc-diff-internal): Declare for compiler.
+
+	* vc-bzr.el (log-view-per-file-logs):
+	* vc-svn.el (log-view-per-file-logs): Pacify byte compiler.
+
+2008-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-appearance-menu-map): New var.
+	(mouse-appearance-menu): New function.
+	Bind it to S-down-mouse-1.
+
+2008-06-15  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-toc): Call Info-toc-nodes instead of Info-build-toc.
+	(Info-toc, Info-insert-toc): Increment nth's index to add PARENT
+	as the second element.
+	(Info-build-toc): Add PARENT element extracted from the Up pointer.
+	Don't print progress messages.
+	(Info-toc-nodes): New variable and function.
+	(Info-index-nodes): Optimize non-string file name case.
+	(Info-breadcrumbs-depth): Increment the default value from 3 to 4.
+	(Info-insert-breadcrumbs): Use the cached document structure instead
+	of visiting all ancestor nodes.  Remove the initial `>'.
+
+2008-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-diff-changeset): New function.
+	(log-view-mode-map, log-view-mode-menu): Bind it.
+	(log-view-per-file-logs, log-view-vc-fileset)
+	(log-view-vc-backend): New variables.
+	(log-view-find-revision, log-view-modify-change-comment)
+	(log-view-annotate-version): Throw an error if the log is for more
+	than one file and we can't find the current file.  Get the current
+	file from log-view-vc-fileset if necessary.
+	(log-view-diff): Get the current file from log-view-vc-fileset if
+	necessary.
+
+	* vc.el (vc-print-log): Set log-view-vc-fileset and log-view-vc-backend.
+
+	* vc-hg.el (vc-hg-log-view-mode): Call the log method only once.
+	(vc-hg-log-view-mode): Declare for compiler.
+	(vc-hg-log-view-mode): Set log-view-per-file-logs and
+	log-view-file-re.
+	(vc-hg-diff): If no file is passed, use default-directory for cwd.
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Set log-view-per-file-logs.
+
+	* vc-svn.el (vc-svn-log-view-mode): New derived mode.
+
+2008-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process):
+	Clear modification time of the connection buffer.
+	(tramp-sh-file-name-handler): Reset `tramp-locked' in case of error.
+	(tramp-open-connection-setup-interactive-shell): Flush cache, and
+	restart `tramp-maybe-open-connection' when the remote system has
+	been changed. Throw 'uname-changed event.
+	(tramp-maybe-open-connection): Catch it.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections):
+	Reset `tramp-locked'.
+
+2008-06-15  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-list-update)
+	(newsticker--treeview-item-update)
+	(newsticker--treeview-tree-update)
+	(newsticker-treeview-jump, newsticker-group-add-group)
+	(newsticker-group-move-feed, newsticker-group-delete-group):
+	Remove window dedication.
+	(newsticker--group-manage-orphan-feeds): Handle ill-valued
+	newsticker-groups.
+	(newsticker--treeview-tree-expand): Don't manage orphan feeds here.
+
+2008-06-15  Andreas Schwab  <schwab@suse.de>
+
+	* vc-cvs.el (vc-cvs-status-extra-headers): Don't match newline
+	when parsing CVS/Repository.
+
+	* wdired.el (wdired-search-and-rename): Fix undocumented change.
+
+2008-06-15  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-plainview.el (newsticker-faces, newsticker-feed-face)
+	(newsticker-extra-face, newsticker-enclosure-face): Moved to
+	net/newst-reader.el.
+
+	* net/newst-reader.el (newsticker-faces, newsticker-feed-face)
+	(newsticker-extra-face, newsticker-enclosure-face): Moved from
+	net/newst-reader.el.
+
+2008-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-utf-8):
+	Catch and recover from case when the bytes we thought we were reading
+	turn out to be something else entirely, such as latin-1 chars from
+	quail.  See bug#396.
+
+2008-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-deduce-fileset): Check if the buffer has a file.
+	(vc-register): Call the backend function only once, instead of
+	once for each file.
+	(vc-next-action): Update call to vc-register.
+	(vc-dir-register): Remove function.
+	(vc-dir): Bind vc-register instead of vc-dir-register.
+
+2008-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Add net/newst-*.el.
+
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wdired.el (wdired-do-renames): New function.
+	(wdired-finish-edit): Use it to.
+	(wdired-preprocess-files): Don't hardcode (point-min) == 1.
+
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-insert-breadcrumbs): Don't break in apropos and toc.
+
+2008-06-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--even-window-heights): Even window heights
+	only if the selected window is higher than WINDOW.
+	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
+
+2008-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-insert-breadcrumbs): Be careful to preserve history.
+
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/linux.el (terminal-init-linux): Load t-mouse.
+
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+	        Drew Adams  <drew.adams@oracle.com>
+
+	* info.el (Info-breadcrumbs-depth): New var.
+	(Info-insert-breadcrumbs): New function.
+	(Info-fontify-node): Use it.
+	(Info-mode-map): Move initialization into declaration.
+
+2008-06-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	Rename net/newsticker-*.el to net/newst-*.el.
+	* net/newst-backend.el: Rename from net/newsticker-backend.el.
+	* net/newst-plainview.el: Rename from net/newsticker-plainview.el.
+	* net/newst-reader.el: Rename from net/newsticker-reader.el.
+	* net/newst-ticker.el: Rename from net/newsticker-ticker.el.
+	* net/newst-treeview.el: Rename from net/newsticker-treeview.el.
+	* net/newsticker-backend.el: Rename to net/newst-backend.el.
+	* net/newsticker-plainview.el: Rename to net/newst-plainview.el.
+	* net/newsticker-reader.el: Rename to net/newst-reader.el.
+	* net/newsticker-ticker.el: Rename to net/newst-ticker.el.
+	* net/newsticker-treeview.el: Rename to net/newst-treeview.el.
+
+2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-start): Don't disable undo in
+	comint buffer.  Don't override the comint-filter with our own.
+	(compilation-filter): Change point's insertion-type.
+
+	* comint.el (comint-output-filter): Use copy-marker.
+
+2008-06-13  David Reitter  <david.reitter@gmail.com>
+
+	* textmodes/flyspell.el (mail-mode-flyspell-verify):
+	Check message-signature-separator exists before using it.
+
+2008-06-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-delete-file): Bind default-directory before calling
+	the backend.
+	(vc-annotate-show-diff-revision-at-line): Move most of the code to ...
+	(vc-annotate-show-diff-revision-at-line-internal): ... here.
+	New function.
+	(vc-annotate-show-changeset-diff-revision-at-line): New function.
+	(vc-annotate-mode-menu): Bind it.
+
+2008-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (mouse-set-font): Remove overridden function.
+	(w32-select-font): Declare as obsolete alias for x-select-font.
+
+2008-06-13  Daniel Engeler  <engeler@gmail.com>
+
+	These changes add serial port access.
+	* term.el (term-update-mode-line): Modify.
+	(serial-port-is-file-p, serial-nice-speed-history)
+	(serial-no-speed, serial-mode-line-speed-menu)
+	(serial-mode-line-config-menu): New variables and constants.
+	(serial-name-history, serial-speed-history)
+	(serial-supported-or-barf, serial-read-name, serial-read-speed)
+	(serial-term, serial-speed, serial-mode-line-speed-menu-1)
+	(serial-mode-line-speed-menu, serial-update-speed-menu)
+	(serial-mode-line-config-menu-1, serial-mode-line-config-menu)
+	(serial-update-config-menu): New functions.
+
+2008-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-set-font): Use fboundp rather than functionp.
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Doc fix.
+
+2008-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* cus-face.el (custom-face-attributes): Add :foundry.
+
+	* faces.el (set-face-attribute): Parse "FOUNDRY-FAMILY" here.
+	(face-x-resources): Add :foundry.
+	(face-valid-attribute-values): Likewise.
+	(face-attribute-name-alist): Likewise.
+	(describe-face): Likewise.
+
+2008-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Accept non-char events.
+
+2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-search-forward, longlines-search-backward)
+	(longlines-re-search-forward): Use a smarter search-spaces-regexp.
+
+2008-06-12  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-rename-file): DTRT when the destination is a directory
+	name and the source is a file.
+
+2008-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-set-font): Rename x-font-dialog to x-select-font.
+
+2008-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-beginning-of-subprogram)
+	(f90-end-of-subprogram): Only give a message when interactive.
+
+	* term/mac-win.el (x-toolkit-scroll-bars): Check bound.
+
+	* progmodes/cperl-mode.el (cperl-info-on-command):
+	Use display-pixel-height rather than x-display-pixel-height.
+
+	* mail/rmailedit.el (rmail-cease-edit):
+	* vc-dispatcher.el (vc-dir-mode): Check tool-bar-mode is bound.
+
+	* emulation/edt.el (edt-xserver):
+	* emulation/edt-mapper.el (edt-xserver): Use replace-regexp-in-string.
+
+	* emulation/edt-mapper.el: Drop test for Emacs < 19.
+
+	* mwheel.el (mouse-wheel-follow-mouse, mwheel-event-window):
+	Evaluate definitions when compiling.  Reverse tests.
+
+	* dframe.el (dframe-reposition-frame-emacs): Reorder test, and
+	use unless.
+
+	* menu-bar.el (w32-menu-bar-open): Declare for compiler.
+
+	* textmodes/artist.el (x-pointer-shape):
+	* term/x-win.el (x-parse-geometry, x-resource-name, accelerate-menu)
+	(x-open-connection, x-server-max-request-size, x-get-resource):
+	* term/w32console.el (x-setup-function-keys):
+	* term/w32-win.el (x-parse-geometry, x-resource-name)
+	(generate-fontset-menu, image-library-alist, x-open-connection)
+	(setup-default-fontset, set-fontset-font, setup-default-fontset)
+	(create-fontset-from-fontset-spec, create-fontset-from-x-resource)
+	(x-get-resource):
+	* term/mac-win.el (x-parse-geometry, x-resource-name)
+	(x-get-selection-internal, tool-bar-mode, set-fontset-font)
+	(new-fontset, x-display-list, x-open-connection, x-get-resource):
+	* progmodes/gud.el (tooltip-last-mouse-motion-event, tooltip-hide)
+	(tooltip-start-delayed-tip, tooltip-use-echo-area, tooltip-show)
+	(tooltip-strip-prompt, tooltip-expr-to-print, tooltip-event-buffer):
+	* progmodes/gdb-ui.el (tooltip-show, tooltip-use-echo-area)
+	(tooltip-identifier-from-point, define-fringe-bitmap):
+	* play/gamegrid.el (image-size):
+	* play/bubbles.el (image-size):
+	* mail/emacsbug.el (x-server-vendor, x-server-version):
+	* international/mule-util.el (internal-char-font):
+	* international/mule-diag.el (font-info, query-fontset, fontset-info)
+	(fontset-alias-alist, fontset-list, fontset-plain-name):
+	* international/mule-cmds.el (x-server-vendor, x-server-version):
+	* international/fontset.el (font-encoding-charset-alist)
+	(otf-script-alist, new-fontset, set-fontset-font)
+	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp)
+	(fontset-list, query-fontset, x-get-resource):
+	* emulation/edt.el (x-server-vendor):
+	* emulation/edt-mapper.el (x-server-vendor):
+	* emacs-lisp/map-ynp.el (x-popup-dialog):
+	* emacs-lisp/lmenu.el (x-popup-dialog):
+	* x-dnd.el (x-window-property, x-change-window-property)
+	(x-get-selection-internal):
+	* woman.el (x-list-fonts):
+	* w32-fns.el (x-server-version):
+	* tooltip.el (x-show-tip, x-hide-tip):
+	* tool-bar.el (image-mask-p):
+	* thumbs.el (image-size):
+	* term.el (overflow-newline-into-fringe):
+	* subr.el (scroll-bar-scale):
+	* startup.el (x-get-resource, tool-bar-mode, image-size):
+	* select.el (x-get-selection-internal, x-own-selection-internal)
+	(x-disown-selection-internal):
+	* mouse.el (generate-fontset-menu):
+	* mouse-sel.el (x-select-text, x-cut-buffer-or-selection-value):
+	* image.el (image-library-alist):
+	* image-mode.el (image-size, image-refresh):
+	* image-dired.el (clear-image-cache):
+	* gs.el (x-display-mm-width, x-display-pixel-width)
+	(x-display-mm-height, x-display-pixel-height)
+	(x-change-window-property, x-display-grayscale-p, x-window-property):
+	* frame.el (tool-bar-mode, x-display-name, x-close-connection)
+	(x-focus-frame, x-list-fonts, x-display-screens)
+	(x-display-pixel-height, x-display-pixel-width, x-display-mm-height)
+	(x-display-mm-width, x-display-backing-store, x-display-save-under)
+	(x-display-planes, x-display-color-cells, x-display-visual-class):
+	* faces.el (internal-face-x-get-resource)
+	(internal-set-lisp-face-attribute-from-resource, x-bitmap-file-path)
+	(fontset-list, x-list-fonts, xw-color-defined-p, xw-color-values)
+	(xw-display-color-p, x-display-grayscale-p, x-get-resource)
+	(x-parse-geometry, x-create-frame, x-setup-function-keys)
+	(tool-bar-setup):
+	* doc-view.el (clear-image-cache, image-size, tooltip-show):
+	* dired.el (dnd-get-local-file-name, dnd-get-local-file-uri):
+	* dframe.el (x-display-pixel-width, x-display-pixel-height):
+	* descr-text.el (internal-char-font):
+	Define for compiler, for builds without X.
+
 2008-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-rcs.el (vc-rcs-state-heuristic): Don't assume the file exists.
@@ -25,7 +507,8 @@
 	* files.el (save-some-buffers-action-alist): Only use recursive-edit
 	if the user enabled recursive-minibuffers.
 
-	* emacs-lisp/map-ynp.el (map-y-or-n-p): Add support for other-window-scroll.
+	* emacs-lisp/map-ynp.el (map-y-or-n-p):
+	Add support for scroll-other-window.
 
 2008-06-11  Jason Rumney  <jasonr@gnu.org>
 
@@ -97,6 +580,7 @@
 
 	* window.el (window--splittable-p, window--try-to-split-window):
 	Don't use with-selected-window to avoid messing up get-lru-window.
+	Reported by David Hansen <david.hansen@gmx.net>.
 
 2008-06-10  Glenn Morris  <rgm@gnu.org>
 

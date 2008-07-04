@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
-;; Version: 6.02b
+;; Version: 6.05a
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -79,4 +79,5 @@ end tell")))
 (provide 'org-mac-message)
 
 ;; arch-tag: 3806d0c1-abe1-4db6-9c31-f3ed7d4a9b32
+
 ;;; org-mac-message.el ends here

@@ -204,6 +204,7 @@ Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
+static Lisp_Object Qfont_param;
 
 /* In dispnew.c */
 
@@ -3059,14 +3060,21 @@ x_default_font_parameter (f, parms)
      Lisp_Object parms;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  Lisp_Object font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font",
+  Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
 				RES_TYPE_STRING);
+  Lisp_Object font;
+  if (EQ (font_param, Qunbound))
+    font_param = Qnil;
+  font = !NILP (font_param) ? font_param
+    : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
   if (! STRINGP (font))
     {
       char *names[]
 	= { "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
 	    "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	    /* This will find the normal Xft font.  */
+	    "monospace-12",
 	    "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
 	    /* This was formerly the first thing tried, but it finds
 	       too many fonts and takes too long.  */
@@ -3086,6 +3094,12 @@ x_default_font_parameter (f, parms)
 	}
       if (NILP (font))
 	error ("No suitable font was found");
+    }
+  else if (!NILP (font_param))
+    {
+      /* Remember the explicit font parameter, so we can re-apply it after
+	 we've applied the `default' face settings.  */
+      x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
     }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
@@ -3273,6 +3287,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
+  register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
   register_font_driver (&xftfont_driver, f);
@@ -3280,7 +3295,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
-  register_font_driver (&xfont_driver, f);
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -3313,7 +3327,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
+  x_default_parameter (f, parms, Qinternal_border_width,
+#ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
+		       make_number (0),
+#else
+		       make_number (1),
+#endif
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qleft,
@@ -4816,6 +4835,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
+  register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
   register_font_driver (&xftfont_driver, f);
@@ -4823,7 +4843,6 @@ x_create_tip_frame (dpyinfo, parms, text)
   register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
-  register_font_driver (&xfont_driver, f);
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -5631,14 +5650,17 @@ directories.  */)
 
 #ifdef HAVE_FREETYPE
 
-DEFUN ("x-font-dialog", Fx_font_dialog, Sx_font_dialog, 0, 0, 0,
-       doc: /* Read a font name using a font selection dialog.
-The font name is returned as a string.  */)
-  ()
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font name using a GTK font selection dialog.
+Return a GTK-style font string corresponding to the selection.
+
+If FRAME is omitted or nil, it defaults to the selected frame. */)
+  (frame, ignored)
+     Lisp_Object frame, ignored;
 {
-  FRAME_PTR f = SELECTED_FRAME ();
-  char *fontname;
-  Lisp_Object font = Qnil;
+  FRAME_PTR f = check_x_frame (frame);
+  char *name;
+  Lisp_Object default_font, font = Qnil;
   int count = SPECPDL_INDEX ();
 
   check_x ();
@@ -5652,12 +5674,21 @@ The font name is returned as a string.  */)
 
   BLOCK_INPUT;
 
-  fontname = xg_get_font_name (f, NULL);
-
-  if (fontname)
+  XSETFONT (default_font, FRAME_FONT (f));
+  if (FONTP (default_font))
     {
-      font = build_string (fontname);
-      xfree (fontname);
+      char *default_name = alloca (256);
+      if (font_unparse_gtkname (default_font, f, default_name, 256) < 0)
+	default_name = NULL;
+      name = xg_get_font_name (f, default_name);
+    }
+  else
+    name = xg_get_font_name (f, NULL);
+
+  if (name)
+    {
+      font = build_string (name);
+      xfree (name);
     }
 
   UNBLOCK_INPUT;
@@ -5837,6 +5868,8 @@ syms_of_xfns ()
   staticpro (&Qcompound_text);
   Qcancel_timer = intern ("cancel-timer");
   staticpro (&Qcancel_timer);
+  Qfont_param = intern ("font-parameter");
+  staticpro (&Qfont_param);
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
@@ -6036,7 +6069,7 @@ the tool bar buttons.  */);
 #endif
 
 #ifdef USE_GTK
-  defsubr (&Sx_font_dialog);
+  defsubr (&Sx_select_font);
 #endif
 }
 

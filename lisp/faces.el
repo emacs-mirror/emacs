@@ -272,6 +272,7 @@ If FRAME is omitted or nil, use the selected frame."
 
 (defcustom face-x-resources
   '((:family (".attributeFamily" . "Face.AttributeFamily"))
+    (:foundry (".attributeFoundry" . "Face.AttributeFoundry"))
     (:width (".attributeWidth" . "Face.AttributeWidth"))
     (:height (".attributeHeight" . "Face.AttributeHeight"))
     (:weight (".attributeWeight" . "Face.AttributeWeight"))
@@ -298,6 +299,12 @@ X resource class for the attribute."
   :type '(repeat (cons symbol (repeat (cons string string))))
   :group 'faces)
 
+
+(declare-function internal-face-x-get-resource "xfaces.c"
+		  (resource class frame))
+
+(declare-function internal-set-lisp-face-attribute-from-resource "xfaces.c"
+		  (face attr value &optional frame))
 
 (defun set-face-attribute-from-resource (face attribute resource class frame)
   "Set FACE's ATTRIBUTE from X resource RESOURCE, class CLASS on FRAME.
@@ -577,6 +584,12 @@ VALUE must be a string specifying the font family, e.g. ``courier'',
 or a fontset alias name.  If a font family is specified, wild-cards `*'
 and `?' are allowed.
 
+`:foundry'
+
+VALUE must be a string specifying the font foundry,
+e.g. ``adobe''.  If a font foundry is specified, wild-cards `*'
+and `?' are allowed.
+
 `:width'
 
 VALUE specifies the relative proportionate width of the font to use.
@@ -664,8 +677,9 @@ HEIGHT DATA) where WIDTH and HEIGHT are the size in pixels, and DATA
 is a string containing the raw bits of the bitmap.  VALUE nil means
 explicitly don't use a stipple pattern.
 
-For convenience, attributes `:family', `:width', `:height', `:weight',
-and `:slant' may also be set in one step from an X font name:
+For convenience, attributes `:family', `:foundry', `:width',
+`:height', `:weight', and `:slant' may also be set in one step
+from an X font name:
 
 `:font'
 
@@ -689,11 +703,22 @@ like an underlying face would be, with higher priority than underlying faces."
 	(put (or (get face 'face-alias) face) 'face-modified t))
     (while args
       ;; Don't recursively set the attributes from the frame's font param
-      ;; when we update the frame's font param fro the attributes.
+      ;; when we update the frame's font param from the attributes.
       (let ((inhibit-face-set-after-frame-default t))
-	(internal-set-lisp-face-attribute face (car args)
-					  (purecopy (cadr args))
-					  where))
+	(if (and (eq (car args) :family)
+		 (stringp (cadr args))
+		 (string-match "\\([^-]*\\)-\\([^-]*\\)" (cadr args)))
+	    (let ((foundry (match-string 1 (cadr args)))
+		  (family (match-string 2 (cadr args))))
+	      (internal-set-lisp-face-attribute face :foundry
+						(purecopy foundry)
+						where)
+	      (internal-set-lisp-face-attribute face :family
+						(purecopy family)
+						where))
+	  (internal-set-lisp-face-attribute face (car args)
+					    (purecopy (cadr args))
+					    where)))
       (setq args (cdr (cdr args))))))
 
 
@@ -743,8 +768,9 @@ Use `set-face-attribute' for finer control of font weight and slant."
 (defun set-face-font (face font &optional frame)
   "Change font-related attributes of FACE to those of FONT (a string).
 FRAME nil or not specified means change face on all frames.
-This sets the attributes `:family', `:width', `:height', `:weight',
-and `:slant'.  When called interactively, prompt for the face and font."
+This sets the attributes `:family', `:foundry', `:width',
+`:height', `:weight', and `:slant'.  When called interactively,
+prompt for the face and font."
   (interactive (read-face-and-attribute :font))
   (set-face-attribute face frame :font font))
 
@@ -930,6 +956,8 @@ Otherwise, return a single face."
 	  output
 	(car output)))))
 
+;; Not defined without X, but behind window-system test.
+(defvar x-bitmap-file-path)
 
 (defun face-valid-attribute-values (attribute &optional frame)
   "Return valid values for face attribute ATTRIBUTE.
@@ -946,6 +974,8 @@ an integer value."
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
+           (:foundry
+	    (list nil))
 	   (:width
 	    (mapcar #'(lambda (x) (cons (symbol-name (car x)) (car x)))
 		    font-width-table))
@@ -993,6 +1023,7 @@ an integer value."
 
 (defvar face-attribute-name-alist
   '((:family . "font family")
+    (:foundry . "font foundry")
     (:width . "character set width")
     (:height . "height in 1/10 pt")
     (:weight . "weight")
@@ -1110,6 +1141,9 @@ of a global face.  Value is the new attribute value."
       (setq new-value (read new-value)))
     new-value))
 
+(declare-function fontset-list "fontset.c" ())
+(declare-function x-list-fonts "xfaces.c"
+		  (pattern &optional face frame maximum width))
 
 (defun read-face-font (face &optional frame)
   "Read the name of a font for FACE on FRAME.
@@ -1277,6 +1311,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (interactive (list (read-face-name "Describe face" "= `default' face" t)))
   (let* ((attrs '((:family . "Family")
+		  (:foundry . "Foundry")
 		  (:width . "Width")
 		  (:height . "Height")
 		  (:weight . "Weight")
@@ -1586,6 +1621,8 @@ If FRAME is nil, that stands for the selected frame."
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
 
+(declare-function xw-color-defined-p "xfns.c" (color &optional frame))
+
 (defun color-defined-p (color &optional frame)
   "Return non-nil if color COLOR is supported on frame FRAME.
 If FRAME is omitted or nil, use the selected frame.
@@ -1597,6 +1634,8 @@ If COLOR is the symbol `unspecified' or one of the strings
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
+
+(declare-function xw-color-values "xfns.c" (color &optional frame))
 
 (defun color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.
@@ -1614,6 +1653,8 @@ If COLOR is the symbol `unspecified' or one of the strings
       (tty-color-values color frame))))
 (defalias 'x-color-values 'color-values)
 
+(declare-function xw-display-color-p "xfns.c" (&optional terminal))
+
 (defun display-color-p (&optional display)
   "Return t if DISPLAY supports color.
 The optional argument DISPLAY specifies which display to ask about.
@@ -1623,6 +1664,8 @@ If omitted or nil, that stands for the selected frame's display."
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
+
+(declare-function x-display-grayscale-p "xfns.c" (&optional terminal))
 
 (defun display-grayscale-p (&optional display)
   "Return non-nil if frames on DISPLAY can display shades of gray."
@@ -1788,6 +1831,9 @@ variable with `setq'; this won't have the expected effect."
 		 (const :tag "automatic" nil)))
 
 
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
+
 (defun frame-set-background-mode (frame)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
@@ -1870,6 +1916,8 @@ according to the `background-mode' and `display-type' frame parameters."
 ;;; Frame creation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare-function x-parse-geometry "frame.c" (string))
+
 (defun x-handle-named-frame-geometry (parameters)
   "Add geometry parameters for a named frame to parameter list PARAMETERS.
 Value is the new parameter list."
@@ -1916,6 +1964,9 @@ Value is the new parameter list."
 	    (modify-frame-parameters frame
 				     (list (cons 'cursor-color fg)))))))
 
+(declare-function x-create-frame "xfns.c" (parms))
+(declare-function x-setup-function-keys "term/x-win" (frame))
+(declare-function tool-bar-setup "tool-bar" (&optional frame))
 
 (defun x-create-frame-with-faces (&optional parameters)
   "Create a frame from optional frame parameters PARAMETERS.
@@ -1967,6 +2018,7 @@ Initialize colors of certain faces from frame parameters."
   ;; Find attributes that should be initialized from frame parameters.
   (let ((face-params '((foreground-color default :foreground)
 		       (background-color default :background)
+                       (font-parameter default :font)
 		       (border-color border :background)
 		       (cursor-color cursor :background)
 		       (scroll-bar-foreground scroll-bar :foreground)
@@ -1994,7 +2046,10 @@ Initialize colors of certain faces from frame parameters."
     ;; Initialize faces from face specs and X resources.  The
     ;; condition-case prevents invalid specs from causing frame
     ;; creation to fail.
-    (dolist (face (delq 'default (face-list)))
+    (dolist (face (face-list))
+      ;; This loop used to exclude the `default' face for an unknown reason.
+      ;; It lead to odd behaviors where face-spec settings on the `default'
+      ;; face weren't obeyed for new frame.
       (condition-case ()
 	  (progn
 	    (face-spec-recalc face frame)

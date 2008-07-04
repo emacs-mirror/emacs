@@ -1,14 +1,13 @@
-;; newsticker-ticker.el --- modeline ticker for newsticker.
+;; newst-ticker.el --- modeline ticker for newsticker.
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    newsticker-ticker.el
+;; Filename:    newst-ticker.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "7. Juni 2008, 15:12:27 (ulf)"
-;; CVS-Version: $Id: newsticker-ticker.el,v 1.3 2008/06/10 03:21:37 gm Exp $
+;; Time-stamp:  "13. Juni 2008, 19:28:50 (ulf)"
 
 ;; ======================================================================
 
@@ -36,7 +35,7 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'newsticker-backend)
+(require 'newsticker-backend "newst-backend")
 
 (defvar newsticker--ticker-timer nil
   "Timer for newsticker ticker.")
@@ -291,4 +290,4 @@ running already."
 (provide 'newsticker-ticker)
 
 ;; arch-tag: faee3ebb-749b-4935-9835-7f36d4b700f0
-;;; newsticker-ticker.el ends here
+;;; newst-ticker.el ends here

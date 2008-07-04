@@ -24814,8 +24814,8 @@ margin to the caracter height.  */);
 This can improve legibility of underlined text at small font sizes,
 particularly when using variable `x-use-underline-position-properties'
 with fonts that specify an UNDERLINE_POSITION relatively close to the
-baseline.  The default value is 0.  */);
-  underline_minimum_offset = 0;
+baseline.  The default value is 1.  */);
+  underline_minimum_offset = 1;
 }
 
 

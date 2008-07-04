@@ -477,9 +477,15 @@ to a particular debugger program.
 @table @kbd
 @item M-x gdb @key{RET} @var{file} @key{RET}
 @findex gdb
-Run GDB as a subprocess of Emacs.  By default, this uses an IDE-like
-graphical interface; see @ref{GDB Graphical Interface}.  Only GDB
-works with the graphical interface.
+Run GDB as a subprocess of Emacs.  This uses an IDE-like graphical
+interface; see @ref{GDB Graphical Interface}.  Only GDB works with the
+graphical interface.
+
+@item M-x gud-gdb @key{RET} @var{file} @key{RET}
+@findex gud-gdb
+Run GDB as a subprocess of Emacs.  This command creates a buffer for
+input and output to GDB, and switches to it.  If a GDB buffer already
+exists, it just switches to that buffer.
 
 @item M-x dbx @key{RET} @var{file} @key{RET}
 @findex dbx
@@ -527,9 +533,14 @@ debugger supports.  However, shell wildcards and variables are not
 allowed.  GUD assumes that the first argument not starting with a
 @samp{-} is the executable file name.
 
+@c Running a debugger on a remote host
 Tramp provides a facility to debug programs on remote hosts.
 @xref{Running a debugger on a remote host, Running a debugger on a remote host,, tramp, The Tramp Manual}.
-@c Running a debugger on a remote host
+Both debugger and program are on the same remote host.
+This should not confused with debugging remote programs
+where the program runs on diferent machine to the debugger,
+as can be done with GDB, for example.
+@xref{Remote Debugging,, Debugging Remote Programs, gdb, The GNU debugger}.
 
 @node Debugger Operation
 @subsection Debugger Operation
@@ -824,14 +835,9 @@ unlimited, so it sets the height and width accordingly.  For correct
 operation you must not change these values during the GDB session.
 
 @vindex gud-gdb-command-name
-  You can also run GDB in text command mode, like the other debuggers
-in Emacs.  To do this, replace the GDB @code{"--annotate=3"} option
-with @code{"--fullname"} either in the minibuffer for the current
-Emacs session, or the custom variable @code{gud-gdb-command-name} for
-all future sessions.  You need to use text command mode to debug
-multiple programs within one Emacs session.  You can also use
-@kbd{M-x gud-gdb} to invoke GDB in text command mode if you have
-problems before execution has started.
+  To run GDB in text command mode, like the other debuggers in Emacs,
+use @kbd{M-x gud-gdb}.  You need to use text command mode to debug
+multiple programs within one Emacs session.
 
 @menu
 * GDB-UI Layout::               Control the number of displayed buffers.
@@ -1079,8 +1085,9 @@ The memory buffer lets you examine sections of program memory
 (@pxref{Memory, Memory, Examining memory, gdb, The GNU debugger}).
 Click @kbd{Mouse-1} on the appropriate part of the header line to
 change the starting address or number of data items that the buffer
-displays.  Click @kbd{Mouse-3} on the header line to select the
-display format or unit size for these data items.
+displays.  Alternatively, use @kbd{S} or @kbd{N} respectively.  Click
+@kbd{Mouse-3} on the header line to select the display format or unit
+size for these data items.
 @end table
 
 When @code{gdb-many-windows} is non-@code{nil}, the threads buffer

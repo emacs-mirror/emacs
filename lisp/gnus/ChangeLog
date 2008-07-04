@@ -1,3 +1,69 @@
+2008-06-15  David Engster  <dengste@eml.cc>
+
+	* nnimap.el (nnimap-request-delete-group): Unselect group if necessary.
+
+2008-06-14  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* gnus-util.el (gnus-put-display-table, gnus-get-display-table): New
+	macros that expand to an `aset'/`aref' call under Emacs, and to a
+	runtime choice under XEmacs.
+
+	* gnus-sum.el (gnus-summary-set-display-table): Use
+	`gnus-put-display-table', `gnus-get-display-table',
+	`gnus-set-display-table' for the display table, instead of `aset'.
+
+	* gnus-xmas.el (gnus-xmas-summary-set-display-table): Use
+	`gnus-put-display-table', `gnus-get-display-table',
+	`gnus-set-display-table' for the display table.
+
+2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnmairix.el: Add autoloads.
+
+2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnmairix.el (nnmairix-delete-recreate-group)
+	(nnmairix-update-and-clear-marks): Fix error messages.
+
+2008-06-14  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el: Upgrade to version 0.6.
+	(nnmairix-group-toggle-propmarks-this-group)
+	(nnmairix-group-toggle-readmarks-this-group)
+	(nnmairix-group-delete-recreate-this-group)
+	(nnmairix-group-toggle-allowfast-this-group, nnmairix-propagate-marks)
+	(nnmairix-remove-tick-mark-original-article): New commands.
+	(nnmairix-mairix-search-options, nnmairix-propagate-marks-upon-close)
+	(nnmairix-propagate-marks-to-nnmairix-groups)
+	(nnmairix-only-use-registry, nnmairix-allowfast-default)
+	(nnmairix-marks-cache, nnmairix-version-output): New variables.
+	(nnmairix-request-set-mark, nnmairix-request-update-info): New back end
+	functions needed for marks propagation and manipulation of read marks.
+	(nnmairix-update-groups): New function.
+	(nnmairix-get-groups-from-server, nnmairix-delete-recreate-group)
+	(nnmairix-determine-original-group-from-registry)
+	(nnmairix-determine-original-group-from-path)
+	(nnmairix-get-group-from-file-path, nnmairix-map-range)
+	(nnmairix-check-mairix-version, nnmairix-group-toggle-parameter): New
+	helper functions.
+	(nnmairix-group-mode-hook, nnmairix-summary-mode-hook): Inserted new
+	keystrokes for new commands.
+	(nnmairix-delete-and-create-on-change): Doc string cleanup.
+	(nnmairix-request-group): Check allow-fast group parameter.
+	(nnmairix-request-create-group): Set allow-fast group parameter if
+	nnmairix-allowfast-default is set.
+	(nnmairix-close-group): Propagate marks upon closing if needed.
+	(nnmairix-group-toggle-threads-this-group): Use new.
+	nnmairix-group-toggle-parameter helper function.
+	(nnmairix-search): Better check for empty search result.
+	(nnmairix-goto-original-article): Use new helper functions for
+	determining original article.
+	(nnmairix-show-original-article): Make sure message-id is in brackets.
+	(nnmairix-call-mairix-binary): Change variable name.
+	(nnmairix-update-and-clear-marks): Use nnmairix-delete-recreate-group
+	helper function.
+	(nnmairix-widget-toggle-activate): Fix doc string.
+
 2008-06-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnir.el: Require edmacro when compiling with XEmacs.
@@ -5627,11 +5693,6 @@
 
 	* gmm-utils.el (gmm): Add :version.
 
-2006-01-26  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* Makefile.in (clean): New rule.
-	(distclean): Use it.
-
 2006-01-26  Steve Youngs  <steve@sxemacs.org>
 
 	* gmm-utils.el (gmm-tool-bar-item, gmm-tool-bar-zap-list): Don't
@@ -6501,12 +6562,6 @@
 2005-10-04  Josh Huber  <huber@alum.wpi.edu>
 
 	* message.el (message-make-expires-date): New function.
-
-2005-10-04  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* Makefile.in (list-installed-shadows): New entry.
-	(install): Use it.
-	(remove-installed-shadows): New entry.
 
 2005-10-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 

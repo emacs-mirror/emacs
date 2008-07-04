@@ -166,6 +166,11 @@ extern int quit_char;
 #include "process.h"
 #include "cm.h"  /* for reset_sys_modes */
 
+/* For serial_configure and serial_open.  */
+extern Lisp_Object QCport, QCspeed, QCprocess;
+extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
+extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
+
 #ifdef WINDOWSNT
 #include <direct.h>
 /* In process.h which conflicts with the local copy.  */
@@ -5379,6 +5384,200 @@ strsignal (code)
   return signame;
 }
 #endif /* HAVE_STRSIGNAL */
+
+#ifdef HAVE_TERMIOS
+/* For make-serial-process  */
+int serial_open (char *port)
+{
+  int fd = -1;
+
+  fd = emacs_open ((char*) port,
+		   O_RDWR
+#ifdef O_NONBLOCK
+		   | O_NONBLOCK
+#else
+		   | O_NDELAY
+#endif
+#ifdef O_NOCTTY
+		   | O_NOCTTY
+#endif
+		   , 0);
+  if (fd < 0)
+    {
+      error ("Could not open %s: %s",
+	     port, emacs_strerror (errno));
+    }
+#ifdef TIOCEXCL
+  ioctl (fd, TIOCEXCL, (char *) 0);
+#endif
+
+  return fd;
+}
+#endif /* TERMIOS  */
+
+#ifdef HAVE_TERMIOS
+/* For serial-process-configure  */
+void
+serial_configure (struct Lisp_Process *p,
+		      Lisp_Object contact)
+{
+  Lisp_Object childp2 = Qnil;
+  Lisp_Object tem = Qnil;
+  struct termios attr;
+  int err = -1;
+  char summary[4] = "???"; /* This usually becomes "8N1".  */
+
+  childp2 = Fcopy_sequence (p->childp);
+
+  /* Read port attributes and prepare default configuration.  */
+  err = tcgetattr (p->outfd, &attr);
+  if (err != 0)
+    error ("tcgetattr() failed: %s", emacs_strerror (errno));
+  cfmakeraw (&attr);
+#if defined (CLOCAL)
+  attr.c_cflag |= CLOCAL;
+#endif
+#if defined (CREAD)
+  attr.c_cflag | CREAD;
+#endif
+
+  /* Configure speed.  */
+  if (!NILP (Fplist_member (contact, QCspeed)))
+    tem = Fplist_get (contact, QCspeed);
+  else
+    tem = Fplist_get (p->childp, QCspeed);
+  CHECK_NUMBER (tem);
+  err = cfsetspeed (&attr, XINT (tem));
+  if (err != 0)
+    error ("cfsetspeed(%d) failed: %s", XINT (tem), emacs_strerror (errno));
+  childp2 = Fplist_put (childp2, QCspeed, tem);
+
+  /* Configure bytesize.  */
+  if (!NILP (Fplist_member (contact, QCbytesize)))
+    tem = Fplist_get (contact, QCbytesize);
+  else
+    tem = Fplist_get (p->childp, QCbytesize);
+  if (NILP (tem))
+    tem = make_number (8);
+  CHECK_NUMBER (tem);
+  if (XINT (tem) != 7 && XINT (tem) != 8)
+    error (":bytesize must be nil (8), 7, or 8");
+  summary[0] = XINT(tem) + '0';
+#if defined (CSIZE) && defined (CS7) && defined (CS8)
+  attr.c_cflag &= ~CSIZE;
+  attr.c_cflag |= ((XINT (tem) == 7) ? CS7 : CS8);
+#else
+  /* Don't error on bytesize 8, which should be set by cfmakeraw().  */
+  if (XINT (tem) != 8)
+    error ("Bytesize cannot be changed");
+#endif
+  childp2 = Fplist_put (childp2, QCbytesize, tem);
+
+  /* Configure parity.  */
+  if (!NILP (Fplist_member (contact, QCparity)))
+    tem = Fplist_get (contact, QCparity);
+  else
+    tem = Fplist_get (p->childp, QCparity);
+  if (!NILP (tem) && !EQ (tem, Qeven) && !EQ (tem, Qodd))
+    error (":parity must be nil (no parity), `even', or `odd'");
+#if defined (PARENB) && defined (PARODD) && defined (IGNPAR) && defined (INPCK)
+  attr.c_cflag &= ~(PARENB | PARODD);
+  attr.c_iflag &= ~(IGNPAR | INPCK);
+  if (NILP (tem))
+    {
+      summary[1] = 'N';
+    }
+  else if (EQ (tem, Qeven))
+    {
+      summary[1] = 'E';
+      attr.c_cflag |= PARENB;
+      attr.c_iflag |= (IGNPAR | INPCK);
+    }
+  else if (EQ (tem, Qodd))
+    {
+      summary[1] = 'O';
+      attr.c_cflag |= (PARENB | PARODD);
+      attr.c_iflag |= (IGNPAR | INPCK);
+    }
+#else
+  /* Don't error on no parity, which should be set by cfmakeraw().  */
+  if (!NILP (tem))
+    error ("Parity cannot be configured");
+#endif
+  childp2 = Fplist_put (childp2, QCparity, tem);
+
+  /* Configure stopbits.  */
+  if (!NILP (Fplist_member (contact, QCstopbits)))
+    tem = Fplist_get (contact, QCstopbits);
+  else
+    tem = Fplist_get (p->childp, QCstopbits);
+  if (NILP (tem))
+    tem = make_number (1);
+  CHECK_NUMBER (tem);
+  if (XINT (tem) != 1 && XINT (tem) != 2)
+    error (":stopbits must be nil (1 stopbit), 1, or 2");
+  summary[2] = XINT (tem) + '0';
+#if defined (CSTOPB)
+  attr.c_cflag &= ~CSTOPB;
+  if (XINT (tem) == 2)
+    attr.c_cflag |= CSTOPB;
+#else
+  /* Don't error on 1 stopbit, which should be set by cfmakeraw().  */
+  if (XINT (tem) != 1)
+    error ("Stopbits cannot be configured");
+#endif
+  childp2 = Fplist_put (childp2, QCstopbits, tem);
+
+  /* Configure flowcontrol.  */
+  if (!NILP (Fplist_member (contact, QCflowcontrol)))
+    tem = Fplist_get (contact, QCflowcontrol);
+  else
+    tem = Fplist_get (p->childp, QCflowcontrol);
+  if (!NILP (tem) && !EQ (tem, Qhw) && !EQ (tem, Qsw))
+    error (":flowcontrol must be nil (no flowcontrol), `hw', or `sw'");
+#if defined (CRTSCTS)
+  attr.c_cflag &= ~CRTSCTS;
+#endif
+#if defined (CNEW_RTSCTS)
+  attr.c_cflag &= ~CNEW_RTSCTS;
+#endif
+#if defined (IXON) && defined (IXOFF)
+  attr.c_iflag &= ~(IXON | IXOFF);
+#endif
+  if (NILP (tem))
+    {
+      /* Already configured.  */
+    }
+  else if (EQ (tem, Qhw))
+    {
+#if defined (CRTSCTS)
+      attr.c_cflag |= CRTSCTS;
+#elif defined (CNEW_RTSCTS)
+      attr.c_cflag |= CNEW_RTSCTS;
+#else
+      error ("Hardware flowcontrol (RTS/CTS) not supported");
+#endif
+    }
+  else if (EQ (tem, Qsw))
+    {
+#if defined (IXON) && defined (IXOFF)
+      attr.c_iflag |= (IXON | IXOFF);
+#else
+      error ("Software flowcontrol (XON/XOFF) not supported");
+#endif
+    }
+  childp2 = Fplist_put (childp2, QCflowcontrol, tem);
+
+  /* Activate configuration.  */
+  err = tcsetattr (p->outfd, TCSANOW, &attr);
+  if (err != 0)
+    error ("tcsetattr() failed: %s", emacs_strerror (errno));
+
+  childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
+  p->childp = childp2;
+
+}
+#endif /* TERMIOS  */
 
 /* arch-tag: edb43589-4e09-4544-b325-978b5b121dcf
    (do not change this comment) */
