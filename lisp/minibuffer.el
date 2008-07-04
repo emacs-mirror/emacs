@@ -1287,22 +1287,44 @@ Return the new suffix."
 (defun completion-basic-try-completion (string table pred point)
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))
-         (completion (try-completion beforepoint table pred)))
-    (if (not (stringp completion))
-        completion
-      (cons
-       (concat completion
-               (completion--merge-suffix completion point afterpoint))
-       (length completion)))))
+         (bounds (completion-boundaries beforepoint table pred afterpoint)))
+    (if (zerop (cdr bounds))
+        ;; `try-completion' may return a subtly different result
+        ;; than `all+merge', so try to use it whenever possible.
+        (let ((completion (try-completion beforepoint table pred)))
+          (if (not (stringp completion))
+              completion
+            (cons
+             (concat completion
+                     (completion--merge-suffix completion point afterpoint))
+             (length completion))))
+      (let* ((suffix (substring afterpoint (cdr bounds)))
+             (prefix (substring beforepoint 0 (car bounds)))
+             (pattern (delete
+                       "" (list (substring beforepoint (car bounds))
+                                'point
+                                (substring afterpoint 0 (cdr bounds)))))
+             (all (completion-pcm--all-completions prefix pattern table pred)))
+        (if minibuffer-completing-file-name
+            (setq all (completion-pcm--filename-try-filter all)))
+        (completion-pcm--merge-try pattern all prefix suffix)))))
 
-(defalias 'completion-basic-all-completions 'completion-emacs22-all-completions)
+(defun completion-basic-all-completions (string table pred point)
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint))
+         (suffix (substring afterpoint (cdr bounds)))
+         (prefix (substring beforepoint 0 (car bounds)))
+         (pattern (delete
+                   "" (list (substring beforepoint (car bounds))
+                            'point
+                            (substring afterpoint 0 (cdr bounds)))))
+         (all (completion-pcm--all-completions prefix pattern table pred)))
+    (completion-hilit-commonality
+     (if (consp all) (nconc all (car bounds)) all)
+     point)))
 
 ;;; Partial-completion-mode style completion.
-
-;; BUGS:
-
-;; - "minibuffer-s- TAB" with minibuffer-selected-window ends up with
-;;   "minibuffer--s-" which matches other options.
 
 (defvar completion-pcm--delim-wild-regex nil)
 

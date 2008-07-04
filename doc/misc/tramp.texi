@@ -197,7 +197,7 @@ Configuring @value{tramp} for use
 * Multi-hops::                  Connecting to a remote host using multiple hops.
 * Customizing Methods::         Using Non-Standard Methods.
 * Customizing Completion::      Selecting config files for user/host name completion.
-* Password caching::            Reusing passwords for several connections.
+* Password handling::           Reusing passwords for several connections.
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
@@ -525,7 +525,7 @@ Method}.
 * Multi-hops::                  Connecting to a remote host using multiple hops.
 * Customizing Methods::         Using Non-Standard Methods.
 * Customizing Completion::      Selecting config files for user/host name completion.
-* Password caching::            Reusing passwords for several connections.
+* Password handling::           Reusing passwords for several connections.
 * Connection caching::          Reusing connection related information.
 * Remote Programs::             How @value{tramp} finds and uses programs on the remote machine.
 * Remote shell setup::          Remote shell setup hints.
@@ -578,7 +578,7 @@ External transfer methods should be configured such a way that they
 don't require a password (with @command{ssh-agent}, or such alike).
 Modern @command{scp} implementations offer options to reuse existing
 @command{ssh} connections, see method @command{scpc}.  If it isn't
-possible, you should consider @ref{Password caching}, otherwise you
+possible, you should consider @ref{Password handling}, otherwise you
 will be prompted for a password every copy action.
 
 
@@ -1008,7 +1008,7 @@ directory @code{/}), all available shares are listed.
 
 Since authorization is done on share level, you will be prompted
 always for a password if you access another share on the same host.
-This can be suppressed by @ref{Password caching}.
+This can be suppressed by @ref{Password handling}.
 
 MS Windows uses for authorization both a user name and a domain name.
 Because of this, the @value{tramp} syntax has been extended: you can
@@ -1521,7 +1521,7 @@ Example:
 @end defun
 
 
-@node Password caching
+@node Password handling
 @section Reusing passwords for several connections.
 @cindex passwords
 
@@ -1530,9 +1530,43 @@ times.  Reentering passwords again and again would be annoying, when
 the chosen method does not support access without password prompt
 through own configuration.
 
-By default, @value{tramp} caches the passwords entered by you.  They will
-be reused next time if a connection needs them for the same user name
-and host name, independently of the connection method.
+The best recommendation is to use the method's own mechanism for
+password handling. Consider @command{ssh-agent} for @option{ssh}-like
+methods, or @command{pageant} for @option{plink}-like methods.
+
+However, if you cannot apply such native password handling,
+@value{tramp} offers altenatives.
+
+
+@anchor{auth-sources}
+@subsection Using an authentication file
+
+@vindex auth-sources
+The package @file{auth-source.el}, originally developed in No Gnus,
+offers the possibility to read passwords from a file, like FTP does it
+from @file{~/.netrc}.  The default authentication file is
+@file{~/.authinfo.gpg}, this can be changed via the variable
+@code{auth-sources}.
+
+@noindent
+A typical entry in the authentication file would be
+
+@example
+machine melancholia port scp login daniel password geheim
+@end example
+
+The port can be any @value{tramp} method (@pxref{Inline methods},
+@pxref{External transfer methods}), to match only this method.  When
+you omit the port, you match all @value{tramp} methods.
+
+
+@anchor{password-cache}
+@subsection Caching passwords
+
+If there is no authentication file, @value{tramp} caches the passwords
+entered by you.  They will be reused next time if a connection needs
+them for the same user name and host name, independently of the
+connection method.
 
 @vindex password-cache-expiry
 Passwords are not saved permanently, that means the password caching
@@ -1548,16 +1582,14 @@ can be disabled totally by customizing the variable
 @code{password-cache} (setting it to @code{nil}).
 
 Implementation Note: password caching is based on the package
-@file{password.el} in No Gnus.  For the time being, it is activated
-only when this package is seen in the @code{load-path} while loading
+@file{password-cache.el}.  For the time being, it is activated only
+when this package is seen in the @code{load-path} while loading
 @value{tramp}.
 @ifset installchapter
 If you don't use No Gnus, you can take @file{password.el} from the
 @value{tramp} @file{contrib} directory, see @ref{Installation
 parameters}.
 @end ifset
-It will be activated mandatory once No Gnus has found its way into
-@value{emacsname}.
 
 
 @node Connection caching
@@ -1601,16 +1633,8 @@ multiple hops (@pxref{Multi-hops}).
 
 When @value{tramp} detects a changed operating system version on a
 remote host (via the command @command{uname -sr}), it flushes all
-connection related information for this host, quits the execution, and
-displays a message like this:
-
-@example
-Quit: "Connection reset, because remote host changed from `Linux
-2.6.22-13-generic' to `Linux 2.6.22-14-generic'"
-@end example
-
-@noindent
-You can simply open the remote file again in such a case.
+connection related information for this host, and opens the
+connection, again.
 
 
 @node Remote Programs
@@ -2254,7 +2278,7 @@ for files on the local host, with the exception that minibuffer
 killing via a double-slash works only on the filename part, except
 that filename part starts with @file{//}.
 @ifset emacs
-A triple-slash stands for the default behaviour.
+A triple-slash stands for the default behavior.
 @end ifset
 @ifinfo
 @xref{Minibuffer File, , , @value{emacsdir}}.
@@ -2445,7 +2469,7 @@ the internal representation of a remote connection.  Called
 interactively, the command offers all active remote connections in the
 minibuffer as remote file name prefix like @file{@trampfn{method,
 user, host, }}.  The cleanup includes password cache (@pxref{Password
-caching}), file cache, connection cache (@pxref{Connection caching}),
+handling}), file cache, connection cache (@pxref{Connection caching}),
 connection buffers.
 @end deffn
 

@@ -570,6 +570,8 @@ Optional arg REVISION is a revision to annotate from."
         (re-search-forward vc-cvs-annotate-first-line-re)
         (delete-region (point-min) (1- (point)))))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
+
 (defun vc-cvs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and
 encoded as fractional days."
@@ -800,7 +802,6 @@ state."
       (cond
        ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
 	(setq file (expand-file-name (match-string 1)))
-	(vc-file-setprop file 'vc-backend 'CVS)
 	(setq status(if (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t)
                         (match-string 1) "Unknown"))
 	(when (and full
@@ -1042,7 +1043,6 @@ is non-nil."
   (cond
    ;; entry for a "locally added" file (not yet committed)
    ((looking-at "/[^/]+/0/")
-    (vc-file-setprop file 'vc-backend 'CVS)
     (vc-file-setprop file 'vc-checkout-time 0)
     (vc-file-setprop file 'vc-working-revision "0")
     (if set-state (vc-file-setprop file 'vc-state 'added)))
@@ -1058,7 +1058,6 @@ is non-nil."
 	     ;; sticky tag
 	     "\\(.\\|\\)" ;Sticky tag type (date or tag name, could be empty)
 	     "\\(.*\\)"))		;Sticky tag
-    (vc-file-setprop file 'vc-backend 'CVS)
     (vc-file-setprop file 'vc-working-revision (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
 		     (vc-cvs-parse-sticky-tag (match-string 4)

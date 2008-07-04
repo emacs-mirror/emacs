@@ -178,11 +178,10 @@ that *might* break other systems without the risk that it will fail to
 work and therefore require an additional cycle of pretesting.
 
 People often suggest fixing a problem by changing config.h or
-src/ymakefile or even src/Makefile to do something special that a
-particular system needs.  Sometimes it is totally obvious that such
-changes would break Emacs for almost all users.  We can't possibly
-make a change like that.  All we can do is ask you to find a fix that
-is safe to install.
+src/Makefile to do something special that a particular system needs.
+Sometimes it is totally obvious that such changes would break Emacs
+for almost all users.  We can't possibly make a change like that.  All
+we can do is ask you to find a fix that is safe to install.
 
 Sometimes people send fixes that *might* be an improvement in
 general--but it is hard to be sure of this.  I can install such

@@ -197,7 +197,7 @@ struct aouthdr
 #include <sys/stat.h>
 #include <errno.h>
 
-#include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
+#include <sys/file.h>	/* Must be after sys/types.h for USG*/
 
 #ifdef USG5
 #include <fcntl.h>

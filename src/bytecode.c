@@ -457,7 +457,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
   Lisp_Object *top;
   Lisp_Object result;
 
-#ifdef CHECK_FRAME_FONT
+#if 0 /* CHECK_FRAME_FONT */
  {
    struct frame *f = SELECTED_FRAME ();
    if (FRAME_X_P (f)

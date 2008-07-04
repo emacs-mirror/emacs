@@ -80,10 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_PTYS and no O_NDELAY */
 #endif /* BSD_SYSTEM */
 
-#ifdef BROKEN_O_NONBLOCK
-#undef O_NONBLOCK
-#endif /* BROKEN_O_NONBLOCK */
-
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
 #endif
@@ -2006,9 +2002,6 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_BLOCK, &blocked, &procmask);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#ifdef BSD4_1
-  sighold (SIGCHLD);
-#else /* not BSD4_1 */
 #if defined (BSD_SYSTEM) || defined (HPUX)
   sigsetmask (sigmask (SIGCHLD));
 #else /* ordinary USG */
@@ -2017,7 +2010,6 @@ create_process (process, new_argv, current_dir)
   sigchld = signal (SIGCHLD, create_process_sigchld);
 #endif
 #endif /* ordinary USG */
-#endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2134,9 +2126,6 @@ create_process (process, new_argv, current_dir)
 	   This makes the pty the controlling terminal of the subprocess.  */
 	if (pty_flag)
 	  {
-#ifdef SET_CHILD_PTY_PGRP
-	    int pgrp = getpid ();
-#endif
 
 	    /* I wonder if emacs_close (emacs_open (pty_name, ...))
 	       would work?  */
@@ -2152,10 +2141,6 @@ create_process (process, new_argv, current_dir)
 		_exit (1);
 	      }
 
-#ifdef SET_CHILD_PTY_PGRP
-	    ioctl (xforkin, TIOCSPGRP, &pgrp);
-	    ioctl (xforkout, TIOCSPGRP, &pgrp);
-#endif
 	  }
 #endif /* not DONT_REOPEN_PTY */
 
@@ -2181,9 +2166,6 @@ create_process (process, new_argv, current_dir)
 	sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#ifdef BSD4_1
-	sigrelse (SIGCHLD);
-#else /* not BSD4_1 */
 #if defined (BSD_SYSTEM) || defined (HPUX)
 	sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
@@ -2191,7 +2173,6 @@ create_process (process, new_argv, current_dir)
 	signal (SIGCHLD, sigchld);
 #endif
 #endif /* ordinary USG */
-#endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2273,9 +2254,6 @@ create_process (process, new_argv, current_dir)
   sigprocmask (SIG_SETMASK, &procmask, 0);
 #else /* !POSIX_SIGNALS */
 #ifdef SIGCHLD
-#ifdef BSD4_1
-  sigrelse (SIGCHLD);
-#else /* not BSD4_1 */
 #if defined (BSD_SYSTEM) || defined (HPUX)
   sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
@@ -2287,7 +2265,6 @@ create_process (process, new_argv, current_dir)
     kill (getpid (), SIGCHLD);
 #endif
 #endif /* ordinary USG */
-#endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
@@ -2700,19 +2677,6 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
 }
 
 
-/* A version of request_sigio suitable for a record_unwind_protect.  */
-
-#ifdef __ultrix__
-static Lisp_Object
-unwind_request_sigio (dummy)
-     Lisp_Object dummy;
-{
-  if (interrupt_input)
-    request_sigio ();
-  return Qnil;
-}
-#endif
-
 #ifdef HAVE_SERIAL
 DEFUN ("serial-process-configure",
        Fserial_process_configure,
@@ -3502,28 +3466,6 @@ usage: (make-network-process &rest ARGS)  */)
 
  open_socket:
 
-#ifdef __ultrix__
-  /* Previously this was compiled unconditionally, but that seems
-     unnecessary on modern systems, and `unrequest_sigio' was a noop
-     under X anyway. --lorentey */
-  /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
-     when connect is interrupted.  So let's not let it get interrupted.
-     Note we do not turn off polling, because polling is only used
-     when not interrupt_input, and thus not normally used on the systems
-     which have this bug.  On systems which use polling, there's no way
-     to quit if polling is turned off.  */
-  if (interrupt_input
-      && !is_server && socktype == SOCK_STREAM)
-    {
-      /* Comment from KFS: The original open-network-stream code
-	 didn't unwind protect this, but it seems like the proper
-	 thing to do.  In any case, I don't see how it could harm to
-	 do this -- and it makes cleanup (using unbind_to) easier.  */
-      record_unwind_protect (unwind_request_sigio, Qnil);
-      unrequest_sigio ();
-    }
-#endif
-
   /* Do this in case we never enter the for-loop below.  */
   count1 = SPECPDL_INDEX ();
   s = -1;
@@ -3569,7 +3511,7 @@ usage: (make-network-process &rest ARGS)  */)
 
       /* Parse network options in the arg list.
 	 We simply ignore anything which isn't a known option (including other keywords).
-         An error is signalled if setting a known option fails.  */
+         An error is signaled if setting a known option fails.  */
       for (optn = optbits = 0; optn < nargs-1; optn += 2)
 	optbits |= set_socket_option (s, args[optn], args[optn+1]);
 
@@ -4651,16 +4593,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
-#ifdef POLL_INTERRUPTED_SYS_CALL
-  /* AlainF 5-Jul-1996
-     HP-UX 10.10 seem to have problems with signals coming in
-     Causes "poll: interrupted system call" messages when Emacs is run
-     in an X window
-     Turn off periodic alarms (in case they are in use),
-     and then turn off any other atimers.  */
-  stop_polling ();
-  turn_on_atimers (0);
-#endif /* POLL_INTERRUPTED_SYS_CALL */
 
   while (1)
     {
@@ -4975,15 +4907,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	{
 	  if (xerrno == EINTR)
 	    no_avail = 1;
-#ifdef ultrix
-	  /* Ultrix select seems to return ENOMEM when it is
-	     interrupted.  Treat it just like EINTR.  Bleah.  Note
-	     that we want to test for the "ultrix" CPP symbol, not
-	     "__ultrix__"; the latter is only defined under GCC, but
-	     not by DEC's bundled CC.  -JimB  */
-	  else if (xerrno == ENOMEM)
-	    no_avail = 1;
-#endif
 	  else if (xerrno == EBADF)
 	    {
 #ifdef AIX
@@ -5295,14 +5218,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       clear_input_pending ();
       QUIT;
     }
-#ifdef POLL_INTERRUPTED_SYS_CALL
-  /* AlainF 5-Jul-1996
-     HP-UX 10.10 seems to have problems with signals coming in
-     Causes "poll: interrupted system call" messages when Emacs is run
-     in an X window
-     Turn periodic alarms back on */
-  start_polling ();
-#endif /* POLL_INTERRUPTED_SYS_CALL */
 
   return got_some_input;
 }
@@ -5712,10 +5627,6 @@ SIGTYPE
 send_process_trap ()
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
-#ifdef BSD4_1
-  sigrelse (SIGPIPE);
-  sigrelse (SIGALRM);
-#endif /* BSD4_1 */
   sigunblock (sigmask (SIGPIPE));
   longjmp (send_process_frame, 1);
 }
@@ -6784,11 +6695,6 @@ sigchld_handler (signo)
 
   SIGNAL_THREAD_CHECK (signo);
 
-#ifdef BSD4_1
-  extern int sigheld;
-  sigheld |= sigbit (SIGCHLD);
-#endif
-
   while (1)
     {
       pid_t pid;
@@ -6816,10 +6722,6 @@ sigchld_handler (signo)
 	     must reestablish each time */
 #if defined (USG) && !defined (POSIX_SIGNALS)
 	  signal (signo, sigchld_handler);   /* WARNING - must come after wait3() */
-#endif
-#ifdef  BSD4_1
-	  sigheld &= ~sigbit (SIGCHLD);
-	  sigrelse (SIGCHLD);
 #endif
 	  errno = old_errno;
 	  return;

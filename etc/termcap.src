@@ -1257,7 +1257,7 @@ pcvt50w|dec vt220 emulation with 50 lines and 132 cols:\
 	:co#132:li#50:\
 	:is=\E[1;50r\E[50;1H:tc=pcvtXX:
 
-# Terminfo entries to enable the use of the ncurses library in colour on a
+# Terminfo entries to enable the use of the ncurses library in color on a
 # NetBSD-arm32 console (only tested on a RiscPC).
 # Created by Dave Millen <dmill@globalnet.co.uk> 22.07.98
 # modified codes for setf/setb to setaf/setab, then to klone+color, corrected
@@ -4973,7 +4973,7 @@ tvi803|televideo 803:\
 #     U  send ^J
 #     D  send ^V
 #
-# S2  7  Screen colour
+# S2  7  Screen color
 #     U  green on black
 #     D  black on green
 #
@@ -5024,7 +5024,7 @@ tvi910|televideo model 910:\
 # S2  4  Edit mode           (U = local, D = duplex)
 # S2  5  Cursor type         (U = underline, D = block)
 # S2  6  Cursor down key     (U = send ^J, D = send ^V)
-# S2  7  Screen colour       (U = green on black, D = black on green)
+# S2  7  Screen color       (U = green on black, D = black on green)
 # S2  8  DSR status (pin 6)  (U = disconnected, D = connected)
 # S2  9  DCD status (pin 8)  (U = disconnected, D = connected)
 # S2 10  DTR status (pin 20) (U = disconnected, D = connected)
@@ -6070,7 +6070,7 @@ wy99gt-w-vb|wy99gt-wvb|wyse99gt-wvb|Wyse 99gt 132-column visible bell:\
 # this speed.
 #   dch1 has been commented out because it causes annoying glittering when
 # vi deletes one character at the beginning of a line with tabs in it.
-#   dch makes sysgen(1M) have a horrible behaviour when deleting
+#   dch makes sysgen(1M) have a horrible behavior when deleting
 # a screen and makes screen(1) behave badly, so it is disabled too. The nice
 # thing is that vi goes crazy if smir-rmir are present and both dch-dch1 are
 # not, so smir and rmir are commented out as well.
@@ -6323,7 +6323,7 @@ wy85-wvb|wyse85-wvb|wyse 85 with visible bell 132-columns:\
 # terminal bug (not sending \E[) was acknowledged by Wyse (so it's not just
 # me), but I can't find that and the server under my bookmark to "Wyse
 # Technical" isn't responding.  So there's the question of wether the wy85
-# terminfo should reflect the manufactuer's intended behaviour of the terminal
+# terminfo should reflect the manufactuer's intended behavior of the terminal
 # or the actual."
 # (untranslatable capabilities removed to fit entry within 1023 bytes)
 # (sgr removed to fit entry within 1023 bytes)
@@ -11023,7 +11023,7 @@ infoton:\
 #ESC D F         set full duplex
 #ESC D H         set half duplex
 #ESC E           line insert
-#ESC F p1 p2     set page colour (p1 = f/grnd, p2 = b/grnd)
+#ESC F p1 p2     set page color (p1 = f/grnd, p2 = b/grnd)
 #                0 = black, 1 = red,     2 = green, 3 = yellow
 #                4 = blue,  5 = magenta, 6 = cyan,  7 = white
 #ESC G n         set serial field attribute (n = 30h - 3Fh)
@@ -11090,8 +11090,8 @@ infoton:\
 #                    = = reverse underline blank
 #                    > = reverse underline blink
 #                    ? = reverse underline blink blank
-#                p2, p3: f/grnd, b/grnd colour
-#                (see ESC F for colours)
+#                p2, p3: f/grnd, b/grnd color
+#                (see ESC F for colors)
 #                use ZZ for mono, eg.
 #                    ESC [ 0 Z Z for normal
 #                    ESC [ 4 Z Z for inverse etc.
@@ -11105,7 +11105,7 @@ infoton:\
 #                n = 0   normal (KDS7372) mode
 #                n = 1   Wordstar mode
 #
-#ESC b           set foreground colour screen
+#ESC b           set foreground color screen
 #
 #ESC c n         enter self-test mode:
 #                n = 0   exit self test mode
@@ -11119,7 +11119,7 @@ infoton:\
 #                n = 8   graphics memory test
 #                n = 9   display all 'E'
 #                n = :   display all 'H'
-#ESC d           set background colour screen
+#ESC d           set background color screen
 #
 #ESC e n         program insert char (n = insert char)
 #ESC f text CR   load user status line with 'text'
@@ -12282,7 +12282,7 @@ pe7000m|perkin elmer 7000 series monochrome monitor:\
 	:k7=\E!^G:k8=\E!^H:k9=\E!^I:k;=\E!^J:kb=^H:kd=\E!U:kh=\E!S:\
 	:kl=\E!V:kr=\E!W:ku=\E!T:le=\ED:ll=\ES7\s:nd=\EC:sf=^J:\
 	:sr=\ER:up=\EA:
-pe7000c|perkin elmer 7000 series colour monitor:\
+pe7000c|perkin elmer 7000 series color monitor:\
 	:i1=\E!\0\EW  7o\Egf\Eb0\Ec7\ES7\s:se=\Eb0:so=\Eb2:\
 	:ue=\E!\0:us=\E!\s:tc=pe7000m:
 
@@ -13980,8 +13980,8 @@ mai|basic4|MAI Basic Four in ansi mode:\
 # The Basis 108 was a Apple II clone, manufactured by the "Basis
 # Mikrocomputer GmbH" in Munster, Germany (the company still exists today,
 # about 1,5 km from where I live, but doesn't build own computers any
-# more). A Basis 108 featured a really heavy (cast aluminium?) case, was
-# equipped with one or two 5.25" disk drives, had a monochrome and colour
+# more). A Basis 108 featured a really heavy (cast aluminum?) case, was
+# equipped with one or two 5.25" disk drives, had a monochrome and color
 # video output for a TV set or a dedicated monitor and several slots for
 # Apple II cards. Basis 108 were quite popular at german schools before
 # the advent of the IBM PC. They run, for example, the UCSD Pascal
@@ -14219,7 +14219,7 @@ bg1.25|bbn bitgraph 1.25:\
 #	Typical firmware identification F5 "etat 6":
 #  P287.02.04b	(AZERTY)
 #  P297.11.04	(24-pin: 2732)	or P798.11.04	(28-pin: 2764)
-#  P298.03.03	(monochrome)	or P374.03.02	(colour)
+#  P298.03.03	(monochrome)	or P374.03.02	(color)
 #
 #	SM SDP mode (VIP command):	^[[?=h
 #	RIS (erases screen):		^[c
@@ -14289,7 +14289,7 @@ dku7102-old|BULL Questar 200 DKU7102 (microcode version < 6):\
 	:AL@:DL@:al@:ce=\E[K\E[m:cl=\E[2J\E[H:cm@:dl@:\
 	:ds=\EPY99\:98\E\\\E[0;98v\E[2J\E[H\E[v:\
 	:ts=\EPY99\:98\E\\\E[0;98v\E[H\E[2;7m:tc=tws-generic:
-dku7202|BULL Questar 200 DKU7202 (colour/character attributes):\
+dku7202|BULL Questar 200 DKU7202 (color/character attributes):\
 	:i2=\E[?3h\Eb:mb=\E[0;2;4m:mh=\E[0;5m:so=\E[0;4;5;7m:\
 	:ta=^I:us=\E[0;2m:tc=tws-generic:
 
@@ -14874,7 +14874,7 @@ ddr|rebus3180|ddr3180|Rebus/DDR 3180 vt100 emulator:\
 # Approximate date of release was 1982 (early 80s, anyway), and it had several
 # evolutions including (limited) color versions such as the PS330C. PS300s
 # were effectively obsolete by the late 80s, replaced by raster graphics
-# systems, although specialized applications like molecular modelling
+# systems, although specialized applications like molecular modeling
 # hung onto them for a while longer.  AFAIK all E&S vector graphics systems
 # are out of production, though of course E&S is very much alive (in 1996).
 # (ps300: changed ":pt@:" to "it@" -- esr)

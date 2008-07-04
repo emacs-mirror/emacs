@@ -38,7 +38,7 @@
 ;; local mode behave like the global mode.
 
 ;; You probably don't really want to use the global mode; if the
-;; cursor is difficult to spot, try changing its colour, relying on
+;; cursor is difficult to spot, try changing its color, relying on
 ;; `blink-cursor-mode' or both.  The hookery used might affect
 ;; response noticeably on a slow machine.  The local mode may be
 ;; useful in non-editing buffers such as Gnus or PCL-CVS though.

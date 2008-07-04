@@ -1,3 +1,499 @@
+2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-dir.el (vc-dir): Complete only directory names.
+
+2008-06-27  Jason Rumney  <jasonr@gnu.org>
+
+        * w32-fns.el (top-level): Unconditionally define all charsets.
+
+2008-06-27  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-mode-base-map): Don't bind C-M-[ae] to
+	the CC Mode specific functions; this is no longer needed, since
+	{beginning,end}-of-defun now pass ARG to ...-of-defun-function.
+
+	* progmodes/cc-defs.el (c-emacs-features): New feature
+	'argumentative-bod-function.
+
+2008-06-27  John Paul Wallington  <jpw@pobox.com>
+
+	* chistory.el (list-command-history): Use `bound-and-true-p'.
+	(command-history-map): Define within defvar.  Add docstring.
+
+2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.el (image-jpeg-p): Don't fail if the arg cannot be converted
+	to unibyte; just assume it is not a JPEG.  Use `string-match-p'.
+	(image-type-from-data, image-type-from-file-name): Use `string-match-p'.
+	(image-type-from-buffer): Use `looking-at-p'.
+
+2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ibuf-ext.el (diff-sentinel): Declare.
+
+2008-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/lunar.el (calendar-lunar-phases): Rename from
+	calendar-phases-of-moon.  Keep old name as alias, update callers.
+	(lunar-phases): Rename from phases-of-moon.  Keep old name as alias.
+	(diary-lunar-phases): Rename from diary-phases-of-moon.
+	Keep old name as alias.
+	* calendar/cal-menu.el (cal-menu-sunmoon-menu)
+	(cal-menu-global-mouse-menu): Update for lunar name changes.
+	* calendar/calendar.el (calendar-mode-map): Update for name change.
+	* calendar/diary-lib.el (diary-list-sexp-entries): Doc update.
+
+2008-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/solar.el (solar-sunrise-sunset-string): Add optional
+	argument `nolocation'.
+	(calendar-sunrise-sunset-month): New function.
+	* calendar/cal-menu.el (cal-menu-sunmoon-menu): Rename from
+	cal-menu-moon-menu.  Add calendar-sunrise-sunset-month.
+	(cal-menu-global-mouse-menu): Add calendar-sunrise-sunset-month.
+	* calendar/calendar.el (solar-sunrises-buffer): New constant.
+	(calendar-mode-map): Use cal-menu-sunmoon-menu.
+	(calendar-buffer-list): Add solar-sunrises-buffer.
+
+	* calendar/cal-menu.el (cal-menu-goto-menu): Tweak menu name.
+
+2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-start.el: Add customization types for word-wrap and
+	shift-select-mode.
+
+2008-06-26  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): New function.
+	(ibuffer-diff-with-file): Use it.  Do diff on marked buffers.
+	(ibuffer-mark-on-buffer): Don't display message when removing marks.
+	(ibuffer-mark-by-mode): Use `buffer-local-value'.
+
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (tool-bar): Require.
+
+	* vc.el (ewoc, tool-bar): Do not require.
+
+2008-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (terminal-composition-base-character-p): New function.
+	(terminal-composition-function):
+	Use terminal-composition-base-character-p.  Include the base character
+	in the composition.
+	(auto-compose-chars): Don't check font-object for terminal display.
+
+2008-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* doc-view.el (bookmark-make-record-default):
+	* image-mode.el (bookmark-make-record-default): Fix declaration.
+
+	* calendar/calendar.el (calendar-date-echo-text): Doc fix.
+	Add default :value for sexp type.
+	(calendar-month-edges): New variable.
+	(calendar-month-edges): New function.
+	(calendar-recompute-layout-variables): Set calendar-month-edges.
+	(calendar-intermonth-header, calendar-intermonth-text): New options.
+	(calendar-insert-at-column): New function.
+	(calendar-generate-month): Use calendar-insert-at-column.
+	Handle intermonth text.  Add 'date property.
+	(calendar-column-to-month): Remove function.
+	(calendar-column-to-segment): New function.
+	(calendar-cursor-to-date): Use calendar-column-to-segment.
+	Check 'date property.
+
+	* calendar/calendar.el (calendar-print-other-dates):
+	Handle mouse events.
+	* calendar/cal-menu.el (calendar-mouse-print-dates): Remove function.
+	(cal-menu-context-mouse-menu): Use calendar-print-other-dates.
+
+	* calendar/holidays.el (calendar-cursor-holidays): Handle mouse events.
+	* calendar/cal-menu.el (calendar-mouse-holidays): Remove function.
+	(cal-menu-context-mouse-menu): Use calendar-cursor-holidays.
+
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date):
+	Use calendar-column-to-segment, calendar-month-edges, and
+	the 'date property to handle intermonth text.
+
+	* calendar/cal-iso.el (calendar-iso-from-absolute): Add autoload cookie.
+
+	* calendar/cal-menu.el (cal-menu-moon-menu, cal-menu-diary-menu)
+	(cal-menu-holidays-menu, cal-menu-goto-menu, cal-menu-scroll-menu):
+	Add doc strings.
+	(cal-menu-context-mouse-menu): Add some :keys.
+	(calendar-check-holidays): Declare rather than autoloading.
+	(diary-show-holidays-flag): Remove unneeded declaration.
+
+	* calendar/cal-menu.el (cal-menu-moon-menu): Add sunrise/sunset.
+	* calendar/calendar.el (calendar-cursor-to-date): Handle case where
+	event-start is nil.
+
+2008-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-basic-try-completion): Use the text after
+	point to constrain the completion candidates.
+	(completion-basic-all-completions): Adjust accordingly.
+
+2008-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/tex-mode.el (tex-verbatim): Use monospace instead of
+	courier.
+
+	* faces.el (set-face-attribute): Doc fix.
+
+2008-06-25  Juri Linkov  <juri@jurta.org>
+
+	* bindings.el (goto-map): New variable.  Rebind goto-related
+	commands to this `M-g' prefix keymap.
+	(search-map): New variable for `M-s' prefix keymap.
+	Bind `M-s o' to `occur', `M-shr' to `highlight-regexp', `M-shp' to
+	`highlight-phrase', `M-shl' to `highlight-lines-matching-regexp',
+	`M-shu' to `unhighlight-regexp', `M-shf' to `hi-lock-find-patterns',
+	`M-shw' to `hi-lock-write-interactive-patterns'.
+
+	* isearch.el (isearch-mode-map): Bind `M-s h r' to
+	`isearch-highlight-regexp'.
+	(isearch-highlight-regexp): New function.
+
+2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-bookmark-make-record):
+	Use bookmark-make-record-default.
+	(Info-bookmark-jump): Use bookmark-default-handler.
+
+	* image-mode.el (image-bookmark-make-record):
+	Use bookmark-make-record-default.
+	(image-bookmark-jump): Use bookmark-default-handler.
+
+	* doc-view.el (doc-view-bookmark-make-record):
+	Use bookmark-make-record-default.
+	(doc-view-bookmark-jump): Use bookmark-default-handler.
+
+	* bookmark.el (bookmark-alist): Allow the 2 slightly different formats
+	used until now in bookmark.el's code.
+	(bookmark-get-bookmark): Accept bookmark names or bookmark records.
+	(bookmark-get-bookmark-record): Allow the 2 slightly different formats
+	used until now in bookmark.el's code.
+	(bookmark-set-filename): Remove special code, moved to its only caller.
+	(bookmark-store): Use the newer format.
+	(bookmark-make-record-default): Add arg `point-only'.
+	Rename from bookmark-make-record-for-text-file.
+	(bookmark--jump-via): New function.
+	(bookmark-jump, bookmark-jump-other-window, bookmark-bmenu-2-window)
+	(bookmark-bmenu-other-window, bookmark-bmenu-switch-other-window):
+	Use it.
+	(bookmark-jump-noselect, bookmark-default-handler):
+	Don't return an alist, instead return the data implicitly by changing
+	current buffer and point.  Signal an error if the file doesn't exist.
+
+	* buff-menu.el: Use with-current-buffer and inhibit-read-only.
+	(Buffer-menu-toggle-read-only): Avoid vc-toggle-read-only.
+
+	* bs.el: Use with-current-buffer.  Simplify.
+	(bs-toggle-readonly): Avoid vc-toggle-read-only.
+
+	* eshell/esh-cmd.el (eshell-manipulate): Check eshell-debug-command
+	is bound before using it.
+
+2008-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* image.el (image-jpeg-p): Convert DATA to unibyte at first.
+
+2008-06-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el:
+	* vc-git.el: Require vc-dir when compiling.
+
+	* vc-dir.el (vc-dir-marked-only-files-and-states): Rename from
+	vc-dir-marked-only-files.  Change the return value.
+	(vc-dir-child-files-and-states): Rename from vc-dir-child-files.
+	Change the return value.
+	(vc-dir-deduce-fileset): New function broken out from ...
+	* vc.el (vc-deduce-fileset): ... here and ...
+	(vc-deduce-fileset): ... here.
+
+	* vc-svn.el (vc-annotate-parent-rev): Pacify byte compiler.
+	(vc-svn-parse-status): Do not set the vc-backend property.
+
+2008-06-25  Andreas Schwab  <schwab@suse.de>
+
+	* faces.el (face-font-family-alternatives, variable-pitch):
+	Use "Sans Serif", not "Sans-Serif".
+
+2008-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-font-family-alternatives, variable-pitch):
+	Change "Sans" to the canonical name "Sans-Serif".
+
+2008-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-mode-map): Add extra keybindings to
+	`calc-missing-key'.
+	* calc/calc-ext.el (calc-init-extensions): Add keybinding for
+	`kill-ring-save'.
+
+2008-06-24  Miles Bader  <miles@gnu.org>
+
+	* mouse.el (mouse-appearance-menu): Don't do anything if the user
+	pops up the menu but doesn't select anything.
+
+2008-06-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* add-log.el (add-change-log-entry): Add new arg to force each new
+	entry to be on a new line.
+	* diff-mode.el (diff-add-change-log-entries-other-window): Use it.
+
+	* vc-dir.el (vc-client-object): Remove.
+	(vc-dir-prepare-status-buffer): Take a backend as an argument and
+	use it when looking for a buffer.
+	(vc-dir): Add a backend argument.  Set revert-buffer-function.
+	Don't create a client object.  Move bindings ...
+	(vc-dir-menu-map, vc-dir-mode-map): ... here.
+	(vc-dir-revert-buffer-function): New function.
+	(vc-generic-status-printer): Rename to ...
+	(vc-dir-status-printer): ... this.
+	(vc-generic-state, vc-generic-status-fileinfo-extra)
+	(vc-dir-extra-menu, vc-make-backend-object): Remove.
+	(vc-default-status-printer): Use a different face for
+	directories.  Don't display any text for directories in the state
+	column.  Add tooltips.
+
+	* vc.el (Todo): Update.
+
+	* vc-hg.el (vc-annotate-convert-time, vc-default-status-printer):
+	* vc-rcs.el (vc-annotate-convert-time):
+	* vc-mtn.el (vc-annotate-convert-time):
+	* vc-git.el (vc-annotate-convert-time):
+	* vc-cvs.el (vc-annotate-convert-time):
+	* vc-bzr.el (vc-annotate-convert-time): Declare as functions.
+
+2008-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-annotate.el (vc-annotate-mode): Derive from special-mode
+	instead of using view-mode.
+
+2008-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (distclean): Don't delete *.elc and autogen files.
+
+2008-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el:
+	* vc-hooks.el:
+	* vc-dispatcher.el: Move vc-dir variables and functions ...
+	* vc-dir.el: ... here.  New file.
+	* Makefile.in (ELCFILES): Add vc-dir.elc.
+
+	* vc.el: Move vc-annotate variables and functions ...
+	* vc-annotate.el: ... here.  New file.
+	* Makefile.in (ELCFILES): Add vc-annotate.elc.
+
+	* vc-dav.el: Move here from url/vc-dav.el.
+	(Todo): Note work needed to make this backend functional.
+
+	* Makefile.in (ELCFILES): Update vc-dav.el location.
+
+2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (COMPILE_FIRST): Trim down and add autoload.el.
+
+2008-06-21  John Paul Wallington  <jpw@pobox.com>
+
+	* emacs-lisp/derived.el (define-derived-mode): Add `doc-string' decl.
+
+	* textmodes/rst.el (rst-mode): Put docstring in right place.
+
+2008-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-about-text, fancy-startup-tail): Increase text
+	size for legibility.
+
+	* faces.el (fixed-pitch): Use "Monospace" family.
+	(variable-pitch): Use "Sans" family.
+	(face-font-family-alternatives): Define alternatives for "Sans"
+	and "Monospace".
+
+2008-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* mail/hashcash.el, net/tramp-smb.el, nxml/nxml-mode.el:
+	Require 'cl when compiling.
+
+	* emacs-lisp/debug.el (help-xref-interned): Declare.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-set-keymap-parents):
+	Evaluate definition when compiling.
+
+	* progmodes/bug-reference.el (bug-reference-map): Bind down-mouse-1
+	rather than mouse-1.
+	(bug-reference-url-format): Autoload safe if string.
+	(bug-reference-bug-regexp): Make space after "bug" optional.
+
+	* Makefile.in (all): Explicitly pass EMACS to sub-make,
+	for some non-GNU makes.
+
+	* cus-dep.el (custom-dependencies-no-scan-regexp):
+	* finder.el (finder-no-scan-regexp): Add ldefs-boot.el
+
+	* calendar/cal-move.el (calendar-forward-day): Scroll in one month
+	increments.
+
+	* calendar/calendar.el: Factor out the magic numbers controlling the
+	calendar layout.
+	(calendar-month-digit-width, calendar-month-width)
+	(calendar-right-margin): New variables.
+	(calendar-recompute-layout-variables, calendar-set-layout-variable):
+	New functions.
+	(calendar-left-margin, calendar-intermonth-spacing)
+	(calendar-column-width, calendar-day-header-width)
+	(calendar-day-digit-width): New options.
+	(calendar-first-date-row): New constant.
+	(calendar-move-to-column, calendar-ensure-newline): New functions,
+	replacing calendar-insert-indented.
+	(calendar-insert-indented): Remove function.
+	(calendar-generate-month): Use calendar-move-to-column and
+	calendar-ensure-newline.  Use layout variables.
+	(calendar-generate, calendar-update-mode-line)
+	(calendar-font-lock-keywords): Use layout variables.
+	(calendar-column-to-month): New function.
+	(calendar-cursor-to-date): Use calendar-column-to-month.
+	Use layout variables.
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date):
+	Use layout variables.  Use calendar-column-to-month.
+	(calendar-cursor-to-visible-date): Use layout variables.
+
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (update-elclist): Don't exclude COMPILE_FIRST.
+	(all): Run compile-last.
+	(compile-onefile): New target.
+	(compile-first): Simplify.
+	(compile-last): Don't treat COMPILE_FIRST specially.
+	(COMPILE_FIRST): List the elc files rather than the el files.
+	(ELCFILES): Update.
+
+2008-06-21  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el: Remove dead code.
+	(newsticker--window-config): Remove.
+	(newsticker-treeview-quit): Do not save window config.
+	(newsticker-treeview): Do not try to restore window config.
+	(newsticker-groups, newsticker--treeview-list-sort-by-column)
+	(newsticker--treeview-list-new-items)
+	(newsticker--treeview-list-immortal-items)
+	(newsticker--treeview-list-obsolete-items)
+	(newsticker--treeview-list-all-items)
+	(newsticker--treeview-list-feed-items): Fix documentation.
+
+2008-06-21  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (text-scale-adjust): Bind `echo-keystrokes' to nil.
+
+2008-06-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax CASE 5D.5): Fix an
+	infinite loop on invalid syntax.
+
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/rst.el: Run rst-define-level-faces when loading.
+	(rst-mode): Don't set the font-lock-multiline var.
+	(rst-font-lock-find-unindented-line, rst-font-lock-handle-adornment):
+	Set the font-lock-multiline property by hand.
+
+	* loadup.el: Don't add emacs-<VERS> name when bootstrapping.
+
+	* Makefile.in (emacs-deps): Remove.
+	($(lisp)/cus-load.el, $(lisp)/finder-inf.el): Re-add.
+	(all): Use them.
+	(autogen-clean): Remove.
+
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (all): New target.
+	(bootstrap-prepare): Remove.
+
+	* Makefile.in ($(lisp)/progmodes/cc-mode.elc): Pass the .el file not
+	the .elc file to batch-byte-compile.
+
+	* progmodes/cc-mode.el (c-make-inherited-keymap): Only use
+	set-keymap-parents if set-keymap-parent doesn't exist.
+
+	* vc-bzr.el (vc-bzr-annotate-extract-revision-at-line):
+	Allow more than one space before the |.
+
+	* textmodes/rst.el: Fix up docstring conventions.
+	Move vars to before their first use.
+	(rst-mode): Don't mess with font-lock-support-mode.
+	(rst-suggest-new-decoration, rst-adjust-decoration):
+	Avoid CL's copy-list.
+	(rst-delete-entire-line): Use line-beginning-position.
+	(rst-position): New fun.
+	(rst-straighten-decorations): Use it instead of CL's position.
+	(rst-straighten-bullets-region): Avoid CL's mapcar*.
+	(rst-toc-mode): Use define-derived-mode.
+	(rst-iterate-leftmost-paragraphs, rst-iterate-leftmost-paragraphs-2):
+	Remove unused var `in-par'.  Use `point' rather than `point-marker'.
+	(rst-line-block-region): Reduce redundancy.  Use the `pfxarg' arg.
+	(rst-replace-lines): Simplify.
+	(auto-mode-alist): Use rst-mode for *.rst and *.rest files.
+
+	* simple.el (special-mode-map): New var.
+	(special-mode): New major mode.
+
+2008-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-mtn.el (vc-mtn-log-view-mode): Set log-view-per-file-logs and
+	log-view-file-re.
+
+	* vc.el (vc-dir-hide-up-to-date): Undo previous change.
+	(vc-switch-backend): Simplify.
+	(Todo): Remove solved items.
+
+	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-parse-entry): Do not set
+	the vc-backend property.
+
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-start-section, checkdoc-error):
+	Bind inhibit-read-only since the buffer is always read-only.
+
+2008-06-20  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-treeview.el (newsticker-treeview-own-frame):
+	Change default value to nil.
+	(newsticker--treeview-list-add-item)
+	(newsticker--treeview-propertize-tag): Show item title in tooltip.
+
+2008-06-20  Martin Blais  <blais@furius.ca>
+	    Stefan Merten  <smerten@oekonux.de>
+	    David Goodger  <goodger@python.org>
+
+	* textmodes/rst.el: New file.
+
+2008-06-20  Sam Steingold  <sds@gnu.org>
+
+	* vc.el (vc-dir-hide-up-to-date): Accept a prefix argument to also
+	remove DIRECTORY entries.
+
+2008-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (distclean): Depend on `clean'.
+	(clean): Delete calc/calc-loaddefs.el~ and eshell/esh-groups.el~.
+	(AUTOGENEL): Add $(lisp)/nxml/subdirs.el.
+	($(lisp)/cus-load.el): Don't use `touch'.  Instead, generate an
+	empty cus-load.el with `echo', and include "Local Variables"
+	section to prevent the empty file from being compiled.
+	(cus-load.el-SH, cus-load.el-CMD): New SHELLTYPE-specific targets
+	that generate an empty cus-load.el.
+
+2008-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH):
+	Don't copy ldefs-boot.el over loaddefs.el.
+	(bootstrap-clean): Remove loaddefs.el and don't depend on it.
+	(loaddefs.el-SH, loaddefs.el-CMD): Don't add autoloads and defvars
+	to loaddefs.el; they are not needed now.  Add coding cookie.
+
 2008-06-20  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el (face-remap-add-relative, face-remap-set-base):
@@ -9,8 +505,8 @@
 
 2008-06-20  Jason Rumney  <jasonr@gnu.org>
 
-        * international/fontset.el (setup-default-fontset): Specify script
-        for latin use of iso10646-1.  Fix use of lang tags.
+	* international/fontset.el (setup-default-fontset): Specify script
+	for latin use of iso10646-1.  Fix use of lang tags.
 
 2008-06-19  Miles Bader  <miles@gnu.org>
 
@@ -208,7 +704,7 @@
 	(tramp-sh-file-name-handler): Reset `tramp-locked' in case of error.
 	(tramp-open-connection-setup-interactive-shell): Flush cache, and
 	restart `tramp-maybe-open-connection' when the remote system has
-	been changed. Throw 'uname-changed event.
+	been changed.  Throw 'uname-changed event.
 	(tramp-maybe-open-connection): Catch it.
 
 	* net/tramp-cmds.el (tramp-cleanup-all-connections):
@@ -288,7 +784,7 @@
 	* term/linux.el (terminal-init-linux): Load t-mouse.
 
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-	        Drew Adams  <drew.adams@oracle.com>
+	    Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-breadcrumbs-depth): New var.
 	(Info-insert-breadcrumbs): New function.
@@ -659,7 +1155,7 @@
 	(newsticker-retrieval): New.  Renamed from `newsticker-feed'.
 	(newsticker-url-list-defaults):
 	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
-	(newsticker-url-list): Doc changed. URL can be a function.
+	(newsticker-url-list): Doc changed.  URL can be a function.
 	Use `newsticker--set-customvar-retrieval' for :set.  Change :group.
 	(newsticker-retrieval-method): New.
 	(newsticker-wget-name, newsticker-wget-arguments): Change :group.
@@ -760,7 +1256,7 @@
 	(newsticker--set-customvar-sorting): New.  Extracted from
 	`newsticker--set-customvar'.
 	(newsticker-sort-method): Use `newsticker--set-customvar-sorting
-	for :set. Changed :group.
+	for :set.  Changed :group.
 	(newsticker-heading-format, newsticker-item-format)
 	(newsticker-desc-format, newsticker-statistics-format):
 	Use `newsticker--set-customvar-formatting for :set.  Change :group.
@@ -2088,7 +2584,7 @@
 	* vc-mtn.el (vc-mtn-command):
 	* vc-sccs.el (vc-sccs-command, vc-sccs-workfile)
 	(vc-sccs-workfile-unchanged-p):
-	* vc-svn.el (vc-svn-command, vc-svn-create-repo),
+	* vc-svn.el (vc-svn-command, vc-svn-create-repo):
 	* vc-rcs.el (all methods): Remove assumption about what a nil
 	argument to vc-do-command means.  This means no buffer name needs
 	to be hardcoded into the dispatcher layer, and it's better to be
@@ -10199,6 +10695,7 @@ See ChangeLog.13 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
+;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 2008  Free Software Foundation, Inc.

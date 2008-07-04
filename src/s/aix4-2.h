@@ -1,6 +1,194 @@
-#include "aix4-1.h"
+/*
+Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+  Free Software Foundation, Inc.
 
-#undef ALIGN_DATA_RELOC
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+
+/*
+ *	Define symbols to identify the version of Unix this is.
+ *	Define all the symbols that apply correctly.
+ */
+
+#define USG				/* System III, System V, etc */
+#define USG5
+
+/*      This symbol should be defined on AIX Version 3  ??????? */
+#ifndef _AIX
+#define _AIX
+#endif
+
+/* SYSTEM_TYPE should indicate the kind of system you are using.
+ It sets the Lisp variable system-type.  */
+
+#define SYSTEM_TYPE "aix"
+
+/* In AIX, you allocate a pty by opening /dev/ptc to get the master side.
+   To get the name of the slave side, you just ttyname() the master side.  */
+
+#define PTY_ITERATION for (c = 0; !c ; c++)
+#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptc");
+#define PTY_TTY_NAME_SPRINTF strcpy (pty_name, ttyname (fd));
+
+/*
+ *	Define HAVE_TERMIO if the system provides sysV-style ioctls
+ *	for terminal control.
+ */
+
+#define HAVE_TERMIOS
+
+/*
+ *	Define HAVE_PTYS if the system supports pty devices.
+ */
+
+#define HAVE_PTYS
+
+/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
+
+#define HAVE_SOCKETS
+
+/*
+ *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
+ *      The 4.2 opendir, etc., library functions.
+ */
+
+/* #define NONSYSTEM_DIR_LIBRARY */
+
+/*
+ * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
+ *	library functions.  Almost, but not quite the same as
+ *	the 4.2 functions
+ */
+
+#define SYSV_SYSTEM_DIR
+
+/* Define this symbol if your system has the functions bcopy, etc. */
+
+#define BSTRING
+
+/* subprocesses should be defined if you want to
+ have code for asynchronous subprocesses
+ (as used in M-x compile and M-x shell).
+ This is supposed to work now on system V release 2.  */
+
+#define subprocesses
+
+/* The file containing the kernel's symbol table is called /unix.  */
+
+#define KERNEL_FILE "/unix"
+
+/* The symbol in the kernel where the load average is found
+   is named avenrun.  */
+
+#define LDAV_SYMBOL "avenrun"
+
+/* Special itemss needed to make Emacs run on this system.  */
+
+
+
+/* USG systems tend to put everything declared static
+   into the initialized data area, which becomes pure after dumping Emacs.
+   Foil this.  Emacs carefully avoids static vars inside functions.  */
+
+#undef static
+
+/* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
+
+/* #define ADDR_CORRECT(x) (x) */
+
+#ifndef __GNUC__
+#define LINKER cc
+#endif
+
+/* Prevent -lg from being used for debugging.  Not needed.  */
+
+#define LIBS_DEBUG
+
+/* No need to specify -lc when linking.  */
+
+#define LIB_STANDARD
+
+/* Use terminfo instead of termcap.  */
+
+#define TERMINFO
+
+/* The following definition seems to be needed in AIX version 3.1.6.8.
+   It may not have been needed in certain earlier versions.  */
+#define HAVE_TCATTR
+
+/* Include unistd.h, even though we don't define POSIX.  */
+#define NEED_UNISTD_H
+
+/* AIX doesn't define this.  */
+#define unix 1
+
+#ifndef __GNUC__
+/* Some programs in src produce warnings saying certain subprograms
+   are to comples and need a MAXMEM value greater than 2000 for
+   additional optimization.  --nils@exp-math.uni-essen.de */
+#define C_SWITCH_SYSTEM -ma -qmaxmem=4000
+#endif
+
+/* The character-composition stuff is broken in X11R5.
+   Even with XIMStatusNothing aliased to XIMStatusNone,
+   tranle@intellicorp.com (Minh Tran-Le) reports that enabling
+   the internationalization code causes the modifier keys C, M and Shift
+   to beep after a mouse click.  */
+#define X11R5_INHIBIT_I18N
+
+/* string.h defines rindex as a macro, at least with native cc, so we
+   lose declaring char * rindex without this.
+   It is just a guess which versions of AIX need this definition.  */
+#undef HAVE_STRING_H
+
+/* For AIX, it turns out compiling emacs under AIX 3.2.4 REQUIRES "cc -g"
+   because "cc -O" crashes. Under AIX 3.2.5, "cc -O" is required because
+   "cc -g" crashes. Go figure.  --floppy@merlin.mit.edu */
+/* The above isn't generally true.  If it occurs with some compiler
+   release, seek a fixed version, be it XLC or GCC.  The XLC version
+   isn't tied to the OS version on AIX any more than elsewhere.  XLC
+   (the IBM compiler) can use -g with -O.  (-O3 is also a possibility
+   for the optimization level.)  -- fx, after David Edelsohn.  */
+#define C_DEBUG_SWITCH -g -O
+
+/* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
+#define SIGNALS_VIA_CHARACTERS
+#define MAIL_USE_LOCKF
+#define CLASH_DETECTION
+
+/* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
+#define POSIX_SIGNALS
+#undef sigmask
+
+/* Dave Love <d.love@dl.ac.uk> reported this as needed on AIX 4.1.
+   It is just a guess which versions of AIX need this definition.  */
+#define HAVE_WAIT_HEADER
+
+/* Specify the type that the 3rd arg of `accept' points to.
+   It is just a guess which versions of AIX need this definition.  */
+#define SOCKLEN_TYPE int
+
+/* olson@mcs.anl.gov says -li18n is needed by -lXm.  */
+#define LIB_MOTIF -lXm -li18n
+
+#ifndef HAVE_LIBXMU
+#define LIBXMU
+
+/* Unfortunately without libXmu we cannot support EditRes.  */
+#define NO_EDITRES
+#endif
 
 /* On AIX Emacs uses the gmalloc.c malloc implementation.  But given
    the way this system works, libc functions that return malloced
@@ -19,20 +207,6 @@
    to avoid a crash just use the Emacs implementation for that function.
 */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
-
-/* aix3-1.h defined _NO_PROTO, probably to work around an AIX compiler
-   that did not handle prototypes.  On (at least) AIX 5.2, this causes
-   the proper prototype to be thrown away for lseek64, so compiled
-   Lisp files do not load correctly and compilation fails.
-
-   The AIX compiler should have learned about function prototypes long
-   ago, so we can probably go ahead and undefine _NO_PROTO.  However,
-   if someone can demonstrate that this problem still exists for AIX
-   4, this should be moved into a new file (aix5.h).
-*/
-
-#undef _NO_PROTO
-
 
 /* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
    (do not change this comment) */

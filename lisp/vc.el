@@ -573,10 +573,6 @@
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
 ;;
-;; - C-x v b does switch to a different backend, but the mode line is not
-;;   adapted accordingly.  Also, it considers RCS and CVS to be the same,
-;;   which is pretty confusing.
-;;
 ;; - vc-create-tag and vc-retrieve-tag should update the
 ;;   buffers that might be visiting the affected files.
 ;;
@@ -613,13 +609,6 @@
 ;;   the two branches.  Or you locally add file FOO and then pull a
 ;;   change that also adds a new file FOO, ...
 ;;
-;; - C-x v l should insert the file set in the *VC-log* buffer so that
-;;   log-view can recognize it and use it for its commands.
-;;
-;; - vc-diff should be able to show the diff for all files in a
-;;   changeset, especially for VC systems that have per repository
-;;   version numbers.  log-view should take advantage of this.
-;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
@@ -644,24 +633,23 @@
 ;;   vc-dir, it is possible that these commands are called
 ;;   for unregistered/ignored files.
 ;;
-;; - Using multiple backends needs work.  Given a CVS directory with some
-;;   files checked into git (but not all), using C-x v l to get a log file
-;;   from a file only present in git, and then typing RET on some log entry,
-;;   vc will bombs out because it wants to see the file being in CVS.
-;;   Those logs should likely use a local variable to hardware the VC they
-;;   are supposed to work with.
+;; - vc-next-action needs work in order to work with multiple
+;;   backends: `vc-state' returns the state for the default backend,
+;;   not for the backend in the current *vc-dir* buffer.
 ;;
-;;;; Problems:
+;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
+;;   it should work for other async commands done through vc-do-command
+;;   as well,
 ;;
-;; - the *vc-dir* buffer is not updated correctly anymore after VC
-;;   operations that change the file state.
+;; - vc-dir toolbar needs more icons.
+;;
+;; - vc-dir-hide-up-to-date needs to hide directories that do not have
+;;   any children anymore.
 ;;
 ;;; Code:
 
 (require 'vc-hooks)
 (require 'vc-dispatcher)
-(require 'tool-bar)
-(require 'ewoc)
 
 (eval-when-compile
   (require 'cl))
@@ -759,15 +747,6 @@ See `run-hooks'."
   :group 'vc
   :version "21.1")
 
-(defcustom vc-annotate-display-mode 'fullscale
-  "Which mode to color the output of \\[vc-annotate] with by default."
-  :type '(choice (const :tag "By Color Map Range" nil)
-		 (const :tag "Scale to Oldest" scale)
-		 (const :tag "Scale Oldest->Newest" fullscale)
-		 (number :tag "Specify Fractional Number of Days"
-			 :value "20.5"))
-  :group 'vc)
-
 ;;;###autoload
 (defcustom vc-checkin-hook nil
   "Normal hook (list of functions) run after commit or file checkin.
@@ -782,96 +761,6 @@ See also `log-edit-done-hook'."
 See `run-hooks'."
   :type 'hook
   :group 'vc)
-
-;; Annotate customization
-(defcustom vc-annotate-color-map
-  (if (and (tty-display-color-p) (<= (display-color-cells) 8))
-      ;; A custom sorted TTY colormap
-      (let* ((colors
-	      (sort
-	       (delq nil
-		     (mapcar (lambda (x)
-			       (if (not (or
-					 (string-equal (car x) "white")
-					 (string-equal (car x) "black") ))
-				   (car x)))
-			     (tty-color-alist)))
-	       (lambda (a b)
-		 (cond
-		  ((or (string-equal a "red") (string-equal b "blue")) t)
-		  ((or (string-equal b "red") (string-equal a "blue")) nil)
-		  ((string-equal a "yellow") t)
-		  ((string-equal b "yellow") nil)
-		  ((string-equal a "cyan") t)
-		  ((string-equal b "cyan") nil)
-		  ((string-equal a "green") t)
-		  ((string-equal b "green") nil)
-		  ((string-equal a "magenta") t)
-		  ((string-equal b "magenta") nil)
-		  (t (string< a b))))))
-	     (date 20.)
-	     (delta (/ (- 360. date) (1- (length colors)))))
-	(mapcar (lambda (x)
-		  (prog1
-		      (cons date x)
-		    (setq date (+ date delta)))) colors))
-    ;; Normal colormap: hue stepped from 0-240deg, value=1., saturation=0.75
-    '(( 20. . "#FF3F3F")
-      ( 40. . "#FF6C3F")
-      ( 60. . "#FF993F")
-      ( 80. . "#FFC63F")
-      (100. . "#FFF33F")
-      (120. . "#DDFF3F")
-      (140. . "#B0FF3F")
-      (160. . "#83FF3F")
-      (180. . "#56FF3F")
-      (200. . "#3FFF56")
-      (220. . "#3FFF83")
-      (240. . "#3FFFB0")
-      (260. . "#3FFFDD")
-      (280. . "#3FF3FF")
-      (300. . "#3FC6FF")
-      (320. . "#3F99FF")
-      (340. . "#3F6CFF")
-      (360. . "#3F3FFF")))
-  "Association list of age versus color, for \\[vc-annotate].
-Ages are given in units of fractional days.  Default is eighteen
-steps using a twenty day increment, from red to blue.  For TTY
-displays with 8 or fewer colors, the default is red to blue with
-all other colors between (excluding black and white)."
-  :type 'alist
-  :group 'vc)
-
-(defcustom vc-annotate-very-old-color "#3F3FFF"
-  "Color for lines older than the current color range in \\[vc-annotate]]."
-  :type 'string
-  :group 'vc)
-
-(defcustom vc-annotate-background "black"
-  "Background color for \\[vc-annotate].
-Default color is used if nil."
-  :type '(choice (const :tag "Default background" nil) (color))
-  :group 'vc)
-
-(defcustom vc-annotate-menu-elements '(2 0.5 0.1 0.01)
-  "Menu elements for the mode-specific menu of VC-Annotate mode.
-List of factors, used to expand/compress the time scale.  See `vc-annotate'."
-  :type '(repeat number)
-  :group 'vc)
-
-(defvar vc-annotate-mode-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "A" 'vc-annotate-revision-previous-to-line)
-    (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
-    (define-key m "f" 'vc-annotate-find-revision-at-line)
-    (define-key m "J" 'vc-annotate-revision-at-line)
-    (define-key m "L" 'vc-annotate-show-log-revision-at-line)
-    (define-key m "N" 'vc-annotate-next-revision)
-    (define-key m "P" 'vc-annotate-prev-revision)
-    (define-key m "W" 'vc-annotate-working-revision)
-    (define-key m "V" 'vc-annotate-toggle-annotation-visibility)
-    m)
-  "Local keymap used for VC-Annotate mode.")
 
 ;; Header-insertion hair
 
@@ -996,8 +885,7 @@ Within directories, only files already under version control are noticed."
 	  (vc-parent-buffer (vc-derived-from-dir-mode vc-parent-buffer))
 	  (t nil))))
 
-(defvar vc-dir-backend nil
-  "The backend used by the current *vc-dir* buffer.")
+(defvar vc-dir-backend)
 
 ;; FIXME: this is not functional, commented out.
 ;; (defun vc-deduce-fileset (&optional observer)
@@ -1016,33 +904,39 @@ Within directories, only files already under version control are noticed."
 ;;                     (vc-backend (car cooked)))))
 ;; 	(cons backend selection)))
 
-(defun vc-deduce-fileset (&optional observer allow-unregistered only-files)
+(declare-function vc-dir-current-file "vc-dir" ())
+(declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
+
+(defun vc-deduce-fileset (&optional observer allow-unregistered
+				    state-model-only-files)
   "Deduce a set of files and a backend to which to apply an operation.
 
-Return (BACKEND FILESET FILESET-ONLY-FILES).
+Return (BACKEND FILESET FILESET-ONLY-FILES STATE CHECKOUT-MODEL).
 If we're in VC-dir mode, the fileset is the list of marked files.
 Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If none of these conditions is met, but ALLOW_UNREGISTERED is on and the
 visited file is not registered, return a singleton fileset containing it.
 Otherwise, throw an error.
-ONLY-FILES if non-nil, means that the caller needs to FILESET-ONLY-FILES
-info.  Otherwise, that part may be skipped.
-BEWARE: this function may change the current buffer."
+
+STATE-MODEL-ONLY-FILES if non-nil, means that the caller needs
+the FILESET-ONLY-FILES STATE and MODEL info.  Otherwise, that
+part may be skipped.
+BEWARE: this function may change the
+current buffer."
   ;; FIXME: OBSERVER is unused.  The name is not intuitive and is not
   ;; documented.  It's set to t when called from diff and print-log.
   (let (backend)
     (cond
      ((derived-mode-p 'vc-dir-mode)
-      (let ((marked (vc-dir-marked-files)))
-	(if marked
-	    (list vc-dir-backend marked
-                  (if only-files (vc-dir-marked-only-files)))
-	  (let ((crt (vc-dir-current-file)))
-	    (list vc-dir-backend (list crt)
-                  (if only-files (vc-dir-child-files)))))))
+      (vc-dir-deduce-fileset state-model-only-files))
      ((setq backend (vc-backend buffer-file-name))
-      (list backend (list buffer-file-name) (list buffer-file-name)))
+      (if state-model-only-files
+	(list backend (list buffer-file-name)
+	      (list buffer-file-name)
+	      (vc-state buffer-file-name)
+	      (vc-checkout-model backend buffer-file-name))
+	(list backend (list buffer-file-name))))
      ((and (buffer-live-p vc-parent-buffer)
            ;; FIXME: Why this test?  --Stef
            (or (buffer-file-name vc-parent-buffer)
@@ -1050,19 +944,26 @@ BEWARE: this function may change the current buffer."
 				  (eq major-mode 'vc-dir-mode))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
-	(vc-deduce-fileset observer allow-unregistered only-files)))
+	(vc-deduce-fileset observer allow-unregistered state-model-only-files)))
      ((not buffer-file-name)
        (error "Buffer %s is not associated with a file" (buffer-name)))
      ((and allow-unregistered (not (vc-registered buffer-file-name)))
-      (list (vc-responsible-backend
-	     (file-name-directory (buffer-file-name)))
-	    (list buffer-file-name) (list buffer-file-name)))
+      (if state-model-only-files
+	  (list (vc-responsible-backend
+		 (file-name-directory (buffer-file-name)))
+		(list buffer-file-name)
+		(list buffer-file-name)
+		(when state-model-only-files 'unregistered)
+		nil)
+	(list (vc-responsible-backend
+	       (file-name-directory (buffer-file-name)))
+	      (list buffer-file-name))))
      (t (error "No fileset is available here.")))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
   (cond
-   ((vc-dispatcher-browsing)
+   ((derived-mode-p 'vc-dir-mode)
     (set-buffer (find-file-noselect (vc-dir-current-file))))
    (t
     (while (and vc-parent-buffer
@@ -1127,26 +1028,16 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((vc-fileset (vc-deduce-fileset nil t 'only-files))
+  (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
 	 (files (nth 1 vc-fileset))
          (fileset-only-files (nth 2 vc-fileset))
          ;; FIXME: We used to call `vc-recompute-state' here.
-         (state (vc-state (car fileset-only-files)))
+         (state (nth 3 vc-fileset))
          ;; The backend should check that the checkout-model is consistent
          ;; among all the `files'.
-	 (model
-	  ;; FIXME: This is not very elegant...
-	  (when (and state (not (eq state 'unregistered)))
-	    (vc-checkout-model backend files)))
+	 (model (nth 4 vc-fileset))
 	 revision)
-
-    ;; Check that all files are in a consistent state, since we use that
-    ;; state to decide which operation to perform.
-    (dolist (file (cdr fileset-only-files))
-      (unless (vc-compatible-state (vc-state file) state)
-        (error "%s:%s clashes with %s:%s"
-               file (vc-state file) (car fileset-only-files) state)))
 
     ;; Do the right thing
     (cond
@@ -1861,259 +1752,6 @@ See Info node `Merging'."
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
 
-;; VC status implementation
-
-(defun vc-default-status-extra-headers (backend dir)
-  ;; Be loud by default to remind people to add code to display
-  ;; backend specific headers.
-  ;; XXX: change this to return nil before the release.
-  (concat
-   (propertize "Extra      : " 'face 'font-lock-type-face)
-   (propertize "Please add backend specific headers here.  It's easy!"
-	       'face 'font-lock-warning-face)))
-
-(defun vc-dir-headers (backend dir)
-  "Display the headers in the *VC dir* buffer.
-It calls the `status-extra-headers' backend method to display backend
-specific headers."
-  (concat
-   (propertize "VC backend : " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
-   (propertize "Working dir: " 'face 'font-lock-type-face)
-   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
-   (vc-call-backend backend 'status-extra-headers dir)
-   "\n"))
-
-(defun vc-default-status-printer (backend fileentry)
-  "Pretty print FILEENTRY."
-  ;; If you change the layout here, change vc-dir-move-to-goal-column.
-  (let* ((isdir (vc-dir-fileinfo->directory fileentry))
-	(state (if isdir 'DIRECTORY (vc-dir-fileinfo->state fileentry)))
-	(filename (vc-dir-fileinfo->name fileentry)))
-    ;; FIXME: Backends that want to print the state in a different way
-    ;; can do it by defining the `status-printer' function.  Using
-    ;; `prettify-state-info' adds two extra vc-calls per item, which
-    ;; is too expensive.
-    ;;(prettified (if isdir state (vc-call-backend backend 'prettify-state-info filename))))
-    (insert
-     (propertize
-      (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
-      'face 'font-lock-type-face)
-     "   "
-     (propertize
-      (format "%-20s" state)
-      'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
-		  ((memq state '(missing conflict)) 'font-lock-warning-face)
-		  (t 'font-lock-variable-name-face))
-      'mouse-face 'highlight)
-     " "
-     (propertize
-      (format "%s" filename)
-      'face 'font-lock-function-name-face
-      'mouse-face 'highlight))))
-
-(defun vc-default-extra-status-menu (backend)
-  nil)
-
-(defun vc-dir-refresh-files (files default-state)
-  "Refresh some files in the *VC-dir* buffer."
-  (let ((def-dir default-directory)
-	(backend vc-dir-backend))
-    (vc-set-mode-line-busy-indicator)
-    ;; Call the `dir-status-file' backend function.
-    ;; `dir-status-file' is supposed to be asynchronous.
-    ;; It should compute the results, and then call the function
-    ;; passed as an argument in order to update the vc-dir buffer
-    ;; with the results.
-    (unless (buffer-live-p vc-dir-process-buffer)
-      (setq vc-dir-process-buffer
-            (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-    (lexical-let ((buffer (current-buffer)))
-      (with-current-buffer vc-dir-process-buffer
-        (cd def-dir)
-        (erase-buffer)
-        (vc-call-backend
-         backend 'dir-status-files def-dir files default-state
-         (lambda (entries &optional more-to-come)
-           ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
-           ;; If MORE-TO-COME is true, then more updates will come from
-           ;; the asynchronous process.
-           (with-current-buffer buffer
-             (vc-dir-update entries buffer)
-             (unless more-to-come
-               (setq mode-line-process nil)
-               ;; Remove the ones that haven't been updated at all.
-               ;; Those not-updated are those whose state is nil because the
-               ;; file/dir doesn't exist and isn't versioned.
-               (ewoc-filter vc-ewoc
-                            (lambda (info)
-			      ;; The state for directory entries might
-			      ;; have been changed to 'up-to-date,
-			      ;; reset it, othewise it will be removed when doing 'x'
-			      ;; next time.
-			      ;; FIXME: There should be a more elegant way to do this.
-			      (when (and (vc-dir-fileinfo->directory info)
-					 (eq (vc-dir-fileinfo->state info)
-					     'up-to-date))
-				(setf (vc-dir-fileinfo->state info) nil))
-
-                              (not (vc-dir-fileinfo->needs-update info))))))))))))
-
-(defun vc-dir-refresh ()
-  "Refresh the contents of the *VC-dir* buffer.
-Throw an error if another update process is in progress."
-  (interactive)
-  (if (vc-dir-busy)
-      (error "Another update process is in progress, cannot run two at a time")
-    (let ((def-dir default-directory)
-	  (backend vc-dir-backend))
-      (vc-set-mode-line-busy-indicator)
-      ;; Call the `dir-status' backend function.
-      ;; `dir-status' is supposed to be asynchronous.
-      ;; It should compute the results, and then call the function
-      ;; passed as an argument in order to update the vc-dir buffer
-      ;; with the results.
-
-      ;; Create a buffer that can be used by `dir-status' and call
-      ;; `dir-status' with this buffer as the current buffer.  Use
-      ;; `vc-dir-process-buffer' to remember this buffer, so that
-      ;; it can be used later to kill the update process in case it
-      ;; takes too long.
-      (unless (buffer-live-p vc-dir-process-buffer)
-        (setq vc-dir-process-buffer
-              (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-      ;; set the needs-update flag on all entries
-      (ewoc-map (lambda (info) (setf (vc-dir-fileinfo->needs-update info) t) nil)
-                vc-ewoc)
-      (lexical-let ((buffer (current-buffer)))
-        (with-current-buffer vc-dir-process-buffer
-          (cd def-dir)
-          (erase-buffer)
-          (vc-call-backend
-           backend 'dir-status def-dir
-           (lambda (entries &optional more-to-come)
-             ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
-             ;; If MORE-TO-COME is true, then more updates will come from
-             ;; the asynchronous process.
-             (with-current-buffer buffer
-               (vc-dir-update entries buffer)
-               (unless more-to-come
-                 (let ((remaining
-                        (ewoc-collect
-                         vc-ewoc 'vc-dir-fileinfo->needs-update)))
-                   (if remaining
-                       (vc-dir-refresh-files
-                        (mapcar 'vc-dir-fileinfo->name remaining)
-                        'up-to-date)
-                     (setq mode-line-process nil))))))))))))
-
-(defun vc-dir-show-fileentry (file)
-  "Insert an entry for a specific file into the current *VC-dir* listing.
-This is typically used if the file is up-to-date (or has been added
-outside of VC) and one wants to do some operation on it."
-  (interactive "fShow file: ")
-  (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
-
-(defun vc-dir-hide-up-to-date ()
-  "Hide up-to-date items from display."
-  (interactive)
-  (ewoc-filter
-   vc-ewoc
-   (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
-
-(defun vc-default-status-fileinfo-extra (backend file)
-  "Default absence of extra information returned for a file."
-  nil)
-
-;; FIXME: Replace these with a more efficient dispatch
-
-(defun vc-generic-status-printer (fileentry)
-  (vc-call-backend vc-dir-backend 'status-printer fileentry))
-
-(defun vc-generic-state (file)
-  (vc-call-backend vc-dir-backend 'state file))
-
-(defun vc-generic-status-fileinfo-extra (file)
-  (vc-call-backend vc-dir-backend 'status-fileinfo-extra file))
-
-(defun vc-dir-extra-menu ()
-  (vc-call-backend vc-dir-backend 'extra-status-menu))
-
-(defun vc-make-backend-object (file-or-dir)
-  "Create the backend capability object needed by vc-dispatcher."
-  (vc-create-client-object
-   "VC dir"
-   (vc-dir-headers vc-dir-backend file-or-dir)
-   #'vc-generic-status-printer
-   #'vc-generic-state
-   #'vc-generic-status-fileinfo-extra
-   #'vc-dir-refresh
-   #'vc-dir-extra-menu))
-
-;;;###autoload
-(defun vc-dir (dir)
-  "Show the VC status for DIR."
-  (interactive "DVC status for directory: ")
-  (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir))
-  (if (and (derived-mode-p 'vc-dir-mode) (boundp 'client-object))
-      (vc-dir-refresh)
-    ;; Otherwise, initialize a new view using the dispatcher layer
-    (progn
-      (set (make-local-variable 'vc-dir-backend) (vc-responsible-backend dir))
-      ;; Build a capability object and hand it to the dispatcher initializer
-      (vc-dir-mode (vc-make-backend-object dir))
-      ;; FIXME: Make a derived-mode instead.
-      ;; Add VC-specific keybindings
-      (let ((map (current-local-map)))
-	(define-key map "v" 'vc-next-action) ;; C-x v v
-	(define-key map "=" 'vc-diff)        ;; C-x v =
-	(define-key map "i" 'vc-register)    ;; C-x v i
-	(define-key map "+" 'vc-update)      ;; C-x v +
-	(define-key map "l" 'vc-print-log)   ;; C-x v l
-	;; More confusing than helpful, probably
-	;(define-key map "R" 'vc-revert) ;; u is taken by dispatcher unmark.
-	;(define-key map "A" 'vc-annotate) ;; g is taken by dispatcher refresh
-	(define-key map "x" 'vc-dir-hide-up-to-date))
-      )
-    ;; FIXME: Needs to alter a buffer-local map, otherwise clients may clash
-    (let ((map vc-dir-menu-map))
-    ;; VC info details
-    (define-key map [sepvcdet] '("--"))
-    (define-key map [remup]
-      '(menu-item "Hide up-to-date" vc-dir-hide-up-to-date
-		  :help "Hide up-to-date items from display"))
-    ;; FIXME: This needs a key binding.  And maybe a better name
-    ;; ("Insert" like PCL-CVS uses does not sound that great either)...
-    (define-key map [ins]
-      '(menu-item "Show File" vc-dir-show-fileentry
-		  :help "Show a file in the VC status listing even though it might be up to date"))
-    (define-key map [annotate]
-      '(menu-item "Annotate" vc-annotate
-		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff]
-      '(menu-item "Compare with Base Version" vc-diff
-		  :help "Compare file set with the base version"))
-    (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
-    ;; VC commands.
-    (define-key map [sepvccmd] '("--"))
-    (define-key map [update]
-      '(menu-item "Update to latest version" vc-update
-		  :help "Update the current fileset's files to their tip revisions"))
-    (define-key map [revert]
-      '(menu-item "Revert to base version" vc-revert
-		  :help "Revert working copies of the selected fileset to their repository contents."))
-    (define-key map [next-action]
-      ;; FIXME: This really really really needs a better name!
-      ;; And a key binding too.
-      '(menu-item "Check In/Out" vc-next-action
-		  :help "Do the next logical version control operation on the current fileset"))
-    (define-key map [register]
-      '(menu-item "Register" vc-dir-register
-		  :help "Register file set into the version control system"))
-    )))
-
 ;; Named-configuration entry points
 
 (defun vc-tag-precondition (dir)
@@ -2359,17 +1997,18 @@ To get a prompt, use a prefix argument."
    (list
     (or buffer-file-name
         (error "There is no version-controlled file in this buffer"))
-    (let ((backend (vc-backend buffer-file-name))
+    (let ((crt-bk (vc-backend buffer-file-name))
 	  (backends nil))
-      (unless backend
+      (unless crt-bk
         (error "File %s is not under version control" buffer-file-name))
       ;; Find the registered backends.
-      (dolist (backend vc-handled-backends)
-	(when (vc-call-backend backend 'registered buffer-file-name)
-	  (push backend backends)))
+      (dolist (crt vc-handled-backends)
+	(when (and (vc-call-backend crt 'registered buffer-file-name)
+		   (not (eq crt-bk crt)))
+	  (push crt backends)))
       ;; Find the next backend.
-      (let ((def (car (delq backend (append (memq backend backends) backends))))
-	    (others (delete backend backends)))
+      (let ((def (car backends))
+	    (others backends))
 	(cond
 	 ((null others) (error "No other backend to switch to"))
 	 (current-prefix-arg
@@ -2379,7 +2018,7 @@ To get a prompt, use a prefix argument."
 	     (format "Switch to backend [%s]: " def)
 	     (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
 	     nil t nil nil (downcase (symbol-name def))))))
-       (t def))))))
+	 (t def))))))
   (unless (eq backend (vc-backend file))
     (vc-file-clearprops file)
     (vc-file-setprop file 'vc-backend backend)
@@ -2833,500 +2472,6 @@ to provide the `find-revision' operation instead."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
 
-;;; Annotate functionality
-
-;; Declare globally instead of additional parameter to
-;; temp-buffer-show-function (not possible to pass more than one
-;; parameter).  The use of annotate-ratio is deprecated in favor of
-;; annotate-mode, which replaces it with the more sensible "span-to
-;; days", along with autoscaling support.
-(defvar vc-annotate-ratio nil "Global variable.")
-
-;; internal buffer-local variables
-(defvar vc-annotate-backend nil)
-(defvar vc-annotate-parent-file nil)
-(defvar vc-annotate-parent-rev nil)
-(defvar vc-annotate-parent-display-mode nil)
-
-(defconst vc-annotate-font-lock-keywords
-  ;; The fontification is done by vc-annotate-lines instead of font-lock.
-  '((vc-annotate-lines)))
-
-(define-derived-mode vc-annotate-mode fundamental-mode "Annotate"
-  "Major mode for output buffers of the `vc-annotate' command.
-
-You can use the mode-specific menu to alter the time-span of the used
-colors.  See variable `vc-annotate-menu-elements' for customizing the
-menu items."
-  ;; Frob buffer-invisibility-spec so that if it is originally a naked t,
-  ;; it will become a list, to avoid initial annotations being invisible.
-  (add-to-invisibility-spec 'foo)
-  (remove-from-invisibility-spec 'foo)
-  (set (make-local-variable 'truncate-lines) t)
-  (set (make-local-variable 'font-lock-defaults)
-       '(vc-annotate-font-lock-keywords t))
-  (view-mode 1))
-
-(defun vc-annotate-toggle-annotation-visibility ()
-  "Toggle whether or not the annotation is visible."
-  (interactive)
-  (funcall (if (memq 'vc-annotate-annotation buffer-invisibility-spec)
-               'remove-from-invisibility-spec
-             'add-to-invisibility-spec)
-           'vc-annotate-annotation)
-  (force-window-update (current-buffer)))
-
-(defun vc-annotate-display-default (ratio)
-  "Display the output of \\[vc-annotate] using the default color range.
-The color range is given by `vc-annotate-color-map', scaled by RATIO.
-The current time is used as the offset."
-  (interactive (progn (kill-local-variable 'vc-annotate-color-map) '(1.0)))
-  (message "Redisplaying annotation...")
-  (vc-annotate-display ratio)
-  (message "Redisplaying annotation...done"))
-
-(defun vc-annotate-oldest-in-map (color-map)
-  "Return the oldest time in the COLOR-MAP."
-  ;; Since entries should be sorted, we can just use the last one.
-  (caar (last color-map)))
-
-(defun vc-annotate-get-time-set-line-props ()
-  (let ((bol (point))
-        (date (vc-call-backend vc-annotate-backend 'annotate-time))
-        (inhibit-read-only t))
-    (assert (>= (point) bol))
-    (put-text-property bol (point) 'invisible 'vc-annotate-annotation)
-    date))
-
-(defun vc-annotate-display-autoscale (&optional full)
-  "Highlight the output of \\[vc-annotate] using an autoscaled color map.
-Autoscaling means that the map is scaled from the current time to the
-oldest annotation in the buffer, or, with prefix argument FULL, to
-cover the range from the oldest annotation to the newest."
-  (interactive "P")
-  (let ((newest 0.0)
-	(oldest 999999.)		;Any CVS users at the founding of Rome?
-	(current (vc-annotate-convert-time (current-time)))
-	date)
-    (message "Redisplaying annotation...")
-    ;; Run through this file and find the oldest and newest dates annotated.
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (when (setq date (vc-annotate-get-time-set-line-props))
-          (when (> date newest)
-	    (setq newest date))
-          (when (< date oldest)
-	    (setq oldest date)))
-        (forward-line 1)))
-    (vc-annotate-display
-     (/ (- (if full newest current) oldest)
-        (vc-annotate-oldest-in-map vc-annotate-color-map))
-     (if full newest))
-    (message "Redisplaying annotation...done \(%s\)"
-	     (if full
-		 (format "Spanned from %.1f to %.1f days old"
-			 (- current oldest)
-			 (- current newest))
-	       (format "Spanned to %.1f days old" (- current oldest))))))
-
-;; Menu -- Using easymenu.el
-(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
-  "VC Annotate Display Menu"
-  `("VC-Annotate"
-    ["By Color Map Range" (unless (null vc-annotate-display-mode)
-                 (setq vc-annotate-display-mode nil)
-                 (vc-annotate-display-select))
-     :style toggle :selected (null vc-annotate-display-mode)]
-    ,@(let ((oldest-in-map (vc-annotate-oldest-in-map vc-annotate-color-map)))
-        (mapcar (lambda (element)
-                  (let ((days (* element oldest-in-map)))
-                    `[,(format "Span %.1f days" days)
-                      (vc-annotate-display-select nil ,days)
-                      :style toggle :selected
-                      (eql vc-annotate-display-mode ,days) ]))
-                vc-annotate-menu-elements))
-    ["Span ..."
-     (vc-annotate-display-select
-      nil (float (string-to-number (read-string "Span how many days? "))))]
-    "--"
-    ["Span to Oldest"
-     (unless (eq vc-annotate-display-mode 'scale)
-       (vc-annotate-display-select nil 'scale))
-     :help
-     "Use an autoscaled color map from the oldest annotation to the current time"
-     :style toggle :selected
-     (eq vc-annotate-display-mode 'scale)]
-    ["Span Oldest->Newest"
-     (unless (eq vc-annotate-display-mode 'fullscale)
-       (vc-annotate-display-select nil 'fullscale))
-     :help
-     "Use an autoscaled color map from the oldest to the newest annotation"
-     :style toggle :selected
-     (eq vc-annotate-display-mode 'fullscale)]
-    "--"
-    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility
-     :help
-     "Toggle whether the annotation is visible or not"]
-    ["Annotate previous revision" vc-annotate-prev-revision
-     :help "Visit the annotation of the revision previous to this one"]
-    ["Annotate next revision" vc-annotate-next-revision
-     :help "Visit the annotation of the revision after this one"]
-    ["Annotate revision at line" vc-annotate-revision-at-line
-     :help
-     "Visit the annotation of the revision identified in the current line"]
-    ["Annotate revision previous to line" vc-annotate-revision-previous-to-line
-     :help "Visit the annotation of the revision before the revision at line"]
-    ["Annotate latest revision" vc-annotate-working-revision
-     :help "Visit the annotation of the working revision of this file"]
-    ["Show log of revision at line" vc-annotate-show-log-revision-at-line
-     :help "Visit the log of the revision at line"]
-    ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
-     :help "Visit the diff of the revision at line from its previous revision"]
-    ["Show changeset diff of revision at line"
-     vc-annotate-show-changeset-diff-revision-at-line
-     :enable
-     (eq 'repository (vc-call-backend ,vc-annotate-backend 'revision-granularity))
-     :help "Visit the diff of the revision at line from its previous revision"]
-    ["Visit revision at line" vc-annotate-find-revision-at-line
-     :help "Visit the revision identified in the current line"]))
-
-(defun vc-annotate-display-select (&optional buffer mode)
-  "Highlight the output of \\[vc-annotate].
-By default, the current buffer is highlighted, unless overridden by
-BUFFER.  `vc-annotate-display-mode' specifies the highlighting mode to
-use; you may override this using the second optional arg MODE."
-  (interactive)
-  (when mode (setq vc-annotate-display-mode mode))
-  (pop-to-buffer (or buffer (current-buffer)))
-  (cond ((null vc-annotate-display-mode)
-         ;; The ratio is global, thus relative to the global color-map.
-         (kill-local-variable 'vc-annotate-color-map)
-	 (vc-annotate-display-default (or vc-annotate-ratio 1.0)))
-        ;; One of the auto-scaling modes
-	((eq vc-annotate-display-mode 'scale)
-	 (vc-exec-after `(vc-annotate-display-autoscale)))
-	((eq vc-annotate-display-mode 'fullscale)
-	 (vc-exec-after `(vc-annotate-display-autoscale t)))
-	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
-	 (vc-annotate-display-default
-	  (/ vc-annotate-display-mode
-             (vc-annotate-oldest-in-map vc-annotate-color-map))))
-	(t (error "No such display mode: %s"
-		  vc-annotate-display-mode))))
-
-;;;###autoload
-(defun vc-annotate (file rev &optional display-mode buf move-point-to)
-  "Display the edit history of the current file using colors.
-
-This command creates a buffer that shows, for each line of the current
-file, when it was last edited and by whom.  Additionally, colors are
-used to show the age of each line--blue means oldest, red means
-youngest, and intermediate colors indicate intermediate ages.  By
-default, the time scale stretches back one year into the past;
-everything that is older than that is shown in blue.
-
-With a prefix argument, this command asks two questions in the
-minibuffer.  First, you may enter a revision number; then the buffer
-displays and annotates that revision instead of the working revision
-\(type RET in the minibuffer to leave that default unchanged).  Then,
-you are prompted for the time span in days which the color range
-should cover.  For example, a time span of 20 days means that changes
-over the past 20 days are shown in red to blue, according to their
-age, and everything that is older than that is shown in blue.
-
-If MOVE-POINT-TO is given, move the point to that line.
-
-Customization variables:
-
-`vc-annotate-menu-elements' customizes the menu elements of the
-mode-specific menu.  `vc-annotate-color-map' and
-`vc-annotate-very-old-color' define the mapping of time to colors.
-`vc-annotate-background' specifies the background color."
-  (interactive
-   (save-current-buffer
-     (vc-ensure-vc-buffer)
-     (list buffer-file-name
-	   (let ((def (vc-working-revision buffer-file-name)))
-	     (if (null current-prefix-arg) def
-	       (read-string
-		(format "Annotate from revision (default %s): " def)
-		nil nil def)))
-	   (if (null current-prefix-arg)
-	       vc-annotate-display-mode
-	     (float (string-to-number
-		     (read-string "Annotate span days (default 20): "
-				  nil nil "20")))))))
-  (vc-ensure-vc-buffer)
-  (setq vc-annotate-display-mode display-mode) ;Not sure why.  --Stef
-  (let* ((temp-buffer-name (format "*Annotate %s (rev %s)*" (buffer-name) rev))
-         (temp-buffer-show-function 'vc-annotate-display-select)
-         ;; If BUF is specified, we presume the caller maintains current line,
-         ;; so we don't need to do it here.  This implementation may give
-         ;; strange results occasionally in the case of REV != WORKFILE-REV.
-         (current-line (or move-point-to (unless buf (line-number-at-pos)))))
-    (message "Annotating...")
-    ;; If BUF is specified it tells in which buffer we should put the
-    ;; annotations.  This is used when switching annotations to another
-    ;; revision, so we should update the buffer's name.
-    (when buf (with-current-buffer buf
-		(rename-buffer temp-buffer-name t)
-		;; In case it had to be uniquified.
-		(setq temp-buffer-name (buffer-name))))
-    (with-output-to-temp-buffer temp-buffer-name
-      (let ((backend (vc-backend file)))
-        (vc-call-backend backend 'annotate-command file
-                         (get-buffer temp-buffer-name) rev)
-        ;; we must setup the mode first, and then set our local
-        ;; variables before the show-function is called at the exit of
-        ;; with-output-to-temp-buffer
-        (with-current-buffer temp-buffer-name
-          (unless (equal major-mode 'vc-annotate-mode)
-            (vc-annotate-mode))
-          (set (make-local-variable 'vc-annotate-backend) backend)
-          (set (make-local-variable 'vc-annotate-parent-file) file)
-          (set (make-local-variable 'vc-annotate-parent-rev) rev)
-          (set (make-local-variable 'vc-annotate-parent-display-mode)
-               display-mode))))
-
-    (with-current-buffer temp-buffer-name
-      (vc-exec-after
-       `(progn
-          ;; Ideally, we'd rather not move point if the user has already
-          ;; moved it elsewhere, but really point here is not the position
-          ;; of the user's cursor :-(
-          (when ,current-line           ;(and (bobp))
-            (goto-line ,current-line)
-            (setq vc-sentinel-movepoint (point)))
-          (unless (active-minibuffer-window)
-            (message "Annotating... done")))))))
-
-(defun vc-annotate-prev-revision (prefix)
-  "Visit the annotation of the revision previous to this one.
-
-With a numeric prefix argument, annotate the revision that many
-revisions previous."
-  (interactive "p")
-  (vc-annotate-warp-revision (- 0 prefix)))
-
-(defun vc-annotate-next-revision (prefix)
-  "Visit the annotation of the revision after this one.
-
-With a numeric prefix argument, annotate the revision that many
-revisions after."
-  (interactive "p")
-  (vc-annotate-warp-revision prefix))
-
-(defun vc-annotate-working-revision ()
-  "Visit the annotation of the working revision of this file."
-  (interactive)
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((warp-rev (vc-working-revision vc-annotate-parent-file)))
-      (if (equal warp-rev vc-annotate-parent-rev)
-	  (message "Already at revision %s" warp-rev)
-	(vc-annotate-warp-revision warp-rev)))))
-
-(defun vc-annotate-extract-revision-at-line ()
-  "Extract the revision number of the current line."
-  ;; This function must be invoked from a buffer in vc-annotate-mode
-  (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
-
-(defun vc-annotate-revision-at-line ()
-  "Visit the annotation of the revision identified in the current line."
-  (interactive)
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
-      (if (not rev-at-line)
-	  (message "Cannot extract revision number from the current line")
-	(if (equal rev-at-line vc-annotate-parent-rev)
-	    (message "Already at revision %s" rev-at-line)
-	  (vc-annotate-warp-revision rev-at-line))))))
-
-(defun vc-annotate-find-revision-at-line ()
-  "Visit the revision identified in the current line."
-  (interactive)
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
-      (if (not rev-at-line)
-	  (message "Cannot extract revision number from the current line")
-	(vc-revision-other-window rev-at-line)))))
-
-(defun vc-annotate-revision-previous-to-line ()
-  "Visit the annotation of the revision before the revision at line."
-  (interactive)
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line))
-	  (prev-rev nil))
-      (if (not rev-at-line)
-	  (message "Cannot extract revision number from the current line")
-	(setq prev-rev
-	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               vc-annotate-parent-file rev-at-line))
-	(vc-annotate-warp-revision prev-rev)))))
-
-(defun vc-annotate-show-log-revision-at-line ()
-  "Visit the log of the revision at line."
-  (interactive)
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
-      (if (not rev-at-line)
-	  (message "Cannot extract revision number from the current line")
-	(vc-print-log rev-at-line)))))
-
-(defun vc-annotate-show-diff-revision-at-line-internal (fileset)
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((rev-at-line (vc-annotate-extract-revision-at-line))
-	  (prev-rev nil))
-      (if (not rev-at-line)
-	  (message "Cannot extract revision number from the current line")
-	(setq prev-rev
-	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               vc-annotate-parent-file rev-at-line))
-	(if (not prev-rev)
-	    (message "Cannot diff from any revision prior to %s" rev-at-line)
-	  (save-window-excursion
-	    (vc-diff-internal
-	     nil
-	     ;; The value passed here should follow what
-	     ;; `vc-deduce-fileset' returns.
-	     (cons vc-annotate-backend (cons fileset nil))
-	     prev-rev rev-at-line))
-	  (switch-to-buffer "*vc-diff*"))))))
-
-(defun vc-annotate-show-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision."
-  (interactive)
-  (vc-annotate-show-diff-revision-at-line-internal (list vc-annotate-parent-file)))
-
-(defun vc-annotate-show-changeset-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision for all files in the changeset."
-  (interactive)
-  (when (eq 'file (vc-call-backend vc-annotate-backend 'revision-granularity))
-    (error "The %s backend does not support changeset diffs" vc-annotate-backend))
-  (vc-annotate-show-diff-revision-at-line-internal nil))
-
-(defun vc-annotate-warp-revision (revspec)
-  "Annotate the revision described by REVSPEC.
-
-If REVSPEC is a positive integer, warp that many revisions
-forward, if possible, otherwise echo a warning message.  If
-REVSPEC is a negative integer, warp that many revisions backward,
-if possible, otherwise echo a warning message.  If REVSPEC is a
-string, then it describes a revision number, so warp to that
-revision."
-  (if (not (equal major-mode 'vc-annotate-mode))
-      (message "Cannot be invoked outside of a vc annotate buffer")
-    (let* ((buf (current-buffer))
-	   (oldline (line-number-at-pos))
-	   (revspeccopy revspec)
-	   (newrev nil))
-      (cond
-       ((and (integerp revspec) (> revspec 0))
-	(setq newrev vc-annotate-parent-rev)
-	(while (and (> revspec 0) newrev)
-          (setq newrev (vc-call-backend vc-annotate-backend 'next-revision
-                                        vc-annotate-parent-file newrev))
-          (setq revspec (1- revspec)))
-	(unless newrev
-	  (message "Cannot increment %d revisions from revision %s"
-		   revspeccopy vc-annotate-parent-rev)))
-       ((and (integerp revspec) (< revspec 0))
-	(setq newrev vc-annotate-parent-rev)
-	(while (and (< revspec 0) newrev)
-          (setq newrev (vc-call-backend vc-annotate-backend 'previous-revision
-                                        vc-annotate-parent-file newrev))
-          (setq revspec (1+ revspec)))
-	(unless newrev
-	  (message "Cannot decrement %d revisions from revision %s"
-		   (- 0 revspeccopy) vc-annotate-parent-rev)))
-       ((stringp revspec) (setq newrev revspec))
-       (t (error "Invalid argument to vc-annotate-warp-revision")))
-      (when newrev
-	(vc-annotate vc-annotate-parent-file newrev
-                     vc-annotate-parent-display-mode
-                     buf
-		     ;; Pass the current line so that vc-annotate will
-		     ;; place the point in the line.
-		     (min oldline (progn (goto-char (point-max))
-                                         (forward-line -1)
-                                         (line-number-at-pos))))))))
-
-(defun vc-annotate-compcar (threshold a-list)
-  "Test successive cons cells of A-LIST against THRESHOLD.
-Return the first cons cell with a car that is not less than THRESHOLD,
-nil if no such cell exists."
- (let ((i 1)
-       (tmp-cons (car a-list)))
-   (while (and tmp-cons (< (car tmp-cons) threshold))
-     (setq tmp-cons (car (nthcdr i a-list)))
-     (setq i (+ i 1)))
-   tmp-cons))				; Return the appropriate value
-
-(defun vc-annotate-convert-time (time)
-  "Convert a time value to a floating-point number of days.
-The argument TIME is a list as returned by `current-time' or
-`encode-time', only the first two elements of that list are considered."
-  (/ (+ (* (float (car time)) (lsh 1 16)) (cadr time)) 24 3600))
-
-(defun vc-annotate-difference (&optional offset)
-  "Return the time span in days to the next annotation.
-This calls the backend function annotate-time, and returns the
-difference in days between the time returned and the current time,
-or OFFSET if present."
-   (let ((next-time (vc-annotate-get-time-set-line-props)))
-     (when next-time
-       (- (or offset
-	      (vc-call-backend vc-annotate-backend 'annotate-current-time))
-	  next-time))))
-
-(defun vc-default-annotate-current-time (backend)
-  "Return the current time, encoded as fractional days."
-  (vc-annotate-convert-time (current-time)))
-
-(defvar vc-annotate-offset nil)
-
-(defun vc-annotate-display (ratio &optional offset)
-  "Highlight `vc-annotate' output in the current buffer.
-RATIO, is the expansion that should be applied to `vc-annotate-color-map'.
-The annotations are relative to the current time, unless overridden by OFFSET."
-  (when (/= ratio 1.0)
-    (set (make-local-variable 'vc-annotate-color-map)
-	 (mapcar (lambda (elem) (cons (* (car elem) ratio) (cdr elem)))
-		 vc-annotate-color-map)))
-  (set (make-local-variable 'vc-annotate-offset) offset)
-  (font-lock-mode 1))
-
-(defun vc-annotate-lines (limit)
-  (while (< (point) limit)
-    (let ((difference (vc-annotate-difference vc-annotate-offset))
-          (start (point))
-          (end (progn (forward-line 1) (point))))
-      (when difference
-        (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
-                          (cons nil vc-annotate-very-old-color)))
-               ;; substring from index 1 to remove any leading `#' in the name
-               (face-name (concat "vc-annotate-face-"
-                                  (if (string-equal
-                                       (substring (cdr color) 0 1) "#")
-                                      (substring (cdr color) 1)
-                                    (cdr color))))
-               ;; Make the face if not done.
-               (face (or (intern-soft face-name)
-                         (let ((tmp-face (make-face (intern face-name))))
-                           (set-face-foreground tmp-face (cdr color))
-                           (when vc-annotate-background
-			     (set-face-background tmp-face
-						  vc-annotate-background))
-                           tmp-face))))	; Return the face
-          (put-text-property start end 'face face)))))
-  ;; Pretend to font-lock there were no matches.
-  nil)
 
 
 ;; These things should probably be generally available

@@ -467,41 +467,25 @@ and showing the image as an image."
 	  (message "Repeat this command to go back to displaying the file as text")))))
 
 ;;; Support for bookmark.el
+(declare-function bookmark-make-record-default "bookmark"
+                  (&optional point-only))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
 
-(defun image-bookmark-make-record (annotation)
-  (let ((the-record
-         `((filename   . ,(buffer-file-name))
-	   (image-type . ,image-type)
-	   (position   . ,(point))
-	   (handler    . image-bookmark-jump))))
+(defun image-bookmark-make-record ()
+  (nconc (bookmark-make-record-default)
+         `((image-type . ,image-type)
+           (handler    . image-bookmark-jump))))
 
-    ;; Take no chances with text properties
-    (set-text-properties 0 (length annotation) nil annotation)
 
-    (when annotation
-      (nconc the-record (list (cons 'annotation annotation))))
-
-    ;; Finally, return the completed record.
-    the-record))
-
-(declare-function bookmark-get-filename        "bookmark" (bookmark))
-(declare-function bookmark-get-bookmark-record "bookmark" (bookmark))
-(declare-function bookmark-get-position        "bookmark" (bookmark))
 
 ;;;###autoload
 (defun image-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
   ;; returned by `bookmark-make-record-function', which see.
-  (save-window-excursion
-    (let ((filename (bookmark-get-filename bmk))
-	  (type (cdr (assq 'image-type (bookmark-get-bookmark-record bmk))))
-	  (pos  (bookmark-get-position bmk)))
-      (find-file filename)
-      (when (not (string= image-type type))
-	(image-toggle-display))
-      (when (string= image-type "text")
-	(goto-char pos))
-      `((buffer ,(current-buffer)) (position ,(point))))))
+  (prog1 (bookmark-default-handler bmk)
+    (when (not (string= image-type (bookmark-prop-get bmk 'image-type)))
+      (image-toggle-display))))
 
 (provide 'image-mode)
 

@@ -1,3 +1,11 @@
+2008-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Mention string-to-unibyte.
+
+2008-06-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp uses auth-source.
+
 2008-06-08  John Paul Wallington  <jpw@pobox.com>
 
 	* NEWS: Document that `completion-ignore-case' is nil on
@@ -1872,7 +1880,7 @@
 
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
 
-	* images/gud/until.xpm: Colour correction.
+	* images/gud/until.xpm: Color correction.
 
 2005-10-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -2720,7 +2728,7 @@
 
 2003-04-01  Dave Love  <fx@gnu.org>
 
-	* letter.xpm: Use transparent/opaque `colours'.
+	* letter.xpm: Use transparent/opaque `colors'.
 
 	* letter.xbm: Deleted.
 
@@ -2956,7 +2964,7 @@
 
 2001-05-17  Francesco Potortì  <pot@gnu.org>
 
-	* etags.1: Add the latest changes to etags behaviour.
+	* etags.1: Add the latest changes to etags behavior.
 
 2001-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 

@@ -2414,6 +2414,7 @@ EXFUN (Fstring_make_unibyte, 1);
 EXFUN (Fstring_as_multibyte, 1);
 EXFUN (Fstring_as_unibyte, 1);
 EXFUN (Fstring_to_multibyte, 1);
+EXFUN (Fstring_to_unibyte, 2);
 EXFUN (Fsubstring, 3);
 extern Lisp_Object substring_both P_ ((Lisp_Object, int, int, int, int));
 EXFUN (Fnth, 2);

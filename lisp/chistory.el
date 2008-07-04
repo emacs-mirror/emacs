@@ -109,8 +109,7 @@ The buffer is left in Command History mode."
 	  (buffer-read-only nil)
 	  (count (or list-command-history-max -1)))
       (while (and (/= count 0) history)
-	(if (and (boundp 'list-command-history-filter)
-		 list-command-history-filter
+	(if (and (bound-and-true-p list-command-history-filter)
 		 (funcall list-command-history-filter (car history)))
 	    nil
 	  (setq count (1- count))
@@ -124,15 +123,16 @@ The buffer is left in Command History mode."
 	  (error "No command history")
 	(command-history-mode)))))
 
-(defvar command-history-map nil)
-(unless command-history-map
-  (setq command-history-map (make-sparse-keymap))
-  (set-keymap-parent command-history-map lisp-mode-shared-map)
-  (suppress-keymap command-history-map)
-  (define-key command-history-map "x" 'command-history-repeat)
-  (define-key command-history-map "\n" 'next-line)
-  (define-key command-history-map "\r" 'next-line)
-  (define-key command-history-map "\177" 'previous-line))
+(defvar command-history-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map lisp-mode-shared-map)
+    (suppress-keymap map)
+    (define-key map "x" 'command-history-repeat)
+    (define-key map "\n" 'next-line)
+    (define-key map "\r" 'next-line)
+    (define-key map "\177" 'previous-line)
+    map)
+  "Keymap for `command-history-mode'.")
 
 (defun command-history-mode ()
   "Major mode for listing and repeating recent commands.

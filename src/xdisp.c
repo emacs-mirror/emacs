@@ -420,7 +420,7 @@ static struct buffer *this_line_buffer;
 /* Nonzero means truncate lines in all windows less wide than the
    frame.  */
 
-int truncate_partial_width_windows;
+Lisp_Object Vtruncate_partial_width_windows;
 
 /* A flag to control how to display unibyte 8-bit character.  */
 
@@ -628,7 +628,7 @@ int message_truncate_lines;
 Lisp_Object Qmessage_truncate_lines;
 
 /* Set to 1 in clear_message to make redisplay_internal aware
-   of an emptied echo area.   */
+   of an emptied echo area.  */
 
 static int message_cleared_p;
 
@@ -2634,19 +2634,27 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     it->tab_width = 8;
 
   /* Are lines in the display truncated?  */
-  it->truncate_lines_p
-    = (base_face_id != DEFAULT_FACE_ID
-       || XINT (it->w->hscroll)
-       || (truncate_partial_width_windows
-	   && !WINDOW_FULL_WIDTH_P (it->w))
-       || !NILP (current_buffer->truncate_lines));
+  if (base_face_id != DEFAULT_FACE_ID
+      || XINT (it->w->hscroll)
+      || (! WINDOW_FULL_WIDTH_P (it->w)
+	  && ((!NILP (Vtruncate_partial_width_windows)
+	       && !INTEGERP (Vtruncate_partial_width_windows))
+	      || (INTEGERP (Vtruncate_partial_width_windows)
+		  && (WINDOW_TOTAL_COLS (it->w)
+		      < XINT (Vtruncate_partial_width_windows))))))
+    it->line_wrap = TRUNCATE;
+  else if (NILP (current_buffer->truncate_lines))
+    it->line_wrap = NILP (current_buffer->word_wrap)
+      ? WINDOW_WRAP : WORD_WRAP;
+  else
+    it->line_wrap = TRUNCATE;
 
   /* Get dimensions of truncation and continuation glyphs.  These are
      displayed as fringe bitmaps under X, so we don't need them for such
      frames.  */
   if (!FRAME_WINDOW_P (it->f))
     {
-      if (it->truncate_lines_p)
+      if (it->line_wrap == TRUNCATE)
 	{
 	  /* We will need the truncation glyph.  */
 	  xassert (it->glyph_row == NULL);
@@ -2696,7 +2704,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	 for window-based redisplay.  */
       if (!FRAME_WINDOW_P (it->f))
 	{
-	  if (it->truncate_lines_p)
+	  if (it->line_wrap == TRUNCATE)
 	    it->last_visible_x -= it->truncation_pixel_width;
 	  else
 	    it->last_visible_x -= it->continuation_pixel_width;
@@ -2769,7 +2777,7 @@ start_display (it, w, pos)
 
   /* Don't reseat to previous visible line start if current start
      position is in a string or image.  */
-  if (it->method == GET_FROM_BUFFER && !it->truncate_lines_p)
+  if (it->method == GET_FROM_BUFFER && it->line_wrap != TRUNCATE)
     {
       int start_at_line_beg_p;
       int first_y = it->current_y;
@@ -2794,7 +2802,7 @@ start_display (it, w, pos)
 	     taken us to the start of the continuation line but to the
 	     end of the continued line.  */
 	  if (it->current_x > 0
-	      && !it->truncate_lines_p /* Lines are continued.  */
+	      && it->line_wrap != TRUNCATE /* Lines are continued.  */
 	      && (/* And glyph doesn't fit on the line.  */
 		  new_x > it->last_visible_x
 		  /* Or it fits exactly and we're on a window
@@ -4580,7 +4588,7 @@ handle_auto_composed_prop (it)
 {
   enum prop_handled handled = HANDLED_NORMALLY;
 
-  if (FRAME_WINDOW_P (it->f) && FUNCTIONP (Vauto_composition_function))
+  if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
       EMACS_INT pos, limit = -1;
@@ -4646,8 +4654,10 @@ handle_auto_composed_prop (it)
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object args[5];
 
-	      limit = font_range (pos, limit, FACE_FROM_ID (it->f, it->face_id),
-				  it->f, it->string);
+	      if (FRAME_WINDOW_P (it->f))
+		limit = font_range (pos, limit,
+				    FACE_FROM_ID (it->f, it->face_id),
+				    it->f, it->string);
 	      args[0] = Vauto_composition_function;
 	      specbind (Qauto_composition_function, Qnil);
 	      args[1] = make_number (pos);
@@ -5432,6 +5442,7 @@ back_to_previous_visible_line_start (it)
 	pos = --IT_CHARPOS (it2);
 	--IT_BYTEPOS (it2);
 	it2.sp = 0;
+	it2.string_from_display_prop_p = 0;
 	if (handle_display_prop (&it2) == HANDLED_RETURN
 	    && !NILP (val = get_char_property_and_overlay
 		      (make_number (pos), Qdisplay, Qnil, &overlay))
@@ -5582,6 +5593,7 @@ reseat_1 (it, pos, set_stop_p)
   IT_STRING_CHARPOS (*it) = -1;
   IT_STRING_BYTEPOS (*it) = -1;
   it->string = Qnil;
+  it->string_from_display_prop_p = 0;
   it->method = GET_FROM_BUFFER;
   it->object = it->w->buffer;
   it->area = TEXT_AREA;
@@ -6643,10 +6655,19 @@ move_it_in_display_line_to (struct it *it,
 {
   enum move_it_result result = MOVE_UNDEFINED;
   struct glyph_row *saved_glyph_row;
+  struct it wrap_it, atpos_it;
+  int may_wrap = 0;
 
   /* Don't produce glyphs in produce_glyphs.  */
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
+
+  /* Use wrap_it to save a copy of IT wherever a word wrap could
+     occur.  Use atpos_it to save a copy of IT at the desired
+     position, if found, so that we can scan ahead and check if the
+     word later overshoots the window edge.  */
+  wrap_it.sp = -1;
+  atpos_it.sp = -1;
 
 #define BUFFER_POS_REACHED_P()					\
   ((op & MOVE_TO_POS) != 0					\
@@ -6667,35 +6688,76 @@ move_it_in_display_line_to (struct it *it,
 	  && it->method == GET_FROM_BUFFER
 	  && IT_CHARPOS (*it) > to_charpos)
 	{
-	  result = MOVE_POS_MATCH_OR_ZV;
-	  break;
+	  if (it->line_wrap == WORD_WRAP)
+	    {
+	      /* If wrap_it is valid, the current position might be in
+		 a word that is wrapped to the next line, so continue
+		 to see if that happens.  */
+	      if (wrap_it.sp < 0)
+		{
+		  result = MOVE_POS_MATCH_OR_ZV;
+		  break;
+		}
+	      if (atpos_it.sp < 0)
+		atpos_it = *it;
+	    }
+	  else
+	    {
+	      result = MOVE_POS_MATCH_OR_ZV;
+	      break;
+	    }
 	}
 
       /* Stop when ZV reached.
          We used to stop here when TO_CHARPOS reached as well, but that is
          too soon if this glyph does not fit on this line.  So we handle it
          explicitly below.  */
-      if (!get_next_display_element (it)
-	  || (it->truncate_lines_p
-	      && BUFFER_POS_REACHED_P ()))
+      if (!get_next_display_element (it))
 	{
 	  result = MOVE_POS_MATCH_OR_ZV;
 	  break;
 	}
 
-      /* The call to produce_glyphs will get the metrics of the
-	 display element IT is loaded with.  We record in x the
-	 x-position before this display element in case it does not
-	 fit on the line.  */
-      x = it->current_x;
-
-      /* Remember the line height so far in case the next element doesn't
-	 fit on the line.  */
-      if (!it->truncate_lines_p)
+      if (it->line_wrap == TRUNCATE)
 	{
+	  if (BUFFER_POS_REACHED_P ())
+	    {
+	      result = MOVE_POS_MATCH_OR_ZV;
+	      break;
+	    }
+	}
+      else
+	{
+	  /* Remember the line height so far in case the next element
+	     doesn't fit on the line.  */
 	  ascent = it->max_ascent;
 	  descent = it->max_descent;
+
+	  if (it->line_wrap == WORD_WRAP)
+	    {
+	      if (it->what == IT_CHARACTER
+		  && (it->c == ' ' || it->c == '\t'))
+		may_wrap = 1;
+	      else if (may_wrap)
+		{
+		  /* We are done if the position is already found.  */
+		  if (atpos_it.sp >= 0)
+		    {
+		      *it = atpos_it;
+		      atpos_it.sp = -1;
+		      goto buffer_pos_reached;
+		    }
+		  wrap_it = *it;
+		  may_wrap = 0;
+		}
+	    }
 	}
+
+      /* The call to produce_glyphs will get the metrics of the
+	 display element IT is loaded with.  Record the x-position
+	 before this display element, in case it doesn't fit on the
+	 line.  */
+      x = it->current_x;
 
       PRODUCE_GLYPHS (it);
 
@@ -6722,7 +6784,7 @@ move_it_in_display_line_to (struct it *it,
 	 next line.
 
 	 Note that both for tabs and padding glyphs, all glyphs have
-	 the same width.   */
+	 the same width.  */
       if (it->nglyphs)
 	{
 	  /* More than one glyph or glyph doesn't fit on line.  All
@@ -6740,19 +6802,30 @@ move_it_in_display_line_to (struct it *it,
 	      if ((op & MOVE_TO_X) && new_x > to_x)
 		{
 		  if (BUFFER_POS_REACHED_P ())
-		    goto buffer_pos_reached;
+		    {
+		      if (it->line_wrap == WORD_WRAP)
+			{
+			  if (wrap_it.sp < 0)
+			    goto buffer_pos_reached;
+			  if (atpos_it.sp < 0)
+			    atpos_it = *it;
+			}
+		      else
+			goto buffer_pos_reached;
+		    }
 		  it->current_x = x;
 		  result = MOVE_X_REACHED;
 		  break;
 		}
-	      else if (/* Lines are continued.  */
-		       !it->truncate_lines_p
-		       && (/* And glyph doesn't fit on the line.  */
-			   new_x > it->last_visible_x
-			   /* Or it fits exactly and we're on a window
-			      system frame.  */
-			   || (new_x == it->last_visible_x
-			       && FRAME_WINDOW_P (it->f))))
+
+	      if (/* Lines are continued.  */
+		  it->line_wrap != TRUNCATE
+		  && (/* And glyph doesn't fit on the line.  */
+		      new_x > it->last_visible_x
+		      /* Or it fits exactly and we're on a window
+			 system frame.  */
+		      || (new_x == it->last_visible_x
+			  && FRAME_WINDOW_P (it->f))))
 		{
 		  if (/* IT->hpos == 0 means the very first glyph
 			 doesn't fit on the line, e.g. a wide image.  */
@@ -6811,23 +6884,36 @@ move_it_in_display_line_to (struct it *it,
 		      it->max_descent = descent;
 		    }
 
+		  if (wrap_it.sp >= 0)
+		    {
+		      *it = wrap_it;
+		      atpos_it.sp = -1;
+		    }
+
 		  TRACE_MOVE ((stderr, "move_it_in: continued at %d\n",
 			       IT_CHARPOS (*it)));
 		  result = MOVE_LINE_CONTINUED;
 		  break;
 		}
-	      else if (BUFFER_POS_REACHED_P ())
-		goto buffer_pos_reached;
-	      else if (new_x > it->first_visible_x)
+
+	      if (BUFFER_POS_REACHED_P ())
+		{
+		  if (it->line_wrap == WORD_WRAP)
+		    {
+		      if (wrap_it.sp < 0)
+			goto buffer_pos_reached;
+		      if (atpos_it.sp < 0)
+			atpos_it = *it;
+		    }
+		  else
+		    goto buffer_pos_reached;
+		}
+
+	      if (new_x > it->first_visible_x)
 		{
 		  /* Glyph is visible.  Increment number of glyphs that
 		     would be displayed.  */
 		  ++it->hpos;
-		}
-	      else
-		{
-		  /* Glyph is completely off the left margin of the display
-		     area.  Nothing to do.  */
 		}
 	    }
 
@@ -6867,7 +6953,7 @@ move_it_in_display_line_to (struct it *it,
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
-      if (it->truncate_lines_p
+      if (it->line_wrap == TRUNCATE
 	  && it->current_x >= it->last_visible_x)
 	{
 #ifdef HAVE_WINDOW_SYSTEM
@@ -6892,6 +6978,11 @@ move_it_in_display_line_to (struct it *it,
     }
 
 #undef BUFFER_POS_REACHED_P
+
+  /* If we scanned beyond to_pos and didn't find a point to wrap at,
+     return iterator at to_pos.  */
+  if (atpos_it.sp >= 0)
+    *it = atpos_it;
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
@@ -8555,7 +8646,7 @@ resize_mini_window (w, exact_p)
       max_height = min (total_height, max_height);
 
       /* Find out the height of the text in the window.  */
-      if (it.truncate_lines_p)
+      if (it.line_wrap == TRUNCATE)
 	height = 1;
       else
 	{
@@ -9952,7 +10043,7 @@ display_tool_bar_line (it, height)
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
 	      /* If this is the only glyph on this line, it will never fit on the
-		 toolbar, so skip it.   But ensure there is at least one glyph,
+		 toolbar, so skip it.  But ensure there is at least one glyph,
 		 so we don't accidentally disable the tool-bar.  */
 	      if (n_glyphs_before == 0
 		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
@@ -16212,6 +16303,11 @@ display_line (it)
 {
   struct glyph_row *row = it->glyph_row;
   Lisp_Object overlay_arrow_string;
+  struct it wrap_it;
+  int may_wrap = 0, wrap_x;
+  int wrap_row_used = -1, wrap_row_ascent, wrap_row_height;
+  int wrap_row_phys_ascent, wrap_row_phys_height;
+  int wrap_row_extra_line_spacing;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   xassert (it->hpos == 0 && it->current_x == 0);
@@ -16306,12 +16402,31 @@ display_line (it)
 
       /* Remember the line height so far in case the next element doesn't
 	 fit on the line.  */
-      if (!it->truncate_lines_p)
+      if (it->line_wrap != TRUNCATE)
 	{
 	  ascent = it->max_ascent;
 	  descent = it->max_descent;
 	  phys_ascent = it->max_phys_ascent;
 	  phys_descent = it->max_phys_descent;
+
+	  if (it->line_wrap == WORD_WRAP && it->area == TEXT_AREA)
+	    {
+	      if (it->what == IT_CHARACTER
+		  && (it->c == ' ' || it->c == '\t'))
+		may_wrap = 1;
+	      else if (may_wrap)
+		{
+		  wrap_it = *it;
+		  wrap_x = x;
+		  wrap_row_used = row->used[TEXT_AREA];
+		  wrap_row_ascent = row->ascent;
+		  wrap_row_height = row->height;
+		  wrap_row_phys_ascent = row->phys_ascent;
+		  wrap_row_phys_height = row->phys_height;
+		  wrap_row_extra_line_spacing = row->extra_line_spacing;
+		  may_wrap = 0;
+		}
+	    }
 	}
 
       PRODUCE_GLYPHS (it);
@@ -16371,7 +16486,7 @@ display_line (it)
 	      new_x = x + glyph->pixel_width;
 
 	      if (/* Lines are continued.  */
-		  !it->truncate_lines_p
+		  it->line_wrap != TRUNCATE
 		  && (/* Glyph doesn't fit on the line.  */
 		      new_x > it->last_visible_x
 		      /* Or it fits exactly on a window system frame.  */
@@ -16412,6 +16527,8 @@ display_line (it)
 				}
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
+			  if (wrap_row_used > 0)
+			    goto back_to_wrap;
 			}
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
@@ -16438,6 +16555,26 @@ display_line (it)
 		      it->max_descent = descent;
 		      it->max_phys_ascent = phys_ascent;
 		      it->max_phys_descent = phys_descent;
+		    }
+		  else if (wrap_row_used > 0)
+		    {
+		    back_to_wrap:
+		      *it = wrap_it;
+		      it->continuation_lines_width += wrap_x;
+		      row->used[TEXT_AREA] = wrap_row_used;
+		      row->ascent = wrap_row_ascent;
+		      row->height = wrap_row_height;
+		      row->phys_ascent = wrap_row_phys_ascent;
+		      row->phys_height = wrap_row_phys_height;
+		      row->extra_line_spacing = wrap_row_extra_line_spacing;
+		      row->continued_p = 1;
+		      row->ends_at_zv_p = 0;
+		      row->exact_window_width_line_p = 0;
+		      it->continuation_lines_width += x;
+
+		      /* Make sure that a non-default face is extended
+			 up to the right margin of the window.  */
+		      extend_face_to_end_of_line (it);
 		    }
 		  else if (it->c == '\t' && FRAME_WINDOW_P (it->f))
 		    {
@@ -16554,7 +16691,7 @@ display_line (it)
 
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
-      if (it->truncate_lines_p
+      if (it->line_wrap == TRUNCATE
 	  && (FRAME_WINDOW_P (it->f)
 	      ? (it->current_x >= it->last_visible_x)
 	      : (it->current_x > it->last_visible_x)))
@@ -17610,7 +17747,7 @@ If FACE is an integer, the value string has no text properties.
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
 are the selected window and the window's buffer).  */)
-  (format, face, window, buffer)
+     (format, face, window, buffer)
      Lisp_Object format, face, window, buffer;
 {
   struct it it;
@@ -18579,7 +18716,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	{
 	  struct glyph *glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
 
-	  if (!it->truncate_lines_p
+	  if (it->line_wrap != TRUNCATE
 	      && x + glyph->pixel_width > max_x)
 	    {
 	      /* End of continued line or max_x reached.  */
@@ -18635,7 +18772,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
       set_iterator_to_next (it, 1);
 
       /* Stop if truncating at the right edge.  */
-      if (it->truncate_lines_p
+      if (it->line_wrap == TRUNCATE
 	  && it->current_x >= it->last_visible_x)
 	{
 	  /* Add truncation mark, but don't do it if the line is
@@ -19213,7 +19350,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
       if (code != FONT_INVALID_CODE)
 	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
       else
-	STORE_XCHAR2B (char2b, 0, code);
+	STORE_XCHAR2B (char2b, 0, 0);
     }
 
   /* Make sure X resources of the face are allocated.  */
@@ -20583,7 +20720,7 @@ produce_stretch_glyph (it)
   else
     ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
 
-  if (width > 0 && !it->truncate_lines_p
+  if (width > 0 && it->line_wrap != TRUNCATE
       && it->current_x + width > it->last_visible_x)
     width = it->last_visible_x - it->current_x - 1;
 
@@ -21477,7 +21614,7 @@ x_write_glyphs (start, len)
 
 
 /* EXPORT for RIF:
-   Insert LEN glyphs from START at the nominal cursor position.   */
+   Insert LEN glyphs from START at the nominal cursor position.  */
 
 void
 x_insert_glyphs (start, len)
@@ -22845,7 +22982,7 @@ and the radius of the circle; r may be a float or integer.
 A polygon is a cons (poly . [x0 y0 x1 y1 ...]) where each pair in the
 vector describes one corner in the polygon.
 Returns the alist element for the first matching AREA in MAP.  */)
-  (map, x, y)
+     (map, x, y)
      Lisp_Object map;
      Lisp_Object x, y;
 {
@@ -24517,7 +24654,7 @@ If you want scrolling to always be a line at a time, you should set
     doc: /* *Scroll up to this many lines, to bring point back on screen.
 If point moves off-screen, redisplay will scroll by up to
 `scroll-conservatively' lines in order to bring point just barely
-onto the screen again.   If that cannot be done, then redisplay
+onto the screen again.  If that cannot be done, then redisplay
 recenters point as usual.
 
 A value of zero means always recenter point if it moves off screen.  */);
@@ -24538,11 +24675,18 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   DEFVAR_INT ("debug-end-pos", &debug_end_pos, doc: /* Don't ask.  */);
 #endif
 
-  DEFVAR_BOOL ("truncate-partial-width-windows",
-	       &truncate_partial_width_windows,
-    doc: /* *Non-nil means truncate lines in all windows less than full frame wide.
-Nil means to respect the value of `truncate-lines'.  */);
-  truncate_partial_width_windows = 1;
+  DEFVAR_LISP ("truncate-partial-width-windows",
+	       &Vtruncate_partial_width_windows,
+    doc: /* Non-nil means truncate lines in windows with less than the frame width.
+For an integer value, truncate lines in each window with less than the
+full frame width, provided the window width is less than that integer;
+otherwise, respect the value of `truncate-lines'.
+
+For any other non-nil value, truncate lines in all windows with
+less than the full frame width.
+
+A value of nil means to respect the value of `truncate-lines'.  */);
+  Vtruncate_partial_width_windows = make_number (30);
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
     doc: /* When nil, display the mode-line/header-line/menu-bar in the default face.

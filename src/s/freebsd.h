@@ -40,19 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NO_SHARED_LIBS
 #endif
 
-
-#if 0 /* This much, alone, seemed sufficient as of 19.23.
-	 But it seems better to be independent of netbsd.h.  */
-#include "netbsd.h"
-
-#undef LIB_GCC
-#define LIB_GCC -lgcc
-#undef NEED_ERRNO
-#endif /* 0 */
-
-
-/* Get most of the stuff from bsd4.3 */
-#include "bsd4-3.h"
+/* Get most of the stuff from bsd-common */
+#include "bsd-common.h"
 
 /* For mem-limits.h. */
 #define BSD4_2
@@ -161,7 +150,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
 
-/* CLASH_DETECTION is defined in bsd4-3.h.
+/* CLASH_DETECTION is defined in bsd-common.h.
    In FreeBSD 2.1.5 (and other 2.1.x), this results useless symbolic links
    remaining in /tmp or other directories with +t bit.
    To avoid this problem, you could #undef it to use no file lock. */

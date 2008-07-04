@@ -175,8 +175,8 @@ extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 #include <direct.h>
 /* In process.h which conflicts with the local copy.  */
 #define _P_WAIT 0
-int _CRTAPI1 _spawnlp (int, const char *, const char *, ...);
-int _CRTAPI1 _getpid (void);
+int _cdecl _spawnlp (int, const char *, const char *, ...);
+int _cdecl _getpid (void);
 extern char *getwd (char *);
 #endif
 
@@ -206,10 +206,6 @@ struct utimbuf {
 #define LPASS8 0
 #endif
 
-#ifdef BSD4_1
-#define LNOFLSH 0100000
-#endif
-
 static int baud_convert[] =
 #ifdef BAUD_CONVERT
   BAUD_CONVERT;
@@ -234,11 +230,6 @@ static int baud_convert[] =
 int emacs_ospeed;
 
 void croak P_ ((char *)) NO_RETURN;
-
-#ifdef AIXHFT
-void hft_init P_ ((struct tty_display_info *));
-void hft_reset P_ ((struct tty_display_info *));
-#endif
 
 /* Temporary used by `sigblock' when defined in terms of signprocmask.  */
 
@@ -483,7 +474,7 @@ wait_for_termination (pid)
       status = SYS$FORCEX (&pid, 0, 0);
       break;
 #else /* not VMS */
-#if defined (BSD_SYSTEM) || (defined (HPUX) && !defined (HPUX_5))
+#if defined (BSD_SYSTEM) || defined (HPUX)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */
@@ -542,16 +533,9 @@ wait_for_termination (pid)
 #if __DJGPP__ > 1
       break;
 #else /* not __DJGPP__ > 1 */
-#ifndef BSD4_1
       if (kill (pid, 0) < 0)
 	break;
       wait (0);
-#else /* BSD4_1 */
-      int status;
-      status = wait (0);
-      if (status == pid || status == -1)
-	break;
-#endif /* BSD4_1 */
 #endif /* not __DJGPP__ > 1*/
 #endif /* not subprocesses */
     }
@@ -695,10 +679,6 @@ child_setup_tty (out)
 
   EMACS_SET_TTY (out, &s, 0);
 
-#ifdef BSD4_1
-  if (interrupt_input)
-    reset_sigio (0);
-#endif /* BSD4_1 */
 #endif /* not DOS_NT */
 }
 #endif /* not VMS */
@@ -1267,12 +1247,6 @@ emacs_set_tty (fd, settings, flushp)
 
 
 
-#ifdef BSD4_1
-/* BSD 4.1 needs to keep track of the lmode bits in order to start
-   sigio.  */
-int lmode;
-#endif
-
 #ifdef F_SETOWN
 int old_fcntl_owner[MAXDESC];
 #endif /* F_SETOWN */
@@ -1281,14 +1255,10 @@ int old_fcntl_owner[MAXDESC];
    but if so, this does no harm,
    and using the same name avoids wasting the other one's space.  */
 
-#ifdef nec_ews_svr4
-extern char *_sobuf ;
-#else
 #if defined (USG) || defined (DGUX)
 unsigned char _sobuf[BUFSIZ+8];
 #else
 char _sobuf[BUFSIZ];
-#endif
 #endif
 
 #ifdef HAVE_LTCHARS
@@ -1495,11 +1465,6 @@ init_sys_modes (tty_out)
     }
 #endif /* mips or HAVE_TCATTR */
 
-#ifdef SET_LINE_DISCIPLINE
-  /* Need to explicitly request TERMIODISC line discipline or
-     Ultrix's termios does not work correctly.  */
-  tty.main.c_line = SET_LINE_DISCIPLINE;
-#endif
 #ifdef AIX
 #ifndef IBMR2AIX
   /* AIX enhanced edit loses NULs, so disable it.  */
@@ -1566,16 +1531,7 @@ init_sys_modes (tty_out)
     }
   
   tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | tty_out->old_tty.lmode;
-#ifdef ultrix
-  /* Under Ultrix 4.2a, leaving this out doesn't seem to hurt
-     anything, and leaving it in breaks the meta key.  Go figure.  */
-  tty.lmode &= ~LLITOUT;
-#endif
   
-#ifdef BSD4_1
-  lmode = tty.lmode;
-#endif
-
 #endif /* HAVE_TCHARS */
 #endif /* not HAVE_TERMIO */
 
@@ -1600,25 +1556,11 @@ init_sys_modes (tty_out)
   if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TIOCSTART, 0);
 #endif
 
-#if defined (HAVE_TERMIOS) || defined (HPUX9)
+#if defined (HAVE_TERMIOS) || defined (HPUX)
 #ifdef TCOON
   if (!tty_out->flow_control) tcflow (fileno (tty_out->input), TCOON);
 #endif
 #endif
-
-#ifdef AIXHFT
-  hft_init (tty_out);
-#ifdef IBMR2AIX
-  {
-    /* IBM's HFT device usually thinks a ^J should be LF/CR.  We need it
-       to be only LF.  This is the way that is done. */
-    struct termio tty;
-    
-    if (ioctl (1, HFTGETID, &tty) != -1)
-      write (1, "\033[20l", 5);
-  }
-#endif
-#endif /* AIXHFT */
 
 #ifdef VMS
 /*  Appears to do nothing when in PASTHRU mode.
@@ -1648,11 +1590,6 @@ init_sys_modes (tty_out)
     }
 #endif /* F_GETOWN */
 #endif /* F_SETFL */
-
-#ifdef BSD4_1
-  if (interrupt_input)
-    init_sigio (fileno (tty_out->input));
-#endif
 
 #ifdef VMS  /* VMS sometimes has this symbol but lacks setvbuf.  */
 #undef _IOFBF
@@ -1868,25 +1805,12 @@ reset_sys_modes (tty_out)
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   fflush (tty_out->output);
   
-#if defined (IBMR2AIX) && defined (AIXHFT)
-  {
-    /* HFT devices normally use ^J as a LF/CR.  We forced it to
-       do the LF only.  Now, we need to reset it. */
-    struct termio tty;
-
-    if (ioctl (1, HFTGETID, &tty) != -1)
-      write (1, "\033[20h", 5);
-  }
-#endif
-
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
 
 #ifdef BSD_SYSTEM
-#ifndef BSD4_1
   /* Avoid possible loss of output when changing terminal modes.  */
   fsync (fileno (tty_out->output));
-#endif
 #endif
 
 #ifdef F_SETFL
@@ -1903,10 +1827,6 @@ reset_sys_modes (tty_out)
          fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NDELAY);
 #endif
 #endif /* F_SETFL */
-#ifdef BSD4_1
-  if (interrupt_input)
-    reset_sigio (fileno (tty_out->input));
-#endif /* BSD4_1 */
 
   if (tty_out->old_tty)
     while (EMACS_SET_TTY (fileno (tty_out->input),
@@ -1915,17 +1835,6 @@ reset_sys_modes (tty_out)
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   dos_ttcooked ();
-#endif
-
-#ifdef SET_LINE_DISCIPLINE
-  /* Ultrix's termios *ignores* any line discipline except TERMIODISC.
-     A different old line discipline is therefore not restored, yet.
-     Restore the old line discipline by hand.  */
-  ioctl (0, TIOCSETD, &tty_out->old_tty.main.c_line);
-#endif
-
-#ifdef AIXHFT
-  hft_reset ();
 #endif
 
 #ifdef BSD_PGRPS
@@ -2318,20 +2227,14 @@ start_of_data ()
 /* init_system_name sets up the string for the Lisp function
    system-name to return. */
 
-#ifdef BSD4_1
-#include <whoami.h>
-#endif
-
 extern Lisp_Object Vsystem_name;
 
-#ifndef BSD4_1
 #ifndef VMS
 #ifdef HAVE_SOCKETS
 #include <sys/socket.h>
 #include <netdb.h>
 #endif /* HAVE_SOCKETS */
 #endif /* not VMS */
-#endif /* not BSD4_1 */
 
 #ifdef TRY_AGAIN
 #ifndef HAVE_H_ERRNO
@@ -2342,9 +2245,6 @@ extern int h_errno;
 void
 init_system_name ()
 {
-#ifdef BSD4_1
-  Vsystem_name = build_string (sysname);
-#else
 #ifdef VMS
   char *sp, *end;
   if ((sp = egetenv ("SYS$NODE")) == 0)
@@ -2525,7 +2425,6 @@ init_system_name ()
   Vsystem_name = build_string (hostname);
 #endif /* HAVE_GETHOSTNAME */
 #endif /* VMS */
-#endif /* BSD4_1 */
   {
     unsigned char *p;
     for (p = SDATA (Vsystem_name); *p; p++)
@@ -2567,11 +2466,7 @@ SIGTYPE
 select_alarm ()
 {
   select_alarmed = 1;
-#ifdef BSD4_1
-  sigrelse (SIGALRM);
-#else /* not BSD4_1 */
   signal (SIGALRM, SIG_IGN);
-#endif /* not BSD4_1 */
   SIGNAL_THREAD_CHECK (SIGALRM);
   if (read_alarm_should_throw)
     longjmp (read_alarm_throw, 1);
@@ -2781,93 +2676,6 @@ read_input_waiting ()
 #endif /* not HAVE_SELECT */
 #endif /* not VMS */
 #endif /* not MSDOS */
-
-#ifdef BSD4_1
-void
-init_sigio (fd)
-     int fd;
-{
-  if (noninteractive)
-    return;
-  lmode = LINTRUP | lmode;
-  ioctl (fd, TIOCLSET, &lmode);
-}
-
-void
-reset_sigio (fd)
-     int fd;
-{
-  if (noninteractive)
-    return;
-  lmode = ~LINTRUP & lmode;
-  ioctl (fd, TIOCLSET, &lmode);
-}
-
-void
-request_sigio ()
-{
-  if (noninteractive)
-    return;
-  sigrelse (SIGTINT);
-
-  interrupts_deferred = 0;
-}
-
-void
-unrequest_sigio ()
-{
-  if (noninteractive)
-    return;
-  sighold (SIGTINT);
-
-  interrupts_deferred = 1;
-}
-
-/* still inside #ifdef BSD4_1 */
-#ifdef subprocesses
-
-int sigheld; /* Mask of held signals */
-
-void
-sigholdx (signum)
-     int signum;
-{
-  sigheld |= sigbit (signum);
-  sighold (signum);
-}
-
-void
-sigisheld (signum)
-     int signum;
-{
-  sigheld |= sigbit (signum);
-}
-
-void
-sigunhold (signum)
-     int signum;
-{
-  sigheld &= ~sigbit (signum);
-  sigrelse (signum);
-}
-
-void
-sigfree ()    /* Free all held signals */
-{
-  int i;
-  for (i = 0; i < NSIG; i++)
-    if (sigheld & sigbit (i))
-      sigrelse (i);
-  sigheld = 0;
-}
-
-int
-sigbit (i)
-{
-  return 1 << (i - 1);
-}
-#endif /* subprocesses */
-#endif /* BSD4_1 */
 
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
@@ -3326,11 +3134,6 @@ emacs_open (path, oflag, mode)
      int oflag, mode;
 {
   register int rtnval;
-
-#ifdef BSD4_1
-  if (oflag & O_CREAT)
-    return creat (path, mode);
-#endif
 
   while ((rtnval = open (path, oflag, mode)) == -1
 	 && (errno == EINTR))
@@ -5189,100 +4992,6 @@ srandom (seed)
 }
 #endif /* VMS */
 
-#ifdef AIXHFT
-
-/* Called from init_sys_modes.  */
-void
-hft_init (struct tty_display_info *tty_out)
-{
-  int junk;
-
-  /* If we're not on an HFT we shouldn't do any of this.  We determine
-     if we are on an HFT by trying to get an HFT error code.  If this
-     call fails, we're not on an HFT. */
-#ifdef IBMR2AIX
-  if (ioctl (0, HFQERROR, &junk) < 0)
-    return;
-#else /* not IBMR2AIX */
-  if (ioctl (0, HFQEIO, 0) < 0)
-    return;
-#endif /* not IBMR2AIX */
-
-  /* On AIX the default hft keyboard mapping uses backspace rather than delete
-     as the rubout key's ASCII code.  Here this is changed.  The bug is that
-     there's no way to determine the old mapping, so in reset_sys_modes
-     we need to assume that the normal map had been present.  Of course, this
-     code also doesn't help if on a terminal emulator which doesn't understand
-     HFT VTD's.  */
-  {
-    struct hfbuf buf;
-    struct hfkeymap keymap;
-
-    buf.hf_bufp = (char *)&keymap;
-    buf.hf_buflen = sizeof (keymap);
-    keymap.hf_nkeys = 2;
-    keymap.hfkey[0].hf_kpos = 15;
-    keymap.hfkey[0].hf_kstate = HFMAPCHAR | HFSHFNONE;
-#ifdef IBMR2AIX
-    keymap.hfkey[0].hf_keyidh = '<';
-#else /* not IBMR2AIX */
-    keymap.hfkey[0].hf_page = '<';
-#endif /* not IBMR2AIX */
-    keymap.hfkey[0].hf_char = 127;
-    keymap.hfkey[1].hf_kpos = 15;
-    keymap.hfkey[1].hf_kstate = HFMAPCHAR | HFSHFSHFT;
-#ifdef IBMR2AIX
-    keymap.hfkey[1].hf_keyidh = '<';
-#else /* not IBMR2AIX */
-    keymap.hfkey[1].hf_page = '<';
-#endif /* not IBMR2AIX */
-    keymap.hfkey[1].hf_char = 127;
-    hftctl (0, HFSKBD, &buf);
-  }
-}
-
-/* Reset the rubout key to backspace.  */
-
-void
-hft_reset (struct tty_display_info *tty_out)
-{
-  struct hfbuf buf;
-  struct hfkeymap keymap;
-  int junk;
-
-#ifdef IBMR2AIX
-  if (ioctl (0, HFQERROR, &junk) < 0)
-    return;
-#else /* not IBMR2AIX */
-  if (ioctl (0, HFQEIO, 0) < 0)
-    return;
-#endif /* not IBMR2AIX */
-
-  buf.hf_bufp = (char *)&keymap;
-  buf.hf_buflen = sizeof (keymap);
-  keymap.hf_nkeys = 2;
-  keymap.hfkey[0].hf_kpos = 15;
-  keymap.hfkey[0].hf_kstate = HFMAPCHAR | HFSHFNONE;
-#ifdef IBMR2AIX
-  keymap.hfkey[0].hf_keyidh = '<';
-#else /* not IBMR2AIX */
-  keymap.hfkey[0].hf_page = '<';
-#endif /* not IBMR2AIX */
-  keymap.hfkey[0].hf_char = 8;
-  keymap.hfkey[1].hf_kpos = 15;
-  keymap.hfkey[1].hf_kstate = HFMAPCHAR | HFSHFSHFT;
-#ifdef IBMR2AIX
-  keymap.hfkey[1].hf_keyidh = '<';
-#else /* not IBMR2AIX */
-  keymap.hfkey[1].hf_page = '<';
-#endif /* not IBMR2AIX */
-  keymap.hfkey[1].hf_char = 8;
-  hftctl (0, HFSKBD, &buf);
-}
-
-#endif /* AIXHFT */
-
-
 #ifndef BSTRING
 
 #ifndef bzero
@@ -5416,6 +5125,29 @@ int serial_open (char *port)
 #endif /* TERMIOS  */
 
 #ifdef HAVE_TERMIOS
+
+#if !defined (HAVE_CFMAKERAW)
+/* Workaround for targets which are missing cfmakeraw.  */
+/* Pasted from man page.  */
+static void cfmakeraw (struct termios *termios_p)
+{
+    termios_p->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+    termios_p->c_oflag &= ~OPOST;
+    termios_p->c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+    termios_p->c_cflag &= ~(CSIZE|PARENB);
+    termios_p->c_cflag |= CS8;
+}
+#endif /* !defined (HAVE_CFMAKERAW */
+
+#if !defined (HAVE_CFSETSPEED)
+/* Workaround for targets which are missing cfsetspeed.  */
+static int cfsetspeed (struct termios *termios_p, speed_t vitesse)
+{
+  return (cfsetispeed (termios_p, vitesse)
+	  + cfsetospeed (termios_p, vitesse));
+}
+#endif
+
 /* For serial-process-configure  */
 void
 serial_configure (struct Lisp_Process *p,
@@ -5467,7 +5199,7 @@ serial_configure (struct Lisp_Process *p,
   attr.c_cflag &= ~CSIZE;
   attr.c_cflag |= ((XINT (tem) == 7) ? CS7 : CS8);
 #else
-  /* Don't error on bytesize 8, which should be set by cfmakeraw().  */
+  /* Don't error on bytesize 8, which should be set by cfmakeraw.  */
   if (XINT (tem) != 8)
     error ("Bytesize cannot be changed");
 #endif
@@ -5500,7 +5232,7 @@ serial_configure (struct Lisp_Process *p,
       attr.c_iflag |= (IGNPAR | INPCK);
     }
 #else
-  /* Don't error on no parity, which should be set by cfmakeraw().  */
+  /* Don't error on no parity, which should be set by cfmakeraw.  */
   if (!NILP (tem))
     error ("Parity cannot be configured");
 #endif
@@ -5522,7 +5254,7 @@ serial_configure (struct Lisp_Process *p,
   if (XINT (tem) == 2)
     attr.c_cflag |= CSTOPB;
 #else
-  /* Don't error on 1 stopbit, which should be set by cfmakeraw().  */
+  /* Don't error on 1 stopbit, which should be set by cfmakeraw.  */
   if (XINT (tem) != 1)
     error ("Stopbits cannot be configured");
 #endif

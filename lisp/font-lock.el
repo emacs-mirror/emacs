@@ -109,7 +109,7 @@
 ;; the pattern definitions.)  Font Lock mode chooses which variable to use for
 ;; fontification based on `font-lock-maximum-decoration'.
 ;;
-;; Font Lock mode fontification behaviour can be modified in a number of ways.
+;; Font Lock mode fontification behavior can be modified in a number of ways.
 ;; See the below comments and the comments distributed throughout this file.
 
 ;;; Constructing patterns:
@@ -195,8 +195,8 @@
 ;;   i.e., (b) above, all modes that have items that can be thought of as, say,
 ;;   keywords, should be highlighted with the same face, etc.
 ;; - Make the face attributes fit the concept as far as possible.
-;;   i.e., function names might be a bold colour such as blue, comments might
-;;   be a bright colour such as red, character strings might be brown, because,
+;;   i.e., function names might be a bold color such as blue, comments might
+;;   be a bright color such as red, character strings might be brown, because,
 ;;   err, strings are brown (that was not the reason, please believe me).
 ;; - Don't use a non-nil OVERRIDE unless you have a good reason.
 ;;   Only use OVERRIDE for special things that are easy to define, such as the
@@ -1824,7 +1824,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	(setq font-lock-keywords
               (font-lock-compile-keywords font-lock-keywords))))))
 
-;;; Colour etc. support.
+;;; Color etc. support.
 
 ;; Note that `defface' will not overwrite any faces declared above via
 ;; `custom-declare-face'.
@@ -1981,7 +1981,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Font Lock mode face used to highlight grouping constructs in Lisp regexps."
   :group 'font-lock-faces)
 
-;;; End of Colour etc. support.
+;;; End of Color etc. support.
 
 ;;; Menu support.
 

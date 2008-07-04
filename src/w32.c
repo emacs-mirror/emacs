@@ -1265,7 +1265,7 @@ init_environment (char ** argv)
 	  profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
 					    0, default_home);
 
-	  /* If we can't get the appdata dir, revert to old behaviour.  */
+	  /* If we can't get the appdata dir, revert to old behavior.  */
 	  if (profile_result == S_OK)
 	    env_vars[0].def_value = default_home;
 	}
@@ -2514,7 +2514,7 @@ sys_rename (const char * oldname, const char * newname)
 	return -1;
     }
 
-  /* Emulate Unix behaviour - newname is deleted if it already exists
+  /* Emulate Unix behavior - newname is deleted if it already exists
      (at least if it is a file; don't do this for directories).
 
      Since we mustn't do this if we are just changing the case of the

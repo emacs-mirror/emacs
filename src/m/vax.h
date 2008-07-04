@@ -100,12 +100,6 @@ NOTE-END  */
 #ifdef USG
 #define LIB_STANDARD -lPW -lc
 
-/* There is some bug in unexec in for usg 5.2 on a vax
-   which nobody who runs such a system has yet tracked down. */
-#ifndef USG5_0
-#define NO_REMAP
-#endif /* USG 5_0 */
-
 #define TEXT_START 0
 #endif /* USG */
 

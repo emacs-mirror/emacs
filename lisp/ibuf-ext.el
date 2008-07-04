@@ -1298,15 +1298,68 @@ a prefix argument reverses the meaning of that variable."
 	  (error "No buffer with name %s" name)
 	(goto-char buf-point)))))
 
+(declare-function diff-sentinel "diff" (code))
+
+(defun ibuffer-diff-buffer-with-file-1 (buffer)
+  (let ((bufferfile (buffer-local-value 'buffer-file-name buffer))
+	(tempfile (make-temp-file "buffer-content-")))
+    (when bufferfile
+      (unwind-protect
+	  (progn
+	    (with-current-buffer buffer
+	      (write-region nil nil tempfile nil 'nomessage))
+	    (let* ((old (expand-file-name bufferfile))
+		   (new (expand-file-name tempfile))
+		   (oldtmp (file-local-copy old))
+		   (newtmp (file-local-copy new))
+		   (switches diff-switches)
+		   (command
+		    (mapconcat
+		     'identity
+		     `(,diff-command
+		       ;; Use explicitly specified switches
+		       ,@(if (listp switches) switches (list switches))
+		       ,@(if (or old new)
+			     (list "-L" old
+				   "-L" (shell-quote-argument
+					 (format "Buffer %s" (buffer-name buffer)))))
+		       ,(shell-quote-argument (or oldtmp old))
+		       ,(shell-quote-argument (or newtmp new)))
+		     " "))
+		   proc)
+	      (let ((inhibit-read-only t))
+		(insert command "\n")
+		(diff-sentinel
+		 (call-process shell-file-name nil
+			       (current-buffer) nil
+			       shell-command-switch command)))
+	      (insert "\n"))))
+      (sit-for 0)
+      (when (file-exists-p tempfile)
+	(delete-file tempfile)))))
+
 ;;;###autoload
 (defun ibuffer-diff-with-file ()
-  "View the differences between this buffer and its associated file.
+  "View the differences between marked buffers and their associated files.
+If no buffers are marked, use buffer at point.
 This requires the external program \"diff\" to be in your `exec-path'."
   (interactive)
-  (let ((buf (ibuffer-current-buffer)))
-    (unless (buffer-live-p buf)
-      (error "Buffer %s has been killed" buf))
-    (diff-buffer-with-file buf)))
+  (require 'diff)
+  (let ((marked-bufs (ibuffer-get-marked-buffers)))
+    (when (null marked-bufs)
+      (setq marked-bufs (list (ibuffer-current-buffer t))))
+    (with-current-buffer (get-buffer-create "*Ibuffer Diff*")
+      (setq buffer-read-only nil)
+      (buffer-disable-undo (current-buffer))
+      (erase-buffer)
+      (buffer-enable-undo (current-buffer))
+      (diff-mode)
+      (dolist (buf marked-bufs)
+	(unless (buffer-live-p buf)
+	  (error "Buffer %s has been killed" buf))
+	(ibuffer-diff-buffer-with-file-1 buf))
+      (setq buffer-read-only t)))
+  (switch-to-buffer "*Ibuffer Diff*"))
 
 ;;;###autoload
 (defun ibuffer-copy-filename-as-kill (&optional arg)
@@ -1361,7 +1414,8 @@ You can then feed the file name(s) to other commands with \\[yank]."
 	  nil
 	  group)))
     (ibuffer-redisplay t)
-    (message "Marked %s buffers" count)))
+    (unless (eq ibuffer-mark-on-buffer-mark ?\s)
+      (message "Marked %s buffers" count))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-name-regexp (regexp)
@@ -1414,8 +1468,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 				      ""))))))
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
-       (with-current-buffer buf
-	 (eq major-mode mode)))))
+       (eq (buffer-local-value 'major-mode buf) mode))))
 
 ;;;###autoload
 (defun ibuffer-mark-modified-buffers ()

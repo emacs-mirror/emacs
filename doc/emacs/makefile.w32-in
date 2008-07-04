@@ -130,6 +130,7 @@ clean: mostlyclean
 	- $(DEL) $(infodir)/emacs*
 
 distclean: clean
+	- $(DEL) makefile
 
 maintainer-clean: distclean
 	- $(DEL) *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc

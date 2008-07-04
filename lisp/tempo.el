@@ -82,7 +82,7 @@
 
 ;; If the 'o is the first element in a template, strange things can
 ;; happen when the template is inserted at the beginning of a
-;; line. This is due to strange behaviour in open-line. But it should
+;; line. This is due to strange behavior in open-line. But it should
 ;; be easily avoided.
 
 ;; The 'o tag is also a problem when including the region. This will

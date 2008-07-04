@@ -60,7 +60,7 @@ LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 
 AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
 	$(lisp)/finder-inf.el $(lisp)/subdirs.el $(lisp)/eshell/esh-groups.el \
-	$(lisp)/calc/calc-loaddefs.el
+	$(lisp)/calc/calc-loaddefs.el $(lisp)/nxml/subdirs.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -109,8 +109,31 @@ WINS= $(WINS_ALMOST) \
 
 doit:
 
+cus-load.el-SH:
+	echo ";;; cus-load.el --- automatically extracted custom dependencies" > $@
+	echo ";;" >> $@; echo ";;; Code:" >> $@
+	echo "" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
+
+cus-load.el-CMD:
+	echo ;;; cus-load.el --- automatically extracted custom dependencies> $@
+	echo ;;>> $@
+	echo ;;; Code:>> $@
+	echo.>> $@
+	echo ;; Local Variables:>> $@
+	echo ;; version-control: never>> $@
+	echo ;; no-byte-compile: t>> $@
+	echo ;; no-update-autoloads: t>> $@
+	echo ;; End:>> $@
+
 $(lisp)/cus-load.el:
-	touch $@
+	$(MAKE) $(MFLAGS) cus-load.el-$(SHELLTYPE)
+	mv cus-load.el-$(SHELLTYPE) $@
+
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 custom-deps: $(lisp)/cus-load.el $(lisp)/loaddefs.el doit
@@ -129,37 +152,26 @@ $(lisp)/loaddefs.el:
 loaddefs.el-SH:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" > $@
 	echo ";;" >> $@; echo ";;; Code:" >> $@
-	echo "(autoload 'define-minor-mode \"easy-mmode\")" >>$@
-	echo "(autoload 'define-ccl-program \"ccl\")" >>$@
-	echo "(autoload 'regexp-opt \"regexp-opt\")" >>$@
-	echo "(autoload 'string-to-list \"mule-util\")" >>$@
-	echo "(autoload 'define-derived-mode \"derived\")" >>$@
-	echo "(autoload 'encoded-kbd-mode \"encoded-kb\")" >>$@
-	echo "(defvar cvs-global-menu nil)" >>$@
 	echo "" >> $@
-	echo ";;; Local Variables:" >> $@
-	echo ";;; version-control: never" >> $@
-	echo ";;; no-byte-compile: t" >> $@
-	echo ";;; no-update-autoloads: t" >> $@
-	echo ";;; End:" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; coding: utf-8" >> $@
+	echo ";; End:" >> $@
 	echo ";;; loaddefs.el ends here" >> $@
 
 loaddefs.el-CMD:
 	echo ;;; loaddefs.el --- automatically extracted autoloads> $@
+	echo ;;>> $@
 	echo ;;; Code:>> $@
-	echo (autoload 'define-minor-mode "easy-mmode")>> $@
-	echo (autoload 'define-ccl-program "ccl")>> $@
-	echo (autoload 'regexp-opt "regexp-opt")>> $@
-	echo (autoload 'string-to-list "mule-util")>> $@
-	echo (autoload 'define-derived-mode "derived")>> $@
-	echo (autoload 'encoded-kbd-mode "encoded-kb")>> $@
-	echo (defvar cvs-global-menu nil)>> $@
 	echo.>> $@
-	echo ;;; Local Variables:>> $@
-	echo ;;; version-control: never>> $@
-	echo ;;; no-byte-compile: t>> $@
-	echo ;;; no-update-autoloads: t>> $@
-	echo ;;; End:>> $@
+	echo ;; Local Variables:>> $@
+	echo ;; version-control: never>> $@
+	echo ;; no-byte-compile: t>> $@
+	echo ;; no-update-autoloads: t>> $@
+	echo ;; coding: utf-8>> $@
+	echo ;; End:>> $@
 	echo ;;; loaddefs.el ends here>> $@
 
 # Use . instead of $(lisp) because $(lisp) is an absolute file name,
@@ -384,22 +396,17 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 # sources only.
 
 # Need separate version for sh and native cmd.exe
-# Note that bootstrap-clean-$(SHELLTYPE) copies ldefs-boot.el to loaddefs.el,
-# and thus the almost-empty loaddefs.el crafted by the $(lisp)/loaddefs.el
-# target can NOT be built _after_ bootstrap-clean-$(SHELLTYPE) does its
-# thing, or else an empty loaddefs.el will overwrite the full one.
-bootstrap-clean: $(lisp)/loaddefs.el
+bootstrap-clean:
+	- $(DEL) $(lisp)/loaddefs.el
 	$(MAKE) $(MFLAGS) bootstrap-clean-$(SHELLTYPE)
 
 bootstrap-clean-CMD:
 #	if exist "$(EMACS)" $(MAKE) $(MFLAGS) autoloads
-	cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
 	-for %%f in (. $(WINS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
 
 bootstrap-clean-SH:
 #	if test -f "$(EMACS)"; then $(MAKE) $(MFLAGS) autoloads; fi
 #	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
-	cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
 	-for dir in . $(WINS); do rm -f $$dir/*.elc; done
 
 # Generate/update files for the bootstrap process.
@@ -462,8 +469,10 @@ check-declare:
 # precious files if it happens to match their short 8+3 aliases.
 clean:
 	- $(DEL) *.el~
+	- $(DEL) calc/calc-loaddefs.el~
+	- $(DEL) eshell/esh-groups.el~
 
-distclean:
+distclean: clean
 	- $(DEL) $(lisp)/Makefile
 
 maintainer-clean: bootstrap-clean distclean

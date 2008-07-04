@@ -52,7 +52,6 @@ version=@version@
 LIBOBJS = @LIBOBJS@
 
 lispsource = ${srcdir}/../lisp/
-admindir = $(srcdir)/../admin/
 libsrc = ../lib-src/
 etc = ../etc/
 oldXMenudir = ../oldXMenu/
@@ -93,11 +92,6 @@ SHELL=/bin/sh
 /* On some machines #define register is done in config;
    do not let it interfere with this file.  */
 #undef register
-
-/* On some systems we may not be able to use the system make command. */
-#ifdef MAKE_COMMAND
-MAKE = MAKE_COMMAND
-#endif
 
 /* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
    GNU/Linux is an exception because it uses a funny variant of GNU libc.  */
@@ -500,9 +494,6 @@ TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_S
 #ifndef UNEXEC
 #define UNEXEC unexec.o
 #endif
-#ifndef UNEXEC_SRC
-#define UNEXEC_SRC unexec.c
-#endif
 
 INTERVAL_SRC = intervals.h composite.h
 
@@ -562,7 +553,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
-  w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
+  w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
 
 
@@ -680,7 +671,11 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
    Files included conditionally here should be included (unconditionally)
    in SOME_MACHINE_LISP.  */
 
+/* Place loaddefs.el first, so it gets generated first, since it is on
+   the critical path (relevant in parallel compilations).  */
+
 lisp= \
+	${lispsource}loaddefs.el \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
@@ -705,7 +700,6 @@ lisp= \
 	${lispsource}isearch.elc \
 	${lispsource}rfn-eshadow.elc \
 	${lispsource}loadup.el \
-	${lispsource}loaddefs.el \
 	${lispsource}bindings.elc \
 	${lispsource}emacs-lisp/map-ynp.elc \
 	${lispsource}menu-bar.elc \
@@ -775,6 +769,7 @@ lisp= \
    It need not contain the files that are loaded conditionally
    because SOME_MACHINE_LISP has those.  */
 shortlisp= \
+	../lisp/loaddefs.el \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
@@ -797,7 +792,6 @@ shortlisp= \
 	../lisp/isearch.elc \
 	../lisp/rfn-eshadow.elc \
 	../lisp/loadup.el \
-	../lisp/loaddefs.el \
 	../lisp/bindings.elc \
 	../lisp/emacs-lisp/map-ynp.elc \
 	../lisp/env.elc \
@@ -906,12 +900,15 @@ RUN_TEMACS = `/bin/pwd`/temacs
 
 all: emacs${EXEEXT} OTHER_FILES
 
-emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
+emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 #ifdef CANNOT_DUMP
 	rm -f emacs${EXEEXT}
 	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
 	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
+	@: This new Emacs is as functional and more efficient then
+	@: bootstrap-emacs, so let us replace it.
+	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
 
@@ -1135,10 +1132,17 @@ terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
 undo.o: undo.c buffer.h commands.h window.h $(config_h)
-/* This hack is to discard any space that cpp might put at the beginning
-   of UNEXEC when substituting it in.  */
-UNEXEC_ALIAS=UNEXEC
-$(UNEXEC_ALIAS): UNEXEC_SRC $(config_h)
+unexaix.o: unexaix.c $(config_h)
+unexalpha.o: unexalpha.c $(config_h)
+unexcw.o: unexcw.c $(config_h)
+unexec.o: unexec.c $(config_h)
+unexelf.o: unexelf.c $(config_h)
+unexhp9k800.o: unexhp9k800.c $(config_h)
+unexmacosx.o: unexmacosx.c $(config_h)
+unexmips.o: unexmips.c $(config_h)
+unexnext.o: unexnext.c $(config_h)
+unexsol.o: unexsol.c $(config_h)
+unexw32.o: unexw32.c $(config_h)
 w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
    msdos.h buffer.h charset.h coding.h composite.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
@@ -1268,8 +1272,6 @@ ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
 #endif
 
-bootstrapclean:
-	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
@@ -1277,13 +1279,20 @@ mostlyclean:
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
+/* bootstrap-clean is used to clean up just before a bootstrap.
+   It should remove all files generated during a compilation/bootstrap,
+   but not things like config.status or TAGS.  */
+bootstrap-clean: clean
+	rm -f epaths.h config.h Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
+	if test -f ./.gdbinit; then \
+	  mv ./.gdbinit ./.gdbinit.save; \
+	  if test -f "${srcdir}/.gdbinit"; then rm -f ./.gdbinit.save; \
+	  else mv ./.gdbinit.save ./.gdbinit; fi; \
+	fi
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
-distclean: clean
-	rm -f epaths.h config.h Makefile Makefile.c config.stamp stamp-oldxmenu ../etc/DOC-*
-	mv ./.gdbinit ./.gdbinit.save
-	if test -f "${srcdir}/.gdbinit"; then rm -f ./.gdbinit.save; \
-	else mv ./.gdbinit.save ./.gdbinit; fi
+distclean: bootstrap-clean
+	rm -f Makefile
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
@@ -1315,16 +1324,53 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 
 
 /* Bootstrapping.  */
+/* Bootstrapping right is difficult because of the circular dependencies.
+   Furthermore, we have to deal with the fact that many compilation targets
+   such as loaddefs.el or *.elc can typically be produced by any old
+   Emacs executable, so we would like to avoid rebuilding them whenever
+   we build a new Emacs executable.
+   To solve the circularity, we use 2 different Emacs executables,
+   "emacs" is the main target and "bootstrap-emacs" is the one used
+   to build the *.elc and loaddefs.el files.
+   To solve the freshness issue, we used to use a third file "witness-emacs"
+   which was used to witness the fact that there is a bootstrap-emacs
+   executable, and then have dependencies on witness-emacs rather than
+   bootstrap-emacs, but that lead to problems in parallel builds (because
+   witness-emacs needed to be free from dependencies (to avoid rebuilding
+   it), so it was compiled in parallel, leading typically to having 2
+   processes dumping bootstrap-emacs at the same time).
+   So instead, we replace the witness-emacs dependencies by conditional
+   bootstrap-dependencies (via ${BOOTSTRAPEMACS}).  Of course, since we do
+   not want to rely on GNU Make features, we have to rely on an external
+   script to do the conditional part of the dependency
+   (i.e. see the ${SUBDIR} rule ../Makefile.in).  */
 
-bootstrap: bootstrap-emacs${EXEEXT}
+.SUFFIXES: .elc .el
+
+/* These suffix rules do not allow additional dependencies, sadly, so
+   instead of adding a $(BOOTSTRAPEMACS) dependency here, we add it
+   separately below.
+   With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"  */
+.el.elc:
+	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
+	                     THEFILE=$< EMACS=../src/bootstrap-emacs${EXEEXT}
+
+/* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
+${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
+
+${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
+	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
 
-bootstrap-emacs${EXEEXT}: temacs${EXEEXT} ${lispsource}international/charprop.el
+bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
+	cd ../lisp; $(MAKE) $(MFLAGS) update-subdirs
 #ifdef CANNOT_DUMP
 	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 	$(RUN_TEMACS) --batch --load loadup bootstrap
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
+	@: Compile some files earlier to speed up further compilation.
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=../src/bootstrap-emacs${EXEEXT}

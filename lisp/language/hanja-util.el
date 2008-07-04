@@ -1,4 +1,4 @@
-;;; hanja-util.el --- Korean Hanja util module
+;;; hanja-util.el --- Korean Hanja util module  -*- coding: utf-8 -*-
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hanja
@@ -6587,7 +6587,6 @@ The value is a hanja character that is selected interactively."
 		  (throw 'exit-input-loop nil))))))
       (setq hanja-conversions nil))))
 
-;;
 (provide 'hanja-util)
 
 ;; arch-tag: 3358afb4-c63f-472f-989a-5249129924d1

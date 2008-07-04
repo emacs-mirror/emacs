@@ -50,6 +50,7 @@ Sunday).  The Gregorian date Sunday, December 31, 1 BC is imaginary."
 (define-obsolete-function-alias 'calendar-absolute-from-iso
   'calendar-iso-to-absolute "23.1")
 
+;;;###cal-autoload
 (defun calendar-iso-from-absolute (date)
   "Compute the `ISO commercial date' corresponding to the absolute DATE.
 The ISO year corresponds approximately to the Gregorian year, but weeks

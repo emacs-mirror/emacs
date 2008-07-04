@@ -187,7 +187,7 @@ NOTE-END  */
 
 #define HAVE_SYSVIPC
 
-#if defined(emacs) && !defined(INHIBIT_BSD_TIME)
+#if defined(emacs)
 #include <bsd/sys/time.h>
 #endif
 

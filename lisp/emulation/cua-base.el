@@ -63,7 +63,7 @@
 ;; - press the prefix key and the following key within 0.2 seconds, or
 ;; - use the SHIFT key with the prefix key, i.e. C-X or C-C
 ;;
-;; This behaviour can be customized via the
+;; This behavior can be customized via the
 ;; cua-prefix-override-inhibit-delay variable.
 
 ;; In addition to using the shifted movement keys, you can also use

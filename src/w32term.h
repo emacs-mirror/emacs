@@ -29,13 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FONT_HEIGHT(f)    ((f)->height)
 #define FONT_BASE(f)      ((f)->ascent)
 #define FONT_DESCENT(f)   ((f)->descent)
-#define FONT_AVG_WIDTH(f) ((f)->average_width)
 
 #define CP_DEFAULT 1004
-/* Special pseudo-codepages. */
-#define CP_8BIT      -1
-#define CP_UNICODE   -2
-#define CP_UNKNOWN   -3
 
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
@@ -145,14 +140,6 @@ struct w32_display_info
      received; value is reset after key is received.  */
   int faked_key;
 
-#if OLD_FONT
-  /* A table of all the fonts we have already loaded.  */
-  struct font_info *font_table;
-
-  /* The current capacity of font_table.  */
-  int font_table_size;
-#endif
-
   /* Minimum width over all characters in all fonts in font_table.  */
   int smallest_char_width;
 
@@ -251,15 +238,6 @@ Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
 
 extern struct w32_display_info *w32_term_init ();
 
-#if OLD_FONT
-extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-extern struct font_info *w32_get_font_info (), *w32_query_font ();
-extern void w32_cache_char_metrics (XFontStruct *font);
-extern void w32_find_ccl_program();
-extern Lisp_Object x_get_font_repertory P_ ((struct frame *,
-					     struct font_info *));
-#endif
-
 #define PIX_TYPE COLORREF
 
 /* Each W32 frame object points to its own struct w32_display object
@@ -321,9 +299,6 @@ struct w32_output
   Window parent_desc;
 
   /* Default ASCII font of this frame. */
-#if OLD_FONT
-  XFontStruct *font;
-#endif
   struct font *font;
 
   /* The baseline offset of the default ASCII font.  */
@@ -418,11 +393,6 @@ extern struct w32_output w32term_display;
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (0)
-
-#if OLD_FONT
-/* This is the 'font_info *' which frame F has.  */
-#define FRAME_W32_FONT_TABLE(f) (FRAME_W32_DISPLAY_INFO (f)->font_table)
-#endif
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -593,11 +563,6 @@ do { \
 #define w32_clear_area(f,hdc,px,py,nx,ny) \
   w32_fill_area (f, hdc, FRAME_BACKGROUND_PIXEL (f), px, py, nx, ny)
 
-#if OLD_FONT
-extern struct font_info *w32_load_font ();
-extern void w32_unload_font ();
-#endif
-
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL 		       (WM_MOUSELAST + 1)
@@ -758,15 +723,6 @@ struct frame * check_x_frame (Lisp_Object);
 
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
-
-#define FONT_TYPE_FOR_UNIBYTE(font, ch)			\
-  ((font)->bdf ? BDF_1D_FONT : ANSI_FONT)
-
-#define FONT_TYPE_FOR_MULTIBYTE(font, ch)		\
-  (!(font)->bdf						\
-   ? UNICODE_FONT					\
-   : ((CHARSET_DIMENSION (CHAR_CHARSET ((ch))) == 1)	\
-      ? BDF_1D_FONT : BDF_2D_FONT))
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) ();
 typedef BOOL (WINAPI * AppendMenuW_Proc) (

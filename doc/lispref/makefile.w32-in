@@ -119,6 +119,7 @@ clean:
 	- $(DEL) $(infodir)/elisp*
 
 distclean: clean
+	- $(DEL) makefile
 
 maintainer-clean: distclean
 	- $(DEL) elisp elisp-? elisp-?? elisp.dvi elisp.oaux

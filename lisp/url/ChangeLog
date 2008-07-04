@@ -1,3 +1,8 @@
+2008-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dav.el: Move to the parent directory to be together with the
+	rest of the VC backends.
+
 2008-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* url-auth.el (auth-source-user-or-password): Remove unnecessary
@@ -1439,7 +1444,7 @@
 	needed.  I should use my brain sometime.
 
 	* lisp/url-vars.el (and): Fix feature test for xemacs and
-	coding-system-list behaviour.
+	coding-system-list behavior.
 
 	* lisp/url-http.el
 	(url-http-chunked-encoding-after-change-function): Add optional

@@ -1,7 +1,17 @@
+2008-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.el.elc): Copy the echo behavior of lisp/Makefile.in.
+
+2008-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (MISC): Add $(srcdir)/quail/arabic.elc.
+
 2008-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (distclean): Don't delete `quail' subdir: if we
 	are building in the sandbox, there are precious files there.
+	(clean mostlyclean): Delete leim-list.el~.
+	(distclean): Delete makefile.
 
 2008-06-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -534,7 +544,7 @@
 2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (quail-indian-update-translation): Adjust the
-	behaviour according to the change of quail-translate-key.
+	behavior according to the change of quail-translate-key.
 
 2003-05-22  Kenichi Handa  <handa@m17n.org>
 

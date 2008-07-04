@@ -625,25 +625,34 @@ The holidays are those in the list `calendar-holidays'."
   'check-calendar-holidays 'calendar-check-holidays "23.1")
 
 ;;;###cal-autoload
-(defun calendar-cursor-holidays (&optional date)
+(defun calendar-cursor-holidays (&optional date event)
   "Find holidays for the date specified by the cursor in the calendar window.
 Optional DATE is a list (month day year) to use instead of the
-cursor position."
-  (interactive)
+cursor position.  EVENT specifies a buffer position to use for a date."
+  (interactive (list nil last-nonmenu-event))
   (message "Checking holidays...")
-  (or date (setq date (calendar-cursor-to-date t)))
-  (let* ((date-string (calendar-date-string date))
-         (holiday-list (calendar-check-holidays date))
-         (holiday-string (mapconcat 'identity holiday-list ";  "))
-         (msg (format "%s:  %s" date-string holiday-string)))
+  (or date (setq date (calendar-cursor-to-date t event)))
+  (let ((date-string (calendar-date-string date))
+        (holiday-list (calendar-check-holidays date))
+        selection msg)
+    (if (mouse-event-p event)
+        (and (setq selection (cal-menu-x-popup-menu event
+                                 (format "Holidays for %s" date-string)
+                               (if holiday-list
+                                   (mapcar 'list holiday-list)
+                                 '("None"))))
+             (call-interactively selection))
     (if (not holiday-list)
         (message "No holidays known for %s" date-string)
-      (if (<= (length msg) (frame-width))
+      (if (<= (length (setq msg
+                            (format "%s:  %s" date-string
+                                    (mapconcat 'identity holiday-list ";  "))))
+              (frame-width))
           (message "%s" msg)
         (calendar-in-read-only-buffer holiday-buffer
           (calendar-set-mode-line date-string)
           (insert (mapconcat 'identity holiday-list "\n")))
-        (message "Checking holidays...done")))))
+        (message "Checking holidays...done"))))))
 
 ;; FIXME move to calendar?
 ;;;###cal-autoload

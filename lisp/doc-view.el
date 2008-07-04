@@ -1187,29 +1187,29 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Bookmark integration
 
-(declare-function bookmark-buffer-file-name "bookmark" ())
+(declare-function bookmark-make-record-default "bookmark"
+                  (&optional point-only))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
+(declare-function bookmark-default-handler "bookmark" (bmk))
 
 (defun doc-view-bookmark-make-record ()
-  `((filename . ,(bookmark-buffer-file-name))
-    (page     . ,(doc-view-current-page))
-    (handler  . doc-view-bookmark-jump)))
+  (nconc (bookmark-make-record-default)
+         `((page     . ,(doc-view-current-page))
+           (handler  . doc-view-bookmark-jump))))
 
 
 ;;;###autoload
 (defun doc-view-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
   ;; returned by `doc-view-bookmark-make-record', which see.
-  (let ((filename (bookmark-prop-get bmk 'filename))
-        (page (bookmark-prop-get bmk 'page)))
-    (with-current-buffer (find-file-noselect filename)
+  (prog1 (bookmark-default-handler bmk)
+    (let ((page (bookmark-prop-get bmk 'page)))
       (when (not (eq major-mode 'doc-view-mode))
-	(doc-view-toggle-display))
+        (doc-view-toggle-display))
       (with-selected-window
           (or (get-buffer-window (current-buffer) 0)
               (selected-window))
-        (doc-view-goto-page page))
-      `((buffer ,(current-buffer)) (position ,1)))))
+        (doc-view-goto-page page)))))
 
 
 (provide 'doc-view)

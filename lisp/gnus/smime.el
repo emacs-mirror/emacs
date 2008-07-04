@@ -63,7 +63,7 @@
 ;;
 ;; Now you should be able to sign messages!  Create a buffer and write
 ;; something and run M-x smime-sign-buffer RET RET and you should see
-;; your message MIME armoured and a signature.  Encryption, M-x
+;; your message MIME armored and a signature.  Encryption, M-x
 ;; smime-encrypt-buffer, should also work.
 ;;
 ;; To be able to verify messages you need to build up trust with

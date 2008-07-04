@@ -21,17 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_W32GUI_H
 #include <windows.h>
 
-#include "w32bdf.h"
-
-/* Emulate XCharStruct.  */
-typedef struct _XCharStruct
-{
-  short rbearing;
-  short lbearing;
-  short width;
-  short ascent;
-  short descent;
-} XCharStruct;
 
 /* Emulate widget_value from ../lwlib/lwlib.h, modified for Windows.  */
 typedef void * XtPointer;
@@ -100,38 +89,11 @@ typedef struct _widget_value
 #define malloc_widget_value() ((widget_value *) local_alloc (sizeof (widget_value)))
 #define free_widget_value(wv) (local_free ((wv)))
 
-
-enum w32_char_font_type
-{
-  UNKNOWN_FONT = 0 /* FONT_TYPE_UNKNOWN */,
-  ANSI_FONT,
-  UNICODE_FONT,
-  BDF_1D_FONT,
-  BDF_2D_FONT
-};
-
-typedef struct W32FontStruct {
-  enum w32_char_font_type font_type;
-  TEXTMETRIC tm;
-  HFONT hfont;
-  bdffont *bdf;
-  int double_byte_p;
-  XCharStruct max_bounds;
-  XCharStruct scratch;
-  /* Only store info for ascii chars, if not fixed pitch.  */
-  XCharStruct * per_char;
-} W32FontStruct;
-
-typedef struct W32FontStruct XFontStruct;
-
 /* Emulate X GC's by keeping color and font info in a structure.  */
 typedef struct _XGCValues
 {
   COLORREF foreground;
   COLORREF background;
-#if OLD_FONT
-  XFontStruct * font;
-#endif
   struct font *font;
 } XGCValues;
 

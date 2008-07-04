@@ -230,7 +230,7 @@ be added."
 			(string :format "%v")))
   :group 'archive-zip)
 
-;; For several reasons the latter behaviour is not desirable in general.
+;; For several reasons the latter behavior is not desirable in general.
 ;; (1) It uses more disk space.  (2) Error checking is worse or non-
 ;; existent.  (3) It tends to do funny things with other systems' file
 ;; names.
@@ -723,7 +723,7 @@ archive.
 		(string-match "\\.[aA][rR][cC]$"
 			      (or buffer-file-name (buffer-name))))
 	   'arc)
-          ;; This pattern modelled on the BSD/GNU+Linux `file' command.
+          ;; This pattern modeled on the BSD/GNU+Linux `file' command.
           ;; Have seen capital "LHA's", and file has lower case "LHa's" too.
           ;; Note this regexp is also in archive-exe-p.
           ((looking-at "MZ\\(.\\|\n\\)\\{34\\}LH[aA]'s SFX ") 'lzh-exe)

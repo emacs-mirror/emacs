@@ -59,9 +59,13 @@ a font height that isn't optimal."
 	   (internal-set-font-selection-order value)))
 
 
-;; This is defined originally in xfaces.c.
+;; In the absence of Fontconfig support, Monospace and Sans Serif are
+;; unavailable, and we fall back on the courier and helv families,
+;; which are generally available.
 (defcustom face-font-family-alternatives
-  '(("courier" "fixed")
+  '(("Monospace" "courier" "fixed")
+    ("courier" "fixed")
+    ("Sans Serif" "helv" "helvetica" "arial" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
@@ -580,7 +584,7 @@ The following attributes are recognized:
 
 `:family'
 
-VALUE must be a string specifying the font family, e.g. ``courier'',
+VALUE must be a string specifying the font family, e.g. ``monospace'',
 or a fontset alias name.  If a font family is specified, wild-cards `*'
 and `?' are allowed.
 
@@ -2220,12 +2224,12 @@ terminal type to a different value."
   :group 'basic-faces)
 
 (defface fixed-pitch
-  '((t :family "courier"))
+  '((t :family "Monospace"))
   "The basic fixed-pitch face."
   :group 'basic-faces)
 
 (defface variable-pitch
-  '((t :family "helv"))
+  '((t :family "Sans Serif"))
   "The basic variable-pitch face."
   :group 'basic-faces)
 

@@ -166,7 +166,7 @@ uniscribe_otf_capability (font)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_COMPAT (font)->hfont);
+  old_font = SelectObject (context, FONT_HANDLE(font));
 
   features = otf_features (context, "GSUB");
   XSETCAR (capability, features);
@@ -259,7 +259,7 @@ uniscribe_shape (lgstring)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_COMPAT (font)->hfont);
+  old_font = SelectObject (context, FONT_HANDLE(font));
 
   glyphs = alloca (max_glyphs * sizeof (WORD));
   clusters = alloca (nchars * sizeof (WORD));
@@ -424,7 +424,7 @@ uniscribe_encode_char (font, c)
   /* Use selected frame until API is updated to pass the frame.  */
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_COMPAT (font)->hfont);
+  old_font = SelectObject (context, FONT_HANDLE(font));
 
   retval = GetGlyphIndicesW (context, chars, 1, indices,
 			     GGI_MARK_NONEXISTING_GLYPHS);

@@ -220,7 +220,7 @@ This should only be bound to mouse buttons 4 and 5."
                       ;; If the first scroll succeeded, then some scrolling
                       ;; is possible: keep scrolling til the beginning but
                       ;; do not signal an error.  For some reason, we have
-                      ;; to do it even if the first scroll signalled an
+                      ;; to do it even if the first scroll signaled an
                       ;; error, because otherwise the window is recentered
                       ;; for a reason that escapes me.  This problem seems
                       ;; to only affect scroll-down.  --Stef

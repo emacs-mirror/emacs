@@ -202,8 +202,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #undef CRAY_STACKSEG_END
 
-#undef UNEXEC_SRC
-
 #undef HAVE_LIBXBSD
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING
@@ -478,6 +476,13 @@ extern char *getenv ();
 void w32_abort (void) NO_RETURN;
 #endif
 #endif
+
+/* Prevent accidental use of features unavailable in
+   older Windows versions we still support.  */
+#define _WIN32_WINNT 0x0400
+
+/* Make a leaner executable.  */
+#define WIN32_LEAN_AND_MEAN 1
 
 /* arch-tag: df720992-aa5a-499a-882d-958dc5eeb5e9
    (do not change this comment) */

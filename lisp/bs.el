@@ -129,6 +129,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;; ----------------------------------------------------------------------
 ;; Globals for customization
 ;; ----------------------------------------------------------------------
@@ -373,9 +375,7 @@ A value of `always' means to show buffer regardless of the configuration.")
 
 (defun bs--sort-by-size (b1 b2)
   "Compare buffers B1 and B2 by buffer size."
-  (save-excursion
-    (< (progn (set-buffer b1) (buffer-size))
-       (progn (set-buffer b2) (buffer-size)))))
+  (< (buffer-size b1) (buffer-size b2)))
 
 (defcustom bs-sort-functions
   '(("by name"     bs--sort-by-name     "Buffer" region)
@@ -814,11 +814,9 @@ Leave Buffer Selection Menu."
 (defun bs-save ()
   "Save buffer on current line."
   (interactive)
-  (let ((buffer (bs--current-buffer)))
-    (save-excursion
-      (set-buffer buffer)
-      (save-buffer))
-    (bs--update-current-line)))
+  (with-current-buffer (bs--current-buffer)
+    (save-buffer))
+  (bs--update-current-line))
 
 (defun bs-visit-tags-table ()
   "Visit the tags table in the buffer on this line.
@@ -832,16 +830,12 @@ See `visit-tags-table'."
 (defun bs-toggle-current-to-show ()
   "Toggle status of showing flag for buffer in current line."
   (interactive)
-  (let ((buffer (bs--current-buffer))
-	res)
-    (save-excursion
-      (set-buffer buffer)
-      (setq res (cond ((null bs-buffer-show-mark)
-		       'never)
-		      ((eq bs-buffer-show-mark 'never)
-		       'always)
-		      (t nil)))
-      (setq bs-buffer-show-mark res))
+  (let ((res
+         (with-current-buffer (bs--current-buffer)
+           (setq bs-buffer-show-mark (case bs-buffer-show-mark
+                                       ((nil)   'never)
+                                       ((never) 'always)
+                                       (t       nil))))))
     (bs--update-current-line)
     (bs--set-window-height)
     (bs--show-config-message res)))
@@ -969,21 +963,17 @@ Default is `bs--current-sort-function'."
 
 (defun bs-toggle-readonly ()
   "Toggle read-only status for buffer on current line.
-Uses function `vc-toggle-read-only'."
+Uses function `toggle-read-only'."
   (interactive)
-  (let ((buffer (bs--current-buffer)))
-    (save-excursion
-      (set-buffer buffer)
-      (vc-toggle-read-only))
-    (bs--update-current-line)))
+  (with-current-buffer (bs--current-buffer)
+    (toggle-read-only))
+  (bs--update-current-line))
 
 (defun bs-clear-modified ()
   "Set modified flag for buffer on current line to nil."
   (interactive)
-  (let ((buffer (bs--current-buffer)))
-    (save-excursion
-      (set-buffer buffer)
-      (set-buffer-modified-p nil)))
+  (with-current-buffer (bs--current-buffer)
+    (set-buffer-modified-p nil))
   (bs--update-current-line))
 
 (defun bs--nth-wrapper (count fun &rest args)
@@ -1352,8 +1342,7 @@ normally *buffer-selection*."
   (let ((string "")
 	(to-much 0)
         (apply-args (append (list bs--buffer-coming-from bs-current-list))))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (dolist (column bs-attributes-list)
 	(let* ((min (bs--get-value (nth 1 column)))
 	       (new-string (bs--format-aux (bs--get-value (nth 4 column) ; fun

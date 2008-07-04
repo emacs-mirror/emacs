@@ -31,7 +31,7 @@
 ;; implementation in Gnus, but has been substantially re-done.
 
 ;; This probably needs more attention.  In particular, it's not
-;; completely consistent with iconv's behaviour.  It's arguable
+;; completely consistent with iconv's behavior.  It's arguable
 ;; whether the IMAP version should be a coding system since it's
 ;; apparently only used for IMAP mailbox names, so it's commented out.
 

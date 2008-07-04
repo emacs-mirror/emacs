@@ -32,9 +32,12 @@
 
 (require 'calendar)
 
-(defconst cal-menu-moon-menu
-  '("Moon"
-    ["Lunar Phases" calendar-phases-of-moon]))
+(defconst cal-menu-sunmoon-menu
+  '("Sun/Moon"
+    ["Lunar Phases" calendar-lunar-phases]
+    ["Sunrise/sunset for cursor date" calendar-sunrise-sunset]
+    ["Sunrise/sunset for cursor month" calendar-sunrise-sunset-month])
+  "Key map for \"Sun/Moon\" menu in the calendar.")
 
 (defconst cal-menu-diary-menu
   '("Diary"
@@ -60,7 +63,8 @@
     ("Insert Hebrew"
      ["One time" diary-hebrew-insert-entry]
      ["Monthly" diary-hebrew-insert-monthly-entry]
-     ["Yearly" diary-hebrew-insert-yearly-entry])))
+     ["Yearly" diary-hebrew-insert-yearly-entry]))
+    "Key map for \"Diary\" menu in the calendar.")
 
 (defun cal-menu-holiday-window-suffix ()
   "Return a string suffix for the \"Window\" entry in `cal-menu-holidays-menu'."
@@ -104,10 +108,11 @@
         (nreverse l))
     "--"
     ["Unmark Calendar" calendar-unmark]
-    ["Mark Holidays" calendar-mark-holidays]))
+    ["Mark Holidays" calendar-mark-holidays])
+  "Key map for \"Holidays\" menu in the calendar.")
 
 (defconst cal-menu-goto-menu
-  '("Go To"
+  '("Goto"
     ["Today" calendar-goto-today]
     ["Beginning of Week" calendar-beginning-of-week]
     ["End of Week" calendar-end-of-week]
@@ -135,7 +140,8 @@
      ["Previous Haab" calendar-mayan-previous-haab-date]
      ["Next Round" calendar-mayan-next-round-date]
      ["Previous Round" calendar-mayan-previous-round-date])
-    ["French Date" calendar-french-goto-date]))
+    ["French Date" calendar-french-goto-date])
+  "Key map for \"Goto\" menu in the calendar.")
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
@@ -144,7 +150,8 @@
     ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
-    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"]))
+    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"])
+  "Key map for \"Scroll\" menu in the calendar.")
 
 (defmacro cal-menu-x-popup-menu (event title &rest body)
   "Call `x-popup-menu' at position EVENT, with TITLE and contents BODY.
@@ -154,21 +161,9 @@ Signals an error if popups are unavailable."
        (x-popup-menu ,event (list ,title (append (list ,title) ,@body)))
      (error "Popup menus are not available on this system")))
 
-(autoload 'calendar-check-holidays "holidays")
-
-(defun calendar-mouse-holidays (&optional event)
-  "Pop up menu of holidays for mouse selected date.
-EVENT is the event that invoked this command."
-  (interactive "e")
-  (let* ((date (calendar-cursor-to-date nil event))
-         (title (format "Holidays for %s" (calendar-date-string date)))
-         (selection (cal-menu-x-popup-menu event title
-                      (or (mapcar 'list (calendar-check-holidays date))
-                          '("None")))))
-    (and selection (call-interactively selection))))
-
 (autoload 'diary-list-entries "diary-lib")
-(defvar diary-show-holidays-flag)       ; only called from calendar.el
+;; Autoloaded in diary-lib.
+(declare-function calendar-check-holidays "holidays" (date))
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.
@@ -203,16 +198,6 @@ is non-nil."
    (read-file-name "Enter diary file name: " default-directory nil t)
    event))
 
-(defun calendar-mouse-print-dates (&optional event)
-  "Pop up menu of equivalent dates to mouse selected date.
-EVENT is the event that invoked this command."
-  (interactive "e")
-  (let* ((date (calendar-cursor-to-date nil event))
-         (title (format "%s (Gregorian)" (calendar-date-string date)))
-         (selection (cal-menu-x-popup-menu event title
-                      (mapcar 'list (calendar-other-dates date)))))
-    (and selection (call-interactively selection))))
-
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
   (easy-menu-filter-return
@@ -223,11 +208,11 @@ EVENT is the event that invoked this command."
   "Pop up menu for Mouse-2 for selected date in the calendar window."
   '("cal-menu-mouse2" :filter cal-menu-set-date-title
     "--"
-    ["Holidays" calendar-mouse-holidays]
+    ["Holidays" calendar-cursor-holidays]
     ["Mark date" calendar-set-mark]
     ["Sunrise/sunset" calendar-sunrise-sunset]
-    ["Other calendars" calendar-mouse-print-dates]
-    ;; FIXME there is a bug with last-nonmenu-event and submenus.
+    ["Other calendars" calendar-print-other-dates]
+    ;; FIXME there is a bug (#447) with last-nonmenu-event and submenus.
     ;; These currently don't work if called without calendar window selected.
     ("Prepare LaTeX buffer"
      ["Daily (1 page)" cal-tex-cursor-day]
@@ -247,9 +232,10 @@ EVENT is the event that invoked this command."
     ("Write HTML calendar"
      ["For selected month" cal-html-cursor-month]
      ["For selected year" cal-html-cursor-year])
-    ["Diary entries" calendar-mouse-view-diary-entries]
+    ["Diary entries" calendar-mouse-view-diary-entries :keys "d"]
     ["Insert diary entry" diary-insert-entry]
-    ["Other diary file entries" calendar-mouse-view-other-diary-entries]))
+    ["Other diary file entries" calendar-mouse-view-other-diary-entries
+     :keys "D"]))
 
 (easy-menu-define cal-menu-global-mouse-menu nil
   "Menu bound to a mouse event, not specific to the mouse-click location."
@@ -260,7 +246,8 @@ EVENT is the event that invoked this command."
     ["List holidays" calendar-list-holidays]
     ["Mark holidays" calendar-mark-holidays]
     ["Unmark" calendar-unmark]
-    ["Lunar phases" calendar-phases-of-moon]
+    ["Lunar phases" calendar-lunar-phases]
+    ["Sunrise times for month" calendar-sunrise-sunset-month]
     ["Show diary" diary-show-all-entries]
     ["Exit calendar" calendar-exit]))
 

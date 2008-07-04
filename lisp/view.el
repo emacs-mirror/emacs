@@ -182,13 +182,13 @@ This is local in each buffer, once it is used.")
     (define-key map "c" 'View-leave)
     (define-key map "Q" 'View-quit-all)
     (define-key map "E" 'View-exit-and-edit)
-;    (define-key map "v" 'View-exit)
+    ;; (define-key map "v" 'View-exit)
     (define-key map "e" 'View-exit)
     (define-key map "q" 'View-quit)
-;    (define-key map "N" 'View-search-last-regexp-backward)
+    ;; (define-key map "N" 'View-search-last-regexp-backward)
     (define-key map "p" 'View-search-last-regexp-backward)
     (define-key map "n" 'View-search-last-regexp-forward)
-;    (define-key map "?" 'View-search-regexp-backward) ; Less does this.
+    ;; (define-key map "?" 'View-search-regexp-backward) ; Less does this.
     (define-key map "\\" 'View-search-regexp-backward)
     (define-key map "/" 'View-search-regexp-forward)
     (define-key map "r" 'isearch-backward)
@@ -199,22 +199,22 @@ This is local in each buffer, once it is used.")
     (define-key map "@" 'View-back-to-mark)
     (define-key map "." 'set-mark-command)
     (define-key map "%" 'View-goto-percent)
-;    (define-key map "G" 'View-goto-line-last)
+    ;; (define-key map "G" 'View-goto-line-last)
     (define-key map "g" 'View-goto-line)
     (define-key map "=" 'what-line)
     (define-key map "F" 'View-revert-buffer-scroll-page-forward)
-;    (define-key map "k" 'View-scroll-line-backward)
+    ;; (define-key map "k" 'View-scroll-line-backward)
     (define-key map "y" 'View-scroll-line-backward)
-;    (define-key map "j" 'View-scroll-line-forward)
+    ;; (define-key map "j" 'View-scroll-line-forward)
     (define-key map "\n" 'View-scroll-line-forward)
     (define-key map "\r" 'View-scroll-line-forward)
     (define-key map "u" 'View-scroll-half-page-backward)
     (define-key map "d" 'View-scroll-half-page-forward)
     (define-key map "z" 'View-scroll-page-forward-set-page-size)
     (define-key map "w" 'View-scroll-page-backward-set-page-size)
-;    (define-key map "b" 'View-scroll-page-backward)
+    ;; (define-key map "b" 'View-scroll-page-backward)
     (define-key map "\C-?" 'View-scroll-page-backward)
-;    (define-key map "f" 'View-scroll-page-forward)
+    ;; (define-key map "f" 'View-scroll-page-forward)
     (define-key map " " 'View-scroll-page-forward)
     (define-key map "o" 'View-scroll-to-buffer-end)
     (define-key map ">" 'end-of-buffer)
@@ -695,7 +695,7 @@ OLD-WINDOW."
       (when exit-action
 	;; Don't do that: If the user wants to quit the *Help* buffer a
 	;; second time it won't have any effect.
-;;; 	(setq view-exit-action nil)
+	;;(setq view-exit-action nil)
 	(funcall exit-action buffer))
       (force-mode-line-update))))
 
@@ -743,18 +743,18 @@ previous state and go to previous buffer or window."
   ;; Window height excluding mode line.
   (1- (window-height)))
 
-;(defun view-last-command (&optional who what)
-;  (setq view-last-command-entry this-command)
-;  (setq view-last-command who)
-;  (setq view-last-command-argument what))
+;; (defun view-last-command (&optional who what)
+;;  (setq view-last-command-entry this-command)
+;;  (setq view-last-command who)
+;;  (setq view-last-command-argument what))
 
-;(defun View-repeat-last-command ()
-;  "Repeat last command issued in View mode."
-;  (interactive)
-;  (if (and view-last-command
-;	   (eq view-last-command-entry last-command))
-;      (funcall view-last-command view-last-command-argument))
-;  (setq this-command view-last-command-entry))
+;; (defun View-repeat-last-command ()
+;;  "Repeat last command issued in View mode."
+;;  (interactive)
+;;  (if (and view-last-command
+;; 	   (eq view-last-command-entry last-command))
+;;      (funcall view-last-command view-last-command-argument))
+;;  (setq this-command view-last-command-entry))
 
 (defun view-recenter ()
   ;; Center point in window.
@@ -793,16 +793,16 @@ Also set the mark at the position where point was."
      (point-max)))
   (view-recenter))
 
-;(defun View-goto-line-last (&optional line)
-;"Move to last (or prefix LINE) line in View mode.
-;Display is centered at LINE.
-;Sets mark at starting position and pushes mark ring."
-;  (interactive "P")
-;  (push-mark)
-;  (if line (goto-line (prefix-numeric-value line))
-;    (goto-char (point-max))
-;    (beginning-of-line))
-;  (view-recenter))
+;; (defun View-goto-line-last (&optional line)
+;; "Move to last (or prefix LINE) line in View mode.
+;; Display is centered at LINE.
+;; Sets mark at starting position and pushes mark ring."
+;;  (interactive "P")
+;;  (push-mark)
+;;  (if line (goto-line (prefix-numeric-value line))
+;;    (goto-char (point-max))
+;;    (beginning-of-line))
+;;  (view-recenter))
 
 (defun View-goto-line (&optional line)
   "Move to first (or prefix LINE) line in View mode.

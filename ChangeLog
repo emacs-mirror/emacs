@@ -1,3 +1,53 @@
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in:
+	* configure: Remove references to obsolete systems.
+
+2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (Makefile): Use it for its timestamp value as well, and
+	make it depend on all other */.in files.
+	(src/Makefile, src/config.stamp, lib-src/Makefile)
+	(doc/emacs/Makefile, doc/misc/Makefile, doc/lispref/Makefile)
+	(doc/lispintro/Makefile, oldXMenu/Makefile, lwlib/Makefile)
+	(leim/Makefile, lisp/Makefile): Remove those overlapping targets.
+	(leim, ${SUBDIR}, blessmail): Only depend on Makefile now.
+
+	* configure.in: Don't create src/config.stamp any more.
+
+2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (${SUBDIR}): Pass additional BOOTSTRAPEMACS argument.
+
+2008-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_bootclean): Remove obsolete references to lock/.
+
+2008-06-21  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (INFO_FILES): Add sasl.
+
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (maybe_bootstrap, src/bootstrap-emacs${EXEEXT})
+	(bootstrap-build): Remove.
+	(top_bootclean): New var.
+	(top_distclean, bootstrap-clean): Use it.
+	(bootstrap): Don't recheck config.  Make normally.
+
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (SUBDIR): Include `lisp'.
+	(lisp): Depend on `src'.
+	(top_distclean): Don't remove config.status.
+	(bootstrap-clean): New target.
+	(maintainer-clean): Use it.
+	(bootstrap): Use bootstrap-clean.  Re-run config.status.
+	(src/bootstrap-emacs${EXEEXT}): New target.
+	(bootstrap-build): Use it.  Don't use bootstrap-prepare because
+	src/Makefile now takes care of it.
+	(bootfast, bootstrap-clean-before, bootstrap-clean-before-fast): Remove.
+
 2008-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Add sasl.
@@ -128,14 +178,12 @@
 
 2008-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* configure.in: Print an error for systems that we think are
-	obsolete and are proposed to be removed.  Remove some more unused
-	systems.
+	* configure.in: Print an error for systems that we think are obsolete
+	and are proposed to be removed.  Remove some more unused systems.
 
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* configure.in: Remove references to obsolete variables and
-	systems.
+	* configure.in: Remove references to obsolete variables and systems.
 
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
@@ -147,7 +195,7 @@
 
 2008-02-10  Matthew Luckie  <mjl@luckie.org.nz>  (tiny change)
 
-	* configure.in (arm*-*-freebsd*): Added.
+	* configure.in (arm*-*-freebsd*): Add.
 
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -6846,7 +6894,7 @@
 
 	* make-dist: Check the flag called "make_tar", not "make_dir"; the
 	latter, being a typo, is always false, resulting in a program
-	whose default behaviour is to painstakingly build a copy of the
+	whose default behavior is to painstakingly build a copy of the
 	source tree, and then delete it.  Rah.
 
 	* Makefile.in: Add dist target, and comment for it.

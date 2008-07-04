@@ -107,15 +107,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Here override various assumptions in ymakefile */
 
-#ifdef AIXHFT
-#define OBJECTS_MACHINE hftctl.o
-#endif
-
 #ifndef USG5
 #define C_SWITCH_MACHINE -D_BSD
 #endif
 
-#ifdef AIX3_2
+#ifdef AIX
 /* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
    on older versions of X where it happens to exist.  */
 #ifdef HAVE_LIBPTHREADS
@@ -159,15 +155,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    because .inp is a better convention to use in make-dist for naming
    random input files.  */
 #ifdef THIS_IS_MAKEFILE /* Don't use this in configure.  */
-#ifdef AIX4
+#ifdef AIX
 #define LD_SWITCH_MACHINE -Wl,-bnodelcsect
-#else /* not AIX4 */
+#else /* not AIX */
 #ifdef HAVE_AIX_SMT_EXP
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp,-bI:/usr/lpp/X11/bin/smt.exp
 #else
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp
 #endif
-#endif /* not AIX4 */
+#endif /* not AIX */
 #endif /* THIS_IS_MAKEFILE */
 
 /* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */

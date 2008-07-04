@@ -3985,7 +3985,7 @@
 2008-01-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 	    Miles Bader  <miles@gnu.org>
 
-	* blank-mode.el: New file.  Minor mode to visualise (HARD) SPACE,
+	* blank-mode.el: New file.  Minor mode to visualize (HARD) SPACE,
 	TAB, NEWLINE.  Miles Bader <miles@gnu.org> wrote the original code
 	for handling display table (via visws.el package), his code was
 	modified, but the main idea was kept.
@@ -4554,7 +4554,7 @@
 	* doc-view.el (doc-view-scroll-up-or-next-page)
 	(doc-view-scroll-down-or-previous-page): Use image-scroll-up and
 	image-scroll-down instead of the non-image equivalents.
-	Don't rely on a signalled condition but switch pages when scrolling
+	Don't rely on a signaled condition but switch pages when scrolling
 	doesn't change the vertical position anymore.
 	(doc-view-mode-map): Remap scroll-{up,down} to
 	image-scroll-{up,down}.
@@ -11224,7 +11224,7 @@
 	(server-execute, server-return-error): New functions extracted from
 	server-process-filter.
 	(server-execute-continuation): New functions.
-	(server-process-filter): Restructure so that all arguments are analysed
+	(server-process-filter): Restructure so that all arguments are analyzed
 	first and then acted upon in a subsequent stage.  This way
 	server-goto-toplevel can be executed later, when we know if
 	it's necessary.

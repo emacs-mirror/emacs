@@ -463,7 +463,7 @@
 
 2005-02-15  Jason Rumney  <jasonr@gnu.org>
 
-	* nt/makedist.bat: Do not rely on non-standard behaviour of
+	* nt/makedist.bat: Do not rely on non-standard behavior of
 	tar --exclude.
 
 2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>

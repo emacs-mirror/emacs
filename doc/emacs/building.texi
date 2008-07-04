@@ -534,13 +534,14 @@ allowed.  GUD assumes that the first argument not starting with a
 @samp{-} is the executable file name.
 
 @c Running a debugger on a remote host
-Tramp provides a facility to debug programs on remote hosts.
-@xref{Running a debugger on a remote host, Running a debugger on a remote host,, tramp, The Tramp Manual}.
-Both debugger and program are on the same remote host.
-This should not confused with debugging remote programs
-where the program runs on diferent machine to the debugger,
-as can be done with GDB, for example.
-@xref{Remote Debugging,, Debugging Remote Programs, gdb, The GNU debugger}.
+Tramp provides a facility to debug programs on remote hosts
+(@pxref{Running a debugger on a remote host, Running a debugger on a
+remote host,, tramp, The Tramp Manual}), whereby both the debugger and
+the program being debugged are on the same remote host.  This should
+not be confused with debugging programs remotely, where the program
+and the debugger run on different machines, as can be done using the
+GDB remote debugging feature, for example (@pxref{Remote Debugging,,
+Debugging Remote Programs, gdb, The GNU debugger}).
 
 @node Debugger Operation
 @subsection Debugger Operation

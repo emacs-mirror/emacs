@@ -481,7 +481,7 @@ The schema is set like `rng-auto-set-schema'."
 		 (let ((rng-dt-namespace-context-getter '(nxml-ns-get-context)))
 		   (nxml-with-unmodifying-text-property-changes
 		     (rng-do-some-validation-1 continue-p-function))))
-	  ;; errors signalled from a function run by an idle timer
+	  ;; errors signaled from a function run by an idle timer
 	  ;; are ignored; if we don't catch them, validation
 	  ;; will get mysteriously stuck at a single place
 	  (rng-compile-error

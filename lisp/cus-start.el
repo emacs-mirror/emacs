@@ -46,6 +46,7 @@
 	     (tab-width editing-basics integer)
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
+	     (word-wrap display boolean)
 	     (selective-display-ellipses display boolean)
 	     (indicate-empty-lines fringe boolean)
 	     (indicate-buffer-boundaries
@@ -97,6 +98,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			   "22.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
+	     (shift-select-mode editing-basics boolean)
 	     ;; callproc.c
 	     (shell-file-name execute file)
 	     (exec-path execute

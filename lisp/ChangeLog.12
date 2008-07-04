@@ -3869,7 +3869,7 @@
 
 2006-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
-	* speedbar.el (speedbar-timer-fn): Revert to old behaviour when not
+	* speedbar.el (speedbar-timer-fn): Revert to old behavior when not
 	in GUD mode.
 
 	* progmodes/gud.el (gud-install-speedbar-variables): Remove bindings:
@@ -4512,7 +4512,7 @@
 
 	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)
 	(pr-ps-name-custom-set, pr-txt-name-custom-set): Return back the old
-	behaviour.
+	behavior.
 	(pr-menu-bind): Act on global-map instead of menu-bar-file-menu
 	directly.
 
@@ -12372,7 +12372,7 @@
 	(gud-watch, gdb-var-create-handler): Display function::var format
 	but don't use to create variable object.
 	(gdb-var-create-handler): Use message-box in place of message.
-	(gdb-stopped): Call gdb-exited if signalled.
+	(gdb-stopped): Call gdb-exited if signaled.
 
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -18817,7 +18817,7 @@
 	(gdb-goto-breakpoint): Try to force display in source buffer.
 	(gdb-frame-gdb-buffer): Copy other similar functions.
 	(gdb-restore-windows): Don't display source if not asked for.
-	(gdb-assembler-buffer-name): Don't capitalise.
+	(gdb-assembler-buffer-name): Don't capitalize.
 
 2005-11-03  Richard M. Stallman  <rms@gnu.org>
 

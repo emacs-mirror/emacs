@@ -29,7 +29,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
 #
-LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I../nt/inc -D_UCHAR_T -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
+LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
 EMACS           = $(BLD)/emacs.exe
 TEMACS          = $(BLD)/temacs.exe
@@ -134,7 +134,6 @@ WIN32OBJ = $(BLD)/w32term.$(O)		\
 	   $(BLD)/w32select.$(O)		\
 	   $(BLD)/w32menu.$(O)		\
 	   $(BLD)/w32reg.$(O)
-#	   $(BLD)/w32bdf.$(O)
 
 FONTOBJ = $(BLD)/w32font.$(O) $(BLD)/w32uniscribe.$(O)
 
@@ -291,7 +290,6 @@ $(BLD)/abbrev.$(O) : \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/syntax.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -310,7 +308,6 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/process.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -338,7 +335,6 @@ $(BLD)/buffer.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/region-cache.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -358,7 +354,6 @@ $(BLD)/callint.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -461,7 +456,6 @@ $(BLD)/cmds.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -478,7 +472,6 @@ $(BLD)/coding.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/frame.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -491,7 +484,6 @@ $(BLD)/composite.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/data.$(O) : \
@@ -544,7 +536,6 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -579,7 +570,6 @@ $(BLD)/editfns.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -602,7 +592,6 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/window.h
@@ -616,7 +605,6 @@ $(BLD)/eval.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/fileio.$(O) : \
@@ -635,7 +623,6 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -687,7 +674,6 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/md5.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -715,7 +701,6 @@ $(BLD)/fontset.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -735,7 +720,6 @@ $(BLD)/frame.$(O) : \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -749,7 +733,6 @@ $(BLD)/fringe.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -769,7 +752,6 @@ $(BLD)/image.$(O): \
 	$(SRC)/frame.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h \
@@ -792,7 +774,6 @@ $(BLD)/indent.$(O) : \
 	$(SRC)/region-cache.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -809,7 +790,6 @@ $(BLD)/insdel.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/region-cache.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -823,7 +803,6 @@ $(BLD)/intervals.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/keyboard.$(O) : \
@@ -853,7 +832,6 @@ $(BLD)/keyboard.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -875,7 +853,6 @@ $(BLD)/keymap.$(O) : \
 	$(SRC)/puresize.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/lastfile.$(O) : \
@@ -899,7 +876,6 @@ $(BLD)/lread.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/macros.$(O) : \
@@ -910,7 +886,6 @@ $(BLD)/macros.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/macros.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -952,7 +927,6 @@ $(BLD)/minibuf.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -979,7 +953,6 @@ $(BLD)/w32inevt.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h
@@ -995,7 +968,6 @@ $(BLD)/w32proc.$(O) : \
 	$(SRC)/systime.h \
 	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h
@@ -1011,7 +983,6 @@ $(BLD)/w32console.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/frame.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32inevt.h
 
@@ -1028,7 +999,6 @@ $(BLD)/print.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/process.h \
 	$(SRC)/termchar.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1057,7 +1027,6 @@ $(BLD)/process.$(O) : \
 	$(SRC)/syswait.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1091,7 +1060,6 @@ $(BLD)/scroll.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1112,7 +1080,6 @@ $(BLD)/search.$(O) : \
 	$(SRC)/region-cache.h \
 	$(SRC)/syntax.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/sound.$(O) : \
@@ -1139,7 +1106,6 @@ $(BLD)/syntax.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h
 
 $(BLD)/sysdep.$(O) : \
@@ -1165,7 +1131,6 @@ $(BLD)/sysdep.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1185,7 +1150,6 @@ $(BLD)/term.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1211,7 +1175,6 @@ $(BLD)/textprop.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/intervals.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1252,7 +1215,6 @@ $(BLD)/window.$(O) : \
 	$(SRC)/keymap.h \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1284,7 +1246,6 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1307,7 +1268,6 @@ $(BLD)/xfaces.$(O): \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1332,7 +1292,6 @@ $(BLD)/w32fns.$(O): \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h \
@@ -1353,7 +1312,6 @@ $(BLD)/w32menu.$(O): \
 	$(SRC)/keymap.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1382,7 +1340,6 @@ $(BLD)/w32term.$(O): \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h \
@@ -1403,7 +1360,6 @@ $(BLD)/w32select.$(O): \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h
@@ -1414,7 +1370,6 @@ $(BLD)/w32reg.$(O): \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 
@@ -1429,23 +1384,6 @@ $(BLD)/w32xfns.$(O): \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h
-
-$(BLD)/w32bdf.$(O): \
-	$(SRC)/w32bdf.c \
-	$(CONFIG_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 

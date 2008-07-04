@@ -145,7 +145,7 @@
 
 2002-03-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	Add support for bootstraping Emacs:
+	Add support for bootstrapping Emacs:
 
 	* sed1v2.inp: Edit the bootstrap-* targets.  Fix the mostlyclean
 	target.

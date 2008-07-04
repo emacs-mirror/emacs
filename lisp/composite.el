@@ -436,26 +436,33 @@ See also the documentation of `auto-composition-mode'.")
 
 (put 'save-buffer-state 'lisp-indent-function 1)
 
+(defsubst terminal-composition-base-character-p (ch)
+  (not (memq (get-char-code-property ch 'general-category)
+	     '(Mn Mc Me Zs Zl Zp Cc Cf Cs))))
+
 (defun terminal-composition-function (from to font-object string)
   "General composition function used on terminal.
 Non-spacing characters are composed with the preceding spacing
 character.  All non-spacing characters has this function in
 `terminal-composition-function-table'."
-  (let ((pos (1+ from)))
+  (let ((pos from))
     (if string
 	(progn
 	  (while (and (< pos to)
 		      (= (aref char-width-table (aref string pos)) 0))
 	    (setq pos (1+ pos)))
-	  (if (> from 0)
+	  (if (and (> from 0)
+		   (terminal-composition-base-character-p
+		    (aref string (1- from))))
 	      (compose-string string (1- from) pos)
 	    (compose-string string from pos
 			    (concat " " (buffer-substring from pos)))))
       (while (and (< pos to)
 		  (= (aref char-width-table (char-after pos)) 0))
 	(setq pos (1+ pos)))
-      (if (> from (point-min))
-	  (compose-region (1- from) pos (buffer-substring from pos))
+      (if (and (> from (point-min))
+	       (terminal-composition-base-character-p (char-after (1- from))))
+	  (compose-region (1- from) pos)
 	(compose-region from pos
 			(concat " " (buffer-substring from pos)))))
     pos))
@@ -496,7 +503,8 @@ This function is the default value of `auto-composition-function' (which see)."
 			 (elt (aref table ch))
 			 font-obj newpos)
 		    (when (and elt
-			       (setq font-obj (font-at from window string)))
+			       (or (not (display-graphic-p))
+				   (setq font-obj (font-at from window string))))
 		      (if (functionp elt)
 			  (setq newpos (funcall elt from to font-obj string))
 			(while (and elt
@@ -517,7 +525,8 @@ This function is the default value of `auto-composition-function' (which see)."
 			 (elt (aref table ch))
 			 func pattern font-obj newpos)
 		    (when (and elt
-			       (setq font-obj (font-at from window)))
+			       (or (not (display-graphic-p))
+				   (setq font-obj (font-at from window))))
 		      (if (functionp elt)
 			  (setq newpos (funcall elt from to font-obj nil))
 			(goto-char from)

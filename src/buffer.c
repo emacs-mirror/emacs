@@ -5139,6 +5139,7 @@ init_buffer_once ()
 
   XSETFASTINT (buffer_defaults.tab_width, 8);
   buffer_defaults.truncate_lines = Qnil;
+  buffer_defaults.word_wrap = Qnil;
   buffer_defaults.ctl_arrow = Qt;
   buffer_defaults.direction_reversed = Qnil;
   buffer_defaults.cursor_type = Qt;
@@ -5211,6 +5212,7 @@ init_buffer_once ()
 #endif
   XSETFASTINT (buffer_local_flags.tab_width, idx); ++idx;
   XSETFASTINT (buffer_local_flags.truncate_lines, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.word_wrap, idx); ++idx;
   XSETFASTINT (buffer_local_flags.ctl_arrow, idx); ++idx;
   XSETFASTINT (buffer_local_flags.fill_column, idx); ++idx;
   XSETFASTINT (buffer_local_flags.left_margin, idx); ++idx;
@@ -5753,6 +5755,15 @@ Instead, give each line of text just one screen line.
 Note that this is overridden by the variable
 `truncate-partial-width-windows' if that variable is non-nil
 and this buffer is not full-frame width.  */);
+
+  DEFVAR_PER_BUFFER ("word-wrap", &current_buffer->word_wrap, Qnil,
+		     doc: /* *Non-nil means to use word-wrapping for continuation lines.
+When word-wrapping is on, continuation lines are wrapped at the space
+or tab character nearest to the right window edge.
+If nil, continuation lines are wrapped at the right screen edge.
+
+This variable has no effect if long lines are truncated (see
+`truncate-lines' and `truncate-partial-width-windows').  */);
 
 #ifdef DOS_NT
   DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,

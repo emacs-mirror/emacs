@@ -497,26 +497,32 @@ x_set_frame_alpha (f)
   {
     unsigned char *data;
     Atom actual;
-    int format;
+    int rc, format;
     unsigned long n, left;
 
-    XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
-		       0L, 1L, False, XA_CARDINAL, &actual, &format, &n, &left,
-		       &data);
-    if (actual != None)
+    x_catch_errors (dpy);
+    rc = XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
+			    0L, 1L, False, XA_CARDINAL,
+			    &actual, &format, &n, &left,
+			    &data);
+
+    if (rc == Success && actual != None)
       if (*(unsigned long *)data == opac)
 	{
 	  XFree ((void *) data);
+	  x_uncatch_errors ();
 	  return;
 	}
       else
 	XFree ((void *) data);
+    x_uncatch_errors ();
   }
 
+  x_catch_errors (dpy);
   XChangeProperty (dpy, win, XInternAtom (dpy, OPACITY, False),
 		   XA_CARDINAL, 32, PropModeReplace,
 		   (unsigned char *) &opac, 1L);
-  XSync (dpy, False);
+  x_uncatch_errors ();
 }
 
 

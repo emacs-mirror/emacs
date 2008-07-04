@@ -1,3 +1,366 @@
+2008-06-27  Jason Rumney  <jasonr@gnu.org>
+
+        * w32fns.c (x_to_w32_font, w32_to_x_font, x_to_w32_weight)
+        (w32_to_x_weight, w32_to_all_x_charsets): Remove obsolete functions.
+        (w32_to_x_charset, x_to_w32_charset)
+        (Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
+        (Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
+        (Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
+        (Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
+        (Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
+        (Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
+        (Qw32_charset_mac, Vw32_charset_info_alist): Move to w32font.c.
+        (Qw32_charset_unicode): Remove.
+        (syms_of_w32fns): Update for above changes.
+
+        * w32font.c (w32_to_x_charset, x_to_w32_charset)
+        (Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
+        (Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
+        (Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
+        (Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
+        (Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
+        (Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
+        (Qw32_charset_mac, Vw32_charset_info_alist): Move from w32fns.c.
+        (syms_of_w32font): Update for above changes.
+
+2008-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h: Fix previous change: keep the correct branch of a
+	removed #if.
+	(USG_SHARED_LIBRARIES): Remove duplicate definition.
+
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS):
+	Don't include WINDOWSNT, DOS_NT and _UCHAR_T.
+
+	* sysdep.c (_spawnlp, _getpid):
+	Declare with explicit _cdecl instead of _CRTAPI1.
+
+	* editfns.c (Fget_internal_run_time):
+	Check for WINDOWSNT with #ifdef, not #if.
+
+2008-06-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.h (FONT_HANDLE, FONT_TEXTMETRIC): New macros.
+
+	* w32term.c (x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground): Sync with xterm.c.
+	Use FONT_HANDLE macro.
+	(x_draw_glyph_string): Use FONT_TEXTMETRIC macro.
+
+	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape)
+	(uniscribe_encode_char): Use FONT_HANDLE macro.
+
+	* w32font.c (Fx_select_font): Use FONT_HANDLE macro.
+	(w32font_text_extents): Use precast w32_font.
+	(w32font_close): Free cached metrics.
+	(w32font_open_internal): Allocate space for name on stack.
+
+2008-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (extend_face_to_end_of_line): Fix last change.
+
+2008-06-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (FONT_AVG_WIDTH): Remove obsolete macro.
+	(CP_8BIT, CP_UNICODE, CP_UNKNOWN): Remove obsolete constants.
+
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Remove w32bdf.o.
+
+2008-06-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c, w32bdf.h: Remove obsolete files.
+
+	* makefile.w32-in: Remove refs to w32bdf.h and w32bdf.c.
+
+	* w32gui.h: Don't include w32bdf.h.
+	(XCharStruct, enum w32_char_font_type, W32FontStruct):
+	Remove obsolete font support.
+
+	* w32font.h (struct w32font_info): Remove compat_w32_font.
+	Add hfont member.
+	(FONT_COMPAT): Remove obsolete macro.
+
+	* w32font.c (w32font_close): Remove compat code. Delete hfont member.
+	(w32font_encode_char, w32font_text_extents): Use new hfont member.
+	(w32font_open_internal): Remove compat code. Set new hfont member.
+	(Fx_select_font): Use new hfont member.
+
+	* w32uniscribe.c (uniscribe_otf_capability, uniscribe_shape)
+	(uniscribe_encode_char): Use new hfont member.
+
+	* w32term.c (x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground): Use new hfont member.
+	(x_draw_glyph_string): Use metrics in w32font_info.
+
+2008-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_auto_composed_prop): Fix for the terminal case.
+
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* unexnext.c:
+	* m/ews4800.h:
+	* m/hp9000s300.h:
+	* m/ibm370aix.h:
+	* m/mips-siemens.h:
+	* m/ncr386.h:
+	* m/next.h:
+	* m/pmax.h:
+	* m/powerpcle.h:
+	* m/tandem-s2.h:
+	* s/386bsd.h:
+	* s/bsd386.h:
+	* s/bsd4-1.h:
+	* s/bsd4-2.h:
+	* s/bsdos2-1.h:
+	* s/bsdos2.h:
+	* s/bsdos3.h:
+	* s/bsdos4.h:
+	* s/nextstep.h:
+	* s/ultrix4-3.h:
+	* s/usg5-0.h:
+	* s/usg5-2-2.h:
+	* s/usg5-2.h:
+	* s/usg5-4-3.h:
+	* s/ux4800.h:
+	* s/uxpds.h:
+	* s/uxpv.h: Remove support for obsolete systems.
+	* s/hpux.h, s/hpux10.h, s/hpux8.h, s/hpux9.h, s/hpux9shr.h:
+	Remove, insert contents in s/hpux-10.20.h
+	* s/aix3-1.h, s/aix3-2-5.h, s/aix3-2.h, s/aix4-1.h, s/aix4.h:
+	Remove, insert contents in s/aix-4.2.h
+	* s/usg5-3.h: Remove, insert contents in s/usg5-4.h.
+	* s/bsd4-3.h: Rename to ..
+	* s/bsd-common.h: ... this.
+	* src/data.c:
+	* src/doc.c:
+	* src/ecrt0.c:
+	* src/emacs.c:
+	* src/fileio.c:
+	* src/floatfns.c:
+	* src/keyboard.c:
+	* src/mem-limits.h:
+	* src/print.c:
+	* src/process.c:
+	* src/sysdep.c:
+	* src/syssignal.h:
+	* src/systty.h:
+	* src/syswait.h:
+	* src/term.c:
+	* src/unexec.c:
+	* src/unexelf.c:
+	* src/unexhp9k800.c:
+	* src/m/hp800.h:
+	* src/m/ibmrs6000.h:
+	* src/m/mips.h:
+	* src/m/vax.h:
+	* src/s/darwin.h:
+	* src/s/freebsd.h:
+	* src/s/gnu.h:
+	* src/s/ms-w32.h:
+	* src/s/msdos.h:
+	* src/s/netbsd.h:
+	* src/s/template.h: Remove references to obsolete variables.
+
+	* Makefile.in: Add dependencies for all unexec files.
+	(admindir): Remove unused variable.
+	(UNEXEC_SRC): Remove references.
+
+2008-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_default_font_parameter): If Xft is available, first
+	try Monospace-12 for the default font.
+
+2008-06-25  Jason Rumney  <jasonr@gnu.org>
+
+	* xdisp.c (get_glyph_face_and_encoding): Encode invalid glyphs as 0.
+
+2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (Fbyte_code): Disable debugging code that doesn't compile.
+
+	* buffer.c (syms_of_buffer): Remove default-word-wrap.
+
+2008-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <truncate-partial-width-windows>: Doc fix.
+	<scroll-conservatively>: Fix typo in docstring.
+
+	* xselect.c (Fx_send_client_event): Doc fix.
+
+2008-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (Fx_list_fonts): Call Flist_fonts with the arg PREFER.
+
+	* font.c (font_parse_fcname): Remove unused variables.
+	(font_sort_entites): Delete the arg SPEC.  Caller changed.
+	Fix for the case of ! best_only.
+	(font_delete_unmatched): Check DPI and AVGWIDTH too.
+
+	* lisp.h (Fstring_to_unibyte): EXFUN it.
+
+	* character.h (str_to_unibyte): Extern it.
+
+	* character.c (str_to_unibyte): New function.
+
+	* fns.c (Fstring_to_unibyte): New function.
+	(syms_of_fns): Defsubr it.
+
+2008-06-24  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_score): Even if the PIXEL_SIZE is the same, check
+	DPI too.
+	(font_sort_entites): Setup prefer_prop[FONT_DPI_INDEX] too.
+
+2008-06-24  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (${lispsource}loaddefs.el): Rename from
+	../lisp/loaddefs.el.
+	(bootstrap-clean): Do what distclean does but don't remove
+	Makefile.
+	(distclean): Depend on bootstrap-clean and remove Makefile.
+
+2008-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.h (struct buffer): New member word_wrap.
+
+	* buffer.c (syms_of_buffer): New variables default-word-wrap and
+	word-wrap.
+	(init_buffer_once): Initialize them.
+
+	* dispextern.h (struct it): Replace bool truncate_lines_p with a
+	line_wrap enum possessing three possible values.
+
+	* termopts.h: Replace truncate_partial_width_windows with
+	Vtruncate_partial_width_windows.
+
+	* dispnew.c (direct_output_for_insert): Avoid direct output when
+	inserting a space with word wrap on.
+
+	* indent.c (compute_motion): Obey integer values of
+	truncate-partial-width-windows.
+
+	* xdisp.c (Vtruncate_partial_width_windows): New Lisp_Object,
+	replacing truncate_partial_width_windows.
+	(init_iterator): If Vtruncate_partial_width_windows is an integer,
+	truncate only if the window width is below that integer.
+	(start_display. resize_mini_window, produce_stretch_glyph)
+	(display_string, move_it_in_display_line_to): Use line_wrap.
+	(back_to_previous_visible_line_start, reseat_1): Reset
+	string_from_display_prop_p.
+	(display_line): Extend default face to end of line when wrapping.
+
+2008-06-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_line, move_it_in_display_line_to): Add ability
+	to wrap continued lines at word boundaries.
+
+2008-06-24  Jason Rumney  <jasonr@gnu.org>
+
+	* font.c (Ffont_face_attributes): Multiply pixel size before point
+	conversion to avoid multiplying rounding error.
+
+2008-06-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_glyph_string_background)
+	(x_draw_glyph_string): Remove old bdf font code.
+
+	* w32term.h (FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): Remove.
+
+2008-06-22  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_find_for_lface): Try the adstyle specified in
+	the property of LFACE_FONT of LFACE (if any).
+
+2008-06-21  Seiji Zenitani  <zenitani@mac.com>
+	    Ryo Yoshitake  <ryo@shiftmode.net>
+
+	* xterm.c (x_set_frame_alpha): Add x_catch_errors for bug#437.
+
+2008-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (${lisp} ${SOME_MACHINE_LISP}, ../lisp/loaddefs.el):
+	Use $(BOOTSTRAPEMACS) rather than witness-emacs.
+	(bootstrap-emacs${EXEEXT}): Merge witness-emacs into it.
+	(witness-emacs): Remove.
+	(lisp, shortlisp): Move loaddefs.el earlier.
+	(mostlyclean): Forget about witness-emacs.
+
+2008-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (witness-emacs): Depend on temacs${EXEEXT}.
+	(.SUFFIXES): Declare .el.elc as a suffix rule, for non-GNU makes.
+
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (PRECOMP): Remove.
+	(${lisp} ${SOME_MACHINE_LISP}): Remove pseudo dependency on PRECOMP.
+	(witness-emacs): Run `compile-first'.
+	(.el.elc): Use the new compile-onefile target.
+
+2008-06-21  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Handle QCembolden only when
+	FC_EMBOLDEN is defined.
+
+2008-06-21  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (witness-emacs): Use ../lisp, not $(lispsource).
+	(.el.elc): Likewise.
+
+2008-06-21  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (../lisp/loaddefs.el): Build autoloads in the lisp
+	build dir, not the lisp source dir.
+
+2008-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (emacs${EXEEXT}): Link the new emacs to bootstrap-emacs.
+	(bootstrapclean): Remove.
+	(.el.elc): New rule.
+	(PRECOMP): New var.
+	(../lisp/subdirs.el): Remove.
+	(bootstrap-emacs${EXEEXT}): Remove subdirs.el and charpro.el dependency.
+	(witness-emacs): New target.
+	(mostlyclean): Remove witness-emacs as well.
+	(../lisp/loaddefs.el, ${lisp} ${SOME_MACHINE_LISP}):
+	Add witness-emacs dependency.
+
+2008-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (Ffont_face_attributes): Omit key-attribute pairs not
+	defined by the font.
+
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (emacs${EXEEXT}): Depend on the machine-specific files.
+	(bootstrap-clean): New target that keeps TAGS around.
+	(../lisp/subdirs.el, ../lisp/loaddefs.el): New targets.
+	(bootstrap-emacs${EXEEXT}): Depend on subdirs.el.
+
+2008-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c, w32term.c, w32term.h, w32gui.h [OLD_FONT]:
+	Remove obsolete font code.
+
+	* w32font.c (font_matches_spec): Use csb bitfield from font signature
+	to determine language support.
+
+2008-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sysdep.c (cfsetspeed): New fun extracted from the code.
+	(cfmakeraw): Move before first use.
+
+2008-06-20  Angelo Graziosi  <angelo.graziosi@alice.it>  (tiny change)
+
+	* sysdep.c (cfmakeraw): Provide fallback implementation.
+	(serial_configure): Provide fallback implementation of cfsetspeed.
+
 2008-06-20  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Add FOUNDRY, SPACING, DPI, SCALABLE to
@@ -48,8 +411,7 @@
 
 2008-06-18  Andreas Schwab  <schwab@suse.de>
 
-	* font.c (Ffont_face_attributes): Only define if
-	HAVE_WINDOW_SYSTEM.
+	* font.c (Ffont_face_attributes): Only define if HAVE_WINDOW_SYSTEM.
 	(syms_of_font): Only defsubr if HAVE_WINDOW_SYSTEM.
 
 2008-06-18  Jason Rumney  <jasonr@gnu.org>
@@ -71,8 +433,7 @@
 
 2008-06-17  Naohiro Aota  <nao.aota@gmail.com>  (tiny change)
 
-	* fontset.c (fontset_pattern_regexp): Escape some reg-expr
-	characters.
+	* fontset.c (fontset_pattern_regexp): Escape some reg-expr characters.
 
 2008-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1659,7 +2020,7 @@
 	(w32font_driver): Adjusted for the change of struct font_driver.
 
 	* w32term.h: Throughout the file, delete all USE_FONT_BACKEND
-	conditionals.  Don't check enable_font_backend. Surround non-used
+	conditionals.  Don't check enable_font_backend.  Surround non-used
 	code by "#ifdef OLD_FONT" and "endif".
 	(FONT_WIDTH, FONT_HEIGHT, FONT_BASE, FONT_DESCENT)
 	(FONT_AVG_WIDTH): Adjusted for the change of struct font.
@@ -7216,8 +7577,8 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* xterm.c (XTread_socket): Fix changes for defined keysyms.  Add
-	XK_ISO... case.
+	* xterm.c (XTread_socket): Fix changes for defined keysyms.
+	Add XK_ISO... case.
 	(xaw_scroll_callback): Revert last change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>

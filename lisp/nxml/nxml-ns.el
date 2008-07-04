@@ -71,7 +71,7 @@ are inherited from the parent state."
   (setq nxml-ns-state (cons (car nxml-ns-state) nxml-ns-state)))
 
 (defun nxml-ns-pop-state ()
-  "Change the state by ending an element.  The behaviour is undefined
+  "Change the state by ending an element.  The behavior is undefined
 if there is no open element."
   (setq nxml-ns-state (cdr nxml-ns-state)))
 

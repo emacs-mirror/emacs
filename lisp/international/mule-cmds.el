@@ -2588,7 +2588,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; only).  At least X and MS Windows can generate
 	  ;; multilingual input.
 	  ;; XXX This was disabled unless `window-system', but that
-	  ;; leads to buggy behaviour when a tty frame is opened
+	  ;; leads to buggy behavior when a tty frame is opened
 	  ;; later.  Setting the keyboard coding system has no adverse
 	  ;; effect on X, so let's do it anyway. -- Lorentey
 	  (let ((kcs (or coding-system
@@ -2805,29 +2805,32 @@ If there's no description string for VALUE, return nil."
 (defun encode-coding-char (char coding-system)
   "Encode CHAR by CODING-SYSTEM and return the resulting string.
 If CODING-SYSTEM can't safely encode CHAR, return nil."
-  (let ((str1 (string-as-multibyte (string char)))
-	(str2 (string-as-multibyte (string char char)))
+  (let* ((str1 (string-as-multibyte (string char)))
+	 (str2 (string-as-multibyte (string char char)))
+	 (found (find-coding-systems-string str1))
 	enc1 enc2 i1 i2)
-    (when (memq (coding-system-base coding-system)
-		(find-coding-systems-string str1))
-      ;; We must find the encoded string of CHAR.  But, just encoding
-      ;; CHAR will put extra control sequences (usually to designate
-      ;; ASCII charset) at the tail if type of CODING is ISO 2022.
-      ;; To exclude such tailing bytes, we at first encode one-char
-      ;; string and two-char string, then check how many bytes at the
-      ;; tail of both encoded strings are the same.
+    (if (and (consp found)
+	     (eq (car found) 'undecided))
+	str1
+      (when (memq (coding-system-base coding-system) found)
+	;; We must find the encoded string of CHAR.  But, just encoding
+	;; CHAR will put extra control sequences (usually to designate
+	;; ASCII charset) at the tail if type of CODING is ISO 2022.
+	;; To exclude such tailing bytes, we at first encode one-char
+	;; string and two-char string, then check how many bytes at the
+	;; tail of both encoded strings are the same.
 
-      (setq enc1 (encode-coding-string str1 coding-system)
-	    i1 (length enc1)
-	    enc2 (encode-coding-string str2 coding-system)
-	    i2 (length enc2))
-      (while (and (> i1 0) (= (aref enc1 (1- i1)) (aref enc2 (1- i2))))
-	(setq i1 (1- i1) i2 (1- i2)))
+	(setq enc1 (encode-coding-string str1 coding-system)
+	      i1 (length enc1)
+	      enc2 (encode-coding-string str2 coding-system)
+	      i2 (length enc2))
+	(while (and (> i1 0) (= (aref enc1 (1- i1)) (aref enc2 (1- i2))))
+	  (setq i1 (1- i1) i2 (1- i2)))
 
-      ;; Now (substring enc1 i1) and (substring enc2 i2) are the same,
-      ;; and they are the extra control sequences at the tail to
-      ;; exclude.
-      (substring enc2 0 i2))))
+	;; Now (substring enc1 i1) and (substring enc2 i2) are the same,
+	;; and they are the extra control sequences at the tail to
+	;; exclude.
+	(substring enc2 0 i2)))))
 
 ;; Backwards compatibility.  These might be better with :init-value t,
 ;; but that breaks loadup.

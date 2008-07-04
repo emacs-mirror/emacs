@@ -1,19 +1,28 @@
+2008-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-with-multibyte, mm-with-unibyte): Remove.
+
+	* nnkiboze.el (nnkiboze-generate-group):
+	Use explicit mm-disable-multibyte rather than mm-with-unibyte.
+
+	* nnmairix.el: Require CL.
+
 2008-06-15  David Engster  <dengste@eml.cc>
 
 	* nnimap.el (nnimap-request-delete-group): Unselect group if necessary.
 
 2008-06-14  Aidan Kehoe  <kehoea@parhasard.net>
 
-	* gnus-util.el (gnus-put-display-table, gnus-get-display-table): New
-	macros that expand to an `aset'/`aref' call under Emacs, and to a
+	* gnus-util.el (gnus-put-display-table, gnus-get-display-table):
+	New macros that expand to an `aset'/`aref' call under Emacs, and to a
 	runtime choice under XEmacs.
 
-	* gnus-sum.el (gnus-summary-set-display-table): Use
-	`gnus-put-display-table', `gnus-get-display-table',
+	* gnus-sum.el (gnus-summary-set-display-table):
+	Use `gnus-put-display-table', `gnus-get-display-table',
 	`gnus-set-display-table' for the display table, instead of `aset'.
 
-	* gnus-xmas.el (gnus-xmas-summary-set-display-table): Use
-	`gnus-put-display-table', `gnus-get-display-table',
+	* gnus-xmas.el (gnus-xmas-summary-set-display-table):
+	Use `gnus-put-display-table', `gnus-get-display-table',
 	`gnus-set-display-table' for the display table.
 
 2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>

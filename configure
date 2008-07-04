@@ -2360,9 +2360,8 @@ configuration=${host_alias-${build_alias-$host}}
 ### based on the machine portion of the configuration name, and an s-
 ### file based on the operating system portion.  However, it turns out
 ### that each m/*.h file is pretty manufacturer-specific - for
-### example hp9000s300.h is a 68000 machine;
-### mips.h, pmax.h are all MIPS
-### machines.  So we basically have to have a special case for each
+### example mips.h is MIPS
+### So we basically have to have a special case for each
 ### configuration name.
 ###
 ### As far as handling version numbers on operating systems is
@@ -2419,12 +2418,6 @@ _ACEOF
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
-      m68k-*-netbsd*)
-			# This is somewhat bogus.
-			machine=hp9000s300 ;;
-      mips-*-netbsd*)	machine=pmax ;;
-      mipsel-*-netbsd*)	machine=pmax ;;
-      mipseb-*-netbsd*)	machine=pmax ;;
       powerpc-*-netbsd*) machine=macppc ;;
       sparc*-*-netbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
@@ -2440,9 +2433,7 @@ _ACEOF
     case "${canonical}" in
       alpha*-*-openbsd*)	machine=alpha ;;
       arm-*-openbsd*)          machine=arm ;;
-      hppa-*-openbsd*)         machine=hp9000s300 ;;
       i386-*-openbsd*)         machine=intel386 ;;
-      m68k-*-openbsd*)         machine=hp9000s300 ;;
       powerpc-*-openbsd*)      machine=macppc ;;
       sparc*-*-openbsd*)       machine=sparc ;;
       vax-*-openbsd*)          machine=vax ;;
@@ -2456,23 +2447,6 @@ _ACEOF
     case "${canonical}" in
       i[3456]86-*-lynxos*) machine=intel386 ;;
       powerpc-*-lynxos*) machine=powerpc ;;
-    esac
-  ;;
-
-  ## BSDI ports
-  *-*-bsdi* )
-    opsys=bsdi
-    case "${canonical}" in
-      i[345]86-*-bsdi*) machine=intel386 ;;
-      sparc-*-bsdi*)  machine=sparc ;;
-      powerpc-*-bsdi*)  machine=macppc ;;
-    esac
-    case "${canonical}" in
-      *-*-bsd386* | *-*-bsdi1* )	opsys=bsd386 ;;
-      *-*-bsdi2.0* )		opsys=bsdos2 ;;
-      *-*-bsdi2* )		opsys=bsdos2-1 ;;
-      *-*-bsdi3* )		opsys=bsdos3 ;;
-      *-*-bsdi[45]* )		opsys=bsdos4 ;;
     esac
   ;;
 
@@ -2502,55 +2476,9 @@ _ACEOF
     fi
   ;;
 
-  ## Cubix QBx/386
-  i[3456]86-cubix-sysv* )
-    machine=intel386 opsys=usg5-3
-  ;;
-
-  mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0* | mips-dec-bsd4.2* )
-    machine=pmax opsys=bsd4-2
-  ;;
-  mips-dec-ultrix4.[12]* | mips-dec-bsd* )
-    machine=pmax opsys=bsd4-3
-  ;;
-  mips-dec-ultrix* )
-    machine=pmax opsys=ultrix4-3
-  ;;
-  ## HP 9000 series 200 or 300
-  m68*-hp-bsd* )
-    machine=hp9000s300 opsys=bsd4-3
-  ;;
-  ## HP/UX 7, 8, 9, and 10 are supported on these machines.
-  m68*-hp-hpux* )
-    case "`uname -r`" in
-      ## Someone's system reports A.B8.05 for this.
-      ## I wonder what other possibilities there are.
-      *.B8.* ) machine=hp9000s300 opsys=hpux8 ;;
-      *.08.* ) machine=hp9000s300 opsys=hpux8 ;;
-      *.09.* ) machine=hp9000s300 opsys=hpux9 ;;
-      *.1[0-9].* ) machine=hp9000s300 opsys=hpux9shr ;;
-      *) machine=hp9000s300 opsys=hpux ;;
-    esac
-  ;;
-
   ## HP 9000 series 700 and 800, running HP/UX
-  hppa*-hp-hpux7* )
-    machine=hp800 opsys=hpux
-  ;;
-  hppa*-hp-hpux8* )
-    machine=hp800 opsys=hpux8
-  ;;
-  hppa*-hp-hpux9shr* )
-    machine=hp800 opsys=hpux9shr
-  ;;
-  hppa*-hp-hpux9* )
-    machine=hp800 opsys=hpux9
-  ;;
   hppa*-hp-hpux10.2* )
     machine=hp800 opsys=hpux10-20
-  ;;
-  hppa*-hp-hpux10* )
-    machine=hp800 opsys=hpux10
   ;;
   hppa*-hp-hpux1[1-9]* )
     machine=hp800 opsys=hpux11
@@ -2561,40 +2489,12 @@ _ACEOF
     machine=hp800 opsys=gnu-linux
   ;;
 
-  ## HP 9000 series 700 and 800, running HP/UX
-  hppa*-hp-hpux* )
-    ## Cross-compilation?  Nah!
-    case "`uname -r`" in
-      ## Someone's system reports A.B8.05 for this.
-      ## I wonder what other possibilities there are.
-      *.B8.* ) machine=hp800 opsys=hpux8 ;;
-      *.08.* ) machine=hp800 opsys=hpux8 ;;
-      *.09.* ) machine=hp800 opsys=hpux9 ;;
-      *) machine=hp800 opsys=hpux10 ;;
-    esac
-  ;;
-  hppa*-*-nextstep* )
-    machine=hp800 opsys=nextstep
-  ;;
-
   ## IBM machines
-  i370-ibm-aix*)
-    machine=ibm370aix opsys=usg5-3
-  ;;
   s390-*-linux-gnu* )
     machine=ibms390 opsys=gnu-linux
   ;;
   s390x-*-linux-gnu* )
     machine=ibms390x opsys=gnu-linux
-  ;;
-  rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
-    machine=ibmrs6000 opsys=aix3-1
-  ;;
-  rs6000-ibm-aix3.2.5 | powerpc-ibm-aix3.2.5 )
-    machine=ibmrs6000 opsys=aix3-2-5
-  ;;
-  rs6000-ibm-aix4.1* | powerpc-ibm-aix4.1*  )
-    machine=ibmrs6000 opsys=aix4-1
   ;;
   rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
     machine=ibmrs6000 opsys=aix4-2
@@ -2608,63 +2508,10 @@ _ACEOF
   rs6000-ibm-aix5* | powerpc-ibm-aix6*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix4.0* | powerpc-ibm-aix4.0*  )
-    machine=ibmrs6000 opsys=aix4
-  ;;
-  rs6000-ibm-aix4* | powerpc-ibm-aix4*  )
-    machine=ibmrs6000 opsys=aix4-1
-  ;;
-  rs6000-ibm-aix* | powerpc-ibm-aix* )
-    machine=ibmrs6000 opsys=aix3-2
-  ;;
-
-  ## Prime EXL
-  i[3456]86-prime-sysv* )
-    machine=i386 opsys=usg5-3
-  ;;
-
-  ## ncr machine running svr4.3.
-  i[3456]86-ncr-sysv4.3 )
-    machine=ncr386 opsys=usg5-4-3
-  ;;
-
-  ## Unspecified sysv on an ncr machine defaults to svr4.2.
-  ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
-  i[3456]86-ncr-sysv* )
-    machine=ncr386 opsys=usg5-4-2
-  ;;
 
   ## Macintosh PowerPC
   powerpc*-*-linux-gnu* )
     machine=macppc opsys=gnu-linux
-  ;;
-
-  ## Workstations sold by MIPS
-  ## This is not necessarily all workstations using the MIPS processor -
-  ## Irises are produced by SGI, and DECstations by DEC.
-
-  mips-mips-bsd* )
-    machine=mips opsys=bsd4-3
-  ;;
-  mips-mips-* )
-    machine=mips opsys=usg5-2-2
-  ;;
-
-  ## NeXT
-  m68*-next-* | m68k-*-nextstep* )
-    machine=m68k opsys=nextstep
-  ;;
-
-  ## NEC EWS4800
-  mips-nec-sysv4*)
-  machine=ews4800 opsys=ux4800
-  ;;
-
-  ## Siemens Nixdorf
-  mips-siemens-sysv* | mips-sni-sysv*)
-    machine=mips-siemens opsys=usg5-4
-    NON_GNU_CC=/usr/ccs/bin/cc
-    NON_GNU_CPP=/usr/ccs/lib/cpp
   ;;
 
   ## Silicon Graphics machines
@@ -2689,7 +2536,6 @@ _ACEOF
     case "${canonical}" in
       i[3456]86-*-* )     machine=intel386 ;;
       amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
-      powerpcle* )      machine=powerpcle ;;
       powerpc* | rs6000* )  machine=ibmrs6000 ;;
       sparc* )		machine=sparc ;;
       * )		unported=yes ;;
@@ -2719,7 +2565,6 @@ _ACEOF
 		emacs_check_sunpro_c=yes
 		NON_GNU_CPP=/usr/ccs/lib/cpp
 		;;
-      *			  ) opsys=bsd4-2   ;;
     esac
     ## Watch out for a compiler that we know will not work.
     case "${canonical}" in
@@ -2733,24 +2578,11 @@ _ACEOF
       *) ;;
     esac
   ;;
-  sparc-*-nextstep* )
-    machine=sparc opsys=nextstep
-  ;;
-
-  ## Tandem Integrity S2
-  mips-tandem-sysv* )
-    machine=tandem-s2 opsys=usg5-3
-  ;;
 
   ## Vaxen.
   vax-dec-* )
     machine=vax
     case "${canonical}" in
-      *-bsd4.1* ) 					opsys=bsd4-1 ;;
-      *-bsd4.2* | *-ultrix[0-3].* | *-ultrix4.0* )	opsys=bsd4-2 ;;
-      *-bsd4.3* | *-ultrix* ) 				opsys=bsd4-3 ;;
-      *-sysv[01]* | *-sysvr[01]* ) 			opsys=usg5-0 ;;
-      *-sysv2* | *-sysvr2* )				opsys=usg5-2 ;;
       *-vms* ) 						opsys=vms ;;
       * ) 						unported=yes
     esac
@@ -2773,8 +2605,6 @@ _ACEOF
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
-      *-386bsd* )	        opsys=386bsd ;;
-      *-nextstep* )             opsys=nextstep ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
@@ -2787,13 +2617,6 @@ _ACEOF
   ## Mips Linux-based GNU system
   mips-*-linux-gnu* | mipsel-*-linux-gnu* )
     machine=mips opsys=gnu-linux
-  ;;
-
-  ## UXP/DS
-  sparc-fujitsu-sysv4* )
-    machine=sparc opsys=uxpds
-    NON_GNU_CPP=/usr/ccs/lib/cpp
-    RANLIB="ar -ts"
   ;;
 
   ## AMD x86-64 Linux-based GNU system
@@ -2820,13 +2643,6 @@ esac
 if test x"${opsys}" = x; then
   case "${canonical}" in
     *-gnu* )				opsys=gnu ;;
-    *-bsd4.[01] )			opsys=bsd4-1 ;;
-    *-bsd4.2 )				opsys=bsd4-2 ;;
-    *-bsd4.3 )				opsys=bsd4-3 ;;
-    *-sysv0 | *-sysvr0 )		opsys=usg5-0 ;;
-    *-sysv2 | *-sysvr2 )		opsys=usg5-2 ;;
-    *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
-    *-sysv3* | *-sysvr3* )		opsys=usg5-3 ;;
     *-sysv4.2uw* )			opsys=unixware ;;
     *-sysv5uw* )			opsys=unixware ;;
     *-sysv5OpenUNIX* )			opsys=unixware ;;
@@ -2848,30 +2664,6 @@ if test x"${opsys}" = x; then
     ;;
   esac
 fi
-
-### Tests for sytems that we beleive are obsolete and should be desupported.
-
-case "${machine}" in
-     pmax | hp9000s300 | ibm370aix | ncr386 | ews4800 | mips-siemens | powerpcle | tandem-s2 )
-     	  echo "The system that you are configuring on: ${canonical} is considered to be obsolete"
-	  echo "and it is planned to be desupported in the next version of Emacs"
-	  echo "Please email emacs-devel@gnu.org as soon as possible if this system is still in use."
-	  echo "The code is still functional, but you need to edit the 'configure' script and remove the"
-	  echo "exit 33 line.  After that you can run configure again and 'complete' the build."
-	  exit 33
-	  ;;
-esac
-
-case "${opsys}" in
-     bsd386 | bsdos2-1 |  bsdos2 | bsdos3 | bsdos4 | bsd4-1 | bsd4-2 | bsd4-3 | usg5-0 | usg5-2-2 | usg5-2 | usg5-3 | ultrix4-3 | 386bsd | hpux | hpux8 | hpux9 | hpux9shr | hpux10 | aix3-1 | aix3-2-5 | aix3-2 | aix4-1 | nextstep | ux4800 | uxpds | uxpv )
-     	  echo "The system that you are configuring on: ${canonical} is considered to be obsolete"
-	  echo "and it is planned to be desupported in the next version of Emacs"
-	  echo "Please email emacs-devel@gnu.org as soon as possible if this system is still in use."
-	  echo "The code is still functional, but you need to edit the 'configure' script and remove the"
-	  echo "'exit 44' line.  After that you can run 'configure' again and complete the build."
-	  exit 44
-	  ;;
-esac
 
 
 
@@ -16364,6 +16156,8 @@ done
 
 
 
+
+
 for ac_func in gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime setsid \
@@ -16372,7 +16166,8 @@ utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
-memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign
+memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
+cfmakeraw cfsetspeed
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -18979,11 +18774,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -19023,11 +18820,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }

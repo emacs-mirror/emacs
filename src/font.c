@@ -1444,7 +1444,6 @@ font_parse_fcname (name, font)
 		{
 		  /* KEY=VAL pairs  */
 		  Lisp_Object key;
-		  char *keyhead = p;
 		  int prop;
 
 		  if (q - p == 10 && memcmp (p + 1, "pixelsize", 9) == 0)
@@ -1480,8 +1479,8 @@ font_parse_fcname (name, font)
 	{
 	  if (isdigit (*p))
 	    {
-	      char *r;
 	      int size_found = 1;
+
 	      for (q = p + 1; *q && *q != ' '; q++)
 		if (! isdigit (*q))
 		  {
@@ -2166,8 +2165,7 @@ font_prepare_composition (cmp, f)
 static unsigned font_score P_ ((Lisp_Object, Lisp_Object *));
 static int font_compare P_ ((const void *, const void *));
 static Lisp_Object font_sort_entites P_ ((Lisp_Object, Lisp_Object,
-					  Lisp_Object, Lisp_Object,
-					  int));
+					  Lisp_Object, int));
 
 /* We sort fonts by scoring each of them against a specified
    font-spec.  The score value is 32 bit (`unsigned'), and the smaller
@@ -2212,8 +2210,7 @@ font_score (entity, spec_prop)
 
   /* Score the size.  Maximum difference is 127.  */
   i = FONT_SIZE_INDEX;
-  if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i])
-      && XINT (AREF (entity, i)) > 0)
+  if (! NILP (spec_prop[i]) && XINT (AREF (entity, i)) > 0)
     {
       /* We use the higher 6-bit for the actual size difference.  The
 	 lowest bit is set if the DPI is different.  */
@@ -2253,15 +2250,14 @@ struct font_sort_data
 /* Sort font-entities in vector VEC by closeness to font-spec PREFER.
    If PREFER specifies a point-size, calculate the corresponding
    pixel-size from QCdpi property of PREFER or from the Y-resolution
-   of FRAME before sorting.  If SPEC is not nil, it is a font-spec to
-   get the font-entities in VEC.
+   of FRAME before sorting.
 
    If BEST-ONLY is nonzero, return the best matching entity.  Otherwise,
    return the sorted VEC.  */
 
 static Lisp_Object
-font_sort_entites (vec, prefer, frame, spec, best_only)
-     Lisp_Object vec, prefer, frame, spec;
+font_sort_entites (vec, prefer, frame, best_only)
+     Lisp_Object vec, prefer, frame;
      int best_only;
 {
   Lisp_Object prefer_prop[FONT_SPEC_MAX];
@@ -2278,22 +2274,8 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
   if (len <= 1)
     return best_only ? AREF (vec, 0) : vec;
 
-  for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
+  for (i = FONT_WEIGHT_INDEX; i <= FONT_DPI_INDEX; i++)
     prefer_prop[i] = AREF (prefer, i);
-
-  if (! NILP (spec))
-    {
-      /* A font driver may return a font that has a property value
-	 different from the value specified in SPEC if the driver
-	 thinks they are the same.  That happens, for instance, such a
-	 generic family name as "serif" is specified.  So, to ignore
-	 such a difference, for all properties specified in SPEC, set
-	 the corresponding properties in PREFER_PROP to nil.  */
-      for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
-	if (! NILP (AREF (spec, i)))
-	  prefer_prop[i] = Qnil;
-    }
-
   if (FLOATP (prefer_prop[FONT_SIZE_INDEX]))
     prefer_prop[FONT_SIZE_INDEX]
       = make_number (font_pixel_size (XFRAME (frame), prefer));
@@ -2327,7 +2309,7 @@ font_sort_entites (vec, prefer, frame, spec, best_only)
 	    break;
 	}
     }
-  if (NILP (best_entity))
+  if (! best_only)
     {
       qsort (data, len, sizeof *data, font_compare);
       for (i = 0; i < len; i++)
@@ -2547,7 +2529,7 @@ font_delete_unmatched (list, spec, size)
 	    && ((XINT (AREF (spec, prop)) >> 8)
 		!= (XINT (AREF (entity, prop)) >> 8)))
 	  prop = FONT_SPEC_MAX;
-      if (prop++ <= FONT_SIZE_INDEX
+      if (prop < FONT_SPEC_MAX
 	  && size
 	  && XINT (AREF (entity, FONT_SIZE_INDEX)) > 0)
 	{
@@ -2558,6 +2540,17 @@ font_delete_unmatched (list, spec, size)
 		  : diff > FONT_PIXEL_SIZE_QUANTUM))
 	    prop = FONT_SPEC_MAX;
 	}
+      if (prop < FONT_SPEC_MAX
+	  && INTEGERP (AREF (spec, FONT_DPI_INDEX))
+	  && INTEGERP (AREF (entity, FONT_DPI_INDEX))
+	  && ! EQ (AREF (spec, FONT_DPI_INDEX), AREF (entity, FONT_DPI_INDEX)))
+	prop = FONT_SPEC_MAX;
+      if (prop < FONT_SPEC_MAX
+	  && INTEGERP (AREF (spec, FONT_AVGWIDTH_INDEX))
+	  && INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
+	  && ! EQ (AREF (spec, FONT_AVGWIDTH_INDEX),
+		   AREF (entity, FONT_AVGWIDTH_INDEX)))
+	prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX)
 	val = Fcons (entity, val);
     }
@@ -2959,9 +2952,9 @@ font_find_for_lface (f, attrs, spec, c)
 {
   Lisp_Object work;
   Lisp_Object frame, entities, val, props[FONT_REGISTRY_INDEX + 1] ;
-  Lisp_Object size, foundry[3], *family, registry[3];
+  Lisp_Object size, foundry[3], *family, registry[3], adstyle[3];
   int pixel_size;
-  int i, j, k, result;
+  int i, j, k, l, result;
 
   registry[0] = AREF (spec, FONT_REGISTRY_INDEX);
   if (NILP (registry[0]))
@@ -3016,6 +3009,26 @@ font_find_for_lface (f, attrs, spec, c)
   else
     foundry[0] = Qnil, foundry[1] = null_vector;
 
+  adstyle[0] = AREF (work, FONT_ADSTYLE_INDEX);
+  if (! NILP (adstyle[0]))
+    adstyle[1] = null_vector;
+  else if (FONTP (attrs[LFACE_FONT_INDEX]))
+    {
+      Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
+
+      if (! NILP (AREF (face_font, FONT_ADSTYLE_INDEX)))
+	{
+	  adstyle[0] = AREF (face_font, FONT_ADSTYLE_INDEX);
+	  adstyle[1] = Qnil;
+	  adstyle[2] = null_vector;
+	}
+      else
+	adstyle[0] = Qnil, adstyle[1] = null_vector;
+    }
+  else
+    adstyle[0] = Qnil, adstyle[1] = null_vector;
+
+
   val = AREF (work, FONT_FAMILY_INDEX);
   if (NILP (val) && STRINGP (attrs[LFACE_FAMILY_INDEX]))
     val = font_intern_prop (SDATA (attrs[LFACE_FAMILY_INDEX]),
@@ -3060,9 +3073,13 @@ font_find_for_lface (f, attrs, spec, c)
 	  for (k = 0; SYMBOLP (registry[k]); k++)
 	    {
 	      ASET (work, FONT_REGISTRY_INDEX, registry[k]);
-	      entities = font_list_entities (frame, work);
-	      if (ASIZE (entities) > 0)
-		goto found;
+	      for (l = 0; SYMBOLP (adstyle[l]); l++)
+		{
+		  ASET (work, FONT_ADSTYLE_INDEX, adstyle[l]);
+		  entities = font_list_entities (frame, work);
+		  if (ASIZE (entities) > 0)
+		    goto found;
+		}
 	    }
 	}
     }
@@ -3095,7 +3112,7 @@ font_find_for_lface (f, attrs, spec, c)
       if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
 	FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
       ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
-      entities = font_sort_entites (entities, prefer, frame, work, c < 0);
+      entities = font_sort_entites (entities, prefer, frame, c < 0);
     }
   if (c < 0)
     return entities;
@@ -3733,7 +3750,8 @@ The return value is a list of the form
 \(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
 
 where FAMILY, HEIGHT, WEIGHT, SLANT, and WIDTH are face attribute values
-compatible with `set-face-attribute'.
+compatible with `set-face-attribute'.  Some of these key-attribute pairs
+may be omitted from the list if they are not specified by FONT.
 
 The optional argument FRAME specifies the frame that the face attributes
 are to be displayed on.  If omitted, the selected frame is used.  */)
@@ -3743,6 +3761,7 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
   struct frame *f;
   Lisp_Object plist[10];
   Lisp_Object val;
+  int n = 0;
 
   if (NILP (frame))
     frame = selected_frame;
@@ -3762,36 +3781,49 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
   else if (! FONTP (font))
     signal_error ("Invalid font object", font);
 
-  plist[0] = QCfamily;
   val = AREF (font, FONT_FAMILY_INDEX);
-  plist[1] = NILP (val) ? Qnil : SYMBOL_NAME (val);
+  if (! NILP (val))
+    {
+      plist[n++] = QCfamily;
+      plist[n++] = SYMBOL_NAME (val);
+    }
 
-  plist[2] = QCheight;
   val = AREF (font, FONT_SIZE_INDEX);
   if (INTEGERP (val))
     {
       Lisp_Object font_dpi = AREF (font, FONT_DPI_INDEX);
       int dpi = INTEGERP (font_dpi) ? XINT (font_dpi) : f->resy;
-      plist[3] = make_number (10 * PIXEL_TO_POINT (XINT (val), dpi));
+      plist[n++] = QCheight;
+      plist[n++] = make_number (PIXEL_TO_POINT (XINT (val) * 10, dpi));
     }
   else if (FLOATP (val))
-    plist[3] = make_number (10 * (int) XFLOAT_DATA (val));
-  else
-    plist[3] = Qnil;
+    {
+      plist[n++] = QCheight;
+      plist[n++] = make_number (10 * (int) XFLOAT_DATA (val));
+    }
 
-  plist[4] = QCweight;
   val = FONT_WEIGHT_FOR_FACE (font);
-  plist[5] = NILP (val) ? Qnormal : val;
+  if (! NILP (val))
+    {
+      plist[n++] = QCweight;
+      plist[n++] = val;
+    }
 
-  plist[6] = QCslant;
   val = FONT_SLANT_FOR_FACE (font);
-  plist[7] = NILP (val) ? Qnormal : val;
+  if (! NILP (val))
+    {
+      plist[n++] = QCslant;
+      plist[n++] = val;
+    }
 
-  plist[8] = QCwidth;
   val = FONT_WIDTH_FOR_FACE (font);
-  plist[9] = NILP (val) ? Qnormal : val;
+  if (! NILP (val))
+    {
+      plist[n++] = QCwidth;
+      plist[n++] = val;
+    }
 
-  return Flist (10, plist);
+  return Flist (n, plist);
 }
 
 #endif
@@ -3847,7 +3879,7 @@ how close they are to PREFER.  */)
     return Fcons (AREF (vec, 0), Qnil);
 
   if (! NILP (prefer))
-    vec = font_sort_entites (vec, prefer, frame, font_spec, 0);
+    vec = font_sort_entites (vec, prefer, frame, 0);
 
   list = tail = Fcons (AREF (vec, 0), Qnil);
   if (n == 0 || n > len)

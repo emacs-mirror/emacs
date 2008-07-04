@@ -2649,7 +2649,7 @@ More specifically if `debug-on-error' is set, then it does not catch any signal.
   "Run BODY and demote any errors to simple messages.
 If `debug-on-error' is non-nil, run BODY without catching its errors.
 This is to be used around code which is not expected to signal an error
-but which should be robust in the unexpected case that an error is signalled."
+but which should be robust in the unexpected case that an error is signaled."
   (declare (debug t) (indent 0))
   (let ((err (make-symbol "err")))
     `(condition-case-no-debug ,err

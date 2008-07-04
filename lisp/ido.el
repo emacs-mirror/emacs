@@ -225,7 +225,7 @@
 ;; to show you more of the matching files (depending on the setting
 ;; of the variables `resize-mini-windows' and `max-mini-window-height').
 ;; If you want ido to behave differently from the default minibuffer
-;; resizing behaviour, set the variable `ido-max-window-height'.
+;; resizing behavior, set the variable `ido-max-window-height'.
 ;;
 ;; Also, to improve the responsiveness of ido, the maximum number of
 ;; matching items is limited to 12, but you can increase or removed
@@ -272,7 +272,7 @@
 ;; To use ido for all buffer and file selections in Emacs, customize the
 ;; variable `ido-everywhere'.
 
-;; Using ido-like behaviour in other lisp packages
+;; Using ido-like behavior in other lisp packages
 ;; -----------------------------------------------
 
 ;; If you don't want to rely on the `ido-everywhere' functionality,
@@ -2267,7 +2267,7 @@ If cursor is not at the end of the user input, move to end of input."
 	   (or ido-use-url-at-point ido-use-filename-at-point))
       (let (fn d)
 	(require 'ffap)
-	;; Duplicate code from ffap-guesser as we want different behaviour for files and URLs.
+	;; Duplicate code from ffap-guesser as we want different behavior for files and URLs.
 	(cond
 	 ((with-no-warnings
 	    (and ido-use-url-at-point

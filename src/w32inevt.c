@@ -154,7 +154,7 @@ w32_kbd_mods_to_emacs (DWORD mods, WORD key)
   if (mods & SCROLLLOCK_ON)
     retval |= w32_key_to_modifier (VK_SCROLL);
 
-  /* Just in case someone wanted the original behaviour, make it
+  /* Just in case someone wanted the original behavior, make it
      optional by setting w32-capslock-is-shiftlock to t.  */
   if (NILP (Vw32_capslock_is_shiftlock)
       /* Keys that should _not_ be affected by CapsLock.  */

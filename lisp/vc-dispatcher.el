@@ -107,23 +107,8 @@
 
 ;; To do:
 ;;
-;; - vc-dir-kill-dir-status-process should not be specific to dir-status,
-;;   it should work for other async commands done through vc-do-command
-;;   as well,
-;;
 ;; - log buffers need font-locking.
 ;;
-;; - vc-dir needs mouse bindings.
-;;
-;; - vc-dir toolbar needs more icons.
-;;
-;; - vc-dir-menu-map-filter hook call needs to be moved to vc.el.
-;;
-
-(require 'ewoc)
-
-(eval-when-compile
-  (require 'cl))
 
 ;; General customization
 (defcustom vc-logentry-check-hook nil
@@ -157,7 +142,6 @@ preserve the setting."
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-log-fileset)
 (defvar vc-log-extra)
-(defvar vc-client-mode)
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
@@ -495,6 +479,8 @@ editing!"
 	     (run-hook-with-args 'mode-line-hook buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 
+(declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
+
 (defun vc-resynch-buffer (file &optional keep noquery)
   "If FILE is currently visited, resynch its buffer."
   (if (string= buffer-file-name file)
@@ -573,6 +559,8 @@ for `vc-log-after-operation-hook'."
 	(message "%s  Type C-c C-c when done" msg)
       (vc-finish-logentry (eq comment t)))))
 
+(declare-function vc-dir-move-to-goal-column "vc-dir" ())
+
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry.
 Use the contents of the current buffer as a check-in or registration
@@ -622,806 +610,62 @@ the buffer contents as a comment."
       (vc-dir-move-to-goal-column))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
-;; The ewoc-based vc-directory implementation
-
-(defcustom vc-dir-mode-hook nil
-  "Normal hook run by `vc-dir-mode'.
-See `run-hooks'."
-  :type 'hook
-  :group 'vc)
-
-;; Used to store information for the files displayed in the directory buffer.
-;; Each item displayed corresponds to one of these defstructs.
-(defstruct (vc-dir-fileinfo
-            (:copier nil)
-            (:type list)            ;So we can use `member' on lists of FIs.
-            (:constructor
-             ;; We could define it as an alias for `list'.
-	     vc-dir-create-fileinfo (name state &optional extra marked directory))
-            (:conc-name vc-dir-fileinfo->))
-  name                                  ;Keep it as first, for `member'.
-  state
-  ;; For storing client-mode specific information.
-  extra
-  marked
-  ;; To keep track of not updated files during a global refresh
-  needs-update
-  ;; To distinguish files and directories.
-  directory)
-
-;; Used to describe a dispatcher client mode.
-(defstruct (vc-client-object
-            (:copier nil)
-            (:constructor
-	     vc-create-client-object (name
-				      headers
-				      file-to-info
-				      file-to-state
-				      file-to-extra
-				      updater
-				      extra-menu))
-            (:conc-name vc-client-object->))
-  name
-  headers
-  file-to-info
-  file-to-state
-  file-to-extra
-  updater
-  extra-menu)
-
-(defvar vc-ewoc nil)
-(defvar vc-dir-process-buffer nil
-  "The buffer used for the asynchronous call that computes status.")
-
-(defun vc-dir-move-to-goal-column ()
-  ;; Used to keep the cursor on the file name column.
-  (beginning-of-line)
-  (unless (eolp)
-    ;; Must be in sync with vc-default-status-printer.
-    (forward-char 25)))
-
-(defun vc-dir-prepare-status-buffer (bname dir &optional create-new)
-  "Find a buffer named BNAME showing DIR, or create a new one."
-  (setq dir (expand-file-name dir))
-  (let*
-	 ;; Look for another buffer name BNAME visiting the same directory.
-	 ((buf (save-excursion
-		(unless create-new
-		  (dolist (buffer (buffer-list))
-		    (set-buffer buffer)
-		    (when (and (vc-dispatcher-browsing)
-			       (string= (expand-file-name default-directory) dir))
-		      (return buffer)))))))
-    (or buf
-        ;; Create a new buffer named BNAME.
-        (with-current-buffer (create-file-buffer bname)
-          (cd dir)
-          (vc-setup-buffer (current-buffer))
-          ;; Reset the vc-parent-buffer-name so that it does not appear
-          ;; in the mode-line.
-          (setq vc-parent-buffer-name nil)
-          (current-buffer)))))
-
-(defvar vc-dir-menu-map
-  (let ((map (make-sparse-keymap "VC-dir")))
-    (define-key map [quit]
-      '(menu-item "Quit" quit-window
-		  :help "Quit"))
-    (define-key map [kill]
-      '(menu-item "Kill Update Command" vc-dir-kill-dir-status-process
-		  :enable (vc-dir-busy)
-		  :help "Kill the command that updates the directory buffer"))
-    (define-key map [refresh]
-      '(menu-item "Refresh" vc-dir-refresh
-		  :enable (not (vc-dir-busy))
-		  :help "Refresh the contents of the directory buffer"))
-    ;; Movement.
-    (define-key map [sepmv] '("--"))
-    (define-key map [next-line]
-      '(menu-item "Next line" vc-dir-next-line
-		  :help "Go to the next line" :keys "n"))
-    (define-key map [previous-line]
-      '(menu-item "Previous line" vc-dir-previous-line
-		  :help "Go to the previous line"))
-    ;; Marking.
-    (define-key map [sepmrk] '("--"))
-    (define-key map [unmark-all]
-      '(menu-item "Unmark All" vc-dir-unmark-all-files
-		  :help "Unmark all files that are in the same state as the current file\
-\nWith prefix argument unmark all files"))
-    (define-key map [unmark-previous]
-      '(menu-item "Unmark previous " vc-dir-unmark-file-up
-		  :help "Move to the previous line and unmark the file"))
-
-    (define-key map [mark-all]
-      '(menu-item "Mark All" vc-dir-mark-all-files
-		  :help "Mark all files that are in the same state as the current file\
-\nWith prefix argument mark all files"))
-    (define-key map [unmark]
-      '(menu-item "Unmark" vc-dir-unmark
-		  :help "Unmark the current file or all files in the region"))
-
-    (define-key map [mark]
-      '(menu-item "Mark" vc-dir-mark
-		  :help "Mark the current file or all files in the region"))
-
-    (define-key map [sepopn] '("--"))
-    (define-key map [open-other]
-      '(menu-item "Open in other window" vc-dir-find-file-other-window
-		  :help "Find the file on the current line, in another window"))
-    (define-key map [open]
-      '(menu-item "Open file" vc-dir-find-file
-		  :help "Find the file on the current line"))
-    map)
-  "Menu for dispatcher status")
-
-;; This is used so that client modes can add mode-specific menu
-;; items to vc-dir-menu-map.
-(defun vc-dir-menu-map-filter (orig-binding)
-  (when (and (symbolp orig-binding) (fboundp orig-binding))
-    (setq orig-binding (indirect-function orig-binding)))
-  (let ((ext-binding
-         ;; This may be executed at load-time for tool-bar-local-item-from-menu
-         ;; but at that time vc-client-mode is not known (or even bound) yet.
-         (when (and (boundp 'vc-client-mode) vc-client-mode)
-           (funcall (vc-client-object->extra-menu vc-client-mode)))))
-    (if (null ext-binding)
-	orig-binding
-      (append orig-binding
-	      '("----")
-	      ext-binding))))
-
-(defvar vc-dir-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    ;; Marking.
-    (define-key map "m" 'vc-dir-mark)
-    (define-key map "M" 'vc-dir-mark-all-files)
-    (define-key map "u" 'vc-dir-unmark)
-    (define-key map "U" 'vc-dir-unmark-all-files)
-    (define-key map "\C-?" 'vc-dir-unmark-file-up)
-    (define-key map "\M-\C-?" 'vc-dir-unmark-all-files)
-    ;; Movement.
-    (define-key map "n" 'vc-dir-next-line)
-    (define-key map " " 'vc-dir-next-line)
-    (define-key map "\t" 'vc-dir-next-directory)
-    (define-key map "p" 'vc-dir-previous-line)
-    (define-key map [backtab] 'vc-dir-previous-directory)
-    ;;; Rebind paragraph-movement commands.
-    (define-key map "\M-}" 'vc-dir-next-directory)
-    (define-key map "\M-{" 'vc-dir-previous-directory)
-    (define-key map [C-down] 'vc-dir-next-directory)
-    (define-key map [C-up] 'vc-dir-previous-directory)
-    ;; The remainder.
-    (define-key map "f" 'vc-dir-find-file)
-    (define-key map "\C-m" 'vc-dir-find-file)
-    (define-key map "o" 'vc-dir-find-file-other-window)
-    (define-key map "q" 'quit-window)
-    (define-key map "g" 'vc-dir-refresh)
-    (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    (define-key map [down-mouse-3] 'vc-dir-menu)
-    (define-key map [mouse-2] 'vc-dir-toggle-mark)
-
-    ;; Hook up the menu.
-    (define-key map [menu-bar vc-dir-mode]
-      `(menu-item
-	;; This is used so that client modes can add mode-specific
-	;; menu items to vc-dir-menu-map.
-	"VC-dir" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
-    map)
-  "Keymap for directory buffer.")
-
-(defmacro vc-at-event (event &rest body)
-  "Evaluate `body' with point located at event-start of `event'.
-If `body' uses `event', it should be a variable,
- otherwise it will be evaluated twice."
-  (let ((posn (make-symbol "vc-at-event-posn")))
-    `(let ((,posn (event-start ,event)))
-       (save-excursion
-         (set-buffer (window-buffer (posn-window ,posn)))
-         (goto-char (posn-point ,posn))
-         ,@body))))
-
-(defun vc-dir-menu (e)
-  "Popup the dispatcher status menu."
-  (interactive "e")
-  (vc-at-event e (popup-menu vc-dir-menu-map e)))
-
-(defvar vc-dir-tool-bar-map
-  (let ((map (make-sparse-keymap)))
-    (tool-bar-local-item-from-menu 'vc-dir-find-file "open"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item "bookmark_add"
-			 'vc-dir-toggle-mark 'vc-dir-toggle-mark map
-			 :help "Toggle mark on current item")
-    (tool-bar-local-item-from-menu 'vc-dir-previous-line "left-arrow"
-				   map vc-dir-mode-map
-				   :rtl "right-arrow")
-    (tool-bar-local-item-from-menu 'vc-dir-next-line "right-arrow"
-				   map vc-dir-mode-map
-				   :rtl "left-arrow")
-    (tool-bar-local-item-from-menu 'vc-print-log "info"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'vc-dir-refresh "refresh"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'nonincremental-search-forward
-				   "search" map)
-    (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'quit-window "exit"
-				   map vc-dir-mode-map)
-    map))
-
-(defun vc-dir-node-directory (node)
-  ;; Compute the directory for NODE.
-  ;; If it's a directory node, get it from the the node.
-  (let ((data (ewoc-data node)))
-    (or (vc-dir-fileinfo->directory data)
-	;; Otherwise compute it from the file name.
-	(file-name-directory
-	 (expand-file-name
-	  (vc-dir-fileinfo->name data))))))
-
-(defun vc-dir-update (entries buffer &optional noinsert)
-  "Update BUFFER's ewoc from the list of ENTRIES.
-If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
-  ;; Add ENTRIES to the vc-dir buffer BUFFER.
-  (with-current-buffer buffer
-    ;; Insert the entries sorted by name into the ewoc.
-    ;; We assume the ewoc is sorted too, which should be the
-    ;; case if we always add entries with vc-dir-update.
-    (setq entries
-	  ;; Sort: first files and then subdirectories.
-	  ;; XXX: this is VERY inefficient, it computes the directory
-	  ;; names too many times
-	  (sort entries
-		(lambda (entry1 entry2)
-		  (let ((dir1 (file-name-directory (expand-file-name (car entry1))))
-			(dir2 (file-name-directory (expand-file-name (car entry2)))))
-		    (cond
-		     ((string< dir1 dir2) t)
-		     ((not (string= dir1 dir2)) nil)
-		     ((string< (car entry1) (car entry2))))))))
-    ;; Insert directory entries in the right places.
-    (let ((entry (car entries))
-	  (node (ewoc-nth vc-ewoc 0)))
-      ;; Insert . if it is not present.
-      (unless node
-	(let ((rd (file-relative-name default-directory)))
-	  (ewoc-enter-last
-	   vc-ewoc (vc-dir-create-fileinfo
-		    rd nil nil nil (expand-file-name default-directory))))
-	(setq node (ewoc-nth vc-ewoc 0)))
-      
-      (while (and entry node)
-	(let* ((entryfile (car entry))
-	       (entrydir (file-name-directory (expand-file-name entryfile)))
-	       (nodedir (vc-dir-node-directory node)))
-	  (cond
-	   ;; First try to find the directory.
-	   ((string-lessp nodedir entrydir)
-	    (setq node (ewoc-next vc-ewoc node)))
-	   ((string-equal nodedir entrydir)
-	    ;; Found the directory, find the place for the file name.
-	    (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
-	      (cond
-	       ((string-lessp nodefile entryfile)
-		(setq node (ewoc-next vc-ewoc node)))
-	       ((string-equal nodefile entryfile)
-		(setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		(ewoc-invalidate vc-ewoc node)
-		(setq entries (cdr entries)) 
-		(setq entry (car entries))
-		(setq node (ewoc-next vc-ewoc node)))
-	       (t
-		(ewoc-enter-before vc-ewoc node
-				   (apply 'vc-dir-create-fileinfo entry))
-		(setq entries (cdr entries))
-		(setq entry (car entries))))))
-	   (t
-	    ;; We might need to insert a directory node if the
-	    ;; previous node was in a different directory.
-	    (let* ((rd (file-relative-name entrydir))
-		   (prev-node (ewoc-prev vc-ewoc node))
-		   (prev-dir (vc-dir-node-directory prev-node)))
-	      (unless (string-equal entrydir prev-dir)
-		(ewoc-enter-before
-		 vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
-	    ;; Now insert the node itself.
-	    (ewoc-enter-before vc-ewoc node
-			       (apply 'vc-dir-create-fileinfo entry))
-	    (setq entries (cdr entries) entry (car entries))))))
-      ;; We're past the last node, all remaining entries go to the end.
-      (unless (or node noinsert)
-	(let ((lastdir (vc-dir-node-directory (ewoc-nth vc-ewoc -1))))
-	  (dolist (entry entries)
-	    (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
-	      ;; Insert a directory node if needed.
-	      (unless (string-equal lastdir entrydir)
-		(setq lastdir entrydir)
-		(let ((rd (file-relative-name entrydir)))
-		  (ewoc-enter-last
-		   vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
-	      ;; Now insert the node itself.
-	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo entry)))))))))
-
-(defun vc-dir-busy ()
-  (and (buffer-live-p vc-dir-process-buffer)
-       (get-buffer-process vc-dir-process-buffer)))
-
-(defun vc-dir-kill-dir-status-process ()
-  "Kill the temporary buffer and associated process."
-  (interactive)
-  (when (buffer-live-p vc-dir-process-buffer)
-    (let ((proc (get-buffer-process vc-dir-process-buffer)))
-      (when proc (delete-process proc))
-      (setq vc-dir-process-buffer nil)
-      (setq mode-line-process nil))))
-
-(defun vc-dir-kill-query ()
-  ;; Make sure that when the status buffer is killed the update
-  ;; process running in background is also killed.
-  (if (vc-dir-busy)
-    (when (y-or-n-p "Status update process running, really kill status buffer?")
-      (vc-dir-kill-dir-status-process)
-      t)
-    t))
-
-(defun vc-dir-next-line (arg)
-  "Go to the next line.
-If a prefix argument is given, move by that many lines."
-  (interactive "p")
-  (with-no-warnings
-    (ewoc-goto-next vc-ewoc arg)
-    (vc-dir-move-to-goal-column)))
-
-(defun vc-dir-previous-line (arg)
-  "Go to the previous line.
-If a prefix argument is given, move by that many lines."
-  (interactive "p")
-  (ewoc-goto-prev vc-ewoc arg)
-  (vc-dir-move-to-goal-column))
-
-(defun vc-dir-next-directory ()
-  "Go to the next directory."
-  (interactive)
-  (let ((orig (point)))
-    (if
-	(catch 'foundit
-	  (while t
-	    (let* ((next (ewoc-next vc-ewoc (ewoc-locate vc-ewoc))))
-	      (cond ((not next)
-		     (throw 'foundit t))
-		    (t
-		     (progn
-		       (ewoc-goto-node vc-ewoc next)
-		       (vc-dir-move-to-goal-column)
-		       (if (vc-dir-fileinfo->directory (ewoc-data next))
-			   (throw 'foundit nil))))))))
-	(goto-char orig))))
-
-(defun vc-dir-previous-directory ()
-  "Go to the previous directory."
-  (interactive)
-  (let ((orig (point)))
-    (if
-	(catch 'foundit
-	  (while t
-	    (let* ((prev (ewoc-prev vc-ewoc (ewoc-locate vc-ewoc))))
-	      (cond ((not prev)
-		     (throw 'foundit t))
-		    (t
-		     (progn
-		       (ewoc-goto-node vc-ewoc prev)
-		       (vc-dir-move-to-goal-column)
-		       (if (vc-dir-fileinfo->directory (ewoc-data prev))
-			   (throw 'foundit nil))))))))
-	(goto-char orig))))
-
-(defun vc-dir-mark-unmark (mark-unmark-function)
-  (if (use-region-p)
-      (let ((firstl (line-number-at-pos (region-beginning)))
-	    (lastl (line-number-at-pos (region-end))))
-	(save-excursion
-	  (goto-char (region-beginning))
-	  (while (<= (line-number-at-pos) lastl)
-	    (funcall mark-unmark-function))))
-    (funcall mark-unmark-function)))
-
-(defun vc-string-prefix-p (prefix string)
-  (let ((lpref (length prefix)))
-    (and (>= (length string) lpref)
-	 (eq t (compare-strings prefix nil nil string nil lpref)))))
-
-(defun vc-dir-parent-marked-p (arg)
-  ;; Return nil if none of the parent directories of arg is marked.
-  (let* ((argdir (vc-dir-node-directory arg))
-	 (arglen (length argdir))
-	 (crt arg)
-	 data dir)
-    ;; Go through the predecessors, checking if any directory that is
-    ;; a parent is marked.
-    (while (setq crt (ewoc-prev vc-ewoc crt))
-      (setq data (ewoc-data crt))
-      (setq dir (vc-dir-node-directory crt))
-      (when (and (vc-dir-fileinfo->directory data)
-		 (vc-string-prefix-p dir argdir))
-	(when (vc-dir-fileinfo->marked data)
-	  (error "Cannot mark `%s', parent directory `%s' marked"
-		 (vc-dir-fileinfo->name (ewoc-data arg))
-		 (vc-dir-fileinfo->name data)))))
-    nil))
-
-(defun vc-dir-children-marked-p (arg)
-  ;; Return nil if none of the children of arg is marked.
-  (let* ((argdir-re (concat "\\`" (regexp-quote (vc-dir-node-directory arg))))
-	 (is-child t)
-	 (crt arg)
-	 data dir)
-    (while (and is-child (setq crt (ewoc-next vc-ewoc crt)))
-      (setq data (ewoc-data crt))
-      (setq dir (vc-dir-node-directory crt))
-      (if (string-match argdir-re dir)
-	  (when (vc-dir-fileinfo->marked data)
-	    (error "Cannot mark `%s', child `%s' marked"
-		   (vc-dir-fileinfo->name (ewoc-data arg))
-		   (vc-dir-fileinfo->name data)))
-	;; We are done, we got to an entry that is not a child of `arg'.
-	(setq is-child nil)))
-    nil))
-
-(defun vc-dir-mark-file (&optional arg)
-  ;; Mark ARG or the current file and move to the next line.
-  (let* ((crt (or arg (ewoc-locate vc-ewoc)))
-         (file (ewoc-data crt))
-	 (isdir (vc-dir-fileinfo->directory file)))
-    (when (or (and isdir (not (vc-dir-children-marked-p crt)))
-	      (and (not isdir) (not (vc-dir-parent-marked-p crt))))
-      (setf (vc-dir-fileinfo->marked file) t)
-      (ewoc-invalidate vc-ewoc crt)
-      (unless (or arg (mouse-event-p last-command-event))
-	(vc-dir-next-line 1)))))
-
-(defun vc-dir-mark ()
-  "Mark the current file or all files in the region.
-If the region is active, mark all the files in the region.
-Otherwise mark the file on the current line and move to the next
-line."
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-mark-file))
-
-(defun vc-dir-mark-all-files (arg)
-  "Mark all files with the same state as the current one.
-With a prefix argument mark all files.
-If the current entry is a directory, mark all child files.
-
-The commands operate on files that are on the same state.
-This command is intended to make it easy to select all files that
-share the same state."
-  (interactive "P")
-  (if arg
-      ;; Mark all files.
-      (progn
-	;; First check that no directory is marked, we can't mark
-	;; files in that case.
-	(ewoc-map
-	 (lambda (filearg)
-	   (when (and (vc-dir-fileinfo->directory filearg)
-		      (vc-dir-fileinfo->marked filearg))
-	     (error "Cannot mark all files, directory `%s' marked"
-		    (vc-dir-fileinfo->name filearg))))
-	 vc-ewoc)
-	(ewoc-map
-	 (lambda (filearg)
-	   (unless (vc-dir-fileinfo->marked filearg)
-	     (setf (vc-dir-fileinfo->marked filearg) t)
-	     t))
-	 vc-ewoc))
-    (let ((data (ewoc-data (ewoc-locate vc-ewoc))))
-      (if (vc-dir-fileinfo->directory data)
-	  ;; It's a directory, mark child files.
-	  (let ((crt (ewoc-locate vc-ewoc)))
-	    (unless (vc-dir-children-marked-p crt)
-	      (while (setq crt (ewoc-next vc-ewoc crt))
-		(let ((crt-data (ewoc-data crt)))
-		  (unless (vc-dir-fileinfo->directory crt-data)
-		    (setf (vc-dir-fileinfo->marked crt-data) t)
-		    (ewoc-invalidate vc-ewoc crt))))))
-	;; It's a file
-	(let ((state (vc-dir-fileinfo->state data))
-	      (crt (ewoc-nth vc-ewoc 0)))
-	  (while crt
-	    (let ((crt-data (ewoc-data crt)))
-	      (when (and (not (vc-dir-fileinfo->marked crt-data))
-			 (eq (vc-dir-fileinfo->state crt-data) state)
-			 (not (vc-dir-fileinfo->directory crt-data)))
-		(vc-dir-mark-file crt)))
-	    (setq crt (ewoc-next vc-ewoc crt))))))))
-
-(defun vc-dir-unmark-file ()
-  ;; Unmark the current file and move to the next line.
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (setf (vc-dir-fileinfo->marked file) nil)
-    (ewoc-invalidate vc-ewoc crt)
-    (unless (mouse-event-p last-command-event)
-      (vc-dir-next-line 1))))
-
-(defun vc-dir-unmark ()
-  "Unmark the current file or all files in the region.
-If the region is active, unmark all the files in the region.
-Otherwise mark the file on the current line and move to the next
-line."
-  (interactive)
-  (vc-dir-mark-unmark 'vc-dir-unmark-file))
-
-(defun vc-dir-unmark-file-up ()
-  "Move to the previous line and unmark the file."
-  (interactive)
-  ;; If we're on the first line, we won't move up, but we will still
-  ;; remove the mark.  This seems a bit odd but it is what buffer-menu
-  ;; does.
-  (let* ((prev (ewoc-goto-prev vc-ewoc 1))
-	 (file (ewoc-data prev)))
-    (setf (vc-dir-fileinfo->marked file) nil)
-    (ewoc-invalidate vc-ewoc prev)
-    (vc-dir-move-to-goal-column)))
-
-(defun vc-dir-unmark-all-files (arg)
-  "Unmark all files with the same state as the current one.
-With a prefix argument unmark all files.
-If the current entry is a directory, unmark all the child files.
-
-The commands operate on files that are on the same state.
-This command is intended to make it easy to deselect all files
-that share the same state."
-  (interactive "P")
-  (if arg
-      (ewoc-map
-       (lambda (filearg)
-	 (when (vc-dir-fileinfo->marked filearg)
-	   (setf (vc-dir-fileinfo->marked filearg) nil)
-	   t))
-       vc-ewoc)
-    (let* ((crt (ewoc-locate vc-ewoc))
-	   (data (ewoc-data crt)))
-      (if (vc-dir-fileinfo->directory data)
-	  ;; It's a directory, unmark child files.
-	  (while (setq crt (ewoc-next vc-ewoc crt))
-	    (let ((crt-data (ewoc-data crt)))
-	      (unless (vc-dir-fileinfo->directory crt-data)
-		(setf (vc-dir-fileinfo->marked crt-data) nil)
-		(ewoc-invalidate vc-ewoc crt))))
-	;; It's a file
-	(let ((crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
-	  (ewoc-map
-	   (lambda (filearg)
-	     (when (and (vc-dir-fileinfo->marked filearg)
-			(eq (vc-dir-fileinfo->state filearg) crt-state))
-	       (setf (vc-dir-fileinfo->marked filearg) nil)
-	       t))
-	   vc-ewoc))))))
-
-(defun vc-dir-toggle-mark-file ()
-  (let* ((crt (ewoc-locate vc-ewoc))
-         (file (ewoc-data crt)))
-    (if (vc-dir-fileinfo->marked file)
-	(vc-dir-unmark-file)
-      (vc-dir-mark-file))))
-
-(defun vc-dir-toggle-mark (e)
-  (interactive "e")
-  (vc-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
-
-(defun vc-dir-delete-file ()
-  "Delete the marked files, or the current file if no marks."
-  (interactive)
-  (mapc 'vc-delete-file (or (vc-dir-marked-files)
-                            (list (vc-dir-current-file)))))
-
-(defun vc-dir-find-file ()
-  "Find the file on the current line."
-  (interactive)
-  (find-file (vc-dir-current-file)))
-
-(defun vc-dir-find-file-other-window ()
-  "Find the file on the current line, in another window."
-  (interactive)
-  (find-file-other-window (vc-dir-current-file)))
-
-(defun vc-dir-current-file ()
-  (let ((node (ewoc-locate vc-ewoc)))
-    (unless node
-      (error "No file available."))
-    (expand-file-name (vc-dir-fileinfo->name (ewoc-data node)))))
-
-(defun vc-dir-marked-files ()
-  "Return the list of marked files."
-  (mapcar
-   (lambda (elem) (expand-file-name (vc-dir-fileinfo->name elem)))
-   (ewoc-collect vc-ewoc 'vc-dir-fileinfo->marked)))
-
-(defun vc-dir-marked-only-files ()
-  "Return the list of marked files, for marked directories return child files."
-  (let ((crt (ewoc-nth vc-ewoc 0))
-	result)
-    (while crt
-      (let ((crt-data (ewoc-data crt)))
-	(if (vc-dir-fileinfo->marked crt-data)
-	    ;; FIXME: use vc-dir-child-files here instead of duplicating it.
-	    (if (vc-dir-fileinfo->directory crt-data)
-		(let* ((dir (vc-dir-fileinfo->directory crt-data))
-		       (dirlen (length dir))
-		       data)
-		  (while
-		      (and (setq crt (ewoc-next vc-ewoc crt))
-			   (vc-string-prefix-p dir
-                                               (progn
-                                                 (setq data (ewoc-data crt))
-                                                 (vc-dir-node-directory crt))))
-		    (unless (vc-dir-fileinfo->directory data)
-		      (push (expand-file-name (vc-dir-fileinfo->name data)) result))))
-	      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result)
-	      (setq crt (ewoc-next vc-ewoc crt)))
-	  (setq crt (ewoc-next vc-ewoc crt)))))
-    result))
-
-(defun vc-dir-child-files ()
-  "Return the list of child files for the current entry if it's a directory.
-If it is a file, return the file itself."
-  (let* ((crt (ewoc-locate vc-ewoc))
-	 (crt-data (ewoc-data crt))
-         result)
-    (if (vc-dir-fileinfo->directory crt-data)
-	(let* ((dir (vc-dir-fileinfo->directory crt-data))
-	       (dirlen (length dir))
-	       data)
-	  (while
-	      (and (setq crt (ewoc-next vc-ewoc crt))
-                   (vc-string-prefix-p dir (progn
-                                             (setq data (ewoc-data crt))
-                                             (vc-dir-node-directory crt))))
-	    (unless (vc-dir-fileinfo->directory data)
-	      (push (expand-file-name (vc-dir-fileinfo->name data)) result))))
-      (push (expand-file-name (vc-dir-fileinfo->name crt-data)) result))
-    result))
-
-(defun vc-dir-resynch-file (&optional fname)
-  "Update the entries for FILE in any directory buffers that list it."
-  (let ((file (or fname (expand-file-name buffer-file-name))))
-    (if (file-directory-p file)
-	;; FIXME: Maybe this should never happen? 
-        ;; FIXME: But it is useful to update the state of a directory
-	;; (more precisely the files in the directory) after some VC
-	;; operations.
-	nil
-      (let ((found-vc-dir-buf nil))
-	(save-excursion
-	  (dolist (status-buf (buffer-list))
-	    (set-buffer status-buf)
-	    ;; look for a vc-dir buffer that might show this file.
-	    (when (derived-mode-p 'vc-dir-mode)
-	      (setq found-vc-dir-buf t)
-	      (let ((ddir (expand-file-name default-directory)))
-		(when (vc-string-prefix-p ddir file)
-		  (let*
-                      ;; FIXME: Any reason we don't use file-relative-name?
-		      ((file-short (substring file (length ddir)))
-		       (state (funcall (vc-client-object->file-to-state
-                                        vc-client-mode)
-				 file))
-		       (extra (funcall (vc-client-object->file-to-extra
-                                        vc-client-mode)
-				 file))
-		       (entry
-			(list file-short state extra)))
-		    (vc-dir-update (list entry) status-buf))))))
-	  ;; We didn't find any vc-dir buffers, remove the hook, it is
-	  ;; not needed.
-	  (unless found-vc-dir-buf
-            (remove-hook 'after-save-hook 'vc-dir-resynch-file)))))))
-
-(defun vc-dir-mode (client-object)
-  "Major mode for dispatcher directory buffers.
-Marking/Unmarking key bindings and actions:
-m - marks a file/directory or if the region is active, mark all the files
-     in region.
-    Restrictions: - a file cannot be marked if any parent directory is marked
-                  - a directory cannot be marked if any child file or
-                    directory is marked
-u - marks a file/directory or if the region is active, unmark all the files
-     in region.
-M - if the cursor is on a file: mark all the files with the same state as
-      the current file
-  - if the cursor is on a directory: mark all child files
-  - with a prefix argument: mark all files
-U - if the cursor is on a file: unmark all the files with the same state
-      as the current file
-  - if the cursor is on a directory: unmark all child files
-  - with a prefix argument: unmark all files
-
-
-\\{vc-dir-mode-map}"
-  (setq mode-name (vc-client-object->name client-object))
-  (setq major-mode 'vc-dir-mode)
-  (setq buffer-read-only t)
-  (use-local-map vc-dir-mode-map)
-  (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map) vc-dir-tool-bar-map))
-  (set (make-local-variable 'vc-client-mode) client-object)
-  (let ((buffer-read-only nil))
-    (erase-buffer)
-    (set (make-local-variable 'vc-dir-process-buffer) nil)
-    (set (make-local-variable 'vc-ewoc)
-	 (ewoc-create (vc-client-object->file-to-info client-object)
-		      (vc-client-object->headers client-object)))
-    (add-hook 'after-save-hook 'vc-dir-resynch-file)
-    ;; Make sure that if the directory buffer is killed, the update
-    ;; process running in the background is also killed.
-    (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
-    (funcall (vc-client-object->updater client-object)))
-  (run-hooks 'vc-dir-mode-hook))
-
-(put 'vc-dir-mode 'mode-class 'special)
-
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
   (derived-mode-p 'vc-dir-mode))
 
-(defun vc-dispatcher-in-fileset-p (fileset)
-  (let ((member nil))
-    (while (and (not member) fileset)
-      (let ((elem (pop fileset)))
-        (if (if (file-directory-p elem)
-                (eq t (compare-strings buffer-file-name nil (length elem)
-                                       elem nil nil))
-              (eq (current-buffer) (get-file-buffer elem)))
-            (setq member t))))
-    member))
+;; These are unused.
+;; (defun vc-dispatcher-in-fileset-p (fileset)
+;;   (let ((member nil))
+;;     (while (and (not member) fileset)
+;;       (let ((elem (pop fileset)))
+;;         (if (if (file-directory-p elem)
+;;                 (eq t (compare-strings buffer-file-name nil (length elem)
+;;                                        elem nil nil))
+;;               (eq (current-buffer) (get-file-buffer elem)))
+;;             (setq member t))))
+;;     member))
 
-(defun vc-dispatcher-selection-set (&optional observer)
-  "Deduce a set of files to which to apply an operation.  Return a cons
-cell (SELECTION . FILESET), where SELECTION is what the user chose
-and FILES is the flist with any directories replaced by the listed files
-within them.
+;; (defun vc-dispatcher-selection-set (&optional observer)
+;;   "Deduce a set of files to which to apply an operation.  Return a cons
+;; cell (SELECTION . FILESET), where SELECTION is what the user chose
+;; and FILES is the flist with any directories replaced by the listed files
+;; within them.
 
-If we're in a directory display, the fileset is the list of marked files (if
-there is one) else the file on the current line.  If not in a directory
-display, but the current buffer visits a file, the fileset is a singleton
-containing that file.  Otherwise, throw an error."
-  (let ((selection
-         (cond
-          ;; Browsing with vc-dir
-          ((vc-dispatcher-browsing)
-	   ;; If no files are marked, temporarily mark current file
-	   ;; and choose on that basis (so we get subordinate files)
-	   (if (not (vc-dir-marked-files))
-		 (prog2
-		   (vc-dir-mark-file)
-		   (cons (vc-dir-marked-files) (vc-dir-marked-only-files))
-		   (vc-dir-unmark-all-files t))
-	     (cons (vc-dir-marked-files) (vc-dir-marked-only-files))))
-          ;; Visiting an eligible file
-          ((buffer-file-name)
-           (cons (list buffer-file-name) (list buffer-file-name)))
-          ;; No eligible file -- if there's a parent buffer, deduce from there
-          ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
-                                     (with-current-buffer vc-parent-buffer
-                                       (vc-dispatcher-browsing))))
-           (with-current-buffer vc-parent-buffer
-             (vc-dispatcher-selection-set)))
-          ;; No good set here, throw error
-          (t (error "No fileset is available here")))))
-    ;; We assume, in order to avoid unpleasant surprises to the user,
-    ;; that a fileset is not in good shape to be handed to the user if the
-    ;; buffers visiting the fileset don't match the on-disk contents.
-    (unless observer
-      (save-some-buffers
-       nil (lambda () (vc-dispatcher-in-fileset-p (cdr selection)))))
-    selection))
+;; If we're in a directory display, the fileset is the list of marked files (if
+;; there is one) else the file on the current line.  If not in a directory
+;; display, but the current buffer visits a file, the fileset is a singleton
+;; containing that file.  Otherwise, throw an error."
+;;   (let ((selection
+;;          (cond
+;;           ;; Browsing with vc-dir
+;;           ((vc-dispatcher-browsing)
+;; 	   ;; If no files are marked, temporarily mark current file
+;; 	   ;; and choose on that basis (so we get subordinate files)
+;; 	   (if (not (vc-dir-marked-files))
+;; 		 (prog2
+;; 		   (vc-dir-mark-file)
+;; 		   (cons (vc-dir-marked-files) (vc-dir-marked-only-files))
+;; 		   (vc-dir-unmark-all-files t))
+;; 	     (cons (vc-dir-marked-files) (vc-dir-marked-only-files))))
+;;           ;; Visiting an eligible file
+;;           ((buffer-file-name)
+;;            (cons (list buffer-file-name) (list buffer-file-name)))
+;;           ;; No eligible file -- if there's a parent buffer, deduce from there
+;;           ((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+;;                                      (with-current-buffer vc-parent-buffer
+;;                                        (vc-dispatcher-browsing))))
+;;            (with-current-buffer vc-parent-buffer
+;;              (vc-dispatcher-selection-set)))
+;;           ;; No good set here, throw error
+;;           (t (error "No fileset is available here")))))
+;;     ;; We assume, in order to avoid unpleasant surprises to the user,
+;;     ;; that a fileset is not in good shape to be handed to the user if the
+;;     ;; buffers visiting the fileset don't match the on-disk contents.
+;;     (unless observer
+;;       (save-some-buffers
+;;        nil (lambda () (vc-dispatcher-in-fileset-p (cdr selection)))))
+;;     selection))
 
 (provide 'vc-dispatcher)
 

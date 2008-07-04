@@ -109,7 +109,7 @@
 
 ;; (By default, WoMan will automatically define the dired keys "W" and
 ;; "w" when it loads, but only if they are not already defined.  This
-;; behaviour is controlled by the user option `woman-dired-keys'.
+;; behavior is controlled by the user option `woman-dired-keys'.
 ;; Note that the `dired-x' (dired extra) package binds
 ;; `dired-copy-filename-as-kill' to the key "w" (as pointed out by Jim
 ;; Davidson), although "W" appears to be really unused.  The `dired-x'
@@ -234,7 +234,7 @@
 ;; The *WoMan-Log* buffer
 ;; ======================
 
-;; This is modelled on the byte-compiler.  It logs all files formatted
+;; This is modeled on the byte-compiler.  It logs all files formatted
 ;; by WoMan, and if WoMan finds anything that it cannot handle then it
 ;; writes a warning to this buffer.  If the variable `woman-show-log'
 ;; is non-nil (by default it is `nil') then WoMan automatically
@@ -2800,7 +2800,7 @@ Replaces || by |, but | by \, where | denotes the internal escape."
   "Process .de/am xx yy -- (re)define/append macro xx; end at `..'.
 \(Should be up to call of yy, which defaults to `.')
 Optional argument APPEND, if non-nil, means append macro."
-  ;; Modelled on woman-strings.  BEWARE: Processing of .am is a hack!
+  ;; Modeled on woman-strings.  BEWARE: Processing of .am is a hack!
   ;; Add support for .rm?
   ;; (skip-chars-forward " \t")
   (if (eolp)				; ignore if no argument

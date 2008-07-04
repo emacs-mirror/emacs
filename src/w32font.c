@@ -43,6 +43,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CLEARTYPE_NATURAL_QUALITY 6
 #endif
 
+/* VIETNAMESE_CHARSET and JOHAB_CHARSET are not defined in some versions
+   of MSVC headers.  */
+#ifndef VIETNAMESE_CHARSET
+#define VIETNAMESE_CHARSET 163
+#endif
+#ifndef JOHAB_CHARSET
+#define JOHAB_CHARSET 130
+#endif
+
 extern struct font_driver w32font_driver;
 
 Lisp_Object Qgdi;
@@ -79,6 +88,20 @@ static Lisp_Object Qphags_pa, Qphoenician, Qshavian, Qsyloti_nagri;
 static Lisp_Object Qtagalog, Qtagbanwa, Qtai_le, Qtifinagh, Qugaritic;
 /* Only defined here, but useful for distinguishing IPA capable fonts.  */
 static Lisp_Object Qphonetic;
+
+/* W32 charsets: for use in Vw32_charset_info_alist.  */
+static Lisp_Object Qw32_charset_ansi, Qw32_charset_default;
+static Lisp_Object Qw32_charset_symbol, Qw32_charset_shiftjis;
+static Lisp_Object Qw32_charset_hangeul, Qw32_charset_gb2312;
+static Lisp_Object Qw32_charset_chinesebig5, Qw32_charset_oem;
+static Lisp_Object Qw32_charset_easteurope, Qw32_charset_turkish;
+static Lisp_Object Qw32_charset_baltic, Qw32_charset_russian;
+static Lisp_Object Qw32_charset_arabic, Qw32_charset_greek;
+static Lisp_Object Qw32_charset_hebrew, Qw32_charset_vietnamese;
+static Lisp_Object Qw32_charset_thai, Qw32_charset_johab, Qw32_charset_mac;
+
+/* Associative list linking character set strings to Windows codepages. */
+static Lisp_Object Vw32_charset_info_alist;
 
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
@@ -128,9 +151,6 @@ struct font_callback_data
 /* Handles the problem that EnumFontFamiliesEx will not return all
    style variations if the font name is not specified.  */
 static void list_all_matching_fonts P_ ((struct font_callback_data *));
-
-/* From old font code in w32fns.c */
-char * w32_to_x_charset P_ ((int, char *));
 
 
 static int
@@ -233,14 +253,22 @@ w32font_close (f, font)
      FRAME_PTR f;
      struct font *font;
 {
+  int i;
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
-  if (w32_font->compat_w32_font)
+  /* Delete the GDI font object.  */
+  DeleteObject (w32_font->hfont);
+
+  /* Free all the cached metrics.  */
+  if (w32_font->cached_metrics)
     {
-      W32FontStruct *old_w32_font = w32_font->compat_w32_font;
-      DeleteObject (old_w32_font->hfont);
-      xfree (old_w32_font);
-      w32_font->compat_w32_font = 0;
+      for (i = 0; i < w32_font->n_cache_blocks; i++)
+        {
+          if (w32_font->cached_metrics[i])
+            xfree (w32_font->cached_metrics[i]);
+        }
+      xfree (w32_font->cached_metrics);
+      w32_font->cached_metrics = NULL;
     }
 }
 
@@ -314,7 +342,7 @@ w32font_encode_char (font, c)
   f = XFRAME (selected_frame);
 
   dc = get_frame_dc (f);
-  old_font = SelectObject (dc, w32_font->compat_w32_font->hfont);
+  old_font = SelectObject (dc, w32_font->hfont);
 
   /* GetCharacterPlacement is used here rather than GetGlyphIndices because
      it is supported on Windows NT 4 and 9x/ME.  But it cannot reliably report
@@ -367,10 +395,10 @@ w32font_text_extents (font, code, nglyphs, metrics)
   WORD *wcode = NULL;
   SIZE size;
 
+  struct w32font_info *w32_font = (struct w32font_info *) font;
+
   if (metrics)
     {
-      struct w32font_info *w32_font = (struct w32font_info *) font;
-
       bzero (metrics, sizeof (struct font_metrics));
       metrics->ascent = font->ascent;
       metrics->descent = font->descent;
@@ -419,7 +447,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
 		  f = XFRAME (selected_frame);
 
                   dc = get_frame_dc (f);
-                  old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
+                  old_font = SelectObject (dc, w32_font->hfont);
 		}
 	      compute_metrics (dc, w32_font, *(code + i), char_metric);
 	    }
@@ -476,7 +504,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
       f = XFRAME (selected_frame);
 
       dc = get_frame_dc (f);
-      old_font = SelectObject (dc, FONT_COMPAT (font)->hfont);
+      old_font = SelectObject (dc, w32_font->hfont);
     }
 
   if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
@@ -500,8 +528,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
     {
       metrics->width = total_width;
       metrics->lbearing = 0;
-      metrics->rbearing = total_width
-        + ((struct w32font_info *) font)->metrics.tmOverhang;
+      metrics->rbearing = total_width + w32_font->metrics.tmOverhang;
     }
 
   /* Restore state and release DC.  */
@@ -765,8 +792,6 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   HDC dc;
   HFONT hfont, old_font;
   Lisp_Object val, extra;
-  /* For backwards compatibility.  */
-  W32FontStruct *compat_w32_font;
   struct w32font_info *w32_font;
   struct font * font;
   OUTLINETEXTMETRIC* metrics = NULL;
@@ -832,15 +857,7 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
 
-  /* W32FontStruct - we should get rid of this, and use the w32font_info
-     struct for any W32 specific fields. font->font.font can then be hfont.  */
-  w32_font->compat_w32_font = xmalloc (sizeof (W32FontStruct));
-  compat_w32_font = w32_font->compat_w32_font;
-  bzero (compat_w32_font, sizeof (W32FontStruct));
-  compat_w32_font->font_type = UNICODE_FONT;
-  /* Duplicate the text metrics.  */
-  bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
-  compat_w32_font->hfont = hfont;
+  w32_font->hfont = hfont;
 
   {
     char *name;
@@ -848,15 +865,12 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
     /* We don't know how much space we need for the full name, so start with
        96 bytes and go up in steps of 32.  */
     len = 96;
-    name = xmalloc (len);
+    name = alloca (len);
     while (name && w32font_full_name (&logfont, font_entity, pixel_size,
                                       name, len) < 0)
       {
-        char *new = xrealloc (name, len += 32);
-
-        if (! new)
-          xfree (name);
-        name = new;
+        len += 32;
+        name = alloca (len);
       }
     if (name)
       font->props[FONT_FULLNAME_INDEX]
@@ -911,11 +925,6 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
       font->underline_thickness = 0;
       font->underline_position = -1;
     }
-
-  /* max_descent is used for underlining in w32term.c.  Hopefully this
-     is temporary, as we'll want to get rid of the old compatibility
-     stuff later.  */
-  compat_w32_font->max_bounds.descent = font->descent;
 
   /* For temporary compatibility with legacy code that expects the
      name to be usable in x-list-fonts. Eventually we expect to change
@@ -1103,6 +1112,11 @@ logfonts_match (font, pattern)
   return 1;
 }
 
+/* Codepage Bitfields in FONTSIGNATURE struct.  */
+#define CSB_JAPANESE (1 << 17)
+#define CSB_KOREAN ((1 << 19) | (1 << 21))
+#define CSB_CHINESE ((1 << 18) | (1 << 20))
+
 static int
 font_matches_spec (type, font, spec, backend, logfont)
      DWORD type;
@@ -1247,30 +1261,32 @@ font_matches_spec (type, font, spec, backend, logfont)
             }
 	  else if (EQ (key, QClang) && SYMBOLP (val))
 	    {
-	      /* Just handle the CJK languages here, as the language
+	      /* Just handle the CJK languages here, as the lang
 		 parameter is used to select a font with appropriate
 		 glyphs in the cjk unified ideographs block. Other fonts
 	         support for a language can be solely determined by
 	         its character coverage.  */
 	      if (EQ (val, Qja))
 		{
-		  if (font->ntmTm.tmCharSet != SHIFTJIS_CHARSET)
+		  if (!(font->ntmFontSig.fsCsb[0] & CSB_JAPANESE))
 		    return 0;
 		}
 	      else if (EQ (val, Qko))
 		{
-		  if (font->ntmTm.tmCharSet != HANGUL_CHARSET
-		      && font->ntmTm.tmCharSet != JOHAB_CHARSET)
+		  if (!(font->ntmFontSig.fsCsb[0] & CSB_KOREAN))
 		    return 0;
 		}
 	      else if (EQ (val, Qzh))
 		{
-		  if (font->ntmTm.tmCharSet != GB2312_CHARSET
-		      && font->ntmTm.tmCharSet != CHINESEBIG5_CHARSET)
-		return 0;
+		  if (!(font->ntmFontSig.fsCsb[0] & CSB_CHINESE))
+                    return 0;
 		}
 	      else
-		/* Any other language, we don't recognize it. Fontset
+		/* Any other language, we don't recognize it. Only the above
+                   currently appear in fontset.el, so it isn't worth
+                   creating a mapping table of codepages/scripts to languages
+                   or opening the font to see if there are any language tags
+                   in it that the W32 API does not expose. Fontset
 		   spec should have a fallback, as some backends do
 		   not recognize language at all.  */
 		return 0;
@@ -1429,6 +1445,89 @@ add_one_font_entity_to_list (logical_font, physical_font, font_type, lParam)
   return !NILP (match_data->list);
 }
 
+/* Old function to convert from x to w32 charset, from w32fns.c.  */
+static LONG
+x_to_w32_charset (lpcs)
+    char * lpcs;
+{
+  Lisp_Object this_entry, w32_charset;
+  char *charset;
+  int len = strlen (lpcs);
+
+  /* Support "*-#nnn" format for unknown charsets.  */
+  if (strncmp (lpcs, "*-#", 3) == 0)
+    return atoi (lpcs + 3);
+
+  /* All Windows fonts qualify as unicode.  */
+  if (!strncmp (lpcs, "iso10646", 8))
+    return DEFAULT_CHARSET;
+
+  /* Handle wildcards by ignoring them; eg. treat "big5*-*" as "big5".  */
+  charset = alloca (len + 1);
+  strcpy (charset, lpcs);
+  lpcs = strchr (charset, '*');
+  if (lpcs)
+    *lpcs = '\0';
+
+  /* Look through w32-charset-info-alist for the character set.
+     Format of each entry is
+       (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
+  */
+  this_entry = Fassoc (build_string (charset), Vw32_charset_info_alist);
+
+  if (NILP (this_entry))
+    {
+      /* At startup, we want iso8859-1 fonts to come up properly. */
+      if (xstrcasecmp (charset, "iso8859-1") == 0)
+        return ANSI_CHARSET;
+      else
+        return DEFAULT_CHARSET;
+    }
+
+  w32_charset = Fcar (Fcdr (this_entry));
+
+  /* Translate Lisp symbol to number.  */
+  if (EQ (w32_charset, Qw32_charset_ansi))
+    return ANSI_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_symbol))
+    return SYMBOL_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_shiftjis))
+    return SHIFTJIS_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_hangeul))
+    return HANGEUL_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_chinesebig5))
+    return CHINESEBIG5_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_gb2312))
+    return GB2312_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_oem))
+    return OEM_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_johab))
+    return JOHAB_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_easteurope))
+    return EASTEUROPE_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_turkish))
+    return TURKISH_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_baltic))
+    return BALTIC_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_russian))
+    return RUSSIAN_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_arabic))
+    return ARABIC_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_greek))
+    return GREEK_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_hebrew))
+    return HEBREW_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_vietnamese))
+    return VIETNAMESE_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_thai))
+    return THAI_CHARSET;
+  if (EQ (w32_charset, Qw32_charset_mac))
+    return MAC_CHARSET;
+
+  return DEFAULT_CHARSET;
+}
+
+
 /* Convert a Lisp font registry (symbol) to a windows charset.  */
 static LONG
 registry_to_w32_charset (charset)
@@ -1443,6 +1542,203 @@ registry_to_w32_charset (charset)
     return x_to_w32_charset (SDATA (SYMBOL_NAME (charset)));
   else
     return DEFAULT_CHARSET;
+}
+
+/* Old function to convert from w32 to x charset, from w32fns.c.  */
+static char *
+w32_to_x_charset (fncharset, matching)
+    int fncharset;
+    char *matching;
+{
+  static char buf[32];
+  Lisp_Object charset_type;
+  int match_len = 0;
+
+  if (matching)
+    {
+      /* If fully specified, accept it as it is.  Otherwise use a
+	 substring match. */
+      char *wildcard = strchr (matching, '*');
+      if (wildcard)
+	*wildcard = '\0';
+      else if (strchr (matching, '-'))
+	return matching;
+
+      match_len = strlen (matching);
+    }
+
+  switch (fncharset)
+    {
+    case ANSI_CHARSET:
+      /* Handle startup case of w32-charset-info-alist not
+         being set up yet. */
+      if (NILP (Vw32_charset_info_alist))
+        return "iso8859-1";
+      charset_type = Qw32_charset_ansi;
+      break;
+    case DEFAULT_CHARSET:
+      charset_type = Qw32_charset_default;
+      break;
+    case SYMBOL_CHARSET:
+      charset_type = Qw32_charset_symbol;
+      break;
+    case SHIFTJIS_CHARSET:
+      charset_type = Qw32_charset_shiftjis;
+      break;
+    case HANGEUL_CHARSET:
+      charset_type = Qw32_charset_hangeul;
+      break;
+    case GB2312_CHARSET:
+      charset_type = Qw32_charset_gb2312;
+      break;
+    case CHINESEBIG5_CHARSET:
+      charset_type = Qw32_charset_chinesebig5;
+      break;
+    case OEM_CHARSET:
+      charset_type = Qw32_charset_oem;
+      break;
+    case EASTEUROPE_CHARSET:
+      charset_type = Qw32_charset_easteurope;
+      break;
+    case TURKISH_CHARSET:
+      charset_type = Qw32_charset_turkish;
+      break;
+    case BALTIC_CHARSET:
+      charset_type = Qw32_charset_baltic;
+      break;
+    case RUSSIAN_CHARSET:
+      charset_type = Qw32_charset_russian;
+      break;
+    case ARABIC_CHARSET:
+      charset_type = Qw32_charset_arabic;
+      break;
+    case GREEK_CHARSET:
+      charset_type = Qw32_charset_greek;
+      break;
+    case HEBREW_CHARSET:
+      charset_type = Qw32_charset_hebrew;
+      break;
+    case VIETNAMESE_CHARSET:
+      charset_type = Qw32_charset_vietnamese;
+      break;
+    case THAI_CHARSET:
+      charset_type = Qw32_charset_thai;
+      break;
+    case MAC_CHARSET:
+      charset_type = Qw32_charset_mac;
+      break;
+    case JOHAB_CHARSET:
+      charset_type = Qw32_charset_johab;
+      break;
+
+    default:
+      /* Encode numerical value of unknown charset.  */
+      sprintf (buf, "*-#%u", fncharset);
+      return buf;
+    }
+
+  {
+    Lisp_Object rest;
+    char * best_match = NULL;
+    int matching_found = 0;
+
+    /* Look through w32-charset-info-alist for the character set.
+       Prefer ISO codepages, and prefer lower numbers in the ISO
+       range. Only return charsets for codepages which are installed.
+
+       Format of each entry is
+         (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
+    */
+    for (rest = Vw32_charset_info_alist; CONSP (rest); rest = XCDR (rest))
+      {
+        char * x_charset;
+        Lisp_Object w32_charset;
+        Lisp_Object codepage;
+
+        Lisp_Object this_entry = XCAR (rest);
+
+        /* Skip invalid entries in alist. */
+        if (!CONSP (this_entry) || !STRINGP (XCAR (this_entry))
+            || !CONSP (XCDR (this_entry))
+            || !SYMBOLP (XCAR (XCDR (this_entry))))
+          continue;
+
+        x_charset = SDATA (XCAR (this_entry));
+        w32_charset = XCAR (XCDR (this_entry));
+        codepage = XCDR (XCDR (this_entry));
+
+        /* Look for Same charset and a valid codepage (or non-int
+           which means ignore).  */
+        if (EQ (w32_charset, charset_type)
+            && (!INTEGERP (codepage) || XINT (codepage) == CP_DEFAULT
+                || IsValidCodePage (XINT (codepage))))
+          {
+            /* If we don't have a match already, then this is the
+               best.  */
+            if (!best_match)
+	      {
+		best_match = x_charset;
+		if (matching && !strnicmp (x_charset, matching, match_len))
+		  matching_found = 1;
+	      }
+	    /* If we already found a match for MATCHING, then
+	       only consider other matches.  */
+	    else if (matching_found
+		     && strnicmp (x_charset, matching, match_len))
+	      continue;
+	    /* If this matches what we want, and the best so far doesn't,
+	       then this is better.  */
+	    else if (!matching_found && matching
+		     && !strnicmp (x_charset, matching, match_len))
+	      {
+		best_match = x_charset;
+		matching_found = 1;
+	      }
+	    /* If this is fully specified, and the best so far isn't,
+	       then this is better.  */
+	    else if ((!strchr (best_match, '-') && strchr (x_charset, '-'))
+	    /* If this is an ISO codepage, and the best so far isn't,
+	       then this is better, but only if it fully specifies the
+	       encoding.  */
+		|| (strnicmp (best_match, "iso", 3) != 0
+		    && strnicmp (x_charset, "iso", 3) == 0
+		    && strchr (x_charset, '-')))
+		best_match = x_charset;
+            /* If both are ISO8859 codepages, choose the one with the
+               lowest number in the encoding field.  */
+            else if (strnicmp (best_match, "iso8859-", 8) == 0
+                     && strnicmp (x_charset, "iso8859-", 8) == 0)
+              {
+                int best_enc = atoi (best_match + 8);
+                int this_enc = atoi (x_charset + 8);
+                if (this_enc > 0 && this_enc < best_enc)
+                  best_match = x_charset;
+              }
+          }
+      }
+
+    /* If no match, encode the numeric value. */
+    if (!best_match)
+      {
+        sprintf (buf, "*-#%u", fncharset);
+        return buf;
+      }
+
+    strncpy (buf, best_match, 31);
+    /* If the charset is not fully specified, put -0 on the end.  */
+    if (!strchr (best_match, '-'))
+      {
+	int pos = strlen (best_match);
+	/* Charset specifiers shouldn't be very long.  If it is a made
+	   up one, truncating it should not do any harm since it isn't
+	   recognized anyway.  */
+	if (pos > 29)
+	  pos = 29;
+	strcpy (buf + pos, "-0");
+      }
+    buf[31] = '\0';
+    return buf;
+  }
 }
 
 static Lisp_Object
@@ -2063,7 +2359,7 @@ in the font selection dialog. */)
   /* Initialize as much of the font details as we can from the current
      default font.  */
   hdc = GetDC (FRAME_W32_WINDOW (f));
-  oldobj = SelectObject (hdc, FONT_COMPAT (FRAME_FONT (f))->hfont);
+  oldobj = SelectObject (hdc, FONT_HANDLE (FRAME_FONT (f)));
   GetTextFace (hdc, LF_FACESIZE, lf.lfFaceName);
   if (GetTextMetrics (hdc, &tm))
     {
@@ -2221,6 +2517,51 @@ syms_of_w32font ()
   DEFSYM (Qtai_le, "tai_le");
   DEFSYM (Qtifinagh, "tifinagh");
   DEFSYM (Qugaritic, "ugaritic");
+
+  /* W32 font encodings.  */
+  DEFVAR_LISP ("w32-charset-info-alist",
+               &Vw32_charset_info_alist,
+               doc: /* Alist linking Emacs character sets to Windows fonts and codepages.
+Each entry should be of the form:
+
+   (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE))
+
+where CHARSET_NAME is a string used in font names to identify the charset,
+WINDOWS_CHARSET is a symbol that can be one of:
+
+  w32-charset-ansi, w32-charset-default, w32-charset-symbol,
+  w32-charset-shiftjis, w32-charset-hangeul, w32-charset-gb2312,
+  w32-charset-chinesebig5, w32-charset-johab, w32-charset-hebrew,
+  w32-charset-arabic, w32-charset-greek, w32-charset-turkish,
+  w32-charset-vietnamese, w32-charset-thai, w32-charset-easteurope,
+  w32-charset-russian, w32-charset-mac, w32-charset-baltic,
+  or w32-charset-oem.
+
+CODEPAGE should be an integer specifying the codepage that should be used
+to display the character set, t to do no translation and output as Unicode,
+or nil to do no translation and output as 8 bit (or multibyte on far-east
+versions of Windows) characters.  */);
+  Vw32_charset_info_alist = Qnil;
+
+  DEFSYM (Qw32_charset_ansi, "w32-charset-ansi");
+  DEFSYM (Qw32_charset_symbol, "w32-charset-symbol");
+  DEFSYM (Qw32_charset_default, "w32-charset-default");
+  DEFSYM (Qw32_charset_shiftjis, "w32-charset-shiftjis");
+  DEFSYM (Qw32_charset_hangeul, "w32-charset-hangeul");
+  DEFSYM (Qw32_charset_chinesebig5, "w32-charset-chinesebig5");
+  DEFSYM (Qw32_charset_gb2312, "w32-charset-gb2312");
+  DEFSYM (Qw32_charset_oem, "w32-charset-oem");
+  DEFSYM (Qw32_charset_johab, "w32-charset-johab");
+  DEFSYM (Qw32_charset_easteurope, "w32-charset-easteurope");
+  DEFSYM (Qw32_charset_turkish, "w32-charset-turkish");
+  DEFSYM (Qw32_charset_baltic, "w32-charset-baltic");
+  DEFSYM (Qw32_charset_russian, "w32-charset-russian");
+  DEFSYM (Qw32_charset_arabic, "w32-charset-arabic");
+  DEFSYM (Qw32_charset_greek, "w32-charset-greek");
+  DEFSYM (Qw32_charset_hebrew, "w32-charset-hebrew");
+  DEFSYM (Qw32_charset_vietnamese, "w32-charset-vietnamese");
+  DEFSYM (Qw32_charset_thai, "w32-charset-thai");
+  DEFSYM (Qw32_charset_mac, "w32-charset-mac");
 
   defsubr (&Sx_select_font);
 

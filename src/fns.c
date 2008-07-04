@@ -1131,6 +1131,35 @@ correct sequence.  */)
   return string_to_multibyte (string);
 }
 
+DEFUN ("string-to-unibyte", Fstring_to_unibyte, Sstring_to_unibyte,
+       1, 2, 0,
+       doc: /* Return a unibyte string with the same individual chars as STRING.
+If STRING is unibyte, the result is STRING itself.
+Otherwise it is a newly created string, with no text properties,
+where each `eight-bit' character is converted to the corresponding byte.
+If STRING contains a non-ASCII, non-`eight-bit' character,
+an error is signaled.
+If the optional 2nd arg ACCEPT-LATIN-1 is non-nil, a Latin-1 character
+doesn't cause an error, but is converted to a byte of same code.  */)
+     (string, accept_latin_1)
+     Lisp_Object string, accept_latin_1;
+{
+  CHECK_STRING (string);
+
+  if (STRING_MULTIBYTE (string))
+    {
+      EMACS_INT chars = SCHARS (string);
+      unsigned char *str = (unsigned char *) xmalloc (chars);
+      EMACS_INT converted = str_to_unibyte (SDATA (string), str, chars,
+					    ! NILP (accept_latin_1));
+      if (converted < chars)
+	error ("Can't convert the %dth character to unibyte", converted);
+      string = make_unibyte_string (str, chars);
+      xfree (str);
+    }
+  return string;
+}
+
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
        doc: /* Return a copy of ALIST.
@@ -5238,6 +5267,7 @@ both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Sstring_as_multibyte);
   defsubr (&Sstring_as_unibyte);
   defsubr (&Sstring_to_multibyte);
+  defsubr (&Sstring_to_unibyte);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
   defsubr (&Ssubstring_no_properties);

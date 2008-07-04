@@ -1,3 +1,29 @@
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs:
+	* gmake.defs (FONT_CFLAGS): Remove.
+	(EMACS_EXTRA_C_FLAGS): Don't include FONT_CFLAGS.
+	(CFLAGS): Don't include WIN32_LEAN_AND_MEAN, _WIN32_WINNT, -D$(ARCH)
+	and _CRTAPI1.
+	(ARCH_FLAGS): Don't include _X86_.
+
+	* config.nt (_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Define.
+
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove reference to UNEXEC_SRC.
+
+2008-06-23  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (DEBUG_FLAG, DEBUG_LINK) [!NODEBUG]:
+	Don't hardcode -gstabs+, use DEBUG_INFO.
+
+	* configure.bat (gccdebug): Check for DWARF-2 support in GCC.
+	Default to stabs if the compiler does not support DWARF-2.
+	(genmakefiles): Write new variable DEBUG_INFO to config.settings.
+
 2008-05-14  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Remove code dealing with --disable-font-backend.
@@ -536,7 +562,7 @@
 
 	* makefile.w32-in (bootstrap-nmake): When nmake'ing bootstrap on
 	the lisp/ directory, set SHELL to $(SHELLTYPE); this avoids
-	calling non-existent cmdproxy.exe on boostrappings after a
+	calling non-existent cmdproxy.exe on bootstrappings after a
 	previous install followed by realclean.
 
 	* nmake.defs: Add quote in comment to resync font-locking.

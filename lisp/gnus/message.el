@@ -4543,7 +4543,7 @@ to find out how to use this."
 	(apply
 	 'call-process-region (point-min) (point-max)
 	 message-qmail-inject-program nil nil nil
-	 ;; qmail-inject's default behaviour is to look for addresses on the
+	 ;; qmail-inject's default behavior is to look for addresses on the
 	 ;; command line; if there're none, it scans the headers.
 	 ;; yes, it does The Right Thing w.r.t. Resent-To and it's kin.
 	 ;;

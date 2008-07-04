@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
+#include <sys/file.h>	/* Must be after sys/types.h for USG*/
 #include <ctype.h>
 
 #ifdef HAVE_FCNTL_H

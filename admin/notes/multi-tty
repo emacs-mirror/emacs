@@ -93,7 +93,7 @@ Known problems:
 
 		emacsclient -e '(top-level)'
 
-	  Note that this (perhaps) unintuitive behaviour is by design.
+	  Note that this (perhaps) unintuitive behavior is by design.
 	  Single-kboard mode is required because of an intrinsic Emacs
 	  limitation that is very hard to eliminate.  (This limitation
 	  is related to the single-threaded nature of Emacs.)
@@ -733,7 +733,7 @@ DIARY OF CHANGES
    term_init/delete_tty.  The hint was right, in a way.)
 
 -- Issue with SIGIO: it needs to be disabled during redisplay.  See if
-   fcntl kernel behaviour could be emulated by emacsclient.
+   fcntl kernel behavior could be emulated by emacsclient.
 
    (Done.  Simply disabled the SIGIO emulation hack in emacsclient.)
    (Update: it was added back.)  (Update^2: and removed again.)

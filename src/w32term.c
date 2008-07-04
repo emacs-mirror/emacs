@@ -54,7 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #include "w32heap.h"
-#include "w32bdf.h"
 #include <shellapi.h>
 
 #include "font.h"
@@ -102,8 +101,6 @@ extern void free_frame_menubar ();
 extern int w32_codepage_for_font (char *fontname);
 extern Cursor w32_load_cursor (LPCTSTR name);
 
-extern glyph_metric *w32_BDF_TextMetric(bdffont *fontp,
-					unsigned char *text, int dim);
 extern Lisp_Object Vwindow_system;
 
 #define x_any_window_to_frame x_window_to_frame
@@ -254,8 +251,6 @@ void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 static void w32_initialize P_ ((void));
-static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
-int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void w32_frame_up_to_date P_ ((struct frame *));
 static void w32_set_terminal_modes P_ ((struct terminal *));
@@ -892,596 +887,6 @@ w32_reset_terminal_modes (struct terminal *term)
 
 /* Function prototypes of this page.  */
 
-#if OLD_FONT
-
-XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
-static int w32_encode_char P_ ((int, wchar_t *, struct font_info *,
-				struct charset *, int *));
-
-
-/* Get metrics of character CHAR2B in FONT.  Value is always non-null.
-   If CHAR2B is not contained in FONT, the font's default character
-   metric is returned. */
-
-static int
-w32_bdf_per_char_metric (font, char2b, dim, pcm)
-     XFontStruct *font;
-     wchar_t *char2b;
-     int dim;
-     XCharStruct * pcm;
-{
-  glyph_metric * bdf_metric;
-  char buf[2];
-
-  if (dim == 1)
-    buf[0] = (char)(*char2b);
-  else
-    {
-      buf[0] = XCHAR2B_BYTE1 (char2b);
-      buf[1] = XCHAR2B_BYTE2 (char2b);
-    }
-
-  bdf_metric = w32_BDF_TextMetric (font->bdf, buf, dim);
-
-  if (bdf_metric)
-    {
-      pcm->width = bdf_metric->dwidth;
-      pcm->lbearing = bdf_metric->bbox;
-      pcm->rbearing = bdf_metric->dwidth
-                    - (bdf_metric->bbox + bdf_metric->bbw);
-      pcm->ascent = bdf_metric->bboy + bdf_metric->bbh;
-      pcm->descent = -bdf_metric->bboy;
-
-      return 1;
-    }
-  return 0;
-}
-
-
-static int
-w32_native_per_char_metric (font, char2b, font_type, pcm)
-     XFontStruct *font;
-     wchar_t *char2b;
-     enum w32_char_font_type font_type;
-     XCharStruct * pcm;
-{
-  HDC hdc = GetDC (NULL);
-  HFONT old_font;
-  BOOL retval = FALSE;
-
-  xassert (font && char2b);
-  xassert (font->hfont);
-  xassert (font_type == UNICODE_FONT || font_type == ANSI_FONT);
-
-  old_font = SelectObject (hdc, font->hfont);
-
-  if ((font->tm.tmPitchAndFamily & TMPF_TRUETYPE) != 0)
-    {
-      ABC char_widths;
-
-      if (font_type == UNICODE_FONT)
-	retval = GetCharABCWidthsW (hdc, *char2b, *char2b, &char_widths);
-      else
-	retval = GetCharABCWidthsA (hdc, *char2b, *char2b, &char_widths);
-
-      if (retval)
-	{
-#if 0
-	  /* Disabled until we can find a way to get the right results
-	     on all versions of Windows.  */
-
-	  /* Don't trust the ABC widths.  For synthesized fonts they are
-	     wrong, and so is the result of GetCharWidth()!  */
-	  int real_width;
-	  GetCharWidth (hdc, *char2b, *char2b, &real_width);
-#endif
-	  if (cleartype_active)
-	    {
-	      /* Cleartype antialiasing causes characters to overhang
-		 by a pixel on each side compared with what GetCharABCWidths
-		 reports.  */
-	      char_widths.abcA -= 1;
-	      char_widths.abcC -= 1;
-	      char_widths.abcB += 2;
-	    }
-
-	  pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
-#if 0
-	  /* As far as I can tell, this is the best way to determine what
-	     ExtTextOut will do with the broken font.  */
-	  if (pcm->width != real_width)
-	    pcm->width = (pcm->width + real_width) / 2;
-#endif
-	  pcm->lbearing = char_widths.abcA;
-	  pcm->rbearing = char_widths.abcA + char_widths.abcB;
-	  pcm->ascent = FONT_BASE (font);
-	  pcm->descent = FONT_DESCENT (font);
-	}
-    }
-
-  if (!retval)
-    {
-      /* Either font is not a True-type font, or GetCharABCWidthsW
-	 failed (it is not supported on Windows 9x for instance), so we
-	 can't determine the full info we would like.  All is not lost
-	 though - we can call GetTextExtentPoint32 to get rbearing and
-	 deduce width based on the font's per-string overhang.  lbearing
-	 is assumed to be zero.  */
-
-      /* TODO: Some Thai characters (and other composites if Windows
-         supports them) do have lbearing, and report their total width
-         as zero. Need some way of handling them when
-         GetCharABCWidthsW fails. */
-      SIZE sz;
-
-      if (font_type == UNICODE_FONT)
-	retval = GetTextExtentPoint32W (hdc, char2b, 1, &sz);
-      else
-	retval = GetTextExtentPoint32A (hdc, (char*)char2b, 1, &sz);
-
-      if (retval)
-	{
-	  pcm->width = sz.cx;
-	  pcm->rbearing = sz.cx + font->tm.tmOverhang;
-	  pcm->lbearing = 0;
-	  pcm->ascent = FONT_BASE (font);
-	  pcm->descent = FONT_DESCENT (font);
-	}
-    }
-
-
-  if (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0)
-    {
-      retval = FALSE;
-    }
-
-  SelectObject (hdc, old_font);
-  ReleaseDC (NULL, hdc);
-
-  return retval;
-}
-
-
-XCharStruct *
-w32_per_char_metric (font, char2b, font_type)
-     XFontStruct *font;
-     wchar_t *char2b;
-     int /* enum w32_char_font_type */ font_type;
-{
-  /* The result metric information.  */
-  XCharStruct *pcm;
-  BOOL retval;
-
-  xassert (font && char2b);
-
-  /* TODO: This function is currently called through the RIF, and in
-     some cases font_type is UNKNOWN_FONT. We currently allow the
-     cached metrics to be used, which seems to work, but in cases
-     where font_type is UNKNOWN_FONT, we probably haven't encoded
-     char2b appropriately. All callers need checking to see what they
-     are passing.  This is most likely to affect variable width fonts
-     outside the Latin-1 range, particularly in languages like Thai
-     that rely on rbearing and lbearing to provide composition. I
-     don't think that is working currently anyway, but we don't seem
-     to have anyone testing such languages on Windows.  */
-
-  /* Handle the common cases quickly.  */
-  if (!font->bdf && font->per_char == NULL)
-    /* TODO: determine whether char2b exists in font?  */
-    return &font->max_bounds;
-  else if (!font->bdf && *char2b < 128)
-    return &font->per_char[*char2b];
-
-  xassert (font_type != UNKNOWN_FONT);
-
-  pcm = &font->scratch;
-
-  if (font_type == BDF_1D_FONT)
-    retval = w32_bdf_per_char_metric (font, char2b, 1, pcm);
-  else if (font_type == BDF_2D_FONT)
-    retval = w32_bdf_per_char_metric (font, char2b, 2, pcm);
-  else
-    retval = w32_native_per_char_metric (font, char2b, font_type, pcm);
-
-  if (retval)
-    return pcm;
-
-  return NULL;
-}
-
-void
-w32_cache_char_metrics (font)
-     XFontStruct *font;
-{
-  wchar_t char2b = L'x';
-
-  /* Cache char metrics for the common cases.  */
-  if (font->bdf)
-    {
-      /* TODO: determine whether font is fixed-pitch.  */
-      if (!w32_bdf_per_char_metric (font, &char2b, 1, &font->max_bounds))
-        {
-          /* Use the font width and height as max bounds, as not all BDF
-             fonts contain the letter 'x'. */
-          font->max_bounds.width = FONT_WIDTH (font);
-          font->max_bounds.lbearing = -font->bdf->llx;
-          font->max_bounds.rbearing = FONT_WIDTH (font) - font->bdf->urx;
-          font->max_bounds.ascent = FONT_BASE (font);
-          font->max_bounds.descent = FONT_DESCENT (font);
-        }
-    }
-  else
-    {
-      if (((font->tm.tmPitchAndFamily & TMPF_FIXED_PITCH) != 0)
-          /* Some fonts (eg DBCS fonts) are marked as fixed width even
-             though they contain characters of different widths. */
-          || (font->tm.tmMaxCharWidth != font->tm.tmAveCharWidth))
-	{
-	  /* Font is not fixed pitch, so cache per_char info for the
-             ASCII characters.  It would be much more work, and probably
-             not worth it, to cache other chars, since we may change
-             between using Unicode and ANSI text drawing functions at
-             run-time.  */
-	  int i;
-
-	  font->per_char = xmalloc (128 * sizeof(XCharStruct));
-	  for (i = 0; i < 128; i++)
-	    {
-	      char2b = i;
-	      w32_native_per_char_metric (font, &char2b, ANSI_FONT,
-					  &font->per_char[i]);
-	    }
-	}
-      else
-	w32_native_per_char_metric (font, &char2b, ANSI_FONT,
-				    &font->max_bounds);
-    }
-}
-
-/* Determine if a font is double byte. */
-static int
-w32_font_is_double_byte (XFontStruct *font)
-{
-  return font->double_byte_p;
-}
-
-
-static BOOL
-w32_use_unicode_for_codepage (codepage)
-     int codepage;
-{
-  /* If the current codepage is supported, use Unicode for output. */
-  return (w32_enable_unicode_output
-          && codepage != CP_8BIT
-          && (codepage == CP_UNICODE || IsValidCodePage (codepage)));
-}
-
-/* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
-   the two-byte form of C.  Encoding is returned in *CHAR2B.  */
-
-static int /* enum w32_char_font_type */
-w32_encode_char (c, char2b, font_info, charset, two_byte_p)
-     int c;
-     wchar_t *char2b;
-     struct font_info *font_info;
-     struct charset *charset;
-     int * two_byte_p;
-{
-  int codepage;
-  int unicode_p = 0;
-  int internal_two_byte_p = 0;
-
-  XFontStruct *font = font_info->font;
-
-  internal_two_byte_p = w32_font_is_double_byte (font);
-  codepage = font_info->codepage;
-
-  /* If font can output unicode, use the original unicode character.  */
-  if ( font && !font->bdf && w32_use_unicode_for_codepage (codepage)
-       && c >= 0x100)
-    {
-      *char2b = c;
-      unicode_p = 1;
-      internal_two_byte_p = 1;
-    }
-
-  /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
-     This may be either a program in a special encoder language or a
-     fixed encoding.  */
-  else if (font_info->font_encoder)
-    {
-      /* It's a program.  */
-      struct ccl_program *ccl = font_info->font_encoder;
-
-      if (CHARSET_DIMENSION (charset) == 1)
-	{
-	  ccl->reg[0] = CHARSET_ID (charset);
-	  ccl->reg[1] = XCHAR2B_BYTE2 (char2b);
-	  ccl->reg[2] = -1;
-	}
-      else
-	{
-	  ccl->reg[0] = CHARSET_ID (charset);
-	  ccl->reg[1] = XCHAR2B_BYTE1 (char2b);
-	  ccl->reg[2] = XCHAR2B_BYTE2 (char2b);
-	}
-
-      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
-
-      /* We assume that MSBs are appropriately set/reset by CCL
-	 program.  */
-      if (!internal_two_byte_p)	/* 1-byte font */
-	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
-      else
-	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
-    }
-  else if (font_info->encoding_type)
-    {
-      /* Fixed encoding scheme.  See fontset.h for the meaning of the
-	 encoding numbers.  */
-      unsigned char enc = font_info->encoding_type;
-
-      if ((enc == 1 || enc == 2)
-	  && CHARSET_DIMENSION (charset) == 2)
-	STORE_XCHAR2B (char2b, XCHAR2B_BYTE1 (char2b) | 0x80, XCHAR2B_BYTE2 (char2b));
-
-      if (enc == 1 || enc == 3          || (enc == 4 && CHARSET_DIMENSION (charset) == 1))
-	STORE_XCHAR2B (char2b, XCHAR2B_BYTE1 (char2b), XCHAR2B_BYTE2 (char2b) | 0x80);
-      else if (enc == 4)
-        {
-          int code = (int) (*char2b);
-
-	  JIS_TO_SJIS (code);
-          STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-        }
-    }
-
-  if (two_byte_p)
-    *two_byte_p = internal_two_byte_p;
-
-  if (!font)
-    return UNKNOWN_FONT;
-  else if (font->bdf && CHARSET_DIMENSION (charset) == 1)
-    return BDF_1D_FONT;
-  else if (font->bdf)
-    return BDF_2D_FONT;
-  else if (unicode_p)
-    return UNICODE_FONT;
-  else
-    return ANSI_FONT;
-}
-
-
-/* Return a char-table whose elements are t if the font FONT_INFO
-   contains a glyph for the corresponding character, and nil if not.
-
-   Fixme: For the moment, this function works only for fonts whose
-   glyph encoding is the same as Unicode (e.g. ISO10646-1 fonts).  */
-
-Lisp_Object
-x_get_font_repertory (f, font_info)
-     FRAME_PTR f;
-     struct font_info *font_info;
-{
-  XFontStruct *font = (XFontStruct *) font_info->font;
-  Lisp_Object table;
-  int min_byte1, max_byte1, min_byte2, max_byte2;
-  int c;
-  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
-  int offset = CHARSET_OFFSET (charset);
-
-  table = Fmake_char_table (Qnil, Qnil);
-
-  if (!font->bdf && pfnGetFontUnicodeRanges)
-    {
-      GLYPHSET *glyphset;
-      DWORD glyphset_size;
-      HDC display = get_frame_dc (f);
-      HFONT prev_font;
-      int i;
-
-      prev_font = SelectObject (display, font->hfont);
-
-      /* First call GetFontUnicodeRanges to find out how big a structure
-	 we need.  */
-      glyphset_size = pfnGetFontUnicodeRanges (display, NULL);
-      if (glyphset_size)
-	{
-	  glyphset = (GLYPHSET *) alloca (glyphset_size);
-	  glyphset->cbThis = glyphset_size;
-
-	  /* Now call it again to get the ranges.  */
-	  glyphset_size = pfnGetFontUnicodeRanges (display, glyphset);
-
-	  if (glyphset_size)
-	    {
-	      /* Store the ranges in TABLE.  */
-	      for (i = 0; i < glyphset->cRanges; i++)
-		{
-		  int from = glyphset->ranges[i].wcLow;
-		  int to = from + glyphset->ranges[i].cGlyphs - 1;
-		  char_table_set_range (table, from, to, Qt);
-		}
-	    }
-	}
-
-      SelectObject (display, prev_font);
-      release_frame_dc (f, display);
-
-      /* If we got the information we wanted above, then return it.  */
-      if (glyphset_size)
-	return table;
-    }
-
-#if 0 /* TODO: Convert to work on Windows so BDF and older platforms work.  */
-  /* When GetFontUnicodeRanges is not available or does not work,
-     work it out manually.  */
-  min_byte1 = font->min_byte1;
-  max_byte1 = font->max_byte1;
-  min_byte2 = font->min_char_or_byte2;
-  max_byte2 = font->max_char_or_byte2;
-  if (min_byte1 == 0 && max_byte1 == 0)
-    {
-      if (! font->per_char || font->all_chars_exist == True)
-        {
-          if (offset >= 0)
-            char_table_set_range (table, offset + min_byte2,
-                                  offset + max_byte2, Qt);
-          else
-            for (; min_byte2 <= max_byte2; min_byte2++)
-              {
-                c = DECODE_CHAR (charset, min_byte2);
-                CHAR_TABLE_SET (table, c, Qt);
-              }
-        }
-      else
-	{
-	  XCharStruct *pcm = font->per_char;
-	  int from = -1;
-	  int i;
-
-	  for (i = min_byte2; i <= max_byte2; i++, pcm++)
-	    {
-	      if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
-		{
-		  if (from >= 0)
-		    {
-                      if (offset >= 0)
-                        char_table_set_range (table, offset + from,
-                                              offset + i - 1, Qt);
-                      else
-                        for (; from < i; from++)
-                          {
-                            c = DECODE_CHAR (charset, from);
-                            CHAR_TABLE_SET (table, c, Qt);
-                          }
-		      from = -1;
-		    }
-		}
-	      else if (from < 0)
-		from = i;
-	    }
-	  if (from >= 0)
-            {
-              if (offset >= 0)
-                char_table_set_range (table, offset + from, offset + i - 1,
-                                      Qt);
-              else
-                for (; from < i; from++)
-                  {
-                    c = DECODE_CHAR (charset, from);
-                    CHAR_TABLE_SET (table, c, Qt);
-                  }
-            }
-	}
-    }
-  else
-    {
-      if (! font->per_char || font->all_chars_exist == True)
-	{
-	  int i, j;
-
-          if (offset >= 0)
-            for (i = min_byte1; i <= max_byte1; i++)
-              char_table_set_range
-                (table, offset + ((i << 8) | min_byte2),
-                 offset + ((i << 8) | max_byte2), Qt);
-          else
-            for (i = min_byte1; i <= max_byte1; i++)
-              for (j = min_byte2; j <= max_byte2; j++)
-                {
-                  unsiged code = (i << 8) | j;
-                  c = DECODE_CHAR (charset, code);
-                  CHAR_TABLE_SET (table, c, Qt);
-                }
-	}
-      else
-	{
-	  XCharStruct *pcm = font->per_char;
-	  int i;
-
-	  for (i = min_byte1; i <= max_byte1; i++)
-	    {
-	      int from = -1;
-	      int j;
-
-	      for (j = min_byte2; j <= max_byte2; j++, pcm++)
-		{
-		  if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
-		    {
-		      if (from >= 0)
-			{
-                          if (offset >= 0)
-                            char_table_set_range
-                              (table, offset + ((i << 8) | from),
-                               offset + ((i << 8) | (j - 1)), Qt);
-                          else
-                            {
-                              for (; from < j; from++)
-                                {
-                                  unsigned code = (i << 8) | from;
-                                  c = ENCODE_CHAR (charset, code);
-                                  CHAR_TABLE_SET (table, c, Qt);
-                                }
-                            }
-			  from = -1;
-			}
-		    }
-		  else if (from < 0)
-		    from = j;
-		}
-	      if (from >= 0)
-                {
-                  if (offset >= 0)
-                    char_table_set_range
-                      (table, offset + ((i << 8) | from),
-                       offset + ((i << 8) | (j - 1)), Qt);
-                  else
-                    {
-                      for (; from < j; from++)
-                        {
-                          unsigned code = (i << 8) | from;
-                          c = DECODE_CHAR (charset, code);
-                          CHAR_TABLE_SET (table, c, Qt);
-                        }
-                    }
-                }
-	    }
-	}
-    }
-#endif
-  return table;
-}
-
-
-/***********************************************************************
-			    Glyph display
- ***********************************************************************/
-
-
-/* Encapsulate the different ways of displaying text under W32.  */
-
-static void
-w32_text_out (s, x, y,chars,nchars)
-     struct glyph_string * s;
-     int x, y;
-     wchar_t * chars;
-     int nchars;
-{
-  int charset_dim = w32_font_is_double_byte (s->font) ? 2 : 1;
-  if (s->font->bdf)
-    w32_BDF_TextOut (s->font->bdf, s->hdc,
-                     x, y, (char *) chars, charset_dim,
-                     nchars * charset_dim, 0);
-  else if (s->first_glyph->font_type == UNICODE_FONT)
-    ExtTextOutW (s->hdc, x, y, 0, NULL, chars, nchars, NULL);
-  else
-    ExtTextOutA (s->hdc, x, y, 0, NULL, (char *) chars,
-		 nchars * charset_dim, NULL);
-}
-
-#endif	/* OLD_FONT */
-
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
@@ -1508,10 +913,6 @@ static void w32_draw_relief_rect P_ ((struct frame *, int, int, int, int,
 				      RECT *));
 static void w32_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, RECT *));
-
-#if GLYPH_DEBUG
-static void x_check_font P_ ((struct frame *, XFontStruct *));
-#endif
 
 
 /* Set S->gc to a suitable GC for drawing glyph string S in cursor
@@ -1722,17 +1123,6 @@ x_set_glyph_string_clipping_exactly (src, dst)
   r.bottom = r.top + src->height;
   dst->clip[0] = r;
   dst->num_clips = 1;
-#if OLD_FONT
-    {
-  struct glyph_string *clip_head = src->clip_head;
-  struct glyph_string *clip_tail = src->clip_tail;
-
-  /* This foces clipping just this glyph string.  */
-  src->clip_head = src->clip_tail = src;
-  get_glyph_string_clip_rect (src, &r);
-  src->clip_head = clip_head, src->clip_tail = clip_tail;
-    }
-#endif	/* OLD_FONT */
   w32_set_clip_rectangle (dst->hdc, &r);
 }
 
@@ -1828,7 +1218,6 @@ x_draw_glyph_string_background (s, force_p)
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
-	       || FONT_COMPAT (s->font)->bdf
 	       || cleartype_active
 	       || force_p)
 	{
@@ -1848,7 +1237,6 @@ x_draw_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, x;
-  HFONT old_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1858,18 +1246,9 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR)
-      || cleartype_active)
-    SetBkMode (s->hdc, TRANSPARENT);
-  else
-    SetBkMode (s->hdc, OPAQUE);
-
   SetTextColor (s->hdc, s->gc->foreground);
   SetBkColor (s->hdc, s->gc->background);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
-
-  if (s->font && FONT_COMPAT (s->font)->hfont)
-    old_font = SelectObject (s->hdc, FONT_COMPAT (s->font)->hfont);
 
   /* Draw characters of S as rectangles if S's font could not be
      loaded. */
@@ -1886,12 +1265,15 @@ x_draw_glyph_string_foreground (s)
     }
   else
     {
-      int boff = s->font->baseline_offset;
       struct font *font = s->font;
+      int boff = font->baseline_offset;
       int y;
+      HFONT old_font;
 
-      if (s->font->vertical_centering)
-	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+      old_font = SelectObject (s->hdc, FONT_HANDLE (font));
+
+      if (font->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (font, s->f) - boff;
 
       y = s->ybase - boff;
       if (s->for_overlaps
@@ -1901,10 +1283,9 @@ x_draw_glyph_string_foreground (s)
 	font->driver->draw (s, 0, s->nchars, x, y, 1);
       if (s->face->overstrike)
 	font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
-    }
 
-  if (s->font && FONT_COMPAT (s->font)->hfont)
-    SelectObject (s->hdc, old_font);
+      SelectObject (s->hdc, old_font);
+    }
 }
 
 /* Draw the foreground of composite glyph string S.  */
@@ -1914,7 +1295,6 @@ x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
   int i, j, x;
-  HFONT old_font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1931,11 +1311,7 @@ x_draw_composite_glyph_string_foreground (s)
 
   SetTextColor (s->hdc, s->gc->foreground);
   SetBkColor (s->hdc, s->gc->background);
-  SetBkMode (s->hdc, TRANSPARENT);
   SetTextAlign (s->hdc, TA_BASELINE | TA_LEFT);
-
-  if (s->font && FONT_COMPAT (s->font)->hfont)
-    old_font = SelectObject (s->hdc, FONT_COMPAT (s->font)->hfont);
 
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
@@ -1945,11 +1321,14 @@ x_draw_composite_glyph_string_foreground (s)
         w32_draw_rectangle (s->hdc, s->gc, x, s->y, s->width - 1,
                             s->height - 1);
     }
-
+  else
     {
       struct font *font = s->font;
       int y = s->ybase;
       int width = 0;
+      HFONT old_font;
+
+      old_font = SelectObject (s->hdc, FONT_HANDLE (font));
 
       if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
 	{
@@ -1999,10 +1378,8 @@ x_draw_composite_glyph_string_foreground (s)
 		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
 	      }
 	}
+      SelectObject (s->hdc, old_font);
     }
-
-  if (s->font && FONT_COMPAT (s->font)->hfont)
-    SelectObject (s->hdc, old_font);
 }
 
 
@@ -2951,8 +2328,7 @@ x_draw_glyph_string (s)
 
       /* Draw strike-through.  */
       if (s->face->strike_through_p
-          && (FONT_COMPAT (s->font)->bdf
-	      || !FONT_COMPAT (s->font)->tm.tmStruckOut))
+          && !FONT_TEXTMETRIC(s->font).tmStruckOut)
         {
           unsigned long h = 1;
           unsigned long dy = (s->height - h) / 2;
@@ -5770,109 +5146,6 @@ x_io_error_quitter (display)
 
 /* Changing the font of the frame.  */
 
-#if OLD_FONT
-
-/* Give frame F the font named FONTNAME as its default font, and
-   return the full name of that font.  FONTNAME may be a wildcard
-   pattern; in that case, we choose some font that fits the pattern.
-   The return value shows which font we chose.  */
-
-Lisp_Object
-x_new_font (f, fontname)
-     struct frame *f;
-     register char *fontname;
-{
-  struct font_info *fontp
-    = FS_LOAD_FONT (f, fontname);
-
-  if (!fontp)
-    return Qnil;
-
-  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
-    /* This font is already set in frame F.  There's nothing more to
-       do.  */
-    return build_string (fontp->full_name);
-
-  FRAME_FONT (f) = (XFontStruct *) (fontp->font);
-  FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
-  FRAME_FONTSET (f) = -1;
-
-  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
-  FRAME_SPACE_WIDTH (f) = fontp->space_width;
-  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
-
-  compute_fringe_widths (f, 1);
-
-  /* Compute the scroll bar width in character columns.  */
-  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f)
-	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid-1) / wid;
-    }
-  else
-    {
-      int wid = FRAME_COLUMN_WIDTH (f);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
-    }
-
-  /* Now make the frame display the given font.  */
-  if (FRAME_W32_WINDOW (f) != 0)
-    {
-      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
-        x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
-    }
-
-  return build_string (fontp->full_name);
-}
-
-/* Give frame F the fontset named FONTSETNAME as its default fontset,
-   and return the full name of that fontset.  FONTSETNAME may be a
-   wildcard pattern; in that case, we choose some fontset that fits
-   the pattern.  FONTSETNAME may be a font name for ASCII characters;
-   in that case, we create a fontset from that font name.
-
-   The return value shows which fontset we chose.
-   If FONTSETNAME specifies the default fontset, return Qt.
-   If an ASCII font in the specified fontset can't be loaded, return
-   Qnil.  */
-
-Lisp_Object
-x_new_fontset (f, fontsetname)
-     struct frame *f;
-     Lisp_Object fontsetname;
-{
-  int fontset = fs_query_fontset (fontsetname, 0);
-  Lisp_Object result;
-
-  if (fontset > 0 && FRAME_FONTSET(f) == fontset)
-    /* This fontset is already set in frame F.  There's nothing more
-       to do.  */
-    return fontset_name (fontset);
-  else if (fontset == 0)
-    /* The default fontset can't be the default font.   */
-    return Qt;
-
-  if (fontset > 0)
-    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
-  else
-    result = x_new_font (f, SDATA (fontsetname));
-
-  if (!STRINGP (result))
-    /* Can't load ASCII font.  */
-    return Qnil;
-
-  if (fontset < 0)
-    fontset = new_fontset_from_font_name (result);
-
-  /* Since x_new_font doesn't update any fontset information, do it now.  */
-  FRAME_FONTSET(f) = fontset;
-
-  return fontset_name (fontset);
-}
-#endif	/* OLD_FONT */
-
-
 Lisp_Object
 x_new_font (f, font_object, fontset)
      struct frame *f;
@@ -6128,7 +5401,7 @@ x_set_window_size (f, change_gravity, cols, rows)
      resize will happen asynchronously. But on Windows, the menu bar
      automatically wraps when the frame is too narrow to contain it,
      and that causes any calculations made here to come out wrong. The
-     end is some nasty buggy behaviour, including the potential loss
+     end is some nasty buggy behavior, including the potential loss
      of the minibuffer.
 
      Disabling this code is either not sufficient to fix the problems
@@ -6251,9 +5524,9 @@ x_raise_frame (f)
   BLOCK_INPUT;
 
   /* Strictly speaking, raise-frame should only change the frame's Z
-     order, leaving input focus unchanged.  This is reasonable behaviour
+     order, leaving input focus unchanged.  This is reasonable behavior
      on X where the usual policy is point-to-focus.  However, this
-     behaviour would be very odd on Windows where the usual policy is
+     behavior would be very odd on Windows where the usual policy is
      click-to-focus.
 
      On X, if the mouse happens to be over the raised frame, it gets
@@ -6601,118 +5874,6 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 
 
 /***********************************************************************
-				Fonts
- ***********************************************************************/
-
-#if OLD_FONT
-
-/* The following functions are listed here to help diff stay in step
-   with xterm.c.  See w32fns.c for definitions.
-
-x_get_font_info (f, font_idx)
-x_list_fonts (f, pattern, size, maxnames)
-
- */
-
-#if GLYPH_DEBUG
-
-/* Check that FONT is valid on frame F.  It is if it can be found in F's
-   font table.  */
-
-static void
-x_check_font (f, font)
-     struct frame *f;
-     XFontStruct *font;
-{
-  int i;
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-
-  xassert (font != NULL);
-
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name
-	&& font == dpyinfo->font_table[i].font)
-      break;
-
-  xassert (i < dpyinfo->n_fonts);
-}
-
-#endif /* GLYPH_DEBUG != 0 */
-
-/* Set *W to the minimum width, *H to the minimum font height of FONT.
-   Note: There are (broken) X fonts out there with invalid XFontStruct
-   min_bounds contents.  For example, handa@etl.go.jp reports that
-   "-adobe-courier-medium-r-normal--*-180-*-*-m-*-iso8859-1" fonts
-   have font->min_bounds.width == 0.  */
-
-static INLINE void
-x_font_min_bounds (font, w, h)
-     XFontStruct *font;
-     int *w, *h;
-{
-  /*
-   * TODO: Windows does not appear to offer min bound, only
-   * average and maximum width, and maximum height.
-   */
-  *h = FONT_HEIGHT (font);
-  *w = FONT_AVG_WIDTH (font);
-}
-
-
-/* Compute the smallest character width and smallest font height over
-   all fonts available on frame F.  Set the members smallest_char_width
-   and smallest_font_height in F's x_display_info structure to
-   the values computed.  Value is non-zero if smallest_font_height or
-   smallest_char_width become smaller than they were before.  */
-
-int
-x_compute_min_glyph_bounds (f)
-     struct frame *f;
-{
-  int i;
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-  XFontStruct *font;
-  int old_width = dpyinfo->smallest_char_width;
-  int old_height = dpyinfo->smallest_font_height;
-
-  dpyinfo->smallest_font_height = 100000;
-  dpyinfo->smallest_char_width = 100000;
-
-  for (i = 0; i < dpyinfo->n_fonts; ++i)
-    if (dpyinfo->font_table[i].name)
-      {
-	struct font_info *fontp = dpyinfo->font_table + i;
-	int w, h;
-
-	font = (XFontStruct *) fontp->font;
-	xassert (font != (XFontStruct *) ~0);
-	x_font_min_bounds (font, &w, &h);
-
-	dpyinfo->smallest_font_height = min (dpyinfo->smallest_font_height, h);
-	dpyinfo->smallest_char_width = min (dpyinfo->smallest_char_width, w);
-      }
-
-  xassert (dpyinfo->smallest_char_width > 0
-	   && dpyinfo->smallest_font_height > 0);
-
-  return (dpyinfo->n_fonts == 1
-	  || dpyinfo->smallest_char_width < old_width
-	  || dpyinfo->smallest_font_height < old_height);
-}
-
-/* The following functions are listed here to help diff stay in step
-   with xterm.c.  See w32fns.c for definitions.
-
-x_load_font (f, fontname, size)
-x_query_font (f, fontname)
-x_find_ccl_program (fontp)
-
-*/
-
-#endif	/* OLD_FONT */
-
-
-/***********************************************************************
 			    Initialization
  ***********************************************************************/
 
@@ -6844,10 +6005,6 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_draw_fringe_bitmap,
   w32_define_fringe_bitmap,
   w32_destroy_fringe_bitmap,
-#if OLD_FONT
-  w32_per_char_metric,
-  w32_encode_char,
-#endif
   w32_compute_glyph_string_overhangs,
   x_draw_glyph_string,
   w32_define_frame_cursor,
@@ -6935,14 +6092,6 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
-#if OLD_FONT
-  /* Free the fonts in the font table.  */
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name)
-      {
-        DeleteObject (((XFontStruct*)(dpyinfo->font_table[i].font))->hfont);
-      }
-#endif
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;
@@ -7071,9 +6220,6 @@ x_delete_display (dpyinfo)
     if (dpyinfo->palette)
       DeleteObject(dpyinfo->palette);
   }
-#if OLD_FONT
-  xfree (dpyinfo->font_table);
-#endif
   xfree (dpyinfo->w32_id_name);
 
   w32_reset_fringes ();

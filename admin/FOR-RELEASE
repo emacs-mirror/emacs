@@ -166,12 +166,120 @@ etc/TUTORIAL.sv
 etc/TUTORIAL.th          
 etc/TUTORIAL.zh
 
+** Check the manual.
+
+abbrevs.texi
+ack.texi
+anti.texi
+arevert-xtra.texi
+basic.texi
+buffers.texi
+building.texi
+calendar.texi
+cal-xtra.texi
+cmdargs.texi
+commands.texi
+custom.texi
+dired.texi
+dired-xtra.texi
+display.texi
+emacs.texi
+emacs-xtra.texi
+emerge-xtra.texi
+entering.texi
+files.texi
+fixit.texi
+fortran-xtra.texi
+frames.texi
+glossary.texi
+gnu.texi
+gpl.texi
+help.texi
+indent.texi
+killing.texi
+kmacro.texi
+macos.texi
+maintaining.texi
+major.texi
+mark.texi -- cyd
+mini.texi
+misc.texi
+msdog.texi
+msdog-xtra.texi
+mule.texi
+m-x.texi
+programs.texi
+regs.texi
+rmail.texi
+screen.texi
+search.texi
+sending.texi
+text.texi
+trouble.texi
+windows.texi
+xresources.texi
+
+** Check the Lisp manual.
+
+abbrevs.texi
+advice.texi
+anti.texi
+back.texi
+backups.texi
+buffers.texi
+commands.texi
+compile.texi
+control.texi
+customize.texi
+debugging.texi
+display.texi
+doclicense.texi
+edebug.texi
+elisp.texi
+errors.texi
+eval.texi
+files.texi
+frames.texi
+functions.texi
+hash.texi
+help.texi
+hooks.texi
+index.texi
+internals.texi
+intro.texi
+keymaps.texi
+lists.texi
+loading.texi
+locals.texi
+macros.texi
+maps.texi
+markers.texi
+minibuf.texi
+modes.texi
+nonascii.texi
+numbers.texi
+objects.texi
+os.texi
+positions.texi
+processes.texi
+searching.texi
+sequences.texi
+spellfile
+streams.texi
+strings.texi
+symbols.texi
+syntax.texi
+text.texi
+tips.texi
+two.el
+variables.texi
+windows.texi
+
 * PLANNED ADDITIONS
 ** ECB
 ** Emacs.app
 ** ruby-mode
 ** js2-mode
-** rst-mode
 ** pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
 
 Local variables:

@@ -113,14 +113,14 @@
 ;; * I like to leave point at the end of the region nearest to where the
 ;;   mouse was, even though this makes region highlighting mis-leading (the
 ;;   cursor makes it look like one extra character is selected).  You can
-;;   disable this behaviour with:
+;;   disable this behavior with:
 ;;
 ;;     (setq mouse-sel-leave-point-near-mouse nil)
 ;;
 ;; * By default, mouse-select cycles the click count after 4 clicks.  That
 ;;   is, clicking mouse-1 five times has the same effect as clicking it
 ;;   once, clicking six times has the same effect as clicking twice, etc.
-;;   Disable this behaviour with:
+;;   Disable this behavior with:
 ;;
 ;;     (setq mouse-sel-cycle-clicks nil)
 ;;

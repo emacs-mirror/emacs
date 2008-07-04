@@ -433,9 +433,6 @@ extern void fatal (const char *msgid, ...);
 #if __sgi
 #include <syms.h> /* for HDRR declaration */
 #endif /* __sgi */
-#ifdef BROKEN_NOCOMBRELOC
-#include <assert.h>
-#endif
 
 #ifndef MAP_ANON
 #ifdef MAP_ANONYMOUS
@@ -690,9 +687,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   int old_mdebug_index;
   struct stat stat_buf;
   int old_file_size;
-#ifdef BROKEN_NOCOMBRELOC
-  int unreloc_sections[10], n_unreloc_sections;
-#endif
 
   /* Open the old file, allocate a buffer of the right size, and read
      in the file contents.  */
@@ -982,23 +976,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	     section just before .bss has less-strict alignment; this
 	     was observed between .symtab and .bss on Solaris 2.5.1
 	     (sparc) with GCC snapshot 960602.  */
-#ifdef SOLARIS_POWERPC
-	  /* On PPC Reference Platform running Solaris 2.5.1
-	     the plt section is also of type NOBI like the bss section.
-	     (not really stored) and therefore sections after the bss
-	     section start at the plt offset. The plt section is always
-	     the one just before the bss section.
-	     It would be better to put the new data section before
-	     the .plt section, or use libelf instead.
-	     Erik Deumens, deumens@qtp.ufl.edu.  */
-	  if (NEW_SECTION_H (nn).sh_offset
-	      >= OLD_SECTION_H (old_bss_index-1).sh_offset)
-	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
-#else
+
 	  if (NEW_SECTION_H (nn).sh_offset + NEW_SECTION_H (nn).sh_size
 	      > new_data2_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
-#endif
+
 	  /* Any section that was originally placed after the section
 	     header table should now be off by the size of one section
 	     header table entry.  */
@@ -1224,7 +1206,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
   /* This loop seeks out relocation sections for the data section, so
      that it can undo relocations performed by the runtime linker.  */
-#ifndef BROKEN_NOCOMBRELOC
   for (n = new_file_h->e_shnum - 1; n; n--)
     {
       ElfW(Shdr) section = NEW_SECTION_H (n);
@@ -1279,81 +1260,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  break;
 	}
     }
-#else /* BROKEN_NOCOMBRELOC */
-  for (n = 1, n_unreloc_sections = 0; n < new_file_h->e_shnum; n++)
-    if (!strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data")
-	|| !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".sdata")
-	|| !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".lit4")
-	|| !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".lit8")
-#ifdef IRIX6_5			/* see above */
-	|| !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".got")
-#endif
-	|| !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".sdata1")
-	|| !strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data1"))
-      {
-	assert (n_unreloc_sections
-		< (sizeof (unreloc_sections) / sizeof (unreloc_sections[0])));
-	unreloc_sections[n_unreloc_sections++] = n;
-#ifdef DEBUG
-	fprintf (stderr, "section %d: %s\n", n,
-		 old_section_names + NEW_SECTION_H (n).sh_name);
-#endif
-      }
-
-  for (n = new_file_h->e_shnum - 1; n; n--)
-    {
-      ElfW(Shdr) section = NEW_SECTION_H (n);
-      caddr_t reloc, end;
-      ElfW(Addr) addr, offset;
-      int target;
-
-      switch (section.sh_type)
-	{
-	default:
-	  break;
-	case SHT_REL:
-	case SHT_RELA:
-	  /* This code handles two different size structs, but there should
-	     be no harm in that provided that r_offset is always the first
-	     member.  */
-	  for (reloc = old_base + section.sh_offset,
-		 end = reloc + section.sh_size;
-	       reloc < end;
-	       reloc += section.sh_entsize)
-	    {
-	      addr = ((ElfW(Rel) *) reloc)->r_offset;
-#ifdef __alpha__
-	      /* The Alpha ELF binutils currently have a bug that
-		 sometimes results in relocs that contain all
-		 zeroes.  Work around this for now...  */
-	      if (addr == 0)
-		continue;
-#endif
-	      for (nn = 0; nn < n_unreloc_sections; nn++)
-		{
-		  target = unreloc_sections[nn];
-		  if (NEW_SECTION_H (target).sh_addr <= addr
-		      && addr < (NEW_SECTION_H (target).sh_addr +
-				 NEW_SECTION_H (target).sh_size))
-		    {
-		      offset = (NEW_SECTION_H (target).sh_addr -
-				NEW_SECTION_H (target).sh_offset);
-		      memcpy (new_base + addr - offset,
-			      old_base + addr - offset,
-			      sizeof (ElfW(Addr)));
-#ifdef DEBUG
-		      fprintf (stderr, "unrelocate: [%08lx] <= %08lx\n",
-			       (long) addr,
-			       (long) *((long *) (new_base + addr - offset)));
-#endif
-		      break;
-		    }
-		}
-	    }
-	  break;
-	}
-    }
-#endif	/* BROKEN_NOCOMBRELOC */
 
   /* Write out new_file, and free the buffers.  */
 

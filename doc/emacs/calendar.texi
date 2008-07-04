@@ -632,23 +632,23 @@ the moon.''
 @table @kbd
 @item M
 Display the dates and times for all the quarters of the moon for the
-three-month period shown (@code{calendar-phases-of-moon}).
-@item M-x phases-of-moon
+three-month period shown (@code{calendar-lunar-phases}).
+@item M-x lunar-phases
 Display dates and times of the quarters of the moon for three months around
 today's date.
 @end table
 
 @kindex M @r{(Calendar mode)}
-@findex calendar-phases-of-moon
+@findex calendar-lunar-phases
   Within the calendar, use the @kbd{M} command to display a separate
 buffer of the phases of the moon for the current three-month range.  The
 dates and times listed are accurate to within a few minutes.
 
-@findex phases-of-moon
-  Outside the calendar, use the command @kbd{M-x phases-of-moon} to
+@findex lunar-phases
+  Outside the calendar, use the command @kbd{M-x lunar-phases} to
 display the list of the phases of the moon for the current month and the
 preceding and succeeding months.  For information about a different
-month, use @kbd{C-u M-x phases-of-moon}, which prompts for the month and
+month, use @kbd{C-u M-x lunar-phases}, which prompts for the month and
 year.
 
   The dates and times given for the phases of the moon are given in

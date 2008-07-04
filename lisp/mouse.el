@@ -1110,8 +1110,7 @@ If DIR is positive skip forward; if negative, skip backward."
 	   ;; Here, we can't use skip-syntax-forward/backward because
 	   ;; they don't pay attention to word-separating-categories,
 	   ;; and thus they will skip over a true word boundary.  So,
-	   ;; we simularte the original behaviour by using
-	   ;; forward-word.
+	   ;; we simulate the original behavior by using forward-word.
 	   (if (< dir 0)
 	       (if (not (looking-at "\\<"))
 		   (forward-word -1))
@@ -2524,7 +2523,7 @@ choose a font."
 	      ((eq choice 'face-remap-reset-base)
 	       (text-scale-mode 0)
 	       (buffer-face-mode 0))
-	      (t
+	      (choice
 	       ;; Either choice == 'x-select-font, or choice is a
 	       ;; symbol whose name is a font.
 	       (buffer-face-mode-invoke (font-face-attributes

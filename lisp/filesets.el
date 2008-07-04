@@ -52,7 +52,7 @@
 ;; programs.  See `filesets-external-viewers'.
 
 ;; BTW, if you close a fileset, files, which have been changed, will
-;; be silently saved.  Change this behaviour by setting
+;; be silently saved.  Change this behavior by setting
 ;; `filesets-save-buffer-fn'.
 
 ;;; Supported modes for inclusion groups (`filesets-ingroup-patterns'):

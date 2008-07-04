@@ -3071,10 +3071,13 @@ x_default_font_parameter (f, parms)
   if (! STRINGP (font))
     {
       char *names[]
-	= { "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
-	    "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	= {
+#ifdef HAVE_XFT
 	    /* This will find the normal Xft font.  */
-	    "monospace-12",
+ 	    "monospace-12",
+#endif
+	    "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
+	    "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
 	    "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
 	    /* This was formerly the first thing tried, but it finds
 	       too many fonts and takes too long.  */

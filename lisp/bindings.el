@@ -804,16 +804,31 @@ language you are using."
 (define-key ctl-x-map "\C-n" 'set-goal-column)
 (define-key global-map "\C-a" 'move-beginning-of-line)
 (define-key global-map "\C-e" 'move-end-of-line)
-(define-key esc-map "g" (make-sparse-keymap))
-(define-key esc-map "g\M-g" 'goto-line)
-(define-key esc-map "gg" 'goto-line)
 
-(define-key esc-map "gn" 'next-error)
-(define-key esc-map "g\M-n" 'next-error)
 (define-key ctl-x-map "`" 'next-error)
 
-(define-key esc-map "gp" 'previous-error)
-(define-key esc-map "g\M-p" 'previous-error)
+(defvar goto-map (make-sparse-keymap)
+  "Keymap for navigation commands.")
+(define-key esc-map "g" goto-map)
+
+(define-key goto-map    "g" 'goto-line)
+(define-key goto-map "\M-g" 'goto-line)
+(define-key goto-map    "n" 'next-error)
+(define-key goto-map "\M-n" 'next-error)
+(define-key goto-map    "p" 'previous-error)
+(define-key goto-map "\M-p" 'previous-error)
+
+(defvar search-map (make-sparse-keymap)
+  "Keymap for search related commands.")
+(define-key esc-map "s" search-map)
+
+(define-key search-map "o"  'occur)
+(define-key search-map "hr" 'highlight-regexp)
+(define-key search-map "hp" 'highlight-phrase)
+(define-key search-map "hl" 'highlight-lines-matching-regexp)
+(define-key search-map "hu" 'unhighlight-regexp)
+(define-key search-map "hf" 'hi-lock-find-patterns)
+(define-key search-map "hw" 'hi-lock-write-interactive-patterns)
 
 ;;(defun function-key-error ()
 ;;  (interactive)

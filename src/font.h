@@ -477,8 +477,11 @@ struct font_bitmap
    on resolution DPI.  */
 #define POINT_TO_PIXEL(POINT, DPI) ((POINT) * (DPI) / PT_PER_INCH + 0.5)
 
-/* Return a point size (double) corresponding to POINT size (integer)
-   on resolution DPI.  */
+/* Return a point size corresponding to POINT size (integer)
+   on resolution DPI. Note that though point size is a double, we expect
+   it to be rounded to an int, so we add 0.5 here. If the desired value
+   is tenths of points (as in xfld specs), then the pixel size should
+   be multiplied BEFORE the conversion to avoid magnifying the error.  */
 #define PIXEL_TO_POINT(PIXEL, DPI) ((PIXEL) * PT_PER_INCH / (DPI) + 0.5)
 
 /* Ignore the difference of font pixel sizes less than or equal to

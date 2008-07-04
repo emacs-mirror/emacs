@@ -933,7 +933,7 @@ or properties are considered."
     ;; completions of "(ne", which is presumably not what one wants.
     ;;
     ;; This is arguably (at least, it seems to be the existing intended
-    ;; behaviour) what one _does_ want if point has been explicitly
+    ;; behavior) what one _does_ want if point has been explicitly
     ;; positioned on the hyphen. Note that if PC-do-completion (qv) binds
     ;; completion-base-size to nil, then completion does not replace the
     ;; correct amount of text in such cases.
@@ -945,12 +945,12 @@ or properties are considered."
     ;; the minibuffer. The same is not true for lisp symbols.
     ;;
     ;; [1] An alternate fix would be to not move point to the hyphen
-    ;; in such cases, but that would make the behaviour different from
+    ;; in such cases, but that would make the behavior different from
     ;; that for filenames. It seems PC moves point to the site of the
     ;; first difference between the possible completions.
     ;;
     ;; Alternatively alternatively, maybe end should be computed in
-    ;; the same way as beg. That would change the behaviour though.
+    ;; the same way as beg. That would change the behavior though.
     (if (equal last-command 'PC-lisp-complete-symbol)
         (PC-do-completion nil beg PC-lisp-complete-end t)
       (if PC-lisp-complete-end

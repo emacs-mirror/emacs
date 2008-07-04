@@ -769,6 +769,8 @@ Optional arg REVISION is a revision to annotate from."
       (insert (gethash (get-text-property (point) :vc-rcs-r/d/a) ht))
       (forward-line 1))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
+
 (defun vc-rcs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and
 encoded as fractional days."

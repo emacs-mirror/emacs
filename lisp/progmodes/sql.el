@@ -408,7 +408,7 @@ following:
                         special character treatment by font-lock and
                         imenu. ")
 
-;; misc customization of sql.el behaviour
+;; misc customization of sql.el behavior
 
 (defcustom sql-electric-stuff nil
   "Treat some input as electric.

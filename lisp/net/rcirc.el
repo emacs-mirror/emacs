@@ -28,7 +28,7 @@
 ;; communication in discussion forums called channels, but also allows
 ;; one-to-one communication.
 
-;; Rcirc has simple defaults and clear and consistent behaviour.
+;; Rcirc has simple defaults and clear and consistent behavior.
 ;; Message arrival timestamps, activity notification on the modeline,
 ;; message filling, nick completion, and keepalive pings are all
 ;; enabled by default, but can easily be adjusted or turned off.  Each

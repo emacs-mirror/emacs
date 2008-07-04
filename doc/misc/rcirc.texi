@@ -174,7 +174,7 @@ network are equivalent.  Some networks use a round-robin system where a
 single server redirects new connections to a random server in the
 network.  @code{irc.freenode.net} is such a server for the Freenode
 network.  Freenode provides the network ``for the Free and Open Source
-Software communities, for not-for-profit organisations and for related
+Software communities, for not-for-profit organizations and for related
 communities and organizations.''
 
 @cindex port, connecting
@@ -890,7 +890,7 @@ because @code{defun-rcirc-command} is not yet available, and without
 
 If you're chatting from a laptop, then you might be familiar with this
 problem: When your laptop falls asleep and wakes up later, your IRC
-client doesn't realise that it has been disconnected.  It takes several
+client doesn't realize that it has been disconnected.  It takes several
 minutes until the client decides that the connection has in fact been
 lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
 that this opens an @emph{additional} connection, so you'll have two

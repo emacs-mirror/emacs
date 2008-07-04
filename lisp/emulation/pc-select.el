@@ -30,7 +30,7 @@
 ;; programs (which is the same as the MAC gui and (sorry for that) MS-Windows).
 ;; It modifies the keybindings of the cursor keys and the next, prior,
 ;; home and end keys. They will modify mark-active.
-;; You can still get the old behaviour of cursor moving with the
+;; You can still get the old behavior of cursor moving with the
 ;; control sequences C-f, C-b, etc.
 ;; This package uses transient-mark-mode and
 ;; delete-selection-mode.
@@ -71,7 +71,7 @@
 ;;    which will operate on the active region
 ;;    It was not possible to bind them to C-v, C-x and C-c for obvious
 ;;    emacs reasons.
-;;    They will be bound according to the "old" behaviour to S-delete (cut),
+;;    They will be bound according to the "old" behavior to S-delete (cut),
 ;;    S-insert (paste) and C-insert (copy). These keys do the same in many
 ;;    other programs.
 ;;

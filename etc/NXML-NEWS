@@ -93,7 +93,7 @@ the content of an element.  C-M-n and C-M-p move to the next or
 previous element.
 
 By default, the sexp commands (C-M-f, C-M-b, C-M-k, C-M-SPC) operate
-on tags rather than elements.  To restore the old behaviour,
+on tags rather than elements.  To restore the old behavior,
 customize nxml-sexp-element-flag.
 
 The file TUTORIAL has been replaced by nxml-mode.info; this is in info
@@ -137,7 +137,7 @@ You can do
   M-x customize-variable RET nxml-slash-auto-complete-flag RET
 
 and then follow the instructions displayed in the buffer to get the
-old behaviour.
+old behavior.
 
 Completion after </ will complete the rest of the end-tag. Completion
 after < will include the end-tag in the possibilities if allowed by

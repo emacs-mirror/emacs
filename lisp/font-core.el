@@ -252,7 +252,7 @@ this function onto `change-major-mode-hook'."
 ;; Although Global Font Lock mode is a pseudo-mode, I think that the user
 ;; interface should conform to the usual Emacs convention for modes, i.e., a
 ;; command to toggle the feature (`global-font-lock-mode') with a variable for
-;; finer control of the mode's behaviour (`font-lock-global-modes').
+;; finer control of the mode's behavior (`font-lock-global-modes').
 ;;
 ;; The feature should not be enabled by loading font-lock.el, since other
 ;; mechanisms for turning on Font Lock mode, such as M-x font-lock-mode RET or

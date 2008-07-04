@@ -1677,7 +1677,7 @@ These functions give the date in alternative calendrical systems:
 
 Theses functions only produce output on certain dates:
 
-`diary-phases-of-moon'         - phases of moon (on the appropriate days)
+`diary-lunar-phases'           - phases of moon (on the appropriate days)
 `diary-hebrew-omer'            - Omer count, within 50 days after Passover
 `diary-hebrew-parasha'         - weekly parasha, every Saturday
 `diary-hebrew-rosh-hodesh'     - Rosh Hodesh, or the day or Saturday before

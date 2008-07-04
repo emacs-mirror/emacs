@@ -388,17 +388,18 @@ See `%s' for more information on %s."
 ;;; easy-mmode-defmap
 ;;;
 
-(if (fboundp 'set-keymap-parents)
-    (defalias 'easy-mmode-set-keymap-parents 'set-keymap-parents)
-  (defun easy-mmode-set-keymap-parents (m parents)
-    (set-keymap-parent
-     m
-     (cond
-      ((not (consp parents)) parents)
-      ((not (cdr parents)) (car parents))
-      (t (let ((m (copy-keymap (pop parents))))
-	   (easy-mmode-set-keymap-parents m parents)
-	   m))))))
+(eval-and-compile
+  (if (fboundp 'set-keymap-parents)
+      (defalias 'easy-mmode-set-keymap-parents 'set-keymap-parents)
+    (defun easy-mmode-set-keymap-parents (m parents)
+      (set-keymap-parent
+       m
+       (cond
+        ((not (consp parents)) parents)
+        ((not (cdr parents)) (car parents))
+        (t (let ((m (copy-keymap (pop parents))))
+             (easy-mmode-set-keymap-parents m parents)
+             m)))))))
 
 ;;;###autoload
 (defun easy-mmode-define-keymap (bs &optional name m args)

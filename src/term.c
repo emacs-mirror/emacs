@@ -3801,13 +3801,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   init_baud_rate (fileno (tty->input));
 
-#ifdef AIXHFT
-  /* The HFT system on AIX doesn't optimize for scrolling, so it's
-     really ugly at times.  */
-  terminal->line_ins_del_ok = 0;
-  terminal->char_ins_del_ok = 0;
-#endif
-
   /* Don't do this.  I think termcap may still need the buffer. */
   /* xfree (buffer); */
 

@@ -70,7 +70,7 @@ region is logged if `erc-logging-enabled' returns non-nil."
       (set-buffer buffer)
       ;; Note that when erc-insert-post-hook runs, the buffer is
       ;; narrowed to the new message.  So do this delicate widening.
-      ;; I am not sure, I think this was not recommended behaviour in
+      ;; I am not sure, I think this was not recommended behavior in
       ;; Emacs 20.
       (save-restriction
 	(widen)

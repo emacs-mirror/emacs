@@ -1349,10 +1349,20 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
       if (hpos > width)
 	{
-	  if (hscroll
-	      || (truncate_partial_width_windows
-		  && ((width + continuation_glyph_width)
-		      < FRAME_COLS (XFRAME (WINDOW_FRAME (win)))))
+	  int total_width = width + continuation_glyph_width;
+	  int truncate = 0;
+
+	  if (!NILP (Vtruncate_partial_width_windows)
+	      && (total_width < FRAME_COLS (XFRAME (WINDOW_FRAME (win)))))
+	    {
+	      if (INTEGERP (Vtruncate_partial_width_windows))
+		truncate
+		  = total_width < XFASTINT (Vtruncate_partial_width_windows);
+	      else
+		truncate = 1;
+	    }
+
+	  if (hscroll || truncate
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline, unless we are already past

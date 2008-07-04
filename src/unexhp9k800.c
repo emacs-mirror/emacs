@@ -59,9 +59,7 @@
 
 #include <a.out.h>
 
-#ifdef HPUX_USE_SHLIBS
 #include <dl.h>
-#endif
 
 /* brk value to restore, stored as a global.
    This is really used only if we used shared libraries.  */

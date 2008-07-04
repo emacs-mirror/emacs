@@ -536,6 +536,8 @@ property containing author and date information."
         (replace-match "")
         (insert tag " |")))))
 
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
+
 (defun vc-bzr-annotate-time ()
   (when (re-search-forward "^ *[0-9.]+ +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
@@ -552,7 +554,7 @@ property containing author and date information."
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at " *\\([0-9.]+\\) | ")
+    (if (looking-at " *\\([0-9.]+\\) *| ")
         (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)

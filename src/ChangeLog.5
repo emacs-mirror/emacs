@@ -4587,7 +4587,7 @@
 	(Fframep #2) [MSDOS]: Return 'pc for when termcap is not used.
 	(Fmouse_position #2) [HAVE_MOUSE]: Return useful information.
 	(Fframe_parameters #2): Show "font" as "default".
-	(Fframe_parameters #2) [MSDOS]: Show fore- and background colours.
+	(Fframe_parameters #2) [MSDOS]: Show fore- and background colors.
 	(Fmodify_frame_parameters #2) [MSDOS]: Call IT_set_frame_parameters.
 	(Fframe_list #2): New stub function.
 	(syms_of_frame #2): defsubr frame_list.
@@ -4671,7 +4671,7 @@
 	* sysdep.c (init_sys_modes): Make sure that internal_terminal_init
 	is only called once.
 	(init_sys_modes, reset_sys_modes) [HAVE_X_WINDOWS]: Add conditional.
-	(reset_sys_modes) [MSDOS]: Change to MSDOG's default colours.
+	(reset_sys_modes) [MSDOS]: Change to MSDOG's default colors.
 	(kbd_input_ast): Use just XSETFRAME.
 
 	* window.c (init_window_once) [!MULTI_FRAME]: Set selected_frame and
@@ -4691,7 +4691,7 @@
 	stubs.
 	(load_color) [MSDOS && !HAVE_X_WINDOWS]: Special version.
 	(Fset_face_attribute_internal) [MSDOS && !HAVE_X_WINDOWS]: Stubify
-	font setting, mask away 0x08 (the blink bit) from background colour.
+	font setting, mask away 0x08 (the blink bit) from background color.
 	(syms_of_xfaces) [!HAVE_X_WINDOWS]: Don't defsubr Spixmap_spec_p.
 	(Fmake_face_internal): Use FOR_EACH_FRAME.
 	(init_frame_faces): Guard multi-frame stuff with MULTI_FRAME.

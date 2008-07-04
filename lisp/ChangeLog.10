@@ -8103,7 +8103,7 @@
 	* tooltip.el (tooltip-gud-print-command): Add server prefix to the
 	print command for gdb to keep it out of the command history.
 
-	* gdb-ui.el: Major re-organisation.  Simplify legacy gdba
+	* gdb-ui.el: Major re-organization.  Simplify legacy gdba
 	code to allow only one gdb process.
 
 2002-11-23  Markus Rost  <rost@math.ohio-state.edu>
@@ -10404,7 +10404,7 @@
 	`file-exists-p.
 	(tramp-completion-handle-file-exists-p): New function.
 	(tramp-completion-handle-file-name-completion): Simplified.
-	(tramp-completion-dissect-file-name): Regexp's reorganised.
+	(tramp-completion-dissect-file-name): Regexp's reorganized.
 	(tramp-completion-handle-file-name-all-completions):
 	Call completion-function only if `user' or `host' is given.
 	(tramp-get-completion-user-host): New function.
@@ -14464,7 +14464,7 @@
 	* simple.el (push-mark-command): Added optional NOMSG arg.
 
 	* emulation/cua-base.el (cua-set-mark): Align pop to mark
-	behaviour with standard set-mark-command.
+	behavior with standard set-mark-command.
 	(cua--pre-command-handler): Use push-mark-command.
 	(cua-repeat-replace-region): Improve functionality when
 	repeated after moving point or changing buffer.
@@ -14482,7 +14482,7 @@
 2002-05-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-previous-block, f90-next-block): New names,
-	and slightly changed behaviour, for `f90-previous-block-start' and
+	and slightly changed behavior, for `f90-previous-block-start' and
 	`f90-next-block-end'.
 	(f90-beginning-of-subprogram, f90-end-of-subprogram): Simplify.
 
@@ -17724,7 +17724,7 @@
 	directory names in classpath/sourcepath lists, update comment.
 	(jdb): Add setting of gud-jdb-sourcepath, update comment.
 	(gud-find-class): Add gud-jdb-sourcepath use, and correct
-	behaviour for the case when classpath is not used--backward
+	behavior for the case when classpath is not used--backward
 	compatibility fix.
 
 2002-03-27  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -22062,7 +22062,7 @@
 2001-11-18  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-cannot-complete-hook): New variable to
-	control behaviour when no further completion is possible.
+	control behavior when no further completion is possible.
 
 2001-11-19  Colin Walters  <walters@verbum.org>
 

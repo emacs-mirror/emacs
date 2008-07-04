@@ -305,7 +305,7 @@ For more information, see the function `buffer-menu'."
   "Mark buffer on this line for being displayed by \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
   (interactive)
   (when (Buffer-menu-no-header)
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (delete-char 1)
       (insert ?>)
       (forward-line 1))))
@@ -317,8 +317,8 @@ Optional prefix arg means move up."
   (when (Buffer-menu-no-header)
     (let* ((buf (Buffer-menu-buffer t))
 	   (mod (buffer-modified-p buf))
-	   (readonly (save-excursion (set-buffer buf) buffer-read-only))
-	   (buffer-read-only nil))
+	   (readonly (with-current-buffer buf buffer-read-only))
+	   (inhibit-read-only t))
       (delete-char 3)
       (insert (if readonly (if mod " %*" " % ") (if mod "  *" "   ")))))
   (forward-line (if backup -1 1)))
@@ -336,7 +336,7 @@ Prefix arg is how many buffers to delete.
 Negative arg means delete backwards."
   (interactive "p")
   (when (Buffer-menu-no-header)
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (if (or (null arg) (= arg 0))
 	  (setq arg 1))
       (while (> arg 0)
@@ -361,7 +361,7 @@ and then move up one line.  Prefix arg means move that many lines."
   "Mark buffer on this line to be saved by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command."
   (interactive)
   (when (Buffer-menu-no-header)
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (forward-char 2)
       (delete-char 1)
       (insert ?S)
@@ -370,14 +370,13 @@ and then move up one line.  Prefix arg means move that many lines."
 (defun Buffer-menu-not-modified (&optional arg)
   "Mark buffer on this line as unmodified (no changes to save)."
   (interactive "P")
-  (save-excursion
-    (set-buffer (Buffer-menu-buffer t))
+  (with-current-buffer (Buffer-menu-buffer t)
     (set-buffer-modified-p arg))
   (save-excursion
    (beginning-of-line)
    (forward-char 2)
    (if (= (char-after) (if arg ?\s ?*))
-       (let ((buffer-read-only nil))
+       (let ((inhibit-read-only t))
 	 (delete-char 1)
 	 (insert (if arg ?* ?\s))))))
 
@@ -393,17 +392,16 @@ and then move up one line.  Prefix arg means move that many lines."
     (Buffer-menu-beginning)
     (while (re-search-forward "^..S" nil t)
       (let ((modp nil))
-	(save-excursion
-	  (set-buffer (Buffer-menu-buffer t))
+	(with-current-buffer (Buffer-menu-buffer t)
 	  (save-buffer)
 	  (setq modp (buffer-modified-p)))
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  (delete-char -1)
 	  (insert (if modp ?* ?\s))))))
   (save-excursion
     (Buffer-menu-beginning)
     (let ((buff-menu-buffer (current-buffer))
-	  (buffer-read-only nil))
+	  (inhibit-read-only t))
       (while (re-search-forward "^D" nil t)
 	(forward-char -1)
 	(let ((buf (Buffer-menu-buffer nil)))
@@ -430,7 +428,7 @@ in the selected frame."
     (Buffer-menu-beginning)
     (while (re-search-forward "^>" nil t)
       (setq tem (Buffer-menu-buffer t))
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(delete-char -1)
 	(insert ?\s))
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
@@ -478,8 +476,7 @@ in the selected frame."
   "Select the buffer whose line you click on."
   (interactive "e")
   (let (buffer)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
+    (with-current-buffer (window-buffer (posn-window (event-end event)))
       (save-excursion
 	(goto-char (posn-point (event-end event)))
 	(setq buffer (Buffer-menu-buffer t))))
@@ -525,15 +522,14 @@ The current window remains selected."
   "Toggle read-only status of buffer on this line, perhaps via version control."
   (interactive)
   (let (char)
-    (save-excursion
-      (set-buffer (Buffer-menu-buffer t))
-      (vc-toggle-read-only)
+    (with-current-buffer (Buffer-menu-buffer t)
+      (toggle-read-only)
       (setq char (if buffer-read-only ?% ?\s)))
     (save-excursion
       (beginning-of-line)
       (forward-char 1)
       (if (/= (following-char) char)
-          (let (buffer-read-only)
+          (let ((inhibit-read-only t))
             (delete-char 1)
             (insert char))))))
 
@@ -545,7 +541,7 @@ The current window remains selected."
       (beginning-of-line)
       (bury-buffer (Buffer-menu-buffer t))
       (let ((line (buffer-substring (point) (progn (forward-line 1) (point))))
-            (buffer-read-only nil))
+            (inhibit-read-only t))
         (delete-region (point) (progn (forward-line -1) (point)))
         (goto-char (point-max))
         (insert line))
@@ -612,7 +608,7 @@ For more information, see the function `buffer-menu'."
     (if (< column 2) (setq column 2))
     (if (> column 5) (setq column 5)))
   (setq Buffer-menu-sort-column column)
-  (let (buffer-read-only l buf m1 m2)
+  (let ((inhibit-read-only t) l buf m1 m2)
     (save-excursion
       (Buffer-menu-beginning)
       (while (not (eobp))
@@ -625,7 +621,6 @@ For more information, see the function `buffer-menu'."
 	      (push (list buf m1 m2) l)))
 	(forward-line)))
     (Buffer-menu-revert)
-    (setq buffer-read-only)
     (save-excursion
       (Buffer-menu-beginning)
       (while (not (eobp))

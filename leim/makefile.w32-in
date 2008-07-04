@@ -115,6 +115,7 @@ GREEK=$(srcdir)/quail/greek.elc
 RUSSIAN=$(srcdir)/quail/cyrillic.elc $(srcdir)/quail/cyril-jis.elc
 
 MISC= \
+	$(srcdir)/quail/arabic.elc \
 	$(srcdir)/quail/ethiopic.elc \
 	$(srcdir)/quail/ipa.elc \
 	$(srcdir)/quail/hebrew.elc \
@@ -207,9 +208,11 @@ clean mostlyclean:
 	- $(FOREACH) $(TIT:.elc=.el) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 	- $(FOREACH) $(MISC_DIC:.elc=.el) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 	- $(DEL) leim-list.el
+	- $(DEL) leim-list.el~
 
 distclean: clean
 	- $(DEL) stamp-subdir
+	- $(DEL) makefile
 
 maintainer-clean: distclean
 	- $(FOREACH) $(WORLD) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)

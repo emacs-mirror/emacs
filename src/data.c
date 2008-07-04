@@ -45,16 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* Work around a problem that happens because math.h on hpux 7
-   defines two static variables--which, in Emacs, are not really static,
-   because `static' is defined as nothing.  The problem is that they are
-   here, in floatfns.c, and in lread.c.
-   These macros prevent the name conflict.  */
-#if defined (HPUX) && !defined (HPUX8)
-#define _MAXLDBL data_c_maxldbl
-#define _NMAXLDBL data_c_nmaxldbl
-#endif
-
 #include <math.h>
 
 #if !defined (atof)
@@ -3299,11 +3289,7 @@ arith_error (signo)
   /* VMS systems are like USG.  */
   signal (signo, arith_error);
 #endif /* VMS */
-#ifdef BSD4_1
-  sigrelse (SIGFPE);
-#else /* not BSD4_1 */
   sigsetmask (SIGEMPTYMASK);
-#endif /* not BSD4_1 */
 
   SIGNAL_THREAD_CHECK (signo);
   xsignal0 (Qarith_error);

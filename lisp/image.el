@@ -208,7 +208,8 @@ compatibility with versions of Emacs that lack the variable
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
-  (when (string-match "\\`\xff\xd8" data)
+  (setq data (ignore-errors (string-to-unibyte data)))
+  (when (and data (string-match-p "\\`\xff\xd8" data))
     (catch 'jfif
       (let ((len (length data)) (i 2))
 	(while (< i len)
@@ -223,8 +224,8 @@ We accept the tag Exif because that is the same format."
 	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
 	      (throw 'jfif
-		     (string-match "JFIF\\|Exif"
-				   (substring data i (min (+ i nbytes) len)))))
+		     (string-match-p "JFIF\\|Exif"
+				     (substring data i (min (+ i nbytes) len)))))
 	    (setq i (+ i 1 nbytes))))))))
 
 
@@ -239,7 +240,7 @@ be determined."
       (let ((regexp (car (car types)))
 	    (image-type (cdr (car types))))
 	(if (or (and (symbolp image-type)
-		     (string-match regexp data))
+		     (string-match-p regexp data))
 		(and (consp image-type)
 		     (funcall (car image-type) data)
 		     (setq image-type (cdr image-type))))
@@ -263,7 +264,7 @@ be determined."
 	    (image-type (cdr (car types)))
 	    data)
 	(if (or (and (symbolp image-type)
-		     (looking-at regexp))
+		     (looking-at-p regexp))
 		(and (consp image-type)
 		     (funcall (car image-type)
 			      (or data
@@ -301,7 +302,7 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
-  (assoc-default file image-type-file-name-regexps 'string-match))
+  (assoc-default file image-type-file-name-regexps 'string-match-p))
 
 
 ;;;###autoload

@@ -26,9 +26,9 @@
 
 ;; This file contains (most of) the adaptations to cc-mode required for the
 ;; integration of AWK Mode.
-;; It is organised thusly, the sections being separated by page breaks:
+;; It is organized thusly, the sections being separated by page breaks:
 ;;   1. The AWK Mode syntax table.
-;;   2. Regular expressions for analysing AWK code.
+;;   2. Regular expressions for analyzing AWK code.
 ;;   3. Indentation calculation stuff ("c-awk-NL-prop text-property").
 ;;   4. Syntax-table property/font-locking stuff, including the
 ;;      font-lock-keywords setting.
@@ -710,7 +710,7 @@
   ;;
   ;; ANCHOR-STATE-/DIV identifies whether a / at ANCHOR would have been a
   ;; division sign (value t) or a regexp opener (value nil).  The idea is that
-  ;; we analyse the line from ANCHOR up till point to determine what the / at
+  ;; we analyze the line from ANCHOR up till point to determine what the / at
   ;; point is.
   ;;
   ;; The result is what ANCHOR-STATE-/DIV (see above) is where point is left.

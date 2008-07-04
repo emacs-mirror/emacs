@@ -11,28 +11,14 @@ Therefore, to build from CVS you must run "make bootstrap"
 instead of just "make":
 
   $ cvs update -dP
-  $ ./configure
   $ make bootstrap
 
-The bootstrap process makes sure all necessary files are rebuilt
-before it builds the final Emacs binary.  Unfortunately, it doesn't
-always work when there are stale files from a previous build in the
-directory tree.
-
-So if 'make bootstrap' fails, it may be necessary first to do 'make
-maintainer-clean' to clear out these stale files.  You can then try
-again, starting with `./configure'.
+Of course, if this is the first time you go through it, you'll need to do
+./configure before the "make bootstrap".
 
 Normally, it is not necessary to use "make bootstrap" after every CVS
-update.  Unless there are problems, we suggest using the following
-alternative procedure after you have done "make bootstrap" at least
-once:
+update.  "make" should work in 90% of the cases and be much quicker.
 
-  $ ./configure
-  $ make
-  $ cd lisp
-  $ make recompile
-  $ cd ..
   $ make
 
 (If you want to install the Emacs binary, type "make install" instead

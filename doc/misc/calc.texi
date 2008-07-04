@@ -29228,24 +29228,28 @@ work with Calc from a regular editing buffer.  @xref{Embedded Mode}.
 @pindex calc-kill-region
 @kindex M-w
 @pindex calc-copy-region-as-kill
+@kindex M-C-w
 @cindex Kill ring
-@dfn{Kill} commands are Emacs commands that insert text into the
-``kill ring,'' from which it can later be ``yanked'' by a @kbd{C-y}
-command.  Three common kill commands in normal Emacs are @kbd{C-k}, which
-kills one line, @kbd{C-w}, which kills the region between mark and point,
-and @kbd{M-w}, which puts the region into the kill ring without actually
-deleting it.  All of these commands work in the Calculator, too.  Also,
-@kbd{M-k} has been provided to complete the set; it puts the current line
-into the kill ring without deleting anything.
+@dfn{Kill} commands are Emacs commands that insert text into the ``kill
+ring,'' from which it can later be ``yanked'' by a @kbd{C-y} command.
+Three common kill commands in normal Emacs are @kbd{C-k}, which kills
+one line, @kbd{C-w}, which kills the region between mark and point, and
+@kbd{M-w}, which puts the region into the kill ring without actually
+deleting it.  All of these commands work in the Calculator, too,
+although in the Calculator they operate on whole stack entries, so they
+``round up'' the specified region to encompass full lines.  (To copy
+only parts of lines, the @kbd{M-C-w} command in the Calculator will copy
+the region to the kill ring without any ``rounding up'', just like the
+@kbd{M-w} command in normal Emacs.)  Also, @kbd{M-k} has been provided
+to complete the set; it puts the current line into the kill ring without
+deleting anything.
 
 The kill commands are unusual in that they pay attention to the location
-of the cursor in the Calculator buffer.  If the cursor is on or below the
-bottom line, the kill commands operate on the top of the stack.  Otherwise,
-they operate on whatever stack element the cursor is on.  Calc's kill
-commands always operate on whole stack entries.  (They act the same as their
-standard Emacs cousins except they ``round up'' the specified region to
-encompass full lines.)  The text is copied into the kill ring exactly as
-it appears on the screen, including line numbers if they are enabled.
+of the cursor in the Calculator buffer.  If the cursor is on or below
+the bottom line, the kill commands operate on the top of the stack.
+Otherwise, they operate on whatever stack element the cursor is on.  The
+text is copied into the kill ring exactly as it appears on the screen,
+including line numbers if they are enabled.
 
 A numeric prefix argument to @kbd{C-k} or @kbd{M-k} affects the number
 of lines killed.  A positive argument kills the current line and @expr{n-1}

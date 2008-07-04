@@ -163,6 +163,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))       ;For (pop (cdr ogroup)).
+
 (require 'nnoo)
 (require 'gnus-group)
 (require 'gnus-sum)

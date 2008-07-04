@@ -32,7 +32,7 @@
 
 (defvar bug-reference-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'bug-reference-push-button)
+    (define-key map [down-mouse-1] 'bug-reference-push-button)
     (define-key map (kbd "C-c RET") 'bug-reference-push-button)
     map)
   "Keymap used by bug reference buttons.")
@@ -43,8 +43,11 @@
 The bug number is supplied as a string, so this should have a single %s.
 There is no default setting for this, it must be set per file.")
 
+;;;###autoload
+(put 'bug-reference-url-format 'safe-local-variable 'stringp)
+
 (defconst bug-reference-bug-regexp
-  "\\(?:[Bb]ug #\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
+  "\\(?:[Bb]ug ?#\\|PR [a-z-+]+/\\)\\([0-9]+\\)"
   "Regular expression which matches bug references.")
 
 (defun bug-reference-set-overlay-properties ()

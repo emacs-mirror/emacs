@@ -41,7 +41,7 @@
 ;; You might make extra input sequences on the basis of the X
 ;; locale/*/Compose files (which have both prefix and postfix
 ;; sequences), but bear in mind that sequences which are logical in
-;; that context may not be sensible when they're not signalled with
+;; that context may not be sensible when they're not signaled with
 ;; the Compose key.  An example is a double space for NBSP.
 
 ;;; Code:

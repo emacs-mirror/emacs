@@ -613,9 +613,6 @@ information about FILENAME and return its status."
       (setq status (char-after (line-beginning-position)))
       (if (eq status ??)
 	  (vc-file-setprop file 'vc-state 'unregistered)
-	;; `vc-BACKEND-registered' must not set vc-backend,
-	;; which is instead set in vc-registered.
-	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
 	;; Use the last-modified revision, so that searching in vc-print-log
 	;; output works.
 	(vc-file-setprop file 'vc-working-revision (match-string 3))
@@ -669,6 +666,8 @@ information about FILENAME and return its status."
 (defun vc-svn-annotate-time-of-rev (rev)
   ;; Arbitrarily assume 10 commmits per day.
   (/ (string-to-number rev) 10.0))
+
+(defvar vc-annotate-parent-rev)
 
 (defun vc-svn-annotate-current-time ()
   (vc-svn-annotate-time-of-rev vc-annotate-parent-rev))

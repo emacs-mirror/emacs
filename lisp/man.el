@@ -74,7 +74,7 @@
 
 ;; ============= TODO ===========
 ;; - Add a command for printing.
-;; - The awk script deletes multiple blank lines.  This behaviour does
+;; - The awk script deletes multiple blank lines.  This behavior does
 ;;   not allow to understand if there was indeed a blank line at the
 ;;   end or beginning of a page (after the header, or before the
 ;;   footer).  A different algorithm should be used.  It is easy to

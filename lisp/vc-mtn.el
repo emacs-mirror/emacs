@@ -24,6 +24,11 @@
 
 ;; 
 
+;;; TODO:
+
+;; - The `previous-version' VC method needs to be supported, 'D' in
+;;   log-view-mode uses it.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl) (require 'vc))
@@ -158,10 +163,12 @@
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
+(defvar log-view-per-file-logs)
 
 (define-derived-mode vc-mtn-log-view-mode log-view-mode "Mtn-Log-View"
-  ;; TODO: Not sure what to do about file markers for now.
-  (set (make-local-variable 'log-view-file-re) "\\'\\`")
+  ;; Don't match anything.
+  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
+  (set (make-local-variable 'log-view-per-file-logs) nil)
   ;; TODO: Use a more precise regexp than "[ |/]+" to avoid false positives
   ;; in the ChangeLog text.
   (set (make-local-variable 'log-view-message-re)
@@ -182,6 +189,8 @@
 (defun vc-mtn-annotate-command (file buf &optional rev)
   (apply 'vc-mtn-command buf 0 file "annotate"
          (if rev (list "-r" rev))))
+
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 (defconst vc-mtn-annotate-full-re
   "^ *\\([0-9a-f]+\\)\\.* by [^ ]+ \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\): ")

@@ -107,6 +107,7 @@
 (eval-when-compile
   (require 'cl)
   (require 'vc)
+  (require 'vc-dir)
   (require 'grep))
 
 (defvar git-commits-coding-system 'utf-8
@@ -541,6 +542,8 @@ or BRANCH^ (where \"^\" can be repeated)."
   ;; FIXME: rev is ignored
   (let ((name (file-relative-name file)))
     (vc-git-command buf 0 name "blame" (if rev (concat "-r" rev)))))
+
+(declare-function vc-annotate-convert-time "vc-annotate" (time))
 
 (defun vc-git-annotate-time ()
   (and (re-search-forward "[0-9a-f]+[^()]+(.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+) " nil t)

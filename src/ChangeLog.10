@@ -5561,7 +5561,7 @@
 
 2006-01-26  Lőrentey Károly  <lorentey@elte.hu>
 
-	* editfns.c (Fconstrain_to_field): Fix behaviour on field boundaries.
+	* editfns.c (Fconstrain_to_field): Fix behavior on field boundaries.
 	(find_field): Set before_field to after_field when pos is at BEGV.
 	(Fline_beginning_position, Fline_end_position):
 	Clarify confusing doc string.
@@ -11188,7 +11188,7 @@
 
 2004-12-23  Jason Rumney  <jasonr@gnu.org>
 
-	* image.c (__WIN32__) [HAVE_NTGUI]: Define for correct behaviour
+	* image.c (__WIN32__) [HAVE_NTGUI]: Define for correct behavior
 	of JPEG library.
 
 2004-12-22  Richard M. Stallman  <rms@gnu.org>
@@ -16570,7 +16570,7 @@
 	Use non-text cursor when mouse pointer is outside editable text,
 	i.e. in the void after end-of-line or end-of-buffer; this was
 	already done for W32, but is now standard for all systems --
-	user can toggle show-text-cursor-in-void to get old behaviour.
+	user can toggle show-text-cursor-in-void to get old behavior.
 	(syms_of_xdisp): DEFVAR_LISP Vshow_text_cursor_in_void and
 	Vdisplay_pixels_per_inch.
 
@@ -20827,7 +20827,7 @@
 2003-01-13  Francesco Potortì  <pot@gnu.org>
 
 	* fileio.c (Fdelete_directory, Fdelete_file): Document the
-	behaviour in front of symlinks.
+	behavior in front of symlinks.
 	(Fdelete_file): Raise an error on directories.
 
 2003-01-13  Dave Love  <fx@gnu.org>
@@ -21338,7 +21338,7 @@
 
 	* fns.c (Frequire): Change nesting allowance from 2 to 3 to cause
 	more descriptive error output from lread.c:Fload upon most require
-	cycles during boostrapping.
+	cycles during bootstrapping.
 
 2002-11-27  Jason Rumney  <jasonr@gnu.org>
 

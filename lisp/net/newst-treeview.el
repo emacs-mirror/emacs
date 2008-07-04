@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "15. Juni 2008, 12:46:27 (ulf)"
+;; Time-stamp:  "21. Juni 2008, 17:35:21 (ulf)"
 
 ;; ======================================================================
 
@@ -99,7 +99,7 @@
   :group 'newsticker-treeview)
 
 (defcustom newsticker-treeview-own-frame
-  t
+  nil
   "Decides whether newsticker creates and uses its own frame."
   :type 'boolean
   :group 'newsticker-treeview)
@@ -115,10 +115,14 @@ applies to newsticker only."
 (defvar newsticker-groups
   '("Feeds")
   "List of feed groups, used in the treeview frontend.
-Each element must be a list consisting of strings.  The first
-element gives the title of the group, the following elements the
-names of feeds that belong to the group.
-FIXME")
+First element is a string giving the group name.  Remaining
+elements are either strings giving a feed name or lists having
+the same structure as `newsticker-groups'. (newsticker-groups :=
+groupdefinition, groupdefinition := groupname groupcontent*,
+groupcontent := feedname | groupdefinition)
+
+Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
+\"feed3\")")
 
 (defcustom newsticker-groups-filename
   "~/.newsticker-groups"
@@ -135,14 +139,10 @@ FIXME")
 (defvar newsticker--treeview-current-vfeed nil)
 (defvar newsticker--treeview-list-show-feed nil)
 (defvar newsticker--saved-window-config nil)
-(defvar newsticker--window-config nil)
-;; (makunbound 'newsticker--selection-overlay) ;; FIXME
 (defvar newsticker--selection-overlay nil
   "Highlight the selected tree node.")
-;;(makunbound 'newsticker--tree-selection-overlay) ;; FIXME
 (defvar newsticker--tree-selection-overlay nil
   "Highlight the selected list item.")
-;;(makunbound 'newsticker--frame);; FIXME
 (defvar newsticker--frame nil "Special frame for newsticker windows.")
 (defvar newsticker--treeview-list-sort-order 'sort-by-time)
 (defvar newsticker--treeview-current-node-id nil)
@@ -327,7 +327,8 @@ If string SHOW-FEED is non-nil it is shown in the item string."
                                    :nt-link (newsticker--link item)
                                    'mouse-face 'highlight
                                    'keymap map
-                                   'help-echo "Show item")))
+                                   'help-echo (buffer-substring pos2
+                                                                (point-max)))))
       (insert "\n"))))
 
 (defun newsticker--treeview-list-clear ()
@@ -369,9 +370,9 @@ AGES is the list of ages that are to be shown."
                                                    &optional event)
   "Fill newsticker treeview list window with new items.
 This is a callback function for the treeview nodes.
-Argument WIDGET FIXME.
-Argument CHANGED-WIDGET FIXME.
-Optional argument EVENT FIXME."
+Argument WIDGET is the calling treeview widget.
+Argument CHANGED-WIDGET is the widget that actually has changed.
+Optional argument EVENT is the mouse event that triggered this action."
   (newsticker--treeview-list-items-with-age-callback widget changed-widget
                                                      'new)
   (newsticker--treeview-item-show-text
@@ -382,9 +383,9 @@ Optional argument EVENT FIXME."
                                                         &optional event)
   "Fill newsticker treeview list window with immortal items.
 This is a callback function for the treeview nodes.
-Argument WIDGET FIXME.
-Argument CHANGED-WIDGET FIXME.
-Optional argument EVENT FIXME."
+Argument WIDGET is the calling treeview widget.
+Argument CHANGED-WIDGET is the widget that actually has changed.
+Optional argument EVENT is the mouse event that triggered this action."
   (newsticker--treeview-list-items-with-age-callback widget changed-widget
                                                      'immortal)
   (newsticker--treeview-item-show-text
@@ -395,9 +396,9 @@ Optional argument EVENT FIXME."
                                                         &optional event)
   "Fill newsticker treeview list window with obsolete items.
 This is a callback function for the treeview nodes.
-Argument WIDGET FIXME.
-Argument CHANGED-WIDGET FIXME.
-Optional argument EVENT FIXME."
+Argument WIDGET is the calling treeview widget.
+Argument CHANGED-WIDGET is the widget that actually has changed.
+Optional argument EVENT is the mouse event that triggered this action."
   (newsticker--treeview-list-items-with-age-callback widget changed-widget
                                                      'obsolete)
   (newsticker--treeview-item-show-text
@@ -408,9 +409,9 @@ Optional argument EVENT FIXME."
                                                    &optional event)
   "Fill newsticker treeview list window with all items.
 This is a callback function for the treeview nodes.
-Argument WIDGET FIXME.
-Argument CHANGED-WIDGET FIXME.
-Optional argument EVENT FIXME."
+Argument WIDGET is the calling treeview widget.
+Argument CHANGED-WIDGET is the widget that actually has changed.
+Optional argument EVENT is the mouse event that triggered this action."
   (newsticker--treeview-list-items-with-age-callback widget changed-widget
                                                      event 'new 'old
                                                      'obsolete 'immortal)
@@ -447,9 +448,9 @@ Optional argument EVENT FIXME."
 (defun newsticker--treeview-list-feed-items (widget changed-widget
                                                     &optional event)
   "Callback function for listing feed items.
-Argument WIDGET FIXME.
-Argument CHANGED-WIDGET FIXME.
-Optional argument EVENT FIXME."
+Argument WIDGET is the calling treeview widget.
+Argument CHANGED-WIDGET is the widget that actually has changed.
+Optional argument EVENT is the mouse event that triggered this action."
   (newsticker--treeview-list-clear)
   (widget-put widget :nt-selected t)
   (let ((feed-name (widget-get widget :nt-feed))
@@ -602,7 +603,6 @@ If CLEAR-BUFFER is non-nil the list buffer is completely erased."
     (newsticker--treeview-list-update-faces)
     (goto-char (point-min))))
 
-;;(makunbound 'newsticker-treeview-list-sort-button-map);; FIXME
 (defvar newsticker-treeview-list-sort-button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line mouse-1]
@@ -612,9 +612,9 @@ If CLEAR-BUFFER is non-nil the list buffer is completely erased."
     map)
   "Local keymap for newsticker treeview list window sort buttons.")
 
-(defun newsticker--treeview-list-sort-by-column (&optional e)
+(defun newsticker--treeview-list-sort-by-column (&optional event)
   "Sort the newsticker list window buffer by the column clicked on.
-Optional argument E FIXME."
+Optional argument EVENT is the mouse event that triggered this action."
   (interactive (list last-input-event))
   (if e (mouse-select-window e))
   (let* ((pos (event-start e))
@@ -898,7 +898,7 @@ arguments NT-ID, FEED, and VFEED are added as properties."
                 :nt-id nt-id
                 :nt-feed feed
                 :nt-vfeed vfeed
-                'help-echo "Clickme!"
+                'help-echo tag
                 'mouse-face 'highlight)))
 
 (defun newsticker--treeview-tree-get-tag (feed-name vfeed-name
@@ -1203,7 +1203,6 @@ Arguments IGNORE are ignored."
   (interactive)
   (newsticker-treeview-save)
   (setq newsticker--sentinel-callback nil)
-  (setq newsticker--window-config (current-window-configuration))
   (bury-buffer "*Newsticker Tree*")
   (bury-buffer "*Newsticker List*")
   (bury-buffer "*Newsticker Item*")
@@ -1798,7 +1797,6 @@ Remove obsolete feeds as well."
              (newsticker--group-get-group feed-name))))
     menu))
 
-;;(makunbound 'newsticker-treeview-list-menu) ;FIXME
 (defvar newsticker-treeview-list-menu
   (let ((menu (make-sparse-keymap "Newsticker List")))
     (define-key menu [newsticker-treeview-mark-list-items-old]
@@ -1807,7 +1805,6 @@ Remove obsolete feeds as well."
     menu)
   "Map for newsticker tree menu.")
 
-;;(makunbound 'newsticker-treeview-mode-map) ;FIXME
 (defvar newsticker-treeview-mode-map
   (let ((map (make-sparse-keymap 'newsticker-treeview-mode-map)))
     (define-key map " " 'newsticker-treeview-next-page)
@@ -1849,7 +1846,6 @@ Remove obsolete feeds as well."
   (setq buffer-read-only t
         truncate-lines t))
 
-;;(makunbound 'newsticker-treeview-list-mode-map);FIXME
 (define-derived-mode newsticker-treeview-list-mode newsticker-treeview-mode
   "Item List"
   (let ((header (concat
@@ -1946,8 +1942,6 @@ POS gives the position where EVENT occurred."
   (newsticker--treeview-window-init)
   (newsticker--treeview-buffer-init)
   (newsticker--group-manage-orphan-feeds)
-  (if newsticker--window-config
-      (set-window-configuration newsticker--window-config))
   (newsticker--treeview-set-current-node newsticker--treeview-feed-tree)
   (newsticker-start t) ;; will start only if not running
   (newsticker-treeview-update)

@@ -1,3 +1,11 @@
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Remove w32bdf.o.
+
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* fakemail.c: Remove references to obsolete variables.
+
 2008-06-02  Jim Meyering  <meyering@redhat.com>
 
 	* ebrowse.c (xfree): Remove definition; s/xfree/free/.
@@ -1525,7 +1533,7 @@
 
 	* etags.c (add_regex): Better check for null regexps.
 	(readline): Check for regex matching null string.
-	(find_entries): Reorganisation.
+	(find_entries): Reorganization.
 
 2002-06-07  Francesco Potortì  <pot@gnu.org>
 

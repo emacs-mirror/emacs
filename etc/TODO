@@ -526,8 +526,8 @@ when the body only calls primitives.
   probably in separate manual.
 
 ** Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
-  the XPMs so that the colour versions work generally.  (Requires care
-  with the colour used for the transparent regions.)
+  the XPMs so that the color versions work generally.  (Requires care
+  with the color used for the transparent regions.)
 
 ** Convenient access to the `values' variable.  It would be nice to have an
   interface that would show you the printed reps of the elements of the
@@ -544,13 +544,6 @@ when the body only calls primitives.
   If value 'integer is used nowhere, remove the parameter ID-FORMAT from
   the definition of `file-attributes' and `directory-files-and-attributes'
   and from the calls.
-
-** Modify the emulation of `stat' for MS-Windows to support large files.
-  The current version uses the stock Windows definition of `struct
-  stat', where the file's size is returned as a 32-bit integer.  That
-  overflows for files larger than 4GB.  To fix, modify `stat' to use
-  64-bit size, and use a declaration of `struct stat' that supports
-  such sizes.
 
 ** Make language-info-alist customizable.  Currently a user can customize
   only the variable `current-language-environment'.

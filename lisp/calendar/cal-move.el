@@ -29,29 +29,42 @@
 
 ;;; Code:
 
+;; FIXME should calendar just require this?
 (require 'calendar)
 
+
+;; Note that this is not really the "closest" date.
+;; In most cases, it just searches forwards for the next day.
 ;;;###cal-autoload
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
 The position of the cursor is unchanged if it is already on a date.
 Returns the list (month day year) giving the cursor position."
   (or (calendar-cursor-to-date)
-      (let ((column (current-column)))
-        (when (> 3 (count-lines (point-min) (point)))
-          (goto-line 3)
-          (move-to-column column))
-        (if (not (looking-at "[0-9]"))
-            (if (and (not (looking-at " *$"))
-                     (or (< column 25)
-                         (and (> column 27)
-                              (< column 50))
-                         (and (> column 52)
-                              (< column 75))))
-                (progn
-                  (re-search-forward "[0-9]" nil t)
-                  (backward-char 1))
-              (re-search-backward "[0-9]" nil t)))
+      (let* ((col (current-column))
+             (edges (cdr (assoc (calendar-column-to-segment)
+                                calendar-month-edges)))
+             (last (nth 2 edges))
+             (right (nth 3 edges)))
+        (when (< (count-lines (point-min) (point)) calendar-first-date-row)
+          (goto-line calendar-first-date-row)
+          (move-to-column col))
+        ;; The date positions are fixed and computable, but searching
+        ;; is probably more flexible.  Need to consider blank days at
+        ;; start and end of month if computing positions.
+        ;; 'date text-property is used to exclude intermonth text.
+        (unless (and (looking-at "[0-9]")
+                     (get-text-property (point) 'date))
+          ;; We search forwards for a number, except close to the RH
+          ;; margin of a month, where we search backwards.
+          ;; Note that the searches can go to other lines.
+          (if (or (looking-at " *$")
+                  (and (> col last) (< col right)))
+              (while (and (re-search-backward "[0-9]" nil t)
+                          (not (get-text-property (point) 'date))))
+            (while (and (re-search-forward "[0-9]" nil t)
+                        (not (get-text-property (1- (point)) 'date))))
+            (backward-char 1)))
         (calendar-cursor-to-date))))
 
 (defvar displayed-month)                ; from calendar-generate
@@ -63,21 +76,22 @@ Returns the list (month day year) giving the cursor position."
   (let ((month (calendar-extract-month date))
         (day (calendar-extract-day date))
         (year (calendar-extract-year date)))
-    (goto-line (+ 3
+    (goto-line (+ calendar-first-date-row
                   (/ (+ day  -1
                         (mod
                          (- (calendar-day-of-week (list month 1 year))
                             calendar-week-start-day)
                          7))
                      7)))
-    (move-to-column (+ 6
-                       (* 25
+    (move-to-column (+ calendar-left-margin (1- calendar-day-digit-width)
+                       (* calendar-month-width
                           (1+ (calendar-interval
                                displayed-month displayed-year month year)))
-                       (* 3 (mod
-                             (- (calendar-day-of-week date)
-                                calendar-week-start-day)
-                             7))))))
+                       (* calendar-column-width
+                          (mod
+                           (- (calendar-day-of-week date)
+                              calendar-week-start-day)
+                           7))))))
 
 ;;;###cal-autoload
 (defun calendar-goto-today ()
@@ -213,9 +227,13 @@ Moves backward if ARG is negative."
            (new-display-month (calendar-extract-month new-cursor-date))
            (new-display-year (calendar-extract-year new-cursor-date)))
       ;; Put the new month on the screen, if needed, and go to the new date.
-      (if (not (calendar-date-is-visible-p new-cursor-date))
-          (calendar-other-month new-display-month new-display-year))
-      (calendar-cursor-to-visible-date new-cursor-date)))
+      (if (calendar-date-is-visible-p new-cursor-date)
+          (calendar-cursor-to-visible-date new-cursor-date)
+        ;; The next line gives smoother scrolling IMO (one month at a
+        ;; time rather than two).
+        (calendar-increment-month new-display-month new-display-year
+                                  (if (< arg 0) 1 -1))
+        (calendar-other-month new-display-month new-display-year))))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload

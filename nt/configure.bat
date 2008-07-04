@@ -319,10 +319,25 @@ echo The failed program was: >>config.log
 type junk.c >>config.log
 set mf=-mcpu=i686
 rm -f junk.c junk.o
-goto compilercheckdone
+goto gccdebug
 :gccMtuneOk
 echo GCC supports -mtune=pentium4 >>config.log
 set mf=-mtune=pentium4
+rm -f junk.c junk.o
+:gccdebug
+rem Check for DWARF-2 debug info support, else default to stabs
+echo main(){} >junk.c
+echo gcc -c -gdwarf-2 -g3 junk.c >>config.log
+gcc -c -gdwarf-2 -g3 junk.c >>config.log 2>&1
+if not errorlevel 1 goto gccdwarf
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set dbginfo=-gstabs+
+rm -f junk.c junk.o
+goto compilercheckdone
+:gccdwarf
+echo GCC supports DWARF-2 >>config.log
+set dbginfo=-gdwarf-2 -g3
 rm -f junk.c junk.o
 goto compilercheckdone
 
@@ -474,6 +489,7 @@ rem
 echo # Start of settings from configure.bat >config.settings
 echo COMPILER=%COMPILER%>>config.settings
 if not "(%mf%)" == "()" echo MCPU_FLAG=%mf%>>config.settings
+if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo%>>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings

@@ -4591,7 +4591,7 @@
 1995-12-13  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
 	* faces.el (modify-face): Take extra optional arg FRAME.
-	Use face-try-color-list to change foreground and background colours.
+	Use face-try-color-list to change foreground and background colors.
 	If BOLD-P, ITALIC-P or UNDERLINE-P not nil or t, don't change the
 	display attribute corresponding to that arg.  Doc fix.
 
@@ -5291,7 +5291,7 @@
 
 	* skeleton.el (skeleton-end-hook): Now defvared and responsible for
 	pushing out anything following skeleton to next line.  Thus this
-	behaviour can now be controlled by modes.
+	behavior can now be controlled by modes.
 	(skeleton-insert): Parameter `no-newline' removed.
 	(skeleton-read): Take this into account.
 	(skeleton-internal-1): Less spurious empty lines when wrapping.
@@ -5477,7 +5477,7 @@
 
 1995-10-26  Simon Marshall  <simon@duality.gnu.ai.mit.edu>
 
-	* font-lock.el: General reorganisation.
+	* font-lock.el: General reorganization.
 	(font-lock-fontify-syntactically-region): Renamed from
 	font-lock-fontify-region.  Assume that region end-points are at bol.
 	Don't bother wrapping with save-excursion; caller does this.
@@ -6721,7 +6721,7 @@
 
 	* skeleton.el (skeleton-newline-indent-rigidly): New variable.
 	(skeleton-internal-1): Use it for indenting after \n because previous
-	behaviour was only useful for `sh-script.el' and old `ada.el'.  Other
+	behavior was only useful for `sh-script.el' and old `ada.el'.  Other
 	modes now get their own indentation.
 	(skeleton, skeleton-modified, skeleton-point, skeleton-regions): `New'
 	variables for passing between the mutually recursive functions of
