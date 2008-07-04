@@ -1,3 +1,7 @@
+2008-07-04  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* configure.in: Remove reference to deleted $USE_FONT_BACKEND.
+
 2008-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (cpp_undefs): Rename from `undefs', update uses.
