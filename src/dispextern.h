@@ -366,7 +366,11 @@ struct glyph
      doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
-#define FACE_ID_BITS	21
+ 
+  /* Non-zero means don't display cursor here.  */
+  unsigned avoid_cursor_p : 1;
+
+#define FACE_ID_BITS	20
 
   /* Face of the glyph.  This is a realized face ID,
      an index in the face cache of the frame.  */
@@ -1887,6 +1891,9 @@ struct it
      this is 1 if we're doing an ellipsis.  Otherwise meaningless.  */
   unsigned ellipsis_p : 1;
 
+  /* True means cursor shouldn't be displayed here.  */
+  unsigned avoid_cursor_p : 1;
+
   /* Display table in effect or null for none.  */
   struct Lisp_Char_Table *dp;
 
@@ -1987,6 +1994,7 @@ struct it
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
+    unsigned avoid_cursor_p : 1;
 
     /* properties from display property that are reset by another display property. */
     Lisp_Object space_width;

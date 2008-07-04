@@ -3942,10 +3942,11 @@ Default face attributes override any local face attributes.  */)
 {
   int i;
   Lisp_Object global_lface, local_lface, *gvec, *lvec;
+  struct frame *f = XFRAME (frame);
 
   CHECK_LIVE_FRAME (frame);
   global_lface = lface_from_face_name (NULL, face, 1);
-  local_lface = lface_from_face_name (XFRAME (frame), face, 0);
+  local_lface = lface_from_face_name (f, face, 0);
   if (NILP (local_lface))
     local_lface = Finternal_make_lisp_face (face, frame);
 
@@ -3957,13 +3958,37 @@ Default face attributes override any local face attributes.  */)
   lvec = XVECTOR (local_lface)->contents;
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (! UNSPECIFIEDP (gvec[i]))
-      {
-	if (IGNORE_DEFFACE_P (gvec[i]))
-	  lvec[i] = Qunspecified;
-	else
-	  lvec[i] = gvec[i];
-      }
+    if (IGNORE_DEFFACE_P (gvec[i]))
+      lvec[i] = Qunspecified;
+    else if (! UNSPECIFIEDP (gvec[i]))
+      lvec[i] = gvec[i];
+
+  /* If the default face was changed, realize it again, and update the
+     `font' frame parameter.  */
+  if (EQ (face, Qdefault))
+    {
+      struct face_cache *c = FRAME_FACE_CACHE (f);
+      struct face *newface, *oldface = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      Lisp_Object attrs[LFACE_VECTOR_SIZE];
+
+      bcopy (oldface->lface, attrs, sizeof attrs);
+      merge_face_vectors (f, lvec, attrs, 0);
+      newface = realize_face (c, attrs, DEFAULT_FACE_ID);
+
+      if ((! UNSPECIFIEDP (gvec[LFACE_FAMILY_INDEX])
+	   || ! UNSPECIFIEDP (gvec[LFACE_FOUNDRY_INDEX])
+	   || ! UNSPECIFIEDP (gvec[LFACE_HEIGHT_INDEX])
+	   || ! UNSPECIFIEDP (gvec[LFACE_WEIGHT_INDEX])
+	   || ! UNSPECIFIEDP (gvec[LFACE_SLANT_INDEX])
+	   || ! UNSPECIFIEDP (gvec[LFACE_SWIDTH_INDEX])
+	   || ! UNSPECIFIEDP (gvec[LFACE_FONT_INDEX]))
+	  && newface->font)
+	{
+	  Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
+	  Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
+						  Qnil));
+	}
+    }
 
   return Qnil;
 }

@@ -301,7 +301,7 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-unhex-string (str &optional allow-newlines)
-  "Remove %XX embedded spaces, etc in a url.
+  "Remove %XX embedded spaces, etc in a URL.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
 forbidden in URL encoding."
@@ -342,7 +342,7 @@ character in the utf-8 string, those found in `url-unreserved-chars'
 are left as-is, all others are represented as a three-character
 string: \"%\" followed by two lowercase hex digits."
   ;; To go faster and avoid a lot of consing, we could do:
-  ;; 
+  ;;
   ;; (defconst url-hexify-table
   ;;   (let ((map (make-vector 256 nil)))
   ;;     (dotimes (byte 256) (aset map byte
@@ -364,8 +364,8 @@ string: \"%\" followed by two lowercase hex digits."
 ;;;###autoload
 (defun url-file-extension (fname &optional x)
   "Return the filename extension of FNAME.
-If optional variable X is t,
-then return the basename of the file with the extension stripped off."
+If optional argument X is t, then return the basename
+of the file with the extension stripped off."
   (if (and fname
 	   (setq fname (url-file-nondirectory fname))
 	   (string-match "\\.[^./]+$" fname))
@@ -429,7 +429,7 @@ This uses `url-current-object', set locally to the buffer."
 
 (eval-and-compile
   (defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
-    "Valid characters in a URL")
+    "Valid characters in a URL.")
   )
 
 (defun url-get-url-at-point (&optional pt)

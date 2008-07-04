@@ -2468,6 +2468,9 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (file-name-nondirectory file)
 		   (abbreviate-file-name file))))
 	(insert
+	 (format "\nTotal score: %d"
+		 (apply '+ (mapcar 'caddr trace))))
+	(insert
 	 "\n\nQuick help:
 
 Type `e' to edit score file corresponding to the score rule on current line,

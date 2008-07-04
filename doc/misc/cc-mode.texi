@@ -2597,7 +2597,7 @@ except in Java and AWK modes where it's @code{java} and @code{awk}.
 
 Remember that if you set a style variable with the Customization
 interface or at the top level of your @file{.emacs} file before the
-style system is initialised (@pxref{Config Basics}), this setting will
+style system is initialized (@pxref{Config Basics}), this setting will
 override the one that the style system would have given the variable.
 
 To set a buffer's style interactively, use the command @kbd{C-c .}
@@ -2827,7 +2827,7 @@ looked up in the alist to get the regexp for the language, and if it
 isn't found then the special symbol @samp{other} is looked up instead.
 
 When a comment line gets divided by @kbd{M-j} or the like, @ccmode{}
-inserts the comment line prefix from a neighbouring line at the start
+inserts the comment line prefix from a neighboring line at the start
 of the new line.  The default value of c-comment-prefix-regexp is
 @samp{//+\\|\\**}, which matches C++ style line comments like
 
@@ -5858,7 +5858,7 @@ foo (xyz, aaa + bbb + ccc
 Only continuation lines like this are touched, @code{nil} is returned on
 lines which are the start of an argument.
 
-Within a gcc @code{asm} block, @code{:} is recognised as an argument
+Within a gcc @code{asm} block, @code{:} is recognized as an argument
 separator, but of course only between operand specifications, not in the
 expressions for the operands.
 

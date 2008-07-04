@@ -64,7 +64,7 @@
 
 (defun xsdre-translate (regexp)
   "Translate a W3C XML Schema Datatypes regexp to an Emacs regexp.
-Returns a string.  REGEXP is a string. If REGEXP is not a valid XSD
+Returns a string.  REGEXP is a string.  If REGEXP is not a valid XSD
 regexp, signal an `xsdre-invalid-regexp' condition."
   (xsdre-from-symbolic
    (xsdre-to-symbolic regexp)))
@@ -117,7 +117,7 @@ A range-list represents a set of integers by a list of ranges in a
 canonical form, in which ranges are in increasing order, and adjacent
 ranges are merged wherever possible."
   (when list
-    (setq list 
+    (setq list
 	  (sort list 'xsdre-range-less-than))
     (let* ((next (cdr list))
 	   (tail list)
@@ -138,10 +138,10 @@ ranges are merged wherever possible."
       (setcar tail (xsdre-make-range first last))
       (setcdr tail nil)
       list)))
-    
+
 
 (defun xsdre-range-list-union (range-lists)
-  "Return a range-list the union of a list of range-lists."
+  "Return a range-list, the union of a list of range-lists."
   (xsdre-make-range-list (apply 'append range-lists)))
 
 (defun xsdre-range-list-difference (orig subtract)
@@ -160,7 +160,7 @@ ranges are merged wherever possible."
 		    (<= (xsdre-range-first (car subtract)) last))
 	  (when (< first (xsdre-range-first (car subtract)))
 	    (setq new
-		  (cons (xsdre-make-range 
+		  (cons (xsdre-make-range
 			 first
 			 (1- (xsdre-range-first (car subtract))))
 			new)))
@@ -181,7 +181,7 @@ ranges are merged wherever possible."
 	   (< (xsdre-range-last r1) (xsdre-range-last r2)))))
 
 (defun xsdre-check-range-list (range-list)
-  "Check that range-list is a range-list.
+  "Check that RANGE-LIST is a range-list.
 Signal an error if it is not."
   (let ((last nil))
     (while range-list
@@ -199,7 +199,7 @@ Signal an error if it is not."
 	(setq last (xsdre-range-last head)))
       (setq range-list (cdr range-list))))
   t)
-	
+
 ;;; Compiling symbolic regexps to Emacs regexps
 
 (defun xsdre-from-symbolic (re)
@@ -286,14 +286,14 @@ and whose tail is ACCUM."
 		    (xsdre-range-first (car ranges))))
 		  (t (xsdre-range-list-to-char-alternative ranges)))))
 	accum))
-	      
+
 (defun xsdre-compile-single-char (ch)
   (if (memq ch '(?. ?* ?+ ?? ?\[ ?\] ?^ ?$ ?\\))
       (string ?\\ ch)
     (string (decode-char 'ucs ch))))
-  
+
 (defun xsdre-char-class-to-range-list (cc)
-  "Return a range-list for a symbolic char-class."
+  "Return a range-list for a symbolic char-class CC."
   (cond ((integerp cc) (list cc))
 	((symbolp cc)
 	 (or (get cc 'xsdre-ranges)
@@ -417,11 +417,11 @@ consisting of a single char alternative delimited with []."
       (setq chars '(?- ?^ ?\])))
     (setq chars (cons ?\[ chars))
     (apply 'string chars)))
-      
+
 ;;; Parsing
 
 (defvar xsdre-current-regexp nil
-  "List of characters remaining to be parsed. Dynamically bound.")
+  "List of characters remaining to be parsed.  Dynamically bound.")
 
 (defun xsdre-to-symbolic (str)
   "Convert a W3C XML Schema datatypes regexp to a symbolic form.
@@ -524,7 +524,7 @@ whose value is a range-list."
 			     (cons lower upper)))))
 		   (t (xsdre-parse-error "Expected , or }")))))
 	  (t nil))))
-			
+
 (defun xsdre-parse-bound ()
   (let ((n 0))
     (while (progn
@@ -537,7 +537,7 @@ whose value is a range-list."
 	     (xsdre-advance)
 	     (not (memq (car xsdre-current-regexp) '(?} ?,)))))
     n))
-	
+
 
 (defun xsdre-try-parse-atom ()
   (let ((ch (car xsdre-current-regexp)))
@@ -640,7 +640,7 @@ whose value is a range-list."
 	  (t (if ch
 		 (xsdre-parse-error "Missing char after \\")
 	       (xsdre-parse-error "Bad escape %c" ch))))))
-	
+
 (defun xsdre-parse-prop ()
   (xsdre-expect ?{)
   (let ((name nil))
@@ -676,7 +676,7 @@ whose value is a range-list."
   (if (eq (car xsdre-current-regexp) ch)
       (xsdre-advance)
     (xsdre-parse-error "Expected %c" ch)))
-    
+
 (defun xsdre-advance ()
   (setq xsdre-current-regexp
 	(cdr xsdre-current-regexp)))
@@ -693,7 +693,7 @@ whose value is a range-list."
 (put 'xsdre-parse-error
      'error-message
      "Internal error in parsing XSD regexp")
-     
+
 ;;; Character class data
 
 (put 'dot 'xsdre-char-class '(difference any (union #xA #xD)))
@@ -758,7 +758,7 @@ Code is inserted into the current buffer."
               (goto-char start)
               (down-list 2)
               (while (condition-case err
-                         (progn 
+                         (progn
                            (forward-sexp)
                            t)
                        (error nil))
@@ -1107,8 +1107,8 @@ Code is inserted into the current buffer."
 
 (xsdre-def-derived-category 'name-continue '(union name-initial
 						   name-continue-not-initial))
-			  
-(xsdre-def-primitive-category 
+
+(xsdre-def-primitive-category
  'name-continue-not-initial
  '((#x002d . #x002e)
    (#x0030 . #x0039)
@@ -1392,7 +1392,7 @@ Code is inserted into the current buffer."
 				(976 . 977)
 				(981 . 983)
 				987 989 991 993 995 997 999 1001 1003 1005
-			      
+
 				(1007 . 1011)
 				1013
 				(1072 . 1119)
@@ -1420,7 +1420,7 @@ Code is inserted into the current buffer."
 				7877 7879 7881 7883 7885 7887 7889 7891 7893
 				7895 7897 7899 7901 7903 7905 7907 7909 7911
 				7913 7915 7917 7919 7921 7923 7925 7927 7929
-			      
+
 				(7936 . 7943)
 				(7952 . 7957)
 				(7968 . 7975)

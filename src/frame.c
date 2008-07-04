@@ -3665,7 +3665,7 @@ x_set_alpha (f, arg, oldval)
           arg  = CDR (arg);
         }
       else
-        item=arg;
+        item = arg;
 
       if (! NILP (item))
         {
@@ -3692,7 +3692,7 @@ x_set_alpha (f, arg, oldval)
   for (i = 0; i < 2; i++)
     f->alpha[i] = newval[i];
 
-#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
   BLOCK_INPUT;
   x_set_frame_alpha (f);
   UNBLOCK_INPUT;

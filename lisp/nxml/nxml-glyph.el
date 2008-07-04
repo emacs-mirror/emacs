@@ -271,7 +271,7 @@ This repertoire is supported for the following fonts:
   "Glyph set for TARGET3 glyph repertoire of the misc-fixed-* fonts.
 This repertoire is supported for the following fonts:
 6x13.bdf 8x13.bdf 9x15.bdf 9x18.bdf 10x20.bdf")
-  
+
 (defconst nxml-wgl4-glyph-set
   [(#x0020 . #x007E)
    (#x00A0 . #x017F)
@@ -334,14 +334,14 @@ This repertoire is supported for the following fonts:
 
 (defvar nxml-glyph-set-hook nil
   "*Hook for determining the set of glyphs in a face.
-The hook will receive a single argument FACE.  If it can determine the
-set of glyphs representable by FACE, it must set the variable
-`nxml-glyph-set' and return non-nil.  Otherwise, it must return
-nil. The hook will be run until success.  The constants
+The hook will receive a single argument FACE.  If it can determine
+the set of glyphs representable by FACE, it must set the variable
+`nxml-glyph-set' and return non-nil.  Otherwise, it must return nil.
+The hook will be run until success.  The constants
 `nxml-ascii-glyph-set', `nxml-latin1-glyph-set',
 `nxml-misc-fixed-1-glyph-set', `nxml-misc-fixed-2-glyph-set',
-`nxml-misc-fixed-3-glyph-set' and `nxml-wgl4-glyph-set' are predefined
-for use by `nxml-glyph-set-hook'.")
+`nxml-misc-fixed-3-glyph-set' and `nxml-wgl4-glyph-set' are
+predefined for use by `nxml-glyph-set-hook'.")
 
 (defvar nxml-glyph-set nil
   "Used by `nxml-glyph-set-hook' to return set of glyphs in a FACE.
@@ -386,7 +386,7 @@ Return nil if the face cannot display a glyph for N."
 	 (nxml-glyph-set-contains-p n nxml-glyph-set)
 	 (let ((ch (decode-char 'ucs n)))
 	   (and ch (string ch))))))
-      
+
 (defun nxml-glyph-set-contains-p (n v)
   (let ((start 0)
 	(end (length v))

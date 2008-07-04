@@ -1,3 +1,10 @@
+2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
+
+	* images/splash.png:
+	* images/splash.svg:
+	* images/gnus/gnus.png:
+	* images/gnus/gnus.svg: New files.
+
 2008-06-25  Kenichi Handa  <handa@m17n.org>
 
 	* NEWS: Mention string-to-unibyte.
@@ -8,8 +15,7 @@
 
 2008-06-08  John Paul Wallington  <jpw@pobox.com>
 
-	* NEWS: Document that `completion-ignore-case' is nil on
-	MS-Windows.
+	* NEWS: Document that `completion-ignore-case' is nil on MS-Windows.
 
 2008-05-19  Tom Tromey  <tromey@redhat.com>
 

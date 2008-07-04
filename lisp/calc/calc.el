@@ -3663,6 +3663,17 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 ;;;###autoload
 (defmacro defmath (func args &rest body)   ;  [Public]
+  "Define Calc function.
+
+Like `defun' except that code in the body of the definition can
+make use of the full range of Calc data types and the usual
+arithmetic operations are converted to their Calc equivalents.
+
+The prefix `calcFunc-' is added to the specified name to get the
+actual Lisp function name.
+
+See Info node `(calc)Defining Functions'."
+  (declare (doc-string 3))
   (require 'calc-ext)
   (math-do-defmath func args body))
 

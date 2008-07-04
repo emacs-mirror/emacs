@@ -44,7 +44,7 @@
 ;;; Customization
 
 (defgroup nxml nil
-  "New XML editing mode"
+  "New XML editing mode."
   :group 'languages
   :group 'wp)
 
@@ -86,9 +86,9 @@ nothing else other than that start-tag."
 
 (defcustom nxml-attribute-indent 4
   "*Indentation for the attributes of an element relative to the start-tag.
-This only applies when the first attribute of a tag starts a line. In other
-cases, the first attribute on one line is indented the same as the first
-attribute on the previous line."
+This only applies when the first attribute of a tag starts a line.
+In other cases, the first attribute on one line is indented the same
+as the first attribute on the previous line."
   :group 'nxml
   :type 'integer)
 
@@ -97,7 +97,7 @@ attribute on the previous line."
 C-return will be bound to `nxml-complete' in any case.
 M-TAB gets swallowed by many window systems/managers, and
 `documentation' will show M-TAB rather than C-return as the
-binding `rng-complete' when both are bound.  So it's better
+binding for `nxml-complete' when both are bound.  So it's better
 to bind M-TAB only when it will work."
   :group 'nxml
   :set (lambda (sym flag)
@@ -125,7 +125,7 @@ and when the encoding declaration specifies `UTF-16'."
 
 (defcustom nxml-default-buffer-file-coding-system nil
   "*Default value for `buffer-file-coding-system' for a buffer for a new file.
-Nil means use the default value of `buffer-file-coding-system' as normal.
+A value of nil means use the default value of `buffer-file-coding-system' as normal.
 A buffer's `buffer-file-coding-system' affects what \\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
   :type 'coding-system)
@@ -263,7 +263,7 @@ This includes ths `x' in hex references."
   '((t (:inherit nxml-delimiter)))
   "Face used for the colon in attribute names."
   :group 'nxml-faces)
-  
+
 (defface nxml-attribute-local-name
   '((t (:inherit font-lock-variable-name-face)))
   "Face used for the local name of attributes."
@@ -339,7 +339,7 @@ The delimiters are <! and >."
       :foreground
       "black"
       :weight
-      normal 
+      normal
       :slant
       normal))
     (t
@@ -348,7 +348,7 @@ The delimiters are <! and >."
       :foreground
       "black"
       :weight
-      normal 
+      normal
       :slant
       normal)))
   "Face used for glyph for char references."
@@ -363,7 +363,7 @@ See the function `xmltok-forward-prolog' for more information.")
 
 (defvar nxml-last-fontify-end nil
   "Position where fontification last ended.
-Nil if the buffer changed since the last fontification.")
+It is nil if the buffer changed since the last fontification.")
 (make-variable-buffer-local 'nxml-last-fontify-end)
 
 (defvar nxml-degraded nil
@@ -416,7 +416,7 @@ reference.")
     (define-key map "\C-c\C-o" nxml-outline-prefix-map)
     (define-key map [S-mouse-2] 'nxml-mouse-hide-direct-text-content)
     (define-key map "/" 'nxml-electric-slash)
-    (define-key map [C-return] 'nxml-complete) 
+    (define-key map [C-return] 'nxml-complete)
     (when nxml-bind-meta-tab-to-complete-flag
       (define-key map "\M-\t" 'nxml-complete))
     map)
@@ -439,7 +439,7 @@ reference.")
 
 \\[nxml-finish-element] finishes the current element by inserting an end-tag.
 C-c C-i closes a start-tag with `>' and then inserts a balancing end-tag
-leaving point between the start-tag and end-tag. 
+leaving point between the start-tag and end-tag.
 \\[nxml-balanced-close-start-tag-block] is similar but for block rather than inline elements:
 the start-tag, point, and end-tag are all left on separate lines.
 If `nxml-slash-auto-complete-flag' is non-nil, then inserting a `</'
@@ -459,8 +459,8 @@ instead of C-c.
 Validation is provided by the related minor-mode `rng-validate-mode'.
 This also makes completion schema- and context- sensitive.  Element
 names, attribute names, attribute values and namespace URIs can all be
-completed. By default, `rng-validate-mode' is automatically enabled. You
-can toggle it using \\[rng-validate-mode] or change the default by
+completed. By default, `rng-validate-mode' is automatically enabled.
+You can toggle it using \\[rng-validate-mode] or change the default by
 customizing `rng-nxml-auto-validate-flag'.
 
 \\[indent-for-tab-command] indents the current line appropriately.
@@ -468,8 +468,8 @@ This can be customized using the variable `nxml-child-indent'
 and the variable `nxml-attribute-indent'.
 
 \\[nxml-insert-named-char] inserts a character reference using
-the character's name (by default, the Unicode name). \\[universal-argument] \\[nxml-insert-named-char]
-inserts the character directly.
+the character's name (by default, the Unicode name).
+\\[universal-argument] \\[nxml-insert-named-char] inserts the character directly.
 
 The Emacs commands that normally operate on balanced expressions will
 operate on XML markup items.  Thus \\[forward-sexp] will move forward
@@ -609,10 +609,10 @@ Many aspects this mode can be customized using
                    start end pre-change-length)))))))))
 
 (defun nxml-after-change1 (start end pre-change-length)
-  "After-change bookkeeping.  Returns a cons cell containing a
-possibly-enlarged change region.  You must call
-nxml-extend-region on this expanded region to obtain the full
-extent of the area needing refontification.
+  "After-change bookkeeping.
+Returns a cons cell containing a possibly-enlarged change region.
+You must call `nxml-extend-region' on this expanded region to obtain
+the full extent of the area needing refontification.
 
 For bookkeeping, call this function even when fontification is
 disabled."
@@ -800,7 +800,7 @@ The XML declaration will declare an encoding depending on the buffer's
 	  (setq suitable-coding-systems (cdr suitable-coding-systems))))
       ret)))
 
-(defun nxml-choose-utf-coding-system ()	     
+(defun nxml-choose-utf-coding-system ()
   (let ((cur (and (local-variable-p 'buffer-file-coding-system)
 		  buffer-file-coding-system
 		  (coding-system-base buffer-file-coding-system))))
@@ -840,7 +840,7 @@ The XML declaration will declare an encoding depending on the buffer's
 (defvar font-lock-beg) (defvar font-lock-end)
 (defun nxml-extend-region ()
   "Extend the region to hold the minimum area we can fontify with nXML.
-Called with font-lock-beg and font-lock-end dynamically bound."
+Called with `font-lock-beg' and `font-lock-end' dynamically bound."
   (let ((start font-lock-beg)
         (end font-lock-end))
 
@@ -1278,7 +1278,7 @@ No extra whitespace is inserted."
 	  (insert "\n")
 	  (indent-line-to (+ nxml-child-indent indent)))
 	(goto-char pos)))))
-	
+
 (defun nxml-finish-element ()
   "Finish the current element by inserting an end-tag."
   (interactive "*")
@@ -1480,8 +1480,8 @@ its line.  Otherwise return nil."
 (defun nxml-merge-indent-context-type (context)
   "Merge the indent context type CONTEXT with the token in `xmltok-type'.
 Return the merged indent context type.  An indent context type is
-either nil or one of the symbols start-tag, end-tag, markup, comment,
-mixed."
+either nil or one of the symbols `start-tag', `end-tag', `markup',
+`comment', `mixed'."
   (cond ((memq xmltok-type '(start-tag partial-start-tag))
 	 (if (memq context '(nil start-tag comment))
 	     'start-tag
@@ -1573,7 +1573,7 @@ xmltok-* variables to be set up as by `xmltok-forward'."
 	     (setq atts nil))
 	    (t (setq atts (cdr atts)))))
     value-boundary))
-	     
+
 (defun nxml-compute-indent-in-delimited-token (pos open-delim close-delim)
   "Return the indent for a line that starts inside a token with delimiters.
 OPEN-DELIM and CLOSE-DELIM are strings giving the opening and closing
@@ -1604,7 +1604,7 @@ of the line.  This expects the xmltok-* variables to be set up as by
 Inserts as many characters as can be completed.  However, if not even
 one character can be completed, then a buffer with the possibilities
 is popped up and the symbol is read from the minibuffer with
-completion. If the symbol is complete, then any characters that must
+completion.  If the symbol is complete, then any characters that must
 follow the symbol are also inserted.
 
 The name space used for completion and what is treated as a symbol
@@ -1626,11 +1626,11 @@ This is the equivalent of `forward-sexp' for XML.
 
 An element contains as items strings with no markup, tags, processing
 instructions, comments, CDATA sections, entity references and
-characters references. However, if the variable
+characters references.  However, if the variable
 `nxml-sexp-element-flag' is non-nil, then an element is treated as a
 single markup item.  A start-tag contains an element name followed by
-one or more attributes.  An end-tag contains just an element name.  An
-attribute value literals contains strings with no markup, entity
+one or more attributes.  An end-tag contains just an element name.
+An attribute value literals contains strings with no markup, entity
 references and character references.  A processing instruction
 consists of a target and a content string.  A comment or a CDATA
 section contains a single string.  An entity reference contains a
@@ -2130,7 +2130,7 @@ HAD-DATA says whether there have been non-whitespace data characters yet."
 	     (goto-char (+ xmltok-start offset))
 	     (and (re-search-forward "^[ \t]*$" end t)
 		  (match-beginning 0)))))
-	((and (memq xmltok-type '(start-tag 
+	((and (memq xmltok-type '(start-tag
 				  end-tag
 				  empty-element
 				  comment
@@ -2146,7 +2146,7 @@ HAD-DATA says whether there have been non-whitespace data characters yet."
 	      (looking-at "[ \t]*$")
 	      (not (nxml-in-mixed-content-p t)))
 	 (save-excursion
-	   (or (search-forward "\n" nil t) 
+	   (or (search-forward "\n" nil t)
 	       (point-max))))))
 
 (defun nxml-paragraph-start-pos (had-data offset)
@@ -2186,7 +2186,7 @@ HAD-DATA says whether there have been non-whitespace data characters yet."
 	   (goto-char (- (point) offset))
 	   (and (re-search-backward "^[ \t]*$" xmltok-start t)
 		(match-beginning 0))))
-	((and (memq xmltok-type '(start-tag 
+	((and (memq xmltok-type '(start-tag
 				  end-tag
 				  empty-element
 				  comment
@@ -2194,7 +2194,7 @@ HAD-DATA says whether there have been non-whitespace data characters yet."
 				  entity-ref))
 	      (nxml-token-ends-line-p)
 	      (nxml-token-begins-line-p))
-	 (or (search-forward "\n" nil t) 
+	 (or (search-forward "\n" nil t)
 	     (point-max)))
 	((and (eq xmltok-type 'start-tag)
 	      (nxml-token-begins-line-p)
@@ -2334,7 +2334,7 @@ ENDP is t in the former case, nil in the latter."
       (fill-region-as-paragraph start end arg))
     (skip-line-prefix fill-prefix)
     fill-prefix))
-    
+
 (defun nxml-newline-and-indent (soft)
   (delete-horizontal-space)
   (if soft (insert-and-inherit ?\n) (newline 1))
@@ -2356,10 +2356,10 @@ point.  The start-tag will be inserted at or before the beginning of
 the word before point; the contents of the current buffer is used to
 decide where.
 
-It works in a similar way to \\[dabbrev-expand]. It searches first
+It works in a similar way to \\[dabbrev-expand].  It searches first
 backwards from point, then forwards from point for an element whose
 content is a string which matches the contents of the buffer before
-point and which includes at least the word before point. It then
+point and which includes at least the word before point.  It then
 copies the start- and end-tags from that element and uses them to
 surround the matching string before point.
 
@@ -2465,7 +2465,7 @@ and attempts to find another possible way to do the markup."
 			      (- start-tag-close-pos xmltok-start)))
 		(insert "</" name ">")
 		(setq nxml-dynamic-markup-prev-pos (point))))))))))
-							   
+
 
 ;;; Character names
 
@@ -2494,10 +2494,10 @@ and NAME is a string naming a character.")
 (defvar nxml-autoload-char-name-set-list nil
   "List of char namesets that can be autoloaded.")
 
-(defun nxml-enable-char-name-set (nameset)    
+(defun nxml-enable-char-name-set (nameset)
   (put nameset 'nxml-char-name-set-enabled t))
 
-(defun nxml-disable-char-name-set (nameset)    
+(defun nxml-disable-char-name-set (nameset)
   (put nameset 'nxml-char-name-set-enabled nil))
 
 (defun nxml-char-name-set-enabled-p (nameset)
@@ -2512,9 +2512,9 @@ and NAME is a string naming a character.")
 (defun nxml-define-char-name-set (nameset alist)
   "Define a set of character names.
 NAMESET is a symbol identifying the set.
-Alist is a list where each member has the form (NAME CODE),
-where NAME is a string naming a character and code
-is an integer giving the Unicode scalar value of the character."
+ALIST is a list where each member has the form (NAME CODE),
+where NAME is a string naming a character and code is an
+integer giving the Unicode scalar value of the character."
   (when (get nameset 'nxml-char-name-set-defined)
     (error "Nameset `%s' already defined" nameset))
   (let ((iter alist))
@@ -2573,7 +2573,7 @@ With a prefix argument, inserts the character directly."
 		      (error "Character %x is not supported by Emacs"
 			     code))
 		(format "&#x%X;" code))))))
-  
+
 (defun nxml-maybe-load-char-name-set (sym)
   (when (and (get sym 'nxml-char-name-set-enabled)
 	     (not (get sym 'nxml-char-name-set-defined))
@@ -2581,7 +2581,7 @@ With a prefix argument, inserts the character directly."
     (load (get sym 'nxml-char-name-set-file))))
 
 (defun nxml-toggle-char-ref-extra-display (arg)
-  "*Toggle the display of extra information for character references."
+  "Toggle the display of extra information for character references."
   (interactive "P")
   (let ((new (if (null arg)
 		 (not nxml-char-ref-extra-display)
@@ -2619,7 +2619,7 @@ With a prefix argument, inserts the character directly."
 (defun nxml-start-delimiter-length (type)
   (or (get type 'nxml-start-delimiter-length)
       0))
-			
+
 (put 'cdata-section 'nxml-start-delimiter-length 9)
 (put 'comment 'nxml-start-delimiter-length 4)
 (put 'processing-instruction 'nxml-start-delimiter-length 2)
@@ -2632,7 +2632,7 @@ With a prefix argument, inserts the character directly."
 (defun nxml-end-delimiter-length (type)
   (or (get type 'nxml-end-delimiter-length)
       0))
-			
+
 (put 'cdata-section 'nxml-end-delimiter-length 3)
 (put 'comment 'nxml-end-delimiter-length 3)
 (put 'processing-instruction 'nxml-end-delimiter-length 2)

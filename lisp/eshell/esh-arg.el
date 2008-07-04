@@ -101,7 +101,7 @@ yield the values intended."
 
    ;; argument delimiter
    'eshell-parse-delimiter)
-  "*Define how to process Eshell command line arguments.
+  "Define how to process Eshell command line arguments.
 When each function on this hook is called, point will be at the
 current position within the argument list.  The function should either
 return nil, meaning that it did no argument parsing, or it should
@@ -119,7 +119,7 @@ treated as a literal character."
 ;;; User Variables:
 
 (defcustom eshell-arg-load-hook '(eshell-arg-initialize)
-  "*A hook that gets run when `eshell-arg' is loaded."
+  "A hook that gets run when `eshell-arg' is loaded."
   :type 'hook
   :group 'eshell-arg)
 
@@ -129,13 +129,13 @@ treated as a literal character."
   :group 'eshell-arg)
 
 (defcustom eshell-special-chars-inside-quoting '(?\\ ?\")
-  "*Characters which are still special inside double quotes."
+  "Characters which are still special inside double quotes."
   :type '(repeat character)
   :group 'eshell-arg)
 
 (defcustom eshell-special-chars-outside-quoting
   (append eshell-delimiter-argument-list '(?# ?! ?\\ ?\" ?\'))
-  "*Characters that require escaping outside of double quotes.
+  "Characters that require escaping outside of double quotes.
 Without escaping them, they will introduce a change in the argument."
   :type '(repeat character)
   :group 'eshell-arg)
@@ -279,7 +279,7 @@ Point is left at the end of the arguments."
 		(= (+ pos 2) (point-max))))))
 
 (defun eshell-quote-backslash (string &optional index)
-  "Intelligently backslash the character occuring in STRING at INDEX.
+  "Intelligently backslash the character occurring in STRING at INDEX.
 If the character is itself a backslash, it needs no escaping."
   (let ((char (aref string index)))
     (if (eq char ?\\)

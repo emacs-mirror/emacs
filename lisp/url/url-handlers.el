@@ -93,7 +93,7 @@
 
 (defvar url-handler-regexp
   "\\`\\(https?\\|ftp\\|file\\|nfs\\)://"
-  "*A regular expression for matching  URLs handled by file-name-handler-alist.
+  "*A regular expression for matching URLs handled by `file-name-handler-alist'.
 Some valid URL protocols just do not make sense to visit interactively
 \(about, data, info, irc, mailto, etc\).  This regular expression
 avoids conflicts with local files that look like URLs \(Gnus is

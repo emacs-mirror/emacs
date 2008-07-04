@@ -34,7 +34,7 @@
   :group 'editing)
 
 (defcustom fill-individual-varying-indent nil
-  "*Controls criterion for a new paragraph in `fill-individual-paragraphs'.
+  "Controls criterion for a new paragraph in `fill-individual-paragraphs'.
 Non-nil means changing indent doesn't end a paragraph.
 That mode can handle paragraphs with extra indentation on the first line,
 but it requires separator lines between paragraphs.
@@ -43,7 +43,7 @@ A value of nil means that any change in indentation starts a new paragraph."
   :group 'fill)
 
 (defcustom colon-double-space nil
-  "*Non-nil means put two spaces after a colon when filling."
+  "Non-nil means put two spaces after a colon when filling."
   :type 'boolean
   :group 'fill)
 (put 'colon-double-space 'safe-local-variable 'booleanp)
@@ -60,7 +60,7 @@ such as `fill-forward-paragraph-function'.")
   "Non-nil means paragraph filling will try to pay attention to comments.")
 
 (defcustom enable-kinsoku t
-  "*Non-nil means enable \"kinsoku\" processing on filling paragraphs.
+  "Non-nil means enable \"kinsoku\" processing on filling paragraphs.
 Kinsoku processing is designed to prevent certain characters from being
 placed at the beginning or end of a line by filling.
 See the documentation of `kinsoku' for more information."
@@ -84,7 +84,7 @@ reinserts the fill prefix in each resulting line."
     (message "fill-prefix cancelled")))
 
 (defcustom adaptive-fill-mode t
-  "*Non-nil means determine a paragraph's fill prefix from its text."
+  "Non-nil means determine a paragraph's fill prefix from its text."
   :type 'boolean
   :group 'fill)
 
@@ -93,7 +93,7 @@ reinserts the fill prefix in each resulting line."
   ;; Added `%' for TeX comments.
   ;; RMS: deleted the code to match `1.' and `(1)'.
   "[ \t]*\\([-!|#%;>*,A7$,1s"s#sC$,2"F(B]+[ \t]*\\)*"
-  "*Regexp to match text at start of line that constitutes indentation.
+  "Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the
 standard indentation for the whole paragraph.
@@ -105,7 +105,7 @@ a role."
   :group 'fill)
 
 (defcustom adaptive-fill-first-line-regexp "\\`[ \t]*\\'"
-  "*Regexp specifying whether to set fill prefix from a one-line paragraph.
+  "Regexp specifying whether to set fill prefix from a one-line paragraph.
 When a paragraph has just one line, then after `adaptive-fill-regexp'
 finds the prefix at the beginning of the line, if it doesn't
 match this regexp, it is replaced with whitespace.
@@ -773,7 +773,7 @@ left to move.")
 If JUSTIFY is non-nil (interactively, with prefix argument), justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there.
-the variable `fill-column' controls the width for filling.
+The variable `fill-column' controls the width for filling.
 
 If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value.
@@ -1043,7 +1043,7 @@ space does not end a sentence, so don't break a line there."
 
 
 (defcustom default-justification 'left
-  "*Method of justifying text not otherwise specified.
+  "Method of justifying text not otherwise specified.
 Possible values are `left', `right', `full', `center', or `none'.
 The requested kind of justification is done whenever lines are filled.
 The `justification' text-property can locally override this variable."

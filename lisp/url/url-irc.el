@@ -29,11 +29,11 @@
 (require 'url-vars)
 (require 'url-parse)
 
-(defconst url-irc-default-port 6667 "Default port for IRC connections")
+(defconst url-irc-default-port 6667 "Default port for IRC connections.")
 
 (defcustom url-irc-function 'url-irc-rcirc
   "*Function to actually open an IRC connection.
-Should be a function that takes several arguments:
+The function should take the following arguments:
     HOST - the hostname of the IRC server to contact
     PORT - the port number of the IRC server to contact
  CHANNEL - What channel on the server to visit right away (can be nil)

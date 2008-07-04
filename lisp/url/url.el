@@ -56,7 +56,7 @@
   :group 'url)
 
 (defun url-do-setup ()
-  "Setup the url package.
+  "Setup the URL package.
 This is to avoid conflict with user settings if URL is dumped with
 Emacs."
   (unless url-setup-done

@@ -1015,7 +1015,9 @@ be set in `.emacs' instead."
 				    (symbol-value 'image-load-path))
 				   (t load-path)))
 	    (image (find-image
-		    `((:type xpm :file "gnus.xpm"
+		    `((:type svg :file "gnus.svg")
+		      (:type png :file "gnus.png")
+		      (:type xpm :file "gnus.xpm"
 			     :color-symbols
 			     (("thing" . ,(car gnus-logo-colors))
 			      ("shadow" . ,(cadr gnus-logo-colors))

@@ -98,7 +98,7 @@ This list will be executed as a command after logging in via telnet."
   "*Whether to use nslookup to resolve hostnames.
 This should be used when your version of Emacs cannot correctly use DNS,
 but your machine can.  This usually happens if you are running a statically
-linked Emacs under SunOS 4.x"
+linked Emacs under SunOS 4.x."
   :type 'boolean
   :group 'url-gateway)
 

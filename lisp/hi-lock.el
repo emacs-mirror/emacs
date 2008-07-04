@@ -206,15 +206,20 @@ patterns."
 (defvar hi-lock-interactive-patterns nil
   "Patterns provided to hi-lock by user.  Should not be changed.")
 
-(defvar hi-lock-face-history
-  (list "hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b"
-        "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
-      "History list of faces for hi-lock interactive functions.")
+(defvar hi-lock-face-defaults
+  '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b"
+    "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
+  "Default faces for hi-lock interactive functions.")
 
-;(dolist (f hi-lock-face-history) (unless (facep f) (error "%s not a face" f)))
+;(dolist (f hi-lock-face-defaults) (unless (facep f) (error "%s not a face" f)))
 
-(defvar hi-lock-regexp-history nil
-  "History of regexps used for interactive fontification.")
+(define-obsolete-variable-alias 'hi-lock-face-history
+                                'hi-lock-face-defaults
+                                "23.1")
+
+(define-obsolete-variable-alias 'hi-lock-regexp-history
+                                'regexp-history
+                                "23.1")
 
 (defvar hi-lock-file-patterns-prefix "Hi-lock"
   "Search target for finding hi-lock patterns at top of file.")
@@ -232,8 +237,6 @@ a library is being loaded.")
 
 (make-variable-buffer-local 'hi-lock-interactive-patterns)
 (put 'hi-lock-interactive-patterns 'permanent-local t)
-(make-variable-buffer-local 'hi-lock-regexp-history)
-(put 'hi-lock-regexp-history 'permanent-local t)
 (make-variable-buffer-local 'hi-lock-file-patterns)
 (put 'hi-lock-file-patterns 'permanent-local t)
 
@@ -390,14 +393,12 @@ versions before 22 use the following in your .emacs file:
 
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
-\\<minibuffer-local-map>Use \\[next-history-element] and \\[previous-history-element] to retrieve next or previous history item.
+\\<minibuffer-local-map>Use \\[previous-history-element] to retrieve previous history items,
+and \\[next-history-element] to retrieve default values.
 \(See info node `Minibuffer History'.)"
   (interactive
    (list
-    (hi-lock-regexp-okay
-     (read-from-minibuffer "Regexp to highlight line: "
-                           (cons (or (car hi-lock-regexp-history) "") 1 )
-                           nil nil 'hi-lock-regexp-history))
+    (hi-lock-regexp-okay (read-regexp "Regexp to highlight line"))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -415,14 +416,12 @@ list maintained for regexps, global history maintained for faces.
 
 Interactively, prompt for REGEXP then FACE.  Buffer-local history
 list maintained for regexps, global history maintained for faces.
-\\<minibuffer-local-map>Use \\[next-history-element] and \\[previous-history-element] to retrieve next or previous history item.
+\\<minibuffer-local-map>Use \\[previous-history-element] to retrieve previous history items,
+and \\[next-history-element] to retrieve default values.
 \(See info node `Minibuffer History'.)"
   (interactive
    (list
-    (hi-lock-regexp-okay
-     (read-from-minibuffer "Regexp to highlight: "
-                           (cons (or (car hi-lock-regexp-history) "") 1 )
-                           nil nil 'hi-lock-regexp-history))
+    (hi-lock-regexp-okay (read-regexp "Regexp to highlight"))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -440,9 +439,7 @@ lower-case letters made case insensitive."
    (list
     (hi-lock-regexp-okay
      (hi-lock-process-phrase
-      (read-from-minibuffer "Phrase to highlight: "
-                            (cons (or (car hi-lock-regexp-history) "") 1 )
-                            nil nil 'hi-lock-regexp-history)))
+      (read-regexp "Phrase to highlight")))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
@@ -552,16 +549,16 @@ not suitable."
   (intern (completing-read
            "Highlight using face: "
            obarray 'facep t
-           (cons (car hi-lock-face-history)
+           (cons (car hi-lock-face-defaults)
                  (let ((prefix
                         (try-completion
-                         (substring (car hi-lock-face-history) 0 1)
-                         (mapcar (lambda (f) (cons f f))
-                                 hi-lock-face-history))))
+                         (substring (car hi-lock-face-defaults) 0 1)
+                         hi-lock-face-defaults)))
                    (if (and (stringp prefix)
-                            (not (equal prefix (car hi-lock-face-history))))
+                            (not (equal prefix (car hi-lock-face-defaults))))
                        (length prefix) 0)))
-           '(hi-lock-face-history . 0))))
+           'face-name-history
+	   (cdr hi-lock-face-defaults))))
 
 (defun hi-lock-set-pattern (regexp face)
   "Highlight REGEXP with face FACE."

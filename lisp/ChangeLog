@@ -1,10 +1,279 @@
+2008-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-query-replace-regexp): New function.
+	(vc-dir-tool-bar-map, vc-dir-menu-map): Bind it.
+	(vc-dir-mode-map): Likewise
+
+2008-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eshell/esh-arg.el (eshell-quote-backslash): Fix typo in docstring.
+	(eshell-parse-argument-hook, eshell-special-chars-inside-quoting)
+	(eshell-arg-load-hook, eshell-special-chars-outside-quoting):
+	Remove spurious * in defcustom docstrings.
+
+	* textmodes/fill.el (fill-paragraph): Fix typo in docstring.
+	(fill-individual-varying-indent, colon-double-space, enable-kinsoku)
+	(adaptive-fill-mode, adaptive-fill-first-line-regexp)
+	(default-justification): Remove spurious * in defcustom docstrings.
+
+	* textmodes/rst.el (rst, rst-line-homogeneous-p, rst-mode-abbrev-table)
+	(rst-font-lock-keywords-function, rst-mode, rst-minor-mode)
+	(rst-compare-decorations, rst-default-indent, rst-update-section)
+	(rst-decoration-complete-p, rst-section-tree, rst-toc-insert-node)
+	(rst-toc-insert-find-delete-contents, rst-toc-count-lines)
+	(rst-toc-mode-goto-section, rst-faces, rst-level-face-base-color):
+	Fix typos in docstrings.
+	(rst-mode-lazy): Fix typo in docstring.  Remove spurious *.
+	(rst-adjust, rst-line-homogeneous-p, rst-suggest-new-decoration)
+	(rst-get-decorations-around, rst-section-tree-point)
+	(rst-font-lock-adornment-point): Reflow docstrings.
+	(rst-get-decoration, rst-get-decoration-match, rst-adjust-decoration):
+	Doc fixes.
+	(rst-re-enumerations): Comment out.
+
+	* nxml/nxml-glyph.el (nxml-glyph-set-hook):
+	* nxml/nxml-uchnm.el (nxml-unicode-blocks)
+	(nxml-unicode-block-char-name-set):
+	* nxml/nxml-util.el (nxml-debug, nxml-make-namespace):
+	* nxml/rng-nxml.el (rng-set-state-after):
+	* nxml/rng-uri.el (rng-file-name-uri): Fix typo in docstring.
+
+	* nxml/rng-cmpct.el (rng-c-lookup-create, rng-c-parse-primary)
+	(rng-c-parse-annotation-body):
+	* nxml/rng-dt.el (rng-dt-namespace-context-getter): Reflow docstrings.
+
+	* nxml/nxml-mode.el (nxml, nxml-mode, nxml-after-change1)
+	(nxml-extend-region, nxml-merge-indent-context-type, nxml-complete)
+	(nxml-forward-balanced-item, nxml-dynamic-markup-word)
+	(nxml-define-char-name-set, nxml-toggle-char-ref-extra-display):
+	Fix typos in docstrings.
+	(nxml-attribute-indent): Reflow docstring.
+	(nxml-bind-meta-tab-to-complete-flag, nxml-last-fontify-end)
+	(nxml-default-buffer-file-coding-system): Doc fixes.
+
+	* nxml/nxml-ns.el (nxml-ns-state, nxml-ns-initial-state)
+	(nxml-ns-set-prefix): Fix typos in docstrings.
+	(nxml-ns-push-state, nxml-ns-pop-state, nxml-ns-set-default):
+	Reflow docstring.
+	(nxml-ns-get-prefix, nxml-ns-get-default): Doc fixes.
+
+	* nxml/nxml-outln.el (nxml-hide-all-text-content)
+	(nxml-show-direct-text-content, nxml-show-direct-subheadings)
+	(nxml-hide-direct-text-content, nxml-hide-subheadings)
+	(nxml-hide-text-content, nxml-show-subheadings, nxml-hide-other)
+	(nxml-outline-display-rest, nxml-outline-set-overlay)
+	(nxml-section-tag-forward, nxml-section-tag-backward)
+	(nxml-back-to-section-start): Fix typos in docstrings.
+
+	* nxml/nxml-parse.el (nxml-validate-function, nxml-parse-file):
+	Doc fixes.
+
+	* nxml/nxml-rap.el (nxml-scan-end, nxml-move-tag-backwards)
+	(nxml-scan-element-forward, nxml-scan-element-backward): Doc fixes.
+	(nxml-scan-after-change): Fix typo in docstring.
+
+	* nxml/rng-match.el (rng-being-compiled, rng-normalize-choice-list)
+	(rng-name-class-possible-names): Doc fixes.
+	(rng-memo-map-add, rng-intern-group, rng-match-possible-namespace-uris)
+	(rng-match-possible-start-tag-names, rng-match-possible-value-strings):
+	Fix typos in docstrings.
+	(rng-intern-group-shortcut, rng-intern-choice-shortcut):
+	Reflow docstrings.
+
+	* nxml/rng-util.el (rng-uniquify-eq, rng-uniquify-equal): Doc fixes.
+	(rng-substq, rng-complete-before-point): Fix typos in docstrings.
+
+	* nxml/rng-xsd.el (rng-xsd-make-date-time-regexp)
+	(rng-xsd-convert-date-time): Reflow docstrings.
+	(rng-xsd-compile): Fix typo in docstring.
+
+	* nxml/rng-loc.el (rng-current-schema-file-name)
+	(rng-locate-schema-file-using, rng-locate-schema-file-from-type-id):
+	Doc fixes.
+	(rng-set-schema-file): Fix typo in docstring.
+
+	* nxml/rng-valid.el (rng-error-count, rng-validate-mode)
+	(rng-do-some-validation, rng-process-start-tag, rng-process-text):
+	Fix typos in docstrings.
+	(rng-message-overlay, rng-conditional-up-to-date-start)
+	(rng-conditional-up-to-date-end): Doc fixes.
+	(rng-next-error, rng-previous-error): Reflow docstrings.
+
+	* nxml/xmltok.el (xmltok-attribute-raw-normalized-value): Doc fix.
+	(xmltok-dtd, xmltok-dependent-regions, xmltok-attribute-refs)
+	(xmltok-valid-char-p, xmltok-standalone, xmltok-forward-prolog)
+	(xmltok-merge-attributes): Fix typos in docstrings.
+	(xmltok-make-attribute, xmltok-forward-special)
+	(xmltok-get-declared-encoding-position): Reflow docstrings.
+
+	* nxml/xsd-regexp.el (xsdre-char-class-to-range-list): Doc fix.
+	(xsdre-range-list-union, xsdre-check-range-list, xsdre-current-regexp):
+	Fix typos in docstrings.
+
+2008-07-02  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-buffer-file-name):
+	Use `list-buffers-directory'.  Remove special-casing for `cvs-mode'
+	and `vc-dir-mode'.  Suggested by Dan Nicolaescu.
+
+2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
+
+	* files.el (backup-extract-version): Handle versioned directories.
+	(trash-directory): New variable.
+	(move-file-to-trash): New function.
+
+	* cus-start.el (delete-by-moving-to-trash): Declare for custom.
+
+2008-07-02  Magnus Henoch  <mange@freemail.hu>
+
+	* vc-git.el (vc-git-annotate-command): Use proper option for
+	specifying revision.
+
+2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
+
+	* startup.el (fancy-splash-head): Prefer SVG or PNG splash image,
+	if available.
+
+2008-07-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* uniquify.el (uniquify-list-buffers-directory-modes): Add vc-dir-mode.
+
+	* vc-annotate.el (vc-annotate-mode-map): Use lower case keys.
+	Add binding for vc-annotate-show-changeset-diff-revision-at-line.
+
+	* vc-dir.el (vc-dir-mode): Set list-buffers-directory.
+
+2008-07-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-create-source-file-list): New option.
+	(gdb-init-2): Use it.  Don't run gdb-mode-hook again.
+	(gdb-var-list-children-regexp, gdb-var-update-regexp)
+	(gdb-info-breakpoints-custom, gdb-stack-list-frames-regexp)
+	(gdb-var-list-children-regexp-1, gdb-var-update-regexp-1)
+	(gdb-stack-list-locals-regexp): Future proof regexps better.
+
+2008-06-30  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (face-name-history): New variable.
+	(make-face, make-empty-face): Replace interactive spec "S"
+	with `read-from-minibuffer' where `read' arg is t and
+	`hist' arg is `face-name-history'.
+	(read-face-name): Set `hist' arg of `completing-read-multiple'
+	to `face-name-history'.
+	(list-faces-display): Use `read-regexp' instead of `read-string'
+	to read regexp.
+
+	* hi-lock.el (hi-lock-regexp-history): Make it an obsolete alias
+	to `regexp-history'.
+	(hi-lock-face-history): Rename to `hi-lock-face-defaults' and
+	make it an obsolete alias to it.
+	(hi-lock-face-defaults): New variable renamed from
+	`hi-lock-face-history'.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Use `read-regexp' instead of
+	`read-from-minibuffer'.  Doc fix.
+	(hi-lock-read-face-name): Replace `hi-lock-face-history' with
+	`hi-lock-face-defaults'.  Remove `mapcar (lambda (f) (cons f f))'.
+	Set `hist' arg of `completing-read' to `face-name-history'.
+	Put a list of default faces to `default' arg instead of `hist' arg.
+
+	* bindings.el (abbrev-map, narrow-map): New variables.
+	Bind `C-x a' to `abbrev-map' and `C-x n' to `narrow-map'.
+	Rebind related commands to these new maps.
+	(ctl-x-r-map): New variable for rectangle, register and bookmark
+	keys.  Move rectangle keybindings to rect.el and register
+	keybindings to register.el.
+	(next-buffer, previous-buffer): Remove C-x prefix and move
+	keybindings to ctl-x-map.
+
+	* bookmark.el: Rebind three global `C-x r' keys "b", "m", "l"
+	to the new map `ctl-x-r-map'  in autoload cookies.
+
+	* expand.el: Rebind two global `C-x a' keys "n", "p"
+	to the new map `abbrev-map' in autoload cookies.
+
+	* rect.el: Bind global keys to ctl-x-r-map in autoload cookies.
+
+	* register.el: Bind global keys to ctl-x-r-map in autoload cookies.
+
+2008-06-30  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-markup-attributes): Don't skip a character
+	after processing an escape sequence.
+
+2008-06-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Revert patch
+	from 2008-06-28.  It does not work on W32.
+
+2008-06-29  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (read-regexp): New function.
+	(keep-lines-read-args, occur-read-primary-args):
+	Call `read-regexp' instead of code moved to new function.
+	(keep-lines, flush-lines, how-many): Remove parenthesis and colon
+	from the end of prompt.
+	(replace-re-search-function): Doc fix.
+
+2008-06-29  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-display): Always return a string.
+	(describe-char-padded-string): New function.
+	(describe-char): Adjusted for the change of
+	describe-char-display.  Use describe-char-padded-string.
+
+2008-06-29  Andreas Schwab  <schwab@suse.de>
+
+	* vc-dir.el (vc-dir): Make backend argument optional and use
+	vc-responsible-backend when nil.  Interactively pass nil for
+	backend instead of using the backend of what happens to be
+	default-directory at the time of the call.
+
+	* find-dired.el (find-dired-filter): Preserve point.
+
+2008-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/sasl.el (sasl-client-set-property, sasl-make-mechanism)
+	(sasl-find-mechanism, sasl-next-step):
+	* net/sasl-ntlm.el (sasl-ntlm-steps, sasl-ntlm-request)
+	(sasl-ntlm-response): Fix typos in docstrings.
+
+2008-06-28  robert marshall  <robert@capuchin.co.uk>  (tiny change)
+
+	* international/mule-cmds.el (view-hello-file): Doc fix.
+
+2008-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (inhibit-face-set-after-frame-default): Var deleted.
+	(set-face-attribute, face-set-after-frame-default)): Don't use it.
+
+2008-06-28  John Paul Wallington  <jpw@pobox.com>
+
+	* calc/calc.el (defmath): Add `doc-string' decl.  Add docstring.
+
+2008-06-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-modes): Handle symlinks.
+	(tramp-convert-file-attributes): Convert symlinks only when
+	returned from `tramp-handle-file-attributes-with-stat'.
+
+	* net/tramp-ftp.el (top): Delete 'ange-ftp property from
+	`substitute-in-file-name' when unloading.
+	(tramp-ftp-file-name-handler): Set `tramp-mode' to nil.
+
+2008-06-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-hide-up-to-date): Also hide empty directories.
+	(vc-string-prefix-p): Move function ...
+	* vc.el (vc-string-prefix-p): ... here.
+
 2008-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-dir.el (vc-dir): Complete only directory names.
 
 2008-06-27  Jason Rumney  <jasonr@gnu.org>
 
-        * w32-fns.el (top-level): Unconditionally define all charsets.
+	* w32-fns.el (top-level): Unconditionally define all charsets.
 
 2008-06-27  Alan Mackenzie  <acm@muc.de>
 
@@ -76,6 +345,9 @@
 	* vc.el (ewoc, tool-bar): Do not require.
 
 2008-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (encode-coding-char): Fix for ASCII
+	characters.
 
 	* composite.el (terminal-composition-base-character-p): New function.
 	(terminal-composition-function):
@@ -2974,7 +3246,7 @@
 	(vc-at-event): New macro: run the body at the even location.
 	(vc-dir-menu, vc-dir-toggle-mark): Use it.
 	(vc-dir-mark-file, vc-dir-unmark-file): Move only on non-mouse events.
-	* subr.el (mouse-event-p): Check if the even is mouse-related.
+	* subr.el (mouse-event-p): Check if the event is mouse-related.
 
 2008-05-02  Nick Roberts  <nickrob@snap.net.nz>
 

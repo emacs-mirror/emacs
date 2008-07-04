@@ -161,7 +161,7 @@ See the variable `nxml-section-element-name-regexp' for more details."
 (defun nxml-hide-all-text-content ()
   "Hide all text content in the buffer.
 Anything that is in a section but is not a heading will be hidden.
-The visibility of headings at any level will not be changed. See the
+The visibility of headings at any level will not be changed.  See the
 variable `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -170,8 +170,8 @@ customize which elements are recognized as sections and headings."
 (defun nxml-show-direct-text-content ()
   "Show the text content that is directly part of the section containing point.
 Each subsection will be shown according to its individual state, which
-will not be changed. The section containing point is the innermost
-section that contains the character following point. See the variable
+will not be changed.  The section containing point is the innermost
+section that contains the character following point.  See the variable
 `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -183,7 +183,7 @@ customize which elements are recognized as sections and headings."
 (defun nxml-show-direct-subheadings ()
   "Show the immediate subheadings of the section containing point.
 The section containing point is the innermost section that contains
-the character following point. See the variable
+the character following point.  See the variable
 `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -197,7 +197,7 @@ customize which elements are recognized as sections and headings."
   "Hide the text content that is directly part of the section containing point.
 The heading of the section will remain visible.  The state of
 subsections will not be changed.  The section containing point is the
-innermost section that contains the character following point. See the
+innermost section that contains the character following point.  See the
 variable `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -212,7 +212,7 @@ customize which elements are recognized as sections and headings."
 The text content will also be hidden, leaving only the heading of the
 section itself visible.  The state of the subsections will also be
 changed to hide their headings, so that \\[nxml-show-direct-text-content]
-would show only the heading of the subsections. The section containing
+would show only the heading of the subsections.  The section containing
 point is the innermost section that contains the character following
 point.  See the variable `nxml-section-element-name-regexp' for more
 details on how to customize which elements are recognized as sections
@@ -235,7 +235,7 @@ sections and headings."
 (defun nxml-hide-text-content ()
   "Hide text content at all levels in the section containing point.
 The section containing point is the innermost section that contains
-the character following point. See the variable
+the character following point.  See the variable
 `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -245,7 +245,7 @@ customize which elements are recognized as sections and headings."
   "Show the subheadings at all levels of the section containing point.
 The visibility of the text content at all levels in the section is not
 changed.  The section containing point is the innermost section that
-contains the character following point. See the variable
+contains the character following point.  See the variable
 `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -255,7 +255,7 @@ customize which elements are recognized as sections and headings."
   "Hide text content other than that directly in the section containing point.
 Hide headings other than those of ancestors of that section and their
 immediate subheadings.  The section containing point is the innermost
-section that contains the character following point. See the variable
+section that contains the character following point.  See the variable
 `nxml-section-element-name-regexp' for more details on how to
 customize which elements are recognized as sections and headings."
   (interactive)
@@ -349,7 +349,7 @@ customize which elements are recognized as sections and headings."
     (when change
       (nxml-set-outline-state section-start-pos
 			      (cdr change)))))
-  
+
 (defun nxml-section-tag-transform-outline-state (startp
 						 section-start-pos
 						 &optional
@@ -418,7 +418,7 @@ customize which elements are recognized as sections and headings."
   (or (eq xmltok-type 'end-tag)
       (eq xmltok-type 'partial-end-tag)))
 
-(defun nxml-refresh-outline () 
+(defun nxml-refresh-outline ()
   "Refresh the outline to correspond to the current XML element structure."
   (interactive)
   (save-excursion
@@ -438,7 +438,7 @@ OUTLINE-STATE can be nil, t, hide-children.  START-TAG-INDENT is the
 indent of the start-tag of the current element, or nil if no
 containing element has a non-nil OUTLINE-STATE.  TAG-QNAMES is a list
 of the qnames of the open elements.  Point is after the title content.
-Leave point after the closing end-tag Return t if we had a
+Leave point after the closing end-tag.  Return t if we had a
 non-transparent child section."
   (let ((last-pos (point))
 	(transparent-depth 0)
@@ -661,7 +661,7 @@ non-transparent child section."
 					 t)
 	       'display
 	       nxml-highlighted-empty-end-tag))
-    
+
 (defun nxml-outline-display-multi-line-end-tag (last-pos start-tag-indent)
   (let ((indentp (save-excursion
 		   (goto-char last-pos)
@@ -765,12 +765,12 @@ non-transparent child section."
 				 &optional
 				 front-advance
 				 rear-advance)
-  "Replace any nxml-outline-display overlays between START and END.
+  "Replace any `nxml-outline-display' overlays between START and END.
 Overlays are removed if they overlay the region between START and END,
-and have a non-nil nxml-outline-display property (typically via their
-category). If CATEGORY is non-nil, they will be replaced with a new overlay
-with that category from START to END. If CATEGORY is nil, no new
-overlay will be created."
+and have a non-nil `nxml-outline-display' property (typically via their
+category).  If CATEGORY is non-nil, they will be replaced with a new
+overlay with that category from START to END.  If CATEGORY is nil,
+no new overlay will be created."
   (when (< start end)
     (let ((overlays (overlays-in start end))
 	  overlay)
@@ -837,7 +837,7 @@ Do not move past the end of the line."
 
 (defun nxml-section-tag-forward ()
   "Move forward past the first tag that is a section start- or end-tag.
-Return xmltok-type for tag.
+Return `xmltok-type' for tag.
 If no tag found, return nil and move to the end of the buffer."
   (let ((case-fold-search nil)
 	(tag-regexp (nxml-make-section-tag-regexp))
@@ -866,10 +866,10 @@ If no tag found, return nil and move to the end of the buffer."
 		  nil)
 		 (t))))
     xmltok-type)
-	 
+
 (defun nxml-section-tag-backward ()
   "Move backward to the end of a tag that is a section start- or end-tag.
-The position of the end of the tag must be <= point
+The position of the end of the tag must be <= point.
 Point is at the end of the tag.  `xmltok-start' is the start."
   (let ((case-fold-search nil)
 	(start (point))
@@ -922,7 +922,7 @@ Signal an error on failure."
   "Try to move back to the start of the section containing point.
 The start of the section must be <= point.
 Only visible sections are included unless INVISIBLE-OK is non-nil.
-If found, return t.  Otherwise move to point-min and return nil.
+If found, return t.  Otherwise move to `point-min' and return nil.
 If unbalanced section tags are found, signal an `nxml-outline-error'."
   (when (or (nxml-after-section-start-tag)
 	    (nxml-section-tag-backward))
@@ -970,7 +970,7 @@ immediately after the section's start-tag."
 	(heading-regexp (concat "\\`\\("
 				nxml-heading-element-name-regexp
 				"\\)\\'"))
-	
+
 	(section-regexp (concat "\\`\\("
 				nxml-section-element-name-regexp
 				"\\)\\'"))

@@ -834,7 +834,7 @@ voice);
 
 3) Everything is customizable, one-by-one or in a big sweep;
 
-4) It has many easily-accessable \"tools\":
+4) It has many easily-accessible \"tools\":
         a) Can run program, check syntax, start debugger;
         b) Can lineup vertically \"middles\" of rows, like `=' in
                 a  = b;

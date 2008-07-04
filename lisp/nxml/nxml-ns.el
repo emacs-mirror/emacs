@@ -29,22 +29,22 @@
 (require 'nxml-util)
 
 (defvar nxml-ns-state nil
-  "Contains the state of namespace processing.  The state
-is never modified destructively and so can be saved and restored
-without copying.
+  "Contains the state of namespace processing.
+The state is never modified destructively and so can be saved and
+restored without copying.
 
-The value is a stack represented by a list. The list has length N + 1
-where N is the number of open elements.  Each member of the list
-represents the bindings in effect for a particular element.  Each
-member is itself a list whose car is the default namespace
+The value is a stack represented by a list.  The list has length
+N + 1 where N is the number of open elements.  Each member of the
+list represents the bindings in effect for a particular element.
+Each member is itself a list whose car is the default namespace
 \(a symbol or nil) and whose cdr is an alist of (PREFIX . NS) pairs
 where PREFIX is a string (never nil) and NS is the namespace URI
 symbol.")
 
 (defconst nxml-ns-initial-state
   (list (list nil (cons "xml" nxml-xml-namespace-uri)))
-  "A list to be used as the initial value of nxml-ns-state.  This
-represents the state with no open elements and with the default
+  "A list to be used as the initial value of `nxml-ns-state'.
+This represents the state with no open elements and with the default
 namespace bindings (no default namespace and only the xml prefix bound).")
 
 (defsubst nxml-ns-state () nxml-ns-state)
@@ -66,25 +66,25 @@ namespace bindings (no default namespace and only the xml prefix bound).")
   (setq nxml-ns-state nxml-ns-initial-state))
 
 (defun nxml-ns-push-state ()
-  "Change the state by starting a new element. Namespace declarations
-are inherited from the parent state."
+  "Change the state by starting a new element.
+Namespace declarations are inherited from the parent state."
   (setq nxml-ns-state (cons (car nxml-ns-state) nxml-ns-state)))
 
 (defun nxml-ns-pop-state ()
-  "Change the state by ending an element.  The behavior is undefined
-if there is no open element."
+  "Change the state by ending an element.
+The behavior is undefined if there is no open element."
   (setq nxml-ns-state (cdr nxml-ns-state)))
 
 (defun nxml-ns-get-prefix (prefix)
-  "Return the symbol for namespace bound to PREFIX, or nil if PREFIX
-is unbound. PREFIX is a string, never nil."
+  "Return the symbol for namespace bound to PREFIX.
+Return nil if PREFIX is unbound.  PREFIX is a string, never nil."
   (let ((binding (assoc prefix (cdar nxml-ns-state))))
     (and binding (cdr binding))))
 
 (defun nxml-ns-set-prefix (prefix ns)
-  "Change the binding of PREFIX. PREFIX is a string (never nil).  NS
-is a symbol (never nil). The change will be in effect until the end of
-the current element."
+  "Change the binding of PREFIX.
+PREFIX is a string (never nil).  NS is a symbol (never nil).
+The change will be in effect until the end of the current element."
   (setq nxml-ns-state
 	(let ((bindings (car nxml-ns-state)))
 	  (cons (cons (car bindings)
@@ -92,13 +92,13 @@ the current element."
 		(cdr nxml-ns-state)))))
 
 (defun nxml-ns-get-default ()
-  "Return the current default namespace as a symbol, or nil
-if there is no default namespace."
+  "Return the current default namespace as a symbol.
+Return nil if there is no default namespace."
   (caar nxml-ns-state))
 
 (defun nxml-ns-set-default (ns)
-  "Changes the current default namespace.  The change
-will be in effect until the end of the current element.
+  "Changes the current default namespace.
+The change will be in effect until the end of the current element.
 NS is a symbol or nil."
   (setq nxml-ns-state
 	(cons (cons ns (cdar nxml-ns-state))
@@ -142,7 +142,7 @@ NS is a symbol or nil."
 	      (cons (caar new) changed))
 	(setq new (cdr new))))
     changed))
-    
+
 (provide 'nxml-ns)
 
 ;; arch-tag: 5968e4b7-fb37-46ce-8621-c65db9793028

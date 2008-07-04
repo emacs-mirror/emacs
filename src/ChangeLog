@@ -1,27 +1,124 @@
+2008-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (${etc}DOC): Depend on ${lisp} rather than ${shortlisp}.
+
+2008-07-04  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fstring_to_unibyte): Delete the arg ACCEPT-LATIN-1.
+
+	* lisp.h: EXFUN adjusted for the change of Fstring_to_unibyte.
+
+2008-07-02  Jason Rumney  <jasonr@gnu.org>
+
+	* xfns.c (syms_of_xfns): Only define x-select-font when both
+	HAVE_FREETYPE and USE_GTK
+
+	* xdisp.c (next_element_from_display_vector): Move assignment out
+	of if statement.
+
+2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
+
+	* lisp.h (Qdelete_file, Qdelete_directory): Declare extern.
+
+	* fileio.c (delete_by_moving_to_trash, Qmove_file_to_trash): New vars.
+	(syms_of_fileio): Initialize and export them.
+	(Fdelete_directory, Fdelete_file): Optionally delete via trash.
+
+	* w32fns.c (FOF_NO_CONNECTED_ELEMENTS): Define if not already.
+	(Fsystem_move_file_to_trash): New function.
+	(syms_of_w32fns): Export it to lisp.
+
+2008-07-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Don't count overhang as part
+	of width.
+
+2008-06-30  Miles Bader  <miles@gnu.org>
+
+	* dispextern.h (struct glyph, struct it, struct iterator_stack_entry):
+	Add `avoid_cursor_p' field.
+
+	* xdisp.c (push_it, pop_it): Save/restore avoid_cursor_p field.
+	(set_cursor_from_row): Skip glyphs with avoid_cursor_p set.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph): Initialize avoid_cursor_p.
+	(get_it_property): Rename from `get_line_height_property'.
+	(x_produce_glyphs): Use get_it_property.
+	(handle_line_prefix, push_display_prop): New functions.
+	(display_line, move_it_in_display_line_to): Handle line/wrap prefixes.
+	(Vwrap_prefix, Qwrap_prefix, Vline_prefix, Qline_prefix):
+	New variables.
+	(syms_of_xdisp): Initialize them.
+
+2008-06-30  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Don't call FcConfigSubstitute and
+	XftDefaultSubstitute (they are called in XftFontMatch).
+	(xftfont_open): Fix args to ftfont_font_format.
+
+	* ftfont.c (fc_charset_table): New member lang.
+	(ftfont_resolve_generic_family): New arg pattern.
+	(ftfont_spec_pattern): Check fc_cahrset_table[]->lang.
+	(ftfont_list): Call ftfont_resolve_generic_family with `pattern'.
+	(ftfont_open): Fix args to ftfont_font_format.
+	(ftfont_font_format): New arg filename.
+
+2008-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_merge_in_global_face): If default face was
+	modified, realize it again.  Update the font face attribute.
+
+2008-06-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_set_frame_alpha): Fix logic.
+
+2008-06-29  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Finternal_char_font): Return font-object instead of
+	font-name.
+
+	* composite.c (get_composition_id): Fix the width calculation for TAB.
+
+2008-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.c (Fvertical_motion): Properly handle float column arg.
+
+2008-06-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (pfnGetFontUnicodeRanges): Remove unused function pointer.
+	(pfnSetLayeredWindowAttributes): New function pointer.
+	(w32_initialize): Initialize it when supported.
+	(x_set_frame_alpha): New function.
+
+	* w32fns.c (Fx_create_frame): Initialize frame parameter `alpha'.
+	(w32_frame_parm_handlers): Set alpha handler.
+
+	* frame.c (x_set_alpha) [HAVE_NTGUI]: Call x_set_frame_alpha.
+
 2008-06-27  Jason Rumney  <jasonr@gnu.org>
 
-        * w32fns.c (x_to_w32_font, w32_to_x_font, x_to_w32_weight)
-        (w32_to_x_weight, w32_to_all_x_charsets): Remove obsolete functions.
-        (w32_to_x_charset, x_to_w32_charset)
-        (Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
-        (Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
-        (Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
-        (Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
-        (Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
-        (Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
-        (Qw32_charset_mac, Vw32_charset_info_alist): Move to w32font.c.
-        (Qw32_charset_unicode): Remove.
-        (syms_of_w32fns): Update for above changes.
+	* w32fns.c (x_to_w32_font, w32_to_x_font, x_to_w32_weight)
+	(w32_to_x_weight, w32_to_all_x_charsets): Remove obsolete functions.
+	(w32_to_x_charset, x_to_w32_charset)
+	(Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
+	(Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
+	(Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
+	(Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
+	(Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
+	(Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
+	(Qw32_charset_mac, Vw32_charset_info_alist): Move to w32font.c.
+	(Qw32_charset_unicode): Remove.
+	(syms_of_w32fns): Update for above changes.
 
-        * w32font.c (w32_to_x_charset, x_to_w32_charset)
-        (Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
-        (Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
-        (Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
-        (Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
-        (Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
-        (Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
-        (Qw32_charset_mac, Vw32_charset_info_alist): Move from w32fns.c.
-        (syms_of_w32font): Update for above changes.
+	* w32font.c (w32_to_x_charset, x_to_w32_charset)
+	(Qw32_charset_ansi, Qw32_charset_symbol, Qw32_charset_default)
+	(Qw32_charset_shiftjis, Qw32_charset_hangeul, Qw32_charset_johab)
+	(Qw32_charset_chinesebig5, Qw32_charset_gb2312, Qw32_charset_oem)
+	(Qw32_charset_easteurope, Qw32_charset_turkish, Qw32_charset_baltic)
+	(Qw32_charset_russian, Qw32_charset_arabic, Qw32_charset_greek)
+	(Qw32_charset_hebrew, Qw32_charset_vietnamese, Qw32_charset_thai)
+	(Qw32_charset_mac, Vw32_charset_info_alist): Move from w32fns.c.
+	(syms_of_w32font): Update for above changes.
 
 2008-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -12860,6 +12957,7 @@ See ChangeLog.10 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
+;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 2007, 2008  Free Software Foundation, Inc.

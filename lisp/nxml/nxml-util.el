@@ -25,7 +25,7 @@
 ;;; Code:
 
 (defconst nxml-debug nil
-  "enable nxml debugging. effective only at compile time")
+  "Enable nxml debugging.  Effective only at compile time.")
 
 (defsubst nxml-debug (format &rest args)
   (when nxml-debug
@@ -52,7 +52,7 @@
 
 (defun nxml-make-namespace (str)
   "Return a symbol for the namespace URI STR.
-STR must be a string. If STR is the empty string, return nil.
+STR must be a string.  If STR is the empty string, return nil.
 Otherwise, return the symbol whose name is STR prefixed with a colon."
   (if (string-equal str "")
       nil

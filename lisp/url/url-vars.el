@@ -55,10 +55,10 @@
 
 
 (defvar url-current-object nil
-  "A parsed representation of the current url.")
+  "A parsed representation of the current URL.")
 
 (defvar url-current-mime-headers nil
-  "A parsed representation of the MIME headers for the current url.")
+  "A parsed representation of the MIME headers for the current URL.")
 
 (mapc 'make-variable-buffer-local
       '(
@@ -72,8 +72,7 @@
 These are done at the request of the document author or the server via
 the `Refresh' header in an HTTP response.  If nil, no refresh
 requests will be honored.  If t, all refresh requests will be honored.
-If non-nil and not t, the user will be asked for each refresh
-request."
+If non-nil and not t, the user will be asked for each refresh request."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
 		 (const :tag "ask" 'ask))
@@ -118,17 +117,17 @@ This variable controls how much of this information is sent.
 
 This should a symbol or a list.
 Valid values if a symbol are:
-none     -- Send all information
-low      -- Don't send the last location
-high     -- Don't send the email address or last location
-paranoid -- Don't send anything
+none     -- send all information
+low      -- don't send the last location
+high     -- don't send the email address or last location
+paranoid -- don't send anything
 
 If a list, this should be a list of symbols of what NOT to send.
 Valid symbols are:
 email    -- the email address
 os       -- the operating system info
 lastloc  -- the last location
-agent    -- Do not send the User-Agent string
+agent    -- do not send the User-Agent string
 cookie   -- never accept HTTP cookies
 
 Samples:
@@ -174,7 +173,7 @@ variable."
   :group 'url-mime)
 
 (defcustom url-mail-command 'compose-mail
-  "*This function will be called whenever url needs to send mail.
+  "*This function will be called whenever URL needs to send mail.
 It should enter a mail-mode-like buffer in the current window.
 The commands `mail-to' and `mail-subject' should still work in this
 buffer, and it should use `mail-header-separator' if possible."
@@ -259,7 +258,7 @@ given priority 1 and the rest are given priority 0.5.")
   "*String to send in the Accept-language: field in HTTP requests.
 
 Specifies the preferred language when servers can serve documents in
-several languages.  Use RFC 1766 abbreviations, e.g.@: `en' for
+several languages.  Use RFC 1766 abbreviations, e.g.: `en' for
 English, `de' for German.  A comma-separated specifies descending
 order of preference.  The ordering can be made explicit using `q'
 factors defined by HTTP, e.g. `de,en-gb;q=0.8,en;q=0.7'.  `*' means
@@ -304,7 +303,7 @@ a terminal with a slow modem."
 
 (defvar url-using-proxy nil
   "Either nil or the fully qualified proxy URL in use, e.g.
-http://www.domain.com/")
+http://www.example.com/")
 
 (defcustom url-news-server nil
   "*The default news server from which to get newsgroups/articles.

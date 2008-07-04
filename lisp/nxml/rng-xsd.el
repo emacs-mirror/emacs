@@ -46,21 +46,22 @@
 
 ;;;###autoload
 (defun rng-xsd-compile (name params)
-  "Provides W3C XML Schema as a RELAX NG datatypes library. NAME is a
-symbol giving the local name of the datatype.  PARAMS is a list of
-pairs (PARAM-NAME . PARAM-VALUE) where PARAM-NAME is a symbol giving
-the name of the parameter and PARAM-VALUE is a string giving its
-value.  If NAME or PARAMS are invalid, it calls rng-dt-error passing
-it arguments in the same style as format; the value from rng-dt-error
-will be returned.  Otherwise, it returns a list.  The first member of
-the list is t if any string is a legal value for the datatype and nil
-otherwise.  The second argument is a symbol; this symbol will be
-called as a function passing it a string followed by the remaining
-members of the list.  The function must return an object representing
-the value of the datatype that was represented by the string, or nil
-if the string is not a representation of any value. The object
-returned can be any convenient non-nil value, provided that, if two
-strings represent the same value, the returned objects must be equal."
+  "Provides W3C XML Schema as a RELAX NG datatypes library.
+NAME is a symbol giving the local name of the datatype.  PARAMS is a
+list of pairs (PARAM-NAME . PARAM-VALUE) where PARAM-NAME is a symbol
+giving the name of the parameter and PARAM-VALUE is a string giving
+its value.  If NAME or PARAMS are invalid, it calls rng-dt-error
+passing it arguments in the same style as format; the value from
+rng-dt-error will be returned.  Otherwise, it returns a list.  The
+first member of the list is t if any string is a legal value for the
+datatype and nil otherwise.  The second argument is a symbol; this
+symbol will be called as a function passing it a string followed by
+the remaining members of the list.  The function must return an object
+representing the value of the datatype that was represented by the
+string, or nil if the string is not a representation of any value.
+The object returned can be any convenient non-nil value, provided
+that, if two strings represent the same value, the returned objects
+must be equal."
   (let ((convert (get name 'rng-xsd-convert)))
     (if (not convert)
 	(rng-dt-error "There is no XSD datatype named %s" name)
@@ -144,7 +145,7 @@ strings represent the same value, the returned objects must be equal."
 	    ((memq param-name '(enumeration whiteSpace))
 	     (rng-dt-error "Facet %s cannot be used in RELAX NG" param-name))
 	    (t (rng-dt-error "Unknown facet %s" param-name))))))
-	  
+
 (defun rng-xsd-string-to-non-negative-integer (str)
   (and (rng-xsd-convert-integer str)
        (let ((n (string-to-number str)))
@@ -240,16 +241,16 @@ strings represent the same value, the returned objects must be equal."
   (and (string-match regexp str)
        (apply convert (cons str args))))
 
-  
+
 (defun rng-xsd-convert-boolean (string)
   (and (string-match "\\`[ \t\n\r]*\\(?:\\(true\\|1\\)\\|false\\|0\\)[ \t\n\r]*\\'" string)
        (if (match-beginning 1) 'true 'false)))
 
 (defun rng-xsd-convert-decimal (string)
-  "Convert a string representing a decimal to an object representing
-its values.  A decimal value is represented by a vector [SIGN
-INTEGER-DIGITS FRACTION-DIGITS] where SIGN is 1 or -1, INTEGER-DIGITS
-is a string containing zero or more digits, with no leading zero, and
+  "Convert a string representing a decimal to an object representing it values.
+A decimal value is represented by a vector [SIGN INTEGER-DIGITS
+FRACTION-DIGITS] where SIGN is 1 or -1, INTEGER-DIGITS is a string
+containing zero or more digits, with no leading zero, and
 FRACTION-DIGITS is a string containing zero or more digits with no
 trailing digits.  For example, -0021.0430 would be represented by [-1
 \"21\" \"043\"]."
@@ -318,12 +319,12 @@ trailing digits.  For example, -0021.0430 would be represented by [-1
 	((match-beginning 3) -1.0e+INF)
 	;; Don't use a NaN float because we want NaN to be equal to NaN
 	((match-beginning 4) 'NaN)))
-	 
+
 (defun rng-xsd-float< (f1 f2)
   (and (not (eq f1 'NaN))
        (not (eq f2 'NaN))
        (< f1 f2)))
-  
+
 (defun rng-xsd-convert-token (string regexp)
   (and (string-match regexp string)
        (match-string 1 string)))
@@ -342,7 +343,7 @@ trailing digits.  For example, -0021.0430 would be represented by [-1
 	(B16 "[AEIMQUYcgkosw048]")
 	(B64 "[A-Za-z0-9+/]"))
     (concat "\\`" S "\\(?:\\(?:" B64 S "\\)\\{4\\}\\)*"
-	    "\\(?:" B64 S B64 S B16 S "=" S 
+	    "\\(?:" B64 S B64 S B16 S "=" S
 	    "\\|" B64 S B04 S "=" S "=" S "\\)?\\'")))
 
 (defun rng-xsd-convert-base64-binary (string)
@@ -365,11 +366,11 @@ trailing digits.  For example, -0021.0430 would be represented by [-1
        string))
 
 (defun rng-xsd-make-date-time-regexp (template)
-  "Returns a regular expression matching a ISO 8601 date/time. The
-template is a string with Y standing for years field, M standing for
-months, D standing for day of month, T standing for a literal T, t
+  "Returns a regular expression matching a ISO 8601 date/time.
+The template is a string with Y standing for years field, M standing
+for months, D standing for day of month, T standing for a literal T, t
 standing for time and - standing for a literal hyphen.  A time zone is
-always allowed at the end. Regardless of the fields appearing in the
+always allowed at the end.  Regardless of the fields appearing in the
 template, the regular expression will have twelve groups matching the
 year sign, year, month, day of month, hours, minutes, integer seconds,
 fractional seconds (including leading period), time zone, time zone
@@ -433,16 +434,16 @@ sign, time zone hours, time zone minutes."
       (aset v i total)
       (setq i (1+ i)))
     v))
-	   
+
 (defun rng-xsd-convert-date-time (string regexp)
-  "Converts an XML Schema date/time to a list.  Returns nil if
-invalid.  REGEXP is a regexp for parsing the date time as returned by
-`rng-xsd-make-date-time-regexp'. The list has 4 members (HAS-TIME-ZONE
-DAY SECOND SECOND-FRACTION), where HAS-TIME-ZONE is t or nil depending
-on whether a time zone was specified, DAY is an integer giving a day
-number (with Jan 1 1AD being day 1), SECOND is the second within that
-day, and SECOND-FRACTION is a float giving the fractional part of the
-second."
+  "Converts an XML Schema date/time to a list.
+Returns nil if invalid.  REGEXP is a regexp for parsing the date time
+as returned by `rng-xsd-make-date-time-regexp'.  The list has 4 members
+\(HAS-TIME-ZONE DAY SECOND SECOND-FRACTION), where HAS-TIME-ZONE is t
+or nil depending on whether a time zone was specified, DAY is an
+integer giving a day number (with Jan 1 1AD being day 1), SECOND is the
+second within that day, and SECOND-FRACTION is a float giving the
+fractional part of the second."
   (and (string-match regexp string)
        (let ((year-sign (match-string 1 string))
 	     (year (match-string 2 string))
@@ -547,7 +548,7 @@ second."
     (setq numbers2 (cdr numbers2)))
   (and numbers1
        (< (car numbers1) (car numbers2))))
-	
+
 (defun rng-xsd-date-to-days (year month day)
   "Return a unique day number where Jan 1 1 AD is day 1"
   (if (> year 0)			; AD
@@ -596,7 +597,7 @@ second."
 	   (let ((start (match-beginning (+ i 2))))
 	     (when start
 	       (aset v i (* sign
-			    (string-to-number 
+			    (string-to-number
 			     (substring string
 					start
 					(1- (match-end (+ i 2)))))))))
@@ -604,7 +605,7 @@ second."
 	 ;; Force seconds to be float so that equal works properly.
 	 (aset v 5 (float (aref v 5)))
 	 v)))
-	 
+
 (defconst rng-xsd-min-seconds-per-month (* 28 rng-xsd-seconds-per-day))
 
 (defun rng-xsd-duration< (d1 d2)
@@ -681,7 +682,7 @@ MONTHS must be an integer >= 0."
     (+ (* (/ months rng-xsd-months-per-gregorian-cycle)
 	  rng-xsd-days-per-gregorian-cycle)
        days)))
-    
+
 (defun rng-xsd-duration-months (d)
   (+ (* (aref d 0) 12)
      (aref d 1)))
@@ -694,7 +695,7 @@ MONTHS must be an integer >= 0."
 	   (aref d 4))
 	60.0)
      (aref d 5)))
-	
+
 (defun rng-xsd-convert-qname (string)
   (and (string-match "\\`[ \r\n\t]*\\([_[:alpha:]][-._[:alnum:]]*\\(:[_[:alpha:]][-._[:alnum:]]*\\)?\\)[ \r\n\t]*\\'" string)
        (let ((colon (match-beginning 2))
@@ -712,7 +713,7 @@ MONTHS must be an integer >= 0."
 				     (match-end 1)))))
 	   (cons (car context)
 		 (match-string 1 string))))))
-		     
+
 (defun rng-xsd-convert-list (string convert &rest args)
   (let* ((tokens (split-string string "[ \t\n\r]+"))
 	 (tem tokens))
@@ -770,7 +771,7 @@ MONTHS must be an integer >= 0."
 (defun rng-xsd-def-integer-type (name min max)
   (put name 'rng-xsd-less-than 'rng-xsd-decimal<)
   (put name
-       'rng-xsd-convert 
+       'rng-xsd-convert
        (cdr (rng-xsd-compile 'integer
 			     (append (and min `((minInclusive . ,min)))
 				     (and max `((maxInclusive . ,max))))))))

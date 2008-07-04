@@ -94,16 +94,16 @@
 (defvar nxml-scan-end nil
   "Marker giving position up to which we have scanned.
 nxml-scan-end must be >= nxml-prolog-end.  Furthermore, nxml-scan-end
-must not an inside position in the following sense. A position is
+must not be an inside position in the following sense.  A position is
 inside if the following character is a part of, but not the first
 character of, a CDATA section, comment or processing instruction.
 Furthermore all positions >= nxml-prolog-end and < nxml-scan-end that
-are inside positions must have a non-nil nxml-inside property whose
-value is a symbol specifying what it is inside. Any characters with a
-non-nil fontified property must have position < nxml-scan-end and the
-correct face. Dependent regions must also be established for any
+are inside positions must have a non-nil `nxml-inside' property whose
+value is a symbol specifying what it is inside.  Any characters with a
+non-nil `fontified' property must have position < nxml-scan-end and
+the correct face.  Dependent regions must also be established for any
 unclosed constructs starting before nxml-scan-end.
-There must be no nxml-inside properties after nxml-scan-end.")
+There must be no `nxml-inside' properties after nxml-scan-end.")
 (make-variable-buffer-local 'nxml-scan-end)
 
 (defsubst nxml-get-inside (pos)
@@ -139,7 +139,7 @@ Return nil if the character at POS is not inside."
   "Restore `nxml-scan-end' invariants after a change.
 The change happened between START and END.
 Return position after which lexical state is unchanged.
-END must be > nxml-prolog-end. START must be outside
+END must be > `nxml-prolog-end'.  START must be outside
 any 'inside' regions and at the beginning of a token."
   (if (>= start nxml-scan-end)
       nxml-scan-end
@@ -301,10 +301,11 @@ Sets variables like `nxml-token-after'."
     xmltok-type))
 
 (defun nxml-move-tag-backwards (bound)
-  "Move point backwards outside any 'inside' regions or tags, up
-to nxml-prolog-end. Point will either be at bound or a '<'
-character starting a tag outside any 'inside' regions. Ignores
-dependent regions. As a precondition, point must be >= bound."
+  "Move point backwards outside any 'inside' regions or tags.
+Point will not move past `nxml-prolog-end'.
+Point will either be at BOUND or a '<' character starting a tag
+outside any 'inside' regions.  Ignores dependent regions.
+As a precondition, point must be >= BOUND."
   (nxml-move-outside-backwards)
   (when (not (equal (char-after) ?<))
     (if (search-backward "<" bound t)
@@ -353,12 +354,12 @@ Leave point unmoved if it is not inside anything special."
 
 (defun nxml-scan-element-forward (from &optional up)
   "Scan forward from FROM over a single balanced element.
-Point must between tokens.  Return the position of the end of the tag
-that ends the element. `xmltok-start' will contain the position of the
-start of the tag. If UP is non-nil, then scan past end-tag of element
-containing point.  If no element is found, return nil.  If a
-well-formedness error prevents scanning, signal an nxml-scan-error.
-Point is not moved."
+Point must be between tokens.  Return the position of the end of
+the tag that ends the element. `xmltok-start' will contain the
+position of the start of the tag.  If UP is non-nil, then scan
+past end-tag of element containing point.  If no element is
+found, return nil.  If a well-formedness error prevents scanning,
+signal an `nxml-scan-error'.  Point is not moved."
   (let ((open-tags (and up t))
 	found)
     (save-excursion
@@ -404,13 +405,13 @@ expected `%s'"
 
 (defun nxml-scan-element-backward (from &optional up bound)
   "Scan backward from FROM over a single balanced element.
-Point must between tokens.  Return the position of the end of the tag
-that starts the element. `xmltok-start' will contain the position of
-the start of the tag.  If UP is non-nil, then scan past start-tag of
-element containing point.  If BOUND is non-nil, then don't scan back
-past BOUND.  If no element is found, return nil.  If a well-formedness
-error prevents scanning, signal an nxml-scan-error.  Point is not
-moved."
+Point must be between tokens.  Return the position of the end of
+the tag that starts the element. `xmltok-start' will contain the
+position of the start of the tag.  If UP is non-nil, then scan
+past start-tag of element containing point.  If BOUND is non-nil,
+then don't scan back past BOUND.  If no element is found, return
+nil.  If a well-formedness error prevents scanning, signal an
+`nxml-scan-error'.  Point is not moved."
   (let ((open-tags (and up t))
 	token-end found)
     (save-excursion

@@ -139,8 +139,12 @@ typedef struct tagGLYPHSET
 
 #endif
 
-/* Dynamic linking to GetFontUnicodeRanges (not available on 95, 98, ME).  */
-DWORD (PASCAL *pfnGetFontUnicodeRanges) (HDC device, GLYPHSET *ranges);
+/* Dynamic linking to SetLayeredWindowAttribute (only since 2000).  */
+BOOL (PASCAL *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
+
+#ifndef LWA_ALPHA
+#define LWA_ALPHA 0x02
+#endif
 
 /* Frame being updated by update_frame.  This is declared in term.c.
    This is set by update_begin and looked at by all the
@@ -410,6 +414,53 @@ w32_clear_window (f)
     }
 
   release_frame_dc (f, hdc);
+}
+
+#define OPAQUE_FRAME 255
+
+void
+x_set_frame_alpha (f)
+     struct frame *f;
+{
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  double alpha = 1.0;
+  double alpha_min = 1.0;
+  BYTE opac;
+  LONG ex_style;
+  HWND window = FRAME_W32_WINDOW (f);
+
+  /* Older versions of Windows do not support transparency.  */
+  if (!pfnSetLayeredWindowAttributes)
+    return;
+
+  if (dpyinfo->x_highlight_frame == f)
+    alpha = f->alpha[0];
+  else
+    alpha = f->alpha[1];
+
+  if (FLOATP (Vframe_alpha_lower_limit))
+    alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
+  else if (INTEGERP (Vframe_alpha_lower_limit))
+    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+
+  if (alpha < 0.0 || 1.0 < alpha)
+    alpha = 1.0;
+  else if (alpha < alpha_min && alpha_min <= 1.0)
+    alpha = alpha_min;
+
+  opac = alpha * OPAQUE_FRAME;
+
+  ex_style = GetWindowLong (window, GWL_EXSTYLE);
+
+  if (opac == OPAQUE_FRAME)
+    ex_style &= ~WS_EX_LAYERED;
+  else
+    ex_style |= WS_EX_LAYERED;
+
+  SetWindowLong (window, GWL_EXSTYLE, ex_style);
+
+  if (opac != OPAQUE_FRAME)
+    pfnSetLayeredWindowAttributes (window, 0, opac, LWA_ALPHA);
 }
 
 
@@ -2616,6 +2667,7 @@ frame_highlight (f)
      struct frame *f;
 {
   x_update_cursor (f, 1);
+  x_set_frame_alpha (f);
 }
 
 static void
@@ -2623,6 +2675,7 @@ frame_unhighlight (f)
      struct frame *f;
 {
   x_update_cursor (f, 1);
+  x_set_frame_alpha (f);
 }
 
 /* The focus has changed.  Update the frames as necessary to reflect
@@ -6291,15 +6344,15 @@ w32_initialize ()
     UINT smoothing_type;
     BOOL smoothing_enabled;
 
-    HANDLE gdi_lib = LoadLibrary ("gdi32.dll");
+    HANDLE user_lib = LoadLibrary ("user32.dll");
 
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
-    LOAD_PROC (gdi_lib, GetFontUnicodeRanges);
+    LOAD_PROC (user_lib, SetLayeredWindowAttributes);
 
 #undef LOAD_PROC
 
-    FreeLibrary (gdi_lib);
+    FreeLibrary (user_lib);
 
     /* Ensure scrollbar handle is at least 5 pixels.  */
     vertical_scroll_bar_min_handle = 5;

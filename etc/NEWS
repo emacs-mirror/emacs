@@ -109,7 +109,8 @@ for details about XEmbed.
 *** Emacs can now set the frame opacity.
 The opacity of a frame can be controlled by setting the `alpha' frame
 parameter.  This only takes effect on a compositing window manager for
-the X Window System, such as Compiz, Beryl and Compiz Fusion.
+the X Window System, such as Compiz, Beryl and Compiz Fusion, or on
+Windows 2000 and later versions of Windows.
 
 The alpha parameter should be an integer between 0 (transparent) and
 100 (opaque), or a float number between 0.0 and 1.0.  It can also be a
@@ -653,7 +654,7 @@ file copy is checked via the file's checksum.
 Tramp uses the package `auth-source' to read passwords from a file, if
 necessary.
 
-** VC
+** VC and related modes
 
 *** VC now supports applying VC operations to a set of files at a time.
 This enables VC to work much more effectively with changeset-oriented
@@ -662,8 +663,8 @@ and Bzr.  VC will now pass a multiple-file commit to these systems as
 a single changeset.
 
 *** vc-dir is a new command that displays file names and their VC
-status.  It allows to apply various VC operations to a file or a
-set of files.
+status.  It allows to apply various VC operations to a file, a
+directory or a set of files/directories.
 
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
@@ -671,14 +672,17 @@ set of files.
 
 *** In VC Annotate mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
-by using the vc-annotate-show-changeset-diff-revision-at-line function.
+by typing the D key.
 
-*** In VC Annotate mode, you can type V to toggle the annotation visibility.
+*** In VC Annotate mode, you can type v to toggle the annotation visibility.
 
 *** In VC Annotate mode, you can type f to show the file revision on
 the current line.
 
-*** vc-git supports the "git grep" command.
+*** In VC Annotate mode, for VC systems that support changesets, you
+can see the diff for the whole changeset (not only for the current
+file) by typing the D key or using the "Show changeset diff of
+revision at line" menu entry.
 
 *** Asynchronous VC commands display [Waiting...] in the mode-line
 of the corresponding buffer as long as the asynchronous process is
@@ -691,6 +695,10 @@ This is done by the `modify-change-comment' backend function.
 *** In log-view-mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
 by typing the D key or using the "Changeset Diff" menu entry.
+
+*** In Log Edit mode,  C-c C-d now shows the diff for the files involved.
+
+*** vc-git supports the "git grep" command.
 
 *** VC Support for Meta-CVS has been removed for lack of maintainer able
 to update it to the new VC.
@@ -733,8 +741,6 @@ See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
 
 *** Info displays breadcrumbs in the header of the page.
 See Info-breadcrumbs-depth to control it.
-
-*** In Log Edit mode,  C-c C-d now shows the diff for the files involved.
 
 *** net-utils has an `iwconfig' command, similar to the existing `ifconfig'.
 It is used to configure wireless interfaces.
@@ -970,6 +976,10 @@ functions `read-from-minibuffer', `read-string', `read-command',
 `read-variable', `read-buffer', `completing-read'.  Elements of this list
 are available for inserting into the minibuffer by typing `M-n'.
 For empty input these functions return the first element of this list.
+
+*** New function `read-regexp' uses the regexp history and some useful
+regexp defaults (string at point, last isearch/replacement regexp/string)
+via M-n when reading a regexp in the minibuffer.
 
 *** minibuffer-local-must-match-filename-map is now named
 minibuffer-local-filename-must-match-map.

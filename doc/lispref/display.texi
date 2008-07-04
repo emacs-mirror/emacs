@@ -191,6 +191,29 @@ If it is non-@code{nil}, these lines are truncated; otherwise,
   When horizontal scrolling (@pxref{Horizontal Scrolling}) is in use in
 a window, that forces truncation.
 
+@defvar wrap-prefix
+If this buffer-local variable is non-@code{nil}, the prefix it defines
+will be added at display-time to the beginning of every continuation
+line due to text wrapping (so if lines are truncated, the wrap-prefix
+is never used).  It may be a string, an image, or a stretch-glyph such
+as used by the `display' text-property.  @xref{Display Property}.
+
+A wrap-prefix may also be specified for regions of text using the
+@code{wrap-prefix} text-property (which takes precedence over the
+value of the @code{wrap-prefix} variable).  @xref{Special Properties}.
+@end defvar
+
+@defvar line-prefix
+If this buffer-local variable is non-@code{nil}, the prefix it defines
+will be added at display-time to the beginning of every
+non-continuation line It may be a string, an image, or a stretch-glyph
+such as used by the `display' text-property.  @xref{Display Property}.
+
+A line-prefix may also be specified for regions of text using the
+@code{line-prefix} text-property (which takes precedence over the
+value of the @code{line-prefix} variable).  @xref{Special Properties}.
+@end defvar
+
   If your buffer contains @emph{very} long lines, and you use
 continuation to display them, just thinking about them can make Emacs
 redisplay slow.  The column computation and indentation functions also
@@ -4222,13 +4245,13 @@ image properties are supported.
 @item :foreground @var{foreground}
 The value, @var{foreground}, should be a string specifying the image
 foreground color, or @code{nil} for the default color.  This color is
-used for each pixel in the XBM that is 1.  The default is the frame's
+used for each pixel in the PBM that is 1.  The default is the frame's
 foreground color.
 
 @item :background @var{background}
 The value, @var{background}, should be a string specifying the image
 background color, or @code{nil} for the default color.  This color is
-used for each pixel in the XBM that is 0.  The default is the frame's
+used for each pixel in the PBM that is 0.  The default is the frame's
 background color.
 @end table
 

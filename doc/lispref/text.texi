@@ -3167,6 +3167,29 @@ A newline can have a @code{line-height} text or overlay property that
 controls the total height of the display line ending in that newline.
 @xref{Line Height}.
 
+@item wrap-prefix
+If text has a @code{wrap-prefix} property, the prefix it defines will
+be added at display-time to the beginning of every continuation line
+due to text wrapping (so if lines are truncated, the wrap-prefix is
+never used).  It may be a string, an image, or a stretch-glyph such as
+used by the @code{display} text-property.  @xref{Display Property}.
+
+A wrap-prefix may also be specified for an entire buffer using the
+@code{wrap-prefix} buffer-local variable (however, a
+@code{wrap-prefix} text-property takes precedence over the value of
+the @code{wrap-prefix} variable).  @xref{Truncation}.
+
+@item line-prefix
+If text has a @code{line-prefix} property, the prefix it defines will
+be added at display-time to the beginning of every non-continuation
+line.  It may be a string, an image, or a stretch-glyph such as used
+by the @code{display} text-property.  @xref{Display Property}.
+
+A line-prefix may also be specified for an entire buffer using the
+@code{line-prefix} buffer-local variable (however, a
+@code{line-prefix} text-property takes precedence over the value of
+the @code{line-prefix} variable).  @xref{Truncation}.
+
 @item modification-hooks
 @cindex change hooks for a character
 @cindex hooks for changing a character

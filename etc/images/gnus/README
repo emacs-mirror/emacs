@@ -1,10 +1,14 @@
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
+* The following icons are part of Emacs.  All are licensed under the
+  GNU General Public License version 3 (see COPYING) or later.
+  The file gnus.svg contains copyright and license information, but it
+  is reproduced here for convenience.
+
 Files: important.xpm, unimportant.xpm
 Author: Simon Josefsson <simon@josefsson.org>
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
   Free Software Foundation, Inc.
-License: GNU General Public License version 3 or later (see COPYING)
 
 Files: catchup.pbm catchup.xpm cu-exit.pbm cu-exit.xpm
   describe-group.pbm describe-group.xpm exit-gnus.pbm exit-gnus.xpm
@@ -20,9 +24,13 @@ Files: catchup.pbm catchup.xpm cu-exit.pbm cu-exit.xpm
 Author: Luis Fernandes <elf@ee.ryerson.ca>
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
   Free Software Foundation, Inc.
-License: GNU General Public License version 3 or later (see COPYING)
 
-The following icons are from GNOME 2.x. They are not part of Emacs,
+Files: gnus.png, gnus.svg
+  Author: Francesc Rocher <rocher@member.fsf.org>
+  Copyright (C) 2008 Free Software Foundation, Inc.
+
+
+* The following icons are from GNOME 2.x. They are not part of Emacs,
 but are distributed and used by Emacs.  They are licensed under the
 GNU General Public License version 2 or later.  See the source of the
 gnome-icons-theme package for more information.

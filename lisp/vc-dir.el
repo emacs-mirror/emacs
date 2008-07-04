@@ -156,6 +156,9 @@ See `run-hooks'."
 		  :help "Mark the current file or all files in the region"))
 
     (define-key map [sepopn] '("--"))
+    (define-key map [qr]
+      '(menu-item "Query Replace in Files" vc-dir-query-replace-regexp
+		  :help "Replace a string in the marked files"))
     (define-key map [open-other]
       '(menu-item "Open in other window" vc-dir-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
@@ -211,8 +214,7 @@ See `run-hooks'."
 	      ext-binding))))
 
 (defvar vc-dir-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
+  (let ((map (make-sparse-keymap)))
     ;; VC commands
     (define-key map "v" 'vc-next-action)   ;; C-x v v
     (define-key map "=" 'vc-diff)	   ;; C-x v =
@@ -248,6 +250,7 @@ See `run-hooks'."
     (define-key map [down-mouse-3] 'vc-dir-menu)
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
     (define-key map "x" 'vc-dir-hide-up-to-date)
+    (define-key map "Q" 'vc-dir-query-replace-regexp)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -293,6 +296,8 @@ If `body' uses `event', it should be a variable,
 				   map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'nonincremental-search-forward
 				   "search" map)
+    (tool-bar-local-item-from-menu 'vc-dir-query-replace-regexp
+				   "search-replace" map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
 				   map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'quit-window "exit"
@@ -477,11 +482,6 @@ If a prefix argument is given, move by that many lines."
 	  (while (<= (line-number-at-pos) lastl)
 	    (funcall mark-unmark-function))))
     (funcall mark-unmark-function)))
-
-(defun vc-string-prefix-p (prefix string)
-  (let ((lpref (length prefix)))
-    (and (>= (length string) lpref)
-	 (eq t (compare-strings prefix nil nil string nil lpref)))))
 
 (defun vc-dir-parent-marked-p (arg)
   ;; Return nil if none of the parent directories of arg is marked.
@@ -679,6 +679,28 @@ that share the same state."
   (interactive)
   (find-file-other-window (vc-dir-current-file)))
 
+(defun vc-dir-query-replace-regexp (from to &optional delimited)
+  "Do `query-replace-regexp' of FROM with TO, on all marked files.
+If a directory is marked, then use the files displayed for that directory.
+Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
+with the command \\[tags-loop-continue]."
+  ;; FIXME: this is almost a copy of `dired-do-replace-regexp'.  This
+  ;; should probably be made generic and used in both places instead of
+  ;; duplicating it here.
+  (interactive
+   (let ((common
+	  (query-replace-read-args
+	   "Query replace regexp in marked files" t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
+  (dolist (file (mapcar 'car (vc-dir-marked-only-files-and-states)))
+    (let ((buffer (get-file-buffer file)))
+      (if (and buffer (with-current-buffer buffer
+			buffer-read-only))
+	  (error "File `%s' is visited read-only" file))))
+  (tags-query-replace from to delimited
+		      '(mapcar 'car (vc-dir-marked-only-files-and-states))))
+
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))
     (unless node
@@ -815,6 +837,8 @@ U - if the cursor is on a file: unmark all the files with the same state
 		      (vc-dir-headers vc-dir-backend default-directory)))
     (set (make-local-variable 'revert-buffer-function)
 	 'vc-dir-revert-buffer-function)
+    (set (make-local-variable 'list-buffers-directory)
+         (expand-file-name default-directory))
     (add-hook 'after-save-hook 'vc-dir-resynch-file)
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
@@ -938,9 +962,29 @@ outside of VC) and one wants to do some operation on it."
 (defun vc-dir-hide-up-to-date ()
   "Hide up-to-date items from display."
   (interactive)
-  (ewoc-filter
-   vc-ewoc
-   (lambda (crt) (not (eq (vc-dir-fileinfo->state crt) 'up-to-date)))))
+  (let ((crt (ewoc-nth vc-ewoc -1))
+	(first (ewoc-nth vc-ewoc 0)))
+    ;; Go over from the last item to the first and remove the
+    ;; up-to-date files and directories with no child files.
+    (while (not (eq crt first))
+      (let* ((data (ewoc-data crt))
+	     (dir (vc-dir-fileinfo->directory data))
+	     (next (ewoc-next vc-ewoc crt))
+	     (prev (ewoc-prev vc-ewoc crt))
+	     ;; ewoc-delete does not work without this...
+	     (inhibit-read-only t))
+	  (when (or
+		 ;; Remove directories with no child files.
+		 (and dir
+		      (or
+		       ;; Nothing follows this directory.
+		       (not next)
+		       ;; Next item is a directory.
+		       (vc-dir-fileinfo->directory (ewoc-data next))))
+		 ;; Remove files in the up-to-date state.
+		 (eq (vc-dir-fileinfo->state data) 'up-to-date))
+	    (ewoc-delete vc-ewoc crt))
+	  (setq crt prev)))))
 
 (defun vc-dir-status-printer (fileentry)
   (vc-call-backend vc-dir-backend 'status-printer fileentry))
@@ -975,9 +1019,10 @@ outside of VC) and one wants to do some operation on it."
     (list vc-dir-backend files only-files-list state model)))
 
 ;;;###autoload
-(defun vc-dir (dir backend)
+(defun vc-dir (dir &optional backend)
   "Show the VC status for DIR.
-With a prefix argument ask what VC backend to use."
+Optional second argument BACKEND specifies the VC backend to use.
+Interactively, a prefix argument means to ask for the backend."
   (interactive
    (list
     (read-file-name "VC status for directory: "
@@ -987,9 +1032,11 @@ With a prefix argument ask what VC backend to use."
 	(intern
 	 (completing-read
 	  "Use VC backend: "
-	  (mapcar (lambda (b) (list (symbol-name b))) vc-handled-backends)
-	  nil t nil nil))
-      (vc-responsible-backend default-directory))))
+	  (mapcar (lambda (b) (list (symbol-name b)))
+		  vc-handled-backends)
+	  nil t nil nil)))))
+  (unless backend
+    (setq backend (vc-responsible-backend dir)))
   (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend))
   (if (derived-mode-p 'vc-dir-mode)
       (vc-dir-refresh)

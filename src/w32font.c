@@ -526,9 +526,9 @@ w32font_text_extents (font, code, nglyphs, metrics)
   /* Give our best estimate of the metrics, based on what we know.  */
   if (metrics)
     {
-      metrics->width = total_width;
+      metrics->width = total_width - w32_font->metrics.tmOverhang;
       metrics->lbearing = 0;
-      metrics->rbearing = total_width + w32_font->metrics.tmOverhang;
+      metrics->rbearing = total_width;
     }
 
   /* Restore state and release DC.  */

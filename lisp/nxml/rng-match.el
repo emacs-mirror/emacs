@@ -43,7 +43,7 @@
 
 (defvar rng-being-compiled nil
   "Contains a list of ref patterns currently being compiled.
-Used to detect illegal recursive references.")
+Used to detect invalid recursive references.")
 
 (defvar rng-ipattern-table nil)
 
@@ -67,7 +67,7 @@ Used to detect illegal recursive references.")
   (defun rng-ipattern-slot-accessor-name (slot-name)
     (intern (concat "rng-ipattern-get-"
 		    (symbol-name slot-name))))
-  
+
   (defun rng-ipattern-slot-setter-name (slot-name)
     (intern (concat "rng-ipattern-set-"
 		    (symbol-name slot-name)))))
@@ -112,13 +112,13 @@ Used to detect illegal recursive references.")
   "Associate KEY with VALUE in memo-map MM and return the new memo-map.
 The new memo-map may or may not be a different object from MM.
 
-Alists are better for small maps. Hash tables are better for large
+Alists are better for small maps.  Hash tables are better for large
 maps.  A memo-map therefore starts off as an alist and switches to a
-hash table for large memo-maps. A memo-map is always a list.  An empty
-memo-map is represented by nil. A large memo-map is represented by a
+hash table for large memo-maps.  A memo-map is always a list.  An empty
+memo-map is represented by nil.  A large memo-map is represented by a
 list containing just a hash-table.  A small memo map is represented by
 a list whose cdr is an alist and whose car is the number of entries in
-the alist. The complete memo-map can be passed to assoc without
+the alist.  The complete memo-map can be passed to `assoc' without
 problems: assoc ignores any members that are not cons cells.  There is
 therefore minimal overhead in successful lookups on small lists
 \(which is the most common case)."
@@ -141,7 +141,7 @@ therefore minimal overhead in successful lookups on small lists
 	    (t (cons (1+ head)
 		     (cons (cons key value)
 			   (cdr mm))))))))
-	     
+
 (defsubst rng-make-ipattern (type index name-class child nullable)
   (vector type index name-class child nullable
 	  ;; 5 memo-text-typed
@@ -216,7 +216,7 @@ therefore minimal overhead in successful lookups on small lists
 			    after
 			    child
 			    nil)))))
-  
+
 (defun rng-intern-attribute (name-class ipattern)
   (if (eq ipattern rng-not-allowed-ipattern)
       rng-not-allowed-ipattern
@@ -293,7 +293,7 @@ therefore minimal overhead in successful lookups on small lists
 			    nil)))))
 
 (defun rng-intern-group (ipatterns)
-  "Return a ipattern for the list of group members in IPATTERNS."
+  "Return an ipattern for the list of group members in IPATTERNS."
   (or (rng-intern-group-shortcut ipatterns)
       (let* ((tem (rng-normalize-group-list ipatterns))
 	     (normalized (cdr tem)))
@@ -308,8 +308,8 @@ therefore minimal overhead in successful lookups on small lists
 				    (car tem))))))))
 
 (defun rng-intern-group-shortcut (ipatterns)
-  "Try to shortcut interning a group list.  If successful, return the
-interned pattern.  Otherwise return nil."
+  "Try to shortcut interning a group list.
+If successful, return the interned pattern.  Otherwise return nil."
   (while (and ipatterns
 	      (eq (car ipatterns) rng-empty-ipattern))
     (setq ipatterns (cdr ipatterns)))
@@ -430,10 +430,10 @@ May alter IPATTERNS."
 			  nil
 			  normalized
 			  nullable))))
-					    
+
 (defun rng-intern-choice-shortcut (ipatterns)
-  "Try to shortcut interning a choice list.  If successful, return the
-interned pattern.  Otherwise return nil."
+  "Try to shortcut interning a choice list.
+If successful, return the interned pattern.  Otherwise return nil."
   (while (and ipatterns
 	      (eq (car ipatterns)
 		  rng-not-allowed-ipattern))
@@ -450,10 +450,10 @@ interned pattern.  Otherwise return nil."
     rng-not-allowed-ipattern))
 
 (defun rng-normalize-choice-list (ipatterns)
-  "Normalize a list of choices, expanding nested choices, removing
-not-allowed members, sorting by index and removing duplicates.  Return
-a pair whose car says whether the list is nullable and whose cdr is
-the normalized list."
+  "Normalize a list of choices.
+Expands nested choices, removes not-allowed members, sorts by index
+and removes duplicates.  Return a pair whose car says whether the
+list is nullable and whose cdr is the normalized list."
   (let ((sorted t)
 	(nullable nil)
 	(head (cons nil ipatterns)))
@@ -537,9 +537,9 @@ the normalized list."
 
 Each possible name should be returned as a (NAMESPACE . LOCAL-NAME)
 pair, where NAMESPACE is a symbol or nil and LOCAL-NAME is a string.
-nil for NAMESPACE matches the absent namespace.  ACCUM is a list of
-names which should be appended to the returned list. The returned list
-may contain duplicates."
+NAMESPACE, if nil, matches the absent namespace.  ACCUM is a list of
+names which should be appended to the returned list.  The returned
+list may contain duplicates."
   (if (consp nc)
       (cons nc accum)
     (when (eq (aref nc 0) 'choice)
@@ -682,7 +682,7 @@ may contain duplicates."
       (rng-compile pattern)
     (setq rng-being-compiled
 	  (cdr rng-being-compiled))))
-	   
+
 (defun rng-compile-one-or-more (pattern)
   (rng-intern-one-or-more (rng-compile pattern)))
 
@@ -734,7 +734,7 @@ may contain duplicates."
       (rng-compile-error "Value %s is not a valid instance of the datatype %s"
 			 str
 			 name))))
-      
+
 (defun rng-compile-name-class (nc)
   (let ((type (car nc)))
     (cond ((eq type 'name) (nth 1 nc))
@@ -871,16 +871,16 @@ may contain duplicates."
 	  ((eq type 'after)
 	   (rng-ipattern-text-typed-p (rng-ipattern-get-child ipattern)))
 	  (t (and (memq type '(value list data data-except)) t)))))
-						   
+
 (defun rng-start-tag-open-deriv (ipattern nm)
   (or (rng-memo-map-get
        nm
        (rng-ipattern-get-memo-map-start-tag-open-deriv ipattern))
       (rng-ipattern-memo-start-tag-open-deriv
        ipattern
-       nm 
+       nm
        (rng-compute-start-tag-open-deriv ipattern nm))))
-							     
+
 (defun rng-ipattern-memo-start-tag-open-deriv (ipattern nm deriv)
   (or (memq ipattern rng-const-ipatterns)
       (rng-ipattern-set-memo-map-start-tag-open-deriv
@@ -907,7 +907,7 @@ may contain duplicates."
 	  ((eq type 'group)
 	   (rng-transform-group-nullable
 	    `(lambda (p) (rng-start-tag-open-deriv p ',nm))
-	    'rng-cons-group-after 
+	    'rng-cons-group-after
 	    ipattern))
 	  ((eq type 'interleave)
 	   (rng-transform-interleave-single
@@ -935,9 +935,9 @@ may contain duplicates."
        (rng-ipattern-get-memo-map-start-attribute-deriv ipattern))
       (rng-ipattern-memo-start-attribute-deriv
        ipattern
-       nm 
+       nm
        (rng-compute-start-attribute-deriv ipattern nm))))
-							     
+
 (defun rng-ipattern-memo-start-attribute-deriv (ipattern nm deriv)
   (or (memq ipattern rng-const-ipatterns)
       (rng-ipattern-set-memo-map-start-attribute-deriv
@@ -964,7 +964,7 @@ may contain duplicates."
 	  ((eq type 'group)
 	   (rng-transform-interleave-single
 	    `(lambda (p) (rng-start-attribute-deriv p ',nm))
-	    'rng-subst-group-after 
+	    'rng-subst-group-after
 	    ipattern))
 	  ((eq type 'interleave)
 	   (rng-transform-interleave-single
@@ -1045,7 +1045,7 @@ may contain duplicates."
 		     'rng-ignore-attributes-deriv
 		     ipattern)
 	  ipattern)))))
-  
+
 (defun rng-text-only-deriv (ipattern)
   (or (rng-ipattern-get-memo-text-only-deriv ipattern)
       (rng-ipattern-set-memo-text-only-deriv
@@ -1305,7 +1305,7 @@ nullable and y1 isn't, return a choice
     (setq list1 (cdr list1))
     (setq list2 (cdr list2)))
   (and (null list1) (null list2)))
-    
+
 
 (defun rng-ipattern-after (ipattern)
   (let ((type (rng-ipattern-get-type ipattern)))
@@ -1556,7 +1556,7 @@ nullable and y1 isn't, return a choice
 
 (defsubst rng-set-match-state (state)
   (setq rng-match-state state))
-      
+
 (defsubst rng-match-state-equal (state)
   (eq state rng-match-state))
 
@@ -1618,7 +1618,7 @@ nullable and y1 isn't, return a choice
 
 (defun rng-match-possible-namespace-uris ()
   "Return a list of all the namespace URIs used in the current schema.
-The absent URI is not included, so the result is always list of symbols."
+The absent URI is not included, so the result is always a list of symbols."
   (rng-map-element-attribute (lambda (pattern accum)
 			       (rng-find-name-class-uris (nth 1 pattern)
 							 accum))
@@ -1681,7 +1681,7 @@ for an end-tag is equivalent to empty."
 
 Each possible name is returned as a (NAMESPACE . LOCAL-NAME) pair,
 where NAMESPACE is a symbol or nil (meaning the absent namespace) and
-LOCAL-NAME is a string. The returned list may contain duplicates."
+LOCAL-NAME is a string.  The returned list may contain duplicates."
   (rng-ipattern-possible-start-tags rng-match-state nil))
 
 ;; This is no longer used.  It might be useful so leave it in for now.
@@ -1698,7 +1698,7 @@ more information."
 
 (defun rng-match-possible-value-strings ()
   "Return a list of strings that would be valid as content.
-The list may contain duplicates. Typically, the list will not
+The list may contain duplicates.  Typically, the list will not
 be exhaustive."
   (rng-ipattern-possible-values rng-match-state nil))
 
@@ -1735,6 +1735,6 @@ be exhaustive."
 (def-edebug-spec rng-match-with-schema t)
 
 (provide 'rng-match)
-    
+
 ;; arch-tag: c8c50733-edcf-49fb-85e2-0aac8749b7f8
 ;;; rng-match.el ends here

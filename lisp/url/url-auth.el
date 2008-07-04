@@ -51,7 +51,7 @@
 Must be a symbol pointing to another variable that will actually store
 the information.  The value of this variable is an assoc list of assoc
 lists.  The first assoc list is keyed by the server name.  The cdr of
-this is an assoc list based on the 'directory' specified by the url we
+this is an assoc list based on the 'directory' specified by the URL we
 are looking up.")
 
 (defun url-basic-auth (url &optional prompt overwrite realm args)
@@ -134,10 +134,10 @@ instead of the filename inheritance method."
 ;;; This is very secure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar url-digest-auth-storage nil
-  "Where usernames and passwords are stored.  Its value is an assoc list of
-assoc lists.  The first assoc list is keyed by the server name.  The cdr of
-this is an assoc list based on the 'directory' specified by the url we are
-looking up.")
+  "Where usernames and passwords are stored.
+Its value is an assoc list of assoc lists.  The first assoc list is
+keyed by the server name.  The cdr of this is an assoc list based
+on the 'directory' specified by the url we are looking up.")
 
 (defun url-digest-auth-create-key (username password realm method uri)
   "Create a key for digest authentication method"
@@ -151,7 +151,7 @@ looking up.")
 (defun url-digest-auth (url &optional prompt overwrite realm args)
   "Get the username/password for the specified URL.
 If optional argument PROMPT is non-nil, ask for the username/password
-to use for the url and its descendants.  If optional third argument
+to use for the URL and its descendants.  If optional third argument
 OVERWRITE is non-nil, overwrite the old username/password pair if it
 is found in the assoc list.  If REALM is specified, use that as the realm
 instead of hostname:portnum."
@@ -308,11 +308,11 @@ PROMPT is boolean - specifies whether to ask the user for a username/password
 (defun url-register-auth-scheme (type &optional function rating)
   "Register an HTTP authentication method.
 
-TYPE     is a string or symbol specifying the name of the method.   This
-         should be the same thing you expect to get returned in an Authenticate
-         header in HTTP/1.0 - it will be downcased.
-FUNCTION is the function to call to get the authorization information.  This
-         defaults to `url-?-auth', where ? is TYPE
+TYPE     is a string or symbol specifying the name of the method.
+         This should be the same thing you expect to get returned in
+         an Authenticate header in HTTP/1.0 - it will be downcased.
+FUNCTION is the function to call to get the authorization information.
+         This defaults to `url-?-auth', where ? is TYPE.
 RATING   a rating between 1 and 10 of the strength of the authentication.
          This is used when asking for the best authentication for a specific
          URL.  The item with the highest rating is returned."

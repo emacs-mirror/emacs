@@ -31,6 +31,12 @@
 (declare-function xw-defined-colors "term/x-win" (&optional frame))
 
 (defvar help-xref-stack-item)
+
+(defvar face-name-history nil
+  "History list for some commands that read face names.
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font selection.
@@ -123,7 +129,8 @@ NO-INIT-FROM-RESOURCES non-nil means don't initialize frame-local
 variants of FACE from X resources.  (X resources recognized are found
 in the global variable `face-x-resources'.)  If FACE is already known
 as a face, leave it unmodified.  Value is FACE."
-  (interactive "SMake face: ")
+  (interactive (list (read-from-minibuffer
+		      "Make face: " nil nil t 'face-name-history)))
   (unless (facep face)
     ;; Make frame-local faces (this also makes the global one).
     (dolist (frame (frame-list))
@@ -140,7 +147,8 @@ as a face, leave it unmodified.  Value is FACE."
 (defun make-empty-face (face)
   "Define a new, empty face with name FACE.
 If the face already exists, it is left unmodified.  Value is FACE."
-  (interactive "SMake empty face: ")
+  (interactive (list (read-from-minibuffer
+		      "Make empty face: " nil nil t 'face-name-history)))
   (make-face face 'no-init-from-resources))
 
 
@@ -566,9 +574,6 @@ If FACE is a face-alias, get the documentation for the target face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defvar inhibit-face-set-after-frame-default nil
-  "If non-nil, that tells `face-set-after-frame-default' to do nothing.")
-
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
 
@@ -708,21 +713,20 @@ like an underlying face would be, with higher priority than underlying faces."
     (while args
       ;; Don't recursively set the attributes from the frame's font param
       ;; when we update the frame's font param from the attributes.
-      (let ((inhibit-face-set-after-frame-default t))
-	(if (and (eq (car args) :family)
-		 (stringp (cadr args))
-		 (string-match "\\([^-]*\\)-\\([^-]*\\)" (cadr args)))
-	    (let ((foundry (match-string 1 (cadr args)))
-		  (family (match-string 2 (cadr args))))
-	      (internal-set-lisp-face-attribute face :foundry
-						(purecopy foundry)
-						where)
-	      (internal-set-lisp-face-attribute face :family
-						(purecopy family)
-						where))
-	  (internal-set-lisp-face-attribute face (car args)
-					    (purecopy (cadr args))
-					    where)))
+      (if (and (eq (car args) :family)
+	       (stringp (cadr args))
+	       (string-match "\\([^-]*\\)-\\([^-]*\\)" (cadr args)))
+	  (let ((foundry (match-string 1 (cadr args)))
+		(family (match-string 2 (cadr args))))
+	    (internal-set-lisp-face-attribute face :foundry
+					      (purecopy foundry)
+					      where)
+	    (internal-set-lisp-face-attribute face :family
+					      (purecopy family)
+					      where))
+	(internal-set-lisp-face-attribute face (car args)
+					  (purecopy (cadr args))
+					  where))
       (setq args (cdr (cdr args))))))
 
 
@@ -944,7 +948,7 @@ Otherwise, return a single face."
 			   string-describing-default))
 	       (format "%s: " prompt))
 	     (completion-table-in-turn nonaliasfaces aliasfaces)
-	     nil t nil nil
+	     nil t nil 'face-name-history
 	     (if faces (mapconcat 'symbol-name faces ","))))
 	   ;; Canonicalize the output.
 	   (output
@@ -1231,7 +1235,7 @@ If REGEXP is non-nil, list only those faces with names matching
 this regular expression.  When called interactively with a prefix
 arg, prompt for a regular expression."
   (interactive (list (and current-prefix-arg
-                          (read-string "List faces matching regexp: "))))
+                          (read-regexp "List faces matching regexp"))))
   (let ((all-faces (zerop (length regexp)))
 	(frame (selected-frame))
 	(max-length 0)
@@ -2005,20 +2009,19 @@ Value is the new frame created."
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
-  (unless inhibit-face-set-after-frame-default
-    (if (face-attribute 'default :font t)
-	(set-face-attribute 'default frame :font
-			    (face-attribute 'default :font t))
-      (set-face-attribute 'default frame :family
-			  (face-attribute 'default :family t))
-      (set-face-attribute 'default frame :height
-			  (face-attribute 'default :height t))
-      (set-face-attribute 'default frame :slant
-			  (face-attribute 'default :slant t))
-      (set-face-attribute 'default frame :weight
-			  (face-attribute 'default :weight t))
-      (set-face-attribute 'default frame :width
-			  (face-attribute 'default :width t))))
+  (if (face-attribute 'default :font t)
+      (set-face-attribute 'default frame :font
+			  (face-attribute 'default :font t))
+    (set-face-attribute 'default frame :family
+			(face-attribute 'default :family t))
+    (set-face-attribute 'default frame :height
+			(face-attribute 'default :height t))
+    (set-face-attribute 'default frame :slant
+			(face-attribute 'default :slant t))
+    (set-face-attribute 'default frame :weight
+			(face-attribute 'default :weight t))
+    (set-face-attribute 'default frame :width
+			(face-attribute 'default :width t)))
   ;; Find attributes that should be initialized from frame parameters.
   (let ((face-params '((foreground-color default :foreground)
 		       (background-color default :background)

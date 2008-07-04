@@ -175,7 +175,7 @@ xftfont_match (frame, spec)
   return entity;
 }
 
-extern Lisp_Object ftfont_font_format P_ ((FcPattern *));
+extern Lisp_Object ftfont_font_format P_ ((FcPattern *, Lisp_Object));
 extern Lisp_Object QCantialias;
 
 static FcChar8 ascii_printable[95];
@@ -209,7 +209,6 @@ xftfont_open (f, entity, pixel_size)
   if (size == 0)
     size = pixel_size;
   pat = FcPatternCreate ();
-  FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
   FcPatternAddInteger (pat, FC_WEIGHT, FONT_WEIGHT_NUMERIC (entity));
   i = FONT_SLANT_NUMERIC (entity) - 100;
   if (i < 0) i = 0;
@@ -262,12 +261,12 @@ xftfont_open (f, entity, pixel_size)
 	FcPatternAddBool (pat, FC_EMBOLDEN, NILP (val) ? FcFalse : FcTrue);
 #endif
     }
-  FcConfigSubstitute (NULL, pat, FcMatchPattern);
 
   BLOCK_INPUT;
-  XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
   match = XftFontMatch (display, FRAME_X_SCREEN_NUMBER (f), pat, &result);
   FcPatternDestroy (pat);
+  FcPatternDel (match, FC_FILE);
+  FcPatternAddString (match, FC_FILE, (FcChar8 *) SDATA (filename));
   xftfont = XftFontOpenPattern (display, match);
   UNBLOCK_INPUT;
 
@@ -291,7 +290,7 @@ xftfont_open (f, entity, pixel_size)
 	  AREF (font_object, FONT_NAME_INDEX));
   ASET (font_object, FONT_FILE_INDEX, filename);
   ASET (font_object, FONT_FORMAT_INDEX,
-	ftfont_font_format (xftfont->pattern));
+	ftfont_font_format (xftfont->pattern, filename));
   font = XFONT_OBJECT (font_object);
   font->pixel_size = pixel_size;
   font->driver = &xftfont_driver;

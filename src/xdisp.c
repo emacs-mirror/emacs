@@ -262,6 +262,9 @@ Lisp_Object Qfontification_functions;
    cursor moves into it.  */
 Lisp_Object Vmouse_autoselect_window;
 
+Lisp_Object Vwrap_prefix, Qwrap_prefix;
+Lisp_Object Vline_prefix, Qline_prefix;
+
 /* Non-zero means draw tool bar buttons raised when the mouse moves
    over them.  */
 
@@ -852,6 +855,10 @@ static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int cursor_row_p P_ ((struct window *, struct glyph_row *));
 static int redisplay_mode_lines P_ ((Lisp_Object, int));
 static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
+
+static Lisp_Object get_it_property P_ ((struct it *it, Lisp_Object prop));
+
+static void handle_line_prefix P_ ((struct it *));
 
 #if 0
 static int invisible_text_between_p P_ ((struct it *, int, int));
@@ -5210,6 +5217,7 @@ push_it (it)
   p->string_nchars = it->string_nchars;
   p->area = it->area;
   p->multibyte_p = it->multibyte_p;
+  p->avoid_cursor_p = it->avoid_cursor_p;
   p->space_width = it->space_width;
   p->font_height = it->font_height;
   p->voffset = it->voffset;
@@ -5271,6 +5279,7 @@ pop_it (it)
   it->string_nchars = p->string_nchars;
   it->area = p->area;
   it->multibyte_p = p->multibyte_p;
+  it->avoid_cursor_p = p->avoid_cursor_p;
   it->space_width = p->space_width;
   it->font_height = p->font_height;
   it->voffset = p->voffset;
@@ -6218,9 +6227,9 @@ next_element_from_display_vector (it)
 
   /* KFS: This code used to check ip->dpvec[0] instead of the current element.
           That seemed totally bogus - so I changed it...  */
+  gc = it->dpvec[it->current.dpvec_index];
 
-  if ((gc = it->dpvec[it->current.dpvec_index], GLYPH_CODE_P (gc))
-      && GLYPH_CODE_CHAR_VALID_P (gc))
+  if (GLYPH_CODE_P (gc) && GLYPH_CODE_CHAR_VALID_P (gc))
     {
       it->c = GLYPH_CODE_CHAR (gc);
       it->len = CHAR_BYTES (it->c);
@@ -6677,6 +6686,12 @@ move_it_in_display_line_to (struct it *it,
        || (it->method == GET_FROM_DISPLAY_VECTOR		\
 	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
 
+  /* If there's a line-/wrap-prefix, handle it.  */
+  if (it->hpos == 0 && it->method == GET_FROM_BUFFER
+      && it->current_y < it->last_visible_y)
+    {
+      handle_line_prefix (it);
+    }
 
   while (1)
     {
@@ -12222,7 +12237,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   while (glyph < end
 	 && !INTEGERP (glyph->object)
 	 && (!BUFFERP (glyph->object)
-	     || (last_pos = glyph->charpos) < pt_old))
+	     || (last_pos = glyph->charpos) < pt_old
+	     || glyph->avoid_cursor_p))
     {
       if (! STRINGP (glyph->object))
 	{
@@ -16290,6 +16306,78 @@ cursor_row_p (w, row)
   return cursor_row_p;
 }
 
+
+
+/* Push the display property PROP so that it will be rendered at the
+   current position in IT.  */
+
+static void
+push_display_prop (struct it *it, Lisp_Object prop)
+{
+  push_it (it);
+
+  /* Never display a cursor on the prefix.  */
+  it->avoid_cursor_p = 1;
+
+  if (STRINGP (prop))
+    {
+      if (SCHARS (prop) == 0)
+	{
+	  pop_it (it);
+	  return;
+	}
+
+      it->string = prop;
+      it->multibyte_p = STRING_MULTIBYTE (it->string);
+      it->current.overlay_string_index = -1;
+      IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = 0;
+      it->end_charpos = it->string_nchars = SCHARS (it->string);
+      it->method = GET_FROM_STRING;
+      it->stop_charpos = 0;
+    }
+  else if (CONSP (prop) && EQ (XCAR (prop), Qspace))
+    {
+      it->method = GET_FROM_STRETCH;
+      it->object = prop;
+    }
+#ifdef HAVE_WINDOW_SYSTEM
+  else if (IMAGEP (prop))
+    {
+      it->what = IT_IMAGE;
+      it->image_id = lookup_image (it->f, prop);
+      it->method = GET_FROM_IMAGE;
+    }
+#endif /* HAVE_WINDOW_SYSTEM */
+  else
+    {
+      pop_it (it);		/* bogus display property, give up */
+      return;
+    }
+}
+
+/* See if there's a line- or wrap-prefix, and if so, push it on IT.  */
+
+static void
+handle_line_prefix (struct it *it)
+{
+  Lisp_Object prefix;
+  if (it->continuation_lines_width > 0)
+    {
+      prefix = get_it_property (it, Qwrap_prefix);
+      if (NILP (prefix))
+	prefix = Vwrap_prefix;
+    }
+  else
+    {
+      prefix = get_it_property (it, Qline_prefix);
+      if (NILP (prefix))
+	prefix = Vline_prefix;
+    }
+  if (! NILP (prefix))
+    push_display_prop (it, prefix);
+}
+
+
 
 /* Construct the glyph row IT->glyph_row in the desired matrix of
    IT->w from text at the current position of IT.  See dispextern.h
@@ -16347,6 +16435,13 @@ display_line (it)
     {
       move_it_in_display_line_to (it, ZV, it->first_visible_x,
 				  MOVE_TO_POS | MOVE_TO_X);
+    }
+  else
+    {
+      /* We only do this when not calling `move_it_in_display_line_to'
+	 above, because move_it_in_display_line_to calls
+	 handle_line_prefix itself.  */
+      handle_line_prefix (it);
     }
 
   /* Get the initial row height.  This is either the height of the
@@ -20310,6 +20405,7 @@ append_glyph (it)
       glyph->descent = it->descent;
       glyph->voffset = it->voffset;
       glyph->type = CHAR_GLYPH;
+      glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
@@ -20348,6 +20444,7 @@ append_composite_glyph (it)
       glyph->descent = it->descent;
       glyph->voffset = it->voffset;
       glyph->type = COMPOSITE_GLYPH;
+      glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
@@ -20529,6 +20626,7 @@ produce_image_glyph (it)
 	  glyph->descent = it->descent;
 	  glyph->voffset = it->voffset;
 	  glyph->type = IMAGE_GLYPH;
+	  glyph->avoid_cursor_p = it->avoid_cursor_p;
 	  glyph->multibyte_p = it->multibyte_p;
 	  glyph->left_box_line_p = it->start_of_box_run_p;
 	  glyph->right_box_line_p = it->end_of_box_run_p;
@@ -20573,6 +20671,7 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->descent = height - ascent;
       glyph->voffset = it->voffset;
       glyph->type = STRETCH_GLYPH;
+      glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
@@ -20740,12 +20839,10 @@ produce_stretch_glyph (it)
   take_vertical_position_into_account (it);
 }
 
-/* Get line-height and line-spacing property at point.
-   If line-height has format (HEIGHT TOTAL), return TOTAL
-   in TOTAL_HEIGHT.  */
+/* Return the character-property PROP at the current position in IT.  */
 
 static Lisp_Object
-get_line_height_property (it, prop)
+get_it_property (it, prop)
      struct it *it;
      Lisp_Object prop;
 {
@@ -21048,7 +21145,7 @@ x_produce_glyphs (it)
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  height = get_line_height_property(it, Qline_height);
+	  height = get_it_property(it, Qline_height);
 	  /* Split (line-height total-height) list */
 	  if (CONSP (height)
 	      && CONSP (XCDR (height))
@@ -21110,7 +21207,7 @@ x_produce_glyphs (it)
 		spacing = calc_line_height_property(it, total_height, font, boff, 0);
 	      else
 		{
-		  spacing = get_line_height_property(it, Qline_spacing);
+		  spacing = get_it_property(it, Qline_spacing);
 		  spacing = calc_line_height_property(it, spacing, font, boff, 0);
 		}
 	      if (INTEGERP (spacing))
@@ -24923,6 +25020,32 @@ The enable predicate for a menu binding should check this variable.  */);
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
     doc: /* Non-nil means don't update menu bars.  Internal use only.  */);
   inhibit_menubar_update = 0;
+
+  DEFVAR_LISP ("wrap-prefix", &Vwrap_prefix,
+    doc: /* Prefix added to the beginning of all continuation lines at display-time.
+May be a string, an image, or a stretch-glyph such as used by the
+`display' text-property.
+
+This variable is overridden by any `wrap-prefix' text-property.
+
+To add a prefix to non-continuation lines, use the `line-prefix' variable.  */);
+  Vwrap_prefix = Qnil;
+  staticpro (&Qwrap_prefix);
+  Qwrap_prefix = intern ("wrap-prefix");
+  Fmake_variable_buffer_local (Qwrap_prefix);
+
+  DEFVAR_LISP ("line-prefix", &Vline_prefix,
+    doc: /* Prefix added to the beginning of all non-continuation lines at display-time.
+May be a string, an image, or a stretch-glyph such as used by the
+`display' text-property.
+
+This variable is overridden by any `line-prefix' text-property.
+
+To add a prefix to continuation lines, use the `wrap-prefix' variable.  */);
+  Vline_prefix = Qnil;
+  staticpro (&Qline_prefix);
+  Qline_prefix = intern ("line-prefix");
+  Fmake_variable_buffer_local (Qline_prefix);
 
   DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,
     doc: /* Non-nil means don't eval Lisp during redisplay.  */);

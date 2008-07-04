@@ -1,3 +1,9 @@
+2008-06-29  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Add invisible
+	header fields for X-Hz (mail from Hertz), X-Proofpoint (Proofpoint
+	antivirus/anti-spam) and X-RIM (Research In Motion).
+
 2008-06-20  Stephen Eglen  <stephen@gnu.org>
 
 	* mh-show.el (mh-defun-show-buffer): Use `...' rather than than

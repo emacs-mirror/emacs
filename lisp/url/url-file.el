@@ -39,7 +39,7 @@
 This tries the common compression extensions, because things like
 ange-ftp and efs are not quite smart enough to realize when a server
 can do automatic decompression for them, and won't find 'foo' if
-'foo.gz' exists, even though the ftp server would happily serve it up
+'foo.gz' exists, even though the FTP server would happily serve it up
 to them."
   (let ((scratch nil)
 	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2"))

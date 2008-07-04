@@ -1242,8 +1242,7 @@ a new window in the current frame, splitting vertically."
 			      (if (stringp dired-directory)
 				  dired-directory
 				(car dired-directory)))
-			 (and (memq major-mode '(cvs-mode vc-dir-mode))
-			      (bound-and-true-p default-directory)))))
+			 (bound-and-true-p list-buffers-directory))))
 	(and dirname (expand-file-name dirname)))
       ""))
 

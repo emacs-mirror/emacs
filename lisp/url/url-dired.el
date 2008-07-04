@@ -32,7 +32,7 @@
   "Keymap used when browsing directories.")
 
 (defvar url-dired-minor-mode nil
-  "Whether we are in url-dired-minor-mode")
+  "Whether we are in url-dired-minor-mode.")
 
 (make-variable-buffer-local 'url-dired-minor-mode)
 

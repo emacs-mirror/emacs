@@ -2414,7 +2414,7 @@ EXFUN (Fstring_make_unibyte, 1);
 EXFUN (Fstring_as_multibyte, 1);
 EXFUN (Fstring_as_unibyte, 1);
 EXFUN (Fstring_to_multibyte, 1);
-EXFUN (Fstring_to_unibyte, 2);
+EXFUN (Fstring_to_unibyte, 1);
 EXFUN (Fsubstring, 3);
 extern Lisp_Object substring_both P_ ((Lisp_Object, int, int, int, int));
 EXFUN (Fnth, 2);
@@ -2963,6 +2963,8 @@ extern void syms_of_fileio P_ ((void));
 extern void init_fileio_once P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
 EXFUN (Fmake_symbolic_link, 3);
+extern Lisp_Object Qdelete_directory;
+extern Lisp_Object Qdelete_file;
 
 /* Defined in abbrev.c */
 

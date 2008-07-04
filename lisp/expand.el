@@ -427,8 +427,8 @@ This is used only in conjunction with `expand-add-abbrevs'."
 	(goto-char (aref expand-pos expand-index))
 	(run-hooks 'expand-jump-hook))))
 
-;;;###autoload (define-key ctl-x-map "ap" 'expand-jump-to-previous-slot)
-;;;###autoload (define-key ctl-x-map "an" 'expand-jump-to-next-slot)
+;;;###autoload (define-key abbrev-map "p" 'expand-jump-to-previous-slot)
+;;;###autoload (define-key abbrev-map "n" 'expand-jump-to-next-slot)
 
 (defun expand-build-list (len l)
   "Build a vector of offset positions from the list of positions."

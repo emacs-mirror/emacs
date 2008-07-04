@@ -31,7 +31,6 @@
 
 (defvar font-lock-keywords)
 
-
 (defgroup backup nil
   "Backups of edited data files."
   :group 'files)
@@ -3693,7 +3692,7 @@ You may need to redefine `file-name-sans-versions' as well."
   "Given the name of a numeric backup file, FN, return the backup number.
 Uses the free variable `backup-extract-version-start', whose value should be
 the index in the name where the version number begins."
-  (if (and (string-match "[0-9]+~$" fn backup-extract-version-start)
+  (if (and (string-match "[0-9]+~/?$" fn backup-extract-version-start)
 	   (= (match-beginning 0) backup-extract-version-start))
       (string-to-number (substring fn backup-extract-version-start -1))
       0))
@@ -5781,6 +5780,48 @@ ORIG-FILE is the original file of which modes will be change."
       (if (string-match "^[0-7]+" value)
 	  (string-to-number value 8)
 	(file-modes-symbolic-to-number value modes)))))
+
+
+;; Trash can handling.
+(defcustom trash-directory "~/.Trash"
+  "Directory for `move-file-to-trash' to move files and directories to.
+This directory is only used when the function `system-move-file-to-trash' is
+not defined.  Relative paths are interpreted relative to `default-directory'.
+See also `delete-by-moving-to-trash'."
+  :type 'directory
+  :group 'auto-save
+  :version "23.1")
+
+(declare-function system-move-file-to-trash "w32fns.c" (filename))
+
+(defun move-file-to-trash (filename)
+  "Move file (or directory) name FILENAME to the trash.
+This function is called by `delete-file' and `delete-directory' when
+`delete-by-moving-to-trash' is non-nil.  On platforms that define
+`system-move-file-to-trash', that function is used to move FILENAME to the
+system trash, otherwise FILENAME is moved to `trash-directory'.
+Returns nil on success."
+  (interactive "fMove file to trash: ")
+  (cond
+   ((fboundp 'system-move-file-to-trash)
+    (system-move-file-to-trash filename))
+   (t
+    (let* ((trash-dir   (expand-file-name trash-directory))
+           (fn          (directory-file-name (expand-file-name filename)))
+           (fn-nondir   (file-name-nondirectory fn))
+           (new-fn      (expand-file-name fn-nondir trash-dir)))
+      (or (file-directory-p trash-dir)
+          (make-directory trash-dir t))
+      (and (file-exists-p new-fn)
+           ;; make new-fn unique.
+           ;; example: "~/.Trash/abc.txt" -> "~/.Trash/abc.txt.~1~"
+           (let ((version-control t))
+             (setq new-fn (car (find-backup-file-name new-fn)))))
+      ;; stop processing if fn is same or parent directory of trash-dir.
+      (and (string-match fn trash-dir)
+           (error "Filename `%s' is same or parent directory of trash-directory"
+                  filename))
+      (rename-file fn new-fn)))))
 
 
 (define-key ctl-x-map "\C-f" 'find-file)

@@ -2,71 +2,110 @@ NOTES ON THE EMACS BUG TRACKER   -*- outline -*-
 
 The Emacs Bug Tracker can be found at http://emacsbugs.donarmstrong.com/
 
-For a list of all bugs, see           http://emacsbugs.donarmstrong.com/emacs
+For a list of all bugs, see http://emacsbugs.donarmstrong.com/emacs
 
 
-** When reporting a bug, to send a Cc to another address (e.g.
-bug-cc-mode@gnu.org), do not just use a Cc: header.
-Instead, use "X-Debbugs-CC:". This ensures the Cc address will get a
+** When reporting a bug, to send a Cc to another address
+(e.g. bug-cc-mode@gnu.org), do not just use a Cc: header.
+Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
 mail with the bug report number in.
 
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).
 
+** To record a bug in the tracker without sending mail to the bug list.
+This can be useful to make a note of something discussed on
+emacs-devel that needs fixing.  In other words, this can be the
+equivalent of adding something to FOR-RELEASE.
+
+To: quiet@emacsbugs.donarmstrong.com
+[headers end]
+Package: emacs
+Version: 23.0.60
+Severity: minor
+
+Remember to fix FOO, as discussed on emacs-devel at http://... .
+
+** Not interested in tracker control messages (tags being set, etc)?
+Discard mails matching:
+
+^X-Emacs-PR-Message: transcript
+
+When you close a bug, you get a message matching:
+
+^X-Emacs-PR-Message: closed
+
+** How to avoid multiple copies of mails.
+When you reply to a bug, respect the Reply-To address, ie send mail
+only to the submitter address and the numbered bug address.  Do not
+send mail direct to bug-gnu-emacs or emacs-pretest-bug unless you are
+reporting a new bug.
+
 ** To close bug #123 (for example), send mail
 
-  To: 123-done@emacsbugs.donarmstrong.com
+To: 123-done@emacsbugs.donarmstrong.com
 
 with a brief explanation in the body as to why the bug was closed.
 
+** Setting bug parameters.
+There are two ways to set the parameters of bugs in the database
+(tags, severity level, etc).  When you report a new bug, you can
+provide a "pseudo-header" at the start of the report, eg:
 
-** To reopen a closed bug #123:
+Package: emacs
+Version: 23.0.60
+Severity: minor
 
-  To: control@emacsbugs.donarmstrong.com
+Otherwise, send mail to the control server, control@emacsbugs.donarmstrong.com.
+At the start of the message body, supply the desired commands, one per
+line:
 
-  reopen 123
-  thanks
+command bug-number [arguments]
+...
+quit|stop|thank|thanks|thankyou|thank you
 
-** quit|stop|thank|thanks|thankyou|thank you
-On a line by itself, this tells the control server to ignore the rest of
-the message.
+The control server ignores anything after the last line above.  So you
+can place control commands at the beginning of a reply to a bug
+report, and Cc: the control server (note the commands have no effect
+if you just send them to the bug-report number).
 
-** Bugs can be tagged in various ways (eg wontfix, patch, etc).
+Some useful control commands:
+
+*** To reopen a closed bug:
+reopen 123
+
+*** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 For a list of available tags, see:
 http://emacsbugs.donarmstrong.com/Developer#tags
+The tag can be prefixed with +, - or =, meaning to add (the default),
+remove, or reset the tags.  E.g.:
 
-** To tag bug #123 (for example), send a mail of the form:
+tags 123 +wontfix
 
-  To: control@emacsbugs.donarmstrong.com
-
-  tags 123 wontfix
-  thanks
-
-Or just add the
-
-  tags 123 wontfix
-  thanks
-
-at the beginning of a reply.  The tag can be prefixed with +, - or =,
-meaning to add (the default), remove, or reset the tags.
-
-** To remove spam from the tracker, move it to the `spam' pseudo-package:
-
-  To: control@emacsbugs.donarmstrong.com
-
-  reassign 123 spam
-  thanks
-
-** To merge bugs:
+*** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
-Bugs must all be in the same state.
+Bugs must all be in the same state, but need not have the same tags.  E.g.:
 
-  To: control@emacsbugs.donarmstrong.com
-  merge 123 124 125 ...
+merge 123 124 125 ...
 
-** To set severity:
+*** Forcing a merge:
+Like `merge', but bugs need not be in the same state.  The first one
+listed is the master.  E.g.:
 
-  To: control@emacsbugs.donarmstrong.com
-  severity 123 critical|grave|serious|important|normal|minor|wishlist
+forcemerge 123 124 125 ...
+
+*** To set severity:
+severity 123 critical|grave|serious|important|normal|minor|wishlist
 
 See http://emacsbugs.donarmstrong.com/Developer#severities for the meanings.
+
+*** To set the onwer of a bug:
+owner 123 A Hacker <none@example.com>
+
+The shorthand `!' means your own address.
+
+*** To mark a bug as fixed in a particular version:
+fixed 123 23.0.60
+
+** To remove spam from the tracker, move it to the `spam' pseudo-package:
+reassign 123 spam

@@ -920,7 +920,12 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
    for the first time, this prevents any variation between configurations
    in the contents of the DOC file.
    Likewise for ${SOME_MACHINE_LISP}.  */
-${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${shortlisp} ${SOME_MACHINE_LISP}
+/* Most of this Makefile refers to Lisp files via ${lispsource}, so
+   we also use ${lisp} rather than ${shortlisp} for the dependency since
+   the Makefile uses string equality to decide when we talk about identical
+   files.  Apparently we pass ${shortlisp} rather than ${lisp} to make-docfile
+   only in order to reduce the command line length.  --Stef  */
+${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${lisp} ${SOME_MACHINE_LISP}
 	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
 	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP} ${shortlisp}

@@ -323,25 +323,34 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 
 ;; Return information about how CHAR is displayed at the buffer
 ;; position POS.  If the selected frame is on a graphic display,
-;; return a cons (FONTNAME . GLYPH-CODE) where GLYPH-CODE is a
-;; hexadigit string representing the glyph-ID.  Otherwise, return a
-;; string describing the terminal codes for the character.
+;; return a string "FONT-DRIVER:FONT-NAME (GLYPH-CODE)" where:
+;;   FONT-DRIVER is the font-driver name,
+;;   FONT-NAME is the font name,
+;;   GLYPH-CODE is a hexadigit string representing the glyph-ID.
+;; Otherwise, return a string describing the terminal codes for the
+;; character.
 (defun describe-char-display (pos char)
   (if (display-graphic-p (selected-frame))
       (let ((char-font-info (internal-char-font pos char)))
 	(if char-font-info
-	    (if (integerp (cdr char-font-info))
-		(setcdr char-font-info (format "%02X" (cdr char-font-info)))
-	      (setcdr char-font-info
-		      (format "%04X%04X"
-			      (cadr char-font-info) (cddr char-font-info)))))
-	char-font-info)
+	    (let ((type (font-get (car char-font-info) :type))
+		  (name (font-xlfd-name  (car char-font-info)))
+		  (code (cdr char-font-info)))
+	       (if (integerp code)
+		   (format "%s:%s (#x%02X)" type name code)
+		 (format "%s:%s (#x%04X%04X)"
+			 type name (car code) (cdr code))))))
     (let* ((coding (terminal-coding-system))
 	   (encoded (encode-coding-char char coding)))
       (if encoded
 	  (encoded-string-description encoded coding)))))
 
 
+;; Return a string of CH with composition for padding on both sides.
+;; It is displayed without overlapping with the left/right columns.
+(defsubst describe-char-padded-string (ch)
+  (compose-string (string ch) 0 1 (format "\t%c\t" ch)))
+
 ;;;###autoload
 (defun describe-char (pos)
   "Describe the character after POS (interactively, the character after point).
@@ -481,10 +490,7 @@ as well as widgets, buttons, overlays, and text properties."
 		(let ((display (describe-char-display pos char)))
 		  (if (display-graphic-p (selected-frame))
 		      (if display
-			  (concat
-			   "by this font (glyph code)\n"
-			   (format "     %s (#x%s)"
-				   (car display) (cdr display)))
+			  (concat "by this font (glyph code)\n    " display)
 			"no font available")
 		    (if display
 			(format "terminal code %s" display)
@@ -555,8 +561,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert (glyph-char (car (aref disp-vector i))) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr (aref disp-vector i))
-			      (format "%s (#x%s)" (cadr (aref disp-vector i))
-				      (cddr (aref disp-vector i)))
+			      (cdr (aref disp-vector i))
 			    "-- no font --")
 			  "\n")
 		  (let ((face (glyph-face (car (aref disp-vector i)))))
@@ -577,13 +582,21 @@ as well as widgets, buttons, overlays, and text properties."
 	  (if (car composition)
 	      (if (cadr composition)
 		  (insert " with the surrounding characters \""
-			  (car composition) "\" and \""
-			  (cadr composition) "\"")
+			  (mapconcat 'describe-char-padded-string
+				     (car composition) "")
+			  "\" and \""
+			  (mapconcat 'describe-char-padded-string
+				     (cadr composition) "")
+			  "\"")
 		(insert " with the preceding character(s) \""
-			(car composition) "\""))
+			(mapconcat 'describe-char-padded-string
+				   (car composition) "")
+			"\""))
 	    (if (cadr composition)
 		(insert " with the following character(s) \""
-			(cadr composition) "\"")))
+			(mapconcat 'describe-char-padded-string
+				   (cadr composition) "")
+			"\"")))
 	  (if (and (vectorp (nth 2 composition))
 		   (vectorp (aref (nth 2 composition) 0)))
 	      (progn
@@ -593,26 +606,27 @@ as well as widgets, buttons, overlays, and text properties."
 			"\nby these glyphs:\n")
 		(mapc (lambda (x) (insert (format "  %S\n" x)))
 		      (nth 2 composition)))
-	    (insert " by the rule:\n\t("
-		    (mapconcat (lambda (x)
-				 (if (consp x) (format "%S" x)
-				   (if (= x ?\t)
-				       (single-key-description x)
-				     (string ?? x))))
-			       (nth 2 composition)
-			       " ")
-		    ")")
-	    (insert  "\nThe component character(s) are displayed by ")
+	    (insert " by the rule:\n\t(")
+	    (let ((first t))
+	      (mapc (lambda (x) 
+		      (if first (setq first nil)
+			(insert " "))
+		      (if (consp x) (insert (format "%S" x))
+			(if (= x ?\t) (insert (single-key-description x))
+			  (insert ??)
+			  (insert (describe-char-padded-string x)))))
+		    (nth 2 composition)))
+	    (insert  ")\nThe component character(s) are displayed by ")
 	    (if (display-graphic-p (selected-frame))
 		(progn
 		  (insert "these fonts (glyph codes):")
 		  (dolist (elt component-chars)
 		    (if (/= (car elt) ?\t)
-			(insert "\n " (car elt) ?:
+			(insert "\n " 
+				(describe-char-padded-string (car elt))
+				?:
 				(propertize " " 'display '(space :align-to 5))
-				(if (cdr elt)
-				    (format "%s (#x%s)" (cadr elt) (cddr elt))
-				  "-- no font --")))))
+				(or (cdr elt) "-- no font --")))))
 	      (insert "these terminal codes:")
 	      (dolist (elt component-chars)
 		(insert "\n  " (car elt) ":"

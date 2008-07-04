@@ -63,6 +63,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "w32font.h"
 
+#ifndef FOF_NO_CONNECTED_ELEMENTS
+#define FOF_NO_CONNECTED_ELEMENTS 0x2000
+#endif
+
 void syms_of_w32fns ();
 void globals_of_w32fns ();
 
@@ -4521,6 +4525,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
   x_default_parameter (f, parameters, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
+  x_default_parameter (f, parameters, Qalpha, Qnil,
+                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -6206,6 +6212,60 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 }
 
 
+/* Moving files to the system recycle bin.
+   Used by `move-file-to-trash' instead of the default moving to ~/.Trash  */
+DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
+       Ssystem_move_file_to_trash, 1, 1, 0,
+       doc: /* Move file or directory named FILENAME to the recycle bin.  */)
+     (filename)
+     Lisp_Object filename;
+{
+  Lisp_Object handler;
+  Lisp_Object encoded_file;
+  Lisp_Object operation;
+
+  operation = Qdelete_file;
+  if (!NILP (Ffile_directory_p (filename))
+      && NILP (Ffile_symlink_p (filename)))
+    {
+      operation = Qdelete_directory;
+      filename = Fdirectory_file_name (filename);
+    }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  handler = Ffind_file_name_handler (filename, operation);
+  if (!NILP (handler))
+    return call2 (handler, operation, filename);
+
+  encoded_file = ENCODE_FILE (filename);
+
+  {
+    const char * path;
+    SHFILEOPSTRUCT file_op;
+    char tmp_path[MAX_PATH + 1];
+
+    path = map_w32_filename (SDATA (encoded_file), NULL);
+
+    /* On Windows, write permission is required to delete/move files.  */
+    _chmod (path, 0666);
+
+    bzero (tmp_path, sizeof (tmp_path));
+    strcpy (tmp_path, path);
+
+    bzero (&file_op, sizeof (file_op));
+    file_op.hwnd = HWND_DESKTOP;
+    file_op.wFunc = FO_DELETE;
+    file_op.pFrom = tmp_path;
+    file_op.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO
+      | FOF_NOERRORUI | FOF_NO_CONNECTED_ELEMENTS;
+    file_op.fAnyOperationsAborted = FALSE;
+
+    if (SHFileOperation (&file_op) != 0)
+      report_file_error ("Removing old name", list1 (filename));
+  }
+  return Qnil;
+}
+
 
 /***********************************************************************
                          w32 specialized functions
@@ -6883,7 +6943,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   0, /* x_set_wait_for_wm, */
   x_set_fullscreen,
   x_set_font_backend,
-  0 /* x_set_alpha, */
+  x_set_alpha
 };
 
 void
@@ -7239,6 +7299,7 @@ only be necessary if the default setting causes problems.  */);
   staticpro (&last_show_tip_args);
 
   defsubr (&Sx_file_dialog);
+  defsubr (&Ssystem_move_file_to_trash);
 }
 
 

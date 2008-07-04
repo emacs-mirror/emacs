@@ -539,9 +539,8 @@ or BRANCH^ (where \"^\" can be repeated)."
     table))
 
 (defun vc-git-annotate-command (file buf &optional rev)
-  ;; FIXME: rev is ignored
   (let ((name (file-relative-name file)))
-    (vc-git-command buf 0 name "blame" (if rev (concat "-r" rev)))))
+    (vc-git-command buf 0 name "blame" rev)))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 

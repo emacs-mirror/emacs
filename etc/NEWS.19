@@ -558,7 +558,7 @@ normal hooks.
 The new command simula-indent-exp is bound to C-M-q.
 
 ** etags can now handle programs written in Erlang.  Files are
-recognised by the extensions .erl and .hrl.  The tagged lines are
+recognized by the extensions .erl and .hrl.  The tagged lines are
 those that begin a function, record, or macro.
 
 ** MSDOS Changes
@@ -1288,12 +1288,12 @@ the disp-table library).
 ** The new command-line option --eval specifies an expression to evaluate
 from the command line.
 
-** etags has now the ability to tag Perl files.  They are recognised
+** etags has now the ability to tag Perl files.  They are recognized
 either by the .pm and .pl suffixes or by a first line which starts
 with `#!' and specifies a Perl interpreter.  The tagged lines are
 those beginning with the `sub' keyword.
 
-New suffixes recognised are .hpp for C++; .f90 for Fortran; .bib,
+New suffixes recognized are .hpp for C++; .f90 for Fortran; .bib,
 .ltx, .TeX for TeX (.bbl, .dtx removed); .ml for Lisp; .prolog for
 prolog (.pl is now Perl).
 
@@ -1920,7 +1920,7 @@ RELATIVE_REPOS.
 *** Completion works with file names containing quoted characters.
 
 File names containing special characters (such as " ", "!", etc.) that are
-quoted with a "\" character are recognised during completion.  Special
+quoted with a "\" character are recognized during completion.  Special
 characters are quoted when they are inserted during completion.
 
 *** You can use M-x comint-truncate-buffer to truncate the buffer.

@@ -264,7 +264,7 @@ wrong, use this command again to toggle back to the right mode."
   (force-mode-line-update))
 
 (defun view-hello-file ()
-  "Display the HELLO file which list up many languages and characters."
+  "Display the HELLO file, which lists many languages and characters."
   (interactive)
   ;; We have to decode the file in any environment.
   (let ((default-enable-multibyte-characters t)

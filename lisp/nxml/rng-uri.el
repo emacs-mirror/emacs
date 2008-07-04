@@ -26,7 +26,7 @@
 
 (defun rng-file-name-uri (f)
   "Return a URI for the filename F.
-Multibyte characters are left as is. Use `rng-uri-escape-multibyte' to
+Multibyte characters are left as is.  Use `rng-uri-escape-multibyte' to
 escape them using %HH."
   (setq f (expand-file-name f))
   (let ((url
@@ -102,7 +102,7 @@ Signal an error if URI is not a valid file URL."
       (setq path (substring path 1)))
     (when (and pattern (string-match "\\`\\./" path))
       (setq path (substring path 2)))
-    (setq path 
+    (setq path
 	  (cond ((eq pattern 'match)
 		 (rng-uri-unescape-unibyte-match path))
 		((eq pattern 'replace)
@@ -162,7 +162,7 @@ Signal an error if URI is not a valid file URL."
 	      (cons scheme
 		    (cons ":" parts))))
       (apply 'concat parts))))
-			
+
 (defun rng-uri-resolve (uri-ref base-uri)
   "Resolve a possibly relative URI reference into absolute form.
 URI-REF is the URI reference to be resolved.
@@ -308,7 +308,7 @@ Both FULL and BASE must be absolute URIs."
 				(mapcar (lambda (h) (string-to-number h 16))
 					(split-string str "%")))
 			 'utf-8))
-    
+
 (defun rng-uri-unescape-unibyte (str)
   (replace-regexp-in-string "%[0-7][0-9a-fA-F]"
 			    (lambda (h)
