@@ -1,3 +1,7 @@
+2008-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (${etc}DOC): Depend on ${lisp} rather than ${shortlisp}.
+
 2008-07-04  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (Fstring_to_unibyte): Delete the arg ACCEPT-LATIN-1.
@@ -6,28 +10,28 @@
 
 2008-07-02  Jason Rumney  <jasonr@gnu.org>
 
-        * xfns.c (syms_of_xfns): Only define x-select-font when both
-        HAVE_FREETYPE and USE_GTK
+	* xfns.c (syms_of_xfns): Only define x-select-font when both
+	HAVE_FREETYPE and USE_GTK
 
-        * xdisp.c (next_element_from_display_vector): Move assignment out
-        of if statement.
+	* xdisp.c (next_element_from_display_vector): Move assignment out
+	of if statement.
 
 2008-07-02  Toru Tsuneyoshi  <t_tuneyosi@hotmail.com>
 
-        * lisp.h (Qdelete_file, Qdelete_directory): Declare extern.
+	* lisp.h (Qdelete_file, Qdelete_directory): Declare extern.
 
-        * fileio.c (delete_by_moving_to_trash, Qmove_file_to_trash): New vars.
-        (syms_of_fileio): Initialize and export them.
-        (Fdelete_directory, Fdelete_file): Optionally delete via trash.
+	* fileio.c (delete_by_moving_to_trash, Qmove_file_to_trash): New vars.
+	(syms_of_fileio): Initialize and export them.
+	(Fdelete_directory, Fdelete_file): Optionally delete via trash.
 
-        * w32fns.c (FOF_NO_CONNECTED_ELEMENTS): Define if not already.
-        (Fsystem_move_file_to_trash): New function.
-        (syms_of_w32fns): Export it to lisp.
+	* w32fns.c (FOF_NO_CONNECTED_ELEMENTS): Define if not already.
+	(Fsystem_move_file_to_trash): New function.
+	(syms_of_w32fns): Export it to lisp.
 
 2008-07-01  Jason Rumney  <jasonr@gnu.org>
 
-        * w32font.c (w32font_text_extents): Don't count overhang as part
-        of width.
+	* w32font.c (w32font_text_extents): Don't count overhang as part
+	of width.
 
 2008-06-30  Miles Bader  <miles@gnu.org>
 
