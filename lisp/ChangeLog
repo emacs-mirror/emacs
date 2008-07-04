@@ -1,3 +1,9 @@
+2008-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-query-replace-regexp): New function.
+	(vc-dir-tool-bar-map, vc-dir-menu-map): Bind it.
+	(vc-dir-mode-map): Likewise
+
 2008-07-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eshell/esh-arg.el (eshell-quote-backslash): Fix typo in docstring.

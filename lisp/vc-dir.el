@@ -156,6 +156,9 @@ See `run-hooks'."
 		  :help "Mark the current file or all files in the region"))
 
     (define-key map [sepopn] '("--"))
+    (define-key map [qr]
+      '(menu-item "Query Replace in Files" vc-dir-query-replace-regexp
+		  :help "Replace a string in the marked files"))
     (define-key map [open-other]
       '(menu-item "Open in other window" vc-dir-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
@@ -211,8 +214,7 @@ See `run-hooks'."
 	      ext-binding))))
 
 (defvar vc-dir-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
+  (let ((map (make-sparse-keymap)))
     ;; VC commands
     (define-key map "v" 'vc-next-action)   ;; C-x v v
     (define-key map "=" 'vc-diff)	   ;; C-x v =
@@ -248,6 +250,7 @@ See `run-hooks'."
     (define-key map [down-mouse-3] 'vc-dir-menu)
     (define-key map [mouse-2] 'vc-dir-toggle-mark)
     (define-key map "x" 'vc-dir-hide-up-to-date)
+    (define-key map "Q" 'vc-dir-query-replace-regexp)
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -293,6 +296,8 @@ If `body' uses `event', it should be a variable,
 				   map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'nonincremental-search-forward
 				   "search" map)
+    (tool-bar-local-item-from-menu 'vc-dir-query-replace-regexp
+				   "search-replace" map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
 				   map vc-dir-mode-map)
     (tool-bar-local-item-from-menu 'quit-window "exit"
@@ -673,6 +678,28 @@ that share the same state."
   "Find the file on the current line, in another window."
   (interactive)
   (find-file-other-window (vc-dir-current-file)))
+
+(defun vc-dir-query-replace-regexp (from to &optional delimited)
+  "Do `query-replace-regexp' of FROM with TO, on all marked files.
+If a directory is marked, then use the files displayed for that directory.
+Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
+with the command \\[tags-loop-continue]."
+  ;; FIXME: this is almost a copy of `dired-do-replace-regexp'.  This
+  ;; should probably be made generic and used in both places instead of
+  ;; duplicating it here.
+  (interactive
+   (let ((common
+	  (query-replace-read-args
+	   "Query replace regexp in marked files" t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
+  (dolist (file (mapcar 'car (vc-dir-marked-only-files-and-states)))
+    (let ((buffer (get-file-buffer file)))
+      (if (and buffer (with-current-buffer buffer
+			buffer-read-only))
+	  (error "File `%s' is visited read-only" file))))
+  (tags-query-replace from to delimited
+		      '(mapcar 'car (vc-dir-marked-only-files-and-states))))
 
 (defun vc-dir-current-file ()
   (let ((node (ewoc-locate vc-ewoc)))
