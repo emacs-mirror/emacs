@@ -2801,12 +2801,11 @@ echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 
-if test "${USE_FONT_BACKEND}" = "yes"; then
-  echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
-  echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
-  echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
-  echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
-fi
+echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
+echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
+echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
+echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
