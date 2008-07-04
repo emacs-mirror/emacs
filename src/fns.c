@@ -1132,17 +1132,15 @@ correct sequence.  */)
 }
 
 DEFUN ("string-to-unibyte", Fstring_to_unibyte, Sstring_to_unibyte,
-       1, 2, 0,
+       1, 1, 0,
        doc: /* Return a unibyte string with the same individual chars as STRING.
 If STRING is unibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties,
 where each `eight-bit' character is converted to the corresponding byte.
 If STRING contains a non-ASCII, non-`eight-bit' character,
-an error is signaled.
-If the optional 2nd arg ACCEPT-LATIN-1 is non-nil, a Latin-1 character
-doesn't cause an error, but is converted to a byte of same code.  */)
-     (string, accept_latin_1)
-     Lisp_Object string, accept_latin_1;
+an error is signaled.  */)
+     (string)
+     Lisp_Object string;
 {
   CHECK_STRING (string);
 
@@ -1150,8 +1148,8 @@ doesn't cause an error, but is converted to a byte of same code.  */)
     {
       EMACS_INT chars = SCHARS (string);
       unsigned char *str = (unsigned char *) xmalloc (chars);
-      EMACS_INT converted = str_to_unibyte (SDATA (string), str, chars,
-					    ! NILP (accept_latin_1));
+      EMACS_INT converted = str_to_unibyte (SDATA (string), str, chars, 0);
+
       if (converted < chars)
 	error ("Can't convert the %dth character to unibyte", converted);
       string = make_unibyte_string (str, chars);
