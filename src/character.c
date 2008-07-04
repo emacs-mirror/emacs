@@ -840,7 +840,8 @@ str_as_unibyte (str, bytes)
    Usually, the value is the same as CHARS, but is less than it if SRC
    contains a non-ASCII, non-eight-bit characater.  If ACCEPT_LATIN_1
    is nonzero, a Latin-1 character is accepted and converted to a byte
-   of that character code. */
+   of that character code.
+   Note: Currently the arg ACCEPT_LATIN_1 is not used.  */
 
 EMACS_INT
 str_to_unibyte (src, dst, chars, accept_latin_1)
