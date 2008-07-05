@@ -3971,22 +3971,26 @@ Default face attributes override any local face attributes.  */)
       struct face *newface, *oldface = FACE_FROM_ID (f, DEFAULT_FACE_ID);
       Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
-      bcopy (oldface->lface, attrs, sizeof attrs);
-      merge_face_vectors (f, lvec, attrs, 0);
-      newface = realize_face (c, attrs, DEFAULT_FACE_ID);
-
-      if ((! UNSPECIFIEDP (gvec[LFACE_FAMILY_INDEX])
-	   || ! UNSPECIFIEDP (gvec[LFACE_FOUNDRY_INDEX])
-	   || ! UNSPECIFIEDP (gvec[LFACE_HEIGHT_INDEX])
-	   || ! UNSPECIFIEDP (gvec[LFACE_WEIGHT_INDEX])
-	   || ! UNSPECIFIEDP (gvec[LFACE_SLANT_INDEX])
-	   || ! UNSPECIFIEDP (gvec[LFACE_SWIDTH_INDEX])
-	   || ! UNSPECIFIEDP (gvec[LFACE_FONT_INDEX]))
-	  && newface->font)
+      /* This can be NULL (e.g., in batch mode).  */
+      if (oldface)
 	{
-	  Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
-	  Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
-						  Qnil));
+	  bcopy (oldface->lface, attrs, sizeof attrs);
+	  merge_face_vectors (f, lvec, attrs, 0);
+	  newface = realize_face (c, attrs, DEFAULT_FACE_ID);
+
+	  if ((! UNSPECIFIEDP (gvec[LFACE_FAMILY_INDEX])
+	       || ! UNSPECIFIEDP (gvec[LFACE_FOUNDRY_INDEX])
+	       || ! UNSPECIFIEDP (gvec[LFACE_HEIGHT_INDEX])
+	       || ! UNSPECIFIEDP (gvec[LFACE_WEIGHT_INDEX])
+	       || ! UNSPECIFIEDP (gvec[LFACE_SLANT_INDEX])
+	       || ! UNSPECIFIEDP (gvec[LFACE_SWIDTH_INDEX])
+	       || ! UNSPECIFIEDP (gvec[LFACE_FONT_INDEX]))
+	      && newface->font)
+	    {
+	      Lisp_Object name = newface->font->props[FONT_NAME_INDEX];
+	      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
+						      Qnil));
+	    }
 	}
     }
 
