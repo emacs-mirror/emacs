@@ -1,3 +1,14 @@
+2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (IT_OVERFLOW_NEWLINE_INTO_FRINGE): Turn it off if
+	word-wrapping.
+	(IT_DISPLAYING_WHITESPACE): New macro.
+	(move_it_in_display_line_to): Handle MOVE_TO_X requests properly
+	when word-wrapping.  Simplify word-wrapping logic.  Use correct
+	pixel positions when saving copies of the iterator.
+	(display_line): Use proper wrap point if the last character on a
+	line was preceded by whitespace.
+
 2008-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (${etc}DOC): Depend on ${lisp} rather than ${shortlisp}.
