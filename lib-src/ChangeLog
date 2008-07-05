@@ -1,3 +1,8 @@
+2008-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT):
+	Remove vmsproc.el and vms-patch.el.
+
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (obj): Remove w32bdf.o.
