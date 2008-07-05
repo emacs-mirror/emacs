@@ -141,7 +141,7 @@ then
       /*) ;;
       *)
 	if [ ! -f "$EMACS" ]; then
-	  echo "$0: You must specify the EMACS environment variable " \
+	  echo "$0: You must set the EMACS environment variable " \
 	       "to an absolute file name." 2>&1
 	  exit 1
 	fi;;
@@ -351,13 +351,6 @@ echo "Making links to \`lisp' and its subdirectories"
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
- ln [a-zA-Z]*.dat ../${tempdir}/lisp
- for img in [a-zA-Z]*.xpm [a-zA-Z]*.xbm [a-zA-Z]*.pbm; do
-   # If there are no images, the shell won't expand the pattern.
-   if [ -f $img ]; then
-     ln $img ../${tempdir}/lisp
-   fi
- done
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog ChangeLog.*[0-9] ../${tempdir}/lisp
@@ -438,7 +431,6 @@ echo "Making links to \`src'"
  echo "  (It is ok if ln fails in some cases.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
- ln [a-zA-Z]*.s ../${tempdir}/src
  ln [a-zA-Z]*.in ../${tempdir}/src
  ln [a-zA-Z]*.opt ../${tempdir}/src
  ## If we ended up with a symlink, or if we did not get anything
@@ -613,19 +605,26 @@ done
 
 echo "Making links to \`etc/images'"
 (cd etc/images
- for img in README [a-zA-Z]*.xpm [a-zA-Z]*.xbm [a-zA-Z]*.pbm; do
-   if [ -f $img ]; then
-     ln $img ../../${tempdir}/etc/images
-   fi
+ for f in *; do
+     [ -f "$f" ] || continue
+     case $f in
+         (*~|\#*\#|*,v|=*|core) continue ;;
+     esac
+     ln $f ../../${tempdir}/etc/images
  done)
 
 for dir in etc/images/ezimage etc/images/gnus etc/images/gud etc/images/icons \
            etc/images/low-color etc/images/mail etc/images/smilies ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
-     ln `ls -d * | grep -v CVS | grep -v RCS` ../../../${tempdir}/${dir}
-     cd ../../../${tempdir}/${dir}
-     rm -f *~ \#*\# *,v =* core)
+     for f in *; do
+         [ -f "$f" ] || continue
+         case $f in
+             (*~|\#*\#|*,v|=*|core) continue ;;
+         esac
+         ln $f ../../../${tempdir}/${dir}
+     done
+     )
 done
 
 for dir in etc/images/tree-widget/default etc/images/tree-widget/folder \
