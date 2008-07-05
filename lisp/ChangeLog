@@ -1,3 +1,11 @@
+2008-07-05  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-registered): Return true for removed files.
+	(vc-git-print-log, vc-git-log-view-mode): Print a single log for
+	all the files instead of one per file.
+	(vc-git-previous-revision): Add support for project-wide previous
+	revision when specified file is nil.
+
 2008-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vms-patch.el, vmsproc.el, mail/vms-pmail.el: Move to obsolete dir.
