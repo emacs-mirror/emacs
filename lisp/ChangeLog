@@ -1,5 +1,12 @@
 2008-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dir.el (vc-dir-find-child-files): New function.
+	(vc-dir-resync-directory-files): New function.
+	(vc-dir-recompute-file-state): New function, broken out of ...
+	(vc-dir-resynch-file): ... here.  Also deal with directories.
+	* vc-dispatcher.el (vc-resynch-buffers-in-directory): New function.
+	(vc-resynch-buffer): Use it.
+
 	* vc-hg.el (vc-hg-registered): Do not set vc-state.
 
 	* vc-annotate.el (vc-annotate-mode-menu): Add separator.
