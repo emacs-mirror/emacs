@@ -48,8 +48,7 @@
 ;; for ``one-click text copy and move''.
 ;;
 ;; To use mouse-drag, place the following in your .emacs file:
-;;	(require 'mouse-drag)
-;; -and either-
+;; -either-
 ;;     (global-set-key [down-mouse-2] 'mouse-drag-throw)
 ;; -or-
 ;;     (global-set-key [down-mouse-2] 'mouse-drag-drag)
@@ -187,7 +186,7 @@ If t, the scroll bar moves in the direction the mouse moves.")
      (if (< mouse-delta 0) -1 1)
      (if mouse-throw-with-scroll-bar 1 -1)))
 
-
+;;;###autoload
 (defun mouse-drag-throw (start-event)
   "\"Throw\" the page according to a mouse drag.
 
@@ -254,6 +253,7 @@ To test this function, evaluate:
     ;; Now restore the old window.
     (select-window old-selected-window)))
 
+;;;###autoload
 (defun mouse-drag-drag (start-event)
   "\"Drag\" the page according to a mouse drag.
 

@@ -1,5 +1,7 @@
 2008-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse-drag.el (mouse-drag-throw, mouse-drag-drag): Autoload.
+
 	* textmodes/sgml-mode.el (sgml-font-lock-syntactic-keywords):
 	Use syntax-ppss on a position *before* the char we want to change.
 
