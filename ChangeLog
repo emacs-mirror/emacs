@@ -1,3 +1,10 @@
+2008-07-05  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (EMACS): Doc fix.
+	(lisp): There are no *.dat or image files here any more.
+	(src): There are no *.s files here any more.
+	(etc/images, etc/images/*): Link to most regular files.
+
 2008-07-04  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* configure.in: Remove reference to deleted $USE_FONT_BACKEND.
