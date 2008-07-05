@@ -1,5 +1,8 @@
 2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xfaces.c (Finternal_merge_in_global_face): Don't realize default
+	face if it didn't already exist.
+
 	* xdisp.c (try_window_id): Give up if word-wrapping is on.
 
 2008-07-05  Andreas Schwab  <schwab@suse.de>
