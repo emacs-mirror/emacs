@@ -889,7 +889,7 @@ It is passed through FILTER before we look at it."
 		    (string-match "^#\\([0-9]+\\) +[0-9a-fx]+ in \\([:0-9a-zA-Z_]+\\) (" e)
 		    (string-match "^#\\([0-9]+\\) +\\([:0-9a-zA-Z_]+\\) (" e)))
 	      (if (not (string-match
-			"at \\([-0-9a-zA-Z_.]+\\):\\([0-9]+\\)$" e))
+			"at \\([-0-9a-zA-Z_/.]+\\):\\([0-9]+\\)$" e))
 		  nil
 		(setcar newlst
 			(list (nth 0 (car newlst))
@@ -901,7 +901,7 @@ It is passed through FILTER before we look at it."
 	    (setq newlst
 		  (cons
 		   (if (string-match
-			"at \\([-0-9a-zA-Z_.]+\\):\\([0-9]+\\)$" e)
+			"at \\([-0-9a-zA-Z_/.]+\\):\\([0-9]+\\)$" e)
 		       (list name num (match-string 1 e)
 			     (match-string 2 e))
 		     (list name num))
