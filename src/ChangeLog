@@ -1,3 +1,7 @@
+2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (try_window_id): Give up if word-wrapping is on.
+
 2008-07-05  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (get_it_property): Move out of HAVE_WINDOW_SYSTEM
