@@ -1,5 +1,7 @@
 2008-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el (vc-hg-registered): Do not set vc-state.
+
 	* vc-annotate.el (vc-annotate-mode-menu): Add separator.
 
 2008-07-05  Nick Roberts  <nickrob@snap.net.nz>

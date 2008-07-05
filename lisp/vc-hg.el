@@ -143,7 +143,6 @@
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
     (let ((state (vc-hg-state file)))  ; expensive
-      (vc-file-setprop file 'vc-state state)
       (and state (not (memq state '(ignored unregistered)))))))
 
 (defun vc-hg-state (file)
