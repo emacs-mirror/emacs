@@ -1,5 +1,7 @@
 2008-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vms-patch.el, vmsproc.el, mail/vms-pmail.el: Move to obsolete dir.
+
 	* vc-dir.el (vc-dir-find-child-files): New function.
 	(vc-dir-resync-directory-files): New function.
 	(vc-dir-recompute-file-state): New function, broken out of ...
