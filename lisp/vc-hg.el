@@ -365,7 +365,7 @@ COMMENT is ignored."
              ;; registered.
          (error))))
 
-;; XXX This would remove the file. Is that correct?
+;; FIXME: This would remove the file. Is that correct?
 ;; (defun vc-hg-unregister (file)
 ;;   "Unregister FILE from hg."
 ;;   (vc-hg-command nil nil file "remove"))
@@ -519,7 +519,7 @@ REV is the revision to check out into WORKFILE."
      ;; (vc-hg-status-extra-header "Global id  : " "id" "-i")
      )))
 
-;; XXX this adds another top level menu, instead figure out how to
+;; FIXME: this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.
 (easy-menu-define log-view-mode-menu vc-hg-outgoing-mode-map
   "Hg-outgoing Display Menu"
