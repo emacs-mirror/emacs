@@ -14534,9 +14534,10 @@ find_last_unchanged_at_beg_row (w)
   int yb = window_text_bottom_y (w);
 
   /* Find the last row displaying unchanged text.  */
-  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  while (MATRIX_ROW_DISPLAYS_TEXT_P (row)
-	 && MATRIX_ROW_START_CHARPOS (row) < first_changed_pos)
+  for (row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+       MATRIX_ROW_DISPLAYS_TEXT_P (row)
+	 && MATRIX_ROW_START_CHARPOS (row) < first_changed_pos;
+       ++row)
     {
       if (/* If row ends before first_changed_pos, it is unchanged,
 	     except in some case.  */
@@ -14553,10 +14554,8 @@ find_last_unchanged_at_beg_row (w)
 	row_found = row;
 
       /* Stop if last visible row.  */
-     if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
+      if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
 	break;
-
-      ++row;
     }
 
   return row_found;
@@ -14872,6 +14871,12 @@ try_window_id (w)
   if (overlay_arrows_changed_p ())
     GIVE_UP (12);
 
+  /* When word-wrap is on, adding a space to the first word of a
+     wrapped line can change the wrap position, altering the line
+     above it.  It might be worthwhile to handle this more
+     intelligently, but for now just redisplay from scratch.  */
+  if (!NILP (XBUFFER (w->buffer)->word_wrap))
+    GIVE_UP (21);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
      only if buffer has really changed.  The reason is that the gap is
