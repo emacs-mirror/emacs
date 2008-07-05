@@ -346,9 +346,16 @@ extern Lisp_Object Voverflow_newline_into_fringe;
   (!NILP (Voverflow_newline_into_fringe)	\
    && FRAME_WINDOW_P (it->f)			\
    && WINDOW_RIGHT_FRINGE_WIDTH (it->w) > 0	\
-   && it->current_x == it->last_visible_x)
+   && it->current_x == it->last_visible_x	\
+   && it->line_wrap != WORD_WRAP)
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+/* Test if the display element loaded in IT is a space or tab
+   character.  This is used to determine word wrapping.  */
+
+#define IT_DISPLAYING_WHITESPACE(it)				\
+  (it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))
 
 /* Non-nil means show the text cursor in void text areas
    i.e. in blank areas after eol and eob.  This used to be
@@ -6664,7 +6671,7 @@ move_it_in_display_line_to (struct it *it,
 {
   enum move_it_result result = MOVE_UNDEFINED;
   struct glyph_row *saved_glyph_row;
-  struct it wrap_it, atpos_it;
+  struct it wrap_it, atpos_it, atx_it;
   int may_wrap = 0;
 
   /* Don't produce glyphs in produce_glyphs.  */
@@ -6672,11 +6679,13 @@ move_it_in_display_line_to (struct it *it,
   it->glyph_row = NULL;
 
   /* Use wrap_it to save a copy of IT wherever a word wrap could
-     occur.  Use atpos_it to save a copy of IT at the desired
+     occur.  Use atpos_it to save a copy of IT at the desired buffer
      position, if found, so that we can scan ahead and check if the
-     word later overshoots the window edge.  */
+     word later overshoots the window edge.  Use atx_it similarly, for
+     pixel positions.  */
   wrap_it.sp = -1;
   atpos_it.sp = -1;
+  atx_it.sp = -1;
 
 #define BUFFER_POS_REACHED_P()					\
   ((op & MOVE_TO_POS) != 0					\
@@ -6689,38 +6698,34 @@ move_it_in_display_line_to (struct it *it,
   /* If there's a line-/wrap-prefix, handle it.  */
   if (it->hpos == 0 && it->method == GET_FROM_BUFFER
       && it->current_y < it->last_visible_y)
-    {
-      handle_line_prefix (it);
-    }
+    handle_line_prefix (it);
 
   while (1)
     {
       int x, i, ascent = 0, descent = 0;
 
-      /* Stop if we move beyond TO_CHARPOS (after an image or stretch glyph).  */
+/* Utility macro to reset an iterator with x, ascent, and descent.  */
+#define IT_RESET_X_ASCENT_DESCENT(IT)			\
+  ((IT)->current_x = x, (IT)->max_ascent = ascent,	\
+   (IT)->max_descent = descent)
+
+      /* Stop if we move beyond TO_CHARPOS (after an image or stretch
+	 glyph).  */
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
 	  && IT_CHARPOS (*it) > to_charpos)
 	{
-	  if (it->line_wrap == WORD_WRAP)
-	    {
-	      /* If wrap_it is valid, the current position might be in
-		 a word that is wrapped to the next line, so continue
-		 to see if that happens.  */
-	      if (wrap_it.sp < 0)
-		{
-		  result = MOVE_POS_MATCH_OR_ZV;
-		  break;
-		}
-	      if (atpos_it.sp < 0)
-		atpos_it = *it;
-	    }
-	  else
+	  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 	    {
 	      result = MOVE_POS_MATCH_OR_ZV;
 	      break;
 	    }
+	  else if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
+	    /* If wrap_it is valid, the current position might be in a
+	       word that is wrapped.  So, save the iterator in
+	       atpos_it and continue to see if wrapping happens.  */
+	    atpos_it = *it;
 	}
 
       /* Stop when ZV reached.
@@ -6743,30 +6748,38 @@ move_it_in_display_line_to (struct it *it,
 	}
       else
 	{
-	  /* Remember the line height so far in case the next element
-	     doesn't fit on the line.  */
-	  ascent = it->max_ascent;
-	  descent = it->max_descent;
-
 	  if (it->line_wrap == WORD_WRAP)
 	    {
-	      if (it->what == IT_CHARACTER
-		  && (it->c == ' ' || it->c == '\t'))
+	      if (IT_DISPLAYING_WHITESPACE (it))
 		may_wrap = 1;
 	      else if (may_wrap)
 		{
-		  /* We are done if the position is already found.  */
+		  /* We have reached a glyph that follows one or more
+		     whitespace characters.  If the position is
+		     already found, we are done.  */
 		  if (atpos_it.sp >= 0)
 		    {
 		      *it = atpos_it;
-		      atpos_it.sp = -1;
-		      goto buffer_pos_reached;
+		      result = MOVE_POS_MATCH_OR_ZV;
+		      goto done;
 		    }
+		  if (atx_it.sp >= 0)
+		    {
+		      *it = atx_it;
+		      result = MOVE_X_REACHED;
+		      goto done;
+		    }
+		  /* Otherwise, we can wrap here.  */
 		  wrap_it = *it;
 		  may_wrap = 0;
 		}
 	    }
 	}
+
+      /* Remember the line height for the current line, in case
+	 the next element doesn't fit on the line.  */
+      ascent = it->max_ascent;
+      descent = it->max_descent;
 
       /* The call to produce_glyphs will get the metrics of the
 	 display element IT is loaded with.  Record the x-position
@@ -6818,19 +6831,28 @@ move_it_in_display_line_to (struct it *it,
 		{
 		  if (BUFFER_POS_REACHED_P ())
 		    {
-		      if (it->line_wrap == WORD_WRAP)
-			{
-			  if (wrap_it.sp < 0)
-			    goto buffer_pos_reached;
-			  if (atpos_it.sp < 0)
-			    atpos_it = *it;
-			}
-		      else
+		      if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 			goto buffer_pos_reached;
+		      if (atpos_it.sp < 0)
+			{
+			  atpos_it = *it;
+			  IT_RESET_X_ASCENT_DESCENT (&atpos_it);
+			}
 		    }
-		  it->current_x = x;
-		  result = MOVE_X_REACHED;
-		  break;
+		  else
+		    {
+		      if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
+			{
+			  it->current_x = x;
+			  result = MOVE_X_REACHED;
+			  break;
+			}
+		      if (atx_it.sp < 0)
+			{
+			  atx_it = *it;
+			  IT_RESET_X_ASCENT_DESCENT (&atx_it);
+			}
+		    }
 		}
 
 	      if (/* Lines are continued.  */
@@ -6860,10 +6882,21 @@ move_it_in_display_line_to (struct it *it,
 			     now that we know it fits in this row.  */
 			  if (BUFFER_POS_REACHED_P ())
 			    {
-			      it->hpos = hpos_before_this_char;
-			      it->current_x = x_before_this_char;
-			      result = MOVE_POS_MATCH_OR_ZV;
-			      break;
+			      if (it->line_wrap != WORD_WRAP
+				  || wrap_it.sp < 0)
+				{
+				  it->hpos = hpos_before_this_char;
+				  it->current_x = x_before_this_char;
+				  result = MOVE_POS_MATCH_OR_ZV;
+				  break;
+				}
+			      if (it->line_wrap == WORD_WRAP
+				  && atpos_it.sp < 0)
+				{
+				  atpos_it = *it;
+				  atpos_it.current_x = x_before_this_char;
+				  atpos_it.hpos = hpos_before_this_char;
+				}
 			    }
 
 			  set_iterator_to_next (it, 1);
@@ -6893,16 +6926,13 @@ move_it_in_display_line_to (struct it *it,
 			}
 		    }
 		  else
-		    {
-		      it->current_x = x;
-		      it->max_ascent = ascent;
-		      it->max_descent = descent;
-		    }
+		    IT_RESET_X_ASCENT_DESCENT (it);
 
 		  if (wrap_it.sp >= 0)
 		    {
 		      *it = wrap_it;
 		      atpos_it.sp = -1;
+		      atx_it.sp = -1;
 		    }
 
 		  TRACE_MOVE ((stderr, "move_it_in: continued at %d\n",
@@ -6913,15 +6943,13 @@ move_it_in_display_line_to (struct it *it,
 
 	      if (BUFFER_POS_REACHED_P ())
 		{
-		  if (it->line_wrap == WORD_WRAP)
-		    {
-		      if (wrap_it.sp < 0)
-			goto buffer_pos_reached;
-		      if (atpos_it.sp < 0)
-			atpos_it = *it;
-		    }
-		  else
+		  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 		    goto buffer_pos_reached;
+		  if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
+		    {
+		      atpos_it = *it;
+		      IT_RESET_X_ASCENT_DESCENT (&atpos_it);
+		    }
 		}
 
 	      if (new_x > it->first_visible_x)
@@ -6938,9 +6966,7 @@ move_it_in_display_line_to (struct it *it,
       else if (BUFFER_POS_REACHED_P ())
 	{
 	buffer_pos_reached:
-	  it->current_x = x;
-	  it->max_ascent = ascent;
-	  it->max_descent = descent;
+	  IT_RESET_X_ASCENT_DESCENT (it);
 	  result = MOVE_POS_MATCH_OR_ZV;
 	  break;
 	}
@@ -6990,14 +7016,19 @@ move_it_in_display_line_to (struct it *it,
 	  result = MOVE_LINE_TRUNCATED;
 	  break;
 	}
+#undef IT_RESET_X_ASCENT_DESCENT
     }
 
 #undef BUFFER_POS_REACHED_P
 
   /* If we scanned beyond to_pos and didn't find a point to wrap at,
-     return iterator at to_pos.  */
+     restore the saved iterator.  */
   if (atpos_it.sp >= 0)
     *it = atpos_it;
+  else if (atx_it.sp >= 0)
+    *it = atx_it;
+
+ done:
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
@@ -16506,8 +16537,7 @@ display_line (it)
 
 	  if (it->line_wrap == WORD_WRAP && it->area == TEXT_AREA)
 	    {
-	      if (it->what == IT_CHARACTER
-		  && (it->c == ' ' || it->c == '\t'))
+	      if (IT_DISPLAYING_WHITESPACE (it))
 		may_wrap = 1;
 	      else if (may_wrap)
 		{
@@ -16604,6 +16634,18 @@ display_line (it)
 		      ++it->hpos;
 		      if (i == nglyphs - 1)
 			{
+			  /* If line-wrap is on, check if a previous
+			     wrap point was found.  */
+			  if (wrap_row_used > 0
+			      /* Even if there is a previous wrap
+				 point, continue the line here as
+				 usual, if (i) the previous character
+				 was a space or tab AND (ii) the
+				 current character is not.  */
+			      && (!may_wrap
+				  || IT_DISPLAYING_WHITESPACE (it)))
+			    goto back_to_wrap;
+
 			  set_iterator_to_next (it, 1);
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
@@ -16622,8 +16664,6 @@ display_line (it)
 				}
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
-			  if (wrap_row_used > 0)
-			    goto back_to_wrap;
 			}
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
