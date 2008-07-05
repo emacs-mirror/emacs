@@ -276,6 +276,7 @@ cover the range from the oldest annotation to the newest."
      :help "Visit the annotation of the revision before the revision at line"]
     ["Annotate latest revision" vc-annotate-working-revision
      :help "Visit the annotation of the working revision of this file"]
+    "--"
     ["Show log of revision at line" vc-annotate-show-log-revision-at-line
      :help "Visit the log of the revision at line"]
     ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
