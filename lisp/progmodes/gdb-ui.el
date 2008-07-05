@@ -3084,12 +3084,16 @@ another GDB command e.g pwd, to see new frames")
     (if answer
 	(display-buffer buf nil (or frame 0)) ;Deiconify the frame if necessary.
       (let ((window (get-lru-window)))
-	(let* ((largest (get-largest-window))
-	       (cur-size (window-height largest)))
-	  (setq answer (split-window largest))
-	  (set-window-buffer answer buf)
-	  (set-window-dedicated-p answer dedicated)))
-      answer)))
+	(if (memq (buffer-local-value 'gud-minor-mode (window-buffer window))
+		  '(gdba gdbmi))
+	    (let* ((largest (get-largest-window))
+		   (cur-size (window-height largest)))
+	      (setq answer (split-window largest))
+	      (set-window-buffer answer buf)
+	      (set-window-dedicated-p answer dedicated)
+	      answer)
+	  (set-window-buffer window buf)
+	  window)))))
 
 
 ;;; Shared keymap initialization:
