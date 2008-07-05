@@ -16386,6 +16386,25 @@ push_display_prop (struct it *it, Lisp_Object prop)
     }
 }
 
+/* Return the character-property PROP at the current position in IT.  */
+
+static Lisp_Object
+get_it_property (it, prop)
+     struct it *it;
+     Lisp_Object prop;
+{
+  Lisp_Object position;
+
+  if (STRINGP (it->object))
+    position = make_number (IT_STRING_CHARPOS (*it));
+  else if (BUFFERP (it->object))
+    position = make_number (IT_CHARPOS (*it));
+  else
+    return Qnil;
+
+  return Fget_char_property (position, prop, it->object);
+}
+
 /* See if there's a line- or wrap-prefix, and if so, push it on IT.  */
 
 static void
@@ -20877,25 +20896,6 @@ produce_stretch_glyph (it)
   it->nglyphs = width > 0 && height > 0 ? 1 : 0;
 
   take_vertical_position_into_account (it);
-}
-
-/* Return the character-property PROP at the current position in IT.  */
-
-static Lisp_Object
-get_it_property (it, prop)
-     struct it *it;
-     Lisp_Object prop;
-{
-  Lisp_Object position;
-
-  if (STRINGP (it->object))
-    position = make_number (IT_STRING_CHARPOS (*it));
-  else if (BUFFERP (it->object))
-    position = make_number (IT_CHARPOS (*it));
-  else
-    return Qnil;
-
-  return Fget_char_property (position, prop, it->object);
 }
 
 /* Calculate line-height and line-spacing properties.
