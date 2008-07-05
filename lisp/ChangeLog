@@ -1,3 +1,11 @@
+2008-07-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-display-buffer): Don't split a buffer
+	if it's not part of gdb-ui, e.g, at start.
+
+	* progmodes/gud.el (gud-gdb-get-stackframe): Allow absolute
+	filenames in stack trace (text command mode).
+
 2008-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse-drag.el (mouse-drag-throw, mouse-drag-drag): Autoload.
