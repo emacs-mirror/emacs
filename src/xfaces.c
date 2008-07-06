@@ -3501,11 +3501,14 @@ set_font_frame_param (frame, lface)
      Lisp_Object frame, lface;
 {
   struct frame *f = XFRAME (frame);
+  Lisp_Object font;
 
-  if (FRAME_WINDOW_P (f))
+  if (FRAME_WINDOW_P (f)
+      /* Don't do anything if the font is `unspecified'.  This can
+	 happen during frame creation.  */
+      && (font = LFACE_FONT (lface),
+	  ! UNSPECIFIEDP (font)))
     {
-      Lisp_Object font = LFACE_FONT (lface);
-
       if (FONT_SPEC_P (font))
 	{
 	  font = font_load_for_lface (f, XVECTOR (lface)->contents, font);
