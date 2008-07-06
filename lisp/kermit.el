@@ -78,7 +78,7 @@
 
 (require 'shell)
 
-(defvar kermit-esc-char "\C-\\" "*Kermit's escape char")
+(defvar kermit-esc-char "\C-\\" "*Kermit's escape char.")
 
 (defun kermit-esc ()
   "For sending escape sequences to a kermit running in shell mode."
@@ -142,7 +142,7 @@ command `kermit | tr -d '\\015''."
 		      'kermit-clean-filter))
 
 (defun kermit-clean-off ()
-  "Cancel a previous kermit-clean-shell-on command."
+  "Cancel a previous `kermit-clean-on' command."
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer)) nil))
 
