@@ -1,3 +1,8 @@
+2008-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (set_font_frame_param): Don't try to set the font
+	parameter if it is still unspecified in the lface.
+
 2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (Finternal_merge_in_global_face): Don't realize default
