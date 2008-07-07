@@ -1,3 +1,7 @@
+2008-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Deal with execute bit changes.
+
 2008-07-06  John Paul Wallington  <jpw@pobox.com>
 
 	* kermit.el (kermit-esc-char, kermit-clean-off): Doc fixes.
