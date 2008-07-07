@@ -120,7 +120,6 @@ Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 Lisp_Object Qfont_backend;
 Lisp_Object Qalpha;
 
-Lisp_Object Qinhibit_face_set_after_frame_default;
 Lisp_Object Qface_set_after_frame_default;
 
 Lisp_Object Vterminal_frame;
@@ -2967,20 +2966,12 @@ x_set_frame_parameters (f, alist)
           || EQ (prop, Qfullscreen))
 	{
 	  register Lisp_Object param_index, old_value;
-	  int count = SPECPDL_INDEX ();
 
 	  old_value = get_frame_param (f, prop);
  	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
 
 	  if (NILP (Fequal (val, old_value)))
 	    {
-	      /* For :font attributes, the frame_parm_handler
-		 x_set_font calls `face-set-after-frame-default'.
-		 Unless we bind inhibit-face-set-after-frame-default
-		 here, this would reset the :font attribute that we
-		 just applied to the default value for new faces.  */
-	      specbind (Qinhibit_face_set_after_frame_default, Qt);
-
 	      store_frame_param (f, prop, val);
 
 	      param_index = Fget (prop, Qx_frame_parameter);
@@ -2989,7 +2980,6 @@ x_set_frame_parameters (f, alist)
 		      < sizeof (frame_parms)/sizeof (frame_parms[0]))
                   && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
                 (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
-	      unbind_to (count, Qnil);
 	    }
 	}
     }
@@ -3392,22 +3382,12 @@ x_set_font (f, arg, oldval)
 
   do_pending_window_change (0);
 
-  /* Don't call `face-set-after-frame-default' when faces haven't been
-     initialized yet.  This is the case when called from
-     Fx_create_frame.  In that case, the X widget or window doesn't
-     exist either, and we can end up in x_report_frame_params with a
-     null widget which gives a segfault.  */
-  if (FRAME_FACE_CACHE (f))
-    {
-      XSETFRAME (frame, f);
-      /* We used to call face-set-after-frame-default here, but it leads to
-	 recursive calls (since that function can set the `default' face's
-	 font which in turns changes the frame's `font' parameter).
-	 Also I don't know what this call is meant to do, but it seems the
-	 wrong way to do it anyway (it does a lot more work than what seems
-	 reasonable in response to a change to `font').  */
-      /* call1 (Qface_set_after_frame_default, frame); */
-    }
+  /* We used to call face-set-after-frame-default here, but it leads to
+     recursive calls (since that function can set the `default' face's
+     font which in turns changes the frame's `font' parameter).
+     Also I don't know what this call is meant to do, but it seems the
+     wrong way to do it anyway (it does a lot more work than what seems
+     reasonable in response to a change to `font').  */
 }
 
 
@@ -4409,10 +4389,6 @@ syms_of_frame ()
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
-
-  Qinhibit_face_set_after_frame_default
-    = intern ("inhibit-face-set-after-frame-default");
-  staticpro (&Qinhibit_face_set_after_frame_default);
 
   Qfullwidth = intern ("fullwidth");
   staticpro (&Qfullwidth);
