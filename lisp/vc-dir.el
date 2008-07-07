@@ -955,8 +955,10 @@ Throw an error if another update process is in progress."
       (unless (buffer-live-p vc-dir-process-buffer)
         (setq vc-dir-process-buffer
               (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-      ;; set the needs-update flag on all entries
-      (ewoc-map (lambda (info) (setf (vc-dir-fileinfo->needs-update info) t) nil)
+      ;; set the needs-update flag on all non-directory entries
+      (ewoc-map (lambda (info)
+		  (unless (vc-dir-fileinfo->directory info)
+		    (setf (vc-dir-fileinfo->needs-update info) t) nil))
                 vc-ewoc)
       (lexical-let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer

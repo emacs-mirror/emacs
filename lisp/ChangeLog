@@ -1,5 +1,7 @@
 2008-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dir.el (vc-dir-refresh): Only update files.
+
 	* vc-git.el (vc-git--ls-files-state): Remove unused function.
 
 	* vc-bzr.el (vc-bzr-after-dir-status): Deal with execute bit changes.
