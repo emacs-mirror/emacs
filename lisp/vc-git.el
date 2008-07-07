@@ -55,7 +55,6 @@
 ;; * checkout-model (files)		   OK
 ;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   OK
-;; - prettify-state-info (file)		   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()			   OK
 ;; * register (files &optional rev comment)    OK
@@ -165,19 +164,6 @@
 				  diff))
 	  (vc-git--state-code (match-string 1 diff))
 	(if (vc-git--empty-db-p) 'added 'up-to-date)))))
-
-(defun vc-git--ls-files-state (state &rest args)
-  "Set state to STATE on all files found with git-ls-files ARGS."
-  (with-temp-buffer
-    (apply 'vc-git-command (current-buffer) nil nil "ls-files" "-z" args)
-    (goto-char (point-min))
-    (let ((start (point)))
-      (while (search-forward "\0" nil t)
-	(let ((file (expand-file-name
-		     (buffer-substring-no-properties start (1- (point))))))
-	  (vc-file-setprop file 'vc-backend (if state 'Git 'none))
-	  (vc-file-setprop file 'vc-state state))
-	(setq start (point))))))
 
 (defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."
