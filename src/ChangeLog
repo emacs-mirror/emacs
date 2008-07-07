@@ -1,6 +1,10 @@
+2008-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (map_w32_filename): Declare extern.
+
 2008-07-07  Jason Rumney  <jasonr@gnu.org>
 
-        * w32term.c (WS_EX_LAYERED): Define if not already.
+	* w32term.c (WS_EX_LAYERED): Define if not already.
 
 2008-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -16,8 +20,7 @@
 
 2008-07-05  Andreas Schwab  <schwab@suse.de>
 
-	* xdisp.c (get_it_property): Move out of HAVE_WINDOW_SYSTEM
-	section.
+	* xdisp.c (get_it_property): Move out of HAVE_WINDOW_SYSTEM section.
 
 2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
 

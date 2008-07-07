@@ -75,6 +75,7 @@ extern double atof ();
 extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
 extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
 extern void w32_free_menu_strings P_ ((HWND));
+extern const char *map_w32_filename P_ ((const char *, const char **));
 
 extern int quit_char;
 
