@@ -8727,7 +8727,7 @@
 2005-05-28  Masatake YAMATO  <jet@gyve.org>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Change the
-	pointer to a hand cursor when hoovering over a mouse-face.
+	pointer to a hand cursor when hovering over a mouse-face.
 
 2005-05-27  Kenichi Handa  <handa@m17n.org>
 
