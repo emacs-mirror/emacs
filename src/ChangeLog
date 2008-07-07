@@ -1,3 +1,7 @@
+2008-07-07  Jason Rumney  <jasonr@gnu.org>
+
+        * w32term.c (WS_EX_LAYERED): Define if not already.
+
 2008-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (set_font_frame_param): Don't try to set the font
