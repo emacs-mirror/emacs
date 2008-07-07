@@ -1,3 +1,8 @@
+2008-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qinhibit_face_set_after_frame_default): Var deleted.
+	(x_set_frame_parameters): Don't bind it.
+
 2008-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (map_w32_filename): Declare extern.
