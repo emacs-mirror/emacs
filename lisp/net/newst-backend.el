@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "13. Juni 2008, 17:41:00 (ulf)"
+;; Time-stamp:  "7. Juli 2008, 19:20:10 (ulf)"
 
 ;; ======================================================================
 
@@ -742,7 +742,11 @@ See `newsticker-get-news'."
   "Get news for the site FEED-NAME from address URL using `url-retrieve'.
 See `newsticker-get-news'."
   (let ((coding-system-for-read 'no-conversion))
-    (url-retrieve url 'newsticker--get-news-by-url-callback (list feed-name)))
+    (condition-case error-data
+        (url-retrieve url 'newsticker--get-news-by-url-callback 
+                      (list feed-name))
+          (error (message "Error retrieving news from %s: %s" feed-name
+                          error-data))))
   (force-mode-line-update))
 
 (defun newsticker--get-news-by-url-callback (status feed-name)
@@ -999,7 +1003,7 @@ Argument BUFFER is the buffer of the retrieval process."
                                          (xml-node-name topnode) name)
                   nil))
                 (setq something-was-added t))
-          (xerror (message "sentinelerror in %s: %s" name error-data)))
+          (error (message "sentinelerror in %s: %s" name error-data)))
 
         ;; Remove those old items from cache which have been removed from
         ;; the feed

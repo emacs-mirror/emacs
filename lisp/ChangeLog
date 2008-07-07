@@ -1,3 +1,9 @@
+2008-07-07  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-backend.el (newsticker--get-news-by-url): Catch errors
+	from url-retrieve.
+	(newsticker--sentinel-work): Fixed xerror typo.
+
 2008-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-refresh): Only update files.
