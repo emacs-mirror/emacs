@@ -145,6 +145,11 @@ BOOL (PASCAL *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
 #endif
+/* WS_EX_LAYERED is defined unconditionally by MingW, but only for W2K and
+   later targets by MSVC headers.  */
+#ifndef WS_EX_LAYERED
+#define WS_EX_LAYERED 0x80000
+#endif
 
 /* Frame being updated by update_frame.  This is declared in term.c.
    This is set by update_begin and looked at by all the
