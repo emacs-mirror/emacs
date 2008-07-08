@@ -500,7 +500,7 @@ enabled.  The port number should be set in `browse-url-CCI-port'."
 
 (defvar browse-url-temp-file-name nil)
 (make-variable-buffer-local 'browse-url-temp-file-name)
-  
+
 (defcustom browse-url-xterm-program "xterm"
   "The name of the terminal emulator used by `browse-url-text-xterm'.
 This might, for instance, be a separate color version of xterm."
@@ -886,7 +886,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
     (t
-     (lambda (&ignore args) (error "No usable browser found"))))
+     (lambda (&rest ignore) (error "No usable browser found"))))
    url args))
 
 ;;;###autoload
@@ -1322,7 +1322,7 @@ The `browse-url-gnudoit-program' program is used with options given by
 (defun browse-url-text-xterm (url &optional new-window)
   ;; new-window ignored
   "Ask a text browser to load URL.
-URL defaults to the URL around or before point. 
+URL defaults to the URL around or before point.
 This runs the text browser specified by `browse-url-text-browser'.
 in an Xterm window using the Xterm program named by `browse-url-xterm-program'
 with possible additional arguments `browse-url-xterm-args'."
@@ -1337,7 +1337,7 @@ with possible additional arguments `browse-url-xterm-args'."
 ;;;###autoload
 (defun browse-url-text-emacs (url &optional new-buffer)
   "Ask a text browser to load URL.
-URL defaults to the URL around or before point. 
+URL defaults to the URL around or before point.
 This runs the text browser specified by `browse-url-text-browser'.
 With a prefix argument, it runs a new browser process in a new buffer.
 
@@ -1469,7 +1469,7 @@ Default to the URL around or before point."
 
 (defun browse-url-elinks-new-window (url)
   "Ask the Elinks WWW browser to load URL in a new window."
-  (let ((process-environment (browse-url-process-environment)))     
+  (let ((process-environment (browse-url-process-environment)))
     (apply #'start-process
 	   (append (list (concat "elinks:" url)
 			 nil)
