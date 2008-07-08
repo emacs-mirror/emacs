@@ -1993,7 +1993,7 @@ Value is the new frame created."
 	  (x-setup-function-keys frame)
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
-	  (face-set-after-frame-default frame)
+	  (face-set-after-frame-default frame parameters)
 	  ;; Make sure the tool-bar is ready to be enabled.  The
 	  ;; `tool-bar-lines' frame parameter will not take effect
 	  ;; without this call.
@@ -2006,68 +2006,42 @@ Value is the new frame created."
 	(delete-frame frame)))
     frame))
 
-(defun face-set-after-frame-default (frame)
-  "Set frame-local faces of FRAME from face specs and resources.
-Initialize colors of certain faces from frame parameters."
-  (if (face-attribute 'default :font t)
-      (set-face-attribute 'default frame :font
-			  (face-attribute 'default :font t))
-    (set-face-attribute 'default frame :family
-			(face-attribute 'default :family t))
-    (set-face-attribute 'default frame :height
-			(face-attribute 'default :height t))
-    (set-face-attribute 'default frame :slant
-			(face-attribute 'default :slant t))
-    (set-face-attribute 'default frame :weight
-			(face-attribute 'default :weight t))
-    (set-face-attribute 'default frame :width
-			(face-attribute 'default :width t)))
-  ;; Find attributes that should be initialized from frame parameters.
+(defun face-set-after-frame-default (frame &optional parameters)
+  "Initialize the frame-local faces of FRAME.
+Calculate the face definitions using the face specs, custom theme
+settings, and `face-new-frame-defaults' (in that order).
+Finally, apply any relevant face attributes found amongst the
+frame parameters in PARAMETERS and `default-frame-alist'."
+  (dolist (face (nreverse (face-list)))
+    (condition-case ()
+	;; We used to apply X resources within this loop, because X
+	;; resources could be frame-specific.  We don't do that any
+	;; more, because this interacts poorly with specifying faces
+	;; via frame parameters and Lisp faces.  (X resouces for Emacs
+	;; as a whole are applied during x-create-frame.)
+	(progn
+	  ;; Initialize faces from face spec and custom theme.
+	  (face-spec-recalc face frame)
+	  ;; Apply attributes specified by face-new-frame-defaults
+	  (internal-merge-in-global-face face frame))
+      ;; Don't let invalid specs prevent frame creation.
+      (error nil)))
+  ;; Apply attributes specified by frame parameters.
   (let ((face-params '((foreground-color default :foreground)
-		       (background-color default :background)
-                       (font-parameter default :font)
-		       (border-color border :background)
-		       (cursor-color cursor :background)
-		       (scroll-bar-foreground scroll-bar :foreground)
-		       (scroll-bar-background scroll-bar :background)
-		       (mouse-color mouse :background)))
-	apply-params)
+  		       (background-color default :background)
+                       (font default :font)
+  		       (border-color border :background)
+  		       (cursor-color cursor :background)
+  		       (scroll-bar-foreground scroll-bar :foreground)
+  		       (scroll-bar-background scroll-bar :background)
+  		       (mouse-color mouse :background))))
     (dolist (param face-params)
-      (let* ((value (frame-parameter frame (nth 0 param)))
-	     (face (nth 1 param))
-	     (attr (nth 2 param))
-	     (default-value (face-attribute face attr t)))
-	;; Compile a list of face attributes to set, but don't set
-	;; them yet.  The call to make-face-x-resource-internal,
-	;; below, can change frame parameters, and the final set of
-	;; frame parameters should be the ones acquired at this step.
-	(if (eq default-value 'unspecified)
-	    ;; The face spec does not specify a new-frame value for
-	    ;; this attribute.  Check if the existing frame parameter
-	    ;; specifies it.
-	    (if value
-		(push (list face frame attr value) apply-params))
-	  ;; The face spec specifies a value for this attribute, to be
-	  ;; applied to the face on all new frames.
-	  (push (list face frame attr default-value) apply-params))))
-    ;; Initialize faces from face specs and X resources.  The
-    ;; condition-case prevents invalid specs from causing frame
-    ;; creation to fail.
-    (dolist (face (face-list))
-      ;; This loop used to exclude the `default' face for an unknown reason.
-      ;; It lead to odd behaviors where face-spec settings on the `default'
-      ;; face weren't obeyed for new frame.
-      (condition-case ()
-	  (progn
-	    (face-spec-recalc face frame)
-	    (if (memq (window-system frame) '(x w32 mac))
-		(make-face-x-resource-internal face frame))
-	    (internal-merge-in-global-face face frame))
-	(error nil)))
-    ;; Apply the attributes specified by frame parameters.  This
-    ;; rewrites parameters changed by make-face-x-resource-internal
-    (dolist (param apply-params)
-      (apply 'set-face-attribute param))))
+      (let* ((param-name (nth 0 param))
+  	     (value (cdr (or (assq param-name parameters)
+  			     (assq param-name default-frame-alist)))))
+  	(if value
+  	    (set-face-attribute (nth 1 param) frame
+				(nth 2 param) value))))))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
@@ -2104,7 +2078,7 @@ created."
             (set-locale-environment nil frame)
             (tty-run-terminal-initialization frame))
 	  (frame-set-background-mode frame)
-	  (face-set-after-frame-default frame)
+	  (face-set-after-frame-default frame parameters)
 	  (setq success t))
       (unless success
 	(delete-frame frame)))
