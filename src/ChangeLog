@@ -1,3 +1,10 @@
+2008-07-08  Andreas Schwab  <schwab@suse.de>
+
+	* fontset.h: Declare fontset_from_font.  Don't declare
+	new_fontset_from_font and fontset_from_font_name.
+	* xterm.c: Include "fontset.h".
+	* Makefile.in (xterm.o): Update dependencies.
+
 2008-07-08  Glenn Morris  <rgm@gnu.org>
 
 	* m/sparc.h: Define __sparc__ rather than sparc.  (Bug#507.)

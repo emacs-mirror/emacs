@@ -1183,7 +1183,7 @@ xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h emacs-icon.h character.h charset.h ccl.h fontset.h composite.h \
-   coding.h process.h gtkutil.h font.h $(config_h)
+   coding.h process.h gtkutil.h font.h fontset.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h termhooks.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
