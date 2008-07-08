@@ -1,3 +1,8 @@
+2008-07-08  Glenn Morris  <rgm@gnu.org>
+
+	* m/sparc.h: Define __sparc__ rather than sparc.  (Bug#507.)
+	* alloc.c, ecrt0.c: Use __sparc__ rather than sparc.
+
 2008-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Qinhibit_face_set_after_frame_default): Var deleted.

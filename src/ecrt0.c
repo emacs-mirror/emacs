@@ -200,7 +200,7 @@ start1 (ignore, argc, xargv)
 
 #endif /* not CRT0_DUMMIES */
 
-#ifdef sparc
+#ifdef __sparc__
 asm (".global __start");
 asm (".text");
 asm ("__start:");
@@ -218,7 +218,7 @@ asm ("	sub	%sp, 24, %sp");
 asm ("	call	__exit");
 asm ("	nop");
 
-#endif /* sparc */
+#endif /* __sparc__ */
 
 #if __FreeBSD__ == 2
 char *__progname;
