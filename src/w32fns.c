@@ -5612,7 +5612,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     /* Set tip_frame here, so that */
     tip_frame = frame;
-    call1 (Qface_set_after_frame_default, frame);
+    call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
