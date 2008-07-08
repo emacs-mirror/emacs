@@ -1,5 +1,10 @@
 2008-07-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* macfns.c (x_create_tip_frame):
+	* w32fns.c (x_create_tip_frame):
+	* xfns.c (x_create_tip_frame): Pass parameter argument to
+	face-set-after-frame-default.
+
 	* xfaces.c (Finternal_merge_in_global_face): Save merged
 	attributes for the default face back into the face vector.
 
