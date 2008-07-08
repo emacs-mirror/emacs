@@ -3966,7 +3966,7 @@ Default face attributes override any local face attributes.  */)
     else if (! UNSPECIFIEDP (gvec[i]))
       lvec[i] = gvec[i];
 
-  /* If the default face was changed, realize it again, and update the
+  /* If the default face was changed, update the face cache and the
      `font' frame parameter.  */
   if (EQ (face, Qdefault))
     {
@@ -3977,9 +3977,12 @@ Default face attributes override any local face attributes.  */)
       /* This can be NULL (e.g., in batch mode).  */
       if (oldface)
 	{
+	  /* Ensure that the face vector is fully specified by merging
+	     the previously-cached vector.  */
 	  bcopy (oldface->lface, attrs, sizeof attrs);
 	  merge_face_vectors (f, lvec, attrs, 0);
-	  newface = realize_face (c, attrs, DEFAULT_FACE_ID);
+	  bcopy (attrs, lvec, sizeof attrs);
+	  newface = realize_face (c, lvec, DEFAULT_FACE_ID);
 
 	  if ((! UNSPECIFIEDP (gvec[LFACE_FAMILY_INDEX])
 	       || ! UNSPECIFIEDP (gvec[LFACE_FOUNDRY_INDEX])
