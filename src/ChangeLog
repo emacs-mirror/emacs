@@ -1,3 +1,72 @@
+2008-07-09  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_compare_rfontdef): Fix plus/minus.
+	(reorder_font_vector): Change the arg preferred_family to font.
+	Prefer the spec matching with font.
+	(fontset_get_font_group): New function.
+	(fontset_find_font): Change the format of an element of a realized
+	fontset.  Use fontset_get_font_group.
+	(fontset_font): Try the current fontset, the default fontset, the
+	fallbacks of the current fonset, and the fallbacks of the default
+	fontset in this order.
+	(face_for_char): Delete the shortcut to use the current font.
+	(fontset_from_font): Don't set fonts for Latin in the fontset.
+
+	* font.h (font_make_object, font_match_p): Adjust prototypes.
+
+	* ftfont.h [FT_BDF_H]: Include FT_BDF_H.
+
+	* font.c (font_make_object): New arg entity and pixelsize.
+	(font_check_otf_features, font_check_otf): New functions.
+	(font_match_p): Check :lang, :script, and :otf properties.
+
+	* xfont.c (xfont_open): Adjust it for the change of
+	font_make_object.
+
+	* ftfont.c (struct ftfont_info): New member index, delete member
+	fc_charset_idx.  Make the member order compatible with struct
+	xftfont_info.
+	(fc_charset_table): Change charset names to registry names.
+	(ftfont_pattern_entity): Delete the args registry and
+	fc_charset_idx.  Change the value of :font-entity property
+	to (FONTNAME . INDEX).  Always set :registry property to
+	`iso10646-1'.
+	(struct ftfont_cache_data): New struct.
+	(ftfont_lookup_cache): New arg for_face.
+	(ftfont_get_fc_charset, ftfont_get_otf): New functions.
+	(ftfont_driver): Set the member otf_capability.
+	(ftfont_get_charset): Adjust it for the change of
+	fc_charset_table.
+	(OTF_TAG_SYM): New macro.
+	(ftfont_spec_pattern): Delete the arg fc_charset_idx.  Adjust it
+	for the change of fc_charset_table.
+	(ftfont_list): Adjust it for the change of ftfont_spec_pattern and
+	ftfont_pattern_entity.  Add FC_INDEX to objset.
+	(ftfont_match): Adjust it for the change of ftfont_spec_pattern
+	and ftfont_pattern_entity.
+	(ftfont_open): Adjust it for the change of ftfont_lookup_cache,
+	font_make_object, struct ftfont_info.
+	(ftfont_has_char): Use ftfont_get_fc_charset.
+	(ftfont_otf_features, ftfont_otf_capability): New functions.
+	(ftfont_shape): Use ftfont_get_otf.
+
+	* xftfont.c (struct xftfont_info): New member ft_size.  Make the
+	member order compatible with struct ftfont_info.
+	(xftfont_open): Add FC_CHARSET to the pattern.  Set
+	xftfont_info->ft_size.  Don't unlock the face.  Check BDF
+	properties if appropriate.
+	(xftfont_close): Unlock the face.
+	(xftfont_anchor_point, xftfont_shape): Deleted.
+	(syms_of_xftfont): Don't set members anchor_point and shape of
+	xftfont_driver.
+
+	* w32uniscribe.c (uniscribe_open): Adjust it for the change of
+	font_make_object.
+
+	* w32font.c (w32font_open): Adjust it for the change of
+	font_make_object.
+	(w32font_open_internal): Don't set properties of font_object here.
+
 2008-07-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* macfns.c (x_create_tip_frame):
