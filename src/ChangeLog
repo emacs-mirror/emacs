@@ -22,6 +22,7 @@
 
 	* xfont.c (xfont_open): Adjust it for the change of
 	font_make_object.
+	(xfont_text_extents): Fix initial setting of metrics.
 
 	* ftfont.c (struct ftfont_info): New member index, delete member
 	fc_charset_idx.  Make the member order compatible with struct
@@ -49,6 +50,7 @@
 	(ftfont_has_char): Use ftfont_get_fc_charset.
 	(ftfont_otf_features, ftfont_otf_capability): New functions.
 	(ftfont_shape): Use ftfont_get_otf.
+	(ftfont_text_extents): Fix initial setting of metrics.
 
 	* xftfont.c (struct xftfont_info): New member ft_size.  Make the
 	member order compatible with struct ftfont_info.
