@@ -1,5 +1,8 @@
 2008-07-09  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (detect_coding_utf_8): Set detect_info->found only when
+	non-ASCII char is found.
+
 	* fontset.c (fontset_compare_rfontdef): Fix plus/minus.
 	(reorder_font_vector): Change the arg preferred_family to font.
 	Prefer the spec matching with font.
