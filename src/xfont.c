@@ -564,13 +564,11 @@ xfont_open (f, entity, pixel_size)
   if (! xfont)
     return Qnil;
 
-  font_object = font_make_object (VECSIZE (struct xfont_info));
+  font_object = font_make_object (VECSIZE (struct xfont_info),
+				  entity, pixel_size);
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
     font_parse_xlfd ((char *) SDATA (fullname), font_object);
-  for (i = 1; i < FONT_ENTITY_MAX; i++)
-    ASET (font_object, i, AREF (entity, i));
-  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
   if (STRINGP (fullname))
     ASET (font_object, FONT_NAME_INDEX, fullname);
   else
@@ -650,10 +648,7 @@ xfont_open (f, entity, pixel_size)
 
   if (NILP (fullname))
     fullname = AREF (font_object, FONT_NAME_INDEX);
-  font->vertical_centering
-    = (STRINGP (Vvertical_centering_font_regexp)
-       && (fast_string_match_ignore_case
-	   (Vvertical_centering_font_regexp, fullname) >= 0));
+  font->vertical_centering = 0;
 
   return font_object;
 }
