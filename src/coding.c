@@ -1310,7 +1310,8 @@ detect_coding_utf_8 (coding, detect_info)
   else
     {
       detect_info->rejected |= CATEGORY_MASK_UTF_8_SIG;
-      detect_info->found |= CATEGORY_MASK_UTF_8_NOSIG;
+      if (found)
+	detect_info->found |= CATEGORY_MASK_UTF_8_NOSIG;
     }
   return 1;
 }
