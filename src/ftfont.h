@@ -25,6 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_SIZES_H
+#ifdef FT_BDF_H
+#include FT_BDF_H
+#endif
 
 #ifdef HAVE_LIBOTF
 #include <otf.h>
