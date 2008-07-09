@@ -728,11 +728,11 @@ xfont_text_extents (font, code, nglyphs, metrics)
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   int width = 0;
-  int i, x;
+  int i, first, x;
 
   if (metrics)
     bzero (metrics, sizeof (struct font_metrics));
-  for (i = 0, x = 0; i < nglyphs; i++)
+  for (i = 0, x = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
       static XCharStruct *pcm;
@@ -743,14 +743,31 @@ xfont_text_extents (font, code, nglyphs, metrics)
       pcm = xfont_get_pcm (xfont, &char2b);
       if (! pcm)
 	continue;
-      if (metrics->lbearing > width + pcm->lbearing)
-	metrics->lbearing = width + pcm->lbearing;
-      if (metrics->rbearing < width + pcm->rbearing)
-	metrics->rbearing = width + pcm->rbearing;
-      if (metrics->ascent < pcm->ascent)
-	metrics->ascent = pcm->ascent;
-      if (metrics->descent < pcm->descent)
-	metrics->descent = pcm->descent;
+      if (first)
+	{
+	  if (metrics)
+	    {
+	      metrics->lbearing = pcm->lbearing;
+	      metrics->rbearing = pcm->rbearing;
+	      metrics->ascent = pcm->ascent;
+	      metrics->descent = pcm->descent;
+	    }
+	  first = 0;
+	}
+      else
+	{
+	  if (metrics)
+	    {
+	      if (metrics->lbearing > width + pcm->lbearing)
+		metrics->lbearing = width + pcm->lbearing;
+	      if (metrics->rbearing < width + pcm->rbearing)
+		metrics->rbearing = width + pcm->rbearing;
+	      if (metrics->ascent < pcm->ascent)
+		metrics->ascent = pcm->ascent;
+	      if (metrics->descent < pcm->descent)
+		metrics->descent = pcm->descent;
+	    }
+	}
       width += pcm->width;
     }
   if (metrics)
