@@ -189,15 +189,32 @@ font_make_entity ()
   return font_entity;
 }
 
+/* Create a font-object whose structure size is SIZE.  If ENTITY is
+   not nil, copy properties from ENTITY to the font-object.  If
+   PIXELSIZE is positive, set the `size' property to PIXELSIZE.  */
 Lisp_Object
-font_make_object (size)
+font_make_object (size, entity, pixelsize)
      int size;
+     Lisp_Object entity;
+     int pixelsize;
 {
   Lisp_Object font_object;
   struct font *font
     = (struct font *) allocate_pseudovector (size, FONT_OBJECT_MAX, PVEC_FONT);
+  int i;
+
   XSETFONT (font_object, font);
 
+  if (! NILP (entity))
+    {
+      for (i = 1; i < FONT_SPEC_MAX; i++)
+	font->props[i] = AREF (entity, i);
+      if (! NILP (AREF (entity, FONT_EXTRA_INDEX)))
+	font->props[FONT_EXTRA_INDEX]
+	  = Fcopy_sequence (AREF (entity, FONT_EXTRA_INDEX));
+    }
+  if (size > 0)
+    font->props[FONT_SIZE_INDEX] = make_number (pixelsize);
   return font_object;
 }
 
@@ -2184,10 +2201,7 @@ static int sort_shift_bits[FONT_SIZE_INDEX + 1];
 
 /* Score font-entity ENTITY against properties of font-spec SPEC_PROP.
    The return value indicates how different ENTITY is compared with
-   SPEC_PROP.
-
-   ALTERNATE_FAMILIES, if non-nil, is a pre-calculated list of
-   alternate family names for AREF (SPEC_PROP, FONT_FAMILY_INDEX).  */
+   SPEC_PROP.  */
 
 static unsigned
 font_score (entity, spec_prop)
@@ -2351,32 +2365,155 @@ font_update_sort_order (order)
     }
 }
 
-
-/* Check if ENTITY matches with the font specification SPEC.  */
-
-int
-font_match_p (spec, entity)
-     Lisp_Object spec, entity;
+static int
+font_check_otf_features (script, langsys, features, table)
+     Lisp_Object script, langsys, features, table;
 {
-  Lisp_Object prefer_prop[FONT_SPEC_MAX];
-  Lisp_Object alternate_families = Qnil;
-  int i;
+  Lisp_Object val;
+  int negative;
 
-  for (i = FONT_FOUNDRY_INDEX; i <= FONT_SIZE_INDEX; i++)
-    prefer_prop[i] = AREF (spec, i);
-  if (FLOATP (prefer_prop[FONT_SIZE_INDEX]))
-    prefer_prop[FONT_SIZE_INDEX]
-      = make_number (font_pixel_size (XFRAME (selected_frame), spec));
-  if (! NILP (prefer_prop[FONT_FAMILY_INDEX]))
+  table = assq_no_quit (script, table);
+  if (NILP (table))
+    return 0;
+  table = XCDR (table);
+  if (! NILP (langsys))
     {
-      alternate_families
-	= Fassoc_string (prefer_prop[FONT_FAMILY_INDEX],
-			 Vface_alternative_font_family_alist, Qt);
-      if (CONSP (alternate_families))
-	alternate_families = XCDR (alternate_families);
+      table = assq_no_quit (langsys, table);
+      if (NILP (table))
+	return 0;
+    }
+  else
+    {
+      val = assq_no_quit (Qnil, table);
+      if (NILP (val))
+	table = XCAR (table);
+      else
+	table = val;
+    }
+  table = XCDR (table);
+  for (negative = 0; CONSP (features); features = XCDR (features))
+    {
+      if (NILP (XCAR (features)))
+	negative = 1;
+      if (NILP (Fmemq (XCAR (features), table)) != negative)
+	return 0;
+    }
+  return 1;
+}
+
+/* Check if OTF_CAPABILITY satisfies SPEC (otf-spec).  */
+
+static int
+font_check_otf (spec, otf_capability)
+{
+  Lisp_Object script, langsys = Qnil, gsub = Qnil, gpos = Qnil;
+
+  script = XCAR (spec);
+  spec = XCDR (spec);
+  if (! NILP (spec))
+    {
+      langsys = XCAR (spec);
+      spec = XCDR (spec);
+      if (! NILP (spec))
+	{
+	  gsub = XCAR (spec);
+	  spec = XCDR (spec);
+	  if (! NILP (spec))
+	    gpos = XCAR (spec);
+	}
     }
 
-  return (font_score (entity, prefer_prop) == 0);
+  if (! NILP (gsub) && ! font_check_otf_features (script, langsys, gsub,
+						  XCAR (otf_capability)))
+    return 0;
+  if (! NILP (gpos) && ! font_check_otf_features (script, langsys, gpos,
+						  XCDR (otf_capability)))
+    return 0;
+  return 1;
+}
+
+
+
+/* Check if FONT (font-entity or font-object) matches with the font
+   specification SPEC.  */
+
+int
+font_match_p (spec, font)
+     Lisp_Object spec, font;
+{
+  Lisp_Object prop[FONT_SPEC_MAX], *props;
+  Lisp_Object extra, font_extra;
+  int i;
+
+  for (i = FONT_FOUNDRY_INDEX; i <= FONT_REGISTRY_INDEX; i++)
+    if (! NILP (AREF (spec, i))
+	&& ! NILP (AREF (font, i))
+	&& ! EQ (AREF (spec, i), AREF (font, i)))
+      return 0;
+  props = XFONT_SPEC (spec)->props;
+  if (FLOATP (props[FONT_SIZE_INDEX]))
+    {
+      for (i = FONT_FOUNDRY_INDEX; i < FONT_SIZE_INDEX; i++)
+	prop[i] = AREF (spec, i);
+      prop[FONT_SIZE_INDEX]
+	= make_number (font_pixel_size (XFRAME (selected_frame), spec));
+      props = prop;
+    }
+
+  if (font_score (font, props) > 0)
+    return 0;
+  extra = AREF (spec, FONT_EXTRA_INDEX);
+  font_extra = AREF (font, FONT_EXTRA_INDEX);
+  for (; CONSP (extra); extra = XCDR (extra))
+    {
+      Lisp_Object key = XCAR (XCAR (extra));
+      Lisp_Object val = XCDR (XCAR (extra)), val2;
+
+      if (EQ (key, QClang))
+	{
+	  val2 = assq_no_quit (key, font_extra);
+	  if (NILP (val2))
+	    return 0;
+	  val2 = XCDR (val2);
+	  if (CONSP (val))
+	    {
+	      if (! CONSP (val2))
+		return 0;
+	      while (CONSP (val))
+		if (NILP (Fmemq (val, val2)))
+		  return 0;
+	    }
+	  else
+	    if (CONSP (val2)
+		? NILP (Fmemq (val, XCDR (val2)))
+		: ! EQ (val, val2))
+	      return 0;
+	}
+      else if (EQ (key, QCscript))
+	{
+	  val2 = assq_no_quit (val, Vscript_representative_chars);
+	  if (! NILP (val2))
+	    for (val2 = XCDR (val2); CONSP (val2); val2 = XCDR (val2))
+	      if (font_encode_char (font, XINT (XCAR (val2)))
+		  == FONT_INVALID_CODE)
+		return 0;
+	}
+      else if (EQ (key, QCotf))
+	{
+	  struct font *fontp;
+
+	  if (! FONT_OBJECT_P (font))
+	    return 0;
+	  fontp = XFONT_OBJECT (font);
+	  if (! fontp->driver->otf_capability)
+	    return 0;
+	  val2 = fontp->driver->otf_capability (fontp);
+	  if (NILP (val2) || ! font_check_otf (val, val2))
+	    return 0;
+	}
+    }
+
+  return 1;
 }
 
 
@@ -2711,6 +2848,12 @@ font_open_entity (f, entity, pixel_size)
     return Qnil;
 
   font_object = driver_list->driver->open (f, entity, pixel_size);
+  if (STRINGP (AREF (font_object, FONT_FULLNAME_INDEX))
+      && STRINGP (Vvertical_centering_font_regexp))
+    XFONT_OBJECT (font_object)->vertical_centering
+      = (fast_string_match_ignore_case
+	 (Vvertical_centering_font_regexp, 
+	  (AREF (font_object, FONT_FULLNAME_INDEX))) >= 0);
   font_add_log ("open", entity, font_object);
   if (NILP (font_object))
     return Qnil;
