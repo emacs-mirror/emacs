@@ -1171,18 +1171,29 @@ ftfont_text_extents (font, code, nglyphs, metrics)
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
   int width = 0;
-  int i;
+  int i, first;
 
   if (ftfont_info->ft_size != ft_face->size)
     FT_Activate_Size (ftfont_info->ft_size);
   if (metrics)
     bzero (metrics, sizeof (struct font_metrics));
-  for (i = 0; i < nglyphs; i++)
+  for (i = 0, first = 1; i < nglyphs; i++)
     {
       if (FT_Load_Glyph (ft_face, code[i], FT_LOAD_DEFAULT) == 0)
 	{
 	  FT_Glyph_Metrics *m = &ft_face->glyph->metrics;
 
+	  if (first)
+	    {
+	      if (metrics)
+		{
+		  metrics->lbearing = m->horiBearingX >> 6;
+		  metrics->rbearing = (m->horiBearingX + m->width) >> 6;
+		  metrics->ascent = m->horiBearingY >> 6;
+		  metrics->descent = (m->horiBearingY + m->height) >> 6;
+		}
+	      first = 0;
+	    }
 	  if (metrics)
 	    {
 	      if (metrics->lbearing > width + (m->horiBearingX >> 6))
