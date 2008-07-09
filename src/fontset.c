@@ -459,7 +459,7 @@ reorder_font_vector (font_group, font)
 }
 
 static Lisp_Object
-fontset_get_font_group (fontset, c)
+fontset_get_font_group (Lisp_Object fontset, int c)
 {
   Lisp_Object font_group;
   Lisp_Object base_fontset;

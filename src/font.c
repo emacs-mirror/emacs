@@ -2404,7 +2404,7 @@ font_check_otf_features (script, langsys, features, table)
 /* Check if OTF_CAPABILITY satisfies SPEC (otf-spec).  */
 
 static int
-font_check_otf (spec, otf_capability)
+font_check_otf (Lisp_Object spec, Lisp_Object otf_capability)
 {
   Lisp_Object script, langsys = Qnil, gsub = Qnil, gpos = Qnil;
 
