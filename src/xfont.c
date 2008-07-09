@@ -648,7 +648,10 @@ xfont_open (f, entity, pixel_size)
 
   if (NILP (fullname))
     fullname = AREF (font_object, FONT_NAME_INDEX);
-  font->vertical_centering = 0;
+  font->vertical_centering
+    = (STRINGP (Vvertical_centering_font_regexp)
+       && (fast_string_match_ignore_case
+	   (Vvertical_centering_font_regexp, fullname) >= 0));
 
   return font_object;
 }
