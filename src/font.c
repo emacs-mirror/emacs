@@ -2848,12 +2848,6 @@ font_open_entity (f, entity, pixel_size)
     return Qnil;
 
   font_object = driver_list->driver->open (f, entity, pixel_size);
-  if (STRINGP (AREF (font_object, FONT_FULLNAME_INDEX))
-      && STRINGP (Vvertical_centering_font_regexp))
-    XFONT_OBJECT (font_object)->vertical_centering
-      = (fast_string_match_ignore_case
-	 (Vvertical_centering_font_regexp, 
-	  (AREF (font_object, FONT_FULLNAME_INDEX))) >= 0);
   font_add_log ("open", entity, font_object);
   if (NILP (font_object))
     return Qnil;
