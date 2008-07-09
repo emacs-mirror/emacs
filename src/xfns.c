@@ -3112,7 +3112,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
 Return an Emacs frame object.
-ALIST is an alist of frame parameters.
+PARMS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
 then `default-minibuffer-frame' must be a frame whose minibuffer can
