@@ -120,7 +120,8 @@ uniscribe_open (f, font_entity, pixel_size)
      int pixel_size;
 {
   Lisp_Object font_object
-    = font_make_object (VECSIZE (struct uniscribe_font_info));
+    = font_make_object (VECSIZE (struct uniscribe_font_info),
+			font_entity, pixel_size);
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) XFONT_OBJECT (font_object);
 
