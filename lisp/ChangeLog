@@ -1,5 +1,10 @@
 2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* window.el (truncated-partial-width-window-p): New function.
+
+	* menu-bar.el: Remove Longlines mode from menu.  Add word-wrap
+	option.
+
 	* faces.el (x-create-frame-with-faces): Don't pass parameters that
 	are set later to x-create-frame.
 	(face-set-after-frame-default): Apply X resources for non-default
