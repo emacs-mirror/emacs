@@ -509,7 +509,10 @@ xfont_open (f, entity, pixel_size)
      font.  */
   registry = AREF (entity, FONT_REGISTRY_INDEX);
   if (font_registry_charsets (registry, &encoding, &repertory) < 0)
-    return Qnil;
+    {
+      font_add_log ("  x:unknown registry", registry, Qnil);
+      return Qnil;
+    }
 
   if (XINT (AREF (entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XINT (AREF (entity, FONT_SIZE_INDEX));
@@ -522,7 +525,10 @@ xfont_open (f, entity, pixel_size)
     }
   len = font_unparse_xlfd (entity, pixel_size, name, 256);
   if (len <= 0)
-    return Qnil;
+    {
+      font_add_log ("  x:unparse failed", entity, Qnil);
+      return Qnil;
+    }
 
   BLOCK_INPUT;
   x_catch_errors (display);
@@ -562,7 +568,10 @@ xfont_open (f, entity, pixel_size)
   UNBLOCK_INPUT;
 
   if (! xfont)
-    return Qnil;
+    {
+      font_add_log ("  x:open failed", build_string (name), Qnil);
+      return Qnil;
+    }
 
   font_object = font_make_object (VECSIZE (struct xfont_info),
 				  entity, pixel_size);
