@@ -1,3 +1,8 @@
+2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): Backtrack if past the edge of a wrapped
+	line.
+
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* src/fileio.c:
