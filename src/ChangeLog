@@ -1,5 +1,7 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/powermac.h: Remove file, it is now identical to m/macppc.h.
+
 	* m/powermac.h: Remove boilerplate comments.
 	(NO_REMAP): Remove unused definition.
 

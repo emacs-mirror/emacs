@@ -2462,7 +2462,7 @@ _ACEOF
   *-apple-darwin* )
     case "${canonical}" in
       i[3456]86-* )  machine=intel386 ;;
-      powerpc-* )    machine=powermac ;;
+      powerpc-* )    machine=macppc ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
