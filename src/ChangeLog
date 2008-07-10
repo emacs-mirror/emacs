@@ -1,3 +1,7 @@
+2008-07-10  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Log the reason of failure.
+
 2008-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fontset.c (fontset_get_font_group):
