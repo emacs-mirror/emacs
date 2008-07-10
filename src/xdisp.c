@@ -7117,6 +7117,9 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	{
 	  struct it it_backup;
 
+	  if (it->line_wrap == WORD_WRAP)
+	    it_backup = *it;
+
 	  /* TO_Y specified means stop at TO_X in the line containing
 	     TO_Y---or at TO_CHARPOS if this is reached first.  The
 	     problem is that we can't really tell whether the line
@@ -7129,28 +7132,19 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	     If we didn't use TO_X == 0, we would stop at the end of
 	     the line which is probably not what a caller would expect
 	     to happen.  */
-	  skip = move_it_in_display_line_to (it, to_charpos,
-					     ((op & MOVE_TO_X)
-					      ? to_x : 0),
-					     (MOVE_TO_X
-					      | (op & MOVE_TO_POS)));
+	  skip = move_it_in_display_line_to
+	    (it, to_charpos, ((op & MOVE_TO_X) ? to_x : 0),
+	     (MOVE_TO_X | (op & MOVE_TO_POS)));
 
 	  /* If TO_CHARPOS is reached or ZV, we don't have to do more.  */
 	  if (skip == MOVE_POS_MATCH_OR_ZV)
+	    reached = 5;
+	  else if (skip == MOVE_X_REACHED)
 	    {
-	      reached = 5;
-	      break;
-	    }
-
-	  /* If TO_X was reached, we would like to know whether TO_Y
-	     is in the line.  This can only be said if we know the
-	     total line height which requires us to scan the rest of
-	     the line.  */
-	  if (skip == MOVE_X_REACHED)
-	    {
-	      /* Wait!  We can conclude that TO_Y is in the line if
-		 the already scanned glyphs make the line tall enough
-		 because further scanning doesn't make it shorter.  */
+	      /* If TO_X was reached, we want to know whether TO_Y is
+		 in the line.  We know this is the case if the already
+		 scanned glyphs make the line tall enough.  Otherwise,
+		 we must check by scanning the rest of the line.  */
 	      line_height = it->max_ascent + it->max_descent;
 	      if (to_y >= it->current_y
 		  && to_y < it->current_y + line_height)
@@ -7163,27 +7157,48 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	      skip2 = move_it_in_display_line_to (it, to_charpos, -1,
 						  op & MOVE_TO_POS);
 	      TRACE_MOVE ((stderr, "move_it: to %d\n", IT_CHARPOS (*it)));
-	    }
+	      line_height = it->max_ascent + it->max_descent;
+	      TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
 
-	  /* Now, decide whether TO_Y is in this line.  */
-	  line_height = it->max_ascent + it->max_descent;
-	  TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
-
-	  if (to_y >= it->current_y
-	      && to_y < it->current_y + line_height)
-	    {
-	      if (skip == MOVE_X_REACHED)
-		/* If TO_Y is in this line and TO_X was reached above,
-		   we scanned too far.  We have to restore IT's settings
-		   to the ones before skipping.  */
-		*it = it_backup;
-	      reached = 6;
+	      if (to_y >= it->current_y
+		  && to_y < it->current_y + line_height)
+		{
+		  /* If TO_Y is in this line and TO_X was reached
+		     above, we scanned too far.  We have to restore
+		     IT's settings to the ones before skipping.  */
+		  *it = it_backup;
+		  reached = 6;
+		}
+	      else
+		{
+		  skip = skip2;
+		  if (skip == MOVE_POS_MATCH_OR_ZV)
+		    reached = 7;
+		}
 	    }
-	  else if (skip == MOVE_X_REACHED)
+	  else
 	    {
-	      skip = skip2;
-	      if (skip == MOVE_POS_MATCH_OR_ZV)
-		reached = 7;
+	      /* Check whether TO_Y is in this line.  */
+	      line_height = it->max_ascent + it->max_descent;
+	      TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
+
+	      if (to_y >= it->current_y
+		  && to_y < it->current_y + line_height)
+		{
+		  /* When word-wrap is on, TO_X may lie past the end
+		     of a wrapped line.  Then it->current is the
+		     character on the next line, so backtrack to the
+		     space before the wrap point.  */
+		  if (skip == MOVE_LINE_CONTINUED
+		      && it->line_wrap == WORD_WRAP)
+		    {
+		      int prev_x = max (it->current_x - 1, 0);
+		      *it = it_backup;
+		      skip = move_it_in_display_line_to
+			(it, -1, prev_x, MOVE_TO_X);
+		    }
+		  reached = 6;
+		}
 	    }
 
 	  if (reached)
