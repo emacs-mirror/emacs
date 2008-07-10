@@ -77,7 +77,7 @@ typedef struct {
 
 #endif /* not MACH */
 
-#if defined (IRIS_4D) || defined (sony)
+#if defined (IRIS_4D)
 #include "getpagesize.h"
 #include <fcntl.h>
 #endif

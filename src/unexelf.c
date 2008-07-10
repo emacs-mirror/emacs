@@ -426,10 +426,10 @@ extern void fatal (const char *msgid, ...);
 #include <elf.h>
 #endif
 #include <sys/mman.h>
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (_SYSTYPE_SYSV)
 #include <sys/elf_mips.h>
 #include <sym.h>
-#endif /* __sony_news && _SYSTYPE_SYSV */
+#endif /* _SYSTYPE_SYSV */
 #if __sgi
 #include <syms.h> /* for HDRR declaration */
 #endif /* __sgi */
@@ -1081,7 +1081,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	}
 #endif /* __alpha__ */
 
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (_SYSTYPE_SYSV)
       if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG
 	  && old_mdebug_index != -1)
         {
@@ -1104,7 +1104,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      phdr->cbExtOffset  += diff;
 	    }
 	}
-#endif /* __sony_news && _SYSTYPE_SYSV */
+#endif /* _SYSTYPE_SYSV */
 
 #if __sgi
       /* Adjust  the HDRR offsets in .mdebug and copy the
