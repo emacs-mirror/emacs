@@ -1985,9 +1985,16 @@ or `default-frame-alist' contains a `reverse' parameter, or
 the X resource ``reverseVideo'' is present, handle that.
 Value is the new frame created."
   (setq parameters (x-handle-named-frame-geometry parameters))
-  (let ((visibility-spec (assq 'visibility parameters))
-	(frame (x-create-frame `((visibility . nil) . ,parameters)))
-	success)
+  (let* ((params (copy-tree parameters))
+	 (visibility-spec (assq 'visibility parameters))
+	 (delayed-params '(foreground-color background-color font
+			   border-color cursor-color mouse-color
+			   visibility scroll-bar-foreground
+			   scroll-bar-background))
+	 frame success)
+    (dolist (param delayed-params)
+      (setq params (assq-delete-all param params)))
+    (setq frame (x-create-frame `((visibility . nil) . ,params)))
     (unwind-protect
 	(progn
 	  (x-setup-function-keys frame)
@@ -2009,19 +2016,19 @@ Value is the new frame created."
 (defun face-set-after-frame-default (frame &optional parameters)
   "Initialize the frame-local faces of FRAME.
 Calculate the face definitions using the face specs, custom theme
-settings, and `face-new-frame-defaults' (in that order).
+settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS and `default-frame-alist'."
   (dolist (face (nreverse (face-list)))
     (condition-case ()
-	;; We used to apply X resources within this loop, because X
-	;; resources could be frame-specific.  We don't do that any
-	;; more, because this interacts poorly with specifying faces
-	;; via frame parameters and Lisp faces.  (X resouces for Emacs
-	;; as a whole are applied during x-create-frame.)
 	(progn
 	  ;; Initialize faces from face spec and custom theme.
 	  (face-spec-recalc face frame)
+	  ;; X resouces for the default face are applied during
+	  ;; x-create-frame.
+	  (and (not (eq face 'default))
+	       (memq (window-system frame) '(x w32 mac)) 	 
+	       (make-face-x-resource-internal face frame))
 	  ;; Apply attributes specified by face-new-frame-defaults
 	  (internal-merge-in-global-face face frame))
       ;; Don't let invalid specs prevent frame creation.
