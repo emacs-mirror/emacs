@@ -1,6 +1,7 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* configure.in: Use macppc for Darwin.
+	* configure.in: Use macppc for Darwin.  Remove references to
+	desupported systems.
 	* configure: Regenerate.
 
 2008-07-05  Glenn Morris  <rgm@gnu.org>

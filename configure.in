@@ -433,7 +433,7 @@ dnl see the `changequote' comment above.
     machine=sparc opsys=gnu-linux
   ;;
 
-  *-auspex-sunos* | *-sun-sunos* | *-sun-bsd* | *-sun-solaris* \
+  *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
     | rs6000-*-solaris2*)
     case "${canonical}" in
