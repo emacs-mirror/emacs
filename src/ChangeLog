@@ -1,3 +1,8 @@
+2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/macppc.h (UNEXEC, NO_TERMIO): Don't define, the s/ files
+	define them.
+
 2008-07-10  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open): Log the reason of failure.

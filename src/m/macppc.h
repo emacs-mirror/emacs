@@ -64,10 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* #define NO_SOCK_SIGIO */
 
-#define UNEXEC unexelf.o
-
-#define NO_TERMIO
-
 #if defined (LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
 # define TEXT_END ({ extern int _etext; &_etext; })
 #endif
