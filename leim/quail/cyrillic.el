@@ -1023,45 +1023,48 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
 
 (quail-define-rules
  ("a" ?,LP(B) 
- ("a`" [",LP$(O+\(B"]) ;; combining
+ ("a'" [",LP(B'"])  ("a`" [",LP$(O+\(B"]) ;; combining
  ("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B)
  ("e" ?,LU(B) ("je" ?,LU(B)
- ("e`" [",LU$(O+\(B"]) ;; combining
+ ("e'" [",LU(B'"]) ("e`" [",LU$(O+\(B"]) ;; combining
  ("yo" ?,Lq(B) ("jo" ?,Lq(B)
  ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B)
- ("i`" ?$,1(}(B) ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
+ ("i'" [",LX(B'"]) ("i`" [",LX(B`"]) ;; combining
+ ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
  ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) 
- ("o`" [",L^$(O+\(B"]) ;; combining
+ ("o'" [",L^(B'"]) ("o`" [",L^$(O+\(B"]) ;; combining
  ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B) 
- ("u`" [",Lc$(O+\(B"]) ;; combining
+ ("u'" [",Lc(B'"]) ("u`" [",Lc$(O+\(B"]) ;; combining
  ("f" ?,Ld(B) ("h" ?,Le(B) ("kh" ?,Le(B)
  ("c" ?,Lf(B) ("ch" ?,Lg(B)
  ("sh" ?,Lh(B)
  ("shch" ?,Li(B) ("sj" ?,Li(B)
  ("/sht" ?,Li(B) ("/t" ?,Li(B)
- ("~" ?,Lj(B) ("y" ?,Lk(B) ("x" ?,Ll(B)
- ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B)
+ ("~" ?,Lj(B) ("y" ?,Lk(B) ("x" ?,Le(B) ("'" ?,Ll(B)
+ ("@" ?,Lm(B)
  ("yu" ?,Ln(B) ("ju" ?,Ln(B)
  ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
 
  ("A" ?,L0(B) 
- ("A`" [",L0$(O+\(B"]) ;; combining
+ ("A'" [",L0(B'"])  ("A`" [",L0$(O+\(B"]) ;; COMBINING
  ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B)
- ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B) 
- ("E`" [",L5$(O+\(B"]) ;; combining
+ ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
+ ("E'" [",L5(B'"]) ("E`" [",L5$(O+\(B"]) ;; COMBINING
  ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B)
  ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B)
- ("I`" ?$,1(-(B) ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
+ ("I'" [",L8(B'"]) ("I`" [",L8(B`"]) ;; COMBINING
+ ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
  ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B)
- ("O`" [",L>$(O+\(B"]) ;; combining
+ ("O'" [",L>(B'"]) ("O`" [",L>$(O+\(B"]) ;; COMBINING
  ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
- ("U`" [",LC$(O+\(B"]) ;; combining
+ ("U'" [",LC(B'"]) ("U`" [",LC$(O+\(B"]) ;; COMBINING
  ("F" ?,LD(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
  ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B)
  ("Sh" ?,LH(B) ("SH" ?,LH(B)
  ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B)
  ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B)
- ("~~" ",LJ(B") ("Y" ?,LK(B) ("X" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B)
+ ("~~" ?,LJ(B) ("Y" ?,LK(B) ("X" ?,LE(B) ("''" ?,LL(B)
+ ("@@" ?,LM(B)
  ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B)
  ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
@@ -1130,12 +1133,12 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("/."	?$,1s$(B) ;; ONE DOT LEADER
  ("/.."	?$(G!-(B) ;; TWO DOT LEADER
  ("/..." ?$A!-(B);; HORIZONTAL ELLIPSIS
- ("/``" ?,Y!(B)
- ("/`" ?,F"(B)
- ("/''" ?,Y4(B)
+ ("/''" ?,Y!(B)
+ ("/'" ?,F"(B)
+ ("/``" ?,Y4(B)
+ ("/`" ?,F!(B)
  ("/,," ?,Y%(B)
  ("/," ?$,1rz(B)
- ("/'" ?,F!(B)
 
  ("/&" ?,A'(B)
  ("/ab" ?,A'(B) 				; _,LPQ(B_,LWPf(B
