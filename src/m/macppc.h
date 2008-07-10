@@ -27,11 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_ARG_ARRAY
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-/* #define WORD_MACHINE */
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,
@@ -88,18 +83,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
 #endif
 #endif
-
-#if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,
-	  even with identical GCC, as, ld.  Let's take it out until we
-	  know what's really going on here.  */
-/* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
-   0x10000000.  */
-#if defined __linux__
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
-#define DATA_SEG_BITS  0x10000000
-#endif
-#endif
-#endif /* 0 */
 
 #ifdef _ARCH_PPC64
 #ifndef _LP64

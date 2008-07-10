@@ -1,5 +1,19 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/template.h:
+	* m/sparc.h:
+	* m/mips.h:
+	* m/m68k.h:
+	* m/iris4d.h:
+	* m/intel386.h:
+	* m/ibms390x.h:
+	* m/ibms390.h:
+	* m/ia64.h:
+	* m/hp800.h:
+	* m/arm.h:
+	* m/amdx86-64.h: Remove dead code and references to unused
+	and compiler defined symbols.
+
 	* unexmips.c:
 	* unexelf.c: Remove references to desupported systems.
 

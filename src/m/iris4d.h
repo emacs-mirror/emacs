@@ -28,11 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_ARG_ARRAY
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-#undef WORD_MACHINE
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,
@@ -58,22 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    If you use NO_UNION_TYPE, this flag does not matter.  */
 
 #define EXPLICIT_SIGN_EXTEND
-
-/* jg@genmagic.genmagic.com (John Giannandrea) says this is unnecessary.  */
-#if 0
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE long	/* This doesn't quite work on the 4D */
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-
-#define LOAD_AVE_CVT(x) (int)(((double)(x)*100)/1024.0)
-
-/* s-iris3-6.h uses /vmunix */
-
-#undef KERNEL_FILE
-#define KERNEL_FILE "/unix"
-#endif
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined

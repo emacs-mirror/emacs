@@ -57,18 +57,6 @@ NOTE-END */
 
 /* #define NO_ARG_ARRAY */
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-/* #define WORD_MACHINE */
-
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
-
-#define INTEL386
-
 /* Use type int rather than a union, to represent Lisp_Object */
 
 #define NO_UNION_TYPE
@@ -95,17 +83,6 @@ NOTE-END */
    requires -lkvm as well.
    And handa@etl.gov.jp says that -lkvm needs -llelf, at least on 2.5.  */
 #define LIBS_MACHINE -lkvm -lelf
-
-#ifndef SOLARIS2_4
-/* J.W.hawtin@lut.ac.uk says Solaris 2.1 on the X86 has FSCALE defined in a
-   system header. */
-#else /* SOLARIS2_4 */
-#ifndef __GNUC__
-#if 0 /* wisner@gryphon.com says this screws up cpp */
-#define C_SWITCH_MACHINE -Xa
-#endif
-#endif /* not __GNUC__ */
-#endif /* SOLARIS2_4 */
 
 /* configure thinks solaris X86 has gethostname, but it does not work,
    so undefine it.  */
