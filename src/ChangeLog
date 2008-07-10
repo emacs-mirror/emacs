@@ -16,7 +16,6 @@
 	* m/ibms390x.h:
 	* m/ibms390.h:
 	* m/ia64.h:
-
 	* m/hp800.h:
 	* m/arm.h:
 	* m/amdx86-64.h: Remove dead code and references to unused
