@@ -1054,24 +1054,43 @@ mail status in mode line"))
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
 
-(define-key menu-bar-options-menu [longlines-mode]
-  '(menu-item "Word Wrap for Long Lines in this Buffer"
-              longlines-mode
-	      :help "Perform word wrapping for long lines (Long Lines mode)"
-              :button (:toggle . (and (boundp 'longlines-mode)
-				      longlines-mode))))
 
-(define-key menu-bar-options-menu [truncate-lines]
-  '(menu-item "Truncate Long Lines in this Buffer"
+(defvar menu-bar-line-wrapping-menu (make-sparse-keymap "Line Wrapping"))
+
+(define-key menu-bar-line-wrapping-menu [truncate]
+  '(menu-item "Truncate Long Lines"
 	      toggle-truncate-lines
-	      :help "Truncate long lines at the window edge "
-	      :button (:toggle . (if (or (window-full-width-p)
-					 (not truncate-partial-width-windows))
-				     truncate-lines
-				   truncate-partial-width-windows))
-	      :enable (and (menu-bar-menu-frame-live-and-visible-p)
-			   (or (window-full-width-p)
-			       (not truncate-partial-width-windows)))))
+	      :help "Truncate long lines at window edge"
+	      :button (:radio . (or truncate-lines
+				    (truncated-partial-width-window-p)))
+	      :visible (menu-bar-menu-frame-live-and-visible-p)
+	      :enable (not (truncated-partial-width-window-p))))
+
+(define-key menu-bar-line-wrapping-menu [word-wrap]
+  '(menu-item "Wrap at Word Boundaries"
+	      (lambda () (interactive) (setq truncate-lines nil
+					     word-wrap t))
+	      :help "Wrap long lines at word boundaries"
+	      :button (:radio . (and (null truncate-lines)
+				     (not (truncated-partial-width-window-p))
+				     word-wrap))
+	      :visible (menu-bar-menu-frame-live-and-visible-p)
+	      :enable (not (truncated-partial-width-window-p))))
+
+(define-key menu-bar-line-wrapping-menu [window-wrap]
+  '(menu-item "Wrap at Window Edge"
+	      (lambda () (interactive) (setq truncate-lines nil
+					     word-wrap nil))
+	      :help "Wrap long lines at window edge"
+	      :button (:radio . (and (null truncate-lines)
+				     (not (truncated-partial-width-window-p))
+				     (not word-wrap)))
+	      :visible (menu-bar-menu-frame-live-and-visible-p)
+	      :enable (not (truncated-partial-width-window-p))))
+
+(define-key menu-bar-options-menu [line-wrapping]
+  (list 'menu-item "Line Wrapping in this Buffer" menu-bar-line-wrapping-menu))
+
 
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
