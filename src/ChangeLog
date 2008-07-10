@@ -1,3 +1,8 @@
+2008-07-10  Andreas Schwab  <schwab@suse.de>
+
+	* ftfont.c (ftfont_resolve_generic_family): Remove foundry from
+	pattern before matching the generic family.
+
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* unexec.c:

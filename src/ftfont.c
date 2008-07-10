@@ -221,6 +221,7 @@ ftfont_resolve_generic_family (family, pattern)
   pattern = FcPatternDuplicate (pattern);
   if (! pattern)
     goto err;
+  FcPatternDel (pattern, FC_FOUNDRY);
   FcPatternDel (pattern, FC_FAMILY);
   FcPatternAddString (pattern, FC_FAMILY, SYMBOL_FcChar8 (family));
   FcConfigSubstitute (NULL, pattern, FcMatchPattern);
