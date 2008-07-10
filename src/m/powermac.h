@@ -47,14 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_UNION_TYPE
 
-/* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
-   are always unsigned.
-
-   If you use NO_UNION_TYPE, this flag does not matter.  */
-
-/* #define EXPLICIT_SIGN_EXTEND */
-
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long
@@ -62,28 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-/* #define CANNOT_DUMP */
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES * */
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#define NO_REMAP
 
 /* Some really obscure 4.2-based systems (like Sequent DYNIX)
  * do not support asynchronous I/O (using SIGIO) on sockets,
@@ -98,16 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 /* #define NO_SOCK_SIGIO */
-
-
-/* After adding support for a new system, modify the large case
-   statement in the `configure' script to recognize reasonable
-   configuration names, and add a description of the system to
-   `etc/MACHINES'.
-
-   If you've just fixed a problem in an existing configuration file,
-   you should also check `etc/MACHINES' to make sure its descriptions
-   of known problems in that configuration should be updated.  */
 
 /* arch-tag: d8af08a6-48b3-4c8a-94a0-0b4acae5e1f0
    (do not change this comment) */

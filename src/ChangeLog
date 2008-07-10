@@ -1,5 +1,8 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/powermac.h: Remove boilerplate comments.
+	(NO_REMAP): Remove unused definition.
+
 	* m/macppc.h (UNEXEC, NO_TERMIO): Don't define, the s/ files
 	define them.
 
