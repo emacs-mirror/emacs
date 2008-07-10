@@ -121,10 +121,6 @@ Fujitsu DS/90 (sparc-fujitsu-sysv4)
 
   Changes merged in 20.3.
 
-Harris Power PC (powerpc-harris-powerunix)
-
-  Patches have been merged in 19.31.
-
 HP 9000 series 500: not supported.
 
   The series 500 has a seriously incompatible memory architecture
@@ -755,6 +751,7 @@ Support for the following obsolete platforms was removed in Emacs 23.1
   Sun3 machines (m/sun3*)
   Integrated Solutions 386 machine (m/is386.h)
   Integrated Solutions `Optimum V' -- m68k-isi-bsd4.2 or -bsd4.3
+  Harris Power PC (powerpc-harris-powerunix)
   Hewlett-Packard 9000 series 200 or 300 -- m68k-hp-bsd or m68k-hp-hpux or m68k-hp-netbsd
   IBM PS/2 -- i386-ibm-aix1.1 or i386-ibm-aix1.2
   GEC 63 -- local-gec63-usg5.2
