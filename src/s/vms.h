@@ -210,11 +210,6 @@ extern double mth$dmod(double, double);
 /* Case conflicts with C library srandom. */
 #define Srandom S_random
 
-/* variable length too long... maybe */
-#if 0
-#define do_line_insertion_deletion_costs do_line_insertion_deletion_cost
-#endif
-
 /* Cause initialization of vmsfns.c to be run.  */
 #define SYMS_SYSTEM syms_of_vmsfns ()
 

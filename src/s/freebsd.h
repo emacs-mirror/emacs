@@ -114,9 +114,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_WAIT_HEADER
 #define HAVE_GETLOADAVG 1
-#if 0
-#define HAVE_GETPAGESIZE  /* configure now puts this in config.h */
-#endif
 #define HAVE_TERMIOS
 #define NO_TERMIO
 #define DECLARE_GETPWUID_WITH_UID_T
@@ -133,16 +130,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BSD_SYSTEM 199306
 #elif __FreeBSD__ >= 3
 #define BSD_SYSTEM 199506
-#endif
-
-#if 0  /* Shouldn't be necessary and produces warnings with the
-          experimental Autoconf test.  */
-#define WAITTYPE int
-/* get this since it won't be included if WAITTYPE is defined */
-#ifdef emacs
-#include <sys/wait.h>
-#endif
-#define WRETCODE(w) (_W_INT(w) >> 8)
 #endif
 
 /* Don't close pty in process.c to make it as controlling terminal.

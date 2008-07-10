@@ -30,13 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BSD_SYSTEM
 /* #define VMS */
 
-#if 0 /* Don't define DARWIN on Mac OS X because CoreFoundation.h uses
-	 it to distinguish Mac OS X from bare Darwin.  */
-#ifndef	DARWIN
-#define	DARWIN 1
-#endif
-#endif
-
 /* MAC_OS is used to conditionally compile code common to both MAC_OS8
    and MAC_OSX.  */
 #ifdef MAC_OSX

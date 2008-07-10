@@ -1,5 +1,11 @@
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/vms.h:
+	* s/usg5-4-2.h:
+	* s/sol2-5.h:
+	* s/freebsd.h:
+	* s/darwin.h: Remove dead code.
+
 	* m/template.h:
 	* m/sparc.h:
 	* m/mips.h:
