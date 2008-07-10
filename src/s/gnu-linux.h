@@ -43,7 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <linux/version.h>
 
 #if LINUX_VERSION_CODE >= 0x20400
-#define LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
+/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
+#define SIGNALS_VIA_CHARACTERS
 #endif /* LINUX_VERSION_CODE >= 0x20400 */
 #endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
@@ -221,11 +222,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that are used when linking temacs.  */
 #ifdef THIS_IS_CONFIGURE
 #define C_DEBUG_SWITCH
-#endif
-
-/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
-#ifdef LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
-#define SIGNALS_VIA_CHARACTERS
 #endif
 
 /* Rob Malouf <malouf@csli.stanford.edu> says:

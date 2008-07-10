@@ -135,18 +135,10 @@ extern int errno;
 #include "systty.h"
 #include "syswait.h"
 
-#ifdef BROKEN_TIOCGWINSZ
-#undef TIOCGWINSZ
-#undef TIOCSWINSZ
-#endif
-
 #if defined (USG)
 #include <sys/utsname.h>
 #include <memory.h>
 #if defined (TIOCGWINSZ)
-#ifdef NEED_SIOCTL
-#include <sys/sioctl.h>
-#endif
 #ifdef NEED_PTEM_H
 #include <sys/stream.h>
 #include <sys/ptem.h>

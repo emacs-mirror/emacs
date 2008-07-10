@@ -151,7 +151,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef _GNUC_
 extern double mth$dmod(double, double);
-#define drem mth$dmod
 #endif
 
 /* Some time routines are missing in the VAX C RTL, or needs some
@@ -239,10 +238,6 @@ globalref char sdata[];
 #define PENDING_OUTPUT_COUNT(FILE) ((*(FILE))->_ptr - (*(FILE))->_base)
 
 #define NULL_DEVICE "NLA0:"
-
-#define TERMCAP_NAME "emacs_library:[etc]termcap.dat"
-
-#define EXEC_SUFFIXES ".exe:.com"
 
 /* Case conflict with Xlib XFree () */
 #define xfree emacs_xfree

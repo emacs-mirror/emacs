@@ -118,10 +118,6 @@ static struct sensemode {
 
 /* Special cases - inhibiting the use of certain features.  */
 
-#ifdef BROKEN_TIOCGETC
-#undef TIOCGETC  /* Avoid confusing some conditionals that test this.  */
-#endif
-
 /* Allow m- file to inhibit use of FIONREAD.  */
 #ifdef BROKEN_FIONREAD
 #undef FIONREAD

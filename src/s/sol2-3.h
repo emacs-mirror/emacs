@@ -21,9 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "sol2.h"
 
-/* Solaris 2.3 has a bug in XListFontsWithInfo.  */
-#define BROKEN_XLISTFONTSWITHINFO
-
 /* Override LD_SWITCH_SYSTEM: add  -L /usr/ccs/lib to the sol2.h value.  */
 
 #undef LD_SWITCH_SYSTEM

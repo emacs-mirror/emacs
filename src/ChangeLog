@@ -1,3 +1,22 @@
+2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* src/fileio.c:
+	* src/sysdep.c
+	* src/systty.h:
+	* src/m/ibmrs6000.h:
+	* src/m/iris4d.h:
+	* src/s/aix4-2.h:
+	* src/s/freebsd.h:
+	* src/s/gnu-linux.h:
+	* src/s/hpux10-20.h:
+	* src/s/hpux11.h:
+	* src/s/netbsd.h:
+	* src/s/sol2-3.h:
+	* src/s/sol2-4.h:
+	* src/s/sol2.h:
+	* src/s/usg5-4.h:
+	* src/s/vms.h: Remove references to unused variables.
+
 2008-07-10  Andreas Schwab  <schwab@suse.de>
 
 	* ftfont.c (ftfont_resolve_generic_family): Remove foundry from

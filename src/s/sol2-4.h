@@ -2,8 +2,6 @@
 
 #include "sol2-3.h"
 
-#define SOLARIS2_4
-
 /* Get rid of -traditional and let const really do its thing.  */
 
 #ifdef __GNUC__

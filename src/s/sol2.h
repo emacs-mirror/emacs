@@ -22,11 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SOLARIS2
 
-/* eggert@twinsun.com said these work in Solaris.
-   Perhaps they work in all kinds of SVR4, but this is more conservative.  */
-#undef BROKEN_TIOCGETC
-#undef BROKEN_TIOCGWINSZ
-
 /* This triggers a conditional in xfaces.c.  */
 #define XOS_NEEDS_TIME_H
 

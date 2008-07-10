@@ -86,7 +86,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use shared memory.  */
 /* This is turned off because it does not always work.  See etc/AIX.DUMP.  */
 /* #define HAVE_SHM */
-#define SHMKEY 5305035		/* used for shared memory code segments */
 #endif /* CANNOT_DUMP */
 
 #define N_BADMAG(x) BADMAG(x)
@@ -99,11 +98,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
-
-/* Specify the font for X to use.
-   This used to be Rom14.500; that's nice on the X server shipped with
-   the RS/6000, but it's not available on other servers.  */
-#define X_DEFAULT_FONT "fixed"
 
 /* Here override various assumptions in ymakefile */
 
@@ -141,8 +135,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BROKEN_SIGPTY
 #define BROKEN_SIGPOLL
 
-/* Don't try to include sioctl.h or ptem.h.  */
-#undef NEED_SIOCTL
+/* Don't try to include ptem.h.  */
 #undef NEED_PTEM_H
 
 #define ORDINARY_LINK

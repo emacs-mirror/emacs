@@ -227,16 +227,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef random
 #undef HAVE_RANDOM
 
-#define FORCE_ALLOCA_H
-
 /* AlainF 20-Jul-1996 says this is right.  */
 #define KERNEL_FILE "/stand/vmunix"
 
-#ifdef HPUX_NET
-#define LIBS_SYSTEM -ln -l:libdld.sl
-#else
 #define LIBS_SYSTEM -l:libdld.sl
-#endif
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20

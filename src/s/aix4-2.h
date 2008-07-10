@@ -176,10 +176,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It is just a guess which versions of AIX need this definition.  */
 #define HAVE_WAIT_HEADER
 
-/* Specify the type that the 3rd arg of `accept' points to.
-   It is just a guess which versions of AIX need this definition.  */
-#define SOCKLEN_TYPE int
-
 /* olson@mcs.anl.gov says -li18n is needed by -lXm.  */
 #define LIB_MOTIF -lXm -li18n
 

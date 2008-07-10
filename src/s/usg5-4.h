@@ -201,9 +201,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef emacs
-#ifndef NO_FILIO_H
 #include <sys/filio.h>
-#endif
 #include <termio.h>
 #include <sys/ttold.h>
 #include <signal.h>
@@ -282,9 +280,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     fatal ("ioctl I_PUSH ldterm", errno);	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat", errno);
-
-/* Tell x11term.c and keyboard.c we have the system V streams feature.  */
-#define SYSV_STREAMS
 
 /* This definition was suggested for next release.
    So give it a try.  */
