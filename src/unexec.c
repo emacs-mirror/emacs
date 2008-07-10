@@ -503,10 +503,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   f_thdr.s_size = f_ohdr.tsize;
   f_thdr.s_scnptr = sizeof (f_hdr) + sizeof (f_ohdr);
   f_thdr.s_scnptr += (f_hdr.f_nscns) * (sizeof (f_thdr));
-#ifdef ADJUST_TEXT_SCNHDR_SIZE
-  /* On some machines, `text size' includes all headers.  */
-  f_thdr.s_size -= f_thdr.s_scnptr;
-#endif /* ADJUST_TEST_SCNHDR_SIZE */
   lnnoptr = f_thdr.s_lnnoptr;
 #ifdef SECTION_ALIGNMENT
   /* Some systems require special alignment

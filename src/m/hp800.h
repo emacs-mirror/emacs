@@ -127,17 +127,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* no underscore please */
 #define LDAV_SYMBOL "avenrun"
 
-#if 0   /* Supposedly no longer true.  */
-/* In hpux, for unknown reasons, S_IFLNK is defined even though
-   symbolic links do not exist.
-   Make sure our conditionals based on S_IFLNK are not confused.
-
-   Here we assume that stat.h is included before config.h
-   so that we can override it here.  */
-
-#undef S_IFLNK
-#endif
-
 /* On USG systems these have different names. */
 
 #define index strchr
