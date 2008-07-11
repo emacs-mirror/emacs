@@ -1,3 +1,8 @@
+2008-07-11  Jason Rumney  <jasonr@gnu.org>
+
+        * files.el (file-truename): Get truename of ancestors if file does
+        not exist on Windows.
+
 2008-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): Obey goal-column and no-error arg.
