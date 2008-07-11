@@ -108,13 +108,6 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 #endif
 
-/* Used for making sure that Emacs is compilable in all
-   configurations.  */
-
-#ifdef USE_LISP_UNION_TYPE
-#undef NO_UNION_TYPE
-#endif
-
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
 #ifndef ENABLE_CHECKING
@@ -127,6 +120,11 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 #endif /* ENABLE_CHECKING */
 
+/* Define this to make Lisp_Object use a union type instead of the
+   default int.  FIXME: It might be better to add a flag to configure
+   to do this.  */
+/* #define USE_LISP_UNION_TYPE */
+
 /***** Select the tagging scheme.  *****/
 /* There are basically two options that control the tagging scheme:
    - USE_LISP_UNION_TYPE says that Lisp_Object should be a union instead

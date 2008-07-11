@@ -1,3 +1,7 @@
+2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Remove left over code.
+
 2008-07-11  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h: Fix logic in last change.
