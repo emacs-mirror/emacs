@@ -575,7 +575,7 @@ mac_handle_text_input_event (next_handler, event, data)
 	    int hpos, vpos, x, y;
 	    struct glyph_row *row;
 	    struct glyph *glyph;
-	    XFontStruct *font;
+	    struct face *face;
 
 	    f = mac_focus_frame (&one_mac_display_info);
 	    w = XWINDOW (f->selected_window);
@@ -600,9 +600,10 @@ mac_handle_text_input_event (next_handler, event, data)
 		   + row->visible_height
 		   + f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
 
-	    font = FACE_FROM_ID (f, glyph->face_id)->font;
-	    if (font)
+	    face = FACE_FROM_ID (f, glyph->face_id);
+	    if (face && face->font)
 	      {
+		XFontStruct *font = face->font;
 		Fixed point_size = Long2Fix (font->mac_fontsize);
 		short height = row->visible_height;
 		short ascent = row->ascent;
