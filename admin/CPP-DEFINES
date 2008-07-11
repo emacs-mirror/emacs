@@ -18,6 +18,7 @@ WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
 IRIX6_5         Compiling on Irix-6.5
+USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
 
 ** Distinguishing GUIs **
 
@@ -281,7 +282,6 @@ NO_SHARED_LIBS
 NO_SIOCTL_H
 NO_SOCK_SIGIO
 NO_TERMIO
-NO_UNION_TYPE
 NSIG
 NSIG_MINIMUM
 NULL

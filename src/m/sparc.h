@@ -38,11 +38,8 @@ NOTE-END  */
 
 /* __sparc__ is defined by the compiler by default.  */
 
-/* Use type int rather than a union, to represent Lisp_Object */
-
-#define NO_UNION_TYPE
-
-/* XINT must explicitly sign-extend */
+/* XINT must explicitly sign-extend
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
 

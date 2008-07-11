@@ -1541,7 +1541,7 @@ mark_interval_tree (tree)
   } while (0)
 
 
-/* Number support.  If NO_UNION_TYPE isn't in effect, we
+/* Number support.  If USE_LISP_UNION_TYPE is in effect, we
    can't create number objects in macros.  */
 #ifndef make_number
 Lisp_Object

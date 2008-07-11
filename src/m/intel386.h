@@ -57,10 +57,6 @@ NOTE-END */
 
 /* #define NO_ARG_ARRAY */
 
-/* Use type int rather than a union, to represent Lisp_Object */
-
-#define NO_UNION_TYPE
-
 /* crt0.c, if it is used, should use the i386-bsd style of entry.
    with no extra dummy args.  On USG and XENIX,
    NO_REMAP says this isn't used. */

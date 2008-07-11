@@ -57,10 +57,6 @@ NOTE-END  */
 
 /* #define vax    -- appears to be done automatically  */
 
-/* Use type int rather than a union, to represent Lisp_Object */
-
-#define NO_UNION_TYPE
-
 /* crt0.c should use the vax-bsd style of entry, with no dummy args.  */
 
 #define CRT0_DUMMIES

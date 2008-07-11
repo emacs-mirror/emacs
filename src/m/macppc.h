@@ -32,11 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Ones defined so far include vax, m68000, ns16000, pyramid,
    orion, tahoe, APOLLO and many others */
 
-/* Use type EMACS_INT rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.  */
-
-#define NO_UNION_TYPE
-
 /* Data type of load average, as read out of kmem.  */
 
 #define LOAD_AVE_TYPE long

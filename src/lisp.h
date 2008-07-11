@@ -129,8 +129,8 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 /***** Select the tagging scheme.  *****/
 /* There are basically two options that control the tagging scheme:
-   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
-     of a union.
+   - USE_LISP_UNION_TYPE says that Lisp_Object should be a union instead
+     of an integer.
    - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
      always 0, and we can thus use them to hold tag bits, without
      restricting our addressing space.
@@ -163,7 +163,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
-#  if defined NO_UNION_TYPE
+#  if defined USE_LISP_UNION_TYPE
 #   define USE_LSB_TAG
 #  endif
 # endif
@@ -246,7 +246,7 @@ enum Lisp_Misc_Type
 #define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
 #endif
 
-#ifndef NO_UNION_TYPE
+#ifdef USE_LISP_UNION_TYPE
 
 #ifndef WORDS_BIG_ENDIAN
 
@@ -310,13 +310,13 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #define LISP_MAKE_RVALUE(o) (o)
 #endif
 
-#else /* NO_UNION_TYPE */
+#else /* USE_LISP_UNION_TYPE */
 
 /* If union type is not wanted, define Lisp_Object as just a number.  */
 
 typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
-#endif /* NO_UNION_TYPE */
+#endif /* USE_LISP_UNION_TYPE */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
@@ -374,7 +374,7 @@ enum pvec_type
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
-#ifdef NO_UNION_TYPE
+#ifndef USE_LISP_UNION_TYPE
 
 /* Return a perfect hash of the Lisp_Object representation.  */
 #define XHASH(a) (a)
@@ -440,7 +440,7 @@ enum pvec_type
 
 #endif /* not USE_LSB_TAG */
 
-#else /* not NO_UNION_TYPE */
+#else /* USE_LISP_UNION_TYPE */
 
 #define XHASH(a) ((a).i)
 
@@ -472,7 +472,7 @@ enum pvec_type
 extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
-#endif /* NO_UNION_TYPE */
+#endif /* USE_LISP_UNION_TYPE */
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 

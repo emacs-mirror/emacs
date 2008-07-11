@@ -45,16 +45,6 @@ NOTE-END */
 
 #define NO_ARG_ARRAY
 
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
-
-/* Use type int rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.  */
-
-#define NO_UNION_TYPE
-
 /* Define the type to use.  */
 #define EMACS_INT long
 #define EMACS_UINT unsigned long
@@ -64,7 +54,7 @@ NOTE-END */
    the 24-bit bit field into an int.  In other words, if bit fields
    are always unsigned.
 
-   If you use NO_UNION_TYPE, this flag does not matter.  */
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #undef EXPLICIT_SIGN_EXTEND
 

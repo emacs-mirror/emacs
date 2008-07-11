@@ -39,8 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGN_EXTEND_CHAR(c) (((int)(c) << 24) >> 24)
 
-#define NO_UNION_TYPE
-
 #define NO_REMAP
 
 /* arch-tag: 07856f0c-f0c8-4bd8-99af-0b7fa1e5ee42

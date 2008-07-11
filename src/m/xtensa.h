@@ -3,7 +3,6 @@
 Add a license notice if this grows to > 10 lines of code.  */
 
 #define NO_ARG_ARRAY
-#define NO_UNION_TYPE
 
 #ifdef __LITTLE_ENDIAN
 #undef WORDS_BIG_ENDIAN

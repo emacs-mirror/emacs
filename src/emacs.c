@@ -98,7 +98,7 @@ int gdb_use_lsb = 1;
 #else
 int gdb_use_lsb = 0;
 #endif
-#ifdef NO_UNION_TYPE
+#ifndef USE_LISP_UNION_TYPE
 int gdb_use_union = 0;
 #else
 int gdb_use_union = 1;
