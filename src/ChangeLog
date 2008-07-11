@@ -1,3 +1,30 @@
+2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h:
+	* w32heap.c:
+	* emacs.c:
+	* alloc.c: Replace all references of NO_UNION_TYPE with
+	USE_LISP_UNION_TYPE.
+
+	* m/xtensa.h (NO_UNION_TYPE):
+	* m/vax.h (NO_UNION_TYPE):
+	* m/template.h (NO_UNION_TYPE):
+	* m/sparc.h (NO_UNION_TYPE):
+	* m/mips.h (NO_UNION_TYPE):
+	* m/macppc.h (NO_UNION_TYPE):
+	* m/m68k.h (NO_UNION_TYPE):
+	* m/iris4d.h (NO_UNION_TYPE):
+	* m/intel386.h (NO_UNION_TYPE):
+	* m/ibms390x.h (NO_UNION_TYPE):
+	* m/ibms390.h (NO_UNION_TYPE):
+	* m/ibmrs6000.h (NO_UNION_TYPE):
+	* m/ia64.h (NO_UNION_TYPE):
+	* m/hp800.h (NO_UNION_TYPE):
+	* m/arm.h (NO_UNION_TYPE):
+	* m/amdx86-64.h (NO_UNION_TYPE):
+	* m/alpha.h (NO_UNION_TYPE): Remove definition, all platform were
+	defining it the same.
+
 2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_to): Backtrack if past the edge of a wrapped
