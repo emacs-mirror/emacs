@@ -2947,11 +2947,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
     {
       if (response >= 0x00001040)
 	{
-	  err = Gestalt (gestaltSystemVersionMajor, &major);
+	  err = Gestalt ('sys1', &major);
 	  if (err == noErr)
-	    err = Gestalt (gestaltSystemVersionMinor, &minor);
+	    err = Gestalt ('sys2', &minor);
 	  if (err == noErr)
-	    err = Gestalt (gestaltSystemVersionBugFix, &bugfix);
+	    err = Gestalt ('sys3', &bugfix);
 	}
       else
 	{
