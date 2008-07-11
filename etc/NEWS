@@ -233,6 +233,11 @@ identical.
 
 * Editing Changes in Emacs 23.1
 
+** The C-n and C-p line-motion commands now move by screen lines,
+taking continued lines and variable-width characters into account.
+Setting `line-move-visual' to nil reverts this to the previous
+behavior (motion by logical lines based on buffer contents alone).
+
 ** C-x C-c now invokes `save-buffers-kill-terminal', and C-z now
 invokes `suspend-frame'.  This change is for compatibility with the
 new multi-tty support (see `Improved X Window System support' above).
@@ -1261,6 +1266,11 @@ Convenient when checking invisibility of text with no buffer position
 *** Non-breaking space is now displayed as whitespace.
 
 *** `clear-image-cache' can be told to flush only images of a specific file.
+
+*** `vertical-motion' can now be given a goal column.
+It now accepts a cons cell (COLS . LINES) in its first argument, which
+says to stop, where possible, at a pixel x-position equal to COLS
+times the default column width.
 
 ** Miscellaneous new functions
 
