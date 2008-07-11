@@ -1,5 +1,7 @@
 2008-07-11  Andreas Schwab  <schwab@suse.de>
 
+	* lisp.h: Fix logic in last change.
+
 	* menu.h: New file.
 	* menu.c: Include it.
 	* xmenu.c: Likewise.

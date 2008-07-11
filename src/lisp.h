@@ -163,7 +163,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
-#  if defined USE_LISP_UNION_TYPE
+#  ifndef USE_LISP_UNION_TYPE
 #   define USE_LSB_TAG
 #  endif
 # endif
