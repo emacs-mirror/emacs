@@ -1,3 +1,16 @@
+2008-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Obey goal-column and no-error arg.
+	(track-eol, temporary-goal-column): Update docstring.
+	(move-end-of-line, move-beginning-of-line): Bind line-move-visual
+	to nil.
+
+2008-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (line-move-visual): New var.
+	(line-move-visual): New function.
+	(line-move): Call line-move-visual.
+
 2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/grep.el (grep-files-aliases): Improve the C++ source
