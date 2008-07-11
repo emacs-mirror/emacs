@@ -3871,7 +3871,8 @@ to use and more reliable (no dependence on goal column, etc.)."
 (defcustom track-eol nil
   "*Non-nil means vertical motion starting at end of line keeps to ends of lines.
 This means moving to the end of each line moved onto.
-The beginning of a blank line does not count as the end of a line."
+The beginning of a blank line does not count as the end of a line.
+This has no effect when `line-move-visual' is non-nil."
   :type 'boolean
   :group 'editing-basics)
 
@@ -3884,15 +3885,24 @@ The beginning of a blank line does not count as the end of a line."
 
 (defvar temporary-goal-column 0
   "Current goal column for vertical motion.
-It is the column where point was
-at the start of current run of vertical motion commands.
-When the `track-eol' feature is doing its job, the value is `most-positive-fixnum'.")
+It is the column where point was at the start of the current run
+of vertical motion commands.  It is a floating point number when
+moving by visual lines via `line-move-visual'; this is the
+x-position, in pixels, divided by the default column width.  When
+the `track-eol' feature is doing its job, the value is
+`most-positive-fixnum'.")
 
 (defcustom line-move-ignore-invisible t
   "*Non-nil means \\[next-line] and \\[previous-line] ignore invisible lines.
 Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
+
+(defvar line-move-visual t
+  "When non-nil, `line-move' moves point by visual lines.
+This movement is based on where the cursor is displayed on the
+screen, instead of relying on buffer contents alone.  It takes
+into account variable-width characters and line continuation.")
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -3966,7 +3976,30 @@ Outline mode sets this."
 	       (not executing-kbd-macro)
 	       (line-move-partial arg noerror to-end))
     (set-window-vscroll nil 0 t)
-    (line-move-1 arg noerror to-end)))
+    (if line-move-visual
+	(line-move-visual arg noerror)
+      (line-move-1 arg noerror to-end))))
+
+;; Display-based alternative to line-move-1.
+;; Arg says how many lines to move.  The value is t if we can move the
+;; specified number of lines.
+(defun line-move-visual (arg &optional noerror)
+  (unless (and (floatp temporary-goal-column)
+               (or (memq last-command '(next-line previous-line))
+                   ;; In case we're called from some other command.
+                   (eq last-command this-command)))
+    (setq temporary-goal-column
+          (/ (car (nth 2 (posn-at-point))) 1.0 (frame-char-width))))
+  (let ((moved (vertical-motion
+		(cons (or goal-column
+			  (truncate temporary-goal-column))
+		      arg))))
+    (or (= arg moved)
+	(unless noerror
+	  (signal (if (< arg 0)
+		      'beginning-of-buffer
+		    'end-of-buffer)
+		  nil)))))
 
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
@@ -4230,7 +4263,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (while (not done)
       (let ((newpos
 	     (save-excursion
-	       (let ((goal-column 0))
+	       (let ((goal-column 0)
+		     (line-move-visual nil))
 		 (and (line-move arg t)
 		      (not (bobp))
 		      (progn
@@ -4245,9 +4279,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 	    (backward-char 1)
 	  (if (and (> (point) newpos) (not (eobp))
 		   (not (eq (following-char) ?\n)))
-	      ;; If we skipped something intangible
-	      ;; and now we're not really at eol,
-	      ;; keep going.
+	      ;; If we skipped something intangible and now we're not
+	      ;; really at eol, keep going.
 	      (setq arg 1)
 	    (setq done t)))))))
 
@@ -4267,7 +4300,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 
     ;; Move by lines, if ARG is not 1 (the default).
     (if (/= arg 1)
-	(line-move (1- arg) t))
+	(let ((line-move-visual nil))
+	  (line-move (1- arg) t)))
 
     ;; Move to beginning-of-line, ignoring fields and invisibles.
     (skip-chars-backward "^\n")
