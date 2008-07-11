@@ -1,7 +1,8 @@
 2008-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): Obey goal-column and no-error arg.
-	(track-eol, temporary-goal-column): Update docstring.
+	(track-eol, temporary-goal-column, previous-line, next-line):
+	Update docstring.
 	(move-end-of-line, move-beginning-of-line): Bind line-move-visual
 	to nil.
 
