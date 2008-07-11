@@ -3816,6 +3816,10 @@ value of `next-line-add-newlines'.  If non-nil, it inserts a newline character
 to create a line, and moves the cursor to that line.  Otherwise it moves the
 cursor to the end of the buffer.
 
+If the variable `line-move-visual' is non-nil, this command moves
+by display lines.  Otherwise, it moves by buffer lines, without
+taking variable-width characters or continued lines into account.
+
 The command \\[set-goal-column] can be used to create
 a semipermanent goal column for this command.
 Then instead of trying to move exactly vertically (or as close as possible),
@@ -3848,6 +3852,10 @@ Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
+
+If the variable `line-move-visual' is non-nil, this command moves
+by display lines.  Otherwise, it moves by buffer lines, without
+taking variable-width characters or continued lines into account.
 
 The command \\[set-goal-column] can be used to create
 a semipermanent goal column for this command.
