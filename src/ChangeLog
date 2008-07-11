@@ -1,3 +1,22 @@
+2008-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (frame.o, keyboard.o, xdisp.o, xfaces.o):
+	Depend on macgui.h.
+
+	* macfns.c (Fx_server_version): Don't use gestaltSystemVersionMajor,
+	gestaltSystemVersionMinor, or gestaltSystemVersionBugFix.
+
+	* macterm.c (keycode_to_xkeysym_table): Add entries for f17, f18,
+	and f19.
+	[MAC_OSX] (fn_keycode_to_keycode_table): Likewise.
+
+	* macterm.h (gestaltSystemVersionMajor, gestaltSystemVersionMinor)
+	(gestaltSystemVersionBugFix) [MAC_OS_X_VERSION_MAX_ALLOWED < 1040]:
+	Remove enumerators.
+
+	* mactoolbox.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Check if FACE_FROM_ID returns NULL.
+
 2008-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (png_load): Use correct bit-depth for setting background
