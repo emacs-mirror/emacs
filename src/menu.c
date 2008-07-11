@@ -47,6 +47,7 @@ extern AppendMenuW_Proc unicode_append_menu;
 
 #endif /* HAVE_NTGUI  */
 
+#include "menu.h"
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)

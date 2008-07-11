@@ -94,6 +94,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef USE_GTK
+#include "gtkutil.h"
+#endif
+
+#include "menu.h"
+
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
@@ -125,7 +131,6 @@ static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
 #endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-#include "gtkutil.h"
 extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
 static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
 				     char **));
