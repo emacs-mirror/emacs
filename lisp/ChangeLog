@@ -1,3 +1,8 @@
+2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep-files-aliases): Improve the C++ source
+	pattern and add patterns for C++ header files.
+
 2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (truncated-partial-width-window-p): New function.
