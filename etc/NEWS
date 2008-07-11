@@ -533,6 +533,10 @@ running, (b) successful completion, (c) error.
 *** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
 
+*** The `cc' alias for C++ files in `grep-file-aliases' has been
+improved. `hh' can be used to match C++ header files and `cchh' both
+C++ sources and headers.
+
 ** Custom
 +++
 *** defcustom accepts new keyword arguments, `:safe' and `:risky', which
