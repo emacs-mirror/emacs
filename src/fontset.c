@@ -1623,6 +1623,7 @@ fontset_from_font (font_object)
   ASET (font_spec, FONT_REGISTRY_INDEX, Qiso10646_1);
   for (i = FONT_WEIGHT_INDEX; i < FONT_EXTRA_INDEX; i++)
     ASET (font_spec, i, Qnil);
+  Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qnil);
   Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
   return XINT (FONTSET_ID (fontset));
 }
