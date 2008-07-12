@@ -1004,17 +1004,17 @@ Most convenient for entering Russian, but all Cyrillic characters
 are included.  Should handle most cases.  However:
   for ,Lf(B (TSE) use \"c\", never \"ts\"
   ,Li(B (SHCHA = Bulgarian SHT) = \"shch\", \"sj\", \"/sht\" or \"/t\",
-  ,Lm(B (REVERSE ROUNDED E) = \"e'\" or \"e`\"
+  ,Lm(B (REVERSE ROUNDED E) = \"e\\\"
   ,Le(B (KHA) when after ,La(B (S) = \"x\" or \"kh\"
   ,Lj(B (HARD SIGN) = \"~\", ,LJ(B (CAPITAL HARD SIGN) = \"~~\",
   ,Ll(B (SOFT SIGN) = \"'\", ,LL(B (CAPITAL SOFT SIGN) = \"''\",
   ,Lo(B (YA) = \"ya\", \"ja\" or \"q\".
 
 Russian alphabet: a b v=w g d e yo=jo zh z i j=j' k l m n o p r s t
-u f h=kh=x c ch sh shch=sj=/s=/sht ~ y ' e' yu=ju ya=ja=q
+u f h=kh=x c ch sh shch=sj=/s=/sht ~ y ' e\\ yu=ju ya=ja=q
 
 Also included are Ukrainian ,Lt(B (YE) = \"/e\" and ,Lw(B (YI) = \"yi\",
-Belarusian ,L~(B (SHORT U) = \"u'\",
+Belarusian ,L~(B (SHORT U) = \"u~\",
 Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\",
 Macedonian ,Ls(B (GJE) = \"/g\", ,Lu(B (DZE) = \"/s\", ,L|(B (KJE) = \"/k\",
 cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
@@ -1022,57 +1022,57 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
- ("a" ?,LP(B) 
- ("a'" [",LP(B'"])  ("a`" [",LP$(O+\(B"]) ;; combining
+ ("a" ?,LP(B)
+ ("a'" [",LP$(O+Z(B"]) ("a`" [",LP$(O+\(B"]) ;; combining
  ("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B)
  ("e" ?,LU(B) ("je" ?,LU(B)
- ("e'" [",LU(B'"]) ("e`" [",LU$(O+\(B"]) ;; combining
+ ("e'" [",LU$(O+Z(B"]) ("e`" [",LU$(O+\(B"]) ;; combining
  ("yo" ?,Lq(B) ("jo" ?,Lq(B)
  ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B)
- ("i'" [",LX(B'"]) ("i`" [",LX(B`"]) ;; combining
+ ("i'" [",LX$(O+Z(B"]) ("i`" [",LX(B`"]) ;; combining
  ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
- ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) 
- ("o'" [",L^(B'"]) ("o`" [",L^$(O+\(B"]) ;; combining
- ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B) 
- ("u'" [",Lc(B'"]) ("u`" [",Lc$(O+\(B"]) ;; combining
- ("f" ?,Ld(B) ("h" ?,Le(B) ("kh" ?,Le(B)
+ ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B)
+ ("o'" [",L^$(O+Z(B"]) ("o`" [",L^$(O+\(B"]) ;; combining
+ ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B)
+ ("u'" [",Lc$(O+Z(B"]) ("u`" [",Lc$(O+\(B"]) ;; combining
+ ("f" ?,Ld(B) ("x" ?,Le(B) ("h" ?,Le(B) ("kh" ?,Le(B)
  ("c" ?,Lf(B) ("ch" ?,Lg(B)
  ("sh" ?,Lh(B)
  ("shch" ?,Li(B) ("sj" ?,Li(B)
  ("/sht" ?,Li(B) ("/t" ?,Li(B)
- ("~" ?,Lj(B) ("y" ?,Lk(B) ("x" ?,Le(B) ("'" ?,Ll(B)
- ("@" ?,Lm(B)
+ ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B)
+ ("@" ?,Lm(B) ("e\\" ?,Lm(B)
  ("yu" ?,Ln(B) ("ju" ?,Ln(B)
  ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
 
- ("A" ?,L0(B) 
- ("A'" [",L0(B'"])  ("A`" [",L0$(O+\(B"]) ;; COMBINING
+ ("A" ?,L0(B)
+ ("A'" [",L0$(O+Z(B"]) ("A`" [",L0$(O+\(B"]) ;; COMBINING
  ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B)
  ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
- ("E'" [",L5(B'"]) ("E`" [",L5$(O+\(B"]) ;; COMBINING
+ ("E'" [",L5$(O+Z(B"]) ("E`" [",L5$(O+\(B"]) ;; COMBINING
  ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B)
  ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B)
- ("I'" [",L8(B'"]) ("I`" [",L8(B`"]) ;; COMBINING
+ ("I'" [",L8$(O+Z(B"]) ("I`" [",L8(B`"]) ;; COMBINING
  ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
  ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B)
- ("O'" [",L>(B'"]) ("O`" [",L>$(O+\(B"]) ;; COMBINING
+ ("O'" [",L>$(O+Z(B"]) ("O`" [",L>$(O+\(B"]) ;; COMBINING
  ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
- ("U'" [",LC(B'"]) ("U`" [",LC$(O+\(B"]) ;; COMBINING
- ("F" ?,LD(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
+ ("U'" [",LC$(O+Z(B"]) ("U`" [",LC$(O+\(B"]) ;; COMBINING
+ ("F" ?,LD(B) ("X" ?,LE(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
  ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B)
  ("Sh" ?,LH(B) ("SH" ?,LH(B)
  ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B)
  ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B)
- ("~~" ?,LJ(B) ("Y" ?,LK(B) ("X" ?,LE(B) ("''" ?,LL(B)
- ("@@" ?,LM(B)
+ ("~~" ?,LJ(B) ("Y" ?,LK(B) ("''" ?,LL(B)
+ ("@@" ?,LM(B) ("E\\" ?,LM(B)
  ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B)
  ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
- ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
+ ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u~" ?,L~(B)
  ("/d" ?,Lr(B) ("/ch" ?,L{(B)
  ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
  ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
- ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B)
+ ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U~" ?,L.(B)
  ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
  ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B)
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
@@ -1127,26 +1127,26 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("/rxi" ?$(O,?(B)
  ("/rxii" ?$(O,@(B)
 
- ("/-"  ?$(G!9(B)
- ("/--" ?$(G!7(B)
- ("/*" ?$(O#@(B)
- ("/."	?$,1s$(B) ;; ONE DOT LEADER
- ("/.."	?$(G!-(B) ;; TWO DOT LEADER
- ("/..." ?$A!-(B);; HORIZONTAL ELLIPSIS
- ("/''" ?,Y!(B)
- ("/'" ?,F"(B)
- ("/``" ?,Y4(B)
- ("/`" ?,F!(B)
- ("/,," ?,Y%(B)
- ("/," ?$,1rz(B)
+ ("/-"  ?$(G!9(B)  ;; EN DASH
+ ("/--" ?$(G!7(B)  ;; EM DASH
+ ("/*" ?$(O#@(B)   ;; BULLET
+ ("/."	?$,1s$(B)  ;; ONE DOT LEADER
+ ("/.."	?$(G!-(B)  ;; TWO DOT LEADER
+ ("/..." ?$A!-(B) ;; HORIZONTAL ELLIPSIS
+ ("/,," ?,Y%(B)  ;; DOUBLE LOW-9 QUOTATION MARK
+ ("/," ?$,1rz(B)   ;; SINGLE LOW-9 QUOTATION MARK
+ ("/''" ?,Y!(B)  ;; RIGHT DOUBLE QUOTATION MARK
+ ("/'" ?,F"(B)   ;; RIGHT SINGLE QUOTATION MARK
+ ("/``" ?,Y4(B)  ;; LEFT DOUBLE QUOTATION MARK
+ ("/`" ?,F!(B)   ;; LEFT SINGLE QUOTATION MARK
+ ("/<<" ?,A+(B)  ;; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+ ("/>>" ?,A;(B)  ;; RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
 
  ("/&" ?,A'(B)
  ("/ab" ?,A'(B) 				; _,LPQ(B_,LWPf(B
  ("/pa" ?,A'(B) 				; _pa_ragraph
  ("/#" ?$,1uV(B)
  ("/no" ?$,1uV(B)				; _,L]^(B_,L\U`(B
- ("/<<" ?,A+(B)
- ("/>>" ?,A;(B)
 )
 
 ;; Originally from Yudit's `Belarusian input table according to
