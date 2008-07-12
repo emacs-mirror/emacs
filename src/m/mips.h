@@ -198,7 +198,6 @@ NOTE-END  */
 #define COFF
 #define TERMINFO
 #undef MAIL_USE_FLOCK  /* Someone should check this.  */
-#undef HAVE_UNION_WAIT
 #endif /* BSD_SYSTEM */
 
 #endif /* not __linux__ */

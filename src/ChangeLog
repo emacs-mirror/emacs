@@ -1,3 +1,22 @@
+2008-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* syswait.h: Remove old if 0 code.  Do not define WAITTYPE, it was
+	always defined as int.
+
+	* s/netbsd.h (HAVE_UNION_WAIT, HAVE_WAIT_HEADER, WAIT_USE_INT):
+	* s/gnu.h (HAVE_WAIT_HEADER, WAIT_USE_INT, HAVE_UNION_WAIT):
+	* s/gnu-linux.h (HAVE_WAIT_HEADER):
+	* s/freebsd.h (HAVE_WAIT_HEADER):
+	* s/bsd-common.h (HAVE_UNION_WAIT):
+	* s/aix4-2.h (HAVE_WAIT_HEADER):
+	* m/mips.h (HAVE_UNION_WAIT):
+	* s/usg5-4.h (HAVE_WAIT_HEADER, WAITTYPE): Do not define, not used.
+	(COFF, static): Do not define, they are undefined later in the file.
+
+	* process.c (update_status): Don't use a union.
+	(status_convert):
+	(sigchld_handler): Use int instead of WAITTYPE.
+
 2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): Restore hscroll before moving to

@@ -110,7 +110,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_1 -L/usr/local/lib
 
-#define HAVE_WAIT_HEADER
 #define HAVE_GETLOADAVG 1
 #define HAVE_TERMIOS
 #define NO_TERMIO

@@ -59,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_PTYS
 
-/* Define this macro if system defines a type `union wait'.  */
-
-#define HAVE_UNION_WAIT
-
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 
 #define HAVE_SOCKETS

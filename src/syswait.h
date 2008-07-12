@@ -26,11 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef VMS
 
-/* This is now really the approach recommended by Autoconf.  If this
-   doesn't cause trouble anywhere, remove the original code, which is
-   #if'd out below.  */
-
-#if 1
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
@@ -59,79 +54,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define WTERMSIG(status) ((status) & 0x7f)
 #endif
 
-#undef WAITTYPE
-#define WAITTYPE int
 #undef WRETCODE
 #define WRETCODE(status) WEXITSTATUS (status)
 
-#else  /* 0 */
-
-#ifndef WAITTYPE
-
-#ifdef WAIT_USE_INT
-/* Some systems have  union wait  in their header, but we should use
-   int regardless of that.  */
-#include <sys/wait.h>
-#define WAITTYPE int
-#define WRETCODE(w) WEXITSTATUS (w)
-
-#else /* not WAIT_USE_INT */
-
-#if (!defined (BSD_SYSTEM) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER))
-#define WAITTYPE int
-#define WIFSTOPPED(w) ((w&0377) == 0177)
-#define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
-#define WIFEXITED(w) ((w&0377) == 0)
-#define WRETCODE(w) (w >> 8)
-#define WSTOPSIG(w) (w >> 8)
-#define WTERMSIG(w) (w & 0177)
-#ifndef WCOREDUMP
-#define WCOREDUMP(w) ((w&0200) != 0)
-#endif
-
-#else
-
-#include <sys/wait.h>
-
-#define WAITTYPE union wait
-#define WRETCODE(w) w.w_retcode
-#undef WCOREDUMP		/* Later BSDs define this name differently.  */
-#define WCOREDUMP(w) w.w_coredump
-
-#if defined (HPUX) || defined (convex)
-/* HPUX version 7 has broken definitions of these.  */
-/* pvogel@convex.com says the convex does too.  */
-#undef WTERMSIG
-#undef WSTOPSIG
-#undef WIFSTOPPED
-#undef WIFSIGNALED
-#undef WIFEXITED
-#endif /* HPUX | convex */
-
-#ifndef WTERMSIG
-#define WTERMSIG(w) w.w_termsig
-#endif
-#ifndef WSTOPSIG
-#define WSTOPSIG(w) w.w_stopsig
-#endif
-#ifndef WIFSTOPPED
-#define WIFSTOPPED(w) (WTERMSIG (w) == 0177)
-#endif
-#ifndef WIFSIGNALED
-#define WIFSIGNALED(w) (WTERMSIG (w) != 0177 && (WSTOPSIG (w)) == 0)
-#endif
-#ifndef WIFEXITED
-#define WIFEXITED(w) (WTERMSIG (w) == 0)
-#endif
-#endif /* BSD_SYSTEM || HPUX */
-#endif /* not WAIT_USE_INT */
-#endif /* no WAITTYPE */
-
-#endif /* 0 */
-
 #else /* VMS */
 
-#define WAITTYPE int
 #define WIFSTOPPED(w) 0
 #define WIFSIGNALED(w) 0
 #define WIFEXITED(w) ((w) != -1)

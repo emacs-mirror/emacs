@@ -204,8 +204,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
-#define HAVE_WAIT_HEADER
-
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */

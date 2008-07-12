@@ -172,10 +172,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define POSIX_SIGNALS
 #undef sigmask
 
-/* Dave Love <d.love@dl.ac.uk> reported this as needed on AIX 4.1.
-   It is just a guess which versions of AIX need this definition.  */
-#define HAVE_WAIT_HEADER
-
 /* olson@mcs.anl.gov says -li18n is needed by -lXm.  */
 #define LIB_MOTIF -lXm -li18n
 

@@ -407,16 +407,14 @@ static char pty_name[24];
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
 
-static Lisp_Object status_convert ();
+static Lisp_Object status_convert (int);
 
 static void
 update_status (p)
      struct Lisp_Process *p;
 {
-  union { int i; WAITTYPE wt; } u;
   eassert (p->raw_status_new);
-  u.i = p->raw_status;
-  p->status = status_convert (u.wt);
+  p->status = status_convert (p->raw_status);
   p->raw_status_new = 0;
 }
 
@@ -424,8 +422,7 @@ update_status (p)
     the list that we use internally.  */
 
 static Lisp_Object
-status_convert (w)
-     WAITTYPE w;
+status_convert (int w)
 {
   if (WIFSTOPPED (w))
     return Fcons (Qstop, Fcons (make_number (WSTOPSIG (w)), Qnil));
@@ -6698,7 +6695,7 @@ sigchld_handler (signo)
   while (1)
     {
       pid_t pid;
-      WAITTYPE w;
+      int w;
       Lisp_Object tail;
 
 #ifdef WNOHANG
@@ -6770,12 +6767,10 @@ sigchld_handler (signo)
       /* Change the status of the process that was found.  */
       if (p != 0)
 	{
-	  union { int i; WAITTYPE wt; } u;
 	  int clear_desc_flag = 0;
 
 	  p->tick = ++process_tick;
-	  u.wt = w;
-	  p->raw_status = u.i;
+	  p->raw_status = w;
 	  p->raw_status_new = 1;
 
 	  /* If process has terminated, stop waiting for its output.  */

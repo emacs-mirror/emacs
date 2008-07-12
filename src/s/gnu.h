@@ -64,10 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef REL_ALLOC
 #endif
 
-#define HAVE_WAIT_HEADER
-#define WAIT_USE_INT
-#define HAVE_UNION_WAIT
-
 /* GNU needs its own crt0, and libc defines data_start.  */
 #define ORDINARY_LINK
 #define DATA_START ({ extern int data_start; (char *) &data_start; })

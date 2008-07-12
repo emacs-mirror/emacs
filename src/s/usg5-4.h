@@ -82,11 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define subprocesses
 
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
-#define COFF
-
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
    The alternative is that a lock file named
@@ -137,12 +132,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define rindex strrchr
 #endif /* ! defined (HAVE_RINDEX) */
 
-/* USG systems tend to put everything declared static
-   into the initialized data area, which becomes pure after dumping Emacs.
-   Foil this.  Emacs carefully avoids static vars inside functions.  */
-
-#define static
-
 /* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
 
 #define ADDR_CORRECT(x) (x)
@@ -185,12 +174,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define UNEXEC unexelf.o
 
-/* <sys/stat.h> *defines* stat(2) as a static function.  If "static"
- * is blank, then many files will have a public definition for stat(2).
- */
-
-#undef static
-
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct
  * tchars. But get <termio.h> first to make sure ttold.h doesn't
  * interfere.  And don't try to use SIGIO yet.
@@ -229,8 +212,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    without clearing the SIGCHLD pending info.  So, use a non-blocking
    wait3 instead, which maps to waitpid(2) in SysVr4. */
 
-#define HAVE_WAIT_HEADER
-#define WAITTYPE int
 #define wait3(status, options, rusage) \
   waitpid ((pid_t) -1, (status), (options))
 #define WRETCODE(w) (w >> 8)
