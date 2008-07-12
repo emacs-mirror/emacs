@@ -6,7 +6,7 @@
 	* quail/cyrillic.el ("cyrillic-translit"): Fix rules with
 	combining acute accent.  Add rules ("e\\" ?э) ("E\\" ?Э).
 	Change conflicting rules ("u'" ?ў) to ("u~" ?ў), and ("U'" ?Ў)
-	to ("U~" ?Ў).  Doc fix.
+	to ("U~" ?Ў).  Doc fix.  Put combining accent rules into one group.
 
 2008-07-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
