@@ -34,3 +34,6 @@ extern void find_and_call_menu_selection P_ ((FRAME_PTR, EMACS_INT,
 #endif
 
 #endif /* MENU_H */
+
+/* arch-tag: c32b2778-724d-4e85-81d7-45f98530a988
+   (do not change this comment) */
