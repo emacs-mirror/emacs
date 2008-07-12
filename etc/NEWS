@@ -48,10 +48,10 @@ OpenType fonts.
 *** Added support for the m17n library for text shaping.
 
 ** Changes to image support
-
+---
 *** configure now checks for libgif before libungif when searching for
 a GIF library.
-
++++
 *** Emacs now supports the SVG image format through librsvg2.
 
 ** The Mac Carbon port is no longer supported.
@@ -62,19 +62,21 @@ bindings for Emacs.
 
 ** Support for many obsolete platforms has been removed.
 See the list at the end of etc/MACHINES for details.
-
+---
 *** Support for systems without alloca has been removed.
-
+---
 *** Support for Sun windows has been removed.
+---
+*** The `emacstool' utility has been removed.
 
-** The `emacstool' utility has been removed.
-
+---
 ** The configure options `--with-gcc', `--without-gcc' have been removed.
 Configure will use gcc by default.  Set the CC environment variable if
 you need control over which C compiler is used.
 
 ** The refcards are now shipped as PDF files.
 
+---
 ** Emacs 23 comes with a new set of default icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The Emacs 22 icon is available as `emacs22.png' in the same location.
