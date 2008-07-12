@@ -1,3 +1,9 @@
+2008-07-12  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Use more correct IPA characters for English pronunciation.
+	Add the combining acute accent after the accented vowel in the
+	Russian example like it is used in dictionaries.
+
 2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
 
 	* images/splash.png:
