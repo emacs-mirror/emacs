@@ -1,3 +1,8 @@
+2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Handle null pixel position
+	gracefully.
+
 2008-07-11  Jason Rumney  <jasonr@gnu.org>
 
         * files.el (file-truename): Get truename of ancestors if file does
