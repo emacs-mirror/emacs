@@ -3993,21 +3993,20 @@ into account variable-width characters and line continuation.")
 ;; specified number of lines.
 (defun line-move-visual (arg &optional noerror)
   (unless (and (floatp temporary-goal-column)
-               (or (memq last-command '(next-line previous-line))
-                   ;; In case we're called from some other command.
-                   (eq last-command this-command)))
-    (setq temporary-goal-column
-          (/ (car (nth 2 (posn-at-point))) 1.0 (frame-char-width))))
-  (let ((moved (vertical-motion
-		(cons (or goal-column
-			  (truncate temporary-goal-column))
-		      arg))))
-    (or (= arg moved)
-	(unless noerror
-	  (signal (if (< arg 0)
-		      'beginning-of-buffer
-		    'end-of-buffer)
-		  nil)))))
+	       (or (memq last-command '(next-line previous-line))
+		   ;; In case we're called from some other command.
+		   (eq last-command this-command)))
+    (let ((x (car (nth 2 (posn-at-point)))))
+      (when x
+	(setq temporary-goal-column (/ (float x) (frame-char-width))))))
+  (or (= (vertical-motion
+	  (cons (or goal-column (truncate temporary-goal-column)) arg))
+	 arg)
+      (unless noerror
+	(signal (if (< arg 0)
+		    'beginning-of-buffer
+		  'end-of-buffer)
+		nil))))
 
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
