@@ -160,27 +160,29 @@ Sinhala, and TaiViet.
 unify-8859-on-decoding-mode are obsolete.
 
 ** Emacs now supports serial port access on GNU/Linux, Unix, and
-Windows.  `serial-term' starts an interactive terminal,
-`make-serial-process' and `serial-process-configure' provide a Lisp
-interface.  The serial port can be configured at runtime with the
-mode-line mouse menu.
+Windows.  The new command `serial-term' starts an interactive terminal
+on a serial port.  The serial port can be configured at runtime with
+the mode-line mouse menu.
 
 ** Menu Bar changes
-
+---
 *** In the Options menu, the "Set Default Font" item applies the
 selected font to the `default' face on all frames, not just the
 current frame.  Furthermore, if Emacs is compiled with both GTK and
 Fontconfig support, the "Set Default Font" item uses the GTK font
 selection dialog instead of an Emacs pop-up menu.
-
+---
 *** The font setting chosen by "Set Default Font" is saved if the
 "Save Options" item is used.
 
 *** The Tools menu contains a new Encryption/Decryption submenu.
 This contains commands provided by EasyPG, the newly-included
 interface to GnuPG (see New Modes and Packages).
-
-*** The Options menu contains a new entry to turn on Longlines mode.
+---
+*** In the Options menu, the "Truncate Long Lines in the Buffer" entry
+has been replaced with a submenu offering three different ways to
+handle long lines: truncation, continuation at the window edge, and
+the new word wrapping option (see Editing Changes, below).
 
 ** Mode-line changes
 
@@ -225,6 +227,7 @@ following arguments.
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
 
+---
 ** The following input methods were removed in Emacs 22.2, but this was
 not advertised: danish-alt-postfix, esperanto-alt-postfix,
 finnish-alt-postfix, german-alt-postfix, icelandic-alt-postfix,
@@ -1305,6 +1308,10 @@ specification.
 *** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
+
+*** The two new functions `make-serial-process' and
+`serial-process-configure' provide a Lisp interface to the new serial
+port support (see Emacs changes, above).
 
 ** Miscellaneous new variables
 
