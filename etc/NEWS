@@ -722,6 +722,9 @@ to update it to the new VC.
 *** In Change Log mode, the new command C-c C-f (change-log-find-file)
 finds the file associated with the current log entry.
 
+*** In Change Log mode, the new command C-c C-c (change-log-goto-source)
+goes to the source code associated with a log entry.
+
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
