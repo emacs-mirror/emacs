@@ -3002,10 +3002,9 @@ coefficient 30-choose-20, then determine its prime factorization.
 @end smallexample
 
 @noindent
-You can verify these prime factors by using @kbd{v u} to ``unpack''
-this vector into 8 separate stack entries, then @kbd{M-8 *} to
-multiply them back together.  The result is the original number,
-30045015.
+You can verify these prime factors by using @kbd{V R *} to multiply
+together the elements of this vector.  The result is the original
+number, 30045015.
 
 @cindex Hash tables
 Suppose a program you are writing needs a hash table with at least
@@ -20040,22 +20039,22 @@ from that point to the origin.
 @kindex v n
 @pindex calc-rnorm
 @tindex rnorm
-The @kbd{v n} (@code{calc-rnorm}) [@code{rnorm}] command computes
-the row norm, or infinity-norm, of a vector or matrix.  For a plain
-vector, this is the maximum of the absolute values of the elements.
-For a matrix, this is the maximum of the row-absolute-value-sums,
-i.e., of the sums of the absolute values of the elements along the
-various rows.
+The @kbd{v n} (@code{calc-rnorm}) [@code{rnorm}] command computes the
+infinity-norm of a vector, or the row norm of a matrix.  For a plain
+vector, this is the maximum of the absolute values of the elements.  For
+a matrix, this is the maximum of the row-absolute-value-sums, i.e., of
+the sums of the absolute values of the elements along the various rows.
 
 @kindex V N
 @pindex calc-cnorm
 @tindex cnorm
 The @kbd{V N} (@code{calc-cnorm}) [@code{cnorm}] command computes
-the column norm, or one-norm, of a vector or matrix.  For a plain
+the one-norm of a vector, or column norm of a matrix.  For a plain
 vector, this is the sum of the absolute values of the elements.
 For a matrix, this is the maximum of the column-absolute-value-sums.
 General @expr{k}-norms for @expr{k} other than one or infinity are
-not provided.
+not provided.  However, the 2-norm (or Frobenius norm) is provided for
+vectors by the @kbd{A} (@code{calc-abs}) command.
 
 @kindex V C
 @pindex calc-cross
