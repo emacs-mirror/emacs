@@ -149,7 +149,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define rindex strrchr
 #define unlink delete
 
-#ifndef _GNUC_
+#ifndef __GNUC__
 extern double mth$dmod(double, double);
 #endif
 

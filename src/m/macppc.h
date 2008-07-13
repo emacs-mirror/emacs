@@ -54,7 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* #define NO_SOCK_SIGIO */
 
-#if defined (LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
+#if defined (GNU_LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
 # define TEXT_END ({ extern int _etext; &_etext; })
 #endif
 
@@ -65,7 +65,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says this is needed
    For MkLinux/LinuxPPC.  */
 
-#ifdef LINUX
+#ifdef GNU_LINUX
 #define LINKER $(CC) -nostdlib
 /* s/gnu-linux.h defines this to `-z nocombreloc' which does not work here
    because prefix-args is not used.  */

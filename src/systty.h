@@ -109,12 +109,6 @@ static struct sensemode {
 #include <unistd.h>
 #endif
 
-#ifdef SYSV_PTYS
-#include <sys/types.h>
-#include <sys/tty.h>
-#include <sys/pty.h>
-#endif
-
 
 /* Special cases - inhibiting the use of certain features.  */
 

@@ -1,3 +1,24 @@
+2008-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/vms.h: Use __GNUC__ instead of _GNUC_.
+
+	* m/macppc.h:
+	* m/alpha.h: Use GNU_LINUX instead of LINUX.  Reorganize conditionals.
+
+	* m/ibms390x.h (XINT, XUINT): Don't define, same as the default
+	(SPECIAL_EMACS_INT): 
+	* m/ia64.h (SPECIAL_EMACS_INT): 
+	* m/amdx86-64.h (SPECIAL_EMACS_INT):
+	* s/gnu.h (NLIST_STRUCT):
+	* aix4-2.h (X11R5_INHIBIT_I18N):
+	* s/gnu-linux.h (LINUX):
+	* s/msdos.h (HAVE_FACES):
+	* s/ms-w32.h (HAVE_FACES): Don't define, unused.
+
+	* systty.h: 
+	* sysdep.c (setup_pty): Don't depend on SYSV_PTYS, it is not used
+	anymore.
+
 2008-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* syswait.h: Remove old if 0 code.  Do not define WAITTYPE, it was

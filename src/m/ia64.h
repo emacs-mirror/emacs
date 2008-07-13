@@ -42,7 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define the type to use.  */
 #define EMACS_INT		long
 #define EMACS_UINT		unsigned long
-#define SPECIAL_EMACS_INT
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields

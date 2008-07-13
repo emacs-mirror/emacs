@@ -48,7 +48,6 @@ NOTE-END */
 /* Define the type to use.  */
 #define EMACS_INT long
 #define EMACS_UINT unsigned long
-#define SPECIAL_EMACS_INT
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -125,10 +124,6 @@ NOTE-END */
 #define VALBITS         60
 
 #define LINKER $(CC) -nostdlib
-
-/* Define XINT and XUINT so that they can take arguments of type int */
-#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
-#define XUINT(a) ((long) (a) & VALMASK)
 
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 

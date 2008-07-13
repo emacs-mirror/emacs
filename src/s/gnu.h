@@ -27,8 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef SYSTEM_TYPE
 #define SYSTEM_TYPE "gnu"
 
-#undef NLIST_STRUCT
-
 /* XXX should getloadavg be in libc?  Should we have a libutil?
 #define HAVE_GETLOADAVG */
 #undef NLIST_STRUCT

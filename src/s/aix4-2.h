@@ -141,13 +141,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define C_SWITCH_SYSTEM -ma -qmaxmem=4000
 #endif
 
-/* The character-composition stuff is broken in X11R5.
-   Even with XIMStatusNothing aliased to XIMStatusNone,
-   tranle@intellicorp.com (Minh Tran-Le) reports that enabling
-   the internationalization code causes the modifier keys C, M and Shift
-   to beep after a mouse click.  */
-#define X11R5_INHIBIT_I18N
-
 /* string.h defines rindex as a macro, at least with native cc, so we
    lose declaring char * rindex without this.
    It is just a guess which versions of AIX need this definition.  */

@@ -296,7 +296,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
-#define HAVE_FACES 1
 #define HAVE_MENUS 1
 #endif
 

@@ -50,8 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 /* Some versions of V.3 have this, but not all.
-   #define HAVE_PTYS
-   #define SYSV_PTYS  */
+   #define HAVE_PTYS  */
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 
