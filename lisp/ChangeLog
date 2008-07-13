@@ -5,8 +5,8 @@
 
 2008-07-13  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
-	(calc-describe-thing): Use `re-search-forward' to search for
-	regexp.
+	* calc-help.el (calc-describe-thing): Use `re-search-forward' to
+	search for regexp.
 
 2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
