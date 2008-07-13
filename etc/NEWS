@@ -185,7 +185,7 @@ handle long lines: truncation, continuation at the window edge, and
 the new word wrapping option (see Editing Changes, below).
 
 ** Mode-line changes
-
++++
 *** The mode-line displays a `@', instead of `-', if the
 default-directory for the current buffer is on a remote machine.
 
@@ -203,6 +203,7 @@ variables.  For more information, see `set-directory-project' and
 
 * Startup Changes in Emacs 23.1
 
++++
 ** The option `inhibit-startup-screen' (with aliases to old names
 `inhibit-splash-screen' and `inhibit-startup-message') doesn't inhibit
 display of the initial message in the *scratch* buffer.  If you don't
@@ -534,6 +535,14 @@ It has been used to add items to the list `holiday-oriental-holidays'.
 *** `diary-remind' accepts a negative number -DAYS as a shorthand for
 the list (1 2 ... DAYS).
 
+** Change Log mode
+
+*** The new command C-c C-f (change-log-find-file) finds the file
+associated with the current log entry.
+
+*** The new command C-c C-c (change-log-goto-source) goes to the
+source code associated with a log entry.
+
 ** Compile and grep modes
 
 *** The mode-line entry for the *compilation* and *grep* buffer is color coded.
@@ -718,12 +727,6 @@ by typing the D key or using the "Changeset Diff" menu entry.
 to update it to the new VC.
 
 ** Miscellaneous
-
-*** In Change Log mode, the new command C-c C-f (change-log-find-file)
-finds the file associated with the current log entry.
-
-*** In Change Log mode, the new command C-c C-c (change-log-goto-source)
-goes to the source code associated with a log entry.
 
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
