@@ -550,7 +550,7 @@ seconds.  This value could be even smaller, depending on the calling
 client.  Therefore, @var{handler} shall not last longer than
 absolutely necessary.
 
-@code{dbus-register-method} returns a Lisp symbol, which can be used
+@code{dbus-register-method} returns a Lisp object, which can be used
 as argument in @code{dbus-unregister-object} for removing the
 registration for @var{method}.  Example:
 
@@ -623,7 +623,7 @@ Conversion}.  Example:
 @end lisp
 @end defun
 
-@defun dbus-register-signal bus service path interface signal handler
+@defun dbus-register-signal bus service path interface signal handler &rest args
 With this function, an application registers for @var{signal} on the
 D-Bus @var{bus}.
 
@@ -648,7 +648,16 @@ provide @var{signal}.
 
 @var{handler} is a Lisp function to be called when the @var{signal} is
 received.  It must accept as arguments the output parameters
-@var{signal} is sending.  Example:
+@var{signal} is sending.
+
+All other arguments @var{args}, if specified, must be strings.  They
+stand for the respective arguments of @var{signal} in their order, and
+are used for filtering as well.  A @code{nil} argument might be used
+to preserve the order.
+
+@code{dbus-register-signal} returns a Lisp object, which can be used
+as argument in @code{dbus-unregister-object} for removing the
+registration for @var{signal}.  Example:
 
 @lisp
 (defun my-dbus-signal-handler (device)
@@ -673,10 +682,6 @@ The callback function @code{my-dbus-signal-handler} must define one
 single string argument therefore.  Plugging an USB device to your
 machine, when registered for signal @code{DeviceAdded}, will show you
 which objects the GNU/Linux @code{hal} daemon adds.
-
-@code{dbus-register-signal} returns a Lisp symbol, which can be used
-as argument in @code{dbus-unregister-object} for removing the
-registration for @var{signal}.
 @end defun
 
 @defun dbus-unregister-object object
