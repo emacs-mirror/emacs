@@ -1,3 +1,12 @@
+2008-07-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-search-file-name): Use match-string-no-properties.
+	(change-log-search-tag-name-1, change-log-search-tag-name)
+	(change-log-goto-source-1, change-log-goto-source): New functions.
+	(change-log-tag-re, change-log-find-head, change-log-find-tail):
+	New variables.
+	(change-log-mode-map): Bind C-c C-c to change-log-goto-source.
+
 2008-07-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc-help.el (calc-describe-key): Add angles to special key
