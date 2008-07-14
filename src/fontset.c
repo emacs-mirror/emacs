@@ -27,10 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define FONTSET_DEBUG */
 
 #include <config.h>
-
-#ifdef FONTSET_DEBUG
 #include <stdio.h>
-#endif
 
 #include "lisp.h"
 #include "blockinput.h"
