@@ -4,6 +4,11 @@
 	Add the combining acute accent after the accented vowel in the
 	Russian example like it is used in dictionaries.
 
+2008-07-11  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change the Arabic words apearing in Non-ASCII examples to
+	iso-8859-6 characters.
+
 2008-07-02  Francesc Rocher  <rocher@member.fsf.org>
 
 	* images/splash.png:
