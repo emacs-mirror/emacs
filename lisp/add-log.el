@@ -500,7 +500,7 @@ comma-separated list."
 	     (tag (car tag-at))
 	     (file (when tag-at
 		     (change-log-search-file-name (cdr tag-at)))))
-	(if (not tag)
+	(if (or (not tag) (not file))
 	    (error "No suitable tag near `point'")
 	  (setq change-log-find-head
 		(list tag (concat "\\_<" (regexp-quote tag) "\\_>")
