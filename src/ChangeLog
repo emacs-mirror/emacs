@@ -1,3 +1,10 @@
+2008-07-14  Jason Rumney  <jasonr@gnu.org>
+
+        * w32fns.c (w32_get_arg): Remove wrapper function.
+        (w32_createwindow, x_icon, x_create_tip_frame): Use x_get_arg
+        directly.
+        (Fx_create_frame): Sync with xfns.c.  Use x_get_arg directly.
+
 2008-07-14  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open): Add workaround for X's bug.

@@ -1985,32 +1985,8 @@ void x_set_scroll_bar_default_width (f)
 }
 
 
-/* Subroutines of creating a frame.  */
+/* Subroutines for creating a frame.  */
 
-
-/* Return the value of parameter PARAM.
-
-   First search ALIST, then Vdefault_frame_alist, then the X defaults
-   database, using ATTRIBUTE as the attribute name and CLASS as its class.
-
-   Convert the resource to the type specified by desired_type.
-
-   If no default is specified, return Qunbound.  If you call
-   w32_get_arg, make sure you deal with Qunbound in a reasonable way,
-   and don't let it get stored in any Lisp-visible variables!  */
-
-static Lisp_Object
-w32_get_arg (alist, param, attribute, class, type)
-     Lisp_Object alist, param;
-     char *attribute;
-     char *class;
-     enum resource_types type;
-{
-  return x_get_arg (check_x_display_info (Qnil),
-		    alist, param, attribute, class, type);
-}
-
-
 Cursor
 w32_load_cursor (LPCTSTR name)
 {
@@ -2074,6 +2050,7 @@ w32_createwindow (f)
   RECT rect;
   Lisp_Object top = Qunbound;
   Lisp_Object left = Qunbound;
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
 
   rect.left = rect.top = 0;
   rect.right = FRAME_PIXEL_WIDTH (f);
@@ -2098,8 +2075,8 @@ w32_createwindow (f)
     {
       /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
 	 for anything that is not a number and is not Qunbound.  */
-      left = w32_get_arg (Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
-      top = w32_get_arg (Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+      left = x_get_arg (dpyinfo, Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
+      top = x_get_arg (dpyinfo, Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
     }
 
   FRAME_W32_WINDOW (f) = hwnd
@@ -4140,11 +4117,12 @@ x_icon (f, parms)
      Lisp_Object parms;
 {
   Lisp_Object icon_x, icon_y;
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
 
   /* Set the position of the icon.  Note that Windows 95 groups all
      icons in the tray.  */
-  icon_x = w32_get_arg (parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
-  icon_y = w32_get_arg (parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
+  icon_x = x_get_arg (dpyinfo, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
+  icon_y = x_get_arg (dpyinfo, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
       CHECK_NUMBER (icon_x);
@@ -4161,7 +4139,7 @@ x_icon (f, parms)
 #if 0 /* TODO */
   /* Start up iconic or window? */
   x_wm_set_window_state
-    (f, (EQ (w32_get_arg (parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL), Qicon)
+    (f, (EQ (x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL), Qicon)
 	 ? IconicState
 	 : NormalState));
 
@@ -4302,8 +4280,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object parent;
   struct kboard *kb;
 
-  check_w32 ();
-
   /* Make copy of frame parameters because the original is in pure
      storage now. */
   parameters = Fcopy_alist (parameters);
@@ -4312,7 +4288,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = w32_get_arg (parameters, Qdisplay, 0, 0, RES_TYPE_STRING);
+  display = x_get_arg (dpyinfo, parameters, Qterminal, 0, 0, RES_TYPE_NUMBER);
+  if (EQ (display, Qunbound))
+    display = x_get_arg (dpyinfo, parameters, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
@@ -4322,7 +4300,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   kb = &the_only_kboard;
 #endif
 
-  name = w32_get_arg (parameters, Qname, "name", "Name", RES_TYPE_STRING);
+  if (!dpyinfo->terminal->name)
+    error ("Terminal is not live, can't create new frames on it");
+
+  name = x_get_arg (dpyinfo, parameters, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -4332,7 +4313,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     Vx_resource_name = name;
 
   /* See if parent window is specified.  */
-  parent = w32_get_arg (parameters, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
+  parent = x_get_arg (dpyinfo, parameters, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
@@ -4343,7 +4324,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
   GCPRO4 (parameters, parent, name, frame);
-  tem = w32_get_arg (parameters, Qminibuffer, "minibuffer", "Minibuffer",
+  tem = x_get_arg (dpyinfo, parameters, Qminibuffer, "minibuffer", "Minibuffer",
                      RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
@@ -4376,14 +4357,19 @@ This function is an internal primitive--use `make-frame' instead.  */)
   record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
-    = w32_get_arg (parameters, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
+    = x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
+                   RES_TYPE_STRING);
   if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
-#ifdef MULTI_KBOARD
-  FRAME_KBOARD (f) = kb;
-#endif
+
+  /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  record_unwind_protect (unwind_create_frame, frame);
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 
   /* Specify the parent under which to make this window.  */
 
@@ -4427,14 +4413,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_font_parameter (f, parameters);
   x_default_parameter (f, parameters, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
-  /* This defaults to 2 in order to match xterm.  We recognize either
-     internalBorderWidth or internalBorder (which is what xterm calls
-     it).  */
+
+  /* We recognize either internalBorderWidth or internalBorder 
+     (which is what xterm calls it).  */
   if (NILP (Fassq (Qinternal_border_width, parameters)))
     {
       Lisp_Object value;
 
-      value = w32_get_arg (parameters, Qinternal_border_width,
+      value = x_get_arg (dpyinfo, parameters, Qinternal_border_width,
                            "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qinternal_border_width, value),
@@ -4501,7 +4487,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   window_prompting = x_figure_window_size (f, parameters, 1);
 
-  tem = w32_get_arg (parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
+  tem = x_get_arg (dpyinfo, parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   w32_window (f, window_prompting, minibuffer_only);
@@ -4553,7 +4539,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       Lisp_Object visibility;
 
-      visibility = w32_get_arg (parameters, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
+      visibility = x_get_arg (dpyinfo, parameters, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
       if (EQ (visibility, Qunbound))
 	visibility = Qt;
 
@@ -5442,7 +5428,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 #endif
 
   /* Get the name of the frame to use for resource lookup.  */
-  name = w32_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
+  name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && !EQ (name, Qunbound)
       && !NILP (name))
@@ -5532,7 +5518,7 @@ x_create_tip_frame (dpyinfo, parms, text)
     {
       Lisp_Object value;
 
-      value = w32_get_arg (parms, Qinternal_border_width,
+      value = x_get_arg (dpyinfo, parms, Qinternal_border_width,
 			 "internalBorder", "internalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
