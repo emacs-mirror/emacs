@@ -1,3 +1,7 @@
+2008-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Add workaround for X's bug.
+
 2008-07-14  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* fontset.c: Include <stdio.h> unconditionally.
