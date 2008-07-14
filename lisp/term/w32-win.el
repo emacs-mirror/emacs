@@ -154,30 +154,53 @@ the last file dropped is selected."
   "Handle SWITCH of the form \"-switch value\" or \"-switch\"."
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(push (cons (nth 3 aelt) (or (nth 4 aelt) (pop x-invocation-args)))
-	      default-frame-alist))))
+        (let ((param (nth 3 aelt))
+              (value (nth 4 aelt)))
+          (if value
+              (setq default-frame-alist
+                    (cons (cons param value)
+                          default-frame-alist))
+            (setq default-frame-alist
+                  (cons (cons param
+                              (car x-invocation-args))
+                        default-frame-alist)
+                  x-invocation-args (cdr x-invocation-args)))))))
 
 (defun x-handle-numeric-switch (switch)
   "Handle SWITCH of the form \"-switch n\"."
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(push (cons (nth 3 aelt) (string-to-number (pop x-invocation-args)))
-	      default-frame-alist))))
+        (let ((param (nth 3 aelt)))
+          (setq default-frame-alist
+                (cons (cons param
+                            (string-to-number (car x-invocation-args)))
+                      default-frame-alist)
+                x-invocation-args
+                (cdr x-invocation-args))))))
 
 ;; Handle options that apply to initial frame only
 (defun x-handle-initial-switch (switch)
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(push (cons (nth 3 aelt) (or (nth 4 aelt) (pop x-invocation-args)))
-	      initial-frame-alist))))
+        (let ((param (nth 3 aelt))
+              (value (nth 4 aelt)))
+          (if value
+              (setq initial-frame-alist
+                    (cons (cons param value)
+                          initial-frame-alist))
+            (setq initial-frame-alist
+                  (cons (cons param
+                              (car x-invocation-args))
+                        initial-frame-alist)
+                  x-invocation-args (cdr x-invocation-args)))))))
 
 (defun x-handle-iconic (switch)
   "Make \"-iconic\" SWITCH apply only to the initial frame."
-  (push '(visibility . icon) initial-frame-alist))
+  (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
 
 (defun x-handle-xrm-switch (switch)
   "Handle the \"-xrm\" SWITCH."
-  (or (consp x-invocation-args)
+  (unless (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-command-line-resources
 	(if (null x-command-line-resources)
@@ -221,15 +244,26 @@ the last file dropped is selected."
 ;; to the option's operand; set the name of the initial frame, too.
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq x-resource-name (pop x-invocation-args))
-  (push (cons 'name x-resource-name) initial-frame-alist))
+  (setq x-resource-name (car x-invocation-args)
+        x-invocation-args (cdr x-invocation-args))
+  (setq initial-frame-alist (cons (cons 'name x-resource-name)
+                                  initial-frame-alist)))
 
 (defvar x-display-name nil
   "The display name specifying server and frame.")
 
 (defun x-handle-display (switch)
   "Handle the \"-display\" SWITCH."
-  (setq x-display-name (pop x-invocation-args)))
+  (setq x-display-name (car x-invocation-args)
+        x-invocation-args (cdr x-invocation-args))
+  ;; Make subshell programs see the same DISPLAY value Emacs really uses.
+  ;; Note that this isn't completely correct, since Emacs can use
+  ;; multiple displays.  However, there is no way to tell an already
+  ;; running subshell which display the user is currently typing on.
+
+  ;; On Windows, this will not have any affect on Windows programs,
+  ;; but might be useful for X programs (running under Cygwin, tramp etc).
+  (setenv "DISPLAY" x-display-name))
 
 (defun x-handle-args (args)
   "Process the X-related command line options in ARGS.
@@ -273,7 +307,7 @@ This returns ARGS with the arguments that have been processed removed."
 		     (cons argval x-invocation-args)))
 		(funcall handler this-switch))
 	    (funcall handler this-switch))
-	(push orig-this-switch args))))
+	(setq args (cons orig-this-switch args)))))
   (nconc (nreverse args) x-invocation-args))
 
 ;;
@@ -381,7 +415,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
   (let ((defined-colors nil))
     (dolist (this-color (or (mapcar 'car w32-color-map) x-colors))
       (and (color-supported-p this-color frame t)
-	   (push this-color defined-colors)))
+	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
 
@@ -507,18 +541,23 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
           ;; All geometry parms apply to the initial frame.
           (setq initial-frame-alist (append initial-frame-alist parsed))
           ;; The size parms apply to all frames.
-          (if (assq 'height parsed)
-              (push (cons 'height (cdr (assq 'height parsed)))
-                    default-frame-alist))
-          (if (assq 'width parsed)
-              (push (cons 'width (cdr (assq 'width parsed)))
-                    default-frame-alist)))))
+          (if (and (assq 'height parsed)
+                   (not (assq 'height default-frame-alist)))
+              (setq default-frame-alist
+                    (cons (cons 'height (cdr (assq 'height parsed)))
+                          default-frame-alist))
+          (if (and (assq 'width parsed)
+                   (not (assq 'width default-frame-alist)))
+              (setq default-frame-alist
+                    (cons (cons 'width (cdr (assq 'width parsed)))
+                          default-frame-alist)))))))
 
   ;; Check the reverseVideo resource.
   (let ((case-fold-search t))
     (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
       (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
-          (push '(reverse . t) default-frame-alist))))
+          (setq default-frame-alist
+                (cons '(reverse . t) default-frame-alist)))))
 
   ;; Don't let Emacs suspend under w32 gui
   (add-hook 'suspend-hook 'x-win-suspend-error)

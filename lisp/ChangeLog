@@ -1,3 +1,11 @@
+2008-07-14  Jason Rumney  <jasonr@gnu.org>
+
+        * term/w32-win.el (x-handle-switch, x-handle-name-switch)
+        (x-handle-numeric-switch, x-handle-initial-switch)
+        (x-handle-xrm-switch, x-handle-args, x-handle-display)
+        (xw-defined-colors, w32-initialize-window-system):
+        Avoid use of cl pop and push macros.
+
 2008-07-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* add-log.el (change-log-goto-source): Avoid wrong-type-argument
