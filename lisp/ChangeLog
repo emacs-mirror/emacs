@@ -1,3 +1,8 @@
+2008-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-goto-source): Avoid wrong-type-argument
+	error when change-log-search-file-name returns nil.
+
 2008-07-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* add-log.el (change-log-search-file-name): Use match-string-no-properties.
