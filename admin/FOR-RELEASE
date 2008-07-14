@@ -276,7 +276,7 @@ variables.texi
 windows.texi
 
 * PLANNED ADDITIONS
-** ECB
+** CEDET
 ** Emacs.app
 ** ruby-mode
 ** js2-mode
