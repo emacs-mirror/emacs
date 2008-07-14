@@ -540,6 +540,35 @@ xfont_open (f, entity, pixel_size)
       x_clear_errors (display);
       xfont = NULL;
     }
+  else if (! xfont)
+    {
+      /* Some version of X lists:
+	   -misc-fixed-medium-r-normal--20-*-75-75-c-100-iso8859-1
+	   -misc-fixed-medium-r-normal--20-*-100-100-c-100-iso8859-1
+	 but can open only:
+	   -misc-fixed-medium-r-normal--20-*-100-100-c-100-iso8859-1
+	 and
+	   -misc-fixed-medium-r-normal--20-*-*-*-c-100-iso8859-1
+	 So, we try again with wildcards in RESX and RESY.  */
+      Lisp_Object temp;
+
+      temp = Fcopy_font_spec (entity);
+      ASET (temp, FONT_DPI_INDEX, Qnil);
+      len = font_unparse_xlfd (temp, pixel_size, name, 256);
+      if (len <= 0)
+	{
+	  font_add_log ("  x:unparse failed", temp, Qnil);
+	  return Qnil;
+	}
+      xfont = XLoadQueryFont (display, name);
+      if (x_had_errors_p (display))
+	{
+	  /* This error is perhaps due to insufficient memory on X server.
+	     Let's just ignore it.  */
+	  x_clear_errors (display);
+	  xfont = NULL;
+	}
+    }
   fullname = Qnil;
   /* Try to get the full name of FONT.  */
   if (xfont && XGetFontProperty (xfont, XA_FONT, &value))
