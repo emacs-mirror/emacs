@@ -1,5 +1,9 @@
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
 
+	* FOR-RELEASE: Remove historical info.
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
 	New directory with support files to support NeXTstep window system.
 
 	* AUTHORS: New file: contributor information for NS port.
