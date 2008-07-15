@@ -1,5 +1,9 @@
 2008-07-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* entering.texi (Entering Emacs): Update prev node.
+
+	* glossary.texi (Glossary): Remove xref to Text Characters.
+
 	* commands.texi (User Input): Rewrite.  Describe Emacs' behavior
 	directly, rather than in the context of ASCII.  Move description of
 	special properties of modifier key to new Modifier Keys node.
