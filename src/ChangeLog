@@ -77,8 +77,7 @@
 	toolkit where they differ.
 	(parse_menu_item): Prefer keybindings using 'super' modifier.  Also,
 	use cachelist, still needed under NS.
-	* keyboard.h (ENCODE_MENU_STRING, XtPointer, Boolean): Handle as
-	NTGUI.
+	* keyboard.h (ENCODE_MENU_STRING, XtPointer, Boolean): Handle as NTGUI.
 	(struct widget_value): Define it here for menu.c.
 	* keymap.c (includes): Include modifier internals.
 	(lisp_to_mod, modifier_sequence_p): New functions, compiled only under
@@ -132,8 +131,8 @@
 	(hourglass_atimer, Vhourglass_delay
 	* xfaces.c (header section, init_frame_faces, clear_font_table)
 	(defined_color, unload_color, x_face_list_fonts)
-	(prepare_face_for_display): Add NS support parallel to other GUIs)
-	(emulate GCs like other non-X GUIs.
+	(prepare_face_for_display): Add NS support parallel to other GUIs.
+	Emulate GCs like other non-X GUIs.
 	(split_font_name): Don't lowercase font name under NS.
 	(merge_face_ref, Finternal_set_lisp_face_attribute): Support stippling
 	under NS.
@@ -141,20 +140,20 @@
 
 2008-07-15  Jason Rumney  <jasonr@gnu.org>
 
-        * w32fns.c (Fx_create_frame): Remove duplicate unwind_protect.
-        (w32_show_hourglass): Rename from show_hourglass.
-        (w32_hide_hourglass): Rename from hide_hourglass.
-        (DEFAULT_HOURGLASS_DELAY): Revert from last change.
-        (Vhourglass_delay): Declare extern.
-        (hourglass_started): Remove.
+	* w32fns.c (Fx_create_frame): Remove duplicate unwind_protect.
+	(w32_show_hourglass): Rename from show_hourglass.
+	(w32_hide_hourglass): Rename from hide_hourglass.
+	(DEFAULT_HOURGLASS_DELAY): Revert from last change.
+	(Vhourglass_delay): Declare extern.
+	(hourglass_started): Remove.
 
-        * xdisp.c (Vhourglass_delay): Remove static.
-        (hourglass_started, start_hourglass, cancel_hourglass):
-        Don't include these versions on WINDOWSNT.
+	* xdisp.c (Vhourglass_delay): Remove static.
+	(hourglass_started, start_hourglass, cancel_hourglass):
+	Don't include these versions on WINDOWSNT.
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-        * dispextern.h (hourglass_shown_p, hourglass_atimer): New extern
+	* dispextern.h (hourglass_shown_p, hourglass_atimer): New extern
 	variables (formerly in xfns.c).
 	(show_hourglass, hide_hourglass): New prototypes (same).
 	* xdisp.c (display_hourglass_p, hourglass_shown_p, hourglass_atimer)
@@ -185,10 +184,10 @@
 
 2008-07-14  Jason Rumney  <jasonr@gnu.org>
 
-        * w32fns.c (w32_get_arg): Remove wrapper function.
-        (w32_createwindow, x_icon, x_create_tip_frame): Use x_get_arg
-        directly.
-        (Fx_create_frame): Sync with xfns.c.  Use x_get_arg directly.
+	* w32fns.c (w32_get_arg): Remove wrapper function.
+	(w32_createwindow, x_icon, x_create_tip_frame): Use x_get_arg
+	directly.
+	(Fx_create_frame): Sync with xfns.c.  Use x_get_arg directly.
 
 2008-07-14  Kenichi Handa  <handa@m17n.org>
 

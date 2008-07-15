@@ -1,5 +1,7 @@
 -*- outline -*-
 
+* BUGS
+** Fix char_quoted's workaround.
 * NON-SPECIFIC
 
 ** Remove Feval calls relating to insert working text in isearch mode.
