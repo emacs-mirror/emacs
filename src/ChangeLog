@@ -1,5 +1,10 @@
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
 
+	* Makefile.in: Correct additions for nsfont.o in last commit.
+	* nsfont.m: New file (forgot last commit).
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
 	Changes and additions for NeXTstep windowing system (Cocoa and
 	GNUstep) support.
 
