@@ -1,3 +1,8 @@
+2008-07-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (parse_menu_item): Don't use cachelist, even under NS.
+	If the cache doesn't work, let's fix it, rather than work around it.
+
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in: Correct additions for nsfont.o in last commit.
@@ -61,7 +66,7 @@
 	(x_build_heuristic_mask, syms_of_image): Add NS support parallel to
 	other GUIs, including XPM support using code originally written for
 	Carbon GUI.
-	(png_load, jpeg_load, tiff_load, gif_load): Added implementations
+	(png_load, jpeg_load, tiff_load, gif_load): Add implementations
 	using NS API.
 	(image_ascent): Use font metrics macros instead of direct struct field
 	access.

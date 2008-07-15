@@ -7996,15 +7996,10 @@ parse_menu_item (item, notreal, inmenubar)
       /* With the introduction of where_is_cache, the computation
          of equivalent key bindings is sufficiently fast that we
          do not need to cache it here any more. */
-/*PENDING: under NS this effect does not hold, perhaps due to the
-           modifier-preference changes to where-is-internal.. */
-#ifdef HAVE_NS
-       CHECK_IMPURE (start);
-       XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
-       cachelist = XCAR (XCDR (start));
-#else
+      /* CHECK_IMPURE (start);
+         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
+	 cachelist = XCAR (XCDR (start));  */
       cachelist = Fcons (Qnil, Qnil);
-#endif
       newcache = 1;
       tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (!NILP (keyhint))
