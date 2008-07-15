@@ -478,3 +478,6 @@ static EmacsImage *ImageList = nil;
 }
 
 @end
+
+/* arch-tag: 6b310280-6892-4e5e-8f34-41c4d384874f
+   (do not change this comment) */

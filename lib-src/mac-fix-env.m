@@ -69,3 +69,6 @@ int main(int argc, char *argv[])
     NSLog(@":\nWrote file to '%@'.\nPlease inspect it to make sure PATH is correct.", file);
     return 0;
 }
+
+/* arch-tag: 609d5528-5ac1-42c5-859b-24c14341ee3b
+   (do not change this comment) */

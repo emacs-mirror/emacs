@@ -1946,3 +1946,6 @@ syms_of_nsmenu ()
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
 }
+
+/* arch-tag: 75773656-52e5-4c44-a398-47bd87b32619
+   (do not change this comment) */
