@@ -156,10 +156,9 @@ Case conversion means changing text from upper case to lower case or
 vice versa.  @xref{Case}, for the commands for case conversion.
 
 @item Character
-Characters form the contents of an Emacs buffer; see @ref{Text
-Characters}.  Also, key sequences (q.v.@:) are usually made up of
-characters (though they may include other input events as well).
-@xref{User Input}.
+Characters form the contents of an Emacs buffer.  Also, key sequences
+(q.v.@:) are usually made up of characters (though they may include
+other input events as well).  @xref{User Input}.
 
 @item Character Set
 Emacs supports a number of character sets, each of which represents a
@@ -879,7 +878,7 @@ all.  @xref{Narrowing}.
 
 @item Newline
 Control-J characters in the buffer terminate lines of text and are
-therefore also called newlines.  @xref{Text Characters,Newline}.
+therefore also called newlines.
 
 @cindex nil
 @cindex t
