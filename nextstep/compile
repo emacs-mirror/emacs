@@ -221,3 +221,5 @@ ln -sf ../libexec/* .
 echo ""
 echo "Build successful."
 echo ""
+
+# arch-tag: 1fda51a1-d908-4e60-ad5e-47ffbb39f18d

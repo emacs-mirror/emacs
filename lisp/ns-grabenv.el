@@ -65,3 +65,5 @@ commands for it to execute (defaults to \"printenv\")."
 ; gives the path to the shell (defaults to the current setting of
 ; shell-file-name).  The remaining arguments are interpreted as a list of
 ; commands for it to execute (defaults to \"printenv\")." nil nil)
+
+;; arch-tag: e65e1dd8-1566-460c-ad66-07948588be56

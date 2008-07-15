@@ -35,3 +35,5 @@
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
+
+;; arch-tag: b03b7d78-2b97-4953-90be-5d4f71b64ec1

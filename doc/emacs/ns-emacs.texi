@@ -1017,3 +1017,7 @@ Finally, let us also thank those few hundred other people on the mailing list
 from whom we didn't hear much, but the presence of which assured us that maybe
 this project was actually worth doing.
 @bye
+
+@ignore
+   arch-tag: 286bdf18-ccfb-48b2-b730-994771de6bdd
+@end ignore

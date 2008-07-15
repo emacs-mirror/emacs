@@ -206,3 +206,6 @@ typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
 #endif  /* __NSGUI_H__ */
+
+/* arch-tag: b2af3275-62c3-45b4-9335-4c9635c67e55
+   (do not change this comment) */

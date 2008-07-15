@@ -825,3 +825,6 @@ extern char gnustep_base_version[];  /* version tracking */
 
 
 #endif	/* HAVE_NS */
+
+/* arch-tag: 0a28b142-4ac1-4a81-a243-abcd82d9c4e5
+   (do not change this comment) */

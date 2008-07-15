@@ -1605,4 +1605,5 @@ Note, tranparency works better on Tiger (10.4) and higher."
 
 (provide 'ns-win)
 
+;; arch-tag: eb138a45-4e2e-4d68-b1c9-a39665731644
 ;;; ns-win.el ends here

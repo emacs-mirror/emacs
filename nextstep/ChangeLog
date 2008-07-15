@@ -48,3 +48,5 @@
 	* FOR_RELEASE: New file: release tasks specific to NeXTstep
 	port.
 	* README.txt: New file: descriptive info for NeXTstep port.
+
+;; arch-tag: 963ee08e-8e76-485f-9cfb-65a4333a073c
