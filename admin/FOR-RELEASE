@@ -178,7 +178,7 @@ building.texi
 calendar.texi
 cal-xtra.texi
 cmdargs.texi
-commands.texi
+commands.texi     -- cyd
 custom.texi
 dired.texi
 dired-xtra.texi
