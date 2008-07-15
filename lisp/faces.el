@@ -338,7 +338,7 @@ specifies an invalid attribute."
 
 (defun set-face-attributes-from-resources (face frame)
   "Set attributes of FACE from X resources for FRAME."
-  (when (memq (framep frame) '(x w32 mac))
+  (when (memq (framep frame) '(x w32 mac ns))
     (dolist (definition face-x-resources)
       (let ((attribute (car definition)))
 	(dolist (entry (cdr definition))
@@ -1010,7 +1010,7 @@ an integer value."
            ((:height)
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x w32 mac))
+            (and (memq (window-system frame) '(x w32 mac ns))
                  (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
@@ -1129,7 +1129,7 @@ of a global face.  Value is the new attribute value."
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
 	       (when (and (memq attribute '(:foreground :background))
-			  (not (memq (window-system frame) '(x w32 mac)))
+			  (not (memq (window-system frame) '(x w32 mac ns)))
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
@@ -1624,7 +1624,7 @@ The argument FRAME specifies which frame to try.
 The value may be different for frames on different display types.
 If FRAME doesn't support colors, the value is nil.
 If FRAME is nil, that stands for the selected frame."
-  (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
+  (if (memq (framep (or frame (selected-frame))) '(x w32 mac ns))
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
@@ -1638,7 +1638,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
   (if (member color '(unspecified "unspecified-bg" "unspecified-fg"))
       nil
-    (if (member (framep (or frame (selected-frame))) '(x w32 mac))
+    (if (member (framep (or frame (selected-frame))) '(x w32 mac ns))
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
@@ -1656,7 +1656,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
   (if (member color '(unspecified "unspecified-fg" "unspecified-bg"))
       nil
-    (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
+    (if (memq (framep (or frame (selected-frame))) '(x w32 mac ns))
 	(xw-color-values color frame)
       (tty-color-values color frame))))
 (defalias 'x-color-values 'color-values)
@@ -1668,7 +1668,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (if (memq (framep-on-display display) '(x w32 mac))
+  (if (memq (framep-on-display display) '(x w32 mac ns))
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
@@ -1679,7 +1679,7 @@ If omitted or nil, that stands for the selected frame's display."
   "Return non-nil if frames on DISPLAY can display shades of gray."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-grayscale-p display))
      (t
       (> (tty-color-gray-shades display) 2)))))
@@ -2495,7 +2495,7 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 mac) (class color))
+    (((type x w32 mac ns) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))

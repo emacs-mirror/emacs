@@ -80,6 +80,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macterm.h"
 #endif
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+extern Lisp_Object Qsuper;
+#endif
+
 #ifndef USE_CRT_DLL
 extern int errno;
 #endif
@@ -4147,7 +4152,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
 	}
 
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (HAVE_NS)
       else if (event->kind == DELETE_WINDOW_EVENT)
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
@@ -4156,7 +4162,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (HAVE_NS)
       else if (event->kind == ICONIFY_EVENT)
 	{
 	  /* Make an event (iconify-frame (FRAME)).  */
@@ -4179,7 +4186,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
       else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
 	  kbd_fetch_ptr = event + 1;
@@ -4289,7 +4296,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	      obj = make_lispy_event (event);
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
 		 we're returning is (menu-bar), though; that indicates the
@@ -5643,7 +5650,7 @@ make_lispy_event (event)
 	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
 	    struct frame *f = XFRAME (event->frame_or_window);
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    int row, column;
 #endif
 
@@ -5652,7 +5659,7 @@ make_lispy_event (event)
 	    if (! FRAME_LIVE_P (f))
 	      return Qnil;
 
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    /* EVENT->x and EVENT->y are frame-relative pixel
 	       coordinates at this place.  Under old redisplay, COLUMN
 	       and ROW are set to frame relative glyph coordinates
@@ -5712,7 +5719,7 @@ make_lispy_event (event)
 
 		return Fcons (item, Fcons (position, Qnil));
 	      }
-#endif /* not USE_X_TOOLKIT && not USE_GTK */
+#endif /* not USE_X_TOOLKIT && not USE_GTK && not HAVE_NS */
 
 	    position = make_lispy_position (f, &event->x, &event->y,
 					    event->timestamp);
@@ -6092,7 +6099,7 @@ make_lispy_event (event)
 #endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
 	/* This is the prefix key.  We translate this to
@@ -7305,6 +7312,10 @@ tty_read_avail_input (struct terminal *terminal,
 void
 handle_async_input ()
 {
+#ifdef BSD4_1
+  extern int select_alarmed;
+#endif
+
   interrupt_input_pending = 0;
 
   while (1)
@@ -7317,6 +7328,9 @@ handle_async_input ()
       if (nread <= 0)
 	break;
 
+#ifdef BSD4_1
+      select_alarmed = 1;  /* Force the select emulator back to life */
+#endif
     }
 }
 
@@ -7335,6 +7349,10 @@ input_available_signal (signo)
   signal (signo, input_available_signal);
 #endif /* USG */
 
+#ifdef BSD4_1
+  sigisheld (SIGIO);
+#endif
+
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
 #else
@@ -7348,6 +7366,9 @@ input_available_signal (signo)
   handle_async_input ();
 #endif
 
+#ifdef BSD4_1
+  sigfree ();
+#endif
   errno = old_errno;
 }
 #endif /* SIGIO */
@@ -7975,10 +7996,15 @@ parse_menu_item (item, notreal, inmenubar)
       /* With the introduction of where_is_cache, the computation
          of equivalent key bindings is sufficiently fast that we
          do not need to cache it here any more. */
-      /* CHECK_IMPURE (start);
-         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
-	 cachelist = XCAR (XCDR (start));  */
+/*PENDING: under NS this effect does not hold, perhaps due to the
+           modifier-preference changes to where-is-internal.. */
+#ifdef HAVE_NS
+       CHECK_IMPURE (start);
+       XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
+       cachelist = XCAR (XCDR (start));
+#else
       cachelist = Fcons (Qnil, Qnil);
+#endif
       newcache = 1;
       tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (!NILP (keyhint))
@@ -8044,7 +8070,12 @@ parse_menu_item (item, notreal, inmenubar)
 	      && SYMBOLP (XSYMBOL (def)->function)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
+#ifdef HAVE_NS
+          /* prefer 'super' bindings */
+	  tem = Fwhere_is_internal (def, Qnil, Qsuper, Qt, Qt);
+#else
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
+#endif
 	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
 	    {
@@ -8077,7 +8108,7 @@ parse_menu_item (item, notreal, inmenubar)
   if (newcache && !NILP (tem))
     {
       tem = concat2 (build_string ("  "), tem);
-      // tem = concat3 (build_string ("  ("), tem, build_string (")"));
+      /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
       XSETCDR (cachelist, tem);
     }
 

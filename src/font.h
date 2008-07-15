@@ -860,6 +860,9 @@ extern struct font_driver uniscribe_font_driver;
 #ifdef MAC_OS
 extern struct font_driver atmfont_driver;
 #endif	/* MAC_OS */
+#ifdef HAVE_NS
+extern struct font_driver nsfont_driver;
+#endif	/* HAVE_NS */
 
 #ifndef FONT_DEBUG
 #define FONT_DEBUG

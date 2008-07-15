@@ -69,6 +69,14 @@ typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
+#ifdef HAVE_NS
+#include "nsgui.h"
+/* following typedef needed to accomodate the MSDOS port, believe it or not */
+typedef struct ns_display_info Display_Info;
+typedef Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
+#endif
+
 #ifndef NativeRectangle
 #define NativeRectangle int
 #endif
@@ -1562,6 +1570,13 @@ struct face
 
   /* If non-zero, use overstrike (to simulate bold-face).  */
   unsigned overstrike : 1;
+
+/* NOTE: this is not used yet, but eventually this impl should be done
+         similarly to overstrike */
+#ifdef HAVE_NS
+  /* If non-zero, use geometric rotation (to simulate italic).  */
+  unsigned synth_ital : 1;
+#endif
 
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;

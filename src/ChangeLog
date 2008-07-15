@@ -1,3 +1,134 @@
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	Changes and additions for NeXTstep windowing system (Cocoa and
+	GNUstep) support.
+
+	* Makefile.in
+	* config.in: Support defines and build commands for NS port.
+	* blockinput.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT)
+	(UNBLOCK_INPUT_TO): Don't use under NS unless EXPERIMENTAL_CONTROL_G.
+	* callproc.c (set_initial_environment): Initialize
+	Vprocess_environment under CANNOT_DUMP (fixes crash when
+	batch-compiling for bootstrap, due to Chris Hall).
+	* dispextern.h: Include nsgui.h and add needed typedefs under NS
+	windowing.
+	(struct face): Add synth_ital field.
+	* dispnew.c: Include nsterm.h when compiling under NS windowing.
+	(init_display): Initialize Vinitial_window_system to "ns" when so
+	compiled.
+	* emacs.c: Include GSConfig.h when compiling under GNUstep.
+	(display_arg): Use under NS.
+	(main): Under NS, allocate autorelease pool and handle command line
+	args.  Move syms_of_xmenu() call under #ifdef HAVE_X_WINDOWS.
+	(standard_args): Add NS-specific args.
+	(shut_down_emacs): Shut down NS terminal if compiled under NS.
+	* font.c (DEFAULT_ENCODING): New variable.
+	(font_find_for_lface): Use it.
+	(syms_of_font): Load syms_of_nsfont under NS.
+	* font.h: Declare nsfont_driver when compiled under NS.
+	* fontset.c: When compiling under NS, include nsterm.h.
+	(fontset_from_font): Autoconstruct fontset under NS.
+	* frame.c (various): Under NS, include nsterm.h, add Qns window system
+	symbol, document and use it.
+	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
+	patch to fix crash due to different init order, due to Chris Hall and
+	Yamamoto Mitsuharu.
+	(do_switch_frame): When for_deletion under Cocoa, add
+	Fraise_frame(Qnil).
+	(x_set_frame_parameters): Ensure font attribute changes are picked up.
+	(x_get_arg): Allow "yes" and "no" as boolean values.
+	(syms_of_frame): Declare Qns.  Init Vdefault_frame_scroll_bars to
+	Qright under Cocoa.
+	(focus-follows-mouse): Default to 0 under NS.
+	* frame.h (enum output_method): Add output_ns.
+	(external_tool_bar, external_menu_bar, FRAME_EXTERNAL_TOOLBAR)
+	(FRAME_EXTERNAL_MENU_BAR): Use under NS.
+	(FRAME_WINDOW_P): NS-specific definition.
+	* fringe.c (max_used_fringe_bitmap): Make public.
+	* getloadavg.c (mach/mach.h): Include it under NeXT descendant OS's.
+	(getloadavg): Use NeXT code under descendant OS's.
+	* image.c (includes and header section, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, free_bitmap_record, image_background)
+	(image_background_transparent, x_clear_image_1)
+	(x_create_x_image_and_pixmap, x_destroy_x_image, x_put_x_image)
+	(Create_Pixmap_From_Bitmap_Data, xpm_load_image, lookup_rgb_color)
+	(x_to_xcolors, x_from_xcolors, x_disable_image)
+	(x_build_heuristic_mask, syms_of_image): Add NS support parallel to
+	other GUIs, including XPM support using code originally written for
+	Carbon GUI.
+	(png_load, jpeg_load, tiff_load, gif_load): Added implementations
+	using NS API.
+	(image_ascent): Use font metrics macros instead of direct struct field
+	access.
+	* keyboard.c (includes): Add nsterm.h when compiling under NS.
+	(kbd_buffer_get_event): Handle NS as other GUI windowing systems.
+	Also, handle NS as GTK for menu bar purposes.
+	(make_lispy_event): Handle NS as other GUI windowing systems, and as X
+	toolkit where they differ.
+	(parse_menu_item): Prefer keybindings using 'super' modifier.  Also,
+	use cachelist, still needed under NS.
+	* keyboard.h (ENCODE_MENU_STRING, XtPointer, Boolean): Handle as
+	NTGUI.
+	(struct widget_value): Define it here for menu.c.
+	* keymap.c (includes): Include modifier internals.
+	(lisp_to_mod, modifier_sequence_p): New functions, compiled only under
+	NS.
+	(where_is_internal, Fwhere_is_internal): When compiled under NS, add
+	support for preferring sequences using certain modifiers, specified by
+	the FIRSTONLY argument.
+	* lisp.h (hash_remove): Rename to avoid name clash when compiling
+	under NS GNUstep implementation.
+	(USE_LSB_TAG): Use it under Cocoa when compiling under NS.
+	* lread.c (init_lread): Treat NS as HAVE_CARBON for turn_off_warning.
+	* menu.c: Include nsterm.h under NS.
+	(single_menu_item, parse_single_submenu, xmalloc_widget_value)
+	(free_menubar_widget_tree_value, update_submenu_strings)
+	(find_and_call_menu_selection): Treat NS as X and NT.
+	(find_and_return_menu_selection): New function, used for popup menus.
+	* nsgui.h
+	* nsterm.h
+	* nsfns.m
+	* nsimage.m
+	* nsmenu.m
+	* nsselect.m
+	* nsterm.m: New files.
+	* process.c (wait_reading_process_output): Under NS, call ns_select()
+	instead of plain select().
+	* syntax.c (char_quoted): Under NS, avoid a crash when called near
+	beginning of buffer.
+	* sysselect.h (init_process): Rename when compiling under Cocoa to
+	avoid name conflict.
+	* termhooks.h (display_info): Add ns_display_info to union.
+	* terminal.c (Fterminal_live_p): Add ns to terminal types.
+	* terminfo.c (UP, BC, PC): Don't declare when compiling under NS in
+	COCOA environment.
+	* unexnext.c: Update to work with mach API on Mac OS X, and to use new
+	unexec() signature.  (Note, this will dump, but the resulting file
+	crashes; unexosx is used instead; keeping around for reference and
+	possible aid in getting dump working under GNUstep.)
+	* w32gui.h (button_type, widget_value): Remove definitions (now in
+	keyboard.h).
+	* window.c: Include nsterm.h when compiling under NS.
+	* xdisp.c (includes): Include nsterm.h when compiling under NS.
+	(set_frame_menubar, update_menu_bar, display_menu_bar): Handle NS as
+	other GUI windowing systems.
+	(update_tool_bar, redisplay_tool_bar, redisplay_window): Handle NS as
+	GTK.
+	(x_consider_frame_title): Under NS, set icon type and frame
+	modified-state indicator; use ns_set_name_as_filename() when using
+	formatted title.
+	(update_window_cursor): Make public when compiling under NS.
+	(display_hourglass_p, syms_of_xdisp, hourglass_shown_p)
+	(hourglass_atimer, Vhourglass_delay
+	* xfaces.c (header section, init_frame_faces, clear_font_table)
+	(defined_color, unload_color, x_face_list_fonts)
+	(prepare_face_for_display): Add NS support parallel to other GUIs)
+	(emulate GCs like other non-X GUIs.
+	(split_font_name): Don't lowercase font name under NS.
+	(merge_face_ref, Finternal_set_lisp_face_attribute): Support stippling
+	under NS.
+	* s/darwin.h: Add support for compilation under NS.
+
 2008-07-15  Jason Rumney  <jasonr@gnu.org>
 
         * w32fns.c (Fx_create_frame): Remove duplicate unwind_protect.

@@ -24,7 +24,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    so that we do not need to conditionalize the places in Emacs
    that set them.  */
 
+/* Causes a conflict on OS X 10.3 .*/
+#ifndef NS_IMPL_COCOA
 char *UP, *BC, PC;
+#endif
 
 /* Interface to curses/terminfo library.
    Turns out that all of the terminfo-level routines look

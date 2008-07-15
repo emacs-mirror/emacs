@@ -460,10 +460,11 @@ These special properties include `invisible', `intangible' and `read-only'."
 (defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
   (let* ((completion-ignore-case t)
+	 (require-match (not (eq window-system 'ns)))
 	 (col (completing-read (or prompt "Color: ")
 			       (or facemenu-color-alist
 				   (defined-colors))
-			       nil t)))
+			       nil require-match)))
     (if (equal "" col)
 	nil
       col)))

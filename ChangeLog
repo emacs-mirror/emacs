@@ -1,3 +1,15 @@
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	Changes and additions for NeXTstep windowing system (Cocoa and
+	GNUstep) support.
+
+	* configure.in: Add support for NS window system: --with-ns (default
+	off), --enable-ns-app, --enable-cocoa-experimental-ctrl-g; improve add
+	sparc detection for FreeBSD variants, checks for Cocoa and GNUstep,
+	disable font backend if window system is "none", not if !HAVE_X11.
+	* Makefile.in: Add ns-emacs to INFO_FILES, add ns_appdir variable.
+	(install-arch-dep): Add commands to assemble NS .app package.
+
 2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Use macppc for Darwin.  Remove references to

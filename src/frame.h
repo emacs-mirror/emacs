@@ -50,7 +50,8 @@ enum output_method
   output_x_window,
   output_msdos_raw,
   output_w32,
-  output_mac
+  output_mac,
+  output_ns
 };
 
 enum vertical_scroll_bar_type
@@ -242,7 +243,7 @@ struct frame
      auto-resize-tool-bar is set to grow-only.  */
   unsigned minimize_tool_bar_window_p : 1;
 
-#if defined (USE_GTK) || defined (MAC_OS)
+#if defined (USE_GTK) || defined (HAVE_NS) || defined (MAC_OS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
   int external_tool_bar;
 #endif
@@ -332,6 +333,7 @@ struct frame
     struct x_output *x;         /* xterm.h */
     struct w32_output *w32;     /* w32term.h */
     struct mac_output *mac;     /* macterm.h */
+    struct ns_output *ns;       /* nsterm.h */
     EMACS_INT nothing;
   }
   output_data;
@@ -359,7 +361,7 @@ struct frame
   int menu_bar_lines;
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
   unsigned int external_menu_bar : 1;
 #endif
@@ -519,6 +521,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_W32_P(f) ((f)->output_method == output_w32)
 #define FRAME_MSDOS_P(f) ((f)->output_method == output_msdos_raw)
 #define FRAME_MAC_P(f) ((f)->output_method == output_mac)
+#define FRAME_NS_P(f) ((f)->output_method == output_ns)
 
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
@@ -531,6 +534,9 @@ typedef struct frame *FRAME_PTR;
 #endif
 #ifdef MAC_OS
 #define FRAME_WINDOW_P(f) FRAME_MAC_P (f)
+#endif
+#ifdef HAVE_NS
+#define FRAME_WINDOW_P(f) FRAME_NS_P(f)
 #endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) (0)
@@ -570,7 +576,7 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if this frame should display a tool bar
    in a way that does not use any text lines.  */
-#if defined (USE_GTK) || defined (MAC_OS)
+#if defined (USE_GTK) || defined (HAVE_NS) || defined (MAC_OS)
 #define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
 #else
 #define FRAME_EXTERNAL_TOOL_BAR(f) 0
@@ -589,7 +595,7 @@ typedef struct frame *FRAME_PTR;
 /* Nonzero if this frame should display a menu bar
    in a way that does not use any text lines.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+     || defined (HAVE_NS) || defined (USE_GTK)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0
@@ -1044,7 +1050,7 @@ extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
 extern Lisp_Object Qminibuffer, Qmodeline;
 extern Lisp_Object Qonly;
-extern Lisp_Object Qx, Qw32, Qmac, Qpc;
+extern Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 extern Lisp_Object Qvisible;
 extern Lisp_Object Qdisplay_type;
 extern Lisp_Object Qbackground_mode;

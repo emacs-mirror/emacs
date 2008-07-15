@@ -3,7 +3,6 @@ of their use.  Feel free to add more macros and more categories.
 
 ** Distinguishing OSes **
 
-MAC_OS		Compiling for the `mac' window-system.
 MAC_OS8		Compiling for Mac OS Classic (v8 or v9). No longer supported, all code using it can be removed.
 MAC_OSX		Compiling for Mac OS X.  Not bare Darwin.
 CYGWIN		Compiling the Cygwin port.
@@ -23,7 +22,11 @@ USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type inst
 ** Distinguishing GUIs **
 
 HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
+MAC_OS		Compiling for the `mac' window-system.
 HAVE_CARBON	Compile support for the Carbon GUI.  Requires MAC_OS?
+HAVE_NS	Use the NeXT/OpenStep/Cocoa UI under Mac OS X or GNUstep.
+NS_IMPL_GNUSTEP	Compile support for GNUSTEP implementation of NS GUI API.
+NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
 HAVE_X_WINDOWS	Compile support for X Window system
 X11		??  Makefile.in suggests it's equivalent to HAVE_X11

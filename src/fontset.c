@@ -47,6 +47,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
@@ -1622,6 +1625,11 @@ fontset_from_font (font_object)
     ASET (font_spec, i, Qnil);
   Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qnil);
   Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
+
+#ifdef HAVE_NS
+  nsfont_make_fontset_for_font(name, font_object);
+#endif
+
   return XINT (FONTSET_ID (fontset));
 }
 

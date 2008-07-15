@@ -5984,7 +5984,7 @@ See also `normal-erase-is-backspace'."
     (set-terminal-parameter nil 'normal-erase-is-backspace
 			    (if enabled 1 0))
 
-    (cond ((or (memq window-system '(x w32 mac pc))
+    (cond ((or (memq window-system '(x w32 mac ns pc))
 	       (memq system-type '(ms-dos windows-nt)))
 	   (let* ((bindings
 		   `(([C-delete] [C-backspace])

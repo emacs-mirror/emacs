@@ -111,6 +111,10 @@ extern Lisp_Object meta_prefix_char;
 
 extern Lisp_Object Voverriding_local_map;
 
+#ifdef HAVE_NS
+extern Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
+#endif
+
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
@@ -2621,6 +2625,41 @@ ascii_sequence_p (seq)
   return 1;
 }
 
+#ifdef HAVE_NS
+int lisp_to_mod(Lisp_Object lmod)
+/* -------------------------------------------------------------------------
+     Convert lisp symbol to emacs modifier code.
+   ------------------------------------------------------------------------- */
+{
+  if (EQ(lmod, Qmeta))
+    return meta_modifier;
+  else if (EQ(lmod, Qsuper))
+    return super_modifier;
+  else if (EQ(lmod, Qcontrol))
+    return ctrl_modifier;
+  else if (EQ(lmod, Qalt))
+    return alt_modifier;
+  else if (EQ(lmod, Qhyper))
+    return hyper_modifier;
+  return 0;
+}
+
+/* Return non-zero if SEQ starts w/a char modified by given modifier only. */
+static int
+modifier_sequence_p (Lisp_Object seq, Lisp_Object modifier)
+{
+  Lisp_Object idx, elt;
+
+  if (XINT (Flength (seq)) == 0)
+    return 0;
+  XSETFASTINT(idx, 0);
+  elt = Faref(seq, idx);
+
+  return  (XUINT(elt) & (CHAR_MODIFIER_MASK ^ shift_modifier))
+    == lisp_to_mod(modifier);
+}
+#endif
+
 
 /* where-is - finding a command in a set of keymaps.			*/
 
@@ -2803,6 +2842,14 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 	     we find.  */
 	  if (EQ (firstonly, Qnon_ascii))
 	    RETURN_UNGCPRO (sequence);
+#ifdef HAVE_NS
+          /* respond to modifier preference */
+          else if ((EQ (firstonly, Qalt) || EQ (firstonly, Qcontrol)
+                    || EQ (firstonly, Qhyper) || EQ (firstonly, Qmeta)
+                    || EQ (firstonly, Qsuper)))
+            if (modifier_sequence_p(sequence, firstonly))
+              RETURN_UNGCPRO (sequence);
+#endif
 	  else if (!NILP (firstonly) && ascii_sequence_p (sequence))
 	    RETURN_UNGCPRO (sequence);
 
@@ -2836,6 +2883,10 @@ If KEYMAP is a list of keymaps, search only those keymaps.
 
 If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
 rather than a list of all possible key sequences.
+#ifdef HAVE_NS
+If FIRSTONLY is the symbol for a modifier key, return the first binding found,
+that is modified by that modifier only.
+#endif
 If FIRSTONLY is the symbol `non-ascii', return the first binding found,
 no matter what it is.
 If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters
@@ -2909,10 +2960,19 @@ remapped command in the returned list.  */)
       for (i = n - 1; i >= 0; --i)
 	if (EQ (shadow_lookup (keymaps, defns[i], Qnil), definition))
 	  {
-	    if (ascii_sequence_p (defns[i]))
-	      break;
-	    else if (j < 0)
-	      j = i;
+#ifdef HAVE_NS
+            if ((EQ (firstonly, Qalt) || EQ (firstonly, Qcontrol)
+                 || EQ (firstonly, Qhyper) || EQ (firstonly, Qmeta)
+                 || EQ (firstonly, Qsuper))
+                && modifier_sequence_p(defns[i], firstonly))
+              break;
+            else if (EQ (firstonly, Qt) && ascii_sequence_p (defns[i]))
+#else
+              if (ascii_sequence_p (defns[i]))
+#endif
+                break;
+              else if (j < 0)
+                j = i;
 	  }
 
       result = i >= 0 ? defns[i] : (j >= 0 ? defns[j] : Qnil);

@@ -59,6 +59,16 @@ extern int interrupt_input_pending;
 
 extern int pending_atimers;
 
+#if defined HAVE_NS && !defined COCOA_EXPERIMENTAL_CTRL_G
+/* NS does not use interrupt-driven input processing (yet), so this is
+   unneeded and moreover was causing problems. */
+#define BLOCK_INPUT
+#define UNBLOCK_INPUT
+#define TOTALLY_UNBLOCK_INPUT
+#define UNBLOCK_INPUT_TO(LEVEL)
+
+#else
+
 /* Begin critical section. */
 #define BLOCK_INPUT (interrupt_input_blocked++)
 
@@ -114,6 +124,8 @@ extern int pending_atimers;
       UNBLOCK_INPUT;					\
     }							\
   while (0)
+
+#endif	/* defined HAVE_NS && !defined COCOA_EXPERIMENTAL_CTRL_G */
 
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
 

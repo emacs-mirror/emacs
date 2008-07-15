@@ -318,6 +318,8 @@ extern struct tty_display_info *gpm_tty;
 
 
 struct mac_display_info;
+struct ns_display_info;
+struct x_display_info;
 struct w32_display_info;
 
 /* Terminal-local parameters. */
@@ -368,6 +370,7 @@ struct terminal
     struct x_display_info *x;         /* xterm.h */
     struct w32_display_info *w32;     /* w32term.h */
     struct mac_display_info *mac;     /* macterm.h */
+    struct ns_display_info *ns;       /* nsterm.h */
   } display_info;
 
 

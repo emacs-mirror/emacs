@@ -1612,7 +1612,9 @@ CHOICE is a list of the choice char and help message at IDX."
 	 (cond ((memq window-system '(x mac))
 		(x-focus-frame frame))
 	       ((eq window-system 'w32)
-		(w32-focus-frame frame)))
+		(w32-focus-frame frame))
+	       ((eq window-system 'ns)
+		(ns-focus-frame frame)))
 	 (when focus-follows-mouse
 	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
 

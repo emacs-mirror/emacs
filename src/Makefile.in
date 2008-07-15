@@ -112,6 +112,11 @@ SHELL=/bin/sh
 #endif
 #endif
 
+/* Under GNUstep, putting libc on the link line causes problems. */
+#ifdef GNUSTEP
+#define LIB_STANDARD
+#endif
+
 /* Unless inhibited or changed, use -lg to link for debugging.  */
 #ifndef LIBS_DEBUG
 #define LIBS_DEBUG -lg
@@ -229,6 +234,15 @@ STARTFILES = START_FILES
 #endif /* not ORDINARY_LINK */
 
 
+#ifdef GNUSTEP
+/* Pull in stuff from GNUstep-make. */
+FOUNDATION_LIB=gnu
+GUI_LIB=gnu
+include $(GNUSTEP_MAKEFILES)/Additional/base.make
+include $(GNUSTEP_MAKEFILES)/Additional/gui.make
+shared=no
+#endif
+
 #ifdef HAVE_DBUS
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
@@ -249,8 +263,11 @@ DBUS_OBJ = dbusbind.o
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
+.SUFFIXES: .m
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+.m.o:
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) GNU_OBJC_CFLAGS $<
 
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
@@ -260,13 +277,8 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHIN
 #define LIB_X11_LIB -lX11
 #endif
 
-/* xmenu.c should not be compiled on OSX.  */
-#ifndef HAVE_CARBON
-XMENU_OBJ = xmenu.o
-#endif
-
 #ifdef HAVE_X_WINDOWS
-
+XMENU_OBJ = xmenu.o
 XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
 
 #ifdef HAVE_MENUS
@@ -518,6 +530,21 @@ emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
 
+#ifdef HAVE_NS
+/* Object files for NeXTstep */
+NS_OBJ= nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
+	fontset.o fringe.o image.o
+emacsapp = $(PWD)/../nextstep/build/Emacs.app/
+FONT_DRIVERS = nsfont.o
+#ifdef GNUSTEP
+emacsappsrc = ${srcdir}/../nextstep/GNUstep/Emacs.base
+emacsbindir = $(emacsapp)
+#else
+emacsappsrc = ${srcdir}/../nextstep/Cocoa/Emacs.base
+emacsbindir = $(emacsapp)/Contents/MacOS/
+#endif  /* GNUSTEP */
+#endif  /* HAVE_NS */
+
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
 #if defined (HAVE_XFT)
@@ -545,7 +572,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
+	$(MSDOS_OBJ) $(MAC_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_DRIVERS)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -553,6 +580,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
+  nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_DRIVERS)
 
@@ -876,6 +904,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
    Note that SunOS needs -lm to come before -lc; otherwise, you get
    duplicated symbols.  If the standard libraries were compiled
    with GCC, we might need gnulib again after them.  */
+
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    LIBGPM LIBRESOLV LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    LIBS_DEBUG $(GETLOADAVG_LIBS) \
@@ -910,7 +939,10 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 	@: bootstrap-emacs, so let us replace it.
 	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
+/* XXX: not working under NS currently due to path shenanigans.. */
+#ifndef HAVE_NS
 	-./emacs -q -batch -f list-load-path-shadows
+#endif
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
@@ -935,9 +967,13 @@ ${libsrc}make-docfile${EXEEXT}:
 
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
+#ifdef GNUSTEP
+	$(CC) -rdynamic YMF_PASS_LDFLAGS (${TEMACS_LDFLAGS}) -o temacs ${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
+#else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
+#endif
 
 /* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs''s crt0,
@@ -1080,7 +1116,7 @@ fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
    systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h font.h \
-   $(config_h)
+   nsterm.h nsgui.h $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h character.h category.h composite.h \
    dispextern.h keyboard.h
@@ -1089,7 +1125,8 @@ insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h \
-   atimer.h xterm.h puresize.h msdos.h keymap.h w32term.h macterm.h $(config_h)
+   atimer.h xterm.h puresize.h msdos.h keymap.h w32term.h macterm.h nsterm.h \
+   $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h puresize.h character.h intervals.h keymap.h window.h \
    $(config_h)
@@ -1155,15 +1192,15 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h dispextern.h msdos.h composite.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVAL_SRC) \
-   xterm.h w32term.h macterm.h $(config_h)
+   xterm.h w32term.h macterm.h nsterm.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
    coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
    charset.h $(config_h) keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h    \
-   w32term.h macterm.h msdos.h composite.h fontset.h blockinput.h atimer.h    \
-   systime.h keymap.h font.h
+   w32term.h macterm.h nsterm.h msdos.h composite.h fontset.h blockinput.h \
+   atimer.h systime.h keymap.h font.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
-   systime.h keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC)	\
+   systime.h keyboard.h fontset.h w32term.h macterm.h nsterm.h $(INTERVAL_SRC) \
    termchar.h termhooks.h font.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
@@ -1276,7 +1313,38 @@ macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs
 ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 	mkdir -p ${emacsapp}Contents/MacOS/;
 	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
-#endif
+#endif /* HAVE_CARBON */
+
+#ifdef HAVE_NS
+abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+  fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
+  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o \
+  xterm.o xselect.o sound.o: nsgui.h
+nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
+  dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
+  atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
+nsmenu.o: nsmenu.m termhooks.h frame.h window.h dispextern.h \
+  nsgui.h keyboard.h blockinput.h atimer.h systime.h buffer.h \
+  nsterm.h $(config_h)
+nsterm.o: nsterm.m blockinput.h atimer.h systime.h syssignal.h nsterm.h \
+  nsgui.h frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h \
+  termopts.h termchar.h disptab.h buffer.h window.h keyboard.h \
+  $(INTERVAL_SRC) process.h coding.h $(config_h)
+nsselect.o: nsselect.m blockinput.h nsterm.h nsgui.h frame.h $(config_h)
+nsimage.o: nsimage.m nsterm.h
+nsfont.o: nsterm.h dispextern.h frame.h lisp.h $(config_h)
+
+${emacsapp}: ${emacsappsrc}
+	mkdir -p ${emacsapp}
+	( cd ${emacsappsrc} ; tar cfh - . ) | ( cd ${emacsapp} ; tar xf - )
+
+${emacsbindir}Emacs: emacs${EXEEXT}
+	mkdir -p ${emacsbindir}
+	cp -f emacs${EXEEXT} ${emacsbindir}Emacs
+
+ns-app: ${emacsapp} ${emacsbindir}Emacs
+
+#endif /* HAVE_NS */
 
 mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
@@ -1285,6 +1353,9 @@ mostlyclean:
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
+#ifdef GNUSTEP
+	rm -f *.d
+#endif
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,
    but not things like config.status or TAGS.  */

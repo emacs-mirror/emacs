@@ -1,3 +1,13 @@
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* .cvsignore: Add mac-fix-env.
+	* mac-fix-env.m: New file, automatically update
+	~/.MacOSX/environment.plist on OS X systems to expose environment
+	variables inside Emacs started from icon.
+	* Makefile.in: Add -universal to CFLAGS on OS X, add mac-fix-env to
+	programs to build.
+	* make-docfile.c: Add .m to list of file extensions.
+
 2008-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* movemail.c (main): Use int instead of WAITTYPE.

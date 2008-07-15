@@ -244,6 +244,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define check_x check_mac
 #endif /* MAC_OS */
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#undef FRAME_X_DISPLAY_INFO
+#define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
+#define x_display_info ns_display_info
+#define FRAME_X_FONT_TABLE FRAME_NS_FONT_TABLE
+#define check_x check_ns
+#define x_list_fonts ns_list_fonts
+#define GCGraphicsExposures 0
+#endif /* HAVE_NS */
+
 #include "buffer.h"
 #include "dispextern.h"
 #include "blockinput.h"
@@ -556,6 +567,10 @@ static void x_free_gc P_ ((struct frame *, GC));
 extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 #endif /* WINDOWSNT */
 
+#ifdef HAVE_NS
+extern Lisp_Object ns_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
+#endif /* HAVE_NS */
+
 #ifdef USE_X_TOOLKIT
 static void x_update_menu_appearance P_ ((struct frame *));
 
@@ -766,6 +781,31 @@ x_free_gc (f, gc)
 
 #endif  /* WINDOWSNT */
 
+#ifdef HAVE_NS
+/* NS emulation of GCs */
+
+static INLINE GC
+x_create_gc (f, mask, xgcv)
+     struct frame *f;
+     unsigned long mask;
+     XGCValues *xgcv;
+{
+  GC gc = xmalloc (sizeof (*gc));
+  if (gc)
+      bcopy(xgcv, gc, sizeof(XGCValues));
+  return gc;
+}
+
+static INLINE void
+x_free_gc (f, gc)
+     struct frame *f;
+     GC gc;
+{
+  if (gc)
+      xfree (gc);
+}
+#endif  /* HAVE_NS */
+
 #ifdef MAC_OS
 /* Mac OS emulation of GCs */
 
@@ -872,8 +912,11 @@ init_frame_faces (f)
 #ifdef MAC_OS
   if (!FRAME_MAC_P (f) || FRAME_MAC_WINDOW (f))
 #endif
+#ifdef HAVE_NS
+  if (!FRAME_NS_P (f) || FRAME_NS_WINDOW (f))
+#endif
     if (!realize_basic_faces (f))
-      abort ();
+        abort ();
 }
 
 
@@ -1269,6 +1312,10 @@ defined_color (f, color_name, color_def, alloc)
   else if (FRAME_MAC_P (f))
     return mac_defined_color (f, color_name, color_def, alloc);
 #endif
+#ifdef HAVE_NS
+  else if (FRAME_NS_P (f))
+    return ns_defined_color (f, color_name, color_def, alloc, 1);
+#endif
   else
     abort ();
 }
@@ -1558,6 +1605,7 @@ free_face_colors (f, face)
      struct frame *f;
      struct face *face;
 {
+/* PENDING(NS): need to do something here? */
 #ifdef HAVE_X_WINDOWS
   if (face->colors_copied_bitwise_p)
     return;
@@ -2754,7 +2802,7 @@ merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
-#ifdef HAVE_X_WINDOWS
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 		  Lisp_Object pixmap_p = Fbitmap_spec_p (value);
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
@@ -3262,14 +3310,14 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCstipple))
     {
-#ifdef HAVE_X_WINDOWS
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
 	  && !NILP (value)
 	  && NILP (Fbitmap_spec_p (value)))
 	signal_error ("Invalid stipple attribute", value);
       old_value = LFACE_STIPPLE (lface);
       LFACE_STIPPLE (lface) = value;
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS || HAVE_NS */
     }
   else if (EQ (attr, QCwidth))
     {

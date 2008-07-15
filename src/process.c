@@ -4877,8 +4877,12 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      process_output_skip = 0;
 	    }
 #endif
-
-	  nfds = select (max (max (max_process_desc, max_keyboard_desc),
+#ifdef HAVE_NS
+          nfds = ns_select
+#else
+          nfds = select
+#endif
+                        (max (max (max_process_desc, max_keyboard_desc),
 			      max_gpm_desc) + 1,
 			 &Available,
 #ifdef NON_BLOCKING_CONNECT

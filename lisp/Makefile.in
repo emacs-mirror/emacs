@@ -867,6 +867,8 @@ ELCFILES = \
 	$(lisp)/net/zeroconf.elc \
 	$(lisp)/newcomment.elc \
 	$(lisp)/novice.elc \
+	$(lisp)/ns-grabenv.elc \
+	$(lisp)/ns-carbon-compat.elc \
 	$(lisp)/nxml/nxml-enc.elc \
 	$(lisp)/nxml/nxml-glyph.elc \
 	$(lisp)/nxml/nxml-maint.elc \
@@ -1110,6 +1112,7 @@ ELCFILES = \
 	$(lisp)/tempo.elc \
 	$(lisp)/term.elc \
 	$(lisp)/term/mac-win.elc \
+	$(lisp)/term/ns-win.elc \
 	$(lisp)/term/pc-win.elc \
 	$(lisp)/term/rxvt.elc \
 	$(lisp)/term/sun.elc \

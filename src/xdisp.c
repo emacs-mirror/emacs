@@ -199,6 +199,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 
 #include "font.h"
 
@@ -209,7 +212,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INFINITY 10000000
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
 extern void set_frame_menubar P_ ((struct frame *f, int, int));
 extern int pending_menu_activation;
 #endif
@@ -861,7 +864,7 @@ int display_hourglass_p;
 int hourglass_shown_p;
 
 /* If non-null, an asynchronous timer that, when it expires, displays
-    an hourglass cursor on all frames.  */
+   an hourglass cursor on all frames.  */
 struct atimer *hourglass_atimer;
 
 /* Number of seconds to wait before displaying an hourglass cursor.  */
@@ -9462,7 +9465,32 @@ x_consider_frame_title (frame)
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
 	  || bcmp (title, SDATA (f->name), len) != 0)
-	x_implicitly_set_name (f, make_string (title, len), Qnil);
+        {
+#ifdef HAVE_NS
+          if (FRAME_NS_P (f))
+            {
+              if (!MINI_WINDOW_P(XWINDOW(f->selected_window)))
+                {
+                  if (EQ (fmt, Qt))
+                    ns_set_name_as_filename (f);
+                  else
+                    x_implicitly_set_name (f, make_string(title, len),
+                                           Qnil);
+                }
+            }
+          else
+#endif
+	    x_implicitly_set_name (f, make_string (title, len), Qnil);
+        }
+#ifdef HAVE_NS
+      if (FRAME_NS_P (f))
+        {
+          /* do this also for frames with explicit names */
+          ns_implicitly_set_icon_type(f);
+          ns_set_doc_edited(f, Fbuffer_modified_p
+                            (XWINDOW (f->selected_window)->buffer), Qnil);
+        }
+#endif
     }
 }
 
@@ -9627,7 +9655,7 @@ update_menu_bar (f, save_match_data, hooks_run)
   if (FRAME_WINDOW_P (f)
       ?
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
       FRAME_EXTERNAL_MENU_BAR (f)
 #else
       FRAME_MENU_BAR_LINES (f) > 0
@@ -9686,10 +9714,10 @@ update_menu_bar (f, save_match_data, hooks_run)
 
 	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
 	  if (FRAME_WINDOW_P (f))
-	    {
-#ifdef MAC_OS
+            {
+#if defined (MAC_OS) || defined (HAVE_NS)
               /* All frames on Mac OS share the same menubar.  So only
                  the selected frame should be allowed to set it.  */
               if (f == SELECTED_FRAME ())
@@ -9700,11 +9728,11 @@ update_menu_bar (f, save_match_data, hooks_run)
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
 	    w->update_mode_line = Qt;
-#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || USE_GTK) */
+#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || HAVE_NS || USE_GTK) */
 	  /* In the non-toolkit version, the menu bar is an ordinary screen
 	     line, and this makes it get updated.  */
 	  w->update_mode_line = Qt;
-#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || USE_GTK) */
+#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || HAVE_NS || USE_GTK) */
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
@@ -9815,7 +9843,7 @@ update_tool_bar (f, save_match_data)
      struct frame *f;
      int save_match_data;
 {
-#if defined (USE_GTK) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
   int do_update = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
   int do_update = WINDOWP (f->tool_bar_window)
@@ -10281,7 +10309,7 @@ redisplay_tool_bar (f)
   struct it it;
   struct glyph_row *row;
 
-#if defined (USE_GTK) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
   if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
   return 0;
@@ -11501,6 +11529,10 @@ redisplay_internal (preserve_echo_area)
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = 1;
+/* PENDING: this causes all frames to be updated, which seems unnecessary
+   since only the current frame needs to be considered.  This function needs
+   to be rewritten with two variables, consider_all_windows and
+   consider_all_frames. */
       consider_all_windows_p = 1;
       ++windows_or_buffers_changed;
       ++update_mode_lines;
@@ -13913,7 +13945,7 @@ redisplay_window (window, just_this_one_p)
       if (FRAME_WINDOW_P (f))
 	{
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
 	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
 #else
 	  redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
@@ -13928,7 +13960,7 @@ redisplay_window (window, just_this_one_p)
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f))
         {
-#if defined (USE_GTK) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
           redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
           redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
@@ -17071,6 +17103,11 @@ display_menu_bar (w)
   if (FRAME_MAC_P (f))
     return;
 #endif
+
+#ifdef HAVE_NS
+  if (FRAME_NS_P (f))
+    return;
+#endif /* HAVE_NS */
 
 #ifdef USE_X_TOOLKIT
   xassert (!FRAME_WINDOW_P (f));
@@ -22539,7 +22576,10 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 /* Switch the display of W's cursor on or off, according to the value
    of ON.  */
 
-static void
+#ifndef HAVE_NS
+static
+#endif
+void
 update_window_cursor (w, on)
      struct window *w;
      int on;

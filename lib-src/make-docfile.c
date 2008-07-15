@@ -533,7 +533,7 @@ write_c_args (out, func, buf, minargs, maxargs)
 }
 
 /* Read through a c file.  If a .o file is named,
-   the corresponding .c file is read instead.
+   the corresponding .c or .m file is read instead.
    Looks for DEFUN constructs such as are defined in ../src/lisp.h.
    Accepts any word starting DEF... so it finds DEFSIMPLE and DEFPRED.  */
 
@@ -554,6 +554,15 @@ scan_c_file (filename, mode)
     filename[strlen (filename) - 1] = 'c';
 
   infile = fopen (filename, mode);
+
+  if (infile == NULL && extension == 'o')
+    {
+      /* try .m */
+      filename[strlen (filename) - 1] = 'm';
+      infile = fopen (filename, mode);
+      if (infile == NULL)
+        filename[strlen (filename) - 1] = 'c'; /* don't confuse people */
+    }
 
   /* No error if non-ex input file */
   if (infile == NULL)

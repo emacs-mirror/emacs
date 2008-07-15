@@ -397,6 +397,8 @@ possible return values.  */)
       return Qpc;
     case output_mac:
       return Qmac;
+    case output_ns:
+      return Qns;
     default:
       abort ();
     }

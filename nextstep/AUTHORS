@@ -1,0 +1,42 @@
+In addition to the folks listed in ../AUTHORS responsible for GNU Emacs itself,
+the NeXTstep port owes to the following people:
+
+Carl Edman
+    original author and maintainer, mainly UI
+Michael Brouwer
+    heavy contributor, input handling and other areas
+Christian Limpach
+    help / maintenance on NeXTstep
+Scott Bender
+    OpenStep, Rhapsody ports
+Christophe de Dinechin
+    MacOS X port
+Adrian Robert
+    GNUstep port*, update Emacs 20 -> 21+
+
+Joe Reiss
+    popup menu, dialog boxes; icons
+Andrew Athan
+    font panel integration
+Scott Byer
+    improved rendering code
+Scott Hess
+    keyboard handling suggestions
+
+Rahul Abrol
+    "hide others" patch
+Adam Ratcliffe
+    preferences panel documentation
+Peter Dyballa
+    assistance with non-ASCII rendering and keyboard handling
+David M. Cooke
+    fix to XPM crash bug
+Carsten Bormann
+    initial patch and assistance getting dired working for non-ASCII filenames
+Andrew Moore
+    assistance on ns-mark-nav extension
+
+(*)
+The GNUstep port was made possible through the assistance of Adam Fedor, Fred
+Kiefer, M. Uli Klusterer, Alexander Malmberg, Jonas Matton, and Riccardo
+Mottola.

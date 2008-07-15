@@ -148,7 +148,7 @@
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '(menu-item "For Terminal" set-terminal-coding-system
-	      :enable (null (memq initial-window-system '(x w32 mac)))
+	      :enable (null (memq initial-window-system '(x w32 mac ns)))
 	      :help "How to encode terminal output")
   t)
 (define-key-after set-coding-system-map [separator-3]

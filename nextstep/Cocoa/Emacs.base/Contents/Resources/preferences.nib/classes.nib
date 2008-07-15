@@ -1,0 +1,32 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {
+                cancel = id; 
+                ok = id; 
+                resetToDefaults = id; 
+                runHelp = id; 
+                setColors = id; 
+                setDefaultFont = id; 
+            }; 
+            CLASS = EmacsPrefsController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                alternateModMenu = NSPopUpButton; 
+                commandModMenu = NSPopUpButton; 
+                controlModMenu = NSPopUpButton; 
+                cursorBlinkSlider = NSSlider; 
+                cursorTypeMatrix = NSMatrix; 
+                expandSpaceSlider = NSSlider; 
+                functionModMenu = NSPopUpButton; 
+                prefsWindow = NSWindow; 
+                smoothFontsCheck = NSButton; 
+                useQuickdrawCheck = NSButton; 
+                useSysHiliteCheck = NSButton; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+    ); 
+    IBVersion = 1; 
+}

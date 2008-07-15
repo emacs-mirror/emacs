@@ -49,6 +49,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;

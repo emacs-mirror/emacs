@@ -21,7 +21,7 @@ dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_PREREQ(2.61)dnl
+AC_PREREQ(2.61)
 AC_INIT(emacs, 23.0.60)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
@@ -142,6 +142,7 @@ OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
 OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
+OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -174,6 +175,16 @@ AC_ARG_ENABLE(carbon-app,
                 [specify install directory for Emacs.app on Mac OS X
 		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
+
+AC_ARG_ENABLE(ns-app,
+[[  --enable-ns-app[=DIR]  [DIR=/Applications]
+                          specify install directory for Emacs.app under NS]],
+[ ns_appdir_x=${enableval}])
+
+AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
+[  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition],
+   EN_COCOA_EXPERIMENTAL_CTRL_G=yes,
+   EN_COCOA_EXPERIMENTAL_CTRL_G=no)
 
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
@@ -283,16 +294,17 @@ machine='' opsys='' unported=no
 case "${canonical}" in
 
   ## FreeBSD ports
-  *-*-freebsd* )
+  *-*-*freebsd* )
     opsys=freebsd
     case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
       arm*-*-freebsd*)          machine=arm ;;
       ia64-*-freebsd*)		machine=ia64 ;;
+      sparc-*-freebsd*)         machine=sparc ;;
       sparc64-*-freebsd*)	machine=sparc ;;
       powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
-      amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
+      amd64-*-freebsd*|x86_64-*-*freebsd*) machine=amdx86-64 ;;
     esac
   ;;
 
@@ -302,6 +314,7 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*-*-kfreebsd*)	machine=alpha ;;
       ia64-*-kfreebsd*)		machine=ia64 ;;
+      sparc-*-kfreebsd*)	machine=sparc ;;
       sparc64-*-kfreebsd*)	machine=sparc ;;
       powerpc-*-kfreebsd*)	machine=macppc ;;
       i[3456]86-*-kfreebsd*)	machine=intel386 ;;
@@ -1221,6 +1234,50 @@ if test "${HAVE_CARBON}" = yes; then
   window_system=mac
 fi
 
+HAVE_NS=no
+COCOA=no
+GNUSTEP=no
+tmp_CPPFLAGS="$CPPFLAGS"
+tmp_CFLAGS="$CFLAGS"
+CPPFLAGS="$CPPFLAGS -x objective-c"
+CFLAGS="$CFLAGS -x objective-c"
+if test "${with_ns}" != no; then
+  if test "${opsys}" = darwin; then
+     COCOA=yes
+  elif test -f /etc/GNUstep/GNUstep.conf; then
+     GNUSTEP=yes
+     GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
+     GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+  fi
+  AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
+fi
+if test "${window_system}" = x11 && test "${HAVE_NS}" = yes; then
+  if test "${with_ns+set}" != set \
+     && test "${ns_appdir_x+set}" != set; then
+    HAVE_NS=no
+  fi
+fi
+
+if test "${window_system}" = mac && test "${HAVE_NS}" = yes; then
+  if test "${with_ns+set}" != set \
+     && test "${ns_appdir_x+set}" != set; then
+    HAVE_NS=no
+  else
+    HAVE_CARBON=no
+  fi
+fi
+if test "${HAVE_NS}" = yes; then
+  window_system=nextstep
+  with_xft=no
+  with_freetype=no
+fi
+CFLAGS="$tmp_CFLAGS"
+CPPFLAGS="$tmp_CPPFLAGS"
+
 case "${window_system}" in
   x11 )
     HAVE_X_WINDOWS=yes
@@ -1238,7 +1295,7 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  mac | none )
+  nextstep | mac | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -1710,6 +1767,9 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
   elif test "${HAVE_CARBON}" = "yes"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
+  elif test "${HAVE_NS}" = "yes"; then
+    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+    USE_TOOLKIT_SCROLL_BARS=yes
   fi
 fi
 
@@ -2019,6 +2079,30 @@ if test "${HAVE_CARBON}" = "yes"; then
   # We also have mouse menus.
   HAVE_MENUS=yes
 fi
+### Use NeXTstep API to implement GUI.
+if test "${HAVE_NS}" = "yes"; then
+  AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
+  ## Specify the install directory
+  ns_appdir=
+  if test "${ns_appdir_x}" != ""; then
+    case ${ns_appdir_x} in
+      y | ye | yes)  ns_appdir=/Applications ;;
+      * ) ns_appdir=${ns_appdir_x} ;;
+    esac
+  fi
+  if test "${COCOA}" = "yes"; then
+    AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
+  fi
+  if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
+    AC_DEFINE(COCOA_EXPERIMENTAL_CTRL_G, 1, [Define to 1 if you are trying experimental enhanced Ctrl-g support using NS windowing under MacOS X.])
+  fi
+  if test "${GNUSTEP}" = "yes"; then
+    AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
+  fi
+  # We also have mouse menus.
+  HAVE_MENUS=yes
+fi
+
 
 ### Use session management (-lSM -lICE) if available
 HAVE_X_SM=no
@@ -2414,6 +2498,7 @@ AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 AC_SUBST(GETLOADAVG_LIBS)
 AC_SUBST(carbon_appdir)
+AC_SUBST(ns_appdir)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
@@ -2503,8 +2588,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ])dnl
 
 AH_BOTTOM([
-/* If we're using any sort of window system, define some consequences.  */
-#ifdef HAVE_X_WINDOWS
+/* If we're using X11/Carbon/GNUstep, define some consequences.  */
+#if defined HAVE_X_WINDOWS || defined(HAVE_CARBON) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
@@ -2516,12 +2601,14 @@ AH_BOTTOM([
 #define MULTI_KBOARD
 #endif
 
-/* If we're using the Carbon API on Mac OS X, define a few more
-   variables as well.  */
-#ifdef HAVE_CARBON
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
+/* Sadly for now, GNUstep dump does not work.  */
+#ifdef NS_IMPL_GNUSTEP
+#define CANNOT_DUMP
 #endif
+
+/* PENDING: These are used for the Carbon port only. */
+#undef MAC_OS
+#undef MAC_OSX
 
 /* Define USER_FULL_NAME to return a string
    that is the user's full name.
@@ -2574,6 +2661,28 @@ AH_BOTTOM([
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
+
+/* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
+  (There is probably a better place to do this, but right now the Cocoa
+   side does this in s/darwin.h, following the Carbon port, and we cannot
+   parallel this exactly since GNUstep is multi-OS. */
+#ifdef HAVE_NS
+# ifdef C_SWITCH_SYSTEM
+# undef C_SWITCH_SYSTEM
+# endif
+# ifdef NS_IMPL_GNUSTEP
+/* See also .m.o rule in Makefile.in */
+#  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
+#  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
+#  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
+#  define OTHER_FILES ns-app
+# else /* COCOA */
+#  define C_SWITCH_X_SYSTEM
+#  define GNU_OBJC_CFLAGS
+# endif /* COCOA */
+#endif /* HAVE_NS */
+
+
 
 /* If no remapping takes place, static variables cannot be dumped as
    pure, so don't worry about the `static' keyword. */

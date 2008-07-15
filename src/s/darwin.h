@@ -221,7 +221,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* In Carbon, asynchronous I/O (using SIGIO) can't be used for window
    events because they don't come from sockets, even though it works
    fine on tty's.  */
-#ifdef HAVE_CARBON
+/* This seems to help in Ctrl-G detection under Cocoa, however at the cost
+   of some quirks that may or may not bother a given user. */
+#if defined (HAVE_CARBON) || defined (COCOA_EXPERIMENTAL_CTRL_G)
 #define NO_SOCK_SIGIO
 #endif
 
@@ -247,8 +249,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Definitions for how to compile & link.  */
 
-/* Indicate that we are compiling for Mac OS X.  */
+/* This is for the Carbon port.  Under the NeXTstep port, this is still picked
+   up during preprocessing, but is undone in config.in. */
+#ifndef HAVE_NS
 #define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
+#endif
+
+/* Link in the Carbon or AppKit lib. */
+#ifdef HAVE_NS
+/* PENDING: lresolv is here because configure when testing #undefs res_init,
+            a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
+#define LIBS_MACGUI -framework AppKit -lresolv
+#define SYSTEM_PURESIZE_EXTRA 200000
+#define HEADERPAD_EXTRA 6C8
+#else
+#define HEADERPAD_EXTRA 690
 
 #ifdef HAVE_CARBON
 
@@ -274,16 +289,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Link in the Carbon lib. */
 #ifdef HAVE_CARBON
-#define LIBS_CARBON -framework Carbon LIBS_IMAGE
+#define LIBS_MACGUI -framework Carbon LIBS_IMAGE
 #else
-#define LIBS_CARBON
-#endif
+#define LIBS_MACGUI
+#endif /* !HAVE_CARBON */
+#endif /* !HAVE_NS */
 
 /* The -headerpad option tells ld (see man page) to leave room at the
    end of the header for adding load commands.  Needed for dumping.
    0x690 is the total size of 30 segment load commands (at 56
-   each).  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_CARBON -Xlinker -headerpad -Xlinker 690
+   each); under Cocoa 31 commands are required.  */
+#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_MACGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 
@@ -310,6 +326,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    bundle mac/Emacs.app.  */
 #ifdef HAVE_CARBON
 #define OTHER_FILES macosx-app
+#endif
+
+/* PENDING: can this target be specified in a clearer way? */
+#ifdef HAVE_NS
+#define OTHER_FILES ns-app
 #endif
 
 

@@ -32,6 +32,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 #include "buffer.h"
 /* These help us bind and responding to switch-frame events.  */
 #include "commands.h"
@@ -72,7 +75,7 @@ Lisp_Object Vframe_alpha_lower_limit;
 Lisp_Object Qframep, Qframe_live_p;
 Lisp_Object Qicon, Qmodeline;
 Lisp_Object Qonly;
-Lisp_Object Qx, Qw32, Qmac, Qpc;
+Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
 Lisp_Object Qbackground_mode;
@@ -203,7 +206,8 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
 Value is t for a termcap frame (a character-only terminal),
 `x' for an Emacs frame that is really an X window,
 `w32' for an Emacs frame that is a window on MS-Windows display,
-`mac' for an Emacs frame on a Macintosh display,
+`mac' for an Emacs frame on a Macintosh 8/9 X-Carbon display,
+`ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
 `pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
      (object)
@@ -224,6 +228,8 @@ See also `frame-live-p'.  */)
       return Qpc;
     case output_mac:
       return Qmac;
+    case output_ns:
+      return Qns;
     default:
       abort ();
     }
@@ -550,6 +556,11 @@ make_initial_frame (void)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+
+#ifdef CANNOT_DUMP
+  if (!noninteractive)
+    init_frame_faces (f);
+#endif
 
   return f;
 }
@@ -879,6 +890,12 @@ do_switch_frame (frame, track, for_deletion)
     last_nonminibuf_frame = XFRAME (selected_frame);
 
   Fselect_window (XFRAME (frame)->selected_window, Qnil);
+
+#ifdef NS_IMPL_COCOA
+  /* term gets no other notification of this */
+  if (for_deletion)
+    Fraise_frame(Qnil);
+#endif
 
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
@@ -2969,8 +2986,9 @@ x_set_frame_parameters (f, alist)
 
 	  old_value = get_frame_param (f, prop);
  	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
-
+#ifndef HAVE_NS  /* PENDING: ensure font attrs change goes through */
 	  if (NILP (Fequal (val, old_value)))
+#endif
 	    {
 	      store_frame_param (f, prop, val);
 
@@ -3949,6 +3967,9 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	    case RES_TYPE_BOOLEAN:
 	      tem = Fdowncase (tem);
 	      if (!strcmp (SDATA (tem), "on")
+#ifdef HAVE_NS
+                  || !strcmp(SDATA(tem), "yes")
+#endif
 		  || !strcmp (SDATA (tem), "true"))
 		return Qt;
 	      else
@@ -3964,9 +3985,15 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 		Lisp_Object lower;
 		lower = Fdowncase (tem);
 		if (!strcmp (SDATA (lower), "on")
+#ifdef HAVE_NS
+                    || !strcmp(SDATA(lower), "yes")
+#endif
 		    || !strcmp (SDATA (lower), "true"))
 		  return Qt;
 		else if (!strcmp (SDATA (lower), "off")
+#ifdef HAVE_NS
+                      || !strcmp(SDATA(lower), "no")
+#endif
 		      || !strcmp (SDATA (lower), "false"))
 		  return Qnil;
 		else
@@ -4366,6 +4393,8 @@ syms_of_frame ()
   staticpro (&Qpc);
   Qmac = intern ("mac");
   staticpro (&Qmac);
+  Qns = intern ("ns");
+  staticpro (&Qns);
   Qvisible = intern ("visible");
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
@@ -4473,8 +4502,8 @@ Setting this variable does not affect existing frames, only new ones.  */);
   DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(MAC_OS)
-  /* MS-Windows has scroll bars on the right by default.  */
+#if defined(HAVE_NTGUI) || defined(MAC_OS) || defined(NS_IMPL_COCOA)
+  /* MS-Windows and Mac OS X have scroll bars on the right by default.  */
   Vdefault_frame_scroll_bars = Qright;
 #else
   Vdefault_frame_scroll_bars = Qleft;
@@ -4540,7 +4569,7 @@ You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
 automatically.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(MAC_OS)
+#if defined(HAVE_NTGUI) || defined(MAC_OS) || defined(HAVE_NS)
   focus_follows_mouse = 0;
 #else
   focus_follows_mouse = 1;

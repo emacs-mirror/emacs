@@ -28,6 +28,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define P_(proto) ()
 #endif
 
+#ifdef NS_IMPL_GNUSTEP
+/* This conflicts with functions in the GNUstep libraries. */
+#define hash_remove emacs_hash_remove
+#endif  /* NS_IMPL_GNUSTEP */
+
 #if 0
 /* Define this temporarily to hunt a bug.  If defined, the size of
    strings is redundantly recorded in sdata structures so that it can
@@ -157,7 +162,7 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 
 /* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX || defined(NS_IMPL_COCOA)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */

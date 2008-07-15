@@ -46,6 +46,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif /* HAVE_NS */
+
 #ifdef MAC_OS
 #include "macterm.h"
 #endif /* MAC_OS */
@@ -56,6 +60,12 @@ Lisp_Object Qopentype;
 
 /* Important character set strings.  */
 Lisp_Object Qascii_0, Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
+
+#ifdef HAVE_NS
+#define DEFAULT_ENCODING Qiso10646_1
+#else
+#define DEFAULT_ENCODING Qiso8859_1
+#endif
 
 /* Special vector of zero length.  This is repeatedly used by (struct
    font_driver *)->list when a specified font is not found. */
@@ -3096,7 +3106,7 @@ font_find_for_lface (f, attrs, spec, c)
   registry[0] = AREF (spec, FONT_REGISTRY_INDEX);
   if (NILP (registry[0]))
     {
-      registry[0] = Qiso8859_1;
+      registry[0] = DEFAULT_ENCODING;
       registry[1] = Qascii_0;
       registry[2] = null_vector;
     }
@@ -4948,6 +4958,7 @@ extern void syms_of_ftxfont P_ (());
 extern void syms_of_bdffont P_ (());
 extern void syms_of_w32font P_ (());
 extern void syms_of_atmfont P_ (());
+extern void syms_of_nsfont P_ (());
 
 void
 syms_of_font ()
@@ -5117,6 +5128,9 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
 #ifdef WINDOWSNT
   syms_of_w32font ();
 #endif	/* WINDOWSNT */
+#ifdef HAVE_NS
+  syms_of_nsfont ();
+#endif	/* HAVE_NS */
 #ifdef MAC_OS
   syms_of_atmfont ();
 #endif	/* MAC_OS */

@@ -1,3 +1,4 @@
+#include <stdio.h>
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
    Copyright (C) 1985, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2001,
                  2002, 2003, 2004, 2005, 2006, 2007, 2008
@@ -297,6 +298,18 @@ char_quoted (charpos, bytepos)
   register int beg = BEGV;
   register int quoted = 0;
   int orig = charpos;
+
+#ifdef HAVE_NS
+  /* For some reason keeps getting called w/both 1, then segfaulting
+     due to the definitions of DEC_BOTH and DEC_POS in character.h,
+     which lead to decrementing below initial address and then examining
+     character there.  Need to investigate further.. */
+  if (charpos < 2 || bytepos < 2)
+    {
+      //fprintf(stderr,"Returning because charpos = %d, bytepos = %d\n",charpos, bytepos);
+      return 0;
+    }
+#endif
 
   DEC_BOTH (charpos, bytepos);
 

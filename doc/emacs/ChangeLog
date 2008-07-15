@@ -1,3 +1,8 @@
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* ns-emacs.texi: New file, documents features of Emacs port under
+	NeXTstep windowing.
+
 2008-07-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* entering.texi (Entering Emacs): Update prev node.

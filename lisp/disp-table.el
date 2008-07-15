@@ -142,7 +142,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   "Display character C as character SC in the g1 character set.
 This function assumes that your terminal uses the SO/SI characters;
 it is meaningless for an X frame."
-  (if (memq window-system '(x w32 mac))
+  (if (memq window-system '(x w32 mac ns))
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
@@ -154,7 +154,7 @@ it is meaningless for an X frame."
   "Display character C as character GC in graphics character set.
 This function assumes VT100-compatible escapes; it is meaningless for an
 X frame."
-  (if (memq window-system '(x w32 mac))
+  (if (memq window-system '(x w32 mac ns))
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
@@ -243,7 +243,7 @@ for users who call this function in `.emacs'."
 	       (equal (aref standard-display-table 161) [161])))
       (progn
 	(standard-display-default 160 255)
-	(unless (or (memq window-system '(x w32 mac)))
+	(unless (or (memq window-system '(x w32 mac ns)))
 	  (and (terminal-coding-system)
 	       (set-terminal-coding-system nil))))
 
@@ -255,7 +255,7 @@ for users who call this function in `.emacs'."
     ;; unless some other has been specified.
     (if (equal current-language-environment "English")
 	(set-language-environment "latin-1"))
-    (unless (or noninteractive (memq window-system '(x w32 mac)))
+    (unless (or noninteractive (memq window-system '(x w32 mac ns)))
       ;; Send those codes literally to a character-based terminal.
       ;; If we are using single-byte characters,
       ;; it doesn't matter which coding system we use.

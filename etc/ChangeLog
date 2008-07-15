@@ -1,3 +1,8 @@
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* Emacs.clr: New file, add support for X color names to NS display
+	implementations.
+
 2008-07-12  Juri Linkov  <juri@jurta.org>
 
 	* HELLO: Use more correct IPA characters for English pronunciation.

@@ -1,3 +1,42 @@
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+	* ns-carbon-compat.el: New file: user-visible compatibility of
+	NeXTstep port with Carbon port.
+	* ns-grabenv.el: New file: functionality useful on OS X platform to
+	expose environment variables inside Emacs started from icon.
+	* Makefile.in: Add above three files.
+	* cus-edit.el
+	* cus-face.el
+	* disp-table.el
+	* faces.el
+	* info.el
+	* mouse.el
+	* mwheel.el
+	* simple.el: Add ns to window systems treated as GUIs.
+	* facemenu.el (facemenu-read-color): Don't require a name match under
+	NS, to allow numeric color entry.
+	* frame.el (make-frame-on-display): Follow code for 'x in initializing
+	'ns window system if need be.
+	(various): Add 'ns as described above.
+	* loadup.el: Load ns-win.el if ns-windowing is active.
+	* startup.el (command-line-ns-option-alist): New constant to handle NS
+	windowing system specific command line args analogous to how they are
+	handled for X windows.
+	(command-line-1): Use the above where appropriate.
+	* version.el: Add NS port version.
+	* woman.el (woman-man.conf-path): Add /usr/share/misc to init path on
+	Darwin (usually OS X) systems.
+	(woman-use-own-frame): Include 'ns in list of GUI window systems.
+	* emulation/viper-util.el (ns-display-color-p)
+	(ns-color-defined-p): Remove these (caustically-commented) outdated
+	compensations for a port that was never itself integrated until now.
+	* gnus/gnus-util.el (gnus-select-frame-set-input-focus): Add support
+	for NS window system.
+	* international/mule-cmds.el: Add 'ns to list of special-cased window
+	systems (probably most of these, x/w32/mac/ns could be changed to
+	window-system non-nil).
+	* term/ns-win.el: New file: lisp-side support for NS windowing system.
+
+
 2008-07-14  Jason Rumney  <jasonr@gnu.org>
 
         * term/w32-win.el (x-handle-switch, x-handle-name-switch)

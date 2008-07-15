@@ -11,6 +11,7 @@ etags
 fakemail
 getopt.h
 hexl
+mac-fix-env
 make-docfile
 movemail
 obj
