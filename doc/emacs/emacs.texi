@@ -160,8 +160,6 @@ Important General Concepts
 * Keys::	        Key sequences: what you type to request one
                           editing action.
 * Commands::	        Named functions run by key sequences to do editing.
-* Text Characters::     Character set for text (the contents of buffers
-			  and strings).
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::	        Stopping or killing Emacs.
 * Emacs Invocation::    Hairy startup options.
@@ -913,6 +911,7 @@ Customizing Key Bindings
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
+* Modifier Keys::       Using modifier keys in key bindings.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
