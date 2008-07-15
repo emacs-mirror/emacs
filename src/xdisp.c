@@ -865,7 +865,7 @@ int hourglass_shown_p;
 struct atimer *hourglass_atimer;
 
 /* Number of seconds to wait before displaying an hourglass cursor.  */
-static Lisp_Object Vhourglass_delay;
+Lisp_Object Vhourglass_delay;
 
 /* Default number of seconds to wait before displaying an hourglass
    cursor.  */
@@ -25229,6 +25229,10 @@ init_xdisp ()
   help_echo_showing_p = 0;
 }
 
+/* Since w32 does not support atimers, it defines its own implementation of
+   the following three functions in w32fns.c.  */
+#ifndef WINDOWSNT
+
 /* Platform-independent portion of hourglass implementation. */
 
 /* Return non-zero if houglass timer has been started or hourglass is shown.  */
@@ -25237,7 +25241,6 @@ hourglass_started ()
 {
   return hourglass_shown_p || hourglass_atimer != NULL;
 }
-
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 void
@@ -25286,7 +25289,7 @@ cancel_hourglass ()
     hide_hourglass ();
 #endif
 }
-
+#endif /* ! WINDOWSNT  */
 
 /* arch-tag: eacc864d-bb6a-4b74-894a-1a4399a1358b
    (do not change this comment) */

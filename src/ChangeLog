@@ -1,3 +1,16 @@
+2008-07-15  Jason Rumney  <jasonr@gnu.org>
+
+        * w32fns.c (Fx_create_frame): Remove duplicate unwind_protect.
+        (w32_show_hourglass): Rename from show_hourglass.
+        (w32_hide_hourglass): Rename from hide_hourglass.
+        (DEFAULT_HOURGLASS_DELAY): Revert from last change.
+        (Vhourglass_delay): Declare extern.
+        (hourglass_started): Remove.
+
+        * xdisp.c (Vhourglass_delay): Remove static.
+        (hourglass_started, start_hourglass, cancel_hourglass):
+        Don't include these versions on WINDOWSNT.
+
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
         * dispextern.h (hourglass_shown_p, hourglass_atimer): New extern

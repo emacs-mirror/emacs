@@ -307,8 +307,8 @@ extern void syms_of_w32uniscribe ();
 extern int uniscribe_available;
 
 /* Function prototypes for hourglass support.  */
-static void show_hourglass P_ ((struct frame *));
-static void hide_hourglass P_ ((void));
+static void w32_show_hourglass P_ ((struct frame *));
+static void w32_hide_hourglass P_ ((void));
 
 
 
@@ -3480,7 +3480,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	{
 	  KillTimer (hwnd, hourglass_timer);
 	  hourglass_timer = 0;
-	  show_hourglass (x_window_to_frame (dpyinfo, hwnd));
+	  w32_show_hourglass (x_window_to_frame (dpyinfo, hwnd));
 	}
       return 0;
 
@@ -4350,7 +4350,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
   bzero (f->output_data.w32, sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
-  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
     = x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
@@ -5229,6 +5228,12 @@ value.  */)
 				Busy cursor
  ***********************************************************************/
 
+/* Default number of seconds to wait before displaying an hourglass
+   cursor.  Duplicated from xdisp.c, but cannot use the version there
+   due to lack of atimers on w32.  */
+#define DEFAULT_HOURGLASS_DELAY 1
+extern Lisp_Object Vhourglass_delay;
+
 /* Return non-zero if houglass timer has been started or hourglass is shown.  */
 /* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
    	    xdisp.c could be used. */
@@ -5287,7 +5292,7 @@ cancel_hourglass ()
     }
 
   if (hourglass_shown_p)
-    hide_hourglass ();
+    w32_hide_hourglass ();
 }
 
 
@@ -5297,7 +5302,7 @@ cancel_hourglass ()
    to indicate that an hourglass cursor is shown.  */
 
 static void
-show_hourglass (f)
+w32_show_hourglass (f)
      struct frame *f;
 {
   if (!hourglass_shown_p)
@@ -5313,7 +5318,7 @@ show_hourglass (f)
 /* Hide the hourglass cursor on all frames, if it is currently shown.  */
 
 static void
-hide_hourglass ()
+w32_hide_hourglass ()
 {
   if (hourglass_shown_p)
     {
