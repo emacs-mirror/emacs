@@ -2925,6 +2925,15 @@ extern void start_hourglass P_ ((void));
 extern void cancel_hourglass P_ ((void));
 extern int hourglass_started P_ ((void));
 extern int display_hourglass_p;
+extern int hourglass_shown_p;
+struct atimer;			/* Defined in atimer.h.  */
+/* If non-null, an asynchronous timer that, when it expires, displays
+   an hourglass cursor on all frames.  */
+extern struct atimer *hourglass_atimer;
+
+/* Each GUI implements these.  PENDING: move into RIF. */
+extern void show_hourglass P_ ((struct atimer *));
+extern void hide_hourglass P_ ((void));
 
 /* Returns the background color of IMG, calculating one heuristically if
    necessary.  If non-zero, XIMG is an existing XImage object to use for

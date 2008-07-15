@@ -151,10 +151,6 @@ static int w32_pass_multimedia_buttons_to_system;
 /* Non nil if no window manager is in use.  */
 Lisp_Object Vx_no_window_manager;
 
-/* Non-zero means we're allowed to display a hourglass pointer.  */
-
-int display_hourglass_p;
-
 /* If non-zero, a w32 timer that, when it expires, displays an
    hourglass cursor on all frames.  */
 static unsigned hourglass_timer = 0;
@@ -5233,20 +5229,9 @@ value.  */)
 				Busy cursor
  ***********************************************************************/
 
-/* Non-zero means an hourglass cursor is currently shown.  */
-
-static int hourglass_shown_p;
-
-/* Number of seconds to wait before displaying an hourglass cursor.  */
-
-static Lisp_Object Vhourglass_delay;
-
-/* Default number of seconds to wait before displaying an hourglass
-   cursor.  */
-
-#define DEFAULT_HOURGLASS_DELAY 1
-
 /* Return non-zero if houglass timer has been started or hourglass is shown.  */
+/* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
+   	    xdisp.c could be used. */
 
 int
 hourglass_started ()
@@ -7150,15 +7135,6 @@ This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
-  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
-	       doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
-  display_hourglass_p = 1;
-
-  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
-	       doc: /* *Seconds to wait before displaying an hourglass pointer.
-Value must be an integer or float.  */);
-  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
-
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	       &Vx_sensitive_text_pointer_shape,
 	       doc: /* The shape of the pointer when over mouse-sensitive text.
@@ -7274,7 +7250,7 @@ only be necessary if the default setting causes problems.  */);
 
   hourglass_timer = 0;
   hourglass_hwnd = NULL;
-  hourglass_shown_p = 0;
+
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   tip_timer = Qnil;

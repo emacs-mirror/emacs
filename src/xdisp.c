@@ -852,6 +852,25 @@ Lisp_Object previous_help_echo_string;
 
 static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
+/* Platform-independent portion of hourglass implementation. */
+
+/* Non-zero means we're allowed to display a hourglass pointer.  */
+int display_hourglass_p;
+
+/* Non-zero means an hourglass cursor is currently shown.  */
+int hourglass_shown_p;
+
+/* If non-null, an asynchronous timer that, when it expires, displays
+    an hourglass cursor on all frames.  */
+struct atimer *hourglass_atimer;
+
+/* Number of seconds to wait before displaying an hourglass cursor.  */
+static Lisp_Object Vhourglass_delay;
+
+/* Default number of seconds to wait before displaying an hourglass
+   cursor.  */
+#define DEFAULT_HOURGLASS_DELAY 1
+
 
 /* Function prototypes.  */
 
@@ -25143,6 +25162,18 @@ particularly when using variable `x-use-underline-position-properties'
 with fonts that specify an UNDERLINE_POSITION relatively close to the
 baseline.  The default value is 1.  */);
   underline_minimum_offset = 1;
+
+  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
+	       doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
+  display_hourglass_p = 1;
+
+  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
+	       doc: /* *Seconds to wait before displaying an hourglass pointer.
+Value must be an integer or float.  */);
+  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
+
+  hourglass_atimer = NULL;
+  hourglass_shown_p = 0;
 }
 
 
@@ -25196,6 +25227,64 @@ init_xdisp ()
   }
 
   help_echo_showing_p = 0;
+}
+
+/* Platform-independent portion of hourglass implementation. */
+
+/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+int
+hourglass_started ()
+{
+  return hourglass_shown_p || hourglass_atimer != NULL;
+}
+
+
+/* Cancel a currently active hourglass timer, and start a new one.  */
+void
+start_hourglass ()
+{
+#if defined (HAVE_WINDOW_SYSTEM)
+  EMACS_TIME delay;
+  int secs, usecs = 0;
+
+  cancel_hourglass ();
+
+  if (INTEGERP (Vhourglass_delay)
+      && XINT (Vhourglass_delay) > 0)
+    secs = XFASTINT (Vhourglass_delay);
+  else if (FLOATP (Vhourglass_delay)
+	   && XFLOAT_DATA (Vhourglass_delay) > 0)
+    {
+      Lisp_Object tem;
+      tem = Ftruncate (Vhourglass_delay, Qnil);
+      secs = XFASTINT (tem);
+      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
+    }
+  else
+    secs = DEFAULT_HOURGLASS_DELAY;
+
+  EMACS_SET_SECS_USECS (delay, secs, usecs);
+  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
+				   show_hourglass, NULL);
+#endif
+}
+
+
+/* Cancel the hourglass cursor timer if active, hide a busy cursor if
+   shown.  */
+void
+cancel_hourglass ()
+{
+#if defined (HAVE_WINDOW_SYSTEM)
+  if (hourglass_atimer)
+    {
+      cancel_atimer (hourglass_atimer);
+      hourglass_atimer = NULL;
+    }
+
+  if (hourglass_shown_p)
+    hide_hourglass ();
+#endif
 }
 
 

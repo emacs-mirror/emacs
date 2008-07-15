@@ -1,3 +1,34 @@
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+        * dispextern.h (hourglass_shown_p, hourglass_atimer): New extern
+	variables (formerly in xxxfns.c).
+	(show_hourglass, hide_hourglass): New prototypes (same).
+	* xdisp.c (display_hourglass_p, hourglass_shown_p, hourglass_atimer)
+	(Vhourglass_delay, DEFAULT_HOURGLASS_DELAY): New variables (formerly
+	in xxxfns.c).
+	(syms_of_xdisp): Declare/initialize display-hourglass,
+	hourglass-delay.  Initialize hourglass_atimer, hourglass_shown_p.
+	(hourglass_started, start_hourglass, cancel_hourglass): New functions,
+	formerly in xxxfns.c.
+	* xfns.c (display_hourglass_p, hourglass_atimer, hourglass_shown_p)
+	(Vhourglass_delay, DEFAULT_HOURGLASS_DELAY, hourglass_started)
+	(start_hourglass, cancel_hourglass): Remove.
+	(show_hourglass, hide_hourglass): Remove prototypes and static
+	modifiers.
+	(syms_of_xfns): Remove display-hourglass, hourglass-delay,
+	hourglass_atimer, hourglass_shown_p declaration/initialization.
+	* macfns.c (display_hourglass_p, hourglass_atimer, hourglass_shown_p)
+	(Vhourglass_delay, DEFAULT_HOURGLASS_DELAY, hourglass_started)
+	(start_hourglass, cancel_hourglass): Remove.
+	(show_hourglass, hide_hourglass): Remove prototypes and static
+	modifiers.
+	(syms_of_macfns): Remove display-hourglass, hourglass-delay,
+	hourglass_atimer, hourglass_shown_p declaration/initialization.
+	* w32fns.c (display_hourglass_p, Vhourglass_delay)
+	(DEFAULT_HOURGLASS_DELAY): Remove.
+	(syms_of_w32fns): Remove display-hourglass, hourglass-delay,
+	hourglass_shown_p declaration/initialization.
+
 2008-07-14  Jason Rumney  <jasonr@gnu.org>
 
         * w32fns.c (w32_get_arg): Remove wrapper function.
