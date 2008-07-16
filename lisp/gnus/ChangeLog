@@ -1,3 +1,7 @@
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (ns-focus-frame): Declare for compiler.
+
 2008-07-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-save): Ignore gnus-visible-headers that is
