@@ -1,5 +1,11 @@
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/mips.h: Remove boilerplate comments and code for systems that
+	 do not use this file.
+	 (SIGN_EXTEND_CHAR):
+	* m/arm.h (SIGN_EXTEND_CHAR): Remove, unused.
+	* unexmips.c: Remove file, unused.
+
 	* editfns.c (Fuser_full_name): Replace the only use of
 	USER_FULL_NAME with its value.
 	* config.in: Regenerate.
