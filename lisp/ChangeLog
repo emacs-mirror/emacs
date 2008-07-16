@@ -1,9 +1,16 @@
+2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/ns-win.el: Require CL; fix up comment style; reindent.
+	(ns-define-service): Use subst-char-in-string.  Avoid `eval'.
+	(ns-save-preferences): Use `case'.
+	(ns-initialize-window-system): Use `dolist'.
+
 2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* loadup.el: Remove load of easy-mmode prior to ns-win when NS
 	windowing is used.
 	* term/ns-win.el (ns-extended-platform-support-mode):
-	Corrected/improved documentation.
+	Correct/improve documentation.
 
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 

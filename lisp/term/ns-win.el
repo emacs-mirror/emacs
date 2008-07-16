@@ -40,6 +40,8 @@
     (error "%s: Loading ns-win.el but not compiled for *Step/OS X"
 	   (invocation-name)))
 
+(eval-when-compile (require 'cl))
+
 ;; Documentation-purposes only: actually loaded in loadup.el
 (require 'frame)
 (require 'mouse)
@@ -48,8 +50,8 @@
 (require 'menu-bar)
 (require 'fontset)
 
-; Not needed?
-;(require 'ispell)
+;; Not needed?
+;;(require 'ispell)
 
 ;; nsterm.m
 (defvar ns-version-string)
@@ -61,21 +63,21 @@
 (declare-function ns-server-version "nsfns.m" (&optional display))
 
 (defun ns-submit-bug-report ()
-   "Submit via mail a bug report on Emacs 23.0.0 for GNUstep / OS X."
-   (interactive)
-   (let ((frame-parameters (frame-parameters))
-         (server-vendor (ns-server-vendor))
-         (server-version (ns-server-version)))
-     (reporter-submit-bug-report
-      "Adrian Robert <Adrian.B.Robert@gmail.com>"
-      ;;"Christophe de Dinechin <descubes@earthlink.net>"
-      ;;"Scott Bender <emacs@harmony-ds.com>"
-      ;;"Christian Limpach <chris@nice.ch>"
-      ;;"Carl Edman <cedman@princeton.edu>"
-      (concat "Emacs for GNUstep / OS X " ns-version-string)
-      '(ns-expand-space ns-cursor-blink-rate ns-alternate-modifier
-        data-directory frame-parameters window-system window-system-version
-        server-vendor server-version system-configuration-options))))
+  "Submit via mail a bug report on Emacs 23.0.0 for GNUstep / OS X."
+  (interactive)
+  (let ((frame-parameters (frame-parameters))
+        (server-vendor (ns-server-vendor))
+        (server-version (ns-server-version)))
+    (reporter-submit-bug-report
+     "Adrian Robert <Adrian.B.Robert@gmail.com>"
+     ;;"Christophe de Dinechin <descubes@earthlink.net>"
+     ;;"Scott Bender <emacs@harmony-ds.com>"
+     ;;"Christian Limpach <chris@nice.ch>"
+     ;;"Carl Edman <cedman@princeton.edu>"
+     (concat "Emacs for GNUstep / OS X " ns-version-string)
+     '(ns-expand-space ns-cursor-blink-rate ns-alternate-modifier
+       data-directory frame-parameters window-system window-system-version
+       server-vendor server-version system-configuration-options))))
 
 
 ;;;; Command line argument handling.
@@ -197,14 +199,14 @@ The properties returned may include `top', `left', `height', and `width'."
   (if (string-match "\\([0-9]+\\)\\( \\([0-9]+\\)\\( \\([0-9]+\\)\\( \\([0-9]+\\) ?\\)?\\)?\\)?"
                     geom)
       (apply 'append
-	   (list
-	    (list (cons 'top (string-to-number (match-string 1 geom))))
-	    (if (match-string 3 geom)
-		(list (cons 'left (string-to-number (match-string 3 geom)))))
-	    (if (match-string 5 geom)
-		(list (cons 'height (string-to-number (match-string 5 geom)))))
-	    (if (match-string 7 geom)
-		(list (cons 'width (string-to-number (match-string 7 geom)))))))
+             (list
+              (list (cons 'top (string-to-number (match-string 1 geom))))
+              (if (match-string 3 geom)
+                  (list (cons 'left (string-to-number (match-string 3 geom)))))
+              (if (match-string 5 geom)
+                  (list (cons 'height (string-to-number (match-string 5 geom)))))
+              (if (match-string 7 geom)
+                  (list (cons 'width (string-to-number (match-string 7 geom)))))))
     '()))
 
 
@@ -283,7 +285,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-z] 'undo)
 (define-key global-map [?\s-|] 'shell-command-on-region)
 (define-key global-map [s-kp-bar] 'shell-command-on-region)
-; (as in Terminal.app)
+;; (as in Terminal.app)
 (define-key global-map [s-right] 'ns-next-frame)
 (define-key global-map [s-left] 'ns-prev-frame)
 
@@ -298,7 +300,7 @@ The properties returned may include `top', `left', `height', and `width'."
 ;; Special NeXTSTEP generated events are converted to function keys.  Here
 ;; are the bindings for them.
 (define-key global-map [ns-power-off]
-  '(lambda () (interactive) (save-buffers-kill-emacs t)))
+  (lambda () (interactive) (save-buffers-kill-emacs t)))
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
 (define-key global-map [ns-drag-file] 'ns-insert-file)
@@ -342,28 +344,28 @@ The properties returned may include `top', `left', `height', and `width'."
   :group 'ns
   (if ns-extended-platform-support-mode
       (progn
-       (global-set-key [M-up] 'down-one)
-       (global-set-key [M-down] 'up-one)
-       ; These conflict w/word-left, word-right
-       ;;(global-set-key [M-left] 'left-one)
-       ;;(global-set-key [M-right] 'right-one)
+        (global-set-key [M-up] 'down-one)
+        (global-set-key [M-down] 'up-one)
+        ;; These conflict w/word-left, word-right.
+        ;;(global-set-key [M-left] 'left-one)
+        ;;(global-set-key [M-right] 'right-one)
 
-       (setq scroll-preserve-screen-position t)
-       (transient-mark-mode 1)
+        (setq scroll-preserve-screen-position t)
+        (transient-mark-mode 1)
 
-       ;; Change file menu to simplify and add a couple of NS-specific items
-       (easy-menu-remove-item global-map '("menu-bar") 'file)
-       (easy-menu-add-item global-map '(menu-bar)
-			   (cons "File" menu-bar-ns-file-menu) 'edit))
+        ;; Change file menu to simplify and add a couple of NS-specific items
+        (easy-menu-remove-item global-map '("menu-bar") 'file)
+        (easy-menu-add-item global-map '(menu-bar)
+                            (cons "File" menu-bar-ns-file-menu) 'edit))
     (progn
-     ; undo everything above
-       (global-unset-key [M-up])
-       (global-unset-key [M-down])
-       (setq scroll-preserve-screen-position nil)
-       (transient-mark-mode 0)
-       (easy-menu-remove-item global-map '("menu-bar") 'file)
-       (easy-menu-add-item global-map '(menu-bar)
-			   (cons "File" menu-bar-file-menu) 'edit))))
+      ;; Undo everything above.
+      (global-unset-key [M-up])
+      (global-unset-key [M-down])
+      (setq scroll-preserve-screen-position nil)
+      (transient-mark-mode 0)
+      (easy-menu-remove-item global-map '("menu-bar") 'file)
+      (easy-menu-add-item global-map '(menu-bar)
+                          (cons "File" menu-bar-file-menu) 'edit))))
 
 
 (defun x-setup-function-keys (frame)
@@ -372,104 +374,104 @@ The properties returned may include `top', `left', `height', and `width'."
     (with-selected-frame frame
       (setq interprogram-cut-function 'ns-select-text
 	    interprogram-paste-function 'ns-pasteboard-value)
-;;;       (let ((map (copy-keymap x-alternatives-map)))
-;;; 	(set-keymap-parent map (keymap-parent local-function-key-map))
-;;; 	(set-keymap-parent local-function-key-map map))
-    (setq system-key-alist
-      (list
-       (cons (logior (lsh 0 16)   1) 'ns-power-off)
-       (cons (logior (lsh 0 16)   2) 'ns-open-file)
-       (cons (logior (lsh 0 16)   3) 'ns-open-temp-file)
-       (cons (logior (lsh 0 16)   4) 'ns-drag-file)
-       (cons (logior (lsh 0 16)   5) 'ns-drag-color)
-       (cons (logior (lsh 0 16)   6) 'ns-drag-text)
-       (cons (logior (lsh 0 16)   7) 'ns-change-font)
-       (cons (logior (lsh 0 16)   8) 'ns-open-file-line)
-       (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
-       (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
-       (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-       (cons (logior (lsh 1 16)  32) 'f1)
-       (cons (logior (lsh 1 16)  33) 'f2)
-       (cons (logior (lsh 1 16)  34) 'f3)
-       (cons (logior (lsh 1 16)  35) 'f4)
-       (cons (logior (lsh 1 16)  36) 'f5)
-       (cons (logior (lsh 1 16)  37) 'f6)
-       (cons (logior (lsh 1 16)  38) 'f7)
-       (cons (logior (lsh 1 16)  39) 'f8)
-       (cons (logior (lsh 1 16)  40) 'f9)
-       (cons (logior (lsh 1 16)  41) 'f10)
-       (cons (logior (lsh 1 16)  42) 'f11)
-       (cons (logior (lsh 1 16)  43) 'f12)
-       (cons (logior (lsh 1 16)  44) 'kp-insert)
-       (cons (logior (lsh 1 16)  45) 'kp-delete)
-       (cons (logior (lsh 1 16)  46) 'kp-home)
-       (cons (logior (lsh 1 16)  47) 'kp-end)
-       (cons (logior (lsh 1 16)  48) 'kp-prior)
-       (cons (logior (lsh 1 16)  49) 'kp-next)
-       (cons (logior (lsh 1 16)  50) 'print-screen)
-       (cons (logior (lsh 1 16)  51) 'scroll-lock)
-       (cons (logior (lsh 1 16)  52) 'pause)
-       (cons (logior (lsh 1 16)  53) 'system)
-       (cons (logior (lsh 1 16)  54) 'break)
-       (cons (logior (lsh 1 16)  56) 'please-tell-carl-what-this-key-is-called-56)
-       (cons (logior (lsh 1 16)  61) 'please-tell-carl-what-this-key-is-called-61)
-       (cons (logior (lsh 1 16)  62) 'please-tell-carl-what-this-key-is-called-62)
-       (cons (logior (lsh 1 16)  63) 'please-tell-carl-what-this-key-is-called-63)
-       (cons (logior (lsh 1 16)  64) 'please-tell-carl-what-this-key-is-called-64)
-       (cons (logior (lsh 1 16)  69) 'please-tell-carl-what-this-key-is-called-69)
-       (cons (logior (lsh 1 16)  70) 'please-tell-carl-what-this-key-is-called-70)
-       (cons (logior (lsh 1 16)  71) 'please-tell-carl-what-this-key-is-called-71)
-       (cons (logior (lsh 1 16)  72) 'please-tell-carl-what-this-key-is-called-72)
-       (cons (logior (lsh 1 16)  73) 'please-tell-carl-what-this-key-is-called-73)
-       (cons (logior (lsh 2 16)   3) 'kp-enter)
-       (cons (logior (lsh 2 16)   9) 'kp-tab)
-       (cons (logior (lsh 2 16)  28) 'kp-quit)
-       (cons (logior (lsh 2 16)  35) 'kp-hash)
-       (cons (logior (lsh 2 16)  42) 'kp-multiply)
-       (cons (logior (lsh 2 16)  43) 'kp-add)
-       (cons (logior (lsh 2 16)  44) 'kp-separator)
-       (cons (logior (lsh 2 16)  45) 'kp-subtract)
-       (cons (logior (lsh 2 16)  46) 'kp-decimal)
-       (cons (logior (lsh 2 16)  47) 'kp-divide)
-       (cons (logior (lsh 2 16)  48) 'kp-0)
-       (cons (logior (lsh 2 16)  49) 'kp-1)
-       (cons (logior (lsh 2 16)  50) 'kp-2)
-       (cons (logior (lsh 2 16)  51) 'kp-3)
-       (cons (logior (lsh 2 16)  52) 'kp-4)
-       (cons (logior (lsh 2 16)  53) 'kp-5)
-       (cons (logior (lsh 2 16)  54) 'kp-6)
-       (cons (logior (lsh 2 16)  55) 'kp-7)
-       (cons (logior (lsh 2 16)  56) 'kp-8)
-       (cons (logior (lsh 2 16)  57) 'kp-9)
-       (cons (logior (lsh 2 16)  60) 'kp-less)
-       (cons (logior (lsh 2 16)  61) 'kp-equal)
-       (cons (logior (lsh 2 16)  62) 'kp-more)
-       (cons (logior (lsh 2 16)  64) 'kp-at)
-       (cons (logior (lsh 2 16)  92) 'kp-backslash)
-       (cons (logior (lsh 2 16)  96) 'kp-backtick)
-       (cons (logior (lsh 2 16) 124) 'kp-bar)
-       (cons (logior (lsh 2 16) 126) 'kp-tilde)
-       (cons (logior (lsh 2 16) 157) 'kp-mu)
-       (cons (logior (lsh 2 16) 165) 'kp-yen)
-       (cons (logior (lsh 2 16) 167) 'kp-paragraph)
-       (cons (logior (lsh 2 16) 172) 'left)
-       (cons (logior (lsh 2 16) 173) 'up)
-       (cons (logior (lsh 2 16) 174) 'right)
-       (cons (logior (lsh 2 16) 175) 'down)
-       (cons (logior (lsh 2 16) 176) 'kp-ring)
-       (cons (logior (lsh 2 16) 201) 'kp-square)
-       (cons (logior (lsh 2 16) 204) 'kp-cube)
-       (cons (logior (lsh 3 16)   8) 'backspace)
-       (cons (logior (lsh 3 16)   9) 'tab)
-       (cons (logior (lsh 3 16)  10) 'linefeed)
-       (cons (logior (lsh 3 16)  11) 'clear)
-       (cons (logior (lsh 3 16)  13) 'return)
-       (cons (logior (lsh 3 16)  18) 'pause)
-       (cons (logior (lsh 3 16)  25) 'S-tab)
-       (cons (logior (lsh 3 16)  27) 'escape)
-       (cons (logior (lsh 3 16) 127) 'delete)
-       ))
-    (set-terminal-parameter frame 'x-setup-function-keys t))))
+      ;; (let ((map (copy-keymap x-alternatives-map)))
+      ;;   (set-keymap-parent map (keymap-parent local-function-key-map))
+      ;;   (set-keymap-parent local-function-key-map map))
+      (setq system-key-alist
+            (list
+             (cons (logior (lsh 0 16)   1) 'ns-power-off)
+             (cons (logior (lsh 0 16)   2) 'ns-open-file)
+             (cons (logior (lsh 0 16)   3) 'ns-open-temp-file)
+             (cons (logior (lsh 0 16)   4) 'ns-drag-file)
+             (cons (logior (lsh 0 16)   5) 'ns-drag-color)
+             (cons (logior (lsh 0 16)   6) 'ns-drag-text)
+             (cons (logior (lsh 0 16)   7) 'ns-change-font)
+             (cons (logior (lsh 0 16)   8) 'ns-open-file-line)
+             (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
+             (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
+             (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
+             (cons (logior (lsh 1 16)  32) 'f1)
+             (cons (logior (lsh 1 16)  33) 'f2)
+             (cons (logior (lsh 1 16)  34) 'f3)
+             (cons (logior (lsh 1 16)  35) 'f4)
+             (cons (logior (lsh 1 16)  36) 'f5)
+             (cons (logior (lsh 1 16)  37) 'f6)
+             (cons (logior (lsh 1 16)  38) 'f7)
+             (cons (logior (lsh 1 16)  39) 'f8)
+             (cons (logior (lsh 1 16)  40) 'f9)
+             (cons (logior (lsh 1 16)  41) 'f10)
+             (cons (logior (lsh 1 16)  42) 'f11)
+             (cons (logior (lsh 1 16)  43) 'f12)
+             (cons (logior (lsh 1 16)  44) 'kp-insert)
+             (cons (logior (lsh 1 16)  45) 'kp-delete)
+             (cons (logior (lsh 1 16)  46) 'kp-home)
+             (cons (logior (lsh 1 16)  47) 'kp-end)
+             (cons (logior (lsh 1 16)  48) 'kp-prior)
+             (cons (logior (lsh 1 16)  49) 'kp-next)
+             (cons (logior (lsh 1 16)  50) 'print-screen)
+             (cons (logior (lsh 1 16)  51) 'scroll-lock)
+             (cons (logior (lsh 1 16)  52) 'pause)
+             (cons (logior (lsh 1 16)  53) 'system)
+             (cons (logior (lsh 1 16)  54) 'break)
+             (cons (logior (lsh 1 16)  56) 'please-tell-carl-what-this-key-is-called-56)
+             (cons (logior (lsh 1 16)  61) 'please-tell-carl-what-this-key-is-called-61)
+             (cons (logior (lsh 1 16)  62) 'please-tell-carl-what-this-key-is-called-62)
+             (cons (logior (lsh 1 16)  63) 'please-tell-carl-what-this-key-is-called-63)
+             (cons (logior (lsh 1 16)  64) 'please-tell-carl-what-this-key-is-called-64)
+             (cons (logior (lsh 1 16)  69) 'please-tell-carl-what-this-key-is-called-69)
+             (cons (logior (lsh 1 16)  70) 'please-tell-carl-what-this-key-is-called-70)
+             (cons (logior (lsh 1 16)  71) 'please-tell-carl-what-this-key-is-called-71)
+             (cons (logior (lsh 1 16)  72) 'please-tell-carl-what-this-key-is-called-72)
+             (cons (logior (lsh 1 16)  73) 'please-tell-carl-what-this-key-is-called-73)
+             (cons (logior (lsh 2 16)   3) 'kp-enter)
+             (cons (logior (lsh 2 16)   9) 'kp-tab)
+             (cons (logior (lsh 2 16)  28) 'kp-quit)
+             (cons (logior (lsh 2 16)  35) 'kp-hash)
+             (cons (logior (lsh 2 16)  42) 'kp-multiply)
+             (cons (logior (lsh 2 16)  43) 'kp-add)
+             (cons (logior (lsh 2 16)  44) 'kp-separator)
+             (cons (logior (lsh 2 16)  45) 'kp-subtract)
+             (cons (logior (lsh 2 16)  46) 'kp-decimal)
+             (cons (logior (lsh 2 16)  47) 'kp-divide)
+             (cons (logior (lsh 2 16)  48) 'kp-0)
+             (cons (logior (lsh 2 16)  49) 'kp-1)
+             (cons (logior (lsh 2 16)  50) 'kp-2)
+             (cons (logior (lsh 2 16)  51) 'kp-3)
+             (cons (logior (lsh 2 16)  52) 'kp-4)
+             (cons (logior (lsh 2 16)  53) 'kp-5)
+             (cons (logior (lsh 2 16)  54) 'kp-6)
+             (cons (logior (lsh 2 16)  55) 'kp-7)
+             (cons (logior (lsh 2 16)  56) 'kp-8)
+             (cons (logior (lsh 2 16)  57) 'kp-9)
+             (cons (logior (lsh 2 16)  60) 'kp-less)
+             (cons (logior (lsh 2 16)  61) 'kp-equal)
+             (cons (logior (lsh 2 16)  62) 'kp-more)
+             (cons (logior (lsh 2 16)  64) 'kp-at)
+             (cons (logior (lsh 2 16)  92) 'kp-backslash)
+             (cons (logior (lsh 2 16)  96) 'kp-backtick)
+             (cons (logior (lsh 2 16) 124) 'kp-bar)
+             (cons (logior (lsh 2 16) 126) 'kp-tilde)
+             (cons (logior (lsh 2 16) 157) 'kp-mu)
+             (cons (logior (lsh 2 16) 165) 'kp-yen)
+             (cons (logior (lsh 2 16) 167) 'kp-paragraph)
+             (cons (logior (lsh 2 16) 172) 'left)
+             (cons (logior (lsh 2 16) 173) 'up)
+             (cons (logior (lsh 2 16) 174) 'right)
+             (cons (logior (lsh 2 16) 175) 'down)
+             (cons (logior (lsh 2 16) 176) 'kp-ring)
+             (cons (logior (lsh 2 16) 201) 'kp-square)
+             (cons (logior (lsh 2 16) 204) 'kp-cube)
+             (cons (logior (lsh 3 16)   8) 'backspace)
+             (cons (logior (lsh 3 16)   9) 'tab)
+             (cons (logior (lsh 3 16)  10) 'linefeed)
+             (cons (logior (lsh 3 16)  11) 'clear)
+             (cons (logior (lsh 3 16)  13) 'return)
+             (cons (logior (lsh 3 16)  18) 'pause)
+             (cons (logior (lsh 3 16)  25) 'S-tab)
+             (cons (logior (lsh 3 16)  27) 'escape)
+             (cons (logior (lsh 3 16) 127) 'delete)
+             ))
+      (set-terminal-parameter frame 'x-setup-function-keys t))))
 
 
 
@@ -505,7 +507,7 @@ This should be bound to a mouse click event type."
 
 
 
-; must come after keybindings
+;; Must come after keybindings.
 
 (fmakunbound 'clipboard-yank)
 (fmakunbound 'clipboard-kill-ring-save)
@@ -516,18 +518,17 @@ This should be bound to a mouse click event type."
 ;; Note keymap defns must be given last-to-first
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
 
-(cond ((eq system-type 'darwin)
-       (setq menu-bar-final-items '(buffer windows services help-menu)))
-      ;; otherwise, gnustep
-      (t
-       (setq menu-bar-final-items '(buffer windows services hide-app quit)) )
-)
+(setq menu-bar-final-items
+      (cond ((eq system-type 'darwin)
+             '(buffer windows services help-menu))
+            ;; Otherwise, GNUstep.
+            (t
+             '(buffer windows services hide-app quit))))
 
-;; add standard top-level items to GNUstep menu
-(cond ((not (eq system-type 'darwin))
-      (define-key global-map [menu-bar quit] '("Quit" . save-buffers-kill-emacs))
-      (define-key global-map [menu-bar hide-app] '("Hide" . ns-do-hide-emacs))
-))
+;; Add standard top-level items to GNUstep menu.
+(unless (eq system-type 'darwin)
+  (define-key global-map [menu-bar quit] '("Quit" . save-buffers-kill-emacs))
+  (define-key global-map [menu-bar hide-app] '("Hide" . ns-do-hide-emacs)))
 
 (define-key global-map [menu-bar services]
   (cons "Services" (make-sparse-keymap "Services")))
@@ -623,32 +624,32 @@ This should be bound to a mouse click event type."
 
 ;;;; Edit menu: Modify slightly
 
-; Substitute a Copy function that works better under X (for GNUstep)
+;; Substitute a Copy function that works better under X (for GNUstep).
 (easy-menu-remove-item global-map '("menu-bar" "edit") 'copy)
 (define-key-after menu-bar-edit-menu [copy]
   '(menu-item "Copy" ns-copy-including-secondary
-	      :enable mark-active
-	      :help "Copy text in region between mark and current position")
+    :enable mark-active
+    :help "Copy text in region between mark and current position")
   'cut)
 
-; Change to same precondition as select-and-paste, as we don't have
-; 'x-selection-exists-p
+;; Change to same precondition as select-and-paste, as we don't have
+;; `x-selection-exists-p'.
 (easy-menu-remove-item global-map '("menu-bar" "edit") 'paste)
 (define-key-after menu-bar-edit-menu [paste]
   '(menu-item "Paste" yank
-	      :enable (and (cdr yank-menu) (not buffer-read-only))
-	      :help "Paste (yank) text most recently cut/copied")
+    :enable (and (cdr yank-menu) (not buffer-read-only))
+    :help "Paste (yank) text most recently cut/copied")
   'copy)
 
-; Change text to be more consistent with surrounding menu items 'paste', etc.
+;; Change text to be more consistent with surrounding menu items `paste', etc.
 (easy-menu-remove-item global-map '("menu-bar" "edit") 'paste-from-menu)
 (define-key-after menu-bar-edit-menu [select-paste]
   '(menu-item "Select and Paste" yank-menu
-	      :enable (and (cdr yank-menu) (not buffer-read-only))
-	      :help "Choose a string from the kill ring and paste it")
+    :enable (and (cdr yank-menu) (not buffer-read-only))
+    :help "Choose a string from the kill ring and paste it")
   'paste)
 
-; Separate undo item from cut/paste section, add spell for platform consistency
+;; Separate undo from cut/paste section, add spell for platform consistency.
 (define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
 (define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
 
@@ -662,32 +663,31 @@ This should be bound to a mouse click event type."
 
 (defun menu-bar-update-frames ()
   ;; If user discards the Windows item, play along.
-  (and (lookup-key (current-global-map) [menu-bar windows])
-       (let ((frames (frame-list))
-	     (frames-menu (make-sparse-keymap "Select Frame")))
-	 (setcdr frames-menu
-		 (nconc
-		  (mapcar '(lambda (frame)
-			     (nconc (list frame
-					  (cdr (assq 'name (frame-parameters frame)))
-					  (cons nil nil))
-				    'menu-bar-select-frame))
-			  frames)
-		  (cdr frames-menu)))
-	 (define-key frames-menu [separator-frames] '("--"))
-	 (define-key frames-menu [popup-color-panel]
-	   '("Colors..." . ns-popup-color-panel))
-	 (define-key frames-menu [popup-font-panel]
-	   '("Font Panel..." . ns-popup-font-panel))
-	 (define-key frames-menu [separator-arrange] '("--"))
-	 (define-key frames-menu [arrange-all-frames]
-	   '("Arrange All Frames" . ns-arrange-all-frames))
-	 (define-key frames-menu [arrange-visible-frames]
-	   '("Arrange Visible Frames" . ns-arrange-visible-frames))
-	 ;; Don't use delete-frame as event name
-	 ;; because that is a special event.
-	 (define-key (current-global-map) [menu-bar windows]
-	   (cons "Windows" frames-menu)))))
+  (when (lookup-key (current-global-map) [menu-bar windows])
+    (let ((frames (frame-list))
+          (frames-menu (make-sparse-keymap "Select Frame")))
+      (setcdr frames-menu
+              (nconc
+               (mapcar (lambda (frame)
+                         (list* frame
+                                (cdr (assq 'name (frame-parameters frame)))
+                                'menu-bar-select-frame))
+                       frames)
+               (cdr frames-menu)))
+      (define-key frames-menu [separator-frames] '("--"))
+      (define-key frames-menu [popup-color-panel]
+        '("Colors..." . ns-popup-color-panel))
+      (define-key frames-menu [popup-font-panel]
+        '("Font Panel..." . ns-popup-font-panel))
+      (define-key frames-menu [separator-arrange] '("--"))
+      (define-key frames-menu [arrange-all-frames]
+        '("Arrange All Frames" . ns-arrange-all-frames))
+      (define-key frames-menu [arrange-visible-frames]
+        '("Arrange Visible Frames" . ns-arrange-visible-frames))
+      ;; Don't use delete-frame as event name
+      ;; because that is a special event.
+      (define-key (current-global-map) [menu-bar windows]
+        (cons "Windows" frames-menu)))))
 
 (defun force-menu-bar-update-buffers ()
   ;; This is a hack to get around fact that we already checked
@@ -731,7 +731,7 @@ This should be bound to a mouse click event type."
 	(done nil))
     (while (not done)                   ;cycle through all frames
       (if (not (or vis (eq (frame-visible-p frame) t)))
-	(setq x-pos x-pos); do nothing; true case
+          (setq x-pos x-pos); do nothing; true case
 	(set-frame-position frame x-pos y-pos)
 	(setq x-pos (+ x-pos inc-x))
 	(setq y-pos (+ y-pos inc-y))
@@ -749,23 +749,26 @@ This should be bound to a mouse click event type."
   (let ((mapping [menu-bar services])
 	(service (mapconcat 'identity path "/"))
 	(name (intern
-	       (mapconcat '(lambda (s) (if (= s 32) "-" (char-to-string s)))
-			  (mapconcat 'identity (cons "ns-service" path) "-")
-			  ""))))
-    ;; This defines the function
-    (eval (append (list 'defun name)
-	  `((arg)
-	    (interactive "p")
-	    (let* ((in-string (if (stringp arg) arg (if mark-active
-			  (buffer-substring (region-beginning) (region-end)))))
-		   (out-string (ns-perform-service (,@service) in-string)))
-	      (cond
-	       ((stringp arg) out-string)
-	       ((and out-string (or (not in-string)
-				    (not (string= in-string out-string))))
-		(if mark-active (delete-region (region-beginning) (region-end)))
-		(insert out-string)
-		(setq deactivate-mark nil)))))))
+               (subst-char-in-string
+                ?\s ?-
+                (mapconcat 'identity (cons "ns-service" path) "-")))))
+    ;; This defines the function.
+    (defalias name
+      (lexical-let ((service service))
+        (lambda (arg)
+          (interactive "p")
+          (let* ((in-string
+                  (cond ((stringp arg) arg)
+                        (mark-active
+                         (buffer-substring (region-beginning) (region-end)))))
+                 (out-string (ns-perform-service service in-string)))
+            (cond
+             ((stringp arg) out-string)
+             ((and out-string (or (not in-string)
+                                  (not (string= in-string out-string))))
+              (if mark-active (delete-region (region-beginning) (region-end)))
+              (insert out-string)
+              (setq deactivate-mark nil)))))))
     (cond
      ((lookup-key global-map mapping)
       (while (cdr path)
@@ -823,8 +826,8 @@ This should be bound to a mouse click event type."
   "Length of working text during compose sequence insert.")
 (make-variable-buffer-local 'ns-working-overlay-len)
 
-; Based on mac-win.el 2007/08/26 unicode-2.  This will fail if called
-; from an "interactive" function.
+;; Based on mac-win.el 2007/08/26 unicode-2.  This will fail if called
+;; from an "interactive" function.
 (defun ns-in-echo-area ()
   "Whether, for purposes of inserting working composition text, the minibuffer
 is currently being used."
@@ -840,8 +843,8 @@ is currently being used."
 		    (eq (get-char-property (1- (point)) 'composition)
 			(get-char-property (point) 'composition)))))))
 
-; currently not used, doesn't work because the 'interactive' here stays
-; for subinvocations
+;; Currently not used, doesn't work because the 'interactive' here stays
+;; for subinvocations.
 (defun ns-insert-working-text ()
   (interactive)
   (if (ns-in-echo-area) (ns-echo-working-text) (ns-put-working-text)))
@@ -920,7 +923,7 @@ See ns-insert-working-text."
 ;; PENDING: disable composition-based display for Indic scripts as it
 ;;          is not working well under NS for some reason
 (set-char-table-range composition-function-table
-                     '(#x0900 . #x0DFF) nil)
+                      '(#x0900 . #x0DFF) nil)
 
 
 ;;;; Inter-app communications support.
@@ -1026,13 +1029,13 @@ and highlights lines indicated by ns-input-line."
   (ns-set-resource nil "ControlModifier" (symbol-name ns-control-modifier))
   (ns-set-resource nil "FunctionModifier" (symbol-name ns-function-modifier))
   (ns-set-resource nil "CursorBlinkRate"
-                (if ns-cursor-blink-rate
-                    (number-to-string ns-cursor-blink-rate)
-                  "NO"))
+                   (if ns-cursor-blink-rate
+                       (number-to-string ns-cursor-blink-rate)
+                     "NO"))
   (ns-set-resource nil "ExpandSpace"
-                (if ns-expand-space
-                    (number-to-string ns-expand-space)
-                  "NO"))
+                   (if ns-expand-space
+                       (number-to-string ns-expand-space)
+                     "NO"))
   (ns-set-resource nil "GSFontAntiAlias" (if ns-antialias-text "YES" "NO"))
   (ns-set-resource nil "UseQuickdrawSmoothing"
 		   (if ns-use-qd-smoothing "YES" "NO"))
@@ -1052,7 +1055,8 @@ and highlights lines indicated by ns-input-line."
       (if cc (ns-set-resource nil "CursorColor" (cdr cc))))
     (let ((ct (assq 'cursor-type p)))
       (if ct (ns-set-resource nil "CursorType"
-                  (if (symbolp (cdr ct)) (symbol-name (cdr ct)) (cdr ct)))))
+                              (if (symbolp (cdr ct))
+                                  (symbol-name (cdr ct)) (cdr ct)))))
     (let ((under (assq 'underline p)))
       (if under (ns-set-resource nil "Underline"
 				 (cond ((eq (cdr under) t) "YES")
@@ -1060,36 +1064,37 @@ and highlights lines indicated by ns-input-line."
 				       (t (cdr under))))))
     (let ((ibw (assq 'internal-border-width p)))
       (if ibw (ns-set-resource nil "InternalBorderWidth"
-                            (number-to-string (cdr ibw)))))
-     (let ((vsb (assq 'vertical-scroll-bars p)))
-       (if vsb (ns-set-resource nil "VerticalScrollBars" (cond
-                                       ((eq t (cdr vsb)) "YES")
-                                       ((eq nil (cdr vsb)) "NO")
-                                       ((eq 'left (cdr vsb)) "left")
-                                       ((eq 'right (cdr vsb)) "right")
-                                       (t nil)))))
+                               (number-to-string (cdr ibw)))))
+    (let ((vsb (assq 'vertical-scroll-bars p)))
+      (if vsb (ns-set-resource nil "VerticalScrollBars"
+                               (case (cdr vsb)
+                                ((t) "YES")
+                                ((nil) "NO")
+                                ((left) "left")
+                                ((right) "right")
+                                (t nil)))))
     (let ((height (assq 'height p)))
       (if height (ns-set-resource nil "Height"
-                               (number-to-string (cdr height)))))
+                                  (number-to-string (cdr height)))))
     (let ((width (assq 'width p)))
       (if width (ns-set-resource nil "Width"
-                              (number-to-string (cdr width)))))
+                                 (number-to-string (cdr width)))))
     (let ((top (assq 'top p)))
       (if top (ns-set-resource nil "Top"
-                            (number-to-string (cdr top)))))
+                               (number-to-string (cdr top)))))
     (let ((left (assq 'left p)))
       (if left (ns-set-resource nil "Left"
-                             (number-to-string (cdr left)))))
+                                (number-to-string (cdr left)))))
     ;; These not fully supported
     (let ((ar (assq 'auto-raise p)))
       (if ar (ns-set-resource nil "AutoRaise"
-                            (if (cdr ar) "YES" "NO"))))
+                              (if (cdr ar) "YES" "NO"))))
     (let ((al (assq 'auto-lower p)))
       (if al (ns-set-resource nil "AutoLower"
-                            (if (cdr al) "YES" "NO"))))
+                              (if (cdr al) "YES" "NO"))))
     (let ((mbl (assq 'menu-bar-lines p)))
       (if mbl (ns-set-resource nil "Menus"
-                            (if (cdr mbl) "YES" "NO"))))
+                               (if (cdr mbl) "YES" "NO"))))
     )
   (let ((fl (face-list)))
     (while (consp fl)
@@ -1099,32 +1104,32 @@ and highlights lines indicated by ns-input-line."
           ;; have already been saved from the frame-parameters anyway.
           (let* ((name (symbol-name (car fl)))
                  (font (face-font (car fl)))
-;                 (fontsize (face-fontsize (car fl)))
+                 ;; (fontsize (face-fontsize (car fl)))
                  (foreground (face-foreground (car fl)))
                  (background (face-background (car fl)))
                  (underline (face-underline-p (car fl)))
                  (italic (face-italic-p (car fl)))
                  (bold (face-bold-p (car fl)))
                  (stipple (face-stipple (car fl))))
-;            (ns-set-resource nil (concat name ".attributeFont")
-;                          (if font font nil))
-;            (ns-set-resource nil (concat name ".attributeFontSize")
-;                          (if fontsize (number-to-string fontsize) nil))
+            ;; (ns-set-resource nil (concat name ".attributeFont")
+            ;;                  (if font font nil))
+            ;; (ns-set-resource nil (concat name ".attributeFontSize")
+            ;;                  (if fontsize (number-to-string fontsize) nil))
             (ns-set-resource nil (concat name ".attributeForeground")
-                          (if foreground foreground nil))
+                             (if foreground foreground nil))
             (ns-set-resource nil (concat name ".attributeBackground")
-                          (if background background nil))
+                             (if background background nil))
             (ns-set-resource nil (concat name ".attributeUnderline")
-                          (if underline "YES" nil))
+                             (if underline "YES" nil))
             (ns-set-resource nil (concat name ".attributeItalic")
-                          (if italic "YES" nil))
+                             (if italic "YES" nil))
             (ns-set-resource nil (concat name ".attributeBold")
-                          (if bold "YES" nil))
+                             (if bold "YES" nil))
             (and stipple
                  (or (stringp stipple)
                      (setq stipple (prin1-to-string stipple))))
             (ns-set-resource nil (concat name ".attributeStipple")
-                          (if stipple stipple nil))))
+                             (if stipple stipple nil))))
       (setq fl (cdr fl)))))
 
 (declare-function menu-bar-options-save-orig "ns-win" () t)
@@ -1143,7 +1148,7 @@ and highlights lines indicated by ns-input-line."
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."
   (interactive)
-  ; prompt dir defaultName isLoad initial
+  ;; Prompt dir defaultName isLoad initial.
   (setq ns-input-file (ns-read-file-name "Select File to Load" nil t nil))
   (if ns-input-file
       (and (setq ns-input-file (list ns-input-file)) (ns-find-file))))
@@ -1152,7 +1157,7 @@ and highlights lines indicated by ns-input-line."
   "Pop up save-file panel, and save buffer in resulting name."
   (interactive)
   (let (ns-output-file)
-    ; prompt dir defaultName isLoad initial
+    ;; Prompt dir defaultName isLoad initial.
     (setq ns-output-file (ns-read-file-name "Save As" nil nil nil))
     (message ns-output-file)
     (if ns-output-file (write-file ns-output-file))))
@@ -1226,29 +1231,29 @@ unless the current buffer is a scratch buffer.")
   (interactive)
   (other-frame -1))
 
-; If no position specified, make new frame offset by 25 from current.
+;; If no position specified, make new frame offset by 25 from current.
 (add-hook 'before-make-frame-hook
-          '(lambda ()
-             (let ((left (cdr (assq 'left (frame-parameters))))
-                   (top (cdr (assq 'top (frame-parameters)))))
-	       (if (consp left) (setq left (cadr left)))
-	       (if (consp top) (setq top (cadr top)))
-               (cond
-                ((or (assq 'top parameters) (assq 'left parameters)))
-                ((or (not left) (not top)))
-                (t
-                 (setq parameters (cons (cons 'left (+ left 25))
-                                        (cons (cons 'top (+ top 25))
-                                              parameters))))))))
+          (lambda ()
+            (let ((left (cdr (assq 'left (frame-parameters))))
+                  (top (cdr (assq 'top (frame-parameters)))))
+              (if (consp left) (setq left (cadr left)))
+              (if (consp top) (setq top (cadr top)))
+              (cond
+               ((or (assq 'top parameters) (assq 'left parameters)))
+               ((or (not left) (not top)))
+               (t
+                (setq parameters (cons (cons 'left (+ left 25))
+                                       (cons (cons 'top (+ top 25))
+                                             parameters))))))))
 
-; frame will be focused anyway, so select it
+;; frame will be focused anyway, so select it
 (add-hook 'after-make-frame-functions 'select-frame)
 
-;;; (defun ns-win-suspend-error ()
-;;;   (error "Suspending an emacs running under *Step/OS X makes no sense"))
-;;; (add-hook 'suspend-hook 'ns-win-suspend-error)
-;;; (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-;;; 			   global-map)
+;; (defun ns-win-suspend-error ()
+;;   (error "Suspending an emacs running under *Step/OS X makes no sense"))
+;; (add-hook 'suspend-hook 'ns-win-suspend-error)
+;; (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+;; 			   global-map)
 
 ;; Based on a function by David Reitter <dreitter@inf.ed.ac.uk> ;
 ;; see http://lists.gnu.org/archive/html/emacs-devel/2005-09/msg00681.html .
@@ -1256,15 +1261,15 @@ unless the current buffer is a scratch buffer.")
   "Switches the tool bar on and off in frame FRAME.
  If FRAME is nil, the change applies to the selected frame."
   (interactive)
-  (modify-frame-parameters frame
-	   (list (cons 'tool-bar-lines
+  (modify-frame-parameters
+   frame (list (cons 'tool-bar-lines
 		       (if (> (or (frame-parameter frame 'tool-bar-lines) 0) 0)
 				   0 1)) ))
   (if (not tool-bar-mode) (tool-bar-mode t)))
 
 (defvar ns-cursor-blink-mode) 		; nsterm.m
 
-; Redefine from frame.el
+;; Redefine from frame.el.
 (define-minor-mode blink-cursor-mode
   "Toggle blinking cursor mode.
 With a numeric argument, turn blinking cursor mode on if ARG is positive,
@@ -1293,23 +1298,23 @@ cursor display.  On a text-only terminal, this is not implemented."
   "Interactive front-end to `print-buffer': asks for user confirmation first."
   (interactive)
   (if (and (interactive-p)
-	     (or (listp last-nonmenu-event)
-		 (and (char-or-string-p (event-basic-type last-command-event))
-		      (memq 'super (event-modifiers last-command-event)))))
-    (let ((last-nonmenu-event (if (listp last-nonmenu-event)
-				  last-nonmenu-event
-				;; fake it:
-				`(mouse-1 POSITION 1))))
-      (if (y-or-n-p (format "Print buffer %s? " (buffer-name)))
-	  (print-buffer)
+           (or (listp last-nonmenu-event)
+               (and (char-or-string-p (event-basic-type last-command-event))
+                    (memq 'super (event-modifiers last-command-event)))))
+      (let ((last-nonmenu-event (if (listp last-nonmenu-event)
+                                    last-nonmenu-event
+                                  ;; Fake it:
+                                  `(mouse-1 POSITION 1))))
+        (if (y-or-n-p (format "Print buffer %s? " (buffer-name)))
+            (print-buffer)
 	  (error "Cancelled")))
     (print-buffer)))
 
 (defun ns-yes-or-no-p (prompt)
   "As yes-or-no-p except that NS panel always used for querying."
   (interactive)
-    (setq last-nonmenu-event nil)
-    (yes-or-no-p prompt))
+  (setq last-nonmenu-event nil)
+  (yes-or-no-p prompt))
 
 
 ;;;; Font support.
@@ -1340,30 +1345,35 @@ ns-input-fontsize of new font."
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever
 ;; a font is chosen by 
 (defvar ns-standard-fontset-spec
-; Only some code supports this so far, so use uglier XLFD version
-; "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard,latin:Courier,han:Kai"
-"-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard,latin:-*-Courier-*-*-*-*-10-*-*-*-*-*-iso10646-1,han:-*-Kai-*-*-*-*-10-*-*-*-*-*-iso10646-1,cyrillic:-*-Trebuchet$MS-*-*-*-*-10-*-*-*-*-*-iso10646-1"
- "String of fontset spec of the standard fontset.
+  ;; Only some code supports this so far, so use uglier XLFD version
+  ;; "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard,latin:Courier,han:Kai"
+  (mapconcat 'identity
+             '("-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard"
+               "latin:-*-Courier-*-*-*-*-10-*-*-*-*-*-iso10646-1"
+               "han:-*-Kai-*-*-*-*-10-*-*-*-*-*-iso10646-1"
+               "cyrillic:-*-Trebuchet$MS-*-*-*-*-10-*-*-*-*-*-iso10646-1")
+             ",")
+  "String of fontset spec of the standard fontset.
 This defines a fontset consisting of the Courier and other fonts that
 come with OS X\".
 See the documentation of `create-fontset-from-fontset-spec for the format.")
 
-;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
+;; Conditional on new-fontset so bootstrapping works on non-GUI compiles.
 (if (fboundp 'new-fontset)
     (progn
       ;; Setup the default fontset.
       (setup-default-fontset)
       ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
-))
+      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)))
 
-;(setq default-frame-alist (cons (cons 'font "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard") default-frame-alist))
+;;(push (cons 'font "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard")
+;;      default-frame-alist)
 
-;; add some additional scripts to var we use for fontset generation
+;; Add some additional scripts to var we use for fontset generation.
 (setq script-representative-chars
       (cons '(kana #xff8a)
 	    (cons '(symbol #x2295 #x2287 #x25a1)
-		 script-representative-chars)))
+                  script-representative-chars)))
 
 
 ;;;; Pasteboard support.
@@ -1382,21 +1392,21 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
   (if (not (stringp string)) (error "Nonstring given to pasteboard"))
   (ns-store-cut-buffer-internal 'PRIMARY string))
 
-;;; We keep track of the last text selected here, so we can check the
-;;; current selection against it, and avoid passing back our own text
-;;; from ns-pasteboard-value.
+;; We keep track of the last text selected here, so we can check the
+;; current selection against it, and avoid passing back our own text
+;; from ns-pasteboard-value.
 (defvar ns-last-selected-text nil)
 
-;;; Put TEXT, a string, on the pasteboard.
 (defun ns-select-text (text &optional push)
+  "Put TEXT, a string, on the pasteboard."
   ;; Don't send the pasteboard too much text.
   ;; It becomes slow, and if really big it causes errors.
   (ns-set-pasteboard text)
   (setq ns-last-selected-text text))
 
-;;; Return the value of the current NS selection.  For compatibility
-;;; with older NS applications, this checks cut buffer 0 before
-;;; retrieving the value of the primary selection.
+;; Return the value of the current NS selection.  For compatibility
+;; with older NS applications, this checks cut buffer 0 before
+;; retrieving the value of the primary selection.
 (defun ns-pasteboard-value ()
   (let (text)
     
@@ -1425,10 +1435,10 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
   (insert (ns-get-cut-buffer-internal 'SECONDARY)))
 
 ;; PENDING: not sure what to do here.. for now interprog- are set in
-;; init-fn-keys, and unsure whether these x- settings have an effect
+;; init-fn-keys, and unsure whether these x- settings have an effect.
 ;;(setq interprogram-cut-function 'ns-select-text
 ;;      interprogram-paste-function 'ns-pasteboard-value)
-; these only needed if above not working
+;; These only needed if above not working.
 (defalias 'x-select-text 'ns-select-text)
 (defalias 'x-cut-buffer-or-selection-value 'ns-pasteboard-value)
 (defalias 'x-disown-selection-internal 'ns-disown-selection-internal)
@@ -1478,7 +1488,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
      ((eq bar-part 'handle)
       (if (eq window (selected-window))
 	  (track-mouse (ns-scroll-bar-move event))
-	; track-mouse faster for selected window, slower for unselected
+        ;; track-mouse faster for selected window, slower for unselected.
 	(ns-scroll-bar-move event)))
      (t
       (select-window window)
@@ -1516,9 +1526,8 @@ The value may be different for frames on different NS displays."
     (while all-colors
       (setq this-color (car all-colors)
 	    all-colors (cdr all-colors))
-;      (and (face-color-supported-p frame this-color t)
-      (setq defined-colors (cons this-color defined-colors)))
-;)
+      ;; (and (face-color-supported-p frame this-color t)
+      (setq defined-colors (cons this-color defined-colors))) ;;)
     defined-colors))
 (defalias 'x-defined-colors 'ns-defined-colors)
 (defalias 'xw-defined-colors 'ns-defined-colors)
@@ -1607,7 +1616,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
 
 
 
-;; Misc aliases
+;; Misc aliases.
 (defalias 'x-display-mm-width 'ns-display-mm-width)
 (defalias 'x-display-mm-height 'ns-display-mm-height)
 (defalias 'x-display-backing-store 'ns-display-backing-store)
@@ -1620,15 +1629,14 @@ Note, tranparency works better on Tiger (10.4) and higher."
 (setq frame-title-format t
       icon-title-format t)
 
-;; Set up browser connectivity
+;; Set up browser connectivity.
 (defvar browse-url-generic-program)
 
 (setq browse-url-browser-function 'browse-url-generic)
-(cond ((eq system-type 'darwin)
-       (setq browse-url-generic-program "open"))
-      ;; otherwise, gnustep
-      (t
-       (setq browse-url-generic-program "gopen")) )
+(setq browse-url-generic-program
+      (cond ((eq system-type 'darwin) "open")
+            ;; Otherwise, GNUstep.
+            (t "gopen")))
 
 
 (defvar ns-initialized nil
@@ -1639,29 +1647,27 @@ Note, tranparency works better on Tiger (10.4) and higher."
 
 (declare-function ns-list-services "nsfns.m" ())
 
-;;; Do the actual NS Windows setup here; the above code just defines
-;;; functions and variables that we use now.
+;; Do the actual NS Windows setup here; the above code just defines
+;; functions and variables that we use now.
 (defun ns-initialize-window-system ()
   "Initialize Emacs for NS (Cocoa / GNUstep) windowing."
 
-  ; PENDING: not needed?
+  ;; PENDING: not needed?
   (setq command-line-args (ns-handle-args command-line-args))
 
   (ns-open-connection (system-name) nil t)
 
-  (let ((services (ns-list-services)))
-    (while services
-      (if (eq (caar services) 'undefined)
-	  (ns-define-service (cdar services))
-	(define-key global-map (vector (caar services))
-	  (ns-define-service (cdar services)))
-	)
-      (setq services (cdr services))))
+  (dolist (service (ns-list-services))
+      (if (eq (car service) 'undefined)
+	  (ns-define-service (cdr service))
+	(define-key global-map (vector (car service))
+	  (ns-define-service (cdr service)))))
 
   (if (and (eq (get-lisp-resource nil "NXAutoLaunch") t)
 	   (eq (get-lisp-resource nil "HideOnAutoLaunch") t))
       (add-hook 'after-init-hook 'ns-do-hide-emacs))
 
+  ;; FIXME: This will surely lead to "MODIFIED OUTSIDE CUSTOM" warnings.
   (menu-bar-mode (if (get-lisp-resource nil "Menus") 1 -1))
   (mouse-wheel-mode 1)
 
