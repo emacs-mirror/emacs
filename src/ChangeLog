@@ -1,3 +1,7 @@
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (system-type): Doc fix.
+
 2008-07-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (parse_menu_item): Don't use cachelist, even under NS.
