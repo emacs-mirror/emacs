@@ -1,7 +1,7 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1986, 1988, 1994, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1988, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -137,21 +137,15 @@ The `ORGANIZATION' environment variable is used instead if defined.")
   :version "21.1")
 
 (defvar rmail-spool-directory
-  (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
-	 "/usr/spool/mail/")
-	;; On The Bull DPX/2 /usr/spool/mail is used although
-	;; it is usg-unix-v.
-	((string-match "^m68k-bull-sysv3" system-configuration)
-	 "/usr/spool/mail/")
-	;; SVR4 and recent BSD are said to use this.
-	;; Rather than trying to know precisely which systems use it,
-	;; let's assume this dir is never used for anything else.
-	((file-exists-p "/var/mail")
+  (cond ((file-exists-p "/var/mail")
+	 ;; SVR4 and recent BSD are said to use this.
+	 ;; Rather than trying to know precisely which systems use it,
+	 ;; let's assume this dir is never used for anything else.
 	 "/var/mail/")
 	;; Many GNU/Linux systems use this name.
 	((file-exists-p "/var/spool/mail")
 	 "/var/spool/mail/")
-	((memq system-type '(hpux usg-unix-v unisoft-unix irix))
+	((memq system-type '(hpux usg-unix-v irix))
 	 "/usr/mail/")
 	(t "/usr/spool/mail/"))
   "Name of directory used by system mailer for delivering new mail.
