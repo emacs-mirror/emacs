@@ -82,7 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NS
 #include "nsterm.h"
-extern Lisp_Object Qsuper;
 #endif
 
 #ifndef USE_CRT_DLL
@@ -8065,12 +8064,7 @@ parse_menu_item (item, notreal, inmenubar)
 	      && SYMBOLP (XSYMBOL (def)->function)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
-#ifdef HAVE_NS
-          /* prefer 'super' bindings */
-	  tem = Fwhere_is_internal (def, Qnil, Qsuper, Qt, Qt);
-#else
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
-#endif
 	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
 	    {
