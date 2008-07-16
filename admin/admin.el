@@ -243,7 +243,11 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file
    root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
    copyright (rx (and "NSHumanReadableCopyright" (0+ space) ?\= (0+ space)
-                    ?\" (submatch (1+ (not (in ?\"))))))))
+                    ?\" (submatch (1+ (not (in ?\")))))))
+  (set-version-in-file
+   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+   copyright (rx (and "Copyright" (0+ space) ?\= (0+ space)
+                      ?\" (submatch (1+ (not (in ?\"))))))))
 
 (provide 'admin)
 
