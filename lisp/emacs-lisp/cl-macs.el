@@ -43,9 +43,7 @@
 
 ;;; Code:
 
-(or (memq 'cl-19 features)
-    (error "Tried to load `cl-macs' before `cl'!"))
-
+(require 'cl)
 
 (defmacro cl-pop2 (place)
   (list 'prog1 (list 'car (list 'cdr place))
@@ -72,11 +70,6 @@
 ;;; Initialization.
 
 (defvar cl-old-bc-file-form nil)
-
-;;;###autoload
-(defun cl-compile-time-init ()
-  (run-hooks 'cl-hack-bytecomp-hook))
-
 
 ;;; Some predicates for analyzing Lisp forms.  These are used by various
 ;;; macro expanders to optimize the results in certain common cases.
