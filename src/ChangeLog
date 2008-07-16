@@ -1,3 +1,17 @@
+2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c: Remove all NS-specific code.
+	(where_is_preferred_modifier, Vwhere_is_preferred_modifier): New vars.
+	(preferred_sequence_p): Rename from ascii_sequence_p; pay attention to
+	where_is_preferred_modifier, return a different value depending on how
+	preferred is the binding.
+	(where_is_internal): Adjust accordingly.
+	(Fwhere_is_internal): Refresh where_is_preferred_modifier.
+	Adjust to new preferred_sequence_p.
+	(syms_of_keymap): Declare `where-is-preferred-modifier'.
+	* keyboard.c (parse_solitary_modifier): Not static any more.
+	* keyboard.h (parse_solitary_modifier): Declare.
+
 2008-07-16  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (SOME_MACHINE_LISP): Remove easy-mmode, fix spelling

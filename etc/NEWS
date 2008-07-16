@@ -83,6 +83,8 @@ The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 * Changes in Emacs 23.1
 
+** `where-is-preferred-modifier' can specify your favorite modifier.
+
 ** Improved X Window System support
 
 *** Emacs now supports using both X displays and ttys in one session.

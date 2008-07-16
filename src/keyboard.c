@@ -637,8 +637,6 @@ static Lisp_Object modify_event_symbol P_ ((int, unsigned, Lisp_Object,
 					    Lisp_Object, char **,
 					    Lisp_Object *, unsigned));
 static Lisp_Object make_lispy_switch_frame P_ ((Lisp_Object));
-static int parse_solitary_modifier P_ ((Lisp_Object));
-static int parse_solitary_modifier ();
 static void save_getcjmp P_ ((jmp_buf));
 static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
@@ -6828,9 +6826,8 @@ has the same base event type and all the specified modifiers.  */)
 /* Try to recognize SYMBOL as a modifier name.
    Return the modifier flag bit, or 0 if not recognized.  */
 
-static int
-parse_solitary_modifier (symbol)
-     Lisp_Object symbol;
+int
+parse_solitary_modifier (Lisp_Object symbol)
 {
   Lisp_Object name = SYMBOL_NAME (symbol);
 
