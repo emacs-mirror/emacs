@@ -1,7 +1,7 @@
 ;;; cl-seq.el --- Common Lisp features, part 3
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -31,8 +31,6 @@
 ;; This package was written by Dave Gillespie; it is a complete
 ;; rewrite of Cesar Quiroz's original cl.el package of December 1986.
 ;;
-;; This package works with Emacs 18, Emacs 19, and Lucid Emacs 19.
-;;
 ;; Bug reports, comments, and suggestions are welcome!
 
 ;; This file contains the Common Lisp sequence and list functions
@@ -43,9 +41,7 @@
 
 ;;; Code:
 
-(or (memq 'cl-19 features)
-    (error "Tried to load `cl-seq' before `cl'!"))
-
+(require 'cl)
 
 ;;; Keyword parsing.  This is special-cased here so that we can compile
 ;;; this file independent from cl-macs.
