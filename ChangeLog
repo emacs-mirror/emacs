@@ -1,5 +1,10 @@
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (with_kerberos, with_kerberos5, with_hesiod):
+	Fix tests for OPTION_DEFAULT_OFF (variables never unset).
+	(with_carbon, with_ns): Remove dead code, since OPTION_DEFAULT_OFF means
+	never unset.
+
 	* make-dist: Add nextstep/ directories.
 	(src, lib-src): Add .m files.
 
