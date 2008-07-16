@@ -1,3 +1,8 @@
+2008-07-16  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove easy-mmode, fix spelling
+	of easymenu.
+
 2008-07-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_in_display_line): Account for word wrap, so
