@@ -38,12 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "berkeley-unix"
 
-/* nomultiplejobs should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).  */
-
-/* #define NOMULTIPLEJOBS */
-
 /* Do not use interrupt_input = 1 by default, because in 4.3
    we can make noninterrupt input work properly.  */
 
@@ -63,13 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
-
 /* Define this symbol if your system has the functions bcopy, etc. */
 
 #define BSTRING
@@ -81,11 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    under most USG systems. */
 
 #define subprocesses
-
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
-/* #define COFF */
 
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.

@@ -1,5 +1,15 @@
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/ibms390.h:
+	* m/intel386.h:
+	* m/m68k.h:
+	* s/bsd-common.h:
+	* s/cygwin.h:
+	* s/darwin.h:
+	* s/freebsd.h:
+	* s/gnu.h:
+	* s/msdos.h: Remove boilerplate comments.
+
 	* m/iris4d.h: Remove boilerplate comments and code for systems that
 	 do not use this file.
 	(IRIS_4D): Remove, unused.

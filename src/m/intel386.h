@@ -29,22 +29,9 @@ Intel 386 (-machine=intel386)
   isc2-2, 386-ix, and linux.
 
   18.58 should support a wide variety of operating systems.
-  Use isc2-2 for Interactive 386/ix version 2.2.
-  Use 386ix for prior versions.
   Use linux for Linux.
   It isn't clear what to do on an SCO system.
 
-  -machine=is386 is used for an Integrated Solutions 386 machine.
-  It may also be correct for Microport systems.
-
-Cubix QBx/386 (-machine=intel386 -opsystem=usg5-3)
-
-  Changes merged in 19.1.  Systems before 2/A/0 may fail to compile etags.c
-  due to a compiler bug.
-
-Prime EXL (-machine=intel386 -opsystem=usg5-3)
-
-  Minor changes merged in 19.1.
 NOTE-END */
 
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
@@ -67,7 +54,6 @@ NOTE-END */
 
 #define DOT_GLOBAL_START
 
-#ifdef SOLARIS2
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE long
 
@@ -75,49 +61,26 @@ NOTE-END */
 /* This is totally uncalibrated. */
 #define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 
+#ifdef SOLARIS2
 /* J.W.Hawtin@lut.ac.uk say Solaris 2.4 as well as Solaris 2.1 on X86
    requires -lkvm as well.
    And handa@etl.gov.jp says that -lkvm needs -llelf, at least on 2.5.  */
 #define LIBS_MACHINE -lkvm -lelf
-
 /* configure thinks solaris X86 has gethostname, but it does not work,
    so undefine it.  */
 #undef HAVE_GETHOSTNAME
-
 #else /* not SOLARIS2 */
 #ifdef USG5_4 /* Older USG systems do not support the load average.  */
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-/* This is totally uncalibrated. */
-
-#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 #define FSCALE 256.0
 #endif
 #endif /* not SOLARIS2 */
-
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-/* #define CANNOT_DUMP */
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
 
 /* this brings in alloca() if we're using cc */
 #ifdef USG
 #ifndef LIB_STANDARD
 #ifdef USG5_4
 #define LIB_STANDARD -lc
+#define DATA_SEG_BITS 0x08000000
 #else /* not USG5_4 */
 #define LIB_STANDARD -lPW -lc
 #endif /* not USG5_4 */
@@ -126,10 +89,6 @@ NOTE-END */
 #define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
-
-#ifdef USG5_4
-#define DATA_SEG_BITS 0x08000000
-#endif
 
 #ifdef MSDOS
 #define NO_REMAP
