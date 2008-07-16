@@ -4,8 +4,6 @@
 ** Fix char_quoted's workaround.
 * NON-SPECIFIC
 
-** make-dist probably needs updating (.m files, nextstep/, etc).
-
 ** Remove Feval calls relating to insert working text in isearch mode.
 
 ** free_frame_resources, face colors
