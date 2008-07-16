@@ -1593,6 +1593,7 @@ CHOICE is a list of the choice char and help message at IDX."
 
 (declare-function x-focus-frame "xfns.c" (frame))
 (declare-function w32-focus-frame "../term/w32-win" (frame))
+(declare-function ns-focus-frame "nsfns.m" (frame))
 
 (defun gnus-select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible."
