@@ -1,4 +1,4 @@
-2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* loadup.el: Remove load of easy-mmode prior to ns-win when NS
 	windowing is used.
@@ -6,6 +6,13 @@
 	Corrected/improved documentation.
 
 2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-compat.el, emacs-lisp/cl-macs.el, emacs-lisp/cl-seq.el:
+	Simply require 'cl (see comment in cl-compat.el).
+	* emacs-lisp/cl-macs.el (cl-compile-time-init): Remove function.
+	* emacs-lisp/cl.el (cl-do-pop, cl-mapcar-many): Declare for compiler.
+	(cl-hack-byte-compiler): Load cl-macs and run cl-hack-bytecomp-hook
+	directly rather by subterfuge.  Provide cl before loading cl-macs.
 
 	* paths.el (rmail-spool-directory): Remove settings for systems that are
 	no longer supported.
