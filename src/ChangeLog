@@ -1,3 +1,8 @@
+2008-07-16  David Reitter <david.reitter@gmail.com>
+
+	* Makefile.in: add ns-win, ns-carbon-compat, easy-mmode and
+	easy-menu to SOME_MACHINE_LISP for the new NeXTstep port
+
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (system-type): Doc fix.
