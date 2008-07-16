@@ -44,8 +44,15 @@
 
 ;;; Code:
 
-;; Require at load-time, but not when compiling cl-compat.
-(or (featurep 'cl) (require 'cl))
+;; This used to be:
+;; (or (featurep 'cl) (require 'cl))
+;; which just has the effect of fooling the byte-compiler into not
+;; loading cl when compiling.  However, that leads to some bogus
+;; compiler warnings.  Loading cl when compiling cannot do any harm,
+;; because for a long time bootstrap-emacs contained 'cl, due to being
+;; dumped from uncompiled files that eval-when-compile'd cl.  So every
+;; file was compiled with 'cl loaded.
+(require 'cl)
 
 
 ;;; Keyword routines not supported by new package.
