@@ -59,12 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
 
 /*
  * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
@@ -95,18 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LDAV_SYMBOL "avenrun"
 
 /* Special itemss needed to make Emacs run on this system.  */
-
-
-
-/* USG systems tend to put everything declared static
-   into the initialized data area, which becomes pure after dumping Emacs.
-   Foil this.  Emacs carefully avoids static vars inside functions.  */
-
-#undef static
-
-/* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
-
-/* #define ADDR_CORRECT(x) (x) */
 
 #ifndef __GNUC__
 #define LINKER cc

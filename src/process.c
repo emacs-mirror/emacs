@@ -68,11 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* HAVE_SOCKETS */
 
-/* TERM is a poor-man's SLIP, used on GNU/Linux.  */
-#ifdef TERM
-#include <client.h>
-#endif
-
 #if defined(BSD_SYSTEM)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
@@ -94,10 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <net/if.h>
 #endif
 #endif
-
-#ifdef IRIS
-#include <sys/sysmacros.h>	/* for "minor" */
-#endif /* not IRIS */
 
 #ifdef HAVE_SYS_WAIT
 #include <sys/wait.h>
@@ -258,11 +249,6 @@ int update_tick;
 #endif /* HAVE_SOCKETS */
 #endif /* DATAGRAM_SOCKETS */
 #endif /* BROKEN_DATAGRAM_SOCKETS */
-
-#ifdef TERM
-#undef NON_BLOCKING_CONNECT
-#undef DATAGRAM_SOCKETS
-#endif
 
 #if !defined (ADAPTIVE_READ_BUFFERING) && !defined (NO_ADAPTIVE_READ_BUFFERING)
 #ifdef EMACS_HAS_USECS
@@ -542,14 +528,6 @@ allocate_pty ()
 	PTY_OPEN;
 #else /* no PTY_OPEN */
 	{
-# ifdef IRIS
-	  /* Unusual IRIS code */
-	  *ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
-	  if (fd < 0)
-	    return -1;
-	  if (fstat (fd, &stb) < 0)
-	    return -1;
-# else /* not IRIS */
 	  { /* Some systems name their pseudoterminals so that there are gaps in
 	       the usual sequence - for example, on HP9000/S700 systems, there
 	       are no pseudoterminals with names ending in 'f'.  So we wait for
@@ -571,7 +549,6 @@ allocate_pty ()
 #  else
 	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
 #  endif
-# endif /* not IRIS */
 	}
 #endif /* no PTY_OPEN */
 
@@ -587,11 +564,11 @@ allocate_pty ()
 	    if (access (pty_name, 6) != 0)
 	      {
 		emacs_close (fd);
-# if !defined(IRIS) && !defined(__sgi)
+# ifndef __sgi
 		continue;
 # else
 		return -1;
-# endif /* IRIS */
+# endif /* __sgi */
 	      }
 	    setup_pty (fd);
 	    return fd;
@@ -3208,7 +3185,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       /* Don't support network sockets when non-blocking mode is
 	 not available, since a blocked Emacs is not useful.  */
-#if defined(TERM) || (!defined(O_NONBLOCK) && !defined(O_NDELAY))
+#if !defined(O_NONBLOCK) && !defined(O_NDELAY)
       error ("Network servers not supported");
 #else
       is_server = 1;
@@ -3237,32 +3214,6 @@ usage: (make-network-process &rest ARGS)  */)
   sentinel = Fplist_get (contact, QCsentinel);
 
   CHECK_STRING (name);
-
-#ifdef TERM
-  /* Let's handle TERM before things get complicated ...   */
-  host = Fplist_get (contact, QChost);
-  CHECK_STRING (host);
-
-  service = Fplist_get (contact, QCservice);
-  if (INTEGERP (service))
-    port = htons ((unsigned short) XINT (service));
-  else
-    {
-      struct servent *svc_info;
-      CHECK_STRING (service);
-      svc_info = getservbyname (SDATA (service), "tcp");
-      if (svc_info == 0)
-	error ("Unknown service: %s", SDATA (service));
-      port = svc_info->s_port;
-    }
-
-  s = connect_server (0);
-  if (s < 0)
-    report_file_error ("error creating socket", Fcons (name, Qnil));
-  send_command (s, C_PORT, 0, "%s:%d", SDATA (host), ntohs (port));
-  send_command (s, C_DUMB, 1, 0);
-
-#else  /* not TERM */
 
   /* Initialize addrinfo structure in case we don't use getaddrinfo.  */
   ai.ai_socktype = socktype;
@@ -3673,8 +3624,6 @@ usage: (make-network-process &rest ARGS)  */)
       else
 	report_file_error ("make client process failed", contact);
     }
-
-#endif /* not TERM */
 
   inch = s;
   outch = s;
@@ -7295,7 +7244,7 @@ init_process ()
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#if !defined(TERM) && (defined(O_NONBLOCK) || defined(O_NDELAY))
+#if defined(O_NONBLOCK) || defined(O_NDELAY)
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
 

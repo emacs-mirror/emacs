@@ -33,15 +33,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #else /* not HAVE_TERMIO */
 #ifdef HAVE_TERMIOS
-#if defined(_AIX) && defined(_I386)
-#include <termios.h>		/* termios.h needs to be before termio.h */
-#include <termio.h>
-#else /* not (_AIX && _I386) */
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif
 #include <termios.h>
-#endif /* not (_AIX && _I386) */
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */

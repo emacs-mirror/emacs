@@ -44,9 +44,7 @@ NOTE-END
 #define NO_ARG_ARRAY
 
 /* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
+   does not define it automatically.  */
 
 /* __alpha defined automatically */
 

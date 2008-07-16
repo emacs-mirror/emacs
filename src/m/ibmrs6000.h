@@ -41,13 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define IBMR2AIX
 
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-#ifdef USG5_4
-#define CANNOT_DUMP
-#endif
-
 #ifndef UNEXEC
 #define UNEXEC unexaix.o
 #endif
@@ -73,24 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_SEG_BITS 0
 #endif
 
-#ifdef CANNOT_DUMP
-/* Define shared memory segment symbols */
-
-#define PURE_SEG_BITS 0x30000000
-
-/* Use shared memory.  */
-/* This is turned off because it does not always work.  See etc/AIX.DUMP.  */
-/* #define HAVE_SHM */
-#endif /* CANNOT_DUMP */
-
-#define N_BADMAG(x) BADMAG(x)
-#define N_TXTOFF(x) A_TEXTPOS(x)
-#define N_SYMOFF(x) A_SYMPOS(x)
-#define A_TEXT_OFFSET(HDR) sizeof(HDR)
-/* #define ADJUST_EXEC_HEADER \
-    unexec_text_start += sizeof(hdr); \
-    unexec_data_start = ohdr.a_dbase
-*/
 #undef ADDR_CORRECT
 #define ADDR_CORRECT(x) ((int)(x))
 
@@ -118,7 +93,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define START_FILES
-#define HAVE_SYSVIPC
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD
 /* As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
@@ -129,9 +103,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BROKEN_SIGAIO
 #define BROKEN_SIGPTY
 #define BROKEN_SIGPOLL
-
-/* Don't try to include ptem.h.  */
-#undef NEED_PTEM_H
 
 #define ORDINARY_LINK
 

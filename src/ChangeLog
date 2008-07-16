@@ -1,5 +1,31 @@
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* systty.h: Remove code for Aix on 386, unsupported platform.
+
+	* s/ms-w32.h: Remove boilerplate comments.
+	(fcloseall, fgetchar, flushall, fputchar, getw, putw): Remove, unused.
+
+	* s/gnu-linux.h (TERM): Remove support.
+	(HAVE_SYSVIPC): Remove, unused.
+	(A_TEXT_OFFSET, A_TEXT_SEEK, ADJUST_EXEC_HEADER): Remove, not used
+	for this system.
+
+	* process.c: Remove support for IRIS, unused.
+	Remove support for TERM, not relevant anymore.
+
+	* unexalpha.c (DEFAULT_ENTRY_ADDRESS): Remove, replace the only
+	used with the definition.
+
+	* s/aix4-2.h (static): Do not undef.
+
+	* m/ibmrs6000.h: Remove code depending on USG5_4, this file is
+	only used on Aix.
+	(HAVE_SYSVIPC): Remove, unused.
+
+	* m/hp800.h (CANNOT_DUMP): Do not undef.
+
+	* m/alpha.h: Fix comment.
+
 	* s/usg5-4.h (HAVE_SYSVIPC): Remove, unused.
 	(USG_SHARED_LIBRARIES): Remove, only used in unexec.c which is not
 	used by this configuration.
