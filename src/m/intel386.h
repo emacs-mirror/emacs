@@ -85,17 +85,7 @@ NOTE-END */
 #endif
 #endif /* not SOLARIS2 */
 
-/* this brings in alloca() if we're using cc */
 #ifdef USG
-#ifndef LIB_STANDARD
-#ifdef USG5_4
-#define LIB_STANDARD -lc
-#define DATA_SEG_BITS 0x08000000
-#else /* not USG5_4 */
-#define LIB_STANDARD -lPW -lc
-#endif /* not USG5_4 */
-#endif /* LIB_STANDARD */
-
 #define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
@@ -111,7 +101,7 @@ NOTE-END */
 #define NO_ARG_ARRAY
 #endif
 
-#ifdef linux
+#ifdef GNU_LINUX
 /* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
 /* we cannot get the maximum address for brk */
 #define ULIMIT_BREAK_VALUE (32*1024*1024)

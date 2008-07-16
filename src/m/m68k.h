@@ -17,20 +17,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* The following three symbols give information on
- the size of various data types.  */
-
-
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN
-
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-/* #define NO_ARG_ARRAY */
 
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
@@ -47,16 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
-
-#ifdef linux
+#ifdef GNU_LINUX
 #ifdef __ELF__
 #define DATA_SEG_BITS 0x80000000
 #endif
