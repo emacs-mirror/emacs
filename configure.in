@@ -75,15 +75,15 @@ fi
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
 
 OPTION_DEFAULT_OFF([kerberos],[support Kerberos-authenticated POP])
-if test "$with_kerberos" = yes; then
+if test "$with_kerberos" != no; then
    AC_DEFINE(KERBEROS)
 fi
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
 
 OPTION_DEFAULT_OFF([kerberos5],[support Kerberos version 5 authenticated POP])
-if test "${with_kerberos5}" = yes; then
-  if test "${with_kerberos}" != yes; then
+if test "${with_kerberos5}" != no; then
+  if test "${with_kerberos}" = no; then
     with_kerberos=yes
     AC_DEFINE(KERBEROS)
   fi
@@ -91,7 +91,7 @@ if test "${with_kerberos5}" = yes; then
 fi
 
 OPTION_DEFAULT_OFF([hesiod],[support Hesiod to get the POP server host])
-if test "$with_hesiod" = yes; then
+if test "$with_hesiod" != no; then
   AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
 fi
 
@@ -1217,21 +1217,7 @@ fi
 HAVE_CARBON=no
 if test "${with_carbon}" != no; then
   AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
-fi
-if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
-  if test "${with_carbon+set}" != set \
-     && test "${carbon_appdir_x+set}" != set; then
-    for var in with_x with_x_toolkit with_xim \
-               with_xpm with_jpeg with_tiff with_gif with_png; do
-      if eval test \"\${$var+set}\" = set; then
-        HAVE_CARBON=no
-        break
-      fi
-    done
-  fi
-fi
-if test "${HAVE_CARBON}" = yes; then
-  window_system=mac
+  test "${HAVE_CARBON}" = yes && window_system=mac
 fi
 
 HAVE_NS=no
@@ -2241,7 +2227,7 @@ if test "$have_res_init" = yes; then
 fi
 
 # Do we need the Hesiod library to provide the support routines?
-if test "$with_hesiod" = yes ; then
+if test "$with_hesiod" != no ; then
   # Don't set $LIBS here -- see comments above.
   AC_CHECK_FUNC(res_send, , [AC_CHECK_FUNC(__res_send, ,
      [AC_CHECK_LIB(resolv, res_send, resolv=yes,
@@ -2264,19 +2250,19 @@ if test "$resolv" = yes ; then
 fi
 
 # These tell us which Kerberos-related libraries to use.
-if test "${with_kerberos+set}" = set; then
+if test "${with_kerberos}" != no; then
   AC_CHECK_LIB(com_err, com_err)
   AC_CHECK_LIB(k5crypto, mit_des_cbc_encrypt)
   AC_CHECK_LIB(crypto, mit_des_cbc_encrypt)
   AC_CHECK_LIB(krb5, krb5_init_context)
-  if test "${with_kerberos5+set}" != set; then
+  if test "${with_kerberos5}" = no; then
     AC_CHECK_LIB(des425, des_cbc_encrypt,,
 		 [AC_CHECK_LIB(des, des_cbc_encrypt)])
     AC_CHECK_LIB(krb4, krb_get_cred,,
 		 [AC_CHECK_LIB(krb, krb_get_cred)])
   fi
 
-  if test "${with_kerberos5+set}" = set; then
+  if test "${with_kerberos5}" != no; then
     AC_CHECK_HEADERS(krb5.h)
   else
     AC_CHECK_HEADERS(des.h,,
