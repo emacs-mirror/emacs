@@ -32,9 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NO_ARG_ARRAY
 
 /* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
+   does not define it automatically.  */
 
 /* __ia64__ defined automatically */
 
@@ -59,46 +57,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
-
-/* Define the following if GNU malloc and the relocating allocator do
-   not work together with X.  */
-
-/* #define SYSTEM_MALLOC */
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-/* #define NO_REMAP */
-
-/* Some really obscure 4.2-based systems (like Sequent DYNIX) do not
-   support asynchronous I/O (using SIGIO) on sockets, even though it
-   works fine on tty's.  If you have one of these systems, define the
-   following, and then use it in config.h (or elsewhere) to decide
-   when (not) to use SIGIO.
-
-   You'd think this would go in an operating-system description file,
-   but since it only occurs on some, but not all, BSD systems, the
-   reasonable place to select for it is in the machine description
-   file.  */
-
-/* #define NO_SOCK_SIGIO */
-
 #ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
 #endif
-
-#define PNTR_COMPARISON_TYPE unsigned long
 
 #ifndef NOT_C_CODE
 

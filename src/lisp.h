@@ -1660,9 +1660,7 @@ typedef struct {
   } while (0)
 
 /* Cast pointers to this type to compare them.  Some machines want int.  */
-#ifndef PNTR_COMPARISON_TYPE
 #define PNTR_COMPARISON_TYPE EMACS_UINT
-#endif
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,

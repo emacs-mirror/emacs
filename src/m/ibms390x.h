@@ -65,12 +65,6 @@ NOTE-END */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-#undef CANNOT_DUMP
-
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
    relative order cannot be relied on.
@@ -116,8 +110,6 @@ NOTE-END */
    If you've just fixed a problem in an existing configuration file,
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
-
-#define PNTR_COMPARISON_TYPE unsigned long
 
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 
