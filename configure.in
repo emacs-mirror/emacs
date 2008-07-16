@@ -1241,22 +1241,8 @@ if test "${with_ns}" != no; then
   fi
   AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
 fi
-if test "${window_system}" = x11 && test "${HAVE_NS}" = yes; then
-  if test "${with_ns+set}" != set \
-     && test "${ns_appdir_x+set}" != set; then
-    HAVE_NS=no
-  fi
-fi
-
-if test "${window_system}" = mac && test "${HAVE_NS}" = yes; then
-  if test "${with_ns+set}" != set \
-     && test "${ns_appdir_x+set}" != set; then
-    HAVE_NS=no
-  else
-    HAVE_CARBON=no
-  fi
-fi
 if test "${HAVE_NS}" = yes; then
+  test "${window_system}" = mac && HAVE_CARBON=no
   window_system=nextstep
   with_xft=no
   with_freetype=no
