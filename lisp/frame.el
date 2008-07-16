@@ -604,6 +604,7 @@ is not considered (see `next-frame')."
   (select-frame-set-input-focus (selected-frame)))
 
 (declare-function x-initialize-window-system "term/x-win" ())
+(declare-function ns-initialize-window-system "term/ns-win" ())
 (defvar x-display-name)
 
 (defun make-frame-on-display (display &optional parameters)
