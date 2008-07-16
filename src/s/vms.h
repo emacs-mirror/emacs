@@ -33,31 +33,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "vax-vms"
 
-/* NOMULTIPLEJOBS should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).  */
-
-/* #define NOMULTIPLEJOBS */
-
-/* INTERRUPT_INPUT controls a default for Unix systems.
-   VMS uses a separate mechanism.  */
-
-/* #define INTERRUPT_INPUT */
-
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
 
 #define FIRST_PTY_LETTER 'a'
-
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
-/* #define HAVE_PTYS */
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
-/* #define HAVE_SOCKETS */
 
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
@@ -66,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NONSYSTEM_DIR_LIBRARY
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
-/* #define BSTRING */
-
 /* subprocesses should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
@@ -77,24 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    under most USG systems. */
 
 #define subprocesses
-
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
-/* #define COFF */
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
-
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-
-/* #define CLASH_DETECTION */
 
 /* Define the maximum record length for print strings, if needed. */
 
@@ -224,12 +181,6 @@ extern double mth$dmod(double, double);
 globalref char sdata[];
 #define DATA_START (((int) sdata + 511) & ~511)
 #define TEXT_START 512
-
-/* Baud-rate values from tty status are not standard.  */
-
-#define BAUD_CONVERT  \
-{ 0, 50, 75, 110, 134, 150, 300, 600, 1200, 1800, \
-  2000, 2400, 3600, 4800, 7200, 9600, 19200 }
 
 #define PURESIZE 330000
 
