@@ -3348,7 +3348,7 @@ x_set_font (f, arg, oldval)
   int fontset = -1;
   Lisp_Object font_object;
 
-  /* Set the frame parameter back to the old value because we mail
+  /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
   store_frame_param (f, Qfont, oldval);
 
