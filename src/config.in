@@ -1056,10 +1056,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
 #  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
 #  define OTHER_FILES ns-app
-# else /* COCOA */
+# else /* NS_IMPL_COCOA */
 #  define C_SWITCH_X_SYSTEM
 #  define GNU_OBJC_CFLAGS
-# endif /* COCOA */
+# endif /* NS_IMPL_COCOA */
 #endif /* HAVE_NS */
 
 

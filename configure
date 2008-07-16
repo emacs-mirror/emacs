@@ -1880,7 +1880,7 @@ else
       with_kerberos=no
 fi
 
-if test "$with_kerberos" = yes; then
+if test "$with_kerberos" != no; then
    cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
 _ACEOF
@@ -1896,8 +1896,8 @@ else
       with_kerberos5=no
 fi
 
-if test "${with_kerberos5}" = yes; then
-  if test "${with_kerberos}" != yes; then
+if test "${with_kerberos5}" != no; then
+  if test "${with_kerberos}" = no; then
     with_kerberos=yes
     cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
@@ -1919,7 +1919,7 @@ else
       with_hesiod=no
 fi
 
-if test "$with_hesiod" = yes; then
+if test "$with_hesiod" != no; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HESIOD 1
@@ -2411,7 +2411,7 @@ case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
       arm*-*-freebsd*)          machine=arm ;;
       ia64-*-freebsd*)		machine=ia64 ;;
-      sparc-*-freebsd*)		machine=sparc ;;
+      sparc-*-freebsd*)         machine=sparc ;;
       sparc64-*-freebsd*)	machine=sparc ;;
       powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
@@ -9320,35 +9320,21 @@ if test $ac_cv_header_Carbon_Carbon_h = yes; then
 fi
 
 
-fi
-if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
-  if test "${with_carbon+set}" != set \
-     && test "${carbon_appdir_x+set}" != set; then
-    for var in with_x with_x_toolkit with_xim \
-               with_xpm with_jpeg with_tiff with_gif with_png; do
-      if eval test \"\${$var+set}\" = set; then
-        HAVE_CARBON=no
-        break
-      fi
-    done
-  fi
-fi
-if test "${HAVE_CARBON}" = yes; then
-  window_system=mac
+  test "${HAVE_CARBON}" = yes && window_system=mac
 fi
 
 HAVE_NS=no
-COCOA=no
-GNUSTEP=no
+NS_IMPL_COCOA=no
+NS_IMPL_GNUSTEP=no
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
-     COCOA=yes
+     NS_IMPL_COCOA=yes
   elif test -f /etc/GNUstep/GNUstep.conf; then
-     GNUSTEP=yes
+     NS_IMPL_GNUSTEP=yes
      GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -9487,22 +9473,8 @@ fi
 
 
 fi
-if test "${window_system}" = x11 && test "${HAVE_NS}" = yes; then
-  if test "${with_ns+set}" != set \
-     && test "${ns_appdir_x+set}" != set; then
-    HAVE_NS=no
-  fi
-fi
-
-if test "${window_system}" = mac && test "${HAVE_NS}" = yes; then
-  if test "${with_ns+set}" != set \
-     && test "${ns_appdir_x+set}" != set; then
-    HAVE_NS=no
-  else
-    HAVE_CARBON=no
-  fi
-fi
 if test "${HAVE_NS}" = yes; then
+  test "${window_system}" = mac && HAVE_CARBON=no
   window_system=nextstep
   with_xft=no
   with_freetype=no
@@ -15163,7 +15135,7 @@ _ACEOF
       * ) ns_appdir=${ns_appdir_x} ;;
     esac
   fi
-  if test "${COCOA}" = "yes"; then
+  if test "${NS_IMPL_COCOA}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define NS_IMPL_COCOA 1
@@ -15177,7 +15149,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   fi
-  if test "${GNUSTEP}" = "yes"; then
+  if test "${NS_IMPL_GNUSTEP}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define NS_IMPL_GNUSTEP 1
@@ -20205,7 +20177,7 @@ _ACEOF
 fi
 
 # Do we need the Hesiod library to provide the support routines?
-if test "$with_hesiod" = yes ; then
+if test "$with_hesiod" != no ; then
   # Don't set $LIBS here -- see comments above.
   { echo "$as_me:$LINENO: checking for res_send" >&5
 echo $ECHO_N "checking for res_send... $ECHO_C" >&6; }
@@ -20684,7 +20656,7 @@ _ACEOF
 fi
 
 # These tell us which Kerberos-related libraries to use.
-if test "${with_kerberos+set}" = set; then
+if test "${with_kerberos}" != no; then
 
 { echo "$as_me:$LINENO: checking for com_err in -lcom_err" >&5
 echo $ECHO_N "checking for com_err in -lcom_err... $ECHO_C" >&6; }
@@ -20969,7 +20941,7 @@ _ACEOF
 
 fi
 
-  if test "${with_kerberos5+set}" != set; then
+  if test "${with_kerberos5}" = no; then
 
 { echo "$as_me:$LINENO: checking for des_cbc_encrypt in -ldes425" >&5
 echo $ECHO_N "checking for des_cbc_encrypt in -ldes425... $ECHO_C" >&6; }
@@ -21258,7 +21230,7 @@ fi
 
   fi
 
-  if test "${with_kerberos5+set}" = set; then
+  if test "${with_kerberos5}" != no; then
 
 for ac_header in krb5.h
 do
