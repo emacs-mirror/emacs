@@ -34,10 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "usg-unix-v"
 
-/* Default is to set interrupt_input to 0: don't do input buffering within Emacs */
-
-/* #define INTERRUPT_INPUT */
-
 /*
  *	Define HAVE_TERMIO if the system provides sysV-style ioctls
  *	for terminal control.
@@ -49,20 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *	Define HAVE_PTYS if the system supports pty devices.
  */
 
-/* Some versions of V.3 have this, but not all.
-   #define HAVE_PTYS  */
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
-/* #define HAVE_SOCKETS */
-
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
-
 /*
  * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
  *	library functions.  Almost, but not quite the same as
@@ -70,29 +52,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 #define SYSV_SYSTEM_DIR
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
-/* #define BSTRING */
-
 /* subprocesses should be defined if you want to
  have code for asynchronous subprocesses
  (as used in M-x compile and M-x shell).
  This is supposed to work now on system V release 2.  */
 
 #define subprocesses
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
-
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-
-/* #define CLASH_DETECTION */
 
 /* The file containing the kernel's symbol table is called /unix.  */
 
@@ -102,10 +67,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    is named avenrun.  */
 
 #define LDAV_SYMBOL "avenrun"
-
-/* Define this if system V IPC is available.  */
-
-#define HAVE_SYSVIPC
 
 /* Special hacks needed to make Emacs run on this system.  */
 
@@ -150,10 +111,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_X_WINDOWS
 #define BSTRING
 #endif /* HAVE_X_WINDOWS */
-
-/* Enable support for shared libraries in unexec.  */
-
-#define USG_SHARED_LIBRARIES
 
 /* On USG systems signal handlers return void */
 

@@ -226,13 +226,6 @@ extern Lisp_Object Vauto_save_list_file_name;
 
 extern Lisp_Object Vinhibit_redisplay;
 
-#ifdef USG_SHARED_LIBRARIES
-/* If nonzero, this is the place to put the end of the writable segment
-   at startup.  */
-
-unsigned int bss_end = 0;
-#endif
-
 /* Nonzero means running Emacs without interactive terminal.  */
 
 int noninteractive;
@@ -1005,11 +998,6 @@ main (argc, argv
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
-
-#ifdef USG_SHARED_LIBRARIES
-  if (bss_end)
-    brk ((void *)bss_end);
-#endif
 
   clearerr (stdin);
 
