@@ -42,7 +42,7 @@
 
 (defun check-declare-locate (file basefile)
   "Return the full path of FILE.
-Expands files with a \".c\" extension relative to the Emacs
+Expands files with a \".c\" or \".m\" extension relative to the Emacs
 \"src/\" directory.  Otherwise, `locate-library' searches for FILE.
 If that fails, expands FILE relative to BASEFILE's directory part.
 The returned file might not exist.  If FILE has an \"ext:\" prefix, so does
@@ -52,7 +52,7 @@ the result."
     (if ext
         (setq file (substring file 4)))
     (setq file
-          (if (string-equal "c" (file-name-extension file))
+          (if (member (file-name-extension file) '("c" "m"))
               (expand-file-name file (expand-file-name "src" source-directory))
             (if (setq tfile (locate-library (file-name-nondirectory file)))
                 (progn
@@ -130,7 +130,7 @@ Returns nil if all claims are found to be true, otherwise a list
 of errors with elements of the form \(FILE FN TYPE), where TYPE
 is a string giving details of the error."
   (let ((m (format "Checking %s..." fnfile))
-        (cflag (string-equal "c" (file-name-extension fnfile)))
+        (cflag (member (file-name-extension fnfile) '("c" "m")))
         (ext (string-match "^ext:" fnfile))
         re fn sig siglist arglist type errlist minargs maxargs)
     (message "%s" m)
