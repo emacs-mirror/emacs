@@ -1947,5 +1947,4 @@ syms_of_nsmenu ()
   staticpro (&Qdebug_on_next_call);
 }
 
-/* arch-tag: 75773656-52e5-4c44-a398-47bd87b32619
-   (do not change this comment) */
+// arch-tag: 75773656-52e5-4c44-a398-47bd87b32619

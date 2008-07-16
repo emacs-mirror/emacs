@@ -70,5 +70,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-/* arch-tag: 609d5528-5ac1-42c5-859b-24c14341ee3b
-   (do not change this comment) */
+// arch-tag: 609d5528-5ac1-42c5-859b-24c14341ee3b

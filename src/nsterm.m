@@ -6597,5 +6597,4 @@ ns_xlfd_to_fontname (const char *xlfd)
   return ret;
 }
 
-/* arch-tag: 6eaa8f7d-a69b-4e1c-b43d-ab31defbe0d2
-   (do not change this comment) */
+// arch-tag: 6eaa8f7d-a69b-4e1c-b43d-ab31defbe0d2

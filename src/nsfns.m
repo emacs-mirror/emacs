@@ -2667,5 +2667,4 @@ be used as the image of the icon representing the frame.");
 
 #endif
 
-/* arch-tag: dc2a3f74-1123-4daa-8eed-fb78db6a5642
-   (do not change this comment) */
+// arch-tag: dc2a3f74-1123-4daa-8eed-fb78db6a5642

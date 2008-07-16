@@ -1494,5 +1494,4 @@ syms_of_nsfont ()
   DEFSYM (Qmedium, "medium");
 }
 
-/* arch-tag: d6c3c6f0-62de-4978-8b1e-b7966fe02cae
-   (do not change this comment) */
+// arch-tag: d6c3c6f0-62de-4978-8b1e-b7966fe02cae
