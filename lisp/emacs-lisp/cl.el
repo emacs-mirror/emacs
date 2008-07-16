@@ -133,6 +133,9 @@ The return value is the decremented value of PLACE."
       (list 'setq place (if x (list '- place x) (list '1- place)))
     (list 'callf '- place (or x 1))))
 
+;; Autoloaded, but we haven't loaded cl-loaddefs yet.
+(declare-function cl-do-pop "cl-macs" (place))
+
 (defmacro pop (place)
   "Remove and return the head of the list stored in PLACE.
 Analogous to (prog1 (car PLACE) (setf PLACE (cdr PLACE))), though more
@@ -337,6 +340,8 @@ always returns nil."
 ;;; Sequence functions.
 
 (defalias 'copy-seq 'copy-sequence)
+
+(declare-function cl-mapcar-many "cl-extra" (cl-func cl-seqs))
 
 (defun mapcar* (cl-func cl-x &rest cl-rest)
   "Apply FUNCTION to each element of SEQ, and make a list of the results.
@@ -632,17 +637,17 @@ If ALIST is non-nil, the new pairs are prepended to it."
 
 ;; This goes here so that cl-macs can find it if it loads right now.
 (provide 'cl-19)     ; usage: (require 'cl-19 "cl")
+(provide 'cl)
 
 ;; Things to do after byte-compiler is loaded.
-;; As a side effect, we cause cl-macs to be loaded when compiling, so
-;; that the compiler-macros defined there will be present.
 
 (defvar cl-hacked-flag nil)
 (defun cl-hack-byte-compiler ()
-  (if (and (not cl-hacked-flag) (fboundp 'byte-compile-file-form))
-      (progn
-	(setq cl-hacked-flag t)		; Do it first, to prevent recursion.
-	(cl-compile-time-init))))	; In cl-macs.el.
+  (and (not cl-hacked-flag) (fboundp 'byte-compile-file-form)
+       (progn
+         (setq cl-hacked-flag t)  ; Do it first, to prevent recursion.
+         (load "cl-macs" nil t)
+         (run-hooks 'cl-hack-bytecomp-hook))))
 
 ;; Try it now in case the compiler has already been loaded.
 (cl-hack-byte-compiler)
