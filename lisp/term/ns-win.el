@@ -333,9 +333,10 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-minor-mode ns-extended-platform-support-mode
   "Toggle NS extended platform support features.
    When this mode is active (no modeline indicator):
-   - File menus is altered slightly in keeping with conventions.
+   - File menu is altered slightly in keeping with conventions.
    - Meta-up, meta-down are bound to scroll window up and down one line.
-   - Meta-p, Meta-n navigate forwards and backwards in the mark ring."
+   - Screen position is preserved in scrolling.
+   - Transient mark mode is activated"
   :init-value nil
   :global t
   :group 'ns

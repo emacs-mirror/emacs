@@ -215,7 +215,6 @@
 (if (featurep 'ns-windowing)
     (progn
       (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
-      (load "emacs-lisp/easy-mmode")
       (load "term/ns-win")))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.

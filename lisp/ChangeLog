@@ -1,3 +1,10 @@
+2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* loadup.el: Remove load of easy-mmode prior to ns-win when NS
+	windowing is used.
+	* term/ns-win.el (ns-extended-platform-support-mode):
+	Corrected/improved documentation.
+
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
 	* paths.el (rmail-spool-directory): Remove settings for systems that are
@@ -31,7 +38,8 @@
 	* frame.el (make-frame-on-display): Follow code for 'x in initializing
 	'ns window system if need be.
 	(various): Add 'ns as described above.
-	* loadup.el: Load ns-win.el if ns-windowing is active.
+	* loadup.el: Load ns-win.el, easy-menu.el, easy-mmode.el if
+	ns-windowing is active.
 	* startup.el (command-line-ns-option-alist): New constant to handle NS
 	windowing system specific command line args analogous to how they are
 	handled for X windows.
