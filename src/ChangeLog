@@ -1,5 +1,7 @@
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/template.h: Remove comments about static.
+
 	* sysdep.c: Remove code depending on NEED_PTEM_H, unused.  Remove
 	if 0-ed code.
 	(baud_convert): Don't depend on BAUD_CONVERT, all definitions the
