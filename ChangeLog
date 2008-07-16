@@ -1,3 +1,8 @@
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add nextstep/ directories.
+	(src, lib-src): Add .m files.
+
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (freebsd, kfreebsd): Undo part of previous change.
