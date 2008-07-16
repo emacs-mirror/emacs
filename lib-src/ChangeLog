@@ -1,3 +1,8 @@
+2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ntlib.h (fcloseall, fgetchar, flushall, fputchar, putw): Remove,
+	unused.
+
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* .cvsignore: Add mac-fix-env.
