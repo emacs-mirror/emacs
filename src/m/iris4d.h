@@ -29,16 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NO_ARG_ARRAY
 
 /* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
+   does not define it automatically.  */
 
 #ifndef mips
 #define mips
-#endif
-
-#ifndef IRIS_4D
-#define IRIS_4D
 #endif
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
@@ -48,21 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
-
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-#undef CANNOT_DUMP
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -74,12 +53,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
-#ifdef USG5_4
 #undef UNEXEC
 #define UNEXEC unexelf.o
-#else
-#define UNEXEC unexmips.o
-#endif
 
 #define TEXT_START 0x400000
 
@@ -95,12 +70,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef LIBS_MACHINE
 #define LIBS_MACHINE
 #define LIBS_DEBUG
-
-#ifndef USG5_4
-/* Must define START-FILES so that the linker can find /usr/lib/crt0.o.  */
-#define START_FILES pre-crt0.o /usr/lib/crt1.o
-#define LIB_STANDARD -lc /usr/lib/crtn.o
-#endif
 
 /* Use terminfo instead of termcap.  */
 
