@@ -1,5 +1,10 @@
 2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nsterm.m (lisp_to_mod): Use parse_solitary_modifier instead.
+	(ns_lisp_to_color): Don't mess with internal Lisp data fields.
+	(ns_term_init, ns_term_shutdown, initFrameFromEmacs, ns_list_fonts):
+	Use SDATA.
+
 	* keymap.c: Remove all NS-specific code.
 	(where_is_preferred_modifier, Vwhere_is_preferred_modifier): New vars.
 	(preferred_sequence_p): Rename from ascii_sequence_p; pay attention to

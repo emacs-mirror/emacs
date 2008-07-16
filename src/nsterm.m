@@ -143,7 +143,6 @@ static Lisp_Object Qmodifier_value;
 /*PENDING: unsure why these defined in term files, anyway we need in keymap.c */
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
-extern int lisp_to_mod (Lisp_Object lmod);
 
 
 EmacsPrefsController *prefsController;
@@ -255,15 +254,15 @@ static BOOL inNsSelect = 0;
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
      | (([e modifierFlags] & NSAlternateKeyMask) ?    \
-           lisp_to_mod (ns_alternate_modifier) : 0)   \
+           parse_solitary_modifier (ns_alternate_modifier) : 0)   \
      | (([e modifierFlags] & NSShiftKeyMask) ?        \
            shift_modifier : 0)                        \
      | (([e modifierFlags] & NSControlKeyMask) ?      \
-           lisp_to_mod (ns_control_modifier) : 0)     \
+           parse_solitary_modifier (ns_control_modifier) : 0)     \
      | (([e modifierFlags] & NS_FUNCTION_KEY_MASK) ?  \
-           lisp_to_mod (ns_function_modifier) : 0)    \
+           parse_solitary_modifier (ns_function_modifier) : 0)    \
      | (([e modifierFlags] & NSCommandKeyMask) ?      \
-           lisp_to_mod (ns_command_modifier):0))
+           parse_solitary_modifier (ns_command_modifier):0))
 
 #define EV_UDMODIFIERS(e)                                      \
     ((([e type] == NSLeftMouseDown) ? down_modifier : 0)       \
@@ -1513,10 +1512,10 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
    -------------------------------------------------------------------------- */
 {
   NSTRACE (ns_lisp_to_color);
-  if (XTYPE (color) == Lisp_String)
-    return ns_get_color (XSTRING (color)->data, col);
-  else if (XTYPE (color) == Lisp_Symbol)
-    return ns_get_color (XSTRING (XSYMBOL (color)->xname)->data, col);
+  if (STRINGP (color))
+    return ns_get_color (SDATA (color), col);
+  else if (SYMBOLP (color))
+    return ns_get_color (SDATA (SYMBOL_NAME (color)), col);
   return 1;
 }
 
@@ -3848,9 +3847,9 @@ handling_signal = 0;
 
         cl = [[NSColorList alloc]
                initWithName: @"Emacs"
-                   fromFile: [NSString stringWithCString: XSTRING (tem)->data]];
+                   fromFile: [NSString stringWithCString: SDATA (tem)]];
         if (cl ==nil)
-          fatal ("Could not find %s.\n", XSTRING (tem1)->data);
+          fatal ("Could not find %s.\n", SDATA (tem1));
         [cl writeToFile: nil];
       }
   }
@@ -3938,7 +3937,7 @@ ns_term_shutdown (int sig)
 {
   /* code not reached in emacs.c after this is called by shut_down_emacs: */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (XSTRING (Vauto_save_list_file_name)->data);
+    unlink (SDATA (Vauto_save_list_file_name));
 
   ns_shutdown_properly = YES;
   [NSApp terminate: NSApp];
@@ -4552,7 +4551,7 @@ extern void update_window_cursor (struct window *w, int on);
 
       if (flags & NSCommandKeyMask)
         {
-          emacs_event->modifiers |= lisp_to_mod (ns_command_modifier);
+          emacs_event->modifiers |= parse_solitary_modifier (ns_command_modifier);
           /* if super (default), take input manager's word so things like
              dvorak / qwerty layout work */
           if (EQ (ns_command_modifier, Qsuper)
@@ -4586,10 +4585,10 @@ extern void update_window_cursor (struct window *w, int on);
         }
 
       if (flags & NSControlKeyMask)
-          emacs_event->modifiers |= lisp_to_mod (ns_control_modifier);
+          emacs_event->modifiers |= parse_solitary_modifier (ns_control_modifier);
 
       if (flags & NS_FUNCTION_KEY_MASK && !fnKeysym)
-          emacs_event->modifiers |= lisp_to_mod (ns_function_modifier);
+          emacs_event->modifiers |= parse_solitary_modifier (ns_function_modifier);
 
       if (flags & NSAlternateKeyMask) /* default = meta */
         {
@@ -4602,7 +4601,7 @@ extern void update_window_cursor (struct window *w, int on);
                 emacs_event->modifiers = 0;
             }
           else
-              emacs_event->modifiers |= lisp_to_mod (ns_alternate_modifier);
+              emacs_event->modifiers |= parse_solitary_modifier (ns_alternate_modifier);
         }
 
 /*fprintf (stderr,"code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",code,fnKeysym,flags,emacs_event->modifiers); */
@@ -5223,7 +5222,7 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 
   tem = f->name;
   name = [NSString stringWithUTF8String:
-                   NILP (tem) ? (unsigned char *)"Emacs" : XSTRING (tem)->data];
+                   NILP (tem) ? (unsigned char *)"Emacs" : SDATA (tem)];
   [win setTitle: name];
 
   /* toolbar support */
@@ -5242,7 +5241,7 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   tem = f->icon_name;
   if (!NILP (tem))
     [win setMiniwindowTitle:
-           [NSString stringWithUTF8String: XSTRING (tem)->data]];
+           [NSString stringWithUTF8String: SDATA (tem)]];
 
   {
     NSScreen *screen = [win screen];
@@ -6149,11 +6148,15 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   [cursorTypeMatrix selectCellWithTag: (cursorType == filled_box ? 1 :
                                         (cursorType == bar ? 2 :
                                          (cursorType == underscore ? 3 : 4)))];
-  selectItemWithTag (alternateModMenu, lisp_to_mod (ns_alternate_modifier));
-  selectItemWithTag (commandModMenu, lisp_to_mod (ns_command_modifier));
+  selectItemWithTag (alternateModMenu,
+		     parse_solitary_modifier (ns_alternate_modifier));
+  selectItemWithTag (commandModMenu,
+		     parse_solitary_modifier (ns_command_modifier));
 #ifdef NS_IMPL_COCOA
-  selectItemWithTag (controlModMenu, lisp_to_mod (ns_control_modifier));
-  selectItemWithTag (functionModMenu, lisp_to_mod (ns_function_modifier));
+  selectItemWithTag (controlModMenu,
+		     parse_solitary_modifier (ns_control_modifier));
+  selectItemWithTag (functionModMenu,
+		     parse_solitary_modifier (ns_function_modifier));
   [smoothFontsCheck setState: ns_antialias_text ? YES : NO];
   [useQuickdrawCheck setState: ns_use_qd_smoothing ? YES : NO];
   [useSysHiliteCheck setState: prevUseHighlightColor ? YES : NO];
@@ -6372,7 +6375,7 @@ ns_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames)
   NSTRACE (ns_list_fonts);
 
   CHECK_STRING (pattern);
-  patt = XSTRING (pattern)->data;
+  patt = SDATA (pattern);
 
 #if 0
 /* temporary: for font_backend, we use fontsets, and when these are defined,
