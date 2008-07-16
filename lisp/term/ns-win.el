@@ -1,27 +1,24 @@
-;;; ns-win.el --- lisp side of interface with
-;;;               NeXT/Open/GNUstep/MacOS X window system
-;;; Copyright (C) 1993, 1994, 2005, 2006, 2008 Free Software Foundation, Inc.
+;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
 
-;;; Author: Carl Edman, Christian Limpach, Scott Bender, Christophe de Dinechin,
-;;;         Adrian Robert
-;;; Keywords: terminals
+;; Copyright (C) 1993, 1994, 2005, 2006, 2008 Free Software Foundation, Inc.
 
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 3, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to
-;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;;; Boston, MA 02110-1301, USA.
+;; Author: Carl Edman, Christian Limpach, Scott Bender, Christophe de Dinechin, Adrian Robert
+;; Keywords: terminals
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -54,6 +51,15 @@
 ; Not needed?
 ;(require 'ispell)
 
+;; nsterm.m
+(defvar ns-version-string)
+(defvar ns-expand-space)
+(defvar ns-cursor-blink-rate)
+(defvar ns-alternate-modifier)
+
+(declare-function ns-server-vendor "nsfns.m" (&optional display))
+(declare-function ns-server-version "nsfns.m" (&optional display))
+
 (defun ns-submit-bug-report ()
    "Submit via mail a bug report on Emacs 23.0.0 for GNUstep / OS X."
    (interactive)
@@ -63,7 +69,7 @@
      (reporter-submit-bug-report
       "Adrian Robert <Adrian.B.Robert@gmail.com>"
       ;;"Christophe de Dinechin <descubes@earthlink.net>"
-      ;;"Scott Bender <emacs@harmony-ds.com>" 
+      ;;"Scott Bender <emacs@harmony-ds.com>"
       ;;"Christian Limpach <chris@nice.ch>"
       ;;"Carl Edman <cedman@princeton.edu>"
       (concat "Emacs for GNUstep / OS X " ns-version-string)
@@ -118,6 +124,9 @@
   (setq initial-frame-alist (cons (cons 'name (car ns-invocation-args))
                                   initial-frame-alist)
         ns-invocation-args (cdr ns-invocation-args)))
+
+;; nsterm.m.
+(defvar ns-input-file)
 
 (defun ns-handle-nxopen (switch)
   (setq unread-command-events (append unread-command-events '(ns-open-file))
@@ -316,6 +325,8 @@ The properties returned may include `top', `left', `height', and `width'."
 (defun down-one () (interactive) (scroll-down 1))
 (defun left-one () (interactive) (scroll-left 1))
 (defun right-one () (interactive) (scroll-right 1))
+
+(defvar menu-bar-ns-file-menu)		; below
 
 ;; Toggle some additional NS-like features that may interfere with users'
 ;; expectations coming from emacs on other platforms.
@@ -768,6 +779,10 @@ This should be bound to a mouse click event type."
 
 (precompute-menubar-bindings)
 
+;; nsterm.m
+(defvar ns-input-spi-name)
+(defvar ns-input-spi-arg)
+
 (defun ns-spi-service-call ()
   "Respond to a service request to Emacs.app."
   (interactive)
@@ -830,6 +845,8 @@ is currently being used."
   (interactive)
   (if (ns-in-echo-area) (ns-echo-working-text) (ns-put-working-text)))
 
+(defvar ns-working-text)		; nsterm.m
+
 (defun ns-put-working-text ()
   "Insert contents of ns-working-text as UTF8 string and mark with
 ns-working-overlay.  Any previously existing working text is cleared first.
@@ -872,6 +889,8 @@ See ns-insert-working-text."
     (setq ns-working-overlay nil)))
 
 
+(declare-function ns-convert-utf8-nfd-to-nfc "nsfns.m" (str))
+
 ;;;; OS X file system Unicode UTF-8 NFD (decomposed form) support
 ;; Lisp code based on utf-8m.el, by Seiji Zenitani, Eiji Honjoh, and
 ;; Carsten Bormann.
@@ -905,12 +924,14 @@ See ns-insert-working-text."
 
 ;;;; Inter-app communications support.
 
+(defvar ns-input-text)			; nsterm.m
+
 (defun ns-insert-text ()
   "Insert contents of ns-input-text at point."
   (interactive)
   (insert ns-input-text)
   (setq ns-input-text nil))
- 
+
 (defun ns-insert-file ()
   "Insert contents of file ns-input-file like insert-file but with less
 prompting.  If file is a directory perform a find-file on it."
@@ -925,6 +946,8 @@ prompting.  If file is a directory perform a find-file on it."
 (defvar ns-select-overlay nil
   "Overlay used to highlight areas in files requested by NS apps.")
 (make-variable-buffer-local 'ns-select-overlay)
+
+(defvar ns-input-line) 			; nsterm.m
 
 (defun ns-open-file-select-line ()
   "Brings up a buffer containing file ns-input-file,\n\
@@ -970,6 +993,7 @@ and highlights lines indicated by ns-input-line."
 
 
 ;;;; Preferences handling.
+(declare-function ns-get-resource "nsfns.m" (owner name))
 
 (defun get-lisp-resource (arg1 arg2)
   (let ((res (ns-get-resource arg1 arg2)))
@@ -978,6 +1002,19 @@ and highlights lines indicated by ns-input-line."
      ((string-equal (upcase res) "YES") t)
      ((string-equal (upcase res) "NO")  nil)
      (t (read res)))))
+
+;; nsterm.m
+(defvar ns-command-modifier)
+(defvar ns-control-modifier)
+(defvar ns-function-modifier)
+(defvar ns-antialias-text)
+(defvar ns-use-qd-smoothing)
+(defvar ns-use-system-highlight-color)
+
+(declare-function ns-set-resource "nsfns.m" (owner name value))
+(declare-function ns-font-name "nsfns.m" (name))
+(declare-function ns-read-file-name "nsfns.m"
+		  (prompt &optional dir isLoad init))
 
 (defun ns-save-preferences ()
   "Set all the defaults."
@@ -1089,6 +1126,8 @@ and highlights lines indicated by ns-input-line."
                           (if stipple stipple nil))))
       (setq fl (cdr fl)))))
 
+(declare-function menu-bar-options-save-orig "ns-win" () t)
+
 ;; call ns-save-preferences when menu-bar-options-save is called
 (fset 'menu-bar-options-save-orig (symbol-function 'menu-bar-options-save))
 (defun ns-save-options ()
@@ -1116,6 +1155,13 @@ and highlights lines indicated by ns-input-line."
     (setq ns-output-file (ns-read-file-name "Save As" nil nil nil))
     (message ns-output-file)
     (if ns-output-file (write-file ns-output-file))))
+
+(defvar ns-pop-up-frames 'fresh
+  "*Non-nil means open files upon request from the Workspace in a new frame.
+If t, always do so.  Any other non-nil value means open a new frame
+unless the current buffer is a scratch buffer.")
+
+(declare-function ns-hide-emacs "nsfns.m" (on))
 
 (defun ns-find-file ()
   "Do a find-file with the ns-input-file as argument."
@@ -1151,11 +1197,6 @@ and highlights lines indicated by ns-input-line."
 ;; Don't show the frame name; that's redundant with NS.
 (setq-default mode-line-frame-identification '("  "))
 
-(defvar ns-pop-up-frames 'fresh
-  "* Should file opened upon request from the Workspace be opened in a new frame ?
-If t, always.  If nil, never.  Otherwise a new frame is opened
-unless the current buffer is a scratch buffer.")
-
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
 
@@ -1163,9 +1204,13 @@ unless the current buffer is a scratch buffer.")
   (interactive)
   (ns-hide-emacs t))
 
+(declare-function ns-hide-others "nsfns.m" ())
+
 (defun ns-do-hide-others ()
   (interactive)
   (ns-hide-others))
+
+(declare-function ns-emacs-info-panel "nsfns.m" ())
 
 (defun ns-do-emacs-info-panel ()
   (interactive)
@@ -1215,6 +1260,8 @@ unless the current buffer is a scratch buffer.")
 		       (if (> (or (frame-parameter frame 'tool-bar-lines) 0) 0)
 				   0 1)) ))
   (if (not tool-bar-mode) (tool-bar-mode t)))
+
+(defvar ns-cursor-blink-mode) 		; nsterm.m
 
 ; Redefine from frame.el
 (define-minor-mode blink-cursor-mode
@@ -1274,6 +1321,10 @@ cursor display.  On a text-only terminal, this is not implemented."
 (defalias 'generate-fontset-menu 'ns-popup-font-panel)
 (defalias 'mouse-set-font 'ns-popup-font-panel)
 
+;; nsterm.m
+(defvar ns-input-font)
+(defvar ns-input-fontsize)
+
 (defun ns-respond-to-change-font ()
   "Respond to changeFont: event, expecting ns-input-font and\n\
 ns-input-fontsize of new font."
@@ -1316,9 +1367,13 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 
 ;;;; Pasteboard support.
 
+(declare-function ns-get-cut-buffer-internal "nsselect.m" (buffer))
+
 (defun ns-get-pasteboard ()
   "Returns the value of the pasteboard."
   (ns-get-cut-buffer-internal 'PRIMARY))
+
+(declare-function ns-store-cut-buffer-internal "nsselect.m" (buffer string))
 
 (defun ns-set-pasteboard (string)
   "Store STRING into the NS server's pasteboard."
@@ -1442,6 +1497,8 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 
 ;;;; Color support.
 
+(declare-function ns-list-colors "nsfns.m" (&optional frame))
+
 (defvar x-colors (ns-list-colors)
   "The list of colors defined in non-PANTONE color files.")
 (defvar colors x-colors
@@ -1464,6 +1521,8 @@ The value may be different for frames on different NS displays."
     defined-colors))
 (defalias 'x-defined-colors 'ns-defined-colors)
 (defalias 'xw-defined-colors 'ns-defined-colors)
+
+(declare-function ns-set-alpha "nsfns.m" (color alpha))
 
 ;; Convenience and work-around for fact that set color fns now require named.
 (defun ns-set-background-alpha (alpha)
@@ -1511,6 +1570,8 @@ Note, tranparency works better on Tiger (10.4) and higher."
      (t
       nil))))
 
+(defvar ns-input-color)			; nsterm.m
+
 (defun ns-set-foreground-at-mouse ()
   "Set the foreground color at the mouse location to ns-input-color."
   (interactive)
@@ -1519,7 +1580,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
          (face (ns-face-at-pos pos)))
     (cond
      ((eq face 'cursor)
-      (modify-frame-parameters frame (list (cons 'cursor-color 
+      (modify-frame-parameters frame (list (cons 'cursor-color
                                                  ns-input-color))))
      ((not face)
       (modify-frame-parameters frame (list (cons 'foreground-color
@@ -1559,6 +1620,8 @@ Note, tranparency works better on Tiger (10.4) and higher."
       icon-title-format t)
 
 ;; Set up browser connectivity
+(defvar browse-url-generic-program)
+
 (setq browse-url-browser-function 'browse-url-generic)
 (cond ((eq system-type 'darwin)
        (setq browse-url-generic-program "open"))
@@ -1569,6 +1632,11 @@ Note, tranparency works better on Tiger (10.4) and higher."
 
 (defvar ns-initialized nil
   "Non-nil if NS windowing has been initialized.")
+
+(declare-function ns-open-connection "nsfns.m"
+		  (display &optional resource_string must_succeed))
+
+(declare-function ns-list-services "nsfns.m" ())
 
 ;;; Do the actual NS Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
