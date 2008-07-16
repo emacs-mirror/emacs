@@ -1,5 +1,10 @@
 2008-07-16  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (rmail-spool-directory): Remove settings for systems that are
+	no longer supported.
+
+	* frame.el (ns-initialize-window-system): Declare for compiler.
+
 	* term/ns-win.el: Add numerous declarations for compiler.
 	(ns-pop-up-frames): Move definition before use. Doc fix.
 
