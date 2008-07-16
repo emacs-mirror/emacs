@@ -54,6 +54,7 @@ NOTE-END */
 
 #define DOT_GLOBAL_START
 
+#ifdef SOLARIS2
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE long
 
@@ -61,16 +62,25 @@ NOTE-END */
 /* This is totally uncalibrated. */
 #define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 
-#ifdef SOLARIS2
 /* J.W.Hawtin@lut.ac.uk say Solaris 2.4 as well as Solaris 2.1 on X86
    requires -lkvm as well.
    And handa@etl.gov.jp says that -lkvm needs -llelf, at least on 2.5.  */
 #define LIBS_MACHINE -lkvm -lelf
+
 /* configure thinks solaris X86 has gethostname, but it does not work,
    so undefine it.  */
 #undef HAVE_GETHOSTNAME
+
 #else /* not SOLARIS2 */
 #ifdef USG5_4 /* Older USG systems do not support the load average.  */
+/* Data type of load average, as read out of kmem.  */
+
+#define LOAD_AVE_TYPE long
+
+/* Convert that into an integer that is 100 for a load average of 1.0  */
+/* This is totally uncalibrated. */
+
+#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 #define FSCALE 256.0
 #endif
 #endif /* not SOLARIS2 */
