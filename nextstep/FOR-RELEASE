@@ -1,8 +1,9 @@
 -*- outline -*-
 
 * BUGS
-** Fix char_quoted's workaround.
 * NON-SPECIFIC
+
+** Find out why char_quoted() in syntax.c gets called with Fix char_quoted's workaround.
 
 ** Remove Feval calls relating to insert working text in isearch mode.
 

@@ -113,7 +113,7 @@ SHELL=/bin/sh
 #endif
 
 /* Under GNUstep, putting libc on the link line causes problems. */
-#ifdef GNUSTEP
+#ifdef NS_IMPL_GNUSTEP
 #define LIB_STANDARD
 #endif
 
@@ -234,7 +234,7 @@ STARTFILES = START_FILES
 #endif /* not ORDINARY_LINK */
 
 
-#ifdef GNUSTEP
+#ifdef NS_IMPL_GNUSTEP
 /* Pull in stuff from GNUstep-make. */
 FOUNDATION_LIB=gnu
 GUI_LIB=gnu
@@ -535,13 +535,13 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
 NS_OBJ= nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
 	fontset.o fringe.o image.o
 emacsapp = $(PWD)/../nextstep/build/Emacs.app/
-#ifdef GNUSTEP
+#ifdef NS_IMPL_GNUSTEP
 emacsappsrc = ${srcdir}/../nextstep/GNUstep/Emacs.base
 emacsbindir = $(emacsapp)
 #else
 emacsappsrc = ${srcdir}/../nextstep/Cocoa/Emacs.base
 emacsbindir = $(emacsapp)/Contents/MacOS/
-#endif  /* GNUSTEP */
+#endif  /* NS_IMPL_GNUSTEP */
 #endif  /* HAVE_NS */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -969,7 +969,7 @@ ${libsrc}make-docfile${EXEEXT}:
 
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
-#ifdef GNUSTEP
+#ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS (${TEMACS_LDFLAGS}) -o temacs ${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
@@ -1355,7 +1355,7 @@ mostlyclean:
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
-#ifdef GNUSTEP
+#ifdef NS_IMPL_GNUSTEP
 	rm -f *.d
 #endif
 /* bootstrap-clean is used to clean up just before a bootstrap.

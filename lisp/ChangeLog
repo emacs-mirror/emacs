@@ -1,3 +1,8 @@
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* startup.el (command-line-1): Update processing of NS long options to
+	mimic recent changes to processing of X long options.
+
 2008-07-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-create-define-alist): Don't create a

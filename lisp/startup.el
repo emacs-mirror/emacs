@@ -2087,12 +2087,10 @@ A fancy display is used on graphic displays, normal otherwise."
 	  (if (string-match "^--" (car tem))
 	      (push (list (car tem)) longopts)))
 
-      ;; Add the long NS options to longopts.
-      (setq tem command-line-ns-option-alist)
-      (while tem
-	(if (string-match "^--" (car (car tem)))
-	    (setq longopts (cons (list (car (car tem))) longopts)))
-	(setq tem (cdr tem)))
+	;; Add the long NS options to longopts.
+	(dolist (tem command-line-ns-option-alist)
+	  (if (string-match "^--" (car tem))
+	      (push (list (car tem)) longopts)))
 
 	;; Loop, processing options.
 	(while command-line-args-left

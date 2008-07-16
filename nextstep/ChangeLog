@@ -1,4 +1,8 @@
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+	* Cocoa/Contents/Resources/Credits.html: Change URL from sf.net to
+	GNU.org.
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* FOR-RELEASE: Remove historical info.
 

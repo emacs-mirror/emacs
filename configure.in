@@ -1221,17 +1221,17 @@ if test "${with_carbon}" != no; then
 fi
 
 HAVE_NS=no
-COCOA=no
-GNUSTEP=no
+NS_IMPL_COCOA=no
+NS_IMPL_GNUSTEP=no
 tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
-     COCOA=yes
+     NS_IMPL_COCOA=yes
   elif test -f /etc/GNUstep/GNUstep.conf; then
-     GNUSTEP=yes
+     NS_IMPL_GNUSTEP=yes
      GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -2062,13 +2062,13 @@ if test "${HAVE_NS}" = "yes"; then
       * ) ns_appdir=${ns_appdir_x} ;;
     esac
   fi
-  if test "${COCOA}" = "yes"; then
+  if test "${NS_IMPL_COCOA}" = "yes"; then
     AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
   fi
   if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
     AC_DEFINE(COCOA_EXPERIMENTAL_CTRL_G, 1, [Define to 1 if you are trying experimental enhanced Ctrl-g support using NS windowing under MacOS X.])
   fi
-  if test "${GNUSTEP}" = "yes"; then
+  if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
   fi
   # We also have mouse menus.
@@ -2637,10 +2637,10 @@ AH_BOTTOM([
 #  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
 #  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
 #  define OTHER_FILES ns-app
-# else /* COCOA */
+# else /* NS_IMPL_COCOA */
 #  define C_SWITCH_X_SYSTEM
 #  define GNU_OBJC_CFLAGS
-# endif /* COCOA */
+# endif /* NS_IMPL_COCOA */
 #endif /* HAVE_NS */
 
 
