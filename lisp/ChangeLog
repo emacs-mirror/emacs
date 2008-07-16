@@ -1,3 +1,9 @@
+2008-07-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-create-define-alist): Don't create a
+	list of #defines for remote files.
+	(gdb-source-info): Only show main if it has been found.
+
 2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/ns-win.el: Require CL; fix up comment style; reindent.
