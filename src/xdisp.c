@@ -7064,7 +7064,25 @@ move_it_in_display_line (struct it *it,
 			 EMACS_INT to_charpos, int to_x,
 			 enum move_operation_enum op)
 {
-  move_it_in_display_line_to (it, to_charpos, to_x, op);
+  if (it->line_wrap == WORD_WRAP
+      && (op & MOVE_TO_X))
+    {
+      struct it save_it = *it;
+      int skip = move_it_in_display_line_to (it, to_charpos, to_x, op);
+      /* When word-wrap is on, TO_X may lie past the end
+	 of a wrapped line.  Then it->current is the
+	 character on the next line, so backtrack to the
+	 space before the wrap point.  */
+      if (skip == MOVE_LINE_CONTINUED)
+	{
+	  int prev_x = max (it->current_x - 1, 0);
+	  *it = save_it;
+	  move_it_in_display_line_to
+	    (it, -1, prev_x, MOVE_TO_X);
+	}
+    }
+  else
+    move_it_in_display_line_to (it, to_charpos, to_x, op);
 }
 
 
