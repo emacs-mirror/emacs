@@ -294,7 +294,7 @@ machine='' opsys='' unported=no
 case "${canonical}" in
 
   ## FreeBSD ports
-  *-*-*freebsd* )
+  *-*-freebsd* )
     opsys=freebsd
     case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
@@ -304,7 +304,7 @@ case "${canonical}" in
       sparc64-*-freebsd*)	machine=sparc ;;
       powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
-      amd64-*-freebsd*|x86_64-*-*freebsd*) machine=amdx86-64 ;;
+      amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
     esac
   ;;
 
@@ -2609,17 +2609,6 @@ AH_BOTTOM([
 /* PENDING: These are used for the Carbon port only. */
 #undef MAC_OS
 #undef MAC_OSX
-
-/* Define USER_FULL_NAME to return a string
-   that is the user's full name.
-   It can assume that the variable `pw'
-   points to the password file entry for this user.
-
-   At some sites, the pw_gecos field contains
-   the user's full name.  If neither this nor any other
-   field contains the right thing, use pw_name,
-   giving the user's login name, since that is better than nothing.  */
-#define USER_FULL_NAME pw->pw_gecos
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */

@@ -1001,17 +1001,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef MAC_OS
 #undef MAC_OSX
 
-/* Define USER_FULL_NAME to return a string
-   that is the user's full name.
-   It can assume that the variable `pw'
-   points to the password file entry for this user.
-
-   At some sites, the pw_gecos field contains
-   the user's full name.  If neither this nor any other
-   field contains the right thing, use pw_name,
-   giving the user's login name, since that is better than nothing.  */
-#define USER_FULL_NAME pw->pw_gecos
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */

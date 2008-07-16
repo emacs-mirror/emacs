@@ -1,3 +1,9 @@
+2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (freebsd, kfreebsd): Undo part of previous change.
+	(USER_FULL_NAME): Remove, not used anymore.
+	* configure: Regenerate.
+
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	Changes and additions for NeXTstep windowing system (Cocoa and

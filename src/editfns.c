@@ -1370,7 +1370,7 @@ name, or nil if there is no such user.  */)
   if (!pw)
     return Qnil;
 
-  p = (unsigned char *) USER_FULL_NAME;
+  p = (unsigned char *) pw->pw_gecos;
   /* Chop off everything after the first comma. */
   q = (unsigned char *) index (p, ',');
   full = make_string (p, q ? q - p : strlen (p));
