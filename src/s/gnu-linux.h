@@ -25,9 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *	Define all the symbols that apply correctly.
  */
 
-/* #define USG5 */
 #define USG
-/* #define BSD_SYSTEM */
 #define GNU_LINUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.

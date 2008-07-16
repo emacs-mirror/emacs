@@ -1,5 +1,7 @@
 2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/gnu-linux.h: Remove boilerplate comments.
+
 	* m/alpha.h (__ELF__): Consolidate conditions.
 
 	* m/m68k.h (linux): Use GNU_LINUX instead.
