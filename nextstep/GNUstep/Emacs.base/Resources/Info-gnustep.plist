@@ -12,8 +12,8 @@
 	"Carl Edman (NeXTStep)",
 	"..see http://emacs-app.sf.net"
     );
-    Copyright = "Copyright (C) 2005-2008";
-    CopyrightDescription = "Released under the GNU General Public License Version 2";
+    Copyright = "Copyright (C) 2008 Free Software Foundation, Inc.";
+    CopyrightDescription = "Released under the GNU General Public License Version 3 or later";
     FullVersionID = "Emacs 23.0.60 NS 9.0";
     NSExecutable = Emacs;
     NSIcon = emacs.tiff;
