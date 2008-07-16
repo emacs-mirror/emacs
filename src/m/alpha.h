@@ -89,9 +89,7 @@ NOTE-END
 # else
 #  error What gives?  Fix me if DEC Unix supports ELF now.
 # endif
-#endif
 
-#ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
 #ifndef GNU_LINUX
