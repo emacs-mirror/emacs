@@ -1,9 +1,18 @@
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el: Add numerous declarations for compiler.
+	(ns-pop-up-frames): Move definition before use. Doc fix.
+
+	* emacs-lisp/check-declare.el (check-declare-locate)
+	(check-declare-verify): Handle .m files.
+
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* ns-carbon-compat.el: New file: user-visible compatibility of
 	NeXTstep port with Carbon port.
 	* ns-grabenv.el: New file: functionality useful on OS X platform to
 	expose environment variables inside Emacs started from icon.
-	* Makefile.in: Add above three files.
+	* Makefile.in (ELCFILES): Add ns-carbon-compat, ns-grabenv, ns-win.
 	* cus-edit.el
 	* cus-face.el
 	* disp-table.el
@@ -35,7 +44,6 @@
 	systems (probably most of these, x/w32/mac/ns could be changed to
 	window-system non-nil).
 	* term/ns-win.el: New file: lisp-side support for NS windowing system.
-
 
 2008-07-14  Jason Rumney  <jasonr@gnu.org>
 
