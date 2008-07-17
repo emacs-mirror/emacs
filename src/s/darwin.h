@@ -26,16 +26,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BSD4_2
 /* BSD4_3 and BSD4_4 are already defined in sys/param.h */
 #define BSD_SYSTEM
-/* #define VMS */
 
 /* MAC_OS is used to conditionally compile code common to both MAC_OS8
    and MAC_OSX.  */
 #ifdef MAC_OSX
 #ifdef HAVE_CARBON
 #define MAC_OS
-/* We need a little extra space, see ../../lisp/loadup.el. */
-#define SYSTEM_PURESIZE_EXTRA 30000
-
 #endif
 #endif
 
@@ -85,7 +81,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #define HAVE_TERMIOS
-/* #define HAVE_TERMIO */
 
 #define NO_TERMIO
 
@@ -127,27 +122,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    a file that someone else has modified in his Emacs.  */
 
 #define CLASH_DETECTION
-
-/* ============================================================ */
-
-/* Here, add any special hacks needed
-   to make Emacs work on this system.  For example,
-   you might define certain system call names that don't
-   exist on your system, or that do different things on
-   your system and must be used only through an encapsulation
-   (Which you should place, by convention, in sysdep.c).  */
-
-/* ============================================================ */
-
-/* After adding support for a new system, modify the large case
-   statement in the `configure' script to recognize reasonable
-   configuration names, and add a description of the system to
-   `etc/MACHINES'.
-
-   If you've just fixed a problem in an existing configuration file,
-   you should also check `etc/MACHINES' to make sure its descriptions
-   of known problems in that configuration should be updated.  */
-
 
 /* Avoid the use of the name init_process (process.c) because it is
    also the name of a Mach system call.  */
@@ -198,27 +172,36 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Definitions for how to compile & link.  */
 
-/* This is for the Carbon port.  Under the NeXTstep port, this is still picked
-   up during preprocessing, but is undone in config.in. */
-#ifndef HAVE_NS
-#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
-#endif
-
 /* Link in the Carbon or AppKit lib. */
 #ifdef HAVE_NS
+/* PENDING: can this target be specified in a clearer way? */
+#define OTHER_FILES ns-app
 /* XXX: lresolv is here because configure when testing #undefs res_init,
         a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
 #define LIBS_MACGUI -framework AppKit -lresolv
 #define SYSTEM_PURESIZE_EXTRA 200000
 #define HEADERPAD_EXTRA 6C8
-#else
+#else /* !HAVE_NS */
 #define HEADERPAD_EXTRA 690
 
+/* This is for the Carbon port.  Under the NeXTstep port, this is still picked
+   up during preprocessing, but is undone in config.in. */
+#define C_SWITCH_SYSTEM -fpascal-strings -DMAC_OSX
+
 #ifdef HAVE_CARBON
+
+/* We need a little extra space, see ../../lisp/loadup.el. */
+#define SYSTEM_PURESIZE_EXTRA 30000
+
+/* Link in the Carbon lib. */
+#define LIBS_MACGUI -framework Carbon LIBS_IMAGE
 
 #ifdef HAVE_AVAILABILITYMACROS_H
 #include <AvailabilityMacros.h>
 #endif
+/* Tell src/Makefile.in to create files in the Mac OS X application
+   bundle mac/Emacs.app.  */
+#define OTHER_FILES macosx-app
 
 /* Whether to use the Image I/O framework for reading images.  */
 #ifndef USE_MAC_IMAGE_IO
@@ -234,14 +217,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_IMAGE -framework QuickTime
 #endif
 
+/* Reroute calls to SELECT to the version defined in mac.c to fix the
+   problem of Emacs requiring an extra return to be typed to start
+   working when started from the command line.  */
+#if defined (emacs) || defined (temacs)
+#define select sys_select
+#endif
+
+#else   /* !HAVE_CARBON */
+#define LIBS_MACGUI
 #endif	/* HAVE_CARBON */
 
-/* Link in the Carbon lib. */
-#ifdef HAVE_CARBON
-#define LIBS_MACGUI -framework Carbon LIBS_IMAGE
-#else
-#define LIBS_MACGUI
-#endif /* !HAVE_CARBON */
 #endif /* !HAVE_NS */
 
 /* The -headerpad option tells ld (see man page) to leave room at the
@@ -271,18 +257,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Adding -lm confuses the dynamic linker, so omit it.  */
 #define LIB_MATH
 
-/* Tell src/Makefile.in to create files in the Mac OS X application
-   bundle mac/Emacs.app.  */
-#ifdef HAVE_CARBON
-#define OTHER_FILES macosx-app
-#endif
-
-/* PENDING: can this target be specified in a clearer way? */
-#ifdef HAVE_NS
-#define OTHER_FILES ns-app
-#endif
-
-
 /* Define the following so emacs symbols will not conflict with those
    in the System framework.  Otherwise -prebind will not work.  */
 
@@ -291,7 +265,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Do not define matherr in floatfns.c.  */
 #define NO_MATHERR
-
 
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
@@ -313,13 +286,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This makes create_process in process.c save and restore signal
    handlers correctly.  Suggested by Nozomu Ando.*/
 #define POSIX_SIGNALS
-
-/* Reroute calls to SELECT to the version defined in mac.c to fix the
-   problem of Emacs requiring an extra return to be typed to start
-   working when started from the command line.  */
-#if defined (HAVE_CARBON) && (defined (emacs) || defined (temacs))
-#define select sys_select
-#endif
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
    stack.  */

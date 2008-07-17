@@ -2354,7 +2354,6 @@ Lisp_Object copy_hash_table P_ ((struct Lisp_Hash_Table *));
 int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
 int hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		  unsigned));
-void hash_remove P_ ((struct Lisp_Hash_Table *, Lisp_Object));
 void hash_clear P_ ((struct Lisp_Hash_Table *));
 void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
 extern void init_fns P_ ((void));

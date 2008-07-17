@@ -22,15 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    operating system this machine is likely to run.
    USUAL-OPSYS="aix3-1"  */
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-
-#ifdef USG5_4
-#undef WORDS_BIG_ENDIAN
-#else
-#define WORDS_BIG_ENDIAN
-#endif
-
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
 
@@ -49,33 +40,40 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_REMAP
 
-#ifndef USG5_4
-#define TEXT_START 0x10000000
-#define TEXT_END 0
-#define DATA_START 0x20000000
-#define DATA_END 0
-#endif
-
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
 
 #ifndef USG5_4
+#define TEXT_START 0x10000000
+#define TEXT_END 0
+#define DATA_START 0x20000000
+#define DATA_END 0
+#define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
-#else
-#define DATA_SEG_BITS 0
-#endif
-
-#undef ADDR_CORRECT
-#define ADDR_CORRECT(x) ((int)(x))
-
-/* Here override various assumptions in ymakefile */
-
-#ifndef USG5
 #define C_SWITCH_MACHINE -D_BSD
+
+/* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
+/* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
+   linker error for updated X11R5 libraries, which references pthread library
+   which most machines don't have.  We use the name .inp instead of .imp
+   because .inp is a better convention to use in make-dist for naming
+   random input files.  */
+#ifdef THIS_IS_MAKEFILE /* Don't use this in configure.  */
+#define LD_SWITCH_MACHINE -Wl,-bnodelcsect
+#endif /* THIS_IS_MAKEFILE */
+
+/* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */
+#if __GNUC__ == 2 && __GNUC_MINOR__ == 7
+#define LD_SWITCH_SITE -B/bin/
 #endif
 
-#ifdef AIX
+#ifndef NLIST_STRUCT
+/* AIX supposedly doesn't use this interface, but on the RS/6000
+   it apparently does.  */
+#define NLIST_STRUCT
+#endif
+
 /* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
    on older versions of X where it happens to exist.  */
 #ifdef HAVE_LIBPTHREADS
@@ -84,13 +82,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* IBM's X11R5 use -lIM and -liconv in AIX 3.2.2.  */
 #define LIBS_MACHINE -lrts -lIM -liconv
 #endif
-#else
-#ifdef USG5_4
+
+#else /* USG5_4 */
+#undef WORDS_BIG_ENDIAN
+#define DATA_SEG_BITS 0
 #define LIBS_MACHINE
-#else
-#define LIBS_MACHINE -lIM
-#endif
-#endif
+#endif /* USG5_4 */
+
+#undef ADDR_CORRECT
+#define ADDR_CORRECT(x) ((int)(x))
 
 #define START_FILES
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
@@ -105,37 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BROKEN_SIGPOLL
 
 #define ORDINARY_LINK
-
-#ifndef USG5_4
-/* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
-/* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
-   linker error for updated X11R5 libraries, which references pthread library
-   which most machines don't have.  We use the name .inp instead of .imp
-   because .inp is a better convention to use in make-dist for naming
-   random input files.  */
-#ifdef THIS_IS_MAKEFILE /* Don't use this in configure.  */
-#ifdef AIX
-#define LD_SWITCH_MACHINE -Wl,-bnodelcsect
-#else /* not AIX */
-#ifdef HAVE_AIX_SMT_EXP
-#define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp,-bI:/usr/lpp/X11/bin/smt.exp
-#else
-#define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp
-#endif
-#endif /* not AIX */
-#endif /* THIS_IS_MAKEFILE */
-
-/* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */
-#if __GNUC__ == 2 && __GNUC_MINOR__ == 7
-#define LD_SWITCH_SITE -B/bin/
-#endif
-
-#ifndef NLIST_STRUCT
-/* AIX supposedly doesn't use this interface, but on the RS/6000
-   it apparently does.  */
-#define NLIST_STRUCT
-#endif
-#endif /* USG5_4 */
 
 /* arch-tag: 028318ee-a7ae-4a08-804d-cc1e6588d003
    (do not change this comment) */

@@ -87,30 +87,6 @@ NOTE-END */
 
 #undef NO_REMAP
 
-/* Some really obscure 4.2-based systems (like Sequent DYNIX)
- * do not support asynchronous I/O (using SIGIO) on sockets,
- * even though it works fine on tty's.  If you have one of
- * these systems, define the following, and then use it in
- * config.h (or elsewhere) to decide when (not) to use SIGIO.
- *
- * You'd think this would go in an operating-system description file,
- * but since it only occurs on some, but not all, BSD systems, the
- * reasonable place to select for it is in the machine description
- * file.
- */
-
-#undef NO_SOCK_SIGIO
-
-
-/* After adding support for a new system, modify the large case
-   statement in the `configure' script to recognize reasonable
-   configuration names, and add a description of the system to
-   `etc/MACHINES'.
-
-   If you've just fixed a problem in an existing configuration file,
-   you should also check `etc/MACHINES' to make sure its descriptions
-   of known problems in that configuration should be updated.  */
-
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 
 #define VALBITS         60

@@ -1,4 +1,22 @@
-2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ecrt0.c: Remove code depending on m68000, not used anymore.
+
+	* fns.c (hash_remove): Make static.
+	* lisp.h (hash_remove): Don't prototype.
+
+	* m/ibmrs6000.h:
+	* m/ibms390x.h:
+	* m/macppc.h: Remove boilerplate comments.
+
+	* m/sparc.h (A_TEXT_OFFSET, A_TEXT_SEEK): Remove, only used on
+	Solaris, which does not need them.
+
+	* m/vax.h: Remove comments about unsupported systems.
+
+	* s/darwin.h: Reorganize ifdefs.
+
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* config.in
 	* dispextern.h

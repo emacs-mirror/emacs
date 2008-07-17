@@ -55,21 +55,6 @@ NOTE-END  */
 
 #define SEGMENT_MASK (SEGSIZ - 1)
 
-#if !defined (__NetBSD__) && !defined (__linux__) && !defined (__OpenBSD__)
-/* This really belongs in s/sun.h.  */
-
-/* Say that the text segment of a.out includes the header;
-   the header actually occupies the first few bytes of the text segment
-   and is counted in hdr.a_text.  */
-
-#define A_TEXT_OFFSET(HDR) sizeof (HDR)
-
-/* This is the offset of the executable's text, from the start of the file.  */
-
-#define A_TEXT_SEEK(HDR) (N_TXTOFF (hdr) + sizeof (hdr))
-
-#endif /* not __NetBSD__ and not __linux__ and not __OpenBSD__ */
-
 #ifdef __arch64__		/* GCC, 64-bit ABI.  */
 #define BITS_PER_LONG 64
 #ifdef __linux__
