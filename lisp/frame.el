@@ -605,7 +605,8 @@ is not considered (see `next-frame')."
 
 (declare-function x-initialize-window-system "term/x-win" ())
 (declare-function ns-initialize-window-system "term/ns-win" ())
-(defvar x-display-name)
+(defvar x-display-name)                 ; term/x-win
+(defvar ns-display-name)                ; term/ns-win
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on X display DISPLAY.
