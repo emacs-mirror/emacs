@@ -169,6 +169,8 @@ carbon_appdir=@carbon_appdir@
 
 # Location to install Emacs.app under NeXT/Open/GNUstep / Cocoa
 ns_appdir=@ns_appdir@
+ns_appbindir=@ns_appbindir@
+ns_appresdir=@ns_appresdir@
 
 # Where the etc/emacs.desktop file is to be installed.
 desktopdir=$(datarootdir)/applications
@@ -415,13 +417,14 @@ install-arch-dep: mkdir
 			&& cat > /dev/null))) || exit 1; \
 	fi
 	if test "${ns_appdir}" != ""; then \
-	  umask 022; mkdir -p ${ns_appdir}/Emacs.app; \
-	  (cd nextstep/build/Emacs.app; (tar -chf - . | \
-		(cd ${ns_appdir}/Emacs.app; umask 022; tar -xvf - \
-			&& cat > /dev/null))) || exit 1; \
-	  ( cd site-lisp ; tar chf - . ) | \
-	      ( cd ${datadir}/$(EMACSFULL)/site-lisp ; tar xf - ) \
-	fi
+	  ( cd ${ns_appresdir} ; \
+	    if test -d share/emacs ; then mv -f share/emacs/*/* . ; fi ; \
+	    if test -d info ; then mv -f share/info . ; fi ; \
+	    rm -fr share ) ; \
+	  ( cd ${ns_appbindir}/libexec ; mv -f emacs/*/*/* . ; rm -fr emacs ) ; \
+	  ( cd ${ns_appbindir}/bin ; rm -f emacs emacs-23* ; \
+	    ln -sf ../libexec/* .) ; \
+	else true ; fi
 
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.

@@ -735,6 +735,9 @@ machfile
 opsysfile
 carbon_appdir
 ns_appdir
+ns_appbindir
+ns_appresdir
+ns_appsrc
 GNUSTEP_MAKEFILES
 LTLIBOBJS'
 ac_subst_files=''
@@ -1334,9 +1337,8 @@ Optional Features:
   --enable-carbon-app[=DIR]
                           specify install directory for Emacs.app on Mac OS X
                           [DIR=/Application]
-  --enable-ns-app[=DIR]  [DIR=/Applications]
-                          specify install directory for Emacs.app under NS
   --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition
+  --disable-ns-self-contained        disable self contained build under NS
   --enable-asserts        compile code with asserts enabled
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
@@ -2169,17 +2171,19 @@ if test "${enable_carbon_app+set}" = set; then
 fi
 
 
-# Check whether --enable-ns-app was given.
-if test "${enable_ns_app+set}" = set; then
-  enableval=$enable_ns_app;  ns_appdir_x=${enableval}
-fi
-
-
 # Check whether --enable-cocoa-experimental-ctrl-g was given.
 if test "${enable_cocoa_experimental_ctrl_g+set}" = set; then
   enableval=$enable_cocoa_experimental_ctrl_g; EN_COCOA_EXPERIMENTAL_CTRL_G=yes
 else
   EN_COCOA_EXPERIMENTAL_CTRL_G=no
+fi
+
+
+# Check whether --enable-ns-self-contained was given.
+if test "${enable_ns_self_contained+set}" = set; then
+  enableval=$enable_ns_self_contained; EN_NS_SELF_CONTAINED=no
+else
+  EN_NS_SELF_CONTAINED=yes
 fi
 
 
@@ -9334,11 +9338,19 @@ CFLAGS="$CFLAGS -x objective-c"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f /etc/GNUstep/GNUstep.conf; then
      NS_IMPL_GNUSTEP=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
-     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -9480,6 +9492,12 @@ if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
   with_freetype=no
+  # set up packaging dirs
+  exec_prefix=${ns_appbindir}
+  libexecdir=${ns_appbindir}/libexec
+  if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     prefix=${ns_appresdir}
+  fi
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -15129,14 +15147,6 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_NS 1
 _ACEOF
 
-  ## Specify the install directory
-  ns_appdir=
-  if test "${ns_appdir_x}" != ""; then
-    case ${ns_appdir_x} in
-      y | ye | yes)  ns_appdir=/Applications ;;
-      * ) ns_appdir=${ns_appdir_x} ;;
-    esac
-  fi
   if test "${NS_IMPL_COCOA}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -16907,7 +16917,6 @@ cat >>conftest.$ac_ext <<_ACEOF
 # endif
 #endif
 
-#include <limits.h>
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
@@ -17056,15 +17065,12 @@ main ()
      isn't worth using anyway.  */
   alarm (60);
 
-  for (;;)
-    {
-      t = (time_t_max << 1) + 1;
-      if (t <= time_t_max)
-	break;
-      time_t_max = t;
-    }
-  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
-
+  for (time_t_max = 1; 0 < time_t_max; time_t_max *= 2)
+    continue;
+  time_t_max--;
+  if ((time_t) -1 < 0)
+    for (time_t_min = -1; (time_t) (time_t_min * 2) < 0; time_t_min *= 2)
+      continue;
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)
     {
@@ -17079,12 +17085,10 @@ main ()
 	     && mktime_test ((time_t) (60 * 60 * 24))))
 	return 1;
 
-      for (j = 1; ; j <<= 1)
+      for (j = 1; 0 < j; j *= 2)
 	if (! bigtime_test (j))
 	  return 1;
-	else if (INT_MAX / 2 < j)
-	  break;
-      if (! bigtime_test (INT_MAX))
+      if (! bigtime_test (j - 1))
 	return 1;
     }
   return ! (irix_6_4_bug () && spring_forward_gap () && year_2050_test ());
@@ -18993,13 +18997,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -19039,13 +19041,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -24184,6 +24184,9 @@ fi
 
 
 
+
+
+
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
@@ -24357,7 +24360,23 @@ if test "$HAVE_CARBON" = "yes"; then
    echo
    echo "Warning: The Mac Carbon port is currently unsupported and has
 known problems.  It is not recommended for use by non-developers.
+The NeXTstep port (--with-ns) is an alternative.
 Read the emacs-devel archives for more information."
+   echo
+fi
+
+if test "$HAVE_NS" = "yes"; then
+   echo
+   echo "You must run \"make install\" in order to test the built application.
+The installed application will go to nextstep/Emacs.app and can be
+run or moved from there."
+   if test "$EN_NS_SELF_CONTAINED" = "yes"; then
+      echo "The application will be fully self-contained."
+    else
+      echo "The lisp resources for the application will be installed under ${prefix}.
+You may need to run \"make install\" with sudo.  The application will fail
+to run if these resources are not installed."
+   fi
    echo
 fi
 
@@ -25206,11 +25225,14 @@ machfile!$machfile$ac_delim
 opsysfile!$opsysfile$ac_delim
 carbon_appdir!$carbon_appdir$ac_delim
 ns_appdir!$ns_appdir$ac_delim
+ns_appbindir!$ns_appbindir$ac_delim
+ns_appresdir!$ns_appresdir$ac_delim
+ns_appsrc!$ns_appsrc$ac_delim
 GNUSTEP_MAKEFILES!$GNUSTEP_MAKEFILES$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 24; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 27; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

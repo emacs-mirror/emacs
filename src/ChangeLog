@@ -1,3 +1,9 @@
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in: Replace emacsapp, emacsbindir, emacsappsrc variables
+	set here with ns_appdir, ns_appresdir, ns_appbindir, ns_appsrc) set
+	from configure.
+
 2008-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/sol2.h:

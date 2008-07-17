@@ -532,17 +532,13 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
 
 #ifdef HAVE_NS
+ns_appdir=@ns_appdir@/
+ns_appbindir=@ns_appbindir@/
+ns_appresdir=@ns_appresdir@/
+ns_appsrc=@ns_appsrc@
 /* Object files for NeXTstep */
 NS_OBJ= nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
 	fontset.o fringe.o image.o
-emacsapp = $(PWD)/../nextstep/build/Emacs.app/
-#ifdef NS_IMPL_GNUSTEP
-emacsappsrc = ${srcdir}/../nextstep/GNUstep/Emacs.base
-emacsbindir = $(emacsapp)
-#else
-emacsappsrc = ${srcdir}/../nextstep/Cocoa/Emacs.base
-emacsbindir = $(emacsapp)/Contents/MacOS/
-#endif  /* NS_IMPL_GNUSTEP */
 #endif  /* HAVE_NS */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1336,15 +1332,20 @@ nsselect.o: nsselect.m blockinput.h nsterm.h nsgui.h frame.h $(config_h)
 nsimage.o: nsimage.m nsterm.h
 nsfont.o: nsterm.h dispextern.h frame.h lisp.h $(config_h)
 
-${emacsapp}: ${emacsappsrc}
-	mkdir -p ${emacsapp}
-	( cd ${emacsappsrc} ; tar cfh - . ) | ( cd ${emacsapp} ; tar xf - )
+${ns_appdir}: ${ns_appsrc}
+	rm -fr ${ns_appdir}
+	mkdir -p ${ns_appdir}
+	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; tar xf - )
+	( cd ${ns_appdir} ; for subdir in `find $${dest} -type d ! -name CVS -print` ; do \
+		chmod a+rx $${subdir} ; \
+		rm -rf $${subdir}/CVS ; \
+		rm -f  $${subdir}/.cvsignore ; done ; )
 
-${emacsbindir}Emacs: emacs${EXEEXT}
-	mkdir -p ${emacsbindir}
-	cp -f emacs${EXEEXT} ${emacsbindir}Emacs
+${ns_appbindir}Emacs: emacs${EXEEXT}
+	mkdir -p ${ns_appbindir}
+	cp -f emacs${EXEEXT} ${ns_appbindir}Emacs
 
-ns-app: ${emacsapp} ${emacsbindir}Emacs
+ns-app: ${ns_appdir} ${ns_appbindir}Emacs
 
 #endif /* HAVE_NS */
 

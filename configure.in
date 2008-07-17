@@ -176,15 +176,15 @@ AC_ARG_ENABLE(carbon-app,
 		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
 
-AC_ARG_ENABLE(ns-app,
-[[  --enable-ns-app[=DIR]  [DIR=/Applications]
-                          specify install directory for Emacs.app under NS]],
-[ ns_appdir_x=${enableval}])
-
 AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
 [  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition],
    EN_COCOA_EXPERIMENTAL_CTRL_G=yes,
    EN_COCOA_EXPERIMENTAL_CTRL_G=no)
+
+AC_ARG_ENABLE(ns-self-contained,
+[  --disable-ns-self-contained        disable self contained build under NS],
+   EN_NS_SELF_CONTAINED=no,
+   EN_NS_SELF_CONTAINED=yes)
 
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
@@ -1230,11 +1230,19 @@ CFLAGS="$CFLAGS -x objective-c"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f /etc/GNUstep/GNUstep.conf; then
      NS_IMPL_GNUSTEP=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_MAKEFILES)"
      GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
-     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_MAKEFILES)"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
      REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
@@ -1247,6 +1255,12 @@ if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
   with_freetype=no
+  # set up packaging dirs
+  exec_prefix=${ns_appbindir}
+  libexecdir=${ns_appbindir}/libexec
+  if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     prefix=${ns_appresdir}
+  fi
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
@@ -2055,14 +2069,6 @@ fi
 ### Use NeXTstep API to implement GUI.
 if test "${HAVE_NS}" = "yes"; then
   AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
-  ## Specify the install directory
-  ns_appdir=
-  if test "${ns_appdir_x}" != ""; then
-    case ${ns_appdir_x} in
-      y | ye | yes)  ns_appdir=/Applications ;;
-      * ) ns_appdir=${ns_appdir_x} ;;
-    esac
-  fi
   if test "${NS_IMPL_COCOA}" = "yes"; then
     AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
   fi
@@ -2472,6 +2478,9 @@ AC_SUBST(opsysfile)
 AC_SUBST(GETLOADAVG_LIBS)
 AC_SUBST(carbon_appdir)
 AC_SUBST(ns_appdir)
+AC_SUBST(ns_appbindir)
+AC_SUBST(ns_appresdir)
+AC_SUBST(ns_appsrc)
 AC_SUBST(GNUSTEP_MAKEFILES)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
@@ -2903,7 +2912,23 @@ if test "$HAVE_CARBON" = "yes"; then
    echo
    echo "Warning: The Mac Carbon port is currently unsupported and has
 known problems.  It is not recommended for use by non-developers.
+The NeXTstep port (--with-ns) is an alternative.
 Read the emacs-devel archives for more information."
+   echo
+fi
+
+if test "$HAVE_NS" = "yes"; then
+   echo
+   echo "You must run \"make install\" in order to test the built application.
+The installed application will go to nextstep/Emacs.app and can be
+run or moved from there."
+   if test "$EN_NS_SELF_CONTAINED" = "yes"; then
+      echo "The application will be fully self-contained."
+    else
+      echo "The lisp resources for the application will be installed under ${prefix}.
+You may need to run \"make install\" with sudo.  The application will fail
+to run if these resources are not installed."
+   fi
    echo
 fi
 
