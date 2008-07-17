@@ -1,5 +1,8 @@
 2008-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/sol2.h:
+	* s/sol2-4.h: Reorganize conditionals.
+
 	* ecrt0.c: Remove code depending on m68000, not used anymore.
 
 	* fns.c (hash_remove): Make static.
