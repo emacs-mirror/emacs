@@ -19,7 +19,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#include "config.h"
+#include <config.h>
 
 #ifdef USE_GTK
 #include <string.h>
