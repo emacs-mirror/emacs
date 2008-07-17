@@ -1,5 +1,6 @@
 *-spd
 *.core
+*.d
 *.pdb
 .gdb_history
 Makefile

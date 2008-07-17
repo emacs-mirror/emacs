@@ -367,10 +367,10 @@ ns_init_paths ()
             if (isDir)
               {
                 if ([resourcePaths length] > 0)
-                  resourcePaths =
-                    [resourcePaths stringByAppendingString: pathSeparator];
-                resourcePaths =
-                  [resourcePaths stringByAppendingString: resourcePath];
+                  resourcePaths
+		    = [resourcePaths stringByAppendingString: pathSeparator];
+                resourcePaths
+		  = [resourcePaths stringByAppendingString: resourcePath];
               }
         }
       if ([resourcePaths length] > 0)
@@ -391,10 +391,10 @@ ns_init_paths ()
             if (isDir)
               {
                 if ([resourcePaths length] > 0)
-                  resourcePaths =
-                    [resourcePaths stringByAppendingString: pathSeparator];
-                resourcePaths =
-                  [resourcePaths stringByAppendingString: resourcePath];
+                  resourcePaths
+		    = [resourcePaths stringByAppendingString: pathSeparator];
+                resourcePaths
+		  = [resourcePaths stringByAppendingString: resourcePath];
               }
         }
       if ([resourcePaths length] > 0)
@@ -949,8 +949,8 @@ ns_frame_rehighlight (struct frame *frame)
   NSTRACE (ns_frame_rehighlight);
   if (dpyinfo->ns_focus_frame)
     {
-      dpyinfo->ns_highlight_frame =
-        (FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
+      dpyinfo->ns_highlight_frame
+	= (FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
            ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
            : dpyinfo->ns_focus_frame);
       if (!FRAME_LIVE_P (dpyinfo->ns_highlight_frame))
@@ -1161,10 +1161,10 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     /* PENDING: GNUstep has not yet implemented the first method below, added
                 in Panther, however the second is incorrect under Cocoa. */
 #ifdef NS_IMPL_GNUSTEP
-    FRAME_NS_TOOLBAR_HEIGHT (f) =
-      NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
-                                       styleMask: [window styleMask]])
-          - FRAME_NS_TITLEBAR_HEIGHT (f);
+    FRAME_NS_TOOLBAR_HEIGHT (f)
+      = NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
+			    styleMask: [window styleMask]])
+        - FRAME_NS_TITLEBAR_HEIGHT (f);
 #else
     FRAME_NS_TOOLBAR_HEIGHT (f) = 32;
       /* actually get wrong result here if toolbar not yet displayed
@@ -1260,8 +1260,8 @@ ns_index_color (NSColor *color, struct frame *f)
     {
       color_table->size = NS_COLOR_CAPACITY;
       color_table->avail = 1; /* skip idx=0 as marker */
-      color_table->colors =
-        (NSColor **)xmalloc (color_table->size * sizeof (NSColor *));
+      color_table->colors
+	= (NSColor **)xmalloc (color_table->size * sizeof (NSColor *));
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
 
@@ -1289,9 +1289,9 @@ ns_index_color (NSColor *color, struct frame *f)
       if (color_table->avail == color_table->size)
         {
           color_table->size += NS_COLOR_CAPACITY;
-          color_table->colors = 
-            (NSColor **)xrealloc (color_table->colors,
-                                  color_table->size * sizeof (NSColor *));
+          color_table->colors
+	    = (NSColor **)xrealloc (color_table->colors,
+				    color_table->size * sizeof (NSColor *));
         }
       idx = color_table->avail++;
       index = [NSNumber numberWithUnsignedInt: idx];
@@ -1590,9 +1590,9 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
   color_def->blue  = b * 256;
 
   if (!makeIndex)
-    color_def->pixel =
-      ARGB_TO_ULONG((int)(a*256),
-                    color_def->red, color_def->green, color_def->blue);
+    color_def->pixel
+      = ARGB_TO_ULONG((int)(a*256),
+		      color_def->red, color_def->green, color_def->blue);
 
   return 1;
 }
@@ -1945,8 +1945,8 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
   {
     /* clip out the resize handle */
     NSWindow *window = [FRAME_NS_VIEW (f) window];
-    NSRect ir =
-      [view convertRect: ns_resize_handle_rect (window) fromView: nil];
+    NSRect ir
+      = [view convertRect: ns_resize_handle_rect (window) fromView: nil];
 
     ir = NSIntersectionRect (r, ir);
     if (NSIsEmptyRect (ir))
@@ -2137,8 +2137,9 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
 
       font->driver->text_extents (font, codes, 2, &metrics);
       s->left_overhang = -metrics.lbearing;
-      s->right_overhang =
-        metrics.rbearing > metrics.width ? metrics.rbearing - metrics.width : 0;
+      s->right_overhang
+	= metrics.rbearing > metrics.width
+	? metrics.rbearing - metrics.width : 0;
     }
   else
     {
@@ -2173,11 +2174,11 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   /* NS-specific: move internal border inside fringe */
   int x = p->bx < 0 ? p->x : p->bx;
   int wd = p->bx < 0 ? p->wd : p->nx;
-  BOOL fringeOnVeryLeft =
-      x - WINDOW_LEFT_SCROLL_BAR_COLS (w) * WINDOW_FRAME_COLUMN_WIDTH (w)
+  BOOL fringeOnVeryLeft
+    = x - WINDOW_LEFT_SCROLL_BAR_COLS (w) * WINDOW_FRAME_COLUMN_WIDTH (w)
       - FRAME_INTERNAL_BORDER_WIDTH (f) < 10;
-  BOOL fringeOnVeryRight =
-      FRAME_PIXEL_WIDTH (f) - x - wd - FRAME_INTERNAL_BORDER_WIDTH (f)
+  BOOL fringeOnVeryRight
+    = FRAME_PIXEL_WIDTH (f) - x - wd - FRAME_INTERNAL_BORDER_WIDTH (f)
       - WINDOW_RIGHT_SCROLL_BAR_COLS (w) * WINDOW_FRAME_COLUMN_WIDTH (w) < 10;
   int xAdjust = FRAME_INTERNAL_BORDER_WIDTH (f) *
     (fringeOnVeryLeft ? -1 : (fringeOnVeryRight ? 1 : 0));
@@ -2185,8 +2186,8 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   /* grow bimgs if needed */
   if (nBimgs < max_used_fringe_bitmap)
     {
-      EmacsImage **newBimgs =
-        xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
+      EmacsImage **newBimgs
+	= xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
       bzero (newBimgs, max_used_fringe_bitmap * sizeof (EmacsImage *));
 
       if (nBimgs)
@@ -2321,8 +2322,8 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   /* PENDING: 23: use emacs stored f->cursor_type instead of ns-specific */
   oldCursorType = FRAME_CURSOR (f);
   cursorType = FRAME_CURSOR (f) = FRAME_NEW_CURSOR (f);
-  f->output_data.ns->current_cursor_color =
-     f->output_data.ns->desired_cursor_color;
+  f->output_data.ns->current_cursor_color
+    = f->output_data.ns->desired_cursor_color;
 
   /* PENDING: only needed in rare cases with last-resort font in HELLO..
      should we do this more efficiently? */
@@ -3192,10 +3193,10 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       cursor_blink_entry = 0;
       if (dpyinfo->ns_highlight_frame)
         {
-          Lisp_Object tem = 
-            get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
-          dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor =
-            ns_lisp_to_cursor_type (tem);
+          Lisp_Object tem
+	    = get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
+          dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor
+	    = ns_lisp_to_cursor_type (tem);
         }
     }
 
@@ -3543,8 +3544,8 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
     dpyinfo->image_cache = make_image_cache ();
-    dpyinfo->color_table =
-      (struct ns_color_table *)xmalloc (sizeof (struct ns_color_table));
+    dpyinfo->color_table
+      = (struct ns_color_table *)xmalloc (sizeof (struct ns_color_table));
     dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* a placeholder.. */
 
@@ -3799,15 +3800,15 @@ handling_signal = 0;
   ns_default ("ExpandSpace", &ns_expand_space,
              make_float (0.5), make_float (0.0), YES, NO);
   ns_default ("GSFontAntiAlias", &ns_antialias_text,
-             YES, NO, NO, NO);
+             Qt, Qnil, NO, NO);
   tmp = Qnil;
   ns_default ("AppleAntiAliasingThreshold", &tmp,
              make_float (10.0), make_float (6.0), YES, NO);
   ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
   ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
-             YES, NO, NO, NO);
+             Qt, Qnil, NO, NO);
   ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
-             YES, NO, NO, NO);
+             Qt, Qnil, NO, NO);
   if (ns_use_system_highlight_color == YES)
     {
       ns_selection_color = [[NSUserDefaults standardUserDefaults]
@@ -3829,17 +3830,17 @@ handling_signal = 0;
       {
         /* first try data_dir, then invocation-dir
            and finally source-directory/etc */
-        tem1 = tem =
-          Fexpand_file_name (build_string ("Emacs.clr"), Vdata_directory);
+        tem1 = tem
+	  = Fexpand_file_name (build_string ("Emacs.clr"), Vdata_directory);
         if (NILP (Ffile_exists_p (tem)))
           {
             tem = Fexpand_file_name (build_string ("Emacs.clr"),
                                      Vinvocation_directory);
             if (NILP (Ffile_exists_p (tem)))
               {
-                Lisp_Object newdir =
-                  Fexpand_file_name (build_string ("etc/"),
-                                     Vsource_directory);
+                Lisp_Object newdir
+		  = Fexpand_file_name (build_string ("etc/"),
+				       Vsource_directory);
                 tem = Fexpand_file_name (build_string ("Emacs.clr"),
                                          newdir);
               }
@@ -4211,8 +4212,8 @@ baseline level.  The default value is nil.  */);
       Fcons (build_string ("Cancel"), Qnil),
       Fcons (build_string ("Save and Exit"), Qt));
   Lisp_Object res = ns_popup_dialog (Qt, contents, Qnil);
-fprintf (stderr, "res = %d\n", res ==Qt);
-  if (res == Qt)
+fprintf (stderr, "res = %d\n", EQ (res, Qt)); // FIXME
+  if (EQ (res, Qt))
     {
       Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
       return NSTerminateNow;
@@ -4671,8 +4672,8 @@ if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
       if (code == 0x2DC)
         code = '~'; /* 0x7E */
       emacs_event->modifiers = 0;
-      emacs_event->kind =
-        code > 0xFF ? MULTIBYTE_CHAR_KEYSTROKE_EVENT : ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind
+	= code > 0xFF ? MULTIBYTE_CHAR_KEYSTROKE_EVENT : ASCII_KEYSTROKE_EVENT;
       emacs_event->code = code;
       EV_TRAILER ((id)nil);
     }
@@ -4920,8 +4921,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
   NSTRACE (mouseMoved);
 
   last_mouse_movement_time = EV_TIMESTAMP (e);
-  last_mouse_motion_position =
-    [self convertPoint: [e locationInWindow] fromView: nil];
+  last_mouse_motion_position
+    = [self convertPoint: [e locationInWindow] fromView: nil];
 
   /* update any mouse face */
   if (dpyinfo->mouse_face_hidden)
@@ -5361,8 +5362,8 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 {
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
   NSRect r;
-  struct ns_display_info *dpyinfo =
-      emacsframe ? FRAME_NS_DISPLAY_INFO (emacsframe) : NULL;
+  struct ns_display_info *dpyinfo
+    = emacsframe ? FRAME_NS_DISPLAY_INFO (emacsframe) : NULL;
 
   NSTRACE (mouseExited);
 
@@ -5924,14 +5925,14 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
         if (inKnob)
           return self;
 
-        scroll_repeat_entry =
-          [[NSTimer scheduledTimerWithTimeInterval:
-                      SCROLL_BAR_CONTINUOUS_DELAY
+        scroll_repeat_entry
+	  = [[NSTimer scheduledTimerWithTimeInterval:
+			SCROLL_BAR_CONTINUOUS_DELAY
                                             target: self
                                           selector: @selector (repeatScroll:)
                                           userInfo: 0
                                            repeats: YES]
-            retain];
+	      retain];
     }
 
   [self sendScrollEventAtLoc: 0 fromEvent: e];
@@ -5975,13 +5976,13 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
       pos = 0;      /* ignored */
 
       /* set a timer to repeat, as we can't let superclass do this modally */
-      scroll_repeat_entry =
-        [[NSTimer scheduledTimerWithTimeInterval: 0.5
-                                          target: self
-                                        selector: @selector (repeatScroll:)
-                                        userInfo: 0
-                                         repeats: YES]
-          retain];
+      scroll_repeat_entry
+	= [[NSTimer scheduledTimerWithTimeInterval: 0.5
+                                            target: self
+                                          selector: @selector (repeatScroll:)
+                                          userInfo: 0
+                                           repeats: YES]
+	    retain];
     }
   else
     {
@@ -6133,8 +6134,8 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 
 - (void) setPanelFromValues
 {
-  int cursorType =
-    ns_lisp_to_cursor_type (get_frame_param (frame, Qcursor_type));
+  int cursorType
+    = ns_lisp_to_cursor_type (get_frame_param (frame, Qcursor_type));
   prevExpandSpace = XFLOATINT (ns_expand_space);
   prevBlinkRate = NILP (ns_cursor_blink_rate)
     ? 0 : XFLOATINT (ns_cursor_blink_rate);
@@ -6199,7 +6200,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
           ns_cursor_blink_rate = make_float (blinkRate);
           ns_cursor_blink_mode = Qt;
         }
-      if (ns_cursor_blink_mode != old_cursor_blink_mode)
+      if (!EQ (ns_cursor_blink_mode, old_cursor_blink_mode))
           Feval (Fcons (intern ("blink-cursor-mode"), Qnil));
 
       if (blinkRate != 0.0 && prevBlinkRate != 0.0)
@@ -6210,18 +6211,18 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
           cursor_blink_entry = 0;
           if (dpyinfo->ns_highlight_frame)
             {
-              Lisp_Object tem =
-                get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
-              dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor =
-                ns_lisp_to_cursor_type (tem);
+              Lisp_Object tem
+		= get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
+              dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor
+		= ns_lisp_to_cursor_type (tem);
             }
         }
       prevBlinkRate = blinkRate;
     }
-  FRAME_NEW_CURSOR (frame) =
-                         (cursorTag == 1 ? filled_box :
-                          (cursorTag == 2 ? bar :
-                           (cursorTag == 3 ? underscore : hollow_box)));
+  FRAME_NEW_CURSOR (frame)
+    = (cursorTag == 1 ? filled_box
+       : cursorTag == 2 ? bar
+       : cursorTag == 3 ? underscore : hollow_box);
   store_frame_param (frame, Qcursor_type,
                     ns_cursor_type_to_lisp (FRAME_NEW_CURSOR (frame)));
   ns_alternate_modifier = ns_mod_to_lisp (altTag);
@@ -6446,14 +6447,15 @@ ns_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames)
           synthItalFont = NULL;
           while (membInfo = [senum nextObject])
             {
-              xlfdName =
-                ns_fontname_to_xlfd ([[membInfo objectAtIndex: 0] UTF8String]);
+              xlfdName
+		= ns_fontname_to_xlfd ([[membInfo objectAtIndex: 0]
+					 UTF8String]);
               list = Fcons (build_string (xlfdName), list);
               if (!synthItalFont)
                 {
-                  NSString *synthName =
-                    [[membInfo objectAtIndex: 0]
-                      stringByAppendingString: @"-synthItal"];
+                  NSString *synthName
+		    = [[membInfo objectAtIndex: 0]
+			stringByAppendingString: @"-synthItal"];
                   synthItalFont = [synthName UTF8String];
                 }
               else if ([[membInfo objectAtIndex: 3] intValue]

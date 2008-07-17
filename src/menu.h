@@ -29,7 +29,7 @@ extern void list_of_panes P_ ((Lisp_Object));
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
 extern void free_menubar_widget_value_tree P_ ((widget_value *));
 extern void update_submenu_strings P_ ((widget_value *));
-extern void find_and_call_menu_selection P_ ((FRAME_PTR, EMACS_INT,
+extern void find_and_call_menu_selection P_ ((FRAME_PTR, int,
 					      Lisp_Object, void *));
 #endif
 

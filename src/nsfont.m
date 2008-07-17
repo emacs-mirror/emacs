@@ -234,7 +234,7 @@ static int nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 struct font_driver nsfont_driver =
   {
-    (Lisp_Object) NULL,		/* Qns */
+    0,				/* Qns */
     1,				/* case sensitive */
     nsfont_get_cache,
     nsfont_list,
@@ -518,7 +518,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font_info = (struct nsfont_info *) XFONT_OBJECT (font_object);
   font = (struct font *)font_info;
   if (!font)
-    return NULL; /*PENDING: this copies w32, but causes a segfault */
+    return Qnil; /*PENDING: this copies w32, but causes a segfault */
 
   if (NSFONT_TRACE)
     {
@@ -571,7 +571,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
       if (!nsfont)
         {
           fprintf (stderr, "*** Emacs.app: unable to load backup font\n");
-          return NULL;
+          return Qnil;
         }
     }
 
@@ -601,7 +601,7 @@ fprintf (stderr, "*** CACHE HIT!\n");
   font_info->metrics = (struct font_metrics *)
     xmalloc (0x100 * sizeof (struct font_metrics *));
   if (!font_info->glyphs || !font_info->metrics)
-    return NULL;
+    return Qnil;
   bzero (font_info->glyphs, 0x100 * sizeof (unsigned short *));
   bzero (font_info->metrics, 0x100 * sizeof (struct font_metrics *));
 

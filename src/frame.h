@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_FRAME_H
 #define EMACS_FRAME_H
 
+#include "dispextern.h"
+
 
 /* Miscellanea.  */
 
@@ -1113,6 +1115,13 @@ extern Lisp_Object Vframe_alpha_lower_limit;
 extern void x_set_alpha P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 extern void validate_x_resource_name P_ ((void));
+
+extern Lisp_Object display_x_get_resource (Display_Info *,
+					   Lisp_Object attribute,
+					   Lisp_Object class,
+					   Lisp_Object component,
+					   Lisp_Object subclass);
+
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

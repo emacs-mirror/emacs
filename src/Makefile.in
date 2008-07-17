@@ -114,6 +114,7 @@ SHELL=/bin/sh
 
 /* Under GNUstep, putting libc on the link line causes problems. */
 #ifdef NS_IMPL_GNUSTEP
+#undef LIB_STANDARD
 #define LIB_STANDARD
 #endif
 
@@ -238,8 +239,8 @@ STARTFILES = START_FILES
 /* Pull in stuff from GNUstep-make. */
 FOUNDATION_LIB=gnu
 GUI_LIB=gnu
-include $(GNUSTEP_MAKEFILES)/Additional/base.make
-include $(GNUSTEP_MAKEFILES)/Additional/gui.make
+include @GNUSTEP_MAKEFILES@/Additional/base.make
+include @GNUSTEP_MAKEFILES@/Additional/gui.make
 shared=no
 #endif
 
@@ -899,8 +900,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/mouse.elc \
   ../lisp/term/x-win.elc \
   ../lisp/term/ns-win.elc \
-  ../lisp/ns-carbon-compat.elc \
-  ../lisp/emacs-lisp/easymenu.elc
+  ../lisp/ns-carbon-compat.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get

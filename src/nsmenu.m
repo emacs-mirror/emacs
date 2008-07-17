@@ -401,9 +401,9 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         {
           for (i = 0; i<n; i++)
             {
-              string = XVECTOR (items)->contents[4*i+1];
+	      string = AREF (items, 4*i+1);
 
-              if (!string)
+              if (EQ (string, make_number (0))) // FIXME: Why???  --Stef
                 continue;
               if (NILP (string))
                 if (previous_strings[i][0])
@@ -691,10 +691,10 @@ name_is_separator (name)
 - (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
-  id <NSMenuItem> item =
-    [self addItemWithTitle: titleStr
-                    action: nil /*@selector (menuDown:) */
-             keyEquivalent: @""];
+  id <NSMenuItem> item
+      = [self addItemWithTitle: titleStr
+                        action: nil /*@selector (menuDown:) */
+	         keyEquivalent: @""];
   EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: titleStr frame: f];
   [self setSubmenu: submenu forItem: item];
   [submenu release];
@@ -724,8 +724,9 @@ name_is_separator (name)
   [NSMenu popUpContextMenu: self withEvent: event forView: view];
   retVal = context_menu_value;
   context_menu_value = 0;
-  return retVal > 0 ?
-    find_and_return_menu_selection (f, keymaps, (void *)retVal) : Qnil;
+  return retVal > 0
+      ? find_and_return_menu_selection (f, keymaps, (void *)retVal)
+      : Qnil;
 }
 
 @end  /* EmacsMenu */
@@ -1061,8 +1062,8 @@ ns_popup_menu (Lisp_Object position, Lisp_Object menu)
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
-	  wv->call_data =
-            !NILP (def) ? (void *) &XVECTOR (menu_items)->contents[i] : 0;
+	  wv->call_data
+	      = !NILP (def) ? (void *) &XVECTOR (menu_items)->contents[i] : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1156,9 +1157,6 @@ update_frame_tool_bar (FRAME_PTR f)
 {
   int i;
   EmacsToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
-
-  if (NILP (f->tool_bar_lines) || !INTEGERP (f->tool_bar_lines))
-    return;
 
   [toolbar clearActive];
 
@@ -1294,8 +1292,8 @@ update_frame_tool_bar (FRAME_PTR f)
                         helpText: (char *)help enabled: (BOOL)enabled
 {
   /* 1) come up w/identifier */
-  NSString *identifier =
-    [NSString stringWithFormat: @"%u", [img hash]];
+  NSString *identifier
+      = [NSString stringWithFormat: @"%u", [img hash]];
 
   /* 2) create / reuse item */
   NSToolbarItem *item = [identifierToItem objectForKey: identifier];
@@ -1557,7 +1555,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   NSSize spacing = {SPACER, SPACER};
   NSRect area;
   char this_cmd_name[80];
-  id cell, tem;
+  id cell;
   static NSImageView *imgView;
   static FlippedView *contentView;
 
@@ -1649,7 +1647,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
 - (BOOL)windowShouldClose: (id)sender
 {
-  [NSApp stopModalWithCode: Qnil];
+  [NSApp stopModalWithCode: XHASH (Qnil)]; // FIXME: BIG UGLY HACK!!
   return NO;
 }
 
@@ -1693,7 +1691,7 @@ void process_dialog (id window, Lisp_Object list)
   [cell setTarget: self];
   [cell setAction: @selector (clicked: )];
   [cell setTitle: [NSString stringWithUTF8String: str]];
-  [cell setTag: (int)val];
+  [cell setTag: XHASH (val)];	// FIXME: BIG UGLY HACK!!
   [cell setBordered: YES];
   [cell setEnabled: YES];
 
@@ -1730,14 +1728,14 @@ void process_dialog (id window, Lisp_Object list)
 - clicked: sender
 {
   NSArray *sellist = nil;
-  Lisp_Object seltag;
+  EMACS_INT seltag;
 
   sellist = [sender selectedCells];
   if ([sellist count]<1) 
     return self;
 
-  seltag = (Lisp_Object)[[sellist objectAtIndex: 0] tag];
-  if (! EQ (seltag, Qundefined))
+  seltag = [[sellist objectAtIndex: 0] tag];
+  if (seltag == XHASH (Qundefined)) // FIXME: BIG UGLY HACK!!
     [NSApp stopModalWithCode: seltag];
   return self;
 }
@@ -1844,7 +1842,11 @@ void process_dialog (id window, Lisp_Object list)
     }
   [NSApp endModalSession: session];
 
-  return (Lisp_Object)ret;
+  {				// FIXME: BIG UGLY HACK!!!
+      Lisp_Object tmp;
+      *(EMACS_INT*)(&tmp) = ret;
+      return tmp;
+  }
 }
 
 @end

@@ -1,3 +1,35 @@
+2008-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use SDATA.  Follow coding convention of placing operators at
+	beginning of next line rather than end of previous line, and placing
+	spaces around infix operators.
+
+	* Makefile.in: Undef LIB_STANDARD before defining it to silence warning
+	in case it was defined already.
+	USE @GNUSTEP_MAKEFILES@ rather than envvars.
+	* nsterm.m (ns_term_init): Pass Qt and Qnil rather than YES/NO to
+	ns_default.
+	(applicationShouldTerminate, setValuesFromPanel): Use EQ to compare
+	Lisp_Objects.
+	* nsterm.h (Fx_display_grayscale_p, Fx_display_planes)
+	(ns_defined_color, ns_color_to_lisp): Declare.
+	* nsselect.m (ns_handle_selection_request, ns_handle_selection_clear)
+	(Fns_own_selection_internal): Make the big ugly hack more explicit, so
+	it's accepted even with USE_LISP_UNION_TYPE.
+	* nsmenu.m (ns_update_menubar): Use EQ to compare Lisp_Objects.
+	(update_frame_tool_bar): Remove apparently obsolete tests for
+	non-integerness of f->tool_bar_lines.
+	(windowShouldClose, addButton, clicked, runDialogAt): Make the big ugly
+	hack more explicit, so it's accepted even with USE_LISP_UNION_TYPE.
+	* nsfont.m (nsfont_driver): Use just 0 rather than an invalid cast.
+	(nsfont_open): Don't confuse NULL for Qnil.
+	* nsfns.m (ns_implicitly_set_icon_type): Use EQ to compare Lisp_Objects.
+	* menu.h (find_and_call_menu_selection):
+	* menu.c (find_and_call_menu_selection): Use just int for vector size.
+	(find_and_return_menu_selection): Always return something.
+	* frame.h: Include dispextern.h for Display_Info.
+	(display_x_get_resource): Declare.
+
 2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* syntax.c: Remove stdio.h include accidentally introduced in

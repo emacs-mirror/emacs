@@ -108,15 +108,14 @@ clean_local_selection_data (Lisp_Object obj)
   if (VECTORP (obj))
     {
       int i;
-      int size = XVECTOR (obj)->size;
+      int size = ASIZE (obj);
       Lisp_Object copy;
 
       if (size == 1)
-        return clean_local_selection_data (XVECTOR (obj)->contents [0]);
-      copy = Fmake_vector (size, Qnil);
+        return clean_local_selection_data (AREF (obj, 0));
+      copy = Fmake_vector (make_number (size), Qnil);
       for (i = 0; i < size; i++)
-        XVECTOR (copy)->contents [i]
-          = clean_local_selection_data (XVECTOR (obj)->contents [i]);
+        AREF (copy, i) = clean_local_selection_data (AREF (obj, i));
       return copy;
     }
 
@@ -188,13 +187,13 @@ ns_get_local_selection (Lisp_Object selection_name,
   CHECK_SYMBOL (target_type);
   handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
   if (!NILP (handler_fn))
-    value =call3 (handler_fn, selection_name, target_type,
+    value = call3 (handler_fn, selection_name, target_type,
                 XCAR (XCDR (local_value)));
   else
-    value =Qnil;
+    value = Qnil;
   unbind_to (count, Qnil);
 
-  check =value;
+  check = value;
   if (CONSP (value) && SYMBOLP (XCAR (value)))
     {
       type = XCAR (value);
@@ -213,9 +212,12 @@ ns_get_local_selection (Lisp_Object selection_name,
            && NILP (XCDR (XCDR (check))))))
     return value;
 
+  // FIXME: Why `quit' rather than `error'?
   Fsignal (Qquit, Fcons (build_string (
       "invalid data returned by selection-conversion function"),
                         Fcons (handler_fn, Fcons (value, Qnil))));
+  // FIXME: Beware, `quit' can return!!
+  return Qnil;
 }
 
 
@@ -231,15 +233,16 @@ ns_get_foreign_selection (Lisp_Object symbol, Lisp_Object target)
 static void
 ns_handle_selection_request (struct input_event *event)
 {
-  id pb =(id)event->x;
-  NSString *type =(NSString *)event->y;
+  // FIXME: BIG UGLY HACK!!!
+  id pb = (id)*(EMACS_INT*)&(event->x);
+  NSString *type = (NSString *)*(EMACS_INT*)&(event->y);
   Lisp_Object selection_name, selection_data, target_symbol, data;
   Lisp_Object successful_p, rest;
 
-  selection_name =ns_string_to_symbol ([(NSPasteboard *)pb name]);
-  target_symbol =ns_string_to_symbol (type);
+  selection_name = ns_string_to_symbol ([(NSPasteboard *)pb name]);
+  target_symbol = ns_string_to_symbol (type);
   selection_data = assq_no_quit (selection_name, Vselection_alist);
-  successful_p =Qnil;
+  successful_p = Qnil;
 
   if (!NILP (selection_data))
     {
@@ -248,13 +251,13 @@ ns_handle_selection_request (struct input_event *event)
         {
           if (STRINGP (data))
             ns_string_to_pasteboard_internal (pb, data, type);
-          successful_p =Qt;
+          successful_p = Qt;
         }
     }
 
   if (!EQ (Vns_sent_selection_hooks, Qunbound))
     {
-      for (rest =Vns_sent_selection_hooks;CONSP (rest); rest =Fcdr (rest))
+      for (rest = Vns_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
         call3 (Fcar (rest), selection_name, target_symbol, successful_p);
     }
 }
@@ -263,11 +266,11 @@ ns_handle_selection_request (struct input_event *event)
 static void
 ns_handle_selection_clear (struct input_event *event)
 {
-  id pb = (id)event->x;
+  id pb = (id)*(EMACS_INT*)&(event->x);
   Lisp_Object selection_name, selection_data, rest;
 
-  selection_name =ns_string_to_symbol ([(NSPasteboard *)pb name]);
-  selection_data =assq_no_quit (selection_name, Vselection_alist);
+  selection_name = ns_string_to_symbol ([(NSPasteboard *)pb name]);
+  selection_data = assq_no_quit (selection_name, Vselection_alist);
   if (NILP (selection_data)) return;
 
   if (EQ (selection_data, Fcar (Vselection_alist)))
@@ -281,7 +284,7 @@ ns_handle_selection_clear (struct input_event *event)
 
   if (!EQ (Vns_lost_selection_hooks, Qunbound))
     {
-      for (rest =Vns_lost_selection_hooks;CONSP (rest); rest =Fcdr (rest))
+      for (rest = Vns_lost_selection_hooks;CONSP (rest); rest = Fcdr (rest))
         call1 (Fcar (rest), selection_name);
     }
 }
@@ -384,10 +387,10 @@ DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
       error ("selection-value may not be nil.");
   pb =[NSPasteboard pasteboardWithName: symbol_to_nsstring (selection_name)];
   ns_declare_pasteboard (pb);
-  old_value =assq_no_quit (selection_name, Vselection_alist);
+  old_value = assq_no_quit (selection_name, Vselection_alist);
   new_value = Fcons (selection_name, Fcons (selection_value, Qnil));
   if (NILP (old_value))
-    Vselection_alist =Fcons (new_value, Vselection_alist);
+    Vselection_alist = Fcons (new_value, Vselection_alist);
   else
     Fsetcdr (old_value, Fcdr (new_value));
   /* XXX An evil hack, but a necessary one I fear XXX */
@@ -396,8 +399,8 @@ DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
     ev.kind = SELECTION_REQUEST_EVENT;
     ev.modifiers = 0;
     ev.code = 0;
-    ev.x = (int)pb;
-    ev.y = (int)NSStringPboardType;
+    *(EMACS_INT*)(&(ev.x)) = (EMACS_INT)pb; // FIXME: BIG UGLY HACK!!
+    *(EMACS_INT*)(&(ev.y)) = (EMACS_INT)NSStringPboardType;
     ns_handle_selection_request (&ev);
   }
   return selection_value;

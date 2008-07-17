@@ -268,7 +268,7 @@ ns_display_info_for_name (name)
   dpyinfo = ns_display_list;
 
   if (dpyinfo == 0)
-    error ("OpenStep on %s not responding.\n", XSTRING (name)->data);
+    error ("OpenStep on %s not responding.\n", SDATA (name));
 
   return dpyinfo;
 }
@@ -401,8 +401,8 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (face)
         {
           col = NS_FACE_BACKGROUND (face);
-          face->background =
-            (EMACS_UINT) [[col colorWithAlphaComponent: alpha] retain];
+          face->background
+	     = (EMACS_UINT) [[col colorWithAlphaComponent: alpha] retain];
           [col release];
 
           update_face_from_frame_parameter (f, Qbackground_color, arg);
@@ -478,11 +478,11 @@ ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if ([[view window] miniwindowTitle] &&
       ([[[view window] miniwindowTitle]
              isEqualToString: [NSString stringWithUTF8String:
-                                           XSTRING (arg)->data]]))
+                                           SDATA (arg)]]))
     return;
 
   [[view window] setMiniwindowTitle:
-        [NSString stringWithUTF8String: XSTRING (arg)->data]];
+        [NSString stringWithUTF8String: SDATA (arg)]];
 }
 
 
@@ -527,11 +527,11 @@ ns_set_name_iconic (struct frame *f, Lisp_Object name, int explicit)
   if ([[view window] miniwindowTitle] &&
       ([[[view window] miniwindowTitle]
              isEqualToString: [NSString stringWithUTF8String:
-                                           XSTRING (name)->data]]))
+                                           SDATA (name)]]))
     return;
 
   [[view window] setMiniwindowTitle:
-        [NSString stringWithUTF8String: XSTRING (name)->data]];
+        [NSString stringWithUTF8String: SDATA (name)]];
 }
 
 
@@ -573,10 +573,10 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
   /* Don't change the name if it's already NAME.  */
   if ([[[view window] title]
             isEqualToString: [NSString stringWithUTF8String:
-                                          XSTRING (name)->data]])
+                                          SDATA (name)]])
     return;
   [[view window] setTitle: [NSString stringWithUTF8String:
-                                        XSTRING (name)->data]];
+                                        SDATA (name)]];
 }
 
 
@@ -660,7 +660,7 @@ ns_set_name_as_filename (struct frame *f)
   title = FRAME_ICONIFIED_P (f) ? [[[view window] miniwindowTitle] UTF8String]
                                 : [[[view window] title] UTF8String];
 
-  if (title && (! strcmp (title, XSTRING (name)->data)))
+  if (title && (! strcmp (title, SDATA (name))))
     {
       [pool release];
       UNBLOCK_INPUT;
@@ -673,7 +673,7 @@ ns_set_name_as_filename (struct frame *f)
       /* work around a bug observed on 10.3 where
          setTitleWithRepresentedFilename does not clear out previous state
          if given filename does not exist */
-      NSString *str = [NSString stringWithUTF8String: XSTRING (name)->data];
+      NSString *str = [NSString stringWithUTF8String: SDATA (name)];
       if (![[NSFileManager defaultManager] fileExistsAtPath: str])
         {
           [[view window] setTitleWithRepresentedFilename: @""];
@@ -685,14 +685,14 @@ ns_set_name_as_filename (struct frame *f)
         }
 #else
       [[view window] setTitleWithRepresentedFilename:
-                         [NSString stringWithUTF8String: XSTRING (name)->data]];
+                         [NSString stringWithUTF8String: SDATA (name)]];
 #endif
       f->name = name;
     }
   else
     {
       [[view window] setMiniwindowTitle:
-            [NSString stringWithUTF8String: XSTRING (name)->data]];
+            [NSString stringWithUTF8String: SDATA (name)]];
     }
   [pool release];
   UNBLOCK_INPUT;
@@ -806,7 +806,7 @@ ns_implicitly_set_icon_type (struct frame *f)
   BLOCK_INPUT;
   pool = [[NSAutoreleasePool alloc] init];
   if (f->output_data.ns->miniimage
-      && [[NSString stringWithUTF8String: XSTRING (f->name)->data]
+      && [[NSString stringWithUTF8String: SDATA (f->name)]
                isEqualToString: [(NSImage *)f->output_data.ns->miniimage name]])
     {
       [pool release];
@@ -828,10 +828,10 @@ ns_implicitly_set_icon_type (struct frame *f)
     {
       elt = XCAR (chain);
       /* special case: 't' means go by file type */
-      if (SYMBOLP (elt) && elt == Qt && XSTRING (f->name)->data[0] == '/')
+      if (SYMBOLP (elt) && EQ (elt, Qt) && SDATA (f->name)[0] == '/')
         {
-          NSString *str =
-            [NSString stringWithUTF8String: XSTRING (f->name)->data];
+          NSString *str
+	     = [NSString stringWithUTF8String: SDATA (f->name)];
           if ([[NSFileManager defaultManager] fileExistsAtPath: str])
             image = [[[NSWorkspace sharedWorkspace] iconForFile: str] retain];
         }
@@ -844,7 +844,7 @@ ns_implicitly_set_icon_type (struct frame *f)
           if (image == nil)
             image = [[NSImage imageNamed:
                                [NSString stringWithUTF8String:
-                                           XSTRING (XCDR (elt))->data]] retain];
+					    SDATA (XCDR (elt))]] retain];
         }
     }
 
@@ -873,7 +873,7 @@ ns_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (!NILP (arg) && SYMBOLP (arg))
     {
-      arg =build_string (XSTRING (XSYMBOL (arg)->xname)->data);
+      arg =build_string (SDATA (SYMBOL_NAME (arg)));
       store_frame_param (f, Qicon_type, arg);
     }
 
@@ -889,7 +889,7 @@ ns_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   image = [EmacsImage allocInitFromFile: arg];
   if (image == nil)
     image =[NSImage imageNamed: [NSString stringWithUTF8String:
-                                            XSTRING (arg)->data]];
+                                            SDATA (arg)]];
 
   if (image == nil)
     {
@@ -918,9 +918,9 @@ ns_lisp_to_cursor_type (Lisp_Object arg)
 {
   char *str;
   if (XTYPE (arg) == Lisp_String)
-    str =XSTRING (arg)->data;
+    str = SDATA (arg);
   else if (XTYPE (arg) == Lisp_Symbol)
-    str =XSTRING (XSYMBOL (arg)->xname)->data;
+    str = SDATA (SYMBOL_NAME (arg));
   else return -1;
   if (!strcmp (str, "box"))	 return filled_box;
   if (!strcmp (str, "hollow"))	 return hollow_box;
@@ -1125,8 +1125,8 @@ be shared by the new frame.")
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || (XTYPE (name) != Lisp_String))
     {
-      f->name =
-          build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
+      f->name
+	 = build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
       f->explicit_name =0;
     }
   else
@@ -1197,15 +1197,15 @@ be shared by the new frame.")
 
   /* default scrollbars on right on Mac */
   {
-      Lisp_Object spos = 
+      Lisp_Object spos
 #ifdef NS_IMPL_GNUSTEP
-          Qt;
+          = Qt;
 #else
-          Qright;
+          = Qright;
 #endif
-          x_default_parameter (f, parms, Qvertical_scroll_bars, spos,
-                              "verticalScrollBars", "VerticalScrollBars",
-                              RES_TYPE_SYMBOL);
+      x_default_parameter (f, parms, Qvertical_scroll_bars, spos,
+			   "verticalScrollBars", "VerticalScrollBars",
+			   RES_TYPE_SYMBOL);
   }
   x_default_parameter (f, parms, Qforeground_color, build_string ("Black"),
                       "foreground", "Foreground", RES_TYPE_STRING);
@@ -1236,30 +1236,31 @@ be shared by the new frame.")
 /*PENDING: other terms seem to get away w/o this complexity.. */
   if (NILP (Fassq (Qwidth, parms)))
     {
-      Lisp_Object value =
-          x_get_arg (dpyinfo, parms, Qwidth, "width", "Width", RES_TYPE_NUMBER);
+      Lisp_Object value
+	 = x_get_arg (dpyinfo, parms, Qwidth, "width", "Width",
+		      RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qwidth, value), parms);
     }
   if (NILP (Fassq (Qheight, parms)))
     {
-      Lisp_Object value =
-          x_get_arg (dpyinfo, parms, Qheight, "height", "Height",
-                     RES_TYPE_NUMBER);
+      Lisp_Object value
+	 = x_get_arg (dpyinfo, parms, Qheight, "height", "Height",
+		      RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qheight, value), parms);
     }
   if (NILP (Fassq (Qleft, parms)))
     {
-      Lisp_Object value =
-          x_get_arg (dpyinfo, parms, Qleft, "left", "Left", RES_TYPE_NUMBER);
+      Lisp_Object value
+	 = x_get_arg (dpyinfo, parms, Qleft, "left", "Left", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qleft, value), parms);
     }
   if (NILP (Fassq (Qtop, parms)))
     {
-      Lisp_Object value =
-          x_get_arg (dpyinfo, parms, Qtop, "top", "Top", RES_TYPE_NUMBER);
+      Lisp_Object value
+	 = x_get_arg (dpyinfo, parms, Qtop, "top", "Top", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qtop, value), parms);
     }
@@ -1277,8 +1278,8 @@ be shared by the new frame.")
   f->output_data.ns->hand_cursor = [NSCursor pointingHandCursor];
   f->output_data.ns->hourglass_cursor = [NSCursor disappearingItemCursor];
   f->output_data.ns->horizontal_drag_cursor = [NSCursor resizeLeftRightCursor];
-  FRAME_NS_DISPLAY_INFO (f)->vertical_scroll_bar_cursor =
-    [NSCursor arrowCursor];
+  FRAME_NS_DISPLAY_INFO (f)->vertical_scroll_bar_cursor
+     = [NSCursor arrowCursor];
   f->output_data.ns->current_pointer = f->output_data.ns->text_cursor;
 
   [[EmacsView alloc] initFrameFromEmacs: f];
@@ -1435,12 +1436,12 @@ Set ISLOAD non-nil if file being read for a save.")
   NSString *fname;
 
   NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
-    [NSString stringWithUTF8String: XSTRING (prompt)->data];
+    [NSString stringWithUTF8String: SDATA (prompt)];
   NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithUTF8String: XSTRING (current_buffer->directory)->data] :
-    [NSString stringWithUTF8String: XSTRING (dir)->data];
+    [NSString stringWithUTF8String: SDATA (current_buffer->directory)] :
+    [NSString stringWithUTF8String: SDATA (dir)];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
-    [NSString stringWithUTF8String: XSTRING (init)->data];
+    [NSString stringWithUTF8String: SDATA (init)];
 
   check_ns ();
 
@@ -1502,12 +1503,12 @@ If OWNER is nil, Emacs is assumed.")
 /*fprintf (stderr, "ns-get-resource checking resource '%s'\n", SDATA (name)); */
 
   value =[[[NSUserDefaults standardUserDefaults]
-            objectForKey: [NSString stringWithUTF8String: XSTRING (name)->data]]
+            objectForKey: [NSString stringWithUTF8String: SDATA (name)]]
            UTF8String];
 
   if (value)
     return build_string (value);
-/*fprintf (stderr, "Nothing found for NS resource '%s'.\n", XSTRING (name)->data); */
+/*fprintf (stderr, "Nothing found for NS resource '%s'.\n", SDATA (name)); */
   return Qnil;
 }
 
@@ -1521,22 +1522,22 @@ If VALUE is nil, the default is removed.")
 {
   check_ns ();
   if (NILP (owner))
-    owner =
-        build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    owner
+       = build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
   CHECK_STRING (owner);
   CHECK_STRING (name);
   if (NILP (value))
     {
       [[NSUserDefaults standardUserDefaults] removeObjectForKey:
-                         [NSString stringWithUTF8String: XSTRING (name)->data]];
+                         [NSString stringWithUTF8String: SDATA (name)]];
     }
   else
     {
       CHECK_STRING (value);
       [[NSUserDefaults standardUserDefaults] setObject:
-                [NSString stringWithUTF8String: XSTRING (value)->data]
+                [NSString stringWithUTF8String: SDATA (value)]
                                         forKey: [NSString stringWithUTF8String:
-                                                         XSTRING (name)->data]];
+                                                         SDATA (name)]];
     }
 
   return Qnil;
@@ -1763,10 +1764,10 @@ Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.")
     {
       if (!NILP (must_succeed))
         fatal ("OpenStep on %s not responding.\n",
-               XSTRING (display)->data);
+               SDATA (display));
       else
         error ("OpenStep on %s not responding.\n",
-               XSTRING (display)->data);
+               SDATA (display));
     }
 
   /* Register our external input/output types, used for determining
@@ -1858,17 +1859,17 @@ DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
 
 
 DEFUN ("x-list-fonts", Fns_list_fonts, Sns_list_fonts, 1, 4, 0,
-       "Return a list of the names of available fonts matching PATTERN.\n\
-If optional arguments FACE and FRAME are specified, return only fonts\n\
-the same size as FACE on FRAME.\n\
-If optional argument MAX is specified, return at most MAX matches.\n\
-\n\
-PATTERN is a regular expression; FACE is a face name - a symbol.\n\
-\n\
-The return value is a list of strings, suitable as arguments to\n\
-set-face-font.\n\
-\n\
-The font names are _NOT_ X names.")
+       doc: /* Return a list of the names of available fonts matching PATTERN.
+If optional arguments FACE and FRAME are specified, return only fonts
+the same size as FACE on FRAME.
+If optional argument MAX is specified, return at most MAX matches.
+
+PATTERN is a regular expression; FACE is a face name - a symbol.
+
+The return value is a list of strings, suitable as arguments to
+set-face-font.
+
+The font names are _NOT_ X names.  */)
      (pattern, face, frame, max)
      Lisp_Object pattern, face, frame, max;
 {
@@ -1906,7 +1907,7 @@ The font names are _NOT_ X names.")
   for (tem = flist; CONSP (tem); tem = XCDR (tem))
     {
       Lisp_Object fname = XCAR (tem);
-      olist = Fcons (build_string (ns_xlfd_to_fontname (XSTRING (fname)->data)),
+      olist = Fcons (build_string (ns_xlfd_to_fontname (SDATA (fname))),
                     olist);
     }
 
@@ -2039,7 +2040,7 @@ Returns result of service as string or nil if no result.")
   CHECK_STRING (service);
   check_ns ();
 
-  utfStr = XSTRING (service)->data;
+  utfStr = SDATA (service);
   svcName = [NSString stringWithUTF8String: utfStr];
 
   pb =[NSPasteboard pasteboardWithUniqueName];
@@ -2063,7 +2064,7 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
   NSString *utfStr;
 
   CHECK_STRING (str);
-  utfStr = [[NSString stringWithUTF8String: XSTRING (str)->data]
+  utfStr = [[NSString stringWithUTF8String: SDATA (str)]
              precomposedStringWithCanonicalMapping];
   return build_string ([utfStr UTF8String]);
 }
@@ -2448,7 +2449,7 @@ Text larger than the specified size is clipped.  */)
   GCPRO4 (string, parms, frame, timeout);
 
   CHECK_STRING (string);
-  str = XSTRING (string)->data;
+  str = SDATA (string);
   f = check_x_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);

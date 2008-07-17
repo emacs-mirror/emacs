@@ -881,7 +881,7 @@ update_submenu_strings (first_wv)
 void
 find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
      FRAME_PTR f;
-     EMACS_INT menu_bar_items_used;
+     int menu_bar_items_used;
      Lisp_Object vector;
      void *client_data;
 {
@@ -1023,6 +1023,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
           i += MENU_ITEMS_ITEM_LENGTH;
         }
     }
+  return Qnil;
 }
 #endif
 
