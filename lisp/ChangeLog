@@ -1,3 +1,8 @@
+2008-07-17  Fan Kai  <fktpp@xemacs.org>
+
+	* esh-arg.el (eshell-quote-backslash): Fix eshell path completion
+	for Windows.
+
 2008-07-17  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-key-list-mode): Use run-mode-hooks.
