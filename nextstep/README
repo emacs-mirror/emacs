@@ -4,11 +4,12 @@ See the end of the file for license conditions.
 Emacs.app
 =========
 
-This file introduces the NeXTstep-based port of GNU Emacs, known as Emacs.app,
- which runs on on many POSIX systems and possibly W32 using the GNUstep
- libraries and on MacOS X systems using the Cocoa libraries.  The directory
- "nextstep" and its subdirectories "Cocoa" and "GNUstep" contain files
- relevant to building and running on these systems.
+This file introduces the NeXTstep-based port of GNU Emacs, known as
+Emacs.app, which runs on on many POSIX systems and possibly W32 using
+the GNUstep libraries and on MacOS X systems using the Cocoa
+libraries.  The directory "nextstep" and its subdirectories "Cocoa"
+and "GNUstep" contain files relevant to building and running on these
+systems.
 
 Those primarily responsible for the port (in chronological order) were:
 
@@ -45,25 +46,7 @@ tweaking.
 Compilation
 -----------
 
-Run "./compile" in this directory, which will create a self-contained
-Emacs.app under 'build/'.  This can be moved anywhere and run.  To create a
-shared-lisp build, do "sudo ./compile -shared <install_root>".  Set
-<install_root> to where the lisp will go, for example /usr/local to end up
-with /usr/local/shared/emacs/...
-
-See the script itself for further details, and customizations.
-
-You can rerun configure and/or run 'make' manually in the top-level or src
-directories to refresh nextstep/build/Emacs.app.  (Or edit the "compile"
-script.)
-
-On OS X you can also open Cocoa/Emacs.xcodeproj and build it again there.  (Note,
-ZeroLink currently does not work with Emacs owing to the use of private_extern
-in the code as well as some other, unidentifiable problem.)  Before doing this
-you must run 'compile' once as outlined above, to set up the lisp resources.
-
-On GNUstep, you CAN'T use ProjectCenter, since PC cannot work with files
-outside of its project directory.
+See INSTALL.
 
 
 Usage
@@ -99,30 +82,6 @@ This Emacs port was first released in the early 1990's on the NeXT computer,
 and was successively updated to OpenStep, Rhapsody, OS X, and then finally
 GNUstep, tracking GNU emacs core releases in the meantime.
 
-
-Files specific to the port
---------------------------
-
-src/nsfns.m
-src/nsfont.m
-src/nsgui.h
-src/nsimage.m
-src/nsmenu.m
-src/nsselect.m
-src/nsterm.h
-src/nsterm.m
-lisp/ns-grabenv.el
-lisp/ns-carbon-compat.el
-lisp/term/ns-win.el
-lib-src/mac-fix-env.m
-doc/emacs/ns-emacs.texi
-etc/Emacs.clr
-nextstep/
-
-
-Files modified for port:
-
-many -- look for HAVE_NS / NS_IMPL_... #ifdefs
 
 
 Release History

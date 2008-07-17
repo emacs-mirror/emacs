@@ -1,4 +1,13 @@
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* README.txt
+	* compile: Remove.
+	* README
+	* INSTALL: New files.
+	* FOR_RELEASE: Updated.
+
 2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
 	* Cocoa/Contents/Resources/Credits.html: Change URL from sf.net to
 	GNU.org.
 

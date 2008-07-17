@@ -3,7 +3,8 @@
 * BUGS
 * NON-SPECIFIC
 
-** Find out why char_quoted() in syntax.c gets called with Fix char_quoted's workaround.
+** Find out why char_quoted() in syntax.c gets called with charpos < 2 ||
+   bytepos < 2 only under NS port.
 
 ** Remove Feval calls relating to insert working text in isearch mode.
 
@@ -12,6 +13,9 @@
 ** look at nsfont_char_width and nsfont_string_width utils (Dan C.)
 
 ** config improvements (Dan C.)
+
+** numeric keysetting bug
+
 
 * Mac-related:
 
@@ -30,8 +34,9 @@
 
 * Cursor:
 
-** ns_cursor_blink_rate: when set in preferences, somehow save the option (but
-  calling custom-save-all from this causes error)
+** ns_cursor_blink_rate: change to use generic code; also, when set in
+   preferences, somehow save the option (but calling custom-save-all
+   from this causes error)
 
 ** cursor nonerase on certain Leopard and Tiger installations
 
@@ -39,17 +44,6 @@
   Also, it insists on being on top of other windows if they overlap.
 
 ** cursor-over bugs w/some scripts (move around in HELLO to see)
-
-
-Keyboard:
-
-On a German (PowerBook?) keyboard alt-` produces the correct ˚, without alt modifier only the message “<S-268632064> is undefined” is produced. Peter Maurer’s Key codes shows:
-        * Modifier Change: ⇧ 131330/0x20102
-        * Key Down/Up event: ⇧ 24/0x18
-[note, this is += key on German KB setting on US keyboard]
-[unable to reproduce w/German KB setting -- need German laptop?]
-
-** numeric keysetting bug
 
 
 * Other:
