@@ -3906,11 +3906,13 @@ Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
 
-(defvar line-move-visual t
+(defcustom line-move-visual t
   "When non-nil, `line-move' moves point by visual lines.
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
-into account variable-width characters and line continuation.")
+into account variable-width characters and line continuation."
+  :type 'boolean
+  :group 'editing-basics)
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -4017,6 +4019,8 @@ into account variable-width characters and line continuation.")
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
 	(orig-arg arg))
+    (if (floatp temporary-goal-column)
+	(setq temporary-goal-column (truncate temporary-goal-column)))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
@@ -4365,7 +4369,130 @@ The goal column is stored in the variable `goal-column'."
     )
   nil)
 
+;;; Editing based on visual lines, as opposed to logical lines.
 
+(defun end-of-visual-line (&optional n)
+  "Move point to end of current visual line.
+With argument N not nil or 1, move forward N - 1 visual lines first.
+If point reaches the beginning or end of buffer, it stops there.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
+  (interactive "^p")
+  (or n (setq n 1))
+  (if (/= n 1)
+      (let ((line-move-visual t))
+	(line-move (1- n) t)))
+  (vertical-motion (cons (window-width) 0)))
+
+(defun beginning-of-visual-line (&optional n)
+  "Move point to beginning of current visual line.
+With argument N not nil or 1, move forward N - 1 visual lines first.
+If point reaches the beginning or end of buffer, it stops there.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
+  (interactive "^p")
+  (or n (setq n 1))
+  (if (/= n 1)
+      (let ((line-move-visual t))
+	(line-move (1- n) t)))
+  (vertical-motion 0))
+
+(defun kill-visual-line (&optional arg)
+  "Kill the rest of the visual line.
+If there are only whitespace characters there, kill through the
+newline as well.
+
+With prefix argument, kill that many lines from point.
+Negative arguments kill lines backward.
+With zero argument, kill the text before point on the current line.
+
+When calling from a program, nil means \"no arg\",
+a number counts as a prefix arg.
+
+If `kill-whole-line' is non-nil, then this command kills the whole line
+including its terminating newline, when used at the beginning of a line
+with no argument.  As a consequence, you can always kill a whole line
+by typing \\[beginning-of-line] \\[kill-line].
+
+If you want to append the killed line to the last killed text,
+use \\[append-next-kill] before \\[kill-line].
+
+If the buffer is read-only, Emacs will beep and refrain from deleting
+the line, but put the line in the kill ring anyway.  This means that
+you can use this command to copy text from a read-only buffer.
+\(If the variable `kill-read-only-ok' is non-nil, then this won't
+even beep.)"
+  (interactive "P")
+  (let ((opoint (point))
+	(line-move-visual t)
+	end)
+    ;; It is better to move point to the other end of the kill before
+    ;; killing.  That way, in a read-only buffer, point moves across
+    ;; the text that is copied to the kill ring.  The choice has no
+    ;; effect on undo now that undo records the value of point from
+    ;; before the command was run.
+    (if arg
+	(vertical-motion (prefix-numeric-value arg))
+      (if (eobp)
+	  (signal 'end-of-buffer nil))
+      (setq end (save-excursion
+		  (end-of-visual-line) (point)))
+      (if (or (save-excursion
+		;; If trailing whitespace is visible,
+		;; don't treat it as nothing.
+		(unless show-trailing-whitespace
+		  (skip-chars-forward " \t" end))
+		(= (point) end))
+	      (and kill-whole-line (bolp)))
+	  (line-move 1)
+	(goto-char end)))
+    (kill-region opoint (point))))
+
+(defun next-logical-line (&optional arg try-vscroll)
+  "Move cursor vertically down ARG lines.
+This is identical to `previous-line', except that it always moves
+by logical lines instead of visual lines, ignoring the value of
+the variable `line-move-visual'."
+  (interactive "^p\np")
+  (let ((line-move-visual nil))
+    (with-no-warnings
+      (next-line arg try-vscroll))))
+
+(defun previous-logical-line (&optional arg try-vscroll)
+  "Move cursor vertically up ARG lines.
+This is identical to `previous-line', except that it always moves
+by logical lines instead of visual lines, ignoring the value of
+the variable `line-move-visual'."
+  (interactive "^p\np")
+  (let ((line-move-visual nil))
+    (with-no-warnings
+      (previous-line arg try-vscroll))))
+
+(defvar visual-line-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap kill-line] 'kill-visual-line)
+    (define-key map [remap move-beginning-of-line] 'beginning-of-visual-line)
+    (define-key map [remap move-end-of-line]  'end-of-visual-line)
+    (define-key map "\M-[" 'previous-logical-line)
+    (define-key map "\M-]" 'next-logical-line)
+    map))
+
+(define-minor-mode visual-line-mode
+  "Define key binding for visual line moves."
+  :keymap visual-line-mode-map
+  :group 'convenience
+  (if visual-line-mode
+      (progn
+	(set (make-local-variable 'line-move-visual) t)
+	(setq word-wrap t))
+    (kill-local-variable 'line-move-visual)
+    (kill-local-variable 'word-wrap)))
+
+(defun turn-on-visual-line-mode ()
+  (visual-line-mode 1))
+
+(define-globalized-minor-mode global-visual-line-mode
+  visual-line-mode turn-on-visual-line-mode
+  :lighter " vl")
+
 (defun scroll-other-window-down (lines)
   "Scroll the \"other window\" down.
 For more details, see the documentation for `scroll-other-window'."
