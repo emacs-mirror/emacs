@@ -1,3 +1,9 @@
+2008-07-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-key-list-mode): Use run-mode-hooks.
+	(epa-key-mode): Ditto.
+	(epa-info-mode): Ditto.
+
 2008-07-17  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (ns-handle-switch): Simplify.  Handle the numeric case.
