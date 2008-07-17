@@ -470,6 +470,11 @@ Manual.
 
 ** RST mode is a major mode for editing ReSTructured-Text files.
 
+** Visual Line mode provides support for editing by visual lines.
+It turns on word-wrapping in the current buffer, and rebinds C-a, C-e,
+and C-k to commands that operate by visual lines instead of logical
+lines.  This is a more reliable replacement for longlines-mode.
+
 ** A new `whitespace' package has been installed, and the pre-existing one
 renamed to `old-whitespace'.
 [FIXME someone explain why this is good, if it is...]
