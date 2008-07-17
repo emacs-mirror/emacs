@@ -268,7 +268,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
-   does not exist.  */
+   does not exist.  Also, setsid is not allowed in the vfork child's
+   context as of Darwin 9/Mac OS X 10.5.  */
 #undef HAVE_WORKING_VFORK
 #define vfork fork
 

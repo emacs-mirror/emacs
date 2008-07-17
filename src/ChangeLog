@@ -1,3 +1,33 @@
+2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gtkutil.c: Include <config.h> instead of "config.h".
+
+	* lisp.h (Foverlay_buffer): Add EXFUN.
+
+	* process.c (create_process) [!WINDOWSNT && FD_CLOEXEC]: Wait for
+	child process to complete child_setup.  Undo 2005-09-21 change.
+
+	* s/darwin.h: Mention setsid after vfork.
+
+2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (frame.o, keyboard.o, xdisp.o, xfaces.o):
+	Depend on macgui.h.
+
+	* macfns.c (Fx_server_version): Don't use gestaltSystemVersionMajor,
+	gestaltSystemVersionMinor, or gestaltSystemVersionBugFix.
+
+	* macterm.c (keycode_to_xkeysym_table): Add entries for f17, f18,
+	and f19.
+	[MAC_OSX] (fn_keycode_to_keycode_table): Likewise.
+
+	* macterm.h (gestaltSystemVersionMajor, gestaltSystemVersionMinor)
+	(gestaltSystemVersionBugFix) [MAC_OS_X_VERSION_MAX_ALLOWED < 1040]:
+	Remove enumerators.
+
+	* mactoolbox.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Check if FACE_FROM_ID returns NULL.
+
 2008-07-17  David Robinow  <drobinow@gmail.com>  (tiny change)
 
         * w32inevt.c (change_frame_size): Remove extern declaration.
