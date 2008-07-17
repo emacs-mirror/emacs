@@ -435,7 +435,7 @@ XGetImage (Display *display, Pixmap pixmap, int x, int y,
            unsigned int width, unsigned int height,
            unsigned long plane_mask, int format)
 {
-  /* PENDING: not sure what this function is supposed to do.. */
+  /* TODO: not sure what this function is supposed to do.. */
   ns_retain_object(pixmap);
   return pixmap;
 }

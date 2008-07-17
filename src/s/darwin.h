@@ -206,8 +206,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Link in the Carbon or AppKit lib. */
 #ifdef HAVE_NS
-/* PENDING: lresolv is here because configure when testing #undefs res_init,
-            a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
+/* XXX: lresolv is here because configure when testing #undefs res_init,
+        a macro in /usr/include/resolv.h for res_9_init, not in stdc lib. */
 #define LIBS_MACGUI -framework AppKit -lresolv
 #define SYSTEM_PURESIZE_EXTRA 200000
 #define HEADERPAD_EXTRA 6C8

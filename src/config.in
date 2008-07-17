@@ -997,7 +997,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CANNOT_DUMP
 #endif
 
-/* PENDING: These are used for the Carbon port only. */
+/* TODO: These are used for the Carbon port only. */
 #undef MAC_OS
 #undef MAC_OSX
 

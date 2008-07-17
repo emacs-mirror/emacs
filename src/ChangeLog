@@ -1,3 +1,19 @@
+2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* config.in
+	* dispextern.h
+	* frame.c
+	* image.c
+	* nsfns.m
+	* nsfont.m
+	* nsgui.h
+	* nsmenu.m
+	* nsterm.h
+	* nsterm.m
+	* s/darwin.h
+	* xdisp.c: Change most cases of PENDING to TODO, some to FIXME or
+	XXX.
+
 2008-07-17  Andreas Schwab  <schwab@suse.de>
 
 	* s/cygwin.h (LIB_STANDARD_LIBSRC): Don't define.

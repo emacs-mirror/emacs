@@ -542,7 +542,7 @@ extern struct ns_display_info *ns_display_list;
 extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name ();
 
-/* 23: PENDING: these functions (we defined in nsfns) are used in various
+/* 23: FIXME: these functions (we defined in nsfns) are used in various
        places, but no prototypes are provided */
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
 FRAME_PTR check_x_frame (Lisp_Object frame);
@@ -679,7 +679,7 @@ struct x_output
     (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)	\
         - NS_SCROLL_BAR_WIDTH (f)) : 0)
 
-/*PENDING: fix for GNUstep inconsistent accounting for titlebar */
+/* XXX: fix for GNUstep inconsistent accounting for titlebar */
 #ifdef NS_IMPL_GNUSTEP
 #define NS_TOP_POS(f) ((f)->top_pos + 18)
 #else

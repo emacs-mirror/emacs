@@ -2946,7 +2946,7 @@ struct atimer;			/* Defined in atimer.h.  */
    an hourglass cursor on all frames.  */
 extern struct atimer *hourglass_atimer;
 
-/* Each GUI implements these.  PENDING: move into RIF. */
+/* Each GUI implements these.  FIXME: move into RIF. */
 extern void show_hourglass P_ ((struct atimer *));
 extern void hide_hourglass P_ ((void));
 

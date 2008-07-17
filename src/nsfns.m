@@ -742,7 +742,7 @@ ns_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 
-/* 23: PENDING: there is an erroneous direct call in window.c to this fn */
+/* 23: XXX: there is an erroneous direct call in window.c to this fn */
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -783,7 +783,7 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 
-/* 23: PENDING: there is an erroneous direct call in window.c to this fn */
+/* 23: XXX: there is an erroneous direct call in window.c to this fn */
 void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -912,7 +912,7 @@ XParseGeometry (char *string, int *x, int *y,
 }
 
 
-/*PENDING: move to nsterm? */
+/* TODO: move to nsterm? */
 int
 ns_lisp_to_cursor_type (Lisp_Object arg)
 {
@@ -1213,7 +1213,7 @@ be shared by the new frame.")
                       "background", "Background", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qcursor_color, build_string ("grey"),
                       "cursorColor", "CursorColor", RES_TYPE_STRING);
-  /*PENDING: not suppported yet in NS */
+  /* FIXME: not suppported yet in NS */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qleft_fringe, Qnil,
@@ -1233,7 +1233,7 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qtitle, Qnil, "title", "Title",
                        RES_TYPE_STRING);
 
-/*PENDING: other terms seem to get away w/o this complexity.. */
+/* TODO: other terms seem to get away w/o this complexity.. */
   if (NILP (Fassq (Qwidth, parms)))
     {
       Lisp_Object value
@@ -1610,7 +1610,7 @@ If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
 {
-  /*PENDING: return GUI version on GNUSTEP, ?? on OS X */
+  /* FIXME: return GUI version on GNUSTEP, ?? on OS X */
   return build_string ("1.0");
 }
 
@@ -2108,7 +2108,7 @@ x_set_scroll_bar_default_width (f)
 const char *
 x_get_string_resource (XrmDatabase rdb, char *name, char *class)
 {
-  /* remove appname prefix; PENDING: allow for !="Emacs" */
+  /* remove appname prefix; TODO: allow for !="Emacs" */
   char *toCheck = class + (!strncmp (class, "Emacs.", 6) ? 6 : 0);
   const char *res;
   check_ns ();
@@ -2359,7 +2359,7 @@ If omitted or nil, that stands for the selected frame's display.")
 /* Unused dummy def needed for compatibility. */
 Lisp_Object tip_frame;
 
-/*PENDING: move to xdisp or similar */
+/* TODO: move to xdisp or similar */
 static void
 compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
      struct frame *f;

@@ -11547,7 +11547,7 @@ redisplay_internal (preserve_echo_area)
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = 1;
-/* PENDING: this causes all frames to be updated, which seems unnecessary
+/* FIXME: this causes all frames to be updated, which seems unnecessary
    since only the current frame needs to be considered.  This function needs
    to be rewritten with two variables, consider_all_windows and
    consider_all_frames. */
