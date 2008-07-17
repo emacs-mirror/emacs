@@ -420,7 +420,7 @@ extern int errno;
 #  define host_self mach_host_self
 # endif
 
-# if defined(NeXT) || defined(RHAPSODY) || defined(DARWIN) || defined(MAC_OSX)
+# ifdef NeXT
 #  ifdef HAVE_MACH_MACH_H
 #   include <mach/mach.h>
 #  else
@@ -467,7 +467,7 @@ extern int errno;
 
 /* Avoid static vars inside a function since in HPUX they dump as pure.  */
 
-# if defined(NeXT) || defined(RHAPSODY) || defined(DARWIN) || defined(MAC_OSX)
+# ifdef NeXT
 static processor_set_t default_set;
 static int getloadavg_initialized;
 # endif /* NeXT */
@@ -647,8 +647,7 @@ getloadavg (loadavg, nelem)
 
 # endif /* __NetBSD__ */
 
-# if !defined (LDAV_DONE) && ( defined (NeXT) || defined(RHAPSODY) \
-                              || defined(DARWIN) || defined(MAC_OSX) )
+# if !defined (LDAV_DONE) && defined (NeXT)
 #  define LDAV_DONE
   /* The NeXT code was adapted from iscreen 3.2.  */
 

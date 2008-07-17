@@ -1,5 +1,9 @@
 2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
 
+	* getloadavg.c: Revert last change (2008-07-15).
+
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
 	* Makefile.in: Replace emacsapp, emacsbindir, emacsappsrc variables
 	set here with ns_appdir, ns_appresdir, ns_appbindir, ns_appsrc) set
 	from configure.
