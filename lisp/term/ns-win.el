@@ -86,32 +86,19 @@
 (defvar ns-command-line-resources nil)
 
 ;; Handler for switches of the form "-switch value" or "-switch".
-(defun ns-handle-switch (switch)
+(defun ns-handle-switch (switch &optional numeric)
   (let ((aelt (assoc switch command-line-ns-option-alist)))
     (if aelt
-	(let ((param (nth 3 aelt))
-	      (value (nth 4 aelt)))
-	  (if value
-	      (setq default-frame-alist
-		    (cons (cons param value)
-			  default-frame-alist))
-	    (setq default-frame-alist
-		  (cons (cons param
-			      (car ns-invocation-args))
-			default-frame-alist)
-		  ns-invocation-args (cdr ns-invocation-args)))))))
+	(setq default-frame-alist
+	      (cons (cons (nth 3 aelt)
+			  (if numeric
+			      (string-to-number (pop ns-invocation-args))
+			    (or (nth 4 aelt) (pop ns-invocation-args))))
+		    default-frame-alist)))))
 
 ;; Handler for switches of the form "-switch n"
 (defun ns-handle-numeric-switch (switch)
-  (let ((aelt (assoc switch command-line-ns-option-alist)))
-    (if aelt
-	(let ((param (nth 3 aelt)))
-	  (setq default-frame-alist
-		(cons (cons param
-			    (string-to-number (car ns-invocation-args)))
-		      default-frame-alist)
-		ns-invocation-args
-		(cdr ns-invocation-args))))))
+  (ns-handle-switch switch t))
 
 ;; Make -iconic apply only to the initial frame!
 (defun ns-handle-iconic (switch)
@@ -123,22 +110,24 @@
 (defun ns-handle-name-switch (switch)
   (or (consp ns-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq initial-frame-alist (cons (cons 'name (car ns-invocation-args))
-                                  initial-frame-alist)
-        ns-invocation-args (cdr ns-invocation-args)))
+  (setq initial-frame-alist (cons (cons 'name (pop ns-invocation-args))
+                                  initial-frame-alist)))
+
+;; Set (but not used?) in frame.el.
+(defvar ns-display-name nil
+  "The name of the NS display on which Emacs was started.")
 
 ;; nsterm.m.
 (defvar ns-input-file)
 
 (defun ns-handle-nxopen (switch)
   (setq unread-command-events (append unread-command-events '(ns-open-file))
-        ns-input-file (append ns-input-file (list (car ns-invocation-args)))
-        ns-invocation-args (cdr ns-invocation-args)))
+        ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
 
 (defun ns-handle-nxopentemp (switch)
-  (setq unread-command-events (append unread-command-events '(ns-open-temp-file))
-        ns-input-file (append ns-input-file (list (car ns-invocation-args)))
-        ns-invocation-args (cdr ns-invocation-args)))
+  (setq unread-command-events (append unread-command-events
+				      '(ns-open-temp-file))
+        ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
 
 (defun ns-ignore-0-arg (switch)
   )
@@ -158,10 +147,9 @@ This function returns ARGS minus the arguments that have been processed."
   (setq ns-invocation-args args
         args nil)
   (while ns-invocation-args
-    (let* ((this-switch (car ns-invocation-args))
+    (let* ((this-switch (pop ns-invocation-args))
 	   (orig-this-switch this-switch)
 	   completion argval aelt handler)
-      (setq ns-invocation-args (cdr ns-invocation-args))
       ;; Check for long options with attached arguments
       ;; and separate out the attached option argument into argval.
       (if (string-match "^--[^=]*=" this-switch)
@@ -655,7 +643,7 @@ This should be bound to a mouse click event type."
 
 
 ;;;; Windows menu
-(defun menu-bar-select-frame ()
+(defun menu-bar-select-frame (&optional frame)
   (interactive)
   (make-frame-visible last-command-event)
   (raise-frame last-command-event)
@@ -745,6 +733,8 @@ This should be bound to a mouse click event type."
 
 
 ;;;; Services
+(declare-function ns-perform-service "nsfns.m" (service send))
+
 (defun ns-define-service (path)
   (let ((mapping [menu-bar services])
 	(service (mapconcat 'identity path "/"))
@@ -921,7 +911,7 @@ See ns-insert-working-text."
       (set-file-name-coding-system 'utf-8-nfd)))
 
 ;; PENDING: disable composition-based display for Indic scripts as it
-;;          is not working well under NS for some reason
+;;        is not working well under NS for some reason
 (set-char-table-range composition-function-table
                       '(#x0900 . #x0DFF) nil)
 
@@ -1042,59 +1032,54 @@ and highlights lines indicated by ns-input-line."
   (ns-set-resource nil "UseSystemHighlightColor"
 		   (if ns-use-system-highlight-color "YES" "NO"))
   ;; Default frame parameters
-  (let ((p (frame-parameters)))
-    (let ((f (assq 'font p)))
-      (if f (ns-set-resource nil "Font" (ns-font-name (cdr f)))))
-    (let ((fs (assq 'fontsize p)))
-      (if fs (ns-set-resource nil "FontSize" (number-to-string (cdr fs)))))
-    (let ((fgc (assq 'foreground-color p)))
-      (if fgc (ns-set-resource nil "Foreground" (cdr fgc))))
-    (let ((bgc (assq 'background-color p)))
-      (if bgc (ns-set-resource nil "Background" (cdr bgc))))
-    (let ((cc (assq 'cursor-color p)))
-      (if cc (ns-set-resource nil "CursorColor" (cdr cc))))
-    (let ((ct (assq 'cursor-type p)))
-      (if ct (ns-set-resource nil "CursorType"
-                              (if (symbolp (cdr ct))
-                                  (symbol-name (cdr ct)) (cdr ct)))))
-    (let ((under (assq 'underline p)))
-      (if under (ns-set-resource nil "Underline"
-				 (cond ((eq (cdr under) t) "YES")
-				       ((eq (cdr under) nil) "NO")
-				       (t (cdr under))))))
-    (let ((ibw (assq 'internal-border-width p)))
-      (if ibw (ns-set-resource nil "InternalBorderWidth"
-                               (number-to-string (cdr ibw)))))
-    (let ((vsb (assq 'vertical-scroll-bars p)))
-      (if vsb (ns-set-resource nil "VerticalScrollBars"
-                               (case (cdr vsb)
-                                ((t) "YES")
-                                ((nil) "NO")
-                                ((left) "left")
-                                ((right) "right")
-                                (t nil)))))
-    (let ((height (assq 'height p)))
-      (if height (ns-set-resource nil "Height"
-                                  (number-to-string (cdr height)))))
-    (let ((width (assq 'width p)))
-      (if width (ns-set-resource nil "Width"
-                                 (number-to-string (cdr width)))))
-    (let ((top (assq 'top p)))
-      (if top (ns-set-resource nil "Top"
-                               (number-to-string (cdr top)))))
-    (let ((left (assq 'left p)))
-      (if left (ns-set-resource nil "Left"
-                                (number-to-string (cdr left)))))
+  (let ((p (frame-parameters))
+	v)
+    (if (setq v (assq 'font p))
+	(ns-set-resource nil "Font" (ns-font-name (cdr v))))
+    (if (setq v (assq 'fontsize p))
+	(ns-set-resource nil "FontSize" (number-to-string (cdr v))))
+    (if (setq v (assq 'foreground-color p))
+	(ns-set-resource nil "Foreground" (cdr v)))
+    (if (setq v (assq 'background-color p))
+	(ns-set-resource nil "Background" (cdr v)))
+    (if (setq v (assq 'cursor-color p))
+	(ns-set-resource nil "CursorColor" (cdr v)))
+    (if (setq v (assq 'cursor-type p))
+	(ns-set-resource nil "CursorType" (if (symbolp (cdr v))
+					      (symbol-name (cdr v))
+					    (cdr v))))
+    (if (setq v (assq 'underline p))
+	(ns-set-resource nil "Underline"
+			 (case (cdr v)
+			       ((t) "YES")
+			       ((nil) "NO")
+			       (t (cdr v)))))
+    (if (setq v (assq 'internal-border-width p))
+	(ns-set-resource nil "InternalBorderWidth"
+			 (number-to-string v)))
+    (if (setq v (assq 'vertical-scroll-bars p))
+	(ns-set-resource nil "VerticalScrollBars"
+			 (case (cdr v)
+			       ((t) "YES")
+			       ((nil) "NO")
+			       ((left) "left")
+			       ((right) "right")
+			       (t nil))))
+    (if (setq v (assq 'height p))
+	(ns-set-resource nil "Height" (number-to-string (cdr v))))
+    (if (setq v (assq 'width p))
+	(ns-set-resource nil "Width" (number-to-string (cdr v))))
+    (if (setq v (assq 'top p))
+	(ns-set-resource nil "Top" (number-to-string (cdr v))))
+    (if (setq v (assq 'left p))
+	(ns-set-resource nil "Left" (number-to-string (cdr v))))
     ;; These not fully supported
-    (let ((ar (assq 'auto-raise p)))
-      (if ar (ns-set-resource nil "AutoRaise"
-                              (if (cdr ar) "YES" "NO"))))
-    (let ((al (assq 'auto-lower p)))
-      (if al (ns-set-resource nil "AutoLower"
-                              (if (cdr al) "YES" "NO"))))
-    (let ((mbl (assq 'menu-bar-lines p)))
-      (if mbl (ns-set-resource nil "Menus"
-                               (if (cdr mbl) "YES" "NO"))))
+    (if (setq v (assq 'auto-raise p))
+	(ns-set-resource nil "AutoRaise" (if (cdr v) "YES" "NO")))
+    (if (setq v (assq 'auto-lower p))
+	(ns-set-resource nil "AutoLower" (if (cdr v) "YES" "NO")))
+    (if (setq v (assq 'menu-bar-lines p))
+	(ns-set-resource nil "Menus" (if (cdr v) "YES" "NO")))
     )
   (let ((fl (face-list)))
     (while (consp fl)
@@ -1409,12 +1394,12 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 ;; retrieving the value of the primary selection.
 (defun ns-pasteboard-value ()
   (let (text)
-    
+
     ;; Consult the selection, then the cut buffer.  Treat empty strings
     ;; as if they were unset.
     (or text (setq text (ns-get-pasteboard)))
     (if (string= text "") (setq text nil))
-    
+
     (cond
      ((not text) nil)
      ((eq text ns-last-selected-text) nil)
