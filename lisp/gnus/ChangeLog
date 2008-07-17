@@ -1,3 +1,13 @@
+2008-06-18  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* gnus-util.el (gnus-put-display-table, gnus-get-display-table): New
+	macros that expand to an `aset'/`aref' call under Emacs, and to a
+	runtime choice under XEmacs.
+
+	* gnus-sum.el (gnus-summary-set-display-table): Use
+	`gnus-put-display-table', `gnus-get-display-table',
+	`gnus-set-display-table' for the display table, instead of `aset'.
+
 2008-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-disassociate-draft): Revert 2008-03-18 change.

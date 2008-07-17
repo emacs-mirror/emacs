@@ -1671,6 +1671,27 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
 	     ;; that intends to handle the quit signal next time.
 	     (eval '(ignore nil))))))
 
+(defmacro gnus-put-display-table (range value display-table)
+  "Set the value for char RANGE to VALUE in DISPLAY-TABLE.  "
+  (if (featurep 'xemacs)
+      (progn
+        `(if (fboundp 'put-display-table)
+          (put-display-table ,range ,value ,display-table)
+          (if (sequencep ,display-table)
+              (aset ,display-table ,range ,value)
+            (put-char-table ,range ,value ,display-table))))
+    `(aset ,display-table ,range ,value)))
+
+(defmacro gnus-get-display-table (character display-table)
+  "Find value for CHARACTER in DISPLAY-TABLE.  "
+  (if (featurep 'xemacs)
+      `(if (fboundp 'get-display-table)
+          (get-display-table ,character ,display-table)
+          (if (sequencep ,display-table)
+              (aref ,display-table ,character)
+            (get-char-table ,character ,display-table)))
+    `(aref ,display-table ,character)))
+
 (provide 'gnus-util)
 
 ;;; arch-tag: f94991af-d32b-4c97-8c26-ca12a934de49
