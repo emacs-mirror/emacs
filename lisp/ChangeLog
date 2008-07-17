@@ -1,3 +1,8 @@
+2008-07-17  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-unidata-list): Initialize to the
+	list of name, general-category, decomposition, and old-name.
+
 2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* startup.el (command-line-1): Update processing of NS long options to
