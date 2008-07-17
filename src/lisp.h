@@ -2814,6 +2814,7 @@ extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
+EXFUN (Foverlay_buffer, 1);
 extern void adjust_overlays_for_insert P_ ((EMACS_INT, EMACS_INT));
 extern void adjust_overlays_for_delete P_ ((EMACS_INT, EMACS_INT));
 extern void fix_start_end_in_overlays P_ ((int, int));
