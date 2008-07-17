@@ -1217,6 +1217,8 @@ unless the current buffer is a scratch buffer.")
   (other-frame -1))
 
 ;; If no position specified, make new frame offset by 25 from current.
+(defvar parameters)		     ; dynamically bound in make-frame
+
 (add-hook 'before-make-frame-hook
           (lambda ()
             (let ((left (cdr (assq 'left (frame-parameters))))
