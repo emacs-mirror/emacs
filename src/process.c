@@ -1842,6 +1842,9 @@ create_process (process, new_argv, current_dir)
   int inchannel, outchannel;
   pid_t pid;
   int sv[2];
+#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+  int wait_child_setup[2];
+#endif
 #ifdef POSIX_SIGNALS
   sigset_t procmask;
   sigset_t blocked;
@@ -1884,12 +1887,6 @@ create_process (process, new_argv, current_dir)
 #endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
-#if defined (RTU) || defined (UNIPLUS) || defined (DONT_REOPEN_PTY)
-      /* In the case that vfork is defined as fork, the parent process
-	 (Emacs) may send some data before the child process completes
-	 tty options setup.  So we setup tty before forking.  */
-      child_setup_tty (forkout);
-#endif /* RTU or UNIPLUS or DONT_REOPEN_PTY */
 #else
       forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
@@ -1923,6 +1920,25 @@ create_process (process, new_argv, current_dir)
       forkin = sv[0];
     }
 #endif /* not SKTPAIR */
+
+#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+    {
+      int tem;
+
+      tem = pipe (wait_child_setup);
+      if (tem < 0)
+	report_file_error ("Creating pipe", Qnil);
+      tem = fcntl (wait_child_setup[1], F_GETFD, 0);
+      if (tem >= 0)
+	tem = fcntl (wait_child_setup[1], F_SETFD, tem | FD_CLOEXEC);
+      if (tem < 0)
+	{
+	  emacs_close (wait_child_setup[0]);
+	  emacs_close (wait_child_setup[1]);
+	  report_file_error ("Setting file descriptor flags", Qnil);
+	}
+    }
+#endif
 
 #if 0
   /* Replaced by close_process_descs */
@@ -2174,14 +2190,15 @@ create_process (process, new_argv, current_dir)
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
-#if !defined (RTU) && !defined (UNIPLUS) && !defined (DONT_REOPEN_PTY)
 	if (pty_flag)
 	  child_setup_tty (xforkout);
-#endif /* not RTU and not UNIPLUS and not DONT_REOPEN_PTY */
 #ifdef WINDOWSNT
 	pid = child_setup (xforkin, xforkout, xforkout,
 			   new_argv, 1, current_dir);
 #else  /* not WINDOWSNT */
+#ifdef FD_CLOEXEC
+	emacs_close (wait_child_setup[0]);
+#endif
 	child_setup (xforkin, xforkout, xforkout,
 		     new_argv, 1, current_dir);
 #endif /* not WINDOWSNT */
@@ -2235,6 +2252,20 @@ create_process (process, new_argv, current_dir)
       else
 #endif
 	XPROCESS (process)->tty_name = Qnil;
+
+#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+      /* Wait for child_setup to complete in case that vfork is
+	 actually defined as fork.  The descriptor wait_child_setup[1]
+	 of a pipe is closed at the child side either by close-on-exec
+	 on successful execvp or the _exit call in child_setup.  */
+      {
+	char dummy;
+
+	emacs_close (wait_child_setup[1]);
+	emacs_read (wait_child_setup[0], &dummy, 1);
+	emacs_close (wait_child_setup[0]);
+      }
+#endif
     }
 
   /* Restore the signal state whether vfork succeeded or not.
@@ -4441,15 +4472,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 #endif
 
 	  Atemp = input_wait_mask;
-#if 0
-          /* On Mac OS X 10.0, the SELECT system call always says input is
-             present (for reading) at stdin, even when none is.  This
-             causes the call to SELECT below to return 1 and
-             status_notify not to be called.  As a result output of
-             subprocesses are incorrectly discarded.
-	  */
-          FD_CLR (0, &Atemp);
-#endif
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
