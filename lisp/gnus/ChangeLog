@@ -67,10 +67,6 @@
 	Use `gnus-put-display-table', `gnus-get-display-table',
 	`gnus-set-display-table' for the display table, instead of `aset'.
 
-	* gnus-xmas.el (gnus-xmas-summary-set-display-table):
-	Use `gnus-put-display-table', `gnus-get-display-table',
-	`gnus-set-display-table' for the display table.
-
 2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nnmairix.el: Add autoloads.
