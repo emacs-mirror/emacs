@@ -1,3 +1,9 @@
+2008-07-17  David Robinow  <drobinow@gmail.com>  (tiny change)
+
+        * w32inevt.c (change_frame_size): Remove extern declaration.
+        (resize_event, maybe_generate_resize_event): Pass SAFE arg to
+        change_frame_size.
+
 2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* getloadavg.c: Revert last change (2008-07-15).
