@@ -1,3 +1,14 @@
+2008-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Make it a defcustom.
+	(line-move-1): Convert temporary-goal-column back to an integer if
+	it was set as a float by a previous call to line-move-visual.
+	(end-of-visual-line, beginning-of-visual-line, kill-visual-line)
+	(next-logical-line, previous-logical-line)
+	(turn-on-visual-line-mode): New functions.
+	(visual-line-mode-map): New variable.
+	(visual-line-mode, global-visual-line-mode): New minor mode.
+
 2008-07-17  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (parameters): Declare for compiler.
