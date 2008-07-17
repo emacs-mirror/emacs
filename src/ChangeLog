@@ -1,3 +1,14 @@
+2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gtkutil.c: Include <config.h> instead of "config.h".
+
+	* lisp.h (Foverlay_buffer): Add EXFUN.
+
+	* process.c (create_process) [!WINDOWSNT && FD_CLOEXEC]: Wait for
+	child process to complete child_setup.  Undo 2005-09-21 change.
+
+	* s/darwin.h: Mention setsid after vfork.
+
 2008-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (frame.o, keyboard.o, xdisp.o, xfaces.o):
