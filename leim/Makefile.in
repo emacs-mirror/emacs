@@ -33,6 +33,7 @@ prefix=@prefix@
 datarootdir=@datarootdir@
 datadir=@datadir@
 srcdir=@srcdir@
+ns_appresdir=@ns_appresdir@
 
 # Where to install LEIM files.
 INSTALLDIR=$(DESTDIR)${datadir}/emacs/${version}/leim
@@ -259,6 +260,11 @@ install: all
 	  [ -n "$${installuser}" ] && break ; \
 	done ; \
 	find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
+	if [ "${ns_appresdir}" != "" ]; then \
+	  ( cd ${ns_appresdir} ; \
+	    if test -d share/emacs ; then mv -f share/emacs/*/* . ; fi ; \
+	    rm -fr share ) ; \
+	else true ; fi
 
 clean mostlyclean:
 	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \

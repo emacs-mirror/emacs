@@ -1,3 +1,14 @@
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* configure.in: Print out some info to user for NeXTstep builds.
+	(ns-app): Remove enable option.
+	(ns-self-contained): Add enable option.
+	(ns_appbindir, ns_appresdir, ns_appsrc): Set them based on Cocoa or
+	GNUstep, use to set install prefixes, and substitute in Makefiles.
+	* configure: Regenerate.
+	* Makefile.in (install-arch-dep): Perform post-install cleanup inside
+	NS app bundle.
+
 2008-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in: Extract and substitute GNUSTEP_MAKEFILES.
