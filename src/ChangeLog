@@ -1,3 +1,7 @@
+2008-07-17  Andreas Schwab  <schwab@suse.de>
+
+	* s/cygwin.h (LIB_STANDARD_LIBSRC): Don't define.
+
 2008-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use SDATA.  Follow coding convention of placing operators at

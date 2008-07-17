@@ -151,27 +151,6 @@ CFLAGS := $(CFLAGS) -universal
 INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} b2m${EXEEXT} ebrowse${EXEEXT} mac-fix-env${EXEEXT}
 #endif
 
-/* Some platforms that the GNUstep port runs on put strip options in
-   INSTALL_PROGRAM which cause errors.  But, not being sure all other
-   platforms are setting this, we will only use the alternative
-   INSTALL_SCRIPT variable on GNUstep/Cocoa builds. */
-#ifndef HAVE_NS
-INSTALL_SCRIPT = @INSTALL_PROGRAM@
-#else
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-#endif
-
-/* Some machines don\'t find the standard C libraries in the usual place.  */
-#ifndef ORDINARY_LINK
-#ifndef LIB_STANDARD_LIBSRC
-#define LIB_STANDARD_LIBSRC -lc
-#endif
-#else
-#ifndef LIB_STANDARD_LIBSRC
-#define LIB_STANDARD_LIBSRC
-#endif
-#endif
-
 /* Some s/SYSTEM.h files define this to request special libraries.  */
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
@@ -252,7 +231,7 @@ LIBS_MAIL=-lmail
 #endif
 #endif
 
-LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
+LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
 
 /* We need to #define emacs to get the right versions of some files.
    Some other files - those shared with other GNU utilities - need
