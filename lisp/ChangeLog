@@ -1,3 +1,17 @@
+2008-07-17  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (ns-handle-switch): Simplify.  Handle the numeric case.
+	(ns-handle-numeric-switch): Just call ns-handle-switch.
+	(ns-handle-name-switch, ns-handle-nxopen, ns-handle-nxopentemp)
+	(ns-handle-args): Simplify using `pop'.
+	(ns-display-name): Define (used in frame.el).
+	(menu-bar-select-frame): Add (ignored) arg to more closely match the
+	original definition.
+	(ns-perform-service): Declare.
+	(ns-save-preferences): Use fewer `let's.
+
+	* frame.el (ns-display-name): Declare for compiler.
+
 2008-07-17  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char-unidata-list): Initialize to the
