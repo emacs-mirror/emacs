@@ -179,7 +179,8 @@ otherwise."
 	(insert "There are text properties here:\n")
 	(describe-property-list properties)))))
 
-(defcustom describe-char-unidata-list nil
+(defcustom describe-char-unidata-list
+  '(name general-category decomposition old-name)
   "List of Unicode-based character property names shown by `describe-char'."
   :group 'mule
   :version "23.1"
