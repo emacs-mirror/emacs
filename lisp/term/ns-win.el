@@ -307,7 +307,15 @@ The properties returned may include `top', `left', `height', and `width'."
 ;;;; defined below
 
 (autoload 'ns-grabenv "ns-grabenv" "Get environment from your shell." t nil)
-(load "ns-carbon-compat")
+
+;; Set up a number of aliases and other layers to pretend we're using
+;; the Choi/Mitsuharu Carbon port.
+
+(defvaralias 'mac-allow-anti-aliasing 'ns-antialias-text)
+(defvaralias 'mac-command-modifier 'ns-command-modifier)
+(defvaralias 'mac-control-modifier 'ns-control-modifier)
+(defvaralias 'mac-option-modifier 'ns-option-modifier)
+(defvaralias 'mac-function-modifier 'ns-function-modifier)
 
 ;; alt-up/down scrolling a la Stuart.app
 ;; only activated if ns-extended-platform-support is on
