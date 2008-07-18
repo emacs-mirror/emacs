@@ -42,8 +42,8 @@
             Takanori Yamamoto  <takanori.yamamoto@gmail.com>
             Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
-	* Emacs.app/Contents/Info.plist: Add
-	filetype/extension entries for the document icon.
+	* Emacs.app/Contents/Info.plist: Add filetype/extension entries
+	for the document icon.
 	* Emacs.app/Contents/Resources/Emacs.icns: Update.
 	* Emacs.app/Contents/Resources/document.icns: New file.
 

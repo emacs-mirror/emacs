@@ -24,8 +24,8 @@
 	(gnus-summary-pipe-to-muttprint): Update gnus-summary-muttprint-program
 	instead of gnus-last-shell-command.
 
-	* gnus-sum.el (gnus-summary-pipe-output-default-command): New user
-	option.
+	* gnus-sum.el (gnus-summary-pipe-output-default-command):
+	New user option.
 	(gnus-summary-muttprint-program): Mention the value will be changed.
 	(gnus-summary-save-article): Force showing of all headers.
 	(gnus-summary-pipe-output): Work with the 2nd argument HEADERS.
@@ -95,9 +95,9 @@
 	(nnmairix-determine-original-group-from-registry)
 	(nnmairix-determine-original-group-from-path)
 	(nnmairix-get-group-from-file-path, nnmairix-map-range)
-	(nnmairix-check-mairix-version, nnmairix-group-toggle-parameter): New
-	helper functions.
-	(nnmairix-group-mode-hook, nnmairix-summary-mode-hook): Inserted new
+	(nnmairix-check-mairix-version, nnmairix-group-toggle-parameter):
+	New helper functions.
+	(nnmairix-group-mode-hook, nnmairix-summary-mode-hook): Insert new
 	keystrokes for new commands.
 	(nnmairix-delete-and-create-on-change): Doc string cleanup.
 	(nnmairix-request-group): Check allow-fast group parameter.

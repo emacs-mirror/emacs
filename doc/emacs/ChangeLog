@@ -5,7 +5,7 @@
 	(Exiting): Describe how to kill Emacs first.  Change description of
 	iconification to handle modern window systems.
 
-2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* ns-emacs.texi: New file, documents features of Emacs port under
 	NeXTstep windowing.

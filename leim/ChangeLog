@@ -1,4 +1,4 @@
-2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in (install): Perform post-install cleanup inside NS app
 	bundle.

@@ -7,11 +7,11 @@
 
 	* erc-backend.el (328): New response handler.
 
-	* erc.el (english): Added 328 to catalog.
+	* erc.el (english): Add 328 to catalog.
 
 2008-05-29  Diane Murray  <disumu@x3y2z1.net>
 
-	* erc-services.el (erc-nickserv-alist): Updated REGEXP and
+	* erc-services.el (erc-nickserv-alist): Update REGEXP and
 	SUCCESS-REGEXP for freenode.
 
 2008-05-05  Juanma Barranquero  <lekktu@gmail.com>
@@ -87,8 +87,7 @@
 	* erc-pkg.el: Make the version string a template.
 
 	* erc.texi (Obtaining ERC): Update extras URLs for 5.3.
-	(Development): Write instructions for git, and remove those for
-	Arch.
+	(Development): Write instructions for git, and remove those for Arch.
 	(History): Mention the switch to git.
 
 2008-01-25  Michael Olson  <mwolson@gnu.org>
