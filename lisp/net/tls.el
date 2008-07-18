@@ -216,7 +216,11 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	(use-temp-buffer (null buffer))
 	process	cmd done)
     (if use-temp-buffer
-	(setq buffer (generate-new-buffer " TLS")))
+	(setq buffer (generate-new-buffer " TLS"))
+      ;; BUFFER is a string but does not exist as a buffer object.
+      (unless (and (get-buffer buffer)
+		   (buffer-name (get-buffer buffer)))
+	(generate-new-buffer buffer)))
     (with-current-buffer buffer
       (message "Opening TLS connection to `%s'..." host)
       (while (and (not done) (setq cmd (pop cmds)))

@@ -1,3 +1,9 @@
+2008-07-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/tls.el (open-tls-stream): Make it work with the 2nd argument
+	BUFFER that is a string but does not exist as a buffer object, as
+	mentioned in the doc-string.
+
 2008-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): Make it a defcustom.
