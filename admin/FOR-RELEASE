@@ -121,6 +121,7 @@ The "data" size increased for emacs from ~4MB to ~11MB on x86.
 The temacs sizes are comparable.
 http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 
+** Clean up Emacs.app references in code and documentation.
 
 * DOCUMENTATION
 
