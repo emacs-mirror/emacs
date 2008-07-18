@@ -1,3 +1,7 @@
+2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove ns-carbon-compat.elc.
+
 2008-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1240000.
