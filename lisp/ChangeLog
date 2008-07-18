@@ -3,7 +3,12 @@
 	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.
 
 	* ns-carbon-compat.el: File removed.
-	* term/ns-win.el: Contents of ns-carbon-compat.el moved here.
+
+	* ns-grabenv.el: File removed.
+
+	* term/ns-win.el: Contents of ns-carbon-compat.el and
+	ns-grabenv.el moved here.
+	(ns-grabenv, ns-open-file-select-line): Doc fixes.
 
 2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
 
