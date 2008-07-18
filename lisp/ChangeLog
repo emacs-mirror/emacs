@@ -1,3 +1,20 @@
+2008-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-interface-properties): New defconst.
+	(dbus-introspect): Update docstring.
+	(dbus-introspect-xml, dbus-introspect-get-attribute)
+	(dbus-introspect-get-node-names, dbus-introspect-get-all-nodes)
+	(dbus-introspect-get-interface-names)
+	(dbus-introspect-get-interface, dbus-introspect-get-method-names)
+	(dbus-introspect-get-method, dbus-introspect-get-signal-names)
+	(dbus-introspect-get-signal, dbus-introspect-get-property-names)
+	(dbus-introspect-get-property)
+	(dbus-introspect-get-annotation-names)
+	(dbus-introspect-get-annotation)
+	(dbus-introspect-get-argument-names, dbus-introspect-get-argument)
+	(dbus-introspect-get-signature, dbus-get-property)
+	(dbus-set-property, dbus-get-all-properties): New defuns.
+
 2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.  and
