@@ -1,3 +1,10 @@
+2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.
+
+	* ns-carbon-compat.el: File removed.
+	* term/ns-win.el: Contents of ns-carbon-compat.el moved here.
+
 2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
 
 	* startup.el (fancy-splash-head): Fix change of 2008-07-02.
