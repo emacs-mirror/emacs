@@ -1,6 +1,7 @@
 2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.
+	* Makefile.in (ELCFILES): Remove ns-carbon-compat.elc.  and
+	ns-grabenv.elc.
 
 	* ns-carbon-compat.el: File removed.
 
