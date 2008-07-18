@@ -1,3 +1,7 @@
+2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
+
+	* images/splash8.xpm: Remove.
+
 2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* NEWS: Add entry about NS port.

@@ -1,3 +1,7 @@
+2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
+
+	* startup.el (fancy-splash-head): Fix change of 2008-07-02.
+
 2008-07-18  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-arg.el (eshell-quote-backslash): Restrict previous change
