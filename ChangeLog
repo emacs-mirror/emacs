@@ -1,3 +1,8 @@
+2008-07-18  Kenichi Handa  <handa@m17n.org>
+
+	* INSTALL (Complex Text Layout support libraries): Delete the
+	paragraph about --enable-font-backend.
+
 2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
 
 	* configure.in: Print out some info to user for NeXTstep builds.
