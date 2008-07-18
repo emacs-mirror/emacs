@@ -867,7 +867,6 @@ ELCFILES = \
 	$(lisp)/net/zeroconf.elc \
 	$(lisp)/newcomment.elc \
 	$(lisp)/novice.elc \
-	$(lisp)/ns-grabenv.elc \
 	$(lisp)/nxml/nxml-enc.elc \
 	$(lisp)/nxml/nxml-glyph.elc \
 	$(lisp)/nxml/nxml-maint.elc \
