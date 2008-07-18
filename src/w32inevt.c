@@ -39,6 +39,7 @@ Boston, MA 02110-1301, USA.
 #include "lisp.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "dispextern.h"
 #include "blockinput.h"
 #include "termhooks.h"
 #include "w32heap.h"
@@ -53,9 +54,6 @@ static DWORD movement_time;
 
 /* from keyboard.c */
 extern void reinvoke_input_signal (void);
-
-/* from dispnew.c */
-extern int change_frame_size (FRAME_PTR, int, int, int, int);
 
 /* from w32console.c */
 extern int w32_use_full_screen_buffer;
@@ -622,7 +620,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 {
   FRAME_PTR f = get_frame ();
 
-  change_frame_size (f, event->dwSize.Y, event->dwSize.X, 0, 1);
+  change_frame_size (f, event->dwSize.Y, event->dwSize.X, 0, 1, 0);
   SET_FRAME_GARBAGED (f);
 }
 
@@ -639,7 +637,7 @@ maybe_generate_resize_event ()
   change_frame_size (f,
 		     1 + info.srWindow.Bottom - info.srWindow.Top,
 		     1 + info.srWindow.Right - info.srWindow.Left,
-		     0, 0);
+		     0, 0, 0);
 }
 
 int
