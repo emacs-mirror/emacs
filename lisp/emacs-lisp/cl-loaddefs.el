@@ -282,13 +282,8 @@ Not documented
 ;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
 ;;;;;;  return block etypecase typecase ecase case load-time-value
 ;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
-;;;;;;  gensym cl-compile-time-init) "cl-macs" "cl-macs.el" "cc0d6d8e5b0f777ec88f1098ecb85d59")
+;;;;;;  gensym) "cl-macs" "cl-macs.el" "db690711cf205074d21590cc64a26d89")
 ;;; Generated autoloads from cl-macs.el
-
-(autoload 'cl-compile-time-init "cl-macs" "\
-Not documented
-
-\(fn)" nil nil)
 
 (autoload 'gensym "cl-macs" "\
 Generate a new uninterned symbol.
@@ -738,7 +733,7 @@ Not documented
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "6a0563f6cb397543e7a42bd91372d8c2")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "50e97e33d680423c1a09239e41c42e3e")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\

@@ -9789,12 +9789,12 @@ static const unsigned char keycode_to_xkeysym_table[] = {
   /*0x38*/ 0, 0, 0, 0,
   /*0x3C*/ 0, 0, 0, 0,
 
-  /*0x40*/ 0, 0xae /*kp-decimal*/, 0, 0xaa /*kp-multiply*/,
+  /*0x40*/ 0xce /*f17*/, 0xae /*kp-decimal*/, 0, 0xaa /*kp-multiply*/,
   /*0x44*/ 0, 0xab /*kp-add*/, 0, 0x0b /*clear*/,
   /*0x48*/ 0, 0, 0, 0xaf /*kp-divide*/,
-  /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp-subtract*/, 0,
+  /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp-subtract*/, 0xcf /*f18*/,
 
-  /*0x50*/ 0, 0xbd /*kp-equal*/, 0xb0 /*kp-0*/, 0xb1 /*kp-1*/,
+  /*0x50*/ 0xd0 /*f19*/, 0xbd /*kp-equal*/, 0xb0 /*kp-0*/, 0xb1 /*kp-1*/,
   /*0x54*/ 0xb2 /*kp-2*/, 0xb3 /*kp-3*/, 0xb4 /*kp-4*/, 0xb5 /*kp-5*/,
   /*0x58*/ 0xb6 /*kp-6*/, 0xb7 /*kp-7*/, 0, 0xb8 /*kp-8*/,
   /*0x5C*/ 0xb9 /*kp-9*/, 0, 0, 0,
@@ -9826,12 +9826,12 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
   /*0x38*/ 0, 0, 0, 0,
   /*0x3C*/ 0, 0, 0, 0,
 
-  /*0x40*/ 0, 0x2f /*kp-decimal -> '.'*/, 0, 0x23 /*kp-multiply -> 'p'*/,
+  /*0x40*/ 0x40 /*f17 = f17*/, 0x2f /*kp-decimal -> '.'*/, 0, 0x23 /*kp-multiply -> 'p'*/,
   /*0x44*/ 0, 0x2c /*kp-add -> '/'*/, 0, 0x16 /*clear -> '6'*/,
   /*0x48*/ 0, 0, 0, 0x1d /*kp-/ -> '0'*/,
-  /*0x4C*/ 0x24 /*kp-enter -> return*/, 0, 0x29 /*kp-subtract -> ';'*/, 0,
+  /*0x4C*/ 0x24 /*kp-enter -> return*/, 0, 0x29 /*kp-subtract -> ';'*/, 0x4f /*f18 = f18*/,
 
-  /*0x50*/ 0, 0x1b /*kp-equal -> '-'*/, 0x2e /*kp-0 -> 'm'*/, 0x26 /*kp-1 -> 'j'*/,
+  /*0x50*/ 0x50 /*f19 = f19*/, 0x1b /*kp-equal -> '-'*/, 0x2e /*kp-0 -> 'm'*/, 0x26 /*kp-1 -> 'j'*/,
   /*0x54*/ 0x28 /*kp-2 -> 'k'*/, 0x25 /*kp-3 -> 'l'*/, 0x20 /*kp-4 -> 'u'*/, 0x22 /*kp-5 ->'i'*/,
   /*0x58*/ 0x1f /*kp-6 -> 'o'*/, 0x1a /*kp-7 -> '7'*/, 0, 0x1c /*kp-8 -> '8'*/,
   /*0x5C*/ 0x19 /*kp-9 -> '9'*/, 0, 0, 0,

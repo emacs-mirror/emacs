@@ -66,8 +66,9 @@ quit|stop|thank|thanks|thankyou|thank you
 
 The control server ignores anything after the last line above.  So you
 can place control commands at the beginning of a reply to a bug
-report, and Cc: the control server (note the commands have no effect
-if you just send them to the bug-report number).
+report, and Bcc: the control server (note the commands have no effect
+if you just send them to the bug-report number).  Bcc: is better than Cc:
+in case people use Reply-to-All in response.
 
 Some useful control commands:
 
@@ -75,12 +76,14 @@ Some useful control commands:
 reopen 123
 
 *** Bugs can be tagged in various ways (eg wontfix, patch, etc).
-For a list of available tags, see:
-http://emacsbugs.donarmstrong.com/Developer#tags
-The tag can be prefixed with +, - or =, meaning to add (the default),
-remove, or reset the tags.  E.g.:
+The available tags are:
+patch wontfix moreinfo unreproducible fixed notabug
+Note that the list at http://emacsbugs.donarmstrong.com/Developer#tags
+is incorrect, at least for Emacs.
+The list of tags can be prefixed with +, - or =, meaning to add (the
+default), remove, or reset the tags. E.g.:
 
-tags 123 +wontfix
+tags 123 + wontfix
 
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
@@ -106,6 +109,9 @@ The shorthand `!' means your own address.
 
 *** To mark a bug as fixed in a particular version:
 fixed 123 23.0.60
+
+*** To remove a "fixed" mark:
+notfixed 123 23.0.60
 
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 reassign 123 spam

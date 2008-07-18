@@ -1,4 +1,6 @@
 ;; -*- no-byte-compile: t -*-
+;; Not byte compiled because it uses functions that are not part of
+;; emacs, so it would generate unnecessary warnings.
 ;;; vmsproc.el --- run asynchronous VMS subprocesses under Emacs
 
 ;; Copyright (C) 1986, 2001, 2002, 2003, 2004, 2005,

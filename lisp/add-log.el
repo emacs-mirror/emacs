@@ -298,10 +298,10 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 	;; name.
 	(progn
 	  (re-search-forward change-log-file-names-re nil t)
-	  (match-string 2))
+	  (match-string-no-properties 2))
       (if (looking-at change-log-file-names-re)
 	  ;; We found a file name.
-	  (match-string 2)
+	  (match-string-no-properties 2)
 	;; Look backwards for either a file name or the log entry start.
 	(if (re-search-backward
 	     (concat "\\(" change-log-start-entry-re 
@@ -312,11 +312,11 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 		;; file name.
 		(progn
 		  (re-search-forward change-log-file-names-re nil t)
-		  (match-string 2))
-	      (match-string 4))
+		  (match-string-no-properties 2))
+	      (match-string-no-properties 4))
 	  ;; We must be before any file name, look forward.
 	  (re-search-forward change-log-file-names-re nil t)
-	  (match-string 2))))))
+	  (match-string-no-properties 2))))))
 
 (defun change-log-find-file ()
   "Visit the file for the change under point."
@@ -326,11 +326,197 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 	(find-file file)
       (message "No such file or directory: %s" file))))
 
+(defun change-log-search-tag-name-1 (&optional from)
+  "Search for a tag name within subexpression 1 of last match.
+Optional argument FROM specifies a buffer position where the tag
+name should be located.  Return value is a cons whose car is the
+string representing the tag and whose cdr is the position where
+the tag was found."
+  (save-restriction
+    (narrow-to-region (match-beginning 1) (match-end 1))
+    (when from (goto-char from))
+    ;; The regexp below skips any symbol near `point' (FROM) followed by
+    ;; whitespace and another symbol.  This should skip, for example,
+    ;; "struct" in a specification like "(struct buffer)" and move to
+    ;; "buffer".  A leading paren is ignored.
+    (when (looking-at
+	   "[(]?\\(?:\\(?:\\sw\\|\\s_\\)+\\(?:[ \t]+\\(\\sw\\|\\s_\\)+\\)\\)")
+      (goto-char (match-beginning 1)))
+    (cons (find-tag-default) (point))))
+
+(defconst change-log-tag-re
+  "(\\(\\(?:\\sw\\|\\s_\\)+\\(?:[, \t]+\\(?:\\sw\\|\\s_\\)+\\)*\\))"
+  "Regexp matching a tag name in change log entries.")
+
+(defun change-log-search-tag-name (&optional at)
+  "Search for a tag name near `point'.
+Optional argument AT non-nil means search near buffer position
+AT.  Return value is a cons whose car is the string representing
+the tag and whose cdr is the position where the tag was found."
+  (save-excursion
+    (goto-char (setq at (or at (point))))
+    (save-restriction
+      (widen)
+      (or (condition-case nil
+	      ;; Within parenthesized list?
+	      (save-excursion
+		(backward-up-list)
+		(when (looking-at change-log-tag-re)
+		  (change-log-search-tag-name-1 at)))
+	    (error nil))
+	  (condition-case nil
+	      ;; Before parenthesized list?
+	      (save-excursion
+		(when (and (skip-chars-forward " \t")
+			   (looking-at change-log-tag-re))
+		  (change-log-search-tag-name-1)))
+	    (error nil))
+	  (condition-case nil
+	      ;; Near filename?
+	      (save-excursion
+		(when (and (progn
+			     (beginning-of-line)
+			     (looking-at change-log-file-names-re))
+			   (goto-char (match-end 0))
+			   (skip-syntax-forward " ")
+			   (looking-at change-log-tag-re))
+		  (change-log-search-tag-name-1)))
+	    (error nil))
+	  (condition-case nil
+	      ;; Before filename?
+	      (save-excursion
+		(when (and (progn
+			     (skip-syntax-backward " ")
+			     (beginning-of-line)
+			     (looking-at change-log-file-names-re))
+			   (goto-char (match-end 0))
+			   (skip-syntax-forward " ")
+			   (looking-at change-log-tag-re))
+		  (change-log-search-tag-name-1)))
+	    (error nil))
+	  (condition-case nil
+	      ;; Near start entry?
+	      (save-excursion
+		(when (and (progn
+			     (beginning-of-line)
+			     (looking-at change-log-start-entry-re))
+			   (forward-line) ; Won't work for multiple
+					  ; names, etc.
+			   (skip-syntax-forward " ")
+			   (progn
+			     (beginning-of-line)
+			     (looking-at change-log-file-names-re))
+			   (goto-char (match-end 0))
+			   (re-search-forward change-log-tag-re))
+		  (change-log-search-tag-name-1)))
+	    (error nil))
+	  (condition-case nil
+	      ;; After parenthesized list?.
+	      (when (re-search-backward change-log-tag-re)
+		(save-restriction
+		  (narrow-to-region (match-beginning 1) (match-end 1))
+		  (goto-char (point-max))
+		  (cons (find-tag-default) (point-max))))
+	    (error nil))))))
+
+(defvar change-log-find-head nil)
+(defvar change-log-find-tail nil)
+
+(defun change-log-goto-source-1 (tag regexp file buffer
+				     &optional window first last)
+  "Search for tag TAG in buffer BUFFER visiting file FILE.
+REGEXP is a regular expression for TAG.  The remaining arguments
+are optional: WINDOW denotes the window to display the results of
+the search.  FIRST is a position in BUFFER denoting the first
+match from previous searches for TAG.  LAST is the position in
+BUFFER denoting the last match for TAG in the last search."
+  (with-current-buffer buffer
+    (save-excursion
+      (save-restriction
+	(widen)
+	(if last
+	    (progn
+	      ;; When LAST is set make sure we continue from the next
+	      ;; line end to not find the same tag again.
+	      (goto-char last)
+	      (end-of-line)
+	      (condition-case nil
+		  ;; Try to go to the end of the current defun to avoid
+		  ;; false positives within the current defun's body
+		  ;; since these would match `add-log-current-defun'.
+		  (end-of-defun)
+		;; Don't fall behind when `end-of-defun' fails.
+		(error (progn (goto-char last) (end-of-line))))
+	      (setq last nil))
+	  ;; When LAST was not set start at beginning of BUFFER.
+	  (goto-char (point-min)))
+	(let (current-defun)
+	  (while (and (not last) (re-search-forward regexp nil t))
+	      ;; Verify that `add-log-current-defun' invoked at the end
+	      ;; of the match returns TAG.  This heuristic works well
+	      ;; whenever the name of the defun occurs within the first
+	      ;; line of the defun.
+	      (setq current-defun (add-log-current-defun))
+	      (when (and current-defun (string-equal current-defun tag))
+		;; Record this as last match.
+		(setq last (line-beginning-position))
+		;; Record this as first match when there's none.
+		(unless first (setq first last)))))))
+    (if (or last first)
+	(with-selected-window (or window (display-buffer buffer))
+	  (if last
+	      (progn
+		(when (or (< last (point-min)) (> last (point-max)))
+		  ;; Widen to show TAG.
+		  (widen))
+		(push-mark)
+		(goto-char last))
+	    ;; When there are no more matches go (back) to FIRST.
+	    (message "No more matches for tag `%s' in file `%s'" tag file)
+	    (setq last first)
+	    (goto-char first))
+	  ;; Return new "tail".
+	  (list (selected-window) first last))
+      (message "Source location of tag `%s' not found in file `%s'" tag file)
+      nil)))
+
+(defun change-log-goto-source ()
+  "Go to source location of change log tag near `point'.
+A change log tag is a symbol within a parenthesized,
+comma-separated list."
+  (interactive)
+  (if (and (eq last-command 'change-log-goto-source)
+	   change-log-find-tail)
+      (setq change-log-find-tail
+	    (condition-case nil
+		(apply 'change-log-goto-source-1
+		       (append change-log-find-head change-log-find-tail))
+	      (error
+	       (format "Cannot find more matches for tag `%s' in file `%s'"
+		       (car change-log-find-head)
+		       (nth 2 change-log-find-head)))))
+    (save-excursion
+      (let* ((tag-at (change-log-search-tag-name))
+	     (tag (car tag-at))
+	     (file (when tag-at
+		     (change-log-search-file-name (cdr tag-at)))))
+	(if (or (not tag) (not file))
+	    (error "No suitable tag near `point'")
+	  (setq change-log-find-head
+		(list tag (concat "\\_<" (regexp-quote tag) "\\_>")
+		      file (find-file-noselect file)))
+	  (condition-case nil
+	      (setq change-log-find-tail
+		    (apply 'change-log-goto-source-1 change-log-find-head))
+	    (error (format "Cannot find matches for tag `%s' in `%s'"
+			   tag file))))))))
+
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
     (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
     (define-key map [?\C-c ?\C-f] 'change-log-find-file)
+    (define-key map [?\C-c ?\C-c] 'change-log-goto-source)
     map)
   "Keymap for Change Log major mode.")
 

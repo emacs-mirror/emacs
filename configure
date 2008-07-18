@@ -734,6 +734,11 @@ X_TOOLKIT_TYPE
 machfile
 opsysfile
 carbon_appdir
+ns_appdir
+ns_appbindir
+ns_appresdir
+ns_appsrc
+GNUSTEP_MAKEFILES
 LTLIBOBJS'
 ac_subst_files=''
       ac_precious_vars='build_alias
@@ -1332,6 +1337,8 @@ Optional Features:
   --enable-carbon-app[=DIR]
                           specify install directory for Emacs.app on Mac OS X
                           [DIR=/Application]
+  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition
+  --disable-ns-self-contained        disable self contained build under NS
   --enable-asserts        compile code with asserts enabled
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
@@ -1367,6 +1374,7 @@ Optional Packages:
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --with-carbon           use Carbon GUI on Mac OS X. This is unsupported!
+  --with-ns               use nextstep (Cocoa or GNUstep) windowing system
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --without-dbus          don't compile with D-Bus support
@@ -1875,7 +1883,7 @@ else
       with_kerberos=no
 fi
 
-if test "$with_kerberos" = yes; then
+if test "$with_kerberos" != no; then
    cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
 _ACEOF
@@ -1891,8 +1899,8 @@ else
       with_kerberos5=no
 fi
 
-if test "${with_kerberos5}" = yes; then
-  if test "${with_kerberos}" != yes; then
+if test "${with_kerberos5}" != no; then
+  if test "${with_kerberos}" = no; then
     with_kerberos=yes
     cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
@@ -1914,7 +1922,7 @@ else
       with_hesiod=no
 fi
 
-if test "$with_hesiod" = yes; then
+if test "$with_hesiod" != no; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HESIOD 1
@@ -2087,6 +2095,14 @@ else
 fi
 
 
+# Check whether --with-ns was given.
+if test "${with_ns+set}" = set; then
+  withval=$with_ns;
+else
+      with_ns=no
+fi
+
+
 
 # Check whether --with-gpm was given.
 if test "${with_gpm+set}" = set; then
@@ -2152,6 +2168,22 @@ fi
 # Check whether --enable-carbon-app was given.
 if test "${enable_carbon_app+set}" = set; then
   enableval=$enable_carbon_app;  carbon_appdir_x=${enableval}
+fi
+
+
+# Check whether --enable-cocoa-experimental-ctrl-g was given.
+if test "${enable_cocoa_experimental_ctrl_g+set}" = set; then
+  enableval=$enable_cocoa_experimental_ctrl_g; EN_COCOA_EXPERIMENTAL_CTRL_G=yes
+else
+  EN_COCOA_EXPERIMENTAL_CTRL_G=no
+fi
+
+
+# Check whether --enable-ns-self-contained was given.
+if test "${enable_ns_self_contained+set}" = set; then
+  enableval=$enable_ns_self_contained; EN_NS_SELF_CONTAINED=no
+else
+  EN_NS_SELF_CONTAINED=yes
 fi
 
 
@@ -2384,6 +2416,7 @@ case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
       arm*-*-freebsd*)          machine=arm ;;
       ia64-*-freebsd*)		machine=ia64 ;;
+      sparc-*-freebsd*)         machine=sparc ;;
       sparc64-*-freebsd*)	machine=sparc ;;
       powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
@@ -2397,6 +2430,7 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*-*-kfreebsd*)	machine=alpha ;;
       ia64-*-kfreebsd*)		machine=ia64 ;;
+      sparc-*-kfreebsd*)	machine=sparc ;;
       sparc64-*-kfreebsd*)	machine=sparc ;;
       powerpc-*-kfreebsd*)	machine=macppc ;;
       i[3456]86-*-kfreebsd*)	machine=intel386 ;;
@@ -2462,7 +2496,7 @@ _ACEOF
   *-apple-darwin* )
     case "${canonical}" in
       i[3456]86-* )  machine=intel386 ;;
-      powerpc-* )    machine=powermac ;;
+      powerpc-* )    machine=macppc ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
@@ -2530,7 +2564,7 @@ _ACEOF
     machine=sparc opsys=gnu-linux
   ;;
 
-  *-auspex-sunos* | *-sun-sunos* | *-sun-bsd* | *-sun-solaris* \
+  *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
     | rs6000-*-solaris2*)
     case "${canonical}" in
@@ -9291,22 +9325,182 @@ if test $ac_cv_header_Carbon_Carbon_h = yes; then
 fi
 
 
+  test "${HAVE_CARBON}" = yes && window_system=mac
 fi
-if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
-  if test "${with_carbon+set}" != set \
-     && test "${carbon_appdir_x+set}" != set; then
-    for var in with_x with_x_toolkit with_xim \
-               with_xpm with_jpeg with_tiff with_gif with_png; do
-      if eval test \"\${$var+set}\" = set; then
-        HAVE_CARBON=no
-        break
-      fi
-    done
+
+HAVE_NS=no
+NS_IMPL_COCOA=no
+NS_IMPL_GNUSTEP=no
+tmp_CPPFLAGS="$CPPFLAGS"
+tmp_CFLAGS="$CFLAGS"
+CPPFLAGS="$CPPFLAGS -x objective-c"
+CFLAGS="$CFLAGS -x objective-c"
+if test "${with_ns}" != no; then
+  if test "${opsys}" = darwin; then
+     NS_IMPL_COCOA=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
+  elif test -f /etc/GNUstep/GNUstep.conf; then
+     NS_IMPL_GNUSTEP=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_MAKEFILES)"
+     GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
+     GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+  fi
+  if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
+  { echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
+echo $ECHO_N "checking for AppKit/AppKit.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_AppKit_AppKit_h" >&5
+echo "${ECHO_T}$ac_cv_header_AppKit_AppKit_h" >&6; }
+else
+  # Is the header compilable?
+{ echo "$as_me:$LINENO: checking AppKit/AppKit.h usability" >&5
+echo $ECHO_N "checking AppKit/AppKit.h usability... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <AppKit/AppKit.h>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (ac_try="$ac_compile"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_compile") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest.$ac_objext; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_header_compiler=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ echo "$as_me:$LINENO: checking AppKit/AppKit.h presence" >&5
+echo $ECHO_N "checking AppKit/AppKit.h presence... $ECHO_C" >&6; }
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <AppKit/AppKit.h>
+_ACEOF
+if { (ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+
+rm -f conftest.err conftest.$ac_ext
+{ echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h: present but cannot be compiled" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: AppKit/AppKit.h: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: AppKit/AppKit.h: in the future, the compiler will take precedence" >&2;}
+
+    ;;
+esac
+{ echo "$as_me:$LINENO: checking for AppKit/AppKit.h" >&5
+echo $ECHO_N "checking for AppKit/AppKit.h... $ECHO_C" >&6; }
+if test "${ac_cv_header_AppKit_AppKit_h+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_cv_header_AppKit_AppKit_h=$ac_header_preproc
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_header_AppKit_AppKit_h" >&5
+echo "${ECHO_T}$ac_cv_header_AppKit_AppKit_h" >&6; }
+
+fi
+if test $ac_cv_header_AppKit_AppKit_h = yes; then
+  HAVE_NS=yes
+fi
+
+
+fi
+if test "${HAVE_NS}" = yes; then
+  test "${window_system}" = mac && HAVE_CARBON=no
+  window_system=nextstep
+  with_xft=no
+  with_freetype=no
+  # set up packaging dirs
+  exec_prefix=${ns_appbindir}
+  libexecdir=${ns_appbindir}/libexec
+  if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     prefix=${ns_appresdir}
   fi
 fi
-if test "${HAVE_CARBON}" = yes; then
-  window_system=mac
-fi
+CFLAGS="$tmp_CFLAGS"
+CPPFLAGS="$tmp_CPPFLAGS"
 
 case "${window_system}" in
   x11 )
@@ -9321,7 +9515,7 @@ case "${window_system}" in
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  mac | none )
+  nextstep | mac | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -9395,9 +9589,6 @@ HAVE_MENUS=no
 case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
-
-### Compute the unexec source name from the object name.
-UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
 
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
@@ -12316,6 +12507,12 @@ _ACEOF
 _ACEOF
 
     USE_TOOLKIT_SCROLL_BARS=yes
+  elif test "${HAVE_NS}" = "yes"; then
+    cat >>confdefs.h <<\_ACEOF
+#define USE_TOOLKIT_SCROLL_BARS 1
+_ACEOF
+
+    USE_TOOLKIT_SCROLL_BARS=yes
   fi
 fi
 
@@ -14943,6 +15140,38 @@ done
   # We also have mouse menus.
   HAVE_MENUS=yes
 fi
+### Use NeXTstep API to implement GUI.
+if test "${HAVE_NS}" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_NS 1
+_ACEOF
+
+  if test "${NS_IMPL_COCOA}" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define NS_IMPL_COCOA 1
+_ACEOF
+
+  fi
+  if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define COCOA_EXPERIMENTAL_CTRL_G 1
+_ACEOF
+
+  fi
+  if test "${NS_IMPL_GNUSTEP}" = "yes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define NS_IMPL_GNUSTEP 1
+_ACEOF
+
+  fi
+  # We also have mouse menus.
+  HAVE_MENUS=yes
+fi
+
 
 ### Use session management (-lSM -lICE) if available
 HAVE_X_SM=no
@@ -16688,7 +16917,6 @@ cat >>conftest.$ac_ext <<_ACEOF
 # endif
 #endif
 
-#include <limits.h>
 #include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
@@ -16837,15 +17065,12 @@ main ()
      isn't worth using anyway.  */
   alarm (60);
 
-  for (;;)
-    {
-      t = (time_t_max << 1) + 1;
-      if (t <= time_t_max)
-	break;
-      time_t_max = t;
-    }
-  time_t_min = - ((time_t) ~ (time_t) 0 == (time_t) -1) - time_t_max;
-
+  for (time_t_max = 1; 0 < time_t_max; time_t_max *= 2)
+    continue;
+  time_t_max--;
+  if ((time_t) -1 < 0)
+    for (time_t_min = -1; (time_t) (time_t_min * 2) < 0; time_t_min *= 2)
+      continue;
   delta = time_t_max / 997; /* a suitable prime number */
   for (i = 0; i < N_STRINGS; i++)
     {
@@ -16860,12 +17085,10 @@ main ()
 	     && mktime_test ((time_t) (60 * 60 * 24))))
 	return 1;
 
-      for (j = 1; ; j <<= 1)
+      for (j = 1; 0 < j; j *= 2)
 	if (! bigtime_test (j))
 	  return 1;
-	else if (INT_MAX / 2 < j)
-	  break;
-      if (! bigtime_test (INT_MAX))
+      if (! bigtime_test (j - 1))
 	return 1;
     }
   return ! (irix_6_4_bug () && spring_forward_gap () && year_2050_test ());
@@ -18774,13 +18997,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18820,13 +19041,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -19970,7 +20189,7 @@ _ACEOF
 fi
 
 # Do we need the Hesiod library to provide the support routines?
-if test "$with_hesiod" = yes ; then
+if test "$with_hesiod" != no ; then
   # Don't set $LIBS here -- see comments above.
   { echo "$as_me:$LINENO: checking for res_send" >&5
 echo $ECHO_N "checking for res_send... $ECHO_C" >&6; }
@@ -20449,7 +20668,7 @@ _ACEOF
 fi
 
 # These tell us which Kerberos-related libraries to use.
-if test "${with_kerberos+set}" = set; then
+if test "${with_kerberos}" != no; then
 
 { echo "$as_me:$LINENO: checking for com_err in -lcom_err" >&5
 echo $ECHO_N "checking for com_err in -lcom_err... $ECHO_C" >&6; }
@@ -20734,7 +20953,7 @@ _ACEOF
 
 fi
 
-  if test "${with_kerberos5+set}" != set; then
+  if test "${with_kerberos5}" = no; then
 
 { echo "$as_me:$LINENO: checking for des_cbc_encrypt in -ldes425" >&5
 echo $ECHO_N "checking for des_cbc_encrypt in -ldes425... $ECHO_C" >&6; }
@@ -21023,7 +21242,7 @@ fi
 
   fi
 
-  if test "${with_kerberos5+set}" = set; then
+  if test "${with_kerberos5}" != no; then
 
 for ac_header in krb5.h
 do
@@ -23963,6 +24182,11 @@ fi
 
 
 
+
+
+
+
+
 cat >>confdefs.h <<_ACEOF
 #define EMACS_CONFIGURATION "${canonical}"
 _ACEOF
@@ -24106,12 +24330,11 @@ echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 
-if test "${USE_FONT_BACKEND}" = "yes"; then
-  echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
-  echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
-  echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
-  echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
-fi
+echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
+echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
+echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
+echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
@@ -24137,7 +24360,23 @@ if test "$HAVE_CARBON" = "yes"; then
    echo
    echo "Warning: The Mac Carbon port is currently unsupported and has
 known problems.  It is not recommended for use by non-developers.
+The NeXTstep port (--with-ns) is an alternative.
 Read the emacs-devel archives for more information."
+   echo
+fi
+
+if test "$HAVE_NS" = "yes"; then
+   echo
+   echo "You must run \"make install\" in order to test the built application.
+The installed application will go to nextstep/Emacs.app and can be
+run or moved from there."
+   if test "$EN_NS_SELF_CONTAINED" = "yes"; then
+      echo "The application will be fully self-contained."
+    else
+      echo "The lisp resources for the application will be installed under ${prefix}.
+You may need to run \"make install\" with sudo.  The application will fail
+to run if these resources are not installed."
+   fi
    echo
 fi
 
@@ -24985,10 +25224,15 @@ X_TOOLKIT_TYPE!$X_TOOLKIT_TYPE$ac_delim
 machfile!$machfile$ac_delim
 opsysfile!$opsysfile$ac_delim
 carbon_appdir!$carbon_appdir$ac_delim
+ns_appdir!$ns_appdir$ac_delim
+ns_appbindir!$ns_appbindir$ac_delim
+ns_appresdir!$ns_appresdir$ac_delim
+ns_appsrc!$ns_appsrc$ac_delim
+GNUSTEP_MAKEFILES!$GNUSTEP_MAKEFILES$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 22; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 27; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -25448,9 +25692,6 @@ if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
-
-# This is how we know whether to re-run configure in certain cases.
-touch src/config.stamp
 
  ;;
 

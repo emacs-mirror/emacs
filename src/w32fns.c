@@ -75,6 +75,7 @@ extern double atof ();
 extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
 extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
 extern void w32_free_menu_strings P_ ((HWND));
+extern const char *map_w32_filename P_ ((const char *, const char **));
 
 extern int quit_char;
 
@@ -149,10 +150,6 @@ static int w32_pass_multimedia_buttons_to_system;
 
 /* Non nil if no window manager is in use.  */
 Lisp_Object Vx_no_window_manager;
-
-/* Non-zero means we're allowed to display a hourglass pointer.  */
-
-int display_hourglass_p;
 
 /* If non-zero, a w32 timer that, when it expires, displays an
    hourglass cursor on all frames.  */
@@ -310,8 +307,8 @@ extern void syms_of_w32uniscribe ();
 extern int uniscribe_available;
 
 /* Function prototypes for hourglass support.  */
-static void show_hourglass P_ ((struct frame *));
-static void hide_hourglass P_ ((void));
+static void w32_show_hourglass P_ ((struct frame *));
+static void w32_hide_hourglass P_ ((void));
 
 
 
@@ -1984,32 +1981,8 @@ void x_set_scroll_bar_default_width (f)
 }
 
 
-/* Subroutines of creating a frame.  */
+/* Subroutines for creating a frame.  */
 
-
-/* Return the value of parameter PARAM.
-
-   First search ALIST, then Vdefault_frame_alist, then the X defaults
-   database, using ATTRIBUTE as the attribute name and CLASS as its class.
-
-   Convert the resource to the type specified by desired_type.
-
-   If no default is specified, return Qunbound.  If you call
-   w32_get_arg, make sure you deal with Qunbound in a reasonable way,
-   and don't let it get stored in any Lisp-visible variables!  */
-
-static Lisp_Object
-w32_get_arg (alist, param, attribute, class, type)
-     Lisp_Object alist, param;
-     char *attribute;
-     char *class;
-     enum resource_types type;
-{
-  return x_get_arg (check_x_display_info (Qnil),
-		    alist, param, attribute, class, type);
-}
-
-
 Cursor
 w32_load_cursor (LPCTSTR name)
 {
@@ -2073,6 +2046,7 @@ w32_createwindow (f)
   RECT rect;
   Lisp_Object top = Qunbound;
   Lisp_Object left = Qunbound;
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
 
   rect.left = rect.top = 0;
   rect.right = FRAME_PIXEL_WIDTH (f);
@@ -2097,8 +2071,8 @@ w32_createwindow (f)
     {
       /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
 	 for anything that is not a number and is not Qunbound.  */
-      left = w32_get_arg (Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
-      top = w32_get_arg (Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+      left = x_get_arg (dpyinfo, Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
+      top = x_get_arg (dpyinfo, Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
     }
 
   FRAME_W32_WINDOW (f) = hwnd
@@ -3506,7 +3480,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	{
 	  KillTimer (hwnd, hourglass_timer);
 	  hourglass_timer = 0;
-	  show_hourglass (x_window_to_frame (dpyinfo, hwnd));
+	  w32_show_hourglass (x_window_to_frame (dpyinfo, hwnd));
 	}
       return 0;
 
@@ -4139,11 +4113,12 @@ x_icon (f, parms)
      Lisp_Object parms;
 {
   Lisp_Object icon_x, icon_y;
+  struct w32_display_info *dpyinfo = &one_w32_display_info;
 
   /* Set the position of the icon.  Note that Windows 95 groups all
      icons in the tray.  */
-  icon_x = w32_get_arg (parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
-  icon_y = w32_get_arg (parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
+  icon_x = x_get_arg (dpyinfo, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
+  icon_y = x_get_arg (dpyinfo, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
       CHECK_NUMBER (icon_x);
@@ -4160,7 +4135,7 @@ x_icon (f, parms)
 #if 0 /* TODO */
   /* Start up iconic or window? */
   x_wm_set_window_state
-    (f, (EQ (w32_get_arg (parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL), Qicon)
+    (f, (EQ (x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL), Qicon)
 	 ? IconicState
 	 : NormalState));
 
@@ -4301,8 +4276,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object parent;
   struct kboard *kb;
 
-  check_w32 ();
-
   /* Make copy of frame parameters because the original is in pure
      storage now. */
   parameters = Fcopy_alist (parameters);
@@ -4311,7 +4284,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = w32_get_arg (parameters, Qdisplay, 0, 0, RES_TYPE_STRING);
+  display = x_get_arg (dpyinfo, parameters, Qterminal, 0, 0, RES_TYPE_NUMBER);
+  if (EQ (display, Qunbound))
+    display = x_get_arg (dpyinfo, parameters, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
@@ -4321,7 +4296,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   kb = &the_only_kboard;
 #endif
 
-  name = w32_get_arg (parameters, Qname, "name", "Name", RES_TYPE_STRING);
+  if (!dpyinfo->terminal->name)
+    error ("Terminal is not live, can't create new frames on it");
+
+  name = x_get_arg (dpyinfo, parameters, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -4331,7 +4309,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     Vx_resource_name = name;
 
   /* See if parent window is specified.  */
-  parent = w32_get_arg (parameters, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
+  parent = x_get_arg (dpyinfo, parameters, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
@@ -4342,7 +4320,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
   GCPRO4 (parameters, parent, name, frame);
-  tem = w32_get_arg (parameters, Qminibuffer, "minibuffer", "Minibuffer",
+  tem = x_get_arg (dpyinfo, parameters, Qminibuffer, "minibuffer", "Minibuffer",
                      RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
@@ -4372,17 +4350,21 @@ This function is an internal primitive--use `make-frame' instead.  */)
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
   bzero (f->output_data.w32, sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
-  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
-    = w32_get_arg (parameters, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
+    = x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
+                   RES_TYPE_STRING);
   if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
-#ifdef MULTI_KBOARD
-  FRAME_KBOARD (f) = kb;
-#endif
+
+  /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  record_unwind_protect (unwind_create_frame, frame);
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 
   /* Specify the parent under which to make this window.  */
 
@@ -4426,14 +4408,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_font_parameter (f, parameters);
   x_default_parameter (f, parameters, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
-  /* This defaults to 2 in order to match xterm.  We recognize either
-     internalBorderWidth or internalBorder (which is what xterm calls
-     it).  */
+
+  /* We recognize either internalBorderWidth or internalBorder 
+     (which is what xterm calls it).  */
   if (NILP (Fassq (Qinternal_border_width, parameters)))
     {
       Lisp_Object value;
 
-      value = w32_get_arg (parameters, Qinternal_border_width,
+      value = x_get_arg (dpyinfo, parameters, Qinternal_border_width,
                            "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qinternal_border_width, value),
@@ -4500,7 +4482,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   window_prompting = x_figure_window_size (f, parameters, 1);
 
-  tem = w32_get_arg (parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
+  tem = x_get_arg (dpyinfo, parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   w32_window (f, window_prompting, minibuffer_only);
@@ -4552,7 +4534,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       Lisp_Object visibility;
 
-      visibility = w32_get_arg (parameters, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
+      visibility = x_get_arg (dpyinfo, parameters, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
       if (EQ (visibility, Qunbound))
 	visibility = Qt;
 
@@ -5246,20 +5228,15 @@ value.  */)
 				Busy cursor
  ***********************************************************************/
 
-/* Non-zero means an hourglass cursor is currently shown.  */
-
-static int hourglass_shown_p;
-
-/* Number of seconds to wait before displaying an hourglass cursor.  */
-
-static Lisp_Object Vhourglass_delay;
-
 /* Default number of seconds to wait before displaying an hourglass
-   cursor.  */
-
+   cursor.  Duplicated from xdisp.c, but cannot use the version there
+   due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
+extern Lisp_Object Vhourglass_delay;
 
 /* Return non-zero if houglass timer has been started or hourglass is shown.  */
+/* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
+   	    xdisp.c could be used. */
 
 int
 hourglass_started ()
@@ -5315,7 +5292,7 @@ cancel_hourglass ()
     }
 
   if (hourglass_shown_p)
-    hide_hourglass ();
+    w32_hide_hourglass ();
 }
 
 
@@ -5325,7 +5302,7 @@ cancel_hourglass ()
    to indicate that an hourglass cursor is shown.  */
 
 static void
-show_hourglass (f)
+w32_show_hourglass (f)
      struct frame *f;
 {
   if (!hourglass_shown_p)
@@ -5341,7 +5318,7 @@ show_hourglass (f)
 /* Hide the hourglass cursor on all frames, if it is currently shown.  */
 
 static void
-hide_hourglass ()
+w32_hide_hourglass ()
 {
   if (hourglass_shown_p)
     {
@@ -5441,7 +5418,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 #endif
 
   /* Get the name of the frame to use for resource lookup.  */
-  name = w32_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
+  name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && !EQ (name, Qunbound)
       && !NILP (name))
@@ -5531,7 +5508,7 @@ x_create_tip_frame (dpyinfo, parms, text)
     {
       Lisp_Object value;
 
-      value = w32_get_arg (parms, Qinternal_border_width,
+      value = x_get_arg (dpyinfo, parms, Qinternal_border_width,
 			 "internalBorder", "internalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
@@ -5611,7 +5588,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     /* Set tip_frame here, so that */
     tip_frame = frame;
-    call1 (Qface_set_after_frame_default, frame);
+    call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
@@ -7163,15 +7140,6 @@ This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
-  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
-	       doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
-  display_hourglass_p = 1;
-
-  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
-	       doc: /* *Seconds to wait before displaying an hourglass pointer.
-Value must be an integer or float.  */);
-  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
-
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	       &Vx_sensitive_text_pointer_shape,
 	       doc: /* The shape of the pointer when over mouse-sensitive text.
@@ -7287,7 +7255,7 @@ only be necessary if the default setting causes problems.  */);
 
   hourglass_timer = 0;
   hourglass_hwnd = NULL;
-  hourglass_shown_p = 0;
+
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   tip_timer = Qnil;

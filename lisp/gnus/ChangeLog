@@ -1,7 +1,24 @@
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (ns-focus-frame): Declare for compiler.
+
+2008-07-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-save): Ignore gnus-visible-headers that is
+	set as a group parameter.
+	(gnus-summary-save-in-pipe): Work when it is called independently.
+	(gnus-summary-pipe-to-muttprint): Don't modify
+	gnus-summary-pipe-output-default-command.
+
+2008-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-send-mail-with-sendmail):
+	Display the error message.
+
 2008-07-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-default-article-saver): Add
-	gnus-summary-save-in-pipe to choices.
+	* gnus-art.el (gnus-default-article-saver):
+	Add gnus-summary-save-in-pipe to choices.
 	(gnus-summary-save-in-pipe): Add :decode and :headers properties; use
 	gnus-summary-pipe-output-default-command as the default command.
 	(gnus-summary-pipe-to-muttprint): Update gnus-summary-muttprint-program
@@ -49,10 +66,6 @@
 	* gnus-sum.el (gnus-summary-set-display-table):
 	Use `gnus-put-display-table', `gnus-get-display-table',
 	`gnus-set-display-table' for the display table, instead of `aset'.
-
-	* gnus-xmas.el (gnus-xmas-summary-set-display-table):
-	Use `gnus-put-display-table', `gnus-get-display-table',
-	`gnus-set-display-table' for the display table.
 
 2008-06-14  Reiner Steib  <Reiner.Steib@gmx.de>
 

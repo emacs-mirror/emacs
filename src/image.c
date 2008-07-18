@@ -131,6 +131,32 @@ typedef struct mac_bitmap_record Bitmap_Record;
 #endif /* MAC_OS */
 
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#undef COLOR_TABLE_SUPPORT
+
+typedef struct ns_bitmap_record Bitmap_Record;
+
+#define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
+#define NO_PIXMAP 0
+
+#define RGB_PIXEL_COLOR unsigned long
+#define ZPixmap 0
+
+#define PIX_MASK_RETAIN	0
+#define PIX_MASK_DRAW	1
+
+#define FRAME_X_VISUAL FRAME_NS_DISPLAY_INFO(f)->visual
+#define x_defined_color(f, name, color_def, alloc) \
+  ns_defined_color (f, name, color_def, alloc, 0)
+#define FRAME_X_SCREEN(f) 0
+#define DefaultDepthOfScreen(screen) ns_display_list->n_planes
+#endif /* HAVE_NS */
+
+
 /* Search path for bitmap files.  */
 
 Lisp_Object Vx_bitmap_file_path;
@@ -403,6 +429,33 @@ mac_create_cg_image_from_image (f, img)
 #endif /* USE_CG_DRAWING */
 #endif /* MAC_OS */
 
+#ifdef HAVE_NS
+XImagePtr
+XGetImage (Display *display, Pixmap pixmap, int x, int y,
+           unsigned int width, unsigned int height,
+           unsigned long plane_mask, int format)
+{
+  /* TODO: not sure what this function is supposed to do.. */
+  ns_retain_object(pixmap);
+  return pixmap;
+}
+
+/* use with imgs created by ns_image_for_XPM */
+unsigned long
+XGetPixel (XImagePtr ximage, int x, int y)
+{
+  return ns_get_pixel(ximage, x, y);
+}
+
+/* use with imgs created by ns_image_for_XPM; alpha set to 1;
+   pixel is assumed to be in form RGB */
+void
+XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
+{
+  ns_put_pixel(ximage, x, y, pixel);
+}
+#endif /* HAVE_NS */
+
 
 /* Functions to access the contents of a bitmap, given an id.  */
 
@@ -519,11 +572,22 @@ x_create_bitmap_from_data (f, bits, width, height)
     return -1;
 #endif
 
+#ifdef HAVE_NS
+  void *bitmap = ns_image_from_XBM(bits, width, height);
+  if (!bitmap)
+      return -1;
+#endif
+
   id = x_allocate_bitmap_record (f);
 #ifdef MAC_OS
   dpyinfo->bitmaps[id - 1].bitmap_data = (char *) xmalloc (height * width);
   bcopy (bits, dpyinfo->bitmaps[id - 1].bitmap_data, height * width);
 #endif  /* MAC_OS */
+
+#ifdef HAVE_NS
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].depth = 1;
+#endif
 
   dpyinfo->bitmaps[id - 1].file = NULL;
   dpyinfo->bitmaps[id - 1].height = height;
@@ -552,6 +616,8 @@ x_create_bitmap_from_file (f, file)
      struct frame *f;
      Lisp_Object file;
 {
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
 #ifdef MAC_OS
   return -1;  /* MAC_TODO : bitmap support */
 #endif  /* MAC_OS */
@@ -560,8 +626,26 @@ x_create_bitmap_from_file (f, file)
   return -1;  /* W32_TODO : bitmap support */
 #endif /* HAVE_NTGUI */
 
+#ifdef HAVE_NS
+  int id;
+  void *bitmap = ns_image_from_file(file);
+
+  if (!bitmap)
+      return -1;
+
+
+  id = x_allocate_bitmap_record (f);
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (SBYTES (file) + 1);
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].height = ns_image_width(bitmap);
+  dpyinfo->bitmaps[id - 1].width = ns_image_height(bitmap);
+  strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
+  return id;
+#endif
+
 #ifdef HAVE_X_WINDOWS
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   unsigned int width, height;
   Pixmap bitmap;
   int xhot, yhot, result, id;
@@ -629,6 +713,10 @@ free_bitmap_record (dpyinfo, bm)
   xfree (bm->bitmap_data);  /* Added ++kfs */
   bm->bitmap_data = NULL;
 #endif  /* MAC_OS */
+
+#ifdef HAVE_NS
+  ns_release_object(bm->img);
+#endif
 
   if (bm->file)
     {
@@ -1407,7 +1495,8 @@ image_ascent (img, face, slice)
 	     because a typical font is `top-heavy' (due to the presence
 	     uppercase letters), so the image placement should err towards
 	     being top-heavy too.  It also just generally looks better.  */
-	  ascent = (height + face->font->ascent - face->font->descent + 1) / 2;
+	  ascent = (height + FONT_BASE(face->font)
+                    - FONT_DESCENT(face->font) + 1) / 2;
 #endif /* HAVE_NTGUI */
 	}
       else
@@ -1476,6 +1565,14 @@ four_corners_best (ximg, corners, width, height)
 #define Free_Pixmap(display, pixmap) \
   DeleteObject (pixmap)
 
+#elif defined (HAVE_NS)
+
+#define Destroy_Image(ximg, dummy) \
+  ns_release_object(ximg)
+
+#define Free_Pixmap(display, pixmap) \
+  ns_release_object(pixmap)
+
 #else
 
 #define Destroy_Image(ximg, dummy) \
@@ -1484,7 +1581,7 @@ four_corners_best (ximg, corners, width, height)
 #define Free_Pixmap(display, pixmap) \
   XFreePixmap (display, pixmap)
 
-#endif /* HAVE_NTGUI */
+#endif /* !HAVE_NTGUI && !HAVE_NS */
 
 
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
@@ -1607,6 +1704,10 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
     {
       Free_Pixmap (FRAME_X_DISPLAY (f), img->pixmap);
       img->pixmap = NO_PIXMAP;
+#ifdef HAVE_NS
+      if (img->background_valid)
+        ns_free_indexed_color(img->background);
+#endif
       img->background_valid = 0;
     }
 
@@ -2387,6 +2488,18 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
   return 1;
 
 #endif  /* MAC_OS */
+
+#ifdef HAVE_NS
+  *pixmap = ns_image_for_XPM(width, height, depth);
+  if (*pixmap == 0)
+    {
+      *ximg = NULL;
+      image_error ("Unable to allocate NSImage for XPM pixmap", Qnil, Qnil);
+      return 0;
+    }
+  *ximg = *pixmap;
+  return 1;
+#endif
 }
 
 
@@ -2412,6 +2525,9 @@ x_destroy_x_image (ximg)
 #ifdef MAC_OS
       XDestroyImage (ximg);
 #endif /* MAC_OS */
+#ifdef HAVE_NS
+      ns_release_object(ximg);
+#endif /* HAVE_NS */
     }
 }
 
@@ -2446,6 +2562,11 @@ x_put_x_image (f, ximg, pixmap, width, height)
 #ifdef MAC_OS
   xassert (ximg == pixmap);
 #endif  /* MAC_OS */
+
+#ifdef HAVE_NS
+  xassert (ximg == pixmap);
+  ns_retain_object(ximg);
+#endif
 }
 
 
@@ -3499,6 +3620,10 @@ Create_Pixmap_From_Bitmap_Data (f, img, data, fg, bg, non_default_colors)
   /* If colors were specified, transfer the bitmap to a color one.  */
   if (non_default_colors)
     convert_mono_to_color_image (f, img, fg, bg);
+
+#elif defined (HAVE_NS)
+  img->pixmap = ns_image_from_XBM(data, img->width, img->height);
+
 #else
   img->pixmap
     = XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
@@ -3507,7 +3632,7 @@ Create_Pixmap_From_Bitmap_Data (f, img, data, fg, bg, non_default_colors)
 				   img->width, img->height,
 				   fg, bg,
 				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
-#endif /* HAVE_NTGUI */
+#endif /* !HAVE_NTGUI && !HAVE_NS */
 }
 
 
@@ -3891,13 +4016,13 @@ xbm_load (f, img)
 			      XPM images
  ***********************************************************************/
 
-#if defined (HAVE_XPM) || defined (MAC_OS)
+#if defined (HAVE_XPM) || defined (MAC_OS) || defined (HAVE_NS)
 
 static int xpm_image_p P_ ((Lisp_Object object));
 static int xpm_load P_ ((struct frame *f, struct image *img));
 static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 
-#endif /* HAVE_XPM || MAC_OS */
+#endif /* HAVE_XPM || MAC_OS || HAVE_NS */
 
 #ifdef HAVE_XPM
 #ifdef HAVE_NTGUI
@@ -3920,7 +4045,7 @@ static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 #endif /* HAVE_NTGUI */
 #endif /* HAVE_XPM */
 
-#if defined (HAVE_XPM) || defined (MAC_OS)
+#if defined (HAVE_XPM) || defined (MAC_OS) || defined (HAVE_NS)
 /* The symbol `xpm' identifying XPM-format images.  */
 
 Lisp_Object Qxpm;
@@ -4247,7 +4372,7 @@ xpm_image_p (object)
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
 
-#endif /* HAVE_XPM || MAC_OS */
+#endif /* HAVE_XPM || MAC_OS || HAVE_NS */
 
 #if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
 int
@@ -4526,7 +4651,7 @@ xpm_load (f, img)
 
 #endif /* HAVE_XPM */
 
-#ifdef MAC_OS
+#if defined (MAC_OS) || ( defined (HAVE_NS) && !defined (HAVE_XPM) )
 
 /* XPM support functions for Mac OS where libxpm is not available.
    Only XPM version 3 (without any extensions) is supported.  */
@@ -4884,8 +5009,11 @@ xpm_load_image (f, img, contents, end)
 
   if (!x_create_x_image_and_pixmap (f, width, height, 0,
 				    &ximg, &img->pixmap)
+#ifndef HAVE_NS
       || !x_create_x_image_and_pixmap (f, width, height, 1,
-				       &mask_img, &img->mask))
+				       &mask_img, &img->mask)
+#endif
+      )
     {
       image_error ("Out of memory (%s)", img->spec, Qnil);
       goto error;
@@ -4905,9 +5033,14 @@ xpm_load_image (f, img, contents, end)
 	  XPutPixel (ximg, x, y,
 		     (INTEGERP (color_val) ? XINT (color_val)
 		      : FRAME_FOREGROUND_PIXEL (f)));
+#ifndef HAVE_NS
 	  XPutPixel (mask_img, x, y,
 		     (!EQ (color_val, Qt) ? PIX_MASK_DRAW
 		      : (have_mask = 1, PIX_MASK_RETAIN)));
+#else
+          if (EQ(color_val, Qt))
+            ns_set_alpha(ximg, x, y, 0);
+#endif
 	}
       if (y + 1 < height)
 	expect (',');
@@ -4922,6 +5055,7 @@ xpm_load_image (f, img, contents, end)
 
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
+#ifndef HAVE_NS
   if (have_mask)
     {
       /* Fill in the background_transparent field while we have the
@@ -4937,7 +5071,7 @@ xpm_load_image (f, img, contents, end)
       Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
       img->mask = NO_PIXMAP;
     }
-
+#endif
   return 1;
 
  failure:
@@ -5003,7 +5137,7 @@ xpm_load (f, img)
   return success_p;
 }
 
-#endif /* MAC_OS */
+#endif /* MAC_OS || (HAVE_NS && !HAVE_XPM) */
 
 
 
@@ -5273,6 +5407,9 @@ lookup_rgb_color (f, r, g, b)
   pixel = PALETTERGB (r >> 8, g >> 8, b >> 8);
 #endif /* HAVE_NTGUI */
 
+#ifdef HAVE_NS
+  pixel = RGB_TO_ULONG (r >> 8, g >> 8, b >> 8);
+#endif /* HAVE_NS */
   return pixel;
 }
 
@@ -5378,7 +5515,7 @@ x_to_xcolors (f, img, rgb_p)
 	  p->pixel = GET_PIXEL (ximg, x, y);
 	  if (rgb_p)
 	    {
-#ifdef MAC_OS
+#if defined (MAC_OS) || defined (HAVE_NS)
 	      p->red = RED16_FROM_ULONG (p->pixel);
 	      p->green = GREEN16_FROM_ULONG (p->pixel);
 	      p->blue = BLUE16_FROM_ULONG (p->pixel);
@@ -5459,8 +5596,8 @@ x_from_xcolors (f, img, colors)
      XColor *colors;
 {
   int x, y;
-  XImagePtr oimg;
-  Pixmap pixmap;
+  XImagePtr oimg = NULL;
+  Pixmap pixmap = NULL;
   XColor *p;
 
   init_color_table ();
@@ -5673,6 +5810,8 @@ x_disable_image (f, img)
       Display *dpy = FRAME_X_DISPLAY (f);
       GC gc;
 
+#ifndef HAVE_NS  //TODO: NS support, however this not needed for toolbars
+
 #ifdef MAC_OS
 #define MaskForeground(f)  PIX_MASK_DRAW
 #else
@@ -5697,6 +5836,7 @@ x_disable_image (f, img)
 		     img->width - 1, 0);
 	  XFreeGC (dpy, gc);
 	}
+#endif /* !HAVE_NS */
 #else
       HDC hdc, bmpdc;
       HGDIOBJ prev;
@@ -5762,11 +5902,13 @@ x_build_heuristic_mask (f, img, how)
     }
 
 #ifndef HAVE_NTGUI
+#ifndef HAVE_NS
   /* Create an image and pixmap serving as mask.  */
   rc = x_create_x_image_and_pixmap (f, img->width, img->height, 1,
 				    &mask_img, &img->mask);
   if (!rc)
     return 0;
+#endif /* !HAVE_NS */
 
   /* Get the X image of IMG->pixmap.  */
   ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap, 0, 0,
@@ -5820,16 +5962,21 @@ x_build_heuristic_mask (f, img, how)
 #ifndef HAVE_NTGUI
   for (y = 0; y < img->height; ++y)
     for (x = 0; x < img->width; ++x)
+#ifndef HAVE_NS
       XPutPixel (mask_img, x, y, (XGetPixel (ximg, x, y) != bg
 				  ? PIX_MASK_DRAW : PIX_MASK_RETAIN));
-
+#else
+      if (XGetPixel (ximg, x, y) == bg)
+        ns_set_alpha(ximg, x, y, 0);
+#endif /* HAVE_NS */
+#ifndef HAVE_NS
   /* Fill in the background_transparent field while we have the mask handy. */
   image_background_transparent (img, f, mask_img);
 
   /* Put mask_img into img->mask.  */
   x_put_x_image (f, mask_img, img->mask, img->width, img->height);
   x_destroy_x_image (mask_img);
-
+#endif /* !HAVE_NS */
 #else
   for (y = 0; y < img->height; ++y)
     for (x = 0; x < img->width; ++x)
@@ -6280,7 +6427,7 @@ pbm_load (f, img)
 				 PNG
  ***********************************************************************/
 
-#if defined (HAVE_PNG) || defined (MAC_OS)
+#if defined (HAVE_PNG) || defined (MAC_OS) || defined (HAVE_NS)
 
 /* Function prototypes.  */
 
@@ -6352,7 +6499,7 @@ png_image_p (object)
   return fmt[PNG_FILE].count + fmt[PNG_DATA].count == 1;
 }
 
-#endif /* HAVE_PNG || MAC_OS */
+#endif /* HAVE_PNG || MAC_OS || HAVE_NS */
 
 
 #ifdef HAVE_PNG
@@ -6912,6 +7059,17 @@ png_load (f, img)
 }
 #endif  /* MAC_OS */
 
+#ifdef HAVE_NS
+static int
+png_load (struct frame *f, struct image *img)
+{
+  return ns_load_image(f, img,
+                       image_spec_value (img->spec, QCfile, NULL),
+                       image_spec_value (img->spec, QCdata, NULL));
+}
+#endif  /* HAVE_NS */
+
+
 #endif /* !HAVE_PNG */
 
 
@@ -6920,7 +7078,7 @@ png_load (f, img)
 				 JPEG
  ***********************************************************************/
 
-#if defined (HAVE_JPEG) || defined (MAC_OS)
+#if defined (HAVE_JPEG) || defined (MAC_OS) || defined (HAVE_NS)
 
 static int jpeg_image_p P_ ((Lisp_Object object));
 static int jpeg_load P_ ((struct frame *f, struct image *img));
@@ -6991,7 +7149,7 @@ jpeg_image_p (object)
   return fmt[JPEG_FILE].count + fmt[JPEG_DATA].count == 1;
 }
 
-#endif /* HAVE_JPEG || MAC_OS */
+#endif /* HAVE_JPEG || MAC_OS || HAVE_NS */
 
 #ifdef HAVE_JPEG
 
@@ -7491,6 +7649,16 @@ jpeg_load (f, img)
 }
 #endif  /* MAC_OS */
 
+#ifdef HAVE_NS
+static int
+jpeg_load (struct frame *f, struct image *img)
+{
+  return ns_load_image(f, img,
+                       image_spec_value (img->spec, QCfile, NULL),
+                       image_spec_value (img->spec, QCdata, NULL));
+}
+#endif  /* HAVE_NS */
+
 #endif /* !HAVE_JPEG */
 
 
@@ -7499,7 +7667,7 @@ jpeg_load (f, img)
 				 TIFF
  ***********************************************************************/
 
-#if defined (HAVE_TIFF) || defined (MAC_OS)
+#if defined (HAVE_TIFF) || defined (MAC_OS) || defined (HAVE_NS)
 
 static int tiff_image_p P_ ((Lisp_Object object));
 static int tiff_load P_ ((struct frame *f, struct image *img));
@@ -7569,7 +7737,7 @@ tiff_image_p (object)
   return fmt[TIFF_FILE].count + fmt[TIFF_DATA].count == 1;
 }
 
-#endif /* HAVE_TIFF || MAC_OS */
+#endif /* HAVE_TIFF || MAC_OS || HAVE_NS */
 
 #ifdef HAVE_TIFF
 
@@ -7916,6 +8084,16 @@ tiff_load (f, img)
 }
 #endif /* MAC_OS */
 
+#ifdef HAVE_NS
+static int
+tiff_load (struct frame *f, struct image *img)
+{
+  return ns_load_image(f, img,
+                       image_spec_value (img->spec, QCfile, NULL),
+                       image_spec_value (img->spec, QCdata, NULL));
+}
+#endif  /* HAVE_NS */
+
 #endif /* !HAVE_TIFF */
 
 
@@ -7924,7 +8102,7 @@ tiff_load (f, img)
 				 GIF
  ***********************************************************************/
 
-#if defined (HAVE_GIF) || defined (MAC_OS)
+#if defined (HAVE_GIF) || defined (MAC_OS) || defined (HAVE_NS)
 
 static int gif_image_p P_ ((Lisp_Object object));
 static int gif_load P_ ((struct frame *f, struct image *img));
@@ -8552,6 +8730,16 @@ gif_load (f, img)
 #endif	/* !USE_MAC_IMAGE_IO */
 }
 #endif /* MAC_OS */
+
+#ifdef HAVE_NS
+static int
+gif_load (struct frame *f, struct image *img)
+{
+  return ns_load_image(f, img,
+                       image_spec_value (img->spec, QCfile, NULL),
+                       image_spec_value (img->spec, QCdata, NULL));
+}
+#endif /* HAVE_NS */
 
 #endif /* HAVE_GIF */
 
@@ -9335,27 +9523,27 @@ of `image-library-alist', which see).  */)
   if (CONSP (tested))
     return XCDR (tested);
 
-#if defined (HAVE_XPM) || defined (MAC_OS)
+#if defined (HAVE_XPM) || defined (MAC_OS) || defined (HAVE_NS)
   if (EQ (type, Qxpm))
     return CHECK_LIB_AVAILABLE (&xpm_type, init_xpm_functions, libraries);
 #endif
 
-#if defined (HAVE_JPEG) || defined (MAC_OS)
+#if defined (HAVE_JPEG) || defined (MAC_OS) || defined (HAVE_NS)
   if (EQ (type, Qjpeg))
     return CHECK_LIB_AVAILABLE (&jpeg_type, init_jpeg_functions, libraries);
 #endif
 
-#if defined (HAVE_TIFF) || defined (MAC_OS)
+#if defined (HAVE_TIFF) || defined (MAC_OS) || defined (HAVE_NS)
   if (EQ (type, Qtiff))
     return CHECK_LIB_AVAILABLE (&tiff_type, init_tiff_functions, libraries);
 #endif
 
-#if defined (HAVE_GIF) || defined (MAC_OS)
+#if defined (HAVE_GIF) || defined (MAC_OS) || defined (HAVE_NS)
   if (EQ (type, Qgif))
     return CHECK_LIB_AVAILABLE (&gif_type, init_gif_functions, libraries);
 #endif
 
-#if defined (HAVE_PNG) || defined (MAC_OS)
+#if defined (HAVE_PNG) || defined (MAC_OS) || defined (HAVE_NS)
   if (EQ (type, Qpng))
     return CHECK_LIB_AVAILABLE (&png_type, init_png_functions, libraries);
 #endif
@@ -9480,31 +9668,31 @@ non-numeric, there is no explicit limit on the size of images.  */);
   staticpro (&QCpt_height);
 #endif /* HAVE_GHOSTSCRIPT */
 
-#if defined (HAVE_XPM) || defined (MAC_OS)
+#if defined (HAVE_XPM) || defined (MAC_OS) || defined (HAVE_NS)
   Qxpm = intern ("xpm");
   staticpro (&Qxpm);
   ADD_IMAGE_TYPE (Qxpm);
 #endif
 
-#if defined (HAVE_JPEG) || defined (MAC_OS)
+#if defined (HAVE_JPEG) || defined (MAC_OS) || defined (HAVE_NS)
   Qjpeg = intern ("jpeg");
   staticpro (&Qjpeg);
   ADD_IMAGE_TYPE (Qjpeg);
 #endif
 
-#if defined (HAVE_TIFF) || defined (MAC_OS)
+#if defined (HAVE_TIFF) || defined (MAC_OS) || defined (HAVE_NS)
   Qtiff = intern ("tiff");
   staticpro (&Qtiff);
   ADD_IMAGE_TYPE (Qtiff);
 #endif
 
-#if defined (HAVE_GIF) || defined (MAC_OS)
+#if defined (HAVE_GIF) || defined (MAC_OS) || defined (HAVE_NS)
   Qgif = intern ("gif");
   staticpro (&Qgif);
   ADD_IMAGE_TYPE (Qgif);
 #endif
 
-#if defined (HAVE_PNG) || defined (MAC_OS)
+#if defined (HAVE_PNG) || defined (MAC_OS) || defined (HAVE_NS)
   Qpng = intern ("png");
   staticpro (&Qpng);
   ADD_IMAGE_TYPE (Qpng);

@@ -466,7 +466,7 @@ usage: (progn BODY...)  */)
 }
 
 DEFUN ("prog1", Fprog1, Sprog1, 1, UNEVALLED, 0,
-       doc: /* Eval FIRST and BODY sequentially; value from FIRST.
+       doc: /* Eval FIRST and BODY sequentially; return value from FIRST.
 The value of FIRST is saved during the evaluation of the remaining args,
 whose values are discarded.
 usage: (prog1 FIRST BODY...)  */)
@@ -500,7 +500,7 @@ usage: (prog1 FIRST BODY...)  */)
 }
 
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
-       doc: /* Eval FORM1, FORM2 and BODY sequentially; value from FORM2.
+       doc: /* Eval FORM1, FORM2 and BODY sequentially; return value from FORM2.
 The value of FORM2 is saved during the evaluation of the
 remaining args, whose values are discarded.
 usage: (prog2 FORM1 FORM2 BODY...)  */)

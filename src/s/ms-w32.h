@@ -46,54 +46,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_MATHERR 1
 
-/* NOMULTIPLEJOBS should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).  */
-
-/* #define NOMULTIPLEJOBS 1 */
-
-/* Emacs can read input using SIGIO and buffering characters itself,
-   or using CBREAK mode and making C-g cause SIGINT.
-   The choice is controlled by the variable interrupt_input.
-
-   Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
-
-   Emacs uses the presence or absence of the SIGIO macro to indicate
-   whether or not signal-driven I/O is possible.  It uses
-   INTERRUPT_INPUT to decide whether to use it by default.
-
-   SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvantages
-     1) At least in 4.2, it is impossible to handle the Meta key properly.
-	I hear that in system V this problem does not exist.
-     2) Control-G causes output to be discarded.
-	I do not know whether this can be fixed in system V.
-
-   Another method of doing input is planned but not implemented.
-   It would have Emacs fork off a separate process
-   to read the input and send it to the true Emacs process
-   through a pipe. */
-
-/* #define INTERRUPT_INPUT 1 */
-
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
 
 #define FIRST_PTY_LETTER 'a'
-
-/*
- *      Define HAVE_TERMIOS if the system provides POSIX-style
- *      functions and macros for terminal control.
- *
- *      Define HAVE_TERMIO if the system provides sysV-style ioctls
- *      for terminal control.
- *
- *      Do not define both.  HAVE_TERMIOS is preferred, if it is
- *      supported on your system.
- */
-
-/* #define HAVE_TERMIOS 1 */
-/* #define HAVE_TERMIO 1 */
 
 /*
  *      Define HAVE_TIMEVAL if the system supports the BSD style clock values.
@@ -101,25 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #define HAVE_TIMEVAL 1
-
-/*
- *      Define HAVE_SELECT if the system supports the `select' system call.
- */
-
-/* #define HAVE_SELECT 1 */
-
-/*
- *      Define HAVE_PTYS if the system supports pty devices.
- */
-
-/* #define HAVE_PTYS 1 */
-
-/*
- *      Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
 
 /* NT supports Winsock which is close enough (with some hacks) */
 
@@ -168,21 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* #define MAIL_USE_FLOCK */
 #define MAIL_USE_POP 1
 #define MAIL_USE_SYSTEM_LOCK 1
-
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-
-/* #define CLASH_DETECTION 1 */
-
-/* Define this if your operating system declares signal handlers to
-   have a type other than the usual.  `The usual' is `void' for ANSI C
-   systems (i.e. when the __STDC__ macro is defined), and `int' for
-   pre-ANSI systems.  If you're using GCC on an older system, __STDC__
-   will be defined, but the system's include files will still say that
-   signal returns int or whatever; in situations like that, define
-   this to be what the system's include files want.  */
-/* #define SIGTYPE int */
 
 /* If the character used to separate elements of the executable path
    is not ':', #define this to be the appropriate character constant.  */
@@ -296,7 +218,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
-#define HAVE_FACES 1
 #define HAVE_MENUS 1
 #endif
 
@@ -354,17 +275,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* map to MSVC names */
 #define execlp    _execlp
 #define execvp    _execvp
-#define fcloseall _fcloseall
 #define fdopen	  _fdopen
-#define fgetchar  _fgetchar
 #ifndef fileno
 #define fileno	  _fileno
 #endif
-#define flushall  _flushall
-#define fputchar  _fputchar
 #define fsync	  _commit
 #define ftruncate _chsize
-#define getw	  _getw
 #define getpid    _getpid
 #ifdef _MSC_VER
 typedef int pid_t;
@@ -375,7 +291,6 @@ typedef int pid_t;
 #define lseek     _lseek
 #define popen     _popen
 #define pclose    _pclose
-#define putw	  _putw
 #define umask	  _umask
 #define utimbuf	  _utimbuf
 #define index     strchr

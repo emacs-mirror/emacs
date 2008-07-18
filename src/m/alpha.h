@@ -44,22 +44,16 @@ NOTE-END
 #define NO_ARG_ARRAY
 
 /* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
+   does not define it automatically.  */
 
 /* __alpha defined automatically */
 
-
-/* Use type EMACS_INT rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.  */
-#define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
    are always unsigned.
 
-   If you use NO_UNION_TYPE, this flag does not matter.  */
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
@@ -95,17 +89,18 @@ NOTE-END
 # else
 #  error What gives?  Fix me if DEC Unix supports ELF now.
 # endif
-#endif
 
-#ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
-#ifndef LINUX
+#ifndef GNU_LINUX
 #define DATA_START    0x140000000
 #endif
+
+#if (defined (__NetBSD__) || defined (__OpenBSD__))
+#define HAVE_TEXT_START
 #endif
 
-#ifndef __ELF__
+#else  /* not __ELF__ */
 
 /* Describe layout of the address space in an executing process.  */
 
@@ -116,9 +111,9 @@ NOTE-END
 
 #define UNEXEC unexalpha.o
 
-#endif /* notdef __ELF__ */
+#endif /* __ELF__ */
 
-#if defined (LINUX) && __GNU_LIBRARY__ - 0 < 6
+#if defined (GNU_LINUX) && __GNU_LIBRARY__ - 0 < 6
 /* This controls a conditional in main.  */
 #define LINUX_SBRK_BUG
 #endif
@@ -127,16 +122,12 @@ NOTE-END
    termio and struct termios are mutually incompatible.  */
 #define NO_TERMIO
 
-#if defined (LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
+#if defined (GNU_LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
 # define TEXT_END ({ extern int _etext; &_etext; })
 # ifndef __ELF__
 #  define COFF
 #  define DATA_END ({ extern int _EDATA; &_EDATA; })
 # endif /* notdef __ELF__ */
-#endif
-
-#if (defined (__NetBSD__) || defined (__OpenBSD__)) && defined (__ELF__)
-#define HAVE_TEXT_START
 #endif
 
 /* Many Alpha implementations (e.g. gas 2.8) can't handle DBL_MIN:

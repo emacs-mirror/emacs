@@ -3715,7 +3715,8 @@ This format is defined by the `gnus-article-time-format' variable."
     (let ((gnus-visible-headers
 	   (or (symbol-value (get gnus-default-article-saver :headers))
 	       gnus-saved-headers gnus-visible-headers))
-	  (gnus-article-buffer save-buffer))
+	  ;; Ignore group parameter.  See `article-hide-headers'.
+	  (gnus-summary-buffer nil))
       (with-current-buffer save-buffer
 	(article-hide-headers 1 t))))
   (save-window-excursion
@@ -3943,8 +3944,43 @@ The directory to save in defaults to `gnus-article-save-directory'."
 (put 'gnus-summary-save-in-pipe :headers 'gnus-saved-headers)
 (defun gnus-summary-save-in-pipe (&optional command)
   "Pipe this article to subprocess."
-  (let ((default (or gnus-summary-pipe-output-default-command
+  (let ((save-buffer gnus-save-article-buffer)
+	(default (or gnus-summary-pipe-output-default-command
 		     gnus-last-shell-command)))
+    ;; `gnus-save-article-buffer' should be a buffer containing the article
+    ;; contents if this function is called by way of the command
+    ;; `gnus-summary-pipe-output'.  OTOH, that the buffer does not exist
+    ;; means this function is called independently.
+    (unless (gnus-buffer-live-p save-buffer)
+      (let ((article (gnus-summary-article-number))
+	    (decode (get 'gnus-summary-save-in-pipe :decode)))
+	(if article
+	    (if (vectorp (gnus-summary-article-header article))
+		(save-window-excursion
+		  (let ((gnus-display-mime-function
+			 (when decode
+			   gnus-display-mime-function))
+			(gnus-article-prepare-hook
+			 (when decode
+			   gnus-article-prepare-hook)))
+		    (gnus-summary-select-article t t nil article)
+		    (gnus-summary-goto-subject article))
+		  (insert-buffer-substring
+		   (prog1
+		       (if decode
+			   gnus-article-buffer
+			 gnus-original-article-buffer)
+		     (setq save-buffer
+			   (nnheader-set-temp-buffer " *Gnus Save*"))))
+		  ;; Remove unwanted headers.
+		  (let ((gnus-visible-headers
+			 (or (symbol-value (get gnus-default-article-saver
+						:headers))
+			     gnus-saved-headers gnus-visible-headers))
+			(gnus-summary-buffer nil))
+		    (article-hide-headers 1 t)))
+	      (error "%d is not a real article" article))
+	  (error "No article to pipe"))))
     (unless (stringp command)
       (setq command
 	    (if (and (eq command 'default) default)
@@ -3961,21 +3997,24 @@ The directory to save in defaults to `gnus-article-save-directory'."
     (when (string-equal command "")
       (if default
 	  (setq command default)
-	(error "A command is required"))))
-  (gnus-eval-in-buffer-window gnus-save-article-buffer
-    (save-restriction
-      (widen)
-      (shell-command-on-region (point-min) (point-max) command nil)))
+	(error "A command is required")))
+    (gnus-eval-in-buffer-window save-buffer
+      (save-restriction
+	(widen)
+	(shell-command-on-region (point-min) (point-max) command nil)))
+    (gnus-kill-buffer save-buffer))
   (setq gnus-summary-pipe-output-default-command command))
 
 (defun gnus-summary-pipe-to-muttprint (&optional command)
   "Pipe this article to muttprint."
-  (setq command (read-string
-		 "Print using command: " gnus-summary-muttprint-program
-		 nil gnus-summary-muttprint-program))
-  (let ((gnus-last-shell-command gnus-last-shell-command))
-    (gnus-summary-save-in-pipe command)
-    (setq gnus-summary-muttprint-program gnus-last-shell-command)))
+  (unless (stringp command)
+    (setq command (read-string
+		   "Print using command: " gnus-summary-muttprint-program
+		   nil gnus-summary-muttprint-program)))
+  (let ((gnus-summary-pipe-output-default-command
+	 gnus-summary-pipe-output-default-command))
+    (gnus-summary-save-in-pipe command))
+  (setq gnus-summary-muttprint-program command))
 
 ;;; Article file names when saving.
 

@@ -160,8 +160,6 @@ Important General Concepts
 * Keys::	        Key sequences: what you type to request one
                           editing action.
 * Commands::	        Named functions run by key sequences to do editing.
-* Text Characters::     Character set for text (the contents of buffers
-			  and strings).
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::	        Stopping or killing Emacs.
 * Emacs Invocation::    Hairy startup options.
@@ -913,6 +911,7 @@ Customizing Key Bindings
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
+* Modifier Keys::       Using modifier keys in key bindings.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
@@ -1133,22 +1132,23 @@ Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K.@: Adams, Michael Albinus, Nagy Andras, Ralf
 Angeli, Joe Arceneaux, Miles Bader, David Bakhash, Juanma Barranquero,
 Eli Barzilay, Steven L.@: Baur, Jay Belanger, Alexander L.@: Belikoff,
-Boaz Ben-Zvi, Karl Berry, Anna M.@: Bigatti, Ray Blaak, Jim Blandy, Johan Bockg@aa{}rd,
-Per Bothner, Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel
-Briot, Kevin Broadey, Vincent Broman, David M.@: Brown, Georges
-Brun-Cottan, Joe Buehler, W@l{}odek Bzyl, Bill Carpenter, Per
-Cederqvist, Hans Chalupsky, Chris Chase, Bob Chassell, Andrew Choi,
-Sacha Chua, James Clark, Mike Clarkson, Glynn Clements, Andrew
-Csillag, Doug Cutting, Mathias Dahl, Satyaki Das, Michael DeCorte,
-Gary Delp, Matthieu Devin, Eri Ding, Jan Dj@"{a}rv, Carsten Dominik,
-Scott Draves, Benjamin Drieu, Viktor Dukhovni, John Eaton, Rolf Ebert,
-Paul Eggert, Stephen Eglen, Torbj@"orn Einarsson, Tsugutomo Enami,
-Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick Farnbach,
-Oscar Figueiredo, Fred Fish, Karl Fogel, Gary Foster, Romain
-Francoise, Noah Friedman, Andreas Fuchs, Hallvard Furuseth, Keith
-Gabryelski, Peter S.@: Galbraith, Kevin Gallagher, Kevin Gallo, Juan
-Le@'{o}n Lahoz Garc@'{@dotless{i}}a, Howard Gayle, Stephen Gildea, Julien
-Gilles, David Gillespie, Bob Glickstein, Deepak Goel, Boris Goldowsky,
+Boaz Ben-Zvi, Karl Berry, Anna M.@: Bigatti, Ray Blaak, Jim Blandy,
+Johan Bockg@aa{}rd, Per Bothner, Terrence Brannon, Frank Bresz, Peter
+Breton, Emmanuel Briot, Kevin Broadey, Vincent Broman, David M.@:
+Brown, Georges Brun-Cottan, Joe Buehler, W@l{}odek Bzyl, Bill
+Carpenter, Per Cederqvist, Hans Chalupsky, Chong Yidong, Chris Chase,
+Bob Chassell, Andrew Choi, Sacha Chua, James Clark, Mike Clarkson,
+Glynn Clements, Andrew Csillag, Doug Cutting, Mathias Dahl, Satyaki
+Das, Michael DeCorte, Gary Delp, Matthieu Devin, Eri Ding, Jan
+Dj@"{a}rv, Carsten Dominik, Scott Draves, Benjamin Drieu, Viktor
+Dukhovni, John Eaton, Rolf Ebert, Paul Eggert, Stephen Eglen,
+Torbj@"orn Einarsson, Tsugutomo Enami, Hans Henrik Eriksen, Michael
+Ernst, Ata Etemadi, Frederick Farnbach, Oscar Figueiredo, Fred Fish,
+Karl Fogel, Gary Foster, Romain Francoise, Noah Friedman, Andreas
+Fuchs, Hallvard Furuseth, Keith Gabryelski, Peter S.@: Galbraith,
+Kevin Gallagher, Kevin Gallo, Juan Le@'{o}n Lahoz
+Garc@'{@dotless{i}}a, Howard Gayle, Stephen Gildea, Julien Gilles,
+David Gillespie, Bob Glickstein, Deepak Goel, Boris Goldowsky,
 Michelangelo Grigni, Odd Gripenstam, Kai Gro@ss{}johann, Michael
 Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa, Lars Hansen,
 Chris Hanson, K. Shane Hartman, John Heidemann, Jon K.@: Hellan,
@@ -1202,10 +1202,10 @@ Paul Wallington, Colin Walters, Barry Warsaw, Morten Welinder, Joseph
 Brian Wells, Rodney Whitby, John Wiegley, Ed Wilkinson, Mike Williams,
 Bill Wohler, Steven A. Wood, Dale R.@: Worley, Francis J.@: Wright,
 Felix S. T. Wu, Tom Wurgler, Katsumi Yamaoka, Masatake Yamato,
-Jonathan Yavner, Ryan Yeske, Chong Yidong, Ilya Zakharevich, Milan
-Zamazal, Victor Zandy, Eli Zaretskii, Jamie Zawinski, Shenghuo Zhu,
-Ian T.@: Zimmermann, Reto Zimmermann, Neal Ziring, Teodor Zlatanov,
-and Detlev Zundel.
+Jonathan Yavner, Ryan Yeske, Ilya Zakharevich, Milan Zamazal, Victor
+Zandy, Eli Zaretskii, Jamie Zawinski, Shenghuo Zhu, Ian T.@:
+Zimmermann, Reto Zimmermann, Neal Ziring, Teodor Zlatanov, and Detlev
+Zundel.
 @end iftex
 
 @node Intro, Glossary, Distrib, Top
@@ -1215,47 +1215,38 @@ and Detlev Zundel.
 advanced, self-documenting, customizable, extensible editor Emacs.
 (The `G' in `GNU' is not silent.)
 
-  We call Emacs advanced because it provides much more than simple
-insertion and deletion.  It can control subprocesses, indent programs
-automatically, show two or more files at once, and edit formatted
-text.  Emacs editing commands operate in terms of characters, words,
-lines, sentences, paragraphs, and pages, as well as expressions and
-comments in various programming languages.
+  We call Emacs @dfn{advanced} because it can do much more than simple
+insertion and deletion of text.  It can control subprocesses, indent
+programs automatically, show two or more files at once, and more.
+Emacs editing commands operate in terms of characters, words, lines,
+sentences, paragraphs, and pages, as well as expressions and comments
+in various programming languages.
 
-  @dfn{Self-documenting} means that at any time you can type a special
-character, @kbd{Control-h}, to find out what your options are.  You can
-also use it to find out what any command does, or to find all the commands
-that pertain to a topic.  @xref{Help}.
+  @dfn{Self-documenting} means that at any time you can use special
+commands, known as @dfn{help commands}, to find out what your options
+are, or to find out what what any command does, or to find all the
+commands that pertain to a given topic.  @xref{Help}.
 
-  @dfn{Customizable} means that you can alter Emacs commands' behavior
-in simple ways.  For example, if you use a programming language in
-which comments start with @samp{<**} and end with @samp{**>}, you can
-tell the Emacs comment manipulation commands to use those strings
-(@pxref{Comments}).  Another sort of customization is rearrangement of
-the command set.  For example, you can rebind the basic cursor motion
-commands (up, down, left and right) to any keys on the keyboard that
-you find comfortable.  @xref{Customization}.
+  @dfn{Customizable} means that you can easily alter the behavior of
+Emacs commands in simple ways.  For instance, if you use a programming
+language in which comments start with @samp{<**} and end with
+@samp{**>}, you can tell the Emacs comment manipulation commands to
+use those strings (@pxref{Comments}).  To take another example, you
+can rebind the basic cursor motion commands (up, down, left and right)
+to any keys on the keyboard that you find comfortable.
+@xref{Customization}.
 
   @dfn{Extensible} means that you can go beyond simple customization
-and write entirely new commands---programs in the Lisp language to be
-run by Emacs's own Lisp interpreter.  Emacs is an ``on-line
-extensible'' system, which means that it is divided into many
-functions that call each other, any of which can be redefined in the
-middle of an editing session.  Almost any part of Emacs can be
-replaced without making a separate copy of all of Emacs.  Most of the
-editing commands of Emacs are written in Lisp; the few exceptions
+and create entirely new commands.  New commands are simply programs
+written in the Lisp language, which are run by Emacs's own Lisp
+interpreter.  Existing commands can even be redefined in the middle of
+an editing session, without having to restart Emacs.  Most of the
+editing commands in Emacs are written in Lisp; the few exceptions
 could have been written in Lisp but use C instead for efficiency.
 Writing an extension is programming, but non-programmers can use it
 afterwards.  @xref{Top, Emacs Lisp Intro, Preface, eintr, An
 Introduction to Programming in Emacs Lisp}, if you want to learn Emacs
 Lisp programming.
-
-   When running on a graphical display, Emacs provides its own menus
-and convenient handling of mouse buttons.  In addition, Emacs provides
-many of the benefits of a graphical display even on a text-only
-terminal.  For instance, it can highlight parts of a file, display and
-edit several files at once, move text between files, and edit files
-while running shell commands.
 
 @include screen.texi
 @include commands.texi

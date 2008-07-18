@@ -32,26 +32,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_ARG_ARRAY
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-#define WORD_MACHINE
-
 /* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
-
-/* Use type int rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.  */
-
-#define NO_UNION_TYPE
+   does not define it automatically.
+   Ones defined so far include m68k and many others */
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
    are always unsigned.
 
-   If you use NO_UNION_TYPE, this flag does not matter.  */
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
 

@@ -21,7 +21,7 @@ dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_PREREQ(2.61)dnl
+AC_PREREQ(2.61)
 AC_INIT(emacs, 23.0.60)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
@@ -75,15 +75,15 @@ fi
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
 
 OPTION_DEFAULT_OFF([kerberos],[support Kerberos-authenticated POP])
-if test "$with_kerberos" = yes; then
+if test "$with_kerberos" != no; then
    AC_DEFINE(KERBEROS)
 fi
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
 
 OPTION_DEFAULT_OFF([kerberos5],[support Kerberos version 5 authenticated POP])
-if test "${with_kerberos5}" = yes; then
-  if test "${with_kerberos}" != yes; then
+if test "${with_kerberos5}" != no; then
+  if test "${with_kerberos}" = no; then
     with_kerberos=yes
     AC_DEFINE(KERBEROS)
   fi
@@ -91,7 +91,7 @@ if test "${with_kerberos5}" = yes; then
 fi
 
 OPTION_DEFAULT_OFF([hesiod],[support Hesiod to get the POP server host])
-if test "$with_hesiod" = yes; then
+if test "$with_hesiod" != no; then
   AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
 fi
 
@@ -142,6 +142,7 @@ OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
 OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
+OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -174,6 +175,16 @@ AC_ARG_ENABLE(carbon-app,
                 [specify install directory for Emacs.app on Mac OS X
 		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
+
+AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
+[  --enable-cocoa-experimental-ctrl-g        enable experimental improved ctrl-g recognition],
+   EN_COCOA_EXPERIMENTAL_CTRL_G=yes,
+   EN_COCOA_EXPERIMENTAL_CTRL_G=no)
+
+AC_ARG_ENABLE(ns-self-contained,
+[  --disable-ns-self-contained        disable self contained build under NS],
+   EN_NS_SELF_CONTAINED=no,
+   EN_NS_SELF_CONTAINED=yes)
 
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
@@ -289,6 +300,7 @@ case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
       arm*-*-freebsd*)          machine=arm ;;
       ia64-*-freebsd*)		machine=ia64 ;;
+      sparc-*-freebsd*)         machine=sparc ;;
       sparc64-*-freebsd*)	machine=sparc ;;
       powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
@@ -302,6 +314,7 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*-*-kfreebsd*)	machine=alpha ;;
       ia64-*-kfreebsd*)		machine=ia64 ;;
+      sparc-*-kfreebsd*)	machine=sparc ;;
       sparc64-*-kfreebsd*)	machine=sparc ;;
       powerpc-*-kfreebsd*)	machine=macppc ;;
       i[3456]86-*-kfreebsd*)	machine=intel386 ;;
@@ -365,7 +378,7 @@ dnl see the `changequote' comment above.
   *-apple-darwin* )
     case "${canonical}" in
       i[3456]86-* )  machine=intel386 ;;
-      powerpc-* )    machine=powermac ;;
+      powerpc-* )    machine=macppc ;;
       * )            unported=yes ;;
     esac
     opsys=darwin
@@ -433,7 +446,7 @@ dnl see the `changequote' comment above.
     machine=sparc opsys=gnu-linux
   ;;
 
-  *-auspex-sunos* | *-sun-sunos* | *-sun-bsd* | *-sun-solaris* \
+  *-sun-solaris* \
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
     | rs6000-*-solaris2*)
     case "${canonical}" in
@@ -1204,22 +1217,53 @@ fi
 HAVE_CARBON=no
 if test "${with_carbon}" != no; then
   AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
+  test "${HAVE_CARBON}" = yes && window_system=mac
 fi
-if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
-  if test "${with_carbon+set}" != set \
-     && test "${carbon_appdir_x+set}" != set; then
-    for var in with_x with_x_toolkit with_xim \
-               with_xpm with_jpeg with_tiff with_gif with_png; do
-      if eval test \"\${$var+set}\" = set; then
-        HAVE_CARBON=no
-        break
-      fi
-    done
+
+HAVE_NS=no
+NS_IMPL_COCOA=no
+NS_IMPL_GNUSTEP=no
+tmp_CPPFLAGS="$CPPFLAGS"
+tmp_CFLAGS="$CFLAGS"
+CPPFLAGS="$CPPFLAGS -x objective-c"
+CFLAGS="$CFLAGS -x objective-c"
+if test "${with_ns}" != no; then
+  if test "${opsys}" = darwin; then
+     NS_IMPL_COCOA=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
+  elif test -f /etc/GNUstep/GNUstep.conf; then
+     NS_IMPL_GNUSTEP=yes
+     ns_appdir=`pwd`/nextstep/Emacs.app
+     ns_appbindir=`pwd`/nextstep/Emacs.app
+     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     GNUSTEP_MAKEFILES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_MAKEFILES)"
+     GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)"
+     GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)"
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+  fi
+  AC_CHECK_HEADER(AppKit/AppKit.h, HAVE_NS=yes)
+fi
+if test "${HAVE_NS}" = yes; then
+  test "${window_system}" = mac && HAVE_CARBON=no
+  window_system=nextstep
+  with_xft=no
+  with_freetype=no
+  # set up packaging dirs
+  exec_prefix=${ns_appbindir}
+  libexecdir=${ns_appbindir}/libexec
+  if test "${EN_NS_SELF_CONTAINED}" = yes; then
+     prefix=${ns_appresdir}
   fi
 fi
-if test "${HAVE_CARBON}" = yes; then
-  window_system=mac
-fi
+CFLAGS="$tmp_CFLAGS"
+CPPFLAGS="$tmp_CPPFLAGS"
 
 case "${window_system}" in
   x11 )
@@ -1238,7 +1282,7 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  mac | none )
+  nextstep | mac | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -1710,6 +1754,9 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
   elif test "${HAVE_CARBON}" = "yes"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
+  elif test "${HAVE_NS}" = "yes"; then
+    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+    USE_TOOLKIT_SCROLL_BARS=yes
   fi
 fi
 
@@ -2019,6 +2066,22 @@ if test "${HAVE_CARBON}" = "yes"; then
   # We also have mouse menus.
   HAVE_MENUS=yes
 fi
+### Use NeXTstep API to implement GUI.
+if test "${HAVE_NS}" = "yes"; then
+  AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
+  if test "${NS_IMPL_COCOA}" = "yes"; then
+    AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
+  fi
+  if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
+    AC_DEFINE(COCOA_EXPERIMENTAL_CTRL_G, 1, [Define to 1 if you are trying experimental enhanced Ctrl-g support using NS windowing under MacOS X.])
+  fi
+  if test "${NS_IMPL_GNUSTEP}" = "yes"; then
+    AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
+  fi
+  # We also have mouse menus.
+  HAVE_MENUS=yes
+fi
+
 
 ### Use session management (-lSM -lICE) if available
 HAVE_X_SM=no
@@ -2157,7 +2220,7 @@ if test "$have_res_init" = yes; then
 fi
 
 # Do we need the Hesiod library to provide the support routines?
-if test "$with_hesiod" = yes ; then
+if test "$with_hesiod" != no ; then
   # Don't set $LIBS here -- see comments above.
   AC_CHECK_FUNC(res_send, , [AC_CHECK_FUNC(__res_send, ,
      [AC_CHECK_LIB(resolv, res_send, resolv=yes,
@@ -2180,19 +2243,19 @@ if test "$resolv" = yes ; then
 fi
 
 # These tell us which Kerberos-related libraries to use.
-if test "${with_kerberos+set}" = set; then
+if test "${with_kerberos}" != no; then
   AC_CHECK_LIB(com_err, com_err)
   AC_CHECK_LIB(k5crypto, mit_des_cbc_encrypt)
   AC_CHECK_LIB(crypto, mit_des_cbc_encrypt)
   AC_CHECK_LIB(krb5, krb5_init_context)
-  if test "${with_kerberos5+set}" != set; then
+  if test "${with_kerberos5}" = no; then
     AC_CHECK_LIB(des425, des_cbc_encrypt,,
 		 [AC_CHECK_LIB(des, des_cbc_encrypt)])
     AC_CHECK_LIB(krb4, krb_get_cred,,
 		 [AC_CHECK_LIB(krb, krb_get_cred)])
   fi
 
-  if test "${with_kerberos5+set}" = set; then
+  if test "${with_kerberos5}" != no; then
     AC_CHECK_HEADERS(krb5.h)
   else
     AC_CHECK_HEADERS(des.h,,
@@ -2414,6 +2477,11 @@ AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 AC_SUBST(GETLOADAVG_LIBS)
 AC_SUBST(carbon_appdir)
+AC_SUBST(ns_appdir)
+AC_SUBST(ns_appbindir)
+AC_SUBST(ns_appresdir)
+AC_SUBST(ns_appsrc)
+AC_SUBST(GNUSTEP_MAKEFILES)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}",
 		   [Define to the canonical Emacs configuration name.])
@@ -2503,8 +2571,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ])dnl
 
 AH_BOTTOM([
-/* If we're using any sort of window system, define some consequences.  */
-#ifdef HAVE_X_WINDOWS
+/* If we're using X11/Carbon/GNUstep, define some consequences.  */
+#if defined HAVE_X_WINDOWS || defined(HAVE_CARBON) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
@@ -2516,23 +2584,14 @@ AH_BOTTOM([
 #define MULTI_KBOARD
 #endif
 
-/* If we're using the Carbon API on Mac OS X, define a few more
-   variables as well.  */
-#ifdef HAVE_CARBON
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
+/* Sadly for now, GNUstep dump does not work.  */
+#ifdef NS_IMPL_GNUSTEP
+#define CANNOT_DUMP
 #endif
 
-/* Define USER_FULL_NAME to return a string
-   that is the user's full name.
-   It can assume that the variable `pw'
-   points to the password file entry for this user.
-
-   At some sites, the pw_gecos field contains
-   the user's full name.  If neither this nor any other
-   field contains the right thing, use pw_name,
-   giving the user's login name, since that is better than nothing.  */
-#define USER_FULL_NAME pw->pw_gecos
+/* PENDING: These are used for the Carbon port only. */
+#undef MAC_OS
+#undef MAC_OSX
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
@@ -2574,6 +2633,28 @@ AH_BOTTOM([
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
+
+/* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
+  (There is probably a better place to do this, but right now the Cocoa
+   side does this in s/darwin.h, following the Carbon port, and we cannot
+   parallel this exactly since GNUstep is multi-OS. */
+#ifdef HAVE_NS
+# ifdef C_SWITCH_SYSTEM
+# undef C_SWITCH_SYSTEM
+# endif
+# ifdef NS_IMPL_GNUSTEP
+/* See also .m.o rule in Makefile.in */
+#  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
+#  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
+#  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
+#  define OTHER_FILES ns-app
+# else /* NS_IMPL_COCOA */
+#  define C_SWITCH_X_SYSTEM
+#  define GNU_OBJC_CFLAGS
+# endif /* NS_IMPL_COCOA */
+#endif /* HAVE_NS */
+
+
 
 /* If no remapping takes place, static variables cannot be dumped as
    pure, so don't worry about the `static' keyword. */
@@ -2801,12 +2882,11 @@ echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 
-if test "${USE_FONT_BACKEND}" = "yes"; then
-  echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
-  echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
-  echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
-  echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
-fi
+echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
+echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
+echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
+echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
@@ -2832,7 +2912,23 @@ if test "$HAVE_CARBON" = "yes"; then
    echo
    echo "Warning: The Mac Carbon port is currently unsupported and has
 known problems.  It is not recommended for use by non-developers.
+The NeXTstep port (--with-ns) is an alternative.
 Read the emacs-devel archives for more information."
+   echo
+fi
+
+if test "$HAVE_NS" = "yes"; then
+   echo
+   echo "You must run \"make install\" in order to test the built application.
+The installed application will go to nextstep/Emacs.app and can be
+run or moved from there."
+   if test "$EN_NS_SELF_CONTAINED" = "yes"; then
+      echo "The application will be fully self-contained."
+    else
+      echo "The lisp resources for the application will be installed under ${prefix}.
+You may need to run \"make install\" with sudo.  The application will fail
+to run if these resources are not installed."
+   fi
    echo
 fi
 

@@ -1,8 +1,281 @@
+2008-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Make it a defcustom.
+	(line-move-1): Convert temporary-goal-column back to an integer if
+	it was set as a float by a previous call to line-move-visual.
+	(end-of-visual-line, beginning-of-visual-line, kill-visual-line)
+	(next-logical-line, previous-logical-line)
+	(turn-on-visual-line-mode): New functions.
+	(visual-line-mode-map): New variable.
+	(visual-line-mode, global-visual-line-mode): New minor mode.
+
+2008-07-17  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (parameters): Declare for compiler.
+
+2008-07-17  Fan Kai  <fktpp@xemacs.org>  (tiny change)
+
+	* esh-arg.el (eshell-quote-backslash): Fix eshell path completion
+	for Windows.
+
+2008-07-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-key-list-mode): Use run-mode-hooks.
+	(epa-key-mode): Ditto.
+	(epa-info-mode): Ditto.
+
+2008-07-17  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (ns-handle-switch): Simplify.  Handle the numeric case.
+	(ns-handle-numeric-switch): Just call ns-handle-switch.
+	(ns-handle-name-switch, ns-handle-nxopen, ns-handle-nxopentemp)
+	(ns-handle-args): Simplify using `pop'.
+	(ns-display-name): Define (used in frame.el).
+	(menu-bar-select-frame): Add (ignored) arg to more closely match the
+	original definition.
+	(ns-perform-service): Declare.
+	(ns-save-preferences): Use fewer `let's.
+
+	* frame.el (ns-display-name): Declare for compiler.
+
+2008-07-17  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-unidata-list): Initialize to the
+	list of name, general-category, decomposition, and old-name.
+
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* startup.el (command-line-1): Update processing of NS long options to
+	mimic recent changes to processing of X long options.
+
+2008-07-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-create-define-alist): Don't create a
+	list of #defines for remote files.
+	(gdb-source-info): Only show main if it has been found.
+
+2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/ns-win.el: Require CL; fix up comment style; reindent.
+	(ns-define-service): Use subst-char-in-string.  Avoid `eval'.
+	(ns-save-preferences): Use `case'.
+	(ns-initialize-window-system): Use `dolist'.
+
+2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* loadup.el: Remove load of easy-mmode prior to ns-win when NS
+	windowing is used.
+	* term/ns-win.el (ns-extended-platform-support-mode):
+	Correct/improve documentation.
+
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-compat.el, emacs-lisp/cl-macs.el, emacs-lisp/cl-seq.el:
+	Simply require 'cl (see comment in cl-compat.el).
+	* emacs-lisp/cl-macs.el (cl-compile-time-init): Remove function.
+	* emacs-lisp/cl.el (cl-do-pop, cl-mapcar-many): Declare for compiler.
+	(cl-hack-byte-compiler): Load cl-macs and run cl-hack-bytecomp-hook
+	directly rather by subterfuge.  Provide cl before loading cl-macs.
+
+	* paths.el (rmail-spool-directory): Remove settings for systems that are
+	no longer supported.
+
+	* frame.el (ns-initialize-window-system): Declare for compiler.
+
+	* term/ns-win.el: Add numerous declarations for compiler.
+	(ns-pop-up-frames): Move definition before use. Doc fix.
+
+	* emacs-lisp/check-declare.el (check-declare-locate)
+	(check-declare-verify): Handle .m files.
+
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* ns-carbon-compat.el: New file: user-visible compatibility of
+	NeXTstep port with Carbon port.
+	* ns-grabenv.el: New file: functionality useful on OS X platform to
+	expose environment variables inside Emacs started from icon.
+	* Makefile.in (ELCFILES): Add ns-carbon-compat, ns-grabenv, ns-win.
+	* cus-edit.el
+	* cus-face.el
+	* disp-table.el
+	* faces.el
+	* info.el
+	* mouse.el
+	* mwheel.el
+	* simple.el: Add ns to window systems treated as GUIs.
+	* facemenu.el (facemenu-read-color): Don't require a name match under
+	NS, to allow numeric color entry.
+	* frame.el (make-frame-on-display): Follow code for 'x in initializing
+	'ns window system if need be.
+	(various): Add 'ns as described above.
+	* loadup.el: Load ns-win.el, easy-menu.el, easy-mmode.el if
+	ns-windowing is active.
+	* startup.el (command-line-ns-option-alist): New constant to handle NS
+	windowing system specific command line args analogous to how they are
+	handled for X windows.
+	(command-line-1): Use the above where appropriate.
+	* version.el: Add NS port version.
+	* woman.el (woman-man.conf-path): Add /usr/share/misc to init path on
+	Darwin (usually OS X) systems.
+	(woman-use-own-frame): Include 'ns in list of GUI window systems.
+	* emulation/viper-util.el (ns-display-color-p)
+	(ns-color-defined-p): Remove these (caustically-commented) outdated
+	compensations for a port that was never itself integrated until now.
+	* gnus/gnus-util.el (gnus-select-frame-set-input-focus): Add support
+	for NS window system.
+	* international/mule-cmds.el: Add 'ns to list of special-cased window
+	systems (probably most of these, x/w32/mac/ns could be changed to
+	window-system non-nil).
+	* term/ns-win.el: New file: lisp-side support for NS windowing system.
+
+2008-07-14  Jason Rumney  <jasonr@gnu.org>
+
+        * term/w32-win.el (x-handle-switch, x-handle-name-switch)
+        (x-handle-numeric-switch, x-handle-initial-switch)
+        (x-handle-xrm-switch, x-handle-args, x-handle-display)
+        (xw-defined-colors, w32-initialize-window-system):
+        Avoid use of cl pop and push macros.
+
+2008-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-goto-source): Avoid wrong-type-argument
+	error when change-log-search-file-name returns nil.
+
+2008-07-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-search-file-name): Use match-string-no-properties.
+	(change-log-search-tag-name-1, change-log-search-tag-name)
+	(change-log-goto-source-1, change-log-goto-source): New functions.
+	(change-log-tag-re, change-log-find-head, change-log-find-tail):
+	New variables.
+	(change-log-mode-map): Bind C-c C-c to change-log-goto-source.
+
+2008-07-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-help.el (calc-describe-key): Add angles to special key
+	descriptions.
+
+2008-07-13  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc-help.el (calc-describe-thing): Use `re-search-forward' to
+	search for regexp.
+
+2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Handle null pixel position
+	gracefully.
+
+2008-07-11  Jason Rumney  <jasonr@gnu.org>
+
+        * files.el (file-truename): Get truename of ancestors if file does
+        not exist on Windows.
+
+2008-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Obey goal-column and no-error arg.
+	(track-eol, temporary-goal-column, previous-line, next-line):
+	Update docstring.
+	(move-end-of-line, move-beginning-of-line): Bind line-move-visual
+	to nil.
+
+2008-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (line-move-visual): New var.
+	(line-move-visual): New function.
+	(line-move): Call line-move-visual.
+
+2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep-files-aliases): Improve the C++ source
+	pattern and add patterns for C++ header files.
+
+2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (truncated-partial-width-window-p): New function.
+
+	* menu-bar.el: Remove Longlines mode from menu.  Add word-wrap
+	option.
+
+	* faces.el (x-create-frame-with-faces): Don't pass parameters that
+	are set later to x-create-frame.
+	(face-set-after-frame-default): Apply X resources for non-default
+	faces.
+
+2008-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-set-after-frame-default): Simplify.  Don't apply
+	frame-specific X resource settings.  Set faces using a list of
+	frame parameters explicitly passed to the calling
+	function (e.g. make-frame).
+	(x-create-frame-with-faces, tty-create-frame-with-faces): Supply
+	explicit frame parameter list to face-set-after-frame-default.
+
+2008-07-08  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
+
+	* net/browse-url.el (browse-url-default-browser):
+	Fix argument list in lambda.
+
+2008-07-07  Ulf Jasper  <ulf@web.de>
+
+	* net/newst-backend.el (newsticker--get-news-by-url): Catch errors
+	from url-retrieve.
+	(newsticker--sentinel-work): Fixed xerror typo.
+
+2008-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-refresh): Only update files.
+
+	* vc-git.el (vc-git--ls-files-state): Remove unused function.
+
+	* vc-bzr.el (vc-bzr-after-dir-status): Deal with execute bit changes.
+
+2008-07-06  John Paul Wallington  <jpw@pobox.com>
+
+	* kermit.el (kermit-esc-char, kermit-clean-off): Doc fixes.
+
+2008-07-05  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-registered): Return true for removed files.
+	(vc-git-print-log, vc-git-log-view-mode): Print a single log for
+	all the files instead of one per file.
+	(vc-git-previous-revision): Add support for project-wide previous
+	revision when specified file is nil.
+
+2008-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vms-patch.el, vmsproc.el, mail/vms-pmail.el: Move to obsolete dir.
+
+	* vc-dir.el (vc-dir-find-child-files): New function.
+	(vc-dir-resync-directory-files): New function.
+	(vc-dir-recompute-file-state): New function, broken out of ...
+	(vc-dir-resynch-file): ... here.  Also deal with directories.
+	* vc-dispatcher.el (vc-resynch-buffers-in-directory): New function.
+	(vc-resynch-buffer): Use it.
+
+	* vc-hg.el (vc-hg-registered): Do not set vc-state.
+
+	* vc-annotate.el (vc-annotate-mode-menu): Add separator.
+
+2008-07-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-display-buffer): Don't split a buffer
+	if it's not part of gdb-ui, e.g, at start.
+
+	* progmodes/gud.el (gud-gdb-get-stackframe): Allow absolute
+	filenames in stack trace (text command mode).
+
+2008-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse-drag.el (mouse-drag-throw, mouse-drag-drag): Autoload.
+
+	* textmodes/sgml-mode.el (sgml-font-lock-syntactic-keywords):
+	Use syntax-ppss on a position *before* the char we want to change.
+
 2008-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-query-replace-regexp): New function.
 	(vc-dir-tool-bar-map, vc-dir-menu-map): Bind it.
-	(vc-dir-mode-map): Likewise
+	(vc-dir-mode-map): Likewise.
 
 2008-07-03  Juanma Barranquero  <lekktu@gmail.com>
 

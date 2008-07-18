@@ -39,13 +39,6 @@ And always:
 	 [next arg string]... 0 or more times
 */
 
-/* On the 16000, at least in the one 4.2 system I know about,
-  the initial data format is
-  sp ->  word containing argc
-         word containing argp
-         word pointing to first arg string, and so on as above
-*/
-
 #ifdef emacs
 #include <config.h>
 #endif
@@ -97,30 +90,11 @@ asm("	global start	");
 asm("	start:		");
 #endif /* NODOT_GLOBAL_START */
 
-#ifdef m68000
-
-/* GCC 2.1, when optimization is turned off, seems to want to push a
-   word of garbage on the stack, which screws up the CRT0_DUMMIES
-   hack.  So we hand-code _start in assembly language.  */
-asm(".text			");
-asm("	.even			");
-asm(".globl __start		");
-asm("__start:			");
-asm("	link a6,#0		");
-asm("	jbsr _start1		");
-asm("	unlk a6			");
-asm("	rts			");
-
-#else /* not m68000 */
-
 _start ()
 {
 /* On vax, nothing is pushed here  */
-/* On sequent, bogus fp is pushed here  */
   start1 ();
 }
-
-#endif /* possibly m68000 */
 
 static
 start1 (CRT0_DUMMIES argc, xargv)
@@ -140,9 +114,7 @@ start1 (CRT0_DUMMIES argc, xargv)
 }
 #else /* not CRT0_DUMMIES */
 
-/* "m68k" and "m68000" both stand for m68000 processors,
-   but with different program-entry conventions.
-   This is a kludge.  Now that the CRT0_DUMMIES mechanism above exists,
+/* This is a kludge.  Now that the CRT0_DUMMIES mechanism above exists,
    most of these machines could use the vax code above
    with some suitable definition of CRT0_DUMMIES.
    Then the symbol m68k could be flushed.
@@ -162,29 +134,10 @@ start1 (CRT0_DUMMIES argc, xargv)
 	asm ("	jsr	exit");
 	asm ("	mov.l	&1,%d0");	/* d0 = 1 => exit */
 	asm ("	trap	&0");
-#else /* m68000, not m68k */
 
-#ifdef m68000
-
-_start ()
-{
-#ifdef sun
-  finitfp_();
-#endif
-/* On 68000, _start pushes a6 onto stack  */
-  start1 ();
-}
-#endif /* m68000 */
-#endif /* m68k */
-
-#if defined(m68k) || defined(m68000)
 /* ignore takes care of skipping the a6 value pushed in start.  */
 static
-#if defined(m68k)
 start1 (argc, xargv)
-#else
-start1 (ignore, argc, xargv)
-#endif
      int argc;
      char *xargv;
 {
@@ -196,11 +149,11 @@ start1 (ignore, argc, xargv)
   exit (main (argc, argv, environ));
 }
 
-#endif /* m68k or m68000 */
+#endif /* m68k */
 
 #endif /* not CRT0_DUMMIES */
 
-#ifdef sparc
+#ifdef __sparc__
 asm (".global __start");
 asm (".text");
 asm ("__start:");
@@ -218,7 +171,7 @@ asm ("	sub	%sp, 24, %sp");
 asm ("	call	__exit");
 asm ("	nop");
 
-#endif /* sparc */
+#endif /* __sparc__ */
 
 #if __FreeBSD__ == 2
 char *__progname;

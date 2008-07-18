@@ -199,6 +199,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 
 #include "font.h"
 
@@ -209,7 +212,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INFINITY 10000000
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
 extern void set_frame_menubar P_ ((struct frame *f, int, int));
 extern int pending_menu_activation;
 #endif
@@ -346,9 +349,16 @@ extern Lisp_Object Voverflow_newline_into_fringe;
   (!NILP (Voverflow_newline_into_fringe)	\
    && FRAME_WINDOW_P (it->f)			\
    && WINDOW_RIGHT_FRINGE_WIDTH (it->w) > 0	\
-   && it->current_x == it->last_visible_x)
+   && it->current_x == it->last_visible_x	\
+   && it->line_wrap != WORD_WRAP)
 
 #endif /* HAVE_WINDOW_SYSTEM */
+
+/* Test if the display element loaded in IT is a space or tab
+   character.  This is used to determine word wrapping.  */
+
+#define IT_DISPLAYING_WHITESPACE(it)				\
+  (it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))
 
 /* Non-nil means show the text cursor in void text areas
    i.e. in blank areas after eol and eob.  This used to be
@@ -844,6 +854,25 @@ Lisp_Object previous_help_echo_string;
 /* Null glyph slice */
 
 static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
+
+/* Platform-independent portion of hourglass implementation. */
+
+/* Non-zero means we're allowed to display a hourglass pointer.  */
+int display_hourglass_p;
+
+/* Non-zero means an hourglass cursor is currently shown.  */
+int hourglass_shown_p;
+
+/* If non-null, an asynchronous timer that, when it expires, displays
+   an hourglass cursor on all frames.  */
+struct atimer *hourglass_atimer;
+
+/* Number of seconds to wait before displaying an hourglass cursor.  */
+Lisp_Object Vhourglass_delay;
+
+/* Default number of seconds to wait before displaying an hourglass
+   cursor.  */
+#define DEFAULT_HOURGLASS_DELAY 1
 
 
 /* Function prototypes.  */
@@ -6664,7 +6693,7 @@ move_it_in_display_line_to (struct it *it,
 {
   enum move_it_result result = MOVE_UNDEFINED;
   struct glyph_row *saved_glyph_row;
-  struct it wrap_it, atpos_it;
+  struct it wrap_it, atpos_it, atx_it;
   int may_wrap = 0;
 
   /* Don't produce glyphs in produce_glyphs.  */
@@ -6672,11 +6701,13 @@ move_it_in_display_line_to (struct it *it,
   it->glyph_row = NULL;
 
   /* Use wrap_it to save a copy of IT wherever a word wrap could
-     occur.  Use atpos_it to save a copy of IT at the desired
+     occur.  Use atpos_it to save a copy of IT at the desired buffer
      position, if found, so that we can scan ahead and check if the
-     word later overshoots the window edge.  */
+     word later overshoots the window edge.  Use atx_it similarly, for
+     pixel positions.  */
   wrap_it.sp = -1;
   atpos_it.sp = -1;
+  atx_it.sp = -1;
 
 #define BUFFER_POS_REACHED_P()					\
   ((op & MOVE_TO_POS) != 0					\
@@ -6689,38 +6720,34 @@ move_it_in_display_line_to (struct it *it,
   /* If there's a line-/wrap-prefix, handle it.  */
   if (it->hpos == 0 && it->method == GET_FROM_BUFFER
       && it->current_y < it->last_visible_y)
-    {
-      handle_line_prefix (it);
-    }
+    handle_line_prefix (it);
 
   while (1)
     {
       int x, i, ascent = 0, descent = 0;
 
-      /* Stop if we move beyond TO_CHARPOS (after an image or stretch glyph).  */
+/* Utility macro to reset an iterator with x, ascent, and descent.  */
+#define IT_RESET_X_ASCENT_DESCENT(IT)			\
+  ((IT)->current_x = x, (IT)->max_ascent = ascent,	\
+   (IT)->max_descent = descent)
+
+      /* Stop if we move beyond TO_CHARPOS (after an image or stretch
+	 glyph).  */
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
 	  && IT_CHARPOS (*it) > to_charpos)
 	{
-	  if (it->line_wrap == WORD_WRAP)
-	    {
-	      /* If wrap_it is valid, the current position might be in
-		 a word that is wrapped to the next line, so continue
-		 to see if that happens.  */
-	      if (wrap_it.sp < 0)
-		{
-		  result = MOVE_POS_MATCH_OR_ZV;
-		  break;
-		}
-	      if (atpos_it.sp < 0)
-		atpos_it = *it;
-	    }
-	  else
+	  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 	    {
 	      result = MOVE_POS_MATCH_OR_ZV;
 	      break;
 	    }
+	  else if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
+	    /* If wrap_it is valid, the current position might be in a
+	       word that is wrapped.  So, save the iterator in
+	       atpos_it and continue to see if wrapping happens.  */
+	    atpos_it = *it;
 	}
 
       /* Stop when ZV reached.
@@ -6743,30 +6770,38 @@ move_it_in_display_line_to (struct it *it,
 	}
       else
 	{
-	  /* Remember the line height so far in case the next element
-	     doesn't fit on the line.  */
-	  ascent = it->max_ascent;
-	  descent = it->max_descent;
-
 	  if (it->line_wrap == WORD_WRAP)
 	    {
-	      if (it->what == IT_CHARACTER
-		  && (it->c == ' ' || it->c == '\t'))
+	      if (IT_DISPLAYING_WHITESPACE (it))
 		may_wrap = 1;
 	      else if (may_wrap)
 		{
-		  /* We are done if the position is already found.  */
+		  /* We have reached a glyph that follows one or more
+		     whitespace characters.  If the position is
+		     already found, we are done.  */
 		  if (atpos_it.sp >= 0)
 		    {
 		      *it = atpos_it;
-		      atpos_it.sp = -1;
-		      goto buffer_pos_reached;
+		      result = MOVE_POS_MATCH_OR_ZV;
+		      goto done;
 		    }
+		  if (atx_it.sp >= 0)
+		    {
+		      *it = atx_it;
+		      result = MOVE_X_REACHED;
+		      goto done;
+		    }
+		  /* Otherwise, we can wrap here.  */
 		  wrap_it = *it;
 		  may_wrap = 0;
 		}
 	    }
 	}
+
+      /* Remember the line height for the current line, in case
+	 the next element doesn't fit on the line.  */
+      ascent = it->max_ascent;
+      descent = it->max_descent;
 
       /* The call to produce_glyphs will get the metrics of the
 	 display element IT is loaded with.  Record the x-position
@@ -6818,19 +6853,28 @@ move_it_in_display_line_to (struct it *it,
 		{
 		  if (BUFFER_POS_REACHED_P ())
 		    {
-		      if (it->line_wrap == WORD_WRAP)
-			{
-			  if (wrap_it.sp < 0)
-			    goto buffer_pos_reached;
-			  if (atpos_it.sp < 0)
-			    atpos_it = *it;
-			}
-		      else
+		      if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 			goto buffer_pos_reached;
+		      if (atpos_it.sp < 0)
+			{
+			  atpos_it = *it;
+			  IT_RESET_X_ASCENT_DESCENT (&atpos_it);
+			}
 		    }
-		  it->current_x = x;
-		  result = MOVE_X_REACHED;
-		  break;
+		  else
+		    {
+		      if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
+			{
+			  it->current_x = x;
+			  result = MOVE_X_REACHED;
+			  break;
+			}
+		      if (atx_it.sp < 0)
+			{
+			  atx_it = *it;
+			  IT_RESET_X_ASCENT_DESCENT (&atx_it);
+			}
+		    }
 		}
 
 	      if (/* Lines are continued.  */
@@ -6860,10 +6904,21 @@ move_it_in_display_line_to (struct it *it,
 			     now that we know it fits in this row.  */
 			  if (BUFFER_POS_REACHED_P ())
 			    {
-			      it->hpos = hpos_before_this_char;
-			      it->current_x = x_before_this_char;
-			      result = MOVE_POS_MATCH_OR_ZV;
-			      break;
+			      if (it->line_wrap != WORD_WRAP
+				  || wrap_it.sp < 0)
+				{
+				  it->hpos = hpos_before_this_char;
+				  it->current_x = x_before_this_char;
+				  result = MOVE_POS_MATCH_OR_ZV;
+				  break;
+				}
+			      if (it->line_wrap == WORD_WRAP
+				  && atpos_it.sp < 0)
+				{
+				  atpos_it = *it;
+				  atpos_it.current_x = x_before_this_char;
+				  atpos_it.hpos = hpos_before_this_char;
+				}
 			    }
 
 			  set_iterator_to_next (it, 1);
@@ -6893,16 +6948,13 @@ move_it_in_display_line_to (struct it *it,
 			}
 		    }
 		  else
-		    {
-		      it->current_x = x;
-		      it->max_ascent = ascent;
-		      it->max_descent = descent;
-		    }
+		    IT_RESET_X_ASCENT_DESCENT (it);
 
 		  if (wrap_it.sp >= 0)
 		    {
 		      *it = wrap_it;
 		      atpos_it.sp = -1;
+		      atx_it.sp = -1;
 		    }
 
 		  TRACE_MOVE ((stderr, "move_it_in: continued at %d\n",
@@ -6913,15 +6965,13 @@ move_it_in_display_line_to (struct it *it,
 
 	      if (BUFFER_POS_REACHED_P ())
 		{
-		  if (it->line_wrap == WORD_WRAP)
-		    {
-		      if (wrap_it.sp < 0)
-			goto buffer_pos_reached;
-		      if (atpos_it.sp < 0)
-			atpos_it = *it;
-		    }
-		  else
+		  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 		    goto buffer_pos_reached;
+		  if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
+		    {
+		      atpos_it = *it;
+		      IT_RESET_X_ASCENT_DESCENT (&atpos_it);
+		    }
 		}
 
 	      if (new_x > it->first_visible_x)
@@ -6938,9 +6988,7 @@ move_it_in_display_line_to (struct it *it,
       else if (BUFFER_POS_REACHED_P ())
 	{
 	buffer_pos_reached:
-	  it->current_x = x;
-	  it->max_ascent = ascent;
-	  it->max_descent = descent;
+	  IT_RESET_X_ASCENT_DESCENT (it);
 	  result = MOVE_POS_MATCH_OR_ZV;
 	  break;
 	}
@@ -6990,14 +7038,19 @@ move_it_in_display_line_to (struct it *it,
 	  result = MOVE_LINE_TRUNCATED;
 	  break;
 	}
+#undef IT_RESET_X_ASCENT_DESCENT
     }
 
 #undef BUFFER_POS_REACHED_P
 
   /* If we scanned beyond to_pos and didn't find a point to wrap at,
-     return iterator at to_pos.  */
+     restore the saved iterator.  */
   if (atpos_it.sp >= 0)
     *it = atpos_it;
+  else if (atx_it.sp >= 0)
+    *it = atx_it;
+
+ done:
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
@@ -7011,7 +7064,25 @@ move_it_in_display_line (struct it *it,
 			 EMACS_INT to_charpos, int to_x,
 			 enum move_operation_enum op)
 {
-  move_it_in_display_line_to (it, to_charpos, to_x, op);
+  if (it->line_wrap == WORD_WRAP
+      && (op & MOVE_TO_X))
+    {
+      struct it save_it = *it;
+      int skip = move_it_in_display_line_to (it, to_charpos, to_x, op);
+      /* When word-wrap is on, TO_X may lie past the end
+	 of a wrapped line.  Then it->current is the
+	 character on the next line, so backtrack to the
+	 space before the wrap point.  */
+      if (skip == MOVE_LINE_CONTINUED)
+	{
+	  int prev_x = max (it->current_x - 1, 0);
+	  *it = save_it;
+	  move_it_in_display_line_to
+	    (it, -1, prev_x, MOVE_TO_X);
+	}
+    }
+  else
+    move_it_in_display_line_to (it, to_charpos, to_x, op);
 }
 
 
@@ -7086,6 +7157,9 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	{
 	  struct it it_backup;
 
+	  if (it->line_wrap == WORD_WRAP)
+	    it_backup = *it;
+
 	  /* TO_Y specified means stop at TO_X in the line containing
 	     TO_Y---or at TO_CHARPOS if this is reached first.  The
 	     problem is that we can't really tell whether the line
@@ -7098,28 +7172,19 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	     If we didn't use TO_X == 0, we would stop at the end of
 	     the line which is probably not what a caller would expect
 	     to happen.  */
-	  skip = move_it_in_display_line_to (it, to_charpos,
-					     ((op & MOVE_TO_X)
-					      ? to_x : 0),
-					     (MOVE_TO_X
-					      | (op & MOVE_TO_POS)));
+	  skip = move_it_in_display_line_to
+	    (it, to_charpos, ((op & MOVE_TO_X) ? to_x : 0),
+	     (MOVE_TO_X | (op & MOVE_TO_POS)));
 
 	  /* If TO_CHARPOS is reached or ZV, we don't have to do more.  */
 	  if (skip == MOVE_POS_MATCH_OR_ZV)
+	    reached = 5;
+	  else if (skip == MOVE_X_REACHED)
 	    {
-	      reached = 5;
-	      break;
-	    }
-
-	  /* If TO_X was reached, we would like to know whether TO_Y
-	     is in the line.  This can only be said if we know the
-	     total line height which requires us to scan the rest of
-	     the line.  */
-	  if (skip == MOVE_X_REACHED)
-	    {
-	      /* Wait!  We can conclude that TO_Y is in the line if
-		 the already scanned glyphs make the line tall enough
-		 because further scanning doesn't make it shorter.  */
+	      /* If TO_X was reached, we want to know whether TO_Y is
+		 in the line.  We know this is the case if the already
+		 scanned glyphs make the line tall enough.  Otherwise,
+		 we must check by scanning the rest of the line.  */
 	      line_height = it->max_ascent + it->max_descent;
 	      if (to_y >= it->current_y
 		  && to_y < it->current_y + line_height)
@@ -7132,27 +7197,48 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	      skip2 = move_it_in_display_line_to (it, to_charpos, -1,
 						  op & MOVE_TO_POS);
 	      TRACE_MOVE ((stderr, "move_it: to %d\n", IT_CHARPOS (*it)));
-	    }
+	      line_height = it->max_ascent + it->max_descent;
+	      TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
 
-	  /* Now, decide whether TO_Y is in this line.  */
-	  line_height = it->max_ascent + it->max_descent;
-	  TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
-
-	  if (to_y >= it->current_y
-	      && to_y < it->current_y + line_height)
-	    {
-	      if (skip == MOVE_X_REACHED)
-		/* If TO_Y is in this line and TO_X was reached above,
-		   we scanned too far.  We have to restore IT's settings
-		   to the ones before skipping.  */
-		*it = it_backup;
-	      reached = 6;
+	      if (to_y >= it->current_y
+		  && to_y < it->current_y + line_height)
+		{
+		  /* If TO_Y is in this line and TO_X was reached
+		     above, we scanned too far.  We have to restore
+		     IT's settings to the ones before skipping.  */
+		  *it = it_backup;
+		  reached = 6;
+		}
+	      else
+		{
+		  skip = skip2;
+		  if (skip == MOVE_POS_MATCH_OR_ZV)
+		    reached = 7;
+		}
 	    }
-	  else if (skip == MOVE_X_REACHED)
+	  else
 	    {
-	      skip = skip2;
-	      if (skip == MOVE_POS_MATCH_OR_ZV)
-		reached = 7;
+	      /* Check whether TO_Y is in this line.  */
+	      line_height = it->max_ascent + it->max_descent;
+	      TRACE_MOVE ((stderr, "move_it: line_height = %d\n", line_height));
+
+	      if (to_y >= it->current_y
+		  && to_y < it->current_y + line_height)
+		{
+		  /* When word-wrap is on, TO_X may lie past the end
+		     of a wrapped line.  Then it->current is the
+		     character on the next line, so backtrack to the
+		     space before the wrap point.  */
+		  if (skip == MOVE_LINE_CONTINUED
+		      && it->line_wrap == WORD_WRAP)
+		    {
+		      int prev_x = max (it->current_x - 1, 0);
+		      *it = it_backup;
+		      skip = move_it_in_display_line_to
+			(it, -1, prev_x, MOVE_TO_X);
+		    }
+		  reached = 6;
+		}
 	    }
 
 	  if (reached)
@@ -9397,7 +9483,32 @@ x_consider_frame_title (frame)
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
 	  || bcmp (title, SDATA (f->name), len) != 0)
-	x_implicitly_set_name (f, make_string (title, len), Qnil);
+        {
+#ifdef HAVE_NS
+          if (FRAME_NS_P (f))
+            {
+              if (!MINI_WINDOW_P(XWINDOW(f->selected_window)))
+                {
+                  if (EQ (fmt, Qt))
+                    ns_set_name_as_filename (f);
+                  else
+                    x_implicitly_set_name (f, make_string(title, len),
+                                           Qnil);
+                }
+            }
+          else
+#endif
+	    x_implicitly_set_name (f, make_string (title, len), Qnil);
+        }
+#ifdef HAVE_NS
+      if (FRAME_NS_P (f))
+        {
+          /* do this also for frames with explicit names */
+          ns_implicitly_set_icon_type(f);
+          ns_set_doc_edited(f, Fbuffer_modified_p
+                            (XWINDOW (f->selected_window)->buffer), Qnil);
+        }
+#endif
     }
 }
 
@@ -9562,7 +9673,7 @@ update_menu_bar (f, save_match_data, hooks_run)
   if (FRAME_WINDOW_P (f)
       ?
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
       FRAME_EXTERNAL_MENU_BAR (f)
 #else
       FRAME_MENU_BAR_LINES (f) > 0
@@ -9621,10 +9732,10 @@ update_menu_bar (f, save_match_data, hooks_run)
 
 	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
 	  if (FRAME_WINDOW_P (f))
-	    {
-#ifdef MAC_OS
+            {
+#if defined (MAC_OS) || defined (HAVE_NS)
               /* All frames on Mac OS share the same menubar.  So only
                  the selected frame should be allowed to set it.  */
               if (f == SELECTED_FRAME ())
@@ -9635,11 +9746,11 @@ update_menu_bar (f, save_match_data, hooks_run)
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
 	    w->update_mode_line = Qt;
-#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || USE_GTK) */
+#else /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || HAVE_NS || USE_GTK) */
 	  /* In the non-toolkit version, the menu bar is an ordinary screen
 	     line, and this makes it get updated.  */
 	  w->update_mode_line = Qt;
-#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || USE_GTK) */
+#endif /* ! (USE_X_TOOLKIT || HAVE_NTGUI || MAC_OS || HAVE_NS || USE_GTK) */
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
@@ -9750,7 +9861,7 @@ update_tool_bar (f, save_match_data)
      struct frame *f;
      int save_match_data;
 {
-#if defined (USE_GTK) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
   int do_update = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
   int do_update = WINDOWP (f->tool_bar_window)
@@ -10216,7 +10327,7 @@ redisplay_tool_bar (f)
   struct it it;
   struct glyph_row *row;
 
-#if defined (USE_GTK) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
   if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
   return 0;
@@ -11436,6 +11547,10 @@ redisplay_internal (preserve_echo_area)
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = 1;
+/* FIXME: this causes all frames to be updated, which seems unnecessary
+   since only the current frame needs to be considered.  This function needs
+   to be rewritten with two variables, consider_all_windows and
+   consider_all_frames. */
       consider_all_windows_p = 1;
       ++windows_or_buffers_changed;
       ++update_mode_lines;
@@ -13848,7 +13963,7 @@ redisplay_window (window, just_this_one_p)
       if (FRAME_WINDOW_P (f))
 	{
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
 	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
 #else
 	  redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
@@ -13863,7 +13978,7 @@ redisplay_window (window, just_this_one_p)
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f))
         {
-#if defined (USE_GTK) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
           redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
           redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
@@ -14503,9 +14618,10 @@ find_last_unchanged_at_beg_row (w)
   int yb = window_text_bottom_y (w);
 
   /* Find the last row displaying unchanged text.  */
-  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  while (MATRIX_ROW_DISPLAYS_TEXT_P (row)
-	 && MATRIX_ROW_START_CHARPOS (row) < first_changed_pos)
+  for (row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+       MATRIX_ROW_DISPLAYS_TEXT_P (row)
+	 && MATRIX_ROW_START_CHARPOS (row) < first_changed_pos;
+       ++row)
     {
       if (/* If row ends before first_changed_pos, it is unchanged,
 	     except in some case.  */
@@ -14522,10 +14638,8 @@ find_last_unchanged_at_beg_row (w)
 	row_found = row;
 
       /* Stop if last visible row.  */
-     if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
+      if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
 	break;
-
-      ++row;
     }
 
   return row_found;
@@ -14841,6 +14955,12 @@ try_window_id (w)
   if (overlay_arrows_changed_p ())
     GIVE_UP (12);
 
+  /* When word-wrap is on, adding a space to the first word of a
+     wrapped line can change the wrap position, altering the line
+     above it.  It might be worthwhile to handle this more
+     intelligently, but for now just redisplay from scratch.  */
+  if (!NILP (XBUFFER (w->buffer)->word_wrap))
+    GIVE_UP (21);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
      only if buffer has really changed.  The reason is that the gap is
@@ -16355,6 +16475,25 @@ push_display_prop (struct it *it, Lisp_Object prop)
     }
 }
 
+/* Return the character-property PROP at the current position in IT.  */
+
+static Lisp_Object
+get_it_property (it, prop)
+     struct it *it;
+     Lisp_Object prop;
+{
+  Lisp_Object position;
+
+  if (STRINGP (it->object))
+    position = make_number (IT_STRING_CHARPOS (*it));
+  else if (BUFFERP (it->object))
+    position = make_number (IT_CHARPOS (*it));
+  else
+    return Qnil;
+
+  return Fget_char_property (position, prop, it->object);
+}
+
 /* See if there's a line- or wrap-prefix, and if so, push it on IT.  */
 
 static void
@@ -16506,8 +16645,7 @@ display_line (it)
 
 	  if (it->line_wrap == WORD_WRAP && it->area == TEXT_AREA)
 	    {
-	      if (it->what == IT_CHARACTER
-		  && (it->c == ' ' || it->c == '\t'))
+	      if (IT_DISPLAYING_WHITESPACE (it))
 		may_wrap = 1;
 	      else if (may_wrap)
 		{
@@ -16604,6 +16742,18 @@ display_line (it)
 		      ++it->hpos;
 		      if (i == nglyphs - 1)
 			{
+			  /* If line-wrap is on, check if a previous
+			     wrap point was found.  */
+			  if (wrap_row_used > 0
+			      /* Even if there is a previous wrap
+				 point, continue the line here as
+				 usual, if (i) the previous character
+				 was a space or tab AND (ii) the
+				 current character is not.  */
+			      && (!may_wrap
+				  || IT_DISPLAYING_WHITESPACE (it)))
+			    goto back_to_wrap;
+
 			  set_iterator_to_next (it, 1);
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
@@ -16622,8 +16772,6 @@ display_line (it)
 				}
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
-			  if (wrap_row_used > 0)
-			    goto back_to_wrap;
 			}
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
@@ -16973,6 +17121,11 @@ display_menu_bar (w)
   if (FRAME_MAC_P (f))
     return;
 #endif
+
+#ifdef HAVE_NS
+  if (FRAME_NS_P (f))
+    return;
+#endif /* HAVE_NS */
 
 #ifdef USE_X_TOOLKIT
   xassert (!FRAME_WINDOW_P (f));
@@ -20839,25 +20992,6 @@ produce_stretch_glyph (it)
   take_vertical_position_into_account (it);
 }
 
-/* Return the character-property PROP at the current position in IT.  */
-
-static Lisp_Object
-get_it_property (it, prop)
-     struct it *it;
-     Lisp_Object prop;
-{
-  Lisp_Object position;
-
-  if (STRINGP (it->object))
-    position = make_number (IT_STRING_CHARPOS (*it));
-  else if (BUFFERP (it->object))
-    position = make_number (IT_CHARPOS (*it));
-  else
-    return Qnil;
-
-  return Fget_char_property (position, prop, it->object);
-}
-
 /* Calculate line-height and line-spacing properties.
    An integer value specifies explicit pixel value.
    A float value specifies relative value to current face height.
@@ -22460,7 +22594,10 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 /* Switch the display of W's cursor on or off, according to the value
    of ON.  */
 
-static void
+#ifndef HAVE_NS
+static
+#endif
+void
 update_window_cursor (w, on)
      struct window *w;
      int on;
@@ -25083,6 +25220,18 @@ particularly when using variable `x-use-underline-position-properties'
 with fonts that specify an UNDERLINE_POSITION relatively close to the
 baseline.  The default value is 1.  */);
   underline_minimum_offset = 1;
+
+  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
+	       doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
+  display_hourglass_p = 1;
+
+  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
+	       doc: /* *Seconds to wait before displaying an hourglass pointer.
+Value must be an integer or float.  */);
+  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
+
+  hourglass_atimer = NULL;
+  hourglass_shown_p = 0;
 }
 
 
@@ -25138,6 +25287,67 @@ init_xdisp ()
   help_echo_showing_p = 0;
 }
 
+/* Since w32 does not support atimers, it defines its own implementation of
+   the following three functions in w32fns.c.  */
+#ifndef WINDOWSNT
+
+/* Platform-independent portion of hourglass implementation. */
+
+/* Return non-zero if houglass timer has been started or hourglass is shown.  */
+int
+hourglass_started ()
+{
+  return hourglass_shown_p || hourglass_atimer != NULL;
+}
+
+/* Cancel a currently active hourglass timer, and start a new one.  */
+void
+start_hourglass ()
+{
+#if defined (HAVE_WINDOW_SYSTEM)
+  EMACS_TIME delay;
+  int secs, usecs = 0;
+
+  cancel_hourglass ();
+
+  if (INTEGERP (Vhourglass_delay)
+      && XINT (Vhourglass_delay) > 0)
+    secs = XFASTINT (Vhourglass_delay);
+  else if (FLOATP (Vhourglass_delay)
+	   && XFLOAT_DATA (Vhourglass_delay) > 0)
+    {
+      Lisp_Object tem;
+      tem = Ftruncate (Vhourglass_delay, Qnil);
+      secs = XFASTINT (tem);
+      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
+    }
+  else
+    secs = DEFAULT_HOURGLASS_DELAY;
+
+  EMACS_SET_SECS_USECS (delay, secs, usecs);
+  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
+				   show_hourglass, NULL);
+#endif
+}
+
+
+/* Cancel the hourglass cursor timer if active, hide a busy cursor if
+   shown.  */
+void
+cancel_hourglass ()
+{
+#if defined (HAVE_WINDOW_SYSTEM)
+  if (hourglass_atimer)
+    {
+      cancel_atimer (hourglass_atimer);
+      hourglass_atimer = NULL;
+    }
+
+  if (hourglass_shown_p)
+    hide_hourglass ();
+#endif
+}
+#endif /* ! WINDOWSNT  */
 
 /* arch-tag: eacc864d-bb6a-4b74-894a-1a4399a1358b
    (do not change this comment) */

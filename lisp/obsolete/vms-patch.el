@@ -1,4 +1,6 @@
 ;; -*- no-byte-compile: t -*-
+;; Not byte compiled because it uses functions that are not part of
+;; emacs, so it would generate unnecessary warnings.
 ;;; vms-patch.el --- override parts of files.el for VMS
 
 ;; Copyright (C) 1986, 1992, 2001, 2002, 2003, 2004,

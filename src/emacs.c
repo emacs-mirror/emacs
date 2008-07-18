@@ -46,6 +46,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h" /* for prototype of sbrk */
 #endif
 
+#ifdef NS_IMPL_GNUSTEP
+/* At least under Debian, GSConfig is in a subdirectory.  --Stef  */
+#include <GNUstepBase/GSConfig.h>
+#endif
+
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
@@ -98,7 +103,7 @@ int gdb_use_lsb = 1;
 #else
 int gdb_use_lsb = 0;
 #endif
-#ifdef NO_UNION_TYPE
+#ifndef USE_LISP_UNION_TYPE
 int gdb_use_union = 0;
 #else
 int gdb_use_union = 1;
@@ -193,7 +198,7 @@ int running_asynch_code;
 extern int inherited_pgroup;
 #endif
 
-#ifdef HAVE_X_WINDOWS
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
 /* If non-zero, -d was specified, meaning we're using some window system.  */
 int display_arg;
 #endif
@@ -220,13 +225,6 @@ extern Lisp_Object Vinitial_window_system;
 extern Lisp_Object Vauto_save_list_file_name;
 
 extern Lisp_Object Vinhibit_redisplay;
-
-#ifdef USG_SHARED_LIBRARIES
-/* If nonzero, this is the place to put the end of the writable segment
-   at startup.  */
-
-unsigned int bss_end = 0;
-#endif
 
 /* Nonzero means running Emacs without interactive terminal.  */
 
@@ -838,7 +836,7 @@ main (argc, argv
     run_time_remap (argv[0]);
 #endif
 
-#ifdef MAC_OSX
+#if defined (MAC_OSX) || defined (NS_IMPL_COCOA)
   if (!initialized)
     unexec_init_emacs_zone ();
 #endif
@@ -1000,11 +998,6 @@ main (argc, argv
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
-
-#ifdef USG_SHARED_LIBRARIES
-  if (bss_end)
-    brk ((void *)bss_end);
-#endif
 
   clearerr (stdin);
 
@@ -1410,6 +1403,38 @@ main (argc, argv
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+#ifdef HAVE_NS
+  ns_alloc_autorelease_pool();
+  if (!noninteractive)
+    {
+      char *tmp;
+      display_arg = 4;
+#ifdef NS_IMPL_COCOA
+      if (skip_args < argc)
+        {
+          if (!strncmp(argv[skip_args], "-psn", 4))
+            {
+              skip_args += 1;
+            }
+          else
+            {
+              if (skip_args+1 < argc && !strncmp(argv[skip_args+1], "-psn", 4))
+                  skip_args += 2;
+            }
+        }
+#endif
+      /* This used for remote operation.. not fully implemented yet. */
+      if (argmatch (argv, argc, "-_NSMachLaunch", 0, 3, &tmp, &skip_args))
+          display_arg = 4;
+      else if (argmatch (argv, argc, "-MachLaunch", 0, 3, &tmp, &skip_args))
+          display_arg = 4;
+      else if (argmatch (argv, argc, "-macosx", 0, 2, NULL, &skip_args))
+          display_arg = 4;
+      else if (argmatch (argv, argc, "-NSHost", 0, 3, &tmp, &skip_args))
+          display_arg = 4;
+    }
+#endif /* HAVE_NS */
+
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
      handle this argument entirely in window system dependent code
@@ -1485,6 +1510,13 @@ main (argc, argv
 #if defined (MAC_OSX) && defined (HAVE_CARBON)
   if (initialized)
     init_mac_osx_environment ();
+#endif
+
+#ifdef HAVE_NS
+#ifndef CANNOT_DUMP
+  if (initialized)
+#endif
+    ns_init_paths ();
 #endif
 
   /* egetenv is a pretty low-level facility, which may get called in
@@ -1588,6 +1620,7 @@ main (argc, argv
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
       syms_of_xfns ();
+      syms_of_xmenu ();
       syms_of_fontset ();
 #ifdef HAVE_X_SM
       syms_of_xsmfns ();
@@ -1598,13 +1631,6 @@ main (argc, argv
 #endif /* HAVE_X_WINDOWS */
 
       syms_of_menu ();
-
-#ifndef HAVE_NTGUI
-#ifndef MAC_OS
-      /* Called before init_window_once for Mac OS Classic.  */
-      syms_of_xmenu ();
-#endif
-#endif
 
 #ifdef HAVE_NTGUI
       syms_of_w32term ();
@@ -1621,6 +1647,14 @@ main (argc, argv
       syms_of_macselect ();
       syms_of_fontset ();
 #endif /* MAC_OSX && HAVE_CARBON */
+
+#ifdef HAVE_NS
+      syms_of_nsterm ();
+      syms_of_nsfns ();
+      syms_of_nsmenu ();
+      syms_of_nsselect ();
+      syms_of_fontset ();
+#endif /* HAVE_NS */
 
 #ifdef HAVE_DBUS
       syms_of_dbusbind ();
@@ -1843,6 +1877,15 @@ struct standard_args standard_args[] =
   { "-color", "--color", 5, 0},
   { "-no-splash", "--no-splash", 3, 0 },
   { "-no-desktop", "--no-desktop", 3, 0 },
+#ifdef HAVE_NS
+  { "-NSAutoLaunch", 0, 5, 1 },
+  { "-NXAutoLaunch", 0, 5, 1 },
+  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
+  { "-_NSMachLaunch", 0, 85, 1 },
+  { "-MachLaunch", 0, 85, 1 },
+  { "-macosx", 0, 85, 0 },
+  { "-NSHost", 0, 85, 1 },
+#endif
   /* These have the same priority as ordinary file name args,
      so they are not reordered with respect to those.  */
   { "-L", "--directory", 0, 1 },
@@ -1862,6 +1905,13 @@ struct standard_args standard_args[] =
   { "-visit", "--visit", 0, 1 },
   { "-file", "--file", 0, 1 },
   { "-insert", "--insert", 0, 1 },
+#ifdef HAVE_NS
+  { "-NXOpen", 0, 0, 1 },
+  { "-NXOpenTemp", 0, 0, 1 },
+  { "-NSOpen", 0, 0, 1 },
+  { "-NSOpenTemp", 0, 0, 1 },
+  { "-GSFilePath", 0, 0, 1 },
+#endif
   /* This should be processed after ordinary file name args and the like.  */
   { "-kill", "--kill", -10, 0 },
 };
@@ -2158,6 +2208,10 @@ shut_down_emacs (sig, no_x, stuff)
 #ifdef MSDOS
   dos_cleanup ();
 #endif
+
+#ifdef HAVE_NS
+  ns_term_shutdown (sig);
+#endif
 }
 
 
@@ -2442,14 +2496,13 @@ Many arguments are deleted from the list as they are processed.  */);
   DEFVAR_LISP ("system-type", &Vsystem_type,
 	       doc: /* Value is symbol indicating type of operating system you are using.
 Special values:
+  `gnu'         compiled for a GNU Hurd system.
   `gnu/linux'   compiled for a GNU/Linux system.
   `darwin'      compiled for Darwin (GNU-Darwin, Mac OS X, ...).
-  `macos'       compiled for Mac OS 9.
   `ms-dos'      compiled as an MS-DOS application.
   `windows-nt'  compiled as a native W32 application.
   `cygwin'      compiled using the Cygwin library.
-  `vax-vms' or
-  `axp-vms'     compiled for a (Open)VMS system.
+  `vax-vms'     compiled for a (Open)VMS system.
 Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 

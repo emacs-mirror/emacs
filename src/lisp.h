@@ -28,6 +28,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define P_(proto) ()
 #endif
 
+#ifdef NS_IMPL_GNUSTEP
+/* This conflicts with functions in the GNUstep libraries. */
+#define hash_remove emacs_hash_remove
+#endif  /* NS_IMPL_GNUSTEP */
+
 #if 0
 /* Define this temporarily to hunt a bug.  If defined, the size of
    strings is redundantly recorded in sdata structures so that it can
@@ -108,13 +113,6 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 #endif
 
-/* Used for making sure that Emacs is compilable in all
-   configurations.  */
-
-#ifdef USE_LISP_UNION_TYPE
-#undef NO_UNION_TYPE
-#endif
-
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
 #ifndef ENABLE_CHECKING
@@ -127,10 +125,15 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 #endif /* ENABLE_CHECKING */
 
+/* Define this to make Lisp_Object use a union type instead of the
+   default int.  FIXME: It might be better to add a flag to configure
+   to do this.  */
+/* #define USE_LISP_UNION_TYPE */
+
 /***** Select the tagging scheme.  *****/
 /* There are basically two options that control the tagging scheme:
-   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
-     of a union.
+   - USE_LISP_UNION_TYPE says that Lisp_Object should be a union instead
+     of an integer.
    - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
      always 0, and we can thus use them to hold tag bits, without
      restricting our addressing space.
@@ -159,11 +162,11 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 
 /* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX || defined(NS_IMPL_COCOA)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
 /* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
-#  if defined NO_UNION_TYPE
+#  ifndef USE_LISP_UNION_TYPE
 #   define USE_LSB_TAG
 #  endif
 # endif
@@ -246,7 +249,7 @@ enum Lisp_Misc_Type
 #define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
 #endif
 
-#ifndef NO_UNION_TYPE
+#ifdef USE_LISP_UNION_TYPE
 
 #ifndef WORDS_BIG_ENDIAN
 
@@ -310,13 +313,13 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #define LISP_MAKE_RVALUE(o) (o)
 #endif
 
-#else /* NO_UNION_TYPE */
+#else /* USE_LISP_UNION_TYPE */
 
 /* If union type is not wanted, define Lisp_Object as just a number.  */
 
 typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
-#endif /* NO_UNION_TYPE */
+#endif /* USE_LISP_UNION_TYPE */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
@@ -374,7 +377,7 @@ enum pvec_type
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
-#ifdef NO_UNION_TYPE
+#ifndef USE_LISP_UNION_TYPE
 
 /* Return a perfect hash of the Lisp_Object representation.  */
 #define XHASH(a) (a)
@@ -440,7 +443,7 @@ enum pvec_type
 
 #endif /* not USE_LSB_TAG */
 
-#else /* not NO_UNION_TYPE */
+#else /* USE_LISP_UNION_TYPE */
 
 #define XHASH(a) ((a).i)
 
@@ -472,7 +475,7 @@ enum pvec_type
 extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
-#endif /* NO_UNION_TYPE */
+#endif /* USE_LISP_UNION_TYPE */
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
@@ -1683,9 +1686,7 @@ typedef struct {
   } while (0)
 
 /* Cast pointers to this type to compare them.  Some machines want int.  */
-#ifndef PNTR_COMPARISON_TYPE
 #define PNTR_COMPARISON_TYPE EMACS_UINT
-#endif
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,
@@ -2379,7 +2380,6 @@ Lisp_Object copy_hash_table P_ ((struct Lisp_Hash_Table *));
 int hash_lookup P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned *));
 int hash_put P_ ((struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		  unsigned));
-void hash_remove P_ ((struct Lisp_Hash_Table *, Lisp_Object));
 void hash_clear P_ ((struct Lisp_Hash_Table *));
 void remove_hash_entry P_ ((struct Lisp_Hash_Table *, int));
 extern void init_fns P_ ((void));
@@ -2878,6 +2878,7 @@ extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
+EXFUN (Foverlay_buffer, 1);
 extern void adjust_overlays_for_insert P_ ((EMACS_INT, EMACS_INT));
 extern void adjust_overlays_for_delete P_ ((EMACS_INT, EMACS_INT));
 extern void fix_start_end_in_overlays P_ ((int, int));

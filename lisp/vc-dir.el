@@ -770,37 +770,65 @@ If it is a file, return the corresponding cons for the file itself."
 	     (vc-dir-fileinfo->state crt-data)) result))
     result))
 
+(defun vc-dir-recompute-file-state (fname def-dir)
+  (let* ((file-short (file-relative-name fname def-dir))
+	 (state (vc-call-backend vc-dir-backend 'state fname))
+	 (extra (vc-call-backend vc-dir-backend
+				 'status-fileinfo-extra fname)))
+    (list file-short state extra)))
+
+(defun vc-dir-find-child-files (dirname)
+  ;; Give a DIRNAME string return the list of all child files shown in
+  ;; the current *vc-dir* buffer.
+  (let ((crt (ewoc-nth vc-ewoc 0))
+	children
+	dname)
+    ;; Find DIR
+    (while (and crt (not (vc-string-prefix-p
+			  dirname (vc-dir-node-directory crt))))
+      (setq crt (ewoc-next vc-ewoc crt)))
+    (while (and crt (vc-string-prefix-p
+		     dirname
+		     (setq dname (vc-dir-node-directory crt))))
+      (let ((data (ewoc-data crt)))
+	(unless (vc-dir-fileinfo->directory data)
+	  (push (expand-file-name (vc-dir-fileinfo->name data)) children)))
+      (setq crt (ewoc-next vc-ewoc crt)))
+    children))
+
+(defun vc-dir-resync-directory-files (dirname)
+  ;; Update the entries for all the child files of DIRNAME shown in
+  ;; the current *vc-dir* buffer.
+  (let ((files (vc-dir-find-child-files dirname))
+	(ddir (expand-file-name default-directory))
+	fileentries)
+    (when files
+      (dolist (crt files)
+	(push (vc-dir-recompute-file-state crt ddir)
+	      fileentries))
+      (vc-dir-update fileentries (current-buffer)))))
+
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FILE in any directory buffers that list it."
-  (let ((file (or fname (expand-file-name buffer-file-name))))
-    (if (file-directory-p file)
-	;; FIXME: Maybe this should never happen?
-        ;; FIXME: But it is useful to update the state of a directory
-	;; (more precisely the files in the directory) after some VC
-	;; operations.
-	nil
-      (let ((found-vc-dir-buf nil))
-	(save-excursion
-	  (dolist (status-buf (buffer-list))
-	    (set-buffer status-buf)
-	    ;; look for a vc-dir buffer that might show this file.
-	    (when (derived-mode-p 'vc-dir-mode)
-	      (setq found-vc-dir-buf t)
-	      (let ((ddir (expand-file-name default-directory)))
-		(when (vc-string-prefix-p ddir file)
-		  (let*
-                      ;; FIXME: Any reason we don't use file-relative-name?
-		      ((file-short (substring file (length ddir)))
-		       (state (vc-call-backend vc-dir-backend 'state file))
-		       (extra (vc-call-backend vc-dir-backend
-					       'status-fileinfo-extra file))
-		       (entry
-			(list file-short state extra)))
-		    (vc-dir-update (list entry) status-buf))))))
-	  ;; We didn't find any vc-dir buffers, remove the hook, it is
-	  ;; not needed.
-	  (unless found-vc-dir-buf
-            (remove-hook 'after-save-hook 'vc-dir-resynch-file)))))))
+  (let ((file (or fname (expand-file-name buffer-file-name)))
+	(found-vc-dir-buf nil))
+    (save-excursion
+      (dolist (status-buf (buffer-list))
+	(set-buffer status-buf)
+	;; look for a vc-dir buffer that might show this file.
+	(when (derived-mode-p 'vc-dir-mode)
+	  (setq found-vc-dir-buf t)
+	  (let ((ddir (expand-file-name default-directory)))
+	    (when (vc-string-prefix-p ddir file)
+	      (if (file-directory-p file)
+		  (vc-dir-resync-directory-files file)
+		(vc-dir-update
+		 (list (vc-dir-recompute-file-state file ddir))
+		 status-buf)))))))
+    ;; We didn't find any vc-dir buffers, remove the hook, it is
+    ;; not needed.
+    (unless found-vc-dir-buf
+      (remove-hook 'after-save-hook 'vc-dir-resynch-file))))
 
 (defvar use-vc-backend)  ;; dynamically bound
 
@@ -927,8 +955,10 @@ Throw an error if another update process is in progress."
       (unless (buffer-live-p vc-dir-process-buffer)
         (setq vc-dir-process-buffer
               (generate-new-buffer (format " *VC-%s* tmp status" backend))))
-      ;; set the needs-update flag on all entries
-      (ewoc-map (lambda (info) (setf (vc-dir-fileinfo->needs-update info) t) nil)
+      ;; set the needs-update flag on all non-directory entries
+      (ewoc-map (lambda (info)
+		  (unless (vc-dir-fileinfo->directory info)
+		    (setf (vc-dir-fileinfo->needs-update info) t) nil))
                 vc-ewoc)
       (lexical-let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer

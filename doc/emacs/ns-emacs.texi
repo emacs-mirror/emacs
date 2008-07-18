@@ -1,0 +1,1023 @@
+\input texinfo @c -*-texinfo-*-
+
+@setfilename ../info/ns-emacs
+@settitle Emacs.app
+
+@iftex
+@finalout
+@end iftex
+
+@titlepage
+@sp 10
+@center @titlefont{Emacs.app}
+
+@center (Version 9.0-rc1, April, 2006)
+
+@sp 2
+@center Carl Edman
+@sp 2
+@center Christian Limpach
+@sp 2
+@center Scott Bender
+@sp 2
+@center Christophe de Dinechin
+@sp 2
+@center Adrian Robert
+@sp 2
+
+@end titlepage
+
+@unnumbered Distribution
+@*
+Copyright @copyright{} 1994 Carl Edman.@*
+Copyright @copyright{} 1997 Christian Limpach.
+Copyright @copyright{} 1997 Scott Bender.
+Copyright @copyright{} 2001 Christophe de Dinechin.
+Copyright @copyright{} 2005-07 Adrian Robert.
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through Tex and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the same conditions as for modified versions.
+
+@ignore
+@menu
+* Introduction::                
+* Events::                      
+* Preferences Panel::
+* Preferences::                    
+* Tips and Tricks::             
+* Thanks::                      
+@end menu
+@end ignore
+
+@node Top, Introduction, (dir), (dir)
+@top Emacs.app
+
+Emacs.app for GNUstep and MacOS X (http://emacs-app.sf.net) is a version of
+GNU Emacs CVS unicode-2 branch (currently planned to be released as Emacs 23)
+which adds support for the GNUstep and MacOS X systems via the OpenStep APIs
+(referred to as "Cocoa" under OS X).  Support for NeXTstep, OpenStep, and
+Rhapsody systems has been dropped.  For those systems, use "Emacs-on-Aqua",
+available at http://emacs-on-aqua.sf.net.
+
+This port leaves most of the core functions of Emacs unchanged and is
+fully-compatible with all Emacs Lisp packages, however it has a number of
+step-ish features which do not have any equivalent in Emacs's X11 interface.
+The design aim was to make it look as similar as possible to an X application
+to Emacs Lisp programs and to make it look like a normal GNUstep or MacOS X
+application to users.
+
+(From here on out we refer to this port as "Emacs.app", and the systems
+supported by this port as "NeXTstep", "NS", or "OpenStep", because saying
+GNUstep / MacOS X is too clumsy.  Both systems were derived from the NeXTstep
+libraries developed by NeXT, Inc. for its NeXT computer and operating system,
+whose APIs were later published as the OpenStep specification.  All classes
+and functions in these APIs start with the letters 'NS' for this historical
+reason.)
+
+Comments and bug reports relating to the window system interface are welcome.
+To report a bug please use the @samp{Help/Report Emacs.app bug...}  menu item.
+This sends messages to the maintainer.  (Note, please include your email
+address if you don't usually send email from this machine.)
+
+Problems and bugs which do not relate to the NS support (i.e. which can be
+reproduced even in a dumb terminal or under the Carbon port or X11) should be
+reported through the normal Emacs channels.
+
+Also, please inspect the ``Known Issues'' contained in the README file you may
+have received with this distribution or listed at the web site
+http://emacs-app.sf.net .
+
+There is also a developer mailing list for Emacs.app,
+<emacs-app-dev-@@lists.sourceforge.net>.  Sign up through the project page at
+http://emacs-app.sf.net.  A user mailing list will be added in time and if
+warranted.
+
+
+@menu
+* Introduction::	What you need to know to use and program.
+* Events::              How NS window system events are handled.
+* Preferences Panel::   Using the Preferences Panel to customize Emacs.
+* Customization::       Customization for Emacs.app.
+* Tips and Tricks::     Collected hints from Emacs users
+* Thanks::              The people who helped create Emacs.app
+@end menu
+
+@node Introduction, Events, Top, Top
+@section Introduction
+
+Despite the size and complexity of GNU Emacs, NeXTstep and the NeXTstep
+support code, this manual can be kept mercifully short by saying that
+everything written in the Emacs and the Emacs Lisp manuals about GNU Emacs
+applies equally to this Emacs except as noted here.
+
+@itemize @bullet
+@item
+The ``right-click'' button (usually the right-hand button on a two-button
+mouse) is mapped to Mouse-3, instead of Mouse-2 as earlier versions of
+Emacs.app.  This is for compatibility with X versions of emacs.  To get some
+of the old behavior back, you can put in your .emacs:
+
+@lisp
+(global-set-key [mouse-3] 'mouse-yank-at-click)
+@end lisp
+
+The other functionality of mouse-3 in a buffer of extending a selection is
+available via shift-click as in other NS applications.  To pop up a context
+menu, 
+
+@item
+The Alt or Opt key is bound to the traditional emacs "meta" by default, while
+the NS "command" key is bound to 'super', for which a set of keybindings are
+set to mimic other NeXTstep applications.  (See @ref{Events}.)  You can change
+either of these bindings using the preferences panel (see @ref{Preferences
+Panel}).
+
+@item
+The standard NeXTstep font and color panels are accessible through the Windows
+menu, or through the standard Cmd-t and Cmd-C.  These are easier to use than
+Emacs's own methods for setting these items.  To use the color panel, drag
+from it to an emacs frame.  The foreground (or background, if shift is held
+down) of the face at that point will be changed.  To finalize settings for
+either color or font, choose 'Save Preferences' from under the Help menu.  To
+discard these settings, create a new frame and close the altered one.
+
+@item
+Opening files / directories and 'Save Buffer As' operated from the menus use
+the standard NS file panels.  Likewise if you use Cmd-o or Cmd-S.  However,
+if you use the regular Emacs key combinations Ctrl-x,Ctrl-f and Ctrl-x,w for
+these functions, the normal Emacs mode of typing filenames into the minibuffer
+is used.
+
+@item
+On GNUstep, in an X-windows environment you need to use Cmd-c instead of one
+of the Ctrl-w or Meta-w commands to transfer text to the X primary selection.
+(Ordinarily the "clipboard" selection is used, for compatibility with more
+modern Gnome and KDE programs.)  Likewise, Cmd-y (instead of Ctrl-y) will
+yank/paste in the X primary selection instead of the kill-ring / clipboard.
+
+@item
+The @code{window-system} variable can now have the value @code{ns} in addition
+to, e.g., @code{x} or @code{nil}.  You can use this in your .emacs file:
+
+If you just want to distinguish between cases in which there is a
+window system and in which there isn't, this construct is useful.
+@lisp
+(if window-system
+    ...       ;;; evaluate if any window system is running
+  ...)        ;;; evaluate only when running on a dumb terminal
+@end lisp
+
+For more detailed control, use this.
+@lisp
+(cond
+ ((eq window-system 'ns)         ;;; NS specific instructions
+  ...)        
+ ((eq window-system 'x)          ;;; X specific instructions
+  ...)
+ (t      ;;; Instructions for dumb terminal or other window systems
+  ...))
+@end lisp
+
+@item
+Likewise, you can detect whether you are running in emacs-23 or an earlier
+version with:
+
+@lisp
+   (if (eq emacs-major-version '23) <emacs-23 code> <emacs-22- code>)
+@end lisp
+
+@item
+Most NS specific functions begin with 'ns-'.  Do "C-h f ns-[TAB]" to list
+these.  Many of these replace equivalent 'x-' functions, while others perform
+uniquely NS things, such as Service invocation.
+
+@item
+There are also NS variables beginning with 'ns-', however in most cases users
+need not pay attention to them since the customizability they provide is also
+available through the defaults system and preferences panel (see
+@ref{Preferences Panel} and @ref{Customization}).
+
+@item
+When Emacs is called by a name which ends in @file{-nw} it will always
+start in terminal mode.  For example, a user who needs a terminal only
+emacs would create a symbolic link from @file{emacs} to @file{emacs-nw}.
+When he launches @file{emacs-nw} from the command line, the window
+system will never be involved.  (Note, as of rc2, terminal mode is still not
+working under OS X.)
+@end itemize
+
+@node Events, Preferences Panel, Introduction, Top
+@section Events
+
+Under Emacs.app the NeXTstep command key works as the @dfn{super} modifier
+key.  In principle users can bind their command keys to whatever function they
+want, but to make the transition for NS users easier the default NS startup
+files bind the most commonly used NS command keys to work just like they do in
+most other NS applications.  Some are shown in the menus.  Choose "List
+Keybindings" from the Help menu and scroll down to the keys labeled starting
+with 's-' to see all of them.
+
+NS applications receive a number of special events which have no X equivalent.
+These are sent as specially defined ``keys'' (which don't correspond to any
+keyboard stroke combination).  Under Emacs these ``key'' events can be bound
+to functions just like ordinary keystrokes.  Here is a list of these events.
+
+@table @code
+@item ns-open-file
+This event occurs when another NeXTstep application requests that Emacs
+open a file.  A typical reason for this would be a user double-clicking
+a file in the Finder.  When this event is registered the
+name of the file to open is found in the variable @code{ns-input-file}.
+
+The behaviour of the default binding is controlled by the variable
+@code{ns-pop-up-frames}.  It's default value @code{'fresh} causes Emacs
+to open the new file in the selected frame if the selected buffer is a
+scratch buffer.  Otherwise Emacs opens a new frame and displays the file
+in that.
+
+To always get a new frame one would change @code{ns-pop-up-frames} to
+@code{t}.  To get the opposite behaviour (i.e. always putting the file into
+the selected frame), change @code{ns-pop-up-frames} to @code{nil}.
+
+@item ns-open-temp-file
+This event occurs when another application requests that Emacs open a
+temporary file.  The file name is again in @code{ns-input-file}.  By
+default this is handled by just generating a @code{ns-open-file} event
+(which then causes the @code{ns-open-file} function to be called
+whatever that may be).
+
+@lisp
+(define-key global-map [ns-open-temp-file] [ns-open-file])
+@end lisp
+
+@item ns-open-file-line
+Some applications (like e.g. ProjectBuilder or gdb) request not only a
+particular file, but also a particular line or sequence of lines in the
+file.  The file name is in @code{ns-input-file}, and
+@code{ns-input-line} is either the line or a cons cell the car of which
+contains the beginning line and the cdr of which the ending line.
+
+@lisp
+(define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
+@end lisp
+
+@item ns-drag-file
+When a user drags files from another application into an Emacs frame
+this event is triggered.  Here @code{ns-input-file} is a list of all
+dragged files.  The default binding inserts all the dragged files into
+the current buffer.
+
+@lisp
+(define-key global-map [ns-drag-file] 'ns-insert-files)
+@end lisp
+
+@item ns-drag-color
+When a user drags a color from the color well (or some other source)
+Emacs sees this event and @code{ns-input-color} contains the name of the
+dragged color.  The default bindings alter the foreground color of the
+area the color was dragged onto (or background color if the color was
+shift dragged).
+
+@lisp
+(define-key global-map [ns-drag-color]  
+            'ns-set-foreground-at-mouse)
+(define-key global-map [S-ns-drag-color]
+            'ns-set-background-at-mouse)
+@end lisp
+
+@item ns-change-font
+Emacs.app allows the user to open a standard NS font panel (by default that
+function is bound to @kbd{Cmd-t}).  When the user selects a font in that
+panel this event occurs.  @code{ns-input-font} will contain the name of
+the selected font and @code{ns-input-fontsize} is its size.  The
+default binding causes Emacs to adjust the font of the selected frame.
+
+@lisp
+(define-key global-map [ns-change-font] 'ns-respond-to-changefont)
+@end lisp
+
+@item ns-power-off
+Finally when the user logs out and Emacs is still running it receives
+this event so that it has a chance to save its files before it dies.
+
+@lisp
+(define-key global-map [ns-power-off]
+  '(lambda () (interactive) (save-buffers-kill-emacs t)))
+@end lisp
+
+@end table
+
+Emacs.app also allows users to make use of NeXTstep services programatically,
+in addition to via the Services menu.  On the most basic level programmers can
+use the @code{ns-perform-service} to pass arbitrary strings to arbitrary
+services and receive the results back.  However convenience functions are
+automatically provided for all services so there should be no need to use
+this.  These function names begin with 'ns-service-', and they will either
+operate on marked text (replacing it with the result) or take a string
+argument and return the result as a string.  Type "M-x ns-service-[TAB][TAB]"
+to see those currently defined.  Note that Emacs may require a restart to
+access newly available services.
+
+
+@node Preferences Panel, Customization, Events, Top
+@section Preferences Panel
+
+The Preferences Panel can be used to set or change some of the settings for
+Emacs such as the text appearance, cursor settings, and key bindings.
+
+To save any settings changed through the Preferences Panel, hit OK;
+this has the same effect as if you had explicitly chosen Help > Save
+Preferences.
+
+To restore Emacs to use its default settings click Reset to Defaults from
+the Preferences Panel.
+
+Additional GNUstep/OS X preferences may be set from the command line using
+the @command{defaults} command. (See @ref{Customization}.)
+
+
+@section Text Rendering Preferences
+
+Font and color settings can be set using the standard NeXTstep font
+and color panels.
+
+@itemize @bullet
+@item
+To set the default font used by Emacs click the Default Font... button
+to launch the Font Panel.  Click on a frame before selecting the font
+family, typeface, and size of the default font from the Font Panel.
+
+Note that the default font will not be changed if a frame hasn't been
+selected first.
+
+@item
+To set the default foreground or background color click the
+Colors... button to launch the Color Panel.  Choose the color you want
+using any of the color models (color wheel, sliders, palette, image,
+or crayons) available from the Colors toolbar.  To apply the color
+drag a swatch from the color bar at the top of the panel to text on
+an Emacs frame.  Holding down shift will change the background color
+instead of the foreground.
+
+@item
+To use antialiased text check the Smooth Fonts option.  Lighter font
+smoothing can be achieved by checking the Use Quickdraw (lighter)
+smoothing option.
+
+@item
+To change the line height that text is displayed at drag the Expand
+Line Spacing slider.  When the slider is set to 0.0 Emacs will use the
+same line height as other Mac OS X applications.  To increase the line
+height (and decrease the number of lines that can be displayed on the
+screen) drag the slider towards 1.0.  To decrease the line height
+(increases the number of lines that can be displayed) drag the slider
+towards -1.0.
+
+After the line spacing setting has been changed Emacs must be restarted
+to take account of the change.
+
+@end itemize
+
+@section Display Preferences
+
+The Display Preferences can be used to change the appearance of the
+default cursor used by Emacs.
+
+@itemize @bullet
+@item
+The Cursor Type radio buttons can be used to select the style used for the cursor:
+
+@itemize
+@item
+Box - the cursor is displayed as a box
+@item
+Underscore - the cursor is displayed as a horizontal bar
+@item
+Bar - the cursor is displayed as a vertical bar
+@item
+Hollow - the cursor is displayed as a box with an outline but no fill
+@end itemize
+
+@item
+Use the Cursor Blink Rate slider to set the frequency at which the cursor blinks.
+
+@item
+Check the Use System Highlight Color option to use the system default
+color for highlighted text.
+
+@end itemize
+
+@section Modifier Interpretation Preferences
+
+The Modifier Preferences can be used to change the behaviour of the
+Alt/Opt and Command keys.  By default the Alt or Opt key is bound to
+the Emacs 'Meta' key, and the Command key is bound to 'super' which
+allows the Command key to function in a way similar to other
+NeXTstep/OS X applications.
+
+@itemize @bullet
+@item
+To re-bind the Alt or Opt key select a keybinding from the Alt/Opt Key
+combo box.
+@item
+To re-bind the Command key select a keybinding from the Command Key
+combo box.
+@end itemize
+
+
+@node Customization, Tips and Tricks, Preferences Panel, Top
+@section Customization
+
+Under X, resources are used to customize the behavior of Emacs to the needs of
+the user.  These resources are queried programmatically with the
+@code{x-get-resource} function.  Under NS defaults fulfill a similar function.
+They can be read using the @code{ns-get-resource} function.  Calls to
+@code{x-get-resource} are automatically mapped to @code{ns-get-resource}.
+From the command line, the command `@code{defaults read Emacs}' will show
+these resources as of last Emacs quit, and individual resources can be
+read/written by commands like `@code{defaults read Emacs Foo}' and
+`@code{defaults write Emacs Foo barvalue}'.
+
+Calling the function @code{ns-save-preferences} in lisp, or selecting ``Save
+Options'' from the 'Options' menu will automatically write out the defaults
+corresponding to the selected window.
+
+In addition, it is also possible to set many of the following customizations
+by setting the @code{default-frame-alist} in the @file{~/.emacs} file.
+
+Many of the preferences relating specifically to the NS windowing system (font
+rendering, cursor type, etc.) can be set using a @ref{Preferences Panel}
+accessed in the standard fashion from the menubar or Cmd-,.  It is important
+to note that when you hit 'OK' on this panel, @emph{all} NS settings are saved
+(including font and colors) just as if you had called
+@code{ns-save-preferences}.
+
+Note that if you use the 'Default Font' button on the Preferences panel, you
+must click on a frame before selecting a font, otherwise nothing will happen.
+If you pop up the color panel, you must drag colors to a frame for them to
+have an effect.  (Remember to hold down 'shift' to change background instead
+of foreground.)
+
+This is a listing of some of the more useful defaults (and their default
+values).  Several of these defaults accept the names of colors as values.  For
+a list of all available colors pull up the color panel and look at the color
+list called ``Emacs''.  Emacs also accepts color specifications of the form
+@samp{ARGBaarrggbb} where @var{aa}, @var{rr}, @var{gg}, and @var{bb} are two
+hexadecimal digits describing the alpha, red, green, and blue content of the
+color respectively.  @samp{HSBhhssbbaa}, @samp{CMYKccmmyykkaa} and
+@samp{GRAYggaa} are the equivalents in @samp{HSB}, @samp{CMYK} and gray
+scales.
+
+@table @samp
+@item InternalBorderWidth
+Width in pixels of the internal border of the NS frame.  This acts to separate
+the text area of the window from the fringes, scrollbars, and/or edges.
+
+@example
+defaults write Emacs InternalBorderWidth 2
+@end example
+
+@item VerticalScrollBars
+@samp{YES} or @samp{NO} to enable or disable scroll bars, @samp{left} or
+@samp{right} to explicitly set the side.
+
+@example
+defaults write Emacs VerticalScrollBars YES
+@end example
+
+@item Font
+Name of the default font to be used for new frames (which can be overriden by
+various faces).  If this font is not set, Emacs.app will use the system
+wide fixed pitch font.  For most users the system fixed pitch font will be
+@samp{Monaco} which doesn't have any bold or italic versions.  (Italic will be
+synthesized.)
+
+@item FontSize
+Size of the font to be used for new frames.  If not set Emacs for NS will use
+the default size of the system wide fixed pitch font.
+
+@item Foreground
+The default foreground (text) color for new frames.
+
+@example
+defaults write Emacs Foreground "Black"
+@end example
+
+@item Background
+The default background color for new frames.
+
+@example
+defaults write Emacs Background "White"
+@end example
+
+@item Height
+Height in rows of the default window.
+
+@example
+defaults write Emacs Height 48
+@end example
+
+@item Width
+Width in columns of the default window.
+
+@example
+defaults write Emacs Width 80
+@end example
+
+@item CursorType
+Name of the default cursor type for Emacs.  Allowed values are
+@samp{box}, @samp{hollow}, @samp{underscore}, @samp{bar},  @samp{line} and @samp{no}.
+
+@example
+defaults write Emacs CursorType box
+@end example
+
+@item CursorBlinkRate
+Users who want their cursor to blink can set the rate (in seconds) with
+this defaults write.  Setting it to @samp{NO} disables cursor blinking.
+
+@example
+defaults write Emacs CursorBlinkRate NO
+@end example
+
+@item CursorColor
+Name of the default cursor color for Emacs.  Of a particular use for this
+setting is the @samp{Highlight} "color".  When it is the cursor color,
+Emacs will draw the cursor using the standard NS highlighting operator.
+
+@example
+defaults write Emacs CursorColor Highlight
+@end example
+
+@item Top
+Distance in pixels from the top of the screen of the upper left corner
+of the default window.
+
+@example
+defaults write Emacs Top 100
+@end example
+
+@item Left
+Distance in pixels from the left edge of the screen to the upper left
+corner of the default window.
+
+@example
+defaults write Emacs Left 100
+@end example
+
+@item HideOnAutoLaunch
+@samp{YES} or @samp{NO} to determine whether Emacs will hide itself when
+autolaunched from the dock.
+
+@example
+defaults write Emacs HideOnAutoLaunch NO
+@end example
+
+@item ExpandSpace
+This lets you expand or shrink the line height used for displaying text.  When
+this is set to 0.0, display should look like other NS apps.  If you set it
+higher than 0, Emacs will spread the text lines apart, less than 0, compress
+them together.  (With settings below zero parts of characters may be chopped
+off in certain fonts.)  When using the @ref{Preferences Panel}, this is
+controlled by a slider.  You must OK the panel and then restart Emacs.app for
+this default to take effect.
+
+When setting this using @code{"defaults write"}, you can either set a floating
+point value, or @samp{YES}, which is equivalent 0.5, or @samp{NO}, which is
+equivalent to 0.0.
+
+@example
+defaults write Emacs ExpandSpace -0.125
+@end example
+
+@item GSFontAntiAlias
+This turns antialiasing on and off on.  Note that, on OS X, even if
+antialiasing is on, Emacs will not antialias text of a size below the system
+preference setting.
+
+@example
+defaults write Emacs GSFontAntiAlias NO
+@end example
+
+@item UseQuickdrawSmoothing
+On OS X 10.3 and higher, this will render fonts using Quickdraw antialiasing,
+which is less heavy than the Quartz antialiasing used by default.  Whether
+this is on or off, the system font size threshold for antialiasing (see above)
+is respected.
+
+@example
+defaults write Emacs UseQuickdrawSmoothing YES
+@end example
+
+@item AlternateModifier
+This allows you to set the effect of the Alt or Opt key.  The default is
+@samp{meta}, meaning to use as the Emacs 'meta' key.  You can also set this to
+@samp{command}, @samp{hyper}, @samp{alt}, or @samp{none}.  The last is useful
+for Continental users who normally use this key to enter accented and other
+special characters.
+
+@example
+defaults write Emacs AlternateModifier "none"
+@end example
+
+@item CommandModifier
+This allows you to set the effect of the Command key.  The default is
+@samp{super}, which is used in a set of keybindings such as @code{s-o} for
+``open file'' and @code{s-z} for ``undo'' that are similar to other NeXTstep
+applications.  On the other hand, some people who use the Alt/Opt key for
+accent entry like to set this to @samp{meta} so they still have easy access to
+Emacs functionality bound to meta keys.  You can also set this, like Alt/Opt,
+to @samp{hyper} or @samp{alt}, though there are no bindings to combinations
+using these keys by default.  The @samp{none} option is not available for the
+Command key.
+
+@example
+defaults write Emacs CommandModifier "meta"
+@end example
+
+@item fooFrame
+Position and size to use for the frame named @var{foo} when it is
+created.  The position and size have to be specified as a space
+separated list: @samp{top}, @samp{left}, @samp{height} and
+@samp{width}. @samp{top} and @samp{left} are expressed in pixels,
+@samp{height} is given in rows and @samp{width} is given in columns.
+Named frames can be created by e.g. @code{(make-frame '((name
+. "FOO")))}.
+
+@example
+defaults write Emacs TestFrame "100 200 30 70"
+@end example
+
+Another default previouly used by many Emacs users is this.
+
+@example
+defaults write Workspace DefaultOpenApp Emacs
+@end example
+
+It caused the NeXTstep Workspace to open files without a registered extension
+in Emacs instead of as usual Edit.  For this default to work, Emacs needed to
+be in the application search path of the Workspace (which usually includes
+@file{~/Applications} and @file{~/Applications}).  If anyone knows the current
+way to do this under OS X please contact the authors.
+
+@end table
+
+@node Tips and Tricks, Thanks, Customization, Top
+@section Tips and Tricks
+
+Emacs is an extremely customizable editor.  You can make it conform to
+virtually any conceivable user idiosyncrasy (and some which are not) by adding
+a few well-chosen lines of emacs lisp to your @file{~/.emacs}.  Unfortunately
+even many experienced C developers are unfamiliar with Emacs Lisp.  For that
+reason many Emacs.app defaults have been chosen to make it behave as similar
+to TextEdit as possible.  But there are some customizations which a majority
+of users probably would hate as much as a minority would love them.  This
+section contains a cookbook of such customizations.  New contributions by
+Emacs users are very welcome.
+
+@menu
+* Grabbing environment variables::  
+* Miscellaneous useful variables::  
+* Color adjustments::           
+* Evaling in the minibuffer::   
+* Highlighting matching parentheses::  
+* Dealing with X specific packages::  
+* Rebinding the numeric keypad::  
+* Improving C mode::            
+* Custom menu items::           
+* Single line scrolling::       
+* Open files by dragging to an Emacs window:: 
+@ignore
+* Extended font customization::  
+@end ignore
+@end menu
+
+@node Grabbing environment variables, Miscellaneous useful variables, Tips and Tricks, Tips and Tricks
+@subsection Grabbing environment variables
+
+Many programs which may run under Emacs like latex or man depend on the
+settings of environment variables.  If Emacs is launched from the shell, it
+will automatically inherit these environment variables and its subprocesses
+will inherit them from it.  But if Emacs.app is launched from the Finder it
+is not a descendant of any shell, so its environment variables haven't been
+set which often causes the subprocesses it launches to behave differently than
+they would when launched from the shell.
+
+To solve this problem for Emacs.app, there are two solutions.  First is to
+run, from the command line:
+
+@example
+.../Emacs.app/Contents/MacOS/bin/mac-fix-env
+@end example
+
+This will pick up your environment settings and save them into a special file
+@file{~/.MacOSX/environment.plist}, which the desktop environment will use to
+set the environment for all launched applications.  The drawback of this
+method is it needs to be run again whenever something changes.
+
+The other approach is to use the @code{ns-grabenv} command inside Emacs.  This
+function will run a subshell and copy its environment variables into Emacs.
+
+Adding this line to your @file{~/.emacs} will grab the csh environment
+whenever emacs runs under a window system.
+
+@lisp
+(if window-system (ns-grabenv))
+@end lisp
+
+If you have a different shell you will have to give @code{ns-grabenv} some
+arguments.  For zsh you would do this.
+
+@lisp
+(if window-system (ns-grabenv "/usr/bin/zsh"
+                           "source /etc/zshenv"
+                           "source ~/.zshenv"))
+@end lisp
+
+The reason that @code{ns-grabenv} is not done by default is that it adds up
+to a second or two to the Emacs startup time.
+
+@node Miscellaneous useful variables, Color adjustments, Grabbing environment variables, Tips and Tricks
+@subsection Miscellaneous useful variables
+
+This section describes a few variables you might want to set in your
+@file{~/.emacs} each of which doesn't warrant its own section.
+
+There is a conflict between the way the region behaved in emacs in the
+pre-GUI days and the way GUI users expect the selection to work.  By
+default that conflict is resolved by having the former adopt the
+behaviour of the latter which most people prefer.  However if you are a
+die-hard emacs user you may prefer things the other way around and add
+this line to your @file{~/.emacs}.  Experiment with both settings.
+
+@lisp
+(setq transient-mark-mode nil)
+@end lisp
+
+When you try to move beyond the end of a file Emacs used to add newlines as
+needed, however from Emacs-21 on, this was no longer done.  If you prefer the
+old behavior, this line in your @file{~/.emacs} will restore it.
+
+@lisp
+(setq next-line-add-newlines t)
+@end lisp
+
+By default when you kill a line with text on it, only the text is
+removed while the line itself remains.  You have to kill twice to really
+get rid of the whole line.  When this variable is set and you kill a
+line while at the beginning of the line it will go at once.
+
+@lisp
+(setq kill-whole-line t)
+@end lisp
+
+Annoyed by the Emacs startup message ?  Add this and you start with a
+tabula rasa.
+
+@lisp
+(setq inhibit-startup-message t)
+@end lisp
+
+@node Color adjustments, Evaling in the minibuffer, Miscellaneous useful variables, Tips and Tricks
+@subsection Color adjustments
+
+A non-elisp hint: The easiest way to adjust your emacs color scheme is to
+bring up a color panel (with @key{Cmd-C}) and drag the color you want over the
+emacs face you want to change.  Normal dragging will alter the foreground
+color.  Shift dragging will alter the background color.  To make the changes
+permanent select the "Save Options" item in the "Options" menu, or run
+@code{ns-save-preferences}.  Useful in this context is the listing of all
+faces obtained by @key{M-x} @code{list-faces-display}.
+
+@node Evaling in the minibuffer, Highlighting matching parentheses, Color adjustments, Tips and Tricks
+@subsection Evaling in the minibuffer
+
+Often you (at least if you are an elisp hacker) want to quickly evaluate
+an elisp expression.  To accomodate this desire Emacs provides the
+@code{eval-expression} command bound to @key{M-:}.  By default it is
+disabled to protect novice users from themselves.  These commands
+re-enable it and turn on an extremely powerful completion facility.
+
+@lisp
+(put 'eval-expression 'disabled nil)
+
+(define-key read-expression-map "\t" 'lisp-complete-symbol)
+@end lisp
+
+@node Highlighting matching parentheses, Dealing with X specific packages, Evaling in the minibuffer, Tips and Tricks
+@subsection Highlighting matching parentheses
+
+I doubt that there is anybody who doesn't use this already, but just in
+case:
+
+@lisp
+(show-paren-mode 't)
+@end lisp
+
+In Emacs.app this is currently enhanced by use of the @code{mic-paren} package
+from http://www.docs.uu.se/~mic/emacs.html.
+
+@node Dealing with X specific packages, Rebinding the numeric keypad, Highlighting matching parentheses, Tips and Tricks
+@subsection Dealing with X specific packages
+
+Some emacs lisp packages explicitly call X specific functions instead of
+calling generic functions which call the NS or X versions as appropriate.
+Typically such packages will result in error messages like @samp{Symbol's
+function definition is void: x-foo-bar}.  The proper way of dealing with this
+is to have the author fix the code to call the generic functions.  Generally
+all that requires is removing the @samp{x-} prefix from all function calls.
+
+However, sometimes that is not possible, or it may be a package internal to
+emacs itself.  In this case please report a bug to the Emacs.app maintainers
+(not the main GNU emacs maintainers).
+
+A related problem is font names.  For historical reasons, Emacs assumes all
+font names are given ``X style'', as in ``-adobe-courier-....-iso8859-1''.
+Emacs.app tries to work around this as well as possible, and the best thing to
+do is never rely on functions to set font names yourself but to always use the
+font panel.
+
+@node Rebinding the numeric keypad, Improving C mode, Dealing with X specific packages, Tips and Tricks
+@subsection Rebinding the numeric keypad
+
+By default in Emacs the numeric keypad keys are bound to the same
+characters they are in all other NS applications.  But it is easy to
+change these bindings to commands many will find more useful.  As an
+example here is the code which rebinds the numeric keypad for me.
+
+@lisp
+(global-set-key [kp-0] 'other-window)
+(global-set-key [kp-1] 'end-of-buffer)
+(global-set-key [kp-2] [down])
+(global-set-key [kp-3] 'scroll-up)
+(global-set-key [kp-4] [left])
+(global-set-key [kp-5] 'set-mark-command)
+(global-set-key [kp-6] [right])
+(global-set-key [kp-7] 'beginning-of-buffer)
+(global-set-key [kp-8] [up])
+(global-set-key [kp-9] 'scroll-down)
+(global-set-key [kp-decimal] 'yank)
+(global-set-key [kp-enter] 'set-mark-command)
+(global-set-key [kp-add] 'copy-region-as-kill)
+(global-set-key [kp-subtract] 'kill-region)
+@end lisp
+
+On machines with function keys they can be bound as well.  This for example
+would bind @key{F12} to run gnus.
+
+@lisp
+(global-set-key [f12] 'gnus)
+@end lisp
+
+@node Improving C mode, Custom menu items, Rebinding the numeric keypad, Tips and Tricks
+@subsection Improving C mode
+
+That underscores are considered to break words in C mode has been driving me
+insane for a long time.  This line fixes the problem.
+
+@lisp
+(modify-syntax-entry ?_ "w" c-mode-syntax-table)
+@end lisp
+
+@node Custom menu items, Single line scrolling, Improving C mode, Tips and Tricks
+@subsection Custom menu items
+
+The tools menu is intended for customization.  Adding items to it is
+relatively painless as this example illustrates.
+
+@lisp
+(define-key global-map [menu-bar tools www] '("WWW" . w3-use-hotlist))
+@end lisp
+
+@node Single line scrolling, Open files by dragging to an Emacs window, Custom menu items, Tips and Tricks
+@subsection Single line scrolling
+
+The meta-arrow keys will perform single-line scrolling in Emacs
+just like they did in the old NeXT/OpenStep Stuart.app.
+
+@node Open files by dragging to an Emacs window, , Single line scrolling, Tips and Tricks
+@subsection Open files by dragging to an Emacs window
+
+The default behaviour when a user drags files from another application
+into an Emacs frame is to insert the contents of all the dragged files
+into the current buffer.  To remap the @code{ns-drag-file} event to
+open the dragged files in the current frame use the following line:
+
+@lisp
+(define-key global-map [ns-drag-file] 'ns-find-file)
+@end lisp
+
+@ignore
+@node Extended font customization,  , Single line scrolling, Tips and Tricks
+@subsection Extended font customization
+
+By default Emacs tries to guess the right font when you ask for a bold,
+italic or bold-italic face.  Unfortunately this fails sometimes, for
+example Emacs won't guess that it should use @samp{Courier-Bold} as the
+font for the bold face of @samp{Ohlfs}.  As an example here is the code
+which sets up @samp{Courier-Bold}, @samp{Courier-Oblique} and
+@samp{Courier-BoldOblique} as the fonts to be used with @samp{Ohlfs}.
+
+@lisp
+(setq ns-convert-font-trait-alist
+      '(("Ohlfs" "Courier-Bold" "Courier-Oblique"
+         "Courier-BoldOblique")))
+@end lisp
+
+You will still have to set the @samp{DefaultFont}, @samp{BoldFont},
+@samp{ItalicFont} and @samp{Bold-ItalicFont} defaults as Emacs
+initializes the default faces before it reads your @file{~/.emacs}.
+Also Emacs initializes @code{ns-convert-font-trait-alist} from these
+defaults so that normally it's sufficient to set these defaults to get
+correct faces.
+
+@example
+defaults write Emacs DefaultFont Ohlfs
+defaults write Emacs BoldFont Courier-Bold
+defaults write Emacs ItalicFont Courier-Oblique
+defaults write Emacs Bold-ItalicFont Courier-BoldOblique
+@end example
+@end ignore
+
+
+@node Thanks,  , Tips and Tricks, Top
+@section Thanks
+A signficant number of people have been involved in the creation of Emacs.app.
+Carl Edman <cedman@@lynx.ps.uci.edu> created and maintained Emacs up to
+version 4.1 and it's reasonable to say that without his work, Emacs.app
+wouldn't exist.  Michael Brouwer <michael@@thi.nl> wrote the original version
+(up to and including version 3.x) and was a constant contributor to Emacs.app
+version 4 and above.  Christian Limpach <chris@@nice.ch> took over maintenance
+and updating at version 4.2, and made substantial contributions in a number of
+areas.  Scott Bender <sbender@@harmony-ds.com> ported the code to OpenStep and
+Rhapsody for version 6.0.  Christophe de Dinechin <ddd@@cup.hp.com> ported the
+code to MacOS X for version 7.0 and moved the code base to SourceForge.  Leigh
+Smith <leigh@@leighsmith.com> maintained the SourceForge project for a period.
+Adrian Robert <arobert@@cogsci.ucsd.edu> ported the code to GNUstep
+(http://gnustep.org), updated it for post-emacs-20, and maintains it for the
+present.
+
+Also a number of others have contributed code.  Steve Nygard
+<nygard@@telusplanet.net> got emacs to dump under OpenStep.  The font panel
+code was Andrew Athan's <athan@@object.com> work.  Joe Reiss
+<jreiss@@magnus.acs.ohio-state.edu> both created the beautiful icons you see
+and wrote the popup menu and dialog box code as well as much else.  (Actually,
+Joe's icon became the one used for the Mac Carbon port..)
+
+Finally, suggestions from Darcy Brockbank, Timothy Bissell, Scott Byer, David
+Griffiths, Scott Hess, Eberhard Mandler, John C. Randolph, and Bradley Taylor
+all helped things along at one point or another.  Axel Seibert
+<seiberta@@informatik.tu-muenchen.de> and Paul J. Sanchez
+<paul@@whimsy.umsl.edu> offered their time and machines to make a binary
+release possible.
+
+The GNUstep port was made possible through the assistance of Adam Fedor, Fred
+Kiefer, M. Uli Klusterer, Alexander Malmberg, and Jonas Matton.  Gürkan Sengün
+made it accessible to a wider community.
+
+Riccardo Mottola helped with compatibility with MacOS versions 10.1 and 10.2,
+and GNUstep on platforms other than Linux.
+
+Peter Dyballa kept things honest with multilingual support.  Rahul Abrol, Adam
+Ratcliffe, David M. Cooke, and Carsten Bormann provided various small patches.
+
+Then there were a number of people who kept up the constant supply of bug
+reports, suggested features and praise (which is the main fuel which the
+development of a project like this runs) and so helped ensure that this
+program is as bug free (hah !)  and feature rich as you see it today.  First
+among them were Hardy Mayer <hardy@@golem.ps.uci.edu>, Gisli Ottarsson
+<gisli@@timoshenko.eecs.umich.edu>, Anthony Heading <ajrh@@signal.dra.hmg.gb>,
+David Bau <bau@@cs.cornell.edu>, Jamie Zawinski <jwz@@lucid.com>, Martin
+Moncrieffe <moncrief@@mayo.edu>, Simson L. Garfinkel
+<simsong@@next.cambridge.ma.us>, Richard Stallman <rms@@gnu.ai.mit.edu>,
+Stephen Anderson <anderson@@sapir.cog.jhu.edu>, Ivo Welch
+<ivo@@next.agsm.ucla.edu>, Magnus Nordborg <magnus@@fisher.Stanford.EDU>, Tom
+Epperly <epperly@@valeron.che.wisc.edu>, Andreas Koenig
+<k@@franz.ww.tu-berlin.de>, Yves Arrouye <Yves.Arrouye@@imag.fr>, Anil
+Somayaji <soma@@hotspur.mit.edu>, Gregor Hoffleit
+<flight@@mathi.uni-heidelberg.DE> and doubtlessly many more.
+
+Finally, let us also thank those few hundred other people on the mailing list
+from whom we didn't hear much, but the presence of which assured us that maybe
+this project was actually worth doing.
+@bye
+
+@ignore
+   arch-tag: 286bdf18-ccfb-48b2-b730-994771de6bdd
+@end ignore

@@ -859,8 +859,19 @@ containing it, until no links are left at any level.
 	    (setq filename (funcall handler 'file-truename filename))
 	  ;; If filename contains a wildcard, newname will be the old name.
 	  (unless (string-match "[[*?]" filename)
-	    ;; If filename exists, use the long name
-	    (setq filename (or (w32-long-file-name filename) filename))))
+	    ;; If filename exists, use the long name.  If it doesn't exist,
+            ;; drill down until we find a directory that exists, and use
+            ;; the long name of that, with the extra non-existent path
+            ;; components concatenated.
+            (let ((longname (w32-long-file-name filename))
+                  missing rest)
+              (if longname
+                  (setq filename longname)
+                ;; include the preceding directory separator in the missing
+                ;; part so subsequent recursion on the rest works.
+                (setq missing (concat "/" (file-name-nondirectory filename)))
+                (setq rest (substring filename 0 (* -1 (length missing))))
+                (setq filename (concat (file-truename rest) missing))))))
 	(setq done t)))
 
     ;; If this file directly leads to a link, process that iteratively

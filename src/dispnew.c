@@ -63,6 +63,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macterm.h"
 #endif /* MAC_OS */
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 /* Include systime.h after xterm.h to avoid double inclusion of time.h.  */
 
 #include "systime.h"
@@ -6894,6 +6898,20 @@ init_display ()
       return;
     }
 #endif /* MAC_OS */
+
+#ifdef HAVE_NS
+  if (!inhibit_window_system
+#ifndef CANNOT_DUMP
+     && initialized
+#endif
+      )
+    {
+      Vinitial_window_system = intern("ns");
+      Vwindow_system_version = make_number(10);
+      adjust_frame_glyphs_initially ();
+      return;
+    }
+#endif
 
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))

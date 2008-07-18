@@ -55,7 +55,6 @@
 ;; * checkout-model (files)		   OK
 ;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   OK
-;; - prettify-state-info (file)		   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()			   OK
 ;; * register (files &optional rev comment)    OK
@@ -132,14 +131,18 @@
   (when (vc-git-root file)
     (with-temp-buffer
       (let* ((dir (file-name-directory file))
-	     (name (file-relative-name file dir)))
-	(and (ignore-errors
-               (when dir (cd dir))
-               (vc-git--out-ok "ls-files" "-c" "-z" "--" name))
-	     (let ((str (buffer-string)))
-	       (and (> (length str) (length name))
-		    (string= (substring str 0 (1+ (length name)))
-                             (concat name "\0")))))))))
+             (name (file-relative-name file dir))
+             (str (ignore-errors
+                    (when dir (cd dir))
+                    (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
+                    ;; if result is empty, use ls-tree to check for deleted file
+                    (when (eq (point-min) (point-max))
+                      (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD" "--" name))
+                    (buffer-string))))
+        (and str
+             (> (length str) (length name))
+             (string= (substring str 0 (1+ (length name)))
+                      (concat name "\0")))))))
 
 (defun vc-git--state-code (code)
   "Convert from a string to a added/deleted/modified state."
@@ -161,19 +164,6 @@
 				  diff))
 	  (vc-git--state-code (match-string 1 diff))
 	(if (vc-git--empty-db-p) 'added 'up-to-date)))))
-
-(defun vc-git--ls-files-state (state &rest args)
-  "Set state to STATE on all files found with git-ls-files ARGS."
-  (with-temp-buffer
-    (apply 'vc-git-command (current-buffer) nil nil "ls-files" "-z" args)
-    (goto-char (point-min))
-    (let ((start (point)))
-      (while (search-forward "\0" nil t)
-	(let ((file (expand-file-name
-		     (buffer-substring-no-properties start (1- (point))))))
-	  (vc-file-setprop file 'vc-backend (if state 'Git 'none))
-	  (vc-file-setprop file 'vc-state state))
-	(setq start (point))))))
 
 (defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."
@@ -453,33 +443,26 @@
     ;; If the buffer exists from a previous invocation it might be
     ;; read-only.
     (let ((inhibit-read-only t))
-      ;; XXX `log-view-mode' needs to have something to identify where
-      ;; the log for each individual file starts. It seems that by
-      ;; default git does not output this info. So loop here and call
-      ;; "git rev-list" on each file separately to make sure that each
-      ;; file gets a "File:" header before the corresponding
-      ;; log. Maybe there is a way to do this with one command...
-      (dolist (file flist)
-	(with-current-buffer
-	    buffer
-	  (insert "File: " (file-name-nondirectory file) "\n"))
-	(vc-git-command buffer 'async (file-relative-name file)
+      (with-current-buffer
+          buffer
+	(vc-git-command buffer 'async files
 			"rev-list" "--pretty" "HEAD" "--")))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
+(defvar log-view-per-file-logs)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; we need the faces add-log
   ;; Don't have file markers, so use impossible regexp.
-  (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")
+  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
+  (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
        "^commit *\\([0-9a-z]+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append
-        `((,log-view-message-re  (1 'change-log-acknowledgement))
-          (,log-view-file-re (1 'change-log-file-face)))
+        `((,log-view-message-re  (1 'change-log-acknowledgement)))
         ;; Handle the case:
         ;; user: foo@bar
         '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
@@ -577,19 +560,24 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-previous-revision (file rev)
   "Git-specific version of `vc-previous-revision'."
-  (let ((default-directory (file-name-directory (expand-file-name file)))
-	(file (file-name-nondirectory file)))
-    (vc-git-symbolic-commit
-     (with-temp-buffer
-       (and
-	(vc-git--out-ok "rev-list" "-2" rev "--" file)
-	(goto-char (point-max))
-	(bolp)
-	(zerop (forward-line -1))
-	(not (bobp))
-	(buffer-substring-no-properties
-         (point)
-         (1- (point-max))))))))
+  (if file
+      (let ((default-directory (file-name-directory (expand-file-name file)))
+            (file (file-name-nondirectory file)))
+        (vc-git-symbolic-commit
+         (with-temp-buffer
+           (and
+            (vc-git--out-ok "rev-list" "-2" rev "--" file)
+            (goto-char (point-max))
+            (bolp)
+            (zerop (forward-line -1))
+            (not (bobp))
+            (buffer-substring-no-properties
+             (point)
+             (1- (point-max)))))))
+    (with-temp-buffer
+      (and
+       (vc-git--out-ok "rev-parse" (concat rev "^"))
+       (buffer-substring-no-properties (point-min) (+ (point-min) 40))))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."

@@ -1,3 +1,7 @@
+2008-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (HAVE_FACES): Remove, unused.
+
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 

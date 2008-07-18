@@ -36,6 +36,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
@@ -47,6 +51,7 @@ extern AppendMenuW_Proc unicode_append_menu;
 
 #endif /* HAVE_NTGUI  */
 
+#include "menu.h"
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
@@ -439,7 +444,7 @@ single_menu_item (key, item, dummy, skp_v)
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
   /* Display a submenu using the toolkit.  */
   if (! (NILP (map) || NILP (enabled)))
     {
@@ -579,7 +584,7 @@ parse_single_submenu (item_key, item_name, maps)
 }
 
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
 
 /* Allocate a widget_value, blocking input.  */
 
@@ -876,7 +881,7 @@ update_submenu_strings (first_wv)
 void
 find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
      FRAME_PTR f;
-     EMACS_INT menu_bar_items_used;
+     int menu_bar_items_used;
      Lisp_Object vector;
      void *client_data;
 {
@@ -955,7 +960,72 @@ find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
     }
 }
 
-#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NTGUI */
+#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || HAVE_NTGUI */
+
+#ifdef HAVE_NS
+/* As above, but return the menu selection instead of storing in kb buffer.
+   If keymaps==1, return full prefixes to selection. */
+Lisp_Object
+find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
+{
+  Lisp_Object prefix, entry;
+  int i;
+  Lisp_Object *subprefix_stack;
+  int submenu_depth = 0;
+
+  prefix = entry = Qnil;
+  i = 0;
+  subprefix_stack =
+    (Lisp_Object *)alloca(menu_items_used * sizeof (Lisp_Object));
+
+  while (i < menu_items_used)
+    {
+      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+        {
+          subprefix_stack[submenu_depth++] = prefix;
+          prefix = entry;
+          i++;
+        }
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+        {
+          prefix = subprefix_stack[--submenu_depth];
+          i++;
+        }
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+        {
+          prefix
+            = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+          i += MENU_ITEMS_PANE_LENGTH;
+        }
+      /* Ignore a nil in the item list.
+         It's meaningful only for dialog boxes.  */
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+        i += 1;
+      else
+        {
+          entry
+            = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
+          if ((int) (EMACS_INT)client_data == i)
+            {
+              if (keymaps != 0)
+                {
+                  int j;
+
+                  entry = Fcons (entry, Qnil);
+                  if (!NILP (prefix))
+                    entry = Fcons (prefix, entry);
+                  for (j = submenu_depth - 1; j >= 0; j--)
+                    if (!NILP (subprefix_stack[j]))
+                      entry = Fcons (subprefix_stack[j], entry);
+                }
+              return entry;
+            }
+          i += MENU_ITEMS_ITEM_LENGTH;
+        }
+    }
+  return Qnil;
+}
+#endif
 
 void
 syms_of_menu ()

@@ -4256,7 +4256,7 @@ init_lread ()
     }
 #endif
 
-#if (!(defined(WINDOWSNT) || (defined(HAVE_CARBON))))
+#if (!(defined(WINDOWSNT) || (defined(HAVE_CARBON)) || (defined(HAVE_NS))))
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
      almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
@@ -4286,7 +4286,7 @@ init_lread ()
 	    }
 	}
     }
-#endif /* !(WINDOWSNT || HAVE_CARBON) */
+#endif /* !(WINDOWSNT || HAVE_CARBON || HAVE_NS) */
 
   /* If the EMACSLOADPATH environment variable is set, use its value.
      This doesn't apply if we're dumping.  */

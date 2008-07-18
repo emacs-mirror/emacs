@@ -1,3 +1,11 @@
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version, set-copyright): Add nextstep/ files.
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* CPP_DEFINES: Add NS port related defines.
+
 2008-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version): Add doc/lispref/vol1.texi,vol2.texi,

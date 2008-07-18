@@ -69,6 +69,14 @@ typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
+#ifdef HAVE_NS
+#include "nsgui.h"
+/* following typedef needed to accomodate the MSDOS port, believe it or not */
+typedef struct ns_display_info Display_Info;
+typedef Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
+#endif
+
 #ifndef NativeRectangle
 #define NativeRectangle int
 #endif
@@ -1563,6 +1571,13 @@ struct face
   /* If non-zero, use overstrike (to simulate bold-face).  */
   unsigned overstrike : 1;
 
+/* NOTE: this is not used yet, but eventually this impl should be done
+         similarly to overstrike */
+#ifdef HAVE_NS
+  /* If non-zero, use geometric rotation (to simulate italic).  */
+  unsigned synth_ital : 1;
+#endif
+
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;
 
@@ -2925,6 +2940,15 @@ extern void start_hourglass P_ ((void));
 extern void cancel_hourglass P_ ((void));
 extern int hourglass_started P_ ((void));
 extern int display_hourglass_p;
+extern int hourglass_shown_p;
+struct atimer;			/* Defined in atimer.h.  */
+/* If non-null, an asynchronous timer that, when it expires, displays
+   an hourglass cursor on all frames.  */
+extern struct atimer *hourglass_atimer;
+
+/* Each GUI implements these.  FIXME: move into RIF. */
+extern void show_hourglass P_ ((struct atimer *));
+extern void hide_hourglass P_ ((void));
 
 /* Returns the background color of IMG, calculating one heuristically if
    necessary.  If non-zero, XIMG is an existing XImage object to use for

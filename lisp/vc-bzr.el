@@ -576,17 +576,19 @@ stream.  Standard error output is discarded."
     ;; else fall back to default vc.el representation
     (vc-default-prettify-state-info 'Bzr file)))
 
-;; XXX: this needs testing, it's probably incomplete.
+;; FIXME: this needs testing, it's probably incomplete.
 (defun vc-bzr-after-dir-status (update-function)
   (let ((status-str nil)
-	(translation '(("+N" . added)
-		       ("-D" . removed)
-		       (" M" . edited)
-		       ;; XXX: what about ignored files?
-		       (" D" . missing)
+	(translation '(("+N " . added)
+		       ("-D " . removed)
+		       (" M " . edited) ;; file text modified
+		       ("  *" . edited) ;; execute bit changed
+		       (" M*" . edited) ;; text modified + execute bit changed
+		       ;; FIXME: what about ignored files?
+		       (" D " . missing)
                        ;; For conflicts, should we list the .THIS/.BASE/.OTHER?
-		       ("C " . conflict)
-		       ("? " . unregistered)
+		       ("C  " . conflict)
+		       ("?  " . unregistered)
                        ;; Ignore "P " and "P." for pending patches.
                        ))
 	(translated nil)
@@ -594,7 +596,7 @@ stream.  Standard error output is discarded."
       (goto-char (point-min))
       (while (not (eobp))
 	(setq status-str
-	      (buffer-substring-no-properties (point) (+ (point) 2)))
+	      (buffer-substring-no-properties (point) (+ (point) 3)))
 	(setq translated (cdr (assoc status-str translation)))
 	;; For conflicts the file appears twice in the listing: once
 	;; with the M flag and once with the C flag, so take care not

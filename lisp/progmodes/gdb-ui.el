@@ -470,11 +470,14 @@ otherwise do not."
 	 (output
 	  (with-output-to-string
 	    (with-current-buffer standard-output
-	      (and file (file-exists-p file)
-	      (call-process shell-file-name file
-			    (list t nil) nil "-c"
-			    (concat gdb-cpp-define-alist-program " "
-				    gdb-cpp-define-alist-flags))))))
+	      (and file
+		   (file-exists-p file)
+		   ;; call-process doesn't work with remote file names.
+		   (not (file-remote-p default-directory))
+		   (call-process shell-file-name file
+				 (list t nil) nil "-c"
+				 (concat gdb-cpp-define-alist-program " "
+					 gdb-cpp-define-alist-flags))))))
 	(define-list (split-string output "\n" t)) (name))
     (setq gdb-define-alist nil)
     (dolist (define define-list)
@@ -3084,12 +3087,16 @@ another GDB command e.g pwd, to see new frames")
     (if answer
 	(display-buffer buf nil (or frame 0)) ;Deiconify the frame if necessary.
       (let ((window (get-lru-window)))
-	(let* ((largest (get-largest-window))
-	       (cur-size (window-height largest)))
-	  (setq answer (split-window largest))
-	  (set-window-buffer answer buf)
-	  (set-window-dedicated-p answer dedicated)))
-      answer)))
+	(if (memq (buffer-local-value 'gud-minor-mode (window-buffer window))
+		  '(gdba gdbmi))
+	    (let* ((largest (get-largest-window))
+		   (cur-size (window-height largest)))
+	      (setq answer (split-window largest))
+	      (set-window-buffer answer buf)
+	      (set-window-dedicated-p answer dedicated)
+	      answer)
+	  (set-window-buffer window buf)
+	  window)))))
 
 
 ;;; Shared keymap initialization:
@@ -3269,7 +3276,7 @@ buffers."
   (if gdb-many-windows
       (gdb-setup-windows)
    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
-   (if gdb-show-main
+   (if (and gdb-show-main gdb-main-file)
        (let ((pop-up-windows t))
 	 (display-buffer (gud-find-file gdb-main-file)))))
  (setq gdb-ready t))

@@ -34,10 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "usg-unix-v"
 
-/* Default is to set interrupt_input to 0: don't do input buffering within Emacs */
-
-/* #define INTERRUPT_INPUT */
-
 /*
  *	Define HAVE_TERMIO if the system provides sysV-style ioctls
  *	for terminal control.
@@ -49,21 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *	Define HAVE_PTYS if the system supports pty devices.
  */
 
-/* Some versions of V.3 have this, but not all.
-   #define HAVE_PTYS
-   #define SYSV_PTYS  */
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
-/* #define HAVE_SOCKETS */
-
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
-
 /*
  * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
  *	library functions.  Almost, but not quite the same as
@@ -71,34 +52,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 #define SYSV_SYSTEM_DIR
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
-/* #define BSTRING */
-
 /* subprocesses should be defined if you want to
  have code for asynchronous subprocesses
  (as used in M-x compile and M-x shell).
  This is supposed to work now on system V release 2.  */
 
 #define subprocesses
-
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
-#define COFF
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
-
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-
-/* #define CLASH_DETECTION */
 
 /* The file containing the kernel's symbol table is called /unix.  */
 
@@ -108,10 +67,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    is named avenrun.  */
 
 #define LDAV_SYMBOL "avenrun"
-
-/* Define this if system V IPC is available.  */
-
-#define HAVE_SYSVIPC
 
 /* Special hacks needed to make Emacs run on this system.  */
 
@@ -137,12 +92,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define rindex strrchr
 #endif /* ! defined (HAVE_RINDEX) */
 
-/* USG systems tend to put everything declared static
-   into the initialized data area, which becomes pure after dumping Emacs.
-   Foil this.  Emacs carefully avoids static vars inside functions.  */
-
-#define static
-
 /* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
 
 #define ADDR_CORRECT(x) (x)
@@ -163,10 +112,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BSTRING
 #endif /* HAVE_X_WINDOWS */
 
-/* Enable support for shared libraries in unexec.  */
-
-#define USG_SHARED_LIBRARIES
-
 /* On USG systems signal handlers return void */
 
 #define SIGTYPE void
@@ -185,12 +130,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define UNEXEC unexelf.o
 
-/* <sys/stat.h> *defines* stat(2) as a static function.  If "static"
- * is blank, then many files will have a public definition for stat(2).
- */
-
-#undef static
-
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct
  * tchars. But get <termio.h> first to make sure ttold.h doesn't
  * interfere.  And don't try to use SIGIO yet.
@@ -201,9 +140,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef emacs
-#ifndef NO_FILIO_H
 #include <sys/filio.h>
-#endif
 #include <termio.h>
 #include <sys/ttold.h>
 #include <signal.h>
@@ -231,8 +168,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    without clearing the SIGCHLD pending info.  So, use a non-blocking
    wait3 instead, which maps to waitpid(2) in SysVr4. */
 
-#define HAVE_WAIT_HEADER
-#define WAITTYPE int
 #define wait3(status, options, rusage) \
   waitpid ((pid_t) -1, (status), (options))
 #define WRETCODE(w) (w >> 8)
@@ -282,9 +217,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     fatal ("ioctl I_PUSH ldterm", errno);	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat", errno);
-
-/* Tell x11term.c and keyboard.c we have the system V streams feature.  */
-#define SYSV_STREAMS
 
 /* This definition was suggested for next release.
    So give it a try.  */

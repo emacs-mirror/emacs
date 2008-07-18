@@ -604,18 +604,27 @@ is not considered (see `next-frame')."
   (select-frame-set-input-focus (selected-frame)))
 
 (declare-function x-initialize-window-system "term/x-win" ())
-(defvar x-display-name)
+(declare-function ns-initialize-window-system "term/ns-win" ())
+(defvar x-display-name)                 ; term/x-win
+(defvar ns-display-name)                ; term/ns-win
 
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on X display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
-  (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
-      (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-  (when (and (boundp 'x-initialized) (not x-initialized))
-    (setq x-display-name display)
-    (x-initialize-window-system))
-  (make-frame `((window-system . x) (display . ,display) . ,parameters)))
+  (if (featurep 'ns-windowing)
+      (progn
+	(when (and (boundp 'ns-initialized) (not ns-initialized))
+	  (setq ns-display-name display)
+	  (ns-initialize-window-system))
+	(make-frame `((window-system . ns) (display . ,display) . ,parameters)))
+    (progn
+      (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
+	  (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
+      (when (and (boundp 'x-initialized) (not x-initialized))
+	(setq x-display-name display)
+	(x-initialize-window-system))
+      (make-frame `((window-system . x) (display . ,display) . ,parameters)))))
 
 (defun make-frame-on-tty (tty type &optional parameters)
   "Make a frame on terminal device TTY.
@@ -835,7 +844,7 @@ the user during startup."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (when (memq (window-system frame) '(x mac w32))
+    (when (memq (window-system frame) '(x mac w32 ns))
       (x-focus-frame frame))
     (when focus-follows-mouse
       (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
@@ -880,7 +889,7 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
   (interactive)
   (let ((type (framep (selected-frame))))
     (cond
-     ((memq type '(x w32)) (iconify-or-deiconify-frame))
+     ((memq type '(x ns w32)) (iconify-or-deiconify-frame))
      ((eq type t)
       (if (controlling-tty-p)
 	  (suspend-emacs)
@@ -920,7 +929,7 @@ If there is no frame by that name, signal an error."
     (raise-frame frame)
     (select-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq (window-system frame) '(x w32))
+    (cond ((memq (window-system frame) '(x w32 ns))
 	   (x-focus-frame frame)))
     (when focus-follows-mouse
       (set-mouse-position frame (1- (frame-width frame)) 0))))
@@ -1157,8 +1166,8 @@ frame's display)."
      ((eq system-type 'windows-nt)
       (with-no-warnings
        (> w32-num-mouse-buttons 0)))
-     ((memq frame-type '(x mac))
-      t)    ;; We assume X and Mac *always* have a pointing device
+     ((memq frame-type '(x mac ns))
+      t)    ;; We assume X, Mac, NeXTstep *always* have a pointing device
      (t
       (or (and (featurep 'xt-mouse)
 	       xterm-mouse-mode)
@@ -1173,7 +1182,7 @@ frame's display).
 Support for popup menus requires that the mouse be available."
   (and
    (let ((frame-type (framep-on-display display)))
-     (memq frame-type '(x w32 pc mac)))
+     (memq frame-type '(x w32 pc mac ns)))
    (display-mouse-p display)))
 
 (defun display-graphic-p (&optional display)
@@ -1183,7 +1192,7 @@ frames and several different fonts at once.  This is true for displays
 that use a window system such as X, and false for text-only terminals.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
-  (not (null (memq (framep-on-display display) '(x w32 mac)))))
+  (not (null (memq (framep-on-display display) '(x w32 mac ns)))))
 
 (defun display-images-p (&optional display)
   "Return non-nil if DISPLAY can display images.
@@ -1211,7 +1220,7 @@ frame's display)."
       ;; the Windows' DOS Box.
       (with-no-warnings
        (not (null dos-windows-version))))
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       t)    ;; FIXME?
      (t
       nil))))
@@ -1222,7 +1231,7 @@ frame's display)."
   "Return the number of screens associated with DISPLAY."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-screens display))
      (t
       1))))
@@ -1234,7 +1243,7 @@ frame's display)."
 For character terminals, each character counts as a single pixel."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-pixel-height display))
      (t
       (frame-height (if (framep display) display (selected-frame)))))))
@@ -1246,7 +1255,7 @@ For character terminals, each character counts as a single pixel."
 For character terminals, each character counts as a single pixel."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-pixel-width display))
      (t
       (frame-width (if (framep display) display (selected-frame)))))))
@@ -1275,7 +1284,7 @@ displays not explicitely specified."
   "Return the height of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
 If the information is unavailable, value is nil."
-  (and (memq (framep-on-display display) '(x w32 mac))
+  (and (memq (framep-on-display display) '(x w32 mac ns))
        (or (cddr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
 	   (cddr (assoc t display-mm-dimensions-alist))
@@ -1287,7 +1296,7 @@ If the information is unavailable, value is nil."
   "Return the width of DISPLAY's screen in millimeters.
 System values can be overridden by `display-mm-dimensions-alist'.
 If the information is unavailable, value is nil."
-  (and (memq (framep-on-display display) '(x w32 mac))
+  (and (memq (framep-on-display display) '(x w32 mac ns))
        (or (cadr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
 	   (cadr (assoc t display-mm-dimensions-alist))
@@ -1301,7 +1310,7 @@ The value may be `always', `when-mapped', `not-useful', or nil if
 the question is inapplicable to a certain kind of display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-backing-store display))
      (t
       'not-useful))))
@@ -1312,7 +1321,7 @@ the question is inapplicable to a certain kind of display."
   "Return non-nil if DISPLAY's screen supports the SaveUnder feature."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-save-under display))
      (t
       'not-useful))))
@@ -1323,7 +1332,7 @@ the question is inapplicable to a certain kind of display."
   "Return the number of planes supported by DISPLAY."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-planes display))
      ((eq frame-type 'pc)
       4)
@@ -1336,7 +1345,7 @@ the question is inapplicable to a certain kind of display."
   "Return the number of color cells supported by DISPLAY."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-color-cells display))
      ((eq frame-type 'pc)
       16)
@@ -1351,7 +1360,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-visual-class display))
      ((and (memq frame-type '(pc t))
 	   (tty-display-color-p display))

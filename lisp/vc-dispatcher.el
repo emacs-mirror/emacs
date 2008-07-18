@@ -480,15 +480,25 @@ editing!"
 	 (kill-buffer (current-buffer)))))
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
+(declare-function vc-string-prefix-p "vc" (prefix string))
+
+(defun vc-resynch-buffers-in-directory (directory &optional keep noquery)
+  "Resync all buffers that visit files in DIRECTORY."
+  (dolist (buffer (buffer-list))
+    (let ((fname (buffer-file-name buffer)))
+      (when (and fname (vc-string-prefix-p directory fname))
+	(vc-resynch-buffer fname keep noquery)))))
 
 (defun vc-resynch-buffer (file &optional keep noquery)
   "If FILE is currently visited, resynch its buffer."
   (if (string= buffer-file-name file)
       (vc-resynch-window file keep noquery)
-    (let ((buffer (get-file-buffer file)))
-      (when buffer
-	(with-current-buffer buffer
-	  (vc-resynch-window file keep noquery)))))
+    (if (file-directory-p file)
+	(vc-resynch-buffers-in-directory file keep noquery)
+      (let ((buffer (get-file-buffer file)))
+	(when buffer
+	  (with-current-buffer buffer
+	    (vc-resynch-window file keep noquery))))))
   ;; Try to avoid unnecessary work, a *vc-dir* buffer is only present
   ;; if this is true.
   (when (memq 'vc-dir-resynch-file after-save-hook)

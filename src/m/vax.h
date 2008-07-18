@@ -25,24 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 NOTE-START
 The vax (-machine=vax) runs zillions of different operating systems.
 
-Vax running Berkeley Unix (-opsystem=bsd4-1, -opsystem=bsd4-2 or
-			   -opsystem=bsd4-3)
-
-  Works.
-
-Vax running Ultrix (-opsystem=bsd4-2)
-
-  Works.  See under Ultrix in share-lib/MACHINES for problems using X
-  windows on Ultrix.
-
-Vax running System V rel 2 (-opsystem=usg5-2)
-
-  18.27 Works.
-
-Vax running System V rel 0 (-opsystem=usg5-0)
-
-  Works as of 18.36.
-
 Vax running VMS (-opsystem=vms)
 
   18.36 believed to work.  Addition of features is necessary to make
@@ -56,10 +38,6 @@ NOTE-END  */
 #undef WORDS_BIG_ENDIAN
 
 /* #define vax    -- appears to be done automatically  */
-
-/* Use type int rather than a union, to represent Lisp_Object */
-
-#define NO_UNION_TYPE
 
 /* crt0.c should use the vax-bsd style of entry, with no dummy args.  */
 

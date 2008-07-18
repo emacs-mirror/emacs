@@ -55,44 +55,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define NOMULTIPLEJOBS
 
-/* Emacs can read input using SIGIO and buffering characters itself,
-   or using CBREAK mode and making C-g cause SIGINT.
-   The choice is controlled by the variable interrupt_input.
-   Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
-
-   SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvantages
-     1) At least in 4.2, it is impossible to handle the Meta key properly.
-        I hear that in system V this problem does not exist.
-     2) Control-G causes output to be discarded.
-        I do not know whether this can be fixed in system V.
-
-   Another method of doing input is planned but not implemented.
-   It would have Emacs fork off a separate process
-   to read the input and send it to the true Emacs process
-   through a pipe.
-*/
-
-/* #define INTERRUPT_INPUT */
-
-/* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-
-/* #define FIRST_PTY_LETTER 'a' */
-
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
-/* #define HAVE_PTYS */
-
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
-
 #define SYSV_SYSTEM_DIR
 
 /* Define this symbol if your system has the functions bcopy, etc. */
@@ -115,19 +77,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    preprocessor symbol "COFF". */
 
 #define COFF
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
-
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-
-/* #define CLASH_DETECTION */
 
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
@@ -240,9 +189,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* We canuse mouse menus.  */
 #define HAVE_MENUS
-
-/* We have support for faces.  */
-#define HAVE_FACES
 
 /* Define one of these for easier conditionals.  */
 #ifdef HAVE_X_WINDOWS

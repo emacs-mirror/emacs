@@ -59,12 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/*
- *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
- *      The 4.2 opendir, etc., library functions.
- */
-
-/* #define NONSYSTEM_DIR_LIBRARY */
 
 /*
  * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
@@ -95,18 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LDAV_SYMBOL "avenrun"
 
 /* Special itemss needed to make Emacs run on this system.  */
-
-
-
-/* USG systems tend to put everything declared static
-   into the initialized data area, which becomes pure after dumping Emacs.
-   Foil this.  Emacs carefully avoids static vars inside functions.  */
-
-#undef static
-
-/* Compiler bug bites on many systems when default ADDR_CORRECT is used.  */
-
-/* #define ADDR_CORRECT(x) (x) */
 
 #ifndef __GNUC__
 #define LINKER cc
@@ -141,13 +123,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define C_SWITCH_SYSTEM -ma -qmaxmem=4000
 #endif
 
-/* The character-composition stuff is broken in X11R5.
-   Even with XIMStatusNothing aliased to XIMStatusNone,
-   tranle@intellicorp.com (Minh Tran-Le) reports that enabling
-   the internationalization code causes the modifier keys C, M and Shift
-   to beep after a mouse click.  */
-#define X11R5_INHIBIT_I18N
-
 /* string.h defines rindex as a macro, at least with native cc, so we
    lose declaring char * rindex without this.
    It is just a guess which versions of AIX need this definition.  */
@@ -171,14 +146,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define POSIX_SIGNALS
 #undef sigmask
-
-/* Dave Love <d.love@dl.ac.uk> reported this as needed on AIX 4.1.
-   It is just a guess which versions of AIX need this definition.  */
-#define HAVE_WAIT_HEADER
-
-/* Specify the type that the 3rd arg of `accept' points to.
-   It is just a guess which versions of AIX need this definition.  */
-#define SOCKLEN_TYPE int
 
 /* olson@mcs.anl.gov says -li18n is needed by -lXm.  */
 #define LIB_MOTIF -lXm -li18n

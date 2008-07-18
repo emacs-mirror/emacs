@@ -874,6 +874,8 @@ ELCFILES = \
 	$(lisp)/net/zeroconf.elc \
 	$(lisp)/newcomment.elc \
 	$(lisp)/novice.elc \
+	$(lisp)/ns-grabenv.elc \
+	$(lisp)/ns-carbon-compat.elc \
 	$(lisp)/nxml/nxml-enc.elc \
 	$(lisp)/nxml/nxml-glyph.elc \
 	$(lisp)/nxml/nxml-maint.elc \
@@ -1117,6 +1119,7 @@ ELCFILES = \
 	$(lisp)/tempo.elc \
 	$(lisp)/term.elc \
 	$(lisp)/term/mac-win.elc \
+	$(lisp)/term/ns-win.elc \
 	$(lisp)/term/pc-win.elc \
 	$(lisp)/term/rxvt.elc \
 	$(lisp)/term/sun.elc \
@@ -1340,9 +1343,17 @@ compile-after-backup: backup-compiled-files compile-always
 
 # Recompile all Lisp files which are newer than their .elc files and compile
 # new ones.
-# FIXME this could use the 'compile' target now, and let make figure out
-# what needs to be done.  That would be parallelizable, but would not
-# pick up new files not in ELCFILES.
+# This has the same effect as compile-main (followed up with compile-last,
+# if ELCFILES is out of date).  recompile has some advantages:
+# i) It is faster (on a single processor), since it only has to start
+# Emacs once.  It was 33% faster on a test with a random 10% of the .el
+# files needing recompilation.
+# ii) The explicit cc-mode dependency.
+# recompile's disadvantages are:
+# i) Not parallelizable.
+# ii) Compiling multiple files in the same instance of Emacs is wrong,
+# since the environment of later files is affected by definitions in
+# earlier ones.
 recompile: doit $(LOADDEFS) $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 

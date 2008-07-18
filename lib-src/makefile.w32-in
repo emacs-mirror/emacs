@@ -192,8 +192,6 @@ OTHER_PLATFORM_SUPPORT = \
 	$(lispsource)dos-vars.elc \
 	$(lispsource)international/ccl.elc \
 	$(lispsource)international/codepage.elc \
-	$(lispsource)vmsproc.el \
-	$(lispsource)vms-patch.el \
 	$(lispsource)x-dnd.elc \
 	$(lispsource)term/x-win.elc
 

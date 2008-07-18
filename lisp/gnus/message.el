@@ -4515,6 +4515,7 @@ If you always want Gnus to send messages in one piece, set
 			    (list resend-to-addresses)
 			  '("-t"))))))
 	    (unless (or (null cpr) (and (numberp cpr) (zerop cpr)))
+              (if errbuf (pop-to-buffer errbuf))
 	      (error "Sending...failed with exit value %d" cpr)))
 	  (when message-interactive
 	    (with-current-buffer errbuf

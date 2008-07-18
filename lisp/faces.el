@@ -338,7 +338,7 @@ specifies an invalid attribute."
 
 (defun set-face-attributes-from-resources (face frame)
   "Set attributes of FACE from X resources for FRAME."
-  (when (memq (framep frame) '(x w32 mac))
+  (when (memq (framep frame) '(x w32 mac ns))
     (dolist (definition face-x-resources)
       (let ((attribute (car definition)))
 	(dolist (entry (cdr definition))
@@ -1010,7 +1010,7 @@ an integer value."
            ((:height)
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x w32 mac))
+            (and (memq (window-system frame) '(x w32 mac ns))
                  (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
@@ -1129,7 +1129,7 @@ of a global face.  Value is the new attribute value."
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
 	       (when (and (memq attribute '(:foreground :background))
-			  (not (memq (window-system frame) '(x w32 mac)))
+			  (not (memq (window-system frame) '(x w32 mac ns)))
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
@@ -1624,7 +1624,7 @@ The argument FRAME specifies which frame to try.
 The value may be different for frames on different display types.
 If FRAME doesn't support colors, the value is nil.
 If FRAME is nil, that stands for the selected frame."
-  (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
+  (if (memq (framep (or frame (selected-frame))) '(x w32 mac ns))
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
@@ -1638,7 +1638,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
   (if (member color '(unspecified "unspecified-bg" "unspecified-fg"))
       nil
-    (if (member (framep (or frame (selected-frame))) '(x w32 mac))
+    (if (member (framep (or frame (selected-frame))) '(x w32 mac ns))
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
@@ -1656,7 +1656,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
   (if (member color '(unspecified "unspecified-fg" "unspecified-bg"))
       nil
-    (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
+    (if (memq (framep (or frame (selected-frame))) '(x w32 mac ns))
 	(xw-color-values color frame)
       (tty-color-values color frame))))
 (defalias 'x-color-values 'color-values)
@@ -1668,7 +1668,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (if (memq (framep-on-display display) '(x w32 mac))
+  (if (memq (framep-on-display display) '(x w32 mac ns))
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
@@ -1679,7 +1679,7 @@ If omitted or nil, that stands for the selected frame's display."
   "Return non-nil if frames on DISPLAY can display shades of gray."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 mac))
+     ((memq frame-type '(x w32 mac ns))
       (x-display-grayscale-p display))
      (t
       (> (tty-color-gray-shades display) 2)))))
@@ -1985,15 +1985,22 @@ or `default-frame-alist' contains a `reverse' parameter, or
 the X resource ``reverseVideo'' is present, handle that.
 Value is the new frame created."
   (setq parameters (x-handle-named-frame-geometry parameters))
-  (let ((visibility-spec (assq 'visibility parameters))
-	(frame (x-create-frame `((visibility . nil) . ,parameters)))
-	success)
+  (let* ((params (copy-tree parameters))
+	 (visibility-spec (assq 'visibility parameters))
+	 (delayed-params '(foreground-color background-color font
+			   border-color cursor-color mouse-color
+			   visibility scroll-bar-foreground
+			   scroll-bar-background))
+	 frame success)
+    (dolist (param delayed-params)
+      (setq params (assq-delete-all param params)))
+    (setq frame (x-create-frame `((visibility . nil) . ,params)))
     (unwind-protect
 	(progn
 	  (x-setup-function-keys frame)
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
-	  (face-set-after-frame-default frame)
+	  (face-set-after-frame-default frame parameters)
 	  ;; Make sure the tool-bar is ready to be enabled.  The
 	  ;; `tool-bar-lines' frame parameter will not take effect
 	  ;; without this call.
@@ -2006,68 +2013,42 @@ Value is the new frame created."
 	(delete-frame frame)))
     frame))
 
-(defun face-set-after-frame-default (frame)
-  "Set frame-local faces of FRAME from face specs and resources.
-Initialize colors of certain faces from frame parameters."
-  (if (face-attribute 'default :font t)
-      (set-face-attribute 'default frame :font
-			  (face-attribute 'default :font t))
-    (set-face-attribute 'default frame :family
-			(face-attribute 'default :family t))
-    (set-face-attribute 'default frame :height
-			(face-attribute 'default :height t))
-    (set-face-attribute 'default frame :slant
-			(face-attribute 'default :slant t))
-    (set-face-attribute 'default frame :weight
-			(face-attribute 'default :weight t))
-    (set-face-attribute 'default frame :width
-			(face-attribute 'default :width t)))
-  ;; Find attributes that should be initialized from frame parameters.
+(defun face-set-after-frame-default (frame &optional parameters)
+  "Initialize the frame-local faces of FRAME.
+Calculate the face definitions using the face specs, custom theme
+settings, X resources, and `face-new-frame-defaults'.
+Finally, apply any relevant face attributes found amongst the
+frame parameters in PARAMETERS and `default-frame-alist'."
+  (dolist (face (nreverse (face-list)))
+    (condition-case ()
+	(progn
+	  ;; Initialize faces from face spec and custom theme.
+	  (face-spec-recalc face frame)
+	  ;; X resouces for the default face are applied during
+	  ;; x-create-frame.
+	  (and (not (eq face 'default))
+	       (memq (window-system frame) '(x w32 mac)) 	 
+	       (make-face-x-resource-internal face frame))
+	  ;; Apply attributes specified by face-new-frame-defaults
+	  (internal-merge-in-global-face face frame))
+      ;; Don't let invalid specs prevent frame creation.
+      (error nil)))
+  ;; Apply attributes specified by frame parameters.
   (let ((face-params '((foreground-color default :foreground)
-		       (background-color default :background)
-                       (font-parameter default :font)
-		       (border-color border :background)
-		       (cursor-color cursor :background)
-		       (scroll-bar-foreground scroll-bar :foreground)
-		       (scroll-bar-background scroll-bar :background)
-		       (mouse-color mouse :background)))
-	apply-params)
+  		       (background-color default :background)
+                       (font default :font)
+  		       (border-color border :background)
+  		       (cursor-color cursor :background)
+  		       (scroll-bar-foreground scroll-bar :foreground)
+  		       (scroll-bar-background scroll-bar :background)
+  		       (mouse-color mouse :background))))
     (dolist (param face-params)
-      (let* ((value (frame-parameter frame (nth 0 param)))
-	     (face (nth 1 param))
-	     (attr (nth 2 param))
-	     (default-value (face-attribute face attr t)))
-	;; Compile a list of face attributes to set, but don't set
-	;; them yet.  The call to make-face-x-resource-internal,
-	;; below, can change frame parameters, and the final set of
-	;; frame parameters should be the ones acquired at this step.
-	(if (eq default-value 'unspecified)
-	    ;; The face spec does not specify a new-frame value for
-	    ;; this attribute.  Check if the existing frame parameter
-	    ;; specifies it.
-	    (if value
-		(push (list face frame attr value) apply-params))
-	  ;; The face spec specifies a value for this attribute, to be
-	  ;; applied to the face on all new frames.
-	  (push (list face frame attr default-value) apply-params))))
-    ;; Initialize faces from face specs and X resources.  The
-    ;; condition-case prevents invalid specs from causing frame
-    ;; creation to fail.
-    (dolist (face (face-list))
-      ;; This loop used to exclude the `default' face for an unknown reason.
-      ;; It lead to odd behaviors where face-spec settings on the `default'
-      ;; face weren't obeyed for new frame.
-      (condition-case ()
-	  (progn
-	    (face-spec-recalc face frame)
-	    (if (memq (window-system frame) '(x w32 mac))
-		(make-face-x-resource-internal face frame))
-	    (internal-merge-in-global-face face frame))
-	(error nil)))
-    ;; Apply the attributes specified by frame parameters.  This
-    ;; rewrites parameters changed by make-face-x-resource-internal
-    (dolist (param apply-params)
-      (apply 'set-face-attribute param))))
+      (let* ((param-name (nth 0 param))
+  	     (value (cdr (or (assq param-name parameters)
+  			     (assq param-name default-frame-alist)))))
+  	(if value
+  	    (set-face-attribute (nth 1 param) frame
+				(nth 2 param) value))))))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
@@ -2104,7 +2085,7 @@ created."
             (set-locale-environment nil frame)
             (tty-run-terminal-initialization frame))
 	  (frame-set-background-mode frame)
-	  (face-set-after-frame-default frame)
+	  (face-set-after-frame-default frame parameters)
 	  (setq success t))
       (unless success
 	(delete-frame frame)))
@@ -2514,7 +2495,7 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 mac) (class color))
+    (((type x w32 mac ns) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))

@@ -910,8 +910,6 @@ Jeff Peck wrote:
 
 @itemize @minus
 @item
-@file{emacstool.c}, support for running Emacs under SunView/Sun Windows,
-@item
 @file{sun.el}, key bindings for sunterm keys,
 @item
 @file{sun-curs.el}, cursor definitions for Sun Windows, and

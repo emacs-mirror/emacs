@@ -1,3 +1,776 @@
+2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gtkutil.c: Include <config.h> instead of "config.h".
+
+	* lisp.h (Foverlay_buffer): Add EXFUN.
+
+	* process.c (create_process) [!WINDOWSNT && FD_CLOEXEC]: Wait for
+	child process to complete child_setup.  Undo 2005-09-21 change.
+
+	* s/darwin.h: Mention setsid after vfork.
+
+2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (frame.o, keyboard.o, xdisp.o, xfaces.o):
+	Depend on macgui.h.
+
+	* macfns.c (Fx_server_version): Don't use gestaltSystemVersionMajor,
+	gestaltSystemVersionMinor, or gestaltSystemVersionBugFix.
+
+	* macterm.c (keycode_to_xkeysym_table): Add entries for f17, f18,
+	and f19.
+	[MAC_OSX] (fn_keycode_to_keycode_table): Likewise.
+
+	* macterm.h (gestaltSystemVersionMajor, gestaltSystemVersionMinor)
+	(gestaltSystemVersionBugFix) [MAC_OS_X_VERSION_MAX_ALLOWED < 1040]:
+	Remove enumerators.
+
+	* mactoolbox.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Check if FACE_FROM_ID returns NULL.
+
+2008-07-17  David Robinow  <drobinow@gmail.com>  (tiny change)
+
+        * w32inevt.c (change_frame_size): Remove extern declaration.
+        (resize_event, maybe_generate_resize_event): Pass SAFE arg to
+        change_frame_size.
+
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* getloadavg.c: Revert last change (2008-07-15).
+
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in: Replace emacsapp, emacsbindir, emacsappsrc variables
+	set here with ns_appdir, ns_appresdir, ns_appbindir, ns_appsrc) set
+	from configure.
+
+2008-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/sol2.h:
+	* s/sol2-4.h: Reorganize conditionals.
+
+	* ecrt0.c: Remove code depending on m68000, not used anymore.
+
+	* fns.c (hash_remove): Make static.
+	* lisp.h (hash_remove): Don't prototype.
+
+	* m/ibmrs6000.h:
+	* m/ibms390x.h:
+	* m/macppc.h: Remove boilerplate comments.
+
+	* m/sparc.h (A_TEXT_OFFSET, A_TEXT_SEEK): Remove, only used on
+	Solaris, which does not need them.
+
+	* m/vax.h: Remove comments about unsupported systems.
+
+	* s/darwin.h: Reorganize ifdefs.
+
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* config.in
+	* dispextern.h
+	* frame.c
+	* image.c
+	* nsfns.m
+	* nsfont.m
+	* nsgui.h
+	* nsmenu.m
+	* nsterm.h
+	* nsterm.m
+	* s/darwin.h
+	* xdisp.c: Change most cases of PENDING to TODO, some to FIXME or
+	XXX.
+
+2008-07-17  Andreas Schwab  <schwab@suse.de>
+
+	* s/cygwin.h (LIB_STANDARD_LIBSRC): Don't define.
+
+2008-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use SDATA.  Follow coding convention of placing operators at
+	beginning of next line rather than end of previous line, and placing
+	spaces around infix operators.
+
+	* Makefile.in: Undef LIB_STANDARD before defining it to silence warning
+	in case it was defined already.
+	USE @GNUSTEP_MAKEFILES@ rather than envvars.
+	* nsterm.m (ns_term_init): Pass Qt and Qnil rather than YES/NO to
+	ns_default.
+	(applicationShouldTerminate, setValuesFromPanel): Use EQ to compare
+	Lisp_Objects.
+	* nsterm.h (Fx_display_grayscale_p, Fx_display_planes)
+	(ns_defined_color, ns_color_to_lisp): Declare.
+	* nsselect.m (ns_handle_selection_request, ns_handle_selection_clear)
+	(Fns_own_selection_internal): Make the big ugly hack more explicit, so
+	it's accepted even with USE_LISP_UNION_TYPE.
+	* nsmenu.m (ns_update_menubar): Use EQ to compare Lisp_Objects.
+	(update_frame_tool_bar): Remove apparently obsolete tests for
+	non-integerness of f->tool_bar_lines.
+	(windowShouldClose, addButton, clicked, runDialogAt): Make the big ugly
+	hack more explicit, so it's accepted even with USE_LISP_UNION_TYPE.
+	* nsfont.m (nsfont_driver): Use just 0 rather than an invalid cast.
+	(nsfont_open): Don't confuse NULL for Qnil.
+	* nsfns.m (ns_implicitly_set_icon_type): Use EQ to compare Lisp_Objects.
+	* menu.h (find_and_call_menu_selection):
+	* menu.c (find_and_call_menu_selection): Use just int for vector size.
+	(find_and_return_menu_selection): Always return something.
+	* frame.h: Include dispextern.h for Display_Info.
+	(display_x_get_resource): Declare.
+
+2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* syntax.c: Remove stdio.h include accidentally introduced in
+	Emacs.app commit.
+	* Makefile.in: Change GNUSTEP to NS_IMPL_GNUSTEP, COCOA to
+	NS_IMPL_COCOA.
+	* keyboard.c (handle_async_input, input_available_signal): Remove
+	BSD4_1 conditional code, introduced accidentally in Emacs.app commit.
+
+2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nsterm.m (lisp_to_mod): Use parse_solitary_modifier instead.
+	(ns_lisp_to_color): Don't mess with internal Lisp data fields.
+	(ns_term_init, ns_term_shutdown, initFrameFromEmacs, ns_list_fonts):
+	Use SDATA.
+
+	* keymap.c: Remove all NS-specific code.
+	(where_is_preferred_modifier, Vwhere_is_preferred_modifier): New vars.
+	(preferred_sequence_p): Rename from ascii_sequence_p; pay attention to
+	where_is_preferred_modifier, return a different value depending on how
+	preferred is the binding.
+	(where_is_internal): Adjust accordingly.
+	(Fwhere_is_internal): Refresh where_is_preferred_modifier.
+	Adjust to new preferred_sequence_p.
+	(syms_of_keymap): Declare `where-is-preferred-modifier'.
+	* keyboard.c (parse_solitary_modifier): Not static any more.
+	* keyboard.h (parse_solitary_modifier): Declare.
+
+2008-07-16  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove easy-mmode, fix spelling
+	of easymenu.
+
+2008-07-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_in_display_line): Account for word wrap, so
+	that we don't move off the line.
+
+2008-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Qsuper): Remove.
+	(parse_menu_item): Don't call where_is_internal specially for NS.
+
+2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h: Remove boilerplate comments.
+
+	* m/alpha.h (__ELF__): Consolidate conditions.
+
+	* m/m68k.h (linux): Use GNU_LINUX instead.
+	Remove boilerplate comments.
+
+	* m/intel386.h: Undo reactoring from previous change.
+	(LIB_STANDARD): All systems that define USG define LIB_STANDARD
+	too, remove dead code.
+	(linux): Use GNU_LINUX instead.
+
+2008-07-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32gui.h: Repeat 26 June changes lost by last change.
+
+2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* systty.h: Remove code for Aix on 386, unsupported platform.
+
+	* s/ms-w32.h: Remove boilerplate comments.
+	(fcloseall, fgetchar, flushall, fputchar, getw, putw): Remove, unused.
+
+	* s/gnu-linux.h (TERM): Remove support.
+	(HAVE_SYSVIPC): Remove, unused.
+	(A_TEXT_OFFSET, A_TEXT_SEEK, ADJUST_EXEC_HEADER): Remove, not used
+	for this system.
+
+	* process.c: Remove support for IRIS, unused.
+	Remove support for TERM, not relevant anymore.
+
+	* unexalpha.c (DEFAULT_ENTRY_ADDRESS): Remove, replace the only
+	used with the definition.
+
+	* s/aix4-2.h (static): Do not undef.
+
+	* m/ibmrs6000.h: Remove code depending on USG5_4, this file is
+	only used on Aix.
+	(HAVE_SYSVIPC): Remove, unused.
+
+	* m/hp800.h (CANNOT_DUMP): Do not undef.
+
+	* m/alpha.h: Fix comment.
+
+	* s/usg5-4.h (HAVE_SYSVIPC): Remove, unused.
+	(USG_SHARED_LIBRARIES): Remove, only used in unexec.c which is not
+	used by this configuration.
+	* emacs.c: Remove code depending on USG_SHARED_LIBRARIES.
+	* unexec.c: Remove code depending on HPUX and
+	USG_SHARED_LIBRARIES, not used with this file.  Remove code
+	depending on IRIS, unused.  Remove if 0-ed code.
+
+	* s/template.h: Remove comments about static.
+
+	* sysdep.c: Remove code depending on NEED_PTEM_H, unused.
+	Remove if 0-ed code.
+	(baud_convert): Don't depend on BAUD_CONVERT, all definitions the
+	were the same as the default.
+	* s/vms.h (BAUD_CONVERT): Remove, same as the default.
+	Remove boilerplate comments.
+	* s/hpux10-20.h (BAUD_CONVERT): Remove, same as the default.
+	(HAVE_SYSVIPC): Remove, unused.
+	(LD_SWITCH_SYSTEM_TEMACS): Simplify, hp9000s700 not supported anymore.
+
+	* m/ia64.h (PNTR_COMPARISON_TYPE): Remove, same as the default.
+	Remove boilerplate comments.
+	* m/amdx86-64.h (PNTR_COMPARISON_TYPE): Remove, same as the default.
+	Remove boilerplate comments.
+	* m/ibms390x.h (PNTR_COMPARISON_TYPE): Remove, same as the default.
+	Remove boilerplate comments.
+	* lisp.h (PNTR_COMPARISON_TYPE): Define it unconditionally.
+
+	* m/intel386.h (DATA_SEG_BITS): Remove definitions, only used on
+	USG systems which do not use DATA_SEG_BITS.
+	Refactor code.  Remove boilerplate comments.
+
+	* m/ibms390.h:
+	* m/m68k.h:
+	* s/bsd-common.h:
+	* s/cygwin.h:
+	* s/darwin.h:
+	* s/freebsd.h:
+	* s/gnu.h:
+	* s/msdos.h: Remove boilerplate comments.
+
+	* m/iris4d.h: Remove boilerplate comments and code for systems that
+	 do not use this file.
+	(IRIS_4D): Remove, unused.
+
+	* m/mips.h: Remove boilerplate comments and code for systems that
+	 do not use this file.
+	(SIGN_EXTEND_CHAR):
+	* m/arm.h (SIGN_EXTEND_CHAR): Remove, unused.
+	* unexmips.c: Remove file, unused.
+
+	* editfns.c (Fuser_full_name): Replace the only use of
+	USER_FULL_NAME with its value.
+	* config.in: Regenerate.
+
+2008-07-16  David Reitter <david.reitter@gmail.com>
+
+	* Makefile.in: add ns-win, ns-carbon-compat, easy-mmode and
+	easy-menu to SOME_MACHINE_LISP for the new NeXTstep port
+
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (system-type): Doc fix.
+
+2008-07-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (parse_menu_item): Don't use cachelist, even under NS.
+	If the cache doesn't work, let's fix it, rather than work around it.
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in: Correct additions for nsfont.o in last commit.
+	* nsfont.m: New file (forgot last commit).
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	Changes and additions for NeXTstep windowing system (Cocoa and
+	GNUstep) support.
+
+	* Makefile.in
+	* config.in: Support defines and build commands for NS port.
+	* blockinput.h (BLOCK_INPUT, UNBLOCK_INPUT, TOTALLY_UNBLOCK_INPUT)
+	(UNBLOCK_INPUT_TO): Don't use under NS unless EXPERIMENTAL_CONTROL_G.
+	* callproc.c (set_initial_environment): Initialize
+	Vprocess_environment under CANNOT_DUMP (fixes crash when
+	batch-compiling for bootstrap, due to Chris Hall).
+	* dispextern.h: Include nsgui.h and add needed typedefs under NS
+	windowing.
+	(struct face): Add synth_ital field.
+	* dispnew.c: Include nsterm.h when compiling under NS windowing.
+	(init_display): Initialize Vinitial_window_system to "ns" when so
+	compiled.
+	* emacs.c: Include GSConfig.h when compiling under GNUstep.
+	(display_arg): Use under NS.
+	(main): Under NS, allocate autorelease pool and handle command line
+	args.  Move syms_of_xmenu() call under #ifdef HAVE_X_WINDOWS.
+	(standard_args): Add NS-specific args.
+	(shut_down_emacs): Shut down NS terminal if compiled under NS.
+	* font.c (DEFAULT_ENCODING): New variable.
+	(font_find_for_lface): Use it.
+	(syms_of_font): Load syms_of_nsfont under NS.
+	* font.h: Declare nsfont_driver when compiled under NS.
+	* fontset.c: When compiling under NS, include nsterm.h.
+	(fontset_from_font): Autoconstruct fontset under NS.
+	* frame.c (various): Under NS, include nsterm.h, add Qns window system
+	symbol, document and use it.
+	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
+	patch to fix crash due to different init order, due to Chris Hall and
+	Yamamoto Mitsuharu.
+	(do_switch_frame): When for_deletion under Cocoa, add
+	Fraise_frame(Qnil).
+	(x_set_frame_parameters): Ensure font attribute changes are picked up.
+	(x_get_arg): Allow "yes" and "no" as boolean values.
+	(syms_of_frame): Declare Qns.  Init Vdefault_frame_scroll_bars to
+	Qright under Cocoa.
+	(focus-follows-mouse): Default to 0 under NS.
+	* frame.h (enum output_method): Add output_ns.
+	(external_tool_bar, external_menu_bar, FRAME_EXTERNAL_TOOLBAR)
+	(FRAME_EXTERNAL_MENU_BAR): Use under NS.
+	(FRAME_WINDOW_P): NS-specific definition.
+	* fringe.c (max_used_fringe_bitmap): Make public.
+	* getloadavg.c (mach/mach.h): Include it under NeXT descendant OS's.
+	(getloadavg): Use NeXT code under descendant OS's.
+	* image.c (includes and header section, x_create_bitmap_from_data)
+	(x_create_bitmap_from_file, free_bitmap_record, image_background)
+	(image_background_transparent, x_clear_image_1)
+	(x_create_x_image_and_pixmap, x_destroy_x_image, x_put_x_image)
+	(Create_Pixmap_From_Bitmap_Data, xpm_load_image, lookup_rgb_color)
+	(x_to_xcolors, x_from_xcolors, x_disable_image)
+	(x_build_heuristic_mask, syms_of_image): Add NS support parallel to
+	other GUIs, including XPM support using code originally written for
+	Carbon GUI.
+	(png_load, jpeg_load, tiff_load, gif_load): Add implementations
+	using NS API.
+	(image_ascent): Use font metrics macros instead of direct struct field
+	access.
+	* keyboard.c (includes): Add nsterm.h when compiling under NS.
+	(kbd_buffer_get_event): Handle NS as other GUI windowing systems.
+	Also, handle NS as GTK for menu bar purposes.
+	(make_lispy_event): Handle NS as other GUI windowing systems, and as X
+	toolkit where they differ.
+	(parse_menu_item): Prefer keybindings using 'super' modifier.  Also,
+	use cachelist, still needed under NS.
+	* keyboard.h (ENCODE_MENU_STRING, XtPointer, Boolean): Handle as NTGUI.
+	(struct widget_value): Define it here for menu.c.
+	* keymap.c (includes): Include modifier internals.
+	(lisp_to_mod, modifier_sequence_p): New functions, compiled only under
+	NS.
+	(where_is_internal, Fwhere_is_internal): When compiled under NS, add
+	support for preferring sequences using certain modifiers, specified by
+	the FIRSTONLY argument.
+	* lisp.h (hash_remove): Rename to avoid name clash when compiling
+	under NS GNUstep implementation.
+	(USE_LSB_TAG): Use it under Cocoa when compiling under NS.
+	* lread.c (init_lread): Treat NS as HAVE_CARBON for turn_off_warning.
+	* menu.c: Include nsterm.h under NS.
+	(single_menu_item, parse_single_submenu, xmalloc_widget_value)
+	(free_menubar_widget_tree_value, update_submenu_strings)
+	(find_and_call_menu_selection): Treat NS as X and NT.
+	(find_and_return_menu_selection): New function, used for popup menus.
+	* nsgui.h
+	* nsterm.h
+	* nsfns.m
+	* nsimage.m
+	* nsmenu.m
+	* nsselect.m
+	* nsterm.m: New files.
+	* process.c (wait_reading_process_output): Under NS, call ns_select()
+	instead of plain select().
+	* syntax.c (char_quoted): Under NS, avoid a crash when called near
+	beginning of buffer.
+	* sysselect.h (init_process): Rename when compiling under Cocoa to
+	avoid name conflict.
+	* termhooks.h (display_info): Add ns_display_info to union.
+	* terminal.c (Fterminal_live_p): Add ns to terminal types.
+	* terminfo.c (UP, BC, PC): Don't declare when compiling under NS in
+	COCOA environment.
+	* unexnext.c: Update to work with mach API on Mac OS X, and to use new
+	unexec() signature.  (Note, this will dump, but the resulting file
+	crashes; unexosx is used instead; keeping around for reference and
+	possible aid in getting dump working under GNUstep.)
+	* w32gui.h (button_type, widget_value): Remove definitions (now in
+	keyboard.h).
+	* window.c: Include nsterm.h when compiling under NS.
+	* xdisp.c (includes): Include nsterm.h when compiling under NS.
+	(set_frame_menubar, update_menu_bar, display_menu_bar): Handle NS as
+	other GUI windowing systems.
+	(update_tool_bar, redisplay_tool_bar, redisplay_window): Handle NS as
+	GTK.
+	(x_consider_frame_title): Under NS, set icon type and frame
+	modified-state indicator; use ns_set_name_as_filename() when using
+	formatted title.
+	(update_window_cursor): Make public when compiling under NS.
+	(display_hourglass_p, syms_of_xdisp, hourglass_shown_p)
+	(hourglass_atimer, Vhourglass_delay
+	* xfaces.c (header section, init_frame_faces, clear_font_table)
+	(defined_color, unload_color, x_face_list_fonts)
+	(prepare_face_for_display): Add NS support parallel to other GUIs.
+	Emulate GCs like other non-X GUIs.
+	(split_font_name): Don't lowercase font name under NS.
+	(merge_face_ref, Finternal_set_lisp_face_attribute): Support stippling
+	under NS.
+	* s/darwin.h: Add support for compilation under NS.
+
+2008-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Remove duplicate unwind_protect.
+	(w32_show_hourglass): Rename from show_hourglass.
+	(w32_hide_hourglass): Rename from hide_hourglass.
+	(DEFAULT_HOURGLASS_DELAY): Revert from last change.
+	(Vhourglass_delay): Declare extern.
+	(hourglass_started): Remove.
+
+	* xdisp.c (Vhourglass_delay): Remove static.
+	(hourglass_started, start_hourglass, cancel_hourglass):
+	Don't include these versions on WINDOWSNT.
+
+2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* dispextern.h (hourglass_shown_p, hourglass_atimer): New extern
+	variables (formerly in xfns.c).
+	(show_hourglass, hide_hourglass): New prototypes (same).
+	* xdisp.c (display_hourglass_p, hourglass_shown_p, hourglass_atimer)
+	(Vhourglass_delay, DEFAULT_HOURGLASS_DELAY): New variables (formerly
+	in xfns.c).
+	(syms_of_xdisp): Declare/initialize display-hourglass,
+	hourglass-delay.  Initialize hourglass_atimer, hourglass_shown_p.
+	(hourglass_started, start_hourglass, cancel_hourglass): New functions,
+	formerly in xfns.c.
+	* xfns.c (display_hourglass_p, hourglass_atimer, hourglass_shown_p)
+	(Vhourglass_delay, DEFAULT_HOURGLASS_DELAY, hourglass_started)
+	(start_hourglass, cancel_hourglass): Remove.
+	(show_hourglass, hide_hourglass): Remove prototypes and static
+	modifiers.
+	(syms_of_xfns): Remove display-hourglass, hourglass-delay,
+	hourglass_atimer, hourglass_shown_p declaration/initialization.
+	* macfns.c (display_hourglass_p, hourglass_atimer, hourglass_shown_p)
+	(Vhourglass_delay, DEFAULT_HOURGLASS_DELAY, hourglass_started)
+	(start_hourglass, cancel_hourglass): Remove.
+	(show_hourglass, hide_hourglass): Remove prototypes and static
+	modifiers.
+	(syms_of_macfns): Remove display-hourglass, hourglass-delay,
+	hourglass_atimer, hourglass_shown_p declaration/initialization.
+	* w32fns.c (display_hourglass_p, Vhourglass_delay)
+	(DEFAULT_HOURGLASS_DELAY): Remove.
+	(syms_of_w32fns): Remove display-hourglass, hourglass-delay,
+	hourglass_shown_p declaration/initialization.
+
+2008-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_get_arg): Remove wrapper function.
+	(w32_createwindow, x_icon, x_create_tip_frame): Use x_get_arg
+	directly.
+	(Fx_create_frame): Sync with xfns.c.  Use x_get_arg directly.
+
+2008-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Add workaround for X's bug.
+
+2008-07-14  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* fontset.c: Include <stdio.h> unconditionally.
+
+2008-07-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): Allow also signal arguments
+	for filtering.
+
+2008-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/vms.h: Use __GNUC__ instead of _GNUC_.
+
+	* m/macppc.h:
+	* m/alpha.h: Use GNU_LINUX instead of LINUX.  Reorganize conditionals.
+
+	* m/ibms390x.h (XINT, XUINT): Don't define, same as the default
+	(SPECIAL_EMACS_INT):
+	* m/ia64.h (SPECIAL_EMACS_INT):
+	* m/amdx86-64.h (SPECIAL_EMACS_INT):
+	* s/gnu.h (NLIST_STRUCT):
+	* aix4-2.h (X11R5_INHIBIT_I18N):
+	* s/gnu-linux.h (LINUX):
+	* s/msdos.h (HAVE_FACES):
+	* s/ms-w32.h (HAVE_FACES): Don't define, unused.
+
+	* systty.h:
+	* sysdep.c (setup_pty): Don't depend on SYSV_PTYS, it is not used
+	anymore.
+
+2008-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* syswait.h: Remove old if 0 code.  Do not define WAITTYPE, it was
+	always defined as int.
+
+	* s/netbsd.h (HAVE_UNION_WAIT, HAVE_WAIT_HEADER, WAIT_USE_INT):
+	* s/gnu.h (HAVE_WAIT_HEADER, WAIT_USE_INT, HAVE_UNION_WAIT):
+	* s/gnu-linux.h (HAVE_WAIT_HEADER):
+	* s/freebsd.h (HAVE_WAIT_HEADER):
+	* s/bsd-common.h (HAVE_UNION_WAIT):
+	* s/aix4-2.h (HAVE_WAIT_HEADER):
+	* m/mips.h (HAVE_UNION_WAIT):
+	* s/usg5-4.h (HAVE_WAIT_HEADER, WAITTYPE): Do not define, not used.
+	(COFF, static): Do not define, they are undefined later in the file.
+
+	* process.c (update_status): Don't use a union.
+	(status_convert):
+	(sigchld_handler): Use int instead of WAITTYPE.
+
+2008-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Restore hscroll before moving to
+	goal column.
+
+2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Remove left over code.
+
+2008-07-11  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Fix logic in last change.
+
+	* menu.h: New file.
+	* menu.c: Include it.
+	* xmenu.c: Likewise.
+	* Makefile.in: Update dependencies.
+
+2008-07-11  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_from_font): Cancel the previous change.
+
+2008-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h:
+	* w32heap.c:
+	* emacs.c:
+	* alloc.c: Replace all references of NO_UNION_TYPE with
+	USE_LISP_UNION_TYPE.
+
+	* m/xtensa.h (NO_UNION_TYPE):
+	* m/vax.h (NO_UNION_TYPE):
+	* m/template.h (NO_UNION_TYPE):
+	* m/sparc.h (NO_UNION_TYPE):
+	* m/mips.h (NO_UNION_TYPE):
+	* m/macppc.h (NO_UNION_TYPE):
+	* m/m68k.h (NO_UNION_TYPE):
+	* m/iris4d.h (NO_UNION_TYPE):
+	* m/intel386.h (NO_UNION_TYPE):
+	* m/ibms390x.h (NO_UNION_TYPE):
+	* m/ibms390.h (NO_UNION_TYPE):
+	* m/ibmrs6000.h (NO_UNION_TYPE):
+	* m/ia64.h (NO_UNION_TYPE):
+	* m/hp800.h (NO_UNION_TYPE):
+	* m/arm.h (NO_UNION_TYPE):
+	* m/amdx86-64.h (NO_UNION_TYPE):
+	* m/alpha.h (NO_UNION_TYPE): Remove definition, all platform were
+	defining it the same.
+
+2008-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_to): Backtrack if past the edge of a wrapped
+	line.
+
+2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* src/fileio.c:
+	* src/sysdep.c
+	* src/systty.h:
+	* src/m/ibmrs6000.h:
+	* src/m/iris4d.h:
+	* src/s/aix4-2.h:
+	* src/s/freebsd.h:
+	* src/s/gnu-linux.h:
+	* src/s/hpux10-20.h:
+	* src/s/hpux11.h:
+	* src/s/netbsd.h:
+	* src/s/sol2-3.h:
+	* src/s/sol2-4.h:
+	* src/s/sol2.h:
+	* src/s/usg5-4.h:
+	* src/s/vms.h: Remove references to unused variables.
+
+2008-07-10  Andreas Schwab  <schwab@suse.de>
+
+	* ftfont.c (ftfont_resolve_generic_family): Remove foundry from
+	pattern before matching the generic family.
+
+2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* unexec.c:
+	* s/vms.h:
+	* s/usg5-4-2.h:
+	* s/sol2-5.h:
+	* s/freebsd.h:
+	* s/darwin.h: Remove dead code.
+
+	* m/template.h:
+	* m/sparc.h:
+	* m/mips.h:
+	* m/m68k.h:
+	* m/iris4d.h:
+	* m/intel386.h:
+	* m/ibms390x.h:
+	* m/ibms390.h:
+	* m/ia64.h:
+	* m/hp800.h:
+	* m/arm.h:
+	* m/amdx86-64.h: Remove dead code and references to unused
+	and compiler defined symbols.
+
+	* unexmips.c:
+	* unexelf.c: Remove references to desupported systems.
+
+	* m/powermac.h: Remove file, it is now identical to m/macppc.h.
+
+	* m/powermac.h: Remove boilerplate comments.
+	(NO_REMAP): Remove unused definition.
+
+	* m/macppc.h (UNEXEC, NO_TERMIO): Don't define, the s/ files
+	define them.
+
+2008-07-10  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Log the reason of failure.
+
+2008-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fontset.c (fontset_get_font_group):
+	* font.c (font_check_otf): Specify argument types.
+
+2008-07-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_utf_8): Set detect_info->found only when
+	non-ASCII char is found.
+
+	* fontset.c (fontset_compare_rfontdef): Fix plus/minus.
+	(reorder_font_vector): Change the arg preferred_family to font.
+	Prefer the spec matching with font.
+	(fontset_get_font_group): New function.
+	(fontset_find_font): Change the format of an element of a realized
+	fontset.  Use fontset_get_font_group.
+	(fontset_font): Try the current fontset, the default fontset, the
+	fallbacks of the current fonset, and the fallbacks of the default
+	fontset in this order.
+	(face_for_char): Delete the shortcut to use the current font.
+	(fontset_from_font): Don't set fonts for Latin in the fontset.
+
+	* font.h (font_make_object, font_match_p): Adjust prototypes.
+
+	* ftfont.h [FT_BDF_H]: Include FT_BDF_H.
+
+	* font.c (font_make_object): New arg entity and pixelsize.
+	(font_check_otf_features, font_check_otf): New functions.
+	(font_match_p): Check :lang, :script, and :otf properties.
+
+	* xfont.c (xfont_open): Adjust it for the change of
+	font_make_object.
+	(xfont_text_extents): Fix initial setting of metrics.
+
+	* ftfont.c (struct ftfont_info): New member index, delete member
+	fc_charset_idx.  Make the member order compatible with struct
+	xftfont_info.
+	(fc_charset_table): Change charset names to registry names.
+	(ftfont_pattern_entity): Delete the args registry and
+	fc_charset_idx.  Change the value of :font-entity property
+	to (FONTNAME . INDEX).  Always set :registry property to
+	`iso10646-1'.
+	(struct ftfont_cache_data): New struct.
+	(ftfont_lookup_cache): New arg for_face.
+	(ftfont_get_fc_charset, ftfont_get_otf): New functions.
+	(ftfont_driver): Set the member otf_capability.
+	(ftfont_get_charset): Adjust it for the change of
+	fc_charset_table.
+	(OTF_TAG_SYM): New macro.
+	(ftfont_spec_pattern): Delete the arg fc_charset_idx.  Adjust it
+	for the change of fc_charset_table.
+	(ftfont_list): Adjust it for the change of ftfont_spec_pattern and
+	ftfont_pattern_entity.  Add FC_INDEX to objset.
+	(ftfont_match): Adjust it for the change of ftfont_spec_pattern
+	and ftfont_pattern_entity.
+	(ftfont_open): Adjust it for the change of ftfont_lookup_cache,
+	font_make_object, struct ftfont_info.
+	(ftfont_has_char): Use ftfont_get_fc_charset.
+	(ftfont_otf_features, ftfont_otf_capability): New functions.
+	(ftfont_shape): Use ftfont_get_otf.
+	(ftfont_text_extents): Fix initial setting of metrics.
+
+	* xftfont.c (struct xftfont_info): New member ft_size.  Make the
+	member order compatible with struct ftfont_info.
+	(xftfont_open): Add FC_CHARSET to the pattern.  Set
+	xftfont_info->ft_size.  Don't unlock the face.  Check BDF
+	properties if appropriate.
+	(xftfont_close): Unlock the face.
+	(xftfont_anchor_point, xftfont_shape): Deleted.
+	(syms_of_xftfont): Don't set members anchor_point and shape of
+	xftfont_driver.
+
+	* w32uniscribe.c (uniscribe_open): Adjust it for the change of
+	font_make_object.
+
+	* w32font.c (w32font_open): Adjust it for the change of
+	font_make_object.
+	(w32font_open_internal): Don't set properties of font_object here.
+
+2008-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macfns.c (x_create_tip_frame):
+	* w32fns.c (x_create_tip_frame):
+	* xfns.c (x_create_tip_frame): Pass parameter argument to
+	face-set-after-frame-default.
+
+	* xfaces.c (Finternal_merge_in_global_face): Save merged
+	attributes for the default face back into the face vector.
+
+2008-07-08  Andreas Schwab  <schwab@suse.de>
+
+	* fontset.h: Declare fontset_from_font.  Don't declare
+	new_fontset_from_font and fontset_from_font_name.
+	* xterm.c: Include "fontset.h".
+	* Makefile.in (xterm.o): Update dependencies.
+
+2008-07-08  Glenn Morris  <rgm@gnu.org>
+
+	* m/sparc.h: Define __sparc__ rather than sparc.  (Bug#507.)
+	* alloc.c, ecrt0.c: Use __sparc__ rather than sparc.
+
+2008-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qinhibit_face_set_after_frame_default): Var deleted.
+	(x_set_frame_parameters): Don't bind it.
+
+2008-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (map_w32_filename): Declare extern.
+
+2008-07-07  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (WS_EX_LAYERED): Define if not already.
+
+2008-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (set_font_frame_param): Don't try to set the font
+	parameter if it is still unspecified in the lface.
+
+2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_merge_in_global_face): Don't realize default
+	face if it didn't already exist.
+
+	* xdisp.c (try_window_id): Give up if word-wrapping is on.
+
+2008-07-05  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (get_it_property): Move out of HAVE_WINDOW_SYSTEM section.
+
+2008-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (IT_OVERFLOW_NEWLINE_INTO_FRINGE): Turn it off if
+	word-wrapping.
+	(IT_DISPLAYING_WHITESPACE): New macro.
+	(move_it_in_display_line_to): Handle MOVE_TO_X requests properly
+	when word-wrapping.  Simplify word-wrapping logic.  Use correct
+	pixel positions when saving copies of the iterator.
+	(display_line): Use proper wrap point if the last character on a
+	line was preceded by whitespace.
+
 2008-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (${etc}DOC): Depend on ${lisp} rather than ${shortlisp}.

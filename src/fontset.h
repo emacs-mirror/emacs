@@ -38,7 +38,7 @@ extern int face_suitable_for_char_p P_ ((struct face *, int));
 extern int face_for_char P_ ((FRAME_PTR, struct face *, int,
 			      int, Lisp_Object));
 extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int, struct face *));
-extern int fontset_from_font_name P_ ((Lisp_Object));
+extern int fontset_from_font P_ ((Lisp_Object));
 extern void set_default_ascii_font P_ ((Lisp_Object));
 extern int fs_query_fontset P_ ((Lisp_Object, int));
 EXFUN (Fquery_fontset, 2);
@@ -57,7 +57,6 @@ extern int fontset_height P_ ((int));
 
 struct font;
 extern int face_for_font P_ ((struct frame *, Lisp_Object, struct face *));
-extern int new_fontset_from_font P_ ((Lisp_Object));
 
 #endif /* EMACS_FONTSET_H */
 

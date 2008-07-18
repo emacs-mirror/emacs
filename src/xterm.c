@@ -84,6 +84,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "keymap.h"
 #include "font.h"
+#include "fontset.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>

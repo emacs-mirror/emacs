@@ -4207,7 +4207,7 @@ hash_put (h, key, value, hash)
 
 /* Remove the entry matching KEY from hash table H, if there is one.  */
 
-void
+static void
 hash_remove (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;

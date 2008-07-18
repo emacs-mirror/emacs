@@ -82,7 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
-#define HAVE_FACES
 #define HAVE_MOUSE
 #endif
 

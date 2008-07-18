@@ -32,7 +32,7 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 ** New font code.
 Fonts are handled by new code capable of dealing with multiple font
-backends.  This requires the freetype and fontconfig libraries
+backends.  This uses the freetype and fontconfig libraries.
 
 *** Emacs now accepts font names supplied in the fontconfig format
 (e.g. "monospace-12:bold") and GTK format (e.g. "Monospace Bold 12").
@@ -48,10 +48,10 @@ OpenType fonts.
 *** Added support for the m17n library for text shaping.
 
 ** Changes to image support
-
+---
 *** configure now checks for libgif before libungif when searching for
 a GIF library.
-
++++
 *** Emacs now supports the SVG image format through librsvg2.
 
 ** The Mac Carbon port is no longer supported.
@@ -62,24 +62,35 @@ bindings for Emacs.
 
 ** Support for many obsolete platforms has been removed.
 See the list at the end of etc/MACHINES for details.
-
+---
 *** Support for systems without alloca has been removed.
-
+---
 *** Support for Sun windows has been removed.
+---
+*** The `emacstool' utility has been removed.
 
-** The `emacstool' utility has been removed.
-
+---
 ** The configure options `--with-gcc', `--without-gcc' have been removed.
 Configure will use gcc by default.  Set the CC environment variable if
 you need control over which C compiler is used.
 
 ** The refcards are now shipped as PDF files.
 
+---
 ** Emacs 23 comes with a new set of default icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 * Changes in Emacs 23.1
+
+** Emacs can now be built under the Cocoa libraries on Mac OS X and GNUstep
+   libraries on other machines.  Specify --with-ns to configure for this. By
+   default a self-contained app will be built (containing all lisp).  To
+   install/share lisp with other emacsen (e.g. X11 build) use
+   --disable-ns-self-contained.  Use 'info-ns-emacs' or first entry under Help
+   menu when running for more information.
+
+** `where-is-preferred-modifier' can specify your favorite modifier.
 
 ** Improved X Window System support
 
@@ -158,30 +169,32 @@ Sinhala, and TaiViet.
 unify-8859-on-decoding-mode are obsolete.
 
 ** Emacs now supports serial port access on GNU/Linux, Unix, and
-Windows.  `serial-term' starts an interactive terminal,
-`make-serial-process' and `serial-process-configure' provide a Lisp
-interface.  The serial port can be configured at runtime with the
-mode-line mouse menu.
+Windows.  The new command `serial-term' starts an interactive terminal
+on a serial port.  The serial port can be configured at runtime with
+the mode-line mouse menu.
 
 ** Menu Bar changes
-
+---
 *** In the Options menu, the "Set Default Font" item applies the
 selected font to the `default' face on all frames, not just the
 current frame.  Furthermore, if Emacs is compiled with both GTK and
 Fontconfig support, the "Set Default Font" item uses the GTK font
 selection dialog instead of an Emacs pop-up menu.
-
+---
 *** The font setting chosen by "Set Default Font" is saved if the
 "Save Options" item is used.
 
 *** The Tools menu contains a new Encryption/Decryption submenu.
 This contains commands provided by EasyPG, the newly-included
 interface to GnuPG (see New Modes and Packages).
-
-*** The Options menu contains a new entry to turn on Longlines mode.
+---
+*** In the Options menu, the "Truncate Long Lines in the Buffer" entry
+has been replaced with a submenu offering three different ways to
+handle long lines: truncation, continuation at the window edge, and
+the new word wrapping option (see Editing Changes, below).
 
 ** Mode-line changes
-
++++
 *** The mode-line displays a `@', instead of `-', if the
 default-directory for the current buffer is on a remote machine.
 
@@ -199,6 +212,7 @@ variables.  For more information, see `set-directory-project' and
 
 * Startup Changes in Emacs 23.1
 
++++
 ** The option `inhibit-startup-screen' (with aliases to old names
 `inhibit-splash-screen' and `inhibit-startup-message') doesn't inhibit
 display of the initial message in the *scratch* buffer.  If you don't
@@ -223,6 +237,7 @@ following arguments.
 list accessible by M-n instead of pushing all guesses temporarily into
 the history list.
 
+---
 ** The following input methods were removed in Emacs 22.2, but this was
 not advertised: danish-alt-postfix, esperanto-alt-postfix,
 finnish-alt-postfix, german-alt-postfix, icelandic-alt-postfix,
@@ -232,6 +247,11 @@ identical.
 
 
 * Editing Changes in Emacs 23.1
+
+** The C-n and C-p line-motion commands now move by screen lines,
+taking continued lines and variable-width characters into account.
+Setting `line-move-visual' to nil reverts this to the previous
+behavior (motion by logical lines based on buffer contents alone).
 
 ** C-x C-c now invokes `save-buffers-kill-terminal', and C-z now
 invokes `suspend-frame'.  This change is for compatibility with the
@@ -524,6 +544,14 @@ It has been used to add items to the list `holiday-oriental-holidays'.
 *** `diary-remind' accepts a negative number -DAYS as a shorthand for
 the list (1 2 ... DAYS).
 
+** Change Log mode
+
+*** The new command C-c C-f (change-log-find-file) finds the file
+associated with the current log entry.
+
+*** The new command C-c C-c (change-log-goto-source) goes to the
+source code associated with a log entry.
+
 ** Compile and grep modes
 
 *** The mode-line entry for the *compilation* and *grep* buffer is color coded.
@@ -532,6 +560,10 @@ running, (b) successful completion, (c) error.
 
 *** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
+
+*** The `cc' alias for C++ files in `grep-file-aliases' has been
+improved. `hh' can be used to match C++ header files and `cchh' both
+C++ sources and headers.
 
 ** Custom
 +++
@@ -704,9 +736,6 @@ by typing the D key or using the "Changeset Diff" menu entry.
 to update it to the new VC.
 
 ** Miscellaneous
-
-*** In Change Log mode, the new command C-c C-f (change-log-find-file)
-finds the file associated with the current log entry.
 
 *** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
@@ -1258,6 +1287,11 @@ Convenient when checking invisibility of text with no buffer position
 
 *** `clear-image-cache' can be told to flush only images of a specific file.
 
+*** `vertical-motion' can now be given a goal column.
+It now accepts a cons cell (COLS . LINES) in its first argument, which
+says to stop, where possible, at a pixel x-position equal to COLS
+times the default column width.
+
 ** Miscellaneous new functions
 
 *** `format-seconds' converts a number of seconds into a readable
@@ -1289,6 +1323,10 @@ specification.
 *** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
+
+*** The two new functions `make-serial-process' and
+`serial-process-configure' provide a Lisp interface to the new serial
+port support (see Emacs changes, above).
 
 ** Miscellaneous new variables
 

@@ -545,9 +545,11 @@ Change only via `Customization' or the function `add-hook'."
 
 (defcustom woman-man.conf-path
   (let ((path '("/usr/lib" "/etc")))
-    (if (eq system-type 'windows-nt)
-	(mapcar 'woman-Cyg-to-Win path)
-      path))
+    (cond ((eq system-type 'windows-nt)
+	   (mapcar 'woman-Cyg-to-Win path))
+	  ((eq system-type 'darwin)
+	   (cons "/usr/share/misc" path))
+	  (t path)))
   "List of dirs to search and/or files to try for man config file.
 A trailing separator (`/' for UNIX etc.) on directories is
 optional, and the filename is used if a directory specified is
@@ -860,7 +862,7 @@ Should begin with \\. and end with \\' and MUST NOT be optional."
 
 (defcustom woman-use-own-frame		; window-system
   (or (and (fboundp 'display-graphic-p) (display-graphic-p)) ; Emacs 21
-      (memq window-system '(x w32)))	; Emacs 20
+      (memq window-system '(x w32 ns)))	; Emacs 20
   "If non-nil then use a dedicated frame for displaying WoMan windows.
 Only useful when run on a graphic display such as X or MS-Windows."
   :type 'boolean

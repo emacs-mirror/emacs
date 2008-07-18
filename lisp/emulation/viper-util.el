@@ -52,14 +52,6 @@
 (require 'viper-init)
 
 
-;; A fix for NeXT Step
-;; Should go away, when NS people fix the design flaw, which leaves the
-;; two x-* functions undefined.
-(if (and (not (fboundp 'x-display-color-p)) (fboundp 'ns-display-color-p))
-    (fset 'x-display-color-p (symbol-function 'ns-display-color-p)))
-(if (and (not (fboundp 'x-color-defined-p)) (fboundp 'ns-color-defined-p))
-      (fset 'x-color-defined-p (symbol-function 'ns-color-defined-p)))
-
 
 (defalias 'viper-overlay-p
   (if (featurep 'xemacs) 'extentp 'overlayp))

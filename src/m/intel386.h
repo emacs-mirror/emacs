@@ -29,22 +29,9 @@ Intel 386 (-machine=intel386)
   isc2-2, 386-ix, and linux.
 
   18.58 should support a wide variety of operating systems.
-  Use isc2-2 for Interactive 386/ix version 2.2.
-  Use 386ix for prior versions.
   Use linux for Linux.
   It isn't clear what to do on an SCO system.
 
-  -machine=is386 is used for an Integrated Solutions 386 machine.
-  It may also be correct for Microport systems.
-
-Cubix QBx/386 (-machine=intel386 -opsystem=usg5-3)
-
-  Changes merged in 19.1.  Systems before 2/A/0 may fail to compile etags.c
-  due to a compiler bug.
-
-Prime EXL (-machine=intel386 -opsystem=usg5-3)
-
-  Minor changes merged in 19.1.
 NOTE-END */
 
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
@@ -56,22 +43,6 @@ NOTE-END */
  * group of arguments and treat it as an array of the arguments.  */
 
 /* #define NO_ARG_ARRAY */
-
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-/* #define WORD_MACHINE */
-
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
-
-#define INTEL386
-
-/* Use type int rather than a union, to represent Lisp_Object */
-
-#define NO_UNION_TYPE
 
 /* crt0.c, if it is used, should use the i386-bsd style of entry.
    with no extra dummy args.  On USG and XENIX,
@@ -96,17 +67,6 @@ NOTE-END */
    And handa@etl.gov.jp says that -lkvm needs -llelf, at least on 2.5.  */
 #define LIBS_MACHINE -lkvm -lelf
 
-#ifndef SOLARIS2_4
-/* J.W.hawtin@lut.ac.uk says Solaris 2.1 on the X86 has FSCALE defined in a
-   system header. */
-#else /* SOLARIS2_4 */
-#ifndef __GNUC__
-#if 0 /* wisner@gryphon.com says this screws up cpp */
-#define C_SWITCH_MACHINE -Xa
-#endif
-#endif /* not __GNUC__ */
-#endif /* SOLARIS2_4 */
-
 /* configure thinks solaris X86 has gethostname, but it does not work,
    so undefine it.  */
 #undef HAVE_GETHOSTNAME
@@ -125,38 +85,10 @@ NOTE-END */
 #endif
 #endif /* not SOLARIS2 */
 
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-/* #define CANNOT_DUMP */
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
-
-/* this brings in alloca() if we're using cc */
 #ifdef USG
-#ifndef LIB_STANDARD
-#ifdef USG5_4
-#define LIB_STANDARD -lc
-#else /* not USG5_4 */
-#define LIB_STANDARD -lPW -lc
-#endif /* not USG5_4 */
-#endif /* LIB_STANDARD */
-
 #define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
-
-#ifdef USG5_4
-#define DATA_SEG_BITS 0x08000000
-#endif
 
 #ifdef MSDOS
 #define NO_REMAP
@@ -169,7 +101,7 @@ NOTE-END */
 #define NO_ARG_ARRAY
 #endif
 
-#ifdef linux
+#ifdef GNU_LINUX
 /* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
 /* we cannot get the maximum address for brk */
 #define ULIMIT_BREAK_VALUE (32*1024*1024)

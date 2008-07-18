@@ -85,14 +85,10 @@ int fchown (int fd, int uid, int gid);
 /* map to MSVC names */
 #define execlp    _execlp
 #define execvp    _execvp
-#define fcloseall _fcloseall
 #define fdopen	  _fdopen
-#define fgetchar  _fgetchar
 #ifndef fileno
 #define fileno	  _fileno
 #endif
-#define flushall  _flushall
-#define fputchar  _fputchar
 #define getcwd	  _getcwd
 #define getw	  _getw
 #define getpid    _getpid
@@ -103,7 +99,6 @@ int fchown (int fd, int uid, int gid);
 #define lseek     _lseek
 #define popen     _popen
 #define pclose    _pclose
-#define putw	  _putw
 #define umask	  _umask
 #define utime	  _utime
 #define index     strchr

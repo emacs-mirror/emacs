@@ -25,11 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *	Define all the symbols that apply correctly.
  */
 
-/* #define UNIPLUS */
-/* #define USG5 */
 #define USG
-/* #define BSD_SYSTEM */
-#define LINUX
 #define GNU_LINUX
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
@@ -43,7 +39,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <linux/version.h>
 
 #if LINUX_VERSION_CODE >= 0x20400
-#define LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
+/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
+#define SIGNALS_VIA_CHARACTERS
 #endif /* LINUX_VERSION_CODE >= 0x20400 */
 #endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
@@ -91,7 +88,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define FIRST_PTY_LETTER 'p'
 
-#endif  /* not HAVE_GRANDPT */
+#endif  /* not HAVE_GRANTPT */
 
 /*  Define HAVE_TERMIOS if the system provides POSIX-style
     functions and macros for terminal control.  */
@@ -154,12 +151,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* If you mount the proc file system somewhere other than /proc
-   you will have to uncomment the following and make the proper
-   changes */
-
-/* #define LINUX_LDAV_FILE "/proc/loadavg" */
-
 /* This is needed for dispnew.c:update_frame */
 
 #ifdef emacs
@@ -203,8 +194,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
-#define HAVE_WAIT_HEADER
-
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
@@ -223,19 +212,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define C_DEBUG_SWITCH
 #endif
 
-/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
-#ifdef LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
-#define SIGNALS_VIA_CHARACTERS
-#endif
-
-/* Rob Malouf <malouf@csli.stanford.edu> says:
-   SYSV IPC is standard a standard part of Linux since version 0.99pl10,
-   and is a very common addition to previous versions.  */
-
-#ifdef TERM
-#define LIBS_SYSTEM -lclient
-#define C_SWITCH_SYSTEM -D_BSD_SOURCE -I/usr/src/term
-#else
 /* alane@wozzle.linet.org says that -lipc is not a separate library,
    since libc-4.4.1.  So -lipc was deleted.  */
 #define LIBS_SYSTEM
@@ -243,7 +219,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    _GNU_SOURCE.  Left in in case it's relevant to libc5 systems and
    anyone's still using Emacs on those.  --fx 2002-12-14  */
 #define C_SWITCH_SYSTEM -D_BSD_SOURCE
-#endif
 
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
 #define LIB_MOTIF -lXm -lXpm
@@ -253,14 +228,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_TERMCAP -lncurses
 #endif
 
-#define HAVE_SYSVIPC
-
 #define UNEXEC unexelf.o
-
-#define A_TEXT_OFFSET(hdr) (N_MAGIC(hdr) == QMAGIC ? sizeof (struct exec) : 0)
-#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
-#define ADJUST_EXEC_HEADER \
-  unexec_text_start = N_TXTADDR(ohdr) + A_TEXT_OFFSET(ohdr)
 
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;

@@ -33,31 +33,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "vax-vms"
 
-/* NOMULTIPLEJOBS should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).  */
-
-/* #define NOMULTIPLEJOBS */
-
-/* INTERRUPT_INPUT controls a default for Unix systems.
-   VMS uses a separate mechanism.  */
-
-/* #define INTERRUPT_INPUT */
-
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
 
 #define FIRST_PTY_LETTER 'a'
-
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
-/* #define HAVE_PTYS */
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
-/* #define HAVE_SOCKETS */
 
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
@@ -66,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NONSYSTEM_DIR_LIBRARY
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-
-/* #define BSTRING */
-
 /* subprocesses should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
@@ -77,24 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    under most USG systems. */
 
 #define subprocesses
-
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
-/* #define COFF */
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
-
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-
-/* #define CLASH_DETECTION */
 
 /* Define the maximum record length for print strings, if needed. */
 
@@ -149,9 +106,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define rindex strrchr
 #define unlink delete
 
-#ifndef _GNUC_
+#ifndef __GNUC__
 extern double mth$dmod(double, double);
-#define drem mth$dmod
 #endif
 
 /* Some time routines are missing in the VAX C RTL, or needs some
@@ -210,11 +166,6 @@ extern double mth$dmod(double, double);
 /* Case conflicts with C library srandom. */
 #define Srandom S_random
 
-/* variable length too long... maybe */
-#if 0
-#define do_line_insertion_deletion_costs do_line_insertion_deletion_cost
-#endif
-
 /* Cause initialization of vmsfns.c to be run.  */
 #define SYMS_SYSTEM syms_of_vmsfns ()
 
@@ -231,12 +182,6 @@ globalref char sdata[];
 #define DATA_START (((int) sdata + 511) & ~511)
 #define TEXT_START 512
 
-/* Baud-rate values from tty status are not standard.  */
-
-#define BAUD_CONVERT  \
-{ 0, 50, 75, 110, 134, 150, 300, 600, 1200, 1800, \
-  2000, 2400, 3600, 4800, 7200, 9600, 19200 }
-
 #define PURESIZE 330000
 
 /* Stdio FILE type has extra indirect on VMS, so must alter this macro.  */
@@ -244,10 +189,6 @@ globalref char sdata[];
 #define PENDING_OUTPUT_COUNT(FILE) ((*(FILE))->_ptr - (*(FILE))->_base)
 
 #define NULL_DEVICE "NLA0:"
-
-#define TERMCAP_NAME "emacs_library:[etc]termcap.dat"
-
-#define EXEC_SUFFIXES ".exe:.com"
 
 /* Case conflict with Xlib XFree () */
 #define xfree emacs_xfree

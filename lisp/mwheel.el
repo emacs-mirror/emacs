@@ -58,7 +58,7 @@
 			"22.1")
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (if (memq window-system '(w32 mac))
+  (if (memq window-system '(w32 mac ns))
       'wheel-up
     (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
 		    mouse-wheel-down-button)))
@@ -73,7 +73,7 @@
 			"22.1")
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (if (memq window-system '(w32 mac))
+  (if (memq window-system '(w32 mac ns))
       'wheel-down
     (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
 		    mouse-wheel-up-button)))

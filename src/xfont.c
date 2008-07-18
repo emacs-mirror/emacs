@@ -509,7 +509,10 @@ xfont_open (f, entity, pixel_size)
      font.  */
   registry = AREF (entity, FONT_REGISTRY_INDEX);
   if (font_registry_charsets (registry, &encoding, &repertory) < 0)
-    return Qnil;
+    {
+      font_add_log ("  x:unknown registry", registry, Qnil);
+      return Qnil;
+    }
 
   if (XINT (AREF (entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XINT (AREF (entity, FONT_SIZE_INDEX));
@@ -522,7 +525,10 @@ xfont_open (f, entity, pixel_size)
     }
   len = font_unparse_xlfd (entity, pixel_size, name, 256);
   if (len <= 0)
-    return Qnil;
+    {
+      font_add_log ("  x:unparse failed", entity, Qnil);
+      return Qnil;
+    }
 
   BLOCK_INPUT;
   x_catch_errors (display);
@@ -533,6 +539,35 @@ xfont_open (f, entity, pixel_size)
 	 Let's just ignore it.  */
       x_clear_errors (display);
       xfont = NULL;
+    }
+  else if (! xfont)
+    {
+      /* Some version of X lists:
+	   -misc-fixed-medium-r-normal--20-*-75-75-c-100-iso8859-1
+	   -misc-fixed-medium-r-normal--20-*-100-100-c-100-iso8859-1
+	 but can open only:
+	   -misc-fixed-medium-r-normal--20-*-100-100-c-100-iso8859-1
+	 and
+	   -misc-fixed-medium-r-normal--20-*-*-*-c-100-iso8859-1
+	 So, we try again with wildcards in RESX and RESY.  */
+      Lisp_Object temp;
+
+      temp = Fcopy_font_spec (entity);
+      ASET (temp, FONT_DPI_INDEX, Qnil);
+      len = font_unparse_xlfd (temp, pixel_size, name, 256);
+      if (len <= 0)
+	{
+	  font_add_log ("  x:unparse failed", temp, Qnil);
+	  return Qnil;
+	}
+      xfont = XLoadQueryFont (display, name);
+      if (x_had_errors_p (display))
+	{
+	  /* This error is perhaps due to insufficient memory on X server.
+	     Let's just ignore it.  */
+	  x_clear_errors (display);
+	  xfont = NULL;
+	}
     }
   fullname = Qnil;
   /* Try to get the full name of FONT.  */
@@ -562,15 +597,16 @@ xfont_open (f, entity, pixel_size)
   UNBLOCK_INPUT;
 
   if (! xfont)
-    return Qnil;
+    {
+      font_add_log ("  x:open failed", build_string (name), Qnil);
+      return Qnil;
+    }
 
-  font_object = font_make_object (VECSIZE (struct xfont_info));
+  font_object = font_make_object (VECSIZE (struct xfont_info),
+				  entity, pixel_size);
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
     font_parse_xlfd ((char *) SDATA (fullname), font_object);
-  for (i = 1; i < FONT_ENTITY_MAX; i++)
-    ASET (font_object, i, AREF (entity, i));
-  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
   if (STRINGP (fullname))
     ASET (font_object, FONT_NAME_INDEX, fullname);
   else
@@ -730,11 +766,11 @@ xfont_text_extents (font, code, nglyphs, metrics)
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   int width = 0;
-  int i, x;
+  int i, first, x;
 
   if (metrics)
     bzero (metrics, sizeof (struct font_metrics));
-  for (i = 0, x = 0; i < nglyphs; i++)
+  for (i = 0, x = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
       static XCharStruct *pcm;
@@ -745,14 +781,31 @@ xfont_text_extents (font, code, nglyphs, metrics)
       pcm = xfont_get_pcm (xfont, &char2b);
       if (! pcm)
 	continue;
-      if (metrics->lbearing > width + pcm->lbearing)
-	metrics->lbearing = width + pcm->lbearing;
-      if (metrics->rbearing < width + pcm->rbearing)
-	metrics->rbearing = width + pcm->rbearing;
-      if (metrics->ascent < pcm->ascent)
-	metrics->ascent = pcm->ascent;
-      if (metrics->descent < pcm->descent)
-	metrics->descent = pcm->descent;
+      if (first)
+	{
+	  if (metrics)
+	    {
+	      metrics->lbearing = pcm->lbearing;
+	      metrics->rbearing = pcm->rbearing;
+	      metrics->ascent = pcm->ascent;
+	      metrics->descent = pcm->descent;
+	    }
+	  first = 0;
+	}
+      else
+	{
+	  if (metrics)
+	    {
+	      if (metrics->lbearing > width + pcm->lbearing)
+		metrics->lbearing = width + pcm->lbearing;
+	      if (metrics->rbearing < width + pcm->rbearing)
+		metrics->rbearing = width + pcm->rbearing;
+	      if (metrics->ascent < pcm->ascent)
+		metrics->ascent = pcm->ascent;
+	      if (metrics->descent < pcm->descent)
+		metrics->descent = pcm->descent;
+	    }
+	}
       width += pcm->width;
     }
   if (metrics)

@@ -68,11 +68,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* HAVE_SOCKETS */
 
-/* TERM is a poor-man's SLIP, used on GNU/Linux.  */
-#ifdef TERM
-#include <client.h>
-#endif
-
 #if defined(BSD_SYSTEM)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
@@ -94,10 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <net/if.h>
 #endif
 #endif
-
-#ifdef IRIS
-#include <sys/sysmacros.h>	/* for "minor" */
-#endif /* not IRIS */
 
 #ifdef HAVE_SYS_WAIT
 #include <sys/wait.h>
@@ -259,11 +250,6 @@ int update_tick;
 #endif /* DATAGRAM_SOCKETS */
 #endif /* BROKEN_DATAGRAM_SOCKETS */
 
-#ifdef TERM
-#undef NON_BLOCKING_CONNECT
-#undef DATAGRAM_SOCKETS
-#endif
-
 #if !defined (ADAPTIVE_READ_BUFFERING) && !defined (NO_ADAPTIVE_READ_BUFFERING)
 #ifdef EMACS_HAS_USECS
 #define ADAPTIVE_READ_BUFFERING
@@ -407,16 +393,14 @@ static char pty_name[24];
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
 
-static Lisp_Object status_convert ();
+static Lisp_Object status_convert (int);
 
 static void
 update_status (p)
      struct Lisp_Process *p;
 {
-  union { int i; WAITTYPE wt; } u;
   eassert (p->raw_status_new);
-  u.i = p->raw_status;
-  p->status = status_convert (u.wt);
+  p->status = status_convert (p->raw_status);
   p->raw_status_new = 0;
 }
 
@@ -424,8 +408,7 @@ update_status (p)
     the list that we use internally.  */
 
 static Lisp_Object
-status_convert (w)
-     WAITTYPE w;
+status_convert (int w)
 {
   if (WIFSTOPPED (w))
     return Fcons (Qstop, Fcons (make_number (WSTOPSIG (w)), Qnil));
@@ -545,14 +528,6 @@ allocate_pty ()
 	PTY_OPEN;
 #else /* no PTY_OPEN */
 	{
-# ifdef IRIS
-	  /* Unusual IRIS code */
-	  *ptyv = emacs_open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
-	  if (fd < 0)
-	    return -1;
-	  if (fstat (fd, &stb) < 0)
-	    return -1;
-# else /* not IRIS */
 	  { /* Some systems name their pseudoterminals so that there are gaps in
 	       the usual sequence - for example, on HP9000/S700 systems, there
 	       are no pseudoterminals with names ending in 'f'.  So we wait for
@@ -574,7 +549,6 @@ allocate_pty ()
 #  else
 	  fd = emacs_open (pty_name, O_RDWR | O_NDELAY, 0);
 #  endif
-# endif /* not IRIS */
 	}
 #endif /* no PTY_OPEN */
 
@@ -590,11 +564,11 @@ allocate_pty ()
 	    if (access (pty_name, 6) != 0)
 	      {
 		emacs_close (fd);
-# if !defined(IRIS) && !defined(__sgi)
+# ifndef __sgi
 		continue;
 # else
 		return -1;
-# endif /* IRIS */
+# endif /* __sgi */
 	      }
 	    setup_pty (fd);
 	    return fd;
@@ -1877,6 +1851,9 @@ create_process (process, new_argv, current_dir)
   int inchannel, outchannel;
   pid_t pid;
   int sv[2];
+#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+  int wait_child_setup[2];
+#endif
 #ifdef POSIX_SIGNALS
   sigset_t procmask;
   sigset_t blocked;
@@ -1949,6 +1926,25 @@ create_process (process, new_argv, current_dir)
       outchannel = sv[1];
       forkin = sv[0];
     }
+
+#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+    {
+      int tem;
+
+      tem = pipe (wait_child_setup);
+      if (tem < 0)
+	report_file_error ("Creating pipe", Qnil);
+      tem = fcntl (wait_child_setup[1], F_GETFD, 0);
+      if (tem >= 0)
+	tem = fcntl (wait_child_setup[1], F_SETFD, tem | FD_CLOEXEC);
+      if (tem < 0)
+	{
+	  emacs_close (wait_child_setup[0]);
+	  emacs_close (wait_child_setup[1]);
+	  report_file_error ("Setting file descriptor flags", Qnil);
+	}
+    }
+#endif
 
 #if 0
   /* Replaced by close_process_descs */
@@ -2184,6 +2180,9 @@ create_process (process, new_argv, current_dir)
 	pid = child_setup (xforkin, xforkout, xforkout,
 			   new_argv, 1, current_dir);
 #else  /* not WINDOWSNT */
+#ifdef FD_CLOEXEC
+	emacs_close (wait_child_setup[0]);
+#endif
 	child_setup (xforkin, xforkout, xforkout,
 		     new_argv, 1, current_dir);
 #endif /* not WINDOWSNT */
@@ -2237,6 +2236,20 @@ create_process (process, new_argv, current_dir)
       else
 #endif
 	XPROCESS (process)->tty_name = Qnil;
+
+#if !defined (WINDOWSNT) && defined (FD_CLOEXEC)
+      /* Wait for child_setup to complete in case that vfork is
+	 actually defined as fork.  The descriptor wait_child_setup[1]
+	 of a pipe is closed at the child side either by close-on-exec
+	 on successful execvp or the _exit call in child_setup.  */
+      {
+	char dummy;
+
+	emacs_close (wait_child_setup[1]);
+	emacs_read (wait_child_setup[0], &dummy, 1);
+	emacs_close (wait_child_setup[0]);
+      }
+#endif
     }
 
   /* Restore the signal state whether vfork succeeded or not.
@@ -3211,7 +3224,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       /* Don't support network sockets when non-blocking mode is
 	 not available, since a blocked Emacs is not useful.  */
-#if defined(TERM) || (!defined(O_NONBLOCK) && !defined(O_NDELAY))
+#if !defined(O_NONBLOCK) && !defined(O_NDELAY)
       error ("Network servers not supported");
 #else
       is_server = 1;
@@ -3240,32 +3253,6 @@ usage: (make-network-process &rest ARGS)  */)
   sentinel = Fplist_get (contact, QCsentinel);
 
   CHECK_STRING (name);
-
-#ifdef TERM
-  /* Let's handle TERM before things get complicated ...   */
-  host = Fplist_get (contact, QChost);
-  CHECK_STRING (host);
-
-  service = Fplist_get (contact, QCservice);
-  if (INTEGERP (service))
-    port = htons ((unsigned short) XINT (service));
-  else
-    {
-      struct servent *svc_info;
-      CHECK_STRING (service);
-      svc_info = getservbyname (SDATA (service), "tcp");
-      if (svc_info == 0)
-	error ("Unknown service: %s", SDATA (service));
-      port = svc_info->s_port;
-    }
-
-  s = connect_server (0);
-  if (s < 0)
-    report_file_error ("error creating socket", Fcons (name, Qnil));
-  send_command (s, C_PORT, 0, "%s:%d", SDATA (host), ntohs (port));
-  send_command (s, C_DUMB, 1, 0);
-
-#else  /* not TERM */
 
   /* Initialize addrinfo structure in case we don't use getaddrinfo.  */
   ai.ai_socktype = socktype;
@@ -3676,8 +3663,6 @@ usage: (make-network-process &rest ARGS)  */)
       else
 	report_file_error ("make client process failed", contact);
     }
-
-#endif /* not TERM */
 
   inch = s;
   outch = s;
@@ -4720,15 +4705,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 #endif
 
 	  Atemp = input_wait_mask;
-#if 0
-          /* On Mac OS X 10.0, the SELECT system call always says input is
-             present (for reading) at stdin, even when none is.  This
-             causes the call to SELECT below to return 1 and
-             status_notify not to be called.  As a result output of
-             subprocesses are incorrectly discarded.
-	  */
-          FD_CLR (0, &Atemp);
-#endif
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
@@ -4880,8 +4856,12 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      process_output_skip = 0;
 	    }
 #endif
-
-	  nfds = select (max (max (max_process_desc, max_keyboard_desc),
+#ifdef HAVE_NS
+          nfds = ns_select
+#else
+          nfds = select
+#endif
+                        (max (max (max_process_desc, max_keyboard_desc),
 			      max_gpm_desc) + 1,
 			 &Available,
 #ifdef NON_BLOCKING_CONNECT
@@ -6698,7 +6678,7 @@ sigchld_handler (signo)
   while (1)
     {
       pid_t pid;
-      WAITTYPE w;
+      int w;
       Lisp_Object tail;
 
 #ifdef WNOHANG
@@ -6770,12 +6750,10 @@ sigchld_handler (signo)
       /* Change the status of the process that was found.  */
       if (p != 0)
 	{
-	  union { int i; WAITTYPE wt; } u;
 	  int clear_desc_flag = 0;
 
 	  p->tick = ++process_tick;
-	  u.wt = w;
-	  p->raw_status = u.i;
+	  p->raw_status = w;
 	  p->raw_status_new = 1;
 
 	  /* If process has terminated, stop waiting for its output.  */
@@ -7296,7 +7274,7 @@ init_process ()
 #ifdef HAVE_GETSOCKNAME
    ADD_SUBFEATURE (QCservice, Qt);
 #endif
-#if !defined(TERM) && (defined(O_NONBLOCK) || defined(O_NDELAY))
+#if defined(O_NONBLOCK) || defined(O_NDELAY)
    ADD_SUBFEATURE (QCserver, Qt);
 #endif
 

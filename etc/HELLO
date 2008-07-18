@@ -4,7 +4,7 @@ Non-ASCII examples:
   Europe: ,A!(BHola!, Gr,A|_(B Gott, Hyv,Add(B p,Ad(Biv,Add(B, Tere ,Au(Bhtust, Bon,Cu(Bu
           Cze,B6f(B!, Dobr,B}(B den, ,L7T`PRabRcYbU(B!, ,FCei\(B ,Fsar(B, $,1J2J0J;J0J@JOJ=J1J0(B
   Africa: $(3!A!,!>(B
-  Middle/Near East: ,Hylem(B, (38R(47d(3T!JSa(4W(3W(B
+  Middle/Near East: ,Hylem(B, ,GecjdY(B ,GeGdqSdG(B
   South Asia: $,19h9n9x:-9d:'(B, $,15h5n5x6-5d6'(B, $,1?(?.?8?M>u?>?0(B, $,1@H@N@X@m@5@^@P@"(B, $,1;6;A;#;?;,;G(B,
               $,1AFAzB4AvB=B AqB*(B, $,1<U<C<5<m<5<N<m(B, $,1=h=n=x>-=U=~=p=B(B, $(7"7"!#C!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
   South East Asia: $,1\'\f\:\V\4\?\]\:(B, (1JP:R-4U(B, $,1H9H$HYrmH"H<HLH5HL(B, ,TJGQJ4U$CQ:(B, Ch,1`(Bo b,1U(Bn
@@ -25,7 +25,7 @@ Czech (,Bh(Be,B9(Btina)	Dobr,A}(B den
 Danish (dansk)	Hej, Goddag, Hall,Ax(Bj
 Dutch (Nederlands)	Hallo, Dag
 Emacs	emacs --no-splash -f view-hello-file
-English [$(O+S(Bi,D?(B-gli$(O*h(B]	Hello
+English /$(O+S,0!,D?$(O*y(Bl,0!$(O*h(B/	Hello
 Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
 Estonian (eesti keel)	Tere p,Ad(Bevast, Tere ,Au(Bhtust
 Finnish (Suomi)	Hei, Hyv,Add(B p,Ad(Biv,Add(B
@@ -49,7 +49,7 @@ Nederlands, Vlaams	Hallo, Dag
 Norwegian (norsk)	Hei, God dag
 Oriya ($,1:s;\;?:f(B)	$,1;6;A;#;?;,;G(B
 Polish  (j,Bj(Bzyk polski)	Dzie,Bq(B dobry! Cze,B6f(B!
-Russian (,L`caaZXY(B)	,L7T`PRabRcYbU(B!
+Russian (,L`caaZXY(B)	,L7T`$(Q'Q+Z,LRabRcYbU(B!
 Sinhala ($,1B#B2ABB$A}(B)	$,1AFAzB4AvB=B AqB*(B
 Slovak (sloven,Bh(Bina)	Dobr,A}(B de,Br(B
 Slovenian (sloven,B9h(Bina)	Pozdravljeni!

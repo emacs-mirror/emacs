@@ -1,3 +1,23 @@
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (install): Perform post-install cleanup inside NS app
+	bundle.
+
+2008-07-12  Juri Linkov  <juri@jurta.org>
+
+	* quail/rfc1345.el: Replace non-printable control characters with
+	equivalent text-only notations.
+
+	* quail/cyrillic.el ("cyrillic-translit"): Fix rules with
+	combining acute accent.  Add rules ("e\\" ?э) ("E\\" ?Э).
+	Change conflicting rules ("u'" ?ў) to ("u~" ?ў), and ("U'" ?Ў)
+	to ("U~" ?Ў).  Doc fix.  Put combining accent rules into one group.
+
+2008-07-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* quail/cyrillic.el : Add more rules to cyrillic-translit, make
+	everything postfix.  Adjust to eliminate conflicts.
+
 2008-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* quail/hangul3.el: Remove (unneeded since 2008-06-03).

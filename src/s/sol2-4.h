@@ -2,15 +2,6 @@
 
 #include "sol2-3.h"
 
-#define SOLARIS2_4
-
-/* Get rid of -traditional and let const really do its thing.  */
-
-#ifdef __GNUC__
-#undef C_SWITCH_SYSTEM
-#undef const
-#endif /* __GNUC__ */
-
 #undef LD_SWITCH_SYSTEM
 
 /* `#ifdef USE_MOTIF' won't work here, since USE_MOTIF isn't defined yet.
@@ -27,6 +18,10 @@
 #define LD_SWITCH_SYSTEM_TEMACS -L/usr/ccs/lib \
  `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX` \
   `NOT_USING_MOTIF || echo ' -R/usr/dt/lib -L/usr/dt/lib'`
+
+/* Get rid of -traditional and let const really do its thing.  */
+#undef C_SWITCH_SYSTEM
+#undef const
 #endif /* GCC */
 
 /* Gregory Neil Shapiro <gshapiro@hhmi.org> reports the Motif header files

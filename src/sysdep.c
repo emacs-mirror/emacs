@@ -31,13 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 /* Including stdlib.h isn't necessarily enough to get srandom
    declared, e.g. without __USE_XOPEN_EXTENDED with glibc 2.  */
-#ifdef HAVE_RANDOM
-#if 0 /* Don't prototype srandom; it takes an unsigned argument on
-	 some systems, and an unsigned long on others, like FreeBSD
-	 4.1.  */
-extern void srandom P_ ((unsigned int));
-#endif
-#endif
 
 /* The w32 build defines select stuff in w32.h, which is included by
    sys/select.h (included below).   */
@@ -135,23 +128,9 @@ extern int errno;
 #include "systty.h"
 #include "syswait.h"
 
-#ifdef BROKEN_TIOCGWINSZ
-#undef TIOCGWINSZ
-#undef TIOCSWINSZ
-#endif
-
 #if defined (USG)
 #include <sys/utsname.h>
 #include <memory.h>
-#if defined (TIOCGWINSZ)
-#ifdef NEED_SIOCTL
-#include <sys/sioctl.h>
-#endif
-#ifdef NEED_PTEM_H
-#include <sys/stream.h>
-#include <sys/ptem.h>
-#endif
-#endif /* TIOCGWINSZ */
 #endif /* USG */
 
 extern int quit_char;
@@ -207,14 +186,10 @@ struct utimbuf {
 #endif
 
 static int baud_convert[] =
-#ifdef BAUD_CONVERT
-  BAUD_CONVERT;
-#else
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-#endif
 
 #ifdef HAVE_SPEED_T
 #include <termios.h>
@@ -601,13 +576,6 @@ child_setup_tty (out)
 #endif
   s.main.c_lflag &= ~ECHO;	/* Disable echo */
   s.main.c_lflag |= ISIG;	/* Enable signals */
-#if 0  /* This causes bugs in (for instance) telnet to certain sites.  */
-  s.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
-#ifdef INLCR  /* Just being cautious, since I can't check how
-		 widespread INLCR is--rms.  */
-  s.main.c_iflag &= ~INLCR;	/* Disable map of NL to CR on input */
-#endif
-#endif
 #ifdef IUCLC
   s.main.c_iflag &= ~IUCLC;	/* Disable downcasing on input.  */
 #endif
@@ -619,12 +587,6 @@ child_setup_tty (out)
 #endif
   s.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
   s.main.c_cflag = (s.main.c_cflag & ~CSIZE) | CS8; /* Don't strip 8th bit */
-#if 0
-  /* Said to be unnecessary:  */
-  s.main.c_cc[VMIN] = 1;	/* minimum number of characters to accept  */
-  s.main.c_cc[VTIME] = 0;	/* wait forever for at least 1 character  */
-#endif
-
   s.main.c_lflag |= ICANON;	/* Enable erase/kill and eof processing */
   s.main.c_cc[VEOF] = 04;	/* insure that EOF is Control-D */
   s.main.c_cc[VERASE] = CDISABLE;	/* disable erase processing */
@@ -870,10 +832,6 @@ sys_subshell ()
 	if (epwd)
 	  putenv (old_pwd);	/* restore previous value */
       }
-#if 0	/* This is also reported if last command executed in subshell failed, KFS */
-      if (st)
-	report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
-#endif
 #else /* not MSDOS */
 #ifdef  WINDOWSNT
       /* Waits for process completion */
@@ -1287,13 +1245,6 @@ init_sys_modes (tty_out)
 {
   struct emacs_tty tty;
 
-#ifdef VMS
-#if 0
-  static int oob_chars[2] = {0, 1 << 7}; /* catch C-g's */
-  extern int (*interrupt_signal) ();
-#endif
-#endif
-
   Vtty_erase_char = Qnil;
 
   if (noninteractive)
@@ -1312,21 +1263,8 @@ init_sys_modes (tty_out)
     timer_ef = get_timer_event_flag ();
     /* LIB$GET_EF (&timer_ef); */
   SYS$CLREF (timer_ef);
-#if 0
-  if (!process_ef)
-    {
-      LIB$GET_EF (&process_ef);
-      SYS$CLREF (process_ef);
-    }
-  if (input_ef / 32 != process_ef / 32)
-    croak ("Input and process event flags in different clusters.");
-#endif
   if (input_ef / 32 != timer_ef / 32)
     croak ("Input and timer event flags in different clusters.");
-#if 0
-  input_eflist = ((unsigned) 1 << (input_ef % 32)) |
-    ((unsigned) 1 << (process_ef % 32));
-#endif
   timer_eflist = ((unsigned) 1 << (input_ef % 32)) |
     ((unsigned) 1 << (timer_ef % 32));
 #ifndef VMS4_4
@@ -1874,7 +1812,7 @@ setup_pty (fd)
      Since the latter lossage is more benign, we may as well
      lose that way.  -- cph */
 #ifdef FIONBIO
-#if defined(SYSV_PTYS) || defined(UNIX98_PTYS)
+#if defined(UNIX98_PTYS)
   {
     int on = 1;
     ioctl (fd, FIONBIO, &on);
@@ -2349,9 +2287,6 @@ init_system_name ()
 	if (hp)
 	  {
 	    char *fqdn = (char *) hp->h_name;
-#if 0
-	    char *p;
-#endif
 
 	    if (!index (fqdn, '.'))
 	      {
@@ -2366,62 +2301,10 @@ init_system_name ()
 		  fqdn = *alias;
 	      }
 	    hostname = fqdn;
-#if 0
-	    /* Convert the host name to lower case.  */
-	    /* Using ctype.h here would introduce a possible locale
-	       dependence that is probably wrong for hostnames.  */
-	    p = hostname;
-	    while (*p)
-	      {
-		if (*p >= 'A' && *p <= 'Z')
-		  *p += 'a' - 'A';
-		p++;
-	      }
-#endif
 	  }
 #endif /* !HAVE_GETADDRINFO */
       }
 #endif /* HAVE_SOCKETS */
-  /* We used to try using getdomainname here,
-     but NIIBE Yutaka <gniibe@etl.go.jp> says that
-     getdomainname gets the NIS/YP domain which often is not the same
-     as in Internet domain name.  */
-#if 0 /* Turned off because sysinfo is not really likely to return the
-	 correct Internet domain.  */
-#if (HAVE_SYSINFO && defined (SI_SRPC_DOMAIN))
-  if (! index (hostname, '.'))
-    {
-      /* The hostname is not fully qualified.  Append the domain name.  */
-
-      int hostlen = strlen (hostname);
-      int domain_size = 256;
-
-      for (;;)
-	{
-	  char *domain = (char *) alloca (domain_size + 1);
-	  char *fqdn = (char *) alloca (hostlen + 1 + domain_size + 1);
-	  int sys_domain_size = sysinfo (SI_SRPC_DOMAIN, domain, domain_size);
-	  if (sys_domain_size <= 0)
-	    break;
-	  if (domain_size < sys_domain_size)
-	    {
-	      domain_size = sys_domain_size;
-	      continue;
-	    }
-	  strcpy (fqdn, hostname);
-	  if (domain[0] == '.')
-	    strcpy (fqdn + hostlen, domain);
-	  else if (domain[0] != 0)
-	    {
-	      fqdn[hostlen] = '.';
-	      strcpy (fqdn + hostlen + 1, domain);
-	    }
-	  hostname = fqdn;
-	  break;
-	}
-    }
-#endif /* HAVE_SYSINFO && defined (SI_SRPC_DOMAIN) */
-#endif /* 0 */
   Vsystem_name = build_string (hostname);
 #endif /* HAVE_GETHOSTNAME */
 #endif /* VMS */
@@ -4119,28 +4002,6 @@ sys_read (fildes, buf, nbyte)
 {
   return read (fildes, buf, (nbyte < MAXIOSIZE ? nbyte : MAXIOSIZE));
 }
-
-#if 0
-int
-sys_write (fildes, buf, nbyte)
-     int fildes;
-     char *buf;
-     unsigned int nbyte;
-{
-  register int nwrote, rtnval = 0;
-
-  while (nbyte > MAXIOSIZE && (nwrote = write (fildes, buf, MAXIOSIZE)) > 0) {
-    nbyte -= nwrote;
-    buf += nwrote;
-    rtnval += nwrote;
-  }
-  if (nwrote < 0)
-    return rtnval ? rtnval : -1;
-  if ((nwrote = write (fildes, buf, nbyte)) < 0)
-    return rtnval ? rtnval : -1;
-  return (rtnval + nwrote);
-}
-#endif /* 0 */
 
 /*
  *	VAX/VMS VAX C RTL really loses. It insists that records

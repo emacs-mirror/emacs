@@ -1541,7 +1541,7 @@ mark_interval_tree (tree)
   } while (0)
 
 
-/* Number support.  If NO_UNION_TYPE isn't in effect, we
+/* Number support.  If USE_LISP_UNION_TYPE is in effect, we
    can't create number objects in macros.  */
 #ifndef make_number
 Lisp_Object
@@ -4548,7 +4548,7 @@ mark_stack ()
   /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
      needed on ia64 too.  See mach_dep.c, where it also says inline
      assembler doesn't work with relevant proprietary compilers.  */
-#ifdef sparc
+#ifdef __sparc__
   asm ("ta 3");
 #endif
 

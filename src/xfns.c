@@ -149,10 +149,6 @@ int gray_bitmap_width = gray_width;
 int gray_bitmap_height = gray_height;
 char *gray_bitmap_bits = gray_bits;
 
-/* Non-zero means we're allowed to display an hourglass cursor.  */
-
-int display_hourglass_p;
-
 /* Non-zero means prompt with the old GTK file selection dialog.  */
 
 int x_gtk_use_old_file_dialog;
@@ -3112,7 +3108,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
 Return an Emacs frame object.
-ALIST is an alist of frame parameters.
+PARMS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
 then `default-minibuffer-frame' must be a frame whose minibuffer can
@@ -4472,85 +4468,6 @@ no value of TYPE.  */)
 				Busy cursor
  ***********************************************************************/
 
-/* If non-null, an asynchronous timer that, when it expires, displays
-   an hourglass cursor on all frames.  */
-
-static struct atimer *hourglass_atimer;
-
-/* Non-zero means an hourglass cursor is currently shown.  */
-
-static int hourglass_shown_p;
-
-/* Number of seconds to wait before displaying an hourglass cursor.  */
-
-static Lisp_Object Vhourglass_delay;
-
-/* Default number of seconds to wait before displaying an hourglass
-   cursor.  */
-
-#define DEFAULT_HOURGLASS_DELAY 1
-
-/* Function prototypes.  */
-
-static void show_hourglass P_ ((struct atimer *));
-static void hide_hourglass P_ ((void));
-
-/* Return non-zero if houglass timer has been started or hourglass is shown.  */
-
-int
-hourglass_started ()
-{
-  return hourglass_shown_p || hourglass_atimer != NULL;
-}
-
-
-/* Cancel a currently active hourglass timer, and start a new one.  */
-
-void
-start_hourglass ()
-{
-  EMACS_TIME delay;
-  int secs, usecs = 0;
-
-  cancel_hourglass ();
-
-  if (INTEGERP (Vhourglass_delay)
-      && XINT (Vhourglass_delay) > 0)
-    secs = XFASTINT (Vhourglass_delay);
-  else if (FLOATP (Vhourglass_delay)
-	   && XFLOAT_DATA (Vhourglass_delay) > 0)
-    {
-      Lisp_Object tem;
-      tem = Ftruncate (Vhourglass_delay, Qnil);
-      secs = XFASTINT (tem);
-      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
-    }
-  else
-    secs = DEFAULT_HOURGLASS_DELAY;
-
-  EMACS_SET_SECS_USECS (delay, secs, usecs);
-  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
-				     show_hourglass, NULL);
-}
-
-
-/* Cancel the hourglass cursor timer if active, hide a busy cursor if
-   shown.  */
-
-void
-cancel_hourglass ()
-{
-  if (hourglass_atimer)
-    {
-      cancel_atimer (hourglass_atimer);
-      hourglass_atimer = NULL;
-    }
-
-  if (hourglass_shown_p)
-    hide_hourglass ();
-}
-
-
 /* Timer function of hourglass_atimer.  TIMER is equal to
    hourglass_atimer.
 
@@ -4559,7 +4476,7 @@ cancel_hourglass ()
    output_data.x structure to indicate that an hourglass cursor is
    shown on the frames.  */
 
-static void
+void
 show_hourglass (timer)
      struct atimer *timer;
 {
@@ -4624,7 +4541,7 @@ show_hourglass (timer)
 /* Hide the hourglass pointer on all frames, if it is currently
    shown.  */
 
-static void
+void
 hide_hourglass ()
 {
   if (hourglass_shown_p)
@@ -4985,7 +4902,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     /* Set tip_frame here, so that */
     tip_frame = frame;
-    call1 (Qface_set_after_frame_default, frame);
+    call2 (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
@@ -5905,15 +5822,6 @@ This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_hourglass_pointer_shape = Qnil;
 
-  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
-    doc: /* Non-zero means Emacs displays an hourglass pointer on window systems.  */);
-  display_hourglass_p = 1;
-
-  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
-    doc: /* *Seconds to wait before displaying an hourglass pointer.
-Value must be an integer or float.  */);
-  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
-
 #if 0 /* This doesn't really do anything.  */
   DEFVAR_LISP ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
     doc: /* The shape of the pointer when over the mode line.
@@ -6052,9 +5960,6 @@ the tool bar buttons.  */);
 
   /* Setting callback functions for fontset handler.  */
   check_window_system_func = check_x;
-
-  hourglass_atimer = NULL;
-  hourglass_shown_p = 0;
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);

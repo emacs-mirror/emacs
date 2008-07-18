@@ -34,18 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef NO_ARG_ARRAY
 #endif
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-#undef WORD_MACHINE
-
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (((int)(c) << 24) >> 24)
-
-#define NO_UNION_TYPE
-
 #define NO_REMAP
 
 /* arch-tag: 07856f0c-f0c8-4bd8-99af-0b7fa1e5ee42

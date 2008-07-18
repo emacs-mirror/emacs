@@ -769,7 +769,7 @@ EXFUN (Ffont_xlfd_name, 2);
 
 extern Lisp_Object font_make_spec P_ ((void));
 extern Lisp_Object font_make_entity P_ ((void));
-extern Lisp_Object font_make_object P_ ((int));
+extern Lisp_Object font_make_object P_ ((int, Lisp_Object, int));
 
 extern Lisp_Object find_font_encoding P_ ((Lisp_Object));
 extern int font_registry_charsets P_ ((Lisp_Object, struct charset **,
@@ -780,7 +780,7 @@ extern Lisp_Object font_style_symbolic P_ ((Lisp_Object font,
 					    enum font_property_index prop,
 					    int for_face));
                            
-extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object entity));
+extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object font));
 extern Lisp_Object font_list_entities P_ ((Lisp_Object frame,
 					   Lisp_Object spec));
 
@@ -860,6 +860,9 @@ extern struct font_driver uniscribe_font_driver;
 #ifdef MAC_OS
 extern struct font_driver atmfont_driver;
 #endif	/* MAC_OS */
+#ifdef HAVE_NS
+extern struct font_driver nsfont_driver;
+#endif	/* HAVE_NS */
 
 #ifndef FONT_DEBUG
 #define FONT_DEBUG

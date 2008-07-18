@@ -2597,14 +2597,18 @@ See Info node `(elisp)Describing Characters' for examples.  */)
   return build_string (str);
 }
 
-/* Return non-zero if SEQ contains only ASCII characters, perhaps with
-   a meta bit.  */
+static int where_is_preferred_modifier;
+
+/* Return 0 if SEQ uses non-preferred modifiers or non-char events.
+   Else, return 2 if SEQ uses the where_is_preferred_modifier,
+   and 1 otherwise.  */
 static int
-ascii_sequence_p (seq)
+preferred_sequence_p (seq)
      Lisp_Object seq;
 {
   int i;
   int len = XINT (Flength (seq));
+  int result = 1;
 
   for (i = 0; i < len; i++)
     {
@@ -2613,12 +2617,19 @@ ascii_sequence_p (seq)
       XSETFASTINT (ii, i);
       elt = Faref (seq, ii);
 
-      if (!INTEGERP (elt)
-	  || (XUINT (elt) & ~CHAR_META) >= 0x80)
+      if (!INTEGERP (elt))
 	return 0;
+      else
+	{
+	  int modifiers = XUINT (elt) & (CHAR_MODIFIER_MASK & ~CHAR_META);
+	  if (modifiers == where_is_preferred_modifier)
+	    result = 2;
+	  else if (modifiers)
+	    return 0;
+	}
     }
 
-  return 1;
+  return result;
 }
 
 
@@ -2712,7 +2723,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
       last_is_meta = (XINT (last) >= 0
 		      && EQ (Faref (this, last), meta_prefix_char));
 
-      /* if (nomenus && !ascii_sequence_p (this)) */
+      /* if (nomenus && !preferred_sequence_p (this)) */
       if (nomenus && XINT (last) >= 0
 	  && SYMBOLP (tem = Faref (this, make_number (0)))
 	  && !NILP (Fmemq (XCAR (parse_modifiers (tem)), Vmouse_events)))
@@ -2803,7 +2814,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 	     we find.  */
 	  if (EQ (firstonly, Qnon_ascii))
 	    RETURN_UNGCPRO (sequence);
-	  else if (!NILP (firstonly) && ascii_sequence_p (sequence))
+	  else if (!NILP (firstonly) && 2 == preferred_sequence_p (sequence))
 	    RETURN_UNGCPRO (sequence);
 
 	  if (CONSP (remapped))
@@ -2822,11 +2833,24 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   /* firstonly may have been t, but we may have gone all the way through
      the keymaps without finding an all-ASCII key sequence.  So just
      return the best we could find.  */
-  if (!NILP (firstonly))
+  if (NILP (firstonly))
+    return found;
+  else if (where_is_preferred_modifier == 0)
     return Fcar (found);
-
-  return found;
+  else
+    { /* Maybe we did not find a preferred_modifier binding, but we did find
+	 some ASCII binding.  */
+      Lisp_Object bindings = found;
+      while (CONSP (bindings))
+	if (preferred_sequence_p (XCAR (bindings)))
+	  return XCAR (bindings);
+	else
+	  bindings = XCDR (bindings);
+      return Fcar (found);
+    }
 }
+
+static Lisp_Object Vwhere_is_preferred_modifier;
 
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
@@ -2838,7 +2862,8 @@ If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
 rather than a list of all possible key sequences.
 If FIRSTONLY is the symbol `non-ascii', return the first binding found,
 no matter what it is.
-If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters
+If FIRSTONLY has another non-nil value, prefer bindings
+that use the modifier key specified in `where-is-preferred-modifier'
 \(or their meta variants) and entirely reject menu bindings.
 
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
@@ -2857,6 +2882,10 @@ remapped command in the returned list.  */)
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
   Lisp_Object result;
 
+  /* Refresh the C version of the modifier preference.  */
+  where_is_preferred_modifier
+    = parse_solitary_modifier (Vwhere_is_preferred_modifier);
+
   /* Find the relevant keymaps.  */
   if (CONSP (keymap) && KEYMAPP (XCAR (keymap)))
     keymaps = keymap;
@@ -2870,7 +2899,7 @@ remapped command in the returned list.  */)
   if (nomenus && NILP (noindirect) && NILP (keymap))
     {
       Lisp_Object *defns;
-      int i, j, n;
+      int i, n;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
       /* Check heuristic-consistency of the cache.  */
@@ -2905,17 +2934,23 @@ remapped command in the returned list.  */)
 	 the following can GC.  */
       GCPRO2 (definition, keymaps);
       result = Qnil;
-      j = -1;
-      for (i = n - 1; i >= 0; --i)
-	if (EQ (shadow_lookup (keymaps, defns[i], Qnil), definition))
+      {
+	int best_pref = -1;
+	int j = -1;
+	for (i = n - 1; i >= 0; --i)
 	  {
-	    if (ascii_sequence_p (defns[i]))
-	      break;
-	    else if (j < 0)
-	      j = i;
+	    int pref = preferred_sequence_p (defns[i]);
+	    if (pref > best_pref
+		&& EQ (shadow_lookup (keymaps, defns[i], Qnil), definition))
+	      {
+		j = i;
+		best_pref = pref;
+		if (best_pref == 2)
+		  break;
+	      }
 	  }
-
-      result = i >= 0 ? defns[i] : (j >= 0 ? defns[j] : Qnil);
+	result = j >= 0 ? defns[j] : Qnil;
+      }
       UNGCPRO;
     }
   else
@@ -3095,7 +3130,7 @@ You type        Translation\n\
 	  char *title, *p;
 
 	  if (!SYMBOLP (modes[i]))
-	    abort();
+	    abort ();
 
 	  p = title = (char *) alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
@@ -3967,6 +4002,15 @@ the same way.  The "active" keymaps in each alist are used before
 `minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */);
   Vemulation_mode_map_alists = Qnil;
 
+  DEFVAR_LISP ("where-is-preferred-modifier", &Vwhere_is_preferred_modifier,
+	       doc: /* Preferred modifier to use for `where-is'.
+When a single binding is requested, `where-is' will return one that
+uses this modifier if possible.  If nil, or if no such binding exists,
+bindings using keys without modifiers (or only with meta) will be
+preferred.  */);
+  Vwhere_is_preferred_modifier = Qnil;
+  where_is_preferred_modifier = 0;
+
   staticpro (&Vmouse_events);
   Vmouse_events = Fcons (intern ("menu-bar"),
 		  Fcons (intern ("tool-bar"),
@@ -4043,7 +4087,7 @@ void
 keys_of_keymap ()
 {
   initial_define_key (global_map, 033, "ESC-prefix");
-  initial_define_key (global_map, Ctl('X'), "Control-X-prefix");
+  initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");
 }
 
 /* arch-tag: 6dd15c26-7cf1-41c4-b904-f42f7ddda463

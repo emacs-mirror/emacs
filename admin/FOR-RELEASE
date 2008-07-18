@@ -178,15 +178,15 @@ building.texi
 calendar.texi
 cal-xtra.texi
 cmdargs.texi
-commands.texi
+commands.texi     -- cyd
 custom.texi
 dired.texi
 dired-xtra.texi
 display.texi
-emacs.texi
+emacs.texi        -- cyd
 emacs-xtra.texi
 emerge-xtra.texi
-entering.texi
+entering.texi     -- cyd
 files.texi
 fixit.texi
 fortran-xtra.texi
@@ -201,7 +201,7 @@ kmacro.texi
 macos.texi
 maintaining.texi
 major.texi
-mark.texi -- cyd
+mark.texi         -- cyd
 mini.texi
 misc.texi
 msdog.texi
@@ -211,7 +211,7 @@ m-x.texi
 programs.texi
 regs.texi
 rmail.texi
-screen.texi
+screen.texi       -- cyd
 search.texi
 sending.texi
 text.texi
@@ -276,7 +276,7 @@ variables.texi
 windows.texi
 
 * PLANNED ADDITIONS
-** ECB
+** CEDET
 ** Emacs.app
 ** ruby-mode
 ** js2-mode

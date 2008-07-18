@@ -173,7 +173,7 @@ main (argc, argv)
   char *inname, *outname;
   int indesc, outdesc;
   int nread;
-  WAITTYPE status;
+  int status;
   int c, preserve_mail = 0;
 
 #ifndef MAIL_USE_SYSTEM_LOCK

@@ -91,8 +91,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIB_GCC -lgcc
 
 #ifndef N_TRELOFF
-#define N_PAGSIZ(x) __LDPGSZ
-#define N_BSSADDR(x) (N_ALIGN(x, N_DATADDR(x)+x.a_data))
 #define N_TRELOFF(x) N_RELOFF(x)
 #endif
 #else /* NO_SHARED_LIBS */
@@ -112,11 +110,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_1 -L/usr/local/lib
 
-#define HAVE_WAIT_HEADER
 #define HAVE_GETLOADAVG 1
-#if 0
-#define HAVE_GETPAGESIZE  /* configure now puts this in config.h */
-#endif
 #define HAVE_TERMIOS
 #define NO_TERMIO
 #define DECLARE_GETPWUID_WITH_UID_T
@@ -135,26 +129,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BSD_SYSTEM 199506
 #endif
 
-#if 0  /* Shouldn't be necessary and produces warnings with the
-          experimental Autoconf test.  */
-#define WAITTYPE int
-/* get this since it won't be included if WAITTYPE is defined */
-#ifdef emacs
-#include <sys/wait.h>
-#endif
-#define WRETCODE(w) (_W_INT(w) >> 8)
-#endif
-
 /* Don't close pty in process.c to make it as controlling terminal.
    It is already a controlling terminal of subprocess, because we did
    ioctl TIOCSCTTY.  */
 #define DONT_REOPEN_PTY
-
-/* CLASH_DETECTION is defined in bsd-common.h.
-   In FreeBSD 2.1.5 (and other 2.1.x), this results useless symbolic links
-   remaining in /tmp or other directories with +t bit.
-   To avoid this problem, you could #undef it to use no file lock. */
-/* #undef CLASH_DETECTION */
 
 /* If the system's imake configuration file defines `NeedWidePrototypes'
    as `NO', we must define NARROWPROTO manually.  Such a define is

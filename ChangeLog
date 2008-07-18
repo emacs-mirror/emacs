@@ -1,3 +1,69 @@
+2008-07-17  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* configure.in: Print out some info to user for NeXTstep builds.
+	(ns-app): Remove enable option.
+	(ns-self-contained): Add enable option.
+	(ns_appbindir, ns_appresdir, ns_appsrc): Set them based on Cocoa or
+	GNUstep, use to set install prefixes, and substitute in Makefiles.
+	* configure: Regenerate.
+	* Makefile.in (install-arch-dep): Perform post-install cleanup inside
+	NS app bundle.
+
+2008-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in: Extract and substitute GNUSTEP_MAKEFILES.
+
+2008-07-16  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* configure.in: Change GNUSTEP to NS_IMPL_GNUSTEP, COCOA to
+	NS_IMPL_COCOA.
+	* configure: Regenerate.
+
+2008-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (with_kerberos, with_kerberos5, with_hesiod):
+	Fix tests for OPTION_DEFAULT_OFF (variables never unset).
+	(with_carbon, with_ns): Remove dead code, since OPTION_DEFAULT_OFF means
+	never unset.
+
+	* make-dist: Add nextstep/ directories.
+	(src, lib-src): Add .m files.
+
+2008-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (freebsd, kfreebsd): Undo part of previous change.
+	(USER_FULL_NAME): Remove, not used anymore.
+	* configure: Regenerate.
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	Changes and additions for NeXTstep windowing system (Cocoa and
+	GNUstep) support.
+
+	* configure.in: Add support for NS window system: --with-ns (default
+	off), --enable-ns-app, --enable-cocoa-experimental-ctrl-g; improve add
+	sparc detection for FreeBSD variants, checks for Cocoa and GNUstep,
+	disable font backend if window system is "none", not if !HAVE_X11.
+	* Makefile.in: Add ns-emacs to INFO_FILES, add ns_appdir variable.
+	(install-arch-dep): Add commands to assemble NS .app package.
+
+2008-07-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Use macppc for Darwin.  Remove references to
+	desupported systems.
+	* configure: Regenerate.
+
+2008-07-05  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (EMACS): Doc fix.
+	(lisp): There are no *.dat or image files here any more.
+	(src): There are no *.s files here any more.
+	(etc/images, etc/images/*): Link to most regular files.
+
+2008-07-04  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* configure.in: Remove reference to deleted $USE_FONT_BACKEND.
+
 2008-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (cpp_undefs): Rename from `undefs', update uses.

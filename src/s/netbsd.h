@@ -33,8 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef LDAV_SYMBOL
 #define HAVE_GETLOADAVG 1
 
-#define HAVE_UNION_WAIT
-
 #define SIGNALS_VIA_CHARACTERS
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
@@ -72,8 +70,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Try to make this work for both 0.9 and >0.9.  */
 #ifndef N_TRELOFF
-#define N_PAGSIZ(x) __LDPGSZ
-#define N_BSSADDR(x) (N_ALIGN(x, N_DATADDR(x)+x.a_data))
 #define N_TRELOFF(x) N_RELOFF(x)
 #endif
 #endif /* not NO_SHARED_LIBS and not ELF */
@@ -93,9 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define START_FILES_1
 #define END_FILES_1
 #endif
-
-#define HAVE_WAIT_HEADER
-#define WAIT_USE_INT
 
 #define AMPERSAND_FULL_NAME
 

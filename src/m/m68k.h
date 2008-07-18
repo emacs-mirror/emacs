@@ -17,25 +17,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-/* The following three symbols give information on
- the size of various data types.  */
-
-
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN
-
-/* Define NO_ARG_ARRAY if you cannot take the address of the first of a
- * group of arguments and treat it as an array of the arguments.  */
-
-/* #define NO_ARG_ARRAY */
-
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-/* #define WORD_MACHINE */
 
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
@@ -44,35 +29,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define m68k
 #endif
 
-/* Use type int rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.  */
-
-#define NO_UNION_TYPE
-
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
    are always unsigned.
 
-   If you use NO_UNION_TYPE, this flag does not matter.  */
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-/* #define CANNOT_DUMP */
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
-
-#ifdef linux
+#ifdef GNU_LINUX
 #ifdef __ELF__
 #define DATA_SEG_BITS 0x80000000
 #endif

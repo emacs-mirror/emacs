@@ -292,7 +292,11 @@ Any terminating `>' or `/' is not matched.")
   '(("\\(<\\)!--" (1 "< b"))
     ("--[ \t\n]*\\(>\\)" (1 "> b"))
     ;; Double quotes outside of tags should not introduce strings.
-    ("\\\"" (0 (if (zerop (car (syntax-ppss))) "."))))
+    ;; Be careful to call `syntax-ppss' on a position before the one we're
+    ;; going to change, so as not to need to flush the data we just computed.
+    ("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
+                   (goto-char (match-end 0)))
+                 "."))))
   "Syntactic keywords for `sgml-mode'.")
 
 ;; internal

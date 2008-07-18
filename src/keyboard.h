@@ -314,8 +314,7 @@ extern Lisp_Object unuse_menu_items P_ ((Lisp_Object dummy));
    confined to an extended version of this with sections of code below
    using it unconditionally.  */
 #ifndef HAVE_NTGUI
-#ifdef USE_GTK
-/* gtk just uses utf-8.  */
+#if defined (USE_GTK) || defined (HAVE_NS)
 # define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
 #elif defined HAVE_X_I18N
 #define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
@@ -325,6 +324,56 @@ extern Lisp_Object unuse_menu_items P_ ((Lisp_Object dummy));
 #else /* HAVE_NTGUI */
 #define ENCODE_MENU_STRING(str) (str)
 #endif
+
+#if defined (HAVE_NS) || defined (HAVE_NTGUI)
+
+typedef void * XtPointer;
+typedef unsigned char Boolean;
+
+/* Definitions copied from lwlib.h */
+
+enum button_type
+{
+  BUTTON_TYPE_NONE,
+  BUTTON_TYPE_TOGGLE,
+  BUTTON_TYPE_RADIO
+};
+
+/* This structure is based on the one in ../lwlib/lwlib.h, with unused portions
+   removed.  No term uses these. */
+typedef struct _widget_value
+{
+  /* name of widget */
+  Lisp_Object   lname;
+  char*		name;
+  /* value (meaning depend on widget type) */
+  char*		value;
+  /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
+  char*		key;
+  /* Help string or nil if none.
+     GC finds this string through the frame's menu_bar_vector
+     or through menu_items.  */
+  Lisp_Object	help;
+  /* true if enabled */
+  Boolean	enabled;
+  /* true if selected */
+  Boolean	selected;
+  /* The type of a button.  */
+  enum button_type button_type;
+#if defined (HAVE_NTGUI)
+  /* true if menu title */
+  Boolean       title;
+#endif
+  /* Contents of the sub-widgets, also selected slot for checkbox */
+  struct _widget_value*	contents;
+  /* data passed to callback */
+  XtPointer	call_data;
+  /* next one in the list */
+  struct _widget_value*	next;
+} widget_value;
+#endif
+
 
 /* Macros for dealing with lispy events.  */
 
@@ -389,6 +438,7 @@ extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
 extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
 extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object,
 				  int *, EMACS_TIME *));
+extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
 /* Parent keymap of terminal-local function-key-map instances.  */

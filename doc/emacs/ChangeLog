@@ -1,3 +1,44 @@
+2008-07-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Exiting): Don't describe text-only terminals as the
+	default.  Describe the new startup screen.
+	(Exiting): Describe how to kill Emacs first.  Change description of
+	iconification to handle modern window systems.
+
+2008-07-15  Adrian Robert <Adrian.B.Robert@gmail.com>
+
+	* ns-emacs.texi: New file, documents features of Emacs port under
+	NeXTstep windowing.
+
+2008-07-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Entering Emacs): Update prev node.
+
+	* glossary.texi (Glossary): Remove xref to Text Characters.
+
+	* commands.texi (User Input): Rewrite.  Describe Emacs' behavior
+	directly, rather than in the context of ASCII.  Move description of
+	special properties of modifier key to new Modifier Keys node.
+	(Keys): Copyedit.
+	(Text Characters): Delete node.  Multibyte is the default nowadays, and
+	the node contents are obsolete.
+
+	* custom.texi (Modifier Keys): New node.
+
+	* emacs.texi (Top): Update node list.
+
+2008-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi (Intro): Increase conciseness slightly.  Remove paragraph
+	saying that Emacs provides menus and mouse support (which is par for
+	the course).
+
+	* screen.texi (Screen): Copyedit.  Define "buffer" and "current buffer"
+	early on.
+	(Point): Copyedit.  Relegate historical trivia to a footnote.
+	(Mode Line): Explain mode-line format more consistently.
+	(Menu Bar): Copyedit.
+
 2008-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Sexp Diary Entries):

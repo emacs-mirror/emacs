@@ -1,0 +1,31 @@
+{
+    "## Comment" = "Do NOT change this file, Gorm maintains it";
+    EmacsPrefsController = {
+	Actions = (
+	    "cancel:",
+	    "setDefaultFont:",
+	    "ok:",
+	    "resetToDefaults:",
+	    "runHelp:",
+	    "setColors:"
+	);
+	Outlets = (
+	    alternateModMenu,
+	    cursorBlinkSlider,
+	    cursorTypeMatrix,
+	    prefsWindow,
+	    expandSpaceSlider,
+	    commandModMenu
+	);
+	Super = NSObject;
+    };
+    FirstResponder = {
+	Actions = (
+	    "setDefaultFont:",
+	    "resetToDefaults:",
+	    "runHelp:",
+	    "setColors:"
+	);
+	Super = NSObject;
+    };
+}

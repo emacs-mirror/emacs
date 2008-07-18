@@ -1,0 +1,60 @@
+-*- outline -*-
+
+* BUGS
+* NON-SPECIFIC
+
+** Find out why char_quoted() in syntax.c gets called with charpos < 2 ||
+   bytepos < 2 only under NS port.
+
+** Remove Feval calls relating to insert working text in isearch mode.
+
+** free_frame_resources, face colors
+
+** look at nsfont_char_width and nsfont_string_width utils (Dan C.)
+
+** config improvements (Dan C.)
+
+** numeric keysetting bug
+
+
+* Mac-related:
+
+** open file:/// URLs
+
+** finish handle terminate request (user logout)
+
+** put frame autopositioning into C code somewhere -- if loc = same, offset
+
+** automap ctrl-mouse-1 to mouse-3
+
+** deal with Finder aliases somehow
+
+** Ctrl-F2 won't pull up menus
+
+
+* Cursor:
+
+** ns_cursor_blink_rate: change to use generic code; also, when set in
+   preferences, somehow save the option (but calling custom-save-all
+   from this causes error)
+
+** cursor nonerase on certain Leopard and Tiger installations
+
+** if I do:  (mouse-avoidance-mode 'banish) and then minimize Emacs, it pops back immediately.
+  Also, it insists on being on top of other windows if they overlap.
+
+** cursor-over bugs w/some scripts (move around in HELLO to see)
+
+
+* Other:
+
+** better recog of unicode scripts / Greek / composition
+
+** Ctrl-g not picked up in all situations get --experimental-ctrl-g in 'compile' working better
+
+** Exec-dump not working on GNUstep (so slow startup).
+
+** undo for color-drag face customization
+
+
+

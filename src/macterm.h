@@ -575,6 +575,10 @@ enum {
 };
 #endif
 
+#if 0
+/* We can't determine the availability of these enumerators by
+   MAC_OS_X_VERSION_MAX_ALLOWED, because they are defined in
+   MacOSX10.3.9.sdk for Mac OS X 10.4, but not in Mac OS X 10.3.  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1040
 /* Gestalt selectors */
 enum {
@@ -582,6 +586,7 @@ enum {
   gestaltSystemVersionMinor	= 'sys2',
   gestaltSystemVersionBugFix	= 'sys3'
 };
+#endif
 #endif
 
 #ifdef MAC_OSX

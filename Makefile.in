@@ -137,7 +137,7 @@ man1dir=$(mandir)/man1
 infodir=@infodir@
 INFO_FILES=ada-mode autotype calc ccmode cl dbus dired-x ebrowse ediff	\
            efaq eintr elisp emacs emacs-mime epa erc eshell eudc	\
-           flymake forms gnus idlwave info message mh-e newsticker	\
+           flymake forms gnus idlwave info message mh-e newsticker ns-emacs \
            nxml-mode org pcl-cvs pgg rcirc reftex remember sasl sc ses	\
            sieve speedbar tramp vip viper widget woman smtpmail url
 
@@ -166,6 +166,11 @@ x_default_search_path=@x_default_search_path@
 
 # Location to install Emacs.app on Mac OS X
 carbon_appdir=@carbon_appdir@
+
+# Location to install Emacs.app under NeXT/Open/GNUstep / Cocoa
+ns_appdir=@ns_appdir@
+ns_appbindir=@ns_appbindir@
+ns_appresdir=@ns_appresdir@
 
 # Where the etc/emacs.desktop file is to be installed.
 desktopdir=$(datarootdir)/applications
@@ -411,6 +416,15 @@ install-arch-dep: mkdir
 		(cd $(DESTDIR)${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
 			&& cat > /dev/null))) || exit 1; \
 	fi
+	if test "${ns_appdir}" != ""; then \
+	  ( cd ${ns_appresdir} ; \
+	    if test -d share/emacs ; then mv -f share/emacs/*/* . ; fi ; \
+	    if test -d info ; then mv -f share/info . ; fi ; \
+	    rm -fr share ) ; \
+	  ( cd ${ns_appbindir}/libexec ; mv -f emacs/*/*/* . ; rm -fr emacs ) ; \
+	  ( cd ${ns_appbindir}/bin ; rm -f emacs emacs-23* ; \
+	    ln -sf ../libexec/* .) ; \
+	else true ; fi
 
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.

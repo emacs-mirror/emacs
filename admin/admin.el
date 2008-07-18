@@ -159,7 +159,32 @@ Root must be the root of an Emacs source tree."
       (set-version-in-file
        root "mac/src/Emacs.r" release
        (rx (and (submatch (1+ (in "a-z"))) (0+ space) ?\, (0+ space)
-		"/* development, alpha, beta, or final (release) */"))))))
+		"/* development, alpha, beta, or final (release) */")))))
+  ;; nextstep.
+  (set-version-in-file
+   root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
+   version (rx (and "CFBundleGetInfoString" (1+ anything) "Emacs" (1+ space)
+                    (submatch (1+ (in "0-9."))))))
+  (set-version-in-file
+   root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
+   version (rx (and "CFBundleShortVersionString" (1+ anything)
+                    "Version" (1+ space)
+                    (submatch (1+ (in "0-9."))))))
+  (set-version-in-file
+   root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
+   version (rx (and "CFBundleShortVersionString" (0+ space) ?= (0+ space)
+                    ?\" (0+ space) "Version" (1+ space)
+                    (submatch (1+ (in "0-9."))))))
+  (set-version-in-file
+   root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
+   version (rx (and "CFBundleGetInfoString" (0+ space) ?= (0+ space)
+                    ?\" (0+ space) "Emacs version" (1+ space)
+                    (submatch (1+ (in "0-9."))))))
+  (set-version-in-file
+   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+   version (rx (and "FullVersionID" (0+ space) ?= (0+ space)
+                    ?\" (0+ space) "Emacs" (1+ space)
+                    (submatch (1+ (in "0-9.")))))))
 
 ;; Note this makes some assumptions about form of short copyright.
 ;; FIXME add the \year in the refcards/*.tex files.
@@ -208,9 +233,23 @@ Root must be the root of an Emacs source tree."
                          (rx (and ?\"
                               (submatch (1+ (not (in ?\"))))
                               ?\" (0+ space)
-                              "/* Long version number */")))))
+                              "/* Long version number */"))))
+  ;; nextstep.
+  (set-version-in-file
+   root "nextstep/Cocoa/Emacs.base/Contents/Info.plist"
+   copyright (rx (and "CFBundleGetInfoString" (1+ anything) "Emacs" (1+ space)
+                    (1+ (in "0-9.")) (1+ space)
+                    (submatch (1+ (not (in ?\<)))))))
+  (set-version-in-file
+   root "nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings"
+   copyright (rx (and "NSHumanReadableCopyright" (0+ space) ?\= (0+ space)
+                    ?\" (submatch (1+ (not (in ?\")))))))
+  (set-version-in-file
+   root "nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist"
+   copyright (rx (and "Copyright" (0+ space) ?\= (0+ space)
+                      ?\" (submatch (1+ (not (in ?\"))))))))
 
 (provide 'admin)
 
-;;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
-;; admin.el ends here.
+;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
+;;; admin.el ends here

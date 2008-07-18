@@ -144,15 +144,11 @@ MOVE_FLAGS=
 #define NOT_C_CODE
 #include "../src/config.h"
 
-/* Some machines don\'t find the standard C libraries in the usual place.  */
-#ifndef ORDINARY_LINK
-#ifndef LIB_STANDARD_LIBSRC
-#define LIB_STANDARD_LIBSRC -lc
-#endif
-#else
-#ifndef LIB_STANDARD_LIBSRC
-#define LIB_STANDARD_LIBSRC
-#endif
+#if defined(NS_IMPL_COCOA)
+/* Build these programs as universal binaries. */
+CFLAGS := $(CFLAGS) -universal
+/* Add mac-fix-env for OS X systems running NS version. */
+INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} b2m${EXEEXT} ebrowse${EXEEXT} mac-fix-env${EXEEXT}
 #endif
 
 /* Some s/SYSTEM.h files define this to request special libraries.  */
@@ -235,7 +231,7 @@ LIBS_MAIL=-lmail
 #endif
 #endif
 
-LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
+LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
 
 /* We need to #define emacs to get the right versions of some files.
    Some other files - those shared with other GNU utilities - need
@@ -253,12 +249,21 @@ CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
 BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
+.SUFFIXES: .m
+
 /* This is the default compilation command.
    But we should never rely on it, because some make version
    failed to find it for getopt.o.
    Using an explicit command made it work.  */
 .c.o:
 	${CC} -c ${CPP_CFLAGS} $<
+
+.m.o:
+#ifdef NS_IMPL_GNUSTEP
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString $<
+#else
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+#endif
 
 all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
@@ -455,3 +460,8 @@ update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
 update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
+
+#if defined(NS_IMPL_COCOA)
+mac-fix-env: ${srcdir}/mac-fix-env.m
+	$(CC) -o mac-fix-env ${srcdir}/mac-fix-env.m -prebind -framework Foundation
+#endif

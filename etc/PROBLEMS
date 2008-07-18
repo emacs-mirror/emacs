@@ -3757,8 +3757,8 @@ If the code is incorrect, your compiler has this problem.
 In the XCONS, etc., macros in lisp.h you must replace (a).u.val with
 ((a).u.val + coercedummy) where coercedummy is declared as int.
 
-This problem will not happen if the m-...h file for your type
-of machine defines NO_UNION_TYPE.  That is the recommended setting now.
+This problem will only happen if USE_LISP_UNION_TYPE is manually
+defined in lisp.h.
 
 *** C compilers lose on returning unions.
 
@@ -3766,8 +3766,8 @@ I hear that some C compilers cannot handle returning a union type.
 Most of the functions in GNU Emacs return type Lisp_Object, which is
 defined as a union on some rare architectures.
 
-This problem will not happen if the m-...h file for your type
-of machine defines NO_UNION_TYPE.
+This problem will only happen if USE_LISP_UNION_TYPE is manually
+defined in lisp.h.
 
 
 This file is part of GNU Emacs.

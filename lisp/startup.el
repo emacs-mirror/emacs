@@ -182,6 +182,72 @@ FRAME-PARAM (optional) is the frame parameter this option specifies,
 and VALUE is the value which is given to that frame parameter
 \(most options use the argument for this, so VALUE is not present).")
 
+(defconst command-line-ns-option-alist
+  '(("-NSAutoLaunch" 1 ns-ignore-1-arg)
+    ("-NXAutoLaunch" 1 ns-ignore-1-arg)
+    ("-macosx" 0 ns-ignore-0-arg)
+    ("-NSHost" 1 ns-ignore-1-arg)
+    ("-_NSMachLaunch" 1 ns-ignore-1-arg)
+    ("-MachLaunch" 1 ns-ignore-1-arg)
+    ("-NXOpen" 1 ns-ignore-1-arg)
+    ("-NSOpen" 1 ns-handle-nxopen)
+    ("-NXOpenTemp" 1 ns-ignore-1-arg)
+    ("-NSOpenTemp" 1 ns-handle-nxopentemp)
+    ("-GSFilePath" 1 ns-handle-nxopen)
+    ;;("-bw" .              x-handle-numeric-switch)
+    ;;("-d" .               x-handle-display)
+    ;;("-display" .         x-handle-display)
+    ("-name" 1 ns-handle-name-switch)
+    ("-title" 1 ns-handle-switch title)
+    ("-T" 1 ns-handle-switch title)
+    ("-r" 0 ns-handle-switch reverse t)
+    ("-rv" 0 ns-handle-switch reverse t)
+    ("-reverse" 0 ns-handle-switch reverse t)
+    ("-fn" 1 ns-handle-switch font)
+    ("-font" 1 ns-handle-switch font)
+    ("-ib" 1 ns-handle-numeric-switch internal-border-width)
+    ;;("-g" .               x-handle-geometry)
+    ;;("-geometry" .        x-handle-geometry)
+    ("-fg" 1 ns-handle-switch foreground-color)
+    ("-foreground" 1 ns-handle-switch foreground-color)
+    ("-bg" 1 ns-handle-switch background-color)
+    ("-background" 1 ns-handle-switch background-color)
+;    ("-ms" 1 ns-handle-switch mouse-color)
+    ("-itype" 0 ns-handle-switch icon-type t)
+    ("-i" 0 ns-handle-switch icon-type t)
+    ("-iconic" 0 ns-handle-iconic icon-type t)
+    ;;("-xrm" .             x-handle-xrm-switch)
+    ("-cr" 1 ns-handle-switch cursor-color)
+    ("-vb" 0 ns-handle-switch vertical-scroll-bars t)
+    ("-hb" 0 ns-handle-switch horizontal-scroll-bars t)
+    ("-bd" 1 ns-handle-switch) 
+    ;; ("--border-width" 1 ns-handle-numeric-switch border-width) 
+    ;; ("--display" 1 ns-handle-display)
+    ("--name" 1 ns-handle-name-switch)
+    ("--title" 1 ns-handle-switch title)
+    ("--reverse-video" 0 ns-handle-switch reverse t)
+    ("--font" 1 ns-handle-switch font)
+    ("--internal-border" 1 ns-handle-numeric-switch internal-border-width)
+    ;; ("--geometry" 1 ns-handle-geometry)
+    ("--foreground-color" 1 ns-handle-switch foreground-color)
+    ("--background-color" 1 ns-handle-switch background-color)
+    ("--mouse-color" 1 ns-handle-switch mouse-color)
+    ("--icon-type" 0 ns-handle-switch icon-type t)
+    ("--iconic" 0 ns-handle-iconic)
+    ;; ("--xrm" 1 ns-handle-xrm-switch)
+    ("--cursor-color" 1 ns-handle-switch cursor-color)
+    ("--vertical-scroll-bars" 0 ns-handle-switch vertical-scroll-bars t)
+    ("--border-color" 1 ns-handle-switch border-width))
+  "Alist of NS options.
+Each element has the form
+  (NAME NUMARGS HANDLER FRAME-PARAM VALUE)
+where NAME is the option name string, NUMARGS is the number of arguments
+that the option accepts, HANDLER is a function to call to handle the option.
+FRAME-PARAM (optional) is the frame parameter this option specifies,
+and VALUE is the value which is given to that frame parameter
+\(most options use the argument for this, so VALUE is not present).")
+
+
 (defvar before-init-hook nil
   "Normal hook run after handling urgent options but before loading init files.")
 
@@ -820,7 +886,7 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; only because all other settings of no-blinking-cursor are here.
   (unless (or noninteractive
 	      emacs-basic-display
-	      (and (memq window-system '(x w32 mac))
+	      (and (memq window-system '(x w32 mac ns))
 		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
 				'("off" "false")))))
     (setq no-blinking-cursor t))
@@ -2021,6 +2087,11 @@ A fancy display is used on graphic displays, normal otherwise."
 	  (if (string-match "^--" (car tem))
 	      (push (list (car tem)) longopts)))
 
+	;; Add the long NS options to longopts.
+	(dolist (tem command-line-ns-option-alist)
+	  (if (string-match "^--" (car tem))
+	      (push (list (car tem)) longopts)))
+
 	;; Loop, processing options.
 	(while command-line-args-left
 	  (let* ((argi (car command-line-args-left))
@@ -2130,6 +2201,11 @@ A fancy display is used on graphic displays, normal otherwise."
 		   ;; Ignore X-windows options and their args if not using X.
 		   (setq command-line-args-left
 			 (nthcdr (nth 1 tem) command-line-args-left)))
+
+		((setq tem (assoc argi command-line-ns-option-alist))
+		 ;; Ignore NS-windows options and their args if not using NS.
+		 (setq command-line-args-left
+		       (nthcdr (nth 1 tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
 		   (setq inhibit-startup-screen t)

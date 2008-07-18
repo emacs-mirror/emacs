@@ -1,0 +1,77 @@
+Copyright (C) 2008 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+
+Compilation
+-----------
+
+In the top-level directory, use:
+
+  ./configure --with-ns
+  make -j2
+
+Make the -j higher on multi-core systems, usually one higher than number of
+cores is best.
+
+This will compile all the files, but emacs will not be able to be run except
+in -nw (terminal) mode.
+
+In order to run Emacs.app, you must run:
+
+  make install
+
+This will assemble the app in nextstep/Emacs.app.
+
+If you pass the --disable-ns-self-contained option to configure, the lisp
+files will be installed under whatever 'prefix' is set to (defaults to
+/usr/local).  The bundle will be smaller, but depend on these resources (may
+require 'sudo' for "make install").
+
+On OS X you can also open Cocoa/Emacs.xcodeproj and build it again there.  You
+may need to set some directories.  (Note, ZeroLink currently does not work
+with Emacs owing to the use of private_extern in the code as well as some
+other, unidentifiable problem.)  Before doing this you must run "make install"
+once as outlined above, to set up the lisp resources.
+
+On GNUstep, you CAN'T use ProjectCenter, since PC cannot work with files
+outside of its project directory.
+
+
+Installation
+------------
+
+Move nextstep/Emacs.app to any desired install location.
+
+
+Distributions and Universal Binaries
+------------------------------------
+
+Building as outlined above will create ordinary binaries running on your
+architecture only.  To create universal binaries, set CFLAGS to include
+"-arch ppc -arch i386".
+
+
+Improve Ctrl-G Handling
+-----------------------
+
+To enable a version of the code that handles ctrl-g more responsively in
+certain cases -- but may introduce other glitches -- pass
+"--enable-cocoa-experimental-ctrl-g" to configure.
+
+
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.

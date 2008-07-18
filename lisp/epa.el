@@ -327,7 +327,7 @@ You should bind this variable with `let', but do not set it globally.")
   (make-local-variable 'epa-exit-buffer-function)
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'epa--key-list-revert-buffer)
-  (run-hooks 'epa-key-list-mode-hook))
+  (run-mode-hooks 'epa-key-list-mode-hook))
 
 (defun epa-key-mode ()
   "Major mode for a key description."
@@ -344,7 +344,7 @@ You should bind this variable with `let', but do not set it globally.")
   ;; if buffer-file-name is not set.
   (font-lock-set-defaults)
   (make-local-variable 'epa-exit-buffer-function)
-  (run-hooks 'epa-key-mode-hook))
+  (run-mode-hooks 'epa-key-mode-hook))
 
 (defun epa-info-mode ()
   "Major mode for `epa-info-buffer'."
@@ -355,7 +355,7 @@ You should bind this variable with `let', but do not set it globally.")
 	truncate-lines t
 	buffer-read-only t)
   (use-local-map epa-info-mode-map)
-  (run-hooks 'epa-info-mode-hook))
+  (run-mode-hooks 'epa-info-mode-hook))
 
 (defun epa-mark-key (&optional arg)
   "Mark a key on the current line.

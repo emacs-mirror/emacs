@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSTEM_TYPE "gnu"
 
 #undef NLIST_STRUCT
-
-/* XXX should getloadavg be in libc?  Should we have a libutil?
-#define HAVE_GETLOADAVG */
-#undef NLIST_STRUCT
 #undef KERNEL_FILE
 #undef LDAV_SYMBOL
 
@@ -63,10 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef DOUG_LEA_MALLOC
 #undef REL_ALLOC
 #endif
-
-#define HAVE_WAIT_HEADER
-#define WAIT_USE_INT
-#define HAVE_UNION_WAIT
 
 /* GNU needs its own crt0, and libc defines data_start.  */
 #define ORDINARY_LINK

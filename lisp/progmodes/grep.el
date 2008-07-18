@@ -144,7 +144,9 @@ The following place holders should be present in the string:
 (defcustom grep-files-aliases
   '(("asm" .    "*.[sS]")
     ("c" .     "*.c")
-    ("cc" .    "*.cc")
+    ("cc" .    "*.cc *.cxx *.cpp *.C *.CC *.c++")
+    ("cchh" .    "*.cc *.[ch]xx *.[ch]pp *.[CHh] *.CC *.HH *.[ch]++")
+    ("hh" .    "*.hxx *.hpp *.[Hh] *.HH *.h++")
     ("ch" .    "*.[ch]")
     ("el" .    "*.el")
     ("h" .     "*.h")

@@ -212,6 +212,10 @@
 (if (featurep 'mac-carbon)
     (progn
       (load "term/mac-win")))
+(if (featurep 'ns-windowing)
+    (progn
+      (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
+      (load "term/ns-win")))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
       (load "emacs-lisp/float-sup")))

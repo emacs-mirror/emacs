@@ -36,17 +36,10 @@ NOTE-END  */
 
 #define NO_ARG_ARRAY
 
-/* Say this machine is a sparc */
+/* __sparc__ is defined by the compiler by default.  */
 
-#ifndef sparc
-#define sparc
-#endif
-
-/* Use type int rather than a union, to represent Lisp_Object */
-
-#define NO_UNION_TYPE
-
-/* XINT must explicitly sign-extend */
+/* XINT must explicitly sign-extend
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
 
@@ -61,21 +54,6 @@ NOTE-END  */
 /* Mask for address bits within a memory segment */
 
 #define SEGMENT_MASK (SEGSIZ - 1)
-
-#if !defined (__NetBSD__) && !defined (__linux__) && !defined (__OpenBSD__)
-/* This really belongs in s/sun.h.  */
-
-/* Say that the text segment of a.out includes the header;
-   the header actually occupies the first few bytes of the text segment
-   and is counted in hdr.a_text.  */
-
-#define A_TEXT_OFFSET(HDR) sizeof (HDR)
-
-/* This is the offset of the executable's text, from the start of the file.  */
-
-#define A_TEXT_SEEK(HDR) (N_TXTOFF (hdr) + sizeof (hdr))
-
-#endif /* not __NetBSD__ and not __linux__ and not __OpenBSD__ */
 
 #ifdef __arch64__		/* GCC, 64-bit ABI.  */
 #define BITS_PER_LONG 64

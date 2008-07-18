@@ -80,6 +80,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macterm.h"
 #endif
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #ifndef USE_CRT_DLL
 extern int errno;
 #endif
@@ -633,8 +637,6 @@ static Lisp_Object modify_event_symbol P_ ((int, unsigned, Lisp_Object,
 					    Lisp_Object, char **,
 					    Lisp_Object *, unsigned));
 static Lisp_Object make_lispy_switch_frame P_ ((Lisp_Object));
-static int parse_solitary_modifier P_ ((Lisp_Object));
-static int parse_solitary_modifier ();
 static void save_getcjmp P_ ((jmp_buf));
 static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
@@ -4147,7 +4149,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
 	}
 
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (HAVE_NS)
       else if (event->kind == DELETE_WINDOW_EVENT)
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
@@ -4156,7 +4159,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (HAVE_NS)
       else if (event->kind == ICONIFY_EVENT)
 	{
 	  /* Make an event (iconify-frame (FRAME)).  */
@@ -4179,7 +4183,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  kbd_fetch_ptr = event + 1;
 	}
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
       else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
 	  kbd_fetch_ptr = event + 1;
@@ -4289,7 +4293,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	      obj = make_lispy_event (event);
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined(MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
 		 we're returning is (menu-bar), though; that indicates the
@@ -5643,7 +5647,7 @@ make_lispy_event (event)
 	if (event->kind == MOUSE_CLICK_EVENT)
 	  {
 	    struct frame *f = XFRAME (event->frame_or_window);
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    int row, column;
 #endif
 
@@ -5652,7 +5656,7 @@ make_lispy_event (event)
 	    if (! FRAME_LIVE_P (f))
 	      return Qnil;
 
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK) && ! defined (HAVE_NS)
 	    /* EVENT->x and EVENT->y are frame-relative pixel
 	       coordinates at this place.  Under old redisplay, COLUMN
 	       and ROW are set to frame relative glyph coordinates
@@ -5712,7 +5716,7 @@ make_lispy_event (event)
 
 		return Fcons (item, Fcons (position, Qnil));
 	      }
-#endif /* not USE_X_TOOLKIT && not USE_GTK */
+#endif /* not USE_X_TOOLKIT && not USE_GTK && not HAVE_NS */
 
 	    position = make_lispy_position (f, &event->x, &event->y,
 					    event->timestamp);
@@ -6092,7 +6096,7 @@ make_lispy_event (event)
 #endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
-    || defined (USE_GTK)
+    || defined(HAVE_NS) || defined (USE_GTK)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
 	/* This is the prefix key.  We translate this to
@@ -6822,9 +6826,8 @@ has the same base event type and all the specified modifiers.  */)
 /* Try to recognize SYMBOL as a modifier name.
    Return the modifier flag bit, or 0 if not recognized.  */
 
-static int
-parse_solitary_modifier (symbol)
-     Lisp_Object symbol;
+int
+parse_solitary_modifier (Lisp_Object symbol)
 {
   Lisp_Object name = SYMBOL_NAME (symbol);
 
@@ -7316,7 +7319,6 @@ handle_async_input ()
 	 0 means there was no keyboard input available.  */
       if (nread <= 0)
 	break;
-
     }
 }
 
@@ -8077,7 +8079,7 @@ parse_menu_item (item, notreal, inmenubar)
   if (newcache && !NILP (tem))
     {
       tem = concat2 (build_string ("  "), tem);
-      // tem = concat3 (build_string ("  ("), tem, build_string (")"));
+      /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
       XSETCDR (cachelist, tem);
     }
 

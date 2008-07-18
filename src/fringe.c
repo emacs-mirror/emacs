@@ -482,7 +482,7 @@ static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
 static int max_fringe_bitmaps;
 
-static int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
+int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
 
 /* Lookup bitmap number for symbol BITMAP.

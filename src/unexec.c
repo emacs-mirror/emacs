@@ -229,41 +229,11 @@ static long coff_offset;
 
 #else /* not COFF */
 
-#ifdef HPUX
-extern void *sbrk ();
-#else
-#if 0
-/* Some systems with __STDC__ compilers still declare this `char *' in some
-   header file, and our declaration conflicts.  The return value is always
-   cast, so it should be harmless to leave it undefined.  Hopefully
-   machines with different size pointers and ints declare sbrk in a header
-   file.  */
-#ifdef __STDC__
-extern void *sbrk ();
-#else
 extern char *sbrk ();
-#endif /* __STDC__ */
-#endif
-#endif /* HPUX */
 
 #define SYMS_START ((long) N_SYMOFF (ohdr))
 
-#ifdef HPUX
-#ifdef HP9000S200_ID
-#define MY_ID HP9000S200_ID
-#else
-#include <model.h>
-#define MY_ID MYSYS
-#endif /* no HP9000S200_ID */
-static MAGIC OLDMAGIC = {MY_ID, SHARE_MAGIC};
-static MAGIC NEWMAGIC = {MY_ID, DEMAND_MAGIC};
-#define N_TXTOFF(x) TEXT_OFFSET(x)
-#define N_SYMOFF(x) LESYM_OFFSET(x)
-static struct exec hdr, ohdr;
-
-#else /* not HPUX */
-
-#if defined (USG) && !defined (IRIS) && !defined (GNU_LINUX)
+#if defined (USG)
 static struct bhdr hdr, ohdr;
 #define a_magic fmagic
 #define a_text tsize
@@ -277,11 +247,10 @@ static struct bhdr hdr, ohdr;
     (((x).fmagic)!=OMAGIC && ((x).fmagic)!=NMAGIC &&\
      ((x).fmagic)!=FMAGIC && ((x).fmagic)!=IMAGIC)
 #define NEWMAGIC FMAGIC
-#else /* IRIS or not USG */
+#else /* not USG */
 static struct exec hdr, ohdr;
 #define NEWMAGIC ZMAGIC
-#endif /* IRIS or not USG */
-#endif /* not HPUX */
+#endif /* not USG */
 
 static int unexec_text_start;
 static int unexec_data_start;
@@ -358,11 +327,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   auto struct scnhdr scntemp;		/* Temporary section header */
   register int scns;
 #endif /* COFF */
-#ifdef USG_SHARED_LIBRARIES
-  extern unsigned int bss_end;
-#else
   unsigned int bss_end;
-#endif
 
   pagemask = getpagesize () - 1;
 
@@ -479,17 +444,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   /* Now we alter the contents of all the f_*hdr variables
      to correspond to what we want to dump.  */
 
-#ifdef USG_SHARED_LIBRARIES
-
-  /* The amount of data we're adding to the file is distance from the
-   * end of the original .data space to the current end of the .data
-   * space.
-   */
-
-  bias = bss_start - (f_ohdr.data_start + f_dhdr.s_size);
-
-#endif
-
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
 #ifndef NO_REMAP
   f_ohdr.text_start = (long) start_of_text ();
@@ -503,10 +457,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   f_thdr.s_size = f_ohdr.tsize;
   f_thdr.s_scnptr = sizeof (f_hdr) + sizeof (f_ohdr);
   f_thdr.s_scnptr += (f_hdr.f_nscns) * (sizeof (f_thdr));
-#ifdef ADJUST_TEXT_SCNHDR_SIZE
-  /* On some machines, `text size' includes all headers.  */
-  f_thdr.s_size -= f_thdr.s_scnptr;
-#endif /* ADJUST_TEST_SCNHDR_SIZE */
   lnnoptr = f_thdr.s_lnnoptr;
 #ifdef SECTION_ALIGNMENT
   /* Some systems require special alignment
@@ -536,9 +486,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   f_bhdr.s_vaddr = f_ohdr.data_start + f_ohdr.dsize;
   f_bhdr.s_size = f_ohdr.bsize;
   f_bhdr.s_scnptr = 0L;
-#ifndef USG_SHARED_LIBRARIES
   bias = f_dhdr.s_scnptr + f_dhdr.s_size - block_copy_start;
-#endif
 
   if (f_hdr.f_symptr > 0L)
     {
@@ -564,8 +512,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
       PERROR (new_name);
     }
 
-#ifndef USG_SHARED_LIBRARIES
-
   if (write (new, &f_thdr, sizeof (f_thdr)) != sizeof (f_thdr))
     {
       PERROR (new_name);
@@ -580,55 +526,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
     {
       PERROR (new_name);
     }
-
-#else /* USG_SHARED_LIBRARIES */
-
-  /* The purpose of this code is to write out the new file's section
-   * header table.
-   *
-   * Scan through the original file's sections.  If the encountered
-   * section is one we know (.text, .data or .bss), write out the
-   * correct header.  If it is a section we do not know (such as
-   * .lib), adjust the address of where the section data is in the
-   * file, and write out the header.
-   *
-   * If any section precedes .text or .data in the file, this code
-   * will not adjust the file pointer for that section correctly.
-   */
-
-  /* This used to use sizeof (f_ohdr) instead of .f_opthdr.
-     .f_opthdr is said to be right when there is no optional header.  */
-  lseek (a_out, sizeof (f_hdr) + f_hdr.f_opthdr, 0);
-
-  for (scns = f_hdr.f_nscns; scns > 0; scns--)
-    {
-      if (read (a_out, &scntemp, sizeof (scntemp)) != sizeof (scntemp))
-	PERROR (a_name);
-
-      if (!strcmp (scntemp.s_name, f_thdr.s_name))	/* .text */
-	{
-	  if (write (new, &f_thdr, sizeof (f_thdr)) != sizeof (f_thdr))
-	    PERROR (new_name);
-	}
-      else if (!strcmp (scntemp.s_name, f_dhdr.s_name))	/* .data */
-	{
-	  if (write (new, &f_dhdr, sizeof (f_dhdr)) != sizeof (f_dhdr))
-	    PERROR (new_name);
-	}
-      else if (!strcmp (scntemp.s_name, f_bhdr.s_name))	/* .bss */
-	{
-	  if (write (new, &f_bhdr, sizeof (f_bhdr)) != sizeof (f_bhdr))
-	    PERROR (new_name);
-	}
-      else
-	{
-	  if (scntemp.s_scnptr)
-	    scntemp.s_scnptr += bias;
-	  if (write (new, &scntemp, sizeof (scntemp)) != sizeof (scntemp))
-	    PERROR (new_name);
-	}
-    }
-#endif /* USG_SHARED_LIBRARIES */
 
   return (0);
 
@@ -688,11 +585,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
       PERROR (new_name);
     }
 
-#if 0 /* This #ifndef caused a bug on GNU/Linux when using QMAGIC.  */
-  /* This adjustment was done above only #ifndef NO_REMAP,
-     so only undo it now #ifndef NO_REMAP.  */
-  /* #ifndef NO_REMAP  */
-#endif
 #ifdef A_TEXT_OFFSET
   hdr.a_text -= A_TEXT_OFFSET (ohdr);
 #endif
@@ -771,63 +663,6 @@ copy_text_and_data (new, a_out)
 
 #ifdef COFF
 
-#ifdef USG_SHARED_LIBRARIES
-
-  int scns;
-  struct scnhdr scntemp;		/* Temporary section header */
-
-  /* The purpose of this code is to write out the new file's section
-   * contents.
-   *
-   * Step through the section table.  If we know the section (.text,
-   * .data) do the appropriate thing.  Otherwise, if the section has
-   * no allocated space in the file (.bss), do nothing.  Otherwise,
-   * the section has space allocated in the file, and is not a section
-   * we know.  So just copy it.
-   */
-
-  lseek (a_out, sizeof (struct filehdr) + sizeof (struct aouthdr), 0);
-
-  for (scns = f_hdr.f_nscns; scns > 0; scns--)
-    {
-      if (read (a_out, &scntemp, sizeof (scntemp)) != sizeof (scntemp))
-	PERROR ("temacs");
-
-      if (!strcmp (scntemp.s_name, ".text"))
-	{
-	  lseek (new, (long) text_scnptr, 0);
-	  ptr = (char *) f_ohdr.text_start;
-	  end = ptr + f_ohdr.tsize;
-	  write_segment (new, ptr, end);
-	}
-      else if (!strcmp (scntemp.s_name, ".data"))
-	{
-	  lseek (new, (long) data_scnptr, 0);
-	  ptr = (char *) f_ohdr.data_start;
-	  end = ptr + f_ohdr.dsize;
-	  write_segment (new, ptr, end);
-	}
-      else if (!scntemp.s_scnptr)
-	; /* do nothing - no data for this section */
-      else
-	{
-	  char page[BUFSIZ];
-	  int size, n;
-	  long old_a_out_ptr = lseek (a_out, 0, 1);
-
-	  lseek (a_out, scntemp.s_scnptr, 0);
-	  for (size = scntemp.s_size; size > 0; size -= sizeof (page))
-	    {
-	      n = size > sizeof (page) ? sizeof (page) : size;
-	      if (read (a_out, page, n) != n || write (new, page, n) != n)
-		PERROR ("emacs");
-	    }
-	  lseek (a_out, old_a_out_ptr, 0);
-	}
-    }
-
-#else /* COFF, but not USG_SHARED_LIBRARIES */
-
 #ifdef MSDOS
 #if __DJGPP__ >= 2
   /* Dump the original table of exception handlers, not the one
@@ -860,8 +695,6 @@ copy_text_and_data (new, a_out)
   _crt0_startup_flags = save_djgpp_startup_flags;
 #endif
 #endif
-
-#endif /* USG_SHARED_LIBRARIES */
 
 #else /* if not COFF */
 

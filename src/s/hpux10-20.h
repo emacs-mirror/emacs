@@ -36,17 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SYSTEM_TYPE "hpux"
 
-/* `nomultiplejobs' should be defined if your system's shell
- does not have "job control" (the ability to stop a program,
- run some other program, then continue the first one).
-
- On hpux this depends on the precise kind of machine in use,
- so the m- file defines this symbol if appropriate.  */
-
-/* Default is to set interrupt_input to 0: don't do input buffering within Emacs */
-
-/* #define INTERRUPT_INPUT */
-
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 
@@ -85,22 +74,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define subprocesses
 
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF". */
-
-/* #define COFF */
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-/* #define MAIL_USE_FLOCK */
-
-/* Say we have the SYSV style of interprocess communication.  */
-
-#define HAVE_SYSVIPC
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
@@ -112,24 +85,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special hacks needed to make Emacs run on this system.  */
 
-/*
- *	Make the sigsetmask function go away.  Don't know what the
- *	ramifications of this are, but doesn't seem possible to
- *	emulate it properly anyway at this point.
- */
-
-/* HPUX has sigsetmask */
-/* #define sigsetmask(mask)	/ * Null expansion * / */
-
-/* setjmp and longjmp can safely replace _setjmp and _longjmp,
-   but they will run slower.  */
-
-/* HP-UX has _setjmp and _longjmp */
-/*
-#define _setjmp setjmp
-#define _longjmp longjmp
-*/
-
 /* Use the system provided termcap(3) library */
 #define TERMINFO
 
@@ -138,30 +93,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BROKEN_SIGIO
 
-/* USG systems tend to put everything declared static
-   into the initialized data area, which becomes pure after dumping Emacs.
-   Foil this.  Emacs carefully avoids static vars inside functions.
-   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00368.html
-   As of at least HPUX 11.11 (2000), it seems this workaround is no
-   longer needed.  Try uncommenting the following if you have problems
-   on older versions.  */
-
-/* This is unnecessary in HPUX versions 10.20, 11.0, 11.11, 11.23.  */
-
-/* #define static  */
-
 /* Some additional system facilities exist.  */
 
 #define HAVE_PERROR  /* Delete this line for version 6.  */
-
-/* The following maps shared exec file to demand loaded exec.
-   Don't do this as demand loaded exec is broken in hpux.  */
-
-/* Baud-rate values in tty status have nonstandard meanings.  */
-
-#define BAUD_CONVERT  \
-{ 0, 50, 75, 110, 135, 150, 200, 300, 600, 900, 1200,  \
-  1800, 2400, 3600, 4800, 7200, 9600, 19200, 38400 }
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
@@ -177,21 +111,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't use shared libraries.  unexec doesn't handle them.
    Note GCC automatically passes -a archive to ld, and it has its own
    conflicting -a.  */
-#ifdef __GNUC__
-
 #define LD_SWITCH_SYSTEM_TEMACS
-
-#else /* not __GNUC__ */
-/* Note, -a only works for hpux ld, not cc.  And "cc LD_SWITCH_SYSTEM"
-   is used in configure's $ac_link to do various autoconf checks.
-   Since we only need -a when unexec'ing, only pass in -a to
-   "ld temacs" (ghazi@caip.rutgers.edu  7/10/97).  */
-#if (defined(hp9000s700) || defined(__hp9000s700))
-#define LD_SWITCH_SYSTEM_TEMACS -L/lib/pa1.1
-#else /* not (defined(hp9000s700) || defined(__hp9000s700)) */
-#define LD_SWITCH_SYSTEM_TEMACS
-#endif /* not (defined(hp9000s700) || defined(__hp9000s700)) */
-#endif /* not __GNUC__ */
 
 /* Some hpux 8 machines seem to have TIOCGWINSZ,
    and none have sioctl.h, so might as well define this.  */
@@ -227,16 +147,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef random
 #undef HAVE_RANDOM
 
-#define FORCE_ALLOCA_H
-
 /* AlainF 20-Jul-1996 says this is right.  */
 #define KERNEL_FILE "/stand/vmunix"
 
-#ifdef HPUX_NET
-#define LIBS_SYSTEM -ln -l:libdld.sl
-#else
 #define LIBS_SYSTEM -l:libdld.sl
-#endif
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20

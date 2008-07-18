@@ -46,13 +46,16 @@ static Lisp_Object QChinting , QCautohint, QChintstyle, QCrgba, QCembolden;
 struct xftfont_info
 {
   struct font font;
-  Display *display;
-  int screen;
-  XftFont *xftfont;
+  /* The following three members must be here in this order to be
+     compatible with struct ftfont_info (in ftfont.c).  */
 #ifdef HAVE_LIBOTF
   int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
+  FT_Size ft_size;
+  Display *display;
+  int screen;
+  XftFont *xftfont;
 };
 
 /* Structure pointed by (struct face *)->extra  */
@@ -144,9 +147,6 @@ static unsigned xftfont_encode_char P_ ((struct font *, int));
 static int xftfont_text_extents P_ ((struct font *, unsigned *, int,
 				     struct font_metrics *));
 static int xftfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
-
-static int xftfont_anchor_point P_ ((struct font *, unsigned, int,
-				     int *, int *));
 static int xftfont_end_for_frame P_ ((FRAME_PTR f));
 
 struct font_driver xftfont_driver;
@@ -176,6 +176,7 @@ xftfont_match (frame, spec)
 }
 
 extern Lisp_Object ftfont_font_format P_ ((FcPattern *, Lisp_Object));
+extern FcCharSet *ftfont_get_fc_charset P_ ((Lisp_Object));
 extern Lisp_Object QCantialias;
 
 static FcChar8 ascii_printable[95];
@@ -188,7 +189,7 @@ xftfont_open (f, entity, pixel_size)
 {
   FcResult result;
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val, filename, tail, font_object;
+  Lisp_Object val, filename, index, tail, font_object;
   FcPattern *pat = NULL, *match;
   struct xftfont_info *xftfont_info = NULL;
   struct font *font;
@@ -205,6 +206,7 @@ xftfont_open (f, entity, pixel_size)
     return Qnil;
   val = XCDR (val);
   filename = XCAR (val);
+  index = XCDR (val);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
@@ -234,6 +236,9 @@ xftfont_open (f, entity, pixel_size)
   val = AREF (entity, FONT_AVGWIDTH_INDEX);
   if (INTEGERP (val) && XINT (val) == 0)
     FcPatternAddBool (pat, FC_SCALABLE, FcTrue);
+  /* This is necessary to identify the exact font (e.g. 10x20.pcf.gz
+     over 10x20-ISO8859-1.pcf.gz).  */
+  FcPatternAddCharSet (pat, FC_CHARSET, ftfont_get_fc_charset (entity));
 
   for (tail = AREF (entity, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
     {
@@ -262,23 +267,23 @@ xftfont_open (f, entity, pixel_size)
 #endif
     }
 
+  FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
+  FcPatternAddInteger (pat, FC_INDEX, XINT (index));
+		       
+
   BLOCK_INPUT;
   match = XftFontMatch (display, FRAME_X_SCREEN_NUMBER (f), pat, &result);
   FcPatternDestroy (pat);
-  FcPatternDel (match, FC_FILE);
-  FcPatternAddString (match, FC_FILE, (FcChar8 *) SDATA (filename));
   xftfont = XftFontOpenPattern (display, match);
+  ft_face = XftLockFace (xftfont);
   UNBLOCK_INPUT;
 
   if (! xftfont)
     return Qnil;
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
-  font_object = font_make_object (VECSIZE (struct xftfont_info));
+  font_object = font_make_object (VECSIZE (struct xftfont_info), entity, size);
   ASET (font_object, FONT_TYPE_INDEX, Qxft);
-  for (i = 1; i < FONT_ENTITY_MAX; i++)
-    ASET (font_object, i, AREF (entity, i));
-  ASET (font_object, FONT_SIZE_INDEX, make_number (size));
   len = font_unparse_xlfd (entity, size, name, 256);
   if (len > 0)
     ASET (font_object, FONT_NAME_INDEX, make_unibyte_string (name, len));
@@ -345,7 +350,6 @@ xftfont_open (f, entity, pixel_size)
     }
   font->height = font->ascent + font->descent;
 
-  ft_face = XftLockFace (xftfont);
   if (XINT (AREF (entity, FONT_SIZE_INDEX)) == 0)
     {
       int upEM = ft_face->units_per_EM;
@@ -364,7 +368,7 @@ xftfont_open (f, entity, pixel_size)
   xftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
   xftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
-  XftUnlockFace (xftfont);
+  xftfont_info->ft_size = ft_face->size;
 
   /* Unfortunately Xft doesn't provide a way to get minimum char
      width.  So, we use space_width instead.  */
@@ -374,6 +378,22 @@ xftfont_open (f, entity, pixel_size)
   font->relative_compose = 0;
   font->default_ascent = 0;
   font->vertical_centering = 0;
+#ifdef FT_BDF_H
+  if (! (ft_face->face_flags & FT_FACE_FLAG_SFNT))
+    {
+      BDF_PropertyRec rec;
+
+      if (FT_Get_BDF_Property (ft_face, "_MULE_BASELINE_OFFSET", &rec) == 0
+	  && rec.type == BDF_PROPERTY_TYPE_INTEGER)
+	font->baseline_offset = rec.u.integer;
+      if (FT_Get_BDF_Property (ft_face, "_MULE_RELATIVE_COMPOSE", &rec) == 0
+	  && rec.type == BDF_PROPERTY_TYPE_INTEGER)
+	font->relative_compose = rec.u.integer;
+      if (FT_Get_BDF_Property (ft_face, "_MULE_DEFAULT_ASCENT", &rec) == 0
+	  && rec.type == BDF_PROPERTY_TYPE_INTEGER)
+	font->default_ascent = rec.u.integer;
+    }
+#endif
 
   return font_object;
 }
@@ -390,6 +410,7 @@ xftfont_close (f, font)
     OTF_close (xftfont_info->otf);
 #endif
   BLOCK_INPUT;
+  XftUnlockFace (xftfont_info->xftfont);
   XftFontClose (xftfont_info->display, xftfont_info->xftfont);
   UNBLOCK_INPUT;
 }
@@ -545,32 +566,6 @@ xftfont_draw (s, from, to, x, y, with_background)
 }
 
 static int
-xftfont_anchor_point (font, code, index, x, y)
-     struct font *font;
-     unsigned code;
-     int index;
-     int *x, *y;
-{
-  struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
-  FT_Face ft_face = XftLockFace (xftfont_info->xftfont);
-  int result;
-
-  if (FT_Load_Glyph (ft_face, code, FT_LOAD_DEFAULT) != 0)
-    result = -1;
-  else if (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
-    result = -1;
-  else if (index >= ft_face->glyph->outline.n_points)
-    result = -1;
-  else
-    {
-      *x = ft_face->glyph->outline.points[index].x;
-      *y = ft_face->glyph->outline.points[index].y;
-    }
-  XftUnlockFace (xftfont_info->xftfont);
-  return result;
-}
-
-static int
 xftfont_end_for_frame (f)
      FRAME_PTR f;
 {
@@ -585,44 +580,6 @@ xftfont_end_for_frame (f)
     }
   return 0;
 }
-
-#ifdef HAVE_LIBOTF
-#ifdef HAVE_M17N_FLT
-static Lisp_Object
-xftfont_shape (lgstring)
-     Lisp_Object lgstring;
-{
-  struct font *font;
-  struct xftfont_info *xftfont_info;
-  Lisp_Object result;
-  FT_Face ft_face;
-
-  CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
-  xftfont_info = (struct xftfont_info *) font;
-  if (! xftfont_info->maybe_otf)
-    return Qnil;
-  ft_face = XftLockFace (xftfont_info->xftfont);
-  if (! xftfont_info->otf)
-    {
-      OTF *otf = OTF_open_ft_face (ft_face);
-
-      if (! otf || OTF_get_table (otf, "head") < 0)
-	{
-	  if (otf)
-	    OTF_close (otf);
-	  xftfont_info->maybe_otf = 0;
-	  XftUnlockFace (xftfont_info->xftfont);
-	  return Qnil;
-	}
-      xftfont_info->otf = otf;
-    }
-
-  result = ftfont_shape_by_flt (lgstring, font, ft_face, xftfont_info->otf);
-  XftUnlockFace (xftfont_info->xftfont);
-  return result;
-}
-#endif	/* HAVE_M17N_FLT */
-#endif	/* HAVE_LIBOTF */
 
 void
 syms_of_xftfont ()
@@ -646,13 +603,7 @@ syms_of_xftfont ()
   xftfont_driver.encode_char = xftfont_encode_char;
   xftfont_driver.text_extents = xftfont_text_extents;
   xftfont_driver.draw = xftfont_draw;
-  xftfont_driver.anchor_point = xftfont_anchor_point;
   xftfont_driver.end_for_frame = xftfont_end_for_frame;
-#ifdef HAVE_LIBOTF
-#ifdef HAVE_M17N_FLT
-  xftfont_driver.shape = xftfont_shape;
-#endif	/* HAVE_M17N_FLT */
-#endif	/* HAVE_LIBOTF */
 
   register_font_driver (&xftfont_driver, NULL);
 }

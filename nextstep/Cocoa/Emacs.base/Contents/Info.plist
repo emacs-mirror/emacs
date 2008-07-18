@@ -1,0 +1,231 @@
+<!--
+Copyright (C) 2008  Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>txt</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Text</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>c</string>
+				<string>h</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>C</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>C</string>
+				<string>H</string>
+				<string>cpp</string>
+				<string>cc</string>
+				<string>hh</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>C++</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>m</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Objective C</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>el</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Lisp</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>xml</string>
+				<string>xhtml</string>
+				<string>xsl</string>
+				<string>xsd</string>
+				<string>xsdl</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>XML</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>java</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Java</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>tex</string>
+				<string>ltx</string>
+				<string>bib</string>
+				<string>bbl</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>TeX/LaTeX</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>*</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Any</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>****</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+	</array>
+
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Emacs.app/New Buffer Containing Selection</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>requestService</string>
+			<key>NSUserData</key>
+			<string>open-selection</string>
+			<key>NSPortName</key>
+			<string>Emacs</string>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Emacs.app/Open Selected File</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>requestService</string>
+			<key>NSUserData</key>
+			<string>open-file</string>
+			<key>NSPortName</key>
+			<string>Emacs</string>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Emacs.app/Email Selection</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>requestService</string>
+			<key>NSUserData</key>
+			<string>mail-selection</string>
+			<key>NSPortName</key>
+			<string>Emacs</string>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Emacs.app/Send Email to Selected Address</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>requestService</string>
+			<key>NSUserData</key>
+			<string>mail-to</string>
+			<key>NSPortName</key>
+			<string>Emacs</string>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+	</array>
+
+	<key>CFBundleExecutable</key>
+	<string>Emacs</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Emacs 23.0.60 (C) Free Software Foundation</string>
+	<key>CFBundleIconFile</key>
+	<string>Emacs</string>
+	<key>CFBundleIdentifier</key>
+	<string>Emacs</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Emacs</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>Version 23.0.60</string>
+	<key>CFBundleSignature</key>
+	<string>Emcs</string>
+	<key>CFBundleVersion</key>
+	<string>NS 9.0</string>
+	<key>NSPrincipalClass</key>
+	<string>EmacsApp</string>
+</dict>
+</plist>

@@ -1341,6 +1341,7 @@ name, which usually consists of lower-case letters and hyphens.
 * Minibuffer Maps::     The minibuffer uses its own local keymaps.
 * Rebinding::           How to redefine one key's meaning conveniently.
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
+* Modifier Keys::       Using modifier keys in key bindings.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
@@ -1746,6 +1747,44 @@ that delimit the vector.
   Language and coding systems can cause problems with key bindings
 for non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
+@node Modifier Keys
+@subsection Modifier Keys
+@cindex modifier keys
+
+  The default key bindings in Emacs are set up so that modified
+alphabetical characters are case-insensitive.  In other words,
+@kbd{C-A} does the same thing as @kbd{C-a}, and @kbd{M-A} does the
+same thing as @kbd{M-a}.  This concerns only alphabetical characters,
+and does not apply to ``shifted'' versions of other keys; for
+instance, @kbd{C-@@} is not the same as @kbd{C-2}.
+
+  When you customize Emacs, you can make modified alphabetical
+characters case-sensitive way.  For instance, you could make @kbd{M-a}
+and @kbd{M-A} run different commands.
+
+  As a special exception, a @key{Control}-modified alphabetical
+character is always case-insensitive, for historical reasons: Emacs
+always treats @kbd{C-A} as @kbd{C-a}, @kbd{C-B} as @kbd{C-b}, and so
+forth.
+
+  Although only the @key{Control} and @key{Meta} modifier keys are
+commonly used, Emacs supports three other modifier keys.  These are
+called @key{Super}, @key{Hyper} and @key{Alt}.  Few terminals provide
+ways to use these modifiers; the key labeled @key{Alt} on most
+keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
+standard key bindings in Emacs do not include any characters with
+these modifiers.  However, you can customize Emacs to assign meanings
+to them.  The modifier bits are labelled as @samp{s-}, @samp{H-} and
+@samp{A-} respectively.
+
+  Even if your keyboard lacks these additional modifier keys, you can
+enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the ``hyper'' flag to
+the next character, @kbd{C-x @@ s} adds the ``super'' flag, and
+@kbd{C-x @@ a} adds the ``alt'' flag.  For instance, @kbd{C-x @@ h
+C-a} is a way to enter @kbd{Hyper-Control-a}.  (Unfortunately, there
+is no way to add two modifiers by using @kbd{C-x @@} twice for the
+same character, because the first one goes to work on the @kbd{C-x}.)
+
 @node Function Keys
 @subsection Rebinding Function Keys
 
@@ -1824,12 +1863,12 @@ where @code{?\C-x} is the Lisp character constant for the character
 @kbd{C-x}.  The vector element @code{next} is a symbol and therefore
 does not take a question mark.
 
-  You can use the modifier keys @key{CTRL}, @key{META}, @key{HYPER},
-@key{SUPER}, @key{ALT} and @key{SHIFT} with function keys.  To represent
-these modifiers, add the strings @samp{C-}, @samp{M-}, @samp{H-},
-@samp{s-}, @samp{A-} and @samp{S-} at the front of the symbol name.
-Thus, here is how to make @kbd{Hyper-Meta-@key{RIGHT}} move forward a
-word:
+  You can use the modifier keys @key{Control}, @key{Meta},
+@key{Hyper}, @key{Super}, @key{Alt} and @key{Shift} with function
+keys.  To represent these modifiers, add the strings @samp{C-},
+@samp{M-}, @samp{H-}, @samp{s-}, @samp{A-} and @samp{S-} at the front
+of the symbol name.  Thus, here is how to make
+@kbd{Hyper-Meta-@key{RIGHT}} move forward a word:
 
 @example
 (global-set-key [H-M-right] 'forward-word)

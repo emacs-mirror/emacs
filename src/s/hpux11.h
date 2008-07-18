@@ -1,7 +1,5 @@
 #include "hpux10-20.h"
 
-#define HPUX11
-
 #ifdef POSIX_SIGNALS
 #undef POSIX_SIGNALS
 #endif

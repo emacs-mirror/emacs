@@ -28,67 +28,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define NO_ARG_ARRAY
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-#undef WORD_MACHINE
-
 /* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically:
-   Ones defined so far include vax, m68000, ns16000, pyramid,
-   orion, tahoe, APOLLO and many others */
+   does not define it automatically.  */
 
 #ifndef mips
 #define mips
 #endif
 
-#ifndef IRIS_4D
-#define IRIS_4D
-#endif
-
-/* Use type int rather than a union, to represent Lisp_Object */
-/* This is desirable for most machines.  */
-
-#define NO_UNION_TYPE
-
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the bit field into an int.  In other words, if bit fields
    are always unsigned.
 
-   If you use NO_UNION_TYPE, this flag does not matter.  */
+   This flag only matters if you use USE_LISP_UNION_TYPE.  */
 
 #define EXPLICIT_SIGN_EXTEND
-
-/* jg@genmagic.genmagic.com (John Giannandrea) says this is unnecessary.  */
-#if 0
-/* Data type of load average, as read out of kmem.  */
-
-#define LOAD_AVE_TYPE long	/* This doesn't quite work on the 4D */
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-
-#define LOAD_AVE_CVT(x) (int)(((double)(x)*100)/1024.0)
-
-/* s-iris3-6.h uses /vmunix */
-
-#undef KERNEL_FILE
-#define KERNEL_FILE "/unix"
-#endif
-
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-#undef CANNOT_DUMP
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -100,12 +53,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
-#ifdef USG5_4
 #undef UNEXEC
 #define UNEXEC unexelf.o
-#else
-#define UNEXEC unexmips.o
-#endif
 
 #define TEXT_START 0x400000
 
@@ -121,23 +70,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef LIBS_MACHINE
 #define LIBS_MACHINE
 #define LIBS_DEBUG
-
-/* Define this if you have a fairly recent system,
-   in which crt1.o and crt1.n should be used.  */
-#define HAVE_CRTN
-
-#ifndef USG5_4
-#ifdef HAVE_CRTN
-/* Must define START-FILES so that the linker can find /usr/lib/crt0.o.  */
-#define START_FILES pre-crt0.o /usr/lib/crt1.o
-#define LIB_STANDARD -lc /usr/lib/crtn.o
-#else
-#define START_FILES pre-crt0.o /usr/lib/crt0.o
-/* The entry-point label (start of text segment) is `start', not `__start'.  */
-#define DEFAULT_ENTRY_ADDRESS start
-#define LIB_STANDARD -lc
-#endif
-#endif
 
 /* Use terminfo instead of termcap.  */
 

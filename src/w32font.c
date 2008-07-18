@@ -236,7 +236,8 @@ w32font_open (f, font_entity, pixel_size)
 {
   Lisp_Object font_object;
 
-  font_object = font_make_object (VECSIZE (struct w32font_info));
+  font_object = font_make_object (VECSIZE (struct w32font_info),
+				  font_entity, pixel_size);
 
   if (!w32font_open_internal (f, font_entity, pixel_size, font_object))
     {
@@ -801,11 +802,6 @@ w32font_open_internal (f, font_entity, pixel_size, font_object)
 
   if (!font)
     return 0;
-
-  /* Copy from font entity.  */
-  for (i = 0; i < FONT_ENTITY_MAX; i++)
-    ASET (font_object, i, AREF (font_entity, i));
-  ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
 
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);

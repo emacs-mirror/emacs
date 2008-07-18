@@ -1,3 +1,16 @@
+2008-07-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Fix description of
+	`dbus-register-method'.
+	(Signals): Allow also signal arguments for filtering in
+	`dbus-register-signal'.
+
+2008-07-13  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* calc.texi (Manipulating Vectors): Clarify definition of `rnorm' and
+	`cnorm'.
+	(Arithmetic Tutorial): Simplify the verification of prime factors.
+
 2008-07-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Saving Articles): Mention

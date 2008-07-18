@@ -1617,6 +1617,22 @@ This may be a useful alternative binding for \\[delete-other-windows]
           (push w delenda))))
     (mapc 'delete-window delenda)))
 
+(defun truncated-partial-width-window-p (&optional window)
+  "Non-nil if lines in WINDOW are specifically truncated due to its width.
+This returns nil if WINDOW is not a partial-width window
+ (regardless of the value of `truncate-lines').
+Otherwise, consult the value of `truncate-partial-width-windows'
+ for the buffer shown in WINDOW.
+If WINDOW is nil, use the selected window."
+  (unless window
+    (setq window (selected-window)))
+  (unless (window-full-width-p window)
+    (let ((t-p-w-w (buffer-local-value 'truncate-partial-width-windows
+				       (window-buffer window))))
+      (if (integerp t-p-w-w)
+	  (< (window-width window) t-p-w-w)
+	t-p-w-w))))
+
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "3" 'split-window-horizontally)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)

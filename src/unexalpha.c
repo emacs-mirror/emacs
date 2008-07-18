@@ -134,13 +134,6 @@ struct headers {
     struct scnhdr section[_MIPS_NSCNS_MAX];
 };
 
-
-
-/* Define name of label for entry point for the dumped executable.  */
-
-#ifndef DEFAULT_ENTRY_ADDRESS
-#define DEFAULT_ENTRY_ADDRESS __start
-#endif
 
 void
 unexec (new_name, a_name, data_start, bss_start, entry_address)
@@ -271,8 +264,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   nhdr.aout.bsize = 0;
   if (entry_address == 0)
     {
-      extern DEFAULT_ENTRY_ADDRESS ();
-      nhdr.aout.entry = (unsigned long)DEFAULT_ENTRY_ADDRESS;
+      extern __start ();
+      nhdr.aout.entry = (unsigned long)__start;
     }
   else
     nhdr.aout.entry = entry_address;

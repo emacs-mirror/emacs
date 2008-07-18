@@ -1266,7 +1266,7 @@ xd_read_queued_messages ()
 }
 
 DEFUN ("dbus-register-signal", Fdbus_register_signal, Sdbus_register_signal,
-       6, 6, 0,
+       6, MANY, 0,
        doc: /* Register for signal SIGNAL on the D-Bus BUS.
 
 BUS is either the symbol `:system' or the symbol `:session'.
@@ -1281,8 +1281,14 @@ nil if the path name of incoming signals shall not be checked.
 
 INTERFACE is an interface offered by SERVICE.  It must provide SIGNAL.
 HANDLER is a Lisp function to be called when the signal is received.
-It must accept as arguments the values SIGNAL is sending.  INTERFACE,
-SIGNAL and HANDLER must not be nil.  Example:
+It must accept as arguments the values SIGNAL is sending.
+
+All other arguments ARGS, if specified, must be strings.  They stand
+for the respective arguments of the signal in their order, and are
+used for filtering as well.  A nil argument might be used to preserve
+the order.
+
+INTERFACE, SIGNAL and HANDLER must not be nil.  Example:
 
 \(defun my-signal-handler (device)
   (message "Device %s added" device))
@@ -1295,16 +1301,29 @@ SIGNAL and HANDLER must not be nil.  Example:
       ("org.freedesktop.Hal" "/org/freedesktop/Hal/Manager" my-signal-handler))
 
 `dbus-register-signal' returns an object, which can be used in
-`dbus-unregister-object' for removing the registration.  */)
-     (bus, service, path, interface, signal, handler)
-     Lisp_Object bus, service, path, interface, signal, handler;
+`dbus-unregister-object' for removing the registration.
+
+usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARGS) */)
+     (nargs, args)
+     int nargs;
+     register Lisp_Object *args;
 {
+  Lisp_Object bus, service, path, interface, signal, handler;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object uname, key, key1, value;
   DBusConnection *connection;
+  int i;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   DBusError derror;
 
   /* Check parameters.  */
+  bus = args[0];
+  service = args[1];
+  path = args[2];
+  interface = args[3];
+  signal = args[4];
+  handler = args[5];
+
   CHECK_SYMBOL (bus);
   if (!NILP (service)) CHECK_STRING (service);
   if (!NILP (path)) CHECK_STRING (path);
@@ -1312,6 +1331,7 @@ SIGNAL and HANDLER must not be nil.  Example:
   CHECK_STRING (signal);
   if (!FUNCTIONP (handler))
     wrong_type_argument (intern ("functionp"), handler);
+  GCPRO6 (bus, service, path, interface, signal, handler);
 
   /* Retrieve unique name of service.  If service is a known name, we
      will register for the corresponding unique name, if any.  Signals
@@ -1351,11 +1371,22 @@ SIGNAL and HANDLER must not be nil.  Example:
       if (!NILP (path))
 	sprintf (rule, "%s,path='%s'", rule, SDATA (path));
 
+      /* Add arguments to the rule if they are non-nil.  */
+      for (i = 6; i < nargs; ++i)
+	if (!NILP (args[i]))
+	  {
+	    CHECK_STRING (args[i]);
+	    sprintf (rule, "%s,arg%d='%s'", rule, i-6, SDATA (args[i]));
+	  }
+
       /* Add the rule to the bus.  */
       dbus_error_init (&derror);
       dbus_bus_add_match (connection, rule, &derror);
       if (dbus_error_is_set (&derror))
-	XD_ERROR (derror);
+	{
+	  UNGCPRO;
+	  XD_ERROR (derror);
+	}
 
       XD_DEBUG_MESSAGE ("Matching rule \"%s\" created", rule);
     }
@@ -1369,7 +1400,7 @@ SIGNAL and HANDLER must not be nil.  Example:
     Fputhash (key, Fcons (key1, value), Vdbus_registered_functions_table);
 
   /* Return object.  */
-  return list2 (key, list3 (service, path, handler));
+  RETURN_UNGCPRO (list2 (key, list3 (service, path, handler)));
 }
 
 DEFUN ("dbus-register-method", Fdbus_register_method, Sdbus_register_method,

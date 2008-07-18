@@ -30,6 +30,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 
+/* Define to 1 if you are trying experimental enhanced Ctrl-g support using NS
+   windowing under MacOS X. */
+#undef COCOA_EXPERIMENTAL_CTRL_G
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -472,6 +476,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
 
+/* Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on
+   Mac OS X. */
+#undef HAVE_NS
+
 /* Define to 1 if personality LINUX32 can be set. */
 #undef HAVE_PERSONALITY_LINUX32
 
@@ -798,6 +806,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you don't have struct exception in math.h. */
 #undef NO_MATHERR
 
+/* Define to 1 if you are using NS windowing under MacOS X. */
+#undef NS_IMPL_COCOA
+
+/* Define to 1 if you are using NS windowing under GNUstep. */
+#undef NS_IMPL_GNUSTEP
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -965,8 +979,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef volatile
 
 
-/* If we're using any sort of window system, define some consequences.  */
-#ifdef HAVE_X_WINDOWS
+/* If we're using X11/Carbon/GNUstep, define some consequences.  */
+#if defined HAVE_X_WINDOWS || defined(HAVE_CARBON) || defined(HAVE_NS)
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
@@ -978,23 +992,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MULTI_KBOARD
 #endif
 
-/* If we're using the Carbon API on Mac OS X, define a few more
-   variables as well.  */
-#ifdef HAVE_CARBON
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
+/* Sadly for now, GNUstep dump does not work.  */
+#ifdef NS_IMPL_GNUSTEP
+#define CANNOT_DUMP
 #endif
 
-/* Define USER_FULL_NAME to return a string
-   that is the user's full name.
-   It can assume that the variable `pw'
-   points to the password file entry for this user.
-
-   At some sites, the pw_gecos field contains
-   the user's full name.  If neither this nor any other
-   field contains the right thing, use pw_name,
-   giving the user's login name, since that is better than nothing.  */
-#define USER_FULL_NAME pw->pw_gecos
+/* TODO: These are used for the Carbon port only. */
+#undef MAC_OS
+#undef MAC_OSX
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
@@ -1036,6 +1041,28 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
+
+/* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
+  (There is probably a better place to do this, but right now the Cocoa
+   side does this in s/darwin.h, following the Carbon port, and we cannot
+   parallel this exactly since GNUstep is multi-OS. */
+#ifdef HAVE_NS
+# ifdef C_SWITCH_SYSTEM
+# undef C_SWITCH_SYSTEM
+# endif
+# ifdef NS_IMPL_GNUSTEP
+/* See also .m.o rule in Makefile.in */
+#  define C_SWITCH_X_SYSTEM -MMD -MP -D_REENTRANT -fPIC -fno-strict-aliasing
+#  define LD_SWITCH_SITE -lgnustep-gui -lgnustep-base -lobjc $(CONFIG_SYSTEM_LIBS) -lpthread
+#  define GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE
+#  define OTHER_FILES ns-app
+# else /* NS_IMPL_COCOA */
+#  define C_SWITCH_X_SYSTEM
+#  define GNU_OBJC_CFLAGS
+# endif /* NS_IMPL_COCOA */
+#endif /* HAVE_NS */
+
+
 
 /* If no remapping takes place, static variables cannot be dumped as
    pure, so don't worry about the `static' keyword. */

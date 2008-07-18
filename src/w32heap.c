@@ -240,7 +240,7 @@ init_heap ()
 	  exit (1);
 	}
 
-#if defined (NO_UNION_TYPE) && !defined (USE_LSB_TAG)
+#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
       /* Ensure that the addresses don't use the upper tag bits since
 	 the Lisp type goes there.  */
       if (((unsigned long) data_region_base & ~VALMASK) != 0)

@@ -2987,26 +2987,6 @@ If STRING is nil or a null string, the logical name NAME is deleted.  */)
 }
 #endif /* VMS */
 
-#ifdef HPUX_NET
-
-DEFUN ("sysnetunam", Fsysnetunam, Ssysnetunam, 2, 2, 0,
-       doc: /* Open a network connection to PATH using LOGIN as the login string.  */)
-     (path, login)
-     Lisp_Object path, login;
-{
-  int netresult;
-
-  CHECK_STRING (path);
-  CHECK_STRING (login);
-
-  netresult = netunam (SDATA (path), SDATA (login));
-
-  if (netresult == -1)
-    return Qnil;
-  else
-    return Qt;
-}
-#endif /* HPUX_NET */
 
 DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
        1, 1, 0,
@@ -6398,9 +6378,6 @@ When non-nil, the function `move-file-to-trash' will be used by
 #ifdef VMS
   defsubr (&Sdefine_logical_name);
 #endif /* VMS */
-#ifdef HPUX_NET
-  defsubr (&Ssysnetunam);
-#endif /* HPUX_NET */
   defsubr (&Sfile_name_absolute_p);
   defsubr (&Sfile_exists_p);
   defsubr (&Sfile_executable_p);
