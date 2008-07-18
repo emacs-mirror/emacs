@@ -303,10 +303,40 @@ The properties returned may include `top', `left', `height', and `width'."
 
 
 
-;;;; Lisp niceties, most used only under ns-extended-platform-support-mode,
-;;;; defined below
+;; Functions to set environment variables by running a subshell.
+;;; Idea based on NS 4.2 distribution, this version of code based on
+;;; mac-read-environment-vars-from-shell () by David Reitter.
+;;; Mostly used only under ns-extended-platform-support-mode.
 
-(autoload 'ns-grabenv "ns-grabenv" "Get environment from your shell." t nil)
+(defun ns-make-command-string (cmdlist)
+  (let ((str "")
+	(cmds cmdlist))
+    (while cmds
+      (if (not (eq str "")) (setq str (format "%s ; " str)))
+      (setq str (format "%s%s" str (car cmds)))
+      (setq cmds (cdr cmds)))
+    str))
+
+;;;###autoload
+(defun ns-grabenv (&optional shell-path startup)
+  "Set the Emacs environment using the output of a shell command.
+This runs a shell subprocess, and interpret its output as a
+series of environment variables to insert into the emacs
+environment.
+SHELL-PATH gives the path to the shell; if nil, this defaults to
+the current setting of `shell-file-name'.
+STARTUP is a list of commands for the shell to execute; if nil,
+this defaults to \"printenv\"."
+  (interactive)
+  (with-temp-buffer
+    (let ((shell-file-name (if shell-path shell-path shell-file-name))
+	  (cmd (ns-make-command-string (if startup startup '("printenv")))))
+      (shell-command cmd t)
+      (while (search-forward-regexp "^\\([A-Za-z_0-9]+\\)=\\(.*\\)$" nil t)
+	(setenv (match-string 1)
+		(if (equal (match-string 1) "PATH")
+		    (concat (getenv "PATH") ":" (match-string 2))
+		  (match-string 2)))))))
 
 ;; Set up a number of aliases and other layers to pretend we're using
 ;; the Choi/Mitsuharu Carbon port.
@@ -952,8 +982,8 @@ prompting.  If file is a directory perform a find-file on it."
 (defvar ns-input-line) 			; nsterm.m
 
 (defun ns-open-file-select-line ()
-  "Brings up a buffer containing file ns-input-file,\n\
-and highlights lines indicated by ns-input-line."
+  "Open a buffer containing the file `ns-input-file'.
+Lines are highlighted according to `ns-input-line'."
   (interactive)
   (ns-find-file)
   (cond
