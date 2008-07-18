@@ -1,3 +1,8 @@
+2008-07-18  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-arg.el (eshell-quote-backslash): Restrict previous change
+	to XEmacs, since it does nothing for Emacs.
+
 2008-07-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/tls.el (open-tls-stream): Make it work with the 2nd argument
