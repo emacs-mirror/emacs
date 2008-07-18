@@ -10,6 +10,11 @@
 	* term/ns-win.el: Contents of ns-carbon-compat.el and
 	ns-grabenv.el moved here.
 	(ns-grabenv, ns-open-file-select-line): Doc fixes.
+	(ns-submit-bug-report): Function removed.  Reports go to the main
+	Emacs bug list.
+	(ns-handle-args, ns-spi-service-call): Doc fixes.
+	(info-ns-emacs): Function removed.  Nextstep port manual will be
+	merged into the Emacs manual, so no separate link needed.
 
 2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
 
