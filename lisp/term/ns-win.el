@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 1993, 1994, 2005, 2006, 2008 Free Software Foundation, Inc.
 
-;; Author: Carl Edman, Christian Limpach, Scott Bender, Christophe de Dinechin, Adrian Robert
+;; Authors: Carl Edman, Christian Limpach, Scott Bender,
+;;          Christophe de Dinechin, Adrian Robert
 ;; Keywords: terminals
 
 ;; This file is part of GNU Emacs.
@@ -62,24 +63,6 @@
 (declare-function ns-server-vendor "nsfns.m" (&optional display))
 (declare-function ns-server-version "nsfns.m" (&optional display))
 
-(defun ns-submit-bug-report ()
-  "Submit via mail a bug report on Emacs 23.0.0 for GNUstep / OS X."
-  (interactive)
-  (let ((frame-parameters (frame-parameters))
-        (server-vendor (ns-server-vendor))
-        (server-version (ns-server-version)))
-    (reporter-submit-bug-report
-     "Adrian Robert <Adrian.B.Robert@gmail.com>"
-     ;;"Christophe de Dinechin <descubes@earthlink.net>"
-     ;;"Scott Bender <emacs@harmony-ds.com>"
-     ;;"Christian Limpach <chris@nice.ch>"
-     ;;"Carl Edman <cedman@princeton.edu>"
-     (concat "Emacs for GNUstep / OS X " ns-version-string)
-     '(ns-expand-space ns-cursor-blink-rate ns-alternate-modifier
-       data-directory frame-parameters window-system window-system-version
-       server-vendor server-version system-configuration-options))))
-
-
 ;;;; Command line argument handling.
 
 (defvar ns-invocation-args nil)
@@ -105,8 +88,7 @@
   (setq initial-frame-alist
         (cons '(visibility . icon) initial-frame-alist)))
 
-;; Handle the -name option, set the name of
-;; the initial frame.
+;; Handle the -name option, set the name of the initial frame.
 (defun ns-handle-name-switch (switch)
   (or (consp ns-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
@@ -129,20 +111,19 @@
 				      '(ns-open-temp-file))
         ns-input-file (append ns-input-file (list (pop ns-invocation-args)))))
 
-(defun ns-ignore-0-arg (switch)
-  )
+(defun ns-ignore-0-arg (switch))
 (defun ns-ignore-1-arg (switch)
   (setq ns-invocation-args (cdr ns-invocation-args)))
 (defun ns-ignore-2-arg (switch)
   (setq ns-invocation-args (cddr ns-invocation-args)))
 
 (defun ns-handle-args (args)
-  "Here the NS-related command line options in ARGS are processed,
-before the user's startup file is loaded.  They are copied to
-`ns-invocation-args', from which the NS related things are extracted, first
-the switch (e.g., \"-fg\") in the following code, and possible values
-\(e.g., \"black\") in the option handler code (e.g., ns-handle-switch).
-This function returns ARGS minus the arguments that have been processed."
+  "Process NeXTSTEP-related command line options.
+This is run before the user's startup file is loaded.
+The options in ARGS are copied to `ns-invocation-args'.  The
+NeXTSTEP-related settings are then applied using the handlers
+defined in `command-line-ns-option-alist'.
+The return value is ARGS minus the arguments processed."
   ;; We use ARGS to accumulate the args that we don't handle here, to return.
   (setq ns-invocation-args args
         args nil)
@@ -578,17 +559,6 @@ This should be bound to a mouse click event type."
        (define-key global-map [menu-bar help-menu]
 	 (cons "Info" menu-bar-help-menu))))
 
-
-;;;; Add to help / info menu
-(defun info-ns-emacs ()
-  "Jump to ns-emacs info item."
-  (interactive)
-  (info "ns-emacs"))
-
-(define-key menu-bar-help-menu [ns-bug-report]
-  '("Report Emacs.app bug..." . ns-submit-bug-report))
-(define-key menu-bar-help-menu [info-ns]
-  '("Emacs.app Manual" . info-ns-emacs))
 (if (not (eq system-type 'darwin))
     ;; in OS X it's in the app menu already
     (define-key menu-bar-help-menu [info-panel]
@@ -816,7 +786,7 @@ This should be bound to a mouse click event type."
 (defvar ns-input-spi-arg)
 
 (defun ns-spi-service-call ()
-  "Respond to a service request to Emacs.app."
+  "Respond to a service request."
   (interactive)
   (cond ((string-equal ns-input-spi-name "open-selection")
 	 (switch-to-buffer (generate-new-buffer "*untitled*"))
