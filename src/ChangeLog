@@ -1,3 +1,10 @@
+2008-07-18  David Robinow  <drobinow@gmail.com>  (tiny change)
+
+        * w32inevt.c: Include dispextern.h.  Don't declare change_frame_size
+        here.
+        (maybe_generate_resize_event, resize_event): Call change_frame_size
+        with SAFE arg.
+
 2008-07-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* gtkutil.c: Include <config.h> instead of "config.h".
