@@ -11,6 +11,7 @@ write that in full each time, we'll use the following abbreviations:
 	  ESC key and then type <chr>.  We write <ESC> for the ESC key.
 
 Important note: to end the Emacs session, type C-x C-c.  (Two characters.)
+To quit a partially entered command, type C-g.
 The characters ">>" at the left margin indicate directions for you to
 try using a command.  For instance:
 <<Blank lines inserted around following line by help-with-tutorial>>
