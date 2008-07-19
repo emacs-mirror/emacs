@@ -1,3 +1,24 @@
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-startup-text): Move the line "To quit
+	a partially entered command, type Control-g" a few lines below
+	to be after the line "To start".  Add text "at gnu.org" to
+	"Overview of Emacs features".
+
+	* dired.el (dired-mode-map): Fix menu text of
+	image-dired-display-thumbs.
+
+	* image-dired.el (image-dired-cmd-create-thumbnail-options)
+	(image-dired-cmd-create-temp-image-options)
+	(image-dired-cmd-create-standard-thumbnail-command): Add > to the
+	ImageMagick command line to change the dimensions of the image
+	only if its width or height exceeds the geometry specification.
+
+	* longlines.el: Add coding cookie utf-8 for the pilcrow sign.
+
+	* proced.el (proced-mode, proced): Add \\<proced-mode-map>
+	to docstrings.
+
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 	* term/ns-win.el (ns-ps-print-menu-map): Fix typo pointed out by
 	Vinicius Jose Latorre.
