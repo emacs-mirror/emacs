@@ -1,3 +1,8 @@
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Cocoa/Emacs.base/Contents/Resources/Emacs.icns: Update with latest
+	from mac/Emacs.app/Contents/Resources.
+
 2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* README.txt:
@@ -8,8 +13,8 @@
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* Cocoa/Contents/Resources/Credits.html: Change URL from sf.net to
-	GNU.org.
+	* Cocoa/Emacs.base/Contents/Resources/Credits.html: Change URL from
+	sf.net to GNU.org.
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
