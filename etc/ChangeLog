@@ -1,3 +1,7 @@
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* tutorials/TUTORIAL: Add information about C-g to the introduction.
+
 2008-07-18  Francesc Rocher  <rocher@member.fsf.org>
 
 	* images/splash8.xpm: Remove.
