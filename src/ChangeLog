@@ -1,5 +1,13 @@
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* Makefile.in (nsgui.h-related dependencies): Remove abbrev, xfns,
+	xterm, xselect.
+	* lisp.h: Remove declaration of hash_remove.
+	* nsgui.h: Remove redefinitions of hash_remove.
+	* fns.c (hash_remove): Rename to hash_remove_from_table.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* nsfont.m (nsfont_fmember_to_entity, nsfont_make_fontset_for_font):
 	strdup() the family UTF8String before modifying it.  Patch due to
 	Seiji Zenitani.

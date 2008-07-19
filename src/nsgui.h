@@ -30,15 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef init_process
 #endif  /* NS_IMPL_COCOA */
 
-#ifdef NS_IMPL_GNUSTEP
-#undef hash_remove
-#endif
-
 #import <AppKit/AppKit.h>
-
-#ifdef NS_IMPL_GNUSTEP
-#define hash_remove emacs_hash_remove
-#endif
 
 #ifdef NS_IMPL_COCOA
 #undef Cursor
