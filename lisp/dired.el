@@ -1547,8 +1547,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                   :help "Add image comment to current or marked files"))
     (define-key map
       [menu-bar operate image-dired-display-thumbs]
-      '(menu-item "Display Image-Dired" image-dired-display-thumbs
-                  :help "Display image-dired for current or marked image files"))
+      '(menu-item "Display image thumbnails" image-dired-display-thumbs
+                  :help "Display image thumbnails for current or marked image files"))
 
     (define-key map [menu-bar operate dashes-3]
       '("--"))
