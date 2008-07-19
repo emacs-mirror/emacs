@@ -1,3 +1,8 @@
+2008-07-19  Juri Linkov  <juri@jurta.org>
+
+	* org.el (narrow-map): Bind `org-narrow-to-subtree' to "s" on the
+	new keymap `narrow-map' instead of binding "\C-xns".
+
 2008-07-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-agenda-skip-unavailable-files):
