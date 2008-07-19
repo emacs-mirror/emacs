@@ -968,7 +968,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         }
 
       if (!s->face->stipple)
-        [(NS_FACE_BACKGROUND (face) != nil
+        [(NS_FACE_BACKGROUND (face) != 0
           ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
           : FRAME_BACKGROUND_COLOR (s->f)) set];
       else
@@ -988,7 +988,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
          : FRAME_FOREGROUND_COLOR (s->f));
   /*PENDING: find another way to pass this */
   bgCol = (ns_tmp_flags != NS_DUMPGLYPH_FOREGROUND ? nil
-           : (NS_FACE_BACKGROUND (face) != nil
+           : (NS_FACE_BACKGROUND (face) != 0
               ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
               : FRAME_BACKGROUND_COLOR (s->f)));
 

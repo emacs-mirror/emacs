@@ -1,3 +1,11 @@
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns_set_background_color): Apply patch from Chong Yidong to
+	fix crash.
+	* nsterm.m (ns_maybe_dumpglyphs_background): Compare result from
+	NS_FACE_BACKGROUND with 0 instead of nil.
+	* nsfont.m (nsfont_draw): Same.
+
 2008-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (SOME_MACHINE_LISP): Remove ns-carbon-compat.elc.

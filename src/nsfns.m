@@ -400,7 +400,7 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       face = FRAME_DEFAULT_FACE (f);
       if (face)
         {
-          col = NS_FACE_BACKGROUND (face);
+          col = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f);
           face->background
 	     = (EMACS_UINT) [[col colorWithAlphaComponent: alpha] retain];
           [col release];
