@@ -12427,7 +12427,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 
 (org-defkey org-mode-map "\C-c\C-a" 'show-all)  ; in case allout messed up.
 (org-defkey org-mode-map "\C-c\C-r" 'org-reveal)
-(org-defkey org-mode-map "\C-xns" 'org-narrow-to-subtree)
+(org-defkey narrow-map "s" 'org-narrow-to-subtree)
 (org-defkey org-mode-map "\C-c$"    'org-archive-subtree)
 (org-defkey org-mode-map "\C-c\C-x\C-s" 'org-advertized-archive-subtree)
 (org-defkey org-mode-map "\C-c\C-x\C-a" 'org-toggle-archive-tag)
