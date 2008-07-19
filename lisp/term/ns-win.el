@@ -1,6 +1,7 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
 
-;; Copyright (C) 1993, 1994, 2005, 2006, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman, Christian Limpach, Scott Bender,
 ;;          Christophe de Dinechin, Adrian Robert
@@ -290,13 +291,7 @@ The properties returned may include `top', `left', `height', and `width'."
 ;;; Mostly used only under ns-extended-platform-support-mode.
 
 (defun ns-make-command-string (cmdlist)
-  (let ((str "")
-	(cmds cmdlist))
-    (while cmds
-      (if (not (eq str "")) (setq str (format "%s ; " str)))
-      (setq str (format "%s%s" str (car cmds)))
-      (setq cmds (cdr cmds)))
-    str))
+  (mapconcat 'identity cmdlist " ; "))
 
 ;;;###autoload
 (defun ns-grabenv (&optional shell-path startup)
@@ -1064,7 +1059,7 @@ Lines are highlighted according to `ns-input-line'."
 			       (t (cdr v)))))
     (if (setq v (assq 'internal-border-width p))
 	(ns-set-resource nil "InternalBorderWidth"
-			 (number-to-string v)))
+			 (number-to-string (cdr v))))
     (if (setq v (assq 'vertical-scroll-bars p))
 	(ns-set-resource nil "VerticalScrollBars"
 			 (case (cdr v)
