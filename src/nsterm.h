@@ -331,7 +331,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     IBOutlet NSButton *smoothFontsCheck;
     IBOutlet NSButton *useQuickdrawCheck;
     IBOutlet NSButton *useSysHiliteCheck;
-    BOOL prevUseHighlightColor;
+    Lisp_Object prevUseHighlightColor;
 #endif
     float prevExpandSpace;
     float prevBlinkRate;

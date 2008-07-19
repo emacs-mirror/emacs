@@ -1060,7 +1060,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);
-    if (ns_use_qd_smoothing)
+    if (EQ (ns_use_qd_smoothing, Qt))
       CGContextSetFontRenderingMode (gcontext, 2); /* 0 is Cocoa, 2 is QD */
 
     CGContextSetTextMatrix (gcontext, fliptf);

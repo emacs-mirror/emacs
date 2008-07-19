@@ -1355,8 +1355,11 @@ mostlyclean:
 	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
+#ifdef HAVE_NS
+	rm -fr ${ns_appdir}
 #ifdef NS_IMPL_GNUSTEP
 	rm -f *.d
+#endif
 #endif
 /* bootstrap-clean is used to clean up just before a bootstrap.
    It should remove all files generated during a compilation/bootstrap,

@@ -180,7 +180,7 @@ Lisp_Object ns_cursor_blink_mode;
 Lisp_Object ns_expand_space;
 
 /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
-int ns_antialias_text;
+Lisp_Object ns_antialias_text;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -189,10 +189,10 @@ float ns_antialias_threshold;
 
 /* Controls use of an undocumented CG function to do Quickdraw-style font
    smoothing (less heavy) instead of regular Quartz smoothing. */
-int ns_use_qd_smoothing;
+Lisp_Object ns_use_qd_smoothing;
 
 /* Used to pick up AppleHighlightColor on OS X */
-int ns_use_system_highlight_color;
+Lisp_Object ns_use_system_highlight_color;
 NSString *ns_selection_color;
 
 
@@ -3488,10 +3488,10 @@ ns_set_default_prefs ()
   ns_cursor_blink_rate = Qnil;
   ns_cursor_blink_mode = Qnil;
   ns_expand_space = make_float (0.0);
-  ns_antialias_text = YES;
-  ns_antialias_threshold = 10.0;
-  ns_use_qd_smoothing = NO;
-  ns_use_system_highlight_color = YES;
+  ns_antialias_text = Qt;
+  ns_antialias_threshold = 10.0; /* not exposed to lisp side */
+  ns_use_qd_smoothing = Qnil;
+  ns_use_system_highlight_color = Qt;
 }
 
 
@@ -3807,9 +3807,10 @@ handling_signal = 0;
   ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
   ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
              Qt, Qnil, NO, NO);
+fprintf(stderr, "qd smoothing: %d (%d, %d)\n", ns_use_qd_smoothing, EQ(ns_use_qd_smoothing, Qt), NILP(ns_use_qd_smoothing));
   ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
              Qt, Qnil, NO, NO);
-  if (ns_use_system_highlight_color == YES)
+  if (EQ (ns_use_system_highlight_color, Qt))
     {
       ns_selection_color = [[NSUserDefaults standardUserDefaults]
                                stringForKey: @"AppleHighlightColor"];
@@ -4018,13 +4019,13 @@ panel to control this setting.");
 or shrunk (negative).  Zero (the default) means standard line height.\n\
 (This variable should only be read, never set.)");
 
-  DEFVAR_BOOL ("ns-antialias-text", &ns_antialias_text,
+  DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
                "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
 
-  DEFVAR_BOOL ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
+  DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
                "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
 
-  DEFVAR_BOOL ("ns-use-system-highlight-color",
+  DEFVAR_LISP ("ns-use-system-highlight-color",
                &ns_use_system_highlight_color,
                "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
 
@@ -6158,9 +6159,9 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 		     parse_solitary_modifier (ns_control_modifier));
   selectItemWithTag (functionModMenu,
 		     parse_solitary_modifier (ns_function_modifier));
-  [smoothFontsCheck setState: ns_antialias_text ? YES : NO];
-  [useQuickdrawCheck setState: ns_use_qd_smoothing ? YES : NO];
-  [useSysHiliteCheck setState: prevUseHighlightColor ? YES : NO];
+  [smoothFontsCheck setState: (NILP (ns_antialias_text) ? NO : YES)];
+  [useQuickdrawCheck setState: (NILP (ns_use_qd_smoothing) ? NO : YES)];
+  [useSysHiliteCheck setState: (NILP (prevUseHighlightColor) ? NO : YES)];
 #endif
 }
 
@@ -6230,13 +6231,13 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 #ifdef NS_IMPL_COCOA
   ns_control_modifier = ns_mod_to_lisp (ctrlTag);
   ns_function_modifier = ns_mod_to_lisp (fnTag);
-  ns_antialias_text = [smoothFontsCheck state];
-  ns_use_qd_smoothing = [useQuickdrawCheck state];
-  ns_use_system_highlight_color = [useSysHiliteCheck state];
-  if (ns_use_system_highlight_color != prevUseHighlightColor)
+  ns_antialias_text = [smoothFontsCheck state] ? Qt : Qnil;
+  ns_use_qd_smoothing = [useQuickdrawCheck state] ? Qt : Qnil;
+  ns_use_system_highlight_color = [useSysHiliteCheck state] ? Qt : Qnil;
+  if (! EQ (ns_use_system_highlight_color, prevUseHighlightColor))
     {
       prevUseHighlightColor = ns_use_system_highlight_color;
-      if (ns_use_system_highlight_color == YES)
+      if (EQ (ns_use_system_highlight_color, Qt))
         {
           ns_selection_color = [[NSUserDefaults standardUserDefaults]
                                  stringForKey: @"AppleHighlightColor"];
