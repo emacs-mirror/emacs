@@ -1,3 +1,8 @@
+2008-07-19  Glenn Morris  <rgm@gnu.org>
+
+	* term/ns-win.el (ns-make-command-string): Use mapconcat.
+	(ns-save-preferences): Fix typo in previous change.
+
 2008-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-interface-properties): New defconst.
