@@ -1,4 +1,4 @@
-2008-07-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in: Apply patch from Yavor Doganov <yavor <at> gnu.org> to
 	fix typo in GNUSTEP_MAKEFILES setting for HAVE_NS compilation under
