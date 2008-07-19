@@ -1249,10 +1249,7 @@ If this is nil, no message will be displayed."
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
 	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project")))
-     " operating system.\n"
-     :face variable-pitch "To quit a partially entered command, type "
-     :face default "Control-g"
-     :face variable-pitch ".\n\n"
+     " operating system.\n\n"
      :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
      (lambda ()
@@ -1276,7 +1273,7 @@ If this is nil, no message will be displayed."
      :link ("Emacs Guided Tour"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
-     "\tOverview of Emacs features\n"
+     "\tOverview of Emacs features at gnu.org\n"
      :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
      "\tView the Emacs manual using Info\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
@@ -1497,6 +1494,10 @@ a face or button specification."
 	       (lambda (button) (customize-group 'initialization))
 	       "Change initialization settings including this screen")
        "\n"))
+    (fancy-splash-insert
+     :face 'variable-pitch "To quit a partially entered command, type "
+     :face 'default "Control-g"
+     :face 'variable-pitch ".\n")
     (fancy-splash-insert :face `(variable-pitch (:foreground ,fg))
 			 "\nThis is "
 			 (emacs-version)
