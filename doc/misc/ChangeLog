@@ -1,3 +1,10 @@
+2008-07-19  Andreas Schwab  <schwab@suse.de>
+
+	* ns-emacs.texi: Moved from ../emacs.  Add @direntry. 
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ns-emacs.
+	(ns-emacs, $(infodir)/ns-emacs, ns-emacs.dvi): New rules.
+
 2008-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Inspection): Rework, introduce submenus.
