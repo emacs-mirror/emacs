@@ -1314,10 +1314,9 @@ ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 #endif /* HAVE_CARBON */
 
 #ifdef HAVE_NS
-abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o \
-  xterm.o xselect.o sound.o: nsgui.h
+  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o sound.o: nsgui.h
 nsfns.o: nsfns.m charset.h nsterm.h nsgui.h frame.h window.h buffer.h \
   dispextern.h nsgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
   atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
