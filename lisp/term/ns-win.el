@@ -577,7 +577,7 @@ This should be bound to a mouse click event type."
 (define-key ns-ps-print-menu-map [ps-print-region-faces]
   '("Region" . ps-print-region-with-faces))
 (define-key ns-ps-print-menu-map [ps-print-buffer-faces]
-  '("Buffer" . ns-ps-print-buffer-with-faces))
+  '("Buffer" . ps-print-buffer-with-faces))
 (define-key menu-bar-ns-file-menu [postscript-print]
   (cons "Postscript Print" ns-ps-print-menu-map))
 

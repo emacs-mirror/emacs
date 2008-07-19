@@ -1,3 +1,7 @@
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+	* term/ns-win.el (ns-ps-print-menu-map): Fix typo pointed out by
+	Vinicius Jose Latorre.
+
 2008-07-19  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (ns-make-command-string): Use mapconcat.
