@@ -1034,7 +1034,7 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("shch" ?,Li(B) ("sj" ?,Li(B)
  ("/sht" ?,Li(B) ("/t" ?,Li(B)
  ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B)
- ("e\\" ?,Lm(B) ("@" ?,Lm(B)
+ ("e\\" ?,Lm(B) ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B)
  ("yu" ?,Ln(B) ("ju" ?,Ln(B)
  ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
 
@@ -1050,30 +1050,24 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B)
  ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B)
  ("~~" ?,LJ(B) ("Y" ?,LK(B) ("''" ?,LL(B)
- ("E\\" ?,LM(B) ("@@" ?,LM(B)
+ ("E\\" ?,LM(B) ("E'" ?,LM(B) ("E`" ?,LM(B) ("@@" ?,LM(B)
  ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B)
  ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
- ;; Combining accents
- ("a'" [",LP$(O+Z(B"]) ("a`" [",LP$(O+\(B"])
- ("e'" [",LU$(O+Z(B"]) ("e`" [",LU$(O+\(B"])
- ("i'" [",LX$(O+Z(B"]) ("i`" [",LX$(O+\(B"])
- ("o'" [",L^$(O+Z(B"]) ("o`" [",L^$(O+\(B"])
- ("u'" [",Lc$(O+Z(B"]) ("u`" [",Lc$(O+\(B"])
- ("A'" [",L0$(O+Z(B"]) ("A`" [",L0$(O+\(B"])
- ("E'" [",L5$(O+Z(B"]) ("E`" [",L5$(O+\(B"])
- ("I'" [",L8$(O+Z(B"]) ("I`" [",L8$(O+\(B"])
- ("O'" [",L>$(O+Z(B"]) ("O`" [",L>$(O+\(B"])
- ("U'" [",LC$(O+Z(B"]) ("U`" [",LC$(O+\(B"])
-
- ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u~" ?,L~(B)
+ ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B) ("u~" ?,L~(B)
  ("/d" ?,Lr(B) ("/ch" ?,L{(B)
  ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
  ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
- ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U~" ?,L.(B)
+ ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) ("U~" ?,L.(B)
  ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
  ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B)
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
+
+ ;; Combining accents as a separate character
+ ("//'" ?$(O+Z(B) ("//`" ?$(O+\(B)
+
+ ;; In the following two rules the accent is not a separate character
+ ("i`" ?$,1(}(B) ("I`" ?$,1(-(B)
 
  ("/-"  ?$(G!9(B)  ;; EN DASH
  ("/--" ?$(G!7(B)  ;; EM DASH
@@ -1099,7 +1093,7 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("/c" ?,A)(B)
  ("/tm" ?$(D"o(B)
  ("/reg" ?,A.(B)
- ("/eu"   ?,b$(B)
+ ("/eu"  ?,b$(B)
  ("/ce"  ?,A"(B)
 
  ;; fractions
