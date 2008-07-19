@@ -1,5 +1,11 @@
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* nsfont.m (nsfont_fmember_to_entity, nsfont_make_fontset_for_font):
+	strdup() the family UTF8String before modifying it.  Patch due to
+	Seiji Zenitani.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* nsfns.m (ns_set_background_color): Apply patch from Chong Yidong to
 	fix crash.
 	* nsterm.m (ns_maybe_dumpglyphs_background): Compare result from

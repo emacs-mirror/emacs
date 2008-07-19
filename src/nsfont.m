@@ -150,7 +150,7 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
   unsigned int traits = [[famMember objectAtIndex: 3] unsignedIntValue];
 /*   NSString *psName = [famMember objectAtIndex: 0]; */
   NSMutableString *suffix = [[famMember objectAtIndex: 1] mutableCopy];
-  char *escapedFamily = [family UTF8String];
+  char *escapedFamily = strdup ([family UTF8String]);
 
   nsfont_escape_name (escapedFamily);
   [suffix replaceOccurrencesOfString: @" " withString: @"" options: 0
@@ -181,6 +181,7 @@ nsfont_fmember_to_entity (NSString *family, NSArray *famMember)
      }
 
   [suffix release];
+  free (escapedFamily);
   return font_entity;
 }
 
@@ -1226,7 +1227,7 @@ void nsfont_make_fontset_for_font (Lisp_Object name, Lisp_Object font_object)
 
         if (cfont != nil)
           {
-            char *family = [[cfont familyName] UTF8String];
+            char *family = strdup([[cfont familyName] UTF8String]);
             Lisp_Object famAndReg;
 
             nsfont_escape_name (family);
@@ -1238,6 +1239,7 @@ void nsfont_make_fontset_for_font (Lisp_Object name, Lisp_Object font_object)
                        SDATA (SYMBOL_NAME (scripts[i])));
 
             Fset_fontset_font (name, scripts[i], famAndReg, Qnil, Qnil);
+            free (family);
           }
         else
           {
