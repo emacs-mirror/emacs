@@ -1,4 +1,4 @@
-;;; longlines.el --- automatically wrap long lines
+;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
 ;; Copyright (C) 2000, 2001, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
