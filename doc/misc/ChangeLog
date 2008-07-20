@@ -1,6 +1,11 @@
+2008-07-20  Adrian Robert <adrian.b.robert@gmail.com>
+
+	* ns-emacs.texi (Customization): Corrected documentation on color
+	specification formats.
+
 2008-07-19  Andreas Schwab  <schwab@suse.de>
 
-	* ns-emacs.texi: Moved from ../emacs.  Add @direntry. 
+	* ns-emacs.texi: Moved from ../emacs.  Add @direntry.
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ns-emacs.
 	(ns-emacs, $(infodir)/ns-emacs, ns-emacs.dvi): New rules.
