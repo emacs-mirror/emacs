@@ -1,3 +1,16 @@
+2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/x-win.el (x-handle-switch, x-handle-numeric-switch)
+	(x-handle-initial-switch, x-handle-iconic, x-handle-xrm-switch)
+	(x-handle-geometry, x-handle-name-switch, x-display-name)
+	(x-handle-display, x-handle-args, x-colors): Move ...
+	* term/common-win.el: ... here.  New file.
+	* term/w32-win.el (x-handle-switch, x-handle-numeric-switch)
+	(x-handle-initial-switch, x-handle-iconic, x-handle-xrm-switch)
+	(x-handle-geometry, x-handle-name-switch, x-display-name)
+	(x-handle-display, x-handle-args, x-colors): Remove.
+	* loadup.el: Load term/common-win before term/x-win and term/w32-win.
+
 2008-07-19  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (fancy-startup-text): Move the line "To quit
@@ -20,6 +33,7 @@
 	to docstrings.
 
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* term/ns-win.el (ns-ps-print-menu-map): Fix typo pointed out by
 	Vinicius Jose Latorre.
 
