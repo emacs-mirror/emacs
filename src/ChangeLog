@@ -1,3 +1,9 @@
+2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/sol2-3.h: Insert contents of s/sol2.h.
+	(LD_SWITCH_SYSTEM): Remove redundant definition.
+	* s/sol2.h: Remove, unused.
+
 2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (ns_get_color): Recognize HSB,AHSB be synonyms for
