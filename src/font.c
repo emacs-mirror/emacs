@@ -55,6 +55,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* MAC_OS */
 
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
+ 
+#ifdef HAVE_NS
+extern Lisp_Object Qfontsize;
+#endif
 
 Lisp_Object Qopentype;
 
@@ -3316,6 +3320,13 @@ font_open_for_lface (f, entity, attrs, spec)
 
       pt /= 10;
       size = POINT_TO_PIXEL (pt, f->resy);
+#ifdef HAVE_NS
+      if (size == 0)
+        {
+          Lisp_Object ffsize = get_frame_param(f, Qfontsize);
+          size = NUMBERP (ffsize) ? POINT_TO_PIXEL (XINT (ffsize), f->resy) : 0;
+        }
+#endif
     }
   return font_open_entity (f, entity, size);
 }
@@ -3390,7 +3401,11 @@ font_open_by_name (f, name)
   attrs[LFACE_FAMILY_INDEX] = attrs[LFACE_FOUNDRY_INDEX] = Qnil;
   attrs[LFACE_SWIDTH_INDEX] = attrs[LFACE_WEIGHT_INDEX]
     = attrs[LFACE_SLANT_INDEX] = Qnormal;
+#ifndef HAVE_NS
   attrs[LFACE_HEIGHT_INDEX] = make_number (120);
+#else
+  attrs[LFACE_HEIGHT_INDEX] = make_number (0);
+#endif
   attrs[LFACE_FONT_INDEX] = Qnil;
 
   return font_load_for_lface (f, attrs, spec);

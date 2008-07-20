@@ -1,5 +1,22 @@
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* font.c (font_open_by_name): Under NS, default lface height to zero.
+	(font_open_for_lface): Under NS, set size based on frame fontsize.
+	* nsterm.m (EmacsView-changeFont:): Remove some commented code.
+	* frame.c (x_set_frame_parameters): Remove HAVE_NS ifdef.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_antialias_text, ns_use_qd_smoothing)
+	(ns_use_system_highlight_color): Switch these from DEFVAR_BOOL to
+	DEFVAR_LISP and change all code accordingly to use Qt/Qnil instead of
+	YES/NO.
+	* nsterm.h (prevUseHighlightColor): Make a Lisp_Object.
+	* nsfont.m (nsfont_draw): Treat ns_use_qd_smoothing as Lisp_Object.
+	* Makefile.in (clean): Clear out build destination dir.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* Makefile.in (nsgui.h-related dependencies): Remove abbrev, xfns,
 	xterm, xselect.
 	* lisp.h: Remove declaration of hash_remove.

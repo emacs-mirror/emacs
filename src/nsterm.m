@@ -4441,11 +4441,7 @@ extern void update_window_cursor (struct window *w, int on);
       emacs_event->code = KEY_NS_CHANGE_FONT;
 
       size = [newFont pointSize];
-      /* PENDING: stick w/integer sizes for now. */
-/*        if (size == lrint (size)) */
-        ns_input_fontsize = make_number (lrint (size));
-/*          else
-            ns_input_fontsize = make_float (size); */
+      ns_input_fontsize = make_number (lrint (size));
       ns_input_font = build_string ([[newFont familyName] UTF8String]);
       EV_TRAILER (e);
     }

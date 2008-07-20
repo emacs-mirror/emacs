@@ -2986,9 +2986,7 @@ x_set_frame_parameters (f, alist)
 
 	  old_value = get_frame_param (f, prop);
  	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
-#ifndef HAVE_NS  /* XXX: ensure font attrs change goes through */
 	  if (NILP (Fequal (val, old_value)))
-#endif
 	    {
 	      store_frame_param (f, prop, val);
 
