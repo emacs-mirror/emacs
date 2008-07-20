@@ -40,7 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LD_SWITCH_SYSTEM `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX`
 #endif /* GCC */
 
-#undef LIBS_SYSTEM
 #define LIBS_SYSTEM -lsocket -lnsl -lkstat
 
 /* Prefer kstat over kvm in getloadavg.c, kstat doesn't require root.

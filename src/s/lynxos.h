@@ -34,7 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LDAV_SYMBOL "load_average"
 
 /* misc defines */
-#define GETPGRP_NO_ARG
 #define LNOFLSH 0
 
 /* COFF related */

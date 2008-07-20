@@ -190,10 +190,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INTERRUPT_INPUT
 #endif
 
-/* This is needed for sysdep.c */
-
-#define NO_SIOCTL_H           /* don't have sioctl.h */
-
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */

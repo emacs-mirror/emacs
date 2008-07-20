@@ -58,8 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Netbsd has POSIX-style pgrp behavior.  */
 #undef BSD_PGRPS
 
-#define GETPGRP_NO_ARG
-
 #if !defined (NO_SHARED_LIBS) && ! defined (__ELF__)
 /* These definitions should work for either dynamic or static linking,
    whichever is the default for `cc -nostdlib'.  */
@@ -68,10 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define UNEXEC unexsunos4.o
 #define RUN_TIME_REMAP
 
-/* Try to make this work for both 0.9 and >0.9.  */
-#ifndef N_TRELOFF
-#define N_TRELOFF(x) N_RELOFF(x)
-#endif
 #endif /* not NO_SHARED_LIBS and not ELF */
 
 #if !defined (NO_SHARED_LIBS) && defined (__ELF__)

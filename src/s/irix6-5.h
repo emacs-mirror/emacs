@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SETPGRP_RELEASES_CTTY
 
-#ifdef LIBS_SYSTEM
-#undef LIBS_SYSTEM
-#endif
-
 #ifdef LIB_STANDARD
 #undef LIB_STANDARD
 #endif
@@ -48,13 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* thomas@mathematik.uni-bremen.de says this is needed.  */
 /* Make process_send_signal work by "typing" a signal character on the pty.  */
 #define SIGNALS_VIA_CHARACTERS
-
-/* SGI has all the fancy wait stuff, but we can't include sys/wait.h
-   because it defines BIG_ENDIAN and LITTLE_ENDIAN (ugh!.)  Instead
-   we'll just define WNOHANG right here.
-   (An implicit decl is good enough for wait3.)  */
-
-/* #define WNOHANG		0x1 */
 
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
 #ifdef PTY_TTY_NAME_SPRINTF
@@ -95,9 +84,6 @@ char *_getpty();
    throughout. */
 #define POSIX_SIGNALS
 
-/* Info from simon@lia.di.epfl.ch (Simon Leinen) suggests this is needed.  */
-#define GETPGRP_NO_ARG
-
 /* Ulimit(UL_GMEMLIM) is busted...  */
 #define ULIMIT_BREAK_VALUE 0x14000000
 
@@ -110,14 +96,6 @@ char *_getpty();
    /usr/spool/mail/$USER.lock.  */
 
 #define MAIL_USE_FLOCK
-
-/* -g used not to work on Irix unless you used gas, and since gcc
-   warns if you use it, turn off the warning.  */
-/* -g does now work, at least on recent Irix 6 versions with gcc 2.95;
-    I'm not sure about Irix 5 -- fx  */
-#ifdef __GNUC__
-#define C_DEBUG_SWITCH
-#endif
 
 #define NARROWPROTO 1
 
@@ -134,7 +112,6 @@ char *_getpty();
 /* The only supported 32-bit configuration of GCC under IRIX6.x produces
    n32 MIPS ABI binaries and also supports -g. */
 #ifdef __GNUC__
-#undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
 #else
 /* Optimize, inaccurate debugging, increase limit on size of what's

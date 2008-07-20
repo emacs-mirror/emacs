@@ -110,7 +110,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CYGWIN 1
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
-#define GETPGRP_NO_ARG 1
 #define SYSV_SYSTEM_DIR 1
 #define UNEXEC unexcw.o
 #define POSIX_SIGNALS 1

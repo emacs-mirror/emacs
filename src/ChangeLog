@@ -1,3 +1,29 @@
+2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h (LIBS_SYSTEM): Remove, system for which this was
+	added not supported anymore.
+
+	* s/usg5-4-2.h (LIBS_SYSTEM): 
+	* s/sol2.h (LIBS_SYSTEM): Do not undefine.
+
+	* s/netbsd.h (GETPGRP_NO_ARG, N_TRELOFF):
+	* s/lynxos.h (GETPGRP_NO_ARG):
+	* s/hpux10-20.h (NO_SIOCTL_H):
+	* s/gnu.h (GETPGRP_NO_ARG):
+	* s/gnu-linux.h (NO_SIOCTL_H):
+	* s/freebsd.h (GETPGRP_NO_ARG, N_TRELOFF):
+	* s/cygwin.h (GETPGRP_NO_ARG):
+	* s/irix6-5.h (LIBS_SYSTEM, GETPGRP_NO_ARG): Remove, unused.
+	(C_DEBUG_SWITCH): Remove duplicate definition.
+
+	* m/ibms390.h: Remove boilerplate comments.
+
+	* sysdep.c (closedir): Use SOLARIS2 instead of sun && USG5_4.
+
+	* process.c (HAVE_SERIAL): Consolidate ifdefs.
+	(wait_reading_process_output): Remove code for SunOS, platform not
+	supported anymore.  Use SOLARIS2 instead of sun.
+
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* font.c (font_open_by_name): Under NS, default lface height to zero.

@@ -65,7 +65,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* freebsd has POSIX-style pgrp behavior. */
 #undef BSD_PGRPS
-#define GETPGRP_NO_ARG
 
 #ifdef __ELF__
 
@@ -90,9 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RUN_TIME_REMAP
 #define LIB_GCC -lgcc
 
-#ifndef N_TRELOFF
-#define N_TRELOFF(x) N_RELOFF(x)
-#endif
 #else /* NO_SHARED_LIBS */
 #ifdef __FreeBSD__  /* shared libs are available, but the user prefers
                      not to use them.  */

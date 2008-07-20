@@ -53,7 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* GNU has POSIX-style pgrp behavior.  */
 #undef BSD_PGRPS
-#define GETPGRP_NO_ARG
 
 /* Use mmap directly for allocating larger buffers.  */
 #ifdef DOUG_LEA_MALLOC

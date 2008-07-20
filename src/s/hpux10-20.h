@@ -113,10 +113,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    conflicting -a.  */
 #define LD_SWITCH_SYSTEM_TEMACS
 
-/* Some hpux 8 machines seem to have TIOCGWINSZ,
-   and none have sioctl.h, so might as well define this.  */
-#define NO_SIOCTL_H
-
 #ifndef HAVE_LIBXMU
 /* HP-UX doesn't supply Xmu.  */
 #define LIBXMU

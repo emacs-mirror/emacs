@@ -222,9 +222,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    So give it a try.  */
 #define HAVE_SOCKETS
 
-/* Markus Weiand <weiand@khof.com> says this is needed for Motif on
-   SINIX.  */
-#define LIBS_SYSTEM -lgen
-
 /* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
    (do not change this comment) */
