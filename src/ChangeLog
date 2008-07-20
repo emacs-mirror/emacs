@@ -1,4 +1,9 @@
-2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_get_color): Recognize HSB,AHSB be synonyms for
+	HSV,AHSV.
+
+2008-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in (ns_appdir): Fix typo in find command.
 

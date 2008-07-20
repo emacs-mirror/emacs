@@ -1328,7 +1328,8 @@ ns_get_color (const char *name, NSColor **col)
    of colors found in the file Emacs.clr. Color formats include:
    - #rrggbb or RGBrrggbb where rr, gg, bb specify red, green and blue in hex
    - ARGBaarrggbb is similar, with aa being the alpha channel (FF = opaque)
-   - HSVhhssvv and AHSVaahhssvv are similar for hue, saturation, value
+   - HSVhhssvv and AHSVaahhssvv (or HSB/AHSB) are similar for hue, saturation,
+     value;
    - CMYKccmmyykk is similar for cyan, magenta, yellow, black. */
 {
   NSColor * new = nil;
@@ -1376,12 +1377,14 @@ ns_get_color (const char *name, NSColor **col)
       hex = name + 4;
       color_space = argb;
     }
-  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3))
+  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3) || 
+           !memcmp (name, "HSB", 3) || !memcmp (name, "hsb", 3))
     {
       hex = name + 3;
       color_space = hsv;
     }
-  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4))
+  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4) ||
+           !memcmp (name, "AHSB", 4) || !memcmp (name, "ahsb", 4))
     {
       hex = name + 4;
       color_space = ahsv;
