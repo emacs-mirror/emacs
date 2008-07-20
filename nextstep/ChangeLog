@@ -1,5 +1,9 @@
 2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* FOR-RELEASE: Updates.
+
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* Cocoa/Emacs.base/Contents/Resources/Emacs.icns: Update with latest
 	from mac/Emacs.app/Contents/Resources.
 
