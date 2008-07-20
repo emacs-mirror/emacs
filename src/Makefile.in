@@ -1335,7 +1335,7 @@ ${ns_appdir}: ${ns_appsrc}
 	rm -fr ${ns_appdir}
 	mkdir -p ${ns_appdir}
 	( cd ${ns_appsrc} ; tar cfh - . ) | ( cd ${ns_appdir} ; tar xf - )
-	( cd ${ns_appdir} ; for subdir in `find $${dest} -type d ! -name CVS -print` ; do \
+	( cd ${ns_appdir} ; for subdir in `find . -type d ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/CVS ; \
 		rm -f  $${subdir}/.cvsignore ; done ; )

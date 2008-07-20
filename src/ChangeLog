@@ -1,9 +1,13 @@
+2008-07-19  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Makefile.in (ns_appdir): Fix typo in find command.
+
 2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/usg5-4.h (LIBS_SYSTEM): Remove, system for which this was
 	added not supported anymore.
 
-	* s/usg5-4-2.h (LIBS_SYSTEM): 
+	* s/usg5-4-2.h (LIBS_SYSTEM):
 	* s/sol2.h (LIBS_SYSTEM): Do not undefine.
 
 	* s/netbsd.h (GETPGRP_NO_ARG, N_TRELOFF):
