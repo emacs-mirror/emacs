@@ -9,6 +9,8 @@
 
 2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/intel386.h (NO_REMAP): Do no define for USG, not used.
+
 	* s/usg5-4.h (LIBS_SYSTEM): Remove, system for which this was
 	added not supported anymore.
 

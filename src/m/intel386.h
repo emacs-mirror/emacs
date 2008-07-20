@@ -82,11 +82,10 @@ NOTE-END */
 
 #define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 #define FSCALE 256.0
-#endif
+#endif /* USG5_4 */
 #endif /* not SOLARIS2 */
 
 #ifdef USG
-#define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
 
