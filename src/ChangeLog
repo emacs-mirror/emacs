@@ -1,3 +1,10 @@
+2008-07-20  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (find_start_pos, find_start_value)
+	(find_start_value_byte, find_start_begv, find_defun_start)
+	(back_comment, scan_sexps_forward): Use EMACS_INT for buffer
+	positions.
+
 2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/sol2-3.h: Insert contents of s/sol2.h.

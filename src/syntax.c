@@ -87,15 +87,15 @@ struct lisp_parse_state
    find_start_begv is the BEGV value when it was found.
    find_start_modiff is the value of MODIFF when it was found.  */
 
-static int find_start_pos;
-static int find_start_value;
-static int find_start_value_byte;
+static EMACS_INT find_start_pos;
+static EMACS_INT find_start_value;
+static EMACS_INT find_start_value_byte;
 static struct buffer *find_start_buffer;
-static int find_start_begv;
+static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
-static int find_defun_start P_ ((int, int));
+static int find_defun_start P_ ((EMACS_INT, EMACS_INT));
 static int back_comment P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int, int,
 			     EMACS_INT *, EMACS_INT *));
 static int char_quoted P_ ((int, int));
@@ -103,7 +103,7 @@ static Lisp_Object skip_chars P_ ((int, Lisp_Object, Lisp_Object, int));
 static Lisp_Object skip_syntaxes P_ ((int, Lisp_Object, Lisp_Object));
 static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
-				    int, int, int, int,
+				    EMACS_INT, EMACS_INT, EMACS_INT, int,
 				    int, Lisp_Object, int));
 static int in_classes P_ ((int, Lisp_Object));
 
@@ -374,9 +374,9 @@ dec_bytepos (bytepos)
 
 static int
 find_defun_start (pos, pos_byte)
-     int pos, pos_byte;
+     EMACS_INT pos, pos_byte;
 {
-  int opoint = PT, opoint_byte = PT_BYTE;
+  EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
 
   if (!open_paren_in_column_0_is_defun_start)
     {
@@ -505,14 +505,14 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
      inside another comment).
      Test case:  { a (* b } c (* d *) */
   int comment_lossage = 0;
-  int comment_end = from;
-  int comment_end_byte = from_byte;
-  int comstart_pos = 0;
-  int comstart_byte;
+  EMACS_INT comment_end = from;
+  EMACS_INT comment_end_byte = from_byte;
+  EMACS_INT comstart_pos = 0;
+  EMACS_INT comstart_byte;
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
-  int defun_start = 0;
-  int defun_start_byte = 0;
+  EMACS_INT defun_start = 0;
+  EMACS_INT defun_start_byte = 0;
   register enum syntaxcode code;
   int nesting = 1;		/* current comment nesting */
   int c;
@@ -2921,9 +2921,9 @@ static void
 scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 		    stopbefore, oldstate, commentstop)
      struct lisp_parse_state *stateptr;
-     register int from;
-     int from_byte;
-     int end, targetdepth, stopbefore;
+     register EMACS_INT from;
+     EMACS_INT from_byte, end;
+     int targetdepth, stopbefore;
      Lisp_Object oldstate;
      int commentstop;
 {
@@ -2942,8 +2942,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   int mindepth;		/* Lowest DEPTH value seen.  */
   int start_quoted = 0;		/* Nonzero means starting after a char quote */
   Lisp_Object tem;
-  int prev_from;		/* Keep one character before FROM.  */
-  int prev_from_byte;
+  EMACS_INT prev_from;		/* Keep one character before FROM.  */
+  EMACS_INT prev_from_byte;
   int prev_from_syntax;
   int boundary_stop = commentstop == -1;
   int nofence;
