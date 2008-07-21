@@ -1,5 +1,15 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* term/ns-win.el: Rename ns- functions/variables to the
+	corresponding x- versions.
+	(x-select-text, x-cut-buffer-or-selection-value)
+	(x-disown-selection-internal, x-get-selection-internal)
+	(x-own-selection-internal, x-defined-colors, xw-defined-colors)
+	(x-display-mm-width, x-display-mm-height)
+	(x-display-backing-store, x-display-save-under)
+	(x-display-visual-class, x-display-screens, x-focus-frame): Remove
+	defaliases.
+
 	* frame.el (ns-display-name): Remove declaration.
 	(make-frame-on-display): Use x-display-name instead
 	ns-display-name.  Use unless.

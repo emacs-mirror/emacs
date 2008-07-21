@@ -407,8 +407,8 @@ DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
 }
 
 
-DEFUN ("ns-disown-selection-internal", Fns_disown_selection_internal,
-       Sns_disown_selection_internal, 1, 2, 0,
+DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
+       Sx_disown_selection_internal, 1, 2, 0,
        "If we own the selection SELECTION, disown it.")
      (selection_name, time)
      Lisp_Object selection_name, time;
@@ -466,8 +466,8 @@ and t is the same as `SECONDARY'.)")
 }
 
 
-DEFUN ("ns-get-selection-internal", Fns_get_selection_internal,
-       Sns_get_selection_internal, 2, 2, 0,
+DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
+       Sx_get_selection_internal, 2, 2, 0,
        "Return text selected from some pasteboard.\n\
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
 \(Those are literal upper-case symbol names.)\n\
@@ -551,8 +551,8 @@ syms_of_nsselect (void)
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QFILE_NAME = intern ("FILE_NAME"); 	staticpro (&QFILE_NAME);
 
-  defsubr (&Sns_disown_selection_internal);
-  defsubr (&Sns_get_selection_internal);
+  defsubr (&Sx_disown_selection_internal);
+  defsubr (&Sx_get_selection_internal);
   defsubr (&Sns_own_selection_internal);
   defsubr (&Sns_selection_exists_p);
   defsubr (&Sns_selection_owner_p);

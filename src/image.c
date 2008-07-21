@@ -153,7 +153,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define x_defined_color(f, name, color_def, alloc) \
   ns_defined_color (f, name, color_def, alloc, 0)
 #define FRAME_X_SCREEN(f) 0
-#define DefaultDepthOfScreen(screen) ns_display_list->n_planes
+#define DefaultDepthOfScreen(screen) x_display_list->n_planes
 #endif /* HAVE_NS */
 
 

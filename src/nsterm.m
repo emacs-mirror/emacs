@@ -199,7 +199,7 @@ NSString *ns_selection_color;
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 
 /* Display variables */
-struct ns_display_info *ns_display_list; /* Chain of existing displays */
+struct ns_display_info *x_display_list; /* Chain of existing displays */
 Lisp_Object ns_display_name_list;
 long context_menu_value = 0;
 
@@ -944,26 +944,26 @@ ns_frame_rehighlight (struct frame *frame)
    -------------------------------------------------------------------------- */
 {
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
-  struct frame *old_highlight = dpyinfo->ns_highlight_frame;
+  struct frame *old_highlight = dpyinfo->x_highlight_frame;
 
   NSTRACE (ns_frame_rehighlight);
-  if (dpyinfo->ns_focus_frame)
+  if (dpyinfo->x_focus_frame)
     {
-      dpyinfo->ns_highlight_frame
-	= (FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
-           ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame))
-           : dpyinfo->ns_focus_frame);
-      if (!FRAME_LIVE_P (dpyinfo->ns_highlight_frame))
+      dpyinfo->x_highlight_frame
+	= (FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
+           ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
+           : dpyinfo->x_focus_frame);
+      if (!FRAME_LIVE_P (dpyinfo->x_highlight_frame))
         {
-          FRAME_FOCUS_FRAME (dpyinfo->ns_focus_frame) = Qnil;
-          dpyinfo->ns_highlight_frame = dpyinfo->ns_focus_frame;
+          FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+          dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
         }
     }
   else
-      dpyinfo->ns_highlight_frame = 0;
+      dpyinfo->x_highlight_frame = 0;
 
-  if (dpyinfo->ns_highlight_frame &&
-         dpyinfo->ns_highlight_frame != old_highlight)
+  if (dpyinfo->x_highlight_frame &&
+         dpyinfo->x_highlight_frame != old_highlight)
     {
       /* as of 20080602 the lower and raise are superfluous */
       if (old_highlight)
@@ -971,10 +971,10 @@ ns_frame_rehighlight (struct frame *frame)
           /*ns_lower_frame (old_highlight); */
           x_update_cursor (old_highlight, 1);
         }
-      if (dpyinfo->ns_highlight_frame)
+      if (dpyinfo->x_highlight_frame)
         {
-          /*ns_raise_frame (dpyinfo->ns_highlight_frame); */
-          x_update_cursor (dpyinfo->ns_highlight_frame, 1);
+          /*ns_raise_frame (dpyinfo->x_highlight_frame); */
+          x_update_cursor (dpyinfo->x_highlight_frame, 1);
         }
     }
 }
@@ -1019,8 +1019,8 @@ x_iconify_frame (struct frame *f)
   NSTRACE (x_iconify_frame);
   check_ns ();
 
-  if (dpyinfo->ns_highlight_frame == f)
-    dpyinfo->ns_highlight_frame = 0;
+  if (dpyinfo->x_highlight_frame == f)
+    dpyinfo->x_highlight_frame = 0;
 
   if ([[view window] windowNumber] <= 0)
     {
@@ -1058,10 +1058,10 @@ x_destroy_window (struct frame *f)
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
 
-  if (f == dpyinfo->ns_focus_frame)
-    dpyinfo->ns_focus_frame = 0;
-  if (f == dpyinfo->ns_highlight_frame)
-    dpyinfo->ns_highlight_frame = 0;
+  if (f == dpyinfo->x_focus_frame)
+    dpyinfo->x_focus_frame = 0;
+  if (f == dpyinfo->x_highlight_frame)
+    dpyinfo->x_highlight_frame = 0;
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
       dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
@@ -1751,7 +1751,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       if (last_mouse_frame && FRAME_LIVE_P (last_mouse_frame))
         f = last_mouse_frame;
       else
-        f = dpyinfo->ns_focus_frame ? dpyinfo->ns_focus_frame
+        f = dpyinfo->x_focus_frame ? dpyinfo->x_focus_frame
                                     : SELECTED_FRAME ();
 
       if (f && f->output_data.ns)  /*PENDING: 2nd check no longer needed? */
@@ -3190,15 +3190,15 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     {
       if (NUMBERP (ns_cursor_blink_rate))
           ns_cursor_blink_rate = Qnil;
-      struct ns_display_info *dpyinfo = ns_display_list; /* HACK */
+      struct ns_display_info *dpyinfo = x_display_list; /* HACK */
       [cursor_blink_entry invalidate];
       [cursor_blink_entry release];
       cursor_blink_entry = 0;
-      if (dpyinfo->ns_highlight_frame)
+      if (dpyinfo->x_highlight_frame)
         {
           Lisp_Object tem
-	    = get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
-          dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor
+	    = get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
+          dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
 	    = ns_lisp_to_cursor_type (tem);
         }
     }
@@ -3563,7 +3563,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
     dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
     dpyinfo->mouse_face_defer = 0;
 
-    dpyinfo->ns_highlight_frame = dpyinfo->ns_focus_frame = NULL;
+    dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame = NULL;
 
     dpyinfo->n_fonts = 0;
     dpyinfo->smallest_font_height = 1;
@@ -3760,8 +3760,8 @@ handling_signal = 0;
     current_kboard = terminal->kboard;
   terminal->kboard->reference_count++;
 
-  dpyinfo->next = ns_display_list;
-  ns_display_list = dpyinfo;
+  dpyinfo->next = x_display_list;
+  x_display_list = dpyinfo;
 
   /* Put it on ns_display_name_list */
   ns_display_name_list = Fcons (Fcons (display_name, Qnil),
@@ -4084,7 +4084,7 @@ baseline level.  The default value is nil.  */);
 
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns-windowing"), Qnil);
-  /* PENDING: try to move this back into lisp (ns-win.el loaded too late
+  /* PENDING: try to move this back into lisp,  ns-win.el loaded too late
               right now */
   {
     Lisp_Object args[3] = { intern ("ns-version-string"), build_string ("9.0"),
@@ -4314,8 +4314,8 @@ extern void update_window_cursor (struct window *w, int on);
      Flash the cursor
    -------------------------------------------------------------------------- */
 {
-  struct ns_display_info *dpyinfo = ns_display_list; /*HACK, but OK for now */
-  struct frame *f = dpyinfo->ns_highlight_frame;
+  struct ns_display_info *dpyinfo = x_display_list; /*HACK, but OK for now */
+  struct frame *f = dpyinfo->x_highlight_frame;
   NSTRACE (cursor_blink_handler);
 
   if (!f)
@@ -5095,12 +5095,12 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
 {
   int val = ns_lisp_to_cursor_type (get_frame_param (emacsframe, Qcursor_type));
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (emacsframe);
-  struct frame *old_focus = dpyinfo->ns_focus_frame;
+  struct frame *old_focus = dpyinfo->x_focus_frame;
 
   NSTRACE (windowDidBecomeKey);
 
   if (emacsframe != old_focus)
-    dpyinfo->ns_focus_frame = emacsframe;
+    dpyinfo->x_focus_frame = emacsframe;
   /*/last_mouse_frame = emacsframe;? */
 
   if (val >= 0)
@@ -5131,10 +5131,10 @@ if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
       FRAME_LAST_INACTIVE (emacsframe) = YES;
     }
 
-  if (dpyinfo->ns_highlight_frame == emacsframe)
-    dpyinfo->ns_highlight_frame = 0;
-  if (dpyinfo->ns_focus_frame == emacsframe)
-    dpyinfo->ns_focus_frame = 0;
+  if (dpyinfo->x_highlight_frame == emacsframe)
+    dpyinfo->x_highlight_frame = 0;
+  if (dpyinfo->x_focus_frame == emacsframe)
+    dpyinfo->x_focus_frame = 0;
 
   if (dpyinfo->mouse_face_mouse_frame == emacsframe)
     {
@@ -6209,11 +6209,11 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
           [cursor_blink_entry invalidate];
           [cursor_blink_entry release];
           cursor_blink_entry = 0;
-          if (dpyinfo->ns_highlight_frame)
+          if (dpyinfo->x_highlight_frame)
             {
               Lisp_Object tem
-		= get_frame_param (dpyinfo->ns_highlight_frame, Qcursor_type);
-              dpyinfo->ns_highlight_frame->output_data.ns->desired_cursor
+		= get_frame_param (dpyinfo->x_highlight_frame, Qcursor_type);
+              dpyinfo->x_highlight_frame->output_data.ns->desired_cursor
 		= ns_lisp_to_cursor_type (tem);
             }
         }

@@ -92,7 +92,7 @@ Lisp_Object Vns_icon_type_alist;
 EmacsTooltip *ns_tooltip;
 
 /* Need forward declaration here to preserve organizational integrity of file */
-Lisp_Object Fns_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
+Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 
 extern BOOL ns_in_resize;
 
@@ -151,8 +151,8 @@ check_ns_display_info (Lisp_Object frame)
       struct frame *f = SELECTED_FRAME ();
       if (FRAME_NS_P (f) && FRAME_LIVE_P (f) )
         return FRAME_NS_DISPLAY_INFO (f);
-      else if (ns_display_list != 0)
-        return ns_display_list;
+      else if (x_display_list != 0)
+        return x_display_list;
       else
         error ("Nextstep windows are not in use or not initialized");
     }
@@ -212,9 +212,9 @@ ns_get_screen (Lisp_Object anythingUnderTheSun)
     /* we got a terminal */
     terminal = get_terminal (anythingUnderTheSun, 1);
     dpyinfo = terminal->display_info.ns;
-    f = dpyinfo->ns_focus_frame;
+    f = dpyinfo->x_focus_frame;
     if (!f)
-      f = dpyinfo->ns_highlight_frame;
+      f = dpyinfo->x_highlight_frame;
 
   } else if (FRAMEP (anythingUnderTheSun) &&
              FRAME_NS_P (XFRAME (anythingUnderTheSun))) {
@@ -252,7 +252,7 @@ ns_display_info_for_name (name)
 
   CHECK_STRING (name);
 
-  for (dpyinfo = ns_display_list, names = ns_display_name_list;
+  for (dpyinfo = x_display_list, names = ns_display_name_list;
        dpyinfo;
        dpyinfo = dpyinfo->next, names = XCDR (names))
     {
@@ -264,8 +264,8 @@ ns_display_info_for_name (name)
 
   error ("Emacs for OpenStep does not yet support multi-display.");
 
-  Fns_open_connection (name, Qnil, Qnil);
-  dpyinfo = ns_display_list;
+  Fx_open_connection (name, Qnil, Qnil);
+  dpyinfo = x_display_list;
 
   if (dpyinfo == 0)
     error ("OpenStep on %s not responding.\n", SDATA (name));
@@ -1044,7 +1044,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
 };
 
 
-DEFUN ("x-create-frame", Fns_create_frame, Sns_create_frame,
+DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        "Make a new Nextstep window, called a \"frame\" in Emacs terms.
 Return an Emacs frame object.
@@ -1346,7 +1346,7 @@ be shared by the new frame.")
 
    ========================================================================== */
 
-DEFUN ("ns-focus-frame", Fns_focus_frame, Sns_focus_frame, 1, 1, 0,
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Set the input focus to FRAME.
 FRAME nil means use the selected frame.  */)
      (frame)
@@ -1355,7 +1355,7 @@ FRAME nil means use the selected frame.  */)
   struct frame *f = check_ns_frame (frame);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
 
-  if (dpyinfo->ns_focus_frame != f)
+  if (dpyinfo->x_focus_frame != f)
     {
       EmacsView *view = FRAME_NS_VIEW (f);
       BLOCK_INPUT;
@@ -1584,7 +1584,7 @@ DEFUN ("ns-server-max-request-size", Fns_server_max_request_size,
 }
 
 
-DEFUN ("ns-server-vendor", Fns_server_vendor, Sns_server_vendor, 0, 1, 0,
+DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        "Return the vendor ID string of Nextstep display server DISPLAY.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, the selected frame's display is used.")
@@ -1600,7 +1600,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-server-version", Fns_server_version, Sns_server_version, 0, 1, 0,
+DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
        "Return the version number of Nextstep display server DISPLAY.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, the selected frame's display is used.
@@ -1613,7 +1613,7 @@ See also the function `ns-server-vendor'.")
 }
 
 
-DEFUN ("ns-display-screens", Fns_display_screens, Sns_display_screens, 0, 1, 0,
+DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
        "Return the number of screens on Nextstep display server DISPLAY.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.")
@@ -1629,7 +1629,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-display-mm-height", Fns_display_mm_height, Sns_display_mm_height,
+DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height,
        0, 1, 0,
        "Return the height of Nextstep display server DISPLAY, in millimeters.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
@@ -1643,7 +1643,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-display-mm-width", Fns_display_mm_width, Sns_display_mm_width,
+DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width,
        0, 1, 0,
        "Return the width of Nextstep display server DISPLAY, in millimeters.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
@@ -1657,7 +1657,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-display-backing-store", Fns_display_backing_store,
+DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sns_display_backing_store, 0, 1, 0,
        "Return whether the Nexstep display DISPLAY supports backing store.
 The value may be `buffered', `retained', or `non-retained'.
@@ -1682,7 +1682,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-display-visual-class", Fns_display_visual_class,
+DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sns_display_visual_class, 0, 1, 0,
        "Return the visual class of the Nextstep display server DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
@@ -1712,7 +1712,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-display-save-under", Fns_display_save_under,
+DEFUN ("x-display-save-under", Fx_display_save_under,
        Sns_display_save_under, 0, 1, 0,
        "Non-nil if the Nextstep display server supports the save-under feature.
 The optional argument DISPLAY specifies which display to ask about.
@@ -1738,7 +1738,7 @@ If omitted or nil, the selected frame's display is used.")
 }
 
 
-DEFUN ("ns-open-connection", Fns_open_connection, Sns_open_connection,
+DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 3, 0, "Open a connection to a Nextstep display server.
 DISPLAY is the name of the display to connect to.
 Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.")
@@ -1777,7 +1777,7 @@ Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.")
 }
 
 
-DEFUN ("ns-close-connection", Fns_close_connection, Sns_close_connection,
+DEFUN ("x-close-connection", Fx_close_connection, Sx_close_connection,
        1, 1, 0, "Close the connection to the current Nextstep display server.
 The second argument DISPLAY is currently ignored.")
      (display)
@@ -1793,7 +1793,7 @@ The second argument DISPLAY is currently ignored.")
 }
 
 
-DEFUN ("ns-display-list", Fns_display_list, Sns_display_list, 0, 0, 0,
+DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        "Return the list of display names that Emacs has connections to.")
      ()
 {
@@ -2126,10 +2126,10 @@ x_get_focus_frame (struct frame *frame)
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (frame);
   Lisp_Object nsfocus;
 
-  if (!dpyinfo->ns_focus_frame)
+  if (!dpyinfo->x_focus_frame)
     return Qnil;
 
-  XSETFRAME (nsfocus, dpyinfo->ns_focus_frame);
+  XSETFRAME (nsfocus, dpyinfo->x_focus_frame);
   return nsfocus;
 }
 
@@ -2548,24 +2548,24 @@ be used as the image of the icon representing the frame.");
   defsubr (&Sns_color_defined_p);
   defsubr (&Sns_color_values);
   defsubr (&Sns_server_max_request_size);
-  defsubr (&Sns_server_vendor);
-  defsubr (&Sns_server_version);
+  defsubr (&Sx_server_vendor);
+  defsubr (&Sx_server_version);
   defsubr (&Sns_display_pixel_width);
   defsubr (&Sns_display_pixel_height);
   defsubr (&Sns_display_usable_bounds);
-  defsubr (&Sns_display_mm_width);
-  defsubr (&Sns_display_mm_height);
-  defsubr (&Sns_display_screens);
+  defsubr (&Sx_display_mm_width);
+  defsubr (&Sx_display_mm_height);
+  defsubr (&Sx_display_screens);
   defsubr (&Sns_display_planes);
   defsubr (&Sns_display_color_cells);
-  defsubr (&Sns_display_visual_class);
-  defsubr (&Sns_display_backing_store);
-  defsubr (&Sns_display_save_under);
-  defsubr (&Sns_create_frame);
+  defsubr (&Sx_display_visual_class);
+  defsubr (&Sx_display_backing_store);
+  defsubr (&Sx_display_save_under);
+  defsubr (&Sx_create_frame);
   defsubr (&Sns_set_alpha);
-  defsubr (&Sns_open_connection);
-  defsubr (&Sns_close_connection);
-  defsubr (&Sns_display_list);
+  defsubr (&Sx_open_connection);
+  defsubr (&Sx_close_connection);
+  defsubr (&Sx_display_list);
 
   defsubr (&Sns_hide_others);
   defsubr (&Sns_hide_emacs);
@@ -2573,7 +2573,7 @@ be used as the image of the icon representing the frame.");
   defsubr (&Sns_list_services);
   defsubr (&Sns_perform_service);
   defsubr (&Sns_convert_utf8_nfd_to_nfc);
-  defsubr (&Sns_focus_frame);
+  defsubr (&Sx_focus_frame);
   defsubr (&Sns_popup_prefs_panel);
   defsubr (&Sns_popup_font_panel);
   defsubr (&Sns_popup_color_panel);

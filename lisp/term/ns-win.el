@@ -62,9 +62,6 @@
 (defvar ns-cursor-blink-rate)
 (defvar ns-alternate-modifier)
 
-(declare-function ns-server-vendor "nsfns.m" (&optional display))
-(declare-function ns-server-version "nsfns.m" (&optional display))
-
 ;;;; Command line argument handling.
 
 (defvar ns-invocation-args nil)
@@ -98,7 +95,7 @@
                                   initial-frame-alist)))
 
 ;; Set (but not used?) in frame.el.
-(defvar ns-display-name nil
+(defvar x-display-name nil
   "The name of the Nextstep display on which Emacs was started.")
 
 ;; nsterm.m.
@@ -323,13 +320,6 @@ this defaults to \"printenv\"."
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
 
-;; alt-up/down scrolling a la Stuart.app
-;; only activated if ns-extended-platform-support is on
-(defun up-one () (interactive) (scroll-up 1))
-(defun down-one () (interactive) (scroll-down 1))
-(defun left-one () (interactive) (scroll-left 1))
-(defun right-one () (interactive) (scroll-right 1))
-
 (defvar menu-bar-ns-file-menu)		; below
 
 ;; Toggle some additional Nextstep-like features that may interfere
@@ -375,8 +365,8 @@ this defaults to \"printenv\"."
   "Set up function Keys for Nextstep for frame FRAME."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
-      (setq interprogram-cut-function 'ns-select-text
-	    interprogram-paste-function 'ns-pasteboard-value)
+      (setq interprogram-cut-function 'x-select-text
+	    interprogram-paste-function 'x-cut-buffer-or-selection-value)
       ;; (let ((map (copy-keymap x-alternatives-map)))
       ;;   (set-keymap-parent map (keymap-parent local-function-key-map))
       ;;   (set-keymap-parent local-function-key-map map))
@@ -1387,10 +1377,10 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from ns-pasteboard-value.
+;; from x-cut-buffer-or-selection-value.
 (defvar ns-last-selected-text nil)
 
-(defun ns-select-text (text &optional push)
+(defun x-select-text (text &optional push)
   "Put TEXT, a string, on the pasteboard."
   ;; Don't send the pasteboard too much text.
   ;; It becomes slow, and if really big it causes errors.
@@ -1400,7 +1390,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 ;; Return the value of the current Nextstep selection.  For
 ;; compatibility with older Nextstep applications, this checks cut
 ;; buffer 0 before retrieving the value of the primary selection.
-(defun ns-pasteboard-value ()
+(defun x-cut-buffer-or-selection-value ()
   (let (text)
 
     ;; Consult the selection, then the cut buffer.  Treat empty strings
@@ -1429,14 +1419,9 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 
 ;; PENDING: not sure what to do here.. for now interprog- are set in
 ;; init-fn-keys, and unsure whether these x- settings have an effect.
-;;(setq interprogram-cut-function 'ns-select-text
-;;      interprogram-paste-function 'ns-pasteboard-value)
+;;(setq interprogram-cut-function 'x-select-text
+;;      interprogram-paste-function 'x-cut-buffer-or-selection-value)
 ;; These only needed if above not working.
-(defalias 'x-select-text 'ns-select-text)
-(defalias 'x-cut-buffer-or-selection-value 'ns-pasteboard-value)
-(defalias 'x-disown-selection-internal 'ns-disown-selection-internal)
-(defalias 'x-get-selection-internal 'ns-get-selection-internal)
-(defalias 'x-own-selection-internal 'ns-own-selection-internal)
 
 (set-face-background 'region "ns_selection_color")
 
@@ -1508,7 +1493,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (defvar colors x-colors
   "The list of colors defined in non-PANTONE color files.")
 
-(defun ns-defined-colors (&optional frame)
+(defun xw-defined-colors (&optional frame)
   "Return a list of colors supported for a particular frame.
 The argument FRAME specifies which frame to try.
 The value may be different for frames on different Nextstep displays."
@@ -1522,8 +1507,6 @@ The value may be different for frames on different Nextstep displays."
       ;; (and (face-color-supported-p frame this-color t)
       (setq defined-colors (cons this-color defined-colors))) ;;)
     defined-colors))
-(defalias 'x-defined-colors 'ns-defined-colors)
-(defalias 'xw-defined-colors 'ns-defined-colors)
 
 (declare-function ns-set-alpha "nsfns.m" (color alpha))
 
@@ -1607,17 +1590,6 @@ Note, tranparency works better on Tiger (10.4) and higher."
      (t
       (set-face-background face ns-input-color frame)))))
 
-
-
-;; Misc aliases.
-(defalias 'x-display-mm-width 'ns-display-mm-width)
-(defalias 'x-display-mm-height 'ns-display-mm-height)
-(defalias 'x-display-backing-store 'ns-display-backing-store)
-(defalias 'x-display-save-under 'ns-display-save-under)
-(defalias 'x-display-visual-class 'ns-display-visual-class)
-(defalias 'x-display-screens 'ns-display-screens)
-(defalias 'x-focus-frame 'ns-focus-frame)
-
 ;; Set some options to be as Nextstep-like as possible.
 (setq frame-title-format t
       icon-title-format t)
@@ -1635,9 +1607,6 @@ Note, tranparency works better on Tiger (10.4) and higher."
 (defvar ns-initialized nil
   "Non-nil if Nextstep windowing has been initialized.")
 
-(declare-function ns-open-connection "nsfns.m"
-		  (display &optional resource_string must_succeed))
-
 (declare-function ns-list-services "nsfns.m" ())
 
 ;; Do the actual Nextstep Windows setup here; the above code just
@@ -1648,7 +1617,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
   ;; PENDING: not needed?
   (setq command-line-args (ns-handle-args command-line-args))
 
-  (ns-open-connection (system-name) nil t)
+  (x-open-connection (system-name) nil t)
 
   (dolist (service (ns-list-services))
       (if (eq (car service) 'undefined)
