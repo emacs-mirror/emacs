@@ -54,8 +54,13 @@ a GIF library.
 +++
 *** Emacs now supports the SVG image format through librsvg2.
 
-** The Mac Carbon port is no longer supported.
-Instead, use... [FIXME what?]
+** New NeXTSTEP-based port
+This provides support for GNUStep (via the GNUStep libraries) and Mac
+OS X (via the Cocoa libraries).  See nextstep/README and
+nextstep/INSTALL in the Emacs source directory.
+
+** Mac OS X is no longer supported via Carbon.
+Use the NeXTSTEP port, described above.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -68,6 +73,17 @@ See the list at the end of etc/MACHINES for details.
 *** Support for Sun windows has been removed.
 ---
 *** The `emacstool' utility has been removed.
+
+** The following platforms will be removed in a future Emacs version:
+
+*** Libc version 5 on GNU/Linux.
+
+*** Old FreeBSD and NetBSD systems based on the COFF executable
+    format.
+
+*** Solaris versions 2.6 and below.
+
+*** Compilation using the NO_SHARED_LIBS flag.
 
 ---
 ** The configure options `--with-gcc', `--without-gcc' have been removed.
