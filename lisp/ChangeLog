@@ -1,3 +1,13 @@
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/ns-win.el: Standardize references to "Nextstep" in
+	comments, messages, and docstrings.
+	(ns-handle-args, x-parse-geometry)
+	(ns-extended-platform-support-mode, x-setup-function-keys)
+	(ns-select-overlay, ns-unselect-line, ns-yes-or-no-p)
+	(ns-set-pasteboard, ns-scroll-bar-move, ns-defined-colors)
+	(ns-initialized, ns-initialize-window-system): Doc fixes.
+
 2008-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* diff-mode.el (diff-auto-refine): Delete defcustom.
