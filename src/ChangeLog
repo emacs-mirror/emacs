@@ -1,5 +1,7 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/ibmrs6000.h (LD_SWITCH_SITE): Remove.
+
 	* image.c: 
 	* nsfns.m: 
 	* nsselect.m: 

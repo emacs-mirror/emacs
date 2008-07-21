@@ -63,11 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LD_SWITCH_MACHINE -Wl,-bnodelcsect
 #endif /* THIS_IS_MAKEFILE */
 
-/* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */
-#if __GNUC__ == 2 && __GNUC_MINOR__ == 7
-#define LD_SWITCH_SITE -B/bin/
-#endif
-
 #ifndef NLIST_STRUCT
 /* AIX supposedly doesn't use this interface, but on the RS/6000
    it apparently does.  */
