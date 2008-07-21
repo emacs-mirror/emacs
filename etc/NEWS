@@ -579,7 +579,7 @@ set a variable's `safe-local-variable' and `risky-local-variable' property.
 
 *** diff-refine-hunk highlights word-level details of changes in a diff hunk.
 It's used automatically as you move through hunks, see
-diff-auto-refine.  It is bound to `C-c C-b'.
+diff-auto-refine-mode.  It is bound to `C-c C-b'.
 
 *** diff-add-change-log-entries-other-window iterates through the diff
 buffer and tries to create ChangeLog entries for each change.
@@ -784,7 +784,8 @@ It is used to configure wireless interfaces.
 *** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 *** smerge-refine highlights word-level details of changes in conflict.
-It's used automatically as you move through conflicts, see smerge-auto-refine.
+It's used automatically as you move through conflicts, see
+smerge-auto-refine-mode.
 
 *** talk.el has been extended for multiple tty support.
 

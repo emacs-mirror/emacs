@@ -1,3 +1,12 @@
+2008-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* diff-mode.el (diff-auto-refine): Delete defcustom.
+	(diff-auto-refine-mode): New func/var via define-minor-mode.
+	Update var ref to use diff-auto-refine-mode.
+	* smerge-mode.el (diff-mode): Require when compiling.
+	(smerge-auto-refine): Delete defcustom.
+	Update smerge-auto-refine ref to use diff-auto-refine-mode.
+
 2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (visual-line): New custom group.

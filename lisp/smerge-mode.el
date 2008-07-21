@@ -44,7 +44,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl) (require 'diff-mode))
 
 
 ;;; The real definition comes later.
@@ -74,11 +74,6 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defcustom smerge-auto-leave t
   "Non-nil means to leave `smerge-mode' when the last conflict is resolved."
-  :group 'smerge
-  :type 'boolean)
-
-(defcustom smerge-auto-refine t
-  "Automatically highlight changes in detail as the user visits conflicts."
   :group 'smerge
   :type 'boolean)
 
@@ -259,7 +254,7 @@ Can be nil if the style is undecided, or else:
 
 ;; Define smerge-next and smerge-prev
 (easy-mmode-define-navigation smerge smerge-begin-re "conflict" nil nil
-  (if smerge-auto-refine
+  (if diff-auto-refine-mode
       (condition-case nil (smerge-refine) (error nil))))
 
 (defconst smerge-match-names ["conflict" "mine" "base" "other"])
