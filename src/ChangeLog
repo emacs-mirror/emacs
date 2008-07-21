@@ -1,3 +1,19 @@
+2008-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m: Change NS to Nextstep in docstrings and error messages.
+	(Fns_create_frame, Fns_read_file_name, Fns_get_resource)
+	(Fns_set_resource, Fns_set_alpha, Fns_server_max_request_size)
+	(Fns_server_vendor, Fns_server_version, Fns_display_screens)
+	(Fns_display_mm_height, Fns_display_mm_width)
+	(Fns_display_backing_store, Fns_display_visual_class)
+	(Fns_display_save_under, Fns_open_connection)
+	(Fns_close_connection, Fns_hide_emacs, Fns_font_name)
+	(Fns_list_colors, Fns_perform_service, Fns_color_defined_p)
+	(Fns_color_values, Fxw_display_color_p, Fx_display_grayscale_p)
+	(Fns_display_pixel_width, Fns_display_pixel_height)
+	(Fns_display_usable_bounds, Fx_display_planes)
+	(Fns_display_color_cells, Vns_icon_type_alist): Doc fixes.
+
 2008-07-21  Ami Fischman  <ami@fischman.org>  (tiny change)
 
 	* print.c (print_object): Check print_depth before searching for
