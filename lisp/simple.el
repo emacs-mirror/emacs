@@ -4516,12 +4516,16 @@ This also turns on `word-wrap' in the buffer."
   (if visual-line-mode
       (progn
 	(set (make-local-variable 'line-move-visual) t)
-	(setq word-wrap t)
-	(setq fringe-indicator-alist
+	(set (make-local-variable 'truncate-partial-width-windows) nil)
+	(setq truncate-lines nil
+	      word-wrap t
+	      fringe-indicator-alist
 	      (cons (cons 'continuation visual-line-fringe-indicators)
 		    fringe-indicator-alist)))
     (kill-local-variable 'line-move-visual)
     (kill-local-variable 'word-wrap)
+    (kill-local-variable 'truncate-lines)
+    (kill-local-variable 'truncate-partial-width-windows)
     (kill-local-variable 'fringe-indicator-alist)))
 
 (defun turn-on-visual-line-mode ()
