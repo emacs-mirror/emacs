@@ -1,3 +1,8 @@
+2008-07-21  "Ami Fischman"  <ami@fischman.org>
+
+	* print.c (print_object): Check print_depth before searching for
+	circularities.
+
 2008-07-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_register_signal): Use sprintf + strcat instead
