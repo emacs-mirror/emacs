@@ -135,14 +135,14 @@ check_ns_frame (Lisp_Object frame)
       f = XFRAME (frame);
     }
   if (! FRAME_NS_P (f))
-    error ("non-NS frame used");
+    error ("non-Nextstep frame used");
   return f;
 }
 
 
-/* Let the user specify an NS display with a frame.
-   nil stands for the selected frame--or, if that is not an NS frame,
-   the first NS display on the list.  */
+/* Let the user specify an Nextstep display with a frame.
+   nil stands for the selected frame--or, if that is not an Nextstep frame,
+   the first Nextstep display on the list.  */
 static struct ns_display_info *
 check_ns_display_info (Lisp_Object frame)
 {
@@ -154,14 +154,14 @@ check_ns_display_info (Lisp_Object frame)
       else if (ns_display_list != 0)
         return ns_display_list;
       else
-        error ("NS windows are not in use or not initialized");
+        error ("Nextstep windows are not in use or not initialized");
     }
   else if (INTEGERP (frame))
     {
       struct terminal *t = get_terminal (frame, 1);
 
       if (t->type != output_ns)
-        error ("Terminal %d is not an NS display", XINT (frame));
+        error ("Terminal %d is not a Nextstep display", XINT (frame));
 
       return t->display_info.ns;
     }
@@ -174,7 +174,7 @@ check_ns_display_info (Lisp_Object frame)
       CHECK_LIVE_FRAME (frame);
       f = XFRAME (frame);
       if (! FRAME_NS_P (f))
-        error ("non-NS frame used");
+        error ("non-Nextstep frame used");
       return FRAME_NS_DISPLAY_INFO (f);
     }
   return NULL;  /* shut compiler up */
@@ -972,7 +972,7 @@ ns_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  /* don't think we can do this on NS */
+  /* don't think we can do this on Nextstep */
 }
 
 
@@ -1014,8 +1014,8 @@ frame_parm_handler ns_frame_parm_handlers[] =
   x_set_autoraise, /* generic OK */
   x_set_autolower, /* generic OK */
   ns_set_background_color,
-  0, /* x_set_border_color,  may be impossible under NS */
-  0, /* x_set_border_width,  may be impossible under NS */
+  0, /* x_set_border_color,  may be impossible under Nextstep */
+  0, /* x_set_border_width,  may be impossible under Nextstep */
   ns_set_cursor_color,
   ns_set_cursor_type,
   x_set_font, /* generic OK */
@@ -1046,12 +1046,12 @@ frame_parm_handler ns_frame_parm_handlers[] =
 
 DEFUN ("x-create-frame", Fns_create_frame, Sns_create_frame,
        1, 1, 0,
-       "Make a new NS window, which is called a \"frame\" in Emacs terms.\n\
-Return an Emacs frame object representing the X window.\n\
-ALIST is an alist of frame parameters.\n\
-If the parameters specify that the frame should not have a minibuffer,\n\
-and do not specify a specific minibuffer window to use,\n\
-then `default-minibuffer-frame' must be a frame whose minibuffer can\n\
+       "Make a new Nextstep window, called a \"frame\" in Emacs terms.
+Return an Emacs frame object.
+PARMS is an alist of frame parameters.
+If the parameters specify that the frame should not have a minibuffer,
+and do not specify a specific minibuffer window to use,
+then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.")
      (parms)
      Lisp_Object parms;
@@ -1213,7 +1213,7 @@ be shared by the new frame.")
                       "background", "Background", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qcursor_color, build_string ("grey"),
                       "cursorColor", "CursorColor", RES_TYPE_STRING);
-  /* FIXME: not suppported yet in NS */
+  /* FIXME: not suppported yet in Nextstep */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qleft_fringe, Qnil,
@@ -1271,7 +1271,7 @@ be shared by the new frame.")
   f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !EQ (tem, Qnil));
 
   /* NOTE: on other terms, this is done in set_mouse_color, however this
-     was not getting called under NS */
+     was not getting called under Nextstep */
   f->output_data.ns->text_cursor = [NSCursor IBeamCursor];
   f->output_data.ns->nontext_cursor = [NSCursor arrowCursor];
   f->output_data.ns->modeline_cursor = [NSCursor pointingHandCursor];
@@ -1424,9 +1424,10 @@ DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
 
 
 DEFUN ("ns-read-file-name", Fns_read_file_name, Sns_read_file_name, 1, 4, 0,
-       "As read-file-name except that NS panels are used for querying, and\n\
-args are slightly different.  Nil returned if no selection made.\n\
-Set ISLOAD non-nil if file being read for a save.")
+       "Use a graphical panel to read a file name, using prompt PROMPT.
+Optional arg DIR, if non-nil, supplies a default directory.
+Optional arg ISLOAD, if non-nil, means read a file name for saving.
+Optional arg INIT, if non-nil, provides a default file name to use.")
      (prompt, dir, isLoad, init)
      Lisp_Object prompt, dir, isLoad, init;
 {
@@ -1487,7 +1488,7 @@ Set ISLOAD non-nil if file being read for a save.")
 
 
 DEFUN ("ns-get-resource", Fns_get_resource, Sns_get_resource, 2, 2, 0,
-       "Return the value of the property NAME of OWNER from the defaults database.\n\
+       "Return the value of the property NAME of OWNER from the defaults database.
 If OWNER is nil, Emacs is assumed.")
      (owner, name)
      Lisp_Object owner, name;
@@ -1508,14 +1509,13 @@ If OWNER is nil, Emacs is assumed.")
 
   if (value)
     return build_string (value);
-/*fprintf (stderr, "Nothing found for NS resource '%s'.\n", SDATA (name)); */
   return Qnil;
 }
 
 
 DEFUN ("ns-set-resource", Fns_set_resource, Sns_set_resource, 3, 3, 0,
-       "Set property NAME of OWNER to VALUE, from the defaults database.\n\
-If OWNER is nil, Emacs is assumed.\n\
+       "Set property NAME of OWNER to VALUE, from the defaults database.
+If OWNER is nil, Emacs is assumed.
 If VALUE is nil, the default is removed.")
      (owner, name, value)
      Lisp_Object owner, name, value;
@@ -1545,8 +1545,9 @@ If VALUE is nil, the default is removed.")
 
 
 DEFUN ("ns-set-alpha", Fns_set_alpha, Sns_set_alpha, 2, 2, 0,
-       "Return a color same as given with alpha set to given value\n\
-from 0 to 1, where 1 is fully opaque.")
+       "Return a color equivalent to COLOR with alpha setting ALPHA.
+The argument ALPHA should be a number between 0 and 1, where 0 is full
+transparency and 1 is opaque.")
      (color, alpha)
      Lisp_Object color;
      Lisp_Object alpha;
@@ -1572,8 +1573,7 @@ from 0 to 1, where 1 is fully opaque.")
 DEFUN ("ns-server-max-request-size", Fns_server_max_request_size,
        Sns_server_max_request_size,
        0, 1, 0,
-       "This function is only present for completeness.  It does not return\n\
-a usable result for NS windows.")
+       "This function is a no-op.  It is only present for completeness.")
      (display)
      Lisp_Object display;
 {
@@ -1585,10 +1585,9 @@ a usable result for NS windows.")
 
 
 DEFUN ("ns-server-vendor", Fns_server_vendor, Sns_server_vendor, 0, 1, 0,
-       "Returns the vendor ID string of the NS server of display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the vendor ID string of Nextstep display server DISPLAY.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1602,11 +1601,10 @@ If omitted or nil, that stands for the selected frame's display.")
 
 
 DEFUN ("ns-server-version", Fns_server_version, Sns_server_version, 0, 1, 0,
-       "Returns the version number of the NS release of display DISPLAY.\n\
-See also the function `ns-server-vendor'.\n\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame or a display name (a string).\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the version number of Nextstep display server DISPLAY.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, the selected frame's display is used.
+See also the function `ns-server-vendor'.")
      (display)
      Lisp_Object display;
 {
@@ -1616,10 +1614,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 
 DEFUN ("ns-display-screens", Fns_display_screens, Sns_display_screens, 0, 1, 0,
-       "Returns the number of screens on the NS server of display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the number of screens on Nextstep display server DISPLAY.
+DISPLAY should be a frame, the display name as a string, or a terminal ID.
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1634,10 +1631,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("ns-display-mm-height", Fns_display_mm_height, Sns_display_mm_height,
        0, 1, 0,
-       "Returns the height in millimeters of the NS display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the height of Nextstep display server DISPLAY, in millimeters.
+DISPLAY should be a frame, the display name as a string, or a terminal ID.
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1649,10 +1645,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("ns-display-mm-width", Fns_display_mm_width, Sns_display_mm_width,
        0, 1, 0,
-       "Returns the width in millimeters of the NS display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the width of Nextstep display server DISPLAY, in millimeters.
+DISPLAY should be a frame, the display name as a string, or a terminal ID.
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1664,12 +1659,10 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("ns-display-backing-store", Fns_display_backing_store,
        Sns_display_backing_store, 0, 1, 0,
-       "Returns an indication of whether NS display DISPLAY does backing store.\n\
-The value may be `buffered', `retained', or `non-retained'.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.\n\
-Under NS, this may differ for each frame.")
+       "Return whether the Nexstep display DISPLAY supports backing store.
+The value may be `buffered', `retained', or `non-retained'.
+DISPLAY should be a frame, the display name as a string, or a terminal ID.
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1691,12 +1684,11 @@ Under NS, this may differ for each frame.")
 
 DEFUN ("ns-display-visual-class", Fns_display_visual_class,
        Sns_display_visual_class, 0, 1, 0,
-       "Returns the visual class of the NS display DISPLAY.\n\
-The value is one of the symbols `static-gray', `gray-scale',\n\
-`static-color', `pseudo-color', `true-color', or `direct-color'.\n\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the visual class of the Nextstep display server DISPLAY.
+The value is one of the symbols `static-gray', `gray-scale',
+`static-color', `pseudo-color', `true-color', or `direct-color'.
+DISPLAY should be a frame, the display name as a string, or a terminal ID.
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1715,18 +1707,17 @@ If omitted or nil, that stands for the selected frame's display.")
   else if ( depth == NSBestDepth (NSCalibratedRGBColorSpace, 8, 24, NO, NULL))
     return intern ("direct-color");
   else
-    /* color mgmt as far as we do it is really handled by NS itself anyway */
+    /* color mgmt as far as we do it is really handled by Nextstep itself anyway */
     return intern ("direct-color");
 }
 
 
 DEFUN ("ns-display-save-under", Fns_display_save_under,
        Sns_display_save_under, 0, 1, 0,
-       "Returns t if the NS display DISPLAY supports the save-under feature.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.\n\
-Under NS, this may differ for each frame.")
+       "Non-nil if the Nextstep display server supports the save-under feature.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be a frame, the display name as a string, or a terminal ID.
+If omitted or nil, the selected frame's display is used.")
      (display)
      Lisp_Object display;
 {
@@ -1748,8 +1739,8 @@ Under NS, this may differ for each frame.")
 
 
 DEFUN ("ns-open-connection", Fns_open_connection, Sns_open_connection,
-       1, 3, 0, "Open a connection to a NS server.\n\
-DISPLAY is the name of the display to connect to.\n\
+       1, 3, 0, "Open a connection to a Nextstep display server.
+DISPLAY is the name of the display to connect to.
 Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.")
      (display, resource_string, must_succeed)
      Lisp_Object display, resource_string, must_succeed;
@@ -1787,9 +1778,8 @@ Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.")
 
 
 DEFUN ("ns-close-connection", Fns_close_connection, Sns_close_connection,
-       1, 1, 0, "Close the connection to the current NS server.\n\
-The second argument DISPLAY is currently ignored, but nil would stand for\n\
-the selected frame's display.")
+       1, 1, 0, "Close the connection to the current Nextstep display server.
+The second argument DISPLAY is currently ignored.")
      (display)
      Lisp_Object display;
 {
@@ -1827,9 +1817,9 @@ DEFUN ("ns-hide-others", Fns_hide_others, Sns_hide_others,
 }
 
 DEFUN ("ns-hide-emacs", Fns_hide_emacs, Sns_hide_emacs,
-       1, 1, 0, "If ON is non-nil, the entire emacs application is hidden.\n\
-Otherwise if emacs is hidden, it is unhidden.\n\
-If ON is equal to 'activate, emacs is unhidden and becomes\n\
+       1, 1, 0, "If ON is non-nil, the entire emacs application is hidden.
+Otherwise if emacs is hidden, it is unhidden.
+If ON is equal to `activate', emacs is unhidden and becomes
 the active application.")
      (on)
      Lisp_Object on;
@@ -1916,9 +1906,10 @@ The font names are _NOT_ X names.  */)
 
 
 DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
-       "Determine font postscript or family name from a font name string or\n\
-XLFD string.  If string contains fontset' and not 'fontset-startup' it is\n\
-left alone.")
+       "Determine font postscript or family name for font NAME.
+NAME should be a string containing either the font name or an XLFD
+font descriptor.  If string contains `fontset' and not
+`fontset-startup', it is left alone.")
      (name)
      Lisp_Object name;
 {
@@ -1936,7 +1927,7 @@ left alone.")
 
 
 DEFUN ("ns-list-colors", Fns_list_colors, Sns_list_colors, 0, 1, 0,
-       "Return a list of all available colors.\n\
+       "Return a list of all available colors.
 The optional argument FRAME is currently ignored.")
      (frame)
      Lisp_Object frame;
@@ -1949,7 +1940,7 @@ The optional argument FRAME is currently ignored.")
     {
       CHECK_FRAME (frame);
       if (! FRAME_NS_P (XFRAME (frame)))
-        error ("non-NS frame used in `ns-list-colors'");
+        error ("non-Nextstep frame used in `ns-list-colors'");
     }
 
   BLOCK_INPUT;
@@ -1977,7 +1968,7 @@ The optional argument FRAME is currently ignored.")
 
 
 DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
-       "List NS services by querying NSApp.")
+       "List available Nextstep services by querying NSApp.")
      ()
 {
   Lisp_Object ret = Qnil;
@@ -2027,8 +2018,10 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
 
 
 DEFUN ("ns-perform-service", Fns_perform_service, Sns_perform_service,
-       2, 2, 0, "Perform NS SERVICE on SEND which is either a string or nil.\n\
-Returns result of service as string or nil if no result.")
+       2, 2, 0, "Perform Nextstep SERVICE on SEND.
+SEND should be either a string or nil.
+The return value is the result of the service, as string, or nil if
+there was no result.")
      (service, send)
      Lisp_Object service, send;
 {
@@ -2057,7 +2050,7 @@ Returns result of service as string or nil if no result.")
 
 DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
        Sns_convert_utf8_nfd_to_nfc, 1, 1, 0,
-       "Composes character sequences in UTF-8 normal form NFD string STR to produce a normal (composed normal form NFC) string.")
+       "Return an NFC string that matches  the UTF-8 NFD string STR.")
     (str)
     Lisp_Object str;
 {
@@ -2193,7 +2186,7 @@ x_sync (Lisp_Object frame)
 
 
 DEFUN ("xw-color-defined-p", Fns_color_defined_p, Sns_color_defined_p, 1, 2, 0,
-       "Return t if the current NS display supports the color named COLOR.\n\
+       "Return t if the current Nextstep display supports the color COLOR.
 The optional argument FRAME is currently ignored.")
      (color, frame)
      Lisp_Object color, frame;
@@ -2205,9 +2198,9 @@ The optional argument FRAME is currently ignored.")
 
 
 DEFUN ("xw-color-values", Fns_color_values, Sns_color_values, 1, 2, 0,
-       "Return a description of the color named COLOR.\n\
-The value is a list of integer RGBA values--(RED GREEN BLUE ALPHA).\n\
-These values appear to range from 0 to 65280; white is (65280 65280 65280 0).\n\
+       "Return a description of the color named COLOR.
+The value is a list of integer RGBA values--(RED GREEN BLUE ALPHA).
+These values appear to range from 0 to 65280; white is (65280 65280 65280 0).
 The optional argument FRAME is currently ignored.")
      (color, frame)
      Lisp_Object color, frame;
@@ -2234,9 +2227,9 @@ The optional argument FRAME is currently ignored.")
 
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
-       "Return t if the NS display supports color.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
+       "Return t if the Nextstep display supports color.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
@@ -2255,10 +2248,10 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
        Sx_display_grayscale_p, 0, 1, 0,
-       "Return t if the NS display supports shades of gray.\n\
-Note that color displays do support shades of gray.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
+       "Return t if the Nextstep display supports shades of gray.
+Note that color displays do support shades of gray.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
@@ -2273,9 +2266,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("x-display-pixel-width", Fns_display_pixel_width, Sns_display_pixel_width,
        0, 1, 0,
-       "Returns the width in pixels of the NS display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
+       "Returns the width in pixels of the Nextstep display DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
@@ -2287,9 +2280,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("x-display-pixel-height", Fns_display_pixel_height,
        Sns_display_pixel_height, 0, 1, 0,
-       "Returns the height in pixels of the NS display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
+       "Returns the height in pixels of the Nextstep display DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
@@ -2300,12 +2293,14 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("display-usable-bounds", Fns_display_usable_bounds,
        Sns_display_usable_bounds, 0, 1, 0,
-       "Returns a list of integers in form (left top width height) describing the \
-usable screen area excluding reserved areas such as the Mac menu and doc, or \
-the Windows task bar.\n                        \
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
-If omitted or nil, that stands for the selected frame's display.")
+       "Return the bounds of the usable part of the screen.
+The return value is a list of integers (LEFT TOP WIDTH HEIGHT), which
+are the boundaries of the usable part of the screen, excluding areas
+reserved for the Mac menu, dock, and so forth.
+
+The screen queried corresponds to DISPLAY, which should be either a
+frame, a display name (a string), or terminal ID.  If omitted or nil,
+that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
 {
@@ -2326,9 +2321,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("x-display-planes", Fx_display_planes, Sns_display_planes,
        0, 1, 0,
-       "Returns the number of bitplanes of the NS display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
+       "Returns the number of bitplanes of the Nextstep display DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
@@ -2341,9 +2336,9 @@ If omitted or nil, that stands for the selected frame's display.")
 
 DEFUN ("x-display-color-cells", Fns_display_color_cells,
        Sns_display_color_cells, 0, 1, 0,
-       "Returns the number of color cells of the NS display DISPLAY.\n\
-The optional argument DISPLAY specifies which display to ask about.\n\
-DISPLAY should be either a frame, a display name (a string), or terminal ID.\n\
+       "Returns the number of color cells of the Nextstep display DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.")
      (display)
      Lisp_Object display;
@@ -2522,23 +2517,23 @@ syms_of_nsfns ()
   staticpro (&Qfontsize);
 
   DEFVAR_LISP ("ns-icon-type-alist", &Vns_icon_type_alist,
-               "Alist of elements (REGEXP . IMAGE) for images of icons associated to\n\
-frames.  If the title of a frame matches REGEXP, then IMAGE.tiff is\n\
-selected as the image of the icon representing the frame when it's\n\
-miniaturized.  If an element is t, then Emacs tries to select an icon\n\
-based on the filetype of the visited file.\n\
-\n\
-The images have to be installed in a folder called English.lproj in the\n\
-Emacs.app folder.  You have to restart Emacs after installing new icons.\n\
-\n\
-Example: Install an icon Gnus.tiff and execute the following code\n\
-\n\
-  (setq ns-icon-type-alist\n\
-        (append ns-icon-type-alist\n\
-                '((\"^\\\\*\\\\(Group\\\\*$\\\\|Summary \\\\|Article\\\\*$\\\\)\"\n\
-                   . \"Gnus\"))))\n\
-\n\
-When you miniaturize a Group, Summary or Article frame, Gnus.tiff will\n\
+               "Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.
+If the title of a frame matches REGEXP, then IMAGE.tiff is
+selected as the image of the icon representing the frame when it's
+miniaturized.  If an element is t, then Emacs tries to select an icon
+based on the filetype of the visited file.
+
+The images have to be installed in a folder called English.lproj in the
+Emacs folder.  You have to restart Emacs after installing new icons.
+
+Example: Install an icon Gnus.tiff and execute the following code
+
+  (setq ns-icon-type-alist
+        (append ns-icon-type-alist
+                '((\"^\\\\*\\\\(Group\\\\*$\\\\|Summary \\\\|Article\\\\*$\\\\)\"
+                   . \"Gnus\"))))
+
+When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.");
   Vns_icon_type_alist = Fcons (Qt, Qnil);
 
