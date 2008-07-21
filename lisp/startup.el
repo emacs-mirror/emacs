@@ -2205,10 +2205,10 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (setq command-line-args-left
 			 (nthcdr (nth 1 tem) command-line-args-left)))
 
-		((setq tem (assoc argi command-line-ns-option-alist))
-		 ;; Ignore NS-windows options and their args if not using NS.
-		 (setq command-line-args-left
-		       (nthcdr (nth 1 tem) command-line-args-left)))
+		  ((setq tem (assoc argi command-line-ns-option-alist))
+		   ;; Ignore NS-windows options and their args if not using NS.
+		   (setq command-line-args-left
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
 		   (setq inhibit-startup-screen t)

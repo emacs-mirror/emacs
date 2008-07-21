@@ -1,5 +1,7 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* startup.el (command-line-1): Fix indentation.
+
 	* term/ns-win.el (up-one, down-one, left-one, right-one): Remove,
 	checked in inadvertently.
 
