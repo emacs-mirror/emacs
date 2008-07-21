@@ -1,4 +1,4 @@
-2008-07-21  "Ami Fischman"  <ami@fischman.org>
+2008-07-21  "Ami Fischman"  <ami@fischman.org>  (tiny change)
 
 	* print.c (print_object): Check print_depth before searching for
 	circularities.
