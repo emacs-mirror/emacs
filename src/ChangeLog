@@ -1,3 +1,14 @@
+2008-07-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (kCGBitmapByteOrder32Host): New define for
+	non-universal SDKs.
+
+	* image.c (mac_create_cg_image_from_image, image_load_image_io)
+	[USE_MAC_IMAGE_IO]: Remove conditionals for kCGBitmapByteOrder32Host.
+
+	* macterm.c (XDrawLine, XCreatePixmapFromBitmapData) [USE_MAC_IMAGE_IO]:
+	Remove conditionals for kCGBitmapByteOrder32Host.
+
 2008-07-18  David Robinow  <drobinow@gmail.com>  (tiny change)
 
         * w32inevt.c: Include dispextern.h.  Don't declare change_frame_size
