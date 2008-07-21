@@ -24,22 +24,23 @@
 
 ;;; Commentary:
 
-;; ns-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
-;; that NS windows are to be used.  Command line switches are parsed and those
-;; pertaining to NS are processed and removed from the command line.  The
-;; NS display is opened and hooks are set for popping up the initial window.
+;; ns-win.el: this file is loaded from ../lisp/startup.el when it
+;; recognizes that Nextstep windows are to be used.  Command line
+;; switches are parsed and those pertaining to Nextstep are processed
+;; and removed from the command line.  The Nextstep display is opened
+;; and hooks are set for popping up the initial window.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window (s).
 
-;; A number of other NS convenience functions are defined in this file,
-;; which works in close coordination with src/nsfns.m.
+;; A number of other Nextstep convenience functions are defined in
+;; this file, which works in close coordination with src/nsfns.m.
 
 ;;; Code:
 
 
 (if (not (featurep 'ns-windowing))
-    (error "%s: Loading ns-win.el but not compiled for *Step/OS X"
+    (error "%s: Loading ns-win.el but not compiled for GNUStep/MacOS"
 	   (invocation-name)))
 
 (eval-when-compile (require 'cl))
@@ -98,7 +99,7 @@
 
 ;; Set (but not used?) in frame.el.
 (defvar ns-display-name nil
-  "The name of the NS display on which Emacs was started.")
+  "The name of the Nextstep display on which Emacs was started.")
 
 ;; nsterm.m.
 (defvar ns-input-file)
@@ -119,12 +120,12 @@
   (setq ns-invocation-args (cddr ns-invocation-args)))
 
 (defun ns-handle-args (args)
-  "Process NeXTSTEP-related command line options.
+  "Process Nextstep-related command line options.
 This is run before the user's startup file is loaded.
-The options in ARGS are copied to `ns-invocation-args'.  The
-NeXTSTEP-related settings are then applied using the handlers
+The options in ARGS are copied to `ns-invocation-args'.
+The Nextstep-related settings are then applied using the handlers
 defined in `command-line-ns-option-alist'.
-The return value is ARGS minus the arguments processed."
+The return value is ARGS minus the number of arguments processed."
   ;; We use ARGS to accumulate the args that we don't handle here, to return.
   (setq ns-invocation-args args
         args nil)
@@ -163,23 +164,22 @@ The return value is ARGS minus the arguments processed."
   (nreverse args))
 
 (defun x-parse-geometry (geom)
-  "Parse an NS-style geometry string STRING.
+  "Parse a Nextstep-style geometry string STRING.
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
 The properties returned may include `top', `left', `height', and `width'."
-  (if (string-match "\\([0-9]+\\)\\( \\([0-9]+\\)\\( \\([0-9]+\\)\\( \\([0-9]+\\) ?\\)?\\)?\\)?"
-                    geom)
-      (apply 'append
-             (list
-              (list (cons 'top (string-to-number (match-string 1 geom))))
-              (if (match-string 3 geom)
-                  (list (cons 'left (string-to-number (match-string 3 geom)))))
-              (if (match-string 5 geom)
-                  (list (cons 'height (string-to-number (match-string 5 geom)))))
-              (if (match-string 7 geom)
-                  (list (cons 'width (string-to-number (match-string 7 geom)))))))
-    '()))
-
-
+  (when (string-match "\\([0-9]+\\)\\( \\([0-9]+\\)\\( \\([0-9]+\\)\
+\\( \\([0-9]+\\) ?\\)?\\)?\\)?"
+		      geom)
+    (apply
+     'append
+     (list
+      (list (cons 'top (string-to-number (match-string 1 geom))))
+      (if (match-string 3 geom)
+	  (list (cons 'left (string-to-number (match-string 3 geom)))))
+      (if (match-string 5 geom)
+	  (list (cons 'height (string-to-number (match-string 5 geom)))))
+      (if (match-string 7 geom)
+	  (list (cons 'width (string-to-number (match-string 7 geom)))))))))
 
 ;;;; Keyboard mapping.
 
@@ -213,7 +213,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key function-key-map [M-escape] [?\M-\e])
 
 
-;; Here are some NeXTSTEP like bindings for command key sequences.
+;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'ns-popup-prefs-panel)
 (define-key global-map [?\s-'] 'next-multiframe-window)
 (define-key global-map [?\s-`] 'other-frame)
@@ -267,7 +267,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [kp-next] 'scroll-up)
 
 
-;; Special NeXTSTEP generated events are converted to function keys.  Here
+;; Special Nextstep-generated events are converted to function keys.  Here
 ;; are the bindings for them.
 (define-key global-map [ns-power-off]
   (lambda () (interactive) (save-buffers-kill-emacs t)))
@@ -286,8 +286,8 @@ The properties returned may include `top', `left', `height', and `width'."
 
 
 ;; Functions to set environment variables by running a subshell.
-;;; Idea based on NS 4.2 distribution, this version of code based on
-;;; mac-read-environment-vars-from-shell () by David Reitter.
+;;; Idea based on Nextstep 4.2 distribution, this version of code
+;;; based on mac-read-environment-vars-from-shell () by David Reitter.
 ;;; Mostly used only under ns-extended-platform-support-mode.
 
 (defun ns-make-command-string (cmdlist)
@@ -332,10 +332,10 @@ this defaults to \"printenv\"."
 
 (defvar menu-bar-ns-file-menu)		; below
 
-;; Toggle some additional NS-like features that may interfere with users'
-;; expectations coming from emacs on other platforms.
+;; Toggle some additional Nextstep-like features that may interfere
+;; with users' expectations coming from emacs on other platforms.
 (define-minor-mode ns-extended-platform-support-mode
-  "Toggle NS extended platform support features.
+  "Toggle Nextstep extended platform support features.
    When this mode is active (no modeline indicator):
    - File menu is altered slightly in keeping with conventions.
    - Meta-up, meta-down are bound to scroll window up and down one line.
@@ -355,7 +355,8 @@ this defaults to \"printenv\"."
         (setq scroll-preserve-screen-position t)
         (transient-mark-mode 1)
 
-        ;; Change file menu to simplify and add a couple of NS-specific items
+        ;; Change file menu to simplify and add a couple of
+        ;; Nextstep-specific items
         (easy-menu-remove-item global-map '("menu-bar") 'file)
         (easy-menu-add-item global-map '(menu-bar)
                             (cons "File" menu-bar-ns-file-menu) 'edit))
@@ -371,7 +372,7 @@ this defaults to \"printenv\"."
 
 
 (defun x-setup-function-keys (frame)
-  "Set up function Keys for NS for given FRAME."
+  "Set up function Keys for Nextstep for frame FRAME."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
       (setq interprogram-cut-function 'ns-select-text
@@ -479,7 +480,7 @@ this defaults to \"printenv\"."
 
 ;;;; Miscellaneous mouse bindings.
 
-;;; Allow shift-clicks to work just like under NS
+;;; Allow shift-clicks to work just like under Nextstep
 (defun mouse-extend-region (event)
   "Move point or mark so as to extend region.
 This should be bound to a mouse click event type."
@@ -802,10 +803,11 @@ This should be bound to a mouse click event type."
 
 
 
-;;;; Composed key sequence handling for NS system input methods.
-;;;; (On NS systems, input methods are provided for CJK characters,
-;;;;  etc. which require multiple keystrokes, and during entry a
-;;;;  partial ("working") result is typically shown in the editing window.)
+;;;; Composed key sequence handling for Nextstep system input methods.
+;;;; (On Nextstep systems, input methods are provided for CJK
+;;;; characters, etc. which require multiple keystrokes, and during
+;;;; entry a partial ("working") result is typically shown in the
+;;;; editing window.)
 
 (defface ns-working-text-face
   '((t :underline t))
@@ -914,7 +916,7 @@ See ns-insert-working-text."
       (set-file-name-coding-system 'utf-8-nfd)))
 
 ;; PENDING: disable composition-based display for Indic scripts as it
-;;        is not working well under NS for some reason
+;;        is not working well under Nextstep for some reason
 (set-char-table-range composition-function-table
                       '(#x0900 . #x0DFF) nil)
 
@@ -941,7 +943,7 @@ prompting.  If file is a directory perform a find-file on it."
       (push-mark (+ (point) (car (cdr (insert-file-contents f))))))))
 
 (defvar ns-select-overlay nil
-  "Overlay used to highlight areas in files requested by NS apps.")
+  "Overlay used to highlight areas in files requested by Nextstep apps.")
 (make-variable-buffer-local 'ns-select-overlay)
 
 (defvar ns-input-line) 			; nsterm.m
@@ -981,7 +983,7 @@ Lines are highlighted according to `ns-input-line'."
         (setq ns-select-overlay (delete-overlay ns-select-overlay))))))
 
 (defun ns-unselect-line ()
-  "Removes any NS highlight a buffer may contain."
+  "Removes any Nextstep highlight a buffer may contain."
   (if ns-select-overlay
       (setq ns-select-overlay (delete-overlay ns-select-overlay))))
 
@@ -1188,7 +1190,7 @@ unless the current buffer is a scratch buffer.")
 
 ;;;; Frame-related functions.
 
-;; Don't show the frame name; that's redundant with NS.
+;; Don't show the frame name; that's redundant with Nextstep.
 (setq-default mode-line-frame-identification '("  "))
 
 ;; You say tomAYto, I say tomAHto..
@@ -1301,7 +1303,8 @@ cursor display.  On a text-only terminal, this is not implemented."
     (print-buffer)))
 
 (defun ns-yes-or-no-p (prompt)
-  "As yes-or-no-p except that NS panel always used for querying."
+  "Ask user a \"yes or no\" question using a Nextstep graphical panel.
+PROMPT is the prompt string."
   (interactive)
   (setq last-nonmenu-event nil)
   (yes-or-no-p prompt))
@@ -1377,7 +1380,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (declare-function ns-store-cut-buffer-internal "nsselect.m" (buffer string))
 
 (defun ns-set-pasteboard (string)
-  "Store STRING into the NS server's pasteboard."
+  "Store STRING into the pasteboard of the Nextstep display server."
   ;; Check the data type of STRING.
   (if (not (stringp string)) (error "Nonstring given to pasteboard"))
   (ns-store-cut-buffer-internal 'PRIMARY string))
@@ -1394,9 +1397,9 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
   (ns-set-pasteboard text)
   (setq ns-last-selected-text text))
 
-;; Return the value of the current NS selection.  For compatibility
-;; with older NS applications, this checks cut buffer 0 before
-;; retrieving the value of the primary selection.
+;; Return the value of the current Nextstep selection.  For
+;; compatibility with older Nextstep applications, this checks cut
+;; buffer 0 before retrieving the value of the primary selection.
 (defun ns-pasteboard-value ()
   (let (text)
 
@@ -1446,7 +1449,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (global-unset-key [vertical-scroll-bar drag-mouse-1])
 
 (defun ns-scroll-bar-move (event)
-  "Scroll the frame according to an NS scroller event."
+  "Scroll the frame according to an Nextstep scroller event."
   (interactive "e")
   (let* ((pos (event-end event))
          (window (nth 0 pos))
@@ -1508,7 +1511,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (defun ns-defined-colors (&optional frame)
   "Return a list of colors supported for a particular frame.
 The argument FRAME specifies which frame to try.
-The value may be different for frames on different NS displays."
+The value may be different for frames on different Nextstep displays."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
@@ -1615,7 +1618,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
 (defalias 'x-display-screens 'ns-display-screens)
 (defalias 'x-focus-frame 'ns-focus-frame)
 
-;; Set some options to be as NS-like as possible.
+;; Set some options to be as Nextstep-like as possible.
 (setq frame-title-format t
       icon-title-format t)
 
@@ -1630,17 +1633,17 @@ Note, tranparency works better on Tiger (10.4) and higher."
 
 
 (defvar ns-initialized nil
-  "Non-nil if NS windowing has been initialized.")
+  "Non-nil if Nextstep windowing has been initialized.")
 
 (declare-function ns-open-connection "nsfns.m"
 		  (display &optional resource_string must_succeed))
 
 (declare-function ns-list-services "nsfns.m" ())
 
-;; Do the actual NS Windows setup here; the above code just defines
-;; functions and variables that we use now.
+;; Do the actual Nextstep Windows setup here; the above code just
+;; defines functions and variables that we use now.
 (defun ns-initialize-window-system ()
-  "Initialize Emacs for NS (Cocoa / GNUstep) windowing."
+  "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
 
   ;; PENDING: not needed?
   (setq command-line-args (ns-handle-args command-line-args))
