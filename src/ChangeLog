@@ -1,3 +1,20 @@
+2008-07-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m
+	(Fx_create_frame, Fx_read_file_name, Fx_get_resource)
+	(Fx_set_resource, Fx_set_alpha, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_open_connection)
+	(Fx_close_connection, Fx_hide_emacs, Fx_font_name)
+	(Fx_list_colors, Fx_perform_service, Fx_color_defined_p)
+	(Fx_color_values, Fxw_display_color_p, Fx_display_grayscale_p)
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fx_display_usable_bounds, Fx_display_planes)
+	(Fx_display_color_cells, Vns_icon_type_alist): Change to use 'doc: /*
+	... */' style of docstrings.
+
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/mips.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Do not define, not used
