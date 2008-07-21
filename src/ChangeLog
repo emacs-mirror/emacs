@@ -1,5 +1,12 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* image.c: 
+	* nsfns.m: 
+	* nsselect.m: 
+	* nsterm.h: 
+	* nsterm.m: Rename ns prefixed functions/variables to the
+	corresponding x versions.  Update references.
+
 	* m/ibms390x.h (NO_REMAP): Do not undefine.
 
 	* m/amdx86-64.h: Use SOLARIS2 instead of sun.
