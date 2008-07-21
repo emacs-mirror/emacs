@@ -1,3 +1,8 @@
+2008-07-21  Ami Fischman  <ami@fischman.org>  (tiny change)
+
+	* print.c (print_object): Check print_depth before searching for
+	circularities.
+
 2008-07-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.h (kCGBitmapByteOrder32Host): New define for
