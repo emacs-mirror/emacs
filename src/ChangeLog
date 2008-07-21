@@ -2,10 +2,10 @@
 
 	* m/ibmrs6000.h (LD_SWITCH_SITE): Remove.
 
-	* image.c: 
-	* nsfns.m: 
-	* nsselect.m: 
-	* nsterm.h: 
+	* image.c:
+	* nsfns.m:
+	* nsselect.m:
+	* nsterm.h:
 	* nsterm.m: Rename ns prefixed functions/variables to the
 	corresponding x versions.  Update references.
 
