@@ -1,5 +1,9 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* frame.el (ns-display-name): Remove declaration.
+	(make-frame-on-display): Use x-display-name instead
+	ns-display-name.  Use unless.
+
 	* startup.el (command-line-1): Fix indentation.
 
 	* term/ns-win.el (up-one, down-one, left-one, right-one): Remove,
