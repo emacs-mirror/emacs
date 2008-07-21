@@ -1,5 +1,11 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/mips.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Do not define, not used
+	on this platform.
+	(mips):
+	* m/iris4d.h (mips): Do not define.
+	* sysdep.c (init_sys_modes): Use __mips__ instead of mips.
+
 	* m/ibmrs6000.h (LD_SWITCH_SITE): Remove.
 
 	* image.c:

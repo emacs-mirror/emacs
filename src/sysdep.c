@@ -1360,7 +1360,7 @@ init_sys_modes (tty_out)
 					   of C-z */
 #endif /* VSWTCH */
   
-#if defined (mips) || defined (HAVE_TCATTR)
+#if defined (__mips__) || defined (HAVE_TCATTR)
 #ifdef VSUSP
   tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
 #endif /* VSUSP */
