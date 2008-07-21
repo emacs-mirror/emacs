@@ -3,7 +3,7 @@
 	* simple.el (visual-line): New custom group.
 	(visual-line-fringe-indicators): New var.
 	(visual-line-mode): Set fringe-indicator-alist based on
-	visual-line-fringe-indicators.
+	visual-line-fringe-indicators.  Add lighter.
 
 2008-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
