@@ -101,12 +101,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* LIB_STANDARD and START_FILES set correctly in s/netbsd.h */
 
-#elif defined(sun)
+#elif defined(SOLARIS2)
 
 #undef START_FILES
 #undef LIB_STANDARD
 
-#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !sun */
+#else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !SOLARIS2 */
 
 #undef START_FILES
 #ifdef HAVE_LIB64_DIR
