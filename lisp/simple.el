@@ -4508,9 +4508,11 @@ other purposes."
 	 (set-default symbol value)))
 
 (define-minor-mode visual-line-mode
-  "Redefine simple editing commands to act on visual lines, not logical lines."
+  "Redefine simple editing commands to act on visual lines, not logical lines.
+This also turns on `word-wrap' in the buffer."
   :keymap visual-line-mode-map
   :group 'visual-line
+  :lighter " wrap"
   (if visual-line-mode
       (progn
 	(set (make-local-variable 'line-move-visual) t)
