@@ -1,3 +1,8 @@
+2008-07-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_register_signal): Use sprintf + strcat instead
+	only sprintf.
+
 2008-07-21  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (adjust_anchor): Check if DetalValue is not NULL.
