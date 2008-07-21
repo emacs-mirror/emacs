@@ -1,3 +1,7 @@
+2008-07-21  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (adjust_anchor): Check if DetalValue is not NULL.
+
 2008-07-20  Andreas Schwab  <schwab@suse.de>
 
 	* syntax.c (find_start_pos, find_start_value)
