@@ -1,5 +1,7 @@
 2008-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/ibms390x.h (NO_REMAP): Do not undefine.
+
 	* m/amdx86-64.h: Use SOLARIS2 instead of sun.
 
 2008-07-21  Chong Yidong  <cyd@stupidchicken.com>

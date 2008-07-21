@@ -80,13 +80,6 @@ NOTE-END */
 
 #define HAVE_ALLOCA
 
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#undef NO_REMAP
-
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 
 #define VALBITS         60
