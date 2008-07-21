@@ -354,12 +354,10 @@ mac_create_cg_image_from_image (f, img)
   ximg->data = NULL;
   result = CGImageCreate (ximg->width, ximg->height, 8, 32,
 			  ximg->bytes_per_line, mac_cg_color_space_rgb,
-			  (img->mask ? kCGImageAlphaPremultipliedFirst
-			   : kCGImageAlphaNoneSkipFirst)
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
-			  | kCGBitmapByteOrder32Host
-#endif
-			  , provider, NULL, 0, kCGRenderingIntentDefault);
+			  ((img->mask ? kCGImageAlphaPremultipliedFirst
+			    : kCGImageAlphaNoneSkipFirst)
+			   | kCGBitmapByteOrder32Host),
+			  provider, NULL, 0, kCGRenderingIntentDefault);
   CGDataProviderRelease (provider);
   UNBLOCK_INPUT;
 
@@ -2682,10 +2680,7 @@ image_load_image_io (f, img, type)
 				   ximg->bytes_per_line,
 				   mac_cg_color_space_rgb,
 				   kCGImageAlphaNoneSkipFirst
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1040
-				   | kCGBitmapByteOrder32Host
-#endif
-				   );
+				   | kCGBitmapByteOrder32Host);
   if (has_alpha_p)
     {
       Lisp_Object specified_bg;
